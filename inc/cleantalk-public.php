@@ -1512,7 +1512,10 @@ function ct_si_contact_form_validate($form_errors = array(), $form_id_num = 0) {
     $sender_email = null;
     $sender_nickname = null;
     $subject = '';
-    $message = '';
+    $message = array();
+//getting info from custom fields
+	@ct_get_fields_any($sender_email, $message, $sender_nickname, $subject, $contact_form, $_POST);
+//setting fields if they with defaults names
     if (isset($_POST['email']))
         $sender_email = $_POST['email']; 
 
