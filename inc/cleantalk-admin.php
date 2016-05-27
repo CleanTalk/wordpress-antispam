@@ -98,7 +98,7 @@ function ct_admin_add_page() {
  */
 function ct_admin_init()
 {
-	global $ct_server_timeout, $show_ct_notice_autokey, $ct_notice_autokey_label, $ct_notice_autokey_value, $show_ct_notice_renew, $ct_notice_renew_label, $show_ct_notice_trial, $ct_notice_trial_label, $show_ct_notice_online, $ct_notice_online_label, $renew_notice_showtime, $trial_notice_showtime, $ct_plugin_name, $ct_options, $ct_data, $trial_notice_check_timeout, $account_notice_check_timeout, $ct_user_token_label, $cleantalk_plugin_version, $notice_check_timeout;
+	global $ct_server_timeout, $show_ct_notice_autokey, $ct_notice_autokey_label, $ct_notice_autokey_value, $show_ct_notice_renew, $ct_notice_renew_label, $show_ct_notice_trial, $ct_notice_trial_label, $show_ct_notice_online, $ct_notice_online_label, $renew_notice_showtime, $trial_notice_showtime, $ct_plugin_name, $ct_options, $ct_data, $trial_notice_check_timeout, $account_notice_check_timeout, $ct_user_token_label, $cleantalk_plugin_version, $notice_check_timeout, $renew_notice_check_timeout;
 
 	$ct_options = ct_get_options();
 	$ct_data = ct_get_data();
@@ -219,7 +219,7 @@ function ct_admin_init()
 		isset($_POST['cleantalk_settings']['apikey']))
 	{
 		$result = false;
-
+        $notice_check_timeout = $account_notice_check_timeout; 
 		//if (true)
 		//{
 			if(!function_exists('noticePaidTill'))
@@ -257,7 +257,7 @@ function ct_admin_init()
 					}
 					if ($result['show_notice'] == 1 && isset($result['renew']) && $result['renew'] == 1)
 					{
-						$notice_check_timeout = $account_notice_check_timeout;
+						$notice_check_timeout = $renew_notice_check_timeout;
 						$show_ct_notice_renew = true;
 						$ct_data['show_ct_notice_renew']=1;
 					}
@@ -265,9 +265,9 @@ function ct_admin_init()
 					if ($result['show_notice'] == 0)
 					{
 						$notice_check_timeout = $account_notice_check_timeout;
-						$ct_data['show_ct_notice_trial']=0;
-						$ct_data['show_ct_notice_renew']=0;
 					}
+                    $ct_data['show_ct_notice_trial']=(int) $show_ct_notice_trial;
+                    $ct_data['show_ct_notice_renew']= (int) $show_ct_notice_renew;
 				}
 				
 				if (isset($result['moderate_ip']) && $result['moderate_ip'] == 1)
@@ -286,9 +286,8 @@ function ct_admin_init()
 					$ct_data['user_token'] = $result['user_token']; 
 				}
 			}
-			
 			// Save next status request time
-			$ct_data['next_account_status_check'] = time()+86400;
+			$ct_data['next_account_status_check'] = time() + $notice_check_timeout * 3600;
 			update_option('cleantalk_data', $ct_data);
 		//}
 		
@@ -399,7 +398,8 @@ function ct_admin_init()
 		add_settings_field('cleantalk_check_external', __('Protect external forms', 'cleantalk'), 'ct_input_check_external', 'cleantalk', 'cleantalk_settings_anti_spam');
 		add_settings_field('cleantalk_check_comments_number', __("Don't check comments", 'cleantalk'), 'ct_input_check_comments_number', 'cleantalk', 'cleantalk_settings_anti_spam');
 		add_settings_field('cleantalk_set_cookies', __("Set cookies", 'cleantalk'), 'ct_input_set_cookies', 'cleantalk', 'cleantalk_settings_anti_spam');
-		//add_settings_field('cleantalk_check_messages_number', __("Don't check messages", 'cleantalk'), 'ct_input_check_messages_number', 'cleantalk', 'cleantalk_settings_anti_spam');
+		add_settings_field('cleantalk_ssl_on', __("Use SSL", 'cleantalk'), 'ct_input_ssl_on', 'cleantalk', 'cleantalk_settings_anti_spam');
+
 		add_settings_field('cleantalk_spam_firewall', __('', 'cleantalk'), 'ct_input_spam_firewall', 'cleantalk', 'cleantalk_settings_banner');
 		add_settings_field('cleantalk_collect_details', __('Collect details about browsers', 'cleantalk'), 'ct_input_collect_details', 'cleantalk', 'cleantalk_settings_anti_spam');
 		add_settings_field('cleantalk_show_link', __('', 'cleantalk'), 'ct_input_show_link', 'cleantalk', 'cleantalk_settings_banner');
@@ -906,7 +906,27 @@ function ct_input_set_cookies() {
 	echo "<input type='radio' id='cleantalk_set_cookies1' name='cleantalk_settings[set_cookies]' value='1' " . ($value == '1' ? 'checked' : '') . " /><label for='cleantalk_set_cookies1'> " . __('Yes') . "</label>";
 	echo '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
 	echo "<input type='radio' id='cleantalk_set_cookies0' name='cleantalk_settings[set_cookies]' value='0' " . ($value == '0' ? 'checked' : '') . " /><label for='cleantalk_set_cookies0'> " . __('No') . "</label>";
-	@admin_addDescriptionsFields(sprintf(__('Turn this option off to deny plugin generates any cookies on website fronentd. This option is helpfull if you use Varnish. But most of contact forms will not be protected by CleanTalk if the option is turnded off!', 'cleantalk')));
+	@admin_addDescriptionsFields(sprintf(__('Turn this option off to deny plugin generates any cookies on website front-end. This option is helpful if you use Varnish. But most of contact forms will not be protected by CleanTalk if the option is turned off!', 'cleantalk')));
+}
+
+function ct_input_ssl_on() {
+	global $ct_options, $ct_data;
+	
+	$ct_options = ct_get_options();
+	$ct_data = ct_get_data();
+
+	if(isset($ct_options['ssl_on']))
+	{
+		$value = @intval($ct_options['ssl_on']);
+	}
+	else
+	{
+		$value=0;
+	}
+	echo "<input type='radio' id='cleantalk_ssl_on1' name='cleantalk_settings[ssl_on]' value='1' " . ($value == '1' ? 'checked' : '') . " /><label for='cleantalk_ssl_on1'> " . __('Yes') . "</label>";
+	echo '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
+	echo "<input type='radio' id='cleantalk_ssl_on0' name='cleantalk_settings[ssl_on]' value='0' " . ($value == '0' ? 'checked' : '') . " /><label for='cleantalk_ssl_on0'> " . __('No') . "</label>";
+	@admin_addDescriptionsFields(sprintf(__('Turn this option on to use encrypted (SSL) connection with CleanTalk servers.', 'cleantalk')));
 }
 
 function ct_input_show_link() {
@@ -956,7 +976,10 @@ function ct_input_spam_firewall() {
 	
 	echo "<div id='cleantalk_anchor1' style='display:none'></div><input type=hidden name='cleantalk_settings[spam_firewall]' value='0' />";
 	echo "<input type='checkbox' id='cleantalk_spam_firewall1' name='cleantalk_settings[spam_firewall]' value='1' " . ($value == '1' ? 'checked' : '') . " /><label for='cleantalk_spam_firewall1'> " . __('SpamFireWall') . "</label>";
-	@admin_addDescriptionsFields(sprintf(__("This option allows to filter spam bots before they access website. Also reduces CPU usage on hosting server and accelerates pages load time.", 'cleantalk'),  $ct_options['spam_firewall']));
+	@admin_addDescriptionsFields(sprintf(__("This option allows to filter spam bots before they access website. Also reduces CPU usage on hosting server and accelerates pages load time.", 'cleantalk'),  $ct_options['spam_firewall']) .
+        " " .
+        '<a href="https://cleantalk.org/cleantalk-spam-firewall" style="font-size: 10pt; color: #666 !important" target="_blank">' . __('Learn more') . '</a>.'
+    );
 	echo "<script>
 		jQuery(document).ready(function(){
 			jQuery('#cleantalk_anchor1').parent().parent().children().first().hide();
