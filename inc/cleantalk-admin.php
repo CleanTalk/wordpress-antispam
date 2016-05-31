@@ -131,7 +131,7 @@ function ct_admin_init()
 		));
 	}
 	
-	if(@isset($_POST['cleantalk_settings']['spam_firewall']) && $_POST['cleantalk_settings']['spam_firewall']==1)
+	if(@isset($_POST['cleantalk_settings']['spam_firewall']) && $_POST['cleantalk_settings']['spam_firewall']==1 && $_POST['cleantalk_settings']['spam_firewall_was_set'] == 0)
 	{
 		cleantalk_update_sfw();
 	}
@@ -945,15 +945,19 @@ function ct_input_spam_firewall() {
 	$ct_options = ct_get_options();
 	$ct_data = ct_get_data();
 
-	if(isset($ct_options['spam_firewall']))
-	{
+	if(isset($ct_options['spam_firewall']))	{
 		$value = @intval($ct_options['spam_firewall']);
-	}
-	else
-	{
+	}else{
 		$value=0;
 	}
 	
+	if(!isset($ct_options['spam_firewall']) && $ct_options['spam_firewall']==0){
+		$value2 = 0;
+	}else{
+		$value2 = 1;
+	}
+	
+	echo "<div id='cleantalk_anchor1' style='display:none'></div><input type=hidden name='cleantalk_settings[spam_firewall_was_set]' value='".$value2."' />";
 	echo "<div id='cleantalk_anchor1' style='display:none'></div><input type=hidden name='cleantalk_settings[spam_firewall]' value='0' />";
 	echo "<input type='checkbox' id='cleantalk_spam_firewall1' name='cleantalk_settings[spam_firewall]' value='1' " . ($value == '1' ? 'checked' : '') . " /><label for='cleantalk_spam_firewall1'> " . __('SpamFireWall') . "</label>";
 	@admin_addDescriptionsFields(sprintf(__("This option allows to filter spam bots before they access website. Also reduces CPU usage on hosting server and accelerates pages load time.", 'cleantalk'),  $ct_options['spam_firewall']));
@@ -1347,9 +1351,8 @@ function ct_update_option($option_name) {
 		$ct_options['apikey'] = $api_key;
 	}
 	
-	if(@isset($_POST['cleantalk_settings']['spam_firewall']) && $_POST['cleantalk_settings']['spam_firewall']==1)
-	{
-		cleantalk_update_sfw();
+	if(isset($_POST['cleantalk_settings']['spam_firewall']) && $_POST['cleantalk_settings']['spam_firewall']==1 && $_POST['cleantalk_settings']['spam_firewall_was_set'] == 0){
+		cleantalk_update_sfw("ct_update_option");
 	}
 
 	if (!ct_valid_key($api_key)) {
