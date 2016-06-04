@@ -292,28 +292,6 @@ function ct_user_register_ajaxlogin($user_id)
 	return $user_id;
 }
 
-function ct_get_fields(&$email,&$message,$arr)
-{
-	foreach($arr as $key=>$value)
-	{
-		if(!is_array($value))
-		{
-			if ($email === null && preg_match("/^\S+@\S+\.\S+$/", $value))
-	    	{
-	            $email = $value;
-	        }
-	        else
-	        {
-	        	$message.="$value\n";
-	        }
-		}
-		else
-		{
-			ct_get_fields($email,$message,$value);
-		}
-	}
-}
-
 function ct_ajax_hook()
 {
 	require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public.php');
@@ -321,10 +299,7 @@ function ct_ajax_hook()
 	
 	$ct_options = ct_get_options();
     $ct_data = ct_get_data();
-	$sender_email = null;
-    $message = '';
-    $nickname=null;
-    
+
     //
     // Skip test if Custom contact forms is disabled.
     //
@@ -342,13 +317,14 @@ function ct_ajax_hook()
     //
     // Go out because of not spam data 
     //
-    $gmw_actions = array(
-        'gmaps_display_info_window',
-        'gmw_ps_display_info_window'
+    $skip_post = array(
+        'gmaps_display_info_window',  // Geo My WP pop-up windows.
+        'gmw_ps_display_info_window',  // Geo My WP pop-up windows.
+        'the_champ_user_auth',  // Super Socializer 
     );
 	$checkjs = js_test('ct_checkjs', $_COOKIE, true);
     if ($checkjs && // Spammers usually fail the JS test
-        (isset($_POST['action']) && in_array($_POST['action'], $gmw_actions)) // Geo My WP pop-up windows.
+        (isset($_POST['action']) && in_array($_POST['action'], $skip_post))
         ) {
         return false;
     }
@@ -374,8 +350,19 @@ function ct_ajax_hook()
     	$_POST['target']=1;
     }
     
-    ct_get_fields($sender_email,$message,$_POST);
-    
+	$temp=ct_get_fields_any($_POST);
+	
+    $sender_email = ($temp['email'] ? $temp['email'] : '');
+    $sender_nickname = ($temp['nickname'] ? $temp['nickname'] : '');
+    $subject = ($temp['subject'] ? $temp['subject'] : '');
+    $contact_form = ($temp['contact'] ? $temp['contact'] : '');
+    $message = ($temp['message'] ? $temp['message'] : array());
+	
+    if ($subject != '') {
+        $message = array_merge(array('subject' => $subject), $message);
+    }
+    $message = json_encode($message);
+
     if(isset($_POST['cscf']['confirm-email']))
     {
     	$_POST['cscf']['confirm-email']=$tmp;
@@ -397,6 +384,12 @@ function ct_ajax_hook()
 		{
 			$sender_info= '';
 		}
+        
+        $post_info['comment_type'] = 'feedback_ajax';
+        $post_info = json_encode($post_info);
+        if ($post_info === false)
+            $post_info = '';
+
 		
 		$ct_base_call_result = ct_base_call(array(
 			'message' => $message,
@@ -404,7 +397,7 @@ function ct_ajax_hook()
 			'sender_email' => $sender_email,
 			'sender_nickname' => $nickname,
 			'sender_info' => $sender_info,
-			'post_info'=>null,
+			'post_info'=> $post_info,
 			'checkjs' => $checkjs));
 		
 		$ct = $ct_base_call_result['ct'];
