@@ -504,6 +504,17 @@ function ct_ajax_hook()
 				print json_encode($result);
 				die();
 			}
+			//UserPro
+			else if($_POST['action']=='userpro_process_form' && $_POST['template']=='register')
+			{
+				foreach($_POST as $key => $value){
+					$output[$key]=$value;
+				}unset($key, $value);
+				$output['template'] = $ct_result->comment;
+				$output=json_encode($output);
+				print_r($output);
+				die;
+			}
 			else
 			{
 				print $ct_result->comment;
