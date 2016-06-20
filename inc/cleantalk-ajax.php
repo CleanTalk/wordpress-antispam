@@ -66,11 +66,6 @@ add_action( 'wp_ajax_nopriv_cscf-submitform', 'ct_ajax_hook',1 );
 add_action( 'wp_ajax_cscf-submitform', 'ct_ajax_hook',1 );
 $cleantalk_hooked_actions[]='cscf-submitform';
 
-/*hooks for stats */
-add_action( 'wp_ajax_nopriv_ajax_get_stats', 'ct_get_stats',1 );
-add_action( 'wp_ajax_ajax_get_stats', 'ct_get_stats',1 );
-$cleantalk_hooked_actions[]='ajax_get_stats';
-
 /*hooks for visual form builder */
 //add_action( 'wp_ajax_nopriv_vfb_submit', 'ct_vfb_submit',1 );
 //add_action( 'wp_ajax_vfb_submit', 'ct_vfb_submit',1 );
@@ -110,25 +105,6 @@ add_action( 'template_redirect', 'ct_ajax_hook',1 );
 add_action( 'wp_ajax_nopriv_ninja_forms_ajax_submit', 'ct_ajax_hook',1  );
 add_action( 'wp_ajax_ninja_forms_ajax_submit', 'ct_ajax_hook',1  );
 $cleantalk_hooked_actions[]='ninja_forms_ajax_submit';
-
-function ct_get_stats()
-{
-	check_ajax_referer( 'ct_secret_nonce', 'security' );
-	global $ct_data;
-	$ct_data=ct_get_data();
-	
-	if(!isset($ct_data['array_accepted']))
-	{
-		$ct_data['array_accepted']=Array();
-		$ct_data['array_blocked']=Array();
-		$ct_data['current_hour']=0;
-		update_option('cleantalk_data', $ct_data);
-	}
-	
-	$ret=Array('stat_accepted'=>@array_sum($ct_data['array_accepted']), 'stat_blocked'=>@array_sum($ct_data['array_blocked']), 'stat_all'=>@array_sum($ct_data['array_accepted']) + @array_sum($ct_data['array_blocked']));
-	print json_encode($ret);
-	die();
-}
 
 function ct_validate_email_ajaxlogin($email=null, $is_ajax=true)
 {
@@ -299,6 +275,11 @@ function ct_ajax_hook()
 	
 	$ct_options = ct_get_options();
     $ct_data = ct_get_data();
+	$sender_email = null;
+    $message = '';
+    $nickname=null;
+    $contact = true;
+    $subject = '';
 
     //
     // Skip test if Custom contact forms is disabled.
@@ -350,14 +331,7 @@ function ct_ajax_hook()
     	$_POST['target']=1;
     }
     
-	$temp=ct_get_fields_any($_POST);
-	
-    $sender_email = ($temp['email'] ? $temp['email'] : '');
-    $sender_nickname = ($temp['nickname'] ? $temp['nickname'] : '');
-    $subject = ($temp['subject'] ? $temp['subject'] : '');
-    $contact_form = ($temp['contact'] ? $temp['contact'] : '');
-    $message = ($temp['message'] ? $temp['message'] : array());
-	
+	ct_get_fields_any($sender_email, $message, $nickname, $subject, $contact, $_POST);
     if ($subject != '') {
         $message = array_merge(array('subject' => $subject), $message);
     }
