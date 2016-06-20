@@ -1,16 +1,18 @@
 <?php
 /*
-  Plugin Name: Anti-Spam by CleanTalk 
+  Plugin Name: Spam Protection by CleanTalk
   Plugin URI: http://cleantalk.org
-  Description: Max power, all-in-one, captcha less, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms. 
-  Version: 5.40.4
+  Description: Max power, all-in-one, captcha less, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms. Formerly Anti-Spam by CleanTalk. 
+  Version: 5.42.1
   Author: СleanTalk <welcome@cleantalk.org>
   Author URI: http://cleantalk.org
  */
-$cleantalk_plugin_version='5.40.4';
-$ct_agent_version = 'wordpress-5404';
+$cleantalk_plugin_version='5.42.1';
+$ct_agent_version = 'wordpress-5421';
 $cleantalk_executed=false;
 $ct_sfw_updated = false;
+
+$ct_redirects_label = 'ct_redirects';
 
 if(defined('CLEANTALK_AJAX_USE_BUFFER'))
 {
@@ -160,7 +162,15 @@ if(!defined('CLEANTALK_PLUGIN_DIR')){
     // http://codex.wordpress.org/Function_Reference/register_activation_hook
     register_activation_hook( __FILE__, 'ct_activation' );
     register_deactivation_hook( __FILE__, 'ct_deactivation' );
-    
+
+    // 
+    // Redirect admin to plugin settings.
+    //
+    if(!defined('WP_ALLOW_MULTISITE') || defined('WP_ALLOW_MULTISITE') && WP_ALLOW_MULTISITE == false)
+    {
+    	add_action('admin_init', 'ct_plugin_redirect');
+    }
+        
     // After plugin loaded - to load locale as described in manual
     add_action( 'ct_init', 'ct_plugin_loaded' );
     ct_plugin_loaded();
@@ -284,12 +294,12 @@ if(!defined('CLEANTALK_PLUGIN_DIR')){
  */
 if (!function_exists ( 'ct_activation')) {
     function ct_activation() {
-	wp_schedule_event(time(), 'hourly', 'ct_hourly_event_hook' );
-	//wp_schedule_event(time(), 'hourly', 'ct_send_sfw_log' );
-	wp_schedule_event(time(), 'daily', 'cleantalk_update_sfw' );
-	
-	cleantalk_update_sfw();
-	add_option('ct_plugin_do_activation_redirect', true);
+        wp_schedule_event(time(), 'hourly', 'ct_hourly_event_hook' );
+        //wp_schedule_event(time(), 'hourly', 'ct_send_sfw_log' );
+        wp_schedule_event(time(), 'daily', 'cleantalk_update_sfw' );
+        
+        cleantalk_update_sfw();
+        add_option('ct_plugin_do_activation_redirect', true);
     }
 }
 /**
@@ -303,35 +313,71 @@ if (!function_exists ( 'ct_deactivation')) {
     }
 }
 
+/**
+ * Redirects admin to plugin settings after activation. 
+ */
+function ct_plugin_redirect()
+{
+    global $ct_redirects_label;
+	if (get_option('ct_plugin_do_activation_redirect', false))
+	{
+		delete_option('ct_plugin_do_activation_redirect');
+		if(!isset($_GET['activate-multi']) && !isset($_COOKIE[$ct_redirects_label]))
+		{
+		    setcookie($ct_redirects_label, 1, null, '/'); 
+			wp_redirect("options-general.php?page=cleantalk");
+		}
+	}
+}
+
 function ct_add_event($event_type)
 {
 	global $ct_data,$cleantalk_executed;
 	$ct_data = ct_get_data();
-	
-	if(!isset($ct_data['array_accepted']))
-	{
-		$ct_data['array_accepted']=Array();
-		$ct_data['array_blocked']=Array();
-		$ct_data['current_hour']=0;
-	}
-	
 	$current_hour=intval(date('G'));
-	if($current_hour!=$ct_data['current_hour'])
-	{
+	$current_date=date('d M');
+	
+	//24 hour counter
+	if(!isset($ct_data['array_accepted']))
+		$ct_data['array_accepted']=Array();
+
+	if(!isset($ct_data['array_blocked']))
+		$ct_data['array_blocked']=Array();
+	
+	if(!isset($ct_data['current_hour']))
+		$ct_data['current_hour']=0;
+	
+	if($current_hour!=$ct_data['current_hour']){
 		$ct_data['current_hour']=$current_hour;
 		$ct_data['array_accepted'][$current_hour]=0;
 		$ct_data['array_blocked'][$current_hour]=0;
 	}
 	
-	if($event_type=='yes')
-	{
-		@$ct_data['array_accepted'][$current_hour]++;
-	}
-	if($event_type=='no')
-	{
-		@$ct_data['array_blocked'][$current_hour]++;
+	//All-time counter
+	if(!isset($ct_data['all_time_counter'])){
+		$ct_data['all_time_counter']['accepted']=0;
+		$ct_data['all_time_counter']['blocked']=0;
 	}
 	
+	//User counter
+	if(!isset($ct_data['user_counter'])){
+		$ct_data['user_counter']['accepted']=0;
+		$ct_data['user_counter']['blocked']=0;
+		$ct_data['user_counter']['since']=$current_date;
+	}
+	
+	//Add 1 to counters
+	if($event_type=='yes'){
+		@$ct_data['array_accepted'][$current_hour]++;
+		@$ct_data['all_time_counter']['accepted']++;
+		@$ct_data['user_counter']['accepted']++;
+	}
+
+	if($event_type=='no'){
+		@$ct_data['array_blocked'][$current_hour]++;
+		@$ct_data['all_time_counter']['blocked']++;
+		@$ct_data['user_counter']['blocked']++;
+	}
 	
 	update_option('cleantalk_data', $ct_data);
 	$cleantalk_executed=true;

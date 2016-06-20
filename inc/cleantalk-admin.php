@@ -36,22 +36,6 @@ $ct_server_timeout = 10;
 
 
 /**
- * Admin action 'admin_print_footer_scripts' - Enqueue admin script for checking if timezone offset is saved in settings
- */
-if(isset($ct_options['show_adminbar']) && @intval($ct_options['show_adminbar']) == 1)
-{
-	add_action( 'admin_print_footer_scripts', 'ct_add_stats_js' );
-}
-
-function ct_add_stats_js()
-{
-	echo "<script src='".plugins_url( 'cleantalk-stats.js', __FILE__ )."'></script>\n";
-}
-
-
-
-
-/**
  * Admin action 'wp_ajax_ajax_get_timezone' - Ajax method for getting timezone offset
  */
  
@@ -373,6 +357,7 @@ function ct_admin_init()
 	}
 		register_setting('cleantalk_settings', 'cleantalk_settings', 'ct_settings_validate');
 		add_settings_section('cleantalk_settings_main', __($ct_plugin_name, 'cleantalk'), 'ct_section_settings_main', 'cleantalk');
+
 		add_settings_section('cleantalk_settings_state', "<hr>".__('Protection is active', 'cleantalk'), 'ct_section_settings_state', 'cleantalk');
 		//add_settings_section('cleantalk_settings_autodel', "<hr>", 'ct_section_settings_autodel', 'cleantalk');
 		add_settings_section('cleantalk_settings_banner', "<hr></h3>", '', 'cleantalk');
@@ -410,7 +395,19 @@ function ct_admin_init()
  * Admin callback function - Displays description of 'main' plugin parameters section
  */
 function ct_section_settings_main() {
-	return true;
+    /*
+	$ct_options=ct_get_options();
+
+	$is_wpmu = false;
+	if(defined('CLEANTALK_ACCESS_KEY')) {
+	    $is_wpmu = true;
+	}
+
+	if (ct_valid_key($ct_options['apikey']) === false && !$is_wpmu) {
+    }
+    */
+
+    return true;
 }
 
 /**
@@ -441,9 +438,48 @@ function ct_add_admin_menu( $wp_admin_bar ) {
 	if ( current_user_can('activate_plugins')&&$value==1 )
 	{
 		//$ct_data=ct_get_data();
+        $ct_data=ct_get_data();
+        
+        //Create counter
+        if(!isset($ct_data['array_accepted'])){
+            $ct_data['array_accepted']=Array();
+            $ct_data['array_blocked']=Array();
+            $ct_data['current_hour']=0;
+            update_option('cleantalk_data', $ct_data);
+        }
+		//Create counter
+		if(!isset($ct_data['all_time_counter'])){
+            $ct_data['all_time_counter']['accepted']=0;
+            $ct_data['all_time_counter']['blocked']=0;
+            update_option('cleantalk_data', $ct_data);
+        }
+		//Reset or create counter
+		if(!isset($ct_data['user_counter']) || $_GET['ct_reset_user_counter']==1){
+			$ct_data['user_counter']['accepted']=0;
+			$ct_data['user_counter']['blocked']=0;
+			$ct_data['user_counter']['since']=date('d M');
+            update_option('cleantalk_data', $ct_data);
+        }
+		
+
+        $daily_counter=Array('accepted'=>@array_sum($ct_data['array_accepted']), 'blocked'=>@array_sum($ct_data['array_blocked']), 'all'=>@array_sum($ct_data['array_accepted']) + @array_sum($ct_data['array_blocked']));
+		
+		$all_time_counter=Array('accepted'=>$ct_data['all_time_counter']['accepted'], 'blocked'=>$ct_data['all_time_counter']['blocked'], 'all'=>$ct_data['all_time_counter']['accepted'] + $ct_data['all_time_counter']['blocked']);
+		
+		$user_counter=Array('accepted'=>$ct_data['user_counter']['accepted'], 'blocked'=>$ct_data['user_counter']['blocked'], 'all'=>$ct_data['user_counter']['accepted'] + $ct_data['user_counter']['blocked'], 'since'=>$ct_data['user_counter']['since']);
+		
+		foreach($ct_data['array_blocked'] as $key => $val){
+			$mass.=$key.":".$val.' | ';
+		}unset($key, $val);
+		
+		$user_counter_str='<span style="color: #49c73b; color: #349ebf;">Since '.$user_counter['since'].':</span> <span style="color: white;">' .$user_counter['all']. '</span> / <span style="color: green;">' .$user_counter['accepted']. '</span> / <span style="color: red;">' .$user_counter['blocked']. '</span>';
+		$all_time_counter_str='<span style="color: #49c73b; color: #349ebf;">All time:</span> <span style="color: white;">' .$all_time_counter['all']. '</span> / <span style="color: green;">' . $all_time_counter['accepted']. '</span> / <span style="color: red;">' .$all_time_counter['blocked']. '</span>';
+		$daily_counter_str='<span style="color: #49c73b; color: #349ebf;">All time:</span> <span style="color: white;">' .$daily_counter['all']. '</span> / <span style="color: green;">' . $daily_counter['accepted']. '</span> / <span style="color: red;">' .$daily_counter['blocked']. '</span>';
+				
 		$args = array(
 			'id'	=> 'ct_parent_node',
-			'title' => '<img src="' . plugin_dir_url(__FILE__) . 'images/logo_small1.png" alt=""  height="" style="margin-top:9px;" /><a href="#" class="ab-item alignright" title="allowed / blocked" alt="allowed / blocked"><span class="ab-label" id="ct_stats"><span>0</span> / <span>0</span></span></a>'
+			'title' => '<img src="' . plugin_dir_url(__FILE__) . 'images/logo_small1.png" alt=""  height="" style="margin-top:9px;" /><a href="#" class="ab-item alignright" title="Allowed/Blocked submissions. The number of submissions is being counted for past 24 hours." alt="allowed / blocked"><span class="ab-label" id="ct_stats">'.$all_time_counter_str.'
+			 | '.$user_counter_str.' | '.$daily_counter_str.'</span></a>' //You could change widget string here by simply deleting variables
 		);
 		$wp_admin_bar->add_node( $args );
 	
@@ -459,6 +495,14 @@ function ct_add_admin_menu( $wp_admin_bar ) {
 		$args = array(
 			'id'	 => 'ct_settings_link',
 			'title'  => '<a href="options-general.php?page=cleantalk">'.__('Settings', 'cleantalk').'</a>',
+			'parent' => 'ct_parent_node'
+		);
+		$wp_admin_bar->add_node( $args );
+		
+		// add a child item to our parent item. Counter reset.
+		$args = array(
+			'id'	 => 'ct_reset_counter',
+			'title'  => '<a href="'.$_SERVER['PATH_INFO'].'?ct_reset_user_counter=1">'.__('Reset counter', 'cleantalk').'</a>',
 			'parent' => 'ct_parent_node'
 		);
 		$wp_admin_bar->add_node( $args );
@@ -734,7 +778,7 @@ function ct_input_show_adminbar() {
 	echo "<input type='radio' id='cleantalk_show_adminbar1' name='cleantalk_settings[show_adminbar]' value='1' " . ($value == '1' ? 'checked' : '') . " /><label for='cleantalk_show_adminbar1'> " . __('Yes') . "</label>";
 	echo '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
 	echo "<input type='radio' id='cleantalk_show_adminbar0' name='cleantalk_settings[show_adminbar]' value='0' " . ($value == '0' ? 'checked' : '') . " /><label for='cleantalk_show_adminbar0'> " . __('No') . "</label>";
-	admin_addDescriptionsFields(sprintf(__('Show/hide CleanTalk icon in top level menu in WordPress backend.', 'cleantalk'),  $ct_options['show_adminbar']));
+	admin_addDescriptionsFields(sprintf(__('Show/hide CleanTalk icon in top level menu in WordPress backend. The number of submissions is being counted for past 24 hours.', 'cleantalk'),  $ct_options['show_adminbar']));
 }
 
 /**
@@ -1169,13 +1213,6 @@ function cleantalk_admin_notice_message(){
 	}
 
 	if ($show_notice && $show_ct_notice_online != '' && $value==1 && (is_network_admin() || is_admin()) && $ct_data['moderate_ip'] != 1) {
-		if($show_ct_notice_online === 'Y'){
-			//echo '<div class="updated"><h3><b>';
-				//echo __("Don’t forget to disable CAPTCHA if you have it!", 'cleantalk');
-				//echo __("Settings updated!", 'cleantalk');
-			//echo '</b></h3></div>';
-		}
-		
 		if($show_ct_notice_online === 'N' && $value==1 && (is_network_admin() || (!defined('WP_ALLOW_MULTISITE')||defined('WP_ALLOW_MULTISITE')&&WP_ALLOW_MULTISITE==false) && is_admin()) && $ct_data['moderate_ip'] != 1){
 			echo '<div class="error"><h3><b>';
 				echo __("Wrong <a href=\"options-general.php?page=cleantalk\"><b style=\"color: #49C73B;\">Clean</b><b style=\"color: #349ebf;\">Talk</b> access key</a>! Please check it or ask <a target=\"_blank\" href=\"https://cleantalk.org/forum/\">support</a>.", 'cleantalk');
@@ -1203,14 +1240,12 @@ function admin_addDescriptionsFields($descr = '') {
 function ct_valid_key($apikey = null) {
 	global $ct_options, $ct_data;
 	
-	$ct_options = ct_get_options();
-	$ct_data = ct_get_data();
-	
 	if ($apikey === null) {
+	    $ct_options = ct_get_options();
 		$apikey = $ct_options['apikey'];
 	}
-
-	return ($apikey === 'enter key' || $apikey === '') ? false : true;
+	
+    return ($apikey === 'enter key' || $apikey === '') ? false : true;
 }
 
 /**

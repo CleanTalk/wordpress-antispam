@@ -121,7 +121,7 @@ function ct_init() {
 
     // Formidable
     if(class_exists('FrmSettings')){
-	add_action('frm_validate_entry', 'ct_frm_validate_entry', 20, 2);
+	add_action('frm_validate_entry', 'ct_frm_validate_entry', 1, 2);
 	add_action('frm_entries_footer_scripts', 'ct_frm_entries_footer_scripts', 20, 2);
     }
 
@@ -167,6 +167,7 @@ function ct_init() {
     // Gravity forms
     //
     if (defined('GF_MIN_WP_VERSION')) {
+        add_filter('gform_get_form_filter', 'ct_gforms_hidden_field', 10, 2);
         add_filter('gform_entry_is_spam', 'ct_gforms_spam_test', 1, 3);
     }
 
@@ -258,16 +259,7 @@ function ct_footer_add_cookie() {
 function ct_add_hidden_fields($random_key = false, $field_name = 'ct_checkjs', $return_string = false, $cookie_check = false) {
     global $ct_checkjs_def, $ct_plugin_name, $ct_options, $ct_data;
     $ct_options = ct_get_options();
-    $ct_data = ct_get_data();
-    if(isset($ct_options['use_ajax']))
-    {
-    	$use_ajax = @intval($ct_options['use_ajax']);
-    }
-    else
-    {
-    	$use_ajax=1;
-    }
-
+    
     $ct_checkjs_key = ct_get_checkjs_value($random_key); 
     $field_id_hash = md5(rand(0, 1000));
     
@@ -288,17 +280,16 @@ ctSetCookie("%s", "%s", "%s");
 		$html = '
 <input type="hidden" id="%s" name="%s" value="%s" />
 <script type="text/javascript">
-setTimeout(function(){var ct_input_name = \'%s\';var ct_input_value = document.getElementById(ct_input_name).value;document.getElementById(ct_input_name).value = document.getElementById(ct_input_name).value.replace(ct_input_value, %s); }, 1000);
+setTimeout(function(){
+    var ct_input_name = \'%s\';
+    if (document.getElementById(ct_input_name) !== null) {
+        var ct_input_value = document.getElementById(ct_input_name).value;
+        document.getElementById(ct_input_name).value = document.getElementById(ct_input_name).value.replace(ct_input_value, %s); 
+    }
+}, 1000);
 </script>
 ';
 		$html = sprintf($html, $field_id, $field_name, $ct_checkjs_def, $field_id, $ct_input_challenge);
-		/*!!! IT'S A TEMPORARILY CODE FOR DEBUGGING CF7 !!!*/
-		if($use_ajax==1)
-		{
-			$html='<input type="hidden" id="%s" name="%s" value="%s" />';
-			$html = sprintf($html, $field_id, $field_name, $ct_checkjs_def);
-		}
-		/*!!! IT'S A TEMPORARILY CODE FOR DEBUGGING CF7 !!!*/
     };
 
     // Simplify JS code
@@ -338,17 +329,34 @@ function ct_is_user_enable() {
 * return null;
 */
 function ct_frm_entries_footer_scripts($fields, $form) {
-    global $ct_options;
+    global $ct_options, $ct_checkjs_frm;
     
     if ($ct_options['contact_forms_test'] == 0) {
         return false;
     }
+    
+    $ct_checkjs_key = ct_get_checkjs_value();
+    $ct_frm_base_name = 'form_';
+    $ct_frm_name = $ct_frm_base_name . $form->form_key;
+
+    ?>
+    var input = document.createElement("input");
+    input.setAttribute("type", "hidden");
+    input.setAttribute("name", "<?php echo $ct_checkjs_frm; ?>");
+    input.setAttribute("value", "<?php echo $ct_checkjs_key; ?>");
+    
+    for (i = 0; i < document.forms.length; i++) {
+        if (document.forms[i].id && document.forms[i].id.search("<?php echo $ct_frm_name; ?>") != -1) {
+            document.forms[i].appendChild(input);
+        }
+    }
+    <?php   
     $js_code = ct_add_hidden_fields(true, 'ct_checkjs', true, true);
+    $js_code = strip_tags($js_code); // Removing <script> tag
+
     ?>
     <?php echo $js_code; ?>
     <?php
-
-    return null;
 }
 
 /**
@@ -366,27 +374,30 @@ function ct_frm_validate_entry ($errors, $values) {
     }
      
     $checkjs = js_test('ct_checkjs', $_COOKIE, true);
+    if($checkjs != 1){
+        $checkjs = js_test($ct_checkjs_frm, $_POST, true);
+    }
 
     $post_info['comment_type'] = 'feedback';
     $post_info = json_encode($post_info);
     if ($post_info === false)
         $post_info = '';
-	
-	$temp=ct_get_fields_any($values['item_meta']);
+
+	$temp = ct_get_fields_any2($values['item_meta']);
 	
     $sender_email = ($temp['email'] ? $temp['email'] : '');
     $sender_nickname = ($temp['nickname'] ? $temp['nickname'] : '');
     $subject = ($temp['subject'] ? $temp['subject'] : '');
-    $contact_form = ($temp['contact'] ? $temp['contact'] : '');
+    $contact_form = ($temp['contact'] ? $temp['contact'] : true);
     $message = ($temp['message'] ? $temp['message'] : array());
-	
+    
     $message = json_encode($message);
 
     $ct_base_call_result = ct_base_call(array(
         'message' => $message,
         'example' => null,
         'sender_email' => $sender_email,
-        'sender_nickname' => null,
+        'sender_nickname' => $sender_nickname,
         'post_info' => $post_info,
         'checkjs' => $checkjs
     ));
@@ -1464,15 +1475,15 @@ function ct_si_contact_form_validate($form_errors = array(), $form_id_num = 0) {
     $post_info = json_encode($post_info);
     if ($post_info === false)
         $post_info = '';
-	
-//getting info from custom fields	
-	$temp=ct_get_fields_any($_POST);
 
-    $sender_email = ($temp['email'] ? $temp['email'] : '');
-    $sender_nickname = ($temp['nickname'] ? $temp['nickname'] : '');
-    $subject = ($temp['subject'] ? $temp['subject'] : '');
-    $contact_form = ($temp['contact'] ? $temp['contact'] : '');
-    $message = ($temp['message'] ? $temp['message'] : array());
+    $sender_email = null;
+    $sender_nickname = null;
+    $subject = '';
+    $message = array();
+    $contact_form = null;
+//getting info from custom fields
+	@ct_get_fields_any($sender_email, $message, $sender_nickname, $subject, $contact_form, $_POST);
+//setting fields if they with defaults names
 
     if ($subject != '') {
         $message = array_merge(array('subject' => $subject), $message);
@@ -1587,6 +1598,25 @@ function ct_check_wplp(){
 }
 
 /**
+ * Places a hidding field to Gravity.
+ * @return string 
+ */
+function ct_gforms_hidden_field ( $form_string, $form ) {
+    $ct_hidden_field = 'ct_checkjs';
+
+    // Do not add a hidden field twice.
+    if (preg_match("/$ct_hidden_field/", $form_string)) {
+        return $form_string;
+    }
+
+    $search = "</form>";
+    $js_code = ct_add_hidden_fields(true, $ct_hidden_field, true, false);
+    $form_string = str_replace($search, $js_code . $search, $form_string);
+
+    return $form_string;
+}
+
+/**
  * Gravity forms anti-spam test.
  * @return boolean
  */
@@ -1608,12 +1638,15 @@ function ct_gforms_spam_test ($is_spam, $form, $entry) {
     if ($cleantalk_executed) {
 	    return $is_spam;
     }
-	
+    
     $sender_info='';
 
     $checkjs = js_test('ct_checkjs', $_COOKIE, true);
-
-    $post_info['comment_type'] = 'feedback';
+    if (!$checkjs) {
+        $checkjs = js_test('ct_checkjs', $_POST, true);
+    }
+    
+    $post_info['comment_type'] = 'feedback_gravity';
     $post_info = json_encode($post_info);
     if ($post_info === false)
         $post_info = '';
@@ -1622,16 +1655,13 @@ function ct_gforms_spam_test ($is_spam, $form, $entry) {
     $sender_nickname = null;
     $subject = '';
     $message = '';
-    foreach ($_POST as $k => $v) {
-    	if(is_array($v)) {
-    		continue;
-    	}
-        if ($sender_email === null && preg_match("/^\S+@\S+\.\S+$/", $v)) {
-            $sender_email = $v;
-            continue;
-        }
-        $message.= $v."\n";
+    
+    @ct_get_fields_any($sender_email, $message, $sender_nickname, $subject, $contact_form, $_POST);
+
+    if ($subject != '') {
+        $message = array_merge(array('subject' => $subject), $message);
     }
+    $message = json_encode($message);
 
     $ct_base_call_result = ct_base_call(array(
         'message' => $message,
@@ -1741,7 +1771,7 @@ function ct_s2member_registration_test() {
  * General test for any contact form
  */
 function ct_contact_form_validate () {
-	global $pagenow,$cleantalk_executed, $cleantalk_url_exclusions,$ct_options, $ct_data;
+	global $pagenow,$cleantalk_executed, $cleantalk_url_exclusions,$ct_options, $ct_data, $ct_checkjs_frm;
     
     $ct_options = ct_get_options();
     $ct_data = ct_get_data();
@@ -1760,7 +1790,7 @@ function ct_contact_form_validate () {
 	}
 	//@header("CtExclusions: ".$ct_cnt);
 	cleantalk_debug("CtExclusions", $ct_cnt);
-	
+
     if (@sizeof($_POST)==0 ||
     	(isset($_POST['signup_username']) && isset($_POST['signup_email']) && isset($_POST['signup_password'])) ||
         (isset($pagenow) && $pagenow == 'wp-login.php') || // WordPress log in form
@@ -1782,7 +1812,8 @@ function ct_contact_form_validate () {
         isset($_COOKIE[LOGGED_IN_COOKIE]) ||
         isset($_POST['fscf_submitted']) ||
         strpos($_SERVER['REQUEST_URI'],'/wc-api/')!==false ||
-        isset($_POST['log']) && isset($_POST['pwd']) && isset($_POST['wp-submit'])
+        isset($_POST['log']) && isset($_POST['pwd']) && isset($_POST['wp-submit']) ||
+        isset($_POST[$ct_checkjs_frm]) && (@intval($ct_options['contact_forms_test']) == 1) // Formidable forms
         ) {
         return null;
     }
@@ -1802,14 +1833,14 @@ function ct_contact_form_validate () {
         $post_info = '';
     }
 
-	$temp=ct_get_fields_any($_POST);
-	
-    $sender_email = ($temp['email'] ? $temp['email'] : '');
-    $sender_nickname = ($temp['nickname'] ? $temp['nickname'] : '');
-    $subject = ($temp['subject'] ? $temp['subject'] : '');
-    $contact_form = ($temp['contact'] ? $temp['contact'] : '');
-    $message = ($temp['message'] ? $temp['message'] : array());
-	
+    $sender_email = '';
+    $sender_nickname = '';
+    $subject = '';
+    $contact_form = true;
+    $message = array();
+
+    @ct_get_fields_any($sender_email, $message, $sender_nickname, $subject, $contact_form, $_POST);
+
     if ($subject != '') {
         $message = array_merge(array('subject' => $subject), $message);
     }
