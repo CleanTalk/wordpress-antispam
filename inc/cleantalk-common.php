@@ -1,6 +1,6 @@
 <?php
 
-$ct_plugin_name = 'Anti-Spam by CleanTalk';
+$ct_plugin_name = 'Spam Protection by CleanTalk';
 $ct_checkjs_frm = 'ct_checkjs_frm';
 $ct_checkjs_register_form = 'ct_checkjs_register_form';
 $ct_session_request_id_label = 'request_id';
@@ -53,7 +53,7 @@ $trial_notice_check_timeout = 1;
 $account_notice_check_timeout = 24;
 
 // Timeout before new check account notice in hours
-$renew_notice_check_timeout = 1;
+$renew_notice_check_timeout = 0.5;
 
 // Trial notice show time in minutes
 $trial_notice_showtime = 10;
@@ -606,16 +606,14 @@ function delete_spam_comments() {
 /*
 * Get data from submit recursively
 */
-
-function ct_get_fields_any($arr, $message=array(), $email=NULL, $nickname=NULL, $subject=NULL, $contact=true){
-	
+function ct_get_fields_any(&$email,&$message,&$nickname,&$subject, &$contact,$arr)
+{
 	$skip_params = array(
 	    'ipn_track_id', // PayPal IPN #
 	    'txn_type', // PayPal transaction type
 	    'payment_status', // PayPal payment status
 	    'ccbill_ipn' //CCBill IPN 
     );
-	
     $obfuscate_params = array(
         'password',
         'password0',
@@ -625,27 +623,34 @@ function ct_get_fields_any($arr, $message=array(), $email=NULL, $nickname=NULL, 
         'pwd',
         'user_pass'
     );
-	
-   	foreach($skip_params as $key=>$value){
-   		if(@array_key_exists($value,$_GET)||@array_key_exists($value,$_POST)){
+   	foreach($skip_params as $key=>$value)
+   	{
+   		if(@array_key_exists($value,$_GET)||@array_key_exists($value,$_POST))
+   		{
    			$contact = false;
    		}
    	}
-	
-	foreach($arr as $key=>$value){
-		if(!is_array($value)&&!is_object($value)&&@get_class($value)!='WP_User'){
-			if (in_array($key, $skip_params) && $key!=0 && $key!='' || preg_match("/^ct_checkjs/", $key)){
+	foreach($arr as $key=>$value)
+	{
+		if(!is_array($value)&&!is_object($value)&&@get_class($value)!='WP_User')
+		{
+			if (in_array($key, $skip_params) && $key!=0 && $key!='' || preg_match("/^ct_checkjs/", $key)) {
                 $contact = false;
             }
-			if (!$email && @preg_match("/^\S+@\S+\.\S+$/", $value)){
+			if (!$email && @preg_match("/^\S+@\S+\.\S+$/", $value))
+	    	{
 	            $email = $value;
 	        }
-	        else if (!$nickname && ct_get_data_from_submit($key, 'name') && !ct_get_data_from_submit($key, '_hp_name')){
+	        else if ($nickname === '' && ct_get_data_from_submit($key, 'name'))
+	    	{
 	            $nickname = $value;
 	        }
-	        else if (!$subject && ct_get_data_from_submit($key, 'subject')){
+	        else if ($subject === '' && ct_get_data_from_submit($key, 'subject'))
+	    	{
 	            $subject = $value;
-	        }else{
+	        }
+	        else
+	        {   
                 //
                 // Obfuscate private data
                 //
@@ -654,18 +659,108 @@ function ct_get_fields_any($arr, $message=array(), $email=NULL, $nickname=NULL, 
                 }
 	        	$message[$key] = $value;
 	        }
-		}else if(!is_object($value)&&@get_class($value)!='WP_User'){
-			$temp=ct_get_fields_any($value, $message, $email, $nickname, $subject, $contact);
-			
-			$sender_email = ($temp['email'] ? $temp['email'] : '');
-			$sender_nickname = ($temp['nickname'] ? $temp['nickname'] : '');
-			$subject = ($temp['subject'] ? $temp['subject'] : '');
-			$contact_form = ($temp['contact'] ? $temp['contact'] : '');
-			$message = (count($temp['message'])==0 ? $message : array_merge($message, $temp['message']));
+		}
+		else if(!is_object($value)&&@get_class($value)!='WP_User')
+		{
+			@ct_get_fields_any($email, $message, $nickname, $subject, $contact, $value);
 		}
 	}
+    //
+    // Reset $message if we have a sign-up data
+    //
+    $skip_message_post = array(
+        'edd_action', // Easy Digital Downloads
+    );
+    foreach ($skip_message_post as $v) {
+        if (isset($_POST[$v])) {
+            $message = null;
+            break;
+        }
+    }
+}
+
+/*
+* Get data from an ARRAY recursively
+* @return array
+*/
+function ct_get_fields_any2($arr, $message=array(), $email=NULL, $nickname=NULL, $subject=NULL, $contact=true) {
+	$skip_params = array(
+	    'ipn_track_id', // PayPal IPN #
+	    'txn_type', // PayPal transaction type
+	    'payment_status', // PayPal payment status
+	    'ccbill_ipn' //CCBill IPN 
+    );
+    $obfuscate_params = array(
+        'password',
+        'password0',
+        'password1',
+        'password2',
+        'pass',
+        'pwd',
+        'user_pass'
+    );
+   	foreach($skip_params as $key=>$value)
+   	{
+   		if(@array_key_exists($value,$_GET)||@array_key_exists($value,$_POST))
+   		{
+   			$contact = false;
+   		}
+   	}
+	foreach($arr as $key=>$value)
+	{
+		if(!is_array($value)&&!is_object($value)&&@get_class($value)!='WP_User')
+		{
+			if (in_array($key, $skip_params) && $key!=0 && $key!='' || preg_match("/^ct_checkjs/", $key)) {
+                $contact = false;
+            }
+			if (!$email && @preg_match("/^\S+@\S+\.\S+$/", $value))
+	    	{
+	            $email = $value;
+	        }
+	        else if ($nickname === '' && ct_get_data_from_submit($key, 'name'))
+	    	{
+	            $nickname = $value;
+	        }
+	        else if ($subject === '' && ct_get_data_from_submit($key, 'subject'))
+	    	{
+	            $subject = $value;
+	        }
+	        else
+	        {   
+                //
+                // Obfuscate private data
+                //
+                if (in_array($key, $obfuscate_params)) {
+                    $value = ct_obfuscate_param($value); 
+                }
+	        	$message[$key] = $value;
+	        }
+		}
+		else if(!is_object($value)&&@get_class($value)!='WP_User')
+		{
+			$temp = ct_get_fields_any2($value, $message, $email, $nickname, $subject, $contact);
+            
+			$email = ($temp['email'] ? $temp['email'] : '');
+			$nickname = ($temp['nickname'] ? $temp['nickname'] : '');
+			$subject = ($temp['subject'] ? $temp['subject'] : '');
+			$contact = ($temp['contact'] ? $temp['contact'] : '');
+			$message = (count($temp['message']) == 0 ? $message : array_merge($message, $temp['message']));
+		}
+	}
+    //
+    // Reset $message if we have a sign-up data
+    //
+    $skip_message_post = array(
+        'edd_action', // Easy Digital Downloads
+    );
+    foreach ($skip_message_post as $v) {
+        if (isset($_POST[$v])) {
+            $message = null;
+            break;
+        }
+    }
 	
-	$return_param = array(
+    $return_param = array(
 		'email' => $email,
 		'nickname' => $nickname,
 		'subject' => $subject,
@@ -673,7 +768,7 @@ function ct_get_fields_any($arr, $message=array(), $email=NULL, $nickname=NULL, 
 		'message' => $message
 	);	
 	
-	return ($return_param);
+	return $return_param;
 }
 
 /**
@@ -814,6 +909,7 @@ function cleantalk_debug($key,$value)
 
 /**
 * Function changes CleanTalk result object if an error occured.
+* @return object
 */ 
 function ct_change_plugin_resonse($ct_result = null, $checkjs = null) {
     global $ct_plugin_name;
