@@ -472,14 +472,14 @@ function ct_add_admin_menu( $wp_admin_bar ) {
 			$mass.=$key.":".$val.' | ';
 		}unset($key, $val);
 		
-		$user_counter_str='<span style="color: #49c73b; color: #349ebf;">Since '.$user_counter['since'].':</span> <span style="color: white;">' .$user_counter['all']. '</span> / <span style="color: green;">' .$user_counter['accepted']. '</span> / <span style="color: red;">' .$user_counter['blocked']. '</span>';
-		$all_time_counter_str='<span style="color: #49c73b; color: #349ebf;">All time:</span> <span style="color: white;">' .$all_time_counter['all']. '</span> / <span style="color: green;">' . $all_time_counter['accepted']. '</span> / <span style="color: red;">' .$all_time_counter['blocked']. '</span>';
-		$daily_counter_str='<span style="color: #49c73b; color: #349ebf;">All time:</span> <span style="color: white;">' .$daily_counter['all']. '</span> / <span style="color: green;">' . $daily_counter['accepted']. '</span> / <span style="color: red;">' .$daily_counter['blocked']. '</span>';
+		$user_counter_str='<span style="color: #49c73b; color: #349ebf;">'.__('User', 'cleantalk').': </span> <span style="color: white;">' .$user_counter['all']. '</span> / <span style="color: green;">' .$user_counter['accepted']. '</span> / <span style="color: red;">' .$user_counter['blocked']. '</span>';
+		$all_time_counter_str='<span style="color: #49c73b; color: #349ebf;">'.__('All time', 'cleantalk').':</span> <span style="color: white;">' .$all_time_counter['all']. '</span> / <span style="color: green;">' . $all_time_counter['accepted']. '</span> / <span style="color: red;">' .$all_time_counter['blocked']. '</span>';
+		$daily_counter_str='<span style="color: #49c73b; color: #349ebf;">'.__('Daily', 'cleantalk').':</span> <span style="color: white;">' .$daily_counter['all']. '</span> / <span style="color: green;">' . $daily_counter['accepted']. '</span> / <span style="color: red;">' .$daily_counter['blocked']. '</span>';
 				
 		$args = array(
 			'id'	=> 'ct_parent_node',
-			'title' => '<img src="' . plugin_dir_url(__FILE__) . 'images/logo_small1.png" alt=""  height="" style="margin-top:9px;" /><a href="#" class="ab-item alignright" title="Allowed/Blocked submissions. The number of submissions is being counted for past 24 hours." alt="allowed / blocked"><span class="ab-label" id="ct_stats">'.$all_time_counter_str.'
-			 | '.$user_counter_str.' | '.$daily_counter_str.'</span></a>' //You could change widget string here by simply deleting variables
+			'title' => '<img src="' . plugin_dir_url(__FILE__) . 'images/logo_small1.png" alt=""  height="" style="margin-top:9px;" /><div style="margin: auto 7px;" class="ab-item alignright"><span class="ab-label" id="ct_stats"><span style="color: white;" title="'.__('All / Allowed / Blocked submissions. The number of submissions is being counted for past 24 hours.', 'cleantalk').'">'.$daily_counter_str.'
+			 | </span><span style="color: white;" title="'.__('All / Allowed / Blocked submissions. The number of submissions is being counted since ', 'cleantalk').' '.$user_counter['since'].'">'.$user_counter_str.' | </span><span style="color: white;" title="'.__('All / Allowed / Blocked submissions. The number of submissions is being counted for all time since installation.', 'cleantalk').'">'.$all_time_counter_str.'</span></span></div>' //You could change widget string here by simply deleting variables
 		);
 		$wp_admin_bar->add_node( $args );
 	
@@ -502,7 +502,7 @@ function ct_add_admin_menu( $wp_admin_bar ) {
 		// add a child item to our parent item. Counter reset.
 		$args = array(
 			'id'	 => 'ct_reset_counter',
-			'title'  => '<a href="'.$_SERVER['PATH_INFO'].'?ct_reset_user_counter=1">'.__('Reset counter', 'cleantalk').'</a>',
+			'title'  => '<hr style="margin-top: 7px;"><a href="'.$_SERVER['PATH_INFO'].'?ct_reset_user_counter=1" title="Reset yor personal counter.">'.__('Reset User counter', 'cleantalk').'</a>',
 			'parent' => 'ct_parent_node'
 		);
 		$wp_admin_bar->add_node( $args );
