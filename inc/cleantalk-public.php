@@ -170,7 +170,7 @@ function ct_init() {
         add_filter('gform_get_form_filter', 'ct_gforms_hidden_field', 10, 2);
         add_filter('gform_entry_is_spam', 'ct_gforms_spam_test', 1, 3);
     }
-
+    
     //
     // Load JS code to website footer
     //
@@ -384,7 +384,7 @@ function ct_frm_validate_entry ($errors, $values) {
         $post_info = '';
 
 	$temp = ct_get_fields_any2($values['item_meta']);
-	
+
     $sender_email = ($temp['email'] ? $temp['email'] : '');
     $sender_nickname = ($temp['nickname'] ? $temp['nickname'] : '');
     $subject = ($temp['subject'] ? $temp['subject'] : '');
@@ -1007,6 +1007,8 @@ function ct_test_registration($nickname, $email, $ip){
     
     $ct_result = ct_change_plugin_resonse($ct_result, $checkjs);
     
+    ct_add_event($ct_result->allow);
+    
     $result=Array(
         'allow' => $ct_result->allow,
         'comment' => $ct_result->comment,
@@ -1145,6 +1147,8 @@ function ct_registration_errors($errors, $sanitized_user_login = null, $user_ema
             $_SESSION[$ct_session_register_ok_label] = $ct_result->id;
         }
     }
+    
+    ct_add_event($ct_result->allow);
 
     return $errors;
 }
@@ -1751,8 +1755,10 @@ function ct_s2member_registration_test() {
                 )
         );
     }
-
+    
     $ct_result = ct_change_plugin_resonse($ct_result, $checkjs);
+    
+    ct_add_event($ct_result->allow);
     
     // Restart submit form counter for failed requests
     if ($ct_result->allow == 0) {
@@ -1960,7 +1966,7 @@ function ct_contact_form_validate () {
  */
 function ct_contact_form_validate_postdata () {
 	global $pagenow,$cleantalk_executed, $cleantalk_url_exclusions, $ct_options, $ct_data;
-    
+
     $ct_options = ct_get_options();
     $ct_data = ct_get_data();
     

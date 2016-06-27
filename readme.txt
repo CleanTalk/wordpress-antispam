@@ -2,12 +2,12 @@
 Contributors: znaeff, shagimuratov, serge00 
 Tags: spam, anti-spam, antispam, anti spam, bbpress, buddypress, captcha, capcha, captha, catcha, cf7 spam, comments, contact form spam, signup, spammers, spammy, woocommerce, wordpress spam, booking, order, subscription, gravity spam, jetpack, bots, contact form 7, contact form, registrations, ninja, Fast Secure Contact, Gravity forms, formidable, mailchimp, s2member, protection, protect, email, akismet, plugin, contact, recaptcha, google captcha, google recaptcha, math, security, login, blacklist, prevent spam comments, wordpress, User Frontend, bulk delete, bulk remove, cloudflare, widget, review, auth forms, firewall, ddos, cleantalk, mailpoet, profile builder, comment spam, registration spam, spam comments, comment moderation, spam bots, block spam, signup spam, spam blocker, spam filter, user registration spam,pingback,trackback, anti-spam plugin, varnish, amp, spam free, userpro
 Requires at least: 3.0
-Tested up to: 4.5.2
-Stable tag: 5.42
+Tested up to: 4.5.3
+Stable tag: 5.43.1
 License: GPLv2 
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-Max power spam protection. Low false/positive rate and no blocking of the real visitors. All requests are being logged. Protects any form.
+Spam protection plug-in, all-in-one, premium anti-spam. No comments spam & registrations spam, no email spam, protects any forms. Forget spam.
 
 == Description ==
 No CAPTCHA, no questions, no animal counting, no puzzles, no math and no spam bots. Formerly 'Anti-Spam by CleanTalk'.
@@ -30,7 +30,7 @@ No CAPTCHA, no questions, no animal counting, no puzzles, no math and no spam bo
 Supports native WordPress, JetPack comments and any other comment plugins. The plugin moves spam comments to SPAM folder or you can set the option to ban spam comments silently. You can also enable the option in the plugin settings to auto-delete comments from SPAM folder.
 
 = Spam bot registrations filter =
-Filters spam bots on registration forms of WordPress, BuddyPress, bbPress, S2Member, WooCommerce, Profile builder and any other registration plugins.
+Filters spam bots on registration forms of WordPress, BuddyPress, bbPress, S2Member, WooCommerce, Profile builder, Login with AJAX and any other registration plugins.
 
 = Protection from contact form spam =
 The plugin is tested and ready to protect from spam emails via Formidable forms, Contact form 7, JetPack Contact form, Fast Secure Contact form, Ninja forms, Landing pages, Gravity forms and any other themes/custom contact forms.
@@ -467,6 +467,16 @@ WordPress 3.0 at least. PHP 5 with CURL or file_get_contents() function and enab
 1. CleanTalk works faster than most of other anti-spam plugins. 
 
 == Changelog ==
+= 5.43.1 June 23 2016 =
+  * Added agent version in requests to test a connection between the website and servers.
+  * Fixed issue with PHP notices in cleantalk-admin.php.
+
+= 5.43 June 22 2016 =
+  * Added spam protection for registrations via 'Login with AJAX' plug-in. 
+  * Added a new counter to Admin bar that allows to count spam and approved submissions since last reset.
+  * Update the code that tests a connection between a website and CleanTalk's servers. New version doesn't generate submissions with email good@cleantalk.org.
+  * Fixed issue with spam protection for nested forms by Formidable plug-in. 
+
 = 5.42 2016-06-15 =
   * Added anti-spam protection for UserPro.
   * Improved protection for Formidable forms + Varnish.
@@ -1067,6 +1077,16 @@ WordPress 3.0 at least. PHP 5 with CURL or file_get_contents() function and enab
   * First version
 
 == Upgrade Notice ==
+= 5.43.1 June 23 2016 =
+  * Added agent version in requests to test a connection between the website and servers.
+  * Fixed issue with PHP notices in cleantalk-admin.php.
+
+= 5.43 June 22 2016 =
+  * Added spam protection for registrations via 'Login with AJAX' plug-in. 
+  * Added a new counter to Admin bar that allows to count spam and approved submissions since last reset.
+  * Update the code that tests a connection between a website and CleanTalk's servers. New version doesn't generate submissions with email good@cleantalk.org.
+  * Fixed issue with spam protection for nested forms by Formidable plug-in. 
+
 = 5.42 2016-06-15 =
   * Added anti-spam protection for UserPro.
   * Improved protection for Formidable forms + Varnish.

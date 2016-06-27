@@ -1,5 +1,6 @@
 <?php
 global $cleantalk_hooked_actions;
+
 /*
 AJAX functions
 */
@@ -104,6 +105,8 @@ add_action( 'template_redirect', 'ct_ajax_hook',1 );
 /* hooks for ninja forms ajax*/
 add_action( 'wp_ajax_nopriv_ninja_forms_ajax_submit', 'ct_ajax_hook',1  );
 add_action( 'wp_ajax_ninja_forms_ajax_submit', 'ct_ajax_hook',1  );
+
+add_action( 'ninja_forms_process', 'ct_ajax_hook',1  );
 $cleantalk_hooked_actions[]='ninja_forms_ajax_submit';
 
 function ct_validate_email_ajaxlogin($email=null, $is_ajax=true)
@@ -272,7 +275,7 @@ function ct_ajax_hook()
 {
 	require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public.php');
 	global $ct_agent_version, $ct_checkjs_register_form, $ct_session_request_id_label, $ct_session_register_ok_label, $bp, $ct_signup_done, $ct_formtime_label, $ct_negative_comment, $ct_options, $ct_data, $current_user;
-	
+
 	$ct_options = ct_get_options();
     $ct_data = ct_get_data();
 	$sender_email = null;
@@ -280,7 +283,7 @@ function ct_ajax_hook()
     $nickname=null;
     $contact = true;
     $subject = '';
-
+    
     //
     // Skip test if Custom contact forms is disabled.
     //
@@ -330,11 +333,17 @@ function ct_ajax_hook()
     	$tmp=$_POST['target'];
     	$_POST['target']=1;
     }
-    
-	ct_get_fields_any($sender_email, $message, $nickname, $subject, $contact, $_POST);
+  	
+    $temp = ct_get_fields_any2($_POST);
+
+    $sender_email = ($temp['email'] ? $temp['email'] : '');
+    $nickname = ($temp['nickname'] ? $temp['nickname'] : '');
+    $subject = ($temp['subject'] ? $temp['subject'] : '');
+    $message = ($temp['message'] ? $temp['message'] : array());
     if ($subject != '') {
         $message = array_merge(array('subject' => $subject), $message);
     }
+   
     $message = json_encode($message);
 
     if(isset($_POST['cscf']['confirm-email']))

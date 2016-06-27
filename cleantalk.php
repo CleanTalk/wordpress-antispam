@@ -3,12 +3,12 @@
   Plugin Name: Spam Protection by CleanTalk
   Plugin URI: http://cleantalk.org
   Description: Max power, all-in-one, captcha less, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms. Formerly Anti-Spam by CleanTalk. 
-  Version: 5.42.1
+  Version: 5.43.2
   Author: СleanTalk <welcome@cleantalk.org>
   Author URI: http://cleantalk.org
  */
-$cleantalk_plugin_version='5.42.1';
-$ct_agent_version = 'wordpress-5421';
+$cleantalk_plugin_version='5.43.2';
+$ct_agent_version = 'wordpress-5432';
 $cleantalk_executed=false;
 $ct_sfw_updated = false;
 
@@ -215,7 +215,6 @@ if(!defined('CLEANTALK_PLUGIN_DIR')){
     	add_action('comment_form_after', 'ct_show_comment_link');
     }
 
-
     if (is_admin()||is_network_admin())
     {
 		require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-admin.php');
@@ -238,6 +237,13 @@ if(!defined('CLEANTALK_PLUGIN_DIR')){
 			{
 				ct_ajax_hook();
 			}
+            
+            //
+            // Some of plugins to register a users use AJAX context.
+            //
+            add_filter('registration_errors', 'ct_registration_errors', 1, 3);
+            add_action('user_register', 'ct_user_register');
+
 		}
 
 		add_action('admin_enqueue_scripts', 'ct_enqueue_scripts');
@@ -333,31 +339,17 @@ function ct_plugin_redirect()
 function ct_add_event($event_type)
 {
 	global $ct_data,$cleantalk_executed;
-	$ct_data = ct_get_data();
-	$current_hour=intval(date('G'));
-	$current_date=date('d M');
-	
-	//24 hour counter
-	if(!isset($ct_data['array_accepted']))
-		$ct_data['array_accepted']=Array();
+   
+    //
+    // To migrate on the new version of ct_add_event(). 
+    //
+    switch ($event_type) {
+        case '0': $event_type = 'no';break;
+        case '1': $event_type = 'yes';break;
+    }
 
-	if(!isset($ct_data['array_blocked']))
-		$ct_data['array_blocked']=Array();
-	
-	if(!isset($ct_data['current_hour']))
-		$ct_data['current_hour']=0;
-	
-	if($current_hour!=$ct_data['current_hour']){
-		$ct_data['current_hour']=$current_hour;
-		$ct_data['array_accepted'][$current_hour]=0;
-		$ct_data['array_blocked'][$current_hour]=0;
-	}
-	
-	//All-time counter
-	if(!isset($ct_data['all_time_counter'])){
-		$ct_data['all_time_counter']['accepted']=0;
-		$ct_data['all_time_counter']['blocked']=0;
-	}
+	$ct_data = ct_get_data();
+	$current_date=date('d M');
 	
 	//User counter
 	if(!isset($ct_data['user_counter'])){
@@ -368,17 +360,12 @@ function ct_add_event($event_type)
 	
 	//Add 1 to counters
 	if($event_type=='yes'){
-		@$ct_data['array_accepted'][$current_hour]++;
-		@$ct_data['all_time_counter']['accepted']++;
 		@$ct_data['user_counter']['accepted']++;
 	}
-
 	if($event_type=='no'){
-		@$ct_data['array_blocked'][$current_hour]++;
-		@$ct_data['all_time_counter']['blocked']++;
 		@$ct_data['user_counter']['blocked']++;
 	}
-	
+
 	update_option('cleantalk_data', $ct_data);
 	$cleantalk_executed=true;
 }
