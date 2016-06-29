@@ -311,7 +311,11 @@ function ct_admin_init()
 		add_settings_field('cleantalk_contact_forms_test', __('Contact forms', 'cleantalk'), 'ct_input_contact_forms_test', 'cleantalk', 'cleantalk_settings_anti_spam');
 		add_settings_field('cleantalk_general_contact_forms_test', __('Custom contact forms', 'cleantalk'), 'ct_input_general_contact_forms_test', 'cleantalk', 'cleantalk_settings_anti_spam');
 		add_settings_field('cleantalk_general_postdata_test', __('Check all post data', 'cleantalk'), 'ct_input_general_postdata_test', 'cleantalk', 'cleantalk_settings_anti_spam');
+		
 		add_settings_field('cleantalk_show_adminbar', __('Show statistics in admin bar', 'cleantalk'), 'ct_input_show_adminbar', 'cleantalk', 'cleantalk_settings_anti_spam');
+		add_settings_field('cleantalk_all_time_counter', "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;".__('Show All-time counter', 'cleantalk'), 'ct_input_all_time_counter', 'cleantalk', 'cleantalk_settings_anti_spam');
+		add_settings_field('cleantalk_daily_conter', "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;".__('Show 24 hours counter', 'cleantalk'), 'ct_input_daily_counter', 'cleantalk', 'cleantalk_settings_anti_spam');
+		
 		add_settings_field('cleantalk_use_ajax', __('Use AJAX for JavaScript check', 'cleantalk'), 'ct_input_use_ajax', 'cleantalk', 'cleantalk_settings_anti_spam');
 		add_settings_field('cleantalk_check_external', __('Protect external forms', 'cleantalk'), 'ct_input_check_external', 'cleantalk', 'cleantalk_settings_anti_spam');
 		add_settings_field('cleantalk_check_comments_number', __("Don't check comments", 'cleantalk'), 'ct_input_check_comments_number', 'cleantalk', 'cleantalk_settings_anti_spam');
@@ -388,6 +392,45 @@ function ct_section_settings_anti_spam() {
 
 add_action( 'admin_bar_menu', 'ct_add_admin_menu', 999 );
 
+function ct_input_all_time_counter() {
+	global $ct_options, $ct_data;
+	
+	$ct_options = ct_get_options();
+	$ct_data = ct_get_data();
+	
+	$value=(isset($ct_options['all_time_counter']) ? @intval($ct_options['all_time_counter']) : 0);
+	$value2=(isset($ct_options['show_adminbar']) ? @intval($ct_options['show_adminbar']) : 0);
+	//if(isset($ct_options['all_time_counter'])){
+	//	$value = @intval($ct_options['all_time_counter']);
+	//}else{
+	//	$value=1;
+	//}
+	//*/
+	echo "<input type='radio' class='ct-depends-of-show-adminbar' id='cleantalk_all_time_counter1' name='cleantalk_settings[all_time_counter]' value='1' ".($value=='1'?'checked':'').($value2=='0'?' disabled':'')." /><label for='cleantalk_all_time_counter1'> ".__('Yes')."</label>";
+	echo '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
+	echo "<input type='radio' class='ct-depends-of-show-adminbar' id='cleantalk_all_time_counter0' name='cleantalk_settings[all_time_counter]' value='0' ".($value=='0'?'checked':'').($value2=='0'?' disabled':'')." /><label for='cleantalk_all_time_counter0'> ".__('No')."</label>";
+	@admin_addDescriptionsFields(sprintf(__('Display all-time requests counter in the admin bar. Counter dispalays number of requests since plugin installation.', 'cleantalk'),  $ct_options['all_time_counter']));
+}
+
+function ct_input_daily_counter() {
+	global $ct_options, $ct_data;
+	
+	$ct_options = ct_get_options();
+	$ct_data = ct_get_data();
+	
+	$value=(isset($ct_options['daily_counter']) ? @intval($ct_options['daily_counter']) : 0);
+	$value2=(isset($ct_options['show_adminbar']) ? @intval($ct_options['show_adminbar']) : 0);
+	//if(isset($ct_options['daily_counter'])){
+	//	$value = @intval($ct_options['daily_counter']);
+	//}else{
+	//	$value=1;
+	//}
+	echo "<input type='radio' class='ct-depends-of-show-adminbar' id='cleantalk_all_time_counter1' name='cleantalk_settings[daily_counter]' value='1' ".($value=='1'?'checked':'').($value2=='0'?' disabled':'')." /><label for='cleantalk_all_time_counter1'> ".__('Yes')."</label>";
+	echo '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
+	echo "<input type='radio' class='ct-depends-of-show-adminbar' id='cleantalk_all_time_counter0' name='cleantalk_settings[daily_counter]' value='0' ".($value=='0'?'checked':'').($value2=='0'?' disabled':'')." /><label for='cleantalk_all_time_counter0'> ".__('No')."</label>";
+	@admin_addDescriptionsFields(sprintf(__('Display daily requests counter in the admin bar. Counter dispalays number of requests of the past 24 hours.', 'cleantalk'),  $ct_options['all_time_counter']));
+}
+
 function ct_add_admin_menu( $wp_admin_bar ) {
 // add a parent item
 	global $ct_options, $ct_data;
@@ -413,13 +456,27 @@ function ct_add_admin_menu( $wp_admin_bar ) {
             update_option('cleantalk_data', $ct_data);
         }
 		
+		//Compile user's counter string
 		$user_counter=Array('accepted'=>$ct_data['user_counter']['accepted'], 'blocked'=>$ct_data['user_counter']['blocked'], 'all'=>$ct_data['user_counter']['accepted'] + $ct_data['user_counter']['blocked'], 'since'=>$ct_data['user_counter']['since']);
+		$user_counter_str='<span style="color: white;">User: ' .$user_counter['all']. '</span> / <span style="color: green;">' .$user_counter['accepted']. '</span> / <span style="color: red;">' .$user_counter['blocked']. '</span>';
+		$all_time_counter_str='';
+		$daily_counter_str='';
 		
-		$user_counter_str='<span style="color: white;">' .$user_counter['all']. '</span> / <span style="color: green;">' .$user_counter['accepted']. '</span> / <span style="color: red;">' .$user_counter['blocked']. '</span>';
-				
+		//Don't compile if counter is disabled
+		if(isset($ct_options['all_time_counter']) && $ct_options['all_time_counter']=='1'){
+			$all_time_counter=Array('accepted'=>$ct_data['all_time_counter']['accepted'], 'blocked'=>$ct_data['all_time_counter']['blocked'], 'all'=>$ct_data['all_time_counter']['accepted'] + $ct_data['all_time_counter']['blocked']);
+			$all_time_counter_str='<span style="color: white;" title="'.__('All / Allowed / Blocked submissions. The number of submissions is being counted since CleanTalk plugin installation.', 'cleantalk').'"><span style="color: white;"> | All: ' .$all_time_counter['all']. '</span> / <span style="color: green;">' .$all_time_counter['accepted']. '</span> / <span style="color: red;">' .$all_time_counter['blocked']. '</span></span>';
+		}
+		
+		//Don't compile if counter is disabled
+		if(isset($ct_options['daily_counter']) && $ct_options['daily_counter']=='1'){
+			$daily_counter=Array('accepted'=>array_sum($ct_data['array_accepted']), 'blocked'=>array_sum($ct_data['array_blocked']), 'all'=>array_sum($ct_data['array_accepted']) + array_sum($ct_data['array_blocked']));
+			$daily_counter_str='<span style="color: white;" title="'.__('All / Allowed / Blocked submissions. The number of submissions for past 24 hours. ', 'cleantalk').'"><span style="color: white;"> | Day: ' .$daily_counter['all']. '</span> / <span style="color: green;">' .$daily_counter['accepted']. '</span> / <span style="color: red;">' .$daily_counter['blocked']. '</span></span>';
+		}
+		
 		$args = array(
 			'id'	=> 'ct_parent_node',
-			'title' => '<img src="' . plugin_dir_url(__FILE__) . 'images/logo_small1.png" alt=""  height="" style="margin-top:9px; float: left;" /><div style="margin: auto 7px;" class="ab-item alignright"><div class="ab-label" id="ct_stats"><span style="color: white;" title="'.__('All / Allowed / Blocked submissions. The number of submissions is being counted since ', 'cleantalk').' '.$user_counter['since'].'">'.$user_counter_str.'</span></div></div>' //You could change widget string here by simply deleting variables
+			'title' => '<img src="' . plugin_dir_url(__FILE__) . 'images/logo_small1.png" alt=""  height="" style="margin-top:9px; float: left;" /><div style="margin: auto 7px;" class="ab-item alignright"><div class="ab-label" id="ct_stats"><span style="color: white;" title="'.__('All / Allowed / Blocked submissions. The number of submissions is being counted since ', 'cleantalk').' '.$user_counter['since'].'">'.$user_counter_str.'</span>	'.$daily_counter_str.$all_time_counter_str.'</div></div>' //You could change widget string here by simply deleting variables
 		);
 		$wp_admin_bar->add_node( $args );
 	
