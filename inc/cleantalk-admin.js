@@ -63,4 +63,16 @@ jQuery(document).ready(function(){
 		}
 		
 	});
+	
+	//For counters settings.
+	jQuery('#ct_advsettings_hide').on('click', '#cleantalk_show_adminbar1', function(){
+		jQuery('.ct-depends-of-show-adminbar').each(function(){
+			jQuery(this).removeAttr('disabled');
+		});
+	});
+	jQuery('#ct_advsettings_hide').on('click', '#cleantalk_show_adminbar0', function(){
+		jQuery('.ct-depends-of-show-adminbar').each(function(){
+			jQuery(this).attr('disabled', 'disabled');
+		});
+	});
 });
