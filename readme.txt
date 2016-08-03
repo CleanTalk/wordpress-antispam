@@ -2,15 +2,16 @@
 Contributors: znaeff, shagimuratov, serge00 
 Tags: spam, anti-spam, antispam, anti spam, bbpress, buddypress, captcha, capcha, captha, catcha, cf7 spam, comments, contact form spam, signup, spammers, spammy, woocommerce, wordpress spam, booking, order, subscription, gravity spam, jetpack, bots, contact form 7, contact form, registrations, ninja, Fast Secure Contact, Gravity forms, formidable, mailchimp, s2member, protection, protect, email, akismet, plugin, contact, recaptcha, google captcha, google recaptcha, math, security, login, blacklist, prevent spam comments, wordpress, User Frontend, bulk delete, bulk remove, cloudflare, widget, review, auth forms, firewall, ddos, cleantalk, mailpoet, profile builder, comment spam, registration spam, spam comments, comment moderation, spam bots, block spam, signup spam, spam blocker, spam filter, user registration spam,pingback,trackback, anti-spam plugin, varnish, amp, spam free, userpro
 Requires at least: 3.0
-Tested up to: 4.5.3
-Stable tag: 5.43.1
+Tested up to: 4.6
+Stable tag: 5.45.1
 License: GPLv2 
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-Spam protection plug-in, all-in-one, premium anti-spam. No comments spam & registrations spam, no email spam, protects any forms. Forget spam.
+Spam protection, anti-spam, all-in-one, premium plug-in. No comments spam & registrations spam, no email spam, protects any forms. Forget spam.
 
 == Description ==
-No CAPTCHA, no questions, no animal counting, no puzzles, no math and no spam bots. Formerly 'Anti-Spam by CleanTalk'.
+= FREE TRIAL THEN $8 PER YEAR =
+CleanTalk is a free plugin which work with the premium Cloud Anti-Spam service cleantalk.org. This plugin as a service https://en.wikipedia.org/wiki/Software_as_a_service. Formerly  "Anti-Spam by CleanTalk".
 
 = Anti-Spam features =
 1. Stops spam comments.
@@ -21,6 +22,7 @@ No CAPTCHA, no questions, no animal counting, no puzzles, no math and no spam bo
 1. Stops spam subscriptions.
 1. Stops spam in widgets.
 1. Checks the existing comments for spam.
+1. No CAPTCHA, no questions, no animal counting, no puzzles, no math and no spam bots.
 
 = Public reviews =
 > Using CleanTalk on WPLift was a great test as we receive huge amounts of spam.
@@ -45,7 +47,7 @@ Anti-spam by CleanTalk filters spam subscriptions for MailPoet, MailChimp, Popup
 The plugin blocks spam emails via any theme (built-in ones included) contact forms. The plugin filters spam emails silently (without any error notices on WordPress frontend) in AJAX forms as well.
 
 = bbPress spam filter =
-Protects everything about bbPress: registrations, topics, replies.
+Protects everything about bbPress: logins, registrations, forums, topics and replies.
 
 = Other spam filters =
 * WordPress Landing Pages.
@@ -69,10 +71,10 @@ Automatically block comments and registrations from the countries you have set a
 You can block comments which contain "stop words" to enhance spam filtering and messages with obscene words blocking. You can add particular words or phrases.
 
 = Private black lists for anti-spam service =
-Automatically block comments and registrations from your private black IP/email address list. This option helps to strengthen the protection from a manual spam or block unwanted comments from users.
+Automatically block comments and registrations from your private black IP/email address list. This option helps to strengthen the protection from a manual spam or block unwanted comments from users. You can add not only the certain IP addresses, but also a separate subnet to your personal black list.
 
 = Private black list for SpamFireWall =
-It allows you to add individual IP addresses and subnets to SpamFireWall. It blocks the attacks from IP addresses which are not included in the SFW base yet. This option can help to block HTTP/HTTPS DDoS, SQL, brute force attacks and any others that made it through the HTTP/HTTPS.
+It allows you to add individual IP addresses and subnets to SpamFireWall. It blocks the attacks from IP addresses which are not included in the SFW base yet. This option can help to block HTTP/HTTPS DDoS, SQL, brute force attacks and any others that made it through the HTTP/HTTPS. You can add not only the certain IP addresses, but also a separate subnet to your personal black list.
 
 = Low false/positive rate =
 This plugin uses multiple anti-spam tests to filter spam bots having as low false/positive rate as possible. Multiple anti-spam tests help to avoid false/positive blocks of the real website visitors even if one of the tests failed.
@@ -224,6 +226,8 @@ Yes, it is. The plugin doesn't block mobile visitors as well as desktop website 
 Spam comments are being moved to SPAM folder by default or you can set the option to ban spam comments silently.
 
 = How does the plugin stop spam? =
+Please, note — administrator's actions are NOT being checked.
+
 The plugin uses several simple tests to stop spammers:
 
 1. **JavaScript anti-spam test.** 99% of spam bots don't have full JavaScript functions support. So, the plugin has the code which can be run by normal visitor and can't be run by the spam bot.
@@ -467,6 +471,23 @@ WordPress 3.0 at least. PHP 5 with CURL or file_get_contents() function and enab
 1. CleanTalk works faster than most of other anti-spam plugins. 
 
 == Changelog ==
+= 5.45.1 July 26 2016 =
+  * Fixed issue with missed spam messages, subscriptions.
+  * Improved bulk spam test for comments. Now the plugin will not mark as Spam comments, if a comment sender (IP address) has spam activity more then 30 days ago. 
+
+= 5.45 July 21 2016 =
+  * Optimized bulk spam comments deletion. 
+  * Turned off JavaScript anti-spam cookies if the option 'Set cookies' is turned off. It helps to avoid issues with Varnish.
+  * Added links to bulk spam comments&users removal tool.
+
+= 5.44.1 July 13 2016 =
+  * Optimized options getting code.
+  * Added the option 'Protect Logged in users' to do anti-spam tests for submissions by logged in users. 
+
+= 5.43.2 June 30 2016 =
+  * Optimized anti-spam code for AJAX based contact forms. 
+  * Fixed CSS layout of counters in Admin bar (issue with layout in IE11). 
+
 = 5.43.1 June 23 2016 =
   * Added agent version in requests to test a connection between the website and servers.
   * Fixed issue with PHP notices in cleantalk-admin.php.
@@ -968,7 +989,7 @@ WordPress 3.0 at least. PHP 5 with CURL or file_get_contents() function and enab
 
 = 2.5.18 2013-11-01 =
   * Fixed: Bug with selection of the last comments for post
-  * New: Antispam protection for Formiadble feedback forms
+  * New: Antispam protection for Formidable feedback forms
   * New: Automatic deletion of outdated spam comments 
   * New: On/Off option for comments spam filtration 
   * Tested with WordPress 3.7.1
@@ -1077,6 +1098,23 @@ WordPress 3.0 at least. PHP 5 with CURL or file_get_contents() function and enab
   * First version
 
 == Upgrade Notice ==
+= 5.45.1 July 26 2016 =
+  * Fixed issue with missed spam messages, subscriptions.
+  * Improved bulk spam test for comments. Now the plugin will not mark as Spam comments, if a comment sender (IP address) has spam activity more then 30 days ago. 
+
+= 5.45 July 21 2016 =
+  * Optimized bulk spam comments deletion. 
+  * Turned off JavaScript anti-spam cookies if the option 'Set cookies' is turned off. It helps to avoid issues with Varnish.
+  * Added links to bulk spam comments&users removal tool.
+
+= 5.44.1 July 13 2016 =
+  * Optimized options getting code.
+  * Added the option 'Protect Logged in users' to do anti-spam tests for submissions by logged in users. 
+
+= 5.43.2 June 30 2016 =
+  * Optimized anti-spam code for AJAX based contact forms. 
+  * Fixed CSS layout of counters in Admin bar (issue with layout in IE11). 
+
 = 5.43.1 June 23 2016 =
   * Added agent version in requests to test a connection between the website and servers.
   * Fixed issue with PHP notices in cleantalk-admin.php.
@@ -1528,7 +1566,7 @@ Minor changes in spam filtration logic.
 
 = 2.5.18 2013-11-01 =
   * Fixed: Bug with selection of the last comments for post
-  * New: Antispam protection for Formiadble feedback forms
+  * New: Antispam protection for Formidable feedback forms
   * New: Automatic deletion of outdated spam comments 
   * New: On/Off option for comments spam filtration 
   * Tested with WordPress 3.7.1

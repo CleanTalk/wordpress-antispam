@@ -147,7 +147,7 @@ function ct_validate_email_ajaxlogin($email=null, $is_ajax=true)
 		}
 		
 		require_once('cleantalk.class.php');
-		$config = get_option('cleantalk_server');
+		$config = ct_get_server();
 		$ct = new Cleantalk();
 		$ct->work_url = $config['ct_work_url'];
 		$ct->server_url = $ct_options['server'];
@@ -232,7 +232,7 @@ function ct_user_register_ajaxlogin($user_id)
 		}
 		
 		require_once('cleantalk.class.php');
-		$config = get_option('cleantalk_server');
+		$config = ct_get_server();
 		$ct = new Cleantalk();
 		$ct->work_url = $config['ct_work_url'];
 		$ct->server_url = $ct_options['server'];
@@ -497,6 +497,17 @@ function ct_ajax_hook()
 				$output=json_encode($output);
 				print_r($output);
 				die;
+			}
+			//Quick event manager
+			else if($_POST['action']=='qem_validate_form'){
+				$errors[] = 'registration_forbidden';
+				$result = Array(
+					success => 'false',
+					errors => $errors,
+					title => $ct_result->comment
+				);
+				print json_encode($result);
+				die();
 			}
 			else
 			{

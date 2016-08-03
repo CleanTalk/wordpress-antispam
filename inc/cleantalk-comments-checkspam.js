@@ -79,7 +79,16 @@ function ct_send_comments()
 				working=false;
 				alert(msg);
 			}
-		}
+		},
+        error: function(jqXHR, textStatus, errorThrown) {
+            if(textStatus === 'timeout') {     
+                if(confirm('Failed from timeout. Going to check comments again.')) {
+				    ct_send_comments();
+                } else {
+                } 
+            }        
+        },
+        timeout: 10000
 	});
 }
 function ct_show_info()
@@ -175,22 +184,29 @@ jQuery("#ct_check_spam_button").click(function(){
 	jQuery('#ct_working_message').show();
 	jQuery('#ct_check_spam_button').hide();
 	jQuery('#ct_info_message').hide();
-	working=true;
-	ct_clear_comments();
-});
-jQuery("#ct_check_spam_button").click(function(){
-	jQuery('#ct_checking_status').html('');
 	jQuery('#ct_check_comments_table').hide();
 	jQuery('#ct_delete_all').hide();
 	jQuery('#ct_delete_checked').hide();
 	jQuery('#ct_preloader').show();
-	working=true;
+	jQuery('#ct_search_info').hide();
+	
+    working=true;
 	ct_show_info();
+	ct_clear_comments();
 });
+
 jQuery("#ct_insert_comments").click(function(){
 	ct_insert_comments();
 });
 jQuery("#ct_delete_all").click(function(){
+    if (!confirm('Delete all spam comments?')) {
+        return false;
+    }
+
+	jQuery('#ct_checking_status').hide();
+	jQuery('#ct_tools_buttons').hide();
+	jQuery('#ct_search_info').hide();
+	jQuery('#ct_bottom_tools').hide();
 	jQuery('#ct_check_comments_table').hide();
 	jQuery('#ct_deleting_message').show();
 	jQuery("html, body").animate({ scrollTop: 0 }, "slow");
