@@ -480,20 +480,40 @@ function ct_add_admin_menu( $wp_admin_bar ) {
 		);
 		$wp_admin_bar->add_node( $args );
 	
-		// add a child item to our parent item
-		$args = array(
-			'id'	 => 'ct_dashboard_link',
-			'title'  => '<a href="https://cleantalk.org/my/?user_token='.@$ct_data['user_token'].'&utm_source=wp-backend&utm_medium=admin-bar" target="_blank">CleanTalk '.__('dashboard', 'cleantalk').'</a>',
-			'parent' => 'ct_parent_node'
-		);
+				// add another child item to our parent item (not to our first group)
+		if(!is_network_admin()){
+			$args = array(
+				'id'	 => 'ct_settings_link',
+				'title'  => '<a href="options-general.php?page=cleantalk">'.__('Settings', 'cleantalk').'</a>',
+				'parent' => 'ct_parent_node'
+			);
+		}else{
+			$args = array(
+				'id'	 => 'ct_settings_link',
+				'title'  => '<a href="settings.php?page=cleantalk">'.__('Settings', 'cleantalk').'</a>',
+				'parent' => 'ct_parent_node'
+			);
+		}
 		$wp_admin_bar->add_node( $args );
-	
-		// add another child item to our parent item (not to our first group)
-		$args = array(
-			'id'	 => 'ct_settings_link',
-			'title'  => '<a href="options-general.php?page=cleantalk">'.__('Settings', 'cleantalk').'</a>',
-			'parent' => 'ct_parent_node'
-		);
+		
+		// add a child item to our parent item. Bulk checks.
+		if(!is_network_admin()){
+			$args = array(
+				'id'	 => 'ct_settings_bulk_comments',
+				'title'  => '<hr style="margin-top: 7px;" /><a href="edit-comments.php?page=ct_check_spam" title="Bulk spam comments removal tool.">'.__('Check comments for spam', 'cleantalk').'</a>',
+				'parent' => 'ct_parent_node'
+			);
+		}
+		$wp_admin_bar->add_node( $args );
+		
+		// add a child item to our parent item. Bulk checks.
+		if(!is_network_admin()){
+			$args = array(
+				'id'	 => 'ct_settings_bulk_users',
+				'title'  => '<a href="users.php?page=ct_check_users" title="Bulk spam users removal tool.">'.__('Check users for spam', 'cleantalk').'</a>',
+				'parent' => 'ct_parent_node'
+			);
+		}
 		$wp_admin_bar->add_node( $args );
 		
 		// add a child item to our parent item. Counter reset.
