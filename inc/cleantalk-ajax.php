@@ -498,6 +498,17 @@ function ct_ajax_hook()
 				print_r($output);
 				die;
 			}
+			//Quick event manager
+			else if($_POST['action']=='qem_validate_form'){
+				$errors[] = 'registration_forbidden';
+				$result = Array(
+					success => 'false',
+					errors => $errors,
+					title => $ct_result->comment
+				);
+				print json_encode($result);
+				die();
+			}
 			else
 			{
 				print $ct_result->comment;
