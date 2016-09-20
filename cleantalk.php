@@ -2,13 +2,13 @@
 /*
   Plugin Name: Spam Protection by CleanTalk
   Plugin URI: http://cleantalk.org
-  Description: Max power, all-in-one, captcha less, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms. Formerly Anti-Spam by CleanTalk. 
-  Version: 5.43.2
+  Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms. Formerly Anti-Spam by CleanTalk. 
+  Version: 5.48
   Author: СleanTalk <welcome@cleantalk.org>
   Author URI: http://cleantalk.org
  */
-$cleantalk_plugin_version='5.43.2';
-$ct_agent_version = 'wordpress-5432';
+$cleantalk_plugin_version='5.48';
+$ct_agent_version = 'wordpress-548';
 $cleantalk_executed=false;
 $ct_sfw_updated = false;
 
@@ -271,7 +271,6 @@ if(!defined('CLEANTALK_PLUGIN_DIR')){
 	require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public.php');
 
 	// Init action.
-	add_action('init', 'ct_init_after_all', 100);
 	add_action('plugins_loaded', 'ct_init', 1);
 
 	// Hourly run hook
@@ -349,23 +348,44 @@ function ct_add_event($event_type)
     }
 
 	$ct_data = ct_get_data();
-	$current_date=date('d M');
+	$current_hour=intval(date('G'));
 	
+	//Daily counter
+	if(!isset($ct_data['array_accepted'])){
+		$ct_data['array_accepted']=Array();
+		$ct_data['array_blocked']=Array();
+		$ct_data['current_hour']=$current_hour;
+	}	
+	//All time counter
+	if(!isset($ct_data['all_time_counter'])){
+		$ct_data['all_time_counter']['accepted']=0;
+		$ct_data['all_time_counter']['blocked']=0;
+	}	
 	//User counter
 	if(!isset($ct_data['user_counter'])){
 		$ct_data['user_counter']['accepted']=0;
 		$ct_data['user_counter']['blocked']=0;
-		$ct_data['user_counter']['since']=$current_date;
+		$ct_data['user_counter']['since']=date('d M');
+	}
+	
+	if($current_hour!=$ct_data['current_hour']){
+		@$ct_data['current_hour']=$current_hour;
+		@$ct_data['array_accepted'][$current_hour]=0;
+		@$ct_data['array_blocked'][$current_hour]=0;
 	}
 	
 	//Add 1 to counters
 	if($event_type=='yes'){
+		@$ct_data['array_accepted'][$current_hour]++;
+		@$ct_data['all_time_counter']['accepted']++;
 		@$ct_data['user_counter']['accepted']++;
 	}
 	if($event_type=='no'){
+		@$ct_data['array_blocked'][$current_hour]++;
+		@$ct_data['all_time_counter']['blocked']++;
 		@$ct_data['user_counter']['blocked']++;
-	}
-
+	}	
+	
 	update_option('cleantalk_data', $ct_data);
 	$cleantalk_executed=true;
 }
@@ -575,4 +595,17 @@ function ct_send_sfw_log()
     $sfw = new CleanTalkSFW();
     $sfw->send_logs();
 }
+
+/*
+function myplugin_update_field( $new_value, $old_value ) {
+	error_log('cleantalk_data dump: '. strlen(serialize($new_value)));
+    return $new_value;
+}
+
+function myplugin_init() {
+	add_filter( 'pre_update_option_cleantalk_data', 'myplugin_update_field', 10, 2 );
+}
+
+add_action( 'init', 'myplugin_init' );
+*/
 ?>

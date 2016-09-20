@@ -27,7 +27,8 @@ jQuery(document).ready(function(){
 		jQuery('.form-table').first().before(banner_html);
 		if(!cleantalk_wpmu)
 		{
-			jQuery('.form-table').first().before("<br /><a href='#' style='font-size:10pt;' id='cleantalk_access_key_link'>Show the access key</a>");
+//			jQuery('.form-table').first().before("<br /><a href='#' style='font-size:10pt;' id='cleantalk_access_key_link'>Show the access key</a>");
+			jQuery('.form-table').first().before(cleantalk_support_links);
 		}
 	}
 	
@@ -62,5 +63,17 @@ jQuery(document).ready(function(){
 			jQuery('#ct_adv_showhide').html("<b><a href='#' style='text-decoration:none;'></a></b>");
 		}
 		
+	});
+	
+	//For counters settings.
+	jQuery('#ct_advsettings_hide').on('click', '#cleantalk_show_adminbar1', function(){
+		jQuery('.ct-depends-of-show-adminbar').each(function(){
+			jQuery(this).removeAttr('disabled');
+		});
+	});
+	jQuery('#ct_advsettings_hide').on('click', '#cleantalk_show_adminbar0', function(){
+		jQuery('.ct-depends-of-show-adminbar').each(function(){
+			jQuery(this).attr('disabled', 'disabled');
+		});
 	});
 });

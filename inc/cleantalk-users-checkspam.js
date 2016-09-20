@@ -58,7 +58,6 @@ function ct_send_users()
 		'action': 'ajax_check_users',
 		'security': ajax_nonce
 	};
-	
 	jQuery.ajax({
 		type: "POST",
 		url: ajaxurl,
@@ -80,7 +79,14 @@ function ct_send_users()
 				working=false;
 				alert(msg);
 			}
-		}
+		},
+        error: function(jqXHR, textStatus, errorThrown) {
+            if(textStatus === 'timeout') {     
+                alert('Failed from timeout. Going to check users again.'); 
+				ct_send_users();
+            }        
+        },
+        timeout: 15000
 	});
 }
 function ct_show_users_info()
@@ -98,7 +104,8 @@ function ct_show_users_info()
 			success: function(msg){
 				jQuery('#ct_checking_users_status').html(msg);
 				setTimeout(ct_show_users_info, 1000);
-			}
+			},
+            timeout: 5000
 		});
 	}
 }

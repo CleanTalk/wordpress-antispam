@@ -43,7 +43,7 @@ $cnt_spam1=$r[0]['cnt'];
 			<?php //_e("Done. All comments tested via blacklists database, please see result bellow.", 'cleantalk'); 
 			?>
 		</div>
-		<h3 id="ct_checking_users_status" style="text-align:center;width:90%;"></h3>
+		<h3 id="ct_checking_users_status" style="text-align:center;width:90%;"><?php ct_ajax_info_users(true);?></h3>
 		<div style="text-align:center;width:100%;display:none;" id="ct_preloader"><img border=0 src="<?php print plugin_dir_url(__FILE__); ?>images/preloader.gif" /></div>
 		<div id="ct_working_message" style="margin:auto;padding:3px;width:70%;border:2px dotted gray;display:none;background:#ffff99;margin-top: 1em;">
 			<?php _e("Please wait for a while. CleanTalk is checking all users via blacklist database at cleantalk.org. You will have option to delete found spam users after plugin finish.", 'cleantalk'); ?>
@@ -181,7 +181,7 @@ $cnt_spam1=$r[0]['cnt'];
         <table>
             <tr>
                 <td>
-		            <button class="button" id="ct_check_users_button"><?php _e("Check for spam again", 'cleantalk'); ?></button>
+		            <button class="button" id="ct_check_users_button"><?php _e("Check for spam", 'cleantalk'); ?></button>
                 </td>
                 <td style="padding-left: 2em;">
                 <div id="ct_info_message" class="wrap"><?php _e("The plugin will check all users against blacklists database and show you senders that have spam activity on other websites. Just click 'Find spam users' to start.", 'cleantalk'); ?>
@@ -238,7 +238,7 @@ add_action( 'wp_ajax_ajax_check_users', 'ct_ajax_check_users' );
 
 function ct_ajax_check_users()
 {
-	global $ct_options;
+	global $ct_options,$ct_ip_penalty_days;
 
 	check_ajax_referer('ct_secret_nonce', 'security');
 
@@ -278,27 +278,25 @@ function ct_ajax_check_users()
 			} else {
 			    $u[$i]->data->user_ip = null;
             }
-			$data[]=$u[$i]->data->user_email;
+            if (isset($u[$i]->data->user_email) && $u[$i]->data->user_email) {
+			    $data[]=$u[$i]->data->user_email;
+            }
 		}
 		$data=implode(',',$data);
 		
-		$request="data=$data";
-		
-		$opts = array(
-		    'http'=>array(
-		        'method'=>"POST",
-		        'content'=>$request,
-		    )
-		);
-		
-		$context = stream_context_create($opts);
-	    
-        $url = sprintf("https://api.cleantalk.org/?method_name=spam_check&auth_key=%s",
-            $ct_options['apikey']
-        ); 
-		$result = file_get_contents($url, 0, $context);
+        $request=Array();
+        $request['method_name'] = 'spam_check'; 
+        $request['auth_key'] = $ct_options['apikey'];
+        $request['data'] = $data; 
+        $url='https://api.cleantalk.org';
+        if(!function_exists('sendRawRequest'))
+        {
+            require_once('cleantalk.class.php');
+        }
+        $result=sendRawRequest($url, $request, false, 5);
         
-		$result=json_decode($result);
+        $result=json_decode($result);
+
 		if(isset($result->error_message))
 		{
 			print $result->error_message;
@@ -322,14 +320,30 @@ function ct_ajax_check_users()
                 if ($skip_user) {
                     continue;
                 }
+                $mark_spam_ip = false;
+                $mark_spam_email = false;
+                $ip_update_time = 0; 
+
 
                 $uip = $u[$i]->data->user_ip;
                 $uim = $u[$i]->data->user_email;
 
-				if((isset($result->data->$uip) && $result->data->$uip->appears==1) || (isset($result->data->$uim) && $result->data->$uim->appears==1))
+				if(isset($result->data->$uip) && $result->data->$uip->appears == 1)
 				{
-					update_user_meta($u[$i]->ID,'ct_marked_as_spam','1',true);
+				    $mark_spam_ip = true;
+                    $ip_update_time = strtotime($result->data->$uip->updated);
 				}
+				if(isset($result->data->$uim) && $result->data->$uim->appears==1)
+				{
+                    $mark_spam_email = true;
+				}
+                // Do not use the spam records becaus it was a spammer far time ago.
+                if (time() - $ip_update_time > 86400 * $ct_ip_penalty_days) {
+                    $mark_spam_ip = false;     
+                }
+				if ($mark_spam_ip || $mark_spam_email) {
+					update_user_meta($u[$i]->ID,'ct_marked_as_spam','1',true);
+                }
 			}
 			print 1;
 		}
@@ -343,17 +357,18 @@ function ct_ajax_check_users()
 }
 
 add_action( 'wp_ajax_ajax_info_users', 'ct_ajax_info_users' );
-function ct_ajax_info_users()
+function ct_ajax_info_users($direct_call = false)
 {
-	check_ajax_referer( 'ct_secret_nonce', 'security' );
+    if (!$direct_call) {
+	    check_ajax_referer( 'ct_secret_nonce', 'security' );
+    }
+
     global $wpdb;
 		$r=$wpdb->get_results("select distinct count($wpdb->users.ID) as cnt from $wpdb->users inner join $wpdb->usermeta on $wpdb->users.ID=$wpdb->usermeta.user_id where $wpdb->usermeta.meta_key='ct_checked' or $wpdb->usermeta.meta_key='ct_hash';");
 		$cnt_checked=$r[0]->cnt;
 		$r=$wpdb->get_results("select count(ID) as cnt from $wpdb->users;");
 		$cnt=$r[0]->cnt;
 		
-		$cnt_unchecked=$cnt_all-$cnt_checked;
-
 		$r=$wpdb->get_results("select distinct count($wpdb->users.ID) as cnt from $wpdb->users inner join $wpdb->usermeta on $wpdb->users.ID=$wpdb->usermeta.user_id where $wpdb->usermeta.meta_key='ct_marked_as_spam';", ARRAY_A);
 $cnt_spam1=$r[0]['cnt'];
 	
@@ -364,7 +379,11 @@ $cnt_spam1=$r[0]['cnt'];
     }
 	print "<p>$backup_notice</p>";
 
-	die();
+    if (!$direct_call) {
+	    die();
+    };
+
+    return null;
 }
 
 add_action( 'wp_ajax_ajax_insert_users', 'ct_ajax_insert_users' );

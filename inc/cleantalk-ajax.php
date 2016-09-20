@@ -147,7 +147,7 @@ function ct_validate_email_ajaxlogin($email=null, $is_ajax=true)
 		}
 		
 		require_once('cleantalk.class.php');
-		$config = get_option('cleantalk_server');
+		$config = ct_get_server();
 		$ct = new Cleantalk();
 		$ct->work_url = $config['ct_work_url'];
 		$ct->server_url = $ct_options['server'];
@@ -232,7 +232,7 @@ function ct_user_register_ajaxlogin($user_id)
 		}
 		
 		require_once('cleantalk.class.php');
-		$config = get_option('cleantalk_server');
+		$config = ct_get_server();
 		$ct = new Cleantalk();
 		$ct->work_url = $config['ct_work_url'];
 		$ct->server_url = $ct_options['server'];
@@ -283,7 +283,7 @@ function ct_ajax_hook()
     $nickname=null;
     $contact = true;
     $subject = '';
-    
+
     //
     // Skip test if Custom contact forms is disabled.
     //
@@ -334,12 +334,20 @@ function ct_ajax_hook()
     	$_POST['target']=1;
     }
   	
-    $temp = ct_get_fields_any2($_POST);
+	//UserPro fix
+	if($_POST['action']=='userpro_process_form' && $_POST['template']=='register'){
+		$ct_post_temp = $_POST;
+		$ct_post_temp['shortcode'] = '';
+		$ct_temp_msg_data = ct_get_fields_any($_POST);
+	}else
+		$ct_temp_msg_data = ct_get_fields_any($_POST);
 
-    $sender_email = ($temp['email'] ? $temp['email'] : '');
-    $nickname = ($temp['nickname'] ? $temp['nickname'] : '');
-    $subject = ($temp['subject'] ? $temp['subject'] : '');
-    $message = ($temp['message'] ? $temp['message'] : array());
+	$sender_email = ($ct_temp_msg_data['email'] ? $ct_temp_msg_data['email'] : '');
+	$sender_nickname = ($ct_temp_msg_data['nickname'] ? $ct_temp_msg_data['nickname'] : '');
+	$subject = ($ct_temp_msg_data['subject'] ? $ct_temp_msg_data['subject'] : '');
+	$contact_form = ($ct_temp_msg_data['contact'] ? $ct_temp_msg_data['contact'] : true);
+	$message = ($ct_temp_msg_data['message'] ? $ct_temp_msg_data['message'] : array());
+	
     if ($subject != '') {
         $message = array_merge(array('subject' => $subject), $message);
     }
@@ -498,7 +506,18 @@ function ct_ajax_hook()
 				print_r($output);
 				die;
 			}
-			else
+			//Quick event manager
+            else if($_POST['action']=='qem_validate_form'){
+				$errors[] = 'registration_forbidden';
+				$result = Array(
+ 					success => 'false',
+ 					errors => $errors,
+ 					title => $ct_result->comment
+ 				);
+ 				print json_encode($result);
+ 				die();
+ 			}
+            else
 			{
 				print $ct_result->comment;
 				die();

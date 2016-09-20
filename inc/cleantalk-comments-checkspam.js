@@ -79,7 +79,16 @@ function ct_send_comments()
 				working=false;
 				alert(msg);
 			}
-		}
+		},
+        error: function(jqXHR, textStatus, errorThrown) {
+            if(textStatus === 'timeout') {     
+                if(confirm('Failed from timeout. Going to check comments again.')) {
+				    ct_send_comments();
+                } else {
+                } 
+            }        
+        },
+        timeout: 15000
 	});
 }
 function ct_show_info()
@@ -175,22 +184,29 @@ jQuery("#ct_check_spam_button").click(function(){
 	jQuery('#ct_working_message').show();
 	jQuery('#ct_check_spam_button').hide();
 	jQuery('#ct_info_message').hide();
-	working=true;
-	ct_clear_comments();
-});
-jQuery("#ct_check_spam_button").click(function(){
-	jQuery('#ct_checking_status').html('');
 	jQuery('#ct_check_comments_table').hide();
 	jQuery('#ct_delete_all').hide();
 	jQuery('#ct_delete_checked').hide();
 	jQuery('#ct_preloader').show();
-	working=true;
+	jQuery('#ct_search_info').hide();
+	
+    working=true;
 	ct_show_info();
+	ct_clear_comments();
 });
+
 jQuery("#ct_insert_comments").click(function(){
 	ct_insert_comments();
 });
 jQuery("#ct_delete_all").click(function(){
+    if (!confirm('Delete all spam comments?')) {
+        return false;
+    }
+
+	jQuery('#ct_checking_status').hide();
+	jQuery('#ct_tools_buttons').hide();
+	jQuery('#ct_search_info').hide();
+	jQuery('#ct_bottom_tools').hide();
 	jQuery('#ct_check_comments_table').hide();
 	jQuery('#ct_deleting_message').show();
 	jQuery("html, body").animate({ scrollTop: 0 }, "slow");
@@ -201,11 +217,11 @@ jQuery("#ct_delete_checked").click(function(){
 });
 jQuery(".cleantalk_comment").mouseover(function(){
 	id = jQuery(this).attr("data-id");
-	jQuery("#cleantalk_delete_"+id).show();
+	jQuery("#cleantalk_button_set_"+id).show();
 });
 jQuery(".cleantalk_comment").mouseout(function(){
 	id = jQuery(this).attr("data-id");
-	jQuery("#cleantalk_delete_"+id).hide();
+	jQuery("#cleantalk_button_set_"+id).hide();
 });
 jQuery(".cleantalk_delete_button").click(function(){
 	id = jQuery(this).attr("data-id");
@@ -232,7 +248,24 @@ jQuery(".cleantalk_delete_button").click(function(){
 	id = jQuery(this).attr("data-id");
 	animate_comment(0.3, id);
 });
-
+jQuery(".cleantalk_delete_from_list_button").click(function(){
+	ct_id = jQuery(this).attr("data-id");
+	var data = {
+		'action': 'ajax_ct_delete_from_list',
+		'security': ajax_nonce,
+		'id': ct_id
+	};
+	jQuery.ajax({
+		type: "POST",
+		url: ajaxurl,
+		data: data,
+		success: function(msg){
+			jQuery("#comment-"+ct_id).fadeOut('slow', function(){
+				jQuery("#comment-"+ct_id).remove();
+			});
+		},
+	});
+});
 jQuery(document).ready(function(){
 	working=true;
 	ct_show_info();
