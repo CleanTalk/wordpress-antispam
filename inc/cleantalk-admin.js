@@ -6,7 +6,7 @@ jQuery(document).ready(function(){
 	var n = d.getTimezoneOffset();
 	var data = {
 		'action': 'ajax_get_timezone',
-		'security': ajax_nonce,
+		'security': ctSettingsPage.ct_ajax_nonce,
 		'offset': n
 	};
 	jQuery.ajax({
@@ -30,6 +30,8 @@ jQuery(document).ready(function(){
 //			jQuery('.form-table').first().before("<br /><a href='#' style='font-size:10pt;' id='cleantalk_access_key_link'>Show the access key</a>");
 			jQuery('.form-table').first().before(cleantalk_support_links);
 		}
+	}else{
+		jQuery('#ct_admin_timezone').val(d.getTimezoneOffset()/60*(-1));
 	}
 	
 	jQuery('#cleantalk_access_key_link').click(function(){

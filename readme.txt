@@ -1,16 +1,16 @@
 === Spam Protection by CleanTalk (no Captcha Anti-Spam) ===
-Contributors: znaeff, shagimuratov, serge00 
-Tags: spam, anti-spam, antispam, anti spam, bbpress, buddypress, captcha, capcha, captha, catcha, cf7 spam, comments, contact form spam, signup, spammers, spammy, woocommerce, wordpress spam, booking, order, subscription, gravity spam, jetpack, bots, contact form 7, contact form, registrations, ninja, Fast Secure Contact, Gravity forms, formidable, mailchimp, s2member, protection, protect, email, akismet, plugin, contact, recaptcha, google captcha, google recaptcha, math, security, login, blacklist, prevent spam comments, wordpress, User Frontend, bulk delete, bulk remove, cloudflare, widget, review, auth forms, firewall, ddos, cleantalk, mailpoet, profile builder, comment spam, registration spam, spam comments, comment moderation, spam bots, block spam, signup spam, spam blocker, spam filter, user registration spam,pingback,trackback, anti-spam plugin, varnish, amp, spam free, userpro,PirateForms, BestWebSoft, WebDorado 
+Contributors: znaeff, shagimuratov, serge00, sartemd174 
+Tags: spam, anti-spam, antispam, anti spam, bbpress, buddypress, captcha, capcha, captha, catcha, cf7 spam, comments, contact form spam, signup, spammers, spammy, woocommerce, wordpress spam, subscription, gravity spam, jetpack, bots, contact form 7, contact form, registrations, ninja, Fast Secure Contact, Gravity forms, formidable, mailchimp, s2member, protection, protect, email, plugin, contact, recaptcha, google captcha, google recaptcha, blacklist, prevent spam comments, wordpress, User Frontend, bulk delete, bulk remove, widget, review, firewall, cleantalk, mailpoet, profile builder, comment spam, registration spam, spam comments, comment moderation, spam bots, block spam, signup spam, spam blocker, spam filter, user registration spam,pingback,trackback, anti-spam plugin, varnish, amp, spam free, userpro,honeypot,puzzle,quiz,survey,poll,security, amo forms, caldera forms, visual form builder, contact form clean and simple
 Requires at least: 3.0
-Tested up to: 4.6.1
-Stable tag: 5.48
+Tested up to: 4.7.1
+Stable tag: 5.57.1
 License: GPLv2 
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-Spam protection, anti-spam, all-in-one, premium plug-in. No comments spam & registrations spam, no email spam, protects any forms. Forget spam.
+Spam protection, anti-spam, all-in-one, premium plug-in. No comments spam & users spam, no contact form & WooCommerce spam. Forget spam.
 
 == Description ==
-Anti-Spam for WordPress. No CAPTCHA, no questions, no animal counting, no puzzles, no math and no spam bots. Universal AntiSpam plugin. Formerly  "Anti-Spam by CleanTalk".
+No CAPTCHA, no questions, no animal counting, no puzzles, no math and no spam bots. Universal Anti-Spam plugin. Formerly "Anti-Spam by CleanTalk". 
 
 = Anti-Spam features =
 1. Stops spam comments.
@@ -19,7 +19,9 @@ Anti-Spam for WordPress. No CAPTCHA, no questions, no animal counting, no puzzle
 1. Stops spam orders.
 1. Stops spam bookings.
 1. Stops spam subscriptions.
+1. Stops spam surveys, polls.
 1. Stops spam in widgets.
+1. Stops spam in WooCommerce.
 1. Checks the existing comments for spam.
 
 = Public reviews =
@@ -42,7 +44,7 @@ Supports native WordPress, JetPack comments and any other comment plugins. The p
 Filters spam bots on registration forms of WordPress, BuddyPress, bbPress, S2Member, WooCommerce, Profile builder, Login with AJAX and any other registration plugins.
 
 = Protection from contact form spam =
-The plugin is tested and ready to protect from spam emails via Formidable forms, Contact form 7, JetPack Contact form, Fast Secure Contact form, Ninja forms, Landing pages, Gravity forms, Contact Form by BestWebSoft, Simple Contact Form Plugin - PirateForms, Visual Form Builder, Form, Contact Form by WebDorado, Contact Form Email, MW WP Form, Contact Form by Jeff Bulllins, Easy Contact, Contact Us Form, Grunion Contact Form, WCP Contact Form, Easy WordPress Contact Form Plugin - WPForms Lite and any other themes/custom contact forms.
+The plugin is tested and ready to protect from spam emails via Formidable forms, Contact form 7, JetPack Contact form, Fast Secure Contact form, Ninja forms, Landing pages, Gravity forms, Contact Form by BestWebSoft, Simple Contact Form Plugin - PirateForms, Visual Form Builder, Form, Contact Form by WebDorado, Contact Form Email, MW WP Form, Contact Form by Jeff Bulllins, Easy Contact, Contact Us Form, Grunion Contact Form, WCP Contact Form, Easy WordPress Contact Form Plugin, WPForms Lite, Custom Contact, Forms, Amo Forms, Caldera Forms, Visual Form Builder, Contact Form Clean and Simple and any other themes or custom contact forms.
 
 = WooCommerce spam filter =
 Anti-spam by CleanTalk filters spam registrations and spam reviews for WooCommerce. The plugin is fully compatible with WooCommerce 2.1 and higher.
@@ -190,10 +192,9 @@ CleanTalk has an advanced option “SpamFireWall”. This option allows you to b
 “CleanTalk team has been developing a cloud spam protection system for five years and has created a truly reliable anti-spam service designed for you to guarantee your safety”.
 
 = We recommend =
-Audience engagement plugin <a href="http://wordpress.org/plugins/feedweb/">Feedweb</a>
+ * <a href="https://wordpress.org/plugins/security-malware-firewall/">Security & Firewall plugin by CleanTalk</a>
 
 > Max power, all-in-one, premium anti-spam WordPress plugin. No comments & registrations spam, no contact spam, protects any forms. Just install and forget spam. 
-
 
 == Installation ==
 = Spam protection plugin setup =
@@ -382,6 +383,12 @@ Yes, it does. But you have to turn off the option 'Use AJAX for JavaScript check
 = How to close renewal or trial notice in the WordPress backend? =
 To close the notice please save the plugin settings again or it will be closed automatically within 60 minutes after the renewal. 
 
+= I'm using PHP 4.2 version and i'm getting errors related with JSON. Why does it happens? =
+СleanTalk is no longer supports PHP lower than 5.2 version because the support code have incompatibility with PHP 7 version. Please, upgrade your PHP. If you couldn't perform that, let us know about it via support ticket here: https://cleantalk.org/my/support.
+
+= Should I change anything in the plugin's settings or in my CleanTalk Control Panel when I switch my website from HTTP to HTTPS or vice versa?
+No. You don't need to change anything in the plugin's settings or in your CleanTalk Control Panel. The plugin will work regardless of the protocol.
+
 == Other notes ==
 
 = Troubleshooting Guide =
@@ -476,9 +483,99 @@ WordPress 3.0 at least. PHP 5 with CURL or file_get_contents() function and enab
 1. Use AntiSpam analytics tool for each website in service Dashboard to have information about spam/legitimate statistics. 
 1. Use AntiSpam log to control anti-spam plugin. 
 1. CleanTalk works faster than most of other anti-spam plugins. 
-1. The map in the Dashbaord of most spam active countries.  
+1. The Dashboard with a map of most spam active countries per your account.  
 
 == Changelog ==
+= 5.57.1 February 8 2017 =
+  * Fix for notice logic.
+
+= 5.57 February 8 2017 =
+  * Setting page changes.
+  * Bug fixes for WooCommerce.
+  * SpamFireWall filters only GET requests.
+  * Optimization.
+  * Minor and major fixes.
+  
+= 5.56.1 January 25 2017 =
+  * Minor fixes
+
+= 5.56 January 19 2017 =
+  * Integrations: MailChimp Premium, Profile Press.
+  * Changes comments flow.
+  * FireWall updater fix.
+  * Users check optimization.
+  
+= 5.55 December 23 2016 =
+  * Integrations: Caldera Forms, Visual Form Builder.
+  * Fix for different 'cookies' header names.
+  * Fixed user deletion.
+
+= 5.54 December 12 2016 =
+  * Integrations: AmoForms, Contact Form Clean and Simple.
+  * Comments check logic refreshed.
+  * Registration JS error fix.
+  * Users check fix.
+  * Fix for translation system.
+  * Minor fixes.
+
+= 5.53.1 December 9 2016 =
+  * Minor layout fixes.
+  
+= 5.53 November 28 2016 =
+  * Addition warning before deleting users.
+  * SpamFireWall is enabled by default.
+  * Usernoise modal feedback / contact form : integration.
+  * Translations.
+  * Optimization.
+  * Fixes.
+  
+= 5.52.1 November 14 2016 =
+  * Users and comments check: Using new API method.
+  * Quick Contact From: Integration via "Custom Contact Forms" setting.
+  * JavaScript filtration improved.
+  * Translation changes.
+  * Optimized JavaScript code.
+
+= 5.51 November 2 2016 =
+  * Added protection for internal forms
+  * Immediate spam check for comments and users from WP dashboard
+  * Optimized code
+  
+= 5.50.1 October 24 2016 =
+  * Improved filtration in contact forms.
+  * SpamFireWall: Fixed issue with SFW logs
+  * Skipping service fields: Fast Secure Contact Froms, QU Forms, Custom Contact Forms
+  
+= 5.50 October 20 2016 =
+  * Custom contact forms: integration.
+  * Pirate Forms: integration.
+  * PHP 7 compatibility: Deleted third-party JSON library and dependences.
+  * PHP 7 compatibility: Fixed end of lines.
+  * YOAST Seo: Fixed PHP warnings.
+  * SpamFireWall: Minor fix for SpamFireWall counter.
+  * Only admin could access to CleanTalk dashboard (exclude Authors an Editors).
+  * Improved filtration in contact forms.
+
+= 5.49.2 October 5 2016 =
+  * Second Fix for database error. Stable version.
+  
+= 5.49.1 October 5 2016 =
+  * Fixed database error.
+  
+= 5.49 October 3 2016 =
+  * SpamFireWall feature: Class upgraded.
+  * New feature: Delete links from approved comments.
+  * Settings: Grouped.
+  * Settings: Altered description fixed spelling mistakes.
+  * Settings: Added indicator for SpamFireWall.
+  * Admin bar: Added SpamFireWall counter
+  * Clean and Simple Contact Form: Direct integration.
+  * WooCommerce: Don't check password recovery form.
+  * WooCommerce Wishlists: Issue with check for Google bots.
+  * JetPack: contact form fix.
+  * Fixed and created the defaults for all CleanTalk options.
+  * Fixed spelling mistakes.
+  
 = 5.48 September 15 2016 =
   * buddyPress: Added private messages filtering. Doesn't check user if he has 3 or more messages in the "sentbox" and "inbox" folders.
   * buddyPress: Added option in settings for private messages check.
@@ -1141,7 +1238,96 @@ WordPress 3.0 at least. PHP 5 with CURL or file_get_contents() function and enab
   * First version
 
 == Upgrade Notice ==
-== Changelog ==
+= 5.57.1 February 8 2017 =
+  * Fix for notice logic.
+
+= 5.57 February 8 2017 =
+  * Setting page changes.
+  * Bug fixes for WooCommerce.
+  * SpamFireWall filters only GET requests.
+  * Optimization.
+  * Minor and major fixes.
+  
+= 5.56.1 January 25 2017 =
+  * Minor fixes
+
+= 5.56 January 19 2017 =
+  * Integrations: MailChimp Premium, Profile Press.
+  * Changes comments flow.
+  * FireWall updater fix.
+  * Users check optimization.
+
+= 5.55 December 23 2016 =
+  * Integrations: Caldera Forms, Visual Form Builder.
+  * Fix for different 'cookies' header names.
+  * Fixed user deletion.
+
+= 5.54 December 12 2016 =
+  * Integrations: AmoForms, Contact Form Clean and Simple.
+  * Comments check logic refreshed.
+  * Registration JS error fix.
+  * Users check fix.
+  * Fix for translation system.
+  * Minor fixes.
+
+= 5.53.1 December 9 2016 =
+  * Minor layout fixes.
+
+= 5.53 November 28 2016 =
+  * Addition warning before deleting users.
+  * SpamFireWall is enabled by default.
+  * Usernoise modal feedback / contact form : integration.
+  * Translations.
+  * Optimization.
+  * Fixes.
+
+= 5.52.1 November 14 2016 =
+  * Users and comments check: Using new API method.
+  * Quick Contact From: Integration via "Custom Contact Forms" setting.
+  * JavaScript filtration improved.
+  * Translation changes.
+  * Optimized JavaScript code.
+
+= 5.51 November 2 2016 =
+  * Added protection for internal forms
+  * Immediate spam check for comments and users from WP dashboard
+  * Optimized code
+  
+= 5.50.1 October 24 2016 =
+  * Improved filtration in contact forms.
+  * SpamFireWall: Fixed issue with SFW logs
+  * Skipping service fields: Fast Secure Contact Froms, QU Forms, Custom Contact Forms
+
+= 5.50 October 20 2016 =
+  * Custom contact forms: integration.
+  * Pirate Forms: integration.
+  * PHP 7 compatibility: Deleted third-party JSON library and dependences.
+  * PHP 7 compatibility: Fixed end of lines.
+  * YOAST Seo: Fixed PHP warnings.
+  * SpamFireWall: Minor fix for SpamFireWall counter.
+  * Only admin could access to CleanTalk dashboard (exclude Authors an Editors).
+  * Improved filtration in contact forms.
+  
+= 5.49.2 October 5 2016 =
+  * Second Fix for database error. Stable version.
+  
+= 5.49.1 October 5 2016 =
+  * Fixed database error.
+  
+= 5.49 October 3 2016 =
+  * SpamFireWall feature: Class upgraded.
+  * New feature: Delete links from approved comments.
+  * Settings: Grouped.
+  * Settings: Altered description fixed spelling mistakes.
+  * Settings: Added indicator for SpamFireWall.
+  * Admin bar: Added SpamFireWall counter
+  * Clean and Simple Contact Form: Direct integration.
+  * WooCommerce: Don't check password recovery form.
+  * WooCommerce Wishlists: Issue with check for Google bots.
+  * JetPack: contact form fix.
+  * Fixed and created the defaults for all CleanTalk options.
+  * Fixed spelling mistakes.
+  
 = 5.48 September 15 2016 =
   * buddyPress: Added private messages filtering. Doesn't check user if he has 3 or more messages in the "sentbox" and "inbox" folders.
   * buddyPress: Added option in settings for private messages check.

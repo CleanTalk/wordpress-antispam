@@ -38,31 +38,16 @@ if( !function_exists('apache_request_headers') ) {
 }
 
 /**
-* Load JSON functions if they are not exists 
-*/
-if(!function_exists('json_encode')) {
-    require_once 'JSON.php';
-
-    function json_encode($data) {
-        $json = new Services_JSON();
-        return( $json->encode($data) );
-    }
-
-}
-if(!function_exists('json_decode')) {
-    require_once 'JSON.php';
-
-    function json_decode($data) {
-        $json = new Services_JSON();
-        return( $json->decode($data) );
-    }
-}
-
-/**
  * Response class
  */
 class CleantalkResponse {
 
+    /**
+     * Received feedback nubmer
+     * @var int
+     */
+    public $received = null;
+	
     /**
      *  Is stop words
      * @var int
@@ -197,6 +182,7 @@ class CleantalkResponse {
             $this->stop_queue = (isset($obj->stop_queue)) ? $obj->stop_queue : 0;
             $this->inactive = (isset($obj->inactive)) ? $obj->inactive : 0;
             $this->account_status = (isset($obj->account_status)) ? $obj->account_status : -1;
+	    	$this->received = (isset($obj->received)) ? $obj->received : -1;
 
             if ($this->errno !== 0 && $this->errstr !== null && $this->comment === null)
                 $this->comment = '*** ' . $this->errstr . ' Antispam service cleantalk.org ***'; 
@@ -630,7 +616,16 @@ class Cleantalk {
     private function sendRequest($data = null, $url, $server_timeout = 3) {
         // Convert to array
         $data = (array)json_decode(json_encode($data), true);
-
+		
+		//Cleaning from 'null' values
+		$tmp_data = array();
+		foreach($data as $key => $value){
+			if($value !== null)
+				$tmp_data[$key] = $value;
+		}
+		$data = $tmp_data;
+		unset($key, $value, $tmp_data);
+	
         // Convert to JSON
         $data = json_encode($data);
         
@@ -642,7 +637,7 @@ class Cleantalk {
         if ($this->ssl_on && !preg_match("/^https:/", $url)) {
             $url = preg_replace("/^(http)/i", "$1s", $url);
         }
-
+				
         $result = false;
         $curl_error = null;
 		if(function_exists('curl_init')) {
@@ -693,8 +688,8 @@ class Cleantalk {
                 $context  = stream_context_create($opts);
                 $result = @file_get_contents($url, false, $context);
             }
-        }
-        
+        }		
+		
         if (!$result || !cleantalk_is_JSON($result)) {
             $response = null;
             $response['errno'] = 1;
@@ -734,7 +729,26 @@ class Cleantalk {
      */
     private function httpRequest($msg) {
         $result = false;
-        $msg->all_headers=json_encode(apache_request_headers());
+			
+		if($msg->method_name != 'send_feedback'){
+			$ct_tmp = apache_request_headers();
+			
+			if(isset($ct_tmp['Cookie']))
+				$cookie_name = 'Cookie';
+			elseif(isset($ct_tmp['cookie']))
+				$cookie_name = 'cookie';
+			else
+				$cookie_name = 'COOKIE';
+				
+			$ct_tmp[$cookie_name] = preg_replace(array(
+				'/\s{0,1}ct_checkjs=[a-z0-9]*[;|$]{0,1}/',
+				'/\s{0,1}ct_timezone=.{0,1}\d{1,2}[;|$]/', 
+				'/\s{0,1}ct_pointer_data=.*5D[;|$]{0,1}/', 
+				'/;{0,1}\s{0,3}$/'
+			), '', $ct_tmp[$cookie_name]);
+			$msg->all_headers=json_encode($ct_tmp);
+		}
+	    
         //$msg->remote_addr=$_SERVER['REMOTE_ADDR'];
         //$msg->sender_info['remote_addr']=$_SERVER['REMOTE_ADDR'];
         $si=(array)json_decode($msg->sender_info,true);
@@ -808,9 +822,9 @@ class Cleantalk {
                 }
             }
         }
-
+				
         $response = new CleantalkResponse(null, $result);
-
+		
         if (!empty($this->data_codepage) && $this->data_codepage !== 'UTF-8') {
             if (!empty($response->comment))
             $response->comment = $this->stringFromUTF8($response->comment, $this->data_codepage);
@@ -819,7 +833,7 @@ class Cleantalk {
             if (!empty($response->sms_error_text))
             $response->sms_error_text = $this->stringFromUTF8($response->sms_error_text, $this->data_codepage);
         }
-
+		
         return $response;
     }
     
@@ -1078,13 +1092,14 @@ class Cleantalk {
 
 if(!function_exists('getAutoKey'))
 {
-	function getAutoKey($email, $host, $platform)
+	function getAutoKey($email, $host, $platform, $timezone = null)
 	{
 		$request=Array();
 		$request['method_name'] = 'get_api_key'; 
 		$request['email'] = $email;
 		$request['website'] = $host;
 		$request['platform'] = $platform;
+		$request['timezone'] = $timezone;
 		$url='https://api.cleantalk.org';
 		$result=sendRawRequest($url,$request);
 		return $result;
@@ -1106,6 +1121,29 @@ function noticePaidTill($api_key)
 	$url='https://api.cleantalk.org';
 	$result=sendRawRequest($url,$request);
 	return $result;
+}
+
+/**
+ * Function gets spam report
+ *
+ * @param string website host
+ * @param integer report days
+ * @return type
+ */
+
+if(!function_exists('getAntispamReport'))
+{
+	function getAntispamReport($host, $period = 1)
+	{
+		$url='https://api.cleantalk.org';
+		$request=Array(
+			'method_name' => 'get_antispam_report',
+			'hostname' => $host,
+			'period' => $period
+		);
+		$result=sendRawRequest($url,$request);
+		return $result;
+	}
 }
 
 /**

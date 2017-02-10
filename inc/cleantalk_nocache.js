@@ -80,7 +80,7 @@ function ct_setCookie(name, value)
 
 function ct_callback(req)
 {
-	ct_cookie=req.responseText.trim();
+	ct_cookie = req.responseText.trim();
 	//alert('Key value: ' + ct_cookie);
 	
 	ct_setCookie('ct_checkjs', ct_cookie);

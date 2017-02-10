@@ -62,9 +62,9 @@ function ct_show_checkspam_page()
 					<label class="screen-reader-text" for="cb-select-all-1">Select All</label>
 					<input id="cb-select-all-1" type="checkbox" style="margin-top:0;"/>
 				</th>
-				<th scope="col" id="author" class="manage-column column-slug"><?php print _e('Author');?></th>
-				<th scope="col" id="comment" class="manage-column column-comment"><?php print _x( 'Comment', 'column name' );;?></th>
-				<th scope="col" id="response" class="manage-column column-response sortable desc"><?php print _x( 'In Response To', 'column name' );?></th>
+				<th scope="col" id="author" class="manage-column column-slug"><?php print _e( 'Author' );?></th>
+				<th scope="col" id="comment" class="manage-column column-comment"><?php _e( 'Comment', 'cleantalk');;?></th>
+				<th scope="col" id="response" class="manage-column column-response sortable desc"><?php _e( 'In Response To', 'cleantalk' );?></th>
 			</thead>
 			<tbody id="the-comment-list" data-wp-lists="list:comment">
 				<?php
@@ -106,17 +106,17 @@ function ct_show_checkspam_page()
 							<?php print $c_spam[$i]->comment_content; ?>
 							</p>
 							<div style="height:16px; display: none;" id='cleantalk_button_set_<?php print $c_spam[$i]->comment_ID; ?>'>
-								<a href="#" class="cleantalk_delete_button"  			data-id="<?php print $c_spam[$i]->comment_ID; ?>" style="color:#a00;" onclick="return false;" onmouseover="this.style.textDecoration='underline';" onmouseout="this.style.textDecoration='none';">Delete</a>
+								<a href="#" class="cleantalk_delete_from_list_button"  	data-id="<?php print $c_spam[$i]->comment_ID; ?>" style="color:#0a0;" onclick="return false;" onmouseover="this.style.textDecoration='underline';" onmouseout="this.style.textDecoration='none';"><?php _e("Approve", "cleantalk"); ?></a>
 								&nbsp;|&nbsp;
-								<a href="#" class="cleantalk_delete_from_list_button"  	data-id="<?php print $c_spam[$i]->comment_ID; ?>" style="color:#0a0;" onclick="return false;" onmouseover="this.style.textDecoration='underline';" onmouseout="this.style.textDecoration='none';">Approve and delete from the list</a>
+								<a href="#" class="cleantalk_delete_button"  			data-id="<?php print $c_spam[$i]->comment_ID; ?>" style="color:#a00;" onclick="return false;" onmouseover="this.style.textDecoration='underline';" onmouseout="this.style.textDecoration='none';"><?php _e("Delete", "cleantalk"); ?></a>
 							</div>
 						</td>
 						<td class="response column-response">
 							<div>
 								<span>
-									<a href="http://ct_wp/wp-admin/post.php?post=<?php print $c_spam[$i]->comment_post_ID; ?>&action=edit"><?php print get_the_title($c_spam[$i]->comment_post_ID); ?></a>
+									<a href="/wp-admin/post.php?post=<?php print $c_spam[$i]->comment_post_ID; ?>&action=edit"><?php print get_the_title($c_spam[$i]->comment_post_ID); ?></a>
 									<br/>
-									<a href="http://ct_wp/wp-admin/edit-comments.php?p=<?php print $c_spam[$i]->comment_post_ID; ?>" class="post-com-count">
+									<a href="/wp-admin/edit-comments.php?p=<?php print $c_spam[$i]->comment_post_ID; ?>" class="post-com-count">
 										<span class="comment-count"><?php
 											$p_cnt=wp_count_comments();
 											print $p_cnt->total_comments;
@@ -153,11 +153,11 @@ function ct_show_checkspam_page()
 							{
 								if($i==$page)
 								{
-									print "<a href='edit-comments.php?page=ct_check_spam&spam_page=$i'><b>$i</b></a> ";
+									print "<a href='edit-comments.php?page=ct_check_spam&spam_page=$i&ct_worked=1'><b>$i</b></a> ";
 								}
 								else
 								{
-									print "<a href='edit-comments.php?page=ct_check_spam&spam_page=$i'>$i</a> ";
+									print "<a href='edit-comments.php?page=ct_check_spam&spam_page=$i&ct_worked=1'>$i</a> ";
 								}								
 							}
 						?>
@@ -168,8 +168,8 @@ function ct_show_checkspam_page()
 				?>
 			</tbody>
 		</table>
-        <div id="ct_tools_buttons">
-		<button class="button" id="ct_delete_all"><?php _e('Delete all comments from the list'); ?></button> 
+        <div id="ct_tools_buttons" style="margin-top: 10px;">
+		<button class="button" id="ct_delete_all"><?php _e('Delete all comments from the list', 'cleantalk'); ?></button> 
 		<button class="button" id="ct_delete_checked"><?php _e('Delete selected', 'cleantalk'); ?></button><br /><br />
         </div>
 		<?php
@@ -212,9 +212,9 @@ function ct_show_checkspam_page()
 				{
 					print "<br />
         <div id=\"ct_search_info\">
-        <br />
-			There is some differencies between blacklists database and our API mechanisms. Blacklists shows all history of spam activity, but our API (that used in spam checking) used another parameters, too: last day of activity, number of spam attacks during last days etc. This mechanisms help us to reduce number of false positivitie. So, there is nothing strange, if some emails/IPs will be not found by this checking.
-        </div>";
+        <br />".
+			__('There is some differencies between blacklists database and our API mechanisms. Blacklists shows all history of spam activity, but our API (that used in spam checking) used another parameters, too: last day of activity, number of spam attacks during last days etc. This mechanisms help us to reduce number of false positivitie. So, there is nothing strange, if some emails/IPs will be not found by this checking.', 'cleantalk')
+        ."</div>";
 				}
 			?></div>
 		<?php
@@ -244,7 +244,7 @@ function ct_show_checkspam_page()
             </tr>
         </table>
 <?php
-		if($_SERVER['REMOTE_ADDR']=='127.0.0.1')print '<button class="button" id="ct_insert_comments">Insert comments</button><br />';
+		if($_SERVER['REMOTE_ADDR']=='127.0.0.1')print '<button class="button" id="ct_insert_comments">'. __('Insert comments', 'cleantalk') .'</button><br />';
 ?>
 
         </div>
@@ -255,25 +255,7 @@ function ct_show_checkspam_page()
 add_action('admin_print_footer_scripts','ct_add_checkspam_button');
 function ct_add_checkspam_button()
 {
-    $screen = get_current_screen();
-    $ajax_nonce = wp_create_nonce( "ct_secret_nonce" );
-    ?>
-    <script>
-    	var ajax_nonce='<?php echo $ajax_nonce; ?>';
-    	var spambutton_text='<?php _e("Find spam comments", 'cleantalk'); ?>';
-    </script>
-    <?php
-    if( $screen->id == 'edit-comments' ){
-        ?>
-            <script src="<?php print plugins_url( 'cleantalk-comments-editscreen.js', __FILE__ ); ?>"></script>
-        <?php
-    }
-    if($screen->id == 'comments_page_ct_check_spam')
-    {
-    	?>
-            <script src="<?php print plugins_url( 'cleantalk-comments-checkspam.js', __FILE__ ); ?>"></script>
-        <?php
-    }
+
 }
 
 
@@ -319,7 +301,7 @@ function ct_ajax_check_comments()
 		$data=implode(',',$data);
 
         $request=Array();
-        $request['method_name'] = 'spam_check'; 
+        $request['method_name'] = 'spam_check_cms'; 
         $request['auth_key'] = $ct_options['apikey'];
         $request['data'] = $data; 
         $url='https://api.cleantalk.org';
@@ -357,10 +339,13 @@ function ct_ajax_check_comments()
                     $mark_spam_email = true;
 				}
 
-                // Do not use the spam records becaus it was a spammer far time ago.
+                /* 
+				// Do not use the spam records becaus it was a spammer far time ago.
                 if (time() - $ip_update_time > 86400 * $ct_ip_penalty_days) {
                     $mark_spam_ip = false;     
                 }
+				//*/
+				
 				if ($mark_spam_ip || $mark_spam_email) {
                     add_comment_meta($u[$i]->comment_ID,'ct_marked_as_spam','1',true);
                 }
@@ -536,8 +521,8 @@ function ct_ajax_clear_comments()
 /**
  * Admin action 'comment_unapproved_to_approved' - Approve comment, delete from the deleting list
  */
-add_action( 'wp_ajax_ajax_ct_delete_from_list', 'ct_ajax_delete_from_list' );
-function ct_ajax_delete_from_list() {
+add_action( 'wp_ajax_ajax_ct_approve_comment', 'ct_commentcheck_approve_comment' );
+function ct_commentcheck_approve_comment() {
 	
 	check_ajax_referer( 'ct_secret_nonce', 'security' );
 

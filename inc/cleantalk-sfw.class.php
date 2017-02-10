@@ -6,93 +6,64 @@ class CleanTalkSFW
 	public $ip_array = Array();
 	public $ip_str_array = Array();
 	public $blocked_ip = '';
+	public $passed_ip = '';
 	public $result = false;
 	
 	public function cleantalk_get_real_ip()
 	{
+		$result=Array();
 		if ( function_exists( 'apache_request_headers' ) )
-		{
 			$headers = apache_request_headers();
-		}
 		else
-		{
 			$headers = $_SERVER;
-		}
-		if ( array_key_exists( 'X-Forwarded-For', $headers ) )
-		{
-			$the_ip=explode(",", trim($headers['X-Forwarded-For']));
+
+		if ( array_key_exists( 'X-Forwarded-For', $headers ) ){
+			$the_ip = explode(",", trim($headers['X-Forwarded-For']));
 			$the_ip = trim($the_ip[0]);
+			$result[] = $the_ip;
 			$this->ip_str_array[]=$the_ip;
 			$this->ip_array[]=sprintf("%u", ip2long($the_ip));
 		}
-		if ( array_key_exists( 'HTTP_X_FORWARDED_FOR', $headers ))
-		{
-			$the_ip=explode(",", trim($headers['HTTP_X_FORWARDED_FOR']));
+		
+		if ( array_key_exists( 'HTTP_X_FORWARDED_FOR', $headers )){
+			$the_ip = explode(",", trim($headers['HTTP_X_FORWARDED_FOR']));
 			$the_ip = trim($the_ip[0]);
+			$result[] = $the_ip;
 			$this->ip_str_array[]=$the_ip;
 			$this->ip_array[]=sprintf("%u", ip2long($the_ip));
 		}
+		
 		$the_ip = filter_var( $_SERVER['REMOTE_ADDR'], FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 );
+		$result[] = $the_ip;
 		$this->ip_str_array[]=$the_ip;
 		$this->ip_array[]=sprintf("%u", ip2long($the_ip));
 
-		if(isset($_GET['sfw_test_ip']))
-		{
-			$the_ip=$_GET['sfw_test_ip'];
+		if(isset($_GET['sfw_test_ip'])){
+			$the_ip = $_GET['sfw_test_ip'];
+			$result[] = $the_ip;
 			$this->ip_str_array[]=$the_ip;
 			$this->ip_array[]=sprintf("%u", ip2long($the_ip));
 		}
-		//$this->ip_str=$the_ip;
-		//$this->ip=sprintf("%u", ip2long($the_ip));
-		//print sprintf("%u", ip2long($the_ip));
+		
+		return $result;
 	}
 	
 	public function check_ip()
-	{
+	{		
 		global $wpdb,$ct_options, $ct_data;
-		$passed_ip='';
-		for($i=0;$i<sizeof($this->ip_array);$i++)
-		{
-			//print "select network from `".$wpdb->base_prefix."cleantalk_sfw` where ".$this->ip." & mask = network;";
-			//$r = $wpdb->get_results("select network from `".$wpdb->base_prefix."cleantalk_sfw` where network = ".$this->ip." & mask;", ARRAY_A);
-			$r = $wpdb->get_results("select network from `".$wpdb->base_prefix."cleantalk_sfw` where network = ".$this->ip_array[$i]." & mask;", ARRAY_A);
-		
-			if(isset($ct_data['sfw_log']))
-			{
-				$sfw_log=$ct_data['sfw_log'];
-			}
-			else
-			{
-				$sfw_log=array();
-			}
 			
-			if(sizeof($r)>0)
-			{
+		for($i=0;$i<sizeof($this->ip_array);$i++){
+			$r = $wpdb->get_results("select count(network) as cnt from `".$wpdb->base_prefix."cleantalk_sfw` where network = ".$this->ip_array[$i]." & mask;", ARRAY_A);
+			if($r[0]['cnt']){
 				$this->result=true;
 				$this->blocked_ip=$this->ip_str_array[$i];
-				if(isset($sfw_log[$this->ip_str_array[$i]]))
-				{
-					$sfw_log[$this->ip_str_array[$i]]['all']++;
-				}
-				else
-				{
-					$sfw_log[$this->ip_str_array[$i]] = Array('datetime'=>time(), 'all' => 1, 'allow' => 0);
-				}
+			}else{
+				$this->passed_ip = $this->ip_str_array[$i];
 			}
-			else
-			{
-				//$sfw_log[$this->ip_str]['allow']++;
-				//@setcookie ('ct_sfw_pass_key', md5($this->ip_str.$ct_options['apikey']), 0, "/");
-				$passed_ip = $this->ip_str_array[$i];
-			}
-			//if($this->result)break;
 		}
-		if($passed_ip!='')
-		{
-			@setcookie ('ct_sfw_pass_key', md5($passed_ip.$ct_options['apikey']), 0, "/");
+		if($this->passed_ip!=''){
+			@setcookie ('ct_sfw_pass_key', md5($this->passed_ip.$ct_options['apikey']), 0, "/");
 		}
-		$ct_data['sfw_log'] = $sfw_log;
-		update_option('cleantalk_data', $ct_data);
 	}
 	
 	public function sfw_die()
@@ -108,50 +79,108 @@ class CleanTalkSFW
 		wp_die( $sfw_die_page, "Blacklisted", Array('response'=>403) );
 	}
 	
-	public function send_logs()
-	{
-		global $ct_options, $ct_data;
-		$ct_options = ct_get_options();
-	    $ct_data = ct_get_data();
-	    
-	    if(isset($ct_options['spam_firewall']))
-	    {
-	    	$value = @intval($ct_options['spam_firewall']);
-	    }
-	    else
-	    {
-	    	$value=0;
-	    }
-	    
-	    if($value==1 && isset($ct_data['sfw_log']))
-	    {
-	    	$sfw_log=$ct_data['sfw_log'];
-	    	$data=Array();
-	    	foreach($sfw_log as $key=>$value)
-	    	{
-	    		$data[]=Array($key, $value['all'], $value['allow'], $value['datetime']);
-	    	}
-	    	$qdata = array (
+	static public function sfw_update($ct_key){
+			
+		global $wpdb;
+		
+		if(!function_exists('sendRawRequest'))
+			require_once(plugin_dir_path(__FILE__) . 'cleantalk.class.php');
+		
+		$data = Array('auth_key' => $ct_key, 'method_name' => '2s_blacklists_db');	
+		$result=sendRawRequest('https://api.cleantalk.org/2.1',$data,false);
+
+		$result=json_decode($result, true);
+
+		if(isset($result['data'])){
+
+			$wpdb->query("TRUNCATE TABLE `".$wpdb->base_prefix."cleantalk_sfw`;");
+			
+			$result=$result['data'];
+			$query="INSERT INTO `".$wpdb->base_prefix."cleantalk_sfw` VALUES ";
+			for($i=0;$i<sizeof($result);$i++){
+				if($i==sizeof($result)-1){
+					$query.="(".$result[$i][0].",".$result[$i][1].");";
+				}else{
+					$query.="(".$result[$i][0].",".$result[$i][1]."), ";
+				}
+			}
+			$wpdb->query($query);
+		}
+	}
+	
+	//Add entries to SFW log
+	static public function sfw_update_logs($ip, $result){
+				
+		if($ip === NULL || $result === NULL){
+			error_log('SFW log update failed');
+			return;
+		}
+				
+		global $wpdb;
+		
+		$blocked = ($result == 'blocked' ? ' + 1' : '');
+		$time = time();
+
+		$query = "INSERT INTO `".$wpdb->base_prefix."cleantalk_sfw_logs`
+		SET 
+			`ip` = '$ip',
+			`all` = 1,
+			`blocked` = 1,
+			`timestamp` = '".$time."'
+		ON DUPLICATE KEY 
+		UPDATE 
+			`all` = `all` + 1,
+			`blocked` = `blocked`".$blocked.",
+			`timestamp` = '".$time."'";
+
+		$result = $wpdb->query($query);
+	}
+	
+	//*Send and wipe SFW log
+	public static function send_logs($ct_key){
+		
+		global $wpdb;
+		
+		//Getting logs
+		$result = $wpdb->get_results("SELECT * FROM `".$wpdb->base_prefix."cleantalk_sfw_logs`", ARRAY_A);
+				
+		if(count($result)){
+			//Compile logs
+			$data = array();
+			
+			$for_return['all'] = 0;
+			$for_return['blocked'] = 0;
+			
+			foreach($result as $key => $value){
+				//Compile log
+				$data[] = array(trim($value['ip']), $value['all'], $value['all']-$value['blocked'], $value['timestamp']);
+				//Compile to return;
+				$for_return['all'] = $for_return['all'] + $value['all'];
+				$for_return['blocked'] = $for_return['blocked'] + $value['blocked'];
+			} unset($key, $value, $result);
+			
+			//Final compile
+			$qdata = array (
 				'data' => json_encode($data),
 				'rows' => count($data),
 				'timestamp' => time()
 			);
+			
 			if(!function_exists('sendRawRequest'))
-			{
-				require_once('cleantalk.class.php');
-			}
+				require_once(plugin_dir_path(__FILE__) . 'cleantalk.class.php');
 			
-			$result = sendRawRequest('https://api.cleantalk.org/?method_name=sfw_logs&auth_key='.$ct_options['apikey'],$qdata);
+			//Sendings request
+			$result=sendRawRequest('https://api.cleantalk.org/?method_name=sfw_logs&auth_key='.$ct_key, $qdata, false);
+			
 			$result = json_decode($result);
+			//Checking answer and truncate table
 			if(isset($result->data) && isset($result->data->rows))
-			{
-				if($result->data->rows == count($data))
-				{
-					$ct_data['sfw_log']=Array();
-					update_option('cleantalk_data', $ct_data);
+				if($result->data->rows == count($data)){
+					$wpdb->query("TRUNCATE TABLE `".$wpdb->base_prefix."cleantalk_sfw_logs`");
+					return $for_return;
 				}
-			}
-			
-	    }
+				
+		}else		
+			return false;
 	}
 }
