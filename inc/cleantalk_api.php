@@ -1,6 +1,5 @@
 <?php
 require_once("cleantalk.class.php");
-require_once("JSON.php");
 
 
 /**

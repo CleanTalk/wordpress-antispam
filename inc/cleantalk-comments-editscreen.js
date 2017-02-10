@@ -1,17 +1,4 @@
-jQuery('#post-query-submit').after('<a href="edit-comments.php?page=ct_check_spam" class="button">'+spambutton_text+'</a>');
-jQuery("#ct_check_spam_button").click(function(){
-	var data = {
-		'action': 'ajax_check_comments',
-		security: ajax_nonce
-	};
-	
-	jQuery.ajax({
-		type: "POST",
-		url: ajaxurl,
-		data: data,
-		success: function(msg){
-			alert(msg);
-		}
-	});
-
+jQuery(document).ready(function(){
+	jQuery('#post-query-submit').after('<a href="edit-comments.php?page=ct_check_spam" class="button" style="margin:1px 0 0 0; display: inline-block;">'+ctCommentsScreen.spambutton_text+'</a>' +
+	' <a href="edit-comments.php?page=ct_check_spam&ct_worked=1" class="button" style="margin:1px 0 0 0; display: inline-block;">'+ctCommentsScreen.spambutton_text_show+'</a>&nbsp;');
 });
