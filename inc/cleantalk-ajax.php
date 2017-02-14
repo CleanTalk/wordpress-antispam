@@ -15,7 +15,7 @@ $cleantalk_ajax_actions_to_check[] = 'amoforms_submit';			//amoForms
 $cleantalk_hooked_actions[] = 'rwp_ajax_action_rating'; //Don't check Reviewer plugin
 
 /* MailChimp Premium*/
-add_filter('mc4wp_form_errors', 'ct_ajax_hook', 1, 2);
+add_filter('mc4wp_form_errors', 'ct_mc4wp_ajax_hook');
 
 /*hooks for Usernoise Form*/
 add_action('un_feedback_form_body', 'ct_add_hidden_fields',1);
@@ -289,6 +289,24 @@ function ct_user_register_ajaxlogin($user_id)
 		}
 	}
 	return $user_id;
+}
+
+/**
+ * Hook into MailChimp for WordPress `mc4wp_form_errors` filter.
+ *
+ * @param array $errors
+ * @return array
+ */
+function ct_mc4wp_ajax_hook( array $errors )
+{
+	$result = ct_ajax_hook();
+
+	// only return modified errors array when function returned a string value (the message key)
+	if( is_string( $result ) ) {
+		$errors[] = $result;
+	}
+
+	return $errors;
 }
 
 function ct_ajax_hook($message_obj = false, $additional = false)
@@ -574,10 +592,9 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 				print json_encode($result);
 				die();
 			}
-			elseif(isset($_POST['_mc4wp_timestamp']) && isset($_POST['_mc4wp_form_id']))
+			elseif(!empty($_POST['_mc4wp_form_id']))
 			{
-				$message_obj[] = 'ct_mc4wp_response';
-				return $message_obj;
+				return 'ct_mc4wp_response';
 			}
             else
 			{
