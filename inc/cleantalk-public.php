@@ -1134,8 +1134,10 @@ function ct_preprocess_comment($comment) {
 		if($ct_result->spam == 3) // Don't move to spam folder. Delete.
 			wp_die($err_text, 'Blacklisted', array('back_link' => true));
 			
-		if($ct_result->spam == 2)
+		if($ct_result->spam == 2) {
+			add_filter('pre_comment_approved', 'ct_set_comment_spam', 997, 2);
 			add_action('comment_post', 'ct_wp_trash_comment', 997, 2);
+		}
 		
 		if($ct_result->spam == 1)
 			add_filter('pre_comment_approved', 'ct_set_comment_spam', 997, 2);
