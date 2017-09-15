@@ -1,0 +1,55 @@
+.ct-warning-test-failed {
+	display: inline-block;
+	position: relative;
+	left: -130px;
+	padding: 5px;
+	margin: 4px;
+	border: 3px solid rgba(240,50,50,1);
+	border-radius: 5px;
+    background-color: rgba(255,200,200,1);
+}
+
+/* Settings banners  */
+.ct_settings_banner{
+	display:inline-block;
+	margin: 1em 0;
+	vertical-align: top;
+	text-align: center;
+}
+
+	#ct_translate_plugin {margin-left: 0px;}
+	.ct_rate_block {border: 1px dashed #666; width: 370px; padding: 0.2em; padding-bottom: 15px;}
+		#ct_translate_plugin .spbc_button_rate{margin-bottom: 10px;}
+		
+	.ct_button_rate {
+		display: inline-block;
+		text-align: center;
+		vertical-align: middle;
+		padding: 12px 24px;
+		border: 1px solid #216298;
+		border-radius: 8px;
+		background: #35a0f7;
+		background: -webkit-gradient(linear, left top, left bottom, from(#35a0f7), to(#216298));
+		background: -moz-linear-gradient(top, #35a0f7, #216298);
+		background: linear-gradient(to bottom, #35a0f7, #216298);
+		text-shadow: #153e5f 1px 1px 1px;
+		font: normal normal bold 16px verdana;
+		color: #ffffff;
+		text-decoration: none;
+	}
+		.ct_button_rate:hover,
+		.ct_button_rate:focus {
+			border: 1px solid ##297bbe;
+			background: #40c0ff;
+			background: -webkit-gradient(linear, left top, left bottom, from(#40c0ff), to(#2876b6));
+			background: -moz-linear-gradient(top, #40c0ff, #2876b6);
+			background: linear-gradient(to bottom, #40c0ff, #2876b6);
+			color: #ffffff;
+			text-decoration: none;
+		}
+		.ct_button_rate:active {
+			background: #216298;
+			background: -webkit-gradient(linear, left top, left bottom, from(#216298), to(#216298));
+			background: -moz-linear-gradient(top, #216298, #216298);
+			background: linear-gradient(to bottom, #216298, #216298);
+		}

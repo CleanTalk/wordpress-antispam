@@ -1,0 +1,65 @@
+.ct_hidden{
+	display: none;
+}
+
+.ct_comment_info{
+	position: relative;
+	top: 10px;
+	left: -30px;
+	padding-top: 10px;
+	margin: 15px 0 15px 0;
+	border-top: 1px solid gray !important;
+	font-size: 11px;
+	line-height: 17px;
+}
+	.ct_comment_info_title{
+		position: absolute;
+		top: -7px; left: 15px;
+		margin: 0; padding: 0 5px;
+		background: inherit;
+		line-height: 12px;
+	}
+	p.ct_comment_logo_title{
+		position: absolute;
+		top: -7px; right: 10px;
+		margin: 0; padding: 0 7px;
+		background: inherit;
+		line-height: 12px;
+	}
+		.ct_comment_logo_img{
+			height: 12px;
+			margin-right: 0px;
+			vertical-align: text-top;
+			box-shadow: transparent 0 0 0 !important;
+		}
+		
+	.ct_this_is{
+		padding: 2px 3px;
+		cursor: pointer;
+		white-space: nowrap;
+		color: black !important;
+		background: rgba(230,230,230,1);
+		border: 1px solid #777;
+		border-radius: 4px;
+	}
+	.ct_this_is_spam{
+
+	}
+	p.ct_feedback_wrap{
+		display: none;
+		position: absolute;
+		top: 5px; left: 0px;
+		height: 100%;
+		background: white;
+		padding: 2px 6px;
+		border-radius: 3px;
+	}
+		.ct_feedback_result{display: none; text-decoration: underline;}
+			.ct_feedback_result_spam{color: red;}
+			.ct_feedback_result_not_spam{color: green;}
+		
+		.ct_feedback_msg a{color: green !important; text-decoration: underline;}
+		
+		.ct_feedback_success{color: green;}
+		.ct_feedback_error{color: red;}
+		.ct_feedback_no_hash{color: blue;}

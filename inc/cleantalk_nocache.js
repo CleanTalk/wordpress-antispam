@@ -1,12 +1,12 @@
 /*
  Assign default values for backend variables.
 */
-if (typeof ct_set_cookies_flag === 'undefined') {
-    ct_set_cookies_flag = true;
+if (typeof ctNocache.set_cookies_flag === 'undefined') {
+    ctNocache.set_cookies_flag = true;
 }
 
-if (typeof ct_ajaxurl === 'undefined') {
-    ct_ajaxurl = '/wp-admin/admin-ajax.php';
+if (typeof ctNocache.ajaxurl === 'undefined') {
+    ctNocache.ajaxurl = '/wp-admin/admin-ajax.php';
 }
 
 function sendRequest(url,callback,postData) {
@@ -66,7 +66,7 @@ function ct_getCookie(name) {
 
 function ct_setCookie(name, value)
 {
-    if (ct_set_cookies_flag) {
+    if (ctNocache.set_cookies_flag) {
         document.cookie = name+" =; expires=Thu, 01 Jan 1970 00:00:01 GMT; path = /";
         document.cookie = name+" =; expires=Thu, 01 Jan 1970 00:00:01 GMT";
         
@@ -135,10 +135,10 @@ if(ct_nocache_executed==undefined)
 	if((old_timestamp==undefined||new_timestamp-old_timestamp>86400||checkjs_cookie==undefined)) //86400 is 24 hours
 	{
 		ct_setCookie('ct_timestamp', new_timestamp);
-		sendRequest(ct_ajaxurl+'?'+Math.random(),ct_callback,'action=ct_get_cookie');
+		sendRequest(ctNocache.ajaxurl+'?'+Math.random(),ct_callback,'action=ct_get_cookie');
 	}
 	
-	if(typeof ct_info_flag !== 'undefined' && ct_info_flag)
+	if(typeof ctNocache.info_flag !== 'undefined' && ctNocache.info_flag)
 	{
 	
 		var cleantalk_user_info={};
@@ -146,14 +146,15 @@ if(ct_nocache_executed==undefined)
 		var cleantalk_screen_info={};
 		for(var prop in screen)
 		{
-			if (navigator[prop] instanceof Object || screen[prop]==='') continue
+			if (navigator[prop] instanceof Object || screen[prop]==='')
+				continue;
 			cleantalk_screen_info[prop]=screen[prop];
 		}
 		
 		cleantalk_user_info.screen=cleantalk_screen_info;
 		
 		var cleantalk_plugins=Array();
-		var prev
+		var prev;
 		var cnt=0;
 		for(var i=0;i<navigator.plugins.length;i++)
 		{
@@ -162,7 +163,7 @@ if(ct_nocache_executed==undefined)
 			if (prev == plugin ) continue;
 			cleantalk_plugins[cnt]=plugin;
 			cnt++;
-			prev = plugin
+			prev = plugin;
 		}
 		cleantalk_user_info.plugins=cleantalk_plugins;
 		

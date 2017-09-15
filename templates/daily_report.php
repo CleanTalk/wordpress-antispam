@@ -9,18 +9,18 @@ $msg_template = <<<EOT
 <div>
 <h1>%s</h1>
 </div>
-<div>
+<div style="text-align: center">
 %s
 </div>
 <br />
 <div>
-    <a class='ct_settings_button' href='%s/wp-admin/%s.php?page=cleantalk&from_report=1' target="_blank">%s</a>.
+    <a class='ct_settings_button' href='http://%s/wp-admin/%s.php?page=cleantalk&from_report=1' target="_blank">%s</a>
 </div>
 <span>%s</span>
 <br />
 <br />
 <div style="color: #666;">
-    The report is provided by <a href="https://wordpress.org/plugins/cleantalk-spam-protect/">%s</a>.
+    The report is provided by <a href="http://%s/wp-admin/%s.php?page=cleantalk&from_report=1">%s</a>.
 </div>
 </center>
 </body>
@@ -145,7 +145,7 @@ $style = <<<EOT
 EOT;
 
 $events = <<<EOT
-<table width="400px" border="1" padding="1">
+<table width="400px" border="1" padding="1" style="margin: 0 auto;">
 	<thead>
 		<tr>
 			<th class="ct_hat">

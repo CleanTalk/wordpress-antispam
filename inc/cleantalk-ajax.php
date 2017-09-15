@@ -14,8 +14,10 @@ $cleantalk_ajax_actions_to_check[] = 'amoforms_submit';			//amoForms
 
 $cleantalk_hooked_actions[] = 'rwp_ajax_action_rating'; //Don't check Reviewer plugin
 
+$cleantalk_hooked_actions[] = 'ct_feedback_comment';
+
 /* MailChimp Premium*/
-add_filter('mc4wp_form_errors', 'ct_ajax_hook', 1, 2);
+add_filter('mc4wp_form_errors', 'ct_mc4wp_ajax_hook');
 
 /*hooks for Usernoise Form*/
 add_action('un_feedback_form_body', 'ct_add_hidden_fields',1);
@@ -129,6 +131,13 @@ add_action( 'wp_ajax_ninja_forms_ajax_submit', 'ct_ajax_hook',1  );
 add_action( 'ninja_forms_process', 'ct_ajax_hook',1  );
 $cleantalk_hooked_actions[]='ninja_forms_ajax_submit';
 
+/* hooks for contact forms by web settler ajax*/
+add_action( 'wp_ajax_nopriv_smuzform-storage', 'ct_ajax_hook',1  );
+$cleantalk_hooked_actions[]='smuzform_form_submit';
+
+/* hooks for reviewer plugin*/
+add_action( 'wp_ajax_nopriv_rwp_ajax_action_rating', 'ct_ajax_hook',1 );
+$cleantalk_hooked_actions[]='rwp-submit-wrap';
 function ct_validate_email_ajaxlogin($email=null, $is_ajax=true)
 {
 	require_once(CLEANTALK_PLUGIN_DIR . 'cleantalk-public.php');
@@ -179,7 +188,8 @@ function ct_validate_email_ajaxlogin($email=null, $is_ajax=true)
 		$ct_request = new CleantalkRequest();
 		$ct_request->auth_key = $ct_options['apikey'];
 		$ct_request->sender_email = $email; 
-		$ct_request->sender_ip = $ct->ct_session_ip($_SERVER['REMOTE_ADDR']);
+		// $ct_request->sender_ip = $ct->ct_session_ip($_SERVER['REMOTE_ADDR']);
+		$ct_request->sender_ip = cleantalk_get_real_ip();
 		$ct_request->sender_nickname = ''; 
 		$ct_request->agent = $ct_agent_version; 
 		$ct_request->sender_info = $sender_info;
@@ -264,7 +274,8 @@ function ct_user_register_ajaxlogin($user_id)
 		$ct_request = new CleantalkRequest();
 		$ct_request->auth_key = $ct_options['apikey'];
 		$ct_request->sender_email = sanitize_email($_POST['email']); 
-		$ct_request->sender_ip = $ct->ct_session_ip($_SERVER['REMOTE_ADDR']);
+		// $ct_request->sender_ip = $ct->ct_session_ip($_SERVER['REMOTE_ADDR']);
+		$ct_request->sender_ip = cleantalk_get_real_ip();
 		$ct_request->sender_nickname = sanitize_email($_POST['login']); ; 
 		$ct_request->agent = $ct_agent_version; 
 		$ct_request->sender_info = $sender_info;
@@ -291,6 +302,24 @@ function ct_user_register_ajaxlogin($user_id)
 	return $user_id;
 }
 
+/**
+ * Hook into MailChimp for WordPress `mc4wp_form_errors` filter.
+ *
+ * @param array $errors
+ * @return array
+ */
+function ct_mc4wp_ajax_hook( array $errors )
+{
+	$result = ct_ajax_hook();
+
+	// only return modified errors array when function returned a string value (the message key)
+	if( is_string( $result ) ) {
+		$errors[] = $result;
+	}
+
+	return $errors;
+}
+
 function ct_ajax_hook($message_obj = false, $additional = false)
 {	
 	require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public.php');
@@ -300,10 +329,10 @@ function ct_ajax_hook($message_obj = false, $additional = false)
     $ct_data = ct_get_data();
 	$sender_email = null;
     $message = '';
-    $nickname=null;
+    $sender_nickname = null;
     $contact = true;
     $subject = '';
-
+	
     //
     // Skip test if Custom contact forms is disabled.
     //
@@ -314,10 +343,12 @@ function ct_ajax_hook($message_obj = false, $additional = false)
     //
     // Go out because we call it on backend.
     //
-    if (ct_is_user_enable() === false || (function_exists('get_current_user_id') && get_current_user_id() != 0)) {
-        return false;
+    if(	(ct_is_user_enable() === false || (function_exists('get_current_user_id') && get_current_user_id() != 0)) &&
+		(strval(current_action()) != 'et_pre_insert_answer' && isset($message_obj['author']) && intval($message_obj['author']) == 0) //QAEngine Theme fix
+    ){
+		return false;
     }
-
+	
     //
     // Go out because of not spam data 
     //
@@ -326,21 +357,26 @@ function ct_ajax_hook($message_obj = false, $additional = false)
         'gmw_ps_display_info_window',  // Geo My WP pop-up windows.
         'the_champ_user_auth',  // Super Socializer 
     );
+	
 	$checkjs = js_test('ct_checkjs', $_COOKIE, true);
     if ($checkjs && // Spammers usually fail the JS test
         (isset($_POST['action']) && in_array($_POST['action'], $skip_post))
-        ) {
+	) {
         return false;
     }
-
+	
     if(isset($_POST['user_login']))
-	{
-		$nickname=$_POST['user_login'];
-	}
+		$sender_nickname = $_POST['user_login'];
 	else
-	{
-		$nickname='';
-	}
+		$sender_nickname = '';
+	
+	//QAEngine Theme answers
+    if( !empty($message_obj) && isset($message_obj['post_type'], $message_obj['author'], $message_obj['post_content']) ){
+		$curr_user = get_user_by('id', $message_obj['author']);
+		$ct_post_temp['comment'] = $message_obj['post_content'];
+        $ct_post_temp['email'] = $curr_user->data->user_email;
+		$ct_post_temp['name'] = $curr_user->data->user_login;
+    }
 	
     //CSCF fix
     if(isset($_POST['action']) && $_POST['action']== 'cscf-submitform'){
@@ -360,7 +396,13 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 		$ct_post_temp = $_POST;
 		$ct_post_temp['shortcode'] = '';
 	}
-		
+	//Reviewer fix
+	if(isset($_POST['action']) && $_POST['action'] == 'rwp_ajax_action_rating')
+	{
+		$ct_post_temp['name'] = $_POST['user_name'];
+		$ct_post_temp['email'] = $_POST['user_email'];
+		$ct_post_temp['comment'] = $_POST['comment'];
+	}		
 	if(isset($ct_post_temp))
 		$ct_temp_msg_data = ct_get_fields_any($ct_post_temp);
 	else
@@ -401,7 +443,7 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 				'message' => $message,
 				'example' => null,
 				'sender_email' => $sender_email,
-				'sender_nickname' => $nickname,
+				'sender_nickname' => $sender_nickname,
 				'sender_info' => $sender_info,
 				'post_info'=> $post_info,
 				'checkjs' => $checkjs
@@ -425,7 +467,7 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 				print json_encode($result);
 				die();
 			}
-			else if(isset($_POST['action'], $_POST['task']) && $_POST['action'] == 'wysija_ajax' && $_POST['task'] != 'send_preview')
+			else if(isset($_POST['action'], $_POST['task']) && $_POST['action'] == 'wysija_ajax' && $_POST['task'] != 'send_preview' && $_POST['task'] != 'send_test_mail')
 			{
 				$result=Array('result'=>false,'msgs'=>Array('updated'=>Array($ct_result->comment)));
 				//@header( 'Content-Type: application/json; charset=' . get_option( 'blog_charset' ) );
@@ -504,10 +546,16 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 				print '{"form_id":'.$_POST['_form_id'].',"errors":false,"success":{"success_msg-Success":"'.$ct_result->comment.'"}}';
 				die();
 			}
-            //
+			else if(isset($_POST['action']) && $_POST['action']=='nf_ajax_submit')
+			{
+				$nf_data = json_decode($_POST['formData'], true);
+				// print '{data:{{"form_id":'.$nf_data['id'].',"errors":false,"success":{"success_msg-Success":"'.$ct_result->comment.'"}}}}'; \\Old version
+				print '{"data":{"form_id":"'.$nf_data['id'].'","settings":{},"extra":[],"fields":{},"processed_actions":[],"actions":{"success_message": "<font style=\"color: red\">'.$ct_result->comment.'</font><br><br>"}},"errors":[],"debug":[]}';				
+				die();
+			}
+			
             // WooWaitList
             // http://codecanyon.net/item/woowaitlist-woocommerce-back-in-stock-notifier/7103373
-            //
 			else if(isset($_POST['action']) && $_POST['action']=='wew_save_to_db_callback')
 			{
                 $result = array();
@@ -517,7 +565,7 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 				print json_encode($result);
 				die();
 			}
-			//UserPro
+			// UserPro
 			else if(isset($_POST['action'], $_POST['template']) && $_POST['action']=='userpro_process_form' && $_POST['template']=='register')
 			{
 				foreach($_POST as $key => $value){
@@ -528,7 +576,7 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 				print_r($output);
 				die;
 			}
-			//Quick event manager
+			// Quick event manager
             else if(isset($_POST['action']) && $_POST['action']=='qem_validate_form'){
 				$errors[] = 'registration_forbidden';
 				$result = Array(
@@ -574,15 +622,98 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 				print json_encode($result);
 				die();
 			}
-			elseif(isset($_POST['_mc4wp_timestamp']) && isset($_POST['_mc4wp_form_id']))
+			// MailChimp for Wordpress Premium
+			elseif(!empty($_POST['_mc4wp_form_id']))
 			{
-				$message_obj[] = 'ct_mc4wp_response';
-				return $message_obj;
+				return 'ct_mc4wp_response';
 			}
+			// QAEngine Theme answers
+			elseif ( !empty($message_obj) && isset($message_obj['post_type'], $message_obj['author'], $message_obj['post_content']) ){
+				return new WP_Error('Spam comment', $ct_result->comment);
+			}
+			//Convertplug. Strpos because action value dynamically changes and depends on mailing service 
+			elseif (isset($_POST['action']) && strpos($_POST['action'], '_add_subscriber') !== false){
+				$result = Array(
+					'action' => "message",
+					'detailed_msg' => "",
+ 					'email_status' => false,
+ 					'message' => "<h1 style='font-size: 25px; color: red;'>".$ct_result->comment."</h1>",
+ 					'status' => "error",
+					'url' => "none"
+ 				);
+				print json_encode($result);
+				die();
+			}
+			// Ultimate Form Builder
+			elseif (isset($_POST['action']) && $_POST['action'] == 'ufbl_front_form_action'){
+				$result = Array(
+					'error_keys' => array(),
+					'error_flag' => 1,
+ 					'response_message' => $ct_result->comment
+ 				);
+				print json_encode($result);
+				die();
+			}
+			// Smart Forms
+			elseif (isset($_POST['action']) && $_POST['action'] == 'rednao_smart_forms_save_form_values'){
+				$result = Array(
+					'message' => $ct_result->comment,
+					'refreshCaptcha' => 'n',
+ 					'success' => 'n'
+ 				);
+				print json_encode($result);
+				die();
+			}
+			//cFormsII
+			elseif(isset($_POST['action']) && $_POST['action'] == 'submitcform')
+			{
+				header('Content-Type: application/json');	
+				$result = Array(
+ 					'no' => "",	
+ 					'result' => "failure",				
+					'html' =>$ct_result->comment,
+					'hide' => false,
+ 					'redirection' => null
+
+ 				);
+				print json_encode($result);
+				die();
+			}
+			//Contact Form by Web-Settler
+			elseif(isset($_POST['smFieldData']))
+			{
+				$result = Array(
+					'signal' => true,
+					'code' => 0,
+					'thanksMsg' => $ct_result->comment,
+					'errors' => array(),
+					'isMsg' => true,
+					'redirectUrl' => null
+ 				);
+				print json_encode($result);
+				die();
+			}
+			//Reviewer
+			elseif(isset($_POST['action']) && $_POST['action'] == 'rwp_ajax_action_rating')
+			{
+				$result = Array(
+					'success' => false,
+					'data' => array(0=>$ct_result->comment)
+ 				);
+				print json_encode($result);
+				die();
+			}					
             else
 			{
 				print $ct_result->comment;
 				die();
+			}
+		}
+		//Allow == 1
+		else{
+			//QAEngine Theme answers
+			if ( !empty($message_obj) && isset($message_obj['post_type'], $message_obj['author'], $message_obj['post_content']) ){
+				return $message_obj;
 			}
 		}
 	}

@@ -1,0 +1,114 @@
+.ct_widget_top_links{
+	position: absolute;
+	top: 8px;
+	right: 33px;
+}
+	.ct_widget_settings_link{margin: 0 0 0 10px;}
+	.ct_widget_refresh_link{}
+
+.ct_preloader{
+	display: none;
+	float: left;
+	width: 20px; height: 20px;
+    margin: 0 10px;
+}
+	
+.ct_widget_wrapper{
+	display: block;	position: relative;
+	width: 100%; height: 100%;
+}
+	.ct_widget_hr{
+		width: 100%;
+	}
+	
+	.ct_widget_block_header{
+		font-size: 18px !important;
+		margin-left: 12px !important;
+	}
+	
+	.ct_widget_block{
+		display: block;	position: relative;
+		padding: 12px;
+	}
+	.ct_widget_chart_wrapper{
+		height: 300px;
+		margin-right: 10px;
+	}
+		#ct_widget_chart{}
+			
+			.bar {fill: steelblue;}
+			.bar:nth-child(odd){fill: rgba(50,50,250,0.9);}
+			.bar:hover {fill: brown;}
+
+			.axis--x path {
+			display: none;
+			}
+			
+		.ct_widget_block table{
+			width: 100%;
+			text-align: left;
+		}
+			.ct_widget_block table tr{margin-bottom: 10px;}
+				.ct_widget_block table th{
+					text-align: left;
+					padding: 10px 0 5px 10px;;
+					border-bottom: 2px solid gray;
+					
+				}
+				.ct_widget_block table td{
+					text-align: left;
+					padding: 10px 0 5px 10px;;
+					border-bottom: 1px solid gray;
+				}
+				
+		.ct_widget_button{
+			display: block;
+			margin: 10px auto;
+		}
+			.ct_widget_activate_button{
+				display: block;
+				margin: 10px auto; padding: 7px 15px;
+				font-weight: 600;
+				border-radius: 3px;
+				border: 2px solid #aaa;
+				background: rgba(250,50,50,0.9);
+			}
+			.ct_widget_resolve_button{
+				background: rgba(50,250,50,0.9);
+			}
+			.ct_widget_activate_header{
+				display: inline-block;
+				width: 100%;
+				text-align: center;
+				font-size: 18px !important;
+			}
+.ct_widget_wprapper_total_blocked{
+    padding: 10px 0px 10px 10px;
+    background: #f1f1f1;
+}
+	.ct_widget_wprapper_total_blocked span{
+		position: relative;
+		top: 2px;
+	}
+	.ct_widget_small_logo{
+		margin-right: 1em;
+		vertical-align: middle;
+	}
+#ct_widget_button_view_all{
+    cursor: pointer;
+    border: 1px solid #0074a2;
+    -webkit-appearance: none;
+    -webkit-border-radius: 2px;
+    border-radius: 2px;
+    white-space: nowrap;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+	background: #2ea2cc;
+	background: #0085ba;
+	-webkit-box-shadow: inset 0 1px 0 rgba(120,200,230,.5), 0 1px 0 rgba(0,0,0,.15);
+	box-shadow: inset 0 1px 0 rgba(120,200,230,.5), 0 1px 0 rgba(0,0,0,.15);
+	color: #fff;
+}
+	#ct_widget_button_view_all:hover{color: #000 !important;}
+	

@@ -1,0 +1,18 @@
+.ct_meta_links{
+	
+}
+	.ct_translate_links{color: rgba(150, 150, 20,  1);}
+	.ct_support_links  {color: rgba(150, 20,  20,  1);}
+	.ct_faq_links      {color: rgba(20,  150, 20,  1);}
+	.ct_setting_links  {color: rgba(20,  20,  150, 1);}
+	
+	.ct_translate_links:hover{color: rgba(210, 210, 20,  1) !important;}
+	.ct_support_links:hover  {color: rgba(250, 20,  20,  1) !important;}
+	.ct_faq_links:hover      {color: rgba(20,  250, 20,  1) !important;}
+	.ct_setting_links:hover  {color: rgba(20,  20,  250, 1) !important;}
+	
+.ct_link_new_tab img{
+	float: none !important;
+	margin: 0 2px;
+	border: 0;
+}

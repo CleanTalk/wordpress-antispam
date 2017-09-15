@@ -1,6 +1,6 @@
 <?php
 
-$ct_plugin_name = 'Spam Protection by CleanTalk';
+$ct_plugin_name = 'Antispam by CleanTalk';
 $ct_checkjs_frm = 'ct_checkjs_frm';
 $ct_checkjs_register_form = 'ct_checkjs_register_form';
 $ct_session_request_id_label = 'request_id';
@@ -49,15 +49,6 @@ $ct_notice_online_label = 'ct_notice_online';
 // Flag to show online notice - 'Y' or 'N'
 $show_ct_notice_online = '';
 
-// Timeout before new check for trial notice in hours
-$trial_notice_check_timeout = 1;
-
-// Timeout before new check account notice in hours
-$account_notice_check_timeout = 24;
-
-// Timeout before new check account notice in hours
-$renew_notice_check_timeout = 0.5;
-
 // Trial notice show time in minutes
 $trial_notice_showtime = 10;
 
@@ -83,7 +74,7 @@ $ct_formtime_label = 'ct_formtime';
 $ct_direct_post = 0;
 
 // WP admin email notice interval in seconds
-$ct_admin_notoice_period = 10800;
+$ct_admin_notoice_period = 21600;
 
 // Sevice negative comment to visitor.
 // It uses for BuddyPress registrations to avoid double checks
@@ -185,7 +176,8 @@ function ct_base_call($params = array()) {
     $ct_request->example = $params['example'];
     $ct_request->sender_email = $params['sender_email'];
     $ct_request->sender_nickname = $params['sender_nickname'];
-    $ct_request->sender_ip = $ct->ct_session_ip($_SERVER['REMOTE_ADDR']);
+	// $ct_request->sender_ip = $ct->ct_session_ip($_SERVER['REMOTE_ADDR']);
+	$ct_request->sender_ip = cleantalk_get_real_ip();
     $ct_request->agent = $ct_agent_version;
     $ct_request->sender_info = $sender_info;
     $ct_request->js_on = $params['checkjs'];
@@ -401,19 +393,19 @@ function ct_get_admin_email() {
  */
 function ct_get_server($force=false) {
 	global $ct_server;
-	if(!$force && isset($ct_server) && isset($ct_server['ct_work_url']) && !empty($ct_server['ct_work_url']))
-	{
+	if(!$force && isset($ct_server) && isset($ct_server['ct_work_url']) && !empty($ct_server['ct_work_url'])){
+		
 		return $ct_server;
-	}
-	else
-	{
+		
+	}else{
+		
 	    $ct_server = get_option('cleantalk_server');
 	    if (!is_array($ct_server)){
 	        $ct_server = array(
-            	    'ct_work_url' => NULL,
-            	    'ct_server_ttl' => NULL,
-            	    'ct_server_changed' => NULL
-		);
+				'ct_work_url' => NULL,
+				'ct_server_ttl' => NULL,
+				'ct_server_changed' => NULL
+			);
 	    }
 	    return $ct_server;
 	}
@@ -484,8 +476,9 @@ function ct_def_options() {
 		'check_comments_number' => '1',
         'remove_old_spam' => '0',
 		'remove_comments_links' => '0', //Removes links from approved comments
+		'show_check_links' => '1', //Shows check link to Cleantalk's DB. And allowing to control comments form public page.
 		//Data processing
-        'protect_logged_in' => '-1', // Do anit-spam tests to for logged in users.
+        'protect_logged_in' => '1', // Do anit-spam tests to for logged in users.
 		'use_ajax' => '1',
 		'general_postdata_test' => '0', //CAPD
         'set_cookies'=> '1', // Disable cookies generatation to be compatible with Varnish.
@@ -499,7 +492,8 @@ function ct_def_options() {
         'relevance_test' => 0, // Test comment for relevance 
         'notice_api_errors' => 0, // Send API error notices to WP admin
         'user_token'=>'', //user token for auto login into spam statistics
-        'collect_details' => 0 // Collect details about browser of the visitor. 
+        'collect_details' => 0, // Collect details about browser of the visitor. 
+		'show_link' => 0
     );
 }
 
@@ -528,12 +522,31 @@ function ct_get_data($force=false) {
  * @return 	mixed[] Array of default options
  */
 function ct_def_data() {
+	
+	global $cleantalk_plugin_version;
+	
     return array(
-        'next_account_status_check' => 0, // Time label when the plugin should check account status 
+		'start_version' => $cleantalk_plugin_version,
         'user_token' => '', // User token 
         'js_keys' => array(), // Keys to do JavaScript antispam test 
         'js_keys_store_days' => 14, // JavaScript keys store days - 8 days now
         'js_key_lifetime' => 86400, // JavaScript key life time in seconds - 1 day now
+		'sfw_counter' => array(
+			'all' => 0,
+			'blocked' => 0
+		),
+		'array_accepted' => array(),
+		'array_blocked' => array(),
+		'current_hour' => '',
+		'all_time_counter' => array(
+			'accepted' => 0,
+			'blocked' => 0
+		),
+		'user_counter' => array(
+			'accepted' => 0,
+			'blocked' => 0,
+			'since' => date('d M')
+		)
     );
 }
 
@@ -600,6 +613,7 @@ function ct_feedback($hash, $message = null, $allow) {
 
 /**
  * Inner function - Sends the results of moderation
+ * Scheduled in 3600 seconds!
  * @param string $feedback_request
  * @return bool
  */
@@ -654,30 +668,11 @@ function ct_send_feedback($feedback_request = null) {
 }
 
 /**
- * On the scheduled action hook, run the function.
- */
-function ct_do_this_hourly() {
-    global $ct_options, $ct_data;
-    
-    $ct_options = ct_get_options();
-    $ct_data = ct_get_data();
-    // do something every hour
-
-    if (!isset($ct_options))
-	$ct_options = ct_get_options();
-
-    if (!isset($ct_data))
-	$ct_data = ct_get_data();
-
-    delete_spam_comments();
-    ct_send_feedback();
-}
-
-/**
  * Delete old spam comments 
+ * Scheduled in 3600 seconds!
  * @return null 
  */
-function delete_spam_comments() {
+function ct_delete_spam_comments() {
     global $pagenow, $ct_options, $ct_data;
     
     $ct_options = ct_get_options();
@@ -700,13 +695,13 @@ function delete_spam_comments() {
 * Get data from an ARRAY recursively
 * @return array
 */ 
-function ct_get_fields_any($arr, $message=array(), $email=null, $nickname=null, $subject=null, $contact=true, $prev_name='') {
+function ct_get_fields_any($arr, $message=array(), $email = null, $nickname = array('nick' => '', 'first' => '', 'last' => ''), $subject = null, $contact = true, $prev_name = ''){
 	$skip_params = array( //Skip request if fields exists
-	    'ipn_track_id', // PayPal IPN #
-	    'txn_type', // PayPal transaction type
-	    'payment_status', // PayPal payment status
-	    'ccbill_ipn', //CCBill IPN 
-		'ct_checkjs' //skip ct_checkjs field
+	    'ipn_track_id', 	// PayPal IPN #
+	    'txn_type', 		// PayPal transaction type
+	    'payment_status', 	// PayPal payment status
+	    'ccbill_ipn', 		//CCBill IPN 
+		'ct_checkjs' 		//skip ct_checkjs field
     );
     $obfuscate_params = array( //Fields to replace with ****
         'password',
@@ -714,27 +709,47 @@ function ct_get_fields_any($arr, $message=array(), $email=null, $nickname=null, 
         'pwd',
 		'pswd'
     );
-	$skip_fields_params = array( //Array for known service fields
-	//Common
-		'ct_checkjs',
-	//Custom Contact Forms
+	
+	$skip_fields_with_strings = array( //Array for strings in keys to skip and known service fields
+		// Common
+		'ct_checkjs', //Do not send ct_checkjs
+		'nonce', //nonce for strings such as 'rsvp_nonce_name'
+		'security',
+		'action',
+		'http_referer',
+		// Formidable Form
+		'form_key',
+		'submit_entry',
+		// Custom Contact Forms
 		'form_id',
-		'form_nonce',
 		'ccf_form',
 		'form_page',
-		'form_nonce',
-	//Qu Forms
+		// Qu Forms
 		'iphorm_uid',
 		'form_url',
 		'post_id',
 		'iphorm_ajax',
 		'iphorm_id',
-	//Fast SecureContact Froms
+		// Fast SecureContact Froms
 		'fs_postonce_1',
 		'fscf_submitted',
 		'mailto_id',
-		'si_contact_action'
+		'si_contact_action',
+		// Ninja Forms
+		'formData_id',
+		'formData_settings',
+		'formData_fields_\d+_id',
+		// E_signature
+		'recipient_signature',
+		'output_\d+_\w{0,2}',
+		// Contact Form by Web-Settler protection
+        '_formId',
+        '_returnLink'
 	);
+	
+    $skip_message_post = array( // Reset $message if we have a sign-up data
+        'edd_action', // Easy Digital Downloads
+    );
 	
    	foreach($skip_params as $value){
    		if(@array_key_exists($value,$_GET)||@array_key_exists($value,$_POST))
@@ -743,34 +758,67 @@ function ct_get_fields_any($arr, $message=array(), $email=null, $nickname=null, 
 		
 	if(count($arr)){
 		foreach($arr as $key => $value){
+			
+			if(gettype($value)=='string'){
+				$decoded_json_value = json_decode($value, true);
+				if($decoded_json_value !== null)
+					$value = $decoded_json_value;
+			}
+			
 			if(!is_array($value) && !is_object($value) && @get_class($value)!='WP_User'){
 				
-				// Skip empty or work fields execept 0 feild
-				if($value==='' || in_array($key, $skip_fields_params, true)){
-					continue;
-				}
+				if (in_array($key, $skip_params, true) && $key!=0 && $key!='' || preg_match("/^ct_checkjs/", $key))
+					$contact = false;
 				
+				if($value === '')
+					continue;
+				
+				// Skipping fields names with strings from (array)skip_fields_with_strings
+				foreach($skip_fields_with_strings as $needle){
+					if (preg_match("/".$needle."/", $prev_name.$key) == 1){
+						continue(2);
+					}
+				}unset($needle);
+				
+				// Obfuscating params
 				foreach($obfuscate_params as $needle){
 					if (strpos($key, $needle) !== false){
 						$value = ct_obfuscate_param($value);
-						$message[$key] = $value;
-						continue;
+						continue(2);
 					}
 				}unset($needle);
 				
 				// Removes shortcodes to do better spam filtration on server side.
 				$value = strip_shortcodes($value);
-				
-				if (in_array($key, $skip_params, true) && $key!=0 && $key!='' || preg_match("/^ct_checkjs/", $key)){
-					$contact = false;
-				}
 
-				if (!$email && @preg_match("/^\S+@\S+\.\S+$/", $value)){
+				// Decodes URL-encoded data to string.
+				$value = urldecode($value);	
+
+				// Email
+				if (!$email && preg_match("/^\S+@\S+\.\S+$/", $value)){
 					$email = $value;
-				}elseif ($nickname === null && ct_get_data_from_submit($key, 'name')){
-					$nickname .= " ".$value;
-				}elseif ($subject === null && ct_get_data_from_submit($key, 'subject')){
+					
+				// Names
+				}elseif (preg_match("/name/i", $key)){
+					
+					preg_match("/(first.?name)?(name.?first)?(forename)?/", $key, $match_forename);
+					preg_match("/(last.?name)?(family.?name)?(second.?name)?(surname)?/", $key, $match_surname);
+					preg_match("/(nick.?name)?(user.?name)?(nick)?/", $key, $match_nickname);
+					
+					if(count($match_forename) > 1)
+						$nickname['first'] = $value;
+					elseif(count($match_surname) > 1)
+						$nickname['last'] = $value;
+					elseif(count($match_nickname) > 1)
+						$nickname['nick'] = $value;
+					else
+						$message[$prev_name.$key] = $value;
+				
+				// Subject
+				}elseif ($subject === null && preg_match("/subject/i", $key)){
 					$subject = $value;
+				
+				// Message
 				}else{
 					$message[$prev_name.$key] = $value;					
 				}
@@ -782,38 +830,41 @@ function ct_get_fields_any($arr, $message=array(), $email=null, $nickname=null, 
 				
 				$temp = ct_get_fields_any($value, $message, $email, $nickname, $subject, $contact, $prev_name);
 				
-				$prev_name = $prev_name_original;
-				
-				$email = ($temp['email'] ? $temp['email'] : null);
-				$nickname = ($temp['nickname'] ? $temp['nickname'] : null);
-				$subject = ($temp['subject'] ? $temp['subject'] : null);
-				if($contact===true)
-					$contact = ($temp['contact']===false ? false : true);
-				$message = $temp['message'];
+				$message 	= $temp['message'];
+				$email 		= ($temp['email'] 		? $temp['email'] : null);
+				$nickname 	= ($temp['nickname'] 	? $temp['nickname'] : null);				
+				$subject 	= ($temp['subject'] 	? $temp['subject'] : null);
+				if($contact === true)
+					$contact = ($temp['contact'] === false ? false : true);
+				$prev_name 	= $prev_name_original;
 			}
 		} unset($key, $value);
 	}
 	
-	// Deleting repeats values
-	$message = array_unique($message);
-	
-	// Reset $message if we have a sign-up data
-    $skip_message_post = array(
-        'edd_action', // Easy Digital Downloads
-    );
     foreach ($skip_message_post as $v) {
         if (isset($_POST[$v])) {
             $message = null;
             break;
         }
     } unset($v);
-
+	
+	//If top iteration, returns compiled name field. Example: "Nickname Firtsname Lastname".
+	if($prev_name === ''){
+		if(!empty($nickname)){
+			$nickname_str = '';
+			foreach($nickname as $value){
+				$nickname_str .= ($value ? $value." " : "");
+			}unset($value);
+		}
+		$nickname = $nickname_str;
+	}
+	
     $return_param = array(
-		'email' => $email,
-		'nickname' => $nickname,
-		'subject' => $subject,
-		'contact' => $contact,
-		'message' => $message
+		'email' 	=> $email,
+		'nickname' 	=> $nickname,
+		'subject' 	=> $subject,
+		'contact' 	=> $contact,
+		'message' 	=> $message
 	);	
 	return $return_param;
 }
@@ -822,7 +873,7 @@ function ct_get_fields_any($arr, $message=array(), $email=null, $nickname=null, 
 * Masks a value with asterisks (*)
 * @return string
 */
-function ct_obfuscate_param ($value = null) {
+function ct_obfuscate_param($value = null) {
     if ($value && (!is_object($value) || !is_array($value))) {
         $length = strlen($value);
         $value = str_repeat('*', $length);
@@ -830,34 +881,7 @@ function ct_obfuscate_param ($value = null) {
 
     return $value;
 }
-/* //OLD ct_get_fields_any_postdata
-function ct_get_fields_any_postdata(&$message,$arr)
-{
-	$skip_params = array(
-	    'ipn_track_id', // PayPal IPN #
-	    'txn_type', // PayPal transaction type
-	    'payment_status', // PayPal payment status
-    );
-	foreach($arr as $key=>$value)
-	{
-		if(!is_array($value))
-		{
-			if (in_array($key, $skip_params) || preg_match("/^ct_checkjs/", $key)) {
-                //$contact = false;
-            }
-            else
-	        {
-	        	$message.="$value\n";
-	        }
-		}
-		else
-		{
-			@ct_get_fields_any_postdata($message, $value);
-		}
-	}
-}
-//*/
-//New ct_get_fields_any_postdata
+
 //New ct_get_fields_any_postdata
 function ct_get_fields_any_postdata($arr, $message=array()){
 	$skip_params = array(
