@@ -25,7 +25,7 @@ jQuery(document).ready(function(){
 	// For approved
 	jQuery('span.approve').on('click', function(){
 		var result = jQuery(this).children('a').attr('href');
-		result = result.match(/^comment\.php\?.*c=(\d).*/);
+		result = result.match(/^comment\.php\?.*c=(\d*).*/);
 		ct_comment_id = result[1];
 		undo_comment_id = ct_comment_id;
 		ct_send_feedback_request(ct_comment_id, 'approve', 0);		
@@ -34,7 +34,7 @@ jQuery(document).ready(function(){
 	// For unapprove
 	jQuery('span.unapprove').on('click', function(){
 		var result = jQuery(this).children('a').attr('href');
-		result = result.match(/^comment\.php\?.*c=(\d).*/);
+		result = result.match(/^comment\.php\?.*c=(\d*).*/);
 		ct_comment_id = result[1];
 		undo_comment_id = ct_comment_id;
 		ct_send_feedback_request(ct_comment_id, 'spam', 0);		
@@ -43,7 +43,7 @@ jQuery(document).ready(function(){
 	// For spammed
 	jQuery('span.spam').on('click', function(){
 		var result = jQuery(this).children('a').attr('href');
-		result = result.match(/^comment\.php\?.*c=(\d).*/);
+		result = result.match(/^comment\.php\?.*c=(\d*).*/);
 		ct_comment_id = result[1];
 		undo_comment_id = ct_comment_id;
 		ct_send_feedback_request(ct_comment_id, 'spam', 0);
@@ -51,7 +51,7 @@ jQuery(document).ready(function(){
 		setTimeout(function(){
 			jQuery('tr#undo-'+ct_comment_id+' span.unspam a').click(function(){
 				var result = jQuery(this).attr('href');
-				result = result.match(/^comment\.php\?.*&c=(\d).*/);
+				result = result.match(/^comment\.php\?.*&c=(\d*).*/);
 				ct_comment_id = result[1];
 				ct_send_feedback_request(ct_comment_id, 'approve', 1);
 			});
@@ -62,7 +62,7 @@ jQuery(document).ready(function(){
 	// For unspammed
 	jQuery('span.unspam').on('click', function(){
 		var result = jQuery(this).children('a').attr('href');
-		result = result.match(/^comment\.php\?.*c=(\d).*/);
+		result = result.match(/^comment\.php\?.*c=(\d*).*/);
 		ct_comment_id = result[1];
 		ct_send_feedback_request(ct_comment_id, 'approve', 0);
 	});
@@ -70,7 +70,7 @@ jQuery(document).ready(function(){
 	// For untrashed
 	jQuery('span.untrash a').on('click', function(){
 		var result = jQuery(this).attr('href');
-		result = result.match(/^comment\.php\?.*c=(\d).*/);
+		result = result.match(/^comment\.php\?.*c=(\d*).*/);
 		ct_comment_id = result[1];
 		feedback_result = ct_send_feedback_request(ct_comment_id, 'approve', 0);		
 	});	
@@ -94,7 +94,9 @@ function ct_send_feedback_request(ct_comment_id, ct_comment_status, ct_undo){
 			ct_feedback_message_output(ct_comment_id, ct_comment_status, msg, ct_undo);
 		},
         error: function(jqXHR, textStatus, errorThrown) {
-			
+			console.log(jqXHR);
+			console.log(textStatus);
+			console.log(errorThrown);
 		},
         timeout: 5000
 	});

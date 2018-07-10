@@ -69,6 +69,8 @@ function ct_show_users_page(){
 				<input class="ct_date" type="text" id="ct_date_range_from" value="<?php echo isset($_GET['from']) ? $_GET['from'] : ''; ?>" disabled readonly />
 				<input class="ct_date" type="text" id="ct_date_range_till" value="<?php echo isset($_GET['till']) ? $_GET['till'] : ''; ?>" disabled readonly />
 			</div>
+			<br>
+			<?php ct_input_get_premium(); ?>
 		</div>
 		
 		<!-- Cooling notice --> 
@@ -238,11 +240,12 @@ function ct_show_users_page(){
 			echo $_SERVER['REMOTE_ADDR']=='127.0.0.1' ? '<br /><button class=" ct_to_hide button" id="ct_insert_users">'. __('Insert accounts', 'cleantalk'). ' (100)</button> ' : '';
 			echo $_SERVER['REMOTE_ADDR']=='127.0.0.1' ?       '<button class="ct_to_hide button" id="ct_delete_users">'. __('Delete accounts', 'cleantalk'). ' (110)</button><br />' : '';
 			
-			if($cnt_spam1 > 0)
+			if($cnt_spam1 > 0){
 				echo "<div id='ct_search_info'>"
 						."<br />"
 						.__("There is some differencies between blacklists database and our API mechanisms. Blacklists shows all history of spam activity, but our API (that used in spam checking) used another parameters, too: last day of activity, number of spam attacks during last days etc. This mechanisms help us to reduce number of false positivitie. So, there is nothing strange, if some emails/IPs will be not found by this checking.", 'cleantalk')
 					."</div>";
+			}
 		?>		
 		<div>
 			<button class="button" id="ct_stop_deletion" style="display:none;"><?php _e("Stop deletion", 'cleantalk'); ?></button>
@@ -367,35 +370,9 @@ function ct_ajax_check_users(){
 			die();
 		}
 		
-		$data=implode(',',$data);
+		$result = CleantalkHelper::api_method__spam_check_cms($ct_options['apikey'], $data, !empty($_POST['accurate_check']) ? $curr_date : null);
 		
-        $request=Array();
-        $request['method_name'] = 'spam_check_cms'; 
-        $request['auth_key'] = $ct_options['apikey'];
-        $request['data'] = $data;
-		if(!empty($_POST['accurate_check']))
-			$request['date'] = $curr_date;
-		
-        $url='https://api.cleantalk.org';
-		
-        if(!function_exists('sendRawRequest'))
-            require_once('cleantalk.class.php');
-		
-        $result=sendRawRequest($url, $request, false, 5);
-		
-		if(empty($result)){
-			$check_result['error'] = 1;
-			$check_result['error_message'] = __('Connection error', 'cleantalk');
-			print json_encode($check_result);
-		}else{
-			
-			$result = json_decode($result);		
-			
-			if(isset($result->error_message)){
-				$check_result['error'] = 1;
-				$check_result['error_message'] = __('Server response: ', 'cleantalk').$result->error_message;
-				print "Server response: ".$result->error_message;
-			}else{
+		if(empty($result['error'])){
 				
 				// Opening CSV file
 				$current_user = wp_get_current_user();
@@ -428,10 +405,10 @@ function ct_ajax_check_users(){
 					$uip = $u[$i]->data->user_ip;
 					$uim = $u[$i]->data->user_email;
 					
-					if(isset($result->data->$uip) && $result->data->$uip->appears == 1)
+					if(isset($result[$uip]) && $result[$uip]['appears'] == 1)
 						$mark_spam_ip = true;
 					
-					if(isset($result->data->$uim) && $result->data->$uim->appears==1)
+					if(isset($result[$uim]) && $result[$uim]['appears'] == 1)
 						$mark_spam_email = true;
 					
 					if ($mark_spam_ip || $mark_spam_email){
@@ -446,7 +423,10 @@ function ct_ajax_check_users(){
 				fwrite($file_desc, $text);
 				fclose($file_desc);
 				print json_encode($check_result);
-			}
+		}else{
+			$check_result['error'] = 1;
+			$check_result['error_message'] = $result['error_string'];
+			echo json_encode($check_result);
 		}
 	}else{
 		$check_result['end'] = 1;
@@ -554,7 +534,7 @@ function ct_ajax_insert_users()
 	
 	//* INSERTION
 	global $wpdb;
-	$to_insert = 10;
+	$to_insert = 100;
 	$result = $wpdb->get_results("SELECT network FROM `".$wpdb->base_prefix."cleantalk_sfw` LIMIT $to_insert;", ARRAY_A);
 	
 	if($result){
@@ -636,7 +616,7 @@ function ct_ajax_clear_users()
 {
 	check_ajax_referer( 'ct_secret_nonce', 'security' );
 	global $wpdb;
-	$wpdb->query("delete from $wpdb->usermeta where meta_key='ct_checked' or meta_key='ct_marked_as_spam' or meta_key='ct_bad';");
+	$wpdb->query("DELETE FROM {$wpdb->usermeta} WHERE meta_key IN ('ct_checked', 'ct_marked_as_spam', 'ct_bad');");
 	die();
 }
 

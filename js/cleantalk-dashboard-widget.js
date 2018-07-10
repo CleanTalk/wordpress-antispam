@@ -13,7 +13,6 @@ jQuery(document).ready(function(){
 	// Fixing default wrapper style
 	jQuery("#ct_widget_wrapper").parent().css('padding', 0);
 	
-	
 	// Chart 
 	var ct_chart = jQuery("#ct_widget_chart"),
 		locale = navigator.language || navigator.userLanguage;

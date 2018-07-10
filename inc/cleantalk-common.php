@@ -3,8 +3,9 @@
 $ct_plugin_name = 'Antispam by CleanTalk';
 $ct_checkjs_frm = 'ct_checkjs_frm';
 $ct_checkjs_register_form = 'ct_checkjs_register_form';
-$ct_session_request_id_label = 'request_id';
-$ct_session_register_ok_label = 'register_ok';
+
+$apbct_cookie_request_id_label  = 'request_id';
+$apbct_cookie_register_ok_label = 'register_ok';
 
 $ct_checkjs_cf7 = 'ct_checkjs_cf7';
 $ct_cf7_comment = '';
@@ -67,12 +68,6 @@ $ct_post_data_label = 's2member_pro_paypal_registration';
 // S2member Auth.Net post data label
 $ct_post_data_authnet_label = 's2member_pro_authnet_registration'; 
 
-// Form time load label  
-$ct_formtime_label = 'ct_formtime'; 
-
-// Post without page load
-$ct_direct_post = 0;
-
 // WP admin email notice interval in seconds
 $ct_admin_notoice_period = 21600;
 
@@ -89,8 +84,6 @@ $ct_notice_autokey_label = 'ct_autokey';
 // Apikey automatic getting error text
 $ct_notice_autokey_value = '';
 
-$ct_feedback_requests_pool = array();
-
 // Set globals to NULL to avoid massive DB requests. Globals will be set when needed only and by accessors only.
 $ct_options = NULL;
 $ct_data = NULL;
@@ -103,31 +96,13 @@ $ct_page_timer_setuped = false;
 /**
  * Public action 'plugins_loaded' - Loads locale, see http://codex.wordpress.org/Function_Reference/load_plugin_textdomain
  */
-function ct_plugin_loaded() {
+function apbct_plugin_loaded() {
 	$dir=plugin_basename( dirname( __FILE__ ) ) . '/../i18n';
     $loaded=load_plugin_textdomain('cleantalk', false, $dir);
 }
 
 /**
- * Session init
- * @return null;
- */
-function ct_init_session() {
-
-    $session_id = session_id(); 
-    if(empty($session_id) && !headers_sent()) {
-        $result = @session_start();
-        if(!$result){
-            session_regenerate_id(true); // replace the Session ID, bug report https://bugs.php.net/bug.php?id=68063
-            @session_start(); 
-        }    
-    }
-
-    return null;
-}
-
-/**
- * Inner function - Common part of request sending
+ * Inner function - Request's wrapper for anything
  * @param array Array of parameters:
  *  'message' - string
  *  'example' - string
@@ -138,123 +113,98 @@ function ct_init_session() {
  *  'post_info' - string
  * @return array array('ct'=> Cleantalk, 'ct_result' => CleantalkResponse)
  */
-function ct_base_call($params = array()) {
-    global $wpdb, $ct_agent_version, $ct_formtime_label, $ct_options, $ct_data;
-
-    $ct_options=ct_get_options();
-	$ct_data=ct_get_data();
+function apbct_base_call($params = array(), $reg_flag = false){
 	
-    require_once('cleantalk.class.php');
-        
-    $submit_time = submit_time_test();
-
-    $sender_info = get_sender_info();
-    if (array_key_exists('sender_info', $params)) {
-	    $sender_info = array_merge($sender_info, (array) $params['sender_info']);
-    }
-		
-	$sender_info['page_hits'] = (isset($_SESSION['ct_page_hits']) ? $_SESSION['ct_page_hits'] : 0);
-		
-    $sender_info = json_encode($sender_info);
-    if ($sender_info === false)
-        $sender_info = '';
+	global $ct_options, $ct_data;
+	
+	$ct_options = ct_get_options();
+	$ct_data    = ct_get_data();
+	
+    $sender_info = !empty($params['sender_info'])
+		? array_merge(apbct_get_sender_info(), (array) $params['sender_info'])
+		: apbct_get_sender_info();
 	
     $config = ct_get_server();
+	
+	$ct_request = new CleantalkRequest();
+	
+	// IPs
+	$ct_request->sender_ip       = defined('CT_TEST_IP') ? CT_TEST_IP : (isset($params['sender_ip']) ? $params['sender_ip'] : CleantalkHelper::ip_get(array('real'), false));
+	$ct_request->x_forwarded_for = CleantalkHelper::ip_get(array('x_forwarded_for'), false);
+	$ct_request->x_real_ip       = CleantalkHelper::ip_get(array('x_real_ip'), false);
+	
+	// Misc
+	$ct_request->auth_key        = $ct_options['apikey'];
+	$ct_request->message         = !empty($params['message'])         ? serialize(ct_filter_array($params['message']))   : null;
+	$ct_request->example         = !empty($params['example'])         ? $params['example']                               : null;
+	$ct_request->sender_email    = !empty($params['sender_email'])    ? $params['sender_email']                          : null;
+	$ct_request->sender_nickname = !empty($params['sender_nickname']) ? $params['sender_nickname']                       : null;
+	$ct_request->post_info       =  isset($params['post_info'])       ? json_encode($params['post_info'])                : null;
+	$ct_request->js_on           =  isset($params['checkjs'])         ? $params['checkjs']                               : apbct_js_test('ct_checkjs', $_COOKIE, true);
+	$ct_request->agent           = APBCT_AGENT;
+	$ct_request->sender_info     = json_encode($sender_info);
+	$ct_request->submit_time     = apbct_get_submit_time();
+	
+	$ct = new Cleantalk();
 
-    $ct = new Cleantalk();
-    $ct->work_url = $config['ct_work_url'];
-    $ct->server_url = $ct_options['server'];
-    
-    $ct->server_ttl = $config['ct_server_ttl'];
-    $ct->server_changed = $config['ct_server_changed'];
-    $ct->ssl_on = $ct_options['ssl_on'];
-
-    $ct_request = new CleantalkRequest();
-
-    $ct_request->auth_key = $ct_options['apikey'];
-    $ct_request->message = $params['message'];
-    $ct_request->example = $params['example'];
-    $ct_request->sender_email = $params['sender_email'];
-    $ct_request->sender_nickname = $params['sender_nickname'];
-	// $ct_request->sender_ip = $ct->ct_session_ip($_SERVER['REMOTE_ADDR']);
-	$ct_request->sender_ip = cleantalk_get_real_ip();
-    $ct_request->agent = $ct_agent_version;
-    $ct_request->sender_info = $sender_info;
-    $ct_request->js_on = $params['checkjs'];
-    $ct_request->submit_time = $submit_time;
-    $ct_request->post_info = $params['post_info'];
-    if(isset($ct_data['last_error_no']))
-    {
-    	$ct_request->last_error_no=$ct_data['last_error_no'];
-    	$ct_request->last_error_time=$ct_data['last_error_time'];
-    	$ct_request->last_error_text=$ct_data['last_error_text'];
-    }    
-    
-
-    $ct_result = @$ct->isAllowMessage($ct_request);
-    if ($ct->server_change) {
-        update_option(
-                'cleantalk_server', array(
-                'ct_work_url' => $ct->work_url,
-                'ct_server_ttl' => $ct->server_ttl,
-                'ct_server_changed' => time()
-                )
-        );
-    }
-    
-    $ct_result = ct_change_plugin_resonse($ct_result, $params['checkjs']);
-     
-    // Restart submit form counter for failed requests
-    if ($ct_result->allow == 0) {
-        ct_init_session();
-
-        $_SESSION[$ct_formtime_label] = time();
-       	ct_add_event('no');
-    }
+	$ct->ssl_on         = $ct_options['ssl_on'];
+	$ct->ssl_path       = APBCT_CASERT_PATH;
+	$ct->server_url     = $ct_options['server'];
+	$ct->server_ttl     = $config['ct_server_ttl'];
+	$ct->work_url       = $config['ct_work_url'];
+	$ct->server_changed = $config['ct_server_changed'];
+	
+	if($reg_flag){
+		$ct_result = @$ct->isAllowUser($ct_request);
+	}else{
+		$ct_result = @$ct->isAllowMessage($ct_request);		
+	}
+	
+	if ($ct_result->errno === 0 && empty($ct_result->errstr))
+        $ct_data['connection_reports']['success']++;
     else
     {
+        $ct_data['connection_reports']['negative']++;
+        $ct_data['connection_reports']['negative_report'][] = array('date'=>date("Y-m-d H:i:s"),'page_url'=>$_SERVER['REQUEST_URI'],'lib_report'=>$ct_result->errstr);
+		
+		if(count($ct_data['connection_reports']['negative_report']) > 20)
+			$ct_data['connection_reports']['negative_report'] = array_slice($ct_data['connection_reports']['negative_report'], -20, 20);
+		
+    }
+    if ($ct->server_change) {
+		update_option(
+			'cleantalk_server', 
+			array(
+				'ct_work_url'       => $ct->work_url,
+				'ct_server_ttl'     => $ct->server_ttl,
+				'ct_server_changed' => time(),
+			)
+		);
+    }
+    
+    $ct_result = ct_change_plugin_resonse($ct_result, $ct_request->js_on);
+	
+	// Restart submit form counter for failed requests
+    if ($ct_result->allow == 0){
+		apbct_cookie(); // Setting page timer and cookies
+       	ct_add_event('no');
+    }else{
        	ct_add_event('yes');
     }
+	
     return array('ct' => $ct, 'ct_result' => $ct_result);
-}
-
-/**
- * Validate form submit time 
- *
- */
-function submit_time_test() {
-    global $ct_formtime_label;
-    
-    ct_init_session();
-
-    $submit_time = null;
-    if (isset($_SESSION[$ct_formtime_label])) {
-        $submit_time = time() - (int) $_SESSION[$ct_formtime_label];
-    }
-
-    return $submit_time;
+	
 }
 
 /**
  * Inner function - Default data array for senders 
  * @return array 
  */
-function get_sender_info() {
-    global $ct_direct_post, $ct_options, $ct_data, $wp_rewrite, $ct_formtime_label;
+function apbct_get_sender_info() {
+	    
+	// Validate cookie from the backend
+	$cookie_is_ok = apbct_cookies_test();
     
-    $ct_options = ct_get_options();
-    $ct_data = ct_get_data();
-
-    $php_session = session_id() != '' ? 1 : 0;
-    
-    // Raw data to validated JavaScript test in the cloud
-    $checkjs_data_cookies = null; 
-    if (isset($_COOKIE['ct_checkjs'])) {
-        $checkjs_data_cookies = $_COOKIE['ct_checkjs'];
-    }
-    
-	
-	$checkjs_data_post = null;
 	if (count($_POST) > 0) {
 		foreach ($_POST as $k => $v) {
 			if (preg_match("/^ct_check.+/", $k)) {
@@ -263,36 +213,41 @@ function get_sender_info() {
 		}
 	}
 	
-	$options2server=$ct_options;
-	$js_info='';
-	if(isset($_COOKIE['ct_user_info']) && function_exists('mb_convert_encoding'))
-    {
-    	$js_info=stripslashes(rawurldecode($_COOKIE['ct_user_info']));
-    	$js_info=mb_convert_encoding($js_info, "UTF-8", "Windows-1252");
-    }
-    
-
-    if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-        ct_init_session();
-        if (isset($_SESSION) && is_array($_SESSION) && !array_key_exists($ct_formtime_label, $_SESSION) && session_id() != '') {
-            $ct_direct_post = 1;
-        }
-    }
-    
-	return $sender_info = array(
-	'page_url' => htmlspecialchars(@$_SERVER['SERVER_NAME'].@$_SERVER['REQUEST_URI']),
-        'cms_lang' => substr(get_locale(), 0, 2),
-        'REFFERRER' => htmlspecialchars(@$_SERVER['HTTP_REFERER']),
-        'USER_AGENT' => htmlspecialchars(@$_SERVER['HTTP_USER_AGENT']),
-        'php_session' => $php_session, 
-        'cookies_enabled' => ct_cookies_test(true), 
-        'direct_post' => $ct_direct_post,
-        'checkjs_data_post' => $checkjs_data_post, 
-        'checkjs_data_cookies' => $checkjs_data_cookies, 
-        'ct_options' => json_encode($options2server),
-        'fields_number' => sizeof($_POST),
-        'js_info' => $js_info,
-    );
+	// AMP check
+	$amp_detected = isset($_SERVER['HTTP_REFERER'])
+		? strpos($_SERVER['HTTP_REFERER'], '/amp/') !== false || strpos($_SERVER['HTTP_REFERER'], '?amp=1') !== false || strpos($_SERVER['HTTP_REFERER'], '&amp=1') !== false
+			? 1
+			: 0
+		: null;
+	
+	return array(
+		'remote_addr'            => CleantalkHelper::ip_get(array('remote_addr'), false),
+        'REFFERRER'              => isset($_SERVER['HTTP_REFERER'])                                ? htmlspecialchars($_SERVER['HTTP_REFERER'])                        : null,
+        'USER_AGENT'             => isset($_SERVER['HTTP_USER_AGENT'])                             ? htmlspecialchars($_SERVER['HTTP_USER_AGENT'])                     : null,
+		'page_url'               => isset($_SERVER['SERVER_NAME'], $_SERVER['REQUEST_URI'])        ? htmlspecialchars($_SERVER['SERVER_NAME'].$_SERVER['REQUEST_URI']) : null,
+        'cms_lang'               => substr(get_locale(), 0, 2),
+        'ct_options'             => json_encode(ct_get_options()),
+        'fields_number'          => sizeof($_POST),
+        'direct_post'            => $cookie_is_ok === null && $_SERVER['REQUEST_METHOD'] == 'POST' ? 1                                                                 : 0,
+		// Raw data to validated JavaScript test in the cloud                                                                                                          
+        'checkjs_data_cookies'   => !empty($_COOKIE['ct_checkjs'])                                 ? $_COOKIE['ct_checkjs']                                            : null, 
+        'checkjs_data_post'      => !empty($checkjs_data_post)                                     ? $checkjs_data_post                                                : null, 
+		// PHP cookies                                                                                                                                                 
+        'cookies_enabled'        => $cookie_is_ok,                                                                                                                     
+		'REFFERRER_PREVIOUS'     => !empty($_COOKIE['apbct_prev_referer'])    && $cookie_is_ok     ? $_COOKIE['apbct_prev_referer']                                    : null,
+		'site_landing_ts'        => !empty($_COOKIE['apbct_site_landing_ts']) && $cookie_is_ok     ? $_COOKIE['apbct_site_landing_ts']                                 : null,
+		'page_hits'              => !empty($_COOKIE['apbct_page_hits'])                            ? $_COOKIE['apbct_page_hits']                                       : null,
+		// JS cookies                                                                                                                                                  
+        'js_info'                => !empty($_COOKIE['ct_user_info'])                               ? json_decode(stripslashes($_COOKIE['ct_user_info']), true)         : null,
+		'mouse_cursor_positions' => !empty($_COOKIE['ct_pointer_data'])                            ? json_decode(stripslashes($_COOKIE['ct_pointer_data']), true)      : null,
+		'js_timezone'            => !empty($_COOKIE['ct_timezone'])                                ? $_COOKIE['ct_timezone']                                           : null,
+		'key_press_timestamp'    => !empty($_COOKIE['ct_fkp_timestamp'])                           ? $_COOKIE['ct_fkp_timestamp']                                      : null,
+		'page_set_timestamp'     => !empty($_COOKIE['ct_ps_timestamp'])                            ? $_COOKIE['ct_ps_timestamp']                                       : null,
+		'form_visible_inputs'    => !empty($_COOKIE['apbct_visible_fields_count'])                 ? $_COOKIE['apbct_visible_fields_count']                            : null,
+		'apbct_visible_fields'   => !empty($_COOKIE['apbct_visible_fields'])                       ? $_COOKIE['apbct_visible_fields']                                  : null,
+		// Debug stuff
+		'amp_detected'           => $amp_detected,
+	);
 }
 
 /**
@@ -493,7 +448,9 @@ function ct_def_options() {
         'notice_api_errors' => 0, // Send API error notices to WP admin
         'user_token'=>'', //user token for auto login into spam statistics
         'collect_details' => 0, // Collect details about browser of the visitor. 
-		'show_link' => 0
+        'send_connection_reports' => 0, //Send connection reports to Cleantalk servers
+		'show_link' => 0,
+		'async_js' => 0,
     );
 }
 
@@ -523,14 +480,15 @@ function ct_get_data($force=false) {
  */
 function ct_def_data() {
 	
-	global $cleantalk_plugin_version;
-	
     return array(
-		'start_version' => $cleantalk_plugin_version,
+		'start_version' => APBCT_VERSION,
         'user_token' => '', // User token 
         'js_keys' => array(), // Keys to do JavaScript antispam test 
         'js_keys_store_days' => 14, // JavaScript keys store days - 8 days now
         'js_key_lifetime' => 86400, // JavaScript key life time in seconds - 1 day now
+		'ip_license' => 0,
+		'service_id' => 0,
+		'moderate' => 0,
 		'sfw_counter' => array(
 			'all' => 0,
 			'blocked' => 0
@@ -546,7 +504,13 @@ function ct_def_data() {
 			'accepted' => 0,
 			'blocked' => 0,
 			'since' => date('d M')
-		)
+		),
+        'connection_reports' => array(
+            'success' => 0,
+            'negative' => 0,
+            'negative_report' => array(),
+            'since' => date('d M')
+        )        
     );
 }
 
@@ -574,41 +538,19 @@ function ct_hash($new_hash = '') {
  * @param 	int $allow flag good comment (1) or bad (0)
  * @return 	string comment_content w\o cleantalk resume
  */
-function ct_feedback($hash, $message = null, $allow) {
-    global $ct_options, $ct_data;
+function ct_feedback($hash, $allow) {
+	
+    global $ct_data;
     
-    $ct_options = ct_get_options();
     $ct_data = ct_get_data();
-
-    require_once('cleantalk.class.php');
-
-    $config = ct_get_server();
-
-    $ct = new Cleantalk();
-    $ct->work_url = $config['ct_work_url'];
-    $ct->server_url = $ct_options['server'];
-    $ct->server_ttl = $config['ct_server_ttl'];
-    $ct->server_changed = $config['ct_server_changed'];
-
-    if (empty($hash)) {
-	    $hash = $ct->getCleantalkCommentHash($message);
-    }
-    
-    $resultMessage = null;
-    if ($message !== null) {
-        $resultMessage = $ct->delCleantalkComment($message);
-    }
-    
-    ct_init_session();
-
+	
     $ct_feedback = $hash . ':' . $allow . ';';
-    if (empty($_SESSION['feedback_request'])) {
-	$_SESSION['feedback_request'] = $ct_feedback; 
-    } else {
-	$_SESSION['feedback_request'] .= $ct_feedback; 
-    }
-
-    return $resultMessage;
+    if(empty($ct_data['feedback_request']))
+		$ct_data['feedback_request'] = $ct_feedback; 
+    else
+		$ct_data['feedback_request'] .= $ct_feedback; 
+	
+	update_option('cleantalk_data', $ct_data);
 }
 
 /**
@@ -618,26 +560,20 @@ function ct_feedback($hash, $message = null, $allow) {
  * @return bool
  */
 function ct_send_feedback($feedback_request = null) {
-    global $ct_options, $ct_data, $ct_feedback_requests_pool;
+	
+    global $ct_options, $ct_data;
     
     $ct_options = ct_get_options();
     $ct_data = ct_get_data();
-    
-    ct_init_session();
 
-    if (empty($feedback_request) && isset($_SESSION['feedback_request']) && preg_match("/^[a-z0-9\;\:]+$/", $_SESSION['feedback_request'])) {
-	$feedback_request = $_SESSION['feedback_request'];
-	unset($_SESSION['feedback_request']);
+    if (empty($feedback_request) && isset($ct_data['feedback_request']) && preg_match("/^[a-z0-9\;\:]+$/", $ct_data['feedback_request'])){
+		$feedback_request = $ct_data['feedback_request'];
+		unset($ct_data['feedback_request']);
+		update_option('cleantalk_data', $ct_data);
     }
 
     if ($feedback_request !== null) {
-        if (in_array($feedback_request, $ct_feedback_requests_pool)) { // The request already sent.
-            return false;
-        } else {
-            $ct_feedback_requests_pool[] = $feedback_request;
-        }
-
-        require_once('cleantalk.class.php');
+		
         $config = ct_get_server();
 
         $ct = new Cleantalk();
@@ -696,27 +632,36 @@ function ct_delete_spam_comments() {
 * @return array
 */ 
 function ct_get_fields_any($arr, $message=array(), $email = null, $nickname = array('nick' => '', 'first' => '', 'last' => ''), $subject = null, $contact = true, $prev_name = ''){
-	$skip_params = array( //Skip request if fields exists
+	
+	//Skip request if fields exists
+	$skip_params = array(
 	    'ipn_track_id', 	// PayPal IPN #
 	    'txn_type', 		// PayPal transaction type
 	    'payment_status', 	// PayPal payment status
-	    'ccbill_ipn', 		//CCBill IPN 
-		'ct_checkjs' 		//skip ct_checkjs field
+	    'ccbill_ipn', 		// CCBill IPN 
+		'ct_checkjs', 		// skip ct_checkjs field
+		'api_mode',         // DigiStore-API
+		'loadLastCommentId' // Plugin: WP Discuz. ticket_id=5571
     );
-    $obfuscate_params = array( //Fields to replace with ****
+	
+	// Fields to replace with ****
+    $obfuscate_params = array(
         'password',
         'pass',
         'pwd',
 		'pswd'
     );
 	
-	$skip_fields_with_strings = array( //Array for strings in keys to skip and known service fields
+	// Skip feilds with these strings and known service fields
+	$skip_fields_with_strings = array( 
 		// Common
 		'ct_checkjs', //Do not send ct_checkjs
 		'nonce', //nonce for strings such as 'rsvp_nonce_name'
 		'security',
-		'action',
+		// 'action',
 		'http_referer',
+		'timestamp',
+		'captcha',
 		// Formidable Form
 		'form_key',
 		'submit_entry',
@@ -739,15 +684,27 @@ function ct_get_fields_any($arr, $message=array(), $email = null, $nickname = ar
 		'formData_id',
 		'formData_settings',
 		'formData_fields_\d+_id',
+		'formData_fields_\d+_files.*',		
 		// E_signature
 		'recipient_signature',
 		'output_\d+_\w{0,2}',
 		// Contact Form by Web-Settler protection
         '_formId',
-        '_returnLink'
+        '_returnLink',
+		// Social login and more
+		'_save',
+		'_facebook',
+		'_social',
+		'user_login-',
+		// Contact Form 7
+		'_wpcf7',
+		'ebd_settings',
+		'ebd_downloads_',
+		'ecole_origine',
 	);
 	
-    $skip_message_post = array( // Reset $message if we have a sign-up data
+	// Reset $message if we have a sign-up data
+    $skip_message_post = array(
         'edd_action', // Easy Digital Downloads
     );
 	
@@ -767,7 +724,7 @@ function ct_get_fields_any($arr, $message=array(), $email = null, $nickname = ar
 			
 			if(!is_array($value) && !is_object($value) && @get_class($value)!='WP_User'){
 				
-				if (in_array($key, $skip_params, true) && $key!=0 && $key!='' || preg_match("/^ct_checkjs/", $key))
+				if (in_array($key, $skip_params, true) && $key != 0 && $key != '' || preg_match("/^ct_checkjs/", $key))
 					$contact = false;
 				
 				if($value === '')
@@ -801,9 +758,9 @@ function ct_get_fields_any($arr, $message=array(), $email = null, $nickname = ar
 				// Names
 				}elseif (preg_match("/name/i", $key)){
 					
-					preg_match("/(first.?name)?(name.?first)?(forename)?/", $key, $match_forename);
-					preg_match("/(last.?name)?(family.?name)?(second.?name)?(surname)?/", $key, $match_surname);
-					preg_match("/(nick.?name)?(user.?name)?(nick)?/", $key, $match_nickname);
+					preg_match("/((name.?)?(your|first|for)(.?name)?)$/", $key, $match_forename);
+					preg_match("/((name.?)?(last|family|second|sur)(.?name)?)$/", $key, $match_surname);
+					preg_match("/^(name.?)?(nick|user)(.?name)?$/", $key, $match_nickname);
 					
 					if(count($match_forename) > 1)
 						$nickname['first'] = $value;
@@ -823,7 +780,7 @@ function ct_get_fields_any($arr, $message=array(), $email = null, $nickname = ar
 					$message[$prev_name.$key] = $value;					
 				}
 				
-			}else if(!is_object($value)&&@get_class($value)!='WP_User'){
+			}elseif(!is_object($value) && @get_class($value) != 'WP_User'){
 				
 				$prev_name_original = $prev_name;
 				$prev_name = ($prev_name === '' ? $key.'_' : $prev_name.$key.'_');
@@ -947,10 +904,29 @@ function check_url_exclusions($exclusions = NULL){
 	
 	global $cleantalk_url_exclusions;
 	
-	if((isset($cleantalk_url_exclusions) && is_array($cleantalk_url_exclusions) && sizeof($cleantalk_url_exclusions)>0) || ($exclusions !== NULL && is_array($exclusions) && sizeof($exclusions)>0)){
+	if ((isset($cleantalk_url_exclusions) && is_array($cleantalk_url_exclusions) && sizeof($cleantalk_url_exclusions)>0) ||
+		($exclusions !== NULL && is_array($exclusions) && sizeof($exclusions)>0)
+	){
 		foreach($cleantalk_url_exclusions as $key => $value){
 			if(stripos($_SERVER['REQUEST_URI'], $value) !== false){
-				return true;
+				return true; 
+			}
+		}
+	}
+	
+	return false;
+}
+
+function check_ip_exclusions($exclusions = NULL){
+	
+	global $cleantalk_ip_exclusions;
+	
+	if ((isset($cleantalk_ip_exclusions) && is_array($cleantalk_ip_exclusions) && sizeof($cleantalk_ip_exclusions)>0) ||
+		($exclusions !== NULL && is_array($exclusions) && sizeof($exclusions)>0)
+	){
+		foreach($cleantalk_ip_exclusions as $key => $value){
+			if(stripos($_SERVER['REMOTE_ADDR'], $value) !== false){
+				return true; 
 			}
 		}
 	}
@@ -961,26 +937,23 @@ function check_url_exclusions($exclusions = NULL){
 function ct_filter_array(&$array)
 {
 	global $cleantalk_key_exclusions;
-	if(isset($cleantalk_key_exclusions) && sizeof($cleantalk_key_exclusions)>0)
-	{
-		foreach($array as $key=>$value)
-		{
-			if(!is_array($value))
-			{
-				if(in_array($key,$cleantalk_key_exclusions))
-				{
+	
+	if(isset($cleantalk_key_exclusions) && sizeof($cleantalk_key_exclusions) > 0){
+		
+		foreach($array as $key => $value){
+			
+			if(!is_array($value)){
+				if(in_array($key,$cleantalk_key_exclusions)){
 					unset($array[$key]);
 				}
-			}
-			else
-			{
-				$array[$key]=ct_filter_array($value);
+			}else{
+				$array[$key] = ct_filter_array($value);
 			}
 		}
+		
 		return $array;
-	}
-	else
-	{
+		
+	}else{
 		return $array;
 	}
 }

@@ -38,7 +38,7 @@ jQuery(document).ready(function(){
 		
 		var data = {
 			'action': 'ct_feedback_comment',
-			'security': ctPublic.ct_ajax_nonce,
+			'security': ctPublicAdmin.ct_ajax_nonce,
 			'comment_id': ct_current_button.attr('commentid'),
 			'comment_status': ct_comment_status,
 			'change_status': 1
@@ -46,7 +46,7 @@ jQuery(document).ready(function(){
 		
 		jQuery.ajax({
 			type: "POST",
-			url: ctPublic.ajaxurl,
+			url: ctPublicAdmin.ajaxurl,
 			data: data,
 			success: function(msg){
 				ct_current_button.hide();
@@ -60,15 +60,15 @@ jQuery(document).ready(function(){
 				
 				if(msg == 1){
 					ct_feedback_msg.addClass('ct_feedback_success');
-					ct_feedback_msg.html(ctPublic.ct_feedback_msg);
+					ct_feedback_msg.html(ctPublicAdmin.ct_feedback_msg);
 				}else if(msg == 0){
 					// Error occurred
 					ct_feedback_msg.addClass('ct_feedback_error');
-					ct_feedback_msg.html(ctPublic.ct_feedback_error);
+					ct_feedback_msg.html(ctPublicAdmin.ct_feedback_error);
 				}else if(msg == 'no_hash'){
 					// No hash for this comment
 					ct_feedback_msg.addClass('ct_feedback_no_hash');
-					ct_feedback_msg.html(ctPublic.ct_feedback_no_hash);
+					ct_feedback_msg.html(ctPublicAdmin.ct_feedback_no_hash);
 				}
 				// Hidding feedback message for every message type
 				ct_feedback_wrap.show();
@@ -82,7 +82,9 @@ jQuery(document).ready(function(){
 				ct_feedback_wrap.data('interval_id', ct_timeout_id);
 			},
 			error: function(jqXHR, textStatus, errorThrown) {
-				
+				console.log(jqXHR);
+				console.log(textStatus);
+				console.log(errorThrown);
 			},
 			timeout: 5000
 		});

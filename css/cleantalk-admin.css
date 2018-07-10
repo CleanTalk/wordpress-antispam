@@ -1,3 +1,5 @@
+:disabled{cursor: not-allowed !important;}
+
 .ct_meta_links{
 	
 }
@@ -16,3 +18,9 @@
 	margin: 0 2px;
 	border: 0;
 }
+
+#negative_reports_table tr td{
+	padding: 7px 5px !important;
+}
+
+#apbct_gdpr_open_modal:hover{cursor: pointer};

@@ -20,9 +20,9 @@ var ct_working = false,
 	ct_prev_from = ctCommentsCheck.ct_prev_from,	
 	ct_prev_till = ctCommentsCheck.ct_prev_till;
 // Settings
-var ct_cool_down_time = 65000,
+var ct_cool_down_time = 90000,
 	ct_requests_counter = 0,
-	ct_max_requests = 80;
+	ct_max_requests = 60;
 // Variables
 var ct_ajax_nonce = ctCommentsCheck.ct_ajax_nonce,
 	ct_comments_total = 0,
@@ -133,9 +133,9 @@ function ct_send_comments(){
 						new_href+='&from='+ct_date_from+'&till='+ct_date_till;
 					location.href = new_href;
 				}else if(parseInt(msg.end) == 0){
-					ct_comments_checked += msg.checked;
-					ct_comments_spam += msg.spam;
-					ct_comments_bad += msg.bad;
+					ct_comments_checked = +ct_comments_checked + +msg.checked;
+					ct_comments_spam = +ct_comments_spam + +msg.spam;
+					ct_comments_bad = +ct_comments_bad + +msg.bad;
 					ct_unchecked = ct_comments_total - ct_comments_checked - ct_comments_bad;
 					var status_string = String(ctCommentsCheck.ct_status_string);
 					var status_string = status_string.printf(ct_comments_total, ct_comments_checked, ct_comments_spam, ct_comments_bad);
@@ -143,6 +143,12 @@ function ct_send_comments(){
 						status_string += ctCommentsCheck.ct_status_string_warning;
 					jQuery('#ct_checking_status').html(status_string);
 					jQuery('#ct_error_message').hide();
+					// If DB woks not properly
+					if(+ct_comments_total < ct_comments_checked + ct_comments_bad){
+						document.cookie = 'ct_comments_start_check=1; path=/';
+						document.cookie = 'ct_comments_safe_check=1; path=/';
+						location.href = 'edit-comments.php?page=ct_check_spam';
+					}
 					ct_send_comments();
 				}
 			}
@@ -516,4 +522,8 @@ jQuery(document).ready(function(){
 			timeout: 5000
 		});
 	});
+	if(ctCommentsCheck.start === '1'){
+		document.cookie = 'ct_comments_start_check=0; expires=' + new Date(0).toUTCString() + '; path=/';
+		jQuery('#ct_check_spam_button').click();	
+	}
 });

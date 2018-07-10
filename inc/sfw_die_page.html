@@ -29,7 +29,7 @@
     }
 </style>
 <script>
-var reload_timeout = 3000;
+var reload_timeout = 1000;
 function set_spamFireWallCookie(cookie_name, cookie_value) {
     document.cookie = cookie_name + '=' + escape(cookie_value) + '; path=/;{COOKIE_DOMAIN}';
     return null;
@@ -56,7 +56,7 @@ function get_current_url() {
         </div>
     </div>
     <div class='footer'>
-    <a href='https://cleantalk.org' target='_blank'>{CLEANTALK_TITLE}</a>
+		<a href='https://cleantalk.org' target='_blank'>{CLEANTALK_TITLE}</a>
     </div>
     <script type='text/javascript'>
         document.getElementById('js_info').style.display = 'none';
@@ -64,9 +64,10 @@ function get_current_url() {
 		setTimeout(function(){
 			set_spamFireWallCookie('{COOKIE_PREFIX}ct_sfw_pass_key','{SFW_COOKIE}');
 			set_spamFireWallCookie('{COOKIE_PREFIX}ct_sfw_passed','1');
-		}, 2000);
+		}, 50);
         setTimeout(function(){
-            window.location.reload(1);
+			var ct_date = new Date;
+            window.location.href=window.location.origin + window.location.pathname + (window.location.search === '' ? '?sfw=pass' : '&sfw=pass') + Math.round(ct_date.getTime()/1000);
         }, reload_timeout);
     </script>
 </body>

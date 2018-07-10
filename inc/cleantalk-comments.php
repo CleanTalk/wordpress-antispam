@@ -69,6 +69,8 @@ function ct_show_checkspam_page(){
 				<input class="ct_date" type="text" id="ct_date_range_from" value="<?php echo isset($_GET['from']) ? $_GET['from'] : ''; ?>" disabled readonly />
 				<input class="ct_date" type="text" id="ct_date_range_till" value="<?php echo isset($_GET['till']) ? $_GET['till'] : ''; ?>" disabled readonly />
 			</div>
+			<br>
+			<?php ct_input_get_premium(); ?>
 		</div>
 		
 		<!-- Cooling notice --> 
@@ -240,11 +242,12 @@ function ct_show_checkspam_page(){
 			echo $_SERVER['REMOTE_ADDR']=='127.0.0.1' ? '<button class="button ct_to_hide" id="ct_insert_comments">'. __('Insert comments', 'cleantalk') .' (100)</button> ' : '';
 			echo $_SERVER['REMOTE_ADDR']=='127.0.0.1' ? '<button class="button ct_to_hide" id="ct_delete_comments">'. __('Delete comments', 'cleantalk') .' (110)</button>' : '';
 			
-			if($cnt_spam > 0)
+			if($cnt_spam > 0){
 				echo "<div id='ct_search_info'>"
 						."<br />"
 						.__('There is some differencies between blacklists database and our API mechanisms. Blacklists shows all history of spam activity, but our API (that used in spam checking) used another parameters, too: last day of activity, number of spam attacks during last days etc. This mechanisms help us to reduce number of false positivitie. So, there is nothing strange, if some emails/IPs will be not found by this checking.', 'cleantalk')
 					."</div>";
+			}
 		?>
 		<div>
 			<button class="button" id="ct_stop_deletion" style="display:none;"><?php _e("Stop deletion", 'cleantalk'); ?></button>
@@ -257,47 +260,58 @@ function ct_ajax_check_comments(){
 	
 	check_ajax_referer( 'ct_secret_nonce', 'security' );
 	
-	global $ct_options, $ct_ip_penalty_days;
+	global $wpdb, $ct_options, $ct_ip_penalty_days;
 	
 	$ct_options = ct_get_options();
 	
-	$params = array(
-		'fields' => array(
-			'comment_ID',
-			'comment_date_gmt',
-			'comment_author_IP',
-			'comment_author_email',
-		),
-		'meta_query' => array(
-			'relation' => 'AND',
-			array(
-				'key' => 'ct_checked',
-				'compare' => 'NOT EXISTS'
-			),
-			array(
-				'key' => 'ct_bad',
-				'compare' => 'NOT EXISTS'
-			)
-		),
-		'orderby' => 'comment_date_gmt',
-		'order' => 'ASC',
-		'number' => 100
-	);
-	
 	if(isset($_POST['from'], $_POST['till'])){
-		
 		$from_date = date('Y-m-d', intval(strtotime($_POST['from'])));
 		$till_date = date('Y-m-d', intval(strtotime($_POST['till'])));
-
-		$params['date_query'] = array(
-			'column'   => 'comment_date_gmt',
-			'after'     => $from_date,
-			'before'    => $till_date,
-			'inclusive' => true,						
-		);
 	}
 	
-	$c = get_comments( $params );
+	// Gettings comments 100 unchecked comments
+	if(isset($_COOKIE['ct_comments_safe_check'])){
+		$c = $wpdb->get_results("
+			SELECT comment_ID, comment_date_gmt, comment_author_IP, comment_author_email
+			FROM {$wpdb->comments} as comm
+			WHERE 
+				(comm.comment_approved = '1' OR comm.comment_approved = '0')
+				AND NOT EXISTS(
+				SELECT comment_id, meta_key
+					FROM {$wpdb->commentmeta} as meta
+					WHERE comm.comment_ID = meta.comment_id AND (meta_key = 'ct_checked' OR meta_key = 'ct_bad')
+			)
+			ORDER BY comment_date_gmt
+			LIMIT 100",
+			ARRAY_A
+		);
+	}else{
+		$params = array(
+			'meta_query' => array(
+				'relation' => 'AND',
+				array(
+					'key' => 'ct_checked',
+					'compare' => 'NOT EXISTS'
+				),
+				array(
+					'key' => 'ct_bad',
+					'compare' => 'NOT EXISTS'
+				)
+			),
+			'orderby' => 'comment_date_gmt',
+			'order' => 'ASC',
+			'number' => 100
+		);	
+		if(isset($from_date, $till_date)){
+			$params['date_query'] = array(
+				'column'   => 'comment_date_gmt',
+				'after'     => $from_date,
+				'before'    => $till_date,
+				'inclusive' => true,						
+			);
+		}
+		$c = get_comments( $params );
+	}
 	
 	$check_result = array(
 		'end' => 0,
@@ -308,6 +322,13 @@ function ct_ajax_check_comments(){
 	);
 	
 	if(sizeof($c)>0){
+		
+		// Coverting $c to objects
+		if(is_array($c[0])){
+			foreach($c as $key => $value){
+				$c[$key] = (object)$value;
+			} unset($key, $value);
+		}
 		
 		if(!empty($_POST['accurate_check'])){
 			// Leaving comments only with first comment's date. Unsetting others.
@@ -361,58 +382,37 @@ function ct_ajax_check_comments(){
 			die();
 		}
 		
-		$data=implode(',',$data);
+		$result = CleantalkHelper::api_method__spam_check_cms($ct_options['apikey'], $data, !empty($_POST['accurate_check']) ? $curr_date : null);
 		
-		$request=Array();
-        $request['method_name'] = 'spam_check_cms'; 
-        $request['auth_key'] = $ct_options['apikey'];
-        $request['data'] = $data;
-		if(!empty($_POST['accurate_check']))
-			$request['date'] = $curr_date;
-				
-        $url='https://api.cleantalk.org';
-		
-        if(!function_exists('sendRawRequest'))
-            require_once('cleantalk.class.php');
-		
-        $result=sendRawRequest($url, $request, false, 5);
-        
-		if(empty($result)){
-			$check_result['error'] = 1;
-			$check_result['error_message'] = __('Connection error', 'cleantalk');
-			echo json_encode($check_result);
-		}else{
-		
-			$result=json_decode($result);
+		if(empty($result['error'])){
 			
-			if(isset($result->error_message)){
-				$check_result['error'] = 1;
-				$check_result['error_message'] = __('Server response: ', 'cleantalk').$result->error_message;
-				print "Server response: ".$result->error_message;
-			}else{
-				for($i=0;$i<sizeof($c);$i++){
-					
-					$mark_spam_ip = false;
-					$mark_spam_email = false;
+			for($i=0;$i<sizeof($c);$i++){
+				
+				$mark_spam_ip = false;
+				$mark_spam_email = false;
 
-					$check_result['checked']++;
-					add_comment_meta($c[$i]->comment_ID,'ct_checked',date("Y-m-d H:m:s"));
-					$uip=$c[$i]->comment_author_IP;
-					$uim=$c[$i]->comment_author_email;
-					
-					if(isset($result->data->$uip) && $result->data->$uip->appears == 1)
-						$mark_spam_ip = true;
-					
-					if(isset($result->data->$uim) && $result->data->$uim->appears==1)
-						$mark_spam_email = true;
-					
-					if ($mark_spam_ip || $mark_spam_email){
-						$check_result['spam']++;
-						add_comment_meta($c[$i]->comment_ID,'ct_marked_as_spam','1');
-					}
+				$check_result['checked']++;
+				update_comment_meta($c[$i]->comment_ID,'ct_checked',date("Y-m-d H:m:s"));
+				$uip=$c[$i]->comment_author_IP;
+				$uim=$c[$i]->comment_author_email;
+				
+				if(isset($result[$uip]) && $result[$uip]['appears'] == 1)
+					$mark_spam_ip = true;
+				
+				if(isset($result[$uim]) && $result[$uim]['appears'] == 1)
+					$mark_spam_email = true;
+				
+				if ($mark_spam_ip || $mark_spam_email){
+					$check_result['spam']++;
+					update_comment_meta($c[$i]->comment_ID,'ct_marked_as_spam','1');
 				}
-				print json_encode($check_result);
 			}
+			print json_encode($check_result);
+			
+		}else{
+			$check_result['error'] = 1;
+			$check_result['error_message'] = $result['error_string'];
+			echo json_encode($check_result);
 		}
 	}else{
 		$check_result['end'] = 1;
@@ -427,47 +427,49 @@ function ct_ajax_info_comments($direct_call = false){
 	if (!$direct_call)
         check_ajax_referer( 'ct_secret_nonce', 'security' );
 	
+	global $wpdb;
+	
 	// Checking dates value
 	if(isset($_POST['from'], $_POST['till'])){
-		
 		$from_date = date('Y-m-d', intval(strtotime($_POST['from'])));
 		$till_date = date('Y-m-d', intval(strtotime($_POST['till'])));
 	}
 	
-	// Total comments
-	$params = array(
-		'fields' => 'ids',
-		'count' => true,
-	);
-	if(isset($from_date, $till_date)) $params['date_query'] = array('column' => 'comment_date_gmt', 'after' => $from_date, 'before' => $till_date, 'inclusive' => true);
-	$cnt = get_comments( $params );
+	$metas = array('', 'ct_marked_as_spam', 'ct_checked', 'ct_bad');
 	
-	// Spam comments
-	$params = array(
-		'fields' => 'ids',
-		'meta_key' => 'ct_marked_as_spam',
-		'count' => true
-	);
-	if(isset($from_date, $till_date)) $params['date_query'] = array('column' => 'comment_date_gmt', 'after' => $from_date, 'before' => $till_date, 'inclusive' => true);
-	$cnt_spam = get_comments( $params );
+	$result = array();
+	foreach($metas as $meta){
+		if(isset($_COOKIE['ct_comments_safe_check'])){
+			$res = $wpdb->get_results("
+				SELECT COUNT(DISTINCT comment_ID) AS cnt
+				FROM {$wpdb->comments} AS comm
+				WHERE comm.comment_approved IN ('1','0')".
+				(!empty($meta)
+					? " AND EXISTS (SELECT comment_id, meta_key
+						FROM {$wpdb->commentmeta} meta
+						WHERE comm.comment_ID = meta.comment_id AND meta_key = '$meta')"
+					: '').
+				(isset($from_date, $till_date)
+					? " AND comment_date_gmt BETWEEN 
+						STR_TO_DATE('$from_date', '%Y-%m-%d %H:%i:%s') AND 
+						STR_TO_DATE('$till_date', '%Y-%m-%d %H:%i:%s')"
+					: ''),
+				ARRAY_A);
+			$result[] = $res[0]['cnt'];
+		}else{
+			$params = array('fields' => 'ids', 'count' => true);
+			if(!empty($meta))
+				$params['meta_key'] = $meta;
+			if(isset($from_date, $till_date))
+				$params['date_query'] = array('column' => 'comment_date_gmt', 'after' => $from_date, 'before' => $till_date, 'inclusive' => true);
+			$result[] = get_comments( $params );
+		}
+	}
 	
-	// Checked comments
-	$params = array(
-		'fields' => 'ids',
-		'meta_key' => 'ct_checked',
-		'count' => true
-	);
-	if(isset($from_date, $till_date)) $params['date_query'] = array('column' => 'comment_date_gmt', 'after' => $from_date, 'before' => $till_date, 'inclusive' => true);
-	$cnt_checked = get_comments( $params );
-	
-	// Bad comments (without IP and Email)
-	$params = array(
-		'fields' => 'ids',
-		'meta_key' => 'ct_bad',
-		'count' => true
-	);
-	if(isset($from_date, $till_date)) $params['date_query'] = array('column' => 'comment_date_gmt', 'after' => $from_date, 'before' => $till_date, 'inclusive' => true);
-	$cnt_bad = get_comments( $params );
+	$cnt         = $result[0]; // Total comments
+	$cnt_spam    = $result[1]; // Spam comments
+	$cnt_checked = $result[2]; // Checked comments
+	$cnt_bad     = $result[3]; // Bad comments (without IP and Email)
 	
 	$return = array(
 		'message' => '',
@@ -614,7 +616,9 @@ function ct_ajax_clear_comments(){
 	
 	check_ajax_referer( 'ct_secret_nonce', 'security' );
 	global $wpdb;
-	$wpdb->query("delete from $wpdb->commentmeta where meta_key='ct_checked' or meta_key='ct_marked_as_spam' or meta_key='ct_bad';");
+	$wpdb->query("DELETE 
+		FROM {$wpdb->commentmeta}
+		WHERE meta_key IN ('ct_checked', 'ct_marked_as_spam', 'ct_bad');");
 	die();
 }
 

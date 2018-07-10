@@ -1,20 +1,20 @@
-=== Spam protection FireWall, AntiSpam by CleanTalk ===
-Contributors: znaeff, shagimuratov, serge00, sartemd174, amagsumov 
-Tags: antispam, protection, contact form, comments, spam 
+=== Spam protection, AntiSpam, FireWall by CleanTalk ===
+Contributors: safronik 
+Tags: spam, antispam, protection, comments, firewall 
 Requires at least: 3.0
-Tested up to: 4.8
-Stable tag: 5.75
+Tested up to: 4.9
+Stable tag: 5.98
 License: GPLv2
 
-Spam protection, antispam, all-in-one, premium plugin. No spam comments & users, no spam contact form & WooCommerce spam. Forget spam.
+Spam protection, antispam, all-in-one, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
 
 == Description ==
 
 **Supports: Contact Form 7, Ninja Forms, Gravity Forms, MailChimp, Formidable forms, WooCommerce, JetPack comments and contact form, BuddyPress, bbPress, Fast Secure Contact form, S2Member, MailPoet, any WordPress registrations & contact forms and themes. Just setup and forget the spam!** 
 
-No CAPTCHA, no questions, no animal counting, no puzzles, no math and no spam bots. Universal Anti-Spam plugin.
+No CAPTCHA, no questions, no animal counting, no puzzles, no math and no spam bots. Universal AntiSpam plugin.
 
-= Anti-Spam features =
+= AntiSpam features =
 1. Stops spam comments.
 1. Stops spam registrations.
 1. Stops spam contact emails.
@@ -26,41 +26,34 @@ No CAPTCHA, no questions, no animal counting, no puzzles, no math and no spam bo
 1. Stops spam in WooCommerce.
 1. Checks and removes the existing spam comments and spam users.
 1. Compatible with mobile users and devices. 
+1. Compatible with General Data Protection Regulation (GDPR) (EU). 
 
 = Public reviews =
->With CleanTalk installed you can rest assured that you will no longer have to fuss with annoying spam. You can now focus your time on developing and improving your web site, your blog content, and you business without being distracted by these useless comments.
-> *Dr. Erica Goodstone. <a href="https://www.poweraffiliateclub.com/clear-your-blog-of-spam-comments/" target="_blank">www.poweraffiliateclub.com</a>*
-
 > Using CleanTalk on WPLift was a great test as we receive huge amounts of spam.
 > *Oliver Dale, <a href="http://wplift.com/wordpress-anti-spam-plugin" target="_blank">WPLift.com</a>.*
 
 >I know you have heard of a number of anti-spam plugins. But you must know, the cloud-based ones are the best regarding detection rate. They compare all the content in forms with their own algorithm to find out the legibility. 
 >*<a href="https://www.techwibe.com/cleantalk-wordpress-plugin-review/" target="_blank">www.techwibe.com</a>*
 
+> The key selling point of CleanTalk for me is not simply its effectiveness. It's the fact that CleanTalk works in the background. It does not make users jump through hoops in order to submit a comment or complete a form.
+> <a href="https://www.kevinmuldoon.com/cleantalk-anti-spam-service/">www.kevinmuldoon.com</a>
 
-= Anti-Spam protection for comments =
+= Free trial then $8 per year =
+CleanTalk is a free anti spam plugin which work with the premium Cloud AntiSpam service cleantalk.org. This plugin as a service https://en.wikipedia.org/wiki/Software_as_a_service.
+
+= AntiSpam protection for comments =
 Native spam protection for WordPress, JetPack comments and any other comment plugins. The plugin moves spam comments to SPAM folder or you can set the option to ban spam comments silently. You can also enable the option in the plugin settings to auto-delete comments from SPAM folder.
 
 = Spam bot registrations filter =
 Filters spam bots on registration forms of WordPress, BuddyPress, bbPress, S2Member, WooCommerce, Profile builder, Login with AJAX and any other registration plugins.
 
 = Protection from contact form spam =
-The plugin is tested and ready to protect from spam emails via Formidable
-forms, Contact form 7, JetPack Contact form, Fast Secure Contact form, Ninja
-forms, Landing pages, Gravity forms, Contact Form by BestWebSoft, Simple
-Contact Form Plugin - PirateForms, Visual Form Builder, Form, Contact Form by
-WebDorado, Contact Form Email, MW WP Form, Contact Form by Jeff Bulllins, Easy
-Contact, Contact Us Form, Grunion Contact Form, WCP Contact Form, Easy
-WordPress Contact Form Plugin, WPForms Lite, Custom Contact, Forms, Amo Forms,
-Caldera Forms, Visual Form Builder, Contact Form Clean and Simple, Divi by Elegant Themes and any other themes or custom contact forms,
-amoForms, Custom Contact Form, Ultimate Form Builder, Contact Bank - Contact Forms Builder,
-Forms easily built with Smart Forms, Quick Contact Form, Usernoise contact form,
-cformsII - contact form, Contact Form by Web-Settler, HubSpot Marketing Free.
+The plugin is tested and ready to protect from spam emails via Formidable forms, Contact form 7, JetPack Contact form, Fast Secure Contact form, Ninja forms, Landing pages, Gravity forms, Contact Form by BestWebSoft, Simple Contact Form Plugin - PirateForms, Visual Form Builder, Form, Contact Form by WebDorado, Contact Form Email, MW WP Form, Contact Form by Jeff Bulllins, Easy Contact, Contact Us Form, Grunion Contact Form, WCP Contact Form, Easy WordPress Contact Form Plugin, WPForms Lite, Custom Contact, Forms, Amo Forms, Caldera Forms, Visual Form Builder, Contact Form Clean and Simple, Divi by Elegant Themes and any other themes or custom contact forms, amoForms, Custom Contact Form, Ultimate Form Builder, Contact Bank - Contact Forms Builder, Forms easily built with Smart Forms, Quick Contact Form, Usernoise contact form, cformsII - contact form, Contact Form by Web-Settler, HubSpot Marketing Free.
 
 = WooCommerce spam filter =
 Anti-spam by CleanTalk filters spam registrations and spam reviews for WooCommerce. The plugin is fully compatible with WooCommerce 2.1 and higher.
 
-= Newsletters filter =
+= Newsletters antispam filter =
 Anti-spam by CleanTalk filters spam subscriptions for MailPoet, MailChimp, PopupAlly and many other newsletter plugins.
 
 = Spam filter for theme contact forms =
@@ -72,17 +65,17 @@ Spam protection for everything about bbPress: logins, registrations, forums, top
 = Other spam filters =
 * WordPress Landing Pages.
 * WP User Frontend, UserPro. 
-* Any WordPress form (checkbox 'Custom contact forms'). 
+* Any WordPress form (checkbox 'Custom contact forms').
 * Any submission to the site (checkbox 'Check all POST data')
 
 = Compatible with WordPress cache plugins =
 * W3 Total Cache, Quick Cache, WP Fastest Cache, Hyper Cache, WP Super cache, WP-Rocket and any other cache plugins. 
 
-= Check existing comments for spam. Bulk comments removal =
-With the help of anti-spam by CleanTalk you can inspect through existing comments to find and quickly delete spam comments at once. To use this function, go to WP Console —> Comments —> Find spam comments.
+= Check existing comments for spam. Bulk spam comments removal. Spam comment Cleaner =
+With the help of anti-spam by CleanTalk you can inspect through existing comments to find and quickly delete spam comments at once. To use this function, go to WP Console -> Comments -> Find spam comments.
 
-= Check existing users for spam. Bulk accounts removal =
-With the help of anti-spam by CleanTalk you can inspect through existing accounts to find and quickly delete spam users at once. For use this function, go to WP Console —> Users —> Check for spam. Also, you can export a list of spam users to the CSV.
+= Check existing users for spam. Bulk spam accounts removal. Spam users cleaner =
+With the help of anti-spam by CleanTalk you can inspect through existing accounts to find and quickly delete spam users at once. For use this function, go to WP Console -> Users -> Check for spam. Also, you can export a list of spam users to the CSV.
 
 = Blocking users by country = 
 Automatically block comments and registrations from the countries you have set a ban for. This option is useful in cases of manual spam protection and for protection enhancement. If your site is not intended for international audience and you do not expect comments/users from other countries.
@@ -94,12 +87,22 @@ You can block comments which contain "stop words" to enhance spam protection and
 Automatically block comments and registrations from your private black
 IP/email address list. This option helps to strengthen the spam protection from a manual spam or block unwanted comments from users. You can add not only the certain IP addresses, but also a separate subnet to your personal black list.
 
-= Private black list for SpamFireWall =
-It allows you to add individual IP addresses and subnets to SpamFireWall. It
+= Private black list for Spam FireWall =
+It allows you to add individual IP addresses and subnets to Spam FireWall. It
 blocks the spam attacks from IP addresses which are not included in the SFW base yet. This option can help to block HTTP/HTTPS DDoS, SQL, brute force attacks and any others that made it through the HTTP/HTTPS. You can add not only the certain IP addresses, but also a separate subnet to your personal black list.
 
 = Low false/positive rate =
 This plugin uses multiple anti-spam tests to filter spam bots having as low false/positive rate as possible. Multiple anti-spam tests help to avoid false/positive blocks of the real website visitors even if one of the tests failed.
+
+= How effective is CleanTalk? = 
+Accurately blocking spam is not an easy thing to do, but CleanTalk has a very low proven False/Positive rate. Here is actual statistics on false positives for all customers.
+
+* Registrations - 0.007%
+* Comments - 0.001%
+* Contact forms - 0.001%
+* Orders (WooCommerce) - 0.008%
+
+The statistic was calculated on November 10 2017 for 1 million requests.
 
 = How CleanTalk improves SEO for your website? =
 So, you already know that the speed of the site has a direct impact on SEO.
@@ -108,9 +111,9 @@ So, you already know that the speed of the site has a direct impact on SEO.
 
 There are different ways of improving your site's loading performance. One important parameter for site performance is to install well-developed plugins from a reputable source.
 
-Among anti-spam plugins CleanTalk Anti-Spam is one of the fastest. Despite the
+Among anti-spam plugins CleanTalk AntiSpam is one of the fastest. Despite the
 large plugin functionality, the developers have optimized the performance of
-the plugin so that Anti-Spam by CleanTalk is faster than most analogs. This contributes to the cloud service architecture, as all calculations take place in the cloud, not on the server, the server receives the finished result for further action.
+the plugin so that AntiSpam by CleanTalk is faster than most analogs. This contributes to the cloud service architecture, as all calculations take place in the cloud, not on the server, the server receives the finished result for further action.
 
 https://s.w.org/plugins/cleantalk-spam-protect/screenshot-5.png?r=1288723
 
@@ -118,7 +121,7 @@ https://s.w.org/plugins/cleantalk-spam-protect/screenshot-5.png?r=1288723
  * A visitor writes a comment or registers
  * Anti-Spam by CleanTalk plugin sends action parameters into the CleanTalk cloud
  * Service analyzes the parameters
- * If this is a visitor, the comment will be published. If it’s a spam bot, then CleanTalk blocks this comment or registration.
+ * If this is a visitor, the comment will be published. If it's a spam bot, then CleanTalk blocks this comment or registration.
  * Parameters are written to the spam log which can be viewed in the Control Panel service.
 
 CleanTalk team has been developing a cloud antispam system for five years and has created a truly reliable anti-spam service designed for you to guarantee
@@ -127,26 +130,22 @@ your safety.
 = Spam attacks log = 
 Service CleanTalk (this plugin is a client application for CleanTalk anti-spam service) records all filtered comments, registration and other spam attacks in the "Log of spam attacks" and stores the data in the log for up to 45 days. Using the log, you can ensure reliable protection of your website from spam and no false/positive filtering.
 
-= SpamFireWall =
-CleanTalk has an advanced option "SpamFireWall". This option allows blocking the most active spam bots before they get access to your website. It prevents 
-spam bots from loading website pages so your web server doesn't have to perform all scripts on these pages. Also it prevents scanning of pages of the 
-website by spam bots. Therefore SpamFireWall significantly reduces the load on your web server. 
-SpamFireWall also makes CleanTalk the two-step protection from spam bots.
-SpamFireWall is the first step and it blocks the most active spam bots. 
-CleanTalk Anti-Spam is the second step and checks all other requests on the website in the moment of submitting comments/registers etc. 
+= Spam FireWall =
+CleanTalk has an advanced option "Spam FireWall". This option allows blocking the most active spam bots before they get access to your website. It prevents spam bots from loading website pages so your web server doesn't have to perform all scripts on these pages. Also it prevents scanning of pages of the website by spam bots. Therefore Spam FireWall significantly reduces the load on your web server. Spam FireWall also makes CleanTalk the two-step protection from spam bots. Spam FireWall is the first step and it blocks the most active spam bots.  CleanTalk Anti-Spam is the second step and checks all other requests on the website in the moment of submitting comments/registers etc. 
 
-= How SpamFireWall works? = 
+= How Spam FireWall works? = 
  * The visitor enters to your web site.
  * HTTP request data are being checked in the nearly 5.8 million of the identified spam bot IPs.
  * If it is an active spam bot, the bot gets a blank page, if it is a visitor then he receives a normal page. This process is completely transparent for the visitors. 
 
-All the CleanTalk SpamFireWall activity is being logged in the process of filtering.
+All the CleanTalk Spam FireWall activity is being logged in the process of filtering.
 
-= SpamFireWall DDoS Protection =
-SpamFireWall can mitigate HTTP/HTTPS DDoS attacks. When an intruder makes GET requests to attack your website, SpamFireWall blocks all requests from bad IP addresses. Your website gives the intruder a special page with the description of DDoS rejection instead of the website pages. Therefore SpamFireWall helps to reduce CPU usage of your server.
+= Spam FireWall DDoS Protection =
+Spam FireWall can mitigate HTTP/HTTPS DDoS attacks. When an intruder makes GET requests to attack your website, Spam FireWall blocks all requests from bad IP addresses. Your website gives the intruder a special page with the description of DDoS rejection instead of the website pages. Therefore Spam FireWall helps to reduce CPU usage of your server.
+[youtube https://www.youtube.com/watch?v=Eu5Zqryvj4k]
 
 = XML-RPC brute force protection = 
-SpamFireWall can mitigate XML-RPC brute force attacks. It blocks XML-RPC attacks from bad IP addresses. This helps to prevent bruteforce attacks by a Remote Procedure Call.
+Spam FireWall can mitigate XML-RPC brute force attacks. It blocks XML-RPC attacks from bad IP addresses. This helps to prevent bruteforce attacks by a Remote Procedure Call.
 
 = No spam comments, no spam registrations, no spam contact emails, no spam trackbacks. CAPTCHA-free anti-spam for WordPress =
 Spam is one of the most irritating things. Spam rates are increasing every year and conventional anti-spam can no longer handle all spam bots. CleanTalk prevents and automatically blocks spam. You'll be surprised how effective CleanTalk is in protecting from spam. 
@@ -179,68 +178,52 @@ our own CleanTalk Cloud Service. Anti Spam by CleanTalk offers a free trial, you
 * AntiSpam apps for most popular CMS on cleantalk.org. 
 
 = How to protect sites from spam bots without CAPTCHA? =
-The most popular anti spam method is CAPTCHA - the annoying picture with curved and sloping symbols, which are presented to the visitor to decipher and fill in. It is supposed that spam bots won't discern these CAPTCHA, but a visitor will. CAPTCHA provokes great irritation, but if the visitor wants to comment, he has to fill in these symbols time after time, making mistakes and starting once again. 
-Sometimes CAPTCHA reminds us of the doodles of a two year old child. For users
-with vision problems CAPTCHA is an insurmountable obstacle. Users hate
-captcha. Captcha for users means "hate". Unreadable CAPTCHA stops about 80% of
-site visitors. After 2 failed attempts to decipher CAPTCHA 95% of visitors
-reject further attempts. At the sight of CAPTCHA and after input errors, many
-visitors leave the resource. Thus, CAPTCHA helps to protect the resource spam both from bots and visitors. CAPTCHA is not a panacea from spam. Doubts concerning the Need for CAPTCHA?
+The most popular anti spam method is CAPTCHA - the annoying picture with curved and sloping symbols, which are presented to the visitor to decipher and fill in. In is supposed that spam bots won't discern these CAPTCHA, but a visitor will. CAPTCHA provokes great irritation, but if the visitor wants to comment, he has to fill in these symbols time after time, making mistakes and starting once again. Sometimes CAPTCHA reminds us of the doodles of a two year old child. For users with vision problems CAPTCHA is an insurmountable obstacle. Users hate captcha. Captcha for users means "hate". Unreadable CAPTCHA stops about 80% of site visitors. After 2 failed attempts to decipher CAPTCHA 95% of visitors reject further attempts. At the sight of CAPTCHA and after input errors, many visitors leave the resource. Thus, CAPTCHA helps to protect the resource spam both from bots and visitors. CAPTCHA is not a panacea from spam. Doubts concerning the Need for CAPTCHA?
 
-*“Ultimately, CAPTCHAs are useless for spam because they’re designed to tell you if someone is ‘human’ or not, but not whether something is spam or not.” Matt Mullenweg*
+*"Ultimately, CAPTCHAs are useless for spam because they're designed to tell you if someone is 'human' or not, but not whether something is spam or not." Matt Mullenweg*
 
 You do not have to work in IT to know what spam is. Besides piles of unwanted email, there are spam bots, or special software programs designed to act as human website visitors that post unwelcome messages over the Internet to advertise dubious services. More often than not spam messages do not even make sense. Similar to bacteria and virus mutations developing antibiotic resistance, spam bots are becoming more resilient in penetrating Internet firewalls and security layers. 
 
 = CleanTalk's features =
 Anti-Spam by CleanTalk is one of the fastest plugins that allows you to lower the server load. One of the important parameters for each webmaster is the speed of the site, so we make sure that our plugin consumes as few server resources as possible. The Cloud Service provides the advantage: all data processing takes place in the Cloud. 
 
-CleanTalk team has developed unique anti spam algorithms to assess visitors'
-behavior. CleanTalk analyzes user behavior and the parameters of the filled
-forms. Our anti-spam module, being installed in your website, sends the
-behavior parameters of either a visitor or a spam bot. When these parameters
-are estimated, the anti spam service makes a decision – to post a message or to define it as spam and reject it. Based on these checks, the service forms its own list of email addresses used by spam bots.
+CleanTalk team has developed unique anti spam algorithms to assess visitors behavior. CleanTalk analyzes user behavior and the parameters of the filled forms. Our anti-spam module, being installed in your website, sends the behavior parameters of either a visitor or a spam bot. When these parameters are estimated, the anti spam service makes a decision - to post a message or to define it as spam and reject it. Based on these checks, the service forms its own list of email addresses used by spam bots.
 
 The registrations of visitors are being checked in a similar manner. The service adds to the blacklist not just email addresses, but also IP addresses and domains of websites that promote themselves through spam mailing. All of this happens automatically and requires no action from the administration of the website. In 2.5 million queries the service makes a mistake in 40-45 cases, i.e. CleanTalk detects spam with 99.9982% accuracy. We constantly monitor these errors and make adjustments to our algorithms. Even with this exceptional accuracy our team is aiming to improve the figures over time. 
 
-All-in-one. CleanTalk protects form spam all forms instantaneously — comments, registrations, feedback, contacts. No need to install additional plugins for each form. You save resources and increase performance of your website.
+All-in-one. CleanTalk protects form spam all forms instantaneously - comments, registrations, feedback, contacts. No need to install additional plugins for each form. You save resources and increase performance of your website.
 
-Spam attacks log. Anti-Spam by CleanTalk records all filtered comments, registrations and other spam attacks in the “Log of spam attacks” and stores the data in the log for up to 45 days. Using the log, you can ensure reliable protection of your website from spam and experience no false/positive filtering. 
+Spam attacks log. Anti-Spam by CleanTalk records all filtered comments, registrations and other spam attacks in the "Log of spam attacks" and stores the data in the log for up to 45 days. Using the log, you can ensure reliable protection of your website from spam and experience no false/positive filtering. 
 
-With the help of anti-spam by CleanTalk you can check existing comments and
-users, to find and quickly delete spam comments at once. This allows
-administrators of websites to automatically check and identify spam bots,
-comments and users, which were not detected by conventional anti-spam tools.
-The existing comments and users checking process is performed in a database of
-the nearly 2 million identified spam bots. Detailed spam stats allows CleanTalk customers to fully control it. 
+With the help of anti-spam by CleanTalk you can check existing comments and users, to find and quickly delete spam comments at once. This allows administrators of websites to automatically check and identify spam bots, comments and users, which were not detected by conventional anti-spam tools. The existing comments and users checking process is performed in a database of the nearly 2 million identified spam bots. Detailed spam stats allows CleanTalk customers to fully control it. 
 
-CleanTalk has an advanced option “SpamFireWall”. This option allows you to block the most active spam bots before they get access to your website. It unloads you website pages when an attempt attack was made, so your web server won't run unnecessary scripts on these pages. Also it prevents any scanning of website pages by spam bots. Subsequently SpamFireWall significantly reduces your webserver load. SpamFireWall can mitigate HTTP/HTTPS DDoS attacks. When an intruder makes GET requests to attack your website, SpamFireWall will block requests from bad IP addresses. Your website gives the intruder a special page with a description of DDoS rejection instead of the website pages. SpamFireWall can help to reduce the CPU usage of your server because of this reason. 
+CleanTalk has an advanced option "Spam FireWall". This option allows you to block the most active spam bots before they get access to your website. It unloads you website pages when an attempt attack was made, so your web server won't run unnecessary scripts on these pages. Also it prevents any scanning of website pages by spam bots. Subsequently Spam FireWall significantly reduces your webserver load. Spam FireWall can mitigate HTTP/HTTPS DDoS attacks. When an intruder makes GET requests to attack your website, Spam FireWall will block requests from bad IP addresses. Your website gives the intruder a special page with a description of DDoS rejection instead of the website pages. Spam FireWall can help to reduce the CPU usage of your server because of this reason. 
 
-“CleanTalk team has been developing a cloud spam protection system for five years and has created a truly reliable anti-spam service designed for you to guarantee your safety”.
+"CleanTalk team has been developing a cloud spam protection system for five years and has created a truly reliable anti-spam service designed for you to guarantee your safety".
+
+= Auto-Update CleanTalk AntiSpam =
+
+CleanTalk Dashboard allows you to set auto-update plugin and select several websites and update the plugin at once on all sites by one click or you can setup auto-update for all websites or separate websites. 
+
+Note: there is 24 hours delay before auto-update will do. This delay allows needing to avoid any issues. All updates that made through CleanTalk Dashboard manually will do immediately. 
+
+Auto-updating system will work from CleanTalk AntiSpam version 5.88
 
 = Translations = 
-* Danish (da_DK) 
-* French (fr_FR) - thanks to Gilles Santacreu <a href="http://net-ik.net">http://net-ik.net</a> 
-* German (de_DE) 
-* Italian (it_IT) 
-* Polish (pl_PL) 
-* Portuguese (pt_PT) 
-* Spanish (es_ES) - thanks to Andrew Kurtis and <a href="http://www.webhostinghub.com/index-c.html">WebHostingHub</a> 
-* Russian (ru_RU) 
+* Albanian (sq_AL) - thanks to fjalaime https://wordpress.org/support/users/fjalaime/ 
+* French (fr_FR) - thanks to Gilles Santacreu http://net-ik.net
+* Spanish (es_ES) - thanks to Andrew Kurtis and WebHostingHub
 
 = Requirements =
-WordPress 3.0 at least. PHP 5 with CURL or file_get_contents() function and enabled 'allow_url_fopen' setting. <a href="http://cleantalk.org/register?platform=wordpress">Sign up</a> to get an Access key.
-
-= Free trial then $8 per year =
-CleanTalk is a free anti spam plugin which work with the premium Cloud Anti-Spam service cleantalk.org. This plugin as a service https://en.wikipedia.org/wiki/Software_as_a_service.
-
-= We recommend =
- * <a href="https://wordpress.org/plugins/security-malware-firewall/">Security & Firewall plugin by CleanTalk</a>
+WordPress 3.0 at least. PHP 5 with CURL or file_get_contents() function and enabled 'allow_url_fopen' setting. The plugin is fully compatible with PHP 7.
 
 > Max power, all-in-one, premium anti-spam WordPress plugin. No comments & registrations spam, no contact spam, protects any forms. Just install and forget spam. 
 
 == Installation ==
 
-1. Download, install and activate Anti-spam by CleanTalk. 
+= Installation instructions =
+
+1. Download, install and activate 'Anti-spam by CleanTalk'. 
 
 2. Get Access key <a href="https://cleantalk.org/register?platform=wordpress" target="_blank">https://cleantalk.org/register</a>
 
@@ -249,6 +232,10 @@ CleanTalk is a free anti spam plugin which work with the premium Cloud Anti-Spam
 4. Do dummy spam comment (registration or contact message) with email **stop_email@example.com**. You should see notice: **Forbidden. Sender blacklisted.**
 
 5. Done! The plugin is ready to use.
+
+= Video guide - Anti-Spam Plugin Installation in WordPress. =
+
+[youtube https://www.youtube.com/watch?v=SktF0s-go6A ]
 
 **Important!** To test spam protection you must post a dummy submissions as website visitor (use must logged out from WordPress console), because the plugin doesn't filter submissions from WordPress administrators.
 
@@ -260,6 +247,7 @@ In WordPress multisite version you can switch the plugin to use Global Access ke
 Now, all subsites will have this access key.
 
 = Manage and control spam protection =
+
 Go to <a href="https://cleantalk.org/my" target="_blank">Dashboard</a> at the cleantalk.org or use <a href="https://play.google.com/store/apps/details?id=org.cleantalk.app">Android</a>, <a href="https://itunes.apple.com/us/app/cleantalk/id825479913?mt=8">iPhone</a> anti-spam app to manage and control spam protection. 
 
 
@@ -281,10 +269,10 @@ Please use the email **stop_email@example.com** for comments, contacts or signup
 The plugin Anti-Spam by CleanTalk stops up to 99.998% of spam comments, spam signups (registrations), spam contact emails, spam subscriptions, spam bookings or spam orders.
 
 = Does the plugin protect from brute force, DoS attacks and spam attacks? =
-Yes, it does. Please turn the option 'SpamFireWall' on in the plugin settings to protect your website from DoS/DDoS, XML-RPC attacks.
+Yes, it does. Please turn the option 'Spam FireWall' on in the plugin settings to protect your website from DoS/DDoS, XML-RPC attacks.
 
 = How does the plugin stop spam? =
-Please, note — administrator's actions are NOT being checked.
+Please, note - administrator's actions are NOT being checked.
 
 The plugin uses several simple tests to stop spammers:
 
@@ -381,9 +369,24 @@ or
 = Can I add exclusions for some pages of my site? =
 Yes, you can. Add this string in your wp-config.php file before defining database constants:
 
-	$cleantalk_url_exclusions = Array('url1', 'url2', 'url3');
+	$cleantalk_url_exclusions = array('url1', 'url2', 'url3');
 
-Now, all pages containing strings 'url1', 'url2', or 'url3' will be excluded from anti-spam checking. Remember, that this option will not be applied in registration and comment checking — they are always protected from spam.
+Now, all pages containing strings 'url1', 'url2', or 'url3' will be excluded from anti-spam checking. Remember, that this option will not be applied in registration and comment checking - they are always protected from spam. This is similar to regular expression /.*url1.*/ or wildcard like *url1*.
+
+For example: If you need to except these URLs:
+example.com/some/thing
+example.com/some/one
+example.com/some/body
+You should type this in wp-config.php:
+
+	$cleantalk_url_exclusions = array('some');
+	
+= Can I add exclusions for some IP addresses? =
+Yes, you can. Add this string in your wp-config.php file before defining database constants:
+
+	$cleantalk_ip_exclusions = array('127.0.0.1', '8.8.8.8');
+
+Now, all requests from IP 127.0.0.1 and 8.8.8.8 will be excluded from anti-spam checking. Remember, that this option will not be applied in registration and comment checking - they are always protected from spam.
 
 = Can I not send my personal data to CleanTalk servers? =
 Yes, you can exclude your data. Add this string in your wp-config.php file before defining database constants:
@@ -392,8 +395,8 @@ Yes, you can exclude your data. Add this string in your wp-config.php file befor
 
 Now all fields in your submissions with the keys named 'key1', 'key2' or 'key3' will be excluded from spam checking.
 
-= How to test SpamFireWall? =
-Use special IP 10.10.10.10 in URL to test SpamFireWall. For example,
+= How to test Spam FireWall? =
+Use special IP 10.10.10.10 in URL to test Spam FireWall. For example,
 
     https://cleantalk.org/blog/?sfw_test_ip=10.10.10.10
 
@@ -428,7 +431,7 @@ Yes, it does. But you have to turn off the option 'Use AJAX for JavaScript check
 To close the notice please save the plugin settings again or it will be closed automatically within 60 minutes after the renewal. 
 
 = I'm using PHP 4.2 version and i'm getting errors related with JSON. Why does it happens? =
-СleanTalk is no longer supports PHP lower than 5.2 version because the support code have incompatibility with PHP 7 version. Please, upgrade your PHP. If you couldn't perform that, let us know about it via support ticket here: https://cleantalk.org/my/support.
+�leanTalk is no longer supports PHP lower than 5.2 version because the support code have incompatibility with PHP 7 version. Please, upgrade your PHP. If you couldn't perform that, let us know about it via support ticket here: https://cleantalk.org/my/support.
 
 = Should I change anything in the plugin's settings or in my CleanTalk Control Panel when I switch my website from HTTP to HTTPS or vice versa? =
 No. You don't need to change anything in the plugin's settings or in your CleanTalk Control Panel. The plugin will work regardless of the protocol.
@@ -436,28 +439,28 @@ No. You don't need to change anything in the plugin's settings or in your CleanT
 = How to use Anti-Spam Log? =
 The following possibilities are available for you in the Anti-Spam Log:
 
-— Time period for all spam records you want to see.
+- Time period for all spam records you want to see.
 
-— Filter spam records by their status: Any status, Denied, Approved.
+- Filter spam records by their status: Any status, Denied, Approved.
 
-— Filter spam records by your websites.
+- Filter spam records by your websites.
 
-— Filter spam records by country they came from.
+- Filter spam records by country they came from.
 
-— Filter spam records by IP address, e-mail address or username.
+- Filter spam records by IP address, e-mail address or username.
 
-— Available options for a specific record:
+- Available options for a specific record:
 
-  * Details — see item 4 below.
-  * Spam/Not Spam — press this string if our system made wrong decision and blocked or approved a registration, a comment ot a contact form submission. More about it here: https://cleantalk.org/faq#feedback_spam
-  * Delete — delete a record permanently.
-  * Personal blacklists — go to your website Black&White Lists page.
+  * Details - see item 4 below.
+  * Spam/Not Spam - press this string if our system made wrong decision and blocked or approved a registration, a comment ot a contact form submission. More about it here: https://cleantalk.org/faq#feedback_spam
+  * Delete - delete a record permanently.
+  * Personal blacklists - go to your website Black&White Lists page.
   * Record details: block reason, body of the message, additional caught data.
 
-= SpamFireWall and AntiSpam - Networks Blocking = 
+= Spam FireWall and AntiSpam - Networks Blocking = 
 
 Anti-Spam - will blocks users from selected IP or network from using contacts/messages/registrations/comments forms.
-SpamFireWall - will blocks users from selected IP or network from entering the website.
+Spam FireWall - will blocks users from selected IP or network from entering the website.
 
 Please, read more here 
 https://cleantalk.org/help/sfw-blocks-networks
@@ -469,7 +472,7 @@ By default, all spam comments are placed in the spam folder, now you can change 
 
 1. **Move to the Spam folder.** All spam comments will be placed to the folder "Spam" in the WordPress Comments section except comments with Stop-Words. Stop-Word comments will be always stored in the "Pending" folder.
 
-You can prevent the proliferation of Spam folder. It can be cleaned automatically using the option "Keep spam comments for 15 days." Enable this option in the settings of the plugin: WordPress Admin Page —> Settings —> Antispam by CleanTalk —> Advanced settings —> enable "Keep spam comments for 15 days" —> Save Changes.
+You can prevent the proliferation of Spam folder. It can be cleaned automatically using the option "Keep spam comments for 15 days." Enable this option in the settings of the plugin: WordPress Admin Page -> Settings -> Antispam by CleanTalk -> Advanced settings -> enable "Keep spam comments for 15 days" -> Save Changes.
 
 2. **Move to Trash.** All spam comments will be placed to the folder "Trash" in the WordPress Comments section except comments with Stop-Words. Stop-Word comments will be always stored in the "Pending" folder.
 
@@ -496,16 +499,191 @@ https://cleantalk.org/faq#feedback_spam
 = Is the plugin fast? =
 We develop plugin to do it as optimized as possible, CleanTalk doesn't downgrade response time in backend or frontend. The plugin proccess only POST requests to WordPress core, it tackes less than 1 second to return results.
 
+= Is the plugin EU GDPR compatible? =
+Yes, it is. Please read this article,
+<a href="https://cleantalk.org/help/CleanTalk-GDPR-Compliance">https://cleantalk.org/help/CleanTalk-GDPR-Compliance</a>
+
 == Screenshots ==
 1. AntiSpam settings are easy to use. 
-1. AntiSpam plugin rejected a spam bot at the CAPTCHA less registration form. The plugin provides explanation to visitor and websites about each rejected comment/registration or contact message. 
-1. Use AntiSpam analytics tool for each website in service Dashboard to have information about spam/legitimate stats. 
-1. Use AntiSpam log to control anti-spam plugin. 
-1. CleanTalk works faster than most of other anti-spam plugins. 
-1. The Dashboard with a map of most spam active countries per your account.  
-1. The plugin deletes/removes the existing spam comments and users accounts. 
+2. AntiSpam plugin rejected a spam bot at the CAPTCHA less registration form. The plugin provides explanation to visitor and websites about each rejected comment/registration or contact message. 
+3. Use AntiSpam analytics tool for each website in service Dashboard to have information about spam/legitimate stats. 
+4. Use AntiSpam log to control anti-spam plugin. 
+5. CleanTalk works faster than most of other anti-spam plugins. 
+6. The Dashboard with a map of most spam active countries per your account.  
+7. The plugin deletes/removes the existing spam comments and users accounts. 
+8. CleanTalk's dashboard update link.
+9. Auto upadte confimation.
+10. Website's options.
 
 == Changelog ==
+= 5.99 July 10 2018 =
+  * Fix: WooCommerce false positives.
+  * Fix: SpamFireWall IP detection.
+  * Minor fixes.
+
+= 5.98 June 27 2018 =
+  * Fix: WooCommerce: Theme exclusion.
+  * Fix: Public GDPR JS code.
+  * Minor fixes.
+
+= 5.97 June 7 2018 =
+  * Fix: Update system.
+  * Fix: Feedback from public page (admin only).
+  * Fix: Users and comment check: API error.
+  * Fix: Too many negative reports. (Too big ct_data option)
+  * Fix: SpamFireWall: Infinite redirection on the blocking page.
+  * Minor fixes.
+
+= 5.96 May 22 2018 =
+  * Fix: Update system.
+  * Mod: Reset all counters button in admin bar.
+  * Mod: GDPR compliance.
+  * Minor fixes.
+
+= 5.95.1 May 3 2018 =
+  * Fix: "Get key automatically" button display logic.
+  * Fix: PHP notices.
+  
+= 5.95 May 2 2018 =
+  * Spam filtration improved.
+  * Fix: Public widget layout.
+  * Fix: Connection reports output.
+  * Minor fixes.
+
+= 5.94 April 23 2018 =
+  * Mod: Async load option for JS.
+  * Mod: JS scripts loading is conditional.
+  * Fix: IP detection.
+  * Fix: IP detection.
+  * Fix: Javascript error.
+
+= 5.93.1 April 9 2018 =
+  * Fix: Fatal error on PHP 5.5 or lower.
+
+= 5.93 April 9 2018 =
+  * Fix: Spam FireWall IP detection.
+  * Fix: Contact Form 7. False positives.
+  * Mod: Autoupdate function improved.
+  * Minor fixes.
+
+= 5.92.2 March 23 2018 =
+  * Fix: Error if cURL extension is disabled.
+
+= 5.92.1 March 23 2018 =
+  * Fix: Spelling 
+  * Fix: Fatal error if cURL extension is disabled.
+
+= 5.92 March 22 2018 =
+  * IP detection improved.
+  * Fix: SSL connection.
+  * Fix: False positives spam detection in Contact Form 7.
+  * Minor fixes.
+
+= 5.91 March 15 2018 =
+  * Fix: Errors for PHP compiled without XML support.
+  * Fix: Spelling and translation.
+  * Stability increased.
+  * Minor fixes.
+
+= 5.90 March 7 2018 =
+  * Improvement: Better IP recognition in Spam FireWall.
+  * Fix: Gravity Froms blocking message.
+  * Security improvments.
+  * Minor fixes.
+
+= 5.89 February 21 2018 =
+  * Improved spam filtration quality.
+  * Improved compatibility.
+  * Public widget: Styles and referral link added.
+  * Dashboard widget: revised and fixed.
+  * Minor fixes.
+
+= 5.88 February 12 2018 =
+  * Integration: ConvertPro.
+  * Improvement: Search for visitor's names in request.
+  * Fix: Contact Form 7 message recognition.
+  * Preparation for the remote plugin update.
+  * Minor fixes.
+
+= 5.87 February 2 2018 =
+  * Filtration quality improved.
+  * Fix: WP Foto Vote downloading images.
+  * Fix: Fatal error for unsupported PHP 5.2.
+  * Fix: Formidable Forms improved spam filtration.
+
+= 5.86 January 25 2018 =
+  * Fix: High CPU load with wp-ajax.php.
+  * Fix: Mailpoet: Newsletter.
+  * Fix: Gravity: Forms standardization for input fields.
+  * Fix: ajax hook checks data for contact form.
+  * Fix: UTF8 character in requests.
+
+= 5.85 January 11 2018 =
+  * Fix: Fast Secure contact form spam block message.
+  * Fix: IP license status.
+  * Layout: Dashboard widget description altered.
+
+= 5.84 December 26 2017 =
+  * Integration: PeepSo contact form
+  * Repared: Feedback from comments page.
+  * Fix: mb_* functions used only if exists.
+  * Fix: Gravity forms: Multi-page form logic repared.
+  * Fix: Gravity forms: AJAX form logic repared.
+  * Minor fixes.
+
+= 5.83.2 December 19 2017 =
+  * Fix: Error in base class.
+
+= 5.83.1 December 19 2017 =
+  * Fix: CDN IP detection.
+
+= 5.83 December 19 2017 =
+  * Improving: Stability and compatibility.
+  * Improving: Spam protection.
+  * Fix: Comments logic filtration.
+  * Fix: Admin bar counter.
+  * Minor errors fixes.
+
+= 5.82.1 December 7 2017 =
+  * Fixed minor error with attaching JS and CSS files.
+
+= 5.82 December 4 2017 =
+  * Plugin doesn't use PHP sessions anymore.
+  * Bug fixes.
+  * Improved update logic.
+
+= 5.81 November 22 2017 =
+  * Fixed error with "Show/Hide key" button.
+  * Slightly improved spam protection for all forms.
+  * Small errors fixes.
+
+= 5.80 November 3 2017 =
+  * Spam protection improved.
+  * Improved filtration quality for WooCommerce checkout.
+  * Minor fixes for Spam FireWall.
+
+= 5.79 October 26 2017 =
+  * Spam protection improved.
+  * Fixed issue with existing spam comments check.
+  * Added posibility to exclude IP from check.
+  * Minor fixes.
+
+= 5.78 October 16 2017 =
+  * Improved compatibility with themes. Changed core functions prefix.
+  * Fixed issue with WooCommerce checkout.
+  * Spam protection improved.
+  * Minor fixes.
+
+= 5.77 October 2 2017 =
+  * Connection report's system.
+  * Integration for CouponXXL Theme.
+  * Fixed issue with mb_* functions.
+  * Banners logic updated.
+
+= 5.76 September 20 2017 =
+  * Fixed issue with Spam FireWall and caching plugins.
+  * Banners logic updated.
+
 = 5.75 September 15 2017 =
   * Pause feature for users/comments spam check.
   * Improved protection from spam.
@@ -525,7 +703,7 @@ We develop plugin to do it as optimized as possible, CleanTalk doesn't downgrade
 
 = 5.73 August 11 2017 =
   * Fix for spam check for already existed users and comments.
-  * SpamFireWall updated.
+  * Spam FireWall updated.
   * Layout fix for BT Comments.
   * Minor fixes.
 
@@ -539,10 +717,10 @@ We develop plugin to do it as optimized as possible, CleanTalk doesn't downgrade
   * Minor fixes.
 
 = 5.70.2 July 17 2017 =
-  * Fix for SpamFireWall for Multisite.
+  * Fix for Spam FireWall for Multisite.
 
 = 5.70.1 July 17 2017 =
-  * Fix for SpamFireWall.
+  * Fix for Spam FireWall.
   * Spam detection improved.
 
 = 5.70 July 13 2017 =
@@ -552,8 +730,8 @@ We develop plugin to do it as optimized as possible, CleanTalk doesn't downgrade
   * Optimization.
   * Fixed users and comments spam check.
   * Fixed layout for Comment's feedback from public page.
-  * Updated SpamFireWall.
-  * SFW: SpamFireWall counter now work in real-time.
+  * Updated Spam FireWall.
+  * SFW: Spam FireWall counter now work in real-time.
   * SFW: Improved compatibility with different Data Bases.
 
 = 5.69 July 3 2017 =
@@ -598,7 +776,7 @@ We develop plugin to do it as optimized as possible, CleanTalk doesn't downgrade
   * Major fixes for users and comments spam check.
   * Added feedback from Wordpress comments list.
   * Fix for "internal forms check" option.
-  * Fixed issue with caching SpamFireWall die page.
+  * Fixed issue with caching Spam FireWall die page.
   * Other small fixes.
   
 = 5.65 May 16 2017 =
@@ -687,7 +865,7 @@ We develop plugin to do it as optimized as possible, CleanTalk doesn't downgrade
 = 5.57 February 8 2017 =
   * Setting page changes.
   * Bug fixes for WooCommerce.
-  * SpamFireWall filters only GET requests.
+  * Spam FireWall filters only GET requests.
   * Optimization.
   * Minor and major fixes.
   
@@ -718,7 +896,7 @@ We develop plugin to do it as optimized as possible, CleanTalk doesn't downgrade
   
 = 5.53 November 28 2016 =
   * Addition warning before deleting users.
-  * SpamFireWall is enabled by default.
+  * Spam FireWall is enabled by default.
   * Usernoise modal feedback / contact form : integration.
   * Translations.
   * Optimization.
@@ -738,7 +916,7 @@ We develop plugin to do it as optimized as possible, CleanTalk doesn't downgrade
   
 = 5.50.1 October 24 2016 =
   * Improved filtration in contact forms.
-  * SpamFireWall: Fixed issue with SFW logs
+  * Spam FireWall: Fixed issue with SFW logs
   * Skipping service fields: Fast Secure Contact Froms, QU Forms, Custom Contact Forms
   
 = 5.50 October 20 2016 =
@@ -747,7 +925,7 @@ We develop plugin to do it as optimized as possible, CleanTalk doesn't downgrade
   * PHP 7 compatibility: Deleted third-party JSON library and dependences.
   * PHP 7 compatibility: Fixed end of lines.
   * YOAST Seo: Fixed PHP warnings.
-  * SpamFireWall: Minor fix for SpamFireWall counter.
+  * Spam FireWall: Minor fix for Spam FireWall counter.
   * Only admin could access to CleanTalk dashboard (exclude Authors an Editors).
   * Improved filtration in contact forms.
 
@@ -758,12 +936,12 @@ We develop plugin to do it as optimized as possible, CleanTalk doesn't downgrade
   * Fixed database error.
   
 = 5.49 October 3 2016 =
-  * SpamFireWall feature: Class upgraded.
+  * Spam FireWall feature: Class upgraded.
   * New feature: Delete links from approved comments.
   * Settings: Grouped.
   * Settings: Altered description fixed spelling mistakes.
-  * Settings: Added indicator for SpamFireWall.
-  * Admin bar: Added SpamFireWall counter
+  * Settings: Added indicator for Spam FireWall.
+  * Admin bar: Added Spam FireWall counter
   * Clean and Simple Contact Form: Direct integration.
   * WooCommerce: Don't check password recovery form.
   * WooCommerce Wishlists: Issue with check for Google bots.
@@ -787,7 +965,7 @@ We develop plugin to do it as optimized as possible, CleanTalk doesn't downgrade
   * bbPress: Skip check for admin in comments and topics
   * UserPro: fixes. Request without field "shortcode"
   * Contact Form 7: Bug fix.
-  * SpamFireWall: Optimized logs rotation.
+  * Spam FireWall: Optimized logs rotation.
   * Updated inner functions (compatibility fix for PHP 5.4+)
   * Fixed output of counters (without spamfirewall stats)
   * Fixed spelling in settings
@@ -872,17 +1050,17 @@ We develop plugin to do it as optimized as possible, CleanTalk doesn't downgrade
   * Minor fix in plugin settings.
   * Fixed pagination for bulk users spam test.
   * Fixed issue with unknown _SESSION.
-  * Fixed issue with double SpamFireWall database upload.
+  * Fixed issue with double Spam FireWall database upload.
 
 = 5.39.1 2016-04-04 =
   * Improved AJAX based anti-spam test with HTTPS backends.
   * Added fix to avoid issue with empty ct_info_flag on JavaScript side.
-  * Added logic to exclude caching for SpamFireWall.
+  * Added logic to exclude caching for Spam FireWall.
   * Removed a condition to skip accounts with 127.0.0.1 IP in spam test for registered acconts. 
 
 = 5.38.1 2016-03-24 =
   * Fixed issue with PHP sessions and 'The session id is too long or contains illegal characters'.
-  * Removed SpamFireWall protection on /feed page.
+  * Removed Spam FireWall protection on /feed page.
   * Disabled anti-spam tests for AJAX calls if the option 'Custom contact forms' is turned off.
   * Added reject notice for spam submissions on Gravity forms with AJAX calls.
 
@@ -926,7 +1104,7 @@ We develop plugin to do it as optimized as possible, CleanTalk doesn't downgrade
 
 = 5.33 2015-12-01 =
   * Backend interface fixes
-  * Improved SpamFireWall efficiency
+  * Improved Spam FireWall efficiency
   * Improved performance of anti spam checking
   
 = 5.32 2015-11-26 =
@@ -939,7 +1117,7 @@ We develop plugin to do it as optimized as possible, CleanTalk doesn't downgrade
 = 5.31 2015-11-11 =
   * Improved backend performance
   * Fixed counter of approved/blocked spam attacks
-  * Fixed SpamFireWall logging
+  * Fixed Spam FireWall logging
 
 = 5.30 2015-11-05 =
   * Improved anti-spam checking
@@ -963,14 +1141,14 @@ We develop plugin to do it as optimized as possible, CleanTalk doesn't downgrade
   * Fixed problems with AJAX functionality in MailPoet, WooCommerce and other AJAX plugins
 
 = 5.27 2015-10-13 =
-  * Improvements in SpamFireWall feature
+  * Improvements in Spam FireWall feature
   * Code optimization
   * Backend interface fixes
 
 = 5.26 2015-10-05 =
   * Added WordPress Language Pack support
   * Removed spam checking for some autorisation plugins
-  * New experimental feature: SpamFireWall
+  * New experimental feature: Spam FireWall
   
 = 5.25.2 2015-09-28 =
   * Fixed backend bug
@@ -1224,7 +1402,7 @@ We develop plugin to do it as optimized as possible, CleanTalk doesn't downgrade
   * Fixed account status check logic. Previous version makes unnecessary test API calls when the plugin asks account status check.
 
 = 2.55 2014-07-11 =
-  * Fixed bug with account status function. In backend the plugin showed notice 'Please don’t forget to disable CAPTCHA if you have it!' on every page. 
+  * Fixed bug with account status function. In backend the plugin showed notice 'Please don't forget to disable CAPTCHA if you have it!' on every page. 
 
 = 2.54 2014-07-11 =
   * Fixed signup anti-spam protection logic for BuddyPress registrations. 
@@ -1433,6 +1611,174 @@ We develop plugin to do it as optimized as possible, CleanTalk doesn't downgrade
   * First version
   
 == Upgrade Notice ==
+= 5.99 July 10 2018 =
+  * Fix: WooCommerce false positives.
+  * Fix: SpamFireWall IP detection.
+  * Minor fixes.
+
+= 5.98 June 27 2018 =
+  * Fix: WooCommerce: Exclusion.
+  * Fix: Public GDPR JS code.
+  * Minor fixes.
+
+= 5.97 June 7 2018 =
+  * Fix: Update system.
+  * Fix: Feedback from public page (admin only).
+  * Fix: Users and comment check: API error.
+  * Fix: Too many negative reports. (Too big ct_data option)
+  * Fix: SpamFireWall: Infinite redirection on the blocking page.
+  * Minor fixes.
+
+= 5.96 May 22 2018 =
+  * Fix: Update system.
+  * Mod: Reset all counters button in admin bar.
+  * Mod: GDPR compliance.
+  * Minor fixes.
+
+= 5.95.1 May 3 2018 =
+  * Fix: "Get key automatically" button display logic.
+  * Fix: PHP notices.
+
+= 5.95 May 2 2018 =
+  * Spam filtration improved.
+  * Fix: Public widget layout.
+  * Fix: Connection reports output.
+  * Minor fixes.
+
+= 5.94 April 23 2018 =
+  * Mod: Async load option for JS.
+  * Mod: JS scripts loading is conditional.
+  * Fix: IP detection.
+  * Fix: IP detection.
+  * Fix: Javascript error.
+
+= 5.93.1 April 9 2018 =
+  * Fix: Fatal error on PHP 5.5 or lower.
+
+= 5.93 April 9 2018 =
+  * Fix: SpamFirewall IP detection.
+  * Fix: Contact Form 7. False positives.
+  * Mod: Autoupdate function improved.
+  * Minor fixes.
+
+= 5.92.2 March 23 2018 =
+  * Fix: Error if cURL extension is disabled.
+
+= 5.92.1 March 23 2018 =
+  * Fix: Spelling 
+  * Fix: Fatal error if cURL extension is disabled.
+
+= 5.92 March 22 2018 =
+  * IP detection improved.
+  * Fix: SSL connection.
+  * Fix: False positives spam detection in Contact Form 7.
+  * Minor fixes.
+
+= 5.91 March 15 2018 =
+  * Fix: Errors for PHP compiled without XML support.
+  * Fix: Spelling and translation.
+  * Stability increased.
+  * Minor fixes.
+
+= 5.90 March 7 2018 =
+  * Improvement: Better IP recognition in Spam FireWall.
+  * Fix: Gravity Froms blocking message.
+  * Security improvments.
+  * Minor fixes.
+
+= 5.89 February 21 2018 =
+  * Improved spam filtration quality.
+  * Improved compatibility.
+  * Public widget: Styles and referral link added.
+  * Dashboard widget: revised and fixed.
+  * Minor fixes.
+
+= 5.88 February 12 2018 =
+  * Integration: ConvertPro.
+  * Improvement: Search for visitor's names in request.
+  * Fix: Contact Form 7 message recognition.
+  * Preparation for the remote plugin update.
+  * Minor fixes.
+  
+= 5.87 February 2 2018 =
+  * Filtration quality improved.
+  * Fix: WP Foto Vote downloading images.
+  * Fix: Fatal error for unsupported PHP 5.2.
+  * Fix: Formidable Forms improved spam filtration.
+
+= 5.86 January 25 2018 =
+  * Fix: High CPU load with wp-ajax.php.
+  * Fix: Mailpoet: Newsletter.
+  * Fix: Gravity: Forms standardization for input fields.
+  * Fix: ajax hook checks data for contact form.
+  * Fix: UTF8 character in requests.
+
+= 5.85 January 11 2018 =
+  * Fix: Fast Secure contact form spam block message.
+  * Fix: IP license status.
+  * Layout: Dashboard widget description altered.
+
+= 5.84 December 26 2017 =
+  * Integration: PeepSo contact form
+  * Repared: Feedback from comments page.
+  * Fix: mb_* functions used only if exists.
+  * Fix: Gravity forms: Multi-page form logic repared.
+  * Fix: Gravity forms: AJAX form logic repared.
+  * Minor fixes.
+
+= 5.83.2 December 19 2017 =
+  * Fix: Error in base class.
+
+= 5.83.1 December 19 2017 =
+  * Fix: CDN IP detection.
+
+= 5.83 December 19 2017 =
+  * Improving: Stability and compatibility.
+  * Improving: Spam protection.
+  * Fix: Comments logic filtration.
+  * Fix: Admin bar counter.
+  * Minor errors fixes.
+
+= 5.82.1 December 7 2017 =
+  * Fixed minor error with attaching JS and CSS files.
+
+= 5.82 December 4 2017 =
+  * Plugin doesn't use PHP sessions anymore.
+  * Bug fixes.
+  * Improved update logic.
+
+= 5.81 November 22 2017 =
+  * Fixed error with "Show/Hide key" button.
+  * Slightly improved spam protection for all forms.
+  * Small errors fixes.
+
+= 5.80 November 3 2017 =
+  * Spam protection improved.
+  * Improved filtration quality for WooCommerce checkout.
+  * Minor fixes for Spam FireWall.
+
+= 5.79 October 26 2017 =
+  * Spam protection improved.
+  * Fixed issue with existing spam comments check.
+  * Added posibility to exclude IP from check.
+  * Minor fixes.
+
+= 5.78 October 16 2017 =
+  * Improved compatibility with themes. Changed core functions prefix.
+  * Fixed issue with WooCommerce checkout.
+  * Spam protection improved.
+  * Minor fixes.
+
+= 5.77 October 2 2017 =
+  * Connection report's system.
+  * Integration for CouponXXL Theme.
+  * Fixed issue with mb_* functions.
+  * Banners logic updated.
+
+= 5.76 September 20 2017 =
+  * Fixed issue with Spam FireWall and caching plugins.
+  * Banners logic updated.
+
 = 5.75 September 15 2017 =
   * Pause feature for users/comments spam check.
   * Improved protection from spam.
@@ -1452,7 +1798,7 @@ We develop plugin to do it as optimized as possible, CleanTalk doesn't downgrade
 
 = 5.73 August 11 2017 =
   * Fix for spam check for already existed users and comments.
-  * SpamFireWall updated.
+  * Spam FireWall updated.
   * Layout fix for BT Comments.
   * Minor fixes.
 
@@ -1466,10 +1812,10 @@ We develop plugin to do it as optimized as possible, CleanTalk doesn't downgrade
   * Minor fixes.
 
 = 5.70.2 July 17 2017 =
-  * Fix for SpamFireWall for Multisite.
+  * Fix for Spam FireWall for Multisite.
 
 = 5.70.1 July 17 2017 =
-  * Fix for SpamFireWall.
+  * Fix for Spam FireWall.
   * Spam detection improved.
 
 = 5.70 July 13 2017 =
@@ -1479,8 +1825,8 @@ We develop plugin to do it as optimized as possible, CleanTalk doesn't downgrade
   * Optimization.
   * Fixed users and comments spam check.
   * Fixed layout for Comment's feedback from public page.
-  * Updated SpamFireWall.
-  * SFW: SpamFireWall counter now work in real-time.
+  * Updated Spam FireWall.
+  * SFW: Spam FireWall counter now work in real-time.
   * SFW: Improved compatibility with different Data Bases.
 
 = 5.69 July 3 2017 =
@@ -1525,7 +1871,7 @@ We develop plugin to do it as optimized as possible, CleanTalk doesn't downgrade
   * Major fixes for users and comments spam check.
   * Added feedback from Wordpress comments list.
   * Fix for "internal forms check" option.
-  * Fixed issue with caching SpamFireWall die page.
+  * Fixed issue with caching Spam FireWall die page.
   * Other small fixes.
 
 = 5.65 May 16 2017 =
@@ -1614,7 +1960,7 @@ We develop plugin to do it as optimized as possible, CleanTalk doesn't downgrade
 = 5.57 February 8 2017 =
   * Setting page changes.
   * Bug fixes for WooCommerce.
-  * SpamFireWall filters only GET requests.
+  * Spam FireWall filters only GET requests.
   * Optimization.
   * Minor and major fixes.
   
@@ -1645,7 +1991,7 @@ We develop plugin to do it as optimized as possible, CleanTalk doesn't downgrade
 
 = 5.53 November 28 2016 =
   * Addition warning before deleting users.
-  * SpamFireWall is enabled by default.
+  * Spam FireWall is enabled by default.
   * Usernoise modal feedback / contact form : integration.
   * Translations.
   * Optimization.
@@ -1665,7 +2011,7 @@ We develop plugin to do it as optimized as possible, CleanTalk doesn't downgrade
   
 = 5.50.1 October 24 2016 =
   * Improved filtration in contact forms.
-  * SpamFireWall: Fixed issue with SFW logs
+  * Spam FireWall: Fixed issue with SFW logs
   * Skipping service fields: Fast Secure Contact Froms, QU Forms, Custom Contact Forms
 
 = 5.50 October 20 2016 =
@@ -1674,7 +2020,7 @@ We develop plugin to do it as optimized as possible, CleanTalk doesn't downgrade
   * PHP 7 compatibility: Deleted third-party JSON library and dependences.
   * PHP 7 compatibility: Fixed end of lines.
   * YOAST Seo: Fixed PHP warnings.
-  * SpamFireWall: Minor fix for SpamFireWall counter.
+  * Spam FireWall: Minor fix for Spam FireWall counter.
   * Only admin could access to CleanTalk dashboard (exclude Authors an Editors).
   * Improved filtration in contact forms.
   
@@ -1685,12 +2031,12 @@ We develop plugin to do it as optimized as possible, CleanTalk doesn't downgrade
   * Fixed database error.
   
 = 5.49 October 3 2016 =
-  * SpamFireWall feature: Class upgraded.
+  * Spam FireWall feature: Class upgraded.
   * New feature: Delete links from approved comments.
   * Settings: Grouped.
   * Settings: Altered description fixed spelling mistakes.
-  * Settings: Added indicator for SpamFireWall.
-  * Admin bar: Added SpamFireWall counter
+  * Settings: Added indicator for Spam FireWall.
+  * Admin bar: Added Spam FireWall counter
   * Clean and Simple Contact Form: Direct integration.
   * WooCommerce: Don't check password recovery form.
   * WooCommerce Wishlists: Issue with check for Google bots.
@@ -1714,7 +2060,7 @@ We develop plugin to do it as optimized as possible, CleanTalk doesn't downgrade
   * bbPress: Skip check for admin in comments and topics
   * UserPro: fixes. Request without field "shortcode"
   * Contact Form 7: Bug fix.
-  * SpamFireWall: Optimized logs rotation.
+  * Spam FireWall: Optimized logs rotation.
   * Updated inner functions (compatibility fix for PHP 5.4+)
   * Fixed output of counters (without spamfirewall stats)
   * Fixed spelling in settings
@@ -1798,17 +2144,17 @@ We develop plugin to do it as optimized as possible, CleanTalk doesn't downgrade
   * Minor fix in plugin settings.
   * Fixed pagination for bulk users spam test.
   * Fixed issue with unknown _SESSION.
-  * Fixed issue with double SpamFireWall database upload.
+  * Fixed issue with double Spam FireWall database upload.
 
 = 5.39.1 2016-04-04 =
   * Improved AJAX based anti-spam test with HTTPS backends.
   * Added fix to avoid issue with empty ct_info_flag on JavaScript side.
-  * Added logic to exclude caching for SpamFireWall.
+  * Added logic to exclude caching for Spam FireWall.
   * Removed a condition to skip accounts with 127.0.0.1 IP in spam test for registered acconts.
 
 = 5.38.1 2016-03-24 =
   * Fixed issue with PHP sessions and 'The session id is too long or contains illegal characters'.
-  * Removed SpamFireWall protection on /feed page.
+  * Removed Spam FireWall protection on /feed page.
   * Disabled anti-spam tests for AJAX calls if the option 'Custom contact forms' is turned off.
   * Added reject notice for spam submissions on Gravity forms with AJAX calls.
 
@@ -1845,7 +2191,7 @@ We develop plugin to do it as optimized as possible, CleanTalk doesn't downgrade
 
 = 5.33 2015-12-01 =
   * Backend interface fixes
-  * Improved SpamFireWall efficiency
+  * Improved Spam FireWall efficiency
   * Improved performance of anti spam checking
   
 = 5.32 2015-11-26 =
@@ -1881,14 +2227,14 @@ We develop plugin to do it as optimized as possible, CleanTalk doesn't downgrade
   * Fixed problems with AJAX functionality in MailPoet, WooCommerce and other AJAX plugins
   
 = 5.27 2015-10-13 =
-  * Improvements in SpamFireWall feature
+  * Improvements in Spam FireWall feature
   * Code optimization
   * Backend interface fixes
   
 = 5.26 2015-10-05 =
   * Added WordPress Language Pack support
   * Removed spam checking for some autorisation plugins
-  * New experimental feature: SpamFireWall
+  * New experimental feature: Spam FireWall
 
 = 5.25.2 2015-09-28 =
   * Fixed backend bug
@@ -2110,7 +2456,7 @@ Added immediate spam protection activation.
   * Fixed account status check logic. Previous version makes unnecessary test API calls when the plugin asks account status check.
 
 = 2.55 2014-07-11 =
-  * Fixed bug with account status function. In backend the plugin showed notice 'Please don’t forget to disable CAPTCHA if you have it!' on every page. 
+  * Fixed bug with account status function. In backend the plugin showed notice 'Please don't forget to disable CAPTCHA if you have it on every page. 
 
 = 2.54 2014-07-11 =
   * Fixed signup anti-spam protection logic for BuddyPress registrations. 

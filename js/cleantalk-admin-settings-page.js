@@ -18,10 +18,10 @@ jQuery(document).ready(function(){
 		}
 	});
 		
-	if(cleantalk_good_key)
+	if(cleantalk_good_key || ctSettingsPage.ip_license)
 	{
-		if(cleantalk_testing_failed !== true)
-			jQuery('.form-table').first().hide();
+		if(cleantalk_testing_failed !== true || ctSettingsPage.ip_license)
+			jQuery('.form-table').first().find('tr').hide();
 				
 		banner_html="<div id='ct_stats_banner'>"+cleantalk_blocked_message;
 		banner_html+=cleantalk_statistics_link+"&nbsp;&nbsp;"+cleantalk_support_link+'</div>';
@@ -36,15 +36,22 @@ jQuery(document).ready(function(){
 	}
 	
 	jQuery('#cleantalk_access_key_link').click(function(){
-		if(jQuery('.form-table').first().is(":visible"))
-		{
-			jQuery('.form-table').first().hide();
-		}
+		if(jQuery('.form-table').first().find('tr').eq(0).is(":visible"))
+			jQuery('.form-table').first().find('tr').eq(0).hide();
 		else
-		{
-			jQuery('.form-table').first().show();
+			jQuery('.form-table').first().find('tr').eq(0).show();
+	});
+	
+	jQuery('#cleantalk_negative_report_link').click(function(){
+		if(jQuery('.form-table').first().find('tr').eq(1).is(":visible")){
+			jQuery('.form-table').first().find('tr').eq(1).hide();
+		}else{
+			jQuery('.form-table').first().find('tr').eq(1).show();
 		}
 	});
+	
+	// Adding subtitle
+	jQuery("#ct_stats_banner").prev().after('<h4 style="color: gray; position: relative; margin: 0; top: -15px;">'+ctSettingsPage.ct_subtitle+'</h4>');
 	
 	ct_adv_settings=jQuery('#cleantalk_registrations_test1').parent().parent().parent().parent();
 	ct_adv_settings.hide();

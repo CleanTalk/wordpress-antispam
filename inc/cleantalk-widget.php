@@ -2,7 +2,6 @@
 
 class cleantalk_widget extends WP_Widget
 {
-
 	function __construct()
 	{
 		parent::__construct(
@@ -21,52 +20,84 @@ class cleantalk_widget extends WP_Widget
 	// This is where the action happens
 	public function widget( $args, $instance )
 	{
-		$title = apply_filters( 'widget_title', $instance['title'] );
-		// before and after widget arguments are defined by themes
-		echo $args['before_widget'];
-		if ( ! empty( $title ) )
-		{
-			echo $args['before_title'] . $title . $args['after_title'];
-		}
 		global $ct_data;
-		$ct_data=ct_get_data();
-		if(!isset($ct_data['admin_blocked']))
-		{
-			$blocked=0;
-		}
-		else
-		{
-			$blocked=$ct_data['admin_blocked'];
-		}
+		
+		$ct_data = ct_get_data();
+		
+		$title = apply_filters( 'widget_title', $instance['title'] );
+		echo $args['before_widget'];
+		
+		// Showing title
+		if ( ! empty( $title ) ){ echo $args['before_title'] . $title . $args['after_title']; }
+		
+		// Parsing incoming params
+		$blocked = isset( $ct_data['admin_blocked'] ) ? $ct_data['admin_blocked'] : 0;
 		$blocked = number_format($blocked, 0, ',', ' ');
-
+		
+		$a_style = 'cursor: pointer; display: block; padding: 5px 0 5px; text-align: center; text-decoration: none; border-radius: 5px; -moz-border-radius: 5px; -webkit-border-radius: 5px; font-weight: normal; height: 100%; width: 100%; ';
+		$strong_style = 'display: block; font-size: 15px; line-height: 16px; padding: 0 13px; white-space: nowrap; ';
+		
+		if(!isset($instance['style'])){
+			$instance['style'] = 'cleantalk';
+		}
+		
+		switch($instance['style']){
+			case 'cleantalk':
+				$a_style      .= 'background: #3090C7; background-image: -moz-linear-gradient(0% 100% 90deg,#2060a7,#3090C7); background-image: -webkit-gradient(linear,0% 0,0% 100%,from(#3090C7),to(#2060A7)); border: 1px solid #33eeee; color: #AFCA63;';
+				$strong_style .= 'color: #FFF;';
+			break;
+			case 'light':
+				$a_style      .= 'background: #fafafa; background-image: -moz-linear-gradient(0% 100% 90deg,#ddd,#fff); background-image: -webkit-gradient(linear,0% 0,0% 100%,from(#fff),to(#ddd)); border: 1px solid #ddd; color: #000;';
+				$strong_style .= 'color: #000;';
+			break;
+			case 'ex_light':
+				$a_style      .= 'background: #fff; border: 1px solid #ddd; color: #777;';
+				$strong_style .= 'color: #555;';
+			break;
+			case 'dark':
+				$a_style      .= 'background: #333; background-image: -moz-linear-gradient(0% 100% 90deg,#555,#000); background-image: -webkit-gradient(linear,0% 0,0% 100%,from(#000),to(#555)); border: 1px solid #999; color: #fff;';
+				$strong_style .= 'color: #FFF;';
+			break;
+		}
+		
 		// This is where you run the code and display the output
-		?>
-		<div style="width:auto;">
-			<a href="http://cleantalk.org" target="_blank" title="" style="background: #3090C7;    background-image: -moz-linear-gradient(0% 100% 90deg,#2060a7,#3090C7);    background-image: -webkit-gradient(linear,0% 0,0% 100%,from(#3090C7),to(#2060A7));    border: 1px solid #33eeee;    border-radius: 5px;    color: #AFCA63;    cursor: pointer;    display: block;    font-weight: normal;    height: 100%;    -moz-border-radius: 5px;    padding: 5px 0 5px;    text-align: center;    text-decoration: none;    -webkit-border-radius: 5px;    width: 100%;"><strong style="color: #FFF;display: block;font-size: 15px; line-height: 16px; padding: 0 13px;  white-space: nowrap;"><b><?php print $blocked; ?></b> spam</strong> blocked by <strong>CleanTalk</strong></a>
-		</div>
-		<?php
+		echo '<div style="width:auto;">'
+			.'<a href="http://cleantalk.org'.(!empty($instance['refid']) ? '?pid='.$instance['refid'] : '').'" target="_blank" title="'.__('CleanTalk\'s main page', 'cleantalk').'" style="'.$a_style.'">'
+				.'<strong style="'.$strong_style.'"><b>'.$blocked.'</b> '.__('spam', 'cleantalk').'</strong> '.__('blocked by', 'cleantalk').' <strong>CleanTalk</strong>'
+			.'</a>'
+		.'</div>';
+		
 		echo $args['after_widget'];
 	}
 		
 	// Widget Backend 
 	public function form( $instance )
 	{
-		if ( isset( $instance[ 'title' ] ) )
-		{
-			$title = $instance[ 'title' ];
-		}
-		else
-		{
-			$title = __( 'Spam blocked', 'cleantalk' );
-		}
 		// Widget admin form
-		?>
-		<p>
-		<label for="<?php echo $this->get_field_id( 'title' ); ?>"><?php _e( 'Title:' ); ?></label> 
-		<input class="widefat" id="<?php echo $this->get_field_id( 'title' ); ?>" name="<?php echo $this->get_field_name( 'title' ); ?>" type="text" value="<?php echo esc_attr( $title ); ?>" />
-		</p>
-		<?php 
+		
+		$title = isset( $instance[ 'title' ] ) ? $instance[ 'title' ] : $title = __( 'Spam blocked', 'cleantalk' );
+		$style = isset( $instance[ 'style' ] ) ? $instance[ 'style' ] : $style = 'ct_style';
+		$refid = isset( $instance[ 'refid' ] ) ? $instance[ 'refid' ] : $refid = '';
+		// Title field
+		echo '<p>'
+			.'<label for="' . $this->get_field_id( 'title' ) . '">' . __( 'Title:', 'cleantalk' ) . '</label>'
+			.'<input class="widefat" id="'.$this->get_field_id( 'title' ).'" name="'.$this->get_field_name( 'title' ).'" type="text" value="'.esc_attr( $title ).'" />'
+		.'</p>';
+		// Style
+		echo '<p>'
+			.'<label for="' . $this->get_field_id( 'style' ) . '">' . __( 'Style:', 'cleantalk' ) . '</label>'
+			.'<select id="'.$this->get_field_id( 'style' ).'" class="widefat" name="'.$this->get_field_name( 'style' ).'">'
+				.'<option '.($style == 'cleantalk' ? selected : '').' value="cleantalk">'.__('CleanTalk\'s Style', 'cleantalk').'</option>'
+				.'<option '.($style == 'light'     ? selected : '').' value="light">'.__('Light', 'cleantalk').'</option>'
+				.'<option '.($style == 'ex_light'  ? selected : '').' value="ex_light">'.__('Extremely Light', 'cleantalk').'</option>'
+				.'<option '.($style == 'dark'      ? selected : '').' value="dark">'.__('Dark', 'cleantalk').'</option>'
+			.'</select>'
+		.'</p>';
+		// Ref ID
+		echo '<p>'
+			.'<label for="' . $this->get_field_id( 'refid' ) . '">' . __( 'Referal link ID:', 'cleantalk' ) . '</label>'
+			.'<input class="widefat" id="'.$this->get_field_id( 'refid' ).'" name="'.$this->get_field_name( 'refid' ).'" type="text" value="'.$refid.'" />'
+		.'</p>';
 	}
 		
 	// Updating widget replacing old instances with new
@@ -74,6 +105,8 @@ class cleantalk_widget extends WP_Widget
 	{
 		$instance = array();
 		$instance['title'] = ( ! empty( $new_instance['title'] ) ) ? strip_tags( $new_instance['title'] ) : '';
+		$instance['style'] = ( ! empty( $new_instance['style'] ) ) ? strip_tags( $new_instance['style'] ) : '';
+		$instance['refid'] = ( ! empty( $new_instance['refid'] ) ) ? strip_tags( $new_instance['refid'] ) : '';
 		return $instance;
 	}
 } // Class cleantalk_widget ends here

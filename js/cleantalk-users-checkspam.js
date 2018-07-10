@@ -20,9 +20,9 @@ var ct_working = false,
 	ct_prev_from     = ctUsersCheck.ct_prev_from,	
 	ct_prev_till     = ctUsersCheck.ct_prev_till;
 // Settings
-var ct_cool_down_time = 65000,
+var ct_cool_down_time = 90000,
 	ct_requests_counter = 0,
-	ct_max_requests = 95;
+	ct_max_requests = 60;
 // Variables
 var ct_ajax_nonce = ctUsersCheck.ct_ajax_nonce,
 	ct_users_total = 0,
