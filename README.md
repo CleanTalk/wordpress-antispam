@@ -1,6 +1,6 @@
 # Spam protection, AntiSpam, FireWall by CleanTalk
 
-[![Build Status](https://travis-ci.org/CleanTalk/wordpess-antispam.svg?branch=master)](https://travis-ci.org/CleanTalk/wordpess-antispam)
+[![Build Status](https://travis-ci.org/CleanTalk/wordpress-antispam.svg?branch=master)](https://travis-ci.org/CleanTalk/wordpress-antispam)
 
 **License: GPLv2**
 
