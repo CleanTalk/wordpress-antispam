@@ -732,8 +732,8 @@ function ct_add_admin_menu( $wp_admin_bar ) {
 	global $ct_options, $ct_data;
 	
 	$ct_options = ct_get_options();
-		
-	if (current_user_can('activate_plugins') && $ct_options['show_adminbar'] == 1 && ct_valid_key($ct_options['apikey']) !== false) {
+	
+	if (current_user_can('activate_plugins') && $ct_options['show_adminbar'] == 1 && (ct_valid_key($ct_options['apikey']) !== false || (defined('CLEANTALK_SHOW_ADMIN_BAR_FORCE') && CLEANTALK_SHOW_ADMIN_BAR_FORCE))) {
         $ct_data=ct_get_data();
         		
 		//Reset or create user counter

@@ -103,9 +103,11 @@ class CleantalkHelper
 			// Private networks. Looking for X-Forwarded-For and X-Real-Ip
 			}elseif(self::ip_mask_match($ips['real'], self::$private_networks)){
 				if(isset($headers['X-Forwarded-For'])){
-					$ips['real'] = $headers['X-Forwarded-For'];
+					$tmp = explode(",", trim($headers['X-Forwarded-For']));
+					$ips['real']= trim($tmp[0]);
 				}elseif(isset($headers['X-Real-Ip'])){
-					$ips['real'] = $headers['X-Real-Ip'];
+					$tmp = explode(",", trim($headers['X-Real-Ip']));
+					$ips['real']= trim($tmp[0]);
 				}
 			}
 		}

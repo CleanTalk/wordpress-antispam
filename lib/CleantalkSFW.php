@@ -228,10 +228,10 @@ class CleantalkSFW extends CleantalkHelper
 		
 		// Headers
 		if(headers_sent() === false){
-			header("Cache-Control: no-store, no-cache, must-revalidate");
-			header("Pragma: no-cache");
-			header("Last-Modified: " . gmdate("D, d M Y H:i:s") . "GMT");
-			header("Expires: 0");
+			header('Expires: '.date(DATE_RFC822, mktime(0, 0, 0, 1, 1, 1971)));
+			header('Cache-Control: no-store, no-cache, must-revalidate');
+			header('Cache-Control: post-check=0, pre-check=0', FALSE);
+			header('Pragma: no-cache');
 			header("HTTP/1.0 403 Forbidden");
 			$sfw_die_page = str_replace('{GENERATED}', "", $sfw_die_page);
 		}else{
