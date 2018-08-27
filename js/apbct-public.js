@@ -3,48 +3,42 @@ var ct_date = new Date(),
 	ctMouseEventTimerFlag = true, //Reading interval flag
 	ctMouseData = [],
 	ctMouseDataCounter = 0;
+	
+// Default cookies
+ctSetCookieSec("ct_ps_timestamp",  Math.floor(new Date().getTime()/1000));
+ctSetCookieSec("ct_timezone",      ct_date.getTimezoneOffset()/60*(-1));
+ctSetCookieSec("ct_fkp_timestamp", "0");
+ctSetCookieSec("ct_pointer_data",  "0");
 
+/* Function: Set cookie */
 function ctSetCookieSec(c_name, value) {
 	document.cookie = c_name + "=" + encodeURIComponent(value) + "; path=/";
 }
-
+/* Function: Attach event (cross-browser) */
 function apbct_attach_event_handler(elem, event, callback){
 	if(typeof window.addEventListener == "function") elem.addEventListener(event, callback);
 	else                                             elem.attachEvent(event, callback);
 }
-
+/* Function: Detach event (cross-browser) */
 function apbct_remove_event_handler(elem, event, callback){
 	if(typeof window.removeEventListener == "function") elem.removeEventListener(event, callback);
 	else                                                elem.detachEvent(event, callback);
 }
 
-ctSetCookieSec("ct_ps_timestamp", Math.floor(new Date().getTime()/1000));
-ctSetCookieSec("ct_fkp_timestamp", "0");
-ctSetCookieSec("ct_pointer_data", "0");
-ctSetCookieSec("ct_timezone", "0");
-
-setTimeout(function(){
-	ctSetCookieSec("ct_timezone", ct_date.getTimezoneOffset()/60*(-1));
-},1000);
-
-//Writing first key press timestamp
+// KEY PRESS
+/* Event: Writing first key press timestamp */
 var ctFunctionFirstKey = function output(event){
 	var KeyTimestamp = Math.floor(new Date().getTime()/1000);
 	ctSetCookieSec("ct_fkp_timestamp", KeyTimestamp);
-	ctKeyStopStopListening();
+	//Stop key listening function
+	apbct_remove_event_handler(window, "mousedown", ctFunctionFirstKey);
+	apbct_remove_event_handler(window, "keydown",   ctFunctionFirstKey);
 }
+apbct_attach_event_handler(window, "mousedown", ctFunctionFirstKey);
+apbct_attach_event_handler(window, "keydown",   ctFunctionFirstKey);
 
-//Reading interval
-var ctMouseReadInterval = setInterval(function(){
-	ctMouseEventTimerFlag = true;
-}, 150);
-	
-//Writting interval
-var ctMouseWriteDataInterval = setInterval(function(){
-	ctSetCookieSec("ct_pointer_data", JSON.stringify(ctMouseData));
-}, 1200);
-
-//Logging mouse position each 150 ms
+// MOUSE
+/* Event: Logging mouse position each 150 ms */
 var ctFunctionMouseMove = function output(event){
 	if(ctMouseEventTimerFlag == true){
 		
@@ -57,32 +51,30 @@ var ctFunctionMouseMove = function output(event){
 		ctMouseDataCounter++;
 		ctMouseEventTimerFlag = false;
 		if(ctMouseDataCounter >= 50){
-			ctMouseStopData();
+			//Stop mouse observing function
+			apbct_remove_event_handler(window, "mousemove", ctFunctionMouseMove);
+			clearInterval(ctMouseReadInterval);
+			clearInterval(ctMouseWriteDataInterval);	;
 		}
 	}
 }
-
-//Stop mouse observing function
-function ctMouseStopData(){
-	apbct_remove_event_handler(window, "mousemove", ctFunctionMouseMove);
-	clearInterval(ctMouseReadInterval);
-	clearInterval(ctMouseWriteDataInterval);				
-}
-
-//Stop key listening function
-function ctKeyStopStopListening(){
-	apbct_remove_event_handler(window, "mousedown", ctFunctionFirstKey);
-	apbct_remove_event_handler(window, "keydown", ctFunctionFirstKey);
-}
-
 apbct_attach_event_handler(window, "mousemove", ctFunctionMouseMove);
-apbct_attach_event_handler(window, "mousedown", ctFunctionFirstKey);
-apbct_attach_event_handler(window, "keydown", ctFunctionFirstKey);
+/* Interval: Read mouse */
+var ctMouseReadInterval = setInterval(function(){
+	ctMouseEventTimerFlag = true;
+}, 150);
+/* Interval: write mouse */
+var ctMouseWriteDataInterval = setInterval(function(){
+	ctSetCookieSec("ct_pointer_data", JSON.stringify(ctMouseData));
+}, 1200);
 
-// Ready function
+/* Event: Ready */
 function apbct_ready(){
+	
+	// Form data
 	ctSetCookieSec("apbct_visible_fields", 0);
 	ctSetCookieSec("apbct_visible_fields_count", 0);
+	
 	setTimeout(function(){
 		for(var i = 0; i < document.forms.length; i++){
 			var form = document.forms[i];

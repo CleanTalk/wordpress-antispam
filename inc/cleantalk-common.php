@@ -251,39 +251,6 @@ function apbct_get_sender_info() {
 }
 
 /**
- * Cookies test for sender 
- * @return null|0|1;
- */
-function ct_cookies_test ($test = false) {
-    $ct_options = ct_get_options();
-    
-    $cookie_label = 'ct_cookies_test';
-    $secret_hash = ct_get_checkjs_value();
-
-    $result = null;
-    if (isset($_COOKIE[$cookie_label])) {
-        if ($_COOKIE[$cookie_label] == $secret_hash) {
-            $result = 1;
-        } else {
-            $result = 0;
-        }
-    } else {
-        //
-        // Do not generate if admin turned off the cookies.
-        //
-        if (isset($ct_options['set_cookies']) && $ct_options['set_cookies'] == 1) {
-            @setcookie($cookie_label, $secret_hash, 0, '/');
-        }
-
-        if ($test) {
-            $result = 0;
-        }
-    }
-
-    return $result;
-}
-
-/**
  * Get ct_get_checkjs_value 
  * @return string
  */
@@ -435,6 +402,7 @@ function ct_def_options() {
 		//Data processing
         'protect_logged_in' => '1', // Do anit-spam tests to for logged in users.
 		'use_ajax' => '1',
+		'alternative_sessions' => '0', // AJAX Sessions
 		'general_postdata_test' => '0', //CAPD
         'set_cookies'=> '1', // Disable cookies generatation to be compatible with Varnish.
         'ssl_on' => '0', // Secure connection to servers 

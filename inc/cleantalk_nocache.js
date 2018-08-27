@@ -109,9 +109,6 @@ if (!Date.now) {
 if(ct_nocache_executed==undefined)
 {
 	var ct_nocache_executed=true;
-	var new_timestamp=Math.floor(Date.now() / 1000);
-	
-	var old_timestamp=ct_getCookie('ct_timestamp');
 	
 	var checkjs_cookie=ct_getCookie('ct_checkjs');
 	
@@ -132,9 +129,8 @@ if(ct_nocache_executed==undefined)
 		}
 	}	
 	
-	if((old_timestamp==undefined||new_timestamp-old_timestamp>86400||checkjs_cookie==undefined)) //86400 is 24 hours
+	if(checkjs_cookie==undefined) //86400 is 24 hours
 	{
-		ct_setCookie('ct_timestamp', new_timestamp);
 		sendRequest(ctNocache.ajaxurl+'?'+Math.random(),ct_callback,'action=ct_get_cookie');
 	}
 	
@@ -196,7 +192,7 @@ if(ct_nocache_executed==undefined)
 		if(location.href=='http://'+location.hostname+'/' || location.href=='https://'+location.hostname+'/')
 		{
 			isVisitedMain=1;
-			setTimeout(function() { document.cookie = "ct_visited_main = 1; path = /;"}, 500);
+			setTimeout(function() { document.cookie = "ct_visited_main = 1; path = /;"}, 1500);
 		}
 		
 		
@@ -212,6 +208,6 @@ if(ct_nocache_executed==undefined)
 		
 		cleantalk_user_info.is_main=isVisitedMain;
 		
-		setTimeout(function() { document.cookie = "ct_user_info = "+escape(JSON.stringify(cleantalk_user_info))+"; path = /;"}, 500);
+		setTimeout(function() { document.cookie = "ct_user_info = "+escape(JSON.stringify(cleantalk_user_info))+"; path = /;"}, 1500);
 	}
 }

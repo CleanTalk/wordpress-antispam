@@ -236,7 +236,6 @@ function apbct_init() {
     }
 
     if (ct_is_user_enable()) {
-        ct_cookies_test();
 
         if (isset($ct_options['general_contact_forms_test']) && $ct_options['general_contact_forms_test'] == 1 && !isset($_POST['comment_post_ID']) && !isset($_GET['for'])){
         	$ct_check_post_result=false;
@@ -651,8 +650,10 @@ function ct_frm_entries_footer_scripts($fields, $form) {
     input.setAttribute('name', '$ct_checkjs_frm');
     input.setAttribute('value', '$ct_checkjs_key');
     for (i = 0; i < document.forms.length; i++) {
-        if (document.forms[i].id && document.forms[i].id.search('$ct_frm_name') != -1) {
-            document.forms[i].appendChild(input);
+        if (document.forms[i].id){
+			if(document.forms[i].id.search('$ct_frm_name') != -1) {
+            	document.forms[i].appendChild(input);
+        	}
         }
     }";
 	
@@ -2338,12 +2339,24 @@ function ct_enqueue_scripts_public($hook){
 	
 	if(!empty($ct_options['registrations_test']) || !empty($ct_options['comments_test']) || !empty($ct_options['contact_forms_test']) || !empty($ct_options['general_contact_forms_test']) || !empty($ct_options['wc_checkout_test']) || !empty($ct_options['check_external']) || !empty($ct_options['check_internal']) || !empty($ct_options['bp_private_messages']) || !empty($ct_options['general_postdata_test'])){
 		
-		wp_enqueue_script('ct_public',      APBCT_URL_PATH.'/js/apbct-public.js',       array(''), APBCT_VERSION, 'in_footer');
+		
+		// Alternative sessions
+		if($ct_options['alternative_sessions']){
+			wp_enqueue_script('apbct_md5',          APBCT_URL_PATH.'/js/apbct-md5.min.js',     array(),         APBCT_VERSION, 'in_footer');
+			wp_enqueue_script('apbct_fingerprints', APBCT_URL_PATH.'/js/apbct-fingerprint.js', array(),         APBCT_VERSION, 'in_footer');
+			wp_enqueue_script('ct_public_alt',      APBCT_URL_PATH.'/js/apbct-public--alt.js', array('jquery'), APBCT_VERSION, 'in_footer');
+			wp_localize_script('ct_public_alt', 'apbctPublicAlt', array(
+				'ajax_url' => APBCT_URL_PATH . '/inc/cleantalk-ajax-handler.php',
+				'nonce'    => 'secret_nonce', // SHOULD DO
+			));
+		}else{
+			wp_enqueue_script('ct_public',          APBCT_URL_PATH.'/js/apbct-public.js',      null,            APBCT_VERSION, 'in_footer');
+		}
 		
 		if(shortcode_exists( 'cleantalk_gdpr_form')){
 			
 			wp_enqueue_script('ct_public_gdpr', APBCT_URL_PATH.'/js/apbct-public--gdpr.js', array('jquery'), APBCT_VERSION);
-		
+			
 			wp_localize_script('ct_public_gdpr', 'ctPublic', array(
 				'gdpr_forms'   => isset($ct_options['gdpr_forms_id']) ? explode(', ', $ct_options['gdpr_forms_id']) : array(),
 				'gdpr_text'  => isset($ct_options['gdpr_text'])       ? $ct_options['gdpr_text']                    : __('By using this form you agree with the storage and processing of your data by using the Privacy Policy on this website.', 'cleantalk'),
@@ -2357,7 +2370,7 @@ function ct_enqueue_scripts_public($hook){
 			if(strpos($_SERVER['REQUEST_URI'],'jm-ajax') === false){
 				
 				if(!empty($ct_options['use_ajax']))
-					wp_enqueue_script('ct_nocache',  plugins_url('/cleantalk-spam-protect/inc/cleantalk_nocache.js'),  array(),         APBCT_VERSION, 'in_footer');
+					wp_enqueue_script('ct_nocache',  plugins_url('/cleantalk-spam-protect/inc/cleantalk_nocache.js'),  array(),            APBCT_VERSION, 'in_footer');
 				
 				if(!empty($ct_options['check_external']))
 					wp_enqueue_script('ct_external',  plugins_url('/cleantalk-spam-protect/js/cleantalk_external.js'), array('jquery'), APBCT_VERSION, 'in_footer');

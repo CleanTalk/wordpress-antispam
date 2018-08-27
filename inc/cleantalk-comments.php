@@ -15,7 +15,29 @@ function ct_add_comments_menu(){
 }
 
 function ct_show_checkspam_page(){
+	
     global $ct_plugin_name;
+	
+	?>
+		<div class="wrap">
+			<h2><img src="<?php echo plugin_dir_url(__FILE__) ?>/images/logo_color.png" /> <?php echo $ct_plugin_name; ?></h2><br />
+	<?php
+	
+	// If access key is unset in 
+	if(!ct_valid_key()){
+		global $ct_data;
+		$ct_data = ct_get_data();
+		if($ct_data['moderate_ip'] = 1){
+			echo '<h3>'
+				.sprintf(
+					__('Antispam hosting tariff does not allow you to use this feature. To do so, you need to enter an Access Key in the %splugin settings%s.', 'cleantalk'),
+					'<a href="' . (is_network_admin() ? 'settings.php?page=cleantalk' : 'options-general.php?page=cleantalk').'">',
+					'</a>'
+				)
+			.'</h3>';
+		}
+		return;
+	}	
 	
 	// Getting total spam comments
 	$args_spam = array(
@@ -30,9 +52,6 @@ function ct_show_checkspam_page(){
 	$cnt_spam = get_comments($args_spam);
 	
 ?>
-	<div class="wrap">
-		<h2><img src="<?php echo plugin_dir_url(__FILE__) ?>/images/logo_color.png" /> <?php echo $ct_plugin_name; ?></h2><br />
-		
 	<!-- AJAX error message --> 
 		<div id="ct_error_message" style="display:none">
 			<h3>

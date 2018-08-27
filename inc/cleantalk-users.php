@@ -16,7 +16,30 @@ function ct_add_users_menu(){
 }
 
 function ct_show_users_page(){
+	
     global $ct_plugin_name, $wpdb;
+	
+	?>
+		<div class="wrap">
+		<h2><img src="<?php echo plugin_dir_url(__FILE__) ?>/images/logo_color.png" /> <?php echo $ct_plugin_name; ?></h2><br />
+	<?php
+	
+	// If access key is unset in 
+	if(!ct_valid_key()){
+		global $ct_data;
+		$ct_data = ct_get_data();
+		if($ct_data['moderate_ip'] = 1){
+			echo '<h3>'
+				.sprintf(
+					__('Antispam hosting tariff does not allow you to use this feature. To do so, you need to enter an Access Key in the %splugin settings%s.', 'cleantalk'),
+					'<a href="' . (is_network_admin() ? 'settings.php?page=cleantalk' : 'options-general.php?page=cleantalk').'">',
+					'</a>'
+				)
+			.'</h3>';
+		}
+		return;
+	}
+	
 	
 	// Getting total spam users
 	$r = $wpdb->get_results("
@@ -30,8 +53,6 @@ function ct_show_users_page(){
 	$cnt_spam1=$r[0]['cnt'];
 	
 ?>
-	<div class="wrap">
-		<h2><img src="<?php echo plugin_dir_url(__FILE__) ?>/images/logo_color.png" /> <?php echo $ct_plugin_name; ?></h2><br />
 		
 	<!-- AJAX error message --> 
 		<div id="ct_error_message" style="display:none">
@@ -133,15 +154,17 @@ function ct_show_users_page(){
 						<th scope="col" id="author" class="manage-column column-slug"><?php _e('Username');?></th>
 						<th scope="col" id="comment" class="manage-column column-comment"><?php _e('Name');?></th>
 						<th scope="col" id="response" class="manage-column column-comment"><?php _e('E-mail');?></th>
+						<th scope="col" id="signed_up" class="manage-column column-comment"><?php _e('Signed up');?></th>
 						<th scope="col" id="role" class="manage-column column-response sortable desc"><?php _e('Role');?></th>
 						<th scope="col" id="posts" class="manage-column column-response sortable desc"><?php _e('Posts');?></th>
 					</thead>
 					<tbody id="the-comment-list" data-wp-lists="list:comment">
 						<?php
 							for($i=0;$i<sizeof($c_spam);$i++){
-								$id =  $c_spam[$i]->ID;
-								$login =  $c_spam[$i]->data->user_login;
-								$email =  $c_spam[$i]->data->user_email;
+								$id     = $c_spam[$i]->ID;
+								$login  = $c_spam[$i]->data->user_login;
+								$email  = $c_spam[$i]->data->user_email;
+								$signed = substr($c_spam[$i]->data->user_registered, 0, -3);
 								
 								echo "<tr id='comment-$id' class='comment even thread-even depth-1 approved  cleantalk_user' data-id='$id'>"
 									."<th scope='row' class='check-column'>"
@@ -195,6 +218,9 @@ function ct_show_users_page(){
 									</td>
 									<td class="comment column-comment">
 										<?php print $email; ?>
+									</td>
+									<td class="comment column-comment">
+										<?php print $signed; ?>
 									</td>
 									<td class="comment column-comment">
 										<?php

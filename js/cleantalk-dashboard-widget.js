@@ -14,7 +14,7 @@ jQuery(document).ready(function(){
 	jQuery("#ct_widget_wrapper").parent().css('padding', 0);
 	
 	// Chart 
-	var ct_chart = jQuery("#ct_widget_chart"),
+	var ct_chart = document.getElementById('ct_widget_chart'),
 		locale = navigator.language || navigator.userLanguage;
 		
 	function ctParseData(date){
@@ -36,8 +36,8 @@ jQuery(document).ready(function(){
 		data.addColumn('string', 'Spam Blocked');
 		data.addColumn('number', 'Frequency');
 		
-		ctParseData(ct_chart_data);
-		data.addRows(ct_chart_data);
+		ctParseData(apbctDashboardWidget.data);
+		data.addRows(apbctDashboardWidget.data);
 	
 		var options = {
 			width: jQuery(".ct_widget_block").first().width(),
@@ -49,7 +49,9 @@ jQuery(document).ready(function(){
 			vAxis: { gridlines: { count: 5 } }
 		};
 
-		var chart = new google.visualization.ColumnChart(document.getElementById('ct_widget_chart'));
-		chart.draw(data, options);
+		if(ct_chart){
+			var chart = new google.visualization.ColumnChart(ct_chart);
+			chart.draw(data, options);
+		}
 	};	
 });

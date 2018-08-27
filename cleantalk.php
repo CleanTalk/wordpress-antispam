@@ -3,15 +3,15 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: http://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 5.99.1
+  Version: 5.101
   Author: СleanTalk <welcome@cleantalk.org>
   Author URI: http://cleantalk.org
 */
 
 $cleantalk_executed = false;
 
-define('APBCT_VERSION', '5.99.1');
-define('APBCT_AGENT',   'wordpress-5991');
+define('APBCT_VERSION', '5.101');
+define('APBCT_AGENT',   'wordpress-5101');
 
 define('CLEANTALK_REMOTE_CALL_SLEEP', 10); // Minimum time between remote call
 define('APBCT_CASERT_PATH', file_exists(ABSPATH . WPINC . '/certificates/ca-bundle.crt') 
@@ -58,8 +58,10 @@ if(!defined('CLEANTALK_PLUGIN_DIR')){
 	//Delete cookie for admin trial notice
 	add_action('wp_logout', 'ct_wp_logout');
 	
-	if (!(defined( 'DOING_AJAX' ) && DOING_AJAX))
+	// Set cookie only for unauthorized users and for non-AJAX requests
+ 	if (!is_admin() && (!defined('DOING_AJAX') || (defined('DOING_AJAX') && !DOING_AJAX))){
 		add_action('template_redirect','apbct_cookie', 2);
+	}
 		
 	// Early checks
 	// Facebook
@@ -69,7 +71,6 @@ if(!defined('CLEANTALK_PLUGIN_DIR')){
 	){
 		require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public.php');
 		if (ct_is_user_enable()){
-			ct_cookies_test();
 			$ct_check_post_result=false;
 			ct_registration_errors(null);
 		}
@@ -283,14 +284,19 @@ if(!defined('CLEANTALK_PLUGIN_DIR')){
 			require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public.php');
 			require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-ajax.php');
 			
-			// Do check for AJAX if Unknown action or Known action with mandatory check
-			if(	isset($_POST['action']) &&
-				defined('LOGGED_IN_COOKIE') && 
-				!isset($_COOKIE[LOGGED_IN_COOKIE]) &&
-				(!in_array($_POST['action'], $cleantalk_hooked_actions) || in_array($_POST['action'], $cleantalk_ajax_actions_to_check))
+			// Check AJAX requests
+				// if User is not logged in
+				// if Unknown action or Known action with mandatory check
+			if(	defined('LOGGED_IN_COOKIE') && !isset($_COOKIE[LOGGED_IN_COOKIE]) &&
+				isset($_POST['action']) && (!in_array($_POST['action'], $cleantalk_hooked_actions) || in_array($_POST['action'], $cleantalk_ajax_actions_to_check))
 			){
 				ct_ajax_hook();			
 			}
+			
+			//QAEngine Theme answers
+			if (intval($ct_options['general_contact_forms_test']))
+				add_filter('et_pre_insert_answer', 'ct_ajax_hook', 1, 1);
+			
             //
             // Some of plugins to register a users use AJAX context.
             //
@@ -298,16 +304,12 @@ if(!defined('CLEANTALK_PLUGIN_DIR')){
 			add_filter('registration_errors', 'ct_check_registration_erros', 999999, 3);
             add_action('user_register', 'ct_user_register');
 			
-			//QAEngine Theme answers
-			if (intval($ct_options['general_contact_forms_test']))
-				add_filter('et_pre_insert_answer', 'ct_ajax_hook', 1, 1);
 		}
 		
 		require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public.php');
 		
 		//Bitrix24 contact form
 		if (ct_is_user_enable()) {
-			ct_cookies_test();
 
 			if (isset($ct_options['general_contact_forms_test']) && $ct_options['general_contact_forms_test'] == 1 &&
 				!empty($_POST['your-phone']) &&
@@ -404,6 +406,15 @@ function apbct_activation() {
 		ENGINE = MYISAM;"
 	);
 	
+	$wpdb->query("CREATE TABLE IF NOT EXISTS `".$wpdb->base_prefix."cleantalk_sessions` (
+		`id` VARCHAR(32) NOT NULL,
+		`data` TEXT NULL,
+		`started` INT(11) NOT NULL,
+		`last_update` INT(11) NOT NULL,
+		PRIMARY KEY (`id`)) 
+		ENGINE = InnoDB;"
+	);
+	
 	// Cron tasks
 	CleantalkCron::addTask('check_account_status', 'ct_account_status_check',  3600,  time()+1800); // Checks account status
 	CleantalkCron::addTask('delete_spam_comments', 'ct_delete_spam_comments',  3600,  time()+3500); // Formerly ct_hourly_event_hook()
@@ -430,6 +441,7 @@ function apbct_deactivation() {
 	// Deleting SFW tables
 	$wpdb->query("DROP TABLE IF EXISTS `".$wpdb->base_prefix."cleantalk_sfw`;");
 	$wpdb->query("DROP TABLE IF EXISTS `".$wpdb->base_prefix."cleantalk_sfw_logs`;");
+	$wpdb->query("DROP TABLE IF EXISTS `".$wpdb->base_prefix."cleantalk_sessions`;");
 
 	// Deleting cron entries
 	delete_option('cleantalk_cron'); 
@@ -631,6 +643,12 @@ function apbct_cookie(){
 	
     $ct_options=ct_get_options();
 	
+	// Deleting all cookies with 'apbct_' and 'ct_' start if AJAX sessions is enabled
+	if(!empty($ct_options['alternative_sessions'])){
+		// apbct_cookies__delete_all();
+		return;
+	}
+	
 	if(
 		empty($ct_options['set_cookies']) ||   // Do not set cookies if option is disabled (for Varnish cache).
 		!empty($ct_page_timer_setuped)         // Cookies already set
@@ -696,6 +714,9 @@ function apbct_cookies_test()
 		
 		$cookie_test = json_decode(stripslashes($_COOKIE['apbct_cookies_test']), true);
 		
+		if(!is_array($cookie_test))
+			return 0;
+		
 		$check_srting = $ct_options['apikey'];
 		foreach($cookie_test['cookies_names'] as $cookie_name){
 			$check_srting .= isset($_COOKIE[$cookie_name]) ? $_COOKIE[$cookie_name] : '';
@@ -711,6 +732,22 @@ function apbct_cookies_test()
 	}
 }
 
+function apbct_cookies__delete($cookie){
+	if(isset($_COOKIE[$cookie]))
+		setcookie($cookie, '', time()-3600);
+}
+
+function apbct_cookies__delete_all(){
+	if(count($_COOKIE)){
+		foreach($_COOKIE as $key => $val){
+			if(preg_match("/apbct_|ct_/", $key)){
+				setcookie($key, '', time()-3600);
+			}       
+		} unset($key, $val);
+	}
+	return false;
+}
+
 /**
  * Gets submit time
  * Uses Cookies with check via apbct_cookies_test()
@@ -721,15 +758,13 @@ function apbct_get_submit_time()
 	return apbct_cookies_test() == 1 ? time() - $_COOKIE['apbct_timestamp'] : null;
 }
 
-/*
-function myplugin_update_field( $new_value, $old_value ) {
-	error_log('cleantalk_data dump: '. strlen(serialize($new_value)));
-    return $new_value;
+function apbct_is_user_logged_in(){
+	if(count($_COOKIE)){
+		foreach($_COOKIE as $key => $val){
+			if(preg_match("/wordpress_logged_in/", $key)){
+				return true;
+			}       
+		} unset($key, $val);
+	}
+	return false;
 }
-
-function myplugin_init() {
-	add_filter( 'pre_update_option_cleantalk_data', 'myplugin_update_field', 10, 2 );
-}
-
-add_action( 'init', 'myplugin_init' );
-*/

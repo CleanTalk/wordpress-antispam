@@ -37,18 +37,6 @@ function ct_dashboard_statistics_widget_output( $post, $callback_args ) {
 	
 	$brief_data = $ct_data['brief_data'];
 	
-	if(!empty($_POST['ct_brief_refresh']) or empty($brief_data['spam_stat'])){
-		$brief_data = CleantalkHelper::api_method__get_antispam_report_breif($ct_options['apikey']);
-		$ct_data['brief_data'] = $brief_data;
-		update_option('cleantalk_data', $ct_data);
-	}
-	// Parsing brief data 'spam_stat' {"yyyy-mm-dd": spam_count, "yyyy-mm-dd": spam_count} to [["yyyy-mm-dd", "spam_count"], ["yyyy-mm-dd", "spam_count"]]
-	$to_chart = array();
-	foreach( $brief_data['spam_stat'] as $key => $value ){
-		$to_chart[] = array( $key, $value );
-	} unset( $key, $value );
-	$to_chart = json_encode( $to_chart );
-	
 	echo "<div id='ct_widget_wrapper'>";
 ?>
 		<form id='ct_refresh_form' method='POST' action='#ct_widget'>
@@ -56,9 +44,6 @@ function ct_dashboard_statistics_widget_output( $post, $callback_args ) {
 		</form>
 		<h4 class='ct_widget_block_header' style='margin-left: 12px;'><?php _e('7 days anti-spam stats', 'cleantalk'); ?></h4>
 		<div class='ct_widget_block ct_widget_chart_wrapper'>
-			<script>
-				var ct_chart_data = <?php echo $to_chart; ?>;
-			</script>
 			<div id='ct_widget_chart'></div>
 		</div>
 		<h4 class='ct_widget_block_header'><?php _e('Top 5 spam IPs blocked', 'cleantalk'); ?></h4>
@@ -187,9 +172,23 @@ function apbct_enqueue_scripts($hook) {
 		
 	// Scripts & Styles to main dashboard page
 	if($hook == 'index.php' && current_user_can('activate_plugins')){
+		
+		wp_enqueue_style('ct_admin_css_widget_dashboard',     plugins_url('/cleantalk-spam-protect/css/cleantalk-dashboard-widget.css'), array(),         APBCT_VERSION, 'all');
+		
 		wp_enqueue_script('ct_gstatic_charts_loader',         'https://www.gstatic.com/charts/loader.js',                                array(),         APBCT_VERSION);
 		wp_enqueue_script('ct_admin_js_widget_dashboard', 	  plugins_url('/cleantalk-spam-protect/js/cleantalk-dashboard-widget.js'),   array('ct_gstatic_charts_loader'), APBCT_VERSION);
-		wp_enqueue_style('ct_admin_css_widget_dashboard',     plugins_url('/cleantalk-spam-protect/css/cleantalk-dashboard-widget.css'), array(),         APBCT_VERSION, 'all');
+		
+		// Preparing widget data
+		// Parsing brief data 'spam_stat' {"yyyy-mm-dd": spam_count, "yyyy-mm-dd": spam_count} to [["yyyy-mm-dd", "spam_count"], ["yyyy-mm-dd", "spam_count"]]
+		$to_chart = array();
+		foreach( $ct_data['brief_data']['spam_stat'] as $key => $value ){
+			$to_chart[] = array( $key, $value );
+		} unset( $key, $value );
+		
+		wp_localize_script( 'jquery', 'apbctDashboardWidget', array(
+			'data' => $to_chart,
+		));
+		
 	}
 	
 	// Scripts & Styles for CleanTalk's settings page
@@ -465,12 +464,18 @@ function apbct_admin_init(){
 		}
 	}
 	
-	//Account's status check if settings saved
+	// Account's status check if settings saved
 	if (isset($_POST['cleantalk_settings']['apikey'])){
 		ct_account_status_check();
 	}
 	
-
+	// Getting dashboard widget statistics
+	if(!empty($_POST['ct_brief_refresh']) || empty($ct_data['brief_data'])){
+		$brief_data = CleantalkHelper::api_method__get_antispam_report_breif($ct_options['apikey']);
+		$ct_data['brief_data'] = $brief_data;
+		update_option('cleantalk_data', $ct_data);
+	}
+	
 	$show_ct_notice_online = '';
 	if (isset($_COOKIE[$ct_notice_online_label]))
 	{
@@ -533,6 +538,7 @@ function apbct_admin_init(){
 		add_settings_field('cleantalk_general_postdata_test', __('Check all post data', 'cleantalk'), 'ct_input_general_postdata_test', 'cleantalk', 'cleantalk_settings_anti_spam');
 		add_settings_field('cleantalk_set_cookies', __("Set cookies", 'cleantalk'), 'ct_input_set_cookies', 'cleantalk', 'cleantalk_settings_anti_spam');
 		add_settings_field('cleantalk_ssl_on', __("Use SSL", 'cleantalk'), 'ct_input_ssl_on', 'cleantalk', 'cleantalk_settings_anti_spam');
+		add_settings_field('cleantalk_alternative_sessions', __('Use Alternative Sessions', 'cleantalk'), 'ct_input_alternative_sessions', 'cleantalk', 'cleantalk_settings_anti_spam');
 		
 		//Administrator Panel
 		add_settings_field('cleantalk_title_administrator_panel', "", 'ct_input_administrator_panel', 'cleantalk', 'cleantalk_settings_anti_spam');//Title settings
@@ -782,9 +788,6 @@ function ct_add_admin_menu( $wp_admin_bar ) {
 			$sfw_counter_str='<span style="color: white;" title="'.__('All / Blocked events. Access attempts regitred by SpamFireWall counted since the last plugin activation.', 'cleantalk').'"><span style="color: white;"> | SpamFireWall: ' .$sfw_counter['all']. '</span> / <span style="color: red;">' .$sfw_counter['blocked']. '</span></span>';
 		}
 		
-		$show_some = $ct_data['show_ct_notice_trial'] == 1 && isset($ct_data['moderate'],$ct_data['service_id']) && $ct_data['moderate']== 0 && $ct_data['service_id']%2 == 0
-			? true
-			: false;
 		$user_token = (isset($ct_data['user_token']) && $ct_data['user_token'] != '' ? "&user_token={$ct_data['user_token']}" : "");
 		
 		$args = array(
@@ -792,7 +795,7 @@ function ct_add_admin_menu( $wp_admin_bar ) {
 			'title' => '<img src="' . plugin_dir_url(__FILE__) . 'images/logo_small1.png" alt=""  height="" style="margin-top:9px; float: left;" />'
 				.'<div style="margin: auto 7px;" class="ab-item alignright">'
 					.'<div class="ab-label" id="ct_stats">'
-						.($show_some
+						.(isset($ct_data['show_ct_notice_trial']) && $ct_data['show_ct_notice_trial'] == 1
 							? "<span><a style='color: red;' href=\"http://cleantalk.org/my/bill/recharge?utm_source=wp-backend&utm_medium=cpc&utm_campaign=WP%20backend%20trial$user_token&cp_mode=antispam\" target=\"_blank\">Renew Anti-Spam</a></span>"
 							: '<span style="color: white;" title="'.__('Allowed / Blocked submissions. The number of submissions is being counted since ', 'cleantalk').' '.$user_counter['since'].'">'.$user_counter_str.'</span>	'.$daily_counter_str.$all_time_counter_str.$sfw_counter_str	
 						)
@@ -963,7 +966,7 @@ function ct_section_settings_state() {
 		// Autoupdate status
 		if($show_ct_notice_auto_update == 1){
 			echo '<img class="apbct_status_icon" src="'.($auto_update_app == 1 ? $img : ($auto_update_app == -1 ? $img_no : $img_no_gray)).'"/>'.__('Auto update', 'cleantalk')
-				.' <sup><a href="http://cleantalk.org/help/auto-update" target="_blank">?</a></sup>';
+				.' <sup><a href="http://cleantalk.org/help/cleantalk-auto-update" target="_blank">?</a></sup>';
 		}
 		
 		// WooCommerce
@@ -1377,6 +1380,26 @@ function ct_input_general_postdata_test() {
 	ct_add_descriptions_to_fields(sprintf(__('Check all POST submissions from website visitors. Enable this option if you have spam misses on website or you don`t have records about missed spam here:', 'cleantalk') . '&nbsp;' . '<a href="https://cleantalk.org/my/?user_token='.@$ct_data['user_token'].'&utm_source=wp-backend&utm_medium=admin-bar&cp_mode=antispam" target="_blank">' . __('CleanTalk dashboard', 'cleantalk') . '</a>.<br />' . __('СAUTION! Option can catch POST requests in WordPress backend', 'cleantalk'),  $ct_options['general_postdata_test']));
 }
 
+function ct_input_alternative_sessions() {
+	global $ct_options, $ct_data;
+	
+	$ct_options = ct_get_options();
+	$ct_data = ct_get_data();
+
+	if(isset($ct_options['alternative_sessions']))
+	{
+		$value = @intval($ct_options['alternative_sessions']);
+	}
+	else
+	{
+		$value=1;
+	}
+	echo "<input type='radio' id='cleantalk_alternative_sessions1' name='cleantalk_settings[alternative_sessions]' value='1' " . ($value == '1' ? 'checked' : '') . " /><label for='cleantalk_alternative_sessions1'> " . __('Yes') . "</label>";
+	echo '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
+	echo "<input type='radio' id='cleantalk_alternative_sessions0' name='cleantalk_settings[alternative_sessions]' value='0' " . ($value == '0' ? 'checked' : '') . " /><label for='cleantalk_alternative_sessions0'> " . __('No') . "</label>";
+	ct_add_descriptions_to_fields(sprintf(__('Use alternative session mechanism compatible with any cahcing solutions.', 'cleantalk')."</strong>",  $ct_options['alternative_sessions']));
+}
+
 function ct_input_use_ajax() {
 	global $ct_options, $ct_data;
 	
@@ -1773,7 +1796,7 @@ function cleantalk_admin_notice_message(){
 	if($self_owned_key && $is_dashboard && $is_admin){
 		// Auto update notice
 		if($show_ct_notice_auto_update && $auto_update_app != -1 && empty($_COOKIE['apbct_update_banner_closed'])){
-			$link 	= '<a href="http://cleantalk.org/help/auto-update" target="_blank">%s</a>';
+			$link 	= '<a href="http://cleantalk.org/help/cleantalk-auto-update" target="_blank">%s</a>';
 			$button = sprintf($link, '<input type="button" class="button button-primary" value="'.__('Learn more', 'cleantalk').'"  />');
 			echo '<div class="error notice is-dismissible apbct_update_notice">'
 				.'<h3>'
@@ -1794,7 +1817,7 @@ function cleantalk_admin_notice_message(){
 		}
 		
 		//key == "" || "enter key"
-		if ($show_notice && !ct_valid_key()){
+		if ($show_notice && !ct_valid_key() && empty($moderate_ip)){
 			echo "<div class='error'>"
 				."<h3>"
 					.sprintf(__("Please enter Access Key in %s settings to enable anti spam protection!", 'cleantalk'), "<a href='{$settings_link}'>CleanTalk plugin</a>")
@@ -1803,23 +1826,9 @@ function cleantalk_admin_notice_message(){
 			$show_notice = false;
 		}
 		
-		$test = isset($ct_data['service_id'], $ct_data['moderate']) && $ct_data['service_id']%2 == 0 && $ct_data['moderate'] == 0
-			? true
-			: false;
-		
 		//"Trial period ends" notice from apbct_admin_init().api_method__notice_paid_till()
-		if ($show_notice && $show_ct_notice_trial == 1) {
-			if($test){				
-				if(isset($_GET['page']) && in_array($_GET['page'], array('cleantalk','ct_check_users','ct_check_spam'))){
-			echo '<div class="error">
-				<h3>' . sprintf(__("%s trial period ends, please upgrade to %s!", 'cleantalk'), 
-					"<a href='{$settings_link}'>$ct_plugin_name</a>", 
-					"<a href=\"http://cleantalk.org/my/bill/recharge?utm_source=wp-backend&utm_medium=cpc&utm_campaign=WP%20backend%20trial$user_token&cp_mode=antispam\" target=\"_blank\"><b>premium version</b></a>") .
-				'</h3>
-			</div>';
-			$show_notice = false;
-				}
-			}else{
+		if ($show_notice && $show_ct_notice_trial == 1 && empty($moderate_ip)) {
+			if(isset($_GET['page']) && in_array($_GET['page'], array('cleantalk', 'ct_check_spam', 'ct_check_users'))){
 				echo '<div class="error">
 					<h3>' . sprintf(__("%s trial period ends, please upgrade to %s!", 'cleantalk'), 
 						"<a href='{$settings_link}'>$ct_plugin_name</a>", 
@@ -1831,7 +1840,7 @@ function cleantalk_admin_notice_message(){
 		}
 		
 		//Renew notice from apbct_admin_init().api_method__notice_paid_till()
-		if ($show_notice && $show_ct_notice_renew == 1) {
+		if ($show_notice && $show_ct_notice_renew == 1 && empty($moderate_ip)) {
 			$renew_link = "<a href=\"http://cleantalk.org/my/bill/recharge?utm_source=wp-backend&utm_medium=cpc&utm_campaign=WP%%20backend%%20renew$user_token&cp_mode=antispam\" target=\"_blank\">%s</a>";
 			$button_html 	= sprintf($renew_link, '<input type="button" class="button button-primary" value="'.__('RENEW ANTI-SPAM', 'cleantalk').'"  />');
 			$link_html 		= sprintf($renew_link, "<b>".__('next year', 'cleantalk')."</b>");
@@ -1845,7 +1854,7 @@ function cleantalk_admin_notice_message(){
 		}
 		
 		//"Wrong access key" notice (if ct_update_option().METHOD_notice_validate_key returns a error)
-		if ($show_notice && $show_ct_notice_online === 'N'){
+		if ($show_notice && $show_ct_notice_online === 'N' && empty($moderate_ip)){
 			echo '<div class="error">
 				<h3><b>'.
 					__("Wrong <a href='{$settings_link}'><b style=\"color: #49C73B;\">Clean</b><b style=\"color: #349ebf;\">Talk</b> access key</a>! Please check it or ask <a target=\"_blank\" href=\"https://cleantalk.org/forum/\">support</a>.", 'cleantalk').
