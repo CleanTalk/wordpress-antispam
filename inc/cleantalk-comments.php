@@ -16,18 +16,14 @@ function ct_add_comments_menu(){
 
 function ct_show_checkspam_page(){
 	
-    global $ct_plugin_name;
-	
 	?>
 		<div class="wrap">
-			<h2><img src="<?php echo plugin_dir_url(__FILE__) ?>/images/logo_color.png" /> <?php echo $ct_plugin_name; ?></h2><br />
+			<h2><img src="<?php echo plugin_dir_url(__FILE__) ?>/images/logo_color.png" /> <?php echo APBCT_NAME; ?></h2><br />
 	<?php
 	
 	// If access key is unset in 
-	if(!ct_valid_key()){
-		global $ct_data;
-		$ct_data = ct_get_data();
-		if($ct_data['moderate_ip'] = 1){
+	if(!apbct_api_key__is_correct()){
+		if($apbct->moderate_ip == 1){
 			echo '<h3>'
 				.sprintf(
 					__('Antispam hosting tariff does not allow you to use this feature. To do so, you need to enter an Access Key in the %splugin settings%s.', 'cleantalk'),
@@ -89,7 +85,7 @@ function ct_show_checkspam_page(){
 				<input class="ct_date" type="text" id="ct_date_range_till" value="<?php echo isset($_GET['till']) ? $_GET['till'] : ''; ?>" disabled readonly />
 			</div>
 			<br>
-			<?php ct_input_get_premium(); ?>
+			<?php apbct_admin__badge__get_premium(); ?>
 		</div>
 		
 		<!-- Cooling notice --> 
@@ -279,9 +275,7 @@ function ct_ajax_check_comments(){
 	
 	check_ajax_referer( 'ct_secret_nonce', 'security' );
 	
-	global $wpdb, $ct_options, $ct_ip_penalty_days;
-	
-	$ct_options = ct_get_options();
+	global $wpdb, $apbct;
 	
 	if(isset($_POST['from'], $_POST['till'])){
 		$from_date = date('Y-m-d', intval(strtotime($_POST['from'])));
@@ -401,7 +395,7 @@ function ct_ajax_check_comments(){
 			die();
 		}
 		
-		$result = CleantalkHelper::api_method__spam_check_cms($ct_options['apikey'], $data, !empty($_POST['accurate_check']) ? $curr_date : null);
+		$result = CleantalkHelper::api_method__spam_check_cms($apbct->api_key, $data, !empty($_POST['accurate_check']) ? $curr_date : null);
 		
 		if(empty($result['error'])){
 			
@@ -650,7 +644,7 @@ function ct_comment_check_approve_comment(){
 
 	$id=$_POST['id'];
 	$comment = get_comment($id, 'ARRAY_A');
-	$comment['comment_content'] = ct_unmark_red($comment['comment_content']);
+	$comment['comment_content'] = apbct_comment__unmark_red($comment['comment_content']);
 	$comment['comment_approved'] = 1;
 	update_comment_meta($id, 'ct_marked_as_spam', 0);
 	wp_update_comment($comment);

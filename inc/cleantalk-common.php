@@ -1,6 +1,5 @@
 <?php
 
-$ct_plugin_name = 'Antispam by CleanTalk';
 $ct_checkjs_frm = 'ct_checkjs_frm';
 $ct_checkjs_register_form = 'ct_checkjs_register_form';
 
@@ -32,24 +31,6 @@ $ct_approved_request_id_label = 'ct_approved_request_id';
 // Last request id approved for publication 
 $ct_approved_request_id = null;
 
-// COOKIE label for trial notice flag
-$ct_notice_trial_label = 'ct_notice_trial';
-
-// Flag to show trial notice
-$show_ct_notice_trial = false;
-
-// COOKIE label for renew notice flag
-$ct_notice_renew_label = 'ct_notice_renew';
-
-// Flag to show renew notice
-$show_ct_notice_renew = false;
-
-// COOKIE label for online notice flag
-$ct_notice_online_label = 'ct_notice_online';
-
-// Flag to show online notice - 'Y' or 'N'
-$show_ct_notice_online = '';
-
 // Trial notice show time in minutes
 $trial_notice_showtime = 10;
 
@@ -62,12 +43,6 @@ $ct_wplp_result_label = 'ct_wplp_result';
 // Flag indicates active JetPack comments 
 $ct_jp_comments = false;
 
-// S2member PayPal post data label
-$ct_post_data_label = 's2member_pro_paypal_registration'; 
-
-// S2member Auth.Net post data label
-$ct_post_data_authnet_label = 's2member_pro_authnet_registration'; 
-
 // WP admin email notice interval in seconds
 $ct_admin_notoice_period = 21600;
 
@@ -75,23 +50,9 @@ $ct_admin_notoice_period = 21600;
 // It uses for BuddyPress registrations to avoid double checks
 $ct_negative_comment = null;
 
-// Flag to show apikey automatic getting error
-$show_ct_notice_autokey = false;
-
-// Apikey automatic getting label  
-$ct_notice_autokey_label = 'ct_autokey'; 
-
-// Apikey automatic getting error text
-$ct_notice_autokey_value = '';
-
 // Set globals to NULL to avoid massive DB requests. Globals will be set when needed only and by accessors only.
-$ct_options = NULL;
-$ct_data = NULL;
 $ct_server = NULL;
 $admin_email = NULL;
-
-// Timer in PHP sessions state.
-$ct_page_timer_setuped = false;
 
 /**
  * Public action 'plugins_loaded' - Loads locale, see http://codex.wordpress.org/Function_Reference/load_plugin_textdomain
@@ -115,10 +76,7 @@ function apbct_plugin_loaded() {
  */
 function apbct_base_call($params = array(), $reg_flag = false){
 	
-	global $ct_options, $ct_data;
-	
-	$ct_options = ct_get_options();
-	$ct_data    = ct_get_data();
+	global $apbct;
 	
     $sender_info = !empty($params['sender_info'])
 		? array_merge(apbct_get_sender_info(), (array) $params['sender_info'])
@@ -134,7 +92,7 @@ function apbct_base_call($params = array(), $reg_flag = false){
 	$ct_request->x_real_ip       = CleantalkHelper::ip_get(array('x_real_ip'), false);
 	
 	// Misc
-	$ct_request->auth_key        = $ct_options['apikey'];
+	$ct_request->auth_key        = $apbct->api_key;
 	$ct_request->message         = !empty($params['message'])         ? serialize(ct_filter_array($params['message']))   : null;
 	$ct_request->example         = !empty($params['example'])         ? $params['example']                               : null;
 	$ct_request->sender_email    = !empty($params['sender_email'])    ? $params['sender_email']                          : null;
@@ -147,11 +105,12 @@ function apbct_base_call($params = array(), $reg_flag = false){
 	
 	$ct = new Cleantalk();
 
-	$ct->ssl_on         = $ct_options['ssl_on'];
+	$ct->ssl_on         = $apbct->settings['ssl_on'];
 	$ct->ssl_path       = APBCT_CASERT_PATH;
-	$ct->server_url     = $ct_options['server'];
+	$ct->server_url     = $apbct->settings['server'];
 	$ct->server_ttl     = $config['ct_server_ttl'];
-	$ct->work_url       = $config['ct_work_url'];
+	// Options store url without shceme because of DB error with ''://'
+	$ct->work_url       = preg_match('/http/', $config['ct_work_url']) ? $config['ct_work_url'] : 'http://'.$config['ct_work_url'];
 	$ct->server_changed = $config['ct_server_changed'];
 	
 	if($reg_flag){
@@ -161,21 +120,21 @@ function apbct_base_call($params = array(), $reg_flag = false){
 	}
 	
 	if ($ct_result->errno === 0 && empty($ct_result->errstr))
-        $ct_data['connection_reports']['success']++;
+        $apbct->data['connection_reports']['success']++;
     else
     {
-        $ct_data['connection_reports']['negative']++;
-        $ct_data['connection_reports']['negative_report'][] = array('date'=>date("Y-m-d H:i:s"),'page_url'=>$_SERVER['REQUEST_URI'],'lib_report'=>$ct_result->errstr);
+        $apbct->data['connection_reports']['negative']++;
+        $apbct->data['connection_reports']['negative_report'][] = array('date'=>date("Y-m-d H:i:s"),'page_url'=>$_SERVER['REQUEST_URI'],'lib_report'=>$ct_result->errstr);
 		
-		if(count($ct_data['connection_reports']['negative_report']) > 20)
-			$ct_data['connection_reports']['negative_report'] = array_slice($ct_data['connection_reports']['negative_report'], -20, 20);
+		if(count($apbct->data['connection_reports']['negative_report']) > 20)
+			$apbct->data['connection_reports']['negative_report'] = array_slice($apbct->data['connection_reports']['negative_report'], -20, 20);
 		
     }
     if ($ct->server_change) {
 		update_option(
 			'cleantalk_server', 
 			array(
-				'ct_work_url'       => $ct->work_url,
+				'ct_work_url'       => preg_replace('/http[s]?:\/\/(.*)/', '$1', $ct->work_url),
 				'ct_server_ttl'     => $ct->server_ttl,
 				'ct_server_changed' => time(),
 			)
@@ -201,7 +160,9 @@ function apbct_base_call($params = array(), $reg_flag = false){
  * @return array 
  */
 function apbct_get_sender_info() {
-	    
+	
+	global $apbct;
+	
 	// Validate cookie from the backend
 	$cookie_is_ok = apbct_cookies_test();
     
@@ -226,7 +187,7 @@ function apbct_get_sender_info() {
         'USER_AGENT'             => isset($_SERVER['HTTP_USER_AGENT'])                             ? htmlspecialchars($_SERVER['HTTP_USER_AGENT'])                     : null,
 		'page_url'               => isset($_SERVER['SERVER_NAME'], $_SERVER['REQUEST_URI'])        ? htmlspecialchars($_SERVER['SERVER_NAME'].$_SERVER['REQUEST_URI']) : null,
         'cms_lang'               => substr(get_locale(), 0, 2),
-        'ct_options'             => json_encode(ct_get_options()),
+        'ct_options'             => json_encode($apbct->settings),
         'fields_number'          => sizeof($_POST),
         'direct_post'            => $cookie_is_ok === null && $_SERVER['REQUEST_METHOD'] == 'POST' ? 1                                                                 : 0,
 		// Raw data to validated JavaScript test in the cloud                                                                                                          
@@ -255,12 +216,11 @@ function apbct_get_sender_info() {
  * @return string
  */
 function ct_get_checkjs_value($random_key = false) {
-    global $ct_options, $ct_data;
-    $ct_options = ct_get_options();
-    $ct_data = ct_get_data();
-
+	
+    global $apbct;
+	
     if ($random_key) {
-        $keys = $ct_data['js_keys'];
+        $keys = $apbct->data['js_keys'];
         $keys_checksum = md5(json_encode($keys));
         
         $key = null;
@@ -268,7 +228,7 @@ function ct_get_checkjs_value($random_key = false) {
         foreach ($keys as $k => $t) {
 
             // Removing key if it's to old
-            if (time() - $t > $ct_data['js_keys_store_days'] * 86400) {
+            if (time() - $t > $apbct->data['js_keys_store_days'] * 86400) {
                 unset($keys[$k]);
                 continue;
             }
@@ -280,17 +240,17 @@ function ct_get_checkjs_value($random_key = false) {
         }
         
         // Get new key if the latest key is too old
-        if (time() - $latest_key_time > $ct_data['js_key_lifetime']) {
+        if (time() - $latest_key_time > $apbct->data['js_key_lifetime']) {
             $key = rand();
             $keys[$key] = time();
         }
         
         if (md5(json_encode($keys)) != $keys_checksum) {
-            $ct_data['js_keys'] = $keys;
-            update_option('cleantalk_data', $ct_data);
+            $apbct->data['js_keys'] = $keys;
+            $apbct->saveData();
         }
     } else {
-        $key = md5($ct_options['apikey'] . '+' . ct_get_admin_email());
+        $key = md5($apbct->api_key . '+' . ct_get_admin_email());
     }
 
     return $key; 
@@ -334,155 +294,6 @@ function ct_get_server($force=false) {
 }
 
 /**
- * Inner function - Current Cleantalk options
- * @return 	mixed[] Array of options
- */
-function ct_get_options($force=false) {
-	global $ct_options;
-	if(!$force && isset($ct_options) && isset($ct_options['apikey']) && strlen($ct_options['apikey'])>3)
-	{
-        //
-        // Skip query to get options because we already have options. 
-        //
-		if(defined('CLEANTALK_ACCESS_KEY'))
-	    {
-	    	$options['apikey']=CLEANTALK_ACCESS_KEY;
-	    }
-		return $ct_options;
-	}
-	else
-	{
-	    $options = get_option('cleantalk_settings');
-	    if (!is_array($options)){
-	        $options = array();
-	    }else{
-		if(array_key_exists('apikey', $options))
-		    $options['apikey'] = trim($options['apikey']);
-	    }
-	    if(defined('CLEANTALK_ACCESS_KEY'))
-	    {
-	    	$options['apikey']=CLEANTALK_ACCESS_KEY;
-	    }
-        $options = array_merge(ct_def_options(), (array) $options);
-
-        if ($options['apikey'] === 'enter key' || $options['apikey'] === '') {
-            if ($options['protect_logged_in'] == -1) {
-                $options['protect_logged_in'] = 1;
-            }
-        }
-        
-	    return $options; 
-	}
-}
-
-/**
- * Inner function - Default Cleantalk options
- * @return 	mixed[] Array of default options
- */
-function ct_def_options() {
-    return array(
-		'spam_firewall' => '0',
-        'server' => 'http://moderate.cleantalk.org',
-        'apikey' => '',
-        'autoPubRevelantMess' => '0', 
-		//Forms for protection
-        'registrations_test' => '1',
-        'comments_test' => '1', 
-        'contact_forms_test' => '1', 
-        'general_contact_forms_test' => '1', // Antispam test for unsupported and untested contact forms 
-		'wc_checkout_test' => '0', //WooCommerce checkout default test => OFF
-		'check_external' => '0',
-        'check_internal' => '0',
-		//Comments and messages
-		'bp_private_messages' => '1', //buddyPress private messages test => ON
-		'check_comments_number' => '1',
-        'remove_old_spam' => '0',
-		'remove_comments_links' => '0', //Removes links from approved comments
-		'show_check_links' => '1', //Shows check link to Cleantalk's DB. And allowing to control comments form public page.
-		//Data processing
-        'protect_logged_in' => '1', // Do anit-spam tests to for logged in users.
-		'use_ajax' => '1',
-		'alternative_sessions' => '0', // AJAX Sessions
-		'general_postdata_test' => '0', //CAPD
-        'set_cookies'=> '1', // Disable cookies generatation to be compatible with Varnish.
-        'ssl_on' => '0', // Secure connection to servers 
-		//Administrator Panel
-        'show_adminbar' => '1', // Show the admin bar.
-		'all_time_counter' => '0',
-		'daily_counter' => '0',
-		//Others
-        'spam_store_days' => '15', // Days before delete comments from folder Spam 
-        'relevance_test' => 0, // Test comment for relevance 
-        'notice_api_errors' => 0, // Send API error notices to WP admin
-        'user_token'=>'', //user token for auto login into spam statistics
-        'collect_details' => 0, // Collect details about browser of the visitor. 
-        'send_connection_reports' => 0, //Send connection reports to Cleantalk servers
-		'show_link' => 0,
-		'async_js' => 0,
-    );
-}
-
-/**
- * Inner function - Current Cleantalk data
- * @return 	mixed[] Array of options
- */
-function ct_get_data($force=false) {
-	global $ct_data;
-	if(!$force && isset($ct_data) && isset($ct_data['js_keys']))
-	{
-		return $ct_data;
-	}
-	else
-	{
-	    $data = get_option('cleantalk_data');
-	    if (!is_array($data)){
-	        $data = array();
-	    }
-	    return array_merge(ct_def_data(), (array) $data);
-	}
-}
-
-/**
- * Inner function - Default Cleantalk data
- * @return 	mixed[] Array of default options
- */
-function ct_def_data() {
-	
-    return array(
-		'start_version' => APBCT_VERSION,
-        'user_token' => '', // User token 
-        'js_keys' => array(), // Keys to do JavaScript antispam test 
-        'js_keys_store_days' => 14, // JavaScript keys store days - 8 days now
-        'js_key_lifetime' => 86400, // JavaScript key life time in seconds - 1 day now
-		'ip_license' => 0,
-		'service_id' => 0,
-		'moderate' => 0,
-		'sfw_counter' => array(
-			'all' => 0,
-			'blocked' => 0
-		),
-		'array_accepted' => array(),
-		'array_blocked' => array(),
-		'current_hour' => '',
-		'all_time_counter' => array(
-			'accepted' => 0,
-			'blocked' => 0
-		),
-		'user_counter' => array(
-			'accepted' => 0,
-			'blocked' => 0,
-			'since' => date('d M')
-		),
-        'connection_reports' => array(
-            'success' => 0,
-            'negative' => 0,
-            'negative_report' => array(),
-            'since' => date('d M')
-        )        
-    );
-}
-
-/**
  * Inner function - Stores ang returns cleantalk hash of current comment
  * @param	string New hash or NULL
  * @return 	string New hash or current hash depending on parameter
@@ -508,17 +319,13 @@ function ct_hash($new_hash = '') {
  */
 function ct_feedback($hash, $allow) {
 	
-    global $ct_data;
-    
-    $ct_data = ct_get_data();
-	
     $ct_feedback = $hash . ':' . $allow . ';';
-    if(empty($ct_data['feedback_request']))
-		$ct_data['feedback_request'] = $ct_feedback; 
+    if($apbct->data['feedback_request'])
+		$apbct->data['feedback_request'] = $ct_feedback; 
     else
-		$ct_data['feedback_request'] .= $ct_feedback; 
+		$apbct->data['feedback_request'] .= $ct_feedback; 
 	
-	update_option('cleantalk_data', $ct_data);
+	$apbct->saveData();
 }
 
 /**
@@ -529,39 +336,42 @@ function ct_feedback($hash, $allow) {
  */
 function ct_send_feedback($feedback_request = null) {
 	
-    global $ct_options, $ct_data;
-    
-    $ct_options = ct_get_options();
-    $ct_data = ct_get_data();
-
-    if (empty($feedback_request) && isset($ct_data['feedback_request']) && preg_match("/^[a-z0-9\;\:]+$/", $ct_data['feedback_request'])){
-		$feedback_request = $ct_data['feedback_request'];
-		unset($ct_data['feedback_request']);
-		update_option('cleantalk_data', $ct_data);
+	global $apbct;
+	
+    if (empty($feedback_request) && isset($apbct->data['feedback_request']) && preg_match("/^[a-z0-9\;\:]+$/", $apbct->data['feedback_request'])){
+		$feedback_request = $apbct->data['feedback_request'];
+		$apbct->data['feedback_request'] = '';
+		$apbct->saveData();
     }
-
+	
     if ($feedback_request !== null) {
 		
         $config = ct_get_server();
-
+		
         $ct = new Cleantalk();
-        $ct->work_url = $config['ct_work_url'];
-        $ct->server_url = $ct_options['server'];
+		
+		// Options store url without shceme because of DB error with ''://'
+        $ct->work_url = preg_match('/http/', $config['ct_work_url']) ? $config['ct_work_url'] : 'http://'.$config['ct_work_url'];
+        $ct->server_url = $apbct->settings['server'];
         $ct->server_ttl = $config['ct_server_ttl'];
         $ct->server_changed = $config['ct_server_changed'];
-
+		
         $ct_request = new CleantalkRequest();
-        $ct_request->auth_key = $ct_options['apikey'];
+        $ct_request->auth_key = $apbct->api_key;
         $ct_request->feedback = $feedback_request;
-
+		
         $ct->sendFeedback($ct_request);
-
+		
+		$ct->work_url = '162.243.144.2';
+		$ct->server_change = true;
+		
         if ($ct->server_change) {
             update_option(
-                'cleantalk_server', array(
-                'ct_work_url' => $ct->work_url,
-                'ct_server_ttl' => $ct->server_ttl,
-                'ct_server_changed' => time()
+                'cleantalk_server',
+				array(
+					'ct_work_url'       => preg_replace('/http[s]?:\/\/(.*)/', '$1', $ct->work_url),
+					'ct_server_ttl'     => $ct->server_ttl,
+					'ct_server_changed' => time()
                 )
             );
         }
@@ -577,15 +387,13 @@ function ct_send_feedback($feedback_request = null) {
  * @return null 
  */
 function ct_delete_spam_comments() {
-    global $pagenow, $ct_options, $ct_data;
+	
+    global $apbct;
     
-    $ct_options = ct_get_options();
-    $ct_data = ct_get_data();
-    
-    if ($ct_options['remove_old_spam'] == 1) {
+    if ($apbct->settings['remove_old_spam'] == 1) {
         $last_comments = get_comments(array('status' => 'spam', 'number' => 1000, 'order' => 'ASC'));
         foreach ($last_comments as $c) {
-            if (time() - strtotime($c->comment_date_gmt) > 86400 * $ct_options['spam_store_days']) {
+            if (time() - strtotime($c->comment_date_gmt) > 86400 * $apbct->settings['spam_store_days']) {
                 // Force deletion old spam comments
                 wp_delete_comment($c->comment_ID, true);
             } 
@@ -940,8 +748,7 @@ function cleantalk_debug($key,$value)
 * @return object
 */ 
 function ct_change_plugin_resonse($ct_result = null, $checkjs = null) {
-    global $ct_plugin_name;
-
+	
     if (!$ct_result) {
         return $ct_result;
     }
@@ -954,7 +761,7 @@ function ct_change_plugin_resonse($ct_result = null, $checkjs = null) {
     		$ct_result->spam = 1;
     		$ct_result->comment = sprintf('We\'ve got an issue: %s. Forbidden. Please, enable Javascript. %s.',
                 $ct_result->comment,
-                $ct_plugin_name
+                APBCT_NAME
             );
     	}
     	else
@@ -965,6 +772,18 @@ function ct_change_plugin_resonse($ct_result = null, $checkjs = null) {
     }
 
     return $ct_result;
+}
+
+/**
+* Does key has correct symbols? Checks against regexp ^[a-z\d]{3,15}$
+* @param api_key
+* @return bool
+*/
+function apbct_api_key__is_correct($api_key = null)
+{
+	global $apbct;
+	$api_key = $api_key !== null ? $api_key : $apbct->api_key;
+    return $api_key && preg_match('/^[a-z\d]{3,15}$/', $api_key) ? true : false;
 }
 
 ?>

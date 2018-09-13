@@ -166,9 +166,10 @@ class CleantalkHelper
 		                                                          return false; // Unknown
 	}
 	
-	/*
+	/**
 	* Wrapper for sfw_logs API method
-	* 
+	* @param integer connect timeout
+	* @return type
 	* returns mixed STRING || array('error' => true, 'error_string' => STRING)
 	*/
 	static public function api_method__sfw_logs($api_key, $data, $do_check = true){
@@ -228,7 +229,7 @@ class CleantalkHelper
 		);
 		
 		$result = self::api_send_request($request);
-		// $result = $do_check ? self::api_check_response($result, 'get_api_key') : $result;
+		$result = $do_check ? self::api_check_response($result, 'get_api_key') : $result;
 		
 		return $result;
 	}
@@ -343,7 +344,7 @@ class CleantalkHelper
 		
 		if($date) $request['date'] = $date;
 		
-		$result = self::api_send_request($request, self::URL, false, 6);
+		$result = self::api_send_request($request);
 		$result = $do_check ? self::api_check_response($result, 'spam_check_cms') : $result;
 		
 		return $result;
@@ -558,12 +559,106 @@ class CleantalkHelper
 			$apbct->save('data');
 	}
 	
-	//* Write $message to the plugin's debug option
-	static public function ct_log($message = 'empty', $func = null, $params = array())
+	/**
+	 * Function sends raw http request
+	 *
+	 * May use 4 presets(combining possible):
+	 * get_code             - getting only HTTP response code
+	 * dont_wait_for_answer - async requests
+	 * get                  - GET-request
+	 * ssl                  - use SSL
+	 * 
+	 * @param string result
+	 * @param string request_method
+	 * @return mixed (array || array('error' => true))
+	 */
+	static public function http__request($url, $data = array(), $presets = null, $opts = array())
 	{
-		global $ct_data;
+		if(function_exists('curl_init')){
 		
-		$ct_data = ct_get_data();
+			$ch = curl_init();
+			
+			// Obligatory options
+			$opts = array(
+				CURLOPT_URL               => $url,
+				CURLOPT_RETURNTRANSFER    => 1,
+				CURLOPT_CONNECTTIMEOUT_MS => 3000,
+				CURLOPT_FORBID_REUSE      => true,
+				CURLOPT_USERAGENT         => 'Cleantalk Wordpress Antispam '.APBCT_AGENT,
+				CURLOPT_POST              => true,
+				CURLOPT_POSTFIELDS        => str_replace("&amp;", "&", http_build_query($data)),
+				CURLOPT_SSL_VERIFYPEER    => false,
+				CURLOPT_SSL_VERIFYHOST    => 0,
+				CURLOPT_HTTPHEADER        => array('Expect:'), // Fix for large data and old servers http://php.net/manual/ru/function.curl-setopt.php#82418
+			);
+			
+			// Use presets
+			$presets = is_array($presets) ? $presets : array($presets);
+			foreach($presets as $preset){
+				
+				switch($preset){
+					
+					// Get headers only
+					case 'get_code':
+						$opts[CURLOPT_HEADER] = true;
+						$opts[CURLOPT_NOBODY] = true;
+						break;
+						
+					// Make a request, don't wait for an answer
+					case 'dont_wait_for_answer':
+						$opts[CURLOPT_CONNECTTIMEOUT_MS] = 1000;
+						$opts[CURLOPT_TIMEOUT_MS] = 1;
+						break;
+					
+					case 'get':
+						$opts[CURLOPT_URL] .= '?'.str_replace("&amp;", "&", http_build_query($data));
+						$opts[CURLOPT_POST] = false;
+						$opts[CURLOPT_POSTFIELDS] = null;
+						break;
+					
+					case 'ssl':
+						$opts[CURLOPT_SSL_VERIFYPEER] = true;
+						$opts[CURLOPT_SSL_VERIFYHOST] = 2;
+						$opts[CURLOPT_CAINFO] = APBCT_CASERT_PATH;
+						break;
+					
+					default:
+						
+						break;
+				}
+		
+			} unset($preset);
+		
+			curl_setopt_array($ch, $opts);
+			$result = @curl_exec($ch);
+		
+			if(in_array('dont_wait_for_answer', $presets)) return true;
+		
+			if($result){
+				$result = explode(PHP_EOL, $result);
+				if(in_array('get_code', $presets)) $result = curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
+				curl_close($ch);
+				return $result;
+			}else
+				$error = array('error' => true, 'error_string' => curl_error($ch));
+		}else
+			$error = array('error' => true, 'error_string' => 'CURL_NOT_INSTALLED');
+		
+		/** Fix for get_code preset */
+		if($presets && ($presets == 'get_code' || (is_array($presets) && in_array($presets, 'get_code') ) )
+			&& (isset($error) && $error['error_string'] == 'CURL_NOT_INSTALLED')
+		){
+			$headers = get_headers($url);
+			$out = (int)preg_replace('/.*(\d{3}).*/', '$1', $headers[0]);
+		}
+		
+		return $out;
+	}
+	
+	//* Write $message to the plugin's debug option
+	static public function log($message = 'empty', $func = null, $params = array())
+	{
+		$debug = get_option( APBCT_DEBUG );
 		
 		$function = $func                         ? $func : '';
 		$cron     = in_array('cron', $params)     ? true  : false;
@@ -573,12 +668,12 @@ class CleantalkHelper
 		if(is_array($message) or is_object($message))
 			$message = print_r($message, true);
 		
-		if($message)  $ct_data['debug'][date("H:i:s", microtime(true))."_ACTION_".strval(current_action())."_FUNCTION_".strval($func)]             = $message;
-		if($cron)     $ct_data['debug'][date("H:i:s", microtime(true))."_ACTION_".strval(current_action())."_FUNCTION_".strval($func).'_cron']     = get_option('cleantalk_cron');
-		if($data)     $ct_data['debug'][date("H:i:s", microtime(true))."_ACTION_".strval(current_action())."_FUNCTION_".strval($func).'_data']     = get_option('cleantalk_data');
-		if($settings) $ct_data['debug'][date("H:i:s", microtime(true))."_ACTION_".strval(current_action())."_FUNCTION_".strval($func).'_settings'] = get_option('cleantalk_settings');
+		if($message)  $debug[date("H:i:s", microtime(true))."_ACTION_".strval(current_action())."_FUNCTION_".strval($func)]         = $message;
+		if($cron)     $debug[date("H:i:s", microtime(true))."_ACTION_".strval(current_action())."_FUNCTION_".strval($func).'_cron'] = $apbct->cron;
+		if($data)     $debug[date("H:i:s", microtime(true))."_ACTION_".strval(current_action())."_FUNCTION_".strval($func).'_data'] = $apbct->data;
+		if($settings) $debug[date("H:i:s", microtime(true))."_ACTION_".strval(current_action())."_FUNCTION_".strval($func).'_settings'] = $apbct->settings;
 		
-		update_option('cleantalk_data', $ct_data);
+		update_option(APBCT_DEBUG, $debug);
 	}
 
 	static public function is_json($string)

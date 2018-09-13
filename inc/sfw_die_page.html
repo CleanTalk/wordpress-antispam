@@ -60,7 +60,7 @@ function get_current_url() {
 		}, 50);
         setTimeout(function(){
 			var ct_date = new Date;
-            window.location.href=window.location.origin + window.location.pathname + (window.location.search === '' ? '?sfw=pass' : '&sfw=pass') + Math.round(ct_date.getTime()/1000);
+			window.location.href = window.location.origin + window.location.pathname + '?sfw=pass' + Math.round(ct_date.getTime()/1000);
         }, reload_timeout);
     </script>
 </body>

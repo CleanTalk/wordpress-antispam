@@ -20,9 +20,7 @@ class cleantalk_widget extends WP_Widget
 	// This is where the action happens
 	public function widget( $args, $instance )
 	{
-		global $ct_data;
-		
-		$ct_data = ct_get_data();
+		global $apbct;
 		
 		$title = apply_filters( 'widget_title', $instance['title'] );
 		echo $args['before_widget'];
@@ -31,8 +29,7 @@ class cleantalk_widget extends WP_Widget
 		if ( ! empty( $title ) ){ echo $args['before_title'] . $title . $args['after_title']; }
 		
 		// Parsing incoming params
-		$blocked = isset( $ct_data['admin_blocked'] ) ? $ct_data['admin_blocked'] : 0;
-		$blocked = number_format($blocked, 0, ',', ' ');
+		$blocked = number_format($apbct->data['spam_count'], 0, ',', ' ');
 		
 		$a_style = 'cursor: pointer; display: block; padding: 5px 0 5px; text-align: center; text-decoration: none; border-radius: 5px; -moz-border-radius: 5px; -webkit-border-radius: 5px; font-weight: normal; height: 100%; width: 100%; ';
 		$strong_style = 'display: block; font-size: 15px; line-height: 16px; padding: 0 13px; white-space: nowrap; ';

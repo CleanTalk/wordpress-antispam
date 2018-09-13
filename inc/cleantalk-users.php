@@ -17,18 +17,16 @@ function ct_add_users_menu(){
 
 function ct_show_users_page(){
 	
-    global $ct_plugin_name, $wpdb;
+    global $wpdb;
 	
 	?>
 		<div class="wrap">
-		<h2><img src="<?php echo plugin_dir_url(__FILE__) ?>/images/logo_color.png" /> <?php echo $ct_plugin_name; ?></h2><br />
+		<h2><img src="<?php echo plugin_dir_url(__FILE__) ?>/images/logo_color.png" /> <?php echo APBCT_NAME; ?></h2><br />
 	<?php
 	
 	// If access key is unset in 
-	if(!ct_valid_key()){
-		global $ct_data;
-		$ct_data = ct_get_data();
-		if($ct_data['moderate_ip'] = 1){
+	if(!apbct_api_key__is_correct()){
+		if($apbct->moderate_ip == 1){
 			echo '<h3>'
 				.sprintf(
 					__('Antispam hosting tariff does not allow you to use this feature. To do so, you need to enter an Access Key in the %splugin settings%s.', 'cleantalk'),
@@ -91,7 +89,7 @@ function ct_show_users_page(){
 				<input class="ct_date" type="text" id="ct_date_range_till" value="<?php echo isset($_GET['till']) ? $_GET['till'] : ''; ?>" disabled readonly />
 			</div>
 			<br>
-			<?php ct_input_get_premium(); ?>
+			<?php apbct_admin__badge__get_premium(); ?>
 		</div>
 		
 		<!-- Cooling notice --> 
@@ -285,9 +283,7 @@ function ct_ajax_check_users(){
 	
 	check_ajax_referer('ct_secret_nonce', 'security');
 	
-	global $ct_options,$ct_ip_penalty_days;
-
-	$ct_options = ct_get_options();
+	global $apbct;
     
     $skip_roles = array(
         'administrator'
@@ -396,7 +392,7 @@ function ct_ajax_check_users(){
 			die();
 		}
 		
-		$result = CleantalkHelper::api_method__spam_check_cms($ct_options['apikey'], $data, !empty($_POST['accurate_check']) ? $curr_date : null);
+		$result = CleantalkHelper::api_method__spam_check_cms($apbct->api_key, $data, !empty($_POST['accurate_check']) ? $curr_date : null);
 		
 		if(empty($result['error'])){
 				

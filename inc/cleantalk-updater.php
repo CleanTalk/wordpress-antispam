@@ -67,9 +67,7 @@ function apbct_update_to_5_56_0(){
 }
 function apbct_update_to_5_70_0(){
 	
-	global $wpdb, $ct_data;
-	
-	$ct_data = ct_get_data();
+	global $wpdb;
 	
 	if(!in_array('all_entries', $wpdb->get_col("DESC " . $wpdb->base_prefix."cleantalk_sfw_logs", 0))){
 		$wpdb->query("ALTER TABLE `".$wpdb->base_prefix."cleantalk_sfw_logs`
@@ -80,8 +78,6 @@ function apbct_update_to_5_70_0(){
 	}
 	
 	// Deleting usless data
-	unset($ct_data['db_refreshed'], $ct_data['last_sfw_send'], $ct_data['next_account_status_check']);
-	update_option('cleantalk_data', $ct_data);
 	delete_option('cleantalk_sends_reports_till');
 	delete_option('cleantalk_activation_timestamp');
 	
@@ -106,26 +102,10 @@ function apbct_update_to_5_74_0(){
 
 function apbct_update_to_5_97_0(){
 	
-	global $ct_data;
+	global $apbct;
 	
-	$ct_data = ct_get_data();
+	if(count($abpct->data['connection_reports']['negative_report']) >= 20)
+		$abpct->data['connection_reports']['negative_report'] = array_slice($abpct->data['connection_reports']['negative_report'], -20, 20);
 	
-	if(count($ct_data['connection_reports']['negative_report']) >= 20)
-		$ct_data['connection_reports']['negative_report'] = array_slice($ct_data['connection_reports']['negative_report'], -20, 20);
-	
-	update_option('cleantalk_data', $ct_data);
-}
-
-function apbct_update_to_5_101_0(){
-	
-	global $wpdb;
-	
-	$wpdb->query("CREATE TABLE IF NOT EXISTS `".$wpdb->base_prefix."cleantalk_sessions` (
-		`id` VARCHAR(32) NOT NULL,
-		`data` TEXT NULL,
-		`started` INT(11) NOT NULL,
-		`last_update` INT(11) NOT NULL,
-		PRIMARY KEY (`id`)) 
-		ENGINE = InnoDB;"
-	);
+	$abpct->saveData();
 }

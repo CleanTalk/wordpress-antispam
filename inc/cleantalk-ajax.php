@@ -248,10 +248,8 @@ function ct_mc4wp_ajax_hook( array $errors )
 function ct_ajax_hook($message_obj = false, $additional = false)
 {	
 	require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public.php');
-	global $ct_checkjs_register_form, $bp, $ct_signup_done, $ct_negative_comment, $ct_options, $ct_data, $current_user;
-
-	$ct_options = ct_get_options();
-    $ct_data = ct_get_data();
+	global $apbct, $ct_checkjs_register_form, $bp, $ct_signup_done, $ct_negative_comment, $current_user;
+	
 	$sender_email = null;
     $message = '';
     $sender_nickname = null;
@@ -261,7 +259,7 @@ function ct_ajax_hook($message_obj = false, $additional = false)
     //
     // Skip test if Custom contact forms is disabled.
     //
-    if (intval($ct_options['general_contact_forms_test'])==0 ) {
+    if (!$apbct->settings['general_contact_forms_test']) {
         return false;
     }
 

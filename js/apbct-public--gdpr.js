@@ -22,7 +22,7 @@ function apbct_gdpr__form_append_notice(){
 		// Adding notice
 		if(elem.is('form') || elem.attr('role') == 'form'){
 			elem.append('<input id="apbct_gdpr_'+i+'" type="checkbox" required="required " style="margin-right: 10px;">')
-				.append('<lable for="apbct_gdpr_'+i+'">'+ctPublic.gdpr_text+'</lable>');
+				.append('<label for="apbct_gdpr_'+i+'">'+ctPublic.gdpr_text+'</label>');
 		}
 	});
 	

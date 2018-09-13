@@ -55,6 +55,7 @@ class CleantalkCron
 	static public function removeTask($task)
 	{		
 		$tasks = get_option(self::CRON_OPTION_NAME);
+		
 		$tasks = empty($tasks) ? array() : $tasks;
 		
 		if(!isset($tasks[$task]))

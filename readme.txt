@@ -3,7 +3,7 @@ Contributors: safronik
 Tags: spam, antispam, protection, comments, firewall 
 Requires at least: 3.0
 Tested up to: 4.9
-Stable tag: 5.101
+Stable tag: 5.102
 License: GPLv2
 
 Spam protection, antispam, all-in-one, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -516,6 +516,16 @@ Yes, it is. Please read this article,
 10. Website's options.
 
 == Changelog ==
+= 5.102 August 29 2018 =
+  * Fix: Users and comments check.
+  * Fix: Update from 5.70 or previous versions.
+  * Fix: GDPR public JS-script.
+  * Fix: Dashboard widget JS scripts attachment.
+  * Fix: WooCommerce "Place order" action.
+  * Mod: Notification logic altered.
+  * Mod: Users check table now has 'Signed up' column.
+  * Minor fixes.
+
 = 5.101 August 10 2018 =
   * Fix: Set cookie only for non-dashboard pages.
   * Fix: Dashboard widget JS error.
@@ -1623,6 +1633,16 @@ Yes, it is. Please read this article,
   * First version
   
 == Upgrade Notice ==
+= 5.102 August 29 2018 =
+  * Fix: Users and comments check.
+  * Fix: Update from 5.70 or previous versions.
+  * Fix: GDPR public JS-script.
+  * Fix: Dashboard widget JS scripts attachment.
+  * Fix: WooCommerce "Place order" action.
+  * Mod: Notification logic altered.
+  * Mod: Users check table now has 'Signed up' column.
+  * Minor fixes.
+
 = 5.101 August 10 2018 =
   * Fix: Set cookie only for non-dashboard pages.
   * Fix: Dashboard widget JS error.
