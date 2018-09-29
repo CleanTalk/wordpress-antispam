@@ -1,10 +1,8 @@
 <?php
 
 class CleantalkHelper
-{
-	const URL = 'https://api.cleantalk.org';
-	
-	public static $cdn_pool = array(
+{	
+	private static $cdn_pool = array(
 		'cloud_flare' => array(
 			'ipv4' => array(
 				'103.21.244.0/22',
@@ -36,7 +34,7 @@ class CleantalkHelper
 		),
 	);
 	
-	public static $private_networks = array(
+	private static $private_networks = array(
 		'10.0.0.0/8',
 		'100.64.0.0/10',
 		'172.16.0.0/12',
@@ -167,399 +165,6 @@ class CleantalkHelper
 	}
 	
 	/**
-	* Wrapper for sfw_logs API method
-	* @param integer connect timeout
-	* @return type
-	* returns mixed STRING || array('error' => true, 'error_string' => STRING)
-	*/
-	static public function api_method__sfw_logs($api_key, $data, $do_check = true){
-		
-		$request = array(
-			'auth_key' => $api_key,
-			'method_name' => 'sfw_logs',
-			'data' => json_encode($data),
-			'rows' => count($data),
-			'timestamp' => time()
-		);
-		$result = self::api_send_request($request);
-		$result = $do_check ? self::api_check_response($result, 'sfw_logs') : $result;
-		
-		return $result;
-	}
-	
-	/*
-	* Wrapper for 2s_blacklists_db API method
-	* 
-	* returns mixed STRING || array('error' => true, 'error_string' => STRING)
-	*/
-	static public function api_method__get_2s_blacklists_db($api_key, $do_check = true){
-		
-		$request = array(
-			'agent' => APBCT_AGENT,
-			'method_name' => '2s_blacklists_db',
-			'auth_key' => $api_key,
-		);
-		
-		$result = self::api_send_request($request);
-		$result = $do_check ? self::api_check_response($result, '2s_blacklists_db') : $result;
-		
-		return $result;
-	}
-	
-	/**
-	 * Function gets access key automatically
-	 *
-	 * @param string website admin email
-	 * @param string website host
-	 * @param string website platform
-	 * @return type
-	 */
-	static public function api_method__get_api_key($email, $host, $platform, $timezone = null, $language = null, $ip = null, $do_check = true)
-	{		
-		$request = array(
-			'method_name'          => 'get_api_key',
-			'product_name'         => 'antispam',
-			'agent'                => APBCT_AGENT,
-			'email'                => $email,
-			'website'              => $host,
-			'platform'             => $platform,
-			'timezone'             => $timezone,
-			'http_accept_language' => !empty($_SERVER['HTTP_ACCEPT_LANGUAGE']) ? $_SERVER['HTTP_ACCEPT_LANGUAGE'] : null,
-			'user_ip'              => $ip ? $ip : self::ip_get(array('real'), false),
-		);
-		
-		$result = self::api_send_request($request);
-		$result = $do_check ? self::api_check_response($result, 'get_api_key') : $result;
-		
-		return $result;
-	}
-	
-	/**
-	 * Function gets information about renew notice
-	 *
-	 * @param string api_key
-	 * @return type
-	 */
-	static public function api_method__notice_validate_key($api_key, $path_to_cms, $do_check = true)
-	{
-		$request = array(
-			'agent' => APBCT_AGENT,
-			'method_name' => 'notice_validate_key',
-			'auth_key' => $api_key,
-			'path_to_cms' => $path_to_cms	
-		);
-		
-		$result = self::api_send_request($request);
-		$result = $do_check ? self::api_check_response($result, 'notice_validate_key') : $result;
-		
-		return $result;
-	}
-	
-	/**
-	 * Function gets information about renew notice
-	 *
-	 * @param string api_key
-	 * @return type
-	 */
-	static public function api_method__notice_paid_till($api_key, $do_check = true)
-	{
-		$request = array(
-			'agent' => APBCT_AGENT,
-			'method_name' => 'notice_paid_till',
-			'auth_key' => $api_key
-		);
-		
-		$result = self::api_send_request($request);
-		$result = $do_check ? self::api_check_response($result, 'notice_paid_till') : $result;
-		
-		return $result;
-	}
-
-	/**
-	 * Function gets spam report
-	 *
-	 * @param string website host
-	 * @param integer report days
-	 * @return type
-	 */
-	static public function api_method__get_antispam_report($host, $period = 1)
-	{
-		$request=Array(
-			'agent' => APBCT_AGENT,
-			'method_name' => 'get_antispam_report',
-			'hostname' => $host,
-			'period' => $period
-		);
-		
-		$result = self::api_send_request($request);
-		// $result = $do_check ? self::api_check_response($result, 'get_antispam_report') : $result;
-		
-		return $result;
-	}
-	
-	/**
-	 * Function gets spam statistics
-	 *
-	 * @param string website host
-	 * @param integer report days
-	 * @return type
-	 */
-	static public function api_method__get_antispam_report_breif($api_key, $do_check = true)
-	{
-		
-		$request = array(
-			'agent' => APBCT_AGENT,
-			'method_name' => 'get_antispam_report_breif',
-			'auth_key' => $api_key,
-		);
-		
-		$result = self::api_send_request($request);
-		$result = $do_check ? self::api_check_response($result, 'get_antispam_report_breif') : $result;
-		
-		$tmp = array();
-		for( $i = 0; $i < 7; $i++ )
-			$tmp[ date( 'Y-m-d', time() - 86400 * 7 + 86400 * $i ) ] = 0;
-		
-		$result['spam_stat']    = array_merge( $tmp, isset($result['spam_stat']) ? $result['spam_stat'] : array() );
-		$result['top5_spam_ip'] = isset($result['top5_spam_ip']) ? $result['top5_spam_ip'] : array();
-		
-		return $result;		
-	}
-	
-	/**
-	 * Function gets spam report
-	 *
-	 * @param string website host
-	 * @param integer report days
-	 * @return type
-	 */
-	static public function api_method__spam_check_cms($api_key, $data, $date = null, $do_check = true)
-	{
-		$request=Array(
-			'agent' => APBCT_AGENT,
-			'method_name' => 'spam_check_cms',
-			'auth_key' => $api_key,
-			'data' => is_array($data) ? implode(',',$data) : $data,
-		);
-		
-		if($date) $request['date'] = $date;
-		
-		$result = self::api_send_request($request);
-		$result = $do_check ? self::api_check_response($result, 'spam_check_cms') : $result;
-		
-		return $result;
-	}
-	
-	/**
-	 * Function sends raw request to API server
-	 *
-	 * @param string url of API server
-	 * @param array data to send
-	 * @param boolean is data have to be JSON encoded or not
-	 * @param integer connect timeout
-	 * @return type
-	 */
-	static public function api_send_request($data, $url = self::URL, $isJSON = false, $timeout=3, $ssl = false)
-	{	
-		
-		$result = null;
-		$curl_error = false;
-		
-		$original_data = $data;
-		
-		if(!$isJSON){
-			$data = http_build_query($data);
-			$data = str_replace("&amp;", "&", $data);
-		}else{
-			$data = json_encode($data);
-		}
-		
-		if (function_exists('curl_init') && function_exists('json_decode')){
-		
-			$ch = curl_init();
-			curl_setopt($ch, CURLOPT_URL, $url);
-			curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
-			curl_setopt($ch, CURLOPT_POST, true);
-			curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
-			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-			curl_setopt($ch, CURLOPT_HTTPHEADER, array('Expect:'));
-			
-			if ($ssl === true) {
-				curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
-				curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
-				curl_setopt($ch, CURLOPT_CAINFO, APBCT_CASERT_PATH);
-            }else{
-				curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-				curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
-			}
-			
-			$result = curl_exec($ch);
-			
-			if($result === false){
-				if($ssl === false){
-					return self::api_send_request($original_data, $url, $isJSON, $timeout, true);
-				}
-				$curl_error = curl_error($ch);
-			}
-			
-			curl_close($ch);
-			
-		}else{
-			$curl_error = 'CURL_NOT_INSTALLED';
-		}
-		
-		if($curl_error){
-			
-			$opts = array(
-				'http'=>array(
-					'method'  => "POST",
-					'timeout' => $timeout,
-					'content' => $data,
-				)
-			);
-			$context = stream_context_create($opts);
-			$result = @file_get_contents($url, 0, $context);
-		}
-		
-		if(!$result && $curl_error)
-			return json_encode(array('error' => true, 'error_string' => $curl_error));
-		
-		return $result;
-	}
-	
-	/**
-	 * Function checks server response
-	 *
-	 * @param string result
-	 * @param string request_method
-	 * @return mixed (array || array('error' => true))
-	 */
-	static public function api_check_response($result, $method_name = null)
-	{	
-		
-		// Errors handling
-		
-		// Bad connection
-		if(empty($result)){
-			return array(
-				'error' => true,
-				'error_string' => 'CONNECTION_ERROR'
-			);
-		}
-		
-		// JSON decode errors
-		$result = json_decode($result, true);
-		if(empty($result)){
-			return array(
-				'error' => true,
-				'error_string' => 'JSON_DECODE_ERROR'
-			);
-		}
-		
-		// cURL error
-		if(!empty($result['error'])){
-			return array(
-				'error' => true,
-				'error_string' => 'CONNECTION_ERROR: ' . $result['error_string'],
-			);
-		}
-		
-		// Server errors
-		if($result && (isset($result['error_no']) || isset($result['error_message']))){
-			return array(
-				'error' => true,
-				'error_string' => "SERVER_ERROR NO: {$result['error_no']} MSG: {$result['error_message']}",
-				'error_no' => $result['error_no'],
-				'error_message' => $result['error_message']
-			);
-		}
-		
-		// Pathces for different methods
-		
-		// mehod_name = notice_validate_key
-		if($method_name == 'notice_validate_key' && isset($result['valid'])){
-			return $result;
-		}
-		
-		// Other methods
-		if(isset($result['data']) && is_array($result['data'])){
-			return $result['data'];
-		}
-	}
-	
-	/**
-	 * Prepares an adds an error to the plugin's data
-	 *
-	 * @param string type
-	 * @param mixed array || string
-	 * @returns null
-	 */
-	static public function addError($type, $error, $set_time = true)
-	{	
-		global $apbct;
-		
-		$error_string = is_array($error)
-			? $error['error_string']
-			: $error;
-		
-		// Exceptions
-		if( ($type == 'send_logs'          && $error_string == 'NO_LOGS_TO_SEND') ||
-			($type == 'send_firewall_logs' && $error_string == 'NO_LOGS_TO_SEND')
-		)
-			return;
-		
-		if($set_time == true)
-			$apbct->data['errors'][$type]['error_time']   = current_time('timestamp');
-		$apbct->data['errors'][$type]['error_string'] = $error_string;
-		$apbct->save('data');
-	}
-	
-	/**
-	 * Deletes an error from the plugin's data
-	 *
-	 * @param mixed (array of strings || string 'elem1 elem2...' || string 'elem') type
-	 * @param delay saving
-	 * @returns null
-	 */
-	static public function deleteError($type, $save_flag = false)
-	{
-		global $apbct;
-		
-		$before = empty($apbct->data['errors']) ? 0 : count($apbct->data['errors']);
-		
-		if(is_string($type))
-			$type = explode(' ', $type);
-		
-		foreach($type as $val){
-			if(isset($apbct->data['errors'][$val])){
-				unset($apbct->data['errors'][$val]);
-			}
-		}
-		
-		$after = empty($apbct->data['errors']) ? 0 : count($apbct->data['errors']);
-		// Save if flag is set and there are changes
-		if($save_flag && $before != $after)
-			$apbct->save('data');
-	}
-	
-	/**
-	 * Deletes all errors from the plugin's data
-	 *
-	 * @param delay saving
-	 * @returns null
-	 */
-	static public function deleteAllErrors($save_flag = false)
-	{
-		global $apbct;
-		
-		if(isset($apbct->data['errors']))
-			unset($apbct->data['errors']);
-		
-		if($save_flag)
-			$apbct->save('data');
-	}
-	
-	/**
 	 * Function sends raw http request
 	 *
 	 * May use 4 presets(combining possible):
@@ -584,7 +189,7 @@ class CleantalkHelper
 				CURLOPT_RETURNTRANSFER    => 1,
 				CURLOPT_CONNECTTIMEOUT_MS => 3000,
 				CURLOPT_FORBID_REUSE      => true,
-				CURLOPT_USERAGENT         => 'Cleantalk Wordpress Antispam '.APBCT_AGENT,
+				CURLOPT_USERAGENT         => 'Cleantalk Antispam ' . (defined('CLEANTALK_AGENT') ? CLEANTALK_AGENT : 'UNKNOWN_AGENT'),
 				CURLOPT_POST              => true,
 				CURLOPT_POSTFIELDS        => str_replace("&amp;", "&", http_build_query($data)),
 				CURLOPT_SSL_VERIFYPEER    => false,
@@ -607,7 +212,7 @@ class CleantalkHelper
 					// Make a request, don't wait for an answer
 					case 'dont_wait_for_answer':
 						$opts[CURLOPT_CONNECTTIMEOUT_MS] = 1000;
-						$opts[CURLOPT_TIMEOUT_MS] = 1;
+						$opts[CURLOPT_TIMEOUT_MS] = 500;
 						break;
 					
 					case 'get':
@@ -645,7 +250,7 @@ class CleantalkHelper
 			$error = array('error' => true, 'error_string' => 'CURL_NOT_INSTALLED');
 		
 		/** Fix for get_code preset */
-		if($presets && ($presets == 'get_code' || (is_array($presets) && in_array($presets, 'get_code') ) )
+		if($presets && ($presets == 'get_code' || (is_array($presets) && in_array('get_code', $presets) ) )
 			&& (isset($error) && $error['error_string'] == 'CURL_NOT_INSTALLED')
 		){
 			$headers = get_headers($url);
@@ -655,29 +260,95 @@ class CleantalkHelper
 		return $out;
 	}
 	
-	//* Write $message to the plugin's debug option
-	static public function log($message = 'empty', $func = null, $params = array())
-	{
-		$debug = get_option( APBCT_DEBUG );
-		
-		$function = $func                         ? $func : '';
-		$cron     = in_array('cron', $params)     ? true  : false;
-		$data     = in_array('data', $params)     ? true  : false;
-		$settings = in_array('settings', $params) ? true  : false;
-		
-		if(is_array($message) or is_object($message))
-			$message = print_r($message, true);
-		
-		if($message)  $debug[date("H:i:s", microtime(true))."_ACTION_".strval(current_action())."_FUNCTION_".strval($func)]         = $message;
-		if($cron)     $debug[date("H:i:s", microtime(true))."_ACTION_".strval(current_action())."_FUNCTION_".strval($func).'_cron'] = $apbct->cron;
-		if($data)     $debug[date("H:i:s", microtime(true))."_ACTION_".strval(current_action())."_FUNCTION_".strval($func).'_data'] = $apbct->data;
-		if($settings) $debug[date("H:i:s", microtime(true))."_ACTION_".strval(current_action())."_FUNCTION_".strval($func).'_settings'] = $apbct->settings;
-		
-		update_option(APBCT_DEBUG, $debug);
-	}
-
+	/**
+	* Checks if the string is JSON type
+	* @param string
+	* @return bool
+	*/
 	static public function is_json($string)
 	{
 		return is_string($string) && is_array(json_decode($string, true)) ? true : false;
 	}
+	
+	/**
+	* Function removing non UTF8 characters from array||string
+	* @param  mixed(array||string)
+	* @return mixed(array||string)
+	*/
+	static public function removeNonUTF8FromArray($data)
+	{
+		foreach($data as $key => $val){
+			if(is_array($val)){
+				$data[$key] = self::removeNonUTF8FromArray($val);
+			}else{
+				$data[$key] = self::removeNonUTF8FromString($val);
+			}
+		}
+		return $data;
+	}
+	
+	/**
+	* Function removing non UTF8 characters from array||string
+	* param  mixed(array||string)
+	* return mixed(array||string)
+	*/
+	public static function removeNonUTF8FromString($data)
+	{
+		if(!preg_match('//u', $data))
+			$data =  'Nulled. Not UTF8 encoded or malformed.';
+		return $data;
+	}
+	
+	/**
+	* Function convert array to UTF8 and removes non UTF8 characters 
+	* param array
+	* param string
+	* @return array
+	*/
+	public static function arrayToUTF8($array, $data_codepage = null)
+	{
+		foreach($array as $key => $val){
+			
+			if(is_array($val))
+				$array[$key] = self::arrayToUTF8($val, $data_codepage);
+			else
+				$array[$key] = self::stringToUTF8($val, $data_codepage);
+		}
+		return $array;
+	}
+	
+    /**
+    * Function convert string to UTF8 and removes non UTF8 characters 
+    * param string
+    * param string
+    * @return string
+    */
+    public static function stringToUTF8($str, $data_codepage = null)
+	{		
+        if (!preg_match('//u', $str) && function_exists('mb_detect_encoding') && function_exists('mb_convert_encoding')){
+            
+            if ($data_codepage !== null)
+                return mb_convert_encoding($str, 'UTF-8', $data_codepage);
+			
+            $encoding = mb_detect_encoding($str);
+			
+            if ($encoding)
+                return mb_convert_encoding($str, 'UTF-8', $encoding);
+        }
+        return $str;
+    }
+    
+    /**
+    * Function convert string from UTF8 
+    * param string
+    * param string
+    * @return string
+    */
+    public static function stringFromUTF8($str, $data_codepage = null)
+	{
+        if(preg_match('u', $str) && function_exists('mb_convert_encoding') && $data_codepage !== null)
+            return mb_convert_encoding($str, $data_codepage, 'UTF-8');
+		
+        return $str;
+    }
 }

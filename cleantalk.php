@@ -3,7 +3,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: http://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 5.103
+  Version: 5.105
   Author: СleanTalk <welcome@cleantalk.org>
   Author URI: http://cleantalk.org
 */
@@ -16,12 +16,15 @@ $plugin_info = get_file_data(__FILE__, array('Version' => 'Version', 'Name' => '
 // Common params
 define('APBCT_NAME',             $plugin_info['Name']);
 define('APBCT_VERSION',          $plugin_info['Version']);
-define('APBCT_AGENT',            'wordpress-'.str_replace('.', '', $plugin_info['Version']));
-define('APBCT_API_URL',          'https://api.cleantalk.org');        //Api URL
 define('APBCT_URL_PATH',         plugins_url('', __FILE__));          //HTTP path.   Plugin root folder without '/'.
 define('APBCT_DIR_PATH',         plugin_dir_path(__FILE__));          //System path. Plugin root folder with '/'.
 define('APBCT_PLUGIN_BASE_NAME', plugin_basename(__FILE__));          //Plugin base name.
 define('APBCT_CASERT_PATH',      file_exists(ABSPATH.WPINC.'/certificates/ca-bundle.crt') ? ABSPATH.WPINC.'/certificates/ca-bundle.crt' : ''); // SSL Serttificate path
+
+// API params
+define('CLEANTALK_AGENT',        'wordpress-'.str_replace('.', '', $plugin_info['Version']));
+define('CLEANTALK_API_URL',      'https://api.cleantalk.org');      //Api URL
+define('CLEANTALK_MODERATE_URL', 'https://moderate.cleantalk.org'); //Api URL
 
 // Option names
 define('APBCT_DATA',             'cleantalk_data');             //Option name with different plugin data.
@@ -44,16 +47,20 @@ if(!defined('CLEANTALK_PLUGIN_DIR')){
 	
     define('CLEANTALK_PLUGIN_DIR', plugin_dir_path(__FILE__));
     
+    require_once( CLEANTALK_PLUGIN_DIR . 'lib/CleantalkDB_Wordpress.php');      // State class
+	
 	require_once( CLEANTALK_PLUGIN_DIR . 'lib/cleantalk-php-patch.php'); // Pathces fpr different functions which not exists
 	require_once( CLEANTALK_PLUGIN_DIR . 'lib/CleantalkHelper.php');     // Helper class. Different useful functions
+	require_once( CLEANTALK_PLUGIN_DIR . 'lib/CleantalkAPI.php');        // Helper class. Different useful functions
 	require_once( CLEANTALK_PLUGIN_DIR . 'lib/Cleantalk.php');           // Main class for request
 	require_once( CLEANTALK_PLUGIN_DIR . 'lib/CleantalkRequest.php');    // Holds request data
 	require_once( CLEANTALK_PLUGIN_DIR . 'lib/CleantalkResponse.php');   // Holds response data
 	require_once( CLEANTALK_PLUGIN_DIR . 'lib/CleantalkCron.php');       // Cron handling
-    require_once( CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-widget.php');
-    require_once( CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-common.php');
     require_once( CLEANTALK_PLUGIN_DIR . 'lib/CleantalkState.php');      // State class
+    require_once( CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-common.php');	
 	
+	// define('APBCT_HOSTER_API_KEY', '123');
+	// define('APBCT_WHITELABLE',     true);
 	
 	// Global ArrayObject with settings and other global varables
 	global $apbct;
@@ -64,7 +71,30 @@ if(!defined('CLEANTALK_PLUGIN_DIR')){
 	$apbct->plugin_name = APBCT_NAME;
 	$apbct->base_name = 'cleantalk-spam-protect/cleantalk.php';
 	
-	$apbct->settings['apikey'] = defined('CLEANTALK_ACCESS_KEY') ? CLEANTALK_ACCESS_KEY : $apbct->settings['apikey'];
+	$apbct->logo                 = plugin_dir_url(__FILE__) . '/inc/images/logo.png';
+	$apbct->logo__small          = plugin_dir_url(__FILE__) . '/inc/images/logo_small.png';
+	$apbct->logo__small__colored = plugin_dir_url(__FILE__) . '/inc/images/logo_color.png';
+	
+	$apbct->key_is_ok          = !empty($apbct->data['key_is_ok']) ? $apbct->data['key_is_ok'] : 0;
+	$apbct->key_is_ok          = isset($apbct->data['testing_failed']) && $apbct->data['testing_failed'] == 0 ? 1 : $apbct->key_is_ok;
+	
+	$apbct->data['user_counter']['since']       = isset($apbct->data['user_counter']['since']) ? $apbct->data['user_counter']['since'] : date('d M');
+	$apbct->data['connection_reports']['since'] = isset($apbct->data['connection_reports']['since']) ? $apbct->data['user_counter']['since'] : date('d M');
+	
+	// White label reassignments
+	$apbct->white_label = defined('APBCT_WHITELABLE') && APBCT_WHITELABLE == true ? true : false;
+	if($apbct->white_label){
+		// $apbct->plugin_name = $apcbt->data['white_label_data']['plugin_name'];
+		
+		// $apbct->logo                 = $apcbt->data['white_label_data']['logo']
+		// $apbct->logo__small          = $apcbt->data['white_label_data']['logo__small']
+		// $apbct->logo__small__colored = $apcbt->data['white_label_data']['logo__small__colored']
+		
+		$apbct->plugin_name = 'Some plugin';
+	}else{
+		require_once( CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-widget.php');
+		$apbct->settings['apikey'] = defined('CLEANTALK_ACCESS_KEY') ? CLEANTALK_ACCESS_KEY : $apbct->settings['apikey'];
+	}
 	
 	// Self cron
 	if(!defined('DOING_CRON') || (defined('DOING_CRON') && DOING_CRON !== true)){
@@ -197,7 +227,8 @@ if(!defined('CLEANTALK_PLUGIN_DIR')){
 			
 			//QAEngine Theme answers
 			if (intval($apbct->settings['general_contact_forms_test']))
-				add_filter('et_pre_insert_answer', 'ct_ajax_hook', 1, 1);
+				add_filter('et_pre_insert_question', 'ct_ajax_hook', 1, 1); // Questions
+				add_filter('et_pre_insert_answer',   'ct_ajax_hook', 1, 1); // Answers
 			
             //
             // Some of plugins to register a users use AJAX context.
@@ -366,6 +397,7 @@ function apbct_sfw__check()
 		} 
 	}
 	
+	include_once(CLEANTALK_PLUGIN_DIR . "lib/CleantalkSFW_Base.php");
 	include_once(CLEANTALK_PLUGIN_DIR . "lib/CleantalkSFW.php");
 	
 	$is_sfw_check = true;
@@ -376,7 +408,7 @@ function apbct_sfw__check()
 		if(isset($_COOKIE['ct_sfw_pass_key']) && $_COOKIE['ct_sfw_pass_key'] == md5($ct_cur_ip.$apbct->api_key)){
 			$is_sfw_check=false;
 			if(isset($_COOKIE['ct_sfw_passed'])){
-				$sfw->sfw_update_logs($ct_cur_ip, 'passed');
+				$sfw->logs__update($ct_cur_ip, 'passed');
 				$apbct->data['sfw_counter']['all']++;
 				$apbct->saveData();
 				if(!headers_sent())
@@ -400,9 +432,9 @@ function apbct_sfw__check()
 	}
 	
 	if($is_sfw_check){
-		$sfw->check_ip();
+		$sfw->ip_check();
 		if($sfw->result){
-			$sfw->sfw_update_logs($sfw->blocked_ip, 'blocked');
+			$sfw->logs__update($sfw->blocked_ip, 'blocked');
 			$apbct->data['sfw_counter']['blocked']++;
 			$apbct->saveData();
 			$sfw->sfw_die($apbct->api_key);
@@ -542,6 +574,7 @@ function ct_sfw_update(){
 	
     if($apbct->settings['spam_firewall'] == 1){
 		
+		include_once(CLEANTALK_PLUGIN_DIR . "lib/CleantalkSFW_Base.php");
 		include_once(CLEANTALK_PLUGIN_DIR . "lib/CleantalkSFW.php");
 	
 		$sfw = new CleantalkSFW();
@@ -559,11 +592,12 @@ function ct_sfw_send_logs()
 	global $apbct;
 	
 	if($apbct->settings['spam_firewall'] == 1){
-	
+		
+		include_once(CLEANTALK_PLUGIN_DIR . "lib/CleantalkSFW_Base.php");
 		include_once(CLEANTALK_PLUGIN_DIR . "lib/CleantalkSFW.php");
 		
 		$sfw = new CleantalkSFW();
-		$result = $sfw->send_logs($apbct->api_key);
+		$result = $sfw->logs__send($apbct->api_key);
 		unset($sfw);
 		return $result;
 		
@@ -636,7 +670,7 @@ function cleantalk_get_brief_data(){
 	
     global $apbct;
 	
-	$apbct->data['brief_data'] = CleantalkHelper::api_method__get_antispam_report_breif($apbct->api_key);
+	$apbct->data['brief_data'] = CleantalkAPI::method__get_antispam_report_breif($apbct->api_key);
 	$apbct->saveData();
 	
 	return;
@@ -786,7 +820,7 @@ function ct_account_status_check($api_key = null){
 	
 	$api_key = $api_key ? $api_key : $apbct->api_key;
 	
-	$result = CleantalkHelper::api_method__notice_paid_till($api_key);	
+	$result = CleantalkAPI::method__notice_paid_till($api_key);	
 	
 	if(empty($result['error'])){
 		
@@ -864,5 +898,25 @@ function ct_mail_send_connection_report() {
 	$apbct->data['connection_reports']['negative_report'] = array();
 	$apbct->data['connection_reports']['since'] = date('d M');
 	$apbct->saveData();
-	CleantalkCron::updateTask('send_connection_report', 'ct_mail_send_connection_report',  3600);
+}
+
+//* Write $message to the plugin's debug option
+function apbct_log($message = 'empty', $func = null, $params = array())
+{
+	$debug = get_option( APBCT_DEBUG );
+	
+	$function = $func                         ? $func : '';
+	$cron     = in_array('cron', $params)     ? true  : false;
+	$data     = in_array('data', $params)     ? true  : false;
+	$settings = in_array('settings', $params) ? true  : false;
+	
+	if(is_array($message) or is_object($message))
+		$message = print_r($message, true);
+	
+	if($message)  $debug[date("H:i:s", microtime(true))."_ACTION_".strval(current_action())."_FUNCTION_".strval($func)]         = $message;
+	if($cron)     $debug[date("H:i:s", microtime(true))."_ACTION_".strval(current_action())."_FUNCTION_".strval($func).'_cron'] = $apbct->cron;
+	if($data)     $debug[date("H:i:s", microtime(true))."_ACTION_".strval(current_action())."_FUNCTION_".strval($func).'_data'] = $apbct->data;
+	if($settings) $debug[date("H:i:s", microtime(true))."_ACTION_".strval(current_action())."_FUNCTION_".strval($func).'_settings'] = $apbct->settings;
+	
+	update_option(APBCT_DEBUG, $debug);
 }

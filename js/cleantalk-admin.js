@@ -6,4 +6,6 @@ jQuery(document).ready(function(){
 		document.cookie = "apbct_update_banner_closed=1; path=/; expires=" + ct_date.toUTCString();
 	});
 	
+	jQuery('a[href="options-general.php?page=cleantalk"]').css('padding','5px 8px');
+	
 });

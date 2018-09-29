@@ -17,11 +17,20 @@ function ct_add_users_menu(){
 
 function ct_show_users_page(){
 	
-    global $wpdb;
+	$settings_link = $apbct->white_label
+		? 'admin.php?page=apbct_menu'
+		: (is_network_admin() 
+			? 'settings.php?page=cleantalk'
+			: 'options-general.php?page=cleantalk'
+		);
+	
+    global $wpdb, $apbct;
 	
 	?>
 		<div class="wrap">
-		<h2><img src="<?php echo plugin_dir_url(__FILE__) ?>/images/logo_color.png" /> <?php echo APBCT_NAME; ?></h2><br />
+		<h2><img src="<?php echo $apbct->logo__small__colored; ?>" /> <?php echo $apbct->plugin_name; ?></h2>
+		<a style="color: gray; margin-left: 23px;" href="<?php echo $settings_link; ?>"><?php _e('Plugin Settings', 'cleantalk'); ?></a>
+		<br />
 	<?php
 	
 	// If access key is unset in 
@@ -180,9 +189,11 @@ function ct_show_users_page(){
 										// Outputs email if exists
 										if(!empty($email)){
 											echo "<a href='mailto:$email'>$email</a>"
-												."<a href='https://cleantalk.org/blacklists/$email' target='_blank'>"
-													."&nbsp;<img src='".plugin_dir_url(__FILE__)."images/new_window.gif' border='0' style='float:none' />"
-												."</a>";
+												.(!$apbct->white_label 
+													? "<a href='https://cleantalk.org/blacklists/$email' target='_blank'>"
+														."&nbsp;<img src='".plugin_dir_url(__FILE__)."images/new_window.gif' border='0' style='float:none' />"
+													  ."</a>"
+													: '');
 										}else{
 											echo "No email";
 										}
@@ -195,9 +206,11 @@ function ct_show_users_page(){
 											if(!empty($user_meta[0]['ip'])){
 												$ip = $user_meta[0]['ip'];
 												echo "<a href='user-edit.php?user_id=$id'>$ip</a>"
-													."<a href='https://cleantalk.org/blacklists/$ip' target='_blank'>"
-														."&nbsp;<img src='".plugin_dir_url(__FILE__)."images/new_window.gif' border='0' style='float:none' />"
-													."</a>";
+													.(!$apbct->white_label 
+														?"<a href='https://cleantalk.org/blacklists/$ip ' target='_blank'>"
+															."&nbsp;<img src='".plugin_dir_url(__FILE__)."images/new_window.gif' border='0' style='float:none'/>"
+														  ."</a>"
+														: '');
 											}else
 												echo "No IP adress";
 										}else
@@ -392,7 +405,7 @@ function ct_ajax_check_users(){
 			die();
 		}
 		
-		$result = CleantalkHelper::api_method__spam_check_cms($apbct->api_key, $data, !empty($_POST['accurate_check']) ? $curr_date : null);
+		$result = CleantalkAPI::method__spam_check_cms($apbct->api_key, $data, !empty($_POST['accurate_check']) ? $curr_date : null);
 		
 		if(empty($result['error'])){
 				

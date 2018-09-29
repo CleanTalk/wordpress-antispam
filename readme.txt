@@ -3,7 +3,7 @@ Contributors: safronik
 Tags: spam, antispam, protection, comments, firewall 
 Requires at least: 3.0
 Tested up to: 4.9
-Stable tag: 5.102
+Stable tag: 5.104
 License: GPLv2
 
 Spam protection, antispam, all-in-one, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -516,6 +516,29 @@ Yes, it is. Please read this article,
 10. Website's options.
 
 == Changelog ==
+= 5.104 September 18 2018 =
+  * Fix: Error when saving settings.
+  * Fix: Trying update plugin plugin for the first installation.
+  * Fix: Update system.
+  * Fix: Errors output.
+  * Fix: Plugin's settings under WPMS.
+  * Fix: SpamFireWall update.
+  * Fix: The server change system repaired.
+  * Mod: Cron saving tasks improved.
+
+= 5.103.1 September 14 2018 =
+  * Fix: Error when saving settings.
+  * Fix: Error when getting key automatically.
+
+= 5.103 September 13 2018 =
+  * Fix: Gravity Forms response message.
+  * Fix: SpamFireWall redirect to 404 page.
+  * Major anti-spam plugin improvement.
+  * Recombined setting page.
+  * Added error notification.
+  * Mod: S2 Members integration.
+  * Mod: Improved remote calls.
+
 = 5.102 August 29 2018 =
   * Fix: Users and comments check.
   * Fix: Update from 5.70 or previous versions.
@@ -1633,6 +1656,29 @@ Yes, it is. Please read this article,
   * First version
   
 == Upgrade Notice ==
+= 5.104 September 18 2018 =
+  * Fix: Error when saving settings.
+  * Fix: Trying update plugin plugin for the first installation.
+  * Fix: Update system.
+  * Fix: Errors output.
+  * Fix: Plugin's settings under WPMS.
+  * Fix: SpamFireWall update.
+  * Fix: The server change system repaired.
+  * Mod: Cron saving tasks improved.
+
+= 5.103.1 September 14 2018 =
+  * Fix: Error when saving settings.
+  * Fix: Error when getting key automatically.
+
+= 5.103 September 13 2018 =
+  * Fix: Gravity Forms response message.
+  * Fix: SpamFireWall redirect to 404 page.
+  * Major anti-spam plugin improvement.
+  * Recombined setting page.
+  * Added error notification.
+  * Mod: S2 Members integration.
+  * Mod: Improved remote calls.
+
 = 5.102 August 29 2018 =
   * Fix: Users and comments check.
   * Fix: Update from 5.70 or previous versions.

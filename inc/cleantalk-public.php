@@ -912,21 +912,26 @@ function ct_preprocess_comment($comment) {
 		$err_text = '<center><b style="color: #49C73B;">Clean</b><b style="color: #349ebf;">Talk.</b> ' . __('Spam protection', 'cleantalk') . "</center><br><br>\n" . $ct_result->comment;
 		$err_text .= '<script>setTimeout("history.back()", 5000);</script>';
 		
-		if($ct_result->stop_queue == 1) // Terminate. Definitely spam.
-			wp_die($err_text, 'Blacklisted', array('back_link' => true));
-
-		if($ct_result->spam == 3) // Don't move to spam folder. Delete.
+		// Terminate. Definitely spam.
+		if($ct_result->stop_queue == 1) 
 			wp_die($err_text, 'Blacklisted', array('back_link' => true));
 		
+		// Terminate by user's setting.
+		if($ct_result->spam == 3) 
+			wp_die($err_text, 'Blacklisted', array('back_link' => true));
+		
+		// Trash comment.
 		if($ct_result->spam == 2){
 			add_filter('pre_comment_approved', 'ct_set_comment_spam', 997, 2);
 			add_action('comment_post', 'ct_wp_trash_comment', 997, 2);
 		}
 		
+		// Spam comment
 		if($ct_result->spam == 1)
 			add_filter('pre_comment_approved', 'ct_set_comment_spam', 997, 2);
 		
-		if($ct_result->stop_words){ // Contains stop_words. Move to pending folder.
+		// Move to pending folder. Contains stop_words. 
+		if($ct_result->stop_words){
 			add_filter('pre_comment_approved', 'ct_set_not_approved', 998, 2);
 			add_action('comment_post', 'ct_mark_red', 998, 2);
 		}
@@ -2259,9 +2264,9 @@ function ct_send_error_notice ($comment = '') {
 
         $blogname = wp_specialchars_decode(get_option('blogname'), ENT_QUOTES);
         $message  = __('Attention, please!', 'cleantalk') . "\r\n\r\n";
-        $message .= sprintf(__('"%s" plugin error on your site %s:', 'cleantalk'), APBCT_NAME, $blogname) . "\r\n\r\n";
+        $message .= sprintf(__('"%s" plugin error on your site %s:', 'cleantalk'), $apbct->plugin_name, $blogname) . "\r\n\r\n";
         $message .= $comment . "\r\n\r\n";
-        @wp_mail(ct_get_admin_email(), sprintf(__('[%s] %s error!', 'cleantalk'), APBCT_NAME, $blogname), $message);
+        @wp_mail(ct_get_admin_email(), sprintf(__('[%s] %s error!', 'cleantalk'), $apbct->plugin_name, $blogname), $message);
     }
 
     return null;
@@ -2302,9 +2307,6 @@ function ct_print_form($arr,$k)
 function ct_enqueue_scripts_public($hook){
 
 	global $current_user, $apbct;
-	
-	
-	
 	
 	if($apbct->settings['registrations_test'] || $apbct->settings['comments_test'] || $apbct->settings['contact_forms_test'] || $apbct->settings['general_contact_forms_test'] || $apbct->settings['wc_checkout_test'] || $apbct->settings['check_external'] || $apbct->settings['check_internal'] || $apbct->settings['bp_private_messages'] || $apbct->settings['general_postdata_test']){
 		

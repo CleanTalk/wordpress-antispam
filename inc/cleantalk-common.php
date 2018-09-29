@@ -99,7 +99,7 @@ function apbct_base_call($params = array(), $reg_flag = false){
 	$ct_request->sender_nickname = !empty($params['sender_nickname']) ? $params['sender_nickname']                       : null;
 	$ct_request->post_info       =  isset($params['post_info'])       ? json_encode($params['post_info'])                : null;
 	$ct_request->js_on           =  isset($params['checkjs'])         ? $params['checkjs']                               : apbct_js_test('ct_checkjs', $_COOKIE, true);
-	$ct_request->agent           = APBCT_AGENT;
+	$ct_request->agent           = CLEANTALK_AGENT;
 	$ct_request->sender_info     = json_encode($sender_info);
 	$ct_request->submit_time     = apbct_get_submit_time();
 	
@@ -134,7 +134,7 @@ function apbct_base_call($params = array(), $reg_flag = false){
 		update_option(
 			'cleantalk_server', 
 			array(
-				'ct_work_url'       => preg_replace('/http[s]?:\/\/(.*)/', '$1', $ct->work_url),
+				'ct_work_url'       => $ct->work_url,
 				'ct_server_ttl'     => $ct->server_ttl,
 				'ct_server_changed' => time(),
 			)
@@ -362,19 +362,17 @@ function ct_send_feedback($feedback_request = null) {
 		
         $ct->sendFeedback($ct_request);
 		
-		$ct->work_url = '162.243.144.2';
-		$ct->server_change = true;
-		
-        if ($ct->server_change) {
-            update_option(
-                'cleantalk_server',
+		if ($ct->server_change) {
+			update_option(
+				'cleantalk_server',
 				array(
-					'ct_work_url'       => preg_replace('/http[s]?:\/\/(.*)/', '$1', $ct->work_url),
+					'ct_work_url'       => $ct->work_url,
 					'ct_server_ttl'     => $ct->server_ttl,
 					'ct_server_changed' => time()
-                )
-            );
-        }
+				)
+			);
+		}		
+		
         return true;
     }
 
@@ -761,7 +759,7 @@ function ct_change_plugin_resonse($ct_result = null, $checkjs = null) {
     		$ct_result->spam = 1;
     		$ct_result->comment = sprintf('We\'ve got an issue: %s. Forbidden. Please, enable Javascript. %s.',
                 $ct_result->comment,
-                APBCT_NAME
+                $apbct->plugin_name
             );
     	}
     	else

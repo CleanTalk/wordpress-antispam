@@ -104,8 +104,8 @@ function apbct_update_to_5_97_0(){
 	
 	global $apbct;
 	
-	if(count($abpct->data['connection_reports']['negative_report']) >= 20)
-		$abpct->data['connection_reports']['negative_report'] = array_slice($abpct->data['connection_reports']['negative_report'], -20, 20);
+	if(count($apbct->data['connection_reports']['negative_report']) >= 20)
+		$apbct->data['connection_reports']['negative_report'] = array_slice($apbct->data['connection_reports']['negative_report'], -20, 20);
 	
-	$abpct->saveData();
+	$apbct->saveData();
 }

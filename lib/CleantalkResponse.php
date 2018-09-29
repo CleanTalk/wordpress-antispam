@@ -151,5 +151,4 @@ class CleantalkResponse {
                 $this->comment = '*** ' . $this->errstr . ' Antispam service cleantalk.org ***'; 
         }
     }
-
 }

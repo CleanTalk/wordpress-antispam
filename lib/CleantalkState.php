@@ -22,6 +22,7 @@ class CleantalkState
 		'spam_firewall'       => 0,
         'server'              => 'http://moderate.cleantalk.org',
         'apikey'              => '',
+		'custom_key'          => 0,
         'autoPubRevelantMess' => 0,
 		
 		/* Forms for protection */
@@ -51,6 +52,7 @@ class CleantalkState
         'show_adminbar'    => 1, // Show the admin bar.
 		'all_time_counter' => 0,
 		'daily_counter'    => 0,
+		'sfw_counter'      => 0,
 		
 		//Others
         'spam_store_days'         => '15', // Days before delete comments from folder Spam 
@@ -61,6 +63,7 @@ class CleantalkState
         'send_connection_reports' => 0, //Send connection reports to Cleantalk servers
 		'show_link'               => 0,
 		'async_js'                => 0,
+		'debug_ajax'              => 0,
 		
 		// GDPR
 		'gdpr_forms_id' => '',
@@ -99,6 +102,12 @@ class CleantalkState
 		'notice_review' => 0,
 		'notice_auto_update' => 0,
 		
+		// Brief data
+		'brief_data' => array(
+			'spam_stat' => array(),
+			'top5_spam_ip' => array(),
+		),
+		
 		'array_accepted'     => array(),
 		'array_blocked'      => array(),
 		'current_hour'       => '',
@@ -127,8 +136,14 @@ class CleantalkState
 			'sfw_enabled' => false,
 		),
 		
+		// White label
+		'white_label_data' => array(
+			'is_key_recieved' => false,
+		),
+		
 		// Misc
 		'feedback_request' => '',
+		'key_is_ok'        => 0,
     );
 	
 	public $def_network_settings = array(
@@ -137,7 +152,7 @@ class CleantalkState
 		'key_is_ok'          => 0,
 		'spbc_key'           => '',
 		'user_token'         => '',
-		'service_id'         => '',
+		'service_id'         => 0,
 	);
 	
 	public function __construct($option_prefix, $options = array('settings'), $wpms = false)
@@ -195,7 +210,7 @@ class CleantalkState
 	
 	public function saveSettings()
 	{
-		update_option($this->option_prefix.'_settins', (array)$this->settings);
+		update_option($this->option_prefix.'_settings', (array)$this->settings);
 	}
 	
 	public function saveData()
