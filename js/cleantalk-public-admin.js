@@ -1,16 +1,12 @@
 jQuery(document).ready(function(){
 	
 	// Set background-color similar to parents
-	var ct_current_wrapper = jQuery('.ct_comment_info').parent();
-	
-	for(var i=0; i < 30; i++){		
-		if(ct_current_wrapper.css('background-color') == 'rgba(0, 0, 0, 0)' || i == 29)
-			ct_current_wrapper = ct_current_wrapper.parent();
-		else{
-			jQuery('.ct_comment_info').css('background', ct_current_wrapper.css('background-color'));
-			break;
-		}
-	}
+jQuery('.ct_comment_info').parents().each(function() {
+  if ((e = jQuery(this).css('background-color')).length > 0 && e != 'rgba(0, 0, 0, 0)'){ 
+  	jQuery('.ct_comment_info').css('background', e);
+  	return false;
+  }
+});
 	
 	// Set same float style with article
 	var ct_post_float = jQuery('.ct_comment_info').prev().last().css('float');
@@ -20,7 +16,7 @@ jQuery(document).ready(function(){
 	
 	jQuery(ct_posts).each(function(indx, elem){
 		curr_elem = jQuery(elem);
-		curr_elem.prev().before(curr_elem);
+		curr_elem.parent().prepend(curr_elem);
 	});
 	
 	// Handler for buttons

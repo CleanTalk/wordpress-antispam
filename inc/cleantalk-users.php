@@ -17,11 +17,13 @@ function ct_add_users_menu(){
 
 function ct_show_users_page(){
 	
-    global $wpdb;
+    global $wpdb, $apbct;
 	
 	?>
 		<div class="wrap">
-		<h2><img src="<?php echo plugin_dir_url(__FILE__) ?>/images/logo_color.png" /> <?php echo APBCT_NAME; ?></h2><br />
+		<h2><img src="<?php echo $apbct->logo__small__colored; ?>" /> <?php echo $apbct->plugin_name; ?></h2>
+		<a style="color: gray; margin-left: 23px;" href="<?php echo $apbct->settings_link; ?>"><?php _e('Plugin Settings', 'cleantalk'); ?></a>
+		<br />
 	<?php
 	
 	// If access key is unset in 
@@ -34,8 +36,8 @@ function ct_show_users_page(){
 					'</a>'
 				)
 			.'</h3>';
+			return;
 		}
-		return;
 	}
 	
 	
@@ -69,10 +71,10 @@ function ct_show_users_page(){
 				
 	<!-- Main info --> 
 		<h3 id="ct_checking_status"><?php echo ct_ajax_info_users(true); ?></h3>
-		
+				
 	<!-- Check options -->
 		<div class="ct_to_hide" id="ct_check_params_wrapper">
-			<button class="button ct_check_params_elem" id="ct_check_spam_button"><?php _e("Start check", 'cleantalk'); ?></button>
+			<button class="button ct_check_params_elem" id="ct_check_spam_button" <?php echo !$apbct->data['moderate'] ? 'disabled="disabled"' : ''; ?>><?php _e("Start check", 'cleantalk'); ?></button>
 			<?php if(!empty($_COOKIE['ct_paused_users_check'])) { ?><button class="button ct_check_params_elem" id="ct_proceed_check_button"><?php _e("Continue check", 'cleantalk'); ?></button><?php } ?>
 			<p class="ct_check_params_desc"><?php _e("The plugin will check all comments against blacklists database and show you senders that have spam activity on other websites.", 'cleantalk'); ?></p>
 			<br />
@@ -180,9 +182,11 @@ function ct_show_users_page(){
 										// Outputs email if exists
 										if(!empty($email)){
 											echo "<a href='mailto:$email'>$email</a>"
-												."<a href='https://cleantalk.org/blacklists/$email' target='_blank'>"
+												.(!$apbct->white_label 
+													? "<a href='https://cleantalk.org/blacklists/$email' target='_blank'>"
 													."&nbsp;<img src='".plugin_dir_url(__FILE__)."images/new_window.gif' border='0' style='float:none' />"
-												."</a>";
+													  ."</a>"
+													: '');
 										}else{
 											echo "No email";
 										}
@@ -195,9 +199,11 @@ function ct_show_users_page(){
 											if(!empty($user_meta[0]['ip'])){
 												$ip = $user_meta[0]['ip'];
 												echo "<a href='user-edit.php?user_id=$id'>$ip</a>"
-													."<a href='https://cleantalk.org/blacklists/$ip' target='_blank'>"
+													.(!$apbct->white_label 
+														?"<a href='https://cleantalk.org/blacklists/$ip ' target='_blank'>"
 														."&nbsp;<img src='".plugin_dir_url(__FILE__)."images/new_window.gif' border='0' style='float:none' />"
-													."</a>";
+														  ."</a>"
+														: '');
 											}else
 												echo "No IP adress";
 										}else
@@ -392,7 +398,7 @@ function ct_ajax_check_users(){
 			die();
 		}
 		
-		$result = CleantalkHelper::api_method__spam_check_cms($apbct->api_key, $data, !empty($_POST['accurate_check']) ? $curr_date : null);
+		$result = CleantalkAPI::method__spam_check_cms($apbct->api_key, $data, !empty($_POST['accurate_check']) ? $curr_date : null);
 		
 		if(empty($result['error'])){
 				
@@ -557,7 +563,7 @@ function ct_ajax_insert_users()
 	//* INSERTION
 	global $wpdb;
 	$to_insert = 100;
-	$result = $wpdb->get_results("SELECT network FROM `".$wpdb->base_prefix."cleantalk_sfw` LIMIT $to_insert;", ARRAY_A);
+	$result = $wpdb->get_results('SELECT network FROM `'. APBCT_TBL_FIREWALL_DATA .'` LIMIT '. $to_insert .';', ARRAY_A);
 	
 	if($result){
 		$ip = array();
@@ -606,32 +612,35 @@ function ct_ajax_delete_checked_users()
 	die();
 }
 
-function ct_ajax_delete_all_users()
+function ct_ajax_delete_all_users($count_all = 0)
 {
 	check_ajax_referer( 'ct_secret_nonce', 'security' );
 
     global $wpdb;
     
-	$r = $wpdb->get_results("select count(*) as cnt from $wpdb->usermeta where meta_key='ct_marked_as_spam';");	
-	$count_all = $r ? $r[0]->cnt : 0;
-    
-	$args = array(
-		'meta_key' => 'ct_marked_as_spam',
-		'meta_value' => '1',
-		'fields' => array('ID'),
-		'number' => 50
-	);
-	$users = get_users($args);
+	$r = $wpdb->get_results("select count(*) as cnt from $wpdb->usermeta where meta_key='ct_marked_as_spam';", ARRAY_A);
 	
-    if ($users){
-        foreach($users as $user){
-            wp_delete_user($user->ID);
-            usleep(5000);
-        }
-	}
+	if(!empty($r)){
 
-	print $count_all;
-	die();
+		$count_all = $r ? $r[0]->cnt : 0;
+
+		$args = array(
+			'meta_key' => 'ct_marked_as_spam',
+			'meta_value' => '1',
+			'fields' => array('ID'),
+			'number' => 50
+		);
+		$users = get_users($args);
+
+		if ($users){
+			foreach($users as $user){
+				wp_delete_user($user->ID);
+				usleep(5000);
+			}
+		}
+	}
+	
+	die($count_all);
 }
 
 function ct_ajax_clear_users()

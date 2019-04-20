@@ -112,7 +112,12 @@ class CleantalkResponse {
      * @var int  
      */
     public $account_status = -1;
-
+	
+	/**
+	 * @var array Contains codes returned from server
+	 */
+	public $codes = array();
+	
     /**
      * Create server response
      *
@@ -133,7 +138,7 @@ class CleantalkResponse {
             $this->stop_words = isset($obj->stop_words) ? utf8_decode($obj->stop_words) : null;
             $this->comment = isset($obj->comment) ? utf8_decode($obj->comment) : null;
             $this->blacklisted = (isset($obj->blacklisted)) ? $obj->blacklisted : null;
-            $this->allow = (isset($obj->allow)) ? $obj->allow : 0;
+            $this->allow = (isset($obj->allow)) ? $obj->allow : 1;
             $this->id = (isset($obj->id)) ? $obj->id : null;
             $this->fast_submit = (isset($obj->fast_submit)) ? $obj->fast_submit : 0;
             $this->spam = (isset($obj->spam)) ? $obj->spam : 0;
@@ -146,10 +151,10 @@ class CleantalkResponse {
             $this->inactive = (isset($obj->inactive)) ? $obj->inactive : 0;
             $this->account_status = (isset($obj->account_status)) ? $obj->account_status : -1;
 			$this->received = (isset($obj->received)) ? $obj->received : -1;
+			$this->codes = (isset($obj->codes)) ? explode(' ', $obj->codes) : array();
 
             if ($this->errno !== 0 && $this->errstr !== null && $this->comment === null)
                 $this->comment = '*** ' . $this->errstr . ' Antispam service cleantalk.org ***'; 
         }
     }
-
 }

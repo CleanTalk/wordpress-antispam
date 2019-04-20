@@ -23,6 +23,7 @@
 </style>
 <script>
 var reload_timeout = 1000;
+var ct_date = new Date;
 function set_spamFireWallCookie(cookie_name, cookie_value) {
     document.cookie = cookie_name + '=' + escape(cookie_value) + '; path=/;{COOKIE_DOMAIN}';
     return null;
@@ -38,30 +39,41 @@ function get_current_url() {
     <div class='container'>
         <h1 class='main'>{SFW_DIE_NOTICE_IP}<a href='https://cleantalk.org/blacklists/{REMOTE_ADDRESS}' target='_blank'>{REMOTE_ADDRESS}</a></h1>
         
+		<h2>{TEST_TITLE}</h2>
+		
         <div id='js_info'><br />{SFW_DIE_MAKE_SURE_JS_ENABLED}</div>
         
         <div id='js_passed'>
         <h3>{SFW_DIE_CLICK_TO_PASS}</h3>
         <a href='{REQUEST_URI}'><script>get_current_url();</script></a>
 		{GENERATED}
-        <br /><br /><br />
+		<p>Browser time <span id='curr_date'></span></p>
+        <br />
         <p class='js_notice'>{SFW_DIE_YOU_WILL_BE_REDIRECTED}</p>
+			<br />
         </div>
     </div>
+	<div style='position: relative; line-height: 8px; text-align: center;'>
+		<p style="margin: 0; display: inline-block; font-size: 10px; color: gray;">{SERVICE_ID}, </p>
+		<p style="margin: 0; display: inline-block; font-size: 10px; color: gray;">{HOST}</p>
+	</div>
     <div class='footer'>
 		<a href='https://cleantalk.org' target='_blank'>{CLEANTALK_TITLE}</a>
     </div>
     <script type='text/javascript'>
         document.getElementById('js_info').style.display = 'none';
         document.getElementById('js_passed').style.display = 'block';
+		
+        document.getElementById('curr_date').innerHTML = ct_date.toGMTString();
+		
 		setTimeout(function(){
 			set_spamFireWallCookie('{COOKIE_PREFIX}ct_sfw_pass_key','{SFW_COOKIE}');
 			set_spamFireWallCookie('{COOKIE_PREFIX}ct_sfw_passed','1');
 		}, 50);
         setTimeout(function(){
-			var ct_date = new Date;
 			window.location.href = window.location.origin + window.location.pathname + '?sfw=pass' + Math.round(ct_date.getTime()/1000);
         }, reload_timeout);
     </script>
+	{DEBUG}
 </body>
 </html>

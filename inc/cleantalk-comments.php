@@ -16,9 +16,13 @@ function ct_add_comments_menu(){
 
 function ct_show_checkspam_page(){
 	
+	global $apbct;
+	
 	?>
 		<div class="wrap">
-			<h2><img src="<?php echo plugin_dir_url(__FILE__) ?>/images/logo_color.png" /> <?php echo APBCT_NAME; ?></h2><br />
+			<h2><img src="<?php echo $apbct->logo__small__colored; ?>" /> <?php echo $apbct->plugin_name; ?></h2>
+			<a style="color: gray; margin-left: 23px;" href="<?php echo $apbct->settings_link; ?>"><?php _e('Plugin Settings', 'cleantalk'); ?></a>
+			<br />
 	<?php
 	
 	// If access key is unset in 
@@ -31,8 +35,8 @@ function ct_show_checkspam_page(){
 					'</a>'
 				)
 			.'</h3>';
+			return;
 		}
-		return;
 	}	
 	
 	// Getting total spam comments
@@ -68,7 +72,7 @@ function ct_show_checkspam_page(){
 		
 	<!-- Check options -->
 		<div class="ct_to_hide" id="ct_check_params_wrapper">
-			<button class="button ct_check_params_elem" id="ct_check_spam_button"><?php _e("Start check", 'cleantalk'); ?></button>
+			<button class="button ct_check_params_elem" id="ct_check_spam_button" <?php echo !$apbct->data['moderate'] ? 'disabled="disabled"' : ''; ?>><?php _e("Start check", 'cleantalk'); ?></button>
 			<?php if(!empty($_COOKIE['ct_paused_comments_check'])) { ?><button class="button ct_check_params_elem" id="ct_proceed_check_button"><?php _e("Continue check", 'cleantalk'); ?></button><?php } ?>
 			<p class="ct_check_params_desc"><?php _e("The plugin will check all comments against blacklists database and show you senders that have spam activity on other websites.", 'cleantalk'); ?></p>
 			<br />
@@ -174,9 +178,11 @@ function ct_show_checkspam_page(){
 									// Outputs email if exists
 									if($email)
 										echo "<a href='mailto:$email'>$email</a>"
-										."<a href='https://cleantalk.org/blacklists/$email ' target='_blank'>"
-											."&nbsp;<img src='".plugin_dir_url(__FILE__)."images/new_window.gif' border='0' style='float:none'/>"
-										."</a>";
+										.(!$apbct->white_label 
+											? "<a href='https://cleantalk.org/blacklists/$email' target='_blank'>"
+												."&nbsp;<img src='".plugin_dir_url(__FILE__)."images/new_window.gif' border='0' style='float:none' />"
+											  ."</a>"
+											: '');
 									else
 										echo "No email";
 									echo "<br/>";
@@ -184,9 +190,11 @@ function ct_show_checkspam_page(){
 									// Outputs IP if exists
 									if($ip)
 										echo "<a href='edit-comments.php?s=$ip&mode=detail'>$ip </a>"
-										."<a href='https://cleantalk.org/blacklists/$ip ' target='_blank'>"
+										.(!$apbct->white_label 
+											?"<a href='https://cleantalk.org/blacklists/$ip ' target='_blank'>"
 											."&nbsp;<img src='".plugin_dir_url(__FILE__)."images/new_window.gif' border='0' style='float:none'/>"
-										."</a>";
+											  ."</a>"
+											: '');
 									else
 										echo "No IP adress";
 								echo "</td>";
@@ -395,7 +403,7 @@ function ct_ajax_check_comments(){
 			die();
 		}
 		
-		$result = CleantalkHelper::api_method__spam_check_cms($apbct->api_key, $data, !empty($_POST['accurate_check']) ? $curr_date : null);
+		$result = CleantalkAPI::method__spam_check_cms($apbct->api_key, $data, !empty($_POST['accurate_check']) ? $curr_date : null);
 		
 		if(empty($result['error'])){
 			
@@ -535,7 +543,7 @@ function ct_ajax_insert_comments(){
 	$to_insert = 100;
 	$time = current_time('timestamp')-(730*86400);
 	
-	$result = $wpdb->get_results("SELECT network FROM `".$wpdb->base_prefix."cleantalk_sfw` LIMIT $to_insert;", ARRAY_A);
+	$result = $wpdb->get_results('SELECT network FROM `'. APBCT_TBL_FIREWALL_DATA .'` LIMIT '. $to_insert .';', ARRAY_A);
 	
 	if($result){
 		$ip = array();

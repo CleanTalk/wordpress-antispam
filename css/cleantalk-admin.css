@@ -1,5 +1,10 @@
+/* Common styles for admin pages */
 :disabled{cursor: not-allowed !important;}
+.apbct_color--gray{color: gray;}
+.apbct_display--none{display: none;}
+.apbct_font-size--14pt{font-size: 14pt;}
 
+/* Additional styles for admin pages */
 .ct_meta_links{
 	
 }

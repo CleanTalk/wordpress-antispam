@@ -28,7 +28,7 @@ class CleantalkCron
 	}
 	
 	// Adding new cron task
-	static public function addTask($task, $handler, $period, $first_call = null)
+	static public function addTask($task, $handler, $period, $first_call = null, $update = false)
 	{		
 		// First call time() + preiod
 		$first_call = !$first_call ? time()+$period : $first_call;
@@ -36,7 +36,7 @@ class CleantalkCron
 		$tasks = get_option(self::CRON_OPTION_NAME);
 		$tasks = empty($tasks) ? array() : $tasks;
 		
-		if(isset($tasks[$task]))
+		if(isset($tasks[$task]) && !$update)
 			return false;
 		
 		// Task entry
@@ -70,8 +70,7 @@ class CleantalkCron
 	
 	// Updates cron task, creates task if not exists
 	static public function updateTask($task, $handler, $period, $first_call = null){
-		self::removeTask($task);
-		self::addTask($task, $handler, $period, $first_call = null);
+		self::addTask($task, $handler, $period, $first_call, true);
 	}
 	
 	// Getting tasks which should be run. Putting tasks that should be run to $this->tasks_to_run

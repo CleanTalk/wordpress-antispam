@@ -1,88 +1,82 @@
 <?php
 
+/*
+ * 
+ * CleanTalk Cleantalk Antispam Helper class
+ * 
+ * @package Antispam Plugin by CleanTalk
+ * @subpackage Helper
+ * @Version 2.0
+ * @author Cleantalk team (welcome@cleantalk.org)
+ * @copyright (C) 2014 CleanTalk team (http://cleantalk.org)
+ * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
+ *
+ */
+
 class CleantalkHelper
 {
-	const URL = 'https://api.cleantalk.org';
-	
-	public static $cdn_pool = array(
-		'cloud_flare' => array(
-			'ipv4' => array(
-				'103.21.244.0/22',
-				'103.22.200.0/22',
-				'103.31.4.0/22',
-				'104.16.0.0/12',
-				'108.162.192.0/18',
-				'131.0.72.0/22',
-				'141.101.64.0/18',
-				'162.158.0.0/15',
-				'172.64.0.0/13',
-				'173.245.48.0/20',
-				'185.93.231.18/20', // User fix
-				'185.220.101.46/20', // User fix
-				'188.114.96.0/20',
-				'190.93.240.0/20',
-				'197.234.240.0/22',
-				'198.41.128.0/17',
-			),
-			'ipv6' => array(
-				'2400:cb00::/32',
-				'2405:8100::/32',
-				'2405:b500::/32',
-				'2606:4700::/32',
-				'2803:f800::/32',
-				'2c0f:f248::/32',
-				'2a06:98c0::/29',
-			),
-		),
-	);
-	
 	public static $private_networks = array(
-		'10.0.0.0/8',
-		'100.64.0.0/10',
-		'172.16.0.0/12',
-		'192.168.0.0/16',
-		'127.0.0.1/32',
+		'v4' => array(
+			'10.0.0.0/8',
+			'100.64.0.0/10',
+			'172.16.0.0/12',
+			'192.168.0.0/16',
+			'127.0.0.1/32',
+		),
+		'v6' => array(
+			'0:0:0:0:0:0:0:1/128', // localhost
+			'0:0:0:0:0:0:a:1/128', // ::ffff:127.0.0.1
+		),
 	);
 	
 	/*
 	*	Getting arrays of IP (REMOTE_ADDR, X-Forwarded-For, X-Real-Ip, Cf_Connecting_Ip)
 	*	reutrns array('remote_addr' => 'val', ['x_forwarded_for' => 'val', ['x_real_ip' => 'val', ['cloud_flare' => 'val']]])
 	*/
-	static public function ip_get($ips_input = array('real', 'remote_addr', 'x_forwarded_for', 'x_real_ip', 'cloud_flare'), $v4_only = true)
+	static public function ip__get($ip_types = array('real', 'remote_addr', 'x_forwarded_for', 'x_real_ip', 'cloud_flare'), $v4_only = true)
 	{
-		$ips = array();
-		foreach($ips_input as $ip_type){
-			$ips[$ip_type] = '';
-		} unset($ip_type);
-				
+		$ips     = array_flip($ip_types); // Result array with IPs
 		$headers = apache_request_headers();
 		
 		// REMOTE_ADDR
 		if(isset($ips['remote_addr'])){
-			$ips['remote_addr'] = $_SERVER['REMOTE_ADDR'];
+			$ip_type = self::ip__validate($_SERVER['REMOTE_ADDR']);
+			if($ip_type){
+				$ips['remote_addr'] = $ip_type == 'v6' ? self::ip__v6_normalize($_SERVER['REMOTE_ADDR']) : $_SERVER['REMOTE_ADDR'];
+			}
 		}
 		
 		// X-Forwarded-For
 		if(isset($ips['x_forwarded_for'])){
 			if(isset($headers['X-Forwarded-For'])){
 				$tmp = explode(",", trim($headers['X-Forwarded-For']));
-				$ips['x_forwarded_for']= trim($tmp[0]);
+				$tmp = trim($tmp[0]);
+				$ip_type = self::ip__validate($tmp);
+				if($ip_type){
+					$ips['x_forwarded_for'] = $ip_type == 'v6' ? self::ip__v6_normalize($tmp) : $tmp;
+				}
 			}
 		}
 		
 		// X-Real-Ip
 		if(isset($ips['x_real_ip'])){
 			if(isset($headers['X-Real-Ip'])){
-				$tmp = explode(",", trim($headers['X-Real-Ip']));
-				$ips['x_real_ip']= trim($tmp[0]);
+				$tmp = explode(",", trim($headers['X-Forwarded-For']));
+				$tmp = trim($tmp[0]);
+				$ip_type = self::ip__validate($tmp);
+				if($ip_type){
+					$ips['x_forwarded_for'] = $ip_type == 'v6' ? self::ip__v6_normalize($tmp) : $tmp;
+				}
 			}
 		}
 		
 		// Cloud Flare
 		if(isset($ips['cloud_flare'])){
-			if(isset($headers['Cf-Connecting-Ip'])){
-				if(self::ip_mask_match($ips['remote_addr'], self::$cdn_pool['cloud_flare']['ipv4'])){
-					$ips['cloud_flare'] = $headers['Cf-Connecting-Ip'];
+			if(isset($headers['Cf-Connecting-Ip'], $headers['Cf-Ipcountry'], $headers['Cf-Ray'])){
+				$ip_type = self::ip__validate($_SERVER['REMOTE_ADDR']);
+				if($ip_type){
+//					if(self::ip__mask_match($ips['remote_addr'], self::$cdn_pool['cloud_flare']['ipv4'])){
+						$ips['cloud_flare'] = $headers['Cf-Connecting-Ip'];
 				}
 			}
 		}
@@ -90,24 +84,54 @@ class CleantalkHelper
 		// Getting real IP from REMOTE_ADDR or Cf_Connecting_Ip if set or from (X-Forwarded-For, X-Real-Ip) if REMOTE_ADDR is local.
 		if(isset($ips['real'])){
 			
-			$ips['real'] = $_SERVER['REMOTE_ADDR'];
+			// Detect IP type
+			$ip_type = self::ip__validate($_SERVER['REMOTE_ADDR']);
+			if($ip_type)
+				$ips['real'] = $ip_type == 'v6' ? self::ip__v6_normalize($_SERVER['REMOTE_ADDR']) : $_SERVER['REMOTE_ADDR'];
 			
 			// Cloud Flare
-			if(isset($headers['Cf-Connecting-Ip'])){
-				if(self::ip_mask_match($ips['real'], self::$cdn_pool['cloud_flare']['ipv4'])){
-					$ips['real'] = $headers['Cf-Connecting-Ip'];
-				}
+			if(isset($headers['Cf-Connecting-Ip'], $headers['Cf-Ipcountry'], $headers['Cf-Ray'])){
+				$ip_type = self::ip__validate($headers['Cf-Connecting-Ip']);
+				if($ip_type)
+					$ips['real'] = $ip_type == 'v6' ? self::ip__v6_normalizе($headers['Cf-Connecting-Ip']) : $headers['Cf-Connecting-Ip'];
+				
+			// Sucury
+			}elseif(isset($headers['X-Sucuri-Clientip'], $headers['X-Sucuri-Country'])){
+				$ip_type = self::ip__validate($headers['X-Sucuri-Clientip']);
+				if($ip_type)
+					$ips['real'] = $ip_type == 'v6' ? self::ip__v6_normalizе($headers['X-Sucuri-Clientip']) : $headers['X-Sucuri-Clientip'];
+				
+			// OVH
+			}elseif(isset($headers['X-Cdn-Any-Ip'], $headers['Remote-Ip'])){
+				$ip_type = self::ip__validate($headers['X-Cdn-Any-Ip']);
+				if($ip_type)
+					$ips['real'] = $ip_type == 'v6' ? self::ip__v6_normalizе($headers['X-Cdn-Any-Ip']) : $headers['X-Cdn-Any-Ip'];
+			
 			// Incapsula proxy
 			}elseif(isset($headers['Incap-Client-Ip'])){
-				$ips['real'] = $headers['Incap-Client-Ip'];
-			// Private networks. Looking for X-Forwarded-For and X-Real-Ip
-			}elseif(self::ip_mask_match($ips['real'], self::$private_networks)){
+				$ip_type = self::ip__validate($headers['Incap-Client-Ip']);
+				if($ip_type)
+					$ips['real'] = $ip_type == 'v6' ? self::ip__v6_normalizе($headers['Incap-Client-Ip']) : $headers['Incap-Client-Ip'];
+			}
+			
+			// Is private network
+			if($ip_type === false || ($ip_type && (self::ip__is_private_network($ips['real'], $ip_type)) || (self::ip__mask_match($ips['real'], filter_input(INPUT_SERVER, 'SERVER_ADDR').'/24', $ip_type)))){
+				
+				// X-Forwarded-For
 				if(isset($headers['X-Forwarded-For'])){
 					$tmp = explode(",", trim($headers['X-Forwarded-For']));
-					$ips['real']= trim($tmp[0]);
+					$tmp = trim($tmp[0]);
+					$ip_type = self::ip__validate($tmp);
+					if($ip_type)
+						$ips['real'] = $ip_type == 'v6' ? self::ip__v6_normalizе($tmp) : $tmp;
+				
+				// X-Real-Ip
 				}elseif(isset($headers['X-Real-Ip'])){
 					$tmp = explode(",", trim($headers['X-Real-Ip']));
-					$ips['real']= trim($tmp[0]);
+					$tmp = trim($tmp[0]);
+					$ip_type = self::ip__validate($tmp);
+					if($ip_type)
+						$ips['real'] = $ip_type == 'v6' ? self::ip__v6_normalizе($tmp) : $tmp;
 				}
 			}
 		}
@@ -115,42 +139,82 @@ class CleantalkHelper
 		// Validating IPs
 		$result = array();
 		foreach($ips as $key => $ip){
-			if($v4_only){
-				if(self::ip_validate($ip) == 'v4')
-					$result[$key] = $ip;
-			}else{
-				if(self::ip_validate($ip))
-					$result[$key] = $ip;
+			$ip_version = self::ip__validate($ip);
+			if($ip && (($v4_only && $ip_version == 'v4') || !$v4_only)){
+				$result[$key] = $ip;
 			}
 		}
 		
 		$result = array_unique($result);
-		
-		return count($ips_input) > 1 
-			? $result 
+		return count($result) > 1 
+			? $result
 			: (reset($result) !== false
 				? reset($result)
 				: null);
 	}
-		
+	
+	static function ip__is_private_network($ip, $ip_type = 'v4'){
+		return self::ip__mask_match($ip, self::$private_networks[$ip_type]);
+	}
+	
 	/*
-	 * Check if the IP belong to mask. Recursivly if array given
+	 * Check if the IP belong to mask.  Recursive.
+	 * Octet by octet for IPv4
+	 * Hextet by hextet for IPv6
 	 * @param ip string  
 	 * @param cird mixed (string|array of strings)
+	 * @param ip_type string
+	 * @param cird mixed (string|array of strings)
 	*/
-	static public function ip_mask_match($ip, $cidr){
+	static public function ip__mask_match($ip, $cidr, $ip_type = 'v4', $xtet_count = 0)
+	{		
 		if(is_array($cidr)){
 			foreach($cidr as $curr_mask){
-				if(self::ip_mask_match($ip, $curr_mask)){
+				if(self::ip__mask_match($ip, $curr_mask, $ip_type)){
 					return true;
 				}
 			} unset($curr_mask);
 			return false;
 		}
-		$exploded = explode ('/', $cidr);
-		$net = $exploded[0];
-		$mask = 4294967295 << (32 - $exploded[1]);
-		return (ip2long($ip) & $mask) == (ip2long($net) & $mask);
+		
+		if($ip_type == 'v4') $xtet_base = 8;
+		if($ip_type == 'v6') $xtet_base = 16;
+		
+		// Calculate mask
+		$exploded = explode('/', $cidr);
+		$net_ip = $exploded[0];
+		$mask   = $exploded[1];
+		
+		// Exit condition
+		$xtet_end = ceil($mask / $xtet_base);
+		if($xtet_count == $xtet_end)
+			return true;
+		
+		// Lenght of bits for comparsion
+		$mask = $mask - $xtet_base * $xtet_count >= $xtet_base ? $xtet_base : $mask - $xtet_base * $xtet_count;
+		
+		// Explode by octets/hextets from IP and Net
+		$net_ip_xtets = explode($ip_type == 'v4' ? '.' : ':', $net_ip);
+		$ip_xtets     = explode($ip_type == 'v4' ? '.' : ':', $ip);
+		
+		// Standartizing. Getting current octets/hextets. Adding leading zeros. 
+		$net_xtet = str_pad(decbin($ip_type == 'v4' ? $net_ip_xtets[$xtet_count]  : hexdec($net_ip_xtets[$xtet_count])), $xtet_base, 0, STR_PAD_LEFT);
+		$ip_xtet  = str_pad(decbin($ip_type == 'v4' ? $ip_xtets[$xtet_count]      : hexdec($ip_xtets[$xtet_count])),     $xtet_base, 0, STR_PAD_LEFT);
+		
+		// Comparing bit by bit
+		for($i = 0, $result = true; $mask != 0; $mask--, $i++ ){
+			if($ip_xtet[$i] != $net_xtet[$i]){
+				$result = false;
+				break;
+			}
+		}
+		
+		// Recursing. Moving to next octet/hextet.
+		if($result)
+			$result = self::ip__mask_match($ip, $cidr, $ip_type, $xtet_count + 1);
+		
+		return $result;
+		
 	}
 	
 	/*
@@ -158,405 +222,52 @@ class CleantalkHelper
 	*	param (string) $ip
 	*	returns (string) 'v4' || (string) 'v6' || (bool) false
 	*/
-	static public function ip_validate($ip)
+	static public function ip__validate($ip)
 	{
-		if(!$ip)                                                  return false; // NULL || FALSE || '' || so on...
-		if(filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) return 'v4';  // IPv4
-		if(filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) return 'v6';  // IPv6
-		                                                          return false; // Unknown
+		if(!$ip)                                                                                        return false; // NULL || FALSE || '' || so on...
+		if(filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) && $ip != '0.0.0.0')                   return 'v4';  // IPv4
+		if(filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6) && self::ip__v6_reduce($ip) != '0::0') return 'v6';  // IPv6
+		                                                                                                return false; // Unknown
 	}
 	
 	/**
-	* Wrapper for sfw_logs API method
-	* @param integer connect timeout
-	* @return type
-	* returns mixed STRING || array('error' => true, 'error_string' => STRING)
-	*/
-	static public function api_method__sfw_logs($api_key, $data, $do_check = true){
-		
-		$request = array(
-			'auth_key' => $api_key,
-			'method_name' => 'sfw_logs',
-			'data' => json_encode($data),
-			'rows' => count($data),
-			'timestamp' => time()
-		);
-		$result = self::api_send_request($request);
-		$result = $do_check ? self::api_check_response($result, 'sfw_logs') : $result;
-		
-		return $result;
-	}
-	
-	/*
-	* Wrapper for 2s_blacklists_db API method
-	* 
-	* returns mixed STRING || array('error' => true, 'error_string' => STRING)
-	*/
-	static public function api_method__get_2s_blacklists_db($api_key, $do_check = true){
-		
-		$request = array(
-			'agent' => APBCT_AGENT,
-			'method_name' => '2s_blacklists_db',
-			'auth_key' => $api_key,
-		);
-		
-		$result = self::api_send_request($request);
-		$result = $do_check ? self::api_check_response($result, '2s_blacklists_db') : $result;
-		
-		return $result;
-	}
-	
-	/**
-	 * Function gets access key automatically
-	 *
-	 * @param string website admin email
-	 * @param string website host
-	 * @param string website platform
-	 * @return type
+	 * Expand IPv6
+	 * param (string) $ip
+	 * returns (string) IPv6
 	 */
-	static public function api_method__get_api_key($email, $host, $platform, $timezone = null, $language = null, $ip = null, $do_check = true)
-	{		
-		$request = array(
-			'method_name'          => 'get_api_key',
-			'product_name'         => 'antispam',
-			'agent'                => APBCT_AGENT,
-			'email'                => $email,
-			'website'              => $host,
-			'platform'             => $platform,
-			'timezone'             => $timezone,
-			'http_accept_language' => !empty($_SERVER['HTTP_ACCEPT_LANGUAGE']) ? $_SERVER['HTTP_ACCEPT_LANGUAGE'] : null,
-			'user_ip'              => $ip ? $ip : self::ip_get(array('real'), false),
-		);
-		
-		$result = self::api_send_request($request);
-		$result = $do_check ? self::api_check_response($result, 'get_api_key') : $result;
-		
-		return $result;
-	}
-	
-	/**
-	 * Function gets information about renew notice
-	 *
-	 * @param string api_key
-	 * @return type
-	 */
-	static public function api_method__notice_validate_key($api_key, $path_to_cms, $do_check = true)
+	static public function ip__v6_normalizе($ip)
 	{
-		$request = array(
-			'agent' => APBCT_AGENT,
-			'method_name' => 'notice_validate_key',
-			'auth_key' => $api_key,
-			'path_to_cms' => $path_to_cms	
-		);
-		
-		$result = self::api_send_request($request);
-		$result = $do_check ? self::api_check_response($result, 'notice_validate_key') : $result;
-		
-		return $result;
+		$ip = trim($ip);
+		// Searching for ::ffff:xx.xx.xx.xx patterns and turn it to IPv6
+		if(preg_match('/^::ffff:([0-9]{1,3}\.?){4}$/', $ip)){
+			$ip = dechex(sprintf("%u", ip2long(substr($ip, 7))));
+			$ip = '0:0:0:0:0:0:'.(strlen($ip) > 4 ? substr('abcde', 0, -4) : '0').':'.substr($ip, -4, 4);
+		// Normalizing hextets number
+		}elseif(strpos($ip, '::') !== false){
+			$ip = str_replace('::', str_repeat(':0', 8 - substr_count($ip, ':')).':', $ip);
+			$ip = strpos($ip, ':') === 0 ? '0'.$ip : $ip;
+			$ip = strpos(strrev($ip), ':') === 0 ? $ip.'0' : $ip;
+		}
+		// Simplifyng hextets
+		if(preg_match('/:0(?=[a-z0-9]+)/', $ip)){
+			$ip = preg_replace('/:0(?=[a-z0-9]+)/', ':', strtolower($ip));
+			$ip = self::ip__v6_normalizе($ip);
+		}
+		return $ip;
 	}
 	
 	/**
-	 * Function gets information about renew notice
-	 *
-	 * @param string api_key
-	 * @return type
+	 * Reduce IPv6
+	 * param (string) $ip
+	 * returns (string) IPv6
 	 */
-	static public function api_method__notice_paid_till($api_key, $do_check = true)
-	{
-		$request = array(
-			'agent' => APBCT_AGENT,
-			'method_name' => 'notice_paid_till',
-			'auth_key' => $api_key
-		);
-		
-		$result = self::api_send_request($request);
-		$result = $do_check ? self::api_check_response($result, 'notice_paid_till') : $result;
-		
-		return $result;
-	}
-
-	/**
-	 * Function gets spam report
-	 *
-	 * @param string website host
-	 * @param integer report days
-	 * @return type
-	 */
-	static public function api_method__get_antispam_report($host, $period = 1)
-	{
-		$request=Array(
-			'agent' => APBCT_AGENT,
-			'method_name' => 'get_antispam_report',
-			'hostname' => $host,
-			'period' => $period
-		);
-		
-		$result = self::api_send_request($request);
-		// $result = $do_check ? self::api_check_response($result, 'get_antispam_report') : $result;
-		
-		return $result;
-	}
-	
-	/**
-	 * Function gets spam statistics
-	 *
-	 * @param string website host
-	 * @param integer report days
-	 * @return type
-	 */
-	static public function api_method__get_antispam_report_breif($api_key, $do_check = true)
-	{
-		
-		$request = array(
-			'agent' => APBCT_AGENT,
-			'method_name' => 'get_antispam_report_breif',
-			'auth_key' => $api_key,
-		);
-		
-		$result = self::api_send_request($request);
-		$result = $do_check ? self::api_check_response($result, 'get_antispam_report_breif') : $result;
-		
-		$tmp = array();
-		for( $i = 0; $i < 7; $i++ )
-			$tmp[ date( 'Y-m-d', time() - 86400 * 7 + 86400 * $i ) ] = 0;
-		
-		$result['spam_stat']    = array_merge( $tmp, isset($result['spam_stat']) ? $result['spam_stat'] : array() );
-		$result['top5_spam_ip'] = isset($result['top5_spam_ip']) ? $result['top5_spam_ip'] : array();
-		
-		return $result;		
-	}
-	
-	/**
-	 * Function gets spam report
-	 *
-	 * @param string website host
-	 * @param integer report days
-	 * @return type
-	 */
-	static public function api_method__spam_check_cms($api_key, $data, $date = null, $do_check = true)
-	{
-		$request=Array(
-			'agent' => APBCT_AGENT,
-			'method_name' => 'spam_check_cms',
-			'auth_key' => $api_key,
-			'data' => is_array($data) ? implode(',',$data) : $data,
-		);
-		
-		if($date) $request['date'] = $date;
-		
-		$result = self::api_send_request($request);
-		$result = $do_check ? self::api_check_response($result, 'spam_check_cms') : $result;
-		
-		return $result;
-	}
-	
-	/**
-	 * Function sends raw request to API server
-	 *
-	 * @param string url of API server
-	 * @param array data to send
-	 * @param boolean is data have to be JSON encoded or not
-	 * @param integer connect timeout
-	 * @return type
-	 */
-	static public function api_send_request($data, $url = self::URL, $isJSON = false, $timeout=3, $ssl = false)
-	{	
-		
-		$result = null;
-		$curl_error = false;
-		
-		$original_data = $data;
-		
-		if(!$isJSON){
-			$data = http_build_query($data);
-			$data = str_replace("&amp;", "&", $data);
-		}else{
-			$data = json_encode($data);
+	static public function ip__v6_reduce($ip){
+		if(strpos($ip, ':') !== false){
+			$ip = preg_replace('/:0{1,4}/', ':',  $ip);
+			$ip = preg_replace('/:{2,}/',   '::', $ip);
+			$ip = strpos($ip, '0') === 0 ? substr($ip, 1) : $ip;
 		}
-		
-		if (function_exists('curl_init') && function_exists('json_decode')){
-		
-			$ch = curl_init();
-			curl_setopt($ch, CURLOPT_URL, $url);
-			curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
-			curl_setopt($ch, CURLOPT_POST, true);
-			curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
-			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-			curl_setopt($ch, CURLOPT_HTTPHEADER, array('Expect:'));
-			
-			if ($ssl === true) {
-				curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
-				curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
-				curl_setopt($ch, CURLOPT_CAINFO, APBCT_CASERT_PATH);
-            }else{
-				curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-				curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
-			}
-			
-			$result = curl_exec($ch);
-			
-			if($result === false){
-				if($ssl === false){
-					return self::api_send_request($original_data, $url, $isJSON, $timeout, true);
-				}
-				$curl_error = curl_error($ch);
-			}
-			
-			curl_close($ch);
-			
-		}else{
-			$curl_error = 'CURL_NOT_INSTALLED';
-		}
-		
-		if($curl_error){
-			
-			$opts = array(
-				'http'=>array(
-					'method'  => "POST",
-					'timeout' => $timeout,
-					'content' => $data,
-				)
-			);
-			$context = stream_context_create($opts);
-			$result = @file_get_contents($url, 0, $context);
-		}
-		
-		if(!$result && $curl_error)
-			return json_encode(array('error' => true, 'error_string' => $curl_error));
-		
-		return $result;
-	}
-	
-	/**
-	 * Function checks server response
-	 *
-	 * @param string result
-	 * @param string request_method
-	 * @return mixed (array || array('error' => true))
-	 */
-	static public function api_check_response($result, $method_name = null)
-	{	
-		
-		// Errors handling
-		
-		// Bad connection
-		if(empty($result)){
-			return array(
-				'error' => true,
-				'error_string' => 'CONNECTION_ERROR'
-			);
-		}
-		
-		// JSON decode errors
-		$result = json_decode($result, true);
-		if(empty($result)){
-			return array(
-				'error' => true,
-				'error_string' => 'JSON_DECODE_ERROR'
-			);
-		}
-		
-		// cURL error
-		if(!empty($result['error'])){
-			return array(
-				'error' => true,
-				'error_string' => 'CONNECTION_ERROR: ' . $result['error_string'],
-			);
-		}
-		
-		// Server errors
-		if($result && (isset($result['error_no']) || isset($result['error_message']))){
-			return array(
-				'error' => true,
-				'error_string' => "SERVER_ERROR NO: {$result['error_no']} MSG: {$result['error_message']}",
-				'error_no' => $result['error_no'],
-				'error_message' => $result['error_message']
-			);
-		}
-		
-		// Pathces for different methods
-		
-		// mehod_name = notice_validate_key
-		if($method_name == 'notice_validate_key' && isset($result['valid'])){
-			return $result;
-		}
-		
-		// Other methods
-		if(isset($result['data']) && is_array($result['data'])){
-			return $result['data'];
-		}
-	}
-	
-	/**
-	 * Prepares an adds an error to the plugin's data
-	 *
-	 * @param string type
-	 * @param mixed array || string
-	 * @returns null
-	 */
-	static public function addError($type, $error, $set_time = true)
-	{	
-		global $apbct;
-		
-		$error_string = is_array($error)
-			? $error['error_string']
-			: $error;
-		
-		// Exceptions
-		if( ($type == 'send_logs'          && $error_string == 'NO_LOGS_TO_SEND') ||
-			($type == 'send_firewall_logs' && $error_string == 'NO_LOGS_TO_SEND')
-		)
-			return;
-		
-		if($set_time == true)
-			$apbct->data['errors'][$type]['error_time']   = current_time('timestamp');
-		$apbct->data['errors'][$type]['error_string'] = $error_string;
-		$apbct->save('data');
-	}
-	
-	/**
-	 * Deletes an error from the plugin's data
-	 *
-	 * @param mixed (array of strings || string 'elem1 elem2...' || string 'elem') type
-	 * @param delay saving
-	 * @returns null
-	 */
-	static public function deleteError($type, $save_flag = false)
-	{
-		global $apbct;
-		
-		$before = empty($apbct->data['errors']) ? 0 : count($apbct->data['errors']);
-		
-		if(is_string($type))
-			$type = explode(' ', $type);
-		
-		foreach($type as $val){
-			if(isset($apbct->data['errors'][$val])){
-				unset($apbct->data['errors'][$val]);
-			}
-		}
-		
-		$after = empty($apbct->data['errors']) ? 0 : count($apbct->data['errors']);
-		// Save if flag is set and there are changes
-		if($save_flag && $before != $after)
-			$apbct->save('data');
-	}
-	
-	/**
-	 * Deletes all errors from the plugin's data
-	 *
-	 * @param delay saving
-	 * @returns null
-	 */
-	static public function deleteAllErrors($save_flag = false)
-	{
-		global $apbct;
-		
-		if(isset($apbct->data['errors']))
-			unset($apbct->data['errors']);
-		
-		if($save_flag)
-			$apbct->save('data');
+		return $ip;
 	}
 	
 	/**
@@ -568,9 +279,12 @@ class CleantalkHelper
 	 * get                  - GET-request
 	 * ssl                  - use SSL
 	 * 
-	 * @param string result
-	 * @param string request_method
-	 * @return mixed (array || array('error' => true))
+	 * @param string $url URL
+	 * @param array $data POST|GET indexed array with data to send
+	 * @param string|array $presets String or Array with presets: get_code, dont_wait_for_answer, get, ssl, dont_split_to_array
+	 * @param array $opts Optional option for CURL connection
+	 * 
+	 * @return array (array || array('error' => true))
 	 */
 	static public function http__request($url, $data = array(), $presets = null, $opts = array())
 	{
@@ -578,22 +292,25 @@ class CleantalkHelper
 		
 			$ch = curl_init();
 			
-			// Obligatory options
-			$opts = array(
-				CURLOPT_URL               => $url,
-				CURLOPT_RETURNTRANSFER    => 1,
-				CURLOPT_CONNECTTIMEOUT_MS => 3000,
-				CURLOPT_FORBID_REUSE      => true,
-				CURLOPT_USERAGENT         => 'Cleantalk Wordpress Antispam '.APBCT_AGENT,
-				CURLOPT_POST              => true,
-				CURLOPT_POSTFIELDS        => str_replace("&amp;", "&", http_build_query($data)),
-				CURLOPT_SSL_VERIFYPEER    => false,
-				CURLOPT_SSL_VERIFYHOST    => 0,
-				CURLOPT_HTTPHEADER        => array('Expect:'), // Fix for large data and old servers http://php.net/manual/ru/function.curl-setopt.php#82418
+			// Merging OBLIGATORY options with GIVEN options
+			$opts = self::array_merge__save_numeric_keys(
+				array(
+					CURLOPT_URL               => $url,
+					CURLOPT_RETURNTRANSFER    => true,
+					CURLOPT_CONNECTTIMEOUT_MS => 3000,
+					CURLOPT_FORBID_REUSE      => true,
+					CURLOPT_USERAGENT         => 'APBCT('.(defined('CLEANTALK_AGENT') ? CLEANTALK_AGENT : 'UNKNOWN_AGENT').')',
+					CURLOPT_POST              => true,
+					CURLOPT_POSTFIELDS        => str_replace("&amp;", "&", http_build_query($data)),
+					CURLOPT_SSL_VERIFYPEER    => false,
+					CURLOPT_SSL_VERIFYHOST    => 0,
+					CURLOPT_HTTPHEADER        => array('Expect:'), // Fix for large data and old servers http://php.net/manual/ru/function.curl-setopt.php#82418
+				),
+				$opts
 			);
 			
 			// Use presets
-			$presets = is_array($presets) ? $presets : array($presets);
+			$presets = is_array($presets) ? $presets : explode(' ', $presets);
 			foreach($presets as $preset){
 				
 				switch($preset){
@@ -607,7 +324,7 @@ class CleantalkHelper
 					// Make a request, don't wait for an answer
 					case 'dont_wait_for_answer':
 						$opts[CURLOPT_CONNECTTIMEOUT_MS] = 1000;
-						$opts[CURLOPT_TIMEOUT_MS] = 1;
+						$opts[CURLOPT_TIMEOUT_MS] = 500;
 						break;
 					
 					case 'get':
@@ -630,23 +347,32 @@ class CleantalkHelper
 			} unset($preset);
 		
 			curl_setopt_array($ch, $opts);
-			$result = @curl_exec($ch);
-		
-			if(in_array('dont_wait_for_answer', $presets)) return true;
+			$result = curl_exec($ch);
+			
+			// RETURN if async request
+			if(in_array('dont_wait_for_answer', $presets))
+				return true;
 		
 			if($result){
-				$result = explode(PHP_EOL, $result);
-				if(in_array('get_code', $presets)) $result = curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
+				
+				if(!in_array('dont_split_to_array', $presets))
+					$result = explode(PHP_EOL, $result);
+				
+				// Get code crossPHP method
+				if(in_array('get_code', $presets)){
+					$curl_info = curl_getinfo($ch);
+					$result = $curl_info['http_code'];
+				}
 				curl_close($ch);
-				return $result;
+				$out = $result;
 			}else
-				$error = array('error' => true, 'error_string' => curl_error($ch));
+				$out = array('error' => true, 'error_string' => curl_error($ch));
 		}else
-			$error = array('error' => true, 'error_string' => 'CURL_NOT_INSTALLED');
+			$out = array('error' => true, 'error_string' => 'CURL_NOT_INSTALLED');
 		
 		/** Fix for get_code preset */
-		if($presets && ($presets == 'get_code' || (is_array($presets) && in_array($presets, 'get_code') ) )
-			&& (isset($error) && $error['error_string'] == 'CURL_NOT_INSTALLED')
+		if($presets && ($presets == 'get_code' || (is_array($presets) && in_array('get_code', $presets) ) )
+			&& isset($out['error_string']) && $out['error_string'] == 'CURL_NOT_INSTALLED'
 		){
 			$headers = get_headers($url);
 			$out = (int)preg_replace('/.*(\d{3}).*/', '$1', $headers[0]);
@@ -655,27 +381,126 @@ class CleantalkHelper
 		return $out;
 	}
 	
-	//* Write $message to the plugin's debug option
-	static public function log($message = 'empty', $func = null, $params = array())
-	{
-		$debug = get_option( APBCT_DEBUG );
-		
-		$function = $func                         ? $func : '';
-		$cron     = in_array('cron', $params)     ? true  : false;
-		$data     = in_array('data', $params)     ? true  : false;
-		$settings = in_array('settings', $params) ? true  : false;
-		
-		if(is_array($message) or is_object($message))
-			$message = print_r($message, true);
-		
-		if($message)  $debug[date("H:i:s", microtime(true))."_ACTION_".strval(current_action())."_FUNCTION_".strval($func)]         = $message;
-		if($cron)     $debug[date("H:i:s", microtime(true))."_ACTION_".strval(current_action())."_FUNCTION_".strval($func).'_cron'] = $apbct->cron;
-		if($data)     $debug[date("H:i:s", microtime(true))."_ACTION_".strval(current_action())."_FUNCTION_".strval($func).'_data'] = $apbct->data;
-		if($settings) $debug[date("H:i:s", microtime(true))."_ACTION_".strval(current_action())."_FUNCTION_".strval($func).'_settings'] = $apbct->settings;
-		
-		update_option(APBCT_DEBUG, $debug);
+	/**
+	 * Merging arrays without reseting numeric keys
+	 * 
+	 * @param array $arr1 One-dimentional array
+	 * @param array $arr2 One-dimentional array
+	 * @return array Merged array
+	 */
+	public static function array_merge__save_numeric_keys($arr1, $arr2){
+		foreach ($arr2 as $key => $val){
+			$arr1[$key] = $val;
+		}
+		return $arr1;
 	}
-
+	
+	/**
+	 * Merging arrays without reseting numeric keys recursive
+	 * 
+	 * @param array $arr1 One-dimentional array
+	 * @param array $arr2 One-dimentional array
+	 * @return array Merged array
+	 */
+	public static function array_merge__save_numeric_keys__recursive($arr1, $arr2){
+		foreach ($arr2 as $key => $val){
+			// Array | array => array
+			if(isset($arr1[$key]) && is_array($arr1[$key]) && is_array($val)){
+				$arr1[$key] = self::array_merge__save_numeric_keys__recursive($arr1[$key], $val);
+			// Scalar | array => array
+			}elseif(isset($arr1[$key]) && !is_array($arr1[$key]) && is_array($val)){
+				$tmp = $arr1[$key] = 
+				$arr1[$key] = $val;
+				$arr1[$key][] = $tmp;
+			// array  | scalar => array
+			}elseif(isset($arr1[$key]) && is_array($arr1[$key]) && !is_array($val)){
+				$arr1[$key][] = $val;
+			// scalar | scalar => scalar
+			}else{
+				$arr1[$key] = $val;
+			}
+		}
+		return $arr1;
+	}
+	
+	/**
+	 * Function removing non UTF8 characters from array|string|object
+	 * 
+	 * @param mixed(array|object|string) $data
+	 * @param type $data_codepage
+	 * @return mixed(array|object|string)
+	 */
+	public static function removeNonUTF8($data, $data_codepage = null)
+	{
+		// Array || object
+		if(is_array($data) || is_object($data)){
+			foreach ($data as $key => &$val) {
+				$val = self::removeNonUTF8($val, $data_codepage);
+			}unset($key, $val);
+			
+		//String
+		}else{
+			if(!preg_match('//u', $data))
+				$data =  'Nulled. Not UTF8 encoded or malformed.';
+		}
+		return $data;
+	}
+		
+	/**
+	 * Function convert anything to UTF8 and removes non UTF8 characters 
+	 * 
+	 * @param mixed(array|object|string) $obj
+	 * @param type $data_codepage
+	 * @return mixed(array|object|string)
+	 */
+	public static function toUTF8($obj, $data_codepage = null)
+	{
+		// Array || object
+		if(is_array($obj) || is_object($obj)){
+			foreach ($obj as $key => &$val) {
+				$val = self::toUTF8($val, $data_codepage);
+			}unset($key, $val);
+			
+		//String
+		}else{
+			if (!preg_match('//u', $obj) && function_exists('mb_detect_encoding') && function_exists('mb_convert_encoding')){
+				$encoding = mb_detect_encoding($obj);
+				$encoding = $encoding ? $encoding : $data_codepage;
+				if ($encoding)
+					$obj = mb_convert_encoding($str, 'UTF-8', $encoding);
+			}
+		}
+		return $obj;
+	}
+	    
+    /**
+     * Function convert from UTF8
+	 * 
+     * @param mixed (array|object|string)
+     * @param string
+     * @return mixed (array|object|string)
+     */
+    public static function fromUTF8($obj, $data_codepage = null)
+	{
+		// Array || object
+		if(is_array($obj) || is_object($obj)){
+			foreach ($obj as $key => &$val) {
+				$val = self::fromUTF8($val, $data_codepage);
+			}unset($key, $val);
+			
+		//String
+		}else{
+			if(preg_match('u', $obj) && function_exists('mb_convert_encoding') && $data_codepage !== null)
+				$obj = mb_convert_encoding($obj, $data_codepage, 'UTF-8');
+		}
+		return $obj;
+	}
+	
+	/**
+	* Checks if the string is JSON type
+	* @param string
+	* @return bool
+	*/
 	static public function is_json($string)
 	{
 		return is_string($string) && is_array(json_decode($string, true)) ? true : false;

@@ -21,7 +21,10 @@ jQuery(document).ready(function(){
 		var date_formatter = new Intl.DateTimeFormat(locale, {
 			month: "short",
 			day: "numeric"
-		});		
+		});	
+		date.sort(function(a,b){
+			return new Date(a[0]) - new Date(b[0]) 
+		});			
 		date.forEach(function(d){	
 			d[0] = Date.parse(d[0]);
 			d[0] = date_formatter.format(d[0]);

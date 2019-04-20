@@ -122,14 +122,7 @@ $cleantalk_hooked_actions[]='tevolution_submit_from_preview';
 $cleantalk_hooked_actions[]='submit_form_recaptcha_validation';
 
 /**hooks for cm answers pro */
-add_action( 'template_redirect', 'ct_ajax_hook',1 );
-
-/* hooks for ninja forms ajax*/
-add_action( 'wp_ajax_nopriv_ninja_forms_ajax_submit', 'ct_ajax_hook',1  );
-add_action( 'wp_ajax_ninja_forms_ajax_submit', 'ct_ajax_hook',1  );
-
-add_action( 'ninja_forms_process', 'ct_ajax_hook',1  );
-$cleantalk_hooked_actions[]='ninja_forms_ajax_submit';
+add_action( 'wp', 'ct_ajax_hook',1 );
 
 /* hooks for contact forms by web settler ajax*/
 add_action( 'wp_ajax_nopriv_smuzform-storage', 'ct_ajax_hook',1  );
@@ -138,6 +131,9 @@ $cleantalk_hooked_actions[]='smuzform_form_submit';
 /* hooks for reviewer plugin*/
 add_action( 'wp_ajax_nopriv_rwp_ajax_action_rating', 'ct_ajax_hook',1 );
 $cleantalk_hooked_actions[]='rwp-submit-wrap';
+
+$cleantalk_hooked_actions[]='post_update';
+
 function ct_validate_email_ajaxlogin($email=null, $is_ajax=true){
 	
 	require_once(CLEANTALK_PLUGIN_DIR . 'cleantalk-public.php');
@@ -161,7 +157,7 @@ function ct_validate_email_ajaxlogin($email=null, $is_ajax=true){
 				'sender_email'    => $email,
 				'sender_nickname' => '',
 				'sender_info'     => $sender_info,
-				'checkjs'         => $checkjs,
+				'js_on'           => $checkjs,
 			),
 			true
 		);
@@ -212,7 +208,7 @@ function ct_user_register_ajaxlogin($user_id)
 				'sender_email'    => sanitize_email($_POST['email']),
 				'sender_nickname' => sanitize_email($_POST['login']),
 				'sender_info'     => $sender_info,
-				'checkjs'         => $checkjs,
+				'js_on'           => $checkjs,
 			),
 			true
 		);
@@ -248,13 +244,9 @@ function ct_mc4wp_ajax_hook( array $errors )
 function ct_ajax_hook($message_obj = false, $additional = false)
 {	
 	require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public.php');
-	global $apbct, $ct_checkjs_register_form, $bp, $ct_signup_done, $ct_negative_comment, $current_user;
+	global $apbct;
 	
-	$sender_email = null;
-    $message = '';
-    $sender_nickname = null;
-    $contact = true;
-    $subject = '';
+	$message_obj = (array)$message_obj;
 	
     //
     // Skip test if Custom contact forms is disabled.
@@ -266,11 +258,12 @@ function ct_ajax_hook($message_obj = false, $additional = false)
     //
     // Go out because we call it on backend.
     //
-    if(	(ct_is_user_enable() === false || (function_exists('get_current_user_id') && get_current_user_id() != 0)) &&
-		(strval(current_action()) != 'et_pre_insert_answer' && isset($message_obj['author']) && intval($message_obj['author']) == 0) //QAEngine Theme fix
-    ){
-		return false;
-    }
+    if(	ct_is_user_enable() === false || (function_exists('get_current_user_id') && get_current_user_id() != 0)){
+		if(strval(current_action()) != 'et_pre_insert_answer' && (isset($message_obj['author']) && intval($message_obj['author']) == 0) || (isset($message_obj['post_author']) && intval($message_obj['post_author']) == 0)) //QAEngine Theme fix
+		{
+			return false;
+		}
+	}
 	
     //
     // Go out because of not spam data 
@@ -278,9 +271,20 @@ function ct_ajax_hook($message_obj = false, $additional = false)
     $skip_post = array(
         'gmaps_display_info_window',  // Geo My WP pop-up windows.
         'gmw_ps_display_info_window',  // Geo My WP pop-up windows.
-        'the_champ_user_auth',  // Super Socializer 
+        'the_champ_user_auth',  // Super Socializer
+        'simbatfa-init-otp', //Two-Factor Auth 
+        'wppb_msf_check_required_fields', //ProfileBuilder skip step checking
+        'boss_we_login', //Login form
+        'sidebar_login_process', // Login CF7
+		'cp_update_style_settings', // Convert Pro. Saving settings
+		'updraft_savesettings', // UpdraftPlus
+		'wpdUpdateAutomatically', //Comments update
+		'upload-attachment', // Skip ulpload attachments
     );
 	
+	//General post_info for all ajax calls
+	$post_info = array('comment_type' => 'feedback_ajax');
+
 	$checkjs = apbct_js_test('ct_checkjs', $_COOKIE, true);
     if ($checkjs && // Spammers usually fail the JS test
         (isset($_POST['action']) && in_array($_POST['action'], $skip_post))
@@ -294,8 +298,10 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 		$sender_nickname = '';
 	
 	//QAEngine Theme answers
-    if( !empty($message_obj) && isset($message_obj['post_type'], $message_obj['author'], $message_obj['post_content']) ){
+    if( !empty($message_obj) && isset($message_obj['post_type'], $message_obj['post_content']) ){
 		$curr_user = get_user_by('id', $message_obj['author']);
+		if (!$curr_user)
+			$curr_user = get_user_by('id', $message_obj['post_author']);			
 		$ct_post_temp['comment'] = $message_obj['post_content'];
         $ct_post_temp['email'] = $curr_user->data->user_email;
 		$ct_post_temp['name'] = $curr_user->data->user_login;
@@ -326,7 +332,10 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 		$ct_post_temp['email'] = $_POST['user_email'];
 		$ct_post_temp['comment'] = $_POST['comment'];
 	}
-	
+	//Woocommerce checkout
+	if(isset($_POST['action']) && $_POST['action']=='woocommerce_checkout'){
+		$post_info['comment_type'] = 'order';
+	}
 	$ct_temp_msg_data = isset($ct_post_temp)
 		? ct_get_fields_any($ct_post_temp)
 		: ct_get_fields_any($_POST);
@@ -347,6 +356,9 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 	 // Mailpoet fix
     if (isset($message['wysijaData'], $message['wysijaplugin'], $message['task'], $message['controller']) && $message['wysijaplugin'] == 'wysija-newsletters' && $message['controller'] == 'campaigns')
         return false;
+    // Mailpoet3 admin skip fix
+    if (isset($_POST['action'], $_POST['method']) && $_POST['action'] == 'mailpoet' && $_POST['method'] =='save')
+    	return false;
 	
 	// WP Foto Vote Fix
 	if (!empty($_FILES)){
@@ -356,12 +368,22 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 		} unset($key ,$value);
 	}
 	
-	//Ninja Forms xml fix
-	if (isset($_POST['action']) && $_POST['action'] === 'nf_ajax_submit'){
-		foreach ($message as $key => $value){
-			if (strpos($value, '<xml>') !== false)
-				unset($message[$key]);
+	/**
+	 * @todo Contact form detect
+	 */
+	// Detect contact form an set it's name to $contact_form to use later
+	$contact_form = null;
+	foreach($_POST as $param => $value){
+		if(strpos($param, 'et_pb_contactform_submit') === 0){
+			$contact_form = 'contact_form_divi_theme';
+			$contact_form_additional = str_replace('et_pb_contactform_submit', '', $param);
 		}
+		if(strpos($param, 'avia_generated_form') === 0){
+			$contact_form = 'contact_form_enfold_theme';
+			$contact_form_additional = str_replace('avia_generated_form', '', $param);
+		}
+		if(!empty($contact_form))
+			break;
 	}
 	
 	$base_call_result = apbct_base_call(
@@ -370,8 +392,8 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 			'sender_email'    => $sender_email,
 			'sender_nickname' => $sender_nickname,
 			'sender_info'     => array('post_checkjs_passed' => $checkjs),
-			'post_info'       => array('comment_type' => 'feedback_ajax'),
-			'checkjs'         => $checkjs,
+			'post_info'       => $post_info,
+			'js_on'           => $checkjs,
 		)
 	);
 	$ct_result = $base_call_result['ct_result'];
@@ -421,18 +443,6 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 			print json_encode($result);
 			die();
 		}
-		else if(isset($_POST['action']) && $_POST['action']== 'cscf-submitform')
-		{
-			$message_obj['akismet_result'] = 'true';
-			$result = array(
-				'sent' => false,
-				'valid' => 1,
-				'errorlist' => array('confirm-email'=>$ct_result->comment)
-			);
-			$result = json_encode($result);
-			echo $result;
-			return $message_obj;
-		}
 		else if(isset($_POST['action']) && $_POST['action']=='woocommerce_checkout')
 		{
 			print $ct_result->comment;
@@ -465,19 +475,6 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 			print $ct_result->comment;
 			die();
 		}
-		else if(isset($_POST['action']) && $_POST['action']=='ninja_forms_ajax_submit')
-		{
-			print '{"form_id":'.$_POST['_form_id'].',"errors":false,"success":{"success_msg-Success":"'.$ct_result->comment.'"}}';
-			die();
-		}
-		else if(isset($_POST['action']) && $_POST['action']=='nf_ajax_submit')
-		{
-			$nf_data = json_decode($_POST['formData'], true);
-			// print '{data:{{"form_id":'.$nf_data['id'].',"errors":false,"success":{"success_msg-Success":"'.$ct_result->comment.'"}}}}'; \\Old version
-			print '{"data":{"form_id":"'.$nf_data['id'].'","settings":{},"extra":[],"fields":{},"processed_actions":[],"actions":{"success_message": "<font style=\"color: red\">'.$ct_result->comment.'</font><br><br>"}},"errors":[],"debug":[]}';				
-			die();
-		}
-		
 		// WooWaitList
 		// http://codecanyon.net/item/woowaitlist-woocommerce-back-in-stock-notifier/7103373
 		else if(isset($_POST['action']) && $_POST['action']=='wew_save_to_db_callback')
@@ -552,9 +549,18 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 			return 'ct_mc4wp_response';
 		}
 		// QAEngine Theme answers
-		elseif ( !empty($message_obj) && isset($message_obj['post_type'], $message_obj['author'], $message_obj['post_content']) ){
-			return new WP_Error('Spam comment', $ct_result->comment);
+		elseif ( !empty($message_obj) && isset($message_obj['post_type'], $message_obj['post_content']) ){
+			throw new Exception($ct_result->comment);
 		}
+		//ES Add subscriber
+		elseif(isset($_POST['action']) && $_POST['action'] == 'es_add_subscriber')
+		{
+			$result = Array(
+				'error' => 'unexpected-error',
+			);			
+			print json_encode($result);
+			die();
+		}		
 		//Convertplug. Strpos because action value dynamically changes and depends on mailing service 
 		elseif (isset($_POST['action']) && strpos($_POST['action'], '_add_subscriber') !== false){
 			$result = Array(
@@ -635,7 +641,7 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 			die(json_encode($result));
 		}
 		//ConvertPro
-		elseif(isset($_POST['action']) && $_POST['action']='cp_v2_notify_admin' || $_POST['action']=='cpro_notify_via_email')
+		elseif(isset($_POST['action']) && $_POST['action'] == 'cp_v2_notify_admin' || $_POST['action'] == 'cpro_notify_via_email')
 		{
 			$result = Array(
 				'success' => false,
@@ -643,20 +649,17 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 			);
 			print json_encode($result);
 			die();
-		}		
+		}
 		else
 		{
-			print $ct_result->comment;
-			die();
+			die(json_encode(array('apbct' => array('blocked' => true, 'comment' => $ct_result->comment,))));
 		}
 	}
 	//Allow == 1
 	else{
 		//QAEngine Theme answers
-		if ( !empty($message_obj) && isset($message_obj['post_type'], $message_obj['author'], $message_obj['post_content']) ){
+		if ( !empty($message_obj) && isset($message_obj['post_type'], $message_obj['post_content']) ){
 			return $message_obj;
 		}
 	}
 }
-
-?>
