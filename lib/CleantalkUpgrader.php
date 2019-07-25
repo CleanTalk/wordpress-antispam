@@ -25,6 +25,55 @@ class CleantalkUpgrader extends Plugin_Upgrader
 		$this->strings['process_success'] = 'OK';
 	}
 	
+	public function install_strings() {
+		$this->strings['no_package']          = 'PACKAGE_NOT_AVAILABLE';
+		$this->strings['no_files']            = 'PACKAGE_EMPTY';
+		$this->strings['process_failed']      = 'INSTALLATION_FAILED';
+		$this->strings['process_success']     = 'OK';
+	}
+	
+	public function install( $package, $args = array() ) {
+		
+		$defaults    = array(
+			'clear_update_cache' => true,
+		);
+		$parsed_args = wp_parse_args( $args, $defaults );
+		
+		$this->init();
+		$this->install_strings();
+		
+		add_filter( 'upgrader_source_selection', array( $this, 'check_package' ) );
+		if ( $parsed_args['clear_update_cache'] ) {
+			// Clear cache so wp_update_plugins() knows about the new plugin.
+			add_action( 'upgrader_process_complete', 'wp_clean_plugins_cache', 9, 0 );
+		}
+		
+		$this->run(
+			array(
+				'package'           => $package,
+				'destination'       => WP_PLUGIN_DIR,
+				'clear_destination' => false, // Do not overwrite files.
+				'clear_working'     => true,
+				'hook_extra'        => array(
+					'type'   => 'plugin',
+					'action' => 'install',
+				),
+			)
+		);
+		
+		remove_action( 'upgrader_process_complete', 'wp_clean_plugins_cache', 9 );
+		remove_filter( 'upgrader_source_selection', array( $this, 'check_package' ) );
+		
+		if ( ! $this->result || is_wp_error( $this->result ) ) {
+			return $this->result;
+		}
+		
+		// Force refresh of plugin update information
+		wp_clean_plugins_cache( $parsed_args['clear_update_cache'] );
+		
+		return true;
+	}
+	
 	public function run( $options ) {
 		
 		$defaults = array(

@@ -1,5 +1,15 @@
 <?php
 
+// Hooks on widget loads
+add_action( 'widgets_init', 'cleantalk_load_widget' );
+
+/**
+ * Register and load the widget
+ */
+function cleantalk_load_widget(){
+	register_widget( 'cleantalk_widget' );
+}
+
 class cleantalk_widget extends WP_Widget
 {
 	function __construct()
@@ -106,12 +116,4 @@ class cleantalk_widget extends WP_Widget
 		$instance['refid'] = ( ! empty( $new_instance['refid'] ) ) ? strip_tags( $new_instance['refid'] ) : '';
 		return $instance;
 	}
-} // Class cleantalk_widget ends here
-
-// Register and load the widget
-function cleantalk_load_widget()
-{
-	register_widget( 'cleantalk_widget' );
 }
-add_action( 'widgets_init', 'cleantalk_load_widget' );
-?>

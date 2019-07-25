@@ -14,13 +14,14 @@
  */
 
 class CleantalkState
-{	
-	public $option_prefix = '';
+{
+	public $user = null;
+	public $option_prefix = 'cleantalk';
 	public $storage = array();
+	public $integrations = array();
 	public $def_settings = array(
 	
-		'spam_firewall'       => 0,
-        'server'              => 'http://moderate.cleantalk.org',
+		'spam_firewall'       => 1,
         'apikey'              => '',
 		'custom_key'          => 0,
         'autoPubRevelantMess' => 0,
@@ -30,9 +31,12 @@ class CleantalkState
         'comments_test'              => 1, 
         'contact_forms_test'         => 1, 
         'general_contact_forms_test' => 1, // Antispam test for unsupported and untested contact forms 
-		'wc_checkout_test'           => 0, //WooCommerce checkout default test => OFF
+		'wc_checkout_test'           => 0, // WooCommerce checkout default test => OFF
+		'wc_register_from_order'     => 1, // Woocommerce registration during checkout => ON
+		'search_test'                => 1, // Test deafult Wordpress form
 		'check_external'             => 0,
         'check_internal'             => 0,
+//        'validate_email_existence'   => 1,
 		
 		/* Comments and messages */
 		'bp_private_messages' =>   1, //buddyPress private messages test => ON
@@ -44,9 +48,12 @@ class CleantalkState
 		// Data processing
         'protect_logged_in' =>     1, // Do anit-spam tests to for logged in users.
 		'use_ajax' =>              1,
+		'use_static_js_key' =>     0,
 		'general_postdata_test' => 0, //CAPD
         'set_cookies'=>            1, // Disable cookies generatation to be compatible with Varnish.
+        'set_cookies__sessions'=>  0, // Use alt sessions for cookies.
         'ssl_on' =>                0, // Secure connection to servers 
+		'use_buitin_http_api' =>   0, // Using Wordpress HTTP built in API
 		
 		// Administrator Panel
         'show_adminbar'    => 1, // Show the admin bar.
@@ -61,24 +68,24 @@ class CleantalkState
         'user_token'              => '', //user token for auto login into spam statistics
         'collect_details'         => 0, // Collect details about browser of the visitor. 
         'send_connection_reports' => 0, //Send connection reports to Cleantalk servers
-		'show_link'               => 0,
 		'async_js'                => 0,
 		'debug_ajax'              => 0,
 		
 		// GDPR
-		'gdpr_forms_id' => '',
-		'gdpr_text'     => '',
+		'gdpr_enabled' => 0,
+		'gdpr_text'    => 'By using this form you agree with the storage and processing of your data by using the Privacy Policy on this website.',
+		
+		// Msic
+		'store_urls'            => 1,
+		'store_urls__sessions'  => 1,
+		'comment_notify'        => 1,
+		'comment_notify__roles' => array('administrator'),
     );
-	
-	public $settings_fields_description = array();
-	
-	public $settings_groups_description = array();
 	
 	public $def_data = array(
 		
 		// Plugin data
-		'start_version'      => APBCT_VERSION,
-		'plugin_version'     => '1.0.0',
+		'plugin_version'     => APBCT_VERSION,
         'user_token'         => '', // User token 
         'js_keys'            => array(), // Keys to do JavaScript antispam test 
         'js_keys_store_days' => 14, // JavaScript keys store days - 8 days now
@@ -144,25 +151,74 @@ class CleantalkState
 		// Misc
 		'feedback_request' => '',
 		'key_is_ok'        => 0,
+		'salt'             => '',
     );
 	
-	public $def_network_settings = array(
+	public $def_network_data = array(
 		'allow_custom_key'   => 0,
-		'allow_cleantalk_cp' => 0,
 		'key_is_ok'          => 0,
-		'spbc_key'           => '',
+		'apikey'           => '',
 		'user_token'         => '',
 		'service_id'         => 0,
 	);
 	
+	public $def_remote_calls = array(
+		'close_renew_banner' => array(
+			'last_call' => 0,
+		),
+		'sfw_update' => array(
+			'last_call' => 0,
+		),
+		'sfw_send_logs' => array(
+			'last_call' => 0,
+		),
+		'update_plugin' => array(
+			'last_call' => 0,
+		),
+		'install_plugin' => array(
+			'last_call' => 0,
+		),
+		'uninstall_plugin' => array(
+			'last_call' => 0,
+		),
+		'update_settings' => array(
+			'last_call' => 0,
+		),
+	);
+
+	public $def_stats = array(
+		'sfw' => array(
+			'last_send_time'   => 0,
+			'last_send_amount' => 0,
+			'last_update_time' => 0,
+			'entries'          => 0,
+		),
+		'last_sfw_block' => array(
+			'time' => 0,
+			'ip'   => '',
+		),
+		'last_request' => array(
+			'time'   => 0,
+			'server' => '',
+		),
+		'requests' => array(
+			'0' => array(
+				'amount' => 1,
+				'average_time' => 0,
+			),
+		)
+	);
+
+
+
 	public function __construct($option_prefix, $options = array('settings'), $wpms = false)
 	{
 		$this->option_prefix = $option_prefix;
 		
 		if($wpms){
-			$option = get_site_option($this->option_prefix.'_network_settings');			
-			$option = is_array($option) ? $option : $this->def_network_settings;
-			$this->network_settings = new ArrayObject($option);
+			$option = get_site_option($this->option_prefix.'_network_data');
+			$option = is_array($option) ? $option : $this->def_network_data;
+			$this->network_data = new ArrayObject($option);
 		}
 		
 		foreach($options as $option_name){
@@ -177,11 +233,25 @@ class CleantalkState
 			// Setting default data
 			if($this->option_prefix.'_'.$option_name === 'cleantalk_data'){
 				$option = is_array($option) ? array_merge($this->def_data,     $option) : $this->def_data;
+				// Generate salt
+				$option['salt'] = empty($option['salt'])
+					? str_pad(rand(0, getrandmax()), 6, '0').str_pad(rand(0, getrandmax()), 6, '0')
+					: $option['salt'];
 			}
 			
 			// Setting default errors
 			if($this->option_prefix.'_'.$option_name === 'cleantalk_errors'){
 				$option = $option ? $option : array();
+			}
+			
+			// Default remote calls
+			if($this->option_prefix.'_'.$option_name === 'cleantalk_remote_calls'){
+				$option = is_array($option) ? array_merge($this->def_remote_calls, $option) : $this->def_remote_calls;
+			}
+
+			// Default statistics
+			if($this->option_prefix.'_'.$option_name === 'cleantalk_stats'){
+				$option = is_array($option) ? array_merge($this->def_stats, $option) : $this->def_stats;
 			}
 			
 			$this->$option_name = is_array($option) ? new ArrayObject($option) : $option;
@@ -191,11 +261,9 @@ class CleantalkState
 	private function getOption($option_name)
 	{
 		$option = get_option('cleantalk_'.$option_name, null);
-		
-		if(gettype($option) === 'array')
-			$this->$option_name = new ArrayObject($option);
-		else
-			$this->$option_name = $option;
+		$this->$option_name = gettype($option) === 'array'
+			? new ArrayObject($option)
+			: $option;
 	}
 	
 	public function save($option_name, $use_perfix = true, $autoload = true)
@@ -223,9 +291,9 @@ class CleantalkState
 		update_option($this->option_prefix.'_errors', (array)$this->errors);
 	}
 	
-	public function saveNetworkSettings()
+	public function saveNetworkData()
 	{		
-		update_site_option($this->option_prefix.'_network_settings', $this->network_settings);
+		update_site_option($this->option_prefix.'_network_data', $this->network_data);
 	}
 	
 	public function deleteOption($option_name, $use_prefix = false)
@@ -310,23 +378,30 @@ class CleantalkState
 			$this->storage['data'][$name] = $value;
 		}
     }
-
+	
     public function __get($name) 
     {
+		// First check in storage
         if (array_key_exists($name, $this->storage)){
             return $this->storage[$name];
+			
+		// Then in data
         }elseif(array_key_exists($name, $this->storage['data'])){
 			$this->$name = $this->storage['data'][$name];
 			return $this->storage['data'][$name];
+		
+		// Maybe it's apikey?
 		}elseif($name == 'api_key'){
 			$this->$name = $this->storage['settings']['apikey'];
 			return $this->storage['settings']['apikey'];
+		
+		// Otherwise try to get it from db settings table
+		// it will be arrayObject || scalar || null
 		}else{
 			$this->getOption($name);
 			return $this->storage[$name];
 		}
-	
-		// return !empty($this->storage[$name]) ? $this->storage[$name] : null;
+		
     }
 	
     public function __isset($name) 
