@@ -1,26 +1,23 @@
 <?php
 
-/*
+/**
  * CleanTalk Wordpress Data Base driver
  * Compatible only with Wordpress.
- * Version 2.0
- * author Cleantalk team (welcome@cleantalk.org)
- * copyright (C) 2014 CleanTalk team (http://cleantalk.org)
- * license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
- * see https://github.com/CleanTalk/php-antispam
+ * Uses singleton pattern.
+ * 
+ * @depends CleantalkBase\CleantalkDB
+ * 
+ * @version 3.2
+ * @author Cleantalk team (welcome@cleantalk.org)
+ * @copyright (C) 2014 CleanTalk team (http://cleantalk.org)
+ * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
+ * @see https://github.com/CleanTalk/wordpress-antispam
 */
 
-class CleantalkDB_Wordpress
+class CleantalkDB extends CleantalkBase\CleantalkDB
 {
-	/**
-	 * @var string tables prefix
-	 */
-	public $prefix;
 	
-	/**
-	 * @var wpdb instance of WPDB
-	 */
-	private $db;
+	private static $instance;
 	
 	/**
 	 * @var string Query string
@@ -28,7 +25,7 @@ class CleantalkDB_Wordpress
 	private $query;
 	
 	/**
-	 * @var Raw DB result
+	 * @var wpdb result
 	 */
 	private $db_result;
 	
@@ -38,15 +35,28 @@ class CleantalkDB_Wordpress
 	public $result = array();
 	
 	/**
-	 * CleantalkDB_Wordpress constructor.
+	 * @var string Database prefix
 	 */
-	public function __construct()
+	public $prefix = '';
+	
+	public function __construct() {	}
+	public function __clone() { }
+	public function __wakeup() 	{ }
+	
+	public static function getInstance()
 	{
-		global $wpdb, $apbct;
-		$this->db = $wpdb;
-		$this->prefix = $apbct->db_prefix;
+		if (!isset(static::$instance)) {
+			static::$instance = new static;
+			static::$instance->init();
+		}
+		
+		return static::$instance;
 	}
 	
+	private function init(){
+		global $apbct;
+		$this->prefix = $apbct->db_prefix;
+	}
 	/**
 	 * Set $this->query string for next uses
 	 *
@@ -60,7 +70,6 @@ class CleantalkDB_Wordpress
 	}
 	
 	/**
-	 * @todo finish in two weaks! (09.07.2019)
 	 * Safely replace place holders
 	 *
 	 * @param string $query
@@ -68,13 +77,15 @@ class CleantalkDB_Wordpress
 	 *
 	 * @return $this
 	 */
-	public function prepare__incomplete__($query, $vars = array())
+	public function prepare($query, $vars = array())
 	{
+		global $wpdb;
+		
 		$query = $query ? $query : $this->query;
 		$vars  = $vars  ? $vars  : array();
 		array_unshift($vars, $query);
 		
-		$this->query = call_user_func_array('$this->db->prepare', $vars);
+		$this->query = call_user_func_array(array($wpdb, 'prepare'), $vars);
 		
 		return $this;
 	}
@@ -84,11 +95,14 @@ class CleantalkDB_Wordpress
 	 *
 	 * @param $query
 	 *
-	 * @return bool|int|Raw
+	 * @return bool|int Raw result
 	 */
 	public function execute($query)
 	{
-		$this->db_result = $this->db->query($query);
+		global $wpdb;
+		
+		$this->db_result = $wpdb->query($query);
+		
 		return $this->db_result;
 	}
 	
@@ -103,10 +117,13 @@ class CleantalkDB_Wordpress
 	 */
 	public function fetch($query = false, $response_type = false)
 	{
-		$query       = $query       ? $query       : $this->query;
+		global $wpdb;
+		
+		$query         = $query         ? $query         : $this->query;
 		$response_type = $response_type ? $response_type : ARRAY_A;
 		
-		$this->result = $this->db->get_row($query, $response_type);
+		$this->result = $wpdb->get_row($query, $response_type);
+		
 		return $this->result;
 	}
 	
@@ -121,10 +138,13 @@ class CleantalkDB_Wordpress
 	 */
 	public function fetch_all($query = false, $response_type = false)
 	{
-		$query       = $query       ? $query       : $this->query;
+		global $wpdb;
+		
+		$query         = $query         ? $query         : $this->query;
 		$response_type = $response_type ? $response_type : ARRAY_A;
 		
-		$this->result = $this->db->get_results($query, $response_type);
+		$this->result = $wpdb->get_results($query, $response_type);
+		
 		return $this->result;
 	}
 }

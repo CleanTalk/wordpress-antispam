@@ -1,34 +1,58 @@
 <?php
 
-/*
- * CleanTalk SpamFireWall base class
- * Compatible only with Wordpress.
- * @depends on CleantalkHelper class
- * @depends on CleantalkAPI class
- * @depends on CleantalkDB class
- * Version 3.0-base
- * author Cleantalk team (welcome@cleantalk.org)
- * copyright (C) 2014 CleanTalk team (http://cleantalk.org)
- * license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
- * see https://github.com/CleanTalk/php-antispam
-*/
+namespace CleantalkBase;
 
-class CleantalkSFW_Base
+/**
+ * CleanTalk SpamFireWall base class.
+ * Compatible with any CMS.
+ *
+ * @depends       CleantalkHelper class
+ * @depends       CleantalkAPI class
+ * @depends       CleantalkDB class
+ *
+ * @version       3.3
+ * @author        Cleantalk team (welcome@cleantalk.org)
+ * @copyright (C) 2014 CleanTalk team (http://cleantalk.org)
+ * @license       GNU/GPL: http://www.gnu.org/copyleft/gpl.html
+ * @see           https://github.com/CleanTalk/php-antispam
+ */
+class CleantalkSFW
 {
 	public $ip = 0;
-	public $ip_str = '';
+	
 	public $ip_array = Array();
-	public $ip_str_array = Array();
+	
 	public $results = array();
 	public $blocked_ip = '';
-	public $passed_ip = '';
 	public $result = false;
 	public $pass = true;
 	
 	public $test = false;
-
+	
+	/**
+	 * @var array of arrays array(origin => array(
+		'ip'      => '192.168.0.1',
+		'network' => '192.168.0.0',
+		'mask'    => '24',
+	    'status'  => -1 (blocked) | 1 (passed)
+		)
+	 */
 	public $all_ips = array();
+	
+	/**
+	 * @var array of arrays array(origin => array(
+		'ip'      => '192.168.0.1',
+		)
+	 */
 	public $passed_ips = array();
+	
+	/**
+	 * @var array of arrays array(origin => array(
+		'ip'      => '192.168.0.1',
+		'network' => '192.168.0.0',
+		'mask'    => '24',
+		)
+	 */
 	public $blocked_ips = array();
 
 	// Database
@@ -39,27 +63,33 @@ class CleantalkSFW_Base
 	//Debug
 	public $debug;
 	public $debug_data = '';
-	public $debug_networks = array();
 	
 	/**
-	* Creates connection to database
-	* 
-	* @param array $params
-	*   array((string)'hostname', (string)'db_name', (string)'charset', (array)PDO options)
-	* @param string $username
-	* @param string $password
-	*
-	* @return void
-	*/
+	 * CleantalkSFW_Base constructor.
+	 * Creates Database driver instance.
+	 */
 	public function __construct()
 	{
+		if(empty($this->db)){
+			// Creating database object. Depends on current CMS.
+			$this->db = CleantalkDB::getInstance();
+			
+			// Use default tables if not specified
+			$this->data_table = defined('CLEANTALK_TBL_FIREWALL_DATA') ? CLEANTALK_TBL_FIREWALL_DATA : $this->db->prefix . 'cleantalk_sfw';
+			$this->log_table  = defined('CLEANTALK_TBL_FIREWALL_LOG')  ? CLEANTALK_TBL_FIREWALL_LOG  : $this->db->prefix . 'cleantalk_sfw_logs';
+		}
+		
 		$this->debug = isset($_GET['debug']) && intval($_GET['debug']) === 1 ? true : false;
 	}
 	
-	/*
-	*	Getting arrays of IP (REMOTE_ADDR, X-Forwarded-For, X-Real-Ip, Cf_Connecting_Ip)
-	*	reutrns array('remote_addr' => 'val', ['x_forwarded_for' => 'val', ['x_real_ip' => 'val', ['cloud_flare' => 'val']]])
-	*/
+	/**
+	 * Getting arrays of IP (REMOTE_ADDR, X-Forwarded-For, X-Real-Ip, Cf_Connecting_Ip)
+	 *
+	 * @param array $ips_input type of IP you want to receive
+	 * @param bool  $v4_only
+	 *
+	 * @return array|mixed|null
+	 */
 	public function ip__get($ips_input = array('real', 'remote_addr', 'x_forwarded_for', 'x_real_ip', 'cloud_flare'), $v4_only = true){
 		
 		$result = CleantalkHelper::ip__get($ips_input, $v4_only);
@@ -77,9 +107,9 @@ class CleantalkSFW_Base
 		
 	}
 	
-	/*
-	*	Checks IP via Database
-	*/
+	/**
+	 * Checks IP via Database
+	 */
 	public function ip_check()
 	{
 		foreach($this->ip_array as $origin => $current_ip){
@@ -115,10 +145,14 @@ class CleantalkSFW_Base
 			}		
 		}
 	}
-		
-	/*
-	*	Add entry to SFW log
-	*/
+	
+	/**
+	 * Add entry to SFW log.
+	 * Writes to database.
+	 *
+	 * @param string $ip
+	 * @param string $result "blocked" or "passed"
+	 */
 	public function logs__update($ip, $result){
 		
 		if($ip === NULL || $result === NULL){
@@ -143,16 +177,18 @@ class CleantalkSFW_Base
 		$this->db->execute($query);
 	}
 	
-	/*
-	* Sends and wipe SFW log
-	* 
-	* returns mixed true || array('error' => true, 'error_string' => STRING)
-	*/
+	/**
+	 * Sends and wipe SFW log
+	 *
+	 * @param string $ct_key API key
+	 *
+	 * @return array|bool array('error' => STRING)
+	 */
 	public function logs__send($ct_key){
 		
 		//Getting logs
 		$query = "SELECT * FROM ".$this->log_table.";";
-		$this->db->set_query($query)->fetch_all();
+		$this->db->fetch_all($query);
 		
 		if(count($this->db->result)){
 			
@@ -172,20 +208,25 @@ class CleantalkSFW_Base
 					$this->db->execute("DELETE FROM ".$this->log_table.";");
 					return $result;
 				}
+				return array('error' => 'SENT_AND_RECEIVED_LOGS_COUNT_DOESNT_MACH');
 			}else{
 				return $result;
 			}
 				
 		}else{
-			return array('error' => true, 'error_string' => 'NO_LOGS_TO_SEND');
+			return array('error' => 'NO_LOGS_TO_SEND');
 		}
 	}
 	
-	/*
-	* Updates SFW local base
-	* 
-	* return mixed true || array('error' => true, 'error_string' => STRING)
-	*/
+	/**
+	 * Updates SFW local base
+	 *
+	 * @param string      $ct_key    API key
+	 * @param null|string $file_url  File URL with SFW data.
+	 * @param bool        $immediate Requires immmediate update. Without remote call
+	 *
+	 * @return array|bool array('error' => STRING)
+	 */
 	public function sfw_update($ct_key, $file_url = null, $immediate = false){
 		
 		// Getting remote file name
@@ -201,7 +242,7 @@ class CleantalkSFW_Base
 					
 					$pattenrs = array();
 					$pattenrs[] = 'get';
-					if(!$immediate) $pattenrs[] = 'dont_wait_for_answer';
+					if(!$immediate) $pattenrs[] = 'async';
 					
 					return CleantalkHelper::http__request(
 						get_option('siteurl'), 
@@ -215,7 +256,7 @@ class CleantalkSFW_Base
 					);
 					
 				}else
-					return array('error' => true, 'error_string' => 'BAD_RESPONSE');
+					return array('error' => 'BAD_RESPONSE');
 			}else
 				return $result;
 		}else{
@@ -265,22 +306,26 @@ class CleantalkSFW_Base
 							return $count_result;
 							
 						}else
-							return array('error' => true, 'error_string' => 'ERROR_GZ_EMPTY');
+							return array('error' => 'ERROR_GZ_EMPTY');
 					}else
-						return array('error' => true, 'error_string' => 'ERROR_OPEN_GZ_FILE');
+						return array('error' => 'ERROR_OPEN_GZ_FILE');
 				}else
-					return array('error' => true, 'error_string' => 'ERROR_ALLOW_URL_FOPEN_DISABLED');
+					return array('error' => 'ERROR_ALLOW_URL_FOPEN_DISABLED');
 			}else
-				return array('error' => true, 'error_string' => 'NO_REMOTE_FILE_FOUND');
+				return array('error' => 'NO_REMOTE_FILE_FOUND');
 		}			
 	}
 	
-	/*
-	* Shows DIE page
-	* 
-	* Stops script executing
-	*/	
-	public function sfw_die($api_key, $cookie_prefix = '', $cookie_domain = '')
+	/**
+	 * Shows DIE page.
+	 * Stops script executing.
+	 *
+	 * @param string $api_key
+	 * @param string $cookie_prefix
+	 * @param string $cookie_domain
+	 * @param bool   $test
+	 */
+	public function sfw_die($api_key, $cookie_prefix = '', $cookie_domain = '', $test = false)
 	{	
 		die("IP {$this->blocked_ip} BLACKLISTED");
 	}
