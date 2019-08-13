@@ -82,10 +82,6 @@ function apbct_base_call($params = array(), $reg_flag = false){
 		? CleantalkHelper::array_merge__save_numeric_keys__recursive(apbct_get_sender_info(), (array)$params['sender_info'])
 		: apbct_get_sender_info();
 	
-	$post_info = !empty($params['post_info'])
-		? CleantalkHelper::array_merge__save_numeric_keys__recursive(apbct_get_post_info(), (array)$params['post_info'])
-		: apbct_get_post_info();
-	
 	!empty($params['message'])
 		? $params['message'] = ct_filter_array($params['message'])
 		: null;
@@ -103,7 +99,6 @@ function apbct_base_call($params = array(), $reg_flag = false){
 		
 		'agent'           => APBCT_AGENT,
 		'sender_info'     => $sender_info,
-		'post_info'       => $post_info,
 		'submit_time'     => apbct_get_submit_time(),
 	);
 	
@@ -267,13 +262,6 @@ function apbct_get_sender_info() {
 		'headers_sent__where'    => !empty($apbct->headers_sent__where) ? $apbct->headers_sent__where : false,
 		'request_type'           => isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : 'UNKNOWN',
 		'abpct_hyro_acc_collect' => !empty($_COOKIE['abpct_hyro_acc_collect'])                     ? json_decode(stripslashes($_COOKIE['abpct_hyro_acc_collect']), true): null,
-	);
-}
-
-function apbct_get_post_info(){
-	return array(
-		'comment_type' => 'unknown_wordpress',
-		'post_url'     => isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : null,
 	);
 }
 
