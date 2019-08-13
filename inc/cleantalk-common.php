@@ -97,7 +97,7 @@ function apbct_base_call($params = array(), $reg_flag = false){
 		'auth_key'        => $apbct->api_key,
 		'js_on'           => apbct_js_test('ct_checkjs', $_COOKIE) ? 1 : apbct_js_test('ct_checkjs', $_POST),
 		
-		'agent'           => CLEANTALK_AGENT,
+		'agent'           => APBCT_AGENT,
 		'sender_info'     => $sender_info,
 		'submit_time'     => apbct_get_submit_time(),
 	);
@@ -114,7 +114,7 @@ function apbct_base_call($params = array(), $reg_flag = false){
 	
 	// Options store url without shceme because of DB error with ''://'
 	$config = ct_get_server();
-	$ct->server_url     = CLEANTALK_MODERATE_URL;
+	$ct->server_url     = APBCT_MODERATE_URL;
 	$ct->work_url       = preg_match('/http:\/\/.+/', $config['ct_work_url']) ? $config['ct_work_url'] : null;
 	$ct->server_ttl     = $config['ct_server_ttl'];
 	$ct->server_changed = $config['ct_server_changed'];
@@ -470,7 +470,7 @@ function ct_send_feedback($feedback_request = null) {
 		
 		// Server URL handling
 		$config = ct_get_server();
-		$ct->server_url     = CLEANTALK_MODERATE_URL;
+		$ct->server_url     = APBCT_MODERATE_URL;
 		$ct->work_url       = preg_match('/http:\/\/.+/', $config['ct_work_url']) ? $config['ct_work_url'] : null;
 		$ct->server_ttl     = $config['ct_server_ttl'];
 		$ct->server_changed = $config['ct_server_changed'];

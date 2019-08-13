@@ -424,7 +424,7 @@ class Cleantalk {
 			$args = array(
 				'body' => $data,
 				'timeout' => $server_timeout,
-				'user-agent' => CLEANTALK_AGENT.' '.get_bloginfo( 'url' ),
+				'user-agent' => APBCT_AGENT.' '.get_bloginfo( 'url' ),
 			);
 
 			$result = wp_remote_post($url, $args);

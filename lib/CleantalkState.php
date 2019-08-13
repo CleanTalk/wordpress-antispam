@@ -1,18 +1,33 @@
 <?php
 
-/*
- * 
+/**
  * CleanTalk Antispam State class
  * 
  * @package Antiospam Plugin by CleanTalk
  * @subpackage State
- * @Version 1.0
+ * @Version 2.0
  * @author Cleantalk team (welcome@cleantalk.org)
  * @copyright (C) 2014 CleanTalk team (http://cleantalk.org)
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
- *
  */
 
+/**
+ * @property mixed        settings
+ * @property mixed        moderate_ip
+ * @property mixed|string plugin_version
+ * @property mixed|string db_prefix
+ * @property bool|mixed  white_label
+ * @property string      settings_link
+ * @property mixed       data
+ * @property int         key_is_ok
+ * @property string      logo__small__colored
+ * @property string      logo__small
+ * @property string      logo
+ * @property string      plugin_name
+ * @property string      base_name
+ * @property array|mixed errors
+ * @property ArrayObject network_data
+ */
 class CleantalkState
 {
 	public $user = null;
@@ -27,16 +42,16 @@ class CleantalkState
         'autoPubRevelantMess' => 0,
 		
 		/* Forms for protection */
-        'registrations_test'         => 1,
-        'comments_test'              => 1, 
-        'contact_forms_test'         => 1, 
-        'general_contact_forms_test' => 1, // Antispam test for unsupported and untested contact forms 
-		'wc_checkout_test'           => 0, // WooCommerce checkout default test => OFF
-		'wc_register_from_order'     => 1, // Woocommerce registration during checkout => ON
-		'search_test'                => 1, // Test deafult Wordpress form
-		'check_external'             => 0,
-        'check_internal'             => 0,
-//        'validate_email_existence'   => 1,
+        'registrations_test'             => 1,
+        'comments_test'                  => 1, 
+        'contact_forms_test'             => 1, 
+        'general_contact_forms_test'     => 1, // Antispam test for unsupported and untested contact forms 
+		'wc_checkout_test'               => 0, // WooCommerce checkout default test => OFF
+		'wc_register_from_order'         => 1, // Woocommerce registration during checkout => ON
+		'search_test'                    => 1, // Test deafult Wordpress form
+		'check_external'                 => 0,
+		'check_external__capture_buffer' => 0,
+        'check_internal'                 => 0,
 		
 		/* Comments and messages */
 		'bp_private_messages' =>   1, //buddyPress private messages test => ON
@@ -86,11 +101,10 @@ class CleantalkState
 		
 		// Plugin data
 		'plugin_version'     => APBCT_VERSION,
-        'user_token'         => '', // User token 
-        'js_keys'            => array(), // Keys to do JavaScript antispam test 
-        'js_keys_store_days' => 14, // JavaScript keys store days - 8 days now
-        'js_key_lifetime'    => 86400, // JavaScript key life time in seconds - 1 day now
-        'last_remote_call'   => 0, //Timestam of last remote call
+		'js_keys'            => array(), // Keys to do JavaScript antispam test
+		'js_keys_store_days' => 14, // JavaScript keys store days - 8 days now
+		'js_key_lifetime'    => 86400, // JavaScript key life time in seconds - 1 day now
+		'last_remote_call'   => 0, //Timestam of last remote call
 		
 		// Account data
 		'service_id'    => 0,
@@ -131,12 +145,12 @@ class CleantalkState
 			'blocked'  => 0,
 			// 'since' => date('d M'),
 		),
-        'connection_reports' => array(
-            'success'         => 0,
-            'negative'        => 0,
-            'negative_report' => array(),
-            // 'since'        => date('d M'),
-        ),
+		'connection_reports'  => array(
+			'success'         => 0,
+			'negative'        => 0,
+			'negative_report' => array(),
+			// 'since'        => date('d M'),
+		),
 		
 		// A-B tests
 		'ab_test' => array(
@@ -152,7 +166,7 @@ class CleantalkState
 		'feedback_request' => '',
 		'key_is_ok'        => 0,
 		'salt'             => '',
-    );
+	);
 	
 	public $def_network_data = array(
 		'allow_custom_key'   => 0,
@@ -178,6 +192,15 @@ class CleantalkState
 		'install_plugin' => array(
 			'last_call' => 0,
 		),
+		'activate_plugin' => array(
+			'last_call' => 0,
+		),
+		'insert_auth_key' => array(
+			'last_call' => 0,
+		),
+		'deactivate_plugin' => array(
+			'last_call' => 0,
+		),
 		'uninstall_plugin' => array(
 			'last_call' => 0,
 		),
@@ -185,7 +208,7 @@ class CleantalkState
 			'last_call' => 0,
 		),
 	);
-
+	
 	public $def_stats = array(
 		'sfw' => array(
 			'last_send_time'   => 0,
@@ -208,9 +231,14 @@ class CleantalkState
 			),
 		)
 	);
-
-
-
+	
+	/**
+	 * CleantalkState constructor.
+	 *
+	 * @param string $option_prefix Database settings prefix
+	 * @param array  $options       Array of strings. Types of settings you want to get.
+	 * @param bool   $wpms          Is multisite?
+	 */
 	public function __construct($option_prefix, $options = array('settings'), $wpms = false)
 	{
 		$this->option_prefix = $option_prefix;
@@ -258,6 +286,11 @@ class CleantalkState
 		}
 	}
 	
+	/**
+	 * Get specified option from database
+	 *
+	 * @param string $option_name
+	 */
 	private function getOption($option_name)
 	{
 		$option = get_option('cleantalk_'.$option_name, null);
@@ -266,8 +299,15 @@ class CleantalkState
 			: $option;
 	}
 	
+	/**
+	 * Save option to database
+	 *
+	 * @param string $option_name
+	 * @param bool   $use_perfix
+	 * @param bool   $autoload Use autoload flag?
+	 */
 	public function save($option_name, $use_perfix = true, $autoload = true)
-	{	
+	{
 		$option_name_to_save = $use_perfix ? $this->option_prefix.'_'.$option_name : $option_name;
 		$arr = array();
 		foreach($this->$option_name as $key => $value){
@@ -276,56 +316,84 @@ class CleantalkState
 		update_option($option_name_to_save, $arr, $autoload);
 	}
 	
+	/**
+	 * Save PREFIX_setting to DB.
+	 */
 	public function saveSettings()
 	{
 		update_option($this->option_prefix.'_settings', (array)$this->settings);
 	}
 	
+	/**
+	 * Save PREFIX_data to DB.
+	 */
 	public function saveData()
 	{
 		update_option($this->option_prefix.'_data', (array)$this->data);
 	}
 	
+	/**
+	 * Save PREFIX_error to DB.
+	 */
 	public function saveErrors()
 	{
 		update_option($this->option_prefix.'_errors', (array)$this->errors);
 	}
 	
+	/**
+	 * Save PREFIX_network_data to DB.
+	 */
 	public function saveNetworkData()
-	{		
+	{
 		update_site_option($this->option_prefix.'_network_data', $this->network_data);
 	}
 	
+	/**
+	 * Unset and delete option from DB.
+	 *
+	 * @param string $option_name
+	 * @param bool   $use_prefix
+	 */
 	public function deleteOption($option_name, $use_prefix = false)
 	{
 		if($this->__isset($option_name)){
 			$this->__unset($option_name);
 			delete_option( ($use_prefix ? $this->option_prefix.'_' : '') . $option_name);
-		}		
+		}
 	}
 	
 	/**
 	 * Prepares an adds an error to the plugin's data
 	 *
-	 * @param string type
-	 * @param mixed array || string
+	 * @param string       $type       Error type/subtype
+	 * @param string|array $error      Error
+	 * @param string       $major_type Error major type
+	 * @param bool         $set_time   Do we need to set time of this error
+	 *
 	 * @returns null
 	 */
 	public function error_add($type, $error, $major_type = null, $set_time = true)
 	{
 		$error = is_array($error)
-			? $error['error_string']
+			? $error['error']
 			: $error;
 		
+		// Exceptions
+		if( ($type == 'send_logs'          && $error == 'NO_LOGS_TO_SEND') ||
+			($type == 'send_firewall_logs' && $error == 'NO_LOGS_TO_SEND') ||
+			$error == 'LOG_FILE_NOT_EXISTS'
+		)
+			return;
+		
 		$error = array(
-			'error_string' => $error,
-			'error_time'   => $set_time ? current_time('timestamp') : null,
+			'error'      => $error,
+			'error_time' => $set_time ? current_time('timestamp') : null,
 		);
 		
 		if(!empty($major_type)){
 			$this->errors[$major_type][$type] = $error;
 		}else{
-			$this->errors[$type] = $error;			
+			$this->errors[$type] = $error;
 		}
 		
 		$this->saveErrors();
@@ -334,12 +402,15 @@ class CleantalkState
 	/**
 	 * Deletes an error from the plugin's data
 	 *
-	 * @param mixed (array of strings || string 'elem1 elem2...' || string 'elem') type
-	 * @param delay saving
+	 * @param array|string $type       Error type to delete
+	 * @param bool         $save_flag  Do we need to save data after error was deleted
+	 * @param string       $major_type Error major type to delete
+	 *
 	 * @returns null
 	 */
 	public function error_delete($type, $save_flag = false, $major_type = null)
 	{
+		/** @noinspection DuplicatedCode */
 		if(is_string($type))
 			$type = explode(' ', $type);
 		
@@ -361,7 +432,8 @@ class CleantalkState
 	/**
 	 * Deletes all errors from the plugin's data
 	 *
-	 * @param delay saving
+	 * @param bool $save_flag Do we need to save data after all errors was deleted
+	 *
 	 * @returns null
 	 */
 	public function error_delete_all($save_flag = false)
@@ -371,7 +443,15 @@ class CleantalkState
 			$this->saveErrors();
 	}
 	
-	public function __set($name, $value) 
+	/**
+	 * Magic.
+	 * Add new variables to storage[NEW_VARIABLE]
+	 * And duplicates it in storage['data'][NEW_VARIABLE]
+	 *
+	 * @param string $name
+	 * @param mixed  $value
+	 */
+	public function __set($name, $value)
     {
         $this->storage[$name] = $value;
 		if(isset($this->storage['data']) && array_key_exists($name, $this->storage['data'])){
@@ -379,7 +459,15 @@ class CleantalkState
 		}
     }
 	
-    public function __get($name) 
+	/**
+	 * Magic.
+	 * Search and get param from: storage, data, api_key, database
+	 *
+	 * @param $name
+	 *
+	 * @return mixed
+	 */
+	public function __get($name)
     {
 		// First check in storage
         if (array_key_exists($name, $this->storage)){
@@ -402,25 +490,15 @@ class CleantalkState
 			return $this->storage[$name];
 		}
 		
-    }
+	}
 	
-    public function __isset($name) 
-    {
-        return isset($this->storage[$name]);
-    }
-	
-    public function __unset($name) 
-    {
-        unset($this->storage[$name]);
-    }
-	
-	public function __call($name, $arguments)
+	public function __isset($name)
 	{
-        error_log ("Calling method '$name' with arguments: " . implode(', ', $arguments). "\n");
-    }
+		return isset($this->storage[$name]);
+	}
 	
-    public static function __callStatic($name, $arguments)
+	public function __unset($name)
 	{
-        error_log("Calling static method '$name' with arguments: " . implode(', ', $arguments). "\n");
-    }
+		unset($this->storage[$name]);
+	}
 }

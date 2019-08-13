@@ -1,17 +1,31 @@
 <?php
 
-class CleantalkAPI extends CleantalkAPI_base
-{	
+/**
+ * Class CleantalkAPI.
+ * Compatible only with Wordpress.
+ *
+ * @depends       CleantalkBase\CleantalkAPI
+ * 
+ * @version       1.0
+ * @author        Cleantalk team (welcome@cleantalk.org)
+ * @copyright (C) 2014 CleanTalk team (http://cleantalk.org)
+ * @license       GNU/GPL: http://www.gnu.org/copyleft/gpl.html
+ * @see           https://github.com/CleanTalk/wordpress-antispam
+ */
+class CleantalkAPI extends CleantalkBase\CleantalkAPI
+{
 	/**
-	 * Function sends raw request to API server
+	 * Function sends raw request to API server.
+	 * May use built in Wordpress HTTP-API
 	 *
-	 * @param string url of API server
-	 * @param array data to send
-	 * @param boolean is data have to be JSON encoded or not
-	 * @param integer connect timeout
-	 * @return type
+	 * @param array Data to send
+	 * @param string API server URL
+	 * @param int $timeout
+	 * @param bool Do we need to use SSL
+	 *
+	 * @return array|bool
 	 */
-	static public function send_request($data, $url = self::URL, $timeout = 5, $ssl = false)
+	static public function send_request($data, $url = self::URL, $timeout = 5, $ssl = false, $ssl_path = '')
 	{
 		global $apbct;
 		
@@ -19,14 +33,14 @@ class CleantalkAPI extends CleantalkAPI_base
 		$url = defined('CLEANTALK_API_URL') ? CLEANTALK_API_URL : $url;
 		
 		// Adding agent version to data
-		$data['agent'] = defined('CLEANTALK_AGENT') ? CLEANTALK_AGENT : self::AGENT;
+		$data['agent'] = APBCT_AGENT;
 		
 		if($apbct->settings['use_buitin_http_api']){
 			
 			$args = array(
 				'body' => $data,
 				'timeout' => $timeout,
-				'user-agent' => CLEANTALK_AGENT.' '.get_bloginfo( 'url' ),
+				'user-agent' => APBCT_AGENT.' '.get_bloginfo( 'url' ),
 			);
 			
 			$result = wp_remote_post($url, $args);
@@ -39,12 +53,15 @@ class CleantalkAPI extends CleantalkAPI_base
 			}
 					
 		// Call CURL version if disabled
-		}else
-			$result = parent::send_request($data, $url, $timeout, $ssl);
-				
-		if(empty($result) || !empty($errors))
-			return array('error' => true, 'error_string' => $errors);
-		else
-			return $result;
+		}else{
+			$ssl_path = $ssl_path
+				? $ssl_path
+				: (defined('APBCT_CASERT_PATH') ? APBCT_CASERT_PATH : '');
+			$result = parent::send_request($data, $url, $timeout, $ssl, $ssl_path);
+		}
+		
+		return empty($result) || !empty($errors)
+			? array('error' => true, 'error' => $errors)
+			: $result;
 	}
 }

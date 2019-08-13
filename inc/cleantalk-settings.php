@@ -163,15 +163,18 @@ function apbct_settings__add_page() {
 				'check_external' => array(
 					'title'       => __('Protect external forms', 'cleantalk'),
 					'description' => __('Turn this option on to protect forms on your WordPress that send data to third-part servers (like MailChimp).', 'cleantalk'),
+					'childrens'   => array('check_external__capture_buffer'),
+				),
+				'check_external__capture_buffer' => array(
+					'title'       => __('Capture buffer', 'cleantalk'),
+					'description' => __('This setting gives you more sophisticated and strengthened protection for external forms. But it could break plugins which use a buffer like Ninja Forms.', 'cleantalk'),
+					'class'       => 'apbct_settings-field_wrapper--sub',
+					'parent'      => 'check_external',
 				),
 				'check_internal' => array(
 					'title'       => __('Protect internal forms', 'cleantalk'),
 					'description' => __('This option will enable protection for custom (hand-made) AJAX forms with PHP scripts handlers on your WordPress.', 'cleantalk'),
 				),
-//				'validate_email_existence' => array(
-//					'title'       => __('Validate e-mail for existence', 'cleantalk'),
-//					'description' => __('Using additional filter for e-mails. Block subscription/comment/registration if e-mail not exists.', 'cleantalk'),
-//				),
 			),
 		),
 		
@@ -213,7 +216,7 @@ function apbct_settings__add_page() {
 				),
 				'use_ajax' => array(
 					'title'       => __('Use AJAX for JavaScript check', 'cleantalk'),
-					'description' => __('Options helps protect WordPress against spam with any caching plugins. Turn this option on to avoid issues with caching plugins.', 'cleantalk')."<strong> ".__('Attention! Incompatible with AMP plugins!', 'cleantalk')."</strong>",
+					'description' => __('Options helps protect WordPress against spam with any caching plugins. Turn this option on to avoid issues with caching plugins.', 'cleantalk'),
 				),
 				'use_static_js_key' => array(
 					'title'       => __('Use static keys for JS check.', 'cleantalk'),
@@ -528,7 +531,7 @@ function apbct_settings__error__output($return = false){
 						if(isset($sub_error['error_time']))
 							$errors_out[$sub_type] .= date('Y-m-d H:i:s', $sub_error['error_time']) . ': ';
 						$errors_out[$sub_type] .= ucfirst($type).': ';
-						$errors_out[$sub_type] .= (isset($error_texts[$sub_type]) ? $error_texts[$sub_type] : $error_texts['unknown']) . $sub_error['error_string'];
+						$errors_out[$sub_type] .= (isset($error_texts[$sub_type]) ? $error_texts[$sub_type] : $error_texts['unknown']) . $sub_error['error'];
 					}
 					continue;
 				}
@@ -536,7 +539,7 @@ function apbct_settings__error__output($return = false){
 				$errors_out[$type] = '';
 				if(isset($error['error_time'])) 
 					$errors_out[$type] .= date('Y-m-d H:i:s', $error['error_time']) . ': ';
-				$errors_out[$type] .= (isset($error_texts[$type]) ? $error_texts[$type] : $error_texts['unknown']) . ' ' . (isset($error['error_string']) ? $error['error_string'] : '');
+				$errors_out[$type] .= (isset($error_texts[$type]) ? $error_texts[$type] : $error_texts['unknown']) . ' ' . (isset($error['error']) ? $error['error'] : '');
 				
 			}
 		}
@@ -806,7 +809,7 @@ function apbct_settings__field__statistics() {
 		echo '<br>';
 
 		// SFW last update
-		$sfw_netwoks_amount = $wpdb->get_results("SELECT count(*) AS cnt FROM `".$wpdb->base_prefix."cleantalk_sfw`", ARRAY_A);
+		$sfw_netwoks_amount = $wpdb->get_results("SELECT count(*) AS cnt FROM `".$wpdb->prefix."cleantalk_sfw`", ARRAY_A);
 		printf(
 			__('SpamFireWall was updated %s. Now contains %s entries.', 'cleantalk'),
 			$apbct->stats['sfw']['last_update_time'] ? date('M d Y H:i:s', $apbct->stats['sfw']['last_update_time']) : __('unknown', 'cleantalk'),
@@ -1000,7 +1003,7 @@ function apbct_settings__validate($settings) {
 		}
 	} unset($setting, $value);
 		
-	// validating API key
+	// Validating API key
 	$settings['apikey'] = isset($settings['apikey']) ? trim($settings['apikey']) : '';
 	$settings['apikey'] = defined('CLEANTALK_ACCESS_KEY') ? CLEANTALK_ACCESS_KEY : $settings['apikey'];
 	$settings['apikey'] = $apbct->white_label ? $apbct->settings['apikey'] : $settings['apikey'];
@@ -1023,7 +1026,7 @@ function apbct_settings__validate($settings) {
 		
 		$website        = parse_url(get_option('siteurl'), PHP_URL_HOST).parse_url(get_option('siteurl'), PHP_URL_PATH);
 		$platform       = 'wordpress';
-		$user_ip             = CleantalkHelper::ip__get(array('real'), false);
+		$user_ip        = CleantalkHelper::ip__get(array('real'), false);
 		$timezone       = filter_input(INPUT_POST, 'ct_admin_timezone');
 		$language       = filter_input(INPUT_SERVER, 'HTTP_ACCEPT_LANGUAGE');
 		$wpms           = APBCT_WPMS && defined('SUBDOMAIN_INSTALL') && !SUBDOMAIN_INSTALL ? true : false;
@@ -1031,6 +1034,7 @@ function apbct_settings__validate($settings) {
 		$hoster_api_key = $apbct->white_label&& defined('APBCT_HOSTER_API_KEY') ? APBCT_HOSTER_API_KEY             : '';
 		
 		$result = CleantalkAPI::method__get_api_key(
+			'antispam',
 			ct_get_admin_email(),
 			$website,
 			$platform,
@@ -1056,13 +1060,13 @@ function apbct_settings__validate($settings) {
 			if(!$apbct->white_label)
 				$apbct->error_add('key_get', $result);
 			else
-				$apbct->error_add('key_get', $result['error_string'] . ' <button id="apbct_setting_get_key_auto" name="submit" type="submit" class="cleantalk_manual_link" value="get_key_auto">'.__('Get access key automatically', 'cleantalk').'</button>'.'<input type="hidden" id="ct_admin_timezone" name="ct_admin_timezone" value="null" />');
+				$apbct->error_add('key_get', $result['error'] . ' <button id="apbct_setting_get_key_auto" name="submit" type="submit" class="cleantalk_manual_link" value="get_key_auto">'.__('Get access key automatically', 'cleantalk').'</button>'.'<input type="hidden" id="ct_admin_timezone" name="ct_admin_timezone" value="null" />');
 			return $settings;
 		}
 	}
 	
 	// Feedback with app_agent
-	ct_send_feedback('0:' . CLEANTALK_AGENT); // 0 - request_id, agent version.
+	ct_send_feedback('0:' . APBCT_AGENT); // 0 - request_id, agent version.
 	
 	// Key is good by default
 	$apbct->data['key_is_ok'] = true;
@@ -1092,6 +1096,7 @@ function apbct_settings__validate($settings) {
 				
 			// Key is not valid
 			}else{
+				$apbct->data['key_is_ok'] = false;
 				$apbct->error_add('key_invalid', __('Testing is failed. Please check the Access key.', 'cleantalk'));
 			}
 			

@@ -33,32 +33,42 @@ function apbct_init() {
     	add_shortcode( 'et_pb_contact_form', 'ct_contact_form_validate' );
     }
 	
-    if($apbct->settings['check_external'] 
-		&& isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] == 'POST'
-		&& isset($_POST['cleantalk_hidden_method'])
-		&& isset($_POST['cleantalk_hidden_action'])
-	){
-    	$action=htmlspecialchars($_POST['cleantalk_hidden_action']);
-    	$method=htmlspecialchars($_POST['cleantalk_hidden_method']);
-    	unset($_POST['cleantalk_hidden_action']);
-    	unset($_POST['cleantalk_hidden_method']);
-    	ct_contact_form_validate();
-		if(empty($_POST['cleantalk_hidden_ajax'])){
-			print "<html><body><form method='$method' action='$action'>";
-			ct_print_form($_POST,'');
-			print "</form><center>Redirecting to ".$action."... Anti-spam by CleanTalk.</center></body></html>";
-			print "<script>
-				if(document.forms[0].submit != 'undefined'){
-					var objects = document.getElementsByName('submit');
-					if(objects.length > 0)
-						document.forms[0].removeChild(objects[0]);
-				}
-				document.forms[0].submit();
-			</script>";
-			die();
+	if($apbct->settings['check_external']){
+		
+		// Fixing form and directs it this site
+		if($apbct->settings['check_external__capture_buffer'] && !is_admin() && !apbct_is_ajax() && apbct_is_user_enable() && !(defined('DOING_CRON') && DOING_CRON)){
+			add_action('wp', 'apbct_buffer__start');
+			add_action('shutdown', 'apbct_buffer__end', 0);
+			add_action('shutdown', 'apbct_buffer__output', 2);
 		}
-    }
-    
+		
+		// Check and redirecct
+		if(isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] == 'POST'
+			&& isset($_POST['cleantalk_hidden_method'])
+			&& isset($_POST['cleantalk_hidden_action'])
+		){
+			$action = htmlspecialchars($_POST['cleantalk_hidden_action']);
+			$method = htmlspecialchars($_POST['cleantalk_hidden_method']);
+			unset($_POST['cleantalk_hidden_action']);
+			unset($_POST['cleantalk_hidden_method']);
+			ct_contact_form_validate();
+			if(!apbct_is_ajax()){
+				print "<html><body><form method='$method' action='$action'>";
+				ct_print_form($_POST, '');
+				print "</form>Redirecting to " . $action . "... Anti-spam by CleanTalk.</body></html>";
+				print "<script>
+					if(document.forms[0].submit !== 'undefined'){
+						var objects = document.getElementsByName('submit');
+						if(objects.length > 0)
+							document.forms[0].removeChild(objects[0]);
+					}
+					document.forms[0].submit();
+				</script>";
+				die();
+			}
+		}
+	}
+ 
 	if(isset($_POST['quform_ajax'], $_POST['quform_csrf_token'], $_POST['quform_form_id'])){
 		require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-ajax.php');
 		ct_ajax_hook();
@@ -75,7 +85,8 @@ function apbct_init() {
     
     if($apbct->settings['general_contact_forms_test'] == 1 && empty($_POST['ct_checkjs_cf7'])){
 		add_action('CMA_custom_post_type_nav','ct_contact_form_validate_postdata',1);
-		add_action('wp','ct_contact_form_validate',1);
+		//add_action('init','ct_contact_form_validate',1);
+		ct_contact_form_validate();
 		if(isset($_POST['reg_redirect_link'])&&isset($_POST['tmpl_registration_nonce_field']))
 		{
 			unset($_POST['ct_checkjs_register_form']);
@@ -230,6 +241,10 @@ function apbct_init() {
 		add_filter('wpforms_process_before_filter', 'apbct_from__WPForms__gatherData', 100, 2);
 		// Do spam check
 		add_filter('wpforms_process_initial_errors', 'apbct_form__WPForms__showResponse', 100, 2);
+		
+	// QForms integration
+	add_filter( 'quform_post_validate',  'ct_quform_post_validate', 10, 2 );
+
 	 
     //
     // Load JS code to website footer
@@ -248,7 +263,7 @@ function apbct_init() {
 
         if ($apbct->settings['general_contact_forms_test'] == 1 && !isset($_POST['comment_post_ID']) && !isset($_GET['for'])){
         	$ct_check_post_result=false;
-            add_action( 'wp', 'ct_contact_form_validate', 999 );
+            add_action( 'init', 'ct_contact_form_validate', 999 );
         }
         if(isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] == 'POST' && 
 			$apbct->settings['general_postdata_test'] == 1 && 
@@ -260,6 +275,79 @@ function apbct_init() {
 	    	ct_contact_form_validate_postdata();
 	    }
     }
+}
+
+function apbct_buffer__start(){
+	ob_start();
+}
+
+function apbct_buffer__end(){
+	
+	if(!ob_get_level())
+		return;
+	
+	global $apbct;
+	$apbct->buffer = ob_get_contents();
+	ob_end_clean();
+}
+
+/**
+ * Outputs changed buffer
+ *
+ * @global $apbct
+ */
+function apbct_buffer__output(){
+	
+	global $apbct;
+	
+	if(empty($apbct->buffer))
+		return;
+	
+	$site_url   = get_option('siteurl');
+	$site__host = parse_url($site_url,  PHP_URL_HOST);
+	
+	$dom = new DOMDocument();
+	@$dom->loadHTML($apbct->buffer);
+	
+	$forms = $dom->getElementsByTagName('form');
+	
+	foreach($forms as $form){
+		
+		$action = $form->getAttribute('action');
+		$action = $action ? $action : $site_url;
+		$action__host = parse_url($action,  PHP_URL_HOST);
+		
+		// Check if the form directed to the third party site
+		if($site__host != $action__host){
+			
+			$method = $form->getAttribute('method');
+			$method = $method ? $method : 'get';
+			// Directs form to our site
+			$form->setAttribute('method', 'POST');
+			$form->setAttribute('action', $site_url);
+			
+			// Add cleantalk_hidden_action
+			$new_input = $dom->createElement('input');
+			$new_input->setAttribute('type', 'hidden');
+			$new_input->setAttribute('name', 'cleantalk_hidden_action');
+			$new_input->setAttribute('value', $action);
+			$form->appendChild($new_input);
+			
+			// Add cleantalk_hidden_method
+			$new_input = $dom->createElement('input');
+			$new_input->setAttribute('type', 'hidden');
+			$new_input->setAttribute('name', 'cleantalk_hidden_method');
+			$new_input->setAttribute('value', $method);
+			$form->appendChild($new_input);
+			
+		}
+	} unset($form);
+	
+	$html = $dom->getElementsByTagName('html');
+	
+	echo gettype($html) == 'object'
+		? $html[0]->childNodes[0]->ownerDocument->saveHTML()
+		: $apbct->buffer;
 }
 
 // MailChimp Premium for Wordpress
@@ -2325,6 +2413,44 @@ function apbct_form__WPForms__changeMailNotification($message, $wpforms_email){
 	
 }
 
+/*
+*  QuForms check spam
+*	works with singl-paged forms
+*	and with multi-paged forms - check only last step of the forms
+*/
+function ct_quform_post_validate($result, $form) {
+
+	if ( $form->hasPages() ) {
+		$comment_type = 'contact_form_wordpress_quforms_multipage';
+	} else {
+		$comment_type = 'contact_form_wordpress_quforms_singlepage';
+	}
+
+	$ct_temp_msg_data = ct_get_fields_any( $form->getValues() );
+	// @ToDo If we have several emails at the form - will be used only the first detected!
+	$sender_email    = ($ct_temp_msg_data['email']    ? $ct_temp_msg_data['email']    : '');
+
+	$checkjs = apbct_js_test('ct_checkjs', $_COOKIE);
+	$base_call_result = apbct_base_call(
+		array(
+			'message'         => $form->getValues(),
+			'sender_email'    => $sender_email,
+			'post_info'       => array('comment_type' => $comment_type),
+			'js_on'           => $checkjs,
+		)
+	);
+	
+	$ct_result = $base_call_result['ct_result'];
+	if ($ct_result->allow == 0) {
+		die(json_encode(array('type' => 'error', 'apbct' => array('blocked' => true, 'comment' => $ct_result->comment))));
+	} else {
+		return $result;
+	}
+	
+	return $result;
+	
+}
+
 /**
  * Inserts anti-spam hidden to Fast Secure contact form
  */
@@ -2660,7 +2786,8 @@ function ct_contact_form_validate() {
 		(strpos($_SERVER['REQUEST_URI'],'admin_aspcms/_system/AspCms_SiteSetting.asp?action=saves')!==false ) || // Skip admin save callback
 		(strpos($_SERVER['REQUEST_URI'],'?profile_tab=postjobs')!==false ) || // Skip post vacancies
 		(isset($_POST['btn_insert_post_type_hotel']) && $_POST['btn_insert_post_type_hotel'] == 'SUBMIT HOTEL') || // Skip adding hotel
-		(isset($_POST['action']) && $_POST['action'] == 'updraft_savesettings') // Updraft save settings
+		(isset($_POST['action']) && $_POST['action'] == 'updraft_savesettings') || // Updraft save settings
+		isset($_POST['quform_submit']) //QForms multi-paged form skip
 		) {
         return null;
     }
@@ -2966,30 +3093,20 @@ function ct_send_error_notice ($comment = '') {
     return null;
 }
 
-function ct_print_form($arr,$k)
+function ct_print_form($arr, $k)
 {
-	foreach($arr as $key=>$value)
-	{
-		if(!is_array($value))
-		{
-			if($k=='')
-			{
-				print '<textarea name="'.$key.'" style="display:none;">'.htmlspecialchars($value).'</textarea>';
+	foreach($arr as $key => $value){
+		if(!is_array($value)){
+			if($k == ''){
+				print '<textarea name="' . $key . '" style="display:none;">' . htmlspecialchars($value) . '</textarea>';
+			}else{
+				print '<textarea name="' . $k . '[' . $key . ']" style="display:none;">' . htmlspecialchars($value) . '</textarea>';
 			}
-			else
-			{
-				print '<textarea name="'.$k.'['.$key.']" style="display:none;">'.htmlspecialchars($value).'</textarea>';
-			}
-		}
-		else
-		{
-			if($k=='')
-			{
-				ct_print_form($value,$key);
-			}
-			else
-			{
-				ct_print_form($value,$k.'['.$key.']');
+		}else{
+			if($k == ''){
+				ct_print_form($value, $key);
+			}else{
+				ct_print_form($value, $k . '[' . $key . ']');
 			}
 		}
 	}

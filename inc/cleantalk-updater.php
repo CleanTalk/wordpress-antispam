@@ -223,7 +223,7 @@ function apbct_update_to_5_118_2(){
 	$apbct->saveData();
 }
 
-function apbct_update_to_5_119(){
+function apbct_update_to_5_119_0(){
 	
 	global $wpdb;
 	
@@ -278,4 +278,11 @@ function apbct_update_to_5_119(){
 			'ct_server_changed' => 0,
 		)
 	);
+}
+
+function apbct_update_to_5_124_0(){
+	global $apbct;
+	// Deleting error in database because format were changed
+	$apbct->errors = array();
+	$apbct->saveErrors();
 }

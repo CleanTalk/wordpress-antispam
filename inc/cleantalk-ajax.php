@@ -295,6 +295,7 @@ function ct_ajax_hook($message_obj = false, $additional = false)
         check_url_exclusions() || // url exclusions
         (isset($_POST['action']) && in_array($_POST['action'], $skip_post)) || // Special params
 	    (isset($_GET['action'])  && in_array($_GET['action'], $skip_post)) ||  // Special params
+		isset($_POST['quform_submit']) || //QForms multi-paged form skip
         // QAEngine Theme fix
         ( strval(current_action()) != 'et_pre_insert_answer' &&
 	        (

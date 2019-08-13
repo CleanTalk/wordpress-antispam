@@ -3,7 +3,7 @@ Contributors: safronik
 Tags: spam, antispam, protection, comments, firewall 
 Requires at least: 3.0
 Tested up to: 5.3
-Stable tag: 5.123
+Stable tag: 5.124.1
 License: GPLv2
 
 Spam protection, antispam, all-in-one, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -56,7 +56,7 @@ Native spam protection for WordPress, JetPack comments and any other comment plu
 Filters spam bots on registration forms of WordPress, BuddyPress, bbPress, S2Member, WooCommerce, Profile builder, Login with AJAX and any other registration plugins.
 
 = Protection from contact form spam =
-The plugin is tested and ready to protect from spam emails via Formidable forms, Contact form 7, JetPack Contact form, Fast Secure Contact form, Ninja forms, Landing pages, Gravity forms, Contact Form by BestWebSoft, Simple Contact Form Plugin - PirateForms, Visual Form Builder, Form, Contact Form by WebDorado, Contact Form Email, MW WP Form, Contact Form by Jeff Bulllins, Easy Contact, Contact Us Form, Grunion Contact Form, WCP Contact Form, Easy WordPress Contact Form Plugin, WPForms Lite, Custom Contact, Forms, Amo Forms, Caldera Forms, Visual Form Builder, Contact Form Clean and Simple, Divi by Elegant Themes, The7 theme and any other themes or custom contact forms, amoForms, Custom Contact Form, Ultimate Form Builder, Contact Bank - Contact Forms Builder, Forms easily built with Smart Forms, Quick Contact Form, Usernoise contact form, cformsII - contact form, Contact Form by Web-Settler, HubSpot Marketing Free.
+The plugin is tested and ready to protect from spam emails via Formidable forms, Contact form 7, JetPack Contact form, Fast Secure Contact form, Ninja forms, Landing pages, Gravity forms, Contact Form by BestWebSoft, Simple Contact Form Plugin - PirateForms, Visual Form Builder, Form, Contact Form by WebDorado, Contact Form Email, MW WP Form, Contact Form by Jeff Bulllins, Easy Contact, Contact Us Form, Grunion Contact Form, WCP Contact Form, Easy WordPress Contact Form Plugin, WPForms Lite, Custom Contact, Forms, Amo Forms, Caldera Forms, Visual Form Builder, Contact Form Clean and Simple, Divi by Elegant Themes, The7 theme and any other themes or custom contact forms, amoForms, Custom Contact Form, Ultimate Form Builder, Contact Bank - Contact Forms Builder, Forms easily built with Smart Forms, Quick Contact Form, Usernoise contact form, cformsII - contact form, Contact Form by Web-Settler, HubSpot Marketing Free, QuForm.
 
 = WooCommerce spam filter =
 Anti-spam by CleanTalk filters spam registrations and spam reviews for WooCommerce. The plugin is fully compatible with WooCommerce 2.1 and higher.
@@ -575,6 +575,19 @@ If your website has forms that send data to external sources, you can enable opt
 10. Website's options.
 
 == Changelog ==
+= 5.124.1 August 8 2019 =
+  * Fix: Error on PHP 5.3.
+
+= 5.124 August 8 2019 =
+  * Spam protection improved.
+  * Fix: SpamFireWall local database counter on Multisite.
+  * Fix: Caldera Forms integration.
+  * Fix: Settings "Use AJAX for JS check" description.
+  * Fix: Formidable integration.
+  * New: External forms check now independed from JavaScript.
+  * New: Setting Protect external - capture buffer.
+  * New: QuForm integration.
+
 = 5.123 July 25 2019 =
   * Fix: Plenty of minor fixes.
   * Fix: wpDiscuz integration.
@@ -1956,6 +1969,19 @@ If your website has forms that send data to external sources, you can enable opt
   * First version
   
 == Upgrade Notice ==
+= 5.124.1 August 8 2019 =
+  * Fix: Error on PHP 5.3.
+
+= 5.124 August 8 2019 =
+  * Spam protection improved.
+  * Fix: SpamFireWall local database counter on Multisite.
+  * Fix: Caldera Forms integration.
+  * Fix: Settings "Use AJAX for JS check" description.
+  * Fix: Formidable integration.
+  * New: External forms check now independed from JavaScript.
+  * New: Setting Protect external - capture buffer.
+  * New: QuForm integration.
+
 = 5.123 July 25 2019 =
   * Fix: Plenty of minor fixes.
   * Fix: wpDiscuz integration.

@@ -51,7 +51,7 @@ function ct_dashboard_statistics_widget_output( $post, $callback_args ) {
 	}elseif(!empty($apbct->data['brief_data']['error'])){
 		echo '<div class="ct_widget_block">'
 			.'<h2 class="ct_widget_activate_header">'
-				.sprintf(__('Something went wrong! Error: "%s".', 'cleantalk'), "<u>{$apbct->brief_data['error_string']}</u>")
+				.sprintf(__('Something went wrong! Error: "%s".', 'cleantalk'), "<u>{$apbct->brief_data['error']}</u>")
 			.'</h2>';
 			if($apbct->user_token && !$apbct->white_label){
 				echo '<h2 class="ct_widget_activate_header">'

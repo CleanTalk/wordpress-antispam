@@ -731,7 +731,7 @@ if(!class_exists('CleantalkBase\CleantalkAPI'))
 			switch($method_name){
 				
 				// notice_paid_till
-					case 'notice_paid_till':
+				case 'notice_paid_till':
 					if(
 						(isset($result['error_no']) && $result['error_no'] == 12) ||
 						(empty($result['error']) && empty($result['data']['service_id'])) ||
