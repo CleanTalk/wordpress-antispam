@@ -215,3 +215,74 @@ function apbct_update_to_5_118_0(){
 	);
 	delete_option('cleantalk_server');
 }
+
+function apbct_update_to_5_118_2(){
+	global $apbct;
+	$apbct->data['connection_reports'] = $apbct->def_data['connection_reports'];
+	$apbct->data['connection_reports']['since'] = date('d M');
+	$apbct->saveData();
+}
+
+function apbct_update_to_5_119_0(){
+	
+	global $wpdb;
+	
+	$wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->prefix.'cleantalk_sessions`;');  //  Deleting session table
+	
+	// SFW data
+	$sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_sfw` (
+		`network` int(11) unsigned NOT NULL,
+		`mask` int(11) unsigned NOT NULL,
+		INDEX (  `network` ,  `mask` )
+		) ENGINE = MYISAM ;';
+	
+	// SFW log
+	$sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_sfw_logs` (
+		`ip` VARCHAR(15) NOT NULL,
+		`all_entries` INT NOT NULL,
+		`blocked_entries` INT NOT NULL,
+		`entries_timestamp` INT NOT NULL,
+		PRIMARY KEY (`ip`)) 
+		ENGINE = MYISAM;';
+	
+	// Sessions
+	$sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_sessions` (
+		`id` VARCHAR(64) NOT NULL,
+		`name` VARCHAR(64) NOT NULL,
+		`value` TEXT NULL DEFAULT NULL,
+		`last_update` DATETIME NULL DEFAULT NULL,
+		PRIMARY KEY (`id`(64), `name`(64)))
+		ENGINE = MYISAM;';
+	
+	apbct_activation__create_tables($sqls);
+	
+	// WPMS
+	if(is_multisite()){
+		global $wpdb;
+		$initial_blog  = get_current_blog_id();
+		$blogs = array_keys($wpdb->get_results('SELECT blog_id FROM '. $wpdb->blogs, OBJECT_K));
+		foreach ($blogs as $blog) {
+			switch_to_blog($blog);
+			$wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->prefix.'cleantalk_sessions`;');  //  Deleting session table
+			apbct_activation__create_tables($sqls);
+		}
+		switch_to_blog($initial_blog);
+	}
+	
+	// Drop work url 
+	update_option(
+		'cleantalk_server',
+		array(
+			'ct_work_url'       => null,
+			'ct_server_ttl'     => 0,
+			'ct_server_changed' => 0,
+		)
+	);
+}
+
+function apbct_update_to_5_124_0(){
+	global $apbct;
+	// Deleting error in database because format were changed
+	$apbct->errors = array();
+	$apbct->saveErrors();
+}

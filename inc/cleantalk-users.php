@@ -453,7 +453,7 @@ function ct_ajax_check_users(){
 				print json_encode($check_result);
 		}else{
 			$check_result['error'] = 1;
-			$check_result['error_message'] = $result['error_string'];
+			$check_result['error_message'] = $result['error'];
 			echo json_encode($check_result);
 		}
 	}else{
@@ -618,7 +618,7 @@ function ct_ajax_delete_all_users($count_all = 0)
 
     global $wpdb;
     
-	$r = $wpdb->get_results("select count(*) as cnt from $wpdb->usermeta where meta_key='ct_marked_as_spam';", ARRAY_A);
+	$r = $wpdb->get_results("select count(*) as cnt from $wpdb->usermeta where meta_key='ct_marked_as_spam';", OBJECT );
 	
 	if(!empty($r)){
 
@@ -681,5 +681,3 @@ function ct_usercheck_get_csv_file() {
 	
 	die();
 }
-
-?>

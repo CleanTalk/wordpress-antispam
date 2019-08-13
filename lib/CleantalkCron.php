@@ -1,10 +1,15 @@
 <?php
 
-/*
-*	CleanTalk cron class
-*	Version 1.0
-*/
-
+/**
+ * Class CleantalkCron
+ * Compatible only with Wordpress.
+ *
+ * @version       1.1
+ * @author        Cleantalk team (welcome@cleantalk.org)
+ * @copyright (C) 2014 CleanTalk team (http://cleantalk.org)
+ * @license       GNU/GPL: http://www.gnu.org/copyleft/gpl.html
+ * @see           https://github.com/CleanTalk/wordpress-antispam
+ */
 class CleantalkCron
 {
 	public $tasks = array(); // Array with tasks
@@ -25,6 +30,9 @@ class CleantalkCron
 	{
 		$tasks = get_option(self::CRON_OPTION_NAME);
 		$this->tasks = empty($tasks) ? array() : $tasks;
+		$this->checkTasks();
+		if(!empty($this->tasks_to_run))
+			$this->runTasks();
 	}
 	
 	// Adding new cron task

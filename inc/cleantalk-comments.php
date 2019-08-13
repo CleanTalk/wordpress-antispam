@@ -432,7 +432,7 @@ function ct_ajax_check_comments(){
 			
 		}else{
 			$check_result['error'] = 1;
-			$check_result['error_message'] = $result['error_string'];
+			$check_result['error_message'] = $result['error'];
 			echo json_encode($check_result);
 		}
 	}else{
@@ -659,4 +659,3 @@ function ct_comment_check_approve_comment(){
 
 	die();
 }
-?>

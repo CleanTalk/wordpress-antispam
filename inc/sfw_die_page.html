@@ -1,44 +1,49 @@
 <!doctype html>
 
 <html lang='en'>
-<head>
-    <meta charset='utf-8' />
-    <meta name='viewport' content='width=device-width, initial-scale=1' />
+	<head>
+		<meta charset='utf-8' />
+		<meta name='viewport' content='width=device-width, initial-scale=1' />
 
-  <!--[if lt IE 9]>
-  <script src='http://html5shiv.googlecode.com/svn/trunk/html5.js'></script>
-  <![endif]-->
-<style>
-    html{font-size: 14pt;}
-    h1{text-align:center}
-    h1.main{margin-top: 1em;margin-bottom: 3em;}
-    div.container {text-align:center;}
-    div.container p.js_notice{width: 60%; display: inline-block;}
-    div.footer {color: #666; position: absolute; bottom: 1em; text-align: center; width: 100%;}
-    div.footer a {color: #666; vertical-align:bottom; text-align: center;}
-    div#js_passed {display:none;}
+	  <!--[if lt IE 9]>
+	  <script src='http://html5shiv.googlecode.com/svn/trunk/html5.js'></script>
+	  <![endif]-->
+	<style>
+		html{font-size: 14pt;}
+		h1{text-align:center}
+		h1.main{margin-top: 1em;margin-bottom: 3em;}
+		div.container {text-align:center;}
+		div.container p.js_notice{width: 60%; display: inline-block;}
+		div.footer {color: #666; position: absolute; bottom: 1em; text-align: center; width: 100%;}
+		div.footer a {color: #666; vertical-align:bottom; text-align: center;}
+		div#js_passed {display:none;}
 
-    @media (max-width: 600px) {
-    }
-</style>
-<script>
-var reload_timeout = 1000;
-var ct_date = new Date;
-function set_spamFireWallCookie(cookie_name, cookie_value) {
-    document.cookie = cookie_name + '=' + escape(cookie_value) + '; path=/;{COOKIE_DOMAIN}';
-    return null;
-}
-function get_current_url() {
-    document.write(window.location.href);
-    return null;
-}
-</script>
+		@media (max-width: 600px) {
+		}
+	</style>
+	<script>
+		var reload_timeout = 1000;
+		var ct_date = new Date;
+		function set_spamFireWallCookie(cookie_name, cookie_value) {
+			var date = new Date;
+			date.setDate(date.getDate() + 30);
+			document.cookie = cookie_name + '=' + escape(cookie_value) + '; path=/; domain={COOKIE_DOMAIN}; expires=' + date.toUTCString();
+			return null;
+		}
+		function get_current_url() {
+			document.write(window.location.href);
+			return null;
+		}
+	</script>
 </head>
 
 <body>
     <div class='container'>
         <h1 class='main'>{SFW_DIE_NOTICE_IP}<a href='https://cleantalk.org/blacklists/{REMOTE_ADDRESS}' target='_blank'>{REMOTE_ADDRESS}</a></h1>
         
+		<h3>{REAL_IP__HEADER} {REAL_IP} {REAL_IP_BLOCKED}</h3>
+		<h3>{TEST_IP__HEADER} {TEST_IP} {TEST_IP_BLOCKED}</h3>
+		
 		<h2>{TEST_TITLE}</h2>
 		
         <div id='js_info'><br />{SFW_DIE_MAKE_SURE_JS_ENABLED}</div>
@@ -66,13 +71,16 @@ function get_current_url() {
 		
         document.getElementById('curr_date').innerHTML = ct_date.toGMTString();
 		
+		if(location.search.search('debug=1') === -1){
+			setTimeout(function(){
+				window.location.href = window.location.origin + window.location.pathname + '?sfw=pass' + Math.round(ct_date.getTime()/1000);
+			}, reload_timeout);
+		}
+		
 		setTimeout(function(){
 			set_spamFireWallCookie('{COOKIE_PREFIX}ct_sfw_pass_key','{SFW_COOKIE}');
 			set_spamFireWallCookie('{COOKIE_PREFIX}ct_sfw_passed','1');
 		}, 50);
-        setTimeout(function(){
-			window.location.href = window.location.origin + window.location.pathname + '?sfw=pass' + Math.round(ct_date.getTime()/1000);
-        }, reload_timeout);
     </script>
 	{DEBUG}
 </body>
