@@ -432,7 +432,7 @@ function apbct_remote_call__perform()
 					
 				// Update plugin
 					case 'update_plugin':
-						add_action('wp', 'apbct_update', 1);
+						add_action('wp', 'apbct_rc__update', 1);
 						break;
 					
 				// Install plugin

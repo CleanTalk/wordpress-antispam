@@ -732,16 +732,14 @@ if(!class_exists('CleantalkBase\CleantalkAPI'))
 				
 				// notice_paid_till
 				case 'notice_paid_till':
+					$out = $result['data'];
 					if(
 						(isset($result['error_no']) && $result['error_no'] == 12) ||
 						(empty($result['error']) && empty($result['data']['service_id'])) ||
 						(empty($result['error']) && isset($result['data']['service_id']) && !is_int($result['data']['service_id']))
 					){
-						$out = array(
-							'valid' => 0,
-						);
+						$out['valid'] = 0;
 					}else{
-						$out = $result['data'];
 						$out['valid'] = 1;
 					}
 					
