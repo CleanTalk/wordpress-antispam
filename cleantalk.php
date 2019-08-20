@@ -3,7 +3,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: http://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 5.124.1
+  Version: 5.124.2
   Author: СleanTalk <welcome@cleantalk.org>
   Author URI: http://cleantalk.org
   Text Domain: cleantalk
@@ -51,7 +51,7 @@ if(!defined('CLEANTALK_PLUGIN_DIR')){
 	require_once(CLEANTALK_PLUGIN_DIR . 'lib/cleantalk-php-patch.php');  // Pathces fpr different functions which not exists
 	
 	// Base classes
-	require_once(CLEANTALK_PLUGIN_DIR . 'lib/CleantalkBase/CleantalkAPI.php');    // Helper
+	require_once(CLEANTALK_PLUGIN_DIR . 'lib/CleantalkBase/CleantalkAPI.php');    // API
     require_once(CLEANTALK_PLUGIN_DIR . 'lib/CleantalkBase/CleantalkDB.php');     // Database driver
 	require_once(CLEANTALK_PLUGIN_DIR . 'lib/CleantalkBase/CleantalkHelper.php'); // Helper
 	include_once(CLEANTALK_PLUGIN_DIR . "lib/CleantalkBase/CleantalkSFW.php");    // SpamFireWall
@@ -711,28 +711,71 @@ function apbct_activation__new_blog($blog_id, $user_id, $domain, $path, $site_id
  */
 function apbct_deactivation( $network ) {
 	
-	global $wpdb;
-
-	if($network){
+	global $apbct, $wpdb;
+	
+	// Deactivation for network
+	if(is_multisite() && $network){
+		
 		$initial_blog  = get_current_blog_id();
 		$blogs = array_keys($wpdb->get_results('SELECT blog_id FROM '. $wpdb->blogs, OBJECT_K));
 		foreach ($blogs as $blog) {
 			switch_to_blog($blog);
-			$wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->prefix.'cleantalk_sfw`;');       // Deleting SFW data
-			$wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->prefix.'cleantalk_sfw_logs`;');  // Deleting SFW logs
-			$wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->prefix.'cleantalk_sessions`;');  //  Deleting session table
-			// Deleting cron entries
-			delete_option('cleantalk_cron');
+			apbct_deactivation__delete_blog_tables();
+			delete_option('cleantalk_cron'); // Deleting cron entries
+			
+			if($apbct->settings['complete_deactivation'])
+				apbct_deactivation__delete_all_options();
+				
 		}
 		switch_to_blog($initial_blog);
-	}else{
-		$wpdb->query('DROP TABLE IF EXISTS `'. APBCT_TBL_FIREWALL_DATA .'`;');  // Deleting SFW data
-		$wpdb->query('DROP TABLE IF EXISTS `'. APBCT_TBL_FIREWALL_LOG  .'`;');  // Deleting SFW logs
-		$wpdb->query('DROP TABLE IF EXISTS `'. APBCT_TBL_SESSIONS .'`;');       // Deleting session table
-		// Deleting cron entries
-		delete_option('cleantalk_cron');
-	}
+		
+	// Deactivation for blog
+	}elseif(is_multisite()){
+		
+		apbct_deactivation__delete_common_tables();
+		delete_option('cleantalk_cron'); // Deleting cron entries
+		
+		if($apbct->settings['complete_deactivation'])
+			apbct_deactivation__delete_all_options();
+		
+	// Deactivation on standalone blog
+	}elseif(!is_multisite()){
+		
+		apbct_deactivation__delete_common_tables();
+		delete_option('cleantalk_cron'); // Deleting cron entries
+		
+		if($apbct->settings['complete_deactivation'])
+			apbct_deactivation__delete_all_options();
 	
+	}
+}
+
+/**
+ * Delete all cleantalk_* entries from _options table
+ */
+function apbct_deactivation__delete_all_options(){
+	delete_option('cleantalk_settings');
+	delete_option('cleantalk_data');
+	delete_option('cleantalk_cron');
+	delete_option('cleantalk_errors');
+	delete_option('cleantalk_remote_calls');
+	delete_option('cleantalk_server');
+	delete_option('cleantalk_stats');
+	delete_option('cleantalk_timelabel_reg');
+}
+
+function apbct_deactivation__delete_common_tables() {
+	global $wpdb;
+	$wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->base_prefix.'cleantalk_sfw`;');       // Deleting SFW data
+	$wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->base_prefix.'cleantalk_sfw_logs`;');  // Deleting SFW logs
+	$wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->base_prefix.'cleantalk_sessions`;');  //  Deleting session table
+}
+
+function apbct_deactivation__delete_blog_tables() {
+	global $wpdb;
+	$wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->prefix.'cleantalk_sfw`;');       // Deleting SFW data
+	$wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->prefix.'cleantalk_sfw_logs`;');  // Deleting SFW logs
+	$wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->prefix.'cleantalk_sessions`;');  //  Deleting session table
 }
 
 /**
@@ -842,6 +885,59 @@ function ct_sfw_send_logs()
 }
 
 /**
+ * Wrapper for Cleantalk's remote calls
+ *
+ * @param string $action            What you want to do?
+ * @param array  $additional_params Additional GET parameters for RC
+ * @param string $presets           Presets for CleantalkHelper::http__request(). 'async' maybe?
+ * @param string $plugin_name       Plugin name 'antispam' by default
+ * @param string $call_token        RC securirty token
+ * @param string $url               Current site URL by default
+ *
+ * @return array|bool
+ */
+function apbct_rc__send($action, $additional_params = array(), $presets = 'get', $plugin_name = 'antispam', $call_token = '', $url = ''){
+	
+	global $apbct;
+	
+	$default_params = array(
+		'plugin_name'             => $plugin_name,
+		'spbc_remote_call_token'  => $call_token ? $call_token : md5($apbct->api_key),
+		'spbc_remote_call_action' => $action,
+	);
+	
+	$params = array_merge($additional_params, $default_params);
+	
+	return apbct_rc__parse_result(
+		CleantalkHelper::http__request(
+			$url ? $url : get_option('siteurl'),
+			$params,
+			$presets
+		)
+	);
+}
+
+/**
+ * Parse different types of remote call results
+ *
+ * @param array|string $rc_result
+ * string - 'FAIL {"some":"result}'
+ * string - 'OK {"some":"result}'
+ *
+ * @return array|string
+ */
+function apbct_rc__parse_result($rc_result){
+	if(is_string($rc_result)){
+		$rc_result = preg_replace('/^(OK\s?|FAIL\s?)(.*)/', '$2', $rc_result, 1);
+		$rc_result = json_decode($rc_result, true);
+		$rc_result = $rc_result
+			? $rc_result
+			: array('error' => 'FAIL_TO_PARSE_RC_RESULT');
+	}
+	return $rc_result;
+}
+
+/**
  * Install plugin from wordpress catalog
  *
  * @param WP     $wp
@@ -883,7 +979,7 @@ function apbct_rc__install_plugin($wp = null, $plugin = null){
 					}else
 						die('FAIL '. json_encode(array('error' => $installer->apbct_result)));
 				}else
-					die('FAIL '. json_encode(array('error' => 'FAIL_TO_GET_LATEST_VERSION '.$result->get_error_message())));
+					die('FAIL '. json_encode(array('error' => 'FAIL_TO_GET_LATEST_VERSION', 'details' => $result->get_error_message(),)));
 			}else
 				die('FAIL '. json_encode(array('error' => 'PLUGIN_SLUG_INCORRECT')));
 		}else
@@ -907,7 +1003,7 @@ function apbct_rc__activate_plugin($plugin){
 			if($result && !is_wp_error($result)){
 				return array('success' => true);
 			}else
-				return array('error' => 'FAIL_TO_ACTIVATE'.(is_wp_error($result) ? ' '.$result->get_error_message() : ''));
+				return array('error' => 'FAIL_TO_ACTIVATE', 'details' => (is_wp_error($result) ? ' '.$result->get_error_message() : ''));
 		}else
 			return array('error' => 'PLUGIN_NAME_IS_INCORRECT');
 	}else
@@ -996,7 +1092,7 @@ function apbct_rc__uninstall_plugin($plugin = null){
 			if($result && !is_wp_error($result)){
 				die('OK');
 			}else
-				die('FAIL '. json_encode(array('error' => 'PLUGIN_STILL_EXISTS'.($is_wp_error($result) ? ' '.$result->get_error_message() : ''))));
+				die('FAIL '. json_encode(array('error' => 'PLUGIN_STILL_EXISTS', 'details' => (is_wp_error($result) ? ' '.$result->get_error_message() : ''))));
 		}else
 			die('FAIL '. json_encode(array('error' => 'PLUGIN_STILL_ACTIVE')));
 	}else
@@ -1040,8 +1136,6 @@ function apbct_rc__update(){
 		
 		if(is_wp_error($result))
 			die('FAIL '. json_encode(array('error' => 'COULD_NOT_ACTIVATE', 'wp_error' => $result->get_error_message())));
-		if($result === false)
-			die('FAIL '. json_encode(array('error' => 'COULD_NOT_ACTIVATE')));
 		
 		$httpResponseCode =  CleantalkHelper::http__request(get_option('siteurl'), array(), 'get_code');
 		

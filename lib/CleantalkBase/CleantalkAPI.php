@@ -735,8 +735,14 @@ if(!class_exists('CleantalkBase\CleantalkAPI'))
 					$out = $result['data'];
 					if(
 						(isset($result['error_no']) && $result['error_no'] == 12) ||
-						(empty($result['error']) && empty($result['data']['service_id'])) ||
-						(empty($result['error']) && isset($result['data']['service_id']) && !is_int($result['data']['service_id']))
+						(
+							empty($result['error']) &&
+							empty($result['moderate_ip']) &&
+							(
+								empty($result['data']['service_id']) ||
+						        (isset($result['data']['service_id']) && !is_int($result['data']['service_id']))
+							)
+						)
 					){
 						$out['valid'] = 0;
 					}else{
