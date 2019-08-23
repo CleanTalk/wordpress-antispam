@@ -1074,37 +1074,31 @@ function apbct_settings__validate($settings) {
 	// Check account status and validate key. Even if it's not correct because of IP license.
 	$result = ct_account_status_check($settings['apikey']);
 	
-	if(empty($result['error'])){
+	// Is key valid?
+	if($result){
 		
-		// Is key valid?
-		if($result === true){
-			
-			// Deleting errors about invalid key
-			$apbct->error_delete('key_invalid key_get', 'save');
-			
-			// SFW actions
-			if($apbct->settings['spam_firewall'] == 1){
-				ct_sfw_update($settings['apikey']);
-				ct_sfw_send_logs($settings['apikey']);
-			}
-			
-			// Updating brief data for dashboard widget
-			$apbct->data['brief_data'] = CleantalkAPI::method__get_antispam_report_breif($settings['apikey']);
-			
-		// Key is not valid
-		}else{
-			$apbct->data['key_is_ok'] = false;
-			$apbct->error_add('key_invalid', __('Testing is failed. Please check the Access key.', 'cleantalk'));
+		// Deleting errors about invalid key
+		$apbct->error_delete('key_invalid key_get', 'save');
+		
+		// SFW actions
+		if($apbct->settings['spam_firewall'] == 1){
+			ct_sfw_update($settings['apikey']);
+			ct_sfw_send_logs($settings['apikey']);
 		}
 		
-		// Deleting legacy
-		if(isset($apbct->data['testing_failed']))
-			unset($apbct->data['testing_failed']);
+		// Updating brief data for dashboard widget
+		$apbct->data['brief_data'] = CleantalkAPI::method__get_antispam_report_breif($settings['apikey']);
 		
-	// Server error when notice_paid_till
+	// Key is not valid
 	}else{
 		$apbct->data['key_is_ok'] = false;
+		$apbct->error_add('key_invalid', __('Testing is failed. Please check the Access key.', 'cleantalk'));
 	}
+	
+	// Deleting legacy
+	if(isset($apbct->data['testing_failed']))
+		unset($apbct->data['testing_failed']);
+	
 	
 	if($apbct->data['key_is_ok'] == false && $apbct->data['moderate_ip'] == 0){
 		
