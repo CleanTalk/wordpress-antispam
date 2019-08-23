@@ -18,7 +18,7 @@ function apbct_wp_get_current_user(){
 				? $current_user->ID
 				: null;
 		}else{
-			$user_id = empty($user_id) && !empty($_COOKIE[LOGGED_IN_COOKIE])
+			$user_id = empty($user_id) && defined('LOGGED_IN_COOKIE') && !empty($_COOKIE[LOGGED_IN_COOKIE])
 				? apbct_wp_validate_auth_cookie($_COOKIE[LOGGED_IN_COOKIE], 'logged_in')
 				: null;
 		}
