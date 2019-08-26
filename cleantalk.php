@@ -1380,7 +1380,7 @@ function apbct_cookie(){
 	
 	global $apbct;
 	
-	if($apbct->settings['store_urls__sessions'])
+	if($apbct->settings['store_urls__sessions'] || $apbct->settings['set_cookies__sessions'])
 		apbct_alt_sessions__remove_old();
 	
 	if(
