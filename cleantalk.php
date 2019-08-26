@@ -1273,7 +1273,8 @@ function apbct_alt_sessions__remove_old(){
 		$wpdb->query(
 			'DELETE
 				FROM `'. APBCT_TBL_SESSIONS .'`
-				WHERE last_update < NOW() - INTERVAL '. APBCT_SEESION__LIVE_TIME .' SECOND;'
+				WHERE last_update < NOW() - INTERVAL '. APBCT_SEESION__LIVE_TIME .' SECOND
+				LIMIT 100000;'
 		);
 	}
 }
@@ -1379,6 +1380,9 @@ function apbct_cookie(){
 	
 	global $apbct;
 	
+	if($apbct->settings['store_urls__sessions'])
+		apbct_alt_sessions__remove_old();
+	
 	if(
 		empty($apbct->settings['set_cookies']) || // Do not set cookies if option is disabled (for Varnish cache).
 		!empty($apbct->flags__cookies_setuped) || // Cookies already set
@@ -1394,8 +1398,6 @@ function apbct_cookie(){
 		return false;
 	}
 	
-	if($apbct->settings['store_urls__sessions'])
-		apbct_alt_sessions__remove_old();
 	
 // Cookie names to validate
 	$cookie_test_value = array(
