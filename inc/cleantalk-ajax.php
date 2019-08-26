@@ -285,6 +285,7 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 	    'phone-orders-for-woocommerce', //Phone orders for woocommerce backend
 	    'ihc_check_reg_field_ajax', //Ajax check required fields
 	    'OSTC_lostPassword', //Lost password ajax form
+		'check_retina_image_availability', //There are too many ajax requests from mobile
     );
 	
     // Skip test if
