@@ -341,6 +341,11 @@ function apbct_settings__add_page() {
 				'comment_notify__roles' => array(
 					'callback'    => 'apbct_settings__field__comment_notify',
 				),
+				'complete_deactivation' => array(
+					'type'        => 'checkbox',
+					'title'       => __('Complete deactivation', 'cleantalk'),
+					'description' => __('Leave no trace in the system after deactivation.', 'cleantalk'),
+				),
 				
 			),
 		),
@@ -591,7 +596,7 @@ function apbct_settings__field__debug(){
 
 function apbct_settings__field__state(){
 	
-	global $apbct, $wpdb;
+	global $apbct;
 	
 	$path_to_img = plugin_dir_url(__FILE__) . "images/";
 	
@@ -627,28 +632,23 @@ function apbct_settings__field__state(){
 	print '<div class="apbct_settings-field_wrapper" style="color:'.$color.'">';
 	
 		print '<h2>'.__('Protection is active', 'cleantalk').'</h2>';
-		
-		echo '<img class="apbct_status_icon" src="'.($apbct->settings['registrations_test'] == 1       || $apbct->moderate_ip ? $img : $img_no).'"/>'
-			.__('Registration forms', 'cleantalk');
-		echo '<img class="apbct_status_icon" src="'.($apbct->settings['comments_test']==1              || $apbct->moderate_ip ? $img : $img_no).'"/>'
-			.__('Comments forms', 'cleantalk');
-		echo '<img class="apbct_status_icon" src="'.($apbct->settings['contact_forms_test']==1         || $apbct->moderate_ip ? $img : $img_no).'"/>'
-			.__('Contact forms', 'cleantalk');
-		echo '<img class="apbct_status_icon" src="'.($apbct->settings['general_contact_forms_test']==1 || $apbct->moderate_ip ? $img : $img_no).'"/>'
-			.__('Custom contact forms', 'cleantalk');
-		echo '<img class="apbct_status_icon" src="'.($apbct->data['moderate'] == 1                      || $apbct->moderate_ip ? $img : $img_no).'"/>'
-			.'<a style="color: black" href="https://blog.cleantalk.org/real-time-email-address-existence-validation/">'.__('Validate email for existence', 'cleantalk').'</a>';
-
-		// Autoupdate status
-		if($apbct->notice_auto_update){
-			echo '<img class="apbct_status_icon" src="'.($apbct->auto_update == 1 ? $img : ($apbct->auto_update == -1 ? $img_no : $img_no_gray)).'"/>'.__('Auto update', 'cleantalk')
-				.' <sup><a href="http://cleantalk.org/help/cleantalk-auto-update" target="_blank">?</a></sup>';
-		}
-		
-		// WooCommerce
-		if(class_exists('WooCommerce'))
-			echo '<img class="apbct_status_icon" src="'.($apbct->settings['wc_checkout_test'] == 1 || $apbct->moderate_ip ? $img : $img_no).'"/>'.__('WooCommerce checkout form', 'cleantalk');
-		
+	
+	echo '<img class="apbct_status_icon" src="'.($apbct->settings['registrations_test'] == 1       ? $img : $img_no).'"/>'.__('Registration forms', 'cleantalk');
+	echo '<img class="apbct_status_icon" src="'.($apbct->settings['comments_test']==1              ? $img : $img_no).'"/>'.__('Comments forms', 'cleantalk');
+	echo '<img class="apbct_status_icon" src="'.($apbct->settings['contact_forms_test']==1         ? $img : $img_no).'"/>'.__('Contact forms', 'cleantalk');
+	echo '<img class="apbct_status_icon" src="'.($apbct->settings['general_contact_forms_test']==1 ? $img : $img_no).'"/>'.__('Custom contact forms', 'cleantalk');
+	echo '<img class="apbct_status_icon" src="'.($apbct->data['moderate'] == 1                     ? $img : $img_no).'"/>'
+	     .'<a style="color: black" href="https://blog.cleantalk.org/real-time-email-address-existence-validation/">'.__('Validate email for existence', 'cleantalk').'</a>';
+	
+	// Autoupdate status
+	if($apbct->notice_auto_update){
+		echo '<img class="apbct_status_icon" src="'.($apbct->auto_update == 1 ? $img : ($apbct->auto_update == -1 ? $img_no : $img_no_gray)).'"/>'.__('Auto update', 'cleantalk')
+		     .' <sup><a href="http://cleantalk.org/help/cleantalk-auto-update" target="_blank">?</a></sup>';
+	}
+	
+	// WooCommerce
+	if(class_exists('WooCommerce'))
+		echo '<img class="apbct_status_icon" src="'.($apbct->settings['wc_checkout_test'] == 1  ? $img : $img_no).'"/>'.__('WooCommerce checkout form', 'cleantalk');
 		if($apbct->moderate_ip)
 			print "<br /><br />The anti-spam service is paid by your hosting provider. License #".$apbct->data['ip_license'].".<br />";
 	
@@ -1071,52 +1071,34 @@ function apbct_settings__validate($settings) {
 	// Key is good by default
 	$apbct->data['key_is_ok'] = true;
 	
-	// Is key correct?
-	if(apbct_api_key__is_correct($settings['apikey'])){
+	// Check account status and validate key. Even if it's not correct because of IP license.
+	$result = ct_account_status_check($settings['apikey']);
+	
+	// Is key valid?
+	if($result){
 		
-		// Check account status and validate key
-		$result = ct_account_status_check($settings['apikey']);
+		// Deleting errors about invalid key
+		$apbct->error_delete('key_invalid key_get', 'save');
 		
-		if(empty($result['error'])){
-			
-			// Is key valid?
-			if($result === true){
-				
-				// Deleting errors about invalid key
-				$apbct->error_delete('key_invalid key_get', 'save');
-				
-				// SFW actions
-				if($apbct->settings['spam_firewall'] == 1){
-					ct_sfw_update($settings['apikey']);
-					ct_sfw_send_logs($settings['apikey']);
-				}
-				
-				// Updating brief data for dashboard widget
-				$apbct->data['brief_data'] = CleantalkAPI::method__get_antispam_report_breif($settings['apikey']);
-				
-			// Key is not valid
-			}else{
-				$apbct->data['key_is_ok'] = false;
-				$apbct->error_add('key_invalid', __('Testing is failed. Please check the Access key.', 'cleantalk'));
-			}
-			
-			// Deleting legacy
-			if(isset($apbct->data['testing_failed']))
-				unset($apbct->data['testing_failed']);
-			
-		// Server error when notice_paid_till
-		}else{
-			$apbct->data['key_is_ok'] = false;
+		// SFW actions
+		if($apbct->settings['spam_firewall'] == 1){
+			ct_sfw_update($settings['apikey']);
+			ct_sfw_send_logs($settings['apikey']);
 		}
 		
-		// Key is not correct
+		// Updating brief data for dashboard widget
+		$apbct->data['brief_data'] = CleantalkAPI::method__get_antispam_report_breif($settings['apikey']);
+		
+	// Key is not valid
 	}else{
 		$apbct->data['key_is_ok'] = false;
-		if(empty($settings['apikey'])){
-			$apbct->error_delete('key_invalid account_check', 'save');
-		}else
-			$apbct->error_add('key_invalid', __('Key is not correct', 'cleantalk'));
+		$apbct->error_add('key_invalid', __('Testing is failed. Please check the Access key.', 'cleantalk'));
 	}
+	
+	// Deleting legacy
+	if(isset($apbct->data['testing_failed']))
+		unset($apbct->data['testing_failed']);
+	
 	
 	if($apbct->data['key_is_ok'] == false && $apbct->data['moderate_ip'] == 0){
 		

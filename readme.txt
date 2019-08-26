@@ -3,7 +3,7 @@ Contributors: safronik
 Tags: spam, antispam, protection, comments, firewall 
 Requires at least: 3.0
 Tested up to: 5.3
-Stable tag: 5.124.1
+Stable tag: 5.125
 License: GPLv2
 
 Spam protection, antispam, all-in-one, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -575,6 +575,14 @@ If your website has forms that send data to external sources, you can enable opt
 10. Website's options.
 
 == Changelog ==
+= 5.125 August 26 2019 =
+  * Fix: PHP Notices.
+  * Fix: Auto update.
+  * Fix: Displaying protection status for IP license.
+  * Fix: prevent capturing buffer for XMLRPC requests (check_external functionality).
+  * Fix: API key validating.
+  * New: Complete deactivation setting.
+
 = 5.124.1 August 8 2019 =
   * Fix: Error on PHP 5.3.
 
@@ -1969,6 +1977,14 @@ If your website has forms that send data to external sources, you can enable opt
   * First version
   
 == Upgrade Notice ==
+= 5.125 August 26 2019 =
+  * Fix: PHP Notices.
+  * Fix: Auto update.
+  * Fix: Displaying protection status for IP license.
+  * Fix: prevent capturing buffer for XMLRPC requests (check_external functionality).
+  * Fix: API key validating.
+  * New: Complete deactivation setting.
+
 = 5.124.1 August 8 2019 =
   * Fix: Error on PHP 5.3.
 

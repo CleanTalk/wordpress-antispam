@@ -36,7 +36,7 @@ function apbct_init() {
 	if($apbct->settings['check_external']){
 		
 		// Fixing form and directs it this site
-		if($apbct->settings['check_external__capture_buffer'] && !is_admin() && !apbct_is_ajax() && apbct_is_user_enable() && !(defined('DOING_CRON') && DOING_CRON)){
+		if($apbct->settings['check_external__capture_buffer'] && !is_admin() && !apbct_is_ajax() && apbct_is_user_enable() && !(defined('DOING_CRON') && DOING_CRON) && !(defined('XMLRPC_REQUEST') && XMLRPC_REQUEST)){
 			add_action('wp', 'apbct_buffer__start');
 			add_action('shutdown', 'apbct_buffer__end', 0);
 			add_action('shutdown', 'apbct_buffer__output', 2);
