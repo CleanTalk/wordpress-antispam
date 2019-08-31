@@ -655,7 +655,9 @@ function ct_get_fields_any($arr, $message=array(), $email = null, $nickname = ar
 				$value = strip_shortcodes($value);
 
 				// Decodes URL-encoded data to string.
-				$value = urldecode($value);	
+                if( strpos( $value, '@' ) === false ) {
+                    $value = urldecode($value);
+                }
 
 				// Email
 				if (!$email && preg_match("/^\S+@\S+\.\S+$/", $value)){
