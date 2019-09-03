@@ -658,15 +658,24 @@ function ct_get_fields_any($arr, $message=array(), $email = null, $nickname = ar
 				// Removes shortcodes to do better spam filtration on server side.
 				$value = strip_shortcodes($value);
 
-				// Decodes URL-encoded data to string.
-				$value = urldecode($value);	
+                // Removes whitespaces
+                $value = trim( $value );
 
-				// Email
-				if (!$email && preg_match("/^\S+@\S+\.\S+$/", $value)){
-					$email = $value;
-					
-				// Names
-				}elseif (preg_match("/name/i", $key)){
+                // Email
+                if (!$email && preg_match("/^\S+@\S+\.\S+$/", $value)){
+
+                    $email = $value;
+                    continue;
+
+                } else {
+
+                    // Decodes URL-encoded data to string exluding emails.
+                    $value = urldecode($value);
+
+                }
+
+                // Names
+                if (preg_match("/name/i", $key)){
 					
 					preg_match("/((name.?)?(your|first|for)(.?name)?)$/", $key, $match_forename);
 					preg_match("/((name.?)?(last|family|second|sur)(.?name)?)$/", $key, $match_surname);
