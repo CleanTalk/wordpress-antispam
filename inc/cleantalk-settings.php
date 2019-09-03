@@ -459,12 +459,12 @@ function apbct_settings_page() {
 				}
 				if(!$apbct->white_label){
 					// CP button
-					echo '<a class="cleantalk_manual_link" target="__blank" href="https://cleantalk.org/my?user_token='.$apbct->user_token.'&cp_mode=antispam">'
+					echo '<a class="cleantalk_link cleantalk_link-manual" target="__blank" href="https://cleantalk.org/my?user_token='.$apbct->user_token.'&cp_mode=antispam">'
 							.__('Click here to get anti-spam statistics', 'cleantalk')
 						.'</a>';
 					echo '&nbsp;&nbsp;';
 					// Support button
-					echo '<a class="cleantalk_auto_link" target="__blank" href="https://wordpress.org/support/plugin/cleantalk-spam-protect">'.__('Support', 'cleantalk').'</a>';
+					echo '<a class="cleantalk_link cleantalk_link-auto" target="__blank" href="https://wordpress.org/support/plugin/cleantalk-spam-protect">'.__('Support', 'cleantalk').'</a>';
 					echo '<br>'
 						.'<br>';
 				}
@@ -485,7 +485,7 @@ function apbct_settings_page() {
 			}
 			
 			echo '<br>';
-			echo '<button name="submit" class="cleantalk_manual_link" value="save_changes">'.__('Save Changes').'</button>';
+			echo '<button name="submit" class="cleantalk_link cleantalk_link-manual" value="save_changes">'.__('Save Changes').'</button>';
 		
 		echo "</form>";
 		
@@ -701,7 +701,7 @@ function apbct_settings__field__api_key(){
 				
 				// Auto get key
 				if(!$apbct->ip_license){
-					echo '<button id="apbct_setting_get_key_auto" name="submit" type="submit" class="cleantalk_manual_link" value="get_key_auto"'
+					echo '<button id="apbct_setting_get_key_auto" name="submit" type="submit" class="cleantalk_link cleantalk_link-manual" value="get_key_auto"'
 //                      . 'title="'
 //						.sprintf(__('Admin e-mail (%s) will be used to get access key if you want to use another email, click on Get Access Key Manually.', 'cleantalk'),
 //								ct_get_admin_email()
@@ -852,7 +852,7 @@ function apbct_settings__field__statistics() {
 				echo '<br/>';
 					echo '<button'
 						. ' name="submit"'
-						. ' class="cleantalk_manual_link"'
+						. ' class="cleantalk_link cleantalk_link-manual"'
 						. ' value="ct_send_connection_report"'
 						. (!$apbct->settings['send_connection_reports'] ? ' disabled="disabled"' : '')
 						. '>'
@@ -1060,7 +1060,7 @@ function apbct_settings__validate($settings) {
 			if(!$apbct->white_label)
 				$apbct->error_add('key_get', $result);
 			else
-				$apbct->error_add('key_get', $result['error'] . ' <button id="apbct_setting_get_key_auto" name="submit" type="submit" class="cleantalk_manual_link" value="get_key_auto">'.__('Get access key automatically', 'cleantalk').'</button>'.'<input type="hidden" id="ct_admin_timezone" name="ct_admin_timezone" value="null" />');
+				$apbct->error_add('key_get', $result['error'] . ' <button id="apbct_setting_get_key_auto" name="submit" type="submit" class="cleantalk_link cleantalk_link-manual" value="get_key_auto">'.__('Get access key automatically', 'cleantalk').'</button>'.'<input type="hidden" id="ct_admin_timezone" name="ct_admin_timezone" value="null" />');
 			return $settings;
 		}
 	}
