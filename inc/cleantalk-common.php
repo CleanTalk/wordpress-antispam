@@ -654,6 +654,9 @@ function ct_get_fields_any($arr, $message=array(), $email = null, $nickname = ar
 				// Removes shortcodes to do better spam filtration on server side.
 				$value = strip_shortcodes($value);
 
+                // Removes whitespaces
+                $value = trim( $value );
+
 				// Decodes URL-encoded data to string.
                 if( strpos( $value, '@' ) === false ) {
                     $value = urldecode($value);
