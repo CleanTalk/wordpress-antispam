@@ -958,7 +958,10 @@ function apbct_rc__install_plugin($wp = null, $plugin = null){
 				require_once(ABSPATH.'wp-admin/includes/plugin-install.php');
 				$result = plugins_api(
 					'plugin_information',
-					array('slug' => $plugin_slug, 'fileds' => array('version' => true, 'download_link' => true,),)
+					array(
+						'slug' => $plugin_slug,
+						'fileds' => array('version' => true, 'download_link' => true,),
+					)
 				);
 				
 				if(!is_wp_error($result)){

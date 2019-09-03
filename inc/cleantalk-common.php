@@ -102,6 +102,10 @@ function apbct_base_call($params = array(), $reg_flag = false){
 		'submit_time'     => apbct_get_submit_time(),
 	);
 	
+	// Send $_SERVER if couldn't find IP
+	if(empty($default_params['sender_ip']))
+		$default_params['sender_info']['server_info'] = $_SERVER;
+	
 	$ct_request = new CleantalkRequest(
 		CleantalkHelper::array_merge__save_numeric_keys__recursive($default_params, $params)
 	);
@@ -627,7 +631,7 @@ function ct_get_fields_any($arr, $message=array(), $email = null, $nickname = ar
 					}
 				}
 			}
-						
+			
 			if(!is_array($value) && !is_object($value) && @get_class($value) != 'WP_User'){
 				
 				if (in_array($key, $skip_params, true) && $key != 0 && $key != '' || preg_match("/^ct_checkjs/", $key))

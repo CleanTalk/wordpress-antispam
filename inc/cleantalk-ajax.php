@@ -100,6 +100,7 @@ $cleantalk_hooked_actions[]='vfb_submit';
 add_action( 'wp_ajax_nopriv_woocommerce_checkout', 'ct_ajax_hook',1 );
 add_action( 'wp_ajax_woocommerce_checkout', 'ct_ajax_hook',1 );
 $cleantalk_hooked_actions[]='woocommerce_checkout';
+$cleantalk_hooked_actions[]='wcfm_ajax_controller';
 
 /*hooks for frm_action*/
 add_action( 'wp_ajax_nopriv_frm_entries_create', 'ct_ajax_hook',1 );
