@@ -135,6 +135,17 @@ if(!defined('CLEANTALK_PLUGIN_DIR')){
 			
 		}
 	}
+
+    /*
+     * New structure
+     */
+    require_once( CLEANTALK_PLUGIN_DIR . 'inc/classCleantalkPublic.php' );
+    add_action( 'init', array( 'classCleantalkPublic', 'init' ) );
+
+    if ( is_admin() || ( defined( 'WP_CLI' ) && WP_CLI ) ) {
+        require_once( CLEANTALK_PLUGIN_DIR . 'inc/classCleantalkAdmin.php' );
+        add_action( 'init', array( 'classCleantalkAdmin', 'init' ) );
+    }
 	
 	//Delete cookie for admin trial notice
 	add_action('wp_logout', 'apbct__hook__wp_logout__delete_trial_notice_cookie');
