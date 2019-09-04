@@ -184,6 +184,41 @@ function apbct_base_call($params = array(), $reg_flag = false){
 	
 }
 
+function apbct_base__check_exlusions($func = null){
+	
+	global $apbct, $cleantalk_executed;
+	
+	// Common exclusions
+	if(
+		apbct_check_ip_exclusions() ||
+		apbct_check_url_exclusions() ||
+		$cleantalk_executed
+	)
+		return true;
+	
+	// Personal exclusions
+	switch ($func){
+		case 'ct_contact_form_validate_postdata':
+			if(
+				(defined( 'DOING_AJAX' ) && DOING_AJAX) ||
+				apbct_does_array_has_key__recursive()
+			)
+				return true;
+			break;
+		case 'ct_contact_form_validate':
+			if(
+				apbct_does_array_has_key__recursive()
+			)
+				return true;
+			break;
+		default:
+			return false;
+			break;
+	}
+	
+	return false;
+}
+
 /**
  * Inner function - Default data array for senders 
  * @return array 
@@ -783,57 +818,40 @@ function ct_get_fields_any_postdata($arr, $message=array()){
 /*
 * Check if Array has keys with restricted names
 */
-
-$ct_check_post_result=false;
-
-function ct_check_array_keys_loop($key){
-	
-	global $ct_check_post_result;
-	
-	$strict = Array('members_search_submit');
-	
-	for($i=0;$i<sizeof($strict);$i++){
-		
-		if(stripos($key,$strict[$i])!== false)
-			$ct_check_post_result = true;
-		
+function apbct_does_array_has_key__recursive( $arr ) {
+	foreach ( $arr as $key => $value ) {
+		if ( is_array( $value ) )
+			apbct_does_array_has_key__recursive( $value );
+		else{
+			$exclusions = Array( 'members_search_submit' );
+			foreach ( $exclusions as $exclusion ) {
+				if ( stripos( $key, $exclusion ) !== false ) {
+					return true;
+				}
+			}
+		}
 	}
+	return false;
 }
 
-function ct_check_array_keys($arr){
-	
-	global $ct_check_post_result;
-	
-	if(!is_array($arr))
-		return $ct_check_post_result;
-	
-	foreach($arr as $key=>$value){
-		
-		if(!is_array($value))
-			ct_check_array_keys_loop($key);
-		else
-			ct_check_array_keys($value);
-		
-	}
-	
-	return $ct_check_post_result;
-}
-
-function check_url_exclusions($exclusions = NULL){
+/**
+ * Checks if reuqest URI is in exclusion list
+ *
+ * @return bool
+ */
+function apbct_check_url_exclusions(){
 	
 	global $cleantalk_url_exclusions;
 	
-	if ((isset($cleantalk_url_exclusions) && is_array($cleantalk_url_exclusions) && sizeof($cleantalk_url_exclusions)>0) ||
-		($exclusions !== NULL && is_array($exclusions) && sizeof($exclusions)>0)
-	){
+	if (!empty($cleantalk_url_exclusions) && is_array($cleantalk_url_exclusions)){
 		
 		// Fix for AJAX forms
 		$haystack = $_SERVER['REQUEST_URI'] == '/wp-admin/admin-ajax.php' && !empty($_SERVER['HTTP_REFERER'])
 			? $_SERVER['HTTP_REFERER']
 			: $_SERVER['REQUEST_URI'];
 		
-		foreach($cleantalk_url_exclusions as $value){
-			if(stripos($haystack, $value) !== false){
+		foreach($cleantalk_url_exclusions as $exclusion){
+			if(stripos($haystack, $exclusion) !== false){
 				return true;
 			}
 		}
@@ -842,15 +860,21 @@ function check_url_exclusions($exclusions = NULL){
 	return false;
 }
 
-function check_ip_exclusions($exclusions = NULL){
+/**
+ * Checks if sender_ip is in exclusion list
+ *
+ * @return bool
+ */
+function apbct_check_ip_exclusions(){
 	
 	global $cleantalk_ip_exclusions;
 	
-	if ((isset($cleantalk_ip_exclusions) && is_array($cleantalk_ip_exclusions) && sizeof($cleantalk_ip_exclusions)>0) ||
-		($exclusions !== NULL && is_array($exclusions) && sizeof($exclusions)>0)
-	){
-		foreach($cleantalk_ip_exclusions as $key => $value){
-			if(stripos($_SERVER['REMOTE_ADDR'], $value) !== false){
+	if(CleantalkHelper::ip__is_belongs_to_cleantalk($_SERVER['REMOTE_ADDR']))
+		return true;
+	
+	if (!empty($cleantalk_ip_exclusions) && is_array($cleantalk_ip_exclusions)){
+		foreach($cleantalk_ip_exclusions as $exclusion){
+			if(stripos($_SERVER['REMOTE_ADDR'], $exclusion) !== false){
 				return true; 
 			}
 		}

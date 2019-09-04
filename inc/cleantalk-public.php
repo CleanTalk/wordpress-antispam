@@ -6,7 +6,7 @@
  */
 function apbct_init() {
 	
-    global $ct_wplp_result_label, $ct_jp_comments, $ct_post_data_label, $ct_post_data_authnet_label, $apbct, $ct_check_post_result, $test_external_forms, $cleantalk_executed, $wpdb;
+    global $ct_wplp_result_label, $ct_jp_comments, $ct_post_data_label, $ct_post_data_authnet_label, $apbct, $test_external_forms, $cleantalk_executed, $wpdb;
 	
     //Check internal forms with such "action" http://wordpress.loc/contact-us/some_script.php
     if((isset($_POST['action']) && $_POST['action'] == 'ct_check_internal') &&
@@ -81,10 +81,10 @@ function apbct_init() {
 	
 	//hook for Anonymous Post
     if($apbct->settings['general_postdata_test'] == 1 && empty($_POST['ct_checkjs_cf7']))
-    	add_action('wp','ct_contact_form_validate_postdata',1);
+    	add_action('wp', 'ct_contact_form_validate_postdata',1);
     
     if($apbct->settings['general_contact_forms_test'] == 1 && empty($_POST['ct_checkjs_cf7'])){
-		add_action('CMA_custom_post_type_nav','ct_contact_form_validate_postdata',1);
+		add_action('CMA_custom_post_type_nav', 'ct_contact_form_validate_postdata',1);
 		//add_action('init','ct_contact_form_validate',1);
 		ct_contact_form_validate();
 		if(isset($_POST['reg_redirect_link'])&&isset($_POST['tmpl_registration_nonce_field']))
@@ -102,7 +102,7 @@ function apbct_init() {
 	}
 	
     if($apbct->settings['general_postdata_test'] == 1 && empty($_POST['ct_checkjs_cf7']))
-    	add_action('CMA_custom_post_type_nav','ct_contact_form_validate_postdata',1);
+    	add_action('CMA_custom_post_type_nav', 'ct_contact_form_validate_postdata',1);
     
 	//add_action('wp_footer','ct_ajaxurl');
 
@@ -255,14 +255,12 @@ function apbct_init() {
     }
    
     if ($apbct->settings['protect_logged_in'] != 1 && is_user_logged_in()) {
-        $ct_check_post_result=false;
         ct_contact_form_validate();
     }
 
     if (apbct_is_user_enable()) {
 
         if ($apbct->settings['general_contact_forms_test'] == 1 && !isset($_POST['comment_post_ID']) && !isset($_GET['for'])){
-        	$ct_check_post_result=false;
             add_action( 'init', 'ct_contact_form_validate', 999 );
         }
         if(isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] == 'POST' && 
@@ -271,7 +269,6 @@ function apbct_init() {
 			!is_admin() && 
 			!apbct_is_user_role_in(array('administrator', 'moderator'))
 		){
-	    	$ct_check_post_result=false;
 	    	ct_contact_form_validate_postdata();
 	    }
     }
@@ -2044,8 +2041,8 @@ function apbct_form__contactForm7__testSpam($param) {
 		$param == false && WPCF7_VERSION < '3.0.0'  ||
 		$param === true && WPCF7_VERSION >= '3.0.0' ||
 		$apbct->settings['protect_logged_in'] != 1 && is_user_logged_in() || // Skip processing for logged in users.
-		check_url_exclusions() ||
-		check_ip_exclusions() ||
+		apbct_check_url_exclusions() ||
+		apbct_check_ip_exclusions() ||
 		isset($apbct->cf7_checked)
 	){
 		return $param;
@@ -2163,7 +2160,7 @@ function apbct_form__ninjaForms__testSpam() {
 	if(
 			$apbct->settings['contact_forms_test'] == 0
 		|| ($apbct->settings['protect_logged_in'] != 1 && is_user_logged_in()) // Skip processing for logged in users.
-		|| check_url_exclusions()
+			|| apbct_check_url_exclusions()
 	){
 		return;
 	}
@@ -2725,9 +2722,10 @@ function ct_s2member_registration_test($post_key) {
  */
 function ct_contact_form_validate() {
 	
-	global $pagenow,$cleantalk_executed, $cleantalk_url_exclusions,$apbct, $ct_checkjs_frm;
+	global $pagenow,$cleantalk_executed ,$apbct, $ct_checkjs_frm;
 	
-	if($cleantalk_executed)
+	// Exclusios common function
+	if ( apbct_base__check_exlusions(__FUNCTION__) )
 		return null;
 	
     if (@sizeof($_POST)==0 ||
@@ -2745,9 +2743,7 @@ function ct_contact_form_validate() {
         (isset($_POST['action']) && $_POST['action'] == 'save_account_details') ||       //WooCommerce edit account action
         strpos($_SERVER['REQUEST_URI'], '/peepsoajax/profilefieldsajax.validate_register')!== false ||
         isset($_GET['ptype']) && $_GET['ptype']=='login' ||
-        check_url_exclusions() ||
-		check_ip_exclusions() ||
-        ct_check_array_keys($_POST) ||
+        apbct_does_array_has_key__recursive($_POST) ||
         isset($_POST['ct_checkjs_register_form']) ||
         (isset($_POST['signup_username']) && isset($_POST['signup_password_confirm']) && isset($_POST['signup_submit']) ) ||
         $apbct->settings['general_contact_forms_test'] == 0 ||
@@ -2948,12 +2944,10 @@ function ct_contact_form_validate() {
  */
 function ct_contact_form_validate_postdata() {
 	
-	global $pagenow,$cleantalk_executed, $cleantalk_url_exclusions, $apbct;
+	global $apbct, $pagenow,$cleantalk_executed;
 	
-	if($cleantalk_executed)
-		return null;
-	
-	if ((defined( 'DOING_AJAX' ) && DOING_AJAX))
+	// Exclusios common function
+	if ( apbct_base__check_exlusions(__FUNCTION__) )
 		return null;
 	
     if (@sizeof($_POST)==0 ||
@@ -2983,9 +2977,7 @@ function ct_contact_form_validate_postdata() {
         strpos($_SERVER['REQUEST_URI'],'/login/')!==false||
 		strpos($_SERVER['REQUEST_URI'],'?provider=facebook&')!==false ||
         isset($_GET['ptype']) && $_GET['ptype']=='login' ||
-        check_url_exclusions() ||
-		check_ip_exclusions() ||
-        ct_check_array_keys($_POST) ||
+        apbct_does_array_has_key__recursive($_POST) ||
         isset($_POST['ct_checkjs_register_form']) ||
         (isset($_POST['signup_username']) && isset($_POST['signup_password_confirm']) && isset($_POST['signup_submit']) ) ||
         $apbct->settings['general_contact_forms_test']==0 ||

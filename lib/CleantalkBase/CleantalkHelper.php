@@ -55,6 +55,9 @@ if(!class_exists('CleantalkBase\CleantalkHelper'))
 			'apix1.cleantalk.org' => '35.158.52.161',
 			'apix2.cleantalk.org' => '18.206.49.217',
 			'apix3.cleantalk.org' => '3.18.23.246',
+			//ns
+			'netserv2.cleantalk.org' => '178.63.60.214',
+			'netserv3.cleantalk.org' => '188.40.14.173',
 		);
 		
 		/**
@@ -335,6 +338,25 @@ if(!class_exists('CleantalkBase\CleantalkHelper'))
 				$ip = strpos($ip, '0') === 0 ? substr($ip, 1) : $ip;
 			}
 			return $ip;
+		}
+		
+		/**
+		 * Get URL form IP. Check if it's belong to cleantalk.
+		 *
+		 * @param string $ip
+		 * @param bool   $cleantalk_only Serach only within cleantalk's predefined IPs
+		 *
+		 * @return false|int|string
+		 */
+		static public function ip__is_belongs_to_cleantalk($ip)
+		{
+			if(self::ip__validate($ip)){
+				$url = array_search($ip, self::$cleantalks_servers);
+				return $url
+					? true
+					: false;
+			}else
+				return false;
 		}
 		
 		/**
