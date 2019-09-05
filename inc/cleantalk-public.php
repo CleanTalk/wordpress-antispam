@@ -2739,8 +2739,9 @@ function ct_contact_form_validate() {
 		strpos($_SERVER['REQUEST_URI'],'?provider=facebook&')!==false ||
         (isset($_SERVER['HTTP_REFERER']) && strpos($_SERVER['HTTP_REFERER'],'/wp-admin/') !== false) ||
         strpos($_SERVER['REQUEST_URI'],'/login/')!==false ||
-        strpos($_SERVER['REQUEST_URI'], '/my-account/edit-account/')!==false ||          //WooCommerce edit account page
-        (isset($_POST['action']) && $_POST['action'] == 'save_account_details') ||       //WooCommerce edit account action
+        strpos($_SERVER['REQUEST_URI'], '/my-account/edit-account/')!==false ||   // WooCommerce edit account page
+        strpos($_SERVER['REQUEST_URI'], '/my-account/edit-address/')!==false ||   // WooCommerce edit account page
+        (isset($_POST['action']) && $_POST['action'] == 'save_account_details') ||       // WooCommerce edit account action
         strpos($_SERVER['REQUEST_URI'], '/peepsoajax/profilefieldsajax.validate_register')!== false ||
         isset($_GET['ptype']) && $_GET['ptype']=='login' ||
         isset($_POST['ct_checkjs_register_form']) ||
