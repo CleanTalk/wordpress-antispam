@@ -1554,7 +1554,7 @@ function ct_account_status_check($api_key = null, $process_errors = true){
 		preg_replace('/http[s]?:\/\//', '', get_option('siteurl'), 1)
 	);
 	
-	if(empty($result['error']) || $result['valid']){
+	if(empty($result['error']) || !empty($result['valid'])){
 		
 		// Notices
 		$apbct->data['notice_show']        = isset($result['show_notice'])             ? (int)$result['show_notice']             : 0;
@@ -1592,7 +1592,7 @@ function ct_account_status_check($api_key = null, $process_errors = true){
 		$apbct->error_add('account_check', $result);
 	}
 	
-	if($result['valid']){
+	if(!empty($result['valid'])){
 		$apbct->data['key_is_ok'] = true;
 		$result = true;
 	}else{
