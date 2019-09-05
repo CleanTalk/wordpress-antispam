@@ -201,13 +201,13 @@ function apbct_base__check_exlusions($func = null){
 		case 'ct_contact_form_validate_postdata':
 			if(
 				(defined( 'DOING_AJAX' ) && DOING_AJAX) ||
-				apbct_does_array_has_key__recursive()
+				apbct_does_array_has_key__recursive($_POST)
 			)
 				return true;
 			break;
 		case 'ct_contact_form_validate':
 			if(
-				apbct_does_array_has_key__recursive()
+				apbct_does_array_has_key__recursive($_POST)
 			)
 				return true;
 			break;
@@ -869,7 +869,7 @@ function apbct_check_ip_exclusions(){
 	
 	global $cleantalk_ip_exclusions;
 	
-	if(CleantalkHelper::ip__is_belongs_to_cleantalk($_SERVER['REMOTE_ADDR']))
+	if(CleantalkHelper::ip__is_cleantalks($_SERVER['REMOTE_ADDR']))
 		return true;
 	
 	if (!empty($cleantalk_ip_exclusions) && is_array($cleantalk_ip_exclusions)){

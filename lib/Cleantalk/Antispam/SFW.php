@@ -1,14 +1,14 @@
 <?php
 
-namespace CleantalkBase;
+namespace Cleantalk\Antispam;
 
 /**
  * CleanTalk SpamFireWall base class.
  * Compatible with any CMS.
  *
- * @depends       CleantalkHelper class
- * @depends       CleantalkAPI class
- * @depends       CleantalkDB class
+ * @depends       Cleantalk\Antispam\Helper class
+ * @depends       Cleantalk\Antispam\API class
+ * @depends       Cleantalk\Antispam\DB class
  *
  * @version       3.3
  * @author        Cleantalk team (welcome@cleantalk.org)
@@ -16,7 +16,7 @@ namespace CleantalkBase;
  * @license       GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  * @see           https://github.com/CleanTalk/php-antispam
  */
-class CleantalkSFW
+class SFW
 {
 	public $ip = 0;
 	
@@ -72,7 +72,7 @@ class CleantalkSFW
 	{
 		if(empty($this->db)){
 			// Creating database object. Depends on current CMS.
-			$this->db = CleantalkDB::getInstance();
+			$this->db = DB::getInstance();
 			
 			// Use default tables if not specified
 			$this->data_table = defined('CLEANTALK_TBL_FIREWALL_DATA') ? CLEANTALK_TBL_FIREWALL_DATA : $this->db->prefix . 'cleantalk_sfw';
@@ -92,12 +92,12 @@ class CleantalkSFW
 	 */
 	public function ip__get($ips_input = array('real', 'remote_addr', 'x_forwarded_for', 'x_real_ip', 'cloud_flare'), $v4_only = true){
 		
-		$result = CleantalkHelper::ip__get($ips_input, $v4_only);
+		$result = Helper::ip__get($ips_input, $v4_only);
 		
 		$result = !empty($result) ? array('real' => $result) : array();
 		
 		if(isset($_GET['sfw_test_ip'])){
-			if(CleantalkHelper::ip__validate($_GET['sfw_test_ip']) !== false){
+			if(Helper::ip__validate($_GET['sfw_test_ip']) !== false){
 				$result['sfw_test'] = $_GET['sfw_test_ip'];
 				$this->test = true;
 			}
@@ -126,12 +126,12 @@ class CleantalkSFW
 				$this->blocked_ips[$origin] = array(
 					'ip'      => $current_ip,
 					'network' => long2ip($this->db->result['network']),
-					'mask'    => CleantalkHelper::ip__mask__long_to_number($this->db->result['mask']),
+					'mask'    => Helper::ip__mask__long_to_number($this->db->result['mask']),
 				);
 				$this->all_ips[$origin] = array(
 					'ip'      => $current_ip,
 					'network' => long2ip($this->db->result['network']),
-					'mask'    => CleantalkHelper::ip__mask__long_to_number($this->db->result['mask']),
+					'mask'    => Helper::ip__mask__long_to_number($this->db->result['mask']),
 					'status'  => -1,
 				);
 			}else{
@@ -200,7 +200,7 @@ class CleantalkSFW
 			unset($key, $value);
 			
 			//Sending the request
-			$result = CleantalkAPI::method__sfw_logs($ct_key, $data);
+			$result = API::method__sfw_logs($ct_key, $data);
 			
 			//Checking answer and deleting all lines from the table
 			if(empty($result['error'])){
@@ -234,7 +234,7 @@ class CleantalkSFW
 			
 			sleep(6);
 			
-			$result = CleantalkAPI::method__get_2s_blacklists_db($ct_key, 'file');
+			$result = API::method__get_2s_blacklists_db($ct_key, 'file');
 						
 			if(empty($result['error'])){
 			
@@ -244,7 +244,7 @@ class CleantalkSFW
 					$pattenrs[] = 'get';
 					if(!$immediate) $pattenrs[] = 'async';
 					
-					return CleantalkHelper::http__request(
+					return Helper::http__request(
 						get_option('siteurl'), 
 						array(
 							'spbc_remote_call_token'  => md5($ct_key),
@@ -261,7 +261,7 @@ class CleantalkSFW
 				return $result;
 		}else{
 						
-			if(CleantalkHelper::http__request($file_url, array(), 'get_code') === 200){ // Check if it's there
+			if(Helper::http__request($file_url, array(), 'get_code') === 200){ // Check if it's there
 				
 				if(ini_get('allow_url_fopen')){
 					

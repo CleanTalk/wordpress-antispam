@@ -4,7 +4,7 @@
  * CleanTalk SpamFireWall Wordpress class
  * Compatible only with Wordpress.
  *
- * @depends       CleantalkBase\CleantalkSFW
+ * @depends       Cleantalk\Antispam\SFW
  *
  * @version       3.3
  * @author        Cleantalk team (welcome@cleantalk.org)
@@ -12,7 +12,7 @@
  * @license       GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  * @see           https://github.com/CleanTalk/wordpress-antispam
  */
-class CleantalkSFW extends CleantalkBase\CleantalkSFW
+class CleantalkSFW extends Cleantalk\Antispam\SFW
 {
 	/**
 	 * CleantalkSFW_Base constructor.

@@ -4,7 +4,7 @@
  * CleanTalk Cleantalk Antispam Helper class.
  * Compatible only with Wordpress.
  * 
- * @depends CleantalkBase\CleantalkHelper
+ * @depends Cleantalk\Antispam\Helper
  * 
  * @package Antispam Plugin by CleanTalk
  * @subpackage Helper
@@ -15,7 +15,7 @@
  * @see https://github.com/CleanTalk/wordpress-antispam
  */
 
-class CleantalkHelper extends CleantalkBase\CleantalkHelper
+class CleantalkHelper extends Cleantalk\Antispam\Helper
 {
 	/**
 	 * Function sends raw http request

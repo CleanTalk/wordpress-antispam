@@ -2743,7 +2743,6 @@ function ct_contact_form_validate() {
         (isset($_POST['action']) && $_POST['action'] == 'save_account_details') ||       //WooCommerce edit account action
         strpos($_SERVER['REQUEST_URI'], '/peepsoajax/profilefieldsajax.validate_register')!== false ||
         isset($_GET['ptype']) && $_GET['ptype']=='login' ||
-        apbct_does_array_has_key__recursive($_POST) ||
         isset($_POST['ct_checkjs_register_form']) ||
         (isset($_POST['signup_username']) && isset($_POST['signup_password_confirm']) && isset($_POST['signup_submit']) ) ||
         $apbct->settings['general_contact_forms_test'] == 0 ||
@@ -2977,7 +2976,6 @@ function ct_contact_form_validate_postdata() {
         strpos($_SERVER['REQUEST_URI'],'/login/')!==false||
 		strpos($_SERVER['REQUEST_URI'],'?provider=facebook&')!==false ||
         isset($_GET['ptype']) && $_GET['ptype']=='login' ||
-        apbct_does_array_has_key__recursive($_POST) ||
         isset($_POST['ct_checkjs_register_form']) ||
         (isset($_POST['signup_username']) && isset($_POST['signup_password_confirm']) && isset($_POST['signup_submit']) ) ||
         $apbct->settings['general_contact_forms_test']==0 ||

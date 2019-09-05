@@ -51,10 +51,10 @@ if(!defined('CLEANTALK_PLUGIN_DIR')){
 	require_once(CLEANTALK_PLUGIN_DIR . 'lib/cleantalk-php-patch.php');  // Pathces fpr different functions which not exists
 	
 	// Base classes
-	require_once(CLEANTALK_PLUGIN_DIR . 'lib/CleantalkBase/CleantalkAPI.php');    // API
-    require_once(CLEANTALK_PLUGIN_DIR . 'lib/CleantalkBase/CleantalkDB.php');     // Database driver
-	require_once(CLEANTALK_PLUGIN_DIR . 'lib/CleantalkBase/CleantalkHelper.php'); // Helper
-	include_once(CLEANTALK_PLUGIN_DIR . "lib/CleantalkBase/CleantalkSFW.php");    // SpamFireWall
+	require_once(CLEANTALK_PLUGIN_DIR . 'lib/Cleantalk/Antispam/API.php');    // API
+    require_once(CLEANTALK_PLUGIN_DIR . 'lib/Cleantalk/Antispam/DB.php');     // Database driver
+	require_once(CLEANTALK_PLUGIN_DIR . 'lib/Cleantalk/Antispam/Helper.php'); // Helper
+	include_once(CLEANTALK_PLUGIN_DIR . "lib/Cleantalk/Antispam/SFW.php");    // SpamFireWall
 	
 	// Child classes
 	require_once(CLEANTALK_PLUGIN_DIR . 'lib/CleantalkAPI.php');    // API for Wordpress
@@ -68,7 +68,6 @@ if(!defined('CLEANTALK_PLUGIN_DIR')){
 	
 	require_once(CLEANTALK_PLUGIN_DIR . 'lib/CleantalkCron.php');        // Cron handling
     require_once(CLEANTALK_PLUGIN_DIR . 'lib/CleantalkState.php');       // State class
-    // require_once( CLEANTALK_PLUGIN_DIR . 'lib/CleantalkIntegration.php'); // Integrations
     require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-pluggable.php');  // Pluggable functions
     require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-common.php');
 	
@@ -1344,7 +1343,7 @@ function apbct_store__urls(){
 		// URLs HISTORY
 		// Get current url
 		$current_url = filter_input(INPUT_SERVER, 'HTTP_HOST').filter_input(INPUT_SERVER, 'REQUEST_URI');
-		$current_url = $current_url ? $current_url : 'UNKNOWN';
+		$current_url = $current_url ? substr($current_url, 0,256) : 'UNKNOWN';
 		
 		// Get already stored URLs
 		$urls = $apbct->settings['store_urls__sessions']
