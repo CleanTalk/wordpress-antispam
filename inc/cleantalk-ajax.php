@@ -697,6 +697,10 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 				)
 			);
 		}
+		//Optin wheel
+		elseif( isset($_POST['action']) && ($_POST['action'] == 'wof-lite-email-optin' || $_POST['action'] == 'wof-email-optin')) {
+			wp_send_json_error(__($ct_result->comment, 'wp-optin-wheel'));
+		}		
 		else
 		{
 			die(json_encode(array('apbct' => array('blocked' => true, 'comment' => $ct_result->comment,))));

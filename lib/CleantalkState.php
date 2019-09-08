@@ -77,7 +77,7 @@ class CleantalkState
 		'sfw_counter'      => 0,
 		
 		//Others
-        'spam_store_days'         => '15', // Days before delete comments from folder Spam 
+        'spam_store_days'         => 15, // Days before delete comments from folder Spam 
         'relevance_test'          => 0, // Test comment for relevance 
         'notice_api_errors'       => 0, // Send API error notices to WP admin
         'user_token'              => '', //user token for auto login into spam statistics
