@@ -288,8 +288,12 @@ function apbct_update_to_5_124_0(){
 }
 
 function apbct_update_to_5_126_0(){
+	
+	// Enable storing URLs
 	global $apbct;
 	$apbct->settings['store_urls'] = 1;
 	$apbct->settings['store_urls__sessions'] = 1;
 	$apbct->saveSettings();
+	
+	
 }

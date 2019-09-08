@@ -404,12 +404,14 @@ function ct_ajax_check_users(){
 				
 				// Opening CSV file
 				$current_user = wp_get_current_user();
-				$filename = WP_PLUGIN_DIR."/cleantalk-spam-protect/check-results/user_check_by_{$current_user->user_login}.csv";
-				$text = "";
+				if(!is_dir(APBCT_DIR_PATH .'/check-results/'))
+				    mkdir(APBCT_DIR_PATH .'/check-results');
+				$filename = APBCT_DIR_PATH ."/check-results/user_check_by_{$current_user->user_nicename}.csv";
+				$text = '';
 				
 				if(isset($_POST['new_check']) && $_POST['new_check'] == 'true'){
 					$file_desc = fopen($filename, 'w');
-					$text .= "login,email,ip".PHP_EOL;
+					$text .= 'login,email,ip'.PHP_EOL;
 				}else
 					$file_desc = fopen($filename, 'a+');
 				// End of Opening CSV			
@@ -448,8 +450,10 @@ function ct_ajax_check_users(){
 					}
 							
 				}
-				fwrite($file_desc, $text);
-				fclose($file_desc);
+				if($file_desc){
+                    fwrite($file_desc, $text);
+                    fclose($file_desc);
+                }
 				print json_encode($check_result);
 		}else{
 			$check_result['error'] = 1;

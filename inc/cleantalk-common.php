@@ -76,7 +76,9 @@ function apbct_plugin_loaded() {
  */
 function apbct_base_call($params = array(), $reg_flag = false){
 	
-	global $apbct;
+	global $apbct, $cleantalk_executed;
+	
+	$cleantalk_executed = true;
 	
 	$sender_info = !empty($params['sender_info'])
 		? CleantalkHelper::array_merge__save_numeric_keys__recursive(apbct_get_sender_info(), (array)$params['sender_info'])
@@ -690,27 +692,16 @@ function ct_get_fields_any($arr, $message=array(), $email = null, $nickname = ar
 					}
 				}unset($needle);
 				
-				// Removes shortcodes to do better spam filtration on server side.
-				$value = strip_shortcodes($value);
-
-                // Removes whitespaces
-                $value = trim( $value );
-
-                // Email
-                if (!$email && preg_match("/^\S+@\S+\.\S+$/", $value)){
-
-                    $email = $value;
-                    continue;
-
-                } else {
-
-                    // Decodes URL-encoded data to string exluding emails.
-                    $value = urldecode($value);
-
-                }
-
-                // Names
-                if (preg_match("/name/i", $key)){
+				// Removes whitespaces
+				$value = urldecode( trim( strip_shortcodes( $value ) ) ); // Fully cleaned message
+				$value_for_email = trim( strip_shortcodes( $value ) );    // Removes shortcodes to do better spam filtration on server side.
+				
+				// Email
+				if ( ! $email && preg_match( "/^\S+@\S+\.\S+$/", $value_for_email ) ) {
+					$email = $value_for_email;
+					
+				// Names
+				}elseif (preg_match("/name/i", $key)){
 					
 					preg_match("/((name.?)?(your|first|for)(.?name)?)$/", $key, $match_forename);
 					preg_match("/((name.?)?(last|family|second|sur)(.?name)?)$/", $key, $match_surname);
