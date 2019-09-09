@@ -188,7 +188,7 @@ function apbct_settings__add_page() {
 				),
 				'check_comments_number' => array(
 					'title'       => __("Don't check trusted user's comments", 'cleantalk'),
-					'description' => sprintf(__("Don't check comments for users with above % comments.", 'cleantalk'), defined('CLEANTALK_CHECK_COMMENTS_NUMBER') ? CLEANTALK_CHECK_COMMENTS_NUMBER : 3),
+					'description' => sprintf(__("Don't check comments for users with above %d comments.", 'cleantalk'), defined('CLEANTALK_CHECK_COMMENTS_NUMBER') ? CLEANTALK_CHECK_COMMENTS_NUMBER : 3),
 				),
 				'remove_old_spam' => array(
 					'title'       => __('Automatically delete spam comments', 'cleantalk'),
@@ -350,6 +350,7 @@ function apbct_settings__add_page() {
 			),
 		),
 	);
+		error_log(var_export(defined('CLEANTALK_CHECK_COMMENTS_NUMBER') ? CLEANTALK_CHECK_COMMENTS_NUMBER : 3, true));
 	
 	foreach($apbct->settings_fields_in_groups as $group_name => $group){
 		

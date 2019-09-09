@@ -1088,7 +1088,7 @@ function ct_preprocess_comment($comment) {
     if (in_array("administrator", $current_user->roles))
         return $comment;
 	
-   	$comments_check_number = defined('CLEANTALK_CHECK_COMMENTS_NUMBER')  ? CLEANTALK_CHECK_COMMENTS_NUMBER              : 3;
+   	$comments_check_number = defined('CLEANTALK_CHECK_COMMENTS_NUMBER')  ? CLEANTALK_CHECK_COMMENTS_NUMBER : 3;
     
     if($apbct->settings['check_comments_number']){
 	   	$args = array(
@@ -1247,7 +1247,7 @@ function ct_preprocess_comment($comment) {
 		
 		add_action('comment_post', 'ct_die', 999, 2);
 	}
-		
+	
 	if($apbct->settings['remove_comments_links'] == 1){
 		$comment['comment_content'] = preg_replace("~(http|https|ftp|ftps)://(.*?)(\s|\n|[,.?!](\s|\n)|$)~", '[Link deleted]', $comment['comment_content']);
 	}
