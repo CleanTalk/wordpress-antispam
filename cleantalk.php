@@ -1772,18 +1772,43 @@ function apbct_update_actions(){
 			require_once(CLEANTALK_PLUGIN_DIR.'inc/cleantalk-updater.php');
 			
 			$result = apbct_run_update_actions($apbct->plugin_version, APBCT_VERSION);
+			
 			//If update is successfull
-			if($result === true){
-				$apbct->data['plugin_version'] = APBCT_VERSION;
-				$apbct->saveData();
-			}
+			if($result === true)
+				apbct_update__set_version__from_plugin('from_plugin');
+			
 			ct_send_feedback('0:' . APBCT_AGENT ); // Send feedback to let cloud know about updated version.
 			
 		// Side blogs
 		}else{
-			$apbct->data['plugin_version'] = APBCT_VERSION;
-			$apbct->saveData();
+			apbct_update__set_version__from_plugin('from_plugin');
 		}
 	}
 	
+}
+
+/**
+ * Set version of plugin in database
+ *
+ * @param string          $ver
+ *
+ * @return bool
+ * @global CleantalkState $apbct
+ *
+ */
+function apbct_update__set_version__from_plugin($ver){
+	global $apbct;
+	switch (true){
+		case $ver === 'from_plugin':
+			$apbct->data['plugin_version'] = APBCT_VERSION;
+			break;
+		case preg_match('/^\d+\.\d+(\.\d+)?(-[a-zA-Z0-9-_]+)?$/', $ver) === 1;
+			$apbct->data['plugin_version'] = $ver;
+			break;
+		default:
+			return false;
+			break;
+	}
+	$apbct->saveData();
+	return true;
 }
