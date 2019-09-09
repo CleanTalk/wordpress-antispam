@@ -575,12 +575,15 @@ If your website has forms that send data to external sources, you can enable opt
 10. Website's options.
 
 == Changelog ==
-= 5.126 September 5 2019 =
+= 5.126 September 9 2019 =
   * Spam protection improved!
+  * Integration: Option wheel.
+  * Mod: Improved Email detection.
+  * Mod: Improved IP detection.
   * Fix: Too large database table with alternative sessions.
   * Fix: Exception for WooCommerce AJAX.
-  * Mod: Improved IP detection.
-  * Mod: Improved Email detection.
+  * Fix: API key validation.
+  * Minor fixes.
 
 = 5.125 August 26 2019 =
   * Fix: PHP Notices.
@@ -1984,12 +1987,15 @@ If your website has forms that send data to external sources, you can enable opt
   * First version
   
 == Upgrade Notice ==
-= 5.126 September 5 2019 =
+= 5.126 September 9 2019 =
   * Spam protection improved!
+  * Integration: Option wheel.
+  * Mod: Improved Email detection.
+  * Mod: Improved IP detection.
   * Fix: Too large database table with alternative sessions.
   * Fix: Exception for WooCommerce AJAX.
-  * Mod: Improved IP detection.
-  * Mod: Improved Email detection.
+  * Fix: API key validation.
+  * Minor fixes.
 
 = 5.125 August 26 2019 =
   * Fix: PHP Notices.
