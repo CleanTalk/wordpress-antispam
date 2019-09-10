@@ -55,7 +55,7 @@ function apbct_init() {
 			if(!apbct_is_ajax()){
 				print "<html><body><form method='$method' action='$action'>";
 				ct_print_form($_POST, '');
-				print "</form>Redirecting to " . $action . "... Anti-spam by CleanTalk.</body></html>";
+				print "</form></body></html>";
 				print "<script>
 					if(document.forms[0].submit !== 'undefined'){
 						var objects = document.getElementsByName('submit');
