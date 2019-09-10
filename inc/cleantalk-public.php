@@ -2783,7 +2783,8 @@ function ct_contact_form_validate() {
 		(strpos($_SERVER['REQUEST_URI'],'?profile_tab=postjobs')!==false ) || // Skip post vacancies
 		(isset($_POST['btn_insert_post_type_hotel']) && $_POST['btn_insert_post_type_hotel'] == 'SUBMIT HOTEL') || // Skip adding hotel
 		(isset($_POST['action']) && $_POST['action'] == 'updraft_savesettings') || // Updraft save settings
-		isset($_POST['quform_submit']) //QForms multi-paged form skip
+		isset($_POST['quform_submit']) || //QForms multi-paged form skip
+		(isset($_POST['wpum_form']) && $_POST['wpum_form'] == 'login') //WPUM login skip
 		) {
         return null;
     }
