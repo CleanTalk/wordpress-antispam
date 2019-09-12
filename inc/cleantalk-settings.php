@@ -350,7 +350,6 @@ function apbct_settings__add_page() {
 			),
 		),
 	);
-		error_log(var_export(defined('CLEANTALK_CHECK_COMMENTS_NUMBER') ? CLEANTALK_CHECK_COMMENTS_NUMBER : 3, true));
 	
 	foreach($apbct->settings_fields_in_groups as $group_name => $group){
 		
