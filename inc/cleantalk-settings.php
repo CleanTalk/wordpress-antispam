@@ -31,25 +31,8 @@ function apbct_settings__add_page() {
 		return;
 	
 	register_setting('cleantalk_settings', 'cleantalk_settings', 'apbct_settings__validate');
-		
+	
 	// add_settings_section('cleantalk_section_settings_main',  '',                                     'apbct_section__settings_main',  'cleantalk');
-		
-	$field_default_params = array(
-		'callback'        => 'apbct_settings__field__draw',
-		'type'            => 'radio',
-		'options' => array(
-			array('val' => 1, 'label'  => __('On', 'cleantalk'),),
-			array('val' => 0, 'label'  => __('Off', 'cleantalk'),),
-		),
-		'def_class'       => 'apbct_settings-field_wrapper',
-		'class'           => '',
-		'parent'          => '',
-		'childrens'       => '',
-		'title'           => 'Default title',
-		'description'     => 'Default description',
-		'display'         => true,  // Draw settings or not
-		'reverse_trigger' => false, // How to allow child settings. Childrens are opened when the parent triggered "ON". This is overrides by this option
-	);
 	
 	$apbct->settings_fields_in_groups = array(
 		
@@ -225,6 +208,11 @@ function apbct_settings__add_page() {
 				'use_static_js_key' => array(
 					'title'       => __('Use static keys for JS check.', 'cleantalk'),
 					'description' => __('Could help if you have cache for AJAX requests and you are dealing with false positives. Slightly decreases protection quality.', 'cleantalk'),
+					'options' => array(
+						array('val' => 1, 'label'  => __('On'),  ),
+						array('val' => 0, 'label'  => __('Off'), ),
+						array('val' => -1, 'label' => __('Auto'),),
+					),
 				),
 				'general_postdata_test' => array(
 					'title'       => __('Check all post data', 'cleantalk'),
@@ -343,7 +331,12 @@ function apbct_settings__add_page() {
 					'childrens'   => array('comment_notify__roles'),
 				),
 				'comment_notify__roles' => array(
-					'callback'    => 'apbct_settings__field__comment_notify',
+					'type'                    => 'select',
+					'multiple'                => true,
+					'parent'                  => 'comment_notify',
+					'options_callback'        => 'apbct_get_all_roles',
+					'options_callback_params' => array(true),
+					'class'                   => 'apbct_settings-field_wrapper--sub',
 				),
 				'complete_deactivation' => array(
 					'type'        => 'checkbox',
@@ -355,13 +348,40 @@ function apbct_settings__add_page() {
 		),
 	);
 	
+	$field_default_params = array(
+		'callback'        => 'apbct_settings__field__draw',
+		'type'            => 'radio',
+		'options' => array(
+			array('val' => 1, 'label'  => __('On'),),
+			array('val' => 0, 'label'  => __('Off'),),
+		),
+		'def_class'       => 'apbct_settings-field_wrapper',
+		'class'           => '',
+		'parent'          => '',
+		'childrens'       => '',
+		// 'title'           => 'Default title',
+		// 'description'     => 'Default description',
+		'display'         => true,  // Draw settings or not
+		'reverse_trigger' => false, // How to allow child settings. Childrens are opened when the parent triggered "ON". This is overrides by this option
+		'multiple'        => false,
+	);
+	
 	foreach($apbct->settings_fields_in_groups as $group_name => $group){
 		
 		add_settings_section('apbct_section__'.$group_name, '', 'apbct_section__'.$group_name, 'cleantalk');
 		
 		foreach($group['fields'] as $field_name => $field){
 			
-			$params = !empty($group['default_params']) 
+			// Normalize $field['options'] from callback function to this type  array( array( 'val' => 1, 'label'  => __('On'), ), )
+			if(!empty($field['options_callback'])){
+				$options = call_user_func_array($field['options_callback'], !empty($field['options_callback_params']) ? $field['options_callback_params'] : array());
+				foreach ($options as &$option){
+					$option = array('val' => $option, 'label' => $option);
+				} unset($option);
+				$field['options'] = $options;
+			}
+			
+			$params = !empty($group['default_params'])
 				? array_merge($group['default_params'], $field)
 				: array_merge($field_default_params, $field);
 			
@@ -873,30 +893,28 @@ function apbct_settings__field__statistics() {
 	echo '</div>';
 }
 
-function apbct_settings__field__comment_notify() {
+/**
+ * Get all current Wordpress roles, could except 'subscriber' role
+ *
+ * @param bool $except_subscriber
+ *
+ * @return array
+ */
+function apbct_get_all_roles($except_subscriber = false) {
 	
-	global $apbct, $wp_roles;
+	global $wp_roles;
 	
 	$wp_roles = new WP_Roles();
 	$roles = $wp_roles->get_names();
 	
-	echo '<div class="apbct_settings-field_wrapper apbct_settings-field_wrapper--sub">';
-		
-		echo '<select multiple="multiple" id="apbct_setting_comment_notify__roles" name="cleantalk_settings[comment_notify__roles][]"'
-			.(!$apbct->settings['comment_notify'] ? ' disabled="disabled"' : '')
-			.' size="'.(count($roles)-1).'"'
-		. '>';
-		
-			foreach ($roles as $role){
-				if($role == 'Subscriber') continue;
-				echo '<option'
-					.(in_array($role, $apbct->settings['comment_notify__roles']) ? ' selected="selected"' : '')
-				. '>'.$role.'</option>';
-			}
-			
-		echo '</select>';
-		
-	echo '</div>';
+	if($except_subscriber) {
+		$key = array_search( 'Subscriber', $roles );
+		if ( $key !== false ) {
+			unset( $roles[ $key ] );
+		}
+	}
+	
+	return $roles;
 }
 
 function apbct_settings__field__draw($params = array()){
@@ -932,7 +950,7 @@ function apbct_settings__field__draw($params = array()){
 				
 				// Popup description
 				echo isset($params['long_description'])
-					? '<i setting="'.$params['name'].'" class="spbc_long_description__show icon-help-circled"></i>'
+					? '<i setting="'.$params['name'].'" class="apbct_long_description__show icon-help-circled"></i>'
 					: '';
 				
 				echo '<div class="apbct_settings-field_content apbct_settings-field_content--'.$params['type'].'">';
@@ -955,7 +973,7 @@ function apbct_settings__field__draw($params = array()){
 					foreach($params['options'] as $option){
 						echo '<input'
 						     .' type="radio"'
-						     .' class="spbc_setting_'.$params['type'].'"'
+						     .' class="apbct_setting_'.$params['type'].'"'
 						     .' id="apbct_setting_'.$params['name'].'__'.$option['label'].'"'
 						     .' name="cleantalk_settings['.$params['name'].']"'
 						     .' value="'.$option['val'].'"'
@@ -977,6 +995,45 @@ function apbct_settings__field__draw($params = array()){
 				echo '</div>';
 				break;
 			
+			// Dropdown list type
+			case 'select':
+				echo isset($params['title'])
+					? '<h4 class="apbct_settings-field_title apbct_settings-field_title--'.$params['type'].'">'.$params['title'].'</h4>'
+					: '';
+				echo isset($params['long_description'])
+					? '<i setting="'.$params['name'].'" class="spbc_long_description__show icon-help-circled"></i>'
+					: '';
+				echo '<select'
+				    . ' id="apbct_setting_'.$params['name'].'"'
+				    . ' class="apbct_setting_'.$params['type'].'"'
+			        . ' name="cleantalk_settings['.$params['name'].']'.($params['multiple'] ? '[]"' : '"')
+			        . ($params['multiple'] ? ' size="'. count($params['options']). '""' : '')
+					. ($params['multiple'] ? ' multiple="multiple"' : '')
+			        . ($params['parent'] && !$apbct->settings[$params['parent']] ? ' disabled="disabled"' : '')
+					. ' >';
+				
+					foreach($params['options'] as $option){
+						echo '<option'
+							. ' value="' . $option['val'] . '"'
+							. ($params['multiple']
+								? (in_array($option['val'], $apbct->settings[$params['name']]) ? ' selected="selected"' : '')
+							    : ($apbct->settings[$params['name']] == $option['val']         ?  'selected="selected"' : '')
+							)
+							.'>'
+								. $option['label']
+							. '</option>';
+					}
+					
+				echo '</select>';
+				echo isset($params['long_description'])
+					? '<i setting="'.$params['name'].'" class="apbct_long_description__show icon-help-circled"></i>'
+					: '';
+				echo isset($params['description'])
+					? '<div class="apbct_settings-field_description">'.$params['description'].'</div>'
+					: '';
+				
+				break;
+				
 			// Text type
 			case 'text':
 				
