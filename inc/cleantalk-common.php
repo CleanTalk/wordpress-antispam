@@ -367,7 +367,10 @@ function ct_get_checkjs_value(){
     global $apbct;
 	
     // Use static JS keys
-    if($apbct->settings['use_static_js_key']){
+	if(
+		$apbct->settings['use_static_js_key'] === 1 ||
+		($apbct->settings['use_static_js_key'] === -1 && apbct_is_cache_plugins_persist())
+	){
 	    $key = hash('sha256', $apbct->api_key.ct_get_admin_email().$apbct->salt);
 	
     // Using dynamic JS keys
@@ -382,7 +385,7 @@ function ct_get_checkjs_value(){
         foreach ($keys as $k => $t) {
 
             // Removing key if it's to old
-            if (time() - $t > $apbct->data['js_keys_store_days'] * 86400) {
+            if (time() - $t > $apbct->data['js_keys_store_days'] * 86400 * 7) {
                 unset($keys[$k]);
                 continue;
             }
@@ -407,6 +410,22 @@ function ct_get_checkjs_value(){
     }
 
     return $key; 
+}
+
+function apbct_is_cache_plugins_persist(){
+	return
+		defined('WP_ROCKET_VERSION') ||                           // WPRocket
+		defined('LSCWP_DIR') ||                                   // LiteSpeed Cache
+		defined('WPFC_WP_CONTENT_BASENAME') ||                    // WP Fastest Cache
+		defined('W3TC') ||                                        // W3 Total Cache
+		defined('WPO_VERSION') ||                                 // WP-Optimize – Clean, Compress, Cache
+		defined('AUTOPTIMIZE_PLUGIN_VERSION') ||                  // Autoptimize
+		defined('WPCACHEHOME') ||                                 // WP Super Cache
+		defined('WPHB_VERSION') ||                                // Hummingbird – Speed up, Cache, Optimize Your CSS and JS
+		defined('CE_FILE') ||                                     // Cache Enabler – WordPress Cache
+		class_exists('RedisObjectCache') ||                   // Redis Object Cache
+		defined('SiteGround_Optimizer\VERSION') ||                // SG Optimizer
+		class_exists('WP_Rest_Cache_Plugin\Includes\Plugin'); // WP REST Cache
 }
 
 /**

@@ -63,7 +63,7 @@ class CleantalkState
 		// Data processing
         'protect_logged_in' =>     1, // Do anit-spam tests to for logged in users.
 		'use_ajax' =>              1,
-		'use_static_js_key' =>     0,
+		'use_static_js_key' =>     -1,
 		'general_postdata_test' => 0, //CAPD
         'set_cookies'=>            1, // Disable cookies generatation to be compatible with Varnish.
         'set_cookies__sessions'=>  0, // Use alt sessions for cookies.

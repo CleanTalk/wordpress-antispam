@@ -288,12 +288,18 @@ function apbct_update_to_5_124_0(){
 }
 
 function apbct_update_to_5_126_0(){
-	
-	// Enable storing URLs
 	global $apbct;
+	// Enable storing URLs
 	$apbct->settings['store_urls'] = 1;
 	$apbct->settings['store_urls__sessions'] = 1;
 	$apbct->saveSettings();
-	
-	
+}
+
+function apbct_update_to_5_127_0(){
+	global $apbct;
+	// Switch use_static_js_key to Auto if it was disabled
+	$apbct->settings['use_static_js_key'] = $apbct->settings['use_static_js_key'] === 0
+		? -1
+		: $apbct->settings['use_static_js_key'];
+	$apbct->saveSettings();
 }

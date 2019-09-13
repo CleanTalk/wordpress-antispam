@@ -1392,7 +1392,10 @@ function apbct_js_test($field_name = 'ct_checkjs', $data = null) {
 	    $js_key = $data[$field_name];
 	
 	    // Check static key
-	    if($apbct->settings['use_static_js_key']){
+	    if(
+	    	$apbct->settings['use_static_js_key'] === 1 ||
+	       ($apbct->settings['use_static_js_key'] === -1 && apbct_is_cache_plugins_persist())
+	    ){
 		    $ct_challenge = ct_get_checkjs_value();
 		    $out = preg_match("/$ct_challenge/", $js_key) ? 1 : 0;
 		
