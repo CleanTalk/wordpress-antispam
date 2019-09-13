@@ -244,7 +244,12 @@ function apbct_init() {
 		
 	// QForms integration
 	add_filter( 'quform_post_validate',  'ct_quform_post_validate', 10, 2 );
-
+	
+	// Ultimate Members
+	if (class_exists('UM')) {
+		add_action('um_main_register_fields','ct_register_form',100); // Add hidden fileds
+		add_action( 'um_submit_form_register', 'apbct_registration__UltimateMembers__check', 9, 1 ); // Check submition
+	}
 	 
     //
     // Load JS code to website footer
@@ -1830,6 +1835,54 @@ function apbct_registration__Wordpress__changeMailNotification($wp_new_user_noti
 	return $wp_new_user_notification_email_admin;
 	
 
+}
+
+/**
+ * Checks Ultimate Members registration for spam
+ *
+ * @param $args forms arguments with names and values
+ *
+ * @return mixed
+ *
+ */
+function apbct_registration__UltimateMembers__check( $args ){
+	
+	global $apbct, $cleantalk_executed;
+	
+	if ($apbct->settings['registrations_test'] == 0)
+		return $args;
+	
+	$checkjs = apbct_js_test('ct_checkjs_register_form', $args);
+	$sender_info['post_checkjs_passed'] = $checkjs;
+	
+	// This hack can be helpfull when plugin uses with untested themes&signups plugins.
+	if ($checkjs == 0) {
+		$checkjs = apbct_js_test('ct_checkjs', $_COOKIE);
+		$sender_info['cookie_checkjs_passed'] = $checkjs;
+	}
+	
+	$base_call_result = apbct_base_call(
+		array(
+			'sender_email' => $args['user_email'],
+			'sender_nickname' => $args['user_login'],
+			'sender_info' => $sender_info,
+			'js_on'   => $checkjs,
+		),
+		true
+	);
+	$ct_result = $base_call_result['ct_result'];
+	
+	$cleantalk_executed = true;
+	
+	if ($ct_result->inactive != 0) {
+		ct_send_error_notice($ct_result->comment);
+		return $args;
+	}
+	
+	if ($ct_result->allow == 0)
+		UM()->form()->add_error('user_password', $ct_result->comment );
+	
+	return $args;
 }
 
 /**
