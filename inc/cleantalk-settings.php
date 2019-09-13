@@ -37,6 +37,10 @@ function apbct_settings__add_page() {
 	$field_default_params = array(
 		'callback'        => 'apbct_settings__field__draw',
 		'type'            => 'radio',
+		'options' => array(
+			array('val' => 1, 'label'  => __('On', 'cleantalk'),),
+			array('val' => 0, 'label'  => __('Off', 'cleantalk'),),
+		),
 		'def_class'       => 'apbct_settings-field_wrapper',
 		'class'           => '',
 		'parent'          => '',
@@ -920,9 +924,16 @@ function apbct_settings__field__draw($params = array()){
 			
 			// Radio type
 			case 'radio':
-				echo '<h4 class="apbct_settings-field_title apbct_settings-field_title--'.$params['type'].'">'
-					.$params['title']
-				.'</h4>';
+				
+				// Title
+				echo isset($params['title'])
+					? '<h4 class="apbct_settings-field_title apbct_settings-field_title--'.$params['type'].'">'.$params['title'].'</h4>'
+					: '';
+				
+				// Popup description
+				echo isset($params['long_description'])
+					? '<i setting="'.$params['name'].'" class="spbc_long_description__show icon-help-circled"></i>'
+					: '';
 				
 				echo '<div class="apbct_settings-field_content apbct_settings-field_content--'.$params['type'].'">';
 					
@@ -940,24 +951,28 @@ function apbct_settings__field__draw($params = array()){
 							$disabled = ' disabled="disabled"';
 						}
 					}
-
-					echo '<input type="radio" id="apbct_setting_'.$params['name'].'_yes" name="cleantalk_settings['.$params['name'].']" value="1" '
-						.($params['parent'] ? $disabled : '')
-						.(!$params['childrens'] ? '' : ' onchange="apbctSettingsDependencies([\''.implode("','",$params['childrens']).'\'])"')
-						.($apbct->settings[$params['name']] ? ' checked' : '').' />'
-						.'<label for="apbct_setting_'.$params['name'].'_yes"> ' . __('Yes') . '</label>';
-						
-					echo '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
-					
-					echo '<input type="radio" id="apbct_setting_'.$params['name'].'_no" name="cleantalk_settings['.$params['name'].']" value="0" '
-						.($params['parent'] ? $disabled : '')
-						.(!$params['childrens'] ? '' : ' onchange="apbctSettingsDependencies([\''.implode("','",$params['childrens']).'\'])"')
-						.(!$apbct->settings[$params['name']] ? ' checked' : '').' />'
-						.'<label for="apbct_setting_'.$params['name'].'_no">'. __('No') . '</label>';
-					
-					echo '<div class="apbct_settings-field_description">'
-						.$params['description']
-					.'</div>';
+				
+					foreach($params['options'] as $option){
+						echo '<input'
+						     .' type="radio"'
+						     .' class="spbc_setting_'.$params['type'].'"'
+						     .' id="apbct_setting_'.$params['name'].'__'.$option['label'].'"'
+						     .' name="cleantalk_settings['.$params['name'].']"'
+						     .' value="'.$option['val'].'"'
+						     .($params['parent'] ? $disabled : '')
+						     .($params['childrens']
+								? ' onchange="apbctSettingsDependencies([\''.implode("','",$params['childrens']).'\'])"'
+								: ''
+						     )
+						     .($apbct->settings[$params['name']] == $option['val'] ? ' checked' : '')
+						.' />';
+				        echo '<label for="apbct_setting_'.$params['name'].'__'.$option['label'].'"> ' . $option['label'] . '</label>';
+						echo '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
+					}
+				
+					echo isset($params['description'])
+						? '<div class="apbct_settings-field_description">'.$params['description'].'</div>'
+						: '';
 					
 				echo '</div>';
 				break;
