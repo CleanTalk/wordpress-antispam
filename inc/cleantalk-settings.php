@@ -207,7 +207,7 @@ function apbct_settings__add_page() {
 				),
 				'use_static_js_key' => array(
 					'title'       => __('Use static keys for JS check.', 'cleantalk'),
-					'description' => __('Could help if you have cache for AJAX requests and you are dealing with false positives. Slightly decreases protection quality.', 'cleantalk'),
+					'description' => __('Could help if you have cache for AJAX requests and you are dealing with false positives. Slightly decreases protection quality. Auto - Static key will be used if caching plugin is spotted.', 'cleantalk'),
 					'options' => array(
 						array('val' => 1, 'label'  => __('On'),  ),
 						array('val' => 0, 'label'  => __('Off'), ),
