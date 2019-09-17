@@ -84,6 +84,7 @@ function apbct_base_call($params = array(), $reg_flag = false){
 		? CleantalkHelper::array_merge__save_numeric_keys__recursive(apbct_get_sender_info(), (array)$params['sender_info'])
 		: apbct_get_sender_info();
 	
+	// Fileds exclusions
 	!empty($params['message'])
 		? $params['message'] = ct_filter_array($params['message'])
 		: null;

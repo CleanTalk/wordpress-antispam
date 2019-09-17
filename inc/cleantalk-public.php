@@ -158,8 +158,8 @@ function apbct_init() {
 		}
 		
     // Formidable
-		add_filter( 'frm_entries_before_create', 'ct_frm_validate_entry', 10, 2 );
-		add_action( 'frm_entries_footer_scripts', 'ct_frm_entries_footer_scripts', 20, 2 );
+		add_filter( 'frm_entries_before_create', 'apbct_rorm__formidable__testSpam', 10, 2 );
+		add_action( 'frm_entries_footer_scripts', 'apbct_rorm__formidable__footerScripts', 20, 2 );
 
     // BuddyPress
 		if(class_exists('BuddyPress')){
@@ -231,7 +231,7 @@ function apbct_init() {
 	//Pirate forms
 		if(defined('PIRATE_FORMS_VERSION')){
 			if(isset($_POST['pirate-forms-contact-name']) && $_POST['pirate-forms-contact-name'] && isset($_POST['pirate-forms-contact-email']) && $_POST['pirate-forms-contact-email'])
-				ct_pirate_forms_check();
+				apbct_form__piratesForm__testSpam();
 		}
 	
 	// WPForms
@@ -696,7 +696,7 @@ function apbct_forms__search__testSpam( $search ){
 * Public function - Tests for Pirate contact froms
 * return NULL
 */
-function ct_pirate_forms_check(){
+function apbct_form__piratesForm__testSpam(){
 	
 	global $apbct;
 
@@ -851,7 +851,8 @@ function ct_add_hidden_fields($field_name = 'ct_checkjs', $return_string = false
 * Public function - Insert JS code for spam tests
 * return null;
 */
-function ct_frm_entries_footer_scripts($fields, $form) {
+function apbct_rorm__formidable__footerScripts($fields, $form) {
+	
     global $apbct, $ct_checkjs_frm;
     
     if ( !$apbct->settings['contact_forms_test'])
@@ -887,7 +888,7 @@ function ct_frm_entries_footer_scripts($fields, $form) {
  *
  * @return array with errors if spam has found
  */
-function ct_frm_validate_entry ( $errors, $form ) {
+function apbct_rorm__formidable__testSpam ( $errors, $form ) {
 
     global $apbct;
     
