@@ -50,15 +50,14 @@ function apbct_update_to_5_50_0(){
 		`network` int(11) unsigned NOT NULL,
 		`mask` int(11) unsigned NOT NULL,
 		INDEX (  `network` ,  `mask` )
-		) ENGINE = MYISAM ;');
+		);');
 		
 	$wpdb->query('CREATE TABLE IF NOT EXISTS `'. APBCT_TBL_FIREWALL_LOG .'` (
 		`ip` VARCHAR(15) NOT NULL , 
 		`all` INT NOT NULL , 
 		`blocked` INT NOT NULL , 
 		`timestamp` INT NOT NULL , 
-		PRIMARY KEY (`ip`)) 
-		ENGINE = MYISAM;');
+		PRIMARY KEY (`ip`));');
 }
 
 function apbct_update_to_5_56_0(){
@@ -120,15 +119,14 @@ function apbct_update_to_5_109_0(){
 			`network` int(11) unsigned NOT NULL,
 			`mask` int(11) unsigned NOT NULL,
 			INDEX (  `network` ,  `mask` )
-			) ENGINE = MYISAM ;';
+			);';
 
 		$sfw_log_query = 'CREATE TABLE IF NOT EXISTS `%s` (
 			`ip` VARCHAR(15) NOT NULL,
 			`all_entries` INT NOT NULL,
 			`blocked_entries` INT NOT NULL,
 			`entries_timestamp` INT NOT NULL,
-			PRIMARY KEY (`ip`)) 
-			ENGINE = MYISAM;';
+			PRIMARY KEY (`ip`));';
 
 		$initial_blog  = get_current_blog_id();
 		$blogs = array_keys($wpdb->get_results('SELECT blog_id FROM '. $wpdb->blogs, OBJECT_K));
@@ -173,8 +171,7 @@ function apbct_update_to_5_116_0(){
 		`name` TEXT NOT NULL,
 		`value` TEXT NULL,
 		`last_update` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-		PRIMARY KEY (`id`, `name`(10)))
-		ENGINE = MYISAM;'
+		PRIMARY KEY (`id`, `name`(10)));'
 	);
 }
 
@@ -187,8 +184,7 @@ function apbct_update_to_5_116_1(){
 		`name` TEXT NOT NULL,
 		`value` TEXT NULL,
 		`last_update` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-		PRIMARY KEY (`id`, `name`(10)))
-		ENGINE = MYISAM;'
+		PRIMARY KEY (`id`, `name`(10)));'
 	);
 }
 
@@ -201,8 +197,7 @@ function apbct_update_to_5_116_2(){
 		`name` TEXT NOT NULL,
 		`value` TEXT NULL DEFAULT NULL,
 		`last_update` DATETIME NULL DEFAULT NULL,
-		PRIMARY KEY (`id`, `name`(10)))
-		ENGINE = MYISAM;'
+		PRIMARY KEY (`id`, `name`(10)));'
 	);
 }
 
@@ -234,7 +229,7 @@ function apbct_update_to_5_119_0(){
 		`network` int(11) unsigned NOT NULL,
 		`mask` int(11) unsigned NOT NULL,
 		INDEX (  `network` ,  `mask` )
-		) ENGINE = MYISAM ;';
+		);';
 	
 	// SFW log
 	$sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_sfw_logs` (
@@ -242,8 +237,7 @@ function apbct_update_to_5_119_0(){
 		`all_entries` INT NOT NULL,
 		`blocked_entries` INT NOT NULL,
 		`entries_timestamp` INT NOT NULL,
-		PRIMARY KEY (`ip`)) 
-		ENGINE = MYISAM;';
+		PRIMARY KEY (`ip`));';
 	
 	// Sessions
 	$sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_sessions` (
@@ -251,8 +245,7 @@ function apbct_update_to_5_119_0(){
 		`name` VARCHAR(64) NOT NULL,
 		`value` TEXT NULL DEFAULT NULL,
 		`last_update` DATETIME NULL DEFAULT NULL,
-		PRIMARY KEY (`id`(64), `name`(64)))
-		ENGINE = MYISAM;';
+		PRIMARY KEY (`id`(64), `name`(64)));';
 	
 	apbct_activation__create_tables($sqls);
 	
