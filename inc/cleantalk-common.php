@@ -85,9 +85,9 @@ function apbct_base_call($params = array(), $reg_flag = false){
 		: apbct_get_sender_info();
 	
 	// Fileds exclusions
-	!empty($params['message'])
-		? $params['message'] = ct_filter_array($params['message'])
-		: null;
+	if(!empty($params['message']))
+		ct_filter_array($params['message']); // Passing by reference
+	
 	
 	$default_params = array(
 		
@@ -897,27 +897,56 @@ function apbct_check_ip_exclusions(){
 	return false;
 }
 
+/**
+ * Checks if given string is valid regular expression
+ *
+ * @param string $regexp
+ *
+ * @return bool
+ */
+function apbct_is_regexp($regexp){
+	return @preg_match('/' . $regexp . '/', null) !== false;
+}
+
+/**
+ * Recursive
+ * Delete key from initial given array which matches with exclusions by full equality or matching regular expression
+ *
+ * @param array|string $data
+ *
+ * @return array
+ */
 function ct_filter_array(&$data)
 {
-	global $cleantalk_key_exclusions;
+	global $apbct;
 	
-	if(isset($cleantalk_key_exclusions) && sizeof($cleantalk_key_exclusions) > 0 && is_array($data)){
+	if(!empty($apbct->exclusions__fields) && is_array($data)){
+		
+		$exclusions = explode(',', $apbct->exclusions__fields);
 		
 		foreach($data as $key => $value){
 			
 			if(!is_array($value)){
-				if(in_array($key,$cleantalk_key_exclusions)){
-					unset($data[$key]);
+				
+				// Check key via reg exp
+				if($apbct->exclusions__fileds__use_regexp){
+					foreach ($exclusions as $exclusion){
+						if( preg_match( $exclusion, $key ) ){
+							unset($data[$key]);
+							break;
+						}
+					}
+					
+				// Check key via full equality
+				}else{
+					if( in_array( $key, $exclusions ) ){
+						unset($data[$key]);
+					}
 				}
 			}else{
 				$data[$key] = ct_filter_array($value);
 			}
 		}
-		
-		return $data;
-		
-	}else{
-		return $data;
 	}
 }
 

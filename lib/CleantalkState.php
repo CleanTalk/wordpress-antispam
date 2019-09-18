@@ -70,6 +70,13 @@ class CleantalkState
         'ssl_on' =>                0, // Secure connection to servers 
 		'use_buitin_http_api' =>   0, // Using Wordpress HTTP built in API
 		
+		// Exclusions
+		'exclusions__urls'               => '',
+		'exclusions__urls__use_regexp'   => 0,
+		'exclusions__fields'             => '',
+		'exclusions__fields__use_regexp' => 0,
+		'exclusions__role'               => array('Administrator'),
+		
 		// Administrator Panel
         'show_adminbar'    => 1, // Show the admin bar.
 		'all_time_counter' => 0,

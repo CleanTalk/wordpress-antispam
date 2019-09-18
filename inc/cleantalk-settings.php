@@ -245,6 +245,39 @@ function apbct_settings__add_page() {
 			),
 		),
 		
+		// Exclusions
+		'exclusions' => array(
+			'title'          => __('Exclusions', 'cleantalk'),
+			'fields'         => array(
+				'exclusions__urls' => array(
+					'type'        => 'text',
+					'title'       => __('URL exclusions', 'cleantalk'),
+					'description' => __('You could type here URL you want to exclude. Use comma as separator.', 'cleantalk'),
+				),
+				'exclusions__urls__use_regexp' => array(
+					'type'        => 'checkbox',
+					'title'       => __('Use Regular Expression in URL Exclusions', 'cleantalk'),
+				),
+				'exclusions__fields' => array(
+					'type'        => 'text',
+					'title'       => __('Field name exclusions', 'cleantalk'),
+					'description' => __('You could type here fields names you want to exclude. Use comma as separator.', 'cleantalk'),
+				),
+				'exclusions__fields__use_regexp' => array(
+					'type'        => 'checkbox',
+					'title'       => __('Use Regular Expression in Field Exclusions', 'cleantalk'),
+				),
+				'exclusions__role' => array(
+					'type'                    => 'select',
+					'multiple'                => true,
+					'parent'                  => 'comment_notify',
+					'options_callback'        => 'apbct_get_all_roles',
+					'options_callback_params' => array(true),
+					'description'             => __('Roles which bypass spam test. Hold CTRL to select multiple roles.', 'cleantalk'),
+				),
+			),
+		),
+		
 		// Admin bar
 		'admin_bar' => array(
 			'title'          => __('Admin bar', 'cleantalk'),
@@ -364,6 +397,7 @@ function apbct_settings__add_page() {
 		'display'         => true,  // Draw settings or not
 		'reverse_trigger' => false, // How to allow child settings. Childrens are opened when the parent triggered "ON". This is overrides by this option
 		'multiple'        => false,
+		'description'     => '',
 	);
 	
 	foreach($apbct->settings_fields_in_groups as $group_name => $group){
@@ -543,6 +577,12 @@ function apbct_settings__error__output($return = false){
 			'sfw_update' => __('Error occured while updating SpamFireWall local base. Error: '            , 'security-malware-firewall'),
 			'account_check' => __('Error occured while checking account status. Error: ', 'security-malware-firewall'),
 			'api' => __('Error occured while excuting API call. Error: ', 'security-malware-firewall'),
+			
+			// Validating settings
+			'settings_validate' => 'Validate Settings: ',
+			'exclusions_urls' => 'URL Exclusions ',
+			'exclusions_fields' => 'Field Exclusions ',
+			
 			// Unknown
 			'unknown' => __('Unknown error. Error: ', 'security-malware-firewall'),
 		);
@@ -559,7 +599,7 @@ function apbct_settings__error__output($return = false){
 						$errors_out[$sub_type] = '';
 						if(isset($sub_error['error_time']))
 							$errors_out[$sub_type] .= date('Y-m-d H:i:s', $sub_error['error_time']) . ': ';
-						$errors_out[$sub_type] .= ucfirst($type).': ';
+						$errors_out[$sub_type] .= (isset($error_texts[$type])     ? $error_texts[$type]     : ucfirst($type)) . ': ';
 						$errors_out[$sub_type] .= (isset($error_texts[$sub_type]) ? $error_texts[$sub_type] : $error_texts['unknown']) . $sub_error['error'];
 					}
 					continue;
@@ -1080,6 +1120,22 @@ function apbct_settings__validate($settings) {
 	$settings['apikey'] = defined('CLEANTALK_ACCESS_KEY') ? CLEANTALK_ACCESS_KEY : $settings['apikey'];
 	$settings['apikey'] = $apbct->white_label ? $apbct->settings['apikey'] : $settings['apikey'];
 	
+	// Validate Exclusions
+	
+	// URLs
+	if( ! apbct_settings__validate__exclusions($settings['exclusions__urls'],   $settings['exclusions__urls__use_regexp']) ){
+		$apbct->error_add( 'exclusions_urls', 'is not valid: "' . $settings['exclusions__urls'] . '""', 'settings_validate' );
+		$settings['exclusions__urls'] = '';
+	}else
+		$apbct->error_delete( 'exclusions_urls', true, 'settings_validate' );
+	
+	// Fields
+	if( ! apbct_settings__validate__exclusions($settings['exclusions__fields'],   $settings['exclusions__fields__use_regexp']) ){
+		$apbct->error_add( 'exclusions_fields', 'is not valid: "' . $settings['exclusions__fields'] . '""', 'settings_validate' );
+		$settings['exclusions__fields'] = '';
+	}else
+		$apbct->error_delete( 'exclusions_fields', true, 'settings_validate' );
+	
 	// Drop debug data
 	if (isset($_POST['submit']) && $_POST['submit'] == 'debug_drop'){
 		$apbct->debug = false;
@@ -1148,19 +1204,19 @@ function apbct_settings__validate($settings) {
 	
 	// Is key valid?
 	if($result){
-		
+	
 		// Deleting errors about invalid key
 		$apbct->error_delete('key_invalid key_get', 'save');
-		
+	
 		// SFW actions
 		if($apbct->settings['spam_firewall'] == 1){
 			ct_sfw_update($settings['apikey']);
 			ct_sfw_send_logs($settings['apikey']);
 		}
-		
+	
 		// Updating brief data for dashboard widget
 		$apbct->data['brief_data'] = CleantalkAPI::method__get_antispam_report_breif($settings['apikey']);
-		
+	
 	// Key is not valid
 	}else{
 		$apbct->data['key_is_ok'] = false;
@@ -1197,6 +1253,17 @@ function apbct_settings__validate($settings) {
 	$apbct->saveData();
 	
 	return $settings;
+}
+
+function apbct_settings__validate__exclusions($exclusions, $regexp = false){
+	if( ! empty( $exclusions ) ){
+		$exclusions = explode( ',', $exclusions );
+		foreach ( $exclusions as $exclusion ){
+			if( empty($exclusion) || ($regexp && ! apbct_is_regexp( $exclusion ) ) )
+				return false;
+		}
+	}
+	return true;
 }
 
 function apbct_gdpr__show_text($print = false){
