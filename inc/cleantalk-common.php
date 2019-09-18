@@ -692,7 +692,7 @@ function ct_get_fields_any($arr, $message=array(), $email = null, $nickname = ar
 				}
 			}
 			
-			if(!is_array($value) && !is_object($value) && @get_class($value) != 'WP_User'){
+			if(!is_array($value) && !is_object($value)){
 				
 				if (in_array($key, $skip_params, true) && $key != 0 && $key != '' || preg_match("/^ct_checkjs/", $key))
 					$contact = false;
@@ -748,7 +748,7 @@ function ct_get_fields_any($arr, $message=array(), $email = null, $nickname = ar
 					$message[$prev_name.$key] = $value;					
 				}
 				
-			}elseif(!is_object($value) && @get_class($value) != 'WP_User'){
+			}elseif(!is_object($value)){
 				
 				$prev_name_original = $prev_name;
 				$prev_name = ($prev_name === '' ? $key.'_' : $prev_name.$key.'_');
