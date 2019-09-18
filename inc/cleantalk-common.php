@@ -86,7 +86,13 @@ function apbct_base_call($params = array(), $reg_flag = false){
 	
 	// Fileds exclusions
 	if(!empty($params['message']))
-		ct_filter_array($params['message']); // Passing by reference
+	if(!empty($params['message'])){
+		apbct_does_array_has_key__and_delete(
+			$params['message'], // Passing by reference
+			$apbct->settings['exclusions__fields'],
+			$apbct->settings['exclusions__fields__use_regexp'],
+		);
+	}
 	
 	
 	$default_params = array(
@@ -195,6 +201,7 @@ function apbct_base__check_exlusions($func = null){
 	if(
 		apbct_check_ip_exclusions() ||
 		apbct_check_url_exclusions() ||
+		apbct_is_user_role_in( $apbct->settings['exclusions__roles'] ) ||
 		$cleantalk_executed
 	)
 		return true;
@@ -204,13 +211,13 @@ function apbct_base__check_exlusions($func = null){
 		case 'ct_contact_form_validate_postdata':
 			if(
 				(defined( 'DOING_AJAX' ) && DOING_AJAX) ||
-				apbct_does_array_has_key__recursive($_POST)
+				apbct_does_array_has_key($_POST)
 			)
 				return true;
 			break;
 		case 'ct_contact_form_validate':
 			if(
-				apbct_does_array_has_key__recursive($_POST)
+				apbct_does_array_has_key($_POST)
 			)
 				return true;
 			break;
@@ -829,13 +836,18 @@ function ct_get_fields_any_postdata($arr, $message=array()){
 	return $message;
 }
 
-/*
-* Check if Array has keys with restricted names
-*/
-function apbct_does_array_has_key__recursive( $arr ) {
+/**
+ * Recursive
+ * Check if Array has keys with restricted names
+ *
+ * @param array $arr
+ *
+ * @return bool
+ */
+function apbct_does_array_has_key( $arr ) {
 	foreach ( $arr as $key => $value ) {
 		if ( is_array( $value ) )
-			apbct_does_array_has_key__recursive( $value );
+			apbct_does_array_has_key( $value );
 		else{
 			$exclusions = Array( 'members_search_submit' );
 			foreach ( $exclusions as $exclusion ) {
@@ -849,32 +861,82 @@ function apbct_does_array_has_key__recursive( $arr ) {
 }
 
 /**
+ * Recursive
+ * Delete key from initial given array which matches with exclusions by full equality or matching regular expression
+ *
+ * @param array|string $data
+ * @param string       $exclusions
+ * @param bool         $use_regexp
+ *
+ * @return void
+ */
+function apbct_does_array_has_key__and_delete(&$data, $exclusions = '', $use_regexp = false)
+{
+	global $apbct;
+	
+	if(!empty($exclusions) && is_array($data)){
+		
+		$exclusions = explode(',', $exclusions);
+		
+		foreach($data as $key => $value){
+			
+			if(!is_array($value)){
+				
+				// Check key via reg exp
+				if($use_regexp){
+					foreach ($exclusions as $exclusion){
+						if( preg_match( $exclusion, $key ) ){
+							unset($data[$key]);
+							break;
+						}
+					}
+					
+					// Check key via full equality
+				}else{
+					if( in_array( $key, $exclusions ) ){
+						unset($data[$key]);
+					}
+				}
+			}else{
+				$data[$key] = apbct_does_array_has_key__and_delete($value, $exclusions, $use_regexp);
+			}
+		}
+	}
+}
+
+/**
  * Checks if reuqest URI is in exclusion list
  *
  * @return bool
  */
-function apbct_check_url_exclusions(){
+function apbct_check_url_exclusions() {
 	
-	global $cleantalk_url_exclusions;
+	global $apbct;
 	
-	if (!empty($cleantalk_url_exclusions) && is_array($cleantalk_url_exclusions)){
+	if ( ! empty( $apbct->settings['exclusions__urls'] ) ) {
+		
+		$exclusions = explode( ',', $apbct->settings['exclusions__urls'] );
 		
 		// Fix for AJAX forms
-		$haystack = $_SERVER['REQUEST_URI'] == '/wp-admin/admin-ajax.php' && !empty($_SERVER['HTTP_REFERER'])
+		$haystack = $_SERVER['REQUEST_URI'] == '/wp-admin/admin-ajax.php' && ! empty( $_SERVER['HTTP_REFERER'] )
 			? $_SERVER['HTTP_REFERER']
 			: $_SERVER['REQUEST_URI'];
 		
-		foreach($cleantalk_url_exclusions as $exclusion){
-			if(stripos($haystack, $exclusion) !== false){
+		foreach ( $exclusions as $exclusion ) {
+			if ( stripos( $haystack, $exclusion ) !== false ) {
 				return true;
+			} elseif ( $apbct->settings['exclusions__urls__use_regexp'] ) {
+				if ( preg_match( '/' . $exclusion . '/', $haystack ) !== false ) {
+					return true;
+				}
 			}
 		}
+		return false;
 	}
-	
-	return false;
 }
-
 /**
+ * @deprecated 5.128 Using IP white-lists instead
+ * @deprecated since 18.09.2019
  * Checks if sender_ip is in exclusion list
  *
  * @return bool
@@ -907,49 +969,6 @@ function apbct_check_ip_exclusions(){
 function apbct_is_regexp($regexp){
 	return @preg_match('/' . $regexp . '/', null) !== false;
 }
-
-/**
- * Recursive
- * Delete key from initial given array which matches with exclusions by full equality or matching regular expression
- *
- * @param array|string $data
- *
- * @return array
- */
-function ct_filter_array(&$data)
-{
-	global $apbct;
-	
-	if(!empty($apbct->exclusions__fields) && is_array($data)){
-		
-		$exclusions = explode(',', $apbct->exclusions__fields);
-		
-		foreach($data as $key => $value){
-			
-			if(!is_array($value)){
-				
-				// Check key via reg exp
-				if($apbct->exclusions__fileds__use_regexp){
-					foreach ($exclusions as $exclusion){
-						if( preg_match( $exclusion, $key ) ){
-							unset($data[$key]);
-							break;
-						}
-					}
-					
-				// Check key via full equality
-				}else{
-					if( in_array( $key, $exclusions ) ){
-						unset($data[$key]);
-					}
-				}
-			}else{
-				$data[$key] = ct_filter_array($value);
-			}
-		}
-	}
-}
-
 
 function cleantalk_debug($key,$value)
 {

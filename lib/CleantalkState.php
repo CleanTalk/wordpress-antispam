@@ -75,7 +75,7 @@ class CleantalkState
 		'exclusions__urls__use_regexp'   => 0,
 		'exclusions__fields'             => '',
 		'exclusions__fields__use_regexp' => 0,
-		'exclusions__role'               => array('Administrator'),
+		'exclusions__roles'               => array('Administrator'),
 		
 		// Administrator Panel
         'show_adminbar'    => 1, // Show the admin bar.

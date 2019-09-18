@@ -267,7 +267,7 @@ function apbct_settings__add_page() {
 					'type'        => 'checkbox',
 					'title'       => __('Use Regular Expression in Field Exclusions', 'cleantalk'),
 				),
-				'exclusions__role' => array(
+				'exclusions__roles' => array(
 					'type'                    => 'select',
 					'multiple'                => true,
 					'parent'                  => 'comment_notify',
@@ -1123,18 +1123,18 @@ function apbct_settings__validate($settings) {
 	// Validate Exclusions
 	
 	// URLs
-	if( ! apbct_settings__validate__exclusions($settings['exclusions__urls'],   $settings['exclusions__urls__use_regexp']) ){
-		$apbct->error_add( 'exclusions_urls', 'is not valid: "' . $settings['exclusions__urls'] . '""', 'settings_validate' );
-		$settings['exclusions__urls'] = '';
-	}else
-		$apbct->error_delete( 'exclusions_urls', true, 'settings_validate' );
+	$settings['exclusions__urls']  = apbct_settings__sanitize__exclusions($settings['exclusions__urls'],   $settings['exclusions__urls__use_regexp']);
+	$settings['exclusions__urls'] === false
+		? $apbct->error_add( 'exclusions_urls', 'is not valid: "' . $settings['exclusions__urls'] . '""', 'settings_validate' )
+		: $apbct->error_delete( 'exclusions_urls', true, 'settings_validate' );
+	$settings['exclusions__urls'] = (string)$settings['exclusions__urls'];
 	
 	// Fields
-	if( ! apbct_settings__validate__exclusions($settings['exclusions__fields'],   $settings['exclusions__fields__use_regexp']) ){
-		$apbct->error_add( 'exclusions_fields', 'is not valid: "' . $settings['exclusions__fields'] . '""', 'settings_validate' );
-		$settings['exclusions__fields'] = '';
-	}else
-		$apbct->error_delete( 'exclusions_fields', true, 'settings_validate' );
+	$settings['exclusions__urls']  = apbct_settings__sanitize__exclusions($settings['exclusions__fields'],   $settings['exclusions__fields__use_regexp']);
+	$settings['exclusions__fields'] === false
+		? $apbct->error_add( 'exclusions_urls', 'is not valid: "' . $settings['exclusions__fields'] . '""', 'settings_validate' )
+		: $apbct->error_delete( 'exclusions_urls', true, 'settings_validate' );
+	$settings['exclusions__fields'] = (string)$settings['exclusions__fields'];
 	
 	// Drop debug data
 	if (isset($_POST['submit']) && $_POST['submit'] == 'debug_drop'){
@@ -1255,15 +1255,33 @@ function apbct_settings__validate($settings) {
 	return $settings;
 }
 
-function apbct_settings__validate__exclusions($exclusions, $regexp = false){
+/**
+ * Sanitize and validate exclusions.
+ * Explode given string by commas and trim each string.
+ * Skip element if it's empty.
+ *
+ * Return false if exclusion is bad
+ * Return sanitized string if all is ok
+ *
+ * @param string $exclusions
+ * @param bool   $regexp
+ *
+ * @return bool|string
+ */
+function apbct_settings__sanitize__exclusions($exclusions, $regexp = false){
+	$result = array();
 	if( ! empty( $exclusions ) ){
 		$exclusions = explode( ',', $exclusions );
 		foreach ( $exclusions as $exclusion ){
-			if( empty($exclusion) || ($regexp && ! apbct_is_regexp( $exclusion ) ) )
-				return false;
+			$sanitized_exclusion = trim( $exclusion );
+			if ( ! empty( $sanitized_exclusion ) ) {
+				if( $regexp && ! apbct_is_regexp( $exclusion ) )
+					return false;
+				$result[] = $sanitized_exclusion;
+			}
 		}
 	}
-	return true;
+	return implode( ',', $result );
 }
 
 function apbct_gdpr__show_text($print = false){

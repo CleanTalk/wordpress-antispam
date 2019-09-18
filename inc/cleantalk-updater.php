@@ -296,3 +296,18 @@ function apbct_update_to_5_127_0(){
 		: $apbct->settings['use_static_js_key'];
 	$apbct->saveSettings();
 }
+
+function apbct_update_to_5_128_0(){
+	global $apbct, $cleantalk_url_exclusions, $cleantalk_key_exclusions;
+	// Move exclusions from variable to settins
+	// URLs
+	if(!empty($cleantalk_url_exclusions) && is_array($cleantalk_url_exclusions)){
+		$apbct->settings['exclusions__urls'] = implode(',', $cleantalk_url_exclusions);
+		$apbct->saveSettings();
+	}
+	// Fields
+	if(!empty($cleantalk_key_exclusions) && is_array($cleantalk_key_exclusions)){
+		$apbct->settings['exclusions__fields'] = implode(',', $cleantalk_key_exclusions);
+		$apbct->saveSettings();
+	}
+}

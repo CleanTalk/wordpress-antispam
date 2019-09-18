@@ -434,13 +434,6 @@ example.com/some/body
 You should type this in wp-config.php:
 
 	$cleantalk_url_exclusions = array('some');
-	
-= Can I add exclusions for some IP addresses? =
-Yes, you can. Add this string in your wp-config.php file before defining database constants:
-
-	$cleantalk_ip_exclusions = array('127.0.0.1', '8.8.8.8');
-
-Now, all requests from IP 127.0.0.1 and 8.8.8.8 will be excluded from anti-spam checking. Remember, that this option will not be applied in registration and comment checking - they are always protected from spam.
 
 = Can I not send my personal data to CleanTalk servers? =
 Yes, you can exclude your data. Add this string in your wp-config.php file before defining database constants:
