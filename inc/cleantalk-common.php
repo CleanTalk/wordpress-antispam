@@ -1,5 +1,9 @@
 <?php
 
+function apbct_array( &$array ){
+	return new Cleantalk\Arr( $array );
+}
+
 $ct_checkjs_frm = 'ct_checkjs_frm';
 $ct_checkjs_register_form = 'ct_checkjs_register_form';
 
@@ -85,15 +89,11 @@ function apbct_base_call($params = array(), $reg_flag = false){
 		: apbct_get_sender_info();
 	
 	// Fileds exclusions
-	if(!empty($params['message']))
-	if(!empty($params['message'])){
-		apbct_does_array_has_key__and_delete(
-			$params['message'], // Passing by reference
-			$apbct->settings['exclusions__fields'],
-			$apbct->settings['exclusions__fields__use_regexp'],
-		);
+	if( ! empty( $params['message'] ) ){
+		apbct_array( $params['message'] )
+			->has_key( $apbct->settings['exclusions__fields'], $apbct->settings['exclusions__fields__use_regexp'], )
+			->delete();
 	}
-	
 	
 	$default_params = array(
 		
@@ -211,13 +211,13 @@ function apbct_base__check_exlusions($func = null){
 		case 'ct_contact_form_validate_postdata':
 			if(
 				(defined( 'DOING_AJAX' ) && DOING_AJAX) ||
-				apbct_does_array_has_key($_POST)
+				apbct_array( $_POST )->has_keys__boolean( 'members_search_submit' )
 			)
 				return true;
 			break;
 		case 'ct_contact_form_validate':
 			if(
-				apbct_does_array_has_key($_POST)
+				apbct_array( $_POST )->has_keys__boolean( 'members_search_submit' )
 			)
 				return true;
 			break;
@@ -834,74 +834,6 @@ function ct_get_fields_any_postdata($arr, $message=array()){
 		}
 	}
 	return $message;
-}
-
-/**
- * Recursive
- * Check if Array has keys with restricted names
- *
- * @param array $arr
- *
- * @return bool
- */
-function apbct_does_array_has_key( $arr ) {
-	foreach ( $arr as $key => $value ) {
-		if ( is_array( $value ) )
-			apbct_does_array_has_key( $value );
-		else{
-			$exclusions = Array( 'members_search_submit' );
-			foreach ( $exclusions as $exclusion ) {
-				if ( stripos( $key, $exclusion ) !== false ) {
-					return true;
-				}
-			}
-		}
-	}
-	return false;
-}
-
-/**
- * Recursive
- * Delete key from initial given array which matches with exclusions by full equality or matching regular expression
- *
- * @param array|string $data
- * @param string       $exclusions
- * @param bool         $use_regexp
- *
- * @return void
- */
-function apbct_does_array_has_key__and_delete(&$data, $exclusions = '', $use_regexp = false)
-{
-	global $apbct;
-	
-	if(!empty($exclusions) && is_array($data)){
-		
-		$exclusions = explode(',', $exclusions);
-		
-		foreach($data as $key => $value){
-			
-			if(!is_array($value)){
-				
-				// Check key via reg exp
-				if($use_regexp){
-					foreach ($exclusions as $exclusion){
-						if( preg_match( $exclusion, $key ) ){
-							unset($data[$key]);
-							break;
-						}
-					}
-					
-					// Check key via full equality
-				}else{
-					if( in_array( $key, $exclusions ) ){
-						unset($data[$key]);
-					}
-				}
-			}else{
-				$data[$key] = apbct_does_array_has_key__and_delete($value, $exclusions, $use_regexp);
-			}
-		}
-	}
 }
 
 /**
