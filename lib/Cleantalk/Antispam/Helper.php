@@ -578,18 +578,22 @@ class Helper
 	public static function array_merge__save_numeric_keys__recursive($arr1, $arr2)
 	{
 		foreach($arr2 as $key => $val){
+			
 			// Array | array => array
 			if(isset($arr1[$key]) && is_array($arr1[$key]) && is_array($val)){
 				$arr1[$key] = self::array_merge__save_numeric_keys__recursive($arr1[$key], $val);
-				// Scalar | array => array
+				
+			// Scalar | array => array
 			}elseif(isset($arr1[$key]) && !is_array($arr1[$key]) && is_array($val)){
 				$tmp = $arr1[$key] =
 				$arr1[$key] = $val;
 				$arr1[$key][] = $tmp;
-				// array  | scalar => array
+				
+			// array  | scalar => array
 			}elseif(isset($arr1[$key]) && is_array($arr1[$key]) && !is_array($val)){
 				$arr1[$key][] = $val;
-				// scalar | scalar => scalar
+				
+			// scalar | scalar => scalar
 			}else{
 				$arr1[$key] = $val;
 			}
