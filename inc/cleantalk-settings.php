@@ -479,7 +479,7 @@ function apbct_settings_page() {
 						echo '<b style="display: inline-block; margin-top: 10px;">'.sprintf(__('Do you like CleanTalk? %sPost your feedback here%s.', 'cleantalk'), '<a href="https://wordpress.org/support/plugin/cleantalk-spam-protect/reviews/#new-post" target="_blank">', '</a>').'</b><br />';
 					apbct_admin__badge__get_premium();
 					echo '<div id="gdpr_dialog" style="display: none; padding: 7px;">';
-						apbct_settings_show_gdpr_text('print');
+						apbct_gdpr__show_text('print');
 					echo '</div>';
 				echo '</div>';
 			}
@@ -1284,7 +1284,7 @@ function apbct_settings__sanitize__exclusions($exclusions, $regexp = false){
 	return implode( ',', $result );
 }
 
-function apbct_settings_show_gdpr_text($print = false){
+function apbct_gdpr__show_text($print = false){
 	
 	$out = wpautop('The notice requirements remain and are expanded. They must include the retention time for personal data, and contact information for data controller and data protection officer has to be provided.
 	Automated individual decision-making, including profiling (Article 22) is contestable, similarly to the Data Protection Directive (Article 15). Citizens have rights to question and fight significant decisions that affect them that have been made on a solely-algorithmic basis. Many media outlets have commented on the introduction of a "right to explanation" of algorithmic decisions, but legal scholars have since argued that the existence of such a right is highly unclear without judicial tests and is limited at best.
