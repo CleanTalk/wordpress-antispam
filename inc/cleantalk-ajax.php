@@ -414,7 +414,7 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 	foreach($_POST as $param => $value){
 		if(strpos($param, 'et_pb_contactform_submit') === 0){
 			$contact_form = 'contact_form_divi_theme';
-			$contact_form_additional = str_replace('et_pb_contactform_submit', '', $param);
+			$contact_form_additional = str_replace($param, '', $param);
 		}
 		if(strpos($param, 'avia_generated_form') === 0){
 			$contact_form = 'contact_form_enfold_theme';
