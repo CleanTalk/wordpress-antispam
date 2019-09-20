@@ -3,13 +3,21 @@
 
 namespace Cleantalk;
 
-
-class Arr{
+/**
+ * Class Arr
+ * Fluent Interface
+ * Allows to work with multi dimensional arrays
+ *
+ * @package Cleantalk
+ */
+class Arr
+{
 	
-	private $array = array();
-	private $found = array();
+	private $array  = array();
+	private $found  = array();
+	private $result = array();
 	
-	public function __construct( &$array )
+	public function __construct( $array )
 	{
 		$this->array = is_array( $array )
 			? $array
@@ -23,58 +31,28 @@ class Arr{
 	 * Check if Array has keys given keys
 	 * Save found keys in $this->found
 	 *
-	 * @param array $keys
-	 * @param bool  $regexp
-	 * @param array $array
+	 * @param array|string $keys
+	 * @param bool         $regexp
+	 * @param array        $array
 	 *
-	 * @return $this
+	 * @return Arr
 	 */
-	public function has_key( $keys = array(), $regexp = false, $array = array()  )
+	public function has_keys( $keys = array(), $regexp = false, $array = array() )
 	{
-		$array = $array
-			? $array
-			: $this->array;
+		$array = $array            ? $array : $this->array;
+		$keys  = is_array( $keys ) ? $keys  : explode( ',', $keys );
 		
-		$keys = !is_array( $keys )
-			? explode( ',', $keys )
-			: $keys;
-		
-		if( empty( $array ) )
+		if( empty( $array ) || empty( $keys ) )
 			return $this;
 		
-		foreach ( $array as $array_key => $value ){
-			
-			// Recursion
-			if( is_array( $value ) ){
-				 $this->found[$array_key] = $this->has_key( $keys, $regexp, $value );
-				 
-		    // Execution
-			}else{
-				foreach ( $keys as $key ){
-					if( stripos( $array_key, $key ) !== false || ($regexp && preg_match( '/' . $key . '/', $array_key) !== false) ){
-						$this->found[$array_key] = true;
-					}
-				}
-			}
-		}
+		$this->found = $this->search(
+			'key',
+			$array,
+			$keys,
+			$regexp,
+		);
 		
 		return $this;
-	}
-	
-	/**
-	 * Recursive
-	 * Check if Array has keys given keys
-	 * Save found keys in $this->found
-	 *
-	 * @param array $keys
-	 * @param bool  $regexp
-	 * @param array $array
-	 *
-	 * @return bool
-	 */
-	public function has_keys__boolean( $keys = array(), $regexp = false, $array = array() ){
-		$this->has_key( func_get_args() );
-		return (boolean) $this->found;
 	}
 	
 	/**
@@ -82,63 +60,115 @@ class Arr{
 	 * Check if Array has valuse given valuse
 	 * Save found keys in $this->found
 	 *
-	 * @param array $values
-	 * @param bool  $regexp
-	 * @param array $array
+	 * @param array|string $values
+	 * @param bool         $regexp
+	 * @param array        $array
 	 *
 	 * @return $this
 	 */
 	public function has_values( $values = array(), $regexp = false, $array = array()  )
 	{
-		$array = $array
-			? $array
-			: $this->array;
+		$array = $array              ? $array   : $this->array;
+		$keys  = is_array( $values ) ? $values  : explode( ',', $values );
 		
-		$values = !is_array( $values )
-			? explode( ',', $values )
-			: $values;
-		
-		if( empty( $array ) )
+		if( empty( $array ) || empty( $values ) )
 			return $this;
 		
-		foreach ( $array as $key => $array_value ){
+		$this->found = $this->search(
+			'value',
+			$array,
+			$keys,
+			$regexp,
+		);
+		
+		return $this;
+	}
+	
+	public function has_array( $searched = array(), $regexp = false, $array = array() ){
+		
+		$array = $array ? $array   : $this->array;
+		
+		if( empty( $array ) || empty( $searched ) )
+			return $this;
+		
+		$this->found = $this->search(
+			'array',
+			$array,
+			$searched,
+			$regexp,
+			);
+		
+		var_dump( $this->found );
+		
+		$this->found = $this->found === $searched ? $this->found : array();
+		
+		return $this;
+	}
+	/**
+	 * @param string $type
+	 * @param array  $array
+	 * @param array  $searched
+	 * @param bool   $regexp
+	 * @param array  $found
+	 *
+	 * @return array
+	 */
+	private function search( $type, $array = array(), $searched = array(), $regexp = false, $found = array() )
+	{
+		foreach ( $array as $key => $value ){
 			
 			// Recursion
-			if( is_array( $array_value ) ){
-				$this->found[$key] = $this->has_values( $values, $regexp, $array_value );
+			if( is_array( $value ) ){
+				$result = $this->search( $type, $value, $searched, $regexp, array() );
+				if($result)
+					$found[$key] = $result;
 				
-			// Execution
+				// Execution
 			}else{
-				foreach ( $values as $value ){
-					if( stripos( $array_value, $value ) !== false || ($regexp && preg_match( '/' . $value . '/', $array_value) !== false) ){
-						$this->found[$key] = true;
+				foreach ( $searched as $searched_key => $searched_val ){
+					switch ($type){
+						case 'key':
+							if( $key == $searched_val || ($regexp && preg_match( '/' . $searched_val . '/', $key) === 1) )
+								$found[$key] = true;
+							break;
+						case 'value':
+							if( stripos($value, $searched_val) !== false || ($regexp && preg_match( '/' . $searched_val . '/', $value) === 1) )
+								$found[$key] = true;
+							break;
+						case 'array':
+							if( stripos($key, $searched_key) !== false || ($regexp && preg_match( '/' . $searched_key . '/', $key) === 1) )
+								if( is_array( $value ) && is_array( $value )){
+									$result = $this->search( 'array', $value, $searched_key, $regexp, array() );
+									if( $result ){
+										$found[ $key ] = $result;
+									}
+								}else{
+									$found[$key] = $value;
+								}
+							break;
 					}
 				}
 			}
 		}
 		
-		return $this;
+		return $found;
+	}
+	
+	public function compare( $arr1, $arr2 ){
+		// $arr1 = is_array( $arr1 ) ? $arr1 : array();
+		// $arr2 = is_array( $arr2 ) ? $arr2 : array();
+		foreach ( $arr1 as $key1 => $val1 ){
+			if( $arr1 === $arr2 ){
+				if(is_array($arr1) && is_array($arr2)){
+					$result = $this->compare( $arr1, $arr2 );
+				}
+			}
+		}
 	}
 	
 	/**
 	 * Recursive
-	 * Check if Array has valuse given valuse
-	 * Save found keys in $this->found
-	 *
-	 * @param array $valuse
-	 * @param bool  $regexp
-	 * @param array $array
-	 *
-	 * @return bool
-	 */
-	public function has_values__bool( $valuse = array(), $regexp = false, $array = array() ){
-		$this->has_key( func_get_args() );
-		return (boolean) $this->found;
-	}
-	
-	/**
-	 * Recursive
-	 * Delete elements from array with found keys ( $this->>found )
+	 * Delete elements from array with found keys ( $this->found )
 	 *
 	 * @param array $array
 	 * @param array $found
@@ -147,29 +177,28 @@ class Arr{
 	 */
 	public function delete( $array = array(), $found =array() )
 	{
-		$array = $array
-			? $array
-			: $this->array;
+		$array = $array ? $array : $this->array;
+		$found = $found	? $found : $this->found;
 		
-		$found = $found
-			? $found
-			: $this->found;
-		
-		foreach($array as $key => &$value){
+		foreach($array as $key => $value){
 			
-			// Recursion
-			if( is_array( $value ) ){
-				if(isset( $found[ $key ] ) ){
-					$value = $this->delete( $array, $found );
-				}
-				
-			// Execution
-			}else{
-				if(array_key_exists($key, $found)){
+			if(array_key_exists($key, $found)){
+				if( is_array( $found[ $key ] ) ){
+					$array[ $key ] = $this->delete( $value, $found[ $key ] );
+					if( empty( $array[ $key ] ) )
+						unset( $array[ $key ] );
+				}else{
 					unset( $array[ $key ] );
 				}
 			}
+			
 		}
+		
+		$this->result = $array;
 		return $array;
+	}
+	
+	public function result(){
+		return (boolean) $this->found;
 	}
 }
