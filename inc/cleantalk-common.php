@@ -1,6 +1,6 @@
 <?php
 
-function apbct_array( &$array ){
+function apbct_array( $array ){
 	return new Cleantalk\Arr( $array );
 }
 
@@ -91,7 +91,7 @@ function apbct_base_call($params = array(), $reg_flag = false){
 	// Fileds exclusions
 	if( ! empty( $params['message'] ) ){
 		apbct_array( $params['message'] )
-			->has_key( $apbct->settings['exclusions__fields'], $apbct->settings['exclusions__fields__use_regexp'], )
+			->has_keys( $apbct->settings['exclusions__fields'], $apbct->settings['exclusions__fields__use_regexp'], )
 			->delete();
 	}
 	
@@ -193,14 +193,14 @@ function apbct_base_call($params = array(), $reg_flag = false){
 	
 }
 
-function apbct_base__check_exlusions($func = null){
+function apbct_exclusions_check($func = null){
 	
 	global $apbct, $cleantalk_executed;
 	
 	// Common exclusions
 	if(
-		apbct_check_ip_exclusions() ||
-		apbct_check_url_exclusions() ||
+		apbct_exclusions_check__ip() ||
+		apbct_exclusions_check__url() ||
 		apbct_is_user_role_in( $apbct->settings['exclusions__roles'] ) ||
 		$cleantalk_executed
 	)
@@ -211,19 +211,74 @@ function apbct_base__check_exlusions($func = null){
 		case 'ct_contact_form_validate_postdata':
 			if(
 				(defined( 'DOING_AJAX' ) && DOING_AJAX) ||
-				apbct_array( $_POST )->has_keys__boolean( 'members_search_submit' )
+				apbct_array( $_POST )->has_keys( 'members_search_submit' )->result()
 			)
 				return true;
 			break;
 		case 'ct_contact_form_validate':
 			if(
-				apbct_array( $_POST )->has_keys__boolean( 'members_search_submit' )
+				apbct_array( $_POST )->has_keys( 'members_search_submit' )->result()
 			)
 				return true;
 			break;
 		default:
 			return false;
 			break;
+	}
+	
+	return false;
+}
+
+/**
+ * Checks if reuqest URI is in exclusion list
+ *
+ * @return bool
+ */
+function apbct_exclusions_check__url() {
+	
+	global $apbct;
+	
+	if ( ! empty( $apbct->settings['exclusions__urls'] ) ) {
+		
+		$exclusions = explode( ',', $apbct->settings['exclusions__urls'] );
+		
+		// Fix for AJAX forms
+		$haystack = $_SERVER['REQUEST_URI'] == '/wp-admin/admin-ajax.php' && ! empty( $_SERVER['HTTP_REFERER'] )
+			? $_SERVER['HTTP_REFERER']
+			: $_SERVER['REQUEST_URI'];
+		
+		foreach ( $exclusions as $exclusion ) {
+			if ( stripos( $haystack, $exclusion ) !== false ) {
+				return true;
+			} elseif ( $apbct->settings['exclusions__urls__use_regexp'] ) {
+				if ( preg_match( '/' . $exclusion . '/', $haystack ) !== false ) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+}
+/**
+ * @deprecated 5.128 Using IP white-lists instead
+ * @deprecated since 18.09.2019
+ * Checks if sender_ip is in exclusion list
+ *
+ * @return bool
+ */
+function apbct_exclusions_check__ip(){
+	
+	global $cleantalk_ip_exclusions;
+	
+	if(CleantalkHelper::ip__is_cleantalks($_SERVER['REMOTE_ADDR']))
+		return true;
+	
+	if (!empty($cleantalk_ip_exclusions) && is_array($cleantalk_ip_exclusions)){
+		foreach($cleantalk_ip_exclusions as $exclusion){
+			if(stripos($_SERVER['REMOTE_ADDR'], $exclusion) !== false){
+				return true;
+			}
+		}
 	}
 	
 	return false;
@@ -669,10 +724,8 @@ function ct_get_fields_any($arr, $message=array(), $email = null, $nickname = ar
         'edd_action', // Easy Digital Downloads
     );
 	
-   	foreach($skip_params as $value){
-   		if(@array_key_exists($value,$_GET)||@array_key_exists($value,$_POST))
-   			$contact = false;
-   	} unset($value);
+   	if( apbct_array( array( $_POST, $_GET ) )->has_keys( $skip_params )->result() )
+        $contact = false;
 	
 	if(count($arr)){
 		
@@ -834,61 +887,6 @@ function ct_get_fields_any_postdata($arr, $message=array()){
 		}
 	}
 	return $message;
-}
-
-/**
- * Checks if reuqest URI is in exclusion list
- *
- * @return bool
- */
-function apbct_check_url_exclusions() {
-	
-	global $apbct;
-	
-	if ( ! empty( $apbct->settings['exclusions__urls'] ) ) {
-		
-		$exclusions = explode( ',', $apbct->settings['exclusions__urls'] );
-		
-		// Fix for AJAX forms
-		$haystack = $_SERVER['REQUEST_URI'] == '/wp-admin/admin-ajax.php' && ! empty( $_SERVER['HTTP_REFERER'] )
-			? $_SERVER['HTTP_REFERER']
-			: $_SERVER['REQUEST_URI'];
-		
-		foreach ( $exclusions as $exclusion ) {
-			if ( stripos( $haystack, $exclusion ) !== false ) {
-				return true;
-			} elseif ( $apbct->settings['exclusions__urls__use_regexp'] ) {
-				if ( preg_match( '/' . $exclusion . '/', $haystack ) !== false ) {
-					return true;
-				}
-			}
-		}
-		return false;
-	}
-}
-/**
- * @deprecated 5.128 Using IP white-lists instead
- * @deprecated since 18.09.2019
- * Checks if sender_ip is in exclusion list
- *
- * @return bool
- */
-function apbct_check_ip_exclusions(){
-	
-	global $cleantalk_ip_exclusions;
-	
-	if(CleantalkHelper::ip__is_cleantalks($_SERVER['REMOTE_ADDR']))
-		return true;
-	
-	if (!empty($cleantalk_ip_exclusions) && is_array($cleantalk_ip_exclusions)){
-		foreach($cleantalk_ip_exclusions as $exclusion){
-			if(stripos($_SERVER['REMOTE_ADDR'], $exclusion) !== false){
-				return true; 
-			}
-		}
-	}
-	
-	return false;
 }
 
 /**

@@ -579,9 +579,9 @@ function apbct_settings__error__output($return = false){
 			'api' => __('Error occured while excuting API call. Error: ', 'security-malware-firewall'),
 			
 			// Validating settings
-			'settings_validate' => 'Validate Settings: ',
-			'exclusions_urls' => 'URL Exclusions ',
-			'exclusions_fields' => 'Field Exclusions ',
+			'settings_validate' => 'Validate Settings',
+			'exclusions_urls' => 'URL Exclusions',
+			'exclusions_fields' => 'Field Exclusions',
 			
 			// Unknown
 			'unknown' => __('Unknown error. Error: ', 'security-malware-firewall'),
@@ -600,7 +600,7 @@ function apbct_settings__error__output($return = false){
 						if(isset($sub_error['error_time']))
 							$errors_out[$sub_type] .= date('Y-m-d H:i:s', $sub_error['error_time']) . ': ';
 						$errors_out[$sub_type] .= (isset($error_texts[$type])     ? $error_texts[$type]     : ucfirst($type)) . ': ';
-						$errors_out[$sub_type] .= (isset($error_texts[$sub_type]) ? $error_texts[$sub_type] : $error_texts['unknown']) . $sub_error['error'];
+						$errors_out[$sub_type] .= (isset($error_texts[$sub_type]) ? $error_texts[$sub_type] : $error_texts['unknown']) . ' ' . $sub_error['error'];
 					}
 					continue;
 				}
@@ -1123,18 +1123,18 @@ function apbct_settings__validate($settings) {
 	// Validate Exclusions
 	
 	// URLs
-	$settings['exclusions__urls']  = apbct_settings__sanitize__exclusions($settings['exclusions__urls'],   $settings['exclusions__urls__use_regexp']);
-	$settings['exclusions__urls'] === false
-		? $apbct->error_add( 'exclusions_urls', 'is not valid: "' . $settings['exclusions__urls'] . '""', 'settings_validate' )
+	$result  = apbct_settings__sanitize__exclusions($settings['exclusions__urls'],   $settings['exclusions__urls__use_regexp']);
+	$result === false
+		? $apbct->error_add( 'exclusions_urls', 'is not valid: "' . $settings['exclusions__urls'] . '"', 'settings_validate' )
 		: $apbct->error_delete( 'exclusions_urls', true, 'settings_validate' );
-	$settings['exclusions__urls'] = (string)$settings['exclusions__urls'];
+	$settings['exclusions__urls'] = '';
 	
 	// Fields
-	$settings['exclusions__urls']  = apbct_settings__sanitize__exclusions($settings['exclusions__fields'],   $settings['exclusions__fields__use_regexp']);
-	$settings['exclusions__fields'] === false
-		? $apbct->error_add( 'exclusions_urls', 'is not valid: "' . $settings['exclusions__fields'] . '""', 'settings_validate' )
-		: $apbct->error_delete( 'exclusions_urls', true, 'settings_validate' );
-	$settings['exclusions__fields'] = (string)$settings['exclusions__fields'];
+	$result  = apbct_settings__sanitize__exclusions($settings['exclusions__fields'],   $settings['exclusions__fields__use_regexp']);
+	$result === false
+		? $apbct->error_add( 'exclusions_fields', 'is not valid: "' . $settings['exclusions__fields'] . '"', 'settings_validate' )
+		: $apbct->error_delete( 'exclusions_fields', true, 'settings_validate' );
+	$settings['exclusions__fields'] = '';
 	
 	// Drop debug data
 	if (isset($_POST['submit']) && $_POST['submit'] == 'debug_drop'){

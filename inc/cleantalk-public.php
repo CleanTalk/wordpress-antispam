@@ -2098,8 +2098,8 @@ function apbct_form__contactForm7__testSpam($param) {
 		$param == false && WPCF7_VERSION < '3.0.0'  ||
 		$param === true && WPCF7_VERSION >= '3.0.0' ||
 		$apbct->settings['protect_logged_in'] != 1 && is_user_logged_in() || // Skip processing for logged in users.
-		apbct_check_url_exclusions() ||
-		apbct_check_ip_exclusions() ||
+		apbct_exclusions_check__url() ||
+		apbct_exclusions_check__ip() ||
 		isset($apbct->cf7_checked)
 	){
 		return $param;
@@ -2217,7 +2217,7 @@ function apbct_form__ninjaForms__testSpam() {
 	if(
 			$apbct->settings['contact_forms_test'] == 0
 		|| ($apbct->settings['protect_logged_in'] != 1 && is_user_logged_in()) // Skip processing for logged in users.
-			|| apbct_check_url_exclusions()
+			|| apbct_exclusions_check__url()
 	){
 		return;
 	}
@@ -2782,7 +2782,7 @@ function ct_contact_form_validate() {
 	global $pagenow,$cleantalk_executed ,$apbct, $ct_checkjs_frm;
 	
 	// Exclusios common function
-	if ( apbct_base__check_exlusions(__FUNCTION__) )
+	if ( apbct_exclusions_check(__FUNCTION__) )
 		return null;
 	
     if (@sizeof($_POST)==0 ||
@@ -3008,7 +3008,7 @@ function ct_contact_form_validate_postdata() {
 	global $apbct, $pagenow,$cleantalk_executed;
 	
 	// Exclusios common function
-	if ( apbct_base__check_exlusions(__FUNCTION__) )
+	if ( apbct_exclusions_check(__FUNCTION__) )
 		return null;
 	
     if (@sizeof($_POST)==0 ||
