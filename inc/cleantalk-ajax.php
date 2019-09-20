@@ -145,8 +145,6 @@ $cleantalk_hooked_actions[] = 'fue_wc_set_cart_email';  // Don't check email via
 
 function ct_validate_email_ajaxlogin($email=null, $is_ajax=true){
 	
-	require_once(CLEANTALK_PLUGIN_DIR . 'cleantalk-public.php');
-	
 	$email = is_null( $email ) ? $email : $_POST['email'];
 	$email = sanitize_email($email);
 	$is_good = !filter_var($email, FILTER_VALIDATE_EMAIL) || email_exists($email) ? false : true;
@@ -199,8 +197,6 @@ function ct_validate_email_ajaxlogin($email=null, $is_ajax=true){
 
 function ct_user_register_ajaxlogin($user_id)
 {
-	require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public.php');
-	
 	if(class_exists('AjaxLogin')&&isset($_POST['action'])&&$_POST['action']=='register_submit')
 	{
 	    
@@ -251,9 +247,7 @@ function ct_mc4wp_ajax_hook( array $errors )
 }
 
 function ct_ajax_hook($message_obj = false, $additional = false)
-{	
-	require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public.php');
-	
+{
 	global $apbct, $current_user;
 	
 	$message_obj = (array)$message_obj;
@@ -294,7 +288,7 @@ function ct_ajax_hook($message_obj = false, $additional = false)
         !apbct_is_user_enable($apbct->user) || // User is admin, editor, author
 	    // (function_exists('get_current_user_id') && get_current_user_id() != 0) || // Check with default wp_* function if it's admin
 	    ($apbct->settings['protect_logged_in'] && ($apbct->user instanceof WP_User) && $apbct->user->ID !== 0 ) || // Logged in user
-        apbct_check_url_exclusions() || // url exclusions
+        apbct_exclusions_check__url() || // url exclusions
         (isset($_POST['action']) && in_array($_POST['action'], $skip_post)) || // Special params
 	    (isset($_GET['action'])  && in_array($_GET['action'], $skip_post)) ||  // Special params
 		isset($_POST['quform_submit']) || //QForms multi-paged form skip
