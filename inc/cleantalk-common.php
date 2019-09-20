@@ -91,7 +91,7 @@ function apbct_base_call($params = array(), $reg_flag = false){
 	// Fileds exclusions
 	if( ! empty( $params['message'] ) ){
 		apbct_array( $params['message'] )
-			->has_keys( $apbct->settings['exclusions__fields'], $apbct->settings['exclusions__fields__use_regexp'], )
+			->get_keys( $apbct->settings['exclusions__fields'], $apbct->settings['exclusions__fields__use_regexp'], )
 			->delete();
 	}
 	
@@ -211,13 +211,13 @@ function apbct_exclusions_check($func = null){
 		case 'ct_contact_form_validate_postdata':
 			if(
 				(defined( 'DOING_AJAX' ) && DOING_AJAX) ||
-				apbct_array( $_POST )->has_keys( 'members_search_submit' )->result()
+				apbct_array( $_POST )->get_keys( 'members_search_submit' )->result()
 			)
 				return true;
 			break;
 		case 'ct_contact_form_validate':
 			if(
-				apbct_array( $_POST )->has_keys( 'members_search_submit' )->result()
+				apbct_array( $_POST )->get_keys( 'members_search_submit' )->result()
 			)
 				return true;
 			break;
@@ -724,7 +724,7 @@ function ct_get_fields_any($arr, $message=array(), $email = null, $nickname = ar
         'edd_action', // Easy Digital Downloads
     );
 	
-   	if( apbct_array( array( $_POST, $_GET ) )->has_keys( $skip_params )->result() )
+   	if( apbct_array( array( $_POST, $_GET ) )->get_keys( $skip_params )->result() )
         $contact = false;
 	
 	if(count($arr)){
@@ -897,6 +897,7 @@ function ct_get_fields_any_postdata($arr, $message=array()){
  * @return bool
  */
 function apbct_is_regexp($regexp){
+	$regexp = preg_match( '/\/.*\//', $regexp ) === 1 ? $regexp : '/' . $regexp . '/'; // Adding slashes
 	return @preg_match('/' . $regexp . '/', null) !== false;
 }
 

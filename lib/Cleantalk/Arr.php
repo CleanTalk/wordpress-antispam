@@ -37,7 +37,7 @@ class Arr
 	 *
 	 * @return Arr
 	 */
-	public function has_keys( $keys = array(), $regexp = false, $array = array() )
+	public function get_keys( $keys = array(), $regexp = false, $array = array() )
 	{
 		$array = $array            ? $array : $this->array;
 		$keys  = is_array( $keys ) ? $keys  : explode( ',', $keys );
@@ -45,12 +45,14 @@ class Arr
 		if( empty( $array ) || empty( $keys ) )
 			return $this;
 		
-		$this->found = $this->search(
-			'key',
-			$array,
-			$keys,
-			$regexp,
-		);
+		$this->found = $keys === array('all')
+			? $this->array
+			: $this->search(
+				'key',
+				$array,
+				$keys,
+				$regexp,
+			);
 		
 		return $this;
 	}
@@ -66,7 +68,7 @@ class Arr
 	 *
 	 * @return $this
 	 */
-	public function has_values( $values = array(), $regexp = false, $array = array()  )
+	public function get_values( $values = array(), $regexp = false, $array = array()  )
 	{
 		$array = $array              ? $array   : $this->array;
 		$keys  = is_array( $values ) ? $values  : explode( ',', $values );
@@ -74,36 +76,79 @@ class Arr
 		if( empty( $array ) || empty( $values ) )
 			return $this;
 		
-		$this->found = $this->search(
-			'value',
-			$array,
-			$keys,
-			$regexp,
-		);
+		$this->found = $values === array('all')
+			? $this->array
+			: $this->search(
+				'value',
+				$array,
+				$keys,
+				$regexp,
+			);
 		
 		return $this;
 	}
 	
-	public function has_array( $searched = array(), $regexp = false, $array = array() ){
+	public function get_array( $searched = array(), $regexp = false, $array = array() ){
 		
 		$array = $array ? $array   : $this->array;
+		
 		
 		if( empty( $array ) || empty( $searched ) )
 			return $this;
 		
-		$this->found = $this->search(
-			'array',
-			$array,
-			$searched,
-			$regexp,
+		$this->found = $searched === array('all')
+			? $this->array
+			: $this->search(
+				'array',
+				$array,
+				$searched,
+				$regexp,
 			);
-		
-		var_dump( $this->found );
 		
 		$this->found = $this->found === $searched ? $this->found : array();
 		
 		return $this;
 	}
+	
+	/**
+	 * Recursive
+	 * Check if array contains wanted data type
+	 *
+	 * @param string $type
+	 * @param array  $array
+	 * @param array  $found
+	 *
+	 * @return bool|void
+	 */
+	public function is( $type, $array = array(), $found = array() )
+	{
+		$array = $array ? $array : $this->array;
+		$found = $found ? $found : $this->found;
+		
+		foreach ( $array as $key => $value ){
+			
+			if( array_key_exists( $key, $found ) ){
+				if( is_array( $found[ $key ] ) ){
+					if( ! $this->is( $type, $value, $found[ $key ] ) ){
+						return false;
+					}
+				}else{
+					switch ( $type ){
+						case 'regexp':
+							$value = preg_match( '/\/.*\//', $value ) === 1 ? $value : '/' . $value . '/';
+							if( @preg_match( $value, null ) === false ){
+								return false;
+							}
+							break;
+					}
+				}
+			}
+			
+		}
+		
+		return true;
+	}
+	
 	/**
 	 * @param string $type
 	 * @param array  $array
@@ -169,13 +214,15 @@ class Arr
 	/**
 	 * Recursive
 	 * Delete elements from array with found keys ( $this->found )
+	 * If $searched param is differ from 'arr_special_param'
 	 *
+	 * @param mixed $searched
 	 * @param array $array
 	 * @param array $found
 	 *
 	 * @return array
 	 */
-	public function delete( $array = array(), $found =array() )
+	public function delete( $searched = 'arr_special_param', $array = array(), $found =array() )
 	{
 		$array = $array ? $array : $this->array;
 		$found = $found	? $found : $this->found;
@@ -184,11 +231,13 @@ class Arr
 			
 			if(array_key_exists($key, $found)){
 				if( is_array( $found[ $key ] ) ){
-					$array[ $key ] = $this->delete( $value, $found[ $key ] );
+					$array[ $key ] = $this->delete( $searched, $value, $found[ $key ] );
 					if( empty( $array[ $key ] ) )
 						unset( $array[ $key ] );
 				}else{
-					unset( $array[ $key ] );
+					if( $searched === 'arr_special_param' || $searched === $value ){
+							unset( $array[ $key ] );
+					}
 				}
 			}
 			
