@@ -332,12 +332,12 @@ function apbct_update_to_5_127_0(){
 				$settings['use_static_js_key'] = $settings['use_static_js_key'] === 0
 					? - 1
 					: $settings['use_static_js_key'];
-				update_option( 'cleantalk_data' );
+				update_option( 'cleantalk_settings', $settings );
 				
 				$data = get_option( 'cleantalk_data' );
 				if( isset( $data['white_label_data']['is_key_recieved'] ) ){
 					unset( $data['white_label_data']['is_key_recieved'] );
-					update_option( 'cleantalk_data' );
+					update_option( 'cleantalk_data', $data );
 				}
 			}
 			switch_to_blog( $initial_blog );
