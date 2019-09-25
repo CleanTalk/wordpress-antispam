@@ -12,21 +12,33 @@
  */
 
 /**
- * @property mixed        settings
+ * COMMON
+ *
+ * @property string       api_key
+ *
+ * STAND ALONE
+ *
+ * @property ArrayObject  settings
+ * @property ArrayObject  data
+ *
  * @property mixed        moderate_ip
  * @property mixed|string plugin_version
  * @property mixed|string db_prefix
- * @property bool|mixed  white_label
- * @property string      settings_link
- * @property mixed       data
- * @property int         key_is_ok
- * @property string      logo__small__colored
- * @property string      logo__small
- * @property string      logo
- * @property string      plugin_name
- * @property string      base_name
- * @property array|mixed errors
- * @property ArrayObject network_data
+ * @property string       settings_link
+ * @property int          key_is_ok
+ * @property string       logo__small__colored
+ * @property string       logo__small
+ * @property string       logo
+ * @property string       plugin_name
+ * @property string       base_name
+ * @property array|mixed  errors
+ *
+ * NETWORK
+ * @property ArrayObject  network_data
+ * @property ArrayObject  network_settings
+ * @property mixed        allow_custom_key
+ * @property bool         white_label
+ * @property mixed        moderate
  */
 class CleantalkState
 {
@@ -38,7 +50,6 @@ class CleantalkState
 	
 		'spam_firewall'       => 1,
         'apikey'              => '',
-		'custom_key'          => 0,
         'autoPubRevelantMess' => 0,
 		
 		/* Forms for protection */
@@ -165,22 +176,28 @@ class CleantalkState
 			'sfw_enabled' => false,
 		),
 		
-		// White label
-		'white_label_data' => array(
-			'is_key_recieved' => false,
-		),
-		
 		// Misc
 		'feedback_request' => '',
 		'key_is_ok'        => 0,
 		'salt'             => '',
 	);
 	
-	public $def_network_data = array(
+	public $def_network_settings = array(
+		
+		// Key
+		'apikey'             => '',
 		'allow_custom_key'   => 0,
+		
+		// White label settings
+		'white_label'              => 0,
+		'white_label__hoster_key'  => '',
+		'white_label__plugin_name' => 'Anti-Spam by CleanTalk',
+	);
+	
+	public $def_network_data = array(
 		'key_is_ok'          => 0,
-		'apikey'           => '',
 		'user_token'         => '',
+		'service_id'         => 0,
 		'service_id'         => 0,
 	);
 	
@@ -247,15 +264,19 @@ class CleantalkState
 	 * @param array  $options       Array of strings. Types of settings you want to get.
 	 * @param bool   $wpms          Is multisite?
 	 */
-	public function __construct($option_prefix, $options = array('settings'), $wpms = false)
+	public function __construct($option_prefix, $options = array('settings'))
 	{
 		$this->option_prefix = $option_prefix;
 		
-		if($wpms){
-			$option = get_site_option($this->option_prefix.'_network_data');
-			$option = is_array($option) ? $option : $this->def_network_data;
-			$this->network_data = new ArrayObject($option);
-		}
+		// Network settings
+		$option = get_site_option($this->option_prefix.'_network_settings');
+		$option = is_array($option) ? $option : $this->def_network_settings;
+		$this->network_settings = new ArrayObject($option);
+		
+		// Network data
+		$option = get_site_option($this->option_prefix.'_network_data');
+		$option = is_array($option) ? $option : $this->def_network_data;
+		$this->network_data = new ArrayObject($option);
 		
 		foreach($options as $option_name){
 			
@@ -354,6 +375,14 @@ class CleantalkState
 	public function saveNetworkData()
 	{
 		update_site_option($this->option_prefix.'_network_data', $this->network_data);
+	}
+	
+	/**
+	 * Save PREFIX_network_data to DB.
+	 */
+	public function saveNetworkSettings()
+	{
+		update_site_option($this->option_prefix.'_network_settings', $this->network_settings);
 	}
 	
 	/**
@@ -480,17 +509,12 @@ class CleantalkState
 		// First check in storage
         if (array_key_exists($name, $this->storage)){
             return $this->storage[$name];
-			
+	        
 		// Then in data
         }elseif(array_key_exists($name, $this->storage['data'])){
 			$this->$name = $this->storage['data'][$name];
 			return $this->storage['data'][$name];
-		
-		// Maybe it's apikey?
-		}elseif($name == 'api_key'){
-			$this->$name = $this->storage['settings']['apikey'];
-			return $this->storage['settings']['apikey'];
-		
+			
 		// Otherwise try to get it from db settings table
 		// it will be arrayObject || scalar || null
 		}else{

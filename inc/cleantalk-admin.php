@@ -140,20 +140,16 @@ function apbct_admin__init(){
 	}
 	
 	// Getting key like hoster. Only once!
-	if($apbct->white_label && empty($apbct->data['white_label_data']['is_key_recieved']) && !is_network_admin()){
+	if(!is_main_site() && $apbct->white_label && empty($apbct->api_key)){
 		
 		$_POST['submit'] = 'get_key_auto';
-		
 		$settings = apbct_settings__validate(array());
-		
 		unset($_POST['submit']);
-		$apbct->data['white_label_data']['is_key_recieved'] = true;
-		$apbct->saveData();
 		
 		if(!empty($settings['apikey'])){
 			$apbct->settings['apikey'] = $settings['apikey'];
 			$apbct->api_key = $settings['apikey'];
-			$apbct->saveSettings();			
+			$apbct->saveSettings();
 		}
 		
 	}

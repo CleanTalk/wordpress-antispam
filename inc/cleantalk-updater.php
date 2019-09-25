@@ -298,16 +298,60 @@ function apbct_update_to_5_127_0(){
 }
 
 function apbct_update_to_5_128_0(){
-	global $apbct, $cleantalk_url_exclusions, $cleantalk_key_exclusions;
+	
+	global $apbct;
+	
 	// Move exclusions from variable to settins
+	global $cleantalk_url_exclusions, $cleantalk_key_exclusions;
 	// URLs
 	if(!empty($cleantalk_url_exclusions) && is_array($cleantalk_url_exclusions)){
 		$apbct->settings['exclusions__urls'] = implode(',', $cleantalk_url_exclusions);
+		$initial_blog  = get_current_blog_id();
+		switch_to_blog(1);
 		$apbct->saveSettings();
+		switch_to_blog($initial_blog);
 	}
 	// Fields
 	if(!empty($cleantalk_key_exclusions) && is_array($cleantalk_key_exclusions)){
 		$apbct->settings['exclusions__fields'] = implode(',', $cleantalk_key_exclusions);
+		$initial_blog  = get_current_blog_id();
+		switch_to_blog(1);
 		$apbct->saveSettings();
+		switch_to_blog($initial_blog);
 	}
+	
+	// Deleting legacy
+	if(isset($apbct->data['testing_failed'])){
+		unset($apbct->data['testing_failed']);
+		$apbct->saveData();
+	}
+	
+	if(is_multisite()){
+		
+		// Whitelabel
+		// Reset "api_key_is_recieved" flag
+		global $wpdb;
+		$initial_blog  = get_current_blog_id();
+		$blogs = array_keys($wpdb->get_results('SELECT blog_id FROM '. $wpdb->blogs, OBJECT_K));
+		foreach ($blogs as $blog) {
+			switch_to_blog($blog);
+			$data = get_option('cleantalk_data');
+			if(isset($data['white_label_data']['is_key_recieved'])){
+				unset($data['white_label_data']['is_key_recieved']);
+				update_option('cleantalk_data');
+			}
+		}
+		switch_to_blog($initial_blog);
+		
+		if(defined('APBCT_WHITELABEL')){
+			$apbct->network_settings['whitel_label']              = defined('APBCT_WHITELABEL') && APBCT_WHITELABEL == true ? 1                     : 0;
+			$apbct->network_settings['whitel_label__hoster_key']  = defined('APBCT_HOSTER_API_KEY')                         ? APBCT_HOSTER_API_KEY  : '';
+			$apbct->network_settings['whitel_label__plugin_name'] = defined('APBCT_WHITELABEL_NAME')                        ? APBCT_WHITELABEL_NAME : APBCT_NAME;
+		}elseif(defined('CLEANTALK_ACCESS_KEY')){
+			$apbct->network_settings['allow_custom_key'] = 0;
+			$apbct->network_settings['apikey'] = CLEANTALK_ACCESS_KEY;
+		}
+		$apbct->saveNetworkSettings();
+	}
+	
 }

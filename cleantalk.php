@@ -74,21 +74,23 @@ if(!defined('CLEANTALK_PLUGIN_DIR')){
 	
 	// Global ArrayObject with settings and other global varables
 	global $apbct;
-	$apbct = new CleantalkState('cleantalk', array('settings', 'data', 'debug', 'errors', 'remote_calls', 'stats'), is_multisite());
+	$apbct = new CleantalkState('cleantalk', array('settings', 'data', 'debug', 'errors', 'remote_calls', 'stats'));
 	
-	$apbct->white_label = defined('APBCT_WHITELABEL') && APBCT_WHITELABEL == true ? true : false;
-	
-	// Customize CleantalkState
-	// Account status
 	$apbct->base_name = 'cleantalk-spam-protect/cleantalk.php';
-	$apbct->plugin_name = defined('APBCT_WHITELABEL_NAME') ? APBCT_WHITELABEL_NAME : APBCT_NAME; // For test purposes
 	
 	$apbct->logo                 = plugin_dir_url(__FILE__) . 'inc/images/logo.png';
 	$apbct->logo__small          = plugin_dir_url(__FILE__) . 'inc/images/logo_small.png';
 	$apbct->logo__small__colored = plugin_dir_url(__FILE__) . 'inc/images/logo_color.png';
 	
-	$apbct->key_is_ok          = !empty($apbct->data['key_is_ok']) ? $apbct->data['key_is_ok'] : 0;
-	$apbct->key_is_ok          = isset($apbct->data['testing_failed']) && $apbct->data['testing_failed'] == 0 ? 1 : $apbct->key_is_ok;
+	// Customize CleantalkState
+	// Account status
+	
+	$apbct->white_label      = $apbct->network_settings['white_label'];
+	$apbct->allow_custom_key = $apbct->network_settings['allow_custom_key'];
+	$apbct->plugin_name      = $apbct->network_settings['white_label__plugin_name'];
+	$apbct->api_key          = $apbct->allow_custom_key || $apbct->white_label ? $apbct->settings['apikey'] : $apbct->network_settings['apikey'];
+	$apbct->key_is_ok        = $apbct->allow_custom_key || $apbct->white_label ? $apbct->data['key_is_ok']  : $apbct->network_data['key_is_ok'];
+	$apbct->moderate         = $apbct->allow_custom_key || $apbct->white_label ? $apbct->data['moderate']   : $apbct->network_data['moderate'];
 	
 	$apbct->data['user_counter']['since']       = isset($apbct->data['user_counter']['since'])       ? $apbct->data['user_counter']['since'] : date('d M');
 	$apbct->data['connection_reports']['since'] = isset($apbct->data['connection_reports']['since']) ? $apbct->data['user_counter']['since'] : date('d M');
@@ -97,7 +99,6 @@ if(!defined('CLEANTALK_PLUGIN_DIR')){
 	
 	if(!$apbct->white_label){
 		require_once( CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-widget.php');
-		$apbct->settings['apikey'] = defined('CLEANTALK_ACCESS_KEY') ? CLEANTALK_ACCESS_KEY : $apbct->settings['apikey'];
 	}
 	
 	// Passing JS key to frontend
@@ -106,7 +107,7 @@ if(!defined('CLEANTALK_PLUGIN_DIR')){
 	
 	// Database prefix
 	global $wpdb;
-	$apbct->db_prefix = !$apbct->white_label && defined('CLEANTALK_ACCESS_KEY') ? $wpdb->base_prefix : $wpdb->prefix;
+	$apbct->db_prefix = $apbct->allow_custom_key || $apbct->white_label ? $wpdb->prefix : $wpdb->base_prefix;
 	// Database constants
 	define('APBCT_TBL_FIREWALL_DATA', $apbct->db_prefix . 'cleantalk_sfw');      // Table with firewall data.
 	define('APBCT_TBL_FIREWALL_LOG',  $apbct->db_prefix . 'cleantalk_sfw_logs'); // Table with firewall logs.
@@ -254,8 +255,8 @@ if(!defined('CLEANTALK_PLUGIN_DIR')){
 			add_action('admin_enqueue_scripts', 'apbct_admin__enqueue_scripts');
 			
 			add_action('admin_init',            'apbct_admin__init', 1);
-			add_action('admin_menu',            'apbct_settings__add_page');
-			add_action('network_admin_menu',    'apbct_settings__add_page');
+			add_action('admin_menu',            'apbct_settings_add_page');
+			add_action('network_admin_menu',    'apbct_settings_add_page');
 			add_action('admin_notices',         'apbct_admin__notice_message');
 			add_action('network_admin_notices', 'apbct_admin__notice_message');
 			
@@ -730,9 +731,11 @@ function apbct_deactivation( $network ) {
 			apbct_deactivation__delete_blog_tables();
 			delete_option('cleantalk_cron'); // Deleting cron entries
 			
-			if($apbct->settings['complete_deactivation'])
+			if($apbct->settings['complete_deactivation']){
 				apbct_deactivation__delete_all_options();
-				
+				apbct_deactivation__delete_all_options__in_network();
+			}
+			
 		}
 		switch_to_blog($initial_blog);
 		
@@ -769,6 +772,14 @@ function apbct_deactivation__delete_all_options(){
 	delete_option('cleantalk_server');
 	delete_option('cleantalk_stats');
 	delete_option('cleantalk_timelabel_reg');
+}
+
+/**
+ * Delete all cleantalk_* entries from _sitemeta table
+ */
+function apbct_deactivation__delete_all_options__in_network(){
+	delete_site_option('cleantalk_network_settings');
+	delete_site_option('cleantalk_network_data');
 }
 
 function apbct_deactivation__delete_common_tables() {

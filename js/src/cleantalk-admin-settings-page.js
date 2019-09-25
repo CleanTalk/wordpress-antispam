@@ -1,4 +1,12 @@
 jQuery(document).ready(function(){
+
+    // Show/Hide access key
+    jQuery('#apbct_showApiKey').on('click', function(){
+        jQuery('.apbct_setting---apikey').val(jQuery('.apbct_setting---apikey').attr('key'));
+        jQuery('.apbct_setting---apikey+div').show();
+        jQuery(this).fadeOut(300);
+    });
+
 	var d = new Date();
 	jQuery('#ct_admin_timezone').val(d.getTimezoneOffset()/60*(-1));
 	
@@ -19,43 +27,58 @@ jQuery(document).ready(function(){
 	
 });
 
-function apbct_show_hide_elem(elem){
-	elem = jQuery(elem);
-	var label = elem.next('label') || elem.prev('label') || null;
-	if(elem.is(":visible")){
-		elem.hide();
-		if(label) label.hide();
-	}else{
-		elem.show();
-		if(label) label.show();
-	}
+function apbct_get_elems(elems){
+    elems = elems.split(',');
+    for( var i=0, len = elems.length, tmp; i < len; i++){
+        tmp = jQuery('#'+elems[i]);
+        elems[i] = tmp.length === 0 ? jQuery('.'+elems[i]) : tmp;
+    }
+    return elems;
+
 }
 
-// Settings dependences
-function apbctSettingsDependencies(settingsIDs){
-	console.log(settingsIDs);
-	if(typeof settingsIDs === 'string'){
-		tmp = [];
-		tmp.push(settingsIDs);
-		settingsIDs = tmp;
-	}
-	console.log(settingsIDs);
-	settingsIDs.forEach(function(settingID, i, arr){
-		console.log(settingID);
-		var elem = document.getElementById('apbct_setting_'+settingID) || null;
-		console.log(elem);
-		if(elem){
-			apbctSwitchDisabledAttr(elem);
-		}else{
-			apbctSwitchDisabledAttr(document.getElementById('apbct_setting_'+settingID+'_yes'));
-			apbctSwitchDisabledAttr(document.getElementById('apbct_setting_'+settingID+'_no'));
-		}
-	});
+function apbct_show_hide_elem(elems){
+	elems = apbct_get_elems(elems);
+    for( var i=0, len = elems.length; i < len; i++){
+        elems[i].each(function (i, elem) {
+            elem = jQuery(elem);
+            var label = elem.next('label') || elem.prev('label') || null;
+            if (elem.is(":visible")) {
+                elem.hide();
+                if (label) label.hide();
+            } else {
+                elem.show();
+                if (label) label.show();
+            }
+        });
+    }
 }
 
-function apbctSwitchDisabledAttr(elem){
-	if(elem.getAttribute('disabled') === null)
-		elem.setAttribute('disabled', 'disabled');
-	else
-		elem.removeAttribute('disabled');
+/**
+ * Settings dependences
+ *
+ * @param elems CSS selector
+ */
+function apbctSettingsDependencies(elems){
+    elems = apbct_get_elems(elems);
+    for( var i=0, len = elems.length; i < len; i++){
+        elems[i].each(function (i, elem) {
+            apbct_toggleAtrribute(jQuery(elem), 'disabled');
+        });
+    }
+}
+
+/**
+ * Toggle attribute 'disabled' for elements
+ *
+ * @param elem
+ * @param attribute
+ * @param value
+ */
+function apbct_toggleAtrribute(elem, attribute, value){
+    value = value || attribute;
+    if(typeof elem.attr(attribute) === 'undefined')
+        elem.attr(attribute, value);
+    else
+        elem.removeAttr(attribute);
 }
