@@ -51,7 +51,7 @@ class Arr
 				'key',
 				$array,
 				$keys,
-				$regexp,
+				$regexp
 			);
 		
 		return $this;
@@ -82,7 +82,7 @@ class Arr
 				'value',
 				$array,
 				$keys,
-				$regexp,
+				$regexp
 			);
 		
 		return $this;
@@ -102,7 +102,7 @@ class Arr
 				'array',
 				$array,
 				$searched,
-				$regexp,
+				$regexp
 			);
 		
 		$this->found = $this->found === $searched ? $this->found : array();

@@ -107,7 +107,8 @@ if(!defined('CLEANTALK_PLUGIN_DIR')){
 	
 	// Database prefix
 	global $wpdb;
-	$apbct->db_prefix = !APBCT_WPMS && ($apbct->allow_custom_key || $apbct->white_label) ? $wpdb->prefix : $wpdb->base_prefix;
+	$apbct->db_prefix = !APBCT_WPMS || $apbct->allow_custom_key || $apbct->white_label ? $wpdb->prefix : $wpdb->base_prefix;
+	$apbct->db_prefix = !$apbct->white_label && defined('CLEANTALK_ACCESS_KEY') ? $wpdb->base_prefix : $wpdb->prefix;
 	// Database constants
 	define('APBCT_TBL_FIREWALL_DATA', $apbct->db_prefix . 'cleantalk_sfw');      // Table with firewall data.
 	define('APBCT_TBL_FIREWALL_LOG',  $apbct->db_prefix . 'cleantalk_sfw_logs'); // Table with firewall logs.
