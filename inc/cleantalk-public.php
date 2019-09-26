@@ -1689,7 +1689,12 @@ function ct_test_registration($nickname, $email, $ip){
 
 /**
  * Test users registration
- * @return array with errors 
+ *
+ * @param      $errors
+ * @param null $sanitized_user_login
+ * @param null $user_email
+ *
+ * @return void with errors
  */
 function ct_registration_errors($errors, $sanitized_user_login = null, $user_email = null) {
 	
@@ -1703,11 +1708,9 @@ function ct_registration_errors($errors, $sanitized_user_login = null, $user_ema
     if ($apbct->settings['registrations_test'] == 0) {
         return $errors;
     }
-
-    //
+    
     // The function already executed
-    // It happens when used ct_register_post(); 
-    //
+    // It happens when used ct_register_post();
     if ($ct_signup_done && is_object($errors) && count($errors->errors) > 0) {
         return $errors;
     }
@@ -1743,20 +1746,28 @@ function ct_registration_errors($errors, $sanitized_user_login = null, $user_ema
         return $errors;
     }
 	
-    $checkjs = apbct_js_test($ct_checkjs_register_form, $_POST);
-    $sender_info['post_checkjs_passed'] = $checkjs;
     // This hack can be helpfull when plugin uses with untested themes&signups plugins.
-    if ($checkjs == 0) {
-        $checkjs = apbct_js_test('ct_checkjs', $_COOKIE);
-        $sender_info['cookie_checkjs_passed'] = $checkjs;
-    }
+    $checkjs_post   = apbct_js_test($ct_checkjs_register_form, $_POST);
+    $checkjs_cookie = apbct_js_test($ct_checkjs_register_form, $_COOKIE);
+    $checkjs = $checkjs_post || $checkjs_cookie;
     
+	$sender_info = array(
+		'post_checkjs_passed' => $checkjs_post,
+		'cookie_checkjs_passed' => $checkjs_cookie,
+		'form_validation'     => ! isset( $apbct->validation_error )
+			? null
+			: json_encode( array(
+				'validation_notice' => $errors->get_error_message(),
+				'page_url'          => filter_input( INPUT_SERVER, 'HTTP_HOST' ) . filter_input( INPUT_SERVER, 'REQUEST_URI' ),
+			) ),
+	);
+ 
 	$base_call_result = apbct_base_call(
 		array(
-			'sender_email' => $user_email,
+			'sender_email'    => $user_email,
 			'sender_nickname' => $sanitized_user_login,
-			'sender_info' => $sender_info,
-			'js_on'   => $checkjs,
+			'sender_info'     => $sender_info,
+			'js_on'           => $checkjs,
 		),
 		true
 	);

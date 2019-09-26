@@ -631,7 +631,7 @@ function ct_delete_spam_comments() {
         foreach ($last_comments as $c) {
         	$comment_date_gmt = strtotime($c->comment_date_gmt);
         	if ($comment_date_gmt && is_numeric($comment_date_gmt)) {
-	            if (time() - $comment_date_gmt > 86400 * $apbct->settings['spam_store_days']) {
+	            if (time() - $comment_date_gmt > 86400 * $apbct->data['spam_store_days']) {
 	                // Force deletion old spam comments
 	                wp_delete_comment($c->comment_ID, true);
 	            }         		

@@ -95,10 +95,7 @@ class CleantalkState
 		'sfw_counter'      => 0,
 		
 		//Others
-        'spam_store_days'         => 15, // Days before delete comments from folder Spam 
-        'relevance_test'          => 0, // Test comment for relevance 
-        'notice_api_errors'       => 0, // Send API error notices to WP admin
-        'user_token'              => '', //user token for auto login into spam statistics
+        'user_token'              => '',
         'collect_details'         => 0, // Collect details about browser of the visitor. 
         'send_connection_reports' => 0, //Send connection reports to Cleantalk servers
 		'async_js'                => 0,
@@ -125,6 +122,11 @@ class CleantalkState
 		'js_key_lifetime'    => 86400, // JavaScript key life time in seconds - 1 day now
 		'last_remote_call'   => 0, //Timestam of last remote call
 		
+		// Antispam
+		'spam_store_days'         => 15, // Days before delete comments from folder Spam
+		'relevance_test'          => 0, // Test comment for relevance
+		'notice_api_errors'       => 0, // Send API error notices to WP admin
+		
 		// Account data
 		'service_id'    => 0,
 		'moderate'      => 0,
@@ -132,7 +134,7 @@ class CleantalkState
 		'ip_license'    => 0,
 		'spam_count'    => 0,
 		'auto_update'   => 0,
-		'user_token'    => '',
+		'user_token'    => '', // User token for auto login into spam statistics
 		'license_trial' => 0,
 		
 		// Notices

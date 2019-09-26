@@ -34,6 +34,7 @@ function apbct_settings_add_page() {
 
 function apbct_settings__set_fileds( $fields ){
 	global $apbct;
+	
 	$fields =  array(
 		
 		'main' => array(
@@ -183,7 +184,7 @@ function apbct_settings__set_fileds( $fields ){
 				),
 				'remove_old_spam' => array(
 					'title'       => __('Automatically delete spam comments', 'cleantalk'),
-					'description' => sprintf(__('Delete spam comments older than %d days.', 'cleantalk'),  $apbct->settings['spam_store_days']),
+					'description' => sprintf(__('Delete spam comments older than %d days.', 'cleantalk'),  $apbct->data['spam_store_days']),
 				),
 				'remove_comments_links' => array(
 					'title'       => __('Remove links from approved comments', 'cleantalk'),
