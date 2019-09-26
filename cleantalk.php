@@ -88,9 +88,9 @@ if(!defined('CLEANTALK_PLUGIN_DIR')){
 	$apbct->white_label      = $apbct->network_settings['white_label'];
 	$apbct->allow_custom_key = $apbct->network_settings['allow_custom_key'];
 	$apbct->plugin_name      = $apbct->network_settings['white_label__plugin_name'];
-	$apbct->api_key          = $apbct->allow_custom_key || $apbct->white_label ? $apbct->settings['apikey'] : $apbct->network_settings['apikey'];
-	$apbct->key_is_ok        = $apbct->allow_custom_key || $apbct->white_label ? $apbct->data['key_is_ok']  : $apbct->network_data['key_is_ok'];
-	$apbct->moderate         = $apbct->allow_custom_key || $apbct->white_label ? $apbct->data['moderate']   : $apbct->network_data['moderate'];
+	$apbct->api_key          = !APBCT_WPMS || $apbct->allow_custom_key || $apbct->white_label ? $apbct->settings['apikey'] : $apbct->network_settings['apikey'];
+	$apbct->key_is_ok        = !APBCT_WPMS || $apbct->allow_custom_key || $apbct->white_label ? $apbct->data['key_is_ok']  : $apbct->network_data['key_is_ok'];
+	$apbct->moderate         = !APBCT_WPMS || $apbct->allow_custom_key || $apbct->white_label ? $apbct->data['moderate']   : $apbct->network_data['moderate'];
 	
 	$apbct->data['user_counter']['since']       = isset($apbct->data['user_counter']['since'])       ? $apbct->data['user_counter']['since'] : date('d M');
 	$apbct->data['connection_reports']['since'] = isset($apbct->data['connection_reports']['since']) ? $apbct->data['user_counter']['since'] : date('d M');
@@ -107,7 +107,7 @@ if(!defined('CLEANTALK_PLUGIN_DIR')){
 	
 	// Database prefix
 	global $wpdb;
-	$apbct->db_prefix = $apbct->allow_custom_key || $apbct->white_label ? $wpdb->prefix : $wpdb->base_prefix;
+	$apbct->db_prefix = !APBCT_WPMS && ($apbct->allow_custom_key || $apbct->white_label) ? $wpdb->prefix : $wpdb->base_prefix;
 	// Database constants
 	define('APBCT_TBL_FIREWALL_DATA', $apbct->db_prefix . 'cleantalk_sfw');      // Table with firewall data.
 	define('APBCT_TBL_FIREWALL_LOG',  $apbct->db_prefix . 'cleantalk_sfw_logs'); // Table with firewall logs.
