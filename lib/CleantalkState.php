@@ -196,9 +196,11 @@ class CleantalkState
 	
 	public $def_network_data = array(
 		'key_is_ok'          => 0,
+		'moderate'           => 0,
+		'valid'              => 0,
 		'user_token'         => '',
 		'service_id'         => 0,
-		'service_id'         => 0,
+		'auto_update'        => 0,
 	);
 	
 	public $def_remote_calls = array(

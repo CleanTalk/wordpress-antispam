@@ -1339,6 +1339,7 @@ function apbct_settings__validate($settings) {
 				'valid'       => $apbct->data['valid'],
 				'auto_update' => $apbct->data['auto_update'],
 				'user_token'  => $apbct->data['user_token'],
+				'service_id'  => $apbct->data['service_id'],
 			);
 			$apbct->saveNetworkData();
 		}
