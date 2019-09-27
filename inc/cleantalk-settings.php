@@ -95,6 +95,7 @@ function apbct_settings__set_fileds( $fields ){
 					'type'        => 'checkbox',
 					'title'       => __('SpamFireWall', 'cleantalk'),
 					'description' => __("This option allows to filter spam bots before they access website. Also reduces CPU usage on hosting server and accelerates pages load time.", 'cleantalk'),
+					'long_description' => true,
 				),
 			),
 		),
@@ -399,6 +400,7 @@ function apbct_settings__set_fileds__network( $fields ){
 					'description' => sprintf(__("Some description here", 'cleantalk'), '<a href="options-discussion.php">', '</a>'),
 					'childrens' => array('white_label__hoster_key', 'white_label__plugin_name', 'allow_custom_key'),
 					'network' => true,
+					'long_description' => true,
 				),
 				'white_label__hoster_key' => array(
 					'title' => __('Hoster API Key', 'cleantalk'),
@@ -1047,6 +1049,9 @@ function apbct_settings__field__draw($params = array()){
 					.'<label for="apbct_setting_'.$params['name'].'" class="apbct_setting-field_title--'.$params['type'].'">'
 						.$params['title']
 					.'</label>';
+				echo isset($params['long_description'])
+					? '<i setting="'.$params['name'].'" class="apbct_settings-long_description---show icon-help-circled"></i>'
+					: '';
 				echo '<div class="apbct_settings-field_description">'
 					.$params['description']
 				.'</div>';				
@@ -1062,7 +1067,7 @@ function apbct_settings__field__draw($params = array()){
 				
 				// Popup description
 				echo isset($params['long_description'])
-					? '<i setting="'.$params['name'].'" class="apbct_long_description__show icon-help-circled"></i>'
+					? '<i setting="'.$params['name'].'" class="apbct_settings-long_description---show icon-help-circled"></i>'
 					: '';
 				
 				echo '<div class="apbct_settings-field_content apbct_settings-field_content--'.$params['type'].'">';
@@ -1114,7 +1119,7 @@ function apbct_settings__field__draw($params = array()){
 					? '<h4 class="apbct_settings-field_title apbct_settings-field_title--'.$params['type'].'">'.$params['title'].'</h4>'
 					: '';
 				echo isset($params['long_description'])
-					? '<i setting="'.$params['name'].'" class="spbc_long_description__show icon-help-circled"></i>'
+					? '<i setting="'.$params['name'].'" class="apbct_settings-long_description---show icon-help-circled"></i>'
 					: '';
 				echo '<select'
 				    . ' id="apbct_setting_'.$params['name'].'"'
@@ -1140,7 +1145,7 @@ function apbct_settings__field__draw($params = array()){
 					
 				echo '</select>';
 				echo isset($params['long_description'])
-					? '<i setting="'.$params['name'].'" class="apbct_long_description__show icon-help-circled"></i>'
+					? '<i setting="'.$params['name'].'" class="apbct_settings-long_description---show icon-help-circled"></i>'
 					: '';
 				echo isset($params['description'])
 					? '<div class="apbct_settings-field_description">'.$params['description'].'</div>'
@@ -1231,7 +1236,7 @@ function apbct_settings__validate($settings) {
 			'white_label__hoster_key'  => $settings['white_label__hoster_key'],
 			'white_label__plugin_name' => $settings['white_label__plugin_name'],
 		);
-		unset( $settings['allow_custom_key'], $settings['white_label'], $settings['white_label__hoster_key'], $settings['white_label__plugin_name'], );
+		unset( $settings['allow_custom_key'], $settings['white_label'], $settings['white_label__hoster_key'], $settings['white_label__plugin_name'] );
 	}
 	
 	// Drop debug data
@@ -1424,4 +1429,30 @@ function apbct_settings_show_gdpr_text($print = false){
 	.'</ul>';
 	
 	if($print) echo $out; else return $out;
+}
+
+function apbct_settings__get__long_description(){
+	
+	global $apbct;
+	
+	check_ajax_referer('ct_secret_nonce' );
+	
+	$setting_id = $_POST['setting_id'] ? $_POST['setting_id'] : '';
+	
+	$descriptions = array(
+		'white_label'              => array(
+			'title' => __( 'XSS check', 'cleantalk' ),
+			'desc'  => __( 'Cross-Site Scripting (XSS) — prevents malicious code to be executed/sent to any user. As a result malicious scripts can not get access to the cookie files, session tokens and any other confidential information browsers use and store. Such scripts can even overwrite content of HTML pages. CleanTalk WAF monitors for patterns of these parameters and block them.', 'cleantalk' ),
+		),
+		'white_label__hoster_key'  => array(
+			'title' => __( 'SQL-injection check', 'cleantalk' ),
+			'desc'  => __( 'SQL Injection — one of the most popular ways to hack websites and programs that work with databases. It is based on injection of a custom SQL code into database queries. It could transmit data through GET, POST requests or cookie files in an SQL code. If a website is vulnerable and execute such injections then it would allow attackers to apply changes to the website\'s MySQL database.', 'cleantalk' ),
+		),
+		'white_label__plugin_name' => array(
+			'title' => __( 'Check uploaded files', 'cleantalk' ),
+			'desc'  => __( 'The option checks each uploaded file to a website for malicious code. If it\'s possible for visitors to upload files to a website, for instance a work resume, then attackers could abuse it and upload an infected file to execute it later and get access to your website.', 'cleantalk' ),
+		),
+	);
+	
+	die(json_encode($descriptions[$setting_id]));
 }

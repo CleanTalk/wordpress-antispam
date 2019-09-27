@@ -24,7 +24,12 @@ jQuery(document).ready(function(){
 			closeText: "Close",
 		});
 	});
-	
+
+	jQuery(document).on('click', '.apbct_settings-long_description---show', function(){
+		self = jQuery(this);
+		apbct_settings__showDescription(self, self.attr('setting'));
+	});
+
 });
 
 function apbct_get_elems(elems){
@@ -81,4 +86,44 @@ function apbct_toggleAtrribute(elem, attribute, value){
         elem.attr(attribute, value);
     else
         elem.removeAttr(attribute);
+}
+
+function apbct_settings__showDescription(label, setting_id){
+
+	var remove_desc_func = function(e){
+		if(typeof e === 'undefined' || ((jQuery(e.target).parent('.apbct_long_desc').length == 0 || jQuery(e.target).hasClass('apbct_long_desc__cancel')) && !jQuery(e.target).hasClass('apbct_long_description__show'))){
+			jQuery('.apbct_long_desc').remove();
+			jQuery(document).off('click', remove_desc_func);
+		}
+	};
+
+	remove_desc_func();
+
+	label.after("<div id='apbct_long_desc__"+setting_id+"' class='apbct_long_desc'></div>");
+	var obj = jQuery('#apbct_long_desc__'+setting_id);
+	obj.append("<i class='icon-spin1 animate-spin'></i>")
+		.append("<div class='apbct_long_desc__angle'></div>")
+		.css({
+			top: label.position().top - 5,
+			left: label.position().left + 25
+		});
+
+
+	apbct_sendAJAX(
+		{action: 'apbct_settings__get_description', setting_id: setting_id},
+		{
+			spinner: obj.children('img'),
+			callback: function(result, data, params, obj){
+
+				obj.empty()
+					.append("<div class='apbct_long_desc__angle'></div>")
+					.append("<i class='apbct_long_desc__cancel icon-cancel'></i>")
+					.append("<h3 class='apbct_long_desc__title'>"+result.title+"</h3>")
+					.append("<p>"+result.desc+"</p>");
+
+				jQuery(document).on('click', remove_desc_func);
+			}
+		},
+		obj
+	);
 }

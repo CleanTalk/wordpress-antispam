@@ -41,6 +41,11 @@
 
     .apbct_settings-field--api_key{font-size: 14pt;}
 
+    .apbct_settings-long_description---show:hover{
+        color: #aaaaaa;
+        cursor: pointer;
+    }
+
 .cleantalk_link {
     text-decoration: none;
     font-size: 13px;
@@ -124,4 +129,53 @@ a.ct_support_link{
 		text-align: center;
 		border: 1px dashed #666;
 	}
-		#ct_translate_plugin .spbc_button_rate{margin-bottom: 10px;}
+		#ct_translate_plugin .apbct_button_rate{margin-bottom: 10px;}
+
+.apbct_long_desc{
+    position: absolute;
+    background: #5a5a5a;
+    min-width: 80px; min-height: 80px;
+    max-width: 500px;
+    padding: 10px;
+    color: white;
+    z-index: 10;
+}
+    i.animate-spin{
+        -moz-animation: spin 2s infinite linear;
+        -o-animation: spin 2s infinite linear;
+        -webkit-animation: spin 2s infinite linear;
+        animation: spin 2s infinite linear;
+        display: inline-block;
+        margin: 0 auto;
+        font-size: 25px;
+        line-height: 20px;
+        color: rgba(120,200,230,1);
+        margin: 25px;
+    }
+    @keyframes spin {
+        to{transform: rotate(359deg);}
+    }
+    .apbct_long_desc__cancel{
+        position: absolute;
+        top: 5px; right: 5px;
+        color: rgba(255,255,255,0.5);
+    }
+    .apbct_long_desc__cancel:hover{
+        color: white;
+    }
+    .apbct_long_desc__angle{
+        position: absolute;
+        top: 5px; left: -17px;
+        width: 10px; height: 10px;
+        background: #5a5a5a;
+        -webkit-transform: rotate(135deg);
+        -ms-transform: rotate(135deg);
+        transform: rotate(135deg);
+        -webkit-transform-origin: 100% 100%;
+        -ms-transform-origin: 100% 100%;
+        transform-origin: 100% 100%;
+    }
+    .apbct_long_desc__title{
+        color: rgba(120,200,230,1);
+        margin: 0;
+    }
