@@ -1754,7 +1754,7 @@ function ct_registration_errors($errors, $sanitized_user_login = null, $user_ema
 	$sender_info = array(
 		'post_checkjs_passed' => $checkjs_post,
 		'cookie_checkjs_passed' => $checkjs_cookie,
-		'form_validation'     => ! !empty ( $errors )
+		'form_validation'     => !empty ( $errors )
 			? null
 			: json_encode( array(
 				'validation_notice' => $errors->get_error_message(),
