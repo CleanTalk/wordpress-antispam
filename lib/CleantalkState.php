@@ -274,12 +274,12 @@ class CleantalkState
 		
 		// Network settings
 		$option = get_site_option($this->option_prefix.'_network_settings');
-		$option = is_array($option) ? $option : $this->def_network_settings;
+		$option = is_array($option) ? array_merge($this->def_network_settings, $option) : $this->def_network_settings;
 		$this->network_settings = new ArrayObject($option);
 		
 		// Network data
 		$option = get_site_option($this->option_prefix.'_network_data');
-		$option = is_array($option) ? $option : $this->def_network_data;
+		$option = is_array($option) ? array_merge($this->def_network_data, $option) : $this->def_network_data;
 		$this->network_data = new ArrayObject($option);
 		
 		foreach($options as $option_name){

@@ -317,7 +317,7 @@ function apbct_update_to_5_127_0(){
 		$apbct->saveData();
 	}
 	
-	if(is_multisite()){
+	if(APBCT_WPMS){
 		
 		// Whitelabel
 		// Reset "api_key_is_recieved" flag
@@ -343,12 +343,16 @@ function apbct_update_to_5_127_0(){
 			switch_to_blog( $initial_blog );
 			
 			if( defined( 'APBCT_WHITELABEL' ) ){
-				$apbct->network_settings['whitel_label']              = defined( 'APBCT_WHITELABEL' ) && APBCT_WHITELABEL == true ? 1 : 0;
-				$apbct->network_settings['whitel_label__hoster_key']  = defined( 'APBCT_HOSTER_API_KEY' ) ? APBCT_HOSTER_API_KEY : '';
-				$apbct->network_settings['whitel_label__plugin_name'] = defined( 'APBCT_WHITELABEL_NAME' ) ? APBCT_WHITELABEL_NAME : APBCT_NAME;
+				$apbct->network_settings = array(
+					'white_label'              => defined( 'APBCT_WHITELABEL' ) && APBCT_WHITELABEL == true ? 1 : 0,
+					'white_label__hoster_key'  => defined( 'APBCT_HOSTER_API_KEY' )  ? APBCT_HOSTER_API_KEY : '',
+					'white_label__plugin_name' => defined( 'APBCT_WHITELABEL_NAME' ) ? APBCT_WHITELABEL_NAME : APBCT_NAME,
+				);
 			}elseif( defined( 'CLEANTALK_ACCESS_KEY' ) ){
-				$apbct->network_settings['allow_custom_key'] = 0;
-				$apbct->network_settings['apikey']           = CLEANTALK_ACCESS_KEY;
+				$apbct->network_settings = array(
+					'allow_custom_key' => 0,
+					'apikey'           => CLEANTALK_ACCESS_KEY,
+				);
 			}
 			$apbct->saveNetworkSettings();
 		}
