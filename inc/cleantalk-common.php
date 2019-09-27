@@ -248,12 +248,11 @@ function apbct_exclusions_check__url() {
 			: $_SERVER['REQUEST_URI'];
 		
 		foreach ( $exclusions as $exclusion ) {
-			if ( stripos( $haystack, $exclusion ) !== false ) {
+			if (
+				($apbct->settings['exclusions__urls__use_regexp'] && preg_match( '/' . $exclusion . '/', $haystack ) === 1) ||
+				stripos( $haystack, $exclusion ) !== false
+			){
 				return true;
-			} elseif ( $apbct->settings['exclusions__urls__use_regexp'] ) {
-				if ( preg_match( '/' . $exclusion . '/', $haystack ) !== false ) {
-					return true;
-				}
 			}
 		}
 		return false;
