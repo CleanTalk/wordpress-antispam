@@ -183,7 +183,8 @@
 							getComputedStyle(elem).opacity    === "0" ||      // hidden
 							elem.getAttribute("type")         === "hidden" || // type == hidden
 							elem.getAttribute("type")         === "submit" || // type == submit
-							elem.value                        === ""          // empty value
+							elem.value                        === ""       || // empty value
+							elem.getAttribute('name')         === null
 						){
 							return false;
 						}

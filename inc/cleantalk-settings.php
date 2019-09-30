@@ -95,7 +95,6 @@ function apbct_settings__set_fileds( $fields ){
 					'type'        => 'checkbox',
 					'title'       => __('SpamFireWall', 'cleantalk'),
 					'description' => __("This option allows to filter spam bots before they access website. Also reduces CPU usage on hosting server and accelerates pages load time.", 'cleantalk'),
-					'long_description' => true,
 				),
 			),
 		),
