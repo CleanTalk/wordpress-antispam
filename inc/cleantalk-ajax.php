@@ -367,7 +367,7 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 			}
 		}
 	}
-
+	
 	$ct_temp_msg_data = isset($ct_post_temp)
 		? ct_get_fields_any($ct_post_temp)
 		: ct_get_fields_any($_POST);
@@ -589,11 +589,11 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 		{
 			$result = Array(
 				'error' => 'unexpected-error',
-			);			
+			);
 			print json_encode($result);
 			die();
-		}		
-		//Convertplug. Strpos because action value dynamically changes and depends on mailing service 
+		}
+		//Convertplug. Strpos because action value dynamically changes and depends on mailing service
 		elseif (isset($_POST['action']) && strpos($_POST['action'], '_add_subscriber') !== false){
 			$result = Array(
 				'action' => "message",
@@ -629,10 +629,10 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 		//cFormsII
 		elseif(isset($_POST['action']) && $_POST['action'] == 'submitcform')
 		{
-			header('Content-Type: application/json');	
+			header('Content-Type: application/json');
 			$result = Array(
-				'no' => "",	
-				'result' => "failure",				
+				'no' => "",
+				'result' => "failure",
 				'html' =>$ct_result->comment,
 				'hide' => false,
 				'redirection' => null
@@ -694,7 +694,18 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 		//Optin wheel
 		elseif( isset($_POST['action']) && ($_POST['action'] == 'wof-lite-email-optin' || $_POST['action'] == 'wof-email-optin')) {
 			wp_send_json_error(__($ct_result->comment, 'wp-optin-wheel'));
-		}		
+		}
+		// Forminator
+		elseif( isset($_POST['action']) && strpos($_POST['action'], 'forminator_submit') !== false ){
+			wp_send_json_error(
+				array(
+					'message' => $ct_result->comment,
+					'success' => false,
+					'errors'  => array(),
+					'behav'   => 'behaviour-thankyou',
+				)
+			);
+		}
 		else
 		{
 			die(json_encode(array('apbct' => array('blocked' => true, 'comment' => $ct_result->comment,))));
