@@ -3,14 +3,14 @@ Contributors: safronik
 Tags: spam, antispam, protection, comments, firewall 
 Requires at least: 3.0
 Tested up to: 5.3
-Stable tag: 5.126
+Stable tag: 5.127
 License: GPLv2
 
 Spam protection, antispam, all-in-one, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
 
 == Description ==
 
-**Supports: Contact Form 7, Contact Form by WPForms, Ninja Forms, Gravity Forms, MailChimp, Formidable forms, WooCommerce, JetPack comments and contact form, BuddyPress, bbPress, Fast Secure Contact form, S2Member, MailPoet, wpDiscuz, any WordPress registrations & contact forms and themes. Just setup and forget the spam!** 
+**Supports: Contact Form 7, Contact Form by WPForms, Ninja Forms, Gravity Forms, MailChimp, Formidable forms, WooCommerce, JetPack comments and contact form, BuddyPress, bbPress, S2Member, MailPoet, wpDiscuz, any WordPress registrations & contact forms and themes. Just setup and forget the spam!** 
 
 No CAPTCHA, no questions, no animal counting, no puzzles, no math and no spam bots. Universal AntiSpam plugin. 
 
@@ -56,7 +56,7 @@ Native spam protection for WordPress, JetPack comments and any other comment plu
 Filters spam bots on registration forms of WordPress, BuddyPress, bbPress, S2Member, WooCommerce, Profile builder, Login with AJAX and any other registration plugins.
 
 = Protection from contact form spam =
-The plugin is tested and ready to protect from spam emails via Formidable forms, Contact form 7, JetPack Contact form, Fast Secure Contact form, Ninja forms, Landing pages, Gravity forms, Contact Form by BestWebSoft, Simple Contact Form Plugin - PirateForms, Visual Form Builder, Form, Contact Form by WebDorado, Contact Form Email, MW WP Form, Contact Form by Jeff Bulllins, Easy Contact, Contact Us Form, Grunion Contact Form, WCP Contact Form, Easy WordPress Contact Form Plugin, WPForms Lite, Custom Contact, Forms, Amo Forms, Caldera Forms, Visual Form Builder, Contact Form Clean and Simple, Divi by Elegant Themes, The7 theme and any other themes or custom contact forms, amoForms, Custom Contact Form, Ultimate Form Builder, Contact Bank - Contact Forms Builder, Forms easily built with Smart Forms, Quick Contact Form, Usernoise contact form, cformsII - contact form, Contact Form by Web-Settler, HubSpot Marketing Free, QuForm.
+The plugin is tested and ready to protect from spam emails via Formidable forms, Contact form 7, JetPack Contact form, Fast Secure Contact form, Ninja forms, Landing Page Builder, Gravity forms, Contact Form by BestWebSoft, Simple Contact Form Plugin - PirateForms, Visual Form Builder, Contact Form by WebDorado, Contact Form Email, MW WP Form, Contact Form by Jeff Bulllins, Contact Us Form, WCP Contact Form, WPForms Lite, Custom Contact, Forms, Caldera Forms, Visual Form Builder, Contact Form Clean and Simple, Divi by Elegant Themes, The7 theme and any other themes or custom contact forms, amoForms, Ultimate Form Builder, Contact Bank - Contact Forms Builder, Forms easily built with Smart Forms, Usernoise contact form, Contact Form by Web-Settler, HubSpot Marketing Free, QuForm.
 
 = WooCommerce spam filter =
 Anti-spam by CleanTalk filters spam registrations and spam reviews for WooCommerce. The plugin is fully compatible with WooCommerce 2.1 and higher.
