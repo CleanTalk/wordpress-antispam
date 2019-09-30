@@ -7,9 +7,6 @@ function apbct_settings_add_page() {
 	
 	global $apbct, $pagenow;
 	
-	if(!in_array($pagenow, array('options.php', 'options-general.php', 'settings.php', 'admin.php')))
-		return;
-	
 	$parent_slug = is_network_admin() ? 'settings.php'                     : 'options-general.php';
 	$callback    = is_network_admin() ? 'apbct_settings__display__network' : 'apbct_settings__display';
 	
@@ -22,6 +19,9 @@ function apbct_settings_add_page() {
 		'cleantalk',
 		$callback
 	);
+	
+	if(!in_array($pagenow, array('options.php', 'options-general.php', 'settings.php', 'admin.php')))
+		return;
 	
 	register_setting('cleantalk_settings', 'cleantalk_settings', 'apbct_settings__validate');
 	
