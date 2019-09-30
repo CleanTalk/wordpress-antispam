@@ -2353,18 +2353,26 @@ function apbct_form__WPForms__addField($form_data, $some, $title, $description, 
 
 /**
  * Gather fields data from submission and store it
- * 
- * @global SpbcState $apbct
- * @param array $entry
- * @param array $form_data
+ *
+ * @param array      $entry
+ * @param            $form
+ *
  * @return array
+ * @global SpbcState $apbct
  */
-function apbct_from__WPForms__gatherData($entry, $form_data){
+function apbct_from__WPForms__gatherData($entry, $form){
 	
 	global $apbct;
 	
-	$apbct->form_data = $entry['fields'];
-
+	$data = array();
+	foreach($entry['fields'] as $key => $val){
+		$true_key = strtolower(str_replace(' ', '_', $form['fields'][$key]['label']));
+		$true_key = $true_key ? $true_key : $key;
+		$data[$true_key] = $val;
+	} unset($key, $val);
+	
+	$apbct->form_data = $data;
+	
 	return $entry;
 }
 

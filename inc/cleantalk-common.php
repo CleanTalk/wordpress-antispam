@@ -785,9 +785,9 @@ function ct_get_fields_any($arr, $message=array(), $email = null, $nickname = ar
 				// Names
 				}elseif (preg_match("/name/i", $key)){
 					
-					preg_match("/((name.?)?(your|first|for)(.?name)?)$/", $key, $match_forename);
-					preg_match("/((name.?)?(last|family|second|sur)(.?name)?)$/", $key, $match_surname);
-					preg_match("/^(name.?)?(nick|user)(.?name)?$/", $key, $match_nickname);
+					preg_match("/((name.?)?(your|first|for)(.?name)?)/", $key, $match_forename);
+					preg_match("/((name.?)?(last|family|second|sur)(.?name)?)/", $key, $match_surname);
+					preg_match("/(name.?)?(nick|user)(.?name)?/", $key, $match_nickname);
 					
 					if(count($match_forename) > 1)
 						$nickname['first'] = $value;
@@ -796,8 +796,8 @@ function ct_get_fields_any($arr, $message=array(), $email = null, $nickname = ar
 					elseif(count($match_nickname) > 1)
 						$nickname['nick'] = $value;
 					else
-						$message[$prev_name.$key] = $value;
-				
+						$nickname['name'] = $value;
+						
 				// Subject
 				}elseif ($subject === null && preg_match("/subject/i", $key)){
 					$subject = $value;
