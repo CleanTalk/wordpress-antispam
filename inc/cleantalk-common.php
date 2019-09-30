@@ -896,7 +896,6 @@ function ct_get_fields_any_postdata($arr, $message=array()){
  * @return bool
  */
 function apbct_is_regexp($regexp){
-	$regexp = preg_match( '/\/.*\//', $regexp ) === 1 ? $regexp : '/' . $regexp . '/'; // Adding slashes
 	return @preg_match('/' . $regexp . '/', null) !== false;
 }
 

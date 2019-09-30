@@ -1750,18 +1750,21 @@ function ct_registration_errors($errors, $sanitized_user_login = null, $user_ema
     $checkjs_post   = apbct_js_test($ct_checkjs_register_form, $_POST);
     $checkjs_cookie = apbct_js_test($ct_checkjs_register_form, $_COOKIE);
     $checkjs = $checkjs_post || $checkjs_cookie;
-    
+	
+	
 	$sender_info = array(
-		'post_checkjs_passed' => $checkjs_post,
+		'post_checkjs_passed'   => $checkjs_post,
 		'cookie_checkjs_passed' => $checkjs_cookie,
-		'form_validation'     => !empty ( $errors )
-			? null
-			: json_encode( array(
+		'form_validation'       => ! empty( $errors )
+			? json_encode( array(
 				'validation_notice' => $errors->get_error_message(),
 				'page_url'          => filter_input( INPUT_SERVER, 'HTTP_HOST' ) . filter_input( INPUT_SERVER, 'REQUEST_URI' ),
-			) ),
+			) )
+			: null,
 	);
  
+	error_log( var_export ( !empty ( $errors ), true ));
+	
 	$base_call_result = apbct_base_call(
 		array(
 			'sender_email'    => $user_email,
