@@ -1762,8 +1762,6 @@ function ct_registration_errors($errors, $sanitized_user_login = null, $user_ema
 			) )
 			: null,
 	);
- 
-	error_log( var_export ( !empty ( $errors ), true ));
 	
 	$base_call_result = apbct_base_call(
 		array(
