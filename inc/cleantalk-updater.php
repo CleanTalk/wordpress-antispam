@@ -297,18 +297,26 @@ function apbct_update_to_5_127_0(){
 	// URLs
 	if(!empty($cleantalk_url_exclusions) && is_array($cleantalk_url_exclusions)){
 		$apbct->settings['exclusions__urls'] = implode(',', $cleantalk_url_exclusions);
-		$initial_blog  = get_current_blog_id();
-		switch_to_blog(1);
+		if(APBCT_WPMS){
+			$initial_blog = get_current_blog_id();
+			switch_to_blog( 1 );
+		}
 		$apbct->saveSettings();
-		switch_to_blog($initial_blog);
+		if(APBCT_WPMS){
+			switch_to_blog($initial_blog);
+		}
 	}
 	// Fields
 	if(!empty($cleantalk_key_exclusions) && is_array($cleantalk_key_exclusions)){
 		$apbct->settings['exclusions__fields'] = implode(',', $cleantalk_key_exclusions);
-		$initial_blog  = get_current_blog_id();
-		switch_to_blog(1);
+		if(APBCT_WPMS){
+			$initial_blog = get_current_blog_id();
+			switch_to_blog( 1 );
+		}
 		$apbct->saveSettings();
-		switch_to_blog($initial_blog);
+		if(APBCT_WPMS){
+			switch_to_blog($initial_blog);
+		}
 	}
 	
 	// Deleting legacy
