@@ -568,6 +568,20 @@ If your website has forms that send data to external sources, you can enable opt
 10. Website's options.
 
 == Changelog ==
+= 5.127 September 30 2019 =
+  * Fix: Delete redirect notice on external forms
+  * Fix: Storing spam for 15 days.
+  * Fix: correct DiVi display message.
+  * Integration: Ultimate Members.
+  * Mod: Setting "Use static JS key" switched to "Auto" if it was "No". Default is "Auto".
+  * Mod: Moving White Label option to main site settings.
+  * New: Use static JS key if cache plugin detected.
+  * New: Settings for URLs, fields, roles exclusions.
+  * New: Regular Expressions support in URLs, fields exclusions.
+  * New: Send validation errors on standard registration form.
+  * Updater: Move exclusions from global variable to settings.
+  * Deprecated: IP exclusions.
+
 = 5.126 September 9 2019 =
   * Spam protection improved!
   * Integration: Option wheel.
@@ -1980,6 +1994,20 @@ If your website has forms that send data to external sources, you can enable opt
   * First version
   
 == Upgrade Notice ==
+= 5.127 September 30 2019 =
+  * Fix: Delete redirect notice on external forms
+  * Fix: Storing spam for 15 days.
+  * Fix: correct DiVi display message.
+  * Integration: Ultimate Members.
+  * Mod: Setting "Use static JS key" switched to "Auto" if it was "No". Default is "Auto".
+  * Mod: Moving White Label option to main site settings.
+  * New: Use static JS key if cache plugin detected.
+  * New: Settings for URLs, fields, roles exclusions.
+  * New: Regular Expressions support in URLs, fields exclusions.
+  * New: Send validation errors on standard registration form.
+  * Updater: Move exclusions from global variable to settings.
+  * Deprecated: IP exclusions.
+
 = 5.126 September 9 2019 =
   * Spam protection improved!
   * Integration: Option wheel.
