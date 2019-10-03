@@ -371,4 +371,14 @@ function apbct_update_to_5_127_0(){
 			: $apbct->settings['use_static_js_key'];
 		$apbct->saveSettings();
 	}
+	
+	function apbct_update_to_5_127_1(){
+		if(APBCT_WPMS && is_main_site()){
+			$settings = get_site_option( 'cleantalk_network_settings' );
+			if( $settings['allow_custom_key'] == 0 ){
+				$settings['allow_custom_key'] = 1;
+				update_site_option( 'cleantalk_network_settings' );
+			}
+		}
+	}
 }
