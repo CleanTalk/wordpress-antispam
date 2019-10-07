@@ -3,7 +3,7 @@ Contributors: safronik
 Tags: spam, antispam, protection, comments, firewall 
 Requires at least: 3.0
 Tested up to: 5.3
-Stable tag: 5.127
+Stable tag: 5.127.1
 License: GPLv2
 
 Spam protection, antispam, all-in-one, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -568,6 +568,10 @@ If your website has forms that send data to external sources, you can enable opt
 10. Website's options.
 
 == Changelog ==
+= 5.127.1 October 7 2019 =
+  * Fix: WPMS settings logic.
+  * Using default database storage engine for tables.
+
 = 5.127 September 30 2019 =
   * Fix: Delete redirect notice on external forms
   * Fix: Storing spam for 15 days.
@@ -1994,6 +1998,10 @@ If your website has forms that send data to external sources, you can enable opt
   * First version
   
 == Upgrade Notice ==
+= 5.127.1 October 7 2019 =
+  * Fix: WPMS settings logic.
+  * Using default database storage engine for tables.
+
 = 5.127 September 30 2019 =
   * Fix: Delete redirect notice on external forms
   * Fix: Storing spam for 15 days.
