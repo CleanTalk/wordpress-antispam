@@ -2315,6 +2315,55 @@ function apbct_form__ninjaForms__changeResponse( $data ) {
 	
 }
 
+function apbct_form__seedprod_coming_soon__testSpam() {
+
+    global $apbct;
+
+    if(
+        $apbct->settings['contact_forms_test'] == 0
+        || ($apbct->settings['protect_logged_in'] != 1 && is_user_logged_in()) // Skip processing for logged in users.
+        || apbct_exclusions_check__url()
+    ){
+        return;
+    }
+
+    $ct_temp_msg_data = ct_get_fields_any($_REQUEST);
+
+    $sender_email    = ($ct_temp_msg_data['email']    ? $ct_temp_msg_data['email']    : '');
+    $sender_nickname = ($ct_temp_msg_data['nickname'] ? $ct_temp_msg_data['nickname'] : '');
+    $subject         = ($ct_temp_msg_data['subject']  ? $ct_temp_msg_data['subject']  : '');
+    $message         = ($ct_temp_msg_data['message']  ? $ct_temp_msg_data['message']  : array());
+    if ($subject != '') {
+        $message = array_merge(array('subject' => $subject), $message);
+    }
+
+    $post_info['comment_type'] = 'contact_form_wordpress_seedprod_coming_soon';
+
+    $base_call_result = apbct_base_call(
+        array(
+            'message'         => $message,
+            'sender_email'    => $sender_email,
+            'sender_nickname' => $sender_nickname,
+            'post_info'       => $post_info,
+        )
+    );
+
+    $ct_result = $base_call_result['ct_result'];
+    if ($ct_result->allow == 0) {
+        global $ct_comment;
+        $ct_comment = $ct_result->comment;
+
+        $response = array(
+            'status' => 200,
+            'html'   => "<h1>".__('Spam protection by CleanTalk', 'cleantalk')."</h1><h2>".$ct_result->comment."</h2>"
+        );
+
+        echo sanitize_text_field($_GET['callback']) . '(' . json_encode($response) . ')';
+        exit();
+    }
+
+}
+
 /**
  * Changes email notification for succes subscription for Ninja Forms
  * 
