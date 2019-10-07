@@ -396,14 +396,13 @@ function apbct_settings__set_fileds__network( $fields ){
 				'white_label' => array(
 					'type' => 'checkbox',
 					'title' => __('Enable White Label Mode', 'cleantalk'),
-					'description' => sprintf(__("Some description here", 'cleantalk'), '<a href="options-discussion.php">', '</a>'),
+					'description' => sprintf(__("Learn more information %shere%s.", 'cleantalk'), '<a tearget="_blank" href="https://cleantalk.org/ru/help/hosting-white-label">', '</a>'),
 					'childrens' => array('white_label__hoster_key', 'white_label__plugin_name', 'allow_custom_key'),
 					'network' => true,
-					'long_description' => true,
 				),
 				'white_label__hoster_key' => array(
 					'title' => __('Hoster API Key', 'cleantalk'),
-					'description' => sprintf(__("Some description here", 'cleantalk'), '<a href="options-discussion.php">', '</a>'),
+					'description' => sprintf(__("You can get it in %sCleantalk's Control Panel%s", 'cleantalk'), '<a tearget="_blank" href="https://cleantalk.org/my/?cp_mode=hosting-antispam">', '</a>'),
 					'type' => 'text',
 					'parent' => 'white_label',
 					'class' => 'apbct_settings-field_wrapper--sub',
@@ -412,7 +411,7 @@ function apbct_settings__set_fileds__network( $fields ){
 				),
 				'white_label__plugin_name' => array(
 					'title' => __('Plugin name', 'cleantalk'),
-					'description' => sprintf(__("Some description here", 'cleantalk'), '<a href="options-discussion.php">', '</a>'),
+					'description' => sprintf(__("Specify plugin name. Leave empty for deafult %sAntispam by Cleantalk%s", 'cleantalk'), '<b>', '</b>'),
 					'type' => 'text',
 					'parent' => 'white_label',
 					'class' => 'apbct_settings-field_wrapper--sub',

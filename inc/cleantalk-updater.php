@@ -371,14 +371,18 @@ function apbct_update_to_5_127_0(){
 			: $apbct->settings['use_static_js_key'];
 		$apbct->saveSettings();
 	}
-	
-	function apbct_update_to_5_127_1(){
-		if(APBCT_WPMS && is_main_site()){
-			$settings = get_site_option( 'cleantalk_network_settings' );
-			if( $settings['allow_custom_key'] == 0 ){
-				$settings['allow_custom_key'] = 1;
-				update_site_option( 'cleantalk_network_settings' );
-			}
+}
+
+function apbct_update_to_5_127_1(){
+	if(APBCT_WPMS && is_main_site()){
+		global $apbct;
+		$network_settings = get_site_option( 'cleantalk_network_settings' );
+		if( $network_settings !== false && empty( $network_settings['allow_custom_key'] ) && empty( $network_settings['white_label'] ) ){
+			$network_settings['allow_custom_key'] = 1;
+			update_site_option( 'cleantalk_network_settings', $network_settings );
+		}
+		if( $network_settings !== false && $network_settings['white_label'] == 1 && $apbct->data['moderate'] == 0 ){
+			ct_account_status_check( $network_settings['apikey'] ? $network_settings['apikey'] : $apbct->settings['apikey'], false);
 		}
 	}
 }

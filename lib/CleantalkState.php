@@ -188,7 +188,7 @@ class CleantalkState
 		
 		// Key
 		'apikey'             => '',
-		'allow_custom_key'   => 0,
+		'allow_custom_key'   => 1,
 		
 		// White label settings
 		'white_label'              => 0,
