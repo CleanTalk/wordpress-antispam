@@ -112,10 +112,13 @@ function apbct_init() {
 			add_filter('si_contact_form_validate', 'ct_si_contact_form_validate');
 		}
 
-    // WooCoomerse signups
-    if(class_exists('WooCommerce'))
-		add_filter('woocommerce_register_post', 'ct_register_post', 1, 3);
-
+    // WooCommerce registration
+    if(class_exists('WooCommerce')){
+	    if( $apbct->settings['wc_register_from_order'] == 1 ){
+		    add_filter( 'woocommerce_registration_errors', 'ct_registration_errors', 1, 3 );
+	    }
+    }
+    
 	// WooCommerce whishlist
 	if(class_exists('WC_Wishlists_Wishlist'))
 		add_filter('wc_wishlists_create_list_args', 'ct_woocommerce_wishlist_check', 1, 1);
@@ -1282,10 +1285,11 @@ function apbct_comment__Wordpress__doNotify($maybe_notify, $comment_ID){
 
 /**
  * Add notification setting link
- * 
- * @param type $notify_message
- * @param type $comment_id
- * @return type
+ *
+ * @param string  $notify_message
+ * @param integer $comment_id
+ *
+ * @return string
  */
 function apbct_comment__Wordpress__changeMailNotificationGroups($notify_message, $comment_id){
 	$website = parse_url(get_option('siteurl'),PHP_URL_HOST);
@@ -1297,11 +1301,12 @@ function apbct_comment__Wordpress__changeMailNotificationGroups($notify_message,
 
 /**
  * Change email notification recipients
- * 
+ *
+ * @param array      $emails
+ * @param integer    $comment_id
+ *
+ * @return array
  * @global SpbcState $apbct
- * @param type $emails
- * @param type $comment_id
- * @return type
  */
 function apbct_comment__Wordpress__changeMailNotificationRecipients($emails, $comment_id){
 	global $apbct;
@@ -1310,7 +1315,7 @@ function apbct_comment__Wordpress__changeMailNotificationRecipients($emails, $co
 
 /**
  * Changes email notification for spam comment for native Wordpress comment system
- * 
+ *
  * @param string $notify_message Body of email notification
  * @param int $comment_id Comment id
  * @return string Body for email notification
@@ -1394,8 +1399,8 @@ function apbct_js_test($field_name = 'ct_checkjs', $data = null) {
 	
 	    // Check static key
 	    if(
-	    	$apbct->settings['use_static_js_key'] === 1 ||
-	       ($apbct->settings['use_static_js_key'] === -1 && apbct_is_cache_plugins_persist())
+	    	$apbct->settings['use_static_js_key'] == 1 ||
+	       ($apbct->settings['use_static_js_key'] == -1 && apbct_is_cache_plugins_persist())
 	    ){
 		    $ct_challenge = ct_get_checkjs_value();
 		    $out = preg_match("/$ct_challenge/", $js_key) ? 1 : 0;
@@ -1746,12 +1751,15 @@ function ct_registration_errors($errors, $sanitized_user_login = null, $user_ema
         return $errors;
     }
 	
-    // This hack can be helpfull when plugin uses with untested themes&signups plugins.
-    $checkjs_post   = apbct_js_test($ct_checkjs_register_form, $_POST);
-    $checkjs_cookie = apbct_js_test($ct_checkjs_register_form, $_COOKIE);
-    $checkjs = $checkjs_post || $checkjs_cookie;
-	
-	
+    if(current_filter('woocommerce_registration_errors')){
+	    $checkjs = apbct_js_test('ct_checkjs', $_COOKIE);
+    }else{
+	    // This hack can be helpfull when plugin uses with untested themes&signups plugins.
+	    $checkjs_post   = apbct_js_test($ct_checkjs_register_form, $_POST);
+	    $checkjs_cookie = apbct_js_test($ct_checkjs_register_form, $_COOKIE);
+	    $checkjs = $checkjs_post || $checkjs_cookie;
+    }
+    
 	$sender_info = array(
 		'post_checkjs_passed'   => $checkjs_post,
 		'cookie_checkjs_passed' => $checkjs_cookie,
@@ -2882,15 +2890,10 @@ function ct_contact_form_validate() {
 	   !empty($_POST['woocommerce_checkout_place_order']) ||
 	   strpos($_SERVER['REQUEST_URI'], 'wc-ajax=wc_ppec_start_checkout') !== false
 	){
-		$post_info['comment_type'] = 'order';
 		if($apbct->settings['wc_checkout_test'] == 0){
-			if ( $apbct->settings['wc_register_from_order'] == 1 && ! is_user_logged_in() ) {
-				$post_info['comment_type'] = 'wc_register_from_order';
-			} else {
-				remove_filter('woocommerce_register_post', 'ct_register_post', 1 );
-				return null;
-			}
+			return null;
 		}
+		$post_info['comment_type'] = 'order';
 	}
 	
 	$ct_temp_msg_data = ct_get_fields_any($_POST);
