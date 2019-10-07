@@ -430,8 +430,8 @@ function ct_get_checkjs_value(){
 	
     // Use static JS keys
 	if(
-		$apbct->settings['use_static_js_key'] === 1 ||
-		($apbct->settings['use_static_js_key'] === -1 && apbct_is_cache_plugins_persist())
+		$apbct->settings['use_static_js_key'] == 1 ||
+		($apbct->settings['use_static_js_key'] == -1 && apbct_is_cache_plugins_persist())
 	){
 	    $key = hash('sha256', $apbct->api_key.ct_get_admin_email().$apbct->salt);
 	
