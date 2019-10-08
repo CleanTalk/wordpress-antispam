@@ -1750,14 +1750,17 @@ function ct_registration_errors($errors, $sanitized_user_login = null, $user_ema
         }
         return $errors;
     }
+    
 	
-    if(current_filter('woocommerce_registration_errors')){
+    if(current_filter() == 'woocommerce_registration_errors'){
 	    $checkjs = apbct_js_test('ct_checkjs', $_COOKIE);
+	    $checkjs_post   = null;
+	    $checkjs_cookie = $checkjs;
     }else{
 	    // This hack can be helpfull when plugin uses with untested themes&signups plugins.
 	    $checkjs_post   = apbct_js_test($ct_checkjs_register_form, $_POST);
 	    $checkjs_cookie = apbct_js_test($ct_checkjs_register_form, $_COOKIE);
-	    $checkjs = $checkjs_post || $checkjs_cookie;
+	    $checkjs = $checkjs_cookie ? $checkjs_cookie : $checkjs_post;
     }
     
 	$sender_info = array(

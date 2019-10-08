@@ -568,6 +568,11 @@ If your website has forms that send data to external sources, you can enable opt
 10. Website's options.
 
 == Changelog ==
+= 5.127.2 October 8 2019 =
+  * Integration: SeedProd Coming Soon Page Pro.
+  * Fix: WooCommerce double reuqests.
+  * Fix: Static JS key.
+
 = 5.127.1 October 7 2019 =
   * Fix: WPMS settings logic.
   * Using default database storage engine for tables.
@@ -1998,6 +2003,11 @@ If your website has forms that send data to external sources, you can enable opt
   * First version
   
 == Upgrade Notice ==
+= 5.127.2 October 8 2019 =
+  * Integration: SeedProd Coming Soon Page Pro.
+  * Fix: WooCommerce double reuqests.
+  * Fix: Static JS key.
+
 = 5.127.1 October 7 2019 =
   * Fix: WPMS settings logic.
   * Using default database storage engine for tables.
