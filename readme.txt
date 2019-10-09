@@ -3,7 +3,7 @@ Contributors: safronik
 Tags: spam, antispam, protection, comments, firewall 
 Requires at least: 3.0
 Tested up to: 5.3
-Stable tag: 5.127.1
+Stable tag: 5.127.3
 License: GPLv2
 
 Spam protection, antispam, all-in-one, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -568,6 +568,9 @@ If your website has forms that send data to external sources, you can enable opt
 10. Website's options.
 
 == Changelog ==
+= 5.127.3 October 8 2019 =
+  * Fix: Errors during registration.
+
 = 5.127.2 October 8 2019 =
   * Integration: SeedProd Coming Soon Page Pro.
   * Fix: WooCommerce double reuqests.
@@ -2003,6 +2006,9 @@ If your website has forms that send data to external sources, you can enable opt
   * First version
   
 == Upgrade Notice ==
+= 5.127.3 October 8 2019 =
+  * Fix: Errors during registration.
+
 = 5.127.2 October 8 2019 =
   * Integration: SeedProd Coming Soon Page Pro.
   * Fix: WooCommerce double reuqests.
