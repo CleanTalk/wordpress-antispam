@@ -1160,7 +1160,7 @@ function ct_preprocess_comment($comment) {
 
     
     $example = null;
-    if ($apbct->settings['relevance_test']) {
+    if ($apbct->data['relevance_test']) {
         $post = get_post($comment_post_id);
         if ($post !== null){
             $example['title'] = $post->post_title;
