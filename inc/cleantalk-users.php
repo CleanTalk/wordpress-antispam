@@ -483,20 +483,28 @@ function ct_ajax_info_users($direct_call = false)
 	$params = array(
 		'fields' => 'ID',
 		'count'=>true,
+        'orderby' => 'user_registered'
 	);
-	if(isset($from_date, $till_date)) $params['date_query'] = array('column' => 'user_registered', 'after' => $from_date, 'before' => $till_date, 'inclusive' => true);
+	//if(isset($from_date, $till_date)) $params['date_query'] = array('column' => 'user_registered', 'after' => $from_date, 'before' => $till_date, 'inclusive' => true);
 	$tmp = new WP_User_Query($params);
 	$cnt = $tmp->get_total();
+
+	$_GET['from'] = ct_get_user_register( current($tmp->get_results()) );
 
 	// Checked users
 	$params = array(
 		'fields' => 'ID',
 		'meta_key' => 'ct_checked',
 		'count_total' => true,
+        'orderby' => 'ct_checked'
 	);
-	if(isset($from_date, $till_date)) $params['date_query'] = array('column' => 'user_registered', 'after' => $from_date, 'before' => $till_date, 'inclusive' => true);
+	//if(isset($from_date, $till_date)) $params['date_query'] = array('column' => 'user_registered', 'after' => $from_date, 'before' => $till_date, 'inclusive' => true);
 	$tmp = new WP_User_Query($params);
 	$cnt_checked = $tmp->get_total();
+
+	if( $cnt_checked > 0 ) {
+        $_GET['from'] = ct_get_user_register( end($tmp->get_results()) );
+    }
 	
 	// Spam users
 	$params = array(
@@ -684,4 +692,13 @@ function ct_usercheck_get_csv_file() {
 	echo $output;
 	
 	die();
+}
+
+function ct_get_user_register( $user_id ) {
+
+    $user_data = get_userdata( $user_id );
+    $registered = $user_data->user_registered;
+
+    return date( "Y-m-d", strtotime( $registered ) );
+
 }

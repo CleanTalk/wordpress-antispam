@@ -50,21 +50,31 @@ function animate_comment(to,id){
 }
 
 function ct_clear_users(){
-	
-	var data = {
-		'action': 'ajax_clear_users',
-		'security': ct_ajax_nonce
-	};
-	
-	jQuery.ajax({
-		type: "POST",
-		url: ajaxurl,
-		data: data,
-		success: function(msg){
-			ct_show_users_info();
-			ct_send_users();
-		}
-	});
+
+	if(jQuery('#ct_allow_date_range').is(':checked')) {
+
+		ct_show_users_info();
+		ct_send_users();
+
+	} else {
+
+		var data = {
+			'action': 'ajax_clear_users',
+			'security': ct_ajax_nonce
+		};
+
+		jQuery.ajax({
+			type: "POST",
+			url: ajaxurl,
+			data: data,
+			success: function(msg){
+				ct_show_users_info();
+				ct_send_users();
+			}
+		});
+
+	}
+
 }
 
 //Continues the check after cooldown time
@@ -355,10 +365,10 @@ jQuery(document).ready(function(){
 		
 		if(jQuery('#ct_allow_date_range').is(':checked')){
 			
-			ct_date_from = jQuery('#ct_date_range_from').val(),
+			ct_date_from = jQuery('#ct_date_range_from').val();
 			ct_date_till = jQuery('#ct_date_range_till').val();
 						
-			if(!(ct_date_from != '' && ct_date_till != '')){
+			if(!(ct_date_from !== '' && ct_date_till !== '')){
 				alert('Please, specify a date range.');
 				return;
 			}
