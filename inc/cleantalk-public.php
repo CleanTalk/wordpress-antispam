@@ -2468,7 +2468,7 @@ function apbct_form__WPForms__showResponse($errors, $form_data) {
  * @global SpbcState $apbct
  * @global array $apbct->form_data Contains form data 
  * @param array $errors Array of errors to write false result in
- * @return void
+ * @return void|array|null
  */
 function apbct_form__WPForms__testSpam() {
 	
