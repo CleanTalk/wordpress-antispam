@@ -1217,14 +1217,14 @@ function apbct_settings__validate($settings) {
 	$result === false
 		? $apbct->error_add( 'exclusions_urls', 'is not valid: "' . $settings['exclusions__urls'] . '"', 'settings_validate' )
 		: $apbct->error_delete( 'exclusions_urls', true, 'settings_validate' );
-	$settings['exclusions__urls'] = $result ? $settings['exclusions__urls'] : '';
+	$settings['exclusions_urls'] = $result ? $result: '';
 	
 	// Fields
 	$result  = apbct_settings__sanitize__exclusions($settings['exclusions__fields'],   $settings['exclusions__fields__use_regexp']);
 	$result === false
 		? $apbct->error_add( 'exclusions_fields', 'is not valid: "' . $settings['exclusions__fields'] . '"', 'settings_validate' )
 		: $apbct->error_delete( 'exclusions_fields', true, 'settings_validate' );
-	$settings['exclusions__fields'] = $result ? $settings['exclusions__fields'] : '';
+	$settings['exclusions__fields'] = $result ? $result: '';
 	
 	// WPMS Logic.
 	if(APBCT_WPMS && is_main_site()){

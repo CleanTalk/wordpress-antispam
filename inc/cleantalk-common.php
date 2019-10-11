@@ -90,7 +90,7 @@ function apbct_base_call($params = array(), $reg_flag = false){
 	
 	// Fileds exclusions
 	if( ! empty( $params['message'] ) ){
-		apbct_array( $params['message'] )
+		$params['message'] = apbct_array( $params['message'] )
 			->get_keys( $apbct->settings['exclusions__fields'], $apbct->settings['exclusions__fields__use_regexp'] )
 			->delete();
 	}

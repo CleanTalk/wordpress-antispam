@@ -1160,7 +1160,7 @@ function ct_preprocess_comment($comment) {
 
     
     $example = null;
-    if ($apbct->settings['relevance_test']) {
+    if ($apbct->data['relevance_test']) {
         $post = get_post($comment_post_id);
         if ($post !== null){
             $example['title'] = $post->post_title;
@@ -2448,8 +2448,12 @@ function apbct_form__WPForms__showResponse($errors, $form_data) {
 		
 		$spam_comment = apbct_form__WPForms__testSpam();
 		
+		$filed_id = $form_data && !empty($form_data['fields']) && is_array($form_data['fields'])
+			? key($form_data['fields'])
+			: 0;
+		
 		if($spam_comment)
-			$errors[$form_data['id']][0] = $spam_comment;
+			$errors[ $form_data['id'] ][ $filed_id ] = $spam_comment;
 			
 	}
 	
@@ -2464,7 +2468,7 @@ function apbct_form__WPForms__showResponse($errors, $form_data) {
  * @global SpbcState $apbct
  * @global array $apbct->form_data Contains form data 
  * @param array $errors Array of errors to write false result in
- * @return void
+ * @return void|array|null
  */
 function apbct_form__WPForms__testSpam() {
 	
@@ -2936,8 +2940,7 @@ function ct_contact_form_validate() {
     $post_info['comment_type'] = 'feedback_general_contact_form';
 	
 	// Skip the test if it's WooCommerce and the checkout test unset
-	if(strpos($_SERVER['REQUEST_URI'], 'wc-ajax=checkout') !== false || 
-	   strpos($_SERVER['REQUEST_URI'], 'wc-ajax=update_order_review') !== false ||
+	if(strpos($_SERVER['REQUEST_URI'], 'wc-ajax=checkout') !== false ||
 	   (isset($_POST['_wp_http_referer']) && strpos($_SERVER['REQUEST_URI'], 'wc-ajax=update_order_review') !== false) ||
 	   !empty($_POST['woocommerce_checkout_place_order']) ||
 	   strpos($_SERVER['REQUEST_URI'], 'wc-ajax=wc_ppec_start_checkout') !== false
