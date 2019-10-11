@@ -282,6 +282,7 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 	    'OSTC_lostPassword', //Lost password ajax form
 		'check_retina_image_availability', //There are too many ajax requests from mobile
 	    'uap_check_reg_field_ajax', // Ultimate Affiliate Pro. Form validation.
+	    'edit-comment', // Edit comments by admin ??? that shouldn't happen
     );
 	
     // Skip test if
