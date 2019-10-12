@@ -87,8 +87,8 @@ function ct_show_users_page(){
 				<input id="ct_allow_date_range" type="checkbox" value="1" /><label for="ct_allow_date_range"><b><?php _e("Specify date range", 'cleantalk'); ?></b></label>
 			</div>
 			<div class="ct_check_params_desc">
-				<input class="ct_date" type="text" id="ct_date_range_from" value="<?php echo isset($_GET['from']) ? $_GET['from'] : ''; ?>" disabled readonly />
-				<input class="ct_date" type="text" id="ct_date_range_till" value="<?php echo isset($_GET['till']) ? $_GET['till'] : ''; ?>" disabled readonly />
+				<input class="ct_date" type="text" id="ct_date_range_from" value="<?php echo isset($_GET['from']) && preg_match('/\d{4}-\d{2}-\d{2}/', $_GET['from']) ? $_GET['from'] : ''; ?>" disabled readonly />
+				<input class="ct_date" type="text" id="ct_date_range_till" value="<?php echo isset($_GET['till']) && preg_match('/\d{4}-\d{2}-\d{2}/', $_GET['till']) ? $_GET['till'] : ''; ?>" disabled readonly />
 			</div>
 			<br>
 			<?php apbct_admin__badge__get_premium(); ?>
@@ -289,6 +289,10 @@ function ct_ajax_check_users(){
 	
 	check_ajax_referer('ct_secret_nonce', 'security');
 	
+	$amount = !empty($_POST['amount']) && intval($_POST['amount'])
+        ? intval($_POST['amount'])
+        : 100;
+	
 	global $apbct;
     
     $skip_roles = array(
@@ -315,7 +319,7 @@ function ct_ajax_check_users(){
 		),
 		'orderby' => 'registered',
 		'order' => 'ASC',
-		'number' => 100
+		'number' => $amount,
 	);
 	
 	if(isset($_POST['from'], $_POST['till'])){
@@ -503,7 +507,8 @@ function ct_ajax_info_users($direct_call = false)
 	$cnt_checked = $tmp->get_total();
 
 	if( $cnt_checked > 0 ) {
-        $_GET['from'] = ct_get_user_register( end($tmp->get_results()) );
+		$tmp2 = $tmp->get_results();
+		$_GET['from'] = ct_get_user_register( end( $tmp2 ) );
     }
 	
 	// Spam users

@@ -85,8 +85,8 @@ function ct_show_checkspam_page(){
 				<input id="ct_allow_date_range" type="checkbox" value="1" /><label for="ct_allow_date_range"><b><?php _e("Specify date range", 'cleantalk'); ?></b></label>
 			</div>
 			<div class="ct_check_params_desc">
-				<input class="ct_date" type="text" id="ct_date_range_from" value="<?php echo isset($_GET['from']) ? $_GET['from'] : ''; ?>" disabled readonly />
-				<input class="ct_date" type="text" id="ct_date_range_till" value="<?php echo isset($_GET['till']) ? $_GET['till'] : ''; ?>" disabled readonly />
+				<input class="ct_date" type="text" id="ct_date_range_from" value="<?php echo isset($_GET['from']) && preg_match('/\d{4}-\d{2}-\d{2}/', $_GET['from']) ? $_GET['from'] : ''; ?>" disabled readonly />
+				<input class="ct_date" type="text" id="ct_date_range_till" value="<?php echo isset($_GET['till']) && preg_match('/\d{4}-\d{2}-\d{2}/', $_GET['till'])? $_GET['till'] : ''; ?>" disabled readonly />
 			</div>
 			<br>
 			<?php apbct_admin__badge__get_premium(); ?>
