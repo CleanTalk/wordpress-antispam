@@ -9,6 +9,9 @@ String.prototype.printf = function(){
     return formatted;
 };
 
+// Set deafult amount to check by request.
+document.cookie = "ct_check_users__amount=" + 100 + "; path=/";
+
 // Flags
 var ct_working = false,
 	ct_new_check = true,
@@ -32,6 +35,42 @@ var ct_ajax_nonce = ctUsersCheck.ct_ajax_nonce,
 	ct_unchecked = 'unset',
 	ct_date_from = 0,
 	ct_date_till = 0;
+
+/* Function: Reuturns cookie with prefix */
+function apbct_cookie__get(names, prefixes){
+	var cookie = {};
+	names = names || null;
+	if(typeof names == 'string') names = names.split();
+	prefixes = prefixes || ['apbct_', 'ct_'];
+	if(prefixes == 'none')          prefixes = null;
+	if(typeof prefixes == 'string') prefixes = prefixes.split();
+	document.cookie.split(';').forEach(function(item, i, arr){
+		var curr = item.trim().split('=');
+		// Detect by full cookie name
+		if(names){
+			names.forEach(function(name, i, all){
+				if(curr[0] === name)
+					cookie[curr[0]] = (curr[1]);
+			});
+		}
+		// Detect by name prefix
+		if(prefixes){
+			prefixes.forEach(function(prefix, i, all){
+				if(curr[0].indexOf(prefix) === 0)
+					cookie[curr[0]] = (curr[1]);
+			});
+		}
+	});
+	return cookie;
+}
+
+function apbct_get_cookie( name ){
+	var cookie = apbct_cookie__get( name, name );
+	if(typeof cookie === 'object' && typeof cookie[name] != 'undefined'){
+		return cookie[name];
+	}else
+		return null;
+}
 
 function animate_comment(to,id){
 	if(ct_close_animate){
@@ -98,12 +137,13 @@ function ct_send_users(){
 	}else{
 		ct_requests_counter++;
 	}
-	
+
 	var data = {
-		'action': 'ajax_check_users',
-		'security': ct_ajax_nonce,
-		'new_check': ct_new_check,
-		'unchecked': ct_unchecked
+		action: 'ajax_check_users',
+		security: ct_ajax_nonce,
+		new_check: ct_new_check,
+		unchecked: ct_unchecked,
+		amount: apbct_get_cookie('ct_check_users__amount'),
 	};
 	
 	if(ct_accurate_check)
@@ -158,6 +198,10 @@ function ct_send_users(){
 			}
 		},
         error: function(jqXHR, textStatus, errorThrown) {
+			if(check_amount > 20){
+				check_amount -= 20;
+				document.cookie = "ct_check_users__amount=" + check_amount + "; path=/";
+			}
 			jQuery('#ct_error_message').show();
 			jQuery('#cleantalk_ajax_error').html(textStatus);
 			jQuery('#cleantalk_js_func').html('Check users');
