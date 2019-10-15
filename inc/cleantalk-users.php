@@ -90,6 +90,9 @@ function ct_show_users_page(){
 				<input class="ct_date" type="text" id="ct_date_range_from" value="<?php echo isset($_GET['from']) && preg_match('/\d{4}-\d{2}-\d{2}/', $_GET['from']) ? $_GET['from'] : ''; ?>" disabled readonly />
 				<input class="ct_date" type="text" id="ct_date_range_till" value="<?php echo isset($_GET['till']) && preg_match('/\d{4}-\d{2}-\d{2}/', $_GET['till']) ? $_GET['till'] : ''; ?>" disabled readonly />
 			</div>
+            <div class="ct_check_params_desc">
+               <p>Begin/end dates of creation user to check.</p>
+            </div>
 			<br>
 			<?php apbct_admin__badge__get_premium(); ?>
 		</div>
@@ -494,8 +497,9 @@ function ct_ajax_info_users($direct_call = false)
 	$cnt = $tmp->get_total();
 
 	$_GET['from'] = ct_get_user_register( current($tmp->get_results()) );
+    $_GET['till'] = date('Y-m-d');
 
-	// Checked users
+        // Checked users
 	$params = array(
 		'fields' => 'ID',
 		'meta_key' => 'ct_checked',
