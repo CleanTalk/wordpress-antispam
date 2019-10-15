@@ -76,12 +76,12 @@ function ct_show_users_page(){
 		<div class="ct_to_hide" id="ct_check_params_wrapper">
 			<button class="button ct_check_params_elem" id="ct_check_spam_button" <?php echo !$apbct->data['moderate'] ? 'disabled="disabled"' : ''; ?>><?php _e("Start check", 'cleantalk'); ?></button>
 			<?php if(!empty($_COOKIE['ct_paused_users_check'])) { ?><button class="button ct_check_params_elem" id="ct_proceed_check_button"><?php _e("Continue check", 'cleantalk'); ?></button><?php } ?>
-			<p class="ct_check_params_desc"><?php _e("The plugin will check all comments against blacklists database and show you senders that have spam activity on other websites.", 'cleantalk'); ?></p>
+			<p class="ct_check_params_desc"><?php _e("The plugin will check all users against blacklists database and show you senders that have spam activity on other websites.", 'cleantalk'); ?></p>
 			<br />
 			<div class="ct_check_params_elem ct_check_params_elem_sub">
 				<input id="ct_accurate_check" type="checkbox" value="1" /><b><label for="ct_accurate_check"><?php _e("Accurate check", 'cleantalk'); ?></b></label>
 			</div>
-			<p class="ct_check_params_desc"><?php _e("Allows to use comment's dates to perform more accurate check. Could seriously slow down the check.", 'cleantalk'); ?></p>
+			<p class="ct_check_params_desc"><?php _e("Allows to use user's dates to perform more accurate check. Could seriously slow down the check.", 'cleantalk'); ?></p>
 			<br />
 			<div class="ct_check_params_elem ct_check_params_elem_sub">
 				<input id="ct_allow_date_range" type="checkbox" value="1" /><label for="ct_allow_date_range"><b><?php _e("Specify date range", 'cleantalk'); ?></b></label>
