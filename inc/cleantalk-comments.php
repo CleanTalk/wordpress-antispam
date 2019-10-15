@@ -88,6 +88,9 @@ function ct_show_checkspam_page(){
 				<input class="ct_date" type="text" id="ct_date_range_from" value="<?php echo isset($_GET['from']) && preg_match('/\d{4}-\d{2}-\d{2}/', $_GET['from']) ? $_GET['from'] : ''; ?>" disabled readonly />
 				<input class="ct_date" type="text" id="ct_date_range_till" value="<?php echo isset($_GET['till']) && preg_match('/\d{4}-\d{2}-\d{2}/', $_GET['till'])? $_GET['till'] : ''; ?>" disabled readonly />
 			</div>
+            <div class="ct_check_params_desc">
+                <p>Begin/end dates of creation comments to check.</p>
+            </div>
 			<br>
 			<?php apbct_admin__badge__get_premium(); ?>
 		</div>
