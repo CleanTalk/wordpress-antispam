@@ -3,7 +3,7 @@ Contributors: safronik
 Tags: spam, antispam, protection, comments, firewall 
 Requires at least: 3.0
 Tested up to: 5.3
-Stable tag: 5.127.4
+Stable tag: 5.128
 License: GPLv2
 
 Spam protection, antispam, all-in-one, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -568,6 +568,14 @@ If your website has forms that send data to external sources, you can enable opt
 10. Website's options.
 
 == Changelog ==
+= 5.127.5 October 17 2019 =
+  * Fix: Cleantalk/Antispam/API.
+  * Mod: Users check - functionality updated.
+  * Fix: Users check - dates format updated.
+  * Mod: Comments check - functionality updated.
+  * Fix: Comments check - dates format updated.
+  * Fix: Minor improvements and bug fixes.
+
 = 5.127.4 October 13 2019 =
   * Mod: Automatically decrease amount of checked users by one request if an error occurs.
   * Fix: Security issue.
