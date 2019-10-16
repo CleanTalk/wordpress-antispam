@@ -90,29 +90,27 @@ function animate_comment(to,id){
 
 function ct_clear_users(){
 
+	var from = 0, till = 0;
 	if(jQuery('#ct_allow_date_range').is(':checked')) {
-
-		ct_show_users_info();
-		ct_send_users();
-
-	} else {
-
-		var data = {
-			'action': 'ajax_clear_users',
-			'security': ct_ajax_nonce
-		};
-
-		jQuery.ajax({
-			type: "POST",
-			url: ajaxurl,
-			data: data,
-			success: function(msg){
-				ct_show_users_info();
-				ct_send_users();
-			}
-		});
-
+		from = jQuery('#ct_date_range_from').val();
+		till = jQuery('#ct_date_range_till').val();
 	}
+	var data = {
+		'action'   : 'ajax_clear_users',
+		'security' : ct_ajax_nonce,
+		'from'     : from,
+		'till'     : till
+	};
+
+	jQuery.ajax({
+		type: "POST",
+		url: ajaxurl,
+		data: data,
+		success: function(msg){
+			ct_show_users_info();
+			ct_send_users();
+		}
+	});
 
 }
 
@@ -387,7 +385,7 @@ jQuery(document).ready(function(){
 		
 	var dates = jQuery('#ct_date_range_from, #ct_date_range_till').datepicker(
 		{
-			dateFormat: 'yy-mm-dd',
+			dateFormat: 'M d yy',
 			maxDate:"+0D",
 			changeMonth:true,
 			changeYear:true,
