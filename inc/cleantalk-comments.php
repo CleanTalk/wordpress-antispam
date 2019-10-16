@@ -85,11 +85,11 @@ function ct_show_checkspam_page(){
 				<input id="ct_allow_date_range" type="checkbox" value="1" /><label for="ct_allow_date_range"><b><?php _e("Specify date range", 'cleantalk'); ?></b></label>
 			</div>
 			<div class="ct_check_params_desc">
-				<input class="ct_date" type="text" id="ct_date_range_from" value="<?php echo isset($_GET['from']) && preg_match('/\d{4}-\d{2}-\d{2}/', $_GET['from']) ? $_GET['from'] : ''; ?>" disabled readonly />
-				<input class="ct_date" type="text" id="ct_date_range_till" value="<?php echo isset($_GET['till']) && preg_match('/\d{4}-\d{2}-\d{2}/', $_GET['till'])? $_GET['till'] : ''; ?>" disabled readonly />
+				<input class="ct_date" type="text" id="ct_date_range_from" value="<?php echo ct_last_checked_comment(); ?>" disabled readonly />
+				<input class="ct_date" type="text" id="ct_date_range_till" value="<?php echo date( "M j Y"); ?>" disabled readonly />
 			</div>
             <div class="ct_check_params_desc">
-                <p>Begin/end dates of creation comments to check.</p>
+                <p>Begin/end dates of creation comments to check. If no date is specified, the plugin uses the last comments check date.</p>
             </div>
 			<br>
 			<?php apbct_admin__badge__get_premium(); ?>
@@ -452,13 +452,7 @@ function ct_ajax_info_comments($direct_call = false){
         check_ajax_referer( 'ct_secret_nonce', 'security' );
 	
 	global $wpdb;
-	
-	// Checking dates value
-	if(isset($_POST['from'], $_POST['till'])){
-		$from_date = date('Y-m-d', intval(strtotime($_POST['from'])));
-		$till_date = date('Y-m-d', intval(strtotime($_POST['till'])));
-	}
-	
+
 	$metas = array('', 'ct_marked_as_spam', 'ct_checked', 'ct_bad');
 	
 	$result = array();
@@ -472,11 +466,6 @@ function ct_ajax_info_comments($direct_call = false){
 					? " AND EXISTS (SELECT comment_id, meta_key
 						FROM {$wpdb->commentmeta} meta
 						WHERE comm.comment_ID = meta.comment_id AND meta_key = '$meta')"
-					: '').
-				(isset($from_date, $till_date)
-					? " AND comment_date_gmt BETWEEN 
-						STR_TO_DATE('$from_date', '%Y-%m-%d %H:%i:%s') AND 
-						STR_TO_DATE('$till_date', '%Y-%m-%d %H:%i:%s')"
 					: ''),
 				ARRAY_A);
 			$result[] = $res[0]['cnt'];
@@ -484,8 +473,6 @@ function ct_ajax_info_comments($direct_call = false){
 			$params = array('fields' => 'ids', 'count' => true);
 			if(!empty($meta))
 				$params['meta_key'] = $meta;
-			if(isset($from_date, $till_date))
-				$params['date_query'] = array('column' => 'comment_date_gmt', 'after' => $from_date, 'before' => $till_date, 'inclusive' => true);
 			$result[] = get_comments( $params );
 		}
 	}
@@ -497,13 +484,13 @@ function ct_ajax_info_comments($direct_call = false){
 	
 	$return = array(
 		'message' => '',
-		'total' => $cnt,
-		'spam' => $cnt_spam,
+		'total'   => $cnt,
+		'spam'    => $cnt_spam,
 		'checked' => $cnt_checked,
-		'bad' => $cnt_bad,
+		'bad'     => $cnt_bad,
 	);
 	
-	$return['message'] .= sprintf (__("Total comments %s. Checked %s. Found %s spam comments. %s bad comments (without IP or email).", 'cleantalk'), $cnt, $cnt_checked, $cnt_spam, $cnt_bad);
+	$return['message'] .= sprintf (__("Total comments %s. Checked %s. Last check %s. Found %s spam comments. %s bad comments (without IP or email).", 'cleantalk'), $cnt, $cnt_checked, ct_get_last_comment_check_date(), $cnt_spam, $cnt_bad);
 	
     $backup_notice = '&nbsp;';
     if ($cnt_spam > 0){
@@ -639,11 +626,24 @@ function ct_ajax_delete_all(){
 function ct_ajax_clear_comments(){
 	
 	check_ajax_referer( 'ct_secret_nonce', 'security' );
-	global $wpdb;
-	$wpdb->query("DELETE 
-		FROM {$wpdb->commentmeta}
-		WHERE meta_key IN ('ct_checked', 'ct_marked_as_spam', 'ct_bad');");
-	die();
+
+    if ( isset($_POST['from']) && isset($_POST['till']) ) {
+        if ( preg_match('/[a-zA-Z]{3}\s{1}\d{1,2}\s{1}\d{4}/', $_POST['from'] ) && preg_match('/[a-zA-Z]{3}\s{1}\d{1,2}\s{1}\d{4}/', $_POST['till'] ) ) {
+
+            $from = date('Y-m-d', intval(strtotime($_POST['from']))) . ' 00:00:00';
+            $till = date('Y-m-d', intval(strtotime($_POST['till']))) . ' 23:59:59';
+
+            global $wpdb;
+            $query_result = $wpdb->query("DELETE FROM {$wpdb->commentmeta} WHERE 
+            meta_key IN ('ct_checked', 'ct_marked_as_spam', 'ct_bad') 
+            AND meta_value >= '{$from}' 
+            AND meta_value <= '{$till}';");
+
+            die();
+
+        }
+    }
+
 }
 
 /**
@@ -661,4 +661,66 @@ function ct_comment_check_approve_comment(){
 	wp_update_comment($comment);
 
 	die();
+}
+
+/**
+ * Get date last checked comment or date of the first comment
+ *
+ * @return string   date "M j Y"
+ */
+function ct_last_checked_comment() {
+
+    $params = array(
+        'fields'   => 'ids',
+        'meta_key' => 'ct_checked',
+        'orderby'  => 'ct_checked',
+        'order'    => 'ASC'
+    );
+    $checked_comments = get_comments( $params );
+
+    if ( ! empty($checked_comments) ) {
+
+        return get_comment_date( "M j Y", end( $checked_comments ) );
+
+    } else {
+
+        $params = array(
+            'fields'   => 'ids',
+            'orderby'  => 'comment_date_gmt',
+            'order'    => 'ASC',
+            'number'   => 1
+        );
+        $first_comment = get_comments( $params );
+
+        return get_comment_date( "M j Y", current( $first_comment ) );
+
+    }
+
+}
+
+/**
+ * Get last comments check date.
+ *
+ * @return string|null   Date format"M j Y"  or datetime format or null
+ */
+function ct_get_last_comment_check_date( $timestamp = false ) {
+
+    $params = array(
+        'fields'   => 'ids',
+        'meta_key' => 'ct_checked',
+        'orderby'  => 'comment_date_gmt',
+        'order'    => 'ASC'
+    );
+    $checked_comments = get_comments( $params );
+
+    $last_check = null;
+
+    if( ! empty( $checked_comments ) ) {
+
+        $last_check = $timestamp ? get_comment_meta( end( $checked_comments ), 'ct_checked', true ) : date( "M j Y", strtotime( get_comment_meta( end( $checked_comments ), 'ct_checked', true ) ) );
+
+    }
+
+    return $last_check;
+
 }
