@@ -701,7 +701,7 @@ class API
 		// Bad connection
 		if(is_array($result) && isset($result['error'])){
 			return array(
-				'error' => 'CONNECTION_ERROR: ' . (isset($result['error']) ? ' ' . $result['error'] : ''),
+				'error' => 'CONNECTION_ERROR' . (isset($result['error']) ? ': "' . $result['error'] . '"' : ''),
 			);
 		}
 		
