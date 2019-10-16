@@ -661,8 +661,6 @@ function ct_ajax_clear_users()
             AND meta_value >= '{$from}' 
             AND meta_value <= '{$till}';");
 
-            error_log(var_export($query_result,1));
-
             die();
 
         }
