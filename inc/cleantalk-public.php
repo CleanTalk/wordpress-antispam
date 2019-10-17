@@ -350,8 +350,11 @@ function apbct_buffer__output(){
 	
 	$html = $dom->getElementsByTagName('html');
 	
-	echo gettype($html) == 'object' && !empty( $html[0] )
-		? $html[0]->childNodes[0]->ownerDocument->saveHTML()
+	echo gettype($html) == 'object' && !isset( $html[0], $html[0]->childNodes, $html[0]->childNodes[0] )
+		? $html[0]
+			->childNodes[0]
+			->ownerDocument
+			->saveHTML()
 		: $apbct->buffer;
 }
 
