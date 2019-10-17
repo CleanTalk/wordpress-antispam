@@ -733,7 +733,8 @@ function ct_last_checked_user_register() {
     if( $cnt_checked > 0 ) {
 
         // If we have checked users return last user reg date
-        return ct_get_user_register( end( $tmp->get_results() ) );
+        $users = $tmp->get_results();
+        return ct_get_user_register( end( $users ) );
 
     } else {
 
@@ -771,7 +772,8 @@ function ct_get_last_check_date( $timestamp = false ) {
 
     if( $cnt_checked > 0 ) {
 
-        $last_check = $timestamp ? get_user_meta( end( $tmp->get_results() ), 'ct_checked', true ) : date( "M j Y", strtotime( get_user_meta( end( $tmp->get_results() ), 'ct_checked', true ) ) );
+        $users = $tmp->get_results();
+        $last_check = $timestamp ? get_user_meta( end( $users ), 'ct_checked', true ) : date( "M j Y", strtotime( get_user_meta( end( $users ), 'ct_checked', true ) ) );
     }
 
     return $last_check;
