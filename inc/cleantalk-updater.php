@@ -386,3 +386,9 @@ function apbct_update_to_5_127_1(){
 		}
 	}
 }
+
+function apbct_update_to_5_128_0(){
+	global $apbct;
+	$apbct->remote_calls = array();
+	$apbct->save('remote_calls');
+}
