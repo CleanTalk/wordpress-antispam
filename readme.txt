@@ -568,12 +568,14 @@ If your website has forms that send data to external sources, you can enable opt
 10. Website's options.
 
 == Changelog ==
-= 5.127.5 October 17 2019 =
-  * Fix: Cleantalk/Antispam/API.
+= 5.128 October 17 2019 =
   * Mod: Users check - functionality updated.
   * Fix: Users check - dates format updated.
   * Mod: Comments check - functionality updated.
   * Fix: Comments check - dates format updated.
+  * Fix: Fields exclusion fixed.
+  * Fix: Notice fixed.
+  * Fix: Cleantalk/Antispam/API.
   * Fix: Minor improvements and bug fixes.
 
 = 5.127.4 October 13 2019 =
