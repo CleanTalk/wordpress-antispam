@@ -2,6 +2,22 @@
 
 require_once('cleantalk-settings.php');
 
+// Add buttons to comments list table
+add_action( 'manage_comments_nav', 'apbct_add_buttons_to_comments', 10, 1 );
+function apbct_add_buttons_to_comments( $comment_status ) {
+    global $apbct;
+    echo '
+    <a href="edit-comments.php?page=ct_check_spam" class="button" style="margin:1px 0 0 0; display: inline-block;">
+        <img src="' . $apbct->logo__small__colored . '" alt="Cleantalk Antispam logo"  height="" style="width: 17px; vertical-align: text-bottom;" />
+        ' . __( 'Find spam comments', 'cleantalk' ) . '
+    </a>
+    <a href="https://cleantalk.org/my/show_requests?service_id=' . $apbct->data['service_id'] . '&int=week" target="_blank" class="button" style="margin:1px 0 0 0; display: inline-block;">
+        <img src="' . $apbct->logo__small__colored . '" alt="Cleantalk Antispam logo"  height="" style="width: 17px; vertical-align: text-bottom;" />
+        ' . __( 'CleanTalk Anti-Spam Log', 'cleantalk' ) . '
+    </a>
+    ';
+}
+
 add_action( 'admin_bar_menu', 'apbct_admin__admin_bar__add', 999 );
 
 //Adding widjet
@@ -315,7 +331,7 @@ function apbct_admin__enqueue_scripts($hook){
 			wp_enqueue_script('ct_comments_editscreen', plugins_url('/cleantalk-spam-protect/js/cleantalk-comments-editscreen.min.js'), array(), APBCT_VERSION);
 		wp_localize_script( 'jquery', 'ctCommentsScreen', array(
 				'ct_ajax_nonce'               => wp_create_nonce('ct_secret_nonce'),
-			'spambutton_text'             => __("Find spam-comments", 'cleantalk'),
+			'spambutton_text'             => __("Find spam comments", 'cleantalk'),
 			'ct_feedback_msg_whitelisted' => __("The sender has been whitelisted.", 'cleantalk'),
 			'ct_feedback_msg_blacklisted' => __("The sender has been blacklisted.", 'cleantalk'),
 			'ct_feedback_msg'             => sprintf(__("Feedback has been sent to %sCleanTalk Dashboard%s.", 'cleantalk'), $apbct->user_token ? "<a target='_blank' href=https://cleantalk.org/my?user_token={$apbct->user_token}&cp_mode=antispam>" : '', $apbct->user_token ? "</a>" : ''),
