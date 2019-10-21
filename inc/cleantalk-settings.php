@@ -630,12 +630,12 @@ function apbct_settings__error__output($return = false){
 		
 		$error_texts = array(
 			// Misc
-			'key_invalid' => __('Error occured while API key validating. Error: ', 'security-malware-firewall'),
-			'key_get' => __('Error occured while automatically gettings access key. Error: ', 'security-malware-firewall'),
-			'sfw_send_logs' => __('Error occured while sending sending SpamFireWall logs. Error: ', 'security-malware-firewall'),
-			'sfw_update' => __('Error occured while updating SpamFireWall local base. Error: '            , 'security-malware-firewall'),
-			'account_check' => __('Error occured while checking account status. Error: ', 'security-malware-firewall'),
-			'api' => __('Error occured while excuting API call. Error: ', 'security-malware-firewall'),
+			'key_invalid' => __('Error occured while API key validating. Error: ', 'cleantalk'),
+			'key_get' => __('Error occured while automatically gettings access key. Error: ', 'cleantalk'),
+			'sfw_send_logs' => __('Error occured while sending sending SpamFireWall logs. Error: ', 'cleantalk'),
+			'sfw_update' => __('Error occured while updating SpamFireWall local base. Error: '            , 'cleantalk'),
+			'account_check' => __('Error occured while checking account status. Error: ', 'cleantalk'),
+			'api' => __('Error occured while excuting API call. Error: ', 'cleantalk'),
 			
 			// Validating settings
 			'settings_validate' => 'Validate Settings',
@@ -643,7 +643,7 @@ function apbct_settings__error__output($return = false){
 			'exclusions_fields' => 'Field Exclusions',
 			
 			// Unknown
-			'unknown' => __('Unknown error. Error: ', 'security-malware-firewall'),
+			'unknown' => __('Unknown error. Error: ', 'cleantalk'),
 		);
 		
 		$errors_out = array();
@@ -674,7 +674,7 @@ function apbct_settings__error__output($return = false){
 		
 		if(!empty($errors_out)){
 			$out .= '<div id="apbctTopWarning" class="error" style="position: relative;">'
-				.'<h3 style="display: inline-block;">'.__('Errors:', 'security-malware-firewall').'</h3>';
+				.'<h3 style="display: inline-block;">'.__('Errors:', 'cleantalk').'</h3>';
 				foreach($errors_out as $value){
 					$out .= '<h4>'.$value.'</h4>';
 				}
@@ -859,7 +859,7 @@ function apbct_settings__field__apikey(){
 				echo '<div>';
 					echo '<input checked type="checkbox" id="license_agreed" onclick="apbctSettingsDependencies(\'apbct_setting---get_key_auto\');"/>';
 					echo '<label for="spbc_license_agreed">';
-						printf( __('I accept %sLicense Agreement%s.', 'security-malware-firewall'),
+						printf( __('I accept %sLicense Agreement%s.', 'cleantalk'),
 							'<a href="https://cleantalk.org/publicoffer" target="_blank" style="color:#66b;">',
 							'</a>'
 						);
