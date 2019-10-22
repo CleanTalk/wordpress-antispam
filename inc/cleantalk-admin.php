@@ -3,19 +3,35 @@
 require_once('cleantalk-settings.php');
 
 // Add buttons to comments list table
-add_action( 'manage_comments_nav', 'apbct_add_buttons_to_comments', 10, 1 );
-function apbct_add_buttons_to_comments( $comment_status ) {
+add_action( 'manage_comments_nav', 'apbct_add_buttons_to_comments_and_users', 10, 1 );
+add_action( 'manage_users_extra_tablenav', 'apbct_add_buttons_to_comments_and_users', 10, 1 );
+
+function apbct_add_buttons_to_comments_and_users( $unused_argument ) {
+
     global $apbct;
+    $current_screen = get_current_screen();
+
+    if( 'users' == $current_screen->base ) {
+        $button_url = $current_screen->base . '.php?page=ct_check_users';
+        $button_description = 'users';
+    } elseif ( 'edit-comments' == $current_screen->base ) {
+        $button_url = $current_screen->base . '.php?page=ct_check_spam';
+        $button_description = 'comments';
+    } else {
+        return;
+    }
+
     echo '
-    <a href="edit-comments.php?page=ct_check_spam" class="button" style="margin:1px 0 0 0; display: inline-block;">
+    <a href="' . $button_url . '" class="button" style="margin:1px 0 0 0; display: inline-block;">
         <img src="' . $apbct->logo__small__colored . '" alt="Cleantalk Antispam logo"  height="" style="width: 17px; vertical-align: text-bottom;" />
-        ' . __( 'Find spam comments', 'cleantalk' ) . '
+        ' . sprintf(__( 'Find spam %s', 'cleantalk' ), $button_description ) . '
     </a>
     <a href="https://cleantalk.org/my/show_requests?service_id=' . $apbct->data['service_id'] . '&int=week" target="_blank" class="button" style="margin:1px 0 0 0; display: inline-block;">
         <img src="' . $apbct->logo__small__colored . '" alt="Cleantalk Antispam logo"  height="" style="width: 17px; vertical-align: text-bottom;" />
         ' . __( 'CleanTalk Anti-Spam Log', 'cleantalk' ) . '
     </a>
     ';
+
 }
 
 add_action( 'admin_bar_menu', 'apbct_admin__admin_bar__add', 999 );

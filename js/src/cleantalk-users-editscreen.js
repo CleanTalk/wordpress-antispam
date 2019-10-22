@@ -6,10 +6,7 @@ function ct_is_ip(str){
 }
 
 jQuery(document).ready(function(){
-	
-	/* Shows "Find spam users" Buttons */
-	jQuery('#changeit').after(' <a href="users.php?page=ct_check_users" class="button" style="margin:1px 0 0 0; display: inline-block;">'+ctAdminCommon.logo_small_colored+'&nbsp;'+ctUsersScreen.spambutton_text+'</a>&nbsp;');
-	
+
 	/* Shows link to blacklists near every email and IP address */
 	if(parseInt(ctUsersScreen.ct_show_check_links))
 		jQuery('.column-email a').each(function(){
