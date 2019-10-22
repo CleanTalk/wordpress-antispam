@@ -173,7 +173,7 @@ class Arr
 				foreach ( $searched as $searched_key => $searched_val ){
 					switch ($type){
 						case 'key':
-							if( $key == $searched_val || ($regexp && preg_match( '/' . $searched_val . '/', $key) === 1) )
+							if( $key === $searched_val || ($regexp && preg_match( '/' . $searched_val . '/', $key) === 1) )
 								$found[$key] = true;
 							break;
 						case 'value':
