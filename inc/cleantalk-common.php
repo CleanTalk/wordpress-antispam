@@ -270,13 +270,17 @@ function apbct_exclusions_check__ip(){
 	
 	global $cleantalk_ip_exclusions;
 	
-	if(CleantalkHelper::ip__is_cleantalks($_SERVER['REMOTE_ADDR']))
-		return true;
-	
-	if (!empty($cleantalk_ip_exclusions) && is_array($cleantalk_ip_exclusions)){
-		foreach($cleantalk_ip_exclusions as $exclusion){
-			if(stripos($_SERVER['REMOTE_ADDR'], $exclusion) !== false){
-				return true;
+	if( isset( $_SERVER['REMOTE_ADDR'] ) ){
+		
+		if( CleantalkHelper::ip__is_cleantalks( $_SERVER['REMOTE_ADDR'] ) ){
+			return true;
+		}
+		
+		if( ! empty( $cleantalk_ip_exclusions ) && is_array( $cleantalk_ip_exclusions ) ){
+			foreach ( $cleantalk_ip_exclusions as $exclusion ){
+				if( stripos( $_SERVER['REMOTE_ADDR'], $exclusion ) !== false ){
+					return true;
+				}
 			}
 		}
 	}
