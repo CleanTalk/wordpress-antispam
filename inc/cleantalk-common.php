@@ -801,7 +801,7 @@ function ct_get_fields_any($arr, $message=array(), $email = null, $nickname = ar
 					elseif(count($match_nickname) > 1)
 						$nickname['nick'] = $value;
 					else
-						$nickname['name'] = $value;
+						$message[$prev_name.$key] = $value;
 						
 				// Subject
 				}elseif ($subject === null && preg_match("/subject/i", $key)){
