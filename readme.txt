@@ -568,6 +568,14 @@ If your website has forms that send data to external sources, you can enable opt
 10. Website's options.
 
 == Changelog ==
+= 5.128.1 October 17 2019 =
+  * Fix: Fatal error when using buffer output.
+  * Fix: Translate domain for errors.
+  * Code: Fix spelling in function name.
+  * Fix: JS disabled error.
+  * Upd: Comment edit screen updated.
+  * Fix: Cleantalk\Arr::search() fixed.
+
 = 5.128 October 17 2019 =
   * Mod: Users check - functionality updated.
   * Fix: Users check - dates format updated.
