@@ -214,14 +214,12 @@ CleanTalk has an advanced option "Spam FireWall". This option allows you to bloc
 
 = White Label Mode =
 
-To switch the plugin work in the white-label mode you must insert this code to your wp-config.php: 
+To switch the plugin work in the white-label mode you should set up a few settings on your main site in Wordpress Multisite Network:
 
-	define('APBCT_WHITELABEL',     true);
-	define('APBCT_WHITELABEL_NAME', 'YOUR_PLUGIN_NAME');
-	define('APBCT_HOSTER_API_KEY', 'YOUR_HOSTER_API_KEY');
-
-Where APBCT_WHITELABEL_NAME is any name you want for the plugin.
-Where YOUR_HOSTER_API_KEY is a key from CleanTalk's hoster panel.
+1. Check setting "Enable White Label Mode".
+2. Fill "Hoster API Key" field with key from CleanTalk's hoster panel.
+3. Fill "Plugin name" field. It could be any name you want for the plugin.
+4. Save settings.
 
 The plugin will do everything rest.
 
