@@ -170,7 +170,7 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 	}
 	
 	// Ninja Forms. Making GET action to POST action
-    if(isset($_SERVER['REQUEST_URI']) && stripos($_SERVER['REQUEST_URI'],'admin-ajax.php') !== false && sizeof($_POST) > 0 && isset($_GET['action']) && $_GET['action']=='ninja_forms_ajax_submit')
+    if(stripos(filter_input(INPUT_SERVER, 'REQUEST_URI'),'admin-ajax.php') !== false && sizeof($_POST) > 0 && isset($_GET['action']) && $_GET['action']=='ninja_forms_ajax_submit')
     	$_POST['action']='ninja_forms_ajax_submit';
     
 	add_action( 'wp_ajax_nopriv_ninja_forms_ajax_submit', 'apbct_form__ninjaForms__testSpam', 1);
@@ -200,7 +200,7 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 		// SpamFireWall check
 		if( $apbct->plugin_version == APBCT_VERSION && // Do not call with first start
 			$apbct->settings['spam_firewall'] == 1 &&
-		    isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] == 'GET'
+		    filter_input(INPUT_SERVER, 'REQUEST_METHOD') == 'GET'
 		){
 			apbct_sfw__check();
 	    }
@@ -231,8 +231,8 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
     add_action('plugins_loaded', 'apbct_plugin_loaded' );
     
     if(	!empty($apbct->settings['use_ajax']) && 
-    	stripos($_SERVER['REQUEST_URI'],'.xml')===false && 
-    	stripos($_SERVER['REQUEST_URI'],'.xsl')===false)
+    	stripos(filter_input(INPUT_SERVER, 'REQUEST_URI'),'.xml')===false &&
+    	stripos(filter_input(INPUT_SERVER, 'REQUEST_URI'),'.xsl')===false)
     {
 		add_action( 'wp_ajax_nopriv_ct_get_cookie', 'ct_get_cookie',1 );
 		add_action( 'wp_ajax_ct_get_cookie', 'ct_get_cookie',1 );
@@ -329,7 +329,7 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 		if($pagenow=='users.php')
 			add_action('delete_user', 'apbct_user__delete__hook', 10, 2);
 
-		if($pagenow=='plugins.php' || (isset($_SERVER['REQUEST_URI']) && strpos($_SERVER['REQUEST_URI'],'plugins.php') !== false)){
+		if($pagenow=='plugins.php' || (strpos(filter_input(INPUT_SERVER, 'REQUEST_URI'),'plugins.php') !== false)){
 
 			add_filter('plugin_action_links_'.plugin_basename(__FILE__), 'apbct_admin__plugin_action_links', 10, 2);
 			add_filter('network_admin_plugin_action_links_'.plugin_basename(__FILE__), 'apbct_admin__plugin_action_links', 10, 2);
@@ -504,7 +504,7 @@ function apbct_sfw__check()
 	 if (!empty($cleantalk_url_exclusions) && is_array($cleantalk_url_exclusions)) {
 		$core_page_to_skip_check = array('/feed');
 		foreach (array_merge($cleantalk_url_exclusions, $core_page_to_skip_check) as $v) {
-			if (stripos($_SERVER['REQUEST_URI'], $v) !== false) {
+			if (stripos(filter_input(INPUT_SERVER, 'REQUEST_URI'), $v) !== false) {
 				return;
 			}
 		} 
@@ -541,8 +541,8 @@ function apbct_sfw__check()
 		$spbc_key = !empty($spbc_settings['spbc_key']) ? $spbc_settings['spbc_key'] : false;
 		if($_GET['access'] === $apbct->api_key || ($spbc_key !== false && $_GET['access'] === $spbc_key)){
 			$is_sfw_check = false;
-			setcookie ('spbc_firewall_pass_key', md5($_SERVER['REMOTE_ADDR'].$spbc_key),       time()+1200, '/');
-			setcookie ('ct_sfw_pass_key',        md5($_SERVER['REMOTE_ADDR'].$apbct->api_key), time()+1200, '/');
+			setcookie ('spbc_firewall_pass_key', md5(filter_input(INPUT_SERVER, 'REMOTE_ADDR') . $spbc_key),       time()+1200, '/');
+			setcookie ('ct_sfw_pass_key',        md5(filter_input(INPUT_SERVER, 'REMOTE_ADDR') . $apbct->api_key), time()+1200, '/');
 		}
 		unset($spbc_settings, $spbc_key);
 	}
@@ -1436,12 +1436,12 @@ function apbct_cookie(){
 	}
 
 // Pervious referer
-	if(!empty($_SERVER['HTTP_REFERER'])){
+	if(filter_input(INPUT_SERVER, 'HTTP_REFERER')){
 		$apbct->settings['set_cookies__sessions']
-			? apbct_alt_session__save('apbct_prev_referer', $_SERVER['HTTP_REFERER'])
-			: setcookie('apbct_prev_referer', $_SERVER['HTTP_REFERER'], 0, '/', $domain, false, true);
+			? apbct_alt_session__save('apbct_prev_referer', filter_input(INPUT_SERVER, 'HTTP_REFERER'))
+			: setcookie('apbct_prev_referer', filter_input(INPUT_SERVER, 'HTTP_REFERER'), 0, '/', $domain, false, true);
 		$cookie_test_value['cookies_names'][] = 'apbct_prev_referer';
-		$cookie_test_value['check_value'] .= $_SERVER['HTTP_REFERER'];
+		$cookie_test_value['check_value'] .= filter_input(INPUT_SERVER, 'HTTP_REFERER');
 	}
 	
 // Landing time
@@ -1615,7 +1615,7 @@ function ct_mail_send_connection_report() {
     if (($apbct->settings['send_connection_reports'] == 1 && $apbct->connection_reports['negative'] > 0) || !empty($_GET['ct_send_connection_report']))
     {
 		$to  = "welcome@cleantalk.org" ; 
-		$subject = "Connection report for ".$_SERVER['HTTP_HOST']; 
+		$subject = "Connection report for ".filter_input(INPUT_SERVER, 'HTTP_HOST');
 		$message = ' 
 				<html> 
 				    <head> 
