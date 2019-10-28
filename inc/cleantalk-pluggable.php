@@ -71,7 +71,7 @@ function apbct_wp_validate_auth_cookie( $cookie = '', $scheme = '' ) {
 	$expiration = $cookie_elements['expiration'];
 	
 	// Allow a grace period for POST and Ajax requests
-	$expired = apbct_is_ajax() || 'POST' == $_SERVER['REQUEST_METHOD']
+	$expired = apbct_is_ajax() || 'POST' == filter_input(INPUT_SERVER, 'REQUEST_METHOD')
 		? $expiration + HOUR_IN_SECONDS
 		: $cookie_elements['expiration'];
 	
@@ -214,7 +214,7 @@ function apbct_is_ajax() {
 	
 	return
 		(defined( 'DOING_AJAX' ) && DOING_AJAX) || // by standart WP functions
-		(!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') || // by Request type
+		(filter_input(INPUT_SERVER, 'HTTP_X_REQUESTED_WITH') && strtolower(filter_input(INPUT_SERVER, 'HTTP_X_REQUESTED_WITH')) == 'xmlhttprequest') || // by Request type
 		!empty($_POST['quform_ajax']); // special. QForms
 	
 }
