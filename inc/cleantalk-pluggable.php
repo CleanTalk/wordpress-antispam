@@ -225,5 +225,7 @@ function apbct_is_ajax() {
  * @return bool
  */
 function apbct_is_user_logged_in(){
-	return count($_COOKIE) && defined('LOGGED_IN_COOKIE') && isset($_COOKIE[LOGGED_IN_COOKIE]);
+	$siteurl = get_site_option( 'siteurl' );
+	$cookiehash = $siteurl ? md5( $siteurl ) : '';
+	return count($_COOKIE) && isset($_COOKIE['wordpress_logged_in_'.$cookiehash]);
 }
