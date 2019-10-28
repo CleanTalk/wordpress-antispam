@@ -155,7 +155,7 @@ function apbct_base_call($params = array(), $reg_flag = false){
         $apbct->data['connection_reports']['negative']++;
         $apbct->data['connection_reports']['negative_report'][] = array(
 			'date' => date("Y-m-d H:i:s"),
-			'page_url' => $_SERVER['REQUEST_URI'],
+			'page_url' => filter_input(INPUT_SERVER, 'REQUEST_URI'),
 			'lib_report' => $ct_result->errstr,
 			'work_url' => $ct->work_url,
 		);
@@ -244,9 +244,9 @@ function apbct_exclusions_check__url() {
 		$exclusions = explode( ',', $apbct->settings['exclusions__urls'] );
 		
 		// Fix for AJAX forms
-		$haystack = $_SERVER['REQUEST_URI'] == '/wp-admin/admin-ajax.php' && ! empty( $_SERVER['HTTP_REFERER'] )
-			? $_SERVER['HTTP_REFERER']
-			: $_SERVER['REQUEST_URI'];
+		$haystack = filter_input(INPUT_SERVER, 'REQUEST_URI') == '/wp-admin/admin-ajax.php' && ! filter_input(INPUT_SERVER, 'HTTP_REFERER')
+			? filter_input(INPUT_SERVER, 'HTTP_REFERER')
+			: filter_input(INPUT_SERVER, 'REQUEST_URI');
 		
 		foreach ( $exclusions as $exclusion ) {
 			if (
@@ -270,15 +270,15 @@ function apbct_exclusions_check__ip(){
 	
 	global $cleantalk_ip_exclusions;
 	
-	if( isset( $_SERVER['REMOTE_ADDR'] ) ){
+	if( filter_input(INPUT_SERVER, 'REMOTE_ADDR') ){
 		
-		if( CleantalkHelper::ip__is_cleantalks( $_SERVER['REMOTE_ADDR'] ) ){
+		if( CleantalkHelper::ip__is_cleantalks( filter_input(INPUT_SERVER, 'REMOTE_ADDR') ) ){
 			return true;
 		}
 		
 		if( ! empty( $cleantalk_ip_exclusions ) && is_array( $cleantalk_ip_exclusions ) ){
 			foreach ( $cleantalk_ip_exclusions as $exclusion ){
-				if( stripos( $_SERVER['REMOTE_ADDR'], $exclusion ) !== false ){
+				if( stripos( filter_input(INPUT_SERVER, 'REMOTE_ADDR'), $exclusion ) !== false ){
 					return true;
 				}
 			}
@@ -320,8 +320,8 @@ function apbct_get_sender_info() {
 	}
 	
 	// AMP check
-	$amp_detected = isset($_SERVER['HTTP_REFERER'])
-		? strpos($_SERVER['HTTP_REFERER'], '/amp/') !== false || strpos($_SERVER['HTTP_REFERER'], '?amp=1') !== false || strpos($_SERVER['HTTP_REFERER'], '&amp=1') !== false
+	$amp_detected = filter_input(INPUT_SERVER, 'HTTP_REFERER')
+		? strpos(filter_input(INPUT_SERVER, 'HTTP_REFERER'), '/amp/') !== false || strpos(filter_input(INPUT_SERVER, 'HTTP_REFERER'), '?amp=1') !== false || strpos(filter_input(INPUT_SERVER, 'HTTP_REFERER'), '&amp=1') !== false
 			? 1
 			: 0
 		: null;
@@ -336,13 +336,13 @@ function apbct_get_sender_info() {
 	
 	return array(
 		'remote_addr'            => CleantalkHelper::ip__get(array('remote_addr'), false),
-        'REFFERRER'              => isset($_SERVER['HTTP_REFERER'])                                ? htmlspecialchars($_SERVER['HTTP_REFERER'])                        : null,
-        'USER_AGENT'             => isset($_SERVER['HTTP_USER_AGENT'])                             ? htmlspecialchars($_SERVER['HTTP_USER_AGENT'])                     : null,
+        'REFFERRER'              => filter_input(INPUT_SERVER, 'HTTP_REFERER')  ? htmlspecialchars(filter_input(INPUT_SERVER, 'HTTP_REFERER')) : null,
+        'USER_AGENT'             => filter_input(INPUT_SERVER, 'HTTP_USER_AGENT') ? htmlspecialchars(filter_input(INPUT_SERVER, 'HTTP_USER_AGENT')) : null,
 		'page_url'               => isset($_SERVER['SERVER_NAME'], $_SERVER['REQUEST_URI'])        ? htmlspecialchars($_SERVER['SERVER_NAME'].$_SERVER['REQUEST_URI']) : null,
         'cms_lang'               => substr(get_locale(), 0, 2),
         'ct_options'             => json_encode($apbct->settings),
         'fields_number'          => sizeof($_POST),
-        'direct_post'            => $cookie_is_ok === null && $_SERVER['REQUEST_METHOD'] == 'POST' ? 1                                                                 : 0,
+        'direct_post'            => $cookie_is_ok === null && filter_input(INPUT_SERVER, 'REQUEST_METHOD') == 'POST' ? 1 : 0,
 		// Raw data to validated JavaScript test in the cloud                                                                                                          
         'checkjs_data_cookies'   => !empty($_COOKIE['ct_checkjs'])                                 ? $_COOKIE['ct_checkjs']                                            : null, 
         'checkjs_data_post'      => !empty($checkjs_data_post)                                     ? $checkjs_data_post                                                : null, 
@@ -368,7 +368,7 @@ function apbct_get_sender_info() {
 		'headers_sent'           => !empty($apbct->headers_sent)        ? $apbct->headers_sent        : false,
 		'headers_sent__hook'     => !empty($apbct->headers_sent__hook)  ? $apbct->headers_sent__hook  : false,
 		'headers_sent__where'    => !empty($apbct->headers_sent__where) ? $apbct->headers_sent__where : false,
-		'request_type'           => isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : 'UNKNOWN',
+		'request_type'           => filter_input(INPUT_SERVER, 'REQUEST_METHOD') ? filter_input(INPUT_SERVER, 'REQUEST_METHOD') : 'UNKNOWN',
 		'abpct_hyro_acc_collect' => !empty($_COOKIE['abpct_hyro_acc_collect'])                     ? json_decode(stripslashes($_COOKIE['abpct_hyro_acc_collect']), true): null,
 	);
 }
@@ -442,7 +442,7 @@ function ct_get_checkjs_value(){
 	}elseif(
 		$apbct->settings['use_static_js_key'] == - 1 &&
 		  ( apbct_is_cache_plugins_exists() ||
-		    ( isset( $_SERVER['REQUEST_METHOD'] ) && strtolower( $_SERVER['REQUEST_METHOD'] ) == 'post' && $apbct->data['cache_detected'] == 1 )
+		    ( strtolower( filter_input(INPUT_SERVER, 'REQUEST_METHOD') ) == 'post' && $apbct->data['cache_detected'] == 1 )
 		  )
 	){
 	    $key = hash('sha256', $apbct->api_key.ct_get_admin_email().$apbct->salt);
