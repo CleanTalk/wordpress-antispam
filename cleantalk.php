@@ -200,8 +200,8 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 		// SpamFireWall check
 		if( $apbct->plugin_version == APBCT_VERSION && // Do not call with first start
 			$apbct->settings['spam_firewall'] == 1 &&
-		    $_SERVER["REQUEST_METHOD"] == 'GET')
-		{
+		    isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] == 'GET'
+		){
 			apbct_sfw__check();
 	    }
 		
