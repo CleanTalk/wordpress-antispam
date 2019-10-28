@@ -532,8 +532,8 @@ function apbct_integration__buddyPres__activityWall( $is_spam, $activity_obj = n
 			'sender_email'    => $curr_user->data->user_email,
 			'sender_nickname' => $curr_user->data->user_login,
 			'post_info'       => array(
-				'post_url'     => 'buddypress_activitywall',
-				'comment_type' => isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : null,
+				'post_url'     => isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : null,
+				'comment_type' => 'buddypress_activitywall',
 			),
 			'js_on'           => apbct_js_test('ct_checkjs', $_COOKIE),
 			'sender_info'     => array('sender_url' => null),
