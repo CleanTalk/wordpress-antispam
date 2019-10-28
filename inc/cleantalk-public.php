@@ -1402,14 +1402,18 @@ function apbct_js_test($field_name = 'ct_checkjs', $data = null) {
 	
 	    // Check static key
 	    if(
-	    	$apbct->settings['use_static_js_key'] == 1 ||
-	       ($apbct->settings['use_static_js_key'] == -1 && apbct_is_cache_plugins_exists())
+		    $apbct->settings['use_static_js_key'] == 1 ||
+		    ( $apbct->settings['use_static_js_key'] == - 1 &&
+		      ( apbct_is_cache_plugins_exists() ||
+		        ( isset( $_SERVER['REQUEST_METHOD'] ) && strtolower( $_SERVER['REQUEST_METHOD'] ) == 'post' && $apbct->data['cache_detected'] == 1 )
+		      )
+		    )
 	    ){
 		    $out = ct_get_checkjs_value() === $js_key ? 1 : 0;
 		
 	    // Random key check
 	    }else{
-		    $out = array_key_exists($js_key, $apbct->js_keys) ? 1 : 0;
+		    $out = array_key_exists( $js_key, $apbct->js_keys ) ? 1 : 0;
 	    }
     }
 	

@@ -432,17 +432,26 @@ function apbct_js_keys__get__ajax($direct_call = false){
 function ct_get_checkjs_value(){
 	
     global $apbct;
-	
+    
     // Use static JS keys
-	if(
-		$apbct->settings['use_static_js_key'] == 1 ||
-		($apbct->settings['use_static_js_key'] == -1 && apbct_is_cache_plugins_exists())
+	if($apbct->settings['use_static_js_key'] == 1){
+		
+		$key = hash('sha256', $apbct->api_key.ct_get_admin_email().$apbct->salt);
+		
+	// Auto detecting. Detected.
+	}elseif(
+		$apbct->settings['use_static_js_key'] == - 1 &&
+		  ( apbct_is_cache_plugins_exists() ||
+		    ( isset( $_SERVER['REQUEST_METHOD'] ) && strtolower( $_SERVER['REQUEST_METHOD'] ) == 'post' && $apbct->data['cache_detected'] == 1 )
+		  )
 	){
 	    $key = hash('sha256', $apbct->api_key.ct_get_admin_email().$apbct->salt);
+	    if( apbct_is_cache_plugins_exists() )
+		    $apbct->data['cache_detected'] = 1;
 	
     // Using dynamic JS keys
     }else{
-    	
+		
         $keys = $apbct->data['js_keys'];
         $keys_checksum = md5(json_encode($keys));
         
@@ -472,10 +481,14 @@ function ct_get_checkjs_value(){
         // Save keys if they were changed
         if (md5(json_encode($keys)) != $keys_checksum) {
             $apbct->data['js_keys'] = $keys;
-            $apbct->saveData();
+            // $apbct->saveData();
         }
+		
+		$apbct->data['cache_detected'] = 0;
     }
 
+	$apbct->saveData();
+	
     return $key; 
 }
 
