@@ -283,6 +283,8 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 		'check_retina_image_availability', //There are too many ajax requests from mobile
 	    'uap_check_reg_field_ajax', // Ultimate Affiliate Pro. Form validation.
 	    'edit-comment', // Edit comments by admin ??? that shouldn't happen
+	    'formcraft3_save_form_progress', // FormCraft – Contact Form Builder for WordPress. Save progress.
+	    'wpdmpp_save_settings', // PayPal save settings.
     );
 	
     // Skip test if
