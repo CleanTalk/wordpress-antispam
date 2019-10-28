@@ -270,8 +270,8 @@ function ct_show_users_page(){
 				</div>
 				<?php
 			}
-			echo $_SERVER['REMOTE_ADDR']=='127.0.0.1' ? '<br /><button class=" ct_to_hide button" id="ct_insert_users">'. __('Insert accounts', 'cleantalk'). ' (100)</button> ' : '';
-			echo $_SERVER['REMOTE_ADDR']=='127.0.0.1' ?       '<button class="ct_to_hide button" id="ct_delete_users">'. __('Delete accounts', 'cleantalk'). ' (110)</button><br />' : '';
+			echo filter_input(INPUT_SERVER, 'REMOTE_ADDR')=='127.0.0.1' ? '<br /><button class=" ct_to_hide button" id="ct_insert_users">'. __('Insert accounts', 'cleantalk'). ' (100)</button> ' : '';
+			echo filter_input(INPUT_SERVER, 'REMOTE_ADDR')=='127.0.0.1' ?       '<button class="ct_to_hide button" id="ct_delete_users">'. __('Delete accounts', 'cleantalk'). ' (110)</button><br />' : '';
 			
 			if($cnt_spam1 > 0){
 				echo "<div id='ct_search_info'>"
