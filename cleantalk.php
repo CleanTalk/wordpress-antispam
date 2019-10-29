@@ -185,6 +185,10 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
     add_action( 'wp_ajax_seed_cspv5_contactform_callback',        'apbct_form__seedprod_coming_soon__testSpam', 1 );
     add_action( 'wp_ajax_nopriv_seed_cspv5_contactform_callback', 'apbct_form__seedprod_coming_soon__testSpam', 1 );
 
+    // The 7 theme contact form integration
+    add_action( 'wp_ajax_nopriv_dt_send_mail', 'apbct_form__the7_contact_form', 1 );
+    add_action( 'wp_ajax_dt_send_mail', 'apbct_form__the7_contact_form', 1 );
+
 	// Public actions
 	if(!is_admin() && !apbct_is_ajax()){
 		

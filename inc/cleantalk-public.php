@@ -2864,6 +2864,64 @@ function ct_s2member_registration_test($post_key) {
     return true;
 }
 
+function apbct_form__the7_contact_form() {
+
+    global $cleantalk_executed;
+
+    if ( check_ajax_referer( 'dt_contact_form', 'nonce', false ) && isset($_POST) ) {
+
+        $post_info['comment_type'] = 'contact_the7_theme_contact_form';
+
+        $ct_temp_msg_data = ct_get_fields_any($_POST);
+
+        $sender_email    = ($ct_temp_msg_data['email']    ? $ct_temp_msg_data['email']    : '');
+        $sender_nickname = ($ct_temp_msg_data['nickname'] ? $ct_temp_msg_data['nickname'] : '');
+        $subject         = ($ct_temp_msg_data['subject']  ? $ct_temp_msg_data['subject']  : '');
+        $contact_form    = ($ct_temp_msg_data['contact']  ? $ct_temp_msg_data['contact']  : true);
+        $message         = ($ct_temp_msg_data['message']  ? $ct_temp_msg_data['message']  : array());
+        if ($subject != '') {
+            $message = array_merge(array('subject' => $subject), $message);
+        }
+
+        // Skip submission if no data found
+        if ($sender_email === ''|| !$contact_form) {
+            return false;
+        }
+        $cleantalk_executed = true;
+
+        $base_call_result = apbct_base_call(
+            array(
+                'message'         => $message,
+                'sender_email'    => $sender_email,
+                'sender_nickname' => $sender_nickname,
+                'post_info'       => $post_info,
+            )
+        );
+
+        $ct_result = $base_call_result['ct_result'];
+        if ($ct_result->allow == 0) {
+
+            $response = json_encode(
+                array(
+                    'success'		=> false ,
+                    'errors'        => $ct_result->comment,
+                    'nonce'         => wp_create_nonce( 'dt_contact_form' )
+                )
+            );
+
+            // response output
+            header( "Content-Type: application/json" );
+            echo $response;
+
+            // IMPORTANT: don't forget to "exit"
+            exit;
+
+        }
+
+    }
+
+}
+
 /**
  * General test for any contact form
  */
