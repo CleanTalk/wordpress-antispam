@@ -845,7 +845,7 @@ function apbct_settings__field__apikey(){
 			// Warnings and GDPR
 			printf( __('Admin e-mail (%s) will be used for registration, if you want to use other email please %sGet Access Key Manually%s.', 'cleantalk'),
 				ct_get_admin_email(),
-				'<a target="__blank" href="'
+				'<a class="apbct_color--gray" target="__blank" href="'
 					. sprintf( 'https://cleantalk.org/register?platform=wordpress&email=%s&website=%s',
 						urlencode(ct_get_admin_email()),
 						urlencode(parse_url(get_option('siteurl'),PHP_URL_HOST))
@@ -1288,7 +1288,7 @@ function apbct_settings__validate($settings) {
 		}else{
 			$apbct->error_add(
 				'key_get',
-				$result
+				$result['error']
 				. ($apbct->white_label
 					? ' <button name="submit" type="submit" class="cleantalk_link cleantalk_link-manual" value="get_key_auto">'
 					: ''
