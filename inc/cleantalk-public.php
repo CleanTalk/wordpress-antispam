@@ -2884,6 +2884,7 @@ function ct_contact_form_validate() {
         strpos($_SERVER['REQUEST_URI'],'wp-login.php')!==false||
         strpos($_SERVER['REQUEST_URI'],'wp-comments-post.php')!==false ||
 		strpos($_SERVER['REQUEST_URI'],'?provider=facebook&')!==false ||
+        strpos($_SERVER['REQUEST_URI'],'reset-password/')!==false || // Ticket #13668. Password reset.
         (isset($_SERVER['HTTP_REFERER']) && strpos($_SERVER['HTTP_REFERER'],'/wp-admin/') !== false) ||
         strpos($_SERVER['REQUEST_URI'],'/login/')!==false ||
         strpos($_SERVER['REQUEST_URI'], '/my-account/edit-account/')!==false ||   // WooCommerce edit account page
