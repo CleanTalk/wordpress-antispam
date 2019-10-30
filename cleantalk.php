@@ -1152,13 +1152,13 @@ function apbct_rc__update(){
 	
 	apbct_maintance_mode__disable();
 	
+	$result = activate_plugins( $plugin );
+	
 	// Changing response UP_TO_DATE to OK
 	if($upgrader->apbct_result === 'UP_TO_DATE')
 		$upgrader->apbct_result = 'OK';
 	
 	if($upgrader->apbct_result === 'OK'){
-		
-		$result = activate_plugins( $plugin );
 		
 		if(is_wp_error($result)){
 			die('FAIL '. json_encode(array('error' => 'COULD_NOT_ACTIVATE', 'wp_error' => $result->get_error_message())));
