@@ -1145,8 +1145,12 @@ function apbct_rc__update(){
 	include_once( CLEANTALK_PLUGIN_DIR . 'lib/CleantalkUpgrader.php' );
 	include_once( CLEANTALK_PLUGIN_DIR . 'lib/CleantalkUpgraderSkin.php' );
 	
+	apbct_maintance_mode__enable( 30 );
+	
 	$upgrader = new CleantalkUpgrader( new CleantalkUpgraderSkin( compact('title', 'nonce', 'url', 'plugin') ) );
     $upgrader->upgrade($plugin);
+	
+	apbct_maintance_mode__disable();
 	
 	// Changing response UP_TO_DATE to OK
 	if($upgrader->apbct_result === 'UP_TO_DATE')
@@ -1156,16 +1160,21 @@ function apbct_rc__update(){
 		
 		$result = activate_plugins( $plugin );
 		
-		if(is_wp_error($result))
+		if(is_wp_error($result)){
 			die('FAIL '. json_encode(array('error' => 'COULD_NOT_ACTIVATE', 'wp_error' => $result->get_error_message())));
+		}
 		
 		$httpResponseCode =  CleantalkHelper::http__request(get_option('siteurl'), array(), 'get_code');
 		
 		if( strpos($httpResponseCode, '200') === false ){
 			
+			apbct_maintance_mode__enable( 30 );
+			
 			// Rollback
 			$rollback = new CleantalkUpgrader( new CleantalkUpgraderSkin( compact('title', 'nonce', 'url', 'plugin_slug', 'prev_version') ) );
 			$rollback->rollback($plugin);
+			
+			apbct_maintance_mode__disable();
 			
 			$response = array(
 				'error'           => 'BAD_HTTP_CODE',
@@ -1253,7 +1262,7 @@ function apbct_rc__insert_auth_key($key, $plugin){
 						
 						return 'OK';
 					}else
-						return array('error' => array('KEY_IS_NOT_VALID'));
+						return array('error' => 'KEY_IS_NOT_VALID');
 				}else
 					return array('error' => $result);
 			}else
@@ -1262,6 +1271,34 @@ function apbct_rc__insert_auth_key($key, $plugin){
 			return array('error' => 'PLUGIN_IS_NOT_ACTIVE_OR_NOT_INSTALLED');
 	}else
 		return array('error' => 'PLUGIN_SLUG_INCORRECT');
+}
+
+/**
+ * Putting Wordpress to maintenance mode.
+ * For given duration in seconds
+ *
+ * @param $duration
+ *
+ * @return bool
+ */
+function apbct_maintance_mode__enable( $duration ) {
+	apbct_maintance_mode__disable();
+	$content = "<?php\n\n"
+	           . '$upgrading = ' . (time() - ( 60 * 10 ) + $duration) . ';';
+	
+	return (bool)file_put_contents( ABSPATH . '.maintenance', $content );
+}
+
+/**
+ * Disabling maintenance mode by deleting .maintenance file.
+ *
+ * @return void
+ */
+function apbct_maintance_mode__disable() {
+	$maintenance_file = ABSPATH . '.maintenance';
+	if ( file_exists( $maintenance_file ) ) {
+		unlink( $maintenance_file );
+	}
 }
 
 function cleantalk_get_brief_data(){
