@@ -566,6 +566,12 @@ If your website has forms that send data to external sources, you can enable opt
 10. Website's options.
 
 == Changelog ==
+= 5.128.2 October 29 2019 =
+  * Upd: Localize updated.
+  * Fix: Direct $_SERVER access replaced.
+  * Integration: The 7 theme contact form.
+  * Fix: Minor improvements and bug fixes.
+
 = 5.128.1 October 23 2019 =
   * Fix: Fatal error when using buffer output.
   * Fix: Translate domain for errors.
