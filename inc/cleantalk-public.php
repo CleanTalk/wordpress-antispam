@@ -43,7 +43,7 @@ function apbct_init() {
 		}
 
 		// Check and redirecct
-		if(filter_input(INPUT_SERVER, 'REQUEST_METHOD') == 'POST'
+		if( apbct_is_post()
 			&& isset($_POST['cleantalk_hidden_method'])
 			&& isset($_POST['cleantalk_hidden_action'])
 		){
@@ -271,7 +271,7 @@ function apbct_init() {
         if ($apbct->settings['general_contact_forms_test'] == 1 && !isset($_POST['comment_post_ID']) && !isset($_GET['for'])){
             add_action( 'init', 'ct_contact_form_validate', 999 );
         }
-        if(filter_input(INPUT_SERVER, 'REQUEST_METHOD') == 'POST' &&
+        if( apbct_is_post() &&
 			$apbct->settings['general_postdata_test'] == 1 &&
 			!isset($_POST['ct_checkjs_cf7']) &&
 			!is_admin() &&
@@ -1101,7 +1101,7 @@ function ct_preprocess_comment($comment) {
         return $comment;
 
    	$comments_check_number = defined('CLEANTALK_CHECK_COMMENTS_NUMBER')  ? CLEANTALK_CHECK_COMMENTS_NUMBER : 3;
-
+   	
     if($apbct->settings['check_comments_number']){
 	   	$args = array(
 			'author_email' => $comment['comment_author_email'],
@@ -1119,9 +1119,10 @@ function ct_preprocess_comment($comment) {
 			apbct_is_user_enable() === false ||
 			$apbct->settings['comments_test'] == 0 ||
 			$ct_comment_done ||
-			(stripos(filter_input(INPUT_SERVER, 'HTTP_REFERER'),'page=wysija_campaigns&action=editTemplate')!==false) ||
+			(isset($_SERVER['HTTP_REFERER']) && stripos($_SERVER['HTTP_REFERER'],'page=wysija_campaigns&action=editTemplate')!==false) ||
 			(isset($is_max_comments) && $is_max_comments) ||
-			strpos(filter_input(INPUT_SERVER, 'REQUEST_URI'),'/wp-admin/')!==false)
+			(isset($_SERVER['HTTP_REFERER']) && strpos($_SERVER['REQUEST_URI'],'/wp-admin/')!==false)
+		)
 	)
 	{
         return $comment;
@@ -1405,7 +1406,7 @@ function apbct_js_test($field_name = 'ct_checkjs', $data = null) {
 		    $apbct->settings['use_static_js_key'] == 1 ||
 		    ( $apbct->settings['use_static_js_key'] == - 1 &&
 		      ( apbct_is_cache_plugins_exists() ||
-		        ( strtolower( filter_input(INPUT_SERVER, 'REQUEST_METHOD') ) == 'post' && $apbct->data['cache_detected'] == 1 )
+		        ( apbct_is_post() && $apbct->data['cache_detected'] == 1 )
 		      )
 		    )
 	    ){
@@ -2937,12 +2938,12 @@ function ct_contact_form_validate() {
     	(isset($_POST['signup_username']) && isset($_POST['signup_email']) && isset($_POST['signup_password'])) ||
         (isset($pagenow) && $pagenow == 'wp-login.php') || // WordPress log in form
         (isset($pagenow) && $pagenow == 'wp-login.php' && isset($_GET['action']) && $_GET['action']=='lostpassword') ||
-				strpos(filter_input(INPUT_SERVER, 'HTTP_REFERER'),'lostpassword') !== false ||
+		strpos(filter_input(INPUT_SERVER, 'HTTP_REFERER'),'lostpassword') !== false ||
         (strpos(filter_input(INPUT_SERVER, 'REQUEST_URI'),'/wp-admin/')!== false && (empty($_POST['your-phone']) && empty($_POST['your-email']) && empty($_POST['your-message']))) || //Bitrix24 Contact
         strpos(filter_input(INPUT_SERVER, 'REQUEST_URI'),'wp-login.php')!==false||
         strpos(filter_input(INPUT_SERVER, 'REQUEST_URI'),'wp-comments-post.php')!==false ||
-				strpos(filter_input(INPUT_SERVER, 'REQUEST_URI'),'?provider=facebook&')!==false ||
-				strpos(filter_input(INPUT_SERVER, 'REQUEST_URI'),'reset-password/')!==false || // Ticket #13668. Password reset.
+		strpos(filter_input(INPUT_SERVER, 'REQUEST_URI'),'?provider=facebook&')!==false ||
+		strpos(filter_input(INPUT_SERVER, 'REQUEST_URI'),'reset-password/')!==false || // Ticket #13668. Password reset.
         strpos(filter_input(INPUT_SERVER, 'HTTP_REFERER'),'/wp-admin/') !== false ||
         strpos(filter_input(INPUT_SERVER, 'REQUEST_URI'),'/login/')!==false ||
         strpos(filter_input(INPUT_SERVER, 'REQUEST_URI'), '/my-account/edit-account/')!==false ||   // WooCommerce edit account page
@@ -3005,10 +3006,10 @@ function ct_contact_form_validate() {
     $post_info['comment_type'] = 'feedback_general_contact_form';
 
 	// Skip the test if it's WooCommerce and the checkout test unset
-	if(strpos(filter_input(INPUT_SERVER, 'REQUEST_URI'), 'wc-ajax=checkout') !== false ||
-	   (isset($_POST['_wp_http_referer']) && strpos(filter_input(INPUT_SERVER, 'REQUEST_URI'), 'wc-ajax=update_order_review') !== false) ||
-	   !empty($_POST['woocommerce_checkout_place_order']) ||
-	   strpos(filter_input(INPUT_SERVER, 'REQUEST_URI'), 'wc-ajax=wc_ppec_start_checkout') !== false
+	if( apbct_is_in_uri('wc-ajax=checkout') ||
+	    apbct_is_in_referer('wc-ajax=update_order_review') ||
+	    !empty($_POST['woocommerce_checkout_place_order']) ||
+	   apbct_is_in_uri('wc-ajax=wc_ppec_start_checkout')
 	){
 		if($apbct->settings['wc_checkout_test'] == 0){
 			return null;

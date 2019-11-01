@@ -241,7 +241,7 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 		add_action( 'wp_ajax_nopriv_ct_get_cookie', 'ct_get_cookie',1 );
 		add_action( 'wp_ajax_ct_get_cookie', 'ct_get_cookie',1 );
 	}
-	
+ 
 	// Admin panel actions
     if (is_admin() || is_network_admin()){
 		
@@ -1857,4 +1857,26 @@ function apbct_update__set_version__from_plugin($ver){
 	}
 	$apbct->saveData();
 	return true;
+}
+
+function apbct_http_method(){
+	$method = filter_input(INPUT_SERVER, 'REQUEST_METHOD');
+	return is_string($method) ? strtoupper( $method ) : '';
+}
+
+function apbct_is_post(){
+	return apbct_http_method() === 'POST';
+}
+
+function apbct_is_get(){
+	return apbct_http_method() === 'GET';
+}
+
+function apbct_is_in_referer( $str ){
+	return isset( $_SERVER['HTTP_REFERER'] ) && strpos( $_SERVER['HTTP_REFERER'], $str ) !== false;
+}
+
+function apbct_is_in_uri( $str ){
+	return isset( $_SERVER['REQUEST_URI'] ) && strpos( $_SERVER['REQUEST_URI'], $str ) !== false;
+	
 }
