@@ -1963,12 +1963,10 @@ function apbct_user_register($user_id) {
  * Test for JetPack contact form
  */
 function ct_grunion_contact_form_field_html($r, $field_label) {
+	
     global $ct_checkjs_jpcf, $ct_jpcf_patched, $ct_jpcf_fields, $apbct;
-
-
-
-
-    if ($apbct->settings['contact_forms_test'] == 1 && $ct_jpcf_patched === false && preg_match("/[text|email]/i", $r)) {
+    
+    if ($apbct->settings['contact_forms_test'] == 1 && $ct_jpcf_patched === false && preg_match( "/(text|email)/i", $r)) {
 
         // Looking for element name prefix
         $name_patched = false;
