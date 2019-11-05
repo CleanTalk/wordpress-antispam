@@ -3,7 +3,7 @@ Contributors: safronik
 Tags: spam, antispam, protection, comments, firewall 
 Requires at least: 3.0
 Tested up to: 5.3
-Stable tag: 5.128.1
+Stable tag: 5.129.1
 License: GPLv2
 
 Spam protection, antispam, all-in-one, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -566,11 +566,15 @@ If your website has forms that send data to external sources, you can enable opt
 10. Website's options.
 
 == Changelog ==
-= 5.128.2 October 29 2019 =
+= 5.129.1 November 5 2019 =
+  * Fix: WooCommerce order detecting.
+
+= 5.129 October 30 2019 =
   * Upd: Localize updated.
   * Fix: Direct $_SERVER access replaced.
   * Integration: The 7 theme contact form.
   * Fix: Minor improvements and bug fixes.
+  * Mod: Putting site in maintenance mode during plugin update.
 
 = 5.128.1 October 23 2019 =
   * Fix: Fatal error when using buffer output.
@@ -2033,6 +2037,39 @@ If your website has forms that send data to external sources, you can enable opt
   * First version
   
 == Upgrade Notice ==
+= 5.129.1 November 5 2019 =
+  * Fix: WooCommerce order detecting.
+
+= 5.129 October 30 2019 =
+  * Upd: Localize updated.
+  * Fix: Direct $_SERVER access replaced.
+  * Integration: The 7 theme contact form.
+  * Fix: Minor improvements and bug fixes.
+  * Mod: Putting site in maintenance mode during plugin update.
+
+= 5.128.1 October 23 2019 =
+  * Fix: Fatal error when using buffer output.
+  * Fix: Translate domain for errors.
+  * Code: Fix spelling in function name.
+  * Fix: JS disabled error.
+  * Upd: Comment edit screen updated.
+  * Fix: Cleantalk\Arr::search() fixed.
+
+= 5.128 October 17 2019 =
+  * Mod: Users check - functionality updated.
+  * Fix: Users check - dates format updated.
+  * Mod: Comments check - functionality updated.
+  * Fix: Comments check - dates format updated.
+  * Fix: Fields exclusion fixed.
+  * Fix: Notice fixed.
+  * Fix: Cleantalk/Antispam/API.
+  * Fix: Minor improvements and bug fixes.
+
+= 5.127.4 October 13 2019 =
+  * Mod: Automatically decrease amount of checked users by one request if an error occurs.
+  * Fix: Security issue.
+  * Fix: Static JS key.
+
 = 5.127.3 October 8 2019 =
   * Fix: Errors during registration.
 
