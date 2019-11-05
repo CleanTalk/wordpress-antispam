@@ -215,7 +215,8 @@ function apbct_is_ajax() {
 	return
 		(defined( 'DOING_AJAX' ) && DOING_AJAX) || // by standart WP functions
 		(filter_input(INPUT_SERVER, 'HTTP_X_REQUESTED_WITH') && strtolower(filter_input(INPUT_SERVER, 'HTTP_X_REQUESTED_WITH')) == 'xmlhttprequest') || // by Request type
-		!empty($_POST['quform_ajax']); // special. QForms
+		!empty($_POST['quform_ajax']) || // special. QForms
+		!empty($_POST['iphorm_ajax']); // special. IPHorm
 	
 }
 
