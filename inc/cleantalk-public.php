@@ -428,7 +428,7 @@ function ct_validate_ccf_submission($value, $field_id, $required){
         $message['subject'] = $subject;
 
 	$post_info['comment_type'] = 'feedback_custom_contact_forms';
-    $post_info['post_url'] = filter_input(INPUT_SERVER, 'HTTP_REFERER');
+    $post_info['post_url'] = apbct_http_referer();
 
 	$checkjs = apbct_js_test('ct_checkjs', $_COOKIE)
 		? apbct_js_test('ct_checkjs', $_COOKIE)
@@ -462,7 +462,7 @@ function ct_woocommerce_wishlist_check($args){
 			return $args;
 
 	//If the IP is a Google bot
-	$hostname = gethostbyaddr( filter_input( INPUT_SERVER, 'REMOTE_ADDR', FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 ) );
+	$hostname = gethostbyaddr( apbct_http_remote_addr() );
 	if(!strpos($hostname, 'googlebot.com'))
 		return $args;
 
@@ -476,7 +476,7 @@ function ct_woocommerce_wishlist_check($args){
 		$nickname = '';
 
 	$post_info['comment_type'] = 'feedback';
-    $post_info['post_url'] = filter_input(INPUT_SERVER, 'HTTP_REFERER');
+    $post_info['post_url'] = apbct_http_referer();
 
 	$checkjs = apbct_js_test('ct_checkjs', $_COOKIE)
 		? apbct_js_test('ct_checkjs', $_COOKIE)
@@ -532,7 +532,7 @@ function apbct_integration__buddyPres__activityWall( $is_spam, $activity_obj = n
 			'sender_email'    => $curr_user->data->user_email,
 			'sender_nickname' => $curr_user->data->user_login,
 			'post_info'       => array(
-				'post_url'     => filter_input(INPUT_SERVER, 'HTTP_REFERER'),
+				'post_url'     => apbct_http_referer(),
 				'comment_type' => 'buddypress_activitywall',
 			),
 			'js_on'           => apbct_js_test('ct_checkjs', $_COOKIE),
@@ -626,7 +626,7 @@ function apbct_integration__buddyPres__private_msg_check( $bp_message_obj){
 			'sender_nickname' => $sender_user_obj->data->user_login,
 			'post_info'       => array(
 				'comment_type' => 'buddypress_comment',
-				'post_url'     => filter_input(INPUT_SERVER, 'HTTP_REFERER'),
+				'post_url'     => apbct_http_referer(),
 			),
 			'js_on'   => apbct_js_test('ct_checkjs', $_COOKIE)
 				? apbct_js_test('ct_checkjs', $_COOKIE)
@@ -723,7 +723,7 @@ function apbct_form__piratesForm__testSpam(){
 		$message = array_merge(array('subject' => $subject), $message);
 
 	$post_info['comment_type'] = 'contact_form_wordpress_feedback_pirate';
-    $post_info['post_url'] = filter_input(INPUT_SERVER, 'HTTP_REFERER');
+    $post_info['post_url'] = apbct_http_referer();
 
 	//Making a call
 	$base_call_result = apbct_base_call(
@@ -1133,8 +1133,8 @@ function ct_preprocess_comment($comment) {
         $comment['comment_author_email'],
         $comment['comment_author_url'],
         $comment['comment_content'],
-        filter_input(INPUT_SERVER, 'REMOTE_ADDR'),
-        filter_input(INPUT_SERVER, 'HTTP_USER_AGENT')
+        apbct_http_remote_addr(),
+        apbct_http_user_agent()
     );
 
     // Go out if author in local blacklists
@@ -1200,7 +1200,7 @@ function ct_preprocess_comment($comment) {
 					? null
 					: json_encode(array(
 						'validation_notice' => $apbct->validation_error,
-						'page_url' => filter_input(INPUT_SERVER, 'HTTP_HOST') . filter_input(INPUT_SERVER, 'REQUEST_URI'),
+						'page_url' => apbct_http_host() . apbct_http_request_uri(),
 					))
 			),
 		)
@@ -1776,7 +1776,7 @@ function ct_registration_errors($errors, $sanitized_user_login = null, $user_ema
 		'form_validation'       => ! empty( $errors )
 			? json_encode( array(
 				'validation_notice' => $errors->get_error_message(),
-				'page_url'          => filter_input( INPUT_SERVER, 'HTTP_HOST' ) . filter_input( INPUT_SERVER, 'REQUEST_URI' ),
+				'page_url'          => apbct_http_host() . apbct_http_request_uri(),
 			) )
 			: null,
 	);
@@ -2160,7 +2160,7 @@ function apbct_form__contactForm7__testSpam($param) {
 					? null
 					: json_encode(array(
 						'validation_notice' => $apbct->validation_error,
-						'page_url' => filter_input(INPUT_SERVER, 'HTTP_HOST') . filter_input(INPUT_SERVER, 'REQUEST_URI'),
+						'page_url' => apbct_http_host() . apbct_http_request_uri(),
 					))
 			),
 		)
@@ -2936,18 +2936,19 @@ function ct_contact_form_validate() {
     	(isset($_POST['signup_username']) && isset($_POST['signup_email']) && isset($_POST['signup_password'])) ||
         (isset($pagenow) && $pagenow == 'wp-login.php') || // WordPress log in form
         (isset($pagenow) && $pagenow == 'wp-login.php' && isset($_GET['action']) && $_GET['action']=='lostpassword') ||
-		strpos(filter_input(INPUT_SERVER, 'HTTP_REFERER'),'lostpassword') !== false ||
-        (strpos(filter_input(INPUT_SERVER, 'REQUEST_URI'),'/wp-admin/')!== false && (empty($_POST['your-phone']) && empty($_POST['your-email']) && empty($_POST['your-message']))) || //Bitrix24 Contact
-        strpos(filter_input(INPUT_SERVER, 'REQUEST_URI'),'wp-login.php')!==false||
-        strpos(filter_input(INPUT_SERVER, 'REQUEST_URI'),'wp-comments-post.php')!==false ||
-		strpos(filter_input(INPUT_SERVER, 'REQUEST_URI'),'?provider=facebook&')!==false ||
-		strpos(filter_input(INPUT_SERVER, 'REQUEST_URI'),'reset-password/')!==false || // Ticket #13668. Password reset.
-        strpos(filter_input(INPUT_SERVER, 'HTTP_REFERER'),'/wp-admin/') !== false ||
-        strpos(filter_input(INPUT_SERVER, 'REQUEST_URI'),'/login/')!==false ||
-        strpos(filter_input(INPUT_SERVER, 'REQUEST_URI'), '/my-account/edit-account/')!==false ||   // WooCommerce edit account page
-        strpos(filter_input(INPUT_SERVER, 'REQUEST_URI'), '/my-account/edit-address/')!==false ||   // WooCommerce edit account page
+		apbct_is_in_referer( 'lostpassword' ) ||
+        apbct_is_in_referer( 'lost-password' ) || //Skip lost-password form check
+        (apbct_is_in_uri('/wp-admin/') && (empty($_POST['your-phone']) && empty($_POST['your-email']) && empty($_POST['your-message']))) || //Bitrix24 Contact
+        apbct_is_in_uri('wp-login.php') ||
+        apbct_is_in_uri('wp-comments-post.php') ||
+        apbct_is_in_uri('?provider=facebook&') ||
+        apbct_is_in_uri('reset-password/') || // Ticket #13668. Password reset.
+        apbct_is_in_referer( '/wp-admin/') ||
+        apbct_is_in_uri('/login/') ||
+        apbct_is_in_uri( '/my-account/edit-account/') ||   // WooCommerce edit account page
+        apbct_is_in_uri( '/my-account/edit-address/') ||   // WooCommerce edit account page
         (isset($_POST['action']) && $_POST['action'] == 'save_account_details') ||       // WooCommerce edit account action
-        strpos(filter_input(INPUT_SERVER, 'REQUEST_URI'), '/peepsoajax/profilefieldsajax.validate_register')!== false ||
+        apbct_is_in_uri( '/peepsoajax/profilefieldsajax.validate_register') ||
         isset($_GET['ptype']) && $_GET['ptype']=='login' ||
         isset($_POST['ct_checkjs_register_form']) ||
         (isset($_POST['signup_username']) && isset($_POST['signup_password_confirm']) && isset($_POST['signup_submit']) ) ||
@@ -2955,7 +2956,7 @@ function ct_contact_form_validate() {
         isset($_POST['bbp_topic_content']) ||
         isset($_POST['bbp_reply_content']) ||
         isset($_POST['fscf_submitted']) ||
-        strpos(filter_input(INPUT_SERVER, 'REQUEST_URI'),'/wc-api/')!==false ||
+        apbct_is_in_uri('/wc-api/') ||
         isset($_POST['log']) && isset($_POST['pwd']) && isset($_POST['wp-submit']) ||
         isset($_POST[$ct_checkjs_frm]) && $apbct->settings['contact_forms_test'] == 1 ||// Formidable forms
         isset($_POST['comment_post_ID']) || // The comment form
@@ -2967,25 +2968,24 @@ function ct_contact_form_validate() {
         (isset($_POST['_wpcf7'], $_POST['_wpcf7_version'], $_POST['_wpcf7_locale'])) || //CF7 fix)
 		(isset($_POST['hash'], $_POST['device_unique_id'], $_POST['device_name'])) ||//Mobile Assistant Connector fix
 		isset($_POST['gform_submit']) || //Gravity form
-		strpos(filter_input(INPUT_SERVER, 'REQUEST_URI'), 'wc-ajax=get_refreshed_fragments') !== false ||
+        apbct_is_in_uri( 'wc-ajax=get_refreshed_fragments') ||
 		(isset($_POST['ccf_form']) && intval($_POST['ccf_form']) == 1) ||
 		(isset($_POST['contact_tags']) && strpos($_POST['contact_tags'], 'MBR:') !== false) ||
-		(strpos(filter_input(INPUT_SERVER, 'REQUEST_URI'), 'bizuno.php') && !empty($_POST['bizPass'])) ||
-		(strpos(filter_input(INPUT_SERVER, 'HTTP_REFERER'),'my-dashboard/') !== false) || // ticket_id=7885
+		(apbct_is_in_uri( 'bizuno.php') && !empty($_POST['bizPass'])) ||
+        apbct_is_in_referer( 'my-dashboard/' ) || // ticket_id=7885
 		isset($_POST['slm_action'], $_POST['license_key'], $_POST['secret_key'], $_POST['registered_domain']) || // ticket_id=9122
 		(isset($_POST['wpforms']['submit']) && $_POST['wpforms']['submit'] == 'wpforms-submit') || // WPForms
 		(isset($_POST['action']) && $_POST['action'] == 'grunion-contact-form') || // JetPack
 		(isset($_POST['action']) && $_POST['action'] == 'bbp-update-user') || //BBP update user info page
-		(strpos(filter_input(INPUT_SERVER, 'HTTP_REFERER'),'?wc-api=WC_Gateway_Transferuj') !== false) || //WC Gateway
+        apbct_is_in_referer( '?wc-api=WC_Gateway_Transferuj' ) || //WC Gateway
 		(isset($_GET['mbr'], $_GET['amp;appname'], $_GET['amp;master'])) || //  ticket_id=10773
-		(strpos(filter_input(INPUT_SERVER, 'HTTP_REFERER'),'lost-password') !== false) || //Skip lost-password form check
 		(isset($_POST['call_function']) && $_POST['call_function'] == 'push_notification_settings') || // Skip mobile requests (push settings)
-		(strpos(filter_input(INPUT_SERVER, 'REQUEST_URI'),'membership-login')!==false ) || // Skip login form
+		apbct_is_in_uri('membership-login') || // Skip login form
 		(isset($_GET['cookie-state-change'])) || //skip GDPR plugin
-		(filter_input(INPUT_SERVER, 'HTTP_USER_AGENT') == 'MailChimp' && strpos(filter_input(INPUT_SERVER, 'REQUEST_URI'), 'mc4wp-sync-api/webhook-listener') !== false) || // Mailchimp webhook skip
-		(strpos(filter_input(INPUT_SERVER, 'REQUEST_URI'),'researcher-log-in')!==false ) || // Skip login form
-		(strpos(filter_input(INPUT_SERVER, 'REQUEST_URI'),'admin_aspcms/_system/AspCms_SiteSetting.asp?action=saves')!==false ) || // Skip admin save callback
-		(strpos(filter_input(INPUT_SERVER, 'REQUEST_URI'),'?profile_tab=postjobs')!==false ) || // Skip post vacancies
+		( apbct_http_user_agent() == 'MailChimp' && apbct_is_in_uri( 'mc4wp-sync-api/webhook-listener') ) || // Mailchimp webhook skip
+        apbct_is_in_uri('researcher-log-in') || // Skip login form
+        apbct_is_in_uri('admin_aspcms/_system/AspCms_SiteSetting.asp?action=saves') || // Skip admin save callback
+        apbct_is_in_uri('?profile_tab=postjobs') || // Skip post vacancies
 		(isset($_POST['btn_insert_post_type_hotel']) && $_POST['btn_insert_post_type_hotel'] == 'SUBMIT HOTEL') || // Skip adding hotel
 		(isset($_POST['action']) && $_POST['action'] == 'updraft_savesettings') || // Updraft save settings
 		isset($_POST['quform_submit']) || //QForms multi-paged form skip
@@ -3157,7 +3157,7 @@ function ct_contact_form_validate_postdata() {
     	(isset($_POST['signup_username']) && isset($_POST['signup_email']) && isset($_POST['signup_password'])) ||
         (isset($pagenow) && $pagenow == 'wp-login.php') || // WordPress log in form
         (isset($pagenow) && $pagenow == 'wp-login.php' && isset($_GET['action']) && $_GET['action']=='lostpassword') ||
-        strpos(filter_input(INPUT_SERVER, 'REQUEST_URI'),'/checkout/')!==false ||
+        apbct_is_in_uri('/checkout/') ||
 		/* WooCommerce Service Requests - skip them */
         isset($_GET['wc-ajax']) && (
 	        $_GET['wc-ajax']=='checkout' ||
@@ -3173,12 +3173,12 @@ function ct_contact_form_validate_postdata() {
 	        $_GET['wc-ajax']=='get_customer_location'
         ) ||
         /* END: WooCommerce Service Requests  */
-        strpos(filter_input(INPUT_SERVER, 'REQUEST_URI'),'/wp-admin/')!==false ||
-        strpos(filter_input(INPUT_SERVER, 'REQUEST_URI'),'wp-login.php')!==false||
-        strpos(filter_input(INPUT_SERVER, 'REQUEST_URI'),'wp-comments-post.php')!==false ||
-        strpos(filter_input(INPUT_SERVER, 'HTTP_REFERER'),'/wp-admin/')!==false ||
-        strpos(filter_input(INPUT_SERVER, 'REQUEST_URI'),'/login/')!==false||
-		strpos(filter_input(INPUT_SERVER, 'REQUEST_URI'),'?provider=facebook&')!==false ||
+        apbct_is_in_uri('/wp-admin/') ||
+        apbct_is_in_uri('wp-login.php') ||
+        apbct_is_in_uri('wp-comments-post.php') ||
+        apbct_is_in_referer('/wp-admin/') ||
+        apbct_is_in_uri('/login/') ||
+        apbct_is_in_uri('?provider=facebook&') ||
         isset($_GET['ptype']) && $_GET['ptype']=='login' ||
         isset($_POST['ct_checkjs_register_form']) ||
         (isset($_POST['signup_username']) && isset($_POST['signup_password_confirm']) && isset($_POST['signup_submit']) ) ||
@@ -3187,12 +3187,12 @@ function ct_contact_form_validate_postdata() {
         isset($_POST['bbp_reply_content']) ||
         isset($_POST['fscf_submitted']) ||
         isset($_POST['log']) && isset($_POST['pwd']) && isset($_POST['wp-submit'])||
-        strpos(filter_input(INPUT_SERVER, 'REQUEST_URI'),'/wc-api/')!==false ||
+        apbct_is_in_uri('/wc-api/') ||
 		(isset($_POST['wc_reset_password'], $_POST['_wpnonce'], $_POST['_wp_http_referer'])) || //WooCommerce recovery password form
 		(isset($_POST['woocommerce-login-nonce'], $_POST['login'], $_POST['password'], $_POST['_wp_http_referer'])) || //WooCommerce login form
 		(isset($_POST['provider'], $_POST['authcode']) && $_POST['provider'] == 'Two_Factor_Totp') || //TwoFactor authorization
 		(isset($_GET['wc-ajax']) && $_GET['wc-ajax'] == 'sa_wc_buy_now_get_ajax_buy_now_button') || //BuyNow add to cart
-		strpos(filter_input(INPUT_SERVER, 'REQUEST_URI'),'/wp-json/wpstatistics/v1/hit')!==false || //WPStatistics
+        apbct_is_in_uri('/wp-json/wpstatistics/v1/hit') || //WPStatistics
 		(isset($_POST['ihcaction']) && $_POST['ihcaction'] == 'login') || //Skip login form
 		(isset($_POST['action']) && $_POST['action'] == 'infinite_scroll') //Scroll
         ) {
@@ -3337,8 +3337,8 @@ function ct_enqueue_scripts_public($hook){
 	}
 
 	if(!defined('CLEANTALK_AJAX_USE_FOOTER_HEADER') || (defined('CLEANTALK_AJAX_USE_FOOTER_HEADER') && CLEANTALK_AJAX_USE_FOOTER_HEADER)){
-		if($apbct->settings['use_ajax'] && stripos(filter_input(INPUT_SERVER, 'REQUEST_URI'),'.xml') === false && stripos(filter_input(INPUT_SERVER, 'REQUEST_URI'),'.xsl') === false){
-			if(strpos(filter_input(INPUT_SERVER, 'REQUEST_URI'),'jm-ajax') === false){
+		if($apbct->settings['use_ajax'] && ! apbct_is_in_uri('.xml') && ! apbct_is_in_uri('.xsl')){
+			if( ! apbct_is_in_uri('jm-ajax') ){
 
 				// Use AJAX for JavaScript check
 				if($apbct->settings['use_ajax']){

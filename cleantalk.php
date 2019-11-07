@@ -170,7 +170,7 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 	}
 	
 	// Ninja Forms. Making GET action to POST action
-    if(stripos(filter_input(INPUT_SERVER, 'REQUEST_URI'),'admin-ajax.php') !== false && sizeof($_POST) > 0 && isset($_GET['action']) && $_GET['action']=='ninja_forms_ajax_submit')
+    if( apbct_is_in_uri( 'admin-ajax.php' ) && sizeof($_POST) > 0 && isset($_GET['action']) && $_GET['action']=='ninja_forms_ajax_submit' )
     	$_POST['action']='ninja_forms_ajax_submit';
     
 	add_action( 'wp_ajax_nopriv_ninja_forms_ajax_submit', 'apbct_form__ninjaForms__testSpam', 1);
@@ -204,7 +204,7 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 		// SpamFireWall check
 		if( $apbct->plugin_version == APBCT_VERSION && // Do not call with first start
 			$apbct->settings['spam_firewall'] == 1 &&
-		    filter_input(INPUT_SERVER, 'REQUEST_METHOD') == 'GET'
+            apbct_is_get()
 		){
 			apbct_sfw__check();
 	    }
@@ -235,8 +235,8 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
     add_action('plugins_loaded', 'apbct_plugin_loaded' );
     
     if(	!empty($apbct->settings['use_ajax']) && 
-    	stripos(filter_input(INPUT_SERVER, 'REQUEST_URI'),'.xml')===false &&
-    	stripos(filter_input(INPUT_SERVER, 'REQUEST_URI'),'.xsl')===false)
+    	! apbct_is_in_uri( '.xml' ) &&
+    	! apbct_is_in_uri( '.xsl' ) )
     {
 		add_action( 'wp_ajax_nopriv_ct_get_cookie', 'ct_get_cookie',1 );
 		add_action( 'wp_ajax_ct_get_cookie', 'ct_get_cookie',1 );
@@ -333,7 +333,7 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 		if($pagenow=='users.php')
 			add_action('delete_user', 'apbct_user__delete__hook', 10, 2);
 
-		if($pagenow=='plugins.php' || (strpos(filter_input(INPUT_SERVER, 'REQUEST_URI'),'plugins.php') !== false)){
+		if( $pagenow=='plugins.php' || apbct_is_in_uri( 'plugins.php' ) ){
 
 			add_filter('plugin_action_links_'.plugin_basename(__FILE__), 'apbct_admin__plugin_action_links', 10, 2);
 			add_filter('network_admin_plugin_action_links_'.plugin_basename(__FILE__), 'apbct_admin__plugin_action_links', 10, 2);
@@ -508,7 +508,7 @@ function apbct_sfw__check()
 	 if (!empty($cleantalk_url_exclusions) && is_array($cleantalk_url_exclusions)) {
 		$core_page_to_skip_check = array('/feed');
 		foreach (array_merge($cleantalk_url_exclusions, $core_page_to_skip_check) as $v) {
-			if (stripos(filter_input(INPUT_SERVER, 'REQUEST_URI'), $v) !== false) {
+			if ( apbct_is_in_uri( $v ) ) {
 				return;
 			}
 		} 
@@ -545,8 +545,8 @@ function apbct_sfw__check()
 		$spbc_key = !empty($spbc_settings['spbc_key']) ? $spbc_settings['spbc_key'] : false;
 		if($_GET['access'] === $apbct->api_key || ($spbc_key !== false && $_GET['access'] === $spbc_key)){
 			$is_sfw_check = false;
-			setcookie ('spbc_firewall_pass_key', md5(filter_input(INPUT_SERVER, 'REMOTE_ADDR') . $spbc_key),       time()+1200, '/');
-			setcookie ('ct_sfw_pass_key',        md5(filter_input(INPUT_SERVER, 'REMOTE_ADDR') . $apbct->api_key), time()+1200, '/');
+			setcookie ('spbc_firewall_pass_key', md5(apbct_http_remote_addr() . $spbc_key),       time()+1200, '/');
+			setcookie ('ct_sfw_pass_key',        md5(apbct_http_remote_addr() . $apbct->api_key), time()+1200, '/');
 		}
 		unset($spbc_settings, $spbc_key);
 	}
@@ -1319,10 +1319,8 @@ function apbct__hook__wp_logout__delete_trial_notice_cookie(){
 
 function apbct_alt_session__id__get(){
 	$id = CleantalkHelper::ip__get(array('real'))
-		.filter_input(INPUT_SERVER, 'HTTP_USER_AGENT')
-		//.filter_input(INPUT_SERVER, 'HTTP_ACCEPT') // Could be different. Broke session id
-		.filter_input(INPUT_SERVER, 'HTTP_ACCEPT_LANGUAGE');
-		//.filter_input(INPUT_SERVER, 'HTTP_ACCEPT_ENCODING'); // Could be different. Broke session id
+		 .apbct_http_user_agent()
+		 .apbct_http_accept_language();
 	return hash('sha256', $id);
 }
 
@@ -1388,7 +1386,8 @@ function apbct_store__urls(){
 		
 		// URLs HISTORY
 		// Get current url
-		$current_url = filter_input(INPUT_SERVER, 'HTTP_HOST').filter_input(INPUT_SERVER, 'REQUEST_URI');
+		$current_url = apbct_http_host() . apbct_http_request_uri();
+
 		$current_url = $current_url ? substr($current_url, 0,256) : 'UNKNOWN';
 		
 		// Get already stored URLs
@@ -1409,7 +1408,7 @@ function apbct_store__urls(){
 		
 		// REFERER
 		// Get current fererer
-		$new_site_referer = filter_input(INPUT_SERVER, 'HTTP_REFERER');
+		$new_site_referer = apbct_http_referer();
 		$new_site_referer = $new_site_referer ? $new_site_referer : 'UNKNOWN';
 		
 		// Get already stored referer
@@ -1418,7 +1417,7 @@ function apbct_store__urls(){
 			: filter_input(INPUT_COOKIE, 'apbct_site_referer');
 		
 		// Save if empty
-		if(!$site_referer || parse_url($new_site_referer, PHP_URL_HOST) !== filter_input(INPUT_SERVER, 'HTTP_HOST')){
+		if( !$site_referer || parse_url($new_site_referer, PHP_URL_HOST) !== apbct_http_host() ){
 			
 			$apbct->settings['store_urls__sessions']
 				? apbct_alt_session__save('apbct_site_referer', $new_site_referer)
@@ -1477,12 +1476,12 @@ function apbct_cookie(){
 	}
 
 // Pervious referer
-	if(filter_input(INPUT_SERVER, 'HTTP_REFERER')){
+	if(apbct_http_referer()){
 		$apbct->settings['set_cookies__sessions']
-			? apbct_alt_session__save('apbct_prev_referer', filter_input(INPUT_SERVER, 'HTTP_REFERER'))
-			: setcookie('apbct_prev_referer', filter_input(INPUT_SERVER, 'HTTP_REFERER'), 0, '/', $domain, false, true);
+			? apbct_alt_session__save('apbct_prev_referer', apbct_http_referer())
+			: setcookie('apbct_prev_referer', apbct_http_referer(), 0, '/', $domain, false, true);
 		$cookie_test_value['cookies_names'][] = 'apbct_prev_referer';
-		$cookie_test_value['check_value'] .= filter_input(INPUT_SERVER, 'HTTP_REFERER');
+		$cookie_test_value['check_value'] .= apbct_http_referer();
 	}
 	
 // Landing time
@@ -1656,7 +1655,7 @@ function ct_mail_send_connection_report() {
     if (($apbct->settings['send_connection_reports'] == 1 && $apbct->connection_reports['negative'] > 0) || !empty($_GET['ct_send_connection_report']))
     {
 		$to  = "welcome@cleantalk.org" ; 
-		$subject = "Connection report for ".filter_input(INPUT_SERVER, 'HTTP_HOST');
+		$subject = "Connection report for " . apbct_http_host();
 		$message = ' 
 				<html> 
 				    <head> 
@@ -1857,26 +1856,4 @@ function apbct_update__set_version__from_plugin($ver){
 	}
 	$apbct->saveData();
 	return true;
-}
-
-function apbct_http_method(){
-	$method = filter_input(INPUT_SERVER, 'REQUEST_METHOD');
-	return is_string($method) ? strtoupper( $method ) : '';
-}
-
-function apbct_is_post(){
-	return apbct_http_method() === 'POST';
-}
-
-function apbct_is_get(){
-	return apbct_http_method() === 'GET';
-}
-
-function apbct_is_in_referer( $str ){
-	return isset( $_SERVER['HTTP_REFERER'] ) && strpos( $_SERVER['HTTP_REFERER'], $str ) !== false;
-}
-
-function apbct_is_in_uri( $str ){
-	return isset( $_SERVER['REQUEST_URI'] ) && strpos( $_SERVER['REQUEST_URI'], $str ) !== false;
-	
 }
