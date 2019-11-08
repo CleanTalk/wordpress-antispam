@@ -254,6 +254,23 @@ function apbct_init() {
 		add_action( 'um_submit_form_register', 'apbct_registration__UltimateMembers__check', 9, 1 ); // Check submition
 	}
 
+	// Paid Memberships Pro integration
+    add_action( 'pmpro_required_user_fields', function( $pmpro_required_user_fields ){
+
+        if(
+            ! empty( $pmpro_required_user_fields['username'] ) &&
+            ! empty( $pmpro_required_user_fields['bemail'] ) &&
+            ! empty( $pmpro_required_user_fields['bconfirmemail'] ) &&
+            $pmpro_required_user_fields['bemail'] == $pmpro_required_user_fields['bconfirmemail']
+        ) {
+            $check = ct_test_registration( $pmpro_required_user_fields['username'], $pmpro_required_user_fields['bemail'], apbct_http_remote_addr() );
+            if( $check['allow'] == 0 ) {
+                pmpro_setMessage( $check['comment'], 'pmpro_error' );
+            }
+        }
+
+    } );
+
     //
     // Load JS code to website footer
     //
