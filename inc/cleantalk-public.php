@@ -255,7 +255,7 @@ function apbct_init() {
 	}
 
 	// Paid Memberships Pro integration
-    add_action( 'pmpro_required_user_fields', function( $pmpro_required_user_fields ){
+    add_filter( 'pmpro_required_user_fields', function( $pmpro_required_user_fields ){
 
         if(
             ! empty( $pmpro_required_user_fields['username'] ) &&
@@ -268,6 +268,8 @@ function apbct_init() {
                 pmpro_setMessage( $check['comment'], 'pmpro_error' );
             }
         }
+
+        return $pmpro_required_user_fields;
 
     } );
 
