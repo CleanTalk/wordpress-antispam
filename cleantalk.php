@@ -156,6 +156,14 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 	}
 		
 	// Early checks
+	
+	// Iphorm
+	if( isset( $_POST['iphorm_ajax'], $_POST['iphorm_id'], $_POST['iphorm_uid'] ) 	){
+		require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public.php');
+		require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-ajax.php');
+		ct_ajax_hook();
+	}
+	
 	// Facebook
 	if ($apbct->settings['general_contact_forms_test'] == 1
 		&& (!empty($_POST['action']) && $_POST['action'] == 'fb_intialize')
