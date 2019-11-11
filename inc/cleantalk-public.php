@@ -2940,6 +2940,53 @@ function apbct_form__the7_contact_form() {
 
 }
 
+function apbct_form__elementor_pro__testSpam() {
+
+    global $apbct, $cleantalk_executed;
+
+    if(
+        $apbct->settings['contact_forms_test'] == 0
+        || ($apbct->settings['protect_logged_in'] != 1 && is_user_logged_in()) // Skip processing for logged in users.
+        || apbct_exclusions_check__url()
+    ){
+        return;
+    }
+
+    $ct_temp_msg_data = ct_get_fields_any($_POST);
+
+    $sender_email    = ($ct_temp_msg_data['email']    ? $ct_temp_msg_data['email']    : '');
+    $sender_nickname = ($ct_temp_msg_data['nickname'] ? $ct_temp_msg_data['nickname'] : '');
+    $subject         = ($ct_temp_msg_data['subject']  ? $ct_temp_msg_data['subject']  : '');
+    $message         = ($ct_temp_msg_data['message']  ? $ct_temp_msg_data['message']  : array());
+    if ($subject != '') {
+        $message = array_merge(array('subject' => $subject), $message);
+    }
+
+    $post_info['comment_type'] = 'contact_form_wordpress_elementor_pro';
+
+    $cleantalk_executed = true;
+    $base_call_result = apbct_base_call(
+        array(
+            'message'         => $message,
+            'sender_email'    => $sender_email,
+            'sender_nickname' => $sender_nickname,
+            'post_info'       => $post_info,
+        )
+    );
+
+    $ct_result = $base_call_result['ct_result'];
+
+    if ($ct_result->allow == 0) {
+
+        wp_send_json_error( array(
+            'message' => $ct_result->comment,
+            'data' => array()
+        ) );
+
+    }
+
+}
+
 /**
  * General test for any contact form
  */

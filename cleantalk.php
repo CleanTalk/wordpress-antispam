@@ -197,6 +197,10 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
     add_action( 'wp_ajax_nopriv_dt_send_mail', 'apbct_form__the7_contact_form', 1 );
     add_action( 'wp_ajax_dt_send_mail', 'apbct_form__the7_contact_form', 1 );
 
+    // Elementor Pro page builder forms
+    add_action( 'wp_ajax_elementor_pro_forms_send_form',        'apbct_form__elementor_pro__testSpam' );
+    add_action( 'wp_ajax_nopriv_elementor_pro_forms_send_form', 'apbct_form__elementor_pro__testSpam' );
+
 	// Public actions
 	if(!is_admin() && !apbct_is_ajax()){
 		
