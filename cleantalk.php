@@ -1245,7 +1245,8 @@ function apbct_rc__insert_auth_key($key, $plugin){
 				
 				$result = CleantalkAPI::method__notice_paid_till(
 					$key,
-					preg_replace('/http[s]?:\/\//', '', get_option('siteurl'), 1) // Site URL
+					preg_replace('/http[s]?:\/\//', '', get_option('siteurl'), 1), // Site URL
+					'antispam'
 				);
 				
 				if( empty( $result['error'] ) ) {
@@ -1608,7 +1609,8 @@ function ct_account_status_check($api_key = null, $process_errors = true){
 	$api_key = $api_key ? $api_key : $apbct->api_key;
 	$result = CleantalkAPI::method__notice_paid_till(
 		$api_key,
-		preg_replace('/http[s]?:\/\//', '', get_option('siteurl'), 1)
+		preg_replace('/http[s]?:\/\//', '', get_option('siteurl'), 1),
+		'antispam'
 	);
 	
 	if(empty($result['error']) || !empty($result['valid'])){

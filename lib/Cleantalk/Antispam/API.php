@@ -135,16 +135,18 @@ class API
 	 *
 	 * @param string $api_key     API key
 	 * @param string $path_to_cms Website URL
+	 * @param string $product_name
 	 * @param bool   $do_check
 	 *
 	 * @return array|bool|mixed
 	 */
-	static public function method__notice_paid_till($api_key, $path_to_cms, $do_check = true)
+	static public function method__notice_paid_till($api_key, $path_to_cms, $product_name, $do_check = true)
 	{
 		$request = array(
-			'method_name' => 'notice_paid_till',
-			'path_to_cms' => $path_to_cms,
-			'auth_key'    => $api_key
+			'method_name'  => 'notice_paid_till',
+			'path_to_cms'  => $path_to_cms,
+			'auth_key'     => $api_key,
+			'product_name' => $product_name,
 		);
 		
 		$result = static::send_request($request);
