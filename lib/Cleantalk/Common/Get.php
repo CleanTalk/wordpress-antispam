@@ -1,9 +1,15 @@
 <?php
 
-
 namespace Cleantalk\Common;
 
-
+/**
+ * Class Get
+ * Safety handler for $_GET
+ *
+ * @usage \Cleantalk\Common\Get::get( $name );
+ *
+ * @package Cleantalk\Common
+ */
 class Get extends ServerVariables{
 	
 	static $instance;
@@ -28,8 +34,8 @@ class Get extends ServerVariables{
 	 */
 	protected function get_variable( $name ){
 		
-		// Return from memory. From $this->server
-		if(isset(static::$instance->variable[$name]))
+		// Return from memory. From $this->variables
+		if(isset(static::$instance->variables[$name]))
 			return static::$instance->variable[$name];
 		
 		if( function_exists( 'filter_input' ) )

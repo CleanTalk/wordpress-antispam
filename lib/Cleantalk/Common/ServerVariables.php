@@ -1,9 +1,15 @@
 <?php
 
-
 namespace Cleantalk\Common;
 
-
+/**
+ * Class ServerVariables
+ * Safety handler for ${_SOMETHING}
+ *
+ * @usage \Cleantalk\Common\{SOMETHING}::get( $name );
+ *
+ * @package Cleantalk\Common
+ */
 class ServerVariables{
 	
 	static $instance;
@@ -33,18 +39,19 @@ class ServerVariables{
 	}
 	
 	/**
-	 * Gets variable from $_SERVER
+	 * Gets variable from ${_SOMETHING}
 	 *
 	 * @param $name
 	 *
-	 * @return string $_SERVER[ $name ]
+	 * @return string ${_SOMETHING}[ $name ]
 	 */
 	public static function get( $name ){
 		return static::getInstance()->get_variable( $name );
 	}
 	
 	/**
-	 * Gets given $_SERVER variable and seva it to memory
+	 * BLUEPRINT
+	 * Gets given ${_SOMETHING} variable and seva it to memory
 	 * @param $name
 	 *
 	 * @return mixed|string
@@ -54,7 +61,7 @@ class ServerVariables{
 	}
 	
 	/**
-	 * Save variable to $this->server[]
+	 * Save variable to $this->variables[]
 	 *
 	 * @param string $name
 	 * @param string $value

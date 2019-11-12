@@ -2,6 +2,14 @@
 
 namespace Cleantalk\Common;
 
+/**
+ * Class Request
+ * Safety handler for $_REQUEST
+ *
+ * @usage \Cleantalk\Common\Request::get( $name );
+ *
+ * @package Cleantalk\Common
+ */
 class Request extends ServerVariables{
 	
 	static $instance;
@@ -26,9 +34,9 @@ class Request extends ServerVariables{
 	 */
 	protected function get_variable( $name ){
 		
-		// Return from memory. From $this->server
-		if(isset(static::$instance->variable[$name]))
-			return static::$instance->variable[$name];
+		// Return from memory. From $this->variables
+		if(isset(static::$instance->variables[$name]))
+			return static::$instance->variables[$name];
 		
 		$value = isset( $_REQUEST[ $name ] ) ? $_REQUEST[ $name ]	: '';
 		

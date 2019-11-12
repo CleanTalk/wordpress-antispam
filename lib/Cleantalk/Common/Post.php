@@ -3,7 +3,14 @@
 
 namespace Cleantalk\Common;
 
-
+/**
+ * Class Post
+ * Safety handler for $_POST
+ *
+ * @usage \Cleantalk\Common\Post::get( $name );
+ *
+ * @package Cleantalk\Common
+ */
 class Post extends ServerVariables{
 	
 	static $instance;
@@ -21,16 +28,16 @@ class Post extends ServerVariables{
 	}
 	
 	/**
-	 * Gets given $_GET variable and seva it to memory
+	 * Gets given $_POST variable and seva it to memory
 	 * @param $name
 	 *
 	 * @return mixed|string
 	 */
 	protected function get_variable( $name ){
 		
-		// Return from memory. From $this->server
-		if(isset(static::$instance->variable[$name]))
-			return static::$instance->variable[$name];
+		// Return from memory. From $this->variables
+		if(isset(static::$instance->variables[$name]))
+			return static::$instance->variables[$name];
 		
 		if( function_exists( 'filter_input' ) )
 			$value = filter_input( INPUT_POST, $name );
