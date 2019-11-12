@@ -15,7 +15,7 @@
 * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-console.log('some1');
+
 ;(function (name, context, definition) {
   if (typeof module !== 'undefined' && module.exports) { module.exports = definition(); }
   else if (typeof define === 'function' && define.amd) { define(definition); }
