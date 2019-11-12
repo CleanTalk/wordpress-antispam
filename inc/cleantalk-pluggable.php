@@ -214,7 +214,7 @@ function apbct_is_ajax() {
 	
 	return
 		(defined( 'DOING_AJAX' ) && DOING_AJAX) || // by standart WP functions
-		(apbct_http_x_requested_with() && strtolower(apbct_http_x_requested_with()) == 'xmlhttprequest') || // by Request type
+		(apbct_get_server_variable( 'HTTP_X_REQUESTED_WITH' ) && strtolower(apbct_get_server_variable( 'HTTP_X_REQUESTED_WITH' )) == 'xmlhttprequest') || // by Request type
 		!empty($_POST['quform_ajax']) || // special. QForms
 		!empty($_POST['iphorm_ajax']); // special. IPHorm
 	
@@ -234,88 +234,39 @@ function apbct_is_user_logged_in(){
 /*
  * GETTING SERVER VARIABLES BY VARIOUS WAYS
  */
-function _apbct_server_variables_factory( $server_variable_name ) {
-
-    $variable_name = filter_input( INPUT_SERVER, strtoupper( $server_variable_name ) );
-    if( is_null( $variable_name ) ) {
-        return isset( $_SERVER[strtoupper( $server_variable_name )] ) ? $_SERVER[strtoupper( $server_variable_name )] : null;
-    } else {
-        return $variable_name;
-    }
-
-}
-
-function apbct_http_method(){
-
-    return strtoupper( _apbct_server_variables_factory( 'REQUEST_METHOD' ) );
-
-}
-function apbct_http_referer() {
-
-    return htmlspecialchars( _apbct_server_variables_factory( 'HTTP_REFERER' ) );
-
-}
-
-function apbct_http_user_agent() {
-
-    return htmlspecialchars( _apbct_server_variables_factory( 'HTTP_USER_AGENT' ) );
-
-}
-
-function apbct_http_server_name() {
-
-    return htmlspecialchars( _apbct_server_variables_factory( 'SERVER_NAME' ) );
-
-}
-
-function apbct_http_request_uri() {
-
-    return _apbct_server_variables_factory( 'REQUEST_URI' );
-
-}
-
-function apbct_http_host() {
-
-    return _apbct_server_variables_factory( 'HTTP_HOST' );
-
-}
-
-function apbct_http_remote_addr() {
-
-    return _apbct_server_variables_factory( 'REMOTE_ADDR' );
-
-}
-
-function apbct_http_server_addr() {
-
-    return _apbct_server_variables_factory( 'SERVER_ADDR' );
-
-}
-
-function apbct_http_accept_language() {
-
-    return _apbct_server_variables_factory( 'HTTP_ACCEPT_LANGUAGE' );
-}
-
-function apbct_http_x_requested_with() {
-
-    return _apbct_server_variables_factory( 'HTTP_X_REQUESTED_WITH' );
-
+function apbct_get_server_variable( $server_variable_name ){
+	
+	$var_name = strtoupper( $server_variable_name );
+	
+	if( function_exists( 'filter_input' ) )
+		$value = filter_input( INPUT_SERVER, $var_name );
+	
+	if( empty( $value ) )
+		$value = isset( $_SERVER[ $var_name ] ) ? $_SERVER[ $var_name ]	: '';
+	
+	// Convert to upper case for REQUEST_METHOD
+	if( in_array( $server_variable_name, array( 'REQUEST_METHOD' ) ) )
+		$value = strtoupper( $value );
+	
+	// Convert HTML chars for HTTP_USER_AGENT, HTTP_USER_AGENT, SERVER_NAME
+	if( in_array( $server_variable_name, array( 'HTTP_USER_AGENT', 'HTTP_USER_AGENT', 'SERVER_NAME' ) ) )
+		$value = htmlspecialchars( $value );
+	
+	return $value;
 }
 
 function apbct_is_post(){
-    return apbct_http_method() === 'POST';
+    return apbct_get_server_variable('REQUEST_METHOD') === 'POST';
 }
 
 function apbct_is_get(){
-    return apbct_http_method() === 'GET';
+    return apbct_get_server_variable('REQUEST_METHOD') === 'GET';
 }
 
 function apbct_is_in_referer( $str ){
-    return isset( $_SERVER['HTTP_REFERER'] ) && stripos( $_SERVER['HTTP_REFERER'], $str ) !== false;
+    return stripos( apbct_get_server_variable('HTTP_REFERER'), $str ) !== false;
 }
 
 function apbct_is_in_uri( $str ){
-    return isset( $_SERVER['REQUEST_URI'] ) && stripos( $_SERVER['REQUEST_URI'], $str ) !== false;
-
+    return stripos( apbct_get_server_variable('REQUEST_URI'), $str ) !== false;
 }
