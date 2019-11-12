@@ -447,7 +447,7 @@ function ct_validate_ccf_submission($value, $field_id, $required){
         $message['subject'] = $subject;
 
 	$post_info['comment_type'] = 'feedback_custom_contact_forms';
-    $post_info['post_url'] = apbct_http_referer();
+    $post_info['post_url'] = apbct_get_server_variable( 'HTTP_REFERER' );
 
 	$checkjs = apbct_js_test('ct_checkjs', $_COOKIE)
 		? apbct_js_test('ct_checkjs', $_COOKIE)
@@ -481,7 +481,7 @@ function ct_woocommerce_wishlist_check($args){
 			return $args;
 
 	//If the IP is a Google bot
-	$hostname = gethostbyaddr( apbct_http_remote_addr() );
+	$hostname = gethostbyaddr( apbct_get_server_variable( 'REMOTE_ADDR' ) );
 	if(!strpos($hostname, 'googlebot.com'))
 		return $args;
 
@@ -495,7 +495,7 @@ function ct_woocommerce_wishlist_check($args){
 		$nickname = '';
 
 	$post_info['comment_type'] = 'feedback';
-    $post_info['post_url'] = apbct_http_referer();
+    $post_info['post_url'] = apbct_get_server_variable( 'HTTP_REFERER' );
 
 	$checkjs = apbct_js_test('ct_checkjs', $_COOKIE)
 		? apbct_js_test('ct_checkjs', $_COOKIE)
@@ -551,7 +551,7 @@ function apbct_integration__buddyPres__activityWall( $is_spam, $activity_obj = n
 			'sender_email'    => $curr_user->data->user_email,
 			'sender_nickname' => $curr_user->data->user_login,
 			'post_info'       => array(
-				'post_url'     => apbct_http_referer(),
+				'post_url'     => apbct_get_server_variable( 'HTTP_REFERER' ),
 				'comment_type' => 'buddypress_activitywall',
 			),
 			'js_on'           => apbct_js_test('ct_checkjs', $_COOKIE),
@@ -645,7 +645,7 @@ function apbct_integration__buddyPres__private_msg_check( $bp_message_obj){
 			'sender_nickname' => $sender_user_obj->data->user_login,
 			'post_info'       => array(
 				'comment_type' => 'buddypress_comment',
-				'post_url'     => apbct_http_referer(),
+				'post_url'     => apbct_get_server_variable( 'HTTP_REFERER' ),
 			),
 			'js_on'   => apbct_js_test('ct_checkjs', $_COOKIE)
 				? apbct_js_test('ct_checkjs', $_COOKIE)
@@ -742,7 +742,7 @@ function apbct_form__piratesForm__testSpam(){
 		$message = array_merge(array('subject' => $subject), $message);
 
 	$post_info['comment_type'] = 'contact_form_wordpress_feedback_pirate';
-    $post_info['post_url'] = apbct_http_referer();
+    $post_info['post_url'] = apbct_get_server_variable( 'HTTP_REFERER' );
 
 	//Making a call
 	$base_call_result = apbct_base_call(
@@ -1152,8 +1152,8 @@ function ct_preprocess_comment($comment) {
         $comment['comment_author_email'],
         $comment['comment_author_url'],
         $comment['comment_content'],
-        apbct_http_remote_addr(),
-        apbct_http_user_agent()
+        apbct_get_server_variable( 'REMOTE_ADDR' ),
+        apbct_get_server_variable( 'HTTP_USER_AGENT' )
     );
 
     // Go out if author in local blacklists
@@ -1219,7 +1219,7 @@ function ct_preprocess_comment($comment) {
 					? null
 					: json_encode(array(
 						'validation_notice' => $apbct->validation_error,
-						'page_url' => apbct_http_host() . apbct_http_request_uri(),
+						'page_url' => apbct_get_server_variable( 'HTTP_HOST' ) . apbct_get_server_variable( 'REQUEST_URI' ),
 					))
 			),
 		)
@@ -1795,7 +1795,7 @@ function ct_registration_errors($errors, $sanitized_user_login = null, $user_ema
 		'form_validation'       => ! empty( $errors )
 			? json_encode( array(
 				'validation_notice' => $errors->get_error_message(),
-				'page_url'          => apbct_http_host() . apbct_http_request_uri(),
+				'page_url'          => apbct_get_server_variable( 'HTTP_HOST' ) . apbct_get_server_variable( 'REQUEST_URI' ),
 			) )
 			: null,
 	);
@@ -2179,7 +2179,7 @@ function apbct_form__contactForm7__testSpam($param) {
 					? null
 					: json_encode(array(
 						'validation_notice' => $apbct->validation_error,
-						'page_url' => apbct_http_host() . apbct_http_request_uri(),
+						'page_url' => apbct_get_server_variable( 'HTTP_HOST' ) . apbct_get_server_variable( 'REQUEST_URI' ),
 					))
 			),
 		)
@@ -3048,7 +3048,7 @@ function ct_contact_form_validate() {
 		(isset($_POST['call_function']) && $_POST['call_function'] == 'push_notification_settings') || // Skip mobile requests (push settings)
 		apbct_is_in_uri('membership-login') || // Skip login form
 		(isset($_GET['cookie-state-change'])) || //skip GDPR plugin
-		( apbct_http_user_agent() == 'MailChimp' && apbct_is_in_uri( 'mc4wp-sync-api/webhook-listener') ) || // Mailchimp webhook skip
+		( apbct_get_server_variable( 'HTTP_USER_AGENT' ) == 'MailChimp' && apbct_is_in_uri( 'mc4wp-sync-api/webhook-listener') ) || // Mailchimp webhook skip
         apbct_is_in_uri('researcher-log-in') || // Skip login form
         apbct_is_in_uri('admin_aspcms/_system/AspCms_SiteSetting.asp?action=saves') || // Skip admin save callback
         apbct_is_in_uri('?profile_tab=postjobs') || // Skip post vacancies

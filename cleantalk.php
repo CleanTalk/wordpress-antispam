@@ -557,8 +557,8 @@ function apbct_sfw__check()
 		$spbc_key = !empty($spbc_settings['spbc_key']) ? $spbc_settings['spbc_key'] : false;
 		if($_GET['access'] === $apbct->api_key || ($spbc_key !== false && $_GET['access'] === $spbc_key)){
 			$is_sfw_check = false;
-			setcookie ('spbc_firewall_pass_key', md5(apbct_http_remote_addr() . $spbc_key),       time()+1200, '/');
-			setcookie ('ct_sfw_pass_key',        md5(apbct_http_remote_addr() . $apbct->api_key), time()+1200, '/');
+			setcookie ('spbc_firewall_pass_key', md5(apbct_get_server_variable( 'REMOTE_ADDR' ) . $spbc_key),       time()+1200, '/');
+			setcookie ('ct_sfw_pass_key',        md5(apbct_get_server_variable( 'REMOTE_ADDR' ) . $apbct->api_key), time()+1200, '/');
 		}
 		unset($spbc_settings, $spbc_key);
 	}
@@ -1331,8 +1331,8 @@ function apbct__hook__wp_logout__delete_trial_notice_cookie(){
 
 function apbct_alt_session__id__get(){
 	$id = CleantalkHelper::ip__get(array('real'))
-		 .apbct_http_user_agent()
-		 .apbct_http_accept_language();
+		 .apbct_get_server_variable( 'HTTP_USER_AGENT' )
+		 .apbct_get_server_variable( 'HTTP_ACCEPT_LANGUAGE' );
 	return hash('sha256', $id);
 }
 
@@ -1398,7 +1398,7 @@ function apbct_store__urls(){
 		
 		// URLs HISTORY
 		// Get current url
-		$current_url = apbct_http_host() . apbct_http_request_uri();
+		$current_url = apbct_get_server_variable( 'HTTP_HOST' ) . apbct_get_server_variable( 'REQUEST_URI' );
 
 		$current_url = $current_url ? substr($current_url, 0,256) : 'UNKNOWN';
 		
@@ -1420,7 +1420,7 @@ function apbct_store__urls(){
 		
 		// REFERER
 		// Get current fererer
-		$new_site_referer = apbct_http_referer();
+		$new_site_referer = apbct_get_server_variable( 'HTTP_REFERER' );
 		$new_site_referer = $new_site_referer ? $new_site_referer : 'UNKNOWN';
 		
 		// Get already stored referer
@@ -1429,7 +1429,7 @@ function apbct_store__urls(){
 			: filter_input(INPUT_COOKIE, 'apbct_site_referer');
 		
 		// Save if empty
-		if( !$site_referer || parse_url($new_site_referer, PHP_URL_HOST) !== apbct_http_host() ){
+		if( !$site_referer || parse_url($new_site_referer, PHP_URL_HOST) !== apbct_get_server_variable( 'HTTP_HOST' ) ){
 			
 			$apbct->settings['store_urls__sessions']
 				? apbct_alt_session__save('apbct_site_referer', $new_site_referer)
@@ -1488,12 +1488,12 @@ function apbct_cookie(){
 	}
 
 // Pervious referer
-	if(apbct_http_referer()){
+	if(apbct_get_server_variable( 'HTTP_REFERER' )){
 		$apbct->settings['set_cookies__sessions']
-			? apbct_alt_session__save('apbct_prev_referer', apbct_http_referer())
-			: setcookie('apbct_prev_referer', apbct_http_referer(), 0, '/', $domain, false, true);
+			? apbct_alt_session__save('apbct_prev_referer', apbct_get_server_variable( 'HTTP_REFERER' ))
+			: setcookie('apbct_prev_referer', apbct_get_server_variable( 'HTTP_REFERER' ), 0, '/', $domain, false, true);
 		$cookie_test_value['cookies_names'][] = 'apbct_prev_referer';
-		$cookie_test_value['check_value'] .= apbct_http_referer();
+		$cookie_test_value['check_value'] .= apbct_get_server_variable( 'HTTP_REFERER' );
 	}
 	
 // Landing time
@@ -1667,7 +1667,7 @@ function ct_mail_send_connection_report() {
     if (($apbct->settings['send_connection_reports'] == 1 && $apbct->connection_reports['negative'] > 0) || !empty($_GET['ct_send_connection_report']))
     {
 		$to  = "welcome@cleantalk.org" ; 
-		$subject = "Connection report for " . apbct_http_host();
+		$subject = "Connection report for " . apbct_get_server_variable( 'HTTP_HOST' );
 		$message = ' 
 				<html> 
 				    <head> 

@@ -265,8 +265,8 @@ function ct_show_checkspam_page(){
 				</div>
 				<?php
 			}
-			echo apbct_http_remote_addr()=='127.0.0.1' ? '<button class="button ct_to_hide" id="ct_insert_comments">'. __('Insert comments', 'cleantalk') .' (100)</button> ' : '';
-			echo apbct_http_remote_addr()=='127.0.0.1' ? '<button class="button ct_to_hide" id="ct_delete_comments">'. __('Delete comments', 'cleantalk') .' (110)</button>' : '';
+			echo apbct_get_server_variable( 'REMOTE_ADDR' )=='127.0.0.1' ? '<button class="button ct_to_hide" id="ct_insert_comments">'. __('Insert comments', 'cleantalk') .' (100)</button> ' : '';
+			echo apbct_get_server_variable( 'REMOTE_ADDR' )=='127.0.0.1' ? '<button class="button ct_to_hide" id="ct_delete_comments">'. __('Delete comments', 'cleantalk') .' (110)</button>' : '';
 			
 			if($cnt_spam > 0){
 				echo "<div id='ct_search_info'>"

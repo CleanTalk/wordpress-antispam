@@ -270,8 +270,8 @@ function ct_show_users_page(){
 				</div>
 				<?php
 			}
-			echo apbct_http_remote_addr()=='127.0.0.1' ? '<br /><button class=" ct_to_hide button" id="ct_insert_users">'. __('Insert accounts', 'cleantalk'). ' (100)</button> ' : '';
-			echo apbct_http_remote_addr()=='127.0.0.1' ?       '<button class="ct_to_hide button" id="ct_delete_users">'. __('Delete accounts', 'cleantalk'). ' (110)</button><br />' : '';
+			echo apbct_get_server_variable( 'REMOTE_ADDR' )=='127.0.0.1' ? '<br /><button class=" ct_to_hide button" id="ct_insert_users">'. __('Insert accounts', 'cleantalk'). ' (100)</button> ' : '';
+			echo apbct_get_server_variable( 'REMOTE_ADDR' )=='127.0.0.1' ?       '<button class="ct_to_hide button" id="ct_delete_users">'. __('Delete accounts', 'cleantalk'). ' (110)</button><br />' : '';
 			
 			if($cnt_spam1 > 0){
 				echo "<div id='ct_search_info'>"

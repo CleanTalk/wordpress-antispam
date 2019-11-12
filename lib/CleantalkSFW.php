@@ -67,7 +67,7 @@ class CleantalkSFW extends Cleantalk\Antispam\SFW
 			$sfw_die_page = file_get_contents(CLEANTALK_PLUGIN_DIR . "inc/sfw_die_page.html");
 
 			// Translation
-			$request_uri  = apbct_http_request_uri();
+			$request_uri  = apbct_get_server_variable( 'REQUEST_URI' );
 			$sfw_die_page = str_replace('{SFW_DIE_NOTICE_IP}',              __('SpamFireWall is activated for your IP ', 'cleantalk'), $sfw_die_page);
 			$sfw_die_page = str_replace('{SFW_DIE_MAKE_SURE_JS_ENABLED}',   __('To continue working with web site, please make sure that you have enabled JavaScript.', 'cleantalk'), $sfw_die_page);
 			$sfw_die_page = str_replace('{SFW_DIE_CLICK_TO_PASS}',          __('Please click below to pass protection,', 'cleantalk'), $sfw_die_page);
@@ -98,7 +98,7 @@ class CleantalkSFW extends Cleantalk\Antispam\SFW
 			$sfw_die_page = str_replace('{COOKIE_PREFIX}',  $cookie_prefix,                  $sfw_die_page);
 			$sfw_die_page = str_replace('{COOKIE_DOMAIN}',  $cookie_domain,                  $sfw_die_page);
 			$sfw_die_page = str_replace('{SERVICE_ID}',     $apbct->data['service_id'],      $sfw_die_page);
-			$sfw_die_page = str_replace('{HOST}',           apbct_http_host(),           $sfw_die_page);
+			$sfw_die_page = str_replace('{HOST}',           apbct_get_server_variable( 'HTTP_HOST' ),           $sfw_die_page);
 			
 			$sfw_die_page = str_replace(
 				'{SFW_COOKIE}',
@@ -118,9 +118,9 @@ class CleantalkSFW extends Cleantalk\Antispam\SFW
 					. '<h1>Headers</h1>'
 					. var_export(apache_request_headers(), true)
 					. '<h1>REMOTE_ADDR</h1>'
-					. var_export(apbct_http_remote_addr(), true)
+					. var_export(apbct_get_server_variable( 'REMOTE_ADDR' ), true)
 					. '<h1>SERVER_ADDR</h1>'
-					. var_export(apbct_http_remote_addr(), true)
+					. var_export(apbct_get_server_variable( 'REMOTE_ADDR' ), true)
 					. '<h1>IP_ARRAY</h1>'
 					. var_export($this->ip_array, true)
 					. '<h1>ADDITIONAL</h1>'

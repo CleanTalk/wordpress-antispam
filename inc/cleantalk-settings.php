@@ -1257,7 +1257,7 @@ function apbct_settings__validate($settings) {
 		$platform       = 'wordpress';
 		$user_ip        = CleantalkHelper::ip__get(array('real'), false);
 		$timezone       = filter_input(INPUT_POST, 'ct_admin_timezone');
-		$language       = apbct_http_accept_language();
+		$language       = apbct_get_server_variable( 'HTTP_ACCEPT_LANGUAGE' );
 		$wpms           = APBCT_WPMS && defined('SUBDOMAIN_INSTALL') && !SUBDOMAIN_INSTALL ? true : false;
 		$white_label    = $apbct->network_settings['white_label']             ? 1                                                   : 0;
 		$hoster_api_key = $apbct->network_settings['white_label__hoster_key'] ? $apbct->network_settings['white_label__hoster_key'] : '';
