@@ -834,12 +834,14 @@ function ct_add_hidden_fields($field_name = 'ct_checkjs', $return_string = false
     	$field_id = $field_name . '_' . $field_id_hash;
 		$html = "<input type='hidden' id='{$field_id}' name='{$field_name}' value='{$ct_checkjs_def}' />
 		<script type='text/javascript'>
-			setTimeout(function(){
-				apbct_sendAJAXRequest(
-					{action: 'apbct_js_keys__get'},
-					{callback: apbct_js_keys__set_input_value, input_name: '{$field_id}'}
-				);
-			}, 1000);
+			window.addEventListener('load', function () {
+				setTimeout(function(){
+                    apbct_sendAJAXRequest(
+                        {action: 'apbct_js_keys__get'},
+                        {callback: apbct_js_keys__set_input_value, input_name: '{$field_id}'}
+                    );
+                }, 1000);
+			});
 		</script>";
 
 	// Set KEY from backend
