@@ -257,6 +257,7 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 	
     // Go out because of not spam data
     $skip_post = array(
+        'apbct_js_keys__get',  // Our service code
         'gmaps_display_info_window',  // Geo My WP pop-up windows.
         'gmw_ps_display_info_window',  // Geo My WP pop-up windows.
         'the_champ_user_auth',  // Super Socializer
