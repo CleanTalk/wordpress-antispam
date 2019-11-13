@@ -140,14 +140,19 @@ class API
 	 *
 	 * @return array|bool|mixed
 	 */
-	static public function method__notice_paid_till($api_key, $path_to_cms, $product_name, $do_check = true)
+	static public function method__notice_paid_till($api_key, $path_to_cms, $product_name = 'antispam', $do_check = true)
 	{
 		$request = array(
 			'method_name'  => 'notice_paid_till',
 			'path_to_cms'  => $path_to_cms,
 			'auth_key'     => $api_key,
-			'product_name' => $product_name,
 		);
+		
+		$product_id = null;
+		$product_id = $product_name == 'antispam' ? 1 : $product_id;
+		$product_id = $product_name == 'security' ? 4 : $product_id;
+		if($product_id)
+			$request['product_id'] = $product_id;
 		
 		$result = static::send_request($request);
 		$result = $do_check ? static::check_response($result, 'notice_paid_till') : $result;
