@@ -1257,11 +1257,11 @@ function ct_preprocess_comment($comment) {
 
 		// Terminate. Definitely spam.
 		if($ct_result->stop_queue == 1)
-			wp_die($err_text, 'Blacklisted', array('back_link' => true));
+			wp_die($err_text, 'Blacklisted', array('response' => 200, 'back_link' => true));
 
 		// Terminate by user's setting.
 		if($ct_result->spam == 3)
-			wp_die($err_text, 'Blacklisted', array('back_link' => true));
+			wp_die($err_text, 'Blacklisted', array('response' => 200, 'back_link' => true));
 
 		// Trash comment.
 		if($ct_result->spam == 2){
@@ -1389,7 +1389,7 @@ function ct_die($comment_id, $comment_status) {
         }
         else
         {
-        	wp_die($err_text, 'Blacklisted', array('back_link' => true));
+        	wp_die($err_text, 'Blacklisted', array('response' => 200, 'back_link' => true));
         }
 }
 
@@ -1400,7 +1400,7 @@ function ct_die($comment_id, $comment_status) {
 function ct_die_extended($comment_body) {
     $err_text = '<center><b style="color: #49C73B;">Clean</b><b style="color: #349ebf;">Talk.</b> ' . __('Spam protection', 'cleantalk') . "</center><br><br>\n" . $comment_body;
         $err_text .= '<script>setTimeout("history.back()", 5000);</script>';
-        wp_die($err_text, 'Blacklisted', array('back_link' => true));
+        wp_die($err_text, 'Blacklisted', array('response' => 200, 'back_link' => true));
 }
 
 /**
