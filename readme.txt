@@ -566,6 +566,15 @@ If your website has forms that send data to external sources, you can enable opt
 10. Website's options.
 
 == Changelog ==
+= 5.130 November 14 2019 =
+  * Fix: JetPack contact form JS check.
+  * FIx: Iphorm AJAX form.
+  * Fix: Paid Memberships Pro fix.
+  * Fix: Divi theme contact form fix.
+  * Integration: Paid Memberships Pro.
+  * Integration: Elementor Pro page builder forms.
+  * Improved: Compatibility with different server.
+
 = 5.129.1 November 5 2019 =
   * Fix: WooCommerce order detecting.
 
@@ -2037,6 +2046,15 @@ If your website has forms that send data to external sources, you can enable opt
   * First version
   
 == Upgrade Notice ==
+= 5.130 November 14 2019 =
+  * Fix: JetPack contact form JS check.
+  * FIx: Iphorm AJAX form.
+  * Fix: Paid Memberships Pro fix.
+  * Fix: Divi theme contact form fix.
+  * Integration: Paid Memberships Pro.
+  * Integration: Elementor Pro page builder forms.
+  * Improved: Compatibility with different server.
+
 = 5.129.1 November 5 2019 =
   * Fix: WooCommerce order detecting.
 
