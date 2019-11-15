@@ -263,7 +263,7 @@ function apbct_init() {
             ! empty( $pmpro_required_user_fields['bconfirmemail'] ) &&
             $pmpro_required_user_fields['bemail'] == $pmpro_required_user_fields['bconfirmemail']
         ) {
-            $check = ct_test_registration( $pmpro_required_user_fields['username'], $pmpro_required_user_fields['bemail'], apbct_http_remote_addr() );
+            $check = ct_test_registration( $pmpro_required_user_fields['username'], $pmpro_required_user_fields['bemail'], apbct_get_server_variable( 'REMOTE_ADDR' ) );
             if( $check['allow'] == 0 ) {
                 pmpro_setMessage( $check['comment'], 'pmpro_error' );
             }
