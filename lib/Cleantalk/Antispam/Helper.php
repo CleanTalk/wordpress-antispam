@@ -73,9 +73,9 @@ class Helper
 		
 		// REMOTE_ADDR
 		if(isset($ips['remote_addr'])){
-			$ip_type = self::ip__validate(filter_input(INPUT_SERVER, 'REMOTE_ADDR'));
+			$ip_type = self::ip__validate($_SERVER['REMOTE_ADDR']);
 			if($ip_type){
-				$ips['remote_addr'] = $ip_type == 'v6' ? self::ip__v6_normalize(filter_input(INPUT_SERVER, 'REMOTE_ADDR')) : filter_input(INPUT_SERVER, 'REMOTE_ADDR');
+				$ips['remote_addr'] = $ip_type == 'v6' ? self::ip__v6_normalize($_SERVER['REMOTE_ADDR']) : $_SERVER['REMOTE_ADDR'];
 			}
 		}
 		
@@ -119,9 +119,9 @@ class Helper
 		if(isset($ips['real'])){
 			
 			// Detect IP type
-			$ip_type = self::ip__validate(filter_input(INPUT_SERVER, 'REMOTE_ADDR'));
+			$ip_type = self::ip__validate($_SERVER['REMOTE_ADDR']);
 			if($ip_type)
-				$ips['real'] = $ip_type == 'v6' ? self::ip__v6_normalize(filter_input(INPUT_SERVER, 'REMOTE_ADDR')) : filter_input(INPUT_SERVER, 'REMOTE_ADDR');
+				$ips['real'] = $ip_type == 'v6' ? self::ip__v6_normalize($_SERVER['REMOTE_ADDR']) : $_SERVER['REMOTE_ADDR'];
 			
 			// Cloud Flare
 			if(isset($headers['CF-Connecting-IP'], $headers['CF-IPCountry'], $headers['CF-RAY']) || isset($headers['Cf-Connecting-Ip'], $headers['Cf-Ipcountry'], $headers['Cf-Ray'])){
@@ -458,7 +458,7 @@ class Helper
 					CURLOPT_RETURNTRANSFER => true,
 					CURLOPT_CONNECTTIMEOUT_MS => 3000,
 					CURLOPT_FORBID_REUSE => true,
-					CURLOPT_USERAGENT => self::AGENT . '; ' . (filter_input(INPUT_SERVER, 'REMOTE_ADDR') ? filter_input(INPUT_SERVER, 'REMOTE_ADDR') : 'UNKNOWN_HOST'),
+					CURLOPT_USERAGENT => self::AGENT . '; ' . (!empty($_SERVER['SERVER_NAME']) ? $_SERVER['SERVER_NAME'] : 'UNKNOWN_HOST'),
 					CURLOPT_POST => true,
 					CURLOPT_SSL_VERIFYPEER => false,
 					CURLOPT_SSL_VERIFYHOST => 0,
