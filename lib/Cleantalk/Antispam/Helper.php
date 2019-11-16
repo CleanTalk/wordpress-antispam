@@ -151,7 +151,7 @@ class Helper
 			}
 			
 			// Is private network
-			if($ip_type === false || ($ip_type && (self::ip__is_private_network($ips['real'], $ip_type) || self::ip__mask_match($ips['real'], filter_input(INPUT_SERVER, 'SERVER_ADDR') . '/24', $ip_type)))){
+			if($ip_type === false || ($ip_type && (self::ip__is_private_network($ips['real'], $ip_type) || self::ip__mask_match($ips['real'], $_SERVER['SERVER_ADDR'] . '/24', $ip_type)))){
 				
 				// X-Forwarded-For
 				if(isset($headers['X-Forwarded-For'])){
