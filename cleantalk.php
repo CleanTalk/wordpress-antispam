@@ -201,6 +201,16 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
     add_action( 'wp_ajax_elementor_pro_forms_send_form',        'apbct_form__elementor_pro__testSpam' );
     add_action( 'wp_ajax_nopriv_elementor_pro_forms_send_form', 'apbct_form__elementor_pro__testSpam' );
 
+    // WooCommerce registration
+    add_filter( 'woocommerce_process_registration_errors', function( $validation_error, $username, $password, $email ) {
+        $ip = CleantalkHelper::ip__get(array('real'), false);
+        $ct_result = ct_test_registration($username, $email, $ip);
+        if( $ct_result['allow'] == 0 ) {
+            $validation_error->add( 'forbidden', $ct_result['comment'] );
+        }
+        return $validation_error;
+    }, 1, 4 );
+
 	// Public actions
 	if(!is_admin() && !apbct_is_ajax()){
 		
