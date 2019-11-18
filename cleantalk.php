@@ -212,13 +212,13 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
     }, 1, 4 );
 
     // Custom register form (ticket_id=13668)
-    add_action('website_neotrends_signup_fields_check',function( $fields ){
+    add_action('website_neotrends_signup_fields_check',function( $username, $fields ){
         $ip = CleantalkHelper::ip__get( array('real'), false );
-        $ct_result = ct_test_registration($fields['first_name'] . ' ' . $fields['last_name'], $fields['email'], $ip);
+        $ct_result = ct_test_registration( $username, $fields['email'], $ip );
         if( $ct_result['allow'] == 0 ) {
             ct_die_extended( $ct_result['comment'] );
         }
-    }, 1, 1);
+    }, 1, 2);
 
 	// Public actions
 	if(!is_admin() && !apbct_is_ajax()){
