@@ -1014,8 +1014,11 @@ function apbct_rc__install_plugin($wp = null, $plugin = null){
 					include_once( ABSPATH . 'wp-admin/includes/misc.php' );
 					include_once( CLEANTALK_PLUGIN_DIR . 'lib/CleantalkUpgrader.php' );
 					include_once( CLEANTALK_PLUGIN_DIR . 'lib/CleantalkUpgraderSkin.php' );
-					
-					$installer= new CleantalkUpgrader( new CleantalkUpgraderSkin() );
+					include_once( CLEANTALK_PLUGIN_DIR . 'lib/CleantalkUpgraderSkin_Deprecated.php' );
+					if (version_compare(PHP_VERSION, '5.6.0') >= 0)
+						$installer= new CleantalkUpgrader( new CleantalkUpgraderSkin() );
+					else 
+						$installer= new CleantalkUpgrader( new CleantalkUpgraderSkin_Deprecated() );
 					$installer->install($result->download_link);
 					
 					if($installer->apbct_result === 'OK'){
@@ -1167,10 +1170,13 @@ function apbct_rc__update(){
 	
 	include_once( CLEANTALK_PLUGIN_DIR . 'lib/CleantalkUpgrader.php' );
 	include_once( CLEANTALK_PLUGIN_DIR . 'lib/CleantalkUpgraderSkin.php' );
+	include_once( CLEANTALK_PLUGIN_DIR . 'lib/CleantalkUpgraderSkin_Deprecated.php' );
 	
 	apbct_maintance_mode__enable( 30 );
-	
-	$upgrader = new CleantalkUpgrader( new CleantalkUpgraderSkin( compact('title', 'nonce', 'url', 'plugin') ) );
+	if (version_compare(PHP_VERSION, '5.6.0') >= 0)
+		$upgrader = new CleantalkUpgrader( new CleantalkUpgraderSkin( compact('title', 'nonce', 'url', 'plugin') ) );
+	else
+		$upgrader = new CleantalkUpgrader( new CleantalkUpgraderSkin_Deprecated( compact('title', 'nonce', 'url', 'plugin') ) );
     $upgrader->upgrade($plugin);
 	
 	apbct_maintance_mode__disable();
@@ -1194,7 +1200,10 @@ function apbct_rc__update(){
 			apbct_maintance_mode__enable( 30 );
 			
 			// Rollback
-			$rollback = new CleantalkUpgrader( new CleantalkUpgraderSkin( compact('title', 'nonce', 'url', 'plugin_slug', 'prev_version') ) );
+			if (version_compare(PHP_VERSION, '5.6.0') >= 0)
+				$rollback = new CleantalkUpgrader( new CleantalkUpgraderSkin( compact('title', 'nonce', 'url', 'plugin_slug', 'prev_version') ) );
+			else
+				$rollback = new CleantalkUpgrader( new CleantalkUpgraderSkin_Deprecated( compact('title', 'nonce', 'url', 'plugin_slug', 'prev_version') ) );
 			$rollback->rollback($plugin);
 			
 			apbct_maintance_mode__disable();
