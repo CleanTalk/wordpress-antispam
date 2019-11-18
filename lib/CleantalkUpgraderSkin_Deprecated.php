@@ -1,6 +1,6 @@
 <?php
 
-class CleantalkUpgraderSkin extends WP_Upgrader_Skin
+class CleantalkUpgraderSkin_Deprecated extends WP_Upgrader_Skin
 {
 	
 	public $upgrader;
@@ -28,7 +28,7 @@ class CleantalkUpgraderSkin extends WP_Upgrader_Skin
 	 *
 	 * @param string $string
 	 */
-	public function feedback( $string, ...$args ) {	}
+	public function feedback($string) {	}
 	
 	/**
 	 *
