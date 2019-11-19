@@ -286,6 +286,7 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 	    'edit-comment', // Edit comments by admin ??? that shouldn't happen
 	    'formcraft3_save_form_progress', // FormCraft – Contact Form Builder for WordPress. Save progress.
 	    'wpdmpp_save_settings', // PayPal save settings.
+        'give_process_donation', // GiveWP will be checked by feedback_general_contact_form
     );
     
     // Skip test if
