@@ -408,21 +408,7 @@ function ct_ajax_check_users(){
 		$result = CleantalkAPI::method__spam_check_cms($apbct->api_key, $data, !empty($_POST['accurate_check']) ? $curr_date : null);
 		
 		if(empty($result['error'])){
-				
-				// Opening CSV file
-				$current_user = wp_get_current_user();
-				if(!is_dir(APBCT_DIR_PATH .'/check-results/'))
-				    mkdir(APBCT_DIR_PATH .'/check-results');
-				$filename = APBCT_DIR_PATH ."/check-results/user_check_by_{$current_user->user_nicename}.csv";
-				$text = '';
-				
-				if(isset($_POST['new_check']) && $_POST['new_check'] == 'true'){
-					$file_desc = fopen($filename, 'w');
-					$text .= 'login,email,ip'.PHP_EOL;
-				}else
-					$file_desc = fopen($filename, 'a+');
-				// End of Opening CSV			
-							
+									
 				for($i=0;$i<sizeof($u);$i++){
 					
 					$check_result['checked']++;
@@ -451,16 +437,9 @@ function ct_ajax_check_users(){
 					if ($mark_spam_ip || $mark_spam_email){
 						$check_result['spam']++;
 						update_user_meta($u[$i]->ID,'ct_marked_as_spam','1',true);
-						$text .= $u[$i]->user_login.',';
-						$text .= ($mark_spam_email ? $uim : '').',';
-						$text .= ($mark_spam_ip    ? $uip : '').PHP_EOL;	
 					}
 							
 				}
-				if($file_desc){
-                    fwrite($file_desc, $text);
-                    fclose($file_desc);
-                }
 				print json_encode($check_result);
 		}else{
 			$check_result['error'] = 1;
@@ -686,16 +665,58 @@ function ct_usercheck_get_csv_file() {
 	
 	check_ajax_referer( 'ct_secret_nonce', 'security' );
 
-	$filename = !empty($_POST['filename']) ? $_POST['filename'] : false;
+	// Opening CSV file
+	if(!is_dir(APBCT_DIR_PATH .'/check-results/'))
+	    mkdir(APBCT_DIR_PATH .'/check-results');
+
+	$current_user = wp_get_current_user();
+
+	$filename = APBCT_DIR_PATH ."/check-results/user_check_by_{$current_user->user_nicename}.csv";
+
+	//Delete old file
+	if (file_exists($filename))
+		unlink($filename);
+
+	$file_desc = fopen($filename, 'w');
+	$text = 'login,email,ip'.PHP_EOL;
 	
+	$params = array(
+		'meta_query' => array(
+			array(
+				'key' => 'ct_marked_as_spam',
+				'compare' => '1'
+			),
+		),
+		'orderby' => 'registered',
+		'order' => 'ASC',
+	);
+
+	$u = get_users( $params );
+
+	for($i=0; $i < count($u); $i++){
+		$user_meta = get_user_meta($u[$i]->ID, 'session_tokens', true);
+		if(is_array($user_meta))
+			$user_meta = array_values($user_meta);
+		$text .= $u[$i]->user_login.',';
+		$text .= $u[$i]->data->user_email.',';
+		$text .= !empty($user_meta[0]['ip'])      ? trim($user_meta[0]['ip'])      : ''.PHP_EOL;	
+	}
+	if($file_desc){
+        fwrite($file_desc, $text);
+        fclose($file_desc);
+    }
+
+	$filename = !empty($_POST['filename']) ? $_POST['filename'] : false;
+
 	if($filename !== false && file_exists(WP_PLUGIN_DIR."/cleantalk-spam-protect/check-results/{$filename}.csv"))
 		$output = 1;
 	else
 		$output = 0;
-	
+
 	echo $output;
-	
+
 	die();
+
 }
 
 /**
