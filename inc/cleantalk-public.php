@@ -3062,7 +3062,8 @@ function ct_contact_form_validate() {
 		isset($_POST['password']) || // Exception for login form. From Analysis uid=406596
         (isset($_POST['action']) && $_POST['action'] == 'wilcity_reset_password') || // Exception for reset password form. From Analysis uid=430898
         (isset($_POST['action']) && $_POST['action'] == 'wilcity_login') || // Exception for login form. From Analysis uid=430898
-        (isset($_POST['qcfsubmit'])) //Exception for submit quick forms - duplicates with qcfvalidate
+        (isset($_POST['qcfsubmit'])) || //Exception for submit quick forms - duplicates with qcfvalidate
+        apbct_is_in_uri('wc-ajax=update_order_review')
 		) {
         return null;
     }
