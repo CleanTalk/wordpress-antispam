@@ -566,6 +566,13 @@ If your website has forms that send data to external sources, you can enable opt
 10. Website's options.
 
 == Changelog ==
+= 5.130.1 November 20 2019 =
+  * Fix: Plugin autoupdate issues.
+  * FIx: Woocommerce checking.
+  * Fix: Correct IP detection.
+  * Fix: CSV export not working after update.
+  * Fix: QuickForms duplicates issues.
+
 = 5.130 November 14 2019 =
   * Fix: JetPack contact form JS check.
   * FIx: Iphorm AJAX form.
