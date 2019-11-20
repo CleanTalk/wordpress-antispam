@@ -3061,7 +3061,8 @@ function ct_contact_form_validate() {
 		(isset($_POST['wpum_form']) && $_POST['wpum_form'] == 'login') || //WPUM login skip
 		isset($_POST['password']) || // Exception for login form. From Analysis uid=406596
         (isset($_POST['action']) && $_POST['action'] == 'wilcity_reset_password') || // Exception for reset password form. From Analysis uid=430898
-        (isset($_POST['action']) && $_POST['action'] == 'wilcity_login') // Exception for login form. From Analysis uid=430898
+        (isset($_POST['action']) && $_POST['action'] == 'wilcity_login') || // Exception for login form. From Analysis uid=430898
+        (isset($_POST['qcfsubmit'])) //Exception for submit quick forms - duplicates with qcfvalidate
 		) {
         return null;
     }
