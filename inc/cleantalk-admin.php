@@ -470,6 +470,7 @@ function apbct_admin__notice_message(){
 						"<a href='{$settings_link}'>".$apbct->plugin_name."</a>", 
 						"<a href=\"http://cleantalk.org/my/bill/recharge?utm_source=wp-backend&utm_medium=cpc&utm_campaign=WP%20backend%20trial$user_token&cp_mode=antispam\" target=\"_blank\"><b>premium version</b></a>") .
 					'</h3>
+					<h4 style = "color: gray">If you already paid for the service, please, re-save the plugin settings (WP Dashboard —> Settings —> Anti-Spam by CleanTalk) to dismiss the notice.</h4>
 				</div>';
 				$apbct->notice_show = false;
 			}
