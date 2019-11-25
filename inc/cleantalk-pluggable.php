@@ -270,3 +270,17 @@ function apbct_is_in_referer( $str ){
 function apbct_is_in_uri( $str ){
     return stripos( apbct_get_server_variable('REQUEST_URI'), $str ) !== false;
 }
+
+/*
+ * Checking if current request is a cron job
+ * Support for wordpress < 4.8.0
+ */
+function apbct_wp_doing_cron() {
+
+    if( function_exists( 'wp_doing_cron' ) ) {
+        return wp_doing_cron();
+    } else {
+        return ( defined( 'DOING_CRON' ) && DOING_CRON );
+    }
+
+}

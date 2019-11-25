@@ -226,7 +226,7 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 		if( $apbct->plugin_version == APBCT_VERSION && // Do not call with first start
 			$apbct->settings['spam_firewall'] == 1 &&
             apbct_is_get() &&
-            ! wp_doing_cron()
+            ! apbct_wp_doing_cron()
 		){
 			apbct_sfw__check();
 	    }
