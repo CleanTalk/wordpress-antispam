@@ -860,7 +860,7 @@ function apbct_settings__field__apikey(){
 					echo '<input checked type="checkbox" id="license_agreed" onclick="apbctSettingsDependencies(\'apbct_setting---get_key_auto\');"/>';
 					echo '<label for="spbc_license_agreed">';
 						printf( __('I accept %sLicense Agreement%s.', 'cleantalk'),
-							'<a href="https://cleantalk.org/publicoffer" target="_blank" style="color:#66b;">',
+							'<a class = "apbct_color--gray" href="https://cleantalk.org/publicoffer" target="_blank">',
 							'</a>'
 						);
 					echo "</label>";
