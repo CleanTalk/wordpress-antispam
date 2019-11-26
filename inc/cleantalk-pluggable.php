@@ -274,6 +274,8 @@ function apbct_is_in_uri( $str ){
 /*
  * Checking if current request is a cron job
  * Support for wordpress < 4.8.0
+ *
+ * @return bool
  */
 function apbct_wp_doing_cron() {
 
