@@ -489,16 +489,19 @@ class Cleantalk {
             }
         }
         
-        if (!$result || !CleantalkHelper::is_json($result)) {
+        if (!$result) {
             $response = null;
-            $response['errno'] = 1;
-            if ($curl_error) {
-                $response['errstr'] = sprintf("CURL error: '%s'", $curl_error); 
-            } else {
-                $response['errstr'] = 'No CURL support compiled in'; 
+            $response['errno'] = 2;
+            if (!CleantalkHelper::is_json($result)) {
+                $response['errstr'] = 'Wrong server response format: ' . substr( $result, 100 );
             }
-            $response['errstr'] .= ' or disabled allow_url_fopen in php.ini.'; 
-            $response = json_decode(json_encode($response));
+            else {
+                $response['errstr'] = $curl_error
+                    ? sprintf( "CURL error: '%s'", $curl_error )
+                    : 'No CURL support compiled in';
+                $response['errstr'] .= ' or disabled allow_url_fopen in php.ini.';
+            }
+            $response = json_decode( json_encode( $response ) );
             
             return $response;
         }
