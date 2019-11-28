@@ -115,6 +115,9 @@ function apbct_init() {
     // WooCommerce registration
     if(class_exists('WooCommerce')){
         add_filter( 'woocommerce_registration_errors', 'ct_registration_errors', 1, 3 );
+        if ($apbct->settings['wc_checkout_test'] == 1) {
+	        add_filter('woocommerce_checkout_process', 'ct_woocommerce_checkout_check', 1, 3);
+        }
         if( isset($_REQUEST['wc-ajax']) && $_REQUEST['wc-ajax'] == 'checkout' && $apbct->settings['wc_checkout_test'] == 0 && $apbct->settings['wc_register_from_order'] == 0 ){
             remove_filter( 'woocommerce_registration_errors', 'ct_registration_errors', 1 );
         }
@@ -716,6 +719,51 @@ function apbct_forms__search__testSpam( $search ){
 	}
 
 	return $search;
+}
+
+/**
+ * Test woocommerce checkout form for spam
+ *
+ */
+function ct_woocommerce_checkout_check() {
+
+	//Getting request params
+	$ct_temp_msg_data = ct_get_fields_any($_POST);
+
+    $sender_email    = ($ct_temp_msg_data['email']    ? $ct_temp_msg_data['email']    : '');
+    $sender_nickname = ($ct_temp_msg_data['nickname'] ? $ct_temp_msg_data['nickname'] : '');
+    $subject         = ($ct_temp_msg_data['subject']  ? $ct_temp_msg_data['subject']  : '');
+    $contact_form    = ($ct_temp_msg_data['contact']  ? $ct_temp_msg_data['contact']  : true);
+    $message         = ($ct_temp_msg_data['message']  ? $ct_temp_msg_data['message']  : array());
+
+    if($subject != '')
+		$message = array_merge(array('subject' => $subject), $message);
+
+	$post_info['comment_type'] = 'order';
+    $post_info['post_url'] = apbct_get_server_variable( 'HTTP_REFERER' );
+
+	//Making a call
+	$base_call_result = apbct_base_call(
+		array(
+			'message'         => $message,
+			'sender_email'    => $sender_email,
+			'sender_nickname' => $sender_nickname,
+			'post_info'       => $post_info,
+			'js_on'           => apbct_js_test('ct_checkjs', $_COOKIE),
+			'sender_info'     => array('sender_url' => null),
+		)
+	);
+
+    $ct_result = $base_call_result['ct_result'];
+
+    if ($ct_result->allow == 0) {
+		wp_send_json(array(
+			'result' => 'failure',
+			'messages' => "<ul class=\"woocommerce-error\"><li>".$ct_result->comment."</li></ul>",
+			'refresh' => 'false',
+			'reload' => 'false'
+		));
+    }
 }
 
 /**
@@ -3063,28 +3111,19 @@ function ct_contact_form_validate() {
         (isset($_POST['action']) && $_POST['action'] == 'wilcity_reset_password') || // Exception for reset password form. From Analysis uid=430898
         (isset($_POST['action']) && $_POST['action'] == 'wilcity_login') || // Exception for login form. From Analysis uid=430898
         (isset($_POST['qcfsubmit'])) || //Exception for submit quick forms - duplicates with qcfvalidate
-        apbct_is_in_uri('wc-ajax=update_order_review')
 		) {
         return null;
     }
 
+    //Skip woocommerce checkout
+    if (apbct_is_in_uri('wc-ajax=update_order_review') || apbct_is_in_uri('wc-ajax=checkout') || !empty($_POST['woocommerce_checkout_place_order']) || apbct_is_in_uri('wc-ajax=wc_ppec_start_checkout') || apbct_is_in_referer('wc-ajax=update_order_review')) {
+    	return null;
+    }
     // Do not execute anti-spam test for logged in users.
     if (isset($_COOKIE[LOGGED_IN_COOKIE]) && $apbct->settings['protect_logged_in'] != 1)
         return null;
 
     $post_info['comment_type'] = 'feedback_general_contact_form';
-
-	// Skip the test if it's WooCommerce and the checkout test unset
-	if( apbct_is_in_uri('wc-ajax=checkout') ||
-	    apbct_is_in_referer('wc-ajax=update_order_review') ||
-	    !empty($_POST['woocommerce_checkout_place_order']) ||
-	   apbct_is_in_uri('wc-ajax=wc_ppec_start_checkout')
-	){
-		if($apbct->settings['wc_checkout_test'] == 0){
-			return null;
-		}
-		$post_info['comment_type'] = 'order';
-	}
 
 	$ct_temp_msg_data = ct_get_fields_any($_POST);
 
@@ -3168,17 +3207,7 @@ function ct_contact_form_validate() {
                 echo $response;
             	die();
 
-            }elseif(isset($_POST['_wp_http_referer']) && strpos($_POST['_wp_http_referer'],'wc-ajax=update_order_review')){ //WooCommerce checkout ("Place Oreder button")
-				$result = Array(
-					'result' => 'failure',
-					'messages' => "<ul class=\"woocommerce-error\"><li>".$ct_result->comment."</li></ul>",
-					'refresh' => 'false',
-					'reload' => 'false'
-				);
-				print json_encode($result);
-				die();
-
-			}elseif(isset($_POST['action']) && $_POST['action'] == 'ct_check_internal'){
+            }elseif(isset($_POST['action']) && $_POST['action'] == 'ct_check_internal'){
                 return $ct_result->comment;
 
             }elseif(isset($_POST['vfb-submit']) && defined('VFB_VERSION')){
