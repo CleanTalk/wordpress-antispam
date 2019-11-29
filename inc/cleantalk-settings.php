@@ -610,7 +610,9 @@ function apbct_settings__display() {
 function apbct_settings__display__network(){
 	// If it's network admin dashboard
 	if(is_network_admin()){
-		$link = get_site_option('siteurl').'wp-admin/options-general.php?page=cleantalk';
+		$site_url = get_site_option('siteurl');
+		$site_url = preg_match( '/\/$/', $site_url ) ? $site_url : $site_url . '/';
+		$link = $site_url . 'wp-admin/options-general.php?page=cleantalk';
 		printf("<h2>" . __("Please, enter the %splugin settings%s in main site dashboard.", 'cleantalk') . "</h2>", "<a href='$link'>", "</a>");
 		return;
 	}
