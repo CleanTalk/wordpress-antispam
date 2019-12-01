@@ -1161,6 +1161,10 @@ function apbct_rc__update(){
 	$title 	     = __('Update Plugin');
 	$nonce 	     = 'upgrade-plugin_' . $plugin;
 	$url 	     = 'update.php?action=upgrade-plugin&plugin=' . urlencode( $plugin );
+    $activate_for_network = false;
+    if( APBCT_WPMS && is_main_site() && array_key_exists( $plugin, get_site_option( 'active_sitewide_plugins' ) ) ) {
+        $activate_for_network = true;
+    }
 	
 	$prev_version = APBCT_VERSION;
 	
@@ -1182,7 +1186,7 @@ function apbct_rc__update(){
 	
 	apbct_maintance_mode__disable();
 	
-	$result = activate_plugins( $plugin );
+	$result = activate_plugins( $plugin, '', $activate_for_network );
 	
 	// Changing response UP_TO_DATE to OK
 	if($upgrader->apbct_result === 'UP_TO_DATE')
