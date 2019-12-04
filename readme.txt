@@ -3,6 +3,7 @@ Contributors: safronik
 Tags: spam, antispam, protection, comments, firewall 
 Requires at least: 3.0
 Tested up to: 5.3
+Requires PHP: 5.4
 Stable tag: 5.130.1
 License: GPLv2
 
@@ -548,7 +549,7 @@ We develop plugin to do it as optimized as possible, CleanTalk doesn't downgrade
 
 = Is the plugin EU GDPR compatible? =
 Yes, it is. Please read this article,
-<a href="https://cleantalk.org/help/CleanTalk-GDPR-Compliance">https://cleantalk.org/help/CleanTalk-GDPR-Compliance</a>
+<a href="https://cleantalk.org/publicoffer#cleantalk_gdpr_compliance">https://cleantalk.org/publicoffer#cleantalk_gdpr_compliance</a>
 
 = Check external forms =
 If your website has forms that send data to external sources, you can enable option to "Protect external forms". In this case, if plugin determinates that the current message is spam, your form action will be temporary replaced to your current hostname to prevent sending false data to an external source.
