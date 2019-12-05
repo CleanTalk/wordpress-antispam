@@ -553,14 +553,7 @@ function apbct_sfw__check()
 				$apbct->data['sfw_counter']['all']++;
 				$apbct->saveData();
 				if(!headers_sent())
-					setcookie ('ct_sfw_passed', '0', array(
-						'expires' => time()+86400*3,
-						'path' => '/',
-						'domain' => parse_url(get_option('siteurl'),PHP_URL_HOST),
-						'secure' => false,
-						'httponly' => true,
-						'samesite' => 'Lax',
-					));
+					apbct_cookie__set ('ct_sfw_passed', '0', time()+86400*3, '/', parse_url(get_option('siteurl'),PHP_URL_HOST), false, true, 'Lax' );
 			}
 			break;
 		}else{
@@ -1449,14 +1442,7 @@ function apbct_store__urls(){
 		// Saving
 		$apbct->settings['store_urls__sessions']
 			? apbct_alt_session__save('apbct_urls', json_encode($urls))
-			: setcookie('apbct_urls', json_encode($urls), array(
-				'expires' => time()+86400*3,
-				'path' => '/',
-				'domain' => parse_url(get_option('siteurl'),PHP_URL_HOST),
-				'secure' => false,
-				'httponly' => true,
-				'samesite' => 'Lax',
-			));
+			: apbct_cookie__set('apbct_urls', json_encode($urls), time()+86400*3, '/', parse_url(get_option('siteurl'),PHP_URL_HOST), false, true, 'Lax');
 		
 		// REFERER
 		// Get current fererer
@@ -1473,19 +1459,35 @@ function apbct_store__urls(){
 			
 			$apbct->settings['store_urls__sessions']
 				? apbct_alt_session__save('apbct_site_referer', $new_site_referer)
-				: setcookie('apbct_site_referer', $new_site_referer, array(
-					'expires' => time()+86400*3,
-					'path' => '/',
-					'domain' => parse_url(get_option('siteurl'),PHP_URL_HOST),
-					'secure' => false,
-					'httponly' => true,
-					'samesite' => 'Lax',
-				));
+				: apbct_cookie__set('apbct_site_referer', $new_site_referer, time()+86400*3, '/', parse_url(get_option('siteurl'),PHP_URL_HOST), false, true, 'Lax');
 		}
 		
 		$apbct->flags__url_stored = true;
 		
 	}
+}
+
+function apbct_cookie__set($name, $value = '', $expires = 0, $path = '', $domain = null, $secure = false, $httponly = false, $samesite = null ){
+	
+	// For PHP 7.3+ and above
+	if( version_compare( phpversion(), '7.3.0', '>=' ) ){
+		
+		$params = array(
+			'expires'  => $expires,
+			'path'     => $path,
+			'domain'   => $domain,
+			'secure'   => $secure,
+			'httponly' => $httponly,
+		);
+		
+		if($samesite)
+			$params['samesite'] = $samesite;
+		
+		setcookie( $name, $value, $params );
+		
+	// For PHP 5.6 - 7.2
+	}else
+		setcookie( $name, $value, $expires, $path, $domain, $secure, $httponly );
 }
 
 /*
@@ -1529,14 +1531,7 @@ function apbct_cookie(){
 		$apbct_timestamp = time();
 		$apbct->settings['set_cookies__sessions']
 			? apbct_alt_session__save('apbct_timestamp', $apbct_timestamp)
-			: setcookie('apbct_timestamp', $apbct_timestamp, array(
-				'expires' => 0,
-				'path' => '/',
-				'domain' => $domain,
-				'secure' => false,
-				'httponly' => true,
-				'samesite' => 'Lax',
-			));
+			: apbct_cookie__set('apbct_timestamp', $apbct_timestamp,  0, '/', $domain, false, true, 'Lax' );
 		$cookie_test_value['cookies_names'][] = 'apbct_timestamp';
 		$cookie_test_value['check_value'] .= $apbct_timestamp;
 	}
@@ -1545,14 +1540,7 @@ function apbct_cookie(){
 	if(apbct_get_server_variable( 'HTTP_REFERER' )){
 		$apbct->settings['set_cookies__sessions']
 			? apbct_alt_session__save('apbct_prev_referer', apbct_get_server_variable( 'HTTP_REFERER' ))
-			: setcookie('apbct_prev_referer', apbct_get_server_variable( 'HTTP_REFERER' ), array(
-				'expires' => 0,
-				'path' => '/',
-				'domain' => $domain,
-				'secure' => false,
-				'httponly' => true,
-				'samesite' => 'Lax',
-			));
+			: apbct_cookie__set('apbct_prev_referer', apbct_get_server_variable( 'HTTP_REFERER' ), 0, '/', $domain, false, true, 'Lax' );
 		$cookie_test_value['cookies_names'][] = 'apbct_prev_referer';
 		$cookie_test_value['check_value'] .= apbct_get_server_variable( 'HTTP_REFERER' );
 	}
@@ -1565,14 +1553,7 @@ function apbct_cookie(){
 		$site_landing_timestamp = time();
 		$apbct->settings['set_cookies__sessions']
 			? apbct_alt_session__save('apbct_site_landing_ts', $site_landing_timestamp)
-			: setcookie('apbct_site_landing_ts', $site_landing_timestamp, array(
-				'expires' => 0,
-				'path' => '/',
-				'domain' => $domain,
-				'secure' => false,
-				'httponly' => true,
-				'samesite' => 'Lax',
-			));
+			: apbct_cookie__set('apbct_site_landing_ts', $site_landing_timestamp, 0, '/', $domain, false, true, 'Lax' );
 	}
 	$cookie_test_value['cookies_names'][] = 'apbct_site_landing_ts';
 	$cookie_test_value['check_value'] .= $site_landing_timestamp;
@@ -1587,14 +1568,7 @@ function apbct_cookie(){
 	
 	$apbct->settings['set_cookies__sessions']
 		? apbct_alt_session__save('apbct_page_hits', $page_hits)
-		: setcookie('apbct_page_hits', $page_hits, array(
-			'expires' => 0,
-			'path' => '/',
-			'domain' => $domain,
-			'secure' => false,
-			'httponly' => true,
-			'samesite' => 'Lax',
-		));
+		: apbct_cookie__set('apbct_page_hits', $page_hits, 0, '/', $domain, false, true, 'Lax' );
 	
 	$cookie_test_value['cookies_names'][] = 'apbct_page_hits';
 	$cookie_test_value['check_value'] .= $page_hits;
@@ -1602,14 +1576,7 @@ function apbct_cookie(){
 	// Cookies test
 	$cookie_test_value['check_value'] = md5($cookie_test_value['check_value']);
 	if(!$apbct->settings['set_cookies__sessions'])
-		setcookie('apbct_cookies_test', urlencode(json_encode($cookie_test_value)), array(
-			'expires' => 0,
-			'path' => '/',
-			'domain' => $domain,
-			'secure' => false,
-			'httponly' => true,
-			'samesite' => 'Lax',
-		));
+		apbct_cookie__set('apbct_cookies_test', urlencode(json_encode($cookie_test_value)), 0, '/', $domain, false, true, 'Lax' );
 	
 	$apbct->flags__cookies_setuped = true;
 	
