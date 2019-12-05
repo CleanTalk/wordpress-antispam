@@ -42,7 +42,7 @@ function apbct_cookie__get(names, prefixes){
 	names = names || null;
 	if(typeof names == 'string') names = names.split();
 	prefixes = prefixes || ['apbct_', 'ct_'];
-	if(prefixes == 'none')          prefixes = null;
+	if(prefixes === 'none')          prefixes = null;
 	if(typeof prefixes == 'string') prefixes = prefixes.split();
 	document.cookie.split(';').forEach(function(item, i, arr){
 		var curr = item.trim().split('=');
@@ -74,7 +74,7 @@ function apbct_get_cookie( name ){
 
 function animate_comment(to,id){
 	if(ct_close_animate){
-		if(to==0.3){
+		if(to === 0.3){
 			jQuery('#comment-'+id).fadeTo(200,to,function(){
 				animate_comment(1,id)
 			});
@@ -124,7 +124,7 @@ function ct_cooling_down_toggle(){
 
 function ct_send_users(){
 	
-	if(ct_cooling_down_flag == true)
+	if(ct_cooling_down_flag === true)
 		return;
 	
 	if(ct_requests_counter >= ct_max_requests){
@@ -136,12 +136,14 @@ function ct_send_users(){
 		ct_requests_counter++;
 	}
 
+	var check_amount = apbct_get_cookie('ct_check_users__amount');
+
 	var data = {
 		action: 'ajax_check_users',
 		security: ct_ajax_nonce,
 		new_check: ct_new_check,
 		unchecked: ct_unchecked,
-		amount: apbct_get_cookie('ct_check_users__amount'),
+		amount: check_amount
 	};
 	
 	if(ct_accurate_check)
