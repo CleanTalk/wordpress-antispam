@@ -237,19 +237,6 @@
 
 }());
 
-// Capturing responses and output block message for unknown AJAX forms
-jQuery(document).ajaxComplete(function(event, xhr, settings) {
-	if(xhr.responseText && xhr.responseText.indexOf('"apbct') !== -1){
-		var response = JSON.parse(xhr.responseText);
-		if(typeof response.apbct !== 'undefined'){
-			var response = response.apbct;
-			if(response.blocked){
-				alert(response.comment);
-			}
-		}
-	}
-});
-
 function apbct_js_keys__set_input_value(result, data, params, obj){
 	if (document.getElementById(params.input_name) !== null) {
 		var ct_input_value = document.getElementById(params.input_name).value;
@@ -257,36 +244,52 @@ function apbct_js_keys__set_input_value(result, data, params, obj){
 	}
 }
 
-function apbct_sendAJAXRequest(data, params, obj){
+if(typeof jQuery !== 'undefined') {
 
-	// Default params
-	var callback    = params.callback    || null;
-	var notJson     = params.notJson     || null;
-	var timeout     = params.timeout     || 15000;
-	var obj         = obj                || null;
-
-	data._ajax_nonce = ctPublic._ajax_nonce;
-
-	jQuery.ajax({
-		type: "POST",
-		url: ctPublic._ajax_url,
-		data: data,
-		success: function(result){
-			if(!notJson) result = JSON.parse(result);
-			if(result.error){
-
-			}else{
-				if(callback)
-					callback(result, data, params, obj);
+	// Capturing responses and output block message for unknown AJAX forms
+	jQuery(document).ajaxComplete(function (event, xhr, settings) {
+		if (xhr.responseText && xhr.responseText.indexOf('"apbct') !== -1) {
+			var response = JSON.parse(xhr.responseText);
+			if (typeof response.apbct !== 'undefined') {
+				var response = response.apbct;
+				if (response.blocked) {
+					alert(response.comment);
+				}
 			}
-		},
-		error: function(jqXHR, textStatus, errorThrown){
-			console.log('APBCT_AJAX_ERROR');
-			console.log(data);
-			console.log(jqXHR);
-			console.log(textStatus);
-			console.log(errorThrown);
-		},
-		timeout: timeout
+		}
 	});
+
+	function apbct_sendAJAXRequest(data, params, obj) {
+
+		// Default params
+		var callback = params.callback || null;
+		var notJson = params.notJson || null;
+		var timeout = params.timeout || 15000;
+		var obj = obj || null;
+
+		data._ajax_nonce = ctPublic._ajax_nonce;
+
+		jQuery.ajax({
+			type: "POST",
+			url: ctPublic._ajax_url,
+			data: data,
+			success: function (result) {
+				if (!notJson) result = JSON.parse(result);
+				if (result.error) {
+
+				} else {
+					if (callback)
+						callback(result, data, params, obj);
+				}
+			},
+			error: function (jqXHR, textStatus, errorThrown) {
+				console.log('APBCT_AJAX_ERROR');
+				console.log(data);
+				console.log(jqXHR);
+				console.log(textStatus);
+				console.log(errorThrown);
+			},
+			timeout: timeout
+		});
+	}
 }
