@@ -4,7 +4,7 @@ Tags: spam, antispam, protection, comments, firewall
 Requires at least: 3.0
 Tested up to: 5.3
 Requires PHP: 5.4
-Stable tag: 5.130.1
+Stable tag: 5.131
 License: GPLv2
 
 Spam protection, antispam, all-in-one, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -567,6 +567,14 @@ If your website has forms that send data to external sources, you can enable opt
 10. Website's options.
 
 == Changelog ==
+= 5.131 December 6 2019 =
+  * Fix: WooCommerce registration.
+  * Fix: Auto update on Wordperss Multisite.
+  * Fix: URLs exceptions validation.
+  * New: Secuirty improved.
+  * Spam protection is improved.
+  * Minor fixes ond improvments.
+
 = 5.130.1 November 20 2019 =
   * Fix: Plugin autoupdate issues.
   * FIx: Woocommerce checking.
