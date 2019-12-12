@@ -177,9 +177,16 @@ class CleantalkRequest {
 		$this->post_info       = isset($params['post_info'])        ? (string)json_encode($params['post_info'])   : null;
 		$this->sender_info     = isset($params['sender_info'])      ? (string)json_encode($params['sender_info']) : null;
 		
-		// Message
-		$this->message         = !empty($params['message']) ? serialize($params['message']) : null;
-		$this->example         = !empty($params['example']) ? serialize($params['example']) : null;
+	    $this->message = ! empty( $params['message'] )
+		    ? ( ! is_scalar( $params['message'] )
+			    ? serialize( $params['message'] )
+			    : $params['message'] )
+		    : null;
+	    $this->example = ! empty( $params['example'] )
+		    ? ( ! is_scalar( $params['example'] )
+			    ? serialize( $params['example'] )
+			    : $params['example'] )
+		    : null;
 		
 		// Feedback
 		$this->feedback        = !empty($params['feedback']) ? $params['feedback'] : null;
