@@ -174,6 +174,26 @@ function apbct_settings__set_fileds( $fields ){
 		'comments_and_messages' => array(
 			'title'          => __('Comments and Messages', 'cleantalk'),
 			'fields'         => array(
+				'disable_comments__all' => array(
+					'title'       => __('Disable all comments', 'cleantalk'),
+					'description' => __('Disabling comments for all types of content.', 'cleantalk'),
+					'childrens'   => array('disable_comments__posts', 'disable_comments__pages', 'disable_comments__media')
+				),
+				'disable_comments__posts' => array(
+					'title'       => __('Disable for "posts"', 'cleantalk'),
+					'class'           => 'apbct_settings-field_wrapper--sub',
+					'reverse_trigger' => true
+				),
+				'disable_comments__pages' => array(
+					'title'       => __('Disable for "pages"', 'cleantalk'),
+					'class'           => 'apbct_settings-field_wrapper--sub',
+					'reverse_trigger' => true
+				),
+				'disable_comments__media' => array(
+					'title'       => __('Disable for "media"', 'cleantalk'),
+					'class'           => 'apbct_settings-field_wrapper--sub',
+					'reverse_trigger' => true
+				),
 				'bp_private_messages' => array(
 					'title'       => __('BuddyPress Private Messages', 'cleantalk'),
 					'description' => __('Check buddyPress private messages.', 'cleantalk'),

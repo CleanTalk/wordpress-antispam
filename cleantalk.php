@@ -71,7 +71,10 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
     require_once(CLEANTALK_PLUGIN_DIR . 'lib/CleantalkState.php');       // State class
     require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-pluggable.php');  // Pluggable functions
     require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-common.php');
-	
+    
+    // Autoloader
+    require_once(CLEANTALK_PLUGIN_DIR . 'lib\autoloader.php');
+    
 	// Global ArrayObject with settings and other global varables
 	global $apbct;
 	$apbct = new CleantalkState('cleantalk', array('settings', 'data', 'debug', 'errors', 'remote_calls', 'stats'));
@@ -99,6 +102,11 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 	
 	if(!$apbct->white_label){
 		require_once( CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-widget.php');
+	}
+	
+	// Disabling comments
+	if($apbct->settings['disable_comments__all'] || $apbct->settings['disable_comments__posts'] || $apbct->settings['disable_comments__pages'] || $apbct->settings['disable_comments__media']){
+		\Cleantalk\DisableComments::getInstance();
 	}
 	
 	// Passing JS key to frontend
@@ -1102,7 +1110,7 @@ function apbct_rc__deactivate_plugin($plugin = null){
 
 
 /**
- * Uninstall plugin from wordpress catalog
+ * Uninstall plugin from wordpress. Delete files.
  *
  * @param null $plugin
  */
@@ -1271,7 +1279,7 @@ function apbct_rc__insert_auth_key($key, $plugin){
 				$result = CleantalkAPI::method__notice_paid_till(
 					$key,
 					preg_replace('/http[s]?:\/\//', '', get_option('siteurl'), 1), // Site URL
-					'antispam'
+					'security'
 				);
 				
 				if( empty( $result['error'] ) ) {

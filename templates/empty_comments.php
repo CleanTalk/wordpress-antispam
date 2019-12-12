@@ -1,0 +1,2 @@
+<?php
+ // Empty comments template
