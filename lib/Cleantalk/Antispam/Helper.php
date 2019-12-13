@@ -75,7 +75,7 @@ class Helper
 		if(isset($ips['remote_addr'])){
 			$ip_type = self::ip__validate( isset( $_SERVER['REMOTE_ADDR'] ) ? $_SERVER['REMOTE_ADDR'] : '' );
 			if($ip_type){
-				$ips['remote_addr'] = $ip_type == 'v6' ? self::ip__v6_normalize(isset( $_SERVER['REMOTE_ADDR'] ) ? $_SERVER['REMOTE_ADDR'] : '' ) : isset( $_SERVER['REMOTE_ADDR'] ) ? $_SERVER['REMOTE_ADDR'] : '';
+				$ips['remote_addr'] = ($ip_type == 'v6' ? self::ip__v6_normalize(isset( $_SERVER['REMOTE_ADDR'] ) ? $_SERVER['REMOTE_ADDR'] : '' ) : isset( $_SERVER['REMOTE_ADDR'] )) ? $_SERVER['REMOTE_ADDR'] : '';
 			}
 		}
 		
