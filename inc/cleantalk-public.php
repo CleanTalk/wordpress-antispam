@@ -1366,7 +1366,6 @@ function apbct_comment__Wordpress__doNotify($maybe_notify, $comment_ID){
  * @return string
  */
 function apbct_comment__Wordpress__changeMailNotificationGroups($notify_message, $comment_id){
-	$website = parse_url(get_option('siteurl'),PHP_URL_HOST);
 	return $notify_message
 		.PHP_EOL
 		.'---'.PHP_EOL
