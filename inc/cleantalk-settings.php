@@ -129,18 +129,6 @@ function apbct_settings__set_fileds( $fields ){
 					'title'       => __('Custom contact forms', 'cleantalk'),
 					'description' => __('Anti spam test for any WordPress themes or contacts forms.', 'cleantalk'),
 				),
-				'wc_checkout_test' => array(
-					'title'       => __('WooCommerce checkout form', 'cleantalk'),
-					'description' => __('Anti spam test for WooCommerce checkout form.', 'cleantalk'),
-					'childrens'   => array('wc_register_from_order')
-				),
-				'wc_register_from_order' => array(
-					'title'           => __('Spam test for registration during checkout', 'cleantalk'),
-					'description'     => __('Enable anti spam test for registration process which during woocommerce\'s checkout.', 'cleantalk'),
-					'parent'          => 'wc_checkout_test',
-					'class'           => 'apbct_settings-field_wrapper--sub',
-					'reverse_trigger' => true
-				),
 				'search_test' => array(
 					'title'       => __('Test default Wordpress search form for spam', 'cleantalk'),
 					'description' => __('Spam protection for Search form.', 'cleantalk')
@@ -171,28 +159,58 @@ function apbct_settings__set_fileds( $fields ){
 		),
 		
 		// Comments and Messages
+		'wc' => array(
+			'title'          => __('WooCommerce', 'cleantalk'),
+			'fields'         => array(
+				'wc_checkout_test' => array(
+					'title'       => __('WooCommerce checkout form', 'cleantalk'),
+					'description' => __('Anti spam test for WooCommerce checkout form.', 'cleantalk'),
+					'childrens'   => array('wc_register_from_order')
+				),
+				'wc_register_from_order' => array(
+					'title'           => __('Spam test for registration during checkout', 'cleantalk'),
+					'description'     => __('Enable anti spam test for registration process which during woocommerce\'s checkout.', 'cleantalk'),
+					'parent'          => 'wc_checkout_test',
+					'class'           => 'apbct_settings-field_wrapper--sub',
+					'reverse_trigger' => true
+				),
+			),
+		),
+		
+		// Comments and Messages
 		'comments_and_messages' => array(
 			'title'          => __('Comments and Messages', 'cleantalk'),
 			'fields'         => array(
 				'disable_comments__all' => array(
-					'title'       => __('Disable all comments', 'cleantalk'),
-					'description' => __('Disabling comments for all types of content.', 'cleantalk'),
-					'childrens'   => array('disable_comments__posts', 'disable_comments__pages', 'disable_comments__media')
+					'title' => __( 'Disable all comments', 'cleantalk' ),
+					'description' => __( 'Disabling comments for all types of content.', 'cleantalk' ),
+					'childrens' => array(
+						'disable_comments__posts',
+						'disable_comments__pages',
+						'disable_comments__media',
+					),
+					'options' => array(
+						array( 'val' => 1, 'label' => __( 'On' ), 'childrens_enable' => 0, ),
+						array( 'val' => 0, 'label' => __( 'Off' ), 'childrens_enable' => 1, ),
+					),
 				),
 				'disable_comments__posts' => array(
-					'title'       => __('Disable for "posts"', 'cleantalk'),
+					'title'           => __( 'Disable comments for all "posts"', 'cleantalk' ),
 					'class'           => 'apbct_settings-field_wrapper--sub',
-					'reverse_trigger' => true
+					'parent'          => 'disable_comments__all',
+					'reverse_trigger' => true,
 				),
 				'disable_comments__pages' => array(
-					'title'       => __('Disable for "pages"', 'cleantalk'),
+					'title'           => __( 'Disable comments for all "pages"', 'cleantalk' ),
 					'class'           => 'apbct_settings-field_wrapper--sub',
-					'reverse_trigger' => true
+					'parent'          => 'disable_comments__all',
+					'reverse_trigger' => true,
 				),
 				'disable_comments__media' => array(
-					'title'       => __('Disable for "media"', 'cleantalk'),
+					'title'           => __( 'Disable comments for all "media"', 'cleantalk' ),
 					'class'           => 'apbct_settings-field_wrapper--sub',
-					'reverse_trigger' => true
+					'parent'          => 'disable_comments__all',
+					'reverse_trigger' => true,
 				),
 				'bp_private_messages' => array(
 					'title'       => __('BuddyPress Private Messages', 'cleantalk'),
@@ -472,8 +490,8 @@ function apbct_settings__add_groups_and_fields( $fields ){
 		'callback'        => 'apbct_settings__field__draw',
 		'type'            => 'radio',
 		'options' => array(
-			array('val' => 1, 'label'  => __('On'),),
-			array('val' => 0, 'label'  => __('Off'),),
+			array('val' => 1, 'label'  => __('On'),  'childrens_enable' => 1, ),
+			array('val' => 0, 'label'  => __('Off'), 'childrens_enable' => 0, ),
 		),
 		'def_class'          => 'apbct_settings-field_wrapper',
 		'class'              => '',
@@ -1116,7 +1134,7 @@ function apbct_settings__field__draw($params = array()){
 						     .' value="'.$option['val'].'"'
 						     .($params['parent'] ? $disabled : '')
 						     .($params['childrens']
-								? ' onchange="apbctSettingsDependencies(\'' . $childrens . '\')"'
+								? ' onchange="apbctSettingsDependencies(\'' . $childrens . '\', ' . $option['childrens_enable'] . ')"'
 								: ''
 						     )
 						     .($value == $option['val'] ? ' checked' : '')
