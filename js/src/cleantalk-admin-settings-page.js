@@ -32,6 +32,13 @@ jQuery(document).ready(function(){
 
 });
 
+/**
+ * Select elems like #{selector} or .{selector}
+ * Selector passed in string separated by ,
+ *
+ * @param elems
+ * @returns {*}
+ */
 function apbct_get_elems(elems){
     elems = elems.split(',');
     for( var i=0, len = elems.length, tmp; i < len; i++){
@@ -39,7 +46,45 @@ function apbct_get_elems(elems){
         elems[i] = tmp.length === 0 ? jQuery('.'+elems[i]) : tmp;
     }
     return elems;
+}
 
+/**
+ * Select elems like #{selector} or .{selector}
+ * Selector could be passed in a string ( separated by comma ) or in array ( [ elem1, elem2, ... ] )
+ *
+ * @param elems string|array
+ * @returns array
+ */
+function apbct_get_elems__native(elems){
+
+	// Make array from a string
+	if(typeof elems === 'string')
+		elems = elems.split(',');
+
+	var out = [];
+
+	elems.forEach(function(elem, i, arr) {
+
+		// try to get elements with such IDs
+		var tmp = document.getElementById(elem);
+		if (tmp !== null){
+			out.push( tmp[key] );
+			return;
+		}
+
+		// try to get elements with such class name
+		// write each elem from collection to new element of outpur array
+		tmp = document.getElementsByClassName(elem);
+		if (tmp !== null && tmp.length !==0 ){
+			for(key in tmp){
+				if( +key >= 0 ){
+					out.push( tmp[key] );
+				}
+			}
+		}
+	});
+
+	return out;
 }
 
 function apbct_show_hide_elem(elems){
@@ -60,32 +105,34 @@ function apbct_show_hide_elem(elems){
 }
 
 /**
- * Settings dependences
+ * Settings dependences. Switch|toggle depended elements state (disabled|enabled)
+ * Recieve list of selectors ( without class mark (.) or id mark (#) )
  *
- * @param elems CSS selector
+ * @param ids string|array Selectors
+ * @param enable
  */
-function apbctSettingsDependencies(elems){
-    elems = apbct_get_elems(elems);
-    for( var i=0, len = elems.length; i < len; i++){
-        elems[i].each(function (i, elem) {
-            apbct_toggleAtrribute(jQuery(elem), 'disabled');
-        });
-    }
-}
+function apbctSettingsDependencies(ids, enable){
 
-/**
- * Toggle attribute 'disabled' for elements
- *
- * @param elem
- * @param attribute
- * @param value
- */
-function apbct_toggleAtrribute(elem, attribute, value){
-    value = value || attribute;
-    if(typeof elem.attr(attribute) === 'undefined')
-        elem.attr(attribute, value);
-    else
-        elem.removeAttr(attribute);
+	enable = +enable || null;
+
+	// Get elements
+	var elems = apbct_get_elems__native( ids );
+
+	elems.forEach(function(elem, i, arr){
+
+		var do_disable = function(){console.log( elem ); elem.setAttribute('disabled', 'disabled');},
+			do_enable  = function(){elem.removeAttribute('disabled');};
+
+		// Set defined state
+		if(enable !== null) // Set
+			enable === 1 ? do_enable() : do_disable();
+
+		// Toggle
+		else{
+			elem.getAttribute('disabled') === null ? do_disable() : do_enable();
+		}
+
+	});
 }
 
 function apbct_settings__showDescription(label, setting_id){
