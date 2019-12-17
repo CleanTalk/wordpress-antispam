@@ -69,7 +69,7 @@ class cleantalk_widget extends WP_Widget
 		
 		// This is where you run the code and display the output
 		echo '<div style="width:auto;">'
-			.'<a href="http://cleantalk.org'.(!empty($instance['refid']) ? '?pid='.$instance['refid'] : '').'" target="_blank" title="'.__('CleanTalk\'s main page', 'cleantalk').'" style="'.$a_style.'">'
+			.'<a href="https://cleantalk.org'.(!empty($instance['refid']) ? '?pid='.$instance['refid'] : '').'" target="_blank" title="'.__('CleanTalk\'s main page', 'cleantalk').'" style="'.$a_style.'">'
 				.'<strong style="'.$strong_style.'"><b>'.$blocked.'</b> '.__('spam', 'cleantalk').'</strong> '.__('blocked by', 'cleantalk').' <strong>CleanTalk</strong>'
 			.'</a>'
 		.'</div>';

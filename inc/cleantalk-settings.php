@@ -574,7 +574,7 @@ function apbct_settings__display() {
 					// .' <a href="https://community.cleantalk.org/viewforum.php?f=25" target="_blank">'.__("Tech forum", 'cleantalk').'</a>'
 					// .($user_token ? ", <a href='https://cleantalk.org/my/support?user_token=$user_token&cp_mode=antispam' target='_blank'>".__("Service support ", 'cleantalk').'</a>' : '').
 						.'<br>';
-					echo __('Plugin Homepage at', 'cleantalk').' <a href="http://cleantalk.org" target="_blank">cleantalk.org</a>.<br/>';
+					echo __('Plugin Homepage at', 'cleantalk').' <a href="https://cleantalk.org" target="_blank">cleantalk.org</a>.<br/>';
 					echo '<span id="apbct_gdpr_open_modal" style="text-decoration: underline;">'.__('GDPR compliance', 'cleantalk').'</span><br/>';
 					echo __('Use s@cleantalk.org to test plugin in any WordPress form.', 'cleantalk').'<br>';
 					echo __('CleanTalk is registered Trademark. All rights reserved.', 'cleantalk').'<br/>';
@@ -807,7 +807,7 @@ function apbct_settings__field__state(){
 	// Autoupdate status
 	if($apbct->notice_auto_update && (!$apbct->white_label || is_main_site())){
 		echo '<img class="apbct_status_icon" src="'.($apbct->auto_update == 1 ? $img : ($apbct->auto_update == -1 ? $img_no : $img_no_gray)).'"/>'.__('Auto update', 'cleantalk')
-		     .' <sup><a href="http://cleantalk.org/help/cleantalk-auto-update" target="_blank">?</a></sup>';
+		     .' <sup><a href="https://cleantalk.org/help/cleantalk-auto-update" target="_blank">?</a></sup>';
 	}
 	
 	// WooCommerce

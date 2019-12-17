@@ -1,11 +1,11 @@
 <?php
 /*
   Plugin Name: Anti-Spam by CleanTalk
-  Plugin URI: http://cleantalk.org
+  Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
   Version: 5.132
   Author: СleanTalk <welcome@cleantalk.org>
-  Author URI: http://cleantalk.org
+  Author URI: https://cleantalk.org
   Text Domain: cleantalk
   Domain Path: /i18n
 */

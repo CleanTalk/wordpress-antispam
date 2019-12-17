@@ -235,7 +235,7 @@ function apbct_admin__register_plugin_links($links, $file){
 			.'</a>';
 			
 	$links[] = '<a class="ct_meta_links" href="'.$apbct->settings_link.'" target="_blank">' . __( 'Start here','cleantalk' ) . '</a>';
-	$links[] = '<a class="ct_meta_links ct_faq_links" href="http://wordpress.org/plugins/cleantalk-spam-protect/faq/" target="_blank">' . __( 'FAQ','cleantalk' ) . '</a>';
+	$links[] = '<a class="ct_meta_links ct_faq_links" href="https://wordpress.org/plugins/cleantalk-spam-protect/faq/" target="_blank">' . __( 'FAQ','cleantalk' ) . '</a>';
 	$links[] = '<a class="ct_meta_links ct_support_links"href="https://wordpress.org/support/plugin/cleantalk-spam-protect" target="_blank">' . __( 'Support','cleantalk' ) . '</a>';
 	$trial = apbct_admin__badge__get_premium(false);
 	if(!empty($trial))
@@ -432,7 +432,7 @@ function apbct_admin__notice_message(){
 		// Auto update notice
 		/* Disabled at 09.09.2018
 		if($apbct->notice_auto_update == 1 && $apbct->auto_update != -1 && empty($_COOKIE['apbct_update_banner_closed'])){
-			$link 	= '<a href="http://cleantalk.org/help/cleantalk-auto-update" target="_blank">%s</a>';
+			$link 	= '<a href="https://cleantalk.org/help/cleantalk-auto-update" target="_blank">%s</a>';
 			$button = sprintf($link, '<input type="button" class="button button-primary" value="'.__('Learn more', 'cleantalk').'"  />');
 			echo '<div class="error notice is-dismissible apbct_update_notice">'
 				.'<h3>'
@@ -468,7 +468,7 @@ function apbct_admin__notice_message(){
 				echo '<div class="error">
 					<h3>' . sprintf(__("%s trial period ends, please upgrade to %s!", 'cleantalk'), 
 						"<a href='{$settings_link}'>".$apbct->plugin_name."</a>", 
-						"<a href=\"http://cleantalk.org/my/bill/recharge?utm_source=wp-backend&utm_medium=cpc&utm_campaign=WP%20backend%20trial$user_token&cp_mode=antispam\" target=\"_blank\"><b>premium version</b></a>") .
+						"<a href=\"https://cleantalk.org/my/bill/recharge?utm_source=wp-backend&utm_medium=cpc&utm_campaign=WP%20backend%20trial$user_token&cp_mode=antispam\" target=\"_blank\"><b>premium version</b></a>") .
 					'</h3>
 					<h4 style = "color: gray">If you already paid for the service, please, re-save the plugin settings (WP Dashboard —> Settings —> Anti-Spam by CleanTalk) to dismiss the notice.</h4>
 				</div>';
@@ -478,7 +478,7 @@ function apbct_admin__notice_message(){
 		
 		//Renew notice from apbct_admin_init().api_method__notice_paid_till()
 		if ($apbct->notice_show && $apbct->notice_renew == 1 && $apbct->moderate_ip == 0 && !$apbct->white_label) {
-			$renew_link = "<a href=\"http://cleantalk.org/my/bill/recharge?utm_source=wp-backend&utm_medium=cpc&utm_campaign=WP%%20backend%%20renew$user_token&cp_mode=antispam\" target=\"_blank\">%s</a>";
+			$renew_link = "<a href=\"https://cleantalk.org/my/bill/recharge?utm_source=wp-backend&utm_medium=cpc&utm_campaign=WP%%20backend%%20renew$user_token&cp_mode=antispam\" target=\"_blank\">%s</a>";
 			$button_html 	= sprintf($renew_link, '<input type="button" class="button button-primary" value="'.__('RENEW ANTI-SPAM', 'cleantalk').'"  />');
 			$link_html 		= sprintf($renew_link, "<b>".__('next year', 'cleantalk')."</b>");
 			
@@ -579,7 +579,7 @@ function apbct_admin__admin_bar__add( $wp_admin_bar ) {
 				.'<div style="margin: auto 7px;" class="ab-item alignright">'
 					.'<div class="ab-label" id="ct_stats">'
 						.($apbct->notice_trial == 1
-							? "<span><a style='color: red;' href=\"http://cleantalk.org/my/bill/recharge?utm_source=wp-backend&utm_medium=cpc&utm_campaign=WP%20backend%20trial&user_token={$apbct->user_token}&cp_mode=antispam\" target=\"_blank\">Renew Anti-Spam</a></span>"
+							? "<span><a style='color: red;' href=\"https://cleantalk.org/my/bill/recharge?utm_source=wp-backend&utm_medium=cpc&utm_campaign=WP%20backend%20trial&user_token={$apbct->user_token}&cp_mode=antispam\" target=\"_blank\">Renew Anti-Spam</a></span>"
 							: '<span style="color: white;" title="'.__('Allowed / Blocked submissions. The number of submissions is being counted since ', 'cleantalk').' '.$user_counter['since'].'">'.$user_counter_str.'</span>	'.$daily_counter_str.$all_time_counter_str.$sfw_counter_str	
 						)
 					.'</div>'
