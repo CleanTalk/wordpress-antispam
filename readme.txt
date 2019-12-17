@@ -32,7 +32,8 @@ No CAPTCHA, no questions, no animal counting, no puzzles, no math and no spam bo
 14. Blocking  disposable & temporary emails.
 15. No Spam - No Google Penalties. Give your SEO boost.
 16. Mobile friendly Anti Spam & FireWall. 
-16. Stops spam in Search Form. 
+17. Stops spam in Search Form.
+18. Disable comments.
 
 = Public reviews =
 > CleanTalk - Cloud-Based Anti-Spam Service to Keep Your Site Bot-Free.
@@ -260,6 +261,16 @@ CleanTalk Anti-Spam has the option to protect your website search form from spam
 * Spam protection allows you to not forbid indexation for the crawler bots if you really need it but simultaneously you will get protection from spambots.
 
 You will always know what users were looking for on your site.
+
+= Disable comments =
+
+This option disables comments on your site. You can choose one or several options:
+
+* Disable comments for posts
+* Disable comments for pages
+* Disable comments for media
+
+When using Disables comments, existing comments will not be deleted and will remain on the pages.
 
 = Translations = 
 * Albanian (sq_AL) - thanks to fjalaime https://wordpress.org/support/users/fjalaime/ 
@@ -567,6 +578,13 @@ If your website has forms that send data to external sources, you can enable opt
 10. Website's options.
 
 == Changelog ==
+= 5.132 December 17 2019 =
+  * Fix: PHP 7.4 compability
+  * New: Settings and description for "disable comments" functionality.
+  * Mod: WooCommerce settings moved to separate block.
+  * Minor fixes.
+  * Spam protection improved.
+
 = 5.131 December 6 2019 =
   * Fix: WooCommerce registration.
   * Fix: Auto update on Wordperss Multisite.
