@@ -72,7 +72,6 @@ class DisableComments{
 	
 	function is_current_type_to_disable( $type = '' ){
 		$type = $type ? $type : get_post_type();
-		
 		return in_array( $type, $this->types_to_disable );
 	}
 	
@@ -98,7 +97,6 @@ class DisableComments{
 			
 			if( is_admin() ){
 				
-				error_log( var_export( $this->apbct->options['disable_comments__all'], true ) );
 				if( $this->apbct->settings['disable_comments__all'] ){
 					add_action( 'admin_menu', array( $this,	'admin__filter_menu' ), 999 );
 					add_action( 'admin_print_styles-index.php', array( $this, 'admin__filter_css' ) );
@@ -158,7 +156,6 @@ class DisableComments{
 	
 	function filter__headers( $headers ){
 		unset( $headers['X-Pingback'] );
-		
 		return $headers;
 	}
 	
