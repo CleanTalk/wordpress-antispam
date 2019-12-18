@@ -1,10 +1,10 @@
 === Spam protection, AntiSpam, FireWall by CleanTalk ===
 Contributors: safronik 
-Tags: spam, antispam, protection, comments, firewall 
+Tags: spam, antispam, woocommerce, comments, firewall 
 Requires at least: 3.0
 Tested up to: 5.3
 Requires PHP: 5.4
-Stable tag: 5.131
+Stable tag: 5.132.2
 License: GPLv2
 
 Spam protection, antispam, all-in-one, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -141,7 +141,7 @@ your safety.
 Service CleanTalk (this plugin is a client application for CleanTalk anti-spam service) records all filtered comments, registration and other spam attacks in the "Log of spam attacks" and stores the data in the log for up to 45 days. Using the log, you can ensure reliable protection of your website from spam and no false/positive filtering.
 
 = Spam FireWall =
-CleanTalk has an advanced option "Spam FireWall". This option allows blocking the most active spam bots before they get access to your website. It prevents spam bots from loading website pages so your web server doesn't have to perform all scripts on these pages. Also it prevents scanning of pages of the website by spam bots. Therefore Spam FireWall significantly reduces the load on your web server. Spam FireWall also makes CleanTalk the two-step protection from spam bots. Spam FireWall is the first step and it blocks the most active spam bots.  CleanTalk Anti-Spam is the second step and checks all other requests on the website in the moment of submitting comments/registers etc. 
+CleanTalk has an advanced option "Spam FireWall". Spam FireWall allows blocking the most active spam bots before they get access to your website. It prevents spam bots from loading website pages so your web server doesn't have to perform all scripts on these pages. Also it prevents scanning of pages of the website by spam bots. Therefore Spam FireWall significantly reduces the load on your web server. Spam FireWall also makes CleanTalk the two-step protection from spam bots. Spam FireWall is the first step and it blocks the most active spam bots.  CleanTalk Anti-Spam is the second step and checks all other requests on the website in the moment of submitting comments/registers etc. 
 
 Spam FireWall is fully compatible with the most popular VPN services. 
 Also, Spam FireWall supports all search engines Google, Bing, Yahoo, Baidu, MSN, Yandex and etc.
@@ -182,6 +182,7 @@ our own CleanTalk Cloud Service. Anti Spam by CleanTalk offers a free trial, you
  * Traffic increase and loyalty to the users.
  * 24/7 technical support.
  * Clear stats.
+ * Spam FireWall.
  * No captcha (reCaptcha), puzzles, etc.
  * Free mobile app to control anti-spam protection on your website.
 
@@ -198,7 +199,7 @@ The most popular anti spam method is CAPTCHA - the annoying picture with curved 
 You do not have to work in IT to know what spam is. Besides piles of unwanted email, there are spam bots, or special software programs designed to act as human website visitors that post unwelcome messages over the Internet to advertise dubious services. More often than not spam messages do not even make sense. Similar to bacteria and virus mutations developing antibiotic resistance, spam bots are becoming more resilient in penetrating Internet firewalls and security layers. 
 
 = CleanTalk's features =
-Anti-Spam by CleanTalk is one of the fastest plugins that allows you to lower the server load. One of the important parameters for each webmaster is the speed of the site, so we make sure that our plugin consumes as few server resources as possible. The Cloud Service provides the advantage: all data processing takes place in the Cloud. 
+Anti-Spam by CleanTalk with Spam FireWall is one of the fastest plugins that allows you to lower the server load. One of the important parameters for each webmaster is the speed of the site, so we make sure that our plugin consumes as few server resources as possible. The Cloud Service provides the advantage: all data processing takes place in the Cloud. 
 
 CleanTalk team has developed unique anti spam algorithms to assess visitors behavior. CleanTalk analyzes user behavior and the parameters of the filled forms. Our anti-spam module, being installed in your website, sends the behavior parameters of either a visitor or a spam bot. When these parameters are estimated, the anti spam service makes a decision - to post a message or to define it as spam and reject it. Based on these checks, the service forms its own list of email addresses used by spam bots.
 
@@ -578,6 +579,12 @@ If your website has forms that send data to external sources, you can enable opt
 10. Website's options.
 
 == Changelog ==
+= 5.132.2 December 17 2019 =
+  * Fix: The disable comments functionality.
+
+= 5.132.1 December 17 2019 =
+  * Fix: Fatal PHP error.
+
 = 5.132 December 17 2019 =
   * Fix: PHP 7.4 compability
   * New: Settings and description for "disable comments" functionality.
