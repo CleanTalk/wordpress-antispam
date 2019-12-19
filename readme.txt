@@ -579,6 +579,9 @@ If your website has forms that send data to external sources, you can enable opt
 10. Website's options.
 
 == Changelog ==
+= 5.132.3 December 17 2019 =
+  * Fix: The disable comments functionality.
+
 = 5.132.2 December 17 2019 =
   * Fix: The disable comments functionality.
 
