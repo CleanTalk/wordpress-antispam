@@ -103,6 +103,7 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 	
 	// Disabling comments
 	if($apbct->settings['disable_comments__all'] || $apbct->settings['disable_comments__posts'] || $apbct->settings['disable_comments__pages'] || $apbct->settings['disable_comments__media']){
+		require_once(CLEANTALK_PLUGIN_DIR . 'lib/Cleantalk/Templates/Singleton.php');
 		require_once(CLEANTALK_PLUGIN_DIR . 'lib/Cleantalk/DisableComments.php');
 		\Cleantalk\DisableComments::getInstance();
 	}
