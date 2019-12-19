@@ -195,19 +195,19 @@ function apbct_settings__set_fileds( $fields ){
 					),
 				),
 				'disable_comments__posts' => array(
-					'title'           => __( 'Disable comments for all "posts"', 'cleantalk' ),
+					'title'           => __( 'Disable comments for all posts', 'cleantalk' ),
 					'class'           => 'apbct_settings-field_wrapper--sub',
 					'parent'          => 'disable_comments__all',
 					'reverse_trigger' => true,
 				),
 				'disable_comments__pages' => array(
-					'title'           => __( 'Disable comments for all "pages"', 'cleantalk' ),
+					'title'           => __( 'Disable comments for all pages', 'cleantalk' ),
 					'class'           => 'apbct_settings-field_wrapper--sub',
 					'parent'          => 'disable_comments__all',
 					'reverse_trigger' => true,
 				),
 				'disable_comments__media' => array(
-					'title'           => __( 'Disable comments for all "media"', 'cleantalk' ),
+					'title'           => __( 'Disable comments for all media', 'cleantalk' ),
 					'class'           => 'apbct_settings-field_wrapper--sub',
 					'parent'          => 'disable_comments__all',
 					'reverse_trigger' => true,
