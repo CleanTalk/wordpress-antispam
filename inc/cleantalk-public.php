@@ -3294,7 +3294,8 @@ function ct_contact_form_validate_postdata() {
 		(isset($_GET['wc-ajax']) && $_GET['wc-ajax'] == 'sa_wc_buy_now_get_ajax_buy_now_button') || //BuyNow add to cart
         apbct_is_in_uri('/wp-json/wpstatistics/v1/hit') || //WPStatistics
 		(isset($_POST['ihcaction']) && $_POST['ihcaction'] == 'login') || //Skip login form
-		(isset($_POST['action']) && $_POST['action'] == 'infinite_scroll') //Scroll
+		(isset($_POST['action']) && $_POST['action'] == 'infinite_scroll') || //Scroll
+		isset($_POST['gform_submit']) //Skip gravity checking because of direct integration
         ) {
         return null;
     }
