@@ -499,7 +499,7 @@ class CleantalkState
 	public function __set($name, $value)
     {
         $this->storage[$name] = $value;
-		if(isset($this->storage['data']) && array_key_exists($name, $this->storage['data'])){
+		if(isset($this->storage['data'][$name])){
 			$this->storage['data'][$name] = $value;
 		}
     }
@@ -515,11 +515,11 @@ class CleantalkState
 	public function __get($name)
     {
 		// First check in storage
-        if (array_key_exists($name, $this->storage)){
+        if (isset($this->storage[$name])){
             return $this->storage[$name];
 	        
 		// Then in data
-        }elseif(array_key_exists($name, $this->storage['data'])){
+        }elseif(isset($this->storage['data'][$name])){
 			$this->$name = $this->storage['data'][$name];
 			return $this->storage['data'][$name];
 			
