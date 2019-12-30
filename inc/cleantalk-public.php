@@ -3414,6 +3414,9 @@ function ct_enqueue_scripts_public($hook){
 
 	global $current_user, $apbct;
 
+	if (apbct_exclusions_check__url()) {
+		return;
+	}
 	if($apbct->settings['registrations_test'] || $apbct->settings['comments_test'] || $apbct->settings['contact_forms_test'] || $apbct->settings['general_contact_forms_test'] || $apbct->settings['wc_checkout_test'] || $apbct->settings['check_external'] || $apbct->settings['check_internal'] || $apbct->settings['bp_private_messages'] || $apbct->settings['general_postdata_test']){
 
 		// Differnt JS params
