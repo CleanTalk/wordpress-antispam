@@ -1950,6 +1950,10 @@ function apbct_registration__Wordpress__changeMailNotification($wp_new_user_noti
  */
 function apbct_registration__UltimateMembers__check( $args ){
 
+    if ( isset( UM()->form()->errors ) ) {
+        return false;
+    }
+
 	global $apbct, $cleantalk_executed;
 
 	if ($apbct->settings['registrations_test'] == 0)
