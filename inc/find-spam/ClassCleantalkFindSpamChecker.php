@@ -56,8 +56,8 @@ abstract class ClassCleantalkFindSpamChecker
                 <input id="ct_allow_date_range" type="checkbox" value="1" /><label for="ct_allow_date_range"><strong><?php _e("Specify date range", 'cleantalk'); ?></strong></label>
             </div>
             <div class="ct_check_params_desc">
-                <input class="ct_date" type="text" id="ct_date_range_from" value="<?php echo $this->last_check_date(); ?>" disabled readonly />
-                <input class="ct_date" type="text" id="ct_date_range_till" value="<?php echo date( "M j Y"); ?>" disabled readonly />
+                <label for="ct_date_range_from"></label><input class="ct_date" type="text" id="ct_date_range_from" value="<?php echo $this->last_check_date(); ?>" disabled readonly />
+                <label for="ct_date_range_till"></label><input class="ct_date" type="text" id="ct_date_range_till" value="<?php echo date( "M j Y"); ?>" disabled readonly />
             </div>
             <div class="ct_check_params_desc">
                 <p><?php esc_html_e( "Begin/end dates of creation $this->page_slug to check. If no date is specified, the plugin uses the last $this->page_slug check date.", 'cleantalk'); ?></p>
@@ -71,7 +71,7 @@ abstract class ClassCleantalkFindSpamChecker
 
         <!-- Preloader and working message -->
         <div id="ct_preloader">
-            <img src="<?php echo APBCT_URL_PATH; ?>/inc/images/preloader.gif" alt="Cleantalk preloader" />
+            <img src="<?php echo APBCT_URL_PATH . '/inc/images/preloader.gif'; ?>" alt="Cleantalk preloader" />
         </div>
         <div id="ct_working_message">
             <?php _e("Please wait for a while. CleanTalk is checking all $this->page_slug via blacklist database at cleantalk.org. You will have option to delete found spam $this->page_slug after plugin finish.", 'cleantalk'); ?>
