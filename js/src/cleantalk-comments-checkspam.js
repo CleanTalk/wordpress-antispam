@@ -324,7 +324,8 @@ function ct_toggle_depended(obj, secondary){
 }
 
 jQuery(document).ready(function(){
-	
+
+	jQuery( "#tabs" ).tabs();
 	// Setting dependences
 	// jQuery('#ct_accurate_check')  .data({'depended': '#ct_allow_date_range', 'state': false});
 	jQuery('#ct_allow_date_range').data({'depended': '.ct_date', 'state': false});

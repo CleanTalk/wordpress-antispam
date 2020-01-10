@@ -8,6 +8,9 @@
 	width:100%;
 	text-align:center;
 }
+#ct_preloader img {
+	border: none !important;
+}
 #ct_working_message{
 	display:none;
 	margin: 1em auto auto auto;

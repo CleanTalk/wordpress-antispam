@@ -273,9 +273,8 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 	
 	// Admin panel actions
     if (is_admin() || is_network_admin()){
-		
-		require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-comments.php');
-		require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-users.php');
+
+        require_once( CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-find-spam.php' );
 		require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-admin.php');
 		require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-settings.php');
 				

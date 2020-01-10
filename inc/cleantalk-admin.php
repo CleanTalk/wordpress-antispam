@@ -307,104 +307,31 @@ function apbct_admin__enqueue_scripts($hook){
 			'ip_license'    => $apbct->ip_license ? true : false,
 		));
 	}
-	
-	// COMMENTS's page JavaScript and CSS
-	if( $hook == 'comments_page_ct_check_spam' || $hook == 'edit-comments.php'){
-		
-		// Preparing data
-		if(!empty($_COOKIE['ct_paused_comments_check']))
-			$prev_check = json_decode(stripslashes($_COOKIE['ct_paused_comments_check']), true);
-		
-		// jQueryUI
-		wp_enqueue_script('jqueryui',               plugins_url('/cleantalk-spam-protect/js/jquery-ui.min.js'),                          array('jquery'), '1.12.1');
-		wp_enqueue_style('jqueryui_css', plugins_url('/cleantalk-spam-protect/css/jquery-ui.min.css'),array(),         '1.21.1', 'all');
-		
-		// CSS
-		wp_enqueue_style('cleantalk_admin_css_settings_page', plugins_url('/cleantalk-spam-protect/css/cleantalk-spam-check.min.css'),       array(),         APBCT_VERSION, 'all');
-		
-		// CHECK COMMENTS page JavaScript
-		if($hook == 'comments_page_ct_check_spam'){
-			wp_enqueue_script('ct_comments_checkspam',  plugins_url('/cleantalk-spam-protect/js/cleantalk-comments-checkspam.min.js'), array(),  APBCT_VERSION);
-		wp_localize_script( 'jquery', 'ctCommentsCheck', array(
-			'ct_ajax_nonce'               => wp_create_nonce('ct_secret_nonce'),
-			'ct_prev_accurate'            => !empty($prev_check['accurate']) ? true                : false,
-			'ct_prev_from'                => !empty($prev_check['from'])     ? $prev_check['from'] : false,
-			'ct_prev_till'                => !empty($prev_check['till'])     ? $prev_check['till'] : false,
-			'ct_timeout_confirm'          => __('Failed from timeout. Going to check comments again.', 'cleantalk'),
-			'ct_comments_added'           => __('Added', 'cleantalk'),
-			'ct_comments_deleted'         => __('Deleted', 'cleantalk'),
-			'ct_comments_added_after'     => __('comments', 'cleantalk'),
-			'ct_confirm_deletion_all'     => __('Delete all spam comments?', 'cleantalk'),
-			'ct_confirm_deletion_checked' => __('Delete checked comments?', 'cleantalk'),
-			'ct_status_string'            => __('Total comments %s. Checked %s. Found %s spam comments. %s bad comments (without IP or email).', 'cleantalk'),
-			'ct_status_string_warning'    => '<p>'.__('Please do backup of WordPress database before delete any accounts!', 'cleantalk').'</p>',
-			'start'                       => !empty($_COOKIE['ct_comments_start_check']) ? true : false,
-		));
-		}
-		
-		// COMMENTS page JavaScript
-		if($hook == 'edit-comments.php'){
-			wp_enqueue_script('ct_comments_editscreen', plugins_url('/cleantalk-spam-protect/js/cleantalk-comments-editscreen.min.js'), array(), APBCT_VERSION);
-		wp_localize_script( 'jquery', 'ctCommentsScreen', array(
-				'ct_ajax_nonce'               => wp_create_nonce('ct_secret_nonce'),
-			'spambutton_text'             => __("Find spam comments", 'cleantalk'),
-			'ct_feedback_msg_whitelisted' => __("The sender has been whitelisted.", 'cleantalk'),
-			'ct_feedback_msg_blacklisted' => __("The sender has been blacklisted.", 'cleantalk'),
-			'ct_feedback_msg'             => sprintf(__("Feedback has been sent to %sCleanTalk Dashboard%s.", 'cleantalk'), $apbct->user_token ? "<a target='_blank' href=https://cleantalk.org/my?user_token={$apbct->user_token}&cp_mode=antispam>" : '', $apbct->user_token ? "</a>" : ''),
-			'ct_show_check_links'		  => (bool)$apbct->settings['show_check_links'],
-			'ct_img_src_new_tab'          => plugin_dir_url(__FILE__)."images/new_window.gif",
-		));
-	}
-	}
-	
-	// USERS's page JavaScript and CSS
-	if( $hook == 'users_page_ct_check_users' || $hook == 'users.php'){
-		
-		// Preparing data
-		$current_user = wp_get_current_user();
-		if(!empty($_COOKIE['ct_paused_users_check']))
-			$prev_check = json_decode(stripslashes($_COOKIE['ct_paused_users_check']), true);
-		
-		// jQueryUI
-		wp_enqueue_script('jqueryui',            plugins_url('/cleantalk-spam-protect/js/jquery-ui.min.js'),                         array('jquery'), '1.12.1');
-		wp_enqueue_style('jqueryui_css', plugins_url('/cleantalk-spam-protect/css/jquery-ui.min.css'),array(),         '1.21.1', 'all');
-		
-		// CSS
-		wp_enqueue_style('cleantalk_admin_css_settings_page', plugins_url().'/cleantalk-spam-protect/css/cleantalk-spam-check.min.css', array(),          APBCT_VERSION, 'all');
-		
-		// CHECK USERS page JavaScript
-		if($hook == 'users_page_ct_check_users'){
-			wp_enqueue_script('ct_users_checkspam',  plugins_url('/cleantalk-spam-protect/js/cleantalk-users-checkspam.min.js'),  array(), APBCT_VERSION);
-		wp_localize_script( 'jquery', 'ctUsersCheck', array(
-			'ct_ajax_nonce'               => wp_create_nonce('ct_secret_nonce'),
-			'ct_prev_accurate'            => !empty($prev_check['accurate']) ? true                : false,
-			'ct_prev_from'                => !empty($prev_check['from'])     ? $prev_check['from'] : false,
-			'ct_prev_till'                => !empty($prev_check['till'])     ? $prev_check['till'] : false,
-			'ct_timeout'                  => __('Failed from timeout. Going to check users again.', 'cleantalk'),
-			'ct_timeout_delete'           => __('Failed from timeout. Going to run a new attempt to delete spam users.', 'cleantalk'),
-			'ct_inserted'                 => __('Inserted', 'cleantalk'),
-			'ct_deleted'                  => __('Deleted', 'cleantalk'),
-			'ct_iusers'                   => __('users.', 'cleantalk'),
-			'ct_confirm_deletion_all'     => __('Delete all spam users?', 'cleantalk'),
-			'ct_confirm_deletion_checked' => __('Delete checked users?', 'cleantalk'),
-			'ct_csv_filename'             => "user_check_by_".$current_user->user_login,
-			'ct_bad_csv'                  => __("File doesn't exist. File will be generated while checking. Please, press \"Check for spam\"."),
-			'ct_status_string'            => __("Total users %s, checked %s, found %s spam users and %s bad users (without IP or email)", 'cleantalk'),
-			'ct_status_string_warning'    => "<p>".__("Please do backup of WordPress database before delete any accounts!", 'cleantalk')."</p>"
-		));
-		}
-		
-		// USERS page JavaScript
-		if($hook == 'users.php'){
-			wp_enqueue_script('ct_users_editscreen',     plugins_url('/cleantalk-spam-protect/js/cleantalk-users-editscreen.min.js'), array(), APBCT_VERSION);
-		wp_localize_script( 'jquery', 'ctUsersScreen', array(
-			'spambutton_text'             => __("Find spam-users", 'cleantalk'),
-			'ct_show_check_links'		  => (bool)$apbct->settings['show_check_links'],
-			'ct_img_src_new_tab'          => plugin_dir_url(__FILE__)."images/new_window.gif"
-		));
-	}	
-		
-	}	
+
+    // COMMENTS page JavaScript
+    if($hook == 'edit-comments.php'){
+        wp_enqueue_script('ct_comments_editscreen', plugins_url('/cleantalk-spam-protect/js/cleantalk-comments-editscreen.min.js'), array(), APBCT_VERSION);
+        wp_localize_script( 'jquery', 'ctCommentsScreen', array(
+            'ct_ajax_nonce'               => wp_create_nonce('ct_secret_nonce'),
+            'spambutton_text'             => __("Find spam comments", 'cleantalk'),
+            'ct_feedback_msg_whitelisted' => __("The sender has been whitelisted.", 'cleantalk'),
+            'ct_feedback_msg_blacklisted' => __("The sender has been blacklisted.", 'cleantalk'),
+            'ct_feedback_msg'             => sprintf(__("Feedback has been sent to %sCleanTalk Dashboard%s.", 'cleantalk'), $apbct->user_token ? "<a target='_blank' href=https://cleantalk.org/my?user_token={$apbct->user_token}&cp_mode=antispam>" : '', $apbct->user_token ? "</a>" : ''),
+            'ct_show_check_links'		  => (bool)$apbct->settings['show_check_links'],
+            'ct_img_src_new_tab'          => plugin_dir_url(__FILE__)."images/new_window.gif",
+        ));
+    }
+
+    // USERS page JavaScript
+    if($hook == 'users.php'){
+        wp_enqueue_script('ct_users_editscreen',     plugins_url('/cleantalk-spam-protect/js/cleantalk-users-editscreen.min.js'), array(), APBCT_VERSION);
+        wp_localize_script( 'jquery', 'ctUsersScreen', array(
+            'spambutton_text'             => __("Find spam-users", 'cleantalk'),
+            'ct_show_check_links'		  => (bool)$apbct->settings['show_check_links'],
+            'ct_img_src_new_tab'          => plugin_dir_url(__FILE__)."images/new_window.gif"
+        ));
+    }
+
 }
 
 /**
