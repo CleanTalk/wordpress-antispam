@@ -10,6 +10,8 @@ abstract class ClassCleantalkFindSpamChecker
 
     protected $page_slug;
 
+    protected $list_table;
+
     public function __construct() {
 
         global $apbct;

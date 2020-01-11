@@ -10,6 +10,7 @@ class ClassCleantalkFindSpamUsersChecker extends ClassCleantalkFindSpamChecker
 
         $this->page_title = esc_html__( 'Check users for spam', 'cleantalk' );
         $this->page_slug = 'users';
+        $this->list_table = new ABPCTUsersListTable();
 
         add_action( 'wp_ajax_ajax_check_users', 'ct_ajax_check_users' );
         add_action( 'wp_ajax_ajax_info_users', 'ct_ajax_info_users' );
@@ -53,6 +54,10 @@ class ClassCleantalkFindSpamUsersChecker extends ClassCleantalkFindSpamChecker
     }
 
     public function get_total_spam_page(){
+
+        echo '<form action="" method="POST">';
+        $this->list_table->display();
+        echo '</form>';
 
     }
 

@@ -40,6 +40,42 @@ class ClassCleantalkFindSpamPage
 
     }
 
+    public static function generate_check_users_page() {
+
+        self::set_screen_option();
+
+        require_once(CLEANTALK_PLUGIN_DIR . 'inc/find-spam/ClassCleantalkFindSpamChecker.php');
+        require_once(CLEANTALK_PLUGIN_DIR . 'inc/find-spam/ClassCleantalkFindSpamUsersChecker.php');
+        require_once(CLEANTALK_PLUGIN_DIR . 'inc/find-spam/ClassApbctUsersListTable.php');
+
+        new ClassCleantalkFindSpamPage( new ClassCleantalkFindSpamUsersChecker() );
+
+    }
+
+    public static function generate_check_spam_page() {
+
+        self::set_screen_option();
+
+        require_once(CLEANTALK_PLUGIN_DIR . 'inc/find-spam/ClassCleantalkFindSpamChecker.php');
+        require_once(CLEANTALK_PLUGIN_DIR . 'inc/find-spam/ClassCleantalkFindSpamCommentsChecker.php');
+        // @ToDo require_once(CLEANTALK_PLUGIN_DIR . 'inc/find-spam/ClassApbctCommentsListTable.php');
+
+        new ClassCleantalkFindSpamPage( new ClassCleantalkFindSpamCommentsChecker() );
+
+    }
+
+    private static function set_screen_option() {
+
+        $option = 'per_page';
+        $args = array(
+            'label'   => 'Показывать на странице',
+            'default' => 10,
+            'option'  => 'spam_per_page',
+        );
+        add_screen_option( $option, $args );
+
+    }
+
     private static function findSpamPage() {
 
         ?>
