@@ -9,7 +9,7 @@ class ClassCleantalkFindSpamCommentsChecker extends ClassCleantalkFindSpamChecke
         parent::__construct();
 
         $this->page_title = esc_html__( 'Check comments for spam', 'cleantalk' );
-        $this->page_slug = 'comments';
+        $this->page_slug = 'spam';
 
         add_action( 'wp_ajax_ajax_check_comments', 'ct_ajax_check_comments' );
         add_action( 'wp_ajax_ajax_info_comments', 'ct_ajax_info_comments' );
@@ -42,15 +42,15 @@ class ClassCleantalkFindSpamCommentsChecker extends ClassCleantalkFindSpamChecke
 
     }
 
-    public function get_current_scan_page() {
-        $this->get_current_scan_panel();
+    public function getCurrentScanPage() {
+        $this->getCurrentScanPanel();
     }
 
-    public function get_total_spam_page(){
+    public function getTotalSpamPage(){
 
     }
 
-    public function get_spam_logs_page(){
+    public function getSpamLogsPage(){
 
     }
 
@@ -59,7 +59,7 @@ class ClassCleantalkFindSpamCommentsChecker extends ClassCleantalkFindSpamChecke
      *
      * @return string   date "M j Y"
      */
-    function last_check_date() {
+    function lastCheckDate() {
 
         $params = array(
             'fields'   => 'ids',

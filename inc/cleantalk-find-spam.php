@@ -1,21 +1,51 @@
 <?php
 
 require_once(CLEANTALK_PLUGIN_DIR . 'inc/find-spam/ClassCleantalkFindSpamPage.php');
-require_once(CLEANTALK_PLUGIN_DIR . 'inc/ClassApbctListTable.php');
+require_once(CLEANTALK_PLUGIN_DIR . 'inc/find-spam/ClassCleantalkFindSpamChecker.php');
+require_once(CLEANTALK_PLUGIN_DIR . 'inc/find-spam/ClassCleantalkFindSpamUsersChecker.php');
+require_once(CLEANTALK_PLUGIN_DIR . 'inc/find-spam/ClassCleantalkFindSpamCommentsChecker.php');
 
 // Adding menu items for USERS and COMMENTS spam checking pages
-add_action( 'admin_menu', 'ct_add_find_spam_menus' );
+add_action( 'admin_menu', 'ct_add_find_spam_pages' );
+function ct_add_find_spam_pages(){
 
-function ct_add_find_spam_menus(){
+    // Check users pages
+    $ct_check_users = add_users_page( __( "Check for spam", 'cleantalk' ), __( "Find spam users", 'cleantalk' ),    'activate_plugins', 'ct_check_users', array( 'ClassCleantalkFindSpamPage', 'showFindSpamPage' ) );
+    $ct_check_users_total = add_users_page( __( "Total spam found", 'cleantalk' ), '', 'activate_plugins', 'ct_check_users_total', array( 'ClassCleantalkFindSpamPage', 'showFindSpamPage' ) );
+    $ct_check_users_logs = add_users_page( __( "Scan logs", 'cleantalk' ), '', 'activate_plugins', 'ct_check_users_logs', array( 'ClassCleantalkFindSpamPage', 'showFindSpamPage' ) );
 
-    if( current_user_can( 'activate_plugins' ) ) {
-        $ct_check_users =    add_users_page( __( "Check for spam", 'cleantalk' ), __( "Find spam users", 'cleantalk' ),    'read', 'ct_check_users', array( 'ClassCleantalkFindSpamPage', 'showFindSpamPage' ) );
-        $ct_check_spam  = add_comments_page( __( "Check for spam", 'cleantalk' ), __( "Find spam comments", 'cleantalk' ), 'read', 'ct_check_spam',  array( 'ClassCleantalkFindSpamPage', 'showFindSpamPage' ) );
-    }
+    // Cheack comments pages
+    $ct_check_spam  = add_comments_page( __( "Check for spam", 'cleantalk' ), __( "Find spam comments", 'cleantalk' ), 'activate_plugins', 'ct_check_spam',  array( 'ClassCleantalkFindSpamPage', 'showFindSpamPage' ) );
+    $ct_check_spam_total  = add_comments_page( __( "Total spam found", 'cleantalk' ), '', 'activate_plugins', 'ct_check_spam_total',  array( 'ClassCleantalkFindSpamPage', 'showFindSpamPage' ) );
+    $ct_check_spam_logs  = add_comments_page( __( "Scan logs", 'cleantalk' ), '', 'activate_plugins', 'ct_check_spam_logs',  array( 'ClassCleantalkFindSpamPage', 'showFindSpamPage' ) );
 
-    add_action( "load-$ct_check_users", array( 'ClassCleantalkFindSpamPage', 'generate_check_users_page' ) );
-    add_action( "load-$ct_check_spam",  array( 'ClassCleantalkFindSpamPage', 'generate_check_spam_page' ) );
+    // Remove some pages from main menu
+    remove_submenu_page( 'users.php',         'ct_check_users_total' );
+    remove_submenu_page( 'users.php',         'ct_check_users_logs' );
+    remove_submenu_page( 'edit-comments.php', 'ct_check_spam_total' );
+    remove_submenu_page( 'edit-comments.php', 'ct_check_spam_logs' );
 
+    // Set screen option for every pages
+    add_action( "load-$ct_check_users",        array( 'ClassCleantalkFindSpamPage', 'setScreenOption' ) );
+    add_action( "load-$ct_check_users_total",  array( 'ClassCleantalkFindSpamPage', 'setScreenOption' ) );
+    add_action( "load-$ct_check_users_logs",   array( 'ClassCleantalkFindSpamPage', 'setScreenOption' ) );
+    add_action( "load-$ct_check_spam",         array( 'ClassCleantalkFindSpamPage', 'setScreenOption' ) );
+    add_action( "load-$ct_check_spam_total",   array( 'ClassCleantalkFindSpamPage', 'setScreenOption' ) );
+    add_action( "load-$ct_check_spam_logs",    array( 'ClassCleantalkFindSpamPage', 'setScreenOption' ) );
+
+}
+
+// Set AJAX actions
+add_action( 'wp_ajax_ajax_clear_users',       array( 'ClassCleantalkFindSpamUsersChecker', 'ct_ajax_clear_users' ) );
+add_action( 'wp_ajax_ajax_check_users',       array( 'ClassCleantalkFindSpamUsersChecker', 'ct_ajax_check_users' ) );
+add_action( 'wp_ajax_ajax_info_users',        array( 'ClassCleantalkFindSpamUsersChecker', 'ct_ajax_info_users' ) );
+add_action( 'wp_ajax_ajax_ct_get_csv_file',   array( 'ClassCleantalkFindSpamUsersChecker', 'ct_usercheck_get_csv_file' ) );
+
+// Hook for saving "per_page" option
+add_action( 'wp_loaded', 'ct_save_screen_option' );
+function ct_save_screen_option() {
+
+    // Saving screen option for the pagination (per page option)
     add_filter( 'set-screen-option', function( $status, $option, $value ){
         return ( $option == 'spam_per_page' ) ? (int) $value : $status;
     }, 10, 3 );

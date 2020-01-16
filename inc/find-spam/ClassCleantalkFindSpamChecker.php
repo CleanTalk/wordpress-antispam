@@ -25,24 +25,44 @@ abstract class ClassCleantalkFindSpamChecker
         // Common CSS
         wp_enqueue_style( 'cleantalk_admin_css_settings_page', plugins_url('/cleantalk-spam-protect/css/cleantalk-spam-check.min.css'), array( 'jqueryui_css' ), APBCT_VERSION, 'all' );
 
+        require_once(CLEANTALK_PLUGIN_DIR . 'inc/ClassApbctListTable.php');
+
     }
 
-    public function get_page_title() {
+    public function getPageTitle() {
 
         return $this->page_title;
 
     }
 
-    abstract function get_current_scan_page();
+    /**
+     * @return mixed
+     */
+    public function getPageSlug()
+    {
+        return $this->page_slug;
+    }
 
-    abstract function get_total_spam_page();
+    /**
+     * @return mixed
+     */
+    public function getApbct()
+    {
+        return $this->apbct;
+    }
 
-    abstract function get_spam_logs_page();
+    abstract function getCurrentScanPage();
 
-    abstract function last_check_date();
+    abstract function getTotalSpamPage();
 
-    protected function get_current_scan_panel() {
+    abstract function getSpamLogsPage();
+
+    protected function getCurrentScanPanel( $spam_checker ) {
         ?>
+
+        <!-- Main info -->
+        <h3 id="ct_checking_status"><?php echo $spam_checker::ct_ajax_info_users(true) ; ?></h3>
+
         <!-- Check options -->
         <div class="ct_to_hide" id="ct_check_params_wrapper">
             <button class="button ct_check_params_elem" id="ct_check_spam_button" <?php echo !$this->apbct->data['moderate'] ? 'disabled="disabled"' : ''; ?>><?php _e("Start check", 'cleantalk'); ?></button>
@@ -58,7 +78,7 @@ abstract class ClassCleantalkFindSpamChecker
                 <input id="ct_allow_date_range" type="checkbox" value="1" /><label for="ct_allow_date_range"><strong><?php _e("Specify date range", 'cleantalk'); ?></strong></label>
             </div>
             <div class="ct_check_params_desc">
-                <label for="ct_date_range_from"></label><input class="ct_date" type="text" id="ct_date_range_from" value="<?php echo $this->last_check_date(); ?>" disabled readonly />
+                <label for="ct_date_range_from"></label><input class="ct_date" type="text" id="ct_date_range_from" value="<?php echo $this->lastCheckDate(); ?>" disabled readonly />
                 <label for="ct_date_range_till"></label><input class="ct_date" type="text" id="ct_date_range_till" value="<?php echo date( "M j Y"); ?>" disabled readonly />
             </div>
             <div class="ct_check_params_desc">
@@ -82,6 +102,23 @@ abstract class ClassCleantalkFindSpamChecker
         <!-- Pause button -->
         <button class="button" id="ct_pause">Pause check</button>
         <?php
+    }
+
+    public static function writeSpamLog( $scan_type, $scan_date, $cnt_checked, $cnt_spam, $cnt_bad ) {
+
+        global $wpdb;
+        $wpdb->insert(
+            APBCT_SPAMSCAN_LOGS,
+            array(
+                'scan_type' => $scan_type,
+                'start_time' => $scan_date, //@ToDo this is the END date. Need to place both: start and and of scanning
+                'count_to_scan' => $cnt_checked,
+                'found_spam' => $cnt_spam,
+                'found_bad' => $cnt_bad
+            ),
+            array( '%d', '%s', '%d', '%d', '%d' )
+        );
+
     }
 
 }

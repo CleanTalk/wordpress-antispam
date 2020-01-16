@@ -4,65 +4,23 @@
 class ABPCTUsersListTable extends ABPCT_List_Table
 {
 
-    private $wpdb;
-
-    private $apbct;
-
-    private $spam_users = array();
+    protected $apbct;
 
     function __construct(){
 
         parent::__construct(array(
             'singular' => 'spam',
-            'plural'   => 'spam',
-            'ajax' => true,
+            'plural'   => 'spam'
         ));
 
-        $this->bulk_action_handler();
+        $this->bulk_actions_handler();
+
+        $this->row_actions_handler();
 
         $this->prepare_items();
 
-        global $wpdb, $apbct;
-        $this->wpdb = $wpdb;
+        global $apbct;
         $this->apbct = $apbct;
-
-    }
-
-    function prepare_items(){
-
-        $per_page_option = get_current_screen()->get_option( 'per_page', 'option' );
-        $per_page = get_user_meta( get_current_user_id(), $per_page_option, true );
-        if( ! $per_page ) {
-            $per_page = 10;
-        }
-
-        $this->set_pagination_args( array(
-            'total_items' => $this->get_spam_users()->get_total(),
-            'per_page'    => $per_page,
-        ) );
-
-        $current_page = (int) $this->get_pagenum();
-
-        //$spam_users_to_show = $this->get_spam_users()->get_results();
-        $spam_users_to_show = array_slice( $this->get_spam_users()->get_results(), ( ( $current_page - 1 ) * $per_page ), $per_page );
-
-        foreach( $spam_users_to_show as $user_id ) {
-
-            $user_obj = get_userdata( $user_id );
-
-            $this->spam_users[] = array(
-                'ct_id' => $user_obj->ID,
-                'ct_username'   => $user_obj,
-                'ct_name'  => $user_obj->display_name,
-                'ct_email' => $user_obj->user_email,
-                'ct_signed_up' => $user_obj->user_registered,
-                'ct_role' => implode( ', ', $user_obj->roles ),
-                'ct_posts' => count_user_posts( $user_id ),
-            );
-
-        }
-
-        $this->items = $this->spam_users;
 
     }
 
@@ -140,6 +98,10 @@ class ABPCTUsersListTable extends ABPCT_List_Table
             case 'ct_signed_up':
             case 'ct_role':
             case 'ct_posts':
+            case 'ct_start':
+            case 'ct_checked':
+            case 'ct_spam':
+            case 'ct_bad':
                 return $item[ $column_name ];
             default:
                 return print_r( $item, true ) ; //Мы отображаем целый массив во избежание проблем
@@ -153,6 +115,32 @@ class ABPCTUsersListTable extends ABPCT_List_Table
         return $actions;
     }
 
+    function bulk_actions_handler() {
+
+        if( empty($_POST['spamids']) || empty($_POST['_wpnonce']) ) return;
+
+        if ( ! $action = $this->current_action() ) return;
+
+        if( ! wp_verify_nonce( $_POST['_wpnonce'], 'bulk-' . $this->_args['plural'] ) )
+            wp_die('nonce error');
+
+        $this->removeSpam( $_POST['spamids'] );
+
+    }
+
+    function row_actions_handler() {
+
+        if( empty($_GET['action']) ) return;
+
+        if( $_GET['action'] == 'delete' ) {
+
+            $id = filter_input( INPUT_GET, 'spam', FILTER_SANITIZE_NUMBER_INT );
+            $this->removeSpam( array( $id ) );
+
+        }
+
+    }
+
     function no_items() {
         esc_html_e( 'No spam found.', 'cleantalk' );
     }
@@ -161,7 +149,17 @@ class ABPCTUsersListTable extends ABPCT_List_Table
     //                 LOGIC                     //
     //*******************************************//
 
-    private function get_total_users() {
+    function removeSpam( $ids ) {
+
+        $ids_string = implode( ', ', $ids );
+        global $wpdb;
+
+        $wpdb->query("DELETE FROM {$wpdb->users} WHERE 
+                ID IN ($ids_string)");
+
+    }
+
+    public function getTotal() {
 
         $params_total = array(
             'fields' => 'ID',
@@ -173,11 +171,11 @@ class ABPCTUsersListTable extends ABPCT_List_Table
 
     }
 
-    private function get_spam_users() {
+    public function getChecked() {
 
         $params_spam = array(
             'fields' => 'ID',
-            'meta_key' => 'ct_marked_as_spam',
+            'meta_key' => 'ct_checked',
             'count_total' => true,
         );
         $spam_users = new WP_User_Query($params_spam);
@@ -185,7 +183,53 @@ class ABPCTUsersListTable extends ABPCT_List_Table
 
     }
 
-    private function get_bad_users() { // Without IP and EMAIL
+    public function getCheckedNow() {
+
+        $params_spam = array(
+            'fields' => 'ID',
+            'meta_key' => 'ct_checked_now',
+            'count_total' => true,
+        );
+        $spam_users = new WP_User_Query($params_spam);
+        return $spam_users;
+
+    }
+
+    public function getSpam() {
+
+        $params_spam = array(
+            'fields' => 'ID',
+            'meta_key' => 'ct_spam',
+            'count_total' => true,
+        );
+        $spam_users = new WP_User_Query($params_spam);
+        return $spam_users;
+
+    }
+
+    public function getSpamNow() {
+
+        $params_spam = array(
+            'fields' => 'ID',
+            'meta_query' => array(
+                'relation' => 'AND',
+                array(
+                    'key' => 'ct_spam',
+                    'compare' => 'EXISTS'
+                ),
+                array(
+                    'key' => 'ct_checked_now',
+                    'compare' => 'EXISTS'
+                ),
+            ),
+            'count_total' => true,
+        );
+        $spam_users = new WP_User_Query($params_spam);
+        return $spam_users;
+
+    }
+
+    public function getBad() { // Without IP and EMAIL
 
         $params_bad = array(
             'fields' => 'ID',
@@ -194,6 +238,15 @@ class ABPCTUsersListTable extends ABPCT_List_Table
         );
         $bad_users = new WP_User_Query($params_bad);
         return $bad_users;
+
+    }
+
+    public function getScansLogs() {
+
+        global $wpdb;
+        $query = "SELECT * FROM " . APBCT_SPAMSCAN_LOGS;
+        $res = $wpdb->get_results( $query, ARRAY_A );
+        return $res;
 
     }
 

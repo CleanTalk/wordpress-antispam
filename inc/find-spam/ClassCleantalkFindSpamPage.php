@@ -4,27 +4,87 @@
 class ClassCleantalkFindSpamPage
 {
 
-    static private $apbct;
+    private $spam_checker;
 
-    static private $spam_checker;
+    private $current_tab;
 
     public function __construct( ClassCleantalkFindSpamChecker $apbct_spam_checker ) {
 
-        self::$spam_checker = $apbct_spam_checker;
+        $this->spam_checker = $apbct_spam_checker;
+
+        switch ( current_action() ) {
+
+            case 'users_page_ct_check_users' :
+            case 'users_page_ct_check_spam' :
+                $this->current_tab = 1;
+                $this->generatePageHeader();
+                $this->spam_checker->getCurrentScanPage();
+                break;
+
+            case 'users_page_ct_check_users_total' :
+            case 'users_page_ct_check_spam_total' :
+                $this->current_tab = 2;
+                $this->generatePageHeader();
+                $this->spam_checker->getTotalSpamPage();
+                break;
+
+            case 'users_page_ct_check_users_logs' :
+            case 'users_page_ct_check_spam_logs' :
+                $this->current_tab = 3;
+                $this->generatePageHeader();
+                $this->spam_checker->getSpamLogsPage();
+                break;
+
+        }
 
     }
 
     /**
-     * @return void
+     *  Output header section of the FindSpam pages
+     *
+     * @return void (HTML layout output)
      */
     public static function showFindSpamPage() {
 
-        global $apbct;
-        self::$apbct = $apbct;
+        switch ( current_action() ) {
+
+            case 'users_page_ct_check_users' :
+            case 'users_page_ct_check_users_total' :
+            case 'users_page_ct_check_users_logs' :
+                self::generateCheckUsersPage();
+                break;
+
+            case 'users_page_ct_check_spam' :
+            case 'users_page_ct_check_spam_total' :
+            case 'users_page_ct_check_spam_logs' :
+                self::generateCheckSpamPage();
+                break;
+
+        }
+
+    }
+
+    private static function generateCheckUsersPage() {
+
+        new self( new ClassCleantalkFindSpamUsersChecker() );
+
+        self::closeTags();
+
+    }
+
+    private static function generateCheckSpamPage() {
+
+        new self( new ClassCleantalkFindSpamCommentsChecker() );
+
+        self::closeTags();
+
+    }
+
+    private function generatePageHeader() {
 
         // If access key is unset in
         if( ! apbct_api_key__is_correct() ){
-            if( 1 == self::$apbct->moderate_ip ){
+            if( 1 == $this->spam_checker->getApbct()->moderate_ip ){
                 echo '<h3>'
                     .sprintf(
                         __('Antispam hosting tariff does not allow you to use this feature. To do so, you need to enter an Access Key in the %splugin settings%s.', 'cleantalk'),
@@ -36,39 +96,28 @@ class ClassCleantalkFindSpamPage
             return;
         }
 
-        self::findSpamPage();
+        ?>
+        <div class="wrap">
+        <h2><img src="<?php echo $this->spam_checker->getApbct()->logo__small__colored; ?>" alt="CleanTalk logo" /> <?php echo $this->spam_checker->getApbct()->plugin_name; ?></h2>
+        <a style="color: gray; margin-left: 23px;" href="<?php echo $this->spam_checker->getApbct()->settings_link; ?>"><?php _e('Plugin Settings', 'cleantalk'); ?></a>
+        <br />
+        <h3><?php echo $this->spam_checker->getPageTitle(); ?></h3>
+        <div id="ct_check_tabs">
+            <ul>
+                <li <?php echo (1 == $this->current_tab) ? 'class="active"' : ''; ?>><a href="users.php?page=ct_check_<?php echo $this->spam_checker->getPageSlug(); ?>"><?php esc_html_e( 'Current scan results', 'cleantalk' ) ?></a></li>
+                <li <?php echo (2 == $this->current_tab) ? 'class="active"' : ''; ?>><a href="users.php?page=ct_check_<?php echo $this->spam_checker->getPageSlug(); ?>_total"><?php esc_html_e( 'Total spam found', 'cleantalk' ) ?></a></li>
+                <li <?php echo (3 == $this->current_tab) ? 'class="active"' : ''; ?>><a href="users.php?page=ct_check_<?php echo $this->spam_checker->getPageSlug(); ?>_logs"><?php esc_html_e( 'Scan logs', 'cleantalk' ) ?></a></li>
+            </ul>
+            <div id="ct_check_content">
+        <?php
 
     }
 
-    public static function generate_check_users_page() {
-
-        self::set_screen_option();
-
-        require_once(CLEANTALK_PLUGIN_DIR . 'inc/find-spam/ClassCleantalkFindSpamChecker.php');
-        require_once(CLEANTALK_PLUGIN_DIR . 'inc/find-spam/ClassCleantalkFindSpamUsersChecker.php');
-        require_once(CLEANTALK_PLUGIN_DIR . 'inc/find-spam/ClassApbctUsersListTable.php');
-
-        new ClassCleantalkFindSpamPage( new ClassCleantalkFindSpamUsersChecker() );
-
-    }
-
-    public static function generate_check_spam_page() {
-
-        self::set_screen_option();
-
-        require_once(CLEANTALK_PLUGIN_DIR . 'inc/find-spam/ClassCleantalkFindSpamChecker.php');
-        require_once(CLEANTALK_PLUGIN_DIR . 'inc/find-spam/ClassCleantalkFindSpamCommentsChecker.php');
-        // @ToDo require_once(CLEANTALK_PLUGIN_DIR . 'inc/find-spam/ClassApbctCommentsListTable.php');
-
-        new ClassCleantalkFindSpamPage( new ClassCleantalkFindSpamCommentsChecker() );
-
-    }
-
-    private static function set_screen_option() {
+    public static function setScreenOption() {
 
         $option = 'per_page';
         $args = array(
-            'label'   => 'Показывать на странице',
+            'label'   => esc_html__( 'Show per page', 'cleantalk' ),
             'default' => 10,
             'option'  => 'spam_per_page',
         );
@@ -76,28 +125,9 @@ class ClassCleantalkFindSpamPage
 
     }
 
-    private static function findSpamPage() {
+    private static function closeTags() {
 
         ?>
-        <div class="wrap">
-        <h2><img src="<?php echo self::$apbct->logo__small__colored; ?>" /> <?php echo self::$apbct->plugin_name; ?></h2>
-        <a style="color: gray; margin-left: 23px;" href="<?php echo self::$apbct->settings_link; ?>"><?php _e('Plugin Settings', 'cleantalk'); ?></a>
-        <br />
-        <h3><?php echo self::$spam_checker->get_page_title(); ?></h3>
-        <div id="tabs">
-            <ul>
-                <li><a href="#tabs-1"><?php esc_html_e( 'Current scan results', 'cleantalk' ) ?></a></li>
-                <li><a href="#tabs-2"><?php esc_html_e( 'Total spam found', 'cleantalk' ) ?></a></li>
-                <li><a href="#tabs-3"><?php esc_html_e( 'Scan logs', 'cleantalk' ) ?></a></li>
-            </ul>
-            <div id="tabs-1">
-                <?php self::$spam_checker->get_current_scan_page(); ?>
-            </div>
-            <div id="tabs-2">
-                <?php self::$spam_checker->get_total_spam_page(); ?>
-            </div>
-            <div id="tabs-3">
-                <?php self::$spam_checker->get_spam_logs_page(); ?>
             </div>
         </div>
         <?php
