@@ -9,6 +9,7 @@ class ClassCleantalkFindSpamUsersChecker extends ClassCleantalkFindSpamChecker
         parent::__construct();
 
         $this->page_title = esc_html__( 'Check users for spam', 'cleantalk' );
+        $this->page_script_name = 'users.php';
         $this->page_slug = 'users';
 
         // Preparing data
@@ -26,7 +27,6 @@ class ClassCleantalkFindSpamUsersChecker extends ClassCleantalkFindSpamChecker
             'ct_timeout_delete'           => __('Failed from timeout. Going to run a new attempt to delete spam users.', 'cleantalk'),
             'ct_iusers'                   => __('users.', 'cleantalk'),
             'ct_csv_filename'             => "user_check_by_".$current_user->user_login,
-            'ct_bad_csv'                  => __("File doesn't exist. File will be generated while checking. Please, press \"Check for spam\"."),
             'ct_status_string'            => __("Checked %s, found %s spam users and %s bad users (without IP or email)", 'cleantalk'),
             'ct_status_string_warning'    => "<p>".__("Please do backup of WordPress database before delete any accounts!", 'cleantalk')."</p>"
         ));
@@ -150,6 +150,10 @@ class ClassCleantalkFindSpamUsersChecker extends ClassCleantalkFindSpamChecker
                     'key' => 'ct_checked',
                     'compare' => 'NOT EXISTS'
                 ),
+                array(
+                    'key' => 'ct_bad',
+                    'compare' => 'NOT EXISTS'
+                )
             ),
             'orderby' => 'registered',
             'order' => 'ASC',
@@ -251,7 +255,7 @@ class ClassCleantalkFindSpamUsersChecker extends ClassCleantalkFindSpamChecker
                     // Do not display forbidden roles.
                     foreach ( $skip_roles as $role ) {
                         if ( in_array( $role, $u[$i]->roles ) ){
-                            delete_user_meta( $u[$i]->ID, 'ct_spam' );
+                            delete_user_meta( $u[$i]->ID, 'ct_marked_as_spam' );
                             continue 2;
                         }
                     }
@@ -270,7 +274,7 @@ class ClassCleantalkFindSpamUsersChecker extends ClassCleantalkFindSpamChecker
 
                     if ( $mark_spam_ip || $mark_spam_email ){
                         $check_result['spam']++;
-                        update_user_meta( $u[$i]->ID, 'ct_spam', '1', true );
+                        update_user_meta( $u[$i]->ID, 'ct_marked_as_spam', '1', true );
                     }
 
                 }
@@ -289,7 +293,8 @@ class ClassCleantalkFindSpamUsersChecker extends ClassCleantalkFindSpamChecker
 
             $check_result['end'] = 1;
 
-            static::writeSpamLog( 'users', date("Y-m-d H:m:s"), $check_result['checked'], $check_result['spam'], $check_result['bad'] );
+            $log_data  = static::get_log_data();
+            static::writeSpamLog( 'users', date("Y-m-d H:i:s"), $log_data['checked'], $log_data['spam'], $log_data['bad'] );
 
             echo json_encode( $check_result );
 
@@ -330,19 +335,10 @@ class ClassCleantalkFindSpamUsersChecker extends ClassCleantalkFindSpamChecker
         die();
     }
 
-    public static function ct_ajax_info_users($direct_call = false) {
+    public static function ct_ajax_info($direct_call = false) {
 
         if (!$direct_call)
             check_ajax_referer( 'ct_secret_nonce', 'security' );
-
-        // Total users
-        $params_total = array(
-            'fields' => 'ID',
-            'count'=>true,
-            'orderby' => 'user_registered'
-        );
-        $total_users = new WP_User_Query($params_total);
-        $cnt = $total_users->get_total();
 
         // Checked users
         $params_checked = array(
@@ -360,7 +356,7 @@ class ClassCleantalkFindSpamUsersChecker extends ClassCleantalkFindSpamChecker
             'meta_query' => array(
                 'relation' => 'AND',
                 array(
-                    'key' => 'ct_spam',
+                    'key' => 'ct_marked_as_spam',
                     'compare' => 'EXISTS'
                 ),
                 array(
@@ -407,14 +403,19 @@ class ClassCleantalkFindSpamUsersChecker extends ClassCleantalkFindSpamChecker
                 $cnt_bad
             );
         } else {
-            $return['message'] .= sprintf (
-                __("Last check %s: checked %s users, found %s spam users and %s bad users (without IP or email).", 'cleantalk'),
-                self::lastCheckDate(),
-                $cnt_checked,
-                $cnt_spam,
-                $cnt_bad
-            );
+            if( isset( $return['checked'] ) && 0 == $return['checked']  ) {
+                $return['message'] = esc_html__( 'Never checked yet!', 'cleantalk' );
+            } else {
+                $return['message'] .= sprintf (
+                    __("Last check %s: checked %s users, found %s spam users and %s bad users (without IP or email).", 'cleantalk'),
+                    self::lastCheckDate(),
+                    $cnt_checked,
+                    $cnt_spam,
+                    $cnt_bad
+                );
+            }
         }
+
         $backup_notice = '&nbsp;';
         if ($cnt_spam > 0) {
             $backup_notice = __("Please do backup of WordPress database before delete any accounts!", 'cleantalk');
@@ -429,5 +430,106 @@ class ClassCleantalkFindSpamUsersChecker extends ClassCleantalkFindSpamChecker
         }
     }
 
+    private static function get_log_data() {
+
+        // Checked users
+        $params_checked = array(
+            'fields' => 'ID',
+            'meta_key' => 'ct_checked_now',
+            'count_total' => true,
+            'orderby' => 'ct_checked_now'
+        );
+        $checked_users = new WP_User_Query($params_checked);
+        $cnt_checked = $checked_users->get_total();
+
+        // Spam users
+        $params_spam = array(
+            'fields' => 'ID',
+            'meta_query' => array(
+                'relation' => 'AND',
+                array(
+                    'key' => 'ct_marked_as_spam',
+                    'compare' => 'EXISTS'
+                ),
+                array(
+                    'key' => 'ct_checked_now',
+                    'compare' => 'EXISTS'
+                ),
+            ),
+            'count_total' => true,
+        );
+        $spam_users = new WP_User_Query($params_spam);
+        $cnt_spam = $spam_users->get_total();
+
+        // Bad users (without IP and Email)
+        $params_bad = array(
+            'fields' => 'ID',
+            'meta_query' => array(
+                'relation' => 'AND',
+                array(
+                    'key' => 'ct_bad',
+                    'compare' => 'EXISTS'
+                ),
+                array(
+                    'key' => 'ct_checked_now',
+                    'compare' => 'EXISTS'
+                ),
+            ),
+            'count_total' => true,
+        );
+        $bad_users = new WP_User_Query($params_bad);
+        $cnt_bad = $bad_users->get_total();
+
+        return array(
+            'spam'     => $cnt_spam,
+            'checked'  => $cnt_checked,
+            'bad'      => $cnt_bad,
+        );
+
+    }
+
+    /**
+     * Admin action 'wp_ajax_ajax_ct_get_csv_file' - prints CSV file to AJAX
+     */
+    public static function ct_get_csv_file() {
+
+        check_ajax_referer( 'ct_secret_nonce', 'security' );
+
+        $text = 'login,email,ip' . PHP_EOL;
+
+        $params = array(
+            'meta_query' => array(
+                array(
+                    'key' => 'ct_marked_as_spam',
+                    'compare' => '1'
+                ),
+            ),
+            'orderby' => 'registered',
+            'order' => 'ASC',
+        );
+
+        $u = get_users( $params );
+
+        for( $i=0; $i < count($u); $i++ ){
+            $user_meta = get_user_meta( $u[$i]->ID, 'session_tokens', true );
+            if( is_array( $user_meta ) )
+                $user_meta = array_values( $user_meta );
+            $text .= $u[$i]->user_login.',';
+            $text .= $u[$i]->data->user_email.',';
+            $text .= ! empty( $user_meta[0]['ip']) ? trim( $user_meta[0]['ip'] ) : '';
+            $text .=  PHP_EOL;
+        }
+
+        $filename = ! empty( $_POST['filename'] ) ? $_POST['filename'] : false;
+
+        if( $filename !== false ) {
+            header('Content-Type: text/csv');
+            echo $text;
+        } else {
+            echo 'Export error.'; // file not exists or empty $_POST['filename']
+        }
+        die();
+
+    }
 
 }

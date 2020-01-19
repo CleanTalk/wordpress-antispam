@@ -15,21 +15,21 @@ class ClassCleantalkFindSpamPage
         switch ( current_action() ) {
 
             case 'users_page_ct_check_users' :
-            case 'users_page_ct_check_spam' :
+            case 'comments_page_ct_check_spam' :
                 $this->current_tab = 1;
                 $this->generatePageHeader();
                 $this->spam_checker->getCurrentScanPage();
                 break;
 
             case 'users_page_ct_check_users_total' :
-            case 'users_page_ct_check_spam_total' :
+            case 'comments_page_ct_check_spam_total' :
                 $this->current_tab = 2;
                 $this->generatePageHeader();
                 $this->spam_checker->getTotalSpamPage();
                 break;
 
             case 'users_page_ct_check_users_logs' :
-            case 'users_page_ct_check_spam_logs' :
+            case 'comments_page_ct_check_spam_logs' :
                 $this->current_tab = 3;
                 $this->generatePageHeader();
                 $this->spam_checker->getSpamLogsPage();
@@ -45,7 +45,6 @@ class ClassCleantalkFindSpamPage
      * @return void (HTML layout output)
      */
     public static function showFindSpamPage() {
-
         switch ( current_action() ) {
 
             case 'users_page_ct_check_users' :
@@ -54,9 +53,9 @@ class ClassCleantalkFindSpamPage
                 self::generateCheckUsersPage();
                 break;
 
-            case 'users_page_ct_check_spam' :
-            case 'users_page_ct_check_spam_total' :
-            case 'users_page_ct_check_spam_logs' :
+            case 'comments_page_ct_check_spam' :
+            case 'comments_page_ct_check_spam_total' :
+            case 'comments_page_ct_check_spam_logs' :
                 self::generateCheckSpamPage();
                 break;
 
@@ -104,9 +103,9 @@ class ClassCleantalkFindSpamPage
         <h3><?php echo $this->spam_checker->getPageTitle(); ?></h3>
         <div id="ct_check_tabs">
             <ul>
-                <li <?php echo (1 == $this->current_tab) ? 'class="active"' : ''; ?>><a href="users.php?page=ct_check_<?php echo $this->spam_checker->getPageSlug(); ?>"><?php esc_html_e( 'Current scan results', 'cleantalk' ) ?></a></li>
-                <li <?php echo (2 == $this->current_tab) ? 'class="active"' : ''; ?>><a href="users.php?page=ct_check_<?php echo $this->spam_checker->getPageSlug(); ?>_total"><?php esc_html_e( 'Total spam found', 'cleantalk' ) ?></a></li>
-                <li <?php echo (3 == $this->current_tab) ? 'class="active"' : ''; ?>><a href="users.php?page=ct_check_<?php echo $this->spam_checker->getPageSlug(); ?>_logs"><?php esc_html_e( 'Scan logs', 'cleantalk' ) ?></a></li>
+                <li <?php echo (1 == $this->current_tab) ? 'class="active"' : ''; ?>><a href="<?php echo $this->spam_checker->getPageScriptName(); ?>?page=ct_check_<?php echo $this->spam_checker->getPageSlug(); ?>"><?php esc_html_e( 'Current scan results', 'cleantalk' ) ?></a></li>
+                <li <?php echo (2 == $this->current_tab) ? 'class="active"' : ''; ?>><a href="<?php echo $this->spam_checker->getPageScriptName(); ?>?page=ct_check_<?php echo $this->spam_checker->getPageSlug(); ?>_total"><?php esc_html_e( 'Total spam found', 'cleantalk' ) ?></a></li>
+                <li <?php echo (3 == $this->current_tab) ? 'class="active"' : ''; ?>><a href="<?php echo $this->spam_checker->getPageScriptName(); ?>?page=ct_check_<?php echo $this->spam_checker->getPageSlug(); ?>_logs"><?php esc_html_e( 'Scan logs', 'cleantalk' ) ?></a></li>
             </ul>
             <div id="ct_check_content">
         <?php

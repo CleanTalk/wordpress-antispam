@@ -3,7 +3,6 @@
 
 class ABPCTUsersListTable extends ABPCT_List_Table
 {
-
     protected $apbct;
 
     function __construct(){
@@ -23,17 +22,13 @@ class ABPCTUsersListTable extends ABPCT_List_Table
         $this->apbct = $apbct;
 
     }
-
     // Set columns
     function get_columns(){
         return array(
-            'cb'            => '<input type="checkbox" />',
-            'ct_username'      => esc_html__( 'Username', 'cleantalk' ),
-            'ct_name'          => esc_html__( 'Name', 'cleantalk' ),
-            'ct_email'         => esc_html__( 'E-mail', 'cleantalk' ),
-            'ct_signed_up'     => esc_html__( 'Signed up', 'cleantalk' ),
-            'ct_role'          => esc_html__( 'Role', 'cleantalk' ),
-            'ct_posts'         => esc_html__( 'Posts', 'cleantalk' ),
+            'cb'             => '<input type="checkbox" />',
+            'ct_author'      => esc_html__( 'Author', 'cleantalk' ),
+            'ct_comment'     => esc_html__( 'Comment', 'cleantalk' ),
+            'ct_response_to' => esc_html__( ' 	In Response To', 'cleantalk' ),
         );
     }
 
@@ -43,10 +38,11 @@ class ABPCTUsersListTable extends ABPCT_List_Table
     }
 
     // Username (first) column
-    function column_ct_username( $item ) {
-        $user_obj = $item['ct_username'];
-        $email  = $user_obj->user_email;
+    function column_ct_author( $item ) {
+        $user_obj = $item['ct_author'];
+        $login  = $user_obj->user_login;
         $column_content = '';
+        $email;
 
         // Avatar, nickname
         $column_content .= '<strong>' . get_avatar( $user_obj->ID , 32) . '&nbsp;' . $user_obj->user_login . '</strong>';
@@ -83,6 +79,7 @@ class ABPCTUsersListTable extends ABPCT_List_Table
             $column_content .= esc_html__( 'No IP adress', 'cleantalk' );
 
         $actions = array(
+            'approve'   => sprintf( '<span class="approve"><a href="?page=%s&action=%s&spam=%s">Approve</a></span>', $_REQUEST['page'],'approve', $user_obj->ID ),
             'delete'    => sprintf( '<a href="?page=%s&action=%s&spam=%s">Delete</a>', $_REQUEST['page'],'delete', $user_obj->ID ),
         );
 
@@ -110,6 +107,7 @@ class ABPCTUsersListTable extends ABPCT_List_Table
 
     function get_bulk_actions() {
         $actions = array(
+            'approve'   => 'Approve',
             'delete'    => 'Delete'
         );
         return $actions;
@@ -244,7 +242,7 @@ class ABPCTUsersListTable extends ABPCT_List_Table
     public function getScansLogs() {
 
         global $wpdb;
-        $query = "SELECT * FROM " . APBCT_SPAMSCAN_LOGS . " WHERE scan_type = 'users'";
+        $query = "SELECT * FROM " . APBCT_SPAMSCAN_LOGS . " WHERE scan_type = 'comments'";
         $res = $wpdb->get_results( $query, ARRAY_A );
         return $res;
 

@@ -8,6 +8,8 @@ abstract class ClassCleantalkFindSpamChecker
 
     protected $apbct;
 
+    protected $page_script_name;
+
     protected $page_slug;
 
     protected $list_table;
@@ -32,6 +34,12 @@ abstract class ClassCleantalkFindSpamChecker
     public function getPageTitle() {
 
         return $this->page_title;
+
+    }
+
+    public function getPageScriptName() {
+
+        return $this->page_script_name;
 
     }
 
@@ -61,7 +69,7 @@ abstract class ClassCleantalkFindSpamChecker
         ?>
 
         <!-- Main info -->
-        <h3 id="ct_checking_status"><?php echo $spam_checker::ct_ajax_info_users(true) ; ?></h3>
+        <h3 id="ct_checking_status"><?php echo $spam_checker::ct_ajax_info(true) ; ?></h3>
 
         <!-- Check options -->
         <div class="ct_to_hide" id="ct_check_params_wrapper">
@@ -116,7 +124,7 @@ abstract class ClassCleantalkFindSpamChecker
                 'found_spam' => $cnt_spam,
                 'found_bad' => $cnt_bad
             ),
-            array( '%d', '%s', '%d', '%d', '%d' )
+            array( '%s', '%s', '%d', '%d', '%d' )
         );
 
     }

@@ -84,7 +84,7 @@ function ct_cooling_down_toggle(){
 
 function ct_send_comments(){
 	
-	if(ct_cooling_down_flag == true)
+	if(ct_cooling_down_flag === true)
 		return;
 	
 	if(ct_requests_counter >= ct_max_requests){

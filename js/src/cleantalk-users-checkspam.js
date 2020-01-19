@@ -425,22 +425,32 @@ jQuery(document).ready(function(){
 	});
 	
 	// Request to Download CSV file.
-	jQuery("#ct_get_csv_file").click(function(){
+	jQuery("#ct_get_csv_file").click(function( e ){
 		var data = {
 			'action': 'ajax_ct_get_csv_file',
 			'security': ct_ajax_nonce,
 			'filename': ctUsersCheck.ct_csv_filename
 		};
+		jQuery('#' + e.target.id).addClass('disabled');
 		jQuery.ajax({
 			type: "POST",
 			url: ajaxurl,
 			data: data,
 			success: function(msg){
-				if(parseInt(msg)==0)
+				if( parseInt(msg) === 0 ) {
 					alert(ctUsersCheck.ct_bad_csv);
-				else
-					jQuery("#ct_csv_wrapper").html("<iframe src='"+location.protocol+"//"+location.hostname+"/wp-content/plugins/cleantalk-spam-protect/check-results/"+ctUsersCheck.ct_csv_filename+".csv'></iframe>");
-			},
+				} else {
+					var url = URL.createObjectURL(new Blob([msg]));
+
+					var dummy = document.createElement('a');
+					dummy.href = url;
+					dummy.download = ctUsersCheck.ct_csv_filename + '.csv';
+
+					document.body.appendChild(dummy);
+					dummy.click();
+				}
+				jQuery('#' + e.target.id).removeClass('disabled');
+			}
 		});
 	});
 });

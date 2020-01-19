@@ -1,10 +1,10 @@
 <?php
 
 
-class ABPCTUsersListTableSpam extends ABPCTUsersListTable
+class ABPCTUsersListTableScan extends ABPCTUsersListTable
 {
 
-    function prepare_items(){
+    function prepare_items() {
 
         $columns = $this->get_columns();
         $this->_column_headers = array( $columns, array(), array() );
@@ -15,18 +15,18 @@ class ABPCTUsersListTableSpam extends ABPCTUsersListTable
             $per_page = 10;
         }
 
-        $spam_users = $this->getSpam();
+        $scanned_comments = $this->getSpamNow();
 
         $this->set_pagination_args( array(
-            'total_items' => $spam_users->get_total(),
+            'total_items' => $scanned_comments->get_total(),
             'per_page'    => $per_page,
         ) );
 
         $current_page = (int) $this->get_pagenum();
 
-        $spam_users_to_show = array_slice( $spam_users->get_results(), ( ( $current_page - 1 ) * $per_page ), $per_page );
+        $scanned_users_to_show = array_slice( $scanned_comments->get_results(), ( ( $current_page - 1 ) * $per_page ), $per_page );
 
-        foreach( $spam_users_to_show as $user_id ) {
+        foreach( $scanned_users_to_show as $user_id ) {
 
             $user_obj = get_userdata( $user_id );
 
@@ -42,14 +42,6 @@ class ABPCTUsersListTableSpam extends ABPCTUsersListTable
 
         }
 
-    }
-
-    function extra_tablenav( $which ) {
-        ?>
-        <div class="alignleft actions bulkactions">
-            <button type="button" id="ct_get_csv_file" class="button action"><?php  esc_html_e( 'Download results in CSV', 'cleantalk' ) ?></button>
-        </div>
-        <?php
     }
 
 }
