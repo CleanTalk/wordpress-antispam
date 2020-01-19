@@ -432,26 +432,12 @@ or
 	define('CLEANTALK_AJAX_USE_FOOTER_HEADER', false); //false - don't use wp_footer() and wp_header() for including AJAX script, true - use it
 
 = Can I add exclusions for some pages of my site? =
-Yes, you can. Add this string in your wp-config.php file before defining database constants:
-
-	$cleantalk_url_exclusions = array('url1', 'url2', 'url3');
-
-Now, all pages containing strings 'url1', 'url2', or 'url3' will be excluded from anti-spam checking. Remember, that this option will not be applied in registration and comment checking - they are always protected from spam. This is similar to regular expression /.*url1.*/ or wildcard like *url1*.
-
-For example: If you need to except these URLs:
-example.com/some/thing
-example.com/some/one
-example.com/some/body
-You should type this in wp-config.php:
-
-	$cleantalk_url_exclusions = array('some');
+Yes, you can. There is a special setting in plugin settings.
+You could use this guide to learn more: https://cleantalk.org/help/exclusion-from-anti-spam-checking#wordpress
 
 = Can I not send my personal data to CleanTalk servers? =
-Yes, you can exclude your data. Add this string in your wp-config.php file before defining database constants:
-
-	$cleantalk_key_exclusions = Array('key1', 'key2', 'key3'); 
-
-Now all fields in your submissions with the keys named 'key1', 'key2' or 'key3' will be excluded from spam checking.
+Yes, you can exclude your data. There is a special setting in plugin settings.
+You could use this guide to learn more: https://cleantalk.org/help/exclusion-from-anti-spam-checking#WordPress_field_exclusions
 
 = How to test Spam FireWall? =
 Use special IP 10.10.10.10 in URL to test Spam FireWall. For example,
