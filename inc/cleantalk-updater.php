@@ -392,3 +392,22 @@ function apbct_update_to_5_128_0(){
 	$apbct->remote_calls = array();
 	$apbct->save('remote_calls');
 }
+
+function apbct_update_to_5_133_0() {
+
+    global $wpdb;
+
+    // Scan comment/user log
+    $sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_spamscan_logs` (
+		`id` int(11) NOT NULL AUTO_INCREMENT,
+        `scan_type` varchar(11) NOT NULL,
+        `start_time` datetime NOT NULL,
+        `finish_time` datetime NOT NULL,
+        `count_to_scan` int(11) DEFAULT NULL,
+        `found_spam` int(11) DEFAULT NULL,
+        `found_bad` int(11) DEFAULT NULL,
+        PRIMARY KEY (`id`));';
+
+    apbct_activation__create_tables($sqls);
+
+}
