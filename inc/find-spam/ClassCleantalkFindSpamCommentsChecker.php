@@ -12,17 +12,12 @@ class ClassCleantalkFindSpamCommentsChecker extends ClassCleantalkFindSpamChecke
         $this->page_script_name = 'edit-comments.php';
         $this->page_slug = 'spam';
 
-        add_action( 'wp_ajax_ajax_check_comments', 'ct_ajax_check_comments' );
-        add_action( 'wp_ajax_ajax_info_comments', 'ct_ajax_info_comments' );
-        add_action( 'wp_ajax_ajax_clear_comments', 'ct_ajax_clear_comments' );
-        add_action( 'wp_ajax_ajax_ct_approve_comment', 'ct_comment_check_approve_comment' );
-
         // Preparing data
         if(!empty($_COOKIE['ct_paused_comments_check']))
             $prev_check = json_decode(stripslashes($_COOKIE['ct_paused_comments_check']), true);
 
-        wp_enqueue_script( 'ct_comments_checkspam',  plugins_url('/cleantalk-spam-protect/js/cleantalk-comments-checkspam.min.js'), array( 'jquery', 'jquery-ui-core', 'jquery-ui-tabs' ), APBCT_VERSION );
-        wp_localize_script( 'jquery', 'ctCommentsCheck', array(
+        wp_enqueue_script( 'ct_comments_checkspam',  plugins_url('/cleantalk-spam-protect/js/cleantalk-comments-checkspam.min.js'), array( 'jquery', 'jqueryui' ), APBCT_VERSION );
+        wp_localize_script( 'ct_comments_checkspam', 'ctCommentsCheck', array(
             'ct_ajax_nonce'               => wp_create_nonce('ct_secret_nonce'),
             'ct_prev_accurate'            => !empty($prev_check['accurate']) ? true                : false,
             'ct_prev_from'                => !empty($prev_check['from'])     ? $prev_check['from'] : false,
@@ -41,7 +36,7 @@ class ClassCleantalkFindSpamCommentsChecker extends ClassCleantalkFindSpamChecke
     public function getCurrentScanPage() {
 
         require_once(CLEANTALK_PLUGIN_DIR . 'inc/find-spam/ClassCleantalkCommentsListTableScan.php');
-        $this->list_table = new ABPCTUsersListTableScan();
+        $this->list_table = new ABPCTCommentsListTableScan();
 
         $this->getCurrentScanPanel( $this );
         echo '<form action="" method="POST">';
@@ -52,9 +47,23 @@ class ClassCleantalkFindSpamCommentsChecker extends ClassCleantalkFindSpamChecke
 
     public function getTotalSpamPage(){
 
+        require_once(CLEANTALK_PLUGIN_DIR . 'inc/find-spam/ClassCleantalkCommentsListTableSpam.php');
+        $this->list_table = new ABPCTCommentsListTableSpam();
+
+        echo '<form action="" method="POST">';
+        $this->list_table->display();
+        echo '</form>';
+
     }
 
     public function getSpamLogsPage(){
+
+        require_once(CLEANTALK_PLUGIN_DIR . 'inc/find-spam/ClassCleantalkCommentsListTableLogs.php');
+        $this->list_table = new ABPCTCommentsListTableLogs();
+
+        echo '<form action="" method="POST">';
+        $this->list_table->display();
+        echo '</form>';
 
     }
 
@@ -198,6 +207,7 @@ class ClassCleantalkFindSpamCommentsChecker extends ClassCleantalkFindSpamChecke
                 if(empty($curr_ip) && empty($curr_email)){
                     $check_result['bad']++;
                     update_comment_meta($c[$i]->comment_ID,'ct_bad','1');
+                    update_comment_meta($c[$i]->comment_ID,'ct_checked','1');
                     unset($c[$i]);
                 }else{
                     if(!empty($curr_ip))
@@ -232,6 +242,8 @@ class ClassCleantalkFindSpamCommentsChecker extends ClassCleantalkFindSpamChecke
 
                     $check_result['checked']++;
                     update_comment_meta($c[$i]->comment_ID,'ct_checked',date("Y-m-d H:m:s"));
+                    update_comment_meta( $c[$i]->comment_ID, 'ct_checked_now', date("Y-m-d H:m:s"), true) ;
+
                     $uip=$c[$i]->comment_author_IP;
                     $uim=$c[$i]->comment_author_email;
 
@@ -254,9 +266,14 @@ class ClassCleantalkFindSpamCommentsChecker extends ClassCleantalkFindSpamChecke
                 echo json_encode($check_result);
             }
         }else{
+
             $check_result['end'] = 1;
-            static::writeSpamLog( 'comments', date("Y-m-d H:i:s"), $check_result['checked'], $check_result['spam'], $check_result['bad'] );
+
+            $log_data  = static::get_log_data();
+            static::writeSpamLog( 'comments', date("Y-m-d H:i:s"), $log_data['checked'], $log_data['spam'], $log_data['bad'] );
+
             print json_encode($check_result);
+
         }
 
         die;
@@ -269,17 +286,14 @@ class ClassCleantalkFindSpamCommentsChecker extends ClassCleantalkFindSpamChecke
 
         // Checked comments
         $params_checked = array(
-            'fields' => 'ID',
             'meta_key' => 'ct_checked_now',
-            'count_total' => true,
             'orderby' => 'ct_checked_now'
         );
         $checked_comments = new WP_Comment_Query($params_checked);
-        $cnt_checked = $checked_comments->found_comments;
+        $cnt_checked = count( $checked_comments->get_comments() );
 
         // Spam comments
         $params_spam = array(
-            'fields' => 'ID',
             'meta_query' => array(
                 'relation' => 'AND',
                 array(
@@ -291,14 +305,12 @@ class ClassCleantalkFindSpamCommentsChecker extends ClassCleantalkFindSpamChecke
                     'compare' => 'EXISTS'
                 ),
             ),
-            'count' => true,
         );
         $spam_comments = new WP_Comment_Query($params_spam);
-        $cnt_spam = $spam_comments->found_comments;
+        $cnt_spam = count( $spam_comments->get_comments() );
 
         // Bad comments (without IP and Email)
         $params_bad = array(
-            'fields' => 'ID',
             'meta_query' => array(
                 'relation' => 'AND',
                 array(
@@ -310,10 +322,9 @@ class ClassCleantalkFindSpamCommentsChecker extends ClassCleantalkFindSpamChecke
                     'compare' => 'EXISTS'
                 ),
             ),
-            'count_total' => true,
         );
         $bad_comments = new WP_Comment_Query($params_bad);
-        $cnt_bad = $bad_comments->found_comments;
+        $cnt_bad = count( $bad_comments->get_comments() );
 
         $return = array(
             'message'  => '',
@@ -331,7 +342,7 @@ class ClassCleantalkFindSpamCommentsChecker extends ClassCleantalkFindSpamChecke
             );
         } else {
             if( isset( $return['checked'] ) && 0 == $return['checked'] ) {
-                $return['message'] = esc_html__( 'Never checked yet!', 'cleantalk' );
+                $return['message'] = esc_html__( 'Never checked yet or no new spam.', 'cleantalk' );
             } else {
                 $return['message'] .= sprintf (
                     __("Last check %s: checked %s comments, found %s spam comments and %s bad comments (without IP or email).", 'cleantalk'),
@@ -363,7 +374,7 @@ class ClassCleantalkFindSpamCommentsChecker extends ClassCleantalkFindSpamChecke
         check_ajax_referer( 'ct_secret_nonce', 'security' );
 
         global $wpdb;
-        $wpdb->query("DELETE FROM {$wpdb->commentmeta} WHERE meta_key IN ('ct_checked_now','ct_marked_as_spam_now','ct_marked_as_spam')");
+        $wpdb->query("DELETE FROM {$wpdb->commentmeta} WHERE meta_key IN ('ct_checked_now')");
 
         if ( isset($_POST['from']) && isset($_POST['till']) ) {
             if ( preg_match('/[a-zA-Z]{3}\s{1}\d{1,2}\s{1}\d{4}/', $_POST['from'] ) && preg_match('/[a-zA-Z]{3}\s{1}\d{1,2}\s{1}\d{4}/', $_POST['till'] ) ) {
@@ -372,7 +383,7 @@ class ClassCleantalkFindSpamCommentsChecker extends ClassCleantalkFindSpamChecke
                 $till = date('Y-m-d', intval(strtotime($_POST['till']))) . ' 23:59:59';
 
                 $wpdb->query("DELETE FROM {$wpdb->commentmeta} WHERE 
-                meta_key IN ('ct_checked') 
+                meta_key IN ('ct_checked','ct_marked_as_spam','ct_bad') 
                 AND meta_value >= '{$from}' 
                 AND meta_value <= '{$till}';");
 
@@ -380,6 +391,57 @@ class ClassCleantalkFindSpamCommentsChecker extends ClassCleantalkFindSpamChecke
 
             }
         }
+
+    }
+
+    private static function get_log_data() {
+
+        // Checked users
+        $params_spam = array(
+            'meta_key' => 'ct_checked_now',
+        );
+        $spam_comments = new WP_Comment_Query($params_spam);
+        $cnt_checked = count( $spam_comments->get_comments() );
+
+        // Spam users
+        $params_spam = array(
+            'meta_query' => array(
+                'relation' => 'AND',
+                array(
+                    'key' => 'ct_marked_as_spam',
+                    'compare' => 'EXISTS'
+                ),
+                array(
+                    'key' => 'ct_checked_now',
+                    'compare' => 'EXISTS'
+                ),
+            ),
+        );
+        $spam_comments = new WP_Comment_Query($params_spam);
+        $cnt_spam = count( $spam_comments->get_comments() );
+
+        // Bad users (without IP and Email)
+        $params_bad = array(
+            'meta_query' => array(
+                'relation' => 'AND',
+                array(
+                    'key' => 'ct_bad',
+                    'compare' => 'EXISTS'
+                ),
+                array(
+                    'key' => 'ct_checked_now',
+                    'compare' => 'EXISTS'
+                ),
+            ),
+        );
+        $spam_comments = new WP_Comment_Query($params_bad);
+        $cnt_bad = count( $spam_comments->get_comments() );
+
+        return array(
+            'spam'     => $cnt_spam,
+            'checked'  => $cnt_checked,
+            'bad'      => $cnt_bad,
+        );
 
     }
 

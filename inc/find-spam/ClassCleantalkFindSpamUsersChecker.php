@@ -17,7 +17,7 @@ class ClassCleantalkFindSpamUsersChecker extends ClassCleantalkFindSpamChecker
         if( ! empty( $_COOKIE['ct_paused_users_check'] ) )
             $prev_check = json_decode( stripslashes( $_COOKIE['ct_paused_users_check'] ), true );
 
-        wp_enqueue_script( 'ct_users_checkspam',  plugins_url('/cleantalk-spam-protect/js/cleantalk-users-checkspam.min.js'), array( 'jquery', 'jquery-ui-core', 'jquery-ui-tabs' ), APBCT_VERSION );
+        wp_enqueue_script( 'ct_users_checkspam',  plugins_url('/cleantalk-spam-protect/js/cleantalk-users-checkspam.min.js'), array( 'jquery', 'jqueryui' ), APBCT_VERSION );
         wp_localize_script( 'ct_users_checkspam', 'ctUsersCheck', array(
             'ct_ajax_nonce'               => wp_create_nonce('ct_secret_nonce'),
             'ct_prev_accurate'            => !empty($prev_check['accurate']) ? true                : false,
@@ -311,10 +311,10 @@ class ClassCleantalkFindSpamUsersChecker extends ClassCleantalkFindSpamChecker
      */
     public static function ct_ajax_clear_users()
     {
-        //check_ajax_referer( 'ct_secret_nonce', 'security' );
+        check_ajax_referer( 'ct_secret_nonce', 'security' );
 
         global $wpdb;
-        $wpdb->query("DELETE FROM {$wpdb->usermeta} WHERE meta_key IN ('ct_checked_now','ct_marked_as_spam_now','ct_marked_as_spam')");
+        $wpdb->query("DELETE FROM {$wpdb->usermeta} WHERE meta_key IN ('ct_checked_now')");
 
         if ( isset($_POST['from']) && isset($_POST['till']) ) {
             if ( preg_match('/[a-zA-Z]{3}\s{1}\d{1,2}\s{1}\d{4}/', $_POST['from'] ) && preg_match('/[a-zA-Z]{3}\s{1}\d{1,2}\s{1}\d{4}/', $_POST['till'] ) ) {
@@ -323,7 +323,7 @@ class ClassCleantalkFindSpamUsersChecker extends ClassCleantalkFindSpamChecker
                 $till = date('Y-m-d', intval(strtotime($_POST['till']))) . ' 23:59:59';
 
                 $wpdb->query("DELETE FROM {$wpdb->usermeta} WHERE 
-                meta_key IN ('ct_checked') 
+                meta_key IN ('ct_checked','ct_marked_as_spam','ct_bad') 
                 AND meta_value >= '{$from}' 
                 AND meta_value <= '{$till}';");
 
@@ -404,7 +404,7 @@ class ClassCleantalkFindSpamUsersChecker extends ClassCleantalkFindSpamChecker
             );
         } else {
             if( isset( $return['checked'] ) && 0 == $return['checked']  ) {
-                $return['message'] = esc_html__( 'Never checked yet!', 'cleantalk' );
+                $return['message'] = esc_html__( 'Never checked yet or no new spam.', 'cleantalk' );
             } else {
                 $return['message'] .= sprintf (
                     __("Last check %s: checked %s users, found %s spam users and %s bad users (without IP or email).", 'cleantalk'),

@@ -591,7 +591,10 @@ function apbct_comment__unmark_red($message) {
 function apbct_comment__send_feedback($comment_id = null, $comment_status = null, $change_status = false, $direct_call = null){
 	
 	// For AJAX call
-	check_ajax_referer('ct_secret_nonce', 'security');
+    if( ! $direct_call ){
+        check_ajax_referer('ct_secret_nonce', 'security');
+    }
+
 	$comment_id     = !empty($_POST['comment_id'])     ? $_POST['comment_id']     : false;
 	$comment_status = !empty($_POST['comment_status']) ? $_POST['comment_status'] : false;
 	$change_status  = !empty($_POST['change_status'])  ? $_POST['change_status']  : false;

@@ -1,7 +1,7 @@
 <?php
 
 
-class ABPCTUsersListTableLogs extends ABPCTUsersListTable
+class ABPCTCommentsListTableLogs extends ABPCTCommentsListTable
 {
 
     // Set columns

@@ -104,7 +104,7 @@ class ABPCTUsersListTable extends ABPCT_List_Table
             case 'ct_bad':
                 return $item[ $column_name ];
             default:
-                return print_r( $item, true ) ; //Мы отображаем целый массив во избежание проблем
+                return print_r( $item, true ) ;
         }
     }
 
@@ -247,6 +247,16 @@ class ABPCTUsersListTable extends ABPCT_List_Table
         $query = "SELECT * FROM " . APBCT_SPAMSCAN_LOGS . " WHERE scan_type = 'users'";
         $res = $wpdb->get_results( $query, ARRAY_A );
         return $res;
+
+    }
+
+    protected function removeLogs( $ids ) {
+
+        $ids_string = implode( ', ', $ids );
+        global $wpdb;
+
+        $wpdb->query("DELETE FROM " . APBCT_SPAMSCAN_LOGS . " WHERE 
+                ID IN ($ids_string)");
 
     }
 

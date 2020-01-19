@@ -42,10 +42,8 @@ add_action( 'wp_ajax_ajax_info_users',        array( 'ClassCleantalkFindSpamUser
 add_action( 'wp_ajax_ajax_ct_get_csv_file',   array( 'ClassCleantalkFindSpamUsersChecker', 'ct_get_csv_file' ) );
 
 add_action( 'wp_ajax_ajax_clear_comments',    array( 'ClassCleantalkFindSpamCommentsChecker', 'ct_ajax_clear_comments' ) );
-add_action( 'wp_ajax_ajax_check_comments', 'ct_ajax_check_comments' );
-add_action( 'wp_ajax_ajax_info_comments', 'ct_ajax_info_comments' );
-
-add_action( 'wp_ajax_ajax_ct_approve_comment', 'ct_comment_check_approve_comment' );
+add_action( 'wp_ajax_ajax_check_comments',    array( 'ClassCleantalkFindSpamCommentsChecker', 'ct_ajax_check_comments' ) );
+add_action( 'wp_ajax_ajax_info_comments',     array( 'ClassCleantalkFindSpamCommentsChecker', 'ct_ajax_info' ) );
 
 // Hook for saving "per_page" option
 add_action( 'wp_loaded', 'ct_save_screen_option' );

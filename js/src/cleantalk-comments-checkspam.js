@@ -140,9 +140,9 @@ function ct_send_comments(){
 						new_href+='&from='+ct_date_from+'&till='+ct_date_till;
 					location.href = new_href;
 				}else if(parseInt(msg.end) == 0){
-					ct_comments_checked = +ct_comments_checked + +msg.checked;
-					ct_comments_spam = +ct_comments_spam + +msg.spam;
-					ct_comments_bad = +ct_comments_bad + +msg.bad;
+					ct_comments_checked += msg.checked;
+					ct_comments_spam += msg.spam;
+					ct_comments_bad += msg.bad;
 					ct_unchecked = ct_comments_total - ct_comments_checked - ct_comments_bad;
 					var status_string = String(ctCommentsCheck.ct_status_string);
 					var status_string = status_string.printf(ct_comments_total, ct_comments_checked, ct_comments_spam, ct_comments_bad);
@@ -218,90 +218,6 @@ function ct_show_info(){
 		}
 	}
 }
-function ct_insert_comments(delete_comments){
-
-    delete_comments = delete_comments || null;
-
-	var data = {
-		'action': 'ajax_insert_comments',
-		'security': ct_ajax_nonce
-	};
-	
-	if(delete_comments)
-		data['delete'] = true;
-	
-	jQuery.ajax({
-		type: "POST",
-		url: ajaxurl,
-		data: data,
-		success: function(msg){
-			if(delete_comments)
-				alert(ctCommentsCheck.ct_comments_deleted + ' ' + msg + ' ' + ctCommentsCheck.ct_comments_added_after);
-			else
-				alert(ctCommentsCheck.ct_comments_added   + ' ' + msg + ' ' + ctCommentsCheck.ct_comments_added_after);
-		}
-	});
-}
-function ct_delete_all(){
-	
-	var data = {
-		'action': 'ajax_delete_all',
-		'security': ct_ajax_nonce
-	};
-	
-	jQuery.ajax({
-		type: "POST",
-		url: ajaxurl,
-		data: data,
-		success: function(msg){
-			if(msg>0){
-				jQuery('#cleantalk_comments_left').html(msg);
-				ct_delete_all();
-			}else{
-				location.href='edit-comments.php?page=ct_check_spam';
-			}
-		},			
-		error: function(jqXHR, textStatus, errorThrown) {
-			jQuery('#ct_error_message').show();
-			jQuery('#cleantalk_ajax_error').html(textStatus);
-			jQuery('#cleantalk_js_func').html('Check comments');
-			setTimeout(ct_delete_all(), 3000);   
-		},
-		timeout: 25000
-	});
-}
-function ct_delete_checked(){
-	
-	ids=Array();
-	var cnt=0;
-	jQuery('input[id^=cb-select-][id!=cb-select-all-1]').each(function(){
-		if(jQuery(this).prop('checked')){
-			ids[cnt]=jQuery(this).attr('id').substring(10);
-			cnt++;
-		}
-	});
-	var data = {
-		'action': 'ajax_delete_checked',
-		'security': ct_ajax_nonce,
-		'ids':ids
-	};
-	
-	jQuery.ajax({
-		type: "POST",
-		url: ajaxurl,
-		data: data,
-		success: function(msg){
-			location.href='edit-comments.php?page=ct_check_spam';
-		},
-		error: function(jqXHR, textStatus, errorThrown) {
-			jQuery('#ct_error_message').show();
-			jQuery('#cleantalk_ajax_error').html(textStatus);
-			jQuery('#cleantalk_js_func').html('Check comments');
-			setTimeout(ct_delete_checked(), 3000);   
-		},
-		timeout: 15000
-	});
-}
 
 // Function to toggle dependences
 function ct_toggle_depended(obj, secondary){
@@ -325,7 +241,6 @@ function ct_toggle_depended(obj, secondary){
 
 jQuery(document).ready(function(){
 
-	jQuery( "#tabs" ).tabs();
 	// Setting dependences
 	// jQuery('#ct_accurate_check')  .data({'depended': '#ct_allow_date_range', 'state': false});
 	jQuery('#ct_allow_date_range').data({'depended': '.ct_date', 'state': false});
@@ -416,128 +331,11 @@ jQuery(document).ready(function(){
 		};
 		document.cookie = 'ct_paused_comments_check=' + JSON.stringify(ct_check) + '; path=/';
 	});
-	
-	jQuery("#ct_insert_comments").click(function(){
-		ct_insert_comments();
-	});
-	
-	jQuery("#ct_delete_comments").click(function(){
-		ct_insert_comments(true);
-	});
-	
-	// Delete all spam comments
-	jQuery("#ct_delete_all").click(function(){
-		
-		if (!confirm(ctCommentsCheck.ct_confirm_deletion_all))
-			return false;
-		
-		jQuery('.ct_to_hide').hide();
-		jQuery('#ct_checking_status').hide();
-		jQuery('#ct_search_info').hide();
-		jQuery('#ct_preloader').show();
-		jQuery('#ct_deleting_message').show();
-		jQuery('#ct_stop_deletion').show();
-		jQuery("html, body").animate({ scrollTop: 0 }, "slow");
-		ct_delete_all();
-	});
-	jQuery("#ct_delete_checked").click(function(){
-		if (!confirm(ctCommentsCheck.ct_confirm_deletion_checked))
-			return false;
-		ct_delete_checked();
-	});
-	
-	jQuery("#ct_stop_deletion").click(function(){
-		location.href='edit-comments.php?page=ct_check_spam';
-	});
-	
-	jQuery(".cleantalk_delete_button").click(function(){
-		id = jQuery(this).attr("data-id");
-		ids=Array();
-		ids[0]=id;
-		var data = {
-			'action': 'ajax_delete_checked',
-			'security': ct_ajax_nonce,
-			'ids':ids
-		};
-		jQuery.ajax({
-			type: "POST",
-			url: ajaxurl,
-			data: data,
-			success: function(msg){
-				ct_close_animate=false;
-				jQuery("#comment-"+id).hide();
-				jQuery("#comment-"+id).remove();
-				ct_close_animate=true;
-			}
-		});
-	});
-	
-	jQuery(".cleantalk_delete_button").click(function(){
-		id = jQuery(this).attr("data-id");
-		animate_comment(0.3, id);
-	});
-	
-	//Show/hide action on mouse over/out
-	jQuery(".cleantalk_comment").mouseover(function(){
-		id = jQuery(this).attr("data-id");
-		jQuery("#cleantalk_button_set_"+id).show();
-	});
-	jQuery(".cleantalk_comment").mouseout(function(){
-		id = jQuery(this).attr("data-id");
-		jQuery("#cleantalk_button_set_"+id).hide();
-	});
-	
-	//Approve button	
-	jQuery(".cleantalk_delete_from_list_button").click(function(){
-		var ct_id = jQuery(this).attr("data-id");
-		
-		// Approving
-		var data = {
-			'action': 'ajax_ct_approve_comment',
-			'security': ct_ajax_nonce,
-			'id': ct_id
-		};
-		jQuery.ajax({
-			type: "POST",
-			url: ajaxurl,
-			data: data,
-			success: function(msg){
-				jQuery("#comment-"+ct_id).fadeOut('slow', function(){
-					jQuery("#comment-"+ct_id).remove();
-				});
-			},
-		});
-		
-		// Positive feedback
-		var data = {
-			'action': 'ct_feedback_comment',
-			'security': ct_ajax_nonce,
-			'comment_id': ct_id,
-			'comment_status': 'approve'
-		};
-		jQuery.ajax({
-			type: "POST",
-			url: ajaxurl,
-			data: data,
-			success: function(msg){
-				if(msg == 1){
-					// Success
-				}
-				if(msg == 0){
-					// Error occurred
-				}
-				if(msg == 'no_hash'){
-					// No hash
-				}
-			},
-			error: function(jqXHR, textStatus, errorThrown) {
-				
-			},
-			timeout: 5000
-		});
-	});
+
+
 	if(ctCommentsCheck.start === '1'){
 		document.cookie = 'ct_comments_start_check=0; expires=' + new Date(0).toUTCString() + '; path=/';
 		jQuery('#ct_check_spam_button').click();	
 	}
+
 });

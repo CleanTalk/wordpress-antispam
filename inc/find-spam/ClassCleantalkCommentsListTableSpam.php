@@ -1,7 +1,7 @@
 <?php
 
 
-class ABPCTCommentsListTableScan extends ABPCTCommentsListTable
+class ABPCTCommentsListTableSpam extends ABPCTCommentsListTable
 {
 
     function prepare_items() {
@@ -15,7 +15,7 @@ class ABPCTCommentsListTableScan extends ABPCTCommentsListTable
             $per_page = 10;
         }
 
-        $scanned_comments = $this->getSpamNow();
+        $scanned_comments = $this->getSpam();
 
         $this->set_pagination_args( array(
             'total_items' => count( $scanned_comments->get_comments() ),
