@@ -566,7 +566,7 @@ If your website has forms that send data to external sources, you can enable opt
 
 == Changelog ==
 
-= 5.133 January 19 2020 =
+= 5.133 January 20 2020 =
   * Upd: Rebuilding users/comments scan
   * Fix: UltimateMember - form validation checking fixed.
   * Fix: Exclusion for login form.
