@@ -1475,7 +1475,7 @@ function apbct_js_test($field_name = 'ct_checkjs', $data = null) {
 		    $apbct->settings['use_static_js_key'] == 1 ||
 		    ( $apbct->settings['use_static_js_key'] == - 1 &&
 		      ( apbct_is_cache_plugins_exists() ||
-		        ( apbct_is_post() && $apbct->data['cache_detected'] == 1 )
+		        ( apbct_is_post() && isset($apbct->data['cache_detected']) && $apbct->data['cache_detected'] == 1 )
 		      )
 		    )
 	    ){
