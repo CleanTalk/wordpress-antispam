@@ -334,7 +334,8 @@ jQuery(document).ready(function(){
 	jQuery("#ct_allow_date_range, #ct_accurate_check").on('change', function(){
 		ct_toggle_depended(jQuery(this));
 	});
-		
+
+	jQuery.datepicker.setDefaults(jQuery.datepicker.regional['en']);
 	var dates = jQuery('#ct_date_range_from, #ct_date_range_till').datepicker(
 		{
 			dateFormat: 'M d yy',
