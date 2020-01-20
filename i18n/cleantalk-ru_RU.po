@@ -2,24 +2,24 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Anti-Spam by CleanTalk\n"
 "POT-Creation-Date: 2019-10-27 16:02+0000\n"
-"PO-Revision-Date: 2019-12-16 16:16+0500\n"
+"PO-Revision-Date: 2020-01-20 15:11+0000\n"
 "Last-Translator: admin <ievlev@cleantalk.org>\n"
 "Language-Team: Русский\n"
 "Language: ru_RU\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 1.8.6\n"
+"X-Generator: Loco https://localise.biz/\n"
 "X-Poedit-Basepath: ..\n"
 "X-Poedit-WPHeader: cleantalk.php\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
-"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
+"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 "X-Poedit-KeywordsList: __;_e;_n:1,2;_x:1,2c;_ex:1,2c;_nx:4c,1,2;esc_attr__;"
 "esc_attr_e;esc_attr_x:1,2c;esc_html__;esc_html_e;esc_html_x:1,2c;_n_noop:1,2;"
 "_nx_noop:3c,1,2;__ngettext_noop:1,2\n"
 "Report-Msgid-Bugs-To: \n"
-"X-Loco-Version: 2.3.0; wp-5.2.4\n"
+"X-Loco-Version: 2.3.1; wp-5.3.2\n"
 "X-Poedit-SearchPath-0: .\n"
 "X-Poedit-SearchPathExcluded-0: *.js\n"
 
@@ -928,8 +928,8 @@ msgid ""
 "Show/hide icon in top level menu in WordPress backend. The number of "
 "submissions is being counted for past 24 hours."
 msgstr ""
-"Показать/скрыть иконку CleanTalk в админ-баре WordPress. Статистика "
-"подсчитывается за последние 24 часа."
+"Показать/скрыть иконку в админ-баре WordPress. Статистика подсчитывается за "
+"последние 24 часа."
 
 #: inc/cleantalk-settings.php:299
 msgid "Show All-time counter"
@@ -1046,8 +1046,8 @@ msgid ""
 "Notify users with selected roles about new approved comments. Hold CTRL to "
 "select multiple roles."
 msgstr ""
-"Уведомлять пользователей с выбранными ролями о новых одобренных "
-"комментариях. Удерживайте CTRL для выбора нескольких ролей."
+"Уведомлять пользователей с выбранными ролями о новых одобренных комментариях."
+" Удерживайте CTRL для выбора нескольких ролей."
 
 #: inc/cleantalk-settings.php:367
 #, php-format
@@ -1069,7 +1069,7 @@ msgstr "Активировать White Label Mode."
 #: inc/cleantalk-settings.php:399
 #, php-format
 msgid "Learn more information %shere%s."
-msgstr "Узнать болье информации %sздесь%s"
+msgstr "Узнать больше информации %sздесь%s"
 
 #: inc/cleantalk-settings.php:404
 msgid "Hoster API Key"
@@ -1078,7 +1078,7 @@ msgstr "Хостинг API ключ"
 #: inc/cleantalk-settings.php:405
 #, php-format
 msgid "You can get it in %sCleantalk's Control Panel%s"
-msgstr "Вы можете получить это в вашей %sпанели управления CleanTalk%s"
+msgstr "Вы можете получить ключ в вашей %sпанели управления CleanTalk%s"
 
 #: inc/cleantalk-settings.php:413
 msgid "Plugin name"
@@ -1238,8 +1238,8 @@ msgid ""
 "email please %sGet Access Key Manually%s."
 msgstr ""
 "E-mail администратора (%s) будет использован для регистрации. Если вы хотите "
-"использовать другой e-mail, пожлуйста, %sполучите ключ доступа самостоятельно"
-"%s."
+"использовать другой e-mail, пожлуйста, %sполучите ключ доступа "
+"самостоятельно%s."
 
 #: inc/cleantalk-settings.php:862
 #, php-format
@@ -1519,8 +1519,8 @@ msgstr "ПЕРЕВЕСТИ"
 
 #. Description of the plugin/theme
 msgid ""
-"Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment "
-"spam, no registration spam, no contact spam, protects any WordPress forms."
+"Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam,"
+" no registration spam, no contact spam, protects any WordPress forms."
 msgstr ""
 "Максимальная эффективность, проверка всех форм, без Сaptcha, премиум "
 "антиспам плагин. Нет спаму в комментариях, нет спаму в регистрациях, нету "
