@@ -179,9 +179,7 @@ function ct_show_info(){
 			return;			
 		}else{
 			jQuery('#ct_cooling_notice').hide();
-		}	
-		
-		setTimeout(ct_show_info, 3000);
+		}
 		
 		if(!ct_comments_total){
 			

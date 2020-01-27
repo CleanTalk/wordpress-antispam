@@ -222,8 +222,6 @@ function ct_show_users_info(){
 			jQuery('#ct_cooling_notice').hide();
 		}
 		
-		setTimeout(ct_show_users_info, 3000);
-		
 		if( ! ct_users_total ){
 			
 			var data = {

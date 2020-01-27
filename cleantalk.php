@@ -429,9 +429,8 @@ function apbct_remote_call__perform()
 	global $apbct;
 	
 	$remote_action = $_GET['spbc_remote_call_action'];
-	
-	if(array_key_exists($remote_action, $apbct->remote_calls)){
-				
+
+	if( isset( $apbct->remote_calls[$remote_action] ) ){
 		if(time() - $apbct->remote_calls[$remote_action]['last_call'] > APBCT_REMOTE_CALL_SLEEP){
 			
 			$apbct->remote_calls[$remote_action]['last_call'] = time();
@@ -1667,6 +1666,7 @@ function ct_account_status_check($api_key = null, $process_errors = true){
 		preg_replace('/http[s]?:\/\//', '', get_option('siteurl'), 1),
 		'antispam'
 	);
+	error_log(var_export($result,1));
 	
 	if(empty($result['error']) || !empty($result['valid'])){
 		
