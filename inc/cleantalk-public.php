@@ -3115,7 +3115,8 @@ function ct_contact_form_validate() {
         (isset($_POST['action']) && $_POST['action'] == 'wilcity_reset_password') || // Exception for reset password form. From Analysis uid=430898
         (isset($_POST['action']) && $_POST['action'] == 'wilcity_login') || // Exception for login form. From Analysis uid=430898
         (isset($_POST['qcfsubmit'])) || //Exception for submit quick forms - duplicates with qcfvalidate
-        apbct_is_in_uri('tin-canny-learndash-reporting/src/h5p-xapi/process-xapi-statement.php?v=asd') //Skip Tin Canny plugin
+        apbct_is_in_uri('tin-canny-learndash-reporting/src/h5p-xapi/process-xapi-statement.php?v=asd') || //Skip Tin Canny plugin
+        ( isset( $_POST['nhr'], $_POST['ts'] ) && apbct_is_in_uri( '?na=s' ) )  // The Newsletter Plugin double requests fix. Ticket #14772
 		) {
         return null;
     }
