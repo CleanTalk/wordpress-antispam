@@ -288,6 +288,9 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 	    'wpdmpp_save_settings', // PayPal save settings.
         'give_process_donation', // GiveWP will be checked by feedback_general_contact_form
 	    'iwj_login', // Fix for unknown plugin for user #133315
+	    'custom_user_login', // Fix for unknown plugin for user #466875
+	    'wordfence_ls_authenticate', //Fix for wordfence auth
+	    'frm_strp_amount', //Admin stripe form
     );
     
     // Skip test if
