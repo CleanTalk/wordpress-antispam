@@ -81,79 +81,6 @@
 	apbct_attach_event_handler(window, "mousedown", ctFunctionFirstKey);
 	apbct_attach_event_handler(window, "keydown", ctFunctionFirstKey);
 
-	// Hyroscope && Accelerometer data
-
-    var isFirstTimeHyro = true;
-
-    var output = {
-        'orientation' : {
-            'alpha' : {},
-            'beta'  : {},
-            'gamma' : {}
-        },
-        'motion' : {
-            'x' : {},
-            'y' : {},
-            'z' : {}
-        }
-    };
-
-    var globalAlpha, globalBeta, globalGamma, globalAccX, globalAccY, globalAccZ;
-
-    function handleOrientation(event) {
-
-        var alphaOffset = 0;
-        var betaOffset  = 0;
-        var gammaOffset = 0;
-        var alpha = 0;
-        var beta  = 0;
-        var gamma = 0;
-        if(isFirstTimeHyro){
-            alphaOffset = event.alpha;
-            betaOffset  = event.beta;
-            gammaOffset = event.gamma;
-            isFirstTimeHyro = false;
-            return;
-        }
-
-        alpha = event.alpha - alphaOffset;
-        beta  = event.beta - betaOffset;
-        gamma = event.gamma - gammaOffset;
-        globalAlpha = parseInt( alpha, 10 );
-        globalBeta  = parseInt( beta, 10 );
-        globalGamma = parseInt( gamma, 10 );
-
-    }
-
-    function handleMotion(event) {
-
-        globalAccX = parseInt( event.accelerationIncludingGravity.x, 10 );
-        globalAccY = parseInt( event.accelerationIncludingGravity.y, 10 );
-        globalAccZ = parseInt( event.accelerationIncludingGravity.z, 10 );
-
-    }
-
-    var collect = setInterval( function(){
-        var timestamp = ( + new Date() );
-        output.orientation.alpha[timestamp] = globalAlpha;
-        output.orientation.beta[timestamp]  = globalBeta;
-        output.orientation.gamma[timestamp] = globalGamma;
-        output.motion.x[timestamp]          = globalAccX;
-        output.motion.y[timestamp]          = globalAccY;
-        output.motion.z[timestamp]          = globalAccZ;
-        ctSetCookieSec("abpct_hyro_acc_collect", JSON.stringify(output))
-    }, 1000 );
-    setTimeout( function(){
-        clearInterval( collect );
-    }, 10000 );
-
-    if (window.DeviceOrientationEvent)  {
-        apbct_attach_event_handler(window, "deviceorientation", handleOrientation);
-    }
-    if (window.DeviceMotionEvent) {
-        apbct_attach_event_handler(window, "devicemotion", handleMotion);
-    }
-
 	// Ready function
 	function apbct_ready(){
 		ctSetCookieSec("apbct_visible_fields", 0);
@@ -227,14 +154,6 @@
 	}
 	apbct_attach_event_handler(window, "DOMContentLoaded", apbct_ready);
 
-	//(function(open) {
-	//    XMLHttpRequest.prototype.open = function(method, url, async, user, pass) {
-	//        this.addEventListener("readystatechange", function() {
-	//        }, false);
-	//        open.call(this, method, url, async, user, pass);
-	//    };
-	//})(XMLHttpRequest.prototype.open);
-
 }());
 
 function apbct_js_keys__set_input_value(result, data, params, obj){
@@ -251,7 +170,7 @@ if(typeof jQuery !== 'undefined') {
 		if (xhr.responseText && xhr.responseText.indexOf('"apbct') !== -1) {
 			var response = JSON.parse(xhr.responseText);
 			if (typeof response.apbct !== 'undefined') {
-				var response = response.apbct;
+				response = response.apbct;
 				if (response.blocked) {
 					alert(response.comment);
 				}
