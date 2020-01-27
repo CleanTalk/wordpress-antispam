@@ -291,6 +291,7 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 	    'custom_user_login', // Fix for unknown plugin for user #466875
 	    'wordfence_ls_authenticate', //Fix for wordfence auth
 	    'frm_strp_amount', //Admin stripe form
+	    'wouCheckOnlineUsers', //Skip updraft admin checking users
     );
     
     // Skip test if
