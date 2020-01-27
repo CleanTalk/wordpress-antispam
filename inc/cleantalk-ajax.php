@@ -290,6 +290,7 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 	    'iwj_login', // Fix for unknown plugin for user #133315
 	    'custom_user_login', // Fix for unknown plugin for user #466875
 	    'wordfence_ls_authenticate', //Fix for wordfence auth
+	    'frm_strp_amount', //Admin stripe form
     );
     
     // Skip test if
