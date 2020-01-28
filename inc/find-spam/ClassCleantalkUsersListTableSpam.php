@@ -45,9 +45,12 @@ class ABPCTUsersListTableSpam extends ABPCTUsersListTable
     }
 
     function extra_tablenav( $which ) {
+        if( ! $this->has_items() ) return;
         ?>
         <div class="alignleft actions bulkactions">
-            <button type="button" id="ct_get_csv_file" class="button action"><?php  esc_html_e( 'Download results in CSV', 'cleantalk' ) ?></button>
+            <button type="button" id="ct_delete_all_users" class="button action ct_delete_all_users"><?php esc_html_e('Delete all users from list', 'cleantalk'); ?></button>
+            <button type="button" id="ct_get_csv_file" class="button action ct_get_csv_file"><?php  esc_html_e( 'Download results in CSV', 'cleantalk' ) ?></button>
+            <span class="spinner"></span>
         </div>
         <?php
     }

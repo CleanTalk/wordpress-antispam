@@ -312,6 +312,35 @@ function ct_start_check( continue_check ){
 
 }
 
+function ct_delete_all_users(){
+
+	var data = {
+		'action': 'ajax_delete_all_users',
+		'security': ct_ajax_nonce
+	};
+
+	jQuery.ajax({
+		type: "POST",
+		url: ajaxurl,
+		data: data,
+		success: function( msg ){
+			if( msg > 0 ){
+				jQuery('#cleantalk_users_left').html(msg);
+				ct_delete_all_users();
+			}else{
+				location.href='users.php?page=ct_check_users_total';
+			}
+		},
+		error: function(jqXHR, textStatus, errorThrown) {
+			jQuery('#ct_error_message').show();
+			jQuery('#cleantalk_ajax_error').html(textStatus);
+			jQuery('#cleantalk_js_func').html('All users deleteion');
+			setTimeout(ct_delete_all_users(), 3000);
+		},
+		timeout: 25000
+	});
+}
+
 jQuery(document).ready(function(){
 
 	// Setting dependences
@@ -424,13 +453,14 @@ jQuery(document).ready(function(){
 	});
 	
 	// Request to Download CSV file.
-	jQuery("#ct_get_csv_file").click(function( e ){
+	jQuery(".ct_get_csv_file").click(function( e ){
 		var data = {
 			'action': 'ajax_ct_get_csv_file',
 			'security': ct_ajax_nonce,
 			'filename': ctUsersCheck.ct_csv_filename
 		};
-		jQuery('#' + e.target.id).addClass('disabled');
+		jQuery('.' + e.target.id).addClass('disabled');
+		jQuery('.spinner').css('visibility', 'visible');
 		jQuery.ajax({
 			type: "POST",
 			url: ajaxurl,
@@ -448,8 +478,48 @@ jQuery(document).ready(function(){
 					document.body.appendChild(dummy);
 					dummy.click();
 				}
-				jQuery('#' + e.target.id).removeClass('disabled');
+				jQuery('.' + e.target.id).removeClass('disabled');
+				jQuery('.spinner').css('visibility', 'hidden');
 			}
 		});
 	});
+
+	// Delete all spam users
+	jQuery(".ct_delete_all_users").click(function( e ){
+
+		if ( ! confirm( ctUsersCheck.ct_confirm_deletion_all ) )
+			return false;
+
+		var data = {
+			'action': 'ajax_delete_all_users',
+			'security': ct_ajax_nonce
+		};
+
+		jQuery('.' + e.target.id).addClass('disabled');
+		jQuery('.spinner').css('visibility', 'visible');
+		jQuery.ajax({
+			type: "POST",
+			url: ajaxurl,
+			data: data,
+			success: function( msg ){
+				if( msg > 0 ){
+					jQuery('#cleantalk_users_left').html(msg);
+					ct_delete_all_users();
+				}else{
+					jQuery('.' + e.target.id).removeClass('disabled');
+					jQuery('.spinner').css('visibility', 'hidden');
+					location.href='users.php?page=ct_check_users_total';
+				}
+			},
+			error: function(jqXHR, textStatus, errorThrown) {
+				jQuery('#ct_error_message').show();
+				jQuery('#cleantalk_ajax_error').html(textStatus);
+				jQuery('#cleantalk_js_func').html('All users deleteion');
+				setTimeout(ct_delete_all_users(), 3000);
+			},
+			timeout: 25000
+		});
+
+	});
+
 });
