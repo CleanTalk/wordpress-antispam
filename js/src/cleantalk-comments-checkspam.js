@@ -237,7 +237,7 @@ function ct_toggle_depended(obj, secondary){
 	}
 }
 
-function ct_delete_all() {
+function ct_delete_all( e ) {
 
 	var data = {
 		'action': 'ajax_delete_all',
@@ -253,7 +253,7 @@ function ct_delete_all() {
 		success: function( msg ){
 			if( msg > 0 ){
 				jQuery('#cleantalk_comments_left').html(msg);
-				ct_delete_all();
+				ct_delete_all( e );
 			}else{
 				jQuery('.' + e.target.id).removeClass('disabled');
 				jQuery('.spinner').css('visibility', 'hidden');
@@ -264,7 +264,7 @@ function ct_delete_all() {
 			jQuery('#ct_error_message').show();
 			jQuery('#cleantalk_ajax_error').html(textStatus);
 			jQuery('#cleantalk_js_func').html('Check comments');
-			setTimeout(ct_delete_all(), 3000);
+			setTimeout(ct_delete_all( e ), 3000);
 		},
 		timeout: 25000
 	});
@@ -377,7 +377,7 @@ jQuery(document).ready(function(){
 		if (!confirm(ctCommentsCheck.ct_confirm_deletion_all))
 			return false;
 
-		ct_delete_all();
+		ct_delete_all( e );
 
 	});
 
