@@ -1180,14 +1180,17 @@ function apbct_rc__update(){
 	include_once( ABSPATH . 'wp-admin/includes/misc.php' );
 	
 	include_once( CLEANTALK_PLUGIN_DIR . 'lib/CleantalkUpgrader.php' );
-	include_once( CLEANTALK_PLUGIN_DIR . 'lib/CleantalkUpgraderSkin.php' );
-	include_once( CLEANTALK_PLUGIN_DIR . 'lib/CleantalkUpgraderSkin_Deprecated.php' );
 	
 	apbct_maintance_mode__enable( 30 );
-	if (version_compare(PHP_VERSION, '5.6.0') >= 0 && version_compare($wp_version, '5.3') >= 0)
+	
+	if (version_compare(PHP_VERSION, '5.6.0') >= 0 && version_compare($wp_version, '5.3') >= 0){
+		include_once( CLEANTALK_PLUGIN_DIR . 'lib/CleantalkUpgraderSkin.php' );
 		$upgrader = new CleantalkUpgrader( new CleantalkUpgraderSkin( compact('title', 'nonce', 'url', 'plugin') ) );
-	else
+	}else{
+		include_once( CLEANTALK_PLUGIN_DIR . 'lib/CleantalkUpgraderSkin_Deprecated.php' );
 		$upgrader = new CleantalkUpgrader( new CleantalkUpgraderSkin_Deprecated( compact('title', 'nonce', 'url', 'plugin') ) );
+	}
+	
     $upgrader->upgrade($plugin);
 	
 	apbct_maintance_mode__disable();
