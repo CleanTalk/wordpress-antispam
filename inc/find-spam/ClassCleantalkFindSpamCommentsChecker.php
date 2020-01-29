@@ -446,7 +446,7 @@ class ClassCleantalkFindSpamCommentsChecker extends ClassCleantalkFindSpamChecke
 
     }
 
-    function ct_ajax_delete_all(){
+    public static function ct_ajax_delete_all(){
 
         check_ajax_referer( 'ct_secret_nonce', 'security' );
 
