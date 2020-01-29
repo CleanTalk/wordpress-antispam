@@ -25,6 +25,7 @@ class ClassCleantalkFindSpamUsersChecker extends ClassCleantalkFindSpamChecker
             'ct_prev_till'                => !empty($prev_check['till'])     ? $prev_check['till'] : false,
             'ct_timeout'                  => __('Failed from timeout. Going to check users again.', 'cleantalk'),
             'ct_timeout_delete'           => __('Failed from timeout. Going to run a new attempt to delete spam users.', 'cleantalk'),
+            'ct_confirm_deletion_all'     => __('Delete all spam users?', 'cleantalk'),
             'ct_iusers'                   => __('users.', 'cleantalk'),
             'ct_csv_filename'             => "user_check_by_".$current_user->user_login,
             'ct_status_string'            => __("Checked %s, found %s spam users and %s bad users (without IP or email)", 'cleantalk'),
@@ -530,6 +531,37 @@ class ClassCleantalkFindSpamUsersChecker extends ClassCleantalkFindSpamChecker
         }
         die();
 
+    }
+
+    public static function ct_ajax_delete_all_users($count_all = 0)
+    {
+        check_ajax_referer( 'ct_secret_nonce', 'security' );
+
+        global $wpdb;
+
+        $r = $wpdb->get_results("select count(*) as cnt from $wpdb->usermeta where meta_key='ct_marked_as_spam';", OBJECT );
+
+        if(!empty($r)){
+
+            $count_all = $r ? $r[0]->cnt : 0;
+
+            $args = array(
+                'meta_key' => 'ct_marked_as_spam',
+                'meta_value' => '1',
+                'fields' => array('ID'),
+                'number' => 50
+            );
+            $users = get_users($args);
+
+            if ($users){
+                foreach($users as $user){
+                    wp_delete_user($user->ID);
+                    usleep(5000);
+                }
+            }
+        }
+
+        die($count_all);
     }
 
 }

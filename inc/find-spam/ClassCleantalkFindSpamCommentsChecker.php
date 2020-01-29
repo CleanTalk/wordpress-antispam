@@ -23,6 +23,7 @@ class ClassCleantalkFindSpamCommentsChecker extends ClassCleantalkFindSpamChecke
             'ct_prev_from'                => !empty($prev_check['from'])     ? $prev_check['from'] : false,
             'ct_prev_till'                => !empty($prev_check['till'])     ? $prev_check['till'] : false,
             'ct_timeout_confirm'          => __('Failed from timeout. Going to check comments again.', 'cleantalk'),
+            'ct_confirm_deletion_all'     => __('Delete all spam comments?', 'cleantalk'),
             'ct_comments_added_after'     => __('comments', 'cleantalk'),
             'ct_status_string'            => __('Checked %s, found %s spam comments and %s bad comments (without IP or email).', 'cleantalk'),
             'ct_status_string_warning'    => '<p>'.__('Please do backup of WordPress database before delete any accounts!', 'cleantalk').'</p>',
@@ -443,6 +444,42 @@ class ClassCleantalkFindSpamCommentsChecker extends ClassCleantalkFindSpamChecke
             'bad'      => $cnt_bad,
         );
 
+    }
+
+    public static function ct_ajax_delete_all(){
+
+        check_ajax_referer( 'ct_secret_nonce', 'security' );
+
+        $args_spam = array(
+            'number'=>100,
+            'meta_query' => array(
+                array(
+                    'key' => 'ct_marked_as_spam',
+                    'value' => '1',
+                    'compare' => 'NUMERIC'
+                )
+            )
+        );
+        $c_spam = get_comments( $args_spam );
+
+        $args_spam = array(
+            'count'=>true,
+            'meta_query' => array(
+                Array(
+                    'key' => 'ct_marked_as_spam',
+                    'value' => '1',
+                    'compare' => 'NUMERIC'
+                )
+            )
+        );
+        $cnt_all = get_comments($args_spam);
+
+        for( $i=0; $i < sizeof( $c_spam ); $i++ ){
+            wp_delete_comment( $c_spam[$i]->comment_ID, false );
+            usleep(10000);
+        }
+        print $cnt_all;
+        die();
     }
 
 }

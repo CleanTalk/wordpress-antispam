@@ -237,6 +237,40 @@ function ct_toggle_depended(obj, secondary){
 	}
 }
 
+function ct_delete_all() {
+
+	var data = {
+		'action': 'ajax_delete_all',
+		'security': ct_ajax_nonce
+	};
+
+	jQuery('.' + e.target.id).addClass('disabled');
+	jQuery('.spinner').css('visibility', 'visible');
+	jQuery.ajax({
+		type: "POST",
+		url: ajaxurl,
+		data: data,
+		success: function( msg ){
+			if( msg > 0 ){
+				jQuery('#cleantalk_comments_left').html(msg);
+				ct_delete_all();
+			}else{
+				jQuery('.' + e.target.id).removeClass('disabled');
+				jQuery('.spinner').css('visibility', 'hidden');
+				location.href='edit-comments.php?page=ct_check_spam_total';
+			}
+		},
+		error: function(jqXHR, textStatus, errorThrown) {
+			jQuery('#ct_error_message').show();
+			jQuery('#cleantalk_ajax_error').html(textStatus);
+			jQuery('#cleantalk_js_func').html('Check comments');
+			setTimeout(ct_delete_all(), 3000);
+		},
+		timeout: 25000
+	});
+
+}
+
 jQuery(document).ready(function(){
 
 	// Setting dependences
@@ -336,5 +370,15 @@ jQuery(document).ready(function(){
 		document.cookie = 'ct_comments_start_check=0; expires=' + new Date(0).toUTCString() + '; path=/';
 		jQuery('#ct_check_spam_button').click();	
 	}
+
+	// Delete all spam comments
+	jQuery(".ct_delete_all").click(function( e ){
+
+		if (!confirm(ctCommentsCheck.ct_confirm_deletion_all))
+			return false;
+
+		ct_delete_all();
+
+	});
 
 });
