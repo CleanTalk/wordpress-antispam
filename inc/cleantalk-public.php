@@ -3117,7 +3117,8 @@ function ct_contact_form_validate() {
         (isset($_POST['qcfsubmit'])) || //Exception for submit quick forms - duplicates with qcfvalidate
         apbct_is_in_uri('tin-canny-learndash-reporting/src/h5p-xapi/process-xapi-statement.php?v=asd') || //Skip Tin Canny plugin
         ( isset( $_POST['na'], $_POST['ts'], $_POST['nhr'] ) && !apbct_is_in_uri( '?na=s' ) ) ||  // The Newsletter Plugin double requests fix. Ticket #14772
-        (isset($_POST['spl_action']) && $_POST['spl_action'] == 'register') //Skip interal action with empty params
+        (isset($_POST['spl_action']) && $_POST['spl_action'] == 'register') || //Skip interal action with empty params
+        (isset($_POST['action']) && $_POST['action'] == 'bwfan_insert_abandoned_cart' && apbct_is_in_uri( 'my-account/edit-address' )) //Skip edit account
 		) {
         return null;
     }
