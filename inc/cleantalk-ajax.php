@@ -642,12 +642,11 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 		{
 			header('Content-Type: application/json');
 			$result = Array(
-				'no' => "",
-				'result' => "failure",
+				'no' => isset($_POST['cforms_id']) ? $_POST['cforms_id'] : '',
+				'result' => 'failure',
 				'html' =>$ct_result->comment,
 				'hide' => false,
 				'redirection' => null
-
 			);
 			print json_encode($result);
 			die();
