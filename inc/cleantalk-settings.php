@@ -566,7 +566,7 @@ function apbct_settings__display() {
 			
 			// Top info
 			if(!$apbct->white_label){
-				echo '<div style="float: right; padding: 15px 15px 5px 15px; font-size: 13px; position: relative; top: -55px; background: #f1f1f1;">';
+				echo '<div style="float: right; padding: 15px 15px 5px 15px; font-size: 13px; position: relative; background: #f1f1f1;">';
 
 					echo __('CleanTalk\'s tech support:', 'cleantalk')
 						.'&nbsp;'
