@@ -41,9 +41,10 @@ class ABPCTCommentsListTableSpam extends ABPCTCommentsListTable
 
     function extra_tablenav( $which ) {
         if( ! $this->has_items() ) return;
+        $button_id = ($which) ? "ct_delete_all_$which" : "ct_delete_all";
         ?>
         <div class="alignleft actions bulkactions">
-            <button type="button" id="ct_delete_all" class="button action ct_delete_all"><?php esc_html_e('Delete all comments from the list', 'cleantalk'); ?></button>
+            <button type="button" id="<?php echo $button_id; ?>" class="button action ct_delete_all"><?php esc_html_e('Delete all comments from the list', 'cleantalk'); ?></button>
             <span class="spinner"></span>
         </div>
         <?php
