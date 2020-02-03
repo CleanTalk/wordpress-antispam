@@ -4,7 +4,7 @@ Tags: spam, antispam, woocommerce, comments, firewall
 Requires at least: 3.0
 Tested up to: 5.3
 Requires PHP: 5.4
-Stable tag: 5.133
+Stable tag: 5.133.1
 License: GPLv2
 
 Spam protection, antispam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -565,6 +565,13 @@ If your website has forms that send data to external sources, you can enable opt
 10. Website's options.
 
 == Changelog ==
+
+= 5.133.1 February 03 2020 =
+  * Fix: PHP 7.4 issues.
+  * Fix: Woocommerce options moved to a separate block.
+  * Fix: CSS/HTML issues on settings page.
+  * Minor fixes.
+  * Spam protection improved.
 
 = 5.133 January 20 2020 =
   * Upd: Rebuilding users/comments scan
