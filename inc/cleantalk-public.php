@@ -2221,7 +2221,9 @@ function apbct_form__contactForm7__testSpam($param) {
     if ($subject != '') {
         $message = array_merge(array('subject' => $subject), $message);
     }
-
+    if (is_array($message) && isset($message['signature'])) {
+    	unset($message['signature']);
+    }
     $base_call_result = apbct_base_call(
 		array(
 			'message'         => $message,
