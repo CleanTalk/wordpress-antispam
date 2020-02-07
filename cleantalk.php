@@ -1669,7 +1669,6 @@ function ct_account_status_check($api_key = null, $process_errors = true){
 		preg_replace('/http[s]?:\/\//', '', get_option('siteurl'), 1),
 		'antispam'
 	);
-	error_log(var_export($result,1));
 	
 	if(empty($result['error']) || !empty($result['valid'])){
 		
