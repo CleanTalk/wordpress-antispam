@@ -224,6 +224,7 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 		// Default search
 		//add_filter( 'get_search_form',  'apbct_forms__search__addField' );
 		add_filter( 'get_search_query', 'apbct_forms__search__testSpam' );
+        add_action( 'wp_head', 'apbct_search_add_noindex', 1 );
 		
 		// Remote calls
 		if(isset($_GET['spbc_remote_call_token'], $_GET['spbc_remote_call_action'], $_GET['plugin_name']) && in_array($_GET['plugin_name'], array('antispam','anti-spam', 'apbct'))){

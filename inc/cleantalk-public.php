@@ -721,6 +721,21 @@ function apbct_forms__search__testSpam( $search ){
 	return $search;
 }
 
+function apbct_search_add_noindex() {
+
+    global $apbct;
+
+    if(
+        $apbct->settings['search_test'] == 0 ||
+        $apbct->settings['protect_logged_in'] != 1 && is_user_logged_in() // Skip processing for logged in users.
+    ){
+        return ;
+    }
+
+    echo '<meta name="robots" content="noindex,nofollow" />' . "\n";
+
+}
+
 /**
  * Test woocommerce checkout form for spam
  *
