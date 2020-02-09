@@ -726,12 +726,14 @@ function apbct_search_add_noindex() {
     global $apbct;
 
     if(
+        ! is_search() || // If it is search results
         $apbct->settings['search_test'] == 0 ||
         $apbct->settings['protect_logged_in'] != 1 && is_user_logged_in() // Skip processing for logged in users.
     ){
         return ;
     }
 
+    echo '<!-- meta by Cleantalk AntiSpam Protection plugin -->' . "\n";
     echo '<meta name="robots" content="noindex,nofollow" />' . "\n";
 
 }
