@@ -133,7 +133,7 @@ function apbct_settings__set_fileds( $fields ){
 					'title'       => __('Test default Wordpress search form for spam', 'cleantalk'),
 					'description' => __('Spam protection for Search form.', 'cleantalk')
 						. (!$apbct->white_label || is_main_site()
-							? sprintf(__('Read more about %sspam protection for Search form%s on our blog.', 'cleantalk'),
+							? sprintf(__('Read more about %sspam protection for Search form%s on our blog. “noindex” tag will be placed in meta derictive on search page.', 'cleantalk'),
 								'<a href="https://blog.cleantalk.org/how-to-protect-website-search-from-spambots/" target="_blank">',
 								'</a>'
 								)
