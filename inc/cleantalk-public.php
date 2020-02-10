@@ -3059,6 +3059,49 @@ function apbct_form__elementor_pro__testSpam() {
 
 }
 
+// INEVIO theme integration
+function apbct_form__inevio__testSpam() {
+
+    global $apbct, $cleantalk_executed;
+
+    $theme = wp_get_theme();
+    if(
+        stripos( $theme->get( 'Name' ), 'INEVIO' ) === false ||
+        $apbct->settings['contact_forms_test'] == 0 ||
+        ($apbct->settings['protect_logged_in'] != 1 && is_user_logged_in()) || // Skip processing for logged in users.
+        apbct_exclusions_check__url()
+    ) {
+        return false;
+    }
+    $form_data = array();
+    parse_str($_POST['data'], $form_data);
+
+    $name    = isset($form_data['name']) ?  $form_data['name'] : '';
+    $email   = isset($form_data['email']) ?  $form_data['email'] : '';
+    $message = isset($form_data['message']) ?  $form_data['message'] : '';
+
+    $post_info['comment_type'] = 'contact_form_wordpress_inevio_theme';
+
+    $cleantalk_executed = true;
+    $base_call_result = apbct_base_call(
+        array(
+            'message'         => $message,
+            'sender_email'    => $email,
+            'sender_nickname' => $name,
+            'post_info'       => $post_info,
+        )
+    );
+
+    $ct_result = $base_call_result['ct_result'];
+
+    if ( $ct_result->allow == 0 ) {
+        die(json_encode(array('apbct' => array('blocked' => true, 'comment' => $ct_result->comment,))));
+    }
+
+    return true;
+
+}
+
 /**
  * General test for any contact form
  */

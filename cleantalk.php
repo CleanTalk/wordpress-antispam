@@ -218,6 +218,10 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
         }
     }, 1, 2);
 
+    // INEVIO theme integration
+    add_action( 'wp_ajax_contact_form_handler',        'apbct_form__inevio__testSpam', 1 );
+    add_action( 'wp_ajax_nopriv_contact_form_handler', 'apbct_form__inevio__testSpam', 1 );
+
 	// Public actions
 	if(!is_admin() && !apbct_is_ajax()){
 		
