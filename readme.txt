@@ -4,7 +4,7 @@ Tags: spam, antispam, woocommerce, comments, firewall
 Requires at least: 3.0
 Tested up to: 5.3
 Requires PHP: 5.4
-Stable tag: 5.133.1
+Stable tag: 5.133.2
 License: GPLv2
 
 Spam protection, antispam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -565,6 +565,10 @@ If your website has forms that send data to external sources, you can enable opt
 10. Website's options.
 
 == Changelog ==
+
+= 5.133.2 February 10 2020 =
+  * Fix: Add no-index meta tag to search page only.
+  * Fix: Namespace issues.
 
 = 5.133.1 February 03 2020 =
   * Fix: PHP 7.4 issues.
