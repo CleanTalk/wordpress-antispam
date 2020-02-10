@@ -375,7 +375,9 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
     }else{
 		
 		require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public.php');
-		
+
+        $integrations = new  \Cleantalk\Antispam\Integrations(  );
+
 		add_action('wp_enqueue_scripts', 'ct_enqueue_scripts_public');
 		
 		// Init action.
