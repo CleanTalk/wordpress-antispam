@@ -51,6 +51,7 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 	require_once(CLEANTALK_PLUGIN_DIR . 'lib/cleantalk-php-patch.php');  // Pathces fpr different functions which not exists
 	
 	// Base classes
+    require_once(CLEANTALK_PLUGIN_DIR . 'lib/autoloader.php');                // Autoloader
 	require_once(CLEANTALK_PLUGIN_DIR . 'lib/Cleantalk/Antispam/API.php');    // API
     require_once(CLEANTALK_PLUGIN_DIR . 'lib/Cleantalk/Antispam/DB.php');     // Database driver
 	require_once(CLEANTALK_PLUGIN_DIR . 'lib/Cleantalk/Antispam/Helper.php'); // Helper
@@ -184,6 +185,11 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 		}
 		
 	}
+
+    $apbct_active_integrations = array(
+        'ContactBank' => array( 'hook' => 'contact_bank_frontend_ajax_call', 'ajax' => true ),
+    );
+    new  \Cleantalk\Antispam\Integrations( $apbct_active_integrations );
 	
 	// Ninja Forms. Making GET action to POST action
     if( apbct_is_in_uri( 'admin-ajax.php' ) && sizeof($_POST) > 0 && isset($_GET['action']) && $_GET['action']=='ninja_forms_ajax_submit' )
@@ -380,7 +386,7 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 		
 		require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public.php');
 
-        $integrations = new  \Cleantalk\Antispam\Integrations(  );
+
 
 		add_action('wp_enqueue_scripts', 'ct_enqueue_scripts_public');
 		
