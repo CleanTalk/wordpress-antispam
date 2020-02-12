@@ -218,6 +218,10 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
         }
     }, 1, 2);
 
+    // INEVIO theme integration
+    add_action( 'wp_ajax_contact_form_handler',        'apbct_form__inevio__testSpam', 1 );
+    add_action( 'wp_ajax_nopriv_contact_form_handler', 'apbct_form__inevio__testSpam', 1 );
+
 	// Public actions
 	if(!is_admin() && !apbct_is_ajax()){
 		
@@ -1020,12 +1024,15 @@ function apbct_rc__install_plugin($wp = null, $plugin = null){
 					include_once( ABSPATH . 'wp-admin/includes/file.php' );
 					include_once( ABSPATH . 'wp-admin/includes/misc.php' );
 					include_once( CLEANTALK_PLUGIN_DIR . 'lib/CleantalkUpgrader.php' );
-					include_once( CLEANTALK_PLUGIN_DIR . 'lib/CleantalkUpgraderSkin.php' );
-					include_once( CLEANTALK_PLUGIN_DIR . 'lib/CleantalkUpgraderSkin_Deprecated.php' );
-					if (version_compare(PHP_VERSION, '5.6.0') >= 0 && version_compare($wp_version, '5.3') >= 0)
-						$installer= new CleantalkUpgrader( new CleantalkUpgraderSkin() );
-					else 
-						$installer= new CleantalkUpgrader( new CleantalkUpgraderSkin_Deprecated() );
+
+					if (version_compare(PHP_VERSION, '5.6.0') >= 0 && version_compare($wp_version, '5.3') >= 0) {
+                        include_once( CLEANTALK_PLUGIN_DIR . 'lib/CleantalkUpgraderSkin.php' );
+                        $installer= new CleantalkUpgrader( new CleantalkUpgraderSkin() );
+                    } else {
+                        include_once( CLEANTALK_PLUGIN_DIR . 'lib/CleantalkUpgraderSkin_Deprecated.php' );
+                        $installer= new CleantalkUpgrader( new CleantalkUpgraderSkin_Deprecated() );
+                    }
+
 					$installer->install($result->download_link);
 					
 					if($installer->apbct_result === 'OK'){
