@@ -6,6 +6,9 @@ require_once('cleantalk-settings.php');
 add_action( 'manage_comments_nav', 'apbct_add_buttons_to_comments_and_users', 10, 1 );
 add_action( 'manage_users_extra_tablenav', 'apbct_add_buttons_to_comments_and_users', 10, 1 );
 
+// Check renew banner
+add_action( 'wp_ajax_apbct_settings__check_renew_banner', 'apbct_settings__check_renew_banner'); 
+
 function apbct_add_buttons_to_comments_and_users( $unused_argument ) {
 
     global $apbct;

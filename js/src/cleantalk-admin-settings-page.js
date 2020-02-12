@@ -30,7 +30,30 @@ jQuery(document).ready(function(){
 		apbct_settings__showDescription(self, self.attr('setting'));
 	});
 
+	if (jQuery('.updated').length) {
+		apbct_renew_banner_check();
+	}
+	
 });
+
+/**
+ * Checking current account status for renew notice
+ */
+function apbct_renew_banner_check() {
+	var renewBannerChecker = setInterval( function() {
+		apbct_sendAJAX(
+			{action: 'apbct_settings__check_renew_banner'},
+			{
+				callback: function(result, data, params, obj){
+					if (result.close_renew_banner) {
+						jQuery('.updated').hide('slow');
+						clearInterval(renewBannerChecker);
+					}
+				}
+			}
+		);
+	}, 30000);
+}
 
 /**
  * Select elems like #{selector} or .{selector}
