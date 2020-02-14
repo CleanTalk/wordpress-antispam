@@ -30,7 +30,7 @@ jQuery(document).ready(function(){
 		apbct_settings__showDescription(self, self.attr('setting'));
 	});
 
-	if (jQuery('.updated').length) {
+	if (jQuery('#renew_notice').length) {
 		apbct_renew_banner_check();
 	}
 	

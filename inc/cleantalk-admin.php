@@ -412,7 +412,7 @@ function apbct_admin__notice_message(){
 			$button_html 	= sprintf($renew_link, '<input type="button" class="button button-primary" value="'.__('RENEW ANTI-SPAM', 'cleantalk').'"  />');
 			$link_html 		= sprintf($renew_link, "<b>".__('next year', 'cleantalk')."</b>");
 			
-			echo '<div class="updated">
+			echo '<div class="updated" id="renew_notice">
 				<h3>'. 
 					sprintf(__("Please renew your anti-spam license for %s.", 'cleantalk'), $link_html). '<br /><br />' . $button_html . 
 				'</h3>
