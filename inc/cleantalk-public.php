@@ -3146,6 +3146,7 @@ function ct_contact_form_validate() {
 		(isset($_POST['wc_reset_password'], $_POST['_wpnonce'], $_POST['_wp_http_referer'])) || // WooCommerce recovery password form
 		((isset($_POST['woocommerce-login-nonce']) || isset($_POST['_wpnonce'])) && isset($_POST['login'], $_POST['password'], $_POST['_wp_http_referer'])) || // WooCommerce login form
 		(isset($_POST['wc-api']) && strtolower($_POST['wc-api']) == 'wc_gateway_systempay') || // Woo Systempay payment plugin
+        apbct_is_in_uri( 'wc-api=WC_Gateway_Realex_Redirect') || // Woo Realex payment Gateway plugin
         (isset($_POST['_wpcf7'], $_POST['_wpcf7_version'], $_POST['_wpcf7_locale'])) || //CF7 fix)
 		(isset($_POST['hash'], $_POST['device_unique_id'], $_POST['device_name'])) ||//Mobile Assistant Connector fix
 		isset($_POST['gform_submit']) || //Gravity form
