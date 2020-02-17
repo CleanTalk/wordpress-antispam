@@ -6,6 +6,9 @@ require_once('cleantalk-settings.php');
 add_action( 'manage_comments_nav', 'apbct_add_buttons_to_comments_and_users', 10, 1 );
 add_action( 'manage_users_extra_tablenav', 'apbct_add_buttons_to_comments_and_users', 10, 1 );
 
+// Check renew banner
+add_action( 'wp_ajax_apbct_settings__check_renew_banner', 'apbct_settings__check_renew_banner'); 
+
 function apbct_add_buttons_to_comments_and_users( $unused_argument ) {
 
     global $apbct;
@@ -409,7 +412,7 @@ function apbct_admin__notice_message(){
 			$button_html 	= sprintf($renew_link, '<input type="button" class="button button-primary" value="'.__('RENEW ANTI-SPAM', 'cleantalk').'"  />');
 			$link_html 		= sprintf($renew_link, "<b>".__('next year', 'cleantalk')."</b>");
 			
-			echo '<div class="updated">
+			echo '<div class="updated" id="renew_notice">
 				<h3>'. 
 					sprintf(__("Please renew your anti-spam license for %s.", 'cleantalk'), $link_html). '<br /><br />' . $button_html . 
 				'</h3>

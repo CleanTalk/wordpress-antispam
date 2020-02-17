@@ -1494,3 +1494,11 @@ function apbct_settings__get__long_description(){
 	
 	die(json_encode($descriptions[$setting_id]));
 }
+
+function apbct_settings__check_renew_banner() {
+	global $apbct;
+	
+	check_ajax_referer('ct_secret_nonce' );
+
+	die(json_encode(array('close_renew_banner' => ($apbct->data['notice_trial'] == 0 && $apbct->data['notice_renew'] == 0) ? true : false)));
+}
