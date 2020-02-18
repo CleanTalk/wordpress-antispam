@@ -395,12 +395,12 @@ function apbct_admin__notice_message(){
 		//"Trial period ends" notice from apbct_admin__init().api_method__notice_paid_till()
 		if ($apbct->notice_show && $apbct->notice_trial == 1 && $apbct->moderate_ip == 0 && !$apbct->white_label) {
 			if(isset($_GET['page']) && in_array($_GET['page'], array('cleantalk', 'ct_check_spam', 'ct_check_users'))){
-				echo '<div class="error">
+				echo '<div class="error" id="trial_notice">
 					<h3>' . sprintf(__("%s trial period ends, please upgrade to %s!", 'cleantalk'), 
 						"<a href='{$settings_link}'>".$apbct->plugin_name."</a>", 
 						"<a href=\"https://cleantalk.org/my/bill/recharge?utm_source=wp-backend&utm_medium=cpc&utm_campaign=WP%20backend%20trial$user_token&cp_mode=antispam\" target=\"_blank\"><b>premium version</b></a>") .
 					'</h3>
-					<h4 style = "color: gray">If you already paid for the service, please, re-save the plugin settings (WP Dashboard —> Settings —> Anti-Spam by CleanTalk) to dismiss the notice.</h4>
+					<h4 style = "color: gray">Account status updates every minute.</h4>
 				</div>';
 				$apbct->notice_show = false;
 			}
@@ -414,8 +414,11 @@ function apbct_admin__notice_message(){
 			
 			echo '<div class="updated" id="renew_notice">
 				<h3>'. 
-					sprintf(__("Please renew your anti-spam license for %s.", 'cleantalk'), $link_html). '<br /><br />' . $button_html . 
+					sprintf(__("Please renew your anti-spam license for %s.", 'cleantalk'), $link_html).
 				'</h3>
+				<h4 style = "color: gray">Account status updates every minute.</h4>
+				'.$button_html.'
+				<br/><br/>
 			</div>';
 			$apbct->notice_show = false;
 		}
