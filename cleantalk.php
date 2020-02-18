@@ -1543,14 +1543,15 @@ function apbct_cookie(){
 	}
 	
 	
-// Cookie names to validate
+    // Cookie names to validate
 	$cookie_test_value = array(
 		'cookies_names' => array(),
 		'check_value' => $apbct->api_key,
 	);
 	
-	$domain = parse_url(get_option('siteurl'),PHP_URL_HOST);
-	
+	// We need to skip the domain attribute for prevent including the dot to the cookie's domain on the client.
+    $domain = null;
+
 // Submit time
 	if(empty($_POST['ct_multipage_form'])){ // Do not start/reset page timer if it is multipage form (Gravitiy forms))
 		$apbct_timestamp = time();
