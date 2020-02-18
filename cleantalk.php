@@ -188,6 +188,7 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 
     $apbct_active_integrations = array(
         'ContactBank' => array( 'hook' => 'contact_bank_frontend_ajax_call', 'ajax' => true ),
+        'FluentForm'  => array( 'hook' => 'fluentform_validations', 'ajax' => false )
     );
     new  \Cleantalk\Antispam\Integrations( $apbct_active_integrations );
 	
