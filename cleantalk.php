@@ -623,7 +623,7 @@ function apbct_sfw__check()
 		}else{
 			reset($sfw->passed_ips);
 			if(!empty($apbct->settings['set_cookies']) && !headers_sent() && key($sfw->passed_ips))
-				setcookie ('ct_sfw_pass_key', md5($sfw->passed_ips[key($sfw->passed_ips)]['ip'].$apbct->api_key), time()+86400*30, '/', parse_url(get_option('siteurl'),PHP_URL_HOST) ,false);
+				setcookie ('ct_sfw_pass_key', md5($sfw->passed_ips[key($sfw->passed_ips)]['ip'].$apbct->api_key), time()+86400*30, '/', null,false);
 		}
 	}
 	unset($is_sfw_check, $sfw, $sfw_ip, $ct_cur_ip);
