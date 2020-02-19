@@ -49,7 +49,7 @@ function apbct_banner_check() {
 							jQuery('#renew_notice').hide('slow');
 						if (jQuery('#trial_notice').length)
 							jQuery('#trial_notice').hide('slow');
-						clearInterval(renewBannerChecker);
+						clearInterval(bannerChecker);
 					}
 				}
 			}
