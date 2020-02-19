@@ -228,33 +228,66 @@ class SFW
 	 * @return array|bool array('error' => STRING)
 	 */
 	public function sfw_update($ct_key, $file_url = null, $immediate = false){
-		
+
 		// Getting remote file name
 		if(!$file_url){
-			
+
 			sleep(6);
-			
-			$result = API::method__get_2s_blacklists_db($ct_key, 'file');
-						
+
+			$result = API::method__get_2s_blacklists_db($ct_key, 'multifiles');
+
 			if(empty($result['error'])){
 			
 				if( !empty($result['file_url']) ){
-					
-					$pattenrs = array();
-					$pattenrs[] = 'get';
-					if(!$immediate) $pattenrs[] = 'async';
-					
-					return Helper::http__request(
-						get_option('siteurl'), 
-						array(
-							'spbc_remote_call_token'  => md5($ct_key),
-							'spbc_remote_call_action' => 'sfw_update',
-							'plugin_name'             => 'apbct',
-							'file_url'                => $result['file_url'],
-						),
-						$pattenrs
-					);
-					
+
+					if(Helper::http__request($result['file_url'], array(), 'get_code') === 200) {
+
+						if(ini_get('allow_url_fopen')) {
+
+							$pattenrs = array();
+							$pattenrs[] = 'get';
+
+							if(!$immediate) $pattenrs[] = 'async';		
+
+							$this->db->execute("DELETE FROM ".$this->data_table.";");	
+
+							if (preg_match('/multifiles/', $result['file_url'])) {
+								
+								$gf = gzopen($result['file_url'], 'rb');
+
+								if ($gf) {
+
+									$file_urls = array();
+
+									for ($i=0; APBCT_WRITE_LIMIT !== $i && !gzeof($gf); $i++) 
+										$file_urls[] = 'https://api.cleantalk.org/store/'.trim(gzgets($gf, 1024));				
+
+									return Helper::http__request(
+										get_option('siteurl'), 
+										array(
+											'spbc_remote_call_token'  => md5($ct_key),
+											'spbc_remote_call_action' => 'sfw_update',
+											'plugin_name'             => 'apbct',
+											'file_urls'               => implode(',', $file_urls),
+										),
+										$pattenrs
+									);								
+								}
+							}else {
+								return Helper::http__request(
+									get_option('siteurl'), 
+									array(
+										'spbc_remote_call_token'  => md5($ct_key),
+										'spbc_remote_call_action' => 'sfw_update',
+										'plugin_name'             => 'apbct',
+										'file_urls'               => $result['file_url'],
+									),
+									$pattenrs
+								);								
+							}
+						}else
+							return array('error' => 'ERROR_ALLOW_URL_FOPEN_DISABLED');
+					}				
 				}else
 					return array('error' => 'BAD_RESPONSE');
 			}else
@@ -262,16 +295,12 @@ class SFW
 		}else{
 						
 			if(Helper::http__request($file_url, array(), 'get_code') === 200){ // Check if it's there
-				
-				if(ini_get('allow_url_fopen')){
-					
+									
 					$gf = gzopen($file_url, 'rb');
-					
+
 					if($gf){
 						
 						if(!gzeof($gf)){
-							
-							$this->db->execute("DELETE FROM ".$this->data_table.";");
 							
 							for($count_result = 0; !gzeof($gf); ){
 	
@@ -309,8 +338,6 @@ class SFW
 							return array('error' => 'ERROR_GZ_EMPTY');
 					}else
 						return array('error' => 'ERROR_OPEN_GZ_FILE');
-				}else
-					return array('error' => 'ERROR_ALLOW_URL_FOPEN_DISABLED');
 			}else
 				return array('error' => 'NO_REMOTE_FILE_FOUND');
 		}			

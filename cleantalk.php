@@ -445,7 +445,7 @@ function apbct_remote_call__perform()
 	$remote_action = $_GET['spbc_remote_call_action'];
 
 	if( isset( $apbct->remote_calls[$remote_action] ) ){
-		if(time() - $apbct->remote_calls[$remote_action]['last_call'] > APBCT_REMOTE_CALL_SLEEP){
+		if(time() - $apbct->remote_calls[$remote_action]['last_call'] > APBCT_REMOTE_CALL_SLEEP || ($remote_action == 'sfw_update' && isset($_GET['file_urls']))) {
 			
 			$apbct->remote_calls[$remote_action]['last_call'] = time();
 			$apbct->save('remote_calls');
@@ -455,7 +455,7 @@ function apbct_remote_call__perform()
 				// Flag to let plugin know that Remote Call is running.
 				$apbct->rc_running = true;
 				
-				switch ($_GET['spbc_remote_call_action']) {
+				switch ($remote_action) {
 					
 				// Close renew banner
 					case 'close_renew_banner':
@@ -907,20 +907,44 @@ function ct_sfw_update($immediate = false){
 		
 		$sfw = new CleantalkSFW();
 		
-		$file_url = isset($_GET['file_url']) ? $_GET['file_url'] : null;
-		$result = $sfw->sfw_update($apbct->api_key, $file_url, $immediate);
+		$file_urls = isset($_GET['file_urls']) ? explode(',', $_GET['file_urls']) : null;
 
-		if(empty($result['error'])){
-			$apbct->stats['sfw']['last_update_time'] = time();
-			$apbct->stats['sfw']['entries'] = $result;
-			$apbct->save('stats');
-		}
+		if (!$file_urls) {
+			$result = $sfw->sfw_update($apbct->api_key, null, $immediate);
+		} else {
+			if (is_array($file_urls) && count($file_urls)) {
 
+				$result = $sfw->sfw_update($apbct->api_key, $file_urls[0], $immediate);
+				
+				if(empty($result['error'])){
+
+					array_shift($file_urls);		
+
+					if (count($file_urls)) {
+						CleantalkHelper::http__request(
+							get_option('siteurl'), 
+							array(
+								'spbc_remote_call_token'  => md5($apbct->api_key),
+								'spbc_remote_call_action' => 'sfw_update',
+								'plugin_name'             => 'apbct',
+								'file_urls'               => implode(',', $file_urls),
+							),
+							array('get', 'async'),
+						);							
+					} else {
+						//Files array is empty update sfw stats
+						$apbct->stats['sfw']['last_update_time'] = time();
+						$apbct->stats['sfw']['entries'] = $result;
+						$apbct->save('stats');
+					}					
+				} else 
+					return array('error' => 'ERROR_WHILE_INSERTING_SFW_DATA');
+			} 
+		}				
 		return $result;
 	}
 	
 	return array('error' => 'SFW_DISABLED');
-	
 }
 
 function ct_sfw_send_logs()
