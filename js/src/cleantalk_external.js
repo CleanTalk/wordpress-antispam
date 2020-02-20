@@ -28,7 +28,7 @@ function ct_protect_external(){
 					document.forms[i].method = 'POST';
 					document.forms[i].appendChild(ct_method);
 					
-					document.forms[i].action = ctNocache.blog_home;
+					document.forms[i].action = document.location;
 				}
 			}
 		}
