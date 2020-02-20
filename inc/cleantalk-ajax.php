@@ -143,6 +143,9 @@ $cleantalk_hooked_actions[] = 'fue_wc_set_cart_email';  // Don't check email via
 /* Follow-Up Emails */
 $cleantalk_hooked_actions[] = 'fue_wc_set_cart_email';  // Don't check email via this plugin
 
+/* The Fluent Form have the direct integration */
+$cleantalk_hooked_actions[] = 'fluentform_submit';
+
 function ct_validate_email_ajaxlogin($email=null, $is_ajax=true){
 	
 	$email = is_null( $email ) ? $email : $_POST['email'];
