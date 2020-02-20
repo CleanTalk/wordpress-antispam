@@ -314,9 +314,13 @@ function ct_ajax_hook($message_obj = false, $additional = false)
     {
         return false;
     }
- 
-	//General post_info for all ajax calls
-	$post_info = array('comment_type' => 'feedback_ajax');
+
+    //General post_info for all ajax calls
+	$post_info = array(
+	    'comment_type' => 'feedback_ajax',
+        'post_url' => apbct_get_server_variable( 'HTTP_REFERER' ), // Page URL must be an previous page
+    );
+
 	$checkjs = apbct_js_test('ct_checkjs', $_COOKIE);
 		
     if(isset($_POST['user_login']))
