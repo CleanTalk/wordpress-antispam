@@ -30,7 +30,7 @@ jQuery(document).ready(function(){
 		apbct_settings__showDescription(self, self.attr('setting'));
 	});
 
-	if (jQuery('#renew_notice').length || jQuery('#trial_notice').length) 
+	if (jQuery('#apbct_renew_notice').length || jQuery('#apbct_trial_notice').length) 
 		apbct_banner_check();
 	
 });
@@ -45,10 +45,10 @@ function apbct_banner_check() {
 			{
 				callback: function(result, data, params, obj){
 					if (result.close_renew_banner) {
-						if (jQuery('#renew_notice').length)
-							jQuery('#renew_notice').hide('slow');
-						if (jQuery('#trial_notice').length)
-							jQuery('#trial_notice').hide('slow');
+						if (jQuery('#apbct_renew_notice').length)
+							jQuery('#apbct_renew_notice').hide('slow');
+						if (jQuery('#apbct_trial_notice').length)
+							jQuery('#apbct_trial_notice').hide('slow');
 						clearInterval(bannerChecker);
 					}
 				}
