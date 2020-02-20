@@ -910,7 +910,12 @@ function ct_sfw_update($immediate = false){
 		$file_urls = isset($_GET['file_urls']) ? explode(',', $_GET['file_urls']) : null;
 
 		if (!$file_urls) {
+
+			//Reset previous entries count
+			$apbct->stats['sfw']['entries'] = 0;
+
 			$result = $sfw->sfw_update($apbct->api_key, null, $immediate);
+			
 		} else {
 			if (is_array($file_urls) && count($file_urls)) {
 
@@ -918,7 +923,9 @@ function ct_sfw_update($immediate = false){
 				
 				if(empty($result['error'])){
 
-					array_shift($file_urls);		
+					array_shift($file_urls);	
+
+					$apbct->stats['sfw']['entries'] += $result;
 
 					if (count($file_urls)) {
 						CleantalkHelper::http__request(
@@ -934,13 +941,14 @@ function ct_sfw_update($immediate = false){
 					} else {
 						//Files array is empty update sfw stats
 						$apbct->stats['sfw']['last_update_time'] = time();
-						$apbct->stats['sfw']['entries'] = $result;
-						$apbct->save('stats');
-					}					
+					}
 				} else 
 					return array('error' => 'ERROR_WHILE_INSERTING_SFW_DATA');
 			} 
-		}				
+		}	
+		//Save stats
+		$apbct->save('stats');	
+
 		return $result;
 	}
 	

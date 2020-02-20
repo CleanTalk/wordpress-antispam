@@ -259,8 +259,10 @@ class SFW
 
 									$file_urls = array();
 
-									for ($i=0; APBCT_WRITE_LIMIT !== $i && !gzeof($gf); $i++) 
-										$file_urls[] = 'https://api.cleantalk.org/store/'.trim(gzgets($gf, 1024));				
+									while(!gzeof($gf))
+										$file_urls[] = trim(gzgets($gf, 1024));			
+
+									gzclose($gf);
 
 									return Helper::http__request(
 										get_option('siteurl'), 
