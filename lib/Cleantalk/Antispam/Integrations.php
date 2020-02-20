@@ -49,7 +49,10 @@ class Integrations
                             'message'         => !empty( $data['message'] )  ? json_encode( $data['message'] ) : '',
                             'sender_email'    => !empty( $data['email'] )    ? $data['email']                  : '',
                             'sender_nickname' => !empty( $data['nickname'] ) ? $data['nickname']               : '',
-                            'post_info'       => array( 'comment_type' => 'contact_form_wordpress_' . strtolower($current_integration) ),
+                            'post_info'       => array(
+                                'comment_type' => 'contact_form_wordpress_' . strtolower($current_integration),
+                                'post_url' => apbct_get_server_variable( 'HTTP_REFERER' ), // Page URL must be an previous page
+                            ),
                         )
                     );
 
