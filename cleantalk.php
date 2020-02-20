@@ -936,7 +936,7 @@ function ct_sfw_update($immediate = false){
 								'plugin_name'             => 'apbct',
 								'file_urls'               => implode(',', $file_urls),
 							),
-							array('get', 'async'),
+							array('get', 'async')
 						);							
 					} else {
 						//Files array is empty update sfw stats
