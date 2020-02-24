@@ -191,14 +191,19 @@ class ABPCTCommentsListTable extends ABPCT_List_Table
     //                 LOGIC                     //
     //*******************************************//
 
-    function approveSpam( $ids ) {
+    function approveSpam( $id ) {
 
-        $comment = get_comment($id, 'ARRAY_A');
-        $comment['comment_approved'] = 1;
-        delete_comment_meta( $id, 'ct_marked_as_spam' );
-        wp_update_comment( $comment );
+        $comment_meta = delete_comment_meta( $id, 'ct_marked_as_spam' );
 
-        apbct_comment__send_feedback( $id, 'approve', false, true );
+        if( $comment_meta ) {
+
+            $comment = get_comment($id, 'ARRAY_A');
+            $comment['comment_approved'] = 1;
+
+            wp_update_comment( $comment );
+            apbct_comment__send_feedback( $id, 'approve', false, true );
+
+        }
 
     }
 
