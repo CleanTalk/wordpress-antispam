@@ -573,7 +573,7 @@ function apbct_sfw__check()
 				$apbct->data['sfw_counter']['all']++;
 				$apbct->saveData();
 				if(!headers_sent())
-					apbct_cookie__set ('ct_sfw_passed', '0', time()+86400*3, '/', parse_url(get_option('siteurl'),PHP_URL_HOST), false, true, 'Lax' );
+					apbct_cookie__set ('ct_sfw_passed', '0', time()+86400*3, '/', null, false, true, 'Lax' );
 			}
 			break;
 		}else{
