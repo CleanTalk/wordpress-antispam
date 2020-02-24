@@ -3366,7 +3366,8 @@ function ct_contact_form_validate_postdata() {
 		(isset($_POST['ihcaction']) && $_POST['ihcaction'] == 'login') || //Skip login form
 		(isset($_POST['action']) && $_POST['action'] == 'infinite_scroll') || //Scroll
 		isset($_POST['gform_submit']) || //Skip gravity checking because of direct integration
-		(isset($_POST['lrm_action']) && $_POST['lrm_action'] == 'login') //Skip login form
+		(isset($_POST['lrm_action']) && $_POST['lrm_action'] == 'login') || //Skip login form
+        apbct_is_in_uri( 'xmlrpc.php?for=jetpack' )
         ) {
         return null;
     }
