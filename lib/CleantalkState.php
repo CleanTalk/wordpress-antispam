@@ -83,7 +83,7 @@ class CleantalkState
         'set_cookies'=>            1, // Disable cookies generatation to be compatible with Varnish.
         'set_cookies__sessions'=>  0, // Use alt sessions for cookies.
         'ssl_on' =>                0, // Secure connection to servers 
-		'use_buitin_http_api' =>   0, // Using Wordpress HTTP built in API
+		'use_buitin_http_api' =>   1, // Using Wordpress HTTP built in API
 		
 		// Exclusions
 		'exclusions__urls'               => '',
