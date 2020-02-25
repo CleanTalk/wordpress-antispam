@@ -294,6 +294,7 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 	    'wordfence_ls_authenticate', //Fix for wordfence auth
 	    'frm_strp_amount', //Admin stripe form
 	    'wouCheckOnlineUsers', //Skip updraft admin checking users
+	    'et_fb_get_shortcode_from_fb_object', //Skip generate shortcode
     );
     
     // Skip test if
