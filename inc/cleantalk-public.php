@@ -3180,7 +3180,8 @@ function ct_contact_form_validate() {
         ( isset( $_POST['na'], $_POST['ts'], $_POST['nhr'] ) && !apbct_is_in_uri( '?na=s' ) ) ||  // The Newsletter Plugin double requests fix. Ticket #14772
         (isset($_POST['spl_action']) && $_POST['spl_action'] == 'register') || //Skip interal action with empty params
         (isset($_POST['action']) && $_POST['action'] == 'bwfan_insert_abandoned_cart' && apbct_is_in_uri( 'my-account/edit-address' )) || //Skip edit account
-        apbct_is_in_uri('login-1') //Skip login form
+        apbct_is_in_uri('login-1') || //Skip login form
+        apbct_is_in_uri('recuperacao-de-senha-2') //Skip form reset password
 		) {
         return null;
     }
