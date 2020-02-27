@@ -566,6 +566,13 @@ If your website has forms that send data to external sources, you can enable opt
 
 == Changelog ==
 
+= 5.134 February 10 2020 =
+  * Fix: SpamFireWall update large data issues.
+  * Fix: Auto-update for some banner notifications.
+  * Fix: QuickContactForm protection.
+  * Minor fixes.
+  * Spam protection improved.
+
 = 5.133.2 February 10 2020 =
   * Fix: Add no-index meta tag to search page only.
   * Fix: Namespace issues.
