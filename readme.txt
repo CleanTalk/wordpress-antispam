@@ -7,7 +7,7 @@ Requires PHP: 5.4
 Stable tag: 5.134
 License: GPLv2
 
-Spam protection, antispam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
+Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
 
 == Description ==
 
