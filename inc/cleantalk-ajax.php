@@ -567,8 +567,8 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 				'display' => "Oops, got a few problems here",
 				'errors' => array(
 					0 => array(
-						error => 'error',
-						name => 'name'
+						'error' => 'error',
+						'name' => 'name'
 					),
 				),
 				'success' => 'false',
