@@ -314,7 +314,8 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 		        (isset($message_obj['author']) && intval($message_obj['author']) == 0) ||
 		        (isset($message_obj['post_author']) && intval($message_obj['post_author']) == 0)
 	        )
-        )
+        ) ||
+        (isset($_POST['action'], $_POST['arm_action']) && $_POST['action'] == 'arm_shortcode_form_ajax_action' && $_POST['arm_action'] == 'please-login') //arm forms skip login
     )
     {
         return false;
