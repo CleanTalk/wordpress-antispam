@@ -505,6 +505,7 @@ class Helper
 					
 					case 'get':
 						$opts[CURLOPT_URL] .= $data ? '?' . str_replace("&amp;", "&", http_build_query($data)) : '';
+						$opts[CURLOPT_CUSTOMREQUEST] = 'GET';
 						$opts[CURLOPT_POST] = false;
 						$opts[CURLOPT_POSTFIELDS] = null;
 						break;
