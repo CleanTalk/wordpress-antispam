@@ -34,8 +34,8 @@ class Server extends ServerVariables{
 	protected function get_variable( $name ){
 		
 		// Return from memory. From $this->server
-		if(isset(static::$instance->variable[$name]))
-			return static::$instance->variable[$name];
+		if(isset(static::$instance->variables[$name]))
+			return static::$instance->variables[$name];
 		
 		$name = strtoupper( $name );
 		
