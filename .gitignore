@@ -4,3 +4,4 @@ upload_new_asset*
 node_modules
 package*
 gulpfile.js
+.idea
