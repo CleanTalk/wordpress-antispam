@@ -131,7 +131,7 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 	
 	// Do update actions if version is changed
 	apbct_update_actions();
-	
+
 	// Self cron
 	if(!defined('DOING_CRON') || (defined('DOING_CRON') && DOING_CRON !== true)){
 		
@@ -909,8 +909,9 @@ function ct_sfw_update($immediate = false){
     if($apbct->settings['spam_firewall'] == 1){
 		
 		$sfw = new CleantalkSFW();
-		
-		$file_urls = isset($_GET['file_urls']) ? explode(',', $_GET['file_urls']) : null;
+
+	    $file_urls = isset($_GET['file_urls']) ? urldecode( $_GET['file_urls'] ) : null;
+	    $file_urls = isset($file_urls) ? explode(',', $file_urls) : null;
 
 		if (!$file_urls) {
 
