@@ -914,21 +914,25 @@ function apbct_settings__field__apikey(){
 function apbct_settings__field__action_buttons(){
 	
 	global $apbct;
-	
+
+	$links = apply_filters(
+		'apbct_settings_action_buttons',
+		array(
+			'<a href="edit-comments.php?page=ct_check_spam" class="ct_support_link">' . __('Check comments for spam', 'cleantalk') . '</a>',
+			'<a href="users.php?page=ct_check_users" class="ct_support_link">' . __('Check users for spam', 'cleantalk') . '</a>',
+			'<a href="#" class="ct_support_link" onclick="apbct_show_hide_elem(\'apbct_statistics\')">' . __('Statistics & Reports', 'cleantalk') . '</a>',
+		)
+	);
+
 	echo '<div class="apbct_settings-field_wrapper">';
 	
-		if(apbct_api_key__is_correct($apbct->api_key) && $apbct->key_is_ok){
-			echo '<div>'
-				.'<a href="edit-comments.php?page=ct_check_spam" class="ct_support_link">' . __('Check comments for spam', 'cleantalk') . '</a>'
-				.'&nbsp;&nbsp;'
-				.'&nbsp;&nbsp;'
-				.'<a href="users.php?page=ct_check_users" class="ct_support_link">' . __('Check users for spam', 'cleantalk') . '</a>'
-				.'&nbsp;&nbsp;'
-				.'&nbsp;&nbsp;'
-				.'<a href="#" class="ct_support_link" onclick="apbct_show_hide_elem(\'apbct_statistics\')">' . __('Statistics & Reports', 'cleantalk') . '</a>'
-			.'</div>';
-		
+	if( apbct_api_key__is_correct($apbct->api_key) && $apbct->key_is_ok ){
+		echo '<div>';
+		foreach( $links as $link ) {
+			echo $link . '&nbsp;&nbsp;&nbsp;&nbsp;';
 		}
+		echo '</div>';
+	}
 		
 	echo '</div>';
 }
