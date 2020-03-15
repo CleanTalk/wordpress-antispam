@@ -191,8 +191,9 @@ class CleantalkState
 	public $def_network_settings = array(
 		
 		// Key
-		'apikey'             => '',
-		'allow_custom_key'   => 1,
+		'apikey'                => '',
+		'allow_custom_key'      => 1,
+		'allow_custom_settings' => 1,
 		
 		// White label settings
 		'white_label'              => 0,

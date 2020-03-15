@@ -435,7 +435,7 @@ function apbct_settings__set_fileds__network( $fields ){
 					'type' => 'checkbox',
 					'title' => __('Enable White Label Mode', 'cleantalk'),
 					'description' => sprintf(__("Learn more information %shere%s.", 'cleantalk'), '<a tearget="_blank" href="https://cleantalk.org/ru/help/hosting-white-label">', '</a>'),
-					'childrens' => array('white_label__hoster_key', 'white_label__plugin_name', 'allow_custom_key'),
+					'childrens' => array('white_label__hoster_key', 'white_label__plugin_name', 'allow_custom_key', 'allow_custom_settings'),
 					'network' => true,
 				),
 				'white_label__hoster_key' => array(
@@ -469,6 +469,14 @@ function apbct_settings__set_fileds__network( $fields ){
 					'display'        => APBCT_WPMS && is_main_site(),
 					'disabled'       => $apbct->network_settings['white_label'],
 					'network' => true,
+				),
+				'allow_custom_settings' => array(
+					'type'           => 'checkbox',
+					'title'          => __('Allow users to manage plugin settings', 'cleantalk'),
+					'description'    => __('Allow to change settings on child sites.', 'cleantalk'),
+					'display'        => APBCT_WPMS && is_main_site(),
+					'disabled'       => $apbct->network_settings['white_label'],
+					'network'        => true,
 				),
 			)
 		)
@@ -1057,9 +1065,12 @@ function apbct_settings__field__draw($params = array()){
 	$value_parent = $params['parent']
 		? ($params['network'] ? $apbct->network_settings[$params['parent']] : $apbct->settings[$params['parent']])
 		: false;
-	
-	$disabled = $params['parent'] && !$value_parent ? ' disabled="disabled"' : '';
-	$disabled = $params['disabled']                 ? ' disabled="disabled"' : $disabled;
+
+	// Is element is disabled
+	$disabled = $params['parent'] && !$value_parent                                                                 ? ' disabled="disabled"' : '';        // Strait
+	$disabled = $params['parent'] && $params['reverse_trigger'] && !$value_parent                                   ? ' disabled="disabled"' : $disabled; // Reverse logic
+	$disabled = $params['disabled']                                                                                 ? ' disabled="disabled"' : $disabled; // Direct disable from params
+	$disabled = ! is_main_site() && $apbct->network_settings && ! $apbct->network_settings['allow_custom_settings'] ? ' disabled="disabled"' : $disabled; // Disabled by super admin on sub-sites
 	
 	$childrens =  $params['childrens'] ? 'apbct_setting---' . implode(",apbct_setting---",$params['childrens']) : '';
 	$hide      =  $params['hide']      ? implode(",",$params['hide'])      : '';
@@ -1109,22 +1120,7 @@ function apbct_settings__field__draw($params = array()){
 					: '';
 				
 				echo '<div class="apbct_settings-field_content apbct_settings-field_content--'.$params['type'].'">';
-					
-					$disabled = '';
-					
-					// Disable child option if parent is ON
-					if($params['reverse_trigger']){
-						if($params['parent'] && $apbct->settings[$params['parent']]){
-							$disabled = ' disabled="disabled"';
-						}
-						
-					// Disable child option if parent if OFF
-					}else{
-						if($params['parent'] && !$apbct->settings[$params['parent']]){
-							$disabled = ' disabled="disabled"';
-						}
-					}
-				
+
 					foreach($params['options'] as $option){
 						echo '<input'
 						     .' type="radio"'
@@ -1132,7 +1128,7 @@ function apbct_settings__field__draw($params = array()){
 						     ." id='apbct_setting_{$params['name']}__{$option['label']}'"
 						     .' name="cleantalk_settings['.$params['name'].']"'
 						     .' value="'.$option['val'].'"'
-						     .($params['parent'] ? $disabled : '')
+						     . $disabled
 						     .($params['childrens']
 								? ' onchange="apbctSettingsDependencies(\'' . $childrens . '\', ' . $option['childrens_enable'] . ')"'
 								: ''
@@ -1270,6 +1266,7 @@ function apbct_settings__validate($settings) {
 	if(APBCT_WPMS && is_main_site()){
 		$network_settings = array(
 			'allow_custom_key'         => $settings['allow_custom_key'],
+			'allow_custom_settings'    => $settings['allow_custom_settings'],
 			'white_label'              => $settings['white_label'],
 			'white_label__hoster_key'  => $settings['white_label__hoster_key'],
 			'white_label__plugin_name' => $settings['white_label__plugin_name'],
