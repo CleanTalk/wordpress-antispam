@@ -103,8 +103,8 @@ class ClassCleantalkFindSpamPage
         <h3><?php echo $this->spam_checker->getPageTitle(); ?></h3>
         <div id="ct_check_tabs">
             <ul>
-                <li <?php echo (1 == $this->current_tab) ? 'class="active"' : ''; ?>><a href="<?php echo $this->spam_checker->getPageScriptName(); ?>?page=ct_check_<?php echo $this->spam_checker->getPageSlug(); ?>"><?php esc_html_e( 'Current scan results', 'cleantalk' ) ?></a></li>
-                <li <?php echo (2 == $this->current_tab) ? 'class="active"' : ''; ?>><a href="<?php echo $this->spam_checker->getPageScriptName(); ?>?page=ct_check_<?php echo $this->spam_checker->getPageSlug(); ?>_total"><?php esc_html_e( 'Total spam found', 'cleantalk' ) ?></a></li>
+                <li <?php echo (1 == $this->current_tab) ? 'class="active"' : ''; ?>><a href="<?php echo $this->spam_checker->getPageScriptName(); ?>?page=ct_check_<?php echo $this->spam_checker->getPageSlug(); ?>"><?php esc_html_e( 'Scan and new results', 'cleantalk' ) ?></a></li>
+                <li <?php echo (2 == $this->current_tab) ? 'class="active"' : ''; ?>><a href="<?php echo $this->spam_checker->getPageScriptName(); ?>?page=ct_check_<?php echo $this->spam_checker->getPageSlug(); ?>_total"><?php esc_html_e( 'Previous scan results', 'cleantalk' ) ?></a></li>
                 <li <?php echo (3 == $this->current_tab) ? 'class="active"' : ''; ?>><a href="<?php echo $this->spam_checker->getPageScriptName(); ?>?page=ct_check_<?php echo $this->spam_checker->getPageSlug(); ?>_logs"><?php esc_html_e( 'Scan logs', 'cleantalk' ) ?></a></li>
             </ul>
             <div id="ct_check_content">
