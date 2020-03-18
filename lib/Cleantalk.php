@@ -406,6 +406,7 @@ class Cleantalk {
      */
     private function sendRequest($data = null, $url, $server_timeout = 3)
 	{
+		$original_args = func_get_args();
         // Convert to array
         $data = (array)json_decode(json_encode($data), true);
 		
@@ -477,8 +478,7 @@ class Cleantalk {
 					// Use SSL next time, if error occurs.
 					if(!$this->ssl_on){
 						$this->ssl_on = true;
-						$args = func_get_args();
-						return $this->sendRequest($args[0], $args[1], $server_timeout);
+						return $this->sendRequest($original_args[0], $original_args[1], $server_timeout);
 					}
 				}
 
