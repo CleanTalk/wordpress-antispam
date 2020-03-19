@@ -37,9 +37,20 @@ function apbct_init() {
 
 		// Fixing form and directs it this site
 		if($apbct->settings['check_external__capture_buffer'] && !is_admin() && !apbct_is_ajax() && apbct_is_user_enable() && !(defined('DOING_CRON') && DOING_CRON) && !(defined('XMLRPC_REQUEST') && XMLRPC_REQUEST)){
-			add_action('wp', 'apbct_buffer__start');
-			add_action('shutdown', 'apbct_buffer__end', 0);
-			add_action('shutdown', 'apbct_buffer__output', 2);
+			$catch_buffer = defined('CLEANTALK_CAPTURE_BUFFER_SPECIFIC_URL') ? false : true;
+			
+			if (defined('CLEANTALK_CAPTURE_BUFFER_SPECIFIC_URL') && is_string(CLEANTALK_CAPTURE_BUFFER_SPECIFIC_URL)) {
+				$urls = explode(',', CLEANTALK_CAPTURE_BUFFER_SPECIFIC_URL);
+				foreach ($urls as $url) {
+					if (apbct_is_in_uri($url))
+						$catch_buffer = true;
+				}
+			}
+			if ($catch_buffer) {
+				add_action('wp', 'apbct_buffer__start');
+				add_action('shutdown', 'apbct_buffer__end', 0);
+				add_action('shutdown', 'apbct_buffer__output', 2);				
+			}
 		}
 
 		// Check and redirecct
@@ -369,16 +380,20 @@ function apbct_buffer__output(){
 			$form->appendChild($new_input);
 
 		}
+
 	} unset($form);
 
 	$html = $dom->getElementsByTagName('html');
+	
+	$output = '';
 
-	echo gettype($html) == 'object' && !isset( $html[0], $html[0]->childNodes, $html[0]->childNodes[0] )
-		? $html[0]
-			->childNodes[0]
-			->ownerDocument
-			->saveHTML()
-		: $apbct->buffer;
+	if (gettype($html) == 'object' && isset($html[0], $html[0]->childNodes, $html[0]->childNodes[0])) {
+		foreach ($html[0]->childNodes as $node)
+			$output .= $html[0]->ownerDocument->saveHTML($node);
+	} else 
+		$output = $apbct->buffer;
+
+	echo $output;
 }
 
 // MailChimp Premium for Wordpress
