@@ -3655,8 +3655,10 @@ function ct_comments_output($curr_comment, $param2, $wp_list_comments_args){
 
 	echo "</div>";
 
+	$ending_tag = is_null($wp_list_comments_args['style']) ? 'div' : $wp_list_comments_args['style'];
+	
 	// Ending comment output
-	echo "</{$wp_list_comments_args['style']}>";
+	echo "</{$ending_tag}>";
 }
 
 /**
