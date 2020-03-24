@@ -1199,8 +1199,11 @@ function ct_preprocess_comment($comment) {
 	}
 
 	// Skip processing admin.
-    if (in_array("administrator", $current_user->roles))
-        return $comment;
+    if (in_array("administrator", $current_user->roles)){
+	    do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
+	    return $comment;
+    }
+
 
    	$comments_check_number = defined('CLEANTALK_CHECK_COMMENTS_NUMBER')  ? CLEANTALK_CHECK_COMMENTS_NUMBER : 3;
    	
@@ -1227,6 +1230,7 @@ function ct_preprocess_comment($comment) {
 		)
 	)
 	{
+		do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
         return $comment;
     }
 
@@ -1241,6 +1245,7 @@ function ct_preprocess_comment($comment) {
 
     // Go out if author in local blacklists
     if ($comment['comment_type']!='trackback' && $local_blacklists === true) {
+	    do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
         return $comment;
     }
 

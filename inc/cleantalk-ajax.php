@@ -318,6 +318,7 @@ function ct_ajax_hook($message_obj = false, $additional = false)
         (isset($_POST['action'], $_POST['arm_action']) && $_POST['action'] == 'arm_shortcode_form_ajax_action' && $_POST['arm_action'] == 'please-login') //arm forms skip login
     )
     {
+	    do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
         return false;
     }
 
@@ -403,21 +404,32 @@ function ct_ajax_hook($message_obj = false, $additional = false)
     }
     
     // Skip submission if no data found
-    if ($sender_email === ''|| !$contact_form)
-        return false;
+    if ($sender_email === ''|| !$contact_form) {
+	    do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
+	    return false;
+    }
+
 	
 	 // Mailpoet fix
-    if (isset($message['wysijaData'], $message['wysijaplugin'], $message['task'], $message['controller']) && $message['wysijaplugin'] == 'wysija-newsletters' && $message['controller'] == 'campaigns')
-        return false;
-    // Mailpoet3 admin skip fix
-    if (isset($_POST['action'], $_POST['method']) && $_POST['action'] == 'mailpoet' && $_POST['method'] =='save')
+    if (isset($message['wysijaData'], $message['wysijaplugin'], $message['task'], $message['controller']) && $message['wysijaplugin'] == 'wysija-newsletters' && $message['controller'] == 'campaigns') {
+	    do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
     	return false;
+    }
+
+    // Mailpoet3 admin skip fix
+    if (isset($_POST['action'], $_POST['method']) && $_POST['action'] == 'mailpoet' && $_POST['method'] =='save') {
+	    do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
+    	return false;
+    }
+
 	
 	// WP Foto Vote Fix
 	if (!empty($_FILES)){
 		foreach($message as $key => $value){
-			if(strpos($key, 'oje') !== false)
-				return; 
+			if(strpos($key, 'oje') !== false) {
+				do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
+				return false;
+			}
 		} unset($key ,$value);
 	}
 	
