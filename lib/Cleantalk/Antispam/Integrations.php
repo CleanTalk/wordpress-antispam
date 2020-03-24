@@ -38,6 +38,7 @@ class Integrations
                 $this->integration = new $class();
                 if( ! ( $this->integration instanceof \Cleantalk\Antispam\Integrations\IntegrationBase ) ) {
                     // @ToDo have to handle an error
+                    do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, array('Integration is not instanse of IntegrationBase class.') );
                     return;
                 }
                 // Run data collecting for spam checking
