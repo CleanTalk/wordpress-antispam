@@ -36,7 +36,7 @@ function apbct_init() {
 	if($apbct->settings['check_external']){
 
 		// Fixing form and directs it this site
-		if($apbct->settings['check_external__capture_buffer'] && !is_admin() && !apbct_is_ajax() && apbct_is_user_enable() && !(defined('DOING_CRON') && DOING_CRON) && !(defined('XMLRPC_REQUEST') && XMLRPC_REQUEST)){
+		if($apbct->settings['check_external__capture_buffer'] && !is_admin() && !apbct_is_ajax() && !apbct_is_post() && apbct_is_user_enable() && !(defined('DOING_CRON') && DOING_CRON) && !(defined('XMLRPC_REQUEST') && XMLRPC_REQUEST)){
 			$catch_buffer = defined('CLEANTALK_CAPTURE_BUFFER_SPECIFIC_URL') ? false : true;
 			
 			if (defined('CLEANTALK_CAPTURE_BUFFER_SPECIFIC_URL') && is_string(CLEANTALK_CAPTURE_BUFFER_SPECIFIC_URL)) {
@@ -337,7 +337,7 @@ function apbct_buffer__end(){
  */
 function apbct_buffer__output(){
 
-	global $apbct;
+	global $apbct, $wp;
 
 	if(empty($apbct->buffer))
 		return;
@@ -363,7 +363,7 @@ function apbct_buffer__output(){
 			$method = $method ? $method : 'get';
 			// Directs form to our site
 			$form->setAttribute('method', 'POST');
-			$form->setAttribute('action', $site_url);
+			$form->setAttribute('action', home_url(add_query_arg(array(), $wp->request)));
 
 			// Add cleantalk_hidden_action
 			$new_input = $dom->createElement('input');
@@ -3660,8 +3660,10 @@ function ct_comments_output($curr_comment, $param2, $wp_list_comments_args){
 
 	echo "</div>";
 
+	$ending_tag = is_null($wp_list_comments_args['style']) ? 'div' : $wp_list_comments_args['style'];
+	
 	// Ending comment output
-	echo "</{$wp_list_comments_args['style']}>";
+	echo "</{$ending_tag}>";
 }
 
 /**
