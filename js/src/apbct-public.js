@@ -89,6 +89,10 @@
 			for(var i = 0; i < document.forms.length; i++){
 				var form = document.forms[i];
 
+				//Exclusion for StoreLocatorPlus form
+				if (form.classList.contains('slp_search_form'))
+					continue;
+				
 				form.onsubmit_prev = form.onsubmit;
 				form.onsubmit = function(event){
 
