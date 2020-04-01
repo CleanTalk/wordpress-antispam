@@ -619,16 +619,8 @@ function apbct_settings__display() {
 					echo '&nbsp;&nbsp;';
 					// Support button
 					echo '<a class="cleantalk_link cleantalk_link-auto" target="__blank" href="https://wordpress.org/support/plugin/cleantalk-spam-protect">'.__('Support', 'cleantalk').'</a>';
-					echo '&nbsp;&nbsp;';
-					// Sync button
-					echo '<button class="apbct-button apbct-button---blue" id="apbct_button__sync"  type="button">'
-						     . '<i class="icon-upload-cloud" style="font-size: 18px"></i>&nbsp;'
-						     . __('Synchronize with Cloud', 'cleantalk')
-						     . '<i class="icon-help-circled apbct-long_description"></i>&nbsp;&nbsp;'
-						     .'<img style="margin-left: 10px;" class="apbct-button--preloader" src="' . APBCT_URL_PATH . '/inc/images/preloader2.gif" />'
-						     .'<img style="margin-left: 10px;" class="apbct-button-success apbct---hide" src="' . APBCT_URL_PATH . '/inc/images/yes.png" />'
-					     .'</button>';
-					echo '<br>';
+					echo '<br>'
+						.'<br>';
 				}
 			}
 			
@@ -1243,7 +1235,7 @@ function apbct_settings__validate($settings) {
 			settype($settings[$setting], gettype($value));
 		}
 	} unset($setting, $value);
-
+	
 	// Set missing settings.
 	foreach($apbct->def_network_settings as $setting => $value){
 		if(!isset($settings[$setting])){
@@ -1251,22 +1243,7 @@ function apbct_settings__validate($settings) {
 			settype($settings[$setting], gettype($value));
 		}
 	} unset($setting, $value);
-
-	// Get settings from the main site if allow_custom_settings is enabled
-	if( ! is_main_site() && ! $apbct->networok_settings['allow_custom_settings'] ){
-		$settings__main_site = get_blog_option(1, 'cleantalk_options', false );
-		if ( $settings__main_site ) {
-			foreach ( $settings as $setting => $value ) {
-				if ( ! isset( $settings[ $setting ] ) ) {
-					$settings[ $setting ] = null;
-					settype( $settings[ $setting ], gettype( $value ) );
-				}
-			}
-			unset( $setting, $value );
-		}
-	}
-
-
+	
 	// Validating API key
 	$settings['apikey'] = !empty($settings['apikey'])                        ? trim($settings['apikey'])  : '';
 	$settings['apikey'] = defined('CLEANTALK_ACCESS_KEY')             ? CLEANTALK_ACCESS_KEY       : $settings['apikey'];
