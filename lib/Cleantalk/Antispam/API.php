@@ -604,7 +604,7 @@ class API
 	 *
 	 * @return array|bool
 	 */
-	static public function send_request($data, $url = self::URL, $timeout = 5, $ssl = false, $ssl_path = '')
+	static public function send_request($data, $url = self::URL, $timeout = 10, $ssl = false, $ssl_path = '')
 	{
 		// Possibility to switch agent vaersion
 		$data['agent'] = !empty($data['agent'])
@@ -655,7 +655,7 @@ class API
 			$result = curl_exec($ch);
 			$errors = curl_error($ch);
 			curl_close($ch);
-			
+
 			// Retry with SSL enabled if failed
 			if($result === false){
 				if($ssl === false){
@@ -688,7 +688,7 @@ class API
 				$errors .= '_AND_ALLOW_URL_FOPEN_IS_DISABLED';
 			}
 		}
-		
+
 		return empty($result) || !empty($errors)
 			? array('error' => $errors)
 			: $result;
@@ -697,7 +697,7 @@ class API
 	/**
 	 * Function checks server response
 	 *
-	 * @param string $result
+	 * @param array|string $result
 	 * @param string $method_name
 	 *
 	 * @return mixed (array || array('error' => true))
@@ -706,10 +706,12 @@ class API
 	{
 		// Errors handling
 		// Bad connection
-		if(is_array($result) && isset($result['error'])){
-			return array(
-				'error' => 'CONNECTION_ERROR' . (isset($result['error']) ? ': "' . $result['error'] . '"' : ''),
-			);
+		if(isset($result['error'])){
+			$last = error_get_last();
+			$out = ! empty( $result['error'] )
+				? array( 'error' => 'CONNECTION_ERROR : "' . $result['error'] . '"' )
+				: array( 'error' => 'CONNECTION_ERROR : "Unknown Error. Last error: ' . $last['message'] );
+			return $out;
 		}
 		
 		// JSON decode errors

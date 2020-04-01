@@ -3,7 +3,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 5.134.1
+  Version: 5.135
   Author: СleanTalk <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk
@@ -131,7 +131,7 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 	
 	// Do update actions if version is changed
 	apbct_update_actions();
-	
+
 	// Self cron
 	if(!defined('DOING_CRON') || (defined('DOING_CRON') && DOING_CRON !== true)){
 		
@@ -188,7 +188,7 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 
     $apbct_active_integrations = array(
         'ContactBank'          => array( 'hook' => 'contact_bank_frontend_ajax_call', 'ajax' => true ),
-        'FluentForm'           => array( 'hook' => 'fluentform_validations', 'ajax' => false ),
+        'FluentForm'           => array( 'hook' => 'fluentform_before_insert_submission', 'ajax' => false ),
         'ElfsightContactForm'  => array( 'hook' => 'elfsight_contact_form_mail', 'ajax' => true )
     );
     new  \Cleantalk\Antispam\Integrations( $apbct_active_integrations );
@@ -909,8 +909,9 @@ function ct_sfw_update($immediate = false){
     if($apbct->settings['spam_firewall'] == 1){
 		
 		$sfw = new CleantalkSFW();
-		
-		$file_urls = isset($_GET['file_urls']) ? explode(',', $_GET['file_urls']) : null;
+
+	    $file_urls = isset($_GET['file_urls']) ? urldecode( $_GET['file_urls'] ) : null;
+	    $file_urls = isset($file_urls) ? explode(',', $file_urls) : null;
 
 		if (!$file_urls) {
 

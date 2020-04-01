@@ -79,21 +79,29 @@ function apbct_plugin_loaded() {
  * @return array array('ct'=> Cleantalk, 'ct_result' => CleantalkResponse)
  */
 function apbct_base_call($params = array(), $reg_flag = false){
-	
+
 	global $apbct, $cleantalk_executed;
-	
+
 	$cleantalk_executed = true;
-	
+
 	$sender_info = !empty($params['sender_info'])
 		? CleantalkHelper::array_merge__save_numeric_keys__recursive(apbct_get_sender_info(), (array)$params['sender_info'])
 		: apbct_get_sender_info();
-	
-	// Fileds exclusions
+
+	// Fields exclusions
 	if( ! empty( $params['message'] ) && is_array( $params['message'] ) ){
 
 		$params['message'] = apbct_array( $params['message'] )
 			->get_keys( $apbct->settings['exclusions__fields'], $apbct->settings['exclusions__fields__use_regexp'] )
 			->delete();
+	}
+
+	// Reversed url exclusions. Pass everything except one.
+	if( ! apbct_exclusions_check__url__reversed() ){
+		return array(
+			'ct'        => false,
+			'ct_result' => new CleantalkResponse( null, null )
+		);
 	}
 	
 	$default_params = array(
@@ -228,6 +236,12 @@ function apbct_exclusions_check($func = null){
 	}
 	
 	return false;
+}
+
+function apbct_exclusions_check__url__reversed(){
+	return defined( 'APBCT_URL_EXCLUSIONS__REVERSED' ) && ! \Cleantalk\Common\Server::has_string( 'REQUEST_URI', APBCT_URL_EXCLUSIONS__REVERSED )
+		? false
+		: true;
 }
 
 /**

@@ -57,8 +57,8 @@ class CleantalkState
         'comments_test'                  => 1, 
         'contact_forms_test'             => 1, 
         'general_contact_forms_test'     => 1, // Antispam test for unsupported and untested contact forms 
-		'wc_checkout_test'               => 0, // WooCommerce checkout default test => OFF
-		'wc_register_from_order'         => 1, // Woocommerce registration during checkout => ON
+		'wc_checkout_test'               => 1, // WooCommerce checkout default test
+		'wc_register_from_order'         => 1, // Woocommerce registration during checkout
 		'search_test'                    => 1, // Test deafult Wordpress form
 		'check_external'                 => 0,
 		'check_external__capture_buffer' => 0,
@@ -191,8 +191,9 @@ class CleantalkState
 	public $def_network_settings = array(
 		
 		// Key
-		'apikey'             => '',
-		'allow_custom_key'   => 1,
+		'apikey'                => '',
+		'allow_custom_key'      => 1,
+		'allow_custom_settings' => 1,
 		
 		// White label settings
 		'white_label'              => 0,

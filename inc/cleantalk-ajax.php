@@ -297,6 +297,7 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 	    'et_fb_get_shortcode_from_fb_object', //Skip generate shortcode
 	    'pp_lf_process_login', //Skip login form
 	    'check_email', //Ajax email checking
+	    'dflg_do_sign_in_user', // Unknown plugin
     );
     
     // Skip test if

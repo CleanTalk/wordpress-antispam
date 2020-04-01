@@ -15,19 +15,25 @@ function apbct_add_buttons_to_comments_and_users( $unused_argument ) {
     $current_screen = get_current_screen();
 
     if( 'users' == $current_screen->base ) {
-        $button_url = $current_screen->base . '.php?page=ct_check_users';
+        $button_url__check = $current_screen->base . '.php?page=ct_check_users';
+	    $button_url__results = $current_screen->base . '.php?page=ct_check_users_total';
         $button_description = 'users';
     } elseif ( 'edit-comments' == $current_screen->base ) {
-        $button_url = $current_screen->base . '.php?page=ct_check_spam';
+        $button_url__check = $current_screen->base . '.php?page=ct_check_spam';
+	    $button_url__results = $current_screen->base . '.php?page=ct_check_spam_total';
         $button_description = 'comments';
     } else {
         return;
     }
 
     echo '
-    <a href="' . $button_url . '" class="button" style="margin:1px 0 0 0; display: inline-block;">
+    <a href="' . $button_url__check . '" class="button" style="margin:1px 0 0 0; display: inline-block;">
         <img src="' . $apbct->logo__small__colored . '" alt="Cleantalk Antispam logo"  height="" style="width: 17px; vertical-align: text-bottom;" />
         ' . sprintf(__( 'Find spam %s', 'cleantalk' ), $button_description ) . '
+    </a>
+    <a href="' . $button_url__results . '" class="button" style="margin:1px 0 0 0; display: inline-block;">
+        <img src="' . $apbct->logo__small__colored . '" alt="Cleantalk Antispam logo"  height="" style="width: 17px; vertical-align: text-bottom;" />
+        ' . sprintf(__( 'View spam %s', 'cleantalk' ), $button_description ) . '
     </a>
     <a href="https://cleantalk.org/my/show_requests?service_id=' . $apbct->data['service_id'] . '&int=week" target="_blank" class="button" style="margin:1px 0 0 0; display: inline-block;">
         <img src="' . $apbct->logo__small__colored . '" alt="Cleantalk Antispam logo"  height="" style="width: 17px; vertical-align: text-bottom;" />
@@ -427,7 +433,7 @@ function apbct_admin__notice_message(){
 		if ($apbct->notice_show && $page_is_ct_settings && !$apbct->data['key_is_ok'] && $apbct->moderate_ip == 0 && !$apbct->white_label){
 			echo '<div class="error">
 				<h3><b>'.
-					__("Wrong <a href='{$settings_link}'><b style=\"color: #49C73B;\">Clean</b><b style=\"color: #349ebf;\">Talk</b> access key</a>! Please check it or ask <a target=\"_blank\" href=\"https://cleantalk.org/forum/\">support</a>.", 'cleantalk').
+					__("Wrong <a href='{$settings_link}'><b style=\"color: #49C73B;\">Clean</b><b style=\"color: #349ebf;\">Talk</b> access key</a>! Please check it or ask <a target=\"_blank\" href=\"https://wordpress.org/support/plugin/cleantalk-spam-protect/\">support</a>.", 'cleantalk').
 				'</b></h3>
 			</div>';
 		}

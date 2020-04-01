@@ -216,10 +216,6 @@ function apbct_settings__set_fileds( $fields ){
 					'title'       => __('BuddyPress Private Messages', 'cleantalk'),
 					'description' => __('Check buddyPress private messages.', 'cleantalk'),
 				),
-				'check_comments_number' => array(
-					'title'       => __("Don't check trusted user's comments", 'cleantalk'),
-					'description' => sprintf(__("Don't check comments for users with above %d comments.", 'cleantalk'), defined('CLEANTALK_CHECK_COMMENTS_NUMBER') ? CLEANTALK_CHECK_COMMENTS_NUMBER : 3),
-				),
 				'remove_old_spam' => array(
 					'title'       => __('Automatically delete spam comments', 'cleantalk'),
 					'description' => sprintf(__('Delete spam comments older than %d days.', 'cleantalk'),  $apbct->data['spam_store_days']),
@@ -243,6 +239,10 @@ function apbct_settings__set_fileds( $fields ){
 				'protect_logged_in' => array(
 					'title'       => __("Protect logged in Users", 'cleantalk'),
 					'description' => __('Turn this option on to check for spam any submissions (comments, contact forms and etc.) from registered Users.', 'cleantalk'),
+				),
+				'check_comments_number' => array(
+					'title'       => __("Don't check trusted user's comments", 'cleantalk'),
+					'description' => sprintf(__("Don't check comments for users with above %d comments.", 'cleantalk'), defined('CLEANTALK_CHECK_COMMENTS_NUMBER') ? CLEANTALK_CHECK_COMMENTS_NUMBER : 3),
 				),
 				'use_ajax' => array(
 					'title'       => __('Use AJAX for JavaScript check', 'cleantalk'),
@@ -435,7 +435,7 @@ function apbct_settings__set_fileds__network( $fields ){
 					'type' => 'checkbox',
 					'title' => __('Enable White Label Mode', 'cleantalk'),
 					'description' => sprintf(__("Learn more information %shere%s.", 'cleantalk'), '<a tearget="_blank" href="https://cleantalk.org/ru/help/hosting-white-label">', '</a>'),
-					'childrens' => array('white_label__hoster_key', 'white_label__plugin_name', 'allow_custom_key'),
+					'childrens' => array('white_label__hoster_key', 'white_label__plugin_name', 'allow_custom_key', 'allow_custom_settings'),
 					'network' => true,
 				),
 				'white_label__hoster_key' => array(
@@ -469,6 +469,14 @@ function apbct_settings__set_fileds__network( $fields ){
 					'display'        => APBCT_WPMS && is_main_site(),
 					'disabled'       => $apbct->network_settings['white_label'],
 					'network' => true,
+				),
+				'allow_custom_settings' => array(
+					'type'           => 'checkbox',
+					'title'          => __('Allow users to manage plugin settings', 'cleantalk'),
+					'description'    => __('Allow to change settings on child sites.', 'cleantalk'),
+					'display'        => APBCT_WPMS && is_main_site(),
+					'disabled'       => $apbct->network_settings['white_label'],
+					'network'        => true,
 				),
 			)
 		)
@@ -611,8 +619,16 @@ function apbct_settings__display() {
 					echo '&nbsp;&nbsp;';
 					// Support button
 					echo '<a class="cleantalk_link cleantalk_link-auto" target="__blank" href="https://wordpress.org/support/plugin/cleantalk-spam-protect">'.__('Support', 'cleantalk').'</a>';
-					echo '<br>'
-						.'<br>';
+					echo '&nbsp;&nbsp;';
+					// Sync button
+					echo '<button class="apbct-button apbct-button---blue" id="apbct_button__sync"  type="button">'
+						     . '<i class="icon-upload-cloud" style="font-size: 18px"></i>&nbsp;'
+						     . __('Synchronize with Cloud', 'cleantalk')
+						     . '<i class="icon-help-circled apbct-long_description"></i>&nbsp;&nbsp;'
+						     .'<img style="margin-left: 10px;" class="apbct-button--preloader" src="' . APBCT_URL_PATH . '/inc/images/preloader2.gif" />'
+						     .'<img style="margin-left: 10px;" class="apbct-button-success apbct---hide" src="' . APBCT_URL_PATH . '/inc/images/yes.png" />'
+					     .'</button>';
+					echo '<br>';
 				}
 			}
 			
@@ -1061,9 +1077,12 @@ function apbct_settings__field__draw($params = array()){
 	$value_parent = $params['parent']
 		? ($params['network'] ? $apbct->network_settings[$params['parent']] : $apbct->settings[$params['parent']])
 		: false;
-	
-	$disabled = $params['parent'] && !$value_parent ? ' disabled="disabled"' : '';
-	$disabled = $params['disabled']                 ? ' disabled="disabled"' : $disabled;
+
+	// Is element is disabled
+	$disabled = $params['parent'] && !$value_parent                                                                 ? ' disabled="disabled"' : '';        // Strait
+	$disabled = $params['parent'] && $params['reverse_trigger'] && !$value_parent                                   ? ' disabled="disabled"' : $disabled; // Reverse logic
+	$disabled = $params['disabled']                                                                                 ? ' disabled="disabled"' : $disabled; // Direct disable from params
+	$disabled = ! is_main_site() && $apbct->network_settings && ! $apbct->network_settings['allow_custom_settings'] ? ' disabled="disabled"' : $disabled; // Disabled by super admin on sub-sites
 	
 	$childrens =  $params['childrens'] ? 'apbct_setting---' . implode(",apbct_setting---",$params['childrens']) : '';
 	$hide      =  $params['hide']      ? implode(",",$params['hide'])      : '';
@@ -1113,22 +1132,7 @@ function apbct_settings__field__draw($params = array()){
 					: '';
 				
 				echo '<div class="apbct_settings-field_content apbct_settings-field_content--'.$params['type'].'">';
-					
-					$disabled = '';
-					
-					// Disable child option if parent is ON
-					if($params['reverse_trigger']){
-						if($params['parent'] && $apbct->settings[$params['parent']]){
-							$disabled = ' disabled="disabled"';
-						}
-						
-					// Disable child option if parent if OFF
-					}else{
-						if($params['parent'] && !$apbct->settings[$params['parent']]){
-							$disabled = ' disabled="disabled"';
-						}
-					}
-				
+
 					foreach($params['options'] as $option){
 						echo '<input'
 						     .' type="radio"'
@@ -1136,7 +1140,7 @@ function apbct_settings__field__draw($params = array()){
 						     ." id='apbct_setting_{$params['name']}__{$option['label']}'"
 						     .' name="cleantalk_settings['.$params['name'].']"'
 						     .' value="'.$option['val'].'"'
-						     .($params['parent'] ? $disabled : '')
+						     . $disabled
 						     .($params['childrens']
 								? ' onchange="apbctSettingsDependencies(\'' . $childrens . '\', ' . $option['childrens_enable'] . ')"'
 								: ''
@@ -1239,7 +1243,7 @@ function apbct_settings__validate($settings) {
 			settype($settings[$setting], gettype($value));
 		}
 	} unset($setting, $value);
-	
+
 	// Set missing settings.
 	foreach($apbct->def_network_settings as $setting => $value){
 		if(!isset($settings[$setting])){
@@ -1247,7 +1251,22 @@ function apbct_settings__validate($settings) {
 			settype($settings[$setting], gettype($value));
 		}
 	} unset($setting, $value);
-	
+
+	// Get settings from the main site if allow_custom_settings is enabled
+	if( ! is_main_site() && ! $apbct->networok_settings['allow_custom_settings'] ){
+		$settings__main_site = get_blog_option(1, 'cleantalk_options', false );
+		if ( $settings__main_site ) {
+			foreach ( $settings as $setting => $value ) {
+				if ( ! isset( $settings[ $setting ] ) ) {
+					$settings[ $setting ] = null;
+					settype( $settings[ $setting ], gettype( $value ) );
+				}
+			}
+			unset( $setting, $value );
+		}
+	}
+
+
 	// Validating API key
 	$settings['apikey'] = !empty($settings['apikey'])                        ? trim($settings['apikey'])  : '';
 	$settings['apikey'] = defined('CLEANTALK_ACCESS_KEY')             ? CLEANTALK_ACCESS_KEY       : $settings['apikey'];
@@ -1274,6 +1293,7 @@ function apbct_settings__validate($settings) {
 	if(APBCT_WPMS && is_main_site()){
 		$network_settings = array(
 			'allow_custom_key'         => $settings['allow_custom_key'],
+			'allow_custom_settings'    => $settings['allow_custom_settings'],
 			'white_label'              => $settings['white_label'],
 			'white_label__hoster_key'  => $settings['white_label__hoster_key'],
 			'white_label__plugin_name' => $settings['white_label__plugin_name'],
