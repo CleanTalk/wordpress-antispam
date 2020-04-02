@@ -3742,9 +3742,9 @@ function ct_comments_output($curr_comment, $param2, $wp_list_comments_args){
 
 	echo "</div>";
 	
+	// @todo research what such themes and make exception for them
 	$ending_tag = $wp_list_comments_args['style'];
-	
-	if( $apbct->active_theme === 'Paperio' ){
+	if( in_array( $apbct->active_theme, array( 'Paperio', 'Twenty Twenty' ) ) ){
 		$ending_tag = is_null($wp_list_comments_args['style']) ? 'div' : $wp_list_comments_args['style'];
 	};
 	

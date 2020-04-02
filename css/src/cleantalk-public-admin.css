@@ -8,6 +8,10 @@
 	line-height: 12px;
 	margin-bottom: 15px;
 }
+.ct_comment_info img, .ct_comment_info a{
+	display: inline-block;
+}
+
 .ct_comment_titles
 {
 	border-bottom: 1px solid gray !important;
@@ -42,13 +46,12 @@ p.ct_comment_logo_title{
 p.ct_feedback_wrap{
 	display: none;
 	position: absolute;
-	top: 37px;
-	width: 100%;
-	height: 27px;
-	background: white;
+	top: 37px; left: 0;
+	width: 100%; height: 27px;
 	margin: 0;
 	padding: 6px 6px;
 	border-radius: 3px;
+	background: white;
 }
 	.ct_feedback_result{display: none; text-decoration: underline;}
 		.ct_feedback_result_spam{color: red;}
