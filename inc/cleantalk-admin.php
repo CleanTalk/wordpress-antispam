@@ -606,14 +606,11 @@ function apbct_comment__send_feedback($comment_id = null, $comment_status = null
     if( ! $direct_call ){
         check_ajax_referer('ct_secret_nonce', 'security');
     }
-
-    if( is_null( $comment_id ) )
-	    $comment_id     = !empty($_POST['comment_id'])     ? $_POST['comment_id']     : false;
-    if( is_null( $comment_status ) )
-        $comment_status = !empty($_POST['comment_status']) ? $_POST['comment_status'] : false;
-    if( ! $change_status )
-	    $change_status  = !empty($_POST['change_status'])  ? $_POST['change_status']  : false;
-	
+    
+    $comment_id     = ! $comment_id && isset( $_POST['comment_id'] )         ? $_POST['comment_id']     : false;
+    $comment_status = ! $comment_status && isset( $_POST['comment_status'] ) ? $_POST['comment_status'] : false;
+    $change_status  = ! $change_status && isset( $_POST['change_status'] )   ? $_POST['change_status']  : false;
+    
 	// If enter params is empty exit
 	if( ! $comment_id || ! $comment_status )
 		die();
