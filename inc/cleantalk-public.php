@@ -3641,10 +3641,10 @@ function ct_enqueue_scripts_public($hook){
 		}
 	}
 
-	// Show controls for commentaies
+	// Show controls for commentaries
 	if(in_array("administrator", $current_user->roles)){
 
-		if($apbct->settings['show_check_links']){
+		if($apbct->settings['manage_comments_on_public_page']){
 
 			$ajax_nonce = wp_create_nonce( "ct_secret_nonce" );
 
@@ -3679,11 +3679,15 @@ function ct_enqueue_scripts_public($hook){
 function ct_wp_list_comments_args($options){
 
 	global $current_user, $apbct;
-
-	if(in_array("administrator", $current_user->roles))
-		if($apbct->settings['show_check_links'])
+	
+	if(in_array("administrator", $current_user->roles)){
+		if($apbct->settings['manage_comments_on_public_page']) {
+			$theme = wp_get_theme();
+			$apbct->active_theme = $theme->get( 'Name' );
 			$options['end-callback'] = 'ct_comments_output';
-
+		}
+	}
+	
 	return $options;
 }
 
@@ -3691,7 +3695,9 @@ function ct_wp_list_comments_args($options){
  * Callback function for the bootom comment output.
  */
 function ct_comments_output($curr_comment, $param2, $wp_list_comments_args){
-
+	
+	global $apbct;
+	
 	$email   = $curr_comment->comment_author_email;
 	$ip      = $curr_comment->comment_author_IP;
 	$id      = $curr_comment->comment_ID;
@@ -3735,8 +3741,12 @@ function ct_comments_output($curr_comment, $param2, $wp_list_comments_args){
 		echo "</p>";
 
 	echo "</div>";
-
-	$ending_tag = is_null($wp_list_comments_args['style']) ? 'div' : $wp_list_comments_args['style'];
+	
+	$ending_tag = $wp_list_comments_args['style'];
+	
+	if( $apbct->active_theme === 'Paperio' ){
+		$ending_tag = is_null($wp_list_comments_args['style']) ? 'div' : $wp_list_comments_args['style'];
+	};
 	
 	// Ending comment output
 	echo "</{$ending_tag}>";

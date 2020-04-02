@@ -72,8 +72,9 @@ class CleantalkState
 		'bp_private_messages' =>   1, //buddyPress private messages test => ON
 		'check_comments_number' => 1,
         'remove_old_spam' =>       0,
-		'remove_comments_links' => 0, //Removes links from approved comments
-		'show_check_links' =>      1, //Shows check link to Cleantalk's DB. And allowing to control comments form public page.
+		'remove_comments_links' => 0, // Removes links from approved comments
+		'show_check_links' =>      1, // Shows check link to Cleantalk's DB.
+		'manage_comments_on_public_page' =>      0, // Allows to control comments on public page.
 		
 		// Data processing
         'protect_logged_in' =>     1, // Do anit-spam tests to for logged in users.
