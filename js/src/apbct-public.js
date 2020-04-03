@@ -177,6 +177,7 @@ if(typeof jQuery !== 'undefined') {
 				response = response.apbct;
 				if (response.blocked) {
 					alert(response.comment);
+					window.stop();
 				}
 			}
 		}
