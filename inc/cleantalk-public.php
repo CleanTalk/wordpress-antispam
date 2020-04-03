@@ -1105,7 +1105,8 @@ function ct_bbp_new_pre_content ($comment) {
 
     // Skip processing for logged in users and admin.
     if ( !$apbct->settings['protect_logged_in'] && is_user_logged_in() ||
-		in_array("administrator", $current_user->roles)) {
+        apbct_exclusions_check()
+    ) {
         do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
         return $comment;
     }
