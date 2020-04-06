@@ -805,14 +805,15 @@ function ct_get_fields_any($arr, $message=array(), $email = null, $nickname = ar
 						continue(2);
 					}
 				}unset($needle);
-				
-				// Removes whitespaces
-				$value = urldecode( trim( strip_shortcodes( $value ) ) ); // Fully cleaned message
-				$value_for_email = trim( strip_shortcodes( $value ) );    // Removes shortcodes to do better spam filtration on server side.
+
+                $value_for_email = trim( strip_shortcodes( $value ) );    // Removes shortcodes to do better spam filtration on server side.
 				
 				// Email
 				if ( ! $email && preg_match( "/^\S+@\S+\.\S+$/", $value_for_email ) ) {
 					$email = $value_for_email;
+
+                // Removes whitespaces
+                $value = urldecode( trim( strip_shortcodes( $value ) ) ); // Fully cleaned message
 					
 				// Names
 				}elseif (preg_match("/name/i", $key)){
