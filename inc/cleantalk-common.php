@@ -378,9 +378,9 @@ function apbct_get_sender_info() {
 		'source_url'             => !empty($urls)                                                  ? json_encode($urls)                                                : null,
 		// Debug stuff
 		'amp_detected'           => $amp_detected,
-		'hook'                   => current_action(),
+		'hook'                   => current_action()                    ? current_action()            : 'no_hook',
 		'headers_sent'           => !empty($apbct->headers_sent)        ? $apbct->headers_sent        : false,
-		'headers_sent__hook'     => !empty($apbct->headers_sent__hook)  ? $apbct->headers_sent__hook  : false,
+		'headers_sent__hook'     => !empty($apbct->headers_sent__hook)  ? $apbct->headers_sent__hook  : 'no_hook',
 		'headers_sent__where'    => !empty($apbct->headers_sent__where) ? $apbct->headers_sent__where : false,
 		'request_type'           => apbct_get_server_variable('REQUEST_METHOD') ? apbct_get_server_variable('REQUEST_METHOD') : 'UNKNOWN',
 	);
