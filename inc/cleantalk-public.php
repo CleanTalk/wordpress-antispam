@@ -1105,7 +1105,8 @@ function ct_bbp_new_pre_content ($comment) {
 
     // Skip processing for logged in users and admin.
     if ( !$apbct->settings['protect_logged_in'] && is_user_logged_in() ||
-		in_array("administrator", $current_user->roles)) {
+        apbct_exclusions_check()
+    ) {
         do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
         return $comment;
     }
@@ -3742,9 +3743,9 @@ function ct_comments_output($curr_comment, $param2, $wp_list_comments_args){
 
 	echo "</div>";
 	
+	// @todo research what such themes and make exception for them
 	$ending_tag = $wp_list_comments_args['style'];
-	
-	if( $apbct->active_theme === 'Paperio' ){
+	if( in_array( $apbct->active_theme, array( 'Paperio', 'Twenty Twenty' ) ) ){
 		$ending_tag = is_null($wp_list_comments_args['style']) ? 'div' : $wp_list_comments_args['style'];
 	};
 	
