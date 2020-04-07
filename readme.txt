@@ -4,7 +4,7 @@ Tags: spam, antispam, woocommerce, comments, firewall
 Requires at least: 3.0
 Tested up to: 5.4
 Requires PHP: 5.4
-Stable tag: 5.135
+Stable tag: 5.136.2
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -565,6 +565,31 @@ If your website has forms that send data to external sources, you can enable opt
 10. Website's options.
 
 == Changelog ==
+
+= 5.136.2 April 7 2020 =
+  * Mod: bbPress is using role exclusions now.
+  * Mod: Show info on SpamFirewall block page.
+  * Mod: Log SpamFirewall tests.
+  * Fix: get_fields_any() fixed.
+  * Fix: Multiple requests on WooCommerce checkout.
+  * Fix: The SpamFirewall block page.
+
+= 5.136.1 April 2 2020 =
+  * Mod: Setting "Show links to check Emails, IPs for spam" splitted in two.
+  * Mod: Added setting "Manage comments on public pages".
+  * Fix: Feedback from public pages.
+  * Fix: Output for setting "Manage comments on public pages".
+  * Fix: Public widget errors.
+
+= 5.136 April 1 2020 =
+  * New: Feature allowing to track missed spam requests with the special plugin.
+  * Mod: Enable WooCommerce checkout test by default.
+  * Fix: Fluent forms integration fixed.
+  * Fix: Logging skipped requests - actions added.
+  * Fix: Comments output.
+  * Fix: External forms protection.
+  * Fix: PHP 7.4 compatibility.
+  * Performance improved.
 
 = 5.135 March 16 2020 =
   * New: Setting which disallow sub-sites administrators to manage plugin settings.
