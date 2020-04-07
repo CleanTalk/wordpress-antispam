@@ -612,9 +612,9 @@ function apbct_sfw__check()
 			}
 		}
 		
-		if($sfw->test){
-			$sfw->sfw_die($apbct->api_key, '', parse_url(get_option('siteurl'),PHP_URL_HOST), 'test');
-		}
+//		if($sfw->test){
+//			$sfw->sfw_die($apbct->api_key, '', parse_url(get_option('siteurl'),PHP_URL_HOST), 'test');
+//		}
 		
 		if($sfw->pass === false){
 			foreach($sfw->blocked_ips as $ip){
