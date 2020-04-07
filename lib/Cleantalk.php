@@ -1,7 +1,16 @@
 <?php
 
 /**
- * Cleantalk class create request
+ * Cleantalk base class
+ *
+ * @version 2.2
+ * @package Cleantalk
+ * @subpackage Base
+ * @author Cleantalk team (welcome@cleantalk.org)
+ * @copyright (C) 2014 CleanTalk team (http://cleantalk.org)
+ * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
+ * @see https://github.com/CleanTalk/php-antispam
+ *
  */
 class Cleantalk {
 
@@ -96,8 +105,10 @@ class Cleantalk {
 	
     /**
      * Function checks whether it is possible to publish the message
+     *
      * @param CleantalkRequest $request
-     * @return type
+     *
+     * @return bool|CleantalkResponse
      */
     public function isAllowMessage(CleantalkRequest $request) {
         $msg = $this->createMsg('check_message', $request);
@@ -106,8 +117,10 @@ class Cleantalk {
 
     /**
      * Function checks whether it is possible to publish the message
+     *
      * @param CleantalkRequest $request
-     * @return type
+     *
+     * @return bool|CleantalkResponse
      */
     public function isAllowUser(CleantalkRequest $request) {
         $msg = $this->createMsg('check_newuser', $request);
@@ -118,7 +131,8 @@ class Cleantalk {
      * Function sends the results of manual moderation
      *
      * @param CleantalkRequest $request
-     * @return type
+     *
+     * @return bool|CleantalkResponse
      */
     public function sendFeedback(CleantalkRequest $request) {
         $msg = $this->createMsg('send_feedback', $request);
@@ -127,9 +141,9 @@ class Cleantalk {
 	
     /**
      * Create msg for cleantalk server
-     * @param type $method
+     * @param string $method
      * @param CleantalkRequest $request
-     * @return \xmlrpcmsg
+     * @return CleantalkRequest
      */
     private function createMsg($method, CleantalkRequest $request) {
 		
@@ -223,7 +237,7 @@ class Cleantalk {
 		}
 
 		return $data;
-	} 
+	}
 	
     /**
      * httpRequest 
@@ -392,6 +406,7 @@ class Cleantalk {
      */
     private function sendRequest($data = null, $url, $server_timeout = 3)
 	{
+		$original_args = func_get_args();
         // Convert to array
         $data = (array)json_decode(json_encode($data), true);
 		
@@ -463,8 +478,7 @@ class Cleantalk {
 					// Use SSL next time, if error occurs.
 					if(!$this->ssl_on){
 						$this->ssl_on = true;
-						$args = func_get_args();
-						return $this->sendRequest($args[0], $args[1], $server_timeout);
+						return $this->sendRequest($original_args[0], $original_args[1], $server_timeout);
 					}
 				}
 
@@ -489,16 +503,19 @@ class Cleantalk {
             }
         }
         
-        if (!$result || !CleantalkHelper::is_json($result)) {
+        if (!$result) {
             $response = null;
-            $response['errno'] = 1;
-            if ($curl_error) {
-                $response['errstr'] = sprintf("CURL error: '%s'", $curl_error); 
-            } else {
-                $response['errstr'] = 'No CURL support compiled in'; 
+            $response['errno'] = 2;
+            if (!CleantalkHelper::is_json($result)) {
+                $response['errstr'] = 'Wrong server response format: ' . substr( $result, 100 );
             }
-            $response['errstr'] .= ' or disabled allow_url_fopen in php.ini.'; 
-            $response = json_decode(json_encode($response));
+            else {
+                $response['errstr'] = $curl_error
+                    ? sprintf( "CURL error: '%s'", $curl_error )
+                    : 'No CURL support compiled in';
+                $response['errstr'] .= ' or disabled allow_url_fopen in php.ini.';
+            }
+            $response = json_decode( json_encode( $response ) );
             
             return $response;
         }

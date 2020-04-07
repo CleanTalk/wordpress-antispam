@@ -14,13 +14,13 @@ $msg_template = <<<EOT
 </div>
 <br />
 <div>
-    <a class='ct_settings_button' href='http://%s/wp-admin/%s.php?page=cleantalk&from_report=1' target="_blank">%s</a>
+    <a class='ct_settings_button' href='https://%s/wp-admin/%s.php?page=cleantalk&from_report=1' target="_blank">%s</a>
 </div>
 <span>%s</span>
 <br />
 <br />
 <div style="color: #666;">
-    The report is provided by <a href="http://%s/wp-admin/%s.php?page=cleantalk&from_report=1">%s</a>.
+    The report is provided by <a href="https://%s/wp-admin/%s.php?page=cleantalk&from_report=1">%s</a>.
 </div>
 </center>
 </body>

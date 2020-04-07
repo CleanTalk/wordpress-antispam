@@ -1,14 +1,14 @@
 <?php
 
-namespace CleantalkBase;
+namespace Cleantalk\Antispam;
 
 /**
  * CleanTalk SpamFireWall base class.
  * Compatible with any CMS.
  *
- * @depends       CleantalkHelper class
- * @depends       CleantalkAPI class
- * @depends       CleantalkDB class
+ * @depends       Cleantalk\Antispam\Helper class
+ * @depends       Cleantalk\Antispam\API class
+ * @depends       Cleantalk\Antispam\DB class
  *
  * @version       3.3
  * @author        Cleantalk team (welcome@cleantalk.org)
@@ -16,7 +16,7 @@ namespace CleantalkBase;
  * @license       GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  * @see           https://github.com/CleanTalk/php-antispam
  */
-class CleantalkSFW
+class SFW
 {
 	public $ip = 0;
 	
@@ -72,7 +72,7 @@ class CleantalkSFW
 	{
 		if(empty($this->db)){
 			// Creating database object. Depends on current CMS.
-			$this->db = CleantalkDB::getInstance();
+			$this->db = DB::getInstance();
 			
 			// Use default tables if not specified
 			$this->data_table = defined('CLEANTALK_TBL_FIREWALL_DATA') ? CLEANTALK_TBL_FIREWALL_DATA : $this->db->prefix . 'cleantalk_sfw';
@@ -92,12 +92,12 @@ class CleantalkSFW
 	 */
 	public function ip__get($ips_input = array('real', 'remote_addr', 'x_forwarded_for', 'x_real_ip', 'cloud_flare'), $v4_only = true){
 		
-		$result = CleantalkHelper::ip__get($ips_input, $v4_only);
+		$result = Helper::ip__get($ips_input, $v4_only);
 		
 		$result = !empty($result) ? array('real' => $result) : array();
 		
 		if(isset($_GET['sfw_test_ip'])){
-			if(CleantalkHelper::ip__validate($_GET['sfw_test_ip']) !== false){
+			if(Helper::ip__validate($_GET['sfw_test_ip']) !== false){
 				$result['sfw_test'] = $_GET['sfw_test_ip'];
 				$this->test = true;
 			}
@@ -126,12 +126,12 @@ class CleantalkSFW
 				$this->blocked_ips[$origin] = array(
 					'ip'      => $current_ip,
 					'network' => long2ip($this->db->result['network']),
-					'mask'    => CleantalkHelper::ip__mask__long_to_number($this->db->result['mask']),
+					'mask'    => Helper::ip__mask__long_to_number($this->db->result['mask']),
 				);
 				$this->all_ips[$origin] = array(
 					'ip'      => $current_ip,
 					'network' => long2ip($this->db->result['network']),
-					'mask'    => CleantalkHelper::ip__mask__long_to_number($this->db->result['mask']),
+					'mask'    => Helper::ip__mask__long_to_number($this->db->result['mask']),
 					'status'  => -1,
 				);
 			}else{
@@ -200,7 +200,7 @@ class CleantalkSFW
 			unset($key, $value);
 			
 			//Sending the request
-			$result = CleantalkAPI::method__sfw_logs($ct_key, $data);
+			$result = API::method__sfw_logs($ct_key, $data);
 			
 			//Checking answer and deleting all lines from the table
 			if(empty($result['error'])){
@@ -228,50 +228,81 @@ class CleantalkSFW
 	 * @return array|bool array('error' => STRING)
 	 */
 	public function sfw_update($ct_key, $file_url = null, $immediate = false){
-		
+
 		// Getting remote file name
 		if(!$file_url){
-			
+
 			sleep(6);
-			
-			$result = CleantalkAPI::method__get_2s_blacklists_db($ct_key, 'file');
-						
+
+			$result = API::method__get_2s_blacklists_db($ct_key, 'multifiles');
+
 			if(empty($result['error'])){
 			
 				if( !empty($result['file_url']) ){
-					
-					$pattenrs = array();
-					$pattenrs[] = 'get';
-					if(!$immediate) $pattenrs[] = 'async';
-					
-					return CleantalkHelper::http__request(
-						get_option('siteurl'), 
-						array(
-							'spbc_remote_call_token'  => md5($ct_key),
-							'spbc_remote_call_action' => 'sfw_update',
-							'plugin_name'             => 'apbct',
-							'file_url'                => $result['file_url'],
-						),
-						$pattenrs
-					);
-					
+
+					if(Helper::http__request($result['file_url'], array(), 'get_code') === 200) {
+
+						if(ini_get('allow_url_fopen')) {
+
+							$pattenrs = array();
+							$pattenrs[] = 'get';
+
+							if(!$immediate) $pattenrs[] = 'async';		
+
+							$this->db->execute("DELETE FROM ".$this->data_table.";");	
+
+							if (preg_match('/multifiles/', $result['file_url'])) {
+								
+								$gf = gzopen($result['file_url'], 'rb');
+
+								if ($gf) {
+
+									$file_urls = array();
+
+									while(!gzeof($gf))
+										$file_urls[] = trim(gzgets($gf, 1024));			
+
+									gzclose($gf);
+
+									return Helper::http__request(
+										get_option('siteurl'), 
+										array(
+											'spbc_remote_call_token'  => md5($ct_key),
+											'spbc_remote_call_action' => 'sfw_update',
+											'plugin_name'             => 'apbct',
+											'file_urls'               => implode(',', $file_urls),
+										),
+										$pattenrs
+									);								
+								}
+							}else {
+								return Helper::http__request(
+									get_option('siteurl'), 
+									array(
+										'spbc_remote_call_token'  => md5($ct_key),
+										'spbc_remote_call_action' => 'sfw_update',
+										'plugin_name'             => 'apbct',
+										'file_urls'               => $result['file_url'],
+									),
+									$pattenrs
+								);								
+							}
+						}else
+							return array('error' => 'ERROR_ALLOW_URL_FOPEN_DISABLED');
+					}				
 				}else
 					return array('error' => 'BAD_RESPONSE');
 			}else
 				return $result;
 		}else{
 						
-			if(CleantalkHelper::http__request($file_url, array(), 'get_code') === 200){ // Check if it's there
-				
-				if(ini_get('allow_url_fopen')){
-					
+			if(Helper::http__request($file_url, array(), 'get_code') === 200){ // Check if it's there
+									
 					$gf = gzopen($file_url, 'rb');
-					
+
 					if($gf){
 						
 						if(!gzeof($gf)){
-							
-							$this->db->execute("DELETE FROM ".$this->data_table.";");
 							
 							for($count_result = 0; !gzeof($gf); ){
 	
@@ -309,8 +340,6 @@ class CleantalkSFW
 							return array('error' => 'ERROR_GZ_EMPTY');
 					}else
 						return array('error' => 'ERROR_OPEN_GZ_FILE');
-				}else
-					return array('error' => 'ERROR_ALLOW_URL_FOPEN_DISABLED');
 			}else
 				return array('error' => 'NO_REMOTE_FILE_FOUND');
 		}			

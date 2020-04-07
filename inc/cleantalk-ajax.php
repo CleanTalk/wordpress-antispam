@@ -100,6 +100,7 @@ $cleantalk_hooked_actions[]='vfb_submit';
 add_action( 'wp_ajax_nopriv_woocommerce_checkout', 'ct_ajax_hook',1 );
 add_action( 'wp_ajax_woocommerce_checkout', 'ct_ajax_hook',1 );
 $cleantalk_hooked_actions[]='woocommerce_checkout';
+$cleantalk_hooked_actions[]='wcfm_ajax_controller';
 
 /*hooks for frm_action*/
 add_action( 'wp_ajax_nopriv_frm_entries_create', 'ct_ajax_hook',1 );
@@ -142,9 +143,10 @@ $cleantalk_hooked_actions[] = 'fue_wc_set_cart_email';  // Don't check email via
 /* Follow-Up Emails */
 $cleantalk_hooked_actions[] = 'fue_wc_set_cart_email';  // Don't check email via this plugin
 
+/* The Fluent Form have the direct integration */
+$cleantalk_hooked_actions[] = 'fluentform_submit';
+
 function ct_validate_email_ajaxlogin($email=null, $is_ajax=true){
-	
-	require_once(CLEANTALK_PLUGIN_DIR . 'cleantalk-public.php');
 	
 	$email = is_null( $email ) ? $email : $_POST['email'];
 	$email = sanitize_email($email);
@@ -198,8 +200,6 @@ function ct_validate_email_ajaxlogin($email=null, $is_ajax=true){
 
 function ct_user_register_ajaxlogin($user_id)
 {
-	require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public.php');
-	
 	if(class_exists('AjaxLogin')&&isset($_POST['action'])&&$_POST['action']=='register_submit')
 	{
 	    
@@ -250,9 +250,7 @@ function ct_mc4wp_ajax_hook( array $errors )
 }
 
 function ct_ajax_hook($message_obj = false, $additional = false)
-{	
-	require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public.php');
-	
+{
 	global $apbct, $current_user;
 	
 	$message_obj = (array)$message_obj;
@@ -262,6 +260,7 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 	
     // Go out because of not spam data
     $skip_post = array(
+        'apbct_js_keys__get',  // Our service code
         'gmaps_display_info_window',  // Geo My WP pop-up windows.
         'gmw_ps_display_info_window',  // Geo My WP pop-up windows.
         'the_champ_user_auth',  // Super Socializer
@@ -285,14 +284,29 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 	    'phone-orders-for-woocommerce', //Phone orders for woocommerce backend
 	    'ihc_check_reg_field_ajax', //Ajax check required fields
 	    'OSTC_lostPassword', //Lost password ajax form
+		'check_retina_image_availability', //There are too many ajax requests from mobile
+	    'uap_check_reg_field_ajax', // Ultimate Affiliate Pro. Form validation.
+	    'edit-comment', // Edit comments by admin ??? that shouldn't happen
+	    'formcraft3_save_form_progress', // FormCraft – Contact Form Builder for WordPress. Save progress.
+	    'wpdmpp_save_settings', // PayPal save settings.
+	    'iwj_login', // Fix for unknown plugin for user #133315
+	    'custom_user_login', // Fix for unknown plugin for user #466875
+	    'wordfence_ls_authenticate', //Fix for wordfence auth
+	    'frm_strp_amount', //Admin stripe form
+	    'wouCheckOnlineUsers', //Skip updraft admin checking users
+	    'et_fb_get_shortcode_from_fb_object', //Skip generate shortcode
+	    'pp_lf_process_login', //Skip login form
+	    'check_email', //Ajax email checking
+	    'dflg_do_sign_in_user', // Unknown plugin
+	    'cartflows_save_cart_abandonment_data', // WooCommerce cartflow
     );
-	
+    
     // Skip test if
     if( !$apbct->settings['general_contact_forms_test'] || // Test disabled
         !apbct_is_user_enable($apbct->user) || // User is admin, editor, author
 	    // (function_exists('get_current_user_id') && get_current_user_id() != 0) || // Check with default wp_* function if it's admin
-	    ($apbct->settings['protect_logged_in'] && ($apbct->user instanceof WP_User) && $apbct->user->ID !== 0 ) || // Logged in user
-        check_url_exclusions() || // url exclusions
+	    (!$apbct->settings['protect_logged_in'] && ($apbct->user instanceof WP_User) && $apbct->user->ID !== 0 ) || // Logged in user
+        apbct_exclusions_check__url() || // url exclusions
         (isset($_POST['action']) && in_array($_POST['action'], $skip_post)) || // Special params
 	    (isset($_GET['action'])  && in_array($_GET['action'], $skip_post)) ||  // Special params
 		isset($_POST['quform_submit']) || //QForms multi-paged form skip
@@ -302,14 +316,20 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 		        (isset($message_obj['author']) && intval($message_obj['author']) == 0) ||
 		        (isset($message_obj['post_author']) && intval($message_obj['post_author']) == 0)
 	        )
-        )
+        ) ||
+        (isset($_POST['action'], $_POST['arm_action']) && $_POST['action'] == 'arm_shortcode_form_ajax_action' && $_POST['arm_action'] == 'please-login') //arm forms skip login
     )
     {
+	    do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
         return false;
     }
- 
-	//General post_info for all ajax calls
-	$post_info = array('comment_type' => 'feedback_ajax');
+
+    //General post_info for all ajax calls
+	$post_info = array(
+	    'comment_type' => 'feedback_ajax',
+        'post_url' => apbct_get_server_variable( 'HTTP_REFERER' ), // Page URL must be an previous page
+    );
+
 	$checkjs = apbct_js_test('ct_checkjs', $_COOKIE);
 		
     if(isset($_POST['user_login']))
@@ -371,7 +391,7 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 			}
 		}
 	}
-
+	
 	$ct_temp_msg_data = isset($ct_post_temp)
 		? ct_get_fields_any($ct_post_temp)
 		: ct_get_fields_any($_POST);
@@ -386,21 +406,32 @@ function ct_ajax_hook($message_obj = false, $additional = false)
     }
     
     // Skip submission if no data found
-    if ($sender_email === ''|| !$contact_form)
-        return false;
+    if ($sender_email === ''|| !$contact_form) {
+	    do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
+	    return false;
+    }
+
 	
 	 // Mailpoet fix
-    if (isset($message['wysijaData'], $message['wysijaplugin'], $message['task'], $message['controller']) && $message['wysijaplugin'] == 'wysija-newsletters' && $message['controller'] == 'campaigns')
-        return false;
-    // Mailpoet3 admin skip fix
-    if (isset($_POST['action'], $_POST['method']) && $_POST['action'] == 'mailpoet' && $_POST['method'] =='save')
+    if (isset($message['wysijaData'], $message['wysijaplugin'], $message['task'], $message['controller']) && $message['wysijaplugin'] == 'wysija-newsletters' && $message['controller'] == 'campaigns') {
+	    do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
     	return false;
+    }
+
+    // Mailpoet3 admin skip fix
+    if (isset($_POST['action'], $_POST['method']) && $_POST['action'] == 'mailpoet' && $_POST['method'] =='save') {
+	    do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
+    	return false;
+    }
+
 	
 	// WP Foto Vote Fix
 	if (!empty($_FILES)){
 		foreach($message as $key => $value){
-			if(strpos($key, 'oje') !== false)
-				return; 
+			if(strpos($key, 'oje') !== false) {
+				do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
+				return false;
+			}
 		} unset($key ,$value);
 	}
 	
@@ -412,7 +443,7 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 	foreach($_POST as $param => $value){
 		if(strpos($param, 'et_pb_contactform_submit') === 0){
 			$contact_form = 'contact_form_divi_theme';
-			$contact_form_additional = str_replace('et_pb_contactform_submit', '', $param);
+			$contact_form_additional = str_replace($param, '', $param);
 		}
 		if(strpos($param, 'avia_generated_form') === 0){
 			$contact_form = 'contact_form_enfold_theme';
@@ -552,8 +583,8 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 				'display' => "Oops, got a few problems here",
 				'errors' => array(
 					0 => array(
-						error => 'error',
-						name => 'name'
+						'error' => 'error',
+						'name' => 'name'
 					),
 				),
 				'success' => 'false',
@@ -593,11 +624,11 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 		{
 			$result = Array(
 				'error' => 'unexpected-error',
-			);			
+			);
 			print json_encode($result);
 			die();
-		}		
-		//Convertplug. Strpos because action value dynamically changes and depends on mailing service 
+		}
+		//Convertplug. Strpos because action value dynamically changes and depends on mailing service
 		elseif (isset($_POST['action']) && strpos($_POST['action'], '_add_subscriber') !== false){
 			$result = Array(
 				'action' => "message",
@@ -633,14 +664,13 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 		//cFormsII
 		elseif(isset($_POST['action']) && $_POST['action'] == 'submitcform')
 		{
-			header('Content-Type: application/json');	
+			header('Content-Type: application/json');
 			$result = Array(
-				'no' => "",	
-				'result' => "failure",				
+				'no' => isset($_POST['cforms_id']) ? $_POST['cforms_id'] : '',
+				'result' => 'failure',
 				'html' =>$ct_result->comment,
 				'hide' => false,
 				'redirection' => null
-
 			);
 			print json_encode($result);
 			die();
@@ -692,6 +722,21 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 				array(
 					'error'    => 1,
 					'response' => $ct_result->comment
+				)
+			);
+		}
+		//Optin wheel
+		elseif( isset($_POST['action']) && ($_POST['action'] == 'wof-lite-email-optin' || $_POST['action'] == 'wof-email-optin')) {
+			wp_send_json_error(__($ct_result->comment, 'wp-optin-wheel'));
+		}
+		// Forminator
+		elseif( isset($_POST['action']) && strpos($_POST['action'], 'forminator_submit') !== false ){
+			wp_send_json_error(
+				array(
+					'message' => $ct_result->comment,
+					'success' => false,
+					'errors'  => array(),
+					'behav'   => 'behaviour-thankyou',
 				)
 			);
 		}

@@ -32,6 +32,7 @@ class cleantalk_widget extends WP_Widget
 	{
 		global $apbct;
 		
+		$instance['title'] = isset( $instance['title'] ) ? $instance['title'] : __( 'Spam blocked', 'cleantalk' );
 		$title = apply_filters( 'widget_title', $instance['title'] );
 		echo $args['before_widget'];
 		
@@ -69,7 +70,7 @@ class cleantalk_widget extends WP_Widget
 		
 		// This is where you run the code and display the output
 		echo '<div style="width:auto;">'
-			.'<a href="http://cleantalk.org'.(!empty($instance['refid']) ? '?pid='.$instance['refid'] : '').'" target="_blank" title="'.__('CleanTalk\'s main page', 'cleantalk').'" style="'.$a_style.'">'
+			.'<a href="https://cleantalk.org'.(!empty($instance['refid']) ? '?pid='.$instance['refid'] : '').'" target="_blank" title="'.__('CleanTalk\'s main page', 'cleantalk').'" style="'.$a_style.'">'
 				.'<strong style="'.$strong_style.'"><b>'.$blocked.'</b> '.__('spam', 'cleantalk').'</strong> '.__('blocked by', 'cleantalk').' <strong>CleanTalk</strong>'
 			.'</a>'
 		.'</div>';
@@ -94,10 +95,10 @@ class cleantalk_widget extends WP_Widget
 		echo '<p>'
 			.'<label for="' . $this->get_field_id( 'style' ) . '">' . __( 'Style:', 'cleantalk' ) . '</label>'
 			.'<select id="'.$this->get_field_id( 'style' ).'" class="widefat" name="'.$this->get_field_name( 'style' ).'">'
-				.'<option '.($style == 'cleantalk' ? selected : '').' value="cleantalk">'.__('CleanTalk\'s Style', 'cleantalk').'</option>'
-				.'<option '.($style == 'light'     ? selected : '').' value="light">'.__('Light', 'cleantalk').'</option>'
-				.'<option '.($style == 'ex_light'  ? selected : '').' value="ex_light">'.__('Extremely Light', 'cleantalk').'</option>'
-				.'<option '.($style == 'dark'      ? selected : '').' value="dark">'.__('Dark', 'cleantalk').'</option>'
+				.'<option '.($style == 'cleantalk' ? 'selected' : '').' value="cleantalk">'.__('CleanTalk\'s Style', 'cleantalk').'</option>'
+				.'<option '.($style == 'light'     ? 'selected' : '').' value="light">'.__('Light', 'cleantalk').'</option>'
+				.'<option '.($style == 'ex_light'  ? 'selected' : '').' value="ex_light">'.__('Extremely Light', 'cleantalk').'</option>'
+				.'<option '.($style == 'dark'      ? 'selected' : '').' value="dark">'.__('Dark', 'cleantalk').'</option>'
 			.'</select>'
 		.'</p>';
 		// Ref ID

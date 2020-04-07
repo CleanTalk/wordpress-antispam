@@ -12,21 +12,33 @@
  */
 
 /**
- * @property mixed        settings
+ * COMMON
+ *
+ * @property string       api_key
+ *
+ * STAND ALONE
+ *
+ * @property ArrayObject  settings
+ * @property ArrayObject  data
+ *
  * @property mixed        moderate_ip
  * @property mixed|string plugin_version
  * @property mixed|string db_prefix
- * @property bool|mixed  white_label
- * @property string      settings_link
- * @property mixed       data
- * @property int         key_is_ok
- * @property string      logo__small__colored
- * @property string      logo__small
- * @property string      logo
- * @property string      plugin_name
- * @property string      base_name
- * @property array|mixed errors
- * @property ArrayObject network_data
+ * @property string       settings_link
+ * @property int          key_is_ok
+ * @property string       logo__small__colored
+ * @property string       logo__small
+ * @property string       logo
+ * @property string       plugin_name
+ * @property string       base_name
+ * @property array|mixed  errors
+ *
+ * NETWORK
+ * @property ArrayObject  network_data
+ * @property ArrayObject  network_settings
+ * @property mixed        allow_custom_key
+ * @property bool         white_label
+ * @property mixed        moderate
  */
 class CleantalkState
 {
@@ -38,7 +50,6 @@ class CleantalkState
 	
 		'spam_firewall'       => 1,
         'apikey'              => '',
-		'custom_key'          => 0,
         'autoPubRevelantMess' => 0,
 		
 		/* Forms for protection */
@@ -46,29 +57,41 @@ class CleantalkState
         'comments_test'                  => 1, 
         'contact_forms_test'             => 1, 
         'general_contact_forms_test'     => 1, // Antispam test for unsupported and untested contact forms 
-		'wc_checkout_test'               => 0, // WooCommerce checkout default test => OFF
-		'wc_register_from_order'         => 1, // Woocommerce registration during checkout => ON
+		'wc_checkout_test'               => 1, // WooCommerce checkout default test
+		'wc_register_from_order'         => 1, // Woocommerce registration during checkout
 		'search_test'                    => 1, // Test deafult Wordpress form
 		'check_external'                 => 0,
 		'check_external__capture_buffer' => 0,
         'check_internal'                 => 0,
 		
 		/* Comments and messages */
+		'disable_comments__all'   => 0,
+		'disable_comments__posts' => 0,
+		'disable_comments__pages' => 0,
+		'disable_comments__media' => 0,
 		'bp_private_messages' =>   1, //buddyPress private messages test => ON
 		'check_comments_number' => 1,
         'remove_old_spam' =>       0,
-		'remove_comments_links' => 0, //Removes links from approved comments
-		'show_check_links' =>      1, //Shows check link to Cleantalk's DB. And allowing to control comments form public page.
+		'remove_comments_links' => 0, // Removes links from approved comments
+		'show_check_links' =>      1, // Shows check link to Cleantalk's DB.
+		'manage_comments_on_public_page' =>      0, // Allows to control comments on public page.
 		
 		// Data processing
         'protect_logged_in' =>     1, // Do anit-spam tests to for logged in users.
 		'use_ajax' =>              1,
-		'use_static_js_key' =>     0,
+		'use_static_js_key' =>     -1,
 		'general_postdata_test' => 0, //CAPD
         'set_cookies'=>            1, // Disable cookies generatation to be compatible with Varnish.
         'set_cookies__sessions'=>  0, // Use alt sessions for cookies.
         'ssl_on' =>                0, // Secure connection to servers 
-		'use_buitin_http_api' =>   0, // Using Wordpress HTTP built in API
+		'use_buitin_http_api' =>   1, // Using Wordpress HTTP built in API
+		
+		// Exclusions
+		'exclusions__urls'               => '',
+		'exclusions__urls__use_regexp'   => 0,
+		'exclusions__fields'             => '',
+		'exclusions__fields__use_regexp' => 0,
+		'exclusions__roles'               => array('Administrator'),
 		
 		// Administrator Panel
         'show_adminbar'    => 1, // Show the admin bar.
@@ -77,10 +100,7 @@ class CleantalkState
 		'sfw_counter'      => 0,
 		
 		//Others
-        'spam_store_days'         => '15', // Days before delete comments from folder Spam 
-        'relevance_test'          => 0, // Test comment for relevance 
-        'notice_api_errors'       => 0, // Send API error notices to WP admin
-        'user_token'              => '', //user token for auto login into spam statistics
+        'user_token'              => '',
         'collect_details'         => 0, // Collect details about browser of the visitor. 
         'send_connection_reports' => 0, //Send connection reports to Cleantalk servers
 		'async_js'                => 0,
@@ -107,6 +127,11 @@ class CleantalkState
 		'js_key_lifetime'    => 86400, // JavaScript key life time in seconds - 1 day now
 		'last_remote_call'   => 0, //Timestam of last remote call
 		
+		// Antispam
+		'spam_store_days'         => 15, // Days before delete comments from folder Spam
+		'relevance_test'          => 0, // Test comment for relevance
+		'notice_api_errors'       => 0, // Send API error notices to WP admin
+		
 		// Account data
 		'service_id'    => 0,
 		'moderate'      => 0,
@@ -114,7 +139,7 @@ class CleantalkState
 		'ip_license'    => 0,
 		'spam_count'    => 0,
 		'auto_update'   => 0,
-		'user_token'    => '',
+		'user_token'    => '', // User token for auto login into spam statistics
 		'license_trial' => 0,
 		
 		// Notices
@@ -158,23 +183,32 @@ class CleantalkState
 			'sfw_enabled' => false,
 		),
 		
-		// White label
-		'white_label_data' => array(
-			'is_key_recieved' => false,
-		),
-		
 		// Misc
 		'feedback_request' => '',
 		'key_is_ok'        => 0,
 		'salt'             => '',
 	);
 	
+	public $def_network_settings = array(
+		
+		// Key
+		'apikey'                => '',
+		'allow_custom_key'      => 1,
+		'allow_custom_settings' => 1,
+		
+		// White label settings
+		'white_label'              => 0,
+		'white_label__hoster_key'  => '',
+		'white_label__plugin_name' => 'Anti-Spam by CleanTalk',
+	);
+	
 	public $def_network_data = array(
-		'allow_custom_key'   => 0,
 		'key_is_ok'          => 0,
-		'apikey'           => '',
+		'moderate'           => 0,
+		'valid'              => 0,
 		'user_token'         => '',
 		'service_id'         => 0,
+		'auto_update'        => 0,
 	);
 	
 	public $def_remote_calls = array(
@@ -240,15 +274,19 @@ class CleantalkState
 	 * @param array  $options       Array of strings. Types of settings you want to get.
 	 * @param bool   $wpms          Is multisite?
 	 */
-	public function __construct($option_prefix, $options = array('settings'), $wpms = false)
+	public function __construct($option_prefix, $options = array('settings'))
 	{
 		$this->option_prefix = $option_prefix;
 		
-		if($wpms){
-			$option = get_site_option($this->option_prefix.'_network_data');
-			$option = is_array($option) ? $option : $this->def_network_data;
-			$this->network_data = new ArrayObject($option);
-		}
+		// Network settings
+		$option = get_site_option($this->option_prefix.'_network_settings');
+		$option = is_array($option) ? array_merge($this->def_network_settings, $option) : $this->def_network_settings;
+		$this->network_settings = new ArrayObject($option);
+		
+		// Network data
+		$option = get_site_option($this->option_prefix.'_network_data');
+		$option = is_array($option) ? array_merge($this->def_network_data, $option) : $this->def_network_data;
+		$this->network_data = new ArrayObject($option);
 		
 		foreach($options as $option_name){
 			
@@ -347,6 +385,14 @@ class CleantalkState
 	public function saveNetworkData()
 	{
 		update_site_option($this->option_prefix.'_network_data', $this->network_data);
+	}
+	
+	/**
+	 * Save PREFIX_network_data to DB.
+	 */
+	public function saveNetworkSettings()
+	{
+		update_site_option($this->option_prefix.'_network_settings', $this->network_settings);
 	}
 	
 	/**
@@ -455,7 +501,7 @@ class CleantalkState
 	public function __set($name, $value)
     {
         $this->storage[$name] = $value;
-		if(isset($this->storage['data']) && array_key_exists($name, $this->storage['data'])){
+		if(isset($this->storage['data'][$name])){
 			$this->storage['data'][$name] = $value;
 		}
     }
@@ -471,19 +517,14 @@ class CleantalkState
 	public function __get($name)
     {
 		// First check in storage
-        if (array_key_exists($name, $this->storage)){
+        if (isset($this->storage[$name])){
             return $this->storage[$name];
-			
+	        
 		// Then in data
-        }elseif(array_key_exists($name, $this->storage['data'])){
+        }elseif(isset($this->storage['data'][$name])){
 			$this->$name = $this->storage['data'][$name];
 			return $this->storage['data'][$name];
-		
-		// Maybe it's apikey?
-		}elseif($name == 'api_key'){
-			$this->$name = $this->storage['settings']['apikey'];
-			return $this->storage['settings']['apikey'];
-		
+			
 		// Otherwise try to get it from db settings table
 		// it will be arrayObject || scalar || null
 		}else{
@@ -501,5 +542,21 @@ class CleantalkState
 	public function __unset($name)
 	{
 		unset($this->storage[$name]);
+	}
+	
+	public function server(){
+		return \Cleantalk\Common\Server::getInstance();
+	}
+	public function cookie(){
+		return \Cleantalk\Common\Cookie::getInstance();
+	}
+	public function request(){
+		return \Cleantalk\Common\Request::getInstance();
+	}
+	public function post(){
+		return \Cleantalk\Common\Post::getInstance();
+	}
+	public function get(){
+		return \Cleantalk\Common\Get::getInstance();
 	}
 }

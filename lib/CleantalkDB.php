@@ -5,7 +5,7 @@
  * Compatible only with Wordpress.
  * Uses singleton pattern.
  * 
- * @depends CleantalkBase\CleantalkDB
+ * @depends Cleantalk\Antispam\DB
  * 
  * @version 3.2
  * @author Cleantalk team (welcome@cleantalk.org)
@@ -14,7 +14,7 @@
  * @see https://github.com/CleanTalk/wordpress-antispam
 */
 
-class CleantalkDB extends CleantalkBase\CleantalkDB
+class CleantalkDB extends Cleantalk\Antispam\DB
 {
 	
 	private static $instance;

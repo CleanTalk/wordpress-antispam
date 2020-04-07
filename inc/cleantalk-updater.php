@@ -50,15 +50,14 @@ function apbct_update_to_5_50_0(){
 		`network` int(11) unsigned NOT NULL,
 		`mask` int(11) unsigned NOT NULL,
 		INDEX (  `network` ,  `mask` )
-		) ENGINE = MYISAM ;');
+		);');
 		
 	$wpdb->query('CREATE TABLE IF NOT EXISTS `'. APBCT_TBL_FIREWALL_LOG .'` (
 		`ip` VARCHAR(15) NOT NULL , 
 		`all` INT NOT NULL , 
 		`blocked` INT NOT NULL , 
 		`timestamp` INT NOT NULL , 
-		PRIMARY KEY (`ip`)) 
-		ENGINE = MYISAM;');
+		PRIMARY KEY (`ip`));');
 }
 
 function apbct_update_to_5_56_0(){
@@ -120,15 +119,14 @@ function apbct_update_to_5_109_0(){
 			`network` int(11) unsigned NOT NULL,
 			`mask` int(11) unsigned NOT NULL,
 			INDEX (  `network` ,  `mask` )
-			) ENGINE = MYISAM ;';
+			);';
 
 		$sfw_log_query = 'CREATE TABLE IF NOT EXISTS `%s` (
 			`ip` VARCHAR(15) NOT NULL,
 			`all_entries` INT NOT NULL,
 			`blocked_entries` INT NOT NULL,
 			`entries_timestamp` INT NOT NULL,
-			PRIMARY KEY (`ip`)) 
-			ENGINE = MYISAM;';
+			PRIMARY KEY (`ip`));';
 
 		$initial_blog  = get_current_blog_id();
 		$blogs = array_keys($wpdb->get_results('SELECT blog_id FROM '. $wpdb->blogs, OBJECT_K));
@@ -173,8 +171,7 @@ function apbct_update_to_5_116_0(){
 		`name` TEXT NOT NULL,
 		`value` TEXT NULL,
 		`last_update` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-		PRIMARY KEY (`id`, `name`(10)))
-		ENGINE = MYISAM;'
+		PRIMARY KEY (`id`, `name`(10)));'
 	);
 }
 
@@ -187,8 +184,7 @@ function apbct_update_to_5_116_1(){
 		`name` TEXT NOT NULL,
 		`value` TEXT NULL,
 		`last_update` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-		PRIMARY KEY (`id`, `name`(10)))
-		ENGINE = MYISAM;'
+		PRIMARY KEY (`id`, `name`(10)));'
 	);
 }
 
@@ -201,8 +197,7 @@ function apbct_update_to_5_116_2(){
 		`name` TEXT NOT NULL,
 		`value` TEXT NULL DEFAULT NULL,
 		`last_update` DATETIME NULL DEFAULT NULL,
-		PRIMARY KEY (`id`, `name`(10)))
-		ENGINE = MYISAM;'
+		PRIMARY KEY (`id`, `name`(10)));'
 	);
 }
 
@@ -234,7 +229,7 @@ function apbct_update_to_5_119_0(){
 		`network` int(11) unsigned NOT NULL,
 		`mask` int(11) unsigned NOT NULL,
 		INDEX (  `network` ,  `mask` )
-		) ENGINE = MYISAM ;';
+		);';
 	
 	// SFW log
 	$sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_sfw_logs` (
@@ -242,8 +237,7 @@ function apbct_update_to_5_119_0(){
 		`all_entries` INT NOT NULL,
 		`blocked_entries` INT NOT NULL,
 		`entries_timestamp` INT NOT NULL,
-		PRIMARY KEY (`ip`)) 
-		ENGINE = MYISAM;';
+		PRIMARY KEY (`ip`));';
 	
 	// Sessions
 	$sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_sessions` (
@@ -251,8 +245,7 @@ function apbct_update_to_5_119_0(){
 		`name` VARCHAR(64) NOT NULL,
 		`value` TEXT NULL DEFAULT NULL,
 		`last_update` DATETIME NULL DEFAULT NULL,
-		PRIMARY KEY (`id`(64), `name`(64)))
-		ENGINE = MYISAM;';
+		PRIMARY KEY (`id`(64), `name`(64)));';
 	
 	apbct_activation__create_tables($sqls);
 	
@@ -285,4 +278,136 @@ function apbct_update_to_5_124_0(){
 	// Deleting error in database because format were changed
 	$apbct->errors = array();
 	$apbct->saveErrors();
+}
+
+function apbct_update_to_5_126_0(){
+	global $apbct;
+	// Enable storing URLs
+	$apbct->settings['store_urls'] = 1;
+	$apbct->settings['store_urls__sessions'] = 1;
+	$apbct->saveSettings();
+}
+
+function apbct_update_to_5_127_0(){
+	
+	global $apbct;
+	
+	// Move exclusions from variable to settins
+	global $cleantalk_url_exclusions, $cleantalk_key_exclusions;
+	// URLs
+	if(!empty($cleantalk_url_exclusions) && is_array($cleantalk_url_exclusions)){
+		$apbct->settings['exclusions__urls'] = implode(',', $cleantalk_url_exclusions);
+		if(APBCT_WPMS){
+			$initial_blog = get_current_blog_id();
+			switch_to_blog( 1 );
+		}
+		$apbct->saveSettings();
+		if(APBCT_WPMS){
+			switch_to_blog($initial_blog);
+		}
+	}
+	// Fields
+	if(!empty($cleantalk_key_exclusions) && is_array($cleantalk_key_exclusions)){
+		$apbct->settings['exclusions__fields'] = implode(',', $cleantalk_key_exclusions);
+		if(APBCT_WPMS){
+			$initial_blog = get_current_blog_id();
+			switch_to_blog( 1 );
+		}
+		$apbct->saveSettings();
+		if(APBCT_WPMS){
+			switch_to_blog($initial_blog);
+		}
+	}
+	
+	// Deleting legacy
+	if(isset($apbct->data['testing_failed'])){
+		unset($apbct->data['testing_failed']);
+		$apbct->saveData();
+	}
+	
+	if(APBCT_WPMS){
+		
+		// Whitelabel
+		// Reset "api_key_is_recieved" flag
+		global $wpdb;
+		$initial_blog = get_current_blog_id();
+		$blogs        = array_keys( $wpdb->get_results( 'SELECT blog_id FROM ' . $wpdb->blogs, OBJECT_K ) );
+		foreach ( $blogs as $blog ){
+			switch_to_blog( $blog );
+			
+			$settings = get_option( 'cleantalk_settings' );
+			if( isset( $settings['use_static_js_key'] ) ){
+				$settings['use_static_js_key'] = $settings['use_static_js_key'] === 0
+					? - 1
+					: $settings['use_static_js_key'];
+				update_option( 'cleantalk_settings', $settings );
+				
+				$data = get_option( 'cleantalk_data' );
+				if( isset( $data['white_label_data']['is_key_recieved'] ) ){
+					unset( $data['white_label_data']['is_key_recieved'] );
+					update_option( 'cleantalk_data', $data );
+				}
+			}
+			switch_to_blog( $initial_blog );
+			
+			if( defined( 'APBCT_WHITELABEL' ) ){
+				$apbct->network_settings = array(
+					'white_label'              => defined( 'APBCT_WHITELABEL' ) && APBCT_WHITELABEL == true ? 1 : 0,
+					'white_label__hoster_key'  => defined( 'APBCT_HOSTER_API_KEY' )  ? APBCT_HOSTER_API_KEY : '',
+					'white_label__plugin_name' => defined( 'APBCT_WHITELABEL_NAME' ) ? APBCT_WHITELABEL_NAME : APBCT_NAME,
+				);
+			}elseif( defined( 'CLEANTALK_ACCESS_KEY' ) ){
+				$apbct->network_settings = array(
+					'allow_custom_key' => 0,
+					'apikey'           => CLEANTALK_ACCESS_KEY,
+				);
+			}
+			$apbct->saveNetworkSettings();
+		}
+	}else{
+		// Switch use_static_js_key to Auto if it was disabled
+		$apbct->settings['use_static_js_key'] = $apbct->settings['use_static_js_key'] === 0
+			? -1
+			: $apbct->settings['use_static_js_key'];
+		$apbct->saveSettings();
+	}
+}
+
+function apbct_update_to_5_127_1(){
+	if(APBCT_WPMS && is_main_site()){
+		global $apbct;
+		$network_settings = get_site_option( 'cleantalk_network_settings' );
+		if( $network_settings !== false && empty( $network_settings['allow_custom_key'] ) && empty( $network_settings['white_label'] ) ){
+			$network_settings['allow_custom_key'] = 1;
+			update_site_option( 'cleantalk_network_settings', $network_settings );
+		}
+		if( $network_settings !== false && $network_settings['white_label'] == 1 && $apbct->data['moderate'] == 0 ){
+			ct_account_status_check( $network_settings['apikey'] ? $network_settings['apikey'] : $apbct->settings['apikey'], false);
+		}
+	}
+}
+
+function apbct_update_to_5_128_0(){
+	global $apbct;
+	$apbct->remote_calls = array();
+	$apbct->save('remote_calls');
+}
+
+function apbct_update_to_5_133_0() {
+
+    global $wpdb;
+
+    // Scan comment/user log
+    $sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_spamscan_logs` (
+		`id` int(11) NOT NULL AUTO_INCREMENT,
+        `scan_type` varchar(11) NOT NULL,
+        `start_time` datetime NOT NULL,
+        `finish_time` datetime NOT NULL,
+        `count_to_scan` int(11) DEFAULT NULL,
+        `found_spam` int(11) DEFAULT NULL,
+        `found_bad` int(11) DEFAULT NULL,
+        PRIMARY KEY (`id`));';
+
+    apbct_activation__create_tables($sqls);
+
 }

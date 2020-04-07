@@ -1,4 +1,4 @@
-# Spam protection, AntiSpam, FireWall by CleanTalk
+# Spam protection, AntiSpam, FireWall by CleanTalk 
 
 [![Build Status](https://travis-ci.org/CleanTalk/wordpress-antispam.svg?branch=master)](https://travis-ci.org/CleanTalk/wordpress-antispam)
 

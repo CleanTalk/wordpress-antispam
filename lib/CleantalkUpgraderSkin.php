@@ -28,7 +28,7 @@ class CleantalkUpgraderSkin extends WP_Upgrader_Skin
 	 *
 	 * @param string $string
 	 */
-	public function feedback($string) {	}
+	public function feedback( $string, ...$args ) {	}
 	
 	/**
 	 *

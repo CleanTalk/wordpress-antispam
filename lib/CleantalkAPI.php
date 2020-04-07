@@ -4,7 +4,7 @@
  * Class CleantalkAPI.
  * Compatible only with Wordpress.
  *
- * @depends       CleantalkBase\CleantalkAPI
+ * @depends       Cleantalk\Antispam\API
  * 
  * @version       1.0
  * @author        Cleantalk team (welcome@cleantalk.org)
@@ -12,7 +12,7 @@
  * @license       GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  * @see           https://github.com/CleanTalk/wordpress-antispam
  */
-class CleantalkAPI extends CleantalkBase\CleantalkAPI
+class CleantalkAPI extends Cleantalk\Antispam\API
 {
 	/**
 	 * Function sends raw request to API server.

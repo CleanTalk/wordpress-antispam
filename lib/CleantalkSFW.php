@@ -4,7 +4,7 @@
  * CleanTalk SpamFireWall Wordpress class
  * Compatible only with Wordpress.
  *
- * @depends       CleantalkBase\CleantalkSFW
+ * @depends       Cleantalk\Antispam\SFW
  *
  * @version       3.3
  * @author        Cleantalk team (welcome@cleantalk.org)
@@ -12,7 +12,7 @@
  * @license       GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  * @see           https://github.com/CleanTalk/wordpress-antispam
  */
-class CleantalkSFW extends CleantalkBase\CleantalkSFW
+class CleantalkSFW extends Cleantalk\Antispam\SFW
 {
 	/**
 	 * CleantalkSFW_Base constructor.
@@ -67,7 +67,7 @@ class CleantalkSFW extends CleantalkBase\CleantalkSFW
 			$sfw_die_page = file_get_contents(CLEANTALK_PLUGIN_DIR . "inc/sfw_die_page.html");
 
 			// Translation
-			$request_uri = $_SERVER['REQUEST_URI'];
+			$request_uri  = apbct_get_server_variable( 'REQUEST_URI' );
 			$sfw_die_page = str_replace('{SFW_DIE_NOTICE_IP}',              __('SpamFireWall is activated for your IP ', 'cleantalk'), $sfw_die_page);
 			$sfw_die_page = str_replace('{SFW_DIE_MAKE_SURE_JS_ENABLED}',   __('To continue working with web site, please make sure that you have enabled JavaScript.', 'cleantalk'), $sfw_die_page);
 			$sfw_die_page = str_replace('{SFW_DIE_CLICK_TO_PASS}',          __('Please click below to pass protection,', 'cleantalk'), $sfw_die_page);
@@ -98,24 +98,29 @@ class CleantalkSFW extends CleantalkBase\CleantalkSFW
 			$sfw_die_page = str_replace('{COOKIE_PREFIX}',  $cookie_prefix,                  $sfw_die_page);
 			$sfw_die_page = str_replace('{COOKIE_DOMAIN}',  $cookie_domain,                  $sfw_die_page);
 			$sfw_die_page = str_replace('{SERVICE_ID}',     $apbct->data['service_id'],      $sfw_die_page);
-			$sfw_die_page = str_replace('{HOST}',           $_SERVER['HTTP_HOST'],           $sfw_die_page);
+			$sfw_die_page = str_replace('{HOST}',           apbct_get_server_variable( 'HTTP_HOST' ),           $sfw_die_page);
 			
 			$sfw_die_page = str_replace(
 				'{SFW_COOKIE}',
 				$this->test
 					? $this->all_ips['sfw_test']['ip']
-					: md5(current(end($this->blocked_ips)).$api_key), $sfw_die_page
+					: md5(current(end($this->blocked_ips)).$api_key),
+				$sfw_die_page
 			);
 			
 			if($this->debug){
 				$debug = '<h1>IP and Networks</h1>'
 					. var_export($this->all_ips, true)
+					.'<h1>Blocked IPs</h1>'
+			        . var_export($this->passed_ips, true)
+			        .'<h1>Passed IPs</h1>'
+			        . var_export($this->blocked_ips, true)
 					. '<h1>Headers</h1>'
 					. var_export(apache_request_headers(), true)
 					. '<h1>REMOTE_ADDR</h1>'
-					. var_export($_SERVER['REMOTE_ADDR'], true)
+					. var_export(apbct_get_server_variable( 'REMOTE_ADDR' ), true)
 					. '<h1>SERVER_ADDR</h1>'
-					. var_export($_SERVER['SERVER_ADDR'], true)
+					. var_export(apbct_get_server_variable( 'REMOTE_ADDR' ), true)
 					. '<h1>IP_ARRAY</h1>'
 					. var_export($this->ip_array, true)
 					. '<h1>ADDITIONAL</h1>'

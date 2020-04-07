@@ -1,6 +1,6 @@
 <?php
 
-namespace CleantalkBase;
+namespace Cleantalk\Antispam;
 
 /**
  * CleanTalk abstract Data Base driver.
@@ -14,7 +14,7 @@ namespace CleantalkBase;
  * @see https://github.com/CleanTalk/php-antispam
 */
 
-class CleantalkDB
+class DB
 {
 	
 	private static $instance;

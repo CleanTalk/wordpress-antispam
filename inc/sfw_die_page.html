@@ -22,18 +22,23 @@
 		}
 	</style>
 	<script>
-		var reload_timeout = 1000;
 		var ct_date = new Date;
+
 		function set_spamFireWallCookie(cookie_name, cookie_value) {
 			var date = new Date;
 			date.setDate(date.getDate() + 30);
 			document.cookie = cookie_name + '=' + escape(cookie_value) + '; path=/; domain={COOKIE_DOMAIN}; expires=' + date.toUTCString();
 			return null;
 		}
+
 		function get_current_url() {
 			document.write(window.location.href);
 			return null;
 		}
+
+		set_spamFireWallCookie('{COOKIE_PREFIX}ct_sfw_pass_key','{SFW_COOKIE}');
+		set_spamFireWallCookie('{COOKIE_PREFIX}ct_sfw_passed','1');
+
 	</script>
 </head>
 
@@ -66,21 +71,13 @@
 		<a href='https://cleantalk.org' target='_blank'>{CLEANTALK_TITLE}</a>
     </div>
     <script type='text/javascript'>
-        document.getElementById('js_info').style.display = 'none';
-        document.getElementById('js_passed').style.display = 'block';
-		
-        document.getElementById('curr_date').innerHTML = ct_date.toGMTString();
-		
-		if(location.search.search('debug=1') === -1){
-			setTimeout(function(){
-				window.location.href = window.location.origin + window.location.pathname + '?sfw=pass' + Math.round(ct_date.getTime()/1000);
-			}, reload_timeout);
+		document.getElementById('js_info').style.display = 'none';
+		document.getElementById('js_passed').style.display = 'block';
+		document.getElementById('curr_date').innerHTML = ct_date.toGMTString();
+
+		if(location.search.search('debug=1') === -1) {
+			window.location.href = window.location.origin + window.location.pathname + '?sfw=pass' + Math.round(ct_date.getTime() / 1000);
 		}
-		
-		setTimeout(function(){
-			set_spamFireWallCookie('{COOKIE_PREFIX}ct_sfw_pass_key','{SFW_COOKIE}');
-			set_spamFireWallCookie('{COOKIE_PREFIX}ct_sfw_passed','1');
-		}, 50);
     </script>
 	{DEBUG}
 </body>

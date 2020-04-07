@@ -71,7 +71,7 @@ function apbct_wp_validate_auth_cookie( $cookie = '', $scheme = '' ) {
 	$expiration = $cookie_elements['expiration'];
 	
 	// Allow a grace period for POST and Ajax requests
-	$expired = apbct_is_ajax() || 'POST' == $_SERVER['REQUEST_METHOD']
+	$expired = apbct_is_ajax() || apbct_is_post()
 		? $expiration + HOUR_IN_SECONDS
 		: $cookie_elements['expiration'];
 	
@@ -214,8 +214,9 @@ function apbct_is_ajax() {
 	
 	return
 		(defined( 'DOING_AJAX' ) && DOING_AJAX) || // by standart WP functions
-		(!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') || // by Request type
-		!empty($_POST['quform_ajax']); // special. QForms
+		(apbct_get_server_variable( 'HTTP_X_REQUESTED_WITH' ) && strtolower(apbct_get_server_variable( 'HTTP_X_REQUESTED_WITH' )) == 'xmlhttprequest') || // by Request type
+		!empty($_POST['quform_ajax']) || // special. QForms
+		!empty($_POST['iphorm_ajax']); // special. IPHorm
 	
 }
 
@@ -225,5 +226,63 @@ function apbct_is_ajax() {
  * @return bool
  */
 function apbct_is_user_logged_in(){
-	return count($_COOKIE) && defined('LOGGED_IN_COOKIE') && isset($_COOKIE[LOGGED_IN_COOKIE]);
+	$siteurl = get_site_option( 'siteurl' );
+	$cookiehash = $siteurl ? md5( $siteurl ) : '';
+	return count($_COOKIE) && isset($_COOKIE['wordpress_logged_in_'.$cookiehash]);
+}
+
+/*
+ * GETTING SERVER VARIABLES BY VARIOUS WAYS
+ */
+function apbct_get_server_variable( $server_variable_name ){
+	
+	$var_name = strtoupper( $server_variable_name );
+	
+	if( function_exists( 'filter_input' ) )
+		$value = filter_input( INPUT_SERVER, $var_name );
+	
+	if( empty( $value ) )
+		$value = isset( $_SERVER[ $var_name ] ) ? $_SERVER[ $var_name ]	: '';
+	
+	// Convert to upper case for REQUEST_METHOD
+	if( in_array( $server_variable_name, array( 'REQUEST_METHOD' ) ) )
+		$value = strtoupper( $value );
+	
+	// Convert HTML chars for HTTP_USER_AGENT, HTTP_USER_AGENT, SERVER_NAME
+	if( in_array( $server_variable_name, array( 'HTTP_USER_AGENT', 'HTTP_USER_AGENT', 'SERVER_NAME' ) ) )
+		$value = htmlspecialchars( $value );
+	
+	return $value;
+}
+
+function apbct_is_post(){
+    return apbct_get_server_variable('REQUEST_METHOD') === 'POST';
+}
+
+function apbct_is_get(){
+    return apbct_get_server_variable('REQUEST_METHOD') === 'GET';
+}
+
+function apbct_is_in_referer( $str ){
+    return stripos( apbct_get_server_variable('HTTP_REFERER'), $str ) !== false;
+}
+
+function apbct_is_in_uri( $str ){
+    return stripos( apbct_get_server_variable('REQUEST_URI'), $str ) !== false;
+}
+
+/*
+ * Checking if current request is a cron job
+ * Support for wordpress < 4.8.0
+ *
+ * @return bool
+ */
+function apbct_wp_doing_cron() {
+
+    if( function_exists( 'wp_doing_cron' ) ) {
+        return wp_doing_cron();
+    } else {
+        return ( defined( 'DOING_CRON' ) && DOING_CRON );
+    }
+
 }
