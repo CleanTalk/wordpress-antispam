@@ -1443,7 +1443,7 @@ function apbct_settings__sanitize__exclusions($exclusions, $regexp = false){
 	if( ! empty( $exclusions ) ){
 		$exclusions = explode( ',', $exclusions );
 		foreach ( $exclusions as $exclusion ){
-			$sanitized_exclusion = trim( $exclusion );
+			$sanitized_exclusion = preg_replace( '/[<"\'>]/', '', trim( $exclusion ) );
 			if ( ! empty( $sanitized_exclusion ) ) {
 				if( $regexp && ! apbct_is_regexp( $exclusion ) )
 					return false;
