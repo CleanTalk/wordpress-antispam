@@ -1256,6 +1256,11 @@ function apbct_settings__validate($settings) {
 	$settings['apikey'] = is_main_site() || !$settings['white_label']        ? $settings['apikey']        : $apbct->settings['apikey'];
 	$settings['apikey'] = strpos($settings['apikey'], '*') === false ? $settings['apikey']        : $apbct->settings['apikey'];
 	
+	// Sanitize settings value
+	foreach ($settings as &$setting ){
+		$setting = preg_replace( '/[<"\'>]/', '', $setting ); // Make HTML code inactive
+	}
+	
 	// Validate Exclusions
 	// URLs
 	$result  = apbct_settings__sanitize__exclusions($settings['exclusions__urls'],   $settings['exclusions__urls__use_regexp']);
@@ -1443,7 +1448,7 @@ function apbct_settings__sanitize__exclusions($exclusions, $regexp = false){
 	if( ! empty( $exclusions ) ){
 		$exclusions = explode( ',', $exclusions );
 		foreach ( $exclusions as $exclusion ){
-			$sanitized_exclusion = preg_replace( '/[<"\'>]/', '', trim( $exclusion ) );
+			$sanitized_exclusion = trim( $exclusion );
 			if ( ! empty( $sanitized_exclusion ) ) {
 				if( $regexp && ! apbct_is_regexp( $exclusion ) )
 					return false;
