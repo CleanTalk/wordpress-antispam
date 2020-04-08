@@ -1256,9 +1256,10 @@ function apbct_settings__validate($settings) {
 	$settings['apikey'] = is_main_site() || !$settings['white_label']        ? $settings['apikey']        : $apbct->settings['apikey'];
 	$settings['apikey'] = strpos($settings['apikey'], '*') === false ? $settings['apikey']        : $apbct->settings['apikey'];
 	
-	// Sanitize settings value
+	// Sanitize setting values
 	foreach ($settings as &$setting ){
-		$setting = preg_replace( '/[<"\'>]/', '', $setting ); // Make HTML code inactive
+		if( is_scalar( $setting ) )
+			$setting = preg_replace( '/[<"\'>]/', '', trim( $setting ) ); // Make HTML code inactive
 	}
 	
 	// Validate Exclusions
