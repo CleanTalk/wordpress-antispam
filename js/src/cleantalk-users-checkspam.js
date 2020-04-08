@@ -312,7 +312,7 @@ function ct_start_check( continue_check ){
 
 }
 
-function ct_delete_all_users( e ){
+function ct_delete_all_users( e, data ){
 
 	jQuery('.' + e.target.id).addClass('disabled');
 	jQuery('.spinner').css('visibility', 'visible');
@@ -494,7 +494,7 @@ jQuery(document).ready(function(){
 			'security': ct_ajax_nonce
 		};
 
-		ct_delete_all_users( e );
+		ct_delete_all_users( e, data );
 
 	});
 
