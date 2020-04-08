@@ -566,6 +566,9 @@ If your website has forms that send data to external sources, you can enable opt
 
 == Changelog ==
 
+= 5.136.4 April 8 2020 =
+  * Security: Possible XSS vulnerability.
+
 = 5.136.3 April 7 2020 =
   * Security: Possible XSS vulnerability.
 
