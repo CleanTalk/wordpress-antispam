@@ -573,7 +573,12 @@ function apbct_integration__buddyPres__activityWall( $is_spam, $activity_obj = n
 
 	global $apbct;
 
-	if($activity_obj === null || $activity_obj->privacy == 'media' || !isset($_POST['action']) || $_POST['action'] && $_POST['action'] !== 'post_update') {
+	if( $activity_obj === null ||
+	    !isset($_POST['action']) ||
+	    $activity_obj->privacy == 'media' ||
+	    ( ! empty( $_POST['action'] ) && $_POST['action'] !== 'post_update' ) ||
+	    apbct_exclusions_check()
+	) {
         do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
         return false;
     }
@@ -641,7 +646,10 @@ function apbct_integration__buddyPres__private_msg_check( $bp_message_obj){
 	global $apbct;
 
 	//Check for enabled option
-	if($apbct->settings['bp_private_messages'] == 0) {
+	if(
+		$apbct->settings['bp_private_messages'] == 0 ||
+		apbct_exclusions_check()
+	) {
         do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
 	    return;
     }
