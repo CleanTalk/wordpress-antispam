@@ -488,6 +488,16 @@ jQuery(document).ready(function(){
 		});
 	});
 
+	// Delete inserted users
+	jQuery(".ct_insert_users").click(function( e ){
+		ct_insert_users();
+	});
+
+	// Insert users
+	jQuery(".ct_insert_users__delete").click(function( e ){
+		ct_insert_users( true );
+	});
+
 	// Delete all spam users
 	jQuery(".ct_delete_all_users").click(function( e ){
 
@@ -497,5 +507,30 @@ jQuery(document).ready(function(){
 		ct_delete_all_users( e );
 
 	});
+
+	function ct_insert_users(delete_accounts){
+
+		delete_accounts = delete_accounts || null;
+
+		var data = {
+			'action': 'ajax_insert_users',
+			'security': ct_ajax_nonce
+		};
+
+		if(delete_accounts)
+			data['delete'] = true;
+
+		jQuery.ajax({
+			type: "POST",
+			url: ajaxurl,
+			data: data,
+			success: function(msg){
+				if(delete_accounts)
+					alert('Deleted ' + msg + ' users');
+				else
+					alert('Inserted ' + msg + ' users');
+			}
+		});
+	}
 
 });

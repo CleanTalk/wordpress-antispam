@@ -47,6 +47,9 @@ add_action( 'wp_ajax_ajax_check_comments',    array( 'ClassCleantalkFindSpamComm
 add_action( 'wp_ajax_ajax_info_comments',     array( 'ClassCleantalkFindSpamCommentsChecker', 'ct_ajax_info' ) );
 add_action( 'wp_ajax_ajax_delete_all',        array( 'ClassCleantalkFindSpamCommentsChecker', 'ct_ajax_delete_all' ) );
 
+// Debug
+add_action( 'wp_ajax_ajax_insert_users',  array( 'ClassCleantalkFindSpamUsersChecker', 'ct_ajax_insert_users' ) );
+
 // Hook for saving "per_page" option
 add_action( 'wp_loaded', 'ct_save_screen_option' );
 function ct_save_screen_option() {

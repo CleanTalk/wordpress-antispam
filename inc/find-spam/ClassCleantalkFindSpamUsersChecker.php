@@ -532,7 +532,70 @@ class ClassCleantalkFindSpamUsersChecker extends ClassCleantalkFindSpamChecker
         die();
 
     }
-
+	
+	public static function ct_ajax_insert_users()
+	{
+	
+		check_ajax_referer( 'ct_secret_nonce', 'security' );
+		
+		//* DELETION
+		if(!empty($_POST['delete'])){
+			$users = get_users(array('search' => 'user_*', 'search_columns' => array('login', 'nicename')));
+			$deleted = 0;
+			$amount_to_delete = 1000;
+			foreach($users as $user){
+				if($deleted >= $amount_to_delete)
+					break;
+				if(wp_delete_user($user->ID))
+					$deleted++;
+			}
+			print "$deleted";
+			die();
+		}
+		//*/
+		
+		//* INSERTION
+		global $wpdb;
+		$to_insert = 500;
+		$result = $wpdb->get_results('SELECT network FROM `'. APBCT_TBL_FIREWALL_DATA .'` LIMIT '. $to_insert .';', ARRAY_A);
+		
+		if($result){
+			$ip = array();
+			foreach($result as $value){
+				$ips[] = long2ip($value['network']);
+			}
+			unset($value);
+			
+			$inserted = 0;
+			for($i=0; $i<$to_insert; $i++){
+				$rnd=mt_rand(1,10000000);
+				
+				$user_name = "user_$rnd";
+				$email="stop_email_$rnd@example.com";
+				
+				$user_id = wp_create_user(
+					$user_name,
+					rand(),
+					$email
+				);
+				
+				$curr_user = get_user_by('email', $email);
+				
+				update_user_meta($curr_user->ID, 'session_tokens', array($rnd => array('ip' => $ips[$i])));
+				
+				if (is_int($user_id))
+					$inserted++;
+				
+			}
+		}else{
+			$inserted = '0';
+		}
+		//*/
+		
+		print "$inserted";
+		die();
+	}
+    
     public static function ct_ajax_delete_all_users($count_all = 0)
     {
         check_ajax_referer( 'ct_secret_nonce', 'security' );
