@@ -312,7 +312,12 @@ function ct_start_check( continue_check ){
 
 }
 
-function ct_delete_all_users( e, data ){
+function ct_delete_all_users( e ){
+
+	var data = {
+		'action': 'ajax_delete_all_users',
+		'security': ct_ajax_nonce
+	};
 
 	jQuery('.' + e.target.id).addClass('disabled');
 	jQuery('.spinner').css('visibility', 'visible');
@@ -323,7 +328,7 @@ function ct_delete_all_users( e, data ){
 		success: function( msg ){
 			if( msg > 0 ){
 				jQuery('#cleantalk_users_left').html(msg);
-				ct_delete_all_users( e );
+				ct_delete_all_users( e, data );
 			}else{
 				jQuery('.' + e.target.id).removeClass('disabled');
 				jQuery('.spinner').css('visibility', 'hidden');
@@ -489,12 +494,7 @@ jQuery(document).ready(function(){
 		if ( ! confirm( ctUsersCheck.ct_confirm_deletion_all ) )
 			return false;
 
-		var data = {
-			'action': 'ajax_delete_all_users',
-			'security': ct_ajax_nonce
-		};
-
-		ct_delete_all_users( e, data );
+		ct_delete_all_users( e );
 
 	});
 
