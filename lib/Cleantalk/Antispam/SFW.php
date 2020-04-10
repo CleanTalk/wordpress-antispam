@@ -205,7 +205,7 @@ class SFW
 			//Checking answer and deleting all lines from the table
 			if(empty($result['error'])){
 				if($result['rows'] == count($data)){
-					$this->db->execute("DELETE FROM ".$this->log_table.";");
+					$this->db->execute("TRUNCATE TABLE ".$this->log_table.";");
 					return $result;
 				}
 				return array('error' => 'SENT_AND_RECEIVED_LOGS_COUNT_DOESNT_MACH');
@@ -249,7 +249,7 @@ class SFW
 
 							if(!$immediate) $pattenrs[] = 'async';		
 
-							$this->db->execute("DELETE FROM ".$this->data_table.";");	
+							$this->db->execute("TRUNCATE TABLE ".$this->data_table.";");
 
 							if (preg_match('/multifiles/', $result['file_url'])) {
 								
