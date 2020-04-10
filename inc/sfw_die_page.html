@@ -27,7 +27,7 @@
 		function set_spamFireWallCookie(cookie_name, cookie_value) {
 			var date = new Date;
 			date.setDate(date.getDate() + 30);
-			document.cookie = cookie_name + '=' + escape(cookie_value) + '; path=/; domain={COOKIE_DOMAIN}; expires=' + date.toUTCString();
+			document.cookie = cookie_name + '=' + escape(cookie_value) + '; path=/; expires=' + date.toUTCString();
 			return null;
 		}
 
