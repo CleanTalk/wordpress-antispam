@@ -45,7 +45,7 @@ class ABPCTUsersListTableSpam extends ABPCTUsersListTable
     }
 
     function extra_tablenav( $which ) {
-        if( \CleantalkSP\Variables\Server::get('SERVER_ADDR') === '127.0.0.1' ){
+        if( isset( $_SERVER['SERVER_ADDR'] ) && $_SERVER['SERVER_ADDR'] === '127.0.0.1' ){
         ?>
             <button type="button" class="button action ct_insert_users">Insert users</button>
             <button type="button" class="button action ct_insert_users__delete">Delete inserted</button>
