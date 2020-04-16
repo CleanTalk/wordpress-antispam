@@ -299,6 +299,7 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 	    'check_email', //Ajax email checking
 	    'dflg_do_sign_in_user', // Unknown plugin
 	    'cartflows_save_cart_abandonment_data', // WooCommerce cartflow
+	    'rcp_process_register_form', // WordPress Membership Plugin – Restrict Content
     );
     
     // Skip test if
