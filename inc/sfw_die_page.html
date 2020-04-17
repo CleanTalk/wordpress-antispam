@@ -71,12 +71,15 @@
 
 	</script>
     <script type='text/javascript'>
+		var reload_timeout = 3000;
 		document.getElementById('js_info').style.display = 'none';
 		document.getElementById('js_passed').style.display = 'block';
 		document.getElementById('curr_date').innerHTML = ct_date.toGMTString();
 
 		if(location.search.search('debug=1') === -1) {
-			window.location.href = window.location.origin + window.location.pathname + '?sfw=pass' + Math.round(ct_date.getTime() / 1000);
+			setTimeout(function(){
+				window.location.href = window.location.origin + window.location.pathname + '?sfw=pass' + Math.round(ct_date.getTime()/1000);
+			}, reload_timeout);
 		}
     </script>
 	{DEBUG}
