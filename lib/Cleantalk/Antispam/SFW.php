@@ -113,14 +113,20 @@ class SFW
 	public function ip_check()
 	{
 		foreach($this->ip_array as $origin => $current_ip){
-			
-			$query = "SELECT 
+
+			$current_ip_v4 = sprintf("%u", ip2long($current_ip));
+			for ( $needles = array(), $m = 15; $m <= 32; $m ++ ) {
+				$mask      = sprintf( "%u", ip2long( long2ip( - 1 << ( 32 - (int) $m ) ) ) );
+				$needles[] = bindec( decbin( $mask ) & decbin( $current_ip_v4 ) );
+			}
+			$needles = array_unique( $needles );
+
+			$query = "SELECT
 				COUNT(network) AS cnt, network, mask
 				FROM ".$this->data_table."
-				WHERE network = ".sprintf("%u", ip2long($current_ip))." & mask;";
-			
+				WHERE network IN (". implode( ',', $needles ) .");";
 			$this->db->set_query($query)->fetch();
-			
+
 			if($this->db->result['cnt']){
 				$this->pass = false;
 				$this->blocked_ips[$origin] = array(
