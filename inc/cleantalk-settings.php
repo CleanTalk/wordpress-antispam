@@ -439,13 +439,13 @@ function apbct_settings__set_fileds__network( $fields ){
 				'white_label' => array(
 					'type' => 'checkbox',
 					'title' => __('Enable White Label Mode', 'cleantalk'),
-					'description' => sprintf(__("Learn more information %shere%s.", 'cleantalk'), '<a tearget="_blank" href="https://cleantalk.org/ru/help/hosting-white-label">', '</a>'),
-					'childrens' => array('white_label__hoster_key', 'white_label__plugin_name', 'allow_custom_key', 'allow_custom_settings'),
+					'description' => sprintf(__("Learn more information %shere%s.", 'cleantalk'), '<a target="_blank" href="https://cleantalk.org/ru/help/hosting-white-label">', '</a>'),
+					'childrens' => array( 'white_label__hoster_key', 'white_label__plugin_name', 'allow_custom_key', ),
 					'network' => true,
 				),
 				'white_label__hoster_key' => array(
 					'title' => __('Hoster API Key', 'cleantalk'),
-					'description' => sprintf(__("You can get it in %sCleantalk's Control Panel%s", 'cleantalk'), '<a tearget="_blank" href="https://cleantalk.org/my/?cp_mode=hosting-antispam">', '</a>'),
+					'description' => sprintf(__("You can get it in %sCleantalk's Control Panel%s", 'cleantalk'), '<a target="_blank" href="https://cleantalk.org/my/?cp_mode=hosting-antispam">', '</a>'),
 					'type' => 'text',
 					'parent' => 'white_label',
 					'class' => 'apbct_settings-field_wrapper--sub',
@@ -480,7 +480,6 @@ function apbct_settings__set_fileds__network( $fields ){
 					'title'          => __('Allow users to manage plugin settings', 'cleantalk'),
 					'description'    => __('Allow to change settings on child sites.', 'cleantalk'),
 					'display'        => APBCT_WPMS && is_main_site(),
-					'disabled'       => $apbct->network_settings['white_label'],
 					'network'        => true,
 				),
 			)
