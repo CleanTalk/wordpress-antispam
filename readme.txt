@@ -4,7 +4,7 @@ Tags: spam, antispam, woocommerce, comments, firewall
 Requires at least: 3.0
 Tested up to: 5.4
 Requires PHP: 5.4
-Stable tag: 5.136.3
+Stable tag: 5.137
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -565,6 +565,18 @@ If your website has forms that send data to external sources, you can enable opt
 10. Website's options.
 
 == Changelog ==
+
+= 5.137 April 22 2020 =
+  * Fix: 403 Response code for blocked entries.
+  * Upd: SFW die page updated (spinner and delay).
+  * New: SFW query updated.
+  * Fix: SFW truncate instead of delete.
+  * Fix: AJAX exception for WordPress Membership Plugin – Restrict Content.
+  * Fix: Check spam users.
+  * Fix: Debug functionality for users check.
+  * Fix: Gravity Forms. Modifying message.
+  * Fix: Sanitizing settings.
+  * Fix: "Delete all spam users" button.
 
 = 5.136.4 April 8 2020 =
   * Security: Possible XSS vulnerability.
