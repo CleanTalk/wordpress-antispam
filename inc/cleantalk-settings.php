@@ -779,8 +779,8 @@ function apbct_settings__field__state(){
 	$img_no = $path_to_img."no.png";
 	$img_no_gray = $path_to_img."no_gray.png";
 	$color="black";
-	
-	if(!$apbct->key_is_ok){
+
+	if( ! $apbct->key_is_ok && ( $apbct->white_label && ! $apbct->network_data['key_is_ok'] ) ){
 		$img=$path_to_img."no.png";
 		$img_no=$path_to_img."no.png";
 		$color="black";
@@ -798,7 +798,7 @@ function apbct_settings__field__state(){
 		$color="black";
 	}
 	
-	if($apbct->moderate == 0){
+	if( $apbct->moderate == 0 && ( $apbct->white_label && ! $apbct->network_data['moderate'] ) ){
 		$img = $path_to_img."no.png";
 		$img_no = $path_to_img."no.png";
 		$color="black";
