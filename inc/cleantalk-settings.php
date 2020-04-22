@@ -772,6 +772,8 @@ function apbct_settings__field__debug(){
 function apbct_settings__field__state(){
 	
 	global $apbct;
+
+	error_log(var_export($apbct,1));
 	
 	$path_to_img = plugin_dir_url(__FILE__) . "images/";
 	
@@ -1235,6 +1237,10 @@ function apbct_settings__validate($settings) {
 	// If user is not allowed to manage settings. Get settings from the storage
 	if( ! is_main_site() && ! $apbct->network_settings['allow_custom_settings'] ){
 		foreach ($apbct->settings as $key => $setting){
+			// Allow to save setting API key
+			if( 'apikey' == $key ) {
+				continue;
+			}
 			$settings[ $key ] = $setting;
 		}
 	}
