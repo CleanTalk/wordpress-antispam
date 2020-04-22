@@ -1233,7 +1233,7 @@ function apbct_settings__validate($settings) {
 	global $apbct;
 	
 	// If user is not allowed to manage settings. Get settings from the storage
-	if( ! is_main_site() && ! $apbct->network_settings['allow_custom_settings'] ){
+	if( ! is_main_site() && ( ! $apbct->network_settings['allow_custom_settings'] || $apbct->white_label ) ){
 		foreach ($apbct->settings as $key => $setting){
 			$settings[ $key ] = $setting;
 		}
