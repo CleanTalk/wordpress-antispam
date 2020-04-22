@@ -780,7 +780,7 @@ function apbct_settings__field__state(){
 	$img_no_gray = $path_to_img."no_gray.png";
 	$color="black";
 
-	if( ! $apbct->key_is_ok && ( $apbct->white_label && ! $apbct->network_data['key_is_ok'] ) ){
+	if( ! $apbct->key_is_ok ){
 		$img=$path_to_img."no.png";
 		$img_no=$path_to_img."no.png";
 		$color="black";
@@ -798,7 +798,7 @@ function apbct_settings__field__state(){
 		$color="black";
 	}
 	
-	if( $apbct->moderate == 0 && ( $apbct->white_label && ! $apbct->network_data['moderate'] ) ){
+	if( $apbct->moderate == 0 ){
 		$img = $path_to_img."no.png";
 		$img_no = $path_to_img."no.png";
 		$color="black";
@@ -1235,10 +1235,6 @@ function apbct_settings__validate($settings) {
 	// If user is not allowed to manage settings. Get settings from the storage
 	if( ! is_main_site() && ! $apbct->network_settings['allow_custom_settings'] ){
 		foreach ($apbct->settings as $key => $setting){
-			// Allow to save setting API key
-			if( 'apikey' == $key ) {
-				continue;
-			}
 			$settings[ $key ] = $setting;
 		}
 	}
