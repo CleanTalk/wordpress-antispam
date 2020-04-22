@@ -772,8 +772,6 @@ function apbct_settings__field__debug(){
 function apbct_settings__field__state(){
 	
 	global $apbct;
-
-	error_log(var_export($apbct,1));
 	
 	$path_to_img = plugin_dir_url(__FILE__) . "images/";
 	
