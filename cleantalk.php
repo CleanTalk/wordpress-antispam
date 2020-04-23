@@ -1723,7 +1723,7 @@ function ct_account_status_check($api_key = null, $process_errors = true){
 	$result = CleantalkAPI::method__notice_paid_till(
 		$api_key,
 		preg_replace('/http[s]?:\/\//', '', get_option('siteurl'), 1),
-		'antispam'
+		! is_main_site() && $apbct->white_label ? 'anti-spam-hosting' : 'antispam'
 	);
 	
 	if(empty($result['error']) || !empty($result['valid'])){

@@ -1233,7 +1233,7 @@ function apbct_settings__validate($settings) {
 	global $apbct;
 	
 	// If user is not allowed to manage settings. Get settings from the storage
-	if( ! is_main_site() && ( ! $apbct->network_settings['allow_custom_settings'] || $apbct->white_label ) ){
+	if( ! is_main_site() && ( ! $apbct->network_settings['allow_custom_settings'] ) ){
 		foreach ($apbct->settings as $key => $setting){
 			$settings[ $key ] = $setting;
 		}
@@ -1258,6 +1258,7 @@ function apbct_settings__validate($settings) {
 	// Validating API key
 	$settings['apikey'] = !empty($settings['apikey'])                                       ? trim($settings['apikey'])  : '';
 	$settings['apikey'] = defined( 'CLEANTALK_ACCESS_KEY')                           ? CLEANTALK_ACCESS_KEY       : $settings['apikey'];
+	$settings['apikey'] = ! is_main_site() && $apbct->white_label                           ? $apbct->settings['apikey'] : $settings['apikey'];
 	$settings['apikey'] = is_main_site() || $apbct->allow_custom_key || $apbct->white_label ? $settings['apikey']        : $apbct->network_settings['apikey'];
 	$settings['apikey'] = is_main_site() || !$settings['white_label']                       ? $settings['apikey']        : $apbct->settings['apikey'];
 	$settings['apikey'] = strpos($settings['apikey'], '*') === false                 ? $settings['apikey']        : $apbct->settings['apikey'];
@@ -1321,7 +1322,7 @@ function apbct_settings__validate($settings) {
 		$hoster_api_key = $apbct->network_settings['white_label__hoster_key'] ? $apbct->network_settings['white_label__hoster_key'] : '';
 		
 		$result = CleantalkAPI::method__get_api_key(
-			'antispam',
+			! is_main_site() && $apbct->white_label ? 'anti-spam-hosting' : 'antispam',
 			ct_get_admin_email(),
 			$website,
 			$platform,
