@@ -203,7 +203,7 @@ class API
 		
 		if($date) $request['date'] = $date;
 		
-		$result = static::send_request($request, self::URL, 10);
+		$result = static::send_request($request, self::URL, 20);
 		$result = $do_check ? static::check_response($result, 'spam_check_cms') : $result;
 		
 		return $result;
