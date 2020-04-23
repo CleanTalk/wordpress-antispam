@@ -314,6 +314,11 @@ function ct_start_check( continue_check ){
 
 function ct_delete_all_users( e ){
 
+	var data = {
+		'action': 'ajax_delete_all_users',
+		'security': ct_ajax_nonce
+	};
+
 	jQuery('.' + e.target.id).addClass('disabled');
 	jQuery('.spinner').css('visibility', 'visible');
 	jQuery.ajax({
@@ -323,7 +328,7 @@ function ct_delete_all_users( e ){
 		success: function( msg ){
 			if( msg > 0 ){
 				jQuery('#cleantalk_users_left').html(msg);
-				ct_delete_all_users( e );
+				ct_delete_all_users( e, data );
 			}else{
 				jQuery('.' + e.target.id).removeClass('disabled');
 				jQuery('.spinner').css('visibility', 'hidden');
@@ -483,19 +488,49 @@ jQuery(document).ready(function(){
 		});
 	});
 
+	// Delete inserted users
+	jQuery(".ct_insert_users").click(function( e ){
+		ct_insert_users();
+	});
+
+	// Insert users
+	jQuery(".ct_insert_users__delete").click(function( e ){
+		ct_insert_users( true );
+	});
+
 	// Delete all spam users
 	jQuery(".ct_delete_all_users").click(function( e ){
 
 		if ( ! confirm( ctUsersCheck.ct_confirm_deletion_all ) )
 			return false;
 
-		var data = {
-			'action': 'ajax_delete_all_users',
-			'security': ct_ajax_nonce
-		};
-
 		ct_delete_all_users( e );
 
 	});
+
+	function ct_insert_users(delete_accounts){
+
+		delete_accounts = delete_accounts || null;
+
+		var data = {
+			'action': 'ajax_insert_users',
+			'security': ct_ajax_nonce
+		};
+
+		if(delete_accounts)
+			data['delete'] = true;
+
+		jQuery.ajax({
+			type: "POST",
+			url: ajaxurl,
+			data: data,
+			success: function(msg){
+				if(delete_accounts)
+					alert('Deleted ' + msg + ' users');
+				else
+					alert('Inserted ' + msg + ' users');
+			}
+		});
+	}
 
 });

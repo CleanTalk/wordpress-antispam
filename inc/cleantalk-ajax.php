@@ -299,6 +299,7 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 	    'check_email', //Ajax email checking
 	    'dflg_do_sign_in_user', // Unknown plugin
 	    'cartflows_save_cart_abandonment_data', // WooCommerce cartflow
+	    'rcp_process_register_form', // WordPress Membership Plugin – Restrict Content
     );
     
     // Skip test if
@@ -742,7 +743,14 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 		}
 		else
 		{
-			die(json_encode(array('apbct' => array('blocked' => true, 'comment' => $ct_result->comment,))));
+			http_response_code( 403 );
+			die(json_encode(array( 'apbct' => array(
+					'blocked' => true,
+					'comment' => $ct_result->comment,
+					'stop_script' => \Cleantalk\Common\Post::has_string('action', 'tve_leads_ajax_')
+						? 1
+						: 0
+			))));
 		}
 	}
 	//Allow == 1

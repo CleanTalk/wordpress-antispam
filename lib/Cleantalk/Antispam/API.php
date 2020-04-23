@@ -149,8 +149,9 @@ class API
 		);
 		
 		$product_id = null;
-		$product_id = $product_name == 'antispam' ? 1 : $product_id;
-		$product_id = $product_name == 'security' ? 4 : $product_id;
+		$product_id = $product_name == 'antispam'            ? 1 : $product_id;
+		$product_id = $product_name == 'anti-spam-hosting'   ? 3 : $product_id;
+		$product_id = $product_name == 'security'            ? 4 : $product_id;
 		if($product_id)
 			$request['product_id'] = $product_id;
 		
@@ -202,7 +203,7 @@ class API
 		
 		if($date) $request['date'] = $date;
 		
-		$result = static::send_request($request, self::URL, 10);
+		$result = static::send_request($request, self::URL, 20);
 		$result = $do_check ? static::check_response($result, 'spam_check_cms') : $result;
 		
 		return $result;

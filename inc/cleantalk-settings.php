@@ -439,13 +439,13 @@ function apbct_settings__set_fileds__network( $fields ){
 				'white_label' => array(
 					'type' => 'checkbox',
 					'title' => __('Enable White Label Mode', 'cleantalk'),
-					'description' => sprintf(__("Learn more information %shere%s.", 'cleantalk'), '<a tearget="_blank" href="https://cleantalk.org/ru/help/hosting-white-label">', '</a>'),
-					'childrens' => array('white_label__hoster_key', 'white_label__plugin_name', 'allow_custom_key', 'allow_custom_settings'),
+					'description' => sprintf(__("Learn more information %shere%s.", 'cleantalk'), '<a target="_blank" href="https://cleantalk.org/ru/help/hosting-white-label">', '</a>'),
+					'childrens' => array( 'white_label__hoster_key', 'white_label__plugin_name', 'allow_custom_key', ),
 					'network' => true,
 				),
 				'white_label__hoster_key' => array(
 					'title' => __('Hoster API Key', 'cleantalk'),
-					'description' => sprintf(__("You can get it in %sCleantalk's Control Panel%s", 'cleantalk'), '<a tearget="_blank" href="https://cleantalk.org/my/?cp_mode=hosting-antispam">', '</a>'),
+					'description' => sprintf(__("You can get it in %sCleantalk's Control Panel%s", 'cleantalk'), '<a target="_blank" href="https://cleantalk.org/my/?cp_mode=hosting-antispam">', '</a>'),
 					'type' => 'text',
 					'parent' => 'white_label',
 					'class' => 'apbct_settings-field_wrapper--sub',
@@ -480,7 +480,6 @@ function apbct_settings__set_fileds__network( $fields ){
 					'title'          => __('Allow users to manage plugin settings', 'cleantalk'),
 					'description'    => __('Allow to change settings on child sites.', 'cleantalk'),
 					'display'        => APBCT_WPMS && is_main_site(),
-					'disabled'       => $apbct->network_settings['white_label'],
 					'network'        => true,
 				),
 			)
@@ -780,8 +779,8 @@ function apbct_settings__field__state(){
 	$img_no = $path_to_img."no.png";
 	$img_no_gray = $path_to_img."no_gray.png";
 	$color="black";
-	
-	if(!$apbct->key_is_ok){
+
+	if( ! $apbct->key_is_ok ){
 		$img=$path_to_img."no.png";
 		$img_no=$path_to_img."no.png";
 		$color="black";
@@ -799,7 +798,7 @@ function apbct_settings__field__state(){
 		$color="black";
 	}
 	
-	if($apbct->moderate == 0){
+	if( $apbct->moderate == 0 ){
 		$img = $path_to_img."no.png";
 		$img_no = $path_to_img."no.png";
 		$color="black";
@@ -1233,6 +1232,13 @@ function apbct_settings__validate($settings) {
 	
 	global $apbct;
 	
+	// If user is not allowed to manage settings. Get settings from the storage
+	if( ! is_main_site() && ( ! $apbct->network_settings['allow_custom_settings'] ) ){
+		foreach ($apbct->settings as $key => $setting){
+			$settings[ $key ] = $setting;
+		}
+	}
+	
 	// Set missing settings.
 	foreach($apbct->def_settings as $setting => $value){
 		if(!isset($settings[$setting])){
@@ -1250,11 +1256,18 @@ function apbct_settings__validate($settings) {
 	} unset($setting, $value);
 	
 	// Validating API key
-	$settings['apikey'] = !empty($settings['apikey'])                        ? trim($settings['apikey'])  : '';
-	$settings['apikey'] = defined('CLEANTALK_ACCESS_KEY')             ? CLEANTALK_ACCESS_KEY       : $settings['apikey'];
-	$settings['apikey'] = is_main_site() || $apbct->allow_custom_key         ? $settings['apikey']        : $apbct->network_settings['apikey'];
-	$settings['apikey'] = is_main_site() || !$settings['white_label']        ? $settings['apikey']        : $apbct->settings['apikey'];
-	$settings['apikey'] = strpos($settings['apikey'], '*') === false ? $settings['apikey']        : $apbct->settings['apikey'];
+	$settings['apikey'] = !empty($settings['apikey'])                                       ? trim($settings['apikey'])  : '';
+	$settings['apikey'] = defined( 'CLEANTALK_ACCESS_KEY')                           ? CLEANTALK_ACCESS_KEY       : $settings['apikey'];
+	$settings['apikey'] = ! is_main_site() && $apbct->white_label                           ? $apbct->settings['apikey'] : $settings['apikey'];
+	$settings['apikey'] = is_main_site() || $apbct->allow_custom_key || $apbct->white_label ? $settings['apikey']        : $apbct->network_settings['apikey'];
+	$settings['apikey'] = is_main_site() || !$settings['white_label']                       ? $settings['apikey']        : $apbct->settings['apikey'];
+	$settings['apikey'] = strpos($settings['apikey'], '*') === false                 ? $settings['apikey']        : $apbct->settings['apikey'];
+	
+	// Sanitize setting values
+	foreach ($settings as &$setting ){
+		if( is_scalar( $setting ) )
+			$setting = preg_replace( '/[<"\'>]/', '', trim( $setting ) ); // Make HTML code inactive
+	}
 	
 	// Validate Exclusions
 	// URLs
@@ -1309,7 +1322,7 @@ function apbct_settings__validate($settings) {
 		$hoster_api_key = $apbct->network_settings['white_label__hoster_key'] ? $apbct->network_settings['white_label__hoster_key'] : '';
 		
 		$result = CleantalkAPI::method__get_api_key(
-			'antispam',
+			! is_main_site() && $apbct->white_label ? 'anti-spam-hosting' : 'antispam',
 			ct_get_admin_email(),
 			$website,
 			$platform,

@@ -113,14 +113,20 @@ class SFW
 	public function ip_check()
 	{
 		foreach($this->ip_array as $origin => $current_ip){
-			
-			$query = "SELECT 
+
+			$current_ip_v4 = sprintf("%u", ip2long($current_ip));
+			for ( $needles = array(), $m = 15; $m <= 32; $m ++ ) {
+				$mask      = sprintf( "%u", ip2long( long2ip( - 1 << ( 32 - (int) $m ) ) ) );
+				$needles[] = bindec( decbin( $mask ) & decbin( $current_ip_v4 ) );
+			}
+			$needles = array_unique( $needles );
+
+			$query = "SELECT
 				COUNT(network) AS cnt, network, mask
 				FROM ".$this->data_table."
-				WHERE network = ".sprintf("%u", ip2long($current_ip))." & mask;";
-			
+				WHERE network IN (". implode( ',', $needles ) .");";
 			$this->db->set_query($query)->fetch();
-			
+
 			if($this->db->result['cnt']){
 				$this->pass = false;
 				$this->blocked_ips[$origin] = array(
@@ -205,7 +211,7 @@ class SFW
 			//Checking answer and deleting all lines from the table
 			if(empty($result['error'])){
 				if($result['rows'] == count($data)){
-					$this->db->execute("DELETE FROM ".$this->log_table.";");
+					$this->db->execute("TRUNCATE TABLE ".$this->log_table.";");
 					return $result;
 				}
 				return array('error' => 'SENT_AND_RECEIVED_LOGS_COUNT_DOESNT_MACH');
@@ -249,7 +255,7 @@ class SFW
 
 							if(!$immediate) $pattenrs[] = 'async';		
 
-							$this->db->execute("DELETE FROM ".$this->data_table.";");	
+							$this->db->execute("TRUNCATE TABLE ".$this->data_table.";");
 
 							if (preg_match('/multifiles/', $result['file_url'])) {
 								
