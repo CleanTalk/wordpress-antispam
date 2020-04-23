@@ -149,8 +149,9 @@ class API
 		);
 		
 		$product_id = null;
-		$product_id = $product_name == 'antispam' ? 1 : $product_id;
-		$product_id = $product_name == 'security' ? 4 : $product_id;
+		$product_id = $product_name == 'antispam'            ? 1 : $product_id;
+		$product_id = $product_name == 'anti-spam-hosting'   ? 3 : $product_id;
+		$product_id = $product_name == 'security'            ? 4 : $product_id;
 		if($product_id)
 			$request['product_id'] = $product_id;
 		
