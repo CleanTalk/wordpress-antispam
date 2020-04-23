@@ -411,3 +411,28 @@ function apbct_update_to_5_133_0() {
     apbct_activation__create_tables($sqls);
 
 }
+
+function apbct_update_to_5_137_1() {
+	
+	global $apbct;
+	
+	if( APBCT_WPMS && $apbct->white_label ) {
+		
+		$initial_blog = get_current_blog_id();
+		
+		if ( $initial_blog !== 1 && $apbct->settings[''] ) {
+			
+			$allow_custom_settings = $apbct->network_settings['allow_custom_settings'];
+			$apbct->network_settings['allow_custom_settings'] = 1;
+			
+			switch_to_blog( 1 );
+			$main_blog_settings = get_option( 'cleantalk_settings' );
+			switch_to_blog( $initial_blog );
+			
+			update_option( 'cleantalk_settings', $main_blog_settings );
+			
+			$apbct->network_settings['allow_custom_settings'] = $allow_custom_settings;
+			
+		}
+	}
+}
