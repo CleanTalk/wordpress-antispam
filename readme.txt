@@ -566,7 +566,8 @@ If your website has forms that send data to external sources, you can enable opt
 
 == Changelog ==
 
-= 5.137 April 22 2020 =
+= 5.137 April 23 2020 =
+  * Fix: WPMU and WhiteLabel mode fixed.
   * Fix: 403 Response code for blocked entries.
   * Upd: SFW die page updated (spinner and delay).
   * New: SFW query updated.
