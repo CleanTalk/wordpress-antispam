@@ -951,7 +951,7 @@ function ct_sfw_update($immediate = false){
 						$apbct->save('stats');
 					}
 				} else 
-					return array('error' => 'ERROR_WHILE_INSERTING_SFW_DATA');
+					return $result;
 			} 
 		}	
 
