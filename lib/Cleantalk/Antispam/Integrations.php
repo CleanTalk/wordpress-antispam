@@ -25,7 +25,7 @@ class Integrations
         }
     }
 
-    public function checkSpam()
+    public function checkSpam( $argument )
     {
         global $cleantalk_executed;
 
@@ -42,7 +42,7 @@ class Integrations
                     return;
                 }
                 // Run data collecting for spam checking
-                $data = $this->integration->getDataForChecking();
+                $data = $this->integration->getDataForChecking( $argument );
                 if( ! is_null( $data ) ) {
                     // Go spam checking
                     $base_call_result = apbct_base_call(

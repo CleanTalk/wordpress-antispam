@@ -7,7 +7,7 @@ namespace Cleantalk\Antispam\Integrations;
 class FluentForm extends IntegrationBase
 {
 
-    function getDataForChecking()
+    function getDataForChecking( $argument )
     {
         if( isset( $_POST['data'] ) ) {
             parse_str( $_POST['data'], $form_data );

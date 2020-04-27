@@ -7,7 +7,7 @@ namespace Cleantalk\Antispam\Integrations;
 class ContactBank extends IntegrationBase
 {
 
-    function getDataForChecking()
+    function getDataForChecking( $argument )
     {
         if( isset( $_REQUEST['param'] ) ) {
             parse_str( isset( $_REQUEST['data'] ) ? base64_decode( $_REQUEST['data'] ) : '', $form_data );
