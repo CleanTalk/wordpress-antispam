@@ -1173,9 +1173,9 @@ function apbct_comment__sanitize_data__before_wp_die($function){
 
 	if(isset($comment_content, $comment_parent)){
 
-		$user = wp_get_current_user();
+		$user = function_exists('apbct_wp_get_current_user') ? apbct_wp_get_current_user() : null;
 
-		if($user->exists()){
+		if($user && $user->exists()){
 			$comment_author       = empty($user->display_name) ? $user->user_login : $user->display_name;
 			$comment_author_email = $user->user_email;
 			$comment_author_url   = $user->user_url;
