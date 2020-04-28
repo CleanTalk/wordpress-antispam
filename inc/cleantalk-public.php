@@ -37,19 +37,22 @@ function apbct_init() {
 
 		// Fixing form and directs it this site
 		if($apbct->settings['check_external__capture_buffer'] && !is_admin() && !apbct_is_ajax() && !apbct_is_post() && apbct_is_user_enable() && !(defined('DOING_CRON') && DOING_CRON) && !(defined('XMLRPC_REQUEST') && XMLRPC_REQUEST)){
-			$catch_buffer = defined('CLEANTALK_CAPTURE_BUFFER_SPECIFIC_URL') ? false : true;
 			
 			if (defined('CLEANTALK_CAPTURE_BUFFER_SPECIFIC_URL') && is_string(CLEANTALK_CAPTURE_BUFFER_SPECIFIC_URL)) {
+				$catch_buffer = false;
 				$urls = explode(',', CLEANTALK_CAPTURE_BUFFER_SPECIFIC_URL);
 				foreach ($urls as $url) {
 					if (apbct_is_in_uri($url))
 						$catch_buffer = true;
 				}
+			}else{
+				$catch_buffer = true;
 			}
-			if ($catch_buffer) {
+			
+			if( $catch_buffer ){
 				add_action('wp', 'apbct_buffer__start');
 				add_action('shutdown', 'apbct_buffer__end', 0);
-				add_action('shutdown', 'apbct_buffer__output', 2);				
+				add_action('shutdown', 'apbct_buffer__output', 2);
 			}
 		}
 
@@ -382,17 +385,13 @@ function apbct_buffer__output(){
 		}
 
 	} unset($form);
-
+	
 	$html = $dom->getElementsByTagName('html');
 	
-	$output = '';
-
-	if (gettype($html) == 'object' && isset($html[0], $html[0]->childNodes, $html[0]->childNodes[0])) {
-		foreach ($html[0]->childNodes as $node)
-			$output .= $html[0]->ownerDocument->saveHTML($node);
-	} else 
-		$output = $apbct->buffer;
-
+	$output = gettype($html) == 'object' && isset($html[0], $html[0]->childNodes, $html[0]->childNodes[0])
+		? $dom->saveHTML()
+		: $apbct->buffer;
+	
 	echo $output;
 }
 
@@ -3324,6 +3323,7 @@ function ct_contact_form_validate() {
 			'sender_email'    => $sender_email,
 			'sender_nickname' => $sender_nickname,
 			'post_info'       => $post_info,
+			'sender_info'     => array( 'sender_email' => urlencode( $sender_email ) ),
 		)
 	);
 
@@ -3598,6 +3598,7 @@ function ct_enqueue_scripts_public($hook){
 	if (apbct_exclusions_check__url()) {
 		return;
 	}
+	
 	if($apbct->settings['registrations_test'] || $apbct->settings['comments_test'] || $apbct->settings['contact_forms_test'] || $apbct->settings['general_contact_forms_test'] || $apbct->settings['wc_checkout_test'] || $apbct->settings['check_external'] || $apbct->settings['check_internal'] || $apbct->settings['bp_private_messages'] || $apbct->settings['general_postdata_test']){
 
 		// Differnt JS params
