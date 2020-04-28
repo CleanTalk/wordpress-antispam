@@ -189,7 +189,8 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
     $apbct_active_integrations = array(
         'ContactBank'          => array( 'hook' => 'contact_bank_frontend_ajax_call', 'ajax' => true ),
         'FluentForm'           => array( 'hook' => 'fluentform_before_insert_submission', 'ajax' => false ),
-        'ElfsightContactForm'  => array( 'hook' => 'elfsight_contact_form_mail', 'ajax' => true )
+        'ElfsightContactForm'  => array( 'hook' => 'elfsight_contact_form_mail', 'ajax' => true ),
+        'SimpleMembership'     => array( 'hook' => 'swpm_front_end_registration_complete_user_data', 'ajax' => false )
     );
     new  \Cleantalk\Antispam\Integrations( $apbct_active_integrations );
 	
