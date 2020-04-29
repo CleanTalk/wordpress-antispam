@@ -574,6 +574,14 @@ If your website has forms that send data to external sources, you can enable opt
 
 == Changelog ==
 
+= 5.137.1 April 29 2020 =
+  * Fix: Call to undefined function wp_get_current_user().
+  * Fix: "Capture buffer" setting, YOAST sitemap.
+  * Integration: Simple Membership plugin integration implemented.
+  * Fix: Integrations system fixed.
+  * Fix: Query for SFW fixed.
+  * Fix: SFW error handling.
+
 = 5.137 April 23 2020 =
   * Fix: WPMU and WhiteLabel mode fixed.
   * Fix: 403 Response code for blocked entries.
