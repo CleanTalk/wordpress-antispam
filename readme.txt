@@ -4,7 +4,7 @@ Tags: spam, antispam, woocommerce, comments, firewall
 Requires at least: 3.0
 Tested up to: 5.4
 Requires PHP: 5.4
-Stable tag: 5.137
+Stable tag: 5.137.2
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -391,7 +391,15 @@ The plugin has several options to detect spam bots and humans. If you just post 
 the comments will be passed, because the plugin detects sender as a human. So, use special email *stop_email@example.com* to test the anti-spam functionality or wait a few days to see how the plugin works.
 
 = Is it free or paid? =
-The plugin is free. But the plugin uses CleanTalk cloud service to filter spam bots. You have to register an account and then you will receive a free trial to test anti-spam for comments, registrations, bookings, contacts or orders. When the trial (on CleanTalk account) is finished, you can renew the subscription for 1 year or deactivate anti-spam plugin.
+The plugin is free and distributed under the GPLv2 license.
+
+CleanTalk anti-spam plugin works with a cloud base anti-spam service and this plugin is a Software as a service (SaaS).
+CleanTalk it’s a free plugin that works with premium Cloud Anti-Spam service.
+https://en.wikipedia.org/wiki/Software_as_a_service
+
+The fact that the plugin works with a premium type service is mentioned in the plugin annotation and in its WordPress catalog description.
+
+We are ready to help you with any issue regarding CleanTalk. There are hundreds of environment compositions and we do our best to cover as many as possible.
 
 = Can I use CleanTalk with cache plugins? =
 Anti-spam by CleanTalk doesn't use static HTML code in its templates, so all anti-spam functions work correctly with any WordPress cache plugins.
@@ -565,6 +573,14 @@ If your website has forms that send data to external sources, you can enable opt
 10. Website's options.
 
 == Changelog ==
+
+= 5.137.1 April 29 2020 =
+  * Fix: Call to undefined function wp_get_current_user().
+  * Fix: "Capture buffer" setting, YOAST sitemap.
+  * Integration: Simple Membership plugin integration implemented.
+  * Fix: Integrations system fixed.
+  * Fix: Query for SFW fixed.
+  * Fix: SFW error handling.
 
 = 5.137 April 23 2020 =
   * Fix: WPMU and WhiteLabel mode fixed.

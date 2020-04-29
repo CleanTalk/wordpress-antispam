@@ -300,6 +300,7 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 	    'dflg_do_sign_in_user', // Unknown plugin
 	    'cartflows_save_cart_abandonment_data', // WooCommerce cartflow
 	    'rcp_process_register_form', // WordPress Membership Plugin – Restrict Content
+	    'give_process_donation' // GiveWP
     );
     
     // Skip test if

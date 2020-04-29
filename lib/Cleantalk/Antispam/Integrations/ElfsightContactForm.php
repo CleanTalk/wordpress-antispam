@@ -7,7 +7,7 @@ namespace Cleantalk\Antispam\Integrations;
 class ElfsightContactForm extends IntegrationBase
 {
 
-    function getDataForChecking()
+    function getDataForChecking( $argument )
     {
         if( isset( $_POST ) && isset( $_POST['fields'] ) ) {
             return ct_get_fields_any( $_POST['fields'] );

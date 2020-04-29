@@ -115,7 +115,7 @@ class SFW
 		foreach($this->ip_array as $origin => $current_ip){
 
 			$current_ip_v4 = sprintf("%u", ip2long($current_ip));
-			for ( $needles = array(), $m = 15; $m <= 32; $m ++ ) {
+			for ( $needles = array(), $m = 6; $m <= 32; $m ++ ) {
 				$mask      = sprintf( "%u", ip2long( long2ip( - 1 << ( 32 - (int) $m ) ) ) );
 				$needles[] = bindec( decbin( $mask ) & decbin( $current_ip_v4 ) );
 			}
