@@ -346,7 +346,8 @@ class ClassCleantalkFindSpamUsersChecker extends ClassCleantalkFindSpamChecker
             'fields' => 'ID',
             'meta_key' => 'ct_checked_now',
             'count_total' => true,
-            'orderby' => 'ct_checked_now'
+            'orderby' => 'ct_checked_now',
+	        'number' => 1,
         );
         $checked_users = new WP_User_Query($params_checked);
         $cnt_checked = $checked_users->get_total();
@@ -366,6 +367,7 @@ class ClassCleantalkFindSpamUsersChecker extends ClassCleantalkFindSpamChecker
                 ),
             ),
             'count_total' => true,
+            'number' => 1,
         );
         $spam_users = new WP_User_Query($params_spam);
         $cnt_spam = $spam_users->get_total();
@@ -385,6 +387,7 @@ class ClassCleantalkFindSpamUsersChecker extends ClassCleantalkFindSpamChecker
                 ),
             ),
             'count_total' => true,
+            'number' => 1,
         );
         $bad_users = new WP_User_Query($params_bad);
         $cnt_bad = $bad_users->get_total();
@@ -438,7 +441,8 @@ class ClassCleantalkFindSpamUsersChecker extends ClassCleantalkFindSpamChecker
             'fields' => 'ID',
             'meta_key' => 'ct_checked_now',
             'count_total' => true,
-            'orderby' => 'ct_checked_now'
+            'orderby' => 'ct_checked_now',
+            'number' => 1,
         );
         $checked_users = new WP_User_Query($params_checked);
         $cnt_checked = $checked_users->get_total();
@@ -458,6 +462,7 @@ class ClassCleantalkFindSpamUsersChecker extends ClassCleantalkFindSpamChecker
                 ),
             ),
             'count_total' => true,
+            'number' => 1,
         );
         $spam_users = new WP_User_Query($params_spam);
         $cnt_spam = $spam_users->get_total();
@@ -477,6 +482,7 @@ class ClassCleantalkFindSpamUsersChecker extends ClassCleantalkFindSpamChecker
                 ),
             ),
             'count_total' => true,
+            'number' => 1,
         );
         $bad_users = new WP_User_Query($params_bad);
         $cnt_bad = $bad_users->get_total();
