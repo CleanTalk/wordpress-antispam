@@ -3275,7 +3275,8 @@ function ct_contact_form_validate() {
         (isset($_POST['spl_action']) && $_POST['spl_action'] == 'register') || //Skip interal action with empty params
         (isset($_POST['action']) && $_POST['action'] == 'bwfan_insert_abandoned_cart' && apbct_is_in_uri( 'my-account/edit-address' )) || //Skip edit account
         apbct_is_in_uri('login-1') || //Skip login form
-        apbct_is_in_uri('recuperacao-de-senha-2') //Skip form reset password
+        apbct_is_in_uri('recuperacao-de-senha-2') || //Skip form reset password
+        apbct_is_in_uri('membermouse/api/request.php') && isset($_POST['membership_level_id'],$_POST['apikey'],$_POST['apisecret']) // Membermouse API
 		) {
         do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
         return null;
