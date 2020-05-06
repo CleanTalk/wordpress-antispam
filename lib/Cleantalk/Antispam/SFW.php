@@ -266,7 +266,7 @@ class SFW
 									$file_urls = array();
 
 									while( ! \gzeof($gf) )
-										$file_urls[] = trim(gzgets($gf, 1024));			
+										$file_urls[] = trim( \gzgets($gf, 1024) );
 
 									\gzclose($gf);
 
@@ -316,7 +316,7 @@ class SFW
 	
 								for($i=0, $values = array(); APBCT_WRITE_LIMIT !== $i && ! \gzeof($gf); $i++, $count_result++){
 	
-									$entry = trim(gzgets($gf, 1024));
+									$entry = trim( \gzgets($gf, 1024) );
 	
 									if(empty($entry)) continue;
 	
