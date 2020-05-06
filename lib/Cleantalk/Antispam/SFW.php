@@ -123,8 +123,9 @@ class SFW
 
 			$query = "SELECT
 				COUNT(network) AS cnt, network, mask
-				FROM ".$this->data_table."
-				WHERE network IN (". implode( ',', $needles ) .");";
+				FROM " . $this->data_table . "
+				WHERE network IN (". implode( ',', $needles ) .") 
+				AND	network = " . $current_ip_v4 . " & mask;";
 			$this->db->set_query($query)->fetch();
 
 			if($this->db->result['cnt']){
