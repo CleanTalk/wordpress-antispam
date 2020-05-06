@@ -259,16 +259,16 @@ class SFW
 
 							if (preg_match('/multifiles/', $result['file_url'])) {
 								
-								$gf = gzopen($result['file_url'], 'rb');
+								$gf = \gzopen($result['file_url'], 'rb');
 
 								if ($gf) {
 
 									$file_urls = array();
 
-									while(!gzeof($gf))
+									while( ! \gzeof($gf) )
 										$file_urls[] = trim(gzgets($gf, 1024));			
 
-									gzclose($gf);
+									\gzclose($gf);
 
 									return Helper::http__request(
 										get_option('siteurl'), 
@@ -304,17 +304,17 @@ class SFW
 						
 			if(Helper::http__request($file_url, array(), 'get_code') === 200){ // Check if it's there
 									
-					$gf = gzopen($file_url, 'rb');
+					$gf = \gzopen($file_url, 'rb');
 
 					if($gf){
 						
-						if(!gzeof($gf)){
+						if( ! \gzeof($gf) ){
 							
-							for($count_result = 0; !gzeof($gf); ){
+							for( $count_result = 0; ! \gzeof($gf); ){
 	
 								$query = "INSERT INTO ".$this->data_table." VALUES %s";
 	
-								for($i=0, $values = array(); APBCT_WRITE_LIMIT !== $i && !gzeof($gf); $i++, $count_result++){
+								for($i=0, $values = array(); APBCT_WRITE_LIMIT !== $i && ! \gzeof($gf); $i++, $count_result++){
 	
 									$entry = trim(gzgets($gf, 1024));
 	
@@ -339,7 +339,7 @@ class SFW
 								
 							}
 							
-							gzclose($gf);
+							\gzclose($gf);
 							return $count_result;
 							
 						}else
