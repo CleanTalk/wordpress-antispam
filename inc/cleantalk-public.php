@@ -393,6 +393,7 @@ function apbct_buffer__output(){
 		: $apbct->buffer;
 	
 	echo $output;
+	die();
 }
 
 // MailChimp Premium for Wordpress
