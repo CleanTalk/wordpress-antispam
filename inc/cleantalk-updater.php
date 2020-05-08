@@ -436,3 +436,48 @@ function apbct_update_to_5_137_1() {
 		}
 	}
 }
+
+function apbct_update_to_5_137_2() {
+	
+	global $wpdb;
+	
+	$sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_spamscan_logs` (
+		`id` int(11) NOT NULL AUTO_INCREMENT,
+        `scan_type` varchar(11) NOT NULL,
+        `start_time` datetime NOT NULL,
+        `finish_time` datetime NOT NULL,
+        `count_to_scan` int(11) DEFAULT NULL,
+        `found_spam` int(11) DEFAULT NULL,
+        `found_bad` int(11) DEFAULT NULL,
+        PRIMARY KEY (`id`));';
+	
+	if( APBCT_WPMS ){
+		
+		$initial_blog  = get_current_blog_id();
+		$blogs = array_keys($wpdb->get_results('SELECT blog_id FROM '. $wpdb->blogs, OBJECT_K));
+		
+		foreach ($blogs as $blog) {
+			
+			set_time_limit(20);
+			
+			switch_to_blog($blog);
+			apbct_activation__create_tables($sqls);
+			
+			// Getting key
+			$net_settings = get_site_option('network_settings');
+			$settings = $net_settings['allow_custom_key'] || $net_settings['white_label']
+				? get_option('cleantalk_settings')
+				: $net_settings;
+			
+			// Update plugin status
+			if( ! empty( $settings['apikey'] ) )
+				ct_account_status_check( $settings['apikey'], false );
+		}
+		switch_to_blog($initial_blog);
+		
+	}else{
+		apbct_activation__create_tables($sqls);
+		ct_account_status_check(null, false); // Update account status
+	}
+	
+}

@@ -3,7 +3,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 5.137.1
+  Version: 5.137.2
   Author: СleanTalk <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk
@@ -662,6 +662,16 @@ function apbct_activation( $network = false ) {
 		`value` TEXT NULL DEFAULT NULL,
 		`last_update` DATETIME NULL DEFAULT NULL,
 		PRIMARY KEY (`name`(40), `id`(64)));';
+	
+	$sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_spamscan_logs` (
+		`id` int(11) NOT NULL AUTO_INCREMENT,
+        `scan_type` varchar(11) NOT NULL,
+        `start_time` datetime NOT NULL,
+        `finish_time` datetime NOT NULL,
+        `count_to_scan` int(11) DEFAULT NULL,
+        `found_spam` int(11) DEFAULT NULL,
+        `found_bad` int(11) DEFAULT NULL,
+        PRIMARY KEY (`id`));';
 		
 	if($network && !defined('CLEANTALK_ACCESS_KEY')){
 		$initial_blog  = get_current_blog_id();
@@ -744,6 +754,16 @@ function apbct_activation__new_blog($blog_id, $user_id, $domain, $path, $site_id
 			`value` TEXT NULL DEFAULT NULL,
 			`last_update` DATETIME NULL DEFAULT NULL,
 			PRIMARY KEY (`id`(64), `name`(64)));';
+	
+	    $sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_spamscan_logs` (
+		`id` int(11) NOT NULL AUTO_INCREMENT,
+        `scan_type` varchar(11) NOT NULL,
+        `start_time` datetime NOT NULL,
+        `finish_time` datetime NOT NULL,
+        `count_to_scan` int(11) DEFAULT NULL,
+        `found_spam` int(11) DEFAULT NULL,
+        `found_bad` int(11) DEFAULT NULL,
+        PRIMARY KEY (`id`));';
 		
 		// Cron tasks
 		CleantalkCron::addTask('check_account_status',  'ct_account_status_check',        3600,  time()+1800); // Checks account status
@@ -830,16 +850,18 @@ function apbct_deactivation__delete_all_options__in_network(){
 
 function apbct_deactivation__delete_common_tables() {
 	global $wpdb;
-	$wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->base_prefix.'cleantalk_sfw`;');       // Deleting SFW data
-	$wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->base_prefix.'cleantalk_sfw_logs`;');  // Deleting SFW logs
-	$wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->base_prefix.'cleantalk_sessions`;');  //  Deleting session table
+	$wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->base_prefix.'cleantalk_sfw`;');           // Deleting SFW data
+	$wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->base_prefix.'cleantalk_sfw_logs`;');      // Deleting SFW logs
+	$wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->base_prefix.'cleantalk_sessions`;');      // Deleting session table
+	$wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->base_prefix.'cleantalk_spamscan_logs`;'); // Deleting user/comments scan result table
 }
 
 function apbct_deactivation__delete_blog_tables() {
 	global $wpdb;
-	$wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->prefix.'cleantalk_sfw`;');       // Deleting SFW data
-	$wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->prefix.'cleantalk_sfw_logs`;');  // Deleting SFW logs
-	$wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->prefix.'cleantalk_sessions`;');  //  Deleting session table
+	$wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->prefix.'cleantalk_sfw`;');                // Deleting SFW data
+	$wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->prefix.'cleantalk_sfw_logs`;');           // Deleting SFW logs
+	$wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->prefix.'cleantalk_sessions`;');           // Deleting session table
+	$wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->base_prefix.'cleantalk_spamscan_logs`;'); // Deleting user/comments scan result table
 }
 
 /**
