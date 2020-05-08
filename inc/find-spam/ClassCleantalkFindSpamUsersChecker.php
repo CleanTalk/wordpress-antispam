@@ -141,6 +141,11 @@ class ClassCleantalkFindSpamUsersChecker extends ClassCleantalkFindSpamChecker
         );
 
         $params = array(
+	        'fields' => array(
+		        'ID',
+		        'user_email',
+		        'user_registered',
+	        ),
             'meta_query' => array(
                 'relation' => 'AND',
                 array(
@@ -340,57 +345,37 @@ class ClassCleantalkFindSpamUsersChecker extends ClassCleantalkFindSpamChecker
 
         if (!$direct_call)
             check_ajax_referer( 'ct_secret_nonce', 'security' );
-
-        // Checked users
-        $params_checked = array(
-            'fields' => 'ID',
-            'meta_key' => 'ct_checked_now',
-            'count_total' => true,
-            'orderby' => 'ct_checked_now',
-	        'number' => 1,
-        );
-        $checked_users = new WP_User_Query($params_checked);
-        $cnt_checked = $checked_users->get_total();
-
-        // Spam users
-        $params_spam = array(
-            'fields' => 'ID',
-            'meta_query' => array(
-                'relation' => 'AND',
-                array(
-                    'key' => 'ct_marked_as_spam',
-                    'compare' => 'EXISTS'
-                ),
-                array(
-                    'key' => 'ct_checked_now',
-                    'compare' => 'EXISTS'
-                ),
-            ),
-            'count_total' => true,
-            'number' => 1,
-        );
-        $spam_users = new WP_User_Query($params_spam);
-        $cnt_spam = $spam_users->get_total();
-
-        // Bad users (without IP and Email)
-        $params_bad = array(
-            'fields' => 'ID',
-            'meta_query' => array(
-                'relation' => 'AND',
-                array(
-                    'key' => 'ct_bad',
-                    'compare' => 'EXISTS'
-                ),
-                array(
-                    'key' => 'ct_checked_now',
-                    'compare' => 'EXISTS'
-                ),
-            ),
-            'count_total' => true,
-            'number' => 1,
-        );
-        $bad_users = new WP_User_Query($params_bad);
-        $cnt_bad = $bad_users->get_total();
+	
+        global $wpdb;
+        
+	    // Checked users
+	    $cnt_checked = $wpdb->get_results("
+			SELECT COUNT(*) AS cnt
+			FROM {$wpdb->usermeta}
+			WHERE meta_key='ct_checked_now'"
+	    )[0]->cnt;
+	
+	    // Spam users
+	    $cnt_spam    = $wpdb->get_results("
+			SELECT COUNT({$wpdb->users}.ID) AS cnt
+			FROM {$wpdb->users}
+			INNER JOIN {$wpdb->usermeta} AS meta1 ON ( {$wpdb->users}.ID = meta1.user_id )
+			INNER JOIN {$wpdb->usermeta} AS meta2 ON ( {$wpdb->users}.ID = meta2.user_id )
+				WHERE
+					meta1.meta_key = 'ct_marked_as_spam' AND
+					meta2.meta_key = 'ct_checked_now';"
+	    )[0]->cnt;
+	
+	    // Bad users (without IP and Email)
+	    $cnt_bad    = $wpdb->get_results("
+			SELECT COUNT({$wpdb->users}.ID) AS cnt
+			FROM {$wpdb->users}
+			INNER JOIN {$wpdb->usermeta} AS meta1 ON ( {$wpdb->users}.ID = meta1.user_id )
+			INNER JOIN {$wpdb->usermeta} AS meta2 ON ( {$wpdb->users}.ID = meta2.user_id )
+				WHERE
+					meta1.meta_key = 'ct_bad' AND
+					meta2.meta_key = 'ct_checked_now';"
+	    )[0]->cnt;
 
         $return = array(
             'message'  => '',
@@ -436,57 +421,37 @@ class ClassCleantalkFindSpamUsersChecker extends ClassCleantalkFindSpamChecker
 
     private static function get_log_data() {
 
-        // Checked users
-        $params_checked = array(
-            'fields' => 'ID',
-            'meta_key' => 'ct_checked_now',
-            'count_total' => true,
-            'orderby' => 'ct_checked_now',
-            'number' => 1,
-        );
-        $checked_users = new WP_User_Query($params_checked);
-        $cnt_checked = $checked_users->get_total();
-
-        // Spam users
-        $params_spam = array(
-            'fields' => 'ID',
-            'meta_query' => array(
-                'relation' => 'AND',
-                array(
-                    'key' => 'ct_marked_as_spam',
-                    'compare' => 'EXISTS'
-                ),
-                array(
-                    'key' => 'ct_checked_now',
-                    'compare' => 'EXISTS'
-                ),
-            ),
-            'count_total' => true,
-            'number' => 1,
-        );
-        $spam_users = new WP_User_Query($params_spam);
-        $cnt_spam = $spam_users->get_total();
-
-        // Bad users (without IP and Email)
-        $params_bad = array(
-            'fields' => 'ID',
-            'meta_query' => array(
-                'relation' => 'AND',
-                array(
-                    'key' => 'ct_bad',
-                    'compare' => 'EXISTS'
-                ),
-                array(
-                    'key' => 'ct_checked_now',
-                    'compare' => 'EXISTS'
-                ),
-            ),
-            'count_total' => true,
-            'number' => 1,
-        );
-        $bad_users = new WP_User_Query($params_bad);
-        $cnt_bad = $bad_users->get_total();
-
+    	global $wpdb;
+	
+	    // Checked users
+	    $cnt_checked = $wpdb->get_results("
+			SELECT COUNT(*) AS cnt
+			FROM {$wpdb->usermeta}
+			WHERE meta_key='ct_checked_now'"
+	    )[0]->cnt;
+	
+	    // Spam users
+	    $cnt_spam    = $wpdb->get_results("
+			SELECT COUNT({$wpdb->users}.ID) AS cnt
+			FROM {$wpdb->users}
+			INNER JOIN {$wpdb->usermeta} AS meta1 ON ( {$wpdb->users}.ID = meta1.user_id )
+			INNER JOIN {$wpdb->usermeta} AS meta2 ON ( {$wpdb->users}.ID = meta2.user_id )
+				WHERE
+					meta1.meta_key = 'ct_marked_as_spam' AND
+					meta2.meta_key = 'ct_checked_now';"
+	    )[0]->cnt;
+	
+	    // Bad users (without IP and Email)
+	    $cnt_bad    = $wpdb->get_results("
+			SELECT COUNT({$wpdb->users}.ID) AS cnt
+			FROM {$wpdb->users}
+			INNER JOIN {$wpdb->usermeta} AS meta1 ON ( {$wpdb->users}.ID = meta1.user_id )
+			INNER JOIN {$wpdb->usermeta} AS meta2 ON ( {$wpdb->users}.ID = meta2.user_id )
+				WHERE
+					meta1.meta_key = 'ct_bad' AND
+					meta2.meta_key = 'ct_checked_now';"
+	    )[0]->cnt;
+	    
         return array(
             'spam'     => $cnt_spam,
             'checked'  => $cnt_checked,
