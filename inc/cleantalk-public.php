@@ -3666,7 +3666,7 @@ function ct_enqueue_scripts_public($hook){
 			wp_localize_script('ct_public_admin_js', 'ctPublicAdmin', array(
 				'ct_ajax_nonce'               => $ajax_nonce,
 				'ajaxurl'                     => admin_url('admin-ajax.php'),
-				'ct_feedback_error'           => __('Error occured while sending feedback.', 'cleantalk'),
+				'ct_feedback_error'           => __('Error occurred while sending feedback.', 'cleantalk'),
 				'ct_feedback_no_hash'         => __('Feedback wasn\'t sent. There is no associated request.', 'cleantalk'),
 				'ct_feedback_msg'             => sprintf(__("Feedback has been sent to %sCleanTalk Dashboard%s.", 'cleantalk'), $apbct->user_token ? "<a target='_blank' href=https://cleantalk.org/my/show_requests?user_token={$apbct->user_token}&cp_mode=antispam>" : '', $apbct->user_token ? "</a>" : ''),
 			));

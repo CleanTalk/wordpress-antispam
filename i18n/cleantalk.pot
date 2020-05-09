@@ -503,7 +503,7 @@ msgid ""
 msgstr ""
 
 #: inc/cleantalk-public.php:3319
-msgid "Error occured while sending feedback."
+msgid "Error occurred while sending feedback."
 msgstr ""
 
 #: inc/cleantalk-public.php:3320
@@ -1037,27 +1037,27 @@ msgid "Please, enter the %splugin settings%s in main site dashboard."
 msgstr ""
 
 #: inc/cleantalk-settings.php:633
-msgid "Error occured while API key validating. Error: "
+msgid "Error occurred while API key validating. Error: "
 msgstr ""
 
 #: inc/cleantalk-settings.php:634
-msgid "Error occured while automatically gettings access key. Error: "
+msgid "Error occurred while automatically gettings access key. Error: "
 msgstr ""
 
 #: inc/cleantalk-settings.php:635
-msgid "Error occured while sending sending SpamFireWall logs. Error: "
+msgid "Error occurred while sending sending SpamFireWall logs. Error: "
 msgstr ""
 
 #: inc/cleantalk-settings.php:636
-msgid "Error occured while updating SpamFireWall local base. Error: "
+msgid "Error occurred while updating SpamFireWall local base. Error: "
 msgstr ""
 
 #: inc/cleantalk-settings.php:637
-msgid "Error occured while checking account status. Error: "
+msgid "Error occurred while checking account status. Error: "
 msgstr ""
 
 #: inc/cleantalk-settings.php:638
-msgid "Error occured while excuting API call. Error: "
+msgid "Error occurred while excuting API call. Error: "
 msgstr ""
 
 #: inc/cleantalk-settings.php:646

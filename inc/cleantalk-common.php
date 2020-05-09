@@ -941,7 +941,7 @@ function cleantalk_debug($key,$value)
 }
 
 /**
-* Function changes CleanTalk result object if an error occured.
+* Function changes CleanTalk result object if an error occurred.
 * @return object
 */ 
 function ct_change_plugin_resonse($ct_result = null, $checkjs = null) {

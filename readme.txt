@@ -1600,7 +1600,7 @@ If your website has forms that send data to external sources, you can enable opt
 = 5.40.2 2016-05-11 =
   * Improved account status check logic.
   * Fixed issue with double anti-spam tests for FastSecure contact forms.
-  * Fixed issue with nulled JavaScript variables assigned from backend. This issue might me occured on standart WordPress registration form and with failed JavaScript spam test.
+  * Fixed issue with nulled JavaScript variables assigned from backend. This issue might me occurred on standart WordPress registration form and with failed JavaScript spam test.
   * Fixed issue with session_start() with PHP sessions stored in memcache.
 
 = 5.40.1 2016-04-28 =
@@ -3081,7 +3081,7 @@ If your website has forms that send data to external sources, you can enable opt
 = 5.40.2 2016-05-11 =
   * Improved account status check logic.
   * Fixed issue with double anti-spam tests for FastSecure contact forms.
-  * Fixed issue with nulled JavaScript variables assigned from backend. This issue might me occured on standart WordPress registration form and with failed JavaScript spam test.
+  * Fixed issue with nulled JavaScript variables assigned from backend. This issue might me occurred on standart WordPress registration form and with failed JavaScript spam test.
   * Fixed issue with session_start() with PHP sessions stored in memcache.
 
 = 5.40.1 2016-04-28 =
