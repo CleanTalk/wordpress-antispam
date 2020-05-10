@@ -644,6 +644,7 @@ function apbct_activation( $network = false ) {
 	$sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_sfw` (
 		`network` int(11) unsigned NOT NULL,
 		`mask` int(11) unsigned NOT NULL,
+		`status` TINYINT(1) NOT NULL DEFAULT 0,
 		INDEX (  `network` ,  `mask` )
 		);';
 	

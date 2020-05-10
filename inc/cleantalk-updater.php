@@ -481,3 +481,34 @@ function apbct_update_to_5_137_2() {
 	}
 	
 }
+
+function apbct_update_to_5_137_3() {
+
+    global $wpdb;
+
+    $alter[] = 'ALTER TABLE `%scleantalk_sfw` ADD COLUMN status TINYINT(1) NOT NULL DEFAULT 0 AFTER mask;';
+
+    if( APBCT_WPMS ){
+
+        $initial_blog  = get_current_blog_id();
+        $blogs = array_keys($wpdb->get_results('SELECT blog_id FROM '. $wpdb->blogs, OBJECT_K));
+
+        foreach ($blogs as $blog) {
+
+            set_time_limit(20);
+
+            switch_to_blog($blog);
+
+            apbct_activation__create_tables($alter);
+
+        }
+
+        switch_to_blog($initial_blog);
+
+    }else{
+
+        apbct_activation__create_tables($alter);
+
+    }
+
+}
