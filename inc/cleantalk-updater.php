@@ -412,35 +412,11 @@ function apbct_update_to_5_133_0() {
 
 }
 
-function apbct_update_to_5_137_1() {
-	
-	global $apbct;
-	
-	if( APBCT_WPMS && $apbct->white_label ) {
-		
-		$initial_blog = get_current_blog_id();
-		
-		if ( $initial_blog !== 1 && $apbct->settings[''] ) {
-			
-			$allow_custom_settings = $apbct->network_settings['allow_custom_settings'];
-			$apbct->network_settings['allow_custom_settings'] = 1;
-			
-			switch_to_blog( 1 );
-			$main_blog_settings = get_option( 'cleantalk_settings' );
-			switch_to_blog( $initial_blog );
-			
-			update_option( 'cleantalk_settings', $main_blog_settings );
-			
-			$apbct->network_settings['allow_custom_settings'] = $allow_custom_settings;
-			
-		}
-	}
-}
-
-function apbct_update_to_5_137_2() {
+function apbct_update_to_5_138_0() {
 	
 	global $wpdb;
 	
+	// SQL queries for each blog
 	$sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_spamscan_logs` (
 		`id` int(11) NOT NULL AUTO_INCREMENT,
         `scan_type` varchar(11) NOT NULL,
@@ -450,65 +426,88 @@ function apbct_update_to_5_137_2() {
         `found_spam` int(11) DEFAULT NULL,
         `found_bad` int(11) DEFAULT NULL,
         PRIMARY KEY (`id`));';
+	$sqls[] = 'ALTER TABLE `%scleantalk_sfw` ADD COLUMN status TINYINT(1) NOT NULL DEFAULT 0 AFTER mask;';
 	
+	// Actions for WPMS
 	if( APBCT_WPMS ){
 		
+		// Getting all blog ids
 		$initial_blog  = get_current_blog_id();
 		$blogs = array_keys($wpdb->get_results('SELECT blog_id FROM '. $wpdb->blogs, OBJECT_K));
 		
+		// Getting main blog setting
+		switch_to_blog( 1 );
+		$main_blog_settings = get_option( 'cleantalk_settings' );
+		switch_to_blog( $initial_blog );
+		
+		// Getting network settings
+		$net_settings = get_site_option('cleantalk_network_settings');
+		
 		foreach ($blogs as $blog) {
 			
+			// Update time limit to prevent exec time error
 			set_time_limit(20);
 			
 			switch_to_blog($blog);
+			
+			// Update SQL structure
 			apbct_activation__create_tables($sqls);
 			
 			// Getting key
-			$net_settings = get_site_option('cleantalk_network_settings');
-			$settings = $net_settings['allow_custom_key'] || $net_settings['white_label']
+			$settings = $net_settings['allow_custom_key']
 				? get_option('cleantalk_settings')
-				: $net_settings;
+				: $main_blog_settings;
 			
 			// Update plugin status
-			if( ! empty( $settings['apikey'] ) )
-				ct_account_status_check( $settings['apikey'], false );
+			if( ! empty( $settings['apikey'] ) ){
+				
+				$data = get_option( 'cleantalk_data', array() );
+				
+				$result = CleantalkAPI::method__notice_paid_till(
+					$settings['api_key'],
+					preg_replace('/http[s]?:\/\//', '', get_option('siteurl'), 1),
+					! is_main_site() && $net_settings['white_label'] ? 'anti-spam-hosting' : 'antispam'
+				);
+				
+				if( empty( $result['error'] ) || ! empty( $result['valid'] ) ){
+					
+					// Notices
+					$data['notice_show']        = isset($result['show_notice'])             ? (int)$result['show_notice']             : 0;
+					$data['notice_renew']       = isset($result['renew'])                   ? (int)$result['renew']                   : 0;
+					$data['notice_trial']       = isset($result['trial'])                   ? (int)$result['trial']                   : 0;
+					$data['notice_review']      = isset($result['show_review'])             ? (int)$result['show_review']             : 0;
+					$data['notice_auto_update'] = isset($result['show_auto_update_notice']) ? (int)$result['show_auto_update_notice'] : 0;
+					
+					// Other
+					$data['service_id']         = isset($result['service_id'])                         ? (int)$result['service_id']         : 0;
+					$data['valid']              = isset($result['valid'])                              ? (int)$result['valid']              : 0;
+					$data['moderate']           = isset($result['moderate'])                           ? (int)$result['moderate']           : 0;
+					$data['ip_license']         = isset($result['ip_license'])                         ? (int)$result['ip_license']         : 0;
+					$data['moderate_ip']        = isset($result['moderate_ip'], $result['ip_license']) ? (int)$result['moderate_ip']        : 0;
+					$data['spam_count']         = isset($result['spam_count'])                         ? (int)$result['spam_count']         : 0;
+					$data['auto_update']        = isset($result['auto_update_app'])                    ? (int)$result['auto_update_app']    : 0;
+					$data['user_token']         = isset($result['user_token'])                         ? (string)$result['user_token']      : '';
+					$data['license_trial']      = isset($result['license_trial'])                      ? (int)$result['license_trial']      : 0;
+					$data['account_name_ob']    = isset($result['account_name_ob'])                    ? (string)$result['account_name_ob'] : '';
+					
+				}
+				
+				$data['key_is_ok'] = ! empty( $result['valid'] )
+					? true
+					: false;
+				
+				update_option( 'cleantalk_data', $data );
+				
+			}
+			
 		}
-		switch_to_blog($initial_blog);
 		
+		// Restoring initial blog
+		switch_to_blog($initial_blog);
+	
+	// Actions for stand alone blog
 	}else{
 		apbct_activation__create_tables($sqls);
-		ct_account_status_check(null, false); // Update account status
 	}
 	
-}
-
-function apbct_update_to_5_137_3() {
-
-    global $wpdb;
-
-    $alter[] = 'ALTER TABLE `%scleantalk_sfw` ADD COLUMN status TINYINT(1) NOT NULL DEFAULT 0 AFTER mask;';
-
-    if( APBCT_WPMS ){
-
-        $initial_blog  = get_current_blog_id();
-        $blogs = array_keys($wpdb->get_results('SELECT blog_id FROM '. $wpdb->blogs, OBJECT_K));
-
-        foreach ($blogs as $blog) {
-
-            set_time_limit(20);
-
-            switch_to_blog($blog);
-
-            apbct_activation__create_tables($alter);
-
-        }
-
-        switch_to_blog($initial_blog);
-
-    }else{
-
-        apbct_activation__create_tables($alter);
-
-    }
-
 }
