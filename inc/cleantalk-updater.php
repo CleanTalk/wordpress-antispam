@@ -464,7 +464,7 @@ function apbct_update_to_5_137_2() {
 			apbct_activation__create_tables($sqls);
 			
 			// Getting key
-			$net_settings = get_site_option('network_settings');
+			$net_settings = get_site_option('cleantalk_network_settings');
 			$settings = $net_settings['allow_custom_key'] || $net_settings['white_label']
 				? get_option('cleantalk_settings')
 				: $net_settings;
