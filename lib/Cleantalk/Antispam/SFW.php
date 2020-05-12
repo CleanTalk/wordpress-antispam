@@ -126,36 +126,34 @@ class SFW
 				FROM " . $this->data_table . "
 				WHERE network IN (". implode( ',', $needles ) .") 
 				AND	network = " . $current_ip_v4 . " & mask
-				ORDER BY status DESC;";
-			$this->db->set_query($query)->fetch_all();
+				ORDER BY status DESC LIMIT 1;";
+			$this->db->set_query($query)->fetch();
 
-			if( count( $this->db->result ) ){
+			if( ! empty( $this->db->result ) ){
 
-			    foreach( $this->db->result as $sfw_item ) {
-			        if ( 1 == $sfw_item['status'] ) {
-			            // It is the White Listed network - will be passed.
-                        $this->passed_ips[$origin] = array(
-                            'ip'     => $current_ip,
-                        );
-                        $this->all_ips[$origin] = array(
-                            'ip'     => $current_ip,
-                            'status' => 1,
-                        );
-                        break;
-                    } else {
-                        $this->pass = false;
-                        $this->blocked_ips[$origin] = array(
-                            'ip'      => $current_ip,
-                            'network' => long2ip($sfw_item['network']),
-                            'mask'    => Helper::ip__mask__long_to_number($sfw_item['mask']),
-                        );
-                        $this->all_ips[$origin] = array(
-                            'ip'      => $current_ip,
-                            'network' => long2ip($sfw_item['network']),
-                            'mask'    => Helper::ip__mask__long_to_number($sfw_item['mask']),
-                            'status'  => -1,
-                        );
-                    }
+                if ( 1 == $this->db->result['status'] ) {
+                    // It is the White Listed network - will be passed.
+                    $this->passed_ips[$origin] = array(
+                        'ip'     => $current_ip,
+                    );
+                    $this->all_ips[$origin] = array(
+                        'ip'     => $current_ip,
+                        'status' => 1,
+                    );
+                    break;
+                } else {
+                    $this->pass = false;
+                    $this->blocked_ips[$origin] = array(
+                        'ip'      => $current_ip,
+                        'network' => long2ip($this->db->result['network']),
+                        'mask'    => Helper::ip__mask__long_to_number($this->db->result['mask']),
+                    );
+                    $this->all_ips[$origin] = array(
+                        'ip'      => $current_ip,
+                        'network' => long2ip($this->db->result['network']),
+                        'mask'    => Helper::ip__mask__long_to_number($this->db->result['mask']),
+                        'status'  => -1,
+                    );
                 }
 
 			}else{
