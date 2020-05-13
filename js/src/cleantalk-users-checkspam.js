@@ -183,10 +183,10 @@ function ct_send_users(){
 						new_href+='&from='+ct_date_from+'&till='+ct_date_till;
 					location.href = new_href;
 				}else if(parseInt(msg.end) == 0){
-					ct_users_checked += msg.checked;
-					ct_users_spam += msg.spam;
-					ct_users_bad += msg.bad;
-					ct_unchecked = ct_users_total - ct_users_checked - ct_users_bad;
+					ct_users_checked = parseInt( ct_users_checked ) + parseInt( msg.checked );
+					ct_users_spam    = parseInt( ct_users_spam ) + parseInt (msg.spam );
+					ct_users_bad     = parseInt( ct_users_bad ) + parseInt( msg.bad );
+					ct_unchecked     = ct_users_total - ct_users_checked - ct_users_bad;
 					var status_string = String(ctUsersCheck.ct_status_string);
 					var status_string = status_string.printf(ct_users_checked, ct_users_spam, ct_users_bad);
 					if(parseInt(ct_users_spam) > 0)
