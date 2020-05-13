@@ -426,6 +426,11 @@ function apbct_update_to_5_138_0() {
         `found_spam` int(11) DEFAULT NULL,
         `found_bad` int(11) DEFAULT NULL,
         PRIMARY KEY (`id`));';
+	$sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_sfw` (
+		`network` int(11) unsigned NOT NULL,
+		`mask` int(11) unsigned NOT NULL,
+		INDEX (  `network` ,  `mask` )
+		);';
 	$sqls[] = 'ALTER TABLE `%scleantalk_sfw` ADD COLUMN status TINYINT(1) NOT NULL DEFAULT 0 AFTER mask;';
 	
 	// Actions for WPMS
