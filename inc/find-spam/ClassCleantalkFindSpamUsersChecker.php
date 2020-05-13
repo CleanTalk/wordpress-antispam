@@ -261,7 +261,9 @@ class ClassCleantalkFindSpamUsersChecker extends ClassCleantalkFindSpamChecker
 
                     // Do not display forbidden roles.
                     foreach ( $skip_roles as $role ) {
-                        if ( in_array( $role, $u[$i]->roles ) ){
+                        $user_meta  = get_userdata($u[$i]->ID);
+                        $user_roles = $user_meta->roles;
+                        if ( in_array( $role, $user_roles ) ){
                             delete_user_meta( $u[$i]->ID, 'ct_marked_as_spam' );
                             continue 2;
                         }
