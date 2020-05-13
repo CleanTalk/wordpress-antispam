@@ -4,7 +4,7 @@ Tags: spam, antispam, woocommerce, comments, firewall
 Requires at least: 3.0
 Tested up to: 5.4
 Requires PHP: 5.4
-Stable tag: 5.137.2
+Stable tag: 5.138
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -573,6 +573,17 @@ If your website has forms that send data to external sources, you can enable opt
 10. Website's options.
 
 == Changelog ==
+
+= 5.138 May 13 2020 =
+  * Fix: Adding cleantalk_spamscan_logs table for each blog when updating from 5.137.2.
+  * New: White Lists for SFW implemented.
+  * Fix: correct comments checking status text.
+  * Fix: Users scan. Reducing memory load.
+  * Fix: "Capture Buffer" settings. The issue with YoastSEO.
+  * Fix: SFW query fixed.
+  * Fix: SFW die page fixed.
+  * Fix: Membermouse API false positives.
+  * Fix: gz*() functions calling from global namespace for now.
 
 = 5.137.1 April 29 2020 =
   * Fix: Call to undefined function wp_get_current_user().
