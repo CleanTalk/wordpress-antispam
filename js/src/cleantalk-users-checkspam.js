@@ -214,9 +214,8 @@ function ct_show_users_info(){
 	
 	if( ct_working ){
 		
-		if(ct_cooling_down_flag == true){
-			jQuery('#ct_cooling_notice').html('Waiting for API to cool down. (About a minute)');
-			jQuery('#ct_cooling_notice').show();
+		if(ct_cooling_down_flag === true){
+			jQuery('#ct_cooling_notice').html('Waiting for API to cool down. (About a minute)').show();
 			return;			
 		}else{
 			jQuery('#ct_cooling_notice').hide();
