@@ -232,6 +232,7 @@ class ClassCleantalkFindSpamUsersChecker extends ClassCleantalkFindSpamChecker
                     if( !empty( $curr_email ) )
                         $data[] = $curr_email;
                     // Patch for empty IP/Email
+                    $u[$i]->data = new \stdClass();
                     $u[$i]->data->user_ip    = empty($curr_ip)    ? 'none' : $curr_ip;
                     $u[$i]->data->user_email = empty($curr_email) ? 'none' : $curr_email;
                 }
