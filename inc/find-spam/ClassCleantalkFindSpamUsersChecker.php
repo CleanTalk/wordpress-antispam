@@ -215,7 +215,7 @@ class ClassCleantalkFindSpamUsersChecker extends ClassCleantalkFindSpamChecker
                     $user_meta = array_values( $user_meta );
 
                 $curr_ip    = !empty( $user_meta[0]['ip' ])      ? trim( $user_meta[0]['ip'] )      : '';
-                $curr_email = !empty( $u[$i]->data->user_email ) ? trim( $u[$i]->data->user_email ) : '';
+                $curr_email = !empty( $u[$i]->user_email ) ? trim( $u[$i]->user_email ) : '';
 
                 // Check for identity
                 $curr_ip    = preg_match('/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/', $curr_ip) === 1 ? $curr_ip    : null;
