@@ -145,7 +145,7 @@ function ct_send_comments(){
 					ct_comments_bad += msg.bad;
 					ct_unchecked = ct_comments_total - ct_comments_checked - ct_comments_bad;
 					var status_string = String(ctCommentsCheck.ct_status_string);
-					var status_string = status_string.printf(ct_comments_total, ct_comments_checked, ct_comments_spam, ct_comments_bad);
+					var status_string = status_string.printf(ct_comments_checked, ct_comments_spam, ct_comments_bad);
 					if(parseInt(ct_comments_spam) > 0)
 						status_string += ctCommentsCheck.ct_status_string_warning;
 					jQuery('#ct_checking_status').html(status_string);

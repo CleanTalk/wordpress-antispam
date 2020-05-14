@@ -122,24 +122,40 @@ class SFW
 			$needles = array_unique( $needles );
 
 			$query = "SELECT
-				COUNT(network) AS cnt, network, mask
-				FROM ".$this->data_table."
-				WHERE network IN (". implode( ',', $needles ) .");";
+				network, mask, status
+				FROM " . $this->data_table . "
+				WHERE network IN (". implode( ',', $needles ) .") 
+				AND	network = " . $current_ip_v4 . " & mask
+				ORDER BY status DESC LIMIT 1;";
 			$this->db->set_query($query)->fetch();
 
-			if($this->db->result['cnt']){
-				$this->pass = false;
-				$this->blocked_ips[$origin] = array(
-					'ip'      => $current_ip,
-					'network' => long2ip($this->db->result['network']),
-					'mask'    => Helper::ip__mask__long_to_number($this->db->result['mask']),
-				);
-				$this->all_ips[$origin] = array(
-					'ip'      => $current_ip,
-					'network' => long2ip($this->db->result['network']),
-					'mask'    => Helper::ip__mask__long_to_number($this->db->result['mask']),
-					'status'  => -1,
-				);
+			if( ! empty( $this->db->result ) ){
+
+                if ( 1 == $this->db->result['status'] ) {
+                    // It is the White Listed network - will be passed.
+                    $this->passed_ips[$origin] = array(
+                        'ip'     => $current_ip,
+                    );
+                    $this->all_ips[$origin] = array(
+                        'ip'     => $current_ip,
+                        'status' => 1,
+                    );
+                    break;
+                } else {
+                    $this->pass = false;
+                    $this->blocked_ips[$origin] = array(
+                        'ip'      => $current_ip,
+                        'network' => long2ip($this->db->result['network']),
+                        'mask'    => Helper::ip__mask__long_to_number($this->db->result['mask']),
+                    );
+                    $this->all_ips[$origin] = array(
+                        'ip'      => $current_ip,
+                        'network' => long2ip($this->db->result['network']),
+                        'mask'    => Helper::ip__mask__long_to_number($this->db->result['mask']),
+                        'status'  => -1,
+                    );
+                }
+
 			}else{
 				$this->passed_ips[$origin] = array(
 					'ip'     => $current_ip,
@@ -259,16 +275,16 @@ class SFW
 
 							if (preg_match('/multifiles/', $result['file_url'])) {
 								
-								$gf = gzopen($result['file_url'], 'rb');
+								$gf = \gzopen($result['file_url'], 'rb');
 
 								if ($gf) {
 
 									$file_urls = array();
 
-									while(!gzeof($gf))
-										$file_urls[] = trim(gzgets($gf, 1024));			
+									while( ! \gzeof($gf) )
+										$file_urls[] = trim( \gzgets($gf, 1024) );
 
-									gzclose($gf);
+									\gzclose($gf);
 
 									return Helper::http__request(
 										get_option('siteurl'), 
@@ -304,19 +320,19 @@ class SFW
 						
 			if(Helper::http__request($file_url, array(), 'get_code') === 200){ // Check if it's there
 									
-					$gf = gzopen($file_url, 'rb');
+					$gf = \gzopen($file_url, 'rb');
 
 					if($gf){
 						
-						if(!gzeof($gf)){
+						if( ! \gzeof($gf) ){
 							
-							for($count_result = 0; !gzeof($gf); ){
+							for( $count_result = 0; ! \gzeof($gf); ){
 	
 								$query = "INSERT INTO ".$this->data_table." VALUES %s";
 	
-								for($i=0, $values = array(); APBCT_WRITE_LIMIT !== $i && !gzeof($gf); $i++, $count_result++){
+								for($i=0, $values = array(); APBCT_WRITE_LIMIT !== $i && ! \gzeof($gf); $i++, $count_result++){
 	
-									$entry = trim(gzgets($gf, 1024));
+									$entry = trim( \gzgets($gf, 1024) );
 	
 									if(empty($entry)) continue;
 	
@@ -325,10 +341,11 @@ class SFW
 									// Cast result to int
 									$ip   = preg_replace('/[^\d]*/', '', $entry[0]);
 									$mask = preg_replace('/[^\d]*/', '', $entry[1]);
+									$private = isset($entry[2]) ? $entry[2] : 0;
 	
 									if(!$ip || !$mask) continue;
 	
-									$values[] = '('. $ip .','. $mask .')';
+									$values[] = '('. $ip .','. $mask .','. $private .')';
 	
 								}
 								
@@ -339,7 +356,7 @@ class SFW
 								
 							}
 							
-							gzclose($gf);
+							\gzclose($gf);
 							return $count_result;
 							
 						}else

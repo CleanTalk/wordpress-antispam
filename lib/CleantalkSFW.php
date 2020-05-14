@@ -112,9 +112,9 @@ class CleantalkSFW extends Cleantalk\Antispam\SFW
 				$debug = '<h1>IP and Networks</h1>'
 					. var_export($this->all_ips, true)
 					.'<h1>Blocked IPs</h1>'
-			        . var_export($this->passed_ips, true)
-			        .'<h1>Passed IPs</h1>'
 			        . var_export($this->blocked_ips, true)
+			        .'<h1>Passed IPs</h1>'
+			        . var_export($this->passed_ips, true)
 					. '<h1>Headers</h1>'
 					. var_export(apache_request_headers(), true)
 					. '<h1>REMOTE_ADDR</h1>'

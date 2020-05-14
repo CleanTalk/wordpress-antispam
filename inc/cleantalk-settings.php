@@ -682,12 +682,12 @@ function apbct_settings__error__output($return = false){
 		
 		$error_texts = array(
 			// Misc
-			'key_invalid' => __('Error occured while API key validating. Error: ', 'cleantalk'),
-			'key_get' => __('Error occured while automatically gettings access key. Error: ', 'cleantalk'),
-			'sfw_send_logs' => __('Error occured while sending sending SpamFireWall logs. Error: ', 'cleantalk'),
-			'sfw_update' => __('Error occured while updating SpamFireWall local base. Error: '            , 'cleantalk'),
-			'account_check' => __('Error occured while checking account status. Error: ', 'cleantalk'),
-			'api' => __('Error occured while excuting API call. Error: ', 'cleantalk'),
+			'key_invalid' => __('Error occurred while API key validating. Error: ', 'cleantalk'),
+			'key_get' => __('Error occurred while automatically gettings access key. Error: ', 'cleantalk'),
+			'sfw_send_logs' => __('Error occurred while sending sending SpamFireWall logs. Error: ', 'cleantalk'),
+			'sfw_update' => __('Error occurred while updating SpamFireWall local base. Error: '            , 'cleantalk'),
+			'account_check' => __('Error occurred while checking account status. Error: ', 'cleantalk'),
+			'api' => __('Error occurred while excuting API call. Error: ', 'cleantalk'),
 			
 			// Validating settings
 			'settings_validate' => 'Validate Settings',

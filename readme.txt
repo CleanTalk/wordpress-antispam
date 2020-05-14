@@ -4,7 +4,7 @@ Tags: spam, antispam, woocommerce, comments, firewall
 Requires at least: 3.0
 Tested up to: 5.4
 Requires PHP: 5.4
-Stable tag: 5.137.2
+Stable tag: 5.138
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -573,6 +573,21 @@ If your website has forms that send data to external sources, you can enable opt
 10. Website's options.
 
 == Changelog ==
+
+= 5.138 May 14 2020 =
+  * Fix: Scan users fixed.
+  * Fix: Notice fixed (Creating default object from empty value).
+  * Fix: Creating table for SFW data for child blogs on WPMS.
+  * Upd: SFW query optimized.
+  * Fix: Adding cleantalk_spamscan_logs table for each blog when updating from 5.137.2.
+  * New: White Lists for SFW implemented.
+  * Fix: correct comments checking status text.
+  * Fix: Users scan. Reducing memory load.
+  * Fix: "Capture Buffer" settings. The issue with YoastSEO.
+  * Fix: SFW query fixed.
+  * Fix: SFW die page fixed.
+  * Fix: Membermouse API false positives.
+  * Fix: gz*() functions calling from global namespace for now.
 
 = 5.137.1 April 29 2020 =
   * Fix: Call to undefined function wp_get_current_user().
@@ -1600,7 +1615,7 @@ If your website has forms that send data to external sources, you can enable opt
 = 5.40.2 2016-05-11 =
   * Improved account status check logic.
   * Fixed issue with double anti-spam tests for FastSecure contact forms.
-  * Fixed issue with nulled JavaScript variables assigned from backend. This issue might me occured on standart WordPress registration form and with failed JavaScript spam test.
+  * Fixed issue with nulled JavaScript variables assigned from backend. This issue might me occurred on standart WordPress registration form and with failed JavaScript spam test.
   * Fixed issue with session_start() with PHP sessions stored in memcache.
 
 = 5.40.1 2016-04-28 =
@@ -3081,7 +3096,7 @@ If your website has forms that send data to external sources, you can enable opt
 = 5.40.2 2016-05-11 =
   * Improved account status check logic.
   * Fixed issue with double anti-spam tests for FastSecure contact forms.
-  * Fixed issue with nulled JavaScript variables assigned from backend. This issue might me occured on standart WordPress registration form and with failed JavaScript spam test.
+  * Fixed issue with nulled JavaScript variables assigned from backend. This issue might me occurred on standart WordPress registration form and with failed JavaScript spam test.
   * Fixed issue with session_start() with PHP sessions stored in memcache.
 
 = 5.40.1 2016-04-28 =

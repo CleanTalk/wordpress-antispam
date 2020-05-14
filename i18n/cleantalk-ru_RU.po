@@ -546,7 +546,7 @@ msgstr ""
 "в соответствии с Политикой конфиденциальности на этом сайте."
 
 #: inc/cleantalk-public.php:3319
-msgid "Error occured while sending feedback."
+msgid "Error occurred while sending feedback."
 msgstr "Случилась ошибка при отправке обратной связи."
 
 #: inc/cleantalk-public.php:3320
@@ -1150,27 +1150,27 @@ msgstr ""
 "сайте."
 
 #: inc/cleantalk-settings.php:633
-msgid "Error occured while API key validating. Error: "
+msgid "Error occurred while API key validating. Error: "
 msgstr "Произошла ошибка при проверке ключа API. Ошибка: "
 
 #: inc/cleantalk-settings.php:634
-msgid "Error occured while automatically gettings access key. Error: "
+msgid "Error occurred while automatically gettings access key. Error: "
 msgstr "Произошла ошибка при автоматическом получении ключа доступа. Ошибка: "
 
 #: inc/cleantalk-settings.php:635
-msgid "Error occured while sending sending SpamFireWall logs. Error: "
+msgid "Error occurred while sending sending SpamFireWall logs. Error: "
 msgstr "Произошла ошибка при отправке логов Spam FireWall. Ошибка: "
 
 #: inc/cleantalk-settings.php:636
-msgid "Error occured while updating SpamFireWall local base. Error: "
+msgid "Error occurred while updating SpamFireWall local base. Error: "
 msgstr "Произошла ошибка при обновлении локальной базы Spam FireWall. Ошибка: "
 
 #: inc/cleantalk-settings.php:637
-msgid "Error occured while checking account status. Error: "
+msgid "Error occurred while checking account status. Error: "
 msgstr "Произошла ошибка при проверке статуса аккаунта. Ошибка: "
 
 #: inc/cleantalk-settings.php:638
-msgid "Error occured while excuting API call. Error: "
+msgid "Error occurred while excuting API call. Error: "
 msgstr "Произошла ошибка при выполнении вызова API. Ошибка: "
 
 #: inc/cleantalk-settings.php:646

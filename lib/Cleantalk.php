@@ -221,9 +221,9 @@ class Cleantalk {
      */
 	private function compressData($data = null){
 		
-		if (strlen($data) > $this->dataMaxSise && function_exists('gzencode') && function_exists('base64_encode')){
+		if (strlen($data) > $this->dataMaxSise && function_exists('\gzencode') && function_exists('base64_encode')){
 
-			$localData = gzencode($data, $this->compressRate, FORCE_GZIP);
+			$localData = \gzencode($data, $this->compressRate, FORCE_GZIP);
 
 			if ($localData === false)
 				return $data;
