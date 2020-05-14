@@ -575,6 +575,10 @@ If your website has forms that send data to external sources, you can enable opt
 == Changelog ==
 
 = 5.138 May 13 2020 =
+  * Fix: Scan users fixed.
+  * Fix: Notice fixed (Creating default object from empty value).
+  * Fix: Creating table for SFW data for child blogs on WPMS.
+  * Upd: SFW query optimized.
   * Fix: Adding cleantalk_spamscan_logs table for each blog when updating from 5.137.2.
   * New: White Lists for SFW implemented.
   * Fix: correct comments checking status text.
