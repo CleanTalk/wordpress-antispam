@@ -574,7 +574,7 @@ If your website has forms that send data to external sources, you can enable opt
 
 == Changelog ==
 
-= 5.138 May 13 2020 =
+= 5.138 May 14 2020 =
   * Fix: Scan users fixed.
   * Fix: Notice fixed (Creating default object from empty value).
   * Fix: Creating table for SFW data for child blogs on WPMS.
