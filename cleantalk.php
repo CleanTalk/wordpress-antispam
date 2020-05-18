@@ -827,8 +827,10 @@ function apbct_deactivation( $network ) {
 		apbct_deactivation__delete_common_tables();
 		delete_option('cleantalk_cron'); // Deleting cron entries
 		
-		if($apbct->settings['complete_deactivation'])
+		if($apbct->settings['complete_deactivation']) {
 			apbct_deactivation__delete_all_options();
+			apbct_deactivation__delete_meta();
+		}
 	
 	}
 }
@@ -870,6 +872,11 @@ function apbct_deactivation__delete_blog_tables() {
 	$wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->prefix.'cleantalk_sfw_logs`;');           // Deleting SFW logs
 	$wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->prefix.'cleantalk_sessions`;');           // Deleting session table
 	$wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->base_prefix.'cleantalk_spamscan_logs`;'); // Deleting user/comments scan result table
+}
+
+function apbct_deactivation__delete_meta(){
+	global $wpdb;
+	$wpdb->query("DELETE FROM {$wpdb->usermeta} WHERE meta_key IN ('ct_bad', 'ct_checked', 'ct_checked_now', 'ct_marked_as_spam', 'ct_hash');");
 }
 
 /**
