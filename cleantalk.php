@@ -98,6 +98,12 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 	
 	$apbct->settings_link = is_network_admin() ? 'settings.php?page=cleantalk' : 'options-general.php?page=cleantalk'; 
 	
+	$apbct->cookie_domain = isset( $_SERVER['HTTP_HOST'] )
+		? '.' . $_SERVER['HTTP_HOST']
+		: isset( $_SERVER['SERVER_NAME'] )
+			? '.' . $_SERVER['SERVER_NAME']
+			: null;
+	
 	if(!$apbct->white_label){
 		require_once( CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-widget.php');
 	}
@@ -577,7 +583,7 @@ function apbct_sfw__check()
 				$apbct->data['sfw_counter']['all']++;
 				$apbct->saveData();
 				if(!headers_sent())
-					apbct_cookie__set ('ct_sfw_passed', '0', time()+86400*3, '/', null, false, true, 'Lax' );
+					apbct_cookie__set ('ct_sfw_passed', '0', time()+86400*3, '/', $apbct->cookie_domain, false, true, 'Lax' );
 			}
 			break;
 		}else{
@@ -591,8 +597,8 @@ function apbct_sfw__check()
 		$spbc_key = !empty($spbc_settings['spbc_key']) ? $spbc_settings['spbc_key'] : false;
 		if($_GET['access'] === $apbct->api_key || ($spbc_key !== false && $_GET['access'] === $spbc_key)){
 			$is_sfw_check = false;
-			setcookie ('spbc_firewall_pass_key', md5(apbct_get_server_variable( 'REMOTE_ADDR' ) . $spbc_key),       time()+1200, '/');
-			setcookie ('ct_sfw_pass_key',        md5(apbct_get_server_variable( 'REMOTE_ADDR' ) . $apbct->api_key), time()+1200, '/');
+			setcookie ('spbc_firewall_pass_key', md5(apbct_get_server_variable( 'REMOTE_ADDR' ) . $spbc_key),       time()+1200, '/', $apbct->cookie_domain);
+			setcookie ('ct_sfw_pass_key',        md5(apbct_get_server_variable( 'REMOTE_ADDR' ) . $apbct->api_key), time()+1200, '/', $apbct->cookie_domain);
 		}
 		unset($spbc_settings, $spbc_key);
 	}
@@ -627,7 +633,7 @@ function apbct_sfw__check()
 		}else{
 			reset($sfw->passed_ips);
 			if(!empty($apbct->settings['set_cookies']) && !headers_sent() && key($sfw->passed_ips))
-				setcookie ('ct_sfw_pass_key', md5($sfw->passed_ips[key($sfw->passed_ips)]['ip'].$apbct->api_key), time()+86400*30, '/', null,false);
+				setcookie( 'ct_sfw_pass_key', md5( $sfw->passed_ips[ key( $sfw->passed_ips ) ]['ip'] . $apbct->api_key ), time() + 86400 * 30, '/', '.' . $apbct->cookie_domain, false );
 		}
 	}
 	unset($is_sfw_check, $sfw, $sfw_ip, $ct_cur_ip);

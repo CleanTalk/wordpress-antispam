@@ -39,6 +39,9 @@
  * @property mixed        allow_custom_key
  * @property bool         white_label
  * @property mixed        moderate
+ *
+ * MISC
+ * @property string|null cookie_domain
  */
 class CleantalkState
 {
