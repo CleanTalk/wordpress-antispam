@@ -130,7 +130,7 @@ class ClassCleantalkFindSpamUsersChecker extends ClassCleantalkFindSpamChecker
 
         check_ajax_referer('ct_secret_nonce', 'security');
 
-        global $apbct;
+        global $apbct, $wpdb;
 
         $amount = !empty($_POST['amount']) && intval($_POST['amount'])
             ? intval($_POST['amount'])
@@ -138,32 +138,6 @@ class ClassCleantalkFindSpamUsersChecker extends ClassCleantalkFindSpamChecker
 
         $skip_roles = array(
             'administrator'
-        );
-
-        $params = array(
-	        'fields' => array(
-		        'ID',
-		        'user_email',
-		        'user_registered',
-	        ),
-            'meta_query' => array(
-                'relation' => 'AND',
-                array(
-                    'key' => 'ct_checked_now',
-                    'compare' => 'NOT EXISTS'
-                ),
-                array(
-                    'key' => 'ct_checked',
-                    'compare' => 'NOT EXISTS'
-                ),
-                array(
-                    'key' => 'ct_bad',
-                    'compare' => 'NOT EXISTS'
-                )
-            ),
-            'orderby' => 'registered',
-            'order' => 'ASC',
-            'number' => $amount,
         );
 
         if(isset($_POST['from'], $_POST['till'])){
@@ -178,9 +152,18 @@ class ClassCleantalkFindSpamUsersChecker extends ClassCleantalkFindSpamChecker
                 'inclusive' => true,
             );
         }
-
-        $u = get_users( $params );
-
+	
+	    $u = $wpdb->get_results("
+			SELECT {$wpdb->users}.ID, {$wpdb->users}.user_email, {$wpdb->users}.user_registered
+			FROM {$wpdb->users}
+			WHERE
+				NOT EXISTS(SELECT * FROM {$wpdb->usermeta} as meta WHERE {$wpdb->users}.ID = meta.user_id AND meta.meta_key = 'ct_bad') AND
+		        NOT EXISTS(SELECT * FROM {$wpdb->usermeta} as meta WHERE {$wpdb->users}.ID = meta.user_id AND meta.meta_key = 'ct_checked') AND
+		        NOT EXISTS(SELECT * FROM {$wpdb->usermeta} as meta WHERE {$wpdb->users}.ID = meta.user_id AND meta.meta_key = 'ct_checked_now')
+			ORDER BY {$wpdb->users}.user_registered ASC
+			LIMIT $amount;"
+		);
+        
         $check_result = array(
             'end' => 0,
             'checked' => 0,
@@ -196,9 +179,9 @@ class ClassCleantalkFindSpamUsersChecker extends ClassCleantalkFindSpamChecker
                 foreach( $u as $user_index => $user ){
 
                     if( ! isset( $curr_date ) )
-                        $curr_date = ( substr( $user->data->user_registered, 0, 10 ) ? substr( $user->data->user_registered, 0, 10 ) : '' );
+                        $curr_date = ( substr( $user->user_registered, 0, 10 ) ? substr( $user->user_registered, 0, 10 ) : '' );
 
-                    if( substr( $user->data->user_registered, 0, 10 ) != $curr_date )
+                    if( substr( $user->user_registered, 0, 10 ) != $curr_date )
                         unset( $u[$user_index] );
 
                 }
@@ -233,8 +216,8 @@ class ClassCleantalkFindSpamUsersChecker extends ClassCleantalkFindSpamChecker
                         $data[] = $curr_email;
                     // Patch for empty IP/Email
                     $u[$i]->data = new \stdClass();
-                    $u[$i]->data->user_ip    = empty($curr_ip)    ? 'none' : $curr_ip;
-                    $u[$i]->data->user_email = empty($curr_email) ? 'none' : $curr_email;
+                    $u[$i]->user_ip    = empty($curr_ip)    ? 'none' : $curr_ip;
+                    $u[$i]->user_email = empty($curr_email) ? 'none' : $curr_email;
                 }
             }
 
@@ -272,8 +255,8 @@ class ClassCleantalkFindSpamUsersChecker extends ClassCleantalkFindSpamChecker
                     $mark_spam_ip = false;
                     $mark_spam_email = false;
 
-                    $uip = $u[$i]->data->user_ip;
-                    $uim = $u[$i]->data->user_email;
+                    $uip = $u[$i]->user_ip;
+                    $uim = $u[$i]->user_email;
 
                     if( isset( $result[$uip] ) && $result[$uip]['appears'] == 1 )
                         $mark_spam_ip = true;
