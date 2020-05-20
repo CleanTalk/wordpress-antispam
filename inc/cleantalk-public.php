@@ -2462,7 +2462,13 @@ function apbct_form__ninjaForms__testSpam() {
 		// We have to use GLOBAL variable to transfer the comment to apbct_form__ninjaForms__changeResponse() function :(
 	    $apbct->response = $ct_result->comment;
 	    add_action( 'ninja_forms_before_response', 'apbct_form__ninjaForms__changeResponse', 10, 1 );
+	    add_action( 'ninja_forms_action_email_send', 'apbct_form__ninjaForms__stopEmail', 1, 5 ); // Prevent mail notification
     }
+}
+
+function apbct_form__ninjaForms__stopEmail($some, $action_settings, $message, $headers, $attachments){
+	global $apbct;
+	throw new Exception($apbct->response);
 }
 
 function apbct_form__ninjaForms__changeResponse( $data ) {
