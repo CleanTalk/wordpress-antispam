@@ -1128,26 +1128,28 @@ function apbct_settings__field__draw($params = array()){
 					: '';
 				
 				echo '<div class="apbct_settings-field_content apbct_settings-field_content--'.$params['type'].'">';
-
-					foreach($params['options'] as $option){
-						echo '<input'
-						     .' type="radio"'
-						     ." class='apbct_setting_{$params['type']} apbct_setting---{$params['name']}'"
-						     ." id='apbct_setting_{$params['name']}__{$option['label']}'"
-						     .' name="cleantalk_settings['.$params['name'].']"'
-						     .' value="'.$option['val'].'"'
-						     . $disabled
-						     .($params['childrens']
-								? ' onchange="apbctSettingsDependencies(\'' . $childrens . '\', ' . $option['childrens_enable'] . ')"'
-								: ''
-						     )
-						     .($value == $option['val'] ? ' checked' : '')
-							 .($params['required'] ? ' required="required"' : '')
-						.' />';
-				        echo '<label for="apbct_setting_'.$params['name'].'__'.$option['label'].'"> ' . $option['label'] . '</label>';
-						echo '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
-					}
 				
+					echo '<div class="apbct_switchers" style="direction: ltr">';
+						foreach($params['options'] as $option){
+							echo '<input'
+							     .' type="radio"'
+							     ." class='apbct_setting_{$params['type']} apbct_setting---{$params['name']}'"
+							     ." id='apbct_setting_{$params['name']}__{$option['label']}'"
+							     .' name="cleantalk_settings['.$params['name'].']"'
+							     .' value="'.$option['val'].'"'
+							     . $disabled
+							     .($params['childrens']
+									? ' onchange="apbctSettingsDependencies(\'' . $childrens . '\', ' . $option['childrens_enable'] . ')"'
+									: ''
+							     )
+							     .($value == $option['val'] ? ' checked' : '')
+								 .($params['required'] ? ' required="required"' : '')
+							.' />';
+					        echo '<label for="apbct_setting_'.$params['name'].'__'.$option['label'].'"> ' . $option['label'] . '</label>';
+							echo '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
+						}
+					echo '</div>';
+					
 					echo isset($params['description'])
 						? '<div class="apbct_settings-field_description">'.$params['description'].'</div>'
 						: '';

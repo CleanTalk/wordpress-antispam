@@ -1,6 +1,11 @@
 jQuery(document).ready(function(){
 
-    // Show/Hide access key
+	// Crunch for Right to Left direction languages
+	if(getComputedStyle(document.getElementsByClassName('apbct_settings-title')[0]).direction === 'rtl'){
+		jQuery('.apbct_switchers').css('text-align', 'right');
+	}
+
+	// Show/Hide access key
     jQuery('#apbct_showApiKey').on('click', function(){
         jQuery('.apbct_setting---apikey').val(jQuery('.apbct_setting---apikey').attr('key'));
         jQuery('.apbct_setting---apikey+div').show();
