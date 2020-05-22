@@ -100,9 +100,9 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 	
 	$apbct->cookie_domain = isset( $_SERVER['HTTP_HOST'] )
 		? '.' . $_SERVER['HTTP_HOST']
-		: isset( $_SERVER['SERVER_NAME'] )
+		: (isset( $_SERVER['SERVER_NAME'] )
 			? '.' . $_SERVER['SERVER_NAME']
-			: null;
+			: null);
 	
 	if(!$apbct->white_label){
 		require_once( CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-widget.php');
