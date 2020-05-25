@@ -441,6 +441,7 @@ function apbct_settings__set_fileds__network( $fields ){
 					'title' => __('Enable White Label Mode', 'cleantalk'),
 					'description' => sprintf(__("Learn more information %shere%s.", 'cleantalk'), '<a target="_blank" href="https://cleantalk.org/ru/help/hosting-white-label">', '</a>'),
 					'childrens' => array( 'white_label__hoster_key', 'white_label__plugin_name', 'allow_custom_key', ),
+					'disabled' => defined('CLEANTALK_ACCESS_KEY'),
 					'network' => true,
 				),
 				'white_label__hoster_key' => array(
@@ -468,6 +469,8 @@ function apbct_settings__set_fileds__network( $fields ){
 						. (defined('CLEANTALK_ACCESS_KEY')
 							? ' <span style="color: red">'
 							. __('Constant <b>CLEANTALK_ACCESS_KEY</b> is set. All websites will use API key from this constant. Look into wp-config.php', 'cleantalk')
+							. '<br>'
+							. __('You are not able to use white label mode while <b>CLEANTALK_ACCESS_KEY</b> is defined.', 'cleantalk')
 							. '</span>'
 							: ''
 						),
