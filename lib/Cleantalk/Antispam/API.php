@@ -7,7 +7,7 @@ namespace Cleantalk\Antispam;
  * Mostly contains wrappers for API methods. Check and send mehods.
  * Compatible with any CMS.
  *
- * @version       3.2
+ * @version       3.3
  * @author        Cleantalk team (welcome@cleantalk.org)
  * @copyright (C) 2014 CleanTalk team (http://cleantalk.org)
  * @license       GNU/GPL: http://www.gnu.org/copyleft/gpl.html
@@ -625,6 +625,9 @@ class API
 		
 		// Possibility to switch API url
 		$url = defined('CLEANTALK_API_URL') ? CLEANTALK_API_URL : $url;
+
+		// Modify api URL for new SFW whitelists feature
+		$url = $data['method_name'] == '2s_blacklists_db' ? $url . '/2.0' : $url;
 		
 		if(function_exists('curl_init')){
 			
