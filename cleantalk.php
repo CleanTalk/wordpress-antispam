@@ -806,6 +806,7 @@ function apbct_deactivation( $network ) {
 			
 			if($apbct->settings['complete_deactivation']){
 				apbct_deactivation__delete_all_options();
+                apbct_deactivation__delete_meta();
 				apbct_deactivation__delete_all_options__in_network();
 			}
 			
@@ -818,8 +819,10 @@ function apbct_deactivation( $network ) {
 		apbct_deactivation__delete_common_tables();
 		delete_option('cleantalk_cron'); // Deleting cron entries
 		
-		if($apbct->settings['complete_deactivation'])
-			apbct_deactivation__delete_all_options();
+		if($apbct->settings['complete_deactivation']) {
+            apbct_deactivation__delete_all_options();
+            apbct_deactivation__delete_meta();
+        }
 		
 	// Deactivation on standalone blog
 	}elseif(!is_multisite()){
