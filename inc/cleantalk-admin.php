@@ -329,6 +329,7 @@ function apbct_admin__enqueue_scripts($hook){
 
     // USERS page JavaScript
     if($hook == 'users.php'){
+        wp_enqueue_style ('ct_icons',                plugins_url('/cleantalk-spam-protect/css/cleantalk-icons.min.css'),          array(), APBCT_VERSION, 'all');
         wp_enqueue_script('ct_users_editscreen',     plugins_url('/cleantalk-spam-protect/js/cleantalk-users-editscreen.min.js'), array(), APBCT_VERSION);
         wp_localize_script( 'jquery', 'ctUsersScreen', array(
             'spambutton_text'             => __("Find spam-users", 'cleantalk'),

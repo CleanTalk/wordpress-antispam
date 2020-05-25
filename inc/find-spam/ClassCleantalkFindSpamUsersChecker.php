@@ -584,4 +584,47 @@ class ClassCleantalkFindSpamUsersChecker extends ClassCleantalkFindSpamChecker
         die($count_all);
     }
 
+    /**
+     * Add hidden column into the users table
+     *
+     * @param $columns
+     * @return mixed
+     */
+    public static function ct_manage_users_columns( $columns ) {
+
+        $columns['apbct_status hidden'] = '';
+        return $columns;
+
+    }
+
+    /**
+     * Generates <span> with information about user scan using user's meta.
+     *
+     * @param $value
+     * @param $column_name
+     * @param $user_id
+     * @return string
+     */
+    public static function ct_manage_users_custom_column( $value, $column_name, $user_id ) {
+
+        if( 'apbct_status hidden' == $column_name ) {
+
+            $is_checked = get_user_meta( $user_id, 'ct_checked', true);
+            if( ! empty( $is_checked ) ) {
+                $is_spam = get_user_meta( $user_id, 'ct_marked_as_spam', true );
+                if( ! empty( $is_spam ) ) {
+                    $value = '<span id="apbct_checked_spam"></span>';
+                } else {
+                    $value = '<span id="apbct_checked_not_spam"></span>';
+                }
+            } else {
+                $value = '<span id="apbct_not_checked"></span>';
+            }
+
+        }
+
+        return $value;
+
+    }
+
 }
