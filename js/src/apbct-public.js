@@ -83,30 +83,35 @@
 
 	// Ready function
 	function apbct_ready(){
+
 		ctSetCookieSec("apbct_visible_fields", 0);
 		ctSetCookieSec("apbct_visible_fields_count", 0);
+
 		setTimeout(function(){
+
 			for(var i = 0; i < document.forms.length; i++){
 				var form = document.forms[i];
 
 				//Exclusion for StoreLocatorPlus form
 				if (form.classList.contains('slp_search_form'))
 					continue;
-				
+
 				form.onsubmit_prev = form.onsubmit;
 				form.onsubmit = function(event){
 
 					// Get only fields
-					var elements = [];
+					var inputs = [],
+						inputs_visible = '',
+						inputs_visible_count = 0,
+						inputs_with_duplicate_names = [];
+
 					for(var key in this.elements){
 						if(!isNaN(+key))
-							elements[key] = this.elements[key];
+							inputs[key] = this.elements[key];
 					}
 
 					// Filter fields
-					elements = elements.filter(function(elem){
-
-						var pass = true;
+					inputs = inputs.filter(function(elem){
 
 						// Filter fields
 						if( getComputedStyle(elem).display    === "none" ||   // hidden
@@ -115,36 +120,32 @@
 							elem.getAttribute("type")         === "hidden" || // type == hidden
 							elem.getAttribute("type")         === "submit" || // type == submit
 							elem.value                        === ""       || // empty value
-							elem.getAttribute('name')         === null
+							elem.getAttribute('name')         === null ||
+							inputs_with_duplicate_names.indexOf( elem.getAttribute('name') ) !== -1 // name already added
 						){
 							return false;
 						}
 
-						// Filter elements with same names for type == radio
-						if(elem.getAttribute("type") === "radio"){
-							elements.forEach(function(el, j, els){
-								if(elem.getAttribute('name') === el.getAttribute('name')){
-									pass = false;
-									return;
-								}
-							});
+						// Visible fields count
+						inputs_visible_count++;
+
+						// Filter inputs with same names for type == radio
+						if( -1 !== ['radio', 'checkbox'].indexOf( elem.getAttribute("type") )){
+							inputs_with_duplicate_names.push( elem.getAttribute('name') );
+							return false;
 						}
 
 						return true;
 					});
 
-					// Visible fields count
-					var visible_fields_count = elements.length;
-
 					// Visible fields
-					var visible_fields = '';
-					elements.forEach(function(elem, i, elements){
-						visible_fields += " " + elem.getAttribute("name");
+					inputs.forEach(function(elem, i, elements){
+						inputs_visible += " " + elem.getAttribute("name");
 					});
-					visible_fields = visible_fields.trim();
+					inputs_visible = inputs_visible.trim();
 
-					ctSetCookieSec("apbct_visible_fields", visible_fields);
-					ctSetCookieSec("apbct_visible_fields_count", visible_fields_count);
+					ctSetCookieSec("apbct_visible_fields", inputs_visible);
+					ctSetCookieSec("apbct_visible_fields_count", inputs_visible_count);
 
 					// Call previous submit action
 					if(event.target.onsubmit_prev instanceof Function){
@@ -190,14 +191,21 @@ if(typeof jQuery !== 'undefined') {
 		var callback = params.callback || null;
 		var notJson = params.notJson || null;
 		var timeout = params.timeout || 15000;
+		var async = params.async || true;
 		var obj = obj || null;
 
-		data._ajax_nonce = ctPublic._ajax_nonce;
+		if(typeof (data) === 'string') {
+			data = data + '&_ajax_nonce=' + ctPublic._ajax_nonce + '&no_cache=' + Math.random();
+		}else{
+			data._ajax_nonce = ctPublic._ajax_nonce;
+			data.no_cache = Math.random();
+		}
 
 		jQuery.ajax({
 			type: "POST",
 			url: ctPublic._ajax_url,
 			data: data,
+			async: async,
 			success: function (result) {
 				if (!notJson) result = JSON.parse(result);
 				if (result.error) {
