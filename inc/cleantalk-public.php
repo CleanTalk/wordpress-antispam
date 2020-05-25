@@ -1374,6 +1374,8 @@ function ct_preprocess_comment($comment) {
 			add_filter('pre_comment_approved', 'ct_set_not_approved', 999, 2);
 		else
 			add_filter('pre_comment_approved', 'ct_set_approved', 999, 2);
+		// Modify the email notification
+        add_filter('comment_notification_text', 'apbct_comment__wordpress__show_blacklists', 100, 2); // Add two blacklist links: by email and IP
 	}else{
 
 		global $ct_comment, $ct_stop_words;
@@ -1497,6 +1499,33 @@ function apbct_comment__Wordpress__changeMailNotification($notify_message, $comm
 		.$notify_message;
 
 	return $notify_message;
+
+}
+
+function apbct_comment__wordpress__show_blacklists( $notify_message, $comment_id ) {
+
+    $comment_details = get_comments( array( 'comment__in' => $comment_id ) );
+    $comment_details = $comment_details[0];
+
+    if( isset( $comment_details->comment_author_email ) ) {
+
+        $black_list_link = 'https://cleantalk.org/blacklists/';
+
+        $links = PHP_EOL;
+        $links .= esc_html__( 'Check for spam:', 'cleantalk' );
+        $links .= PHP_EOL;
+        $links .= $black_list_link . $comment_details->comment_author_email;
+        $links .= PHP_EOL;
+        if( ! empty( $comment_details->comment_author_IP ) ) {
+            $links .= $black_list_link . $comment_details->comment_author_IP;
+            $links .= PHP_EOL;
+        }
+
+        return $notify_message . $links;
+
+    }
+
+    return $notify_message;
 
 }
 
