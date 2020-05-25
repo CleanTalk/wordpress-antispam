@@ -86,7 +86,7 @@ function apbct_wp_validate_auth_cookie( $cookie = '', $scheme = '' ) {
 			$hash = hash_hmac($algo, $username . '|' . $expiration . '|' . $token, $key);
 			if(hash_equals($hash, $hmac)){
 				$sessions = get_user_meta($user->ID, 'session_tokens', true);
-				$sessions = current($sessions);
+				$sessions = is_array($sessions) ? current($sessions) : $sessions;
 				if(is_array($sessions)){
 					if(is_int($sessions['expiration']) && $sessions['expiration'] > time()){
 						return $user->ID;
