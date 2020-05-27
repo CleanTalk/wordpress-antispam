@@ -1566,7 +1566,7 @@ function apbct_store__urls(){
 	}
 }
 
-function apbct_cookie__set($name, $value = '', $expires = 0, $path = '', $domain = null, $secure = false, $httponly = false, $samesite = null ){
+function apbct_cookie__set($name, $value = '', $expires = 0, $path = '', $domain = null, $secure = false, $httponly = false, $samesite = 'Lax' ){
 	
 	// For PHP 7.3+ and above
 	if( version_compare( phpversion(), '7.3.0', '>=' ) ){
@@ -1585,8 +1585,12 @@ function apbct_cookie__set($name, $value = '', $expires = 0, $path = '', $domain
 		setcookie( $name, $value, $params );
 		
 	// For PHP 5.6 - 7.2
-	}else
-		setcookie( $name, $value, $expires, $path, $domain, $secure, $httponly );
+	}else {
+        if($samesite)
+            $path = $path . '; samesite=' . $samesite;
+        setcookie( $name, $value, $expires, $path, $domain, $secure, $httponly );
+    }
+
 }
 
 /*
