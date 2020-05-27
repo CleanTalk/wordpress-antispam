@@ -1566,6 +1566,11 @@ function apbct_store__urls(){
 	}
 }
 
+/**
+ * Universal method to adding cookies.
+ * Use \Cleantalk\Antispam\Helper::apbct_cookie__set() instead.
+ * @deprecated
+ */
 function apbct_cookie__set($name, $value = '', $expires = 0, $path = '', $domain = null, $secure = false, $httponly = false, $samesite = 'Lax' ){
 	
 	// For PHP 7.3+ and above
