@@ -2015,8 +2015,8 @@ function ct_registration_errors($errors, $sanitized_user_login = null, $user_ema
 
     } else {
         if ($ct_result->id !== null) {
-            setcookie($apbct_cookie_register_ok_label, $ct_result->id, time()+10, '/');
-			setcookie($apbct_cookie_request_id_label,  $ct_result->id, time()+10, '/');
+            \Cleantalk\Antispam\Helper::apbct_cookie__set($apbct_cookie_register_ok_label, $ct_result->id, time()+10, '/');
+            \Cleantalk\Antispam\Helper::apbct_cookie__set($apbct_cookie_request_id_label,  $ct_result->id, time()+10, '/');
         }
     }
 
@@ -2146,7 +2146,7 @@ function apbct_user_register($user_id) {
     global $apbct_cookie_request_id_label;
     if (isset($_COOKIE[$apbct_cookie_request_id_label])) {
         if(update_user_meta($user_id, 'ct_hash', $_COOKIE[$apbct_cookie_request_id_label])){
-			setcookie($apbct_cookie_request_id_label, '0', 1, '/');
+            \Cleantalk\Antispam\Helper::apbct_cookie__set($apbct_cookie_request_id_label, '0', 1, '/');
 		}
     }
 }
@@ -2942,7 +2942,7 @@ function ct_check_wplp(){
             $cleantalk_comment = 'OK';
         }
 
-        setcookie($ct_wplp_result_label, $cleantalk_comment, strtotime("+5 seconds"), '/');
+        \Cleantalk\Antispam\Helper::apbct_cookie__set($ct_wplp_result_label, $cleantalk_comment, strtotime("+5 seconds"), '/');
     } else {
         // Next POST/AJAX submit(s) of same WPLP form
         $cleantalk_comment = $_COOKIE[$ct_wplp_result_label];
