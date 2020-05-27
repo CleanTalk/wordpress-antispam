@@ -611,16 +611,17 @@ class ClassCleantalkFindSpamUsersChecker extends ClassCleantalkFindSpamChecker
 
             $is_checked = get_user_meta( $user_id, 'ct_checked', true);
             if( ! empty( $is_checked ) ) {
+                $is_checked = date( 'M d Y', strtotime( $is_checked ) );
                 $is_spam = get_user_meta( $user_id, 'ct_marked_as_spam', true );
                 if( ! empty( $is_spam ) ) {
-                    $text = sprintf( esc_html__( 'CleanTalk: Checked %s. Spam.', 'cleantalk' ), $is_checked );
+                    $text = sprintf( esc_html__( 'SPAM. Checked %s.', 'cleantalk' ), $is_checked );
                     $value = '<span id="apbct_checked_spam">' . $text . '</span>';
                 } else {
-                    $text = sprintf( esc_html__( 'CleanTalk: Checked %s. Not spam.', 'cleantalk' ), $is_checked );
+                    $text = sprintf( esc_html__( 'Not spam. Checked %s.', 'cleantalk' ), $is_checked );
                     $value = '<span id="apbct_checked_not_spam">' . $text . '</span>';
                 }
             } else {
-                $value = '<span id="apbct_not_checked">' . esc_html__( 'CleanTalk: Not checked.', 'cleantalk' ) . '</span>';
+                $value = '<span id="apbct_not_checked">' . esc_html__( 'Not checked yet. Anti-Spam by CleanTalk.', 'cleantalk' ) . '</span>';
             }
 
         }
