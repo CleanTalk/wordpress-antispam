@@ -8,7 +8,7 @@ namespace Cleantalk\Antispam;
  *
  * @package       PHP Antispam by CleanTalk
  * @subpackage    Helper
- * @Version       3.2
+ * @Version       3.3
  * @author        Cleantalk team (welcome@cleantalk.org)
  * @copyright (C) 2014 CleanTalk team (http://cleantalk.org)
  * @license       GNU/GPL: http://www.gnu.org/copyleft/gpl.html
