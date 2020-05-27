@@ -43,14 +43,14 @@ function apbct_cookie__delete(names, prefixes){
 		if(names){
 			names.forEach(function(name, i, all){
 				if(curr[0] === name)
-					document.cookie = curr[0] + "=; path=/; expires=" + date.toUTCString();
+					document.cookie = curr[0] + "=; path=/; expires=" + date.toUTCString() + '; samesite=lax';
 			});
 		}
 		// Detect by name prefix
 		if(prefixes){
 			prefixes.forEach(function(prefix, i, all){
 				if(curr[0].indexOf(prefix) === 0)
-					document.cookie = curr[0] + "=; path=/; expires=" + date.toUTCString();
+					document.cookie = curr[0] + "=; path=/; expires=" + date.toUTCString() + '; samesite=lax';
 			});
 		}
 	});
@@ -76,7 +76,7 @@ jQuery(document).ready(function(){
 				 for(cookie in msg.cookies){
 					 console.log(cookie);
 //					 console.log(msg.cookies[cookie]);
-					 document.cookie = cookie + "=" + msg.cookies[cookie] + "; path=/;";
+					 document.cookie = cookie + "=" + msg.cookies[cookie] + "; path=/; samesite=lax";
 				 };
 			 }else{
 				 console.log(msg);

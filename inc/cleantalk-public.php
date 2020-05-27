@@ -935,7 +935,7 @@ function ct_add_hidden_fields($field_name = 'ct_checkjs', $return_string = false
 
 		$html =	"<script type='text/javascript'>
 			function ctSetCookie(c_name, value, def_value){
-				document.cookie = c_name + '=' + escape(value) + '; path=/';
+				document.cookie = c_name + '=' + escape(value) + '; path=/; samesite=lax';
 			}
 			ctSetCookie('{$field_name}', '{$ct_checkjs_key}', '{$ct_checkjs_def}');
 		</script>";

@@ -7,7 +7,7 @@
 		ctMouseDataCounter = 0;
 
 	function ctSetCookieSec(c_name, value) {
-		document.cookie = c_name + "=" + encodeURIComponent(value) + "; path=/";
+		document.cookie = c_name + "=" + encodeURIComponent(value) + "; path=/; samesite=lax";
 	}
 
 	function apbct_attach_event_handler(elem, event, callback){

@@ -10,7 +10,7 @@ String.prototype.printf = function(){
 };
 
 // Set deafult amount to check by request.
-document.cookie = "ct_check_users__amount=" + 100 + "; path=/";
+document.cookie = "ct_check_users__amount=" + 100 + "; path=/; samesite=lax";
 
 // Flags
 var ct_working = false,
@@ -177,7 +177,7 @@ function ct_send_users(){
 				ct_new_check = false;
 				if(parseInt(msg.end) == 1 || ct_pause == true){
 					if(parseInt(msg.end) == 1)
-						document.cookie = 'ct_paused_users_check=0; path=/';
+						document.cookie = 'ct_paused_users_check=0; path=/; samesite=lax';
 					ct_working=false;
 					jQuery('#ct_working_message').hide();
 					var new_href = 'users.php?page=ct_check_users&ct_worked=1';
@@ -202,7 +202,7 @@ function ct_send_users(){
         error: function(jqXHR, textStatus, errorThrown) {
 			if(check_amount > 20){
 				check_amount -= 20;
-				document.cookie = "ct_check_users__amount=" + check_amount + "; path=/";
+				document.cookie = "ct_check_users__amount=" + check_amount + "; path=/; samesite=lax";
 			}
 			jQuery('#ct_error_message').show();
 			jQuery('#cleantalk_ajax_error').html(textStatus);
@@ -390,7 +390,7 @@ jQuery(document).ready(function(){
 	
 	// Check users
 	jQuery("#ct_check_spam_button").click(function(){
-		document.cookie = 'ct_paused_users_check=0; path=/';
+		document.cookie = 'ct_paused_users_check=0; path=/; samesite=lax';
 		ct_start_check(false);
 	});
 	jQuery("#ct_proceed_check_button").click(function(){
@@ -405,7 +405,7 @@ jQuery(document).ready(function(){
 			'from'    : ct_date_from,
 			'till'    : ct_date_till
 		};
-		document.cookie = 'ct_paused_users_check=' + JSON.stringify(ct_check) + '; path=/';
+		document.cookie = 'ct_paused_users_check=' + JSON.stringify(ct_check) + '; path=/; samesite=lax';
 	});
 		
 	//Approve button
