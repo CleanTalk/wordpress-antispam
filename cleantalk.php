@@ -948,49 +948,46 @@ function ct_sfw_update($immediate = false){
 	    $file_urls = isset($_GET['file_urls']) ? urldecode( $_GET['file_urls'] ) : null;
 	    $file_urls = isset($file_urls) ? explode(',', $file_urls) : null;
 
-		if (!$file_urls) {
+		if( ! $file_urls ){
 
 			//Reset previous entries count
 			$apbct->stats['sfw']['entries'] = 0;
 			$apbct->save('stats');
 
-			$result = $sfw->sfw_update($apbct->api_key, null, $immediate);
+			$sfw->sfw_update($apbct->api_key, null, $immediate);
 			
-		} else {
-			if (is_array($file_urls) && count($file_urls)) {
+		}elseif( is_array( $file_urls ) && count( $file_urls ) ){
 
-				$result = $sfw->sfw_update($apbct->api_key, $file_urls[0], $immediate);
-				
-				if(empty($result['error'])){
+			$result = $sfw->sfw_update($apbct->api_key, $file_urls[0], $immediate);
+			
+			if( empty( $result['error'] ) ){
 
-					array_shift($file_urls);	
+				array_shift($file_urls);
 
-					//Increment sfw entries
-					$apbct->stats['sfw']['entries'] += $result;
+				//Increment sfw entries
+				$apbct->stats['sfw']['entries'] += $result;
+				$apbct->save('stats');
+
+				if (count($file_urls)) {
+					CleantalkHelper::http__request(
+						get_option('siteurl'),
+						array(
+							'spbc_remote_call_token'  => md5($apbct->api_key),
+							'spbc_remote_call_action' => 'sfw_update',
+							'plugin_name'             => 'apbct',
+							'file_urls'               => implode(',', $file_urls),
+						),
+						array('get', 'async')
+					);
+				} else {
+					//Files array is empty update sfw time
+					$apbct->stats['sfw']['last_update_time'] = time();
 					$apbct->save('stats');
-
-					if (count($file_urls)) {
-						CleantalkHelper::http__request(
-							get_option('siteurl'), 
-							array(
-								'spbc_remote_call_token'  => md5($apbct->api_key),
-								'spbc_remote_call_action' => 'sfw_update',
-								'plugin_name'             => 'apbct',
-								'file_urls'               => implode(',', $file_urls),
-							),
-							array('get', 'async')
-						);							
-					} else {
-						//Files array is empty update sfw time
-						$apbct->stats['sfw']['last_update_time'] = time();
-						$apbct->save('stats');
-					}
-				} else 
-					return $result;
-			} 
-		}	
-
-		return $result;
+				}
+			}else
+				return $result;
+		}else
+			return array('error' => 'SFW_UPDATE WRONG_FILE_URLS');
 	}
 	
 	return array('error' => 'SFW_DISABLED');
