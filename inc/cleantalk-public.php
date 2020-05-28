@@ -1735,7 +1735,9 @@ function ct_register_form() {
 }
 
 function apbct_login__scripts(){
+	global $apbct;
 	echo '<script src="'.APBCT_URL_PATH.'/js/apbct-public.min.js"></script>';
+	$apbct->public_script_loaded = true;
 }
 
 /**
@@ -3643,14 +3645,17 @@ function ct_enqueue_scripts_public($hook){
 	
 	if($apbct->settings['registrations_test'] || $apbct->settings['comments_test'] || $apbct->settings['contact_forms_test'] || $apbct->settings['general_contact_forms_test'] || $apbct->settings['wc_checkout_test'] || $apbct->settings['check_external'] || $apbct->settings['check_internal'] || $apbct->settings['bp_private_messages'] || $apbct->settings['general_postdata_test']){
 
-		// Differnt JS params
-		wp_enqueue_script('ct_public',      APBCT_URL_PATH.'/js/apbct-public.min.js',       array('jquery'), APBCT_VERSION, false /*in header*/);
-
-		wp_localize_script('ct_public', 'ctPublic', array(
-			'_ajax_nonce' => wp_create_nonce('ct_secret_stuff'),
-			'_ajax_url'   => admin_url('admin-ajax.php'),
-		));
-
+		if( ! $apbct->public_script_loaded ) {
+			
+			// Differnt JS params
+			wp_enqueue_script( 'ct_public', APBCT_URL_PATH . '/js/apbct-public.min.js', array( 'jquery' ), APBCT_VERSION, false /*in header*/ );
+			
+			wp_localize_script( 'ct_public', 'ctPublic', array(
+				'_ajax_nonce' => wp_create_nonce( 'ct_secret_stuff' ),
+				'_ajax_url'   => admin_url( 'admin-ajax.php' ),
+			) );
+		}
+		
 		// GDPR script
 		if($apbct->settings['gdpr_enabled']){
 
