@@ -359,7 +359,14 @@ function apbct_admin__notice_message(){
 	
 	//Misc
 	$user_token =    ($apbct->user_token ? '&user_token='.$apbct->user_token : '');
-	$settings_link = (is_network_admin() ? 'settings.php?page=cleantalk' : 'options-general.php?page=cleantalk');
+
+	if( is_network_admin() ) {
+		$site_url = get_site_option('siteurl');
+		$site_url = preg_match( '/\/$/', $site_url ) ? $site_url : $site_url . '/';
+		$settings_link = $site_url . 'wp-admin/options-general.php?page=cleantalk';
+    } else {
+		$settings_link = 'options-general.php?page=cleantalk';
+    }
 		
 	if($self_owned_key && $is_dashboard && $is_admin){
 		// Auto update notice
