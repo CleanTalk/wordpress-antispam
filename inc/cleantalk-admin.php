@@ -329,6 +329,7 @@ function apbct_admin__enqueue_scripts($hook){
 
     // USERS page JavaScript
     if($hook == 'users.php'){
+        wp_enqueue_style ('ct_icons',                plugins_url('/cleantalk-spam-protect/css/cleantalk-icons.min.css'),          array(), APBCT_VERSION, 'all');
         wp_enqueue_script('ct_users_editscreen',     plugins_url('/cleantalk-spam-protect/js/cleantalk-users-editscreen.min.js'), array(), APBCT_VERSION);
         wp_localize_script( 'jquery', 'ctUsersScreen', array(
             'spambutton_text'             => __("Find spam-users", 'cleantalk'),
@@ -358,7 +359,14 @@ function apbct_admin__notice_message(){
 	
 	//Misc
 	$user_token =    ($apbct->user_token ? '&user_token='.$apbct->user_token : '');
-	$settings_link = (is_network_admin() ? 'settings.php?page=cleantalk' : 'options-general.php?page=cleantalk');
+
+	if( is_network_admin() ) {
+		$site_url = get_site_option('siteurl');
+		$site_url = preg_match( '/\/$/', $site_url ) ? $site_url : $site_url . '/';
+		$settings_link = $site_url . 'wp-admin/options-general.php?page=cleantalk';
+    } else {
+		$settings_link = 'options-general.php?page=cleantalk';
+    }
 		
 	if($self_owned_key && $is_dashboard && $is_admin){
 		// Auto update notice
@@ -388,7 +396,7 @@ function apbct_admin__notice_message(){
 		if (!apbct_api_key__is_correct() && $apbct->moderate_ip == 0){
 			echo "<div class='error'>"
 				."<h3>"
-					.sprintf(__("Please enter Access Key in %s settings to enable anti spam protection!", 'cleantalk'), "<a href='{$settings_link}'>CleanTalk plugin</a>")
+					.sprintf(__("Please enter Access Key in %s settings to enable anti spam protection!", 'cleantalk'), "<a href='{$settings_link}'>$apbct->plugin_name</a>")
 				."</h3>"
 			."</div>";
 			$apbct->notice_show = false;

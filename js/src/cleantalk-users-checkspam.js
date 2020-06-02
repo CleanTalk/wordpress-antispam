@@ -10,7 +10,7 @@ String.prototype.printf = function(){
 };
 
 // Set deafult amount to check by request.
-document.cookie = "ct_check_users__amount=" + 100 + "; path=/";
+document.cookie = "ct_check_users__amount=" + 100 + "; path=/; samesite=lax";
 
 // Flags
 var ct_working = false,
@@ -99,7 +99,8 @@ function ct_clear_users(){
 		'action'   : 'ajax_clear_users',
 		'security' : ct_ajax_nonce,
 		'from'     : from,
-		'till'     : till
+		'till'     : till,
+		'no_cache': Math.random()
 	};
 
 	jQuery.ajax({
@@ -143,7 +144,8 @@ function ct_send_users(){
 		security: ct_ajax_nonce,
 		new_check: ct_new_check,
 		unchecked: ct_unchecked,
-		amount: check_amount
+		amount: check_amount,
+		'no_cache': Math.random()
 	};
 	
 	if(ct_accurate_check)
@@ -175,7 +177,7 @@ function ct_send_users(){
 				ct_new_check = false;
 				if(parseInt(msg.end) == 1 || ct_pause == true){
 					if(parseInt(msg.end) == 1)
-						document.cookie = 'ct_paused_users_check=0; path=/';
+						document.cookie = 'ct_paused_users_check=0; path=/; samesite=lax';
 					ct_working=false;
 					jQuery('#ct_working_message').hide();
 					var new_href = 'users.php?page=ct_check_users&ct_worked=1';
@@ -200,7 +202,7 @@ function ct_send_users(){
         error: function(jqXHR, textStatus, errorThrown) {
 			if(check_amount > 20){
 				check_amount -= 20;
-				document.cookie = "ct_check_users__amount=" + check_amount + "; path=/";
+				document.cookie = "ct_check_users__amount=" + check_amount + "; path=/; samesite=lax";
 			}
 			jQuery('#ct_error_message').show();
 			jQuery('#cleantalk_ajax_error').html(textStatus);
@@ -225,7 +227,8 @@ function ct_show_users_info(){
 			
 			var data = {
 				'action': 'ajax_info_users',
-				'security': ct_ajax_nonce
+				'security': ct_ajax_nonce,
+				'no_cache': Math.random()
 			};
 			
 			if( ct_date_from && ct_date_till ){
@@ -315,7 +318,8 @@ function ct_delete_all_users( e ){
 
 	var data = {
 		'action': 'ajax_delete_all_users',
-		'security': ct_ajax_nonce
+		'security': ct_ajax_nonce,
+		'no_cache': Math.random()
 	};
 
 	jQuery('.' + e.target.id).addClass('disabled');
@@ -386,7 +390,7 @@ jQuery(document).ready(function(){
 	
 	// Check users
 	jQuery("#ct_check_spam_button").click(function(){
-		document.cookie = 'ct_paused_users_check=0; path=/';
+		document.cookie = 'ct_paused_users_check=0; path=/; samesite=lax';
 		ct_start_check(false);
 	});
 	jQuery("#ct_proceed_check_button").click(function(){
@@ -401,7 +405,7 @@ jQuery(document).ready(function(){
 			'from'    : ct_date_from,
 			'till'    : ct_date_till
 		};
-		document.cookie = 'ct_paused_users_check=' + JSON.stringify(ct_check) + '; path=/';
+		document.cookie = 'ct_paused_users_check=' + JSON.stringify(ct_check) + '; path=/; samesite=lax';
 	});
 		
 	//Approve button
@@ -412,7 +416,8 @@ jQuery(document).ready(function(){
 		var data = {
 			'action': 'ajax_ct_approve_user',
 			'security': ct_ajax_nonce,
-			'id': ct_id
+			'id': ct_id,
+			'no_cache': Math.random()
 		};
 		jQuery.ajax({
 			type: "POST",
@@ -430,7 +435,8 @@ jQuery(document).ready(function(){
 			'action': 'ct_feedback_user',
 			'security': ct_ajax_nonce,
 			'user_id': ct_id,
-			'status': 'approve'
+			'status': 'approve',
+			'no_cache': Math.random()
 		};
 		jQuery.ajax({
 			type: "POST",
@@ -460,7 +466,8 @@ jQuery(document).ready(function(){
 		var data = {
 			'action': 'ajax_ct_get_csv_file',
 			'security': ct_ajax_nonce,
-			'filename': ctUsersCheck.ct_csv_filename
+			'filename': ctUsersCheck.ct_csv_filename,
+			'no_cache': Math.random()
 		};
 		jQuery('.' + e.target.id).addClass('disabled');
 		jQuery('.spinner').css('visibility', 'visible');
@@ -513,7 +520,8 @@ jQuery(document).ready(function(){
 
 		var data = {
 			'action': 'ajax_insert_users',
-			'security': ct_ajax_nonce
+			'security': ct_ajax_nonce,
+			'no_cache': Math.random()
 		};
 
 		if(delete_accounts)

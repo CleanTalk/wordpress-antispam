@@ -132,7 +132,7 @@ function ct_send_comments(){
 				ct_new_check = false;
 				if(parseInt(msg.end) == 1 || ct_pause === true){
 					if(parseInt(msg.end) == 1)
-						document.cookie = 'ct_paused_comments_check=0; path=/';
+						document.cookie = 'ct_paused_comments_check=0; path=/; samesite=lax';
 					ct_working=false;
 					jQuery('#ct_working_message').hide();
 					var new_href = 'edit-comments.php?page=ct_check_spam';
@@ -152,8 +152,8 @@ function ct_send_comments(){
 					jQuery('#ct_error_message').hide();
 					// If DB woks not properly
 					if(+ct_comments_total < ct_comments_checked + ct_comments_bad){
-						document.cookie = 'ct_comments_start_check=1; path=/';
-						document.cookie = 'ct_comments_safe_check=1; path=/';
+						document.cookie = 'ct_comments_start_check=1; path=/; samesite=lax';
+						document.cookie = 'ct_comments_safe_check=1; path=/; samesite=lax';
 						location.href = 'edit-comments.php?page=ct_check_spam';
 					}
 					ct_send_comments();
@@ -347,7 +347,7 @@ jQuery(document).ready(function(){
 	
 	// Check comments
 	jQuery("#ct_check_spam_button").click(function(){
-		document.cookie = 'ct_paused_comments_check=0; path=/';
+		document.cookie = 'ct_paused_comments_check=0; path=/; samesite=lax';
 		ct_start_check(false);
 	});
 	jQuery("#ct_proceed_check_button").click(function(){
@@ -362,12 +362,12 @@ jQuery(document).ready(function(){
 			'from'    : ct_date_from,
 			'till'    : ct_date_till
 		};
-		document.cookie = 'ct_paused_comments_check=' + JSON.stringify(ct_check) + '; path=/';
+		document.cookie = 'ct_paused_comments_check=' + JSON.stringify(ct_check) + '; path=/; samesite=lax';
 	});
 
 
 	if(ctCommentsCheck.start === '1'){
-		document.cookie = 'ct_comments_start_check=0; expires=' + new Date(0).toUTCString() + '; path=/';
+		document.cookie = 'ct_comments_start_check=0; expires=' + new Date(0).toUTCString() + '; path=/; samesite=lax';
 		jQuery('#ct_check_spam_button').click();	
 	}
 

@@ -935,7 +935,7 @@ function ct_add_hidden_fields($field_name = 'ct_checkjs', $return_string = false
 
 		$html =	"<script type='text/javascript'>
 			function ctSetCookie(c_name, value, def_value){
-				document.cookie = c_name + '=' + escape(value) + '; path=/';
+				document.cookie = c_name + '=' + escape(value) + '; path=/; samesite=lax';
 			}
 			ctSetCookie('{$field_name}', '{$ct_checkjs_key}', '{$ct_checkjs_def}');
 		</script>";
@@ -1374,6 +1374,8 @@ function ct_preprocess_comment($comment) {
 			add_filter('pre_comment_approved', 'ct_set_not_approved', 999, 2);
 		else
 			add_filter('pre_comment_approved', 'ct_set_approved', 999, 2);
+		// Modify the email notification
+        add_filter('comment_notification_text', 'apbct_comment__wordpress__show_blacklists', 100, 2); // Add two blacklist links: by email and IP
 	}else{
 
 		global $ct_comment, $ct_stop_words;
@@ -1497,6 +1499,33 @@ function apbct_comment__Wordpress__changeMailNotification($notify_message, $comm
 		.$notify_message;
 
 	return $notify_message;
+
+}
+
+function apbct_comment__wordpress__show_blacklists( $notify_message, $comment_id ) {
+
+    $comment_details = get_comments( array( 'comment__in' => $comment_id ) );
+    $comment_details = $comment_details[0];
+
+    if( isset( $comment_details->comment_author_email ) ) {
+
+        $black_list_link = 'https://cleantalk.org/blacklists/';
+
+        $links = PHP_EOL;
+        $links .= esc_html__( 'Check for spam:', 'cleantalk' );
+        $links .= PHP_EOL;
+        $links .= $black_list_link . $comment_details->comment_author_email;
+        $links .= PHP_EOL;
+        if( ! empty( $comment_details->comment_author_IP ) ) {
+            $links .= $black_list_link . $comment_details->comment_author_IP;
+            $links .= PHP_EOL;
+        }
+
+        return $notify_message . $links;
+
+    }
+
+    return $notify_message;
 
 }
 
@@ -1706,7 +1735,9 @@ function ct_register_form() {
 }
 
 function apbct_login__scripts(){
+	global $apbct;
 	echo '<script src="'.APBCT_URL_PATH.'/js/apbct-public.min.js"></script>';
+	$apbct->public_script_loaded = true;
 }
 
 /**
@@ -1922,7 +1953,7 @@ function ct_registration_errors($errors, $sanitized_user_login = null, $user_ema
     }else{
 	    // This hack can be helpfull when plugin uses with untested themes&signups plugins.
 	    $checkjs_post   = apbct_js_test($ct_checkjs_register_form, $_POST);
-	    $checkjs_cookie = apbct_js_test($ct_checkjs_register_form, $_COOKIE);
+	    $checkjs_cookie = apbct_js_test('ct_checkjs', $_COOKIE);
 	    $checkjs = $checkjs_cookie ? $checkjs_cookie : $checkjs_post;
     }
 
@@ -1986,8 +2017,8 @@ function ct_registration_errors($errors, $sanitized_user_login = null, $user_ema
 
     } else {
         if ($ct_result->id !== null) {
-            setcookie($apbct_cookie_register_ok_label, $ct_result->id, time()+10, '/');
-			setcookie($apbct_cookie_request_id_label,  $ct_result->id, time()+10, '/');
+            \Cleantalk\Antispam\Helper::apbct_cookie__set($apbct_cookie_register_ok_label, $ct_result->id, time()+10, '/');
+            \Cleantalk\Antispam\Helper::apbct_cookie__set($apbct_cookie_request_id_label,  $ct_result->id, time()+10, '/');
         }
     }
 
@@ -2117,7 +2148,7 @@ function apbct_user_register($user_id) {
     global $apbct_cookie_request_id_label;
     if (isset($_COOKIE[$apbct_cookie_request_id_label])) {
         if(update_user_meta($user_id, 'ct_hash', $_COOKIE[$apbct_cookie_request_id_label])){
-			setcookie($apbct_cookie_request_id_label, '0', 1, '/');
+            \Cleantalk\Antispam\Helper::apbct_cookie__set($apbct_cookie_request_id_label, '0', 1, '/');
 		}
     }
 }
@@ -2462,7 +2493,18 @@ function apbct_form__ninjaForms__testSpam() {
 		// We have to use GLOBAL variable to transfer the comment to apbct_form__ninjaForms__changeResponse() function :(
 	    $apbct->response = $ct_result->comment;
 	    add_action( 'ninja_forms_before_response', 'apbct_form__ninjaForms__changeResponse', 10, 1 );
+	    add_action( 'ninja_forms_action_email_send', 'apbct_form__ninjaForms__stopEmail', 1, 5 ); // Prevent mail notification
+	    add_action( 'ninja_forms_save_submission', 'apbct_form__ninjaForms__preventSubmission', 1, 2 ); // Prevent mail notification
     }
+}
+
+function apbct_form__ninjaForms__preventSubmission($some, $form_id){
+	return false;
+}
+
+function apbct_form__ninjaForms__stopEmail($some, $action_settings, $message, $headers, $attachments){
+	global $apbct;
+	throw new Exception($apbct->response);
 }
 
 function apbct_form__ninjaForms__changeResponse( $data ) {
@@ -2902,7 +2944,7 @@ function ct_check_wplp(){
             $cleantalk_comment = 'OK';
         }
 
-        setcookie($ct_wplp_result_label, $cleantalk_comment, strtotime("+5 seconds"), '/');
+        \Cleantalk\Antispam\Helper::apbct_cookie__set($ct_wplp_result_label, $cleantalk_comment, strtotime("+5 seconds"), '/');
     } else {
         // Next POST/AJAX submit(s) of same WPLP form
         $cleantalk_comment = $_COOKIE[$ct_wplp_result_label];
@@ -3603,14 +3645,17 @@ function ct_enqueue_scripts_public($hook){
 	
 	if($apbct->settings['registrations_test'] || $apbct->settings['comments_test'] || $apbct->settings['contact_forms_test'] || $apbct->settings['general_contact_forms_test'] || $apbct->settings['wc_checkout_test'] || $apbct->settings['check_external'] || $apbct->settings['check_internal'] || $apbct->settings['bp_private_messages'] || $apbct->settings['general_postdata_test']){
 
-		// Differnt JS params
-		wp_enqueue_script('ct_public',      APBCT_URL_PATH.'/js/apbct-public.min.js',       array('jquery'), APBCT_VERSION, false /*in header*/);
-
-		wp_localize_script('ct_public', 'ctPublic', array(
-			'_ajax_nonce' => wp_create_nonce('ct_secret_stuff'),
-			'_ajax_url'   => admin_url('admin-ajax.php'),
-		));
-
+		if( ! $apbct->public_script_loaded ) {
+			
+			// Differnt JS params
+			wp_enqueue_script( 'ct_public', APBCT_URL_PATH . '/js/apbct-public.min.js', array( 'jquery' ), APBCT_VERSION, false /*in header*/ );
+			
+			wp_localize_script( 'ct_public', 'ctPublic', array(
+				'_ajax_nonce' => wp_create_nonce( 'ct_secret_stuff' ),
+				'_ajax_url'   => admin_url( 'admin-ajax.php' ),
+			) );
+		}
+		
 		// GDPR script
 		if($apbct->settings['gdpr_enabled']){
 

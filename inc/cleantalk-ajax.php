@@ -300,7 +300,8 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 	    'dflg_do_sign_in_user', // Unknown plugin
 	    'cartflows_save_cart_abandonment_data', // WooCommerce cartflow
 	    'rcp_process_register_form', // WordPress Membership Plugin – Restrict Content
-	    'give_process_donation' // GiveWP
+	    'give_process_donation', // GiveWP
+	    'apus_ajax_login', // ???? plugin authorization
     );
     
     // Skip test if
@@ -379,18 +380,19 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 		$post_info['comment_type'] = 'order';
 	}
 	//Easy Forms for Mailchimp
-	if( isset($_POST['action']) && $_POST['action']=='process_form_submission' ){
+	if( \Cleantalk\Common\Post::get('action') == 'process_form_submission' ){
 		$post_info['comment_type'] = 'contact_enquire_wordpress_easy_forms_for_mailchimp';
-		if( isset($_POST['form_data']) ) {
-			$form_data = explode( '&', $_POST['form_data'] );
+		if( \Cleantalk\Common\Post::get('form_data') ) {
+			$form_data = explode( '&', urldecode( \Cleantalk\Common\Post::get('form_data') ) );
 			$form_data_arr = array();
 			foreach ( $form_data as $val ) {
 				$form_data_element = explode( '=', $val );
 				$form_data_arr[$form_data_element[0]] = @$form_data_element[1];
 			}
-			if( isset( $form_data_arr['EMAIL'] ) ) {
+			if( isset( $form_data_arr['EMAIL'] ) )
 				$ct_post_temp['email'] = $form_data_arr['EMAIL'];
-			}
+			if( isset( $form_data_arr['FNAME'] ) )
+				$ct_post_temp['nickname'] = $form_data_arr['FNAME'];
 		}
 	}
 	

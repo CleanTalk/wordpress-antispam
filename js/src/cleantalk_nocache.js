@@ -64,12 +64,12 @@ function ct_getCookie(name) {
 function ct_setCookie(name, value)
 {
     if (ctNocache.set_cookies_flag) {
-        document.cookie = name+" =; expires=Thu, 01 Jan 1970 00:00:01 GMT; path = /";
-        document.cookie = name+" =; expires=Thu, 01 Jan 1970 00:00:01 GMT";
+        document.cookie = name+" =; expires=Thu, 01 Jan 1970 00:00:01 GMT; path = /; samesite=lax";
+        document.cookie = name+" =; expires=Thu, 01 Jan 1970 00:00:01 GMT; samesite=lax";
         
         var date = new Date;
         date.setDate(date.getDate() + 1);
-        setTimeout(function() { document.cookie = name+"=" + value + "; expires=" + date.toUTCString() + "; path = /;"}, 500);
+        setTimeout(function() { document.cookie = name+"=" + value + "; expires=" + date.toUTCString() + "; path = /; samesite=lax"}, 500);
     }
 
     return null;
@@ -189,7 +189,7 @@ if(ct_nocache_executed==undefined)
 		if(location.href=='http://'+location.hostname+'/' || location.href=='https://'+location.hostname+'/')
 		{
 			isVisitedMain=1;
-			setTimeout(function() { document.cookie = "ct_visited_main = 1; path = /;"}, 1500);
+			setTimeout(function() { document.cookie = "ct_visited_main = 1; path = /; samesite=lax"}, 1500);
 		}
 		
 		
@@ -205,6 +205,6 @@ if(ct_nocache_executed==undefined)
 		
 		cleantalk_user_info.is_main=isVisitedMain;
 		
-		setTimeout(function() { document.cookie = "ct_user_info = "+escape(JSON.stringify(cleantalk_user_info))+"; path = /;"}, 1500);
+		setTimeout(function() { document.cookie = "ct_user_info = "+escape(JSON.stringify(cleantalk_user_info))+"; path = /; samesite=lax"}, 1500);
 	}
 }

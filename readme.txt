@@ -4,14 +4,14 @@ Tags: spam, antispam, woocommerce, comments, firewall
 Requires at least: 3.0
 Tested up to: 5.4
 Requires PHP: 5.4
-Stable tag: 5.138
+Stable tag: 5.139
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
 
 == Description ==
 
-**Supports: Contact Form 7, Contact Form by WPForms, Ninja Forms, Gravity Forms, MailChimp, Formidable forms, WooCommerce, JetPack comments and contact form, BuddyPress, bbPress, S2Member, MailPoet, wpDiscuz, any WordPress registrations & contact forms and themes. Just setup and forget the spam!**
+**Supports: Contact Form 7, Contact Form by WPForms, Ninja Forms, Gravity Forms, MailChimp, Formidable forms, WooCommerce, JetPack comments and contact form, BuddyPress, bbPress, S2Member, MailPoet, wpDiscuz, any WordPress registrations & contact forms and themes. Just set up and forget the spam!**
 
 No CAPTCHA, no questions, no animal counting, no puzzles, no math and no spam bots. Universal AntiSpam plugin.
 
@@ -573,6 +573,27 @@ If your website has forms that send data to external sources, you can enable opt
 10. Website's options.
 
 == Changelog ==
+
+= 5.139 Jun 02 2020 =
+  * Fix: Profile link fixed.
+  * Fix: WPMS plugin name fixed.
+  * Fix: WPMS plugin settings link fixed.
+  * Fix: Integration with Easy Forms for Mailchimp.
+  * Fix: JS check on the registration form.
+  * Fix: Double JS attaching on the login page.
+  * Fix: Clear SpamFireWall table. Throw error if failed.
+  * Upd: Cookies attr "samesite" added.
+  * New: Users checking result icons added.
+  * Upd: Whitelists support added for SFW.
+  * Fix: Clear users meta everywhere by complete deactivation.
+  * New: Comment notification updated - blacklist links added.
+  * Fix: PHP Warning in cleantalk-pluggable.php.
+  * Fix: White Label mode is not accessible if CLEANTALK_ACCESS_KEY is defined.
+  * Fix: Deprecated condition.
+  * Fix: Setting layout for the right to left direction languages.
+
+= 5.138.1 May 20 2020 =
+  * Fix: Ninja Forms. Spam submissions.
 
 = 5.138 May 14 2020 =
   * Fix: Scan users fixed.
