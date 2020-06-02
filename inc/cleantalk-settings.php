@@ -446,7 +446,7 @@ function apbct_settings__set_fileds__network( $fields ){
 				),
 				'white_label__hoster_key' => array(
 					'title' => __('Hoster API Key', 'cleantalk'),
-					'description' => sprintf(__("You can get it in %sCleantalk's Control Panel%s", 'cleantalk'), '<a target="_blank" href="https://cleantalk.org/my/?cp_mode=hosting-antispam">', '</a>'),
+					'description' => sprintf(__("You can get it in %sCleantalk's Control Panel%s", 'cleantalk'), '<a target="_blank" href="https://cleantalk.org/my/profile">', '</a>'),
 					'type' => 'text',
 					'parent' => 'white_label',
 					'class' => 'apbct_settings-field_wrapper--sub',
