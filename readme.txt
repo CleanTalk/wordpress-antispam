@@ -574,7 +574,10 @@ If your website has forms that send data to external sources, you can enable opt
 
 == Changelog ==
 
-= 5.139 Jun 01 2020 =
+= 5.139 Jun 02 2020 =
+  * Fix: Profile link fixed.
+  * Fix: WPMS plugin name fixed.
+  * Fix: WPMS plugin settings link fixed.
   * Fix: Integration with Easy Forms for Mailchimp.
   * Fix: JS check on the registration form.
   * Fix: Double JS attaching on the login page.
