@@ -1378,8 +1378,12 @@ function apbct_settings__validate($settings) {
 	
 		// SFW actions
 		if($apbct->settings['spam_firewall'] == 1){
-			ct_sfw_update($settings['apikey']);
-			ct_sfw_send_logs($settings['apikey']);
+			$result = ct_sfw_update($settings['apikey']);
+			if( ! empty( $result['error'] ) )
+				$apbct->error_add('sfw_update', $result['error']);
+			$result = ct_sfw_send_logs($settings['apikey']);
+			if( ! empty( $result['error'] ) )
+				$apbct->error_add('sfw_send_logs', $result['error']);
 		}
 	
 		// Updating brief data for dashboard widget

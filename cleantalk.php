@@ -956,6 +956,10 @@ function ct_sfw_update($immediate = false){
 
 			$sfw->sfw_update($apbct->api_key, null, $immediate);
 			
+			return ! empty( $result['error'] )
+				? $result
+				: true;
+			
 		}elseif( is_array( $file_urls ) && count( $file_urls ) ){
 
 			$result = $sfw->sfw_update($apbct->api_key, $file_urls[0], $immediate);
