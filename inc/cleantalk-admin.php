@@ -396,7 +396,7 @@ function apbct_admin__notice_message(){
 		if (!apbct_api_key__is_correct() && $apbct->moderate_ip == 0){
 			echo "<div class='error'>"
 				."<h3>"
-					.sprintf(__("Please enter Access Key in %s settings to enable anti spam protection!", 'cleantalk'), "<a href='{$settings_link}'>CleanTalk plugin</a>")
+					.sprintf(__("Please enter Access Key in %s settings to enable anti spam protection!", 'cleantalk'), "<a href='{$settings_link}'>$apbct->plugin_name</a>")
 				."</h3>"
 			."</div>";
 			$apbct->notice_show = false;
