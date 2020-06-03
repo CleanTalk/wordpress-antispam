@@ -3319,7 +3319,8 @@ function ct_contact_form_validate() {
         (isset($_POST['action']) && $_POST['action'] == 'bwfan_insert_abandoned_cart' && apbct_is_in_uri( 'my-account/edit-address' )) || //Skip edit account
         apbct_is_in_uri('login-1') || //Skip login form
         apbct_is_in_uri('recuperacao-de-senha-2') || //Skip form reset password
-        apbct_is_in_uri('membermouse/api/request.php') && isset($_POST['membership_level_id'],$_POST['apikey'],$_POST['apisecret']) // Membermouse API
+        apbct_is_in_uri('membermouse/api/request.php') && isset($_POST['membership_level_id'],$_POST['apikey'],$_POST['apisecret']) || // Membermouse API
+        ( isset( $_POST['AppKey'] ) && ( isset( $_POST['cbAP'] ) && $_POST['cbAP'] == 'Caspio' ) )  // Caspio exclusion (ticket #16444)
 		) {
         do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
         return null;
