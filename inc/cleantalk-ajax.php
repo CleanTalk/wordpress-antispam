@@ -394,6 +394,12 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 			}
 		}
 	}
+	if (isset($_POST['action']) && $_POST['action'] == 'ufbl_front_form_action'){
+		foreach ($ct_post_temp as $key => $value) {
+			if (preg_match('/form_data_\d_name/', $key)) 
+				unset($ct_post_temp[$key]);
+		}
+	}
 	
 	$ct_temp_msg_data = isset($ct_post_temp)
 		? ct_get_fields_any($ct_post_temp)

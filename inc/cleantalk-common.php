@@ -193,7 +193,10 @@ function apbct_base_call($params = array(), $reg_flag = false){
     }else{
        	ct_add_event('yes');
     }
-	
+
+    //Strip tags from comment
+	$ct_result->comment = strip_tags($ct_result->comment, '<p><a><br>');
+
 	// Set cookies if it's not.
 	if(empty($apbct->flags__cookies_setuped))
 		apbct_cookie();
