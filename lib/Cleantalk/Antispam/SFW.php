@@ -256,7 +256,7 @@ class SFW
 
 			sleep(6);
 
-			$result = API::method__get_2s_blacklists_db($ct_key, 'multifiles');
+			$result = API::method__get_2s_blacklists_db($ct_key, 'multifiles', '2_0');
 
 			if(empty($result['error'])){
 			
@@ -271,47 +271,44 @@ class SFW
 
 							if(!$immediate) $pattenrs[] = 'async';		
 
-							$this->db->execute("TRUNCATE TABLE ".$this->data_table.";");
-
-							if (preg_match('/multifiles/', $result['file_url'])) {
-								
-								$gf = \gzopen($result['file_url'], 'rb');
-
-								if ($gf) {
-
-									$file_urls = array();
-
-									while( ! \gzeof($gf) )
-										$file_urls[] = trim( \gzgets($gf, 1024) );
-
-									\gzclose($gf);
-
-									return Helper::http__request(
-										get_option('siteurl'), 
-										array(
-											'spbc_remote_call_token'  => md5($ct_key),
-											'spbc_remote_call_action' => 'sfw_update',
-											'plugin_name'             => 'apbct',
-											'file_urls'               => implode(',', $file_urls),
-										),
-										$pattenrs
-									);								
+							// Clear SFW table
+							$this->db->execute("TRUNCATE TABLE {$this->data_table};");
+							$this->db->set_query("SELECT COUNT(network) as cnt FROM {$this->data_table};")->fetch(); // Check if it is clear
+							if($this->db->result['cnt'] != 0){
+								$this->db->execute("DELETE FROM {$this->data_table};"); // Truncate table
+								$this->db->set_query("SELECT COUNT(network) as cnt FROM {$this->data_table};")->fetch(); // Check if it is clear
+								if($this->db->result['cnt'] != 0){
+									return array('error' => 'COULD_NOT_CLEAR_SFW_TABLE'); // throw an error
 								}
-							}else {
+							}
+							
+							$gf = \gzopen($result['file_url'], 'rb');
+
+							if ($gf) {
+
+								$file_urls = array();
+
+								while( ! \gzeof($gf) )
+									$file_urls[] = trim( \gzgets($gf, 1024) );
+
+								\gzclose($gf);
+
 								return Helper::http__request(
-									get_option('siteurl'), 
+									get_option('siteurl'),
 									array(
 										'spbc_remote_call_token'  => md5($ct_key),
 										'spbc_remote_call_action' => 'sfw_update',
 										'plugin_name'             => 'apbct',
-										'file_urls'               => $result['file_url'],
+										'file_urls'               => implode(',', $file_urls),
 									),
 									$pattenrs
-								);								
-							}
+								);
+							}else
+								return array('error' => 'COULD_NOT_OPEN_REMOTE_FILE_SFW');
 						}else
 							return array('error' => 'ERROR_ALLOW_URL_FOPEN_DISABLED');
-					}				
+					}else
+						return array('error' => 'NO_FILE_URL_PROVIDED');
 				}else
 					return array('error' => 'BAD_RESPONSE');
 			}else

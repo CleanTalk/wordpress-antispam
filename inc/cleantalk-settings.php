@@ -441,11 +441,12 @@ function apbct_settings__set_fileds__network( $fields ){
 					'title' => __('Enable White Label Mode', 'cleantalk'),
 					'description' => sprintf(__("Learn more information %shere%s.", 'cleantalk'), '<a target="_blank" href="https://cleantalk.org/ru/help/hosting-white-label">', '</a>'),
 					'childrens' => array( 'white_label__hoster_key', 'white_label__plugin_name', 'allow_custom_key', ),
+					'disabled' => defined('CLEANTALK_ACCESS_KEY'),
 					'network' => true,
 				),
 				'white_label__hoster_key' => array(
 					'title' => __('Hoster API Key', 'cleantalk'),
-					'description' => sprintf(__("You can get it in %sCleantalk's Control Panel%s", 'cleantalk'), '<a target="_blank" href="https://cleantalk.org/my/?cp_mode=hosting-antispam">', '</a>'),
+					'description' => sprintf(__("You can get it in %sCleantalk's Control Panel%s", 'cleantalk'), '<a target="_blank" href="https://cleantalk.org/my/profile">', '</a>'),
 					'type' => 'text',
 					'parent' => 'white_label',
 					'class' => 'apbct_settings-field_wrapper--sub',
@@ -468,6 +469,8 @@ function apbct_settings__set_fileds__network( $fields ){
 						. (defined('CLEANTALK_ACCESS_KEY')
 							? ' <span style="color: red">'
 							. __('Constant <b>CLEANTALK_ACCESS_KEY</b> is set. All websites will use API key from this constant. Look into wp-config.php', 'cleantalk')
+							. '<br>'
+							. __('You are not able to use white label mode while <b>CLEANTALK_ACCESS_KEY</b> is defined.', 'cleantalk')
 							. '</span>'
 							: ''
 						),
@@ -1128,26 +1131,28 @@ function apbct_settings__field__draw($params = array()){
 					: '';
 				
 				echo '<div class="apbct_settings-field_content apbct_settings-field_content--'.$params['type'].'">';
-
-					foreach($params['options'] as $option){
-						echo '<input'
-						     .' type="radio"'
-						     ." class='apbct_setting_{$params['type']} apbct_setting---{$params['name']}'"
-						     ." id='apbct_setting_{$params['name']}__{$option['label']}'"
-						     .' name="cleantalk_settings['.$params['name'].']"'
-						     .' value="'.$option['val'].'"'
-						     . $disabled
-						     .($params['childrens']
-								? ' onchange="apbctSettingsDependencies(\'' . $childrens . '\', ' . $option['childrens_enable'] . ')"'
-								: ''
-						     )
-						     .($value == $option['val'] ? ' checked' : '')
-							 .($params['required'] ? ' required="required"' : '')
-						.' />';
-				        echo '<label for="apbct_setting_'.$params['name'].'__'.$option['label'].'"> ' . $option['label'] . '</label>';
-						echo '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
-					}
 				
+					echo '<div class="apbct_switchers" style="direction: ltr">';
+						foreach($params['options'] as $option){
+							echo '<input'
+							     .' type="radio"'
+							     ." class='apbct_setting_{$params['type']} apbct_setting---{$params['name']}'"
+							     ." id='apbct_setting_{$params['name']}__{$option['label']}'"
+							     .' name="cleantalk_settings['.$params['name'].']"'
+							     .' value="'.$option['val'].'"'
+							     . $disabled
+							     .($params['childrens']
+									? ' onchange="apbctSettingsDependencies(\'' . $childrens . '\', ' . $option['childrens_enable'] . ')"'
+									: ''
+							     )
+							     .($value == $option['val'] ? ' checked' : '')
+								 .($params['required'] ? ' required="required"' : '')
+							.' />';
+					        echo '<label for="apbct_setting_'.$params['name'].'__'.$option['label'].'"> ' . $option['label'] . '</label>';
+							echo '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
+						}
+					echo '</div>';
+					
 					echo isset($params['description'])
 						? '<div class="apbct_settings-field_description">'.$params['description'].'</div>'
 						: '';

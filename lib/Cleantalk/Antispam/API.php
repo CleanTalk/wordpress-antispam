@@ -7,7 +7,7 @@ namespace Cleantalk\Antispam;
  * Mostly contains wrappers for API methods. Check and send mehods.
  * Compatible with any CMS.
  *
- * @version       3.2
+ * @version       3.3
  * @author        Cleantalk team (welcome@cleantalk.org)
  * @copyright (C) 2014 CleanTalk team (http://cleantalk.org)
  * @license       GNU/GPL: http://www.gnu.org/copyleft/gpl.html
@@ -25,16 +25,18 @@ class API
 	 *
 	 * @param string      $api_key
 	 * @param null|string $out Data output type (JSON or file URL)
+     * @param string      $version API method version
 	 * @param boolean     $do_check
 	 *
 	 * @return mixed|string|array('error' => STRING)
 	 */
-	static public function method__get_2s_blacklists_db($api_key, $out = null, $do_check = true)
+	static public function method__get_2s_blacklists_db($api_key, $out = null, $version = '1_0', $do_check = true)
 	{
 		$request = array(
 			'method_name' => '2s_blacklists_db',
 			'auth_key'    => $api_key,
 			'out'         => $out,
+            'version'	  => $version,
 		);
 		
 		$result = static::send_request($request);

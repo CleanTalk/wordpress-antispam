@@ -41,7 +41,7 @@
  * @property mixed        moderate
  *
  * MISC
- * @property string|null cookie_domain
+ *
  */
 class CleantalkState
 {
