@@ -1313,6 +1313,8 @@ function apbct_rc__update(){
 			
 			apbct_maintance_mode__disable();
 			
+			// @todo add execution time
+			
 			$response = array(
 				'error'           => 'BAD_HTTP_CODE',
 				'http_code'       => $httpResponseCode,
