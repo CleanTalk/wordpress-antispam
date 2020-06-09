@@ -956,6 +956,10 @@ function ct_sfw_update($immediate = false){
 
 			$sfw->sfw_update($apbct->api_key, null, $immediate);
 			
+			return ! empty( $result['error'] )
+				? $result
+				: true;
+			
 		}elseif( is_array( $file_urls ) && count( $file_urls ) ){
 
 			$result = $sfw->sfw_update($apbct->api_key, $file_urls[0], $immediate);
@@ -1308,6 +1312,8 @@ function apbct_rc__update(){
 			$rollback->rollback($plugin);
 			
 			apbct_maintance_mode__disable();
+			
+			// @todo add execution time
 			
 			$response = array(
 				'error'           => 'BAD_HTTP_CODE',
