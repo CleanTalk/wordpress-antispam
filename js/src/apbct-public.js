@@ -92,8 +92,11 @@
 			for(var i = 0; i < document.forms.length; i++){
 				var form = document.forms[i];
 
-				//Exclusion for StoreLocatorPlus form
-				if (form.classList.contains('slp_search_form'))
+				//Exclusion for forms
+				if (
+					form.classList.contains('slp_search_form') || //StoreLocatorPlus form
+					form.parentElement.classList.contains('mec-booking')
+				)
 					continue;
 
 				form.onsubmit_prev = form.onsubmit;
