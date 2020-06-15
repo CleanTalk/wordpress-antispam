@@ -259,8 +259,14 @@ function apbct_admin__enqueue_scripts($hook){
 	
 	// Scripts to all admin pages
 	wp_enqueue_script('ct_admin_js_notices', plugins_url('/cleantalk-spam-protect/js/cleantalk-admin.min.js'),   array(), APBCT_VERSION);
+	wp_enqueue_script('ct_common_js_funcs',  plugins_url('/cleantalk-spam-protect/js/apbct-common.min.js'),   array(), APBCT_VERSION);
 	wp_enqueue_style ('ct_admin_css',        plugins_url('/cleantalk-spam-protect/css/cleantalk-admin.min.css'), array(), APBCT_VERSION, 'all');
-	
+
+	wp_localize_script( 'ct_common_js_funcs', 'ctCommon', array(
+		'_ajax_nonce'         => wp_create_nonce( 'ct_secret_nonce' ),
+		'_ajax_url'           => admin_url( 'admin-ajax.php' ),
+	) );
+
 	wp_localize_script( 'jquery', 'ctAdminCommon', array(
 		'_ajax_nonce'         => wp_create_nonce( 'ct_secret_nonce' ),
 		'_ajax_url'           => admin_url( 'admin-ajax.php' ),

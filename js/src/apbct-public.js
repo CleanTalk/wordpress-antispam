@@ -187,45 +187,4 @@ if(typeof jQuery !== 'undefined') {
 			}
 		}
 	});
-
-	function apbct_sendAJAXRequest(data, params, obj) {
-
-		// Default params
-		var callback = params.callback || null;
-		var notJson = params.notJson || null;
-		var timeout = params.timeout || 15000;
-		var async = params.async || true;
-		var obj = obj || null;
-
-		if(typeof (data) === 'string') {
-			data = data + '&_ajax_nonce=' + ctPublic._ajax_nonce + '&no_cache=' + Math.random();
-		}else{
-			data._ajax_nonce = ctPublic._ajax_nonce;
-			data.no_cache = Math.random();
-		}
-
-		jQuery.ajax({
-			type: "POST",
-			url: ctPublic._ajax_url,
-			data: data,
-			async: async,
-			success: function (result) {
-				if (!notJson) result = JSON.parse(result);
-				if (result.error) {
-
-				} else {
-					if (callback)
-						callback(result, data, params, obj);
-				}
-			},
-			error: function (jqXHR, textStatus, errorThrown) {
-				console.log('APBCT_AJAX_ERROR');
-				console.log(data);
-				console.log(jqXHR);
-				console.log(textStatus);
-				console.log(errorThrown);
-			},
-			timeout: timeout
-		});
-	}
 }
