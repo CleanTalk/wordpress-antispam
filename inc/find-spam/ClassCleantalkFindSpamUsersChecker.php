@@ -140,17 +140,15 @@ class ClassCleantalkFindSpamUsersChecker extends ClassCleantalkFindSpamChecker
             'administrator'
         );
 
+        $from_till = '';
+
         if(isset($_POST['from'], $_POST['till'])){
 
-            $from_date = date('Y-m-d', intval(strtotime($_POST['from'])));
-            $till_date = date('Y-m-d', intval(strtotime($_POST['till'])));
+            $from_date = date('Y-m-d', intval(strtotime($_POST['from']))) . ' 00:00:00';
+            $till_date = date('Y-m-d', intval(strtotime($_POST['till']))) . ' 23:59:59';
 
-            $params['date_query'] = array(
-                'column'   => 'user_registered',
-                'after'     => $from_date,
-                'before'    => $till_date,
-                'inclusive' => true,
-            );
+            $from_till = " AND $wpdb->users.user_registered >= '$from_date' AND $wpdb->users.user_registered <= '$till_date'";
+
         }
 	
 	    $u = $wpdb->get_results("
@@ -160,6 +158,7 @@ class ClassCleantalkFindSpamUsersChecker extends ClassCleantalkFindSpamChecker
 				NOT EXISTS(SELECT * FROM {$wpdb->usermeta} as meta WHERE {$wpdb->users}.ID = meta.user_id AND meta.meta_key = 'ct_bad') AND
 		        NOT EXISTS(SELECT * FROM {$wpdb->usermeta} as meta WHERE {$wpdb->users}.ID = meta.user_id AND meta.meta_key = 'ct_checked') AND
 		        NOT EXISTS(SELECT * FROM {$wpdb->usermeta} as meta WHERE {$wpdb->users}.ID = meta.user_id AND meta.meta_key = 'ct_checked_now')
+			    $from_till
 			ORDER BY {$wpdb->users}.user_registered ASC
 			LIMIT $amount;"
 		);
