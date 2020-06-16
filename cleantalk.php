@@ -1794,14 +1794,7 @@ function ct_account_status_check($api_key = null, $process_errors = true){
 		$apbct->data['license_trial']      = isset($result['license_trial'])                      ? (int)$result['license_trial']      : 0;
 		$apbct->data['account_name_ob']    = isset($result['account_name_ob'])                    ? (string)$result['account_name_ob'] : '';
 		
-		if($apbct->data['notice_show'] == 1 && $apbct->data['notice_trial'] == 1)
-			CleantalkCron::updateTask('check_account_status', 'ct_account_status_check',  3600);
-		
-		if($apbct->data['notice_show'] == 1 && $apbct->data['notice_renew'] == 1)
-			CleantalkCron::updateTask('check_account_status', 'ct_account_status_check',  1800);
-		
-		if($apbct->data['notice_show'] == 0)
-			CleantalkCron::updateTask('check_account_status', 'ct_account_status_check',  86400);
+		CleantalkCron::updateTask('check_account_status', 'ct_account_status_check',  86400);
 		
 		$apbct->error_delete('account_check', 'save');
 		
