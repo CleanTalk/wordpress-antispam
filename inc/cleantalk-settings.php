@@ -819,7 +819,7 @@ function apbct_settings__field__state(){
 	if(!$apbct->white_label || is_main_site())
 		echo '<img class="apbct_status_icon" src="'.($apbct->data['moderate'] == 1                     ? $img : $img_no).'"/>'
 	        .'<a style="color: black" href="https://blog.cleantalk.org/real-time-email-address-existence-validation/">'.__('Validate email for existence', 'cleantalk').'</a>';
-	echo '<img class="apbct_status_icon" id = "sfw_status_icon" style = "width:16px;height:16px;" src="'.($apbct->settings['spam_firewall'] == 1 ? ( $apbct->stats['sfw']['update_in_process'] ? $preloader : $img) : $img_no).'"/>'.__('SpamFireWall', 'cleantalk');
+	echo '<img class="apbct_status_icon" id = "sfw_status_icon" style = "width:16px;height:16px;" src="'.($apbct->settings['spam_firewall'] == 1 ? ( $apbct->stats['sfw']['update_in_process'] == true ? $preloader : $img) : $img_no).'"/>'.__('SpamFireWall', 'cleantalk');
 	// Autoupdate status
 	if($apbct->notice_auto_update && (!$apbct->white_label || is_main_site())){
 		echo '<img class="apbct_status_icon" src="'.($apbct->auto_update == 1 ? $img : ($apbct->auto_update == -1 ? $img_no : $img_no_gray)).'"/>'.__('Auto update', 'cleantalk')
@@ -1537,5 +1537,5 @@ function apbct_settings__check_sfw_update_process() {
 
 	check_ajax_referer('ct_secret_nonce' );
 
-	die(json_encode(array('sfw_updated' => ($apbct->settings['spam_firewall'] == 1 && !$apbct->stats['sfw']['update_in_process']) ? true : false)));
+	die(json_encode(array('sfw_updated' => ($apbct->settings['spam_firewall'] == 1 && $apbct->stats['sfw']['update_in_process'] == false) ? true : false)));
 }
