@@ -253,6 +253,7 @@ class CleantalkState
 			'last_send_amount' => 0,
 			'last_update_time' => 0,
 			'entries'          => 0,
+			'update_in_process' => false,
 		),
 		'last_sfw_block' => array(
 			'time' => 0,

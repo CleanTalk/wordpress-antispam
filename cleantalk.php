@@ -952,6 +952,7 @@ function ct_sfw_update($immediate = false){
 
 			//Reset previous entries count
 			$apbct->stats['sfw']['entries'] = 0;
+			$apbct->stats['sfw']['update_in_process'] = true;
 			$apbct->save('stats');
 
 			$sfw->sfw_update($apbct->api_key, null, $immediate);
@@ -986,7 +987,10 @@ function ct_sfw_update($immediate = false){
 				} else {
 					//Files array is empty update sfw time
 					$apbct->stats['sfw']['last_update_time'] = time();
+					$apbct->stats['sfw']['update_in_process'] = false;
 					$apbct->save('stats');
+
+					return $result;
 				}
 			}else
 				return $result;
