@@ -4,7 +4,7 @@ Tags: spam, antispam, woocommerce, comments, firewall
 Requires at least: 3.0
 Tested up to: 5.4
 Requires PHP: 5.4
-Stable tag: 5.139
+Stable tag: 5.140
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -573,6 +573,21 @@ If your website has forms that send data to external sources, you can enable opt
 10. Website's options.
 
 == Changelog ==
+
+= 5.140 Jun 18 2020 =
+  * New: Add SFW status in plugin settings.
+  * Fix: Remove sleep for sfw update.
+  * Fix: Check account status only once in 86400 seconds.
+  * Fix: Postmark avocet theme.
+  * Fix: Find spam users - from-till implemented.
+  * Upd: Add common.js.
+  * Fix: Bookly admin action excluded.
+  * Fix: sfw_pass_key cookie domain attribute removed.
+  * Fix: SFW no cache meta tags added.
+  * Fix: MEC Pro plugin compatibility fixed.
+  * Mod: Catching SpamFireWall update errors.
+  * Fix: UltimateBuilder skip fields.
+  * Fix: Strip tags on comment.
 
 = 5.139 Jun 02 2020 =
   * Fix: Profile link fixed.

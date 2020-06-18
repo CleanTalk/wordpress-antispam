@@ -38,6 +38,9 @@ jQuery(document).ready(function(){
 	if (jQuery('#apbct_renew_notice').length || jQuery('#apbct_trial_notice').length) 
 		apbct_banner_check();
 	
+	if (jQuery('#sfw_status_icon').attr('src') == window.location.origin + '/wp-content/plugins/cleantalk-spam-protect/inc/images/preloader.gif')
+		apbct_sfw_status_check();
+	
 });
 
 /**
@@ -60,6 +63,25 @@ function apbct_banner_check() {
 			}
 		);
 	}, 60000);
+}
+
+/**
+ * Checking current account status for renew notice
+ */
+function apbct_sfw_status_check() {
+	var sfwStatusChecker = setInterval( function() {
+		apbct_sendAJAX(
+			{action: 'apbct_settings__check_sfw_update_process'},
+			{
+				callback: function(result, data, params, obj){
+					if (result.sfw_updated) {
+						jQuery('#sfw_status_icon').attr('src', window.location.origin + '/wp-content/plugins/cleantalk-spam-protect/inc/images/yes.png');
+						clearInterval(sfwStatusChecker);
+					}
+				}
+			}
+		);
+	}, 15000);
 }
 
 /**

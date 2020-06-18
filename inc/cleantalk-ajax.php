@@ -303,6 +303,8 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 	    'give_process_donation', // GiveWP
 	    'apus_ajax_login', // ???? plugin authorization
         'bookly_save_customer', //bookly
+        'postmark_test', //Avocet
+        'postmark_save', //Avocet
     );
     
     // Skip test if

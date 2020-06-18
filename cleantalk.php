@@ -3,7 +3,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 5.139.1
+  Version: 5.140
   Author: СleanTalk <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk
@@ -937,11 +937,13 @@ function ct_get_cookie()
 	die();
 }
 
-function ct_sfw_update($immediate = false){
+function ct_sfw_update($api_key = '', $immediate = false){
 	
 	global $apbct;
-	
-    if($apbct->settings['spam_firewall'] == 1){
+
+	$api_key = !empty($apbct->api_key) ? $apbct->api_key : $api_key;
+
+    if($apbct->settings['spam_firewall'] == 1 && !empty($api_key)) {
 		
 		$sfw = new CleantalkSFW();
 
@@ -952,9 +954,10 @@ function ct_sfw_update($immediate = false){
 
 			//Reset previous entries count
 			$apbct->stats['sfw']['entries'] = 0;
+			$apbct->stats['sfw']['update_in_process'] = true;
 			$apbct->save('stats');
 
-			$sfw->sfw_update($apbct->api_key, null, $immediate);
+			$sfw->sfw_update($api_key, null, $immediate);
 			
 			return ! empty( $result['error'] )
 				? $result
@@ -962,7 +965,7 @@ function ct_sfw_update($immediate = false){
 			
 		}elseif( is_array( $file_urls ) && count( $file_urls ) ){
 
-			$result = $sfw->sfw_update($apbct->api_key, $file_urls[0], $immediate);
+			$result = $sfw->sfw_update($api_key, $file_urls[0], $immediate);
 			
 			if( empty( $result['error'] ) ){
 
@@ -976,7 +979,7 @@ function ct_sfw_update($immediate = false){
 					CleantalkHelper::http__request(
 						get_option('siteurl'),
 						array(
-							'spbc_remote_call_token'  => md5($apbct->api_key),
+							'spbc_remote_call_token'  => md5($api_key),
 							'spbc_remote_call_action' => 'sfw_update',
 							'plugin_name'             => 'apbct',
 							'file_urls'               => implode(',', $file_urls),
@@ -986,7 +989,10 @@ function ct_sfw_update($immediate = false){
 				} else {
 					//Files array is empty update sfw time
 					$apbct->stats['sfw']['last_update_time'] = time();
+					$apbct->stats['sfw']['update_in_process'] = false;
 					$apbct->save('stats');
+
+					return $result;
 				}
 			}else
 				return $result;
@@ -997,14 +1003,16 @@ function ct_sfw_update($immediate = false){
 	return array('error' => 'SFW_DISABLED');
 }
 
-function ct_sfw_send_logs()
+function ct_sfw_send_logs($api_key = '')
 {
 	global $apbct;
-	
-	if($apbct->settings['spam_firewall'] == 1){
+
+	$api_key = !empty($apbct->api_key) ? $apbct->api_key : $api_key;
+
+	if($apbct->settings['spam_firewall'] == 1 && !empty($api_key)) {
 		
 		$sfw = new CleantalkSFW();
-		$result = $sfw->logs__send($apbct->api_key);
+		$result = $sfw->logs__send($api_key);
 		
 		if(empty($result['error'])){
 			$apbct->stats['sfw']['last_send_time'] = time();
@@ -1794,14 +1802,7 @@ function ct_account_status_check($api_key = null, $process_errors = true){
 		$apbct->data['license_trial']      = isset($result['license_trial'])                      ? (int)$result['license_trial']      : 0;
 		$apbct->data['account_name_ob']    = isset($result['account_name_ob'])                    ? (string)$result['account_name_ob'] : '';
 		
-		if($apbct->data['notice_show'] == 1 && $apbct->data['notice_trial'] == 1)
-			CleantalkCron::updateTask('check_account_status', 'ct_account_status_check',  3600);
-		
-		if($apbct->data['notice_show'] == 1 && $apbct->data['notice_renew'] == 1)
-			CleantalkCron::updateTask('check_account_status', 'ct_account_status_check',  1800);
-		
-		if($apbct->data['notice_show'] == 0)
-			CleantalkCron::updateTask('check_account_status', 'ct_account_status_check',  86400);
+		CleantalkCron::updateTask('check_account_status', 'ct_account_status_check',  86400);
 		
 		$apbct->error_delete('account_check', 'save');
 		

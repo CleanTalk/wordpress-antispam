@@ -781,6 +781,7 @@ function apbct_settings__field__state(){
 	$img = $path_to_img."yes.png";
 	$img_no = $path_to_img."no.png";
 	$img_no_gray = $path_to_img."no_gray.png";
+	$preloader = $path_to_img."preloader.gif";
 	$color="black";
 
 	if( ! $apbct->key_is_ok ){
@@ -812,13 +813,13 @@ function apbct_settings__field__state(){
 		print '<h2>'.__('Protection is active', 'cleantalk').'</h2>';
 	
 	echo '<img class="apbct_status_icon" src="'.($apbct->settings['registrations_test'] == 1       ? $img : $img_no).'"/>'.__('Registration forms', 'cleantalk');
-	echo '<img class="apbct_status_icon" src="'.($apbct->settings['comments_test']==1              ? $img : $img_no).'"/>'.__('Comments forms', 'cleantalk');
-	echo '<img class="apbct_status_icon" src="'.($apbct->settings['contact_forms_test']==1         ? $img : $img_no).'"/>'.__('Contact forms', 'cleantalk');
-	echo '<img class="apbct_status_icon" src="'.($apbct->settings['general_contact_forms_test']==1 ? $img : $img_no).'"/>'.__('Custom contact forms', 'cleantalk');
+	echo '<img class="apbct_status_icon" src="'.($apbct->settings['comments_test'] == 1              ? $img : $img_no).'"/>'.__('Comments forms', 'cleantalk');
+	echo '<img class="apbct_status_icon" src="'.($apbct->settings['contact_forms_test'] == 1         ? $img : $img_no).'"/>'.__('Contact forms', 'cleantalk');
+	echo '<img class="apbct_status_icon" src="'.($apbct->settings['general_contact_forms_test'] == 1 ? $img : $img_no).'"/>'.__('Custom contact forms', 'cleantalk');
 	if(!$apbct->white_label || is_main_site())
 		echo '<img class="apbct_status_icon" src="'.($apbct->data['moderate'] == 1                     ? $img : $img_no).'"/>'
 	        .'<a style="color: black" href="https://blog.cleantalk.org/real-time-email-address-existence-validation/">'.__('Validate email for existence', 'cleantalk').'</a>';
-	
+	echo '<img class="apbct_status_icon" id = "sfw_status_icon" style = "width:16px;height:16px;" src="'.($apbct->settings['spam_firewall'] == 1 ? ( $apbct->stats['sfw']['update_in_process'] == true ? $preloader : $img) : $img_no).'"/>'.__('SpamFireWall', 'cleantalk');
 	// Autoupdate status
 	if($apbct->notice_auto_update && (!$apbct->white_label || is_main_site())){
 		echo '<img class="apbct_status_icon" src="'.($apbct->auto_update == 1 ? $img : ($apbct->auto_update == -1 ? $img_no : $img_no_gray)).'"/>'.__('Auto update', 'cleantalk')
@@ -1529,4 +1530,12 @@ function apbct_settings__check_renew_banner() {
 	check_ajax_referer('ct_secret_nonce' );
 
 	die(json_encode(array('close_renew_banner' => ($apbct->data['notice_trial'] == 0 && $apbct->data['notice_renew'] == 0) ? true : false)));
+}
+
+function apbct_settings__check_sfw_update_process() {
+	global $apbct;
+
+	check_ajax_referer('ct_secret_nonce' );
+
+	die(json_encode(array('sfw_updated' => ($apbct->settings['spam_firewall'] == 1 && $apbct->stats['sfw']['update_in_process'] == false) ? true : false)));
 }
