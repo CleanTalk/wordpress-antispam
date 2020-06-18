@@ -8,7 +8,7 @@ namespace Cleantalk\Antispam;
  *
  * @package       PHP Antispam by CleanTalk
  * @subpackage    Helper
- * @Version       3.3
+ * @Version       3.4
  * @author        Cleantalk team (welcome@cleantalk.org)
  * @copyright (C) 2014 CleanTalk team (http://cleantalk.org)
  * @license       GNU/GPL: http://www.gnu.org/copyleft/gpl.html
@@ -19,7 +19,7 @@ class Helper
 	/**
 	 * Default user agent for HTTP requests
 	 */
-	const AGENT = 'Cleantalk-Helper/3.3';
+	const AGENT = 'Cleantalk-Helper/3.4';
 	
 	/**
 	 * @var array Set of private networks IPv4 and IPv6
@@ -500,7 +500,7 @@ class Helper
 					// Make a request, don't wait for an answer
 					case 'async':
 						$opts[CURLOPT_CONNECTTIMEOUT_MS] = 1000;
-						$opts[CURLOPT_TIMEOUT_MS] = 500;
+						$opts[CURLOPT_TIMEOUT_MS] = 1000;
 						break;
 					
 					case 'get':
