@@ -954,6 +954,7 @@ function ct_sfw_update($api_key = '', $immediate = false){
 
 			//Reset previous entries count
 			$apbct->stats['sfw']['entries'] = 0;
+			$apbct->stats['sfw']['update_in_process'] = true;
 			$apbct->save('stats');
 
 			$sfw->sfw_update($api_key, null, $immediate);
@@ -972,7 +973,6 @@ function ct_sfw_update($api_key = '', $immediate = false){
 
 				//Increment sfw entries
 				$apbct->stats['sfw']['entries'] += $result;
-				$apbct->stats['sfw']['update_in_process'] = true;
 				$apbct->save('stats');
 
 				if (count($file_urls)) {
