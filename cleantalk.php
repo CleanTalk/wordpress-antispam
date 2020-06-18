@@ -957,7 +957,7 @@ function ct_sfw_update($api_key = '', $immediate = false){
 			$apbct->stats['sfw']['update_in_process'] = true;
 			$apbct->save('stats');
 
-			$sfw->sfw_update($api_key, null, $immediate);
+            $result = $sfw->sfw_update($api_key, null, $immediate);
 			
 			return ! empty( $result['error'] )
 				? $result
