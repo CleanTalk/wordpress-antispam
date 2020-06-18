@@ -81,7 +81,7 @@ function apbct_sfw_status_check() {
 				}
 			}
 		);
-	}, 30000);
+	}, 15000);
 }
 
 /**
