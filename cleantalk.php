@@ -937,11 +937,13 @@ function ct_get_cookie()
 	die();
 }
 
-function ct_sfw_update($immediate = false){
+function ct_sfw_update($api_key = '', $immediate = false){
 	
 	global $apbct;
-	
-    if($apbct->settings['spam_firewall'] == 1){
+
+	$api_key = !empty($apbct->api_key) ? $apbct->api_key : $api_key;
+
+    if($apbct->settings['spam_firewall'] == 1 && !empty($api_key)) {
 		
 		$sfw = new CleantalkSFW();
 
@@ -954,7 +956,7 @@ function ct_sfw_update($immediate = false){
 			$apbct->stats['sfw']['entries'] = 0;
 			$apbct->save('stats');
 
-			$sfw->sfw_update($apbct->api_key, null, $immediate);
+			$sfw->sfw_update($api_key, null, $immediate);
 			
 			return ! empty( $result['error'] )
 				? $result
@@ -962,7 +964,7 @@ function ct_sfw_update($immediate = false){
 			
 		}elseif( is_array( $file_urls ) && count( $file_urls ) ){
 
-			$result = $sfw->sfw_update($apbct->api_key, $file_urls[0], $immediate);
+			$result = $sfw->sfw_update($api_key, $file_urls[0], $immediate);
 			
 			if( empty( $result['error'] ) ){
 
@@ -977,7 +979,7 @@ function ct_sfw_update($immediate = false){
 					CleantalkHelper::http__request(
 						get_option('siteurl'),
 						array(
-							'spbc_remote_call_token'  => md5($apbct->api_key),
+							'spbc_remote_call_token'  => md5($api_key),
 							'spbc_remote_call_action' => 'sfw_update',
 							'plugin_name'             => 'apbct',
 							'file_urls'               => implode(',', $file_urls),
@@ -1001,14 +1003,16 @@ function ct_sfw_update($immediate = false){
 	return array('error' => 'SFW_DISABLED');
 }
 
-function ct_sfw_send_logs()
+function ct_sfw_send_logs($api_key = '')
 {
 	global $apbct;
-	
-	if($apbct->settings['spam_firewall'] == 1){
+
+	$api_key = !empty($apbct->api_key) ? $apbct->api_key : $api_key;
+
+	if($apbct->settings['spam_firewall'] == 1 && !empty($api_key)) {
 		
 		$sfw = new CleantalkSFW();
-		$result = $sfw->logs__send($apbct->api_key);
+		$result = $sfw->logs__send($api_key);
 		
 		if(empty($result['error'])){
 			$apbct->stats['sfw']['last_send_time'] = time();

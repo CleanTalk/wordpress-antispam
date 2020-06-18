@@ -252,8 +252,6 @@ class SFW
 		// Getting remote file name
 		if(!$file_url){
 
-			sleep(6);
-
 			$result = API::method__get_2s_blacklists_db($ct_key, 'multifiles', '2_0');
 
 			if(empty($result['error'])){
