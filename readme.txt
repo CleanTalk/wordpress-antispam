@@ -574,6 +574,21 @@ If your website has forms that send data to external sources, you can enable opt
 
 == Changelog ==
 
+= 5.140 Jun 18 2020 =
+  * New: Add SFW status in plugin settings.
+  * Fix: Remove sleep for sfw update.
+  * Fix: Check account status only once in 86400 seconds.
+  * Fix: Postmark avocet theme.
+  * Fix: Find spam users - from-till implemented.
+  * Upd: Add common.js.
+  * Fix: Bookly admin action excluded.
+  * Fix: sfw_pass_key cookie domain attribute removed.
+  * Fix: SFW no cache meta tags added.
+  * Fix: MEC Pro plugin compatibility fixed.
+  * Mod: Catching SpamFireWall update errors.
+  * Fix: UltimateBuilder skip fields.
+  * Fix: Strip tags on comment.
+
 = 5.139 Jun 02 2020 =
   * Fix: Profile link fixed.
   * Fix: WPMS plugin name fixed.
