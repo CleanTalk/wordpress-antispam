@@ -419,8 +419,12 @@ function apbct_visibile_fields__process($visible_fields) {
 /*
  * Outputs JS key for AJAX-use only. Stops script.
  */
-function apbct_js_keys__get__ajax($direct_call = false){
-	if(!$direct_call){
+function apbct_js_keys__get__ajax( $direct_call = false ){
+
+    global $apbct;
+
+	if( ! $direct_call && $apbct->settings['use_static_js_key'] != 1 ){
+
 		if(isset($_POST['_ajax_nonce'])){
 			if(!wp_verify_nonce($_POST['_ajax_nonce'], 'ct_secret_stuff')){
 				wp_doing_ajax()
@@ -433,9 +437,11 @@ function apbct_js_keys__get__ajax($direct_call = false){
 				: die( '-1' );
 		}
 	}
+
 	die(json_encode(array(
 		'js_key' => ct_get_checkjs_value()
 	)));
+
 }
 
 /**
