@@ -737,7 +737,7 @@ class Helper
             // For PHP 5.6 - 7.2
         }else {
             if($samesite)
-                $path = $path . '; samesite=' . $samesite;
+                $path = $path . ';samesite=' . $samesite;
             setcookie( $name, $value, $expires, $path, $domain, $secure, $httponly );
         }
 
