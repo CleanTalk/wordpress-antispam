@@ -258,7 +258,7 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 	// Get current_user and set it globaly
 	apbct_wp_set_current_user($current_user instanceof WP_User ? $current_user	: apbct_wp_get_current_user() );
 	
-    // Go out because of not spam data
+    // $_REQUEST['action'] to skip. Go out because of not spam data
     $skip_post = array(
         'apbct_js_keys__get',  // Our service code
         'gmaps_display_info_window',  // Geo My WP pop-up windows.
@@ -755,7 +755,6 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 		}
 		else
 		{
-			http_response_code( 403 );
 			die(json_encode(array( 'apbct' => array(
 					'blocked' => true,
 					'comment' => $ct_result->comment,
@@ -770,6 +769,14 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 		//QAEngine Theme answers
 		if ( !empty($message_obj) && isset($message_obj['post_type'], $message_obj['post_content']) ){
 			return $message_obj;
+		}
+		
+		// Force AJAX check
+		if( \Cleantalk\Common\Post::get('action') == 'cleantalk_force_ajax_check' ){
+			die(json_encode(array( 'apbct' => array(
+				'blocked' => false,
+				'allow' => true,
+			))));
 		}
 	}
 }

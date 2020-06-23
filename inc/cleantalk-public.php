@@ -932,12 +932,12 @@ function ct_add_hidden_fields($field_name = 'ct_checkjs', $return_string = false
 
 	// Using only cookies
     if ($cookie_check && $apbct->settings['set_cookies'] == 1) {
-
+	    
 		$html =	"<script type='text/javascript'>
-			function ctSetCookie(c_name, value, def_value){
-				document.cookie = c_name + '=' + escape(value) + '; path=/; samesite=lax';
+			function ctSetCookie___from_backend(c_name, value) {
+				document.cookie = c_name + \"=\" + encodeURIComponent(value) + \"; path=/; samesite=lax\";
 			}
-			ctSetCookie('{$field_name}', '{$ct_checkjs_key}', '{$ct_checkjs_def}');
+			ctSetCookie___from_backend('{$field_name}', '{$ct_checkjs_key}', '{$ct_checkjs_def}');
 		</script>";
 
 	// Using AJAX to get key
