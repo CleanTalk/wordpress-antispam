@@ -1041,6 +1041,9 @@ function apbct_settings__field__statistics() {
 			}
 
 		}
+
+    echo '<br/>';
+	echo 'Plugin version: ' . APBCT_VERSION;
 		
 	echo '</div>';
 }
