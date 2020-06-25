@@ -305,6 +305,7 @@ function ct_ajax_hook($message_obj = false, $additional = false)
         'bookly_save_customer', //bookly
         'postmark_test', //Avocet
         'postmark_save', //Avocet
+        'ck_get_subscriber', //ConvertKit checking the subscriber
     );
     
     // Skip test if
@@ -770,7 +771,6 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 		if ( !empty($message_obj) && isset($message_obj['post_type'], $message_obj['post_content']) ){
 			return $message_obj;
 		}
-		
 		// Force AJAX check
 		if( \Cleantalk\Common\Post::get('action') == 'cleantalk_force_ajax_check' ){
 			die(json_encode(array( 'apbct' => array(
