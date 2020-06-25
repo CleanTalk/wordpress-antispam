@@ -50,7 +50,18 @@ function ct_protect_external(){
 
 										prev.after(form_original);
 
-										jQuery(document.forms[index]).find('button[type=submit]')[0].click();
+										// Common click event
+										var subm_button = jQuery(document.forms[index]).find('button[type=submit]');
+										if( subm_button.length !== 0 ) {
+											subm_button[0].click();
+										}
+
+										// ConvertKit direct integration
+										subm_button = jQuery(document.forms[index]).find('button[data-element="submit"]');
+										if( subm_button.length !== 0 ) {
+											subm_button[0].click();
+										}
+
 									}
 								},
 								callback_context: null,
