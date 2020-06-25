@@ -34,7 +34,7 @@ function ct_protect_external(){
 						// Get visible fields and set cookie
 						apbct_collect_visible_fields_and_set_cookie(this);
 
-						var data = serialize( event.target );
+						var data = jQuery(event.target).serialize();
 
 						apbct_sendAJAXRequest(
 							data,
