@@ -223,7 +223,6 @@ class SFW
 			
 			//Sending the request
 			$result = API::method__sfw_logs($ct_key, $data);
-			
 			//Checking answer and deleting all lines from the table
 			if(empty($result['error'])){
 				if($result['rows'] == count($data)){
@@ -235,7 +234,9 @@ class SFW
 				return $result;
 			}
 				
-		}
+		} else {
+		    return $result = array( 'rows' => 0 );
+        }
 	}
 	
 	/**
