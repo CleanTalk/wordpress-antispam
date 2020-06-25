@@ -11,6 +11,8 @@ function ct_protect_external(){
 				// Fix for ActiveCampaign form
 				if(action.indexOf('activehosted.com') !== -1) {
 
+					jQuery( document.forms[i] ).before('<i class="cleantalk_placeholder" style="display: none;"></i>')
+
 					// Deleting form to prevent submit event
 					var prev = jQuery(document.forms[i]).prev(),
 						form_html = document.forms[i].outerHTML,
