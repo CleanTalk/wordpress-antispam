@@ -9,7 +9,10 @@ function ct_protect_external(){
 				var action = document.forms[i].action;
 
 				// Fix for ActiveCampaign form
-				if(action.indexOf('activehosted.com') !== -1) {
+				if(
+					action.indexOf('activehosted.com') !== -1 ||
+					action.indexOf('app.convertkit.com') !== -1
+				) {
 
 					jQuery( document.forms[i] ).before('<i class="cleantalk_placeholder" style="display: none;"></i>')
 
