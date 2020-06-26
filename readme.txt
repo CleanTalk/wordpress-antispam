@@ -574,6 +574,10 @@ If your website has forms that send data to external sources, you can enable opt
 
 == Changelog ==
 
+= 5.140.1 Jun 25 2020 =
+ * Upd: .POT updated.
+ * Upd: RU .po updated.
+
 = 5.140 Jun 18 2020 =
   * New: Add SFW status in plugin settings.
   * Fix: Remove sleep for sfw update.
