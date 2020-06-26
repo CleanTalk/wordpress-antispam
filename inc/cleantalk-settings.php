@@ -1445,6 +1445,10 @@ function apbct_settings__validate($settings) {
 		$apbct->data['license_trial']      = 0;
 		$apbct->data['account_name_ob']    = '';
 	}
+
+	if (get_option('cleantalk_settings') && get_option('cleantalk_settings') == $settings) {
+		do_action('updated_option', 'cleantalk_settings', get_option('cleantalk_settings'), $settings);
+	}
 	
 	$apbct->saveData();
 	

@@ -231,6 +231,10 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
     add_action( 'wp_ajax_contact_form_handler',        'apbct_form__inevio__testSpam', 1 );
     add_action( 'wp_ajax_nopriv_contact_form_handler', 'apbct_form__inevio__testSpam', 1 );
 
+    //Hooks for updating/adding settings
+    add_action ('added_option', 'apbct_after_options_added', 10, 3);
+    add_action ('updated_option', 'apbct_after_options_updated', 10, 3);
+
 	// Public actions
 	if(!is_admin() && !apbct_is_ajax()){
 		
@@ -440,6 +444,40 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 }
 
 /**
+* Hook for updating settings
+*/
+function apbct_after_options_updated($option, $old_value, $value) {
+	if ($option == 'cleantalk_settings') {
+		// SFW actions
+		if($value['spam_firewall'] == 1){
+			$result = ct_sfw_update($value['apikey']);
+			if( ! empty( $result['error'] ) )
+				$apbct->error_add('sfw_update', $result['error']);
+			$result = ct_sfw_send_logs($value['apikey']);
+			if( ! empty( $result['error'] ) )
+				$apbct->error_add('sfw_send_logs', $result['error']);
+		}
+	}
+}	
+
+/**
+* Hook for adding settings
+*/
+function apbct_after_options_added($option, $value) {
+	if ($option == 'cleantalk_settings') {
+		// SFW actions
+		if($value['spam_firewall'] == 1){
+			$result = ct_sfw_update($value['apikey']);
+			if( ! empty( $result['error'] ) )
+				$apbct->error_add('sfw_update', $result['error']);
+			$result = ct_sfw_send_logs($value['apikey']);
+			if( ! empty( $result['error'] ) )
+				$apbct->error_add('sfw_send_logs', $result['error']);
+		}
+	}
+}
+
+/**
 * Function preforms remote call
 */
 function apbct_remote_call__perform()
@@ -472,7 +510,7 @@ function apbct_remote_call__perform()
 					
 				// SFW update
 					case 'sfw_update':
-						$result = ct_sfw_update(true);
+						$result = ct_sfw_update('', true);
 						/**
 						 * @todo CRUNCH
 						 */
@@ -941,7 +979,7 @@ function ct_sfw_update($api_key = '', $immediate = false){
 	
 	global $apbct;
 
-	$api_key = !empty($apbct->api_key) ? $apbct->api_key : $api_key;
+	$api_key = !empty($api_key) ? $api_key : $apbct->api_key;
 
     if($apbct->settings['spam_firewall'] == 1 && !empty($api_key)) {
 		
