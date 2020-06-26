@@ -1379,17 +1379,7 @@ function apbct_settings__validate($settings) {
 	
 		// Deleting errors about invalid key
 		$apbct->error_delete('key_invalid key_get', 'save');
-	
-		// SFW actions
-		if($apbct->settings['spam_firewall'] == 1){
-			$result = ct_sfw_update($settings['apikey']);
-			if( ! empty( $result['error'] ) )
-				$apbct->error_add('sfw_update', $result['error']);
-			$result = ct_sfw_send_logs($settings['apikey']);
-			if( ! empty( $result['error'] ) )
-				$apbct->error_add('sfw_send_logs', $result['error']);
-		}
-	
+		
 		// Updating brief data for dashboard widget
 		$apbct->data['brief_data'] = CleantalkAPI::method__get_antispam_report_breif($settings['apikey']);
 	
@@ -1445,7 +1435,11 @@ function apbct_settings__validate($settings) {
 		$apbct->data['license_trial']      = 0;
 		$apbct->data['account_name_ob']    = '';
 	}
-	
+
+	if (get_option('cleantalk_settings') && get_option('cleantalk_settings') == $settings) {
+		do_action('updated_option', 'cleantalk_settings', get_option('cleantalk_settings'), $settings);
+	}
+
 	$apbct->saveData();
 	
 	return $settings;
