@@ -231,6 +231,9 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
     add_action( 'wp_ajax_contact_form_handler',        'apbct_form__inevio__testSpam', 1 );
     add_action( 'wp_ajax_nopriv_contact_form_handler', 'apbct_form__inevio__testSpam', 1 );
 
+    // Enfold Theme contact form
+	add_filter( 'avf_form_send', 'apbct_form__enfold_contact_form__test_spam', 4, 10 );
+
     //Hooks for updating/adding settings
     add_action ('added_option', 'apbct_after_options_added', 10, 3);
     add_action ('updated_option', 'apbct_after_options_updated', 10, 3);

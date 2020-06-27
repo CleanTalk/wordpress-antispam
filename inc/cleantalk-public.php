@@ -3846,3 +3846,39 @@ function apbct_wilcity_reg_validation( $success, $data ) {
 	}
 	return $success;
 }
+
+// Enfold Theme contact form
+function apbct_form__enfold_contact_form__test_spam( $send, $new_post, $form_params, $obj ){
+
+	global $cleantalk_executed;
+
+	$url_decoded_data = array();
+	foreach( $new_post as $key => $value ) {
+		$url_decoded_data[$key] = urldecode($value);
+	}
+
+	$data = ct_get_fields_any( $url_decoded_data );
+
+	$base_call_result = apbct_base_call(
+		array(
+			'message'         => !empty( $data['message'] )  ? json_encode( $data['message'] ) : '',
+			'sender_email'    => !empty( $data['email'] )    ? $data['email']                  : '',
+			'sender_nickname' => !empty( $data['nickname'] ) ? $data['nickname']               : '',
+			'post_info'       => array(
+				'comment_type' => 'contact_form_wordpress_enfold'
+			),
+		)
+	);
+
+	$ct_result = $base_call_result['ct_result'];
+
+	$cleantalk_executed = true;
+
+	if( $ct_result->allow == 0 ) {
+		$obj->submit_error = $ct_result->comment;
+		return null;
+	}
+
+	return $send;
+
+}
