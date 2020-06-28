@@ -450,6 +450,8 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 * Hook for updating settings
 */
 function apbct_after_options_updated($option, $old_value, $value) {
+	global $apbct;
+
 	if ($option == 'cleantalk_settings') {
 		// SFW actions
 		if($value['spam_firewall'] == 1){
@@ -467,6 +469,8 @@ function apbct_after_options_updated($option, $old_value, $value) {
 * Hook for adding settings
 */
 function apbct_after_options_added($option, $value) {
+	global $apbct;
+	
 	if ($option == 'cleantalk_settings') {
 		// SFW actions
 		if($value['spam_firewall'] == 1){
