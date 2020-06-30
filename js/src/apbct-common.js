@@ -15,6 +15,7 @@ function apbct_sendAJAX(data, params, obj){
 
 	// Adding security code
 	data._ajax_nonce = ctCommon._ajax_nonce;
+	data.no_cache    = Math.random();
 
 	jQuery.ajax({
 		type: "POST",
