@@ -70,7 +70,7 @@ class CleantalkSFW extends Cleantalk\Antispam\SFW
 			$request_uri  = apbct_get_server_variable( 'REQUEST_URI' );
 			$sfw_die_page = str_replace('{SFW_DIE_NOTICE_IP}',              __('SpamFireWall is activated for your IP ', 'cleantalk'), $sfw_die_page);
 			$sfw_die_page = str_replace('{SFW_DIE_MAKE_SURE_JS_ENABLED}',   __('To continue working with web site, please make sure that you have enabled JavaScript.', 'cleantalk'), $sfw_die_page);
-			$sfw_die_page = str_replace('{SFW_DIE_CLICK_TO_PASS}',          __('Please click below to pass protection,', 'cleantalk'), $sfw_die_page);
+			$sfw_die_page = str_replace('{SFW_DIE_CLICK_TO_PASS}',          __('Please click the link below to pass the protection,', 'cleantalk'), $sfw_die_page);
 			$sfw_die_page = str_replace('{SFW_DIE_YOU_WILL_BE_REDIRECTED}', sprintf(__('Or you will be automatically redirected to the requested page after %d seconds.', 'cleantalk'), 3), $sfw_die_page);
 			$sfw_die_page = str_replace('{CLEANTALK_TITLE}',                __('Antispam by CleanTalk', 'cleantalk'), $sfw_die_page);
 			$sfw_die_page = str_replace('{TEST_TITLE}',                     ($this->test ? __('This is the testing page for SpamFireWall', 'cleantalk') : ''), $sfw_die_page);
