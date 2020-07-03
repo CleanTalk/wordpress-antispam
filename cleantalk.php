@@ -773,7 +773,9 @@ function apbct_activation__create_tables($sqls) {
 
 function apbct_activation__new_blog($blog_id, $user_id, $domain, $path, $site_id, $meta) {
     if (apbct_is_plugin_active_for_network('cleantalk-spam-protect/cleantalk.php')){
-		
+
+		$settings = get_option('cleantalk_settings');
+
         switch_to_blog($blog_id);
 		
 		global $wpdb;
@@ -822,6 +824,10 @@ function apbct_activation__new_blog($blog_id, $user_id, $domain, $path, $site_id
 		apbct_activation__create_tables($sqls);
 		ct_sfw_update(); // Updating SFW
 		ct_account_status_check(null, false);
+
+		if (isset($settings['use_settings_template_apply_for_new']) && $settings['use_settings_template_apply_for_new'] == 1) {
+			update_option('cleantalk_settings', $settings);
+		}
         restore_current_blog();
     }
 }

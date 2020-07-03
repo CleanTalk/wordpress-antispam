@@ -203,6 +203,10 @@ class CleantalkState
 		'white_label'              => 0,
 		'white_label__hoster_key'  => '',
 		'white_label__plugin_name' => 'Anti-Spam by CleanTalk',
+		'use_settings_template'    => 0,
+		'use_settings_template_apply_for_new' => 0,
+		'use_settings_template_apply_for_current' => 0,
+		'use_settings_template_apply_for_current_list_sites' => '',
 	);
 	
 	public $def_network_data = array(

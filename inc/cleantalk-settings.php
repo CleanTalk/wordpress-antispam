@@ -485,6 +485,44 @@ function apbct_settings__set_fileds__network( $fields ){
 					'display'        => APBCT_WPMS && is_main_site(),
 					'network'        => true,
 				),
+				'use_settings_template' => array(
+					'type' => 'checkbox',
+					'title' => __('Use settings template', 'cleantalk'),
+					'description' => __("Use the current settings template for child sites.", 'cleantalk'),
+					'childrens' => array( 'use_settings_template_apply_for_new', 'use_settings_template_apply_for_current'),
+					'disabled' => defined('CLEANTALK_ACCESS_KEY'),
+					'network' => true,
+				),
+				'use_settings_template_apply_for_new' => array(
+					'type' => 'checkbox',
+					'title' => __('Apply for newly added sites.', 'cleantalk'),
+					'description' => __("The newly added site will have the same preset settings template.", 'cleantalk'),
+					'disabled' => defined('CLEANTALK_ACCESS_KEY'),
+					'parent' => 'use_settings_template',
+					'class' => 'apbct_settings-field_wrapper--sub',
+					'network' => true,
+				),
+				'use_settings_template_apply_for_current' => array(
+					'type' => 'checkbox',
+					'title' => __('Apply for current sites.', 'cleantalk'),
+					'description' => __("Apply current settings template for selected sites.", 'cleantalk'),
+					'disabled' => defined('CLEANTALK_ACCESS_KEY'),
+					'parent' => 'use_settings_template',
+					'childrens' => array( 'use_settings_template_apply_for_current_list_sites'),
+					'class' => 'apbct_settings-field_wrapper--sub',
+					'network' => true,
+				),
+				'use_settings_template_apply_for_current_list_sites' => array(
+					'type'                    => 'select',
+					'multiple'                => true,
+					'options_callback'        => 'apbct_get_all_child_domains',
+					'options_callback_params' => array(true),
+					'class' => 'apbct_settings-field_wrapper--sub',
+					'parent' => 'use_settings_template_apply_for_current',
+					'description'             => __('Sites to apply settings. Hold CTRL to select multiple sites.', 'cleantalk'),
+					'disabled' => defined('CLEANTALK_ACCESS_KEY'),
+					'network' => true,
+				),
 			)
 		)
 	);
@@ -1047,7 +1085,19 @@ function apbct_settings__field__statistics() {
 		
 	echo '</div>';
 }
+function apbct_get_all_child_domains($except_main_site = false) {
+	global $wpdb;
+	$blogs = array();
+	$wp_blogs = $wpdb->get_results('SELECT blog_id, site_id FROM '. $wpdb->blogs, OBJECT_K);
 
+	if ($except_main_site) {
+		foreach ($wp_blogs as $blog) {
+			if ($blog->blog_id != $blog->site_id)
+				$blogs[] = get_blog_details( array( 'blog_id' => $blog->blog_id ) )->blogname;
+		}
+	}
+	return $blogs;
+}
 /**
  * Get all current Wordpress roles, could except 'subscriber' role
  *
@@ -1186,7 +1236,7 @@ function apbct_settings__field__draw($params = array()){
 						echo '<option'
 							. ' value="' . $option['val'] . '"'
 							. ($params['multiple']
-								? (in_array($option['val'], $value) ? ' selected="selected"' : '')
+								? (!empty($value) && in_array($option['val'], $value) ? ' selected="selected"' : '')
 							    : ($value == $option['val']         ?  'selected="selected"' : '')
 							)
 							.'>'
@@ -1301,6 +1351,10 @@ function apbct_settings__validate($settings) {
 			'white_label'              => $settings['white_label'],
 			'white_label__hoster_key'  => $settings['white_label__hoster_key'],
 			'white_label__plugin_name' => $settings['white_label__plugin_name'],
+			'use_settings_template'    => $settings['use_settings_template'],
+			'use_settings_template_apply_for_new' => $settings['use_settings_template_apply_for_new'],
+			'use_settings_template_apply_for_current' => $settings['use_settings_template_apply_for_current'],
+			'use_settings_template_apply_for_current_list_sites' => $settings['use_settings_template_apply_for_current_list_sites'],
 		);
 		unset( $settings['allow_custom_key'], $settings['white_label'], $settings['white_label__hoster_key'], $settings['white_label__plugin_name'] );
 	}
@@ -1408,6 +1462,9 @@ function apbct_settings__validate($settings) {
 				'service_id'  => $apbct->data['service_id'],
 			);
 			$apbct->saveNetworkData();
+			if (isset($settings['use_settings_template_apply_for_current_list_sites']) && !empty($settings['use_settings_template_apply_for_current_list_sites'])) {
+				apbct_update_blogs_options($settings['use_settings_template_apply_for_current_list_sites'], $settings);
+			}
 		}
 		if(!$apbct->white_label && !is_main_site() && !$apbct->allow_custom_key){
 			$settings['apikey'] = '';
@@ -1445,6 +1502,18 @@ function apbct_settings__validate($settings) {
 	return $settings;
 }
 
+function apbct_update_blogs_options ($blog_names = array(), $settings) {
+	global $wpdb;
+
+	$wp_blogs = $wpdb->get_results('SELECT blog_id, site_id FROM '. $wpdb->blogs, OBJECT_K);
+
+	foreach ($wp_blogs as $blog) {
+		$blog_name = get_blog_details( array( 'blog_id' => $blog->blog_id ) )->blogname;
+		if (in_array($blog_name, $blog_names)) {
+			update_blog_option ($blog->blog_id, 'cleantalk_settings', $settings);
+		}
+	}
+}
 /**
  * Sanitize and validate exclusions.
  * Explode given string by commas and trim each string.
