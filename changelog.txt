@@ -1,0 +1,2802 @@
+== Changelog ==
+
+= 5.132.3 December 19 2019 =
+  * Fix: The disable comments functionality.
+
+= 5.132.2 December 17 2019 =
+  * Fix: The disable comments functionality.
+
+= 5.132.1 December 17 2019 =
+  * Fix: Fatal PHP error.
+
+= 5.132 December 17 2019 =
+  * Fix: PHP 7.4 compability
+  * New: Settings and description for "disable comments" functionality.
+  * Mod: WooCommerce settings moved to separate block.
+  * Minor fixes.
+  * Spam protection improved.
+
+= 5.131 December 6 2019 =
+  * Fix: WooCommerce registration.
+  * Fix: Auto update on Wordperss Multisite.
+  * Fix: URLs exceptions validation.
+  * New: Secuirty improved.
+  * Spam protection is improved.
+  * Minor fixes ond improvments.
+
+= 5.130.1 November 20 2019 =
+  * Fix: Plugin autoupdate issues.
+  * FIx: Woocommerce checking.
+  * Fix: Correct IP detection.
+  * Fix: CSV export not working after update.
+  * Fix: QuickForms duplicates issues.
+
+= 5.130 November 14 2019 =
+  * Fix: JetPack contact form JS check.
+  * FIx: Iphorm AJAX form.
+  * Fix: Paid Memberships Pro fix.
+  * Fix: Divi theme contact form fix.
+  * Integration: Paid Memberships Pro.
+  * Integration: Elementor Pro page builder forms.
+  * Improved: Compatibility with different server.
+
+= 5.129.1 November 5 2019 =
+  * Fix: WooCommerce order detecting.
+
+= 5.129 October 30 2019 =
+  * Upd: Localize updated.
+  * Fix: Direct $_SERVER access replaced.
+  * Integration: The 7 theme contact form.
+  * Fix: Minor improvements and bug fixes.
+  * Mod: Putting site in maintenance mode during plugin update.
+
+= 5.128.1 October 23 2019 =
+  * Fix: Fatal error when using buffer output.
+  * Fix: Translate domain for errors.
+  * Code: Fix spelling in function name.
+  * Fix: JS disabled error.
+  * Upd: Comment edit screen updated.
+  * Fix: Cleantalk\Arr::search() fixed.
+
+= 5.128 October 17 2019 =
+  * Mod: Users check - functionality updated.
+  * Fix: Users check - dates format updated.
+  * Mod: Comments check - functionality updated.
+  * Fix: Comments check - dates format updated.
+  * Fix: Fields exclusion fixed.
+  * Fix: Notice fixed.
+  * Fix: Cleantalk/Antispam/API.
+  * Fix: Minor improvements and bug fixes.
+
+= 5.127.4 October 13 2019 =
+  * Mod: Automatically decrease amount of checked users by one request if an error occurs.
+  * Fix: Security issue.
+  * Fix: Static JS key.
+
+= 5.127.3 October 8 2019 =
+  * Fix: Errors during registration.
+
+= 5.127.2 October 8 2019 =
+  * Integration: SeedProd Coming Soon Page Pro.
+  * Fix: WooCommerce double reuqests.
+  * Fix: Static JS key.
+
+= 5.127.1 October 7 2019 =
+  * Fix: WPMS settings logic.
+  * Using default database storage engine for tables.
+
+= 5.127 September 30 2019 =
+  * Fix: Delete redirect notice on external forms
+  * Fix: Storing spam for 15 days.
+  * Fix: correct DiVi display message.
+  * Integration: Ultimate Members.
+  * Mod: Setting "Use static JS key" switched to "Auto" if it was "No". Default is "Auto".
+  * Mod: Moving White Label option to main site settings.
+  * New: Use static JS key if cache plugin detected.
+  * New: Settings for URLs, fields, roles exclusions.
+  * New: Regular Expressions support in URLs, fields exclusions.
+  * New: Send validation errors on standard registration form.
+  * Updater: Move exclusions from global variable to settings.
+  * Deprecated: IP exclusions.
+
+= 5.126 September 9 2019 =
+  * Spam protection improved!
+  * Integration: Option wheel.
+  * Mod: Improved Email detection.
+  * Mod: Improved IP detection.
+  * Fix: Too large database table with alternative sessions.
+  * Fix: Exception for WooCommerce AJAX.
+  * Fix: API key validation.
+  * Minor fixes.
+
+= 5.125 August 26 2019 =
+  * Fix: PHP Notices.
+  * Fix: Auto update.
+  * Fix: Displaying protection status for IP license.
+  * Fix: prevent capturing buffer for XMLRPC requests (check_external functionality).
+  * Fix: API key validating.
+  * New: Complete deactivation setting.
+
+= 5.124.1 August 8 2019 =
+  * Fix: Error on PHP 5.3.
+
+= 5.124 August 8 2019 =
+  * Spam protection improved.
+  * Fix: SpamFireWall local database counter on Multisite.
+  * Fix: Caldera Forms integration.
+  * Fix: Settings "Use AJAX for JS check" description.
+  * Fix: Formidable integration.
+  * New: External forms check now independed from JavaScript.
+  * New: Setting Protect external - capture buffer.
+  * New: QuForm integration.
+
+= 5.123 July 25 2019 =
+  * Fix: Plenty of minor fixes.
+  * Fix: wpDiscuz integration.
+  * Fix: Integration with bbPress.
+  * Fix: New comment email notification.
+  * New: Follow-Up Emails integration.
+  * Fix: Woocommerce integration.
+  * Fix: Spelling.
+
+= 5.122 July 10 2019 =
+  * Spam Protection improved.
+  * Fix: Error while checking account status.
+  * Fix: Conflict with Elementor Pro.
+  * Fix: Integration with Ninja Forms.
+  * Fix: Integration with Formidable.
+  * New: Detecting mobile devices.
+  * New: Integration for Easy Forms for Mailchimp.
+
+= 5.121 June 26 2019 =
+  * Fix: Translation typos.
+  * Fix: Woocommerce integration.
+  * Fix: Catching admin in AJAX queries.
+  * Mod: Session table (cleantalk_sessions) issue.
+  * Mod: Spam protection improved.
+  * Integration: Wilcity theme custom registration validation enabled
+  * New: Option "Use static JS key".
+
+= 5.120.2 June 17 2019 =
+  * Fix: WPForms integration.
+  * Fix: Translation and spelling.
+  * Fix: Minor PHP error
+
+= 5.120.1 June 6 2019 =
+  * Mod: Description for Search form protection.
+  * Fix: CSS and JS attachment.
+  * Fix: Undefined index error.
+
+= 5.120 June 5 2019 =
+  * Fix: bbPress false positives.
+  * Fix: SpamFireWall check condition.
+  * Fix: SpamFireWall block page.
+  * Fix: Catch admin action via search form test.
+  * Fix: Catch admin action (AJAX).
+  * Mod: Using minified version of JS and CSS.
+  * Mod: Date format in statistics.
+
+= 5.119.1 May 30 2019 =
+  * Fix: Helper class error.
+
+= 5.119 May 30 2019 =
+  * Fix: No more second request after registration.
+  * Fix: Activation hook.
+  * Fix: Alternative sessions. Clear table.
+  * Fix: Stop capchuring AJAX requests in admin area.
+  * Fix: Spelling.
+  * Fix: Registration cookies set.
+  * Mod: SFW exdtended die page when testing.
+  * Mod: User-agent modified.
+  * New: Test search queries for spam.
+  * New: Gathering and output statistics.
+
+= 5.118.4 May 13 2019 =
+  * Fix: SFW cookie. Set correct domain for subdomains.
+  * Fix: SFW update.
+  * Fix: IP detection.
+  * Fix: Triggering AJAX check in backend.
+  * Fix: Zero submit time on few forms.
+
+= 5.118.3 April 29 2019 =
+  * Fix: Spam statistics in dashboard widget.
+  * Fix: IP detection.
+  * Fix: Double check AJAX integrated forms like Ninja Forms.
+  * Fix: Use url exclusions for AJAX forms.
+
+= 5.118.2 April 25 2019 =
+  * Mod: Spam filtration quality improved.
+  * Mod: Store SFW cookie for 30 days.
+  * Mod: Server IP added to connection report.
+  * Fix: spam_stat is not defined.
+
+= 5.118.1 April 19 2019 =
+  * Fix: Fatal error.
+  * Mod: Spam protection improved on registrations.
+
+= 5.118 April 19 2019 =
+  * Fix: Cookies on registration page.
+  * Fix: Update fix.
+  * Fix: Wordpress built-in API.
+  * Fix: WooCommerce checkout form.
+  * Fix: UpdraftPlus. Saving settings.
+  * Fix: Convert Pro saving settings.
+  * Fix: UTF-8 Converting.
+  * Fix: GDPR notice.
+  * Fix: cleantalk_sessions table size reduced.
+  * Mod: Localization.
+  * Mod: Performance improved.
+  * Mod: SpamFierWall improvments.
+  * Mod: IP detection improved.
+  * Mod: JavaScript check rewised.
+  * New: Setting "Use alternative mechanism for cookies".
+
+= 5.117.1 April 5 2019 =
+  * Fix: GDPR notice.
+  * Fix: noCacheJS localization.
+  * Fix: Fatal error when updating.
+
+= 5.117 March 27 2019 =
+  * New: Update logic runs on all pages.
+  * New: Integration for Ajax Contact Forms plugin.
+  * New: Notification for users groups about new comments.
+  * New: SFW die page. Show browser and page creation time.
+  * Fix: Huge bug in Cleantalk.php connected with servers changing.
+  * Fix: Check AJAX requests for logged in users.
+  * Fix: Deleting debug in JS.
+  * Fix: Validating settings before saving.
+
+= 5.116.3 March 14 2019 =
+  * Fix: "Headers already sent" error.
+  * Fix: Images paths.
+  * Fix: IP detection.
+  * Fix: Skip lost password form check
+  * Fix: Skip mobile requests (push settings)
+  * Fix: PHP notice when detecting BuddyPress template.
+
+= 5.116.2 March 7 2019 =
+  * Fix: Creating tables in MariaDB.
+
+= 5.116.1 March 6 2019 =
+  * Fix: Creating tables in DB.
+  * Fix: PHP Warning in spam statistics widget.
+
+= 5.116 March 6 2019 =
+  * Spam filtration quality improved.
+  * New: Storing visited URLs.
+  * New: Check before validation Contact Form 7, Comments, Jetpack comments.
+  * New: Get validation result for Contact Form 7, Comments, Jetpack comments.
+  * Fix: ES add subscriber.
+  * Fix: IP detection.
+
+= 5.115.2 February 27 2019 =
+  * Fix: False positives spam detection in WP Forms and Contact Form 7.
+
+= 5.115.1 February 16 2019 =
+  * Fix: SpamFireWall's false positives.
+
+= 5.115 February 14 2019 =
+  * Fix: Http_only flag for backend cookies.
+  * Fix: Spam filtration improved.
+  * New: IP detection improved.
+  * Fix: SpamFirewall update speeded up.
+  * New: False positives with caching solutions decreased.
+  * New: Opportunity to use Wordpress HTTP API to connect with Cloud.
+
+= 5.114 January 31 2019 =
+  * New: Setting "Use Wordpress HTTP API" as alternative to CURL. Disabled by default.
+  * Fix: Formidable: Adding small JS check when adding JS_key.
+  * Mod: layout of settings page.
+  * Mod: Banner logic altered.
+
+= 5.113.2 January 18 2019 =
+  * Fix: "Settings" link returns to plugin page.
+
+= 5.113.1 January 17 2019 =
+  * Fix: Conflict with CityTours theme.
+  * Fix: Error for Wordpress lower 4.7.
+  * Add: Spam protection: "Validate email for existence".
+
+= 5.113 January 16 2019 =
+  * Fix: Fast and Simple Contact Form.
+  * Fix: Settings layout.
+  * Fix: Error with WooCommerce Quickview.
+  * Fix: Bitrix24 contact form.
+  * Fix: Request time decreased.
+  * Fix: Requesting account status when activating for IP licenses.
+  * Add: Precise AJAX request detection.
+  * Spam protection improved.
+
+= 5.112 December 21 2018 =
+  * Fix: Woocommerce AJAX checkout form.
+  * Fix: Profile Builder Pro.
+  * Fix: DB structure improvements for WPMS.
+  * Spam filtering quality improved.
+  * Minor fixes.
+
+= 5.111 December 13 2018 =
+  * Fix: Double request in JetPack contact form.
+  * Fix: Email notification about spam registration.
+  * Fix: Links button for feedback comments.
+  * Fix: Mail notification about plugin error.
+  * Fix: Key field output.
+  * Minor fixes.
+
+= 5.110 November 29 2018 =
+  * Integration: BuddyPress ActivityWall spam protection.
+  * Add: GDPR setting for shortcode.
+  * Add: Support different BuddyPress templates on activity wall.
+  * Fix: Admin/moderator checking for validate post data.
+
+= 5.109 November 15 2018 =
+  * Fix: Added URL and IP exclusions to Contact Form 7.
+  * Fix: js error when responseText is not exists
+  * Fix: Sitename when getting key automatically under WPMS.
+  * Mod: SpamFireWall is now fully compatible with WPMS.
+  * Mod: Setting 'Tell others about CleanTalk' was deleted.
+  * Mod: Protection from spam improved.
+
+= 5.108.1 November 8 2018 =
+  * Fix: Errors with integration class.
+
+= 5.108 November 7 2018 =
+  * Fix: White label mode.
+  * Fix: SpamFireWall now can be disabled.
+  * Fix: Layout.
+  * Integration: WPForms.
+  * Add: Message about block for all no integrated AJAX forms.
+  * Add: Displaying account name near api key.
+
+= 5.107 October 29 2018 =
+  * Fix: Ninja Forms integration.
+  * Fix: Cookie usage.
+  * Add: Capturing AJAX responses from non integrated forms.
+  * Spam protection improved.
+  * Minor fixes.
+
+= 5.106 October 11 2018 =
+  * Spam filtration improved.
+  * New: White Label mode.
+  * Modification: Warning message about test on SpamFireWall die page.
+  * Integration: WP Maintenance Mode.
+  * Fix: S2Member.
+  * Fix: JavaScript attachments reconsidered.
+  * Fix: Admin banners layout.
+  * Fix: Minor layout fixes.
+
+= 5.105 September 26 2018 =
+  * Integration: Now bloking spam for QAEngine questions.
+  * Fix: Async http__request call.
+  * Fix: Unnecessary get_antispam_report_breif method call.
+  * Layout: Hide "Do you like Cleantlak?" when key is not ok.
+  * Layout: Minor fixes.
+
+= 5.104 September 18 2018 =
+  * Fix: Error when saving settings.
+  * Fix: Trying update anti spam plugin for the first installation.
+  * Fix: Update system.
+  * Fix: Errors output.
+  * Fix: Plugin's settings under WPMS.
+  * Fix: SpamFireWall update.
+  * Fix: The server change system repaired.
+  * Mod: Cron saving tasks improved.
+
+= 5.103.1 September 14 2018 =
+  * Fix: Error when saving settings.
+  * Fix: Error when getting key automatically.
+
+= 5.103 September 13 2018 =
+  * Fix: Gravity Forms response message.
+  * Fix: SpamFireWall redirect to 404 page.
+  * Major anti-spam plugin improvement.
+  * Recombined setting page.
+  * Added error notification.
+  * Mod: S2 Members integration.
+  * Mod: Improved remote calls.
+
+= 5.102 August 29 2018 =
+  * Fix: Users and comments check.
+  * Fix: Update from 5.70 or previous versions.
+  * Fix: GDPR public JS-script.
+  * Fix: Dashboard widget JS scripts attachment.
+  * Fix: WooCommerce "Place order" action.
+  * Mod: Notification logic altered.
+  * Mod: Users check table now has 'Signed up' column.
+  * Minor fixes.
+
+= 5.101 August 10 2018 =
+  * Fix: Set cookie only for non-dashboard pages.
+  * Fix: Dashboard widget JS error.
+  * Fix: JavaScript error for some environment.
+  * Mod: Antispam protection accelerated for some pages.
+
+= 5.100 July 30 2018 =
+  * Fix: JavaScript dependencies.
+
+= 5.99.1 July 17 2018 =
+  * IP detection fixed and improved.
+
+= 5.99 July 10 2018 =
+  * Fix: WooCommerce false positives.
+  * Fix: SpamFireWall IP detection.
+  * Minor fixes.
+
+= 5.98 June 27 2018 =
+  * Fix: WooCommerce: Theme exclusion.
+  * Fix: Public GDPR JS code.
+  * Minor fixes.
+
+= 5.97 June 7 2018 =
+  * Fix: Update system.
+  * Fix: Feedback from public page (admin only).
+  * Fix: Users and comment check: API error.
+  * Fix: Too many negative reports. (Too big ct_data option)
+  * Fix: SpamFireWall: Infinite redirection on the blocking page.
+  * Minor fixes.
+
+= 5.96 May 22 2018 =
+  * Fix: Update system.
+  * Mod: Reset all counters button in admin bar.
+  * Mod: GDPR compliance.
+  * Minor fixes.
+
+= 5.95.1 May 3 2018 =
+  * Fix: "Get key automatically" button display logic.
+  * Fix: PHP notices.
+
+= 5.95 May 2 2018 =
+  * Spam filtration improved.
+  * Fix: Public widget layout.
+  * Fix: Connection reports output.
+  * Minor fixes.
+
+= 5.94 April 23 2018 =
+  * Mod: Async load option for JS.
+  * Mod: JS scripts loading is conditional.
+  * Fix: IP detection.
+  * Fix: IP detection.
+  * Fix: Javascript error.
+
+= 5.93.1 April 9 2018 =
+  * Fix: Fatal error on PHP 5.5 or lower.
+
+= 5.93 April 9 2018 =
+  * Fix: Spam FireWall IP detection.
+  * Fix: Contact Form 7. False positives.
+  * Mod: Autoupdate function improved.
+  * Minor fixes.
+
+= 5.92.2 March 23 2018 =
+  * Fix: Error if cURL extension is disabled.
+
+= 5.92.1 March 23 2018 =
+  * Fix: Spelling
+  * Fix: Fatal error if cURL extension is disabled.
+
+= 5.92 March 22 2018 =
+  * IP detection improved.
+  * Fix: SSL connection.
+  * Fix: False positives spam detection in Contact Form 7.
+  * Minor fixes.
+
+= 5.91 March 15 2018 =
+  * Fix: Errors for PHP compiled without XML support.
+  * Fix: Spelling and translation.
+  * Stability increased.
+  * Minor fixes.
+
+= 5.90 March 7 2018 =
+  * Improvement: Better IP recognition in Spam FireWall.
+  * Fix: Gravity Froms blocking message.
+  * Security improvments.
+  * Minor fixes.
+
+= 5.89 February 21 2018 =
+  * Improved spam filtration quality.
+  * Improved compatibility.
+  * Public widget: Styles and referral link added.
+  * Dashboard widget: revised and fixed.
+  * Minor fixes.
+
+= 5.88 February 12 2018 =
+  * Integration: ConvertPro.
+  * Improvement: Search for visitor's names in request.
+  * Fix: Contact Form 7 message recognition.
+  * Preparation for the remote plugin update.
+  * Minor fixes.
+
+= 5.87 February 2 2018 =
+  * Filtration quality improved.
+  * Fix: WP Foto Vote downloading images.
+  * Fix: Fatal error for unsupported PHP 5.2.
+  * Fix: Formidable Forms improved spam filtration.
+
+= 5.86 January 25 2018 =
+  * Fix: High CPU load with wp-ajax.php.
+  * Fix: Mailpoet: Newsletter.
+  * Fix: Gravity: Forms standardization for input fields.
+  * Fix: ajax hook checks data for contact form.
+  * Fix: UTF8 character in requests.
+
+= 5.85 January 11 2018 =
+  * Fix: Fast Secure contact form spam block message.
+  * Fix: IP license status.
+  * Layout: Dashboard widget description altered.
+
+= 5.84 December 26 2017 =
+  * Integration: PeepSo contact form
+  * Repared: Feedback from comments page.
+  * Fix: mb_* functions used only if exists.
+  * Fix: Gravity forms: Multi-page form logic repared.
+  * Fix: Gravity forms: AJAX form logic repared.
+  * Minor fixes.
+
+= 5.83.2 December 19 2017 =
+  * Fix: Error in base class.
+
+= 5.83.1 December 19 2017 =
+  * Fix: CDN IP detection.
+
+= 5.83 December 19 2017 =
+  * Improving: Stability and compatibility.
+  * Improving: Spam protection.
+  * Fix: Comments logic filtration.
+  * Fix: Admin bar counter.
+  * Minor errors fixes.
+
+= 5.82.1 December 7 2017 =
+  * Fixed minor error with attaching JS and CSS files.
+
+= 5.82 December 4 2017 =
+  * Plugin doesn't use PHP sessions anymore.
+  * Bug fixes.
+  * Improved update logic.
+
+= 5.81 November 22 2017 =
+  * Fixed error with "Show/Hide key" button.
+  * Slightly improved spam protection for all forms.
+  * Small errors fixes.
+
+= 5.80 November 3 2017 =
+  * Spam protection improved.
+  * Improved filtration quality for WooCommerce checkout.
+  * Minor fixes for Spam FireWall.
+
+= 5.79 October 26 2017 =
+  * Spam protection improved.
+  * Fixed issue with existing spam comments check.
+  * Added posibility to exclude IP from check.
+  * Minor fixes.
+
+= 5.78 October 16 2017 =
+  * Improved compatibility with themes. Changed core functions prefix.
+  * Fixed issue with WooCommerce checkout.
+  * Spam protection improved.
+  * Minor fixes.
+
+= 5.77 October 2 2017 =
+  * Connection report's system.
+  * Integration for CouponXXL Theme.
+  * Fixed issue with mb_* functions.
+  * Banners logic updated.
+
+= 5.76 September 20 2017 =
+  * Fixed issue with Spam FireWall and caching plugins.
+  * Banners logic updated.
+
+= 5.75 September 15 2017 =
+  * Pause feature for users/comments spam check.
+  * Improved protection from spam.
+  * Small fixes.
+
+= 5.74.2 September 2 2017 =
+  * Fix for users spam check for PHP 5.3 and lower.
+
+= 5.74.1 September 2 2017 =
+  * Fix for the update system and cloud communication.
+  * Added possibility to check users and comments for spam with a specific date range.
+
+= 5.74 August 31 2017 =
+  * Users and comments spam check: Two check types (fast and accurate).
+  * Fix for WooCommerce checkout test.
+  * Minor fixes.
+
+= 5.73 August 11 2017 =
+  * Fix for spam check for already existed users and comments.
+  * Spam FireWall updated.
+  * Layout fix for BT Comments.
+  * Minor fixes.
+
+= 5.72 July 27 2017 =
+  * Improved spam check for existed users and comments.
+  * Minor fixes.
+
+= 5.71 July 20 2017 =
+  * Improved spam protection for external forms.
+  * Optimization.
+  * Minor fixes.
+
+= 5.70.2 July 17 2017 =
+  * Fix for Spam FireWall for Multisite.
+
+= 5.70.1 July 17 2017 =
+  * Fix for Spam FireWall.
+  * Spam detection improved.
+
+= 5.70 July 13 2017 =
+  * New updater logic.
+  * Self cron system.
+  * Improved AMP compatibility.
+  * Optimization.
+  * Fixed users and comments spam check.
+  * Fixed layout for Comment's feedback from public page.
+  * Updated Spam FireWall.
+  * SFW: Spam FireWall counter now work in real-time.
+  * SFW: Improved compatibility with different Data Bases.
+
+= 5.69 July 3 2017 =
+  * Reviewer - integration.
+  * Optimization for Users and Comments check for big databases.
+  * Errors fixes.
+  * Improved protection from spam.
+
+= 5.68 June 22 2017 =
+  * Contact Form for WordPress - Ultimate Form Builder Lite - integration.
+  * Contact Bank - Contact Forms Builder - integration.
+  * Smart Forms - integration.
+  * cformsII - integration.
+  * Contact Form by Web-Settler - integration.
+  * Error fixes.
+
+= 5.67.3 June 9 2017 =
+  * Fixed JS attachment error.
+
+= 5.67.2 June 5 2017 =
+  * Fixed error with IP determination.
+
+= 5.67.1 June 4 2017 =
+  * Fixed JS error in 5.67 version.
+  * Integrations: Enfold theme, Convertplug.
+  * Links to check for Emails/IP for spam.
+  * Control comments and feedback about them from public post's page.
+  * Improved connection stability with cloud service.
+  * Spam protection improved.
+  * Other small fixes.
+
+= 5.67 June 1 2017 =
+  * Integrations: Enfold theme, Convertplug.
+  * Links to check for Emails/IP for spam.
+  * Control comments and feedback about them from public post's page.
+  * Improved connection stability with cloud service.
+  * Spam protection improved.
+  * Other small fixes.
+
+= 5.66 May 23 2017 =
+  * Spam protection improved.
+  * Major fixes for users and comments spam check.
+  * Added feedback from Wordpress comments list.
+  * Fix for "internal forms check" option.
+  * Fixed issue with caching Spam FireWall die page.
+  * Other small fixes.
+
+= 5.65 May 16 2017 =
+  * Fix for PayPal redirecton.
+  * Fixed issue with empty query for bulk comments test.
+  * Added protection for Enfold contact form.
+  * Ninja forms integration.
+
+= 5.64 April 26 2017 =
+  * Integration for Facebook registrations.
+  * Small fixes for WPMS.
+  * Fix for Activecampaign service.
+  * Fix for check spam users.
+  * Fixed rare notice Notice: Undefined index: REQUEST_URI
+
+= 5.63 April 20 2017 =
+  * Fix for the dashboard spam stat widget.
+  * Added translation posibility for all text.
+
+= 5.62 April 17 2017 =
+  * Fix for the dashboard spam statistics widget.
+  * Fix for users spam check.
+  * Small appearance changes.
+
+= 5.61 April 6 2017 =
+  * Improved filtration.
+  * Additional logic for the form recognizing.
+  * Integration: Divi Theme Contact Form.
+  * Fix: Gravity Forms multipages forms.
+  * Stat Widget: Minor fixes.
+  * Added possibility to download results of the users check in CSV format.
+  * Alteration for settings page (footer).
+
+= 5.60.1 March 29 2017 =
+  * Fixed error function 'locale_get_display_region' no exists.
+
+= 5.60 March 29 2017 =
+  * Added main dashboard widget with spam sctivity stats.
+  * Mailster - integration.
+  * Base class updated.
+
+= 5.59 March 24 2017 =
+  * Users/comments check fix.
+  * Plugin's name changed to Anti-Spam by CleanTalk.
+  * Trial banner is dismissable. Disapear for 24h or till logout.
+  * Settings modified (Auto testing failed warning).
+  * Mailing(inactive key) interval increased to 6 hours.
+
+= 5.58.6 March 16 2017 =
+  * Fix for Ninja forms (protection updated).
+  * Fix for QA Theme.
+  * Fix for RSVP form.
+  * Setting changes (Spam FireWall).
+  * Improved debug section.
+  * Improved gathering data function.
+  * Minor fixes.
+
+= 5.58.5 March 6 2017 =
+  * Minor backend fix.
+
+= 5.58.4 March 6 2017 =
+  * Users check fix (redirect after the check).
+  * Fixed PHP Notice "HTTP_REFERER" is unset.
+  * Updated Notice logic.
+
+= 5.58.3 February 28 2017 =
+  * Bitrix24 Contact form integration.
+  * Users/comments check fix.
+  * Spam sorting updated.
+  * Banner showing logic.
+
+= 5.58.2 February 17 2017 =
+  * Cron fix for daily report.
+
+= 5.58.1 February 16 2017 =
+  * Minor fixes.
+
+= 5.58 February 15 2017 =
+  * Work without access key
+  * Bitrix24 contact integration
+  * Issues fixes
+
+= 5.57.1 February 8 2017 =
+  * Fix for notice logic.
+
+= 5.57 February 8 2017 =
+  * Setting page changes.
+  * Bug fixes for WooCommerce.
+  * Spam FireWall filters only GET requests.
+  * Optimization.
+  * Minor and major fixes.
+
+= 5.56.1 January 25 2017 =
+  * Minor fixes
+
+= 5.56 January 19 2017 =
+  * Integrations: MailChimp Premium, Profile Press.
+  * Changes comments flow.
+  * FireWall updater fix.
+  * Users check optimization.
+
+= 5.55 December 23 2016 =
+  * Integrations: Caldera Forms, Visual Form Builder.
+  * Fix for different 'cookies' header names.
+  * Fixed user deletion.
+
+= 5.54 December 12 2016 =
+  * Integrations: AmoForms, Contact Form Clean and Simple.
+  * Comments check logic refreshed.
+  * Registration JS error fix.
+  * Users check fix.
+  * Fix for translation system.
+  * Minor fixes.
+
+= 5.53.1 December 9 2016 =
+  * Minor layout fixes.
+
+= 5.53 November 28 2016 =
+  * Addition warning before deleting users.
+  * Spam FireWall is enabled by default.
+  * Usernoise modal feedback / contact form : integration.
+  * Translations.
+  * Optimization.
+  * Fixes.
+
+= 5.52.1 November 14 2016 =
+  * Users and comments check: Using new API method.
+  * Quick Contact From: Integration via "Custom Contact Forms" setting.
+  * JavaScript filtration improved.
+  * Translation changes.
+  * Optimized JavaScript code.
+
+= 5.51 November 2 2016 =
+  * Added protection for internal forms
+  * Immediate spam check for comments and users from WP dashboard
+  * Optimized code
+
+= 5.50.1 October 24 2016 =
+  * Improved filtration in contact forms.
+  * Spam FireWall: Fixed issue with SFW logs
+  * Skipping service fields: Fast Secure Contact Froms, QU Forms, Custom Contact Forms
+
+= 5.50 October 20 2016 =
+  * Custom contact forms: integration.
+  * Pirate Forms: integration.
+  * PHP 7 compatibility: Deleted third-party JSON library and dependences.
+  * PHP 7 compatibility: Fixed end of lines.
+  * YOAST Seo: Fixed PHP warnings.
+  * Spam FireWall: Minor fix for Spam FireWall counter.
+  * Only admin could access to CleanTalk dashboard (exclude Authors an Editors).
+  * Improved filtration in contact forms.
+
+= 5.49.2 October 5 2016 =
+  * Second Fix for database error. Stable version.
+
+= 5.49.1 October 5 2016 =
+  * Fixed database error.
+
+= 5.49 October 3 2016 =
+  * Spam FireWall feature: Class upgraded.
+  * New feature: Delete links from approved comments.
+  * Settings: Grouped.
+  * Settings: Altered description fixed spelling mistakes.
+  * Settings: Added indicator for Spam FireWall.
+  * Admin bar: Added Spam FireWall counter
+  * Clean and Simple Contact Form: Direct integration.
+  * WooCommerce: Don't check password recovery form.
+  * WooCommerce Wishlists: Issue with check for Google bots.
+  * JetPack: contact form fix.
+  * Fixed and created the defaults for all CleanTalk options.
+  * Fixed spelling mistakes.
+
+= 5.48 September 15 2016 =
+  * buddyPress: Added private messages filtering. Doesn't check user if he has 3 or more messages in the "sentbox" and "inbox" folders.
+  * buddyPress: Added option in settings for private messages check.
+  * WooCommerce Wishlist: Added check for wishlists.
+  * Fixed issue with "check all post data" option.
+  * Improved filtering for Gravity Forms
+  * Mobile Assistant Connector fix
+  * Minor fixes.
+
+= 5.47 September 5 2016 =
+  * WooCommerce: direct integration for checkout form.
+  * WooCommerce Sensei: login form fix.
+  * bbPress: Added the check for topics and comments with stop_words
+  * bbPress: Skip check for admin in comments and topics
+  * UserPro: fixes. Request without field "shortcode"
+  * Contact Form 7: Bug fix.
+  * Spam FireWall: Optimized logs rotation.
+  * Updated inner functions (compatibility fix for PHP 5.4+)
+  * Fixed output of counters (without spamfirewall stats)
+  * Fixed spelling in settings
+  * Added "Delete from the list" button in comments spam check page
+  * Minor fixes.
+
+= 5.46 August 17 2016 =
+  * Fixed issue with admin bar links in WP Multi Network mode.
+  * Added "All time counter" and "Daily counter" into admin bar.
+  * Added settings to disable counters in admin bar.
+  * New style for "Get access key manually" button.
+
+= 5.45.2 August 4 2016 =
+  * Added Anti-Spam protection for Quick Event Manager.
+  * Improved bulk spam test for users. Now the plugin does not mark as Spam user, if the user IP address has spam activity more than 30 days ago.
+  * Fixed bulk spam test for comments. Previous version had a conflict between spam history for IP and Email.
+  * Minor fix function to get the API key.
+
+= 5.45.1 July 26 2016 =
+  * Fixed issue with missed spam messages, subscriptions.
+  * Improved bulk spam test for comments. Now the plugin will not mark as Spam comments, if a comment sender (IP address) has spam activity more than 30 days ago.
+
+= 5.45 July 21 2016 =
+  * Optimized bulk spam comments deletion.
+  * Turned off JavaScript anti-spam cookies if the option 'Set cookies' is turned off. It helps to avoid issues with Varnish.
+  * Added links to bulk spam comments&users removal tool.
+
+= 5.44.1 July 13 2016 =
+  * Optimized options getting code.
+  * Added the option 'Protect Logged in users' to do anti-spam tests for submissions by logged in users.
+
+= 5.43.2 June 30 2016 =
+  * Optimized anti-spam code for AJAX based contact forms.
+  * Fixed CSS layout of counters in Admin bar (issue with layout in IE11).
+
+= 5.43.1 June 23 2016 =
+  * Added agent version in requests to test a connection between the website and servers.
+  * Fixed issue with PHP notices in cleantalk-admin.php.
+
+= 5.43 June 22 2016 =
+  * Added spam protection for registrations via 'Login with AJAX' plug-in.
+  * Added a new counter to Admin bar that allows to count spam and approved submissions since last reset.
+  * Update the code that tests a connection between a website and CleanTalk's servers. New version doesn't generate submissions with email good@cleantalk.org.
+  * Fixed issue with spam protection for nested forms by Formidable plug-in.
+
+= 5.42 2016-06-15 =
+  * Added anti-spam protection for UserPro.
+  * Improved protection for Formidable forms + Varnish.
+  * Improved bulk search for spam accounts.
+  * Fixed spam protection for pages that contain multiple Formidable forms with same HTML ID.
+  * Optimized PHP code to be compatible with PHP 5.4 and above. The patch has been applied to Formidable forms spam protection.
+  * Minor fixes in plugin backend.
+
+= 5.41 2016-05-31 =
+  * Added HTTP response in plugin response if an network issue was happend.
+  * Optimized JavaScript anti-spam test for Formidable forms.
+  * Re-stored the option to auto redirect to plugn settings after plugin activation.
+  * Updated Spanish, Russian translations.
+  * Fixed issue with nasted fields in Formidable forms.
+
+= 5.40.3 2016-05-26 =
+  * Added option to encrypt (SSL) connection to CleanTalk anti-spam servers.
+  * Added JSON encoding for AJAX forms.
+  * Obfuscated private data for Custom contact forms option.
+  * Optimized bulk users check for spam over blacklists database.
+  * Fixed issue with lost connection to servers and JavaScript anti-spam test.
+  * Fixed issue with WordFence and collect_details.
+
+= 5.40.2 2016-05-11 =
+  * Improved account status check logic.
+  * Fixed issue with double anti-spam tests for FastSecure contact forms.
+  * Fixed issue with nulled JavaScript variables assigned from backend. This issue might me occurred on standart WordPress registration form and with failed JavaScript spam test.
+  * Fixed issue with session_start() with PHP sessions stored in memcache.
+
+= 5.40.1 2016-04-28 =
+  * Fixed issue with Super Socializer.
+  * Fixed issue with spam filtration for logged in users and Formidable forms.
+  * Added logging of all submitted fields for FastSecure contact form.
+
+= 5.40 2016-04-19 =
+  * Added JSON encoding for posts that were protected via Custom contact forms option. It allows show anti-spam logs in the Dashboard in more comfortable view.
+  * Minor fix in plugin settings.
+  * Fixed pagination for bulk users spam test.
+  * Fixed issue with unknown _SESSION.
+  * Fixed issue with double Spam FireWall database upload.
+
+= 5.39.1 2016-04-04 =
+  * Improved AJAX based anti-spam test with HTTPS backends.
+  * Added fix to avoid issue with empty ct_info_flag on JavaScript side.
+  * Added logic to exclude caching for Spam FireWall.
+  * Removed a condition to skip accounts with 127.0.0.1 IP in spam test for registered acconts.
+
+= 5.38.1 2016-03-24 =
+  * Fixed issue with PHP sessions and 'The session id is too long or contains illegal characters'.
+  * Removed Spam FireWall protection on /feed page.
+  * Disabled anti-spam tests for AJAX calls if the option 'Custom contact forms' is turned off.
+  * Added reject notice for spam submissions on Gravity forms with AJAX calls.
+
+= 5.37.3 2016-03-10 =
+  * Fixed bug with broken MailPoet previews.
+  * Fixed bug with broken Geo My WP pop-up windows.
+  * Fixed issue with mb_convert_encoding() function.
+  * Removed double JavaScript code in front-end.
+  * Removed unused variables in anti spam logic.
+  * Added option 'Set cookies' (turned on by default). If the option turned off, the plugin will not generate cookies, but in this case plugin will not protect some rarely used contact forms. Any way, turn this option off be compatible with Varnish in spam protection for WordPress core comments, registrations and most popular contact forms.
+  * Added anti-spam protection for Gravity forms via option 'Contact forms' with hook gform_entry_is_spam().
+
+= 5.36.1 2016-02-05 =
+  * Fixed bug, when users receive error after logging in
+  * Improve anti-spam filters for contact forms.
+
+= 5.36 2016-02-04 =
+  * Improved JavaScript anti spam protection
+  * Improvements for avoiding blocking requests from payment systems
+
+= 5.35 2016-01-14 =
+  * Added support for IP licensing
+  * Some anti-spam protection improvements
+  * Small backend interface fixes
+
+= 5.34.1 2015-12-17 =
+  * Fixed trackback antispam protection: improved checking mechanism
+  * Fixed problem with blocking MailPoet: added exclusions in spam checking algorithm
+
+= 5.34 2015-12-10 =
+  * Improved spam checking mechanism
+  * Added "Collect browser details" option for better antispam protection
+  * Fixed custom contact forms checking for AJAX requests
+  * Minor translations fixes
+
+= 5.33.1 2015-12-04 =
+  * Fixed issue with BBPress: restored old user permission checking mechanism
+  * Fixed anti-spam comments checking: sometimes get_comments returned wrong comments number
+  * Fixed bulk checking: made numeric indexes in users and comments arrays
+  * Fixed trackback and pingback checking: removed exception for checking
+
+= 5.33 2015-12-01 =
+  * Backend interface fixes
+  * Improved Spam FireWall efficiency
+  * Improved performance of anti spam checking
+
+= 5.32 2015-11-26 =
+  * Added improvements for manual spam detection
+  * Fixed errors in backend
+  * Fixed bulk users anti spam checking
+  * Added indicator for bulk spam checking
+  * Added "Get access key automatically" button
+
+= 5.31 2015-11-11 =
+  * Improved backend performance
+  * Fixed counter of approved/blocked spam attacks
+  * Fixed Spam FireWall logging
+
+= 5.30 2015-11-05 =
+  * Improved anti-spam checking
+  * Optimized performance
+  * Fixed blocking email preview in MailPoet
+  * Interface fixes
+  * WPMU interface fixes
+
+= 5.29 2015-10-27 =
+  * Optimized performance
+  * Fixed bugs in custom contact forms spam checking
+
+= 5.28.7 2015-10-23 =
+  * Optimized PHP sessions creation algorithm. This fix should increase plugin perfomance on hostings without retenion of PHP sessions files.
+  * Removed autoredirection to plugin settings after plugin activation.
+
+= 5.28 2015-10-16 =
+  * Fixed errors in anti-spam checking
+  * Restored options for spam checking registrations and cpmmon contact forms
+  * Improved spam protection
+  * Fixed problems with AJAX functionality in MailPoet, WooCommerce and other AJAX plugins
+
+= 5.27 2015-10-13 =
+  * Improvements in SpamFireWall feature
+  * Code optimization
+  * Backend interface fixes
+
+= 5.26 2015-10-05 =
+  * Added WordPress Language Pack support
+  * Removed spam checking for some autorisation plugins
+  * New experimental feature: SpamFireWall
+
+= 5.25.2 2015-09-28 =
+  * Fixed backend bug
+
+= 5.25.1 2015-09-28 =
+  * Added widget with anti-spam stats
+  * Added information about blocked spam attacks in admin dashboard and CleanTalk settings
+  * Added ability not to check comments for users with 3 or above allowed comments
+  * Added an option 'Help others known CleanTalk' to show information for site visitors, that your site is protected from spam by us
+  * Some backend interface settings
+
+= 5.24.1 2015-09-16 =
+  * Fixed some errors in frontend
+  * Fixed access key saving
+
+= 5.24 2015-09-14 =
+  * Backend interface fixes
+  * Improvement for AJAX JavaScript spam checking
+
+= 5.23 2015-09-01 =
+  * Fixed BuddyPress profile search false positivities of anti-spam protection.
+  * Some interface fixes of bulk users & comments spam checking
+
+= 5.22 2015-08-26 =
+  * Fixed possible XSS issue for anti-spam test on third-party forms.
+
+= 5.21 2015-08-21 =
+  * Fixed bug with skipping spam submissions
+  * Fixed bug with receiving old user_token for viewing anti-spam stats
+  * Small backend fixes
+
+= 5.20 2015-08-15 =
+  * Fixed anti-spam stats in admin bar - now stats updates every hour
+  * Fixed issue with skipping spam submissions
+  * Added some PHP-constants for advanced users - CLEANTALK_AJAX_USE_BUFFER and CLEANTALK_AJAX_USE_FOOTER_HEADER can be defined to true or false in wp-config.php to control method, which will be used for injection of AJAX script.
+
+= 5.19 2015-08-11 =
+  * New feature: anti-spam checking for registered users
+  * Fixed issue with AJAX JavaScript anti-spam test.
+  * Fixed issue with SEO Yoast xml sitemaps and JavaScript anti-spam test.
+
+= 5.18 2015-08-04 =
+  * Fixed issue with user_token
+  * Added anti-spam API, see our FAQ
+
+= 5.17 2015-07-23 =
+  * Fixed infinite redirection after activation
+  * Minor backend fixes
+
+= 5.16 2015-07-22 =
+  * Fixed external services checking
+  * Fixed mass comments deletion
+  * Fixed AJAX anti-spam protection
+
+= 5.15 2015-07-16 =
+  * New feature: anti-spam protection for forms, that uses external services
+
+= 5.14 2015-07-03 =
+  * Added anti-spam protection for some themes and plugins
+  * Some backend fixes
+
+= 5.13 2015-06-12 =
+  * Closing notification for anti-spam renew
+  * Fixed bulk anti spam comment checking
+
+= 5.12 2015-06-01 =
+  * Added option for checking all post data for spam
+  * Some JavaScript protection improvements
+  * Added option for old JavaScript check (without AJAX)
+
+= 5.10 2015-05-25 =
+  * Fixed Javascript error on some forms
+
+= 5.9 2015-05-21 =
+  * Fixed Javascript error on CF7 and JetPack
+  * Some backend and frontent fixes
+
+= 5.8 2015-05-18 =
+  * Minor fixes
+
+= 5.7 2015-05-18 =
+  * Fixed French translation
+  * Fixed protection algorithm
+
+= 5.6 2015-05-11 =
+  * Fixed translation
+  * Fixed bulk comments anti-spam checking
+  * Added option for disabling anti spam stats in adminbar
+  * Some security fixes
+
+= 5.5 2015-04-29 =
+  * Fixed security issue
+  * Some interface fixes
+
+= 5.4 2015-04-27 =
+  * Some interface and functionality changes in plugin settings page
+  * Added counter for anti-spam stats in admin bar
+
+= 5.3 2015-04-13 =
+  * Added anti-spam protection for Divi theme contact forms
+  * Added anti-spam protection for MyMail contact forms
+  * Added anti-spam protection for MailPoet Newsletters
+  * Some interface and functionality changes in backend
+
+= 5.2 2015-04-01 =
+  * Added link for anti-spam stats
+  * Added WP User Frontend Pro registration form protection
+
+= 5.1 2015-03-24 =
+  * Fixed site crash after installing 5.0 on some websites
+
+= 5.0 2015-03-24 =
+  * Added bulk comments checking for spam via CleanTalk blacklists
+  * Added anti-spam form protection for 'Ajax Login & Register'
+  * Fixed JetPack form protection
+
+= 4.24 2015-03-20 =
+  * Added immediate spam protection activation.
+
+= 4.22 2015-03-17 =
+  * Added button for automatic spam protection key getting.
+
+= 4.21 2015-03-11 =
+  * Added license renew notification.
+
+= 4.20 2015-03-03 =
+  * Added German, Italian, Polish, Portuguese translations.
+  * Minor code fixes.
+
+= 4.19 2015-02-24 =
+  * Increased keys lifetime for JS spam test.
+
+= 4.18 2015-02-17 =
+  * Fixed bug with comments approvement - moved ct_unmark_red() to cleantalk-admin.php
+  * Added PayPal 'payment_status' in skip list.
+  * Added Akismet 'spam' status processing.
+
+= 4.17 2015-02-12 =
+  * New base class.
+  * Divided code to 3 separate files - common, public and admin.
+
+= 4.16 2015-02-05 =
+  * New base class.
+  * Fixed JetPack spam filters logics.
+  * Optimized Formidable, bbPress, BuddyPress spam filters.
+
+= 4.15 2015-01-29 =
+  * Support spam test for Contact Form 7 versions before 3.0.0.
+  * Fixed global JS-vars for JS spam test.
+  * Fixed online notice cookie logics.
+  * Optimized spam filters for FSCF, WooCommerce, JetPack.
+  * Optimized option getting.
+
+= 4.14 2015-01-19 =
+  * Removed deprecated option from comment approvement code.
+  * New API key URL.
+  * Trimmed API key in admin panel.
+  * Added current options to array sended to CleanTalk servers.
+= 4.13 2014-12-29 =
+  * Fixed bug with autimatically aprovement not spam comments. Now this option disabled and do not override local WordPress policy.
+
+= 4.12 2014-12-29 =
+  * Fixed bug with 'Wrong Access key...' notice in WordPress dashboard.
+  * Fixed filtration bug in WordPress dashboard login form.
+
+= 4.11 2014-12-22 =
+  * Improved anti-spam protection for custom contact/registration/subscribe forms.
+  * Improved anti-spam protection for comments.
+  * Accelerated plugin speed for comments, regirstrations and contacts.
+  * Added translation to French.
+
+= 4.10 2014-12-10 =
+  * Improved anti-spam protection for custom contact/registration/subscribe forms.
+  * Option 'Custom contact forms' enabled by default for new setups.
+  * Removed settings "Publish relevant comments", "Use encrypted (SSL) connection".
+  * Added translation to Danish (thank you for Mikkel at KreativJul.dk).
+
+= 4.9 2014-11-24 =
+  * Fixed spam test for Contact Form 7.
+
+= 4.8 2014-11-19 =
+  * Improved anti-spam protection for BuddyPress registrations and custom contact forms.
+
+= 4.7 2014-11-16 =
+  * Fixed JavaScript spam test for FastSecure contact form.
+
+= 4.6 2014-11-11 =
+  * Improved anti-spam protection on BuddyPress registrations.
+  * Improved anti-spam protection on contact forms.
+  * Removed plugin sign from pending, spam comments. To get details about a comment please use Dashboard at cleantalk.org.
+  * Improved Access key validation function.
+  * Added protection for bbPress comments via stop list. Stop list function is a list to reject comments by prefiled words. To fill the list please use Dashboard at cleantalk.org.
+
+= 4.5 2014-11-04 =
+  * Fixed CF7 JavaScript bug.
+  * Fixed rejects in bbPress guests comments.
+
+= 4.4 2014-10-29 =
+  * Improved anti-spam JS test for CF7.
+  * Fixed 'noscript' text in FaceBook Like preview in Valenti theme.
+
+= 4.2 2014-10-20 =
+  * Fixed double checks issue for BuddyPress registrations.
+  * Increased timeout limits to find the work server.
+
+= 4.1 2014-10-13 =
+  * Optimized code for manual moderation feedback sending.
+  * Optimized anti-spam algorithms for comments, contacts and signups.
+
+= 4.0 2014-10-06 =
+  * Improved anti-spam protection for custom contact forms.
+  * Improved anti-spam protection for registration forms.
+
+= 3.9 2014-10-01 =
+  * Did exception to do not break to create new user in WordPress backend.
+
+= 3.8 2014-09-19 =
+  * Fixed json_encode() + malformed characters.
+  * Fixed JavaScript issue with wpautop().
+
+= 3.6 2014-09-15 =
+  * Fixed preg_match() issue for Formidable forms and Custom contact forms.
+  * Improved anti-spam protection for Custom contact forms.
+
+= 3.4 2014-09-04 =
+  * We've added anti-spam for themes contact forms and any untested contact forms plugins. To use this test enable option "Custom contact forms" in plugin settings.
+  * We've added auto rotation for spam comments. Now the plugin removes comments in SPAM folder older then 15 days. This option is enabled by default.
+
+= 3.2 2014-08-27 =
+  * Fixed submit_time() logic for failed submits (comments/registrations). Now form fill time resets after every failed submit.
+
+= 3.1 2014-08-19 =
+  * Added anti-spam test over senders Cookies.
+  * Improved form fill anti-spam test.
+  * Improved speed selection of the nearest server to website.
+  * Improved anti-spam speed for comments.
+  * Relevance anti-spam test disabled by default. To enable test should be used option 'relevance_test'.
+
+= 2.58 2014-08-06 =
+  * Added anti-spam protection for signups posted via WooCommerce order form.
+  * Improved anti-spam protection for Contact Form 7.
+  * Improved anti-spam protection for registrations. Now the plugin looking for JavaScript anti spam test results not only in POST array, but in COOKIES array too. This improvement allows protect signup forms for any untested signups plugins and themes.
+  * Updated PHP API. Now the plugin can resolve sender IP for websites behind proxy servers. If the proxy servers uses private IP address.
+
+= 2.57 2014-07-29 =
+  * Improved anti-spam protection for comments. The plugin now proccessing website url in the comments form.
+  * Fixed sign remove logic for approved comments. Previous version doesn't cut sign for comments approved via AJAX call in WordPress backend.
+  * Fixed switching to SSL for comments. Previous version doesn't use secured connection for comments.
+
+= 2.56 2014-07-21 =
+  * Fixed account status check logic. Previous version makes unnecessary test API calls when the plugin asks account status check.
+
+= 2.55 2014-07-11 =
+  * Fixed bug with account status function. In backend the plugin showed notice 'Please don't forget to disable CAPTCHA if you have it!' on every page.
+
+= 2.54 2014-07-11 =
+  * Fixed signup anti-spam protection logic for BuddyPress registrations.
+  * Fixed anti-spam protection for JetPack contact form.
+  * Changed account status check logic.
+
+= 2.53 2014-06-27 =
+  * Fixed anit-spam protection bug for signups.
+  * Changed anti-spam functions (comments and signups) priority.
+
+= 2.52 2014-06-25 =
+  * Fixed 'Fatal error: Call to a member function get_error_code()' issue with signups via BuddyPress.
+
+= 2.51 2014-06-23 =
+  * Added spam protection for registrations via plugin New User Approve by Josh Harrison. If the CleanTalk matched signup as spam this signup will be denied to placing in pending queue.
+  * Added option "Use secure (SSL) connection to CleanTalk cloud". If the option enabled plugin will communicate with CleanTalk severs via 128bit encrypted data channel. So, if you have SSL protected webforms on website you can use this option to be sure that visitors personal data safely transmits to CleanTalk servers.
+  * Fixed minor bug with loading backend functions.
+
+= 2.49 2014-06-10 =
+  * Added spam protection for S2Member Auth.net forms.
+  * Added spam protection for multisite signup form.
+  * Optimized account status check function.
+
+= 2.46 2014-05-19 =
+  * Added: HTML notice about the need to enable JavaScript.
+  * Fixed: Fixed pingbacks anti-spam test.
+
+= 2.44 2014-05-12 =
+  * Added: Anti-spam protection for S2Member framework.
+  * Improved: JavaScript anti-spam test.
+  * Improved: Plugin load time for backend and frontend.
+  * Fixed: PHP warning mb_convert_encoding()
+
+= 2.42 2014-04-29 =
+  * Fixed: JavaScript anti-spam test for comments.
+
+= 2.40 2014-04-25 =
+  * New: Fast Secure Contact form support.
+  * New: WordPress Landing Pages support
+
+= 2.38 2014-03-27 =
+  * Fixed: Registraion form submit time spam test.
+
+= 2.36 2014-03-12 =
+  * Reversed to patches from old revisions.
+
+= 2.35 2014-03-12 =
+  * New: Notifications about disabled account
+  * New: Improved JavaScript spam test.
+  * Fixed: Code optimization
+  * Fixed: JavaScript test for signups.
+
+= 2.33 2014-02-12 =
+  * Fixed: CURLOPT_FOLLOWLOCATION bug at admin notice
+
+= 2.32 2014-02-04 =
+  * New: Added notice about automatically approved comment. The notice shows only for first approved comment and only for new commentators (without approved comments) of the blog.
+  * New: At WordPress console added banner for notices.
+  * Changed: Screenshots updated.
+
+= 2.31 2014-01-24 =
+  * New: Added spam protection for JetPack comments
+  * Fixed: cURL connection issue "Expect: 100-continue"
+
+= 2.30 2014-01-13 =
+  * Changed: Improved servers connection logic.
+  * Fixed: Antispam test for Fomidable forms.
+
+= 2.28 2013-12-19 =
+  * New: Added protection against spam bots for WooCommerce review form.
+  * Fixed: JavaScript anti-spam logic for WooCommerce review form.
+
+= 2.27 2013-12-06 =
+  * New: Added protection against spam bots for JetPack Contact form.
+  * Fixed: JavaScript anti-spam logic for registrations and Contact form 7.
+
+= 2.25 2013-11-27 =
+  * New: Added protection against spam bots for BuddyPress registrations.
+  * New: Added protection against spam bots for Contact form 7.
+  * New: Added Spanish (es_ES) translation.
+
+= 2.23 2013-11-20 =
+  * New: Added automatic training blacklists on spam bot account deletion.
+  * New: Added URL to project homepage at plugin options.
+  * Changed: Improved anti-spam logic.
+
+= 2.21 2013-11-13 =
+  * Changed: WordPress blacklists settings get priority over plugin's anti-spam settings
+  * Changed: Disabled management approval comments for regular commentators of the blog. Automatically approved for publication only the comments of the new blog authors.
+  * Changed: Removed form submit time test. Imporved JavaScript spam test.
+  * Changed: PHP code optimizations
+
+= 2.19 2013-11-08 =
+  * New: Antispam protection from spam bots at the registration form
+  * Changed: Russian localization for admin panel
+  * Changed: PHP code optimizations
+
+= 2.5.18 2013-11-01 =
+  * Fixed: Bug with selection of the last comments for post
+  * New: Antispam protection for Formidable feedback forms
+  * New: Automatic deletion of outdated spam comments
+  * New: On/Off option for comments spam filtration
+  * Tested with WordPress 3.7.1
+
+= 2.4.15 2013-09-26 =
+  * Fixed: Bug with mass comments deletion
+  * Changed: Russian localization for admin panel
+  * Tested with mulitsite setup (WordPress network or WPMU)
+
+= 2.4.14 2013-08-29 =
+  * Changed: Removed feedback requests to the servers for banned (spam) comments.
+
+= 2.4.13 2013-08-19 =
+  * Changed: Switched HTTP requests from file_get_contents() to CURL. Added file_get_contens() as backup connection to the servers.
+  * Changed: Removed feedback requests for comments moved to trash.
+  * Fixed: "Fail connect to servers..." error on hostings with disabled 'allow_url_fopen' PHP option.
+
+= 2.4.12 2013-08-12 =
+  * Removed RPC::XML library from plugin.
+  * Switched plugin to HTTP+JSON connection with servers.
+  * Fixed bug with comments anti-spam tests with non UTF8 codepage.
+
+= 2.4.11 2013-08-02 =
+  * Removed spam tests for self-made pingbacks
+  * Tested up to WP 3.6
+
+= 2.4.10 2013-07-24 =
+  * Fixed warning in PHP 5.4
+  * Fixed bug with disabling comments test for Administrators, Authors and Editors
+  * "Stop words" settings moved to <a href="http://cleantalk.org/my">Control panel</a> of the service
+  * "Response language" settings moved <a href="http://cleantalk.org/my">Control panel</a> of the service
+
+= 2.4.9 =
+  * Fixed extra debugging in base class
+
+= 2.4.8 =
+  * Enabled convertion to UTF8 for comment and example text
+  * Optimized PHP code
+
+= 2.3.8 =
+  * Enabled selection the fastest server in the pool
+  * Fixed work server in plugin's config
+
+= 2.2.3 =
+  * Secured md5 string for JavaScript test
+  * Added requests's timestamp to calculate request work time
+  * Update base CleanTalk's PHP class
+
+= 2.1.2 =
+  * Improved perfomance for processing large comments (over 32kb size)
+  * Improved perfomance for bulk operations with comments in Comments panel
+  * Added feedback request with URL to approved comment
+
+= 2.0.2 =
+  * Fixed bug with JavaScript test and WordPress cache plugins
+
+= 2.0.1 =
+  * Added option "Publicate relevant comments" to plugin's options.
+  * Added descriptions to plugin options
+
+= 1.5.4 =
+  * Fixed HTTP_REFERER transmission to the servers
+  * Improved JavaScript spam test
+  * Optimized PHP code
+
+= 1.4.4 =
+  * Pingback, trackback comments has moved to manual moderataion
+  * Added transmission to the serves comment type and URL
+  * Post title, body and comments separated into individual data elements
+  * Added priority for matched words in the comment with post title
+  * Enabled stop words filtration as default option
+
+= 1.3.4 =
+  * Removed PHP debugging.
+
+= 1.3.3 =
+  * Added notice at admin panel about empty Access key in plugin settings
+  * Removed HTTP link to the site project from post page
+  * Removed unused options from settings page
+  * Tested up to WordPress 3.5
+
+= 1.2.3 =
+ * Fixed bug with session_start.
+
+= 1.2.2 =
+  * Plugin rename to CleanTalk. Spam prevent plugin
+  * Integration Base Class version 0.7
+  * Added fast submit check
+  * Added check website in form
+  * Added feedbacks for change comment status (Not spam, unapprove)
+  * Added function move comment in spam folder if CleanTalk say is spam
+  * Disable checking for user groups Administrator, Author, Editor
+  * Marked red color bad words
+
+= 1.1.2 =
+  * Addition: Title of the post attached to the example text in auto publication tool.
+  * Tested with WordPress 3.4.1.
+
+= 1.1.1 =
+  * HTTP_REFERER bug fixed
+
+= 1.1.1 =
+  * Added user locale support, tested up to WP 3.4
+
+= 1.1.0 =
+  * First version
+
+
+== Upgrade Notice ==
+= 5.130 November 14 2019 =
+  * Fix: JetPack contact form JS check.
+  * FIx: Iphorm AJAX form.
+  * Fix: Paid Memberships Pro fix.
+  * Fix: Divi theme contact form fix.
+  * Integration: Paid Memberships Pro.
+  * Integration: Elementor Pro page builder forms.
+  * Improved: Compatibility with different server.
+
+= 5.129.1 November 5 2019 =
+  * Fix: WooCommerce order detecting.
+
+= 5.129 October 30 2019 =
+  * Upd: Localize updated.
+  * Fix: Direct $_SERVER access replaced.
+  * Integration: The 7 theme contact form.
+  * Fix: Minor improvements and bug fixes.
+  * Mod: Putting site in maintenance mode during plugin update.
+
+= 5.128.1 October 23 2019 =
+  * Fix: Fatal error when using buffer output.
+  * Fix: Translate domain for errors.
+  * Code: Fix spelling in function name.
+  * Fix: JS disabled error.
+  * Upd: Comment edit screen updated.
+  * Fix: Cleantalk\Arr::search() fixed.
+
+= 5.128 October 17 2019 =
+  * Mod: Users check - functionality updated.
+  * Fix: Users check - dates format updated.
+  * Mod: Comments check - functionality updated.
+  * Fix: Comments check - dates format updated.
+  * Fix: Fields exclusion fixed.
+  * Fix: Notice fixed.
+  * Fix: Cleantalk/Antispam/API.
+  * Fix: Minor improvements and bug fixes.
+
+= 5.127.4 October 13 2019 =
+  * Mod: Automatically decrease amount of checked users by one request if an error occurs.
+  * Fix: Security issue.
+  * Fix: Static JS key.
+
+= 5.127.3 October 8 2019 =
+  * Fix: Errors during registration.
+
+= 5.127.2 October 8 2019 =
+  * Integration: SeedProd Coming Soon Page Pro.
+  * Fix: WooCommerce double reuqests.
+  * Fix: Static JS key.
+
+= 5.127.1 October 7 2019 =
+  * Fix: WPMS settings logic.
+  * Using default database storage engine for tables.
+
+= 5.127 September 30 2019 =
+  * Fix: Delete redirect notice on external forms
+  * Fix: Storing spam for 15 days.
+  * Fix: correct DiVi display message.
+  * Integration: Ultimate Members.
+  * Mod: Setting "Use static JS key" switched to "Auto" if it was "No". Default is "Auto".
+  * Mod: Moving White Label option to main site settings.
+  * New: Use static JS key if cache plugin detected.
+  * New: Settings for URLs, fields, roles exclusions.
+  * New: Regular Expressions support in URLs, fields exclusions.
+  * New: Send validation errors on standard registration form.
+  * Updater: Move exclusions from global variable to settings.
+  * Deprecated: IP exclusions.
+
+= 5.126 September 9 2019 =
+  * Spam protection improved!
+  * Integration: Option wheel.
+  * Mod: Improved Email detection.
+  * Mod: Improved IP detection.
+  * Fix: Too large database table with alternative sessions.
+  * Fix: Exception for WooCommerce AJAX.
+  * Fix: API key validation.
+  * Minor fixes.
+
+= 5.125 August 26 2019 =
+  * Fix: PHP Notices.
+  * Fix: Auto update.
+  * Fix: Displaying protection status for IP license.
+  * Fix: prevent capturing buffer for XMLRPC requests (check_external functionality).
+  * Fix: API key validating.
+  * New: Complete deactivation setting.
+
+= 5.124.1 August 8 2019 =
+  * Fix: Error on PHP 5.3.
+
+= 5.124 August 8 2019 =
+  * Spam protection improved.
+  * Fix: SpamFireWall local database counter on Multisite.
+  * Fix: Caldera Forms integration.
+  * Fix: Settings "Use AJAX for JS check" description.
+  * Fix: Formidable integration.
+  * New: External forms check now independed from JavaScript.
+  * New: Setting Protect external - capture buffer.
+  * New: QuForm integration.
+
+= 5.123 July 25 2019 =
+  * Fix: Plenty of minor fixes.
+  * Fix: wpDiscuz integration.
+  * Fix: Integration with bbPress.
+  * Fix: New comment email notification.
+  * New: Follow-Up Emails integration.
+  * Fix: Woocommerce integration.
+  * Fix: Spelling.
+
+= 5.122 July 10 2019 =
+  * Spam Protection improved.
+  * Fix: Error while checking account status.
+  * Fix: Conflict with Elementor Pro.
+  * Fix: Integration with Ninja Forms.
+  * Fix: Integration with Formidable.
+  * New: Detecting mobile devices.
+  * New: Integration for Easy Forms for Mailchimp.
+
+= 5.121 June 26 2019 =
+  * Fix: Translation typos.
+  * Fix: Woocommerce integration.
+  * Fix: Catching admin in AJAX queries.
+  * Mod: Session table (cleantalk_sessions) issue.
+  * Mod: Spam protection improved.
+  * Integration: Wilcity theme custom registration validation enabled
+  * New: Option "Use static JS key".
+
+= 5.120.2 June 17 2019 =
+  * Fix: WPForms integration.
+  * Fix: Translation and spelling.
+  * Fix: Minor PHP error
+
+= 5.120.1 June 6 2019 =
+  * Mod: Description for Search form protection.
+  * Fix: CSS and JS attachment.
+  * Fix: Undefined index error.
+
+= 5.120 June 5 2019 =
+  * Fix: bbPress false positives.
+  * Fix: SpamFireWall check condition.
+  * Fix: SpamFireWall block page.
+  * Fix: Catch admin action via search form test.
+  * Fix: Catch admin action (AJAX).
+  * Mod: Using minified version of JS and CSS.
+  * Mod: Date format in statistics.
+
+
+= 5.119.1 May 30 2019 =
+  * Fix: Helper class error.
+
+= 5.119 May 30 2019 =
+  * Fix: No more second request after registration.
+  * Fix: Activation hook.
+  * Fix: Alternative sessions. Clear table.
+  * Fix: Stop capchuring AJAX requests in admin area.
+  * Fix: Spelling.
+  * Fix: Registration cookies set.
+  * Mod: SFW exdtended die page when testing.
+  * Mod: User-agent modified.
+  * New: Test search queries for spam.
+  * New: Gathering and output statistics.
+
+= 5.118.4 May 13 2019 =
+  * Fix: SFW cookie. Set correct domain for subdomains.
+  * Fix: SFW update.
+  * Fix: IP detection.
+  * Fix: Triggering AJAX check in backend.
+  * Fix: Zero submit time on few forms.
+
+= 5.118.3 April 29 2019 =
+  * Fix: Spam statistics in dashboard widget.
+  * Fix: IP detection.
+  * Fix: Double check AJAX integrated forms like Ninja Forms.
+  * Fix: Use url exclusions for AJAX forms.
+
+= 5.118.2 April 25 2019 =
+  * Mod: Spam filtration quality improved.
+  * Mod: Store SFW cookie for 30 days.
+  * Mod: Server IP added to connection report.
+  * Fix: spam_stat is not defined.
+
+= 5.118.1 April 19 2019 =
+  * Fix: Fatal error.
+  * Mod: Spam protection improved on registrations.
+
+= 5.118 April 19 2019 =
+  * Fix: Cookies on registration page.
+  * Fix: Update fix.
+  * Fix: Wordpress built-in API.
+  * Fix: WooCommerce checkout form.
+  * Fix: UpdraftPlus. Saving settings.
+  * Fix: Convert Pro saving settings.
+  * Fix: UTF-8 Converting.
+  * Fix: GDPR notice.
+  * Fix: cleantalk_sessions table size reduced.
+  * Mod: Localization.
+  * Mod: Performance improved.
+  * Mod: SpamFierWall improvments.
+  * Mod: IP detection improved.
+  * Mod: JavaScript check rewised.
+  * New: Setting "Use alternative mechanism for cookies".
+
+= 5.117.1 April 5 2019 =
+  * Fix: GDPR notice.
+  * Fix: noCacheJS localization.
+  * Fix: Fatal error when updating.
+
+= 5.117 March 27 2019 =
+  * New: Update logic runs on all pages.
+  * New: Integration for Ajax Contact Forms plugin.
+  * New: Notification for users groups about new comments.
+  * New: SFW die page. Show browser and page creation time.
+  * Fix: Huge bug in Cleantalk.php connected with servers changing.
+  * Fix: Check AJAX requests for logged in users.
+  * Fix: Deleting debug in JS.
+  * Fix: Validating settings before saving.
+
+= 5.116.3 March 14 2019 =
+  * Fix: "Headers already sent" error.
+  * Fix: Images paths.
+  * Fix: IP detection.
+  * Fix: Skip lost password form check
+  * Fix: Skip mobile requests (push settings)
+  * Fix: PHP notice when detecting BuddyPress template.
+
+= 5.116.2 March 7 2019 =
+  * Fix: Creating tables in MariaDB.
+
+= 5.116.1 March 6 2019 =
+  * Fix: Creating tables in DB.
+  * Fix: PHP Warning in spam statistics widget.
+
+= 5.116 March 6 2019 =
+  * Spam filtration quality improved.
+  * New: Storing visited URLs.
+  * New: Check before validation Contact Form 7, Comments, Jetpack comments.
+  * New: Get validation result for Contact Form 7, Comments, Jetpack comments.
+  * Fix: ES add subscriber.
+  * Fix: IP detection.
+
+= 5.115.2 February 27 2019 =
+  * Fix: False positives spam detection in WP Forms and Contact Form 7.
+
+= 5.115.1 February 16 2019 =
+  * Fix: SpamFireWall's false positives.
+
+= 5.115 February 14 2019 =
+  * Fix: Http_only flag for backend cookies.
+  * Fix: Spam filtration improved.
+  * New: IP detection improved.
+  * Fix: SpamFirewall update speeded up.
+  * New: False positives with caching solutions decreased.
+  * New: Opportunity to use Wordpress HTTP API to connect with Cloud.
+
+= 5.114 January 31 2019 =
+  * New: Setting "Use Wordpress HTTP API" as alternative to CURL. Disabled by default.
+  * Fix: Formidable: Adding small JS check when adding JS_key.
+  * Mod: layout of settings page.
+  * Mod: Banner logic altered.
+
+= 5.113.2 January 18 2019 =
+  * Fix: "Settings" link returns to plugin page.
+
+= 5.113.1 January 17 2019 =
+  * Fix: Conflict with CityTours theme.
+  * Fix: Error for Wordperss lower 4.7.
+  * Add: Spam protection: "Validate email for existance".
+
+= 5.113 January 16 2019 =
+  * Fix: Fast and Simple Contact Form.
+  * Fix: Settings layout.
+  * Fix: Error with WooCommerce Quickview.
+  * Fix: Bitrix24 contact form.
+  * Fix: Request time decreased.
+  * Fix: Requesting account status when activating for IP licenses.
+  * Add: Precise AJAX request detection.
+  * Spam protection improved.
+
+= 5.112 December 21 2018 =
+  * Fix: Woocommerce AJAX checkout form.
+  * Fix: Profile Builder Pro.
+  * Fix: DB structure improvements for WPMS.
+  * Spam filtering quality improved.
+  * Minor fixes.
+
+= 5.111 December 13 2018 =
+  * Fix: Double request in JetPack contact form.
+  * Fix: Email notification about spam registration.
+  * Fix: Links button for feedback comments.
+  * Fix: Mail notification about plugin error.
+  * Fix: Key field output.
+  * Minor fixes.
+
+= 5.110 November 29 2018 =
+  * Integration: BuddyPress ActivityWall spam protection.
+  * Add: Support different BuddyPress templates on activity wall.
+  * Fix: Admin/moderator checking for validate post data.
+  * Add: GDPR setting for shortcode.
+  * Fix: Increase timeout for spam_check_cms to 15.
+
+= 5.109 November 15 2018 =
+  * Fix: Added URL and IP exclusions to Contact Form 7.
+  * Fix: js error when responseText is not exists
+  * Fix: Sitename when getting key automatically under WPMS.
+  * Mod: SpamFireWall is now fully compatible with WPMS.
+  * Mod: Setting 'Tell others about CleanTalk' was deleted.
+  * Mod: Protection from spam improved.
+
+= 5.108.1 November 8 2018 =
+  * Fix: Errors with integration class.
+
+= 5.108 November 7 2018 =
+  * Fix: White label mode.
+  * Fix: SpamFireWall now can be disabled.
+  * Fix: Layout.
+  * Integration: WPForms.
+  * Add: Message about block for all no integrated AJAX forms.
+  * Add: Displaying account name near api key.
+
+= 5.107 October 29 2018 =
+  * Fix: Ninja Forms integration.
+  * Fix: Cookie usage.
+  * Add: Capturing AJAX responses from non integrated forms.
+  * Spam protection improved.
+  * Minor fixes.
+
+= 5.106 October 11 2018 =
+  * Spam filtration improved.
+  * New: White Label mode.
+  * Modification: Warning message about test on SpamFireWall die page.
+  * Integration: WP Maintenance Mode.
+  * Fix: S2Member.
+  * Fix: JavaScript attachments reconsidered.
+  * Fix: Admin banners layout.
+  * Fix: Minor layout fixes.
+
+= 5.105 September 26 2018 =
+  * Integration: Now bloking spam for QAEngine questions.
+  * Fix: Async http__request call.
+  * Fix: Unnecessary get_antispam_report_breif method call.
+  * Layout: Hide "Do you like Cleantlak?" when key is not ok.
+  * Layout: Minor fixes.
+
+= 5.104 September 18 2018 =
+  * Fix: Error when saving settings.
+  * Fix: Trying update plugin plugin for the first installation.
+  * Fix: Update system.
+  * Fix: Errors output.
+  * Fix: Plugin's settings under WPMS.
+  * Fix: SpamFireWall update.
+  * Fix: The server change system repaired.
+  * Mod: Cron saving tasks improved.
+
+= 5.103.1 September 14 2018 =
+  * Fix: Error when saving settings.
+  * Fix: Error when getting key automatically.
+
+= 5.103 September 13 2018 =
+  * Fix: Gravity Forms response message.
+  * Fix: SpamFireWall redirect to 404 page.
+  * Major anti-spam plugin improvement.
+  * Recombined setting page.
+  * Added error notification.
+  * Mod: S2 Members integration.
+  * Mod: Improved remote calls.
+
+= 5.102 August 29 2018 =
+  * Fix: Users and comments check.
+  * Fix: Update from 5.70 or previous versions.
+  * Fix: GDPR public JS-script.
+  * Fix: Dashboard widget JS scripts attachment.
+  * Fix: WooCommerce "Place order" action.
+  * Mod: Notification logic altered.
+  * Mod: Users check table now has 'Signed up' column.
+  * Minor fixes.
+
+= 5.101 August 10 2018 =
+  * Fix: Set cookie only for non-dashboard pages.
+  * Fix: Dashboard widget JS error.
+  * Fix: JavaScript error for some environment.
+  * Mod: Antispam protection accelerated for some pages.
+
+= 5.100 July 30 2018 =
+  * Fix: JavaScript dependencies.
+
+= 5.99.1 July 17 2018 =
+  * IP detection fixed and improved.
+
+= 5.99 July 10 2018 =
+  * Fix: WooCommerce false positives.
+  * Fix: SpamFireWall IP detection.
+  * Minor fixes.
+
+= 5.98 June 27 2018 =
+  * Fix: WooCommerce: Exclusion.
+  * Fix: Public GDPR JS code.
+  * Minor fixes.
+
+= 5.97 June 7 2018 =
+  * Fix: Update system.
+  * Fix: Feedback from public page (admin only).
+  * Fix: Users and comment check: API error.
+  * Fix: Too many negative reports. (Too big ct_data option)
+  * Fix: SpamFireWall: Infinite redirection on the blocking page.
+  * Minor fixes.
+
+= 5.96 May 22 2018 =
+  * Fix: Update system.
+  * Mod: Reset all counters button in admin bar.
+  * Mod: GDPR compliance.
+  * Minor fixes.
+
+= 5.95.1 May 3 2018 =
+  * Fix: "Get key automatically" button display logic.
+  * Fix: PHP notices.
+
+= 5.95 May 2 2018 =
+  * Spam filtration improved.
+  * Fix: Public widget layout.
+  * Fix: Connection reports output.
+  * Minor fixes.
+
+= 5.94 April 23 2018 =
+  * Mod: Async load option for JS.
+  * Mod: JS scripts loading is conditional.
+  * Fix: IP detection.
+  * Fix: IP detection.
+  * Fix: Javascript error.
+
+= 5.93.1 April 9 2018 =
+  * Fix: Fatal error on PHP 5.5 or lower.
+
+= 5.93 April 9 2018 =
+  * Fix: SpamFirewall IP detection.
+  * Fix: Contact Form 7. False positives.
+  * Mod: Autoupdate function improved.
+  * Minor fixes.
+
+= 5.92.2 March 23 2018 =
+  * Fix: Error if cURL extension is disabled.
+
+= 5.92.1 March 23 2018 =
+  * Fix: Spelling
+  * Fix: Fatal error if cURL extension is disabled.
+
+= 5.92 March 22 2018 =
+  * IP detection improved.
+  * Fix: SSL connection.
+  * Fix: False positives spam detection in Contact Form 7.
+  * Minor fixes.
+
+= 5.91 March 15 2018 =
+  * Fix: Errors for PHP compiled without XML support.
+  * Fix: Spelling and translation.
+  * Stability increased.
+  * Minor fixes.
+
+= 5.90 March 7 2018 =
+  * Improvement: Better IP recognition in Spam FireWall.
+  * Fix: Gravity Froms blocking message.
+  * Security improvments.
+  * Minor fixes.
+
+= 5.89 February 21 2018 =
+  * Improved spam filtration quality.
+  * Improved compatibility.
+  * Public widget: Styles and referral link added.
+  * Dashboard widget: revised and fixed.
+  * Minor fixes.
+
+= 5.88 February 12 2018 =
+  * Integration: ConvertPro.
+  * Improvement: Search for visitor's names in request.
+  * Fix: Contact Form 7 message recognition.
+  * Preparation for the remote plugin update.
+  * Minor fixes.
+
+= 5.87 February 2 2018 =
+  * Filtration quality improved.
+  * Fix: WP Foto Vote downloading images.
+  * Fix: Fatal error for unsupported PHP 5.2.
+  * Fix: Formidable Forms improved spam filtration.
+
+= 5.86 January 25 2018 =
+  * Fix: High CPU load with wp-ajax.php.
+  * Fix: Mailpoet: Newsletter.
+  * Fix: Gravity: Forms standardization for input fields.
+  * Fix: ajax hook checks data for contact form.
+  * Fix: UTF8 character in requests.
+
+= 5.85 January 11 2018 =
+  * Fix: Fast Secure contact form spam block message.
+  * Fix: IP license status.
+  * Layout: Dashboard widget description altered.
+
+= 5.84 December 26 2017 =
+  * Integration: PeepSo contact form
+  * Repared: Feedback from comments page.
+  * Fix: mb_* functions used only if exists.
+  * Fix: Gravity forms: Multi-page form logic repared.
+  * Fix: Gravity forms: AJAX form logic repared.
+  * Minor fixes.
+
+= 5.83.2 December 19 2017 =
+  * Fix: Error in base class.
+
+= 5.83.1 December 19 2017 =
+  * Fix: CDN IP detection.
+
+= 5.83 December 19 2017 =
+  * Improving: Stability and compatibility.
+  * Improving: Spam protection.
+  * Fix: Comments logic filtration.
+  * Fix: Admin bar counter.
+  * Minor errors fixes.
+
+= 5.82.1 December 7 2017 =
+  * Fixed minor error with attaching JS and CSS files.
+
+= 5.82 December 4 2017 =
+  * Plugin doesn't use PHP sessions anymore.
+  * Bug fixes.
+  * Improved update logic.
+
+= 5.81 November 22 2017 =
+  * Fixed error with "Show/Hide key" button.
+  * Slightly improved spam protection for all forms.
+  * Small errors fixes.
+
+= 5.80 November 3 2017 =
+  * Spam protection improved.
+  * Improved filtration quality for WooCommerce checkout.
+  * Minor fixes for Spam FireWall.
+
+= 5.79 October 26 2017 =
+  * Spam protection improved.
+  * Fixed issue with existing spam comments check.
+  * Added posibility to exclude IP from check.
+  * Minor fixes.
+
+= 5.78 October 16 2017 =
+  * Improved compatibility with themes. Changed core functions prefix.
+  * Fixed issue with WooCommerce checkout.
+  * Spam protection improved.
+  * Minor fixes.
+
+= 5.77 October 2 2017 =
+  * Connection report's system.
+  * Integration for CouponXXL Theme.
+  * Fixed issue with mb_* functions.
+  * Banners logic updated.
+
+= 5.76 September 20 2017 =
+  * Fixed issue with Spam FireWall and caching plugins.
+  * Banners logic updated.
+
+= 5.75 September 15 2017 =
+  * Pause feature for users/comments spam check.
+  * Improved protection from spam.
+  * Small fixes.
+
+= 5.74.2 September 2 2017 =
+  * Fix for users spam check for PHP 5.3 and lower.
+
+= 5.74.1 September 2 2017 =
+  * Fix for the update system and cloud communication.
+  * Added possibility to check users and comments for spam with a specific date range.
+
+= 5.74 August 31 2017 =
+  * Users and comments spam check: Two check types (fast and accurate).
+  * Fix for WooCommerce checkout test.
+  * Minor fixes.
+
+= 5.73 August 11 2017 =
+  * Fix for spam check for already existed users and comments.
+  * Spam FireWall updated.
+  * Layout fix for BT Comments.
+  * Minor fixes.
+
+= 5.72 July 27 2017 =
+  * Improved spam check for existed users and comments.
+  * Minor fixes.
+
+= 5.71 July 20 2017 =
+  * Improved spam protection for external forms.
+  * Optimization.
+  * Minor fixes.
+
+= 5.70.2 July 17 2017 =
+  * Fix for Spam FireWall for Multisite.
+
+= 5.70.1 July 17 2017 =
+  * Fix for Spam FireWall.
+  * Spam detection improved.
+
+= 5.70 July 13 2017 =
+  * New updater logic.
+  * Self cron system.
+  * Improved AMP compatibility.
+  * Optimization.
+  * Fixed users and comments spam check.
+  * Fixed layout for Comment's feedback from public page.
+  * Updated Spam FireWall.
+  * SFW: Spam FireWall counter now work in real-time.
+  * SFW: Improved compatibility with different Data Bases.
+
+= 5.69 July 3 2017 =
+  * Reviewer - integration.
+  * Optimization for Users and Comments check for big databases.
+  * Errors fixes.
+  * Improved protection from spam.
+
+= 5.68 June 22 2017 =
+  * Contact Form for WordPress - Ultimate Form Builder Lite - integration.
+  * Contact Bank - Contact Forms Builder - integration.
+  * Smart Forms - integration.
+  * cformsII - integration.
+  * Contact Form by Web-Settler - integration.
+  * Error fixes.
+
+= 5.67.3 June 9 2017 =
+  * Fixed JS attachment error.
+
+= 5.67.2 June 5 2017 =
+  * Fixed error with IP determination.
+
+= 5.67.1 June 4 2017 =
+  * Fixed JS error in 5.67 version.
+  * Integrations: Enfold theme, Convertplug.
+  * Links to check for Emails/IP for spam.
+  * Control comments and feedback about them from public post's page.
+  * Improved connection stability with cloud service.
+  * Spam protection improved.
+  * Other small fixes.
+
+= 5.67 June 1 2017 =
+  * Integrations: Enfold theme, Convertplug.
+  * Links to check for Emails/IP for spam.
+  * Control comments and feedback about them from public post's page.
+  * Improved connection stability with cloud service.
+  * Spam protection improved.
+  * Other small fixes.
+
+= 5.66 May 23 2017 =
+  * Spam protection improved.
+  * Major fixes for users and comments spam check.
+  * Added feedback from Wordpress comments list.
+  * Fix for "internal forms check" option.
+  * Fixed issue with caching Spam FireWall die page.
+  * Other small fixes.
+
+= 5.65 May 16 2017 =
+  * Fix for PayPal redirecton.
+  * Fixed issue with empty query for bulk comments test.
+  * Added protection for Enfold contact form.
+  * Ninja forms integration.
+
+= 5.64 April 26 2017 =
+  * Integration for Facebook registrations.
+  * Small fixes for WPMS.
+  * Fix for Activecampaign service.
+  * Fix for check spam users.
+  * Fixed rare notice Notice: Undefined index: REQUEST_URI
+
+= 5.63 April 20 2017 =
+  * Fix for the dashboard spam stat widget.
+  * Added translation posibility for all text.
+
+= 5.62 April 17 2017 =
+  * Fix for the dashboard spam statistics widget.
+  * Fix for users spam check.
+  * Small appearance changes.
+
+= 5.61 April 6 2017 =
+  * Improved filtration.
+  * Additional logic for the form recognizing.
+  * Integration: Divi Theme Contact Form.
+  * Fix: Gravity Forms multipages forms.
+  * Stat Widget: Minor fixes.
+  * Added possibility to download results of the users check in CSV format.
+  * Alteration for settings page (footer).
+
+= 5.60.1 March 29 2017 =
+  * Fixed error function 'locale_get_display_region' no exists.
+
+= 5.60 March 29 2017 =
+  * Added main dashboard widget with spam sctivity stats.
+  * Mailster - integration.
+  * Base class updated.
+
+= 5.59 March 24 2017 =
+  * Users/comments check fix.
+  * Plugin's name changed to Anti-Spam by CleanTalk.
+  * Trial banner is dismissable. Disapear for 24h or till logout.
+  * Settings modified (Auto testing failed warning).
+  * Mailing(inactive key) interval increased to 6 hours.
+
+= 5.58.6 March 16 2017 =
+  * Fix for Ninja forms (protection updated).
+  * Fix for QA Theme.
+  * Fix for RSVP form.
+  * Setting changes (Spam FireWall).
+  * Improved debug section.
+  * Improved gathering data function.
+  * Minor fixes.
+
+= 5.58.5 March 6 2017 =
+  * Minor backend fix.
+
+= 5.58.4 March 6 2017 =
+  * Users check fix (redirect after the check).
+  * Fixed PHP Notice "HTTP_REFERER" is unset.
+  * Updated Notice logic.
+
+= 5.58.3 February 28 2017 =
+  * Bitrix24 Contact form integration.
+  * Users/comments check fix.
+  * Spam sorting updated.
+  * Banner showing logic.
+
+= 5.58.2 February 17 2017 =
+  * Cron fix for daily report.
+
+= 5.58.1 February 16 2017 =
+  * Minor fixes.
+
+= 5.58 February 15 2017 =
+  * Work without access key
+  * Bitrix24 contact integration
+  * Issues fixes
+
+= 5.57.1 February 8 2017 =
+  * Fix for notice logic.
+
+= 5.57 February 8 2017 =
+  * Setting page changes.
+  * Bug fixes for WooCommerce.
+  * Spam FireWall filters only GET requests.
+  * Optimization.
+  * Minor and major fixes.
+
+= 5.56.1 January 25 2017 =
+  * Minor fixes
+
+= 5.56 January 19 2017 =
+  * Integrations: MailChimp Premium, Profile Press.
+  * Changes comments flow.
+  * FireWall updater fix.
+  * Users check optimization.
+
+= 5.55 December 23 2016 =
+  * Integrations: Caldera Forms, Visual Form Builder.
+  * Fix for different 'cookies' header names.
+  * Fixed user deletion.
+
+= 5.54 December 12 2016 =
+  * Integrations: AmoForms, Contact Form Clean and Simple.
+  * Comments check logic refreshed.
+  * Registration JS error fix.
+  * Users check fix.
+  * Fix for translation system.
+  * Minor fixes.
+
+= 5.53.1 December 9 2016 =
+  * Minor layout fixes.
+
+= 5.53 November 28 2016 =
+  * Addition warning before deleting users.
+  * Spam FireWall is enabled by default.
+  * Usernoise modal feedback / contact form : integration.
+  * Translations.
+  * Optimization.
+  * Fixes.
+
+= 5.52.1 November 14 2016 =
+  * Users and comments check: Using new API method.
+  * Quick Contact From: Integration via "Custom Contact Forms" setting.
+  * JavaScript filtration improved.
+  * Translation changes.
+  * Optimized JavaScript code.
+
+= 5.51 November 2 2016 =
+  * Added protection for internal forms
+  * Immediate spam check for comments and users from WP dashboard
+  * Optimized code
+
+= 5.50.1 October 24 2016 =
+  * Improved filtration in contact forms.
+  * Spam FireWall: Fixed issue with SFW logs
+  * Skipping service fields: Fast Secure Contact Froms, QU Forms, Custom Contact Forms
+
+= 5.50 October 20 2016 =
+  * Custom contact forms: integration.
+  * Pirate Forms: integration.
+  * PHP 7 compatibility: Deleted third-party JSON library and dependences.
+  * PHP 7 compatibility: Fixed end of lines.
+  * YOAST Seo: Fixed PHP warnings.
+  * Spam FireWall: Minor fix for Spam FireWall counter.
+  * Only admin could access to CleanTalk dashboard (exclude Authors an Editors).
+  * Improved filtration in contact forms.
+
+= 5.49.2 October 5 2016 =
+  * Second Fix for database error. Stable version.
+
+= 5.49.1 October 5 2016 =
+  * Fixed database error.
+
+= 5.49 October 3 2016 =
+  * Spam FireWall feature: Class upgraded.
+  * New feature: Delete links from approved comments.
+  * Settings: Grouped.
+  * Settings: Altered description fixed spelling mistakes.
+  * Settings: Added indicator for Spam FireWall.
+  * Admin bar: Added Spam FireWall counter
+  * Clean and Simple Contact Form: Direct integration.
+  * WooCommerce: Don't check password recovery form.
+  * WooCommerce Wishlists: Issue with check for Google bots.
+  * JetPack: contact form fix.
+  * Fixed and created the defaults for all CleanTalk options.
+  * Fixed spelling mistakes.
+
+= 5.48 September 15 2016 =
+  * buddyPress: Added private messages filtering. Doesn't check user if he has 3 or more messages in the "sentbox" and "inbox" folders.
+  * buddyPress: Added option in settings for private messages check.
+  * WooCommerce Wishlist: Added check for wishlists.
+  * Fixed issue with "check all post data" option.
+  * Improved filtering for Gravity Forms
+  * Mobile Assistant Connector fix
+  * Minor fixes.
+
+= 5.47 September 5 2016 =
+  * WooCommerce: direct integration for checkout form.
+  * WooCommerce Sensei: login form fix.
+  * bbPress: Added the check for topics and comments with stop_words
+  * bbPress: Skip check for admin in comments and topics
+  * UserPro: fixes. Request without field "shortcode"
+  * Contact Form 7: Bug fix.
+  * Spam FireWall: Optimized logs rotation.
+  * Updated inner functions (compatibility fix for PHP 5.4+)
+  * Fixed output of counters (without spamfirewall stats)
+  * Fixed spelling in settings
+  * Added "Delete from the list" button in comments spam check page
+  * Minor fixes.
+
+= 5.46 August 17 2016 =
+  * Fixed issue with admin bar links in WP Multi Network mode.
+  * Added "All time counter" and "Daily counter" into admin bar.
+  * Added settings to disable counters in admin bar.
+  * New style for "Get access key manually" button.
+
+= 5.45.2 August 4 2016 =
+  * Added Anti-Spam protection for Quick Event Manager.
+  * Improved bulk spam test for users. Now the plugin does not mark as Spam user, if the user IP address has spam activity more then 30 days ago.
+  * Fixed bulk spam test for comments. Previous version had a conflict between spam history for IP and Email.
+  * Minor fix function to get the API key.
+
+= 5.45.1 July 26 2016 =
+  * Fixed issue with missed spam messages, subscriptions.
+  * Improved bulk spam test for comments. Now the plugin will not mark as Spam comments, if a comment sender (IP address) has spam activity more then 30 days ago.
+
+= 5.45 July 21 2016 =
+  * Optimized bulk spam comments deletion.
+  * Turned off JavaScript anti-spam cookies if the option 'Set cookies' is turned off. It helps to avoid issues with Varnish.
+  * Added links to bulk spam comments&users removal tool.
+
+= 5.44.1 July 13 2016 =
+  * Optimized options getting code.
+  * Added the option 'Protect Logged in users' to do anti-spam tests for submissions by logged in users.
+
+= 5.43.2 June 30 2016 =
+  * Optimized anti-spam code for AJAX based contact forms.
+  * Fixed CSS layout of counters in Admin bar (issue with layout in IE11).
+
+= 5.43.1 June 23 2016 =
+  * Added agent version in requests to test a connection between the website and servers.
+  * Fixed issue with PHP notices in cleantalk-admin.php.
+
+= 5.43 June 22 2016 =
+  * Added spam protection for registrations via 'Login with AJAX' plug-in.
+  * Added a new counter to Admin bar that allows to count spam and approved submissions since last reset.
+  * Update the code that tests a connection between a website and CleanTalk's servers. New version doesn't generate submissions with email good@cleantalk.org.
+  * Fixed issue with spam protection for nested forms by Formidable plug-in.
+
+= 5.42 2016-06-15 =
+  * Added anti-spam protection for UserPro.
+  * Improved protection for Formidable forms + Varnish.
+  * Improved bulk search for spam accounts.
+  * Fixed spam protection for pages that contain multiple Formidable forms with same HTML ID.
+  * Optimized PHP code to be compatible with PHP 5.4 and above. The patch has been applied to Formidable forms spam protection.
+  * Minor fixes in plugin backend.
+
+= 5.41 2016-05-31 =
+  * Added HTTP response in plugin response if an network issue was happend.
+  * Optimized JavaScript anti-spam test for Formidable forms.
+  * Re-stored the option to auto redirect to plugn settings after plugin activation.
+  * Fixed issue with nasted fields in Formidable forms.
+
+= 5.40.3 2016-05-26 =
+  * Added option to encrypt (SSL) connection to CleanTalk anti-spam servers.
+  * Added JSON encoding for AJAX forms.
+  * Obfuscated private data for Custom contact forms option.
+  * Optimized bulk users check for spam over blacklists database.
+  * Fixed issue with lost connection to servers and JavaScript anti-spam test.
+  * Fixed issue with WordFence and collect_details.
+
+= 5.40.2 2016-05-11 =
+  * Improved account status check logic.
+  * Fixed issue with double anti-spam tests for FastSecure contact forms.
+  * Fixed issue with nulled JavaScript variables assigned from backend. This issue might me occurred on standart WordPress registration form and with failed JavaScript spam test.
+  * Fixed issue with session_start() with PHP sessions stored in memcache.
+
+= 5.40.1 2016-04-28 =
+  * Fixed issue with Super Socializer.
+  * Fixed issue with spam filtration for logged in users and Formidable forms.
+  * Added logging of all submitted fields for FastSecure contact form.
+
+= 5.40 2016-04-19 =
+  * Added JSON encoding for posts that were protected via Custom contact forms option. It allows show anti-spam logs in the Dashboard in more comfortable view.
+  * Minor fix in plugin settings.
+  * Fixed pagination for bulk users spam test.
+  * Fixed issue with unknown _SESSION.
+  * Fixed issue with double Spam FireWall database upload.
+
+= 5.39.1 2016-04-04 =
+  * Improved AJAX based anti-spam test with HTTPS backends.
+  * Added fix to avoid issue with empty ct_info_flag on JavaScript side.
+  * Added logic to exclude caching for Spam FireWall.
+  * Removed a condition to skip accounts with 127.0.0.1 IP in spam test for registered acconts.
+
+= 5.38.1 2016-03-24 =
+  * Fixed issue with PHP sessions and 'The session id is too long or contains illegal characters'.
+  * Removed Spam FireWall protection on /feed page.
+  * Disabled anti-spam tests for AJAX calls if the option 'Custom contact forms' is turned off.
+  * Added reject notice for spam submissions on Gravity forms with AJAX calls.
+
+= 5.37.3 2016-03-10 =
+  * Minor bug fixes. Added an option to support Varnish cache.
+
+= 5.36.1 2016-02-05 =
+  * Fixed bug, when users receive error after logging in
+
+= 5.36 2016-02-04 =
+  * Improved JavaScript anti spam protection
+  * Improvements for avoiding blocking requests from payment systems
+
+= 5.35 2016-01-14 =
+  * Added support for IP licensing
+  * Some anti-spam protection improvements
+  * Small backend interface fixes
+
+= 5.34.1 2015-12-17 =
+  * Fixed trackback antispam protection: improved checking mechanism
+  * Fixed problem with blocking MailPoet: added exclusions in spam checking algorithm
+
+= 5.34 2015-12-10 =
+  * Improved spam checking mechanism
+  * Added "Collect browser details" option for better antispam protection
+  * Fixed custom contact forms checking
+  * Minor translations fixes
+
+= 5.33.1 2015-12-04 =
+  * Fixed issue with BBPress
+  * Fixed anti-spam comments checking
+  * Fixed bulk checking
+  * Fixed trackback and pingback checking
+
+= 5.33 2015-12-01 =
+  * Backend interface fixes
+  * Improved Spam FireWall efficiency
+  * Improved performance of anti spam checking
+
+= 5.32 2015-11-26 =
+  * Added improvements for manual spam detection
+  * Fixed errors in backend
+  * Fixed bulk users anti spam checking
+  * Added indicator for bulk spam checking
+  * Added "Get access key automatically" feature
+
+= 5.31 2015-11-11 =
+  * Improved backend performance
+  * Fixed counter of approved/blocked spam attacks
+  * Fixed Spam Firewall logging
+
+= 5.30 2015-11-05 =
+  * Improved anti-spam checking
+  * Optimized performance
+  * Fixed blocking email preview in MailPoet
+  * Interface fixes
+  * WPMU interface fixes
+
+= 5.29 2015-10-27 =
+  * Optimized performance
+  * Fixed bugs in custom contact forms spam checking
+
+= 5.28.7 2015-10-23 =
+  * Major backend peromance fix.
+
+= 5.28 2015-10-16 =
+  * Fixed errors in anti-spam checking
+  * Restored options for spam checking registrations and cpmmon contact forms
+  * Improved anti spam defence
+  * Fixed problems with AJAX functionality in MailPoet, WooCommerce and other AJAX plugins
+
+= 5.27 2015-10-13 =
+  * Improvements in Spam FireWall feature
+  * Code optimization
+  * Backend interface fixes
+
+= 5.26 2015-10-05 =
+  * Added WordPress Language Pack support
+  * Removed spam checking for some autorisation plugins
+  * New experimental feature: Spam FireWall
+
+= 5.25.2 2015-09-28 =
+  * Fixed backend bug
+
+= 5.25.1 2015-09-28 =
+  * Added widget with anti-spam stats
+  * Added information about blocked spam attacks in admin dashboard and CleanTalk settings
+  * Added ability not to check comments for users with 3 or above allowed comments
+  * Added an option 'Help others known CleanTalk' to show information for site visitors, that your site is protected from spam by us
+  * Some backend interface settings
+  * Removed "CleanTalk connection test" query
+
+= 5.24.1 2015-09-16 =
+  * Fixed some errors in frontend
+  * Fixed access key saving
+
+= 5.24 2015-09-14 =
+  * Backend interface fixes
+  * Improvement for AJAX JavaScript spam checking
+
+= 5.23 2015-09-01 =
+  * Fixed BuddyPress profile search false positivities of anti-spam protection.
+  * Some interface fixes of bulk users & comments spam checking
+
+= 5.22 2015-08-26 =
+  * Fixed possible XSS issue for anti-spam test on third-party forms.
+
+= 5.21 2015-08-21 =
+  * Fixed bug with skipping spam submissions
+  * Fixed bug with receiving old user_token for viewing anti-spam stats
+  * Small backend fixes
+
+= 5.20 2015-08-15 =
+  * Fixed anti-spam stats in admin bar
+  * Fixed issue with skipping spam submissions
+  * Added some PHP-constants for advanced users
+
+= 5.19 2015-08-11 =
+  * New feature: anti-spam checking for registered users
+  * Fixed issue with AJAX JavaScript checking
+  * Fixed issue with SEO Yoast xml sitemaps.
+
+= 5.18 2015-08-04 =
+  * Fixed issue with user_token
+  * Added anti-spam API, see our FAQ
+
+= 5.17 2015-07-23 =
+  * Fixed infinite redirection after activation
+  * Minor backend fixes
+
+= 5.16 2015-07-22 =
+  * Fixed external services checking
+  * Fixed mass comments deletion
+  * Fixed AJAX anti-spam protection
+
+= 5.15 2015-07-16 =
+  * New feature: anti-spam protection for forms, that uses external services
+
+= 5.14 2015-07-03 =
+  * Added anti-spam protection for some themes and plugins
+  * Some backend fixes
+
+= 5.13 2015-06-12 =
+  * Closing notification for anti-spam renew
+  * Fixed bulk anti spam comment checking
+
+= 5.12 2015-06-01 =
+  * Added option for checking all post data for spam
+  * Some JavaScript protection improvements
+  * Added option for old JavaScript check (without AJAX)
+
+= 5.10 2015-05-25 =
+  * Fixed Javascript error on some forms
+
+= 5.9 2015-05-21 =
+  * Fixed Javascript error on CF7 and JetPack
+  * Some backend and frontent fixes
+
+= 5.8 2015-05-18 =
+  * Minor fixes
+
+= 5.7 2015-05-18 =
+  * Fixed French translation
+  * Fixed protection algorithm
+
+= 5.6 2015-05-11 =
+  * Fixed translation
+  * Fixed bulk comments anti-spam checking
+  * Added option for disabling anti spam stats in adminbar
+  * Some security fixes
+
+= 5.5 2015-04-29
+  * Fixed security issue
+
+= 5.4 2015-04-27 =
+  * Some interface and functionality changes in plugin settings page
+  * Added counter for anti-spam stats in admin bar
+
+= 5.3 2015-04-13 =
+  * Added anti-spam protection for Divi theme contact forms
+  * Added anti-spam protection for MyMail contact forms
+  * Added anti-spam protection for MailPoet Newsletters
+  * Some interface and functionality changes in backend
+
+= 5.2 2015-04-01 =
+  * Added link for anti-spam stats
+  * Added WP User Frontend Pro registration form protection
+
+= 5.10 2015-03-24 =
+  * Fixed site crash after installing 5.0 on some websites
+
+= 5.00 2015-03-24 =
+  * Added bulk comments checking for spam via CleanTalk blacklists
+  * Added anti-spam form protection for 'Ajax Login & Register'
+  * Fixed JetPack form protection
+
+= 4.24 2015-03-20 =
+Added immediate spam protection activation.
+
+= 4.22 2015-03-17 =
+  * Added button for automatic spam protection key getting.
+
+= 4.21 2015-03-11 =
+  * Added license renew notification.
+
+= 4.20 2015-03-03 =
+  * German, Italian, Polish, Portuguese translations, minor code fixes.
+
+= 4.19 2015-02-24 =
+  * Increased JS keys lifetime.
+
+= 4.18 2015-02-17 =
+  * Bugfix - fixed bug with comments approvement, PayPal 'payment_status' and Akismet 'spam' status processing.
+
+= 4.17 2015-02-12 =
+  * New base class, divided code to 3 separate files - common, public and admin.
+
+= 4.16 2015-02-05 =
+  * New base class, fixed JetPack filters logics, optimized Formidable, bbPress, BuddyPress filters.
+
+= 4.15 2015-01-29 =
+  * Support of Contact Form 7 versions before 3.0.0, fixed global JS-vars and online notice cookie logics.
+
+= 4.14 2015-01-19 =
+  * Removed deprecated option from comment approvement code.
+
+= 4.13 2014-12-29 =
+  * Not spam comments auto approvement bug fix.
+
+= 4.12 2014-12-29 =
+  * Plugin backend minfor bug fixes.
+
+= 4.11 2014-12-22 =
+  * Major changes in spam protection algorithms.
+
+= 4.10 2014-12-10 =
+  * Minor improvements for custom contact/registration/subscribe forms.
+
+= 4.9 2014-11-24 =
+  * Minor bug fix for Contact form 7.
+
+= 4.8 2014-11-19 =
+  * Improved anti-spam protection for BuddyPress registrations and custom contact forms.
+
+= 4.7 2014-11-16 =
+  * Fixed JavaScript antispam test for FastSecure contact form.
+
+= 4.6 2014-11-11 =
+  * Minor changes in anti-spam logic for BuddyPress registrations, contact forms and bbPress guest posting.
+
+= 4.5 2014-11-04 =
+  * Bug fixes for Contact form 7 and bbPress guests posting.
+
+= 4.4 2014-10-29 =
+  * Improved JS checking for CF7.
+
+= 4.2 2014-10-20 =
+  * Increased plugin perfomance for BuddyPress registrations.
+
+= 4.1 2014-10-13 =
+  * Minor anti-spam improvements for contacts, registration and contact forms.
+
+= 4.0 2014-10-06 =
+  * Major anti-spam improvements for registration and contact forms.
+
+= 3.9 2014-10-01 =
+  * Did exception to do not break to create new user in WordPress backend.
+
+= 3.8 2014-09-19 =
+  * Bug fix release. Minor fixes in API class and JavaScript anti-spam test.
+
+= 3.6 2014-09-15 =
+  * Minor fixes in anti-spam protection for Formidable and custom contact forms.
+
+= 3.4 2014-09-04 =
+  * Spam comments rotation. Custom (themes) contact forms support.
+
+= 3.2 2014-08-27 =
+  * Minor changes in spam filtration logic.
+
+= 3.1 2014-08-19 =
+  * Major changes for comments antispam logic. Improved plugin speed.
+
+= 2.59 2014-08-14 =
+  * Antispam protection for bbPress guests posts. Improvement for JetPack comments and PHP API update.
+
+= 2.58 2014-08-06 =
+  * Added anti-spam protection for signups posted via WooCommerce order form.
+  * Improved anti-spam protection for Contact Form 7.
+  * Improved anti-spam protection for registrations. Now the plugin looking for JavaScript antispam test results not only in POST array, but in COOKIES array too. This improvement allows protect signup forms for any untested signups plugins and themes.
+  * Updated PHP API. No the plugin can resolve sender IP for websites behind proxy servers. If the proxy servers uses private IP address.
+
+= 2.57 2014-07-29 =
+  * Improved anti-spam protection for comments. The plugin now proccessing website url in the comments form.
+  * Fixed sign remove logic for approved comments. Previous version doesn't cut sign for comments approved via AJAX call in WordPress backend.
+  * Fixed switching to SSL for comments. Previous version doesn't use secured connection for comments.
+
+= 2.56 2014-07-21 =
+  * Fixed account status check logic. Previous version makes unnecessary test API calls when the plugin asks account status check.
+
+= 2.55 2014-07-11 =
+  * Fixed bug with account status function. In backend the plugin showed notice 'Please don't forget to disable CAPTCHA if you have it on every page.
+
+= 2.54 2014-07-11 =
+  * Fixed signup anti-spam protection logic for BuddyPress registrations.
+  * Fixed anti-spam protection for JetPack contact form.
+  * Changed account status check logic.
+
+= 2.53 2014-06-27 =
+  * Fixed anit-spam protection bug for signups.
+  * Changed anti-spam functions (comments and signups) priority.
+
+= 2.52 2014-06-25 =
+  * Fixed 'Fatal error: Call to a member function get_error_code()' issue with signups via BuddyPress.
+
+= 2.51 2014-06-23 =
+  * Added spam protection for registrations via plugin New User Approve by Josh Harrison. If the CleanTalk matched signup as spam this signup will be denied to placing in pending queue.
+  * Added option "Use secure (SSL) connection to CleanTalk cloud". If the option enabled plugin will communicate with CleanTalk severs via 128bit encrypted data channel. So, if you have SSL protected webforms on website you can use this option to be sure that visitors personal data safely transmits to CleanTalk servers.
+  * Fixed minor bug with loading backend functions.
+
+= 2.49 2014-06-10 =
+  * Added spam protection for S2Member Auth.net forms.
+  * Added spam protection for multisite signup form.
+  * Optimized account status check function.
+
+= 2.46 2014-05-19 =
+  * Added: HTML notice about the need to enable JavaScript.
+  * Fixed: Fixed pingbacks anti-spam test.
+
+= 2.44 2014-05-12 =
+  * Added: Anti-spam protection for S2Member framework.
+  * Improved: Plugin load time for backend and frontend.
+  * Improved: JavaScript anti-spam test.
+  * Fixed: PHP warning mb_convert_encoding()
+
+= 2.42 2014-04-29 =
+  * Fixed: JavaScript anti-spam test for comments.
+
+= 2.38 2014-03-27 =
+  * Fixed: Registraion form submit time spam test.
+
+= 2.36 2014-03-12 =
+  * Reversed to patches from old revisions.
+
+= 2.35 2014-03-12 =
+  * New: Notifications about disabled account
+  * New: Improved JavaScript spam test.
+  * Fixed: Code optimization
+  * Fixed: JavaScript test for signups.
+
+= 2.33 2014-02-12 =
+  * Fixed: CURLOPT_FOLLOWLOCATION bug at admin notice
+
+= 2.32 2014-02-04 =
+  * New: Added notice about automatically approved comment. The notice shows only for first approved comment and only for new commentators (without approved comments) of the blog.
+  * New: At WordPress console added banner for notices.
+  * Changed: Screenshots updated.
