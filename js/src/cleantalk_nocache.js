@@ -2,7 +2,8 @@
  Assign default values for backend variables.
 */
 if (typeof ctNocache === 'undefined') {
-    ctNocache.set_cookies_flag = true;
+	var ctNocache = {};
+	ctNocache.set_cookies_flag = true;
     ctNocache.ajaxurl = '/wp-admin/admin-ajax.php';
 }
 
