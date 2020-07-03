@@ -39,7 +39,7 @@ function ct_protect_external(){
 
 						var data = jQuery(event.target).serialize();
 
-						apbct_sendAJAXRequest(
+						apbct_sendAJAX(
 							data,
 							{
 								async: true,
