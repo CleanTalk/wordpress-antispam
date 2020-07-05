@@ -3337,6 +3337,16 @@ function ct_contact_form_validate() {
         do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
         return null;
     }
+    //Skip WP Fusion web hooks
+    if ( apbct_is_in_uri('wpf_action') && apbct_is_in_uri('access_key') && isset( $_GET['access_key'] ) ) {
+        if( function_exists( 'wp_fusion' ) ) {
+            $key = wp_fusion()->settings->get('access_key');
+            if ( $key == $_GET['access_key'] ) {
+                do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
+                return null;
+            }
+        }
+    }
 
     $post_info['comment_type'] = 'feedback_general_contact_form';
 
