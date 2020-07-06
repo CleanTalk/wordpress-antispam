@@ -474,6 +474,7 @@ function apbct_after_options_added($option, $value) {
 	if ($option == 'cleantalk_settings') {
 		// SFW actions
 		if($value['spam_firewall'] == 1){
+			sleep(6);
 			$result = ct_sfw_update(true, $value['apikey']);
 			if( ! empty( $result['error'] ) )
 				$apbct->error_add('sfw_update', $result['error']);
