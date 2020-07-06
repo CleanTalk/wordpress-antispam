@@ -8,10 +8,10 @@ class ABPCTCommentsListTableLogs extends ABPCTCommentsListTable
     function get_columns(){
         return array(
             'cb'            => '<input type="checkbox" />',
-            'ct_start'      => esc_html__( 'Start time', 'cleantalk' ),
-            'ct_checked'          => esc_html__( 'Checked', 'cleantalk' ),
-            'ct_spam'         => esc_html__( 'Found spam', 'cleantalk' ),
-            'ct_bad'     => esc_html__( 'Found bad', 'cleantalk' ),
+            'ct_start'      => esc_html__( 'Start time', 'cleantalk-spam-protect'),
+            'ct_checked'          => esc_html__( 'Checked', 'cleantalk-spam-protect'),
+            'ct_spam'         => esc_html__( 'Found spam', 'cleantalk-spam-protect'),
+            'ct_bad'     => esc_html__( 'Found bad', 'cleantalk-spam-protect'),
         );
     }
 
@@ -57,7 +57,7 @@ class ABPCTCommentsListTableLogs extends ABPCTCommentsListTable
     }
 
     function no_items() {
-        esc_html_e( 'No logs found.', 'cleantalk' );
+        esc_html_e( 'No logs found.', 'cleantalk-spam-protect');
     }
 
 }

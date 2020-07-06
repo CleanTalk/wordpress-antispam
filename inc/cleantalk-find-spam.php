@@ -10,14 +10,14 @@ add_action( 'admin_menu', 'ct_add_find_spam_pages' );
 function ct_add_find_spam_pages(){
 
     // Check users pages
-    $ct_check_users = add_users_page( __( "Check for spam", 'cleantalk' ), __( "Find spam users", 'cleantalk' ),    'activate_plugins', 'ct_check_users', array( 'ClassCleantalkFindSpamPage', 'showFindSpamPage' ) );
-    $ct_check_users_total = add_users_page( __( "Previous scan results", 'cleantalk' ), '', 'activate_plugins', 'ct_check_users_total', array( 'ClassCleantalkFindSpamPage', 'showFindSpamPage' ) );
-    $ct_check_users_logs = add_users_page( __( "Scan logs", 'cleantalk' ), '', 'activate_plugins', 'ct_check_users_logs', array( 'ClassCleantalkFindSpamPage', 'showFindSpamPage' ) );
+    $ct_check_users = add_users_page( __( "Check for spam", 'cleantalk-spam-protect'), __( "Find spam users", 'cleantalk-spam-protect'),    'activate_plugins', 'ct_check_users', array( 'ClassCleantalkFindSpamPage', 'showFindSpamPage' ) );
+    $ct_check_users_total = add_users_page( __( "Previous scan results", 'cleantalk-spam-protect'), '', 'activate_plugins', 'ct_check_users_total', array( 'ClassCleantalkFindSpamPage', 'showFindSpamPage' ) );
+    $ct_check_users_logs = add_users_page( __( "Scan logs", 'cleantalk-spam-protect'), '', 'activate_plugins', 'ct_check_users_logs', array( 'ClassCleantalkFindSpamPage', 'showFindSpamPage' ) );
 
     // Cheack comments pages
-    $ct_check_spam  = add_comments_page( __( "Check for spam", 'cleantalk' ), __( "Find spam comments", 'cleantalk' ), 'activate_plugins', 'ct_check_spam',  array( 'ClassCleantalkFindSpamPage', 'showFindSpamPage' ) );
-    $ct_check_spam_total  = add_comments_page( __( "Previous scan results", 'cleantalk' ), '', 'activate_plugins', 'ct_check_spam_total',  array( 'ClassCleantalkFindSpamPage', 'showFindSpamPage' ) );
-    $ct_check_spam_logs  = add_comments_page( __( "Scan logs", 'cleantalk' ), '', 'activate_plugins', 'ct_check_spam_logs',  array( 'ClassCleantalkFindSpamPage', 'showFindSpamPage' ) );
+    $ct_check_spam  = add_comments_page( __( "Check for spam", 'cleantalk-spam-protect'), __( "Find spam comments", 'cleantalk-spam-protect'), 'activate_plugins', 'ct_check_spam',  array( 'ClassCleantalkFindSpamPage', 'showFindSpamPage' ) );
+    $ct_check_spam_total  = add_comments_page( __( "Previous scan results", 'cleantalk-spam-protect'), '', 'activate_plugins', 'ct_check_spam_total',  array( 'ClassCleantalkFindSpamPage', 'showFindSpamPage' ) );
+    $ct_check_spam_logs  = add_comments_page( __( "Scan logs", 'cleantalk-spam-protect'), '', 'activate_plugins', 'ct_check_spam_logs',  array( 'ClassCleantalkFindSpamPage', 'showFindSpamPage' ) );
 
     // Remove some pages from main menu
     remove_submenu_page( 'users.php',         'ct_check_users_total' );
