@@ -26,9 +26,9 @@ class ABPCTCommentsListTable extends ABPCT_List_Table
     function get_columns(){
         return array(
             'cb'             => '<input type="checkbox" />',
-            'ct_author'      => esc_html__( 'Author', 'cleantalk' ),
-            'ct_comment'     => esc_html__( 'Comment', 'cleantalk' ),
-            'ct_response_to' => esc_html__( ' 	In Response To', 'cleantalk' ),
+            'ct_author'      => esc_html__( 'Author', 'cleantalk-spam-protect'),
+            'ct_comment'     => esc_html__( 'Comment', 'cleantalk-spam-protect'),
+            'ct_response_to' => esc_html__( ' 	In Response To', 'cleantalk-spam-protect'),
         );
     }
 
@@ -57,7 +57,7 @@ class ABPCTCommentsListTable extends ABPCT_List_Table
                     ."</a>"
                     : '');
         } else {
-            $column_content .= esc_html__( 'No email', 'cleantalk' );
+            $column_content .= esc_html__( 'No email', 'cleantalk-spam-protect');
         }
 
         $column_content .= '<br/>';
@@ -71,7 +71,7 @@ class ABPCTCommentsListTable extends ABPCT_List_Table
                     ."</a>"
                     : '');
         }else
-            $column_content .= esc_html__( 'No IP adress', 'cleantalk' );
+            $column_content .= esc_html__( 'No IP adress', 'cleantalk-spam-protect');
 
         return $column_content;
 
@@ -184,7 +184,7 @@ class ABPCTCommentsListTable extends ABPCT_List_Table
     }
 
     function no_items() {
-        esc_html_e( 'No spam found.', 'cleantalk' );
+        esc_html_e( 'No spam found.', 'cleantalk-spam-protect');
     }
 
     //********************************************//

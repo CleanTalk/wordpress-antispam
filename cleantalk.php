@@ -6,7 +6,7 @@
   Version: 5.141
   Author: СleanTalk <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
-  Text Domain: cleantalk
+  Text Domain: cleantalk-spam-protect
   Domain Path: /i18n
 */
 

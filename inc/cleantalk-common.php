@@ -63,7 +63,7 @@ $admin_email = NULL;
  */
 function apbct_plugin_loaded() {
 	$dir=plugin_basename( dirname( __FILE__ ) ) . '/../i18n';
-    $loaded=load_plugin_textdomain('cleantalk', false, $dir);
+    $loaded=load_plugin_textdomain('cleantalk-spam-protect', false, $dir);
 }
 
 /**

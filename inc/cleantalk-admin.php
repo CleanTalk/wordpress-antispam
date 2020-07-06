@@ -32,15 +32,15 @@ function apbct_add_buttons_to_comments_and_users( $unused_argument ) {
     echo '
     <a href="' . $button_url__check . '" class="button" style="margin:1px 0 0 0; display: inline-block;">
         <img src="' . $apbct->logo__small__colored . '" alt="Cleantalk Antispam logo"  height="" style="width: 17px; vertical-align: text-bottom;" />
-        ' . sprintf(__( 'Find spam %s', 'cleantalk' ), $button_description ) . '
+        ' . sprintf(__( 'Find spam %s', 'cleantalk-spam-protect'), $button_description ) . '
     </a>
     <a href="' . $button_url__results . '" class="button" style="margin:1px 0 0 0; display: inline-block;">
         <img src="' . $apbct->logo__small__colored . '" alt="Cleantalk Antispam logo"  height="" style="width: 17px; vertical-align: text-bottom;" />
-        ' . sprintf(__( 'View spam %s', 'cleantalk' ), $button_description ) . '
+        ' . sprintf(__( 'View spam %s', 'cleantalk-spam-protect'), $button_description ) . '
     </a>
     <a href="https://cleantalk.org/my/show_requests?service_id=' . $apbct->data['service_id'] . '&int=week" target="_blank" class="button" style="margin:1px 0 0 0; display: inline-block;">
         <img src="' . $apbct->logo__small__colored . '" alt="Cleantalk Antispam logo"  height="" style="width: 17px; vertical-align: text-bottom;" />
-        ' . __( 'CleanTalk Anti-Spam Log', 'cleantalk' ) . '
+        ' . __( 'CleanTalk Anti-Spam Log', 'cleantalk-spam-protect') . '
     </a>
     ';
 
@@ -59,8 +59,8 @@ function ct_dashboard_statistics_widget() {
 			$apbct->plugin_name
 			."<div class='ct_widget_top_links'>"
 				."<img src='".plugins_url('/cleantalk-spam-protect/inc/images/preloader.gif')."' class='ct_preloader'>"
-				.sprintf(__("%sRefresh%s", 'cleantalk'),    "<a href='#ct_widget' class='ct_widget_refresh_link'>", "</a>")
-				.sprintf(__("%sConfigure%s", 'cleantalk'), "<a href='{$apbct->settings_link}' class='ct_widget_settings_link'>", "</a>")
+				.sprintf(__("%sRefresh%s", 'cleantalk-spam-protect'),    "<a href='#ct_widget' class='ct_widget_refresh_link'>", "</a>")
+				.sprintf(__("%sConfigure%s", 'cleantalk-spam-protect'), "<a href='{$apbct->settings_link}' class='ct_widget_settings_link'>", "</a>")
 			."</div>",
 			'ct_dashboard_statistics_widget_output'
 		);
@@ -77,17 +77,17 @@ function ct_dashboard_statistics_widget_output( $post, $callback_args ) {
 		<form id='ct_refresh_form' method='POST' action='#ct_widget'>
 			<input type='hidden' name='ct_brief_refresh' value='1'>
 		</form>
-		<h4 class='ct_widget_block_header' style='margin-left: 12px;'><?php _e('7 days anti-spam stats', 'cleantalk'); ?></h4>
+		<h4 class='ct_widget_block_header' style='margin-left: 12px;'><?php _e('7 days anti-spam stats', 'cleantalk-spam-protect'); ?></h4>
 		<div class='ct_widget_block ct_widget_chart_wrapper'>
 			<div id='ct_widget_chart'></div>
 		</div>
-		<h4 class='ct_widget_block_header'><?php _e('Top 5 spam IPs blocked', 'cleantalk'); ?></h4>
+		<h4 class='ct_widget_block_header'><?php _e('Top 5 spam IPs blocked', 'cleantalk-spam-protect'); ?></h4>
 		<hr class='ct_widget_hr'>
 <?php	
 	if(!apbct_api_key__is_correct() || (isset($apbct->data['brief_data']['error_no']) && $apbct->data['brief_data']['error_no'] == 6)){
 ?>		<div class='ct_widget_block'>
 			<form action='<? echo $apbct->settings_link; ?>' method='POST'>
-				<h2 class='ct_widget_activate_header'><?php _e('Get Access key to activate Anti-Spam protection!', 'cleantalk'); ?></h2>
+				<h2 class='ct_widget_activate_header'><?php _e('Get Access key to activate Anti-Spam protection!', 'cleantalk-spam-protect'); ?></h2>
 				<input class='ct_widget_button ct_widget_activate_button' type='submit' name='get_apikey_auto' value='ACTIVATE' />
 			</form>
 		</div>
@@ -95,11 +95,11 @@ function ct_dashboard_statistics_widget_output( $post, $callback_args ) {
 	}elseif(!empty($apbct->data['brief_data']['error'])){
 		echo '<div class="ct_widget_block">'
 			.'<h2 class="ct_widget_activate_header">'
-				.sprintf(__('Something went wrong! Error: "%s".', 'cleantalk'), "<u>{$apbct->brief_data['error']}</u>")
+				.sprintf(__('Something went wrong! Error: "%s".', 'cleantalk-spam-protect'), "<u>{$apbct->brief_data['error']}</u>")
 			.'</h2>';
 			if($apbct->user_token && !$apbct->white_label){
 				echo '<h2 class="ct_widget_activate_header">'
-					.__('Please, visit your dashboard.', 'cleantalk')
+					.__('Please, visit your dashboard.', 'cleantalk-spam-protect')
 				.'</h2>'
 				.'<a target="_blank" href="https://cleantalk.org/my?user_token='.$apbct->user_token.'&cp_mode=antispam">'
 					.'<input class="ct_widget_button ct_widget_activate_button ct_widget_resolve_button" type="button" value="VISIT CONTROL PANEL">'
@@ -113,9 +113,9 @@ function ct_dashboard_statistics_widget_output( $post, $callback_args ) {
 		<div class='ct_widget_block'>
 			<table cellspacing="0">
 				<tr>
-					<th><?php _e('IP', 'cleantalk'); ?></th>
-					<th><?php _e('Country', 'cleantalk'); ?></th>
-					<th><?php _e('Block Count', 'cleantalk'); ?></th>
+					<th><?php _e('IP', 'cleantalk-spam-protect'); ?></th>
+					<th><?php _e('Country', 'cleantalk-spam-protect'); ?></th>
+					<th><?php _e('Block Count', 'cleantalk-spam-protect'); ?></th>
 				</tr>
 <?php			foreach($apbct->brief_data['top5_spam_ip'] as $val){ ?>				
 					<tr>
@@ -143,10 +143,10 @@ function ct_dashboard_statistics_widget_output( $post, $callback_args ) {
 		if($apbct->spam_count && $apbct->spam_count > 0){
 			echo '<div class="ct_widget_wprapper_total_blocked">'
 				.'<img src="'.$apbct->logo__small__colored.'" class="ct_widget_small_logo"/>'
-				.'<span title="'.sprintf(__('This is the count from the %s\'s cloud and could be different to admin bar counters', 'cleantalk').'">', $apbct->plugin_name)
+				.'<span title="'.sprintf(__('This is the count from the %s\'s cloud and could be different to admin bar counters', 'cleantalk-spam-protect').'">', $apbct->plugin_name)
 					.sprintf(
 						/* translators: %s: Number of spam messages */
-						__( '%s%s%s has blocked %s spam for all time. The statistics are automatically updated every 24 hours.', 'cleantalk'), 
+						__( '%s%s%s has blocked %s spam for all time. The statistics are automatically updated every 24 hours.', 'cleantalk-spam-protect'),
 						!$apbct->white_label ? '<a href="https://cleantalk.org/my/?user_token='.$apbct->user_token.'&utm_source=wp-backend&utm_medium=dashboard_widget&cp_mode=antispam" target="_blank">' : '',
 						$apbct->plugin_name,
 						!$apbct->white_label ? '</a>' : '',
@@ -157,7 +157,7 @@ function ct_dashboard_statistics_widget_output( $post, $callback_args ) {
 					? '<br><br>'
 				.'<b style="font-size: 16px;">'
 					.sprintf(
-						__('Do you like CleanTalk? %sPost your feedback here%s.', 'cleantalk'),
+						__('Do you like CleanTalk? %sPost your feedback here%s.', 'cleantalk-spam-protect'),
 						'<u><a href="https://wordpress.org/support/plugin/cleantalk-spam-protect/reviews/#new-post" target="_blank">',
 						'</a></u>'
 					)
@@ -239,12 +239,12 @@ function apbct_admin__register_plugin_links($links, $file){
 		$links[] = '<a class="ct_meta_links ct_translate_links" href="'
 				.sprintf('https://translate.wordpress.org/locale/%s/default/wp-plugins/cleantalk-spam-protect', substr(get_locale(), 0, 2))
 				.'" target="_blank">'
-				.__('Translate', 'cleantalk')
+				.__('Translate', 'cleantalk-spam-protect')
 			.'</a>';
 			
-	$links[] = '<a class="ct_meta_links" href="'.$apbct->settings_link.'" target="_blank">' . __( 'Start here','cleantalk' ) . '</a>';
-	$links[] = '<a class="ct_meta_links ct_faq_links" href="https://wordpress.org/plugins/cleantalk-spam-protect/faq/" target="_blank">' . __( 'FAQ','cleantalk' ) . '</a>';
-	$links[] = '<a class="ct_meta_links ct_support_links"href="https://wordpress.org/support/plugin/cleantalk-spam-protect" target="_blank">' . __( 'Support','cleantalk' ) . '</a>';
+	$links[] = '<a class="ct_meta_links" href="'.$apbct->settings_link.'" target="_blank">' . __( 'Start here','cleantalk-spam-protect') . '</a>';
+	$links[] = '<a class="ct_meta_links ct_faq_links" href="https://wordpress.org/plugins/cleantalk-spam-protect/faq/" target="_blank">' . __( 'FAQ','cleantalk-spam-protect') . '</a>';
+	$links[] = '<a class="ct_meta_links ct_support_links"href="https://wordpress.org/support/plugin/cleantalk-spam-protect" target="_blank">' . __( 'Support','cleantalk-spam-protect') . '</a>';
 	$trial = apbct_admin__badge__get_premium(false);
 	if(!empty($trial))
 		$links[] = apbct_admin__badge__get_premium(false);
@@ -317,7 +317,7 @@ function apbct_admin__enqueue_scripts($hook){
 	    wp_enqueue_style ('ct_icons',                         plugins_url('/cleantalk-spam-protect/css/cleantalk-icons.min.css'), array(),                   APBCT_VERSION, 'all');
 		
 		wp_localize_script( 'jquery', 'ctSettingsPage', array(
-			'ct_subtitle'   => $apbct->ip_license ? __('Hosting AntiSpam', 'cleantalk') : '',
+			'ct_subtitle'   => $apbct->ip_license ? __('Hosting AntiSpam', 'cleantalk-spam-protect') : '',
 			'ip_license'    => $apbct->ip_license ? true : false,
 		));
 	}
@@ -327,10 +327,10 @@ function apbct_admin__enqueue_scripts($hook){
         wp_enqueue_script('ct_comments_editscreen', plugins_url('/cleantalk-spam-protect/js/cleantalk-comments-editscreen.min.js'), array(), APBCT_VERSION);
         wp_localize_script( 'jquery', 'ctCommentsScreen', array(
             'ct_ajax_nonce'               => wp_create_nonce('ct_secret_nonce'),
-            'spambutton_text'             => __("Find spam comments", 'cleantalk'),
-            'ct_feedback_msg_whitelisted' => __("The sender has been whitelisted.", 'cleantalk'),
-            'ct_feedback_msg_blacklisted' => __("The sender has been blacklisted.", 'cleantalk'),
-            'ct_feedback_msg'             => sprintf(__("Feedback has been sent to %sCleanTalk Dashboard%s.", 'cleantalk'), $apbct->user_token ? "<a target='_blank' href=https://cleantalk.org/my?user_token={$apbct->user_token}&cp_mode=antispam>" : '', $apbct->user_token ? "</a>" : ''),
+            'spambutton_text'             => __("Find spam comments", 'cleantalk-spam-protect'),
+            'ct_feedback_msg_whitelisted' => __("The sender has been whitelisted.", 'cleantalk-spam-protect'),
+            'ct_feedback_msg_blacklisted' => __("The sender has been blacklisted.", 'cleantalk-spam-protect'),
+            'ct_feedback_msg'             => sprintf(__("Feedback has been sent to %sCleanTalk Dashboard%s.", 'cleantalk-spam-protect'), $apbct->user_token ? "<a target='_blank' href=https://cleantalk.org/my?user_token={$apbct->user_token}&cp_mode=antispam>" : '', $apbct->user_token ? "</a>" : ''),
             'ct_show_check_links'		  => (bool)$apbct->settings['show_check_links'],
             'ct_img_src_new_tab'          => plugin_dir_url(__FILE__)."images/new_window.gif",
         ));
@@ -341,7 +341,7 @@ function apbct_admin__enqueue_scripts($hook){
         wp_enqueue_style ('ct_icons',                plugins_url('/cleantalk-spam-protect/css/cleantalk-icons.min.css'),          array(), APBCT_VERSION, 'all');
         wp_enqueue_script('ct_users_editscreen',     plugins_url('/cleantalk-spam-protect/js/cleantalk-users-editscreen.min.js'), array(), APBCT_VERSION);
         wp_localize_script( 'jquery', 'ctUsersScreen', array(
-            'spambutton_text'             => __("Find spam-users", 'cleantalk'),
+            'spambutton_text'             => __("Find spam-users", 'cleantalk-spam-protect'),
             'ct_show_check_links'		  => (bool)$apbct->settings['show_check_links'],
             'ct_img_src_new_tab'          => plugin_dir_url(__FILE__)."images/new_window.gif"
         ));
@@ -382,10 +382,10 @@ function apbct_admin__notice_message(){
 		/* Disabled at 09.09.2018
 		if($apbct->notice_auto_update == 1 && $apbct->auto_update != -1 && empty($_COOKIE['apbct_update_banner_closed'])){
 			$link 	= '<a href="https://cleantalk.org/help/cleantalk-auto-update" target="_blank">%s</a>';
-			$button = sprintf($link, '<input type="button" class="button button-primary" value="'.__('Learn more', 'cleantalk').'"  />');
+			$button = sprintf($link, '<input type="button" class="button button-primary" value="'.__('Learn more', 'cleantalk-spam-protect').'"  />');
 			echo '<div class="error notice is-dismissible apbct_update_notice">'
 				.'<h3>'
-					.__('Do you know that Anti-Spam by CleanTalk has auto update option?', 'cleantalk')
+					.__('Do you know that Anti-Spam by CleanTalk has auto update option?', 'cleantalk-spam-protect')
 					.'</br></br>'
 					.$button
 				.'</h3>'
@@ -395,8 +395,8 @@ function apbct_admin__notice_message(){
 		//Unable to get key automatically (if apbct_admin__init().getAutoKey() returns error)
 		if ($apbct->notice_show && !empty($apbct->errors['get_key']) && !$apbct->white_label){
 			echo '<div class="error">
-				<h3>' . sprintf(__("Unable to get Access key automatically: %s", 'cleantalk'), $apbct->api_key).
-					"<a target='__blank' style='margin-left: 10px' href='https://cleantalk.org/register?platform=wordpress&email=" . urlencode(ct_get_admin_email())."&website=" . urlencode(parse_url(get_option('siteurl'),PHP_URL_HOST))."'>".__('Get the Access key', 'cleantalk').'</a>
+				<h3>' . sprintf(__("Unable to get Access key automatically: %s", 'cleantalk-spam-protect'), $apbct->api_key).
+					"<a target='__blank' style='margin-left: 10px' href='https://cleantalk.org/register?platform=wordpress&email=" . urlencode(ct_get_admin_email())."&website=" . urlencode(parse_url(get_option('siteurl'),PHP_URL_HOST))."'>".__('Get the Access key', 'cleantalk-spam-protect').'</a>
 				</h3>
 			</div>';
 		}
@@ -405,7 +405,7 @@ function apbct_admin__notice_message(){
 		if (!apbct_api_key__is_correct() && $apbct->moderate_ip == 0){
 			echo "<div class='error'>"
 				."<h3>"
-					.sprintf(__("Please enter Access Key in %s settings to enable anti spam protection!", 'cleantalk'), "<a href='{$settings_link}'>$apbct->plugin_name</a>")
+					.sprintf(__("Please enter Access Key in %s settings to enable anti spam protection!", 'cleantalk-spam-protect'), "<a href='{$settings_link}'>$apbct->plugin_name</a>")
 				."</h3>"
 			."</div>";
 			$apbct->notice_show = false;
@@ -415,7 +415,7 @@ function apbct_admin__notice_message(){
 		if ($apbct->notice_show && $apbct->notice_trial == 1 && $apbct->moderate_ip == 0 && !$apbct->white_label) {
 			if(isset($_GET['page']) && in_array($_GET['page'], array('cleantalk', 'ct_check_spam', 'ct_check_users'))){
 				echo '<div class="error" id="apbct_trial_notice">
-					<h3>' . sprintf(__("%s trial period ends, please upgrade to %s!", 'cleantalk'), 
+					<h3>' . sprintf(__("%s trial period ends, please upgrade to %s!", 'cleantalk-spam-protect'),
 						"<a href='{$settings_link}'>".$apbct->plugin_name."</a>", 
 						"<a href=\"https://cleantalk.org/my/bill/recharge?utm_source=wp-backend&utm_medium=cpc&utm_campaign=WP%20backend%20trial$user_token&cp_mode=antispam\" target=\"_blank\"><b>premium version</b></a>") .
 					'</h3>
@@ -428,12 +428,12 @@ function apbct_admin__notice_message(){
 		//Renew notice from apbct_admin_init().api_method__notice_paid_till()
 		if ($apbct->notice_show && $apbct->notice_renew == 1 && $apbct->moderate_ip == 0 && !$apbct->white_label) {
 			$renew_link = "<a href=\"https://cleantalk.org/my/bill/recharge?utm_source=wp-backend&utm_medium=cpc&utm_campaign=WP%%20backend%%20renew$user_token&cp_mode=antispam\" target=\"_blank\">%s</a>";
-			$button_html 	= sprintf($renew_link, '<input type="button" class="button button-primary" value="'.__('RENEW ANTI-SPAM', 'cleantalk').'"  />');
-			$link_html 		= sprintf($renew_link, "<b>".__('next year', 'cleantalk')."</b>");
+			$button_html 	= sprintf($renew_link, '<input type="button" class="button button-primary" value="'.__('RENEW ANTI-SPAM', 'cleantalk-spam-protect').'"  />');
+			$link_html 		= sprintf($renew_link, "<b>".__('next year', 'cleantalk-spam-protect')."</b>");
 			
 			echo '<div class="updated" id="apbct_renew_notice">
 				<h3>'. 
-					sprintf(__("Please renew your anti-spam license for %s.", 'cleantalk'), $link_html).
+					sprintf(__("Please renew your anti-spam license for %s.", 'cleantalk-spam-protect'), $link_html).
 				'</h3>
 				<h4 style = "color: gray">Account status updates every minute.</h4>
 				'.$button_html.'
@@ -446,7 +446,7 @@ function apbct_admin__notice_message(){
 		if ($apbct->notice_show && $page_is_ct_settings && !$apbct->data['key_is_ok'] && $apbct->moderate_ip == 0 && !$apbct->white_label){
 			echo '<div class="error">
 				<h3><b>'.
-					__("Wrong <a href='{$settings_link}'><b style=\"color: #49C73B;\">Clean</b><b style=\"color: #349ebf;\">Talk</b> access key</a>! Please check it or ask <a target=\"_blank\" href=\"https://wordpress.org/support/plugin/cleantalk-spam-protect/\">support</a>.", 'cleantalk').
+					__("Wrong <a href='{$settings_link}'><b style=\"color: #49C73B;\">Clean</b><b style=\"color: #349ebf;\">Talk</b> access key</a>! Please check it or ask <a target=\"_blank\" href=\"https://wordpress.org/support/plugin/cleantalk-spam-protect/\">support</a>.", 'cleantalk-spam-protect').
 				'</b></h3>
 			</div>';
 		}
@@ -461,9 +461,9 @@ function apbct_admin__badge__get_premium($print = true, $out = ''){
 	
 	if($apbct->license_trial == 1 && $apbct->user_token){
 		$out .= '<b style="display: inline-block; margin-top: 10px;">'
-			.($print ? __('Make it right!', 'cleantalk').' ' : '')
+			.($print ? __('Make it right!', 'cleantalk-spam-protect').' ' : '')
 			.sprintf(
-				__('%sGet premium%s', 'cleantalk'),
+				__('%sGet premium%s', 'cleantalk-spam-protect'),
 				'<a href="https://cleantalk.org/my/bill/recharge?user_token='.$apbct->user_token.'" target="_blank">',
 				'</a>'
 			)
@@ -502,27 +502,27 @@ function apbct_admin__admin_bar__add( $wp_admin_bar ) {
 		//Compile user's counter string
 		$user_counter=Array('accepted'=>$apbct->data['user_counter']['accepted'], 'blocked'=>$apbct->data['user_counter']['blocked'], 'all'=>$apbct->data['user_counter']['accepted'] + $apbct->data['user_counter']['blocked'], 'since'=>$apbct->data['user_counter']['since']);
 		//Previous version $user_counter_str='<span style="color: white;">Since '.$user_counter['since'].': ' .$user_counter['all']*/. '</span> / <span style="color: green;">' .$user_counter['accepted']. '</span> / <span style="color: red;">' .$user_counter['blocked']. '</span>';
-		$user_counter_str='<span style="color: white;">' . __('Since', 'cleantalk') . '&nbsp;' . $user_counter['since'].':  </span><span style="color: green;">' .$user_counter['accepted']. '</span> / <span style="color: red;">' .$user_counter['blocked']. '</span>';
+		$user_counter_str='<span style="color: white;">' . __('Since', 'cleantalk-spam-protect') . '&nbsp;' . $user_counter['since'].':  </span><span style="color: green;">' .$user_counter['accepted']. '</span> / <span style="color: red;">' .$user_counter['blocked']. '</span>';
 		
 		$all_time_counter_str='';
 		//Don't compile if all time counter disabled
 		if($apbct->settings['all_time_counter'] == 1){
 			$all_time_counter=Array('accepted'=>$apbct->data['all_time_counter']['accepted'], 'blocked'=>$apbct->data['all_time_counter']['blocked'], 'all'=>$apbct->data['all_time_counter']['accepted'] + $apbct->data['all_time_counter']['blocked']);
-			$all_time_counter_str='<span style="color: white;" title="'.__('All / Allowed / Blocked submissions. The number of submissions is being counted since CleanTalk plugin installation.', 'cleantalk').'"><span style="color: white;"> | ' . __('All', 'cleantalk') . ': ' .$all_time_counter['all']. '</span> / <span style="color: green;">' .$all_time_counter['accepted']. '</span> / <span style="color: red;">' .$all_time_counter['blocked']. '</span></span>';
+			$all_time_counter_str='<span style="color: white;" title="'.__('All / Allowed / Blocked submissions. The number of submissions is being counted since CleanTalk plugin installation.', 'cleantalk-spam-protect').'"><span style="color: white;"> | ' . __('All', 'cleantalk-spam-protect') . ': ' .$all_time_counter['all']. '</span> / <span style="color: green;">' .$all_time_counter['accepted']. '</span> / <span style="color: red;">' .$all_time_counter['blocked']. '</span></span>';
 		}
 		
 		$daily_counter_str='';
 		//Don't compile if daily counter disabled
 		if( $apbct->settings['daily_counter'] == 1){
 			$daily_counter=Array('accepted'=>array_sum($apbct->data['array_accepted']), 'blocked'=>array_sum($apbct->data['array_blocked']), 'all'=>array_sum($apbct->data['array_accepted']) + array_sum($apbct->data['array_blocked']));
-			//Previous version $daily_counter_str='<span style="color: white;" title="'.__('All / Allowed / Blocked submissions. The number of submissions for past 24 hours. ', 'cleantalk').'"><span style="color: white;"> | Day: ' .$daily_counter['all']. '</span> / <span style="color: green;">' .$daily_counter['accepted']. '</span> / <span style="color: red;">' .$daily_counter['blocked']. '</span></span>';
-			$daily_counter_str='<span style="color: white;" title="'.__('Allowed / Blocked submissions. The number of submissions for past 24 hours. ', 'cleantalk').'"><span style="color: white;"> | ' . __('Day', 'cleantalk') . ': </span><span style="color: green;">' .$daily_counter['accepted']. '</span> / <span style="color: red;">' .$daily_counter['blocked']. '</span></span>';
+			//Previous version $daily_counter_str='<span style="color: white;" title="'.__('All / Allowed / Blocked submissions. The number of submissions for past 24 hours. ', 'cleantalk-spam-protect').'"><span style="color: white;"> | Day: ' .$daily_counter['all']. '</span> / <span style="color: green;">' .$daily_counter['accepted']. '</span> / <span style="color: red;">' .$daily_counter['blocked']. '</span></span>';
+			$daily_counter_str='<span style="color: white;" title="'.__('Allowed / Blocked submissions. The number of submissions for past 24 hours. ', 'cleantalk-spam-protect').'"><span style="color: white;"> | ' . __('Day', 'cleantalk-spam-protect') . ': </span><span style="color: green;">' .$daily_counter['accepted']. '</span> / <span style="color: red;">' .$daily_counter['blocked']. '</span></span>';
 		}
 		$sfw_counter_str='';
 		//Don't compile if SFW counter disabled
 		if( $apbct->settings['sfw_counter'] == 1 &&  $apbct->settings['spam_firewall'] == 1){
 			$sfw_counter=Array('all'=>$apbct->data['sfw_counter']['all'], 'blocked'=>$apbct->data['sfw_counter']['blocked']);
-			$sfw_counter_str='<span style="color: white;" title="'.__('All / Blocked events. Access attempts regitred by SpamFireWall counted since the last plugin activation.', 'cleantalk').'"><span style="color: white;"> | SpamFireWall: ' .$sfw_counter['all']. '</span> / <span style="color: red;">' .$sfw_counter['blocked']. '</span></span>';
+			$sfw_counter_str='<span style="color: white;" title="'.__('All / Blocked events. Access attempts regitred by SpamFireWall counted since the last plugin activation.', 'cleantalk-spam-protect').'"><span style="color: white;"> | SpamFireWall: ' .$sfw_counter['all']. '</span> / <span style="color: red;">' .$sfw_counter['blocked']. '</span></span>';
 		}
 		
 		$args = array(
@@ -532,7 +532,7 @@ function apbct_admin__admin_bar__add( $wp_admin_bar ) {
 					.'<div class="ab-label" id="ct_stats">'
 						.($apbct->notice_trial == 1
 							? "<span><a style='color: red;' href=\"https://cleantalk.org/my/bill/recharge?utm_source=wp-backend&utm_medium=cpc&utm_campaign=WP%20backend%20trial&user_token={$apbct->user_token}&cp_mode=antispam\" target=\"_blank\">Renew Anti-Spam</a></span>"
-							: '<span style="color: white;" title="'.__('Allowed / Blocked submissions. The number of submissions is being counted since ', 'cleantalk').' '.$user_counter['since'].'">'.$user_counter_str.'</span>	'.$daily_counter_str.$all_time_counter_str.$sfw_counter_str	
+							: '<span style="color: white;" title="'.__('Allowed / Blocked submissions. The number of submissions is being counted since ', 'cleantalk-spam-protect').' '.$user_counter['since'].'">'.$user_counter_str.'</span>	'.$daily_counter_str.$all_time_counter_str.$sfw_counter_str
 						)
 					.'</div>'
 				.'</div>' //You could change widget string here by simply deleting variables
@@ -543,14 +543,14 @@ function apbct_admin__admin_bar__add( $wp_admin_bar ) {
 		if(!$apbct->white_label){
 			$wp_admin_bar->add_node( array(
 			'id'	 => 'ct_dashboard_link',
-			'title'  => '<a href="https://cleantalk.org/my/?user_token='.$apbct->user_token.'&utm_source=wp-backend&utm_medium=admin-bar&cp_mode=antispam " target="_blank">CleanTalk '.__('dashboard', 'cleantalk').'</a>',
+			'title'  => '<a href="https://cleantalk.org/my/?user_token='.$apbct->user_token.'&utm_source=wp-backend&utm_medium=admin-bar&cp_mode=antispam " target="_blank">CleanTalk '.__('dashboard', 'cleantalk-spam-protect').'</a>',
 			'parent' => 'ct_parent_node'
 			));
 		}
 	
 		$wp_admin_bar->add_node( array(
 				'id'	 => 'ct_settings_link',
-			'title'  => '<a href="'.$apbct->settings_link.'">'.__('Settings', 'cleantalk').'</a>',
+			'title'  => '<a href="'.$apbct->settings_link.'">'.__('Settings', 'cleantalk-spam-protect').'</a>',
 				'parent' => 'ct_parent_node'
 		));
 		
@@ -558,7 +558,7 @@ function apbct_admin__admin_bar__add( $wp_admin_bar ) {
 		if(!is_network_admin()){
 			$args = array(
 				'id'	 => 'ct_settings_bulk_comments',
-				'title'  => '<hr style="margin-top: 7px;" /><a href="edit-comments.php?page=ct_check_spam" title="'.__('Bulk spam comments removal tool.', 'cleantalk').'">'.__('Check comments for spam', 'cleantalk').'</a>',
+				'title'  => '<hr style="margin-top: 7px;" /><a href="edit-comments.php?page=ct_check_spam" title="'.__('Bulk spam comments removal tool.', 'cleantalk-spam-protect').'">'.__('Check comments for spam', 'cleantalk-spam-protect').'</a>',
 				'parent' => 'ct_parent_node'
 			);
 		}
@@ -568,7 +568,7 @@ function apbct_admin__admin_bar__add( $wp_admin_bar ) {
 		if(!is_network_admin()){
 			$args = array(
 				'id'	 => 'ct_settings_bulk_users',
-				'title'  => '<a href="users.php?page=ct_check_users" title="Bulk spam users removal tool.">'.__('Check users for spam', 'cleantalk').'</a>',
+				'title'  => '<a href="users.php?page=ct_check_users" title="Bulk spam users removal tool.">'.__('Check users for spam', 'cleantalk-spam-protect').'</a>',
 				'parent' => 'ct_parent_node'
 			);
 		}
@@ -577,7 +577,7 @@ function apbct_admin__admin_bar__add( $wp_admin_bar ) {
         // User counter reset.
 		$args = array(
 			'id'	 => 'ct_reset_counter',
-			'title'  => '<hr style="margin-top: 7px;"><a href="?ct_reset_user_counter=1" title="Reset your personal counter of submissions.">'.__('Reset first counter', 'cleantalk').'</a>',
+			'title'  => '<hr style="margin-top: 7px;"><a href="?ct_reset_user_counter=1" title="Reset your personal counter of submissions.">'.__('Reset first counter', 'cleantalk-spam-protect').'</a>',
 			'parent' => 'ct_parent_node'
 		);
 		$wp_admin_bar->add_node( $args );// add a child item to our parent item. Counter reset.
@@ -585,7 +585,7 @@ function apbct_admin__admin_bar__add( $wp_admin_bar ) {
 		// Reset ALL counter
 		$args = array(
 			'id'	 => 'ct_reset_counters_all',
-			'title'  => '<a href="?ct_reset_all_counters=1" title="Reset all counters.">'.__('Reset all counters', 'cleantalk').'</a>',
+			'title'  => '<a href="?ct_reset_all_counters=1" title="Reset all counters.">'.__('Reset all counters', 'cleantalk-spam-protect').'</a>',
 			'parent' => 'ct_parent_node'
 		);
 		$wp_admin_bar->add_node( $args );
@@ -594,7 +594,7 @@ function apbct_admin__admin_bar__add( $wp_admin_bar ) {
 		if(!$apbct->white_label){
 			$wp_admin_bar->add_node( array(
 			'id'	 => 'ct_admin_bar_support_link',
-			'title'  => '<hr style="margin-top: 7px;" /><a target="_blank" href="https://wordpress.org/support/plugin/cleantalk-spam-protect">'.__('Support', 'cleantalk').'</a>',
+			'title'  => '<hr style="margin-top: 7px;" /><a target="_blank" href="https://wordpress.org/support/plugin/cleantalk-spam-protect">'.__('Support', 'cleantalk-spam-protect').'</a>',
 			'parent' => 'ct_parent_node'
 			));
 		}
