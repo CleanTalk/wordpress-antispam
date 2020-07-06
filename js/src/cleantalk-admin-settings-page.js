@@ -62,7 +62,7 @@ function apbct_banner_check() {
 				}
 			}
 		);
-	}, 60000);
+	}, 900000);
 }
 
 /**

@@ -419,7 +419,7 @@ function apbct_admin__notice_message(){
 						"<a href='{$settings_link}'>".$apbct->plugin_name."</a>", 
 						"<a href=\"https://cleantalk.org/my/bill/recharge?utm_source=wp-backend&utm_medium=cpc&utm_campaign=WP%20backend%20trial$user_token&cp_mode=antispam\" target=\"_blank\"><b>premium version</b></a>") .
 					'</h3>
-					<h4 style = "color: gray">Account status updates every minute.</h4>
+					<h4 style = "color: gray">Account status updates every 15 minutes.</h4>
 				</div>';
 				$apbct->notice_show = false;
 			}
@@ -435,7 +435,7 @@ function apbct_admin__notice_message(){
 				<h3>'. 
 					sprintf(__("Please renew your anti-spam license for %s.", 'cleantalk-spam-protect'), $link_html).
 				'</h3>
-				<h4 style = "color: gray">Account status updates every minute.</h4>
+				<h4 style = "color: gray">Account status updates every 15 minutes.</h4>
 				'.$button_html.'
 				<br/><br/>
 			</div>';
