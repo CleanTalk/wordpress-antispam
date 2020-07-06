@@ -574,6 +574,20 @@ If your website has forms that send data to external sources, you can enable opt
 
 == Changelog ==
 
+= 5.141 Jul 06 2020 =
+ * Fix: WP Fusion web hooks skipped.
+ * Upd: Readme old changelogs replaced.
+ * Fix: SFW typo fixed.
+ * Upd: Set update banner timer to 15 minutes.
+ * Fix: sfw updating after disabling.
+ * Fix: sendAjax 403 issues.
+ * New: Add wpmu settings template.
+ * Fix: SameSite attribute removed for php version <7.3.
+ * Fix: Nocache parameter added.
+ * Upd: Add description support for convertkit/active campaign.
+ * Integration: Enfold Theme contact form.
+ * Upd: Add update/add hooks for settings to avoid sfw update issues.
+
 = 5.140.1 Jun 25 2020 =
  * Upd: .POT updated.
  * Upd: RU .po updated.
