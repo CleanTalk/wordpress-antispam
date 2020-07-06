@@ -4,7 +4,7 @@ Tags: spam, antispam, woocommerce, comments, firewall
 Requires at least: 3.0
 Tested up to: 5.4
 Requires PHP: 5.4
-Stable tag: 5.141
+Stable tag: 5.141.1
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -573,6 +573,9 @@ If your website has forms that send data to external sources, you can enable opt
 10. Website's options.
 
 == Changelog ==
+
+= 5.141.1 Jul 06 2020 =
+ * Fix: Add timeout for first SFW activation.
 
 = 5.141 Jul 06 2020 =
  * Fix: WP Fusion web hooks skipped.
