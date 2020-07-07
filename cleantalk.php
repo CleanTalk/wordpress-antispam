@@ -235,7 +235,7 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 	add_filter( 'avf_form_send', 'apbct_form__enfold_contact_form__test_spam', 4, 10 );
 
     //Hooks for updating/adding settings
-    add_action ('added_option', 'apbct_after_options_added', 10, 3);
+    add_action ('added_option', 'apbct_after_options_added', 10, 2);
     add_action ('updated_option', 'apbct_after_options_updated', 10, 3);
 
 	// Public actions
@@ -447,42 +447,41 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 }
 
 /**
-* Hook for updating settings
-*/
-function apbct_after_options_updated($option, $old_value, $value) {
-	global $apbct;
-
-	if ($option == 'cleantalk_settings') {
-		// SFW actions
-		if($value['spam_firewall'] == 1){
-			$result = ct_sfw_update(true, $value['apikey']);
-			if( ! empty( $result['error'] ) )
-				$apbct->error_add('sfw_update', $result['error']);
-			$result = ct_sfw_send_logs(true, $value['apikey']);
-			if( ! empty( $result['error'] ) )
-				$apbct->error_add('sfw_send_logs', $result['error']);
-		}
-	}
-}	
+ * Hook for updating settings
+ */
+function apbct_after_options_updated( $option, $old_value, $value ) {
+    apbct_sfw_actions( $option, $value );
+}
 
 /**
-* Hook for adding settings
-*/
-function apbct_after_options_added($option, $value) {
-	global $apbct;
-	
-	if ($option == 'cleantalk_settings') {
-		// SFW actions
-		if($value['spam_firewall'] == 1){
-			sleep(6);
-			$result = ct_sfw_update(true, $value['apikey']);
-			if( ! empty( $result['error'] ) )
-				$apbct->error_add('sfw_update', $result['error']);
-			$result = ct_sfw_send_logs(true, $value['apikey']);
-			if( ! empty( $result['error'] ) )
-				$apbct->error_add('sfw_send_logs', $result['error']);
-		}
-	}
+ * Hook for adding settings
+ */
+function apbct_after_options_added( $option, $value ) {
+    apbct_sfw_actions( $option, $value );
+}
+
+function apbct_sfw_actions( $option, $value ) {
+
+    global $apbct;
+
+    if ( $option == 'cleantalk_settings' ) {
+
+        $api_key = ! empty( $value['apikey'] ) || $apbct->moderate_ip ? $value['apikey'] : $apbct->api_key;
+
+        // SFW actions
+        if( $value['spam_firewall'] == 1 ){
+
+            $result = ct_sfw_update( true, $api_key );
+            if( ! empty( $result['error'] ) )
+                $apbct->error_add( 'sfw_update', $result['error'] );
+
+            $result = ct_sfw_send_logs( true, $api_key );
+            if( ! empty( $result['error'] ) )
+                $apbct->error_add( 'sfw_send_logs', $result['error'] );
+
+        }
+    }
+
 }
 
 /**
@@ -748,8 +747,8 @@ function apbct_activation( $network = false ) {
 		CleantalkCron::addTask('send_connection_report','ct_mail_send_connection_report', 86400, time()+3500); // Send connection report to welcome@cleantalk.org
 		
 		apbct_activation__create_tables($sqls);
-		ct_sfw_update(); // Updating SFW
 		ct_account_status_check(null, false);
+        ct_sfw_update(); // Updating SFW
 	}
 	
 	// Additional options
@@ -993,9 +992,9 @@ function ct_sfw_update($manual = false, $api_key = '', $immediate = false){
 	
 	global $apbct;
 
-	$api_key = !empty($api_key) ? $api_key : $apbct->api_key;
+    $api_key = ! empty($api_key) || $apbct->moderate_ip ? $api_key : $apbct->api_key;
 
-    if($manual || ( $apbct->settings['spam_firewall'] == 1 && !empty($api_key) ) ) {
+    if( $manual || ( $apbct->settings['spam_firewall'] == 1 ) ) {
 		
 		$sfw = new CleantalkSFW();
 
@@ -1059,9 +1058,9 @@ function ct_sfw_send_logs($manual = false, $api_key = '')
 {
 	global $apbct;
 
-	$api_key = !empty($apbct->api_key) ? $apbct->api_key : $api_key;
+    $api_key = ! empty($api_key) || $apbct->moderate_ip ? $api_key : $apbct->api_key;
 
-	if($manual || ( $apbct->settings['spam_firewall'] == 1 && !empty($api_key) )) {
+	if( $manual || ( $apbct->settings['spam_firewall'] == 1 )) {
 		
 		$sfw = new CleantalkSFW();
 		$result = $sfw->logs__send($api_key);
