@@ -9,9 +9,6 @@ add_action( 'manage_users_extra_tablenav', 'apbct_add_buttons_to_comments_and_us
 // Check renew banner
 add_action( 'wp_ajax_apbct_settings__check_renew_banner', 'apbct_settings__check_renew_banner'); 
 
-// Check SFW update progress
-add_action( 'wp_ajax_apbct_settings__check_sfw_update_process', 'apbct_settings__check_sfw_update_process'); 
-
 function apbct_add_buttons_to_comments_and_users( $unused_argument ) {
 
     global $apbct;
