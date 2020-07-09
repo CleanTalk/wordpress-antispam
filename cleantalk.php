@@ -994,7 +994,7 @@ function ct_sfw_update($api_key = '', $immediate = false){
 
 	$api_key = !empty($apbct->api_key) ? $apbct->api_key : $api_key;
 
-    if($apbct->settings['spam_firewall'] == 1 && !empty($api_key)) {
+    if( $apbct->settings['spam_firewall'] == 1 && ( ! empty($api_key) || $apbct->data['moderate_ip'] ) ) {
 		
 		$sfw = new CleantalkSFW();
 
@@ -1058,7 +1058,7 @@ function ct_sfw_send_logs($api_key = '')
 
 	$api_key = !empty($apbct->api_key) ? $apbct->api_key : $api_key;
 
-	if($apbct->settings['spam_firewall'] == 1 && !empty($api_key)) {
+	if( $apbct->settings['spam_firewall'] == 1 && ( ! empty($api_key) || $apbct->data['moderate_ip'] ) ) {
 		
 		$sfw = new CleantalkSFW();
 		$result = $sfw->logs__send($api_key);
