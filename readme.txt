@@ -4,7 +4,7 @@ Tags: spam, antispam, woocommerce, comments, firewall
 Requires at least: 3.0
 Tested up to: 5.4
 Requires PHP: 5.4
-Stable tag: 5.141.2
+Stable tag: 5.141.3
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -573,6 +573,15 @@ If your website has forms that send data to external sources, you can enable opt
 10. Website's options.
 
 == Changelog ==
+
+= 5.141.3 Jul 17 2020 =
+ * Fix: 403 error issues with cache plugins.
+ * Fix: remove apbct-common.js.
+ * Fix: exclude caspio form.
+ * Fix: Recompile nocache map.
+ * Fix: indexof is not a function.
+ * Fix: SFW updating fix for hosting.
+ * Upd: Temporary remove spinner for SFW check.
 
 = 5.141.2 Jul 08 2020 =
  * Fix: SFW issues.
