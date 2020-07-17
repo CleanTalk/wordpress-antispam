@@ -92,7 +92,8 @@
 				if (
 					form.classList.contains('slp_search_form') || //StoreLocatorPlus form
 					form.parentElement.classList.contains('mec-booking') ||
-					form.action.toString().indexOf('activehosted.com') // Active Campaign
+					form.action.toString().indexOf('activehosted.com') || // Active Campaign
+					(form.id && form.id == 'caspioform') //Caspio Form
 				)
 					continue;
 
