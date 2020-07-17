@@ -1736,7 +1736,6 @@ function ct_register_form() {
 
 function apbct_login__scripts(){
 	global $apbct;
-	echo '<script src="'.APBCT_URL_PATH.'/js/apbct-common.min.js"></script>';
 	echo '<script src="'.APBCT_URL_PATH.'/js/apbct-public.min.js"></script>';
 	$apbct->public_script_loaded = true;
 }
