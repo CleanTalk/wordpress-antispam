@@ -39,7 +39,7 @@ function ct_protect_external(){
 
 						var data = jQuery(event.target).serialize();
 
-						apbct_sendAJAX(
+						apbct_public_sendAJAX(
 							data,
 							{
 								async: true,
@@ -104,7 +104,27 @@ function ct_protect_external(){
 		}
 	}
 }
+function apbct_replace_inputs_values_from_other_form( form_source, form_target ){
 
+	var	inputs_source = jQuery( form_source ).find( 'button, input, textarea, select' ),
+		inputs_target = jQuery( form_target ).find( 'button, input, textarea, select' );
+
+	inputs_source.each( function( index, elem_source ){
+
+		var source = jQuery( elem_source );
+
+		inputs_target.each( function( index2, elem_target ){
+
+			var target = jQuery( elem_target );
+
+			if( elem_source.outerHTML === elem_target.outerHTML ){
+
+				target.val( source.val() );
+			}
+		});
+	});
+
+}
 window.onload = function () {
     setTimeout(function () {
         ct_protect_external()

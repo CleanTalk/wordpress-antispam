@@ -45,7 +45,7 @@ jQuery(document).ready(function(){
  */
 function apbct_banner_check() {
 	var bannerChecker = setInterval( function() {
-		apbct_sendAJAX(
+		apbct_admin_sendAJAX(
 			{action: 'apbct_settings__check_renew_banner'},
 			{
 				callback: function(result, data, params, obj){
@@ -164,7 +164,6 @@ function apbctSettingsDependencies(ids, enable){
 
 	});
 }
-
 function apbct_settings__showDescription(label, setting_id){
 
 	var remove_desc_func = function(e){
@@ -186,7 +185,7 @@ function apbct_settings__showDescription(label, setting_id){
 		});
 
 
-	apbct_sendAJAX(
+	apbct_admin_sendAJAX(
 		{action: 'apbct_settings__get_description', setting_id: setting_id},
 		{
 			spinner: obj.children('img'),

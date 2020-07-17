@@ -427,12 +427,9 @@ function apbct_js_keys__get__ajax( $direct_call = false ){
 
 		if(isset($_POST['_ajax_nonce'])){
 			if(!wp_verify_nonce($_POST['_ajax_nonce'], 'ct_secret_stuff')){
-				//Todo NonceCheck
-				/*
 				wp_doing_ajax()
 					? wp_die( -1, 403 )
 					: die( '-1' );
-					*/
 			}
 		}else{
 			wp_doing_ajax()

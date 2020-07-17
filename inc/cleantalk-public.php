@@ -953,7 +953,7 @@ function ct_add_hidden_fields($field_name = 'ct_checkjs', $return_string = false
 		<script type='text/javascript'>
 			window.addEventListener('load', function () {
 				setTimeout(function(){
-                    apbct_sendAJAX(
+                    apbct_public_sendAJAX(
                         {action: 'apbct_js_keys__get'},
                         {callback: apbct_js_keys__set_input_value, input_name: '{$field_id}'}
                     );
@@ -3662,12 +3662,11 @@ function ct_enqueue_scripts_public($hook){
 			
 			// Differnt JS params
 			wp_enqueue_script( 'ct_public', APBCT_URL_PATH . '/js/apbct-public.min.js', array( 'jquery' ), APBCT_VERSION, false /*in header*/ );
-			wp_enqueue_script( 'ct_common_js_funcs', APBCT_URL_PATH . '/js/apbct-common.min.js', array( 'jquery' ), APBCT_VERSION, false /*in header*/ );
 			
-			wp_localize_script( 'ct_common_js_funcs', 'ctCommon', array(
-				'_ajax_nonce' => wp_create_nonce( 'ct_secret_stuff' ),
-				'_ajax_url'   => admin_url( 'admin-ajax.php' ),
-			) );
+			wp_localize_script('ct_public', 'ctPublic', array(
+				'_ajax_nonce' => wp_create_nonce('ct_secret_stuff'),
+				'_ajax_url'   => admin_url('admin-ajax.php'),
+			));
 		}
 		
 		// GDPR script
