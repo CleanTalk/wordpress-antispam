@@ -95,6 +95,28 @@ function apbct_settings__set_fileds( $fields ){
 					'type'        => 'checkbox',
 					'title'       => __('SpamFireWall', 'cleantalk-spam-protect'),
 					'description' => __("This option allows to filter spam bots before they access website. Also reduces CPU usage on hosting server and accelerates pages load time.", 'cleantalk-spam-protect'),
+					'childrens'   => array('sfw__flood_protection', 'sfw__bot_protection'),
+				),
+				'sfw__flood_protection' => array(
+					'type'        => 'checkbox',
+					'title'       => __('Flood Protection', 'cleantalk-spam-protect'),
+					'class'       => 'apbct_settings-field_wrapper--sub',
+					'parent'      => 'spam_firewall',
+					'childrens'   => array('sfw__flood_protection__view_limit',),
+				),
+				'sfw__flood_protection__view_limit' => array(
+					'type'        => 'text',
+					'title'       => __('Page Views Limit', 'cleantalk-spam-protect'),
+					'class'       => 'apbct_settings-field_wrapper--sub',
+					'parent'      => 'sfw__flood_protection',
+					'description' => __('Count of page view per 1 minute before plugin shows SpamFireWall page. SpamFireWall page active for 30 second after that valid visitor (with JavaScript) passes the page to the demanded page of the site.', 'cleantalk-spam-protect'),
+				),
+				'sfw__bot_protection' => array(
+					'type'        => 'checkbox',
+					'title'       => __('Bot Protection', 'cleantalk-spam-protect'),
+					'class'       => 'apbct_settings-field_wrapper--sub',
+					'parent'      => 'spam_firewall',
+					'description' => __('Plugin shows SpamFireWall stop page for any bot, except allowed bots (Google, Yahoo and etc).', 'cleantalk-spam-protect'),
 				),
 			),
 		),
@@ -1309,6 +1331,11 @@ function apbct_settings__validate($settings) {
 			settype($settings[$setting], gettype($value));
 		}
 	} unset($setting, $value);
+	
+	//Sanitizing sfw__flood_protection__view_limit setting
+	$settings['sfw__flood_protection__view_limit'] = floor( intval( $settings['sfw__flood_protection__view_limit'] ) );
+	$settings['sfw__flood_protection__view_limit'] = ( $settings['sfw__flood_protection__view_limit'] == 0 ? 10 : $settings['sfw__flood_protection__view_limit'] ); // Default if 0 passed
+	$settings['sfw__flood_protection__view_limit'] = ( $settings['sfw__flood_protection__view_limit'] < 20 ? 20 : $settings['sfw__flood_protection__view_limit'] ); //
 	
 	// Validating API key
 	$settings['apikey'] = !empty($settings['apikey'])                                       ? trim($settings['apikey'])  : '';

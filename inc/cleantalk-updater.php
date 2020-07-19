@@ -516,3 +516,15 @@ function apbct_update_to_5_138_0() {
 	}
 	
 }
+function apbct_update_to_5_152_0() {
+	
+	$sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_sfw__flood_logs` (
+		`id` VARCHAR(32) NOT NULL,
+		`ip` VARCHAR(40) NOT NULL,
+		`entries` INT DEFAULT 0,
+		`interval_start` INT NOT NULL,
+		PRIMARY KEY (`id`));';
+	
+	apbct_activation__create_tables( $sqls );
+	
+}

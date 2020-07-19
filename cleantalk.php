@@ -701,6 +701,13 @@ function apbct_activation( $network = false ) {
 		`entries_timestamp` INT NOT NULL,
 		PRIMARY KEY (`ip`));';
 	
+	$sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_sfw__flood_logs` (
+		`id` VARCHAR(32) NOT NULL,
+		`ip` VARCHAR(40) NOT NULL,
+		`entries` INT DEFAULT 0,
+		`interval_start` INT NOT NULL,
+		PRIMARY KEY (`id`));';
+	
 	// Sessions
 	$sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_sessions` (
 		`id` VARCHAR(64) NOT NULL,
