@@ -525,9 +525,9 @@ function apbct_is_cache_plugins_exists(){
 		defined('WPCACHEHOME') ||                                 // WP Super Cache
 		defined('WPHB_VERSION') ||                                // Hummingbird – Speed up, Cache, Optimize Your CSS and JS
 		defined('CE_FILE') ||                                     // Cache Enabler – WordPress Cache
-		class_exists('RedisObjectCache') ||                   // Redis Object Cache
+		class_exists('\RedisObjectCache') ||                   // Redis Object Cache
 		defined('SiteGround_Optimizer\VERSION') ||                // SG Optimizer
-		class_exists('WP_Rest_Cache_Plugin\Includes\Plugin'); // WP REST Cache
+		class_exists('\WP_Rest_Cache_Plugin\Includes\Plugin'); // WP REST Cache
 }
 
 /**
