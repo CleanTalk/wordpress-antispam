@@ -1150,6 +1150,7 @@ function apbct_settings__field__draw($params = array()){
 					.($value == '1' ? ' checked' : '')
 					.$disabled
 					.($params['required'] ? ' required="required"' : '')
+			        .($params['childrens'] ? 'apbct_children="'. $childrens .'"' : '')
 					.' onchange="'
 						. ($params['childrens'] ? ' apbctSettingsDependencies(\''. $childrens .'\');' : '')
 						. ($params['hide']      ? ' apbct_show_hide_elem(\''. $hide . '\');' : '')

@@ -103,7 +103,7 @@ function apbct_get_elems__native(elems){
 		}
 
 		// try to get elements with such class name
-		// write each elem from collection to new element of outpur array
+		// write each elem from collection to new element of output array
 		tmp = document.getElementsByClassName(elem);
 		if (tmp !== null && tmp.length !==0 ){
 			for(key in tmp){
@@ -143,27 +143,53 @@ function apbct_show_hide_elem(elems){
  */
 function apbctSettingsDependencies(ids, enable){
 
-	enable = +enable || null;
+
+	enable = ! isNaN(enable) ? enable : null;
 
 	// Get elements
 	var elems = apbct_get_elems__native( ids );
 
 	elems.forEach(function(elem, i, arr){
 
-		var do_disable = function(){console.log( elem ); elem.setAttribute('disabled', 'disabled');},
+		console.log( elem.getAttribute('id') );
+
+		var do_disable = function(){elem.setAttribute('disabled', 'disabled');},
 			do_enable  = function(){elem.removeAttribute('disabled');};
 
 		// Set defined state
-		if(enable !== null) // Set
-			enable === 1 ? do_enable() : do_disable();
+		if(enable === null) // Set
+			enable = elem.getAttribute('disabled') === null ? 0 : 1;
 
-		// Toggle
-		else{
-			elem.getAttribute('disabled') === null ? do_disable() : do_enable();
+		enable === 1 ? do_enable() : do_disable();
+
+		if( elem.getAttribute('apbct_children') !== null){
+			var state = apbctSettingsDependencies_getState( elem ) && enable;
+			if( state !== null ) {
+				apbctSettingsDependencies( elem.getAttribute('apbct_children'), state  );
+			}
 		}
 
 	});
 }
+
+function apbctSettingsDependencies_getState( elem ){
+
+	var state;
+
+	switch ( elem.getAttribute( 'type' ) ){
+		case 'checkbox':
+			state = +elem.checked;
+			break;
+		case 'radio':
+			state = +(+elem.getAttribute('value') === 1);
+			break;
+		default:
+			state = null;
+	}
+
+	return state;
+}
+
 function apbct_settings__showDescription(label, setting_id){
 
 	var remove_desc_func = function(e){
