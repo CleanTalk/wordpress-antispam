@@ -95,21 +95,15 @@ function apbct_settings__set_fileds( $fields ){
 					'type'        => 'checkbox',
 					'title'       => __('SpamFireWall', 'cleantalk-spam-protect'),
 					'description' => __("This option allows to filter spam bots before they access website. Also reduces CPU usage on hosting server and accelerates pages load time.", 'cleantalk-spam-protect'),
-					'childrens'   => array('sfw__flood_protection', 'sfw__bot_protection'),
+					'childrens'   => array('sfw__anti_crawler', 'sfw__bot_protection'),
 				),
-				'sfw__flood_protection' => array(
+				'sfw__anti_crawler' => array(
 					'type'        => 'checkbox',
-					'title'       => __('Flood Protection', 'cleantalk-spam-protect'),
+					'title'       => __('Anti-Crawler', 'cleantalk-spam-protect'),
 					'class'       => 'apbct_settings-field_wrapper--sub',
 					'parent'      => 'spam_firewall',
-					'childrens'   => array('sfw__flood_protection__view_limit',),
-				),
-				'sfw__flood_protection__view_limit' => array(
-					'type'        => 'text',
-					'title'       => __('Page Views Limit', 'cleantalk-spam-protect'),
-					'class'       => 'apbct_settings-field_wrapper--sub',
-					'parent'      => 'sfw__flood_protection',
-					'description' => __('Count of page view per 1 minute before plugin shows SpamFireWall page. SpamFireWall page active for 30 second after that valid visitor (with JavaScript) passes the page to the demanded page of the site.', 'cleantalk-spam-protect'),
+					'childrens'   => array('sfw__anti_crawler__view_limit',),
+					'description' => __('Shows SpamFireWall page for bot which are trying to scan your website. Look for the page limit setting below.', 'cleantalk-spam-protect'),
 				),
 				'sfw__bot_protection' => array(
 					'type'        => 'checkbox',
@@ -439,6 +433,13 @@ function apbct_settings__set_fileds( $fields ){
 					'options_callback'        => 'apbct_get_all_roles',
 					'options_callback_params' => array(true),
 					'class'                   => 'apbct_settings-field_wrapper--sub',
+				),
+				'sfw__anti_crawler__view_limit' => array(
+					'type'        => 'text',
+					'title'       => __('Anti-Crawler Page Views Limit', 'cleantalk-spam-protect'),
+					'class'       => 'apbct_settings-field_wrapper',
+					'parent'      => 'sfw__anti_crawler',
+					'description' => __(' Count of page view per 1 minute before plugin shows SpamFireWall page. SpamFireWall page active for 30 second after that valid visitor (with JavaScript) passes the page to the demanded page of the site.', 'cleantalk-spam-protect'),
 				),
 				'complete_deactivation' => array(
 					'type'        => 'checkbox',
@@ -1172,7 +1173,7 @@ function apbct_settings__field__draw($params = array()){
 					.($value == '1' ? ' checked' : '')
 					.$disabled
 					.($params['required'] ? ' required="required"' : '')
-			        .($params['childrens'] ? 'apbct_children="'. $childrens .'"' : '')
+			        .($params['childrens'] ? ' apbct_children="'. $childrens .'"' : '')
 					.' onchange="'
 						. ($params['childrens'] ? ' apbctSettingsDependencies(\''. $childrens .'\');' : '')
 						. ($params['hide']      ? ' apbct_show_hide_elem(\''. $hide . '\');' : '')
@@ -1332,10 +1333,10 @@ function apbct_settings__validate($settings) {
 		}
 	} unset($setting, $value);
 	
-	//Sanitizing sfw__flood_protection__view_limit setting
-	$settings['sfw__flood_protection__view_limit'] = floor( intval( $settings['sfw__flood_protection__view_limit'] ) );
-	$settings['sfw__flood_protection__view_limit'] = ( $settings['sfw__flood_protection__view_limit'] == 0 ? 10 : $settings['sfw__flood_protection__view_limit'] ); // Default if 0 passed
-	$settings['sfw__flood_protection__view_limit'] = ( $settings['sfw__flood_protection__view_limit'] < 20 ? 20 : $settings['sfw__flood_protection__view_limit'] ); //
+	//Sanitizing sfw__anti_crawler__view_limit setting
+	$settings['sfw__anti_crawler__view_limit'] = floor( intval( $settings['sfw__anti_crawler__view_limit'] ) );
+	$settings['sfw__anti_crawler__view_limit'] = ( $settings['sfw__anti_crawler__view_limit'] == 0 ? 10 : $settings['sfw__anti_crawler__view_limit'] ); // Default if 0 passed
+	$settings['sfw__anti_crawler__view_limit'] = ( $settings['sfw__anti_crawler__view_limit'] < 5 ? 5 : $settings['sfw__anti_crawler__view_limit'] ); //
 	
 	// Validating API key
 	$settings['apikey'] = !empty($settings['apikey'])                                       ? trim($settings['apikey'])  : '';
