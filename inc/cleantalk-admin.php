@@ -9,6 +9,14 @@ add_action( 'manage_users_extra_tablenav', 'apbct_add_buttons_to_comments_and_us
 // Check renew banner
 add_action( 'wp_ajax_apbct_settings__check_renew_banner', 'apbct_settings__check_renew_banner'); 
 
+// Crunch for Anti-Bot
+add_action( 'admin_head', array( '\Cleantalk\ApbctWP\Firewall\AntiBot', 'set_cookie' ) );
+
+function apbct_admin_set_cookie_for_anti_bot(){
+	global $apbct;
+	echo '<script>document.cookie = "apbct_antibot=' . md5( $apbct->api_key . \Cleantalk\ApbctWP\Helper::ip__get(array('real'), true ) ) . '; path=/; expires=0; samesite=lax";</script>';
+}
+
 function apbct_add_buttons_to_comments_and_users( $unused_argument ) {
 
     global $apbct;
