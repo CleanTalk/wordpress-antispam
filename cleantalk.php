@@ -1063,6 +1063,8 @@ function ct_sfw_update($api_key = '', $immediate = false){
 					//Files array is empty update sfw time
 					$apbct->stats['sfw']['last_update_time'] = time();
 					$apbct->save('stats');
+					// Delete update errors
+					$apbct->error_delete( 'sfw_update', 'save_settings' );
 
 					return $result;
 				}
@@ -1093,6 +1095,7 @@ function ct_sfw_send_logs($api_key = '')
 			$apbct->stats['sfw']['last_send_time'] = time();
 			$apbct->stats['sfw']['last_send_amount'] = $result['rows'];
 			$apbct->save('stats');
+			$apbct->error_delete( 'sfw_send_logs', 'save_settings' );
 		}
 
 		return $result;
