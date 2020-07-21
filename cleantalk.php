@@ -120,6 +120,7 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 	// Database constants
 	define('APBCT_TBL_FIREWALL_DATA', $apbct->db_prefix . 'cleantalk_sfw');      // Table with firewall data.
 	define('APBCT_TBL_FIREWALL_LOG',  $apbct->db_prefix . 'cleantalk_sfw_logs'); // Table with firewall logs.
+	define('APBCT_TBL_AC_LOG',        $apbct->db_prefix . 'cleantalk_ac_log'); // Table with firewall logs.
 	define('APBCT_TBL_SESSIONS',      $apbct->db_prefix . 'cleantalk_sessions'); // Table with session data.
     define('APBCT_SPAMSCAN_LOGS',     $apbct->db_prefix . 'cleantalk_spamscan_logs'); // Table with session data.
 	define('APBCT_SELECT_LIMIT',      5000); // Select limit for logs.
@@ -605,77 +606,65 @@ function apbct_sfw__check()
 		} 
 	}
 	
-	// Turn off the SpamFireWall if Remote Call is in progress
-	if($apbct->rc_running || (!empty($spbc) && $spbc->rc_running))
-		return;
-	
-	$is_sfw_check = true;
-	$sfw = new CleantalkSFW();
-	$sfw->ip_array = (array)$sfw->ip__get(array('real'), true);
-	
-	// Skip by cookie
-	foreach($sfw->ip_array as $ct_cur_ip){
-		if(isset($_COOKIE['ct_sfw_pass_key']) && $_COOKIE['ct_sfw_pass_key'] == md5($ct_cur_ip.$apbct->api_key)){
-			$is_sfw_check=false;
-			if(isset($_COOKIE['ct_sfw_passed'])){
-				$sfw->logs__update($ct_cur_ip, 'passed');
-				$apbct->data['sfw_counter']['all']++;
-				$apbct->saveData();
-				if(!headers_sent())
-                    \Cleantalk\Antispam\Helper::apbct_cookie__set ('ct_sfw_passed', '0', time()+86400*3, '/', null, false, true, 'Lax' );
-			}
-			break;
-		}else{
-			$is_sfw_check = true;
-		}
-	}
-	
 	// Skip the check
 	if(!empty($_GET['access'])){
 		$spbc_settings = get_option('spbc_settings');
 		$spbc_key = !empty($spbc_settings['spbc_key']) ? $spbc_settings['spbc_key'] : false;
 		if($_GET['access'] === $apbct->api_key || ($spbc_key !== false && $_GET['access'] === $spbc_key)){
-			$is_sfw_check = false;
-            \Cleantalk\Antispam\Helper::apbct_cookie__set('spbc_firewall_pass_key', md5(apbct_get_server_variable( 'REMOTE_ADDR' ) . $spbc_key),       time()+1200, '/', '');
-            \Cleantalk\Antispam\Helper::apbct_cookie__set('ct_sfw_pass_key',        md5(apbct_get_server_variable( 'REMOTE_ADDR' ) . $apbct->api_key), time()+1200, '/', null);
+			\Cleantalk\Common\Helper::apbct_cookie__set('spbc_firewall_pass_key', md5(apbct_get_server_variable( 'REMOTE_ADDR' ) . $spbc_key),       time()+1200, '/', '');
+			\Cleantalk\Common\Helper::apbct_cookie__set('ct_sfw_pass_key',        md5(apbct_get_server_variable( 'REMOTE_ADDR' ) . $apbct->api_key), time()+1200, '/', null);
+			return;
 		}
 		unset($spbc_settings, $spbc_key);
 	}
 	
-	if($is_sfw_check){
-		
-		$sfw->ip_check();
-		
-		// Pass remote calls
-		if($sfw->pass === false){
-			if(isset($_GET['spbc_remote_call_token'], $_GET['spbc_remote_call_action'], $_GET['plugin_name'])){
-				foreach($sfw->blocked_ips as $ip){
-					$resolved = CleantalkHelper::ip__resolve($ip['ip']);
-					if($resolved && preg_match('/cleantalk\.org/', $resolved) === 1 || $resolved === 'back'){
-						$sfw->pass = true;
-					}
-				} unset($ip);
-			}
-		}
-		
-//		if($sfw->test){
-//			$sfw->sfw_die($apbct->api_key, '', parse_url(get_option('siteurl'),PHP_URL_HOST), 'test');
-//		}
-		
-		if($sfw->pass === false){
-			foreach($sfw->blocked_ips as $ip){
-				$sfw->logs__update($ip['ip'], 'blocked');
-			}
-			$apbct->data['sfw_counter']['blocked']++;
-			$apbct->saveData();
-			$sfw->sfw_die($apbct->api_key, '', parse_url(get_option('siteurl'),PHP_URL_HOST));
-		}else{
-			reset($sfw->passed_ips);
-			if(!empty($apbct->settings['set_cookies']) && !headers_sent() && key($sfw->passed_ips))
-                \Cleantalk\Antispam\Helper::apbct_cookie__set( 'ct_sfw_pass_key', md5( $sfw->passed_ips[ key( $sfw->passed_ips ) ]['ip'] . $apbct->api_key ), time() + 86400 * 30, '/', null, false );
-		}
+	// Turn off the SpamFireWall if Remote Call is in progress
+	if($apbct->rc_running || (!empty($spbc) && $spbc->rc_running))
+		return;
+	
+	$fw_init_options = array(
+		'set_cookies' => $apbct->settings['set_cookies']
+	);
+	
+	$firewall = new \Cleantalk\Common\Firewall(
+		\Cleantalk\ApbctWP\DB::getInstance()
+	);
+	
+	$firewall->load_fw_module( new \Cleantalk\ApbctWP\Firewall\SFW(
+		defined( 'APBCT_TBL_FIREWALL_LOG' ) ? APBCT_TBL_FIREWALL_LOG : $this->db->prefix . 'cleantalk_sfw_logs',
+		defined( 'APBCT_TBL_FIREWALL_DATA' ) ? APBCT_TBL_FIREWALL_DATA : $this->db->prefix . 'cleantalk_sfw',
+		array(
+			'sfw_counter'   => $apbct->settings['sfw_counter'],
+			'api_key'       => $apbct->api_key,
+			'apbct'         => $apbct,
+			'cookie_domain' => parse_url( get_option( 'siteurl' ), PHP_URL_HOST ),
+			'set_cookies'    => $apbct->settings['set_cookies'],
+		)
+	) );
+	
+	if( $apbct->settings['sfw__bot_protection']){
+		$firewall->load_fw_module( new \Cleantalk\ApbctWP\Firewall\AntiBot(
+			defined( 'APBCT_TBL_FIREWALL_LOG' )   ? APBCT_TBL_FIREWALL_LOG : $this->db->prefix . 'cleantalk_sfw_logs',
+			defined( 'APBCT_TBL_AC_LOG' )      ? APBCT_TBL_AC_LOG        : $this->db->prefix . 'cleantalk_ac_log',
+			array(
+				'api_key' => $apbct->api_key,
+				'apbct'   => $apbct,
+			)
+		) );
 	}
-	unset($is_sfw_check, $sfw, $sfw_ip, $ct_cur_ip);
+	
+	if( $apbct->settings['sfw__anti_crawler'])
+		$firewall->load_fw_module( new \Cleantalk\ApbctWP\Firewall\AntiCrawler(
+			defined( 'APBCT_TBL_FIREWALL_LOG' )   ? APBCT_TBL_FIREWALL_LOG : $this->db->prefix . 'cleantalk_sfw_logs',
+			defined( 'APBCT_TBL_AC_LOG' )      ? APBCT_TBL_AC_LOG        : $this->db->prefix . 'cleantalk_ac_log',
+			array(
+				'view_limit' => $apbct->settings['sfw__anti_crawler__view_limit'],
+				'apbct'      => $apbct,
+			)
+		) );
+	
+	$firewall->run();
+	
 }
 
 /**
@@ -695,14 +684,16 @@ function apbct_activation( $network = false ) {
 	
 	// SFW log
 	$sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_sfw_logs` (
+		`id` VARCHAR(40) NOT NULL,
 		`ip` VARCHAR(15) NOT NULL,
+		`status` ENUM(\'PASS_SFW\',\'DENY_SFW\',\'PASS_SFW_BY_WHITELIST\',\'PASS_SFW_BY_COOKIE\',\'DENY_ANTIBOT\',\'DENY_ANTICRAWLER\') NULL DEFAULT NULL,
 		`all_entries` INT NOT NULL,
 		`blocked_entries` INT NOT NULL,
 		`entries_timestamp` INT NOT NULL,
-		PRIMARY KEY (`ip`));';
+		PRIMARY KEY (`id`));';
 	
-	$sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_sfw__flood_logs` (
-		`id` VARCHAR(32) NOT NULL,
+	$sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_ac_log` (
+		`id` VARCHAR(40) NOT NULL,
 		`ip` VARCHAR(40) NOT NULL,
 		`entries` INT DEFAULT 0,
 		`interval_start` INT NOT NULL,
@@ -793,14 +784,23 @@ function apbct_activation__new_blog($blog_id, $user_id, $domain, $path, $site_id
 			`mask` int(11) unsigned NOT NULL,
 			INDEX (  `network` ,  `mask` )
 			);';
-
-		// SFW log
-		$sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_sfw_logs` (
-			`ip` VARCHAR(15) NOT NULL,
-			`all_entries` INT NOT NULL,
-			`blocked_entries` INT NOT NULL,
-			`entries_timestamp` INT NOT NULL,
-			PRIMARY KEY (`ip`));';
+	
+	    // SFW log
+	    $sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_sfw_logs` (
+		`id` VARCHAR(40) NOT NULL,
+		`ip` VARCHAR(15) NOT NULL,
+		`status` ENUM(\'PASS_SFW\',\'DENY_SFW\',\'PASS_SFW_BY_WHITELIST\',\'PASS_SFW_BY_COOKIE\',\'DENY_ANTIBOT\',\'DENY_ANTICRAWLER\') NULL DEFAULT NULL,
+		`all_entries` INT NOT NULL,
+		`blocked_entries` INT NOT NULL,
+		`entries_timestamp` INT NOT NULL,
+		PRIMARY KEY (`id`));';
+	
+	    $sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_ac_log` (
+		`id` VARCHAR(40) NOT NULL,
+		`ip` VARCHAR(40) NOT NULL,
+		`entries` INT DEFAULT 0,
+		`interval_start` INT NOT NULL,
+		PRIMARY KEY (`id`));';
 
 		// Sessions
 		$sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_sessions` (
@@ -917,6 +917,7 @@ function apbct_deactivation__delete_common_tables() {
 	global $wpdb;
 	$wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->base_prefix.'cleantalk_sfw`;');           // Deleting SFW data
 	$wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->base_prefix.'cleantalk_sfw_logs`;');      // Deleting SFW logs
+	$wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->base_prefix.'cleantalk_ac_log`;');      // Deleting SFW logs
 	$wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->base_prefix.'cleantalk_sessions`;');      // Deleting session table
 	$wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->base_prefix.'cleantalk_spamscan_logs`;'); // Deleting user/comments scan result table
 }
@@ -924,7 +925,8 @@ function apbct_deactivation__delete_common_tables() {
 function apbct_deactivation__delete_blog_tables() {
 	global $wpdb;
 	$wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->prefix.'cleantalk_sfw`;');                // Deleting SFW data
-	$wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->prefix.'cleantalk_sfw_logs`;');           // Deleting SFW logs
+	$wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->prefix.'cleantalk_sfw_logs`;');          // Deleting SFW logs
+	$wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->prefix.'cleantalk_ac_log`;');           // Deleting SFW logs
 	$wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->prefix.'cleantalk_sessions`;');           // Deleting session table
 	$wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->prefix.'cleantalk_spamscan_logs`;'); // Deleting user/comments scan result table
 }
@@ -1015,8 +1017,14 @@ function ct_sfw_update($api_key = '', $immediate = false){
 			//Reset previous entries count
 			$apbct->stats['sfw']['entries'] = 0;
 			$apbct->save('stats');
-
-			$sfw->sfw_update($api_key, null, $immediate);
+			
+			$result = \Cleantalk\ApbctWP\Firewall\SFW::update(
+				\Cleantalk\ApbctWP\DB::getInstance(),
+				defined( 'APBCT_TBL_FIREWALL_DATA' ) ? APBCT_TBL_FIREWALL_DATA : $this->db->prefix . 'cleantalk_sfw',
+				$api_key,
+				null,
+				$immediate
+			);
 			
 			return ! empty( $result['error'] )
 				? $result
@@ -1024,7 +1032,13 @@ function ct_sfw_update($api_key = '', $immediate = false){
 			
 		}elseif( is_array( $file_urls ) && count( $file_urls ) ){
 
-			$result = $sfw->sfw_update($api_key, $file_urls[0], $immediate);
+			$result = \Cleantalk\ApbctWP\Firewall\SFW::update(
+				\Cleantalk\ApbctWP\DB::getInstance(),
+				defined( 'APBCT_TBL_FIREWALL_DATA' ) ? APBCT_TBL_FIREWALL_DATA : $this->db->prefix . 'cleantalk_sfw',
+				$api_key,
+				$file_urls[0],
+				$immediate
+			);
 			
 			if( empty( $result['error'] ) ){
 
