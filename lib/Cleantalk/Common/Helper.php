@@ -740,4 +740,9 @@ class Helper
         }
 
     }
+	
+	public static function time__get_interval_start( $interval = 300 ){
+		return time() - ( ( time() - strtotime( date( 'd F Y' ) ) ) % $interval );
+	}
+	
 }
