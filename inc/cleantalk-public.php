@@ -3347,7 +3347,14 @@ function ct_contact_form_validate() {
             }
         }
     }
-
+    //Skip system fields for divi
+	if (strpos($param, 'et_pb_contactform_submit') === 0) {
+		foreach ($_POST as $key => $value) {
+			if (strpos($key, 'et_pb_contact_email_fields') === 0) {
+				unset($_POST[$key]);
+			}
+		}
+	}
     $post_info['comment_type'] = 'feedback_general_contact_form';
 
 	$ct_temp_msg_data = ct_get_fields_any($_POST);
