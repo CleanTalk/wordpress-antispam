@@ -516,14 +516,20 @@ function apbct_update_to_5_138_0() {
 	}
 	
 }
-function apbct_update_to_5_152_0() {
+function apbct_update_to_5_142_0() {
 	
-	$sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_sfw__flood_logs` (
-		`id` VARCHAR(32) NOT NULL,
+	$sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_ac_log` (
+		`id` VARCHAR(40) NOT NULL,
 		`ip` VARCHAR(40) NOT NULL,
 		`entries` INT DEFAULT 0,
 		`interval_start` INT NOT NULL,
 		PRIMARY KEY (`id`));';
+	
+	$sqls[] = 'ALTER TABLE `%scleantalk_sfw_logs`
+		ADD COLUMN `id` VARCHAR(40) NOT NULL FIRST,
+		ADD COLUMN `status` ENUM(\'PASS_SFW\',\'DENY_SFW\',\'PASS_SFW_BY_WHITELIST\',\'PASS_SFW_BY_COOKIE\',\'DENY_ANTIBOT\',\'DENY_ANTICRAWLER\') NOT NULL AFTER `ip`,
+		DROP PRIMARY KEY,
+		ADD PRIMARY KEY (`id`);';
 	
 	apbct_activation__create_tables( $sqls );
 	
