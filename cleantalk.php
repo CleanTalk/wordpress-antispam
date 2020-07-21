@@ -1083,8 +1083,11 @@ function ct_sfw_send_logs($api_key = '')
 
 	if( $apbct->settings['spam_firewall'] == 1 && ( ! empty($api_key) || $apbct->data['moderate_ip'] ) ) {
 		
-		$sfw = new CleantalkSFW();
-		$result = $sfw->logs__send($api_key);
+		$result = \Cleantalk\ApbctWP\Firewall\SFW::send_log(
+			\Cleantalk\ApbctWP\DB::getInstance(),
+			defined('APBCT_TBL_FIREWALL_LOG')  ? APBCT_TBL_FIREWALL_LOG  : $this->db->prefix . 'cleantalk_sfw_logs',
+			$api_key
+		);
 		
 		if(empty($result['error'])){
 			$apbct->stats['sfw']['last_send_time'] = time();
