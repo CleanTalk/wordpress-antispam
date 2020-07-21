@@ -757,6 +757,8 @@ function ct_get_fields_any($arr, $message=array(), $email = null, $nickname = ar
 		'ebd_downloads_',
 		'ecole_origine',
 		'signature',
+		// Ultimate Form Builder
+		'form_data_%d_name',
 	);
 	
 	// Reset $message if we have a sign-up data
