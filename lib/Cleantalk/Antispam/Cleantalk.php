@@ -1,5 +1,7 @@
 <?php
 
+namespace Cleantalk\Antispam;
+
 /**
  * Cleantalk base class
  *
@@ -150,18 +152,18 @@ class Cleantalk {
         switch ($method) {
             case 'check_message':
                 // Convert strings to UTF8
-                $request->message         = CleantalkHelper::toUTF8($request->message,         $this->data_codepage);
-                $request->example         = CleantalkHelper::toUTF8($request->example,         $this->data_codepage);
-                $request->sender_email    = CleantalkHelper::toUTF8($request->sender_email,    $this->data_codepage);
-                $request->sender_nickname = CleantalkHelper::toUTF8($request->sender_nickname, $this->data_codepage);
+                $request->message         = \Cleantalk\ApbctWP\Helper::toUTF8($request->message,         $this->data_codepage);
+                $request->example         = \Cleantalk\ApbctWP\Helper::toUTF8($request->example,         $this->data_codepage);
+                $request->sender_email    = \Cleantalk\ApbctWP\Helper::toUTF8($request->sender_email,    $this->data_codepage);
+                $request->sender_nickname = \Cleantalk\ApbctWP\Helper::toUTF8($request->sender_nickname, $this->data_codepage);
                 $request->message = $this->compressData($request->message);
 				$request->example = $this->compressData($request->example);
                 break;
 
             case 'check_newuser':
                 // Convert strings to UTF8
-                $request->sender_email    = CleantalkHelper::toUTF8($request->sender_email,    $this->data_codepage);
-                $request->sender_nickname = CleantalkHelper::toUTF8($request->sender_nickname, $this->data_codepage);
+                $request->sender_email    = \Cleantalk\ApbctWP\Helper::toUTF8($request->sender_email,    $this->data_codepage);
+                $request->sender_nickname = \Cleantalk\ApbctWP\Helper::toUTF8($request->sender_nickname, $this->data_codepage);
                 break;
 
             case 'send_feedback':
@@ -174,7 +176,7 @@ class Cleantalk {
         // Removing non UTF8 characters from request, because non UTF8 or malformed characters break json_encode().
         foreach ($request as $param => $value) {
             if(is_array($request->$param) || is_string($request->$param))
-				$request->$param = CleantalkHelper::removeNonUTF8($value);
+				$request->$param = \Cleantalk\ApbctWP\Helper::removeNonUTF8($value);
         }
 		
         $request->method_name = $method;
@@ -266,7 +268,7 @@ class Cleantalk {
 			// Loop until find work server
 			foreach ($servers as $server) {
 				
-				$dns = CleantalkHelper::ip__resolve__cleantalks($server['ip']);
+				$dns = \Cleantalk\ApbctWP\Helper::ip__resolve__cleantalks($server['ip']);
 				if(!$dns)
 					continue;
 				
@@ -506,7 +508,7 @@ class Cleantalk {
         if (!$result) {
             $response = null;
             $response['errno'] = 2;
-            if (!CleantalkHelper::is_json($result)) {
+            if (!\Cleantalk\ApbctWP\Helper::is_json($result)) {
                 $response['errstr'] = 'Wrong server response format: ' . substr( $result, 100 );
             }
             else {

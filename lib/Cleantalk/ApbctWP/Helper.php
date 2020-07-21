@@ -1,10 +1,12 @@
 <?php
 
+namespace Cleantalk\ApbctWP;
+
 /**
  * CleanTalk Cleantalk Antispam Helper class.
  * Compatible only with Wordpress.
  * 
- * @depends Cleantalk\Antispam\Helper
+ * @depends \Cleantalk\Common\Helper
  * 
  * @package Antispam Plugin by CleanTalk
  * @subpackage Helper
@@ -15,7 +17,7 @@
  * @see https://github.com/CleanTalk/wordpress-antispam
  */
 
-class CleantalkHelper extends Cleantalk\Antispam\Helper
+class Helper extends \Cleantalk\Common\Helper
 {
 	/**
 	 * Function sends raw http request

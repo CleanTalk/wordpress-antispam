@@ -1,7 +1,11 @@
 <?php
 
+use Cleantalk\Antispam\Cleantalk;
+use Cleantalk\Antispam\CleantalkRequest;
+use Cleantalk\Antispam\CleantalkResponse;
+
 function apbct_array( $array ){
-	return new Cleantalk\Arr( $array );
+	return new \Cleantalk\Common\Arr( $array );
 }
 
 $ct_checkjs_frm = 'ct_checkjs_frm';
@@ -85,7 +89,7 @@ function apbct_base_call($params = array(), $reg_flag = false){
 	$cleantalk_executed = true;
 
 	$sender_info = !empty($params['sender_info'])
-		? CleantalkHelper::array_merge__save_numeric_keys__recursive(apbct_get_sender_info(), (array)$params['sender_info'])
+		? \Cleantalk\ApbctWP\Helper::array_merge__save_numeric_keys__recursive(apbct_get_sender_info(), (array)$params['sender_info'])
 		: apbct_get_sender_info();
 
 	// Fields exclusions
@@ -107,9 +111,9 @@ function apbct_base_call($params = array(), $reg_flag = false){
 	$default_params = array(
 		
 		// IPs
-		'sender_ip'       => defined('CT_TEST_IP') ? CT_TEST_IP : (isset($params['sender_ip']) ? $params['sender_ip'] : CleantalkHelper::ip__get(array('real'), false)),
-		'x_forwarded_for' => CleantalkHelper::ip__get(array('x_forwarded_for'), false),
-		'x_real_ip'       => CleantalkHelper::ip__get(array('x_real_ip'), false),
+		'sender_ip'       => defined('CT_TEST_IP') ? CT_TEST_IP : (isset($params['sender_ip']) ? $params['sender_ip'] : \Cleantalk\ApbctWP\Helper::ip__get(array('real'), false)),
+		'x_forwarded_for' => \Cleantalk\ApbctWP\Helper::ip__get(array('x_forwarded_for'), false),
+		'x_real_ip'       => \Cleantalk\ApbctWP\Helper::ip__get(array('x_real_ip'), false),
 		
 		// Misc
 		'auth_key'        => $apbct->api_key,
@@ -125,7 +129,7 @@ function apbct_base_call($params = array(), $reg_flag = false){
 		$default_params['sender_info']['server_info'] = $_SERVER;
 	
 	$ct_request = new CleantalkRequest(
-		CleantalkHelper::array_merge__save_numeric_keys__recursive($default_params, $params)
+		\Cleantalk\ApbctWP\Helper::array_merge__save_numeric_keys__recursive($default_params, $params)
 	);
 	
 	$ct = new Cleantalk();
@@ -242,7 +246,7 @@ function apbct_exclusions_check($func = null){
 }
 
 function apbct_exclusions_check__url__reversed(){
-	return defined( 'APBCT_URL_EXCLUSIONS__REVERSED' ) && ! \Cleantalk\Common\Server::has_string( 'REQUEST_URI', APBCT_URL_EXCLUSIONS__REVERSED )
+	return defined( 'APBCT_URL_EXCLUSIONS__REVERSED' ) && ! \Cleantalk\Variables\Server::has_string( 'REQUEST_URI', APBCT_URL_EXCLUSIONS__REVERSED )
 		? false
 		: true;
 }
@@ -289,7 +293,7 @@ function apbct_exclusions_check__ip(){
 	
 	if( apbct_get_server_variable( 'REMOTE_ADDR' ) ){
 		
-		if( CleantalkHelper::ip__is_cleantalks( apbct_get_server_variable( 'REMOTE_ADDR' ) ) ){
+		if( \Cleantalk\ApbctWP\Helper::ip__is_cleantalks( apbct_get_server_variable( 'REMOTE_ADDR' ) ) ){
 			return true;
 		}
 		
@@ -352,7 +356,7 @@ function apbct_get_sender_info() {
 			: (array)json_decode(filter_input(INPUT_COOKIE, 'apbct_urls'), true);
 	
 	return array(
-		'remote_addr'            => CleantalkHelper::ip__get(array('remote_addr'), false),
+		'remote_addr'            => \Cleantalk\ApbctWP\Helper::ip__get(array('remote_addr'), false),
         'REFFERRER'              => apbct_get_server_variable( 'HTTP_REFERER' ),
         'USER_AGENT'             => apbct_get_server_variable( 'HTTP_USER_AGENT' ),
 		'page_url'               => apbct_get_server_variable( 'SERVER_NAME' ) . apbct_get_server_variable( 'REQUEST_URI' ),

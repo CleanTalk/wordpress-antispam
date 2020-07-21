@@ -1,5 +1,7 @@
 <?php
 
+namespace Cleantalk\Antispam;
+
 /**
  * Response class
  */

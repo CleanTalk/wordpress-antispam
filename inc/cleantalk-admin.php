@@ -7,7 +7,7 @@ add_action( 'manage_comments_nav', 'apbct_add_buttons_to_comments_and_users', 10
 add_action( 'manage_users_extra_tablenav', 'apbct_add_buttons_to_comments_and_users', 10, 1 );
 
 // Check renew banner
-add_action( 'wp_ajax_apbct_settings__check_renew_banner', 'apbct_settings__check_renew_banner'); 
+add_action( 'wp_ajax_apbct_settings__check_renew_banner', 'apbct_settings__check_renew_banner');
 
 // Crunch for Anti-Bot
 add_action( 'admin_head', array( '\Cleantalk\ApbctWP\Firewall\AntiBot', 'set_cookie' ) );
@@ -184,7 +184,7 @@ function apbct_admin__init(){
 	
 	// Getting dashboard widget statistics
 	if(!empty($_POST['ct_brief_refresh'])){
-		$apbct->data['brief_data'] = CleantalkAPI::method__get_antispam_report_breif($apbct->api_key);
+		$apbct->data['brief_data'] = \Cleantalk\ApbctWP\API::method__get_antispam_report_breif($apbct->api_key);
 		$apbct->saveData();
 	}
 	

@@ -1420,7 +1420,7 @@ function ct_preprocess_comment($comment) {
 	// Change mail notification if license is out of date
 	if($apbct->data['moderate'] == 0){
 		$apbct->sender_email = $comment['comment_author_email'];
-		$apbct->sender_ip    = CleantalkHelper::ip__get(array('real'));
+		$apbct->sender_ip    = \Cleantalk\ApbctWP\Helper::ip__get(array('real'));
 		add_filter('comment_moderation_text',   'apbct_comment__Wordpress__changeMailNotification', 100, 2); // Comment sent to moderation
 		add_filter('comment_notification_text', 'apbct_comment__Wordpress__changeMailNotification', 100, 2); // Comment approved
 	}
@@ -1984,7 +1984,7 @@ function ct_registration_errors($errors, $sanitized_user_login = null, $user_ema
 		($ct_result->fast_submit == 1 || $ct_result->blacklisted == 1 || $ct_result->js_disabled == 1)
 	){
 		$apbct->sender_email = $user_email;
-		$apbct->sender_ip    = CleantalkHelper::ip__get(array('real'));
+		$apbct->sender_ip    = \Cleantalk\ApbctWP\Helper::ip__get(array('real'));
 		add_filter('wp_new_user_notification_email_admin', 'apbct_registration__Wordpress__changeMailNotification', 100, 3);
 	}
 
@@ -2017,8 +2017,8 @@ function ct_registration_errors($errors, $sanitized_user_login = null, $user_ema
 
     } else {
         if ($ct_result->id !== null) {
-            \Cleantalk\Antispam\Helper::apbct_cookie__set($apbct_cookie_register_ok_label, $ct_result->id, time()+10, '/');
-            \Cleantalk\Antispam\Helper::apbct_cookie__set($apbct_cookie_request_id_label,  $ct_result->id, time()+10, '/');
+            \Cleantalk\Common\Helper::apbct_cookie__set($apbct_cookie_register_ok_label, $ct_result->id, time()+10, '/');
+            \Cleantalk\Common\Helper::apbct_cookie__set($apbct_cookie_request_id_label,  $ct_result->id, time()+10, '/');
         }
     }
 
@@ -2148,7 +2148,7 @@ function apbct_user_register($user_id) {
     global $apbct_cookie_request_id_label;
     if (isset($_COOKIE[$apbct_cookie_request_id_label])) {
         if(update_user_meta($user_id, 'ct_hash', $_COOKIE[$apbct_cookie_request_id_label])){
-            \Cleantalk\Antispam\Helper::apbct_cookie__set($apbct_cookie_request_id_label, '0', 1, '/');
+            \Cleantalk\Common\Helper::apbct_cookie__set($apbct_cookie_request_id_label, '0', 1, '/');
 		}
     }
 }
@@ -2371,7 +2371,7 @@ function apbct_form__contactForm7__testSpam($param) {
 		($ct_result->fast_submit == 1 || $ct_result->blacklisted == 1 || $ct_result->js_disabled == 1)
 	){
 		$apbct->sender_email = $sender_email;
-		$apbct->sender_ip    = CleantalkHelper::ip__get(array('real'));
+		$apbct->sender_ip    = \Cleantalk\ApbctWP\Helper::ip__get(array('real'));
 		add_filter('wpcf7_mail_components', 'apbct_form__contactForm7__changeMailNotification');
 	}
 
@@ -2484,7 +2484,7 @@ function apbct_form__ninjaForms__testSpam() {
 		($ct_result->fast_submit == 1 || $ct_result->blacklisted == 1 || $ct_result->js_disabled == 1)
 	){
 		$apbct->sender_email = $sender_email;
-		$apbct->sender_ip    = CleantalkHelper::ip__get(array('real'));
+		$apbct->sender_ip    = \Cleantalk\ApbctWP\Helper::ip__get(array('real'));
 		add_filter('ninja_forms_action_email_message', 'apbct_form__ninjaForms__changeMailNotification', 1, 3);
 	}
 
@@ -2726,7 +2726,7 @@ function apbct_form__WPForms__testSpam() {
 		($ct_result->fast_submit == 1 || $ct_result->blacklisted == 1 || $ct_result->js_disabled == 1)
 	){
 		$apbct->sender_email = $sender_email;
-		$apbct->sender_ip    = CleantalkHelper::ip__get(array('real'));
+		$apbct->sender_ip    = \Cleantalk\ApbctWP\Helper::ip__get(array('real'));
 		add_filter('wpforms_email_message', 'apbct_form__WPForms__changeMailNotification', 100, 2);
 	}
 
@@ -2944,7 +2944,7 @@ function ct_check_wplp(){
             $cleantalk_comment = 'OK';
         }
 
-        \Cleantalk\Antispam\Helper::apbct_cookie__set($ct_wplp_result_label, $cleantalk_comment, strtotime("+5 seconds"), '/');
+        \Cleantalk\Common\Helper::apbct_cookie__set($ct_wplp_result_label, $cleantalk_comment, strtotime("+5 seconds"), '/');
     } else {
         // Next POST/AJAX submit(s) of same WPLP form
         $cleantalk_comment = $_COOKIE[$ct_wplp_result_label];

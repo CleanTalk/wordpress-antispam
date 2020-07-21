@@ -1,5 +1,9 @@
 <?php
 
+namespace Cleantalk\ApbctWP;
+
+use ArrayObject;
+
 /**
  * CleanTalk Antispam State class
  * 
@@ -43,7 +47,7 @@
  * MISC
  *
  */
-class CleantalkState
+class State
 {
 	public $user = null;
 	public $option_prefix = 'cleantalk';
@@ -278,11 +282,8 @@ class CleantalkState
 	);
 	
 	/**
-	 * CleantalkState constructor.
-	 *
 	 * @param string $option_prefix Database settings prefix
-	 * @param array  $options       Array of strings. Types of settings you want to get.
-	 * @param bool   $wpms          Is multisite?
+	 * @param array $options        Array of strings. Types of settings you want to get.
 	 */
 	public function __construct($option_prefix, $options = array('settings'))
 	{
@@ -555,18 +556,18 @@ class CleantalkState
 	}
 	
 	public function server(){
-		return \Cleantalk\Common\Server::getInstance();
+		return \Cleantalk\Variables\Server::getInstance();
 	}
 	public function cookie(){
-		return \Cleantalk\Common\Cookie::getInstance();
+		return \Cleantalk\Variables\Cookie::getInstance();
 	}
 	public function request(){
-		return \Cleantalk\Common\Request::getInstance();
+		return \Cleantalk\Variables\Request::getInstance();
 	}
 	public function post(){
-		return \Cleantalk\Common\Post::getInstance();
+		return \Cleantalk\Variables\Post::getInstance();
 	}
 	public function get(){
-		return \Cleantalk\Common\Get::getInstance();
+		return \Cleantalk\Variables\Get::getInstance();
 	}
 }

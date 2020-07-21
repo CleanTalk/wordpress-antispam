@@ -1,6 +1,6 @@
 <?php
 
-namespace Cleantalk;
+namespace Cleantalk\Antispam;
 
 /**
  * Class DisableComments

@@ -1,12 +1,12 @@
 <?php
 
-namespace Cleantalk\Common;
+namespace Cleantalk\Variables;
 
 /**
  * Class Server
  * Wrapper to safely get $_SERVER variables
  *
- * @package Cleantalk\Common
+ * @package Cleantalk\Variables
  */
 class Server extends ServerVariables{
 	

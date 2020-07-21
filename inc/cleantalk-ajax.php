@@ -384,10 +384,10 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 		$post_info['comment_type'] = 'order';
 	}
 	//Easy Forms for Mailchimp
-	if( \Cleantalk\Common\Post::get('action') == 'process_form_submission' ){
+	if( \Cleantalk\Variables\Post::get('action') == 'process_form_submission' ){
 		$post_info['comment_type'] = 'contact_enquire_wordpress_easy_forms_for_mailchimp';
-		if( \Cleantalk\Common\Post::get('form_data') ) {
-			$form_data = explode( '&', urldecode( \Cleantalk\Common\Post::get('form_data') ) );
+		if( \Cleantalk\Variables\Post::get('form_data') ) {
+			$form_data = explode( '&', urldecode( \Cleantalk\Variables\Post::get('form_data') ) );
 			$form_data_arr = array();
 			foreach ( $form_data as $val ) {
 				$form_data_element = explode( '=', $val );
@@ -759,7 +759,7 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 			die(json_encode(array( 'apbct' => array(
 					'blocked' => true,
 					'comment' => $ct_result->comment,
-					'stop_script' => \Cleantalk\Common\Post::has_string('action', 'tve_leads_ajax_')
+					'stop_script' => \Cleantalk\Variables\Post::has_string('action', 'tve_leads_ajax_')
 						? 1
 						: 0
 			))));
@@ -772,7 +772,7 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 			return $message_obj;
 		}
 		// Force AJAX check
-		if( \Cleantalk\Common\Post::get('action') == 'cleantalk_force_ajax_check' ){
+		if( \Cleantalk\Variables\Post::get('action') == 'cleantalk_force_ajax_check' ){
 			die(json_encode(array( 'apbct' => array(
 				'blocked' => false,
 				'allow' => true,

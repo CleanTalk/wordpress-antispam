@@ -1,10 +1,12 @@
 <?php
 
+namespace Cleantalk\ApbctWP;
+
 /**
- * Class CleantalkAPI.
+ * Class API.
  * Compatible only with Wordpress.
  *
- * @depends       Cleantalk\Antispam\API
+ * @depends       \Cleantalk\Common\API
  * 
  * @version       1.0
  * @author        Cleantalk team (welcome@cleantalk.org)
@@ -12,7 +14,7 @@
  * @license       GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  * @see           https://github.com/CleanTalk/wordpress-antispam
  */
-class CleantalkAPI extends Cleantalk\Antispam\API
+class API extends \Cleantalk\Common\API
 {
 	/**
 	 * Function sends raw request to API server.

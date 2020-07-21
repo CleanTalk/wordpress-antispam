@@ -1,6 +1,8 @@
 <?php
 
-class CleantalkUpgraderSkin extends WP_Upgrader_Skin
+namespace Cleantalk\ApbctWP;
+
+class CleantalkUpgraderSkin extends \WP_Upgrader_Skin
 {
 	
 	public $upgrader;

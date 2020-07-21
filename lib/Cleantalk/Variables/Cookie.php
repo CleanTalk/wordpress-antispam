@@ -1,16 +1,16 @@
 <?php
 
-namespace Cleantalk\Common;
+namespace Cleantalk\Variables;
 
 /**
- * Class Request
- * Safety handler for $_REQUEST
+ * Class Cookie
+ * Safety handler for $_COOKIE
  *
- * @usage \Cleantalk\Common\Request::get( $name );
+ * @usage \Cleantalk\Variables\Cookie::get( $name );
  *
- * @package Cleantalk\Common
+ * @package Cleantalk\Variables
  */
-class Request extends ServerVariables{
+class Cookie extends ServerVariables{
 	
 	static $instance;
 	
@@ -27,7 +27,7 @@ class Request extends ServerVariables{
 	}
 	
 	/**
-	 * Gets given $_REQUEST variable and seva it to memory
+	 * Gets given $_COOKIE variable and seva it to memory
 	 * @param $name
 	 *
 	 * @return mixed|string
@@ -38,7 +38,11 @@ class Request extends ServerVariables{
 		if(isset(static::$instance->variables[$name]))
 			return static::$instance->variables[$name];
 		
-		$value = isset( $_REQUEST[ $name ] ) ? $_REQUEST[ $name ]	: '';
+		if( function_exists( 'filter_input' ) )
+			$value = filter_input( INPUT_COOKIE, $name );
+		
+		if( empty( $value ) )
+			$value = isset( $_COOKIE[ $name ] ) ? $_COOKIE[ $name ]	: '';
 		
 		// Remember for thurther calls
 		static::getInstance()->remebmer_variable( $name, $value );

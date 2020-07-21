@@ -1,17 +1,16 @@
 <?php
 
-
-namespace Cleantalk\Common;
+namespace Cleantalk\Variables;
 
 /**
- * Class Post
- * Safety handler for $_POST
+ * Class Get
+ * Safety handler for $_GET
  *
- * @usage \Cleantalk\Common\Post::get( $name );
+ * @usage \Cleantalk\Variables\Get::get( $name );
  *
- * @package Cleantalk\Common
+ * @package Cleantalk\Variables
  */
-class Post extends ServerVariables{
+class Get extends ServerVariables{
 	
 	static $instance;
 	
@@ -28,7 +27,7 @@ class Post extends ServerVariables{
 	}
 	
 	/**
-	 * Gets given $_POST variable and seva it to memory
+	 * Gets given $_GET variable and seva it to memory
 	 * @param $name
 	 *
 	 * @return mixed|string
@@ -40,10 +39,10 @@ class Post extends ServerVariables{
 			return static::$instance->variables[$name];
 		
 		if( function_exists( 'filter_input' ) )
-			$value = filter_input( INPUT_POST, $name );
+			$value = filter_input( INPUT_GET, $name );
 		
 		if( empty( $value ) )
-			$value = isset( $_POST[ $name ] ) ? $_POST[ $name ]	: '';
+			$value = isset( $_GET[ $name ] ) ? $_GET[ $name ]	: '';
 		
 		// Remember for thurther calls
 		static::getInstance()->remebmer_variable( $name, $value );

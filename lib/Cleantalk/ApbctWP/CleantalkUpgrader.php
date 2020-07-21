@@ -1,5 +1,7 @@
 <?php
 
+namespace Cleantalk\ApbctWP;
+
 /**
  * Antispam by CleanTalk plugin
  *
@@ -9,7 +11,7 @@
  * @since      : 1.0.0
  */
 
-class CleantalkUpgrader extends Plugin_Upgrader
+class CleantalkUpgrader extends \Plugin_Upgrader
 {
 	
 	public $result;

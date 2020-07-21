@@ -1,7 +1,7 @@
 <?php
 
 
-namespace Cleantalk;
+namespace Cleantalk\Common;
 
 /**
  * Class Arr

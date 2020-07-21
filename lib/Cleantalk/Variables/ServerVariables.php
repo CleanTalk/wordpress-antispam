@@ -1,14 +1,14 @@
 <?php
 
-namespace Cleantalk\Common;
+namespace Cleantalk\Variables;
 
 /**
  * Class ServerVariables
  * Safety handler for ${_SOMETHING}
  *
- * @usage \Cleantalk\Common\{SOMETHING}::get( $name );
+ * @usage \Cleantalk\Variables\{SOMETHING}::get( $name );
  *
- * @package Cleantalk\Common
+ * @package Cleantalk\Variables
  */
 class ServerVariables{
 	

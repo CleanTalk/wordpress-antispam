@@ -1,11 +1,13 @@
 <?php
 
+namespace Cleantalk\ApbctWP;
+
 /*
 *	CleanTalk cron class
 *	Version 1.0
 */
 
-class CleantalkCron
+class Cron
 {
 	public $tasks = array(); // Array with tasks
 	public $tasks_to_run = array(); // Array with tasks which should be run now

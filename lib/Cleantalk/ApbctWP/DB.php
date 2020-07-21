@@ -1,11 +1,13 @@
 <?php
 
+namespace Cleantalk\ApbctWP;
+
 /**
  * CleanTalk Wordpress Data Base driver
  * Compatible only with Wordpress.
  * Uses singleton pattern.
  * 
- * @depends Cleantalk\Antispam\DB
+ * @depends \Cleantalk\Common\DB
  * 
  * @version 3.2
  * @author Cleantalk team (welcome@cleantalk.org)
@@ -14,7 +16,7 @@
  * @see https://github.com/CleanTalk/wordpress-antispam
 */
 
-class CleantalkDB extends Cleantalk\Antispam\DB
+class DB extends \Cleantalk\Common\DB
 {
 	
 	private static $instance;

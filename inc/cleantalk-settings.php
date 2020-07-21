@@ -1302,7 +1302,7 @@ function apbct_settings__field__draw($params = array()){
 /**
  * Admin callback function - Plugin parameters validator
  * 
- * @global CleantalkState $apbct
+ * @global \Cleantalk\ApbctWP\State $apbct
  * @param array $settings Array with passed settings
  * @return array Array with processed settings
  */
@@ -1401,14 +1401,14 @@ function apbct_settings__validate($settings) {
 		
 		$website        = parse_url(get_option('siteurl'), PHP_URL_HOST).parse_url(get_option('siteurl'), PHP_URL_PATH);
 		$platform       = 'wordpress';
-		$user_ip        = CleantalkHelper::ip__get(array('real'), false);
+		$user_ip        = \Cleantalk\ApbctWP\Helper::ip__get(array('real'), false);
 		$timezone       = filter_input(INPUT_POST, 'ct_admin_timezone');
 		$language       = apbct_get_server_variable( 'HTTP_ACCEPT_LANGUAGE' );
 		$wpms           = APBCT_WPMS && defined('SUBDOMAIN_INSTALL') && !SUBDOMAIN_INSTALL ? true : false;
 		$white_label    = $apbct->network_settings['white_label']             ? 1                                                   : 0;
 		$hoster_api_key = $apbct->network_settings['white_label__hoster_key'] ? $apbct->network_settings['white_label__hoster_key'] : '';
 		
-		$result = CleantalkAPI::method__get_api_key(
+		$result = \Cleantalk\ApbctWP\API::method__get_api_key(
 			! is_main_site() && $apbct->white_label ? 'anti-spam-hosting' : 'antispam',
 			ct_get_admin_email(),
 			$website,
@@ -1468,7 +1468,7 @@ function apbct_settings__validate($settings) {
 				$apbct->error_add('sfw_send_logs', $result['error']);
 		}
 		// Updating brief data for dashboard widget
-		$apbct->data['brief_data'] = CleantalkAPI::method__get_antispam_report_breif($settings['apikey']);
+		$apbct->data['brief_data'] = \Cleantalk\ApbctWP\API::method__get_antispam_report_breif($settings['apikey']);
 	
 	// Key is not valid
 	}else{

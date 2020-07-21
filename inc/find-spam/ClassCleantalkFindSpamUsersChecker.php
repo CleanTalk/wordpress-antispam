@@ -231,7 +231,7 @@ class ClassCleantalkFindSpamUsersChecker extends ClassCleantalkFindSpamChecker
                 die();
             }
 
-            $result = CleantalkAPI::method__spam_check_cms( $apbct->api_key, $data, !empty($_POST['accurate_check']) ? $curr_date : null );
+            $result = \Cleantalk\ApbctWP\API::method__spam_check_cms( $apbct->api_key, $data, !empty($_POST['accurate_check']) ? $curr_date : null );
 
             if( empty( $result['error'] ) ){
 

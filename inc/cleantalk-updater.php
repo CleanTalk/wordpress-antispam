@@ -1,5 +1,7 @@
 <?php
 
+use Cleantalk\ApbctWP\Cron;
+
 function apbct_run_update_actions($current_version, $new_version){
 	
 	$current_version = apbct_version_standartization($current_version);
@@ -88,15 +90,15 @@ function apbct_update_to_5_70_0(){
 	wp_clear_scheduled_hook('cleantalk_get_brief_data_hook');
 	
 	// Adding Self cron system tasks
-	CleantalkCron::addTask('check_account_status', 'ct_account_status_check',  3600,  time()+1800); // New
-	CleantalkCron::addTask('delete_spam_comments', 'ct_delete_spam_comments',  3600,  time()+3500);
-	CleantalkCron::addTask('send_feedback',        'ct_send_feedback',         3600,  time()+3500);
-	CleantalkCron::addTask('sfw_update',           'ct_sfw_update',            86400, time()+43200);
-	CleantalkCron::addTask('send_sfw_logs',        'ct_sfw_send_logs',         3600,  time()+1800); // New
-	CleantalkCron::addTask('get_brief_data',       'cleantalk_get_brief_data', 86400, time()+3500);
+	Cron::addTask('check_account_status', 'ct_account_status_check',  3600, time() + 1800); // New
+	Cron::addTask('delete_spam_comments', 'ct_delete_spam_comments',  3600, time() + 3500);
+	Cron::addTask('send_feedback',        'ct_send_feedback',         3600, time() + 3500);
+	Cron::addTask('sfw_update',           'ct_sfw_update',            86400, time() + 43200);
+	Cron::addTask('send_sfw_logs',        'ct_sfw_send_logs',         3600, time() + 1800); // New
+	Cron::addTask('get_brief_data',       'cleantalk_get_brief_data', 86400, time() + 3500);
 }
 function apbct_update_to_5_74_0(){
-	CleantalkCron::removeTask('send_daily_request');
+	Cron::removeTask('send_daily_request');
 }
 
 function apbct_update_to_5_97_0(){
@@ -135,13 +137,13 @@ function apbct_update_to_5_109_0(){
 			$wpdb->query(sprintf($sfw_data_query, $wpdb->prefix . 'cleantalk_sfw'));       // Table for SpamFireWall data
 			$wpdb->query(sprintf($sfw_log_query,  $wpdb->prefix . 'cleantalk_sfw_logs'));  // Table for SpamFireWall logs
 			// Cron tasks
-			CleantalkCron::addTask('check_account_status',  'ct_account_status_check',        3600,  time()+1800); // Checks account status
-			CleantalkCron::addTask('delete_spam_comments',  'ct_delete_spam_comments',        3600,  time()+3500); // Formerly ct_hourly_event_hook()
-			CleantalkCron::addTask('send_feedback',         'ct_send_feedback',               3600,  time()+3500); // Formerly ct_hourly_event_hook()
-			CleantalkCron::addTask('sfw_update',            'ct_sfw_update',                  86400, time()+300);  // SFW update
-			CleantalkCron::addTask('send_sfw_logs',         'ct_sfw_send_logs',               3600,  time()+1800); // SFW send logs
-			CleantalkCron::addTask('get_brief_data',        'cleantalk_get_brief_data',       86400, time()+3500); // Get data for dashboard widget
-			CleantalkCron::addTask('send_connection_report','ct_mail_send_connection_report', 86400, time()+3500); // Send connection report to welcome@cleantalk.org
+			Cron::addTask('check_account_status',  'ct_account_status_check',        3600, time() + 1800); // Checks account status
+			Cron::addTask('delete_spam_comments',  'ct_delete_spam_comments',        3600, time() + 3500); // Formerly ct_hourly_event_hook()
+			Cron::addTask('send_feedback',         'ct_send_feedback',               3600, time() + 3500); // Formerly ct_hourly_event_hook()
+			Cron::addTask('sfw_update',            'ct_sfw_update',                  86400, time() + 300);  // SFW update
+			Cron::addTask('send_sfw_logs',         'ct_sfw_send_logs',               3600, time() + 1800); // SFW send logs
+			Cron::addTask('get_brief_data',        'cleantalk_get_brief_data',       86400, time() + 3500); // Get data for dashboard widget
+			Cron::addTask('send_connection_report','ct_mail_send_connection_report', 86400, time() + 3500); // Send connection report to welcome@cleantalk.org
 		}
 		switch_to_blog($initial_blog);
 	}
@@ -468,7 +470,7 @@ function apbct_update_to_5_138_0() {
 				
 				$data = get_option( 'cleantalk_data', array() );
 				
-				$result = CleantalkAPI::method__notice_paid_till(
+				$result = \Cleantalk\ApbctWP\API::method__notice_paid_till(
 					$settings['api_key'],
 					preg_replace('/http[s]?:\/\//', '', get_option('siteurl'), 1),
 					! is_main_site() && $net_settings['white_label'] ? 'anti-spam-hosting' : 'antispam'
