@@ -50,10 +50,13 @@ class CleantalkState
 	public $storage = array();
 	public $integrations = array();
 	public $def_settings = array(
-	
-		'spam_firewall'       => 1,
-        'apikey'              => '',
-        'autoPubRevelantMess' => 0,
+		
+		'spam_firewall'                 => 1,
+		'sfw__anti_crawler'             => 0,
+		'sfw__anti_crawler__view_limit' => 10,
+		'sfw__bot_protection'           => 0,
+		'apikey'                        => '',
+		'autoPubRevelantMess'           => 0,
 		
 		/* Forms for protection */
         'registrations_test'             => 1,
@@ -349,12 +352,12 @@ class CleantalkState
 	 * Save option to database
 	 *
 	 * @param string $option_name
-	 * @param bool   $use_perfix
+	 * @param bool   $use_prefix
 	 * @param bool   $autoload Use autoload flag?
 	 */
-	public function save($option_name, $use_perfix = true, $autoload = true)
+	public function save($option_name, $use_prefix = true, $autoload = true)
 	{
-		$option_name_to_save = $use_perfix ? $this->option_prefix.'_'.$option_name : $option_name;
+		$option_name_to_save = $use_prefix ? $this->option_prefix . '_' . $option_name : $option_name;
 		$arr = array();
 		foreach($this->$option_name as $key => $value){
 			$arr[$key] = $value;
