@@ -296,8 +296,8 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 			$data = array();
 			foreach( $db->result as $key => $value ){
 				
-				$value['status'] = $value['status'] === 'DENY_ANTIBOT'     ? 'BOT_PROTECTION'   : $value['status'];
-				$value['status'] = $value['status'] === 'DENY_ANTICRAWLER' ? 'FLOOD_PROTECTION' : $value['status'];
+				$value['status'] = $value['status'] === 'DENY_ANTICRAWLER' ? 'BOT_PROTECTION'   : $value['status'];
+				$value['status'] = $value['status'] === 'DENY_ANTIBOT'     ? 'FLOOD_PROTECTION' : $value['status'];
 				
 				$data[] = array(
 					trim( $value['ip'] ),

@@ -125,7 +125,7 @@ class AntiBot extends \Cleantalk\Common\Firewall\FirewallModule{
 			
 			// Translation
 			$request_uri  = Server::get( 'REQUEST_URI' );
-			$sfw_die_page = str_replace('{SFW_DIE_NOTICE_IP}',              __('Bot Protection is activated for your IP', 'cleantalk-spam-protect'), $sfw_die_page);
+			$sfw_die_page = str_replace('{SFW_DIE_NOTICE_IP}',              __('Anti-Crawler Protection is activated for your IP ', 'cleantalk-spam-protect'), $sfw_die_page);
 			$sfw_die_page = str_replace('{SFW_DIE_MAKE_SURE_JS_ENABLED}',   __('To continue working with web site, please make sure that you have enabled JavaScript.', 'cleantalk-spam-protect'), $sfw_die_page);
 			$sfw_die_page = str_replace('{SFW_DIE_YOU_WILL_BE_REDIRECTED}', sprintf(__('You will be automatically redirected to the requested page after %d seconds.', 'cleantalk-spam-protect'), 30), $sfw_die_page);
 			$sfw_die_page = str_replace('{CLEANTALK_TITLE}',                __('Antispam by CleanTalk', 'cleantalk-spam-protect'), $sfw_die_page);
@@ -147,5 +147,4 @@ class AntiBot extends \Cleantalk\Common\Firewall\FirewallModule{
 		}
 		
 	}
-	
 }
