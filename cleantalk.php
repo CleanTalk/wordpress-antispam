@@ -992,9 +992,7 @@ function ct_sfw_update($api_key = '', $immediate = false){
 	$api_key = !empty($apbct->api_key) ? $apbct->api_key : $api_key;
 
     if( $apbct->settings['spam_firewall'] == 1 && ( ! empty($api_key) || $apbct->data['moderate_ip'] ) ) {
-		
-		$sfw = new CleantalkSFW();
-
+    	
 	    $file_urls = isset($_GET['file_urls']) ? urldecode( $_GET['file_urls'] ) : null;
 	    $file_urls = isset($file_urls) ? explode(',', $file_urls) : null;
 
