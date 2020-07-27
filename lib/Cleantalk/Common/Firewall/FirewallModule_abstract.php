@@ -35,8 +35,12 @@ abstract class FirewallModule_abstract {
 	/**
 	 * FireWall_module constructor.
 	 * Use this method to prepare any data for the module working.
+	 *
+	 * @param $log_table
+	 * @param $data_table
+	 * @param array $params
 	 */
-	abstract public function __construct();
+	abstract public function __construct( $log_table, $data_table, $params = array() );
 	
 	/**
 	 * Use this method to execute main logic of the module.

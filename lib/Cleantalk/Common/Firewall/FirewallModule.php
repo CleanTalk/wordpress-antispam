@@ -17,8 +17,12 @@ class FirewallModule extends FirewallModule_abstract {
 	/**
 	 * FireWall_module constructor.
 	 * Use this method to prepare any data for the module working.
+	 *
+	 * @param $log_table
+	 * @param $data_table
+	 * @param array $params
 	 */
-	public function __construct(){
+	public function __construct( $log_table, $data_table, $params = array() ){
 	
 	}
 	
