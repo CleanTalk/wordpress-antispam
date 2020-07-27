@@ -99,7 +99,7 @@ function apbct_settings__set_fileds( $fields ){
 				),
 				'sfw__anti_crawler' => array(
 					'type'        => 'checkbox',
-					'title'       => __('Bot Protection', 'cleantalk-spam-protect'),
+					'title'       => __('Anti-Flood', 'cleantalk-spam-protect'),
 					'class'       => 'apbct_settings-field_wrapper--sub',
 					'parent'      => 'spam_firewall',
 					'childrens'   => array('sfw__anti_crawler__view_limit',),
@@ -436,7 +436,7 @@ function apbct_settings__set_fileds( $fields ){
 				),
 				'sfw__anti_crawler__view_limit' => array(
 					'type'        => 'text',
-					'title'       => __('Bot Protection Page Views Limit', 'cleantalk-spam-protect'),
+					'title'       => __('Anti-Flood Page Views Limit', 'cleantalk-spam-protect'),
 					'class'       => 'apbct_settings-field_wrapper',
 					'parent'      => 'sfw__anti_crawler',
 					'description' => __('Count of page view per 1 minute before plugin shows SpamFireWall page. SpamFireWall page active for 30 second after that valid visitor (with JavaScript) passes the page to the demanded page of the site.', 'cleantalk-spam-protect'),
