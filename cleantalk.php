@@ -628,8 +628,8 @@ function apbct_sfw__check()
 		)
 	) );
 	
-	if( $apbct->settings['sfw__bot_protection']){
-		$firewall->load_fw_module( new \Cleantalk\ApbctWP\Firewall\AntiBot(
+	if( $apbct->settings['sfw__anti_crawler'] ){
+		$firewall->load_fw_module( new \Cleantalk\ApbctWP\Firewall\AntiCrawler(
 			defined( 'APBCT_TBL_FIREWALL_LOG' )   ? APBCT_TBL_FIREWALL_LOG : $this->db->prefix . 'cleantalk_sfw_logs',
 			defined( 'APBCT_TBL_AC_LOG' )      ? APBCT_TBL_AC_LOG        : $this->db->prefix . 'cleantalk_ac_log',
 			array(
@@ -639,15 +639,16 @@ function apbct_sfw__check()
 		) );
 	}
 	
-	if( $apbct->settings['sfw__anti_crawler'])
-		$firewall->load_fw_module( new \Cleantalk\ApbctWP\Firewall\AntiCrawler(
-			defined( 'APBCT_TBL_FIREWALL_LOG' )   ? APBCT_TBL_FIREWALL_LOG : $this->db->prefix . 'cleantalk_sfw_logs',
-			defined( 'APBCT_TBL_AC_LOG' )      ? APBCT_TBL_AC_LOG        : $this->db->prefix . 'cleantalk_ac_log',
+	if( $apbct->settings['sfw__anti_flood'] ){
+		$firewall->load_fw_module( new \Cleantalk\ApbctWP\Firewall\AntiFlood(
+			defined( 'APBCT_TBL_FIREWALL_LOG' ) ? APBCT_TBL_FIREWALL_LOG : $this->db->prefix . 'cleantalk_sfw_logs',
+			defined( 'APBCT_TBL_AC_LOG' ) ? APBCT_TBL_AC_LOG : $this->db->prefix . 'cleantalk_ac_log',
 			array(
-				'view_limit' => $apbct->settings['sfw__anti_crawler__view_limit'],
+				'view_limit' => $apbct->settings['sfw__anti_flood__view_limit'],
 				'apbct'      => $apbct,
 			)
 		) );
+	}
 	
 	$firewall->run();
 	
