@@ -118,6 +118,7 @@
 		document.getElementById('js_info').style.display = 'none';
 		document.getElementById('js_passed').style.display = 'block';
 		document.getElementById('curr_date').innerHTML = ct_date.toGMTString();
+		set_spamFireWallCookie('apbct_antibot','{COOKIE_ANTICRAWLER}');
 
 		if(location.search.search('debug=1') === -1) {
 			setTimeout(function(){
