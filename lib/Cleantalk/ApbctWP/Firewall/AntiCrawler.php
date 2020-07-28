@@ -2,7 +2,8 @@
 
 namespace Cleantalk\ApbctWP\Firewall;
 
-use Cleantalk\Common\Helper as Helper;
+
+use Cleantalk\Variables\Cookie;
 use Cleantalk\Variables\Server;
 
 class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
@@ -10,15 +11,11 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 	public $module_name = 'ANTICRAWLER';
 	
 	private $db__table__ac_logs;
-
-	private $view_limit = 10;
-	private $apbct = array();
-	private $store_interval  = 30;
-	private $block_period    = 30;
-	private $chance_to_clean = 100;
+	private $api_key = '';
+	private $apbct = false;
 	
 	/**
-	 * AntiCrawler constructor.
+	 * AntiBot constructor.
 	 *
 	 * @param $log_table
 	 * @param $ac_logs_table
@@ -37,77 +34,42 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 	
 	/**
 	 * Use this method to execute main logic of the module.
-	 * @return array
+	 *
+	 * @return array  Array of the check results
 	 */
 	public function check() {
 		
 		$results = array();
 		
-		$this->clear_table();
-		
-		$time = time() - $this->store_interval;
-		
 		foreach( $this->ip_array as $ip_origin => $current_ip ){
 			
 			// @todo Rename ip column to sign. Use IP + UserAgent for it.
 			
-			$result = $this->db->fetch_all(
-				"SELECT SUM(entries) as total_count"
+			$result = $this->db->fetch(
+				"SELECT ip"
 				. ' FROM `' . $this->db__table__ac_logs . '`'
-				. " WHERE ip = '$current_ip' AND interval_start > '$time';"
+				. " WHERE ip = '$current_ip'"
+				. " LIMIT 1;"
 			);
 			
-			if( ! empty( $result ) && isset( $result[0]['total_count'] ) && $result[0]['total_count'] >= $this->view_limit ){
-				$results[] = array( 'ip' => $current_ip, 'is_personal' => false, 'status' => 'DENY_ANTICRAWLER', );
+			if( ! empty( $result ) && isset( $result['ip'] ) ){
+				if( Cookie::get('apbct_antibot') !== md5( $this->api_key . $current_ip ) ){
+					$results[] = array( 'ip' => $current_ip, 'is_personal' => false, 'status' => 'DENY_ANTICRAWLER', );
+				}
+			}else{
+				add_action( 'wp_head', array( '\Cleantalk\ApbctWP\Firewall\AntiCrawler', 'set_cookie' ) );
+				global $apbct_anticrawler_ip;
+				$apbct_anticrawler_ip = $current_ip;
 			}
-		}
-		
-		if( ! empty( $results ) ){
-			// Do block page
-			return $results;
-		} else{
-			// Do logging entries
-			$this->update_ac_log();
 		}
 		
 		return $results;
 		
 	}
 	
-	private function update_ac_log() {
-		
-		$interval_time = Helper::time__get_interval_start( $this->store_interval );
-		
-		// @todo Rename ip column to sign. Use IP + UserAgent for it.
-		
-		foreach( $this->ip_array as $ip_origin => $current_ip ){
-			$id = md5( $current_ip . $interval_time );
-			$this->db->execute(
-				"INSERT INTO " . $this->db__table__ac_logs . " SET
-					id = '$id',
-					ip = '$current_ip',
-					entries = 1,
-					interval_start = $interval_time
-				ON DUPLICATE KEY UPDATE
-					ip = ip,
-					entries = entries + 1,
-					interval_start = $interval_time;"
-			);
-		}
-		
-	}
-	
-	private function clear_table() {
-		
-		if( rand( 0, 1000 ) < $this->chance_to_clean ){
-			$interval_start = \Cleantalk\ApbctWP\Helper::time__get_interval_start( $this->block_period );
-			$this->db->execute(
-				'DELETE
-				FROM ' . $this->db__table__ac_logs . '
-				WHERE interval_start < '. $interval_start .'
-				LIMIT 100000;'
-			);
-		}
+	public static function set_cookie(){
+		global $apbct, $apbct_anticrawler_ip;
+		echo '<script>document.cookie = "apbct_antibot=' . md5( $apbct->api_key . $apbct_anticrawler_ip ) . '; path=/; expires=0; samesite=lax";</script>';
 	}
 	
 	/**
@@ -119,25 +81,29 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 	 */
 	public function update_log( $ip, $status ) {
 		
-		$id = md5($ip.$status);
 		$blocked = ( strpos( $status, 'DENY' ) !== false ? ' + 1' : '' );
-		$time    = time();
 		
-		$query = "INSERT INTO " . $this->db__table__logs . "
-		SET
-			id = '$id',
-			ip = '$ip',
-			status = '$status',
-			all_entries = 1,
-			blocked_entries = 1,
-			entries_timestamp = '" . intval( $time ) . "'
-		ON DUPLICATE KEY
-		UPDATE
-			all_entries = all_entries + 1,
-			blocked_entries = blocked_entries" . strval( $blocked ) . ",
-			entries_timestamp = '" . intval( $time ) . "'";
-		
-		$this->db->execute( $query );
+		if( $blocked ){
+			
+			$id   = md5( $ip . $status );
+			$time = time();
+			
+			$query = "INSERT INTO " . $this->db__table__logs . "
+				SET
+					id = '$id',
+					ip = '$ip',
+					status = '$status',
+					all_entries = 1,
+					blocked_entries = 1,
+					entries_timestamp = '" . intval( $time ) . "'
+				ON DUPLICATE KEY
+				UPDATE
+					all_entries = all_entries + 1,
+					blocked_entries = blocked_entries" . strval( $blocked ) . ",
+					entries_timestamp = '" . intval( $time ) . "'";
+			
+			$this->db->execute( $query );
+		}
 	}
 	
 	public function _die( $result ){
