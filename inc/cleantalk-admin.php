@@ -10,7 +10,7 @@ add_action( 'manage_users_extra_tablenav', 'apbct_add_buttons_to_comments_and_us
 add_action( 'wp_ajax_apbct_settings__check_renew_banner', 'apbct_settings__check_renew_banner');
 
 // Crunch for Anti-Bot
-add_action( 'admin_head', array( '\Cleantalk\ApbctWP\Firewall\AntiBot', 'set_cookie' ) );
+add_action( 'admin_head','apbct_admin_set_cookie_for_anti_bot' );
 
 function apbct_admin_set_cookie_for_anti_bot(){
 	global $apbct;
