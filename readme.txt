@@ -2,7 +2,7 @@
 Contributors: safronik 
 Tags: spam, antispam, woocommerce, comments, firewall 
 Requires at least: 3.0
-Tested up to: 5.4
+Tested up to: 5.5
 Requires PHP: 5.4
 Stable tag: 5.142
 License: GPLv2
