@@ -185,10 +185,10 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 	 * Stops script executing.
 	 *
 	 * @param $result
-	 * @param string $cookie_domain
-	 * @param bool $test
 	 */
 	public function _die( $result ){
+		
+		parent::_die( $result );
 		
 		// Statistics
 		if(!empty($this->blocked_ips)){
@@ -198,58 +198,48 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 			$this->apbct->save('stats');
 		}
 		
-		// Headers
-		if(headers_sent() === false){
-			header('Expires: '.date(DATE_RFC822, mktime(0, 0, 0, 1, 1, 1971)));
-			header('Cache-Control: no-store, no-cache, must-revalidate');
-			header('Cache-Control: post-check=0, pre-check=0', FALSE);
-			header('Pragma: no-cache');
-			header("HTTP/1.0 403 Forbidden");
-		}
-		
 		// File exists?
-		if(file_exists(CLEANTALK_PLUGIN_DIR . "lib/Cleantalk/ApbctWP/Firewall/die_page__sfw.html")){
+		if(file_exists(CLEANTALK_PLUGIN_DIR . "lib/Cleantalk/ApbctWP/Firewall/die_page__SFW.html")){
 			
-			$sfw_die_page = file_get_contents(CLEANTALK_PLUGIN_DIR . "lib/Cleantalk/ApbctWP/Firewall/die_page__sfw.html");
+			$sfw_die_page = file_get_contents(CLEANTALK_PLUGIN_DIR . "lib/Cleantalk/ApbctWP/Firewall/die_page__SFW.html");
 			
 			// Translation
-			$request_uri  = Server::get( 'REQUEST_URI' );
-			$sfw_die_page = str_replace('{SFW_DIE_NOTICE_IP}',              __('SpamFireWall is activated for your IP ', 'cleantalk-spam-protect'), $sfw_die_page);
-			$sfw_die_page = str_replace('{SFW_DIE_MAKE_SURE_JS_ENABLED}',   __('To continue working with web site, please make sure that you have enabled JavaScript.', 'cleantalk-spam-protect'), $sfw_die_page);
-			$sfw_die_page = str_replace('{SFW_DIE_CLICK_TO_PASS}',          __('Please click the link below to pass the protection,', 'cleantalk-spam-protect'), $sfw_die_page);
-			$sfw_die_page = str_replace('{SFW_DIE_YOU_WILL_BE_REDIRECTED}', sprintf(__('Or you will be automatically redirected to the requested page after %d seconds.', 'cleantalk-spam-protect'), 3), $sfw_die_page);
-			$sfw_die_page = str_replace('{CLEANTALK_TITLE}',                __('Antispam by CleanTalk', 'cleantalk-spam-protect'), $sfw_die_page);
-			$sfw_die_page = str_replace('{TEST_TITLE}',                     ($this->test ? __('This is the testing page for SpamFireWall', 'cleantalk-spam-protect') : ''), $sfw_die_page);
-			
-			if($this->test){
-				$sfw_die_page = str_replace('{REAL_IP__HEADER}', 'Real IP:', $sfw_die_page);
-				$sfw_die_page = str_replace('{TEST_IP__HEADER}', 'Test IP:', $sfw_die_page);
-				$sfw_die_page = str_replace('{TEST_IP}', $this->test_ip, $sfw_die_page);
-				$sfw_die_page = str_replace('{REAL_IP}', $this->real_ip,     $sfw_die_page);
-			}else{
-				$sfw_die_page = str_replace('{REAL_IP__HEADER}', '', $sfw_die_page);
-				$sfw_die_page = str_replace('{TEST_IP__HEADER}', '', $sfw_die_page);
-				$sfw_die_page = str_replace('{TEST_IP}', '', $sfw_die_page);
-				$sfw_die_page = str_replace('{REAL_IP}', '', $sfw_die_page);
-			}
-			
-			$sfw_die_page = str_replace('{REMOTE_ADDRESS}', $result['ip'], $sfw_die_page);
-			
-			// Service info
-			$sfw_die_page = str_replace('{REQUEST_URI}',    $request_uri,                    $sfw_die_page);
-			$sfw_die_page = str_replace('{COOKIE_PREFIX}',  '',                  $sfw_die_page);
-			$sfw_die_page = str_replace('{COOKIE_DOMAIN}',  $this->cookie_domain,                  $sfw_die_page);
-			$sfw_die_page = str_replace('{SERVICE_ID}',     $this->apbct->data['service_id'],      $sfw_die_page);
-			$sfw_die_page = str_replace('{HOST}',           Server::get( 'HTTP_HOST' ),           $sfw_die_page);
-			
-			$sfw_die_page = str_replace(
-				'{SFW_COOKIE}',
-				$this->test
-					? $this->test_ip
-					: md5( $result['ip'] . $this->api_key ),
-				$sfw_die_page
+			$replaces = array(
+				'{SFW_DIE_NOTICE_IP}'              => __('SpamFireWall is activated for your IP ', 'cleantalk-spam-protect'),
+				'{SFW_DIE_MAKE_SURE_JS_ENABLED}'   => __( 'To continue working with web site, please make sure that you have enabled JavaScript.', 'cleantalk-spam-protect' ),
+				'{SFW_DIE_CLICK_TO_PASS}'          => __('Please click the link below to pass the protection,', 'cleantalk-spam-protect'),
+				'{SFW_DIE_YOU_WILL_BE_REDIRECTED}' => sprintf(__('Or you will be automatically redirected to the requested page after %d seconds.', 'cleantalk-spam-protect'), 3),
+				'{CLEANTALK_TITLE}'                => ($this->test ? __('This is the testing page for SpamFireWall', 'cleantalk-spam-protect') : ''),
+				'{REMOTE_ADDRESS}'                 => $result['ip'],
+				'{SERVICE_ID}'                     => $this->apbct->data['service_id'],
+				'{HOST}'                           => Server::get( 'HTTP_HOST' ),
+				'{GENERATED}'                      => '<p>The page was generated at&nbsp;' . date( 'D, d M Y H:i:s' ) . "</p>",
+				'{REQUEST_URI}'                    => Server::get( 'REQUEST_URI' ),
+				
+				// Cookie
+				'{COOKIE_PREFIX}'      => '',
+				'{COOKIE_DOMAIN}'      => $this->cookie_domain,
+				'{COOKIE_SFW}'         => $this->test ? $this->test_ip : md5( $result['ip'] . $this->api_key ),
+				'{COOKIE_ANTICRAWLER}' => md5( $this->api_key . $result['ip'] ),
+				
+				// Test
+				'{TEST_TITLE}'      => '',
+				'{REAL_IP__HEADER}' => '',
+				'{TEST_IP__HEADER}' => '',
+				'{TEST_IP}'         => '',
+				'{REAL_IP}'         => '',
 			);
 			
+			// Test
+			if($this->test){
+				$replaces['{TEST_TITLE}']      = __( 'This is the testing page for SpamFireWall', 'cleantalk-spam-protect' );
+				$replaces['{REAL_IP__HEADER}'] = 'Real IP:';
+				$replaces['{TEST_IP__HEADER}'] = 'Test IP:';
+				$replaces['{TEST_IP}']         = $this->test_ip;
+				$replaces['{REAL_IP}']         = $this->real_ip;
+			}
+			
+			// Debug
 			if($this->debug){
 				$debug = '<h1>Headers</h1>'
 				         . var_export(apache_request_headers(), true)
@@ -261,11 +251,12 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 				         . var_export($this->ip_array, true)
 				         . '<h1>ADDITIONAL</h1>'
 				         . var_export($this->debug_data, true);
-			}else
-				$debug = '';
+			}
+			$replaces['{DEBUG}'] = isset( $debug ) ? $debug : '';
 			
-			$sfw_die_page = str_replace( "{DEBUG}", $debug, $sfw_die_page );
-			$sfw_die_page = str_replace('{GENERATED}', "<p>The page was generated at&nbsp;".date("D, d M Y H:i:s")."</p>",$sfw_die_page);
+			foreach( $replaces as $place_holder => $replace ){
+				$sfw_die_page = str_replace( $place_holder, $replace, $sfw_die_page );
+			}
 			
 			wp_die($sfw_die_page, "Blacklisted", Array('response'=>403));
 			

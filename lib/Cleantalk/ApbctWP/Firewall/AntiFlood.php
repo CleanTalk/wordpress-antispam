@@ -107,43 +107,36 @@ class AntiBot extends \Cleantalk\Common\Firewall\FirewallModule{
 		}
 	}
 	
-	public function _die( $result ){
+	public function _die( $result ) {
 		
-		// Headers
-		if(headers_sent() === false){
-			header('Expires: '.date(DATE_RFC822, mktime(0, 0, 0, 1, 1, 1971)));
-			header('Cache-Control: no-store, no-cache, must-revalidate');
-			header('Cache-Control: post-check=0, pre-check=0', FALSE);
-			header('Pragma: no-cache');
-			header("HTTP/1.0 403 Forbidden");
-		}
+		parent::_die( $result );
 		
 		// File exists?
-		if(file_exists(CLEANTALK_PLUGIN_DIR . "lib/Cleantalk/ApbctWP/Firewall/die_page__antibot.html")){
+		if( file_exists( CLEANTALK_PLUGIN_DIR . 'lib/Cleantalk/ApbctWP/Firewall/die_page__AntiFlood.html' ) ){
 			
-			$sfw_die_page = file_get_contents(CLEANTALK_PLUGIN_DIR . "lib/Cleantalk/ApbctWP/Firewall/die_page__antibot.html");
+			$sfw_die_page = file_get_contents( CLEANTALK_PLUGIN_DIR . 'lib/Cleantalk/ApbctWP/Firewall/die_page__AntiFlood.html' );
 			
 			// Translation
-			$request_uri  = Server::get( 'REQUEST_URI' );
-			$sfw_die_page = str_replace('{SFW_DIE_NOTICE_IP}',              __('Anti-Crawler Protection is activated for your IP ', 'cleantalk-spam-protect'), $sfw_die_page);
-			$sfw_die_page = str_replace('{SFW_DIE_MAKE_SURE_JS_ENABLED}',   __('To continue working with web site, please make sure that you have enabled JavaScript.', 'cleantalk-spam-protect'), $sfw_die_page);
-			$sfw_die_page = str_replace('{SFW_DIE_YOU_WILL_BE_REDIRECTED}', sprintf(__('You will be automatically redirected to the requested page after %d seconds.', 'cleantalk-spam-protect'), 30), $sfw_die_page);
-			$sfw_die_page = str_replace('{CLEANTALK_TITLE}',                __('Antispam by CleanTalk', 'cleantalk-spam-protect'), $sfw_die_page);
+			$replaces = array(
+				'{SFW_DIE_NOTICE_IP}'              => __( 'Anti-Flood is activated for your IP', 'cleantalk-spam-protect' ),
+				'{SFW_DIE_MAKE_SURE_JS_ENABLED}'   => __( 'To continue working with web site, please make sure that you have enabled JavaScript.', 'cleantalk-spam-protect' ),
+				'{SFW_DIE_YOU_WILL_BE_REDIRECTED}' => sprintf( __( 'You will be automatically redirected to the requested page after %d seconds.', 'cleantalk-spam-protect' ), 30 ),
+				'{CLEANTALK_TITLE}'                => __( 'Antispam by CleanTalk', 'cleantalk-spam-protect' ),
+				'{REMOTE_ADDRESS}'                 => $result['ip'],
+				'{REQUEST_URI}'                    => Server::get( 'REQUEST_URI' ),
+				'{SERVICE_ID}'                     => $this->apbct->data['service_id'],
+				'{HOST}'                           => Server::get( 'HTTP_HOST' ),
+				'{GENERATED}'                      => '<p>The page was generated at&nbsp;' . date( 'D, d M Y H:i:s' ) . "</p>",
+			);
 			
-			$sfw_die_page = str_replace('{REMOTE_ADDRESS}', $result['ip'], $sfw_die_page);
+			foreach( $replaces as $place_holder => $replace ){
+				$sfw_die_page = str_replace( $place_holder, $replace, $sfw_die_page );
+			}
 			
-			// Service info
-			$sfw_die_page = str_replace('{SERVICE_ID}',     $this->apbct->data['service_id'],      $sfw_die_page);
-			$sfw_die_page = str_replace('{HOST}',           Server::get( 'HTTP_HOST' ),           $sfw_die_page);
+			wp_die( $sfw_die_page, 'Blacklisted', array( 'response' => 403 ) );
 			
-			$sfw_die_page = str_replace('{SFW_COOKIE}', md5( $this->api_key . $result['ip'] ), $sfw_die_page );
-			
-			$sfw_die_page = str_replace('{GENERATED}', "<p>The page was generated at&nbsp;".date("D, d M Y H:i:s")."</p>",$sfw_die_page);
-			
-			wp_die($sfw_die_page, "Blacklisted", Array('response'=>403));
-			
-		}else{
-			wp_die("IP BLACKLISTED", "Blacklisted", Array('response'=>403));
+		} else{
+			wp_die( 'IP BLACKLISTED', 'Blacklisted', array( 'response' => 403 ) );
 		}
 		
 	}

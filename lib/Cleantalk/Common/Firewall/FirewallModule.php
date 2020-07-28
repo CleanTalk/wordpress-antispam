@@ -70,4 +70,17 @@ class FirewallModule extends FirewallModule_abstract {
 	public function setDbTableLogs( $db__table__logs ) {
 		$this->db__table__logs = $db__table__logs;
 	}
+	
+	public function _die( $result ){
+		
+		// Headers
+		if(headers_sent() === false){
+			header('Expires: '.date(DATE_RFC822, mktime(0, 0, 0, 1, 1, 1971)));
+			header('Cache-Control: no-store, no-cache, must-revalidate');
+			header('Cache-Control: post-check=0, pre-check=0', FALSE);
+			header('Pragma: no-cache');
+			header("HTTP/1.0 403 Forbidden");
+		}
+		
+	}
 }
