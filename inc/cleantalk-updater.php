@@ -518,6 +518,7 @@ function apbct_update_to_5_138_0() {
 	}
 	
 }
+
 function apbct_update_to_5_142_0() {
 	
 	$sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_ac_log` (
@@ -532,6 +533,17 @@ function apbct_update_to_5_142_0() {
 		ADD COLUMN `status` ENUM(\'PASS_SFW\',\'DENY_SFW\',\'PASS_SFW_BY_WHITELIST\',\'PASS_SFW_BY_COOKIE\',\'DENY_ANTIBOT\',\'DENY_ANTICRAWLER\') NOT NULL AFTER `ip`,
 		DROP PRIMARY KEY,
 		ADD PRIMARY KEY (`id`);';
+	
+	apbct_activation__create_tables( $sqls );
+	
+}
+
+function apbct_update_to_5_142_1() {
+	
+	$sqls[] = 'DELETE FROM `%scleantalk_sfw_logs` WHERE 1=1';
+	
+	$sqls[] = 'ALTER TABLE `%scleantalk_sfw_logs`
+		CHANGE `status` `status` ENUM(\'PASS_SFW\',\'DENY_SFW\',\'PASS_SFW_BY_WHITELIST\',\'PASS_SFW_BY_COOKIE\',\'DENY_ANTICRAWLER\',\'DENY_ANTIFLOOD\') NOT NULL AFTER `ip`;';
 	
 	apbct_activation__create_tables( $sqls );
 	

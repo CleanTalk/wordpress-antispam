@@ -36,7 +36,7 @@ class Firewall
 		'PASS_SFW',
 		'DENY_SFW',
 		'PASS_SFW_BY_COOKIE',
-		'DENY_ANTIBOT',
+		'DENY_ANTIFLOOD',
 		'DENY_ANTICRAWLER',
 		'PASS_SFW_BY_WHITELIST',
 		// Highest
