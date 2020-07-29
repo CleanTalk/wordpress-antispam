@@ -73,7 +73,7 @@ function ct_dashboard_statistics_widget() {
 }
 
 // Outputs statistics widget content
-function ct_dashboard_statistics_widget_output( $post, $callback_args ) {	
+function ct_dashboard_statistics_widget_output( $post, $callback_args ) {
 
 	global $apbct, $current_user;
 	
@@ -198,11 +198,14 @@ function apbct_admin__init(){
 		unset($_POST['submit']);
 		
 	}
-	
-	// AJAX actions
+}
+
+function apbct_admin__init___ajax_actions(){
  
 	// Settings
 	add_action('wp_ajax_apbct_settings__get__long_description', 'apbct_settings__get__long_description'); // Long description
+ 
+	add_action( 'wp_ajax_apbct_sync', 'apbct_settings__sync' );
 }
 
 /**
@@ -318,6 +321,7 @@ function apbct_admin__enqueue_scripts($hook){
 		wp_localize_script( 'jquery', 'ctSettingsPage', array(
 			'ct_subtitle'   => $apbct->ip_license ? __('Hosting AntiSpam', 'cleantalk-spam-protect') : '',
 			'ip_license'    => $apbct->ip_license ? true : false,
+            'key_changed'   => (bool) $apbct->data['key_changed'],
 		));
 	}
 

@@ -30,6 +30,26 @@ jQuery(document).ready(function(){
 		});
 	});
 
+	// Sync button
+	jQuery('#apbct_button__sync').on('click', function(){
+		apbct_admin_sendAJAX(
+			{action: 'apbct_sync'},
+			{
+				button: document.getElementById('apbct_button__sync' ),
+				spinner: jQuery('#apbct_button__sync .apbct_preloader_button' ),
+				callback: function(result, data, params, obj){
+					jQuery('.apbct_success').show(300);
+					setTimeout(function(){jQuery('.apbct_success').hide(300);}, 2000)
+					if(result.reload)
+						document.location.reload();
+				}
+			}
+		);
+	});
+
+	if( ctSettingsPage.key_changed )
+		jQuery('#apbct_button__sync').click();
+
 	jQuery(document).on('click', '.apbct_settings-long_description---show', function(){
 		self = jQuery(this);
 		apbct_settings__showDescription(self, self.attr('setting'));
