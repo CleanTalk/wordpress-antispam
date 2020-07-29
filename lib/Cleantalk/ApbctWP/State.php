@@ -121,11 +121,12 @@ class State
 		'gdpr_text'    => 'By using this form you agree with the storage and processing of your data by using the Privacy Policy on this website.',
 		
 		// Msic
-		'store_urls'            => 1,
-		'store_urls__sessions'  => 1,
-		'comment_notify'        => 1,
-		'comment_notify__roles' => array('administrator'),
-		'complete_deactivation' => 0,
+		'store_urls'             => 1,
+		'store_urls__sessions'   => 1,
+		'comment_notify'         => 1,
+		'comment_notify__roles'  => array( 'administrator' ),
+		'complete_deactivation'  => 0,
+		'dashboard_widget__show' => 1,
     );
 	
 	public $def_data = array(
