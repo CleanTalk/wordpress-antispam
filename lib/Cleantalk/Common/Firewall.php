@@ -35,10 +35,12 @@ class Firewall
 		// Lowest
 		'PASS_SFW',
 		'DENY_SFW',
-		'PASS_SFW_BY_COOKIE',
+		'PASS_SFW__BY_COOKIE',
 		'DENY_ANTIFLOOD',
+		'PASS_ANTIFLOOD',
 		'DENY_ANTICRAWLER',
-		'PASS_SFW_BY_WHITELIST',
+		'PASS_ANTICRAWLER',
+		'PASS_SFW__BY_WHITELIST',
 		// Highest
 	);
 	

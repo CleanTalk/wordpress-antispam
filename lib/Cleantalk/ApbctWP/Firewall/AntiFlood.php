@@ -3,6 +3,7 @@
 namespace Cleantalk\ApbctWP\Firewall;
 
 use Cleantalk\Common\Helper as Helper;
+use Cleantalk\Variables\Cookie;
 use Cleantalk\Variables\Server;
 
 class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule{
@@ -11,11 +12,12 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule{
 	
 	private $db__table__ac_logs;
 
+	private $api_key = '';
 	private $view_limit = 10;
 	private $apbct = array();
-	private $store_interval  = 30;
+	private $store_interval  = 60;
 	private $block_period    = 30;
-	private $chance_to_clean = 100;
+	private $chance_to_clean = 200;
 	
 	/**
 	 * AntiCrawler constructor.
@@ -47,6 +49,19 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule{
 		$time = time() - $this->store_interval;
 		
 		foreach( $this->ip_array as $ip_origin => $current_ip ){
+			
+			// Passed
+			if( Cookie::get( 'apbct_antiflood_passed' ) === md5( $current_ip . $this->api_key ) ){
+				
+				if( ! headers_sent() ){
+					\Cleantalk\Common\Helper::apbct_cookie__set( 'apbct_antiflood_passed', '0', time() - 86400, '/', null, false, true, 'Lax' );
+				}
+				
+				$results[] = array( 'ip' => $current_ip, 'is_personal' => false, 'status' => 'PASS_ANTIFLOOD', );
+				
+				return $results;
+			}
+			
 			
 			// @todo Rename ip column to sign. Use IP + UserAgent for it.
 			
@@ -99,7 +114,7 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule{
 	private function clear_table() {
 		
 		if( rand( 0, 1000 ) < $this->chance_to_clean ){
-			$interval_start = \Cleantalk\ApbctWP\Helper::time__get_interval_start( $this->block_period );
+			$interval_start = \Cleantalk\ApbctWP\Helper::time__get_interval_start( $this->store_interval );
 			$this->db->execute(
 				'DELETE
 				FROM ' . $this->db__table__ac_logs . '
@@ -118,8 +133,7 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule{
 	 */
 	public function update_log( $ip, $status ) {
 		
-		$id = md5($ip.$status);
-		$blocked = ( strpos( $status, 'DENY' ) !== false ? ' + 1' : '' );
+		$id = md5( $ip );
 		$time    = time();
 		
 		$query = "INSERT INTO " . $this->db__table__logs . "
@@ -132,8 +146,9 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule{
 			entries_timestamp = '" . intval( $time ) . "'
 		ON DUPLICATE KEY
 		UPDATE
+			status = '$status',
 			all_entries = all_entries + 1,
-			blocked_entries = blocked_entries" . strval( $blocked ) . ",
+			blocked_entries = blocked_entries" . ( strpos( $status, 'DENY' ) !== false ? ' + 1' : '' ) . ",
 			entries_timestamp = '" . intval( $time ) . "'";
 		
 		$this->db->execute( $query );
@@ -159,6 +174,7 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule{
 				'{SERVICE_ID}'                     => $this->apbct->data['service_id'],
 				'{HOST}'                           => Server::get( 'HTTP_HOST' ),
 				'{GENERATED}'                      => '<p>The page was generated at&nbsp;' . date( 'D, d M Y H:i:s' ) . "</p>",
+				'{COOKIE_ANTIFLOOD_PASSED}'      => md5( $this->api_key . $result['ip'] ),
 			);
 			
 			foreach( $replaces as $place_holder => $replace ){

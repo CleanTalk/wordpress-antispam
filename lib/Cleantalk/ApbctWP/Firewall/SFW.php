@@ -80,22 +80,22 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 			
 			if( Cookie::get( 'ct_sfw_pass_key' ) == md5( $current_ip . $this->api_key ) ){
 				
-				if( Cookie::get( 'ct_sfw_passed' ) ){
-					
-					if( ! headers_sent() ){
-						\Cleantalk\Common\Helper::apbct_cookie__set( 'ct_sfw_passed', '0', time() + 86400 * 3, '/', null, false, true, 'Lax' );
+					if( Cookie::get( 'ct_sfw_passed' ) ){
+						
+						if( ! headers_sent() ){
+							\Cleantalk\Common\Helper::apbct_cookie__set( 'ct_sfw_passed', '0', time() + 86400 * 3, '/', null, false, true, 'Lax' );
+						}
+						
+						$results[] = array( 'ip' => $current_ip, 'is_personal' => false, 'status' => 'PASS_SFW__BY_COOKIE', );
+						
+						if( $this->sfw_counter ){
+							$this->apbct->data['sfw_counter']['all'] ++;
+							$this->apbct->saveData();
+						}
+						
 					}
 					
-					$results[] = array( 'ip' => $current_ip, 'is_personal' => false, 'status' => 'PASS_SFW_BY_COOKIE', );
-					
-					if( $this->sfw_counter ){
-						$this->apbct->data['sfw_counter']['all'] ++;
-						$this->apbct->saveData();
-					}
-					
-				}
-				
-				return $results;
+					return $results;
 			}
 		}
 		
@@ -120,7 +120,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 				foreach( $db_results as $db_result ){
 					
 					if( $db_result['status'] == 1 )
-						$results[] = array('ip' => $current_ip, 'is_personal' => false, 'status' => 'PASS_SFW_BY_WHITELIST',);
+						$results[] = array('ip' => $current_ip, 'is_personal' => false, 'status' => 'PASS_SFW__BY_WHITELIST',);
 					else
 						$results[] = array('ip' => $current_ip, 'is_personal' => false, 'status' => 'DENY_SFW',);
 					
@@ -145,9 +145,12 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 	 */
 	public function update_log( $ip, $status ) {
 		
-		$id = md5($ip.$status);
-		$blocked = ( strpos( $status, 'DENY' ) !== false ? ' + 1' : '' );
-		$time    = time();
+		if( in_array( $status, array( 'PASS_SFW__BY_WHITELIST', 'PASS_SFW' ) ) ){
+			return;
+		}
+
+		$id   = md5( $ip );
+		$time = time();
 		
 		$query = "INSERT INTO " . $this->db__table__logs . "
 		SET
@@ -159,8 +162,9 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 			entries_timestamp = '" . $time . "'
 		ON DUPLICATE KEY
 		UPDATE
+			status = '$status',
 			all_entries = all_entries + 1,
-			blocked_entries = blocked_entries" . strval( $blocked ) . ",
+			blocked_entries = blocked_entries" . ( strpos( $status, 'DENY' ) !== false ? ' + 1' : '' ) . ",
 			entries_timestamp = '" . intval( $time ) . "'";
 		
 		$this->db->execute( $query );
@@ -287,16 +291,28 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 			$data = array();
 			foreach( $db->result as $key => $value ){
 				
-				$value['status'] = $value['status'] === 'DENY_ANTICRAWLER' ? 'BOT_PROTECTION'   : $value['status'];
-				$value['status'] = $value['status'] === 'DENY_ANTIFLOOD'   ? 'FLOOD_PROTECTION' : $value['status'];
+				// Converting statuses to API format
+				$value['status'] = $value['status'] === 'DENY_ANTICRAWLER'    ? 'BOT_PROTECTION'   : $value['status'];
+				$value['status'] = $value['status'] === 'PASS_ANTICRAWLER'    ? 'BOT_PROTECTION'   : $value['status'];
 				
-				$data[] = array(
+				$value['status'] = $value['status'] === 'DENY_ANTIFLOOD'      ? 'FLOOD_PROTECTION' : $value['status'];
+				$value['status'] = $value['status'] === 'PASS_ANTIFLOOD'      ? 'FLOOD_PROTECTION' : $value['status'];
+				
+				$value['status'] = $value['status'] === 'PASS_SFW__BY_COOKIE' ? null               : $value['status'];
+				$value['status'] = $value['status'] === 'DENY_SFW'            ? null               : $value['status'];
+				
+				$row = array(
 					trim( $value['ip'] ),
 					$value['all_entries'],
 					$value['all_entries'] - $value['blocked_entries'],
 					$value['entries_timestamp'],
-					$value['status'],
 				);
+				
+				if( $value['status'] )
+					$row[] = $value['status'];
+				
+				$data[] = $row;
+				
 			}
 			unset( $key, $value );
 			

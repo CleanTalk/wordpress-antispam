@@ -3,6 +3,7 @@
 namespace Cleantalk\ApbctWP\Firewall;
 
 
+use Cleantalk\Common\Helper as Helper;
 use Cleantalk\Variables\Cookie;
 use Cleantalk\Variables\Server;
 
@@ -13,6 +14,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 	private $db__table__ac_logs;
 	private $api_key = '';
 	private $apbct = false;
+	private $store_interval = 60;
 	
 	/**
 	 * AntiBot constructor.
@@ -53,19 +55,62 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 			);
 			
 			if( ! empty( $result ) && isset( $result['ip'] ) ){
+				
 				if( Cookie::get('apbct_antibot') !== md5( $this->api_key . $current_ip ) ){
+					
 					$results[] = array( 'ip' => $current_ip, 'is_personal' => false, 'status' => 'DENY_ANTICRAWLER', );
+					
+				}else{
+					
+					if( Cookie::get( 'apbct_anticrawler_passed' ) === '1' ){
+						
+						if( ! headers_sent() )
+							\Cleantalk\Common\Helper::apbct_cookie__set( 'apbct_anticrawler_passed', '0', time() - 86400, '/', null, false, true, 'Lax' );
+						
+						$results[] = array( 'ip' => $current_ip, 'is_personal' => false, 'status' => 'PASS_ANTICRAWLER', );
+						
+						return $results;
+					}
 				}
+				
 			}else{
+				
+				$this->update_ac_log();
+				
 				add_action( 'wp_head', array( '\Cleantalk\ApbctWP\Firewall\AntiCrawler', 'set_cookie' ) );
 				global $apbct_anticrawler_ip;
 				$apbct_anticrawler_ip = $current_ip;
+				
 			}
 		}
 		
 		return $results;
 		
 	}
+	
+	private function update_ac_log() {
+		
+		$interval_time = Helper::time__get_interval_start( $this->store_interval );
+		
+		// @todo Rename ip column to sign. Use IP + UserAgent for it.
+		
+		foreach( $this->ip_array as $ip_origin => $current_ip ){
+			$id = md5( $current_ip . $interval_time );
+			$this->db->execute(
+				"INSERT INTO " . $this->db__table__ac_logs . " SET
+					id = '$id',
+					ip = '$current_ip',
+					entries = 1,
+					interval_start = $interval_time
+				ON DUPLICATE KEY UPDATE
+					ip = ip,
+					entries = entries + 1,
+					interval_start = $interval_time;"
+			);
+		}
+		
+	}
+	
 	
 	public static function set_cookie(){
 		global $apbct, $apbct_anticrawler_ip;
@@ -81,29 +126,25 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 	 */
 	public function update_log( $ip, $status ) {
 		
-		$blocked = ( strpos( $status, 'DENY' ) !== false ? ' + 1' : '' );
+		$id   = md5( $ip );
+		$time = time();
 		
-		if( $blocked ){
-			
-			$id   = md5( $ip . $status );
-			$time = time();
-			
-			$query = "INSERT INTO " . $this->db__table__logs . "
-				SET
-					id = '$id',
-					ip = '$ip',
-					status = '$status',
-					all_entries = 1,
-					blocked_entries = 1,
-					entries_timestamp = '" . intval( $time ) . "'
-				ON DUPLICATE KEY
-				UPDATE
-					all_entries = all_entries + 1,
-					blocked_entries = blocked_entries" . strval( $blocked ) . ",
-					entries_timestamp = '" . intval( $time ) . "'";
-			
-			$this->db->execute( $query );
-		}
+		$query = "INSERT INTO " . $this->db__table__logs . "
+			SET
+				id = '$id',
+				ip = '$ip',
+				status = '$status',
+				all_entries = 1,
+				blocked_entries = 1,
+				entries_timestamp = '" . intval( $time ) . "'
+			ON DUPLICATE KEY
+			UPDATE
+				status = '$status',
+				all_entries = all_entries + 1,
+				blocked_entries = blocked_entries" . ( strpos( $status, 'DENY' ) !== false ? ' + 1' : '' ) . ",
+				entries_timestamp = '" . intval( $time ) . "'";
+		
+		$this->db->execute( $query );
 	}
 	
 	public function _die( $result ){
@@ -123,6 +164,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 				'{SERVICE_ID}'                     => $this->apbct->data['service_id'],
 				'{HOST}'                           => Server::get( 'HTTP_HOST' ),
 				'{COOKIE_ANTICRAWLER}'             => md5( $this->api_key . $result['ip'] ),
+				'{COOKIE_ANTICRAWLER_PASSED}'      => '1',
 				'{GENERATED}'                      => '<p>The page was generated at&nbsp;' . date( 'D, d M Y H:i:s' ) . "</p>",
 			);
 			
