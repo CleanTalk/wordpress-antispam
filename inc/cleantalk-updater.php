@@ -548,3 +548,14 @@ function apbct_update_to_5_142_1() {
 	apbct_activation__create_tables( $sqls );
 	
 }
+
+function apbct_update_to_5_142_2() {
+	
+	$sqls[] = 'DELETE FROM `%scleantalk_sfw_logs` WHERE 1=1';
+	
+	$sqls[] = 'ALTER TABLE `%scleantalk_sfw_logs`
+		CHANGE `status` `status` ENUM(\'PASS_SFW\',\'DENY_SFW\',\'PASS_SFW__BY_WHITELIST\',\'PASS_SFW__BY_COOKIE\',\'DENY_ANTICRAWLER\',\'PASS_ANTICRAWLER\',\'DENY_ANTIFLOOD\',\'PASS_ANTIFLOOD\') NOT NULL AFTER `ip`;';
+	
+	apbct_activation__create_tables( $sqls );
+	
+}
