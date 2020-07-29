@@ -574,6 +574,9 @@ If your website has forms that send data to external sources, you can enable opt
 
 == Changelog ==
 
+= 5.142.2 Jul 29 2020 =
+ * Fix: Issue with SpamFireWall logs.
+
 = 5.142.1 Jul 28 2020 =
  * Fix: Blocking good bots.
 
