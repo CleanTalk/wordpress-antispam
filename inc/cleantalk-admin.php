@@ -321,7 +321,7 @@ function apbct_admin__enqueue_scripts($hook){
 		wp_localize_script( 'jquery', 'ctSettingsPage', array(
 			'ct_subtitle'   => $apbct->ip_license ? __('Hosting AntiSpam', 'cleantalk-spam-protect') : '',
 			'ip_license'    => $apbct->ip_license ? true : false,
-            'key_changed'   => isset($apbct->data['key_changed']) ? (bool) $apbct->data['key_changed'] : false,
+            'key_changed'   => ! empty( $apbct->data['key_changed'] ) ? true : false,
 		));
 	}
 
