@@ -361,7 +361,14 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 				
 				if( !empty($result['file_url']) ){
 					
-					if(Helper::http__request($result['file_url'], array(), 'get_code') === 200) {
+					$result['file_url'] = trim( $result['file_url'] );
+					
+					$check_file = Helper::http__request( $result['file_url'], array(), 'get_code' );
+					
+					if( ! empty( $check_file['error'] ) )
+						return array('error' => $check_file['error'] ); // throw an error
+					
+					if( $check_file === 200 ){
 						
 						if(ini_get('allow_url_fopen')) {
 							
@@ -407,7 +414,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 						}else
 							return array('error' => 'ERROR_ALLOW_URL_FOPEN_DISABLED');
 					}else
-						return array('error' => 'NO_FILE_URL_PROVIDED');
+						return array('error' => 'NO_REMOTE_FILE_FOUND: ' . $result['file_url'] );
 				}else
 					return array('error' => 'BAD_RESPONSE');
 			}else
@@ -460,7 +467,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 				}else
 					return array('error' => 'ERROR_OPEN_GZ_FILE');
 			}else
-				return array('error' => 'NO_REMOTE_FILE_FOUND');
+				return array('error' => 'NO_REMOTE_FILE_FOUND :' . $file_url );
 		}
 	}
 }
