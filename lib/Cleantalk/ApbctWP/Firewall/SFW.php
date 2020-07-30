@@ -353,7 +353,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 		// Getting remote file name
 		if(!$file_url){
 			
-			sleep(6);
+			sleep(4);
 			
 			$result = \Cleantalk\Common\API::method__get_2s_blacklists_db($ct_key, 'multifiles', '2_0');
 			
