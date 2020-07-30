@@ -666,7 +666,7 @@ class API
 				}
 				if (function_exists('gethostbynamel')) {
 					$server_ips = gethostbynamel('api.cleantalk.org');
-					if (!$server_ips !== false && is_array($server_ips) && count($server_ips)) {
+					if ($server_ips !== false && is_array($server_ips) && count($server_ips)) {
 						foreach ($server_ips as $ip) {
 							$allowed = @fsockopen ($ip, 80, $errno, $errstr, $timeout / 2);
 							if ($allowed) {
