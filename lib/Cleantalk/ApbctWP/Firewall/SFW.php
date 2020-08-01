@@ -53,7 +53,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 	 */
 	public function ip__append_additional( &$ips ){
 		
-		$this->real_ip = $ips['real'];
+		$this->real_ip = isset($ips['real']) ? $ips['real'] : null;
 		
 		if( Get::get( 'sfw_test_ip' ) ){
 			if( Helper::ip__validate( Get::get( 'sfw_test_ip' ) ) !== false ){
