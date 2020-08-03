@@ -3351,7 +3351,7 @@ function ct_contact_form_validate() {
         }
     }
     //Skip system fields for divi
-	if (strpos($param, 'et_pb_contactform_submit') === 0) {
+	if (strpos( \Cleantalk\Variables\Post::get('action'), 'et_pb_contactform_submit') === 0) {
 		foreach ($_POST as $key => $value) {
 			if (strpos($key, 'et_pb_contact_email_fields') === 0) {
 				unset($_POST[$key]);
