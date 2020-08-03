@@ -575,9 +575,9 @@ function apbct_integration__buddyPres__activityWall( $is_spam, $activity_obj = n
 
 	$allowed_post_actions = array('post_update', 'new_activity_comment');
 
-	if( !in_array(\Cleantalk\Variables\Post::get('action'), $allowed_post_actions) ||
+	if( ! in_array(\Cleantalk\Variables\Post::get('action'), $allowed_post_actions) ||
 		$activity_obj === null ||
-	    !isset($_POST['action']) ||
+	    ! \Cleantalk\Variables\Post::get('action') ||
 	    $activity_obj->privacy == 'media' ||
 	    apbct_exclusions_check()
 	) {
