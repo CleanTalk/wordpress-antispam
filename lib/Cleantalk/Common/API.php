@@ -670,7 +670,7 @@ class API
 						foreach ($server_ips as $ip) {
 							$allowed = @fsockopen ($ip, 80, $errno, $errstr, $timeout / 2);
 							if ($allowed) {
-								return self::send_request($data, 'https://'.$ip);
+								return self::send_request($data, 'https://'.$ip, $timeout, true);
 							}
 						}
 					}
