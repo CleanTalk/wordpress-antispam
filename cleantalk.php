@@ -1006,6 +1006,10 @@ function ct_sfw_update($api_key = '', $immediate = false){
 
 		if( ! $file_urls ){
 
+		    // @ToDo we have to implement a flag to checking is the updating is in progress
+		    // @ToDo this is the temporary solution: Setting update time at the updating start to prevent running several update processes
+            $apbct->stats['sfw']['last_update_time'] = time();
+
 			//Reset previous entries count
 			$apbct->stats['sfw']['entries'] = 0;
 			$apbct->save('stats');
