@@ -574,6 +574,13 @@ If your website has forms that send data to external sources, you can enable opt
 
 == Changelog ==
 
+= 5.143 Aug 05 2020 =
+ * New: Synchronize button. New way of synchronize with the Cleantalk Cloud.
+ * Fix: SpamFireWall (firewall against spam) update, storing system.
+ * Fix: Skip Woocomerce metorik send cart.
+ * Spam protection improved.
+ * Minor fixes.
+
 = 5.142.2 Jul 29 2020 =
  * Fix: Issue with SpamFireWall logs.
 
