@@ -4,7 +4,7 @@ Tags: spam, antispam, woocommerce, comments, firewall
 Requires at least: 3.0
 Tested up to: 5.5
 Requires PHP: 5.4
-Stable tag: 5.142.2
+Stable tag: 5.143
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -34,6 +34,8 @@ No CAPTCHA, no questions, no animal counting, no puzzles, no math and no spam bo
 16. Mobile friendly Anti Spam & FireWall.
 17. Stops spam in Search Form.
 18. Disable comments.
+19. Spam FireWall: Anti-Flood
+20. Spam FireWall: Anti-Crawler
 
 = Public reviews =
 > CleanTalk - Cloud-Based Anti-Spam Service to Keep Your Site Bot-Free.
@@ -156,6 +158,9 @@ All the CleanTalk Spam FireWall activity is being logged in the process of filte
 = Spam FireWall DDoS Protection =
 Spam FireWall can mitigate HTTP/HTTPS DDoS attacks. When an intruder makes GET requests to attack your website, Spam FireWall blocks all requests from bad IP addresses. Your website gives the intruder a special page with the description of DDoS rejection instead of the website pages. Therefore Spam FireWall helps to reduce CPU usage of your server.
 [youtube https://www.youtube.com/watch?v=Eu5Zqryvj4k]
+
+= Spam FireWall: Anti-Flood & Anti-Crawler = 
+Spam FireWall: Anti-Flood and Anti-Crawler options are intended for blocking unwanted bots, content parsing, shop goods prices parsing or aggressive website scanning bots. Learn more https://cleantalk.org/help/anti-flood-and-anti-crawler
 
 = XML-RPC brute force protection =
 Spam FireWall can mitigate XML-RPC brute force attacks. It blocks XML-RPC attacks from bad IP addresses. This helps to prevent bruteforce attacks by a Remote Procedure Call.
