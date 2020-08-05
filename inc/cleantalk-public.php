@@ -573,16 +573,17 @@ function apbct_integration__buddyPres__activityWall( $is_spam, $activity_obj = n
 
 	global $apbct;
 
-	if( $activity_obj === null ||
-	    !isset($_POST['action']) ||
+	$allowed_post_actions = array('post_update', 'new_activity_comment');
+
+	if( ! in_array(\Cleantalk\Variables\Post::get('action'), $allowed_post_actions) ||
+		$activity_obj === null ||
+	    ! \Cleantalk\Variables\Post::get('action') ||
 	    $activity_obj->privacy == 'media' ||
-	    ( ! empty( $_POST['action'] ) && $_POST['action'] !== 'post_update' ) ||
 	    apbct_exclusions_check()
 	) {
         do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
         return false;
     }
-
 
   	$curr_user = get_user_by('id', $activity_obj->user_id);
 
@@ -3348,7 +3349,7 @@ function ct_contact_form_validate() {
         }
     }
     //Skip system fields for divi
-	if (strpos($param, 'et_pb_contactform_submit') === 0) {
+	if (strpos( \Cleantalk\Variables\Post::get('action'), 'et_pb_contactform_submit') === 0) {
 		foreach ($_POST as $key => $value) {
 			if (strpos($key, 'et_pb_contact_email_fields') === 0) {
 				unset($_POST[$key]);

@@ -697,7 +697,7 @@ function apbct_settings__display() {
 	
 			if( apbct_api_key__is_correct() && ! $apbct->white_label ){
 				// Sync button
-				echo '<button type="button" class="cleantalk_link cleantalk_link-manual" id="apbct_button__sync">'
+				echo '<button type="button" class="cleantalk_link cleantalk_link-auto" id="apbct_button__sync" title="Synchronizing account status, SpamFireWall database, all kind of journals.">'
 				     . '<i class="icon-upload-cloud"></i>&nbsp;&nbsp;'
 				     . __( 'Synchronize with Cloud', 'security-malware-firewall' )
 				     . '<img style="margin-left: 10px;" class="apbct_preloader_button" src="' . APBCT_URL_PATH . '/inc/images/preloader2.gif" />'

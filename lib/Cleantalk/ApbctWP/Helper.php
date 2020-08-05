@@ -47,4 +47,28 @@ class Helper extends \Cleantalk\Common\Helper
 		
 		return parent::http__request($url, $data, $presets, $opts);
 	}
+	
+	/**
+	 * Wrapper for http_request
+	 * Requesting HTTP response code for $url
+	 *
+	 * @param string $url
+	 *
+	 * @return array|mixed|string
+	 */
+	static public function http__request__get_response_code( $url ){
+		return static::http__request( $url, array(), 'get_code');
+	}
+	
+	/**
+	 * Wrapper for http_request
+	 * Requesting data via HTTP request with GET method
+	 *
+	 * @param string $url
+	 *
+	 * @return array|mixed|string
+	 */
+	static public function http__request__get_content( $url ){
+		return static::http__request( $url, array(), 'get dont_split_to_array');
+	}
 }
