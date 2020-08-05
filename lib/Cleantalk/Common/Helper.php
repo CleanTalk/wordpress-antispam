@@ -745,4 +745,88 @@ class Helper
 		return time() - ( ( time() - strtotime( date( 'd F Y' ) ) ) % $interval );
 	}
 	
+	/**
+	 * Get mime type from file or data
+	 *
+	 * @param string $data Path to file or data
+	 * @param string $type Default mime type. Returns if we failed to detect type
+	 *
+	 * @return string
+	 */
+	static function get_mime_type( $data, $type = '' )
+	{
+		if( @file_exists( $data )){
+			$type = mime_content_type( $data );
+		}elseif( function_exists('finfo_open' ) ){
+			$finfo = finfo_open(FILEINFO_MIME_TYPE);
+			$type = finfo_buffer($finfo, $data);
+			finfo_close($finfo);
+		}
+		return $type;
+	}
+	
+	static function buffer__trim_and_clear_from_empty_lines( $buffer ){
+		$buffer = (array) $buffer;
+		foreach( $buffer as $indx => &$line ){
+			$line = trim( $line );
+			if($line === '')
+				unset( $buffer[$indx] );
+		}
+		return $buffer;
+	}
+	
+	static function buffer__parse__csv( $buffer ){
+		$buffer = explode( "\n", $buffer );
+		$buffer = self::buffer__trim_and_clear_from_empty_lines( $buffer );
+		foreach($buffer as &$line){
+			$line = str_getcsv($line, ',', '\'');
+		}
+		return $buffer;
+	}
+	
+	/**
+	 * Pops line from buffer without formatting
+	 *
+	 * @param $csv
+	 *
+	 * @return false|string
+	 */
+	static public function buffer__csv__pop_line( &$csv ){
+		$pos  = strpos( $csv, "\n" );
+		$line = substr( $csv, 0, $pos );
+		$csv  = substr_replace( $csv, '', 0, $pos + 1 );
+		return $line;
+	}
+	
+	/**
+	 * Pops line from the csv buffer and fromat it by map to array
+	 *
+	 * @param $csv
+	 * @param array $map
+	 *
+	 * @return array|false
+	 */
+	static public function buffer__csv__get_map( &$csv ){
+		$line = static::buffer__csv__pop_line( $csv );
+		return explode( ',', $line );
+	}
+	
+	/**
+	 * Pops line from the csv buffer and fromat it by map to array
+	 *
+	 * @param $csv
+	 * @param array $map
+	 *
+	 * @return array|false
+	 */
+	static public function buffer__csv__pop_line_to_array( &$csv, $map = array() ){
+		$line = trim( static::buffer__csv__pop_line( $csv ) );
+		$line = strpos( $line, '\'' ) === 0
+			? str_getcsv($line, ',', '\'')
+			: explode( ',', $line );
+		if( $map )
+			$line = array_combine( $map, $line );
+		return $line;
+	}
+	
 }
