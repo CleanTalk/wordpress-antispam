@@ -3,7 +3,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 5.142.3
+  Version: 5.143
   Author: СleanTalk <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -619,8 +619,8 @@ function apbct_sfw__check()
 	);
 	
 	$firewall->load_fw_module( new \Cleantalk\ApbctWP\Firewall\SFW(
-		defined( 'APBCT_TBL_FIREWALL_LOG' ) ? APBCT_TBL_FIREWALL_LOG : $this->db->prefix . 'cleantalk_sfw_logs',
-		defined( 'APBCT_TBL_FIREWALL_DATA' ) ? APBCT_TBL_FIREWALL_DATA : $this->db->prefix . 'cleantalk_sfw',
+		APBCT_TBL_FIREWALL_LOG,
+		APBCT_TBL_FIREWALL_DATA,
 		array(
 			'sfw_counter'   => $apbct->settings['sfw_counter'],
 			'api_key'       => $apbct->api_key,
@@ -632,8 +632,8 @@ function apbct_sfw__check()
 	
 	if( $apbct->settings['sfw__anti_crawler'] ){
 		$firewall->load_fw_module( new \Cleantalk\ApbctWP\Firewall\AntiCrawler(
-			defined( 'APBCT_TBL_FIREWALL_LOG' )   ? APBCT_TBL_FIREWALL_LOG : $this->db->prefix . 'cleantalk_sfw_logs',
-			defined( 'APBCT_TBL_AC_LOG' )      ? APBCT_TBL_AC_LOG        : $this->db->prefix . 'cleantalk_ac_log',
+			APBCT_TBL_FIREWALL_LOG,
+			APBCT_TBL_AC_LOG,
 			array(
 				'api_key' => $apbct->api_key,
 				'apbct'   => $apbct,
@@ -643,8 +643,8 @@ function apbct_sfw__check()
 	
 	if( $apbct->settings['sfw__anti_flood'] ){
 		$firewall->load_fw_module( new \Cleantalk\ApbctWP\Firewall\AntiFlood(
-			defined( 'APBCT_TBL_FIREWALL_LOG' ) ? APBCT_TBL_FIREWALL_LOG : $this->db->prefix . 'cleantalk_sfw_logs',
-			defined( 'APBCT_TBL_AC_LOG' ) ? APBCT_TBL_AC_LOG : $this->db->prefix . 'cleantalk_ac_log',
+			APBCT_TBL_FIREWALL_LOG,
+			APBCT_TBL_AC_LOG,
 			array(
 				'api_key'    => $apbct->api_key,
 				'view_limit' => $apbct->settings['sfw__anti_flood__view_limit'],
@@ -1012,7 +1012,7 @@ function ct_sfw_update($api_key = '', $immediate = false){
 			
 			$result = \Cleantalk\ApbctWP\Firewall\SFW::update(
 				\Cleantalk\ApbctWP\DB::getInstance(),
-				defined( 'APBCT_TBL_FIREWALL_DATA' ) ? APBCT_TBL_FIREWALL_DATA : $this->db->prefix . 'cleantalk_sfw',
+				APBCT_TBL_FIREWALL_DATA,
 				$api_key,
 				null,
 				$immediate
@@ -1026,7 +1026,7 @@ function ct_sfw_update($api_key = '', $immediate = false){
 
 			$result = \Cleantalk\ApbctWP\Firewall\SFW::update(
 				\Cleantalk\ApbctWP\DB::getInstance(),
-				defined( 'APBCT_TBL_FIREWALL_DATA' ) ? APBCT_TBL_FIREWALL_DATA : $this->db->prefix . 'cleantalk_sfw',
+				APBCT_TBL_FIREWALL_DATA,
 				$api_key,
 				$file_urls[0],
 				$immediate
@@ -1079,7 +1079,7 @@ function ct_sfw_send_logs($api_key = '')
 		
 		$result = \Cleantalk\ApbctWP\Firewall\SFW::send_log(
 			\Cleantalk\ApbctWP\DB::getInstance(),
-			defined('APBCT_TBL_FIREWALL_LOG')  ? APBCT_TBL_FIREWALL_LOG  : $this->db->prefix . 'cleantalk_sfw_logs',
+			APBCT_TBL_FIREWALL_LOG,
 			$api_key
 		);
 		
