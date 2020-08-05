@@ -401,6 +401,7 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 		}
 	}
 	if (isset($_POST['action']) && $_POST['action'] == 'ufbl_front_form_action'){
+		$ct_post_temp = $_POST;
 		foreach ($ct_post_temp as $key => $value) {
 			if (preg_match('/form_data_\d_name/', $key)) 
 				unset($ct_post_temp[$key]);
