@@ -581,6 +581,7 @@ If your website has forms that send data to external sources, you can enable opt
 
 = 5.143.1 Aug 06 2020 =
  * Fix: Recursion fixed.
+ * Fix: Rebuild url for SFW updating process.
 
 = 5.143 Aug 05 2020 =
  * New: Synchronize button. New way of synchronize with the Cleantalk Cloud.
