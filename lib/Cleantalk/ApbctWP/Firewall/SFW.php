@@ -387,12 +387,12 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 												
 												$lines = Helper::buffer__parse__csv( $data );
 												
-												$file_urls = array();
+												/*$file_urls = array();
 												
 												while( current( $lines ) !== false ){
 													$file_urls[] = current( $lines )[0];
 													next( $lines );
-												}
+												}*/
 												
 												$patterns   = array();
 												$patterns[] = 'get';
@@ -407,7 +407,9 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 														'spbc_remote_call_token'  => md5( $ct_key ),
 														'spbc_remote_call_action' => 'sfw_update',
 														'plugin_name'             => 'apbct',
-														'file_urls'               => implode( ',', $file_urls ),
+														'file_urls'               => $file_url,
+                                                        'url_count'               => count( $lines ),
+                                                        'current_url'             => 0,
 													),
 													$patterns
 												);

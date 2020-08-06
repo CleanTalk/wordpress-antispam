@@ -506,7 +506,7 @@ function apbct_remote_call__perform()
 					
 				// SFW update
 					case 'sfw_update':
-						$result = ct_sfw_update(true);
+						$result = ct_sfw_update( $apbct->api_key, true);
 						/**
 						 * @todo CRUNCH
 						 */
@@ -1001,8 +1001,9 @@ function ct_sfw_update($api_key = '', $immediate = false){
 
     if( $apbct->settings['spam_firewall'] == 1 && ( ! empty($api_key) || $apbct->data['moderate_ip'] ) ) {
     	
-	    $file_urls = isset($_GET['file_urls']) ? urldecode( $_GET['file_urls'] ) : null;
-	    $file_urls = isset($file_urls) ? explode(',', $file_urls) : null;
+	    $file_urls   = isset($_GET['file_urls'])   ? urldecode( $_GET['file_urls'] )   : null;
+        $url_count   = isset($_GET['url_count'])   ? urldecode( $_GET['url_count'] )   : null;
+        $current_url = isset($_GET['current_url']) ? urldecode( $_GET['current_url'] ) : null;
 
 		if( ! $file_urls ){
 
@@ -1026,32 +1027,34 @@ function ct_sfw_update($api_key = '', $immediate = false){
 				? $result
 				: true;
 			
-		}elseif( is_array( $file_urls ) && count( $file_urls ) ){
+		}elseif( $file_urls && $url_count >= $current_url ){
 
 			$result = \Cleantalk\ApbctWP\Firewall\SFW::update(
 				\Cleantalk\ApbctWP\DB::getInstance(),
 				APBCT_TBL_FIREWALL_DATA,
 				$api_key,
-				$file_urls[0],
+                str_replace( 'multifiles', $current_url, $file_urls ),
 				$immediate
 			);
 			
 			if( empty( $result['error'] ) ){
 
-				array_shift($file_urls);
+                $current_url++;
 
 				//Increment sfw entries
 				$apbct->stats['sfw']['entries'] += $result;
 				$apbct->save('stats');
 
-				if (count($file_urls)) {
+				if ( $url_count >= $current_url ) {
 					\Cleantalk\ApbctWP\Helper::http__request(
 						get_option('siteurl'),
 						array(
 							'spbc_remote_call_token'  => md5($api_key),
 							'spbc_remote_call_action' => 'sfw_update',
 							'plugin_name'             => 'apbct',
-							'file_urls'               => implode(',', $file_urls),
+                            'file_urls'               => $file_urls,
+                            'url_count'               => $url_count,
+                            'current_url'             => $current_url,
 						),
 						array('get', 'async')
 					);
