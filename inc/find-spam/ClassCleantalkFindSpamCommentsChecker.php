@@ -8,7 +8,7 @@ class ClassCleantalkFindSpamCommentsChecker extends ClassCleantalkFindSpamChecke
 
         parent::__construct();
 
-        $this->page_title = esc_html__( 'Check comments for spam', 'cleantalk' );
+        $this->page_title = esc_html__( 'Check comments for spam', 'cleantalk-spam-protect');
         $this->page_script_name = 'edit-comments.php';
         $this->page_slug = 'spam';
 
@@ -22,11 +22,11 @@ class ClassCleantalkFindSpamCommentsChecker extends ClassCleantalkFindSpamChecke
             'ct_prev_accurate'            => !empty($prev_check['accurate']) ? true                : false,
             'ct_prev_from'                => !empty($prev_check['from'])     ? $prev_check['from'] : false,
             'ct_prev_till'                => !empty($prev_check['till'])     ? $prev_check['till'] : false,
-            'ct_timeout_confirm'          => __('Failed from timeout. Going to check comments again.', 'cleantalk'),
-            'ct_confirm_deletion_all'     => __('Delete all spam comments?', 'cleantalk'),
-            'ct_comments_added_after'     => __('comments', 'cleantalk'),
-            'ct_status_string'            => __('Checked %s, found %s spam comments and %s bad comments (without IP or email).', 'cleantalk'),
-            'ct_status_string_warning'    => '<p>'.__('Please do backup of WordPress database before delete any accounts!', 'cleantalk').'</p>',
+            'ct_timeout_confirm'          => __('Failed from timeout. Going to check comments again.', 'cleantalk-spam-protect'),
+            'ct_confirm_deletion_all'     => __('Delete all spam comments?', 'cleantalk-spam-protect'),
+            'ct_comments_added_after'     => __('comments', 'cleantalk-spam-protect'),
+            'ct_status_string'            => __('Checked %s, found %s spam comments and %s bad comments (without IP or email).', 'cleantalk-spam-protect'),
+            'ct_status_string_warning'    => '<p>'.__('Please do backup of WordPress database before delete any accounts!', 'cleantalk-spam-protect').'</p>',
             'start'                       => !empty($_COOKIE['ct_comments_start_check']) ? true : false,
         ));
 
@@ -232,7 +232,7 @@ class ClassCleantalkFindSpamCommentsChecker extends ClassCleantalkFindSpamChecke
                 die();
             }
 
-            $result = CleantalkAPI::method__spam_check_cms($apbct->api_key, $data, !empty($_POST['accurate_check']) ? $curr_date : null);
+            $result = \Cleantalk\ApbctWP\API::method__spam_check_cms($apbct->api_key, $data, !empty($_POST['accurate_check']) ? $curr_date : null);
 
             if(empty($result['error'])){
 
@@ -336,17 +336,17 @@ class ClassCleantalkFindSpamCommentsChecker extends ClassCleantalkFindSpamChecke
 
         if( ! $direct_call ) {
             $return['message'] .= sprintf (
-                esc_html__('Checked %s, found %s spam comments and %s bad comments (without IP or email)', 'cleantalk'),
+                esc_html__('Checked %s, found %s spam comments and %s bad comments (without IP or email)', 'cleantalk-spam-protect'),
                 $cnt_checked,
                 $cnt_spam,
                 $cnt_bad
             );
         } else {
             if( isset( $return['checked'] ) && 0 == $return['checked'] ) {
-                $return['message'] = esc_html__( 'Never checked yet or no new spam.', 'cleantalk' );
+                $return['message'] = esc_html__( 'Never checked yet or no new spam.', 'cleantalk-spam-protect');
             } else {
                 $return['message'] .= sprintf (
-                    __("Last check %s: checked %s comments, found %s spam comments and %s bad comments (without IP or email).", 'cleantalk'),
+                    __("Last check %s: checked %s comments, found %s spam comments and %s bad comments (without IP or email).", 'cleantalk-spam-protect'),
                     self::lastCheckDate(),
                     $cnt_checked,
                     $cnt_spam,
@@ -357,7 +357,7 @@ class ClassCleantalkFindSpamCommentsChecker extends ClassCleantalkFindSpamChecke
 
         $backup_notice = '&nbsp;';
         if ($cnt_spam > 0){
-            $backup_notice = __("Please do backup of WordPress database before delete any comments!", 'cleantalk');
+            $backup_notice = __("Please do backup of WordPress database before delete any comments!", 'cleantalk-spam-protect');
         }
         $return['message'] .= "<p>$backup_notice</p>";
 

@@ -19,10 +19,10 @@ class cleantalk_widget extends WP_Widget
 			'cleantalk_widget', 
 		
 			// Widget name will appear in UI
-			__('CleanTalk Widget', 'cleantalk'), 
+			__('CleanTalk Widget', 'cleantalk-spam-protect'),
 		
 			// Widget description
-			array( 'description' => __( 'CleanTalk widget', 'cleantalk' ), ) 
+			array( 'description' => __( 'CleanTalk widget', 'cleantalk-spam-protect'), )
 		);
 	}
 
@@ -32,7 +32,7 @@ class cleantalk_widget extends WP_Widget
 	{
 		global $apbct;
 		
-		$instance['title'] = isset( $instance['title'] ) ? $instance['title'] : __( 'Spam blocked', 'cleantalk' );
+		$instance['title'] = isset( $instance['title'] ) ? $instance['title'] : __( 'Spam blocked', 'cleantalk-spam-protect');
 		$title = apply_filters( 'widget_title', $instance['title'] );
 		echo $args['before_widget'];
 		
@@ -70,8 +70,8 @@ class cleantalk_widget extends WP_Widget
 		
 		// This is where you run the code and display the output
 		echo '<div style="width:auto;">'
-			.'<a href="https://cleantalk.org'.(!empty($instance['refid']) ? '?pid='.$instance['refid'] : '').'" target="_blank" title="'.__('CleanTalk\'s main page', 'cleantalk').'" style="'.$a_style.'">'
-				.'<strong style="'.$strong_style.'"><b>'.$blocked.'</b> '.__('spam', 'cleantalk').'</strong> '.__('blocked by', 'cleantalk').' <strong>CleanTalk</strong>'
+			.'<a href="https://cleantalk.org'.(!empty($instance['refid']) ? '?pid='.$instance['refid'] : '').'" target="_blank" title="'.__('CleanTalk\'s main page', 'cleantalk-spam-protect').'" style="'.$a_style.'">'
+				.'<strong style="'.$strong_style.'"><b>'.$blocked.'</b> '.__('spam', 'cleantalk-spam-protect').'</strong> '.__('blocked by', 'cleantalk-spam-protect').' <strong>CleanTalk</strong>'
 			.'</a>'
 		.'</div>';
 		
@@ -83,27 +83,27 @@ class cleantalk_widget extends WP_Widget
 	{
 		// Widget admin form
 		
-		$title = isset( $instance[ 'title' ] ) ? $instance[ 'title' ] : $title = __( 'Spam blocked', 'cleantalk' );
+		$title = isset( $instance[ 'title' ] ) ? $instance[ 'title' ] : $title = __( 'Spam blocked', 'cleantalk-spam-protect');
 		$style = isset( $instance[ 'style' ] ) ? $instance[ 'style' ] : $style = 'ct_style';
 		$refid = isset( $instance[ 'refid' ] ) ? $instance[ 'refid' ] : $refid = '';
 		// Title field
 		echo '<p>'
-			.'<label for="' . $this->get_field_id( 'title' ) . '">' . __( 'Title:', 'cleantalk' ) . '</label>'
+			.'<label for="' . $this->get_field_id( 'title' ) . '">' . __( 'Title:', 'cleantalk-spam-protect') . '</label>'
 			.'<input class="widefat" id="'.$this->get_field_id( 'title' ).'" name="'.$this->get_field_name( 'title' ).'" type="text" value="'.esc_attr( $title ).'" />'
 		.'</p>';
 		// Style
 		echo '<p>'
-			.'<label for="' . $this->get_field_id( 'style' ) . '">' . __( 'Style:', 'cleantalk' ) . '</label>'
+			.'<label for="' . $this->get_field_id( 'style' ) . '">' . __( 'Style:', 'cleantalk-spam-protect') . '</label>'
 			.'<select id="'.$this->get_field_id( 'style' ).'" class="widefat" name="'.$this->get_field_name( 'style' ).'">'
-				.'<option '.($style == 'cleantalk' ? 'selected' : '').' value="cleantalk">'.__('CleanTalk\'s Style', 'cleantalk').'</option>'
-				.'<option '.($style == 'light'     ? 'selected' : '').' value="light">'.__('Light', 'cleantalk').'</option>'
-				.'<option '.($style == 'ex_light'  ? 'selected' : '').' value="ex_light">'.__('Extremely Light', 'cleantalk').'</option>'
-				.'<option '.($style == 'dark'      ? 'selected' : '').' value="dark">'.__('Dark', 'cleantalk').'</option>'
+				.'<option '.($style == 'cleantalk' ? 'selected' : '').' value="cleantalk">'.__('CleanTalk\'s Style', 'cleantalk-spam-protect').'</option>'
+				.'<option '.($style == 'light'     ? 'selected' : '').' value="light">'.__('Light', 'cleantalk-spam-protect').'</option>'
+				.'<option '.($style == 'ex_light'  ? 'selected' : '').' value="ex_light">'.__('Extremely Light', 'cleantalk-spam-protect').'</option>'
+				.'<option '.($style == 'dark'      ? 'selected' : '').' value="dark">'.__('Dark', 'cleantalk-spam-protect').'</option>'
 			.'</select>'
 		.'</p>';
 		// Ref ID
 		echo '<p>'
-			.'<label for="' . $this->get_field_id( 'refid' ) . '">' . __( 'Referal link ID:', 'cleantalk' ) . '</label>'
+			.'<label for="' . $this->get_field_id( 'refid' ) . '">' . __( 'Referal link ID:', 'cleantalk-spam-protect') . '</label>'
 			.'<input class="widefat" id="'.$this->get_field_id( 'refid' ).'" name="'.$this->get_field_name( 'refid' ).'" type="text" value="'.$refid.'" />'
 		.'</p>';
 	}

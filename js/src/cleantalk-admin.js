@@ -9,11 +9,13 @@ jQuery(document).ready(function(){
 	jQuery('li a[href="options-general.php?page=cleantalk"]').css('white-space','nowrap');
 	
 });
-
-function apbct_sendAJAX(data, params, obj){
+function apbct_admin_sendAJAX(data, params, obj){
 
 	// Default params
 	var callback    = params.callback    || null;
+	var callback_context = params.callback_context || null;
+	var callback_params = params.callback_params || null;
+	var async = params.async || true;
 	var notJson     = params.notJson     || null;
 	var timeout     = params.timeout     || 15000;
 	var obj         = obj                || null;
@@ -21,17 +23,21 @@ function apbct_sendAJAX(data, params, obj){
 	var spinner     = params.spinner     || null;
 	var progressbar = params.progressbar || null;
 
+	if(typeof (data) === 'string') {
+		data = data + '&_ajax_nonce=' + ctAdminCommon._ajax_nonce + '&no_cache=' + Math.random();
+	} else {
+		data._ajax_nonce = ctAdminCommon._ajax_nonce;
+		data.no_cache = Math.random();
+	}
 	// Button and spinner
 	if(button)  {button.setAttribute('disabled', 'disabled'); button.style.cursor = 'not-allowed'; }
 	if(spinner) jQuery(spinner).css('display', 'inline');
-
-	// Adding security code
-	data._ajax_nonce = ctAdminCommon._ajax_nonce;
 
 	jQuery.ajax({
 		type: "POST",
 		url: ctAdminCommon._ajax_url,
 		data: data,
+		async: async,
 		success: function(result){
 			if(button){  button.removeAttribute('disabled'); button.style.cursor = 'pointer'; }
 			if(spinner)  jQuery(spinner).css('display', 'none');
@@ -40,8 +46,12 @@ function apbct_sendAJAX(data, params, obj){
 				setTimeout(function(){ if(progressbar) progressbar.fadeOut('slow'); }, 1000);
 				alert('Error happens: ' + (result.error || 'Unkown'));
 			}else{
-				if(callback)
-					callback(result, data, params, obj);
+				if(callback) {
+					if (callback_params)
+						callback.apply( callback_context, callback_params.concat( result, data, params, obj ) );
+					else
+						callback(result, data, params, obj);
+				}
 			}
 		},
 		error: function(jqXHR, textStatus, errorThrown){

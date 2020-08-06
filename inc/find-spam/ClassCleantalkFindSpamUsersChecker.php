@@ -8,7 +8,7 @@ class ClassCleantalkFindSpamUsersChecker extends ClassCleantalkFindSpamChecker
 
         parent::__construct();
 
-        $this->page_title = esc_html__( 'Check users for spam', 'cleantalk' );
+        $this->page_title = esc_html__( 'Check users for spam', 'cleantalk-spam-protect');
         $this->page_script_name = 'users.php';
         $this->page_slug = 'users';
 
@@ -23,13 +23,13 @@ class ClassCleantalkFindSpamUsersChecker extends ClassCleantalkFindSpamChecker
             'ct_prev_accurate'            => !empty($prev_check['accurate']) ? true                : false,
             'ct_prev_from'                => !empty($prev_check['from'])     ? $prev_check['from'] : false,
             'ct_prev_till'                => !empty($prev_check['till'])     ? $prev_check['till'] : false,
-            'ct_timeout'                  => __('Failed from timeout. Going to check users again.', 'cleantalk'),
-            'ct_timeout_delete'           => __('Failed from timeout. Going to run a new attempt to delete spam users.', 'cleantalk'),
-            'ct_confirm_deletion_all'     => __('Delete all spam users?', 'cleantalk'),
-            'ct_iusers'                   => __('users.', 'cleantalk'),
+            'ct_timeout'                  => __('Failed from timeout. Going to check users again.', 'cleantalk-spam-protect'),
+            'ct_timeout_delete'           => __('Failed from timeout. Going to run a new attempt to delete spam users.', 'cleantalk-spam-protect'),
+            'ct_confirm_deletion_all'     => __('Delete all spam users?', 'cleantalk-spam-protect'),
+            'ct_iusers'                   => __('users.', 'cleantalk-spam-protect'),
             'ct_csv_filename'             => "user_check_by_".$current_user->user_login,
-            'ct_status_string'            => __("Checked %s, found %s spam users and %s bad users (without IP or email)", 'cleantalk'),
-            'ct_status_string_warning'    => "<p>".__("Please do backup of WordPress database before delete any accounts!", 'cleantalk')."</p>"
+            'ct_status_string'            => __("Checked %s, found %s spam users and %s bad users (without IP or email)", 'cleantalk-spam-protect'),
+            'ct_status_string_warning'    => "<p>".__("Please do backup of WordPress database before delete any accounts!", 'cleantalk-spam-protect')."</p>"
         ));
 
         wp_enqueue_style( 'cleantalk_admin_css_settings_page', plugins_url().'/cleantalk-spam-protect/css/cleantalk-spam-check.min.css', array(), APBCT_VERSION, 'all' );
@@ -140,17 +140,15 @@ class ClassCleantalkFindSpamUsersChecker extends ClassCleantalkFindSpamChecker
             'administrator'
         );
 
+        $from_till = '';
+
         if(isset($_POST['from'], $_POST['till'])){
 
-            $from_date = date('Y-m-d', intval(strtotime($_POST['from'])));
-            $till_date = date('Y-m-d', intval(strtotime($_POST['till'])));
+            $from_date = date('Y-m-d', intval(strtotime($_POST['from']))) . ' 00:00:00';
+            $till_date = date('Y-m-d', intval(strtotime($_POST['till']))) . ' 23:59:59';
 
-            $params['date_query'] = array(
-                'column'   => 'user_registered',
-                'after'     => $from_date,
-                'before'    => $till_date,
-                'inclusive' => true,
-            );
+            $from_till = " AND $wpdb->users.user_registered >= '$from_date' AND $wpdb->users.user_registered <= '$till_date'";
+
         }
 	
 	    $u = $wpdb->get_results("
@@ -160,6 +158,7 @@ class ClassCleantalkFindSpamUsersChecker extends ClassCleantalkFindSpamChecker
 				NOT EXISTS(SELECT * FROM {$wpdb->usermeta} as meta WHERE {$wpdb->users}.ID = meta.user_id AND meta.meta_key = 'ct_bad') AND
 		        NOT EXISTS(SELECT * FROM {$wpdb->usermeta} as meta WHERE {$wpdb->users}.ID = meta.user_id AND meta.meta_key = 'ct_checked') AND
 		        NOT EXISTS(SELECT * FROM {$wpdb->usermeta} as meta WHERE {$wpdb->users}.ID = meta.user_id AND meta.meta_key = 'ct_checked_now')
+			    $from_till
 			ORDER BY {$wpdb->users}.user_registered ASC
 			LIMIT $amount;"
 		);
@@ -232,7 +231,7 @@ class ClassCleantalkFindSpamUsersChecker extends ClassCleantalkFindSpamChecker
                 die();
             }
 
-            $result = CleantalkAPI::method__spam_check_cms( $apbct->api_key, $data, !empty($_POST['accurate_check']) ? $curr_date : null );
+            $result = \Cleantalk\ApbctWP\API::method__spam_check_cms( $apbct->api_key, $data, !empty($_POST['accurate_check']) ? $curr_date : null );
 
             if( empty( $result['error'] ) ){
 
@@ -372,17 +371,17 @@ class ClassCleantalkFindSpamUsersChecker extends ClassCleantalkFindSpamChecker
 
         if( ! $direct_call ) {
             $return['message'] .= sprintf (
-                esc_html__('Checked %s, found %s spam users and %s bad users (without IP or email)', 'cleantalk'),
+                esc_html__('Checked %s, found %s spam users and %s bad users (without IP or email)', 'cleantalk-spam-protect'),
                 $cnt_checked,
                 $cnt_spam,
                 $cnt_bad
             );
         } else {
             if( isset( $return['checked'] ) && 0 == $return['checked']  ) {
-                $return['message'] = esc_html__( 'Never checked yet or no new spam.', 'cleantalk' );
+                $return['message'] = esc_html__( 'Never checked yet or no new spam.', 'cleantalk-spam-protect');
             } else {
                 $return['message'] .= sprintf (
-                    __("Last check %s: checked %s users, found %s spam users and %s bad users (without IP or email).", 'cleantalk'),
+                    __("Last check %s: checked %s users, found %s spam users and %s bad users (without IP or email).", 'cleantalk-spam-protect'),
                     self::lastCheckDate(),
                     $cnt_checked,
                     $cnt_spam,
@@ -393,7 +392,7 @@ class ClassCleantalkFindSpamUsersChecker extends ClassCleantalkFindSpamChecker
 
         $backup_notice = '&nbsp;';
         if ($cnt_spam > 0) {
-            $backup_notice = __("Please do backup of WordPress database before delete any accounts!", 'cleantalk');
+            $backup_notice = __("Please do backup of WordPress database before delete any accounts!", 'cleantalk-spam-protect');
         }
         $return['message'] .= "<p>$backup_notice</p>";
 
@@ -614,14 +613,14 @@ class ClassCleantalkFindSpamUsersChecker extends ClassCleantalkFindSpamChecker
                 $is_checked = date( 'M d Y', strtotime( $is_checked ) );
                 $is_spam = get_user_meta( $user_id, 'ct_marked_as_spam', true );
                 if( ! empty( $is_spam ) ) {
-                    $text = sprintf( esc_html__( 'SPAM. Checked %s.', 'cleantalk' ), $is_checked );
+                    $text = sprintf( esc_html__( 'SPAM. Checked %s.', 'cleantalk-spam-protect'), $is_checked );
                     $value = '<span id="apbct_checked_spam">' . $text . '</span>';
                 } else {
-                    $text = sprintf( esc_html__( 'Not spam. Checked %s.', 'cleantalk' ), $is_checked );
+                    $text = sprintf( esc_html__( 'Not spam. Checked %s.', 'cleantalk-spam-protect'), $is_checked );
                     $value = '<span id="apbct_checked_not_spam">' . $text . '</span>';
                 }
             } else {
-                $value = '<span id="apbct_not_checked">' . esc_html__( 'Not checked yet. Anti-Spam by CleanTalk.', 'cleantalk' ) . '</span>';
+                $value = '<span id="apbct_not_checked">' . esc_html__( 'Not checked yet. Anti-Spam by CleanTalk.', 'cleantalk-spam-protect') . '</span>';
             }
 
         }

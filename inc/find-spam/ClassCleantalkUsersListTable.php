@@ -28,12 +28,12 @@ class ABPCTUsersListTable extends ABPCT_List_Table
     function get_columns(){
         return array(
             'cb'            => '<input type="checkbox" />',
-            'ct_username'      => esc_html__( 'Username', 'cleantalk' ),
-            'ct_name'          => esc_html__( 'Name', 'cleantalk' ),
-            'ct_email'         => esc_html__( 'E-mail', 'cleantalk' ),
-            'ct_signed_up'     => esc_html__( 'Signed up', 'cleantalk' ),
-            'ct_role'          => esc_html__( 'Role', 'cleantalk' ),
-            'ct_posts'         => esc_html__( 'Posts', 'cleantalk' ),
+            'ct_username'      => esc_html__( 'Username', 'cleantalk-spam-protect'),
+            'ct_name'          => esc_html__( 'Name', 'cleantalk-spam-protect'),
+            'ct_email'         => esc_html__( 'E-mail', 'cleantalk-spam-protect'),
+            'ct_signed_up'     => esc_html__( 'Signed up', 'cleantalk-spam-protect'),
+            'ct_role'          => esc_html__( 'Role', 'cleantalk-spam-protect'),
+            'ct_posts'         => esc_html__( 'Posts', 'cleantalk-spam-protect'),
         );
     }
 
@@ -61,7 +61,7 @@ class ABPCTUsersListTable extends ABPCT_List_Table
                     ."</a>"
                     : '');
         } else {
-            $column_content .= esc_html__( 'No email', 'cleantalk' );
+            $column_content .= esc_html__( 'No email', 'cleantalk-spam-protect');
         }
         $column_content .= '<br/>';
 
@@ -78,9 +78,9 @@ class ABPCTUsersListTable extends ABPCT_List_Table
                         ."</a>"
                         : '');
             }else
-                $column_content .= esc_html__( 'No IP adress', 'cleantalk' );
+                $column_content .= esc_html__( 'No IP adress', 'cleantalk-spam-protect');
         }else
-            $column_content .= esc_html__( 'No IP adress', 'cleantalk' );
+            $column_content .= esc_html__( 'No IP adress', 'cleantalk-spam-protect');
 
         $actions = array(
             'delete'    => sprintf( '<a href="?page=%s&action=%s&spam=%s">Delete</a>', $_REQUEST['page'],'delete', $user_obj->ID ),
@@ -142,7 +142,7 @@ class ABPCTUsersListTable extends ABPCT_List_Table
     }
 
     function no_items() {
-        esc_html_e( 'No spam found.', 'cleantalk' );
+        esc_html_e( 'No spam found.', 'cleantalk-spam-protect');
     }
 
     //********************************************//

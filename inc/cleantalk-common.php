@@ -1,7 +1,11 @@
 <?php
 
+use Cleantalk\Antispam\Cleantalk;
+use Cleantalk\Antispam\CleantalkRequest;
+use Cleantalk\Antispam\CleantalkResponse;
+
 function apbct_array( $array ){
-	return new Cleantalk\Arr( $array );
+	return new \Cleantalk\Common\Arr( $array );
 }
 
 $ct_checkjs_frm = 'ct_checkjs_frm';
@@ -63,7 +67,7 @@ $admin_email = NULL;
  */
 function apbct_plugin_loaded() {
 	$dir=plugin_basename( dirname( __FILE__ ) ) . '/../i18n';
-    $loaded=load_plugin_textdomain('cleantalk', false, $dir);
+    $loaded=load_plugin_textdomain('cleantalk-spam-protect', false, $dir);
 }
 
 /**
@@ -85,7 +89,7 @@ function apbct_base_call($params = array(), $reg_flag = false){
 	$cleantalk_executed = true;
 
 	$sender_info = !empty($params['sender_info'])
-		? CleantalkHelper::array_merge__save_numeric_keys__recursive(apbct_get_sender_info(), (array)$params['sender_info'])
+		? \Cleantalk\ApbctWP\Helper::array_merge__save_numeric_keys__recursive(apbct_get_sender_info(), (array)$params['sender_info'])
 		: apbct_get_sender_info();
 
 	// Fields exclusions
@@ -107,9 +111,9 @@ function apbct_base_call($params = array(), $reg_flag = false){
 	$default_params = array(
 		
 		// IPs
-		'sender_ip'       => defined('CT_TEST_IP') ? CT_TEST_IP : (isset($params['sender_ip']) ? $params['sender_ip'] : CleantalkHelper::ip__get(array('real'), false)),
-		'x_forwarded_for' => CleantalkHelper::ip__get(array('x_forwarded_for'), false),
-		'x_real_ip'       => CleantalkHelper::ip__get(array('x_real_ip'), false),
+		'sender_ip'       => defined('CT_TEST_IP') ? CT_TEST_IP : (isset($params['sender_ip']) ? $params['sender_ip'] : \Cleantalk\ApbctWP\Helper::ip__get(array('real'), false)),
+		'x_forwarded_for' => \Cleantalk\ApbctWP\Helper::ip__get(array('x_forwarded_for'), false),
+		'x_real_ip'       => \Cleantalk\ApbctWP\Helper::ip__get(array('x_real_ip'), false),
 		
 		// Misc
 		'auth_key'        => $apbct->api_key,
@@ -125,7 +129,7 @@ function apbct_base_call($params = array(), $reg_flag = false){
 		$default_params['sender_info']['server_info'] = $_SERVER;
 	
 	$ct_request = new CleantalkRequest(
-		CleantalkHelper::array_merge__save_numeric_keys__recursive($default_params, $params)
+		\Cleantalk\ApbctWP\Helper::array_merge__save_numeric_keys__recursive($default_params, $params)
 	);
 	
 	$ct = new Cleantalk();
@@ -193,7 +197,10 @@ function apbct_base_call($params = array(), $reg_flag = false){
     }else{
        	ct_add_event('yes');
     }
-	
+
+    //Strip tags from comment
+	$ct_result->comment = strip_tags($ct_result->comment, '<p><a><br>');
+
 	// Set cookies if it's not.
 	if(empty($apbct->flags__cookies_setuped))
 		apbct_cookie();
@@ -239,7 +246,7 @@ function apbct_exclusions_check($func = null){
 }
 
 function apbct_exclusions_check__url__reversed(){
-	return defined( 'APBCT_URL_EXCLUSIONS__REVERSED' ) && ! \Cleantalk\Common\Server::has_string( 'REQUEST_URI', APBCT_URL_EXCLUSIONS__REVERSED )
+	return defined( 'APBCT_URL_EXCLUSIONS__REVERSED' ) && ! \Cleantalk\Variables\Server::has_string( 'REQUEST_URI', APBCT_URL_EXCLUSIONS__REVERSED )
 		? false
 		: true;
 }
@@ -286,7 +293,7 @@ function apbct_exclusions_check__ip(){
 	
 	if( apbct_get_server_variable( 'REMOTE_ADDR' ) ){
 		
-		if( CleantalkHelper::ip__is_cleantalks( apbct_get_server_variable( 'REMOTE_ADDR' ) ) ){
+		if( \Cleantalk\ApbctWP\Helper::ip__is_cleantalks( apbct_get_server_variable( 'REMOTE_ADDR' ) ) ){
 			return true;
 		}
 		
@@ -349,7 +356,7 @@ function apbct_get_sender_info() {
 			: (array)json_decode(filter_input(INPUT_COOKIE, 'apbct_urls'), true);
 	
 	return array(
-		'remote_addr'            => CleantalkHelper::ip__get(array('remote_addr'), false),
+		'remote_addr'            => \Cleantalk\ApbctWP\Helper::ip__get(array('remote_addr'), false),
         'REFFERRER'              => apbct_get_server_variable( 'HTTP_REFERER' ),
         'USER_AGENT'             => apbct_get_server_variable( 'HTTP_USER_AGENT' ),
 		'page_url'               => apbct_get_server_variable( 'SERVER_NAME' ) . apbct_get_server_variable( 'REQUEST_URI' ),
@@ -416,8 +423,12 @@ function apbct_visibile_fields__process($visible_fields) {
 /*
  * Outputs JS key for AJAX-use only. Stops script.
  */
-function apbct_js_keys__get__ajax($direct_call = false){
-	if(!$direct_call){
+function apbct_js_keys__get__ajax( $direct_call = false ){
+
+    global $apbct;
+
+	if( ! $direct_call && $apbct->settings['use_static_js_key'] != 1 ){
+
 		if(isset($_POST['_ajax_nonce'])){
 			if(!wp_verify_nonce($_POST['_ajax_nonce'], 'ct_secret_stuff')){
 				wp_doing_ajax()
@@ -430,9 +441,11 @@ function apbct_js_keys__get__ajax($direct_call = false){
 				: die( '-1' );
 		}
 	}
+
 	die(json_encode(array(
 		'js_key' => ct_get_checkjs_value()
 	)));
+
 }
 
 /**
@@ -516,9 +529,9 @@ function apbct_is_cache_plugins_exists(){
 		defined('WPCACHEHOME') ||                                 // WP Super Cache
 		defined('WPHB_VERSION') ||                                // Hummingbird – Speed up, Cache, Optimize Your CSS and JS
 		defined('CE_FILE') ||                                     // Cache Enabler – WordPress Cache
-		class_exists('RedisObjectCache') ||                   // Redis Object Cache
+		class_exists('\RedisObjectCache') ||                   // Redis Object Cache
 		defined('SiteGround_Optimizer\VERSION') ||                // SG Optimizer
-		class_exists('WP_Rest_Cache_Plugin\Includes\Plugin'); // WP REST Cache
+		class_exists('\WP_Rest_Cache_Plugin\Includes\Plugin'); // WP REST Cache
 }
 
 /**
@@ -748,6 +761,8 @@ function ct_get_fields_any($arr, $message=array(), $email = null, $nickname = ar
 		'ebd_downloads_',
 		'ecole_origine',
 		'signature',
+		// Ultimate Form Builder
+		'form_data_%d_name',
 	);
 	
 	// Reset $message if we have a sign-up data

@@ -86,7 +86,7 @@ class ClassCleantalkFindSpamPage
             if( 1 == $this->spam_checker->getApbct()->moderate_ip ){
                 echo '<h3>'
                     .sprintf(
-                        __('Antispam hosting tariff does not allow you to use this feature. To do so, you need to enter an Access Key in the %splugin settings%s.', 'cleantalk'),
+                        __('Antispam hosting tariff does not allow you to use this feature. To do so, you need to enter an Access Key in the %splugin settings%s.', 'cleantalk-spam-protect'),
                         '<a href="' . ( is_network_admin() ? 'settings.php?page=cleantalk' : 'options-general.php?page=cleantalk' ).'">',
                         '</a>'
                     )
@@ -98,14 +98,14 @@ class ClassCleantalkFindSpamPage
         ?>
         <div class="wrap">
         <h2><img src="<?php echo $this->spam_checker->getApbct()->logo__small__colored; ?>" alt="CleanTalk logo" /> <?php echo $this->spam_checker->getApbct()->plugin_name; ?></h2>
-        <a style="color: gray; margin-left: 23px;" href="<?php echo $this->spam_checker->getApbct()->settings_link; ?>"><?php _e('Plugin Settings', 'cleantalk'); ?></a>
+        <a style="color: gray; margin-left: 23px;" href="<?php echo $this->spam_checker->getApbct()->settings_link; ?>"><?php _e('Plugin Settings', 'cleantalk-spam-protect'); ?></a>
         <br />
         <h3><?php echo $this->spam_checker->getPageTitle(); ?></h3>
         <div id="ct_check_tabs">
             <ul>
-                <li <?php echo (1 == $this->current_tab) ? 'class="active"' : ''; ?>><a href="<?php echo $this->spam_checker->getPageScriptName(); ?>?page=ct_check_<?php echo $this->spam_checker->getPageSlug(); ?>"><?php esc_html_e( 'Scan and new results', 'cleantalk' ) ?></a></li>
-                <li <?php echo (2 == $this->current_tab) ? 'class="active"' : ''; ?>><a href="<?php echo $this->spam_checker->getPageScriptName(); ?>?page=ct_check_<?php echo $this->spam_checker->getPageSlug(); ?>_total"><?php esc_html_e( 'Previous scan results', 'cleantalk' ) ?></a></li>
-                <li <?php echo (3 == $this->current_tab) ? 'class="active"' : ''; ?>><a href="<?php echo $this->spam_checker->getPageScriptName(); ?>?page=ct_check_<?php echo $this->spam_checker->getPageSlug(); ?>_logs"><?php esc_html_e( 'Scan logs', 'cleantalk' ) ?></a></li>
+                <li <?php echo (1 == $this->current_tab) ? 'class="active"' : ''; ?>><a href="<?php echo $this->spam_checker->getPageScriptName(); ?>?page=ct_check_<?php echo $this->spam_checker->getPageSlug(); ?>"><?php esc_html_e( 'Scan and new results', 'cleantalk-spam-protect') ?></a></li>
+                <li <?php echo (2 == $this->current_tab) ? 'class="active"' : ''; ?>><a href="<?php echo $this->spam_checker->getPageScriptName(); ?>?page=ct_check_<?php echo $this->spam_checker->getPageSlug(); ?>_total"><?php esc_html_e( 'Previous scan results', 'cleantalk-spam-protect') ?></a></li>
+                <li <?php echo (3 == $this->current_tab) ? 'class="active"' : ''; ?>><a href="<?php echo $this->spam_checker->getPageScriptName(); ?>?page=ct_check_<?php echo $this->spam_checker->getPageSlug(); ?>_logs"><?php esc_html_e( 'Scan logs', 'cleantalk-spam-protect') ?></a></li>
             </ul>
             <div id="ct_check_content">
         <?php
@@ -116,7 +116,7 @@ class ClassCleantalkFindSpamPage
 
         $option = 'per_page';
         $args = array(
-            'label'   => esc_html__( 'Show per page', 'cleantalk' ),
+            'label'   => esc_html__( 'Show per page', 'cleantalk-spam-protect'),
             'default' => 10,
             'option'  => 'spam_per_page',
         );

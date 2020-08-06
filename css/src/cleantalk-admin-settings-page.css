@@ -189,3 +189,6 @@ i.animate-spin{
     color: rgba(120,200,230,1);
     margin: 0;
 }
+
+.--hide{ display: none; }
+.apbct_preloader_button{ height: 15px; margin-left: 5px; vertical-align: text-top; display: none; }
