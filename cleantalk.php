@@ -583,7 +583,7 @@ function apbct_remote_call__perform()
 function apbct_sfw__check()
 {
 	global $apbct, $spbc, $cleantalk_url_exclusions;
-	
+
 	// Turn off the SpamFireWall if current url in the exceptions list and WordPress core pages
 	 if (!empty($cleantalk_url_exclusions) && is_array($cleantalk_url_exclusions)) {
 		$core_page_to_skip_check = array('/feed');
@@ -641,7 +641,7 @@ function apbct_sfw__check()
 		) );
 	}
 	
-	if( $apbct->settings['sfw__anti_flood'] ){
+	if( $apbct->settings['sfw__anti_flood'] && is_null( apbct_wp_get_current_user() ) ){
 		$firewall->load_fw_module( new \Cleantalk\ApbctWP\Firewall\AntiFlood(
 			APBCT_TBL_FIREWALL_LOG,
 			APBCT_TBL_AC_LOG,
