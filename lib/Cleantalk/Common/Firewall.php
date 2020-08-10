@@ -187,7 +187,8 @@ class Firewall
 		foreach ( $results as $fw_result ) {
 			if (
 				strpos( $fw_result['status'], 'PASS_BY_TRUSTED_NETWORK' ) !== false ||
-				strpos( $fw_result['status'], 'PASS_BY_WHITELIST' ) !== false
+				strpos( $fw_result['status'], 'PASS_BY_WHITELIST' ) !== false ||
+                strpos( $fw_result['status'], 'PASS_SFW__BY_WHITELIST' ) !== false
 			) {
 				return true;
 			}
