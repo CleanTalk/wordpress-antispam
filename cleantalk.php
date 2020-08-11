@@ -1360,7 +1360,11 @@ function apbct_rc__update(){
 		$upgrader = new CleantalkUpgrader( new CleantalkUpgraderSkin_Deprecated( compact('title', 'nonce', 'url', 'plugin') ) );
 	}
 	
-    $upgrader->upgrade($plugin);
+    $upgrader_result = $upgrader->upgrade( $plugin );
+    if( is_wp_error( $upgrader_result ) ){
+        error_log('CleanTalk debug message:');
+        error_log( var_export( $upgrader_result->get_error_message(), 1) );
+    }
 	
 	apbct_maintance_mode__disable();
 	
