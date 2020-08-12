@@ -579,6 +579,16 @@ If your website has forms that send data to external sources, you can enable opt
 
 == Changelog ==
 
+= 5.144 Aug 13 2020 =
+ * Fix: Delete Anti-Flood table when subsite is deleted.
+ * New: Clear Anti-Flood table each 10 minutes.
+ * Fix: FW checking for whitelisted skipped.
+ * Fix: WP 5.5 JS errors fixed.
+ * New: Debug message for auto updating error.
+ * Fix: Array declaration fixed.
+ * Fix: Skip anti-flood checking for authorized users.
+ * Fix: Is whitelisted checking fixed.
+
 = 5.143.1 Aug 06 2020 =
  * Fix: Recursion fixed.
  * Fix: Rebuild url for SFW updating process.
