@@ -272,7 +272,7 @@ function apbct_admin__enqueue_scripts($hook){
 	wp_enqueue_script('ct_admin_js_notices', plugins_url('/cleantalk-spam-protect/js/cleantalk-admin.min.js'),   array(), APBCT_VERSION);
 	wp_enqueue_style ('ct_admin_css',        plugins_url('/cleantalk-spam-protect/css/cleantalk-admin.min.css'), array(), APBCT_VERSION, 'all');
 
-	wp_localize_script( 'jquery', 'ctAdminCommon', array(
+	wp_localize_script( 'ct_admin_js_notices', 'ctAdminCommon', array(
 		'_ajax_nonce'         => wp_create_nonce( 'ct_secret_nonce' ),
 		'_ajax_url'           => admin_url( 'admin-ajax.php' ),
 		'plugin_name'        => $apbct->plugin_name,
@@ -302,7 +302,7 @@ function apbct_admin__enqueue_scripts($hook){
 			$to_chart[] = array( $key, $value );
 		} unset( $key, $value );
 		
-		wp_localize_script( 'jquery', 'apbctDashboardWidget', array(
+		wp_localize_script( 'ct_admin_js_widget_dashboard', 'apbctDashboardWidget', array(
 			'data' => $to_chart,
 		));
 	}
@@ -328,7 +328,7 @@ function apbct_admin__enqueue_scripts($hook){
     // COMMENTS page JavaScript
     if($hook == 'edit-comments.php'){
         wp_enqueue_script('ct_comments_editscreen', plugins_url('/cleantalk-spam-protect/js/cleantalk-comments-editscreen.min.js'), array(), APBCT_VERSION);
-        wp_localize_script( 'jquery', 'ctCommentsScreen', array(
+        wp_localize_script( 'ct_comments_editscreen', 'ctCommentsScreen', array(
             'ct_ajax_nonce'               => wp_create_nonce('ct_secret_nonce'),
             'spambutton_text'             => __("Find spam comments", 'cleantalk-spam-protect'),
             'ct_feedback_msg_whitelisted' => __("The sender has been whitelisted.", 'cleantalk-spam-protect'),
@@ -343,7 +343,7 @@ function apbct_admin__enqueue_scripts($hook){
     if($hook == 'users.php'){
         wp_enqueue_style ('ct_icons',                plugins_url('/cleantalk-spam-protect/css/cleantalk-icons.min.css'),          array(), APBCT_VERSION, 'all');
         wp_enqueue_script('ct_users_editscreen',     plugins_url('/cleantalk-spam-protect/js/cleantalk-users-editscreen.min.js'), array(), APBCT_VERSION);
-        wp_localize_script( 'jquery', 'ctUsersScreen', array(
+        wp_localize_script( 'ct_users_editscreen', 'ctUsersScreen', array(
             'spambutton_text'             => __("Find spam-users", 'cleantalk-spam-protect'),
             'ct_show_check_links'		  => (bool)$apbct->settings['show_check_links'],
             'ct_img_src_new_tab'          => plugin_dir_url(__FILE__)."images/new_window.gif"
