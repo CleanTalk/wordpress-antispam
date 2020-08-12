@@ -1117,10 +1117,10 @@ function apbct_antiflood__clear_table(){
 			APBCT_TBL_FIREWALL_LOG,
 			APBCT_TBL_AC_LOG,
 			array(
-				'db'              => \Cleantalk\ApbctWP\DB::getInstance(),
 				'chance_to_clean' => 100,
 			)
 		);
+		$anti_flood->setDb( \Cleantalk\ApbctWP\DB::getInstance() );
 		$anti_flood->clear_table();
 		unset( $anti_flood );
 	}
