@@ -1437,7 +1437,7 @@ function apbct_rc__update(){
 		
 	}else{
 		die('FAIL '. json_encode(array('error' => $upgrader->apbct_result)));
-	}	
+	}
 }
 
 function apbct_rc__update_settings($source) {
@@ -1997,6 +1997,7 @@ function apbct_sfw__delete_tables( $blog_id, $drop ) {
 	switch_to_blog($blog_id);
 	$wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->prefix.'cleantalk_sfw`;');       // Deleting SFW data
 	$wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->prefix.'cleantalk_sfw_logs`;');  // Deleting SFW logs
+	$wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->prefix.'cleantalk_ac_log`;');  // Deleting SFW logs
 	
 	switch_to_blog($initial_blog);
 }
