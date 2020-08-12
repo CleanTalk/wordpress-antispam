@@ -721,6 +721,7 @@ function apbct_activation( $network = false ) {
 			Cron::addTask('send_sfw_logs',         'ct_sfw_send_logs',               3600, time() + 1800); // SFW send logs
 			Cron::addTask('get_brief_data',        'cleantalk_get_brief_data',       86400, time() + 3500); // Get data for dashboard widget
 			Cron::addTask('send_connection_report','ct_mail_send_connection_report', 86400, time() + 3500); // Send connection report to welcome@cleantalk.org
+			Cron::addTask('antiflood__clear_table',  'apbct_antiflood__clear_table',        600,    time() + 300); // Clear Anti-Flood table
 		}
 		switch_to_blog($initial_blog);
 	}else{
@@ -733,6 +734,7 @@ function apbct_activation( $network = false ) {
 		Cron::addTask('send_sfw_logs',         'ct_sfw_send_logs',               3600, time() + 1800); // SFW send logs
 		Cron::addTask('get_brief_data',        'cleantalk_get_brief_data',       86400, time() + 3500); // Get data for dashboard widget
 		Cron::addTask('send_connection_report','ct_mail_send_connection_report', 86400, time() + 3500); // Send connection report to welcome@cleantalk.org
+		Cron::addTask('antiflood__clear_table',  'apbct_antiflood__clear_table',        600,    time() + 300); // Clear Anti-Flood table
 		
 		apbct_activation__create_tables($sqls);
 		ct_account_status_check(null, false);
@@ -822,6 +824,7 @@ function apbct_activation__new_blog($blog_id, $user_id, $domain, $path, $site_id
 		Cron::addTask('send_sfw_logs',         'ct_sfw_send_logs',               3600, time() + 1800); // SFW send logs
 		Cron::addTask('get_brief_data',        'cleantalk_get_brief_data',       86400, time() + 3500); // Get data for dashboard widget
 		Cron::addTask('send_connection_report','ct_mail_send_connection_report', 86400, time() + 3500); // Send connection report to welcome@cleantalk.org
+	    Cron::addTask('antiflood__clear_table',  'apbct_antiflood__clear_table',        600,    time() + 300); // Clear Anti-Flood table
 		apbct_activation__create_tables($sqls);
 		ct_sfw_update(); // Updating SFW
 		ct_account_status_check(null, false);
@@ -1102,6 +1105,25 @@ function ct_sfw_send_logs($api_key = '')
 	}
 	
 	return array('error' => 'SFW_DISABLED');
+}
+
+function apbct_antiflood__clear_table(){
+	
+	global $apbct;
+	
+	if( $apbct->settings['sfw__anti_flood'] ){
+		
+		$anti_flood = new \Cleantalk\ApbctWP\Firewall\AntiFlood(
+			APBCT_TBL_FIREWALL_LOG,
+			APBCT_TBL_AC_LOG,
+			array(
+				'db'              => \Cleantalk\ApbctWP\DB::getInstance(),
+				'chance_to_clean' => 100,
+			)
+		);
+		$anti_flood->clear_table();
+		unset( $anti_flood );
+	}
 }
 
 /**
