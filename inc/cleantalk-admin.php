@@ -318,7 +318,7 @@ function apbct_admin__enqueue_scripts($hook){
 		wp_enqueue_style('cleantalk_admin_css_settings_page', plugins_url('/cleantalk-spam-protect/css/cleantalk-admin-settings-page.min.css'), array(),     APBCT_VERSION, 'all');
 	    wp_enqueue_style ('ct_icons',                         plugins_url('/cleantalk-spam-protect/css/cleantalk-icons.min.css'), array(),                   APBCT_VERSION, 'all');
 		
-		wp_localize_script( 'jquery', 'ctSettingsPage', array(
+		wp_localize_script( 'cleantalk_admin_js_settings_page', 'ctSettingsPage', array(
 			'ct_subtitle'   => $apbct->ip_license ? __('Hosting AntiSpam', 'cleantalk-spam-protect') : '',
 			'ip_license'    => $apbct->ip_license ? true : false,
             'key_changed'   => ! empty( $apbct->data['key_changed'] ) ? true : false,
