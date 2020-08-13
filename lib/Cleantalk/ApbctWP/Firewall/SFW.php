@@ -74,28 +74,39 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 	public function check(){
 		
 		$results = array();
+        $status = 0;
 		
 		// Skip by cookie
 		foreach( $this->ip_array as $current_ip ){
-			
-			if( Cookie::get( 'ct_sfw_pass_key' ) == md5( $current_ip . $this->api_key ) ){
-				
-					if( Cookie::get( 'ct_sfw_passed' ) ){
-						
-						if( ! headers_sent() ){
-							\Cleantalk\Common\Helper::apbct_cookie__set( 'ct_sfw_passed', '0', time() + 86400 * 3, '/', null, false, true, 'Lax' );
-						}
-						
-						$results[] = array( 'ip' => $current_ip, 'is_personal' => false, 'status' => 'PASS_SFW__BY_COOKIE', );
-						
-						if( $this->sfw_counter ){
-							$this->apbct->data['sfw_counter']['all'] ++;
-							$this->apbct->saveData();
-						}
-						
-					}
+
+			if( substr( Cookie::get( 'ct_sfw_pass_key' ), 0, 32 ) == md5( $current_ip . $this->api_key ) ){
+
+                if( Cookie::get( 'ct_sfw_passed' ) ){
+
+                    if( ! headers_sent() ){
+                        \Cleantalk\Common\Helper::apbct_cookie__set( 'ct_sfw_passed', '0', time() + 86400 * 3, '/', null, false, true, 'Lax' );
+                    }
+
+                     else {
+                        $results[] = array( 'ip' => $current_ip, 'is_personal' => false, 'status' => 'PASS_SFW__BY_COOKIE', );
+                    }
+
+                    if( $this->sfw_counter ){
+                        $this->apbct->data['sfw_counter']['all'] ++;
+                        $this->apbct->saveData();
+                    }
+
+                }
+
+                if( strlen( Cookie::get( 'ct_sfw_pass_key' ) ) > 32 ) {
+                    $status = substr( Cookie::get( 'ct_sfw_pass_key' ), -1 );
+                }
+
+                if( $status ) {
+                    $results[] = array('ip' => $current_ip, 'is_personal' => false, 'status' => 'PASS_SFW__BY_WHITELIST',);
+                }
 					
-					return $results;
+				return $results;
 			}
 		}
 		
@@ -180,8 +191,11 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 	}
 	
 	public function actions_for_passed( $result ){
-		if( $this->set_cookies &&  ! headers_sent() )
-			\Cleantalk\ApbctWP\Helper::apbct_cookie__set( 'ct_sfw_pass_key', md5( $result['ip'] . $this->api_key ), time() + 86400 * 30, '/', null, false );
+		if( $this->set_cookies &&  ! headers_sent() ) {
+		    $status = $result['status'] == 'PASS_SFW__BY_WHITELIST' ? '1' : '0';
+            $cookie_val = md5( $result['ip'] . $this->api_key ) . $status;
+            \Cleantalk\ApbctWP\Helper::apbct_cookie__set( 'ct_sfw_pass_key', $cookie_val, time() + 86400 * 30, '/', null, false );
+        }
 	}
 	
 	/**
@@ -206,7 +220,10 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 		if(file_exists(CLEANTALK_PLUGIN_DIR . "lib/Cleantalk/ApbctWP/Firewall/die_page__SFW.html")){
 			
 			$sfw_die_page = file_get_contents(CLEANTALK_PLUGIN_DIR . "lib/Cleantalk/ApbctWP/Firewall/die_page__SFW.html");
-			
+
+            $status = $result['status'] == 'PASS_SFW__BY_WHITELIST' ? '1' : '0';
+            $cookie_val = md5( $result['ip'] . $this->api_key ) . $status;
+
 			// Translation
 			$replaces = array(
 				'{SFW_DIE_NOTICE_IP}'              => __('SpamFireWall is activated for your IP ', 'cleantalk-spam-protect'),
@@ -223,7 +240,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 				// Cookie
 				'{COOKIE_PREFIX}'      => '',
 				'{COOKIE_DOMAIN}'      => $this->cookie_domain,
-				'{COOKIE_SFW}'         => $this->test ? $this->test_ip : md5( $result['ip'] . $this->api_key ),
+				'{COOKIE_SFW}'         => $this->test ? $this->test_ip : $cookie_val,
 				'{COOKIE_ANTICRAWLER}' => md5( $this->api_key . $result['ip'] ),
 				
 				// Test

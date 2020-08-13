@@ -17,7 +17,7 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule{
 	private $apbct = array();
 	private $store_interval  = 60;
 	private $block_period    = 30;
-	private $chance_to_clean = 200;
+	private $chance_to_clean = 20;
 	
 	/**
 	 * AntiCrawler constructor.
@@ -111,9 +111,9 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule{
 		
 	}
 	
-	private function clear_table() {
+	public function clear_table() {
 		
-		if( rand( 0, 1000 ) < $this->chance_to_clean ){
+		if( rand( 0, 100 ) < $this->chance_to_clean ){
 			$interval_start = \Cleantalk\ApbctWP\Helper::time__get_interval_start( $this->store_interval );
 			$this->db->execute(
 				'DELETE

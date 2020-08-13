@@ -13,7 +13,8 @@ namespace Cleantalk\Variables;
 class ServerVariables{
 	
 	static $instance;
-	public $variables = [];
+
+	public $variables = array();
 	
 	public function __construct(){}
 	public function __wakeup(){}

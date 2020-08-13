@@ -4,7 +4,7 @@ Tags: spam, antispam, woocommerce, comments, firewall
 Requires at least: 3.0
 Tested up to: 5.5
 Requires PHP: 5.4
-Stable tag: 5.143.1
+Stable tag: 5.144
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -578,6 +578,20 @@ If your website has forms that send data to external sources, you can enable opt
 10. Website's options.
 
 == Changelog ==
+
+= 5.144 Aug 13 2020 =
+ * Fix: WPMS setting updating fixed.
+ * Fix: Text domain added for some options name.
+ * Fix: AntiCrowler die page fixed.
+ * Fix: Pause button for comments check fixed.
+ * Fix: Delete Anti-Flood table when subsite is deleted.
+ * New: Clear Anti-Flood table each 10 minutes.
+ * Fix: FW checking for whitelisted skipped.
+ * Fix: WP 5.5 JS errors fixed.
+ * New: Debug message for auto updating error.
+ * Fix: Array declaration fixed.
+ * Fix: Skip anti-flood checking for authorized users.
+ * Fix: Is whitelisted checking fixed.
 
 = 5.143.1 Aug 06 2020 =
  * Fix: Recursion fixed.
