@@ -150,9 +150,9 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 	public function _die( $result ){
 		
 		// File exists?
-		if(file_exists(CLEANTALK_PLUGIN_DIR . "lib/Cleantalk/ApbctWP/Firewall/die_page__AntiCrawler.html")){
+		if(file_exists(CLEANTALK_PLUGIN_DIR . "lib/Cleantalk/ApbctWP/Firewall/die_page__anticrawler.html")){
 			
-			$sfw_die_page = file_get_contents(CLEANTALK_PLUGIN_DIR . "lib/Cleantalk/ApbctWP/Firewall/die_page__AntiCrawler.html");
+			$sfw_die_page = file_get_contents(CLEANTALK_PLUGIN_DIR . "lib/Cleantalk/ApbctWP/Firewall/die_page__anticrawler.html");
 			
 			// Translation
 			$replaces = array(
