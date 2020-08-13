@@ -566,8 +566,8 @@ function apbct_settings__add_groups_and_fields( $fields ){
 		'callback'        => 'apbct_settings__field__draw',
 		'type'            => 'radio',
 		'options' => array(
-			array('val' => 1, 'label'  => __('On'),  'childrens_enable' => 1, ),
-			array('val' => 0, 'label'  => __('Off'), 'childrens_enable' => 0, ),
+			array('val' => 1, 'label'  => __('On', 'cleantalk-spam-protect'),  'childrens_enable' => 1, ),
+			array('val' => 0, 'label'  => __('Off', 'cleantalk-spam-protect'), 'childrens_enable' => 0, ),
 		),
 		'def_class'          => 'apbct_settings-field_wrapper',
 		'class'              => '',
