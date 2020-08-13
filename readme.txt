@@ -580,6 +580,10 @@ If your website has forms that send data to external sources, you can enable opt
 == Changelog ==
 
 = 5.144 Aug 13 2020 =
+ * Fix: WPMS setting updating fixed.
+ * Fix: Text domain added for some options name.
+ * Fix: AntiCrowler die page fixed.
+ * Fix: Pause button for comments check fixed.
  * Fix: Delete Anti-Flood table when subsite is deleted.
  * New: Clear Anti-Flood table each 10 minutes.
  * Fix: FW checking for whitelisted skipped.
