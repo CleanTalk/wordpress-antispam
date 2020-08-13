@@ -1462,6 +1462,21 @@ function apbct_settings__validate($settings) {
 		);
 		unset( $settings['allow_custom_key'], $settings['white_label'], $settings['white_label__hoster_key'], $settings['white_label__plugin_name'] );
 	}
+	
+	// Drop debug data
+	if (isset($_POST['submit']) && $_POST['submit'] == 'debug_drop'){
+		$apbct->debug = false;
+		delete_option('cleantalk_debug');
+		return $settings;
+	}
+	
+	// Send connection reports
+	if (isset($_POST['submit']) && $_POST['submit'] == 'ct_send_connection_report'){
+		ct_mail_send_connection_report();
+		return $settings;
+	}
+	
+	$apbct->saveData();
 
 	// WPMS Logic.
 	if(APBCT_WPMS){
@@ -1490,21 +1505,6 @@ function apbct_settings__validate($settings) {
 			$settings['apikey'] = '';
 		}
 	}
-	
-	// Drop debug data
-	if (isset($_POST['submit']) && $_POST['submit'] == 'debug_drop'){
-		$apbct->debug = false;
-		delete_option('cleantalk_debug');
-		return $settings;
-	}
-	
-	// Send connection reports
-	if (isset($_POST['submit']) && $_POST['submit'] == 'ct_send_connection_report'){
-		ct_mail_send_connection_report();
-		return $settings;
-	}
-	
-	$apbct->saveData();
 	
 	return $settings;
 }
