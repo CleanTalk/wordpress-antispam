@@ -1337,7 +1337,7 @@ function apbct_settings__field__draw($params = array()){
  * @return array Array with processed settings
  */
 function apbct_settings__validate($settings) {
-	
+
 	global $apbct;
 	
 	// If user is not allowed to manage settings. Get settings from the storage
@@ -1362,7 +1362,7 @@ function apbct_settings__validate($settings) {
 			settype($settings[$setting], gettype($value));
 		}
 	} unset($setting, $value);
-	
+
 	//Sanitizing sfw__anti_flood__view_limit setting
 	$settings['sfw__anti_flood__view_limit'] = floor( intval( $settings['sfw__anti_flood__view_limit'] ) );
 	$settings['sfw__anti_flood__view_limit'] = ( $settings['sfw__anti_flood__view_limit'] == 0 ? 10 : $settings['sfw__anti_flood__view_limit'] ); // Default if 0 passed
@@ -1461,6 +1461,34 @@ function apbct_settings__validate($settings) {
 			'use_settings_template_apply_for_current_list_sites' => $settings['use_settings_template_apply_for_current_list_sites'],
 		);
 		unset( $settings['allow_custom_key'], $settings['white_label'], $settings['white_label__hoster_key'], $settings['white_label__plugin_name'] );
+	}
+
+	// WPMS Logic.
+	if(APBCT_WPMS){
+		if(is_main_site()){
+
+			// Network settings
+			$network_settings['apikey'] = $settings['apikey'];
+			$apbct->network_settings = $network_settings;
+			$apbct->saveNetworkSettings();
+
+			// Network data
+			$apbct->network_data = array(
+				'key_is_ok'   => $apbct->data['key_is_ok'],
+				'moderate'    => $apbct->data['moderate'],
+				'valid'       => $apbct->data['valid'],
+				'auto_update' => $apbct->data['auto_update'],
+				'user_token'  => $apbct->data['user_token'],
+				'service_id'  => $apbct->data['service_id'],
+			);
+			$apbct->saveNetworkData();
+			if (isset($settings['use_settings_template_apply_for_current_list_sites']) && !empty($settings['use_settings_template_apply_for_current_list_sites'])) {
+				apbct_update_blogs_options($settings['use_settings_template_apply_for_current_list_sites'], $settings);
+			}
+		}
+		if(!$apbct->white_label && !is_main_site() && !$apbct->allow_custom_key){
+			$settings['apikey'] = '';
+		}
 	}
 	
 	// Drop debug data
