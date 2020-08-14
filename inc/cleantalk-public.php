@@ -3329,10 +3329,24 @@ function ct_contact_form_validate() {
     }
 
     //Skip woocommerce checkout
-    if (apbct_is_in_uri('wc-ajax=update_order_review') || apbct_is_in_uri('wc-ajax=checkout') || !empty($_POST['woocommerce_checkout_place_order']) || apbct_is_in_uri('wc-ajax=wc_ppec_start_checkout') || apbct_is_in_referer('wc-ajax=update_order_review')) {
+    if (apbct_is_in_uri('wc-ajax=update_order_review') ||
+        apbct_is_in_uri('wc-ajax=checkout') ||
+        !empty($_POST['woocommerce_checkout_place_order']) ||
+        apbct_is_in_uri('wc-ajax=wc_ppec_start_checkout') ||
+        apbct_is_in_referer('wc-ajax=update_order_review')
+    )
+    {
         do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
     	return null;
     }
+    
+    //Skip woocommerce add_to_cart
+	if( ! empty( $_POST['add-to-cart'] ) )
+    {
+        do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
+    	return null;
+    }
+	
     // Do not execute anti-spam test for logged in users.
     if (isset($_COOKIE[LOGGED_IN_COOKIE]) && $apbct->settings['protect_logged_in'] != 1) {
         do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
