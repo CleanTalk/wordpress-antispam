@@ -99,7 +99,13 @@ function apbct_base_call($params = array(), $reg_flag = false){
 			->get_keys( $apbct->settings['exclusions__fields'], $apbct->settings['exclusions__fields__use_regexp'] )
 			->delete();
 	}
-
+	
+	// URL, IP, Role exclusions
+	if( ! $cleantalk_executed && apbct_exclusions_check() ){
+		do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
+		return false;
+	}
+	
 	// Reversed url exclusions. Pass everything except one.
 	if( ! apbct_exclusions_check__url__reversed() ){
 		return array(
