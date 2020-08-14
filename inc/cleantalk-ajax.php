@@ -307,6 +307,7 @@ function ct_ajax_hook($message_obj = false, $additional = false)
         'postmark_save', //Avocet
         'ck_get_subscriber', //ConvertKit checking the subscriber
         'metorik_send_cart', //Metorik skip
+	    'ppom_ajax_validation', // PPOM add to cart validation
     );
     
     // Skip test if
