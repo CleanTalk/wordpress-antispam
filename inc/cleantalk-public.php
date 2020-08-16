@@ -3647,23 +3647,38 @@ function ct_send_error_notice ($comment = '') {
     return null;
 }
 
-function ct_print_form($arr, $k)
-{
-	foreach($arr as $key => $value){
-		if(!is_array($value)){
-			if($k == ''){
-				print '<textarea name="' . $key . '" style="display:none;">' . htmlspecialchars($value) . '</textarea>';
-			}else{
-				print '<textarea name="' . $k . '[' . $key . ']" style="display:none;">' . htmlspecialchars($value) . '</textarea>';
-			}
-		}else{
-			if($k == ''){
-				ct_print_form($value, $key);
-			}else{
-				ct_print_form($value, $k . '[' . $key . ']');
-			}
+/**
+ * Prints form for "protect externals
+ *
+ * @param $arr
+ * @param $k
+ */
+function ct_print_form( $arr, $k ){
+	
+	// Fix for pages04.net forms
+	if( isset( $arr['formSourceName'] ) ){
+		$tmp = array();
+		foreach( $arr as $key => $val ){
+			$tmp_key = str_replace( '_', '+', $key );
+			$tmp[$tmp_key] = $val;
 		}
+		$arr = $tmp;
+		unset( $tmp, $key, $tmp_key, $val );
 	}
+	
+	foreach( $arr as $key => $value ){
+		
+		if( ! is_array( $value ) ){
+			print '<textarea
+				name="' . ( $k == '' ? $key : $k . '[' . $key . ']' ) . '"
+				style="display:none;">' . htmlspecialchars( $value )
+	        . '</textarea>';
+		}else{
+			ct_print_form( $value, $k == '' ? $key : $k . '[' . $key . ']' );
+		}
+		
+	}
+	
 }
 
 /**
