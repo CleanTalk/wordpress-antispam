@@ -146,6 +146,11 @@ $cleantalk_hooked_actions[] = 'fue_wc_set_cart_email';  // Don't check email via
 /* The Fluent Form have the direct integration */
 $cleantalk_hooked_actions[] = 'fluentform_submit';
 
+/* Estimation Forms have the direct integration */
+if( class_exists('LFB_Core') ) {
+    $cleantalk_hooked_actions[] = 'send_email';
+}
+
 function ct_validate_email_ajaxlogin($email=null, $is_ajax=true){
 	
 	$email = is_null( $email ) ? $email : $_POST['email'];
