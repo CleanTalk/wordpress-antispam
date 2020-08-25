@@ -104,7 +104,11 @@ class Firewall
 		$results = array();
 		
 		foreach ( $this->fw_modules as $module ) {
-			
+
+		    if( isset( $module->isExcluded ) && $module->isExcluded ) {
+		        continue;
+            }
+
 			$module_results = $module->check();
 			if( ! empty( $module_results ) ) {
 				$results[] = $this->prioritize( $module_results );

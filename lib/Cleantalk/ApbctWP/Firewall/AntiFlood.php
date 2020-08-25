@@ -18,6 +18,8 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule{
 	private $store_interval  = 60;
 	private $block_period    = 30;
 	private $chance_to_clean = 20;
+
+    public $isExcluded = false;
 	
 	/**
 	 * AntiCrawler constructor.
@@ -34,6 +36,8 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule{
 		foreach( $params as $param_name => $param ){
 			$this->$param_name = isset( $this->$param_name ) ? $param : false;
 		}
+
+        $this->isExcluded = $this->check_exclusions();
 	}
 	
 	/**
@@ -188,4 +192,23 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule{
 		}
 		
 	}
+
+    private function check_exclusions() {
+
+        $allowed_roles = array( 'administrator', 'editor' );
+        $user = apbct_wp_get_current_user();
+
+        if( ! $user ) {
+            return false;
+        }
+
+        foreach( $allowed_roles as $role ) {
+            if( in_array( $role, (array) $user->roles ) ) {
+                return true;
+            }
+        }
+
+        return false;
+
+    }
 }
