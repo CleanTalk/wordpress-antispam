@@ -188,7 +188,7 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule{
 			wp_die( $sfw_die_page, 'Blacklisted', array( 'response' => 403 ) );
 			
 		} else{
-			wp_die( 'IP BLACKLISTED', 'Blacklisted', array( 'response' => 403 ) );
+			wp_die( "IP BLACKLISTED. Blocked by AntiFlood " . $result['ip'], 'Blacklisted', array( 'response' => 403 ) );
 		}
 		
 	}
