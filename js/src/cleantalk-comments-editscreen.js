@@ -115,14 +115,14 @@ function ct_feedback_message_output(ct_comment_id, ct_comment_status, ct_result,
 				jQuery('tr#undo-'+ct_comment_id)
 					.css('background', 'rgba(240,110,110,0.7)');
 				jQuery('tr#undo-'+ct_comment_id+' div.spam-undo-inside')
-					.append(" "+ctCommentsScreen.ct_feedback_msg_blacklisted+" "+ctCommentsScreen.ct_feedback_msg);
+					.append(" "+ctCommentsScreen.ct_feedback_msg);
 			}else{
 				jQuery('tr#comment-'+ct_comment_id)
 				.html('')
 				.show()
 				.css('background', 'rgba(240,110,110,0.7)')
 				.append("<td colspan='5'></td>").children('td')
-					.append("<div class='spam-undo-inside'>"+ctCommentsScreen.ct_feedback_msg_blacklisted+" "+ctCommentsScreen.ct_feedback_msg+"</div>");						
+					.append("<div class='spam-undo-inside'>"+ctCommentsScreen.ct_feedback_msg+"</div>");
 			}
 		}
 	}
