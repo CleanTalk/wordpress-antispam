@@ -108,7 +108,7 @@ function ct_feedback_message_output(ct_comment_id, ct_comment_status, ct_result,
 				.show()
 				.append("<td colspan='5'></td>").children('td')
 					.css('background', 'rgba(110,240,110,0.7)')
-					.append("<div class='spam-undo-inside'>"+ctCommentsScreen.ct_feedback_msg_whitelisted+" "+ctCommentsScreen.ct_feedback_msg+"</div>");						
+					.append("<div class='spam-undo-inside'>"+ctCommentsScreen.ct_feedback_msg+"</div>");
 		}
 		if(ct_comment_status == 'spam'){
 			if(jQuery('tr').is('#undo-'+ct_comment_id)){
