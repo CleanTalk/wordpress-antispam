@@ -163,9 +163,9 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule{
 		parent::_die( $result );
 		
 		// File exists?
-		if( file_exists( CLEANTALK_PLUGIN_DIR . 'lib/Cleantalk/ApbctWP/Firewall/die_page__AntiFlood.html' ) ){
+		if( file_exists( CLEANTALK_PLUGIN_DIR . 'lib/Cleantalk/ApbctWP/Firewall/die_page_antiflood.html' ) ){
 			
-			$sfw_die_page = file_get_contents( CLEANTALK_PLUGIN_DIR . 'lib/Cleantalk/ApbctWP/Firewall/die_page__AntiFlood.html' );
+			$sfw_die_page = file_get_contents( CLEANTALK_PLUGIN_DIR . 'lib/Cleantalk/ApbctWP/Firewall/die_page_antiflood.html' );
 			
 			// Translation
 			$replaces = array(
