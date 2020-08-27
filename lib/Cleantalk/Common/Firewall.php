@@ -34,12 +34,12 @@ class Firewall
 	private $statuses_priority = array(
 		// Lowest
 		'PASS_SFW',
-		'DENY_SFW',
 		'PASS_SFW__BY_COOKIE',
-		'DENY_ANTIFLOOD',
 		'PASS_ANTIFLOOD',
-		'DENY_ANTICRAWLER',
 		'PASS_ANTICRAWLER',
+		'DENY_ANTIFLOOD',
+		'DENY_ANTICRAWLER',
+		'DENY_SFW',
 		'PASS_SFW__BY_WHITELIST',
 		// Highest
 	);
@@ -102,31 +102,40 @@ class Firewall
 		$this->module_names = array_keys( $this->fw_modules );
 		
 		$results = array();
-		
+
+		// Checking
 		foreach ( $this->fw_modules as $module ) {
-			
+
+		    if( isset( $module->isExcluded ) && $module->isExcluded ) {
+		        continue;
+            }
+
 			$module_results = $module->check();
 			if( ! empty( $module_results ) ) {
-				$results[] = $this->prioritize( $module_results );
+				$results[$module->module_name] = $this->prioritize( $module_results );
 			}
-			
+
 			if( $this->is_whitelisted( $results ) ) {
 				// Break protection logic if it whitelisted or trusted network.
 				break;
 			}
 			
 		}
-		
-		$result = $this->prioritize( $results );
-		
-		// Blacklisted in DB
 
+		// Write Logs
+        foreach ( $this->fw_modules as $module ) {
+            if( array_key_exists( $module->module_name, $results ) ){
+                $module->update_log( $results[$module->module_name]['ip'], $results[$module->module_name]['status'] );
+            }
+        }
+
+        // Get the primary result
+		$result = $this->prioritize( $results );
+
+		// Do finish action - die or set cookies
 		foreach( $this->module_names as $module_name ){
 			
 			if( strpos( $result['status'], $module_name ) ){
-				
-				$this->fw_modules[ $module_name ]->update_log( $result['ip'], $result['status'] );
-				
 				// Blocked
 				if( strpos( $result['status'], 'DENY' ) !== false ){
 					$this->fw_modules[ $module_name ]->actions_for_denied( $result );

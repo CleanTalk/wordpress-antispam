@@ -146,6 +146,11 @@ $cleantalk_hooked_actions[] = 'fue_wc_set_cart_email';  // Don't check email via
 /* The Fluent Form have the direct integration */
 $cleantalk_hooked_actions[] = 'fluentform_submit';
 
+/* Estimation Forms have the direct integration */
+if( class_exists('LFB_Core') ) {
+    $cleantalk_hooked_actions[] = 'send_email';
+}
+
 function ct_validate_email_ajaxlogin($email=null, $is_ajax=true){
 	
 	$email = is_null( $email ) ? $email : $_POST['email'];
@@ -307,6 +312,7 @@ function ct_ajax_hook($message_obj = false, $additional = false)
         'postmark_save', //Avocet
         'ck_get_subscriber', //ConvertKit checking the subscriber
         'metorik_send_cart', //Metorik skip
+	    'ppom_ajax_validation', // PPOM add to cart validation
     );
     
     // Skip test if

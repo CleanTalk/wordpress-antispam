@@ -53,7 +53,7 @@ function apbct_add_buttons_to_comments_and_users( $unused_argument ) {
 
 add_action( 'admin_bar_menu', 'apbct_admin__admin_bar__add', 999 );
 
-//Adding widjet
+//Adding widget
 function ct_dashboard_statistics_widget() {
 	
 	global $apbct;
@@ -61,12 +61,7 @@ function ct_dashboard_statistics_widget() {
 	if(apbct_is_user_role_in(array('administrator'))){
 		wp_add_dashboard_widget(
 			'ct_dashboard_statistics_widget',
-			$apbct->plugin_name
-			."<div class='ct_widget_top_links'>"
-				."<img src='".plugins_url('/cleantalk-spam-protect/inc/images/preloader.gif')."' class='ct_preloader'>"
-				.sprintf(__("%sRefresh%s", 'cleantalk-spam-protect'),    "<a href='#ct_widget' class='ct_widget_refresh_link'>", "</a>")
-				.sprintf(__("%sConfigure%s", 'cleantalk-spam-protect'), "<a href='{$apbct->settings_link}' class='ct_widget_settings_link'>", "</a>")
-			."</div>",
+			$apbct->plugin_name,
 			'ct_dashboard_statistics_widget_output'
 		);
 	}
@@ -79,7 +74,12 @@ function ct_dashboard_statistics_widget_output( $post, $callback_args ) {
 	
 	echo "<div id='ct_widget_wrapper'>";
 ?>
-		<form id='ct_refresh_form' method='POST' action='#ct_widget'>
+        <div class='ct_widget_top_links'>
+            <img src="<?php echo plugins_url('/cleantalk-spam-protect/inc/images/preloader.gif'); ?>" class='ct_preloader'>
+            <?php echo sprintf(__("%sRefresh%s", 'cleantalk-spam-protect'),    "<a href='#ct_widget' class='ct_widget_refresh_link'>", "</a>"); ?>
+            <?php echo sprintf(__("%sConfigure%s", 'cleantalk-spam-protect'), "<a href='{$apbct->settings_link}' class='ct_widget_settings_link'>", "</a>"); ?>
+        </div>
+        <form id='ct_refresh_form' method='POST' action='#ct_widget'>
 			<input type='hidden' name='ct_brief_refresh' value='1'>
 		</form>
 		<h4 class='ct_widget_block_header' style='margin-left: 12px;'><?php _e('7 days anti-spam stats', 'cleantalk-spam-protect'); ?></h4>

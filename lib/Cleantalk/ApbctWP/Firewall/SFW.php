@@ -160,7 +160,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 			return;
 		}
 
-		$id   = md5( $ip );
+		$id   = md5( $ip . $this->module_name );
 		$time = time();
 		
 		$query = "INSERT INTO " . $this->db__table__logs . "
@@ -217,9 +217,9 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 		}
 		
 		// File exists?
-		if(file_exists(CLEANTALK_PLUGIN_DIR . "lib/Cleantalk/ApbctWP/Firewall/die_page__SFW.html")){
+		if(file_exists(CLEANTALK_PLUGIN_DIR . "lib/Cleantalk/ApbctWP/Firewall/die_page_sfw.html")){
 			
-			$sfw_die_page = file_get_contents(CLEANTALK_PLUGIN_DIR . "lib/Cleantalk/ApbctWP/Firewall/die_page__SFW.html");
+			$sfw_die_page = file_get_contents(CLEANTALK_PLUGIN_DIR . "lib/Cleantalk/ApbctWP/Firewall/die_page_sfw.html");
 
             $status = $result['status'] == 'PASS_SFW__BY_WHITELIST' ? '1' : '0';
             $cookie_val = md5( $result['ip'] . $this->api_key ) . $status;
@@ -282,7 +282,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 			wp_die($sfw_die_page, "Blacklisted", Array('response'=>403));
 			
 		}else{
-			wp_die("IP BLACKLISTED", "Blacklisted", Array('response'=>403));
+			wp_die("IP BLACKLISTED. Blocked by SFW " . $result['ip'], "Blacklisted", Array('response'=>403));
 		}
 		
 	}

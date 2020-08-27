@@ -15,6 +15,8 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 	private $api_key = '';
 	private $apbct = false;
 	private $store_interval = 60;
+
+	public $isExcluded = false;
 	
 	/**
 	 * AntiBot constructor.
@@ -31,6 +33,8 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 		foreach( $params as $param_name => $param ){
 			$this->$param_name = isset( $this->$param_name ) ? $param : false;
 		}
+
+		$this->isExcluded = $this->check_exclusions();
 		
 	}
 	
@@ -42,7 +46,25 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 	public function check() {
 		
 		$results = array();
-		
+
+        // Skip by cookie
+        foreach( $this->ip_array as $ip_origin => $current_ip ) {
+
+            if( Cookie::get('apbct_antibot') == md5( $this->api_key . $current_ip ) ) {
+
+                if( Cookie::get( 'apbct_anticrawler_passed' ) === '1' ){
+                    if( ! headers_sent() )
+                        \Cleantalk\Common\Helper::apbct_cookie__set( 'apbct_anticrawler_passed', '0', time() - 86400, '/', null, false, true, 'Lax' );
+                }
+
+                $results[] = array( 'ip' => $current_ip, 'is_personal' => false, 'status' => 'PASS_ANTICRAWLER', );
+
+                return $results;
+
+            }
+        }
+
+        // Common check
 		foreach( $this->ip_array as $ip_origin => $current_ip ){
 			
 			// @todo Rename ip column to sign. Use IP + UserAgent for it.
@@ -74,8 +96,10 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 				}
 				
 			}else{
-				
-				$this->update_ac_log();
+
+                if( ! Cookie::get('apbct_antibot') ) {
+                    $this->update_ac_log();
+                }
 				
 				add_action( 'wp_head', array( '\Cleantalk\ApbctWP\Firewall\AntiCrawler', 'set_cookie' ) );
 				global $apbct_anticrawler_ip;
@@ -126,7 +150,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 	 */
 	public function update_log( $ip, $status ) {
 		
-		$id   = md5( $ip );
+		$id   = md5( $ip . $this->module_name );
 		$time = time();
 		
 		$query = "INSERT INTO " . $this->db__table__logs . "
@@ -150,9 +174,9 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 	public function _die( $result ){
 		
 		// File exists?
-		if(file_exists(CLEANTALK_PLUGIN_DIR . "lib/Cleantalk/ApbctWP/Firewall/die_page__anticrawler.html")){
+		if(file_exists(CLEANTALK_PLUGIN_DIR . "lib/Cleantalk/ApbctWP/Firewall/die_page_anticrawler.html")){
 			
-			$sfw_die_page = file_get_contents(CLEANTALK_PLUGIN_DIR . "lib/Cleantalk/ApbctWP/Firewall/die_page__anticrawler.html");
+			$sfw_die_page = file_get_contents(CLEANTALK_PLUGIN_DIR . "lib/Cleantalk/ApbctWP/Firewall/die_page_anticrawler.html");
 			
 			// Translation
 			$replaces = array(
@@ -175,8 +199,27 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 			wp_die($sfw_die_page, "Blacklisted", Array('response'=>403));
 			
 		}else{
-			wp_die("IP BLACKLISTED", "Blacklisted", Array('response'=>403));
+			wp_die("IP BLACKLISTED. Blocked by AntiCrawler " . $result['ip'], "Blacklisted", Array('response'=>403));
 		}
 		
 	}
+
+    private function check_exclusions() {
+
+	    $allowed_roles = array( 'administrator', 'editor' );
+	    $user = apbct_wp_get_current_user();
+
+        if( ! $user ) {
+            return false;
+        }
+
+	    foreach( $allowed_roles as $role ) {
+            if( in_array( $role, (array) $user->roles ) ) {
+                return true;
+            }
+        }
+
+        return false;
+
+    }
 }

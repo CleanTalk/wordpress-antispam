@@ -4,7 +4,7 @@ Tags: spam, antispam, woocommerce, comments, firewall
 Requires at least: 3.0
 Tested up to: 5.5
 Requires PHP: 5.4
-Stable tag: 5.144
+Stable tag: 5.145
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -578,6 +578,23 @@ If your website has forms that send data to external sources, you can enable opt
 10. Website's options.
 
 == Changelog ==
+
+= 5.145 Aug 27 2020 =
+ * Fix: Blocking pages names fixed.
+ * Fix: Logs id modified to prevent the overwriting.
+ * Fix: FireWall checking flow fixed.
+ * Mod: New SpamFirewall, Anti-Crawler, Anti-Flood modules priority.
+ * Upd: Block message updated.
+ * Fix: "The sender has been blacklisted" message removed.
+ * Fix: "The sender has been whitelisted" message removed.
+ * Fix: Integration DW Question & Answer plugin.
+ * Fix: Dashboard widget layout fixed.
+ * Fix: AC & AD skipping checking by roles.
+ * Integration: Estimation Form integration implemented.
+ * Fix: External contact forms check.
+ * Fix: URL, IP and Role exclusions for all requests.
+ * Fix: Exception for WooCommerce adding to cart.
+ * Fix: Exception for PPOM for WooCommerce plugin.
 
 = 5.144 Aug 13 2020 =
  * Fix: WPMS setting updating fixed.

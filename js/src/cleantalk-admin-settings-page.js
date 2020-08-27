@@ -1,8 +1,10 @@
 jQuery(document).ready(function(){
 
 	// Crunch for Right to Left direction languages
-	if(getComputedStyle(document.getElementsByClassName('apbct_settings-title')[0]).direction === 'rtl'){
-		jQuery('.apbct_switchers').css('text-align', 'right');
+	if(document.getElementsByClassName('apbct_settings-title')[0]) {
+		if(getComputedStyle(document.getElementsByClassName('apbct_settings-title')[0]).direction === 'rtl'){
+			jQuery('.apbct_switchers').css('text-align', 'right');
+		}
 	}
 
 	// Show/Hide access key

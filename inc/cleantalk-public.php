@@ -3278,7 +3278,7 @@ function ct_contact_form_validate() {
         apbct_is_in_uri('/wc-api/') ||
         isset($_POST['log']) && isset($_POST['pwd']) && isset($_POST['wp-submit']) ||
         isset($_POST[$ct_checkjs_frm]) && $apbct->settings['contact_forms_test'] == 1 ||// Formidable forms
-        isset($_POST['comment_post_ID']) || // The comment form
+        ( isset($_POST['comment_post_ID']) && ! isset($_POST['comment-submit'] ) ) || // The comment form && ! DW Question & Answer
         isset($_GET['for']) ||
 		(isset($_POST['log'], $_POST['pwd'])) || //WooCommerce Sensei login form fix
 		(isset($_POST['wc_reset_password'], $_POST['_wpnonce'], $_POST['_wp_http_referer'])) || // WooCommerce recovery password form
@@ -3329,10 +3329,24 @@ function ct_contact_form_validate() {
     }
 
     //Skip woocommerce checkout
-    if (apbct_is_in_uri('wc-ajax=update_order_review') || apbct_is_in_uri('wc-ajax=checkout') || !empty($_POST['woocommerce_checkout_place_order']) || apbct_is_in_uri('wc-ajax=wc_ppec_start_checkout') || apbct_is_in_referer('wc-ajax=update_order_review')) {
+    if (apbct_is_in_uri('wc-ajax=update_order_review') ||
+        apbct_is_in_uri('wc-ajax=checkout') ||
+        !empty($_POST['woocommerce_checkout_place_order']) ||
+        apbct_is_in_uri('wc-ajax=wc_ppec_start_checkout') ||
+        apbct_is_in_referer('wc-ajax=update_order_review')
+    )
+    {
         do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
     	return null;
     }
+    
+    //Skip woocommerce add_to_cart
+	if( ! empty( $_POST['add-to-cart'] ) )
+    {
+        do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
+    	return null;
+    }
+	
     // Do not execute anti-spam test for logged in users.
     if (isset($_COOKIE[LOGGED_IN_COOKIE]) && $apbct->settings['protect_logged_in'] != 1) {
         do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
@@ -3633,23 +3647,38 @@ function ct_send_error_notice ($comment = '') {
     return null;
 }
 
-function ct_print_form($arr, $k)
-{
-	foreach($arr as $key => $value){
-		if(!is_array($value)){
-			if($k == ''){
-				print '<textarea name="' . $key . '" style="display:none;">' . htmlspecialchars($value) . '</textarea>';
-			}else{
-				print '<textarea name="' . $k . '[' . $key . ']" style="display:none;">' . htmlspecialchars($value) . '</textarea>';
-			}
-		}else{
-			if($k == ''){
-				ct_print_form($value, $key);
-			}else{
-				ct_print_form($value, $k . '[' . $key . ']');
-			}
+/**
+ * Prints form for "protect externals
+ *
+ * @param $arr
+ * @param $k
+ */
+function ct_print_form( $arr, $k ){
+	
+	// Fix for pages04.net forms
+	if( isset( $arr['formSourceName'] ) ){
+		$tmp = array();
+		foreach( $arr as $key => $val ){
+			$tmp_key = str_replace( '_', '+', $key );
+			$tmp[$tmp_key] = $val;
 		}
+		$arr = $tmp;
+		unset( $tmp, $key, $tmp_key, $val );
 	}
+	
+	foreach( $arr as $key => $value ){
+		
+		if( ! is_array( $value ) ){
+			print '<textarea
+				name="' . ( $k == '' ? $key : $k . '[' . $key . ']' ) . '"
+				style="display:none;">' . htmlspecialchars( $value )
+	        . '</textarea>';
+		}else{
+			ct_print_form( $value, $k == '' ? $key : $k . '[' . $key . ']' );
+		}
+		
+	}
+	
 }
 
 /**
