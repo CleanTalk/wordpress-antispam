@@ -579,6 +579,23 @@ If your website has forms that send data to external sources, you can enable opt
 
 == Changelog ==
 
+= 5.145 Aug 28 2020 =
+ * Fix: Blocking pages names fixed.
+ * Fix: Logs id modified to prevent the overwriting.
+ * Fix: FireWall checking flow fixed.
+ * Mod: New SpamFirewall, Anti-Crawler, Anti-Flood modules priority.
+ * Upd: Block message updated.
+ * Fix: "The sender has been blacklisted" message removed.
+ * Fix: "The sender has been whitelisted" message removed.
+ * Fix: Integration DW Question & Answer plugin.
+ * Fix: Dashboard widget layout fixed.
+ * Fix: AC & AD skipping checking by roles.
+ * Integration: Estimation Form integration implemented.
+ * Fix: External contact forms check.
+ * Fix: URL, IP and Role exclusions for all requests.
+ * Fix: Exception for WooCommerce adding to cart.
+ * Fix: Exception for PPOM for WooCommerce plugin.
+
 = 5.144 Aug 13 2020 =
  * Fix: WPMS setting updating fixed.
  * Fix: Text domain added for some options name.
