@@ -579,7 +579,7 @@ If your website has forms that send data to external sources, you can enable opt
 
 == Changelog ==
 
-= 5.145 Aug 28 2020 =
+= 5.145 Aug 27 2020 =
  * Fix: Blocking pages names fixed.
  * Fix: Logs id modified to prevent the overwriting.
  * Fix: FireWall checking flow fixed.
