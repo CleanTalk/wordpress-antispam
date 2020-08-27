@@ -137,7 +137,7 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule{
 	 */
 	public function update_log( $ip, $status ) {
 		
-		$id = md5( $ip );
+		$id = md5( $ip . $this->module_name );
 		$time    = time();
 		
 		$query = "INSERT INTO " . $this->db__table__logs . "
