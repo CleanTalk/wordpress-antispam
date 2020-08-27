@@ -34,12 +34,12 @@ class Firewall
 	private $statuses_priority = array(
 		// Lowest
 		'PASS_SFW',
-		'DENY_SFW',
 		'PASS_SFW__BY_COOKIE',
-		'DENY_ANTIFLOOD',
 		'PASS_ANTIFLOOD',
-		'DENY_ANTICRAWLER',
 		'PASS_ANTICRAWLER',
+		'DENY_ANTIFLOOD',
+		'DENY_ANTICRAWLER',
+		'DENY_SFW',
 		'PASS_SFW__BY_WHITELIST',
 		// Highest
 	);
