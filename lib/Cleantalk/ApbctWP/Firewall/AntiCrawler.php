@@ -46,7 +46,25 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 	public function check() {
 		
 		$results = array();
-		
+
+        // Skip by cookie
+        foreach( $this->ip_array as $ip_origin => $current_ip ) {
+
+            if( Cookie::get('apbct_antibot') == md5( $this->api_key . $current_ip ) ) {
+
+                if( Cookie::get( 'apbct_anticrawler_passed' ) === '1' ){
+                    if( ! headers_sent() )
+                        \Cleantalk\Common\Helper::apbct_cookie__set( 'apbct_anticrawler_passed', '0', time() - 86400, '/', null, false, true, 'Lax' );
+                }
+
+                $results[] = array( 'ip' => $current_ip, 'is_personal' => false, 'status' => 'PASS_ANTICRAWLER', );
+
+                return $results;
+
+            }
+        }
+
+        // Common check
 		foreach( $this->ip_array as $ip_origin => $current_ip ){
 			
 			// @todo Rename ip column to sign. Use IP + UserAgent for it.
@@ -78,8 +96,10 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 				}
 				
 			}else{
-				
-				$this->update_ac_log();
+
+                if( ! Cookie::get('apbct_antibot') ) {
+                    $this->update_ac_log();
+                }
 				
 				add_action( 'wp_head', array( '\Cleantalk\ApbctWP\Firewall\AntiCrawler', 'set_cookie' ) );
 				global $apbct_anticrawler_ip;
