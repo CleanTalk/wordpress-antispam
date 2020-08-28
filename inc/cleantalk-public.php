@@ -952,11 +952,11 @@ function ct_add_hidden_fields($field_name = 'ct_checkjs', $return_string = false
     	$field_id = $field_name . '_' . $field_id_hash;
 		$html = "<input type='hidden' id='{$field_id}' name='{$field_name}' value='{$ct_checkjs_def}' />
 		<script type='text/javascript'>
-			window.addEventListener('load', function () {
+			window.addEventListener('DOMContentLoaded', function () {
 				setTimeout(function(){
                     apbct_public_sendAJAX(
                         {action: 'apbct_js_keys__get'},
-                        {callback: apbct_js_keys__set_input_value, input_name: '{$field_id}'}
+                        {callback: apbct_js_keys__set_input_value, input_name: '{$field_id}',silent: true, no_nonce: true}
                     );
                 }, 1000);
 			});

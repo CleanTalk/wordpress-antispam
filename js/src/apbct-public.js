@@ -199,11 +199,16 @@ function apbct_public_sendAJAX(data, params, obj){
 	var button      = params.button      || null;
 	var spinner     = params.spinner     || null;
 	var progressbar = params.progressbar || null;
+	var silent      = params.silent      || null;
+	var no_nonce    = params.no_nonce    || null;
 
 	if(typeof (data) === 'string') {
-		data = data + '&_ajax_nonce=' + ctPublic._ajax_nonce + '&no_cache=' + Math.random();
+		if( ! no_nonce )
+			data = data + '&_ajax_nonce=' + ctPublic._ajax_nonce;
+		data = data + '&no_cache=' + Math.random()
 	} else {
-		data._ajax_nonce = ctPublic._ajax_nonce;
+		if( ! no_nonce )
+			data._ajax_nonce = ctPublic._ajax_nonce;
 		data.no_cache = Math.random();
 	}
 	// Button and spinner
@@ -238,7 +243,7 @@ function apbct_public_sendAJAX(data, params, obj){
 			console.log(jqXHR);
 			console.log(textStatus);
 			console.log(errorThrown);
-			if(errorThrown)
+			if(errorThrown && ! silent )
 				alert(errorThrown);
 		},
 		timeout: timeout,
