@@ -3322,7 +3322,8 @@ function ct_contact_form_validate() {
         apbct_is_in_uri('recuperacao-de-senha-2') || //Skip form reset password
         apbct_is_in_uri('membermouse/api/request.php') && isset($_POST['membership_level_id'],$_POST['apikey'],$_POST['apisecret']) || // Membermouse API
         ( isset( $_POST['AppKey'] ) && ( isset( $_POST['cbAP'] ) && $_POST['cbAP'] == 'Caspio' ) ) ||  // Caspio exclusion (ticket #16444)
-        isset($_POST['wpforms_id'], $_POST['wpforms_author']) //Skip wpforms
+        isset($_POST['wpforms_id'], $_POST['wpforms_author']) || //Skip wpforms
+        ( isset( $_POST['somfrp_action'], $_POST['submitted'] ) && $_POST['somfrp_action'] == 'somfrp_lost_pass' ) // Frontend Reset Password exclusion
 		) {
         do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
         return null;
