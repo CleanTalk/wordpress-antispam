@@ -478,6 +478,8 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 						}else
 							return array('error' => 'WRONG_FILE_MIME_TYPE');
 						
+						reset( $lines );
+						
 						for( $count_result = 0; current($lines) !== false; ) {
 							
 							$query = "INSERT INTO ".$db__table__data." VALUES ";
