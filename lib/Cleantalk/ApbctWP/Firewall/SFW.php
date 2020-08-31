@@ -384,7 +384,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 					
 					if( empty( $response_code['error'] ) ){
 						
-						if( $response_code == 200 ){
+						if( $response_code == 200 && $response_code == 501 ){
 							
 							$gz_data = Helper::http__request__get_content( $file_url );
 							
@@ -455,7 +455,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 			
 			if( empty( $response_code['error'] ) ){
 			
-				if($response_code == 200){ // Check if it's there
+				if( $response_code == 200 && $response_code == 501 ){ // Check if it's there
 					
 					$gz_data = Helper::http__request__get_content( $file_url );
 					
