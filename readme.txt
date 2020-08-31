@@ -109,12 +109,13 @@ This plugin uses multiple anti-spam tests to filter spam bots having as low fals
 = How effective is CleanTalk? =
 Accurately blocking spam is not an easy thing to do, but CleanTalk has a very low proven False/Positive rate. Here is actual statistics on false positives for all customers.
 
-* Registrations - 0.007%
-* Comments - 0.001%
-* Contact forms - 0.001%
-* Orders (WooCommerce) - 0.008%
+* Registrations - 0.004%
+* Comments - 0.004%
+* Contact forms - 0.006%
+* Orders (WooCommerce) - 0.016%
+* Site search - 0.001%
 
-The statistic was calculated on November 10 2017 for 1 million requests.
+The statistic was calculated on August 28 2020 for 2.5 million requests.
 
 = How CleanTalk improves SEO for your website? =
 So, you already know that the speed of the site has a direct impact on SEO.
