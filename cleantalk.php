@@ -1030,7 +1030,7 @@ function ct_sfw_update($api_key = '', $immediate = false){
 				? $result
 				: true;
 			
-		}elseif( $file_urls && $url_count >= $current_url ){
+		}elseif( $file_urls && $url_count > $current_url ){
 
 			$result = \Cleantalk\ApbctWP\Firewall\SFW::update(
 				\Cleantalk\ApbctWP\DB::getInstance(),
