@@ -579,6 +579,17 @@ If your website has forms that send data to external sources, you can enable opt
 
 == Changelog ==
 
+= 5.145.1 Aug 27 2020 =
+ * New: Silent mode for AJAX requests.
+ * Fix: No nonce check for AJAX JS check.
+ * Fix: AJAX JS check using "DOMContentLoaded" event instead of "load".
+ * New: Extended error text for failed AJAX requests.
+ * Fix: Exclusion for the Frontend Reset Password plugin.
+ * Fix: Accept 501 response code for SFW datafiles.
+ * Fix: SFW update. The internal array pointer handling.
+ * Fix: Exception for the WooCommerce edit profile form.
+ * Fix: SFW updating via plugin activation fixed.
+
 = 5.145 Aug 27 2020 =
  * Fix: Blocking pages names fixed.
  * Fix: Logs id modified to prevent the overwriting.
