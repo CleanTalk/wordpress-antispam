@@ -580,7 +580,7 @@ If your website has forms that send data to external sources, you can enable opt
 
 == Changelog ==
 
-= 5.145.1 Aug 27 2020 =
+= 5.145.1 Aug 31 2020 =
  * New: Silent mode for AJAX requests.
  * Fix: No nonce check for AJAX JS check.
  * Fix: AJAX JS check using "DOMContentLoaded" event instead of "load".
