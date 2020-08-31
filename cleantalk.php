@@ -3,7 +3,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 5.145
+  Version: 5.145.1
   Author: СleanTalk <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -718,7 +718,7 @@ function apbct_activation( $network = false ) {
 			Cron::addTask('check_account_status',  'ct_account_status_check',        3600, time() + 1800); // Checks account status
 			Cron::addTask('delete_spam_comments',  'ct_delete_spam_comments',        3600, time() + 3500); // Formerly ct_hourly_event_hook()
 			Cron::addTask('send_feedback',         'ct_send_feedback',               3600, time() + 3500); // Formerly ct_hourly_event_hook()
-			Cron::addTask('sfw_update',            'ct_sfw_update',                  86400, time() + 300);  // SFW update
+			Cron::addTask('sfw_update',            'ct_sfw_update',                  86400, time() + 30);  // SFW update
 			Cron::addTask('send_sfw_logs',         'ct_sfw_send_logs',               3600, time() + 1800); // SFW send logs
 			Cron::addTask('get_brief_data',        'cleantalk_get_brief_data',       86400, time() + 3500); // Get data for dashboard widget
 			Cron::addTask('send_connection_report','ct_mail_send_connection_report', 86400, time() + 3500); // Send connection report to welcome@cleantalk.org
@@ -731,7 +731,7 @@ function apbct_activation( $network = false ) {
 		Cron::addTask('check_account_status',  'ct_account_status_check',        3600, time() + 1800); // Checks account status
 		Cron::addTask('delete_spam_comments',  'ct_delete_spam_comments',        3600, time() + 3500); // Formerly ct_hourly_event_hook()
 		Cron::addTask('send_feedback',         'ct_send_feedback',               3600, time() + 3500); // Formerly ct_hourly_event_hook()
-		Cron::addTask('sfw_update',            'ct_sfw_update',                  86400, time() + 600);  // SFW update
+		Cron::addTask('sfw_update',            'ct_sfw_update',                  86400, time() + 30);  // SFW update
 		Cron::addTask('send_sfw_logs',         'ct_sfw_send_logs',               3600, time() + 1800); // SFW send logs
 		Cron::addTask('get_brief_data',        'cleantalk_get_brief_data',       86400, time() + 3500); // Get data for dashboard widget
 		Cron::addTask('send_connection_report','ct_mail_send_connection_report', 86400, time() + 3500); // Send connection report to welcome@cleantalk.org
@@ -739,7 +739,6 @@ function apbct_activation( $network = false ) {
 		
 		apbct_activation__create_tables($sqls);
 		ct_account_status_check(null, false);
-        ct_sfw_update(); // Updating SFW
 	}
 	
 	// Additional options
@@ -1031,7 +1030,7 @@ function ct_sfw_update($api_key = '', $immediate = false){
 				? $result
 				: true;
 			
-		}elseif( $file_urls && $url_count >= $current_url ){
+		}elseif( $file_urls && $url_count > $current_url ){
 
 			$result = \Cleantalk\ApbctWP\Firewall\SFW::update(
 				\Cleantalk\ApbctWP\DB::getInstance(),

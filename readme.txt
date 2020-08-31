@@ -4,7 +4,7 @@ Tags: spam, antispam, woocommerce, comments, firewall
 Requires at least: 3.0
 Tested up to: 5.5
 Requires PHP: 5.4
-Stable tag: 5.145
+Stable tag: 5.145.1
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -109,12 +109,13 @@ This plugin uses multiple anti-spam tests to filter spam bots having as low fals
 = How effective is CleanTalk? =
 Accurately blocking spam is not an easy thing to do, but CleanTalk has a very low proven False/Positive rate. Here is actual statistics on false positives for all customers.
 
-* Registrations - 0.007%
-* Comments - 0.001%
-* Contact forms - 0.001%
-* Orders (WooCommerce) - 0.008%
+* Registrations - 0.004%
+* Comments - 0.004%
+* Contact forms - 0.006%
+* Orders (WooCommerce) - 0.016%
+* Site search - 0.001%
 
-The statistic was calculated on November 10 2017 for 1 million requests.
+The statistic was calculated on August 28 2020 for 2.5 million requests.
 
 = How CleanTalk improves SEO for your website? =
 So, you already know that the speed of the site has a direct impact on SEO.
@@ -578,6 +579,17 @@ If your website has forms that send data to external sources, you can enable opt
 10. Website's options.
 
 == Changelog ==
+
+= 5.145.1 Aug 27 2020 =
+ * New: Silent mode for AJAX requests.
+ * Fix: No nonce check for AJAX JS check.
+ * Fix: AJAX JS check using "DOMContentLoaded" event instead of "load".
+ * New: Extended error text for failed AJAX requests.
+ * Fix: Exclusion for the Frontend Reset Password plugin.
+ * Fix: Accept 501 response code for SFW datafiles.
+ * Fix: SFW update. The internal array pointer handling.
+ * Fix: Exception for the WooCommerce edit profile form.
+ * Fix: SFW updating via plugin activation fixed.
 
 = 5.145 Aug 27 2020 =
  * Fix: Blocking pages names fixed.
