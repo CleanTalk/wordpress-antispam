@@ -242,7 +242,7 @@ function apbct_public_sendAJAX(data, params, obj){
 			console.log('APBCT_AJAX_ERROR');
 			console.log(jqXHR);
 			console.log(textStatus);
-			console.log(errorThrown);
+			console.log('Anti-spam by Cleantalk plugin error: ' + errorThrown + 'Please, contact Cleantalk tech support https://wordpress.org/support/plugin/cleantalk-spam-protect/');
 			if(errorThrown && ! silent )
 				alert('Anti-spam by Cleantalk plugin error: ' + errorThrown + 'Please, contact Cleantalk tech support https://wordpress.org/support/plugin/cleantalk-spam-protect/');
 		},
