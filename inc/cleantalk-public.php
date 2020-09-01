@@ -1737,7 +1737,7 @@ function ct_register_form() {
 
 function apbct_login__scripts(){
 	global $apbct;
-	echo '<script src="'.APBCT_URL_PATH.'/js/apbct-public.min.js"></script>';
+	echo '<script src="'.APBCT_URL_PATH.'/js/apbct-public.min.js?ver="'. APBCT_VERSION .'></script>';
 	$apbct->public_script_loaded = true;
 }
 
@@ -1748,9 +1748,7 @@ function apbct_login__scripts(){
 function ct_login_message($message) {
 
     global $errors, $apbct, $apbct_cookie_register_ok_label;
-
-
-
+    
     if ($apbct->settings['registrations_test'] != 0){
         if( isset($_GET['checkemail']) && 'registered' == $_GET['checkemail'] ){
 			if (isset($_COOKIE[$apbct_cookie_register_ok_label])){
