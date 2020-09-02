@@ -239,12 +239,13 @@ function apbct_public_sendAJAX(data, params, obj){
 		error: function(jqXHR, textStatus, errorThrown){
 			if(button){  button.removeAttribute('disabled'); button.style.cursor = 'pointer'; }
 			if(spinner) jQuery(spinner).css('display', 'none');
-			console.log('APBCT_AJAX_ERROR');
-			console.log(jqXHR);
-			console.log(textStatus);
-			console.log('Anti-spam by Cleantalk plugin error: ' + errorThrown + 'Please, contact Cleantalk tech support https://wordpress.org/support/plugin/cleantalk-spam-protect/');
-			if(errorThrown && ! silent )
+			if( errorThrown && ! silent ) {
+				console.log('APBCT_AJAX_ERROR');
+				console.log(jqXHR);
+				console.log(textStatus);
+				console.log('Anti-spam by Cleantalk plugin error: ' + errorThrown + 'Please, contact Cleantalk tech support https://wordpress.org/support/plugin/cleantalk-spam-protect/');
 				alert('Anti-spam by Cleantalk plugin error: ' + errorThrown + 'Please, contact Cleantalk tech support https://wordpress.org/support/plugin/cleantalk-spam-protect/');
+			}
 		},
 		timeout: timeout,
 	});
