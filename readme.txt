@@ -4,7 +4,7 @@ Tags: spam, antispam, woocommerce, comments, firewall
 Requires at least: 3.0
 Tested up to: 5.5
 Requires PHP: 5.4
-Stable tag: 5.145.1
+Stable tag: 5.145.2
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -579,6 +579,13 @@ If your website has forms that send data to external sources, you can enable opt
 10. Website's options.
 
 == Changelog ==
+
+= 5.145.2 Sep 03 2020 =
+ * Fix: WooCommerce AJAX order call.
+ * Fix: AJAX error while getting JS key.
+ * Fix: Using the version parameter when attaching cleantalk-public.js on wp-login page.
+ * Fix: Showing support link in console when AJAX error occurs.
+ * Fix: apbct_public_sendAJAX. Silent mode doesn't write errors to console.
 
 = 5.145.1 Aug 31 2020 =
  * New: Silent mode for AJAX requests.
