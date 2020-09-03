@@ -1278,7 +1278,7 @@ function ct_preprocess_comment($comment) {
         return $comment;
     }
 
-    $local_blacklists = wp_blacklist_check(
+    $local_blacklists = apbct_wp_blacklist_check(
         $comment['comment_author'],
         $comment['comment_author_email'],
         $comment['comment_author_url'],

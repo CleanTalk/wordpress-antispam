@@ -286,3 +286,26 @@ function apbct_wp_doing_cron() {
     }
 
 }
+
+/**
+ * Checks if a comment contains disallowed characters or words.
+ *
+ * @param $author
+ * @param $email
+ * @param $url
+ * @param $comment
+ * @param $user_ip
+ * @param $user_agent
+ * @return bool
+ */
+function apbct_wp_blacklist_check($author, $email, $url, $comment, $user_ip, $user_agent ) {
+
+    global $wp_version;
+
+    if( version_compare($wp_version, '5.5.0', '>=') ) {
+        return wp_check_comment_disallowed_list( $author, $email, $url, $comment, $user_ip, $user_agent );
+    } else {
+        return wp_blacklist_check( $author, $email, $url, $comment, $user_ip, $user_agent );
+    }
+
+}
