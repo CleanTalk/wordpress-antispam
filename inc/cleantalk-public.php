@@ -132,7 +132,7 @@ function apbct_init() {
         if ($apbct->settings['wc_checkout_test'] == 1) {
 	        add_filter('woocommerce_checkout_process', 'ct_woocommerce_checkout_check', 1, 3);
         }
-        if( isset($_REQUEST['wc-ajax']) && $_REQUEST['wc-ajax'] == 'checkout' && $apbct->settings['wc_checkout_test'] == 0 && $apbct->settings['wc_register_from_order'] == 0 ){
+        if( isset($_REQUEST['wc-ajax']) && $_REQUEST['wc-ajax'] == 'checkout' && empty( $apbct->settings['wc_register_from_order'] ) ){
             remove_filter( 'woocommerce_registration_errors', 'ct_registration_errors', 1 );
         }
     }
@@ -1737,7 +1737,7 @@ function ct_register_form() {
 
 function apbct_login__scripts(){
 	global $apbct;
-	echo '<script src="'.APBCT_URL_PATH.'/js/apbct-public.min.js"></script>';
+	echo '<script src="'.APBCT_URL_PATH.'/js/apbct-public.min.js?ver="'. APBCT_VERSION .'></script>';
 	$apbct->public_script_loaded = true;
 }
 
@@ -1748,9 +1748,7 @@ function apbct_login__scripts(){
 function ct_login_message($message) {
 
     global $errors, $apbct, $apbct_cookie_register_ok_label;
-
-
-
+    
     if ($apbct->settings['registrations_test'] != 0){
         if( isset($_GET['checkemail']) && 'registered' == $_GET['checkemail'] ){
 			if (isset($_COOKIE[$apbct_cookie_register_ok_label])){
