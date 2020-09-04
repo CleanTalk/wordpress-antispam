@@ -2,7 +2,7 @@
 
 namespace Cleantalk\ApbctWP\Firewall;
 
-use Cleantalk\ApbctWP\Helper as Helper;
+use Cleantalk\ApbctWP\Helper;
 use Cleantalk\Variables\Cookie;
 use Cleantalk\Variables\Get;
 use Cleantalk\Variables\Server;
