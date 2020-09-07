@@ -72,12 +72,11 @@ div.ct_check_params_wrapper{}
 	white-space: nowrap;
 	border: 1px solid #c5c5c5;
 	border-radius: 3px 3px 0 0;
-	background: #f6f6f6;
+	background: #fff;
 	font-weight: normal;
 }
 #ct_check_tabs ul li.active {
-	 border-color: #003eff;
-	 background: #007fff;
+	border-bottom: 1px solid transparent;
  }
 #ct_check_tabs ul li a {
 	display: block;
@@ -85,7 +84,7 @@ div.ct_check_params_wrapper{}
 	text-decoration: none;
 }
 #ct_check_tabs ul li.active a {
-	color: #ffffff;
+	font-weight: bold;
 }
 #ct_check_content {
 	display: block;
