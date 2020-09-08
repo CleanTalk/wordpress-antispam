@@ -106,7 +106,8 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 	// Database constants
 	define('APBCT_TBL_FIREWALL_DATA', $apbct->db_prefix . 'cleantalk_sfw');      // Table with firewall data.
 	define('APBCT_TBL_FIREWALL_LOG',  $apbct->db_prefix . 'cleantalk_sfw_logs'); // Table with firewall logs.
-	define('APBCT_TBL_AC_LOG',        $apbct->db_prefix . 'cleantalk_ac_log'); // Table with firewall logs.
+	define('APBCT_TBL_AC_LOG',        $apbct->db_prefix . 'cleantalk_ac_log');   // Table with AC firewall logs.
+    define('APBCT_TBL_AF_LOG',        $apbct->db_prefix . 'cleantalk_af_log');   // Table with AF firewall logs.
 	define('APBCT_TBL_SESSIONS',      $apbct->db_prefix . 'cleantalk_sessions'); // Table with session data.
     define('APBCT_SPAMSCAN_LOGS',     $apbct->db_prefix . 'cleantalk_spamscan_logs'); // Table with session data.
 	define('APBCT_SELECT_LIMIT',      5000); // Select limit for logs.
@@ -645,7 +646,7 @@ function apbct_sfw__check()
 	if( $apbct->settings['sfw__anti_flood'] && is_null( apbct_wp_get_current_user() ) ){
 		$firewall->load_fw_module( new \Cleantalk\ApbctWP\Firewall\AntiFlood(
 			APBCT_TBL_FIREWALL_LOG,
-			APBCT_TBL_AC_LOG,
+			APBCT_TBL_AF_LOG,
 			array(
 				'api_key'    => $apbct->api_key,
 				'view_limit' => $apbct->settings['sfw__anti_flood__view_limit'],

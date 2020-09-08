@@ -10,7 +10,7 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule{
 	
 	public $module_name = 'ANTIFLOOD';
 	
-	private $db__table__ac_logs;
+	private $db__table__af_logs;
 
 	private $api_key = '';
 	private $view_limit = 10;
@@ -25,13 +25,13 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule{
 	 * AntiCrawler constructor.
 	 *
 	 * @param $log_table
-	 * @param $ac_logs_table
+	 * @param $af_logs_table
 	 * @param array $params
 	 */
-	public function __construct( $log_table, $ac_logs_table, $params = array() ) {
+	public function __construct( $log_table, $af_logs_table, $params = array() ) {
 		
 		$this->db__table__logs    = $log_table ?: null;
-		$this->db__table__ac_logs = $ac_logs_table ?: null;
+		$this->db__table__af_logs = $af_logs_table ?: null;
 		
 		foreach( $params as $param_name => $param ){
 			$this->$param_name = isset( $this->$param_name ) ? $param : false;
@@ -71,7 +71,7 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule{
 			
 			$result = $this->db->fetch_all(
 				"SELECT SUM(entries) as total_count"
-				. ' FROM `' . $this->db__table__ac_logs . '`'
+				. ' FROM `' . $this->db__table__af_logs . '`'
 				. " WHERE ip = '$current_ip' AND interval_start > '$time';"
 			);
 			
@@ -101,7 +101,7 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule{
 		foreach( $this->ip_array as $ip_origin => $current_ip ){
 			$id = md5( $current_ip . $interval_time );
 			$this->db->execute(
-				"INSERT INTO " . $this->db__table__ac_logs . " SET
+				"INSERT INTO " . $this->db__table__af_logs . " SET
 					id = '$id',
 					ip = '$current_ip',
 					entries = 1,
@@ -121,7 +121,7 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule{
 			$interval_start = \Cleantalk\ApbctWP\Helper::time__get_interval_start( $this->store_interval );
 			$this->db->execute(
 				'DELETE
-				FROM ' . $this->db__table__ac_logs . '
+				FROM ' . $this->db__table__af_logs . '
 				WHERE interval_start < '. $interval_start .'
 				LIMIT 100000;'
 			);
