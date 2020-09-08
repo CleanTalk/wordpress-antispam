@@ -595,3 +595,28 @@ function apbct_update_to_5_143_2() {
 	apbct_activation__create_tables( $sqls, $apbct->db_prefix );
 	
 }
+
+function apbct_update_to_5_146() {
+
+    global $apbct;
+
+    $sqls[] = 'DROP TABLE IF EXISTS `%scleantalk_ac_log`;';
+
+    $sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_ac_log` (
+		`id` VARCHAR(40) NOT NULL,
+		`ip` VARCHAR(40) NOT NULL,
+		`ua` VARCHAR(40) NOT NULL,
+		`entries` INT DEFAULT 0,
+		`interval_start` INT NOT NULL,
+		PRIMARY KEY (`id`));';
+
+    $sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_af_log` (
+		`id` VARCHAR(40) NOT NULL,
+		`ip` VARCHAR(40) NOT NULL,
+		`entries` INT DEFAULT 0,
+		`interval_start` INT NOT NULL,
+		PRIMARY KEY (`id`));';
+
+    apbct_activation__create_tables( $sqls, $apbct->db_prefix );
+
+}

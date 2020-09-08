@@ -686,6 +686,14 @@ function apbct_activation( $network = false ) {
 	$sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_ac_log` (
 		`id` VARCHAR(40) NOT NULL,
 		`ip` VARCHAR(40) NOT NULL,
+		`ua` VARCHAR(40) NOT NULL,
+		`entries` INT DEFAULT 0,
+		`interval_start` INT NOT NULL,
+		PRIMARY KEY (`id`));';
+
+    $sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_af_log` (
+		`id` VARCHAR(40) NOT NULL,
+		`ip` VARCHAR(40) NOT NULL,
 		`entries` INT DEFAULT 0,
 		`interval_start` INT NOT NULL,
 		PRIMARY KEY (`id`));';
