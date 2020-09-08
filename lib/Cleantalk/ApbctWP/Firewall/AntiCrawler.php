@@ -17,8 +17,10 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 	private $store_interval = 60;
 
 	public $isExcluded = false;
-	
-	/**
+
+    public $chance_to_clean = 20;
+
+    /**
 	 * AntiBot constructor.
 	 *
 	 * @param $log_table
@@ -46,6 +48,8 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 	public function check() {
 		
 		$results = array();
+
+        $this->clear_table();
 
         // Skip by cookie
         foreach( $this->ip_array as $ip_origin => $current_ip ) {
@@ -220,6 +224,20 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
         }
 
         return false;
+
+    }
+
+    public function clear_table() {
+
+        if( rand( 0, 100 ) < $this->chance_to_clean ){
+            $interval_start = \Cleantalk\ApbctWP\Helper::time__get_interval_start( $this->store_interval );
+            $this->db->execute(
+                'DELETE
+				FROM ' . $this->db__table__ac_logs . '
+				WHERE interval_start < '. $interval_start .'
+				LIMIT 100000;'
+            );
+        }
 
     }
 }
