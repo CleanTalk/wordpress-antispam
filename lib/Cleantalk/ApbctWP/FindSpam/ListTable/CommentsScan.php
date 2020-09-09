@@ -1,7 +1,8 @@
 <?php
 
+namespace Cleantalk\ApbctWP\FindSpam\ListTable;
 
-class ABPCTCommentsListTableScan extends ABPCTCommentsListTable
+class CommentsScan extends Comments
 {
 
     function prepare_items() {

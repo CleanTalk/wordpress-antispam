@@ -1,14 +1,15 @@
 <?php
 
+namespace Cleantalk\ApbctWP\FindSpam;
 
-class ClassCleantalkFindSpamPage
+class Page
 {
 
     private $spam_checker;
 
     private $current_tab;
 
-    public function __construct( ClassCleantalkFindSpamChecker $apbct_spam_checker ) {
+    public function __construct( Checker $apbct_spam_checker ) {
 
         $this->spam_checker = $apbct_spam_checker;
 
@@ -19,13 +20,6 @@ class ClassCleantalkFindSpamPage
                 $this->current_tab = 1;
                 $this->generatePageHeader();
                 $this->spam_checker->getCurrentScanPage();
-                break;
-
-            case 'users_page_ct_check_users_total' :
-            case 'comments_page_ct_check_spam_total' :
-                $this->current_tab = 2;
-                $this->generatePageHeader();
-                $this->spam_checker->getTotalSpamPage();
                 break;
 
             case 'users_page_ct_check_users_logs' :
@@ -48,13 +42,11 @@ class ClassCleantalkFindSpamPage
         switch ( current_action() ) {
 
             case 'users_page_ct_check_users' :
-            case 'users_page_ct_check_users_total' :
             case 'users_page_ct_check_users_logs' :
                 self::generateCheckUsersPage();
                 break;
 
             case 'comments_page_ct_check_spam' :
-            case 'comments_page_ct_check_spam_total' :
             case 'comments_page_ct_check_spam_logs' :
                 self::generateCheckSpamPage();
                 break;
@@ -65,7 +57,7 @@ class ClassCleantalkFindSpamPage
 
     private static function generateCheckUsersPage() {
 
-        new self( new ClassCleantalkFindSpamUsersChecker() );
+        new self( new UsersChecker() );
 
         self::closeTags();
 
@@ -73,7 +65,7 @@ class ClassCleantalkFindSpamPage
 
     private static function generateCheckSpamPage() {
 
-        new self( new ClassCleantalkFindSpamCommentsChecker() );
+        new self( new CommentsChecker() );
 
         self::closeTags();
 
@@ -104,7 +96,6 @@ class ClassCleantalkFindSpamPage
         <div id="ct_check_tabs">
             <ul>
                 <li <?php echo (1 == $this->current_tab) ? 'class="active"' : ''; ?>><a href="<?php echo $this->spam_checker->getPageScriptName(); ?>?page=ct_check_<?php echo $this->spam_checker->getPageSlug(); ?>"><?php esc_html_e( 'Scan and new results', 'cleantalk-spam-protect') ?></a></li>
-                <li <?php echo (2 == $this->current_tab) ? 'class="active"' : ''; ?>><a href="<?php echo $this->spam_checker->getPageScriptName(); ?>?page=ct_check_<?php echo $this->spam_checker->getPageSlug(); ?>_total"><?php esc_html_e( 'Previous scan results', 'cleantalk-spam-protect') ?></a></li>
                 <li <?php echo (3 == $this->current_tab) ? 'class="active"' : ''; ?>><a href="<?php echo $this->spam_checker->getPageScriptName(); ?>?page=ct_check_<?php echo $this->spam_checker->getPageSlug(); ?>_logs"><?php esc_html_e( 'Scan logs', 'cleantalk-spam-protect') ?></a></li>
             </ul>
             <div id="ct_check_content">

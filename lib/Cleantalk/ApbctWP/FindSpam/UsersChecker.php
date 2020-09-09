@@ -1,7 +1,8 @@
 <?php
 
+namespace Cleantalk\ApbctWP\FindSpam;
 
-class ClassCleantalkFindSpamUsersChecker extends ClassCleantalkFindSpamChecker
+class UsersChecker extends Checker
 {
 
     public function __construct() {
@@ -34,14 +35,11 @@ class ClassCleantalkFindSpamUsersChecker extends ClassCleantalkFindSpamChecker
 
         wp_enqueue_style( 'cleantalk_admin_css_settings_page', plugins_url().'/cleantalk-spam-protect/css/cleantalk-spam-check.min.css', array(), APBCT_VERSION, 'all' );
 
-        require_once(CLEANTALK_PLUGIN_DIR . 'inc/find-spam/ClassCleantalkUsersListTable.php');
-
     }
 
     public function getCurrentScanPage() {
 
-        require_once(CLEANTALK_PLUGIN_DIR . 'inc/find-spam/ClassCleantalkUsersListTableScan.php');
-        $this->list_table = new ABPCTUsersListTableScan();
+        $this->list_table = new \Cleantalk\ApbctWP\FindSpam\ListTable\UsersScan();
 
         $this->getCurrentScanPanel( $this );
         echo '<form action="" method="POST">';
@@ -50,21 +48,9 @@ class ClassCleantalkFindSpamUsersChecker extends ClassCleantalkFindSpamChecker
 
     }
 
-    public function getTotalSpamPage(){
-
-        require_once(CLEANTALK_PLUGIN_DIR . 'inc/find-spam/ClassCleantalkUsersListTableSpam.php');
-        $this->list_table = new ABPCTUsersListTableSpam();
-
-        echo '<form action="" method="POST">';
-        $this->list_table->display();
-        echo '</form>';
-
-    }
-
     public function getSpamLogsPage(){
 
-        require_once(CLEANTALK_PLUGIN_DIR . 'inc/find-spam/ClassCleantalkUsersListTableLogs.php');
-        $this->list_table = new ABPCTUsersListTableLogs();
+        $this->list_table = new \Cleantalk\ApbctWP\FindSpam\ListTable\UsersLogs();
 
         echo '<form action="" method="POST">';
         $this->list_table->display();
@@ -86,7 +72,7 @@ class ClassCleantalkFindSpamUsersChecker extends ClassCleantalkFindSpamChecker
             'count_total' => true,
             'orderby' => 'ct_checked'
         );
-        $tmp = new WP_User_Query( $params );
+        $tmp = new \WP_User_Query( $params );
         $cnt_checked = $tmp->get_total();
 
         if( $cnt_checked > 0 ) {
@@ -103,7 +89,7 @@ class ClassCleantalkFindSpamUsersChecker extends ClassCleantalkFindSpamChecker
                 'number' => 1,
                 'orderby' => 'user_registered'
             );
-            $tmp = new WP_User_Query( $params );
+            $tmp = new \WP_User_Query( $params );
 
             return self::getUserRegister( current( $tmp->get_results() ) );
 

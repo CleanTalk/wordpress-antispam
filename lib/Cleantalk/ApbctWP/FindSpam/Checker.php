@@ -1,7 +1,8 @@
 <?php
 
+namespace Cleantalk\ApbctWP\FindSpam;
 
-abstract class ClassCleantalkFindSpamChecker
+abstract class Checker
 {
 
     protected $page_title = '';
@@ -26,8 +27,6 @@ abstract class ClassCleantalkFindSpamChecker
 
         // Common CSS
         wp_enqueue_style( 'cleantalk_admin_css_settings_page', plugins_url('/cleantalk-spam-protect/css/cleantalk-spam-check.min.css'), array( 'jqueryui_css' ), APBCT_VERSION, 'all' );
-
-        require_once(CLEANTALK_PLUGIN_DIR . 'inc/ClassApbctListTable.php');
 
     }
 
@@ -60,8 +59,6 @@ abstract class ClassCleantalkFindSpamChecker
     }
 
     abstract function getCurrentScanPage();
-
-    abstract function getTotalSpamPage();
 
     abstract function getSpamLogsPage();
 

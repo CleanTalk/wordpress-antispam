@@ -1,7 +1,8 @@
 <?php
 
+namespace Cleantalk\ApbctWP\FindSpam;
 
-class ClassCleantalkFindSpamCommentsChecker extends ClassCleantalkFindSpamChecker
+class CommentsChecker extends Checker
 {
 
     public function __construct() {
@@ -30,14 +31,11 @@ class ClassCleantalkFindSpamCommentsChecker extends ClassCleantalkFindSpamChecke
             'start'                       => !empty($_COOKIE['ct_comments_start_check']) ? true : false,
         ));
 
-        require_once(CLEANTALK_PLUGIN_DIR . 'inc/find-spam/ClassCleantalkCommentsListTable.php');
-
     }
 
     public function getCurrentScanPage() {
 
-        require_once(CLEANTALK_PLUGIN_DIR . 'inc/find-spam/ClassCleantalkCommentsListTableScan.php');
-        $this->list_table = new ABPCTCommentsListTableScan();
+        $this->list_table = new \Cleantalk\ApbctWP\FindSpam\ListTable\CommentsScan();
 
         $this->getCurrentScanPanel( $this );
         echo '<form action="" method="POST">';
@@ -46,21 +44,9 @@ class ClassCleantalkFindSpamCommentsChecker extends ClassCleantalkFindSpamChecke
 
     }
 
-    public function getTotalSpamPage(){
-
-        require_once(CLEANTALK_PLUGIN_DIR . 'inc/find-spam/ClassCleantalkCommentsListTableSpam.php');
-        $this->list_table = new ABPCTCommentsListTableSpam();
-
-        echo '<form action="" method="POST">';
-        $this->list_table->display();
-        echo '</form>';
-
-    }
-
     public function getSpamLogsPage(){
 
-        require_once(CLEANTALK_PLUGIN_DIR . 'inc/find-spam/ClassCleantalkCommentsListTableLogs.php');
-        $this->list_table = new ABPCTCommentsListTableLogs();
+        $this->list_table = new \Cleantalk\ApbctWP\FindSpam\ListTable\CommentsLogs();
 
         echo '<form action="" method="POST">';
         $this->list_table->display();
@@ -286,7 +272,7 @@ class ClassCleantalkFindSpamCommentsChecker extends ClassCleantalkFindSpamChecke
             'meta_key' => 'ct_checked_now',
             'orderby' => 'ct_checked_now'
         );
-        $checked_comments = new WP_Comment_Query($params_checked);
+        $checked_comments = new \WP_Comment_Query($params_checked);
         $cnt_checked = count( $checked_comments->get_comments() );
 
         // Spam comments
@@ -303,7 +289,7 @@ class ClassCleantalkFindSpamCommentsChecker extends ClassCleantalkFindSpamChecke
                 ),
             ),
         );
-        $spam_comments = new WP_Comment_Query($params_spam);
+        $spam_comments = new \WP_Comment_Query($params_spam);
         $cnt_spam = count( $spam_comments->get_comments() );
 
         // Bad comments (without IP and Email)
@@ -320,7 +306,7 @@ class ClassCleantalkFindSpamCommentsChecker extends ClassCleantalkFindSpamChecke
                 ),
             ),
         );
-        $bad_comments = new WP_Comment_Query($params_bad);
+        $bad_comments = new \WP_Comment_Query($params_bad);
         $cnt_bad = count( $bad_comments->get_comments() );
 
         $return = array(
@@ -407,7 +393,7 @@ class ClassCleantalkFindSpamCommentsChecker extends ClassCleantalkFindSpamChecke
         $params_spam = array(
             'meta_key' => 'ct_checked_now',
         );
-        $spam_comments = new WP_Comment_Query($params_spam);
+        $spam_comments = new \WP_Comment_Query($params_spam);
         $cnt_checked = count( $spam_comments->get_comments() );
 
         // Spam users
@@ -424,7 +410,7 @@ class ClassCleantalkFindSpamCommentsChecker extends ClassCleantalkFindSpamChecke
                 ),
             ),
         );
-        $spam_comments = new WP_Comment_Query($params_spam);
+        $spam_comments = new \WP_Comment_Query($params_spam);
         $cnt_spam = count( $spam_comments->get_comments() );
 
         // Bad users (without IP and Email)
@@ -441,7 +427,7 @@ class ClassCleantalkFindSpamCommentsChecker extends ClassCleantalkFindSpamChecke
                 ),
             ),
         );
-        $spam_comments = new WP_Comment_Query($params_bad);
+        $spam_comments = new \WP_Comment_Query($params_bad);
         $cnt_bad = count( $spam_comments->get_comments() );
 
         return array(

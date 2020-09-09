@@ -1,7 +1,8 @@
 <?php
 
+namespace Cleantalk\ApbctWP\FindSpam\ListTable;
 
-class ABPCTUsersListTableScan extends ABPCTUsersListTable
+class UsersScan extends Users
 {
 
     function prepare_items() {
