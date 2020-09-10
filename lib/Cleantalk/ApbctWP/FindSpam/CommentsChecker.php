@@ -210,6 +210,7 @@ class CommentsChecker extends Checker
                     $check_result['bad']++;
                     update_comment_meta($c[$i]->comment_ID,'ct_bad','1');
                     update_comment_meta($c[$i]->comment_ID,'ct_checked','1');
+                    update_comment_meta($c[$i]->comment_ID,'ct_checked_now','1');
                     unset($c[$i]);
                 }else{
                     if(!empty($curr_ip))
@@ -398,9 +399,12 @@ class CommentsChecker extends Checker
                 meta_key IN ('ct_checked','ct_marked_as_spam','ct_bad') 
                 AND meta_value >= '{$from}' 
                 AND meta_value <= '{$till}';");
-
                 die();
 
+            } else {
+                $wpdb->query("DELETE FROM {$wpdb->commentmeta} WHERE 
+                meta_key IN ('ct_checked','ct_marked_as_spam','ct_bad')");
+                die();
             }
         }
 
