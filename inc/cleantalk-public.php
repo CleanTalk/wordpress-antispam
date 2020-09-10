@@ -2437,12 +2437,19 @@ function apbct_form__contactForm7__changeMailNotification($component){
  */
 function apbct_form__ninjaForms__testSpam() {
 
-    global $apbct;
+    global $apbct, $cleantalk_executed;
 
+    if( $cleantalk_executed ){
+	    do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
+	    return;
+    }
+	
+	$cleantalk_executed = true;
+ 
 	if(
 			$apbct->settings['contact_forms_test'] == 0
 		|| ($apbct->settings['protect_logged_in'] != 1 && is_user_logged_in()) // Skip processing for logged in users.
-			|| apbct_exclusions_check__url()
+		|| apbct_exclusions_check__url()
 	){
         do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
 		return;
