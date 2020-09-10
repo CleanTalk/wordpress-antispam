@@ -68,12 +68,12 @@ abstract class Checker
 
         $dates_allowed = '';
         $dates_disabled = 'disabled';
-        if( Cookie::get('ct_' . $this->page_slug . 'dates_allowed') ) {
+        if( Cookie::get('ct_' . $this->page_slug . '_dates_allowed') ) {
             $dates_allowed = 'checked';
             $dates_disabled = '';
         }
-        $dates_from =  Cookie::get('ct_' . $this->page_slug . 'dates_from');
-        $dates_till =  Cookie::get('ct_' . $this->page_slug . 'dates_till');
+        $dates_from =  Cookie::get('ct_' . $this->page_slug . '_dates_from');
+        $dates_till =  Cookie::get('ct_' . $this->page_slug . '_dates_till');
 
         ?>
 

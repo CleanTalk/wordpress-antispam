@@ -285,13 +285,13 @@ jQuery(document).ready(function(){
 	
 	// Toggle dependences
 	jQuery("#ct_allow_date_range").on('change', function(){
-		document.cookie = 'ct_comments_dates_from='+ jQuery('#ct_date_range_from').val() +'; path=/; samesite=lax';
-		document.cookie = 'ct_comments_dates_till='+ jQuery('#ct_date_range_till').val() +'; path=/; samesite=lax';
+		document.cookie = 'ct_spam_dates_from='+ jQuery('#ct_date_range_from').val() +'; path=/; samesite=lax';
+		document.cookie = 'ct_spam_dates_till='+ jQuery('#ct_date_range_till').val() +'; path=/; samesite=lax';
 		if( this.checked ) {
-			document.cookie = 'ct_comments_dates_allowed=1; path=/; samesite=lax';
+			document.cookie = 'ct_spam_dates_allowed=1; path=/; samesite=lax';
 			jQuery('.ct_date').prop('checked', true).removeProp('disabled');
 		} else {
-			document.cookie = 'ct_comments_dates_allowed=0; path=/; samesite=lax';
+			document.cookie = 'ct_spam_dates_allowed=0; path=/; samesite=lax';
 			jQuery('.ct_date').prop('disabled', true).removeProp('checked');
 		}
 	});
@@ -311,8 +311,8 @@ jQuery(document).ready(function(){
 					instance.settings.dateFormat || jQuery.datepicker._defaults.dateFormat,
 					selectedDate, instance.settings);
 				dates.not(this).datepicker("option", option, date);
-				document.cookie = 'ct_comments_dates_from='+ jQuery('#ct_date_range_from').val() +'; path=/; samesite=lax';
-				document.cookie = 'ct_comments_dates_till='+ jQuery('#ct_date_range_till').val() +'; path=/; samesite=lax';
+				document.cookie = 'ct_spam_dates_from='+ jQuery('#ct_date_range_from').val() +'; path=/; samesite=lax';
+				document.cookie = 'ct_spam_dates_till='+ jQuery('#ct_date_range_till').val() +'; path=/; samesite=lax';
 			}
 		}
 	);
