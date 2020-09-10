@@ -2,6 +2,8 @@
 
 namespace Cleantalk\ApbctWP\FindSpam;
 
+use Cleantalk\Variables\Cookie;
+
 abstract class Checker
 {
 
@@ -63,6 +65,16 @@ abstract class Checker
     abstract function getSpamLogsPage();
 
     protected function getCurrentScanPanel( $spam_checker ) {
+
+        $dates_allowed = '';
+        $dates_disabled = 'disabled';
+        if( Cookie::get('ct_' . $this->page_slug . 'dates_allowed') ) {
+            $dates_allowed = 'checked';
+            $dates_disabled = '';
+        }
+        $dates_from =  Cookie::get('ct_' . $this->page_slug . 'dates_from');
+        $dates_till =  Cookie::get('ct_' . $this->page_slug . 'dates_till');
+
         ?>
 
         <!-- Count -->
@@ -83,11 +95,11 @@ abstract class Checker
             <p class="ct_check_params_desc"><?php _e("Allows to use $this->page_slug's dates to perform more accurate check. Could seriously slow down the check.", 'cleantalk-spam-protect'); ?></p>
             <br />
             <div class="ct_check_params_elem ct_check_params_elem_sub">
-                <input id="ct_allow_date_range" type="checkbox" value="1" /><label for="ct_allow_date_range"><strong><?php _e("Specify date range", 'cleantalk-spam-protect'); ?></strong></label>
+                <input id="ct_allow_date_range" type="checkbox" value="1"  <?php echo $dates_allowed; ?> /><label for="ct_allow_date_range"><strong><?php _e("Specify date range", 'cleantalk-spam-protect'); ?></strong></label>
             </div>
             <div class="ct_check_params_desc">
-                <label for="ct_date_range_from"></label><input class="ct_date" type="text" id="ct_date_range_from" value="<?php echo $this->lastCheckDate(); ?>" disabled readonly />
-                <label for="ct_date_range_till"></label><input class="ct_date" type="text" id="ct_date_range_till" value="<?php echo date( "M j Y"); ?>" disabled readonly />
+                <label for="ct_date_range_from"></label><input class="ct_date" type="text" id="ct_date_range_from" value="<?php echo $dates_from; ?>" <?php echo $dates_disabled; ?> readonly />
+                <label for="ct_date_range_till"></label><input class="ct_date" type="text" id="ct_date_range_till" value="<?php echo $dates_till; ?>" <?php echo $dates_disabled; ?> readonly />
             </div>
             <div class="ct_check_params_desc">
                 <p><?php esc_html_e( "Begin/end dates of creation $this->page_slug to check. If no date is specified, the plugin uses the last $this->page_slug check date.", 'cleantalk-spam-protect'); ?></p>
