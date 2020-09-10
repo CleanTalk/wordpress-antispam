@@ -102,7 +102,7 @@ abstract class Checker
                 <label for="ct_date_range_till"></label><input class="ct_date" type="text" id="ct_date_range_till" value="<?php echo $dates_till; ?>" <?php echo $dates_disabled; ?> readonly />
             </div>
             <div class="ct_check_params_desc">
-                <p><?php esc_html_e( "Begin/end dates of creation $this->page_slug to check. If no date is specified, the plugin uses the last $this->page_slug check date.", 'cleantalk-spam-protect'); ?></p>
+                <p><?php esc_html_e( "Begin/end dates of creation $this->page_slug to check. If no date is specified, the plugin will check all entries.", 'cleantalk-spam-protect'); ?></p>
             </div>
             <br>
             <?php apbct_admin__badge__get_premium(); ?>
