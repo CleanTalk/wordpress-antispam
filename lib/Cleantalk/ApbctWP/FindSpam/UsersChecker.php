@@ -382,9 +382,13 @@ class UsersChecker extends Checker
                 $cnt_bad
             );
         } else {
-            if( isset( $return['checked'] ) && 0 == $return['checked']  ) {
-                $return['message'] = esc_html__( 'Never checked yet or no new spam.', 'cleantalk-spam-protect');
-            } else {
+
+            global $wpdb;
+
+            $query = "SELECT * FROM " . APBCT_SPAMSCAN_LOGS . " WHERE scan_type = 'users' ORDER BY start_time DESC";
+            $res = $wpdb->get_row( $query, ARRAY_A );
+
+            if ( $res ) {
                 $return['message'] .= sprintf (
                     __("Last check %s: checked %s users, found %s spam users and %s bad users (without IP or email).", 'cleantalk-spam-protect'),
                     self::lastCheckDate(),
@@ -392,7 +396,10 @@ class UsersChecker extends Checker
                     $cnt_spam,
                     $cnt_bad
                 );
+            } else {
+                $return['message'] = esc_html__( 'Never checked yet or no new spam.', 'cleantalk-spam-protect');
             }
+
         }
 
         $backup_notice = '&nbsp;';
