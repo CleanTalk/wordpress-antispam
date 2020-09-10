@@ -55,6 +55,25 @@ class CommentsChecker extends Checker
     }
 
     /**
+     * Getting a count of total comments of the website and return formatted string about this.
+     *
+     * @return string
+     */
+    public static function get_count_text() {
+
+        $res = wp_count_comments();
+
+        if( $res->all ) {
+            $text = sprintf( esc_html__ ('Total count of comments: %s.', 'cleantalk-spam-protect' ), $res->all );
+        } else {
+            $text = esc_html__( 'No comments found.', 'cleantalk-spam-protect' );
+        }
+
+        return $text;
+
+    }
+
+    /**
      * Get date last checked comment or date of the first comment
      *
      * @return string   date "M j Y"

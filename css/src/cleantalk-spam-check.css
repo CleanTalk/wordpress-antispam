@@ -1,4 +1,4 @@
-#ct_checking_status, #ct_cooling_notice, #ct_error_message h3, #ct_error_message h4{
+#ct_checking_status, #ct_cooling_notice, #ct_error_message h3, #ct_checking_count, #ct_error_message h4{
 	text-align: center;
 	width:90%;
 }

@@ -65,6 +65,9 @@ abstract class Checker
     protected function getCurrentScanPanel( $spam_checker ) {
         ?>
 
+        <!-- Count -->
+        <h3 id="ct_checking_count"><?php echo $spam_checker::get_count_text() ; ?></h3>
+
         <!-- Main info -->
         <h3 id="ct_checking_status"><?php echo $spam_checker::ct_ajax_info(true) ; ?></h3>
 

@@ -59,6 +59,25 @@ class UsersChecker extends Checker
     }
 
     /**
+     * Getting a count of total users of the website and return formatted string about this.
+     *
+     * @return string
+     */
+    public static function get_count_text() {
+
+        $res = count_users();
+
+        if( $res['total_users'] ) {
+            $text = sprintf( esc_html__ ('Total count of users: %s.', 'cleantalk-spam-protect' ), $res['total_users'] );
+        } else {
+            $text = esc_html__( 'No users found.', 'cleantalk-spam-protect' );
+        }
+
+        return $text;
+
+    }
+
+    /**
      * Get date last checked user or date first registered user
      *
      * @return string   date "M j Y"
