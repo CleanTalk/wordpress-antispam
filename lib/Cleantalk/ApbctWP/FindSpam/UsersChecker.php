@@ -212,6 +212,7 @@ class UsersChecker extends Checker
                     $check_result['bad']++;
                     update_user_meta( $u[$i]->ID,'ct_bad','1',true );
                     update_user_meta( $u[$i]->ID, 'ct_checked', date("Y-m-d H:m:s"), true) ;
+                    update_user_meta( $u[$i]->ID, 'ct_checked_now', '1', true) ;
                     unset( $u[$i] );
                 }else{
                     if( !empty( $curr_ip ) )
@@ -322,9 +323,11 @@ class UsersChecker extends Checker
                 meta_key IN ('ct_checked','ct_marked_as_spam','ct_bad') 
                 AND meta_value >= '{$from}' 
                 AND meta_value <= '{$till}';");
-
                 die();
-
+            } else {
+                $wpdb->query("DELETE FROM {$wpdb->usermeta} WHERE 
+                meta_key IN ('ct_checked','ct_marked_as_spam','ct_bad')");
+                die();
             }
         }
 
