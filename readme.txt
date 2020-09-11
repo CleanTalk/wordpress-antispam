@@ -4,7 +4,7 @@ Tags: spam, antispam, woocommerce, comments, firewall
 Requires at least: 3.0
 Tested up to: 5.5
 Requires PHP: 5.4
-Stable tag: 5.145.2
+Stable tag: 5.146
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -579,6 +579,20 @@ If your website has forms that send data to external sources, you can enable opt
 10. Website's options.
 
 == Changelog ==
+
+= 5.146 Sep 14 2020 =
+ * Fix: Deprecated function wp_blacklist_check() fixed.
+ * Fix: Roles exclusion fixed.
+ * Mod: Namespace import in \Cleantalk\ApbctWP\Firewall\SFW.
+ * Fix: Comments checking fixed.
+ * Fix: Spam scan tabs layout fixed.
+ * New: Countdown timer implemented for the AntiCrawler page.
+ * Mod: AC table modified, separated AF table created.
+ * Mod: AF work moved to the separated table.
+ * Fix: AC table clearing implemented.
+ * Mod: User-agent signature added to the AC checking.
+ * Mod: Find-spam classes for comments and users refactored
+ * Upd: Spam scan - scanning users/comments updated.
 
 = 5.145.2 Sep 03 2020 =
  * Fix: WooCommerce AJAX order call.
