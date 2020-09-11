@@ -92,31 +92,25 @@
 				if (
 					form.classList.contains('slp_search_form') || //StoreLocatorPlus form
 					form.parentElement.classList.contains('mec-booking') ||
-					form.action.toString().indexOf('activehosted.com') || // Active Campaign
+					form.action.toString().indexOf('activehosted.com') !== -1 || // ActiveCampaign
 					(form.id && form.id == 'caspioform') //Caspio Form
 				)
 					continue;
 
-				if(
-					action.indexOf('activehosted.com') !== -1 // Exclusion for ActiveCampaign
+				form.onsubmit_prev = form.onsubmit;
+				form.onsubmit = function (event) {
 
-				) {
+					event.preventDefault();
 
-					form.onsubmit_prev = form.onsubmit;
-					form.onsubmit = function (event) {
+					apbct_collect_visible_fields_and_set_cookie(this);
 
-						event.preventDefault();
-
-						apbct_collect_visible_fields_and_set_cookie(this);
-
-						// Call previous submit action
-						if (event.target.onsubmit_prev instanceof Function) {
-							setTimeout(function () {
-								event.target.onsubmit_prev.call(event.target, event);
-							}, 500);
-						}
-					};
-				}
+					// Call previous submit action
+					if (event.target.onsubmit_prev instanceof Function) {
+						setTimeout(function () {
+							event.target.onsubmit_prev.call(event.target, event);
+						}, 500);
+					}
+				};
 			}
 		}, 1000);
 	}
