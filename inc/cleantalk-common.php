@@ -362,7 +362,7 @@ function apbct_get_sender_info() {
 			: (array)json_decode(filter_input(INPUT_COOKIE, 'apbct_urls'), true);
 	
 	return array(
-		'wpms'                   => is_multisite(),
+ 		'wpms'                   => is_multisite() ? 'yes' : 'no',
 		'remote_addr'            => \Cleantalk\ApbctWP\Helper::ip__get(array('remote_addr'), false),
         'REFFERRER'              => apbct_get_server_variable( 'HTTP_REFERER' ),
         'USER_AGENT'             => apbct_get_server_variable( 'HTTP_USER_AGENT' ),
