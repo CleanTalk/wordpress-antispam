@@ -92,7 +92,7 @@
 				if (
 					form.classList.contains('slp_search_form') || //StoreLocatorPlus form
 					form.parentElement.classList.contains('mec-booking') ||
-					form.action.toString().indexOf('activehosted.com') === -1 || // Active Campaign
+					form.action.toString().indexOf('activehosted.com') !== -1 || // Active Campaign
 					(form.id && form.id == 'caspioform') //Caspio Form
 				)
 					continue;
@@ -109,6 +109,9 @@
 						setTimeout(function () {
 							event.target.onsubmit_prev.call(event.target, event);
 						}, 500);
+					} else {
+						event.target.onsubmit = event.target.onsubmit_prev;
+						event.target.submit();
 					}
 				};
 			}
