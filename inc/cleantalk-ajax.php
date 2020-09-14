@@ -387,7 +387,7 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 		$ct_post_temp['comment'] = $_POST['comment'];
 	}
 	//Woocommerce checkout
-	if(isset($_POST['action']) && $_POST['action']=='woocommerce_checkout'){
+	if( \Cleantalk\Variables\Post::get( 'action' ) == 'woocommerce_checkout' || \Cleantalk\Variables\Post::get( 'action' ) == 'save_data' ){
 		$post_info['comment_type'] = 'order';
 		if( empty( $apbct->settings['wc_checkout_test'] ) ){
 			do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
