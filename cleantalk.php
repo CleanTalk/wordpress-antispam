@@ -794,6 +794,7 @@ function apbct_activation__new_blog($blog_id, $user_id, $domain, $path, $site_id
 	    $sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_ac_log` (
 		`id` VARCHAR(40) NOT NULL,
 		`ip` VARCHAR(40) NOT NULL,
+		`ua` VARCHAR(40) NOT NULL,
 		`entries` INT DEFAULT 0,
 		`interval_start` INT NOT NULL,
 		PRIMARY KEY (`id`));';
