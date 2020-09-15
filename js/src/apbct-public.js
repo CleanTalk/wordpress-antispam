@@ -100,8 +100,6 @@
 				form.onsubmit_prev = form.onsubmit;
 				form.onsubmit = function (event) {
 
-					event.preventDefault();
-
 					apbct_collect_visible_fields_and_set_cookie(this);
 
 					// Call previous submit action
@@ -109,9 +107,6 @@
 						setTimeout(function () {
 							event.target.onsubmit_prev.call(event.target, event);
 						}, 500);
-					} else {
-						event.target.onsubmit = event.target.onsubmit_prev;
-						event.target.submit();
 					}
 				};
 			}
