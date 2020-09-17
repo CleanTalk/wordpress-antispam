@@ -2,7 +2,7 @@
 
 namespace Cleantalk\ApbctWP\Firewall;
 
-use Cleantalk\ApbctWP\Helper as Helper;
+use Cleantalk\ApbctWP\Helper;
 use Cleantalk\Variables\Cookie;
 use Cleantalk\Variables\Get;
 use Cleantalk\Variables\Server;
@@ -156,7 +156,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 	 */
 	public function update_log( $ip, $status ) {
 		
-		if( in_array( $status, array( 'PASS_SFW__BY_WHITELIST', 'PASS_SFW' ) ) ){
+		if( in_array( $status, array( 'PASS_SFW__BY_WHITELIST', 'PASS_SFW', 'PASS_ANTIFLOOD', 'PASS_ANTICRAWLER' ) ) ){
 			return;
 		}
 
@@ -227,7 +227,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 			// Translation
 			$replaces = array(
 				'{SFW_DIE_NOTICE_IP}'              => __('SpamFireWall is activated for your IP ', 'cleantalk-spam-protect'),
-				'{SFW_DIE_MAKE_SURE_JS_ENABLED}'   => __( 'To continue working with web site, please make sure that you have enabled JavaScript.', 'cleantalk-spam-protect' ),
+				'{SFW_DIE_MAKE_SURE_JS_ENABLED}'   => __( 'To continue working with the web site, please make sure that you have enabled JavaScript.', 'cleantalk-spam-protect' ),
 				'{SFW_DIE_CLICK_TO_PASS}'          => __('Please click the link below to pass the protection,', 'cleantalk-spam-protect'),
 				'{SFW_DIE_YOU_WILL_BE_REDIRECTED}' => sprintf(__('Or you will be automatically redirected to the requested page after %d seconds.', 'cleantalk-spam-protect'), 3),
 				'{CLEANTALK_TITLE}'                => ($this->test ? __('This is the testing page for SpamFireWall', 'cleantalk-spam-protect') : ''),

@@ -86,6 +86,12 @@ function apbct_base_call($params = array(), $reg_flag = false){
 
 	global $apbct, $cleantalk_executed;
 
+    // URL, IP, Role exclusions
+    if( ! $cleantalk_executed && apbct_exclusions_check() ){
+        do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
+        return array( 'ct_result' => new CleantalkResponse() );
+    }
+
 	$cleantalk_executed = true;
 
 	$sender_info = !empty($params['sender_info'])
@@ -98,12 +104,6 @@ function apbct_base_call($params = array(), $reg_flag = false){
 		$params['message'] = apbct_array( $params['message'] )
 			->get_keys( $apbct->settings['exclusions__fields'], $apbct->settings['exclusions__fields__use_regexp'] )
 			->delete();
-	}
-	
-	// URL, IP, Role exclusions
-	if( ! $cleantalk_executed && apbct_exclusions_check() ){
-		do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
-		return false;
 	}
 	
 	// Reversed url exclusions. Pass everything except one.
@@ -362,6 +362,7 @@ function apbct_get_sender_info() {
 			: (array)json_decode(filter_input(INPUT_COOKIE, 'apbct_urls'), true);
 	
 	return array(
+ 		'wpms'                   => is_multisite() ? 'yes' : 'no',
 		'remote_addr'            => \Cleantalk\ApbctWP\Helper::ip__get(array('remote_addr'), false),
         'REFFERRER'              => apbct_get_server_variable( 'HTTP_REFERER' ),
         'USER_AGENT'             => apbct_get_server_variable( 'HTTP_USER_AGENT' ),

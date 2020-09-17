@@ -3,7 +3,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 5.145.2
+  Version: 5.146
   Author: СleanTalk <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -686,6 +686,7 @@ function apbct_activation( $network = false ) {
 	$sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_ac_log` (
 		`id` VARCHAR(40) NOT NULL,
 		`ip` VARCHAR(40) NOT NULL,
+		`ua` VARCHAR(40) NOT NULL,
 		`entries` INT DEFAULT 0,
 		`interval_start` INT NOT NULL,
 		PRIMARY KEY (`id`));';
@@ -794,6 +795,7 @@ function apbct_activation__new_blog($blog_id, $user_id, $domain, $path, $site_id
 	    $sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_ac_log` (
 		`id` VARCHAR(40) NOT NULL,
 		`ip` VARCHAR(40) NOT NULL,
+		`ua` VARCHAR(40) NOT NULL,
 		`entries` INT DEFAULT 0,
 		`interval_start` INT NOT NULL,
 		PRIMARY KEY (`id`));';

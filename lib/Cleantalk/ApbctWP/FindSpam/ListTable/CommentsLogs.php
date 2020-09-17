@@ -1,7 +1,8 @@
 <?php
 
+namespace Cleantalk\ApbctWP\FindSpam\ListTable;
 
-class ABPCTCommentsListTableLogs extends ABPCTCommentsListTable
+class CommentsLogs extends Comments
 {
 
     // Set columns

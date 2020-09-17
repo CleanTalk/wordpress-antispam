@@ -1,7 +1,10 @@
 <?php
 
+namespace Cleantalk\ApbctWP\FindSpam;
 
-abstract class ClassCleantalkFindSpamChecker
+use Cleantalk\Variables\Cookie;
+
+abstract class Checker
 {
 
     protected $page_title = '';
@@ -26,8 +29,6 @@ abstract class ClassCleantalkFindSpamChecker
 
         // Common CSS
         wp_enqueue_style( 'cleantalk_admin_css_settings_page', plugins_url('/cleantalk-spam-protect/css/cleantalk-spam-check.min.css'), array( 'jqueryui_css' ), APBCT_VERSION, 'all' );
-
-        require_once(CLEANTALK_PLUGIN_DIR . 'inc/ClassApbctListTable.php');
 
     }
 
@@ -61,12 +62,23 @@ abstract class ClassCleantalkFindSpamChecker
 
     abstract function getCurrentScanPage();
 
-    abstract function getTotalSpamPage();
-
     abstract function getSpamLogsPage();
 
     protected function getCurrentScanPanel( $spam_checker ) {
+
+        $dates_allowed = '';
+        $dates_disabled = 'disabled';
+        if( Cookie::get('ct_' . $this->page_slug . '_dates_allowed') ) {
+            $dates_allowed = 'checked';
+            $dates_disabled = '';
+        }
+        $dates_from =  Cookie::get('ct_' . $this->page_slug . '_dates_from');
+        $dates_till =  Cookie::get('ct_' . $this->page_slug . '_dates_till');
+
         ?>
+
+        <!-- Count -->
+        <h3 id="ct_checking_count"><?php echo $spam_checker::get_count_text() ; ?></h3>
 
         <!-- Main info -->
         <h3 id="ct_checking_status"><?php echo $spam_checker::ct_ajax_info(true) ; ?></h3>
@@ -83,14 +95,14 @@ abstract class ClassCleantalkFindSpamChecker
             <p class="ct_check_params_desc"><?php _e("Allows to use $this->page_slug's dates to perform more accurate check. Could seriously slow down the check.", 'cleantalk-spam-protect'); ?></p>
             <br />
             <div class="ct_check_params_elem ct_check_params_elem_sub">
-                <input id="ct_allow_date_range" type="checkbox" value="1" /><label for="ct_allow_date_range"><strong><?php _e("Specify date range", 'cleantalk-spam-protect'); ?></strong></label>
+                <input id="ct_allow_date_range" type="checkbox" value="1"  <?php echo $dates_allowed; ?> /><label for="ct_allow_date_range"><strong><?php _e("Specify date range", 'cleantalk-spam-protect'); ?></strong></label>
             </div>
             <div class="ct_check_params_desc">
-                <label for="ct_date_range_from"></label><input class="ct_date" type="text" id="ct_date_range_from" value="<?php echo $this->lastCheckDate(); ?>" disabled readonly />
-                <label for="ct_date_range_till"></label><input class="ct_date" type="text" id="ct_date_range_till" value="<?php echo date( "M j Y"); ?>" disabled readonly />
+                <label for="ct_date_range_from"></label><input class="ct_date" type="text" id="ct_date_range_from" value="<?php echo $dates_from; ?>" <?php echo $dates_disabled; ?> readonly />
+                <label for="ct_date_range_till"></label><input class="ct_date" type="text" id="ct_date_range_till" value="<?php echo $dates_till; ?>" <?php echo $dates_disabled; ?> readonly />
             </div>
             <div class="ct_check_params_desc">
-                <p><?php esc_html_e( "Begin/end dates of creation $this->page_slug to check. If no date is specified, the plugin uses the last $this->page_slug check date.", 'cleantalk-spam-protect'); ?></p>
+                <p><?php esc_html_e( "Begin/end dates of creation $this->page_slug to check. If no date is specified, the plugin will check all entries.", 'cleantalk-spam-protect'); ?></p>
             </div>
             <br>
             <?php apbct_admin__badge__get_premium(); ?>

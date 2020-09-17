@@ -1,4 +1,7 @@
 <?php
+
+namespace Cleantalk\ApbctWP;
+
 /**
  * This is copy of the WP_List_Table class for the future compability
  */
@@ -17,7 +20,7 @@
  * @since 3.1.0
  * @access private
  */
-class ABPCT_List_Table {
+class CleantalkListTable {
 
     /**
      * The current list of items.
@@ -1011,7 +1014,7 @@ class ABPCT_List_Table {
         // If the primary column doesn't exist fall back to the
         // first non-checkbox column.
         if ( ! isset( $columns[ $default ] ) ) {
-            $default = ABPCT_List_Table::get_default_primary_column_name();
+            $default = CleantalkListTable::get_default_primary_column_name();
         }
 
         /**

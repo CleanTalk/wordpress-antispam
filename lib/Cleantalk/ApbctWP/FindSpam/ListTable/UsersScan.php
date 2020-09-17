@@ -1,7 +1,8 @@
 <?php
 
+namespace Cleantalk\ApbctWP\FindSpam\ListTable;
 
-class ABPCTUsersListTableScan extends ABPCTUsersListTable
+class UsersScan extends Users
 {
 
     function prepare_items() {
@@ -42,6 +43,23 @@ class ABPCTUsersListTableScan extends ABPCTUsersListTable
 
         }
 
+    }
+
+    function extra_tablenav( $which ) {
+        if( isset( $_SERVER['SERVER_ADDR'] ) && $_SERVER['SERVER_ADDR'] === '127.0.0.1' ){
+            ?>
+            <button type="button" class="button action ct_insert_users">Insert users</button>
+            <button type="button" class="button action ct_insert_users__delete">Delete inserted</button>
+            <?php
+        }
+        if( ! $this->has_items() ) return;
+        ?>
+        <div class="alignleft actions bulkactions">
+            <button type="button" id="ct_delete_all_users" class="button action ct_delete_all_users"><?php esc_html_e('Delete all users from list', 'cleantalk-spam-protect'); ?></button>
+            <button type="button" id="ct_get_csv_file" class="button action ct_get_csv_file"><?php  esc_html_e( 'Download results in CSV', 'cleantalk-spam-protect') ?></button>
+            <span class="spinner"></span>
+        </div>
+        <?php
     }
 
 }

@@ -26,11 +26,13 @@
 		@media (max-width: 600px) {
 		}
 
-		.spinner {
+		.spinner, #timer {
 			margin-left: auto;
 			margin-right: auto;
 			width: 70px;
 			text-align: center;
+			font-size: 40px;
+			font-weight: bold;
 		}
 
 		.spinner > div {
@@ -101,6 +103,7 @@
 				<div class="bounce2"></div>
 				<div class="bounce3"></div>
 			</div>
+			<div id="timer"></div>
 			{GENERATED}
 			<p>Browser time <span id='curr_date'></span></p>
         </div>
@@ -128,6 +131,25 @@
 				window.location.href = window.location.origin + window.location.pathname + '?sfw=pass' + Math.round(ct_date.getTime()/1000);
 			}, reload_timeout);
 		}
+
+		// Countdown function
+		var timer_block = document.getElementById('timer');
+		timer_block.innerText = reload_timeout/1000;
+		var time;
+		function countdown() {
+			time = parseInt( timer_block.innerText );
+			var current = parseInt( timer_block.innerText );
+			var cdw = setInterval( function(){
+				current = parseInt( current ) - 1;
+				timer_block.innerText = current;
+				if ( 0 === parseInt( current ) ) {
+					clearInterval( cdw );
+				}
+			}, 1000 );
+		}
+
+		// Run countdown
+		countdown();
     </script>
 </body>
 </html>

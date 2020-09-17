@@ -26,18 +26,19 @@
 		@media (max-width: 600px) {
 		}
 
-		.spinner {
+		.spinner, #timer {
 			margin-left: auto;
 			margin-right: auto;
 			width: 70px;
 			text-align: center;
+			font-size: 40px;
+			font-weight: bold;
 		}
 
 		.spinner > div {
 			width: 14px;
 			height: 14px;
 			background-color: #333;
-
 			border-radius: 100%;
 			display: inline-block;
 			-webkit-animation: sk-bouncedelay 1.4s infinite ease-in-out both;
@@ -101,6 +102,7 @@
 				<div class="bounce2"></div>
 				<div class="bounce3"></div>
 			</div>
+			<div id="timer"></div>
 			{GENERATED}
 			<p>Browser time <span id='curr_date'></span></p>
         </div>
@@ -114,22 +116,42 @@
 		<a href='https://cleantalk.org' target='_blank'>{CLEANTALK_TITLE}</a>
     </div>
     <script type='text/javascript'>
-		var reload_timeout = 30000;
+
+		var reload_timeout = 3000;
 		document.getElementById('js_info').style.display = 'none';
 		document.getElementById('js_passed').style.display = 'block';
 		document.getElementById('curr_date').innerHTML = ct_date.toGMTString();
 
 		setTimeout( function(){
-			console.log('do');
 			set_spamFireWallCookie('apbct_antibot',           '{COOKIE_ANTICRAWLER}');
 			set_spamFireWallCookie('apbct_anticrawler_passed','{COOKIE_ANTICRAWLER_PASSED}');
-		}, 5000 );
+		}, 2500 );
 
 		if(location.search.search('debug=1') === -1) {
 			setTimeout(function(){
 				window.location.href = window.location.origin + window.location.pathname + '?sfw=pass' + Math.round(ct_date.getTime()/1000);
 			}, reload_timeout);
 		}
+
+		// Countdown function
+		var timer_block = document.getElementById('timer');
+		timer_block.innerText = reload_timeout/1000;
+		var time;
+		function countdown() {
+			time = parseInt( timer_block.innerText );
+			var current = parseInt( timer_block.innerText );
+			var cdw = setInterval( function(){
+				current = parseInt( current ) - 1;
+				timer_block.innerText = current;
+				if ( 0 === parseInt( current ) ) {
+					clearInterval( cdw );
+				}
+			}, 1000 );
+		}
+
+		// Run countdown
+		countdown();
+
     </script>
 </body>
 </html>

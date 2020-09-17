@@ -2,7 +2,6 @@
 
 namespace Cleantalk\ApbctWP\Firewall;
 
-
 use Cleantalk\Common\Helper as Helper;
 use Cleantalk\Variables\Cookie;
 use Cleantalk\Variables\Server;
@@ -15,6 +14,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 	private $api_key = '';
 	private $apbct = false;
 	private $store_interval = 60;
+	private $ua; //User-Agent
 
 	public $isExcluded = false;
 	
@@ -29,6 +29,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 		
 		$this->db__table__logs    = $log_table ?: null;
 		$this->db__table__ac_logs = $ac_logs_table ?: null;
+		$this->ua = md5( Server::get('HTTP_USER_AGENT') );
 		
 		foreach( $params as $param_name => $param ){
 			$this->$param_name = isset( $this->$param_name ) ? $param : false;
@@ -66,13 +67,12 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 
         // Common check
 		foreach( $this->ip_array as $ip_origin => $current_ip ){
-			
-			// @todo Rename ip column to sign. Use IP + UserAgent for it.
-			
+
 			$result = $this->db->fetch(
 				"SELECT ip"
 				. ' FROM `' . $this->db__table__ac_logs . '`'
 				. " WHERE ip = '$current_ip'"
+                . " AND ua = '$this->ua'"
 				. " LIMIT 1;"
 			);
 			
@@ -119,15 +119,17 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 		// @todo Rename ip column to sign. Use IP + UserAgent for it.
 		
 		foreach( $this->ip_array as $ip_origin => $current_ip ){
-			$id = md5( $current_ip . $interval_time );
+			$id = md5( $current_ip . $this->ua. $interval_time );
 			$this->db->execute(
 				"INSERT INTO " . $this->db__table__ac_logs . " SET
 					id = '$id',
 					ip = '$current_ip',
+					ua = '$this->ua',
 					entries = 1,
 					interval_start = $interval_time
 				ON DUPLICATE KEY UPDATE
 					ip = ip,
+					ua = '$this->ua',
 					entries = entries + 1,
 					interval_start = $interval_time;"
 			);
@@ -181,8 +183,8 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 			// Translation
 			$replaces = array(
 				'{SFW_DIE_NOTICE_IP}'              => __('Anti-Crawler Protection is activated for your IP ', 'cleantalk-spam-protect'),
-				'{SFW_DIE_MAKE_SURE_JS_ENABLED}'   => __( 'To continue working with web site, please make sure that you have enabled JavaScript.', 'cleantalk-spam-protect' ),
-				'{SFW_DIE_YOU_WILL_BE_REDIRECTED}' => sprintf( __( 'You will be automatically redirected to the requested page after %d seconds.', 'cleantalk-spam-protect' ), 30 ),
+				'{SFW_DIE_MAKE_SURE_JS_ENABLED}'   => __( 'To continue working with the web site, please make sure that you have enabled JavaScript.', 'cleantalk-spam-protect' ),
+				'{SFW_DIE_YOU_WILL_BE_REDIRECTED}' => sprintf( __( 'You will be automatically redirected to the requested page after %d seconds.', 'cleantalk-spam-protect' ), 3 ) . '<br>' . __( 'Don\'t close this page. Please, wait for 3 seconds to pass to the page.', 'cleantalk-spam-protect' ),
 				'{CLEANTALK_TITLE}'                => __( 'Antispam by CleanTalk', 'cleantalk-spam-protect' ),
 				'{REMOTE_ADDRESS}'                 => $result['ip'],
 				'{SERVICE_ID}'                     => $this->apbct->data['service_id'],

@@ -1,7 +1,8 @@
 <?php
 
+namespace Cleantalk\ApbctWP\FindSpam\ListTable;
 
-class ABPCTCommentsListTableScan extends ABPCTCommentsListTable
+class CommentsScan extends Comments
 {
 
     function prepare_items() {
@@ -37,6 +38,17 @@ class ABPCTCommentsListTableScan extends ABPCTCommentsListTable
 
         }
 
+    }
+
+    function extra_tablenav( $which ) {
+        if( ! $this->has_items() ) return;
+        $button_id = ($which) ? "ct_delete_all_$which" : "ct_delete_all";
+        ?>
+        <div class="alignleft actions bulkactions">
+            <button type="button" id="<?php echo $button_id; ?>" class="button action ct_delete_all"><?php esc_html_e('Delete all comments from the list', 'cleantalk-spam-protect'); ?></button>
+            <span class="spinner"></span>
+        </div>
+        <?php
     }
 
 }

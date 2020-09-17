@@ -1,7 +1,8 @@
 <?php
 
+namespace Cleantalk\ApbctWP\FindSpam;
 
-class ClassCleantalkFindSpamUsersChecker extends ClassCleantalkFindSpamChecker
+class UsersChecker extends Checker
 {
 
     public function __construct() {
@@ -34,14 +35,11 @@ class ClassCleantalkFindSpamUsersChecker extends ClassCleantalkFindSpamChecker
 
         wp_enqueue_style( 'cleantalk_admin_css_settings_page', plugins_url().'/cleantalk-spam-protect/css/cleantalk-spam-check.min.css', array(), APBCT_VERSION, 'all' );
 
-        require_once(CLEANTALK_PLUGIN_DIR . 'inc/find-spam/ClassCleantalkUsersListTable.php');
-
     }
 
     public function getCurrentScanPage() {
 
-        require_once(CLEANTALK_PLUGIN_DIR . 'inc/find-spam/ClassCleantalkUsersListTableScan.php');
-        $this->list_table = new ABPCTUsersListTableScan();
+        $this->list_table = new \Cleantalk\ApbctWP\FindSpam\ListTable\UsersScan();
 
         $this->getCurrentScanPanel( $this );
         echo '<form action="" method="POST">';
@@ -50,10 +48,9 @@ class ClassCleantalkFindSpamUsersChecker extends ClassCleantalkFindSpamChecker
 
     }
 
-    public function getTotalSpamPage(){
+    public function getSpamLogsPage(){
 
-        require_once(CLEANTALK_PLUGIN_DIR . 'inc/find-spam/ClassCleantalkUsersListTableSpam.php');
-        $this->list_table = new ABPCTUsersListTableSpam();
+        $this->list_table = new \Cleantalk\ApbctWP\FindSpam\ListTable\UsersLogs();
 
         echo '<form action="" method="POST">';
         $this->list_table->display();
@@ -61,14 +58,22 @@ class ClassCleantalkFindSpamUsersChecker extends ClassCleantalkFindSpamChecker
 
     }
 
-    public function getSpamLogsPage(){
+    /**
+     * Getting a count of total users of the website and return formatted string about this.
+     *
+     * @return string
+     */
+    public static function get_count_text() {
 
-        require_once(CLEANTALK_PLUGIN_DIR . 'inc/find-spam/ClassCleantalkUsersListTableLogs.php');
-        $this->list_table = new ABPCTUsersListTableLogs();
+        $res = count_users();
 
-        echo '<form action="" method="POST">';
-        $this->list_table->display();
-        echo '</form>';
+        if( $res['total_users'] ) {
+            $text = sprintf( esc_html__ ('Total count of users: %s.', 'cleantalk-spam-protect' ), $res['total_users'] );
+        } else {
+            $text = esc_html__( 'No users found.', 'cleantalk-spam-protect' );
+        }
+
+        return $text;
 
     }
 
@@ -86,7 +91,7 @@ class ClassCleantalkFindSpamUsersChecker extends ClassCleantalkFindSpamChecker
             'count_total' => true,
             'orderby' => 'ct_checked'
         );
-        $tmp = new WP_User_Query( $params );
+        $tmp = new \WP_User_Query( $params );
         $cnt_checked = $tmp->get_total();
 
         if( $cnt_checked > 0 ) {
@@ -103,7 +108,7 @@ class ClassCleantalkFindSpamUsersChecker extends ClassCleantalkFindSpamChecker
                 'number' => 1,
                 'orderby' => 'user_registered'
             );
-            $tmp = new WP_User_Query( $params );
+            $tmp = new \WP_User_Query( $params );
 
             return self::getUserRegister( current( $tmp->get_results() ) );
 
@@ -207,6 +212,7 @@ class ClassCleantalkFindSpamUsersChecker extends ClassCleantalkFindSpamChecker
                     $check_result['bad']++;
                     update_user_meta( $u[$i]->ID,'ct_bad','1',true );
                     update_user_meta( $u[$i]->ID, 'ct_checked', date("Y-m-d H:m:s"), true) ;
+                    update_user_meta( $u[$i]->ID, 'ct_checked_now', '1', true) ;
                     unset( $u[$i] );
                 }else{
                     if( !empty( $curr_ip ) )
@@ -317,9 +323,11 @@ class ClassCleantalkFindSpamUsersChecker extends ClassCleantalkFindSpamChecker
                 meta_key IN ('ct_checked','ct_marked_as_spam','ct_bad') 
                 AND meta_value >= '{$from}' 
                 AND meta_value <= '{$till}';");
-
                 die();
-
+            } else {
+                $wpdb->query("DELETE FROM {$wpdb->usermeta} WHERE 
+                meta_key IN ('ct_checked','ct_marked_as_spam','ct_bad')");
+                die();
             }
         }
 
@@ -377,9 +385,13 @@ class ClassCleantalkFindSpamUsersChecker extends ClassCleantalkFindSpamChecker
                 $cnt_bad
             );
         } else {
-            if( isset( $return['checked'] ) && 0 == $return['checked']  ) {
-                $return['message'] = esc_html__( 'Never checked yet or no new spam.', 'cleantalk-spam-protect');
-            } else {
+
+            global $wpdb;
+
+            $query = "SELECT * FROM " . APBCT_SPAMSCAN_LOGS . " WHERE scan_type = 'users' ORDER BY start_time DESC";
+            $res = $wpdb->get_row( $query, ARRAY_A );
+
+            if ( $res ) {
                 $return['message'] .= sprintf (
                     __("Last check %s: checked %s users, found %s spam users and %s bad users (without IP or email).", 'cleantalk-spam-protect'),
                     self::lastCheckDate(),
@@ -387,7 +399,10 @@ class ClassCleantalkFindSpamUsersChecker extends ClassCleantalkFindSpamChecker
                     $cnt_spam,
                     $cnt_bad
                 );
+            } else {
+                $return['message'] = esc_html__( 'Never checked yet or no new spam.', 'cleantalk-spam-protect');
             }
+
         }
 
         $backup_notice = '&nbsp;';

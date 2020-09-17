@@ -1,7 +1,8 @@
 <?php
 
+namespace Cleantalk\ApbctWP\FindSpam\ListTable;
 
-class ABPCTCommentsListTable extends ABPCT_List_Table
+class Comments extends \Cleantalk\ApbctWP\CleantalkListTable
 {
     protected $apbct;
 
@@ -219,7 +220,7 @@ class ABPCTCommentsListTable extends ABPCT_List_Table
 
     public function getTotal() {
 
-        $total_comments = new WP_Comment_Query();
+        $total_comments = new \WP_Comment_Query();
         return $total_comments;
 
     }
@@ -229,7 +230,7 @@ class ABPCTCommentsListTable extends ABPCT_List_Table
         $params_spam = array(
             'meta_key' => 'ct_checked',
         );
-        $spam_comments = new WP_Comment_Query($params_spam);
+        $spam_comments = new \WP_Comment_Query($params_spam);
         return $spam_comments;
 
     }
@@ -239,7 +240,7 @@ class ABPCTCommentsListTable extends ABPCT_List_Table
         $params_spam = array(
             'meta_key' => 'ct_checked_now',
         );
-        $spam_comments = new WP_Comment_Query($params_spam);
+        $spam_comments = new \WP_Comment_Query($params_spam);
         return $spam_comments;
 
     }
@@ -249,7 +250,7 @@ class ABPCTCommentsListTable extends ABPCT_List_Table
         $params_spam = array(
             'meta_key' => 'ct_marked_as_spam',
         );
-        $spam_comments = new WP_Comment_Query($params_spam);
+        $spam_comments = new \WP_Comment_Query($params_spam);
         return $spam_comments;
 
     }
@@ -270,7 +271,7 @@ class ABPCTCommentsListTable extends ABPCT_List_Table
                 ),
             )
         );
-        $spam_comments = new WP_Comment_Query($params_spam);
+        $spam_comments = new \WP_Comment_Query($params_spam);
         return $spam_comments;
 
     }
@@ -280,7 +281,7 @@ class ABPCTCommentsListTable extends ABPCT_List_Table
         $params_bad = array(
             'meta_key' => 'ct_bad',
         );
-        $bad_users = new WP_Comment_Query($params_bad);
+        $bad_users = new \WP_Comment_Query($params_bad);
         return $bad_users;
 
     }

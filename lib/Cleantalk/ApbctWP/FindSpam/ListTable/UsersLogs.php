@@ -1,7 +1,8 @@
 <?php
 
+namespace Cleantalk\ApbctWP\FindSpam\ListTable;
 
-class ABPCTUsersListTableLogs extends ABPCTUsersListTable
+class UsersLogs extends Users
 {
 
     // Set columns
