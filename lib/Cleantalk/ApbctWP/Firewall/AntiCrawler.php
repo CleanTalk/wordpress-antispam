@@ -100,10 +100,17 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
                 if( ! Cookie::get('apbct_antibot') ) {
                     $this->update_ac_log();
                 }
-				
-				add_action( 'wp_head', array( '\Cleantalk\ApbctWP\Firewall\AntiCrawler', 'set_cookie' ) );
+
 				global $apbct_anticrawler_ip;
 				$apbct_anticrawler_ip = $current_ip;
+
+                add_action( 'wp_enqueue_scripts', function(){
+                    global $apbct, $apbct_anticrawler_ip;
+                    wp_enqueue_script( 'ct_antibot', APBCT_URL_PATH . '/js/apbct-antibot.min.js', array(), APBCT_VERSION, true );
+                    wp_localize_script('ct_antibot', 'ctAntibot', array(
+                        'val' => md5( $apbct->api_key . $apbct_anticrawler_ip )
+                    ));
+                } );
 				
 			}
 		}
@@ -135,12 +142,6 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 			);
 		}
 		
-	}
-	
-	
-	public static function set_cookie(){
-		global $apbct, $apbct_anticrawler_ip;
-		echo '<script>document.cookie = "apbct_antibot=' . md5( $apbct->api_key . $apbct_anticrawler_ip ) . '; path=/; expires=0; samesite=lax";</script>';
 	}
 	
 	/**
