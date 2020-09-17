@@ -580,19 +580,25 @@ If your website has forms that send data to external sources, you can enable opt
 
 == Changelog ==
 
-= 5.146 Sep 14 2020 =
+= 5.146 Sep 17 2020 =
  * Fix: Deprecated function wp_blacklist_check() fixed.
  * Fix: Roles exclusion fixed.
  * Mod: Namespace import in \Cleantalk\ApbctWP\Firewall\SFW.
  * Fix: Comments checking fixed.
  * Fix: Spam scan tabs layout fixed.
  * New: Countdown timer implemented for the AntiCrawler page.
- * Mod: AC table modified, separated AF table created.
- * Mod: AF work moved to the separated table.
- * Fix: AC table clearing implemented.
  * Mod: User-agent signature added to the AC checking.
  * Mod: Find-spam classes for comments and users refactored
  * Upd: Spam scan - scanning users/comments updated.
+ * Fix: Double requests for Ninja Forms.
+ * New: 'wpms' flag in sender_info.
+ * Fix: Visible params gathering.
+ * Fix: WooCommerce AJAX order call 2.
+ * Fix: Block page grammar fixed.
+ * Fix: Users/comments list - unnecessary button removed.
+ * Upd: Skiping AC blocking after 3 sec for real users.
+ * New: Countdown timer for AF block page implemented.
+ * New: Countdown timer for SFW block page implemented.
 
 = 5.145.2 Sep 03 2020 =
  * Fix: WooCommerce AJAX order call.
