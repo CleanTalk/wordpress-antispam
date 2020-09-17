@@ -117,7 +117,7 @@
     </div>
     <script type='text/javascript'>
 
-		var reload_timeout = 30000;
+		var reload_timeout = 3000;
 		document.getElementById('js_info').style.display = 'none';
 		document.getElementById('js_passed').style.display = 'block';
 		document.getElementById('curr_date').innerHTML = ct_date.toGMTString();
@@ -125,7 +125,7 @@
 		setTimeout( function(){
 			set_spamFireWallCookie('apbct_antibot',           '{COOKIE_ANTICRAWLER}');
 			set_spamFireWallCookie('apbct_anticrawler_passed','{COOKIE_ANTICRAWLER_PASSED}');
-		}, 5000 );
+		}, 2500 );
 
 		if(location.search.search('debug=1') === -1) {
 			setTimeout(function(){
@@ -139,15 +139,9 @@
 		var time;
 		function countdown() {
 			time = parseInt( timer_block.innerText );
-			if ( time < 10 ) {
-				time = '0' + time;
-			}
 			var current = parseInt( timer_block.innerText );
 			var cdw = setInterval( function(){
 				current = parseInt( current ) - 1;
-				if( current < 10 ) {
-					current = '0' + current;
-				}
 				timer_block.innerText = current;
 				if ( 0 === parseInt( current ) ) {
 					clearInterval( cdw );
