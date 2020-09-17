@@ -273,11 +273,11 @@ function apbct_exclusions_check__url() {
 		// Fix for AJAX forms
 		$haystack = apbct_get_server_variable( 'REQUEST_URI' ) == '/wp-admin/admin-ajax.php' && ! apbct_get_server_variable( 'HTTP_REFERER' )
 			? apbct_get_server_variable( 'HTTP_REFERER' )
-			: apbct_get_server_variable( 'REQUEST_URI' );
-		
+			: \Cleantalk\Variables\Server::get('HTTP_HOST') . apbct_get_server_variable( 'REQUEST_URI' );
+
 		foreach ( $exclusions as $exclusion ) {
 			if (
-				($apbct->settings['exclusions__urls__use_regexp'] && preg_match( '/' . $exclusion . '/', $haystack ) === 1) ||
+				($apbct->settings['exclusions__urls__use_regexp'] && preg_match( '@' . $exclusion . '@', $haystack ) === 1) ||
 				stripos( $haystack, $exclusion ) !== false
 			){
 				return true;
