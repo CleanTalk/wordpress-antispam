@@ -3329,7 +3329,8 @@ function ct_contact_form_validate() {
         ( isset( $_POST['AppKey'] ) && ( isset( $_POST['cbAP'] ) && $_POST['cbAP'] == 'Caspio' ) ) ||  // Caspio exclusion (ticket #16444)
         isset($_POST['wpforms_id'], $_POST['wpforms_author']) || //Skip wpforms
         ( isset( $_POST['somfrp_action'], $_POST['submitted'] ) && $_POST['somfrp_action'] == 'somfrp_lost_pass' ) || // Frontend Reset Password exclusion
-        ( isset( $_POST['action'] ) && $_POST['action'] == 'dokan_save_account_details' )
+        ( isset( $_POST['action'] ) && $_POST['action'] == 'dokan_save_account_details' ) ||
+        \Cleantalk\Variables\Post::get('action') === 'frm_get_lookup_text_value' // Exception for Formidable multilevel form
 		) {
         do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
         return null;
