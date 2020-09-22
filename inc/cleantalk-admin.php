@@ -10,13 +10,12 @@ add_action( 'manage_users_extra_tablenav', 'apbct_add_buttons_to_comments_and_us
 add_action( 'wp_ajax_apbct_settings__check_renew_banner', 'apbct_settings__check_renew_banner');
 
 // Crunch for Anti-Bot
-add_action( 'wp_enqueue_scripts', function(){
-    global $apbct;
-    wp_enqueue_script( 'ct_antibot', APBCT_URL_PATH . '/js/apbct-antibot.min.js', array(), APBCT_VERSION, true );
-    wp_localize_script('ct_antibot', 'ctAntibot', array(
-        'val' => md5( $apbct->api_key . \Cleantalk\ApbctWP\Helper::ip__get(array('real'), true ) )
-    ));
-} );
+add_action( 'admin_head','apbct_admin_set_cookie_for_anti_bot' );
+
+function apbct_admin_set_cookie_for_anti_bot(){
+	global $apbct;
+	echo '<script>document.cookie = "apbct_antibot=' . md5( $apbct->api_key . \Cleantalk\ApbctWP\Helper::ip__get(array('real'), true ) ) . '; path=/; expires=0; samesite=lax";</script>';
+}
 
 function apbct_add_buttons_to_comments_and_users( $unused_argument ) {
 
@@ -275,11 +274,6 @@ function apbct_admin__enqueue_scripts($hook){
 		'logo_small'         => '<img src="' . $apbct->logo__small . '" alt=""  height="" style="width: 17px; vertical-align: text-bottom;" />',
 		'logo_small_colored' => '<img src="' . $apbct->logo__small__colored . '" alt=""  height="" style="width: 17px; vertical-align: text-bottom;" />',
 	) );
-
-    wp_enqueue_script( 'ct_antibot', APBCT_URL_PATH . '/js/apbct-antibot.min.js', array(), APBCT_VERSION );
-    wp_localize_script('ct_antibot', 'ctAntibot', array(
-        'val' => md5( $apbct->api_key . \Cleantalk\ApbctWP\Helper::ip__get(array('real'), true ) )
-    ));
 	
 	// DASHBOARD page JavaScript and CSS
 	if($hook == 'index.php' && apbct_is_user_role_in(array('administrator'))){
