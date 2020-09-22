@@ -10,12 +10,14 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 	
 	public $module_name = 'ANTICRAWLER';
 	
-	private $db__table__ac_logs;
+	private $db__table__ac_logs = null;
 	private $api_key = '';
 	private $apbct = false;
 	private $store_interval = 60;
 	private $ua; //User-Agent
-
+	
+	private $ac_log_result = '';
+	
 	public $isExcluded = false;
 	
 	/**
@@ -47,13 +49,18 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 	public function check() {
 		
 		$results = array();
-
-        // Skip by cookie
+				
         foreach( $this->ip_array as $ip_origin => $current_ip ) {
-
+	        
+        	// Skip by 301 response code
+	        if( http_response_code() == 301 ){
+		        $results[] = array( 'ip' => $current_ip, 'is_personal' => false, 'status' => 'PASS_ANTICRAWLER', );
+		        return $results;
+	        }
+        	
+            // Skip by cookie
             if( Cookie::get('apbct_antibot') == md5( $this->api_key . $current_ip ) ) {
-
-                if( Cookie::get( 'apbct_anticrawler_passed' ) === '1' ){
+                if( Cookie::get( 'apbct_anticrawler_passed' ) == 1 ){
                     if( ! headers_sent() )
                         \Cleantalk\Common\Helper::apbct_cookie__set( 'apbct_anticrawler_passed', '0', time() - 86400, '/', null, false, true, 'Lax' );
                 }
@@ -64,19 +71,18 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 
             }
         }
-
+		
         // Common check
 		foreach( $this->ip_array as $ip_origin => $current_ip ){
-
+			
 			$result = $this->db->fetch(
 				"SELECT ip"
 				. ' FROM `' . $this->db__table__ac_logs . '`'
 				. " WHERE ip = '$current_ip'"
-                . " AND ua = '$this->ua'"
-				. " LIMIT 1;"
+				. " AND ua = '$this->ua';"
 			);
 			
-			if( ! empty( $result ) && isset( $result['ip'] ) ){
+			if( isset( $result['ip'] ) ){
 				
 				if( Cookie::get('apbct_antibot') !== md5( $this->api_key . $current_ip ) ){
 					
@@ -197,6 +203,20 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 			foreach( $replaces as $place_holder => $replace ){
 				$sfw_die_page = str_replace( $place_holder, $replace, $sfw_die_page );
 			}
+			
+			if( isset( $_GET['debug'] ) ){
+				$debug = '<h1>Headers</h1>'
+				         . str_replace( "\n", "<br>", print_r( \apache_request_headers(), true ) )
+				         . '<h1>$_SERVER</h1>'
+				         . str_replace( "\n", "<br>", print_r( $_SERVER, true ) )
+				         . '<h1>AC_LOG_RESULT</h1>'
+				         . str_replace( "\n", "<br>", print_r( $this->ac_log_result, true ) )
+				         . '<h1>IPS</h1>'
+				         . str_replace( "\n", "<br>", print_r( $this->ip_array, true ) );
+			}else{
+				$debug = '';
+			}
+			$sfw_die_page = str_replace( "{DEBUG}", $debug, $sfw_die_page );
 			
 			wp_die($sfw_die_page, "Blacklisted", Array('response'=>403));
 			
