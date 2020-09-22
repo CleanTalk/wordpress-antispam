@@ -14,7 +14,8 @@ add_action( 'admin_head','apbct_admin_set_cookie_for_anti_bot' );
 
 function apbct_admin_set_cookie_for_anti_bot(){
 	global $apbct;
-	echo '<script>document.cookie = "apbct_antibot=' . md5( $apbct->api_key . \Cleantalk\ApbctWP\Helper::ip__get(array('real'), true ) ) . '; path=/; expires=0; samesite=lax";</script>';
+    $salt = defined( 'AUTH_SALT' ) ? AUTH_SALT : '';
+	echo '<script>document.cookie = "apbct_antibot=' . md5( $apbct->api_key . $salt ) . '; path=/; expires=0; samesite=lax";</script>';
 }
 
 function apbct_add_buttons_to_comments_and_users( $unused_argument ) {
