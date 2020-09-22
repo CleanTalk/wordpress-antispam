@@ -144,8 +144,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 	
 	public static function set_cookie(){
 		global $apbct;
-		$salt = defined( 'AUTH_SALT' ) ? AUTH_SALT : '';
-		echo '<script>document.cookie = "apbct_antibot=' . md5( $apbct->api_key . $salt ) . '; path=/; expires=0; samesite=lax";</script>';
+		echo '<script>document.cookie = "apbct_antibot=' . md5( $apbct->api_key . $apbct->data['salt'] ) . '; path=/; expires=0; samesite=lax";</script>';
 	}
 	
 	/**
