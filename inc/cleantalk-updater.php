@@ -596,7 +596,7 @@ function apbct_update_to_5_143_2() {
 	
 }
 
-function apbct_update_to_5_146() {
+function apbct_update_to_5_146_1() {
 
     global $apbct;
 

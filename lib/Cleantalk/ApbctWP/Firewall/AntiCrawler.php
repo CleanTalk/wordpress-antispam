@@ -10,12 +10,14 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 	
 	public $module_name = 'ANTICRAWLER';
 	
-	private $db__table__ac_logs;
+	private $db__table__ac_logs = null;
 	private $api_key = '';
 	private $apbct = false;
 	private $store_interval = 60;
 	private $ua; //User-Agent
-
+	
+	private $ac_log_result = '';
+	
 	public $isExcluded = false;
 	
 	/**
@@ -27,9 +29,12 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 	 */
 	public function __construct( $log_table, $ac_logs_table, $params = array() ) {
 		
+		global $apbct;
+		$this->apbct = $apbct;
 		$this->db__table__logs    = $log_table ?: null;
 		$this->db__table__ac_logs = $ac_logs_table ?: null;
 		$this->ua = md5( Server::get('HTTP_USER_AGENT') );
+	
 		
 		foreach( $params as $param_name => $param ){
 			$this->$param_name = isset( $this->$param_name ) ? $param : false;
@@ -47,13 +52,18 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 	public function check() {
 		
 		$results = array();
-
-        // Skip by cookie
+				
         foreach( $this->ip_array as $ip_origin => $current_ip ) {
-
-            if( Cookie::get('apbct_antibot') == md5( $this->api_key . $current_ip ) ) {
-
-                if( Cookie::get( 'apbct_anticrawler_passed' ) === '1' ){
+	        
+        	// Skip by 301 response code
+	        if( http_response_code() == 301 ){
+		        $results[] = array( 'ip' => $current_ip, 'is_personal' => false, 'status' => 'PASS_ANTICRAWLER', );
+		        return $results;
+	        }
+        	
+            // Skip by cookie
+            if( Cookie::get('apbct_antibot') == hash( 'sha256', $this->api_key . $this->apbct->data['salt'] ) ) {
+                if( Cookie::get( 'apbct_anticrawler_passed' ) == 1 ){
                     if( ! headers_sent() )
                         \Cleantalk\Common\Helper::apbct_cookie__set( 'apbct_anticrawler_passed', '0', time() - 86400, '/', null, false, true, 'Lax' );
                 }
@@ -64,21 +74,20 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 
             }
         }
-
+		
         // Common check
 		foreach( $this->ip_array as $ip_origin => $current_ip ){
-
+			
 			$result = $this->db->fetch(
 				"SELECT ip"
 				. ' FROM `' . $this->db__table__ac_logs . '`'
 				. " WHERE ip = '$current_ip'"
-                . " AND ua = '$this->ua'"
-				. " LIMIT 1;"
+				. " AND ua = '$this->ua';"
 			);
 			
-			if( ! empty( $result ) && isset( $result['ip'] ) ){
+			if( isset( $result['ip'] ) ){
 				
-				if( Cookie::get('apbct_antibot') !== md5( $this->api_key . $current_ip ) ){
+				if( Cookie::get('apbct_antibot') !== hash( 'sha256', $this->api_key . $this->apbct->data['salt'] ) ){
 					
 					$results[] = array( 'ip' => $current_ip, 'is_personal' => false, 'status' => 'DENY_ANTICRAWLER', );
 					
@@ -102,8 +111,6 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
                 }
 				
 				add_action( 'wp_head', array( '\Cleantalk\ApbctWP\Firewall\AntiCrawler', 'set_cookie' ) );
-				global $apbct_anticrawler_ip;
-				$apbct_anticrawler_ip = $current_ip;
 				
 			}
 		}
@@ -139,8 +146,8 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 	
 	
 	public static function set_cookie(){
-		global $apbct, $apbct_anticrawler_ip;
-		echo '<script>document.cookie = "apbct_antibot=' . md5( $apbct->api_key . $apbct_anticrawler_ip ) . '; path=/; expires=0; samesite=lax";</script>';
+		global $apbct;
+		echo '<script>document.cookie = "apbct_antibot=' . hash( 'sha256', $apbct->api_key . $apbct->data['salt'] ) . '; path=/; expires=0; samesite=lax";</script>';
 	}
 	
 	/**
@@ -175,6 +182,8 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 	
 	public function _die( $result ){
 		
+		global $apbct;
+		
 		// File exists?
 		if(file_exists(CLEANTALK_PLUGIN_DIR . "lib/Cleantalk/ApbctWP/Firewall/die_page_anticrawler.html")){
 			
@@ -189,7 +198,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 				'{REMOTE_ADDRESS}'                 => $result['ip'],
 				'{SERVICE_ID}'                     => $this->apbct->data['service_id'],
 				'{HOST}'                           => Server::get( 'HTTP_HOST' ),
-				'{COOKIE_ANTICRAWLER}'             => md5( $this->api_key . $result['ip'] ),
+				'{COOKIE_ANTICRAWLER}'             => hash( 'sha256', $apbct->api_key . $apbct->data['salt'] ),
 				'{COOKIE_ANTICRAWLER_PASSED}'      => '1',
 				'{GENERATED}'                      => '<p>The page was generated at&nbsp;' . date( 'D, d M Y H:i:s' ) . "</p>",
 			);
@@ -197,6 +206,20 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 			foreach( $replaces as $place_holder => $replace ){
 				$sfw_die_page = str_replace( $place_holder, $replace, $sfw_die_page );
 			}
+			
+			if( isset( $_GET['debug'] ) ){
+				$debug = '<h1>Headers</h1>'
+				         . str_replace( "\n", "<br>", print_r( \apache_request_headers(), true ) )
+				         . '<h1>$_SERVER</h1>'
+				         . str_replace( "\n", "<br>", print_r( $_SERVER, true ) )
+				         . '<h1>AC_LOG_RESULT</h1>'
+				         . str_replace( "\n", "<br>", print_r( $this->ac_log_result, true ) )
+				         . '<h1>IPS</h1>'
+				         . str_replace( "\n", "<br>", print_r( $this->ip_array, true ) );
+			}else{
+				$debug = '';
+			}
+			$sfw_die_page = str_replace( "{DEBUG}", $debug, $sfw_die_page );
 			
 			wp_die($sfw_die_page, "Blacklisted", Array('response'=>403));
 			

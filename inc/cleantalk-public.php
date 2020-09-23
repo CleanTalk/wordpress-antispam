@@ -1736,9 +1736,17 @@ function ct_register_form() {
 }
 
 function apbct_login__scripts(){
-	global $apbct;
-	echo '<script src="'.APBCT_URL_PATH.'/js/apbct-public.min.js?ver="'. APBCT_VERSION .'></script>';
-	$apbct->public_script_loaded = true;
+    global $apbct;
+
+    // Differnt JS params
+    wp_enqueue_script( 'ct_public', APBCT_URL_PATH . '/js/apbct-public.min.js', array( 'jquery' ), APBCT_VERSION, false /*in header*/ );
+
+    wp_localize_script('ct_public', 'ctPublic', array(
+        '_ajax_nonce' => wp_create_nonce('ct_secret_stuff'),
+        '_ajax_url'   => admin_url('admin-ajax.php'),
+    ));
+
+    $apbct->public_script_loaded = true;
 }
 
 /**
