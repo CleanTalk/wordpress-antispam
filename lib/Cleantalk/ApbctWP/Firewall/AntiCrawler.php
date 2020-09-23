@@ -29,9 +29,12 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 	 */
 	public function __construct( $log_table, $ac_logs_table, $params = array() ) {
 		
+		global $apbct;
+		$this->apbct = $apbct;
 		$this->db__table__logs    = $log_table ?: null;
 		$this->db__table__ac_logs = $ac_logs_table ?: null;
 		$this->ua = md5( Server::get('HTTP_USER_AGENT') );
+	
 		
 		foreach( $params as $param_name => $param ){
 			$this->$param_name = isset( $this->$param_name ) ? $param : false;
@@ -59,7 +62,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 	        }
         	
             // Skip by cookie
-            if( Cookie::get('apbct_antibot') == md5( $this->api_key . $current_ip ) ) {
+            if( Cookie::get('apbct_antibot') == hash( 'sha256', $this->api_key . $this->apbct->data['salt'] ) ) {
                 if( Cookie::get( 'apbct_anticrawler_passed' ) == 1 ){
                     if( ! headers_sent() )
                         \Cleantalk\Common\Helper::apbct_cookie__set( 'apbct_anticrawler_passed', '0', time() - 86400, '/', null, false, true, 'Lax' );
@@ -84,7 +87,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 			
 			if( isset( $result['ip'] ) ){
 				
-				if( Cookie::get('apbct_antibot') !== md5( $this->api_key . $current_ip ) ){
+				if( Cookie::get('apbct_antibot') !== hash( 'sha256', $this->api_key . $this->apbct->data['salt'] ) ){
 					
 					$results[] = array( 'ip' => $current_ip, 'is_personal' => false, 'status' => 'DENY_ANTICRAWLER', );
 					
