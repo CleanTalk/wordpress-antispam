@@ -206,6 +206,8 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 	 */
 	public function _die( $result ){
 		
+		global $apbct;
+		
 		parent::_die( $result );
 		
 		// Statistics
@@ -241,7 +243,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 				'{COOKIE_PREFIX}'      => '',
 				'{COOKIE_DOMAIN}'      => $this->cookie_domain,
 				'{COOKIE_SFW}'         => $this->test ? $this->test_ip : $cookie_val,
-				'{COOKIE_ANTICRAWLER}' => md5( $this->api_key . $result['ip'] ),
+				'{COOKIE_ANTICRAWLER}' => hash( 'sha256', $apbct->api_key . $apbct->data['salt'] ),
 				
 				// Test
 				'{TEST_TITLE}'      => '',

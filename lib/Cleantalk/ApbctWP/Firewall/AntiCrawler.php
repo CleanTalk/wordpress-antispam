@@ -179,6 +179,8 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 	
 	public function _die( $result ){
 		
+		global $apbct;
+		
 		// File exists?
 		if(file_exists(CLEANTALK_PLUGIN_DIR . "lib/Cleantalk/ApbctWP/Firewall/die_page_anticrawler.html")){
 			
@@ -193,7 +195,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 				'{REMOTE_ADDRESS}'                 => $result['ip'],
 				'{SERVICE_ID}'                     => $this->apbct->data['service_id'],
 				'{HOST}'                           => Server::get( 'HTTP_HOST' ),
-				'{COOKIE_ANTICRAWLER}'             => md5( $this->api_key . $result['ip'] ),
+				'{COOKIE_ANTICRAWLER}'             => hash( 'sha256', $apbct->api_key . $apbct->data['salt'] ),
 				'{COOKIE_ANTICRAWLER_PASSED}'      => '1',
 				'{GENERATED}'                      => '<p>The page was generated at&nbsp;' . date( 'D, d M Y H:i:s' ) . "</p>",
 			);
