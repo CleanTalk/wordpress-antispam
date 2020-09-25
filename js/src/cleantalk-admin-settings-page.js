@@ -37,6 +37,7 @@ jQuery(document).ready(function(){
 		apbct_admin_sendAJAX(
 			{action: 'apbct_sync'},
 			{
+				timeout: 25000,
 				button: document.getElementById('apbct_button__sync' ),
 				spinner: jQuery('#apbct_button__sync .apbct_preloader_button' ),
 				callback: function(result, data, params, obj){
