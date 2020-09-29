@@ -979,7 +979,7 @@ function ct_change_plugin_resonse($ct_result = null, $checkjs = null) {
 }
 
 /**
-* Does key has correct symbols? Checks against regexp ^[a-z\d]{3,15}$
+* Does ey has correct symbols? Checks against regexp ^[a-z\d]{3,15}$
 * @param api_key
 * @return bool
 */
@@ -995,18 +995,20 @@ function apbct_add_async_attribute($tag, $handle, $src) {
 	global $apbct;
 	
     if(
-		$apbct->settings['async_js'] &&
-		(
-			   $handle === 'ct_public'
-			|| $handle === 'ct_public_gdpr'
-			|| $handle === 'ct_debug_js'
-			|| $handle === 'ct_public_admin_js'
-			|| $handle === 'ct_internal'
-			|| $handle === 'ct_external'
-			|| $handle === 'ct_nocache'
-		)
-	)
-		return str_replace( ' src', ' async="async" src', $tag );
-	else
-		return $tag;
+    	$handle === 'ct_public' ||
+	    $handle === 'ct_public_gdpr' ||
+	    $handle === 'ct_debug_js' ||
+	    $handle === 'ct_public_admin_js' ||
+	    $handle === 'ct_internal' ||
+	    $handle === 'ct_external' ||
+	    $handle === 'ct_nocache'
+	){
+    	if( $apbct->settings['async_js'] )
+	        $tag = str_replace( ' src', ' async="async" src', $tag );
+	    
+	    if( class_exists('Cookiebot_WP') )
+		    $tag = str_replace( ' src', ' data-cookieconsent="ignore" src', $tag );
+    }
+    
+    return $tag;
 }
