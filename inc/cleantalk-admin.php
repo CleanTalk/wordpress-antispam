@@ -230,7 +230,7 @@ function apbct_admin__register_plugin_links($links, $file){
 		
 	if($apbct->white_label){
 		$links = array_slice($links, 0, 1);
-		$links[] = "<script " . ( class_exists('Cookiebot_WP') ? 'data-cookieconsent=\"ignore\"' : '' ) . ">jQuery('.plugin-title strong').each(function(i, item){
+		$links[] = "<script " . ( class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '' ) . ">jQuery('.plugin-title strong').each(function(i, item){
 		if(jQuery(item).html() == 'Anti-Spam by CleanTalk')
 			jQuery(item).html('{$apbct->plugin_name}');
 		});</script>";
