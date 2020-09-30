@@ -97,6 +97,8 @@
 				)
 					continue;
 
+				apbct_collect_visible_fields_and_set_cookie(form);
+
 				form.onsubmit_prev = form.onsubmit;
 				form.onsubmit = function (event) {
 
@@ -120,7 +122,7 @@ function ctSetCookie(c_name, value) {
 	document.cookie = c_name + "=" + encodeURIComponent(value) + "; path=/; samesite=lax";
 }
 
-function apbct_collect_visible_fields_and_set_cookie(form ) {
+function apbct_collect_visible_fields_and_set_cookie( form ) {
 
 	// Get only fields
 	var inputs = [],
@@ -142,7 +144,7 @@ function apbct_collect_visible_fields_and_set_cookie(form ) {
 			getComputedStyle(elem).opacity    === "0" ||      // hidden
 			elem.getAttribute("type")         === "hidden" || // type == hidden
 			elem.getAttribute("type")         === "submit" || // type == submit
-			elem.value                        === ""       || // empty value
+			//elem.value                        === ""       || // empty value
 			elem.getAttribute('name')         === null ||
 			inputs_with_duplicate_names.indexOf( elem.getAttribute('name') ) !== -1 // name already added
 		){
