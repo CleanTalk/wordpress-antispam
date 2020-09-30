@@ -615,6 +615,18 @@ function apbct_update_to_5_146_1() {
 }
 
 function apbct_update_to_5_146_3() {
-	global $apbct;
 	update_option( 'cleantalk_plugin_request_ids', array() );
+}
+
+function apbct_update_to_5_146_4() {
+	
+	global $apbct;
+	
+	$sqls[] = 'ALTER TABLE `%scleantalk_sfw`
+		ADD COLUMN `id` INT(11) NOT NULL AUTO_INCREMENT FIRST,
+		ADD PRIMARY KEY (`id`);';
+	
+	apbct_activation__create_tables( $sqls, $apbct->db_prefix );
+	
+
 }
