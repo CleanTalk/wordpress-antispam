@@ -67,6 +67,8 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 	
 	$apbct->base_name = 'cleantalk-spam-protect/cleantalk.php';
 	
+	$apbct->plugin_request_id = md5( microtime() ); // Identify plugin execution
+	
 	$apbct->logo                 = plugin_dir_url(__FILE__) . 'inc/images/logo.png';
 	$apbct->logo__small          = plugin_dir_url(__FILE__) . 'inc/images/logo_small.png';
 	$apbct->logo__small__colored = plugin_dir_url(__FILE__) . 'inc/images/logo_color.png';

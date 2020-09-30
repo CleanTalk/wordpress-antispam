@@ -24,6 +24,7 @@ use ArrayObject;
  *
  * @property ArrayObject  settings
  * @property ArrayObject  data
+ * @property ArrayObject  plugin_request_ids
  *
  * @property mixed        moderate_ip
  * @property mixed|string plugin_version
@@ -35,6 +36,7 @@ use ArrayObject;
  * @property string       logo
  * @property string       plugin_name
  * @property string       base_name
+ * @property string       plugin_request_id
  * @property array|mixed  errors
  *
  * NETWORK
