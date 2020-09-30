@@ -613,3 +613,8 @@ function apbct_update_to_5_146_1() {
     apbct_activation__create_tables( $sqls, $apbct->db_prefix );
 
 }
+
+function apbct_update_to_5_146_3() {
+	global $apbct;
+	update_option( 'cleantalk_plugin_request_ids', array() );
+}

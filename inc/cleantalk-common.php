@@ -92,7 +92,7 @@ function apbct_base_call($params = array(), $reg_flag = false){
         return array( 'ct_result' => new CleantalkResponse() );
     }
 	$cleantalk_executed = true;
-	
+    
     // Request id rotation
 	$plugin_request_id__lifetime = 2;
 	$tmp = array();
@@ -101,15 +101,17 @@ function apbct_base_call($params = array(), $reg_flag = false){
     		$tmp[ $request_id ] = $request_time;
     }
 	$apbct->plugin_request_ids = $tmp;
-    $apbct->save('plugin_request_ids');
-    
+	$apbct->save('plugin_request_ids');
+	
     // Skip duplicate requests
     if( key_exists( $apbct->plugin_request_id, $apbct->plugin_request_ids ) ){
 	    do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
 	    return array( 'ct_result' => new CleantalkResponse() );
     }
     
-
+    $apbct->plugin_request_ids = array_merge($apbct->plugin_request_ids, array($apbct->plugin_request_id => time() ) );
+	$apbct->save('plugin_request_ids');
+ 
 	$sender_info = !empty($params['sender_info'])
 		? \Cleantalk\ApbctWP\Helper::array_merge__save_numeric_keys__recursive(apbct_get_sender_info(), (array)$params['sender_info'])
 		: apbct_get_sender_info();

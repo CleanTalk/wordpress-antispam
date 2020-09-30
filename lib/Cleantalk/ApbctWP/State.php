@@ -347,6 +347,7 @@ class State
 	private function getOption($option_name)
 	{
 		$option = get_option('cleantalk_'.$option_name, null);
+		
 		$this->$option_name = gettype($option) === 'array'
 			? new ArrayObject($option)
 			: $option;
