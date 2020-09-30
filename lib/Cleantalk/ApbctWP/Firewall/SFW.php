@@ -484,7 +484,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 						
 						for( $count_result = 0; current($lines) !== false; ) {
 							
-							$query = "INSERT INTO ".$db__table__data." VALUES ";
+							$query = "INSERT INTO ".$db__table__data." (network, mask, status) VALUES ";
 							
 							for( $i = 0, $values = array(); APBCT_WRITE_LIMIT !== $i && current( $lines ) !== false; $i ++, $count_result ++, next( $lines ) ){
 								
@@ -543,5 +543,6 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 				return array( 'error' => 'COULD_NOT_CLEAR_SFW_TABLE' ); // throw an error
 			}
 		}
+		$db->execute( "ALTER TABLE {$db__table__data} AUTO_INCREMENT = 1;" ); // Drop AUTO INCREMENT
 	}
 }
