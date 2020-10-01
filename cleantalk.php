@@ -669,10 +669,11 @@ function apbct_activation( $network = false ) {
 	
 	// SFW data
 	$sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_sfw` (
-		`network` int(11) unsigned NOT NULL,
-		`mask` int(11) unsigned NOT NULL,
-		`status` TINYINT(1) NOT NULL DEFAULT 0,
-		INDEX (  `network` ,  `mask` )
+			`id` INT(11) NOT NULL AUTO_INCREMENT,
+			`network` int(11) unsigned NOT NULL,
+			`mask` int(11) unsigned NOT NULL,
+			PRIMARY KEY (`id`),
+			INDEX (  `network` ,  `mask` )
 		);';
 	
 	// SFW log
@@ -779,9 +780,11 @@ function apbct_activation__new_blog($blog_id, $user_id, $domain, $path, $site_id
 		
 		// SFW data
 		$sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_sfw` (
-			`network` int(11) unsigned NOT NULL,
-			`mask` int(11) unsigned NOT NULL,
-			INDEX (  `network` ,  `mask` )
+				`id` INT(11) NOT NULL AUTO_INCREMENT,
+				`network` int(11) unsigned NOT NULL,
+				`mask` int(11) unsigned NOT NULL,
+				PRIMARY KEY (`id`),
+				INDEX (  `network` ,  `mask` )
 			);';
 	
 	    // SFW log
