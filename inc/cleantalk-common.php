@@ -285,9 +285,15 @@ function apbct_exclusions_check__url() {
 	global $apbct;
 	
 	if ( ! empty( $apbct->settings['exclusions__urls'] ) ) {
-		
-		$exclusions = explode( ',', $apbct->settings['exclusions__urls'] );
-		
+
+	    if( strpos( $apbct->settings['exclusions__urls'], "\r\n" ) !== false ) {
+            $exclusions = explode( "\r\n", $apbct->settings['exclusions__urls'] );
+        } elseif( strpos( $apbct->settings['exclusions__urls'], "\n" ) !== false ) {
+            $exclusions = explode( "\n", $apbct->settings['exclusions__urls'] );
+        } else {
+            $exclusions = explode( ',', $apbct->settings['exclusions__urls'] );
+        }
+
 		// Fix for AJAX forms
 		$haystack = apbct_get_server_variable( 'REQUEST_URI' ) == '/wp-admin/admin-ajax.php' && ! apbct_get_server_variable( 'HTTP_REFERER' )
 			? apbct_get_server_variable( 'HTTP_REFERER' )
