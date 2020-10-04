@@ -4,7 +4,7 @@ Tags: spam, antispam, woocommerce, comments, firewall
 Requires at least: 3.0
 Tested up to: 5.5
 Requires PHP: 5.4
-Stable tag: 5.146.1
+Stable tag: 5.147
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -579,6 +579,16 @@ If your website has forms that send data to external sources, you can enable opt
 10. Website's options.
 
 == Changelog ==
+
+= 5.147 Oct 07 2020 =
+ * Fix: WPForms. Auto submitting.
+ * Fix: Synchronization timeout increased to 25 seconds.
+ * Fix: Cookiebot compatibility.
+ * Fix: Visible fields logic fixed.
+ * New: Duplicated requests prevention.
+ * Fix: SpamFireWall auto incremental uses primary key.
+ * Fix: Skip woocommerce internal request.
+ * Upd: Url exclusions option updated.
 
 = 5.146.1 Sep 23 2020 =
  * Fix: URL exclusions setting.
