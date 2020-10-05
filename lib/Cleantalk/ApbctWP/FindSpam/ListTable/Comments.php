@@ -100,6 +100,7 @@ class Comments extends \Cleantalk\ApbctWP\CleantalkListTable
 
         $actions = array(
             'approve'   => sprintf( '<span class="approve"><a href="?page=%s&action=%s&spam=%s">Approve</a></span>', $_REQUEST['page'],'approve', $id ),
+            'spam'      => sprintf( '<span class="spam"><a href="?page=%s&action=%s&spam=%s">Spam</a></span>', $_REQUEST['page'],'spam', $id ),
             'delete'    => sprintf( '<a href="?page=%s&action=%s&spam=%s">Delete</a>', $_REQUEST['page'],'delete', $id ),
         );
 
@@ -144,7 +145,8 @@ class Comments extends \Cleantalk\ApbctWP\CleantalkListTable
 
     function get_bulk_actions() {
         $actions = array(
-            'delete'    => 'Delete'
+            'spam'      => esc_html__( 'Mark as spam', 'cleantalk-spam-protect' ),
+            'delete'    => esc_html__( 'Delete', 'cleantalk-spam-protect' ),
         );
         return $actions;
     }
@@ -160,6 +162,10 @@ class Comments extends \Cleantalk\ApbctWP\CleantalkListTable
 
         if( 'delete' == $action ) {
             $this->removeSpam( $_POST['spamids'] );
+        }
+
+        if( 'spam' == $action ) {
+            $this->moveToSpam( $_POST['spamids'] );
         }
 
     }
@@ -179,6 +185,13 @@ class Comments extends \Cleantalk\ApbctWP\CleantalkListTable
 
             $id = filter_input( INPUT_GET, 'spam', FILTER_SANITIZE_NUMBER_INT );
             $this->removeSpam( array( $id ) );
+
+        }
+
+        if( $_GET['action'] == 'spam' ) {
+
+            $id = filter_input( INPUT_GET, 'spam', FILTER_SANITIZE_NUMBER_INT );
+            $this->moveToSpam( array( $id ) );
 
         }
 
@@ -215,6 +228,18 @@ class Comments extends \Cleantalk\ApbctWP\CleantalkListTable
 
         $wpdb->query("DELETE FROM {$wpdb->comments} WHERE 
                 comment_ID IN ($ids_string)");
+
+    }
+
+    function moveToSpam( $ids ) {
+
+        if( ! empty( $ids ) ) {
+            foreach ( $ids as $id) {
+                delete_comment_meta( $id, 'ct_marked_as_spam' );
+                $comment = get_comment( $id );
+                wp_spam_comment( $comment );
+            }
+        }
 
     }
 

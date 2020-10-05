@@ -271,6 +271,40 @@ function ct_delete_all( e ) {
 
 }
 
+function ct_spam_all( e ) {
+
+	var data = {
+		'action': 'ajax_spam_all',
+		'security': ct_ajax_nonce
+	};
+
+	jQuery('.' + e.target.id).addClass('disabled');
+	jQuery('.spinner').css('visibility', 'visible');
+	jQuery.ajax({
+		type: "POST",
+		url: ajaxurl,
+		data: data,
+		success: function( msg ){
+			if( msg > 0 ){
+				jQuery('#cleantalk_comments_left').html(msg);
+				ct_spam_all( e );
+			}else{
+				jQuery('.' + e.target.id).removeClass('disabled');
+				jQuery('.spinner').css('visibility', 'hidden');
+				location.href='edit-comments.php?page=ct_check_spam';
+			}
+		},
+		error: function(jqXHR, textStatus, errorThrown) {
+			jQuery('#ct_error_message').show();
+			jQuery('#cleantalk_ajax_error').html(textStatus);
+			jQuery('#cleantalk_js_func').html('Check comments');
+			setTimeout(ct_delete_all( e ), 3000);
+		},
+		timeout: 25000
+	});
+
+}
+
 jQuery(document).ready(function(){
 	
 	// Prev check parameters
@@ -384,6 +418,16 @@ jQuery(document).ready(function(){
 			return false;
 
 		ct_delete_all( e );
+
+	});
+
+	// Mark as spam all spam comments
+	jQuery(".ct_spam_all").click(function( e ){
+
+		if (!confirm(ctCommentsCheck.ct_confirm_spam_all))
+			return false;
+
+		ct_spam_all( e );
 
 	});
 

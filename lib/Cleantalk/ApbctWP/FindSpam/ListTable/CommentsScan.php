@@ -42,10 +42,12 @@ class CommentsScan extends Comments
 
     function extra_tablenav( $which ) {
         if( ! $this->has_items() ) return;
-        $button_id = ($which) ? "ct_delete_all_$which" : "ct_delete_all";
+        $button_id_spam = ($which) ? "ct_delete_all_$which" : "ct_delete_all";
+        $button_id_del  = ($which) ? "ct_delete_all_$which" : "ct_delete_all";
         ?>
         <div class="alignleft actions bulkactions">
-            <button type="button" id="<?php echo $button_id; ?>" class="button action ct_delete_all"><?php esc_html_e('Delete all comments from the list', 'cleantalk-spam-protect'); ?></button>
+            <button type="button" id="<?php echo $button_id_spam; ?>" class="button action ct_spam_all"><?php esc_html_e('Mark as spam all comments from the list', 'cleantalk-spam-protect'); ?></button>
+            <button type="button" id="<?php echo $button_id_del; ?>" class="button action ct_delete_all"><?php esc_html_e('Delete all comments from the list', 'cleantalk-spam-protect'); ?></button>
             <span class="spinner"></span>
         </div>
         <?php
