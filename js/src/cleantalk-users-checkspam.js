@@ -335,7 +335,7 @@ function ct_delete_all_users( e ){
 			}else{
 				jQuery('.' + e.target.id).removeClass('disabled');
 				jQuery('.spinner').css('visibility', 'hidden');
-				location.href='users.php?page=ct_check_users_total';
+				location.href='users.php?page=ct_check_users';
 			}
 		},
 		error: function(jqXHR, textStatus, errorThrown) {

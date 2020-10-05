@@ -257,7 +257,7 @@ function ct_delete_all( e ) {
 			}else{
 				jQuery('.' + e.target.id).removeClass('disabled');
 				jQuery('.spinner').css('visibility', 'hidden');
-				location.href='edit-comments.php?page=ct_check_spam_total';
+				location.href='edit-comments.php?page=ct_check_spam';
 			}
 		},
 		error: function(jqXHR, textStatus, errorThrown) {
