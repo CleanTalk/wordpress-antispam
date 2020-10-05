@@ -784,6 +784,7 @@ function apbct_activation__new_blog($blog_id, $user_id, $domain, $path, $site_id
 				`id` INT(11) NOT NULL AUTO_INCREMENT,
 				`network` int(11) unsigned NOT NULL,
 				`mask` int(11) unsigned NOT NULL,
+				`status` TINYINT(1) NOT NULL DEFAULT 0,
 				PRIMARY KEY (`id`),
 				INDEX (  `network` ,  `mask` )
 			);';
