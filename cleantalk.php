@@ -672,6 +672,7 @@ function apbct_activation( $network = false ) {
 			`id` INT(11) NOT NULL AUTO_INCREMENT,
 			`network` int(11) unsigned NOT NULL,
 			`mask` int(11) unsigned NOT NULL,
+			`status` TINYINT(1) NOT NULL DEFAULT 0,
 			PRIMARY KEY (`id`),
 			INDEX (  `network` ,  `mask` )
 		);';
