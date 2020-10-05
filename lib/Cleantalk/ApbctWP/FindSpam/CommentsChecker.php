@@ -24,7 +24,7 @@ class CommentsChecker extends Checker
             'ct_prev_from'                => !empty($prev_check['from'])     ? $prev_check['from'] : false,
             'ct_prev_till'                => !empty($prev_check['till'])     ? $prev_check['till'] : false,
             'ct_timeout_confirm'          => __('Failed from timeout. Going to check comments again.', 'cleantalk-spam-protect'),
-            'ct_confirm_deletion_all'     => __('Delete all spam comments?', 'cleantalk-spam-protect'),
+            'ct_confirm_trash_all'        => __('Trash all spam comments from the list?', 'cleantalk-spam-protect'),
             'ct_confirm_spam_all'         => __('Mark as spam all comments from the list?', 'cleantalk-spam-protect'),
             'ct_comments_added_after'     => __('comments', 'cleantalk-spam-protect'),
             'ct_status_string'            => __('Checked %s, found %s spam comments and %s bad comments (without IP or email).', 'cleantalk-spam-protect'),
@@ -462,7 +462,7 @@ class CommentsChecker extends Checker
 
     }
 
-    public static function ct_ajax_delete_all(){
+    public static function ct_ajax_trash_all(){
 
         check_ajax_referer( 'ct_secret_nonce', 'security' );
 
@@ -491,7 +491,7 @@ class CommentsChecker extends Checker
         $cnt_all = get_comments($args_spam);
 
         for( $i=0; $i < sizeof( $c_spam ); $i++ ){
-            wp_delete_comment( $c_spam[$i]->comment_ID, false );
+            wp_trash_comment( $c_spam[$i]->comment_ID );
             usleep(10000);
         }
         print $cnt_all;

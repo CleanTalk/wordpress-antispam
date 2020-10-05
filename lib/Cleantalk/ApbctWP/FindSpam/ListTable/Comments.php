@@ -101,7 +101,7 @@ class Comments extends \Cleantalk\ApbctWP\CleantalkListTable
         $actions = array(
             'approve'   => sprintf( '<span class="approve"><a href="?page=%s&action=%s&spam=%s">Approve</a></span>', $_REQUEST['page'],'approve', $id ),
             'spam'      => sprintf( '<span class="spam"><a href="?page=%s&action=%s&spam=%s">Spam</a></span>', $_REQUEST['page'],'spam', $id ),
-            'delete'    => sprintf( '<a href="?page=%s&action=%s&spam=%s">Delete</a>', $_REQUEST['page'],'delete', $id ),
+            'trash'     => sprintf( '<a href="?page=%s&action=%s&spam=%s">Delete</a>', $_REQUEST['page'],'trash', $id ),
         );
 
         return sprintf( '%1$s %2$s', $column_content, $this->row_actions( $actions ) );
@@ -146,7 +146,7 @@ class Comments extends \Cleantalk\ApbctWP\CleantalkListTable
     function get_bulk_actions() {
         $actions = array(
             'spam'      => esc_html__( 'Mark as spam', 'cleantalk-spam-protect' ),
-            'delete'    => esc_html__( 'Delete', 'cleantalk-spam-protect' ),
+            'trash'     => esc_html__( 'Delete', 'cleantalk-spam-protect' ),
         );
         return $actions;
     }
@@ -160,8 +160,8 @@ class Comments extends \Cleantalk\ApbctWP\CleantalkListTable
         if( ! wp_verify_nonce( $_POST['_wpnonce'], 'bulk-' . $this->_args['plural'] ) )
             wp_die('nonce error');
 
-        if( 'delete' == $action ) {
-            $this->removeSpam( $_POST['spamids'] );
+        if( 'trash' == $action ) {
+            $this->moveToTrash( $_POST['spamids'] );
         }
 
         if( 'spam' == $action ) {
@@ -181,10 +181,10 @@ class Comments extends \Cleantalk\ApbctWP\CleantalkListTable
 
         }
 
-        if( $_GET['action'] == 'delete' ) {
+        if( $_GET['action'] == 'trash' ) {
 
             $id = filter_input( INPUT_GET, 'spam', FILTER_SANITIZE_NUMBER_INT );
-            $this->removeSpam( array( $id ) );
+            $this->moveToTrash( array( $id ) );
 
         }
 
@@ -221,13 +221,15 @@ class Comments extends \Cleantalk\ApbctWP\CleantalkListTable
 
     }
 
-    function removeSpam( $ids ) {
+    function moveToTrash( $ids ) {
 
-        $ids_string = implode( ', ', $ids );
-        global $wpdb;
-
-        $wpdb->query("DELETE FROM {$wpdb->comments} WHERE 
-                comment_ID IN ($ids_string)");
+        if( ! empty( $ids ) ) {
+            foreach ( $ids as $id) {
+                delete_comment_meta( $id, 'ct_marked_as_spam' );
+                $comment = get_comment( $id );
+                wp_trash_comment( $comment );
+            }
+        }
 
     }
 
