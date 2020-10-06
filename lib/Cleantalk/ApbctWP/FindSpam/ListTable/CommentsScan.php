@@ -47,7 +47,7 @@ class CommentsScan extends Comments
         ?>
         <div class="alignleft actions bulkactions">
             <button type="button" id="<?php echo $button_id_spam; ?>" class="button action ct_spam_all"><?php esc_html_e('Mark as spam all comments from the list', 'cleantalk-spam-protect'); ?></button>
-            <button type="button" id="<?php echo $button_id_trash; ?>" class="button action ct_trash_all"><?php esc_html_e('Delete all comments from the list', 'cleantalk-spam-protect'); ?></button>
+            <button type="button" id="<?php echo $button_id_trash; ?>" class="button action ct_trash_all"><?php esc_html_e('Move to trash all comments from the list', 'cleantalk-spam-protect'); ?></button>
             <span class="spinner"></span>
         </div>
         <?php

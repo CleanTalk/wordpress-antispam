@@ -101,7 +101,7 @@ class Comments extends \Cleantalk\ApbctWP\CleantalkListTable
         $actions = array(
             'approve'   => sprintf( '<span class="approve"><a href="?page=%s&action=%s&spam=%s">Approve</a></span>', $_REQUEST['page'],'approve', $id ),
             'spam'      => sprintf( '<span class="spam"><a href="?page=%s&action=%s&spam=%s">Spam</a></span>', $_REQUEST['page'],'spam', $id ),
-            'trash'     => sprintf( '<a href="?page=%s&action=%s&spam=%s">Delete</a>', $_REQUEST['page'],'trash', $id ),
+            'trash'     => sprintf( '<a href="?page=%s&action=%s&spam=%s">Trash</a>', $_REQUEST['page'],'trash', $id ),
         );
 
         return sprintf( '%1$s %2$s', $column_content, $this->row_actions( $actions ) );
@@ -146,7 +146,7 @@ class Comments extends \Cleantalk\ApbctWP\CleantalkListTable
     function get_bulk_actions() {
         $actions = array(
             'spam'      => esc_html__( 'Mark as spam', 'cleantalk-spam-protect' ),
-            'trash'     => esc_html__( 'Delete', 'cleantalk-spam-protect' ),
+            'trash'     => esc_html__( 'Move to trash', 'cleantalk-spam-protect' ),
         );
         return $actions;
     }
