@@ -81,9 +81,10 @@
 	function apbct_ready(){
 
 		ctSetCookie("apbct_visible_fields", 0);
-		ctSetCookie("apbct_visible_fields_count", 0);
 
 		setTimeout(function(){
+
+			var visible_fields_collection = {};
 
 			for(var i = 0; i < document.forms.length; i++){
 				var form = document.forms[i];
@@ -97,12 +98,13 @@
 				)
 					continue;
 
-				apbct_collect_visible_fields_and_set_cookie(form);
+				visible_fields_collection[i] = apbct_collect_visible_fields( form );
 
 				form.onsubmit_prev = form.onsubmit;
 				form.onsubmit = function (event) {
 
-					apbct_collect_visible_fields_and_set_cookie(this);
+					visible_fields[0] = apbct_collect_visible_fields(this);
+					apbct_visible_fields_set_cookie( visible_fields );
 
 					// Call previous submit action
 					if (event.target.onsubmit_prev instanceof Function) {
@@ -112,6 +114,9 @@
 					}
 				};
 			}
+
+			apbct_visible_fields_set_cookie( visible_fields_collection );
+
 		}, 1000);
 	}
 	apbct_attach_event_handler(window, "DOMContentLoaded", apbct_ready);
@@ -122,7 +127,7 @@ function ctSetCookie(c_name, value) {
 	document.cookie = c_name + "=" + encodeURIComponent(value) + "; path=/; samesite=lax";
 }
 
-function apbct_collect_visible_fields_and_set_cookie( form ) {
+function apbct_collect_visible_fields( form ) {
 
 	// Get only fields
 	var inputs = [],
@@ -169,8 +174,18 @@ function apbct_collect_visible_fields_and_set_cookie( form ) {
 	});
 	inputs_visible = inputs_visible.trim();
 
-	ctSetCookie("apbct_visible_fields", inputs_visible);
-	ctSetCookie("apbct_visible_fields_count", inputs_visible_count);
+	return {
+		visible_fields : inputs_visible,
+		visible_fields_count : inputs_visible_count,
+	}
+
+}
+
+function apbct_visible_fields_set_cookie( visible_fields_collection ) {
+
+	var collection = typeof visible_fields_collection === 'object' && visible_fields_collection !== null ?  visible_fields_collection : {};
+
+	ctSetCookie("apbct_visible_fields", JSON.stringify( collection ) );
 
 }
 

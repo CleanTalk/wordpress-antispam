@@ -3,6 +3,7 @@
 use Cleantalk\Antispam\Cleantalk;
 use Cleantalk\Antispam\CleantalkRequest;
 use Cleantalk\Antispam\CleantalkResponse;
+use Cleantalk\Variables\Cookie;
 
 function apbct_array( $array ){
 	return new \Cleantalk\Common\Arr( $array );
@@ -384,7 +385,10 @@ function apbct_get_sender_info() {
 	$urls = $apbct->settings['store_urls__sessions']
 			? (array)apbct_alt_session__get('apbct_urls')
 			: (array)json_decode(filter_input(INPUT_COOKIE, 'apbct_urls'), true);
-	
+
+	// Visible fields processing
+    $visible_fields = apbct_visibile_fields__process( Cookie::get('apbct_visible_fields') );
+
 	return array(
 		'plugin_request_id'      => $apbct->plugin_request_id,
  		'wpms'                   => is_multisite() ? 'yes' : 'no',
@@ -410,8 +414,8 @@ function apbct_get_sender_info() {
 		'js_timezone'            => !empty($_COOKIE['ct_timezone'])                                ? $_COOKIE['ct_timezone']                                           : null,
 		'key_press_timestamp'    => !empty($_COOKIE['ct_fkp_timestamp'])                           ? $_COOKIE['ct_fkp_timestamp']                                      : null,
 		'page_set_timestamp'     => !empty($_COOKIE['ct_ps_timestamp'])                            ? $_COOKIE['ct_ps_timestamp']                                       : null,
-		'form_visible_inputs'    => !empty($_COOKIE['apbct_visible_fields_count'])                 ? $_COOKIE['apbct_visible_fields_count']                            : null,
-		'apbct_visible_fields'   => !empty($_COOKIE['apbct_visible_fields'])                       ? apbct_visibile_fields__process($_COOKIE['apbct_visible_fields'])  : null,
+		'form_visible_inputs'    => !empty($visible_fields['visible_fields_count'])                ? $visible_fields['visible_fields_count']                           : null,
+		'apbct_visible_fields'   => !empty($visible_fields['visible_fields'])                      ? $visible_fields['visible_fields']                                 : null,
 		// Misc
 		'site_referer'           => !empty($site_referer)                                          ? $site_referer                                                     : null,
 		'source_url'             => !empty($urls)                                                  ? json_encode($urls)                                                : null,
@@ -428,28 +432,48 @@ function apbct_get_sender_info() {
 /**
  * Process visible fields for specific form to match the fields from request
  * 
- * @param string $visible_fields
+ * @param string $visible_fields JSON string
  * 
- * @return string
+ * @return array
  */
-function apbct_visibile_fields__process($visible_fields) {
-    if(strpos($visible_fields, 'wpforms') !== false){
-		$visible_fields = preg_replace(
-			array('/\[/', '/\]/'),
-			'',
-			str_replace(
-				'][',
-				'_',
-				str_replace(
-					'wpforms[fields]',
-					'',
-					$visible_fields
-				)
-			)
-		);
-	}
+function apbct_visibile_fields__process( $visible_fields ) {
+
+    $fields_collection = json_decode( $visible_fields, true );
+
+    if( ! empty( $fields_collection ) ) {
+        foreach ($fields_collection as $current_fields) {
+            if( isset( $current_fields['visible_fields'] ) && isset( $current_fields['visible_fields_count'] ) ) {
+
+                $fields = explode( ' ', $current_fields['visible_fields'] );
+
+                // This fields belong this request
+                // @ToDo we have to implement a logic to find form fields (fields names, fields count) in serialized/nested/encoded items. not only $_POST.
+                if( count( array_intersect( array_keys($_POST), $fields ) ) > 0 ) {
+                    // WP Forms visible fields formatting
+                    if(strpos($visible_fields, 'wpforms') !== false){
+                        $visible_fields = preg_replace(
+                            array('/\[/', '/\]/'),
+                            '',
+                            str_replace(
+                                '][',
+                                '_',
+                                str_replace(
+                                    'wpforms[fields]',
+                                    '',
+                                    $visible_fields
+                                )
+                            )
+                        );
+                    }
+
+                    return $current_fields;
+
+                }
+            }
+        }
+    }
 	
-	return $visible_fields;
+	return array();
 }
 
 /*
