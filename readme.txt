@@ -1,6 +1,6 @@
 === Spam protection, AntiSpam, FireWall by CleanTalk ===
 Contributors: safronik 
-Tags: spam, antispam, woocommerce, comments, firewall 
+Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 3.0
 Tested up to: 5.5
 Requires PHP: 5.4
