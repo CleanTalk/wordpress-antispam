@@ -2531,7 +2531,8 @@ function apbct_form__ninjaForms__changeResponse( $data ) {
 		$nf_field_id = $data['fields_by_key']['email']['id'];
 	}else{
 		// Find ID of last field (usually SUBMIT)
-		$nf_field_id = array_pop(array_keys($data['fields']));
+        $fields_keys = array_keys($data['fields']);
+		$nf_field_id = array_pop($fields_keys);
 	}
 
 	// Below is modified NJ logic
