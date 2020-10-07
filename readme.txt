@@ -580,7 +580,7 @@ If your website has forms that send data to external sources, you can enable opt
 
 == Changelog ==
 
-= 5.147 Oct 07 2020 =
+= 5.147 Oct 08 2020 =
  * Fix: WPForms. Auto submitting.
  * Fix: Synchronization timeout increased to 25 seconds.
  * Fix: Cookiebot compatibility.
@@ -589,6 +589,11 @@ If your website has forms that send data to external sources, you can enable opt
  * Fix: SpamFireWall auto incremental uses primary key.
  * Fix: Skip woocommerce internal request.
  * Upd: Url exclusions option updated.
+ * Fix: Checking comments/users - redirecting after deleting all items fixed.
+ * New: Comments scanner - marking as spam action implemented.
+ * Fix: SFW table fixed.
+ * Upd: Comments scanner - moving to trash instead deleting.
+ * Upd: Visible fields collecting functionality updated.
 
 = 5.146.1 Sep 23 2020 =
  * Fix: URL exclusions setting.
