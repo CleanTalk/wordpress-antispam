@@ -103,6 +103,7 @@
 				form.onsubmit_prev = form.onsubmit;
 				form.onsubmit = function (event) {
 
+					var visible_fields = {};
 					visible_fields[0] = apbct_collect_visible_fields(this);
 					apbct_visible_fields_set_cookie( visible_fields );
 

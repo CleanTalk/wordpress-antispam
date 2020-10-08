@@ -315,6 +315,7 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 	    'ppom_ajax_validation', // PPOM add to cart validation
 	    'wpforms_form_abandonment', // WPForms. Quiting without submitting
 	    'post_woo_ml_email_cookie', //Woocommerce system
+	    'ig_es_draft_broadcast', //Icegram broadcast ajax
     );
     
     // Skip test if
