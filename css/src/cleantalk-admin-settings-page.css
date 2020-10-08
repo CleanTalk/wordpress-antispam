@@ -56,6 +56,10 @@ i.animate-spin {
     cursor: pointer;
 }
 
+.apbct_setting_textarea {
+    min-width: 300px;
+}
+
 .cleantalk_link {
     text-decoration: none;
     font-size: 13px;

@@ -70,7 +70,7 @@ function apbct_init() {
 				print "<html><body><form method='$method' action='$action'>";
 				ct_print_form($_POST, '');
 				print "</form></body></html>";
-				print "<script>
+				print "<script " . ( class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '' ) . ">
 					if(document.forms[0].submit !== 'undefined'){
 						var objects = document.getElementsByName('submit');
 						if(objects.length > 0)
@@ -934,7 +934,7 @@ function ct_add_hidden_fields($field_name = 'ct_checkjs', $return_string = false
 	// Using only cookies
     if ($cookie_check && $apbct->settings['set_cookies'] == 1) {
 	    
-		$html =	"<script type='text/javascript'>
+		$html =	"<script type='text/javascript' " . ( class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '' ) . ">
 			function ctSetCookie___from_backend(c_name, value) {
 				document.cookie = c_name + \"=\" + encodeURIComponent(value) + \"; path=/; samesite=lax\";
 			}
@@ -951,7 +951,7 @@ function ct_add_hidden_fields($field_name = 'ct_checkjs', $return_string = false
         $ct_input_challenge = sprintf("'%s'", $ct_checkjs_key);
     	$field_id = $field_name . '_' . $field_id_hash;
 		$html = "<input type='hidden' id='{$field_id}' name='{$field_name}' value='{$ct_checkjs_def}' />
-		<script type='text/javascript'>
+		<script type='text/javascript' " . ( class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '' ) . ">
 			window.addEventListener('DOMContentLoaded', function () {
 				setTimeout(function(){
                     apbct_public_sendAJAX(
@@ -971,7 +971,7 @@ function ct_add_hidden_fields($field_name = 'ct_checkjs', $return_string = false
         $ct_input_challenge = sprintf("'%s'", $ct_checkjs_key);
     	$field_id = $field_name . '_' . $field_id_hash;
 		$html = "<input type='hidden' id='{$field_id}' name='{$field_name}' value='{$ct_checkjs_def}' />
-		<script type='text/javascript'>
+		<script type='text/javascript' " . ( class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '' ) . ">
 			setTimeout(function(){
 				var ct_input_name = '{$field_id}';
 				if (document.getElementById(ct_input_name) !== null) {
@@ -2531,7 +2531,8 @@ function apbct_form__ninjaForms__changeResponse( $data ) {
 		$nf_field_id = $data['fields_by_key']['email']['id'];
 	}else{
 		// Find ID of last field (usually SUBMIT)
-		$nf_field_id = array_pop(array_keys($data['fields']));
+        $fields_keys = array_keys($data['fields']);
+		$nf_field_id = array_pop($fields_keys);
 	}
 
 	// Below is modified NJ logic
@@ -3889,7 +3890,7 @@ function apbct_shrotcode_handler__GDPR_public_notice__form( $attrs ){
 	if(isset($attrs['text']))
 		$out .= 'ctPublicGDPR.gdpr_text = "'.$attrs['text'].'";';
 
-	$out = '<script>'.$out.'</script>';
+	$out = '<script ' . ( class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '' ) . '>'.$out.'</script>';
 	return $out;
 }
 

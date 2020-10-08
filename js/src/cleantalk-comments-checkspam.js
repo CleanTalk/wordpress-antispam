@@ -237,10 +237,10 @@ function ct_toggle_depended(obj, secondary){
 	}
 }
 
-function ct_delete_all( e ) {
+function ct_trash_all( e ) {
 
 	var data = {
-		'action': 'ajax_delete_all',
+		'action': 'ajax_trash_all',
 		'security': ct_ajax_nonce
 	};
 
@@ -253,18 +253,52 @@ function ct_delete_all( e ) {
 		success: function( msg ){
 			if( msg > 0 ){
 				jQuery('#cleantalk_comments_left').html(msg);
-				ct_delete_all( e );
+				ct_trash_all( e );
 			}else{
 				jQuery('.' + e.target.id).removeClass('disabled');
 				jQuery('.spinner').css('visibility', 'hidden');
-				location.href='edit-comments.php?page=ct_check_spam_total';
+				location.href='edit-comments.php?page=ct_check_spam';
 			}
 		},
 		error: function(jqXHR, textStatus, errorThrown) {
 			jQuery('#ct_error_message').show();
 			jQuery('#cleantalk_ajax_error').html(textStatus);
 			jQuery('#cleantalk_js_func').html('Check comments');
-			setTimeout(ct_delete_all( e ), 3000);
+			setTimeout(ct_trash_all( e ), 3000);
+		},
+		timeout: 25000
+	});
+
+}
+
+function ct_spam_all( e ) {
+
+	var data = {
+		'action': 'ajax_spam_all',
+		'security': ct_ajax_nonce
+	};
+
+	jQuery('.' + e.target.id).addClass('disabled');
+	jQuery('.spinner').css('visibility', 'visible');
+	jQuery.ajax({
+		type: "POST",
+		url: ajaxurl,
+		data: data,
+		success: function( msg ){
+			if( msg > 0 ){
+				jQuery('#cleantalk_comments_left').html(msg);
+				ct_spam_all( e );
+			}else{
+				jQuery('.' + e.target.id).removeClass('disabled');
+				jQuery('.spinner').css('visibility', 'hidden');
+				location.href='edit-comments.php?page=ct_check_spam';
+			}
+		},
+		error: function(jqXHR, textStatus, errorThrown) {
+			jQuery('#ct_error_message').show();
+			jQuery('#cleantalk_ajax_error').html(textStatus);
+			jQuery('#cleantalk_js_func').html('Check comments');
+			setTimeout(ct_spam_all( e ), 3000);
 		},
 		timeout: 25000
 	});
@@ -378,12 +412,22 @@ jQuery(document).ready(function(){
 	}
 
 	// Delete all spam comments
-	jQuery(".ct_delete_all").click(function( e ){
+	jQuery(".ct_trash_all").click(function( e ){
 
-		if (!confirm(ctCommentsCheck.ct_confirm_deletion_all))
+		if (!confirm(ctCommentsCheck.ct_confirm_trash_all))
 			return false;
 
-		ct_delete_all( e );
+		ct_trash_all( e );
+
+	});
+
+	// Mark as spam all spam comments
+	jQuery(".ct_spam_all").click(function( e ){
+
+		if (!confirm(ctCommentsCheck.ct_confirm_spam_all))
+			return false;
+
+		ct_spam_all( e );
 
 	});
 

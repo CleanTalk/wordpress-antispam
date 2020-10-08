@@ -314,9 +314,9 @@ function apbct_settings__set_fileds( $fields ){
 			'title'          => __('Exclusions', 'cleantalk-spam-protect'),
 			'fields'         => array(
 				'exclusions__urls' => array(
-					'type'        => 'text',
+					'type'        => 'textarea',
 					'title'       => __('URL exclusions', 'cleantalk-spam-protect'),
-					'description' => __('You could type here URL you want to exclude. Use comma as separator.', 'cleantalk-spam-protect'),
+					'description' => __('You could type here URL you want to exclude. Use comma or new lines as separator.', 'cleantalk-spam-protect'),
 				),
 				'exclusions__urls__use_regexp' => array(
 					'type'        => 'checkbox',
@@ -1324,6 +1324,27 @@ function apbct_settings__field__draw($params = array()){
 					.$params['description']
 				.'</div>';				
 				break;
+
+            // Textarea type
+            case 'textarea':
+
+                echo '<label for="apbct_setting_'.$params['name'].'" class="apbct_setting-field_title--'.$params['type'].'">'
+                    .$params['title']
+                    .'</label></br>';
+                echo '<textarea
+					id="apbct_setting_'.$params['name'].'"
+					name="cleantalk_settings['.$params['name'].']"'
+                    ." class='apbct_setting_{$params['type']} apbct_setting---{$params['name']}'"
+                    .$disabled
+                    .($params['required'] ? ' required="required"' : '')
+                    .($params['childrens'] ? ' onchange="apbctSettingsDependencies(\'' . $childrens . '\')"' : '')
+                    .'>'. $value .'</textarea>'
+                    . '&nbsp;';
+                echo '<div class="apbct_settings-field_description">'
+                    .$params['description']
+                    .'</div>';
+                break;
+
 		}
 		
 	echo '</div>';
@@ -1642,8 +1663,17 @@ function apbct_update_blogs_options ($blog_names = array(), $settings) {
  */
 function apbct_settings__sanitize__exclusions($exclusions, $regexp = false){
 	$result = array();
+	$type = 0;
 	if( ! empty( $exclusions ) ){
-		$exclusions = explode( ',', $exclusions );
+        if( strpos( $exclusions, "\r\n" ) !== false ) {
+            $exclusions = explode( "\r\n", $exclusions );
+            $type = 2;
+        } elseif( strpos( $exclusions, "\n" ) !== false ) {
+            $exclusions = explode( "\n", $exclusions );
+            $type = 1;
+        } else {
+            $exclusions = explode( ',', $exclusions );
+        }
 		foreach ( $exclusions as $exclusion ){
 			$sanitized_exclusion = trim( $exclusion, " \t\n\r\0\x0B/\/" );
 			if ( ! empty( $sanitized_exclusion ) ) {
@@ -1653,7 +1683,18 @@ function apbct_settings__sanitize__exclusions($exclusions, $regexp = false){
 			}
 		}
 	}
-	return implode( ',', $result );
+	switch ( $type ) {
+        case 0 :
+        default :
+            return implode( ',', $result );
+            break;
+        case 1 :
+            return implode( "\n", $result );
+            break;
+        case 2 :
+            return implode( "\r\n", $result );
+            break;
+    }
 }
 
 function apbct_settings_show_gdpr_text($print = false){

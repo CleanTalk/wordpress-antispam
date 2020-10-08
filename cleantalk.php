@@ -3,7 +3,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 5.146.1
+  Version: 5.147
   Author: СleanTalk <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -66,6 +66,8 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 	$apbct = new \Cleantalk\ApbctWP\State('cleantalk', array('settings', 'data', 'debug', 'errors', 'remote_calls', 'stats'));
 	
 	$apbct->base_name = 'cleantalk-spam-protect/cleantalk.php';
+	
+	$apbct->plugin_request_id = md5( microtime() ); // Identify plugin execution
 	
 	$apbct->logo                 = plugin_dir_url(__FILE__) . 'inc/images/logo.png';
 	$apbct->logo__small          = plugin_dir_url(__FILE__) . 'inc/images/logo_small.png';
@@ -667,10 +669,12 @@ function apbct_activation( $network = false ) {
 	
 	// SFW data
 	$sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_sfw` (
-		`network` int(11) unsigned NOT NULL,
-		`mask` int(11) unsigned NOT NULL,
-		`status` TINYINT(1) NOT NULL DEFAULT 0,
-		INDEX (  `network` ,  `mask` )
+			`id` INT(11) NOT NULL AUTO_INCREMENT,
+			`network` int(11) unsigned NOT NULL,
+			`mask` int(11) unsigned NOT NULL,
+			`status` TINYINT(1) NOT NULL DEFAULT 0,
+			PRIMARY KEY (`id`),
+			INDEX (  `network` ,  `mask` )
 		);';
 	
 	// SFW log
@@ -777,9 +781,12 @@ function apbct_activation__new_blog($blog_id, $user_id, $domain, $path, $site_id
 		
 		// SFW data
 		$sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_sfw` (
-			`network` int(11) unsigned NOT NULL,
-			`mask` int(11) unsigned NOT NULL,
-			INDEX (  `network` ,  `mask` )
+				`id` INT(11) NOT NULL AUTO_INCREMENT,
+				`network` int(11) unsigned NOT NULL,
+				`mask` int(11) unsigned NOT NULL,
+				`status` TINYINT(1) NOT NULL DEFAULT 0,
+				PRIMARY KEY (`id`),
+				INDEX (  `network` ,  `mask` )
 			);';
 	
 	    // SFW log

@@ -14,7 +14,7 @@ add_action( 'admin_head','apbct_admin_set_cookie_for_anti_bot' );
 
 function apbct_admin_set_cookie_for_anti_bot(){
 	global $apbct;
-	echo '<script>document.cookie = "apbct_antibot=' . hash( 'sha256', $apbct->api_key . $apbct->data['salt'] ) . '; path=/; expires=0; samesite=lax";</script>';
+	echo '<script ' . ( class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '' ) . '>document.cookie = "apbct_antibot=' . hash( 'sha256', $apbct->api_key . $apbct->data['salt'] ) . '; path=/; expires=0; samesite=lax";</script>';
 }
 
 function apbct_add_buttons_to_comments_and_users( $unused_argument ) {
@@ -230,7 +230,7 @@ function apbct_admin__register_plugin_links($links, $file){
 		
 	if($apbct->white_label){
 		$links = array_slice($links, 0, 1);
-		$links[] = "<script>jQuery('.plugin-title strong').each(function(i, item){
+		$links[] = "<script " . ( class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '' ) . ">jQuery('.plugin-title strong').each(function(i, item){
 		if(jQuery(item).html() == 'Anti-Spam by CleanTalk')
 			jQuery(item).html('{$apbct->plugin_name}');
 		});</script>";

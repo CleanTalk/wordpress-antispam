@@ -3,6 +3,7 @@
 use Cleantalk\Antispam\Cleantalk;
 use Cleantalk\Antispam\CleantalkRequest;
 use Cleantalk\Antispam\CleantalkResponse;
+use Cleantalk\Variables\Cookie;
 
 function apbct_array( $array ){
 	return new \Cleantalk\Common\Arr( $array );
@@ -91,9 +92,27 @@ function apbct_base_call($params = array(), $reg_flag = false){
         do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
         return array( 'ct_result' => new CleantalkResponse() );
     }
-
 	$cleantalk_executed = true;
-
+    
+    // Request id rotation
+	$plugin_request_id__lifetime = 2;
+	$tmp = array();
+    foreach( $apbct->plugin_request_ids as $request_id => $request_time ){
+    	if( time() - $request_time < $plugin_request_id__lifetime )
+    		$tmp[ $request_id ] = $request_time;
+    }
+	$apbct->plugin_request_ids = $tmp;
+	$apbct->save('plugin_request_ids');
+	
+    // Skip duplicate requests
+    if( key_exists( $apbct->plugin_request_id, $apbct->plugin_request_ids ) ){
+	    do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
+	    return array( 'ct_result' => new CleantalkResponse() );
+    }
+    
+    $apbct->plugin_request_ids = array_merge($apbct->plugin_request_ids, array($apbct->plugin_request_id => time() ) );
+	$apbct->save('plugin_request_ids');
+ 
 	$sender_info = !empty($params['sender_info'])
 		? \Cleantalk\ApbctWP\Helper::array_merge__save_numeric_keys__recursive(apbct_get_sender_info(), (array)$params['sender_info'])
 		: apbct_get_sender_info();
@@ -267,9 +286,15 @@ function apbct_exclusions_check__url() {
 	global $apbct;
 	
 	if ( ! empty( $apbct->settings['exclusions__urls'] ) ) {
-		
-		$exclusions = explode( ',', $apbct->settings['exclusions__urls'] );
-		
+
+	    if( strpos( $apbct->settings['exclusions__urls'], "\r\n" ) !== false ) {
+            $exclusions = explode( "\r\n", $apbct->settings['exclusions__urls'] );
+        } elseif( strpos( $apbct->settings['exclusions__urls'], "\n" ) !== false ) {
+            $exclusions = explode( "\n", $apbct->settings['exclusions__urls'] );
+        } else {
+            $exclusions = explode( ',', $apbct->settings['exclusions__urls'] );
+        }
+
 		// Fix for AJAX forms
 		$haystack = apbct_get_server_variable( 'REQUEST_URI' ) == '/wp-admin/admin-ajax.php' && ! apbct_get_server_variable( 'HTTP_REFERER' )
 			? apbct_get_server_variable( 'HTTP_REFERER' )
@@ -360,8 +385,12 @@ function apbct_get_sender_info() {
 	$urls = $apbct->settings['store_urls__sessions']
 			? (array)apbct_alt_session__get('apbct_urls')
 			: (array)json_decode(filter_input(INPUT_COOKIE, 'apbct_urls'), true);
-	
+
+	// Visible fields processing
+    $visible_fields = apbct_visibile_fields__process( Cookie::get('apbct_visible_fields') );
+
 	return array(
+		'plugin_request_id'      => $apbct->plugin_request_id,
  		'wpms'                   => is_multisite() ? 'yes' : 'no',
 		'remote_addr'            => \Cleantalk\ApbctWP\Helper::ip__get(array('remote_addr'), false),
         'REFFERRER'              => apbct_get_server_variable( 'HTTP_REFERER' ),
@@ -385,8 +414,8 @@ function apbct_get_sender_info() {
 		'js_timezone'            => !empty($_COOKIE['ct_timezone'])                                ? $_COOKIE['ct_timezone']                                           : null,
 		'key_press_timestamp'    => !empty($_COOKIE['ct_fkp_timestamp'])                           ? $_COOKIE['ct_fkp_timestamp']                                      : null,
 		'page_set_timestamp'     => !empty($_COOKIE['ct_ps_timestamp'])                            ? $_COOKIE['ct_ps_timestamp']                                       : null,
-		'form_visible_inputs'    => !empty($_COOKIE['apbct_visible_fields_count'])                 ? $_COOKIE['apbct_visible_fields_count']                            : null,
-		'apbct_visible_fields'   => !empty($_COOKIE['apbct_visible_fields'])                       ? apbct_visibile_fields__process($_COOKIE['apbct_visible_fields'])  : null,
+		'form_visible_inputs'    => !empty($visible_fields['visible_fields_count'])                ? $visible_fields['visible_fields_count']                           : null,
+		'apbct_visible_fields'   => !empty($visible_fields['visible_fields'])                      ? $visible_fields['visible_fields']                                 : null,
 		// Misc
 		'site_referer'           => !empty($site_referer)                                          ? $site_referer                                                     : null,
 		'source_url'             => !empty($urls)                                                  ? json_encode($urls)                                                : null,
@@ -403,28 +432,48 @@ function apbct_get_sender_info() {
 /**
  * Process visible fields for specific form to match the fields from request
  * 
- * @param string $visible_fields
+ * @param string $visible_fields JSON string
  * 
- * @return string
+ * @return array
  */
-function apbct_visibile_fields__process($visible_fields) {
-    if(strpos($visible_fields, 'wpforms') !== false){
-		$visible_fields = preg_replace(
-			array('/\[/', '/\]/'),
-			'',
-			str_replace(
-				'][',
-				'_',
-				str_replace(
-					'wpforms[fields]',
-					'',
-					$visible_fields
-				)
-			)
-		);
-	}
+function apbct_visibile_fields__process( $visible_fields ) {
+
+    $fields_collection = json_decode( $visible_fields, true );
+
+    if( ! empty( $fields_collection ) ) {
+        foreach ($fields_collection as $current_fields) {
+            if( isset( $current_fields['visible_fields'] ) && isset( $current_fields['visible_fields_count'] ) ) {
+
+                $fields = explode( ' ', $current_fields['visible_fields'] );
+
+                // This fields belong this request
+                // @ToDo we have to implement a logic to find form fields (fields names, fields count) in serialized/nested/encoded items. not only $_POST.
+                if( count( array_intersect( array_keys($_POST), $fields ) ) > 0 ) {
+                    // WP Forms visible fields formatting
+                    if(strpos($visible_fields, 'wpforms') !== false){
+                        $visible_fields = preg_replace(
+                            array('/\[/', '/\]/'),
+                            '',
+                            str_replace(
+                                '][',
+                                '_',
+                                str_replace(
+                                    'wpforms[fields]',
+                                    '',
+                                    $visible_fields
+                                )
+                            )
+                        );
+                    }
+
+                    return $current_fields;
+
+                }
+            }
+        }
+    }
 	
-	return $visible_fields;
+	return array();
 }
 
 /*
@@ -979,7 +1028,7 @@ function ct_change_plugin_resonse($ct_result = null, $checkjs = null) {
 }
 
 /**
-* Does key has correct symbols? Checks against regexp ^[a-z\d]{3,15}$
+* Does ey has correct symbols? Checks against regexp ^[a-z\d]{3,15}$
 * @param api_key
 * @return bool
 */
@@ -995,18 +1044,20 @@ function apbct_add_async_attribute($tag, $handle, $src) {
 	global $apbct;
 	
     if(
-		$apbct->settings['async_js'] &&
-		(
-			   $handle === 'ct_public'
-			|| $handle === 'ct_public_gdpr'
-			|| $handle === 'ct_debug_js'
-			|| $handle === 'ct_public_admin_js'
-			|| $handle === 'ct_internal'
-			|| $handle === 'ct_external'
-			|| $handle === 'ct_nocache'
-		)
-	)
-		return str_replace( ' src', ' async="async" src', $tag );
-	else
-		return $tag;
+    	$handle === 'ct_public' ||
+	    $handle === 'ct_public_gdpr' ||
+	    $handle === 'ct_debug_js' ||
+	    $handle === 'ct_public_admin_js' ||
+	    $handle === 'ct_internal' ||
+	    $handle === 'ct_external' ||
+	    $handle === 'ct_nocache'
+	){
+    	if( $apbct->settings['async_js'] )
+	        $tag = str_replace( ' src', ' async="async" src', $tag );
+	    
+	    if( class_exists('Cookiebot_WP') )
+		    $tag = str_replace( ' src', ' data-cookieconsent="ignore" src', $tag );
+    }
+    
+    return $tag;
 }

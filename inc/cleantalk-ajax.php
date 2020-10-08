@@ -313,6 +313,8 @@ function ct_ajax_hook($message_obj = false, $additional = false)
         'ck_get_subscriber', //ConvertKit checking the subscriber
         'metorik_send_cart', //Metorik skip
 	    'ppom_ajax_validation', // PPOM add to cart validation
+	    'wpforms_form_abandonment', // WPForms. Quiting without submitting
+	    'post_woo_ml_email_cookie', //Woocommerce system
     );
     
     // Skip test if
