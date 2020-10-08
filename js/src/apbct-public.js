@@ -103,8 +103,8 @@
 				form.onsubmit_prev = form.onsubmit;
 				form.onsubmit = function (event) {
 
-					visible_fields[0] = apbct_collect_visible_fields(this);
-					apbct_visible_fields_set_cookie( visible_fields );
+					visible_fields_collection[0] = apbct_collect_visible_fields(this);
+					apbct_visible_fields_set_cookie( visible_fields_collection );
 
 					// Call previous submit action
 					if (event.target.onsubmit_prev instanceof Function) {
