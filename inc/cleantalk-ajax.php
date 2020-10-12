@@ -382,6 +382,11 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 		$ct_post_temp = $_POST;
 		$ct_post_temp['shortcode'] = '';
 	}
+	//Pre-filled form 426869223
+	if (isset($_POST['action'], $_POST['response-email-address'], $_POST['response-email-sender-address']) && $_POST['action'] == 'contact-owner:send') {
+		unset($_POST['response-email-address']);
+		unset($_POST['response-email-sender-address']);
+	}
 	//Reviewer fix
 	if(isset($_POST['action']) && $_POST['action'] == 'rwp_ajax_action_rating')
 	{
