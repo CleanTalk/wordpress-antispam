@@ -736,15 +736,33 @@ class API
 		}
 		
 		// Server errors
-		if($result &&
-			(isset($result['error_no']) || isset($result['error_message'])) &&
-			(isset($result['error_no']) && $result['error_no'] != 12)
-		){
-			return array(
-				'error' => "SERVER_ERROR NO: {$result['error_no']} MSG: {$result['error_message']}",
-				'error_no' => $result['error_no'],
-				'error_message' => $result['error_message'],
-			);
+		if(	$result && ( isset( $result['error_no'], $result['error_message'] ) ) ){
+			
+			// Key for tthis product doesn't exist
+			if( $result['error_no'] == 11 ){
+				return array(
+					'error' => "SERVER_ERROR NO: {$result['error_no']} MSG: Service is disabled.",
+					'error_no' => $result['error_no'],
+					'error_message' => $result['error_message'],
+				);
+			}
+			
+			// Service is disabled
+			if( $result['error_no'] === 6 ){
+				return array(
+					'error' => "SERVER_ERROR NO: {$result['error_no']} MSG: Key doesn't exist for this product.",
+					'error_no' => $result['error_no'],
+					'error_message' => $result['error_message'],
+				);
+			}
+			
+			if( $result['error_no'] != 12 ){
+				return array(
+					'error' => "SERVER_ERROR NO: {$result['error_no']} MSG: {$result['error_message']}",
+					'error_no' => $result['error_no'],
+					'error_message' => $result['error_message'],
+				);
+			}
 		}
 		
 		// Pathces for different methods
