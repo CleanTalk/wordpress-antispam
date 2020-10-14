@@ -346,6 +346,9 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 	    'comment_type' => 'feedback_ajax',
         'post_url' => apbct_get_server_variable( 'HTTP_REFERER' ), // Page URL must be an previous page
     );
+    if( \Cleantalk\Variables\Post::get('action') == 'cleantalk_force_ajax_check' ) {
+        $post_info['comment_type'] = 'feedback_ajax_external_form';
+    }
 
 	$checkjs = apbct_js_test('ct_checkjs', $_COOKIE);
 		
