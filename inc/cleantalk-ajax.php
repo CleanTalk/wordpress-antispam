@@ -316,6 +316,7 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 	    'wpforms_form_abandonment', // WPForms. Quiting without submitting
 	    'post_woo_ml_email_cookie', //Woocommerce system
 	    'ig_es_draft_broadcast', //Icegram broadcast ajax
+	    'simplefilelistpro_edit_job', //Simple File List editing current job
     );
     
     // Skip test if
