@@ -630,3 +630,6 @@ function apbct_update_to_5_146_4() {
 	
 
 }
+function apbct_update_to_5_148_0() {
+    Cron::updateTask('antiflood__clear_table', 'apbct_antiflood__clear_table',  86400);
+}
