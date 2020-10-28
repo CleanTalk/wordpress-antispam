@@ -316,6 +316,7 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 	    'wpforms_form_abandonment', // WPForms. Quiting without submitting
 	    'post_woo_ml_email_cookie', //Woocommerce system
 	    'ig_es_draft_broadcast', //Icegram broadcast ajax
+	    'simplefilelistpro_edit_job', //Simple File List editing current job
     );
     
     // Skip test if
@@ -346,6 +347,9 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 	    'comment_type' => 'feedback_ajax',
         'post_url' => apbct_get_server_variable( 'HTTP_REFERER' ), // Page URL must be an previous page
     );
+    if( \Cleantalk\Variables\Post::get('action') == 'cleantalk_force_ajax_check' ) {
+        $post_info['comment_type'] = 'feedback_ajax_external_form';
+    }
 
 	$checkjs = apbct_js_test('ct_checkjs', $_COOKIE);
 		
@@ -381,6 +385,11 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 	if(isset($_POST['action'], $_POST['template']) && $_POST['action']=='userpro_process_form' && $_POST['template']=='register'){
 		$ct_post_temp = $_POST;
 		$ct_post_temp['shortcode'] = '';
+	}
+	//Pre-filled form 426869223
+	if (isset($_POST['action'], $_POST['response-email-address'], $_POST['response-email-sender-address']) && $_POST['action'] == 'contact-owner:send') {
+		unset($_POST['response-email-address']);
+		unset($_POST['response-email-sender-address']);
 	}
 	//Reviewer fix
 	if(isset($_POST['action']) && $_POST['action'] == 'rwp_ajax_action_rating')

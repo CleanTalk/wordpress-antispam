@@ -736,15 +736,15 @@ class API
 		}
 		
 		// Server errors
-		if($result &&
-			(isset($result['error_no']) || isset($result['error_message'])) &&
-			(isset($result['error_no']) && $result['error_no'] != 12)
-		){
-			return array(
-				'error' => "SERVER_ERROR NO: {$result['error_no']} MSG: {$result['error_message']}",
-				'error_no' => $result['error_no'],
-				'error_message' => $result['error_message'],
-			);
+		if(	$result && ( isset( $result['error_no'], $result['error_message'] ) ) ){
+			
+			if( $result['error_no'] != 12 ){
+				return array(
+					'error' => "SERVER_ERROR NO: {$result['error_no']} MSG: {$result['error_message']}",
+					'error_no' => $result['error_no'],
+					'error_message' => $result['error_message'],
+				);
+			}
 		}
 		
 		// Pathces for different methods

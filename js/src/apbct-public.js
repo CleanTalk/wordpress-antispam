@@ -269,6 +269,12 @@ if(typeof jQuery !== 'undefined') {
 			if (typeof response.apbct !== 'undefined') {
 				response = response.apbct;
 				if (response.blocked) {
+					document.dispatchEvent(
+						new CustomEvent( "apbctAjaxBockAlert", {
+							bubbles: true,
+							detail: { message: response.comment }
+						} )
+					);
 					alert(response.comment);
 					if(+response.stop_script == 1)
 						window.stop();

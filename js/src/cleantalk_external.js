@@ -8,13 +8,13 @@ function ct_protect_external(){
 
 				var action = document.forms[i].action;
 
-				// Fix for ActiveCampaign form
 				if(
-					action.indexOf('activehosted.com') !== -1 ||
-					action.indexOf('app.convertkit.com') !== -1
+					action.indexOf('activehosted.com') !== -1 ||   // ActiveCampaign form
+					action.indexOf('app.convertkit.com') !== -1 || // ConvertKit form
+					( document.forms[i].firstChild.classList !== undefined && document.forms[i].firstChild.classList.contains('cb-form-group') ) // Convertbox form
 				) {
 
-					jQuery( document.forms[i] ).before('<i class="cleantalk_placeholder" style="display: none;"></i>')
+					jQuery( document.forms[i] ).before('<i class="cleantalk_placeholder" style="display: none;"></i>');
 
 					// Deleting form to prevent submit event
 					var prev = jQuery(document.forms[i]).prev(),
@@ -35,14 +35,26 @@ function ct_protect_external(){
 						event.preventDefault();
 
 						// Get visible fields and set cookie
-						apbct_collect_visible_fields_and_set_cookie(this);
+						var visible_fields = {};
+						visible_fields[0] = apbct_collect_visible_fields(this);
+						apbct_visible_fields_set_cookie( visible_fields );
 
-						var data = jQuery(event.target).serialize();
+						var data = {};
+						var elems = event.target.elements;
+						elems = Array.prototype.slice.call(elems);
+
+						elems.forEach( function( elem, y ) {
+							if( elem.name === '' ) {
+								data['input_' + y] = elem.value;
+							} else {
+								data[elem.name] = elem.value;
+							}
+						});
 
 						apbct_public_sendAJAX(
 							data,
 							{
-								async: true,
+								async: false,
 								callback: function( index, prev, form_original, result ){
 
 									if( ! +result.apbct.blocked ) {
@@ -51,7 +63,7 @@ function ct_protect_external(){
 
 										apbct_replace_inputs_values_from_other_form(form_new, form_original);
 
-										prev.after(form_original);
+										prev.after( form_original );
 
 										// Common click event
 										var subm_button = jQuery(document.forms[index]).find('button[type=submit]');
