@@ -59,20 +59,20 @@ function ct_protect_external(){
 
 									if( ! +result.apbct.blocked ) {
 
-										var form_new = jQuery(document.forms[index]).detach();
+										var form_new = jQuery(event.target).detach();
 
 										apbct_replace_inputs_values_from_other_form(form_new, form_original);
 
 										prev.after( form_original );
 
 										// Common click event
-										var subm_button = jQuery(document.forms[index]).find('button[type=submit]');
+										var subm_button = jQuery(form_original).find('button[type=submit]');
 										if( subm_button.length !== 0 ) {
 											subm_button[0].click();
 										}
 
 										// ConvertKit direct integration
-										subm_button = jQuery(document.forms[index]).find('button[data-element="submit"]');
+										subm_button = jQuery(form_original).find('button[data-element="submit"]');
 										if( subm_button.length !== 0 ) {
 											subm_button[0].click();
 										}
