@@ -292,9 +292,11 @@ function apbct_admin__enqueue_scripts($hook){
 		if(!empty($apbct->data['brief_data']['error']))
 			$apbct->data['brief_data'] = array_merge($apbct->data['brief_data'], $apbct->def_data['brief_data']);
 		
-		foreach( $apbct->data['brief_data']['spam_stat'] as $key => $value ){
-			$to_chart[] = array( $key, $value );
-		} unset( $key, $value );
+		if (isset($apbct->data['brief_data']['spam_stat']) && is_array($apbct->data['brief_data']['spam_stat'])) {
+			foreach( $apbct->data['brief_data']['spam_stat'] as $key => $value ){
+				$to_chart[] = array( $key, $value );
+			} unset( $key, $value );
+		}
 		
 		wp_localize_script( 'ct_admin_js_widget_dashboard', 'apbctDashboardWidget', array(
 			'data' => $to_chart,
