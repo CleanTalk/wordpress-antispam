@@ -115,8 +115,9 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 			
 			$current_ip_v4 = sprintf("%u", ip2long($current_ip));
 			for ( $needles = array(), $m = 6; $m <= 32; $m ++ ) {
-				$mask      = sprintf( "%u", ip2long( long2ip( - 1 << ( 32 - (int) $m ) ) ) );
-				$needles[] = bindec( decbin( $mask ) & decbin( $current_ip_v4 ) );
+				$mask      = str_repeat( '1', $m );
+				$mask      = str_pad( $mask, 32, '0' );
+				$needles[] = sprintf( "%u", bindec( $mask & base_convert( $current_ip_v4, 10, 2 ) ) );
 			}
 			$needles = array_unique( $needles );
 			
