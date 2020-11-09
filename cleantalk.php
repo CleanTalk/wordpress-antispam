@@ -1058,7 +1058,7 @@ function ct_sfw_update($api_key = '', $immediate = false){
 				$apbct->save('stats');
 
 				if ( $url_count >= $current_url ) {
-					\Cleantalk\ApbctWP\Helper::http__request(
+                    return \Cleantalk\ApbctWP\Helper::http__request(
 						get_option('siteurl'),
 						array(
 							'spbc_remote_call_token'  => md5($api_key),
