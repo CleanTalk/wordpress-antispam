@@ -318,6 +318,7 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 	    'ig_es_draft_broadcast', //Icegram broadcast ajax
 	    'simplefilelistpro_edit_job', //Simple File List editing current job
 	    'wfu_ajax_action_ask_server', //WFU skip ask server
+	    'wcap_save_guest_data', //WooCommerce skip
     );
     
     // Skip test if
