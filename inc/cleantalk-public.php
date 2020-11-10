@@ -3341,7 +3341,8 @@ function ct_contact_form_validate() {
         isset($_POST['wpforms_id'], $_POST['wpforms_author']) || //Skip wpforms
         ( isset( $_POST['somfrp_action'], $_POST['submitted'] ) && $_POST['somfrp_action'] == 'somfrp_lost_pass' ) || // Frontend Reset Password exclusion
         ( isset( $_POST['action'] ) && $_POST['action'] == 'dokan_save_account_details' ) ||
-        \Cleantalk\Variables\Post::get('action') === 'frm_get_lookup_text_value' // Exception for Formidable multilevel form
+        \Cleantalk\Variables\Post::get('action') === 'frm_get_lookup_text_value' || // Exception for Formidable multilevel form
+        ( isset( $_POST['ihcaction'] ) && $_POST['ihcaction'] == 'reset_pass') //Reset pass exclusion
 		) {
         do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
         return null;
