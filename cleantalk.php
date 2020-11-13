@@ -1736,7 +1736,7 @@ function apbct_cookie(){
 	// Prevent headers sent error
 	if(headers_sent($file, $line)){
 		$apbct->headers_sent = true;
-		$apbct->headers_sent__hook  = current_action();
+		$apbct->headers_sent__hook  = current_filter();
 		$apbct->headers_sent__where = $file.':'.$line;
 		return false;
 	}
@@ -1989,10 +1989,10 @@ function apbct_log($message = 'empty', $func = null, $params = array())
 	if(is_array($message) or is_object($message))
 		$message = print_r($message, true);
 	
-	if($message)  $debug[date("H:i:s", microtime(true))."_ACTION_".strval(current_action())."_FUNCTION_".strval($func)]         = $message;
-	if($cron)     $debug[date("H:i:s", microtime(true))."_ACTION_".strval(current_action())."_FUNCTION_".strval($func).'_cron'] = $apbct->cron;
-	if($data)     $debug[date("H:i:s", microtime(true))."_ACTION_".strval(current_action())."_FUNCTION_".strval($func).'_data'] = $apbct->data;
-	if($settings) $debug[date("H:i:s", microtime(true))."_ACTION_".strval(current_action())."_FUNCTION_".strval($func).'_settings'] = $apbct->settings;
+	if($message)  $debug[date("H:i:s", microtime(true))."_ACTION_".strval(current_filter())."_FUNCTION_".strval($func)]         = $message;
+	if($cron)     $debug[date("H:i:s", microtime(true))."_ACTION_".strval(current_filter())."_FUNCTION_".strval($func).'_cron'] = $apbct->cron;
+	if($data)     $debug[date("H:i:s", microtime(true))."_ACTION_".strval(current_filter())."_FUNCTION_".strval($func).'_data'] = $apbct->data;
+	if($settings) $debug[date("H:i:s", microtime(true))."_ACTION_".strval(current_filter())."_FUNCTION_".strval($func).'_settings'] = $apbct->settings;
 	
 	update_option(APBCT_DEBUG, $debug);
 }

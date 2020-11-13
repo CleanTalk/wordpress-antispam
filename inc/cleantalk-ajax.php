@@ -332,7 +332,7 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 	    (isset($_GET['action'])  && in_array($_GET['action'], $skip_post)) ||  // Special params
 		isset($_POST['quform_submit']) || //QForms multi-paged form skip
         // QAEngine Theme fix
-        ( strval(current_action()) != 'et_pre_insert_answer' &&
+        ( strval(current_filter()) != 'et_pre_insert_answer' &&
 	        (
 		        (isset($message_obj['author']) && intval($message_obj['author']) == 0) ||
 		        (isset($message_obj['post_author']) && intval($message_obj['post_author']) == 0)
