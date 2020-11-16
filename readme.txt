@@ -485,7 +485,7 @@ CleanTalk works with Varnish, it protects WordPress against spam, but by default
 Now the plugin will protect WordPress comments, registrations and most of popular contact forms, but will not protect some of rarely used contact forms.
 
 = Does the anti-spam plugin work with Accelerated Mobile Pages (AMP)? =
-Yes, it does. But you have to turn off the option 'Use AJAX for JavaScript check' in Advanced settigns of the plugin to be fully compatible with Accelerated Mobile Pages.
+Yes, it does. But you have to turn off the SpamFireWall and the option 'Use AJAX for JavaScript check' in Advanced settigns of the plugin to be fully compatible with Accelerated Mobile Pages.
 
 = How to close renewal or trial notice in the WordPress backend? =
 To close the notice please save the plugin settings again or it will be closed automatically within 60 minutes after the renewal.
