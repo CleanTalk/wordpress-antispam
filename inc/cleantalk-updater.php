@@ -633,3 +633,21 @@ function apbct_update_to_5_146_4() {
 function apbct_update_to_5_148_0() {
     Cron::updateTask('antiflood__clear_table', 'apbct_antiflood__clear_table',  86400);
 }
+
+function apbct_update_to_5_149_0() {
+
+    global $apbct;
+
+    $sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_ua_bl` (
+			`id` INT(11) NOT NULL AUTO_INCREMENT,
+			`ua_name` VARCHAR(1024) NOT NULL,
+			`ua_type` ENUM( \'BROWSER\',\'BOT\',\'API\') NULL DEFAULT NULL,
+			`ua_template` VARCHAR(512) NOT NULL,
+			`ua_status` TINYINT(1) NULL DEFAULT NULL,
+			PRIMARY KEY ( `id` ),
+			INDEX ( `ua_template` )
+		);';
+
+    apbct_activation__create_tables( $sqls, $apbct->db_prefix );
+
+}

@@ -676,6 +676,17 @@ function apbct_activation( $network = false ) {
 			PRIMARY KEY (`id`),
 			INDEX (  `network` ,  `mask` )
 		);';
+
+	// UA BL
+    $sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_ua_bl` (
+			`id` INT(11) NOT NULL AUTO_INCREMENT,
+			`ua_name` VARCHAR(1024) NOT NULL,
+			`ua_type` ENUM( \'BROWSER\',\'BOT\',\'API\') NULL DEFAULT NULL,
+			`ua_template` VARCHAR(512) NOT NULL,
+			`ua_status` TINYINT(1) NULL DEFAULT NULL,
+			PRIMARY KEY ( `id` ),
+			INDEX ( `ua_template` )
+		);';
 	
 	// SFW log
 	$sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_sfw_logs` (
@@ -788,6 +799,18 @@ function apbct_activation__new_blog($blog_id, $user_id, $domain, $path, $site_id
 				PRIMARY KEY (`id`),
 				INDEX (  `network` ,  `mask` )
 			);';
+
+        // UA BL
+        $sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_ua_bl` (
+			`id` INT(11) NOT NULL AUTO_INCREMENT,
+			`ua_name` VARCHAR(1024) NOT NULL,
+			`ua_type` ENUM( \'BROWSER\',\'BOT\',\'API\') NULL DEFAULT NULL,
+			`ua_template` VARCHAR(512) NOT NULL,
+			`ua_status` TINYINT(1) NULL DEFAULT NULL,
+			PRIMARY KEY ( `id` ),
+			INDEX ( `ua_template` )
+		);';
+
 	
 	    // SFW log
 	    $sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_sfw_logs` (
@@ -926,6 +949,7 @@ function apbct_deactivation__delete_common_tables() {
 	$wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->base_prefix.'cleantalk_ac_log`;');      // Deleting SFW logs
 	$wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->base_prefix.'cleantalk_sessions`;');      // Deleting session table
 	$wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->base_prefix.'cleantalk_spamscan_logs`;'); // Deleting user/comments scan result table
+    $wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->base_prefix.'cleantalk_ua_bl`;');         // Deleting AC UA black lists
 }
 
 function apbct_deactivation__delete_blog_tables() {
@@ -935,6 +959,7 @@ function apbct_deactivation__delete_blog_tables() {
 	$wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->prefix.'cleantalk_ac_log`;');           // Deleting SFW logs
 	$wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->prefix.'cleantalk_sessions`;');           // Deleting session table
 	$wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->prefix.'cleantalk_spamscan_logs`;'); // Deleting user/comments scan result table
+    $wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->prefix.'cleantalk_ua_bl`;');         // Deleting AC UA black lists
 }
 
 function apbct_deactivation__delete_meta(){
@@ -2007,6 +2032,7 @@ function apbct_sfw__delete_tables( $blog_id, $drop ) {
 	$wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->prefix.'cleantalk_sfw`;');       // Deleting SFW data
 	$wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->prefix.'cleantalk_sfw_logs`;');  // Deleting SFW logs
 	$wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->prefix.'cleantalk_ac_log`;');  // Deleting SFW logs
+    $wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->prefix.'cleantalk_ua_bl`;');   // Deleting AC UA black lists
 	
 	switch_to_blog($initial_blog);
 }
