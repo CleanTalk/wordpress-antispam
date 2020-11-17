@@ -210,7 +210,8 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 		
         // Common check
 		foreach( $this->ip_array as $ip_origin => $current_ip ){
-			
+
+		    // IP check
 			$result = $this->db->fetch(
 				"SELECT ip"
 				. ' FROM `' . $this->db__table__ac_logs . '`'
@@ -246,6 +247,27 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 				add_action( 'wp_head', array( '\Cleantalk\ApbctWP\Firewall\AntiCrawler', 'set_cookie' ) );
 				
 			}
+
+			// UA check
+            $ua_bl_results = $this->db->fetch(
+                "SELECT ua_name, ua_template, ua_status"
+                . ' FROM `' . $this->db__table__ac_ua_bl . '`'
+                . " WHERE ua_template = lorem_ipsum;"
+            );
+
+            if( ! empty( $ua_bl_results ) ){
+
+                foreach( $ua_bl_results as $ua_bl_result ){
+
+                    if( $ua_bl_result['ua_status'] == 1 )
+                        $results[] = array('ip' => $current_ip, 'is_personal' => false, 'status' => 'PASS_ANTICRAWLER_UA',);
+                    else
+                        $results[] = array('ip' => $current_ip, 'is_personal' => false, 'status' => 'DENY_ANTICRAWLER_UA',);
+
+                }
+
+            }
+
 		}
 		
 		return $results;
