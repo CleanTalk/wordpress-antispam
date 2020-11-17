@@ -369,16 +369,26 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 	 * @return array|bool array('error' => STRING)
 	 */
 	public static function update( $db, $db__table__data, $ct_key, $file_url = null, $immediate = false){
-		
+
+	    global $apbct;
+
 		// Getting remote file name
 		if(!$file_url){
 			
-			$result = \Cleantalk\Common\API::method__get_2s_blacklists_db($ct_key, 'multifiles', '2_0');
+			$result = \Cleantalk\Common\API::method__get_2s_blacklists_db($ct_key, 'multifiles', '3_0');
 			
 			sleep(4);
 			
 			if( empty( $result['error'] ) ){
-				
+
+			    // User Agents blacklist
+                if( ! empty( $result['file_url_ua'] ) && $apbct->settings['sfw__anti_crawler'] ){
+                    $ua_bl_res = AntiCrawler::update( trim( $result['file_url_ua'] ) );
+                    if( ! empty( $ua_bl_res['error'] ) )
+                        $apbct->error_add( 'sfw_update', $ua_bl_res['error'] );
+                }
+
+                // Common blacklist
 				if( ! empty( $result['file_url'] ) ){
 					
 					$file_url = trim( $result['file_url'] );

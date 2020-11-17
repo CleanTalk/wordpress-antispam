@@ -11,6 +11,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 	public $module_name = 'ANTICRAWLER';
 	
 	private $db__table__ac_logs = null;
+	private $db__table__ac_ua_bl = null;
 	private $api_key = '';
 	private $apbct = false;
 	private $store_interval = 60;
@@ -33,6 +34,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 		$this->apbct = $apbct;
 		$this->db__table__logs    = $log_table ?: null;
 		$this->db__table__ac_logs = $ac_logs_table ?: null;
+        $this->db__table__ac_ua_bl= defined('APBCT_TBL_AC_UA_BL') ? APBCT_TBL_AC_UA_BL : null;
 		$this->ua = md5( Server::get('HTTP_USER_AGENT') );
 	
 		
@@ -43,8 +45,139 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 		$this->isExcluded = $this->check_exclusions();
 		
 	}
-	
-	/**
+
+    public static function update( $file_url_ua ) {
+
+        $response_code = \Cleantalk\ApbctWP\Helper::http__request__get_response_code( $file_url_ua );
+
+        if( empty( $response_code['error'] ) ){
+
+            if( $response_code == 200 || $response_code == 501 ){
+
+                $gz_data = \Cleantalk\ApbctWP\Helper::http__request__get_content( $file_url_ua );
+
+                if( empty( $gz_data['error'] ) ){
+
+                    if( Helper::get_mime_type( $gz_data, 'application/x-gzip' ) ){
+
+                        if( function_exists( 'gzdecode' ) ){
+
+                            $data = gzdecode( $gz_data );
+
+                            if( $data !== false ){
+
+                                $result__clear_db = self::clear_data_table( \Cleantalk\ApbctWP\DB::getInstance(), APBCT_TBL_AC_UA_BL );
+
+                                if( empty( $result__clear_db['error'] ) ){
+
+                                    $lines = Helper::buffer__parse__csv( $data );
+
+                                    // @ToDo check the output $lines
+                                    $file_url = current( $lines )[0];
+
+                                    $response_code = \Cleantalk\ApbctWP\Helper::http__request($file_url, array(), 'get_code');
+
+                                    if( empty( $response_code['error'] ) ){
+
+                                        if( $response_code == 200 || $response_code == 501 ){ // Check if it's there
+
+                                            $gz_data = \Cleantalk\ApbctWP\Helper::http__request__get_content( $file_url );
+
+                                            if( empty( $gz_data['error'] ) ){
+
+                                                if( Helper::get_mime_type( $gz_data, 'application/x-gzip' ) ){
+
+                                                    if( function_exists( 'gzdecode' ) ){
+
+                                                        $data = gzdecode( $gz_data );
+
+                                                        if( $data !== false ){
+
+                                                            $lines = Helper::buffer__parse__csv( $data );
+
+                                                        }else
+                                                            return array('error' => 'COULD_DECODE_FILE');
+                                                    }else
+                                                        return array('error' => 'FUNCTION_GZ_DECODE_DOES_NOT_EXIST');
+                                                }else
+                                                    return array('error' => 'WRONG_FILE_MIME_TYPE');
+
+                                                reset( $lines );
+
+                                                for( $count_result = 0; current($lines) !== false; ) {
+
+                                                    $query = "INSERT INTO " . APBCT_TBL_AC_UA_BL . " (ua_name, ua_type, ua_template, ua_status) VALUES ";
+
+                                                    for( $i = 0, $values = array(); APBCT_WRITE_LIMIT !== $i && current( $lines ) !== false; $i ++, $count_result ++, next( $lines ) ){
+
+                                                        $entry = current($lines);
+
+                                                        if(empty($entry))
+                                                            continue;
+
+                                                        if ( APBCT_WRITE_LIMIT !== $i ) {
+
+                                                            // Cast result to int
+                                                            // @ToDo check the output $entry
+                                                            $ua_name      = preg_replace('/[^\d]*/', '', $entry[0]);
+                                                            $ua_type      = preg_replace('/[^\d]*/', '', $entry[1]);
+                                                            $ua_template  = isset($entry[2]) ? $entry[2] : 0;
+                                                            $ua_status    = isset($entry[2]) ? $entry[2] : 0;
+
+                                                        }
+
+                                                        $values[] = '('. $ua_name .','. $ua_type .','. $ua_template .','. $ua_status .')';
+
+                                                    }
+
+                                                    if( ! empty( $values ) ){
+                                                        $query = $query . implode( ',', $values ) . ';';
+                                                        \Cleantalk\ApbctWP\DB::getInstance()->execute( $query );
+                                                    }
+
+                                                }
+
+                                                return $count_result;
+
+                                            }else
+                                                return array('error' => 'COULD_NOT_GET_FILE: ' . $gz_data['error'] );
+                                        }else
+                                            return array('error' => 'FILE_BAD_RESPONSE_CODE: '. (int) $response_code );
+                                    }else
+                                        return array('error' => 'FILE_COULD_NOT_GET_RESPONSE_CODE: '. $response_code['error'] );
+                                }else
+                                    return $result__clear_db;
+                            }else
+                                return array('error' => 'COULD_DECODE_MULTIFILE');
+                        }else
+                            return array('error' => 'FUNCTION_GZ_DECODE_DOES_NOT_EXIST');
+                    }else
+                        return array('error' => 'WRONG_MULTIFILE_MIME_TYPE');
+                }else
+                    return array('error' => 'COULD_NOT_GET_MULTIFILE: ' . $gz_data['error'] );
+            }else
+                return array('error' => 'MULTIFILE_BAD_RESPONSE_CODE: '. (int) $response_code );
+        }else
+            return array('error' => 'MULTIFILE_COULD_NOT_GET_RESPONSE_CODE: '. $response_code['error'] );
+
+    }
+
+    private static function clear_data_table($db, $db__table__data) {
+
+        $db->execute( "TRUNCATE TABLE {$db__table__data};" );
+        $db->set_query( "SELECT COUNT(*) as cnt FROM {$db__table__data};" )->fetch(); // Check if it is clear
+        if( $db->result['cnt'] != 0 ){
+            $db->execute( "DELETE FROM {$db__table__data};" ); // Truncate table
+            $db->set_query( "SELECT COUNT(*) as cnt FROM {$db__table__data};" )->fetch(); // Check if it is clear
+            if( $db->result['cnt'] != 0 ){
+                return array( 'error' => 'COULD_NOT_CLEAR_UA_BL_TABLE' ); // throw an error
+            }
+        }
+        $db->execute( "ALTER TABLE {$db__table__data} AUTO_INCREMENT = 1;" ); // Drop AUTO INCREMENT
+
+    }
+
+    /**
 	 * Use this method to execute main logic of the module.
 	 *
 	 * @return array  Array of the check results
