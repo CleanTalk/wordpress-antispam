@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 3.0
 Tested up to: 5.5
 Requires PHP: 5.4
-Stable tag: 5.148
+Stable tag: 5.149
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -579,6 +579,21 @@ If your website has forms that send data to external sources, you can enable opt
 10. Website's options.
 
 == Changelog ==
+
+= 5.149 Nov 19 2020 =
+ * Fix: External forms protection fixed.
+ * Fix: check for array in spam_stat collect.
+ * Fix: Spam Firewall. Operating with IPs on 32 bit systems.
+ * Fix: Skip WFU ask_server request.
+ * Fix: AC user agents support fixed.
+ * New: Hook 'apbct_pre_block_page' added.
+ * Fix: Woocommerce ajax internal.
+ * Fix: skip redirect ajax login.
+ * Fix: SFW updating return statement added.
+ * Fix: Skip reset pass checking.
+ * Fix: replace current_action() to current_filter().
+ * Upd: AMP support description updated.
+ * Fix: SQL injection fixed.
 
 = 5.148 Oct 28 2020 =
  * Fix: Visible fields collecting on external forms fixed.
