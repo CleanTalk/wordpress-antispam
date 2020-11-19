@@ -136,7 +136,6 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 					interval_start = $interval_time
 				ON DUPLICATE KEY UPDATE
 					ip = ip,
-					ua = '$this->ua',
 					entries = entries + 1,
 					interval_start = $interval_time;"
 			);

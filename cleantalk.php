@@ -3,7 +3,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 5.148
+  Version: 5.149
   Author: СleanTalk <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -1058,7 +1058,7 @@ function ct_sfw_update($api_key = '', $immediate = false){
 				$apbct->save('stats');
 
 				if ( $url_count >= $current_url ) {
-					\Cleantalk\ApbctWP\Helper::http__request(
+                    return \Cleantalk\ApbctWP\Helper::http__request(
 						get_option('siteurl'),
 						array(
 							'spbc_remote_call_token'  => md5($api_key),
@@ -1736,7 +1736,7 @@ function apbct_cookie(){
 	// Prevent headers sent error
 	if(headers_sent($file, $line)){
 		$apbct->headers_sent = true;
-		$apbct->headers_sent__hook  = current_action();
+		$apbct->headers_sent__hook  = current_filter();
 		$apbct->headers_sent__where = $file.':'.$line;
 		return false;
 	}
@@ -1989,10 +1989,10 @@ function apbct_log($message = 'empty', $func = null, $params = array())
 	if(is_array($message) or is_object($message))
 		$message = print_r($message, true);
 	
-	if($message)  $debug[date("H:i:s", microtime(true))."_ACTION_".strval(current_action())."_FUNCTION_".strval($func)]         = $message;
-	if($cron)     $debug[date("H:i:s", microtime(true))."_ACTION_".strval(current_action())."_FUNCTION_".strval($func).'_cron'] = $apbct->cron;
-	if($data)     $debug[date("H:i:s", microtime(true))."_ACTION_".strval(current_action())."_FUNCTION_".strval($func).'_data'] = $apbct->data;
-	if($settings) $debug[date("H:i:s", microtime(true))."_ACTION_".strval(current_action())."_FUNCTION_".strval($func).'_settings'] = $apbct->settings;
+	if($message)  $debug[date("H:i:s", microtime(true))."_ACTION_".strval(current_filter())."_FUNCTION_".strval($func)]         = $message;
+	if($cron)     $debug[date("H:i:s", microtime(true))."_ACTION_".strval(current_filter())."_FUNCTION_".strval($func).'_cron'] = $apbct->cron;
+	if($data)     $debug[date("H:i:s", microtime(true))."_ACTION_".strval(current_filter())."_FUNCTION_".strval($func).'_data'] = $apbct->data;
+	if($settings) $debug[date("H:i:s", microtime(true))."_ACTION_".strval(current_filter())."_FUNCTION_".strval($func).'_settings'] = $apbct->settings;
 	
 	update_option(APBCT_DEBUG, $debug);
 }

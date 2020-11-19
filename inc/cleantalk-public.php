@@ -1540,6 +1540,8 @@ function ct_die($comment_id, $comment_status) {
 
     global $ct_comment;
 
+    do_action( 'apbct_pre_block_page', $ct_comment );
+
 	$err_text = '<center>' . ((defined('CLEANTALK_DISABLE_BLOCKING_TITLE') && CLEANTALK_DISABLE_BLOCKING_TITLE == true) ? '' : '<b style="color: #49C73B;">Clean</b><b style="color: #349ebf;">Talk.</b> ') . __('Spam protection', 'cleantalk-spam-protect') . "</center><br><br>\n" . $ct_comment;
         $err_text .= '<script>setTimeout("history.back()", 5000);</script>';
         if(isset($_POST['et_pb_contact_email']))
@@ -3339,7 +3341,8 @@ function ct_contact_form_validate() {
         isset($_POST['wpforms_id'], $_POST['wpforms_author']) || //Skip wpforms
         ( isset( $_POST['somfrp_action'], $_POST['submitted'] ) && $_POST['somfrp_action'] == 'somfrp_lost_pass' ) || // Frontend Reset Password exclusion
         ( isset( $_POST['action'] ) && $_POST['action'] == 'dokan_save_account_details' ) ||
-        \Cleantalk\Variables\Post::get('action') === 'frm_get_lookup_text_value' // Exception for Formidable multilevel form
+        \Cleantalk\Variables\Post::get('action') === 'frm_get_lookup_text_value' || // Exception for Formidable multilevel form
+        ( isset( $_POST['ihcaction'] ) && $_POST['ihcaction'] == 'reset_pass') //Reset pass exclusion
 		) {
         do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
         return null;

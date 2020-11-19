@@ -317,6 +317,9 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 	    'post_woo_ml_email_cookie', //Woocommerce system
 	    'ig_es_draft_broadcast', //Icegram broadcast ajax
 	    'simplefilelistpro_edit_job', //Simple File List editing current job
+	    'wfu_ajax_action_ask_server', //WFU skip ask server
+	    'wcap_save_guest_data', //WooCommerce skip
+	    'ajaxlogin', //Skip ajax login redirect
     );
     
     // Skip test if
@@ -329,7 +332,7 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 	    (isset($_GET['action'])  && in_array($_GET['action'], $skip_post)) ||  // Special params
 		isset($_POST['quform_submit']) || //QForms multi-paged form skip
         // QAEngine Theme fix
-        ( strval(current_action()) != 'et_pre_insert_answer' &&
+        ( strval(current_filter()) != 'et_pre_insert_answer' &&
 	        (
 		        (isset($message_obj['author']) && intval($message_obj['author']) == 0) ||
 		        (isset($message_obj['post_author']) && intval($message_obj['post_author']) == 0)

@@ -30,7 +30,7 @@ class Integrations
         global $cleantalk_executed;
 
         // Getting current integration name
-        $current_integration = $this->get_current_integration_triggered( current_action() );
+        $current_integration = $this->get_current_integration_triggered( current_filter() );
         if( $current_integration ) {
             // Instantiate the integration object
             $class = '\\Cleantalk\\Antispam\\Integrations\\' . $current_integration;

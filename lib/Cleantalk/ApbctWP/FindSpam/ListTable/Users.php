@@ -152,7 +152,11 @@ class Users extends \Cleantalk\ApbctWP\CleantalkListTable
 
     function removeSpam( $ids ) {
 
-        $ids_string = implode( ', ', $ids );
+        $sanitized_ids = array();
+        foreach($ids as $id) {
+            $sanitized_ids[] = sanitize_key( $id );
+        }
+        $ids_string = implode( ', ', $sanitized_ids );
         global $wpdb;
 
         $wpdb->query("DELETE FROM {$wpdb->users} WHERE 
@@ -253,7 +257,11 @@ class Users extends \Cleantalk\ApbctWP\CleantalkListTable
 
     protected function removeLogs( $ids ) {
 
-        $ids_string = implode( ', ', $ids );
+        $sanitized_ids = array();
+        foreach($ids as $id) {
+            $sanitized_ids[] = sanitize_key( $id );
+        }
+        $ids_string = implode( ', ', $sanitized_ids );
         global $wpdb;
 
         $wpdb->query("DELETE FROM " . APBCT_SPAMSCAN_LOGS . " WHERE 
