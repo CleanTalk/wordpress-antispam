@@ -105,7 +105,9 @@ function apbct_base_call($params = array(), $reg_flag = false){
 	$apbct->save('plugin_request_ids');
 	
     // Skip duplicate requests
-    if( key_exists( $apbct->plugin_request_id, $apbct->plugin_request_ids ) ){
+    if( key_exists( $apbct->plugin_request_id, $apbct->plugin_request_ids ) &&
+        current_filter() !== 'woocommerce_registration_errors' ) //Prevent skip checking woocommerce registration during checkout
+    {
 	    do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
 	    return array( 'ct_result' => new CleantalkResponse() );
     }
@@ -237,7 +239,7 @@ function apbct_base_call($params = array(), $reg_flag = false){
 function apbct_exclusions_check($func = null){
 	
 	global $apbct, $cleantalk_executed;
-	
+
 	// Common exclusions
 	if(
 		apbct_exclusions_check__ip() ||
