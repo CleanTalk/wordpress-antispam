@@ -680,9 +680,7 @@ function apbct_activation( $network = false ) {
 
 	// UA BL
     $sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_ua_bl` (
-			`id` INT(11) NOT NULL AUTO_INCREMENT,
-			`ua_name` VARCHAR(1024) NOT NULL,
-			`ua_type` ENUM( \'BROWSER\',\'BOT\',\'API\') NULL DEFAULT NULL,
+			`id` INT(11) NOT NULL,
 			`ua_template` VARCHAR(512) NOT NULL,
 			`ua_status` TINYINT(1) NULL DEFAULT NULL,
 			PRIMARY KEY ( `id` ),
@@ -803,9 +801,7 @@ function apbct_activation__new_blog($blog_id, $user_id, $domain, $path, $site_id
 
         // UA BL
         $sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_ua_bl` (
-			`id` INT(11) NOT NULL AUTO_INCREMENT,
-			`ua_name` VARCHAR(1024) NOT NULL,
-			`ua_type` ENUM( \'BROWSER\',\'BOT\',\'API\') NULL DEFAULT NULL,
+			`id` INT(11) NOT NULL,
 			`ua_template` VARCHAR(512) NOT NULL,
 			`ua_status` TINYINT(1) NULL DEFAULT NULL,
 			PRIMARY KEY ( `id` ),
