@@ -388,7 +388,7 @@ function apbct_buffer__output(){
 	
 	$html = $dom->getElementsByTagName('html');
 	
-	$output = gettype($html) == 'object' && isset($html[0], $html[0]->childNodes, $html[0]->childNodes[0])
+	$output = gettype($html) == 'object' && isset($html[0], $html[0]->childNodes, $html[0]->childNodes[0]) && $dom->getElementsByTagName('rss')->length == 0
 		? $dom->saveHTML()
 		: $apbct->buffer;
 	
