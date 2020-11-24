@@ -16,7 +16,8 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 	private $apbct = false;
 	private $store_interval = 60;
 	private $ua; //User-Agent
-	
+    private $ua_id = 0; //User-Agent
+
 	private $ac_log_result = '';
 	
 	public $isExcluded = false;
@@ -249,21 +250,27 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 			}
 
 			// UA check
-            $ua_bl_results = $this->db->fetch(
-                "SELECT ua_name, ua_template, ua_status"
-                . ' FROM `' . $this->db__table__ac_ua_bl . '`'
-                . " WHERE ua_template = lorem_ipsum;"
+            $ua_bl_results = $this->db->fetch_all(
+                "SELECT * FROM " . $this->db__table__ac_ua_bl . ";"
             );
 
             if( ! empty( $ua_bl_results ) ){
 
+                $is_blocked = false;
+
                 foreach( $ua_bl_results as $ua_bl_result ){
 
-                    if( $ua_bl_result['ua_status'] == 1 )
-                        $results[] = array('ip' => $current_ip, 'is_personal' => false, 'status' => 'PASS_ANTICRAWLER_UA',);
-                    else
+                    if( preg_match( "$". str_replace( '/', '\/', $ua_bl_result['ua_template'] ) ."$", Server::get('HTTP_USER_AGENT') ) ) {
                         $results[] = array('ip' => $current_ip, 'is_personal' => false, 'status' => 'DENY_ANTICRAWLER_UA',);
+                        $is_blocked = true;
+                        $this->ua_id = $ua_bl_result['id'];
+                        break;
+                    }
 
+                }
+
+                if( ! $is_blocked ) {
+                    $results[] = array('ip' => $current_ip, 'is_personal' => false, 'status' => 'PASS_ANTICRAWLER_UA',);
                 }
 
             }
@@ -281,7 +288,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 		// @todo Rename ip column to sign. Use IP + UserAgent for it.
 		
 		foreach( $this->ip_array as $ip_origin => $current_ip ){
-			$id = md5( $current_ip . $this->ua. $interval_time );
+			$id = md5( $current_ip . $this->ua . $interval_time );
 			$this->db->execute(
 				"INSERT INTO " . $this->db__table__ac_logs . " SET
 					id = '$id',
@@ -313,7 +320,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 	 */
 	public function update_log( $ip, $status ) {
 		
-		$id   = md5( $ip . $this->module_name );
+		$id   = md5( $ip . $status . $this->module_name );
 		$time = time();
 		
 		$query = "INSERT INTO " . $this->db__table__logs . "
@@ -323,13 +330,16 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 				status = '$status',
 				all_entries = 1,
 				blocked_entries = 1,
-				entries_timestamp = '" . intval( $time ) . "'
+				entries_timestamp = '" . intval( $time ) . "',
+				ua_id = " . $this->ua_id . ",
+				ua_name = '" . Server::get('HTTP_USER_AGENT') . "'
 			ON DUPLICATE KEY
 			UPDATE
-				status = '$status',
 				all_entries = all_entries + 1,
 				blocked_entries = blocked_entries" . ( strpos( $status, 'DENY' ) !== false ? ' + 1' : '' ) . ",
-				entries_timestamp = '" . intval( $time ) . "'";
+				entries_timestamp = '" . intval( $time ) . "',
+				ua_id = " . $this->ua_id . ",
+				ua_name = '" . Server::get('HTTP_USER_AGENT') . "'";
 		
 		$this->db->execute( $query );
 	}
