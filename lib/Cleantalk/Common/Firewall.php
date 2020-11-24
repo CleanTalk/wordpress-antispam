@@ -36,8 +36,10 @@ class Firewall
 		'PASS_SFW',
 		'PASS_SFW__BY_COOKIE',
 		'PASS_ANTIFLOOD',
+        'PASS_ANTICRAWLER_UA',
 		'PASS_ANTICRAWLER',
 		'DENY_ANTIFLOOD',
+        'DENY_ANTICRAWLER_UA',
 		'DENY_ANTICRAWLER',
 		'DENY_SFW',
 		'PASS_SFW__BY_WHITELIST',
@@ -112,7 +114,7 @@ class Firewall
 
 			$module_results = $module->check();
 			if( ! empty( $module_results ) ) {
-				$results[$module->module_name] = $this->prioritize( $module_results );
+				$results[$module->module_name] = $module_results;
 			}
 
 			if( $this->is_whitelisted( $results ) ) {
@@ -125,7 +127,9 @@ class Firewall
 		// Write Logs
         foreach ( $this->fw_modules as $module ) {
             if( array_key_exists( $module->module_name, $results ) ){
-                $module->update_log( $results[$module->module_name]['ip'], $results[$module->module_name]['status'] );
+                foreach ( $results[$module->module_name] as $result ) {
+                    $module->update_log( $result['ip'], $result['status'] );
+                }
             }
         }
 
@@ -165,16 +169,20 @@ class Firewall
 		$result = array( 'status' => 'PASS', 'passed_ip' => '' );
 		
 		if( is_array( $results ) ) {
-			foreach ( $results as $fw_result ) {
-				$priority = array_search( $fw_result['status'], $this->statuses_priority ) + ( isset($fw_result['is_personal']) && $fw_result['is_personal'] ? count ( $this->statuses_priority ) : 0 );
-				if( $priority >= $current_fw_result_priority ){
-					$current_fw_result_priority = $priority;
-					$result['status'] = $fw_result['status'];
-					$result['passed_ip'] = isset( $fw_result['ip'] ) ? $fw_result['ip'] : $fw_result['passed_ip'];
-					$result['blocked_ip'] = isset( $fw_result['ip'] ) ? $fw_result['ip'] : $fw_result['blocked_ip'];
-					$result['pattern'] = isset( $fw_result['pattern'] ) ? $fw_result['pattern'] : array();
-				}
-			}
+            foreach ( $this->fw_modules as $module ) {
+                if( array_key_exists( $module->module_name, $results ) ) {
+                    foreach ( $results[$module->module_name] as $fw_result ) {
+                        $priority = array_search( $fw_result['status'], $this->statuses_priority ) + ( isset($fw_result['is_personal']) && $fw_result['is_personal'] ? count ( $this->statuses_priority ) : 0 );
+                        if( $priority >= $current_fw_result_priority ){
+                            $current_fw_result_priority = $priority;
+                            $result['status'] = $fw_result['status'];
+                            $result['passed_ip'] = isset( $fw_result['ip'] ) ? $fw_result['ip'] : $fw_result['passed_ip'];
+                            $result['blocked_ip'] = isset( $fw_result['ip'] ) ? $fw_result['ip'] : $fw_result['blocked_ip'];
+                            $result['pattern'] = isset( $fw_result['pattern'] ) ? $fw_result['pattern'] : array();
+                        }
+                    }
+                }
+            }
 		}
 		
 		$result['ip']     = strpos( $result['status'], 'PASS' ) !== false ? $result['passed_ip'] : $result['blocked_ip'];
@@ -192,16 +200,20 @@ class Firewall
 	 * @return bool
 	 */
 	private function is_whitelisted( $results ) {
-		
-		foreach ( $results as $fw_result ) {
-			if (
-				strpos( $fw_result['status'], 'PASS_BY_TRUSTED_NETWORK' ) !== false ||
-				strpos( $fw_result['status'], 'PASS_BY_WHITELIST' ) !== false ||
-                strpos( $fw_result['status'], 'PASS_SFW__BY_WHITELIST' ) !== false
-			) {
-				return true;
-			}
-		}
+
+        foreach ( $this->fw_modules as $module ) {
+            if( array_key_exists( $module->module_name, $results ) ){
+                foreach ( $results[$module->module_name] as $fw_result ) {
+                    if (
+                        strpos( $fw_result['status'], 'PASS_BY_TRUSTED_NETWORK' ) !== false ||
+                        strpos( $fw_result['status'], 'PASS_BY_WHITELIST' ) !== false ||
+                        strpos( $fw_result['status'], 'PASS_SFW__BY_WHITELIST' ) !== false
+                    ) {
+                        return true;
+                    }
+                }
+            }
+        }
 		return false;
 		
 	}
