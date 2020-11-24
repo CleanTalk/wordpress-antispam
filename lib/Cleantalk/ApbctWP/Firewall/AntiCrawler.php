@@ -194,6 +194,32 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 		        $results[] = array( 'ip' => $current_ip, 'is_personal' => false, 'status' => 'PASS_ANTICRAWLER', );
 		        return $results;
 	        }
+
+            // UA check
+            $ua_bl_results = $this->db->fetch_all(
+                "SELECT * FROM " . $this->db__table__ac_ua_bl . ";"
+            );
+
+            if( ! empty( $ua_bl_results ) ){
+
+                $is_blocked = false;
+
+                foreach( $ua_bl_results as $ua_bl_result ){
+
+                    if( preg_match( "$". str_replace( '/', '\/', $ua_bl_result['ua_template'] ) ."$", Server::get('HTTP_USER_AGENT') ) ) {
+                        $results[] = array('ip' => $current_ip, 'is_personal' => false, 'status' => 'DENY_ANTICRAWLER_UA',);
+                        $is_blocked = true;
+                        $this->ua_id = $ua_bl_result['id'];
+                        break;
+                    }
+
+                }
+
+                if( ! $is_blocked ) {
+                    $results[] = array('ip' => $current_ip, 'is_personal' => false, 'status' => 'PASS_ANTICRAWLER_UA',);
+                }
+
+            }
         	
             // Skip by cookie
             if( Cookie::get('apbct_antibot') == hash( 'sha256', $this->api_key . $this->apbct->data['salt'] ) ) {
@@ -248,32 +274,6 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 				add_action( 'wp_head', array( '\Cleantalk\ApbctWP\Firewall\AntiCrawler', 'set_cookie' ) );
 				
 			}
-
-			// UA check
-            $ua_bl_results = $this->db->fetch_all(
-                "SELECT * FROM " . $this->db__table__ac_ua_bl . ";"
-            );
-
-            if( ! empty( $ua_bl_results ) ){
-
-                $is_blocked = false;
-
-                foreach( $ua_bl_results as $ua_bl_result ){
-
-                    if( preg_match( "$". str_replace( '/', '\/', $ua_bl_result['ua_template'] ) ."$", Server::get('HTTP_USER_AGENT') ) ) {
-                        $results[] = array('ip' => $current_ip, 'is_personal' => false, 'status' => 'DENY_ANTICRAWLER_UA',);
-                        $is_blocked = true;
-                        $this->ua_id = $ua_bl_result['id'];
-                        break;
-                    }
-
-                }
-
-                if( ! $is_blocked ) {
-                    $results[] = array('ip' => $current_ip, 'is_personal' => false, 'status' => 'PASS_ANTICRAWLER_UA',);
-                }
-
-            }
 
 		}
 		
