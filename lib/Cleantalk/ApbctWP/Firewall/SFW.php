@@ -314,6 +314,8 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 				// Converting statuses to API format
 				$value['status'] = $value['status'] === 'DENY_ANTICRAWLER'    ? 'BOT_PROTECTION'   : $value['status'];
 				$value['status'] = $value['status'] === 'PASS_ANTICRAWLER'    ? 'BOT_PROTECTION'   : $value['status'];
+                $value['status'] = $value['status'] === 'DENY_ANTICRAWLER_UA' ? 'BOT_PROTECTION'   : $value['status'];
+                $value['status'] = $value['status'] === 'PASS_ANTICRAWLER_UA' ? 'BOT_PROTECTION'   : $value['status'];
 				
 				$value['status'] = $value['status'] === 'DENY_ANTIFLOOD'      ? 'FLOOD_PROTECTION' : $value['status'];
 				$value['status'] = $value['status'] === 'PASS_ANTIFLOOD'      ? 'FLOOD_PROTECTION' : $value['status'];
@@ -330,7 +332,10 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 				
 				if( $value['status'] )
 					$row[] = $value['status'];
-				
+
+                $row[] = $value['ua_name']; // User-Agent name
+                $row[] = $value['ua_id']; // User-Agent ID
+
 				$data[] = $row;
 				
 			}
