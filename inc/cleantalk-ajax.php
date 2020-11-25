@@ -339,7 +339,8 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 		        (isset($message_obj['post_author']) && intval($message_obj['post_author']) == 0)
 	        )
         ) ||
-        (isset($_POST['action'], $_POST['arm_action']) && $_POST['action'] == 'arm_shortcode_form_ajax_action' && $_POST['arm_action'] == 'please-login') //arm forms skip login
+        (isset($_POST['action'], $_POST['arm_action']) && $_POST['action'] == 'arm_shortcode_form_ajax_action' && $_POST['arm_action'] == 'please-login') || //arm forms skip login
+        ( isset($_POST['action']) && $_POST['action'] == 'erf_login_user' && in_array( 'easy-registration-forms/erforms.php', apply_filters( 'active_plugins', get_option( 'active_plugins' ) ) ) ) //Easy Registration Forms login form skip
     )
     {
 	    do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
