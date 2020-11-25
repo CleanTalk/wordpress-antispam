@@ -16,7 +16,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 	private $apbct = false;
 	private $store_interval = 60;
 	private $ua; //User-Agent
-    private $ua_id = 0; //User-Agent
+    private $ua_id = null; //User-Agent
 
 	private $ac_log_result = '';
 	
@@ -197,7 +197,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 
             // UA check
             $ua_bl_results = $this->db->fetch_all(
-                "SELECT * FROM " . $this->db__table__ac_ua_bl . ";"
+                "SELECT * FROM " . $this->db__table__ac_ua_bl . " ORDER BY `ua_status` DESC;"
             );
 
             if( ! empty( $ua_bl_results ) ){
@@ -207,10 +207,19 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
                 foreach( $ua_bl_results as $ua_bl_result ){
 
                     if( preg_match( "$". str_replace( '/', '\/', $ua_bl_result['ua_template'] ) ."$", Server::get('HTTP_USER_AGENT') ) ) {
-                        $results[] = array('ip' => $current_ip, 'is_personal' => false, 'status' => 'DENY_ANTICRAWLER_UA',);
-                        $is_blocked = true;
+
                         $this->ua_id = $ua_bl_result['id'];
-                        break;
+
+                        if( $ua_bl_result['ua_status'] == 1 ) {
+                            // Whitelisted
+                            break;
+                        } else {
+                            // Blacklisted
+                            $results[] = array('ip' => $current_ip, 'is_personal' => false, 'status' => 'DENY_ANTICRAWLER_UA',);
+                            $is_blocked = true;
+                            break;
+                        }
+
                     }
 
                 }
