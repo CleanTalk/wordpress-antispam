@@ -695,7 +695,7 @@ function apbct_activation( $network = false ) {
 		`all_entries` INT NOT NULL,
 		`blocked_entries` INT NOT NULL,
 		`entries_timestamp` INT NOT NULL,
-		`ua_id` INT(11) NOT NULL,
+		`ua_id` INT(11) NULL DEFAULT NULL,
 		`ua_name` VARCHAR(1024) NOT NULL, 
 		PRIMARY KEY (`id`));';
 	
@@ -819,7 +819,7 @@ function apbct_activation__new_blog($blog_id, $user_id, $domain, $path, $site_id
 		`all_entries` INT NOT NULL,
 		`blocked_entries` INT NOT NULL,
 		`entries_timestamp` INT NOT NULL,
-		`ua_id` INT(11) NOT NULL,
+		`ua_id` INT(11) NULL DEFAULT NULL,
 		`ua_name` VARCHAR(1024) NOT NULL, 
 		PRIMARY KEY (`id`));';
 	

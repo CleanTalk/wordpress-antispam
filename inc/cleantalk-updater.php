@@ -655,7 +655,7 @@ function apbct_update_to_5_149_0() {
 		`all_entries` INT NOT NULL,
 		`blocked_entries` INT NOT NULL,
 		`entries_timestamp` INT NOT NULL,
-		`ua_id` INT(11) NOT NULL,
+		`ua_id` INT(11) NULL DEFAULT NULL,
 		`ua_name` VARCHAR(1024) NOT NULL, 
 		PRIMARY KEY (`id`));';
 
