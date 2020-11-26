@@ -685,6 +685,8 @@ function apbct_activation( $network = false ) {
 		`all_entries` INT NOT NULL,
 		`blocked_entries` INT NOT NULL,
 		`entries_timestamp` INT NOT NULL,
+		`matched_network` INT(11) UNSIGNED NULL DEFAULT NULL,
+		`matched_mask` INT(11) UNSIGNED NULL DEFAULT NULL,
 		PRIMARY KEY (`id`));';
 	
 	$sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_ac_log` (
@@ -797,6 +799,8 @@ function apbct_activation__new_blog($blog_id, $user_id, $domain, $path, $site_id
 		`all_entries` INT NOT NULL,
 		`blocked_entries` INT NOT NULL,
 		`entries_timestamp` INT NOT NULL,
+		`matched_network` INT(11) UNSIGNED NULL DEFAULT NULL,
+		`matched_mask` INT(11) UNSIGNED NULL DEFAULT NULL,
 		PRIMARY KEY (`id`));';
 	
 	    $sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_ac_log` (
