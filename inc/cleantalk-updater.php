@@ -634,7 +634,7 @@ function apbct_update_to_5_148_0() {
     Cron::updateTask('antiflood__clear_table', 'apbct_antiflood__clear_table',  86400);
 }
 
-function apbct_update_to_5_149_0() {
+function apbct_update_to_5_149_2() {
 
     global $apbct;
 
