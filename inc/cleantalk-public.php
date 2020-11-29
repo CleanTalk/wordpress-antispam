@@ -934,7 +934,7 @@ function ct_add_hidden_fields($field_name = 'ct_checkjs', $return_string = false
 	// Using only cookies
     if ($cookie_check && $apbct->settings['set_cookies'] == 1) {
 	    
-		$html =	"<script type='text/javascript' " . ( class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '' ) . ">
+		$html =	"<script type=\"text/javascript\" " . ( class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '' ) . ">
 			function ctSetCookie___from_backend(c_name, value) {
 				document.cookie = c_name + \"=\" + encodeURIComponent(value) + \"; path=/; samesite=lax\";
 			}
@@ -950,8 +950,8 @@ function ct_add_hidden_fields($field_name = 'ct_checkjs', $return_string = false
 
         $ct_input_challenge = sprintf("'%s'", $ct_checkjs_key);
     	$field_id = $field_name . '_' . $field_id_hash;
-		$html = "<input type='hidden' id='{$field_id}' name='{$field_name}' value='{$ct_checkjs_def}' />
-		<script type='text/javascript' " . ( class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '' ) . ">
+		$html = "<input type=\"hidden\" id=\"{$field_id}\" name=\"{$field_name}\" value=\"{$ct_checkjs_def}\" />
+		<script type=\"text/javascript\" " . ( class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '' ) . ">
 			window.addEventListener('DOMContentLoaded', function () {
 				setTimeout(function(){
                     apbct_public_sendAJAX(
@@ -970,8 +970,8 @@ function ct_add_hidden_fields($field_name = 'ct_checkjs', $return_string = false
 
         $ct_input_challenge = sprintf("'%s'", $ct_checkjs_key);
     	$field_id = $field_name . '_' . $field_id_hash;
-		$html = "<input type='hidden' id='{$field_id}' name='{$field_name}' value='{$ct_checkjs_def}' />
-		<script type='text/javascript' " . ( class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '' ) . ">
+		$html = "<input type=\"hidden\" id=\"{$field_id}\" name=\"{$field_name}\" value=\"{$ct_checkjs_def}\" />
+		<script type=\"text/javascript\" " . ( class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '' ) . ">
 			setTimeout(function(){
 				var ct_input_name = '{$field_id}';
 				if (document.getElementById(ct_input_name) !== null) {
