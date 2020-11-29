@@ -633,24 +633,3 @@ function apbct_update_to_5_146_4() {
 function apbct_update_to_5_148_0() {
     Cron::updateTask('antiflood__clear_table', 'apbct_antiflood__clear_table',  86400);
 }
-function apbct_update_to_5_150_0() {
-
-    global $apbct;
-
-    $sqls[] = 'DROP TABLE IF EXISTS `%scleantalk_sfw_logs`;';
-
-    // SFW log new structure
-    $sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_sfw_logs` (
-		`id` VARCHAR(40) NOT NULL,
-		`ip` VARCHAR(15) NOT NULL,
-		`status` ENUM(\'PASS_SFW\',\'DENY_SFW\',\'PASS_SFW__BY_WHITELIST\',\'PASS_SFW__BY_COOKIE\',\'DENY_ANTICRAWLER\',\'PASS_ANTICRAWLER\',\'DENY_ANTIFLOOD\',\'PASS_ANTIFLOOD\') NULL DEFAULT NULL,
-		`all_entries` INT NOT NULL,
-		`blocked_entries` INT NOT NULL,
-		`entries_timestamp` INT NOT NULL,
-		`matched_network` INT(11) UNSIGNED NULL DEFAULT NULL,
-		`matched_mask` INT(11) UNSIGNED NULL DEFAULT NULL,
-		PRIMARY KEY (`id`));';
-
-    apbct_activation__create_tables( $sqls, $apbct->db_prefix );
-
-}
