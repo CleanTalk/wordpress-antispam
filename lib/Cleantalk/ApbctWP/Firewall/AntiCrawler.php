@@ -16,7 +16,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 	private $apbct = false;
 	private $store_interval = 60;
 	private $ua; //User-Agent
-    private $ua_id = null; //User-Agent
+    private $ua_id = 'null'; //User-Agent
 
 	private $ac_log_result = '';
 	
@@ -73,79 +73,40 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 
                                     $lines = Helper::buffer__parse__csv( $data );
 
-                                    // @ToDo check the output $lines
-                                    $file_url = current( $lines )[0];
+                                    reset( $lines );
 
-                                    $response_code = \Cleantalk\ApbctWP\Helper::http__request($file_url, array(), 'get_code');
+                                    for( $count_result = 0; current($lines) !== false; ) {
 
-                                    if( empty( $response_code['error'] ) ){
+                                        $query = "INSERT INTO " . APBCT_TBL_AC_UA_BL . " (id, ua_template, ua_status) VALUES ";
 
-                                        if( $response_code == 200 || $response_code == 501 ){ // Check if it's there
+                                        for( $i = 0, $values = array(); APBCT_WRITE_LIMIT !== $i && current( $lines ) !== false; $i ++, $count_result ++, next( $lines ) ){
 
-                                            $gz_data = \Cleantalk\ApbctWP\Helper::http__request__get_content( $file_url );
+                                            $entry = current($lines);
 
-                                            if( empty( $gz_data['error'] ) ){
+                                            if(empty($entry))
+                                                continue;
 
-                                                if( Helper::get_mime_type( $gz_data, 'application/x-gzip' ) ){
+                                            if ( APBCT_WRITE_LIMIT !== $i ) {
 
-                                                    if( function_exists( 'gzdecode' ) ){
+                                                // Cast result to int
+                                                // @ToDo check the output $entry
+                                                $ua_id        = preg_replace('/[^\d]*/', '', $entry[0]);
+                                                $ua_template  = isset($entry[1]) && apbct_is_regexp($entry[1]) ? Helper::db__prepare_param( $entry[1] ) : '';
+                                                $ua_status    = isset($entry[2]) ? $entry[2] : 0;
 
-                                                        $data = gzdecode( $gz_data );
+                                            }
 
-                                                        if( $data !== false ){
+                                            $values[] = '('. $ua_id .','. $ua_template .','. $ua_status .')';
 
-                                                            $lines = Helper::buffer__parse__csv( $data );
+                                        }
 
-                                                        }else
-                                                            return array('error' => 'COULD_DECODE_FILE');
-                                                    }else
-                                                        return array('error' => 'FUNCTION_GZ_DECODE_DOES_NOT_EXIST');
-                                                }else
-                                                    return array('error' => 'WRONG_FILE_MIME_TYPE');
+                                        if( ! empty( $values ) ){
+                                            $query = $query . implode( ',', $values ) . ';';
+                                            \Cleantalk\ApbctWP\DB::getInstance()->execute( $query );
+                                        }
 
-                                                reset( $lines );
-
-                                                for( $count_result = 0; current($lines) !== false; ) {
-
-                                                    $query = "INSERT INTO " . APBCT_TBL_AC_UA_BL . " (ua_name, ua_type, ua_template, ua_status) VALUES ";
-
-                                                    for( $i = 0, $values = array(); APBCT_WRITE_LIMIT !== $i && current( $lines ) !== false; $i ++, $count_result ++, next( $lines ) ){
-
-                                                        $entry = current($lines);
-
-                                                        if(empty($entry))
-                                                            continue;
-
-                                                        if ( APBCT_WRITE_LIMIT !== $i ) {
-
-                                                            // Cast result to int
-                                                            // @ToDo check the output $entry
-                                                            $ua_name      = preg_replace('/[^\d]*/', '', $entry[0]);
-                                                            $ua_type      = preg_replace('/[^\d]*/', '', $entry[1]);
-                                                            $ua_template  = isset($entry[2]) ? $entry[2] : 0;
-                                                            $ua_status    = isset($entry[2]) ? $entry[2] : 0;
-
-                                                        }
-
-                                                        $values[] = '('. $ua_name .','. $ua_type .','. $ua_template .','. $ua_status .')';
-
-                                                    }
-
-                                                    if( ! empty( $values ) ){
-                                                        $query = $query . implode( ',', $values ) . ';';
-                                                        \Cleantalk\ApbctWP\DB::getInstance()->execute( $query );
-                                                    }
-
-                                                }
-
-                                                return $count_result;
-
-                                            }else
-                                                return array('error' => 'COULD_NOT_GET_FILE: ' . $gz_data['error'] );
-                                        }else
-                                            return array('error' => 'FILE_BAD_RESPONSE_CODE: '. (int) $response_code );
-                                    }else
-                                        return array('error' => 'FILE_COULD_NOT_GET_RESPONSE_CODE: '. $response_code['error'] );
+                                    }
+                                    return $count_result;
                                 }else
                                     return $result__clear_db;
                             }else
@@ -206,7 +167,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 
                 foreach( $ua_bl_results as $ua_bl_result ){
 
-                    if( preg_match( "$". str_replace( '/', '\/', $ua_bl_result['ua_template'] ) ."$", Server::get('HTTP_USER_AGENT') ) ) {
+                    if( preg_match( "$". str_replace( '"', '', $ua_bl_result['ua_template'] ) ."$", Server::get('HTTP_USER_AGENT') ) ) {
 
                         $this->ua_id = $ua_bl_result['id'];
 
