@@ -784,6 +784,10 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 				)
 			);
 		}
+		// Easy Registration Form
+        elseif( isset( $_POST['action'] ) && strpos($_POST['action'], 'erf_submit_form') !== false ) {
+            wp_send_json_error( array( 0 => array( 'username_error', $ct_result->comment ) ) );
+        }
 		else
 		{
 			die(json_encode(array( 'apbct' => array(
