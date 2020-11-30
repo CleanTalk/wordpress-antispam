@@ -952,11 +952,11 @@ function ct_add_hidden_fields($field_name = 'ct_checkjs', $return_string = false
     	$field_id = $field_name . '_' . $field_id_hash;
 		$html = "<input type=\"hidden\" id=\"{$field_id}\" name=\"{$field_name}\" value=\"{$ct_checkjs_def}\" />
 		<script type=\"text/javascript\" " . ( class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '' ) . ">
-			window.addEventListener('DOMContentLoaded', function () {
+			window.addEventListener(\"DOMContentLoaded\", function () {
 				setTimeout(function(){
                     apbct_public_sendAJAX(
-                        {action: 'apbct_js_keys__get'},
-                        {callback: apbct_js_keys__set_input_value, input_name: '{$field_id}',silent: true, no_nonce: true}
+                        {action: \"apbct_js_keys__get\"},
+                        {callback: apbct_js_keys__set_input_value, input_name: \"{$field_id}\",silent: true, no_nonce: true}
                     );
                 }, 1000);
 			});
@@ -973,7 +973,7 @@ function ct_add_hidden_fields($field_name = 'ct_checkjs', $return_string = false
 		$html = "<input type=\"hidden\" id=\"{$field_id}\" name=\"{$field_name}\" value=\"{$ct_checkjs_def}\" />
 		<script type=\"text/javascript\" " . ( class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '' ) . ">
 			setTimeout(function(){
-				var ct_input_name = '{$field_id}';
+				var ct_input_name = \"{$field_id}\";
 				if (document.getElementById(ct_input_name) !== null) {
 					var ct_input_value = document.getElementById(ct_input_name).value;
 					document.getElementById(ct_input_name).value = document.getElementById(ct_input_name).value.replace(ct_input_value, {$ct_input_challenge});
