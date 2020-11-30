@@ -321,6 +321,7 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 	    'wcap_save_guest_data', //WooCommerce skip
 	    'ajaxlogin', //Skip ajax login redirect
 	    'heartbeat', //Gravity multipage
+	    'erforms_field_change_command', //ERForms internal request
     );
     
     // Skip test if
