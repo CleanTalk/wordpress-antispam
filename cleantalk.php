@@ -182,6 +182,7 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
         'ElfsightContactForm'  => array( 'hook' => 'elfsight_contact_form_mail', 'ajax' => true ),
         'SimpleMembership'     => array( 'hook' => 'swpm_front_end_registration_complete_user_data', 'ajax' => false ),
         'EstimationForm'       => array( 'hook' => 'send_email', 'ajax' => true ),
+        'LandingPageBuilder'   => array( 'hook' => 'ulpb_formBuilderEmail_ajax', 'ajax' => true ),
     );
     new  \Cleantalk\Antispam\Integrations( $apbct_active_integrations );
 	
