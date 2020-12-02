@@ -3568,7 +3568,8 @@ function ct_contact_form_validate_postdata() {
 		(isset($_POST['action']) && $_POST['action'] == 'infinite_scroll') || //Scroll
 		isset($_POST['gform_submit']) || //Skip gravity checking because of direct integration
 		(isset($_POST['lrm_action']) && $_POST['lrm_action'] == 'login') || //Skip login form
-        apbct_is_in_uri( 'xmlrpc.php?for=jetpack' )
+        apbct_is_in_uri( 'xmlrpc.php?for=jetpack' ) ||
+        apbct_is_in_uri( 'connector=bridge&task=put_sql' )
         ) {
         do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
         return null;
