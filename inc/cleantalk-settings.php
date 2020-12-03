@@ -111,7 +111,9 @@ function apbct_settings__set_fileds( $fields ){
 					'class'       => 'apbct_settings-field_wrapper--sub',
 					'parent'      => 'spam_firewall',
 					'childrens'   => array('sfw__anti_crawler_ua'),
-					'description' => __('Plugin shows SpamFireWall stop page for any bot, except allowed bots (Google, Yahoo and etc). Anti-Crawler includes blocking bots by the User-Agent. To enable/disable, open the Advanced settings, and turn on/off "Block by User-Agent".', 'cleantalk-spam-protect'),
+					'description' => __('Plugin shows SpamFireWall stop page for any bot, except allowed bots (Google, Yahoo and etc).', 'cleantalk-spam-protect')
+                    . '<br>'
+                    . __( 'Anti-Crawler includes blocking bots by the User-Agent. To enable/disable, open the Advanced settings, and turn on/off "Block by User-Agent".', 'cleantalk-spam-protect' ),
 				),
 			),
 		),
@@ -439,7 +441,9 @@ function apbct_settings__set_fileds( $fields ){
                     'type'        => 'checkbox',
                     'title'       => __('Block bots by User Agents', 'cleantalk-spam-protect'),
                     'parent'      => 'sfw__anti_crawler',
-                    'description' => __('The option allows you to block or allow bots by their User Agents. Supports black and white lists. This option improves the accuracy of Anti-Crawler and allows you to manage rules for specific bots.', 'cleantalk-spam-protect'),
+                    'description' => __('The option allows you to block or allow bots by their User Agents. Supports black and white lists.', 'cleantalk-spam-protect')
+                    . '<br>'
+                    . __( 'This option improves the accuracy of Anti-Crawler and allows you to manage rules for specific bots.', 'cleantalk-spam-protect' ),
                 ),
 				'sfw__anti_flood__view_limit' => array(
 					'type'        => 'text',
