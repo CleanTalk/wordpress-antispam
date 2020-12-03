@@ -3,7 +3,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 5.149.2
+  Version: 5.150
   Author: СleanTalk <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -225,6 +225,9 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 
     // Enfold Theme contact form
 	add_filter( 'avf_form_send', 'apbct_form__enfold_contact_form__test_spam', 4, 10 );
+
+	// Profile Builder integration
+    add_filter( 'wppb_output_field_errors_filter', 'apbct_form_profile_builder__check_register', 1, 3 );
 
     //Hooks for updating/adding settings
     //add_action ('added_option', 'apbct_after_options_added', 10, 2);

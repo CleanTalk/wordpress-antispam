@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 3.0
 Tested up to: 5.6
 Requires PHP: 5.4
-Stable tag: 5.149
+Stable tag: 5.150
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -579,6 +579,22 @@ If your website has forms that send data to external sources, you can enable opt
 10. Website's options.
 
 == Changelog ==
+
+= 5.150 Dec 3 2020 =
+ * Fix: Prevent skip checking woocommerce registration during checkout.
+ * Fix: skip gravity multipage checking.
+ * New: AC UA checking implemented.
+ * Fix: skip buffer replace for rss feeds.
+ * Fix: Easy Registration Forms login form skip.
+ * Fix: Quotas in hidden fields.
+ * Fix: skip tinkoff payment form fields collection.
+ * New: Helper prepare_param added.
+ * Fix: erforms internal request skip.
+ * Integration: Landing Page Builder integration implemented.
+ * Upd: Easy Registration Form block message implemented.
+ * Integration: Profile Builder.
+ * Fix: Skip connector mysql request.
+ * New: AC UA - new option implemented.
 
 = 5.149 Nov 19 2020 =
  * Fix: External forms protection fixed.
