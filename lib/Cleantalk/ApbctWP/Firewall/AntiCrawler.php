@@ -175,6 +175,8 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 
                             if( $ua_bl_result['ua_status'] == 1 ) {
                                 // Whitelisted
+                                $results[] = array('ip' => $current_ip, 'is_personal' => false, 'status' => 'PASS_ANTICRAWLER_UA',);
+                                return $results;
                                 break;
                             } else {
                                 // Blacklisted
