@@ -665,3 +665,27 @@ function apbct_update_to_5_149_2() {
     $apbct->saveSettings();
 
 }
+
+function apbct_update_to_5_150_0() {
+
+	global $wpdb;
+
+	// Actions for WPMS
+	if( APBCT_WPMS ){
+		// Getting all blog ids
+		$initial_blog  = get_current_blog_id();
+		$blogs = array_keys($wpdb->get_results('SELECT blog_id FROM '. $wpdb->blogs, OBJECT_K));
+
+		foreach ($blogs as $blog) {
+
+			switch_to_blog($blog);
+
+			update_option( 'cleantalk_plugin_request_ids', array() );
+
+		}
+
+		// Restoring initial blog
+		switch_to_blog($initial_blog);
+	}
+
+}
