@@ -640,7 +640,7 @@ function apbct_update_to_5_149_2() {
 
     $sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_ua_bl` (
 			`id` INT(11) NOT NULL,
-			`ua_template` VARCHAR(512) NOT NULL,
+			`ua_template` VARCHAR(512) NULL DEFAULT NULL,
 			`ua_status` TINYINT(1) NULL DEFAULT NULL,
 			PRIMARY KEY ( `id` ),
 			INDEX ( `ua_template` )
