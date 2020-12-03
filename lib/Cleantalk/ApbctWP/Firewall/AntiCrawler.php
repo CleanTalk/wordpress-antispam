@@ -11,11 +11,13 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 	public $module_name = 'ANTICRAWLER';
 	
 	private $db__table__ac_logs = null;
+	private $db__table__ac_ua_bl = null;
 	private $api_key = '';
 	private $apbct = false;
 	private $store_interval = 60;
 	private $ua; //User-Agent
-	
+    private $ua_id = 'null'; //User-Agent
+
 	private $ac_log_result = '';
 	
 	public $isExcluded = false;
@@ -33,6 +35,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 		$this->apbct = $apbct;
 		$this->db__table__logs    = $log_table ?: null;
 		$this->db__table__ac_logs = $ac_logs_table ?: null;
+        $this->db__table__ac_ua_bl= defined('APBCT_TBL_AC_UA_BL') ? APBCT_TBL_AC_UA_BL : null;
 		$this->ua = md5( Server::get('HTTP_USER_AGENT') );
 	
 		
@@ -43,8 +46,100 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 		$this->isExcluded = $this->check_exclusions();
 		
 	}
-	
-	/**
+
+    public static function update( $file_url_ua ) {
+
+        $response_code = \Cleantalk\ApbctWP\Helper::http__request__get_response_code( $file_url_ua );
+
+        if( empty( $response_code['error'] ) ){
+
+            if( $response_code == 200 || $response_code == 501 ){
+
+                $gz_data = \Cleantalk\ApbctWP\Helper::http__request__get_content( $file_url_ua );
+
+                if( empty( $gz_data['error'] ) ){
+
+                    if( Helper::get_mime_type( $gz_data, 'application/x-gzip' ) ){
+
+                        if( function_exists( 'gzdecode' ) ){
+
+                            $data = gzdecode( $gz_data );
+
+                            if( $data !== false ){
+
+                                $result__clear_db = self::clear_data_table( \Cleantalk\ApbctWP\DB::getInstance(), APBCT_TBL_AC_UA_BL );
+
+                                if( empty( $result__clear_db['error'] ) ){
+
+                                    $lines = Helper::buffer__parse__csv( $data );
+
+                                    reset( $lines );
+
+                                    for( $count_result = 0; current($lines) !== false; ) {
+
+                                        $query = "INSERT INTO " . APBCT_TBL_AC_UA_BL . " (id, ua_template, ua_status) VALUES ";
+
+                                        for( $i = 0, $values = array(); APBCT_WRITE_LIMIT !== $i && current( $lines ) !== false; $i ++, $count_result ++, next( $lines ) ){
+
+                                            $entry = current($lines);
+
+                                            if(empty($entry))
+                                                continue;
+
+                                            if ( APBCT_WRITE_LIMIT !== $i ) {
+
+                                                // Cast result to int
+                                                // @ToDo check the output $entry
+                                                $ua_id        = preg_replace('/[^\d]*/', '', $entry[0]);
+                                                $ua_template  = isset($entry[1]) && apbct_is_regexp($entry[1]) ? Helper::db__prepare_param( $entry[1] ) : 0;
+                                                $ua_status    = isset($entry[2]) ? $entry[2] : 0;
+
+                                            }
+
+                                            $values[] = '('. $ua_id .','. $ua_template .','. $ua_status .')';
+
+                                        }
+
+                                        if( ! empty( $values ) ){
+                                            $query = $query . implode( ',', $values ) . ';';
+                                            \Cleantalk\ApbctWP\DB::getInstance()->execute( $query );
+                                        }
+
+                                    }
+                                    return $count_result;
+                                }else
+                                    return $result__clear_db;
+                            }else
+                                return array('error' => 'COULD_DECODE_MULTIFILE');
+                        }else
+                            return array('error' => 'FUNCTION_GZ_DECODE_DOES_NOT_EXIST');
+                    }else
+                        return array('error' => 'WRONG_MULTIFILE_MIME_TYPE');
+                }else
+                    return array('error' => 'COULD_NOT_GET_MULTIFILE: ' . $gz_data['error'] );
+            }else
+                return array('error' => 'MULTIFILE_BAD_RESPONSE_CODE: '. (int) $response_code );
+        }else
+            return array('error' => 'MULTIFILE_COULD_NOT_GET_RESPONSE_CODE: '. $response_code['error'] );
+
+    }
+
+    private static function clear_data_table($db, $db__table__data) {
+
+        $db->execute( "TRUNCATE TABLE {$db__table__data};" );
+        $db->set_query( "SELECT COUNT(*) as cnt FROM {$db__table__data};" )->fetch(); // Check if it is clear
+        if( $db->result['cnt'] != 0 ){
+            $db->execute( "DELETE FROM {$db__table__data};" ); // Truncate table
+            $db->set_query( "SELECT COUNT(*) as cnt FROM {$db__table__data};" )->fetch(); // Check if it is clear
+            if( $db->result['cnt'] != 0 ){
+                return array( 'error' => 'COULD_NOT_CLEAR_UA_BL_TABLE' ); // throw an error
+            }
+        }
+        $db->execute( "ALTER TABLE {$db__table__data} AUTO_INCREMENT = 1;" ); // Drop AUTO INCREMENT
+
+    }
+
+    /**
 	 * Use this method to execute main logic of the module.
 	 *
 	 * @return array  Array of the check results
@@ -60,6 +155,47 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 		        $results[] = array( 'ip' => $current_ip, 'is_personal' => false, 'status' => 'PASS_ANTICRAWLER', );
 		        return $results;
 	        }
+
+            // UA check
+            if( $this->apbct->settings['sfw__anti_crawler_ua'] ) {
+
+                $ua_bl_results = $this->db->fetch_all(
+                    "SELECT * FROM " . $this->db__table__ac_ua_bl . " ORDER BY `ua_status` DESC;"
+                );
+
+                if( ! empty( $ua_bl_results ) ){
+
+                    $is_blocked = false;
+
+                    foreach( $ua_bl_results as $ua_bl_result ){
+
+                        if( ! empty( $ua_bl_result['ua_template'] ) && preg_match( "$". str_replace( '"', '', $ua_bl_result['ua_template'] ) ."$", Server::get('HTTP_USER_AGENT') ) ) {
+
+                            $this->ua_id = $ua_bl_result['id'];
+
+                            if( $ua_bl_result['ua_status'] == 1 ) {
+                                // Whitelisted
+                                $results[] = array('ip' => $current_ip, 'is_personal' => false, 'status' => 'PASS_ANTICRAWLER_UA',);
+                                return $results;
+                                break;
+                            } else {
+                                // Blacklisted
+                                $results[] = array('ip' => $current_ip, 'is_personal' => false, 'status' => 'DENY_ANTICRAWLER_UA',);
+                                $is_blocked = true;
+                                break;
+                            }
+
+                        }
+
+                    }
+
+                    if( ! $is_blocked ) {
+                        $results[] = array('ip' => $current_ip, 'is_personal' => false, 'status' => 'PASS_ANTICRAWLER_UA',);
+                    }
+
+                }
+
+            }
         	
             // Skip by cookie
             if( Cookie::get('apbct_antibot') == hash( 'sha256', $this->api_key . $this->apbct->data['salt'] ) ) {
@@ -77,7 +213,8 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 		
         // Common check
 		foreach( $this->ip_array as $ip_origin => $current_ip ){
-			
+
+		    // IP check
 			$result = $this->db->fetch(
 				"SELECT ip"
 				. ' FROM `' . $this->db__table__ac_logs . '`'
@@ -113,6 +250,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 				add_action( 'wp_head', array( '\Cleantalk\ApbctWP\Firewall\AntiCrawler', 'set_cookie' ) );
 				
 			}
+
 		}
 		
 		return $results;
@@ -126,7 +264,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 		// @todo Rename ip column to sign. Use IP + UserAgent for it.
 		
 		foreach( $this->ip_array as $ip_origin => $current_ip ){
-			$id = md5( $current_ip . $this->ua. $interval_time );
+			$id = md5( $current_ip . $this->ua . $interval_time );
 			$this->db->execute(
 				"INSERT INTO " . $this->db__table__ac_logs . " SET
 					id = '$id',
@@ -158,7 +296,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 	 */
 	public function update_log( $ip, $status ) {
 		
-		$id   = md5( $ip . $this->module_name );
+		$id   = md5( $ip . $status . $this->module_name );
 		$time = time();
 		
 		$query = "INSERT INTO " . $this->db__table__logs . "
@@ -168,13 +306,16 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 				status = '$status',
 				all_entries = 1,
 				blocked_entries = 1,
-				entries_timestamp = '" . intval( $time ) . "'
+				entries_timestamp = '" . intval( $time ) . "',
+				ua_id = " . $this->ua_id . ",
+				ua_name = '" . Server::get('HTTP_USER_AGENT') . "'
 			ON DUPLICATE KEY
 			UPDATE
-				status = '$status',
 				all_entries = all_entries + 1,
 				blocked_entries = blocked_entries" . ( strpos( $status, 'DENY' ) !== false ? ' + 1' : '' ) . ",
-				entries_timestamp = '" . intval( $time ) . "'";
+				entries_timestamp = '" . intval( $time ) . "',
+				ua_id = " . $this->ua_id . ",
+				ua_name = '" . Server::get('HTTP_USER_AGENT') . "'";
 		
 		$this->db->execute( $query );
 	}

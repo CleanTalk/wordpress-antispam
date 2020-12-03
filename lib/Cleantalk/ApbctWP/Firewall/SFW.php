@@ -314,6 +314,8 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 				// Converting statuses to API format
 				$value['status'] = $value['status'] === 'DENY_ANTICRAWLER'    ? 'BOT_PROTECTION'   : $value['status'];
 				$value['status'] = $value['status'] === 'PASS_ANTICRAWLER'    ? 'BOT_PROTECTION'   : $value['status'];
+                $value['status'] = $value['status'] === 'DENY_ANTICRAWLER_UA' ? 'BOT_PROTECTION'   : $value['status'];
+                $value['status'] = $value['status'] === 'PASS_ANTICRAWLER_UA' ? 'BOT_PROTECTION'   : $value['status'];
 				
 				$value['status'] = $value['status'] === 'DENY_ANTIFLOOD'      ? 'FLOOD_PROTECTION' : $value['status'];
 				$value['status'] = $value['status'] === 'PASS_ANTIFLOOD'      ? 'FLOOD_PROTECTION' : $value['status'];
@@ -330,7 +332,10 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 				
 				if( $value['status'] )
 					$row[] = $value['status'];
-				
+
+                $row[] = $value['ua_name']; // User-Agent name
+                $row[] = $value['ua_id']; // User-Agent ID
+
 				$data[] = $row;
 				
 			}
@@ -369,16 +374,26 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 	 * @return array|bool array('error' => STRING)
 	 */
 	public static function update( $db, $db__table__data, $ct_key, $file_url = null, $immediate = false){
-		
+
+	    global $apbct;
+
 		// Getting remote file name
 		if(!$file_url){
 			
-			$result = \Cleantalk\Common\API::method__get_2s_blacklists_db($ct_key, 'multifiles', '2_0');
+			$result = \Cleantalk\Common\API::method__get_2s_blacklists_db($ct_key, 'multifiles', '3_0');
 			
 			sleep(4);
 			
 			if( empty( $result['error'] ) ){
-				
+
+			    // User Agents blacklist
+                if( ! empty( $result['file_ua_url'] ) && $apbct->settings['sfw__anti_crawler'] ){
+                    $ua_bl_res = AntiCrawler::update( trim( $result['file_ua_url'] ) );
+                    if( ! empty( $ua_bl_res['error'] ) )
+                        $apbct->error_add( 'sfw_update', $ua_bl_res['error'] );
+                }
+
+                // Common blacklist
 				if( ! empty( $result['file_url'] ) ){
 					
 					$file_url = trim( $result['file_url'] );

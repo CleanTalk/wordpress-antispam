@@ -828,5 +828,34 @@ class Helper
 			$line = array_combine( $map, $line );
 		return $line;
 	}
-	
+
+    /**
+     * Escapes MySQL params
+     *
+     * @param string|int $param
+     * @param string     $quotes
+     *
+     * @return int|string
+     */
+    public static function db__prepare_param($param, $quotes = '\'')
+    {
+        if(is_array($param)){
+            foreach($param as &$par){
+                $par = self::db__prepare_param($par);
+            }
+        }
+        switch(true){
+            case is_numeric($param):
+                $param = intval($param);
+                break;
+            case is_string($param) && strtolower($param) == 'null':
+                $param = 'NULL';
+                break;
+            case is_string($param):
+                global $wpdb;
+                $param = $quotes . $wpdb->_real_escape($param) . $quotes;
+                break;
+        }
+        return $param;
+    }
 }

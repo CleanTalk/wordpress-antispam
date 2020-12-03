@@ -719,7 +719,7 @@ class API
 	{
 		// Errors handling
 		// Bad connection
-		if(isset($result['error'])){
+		if(is_array($result) && isset($result['error'])){
 			$last = error_get_last();
 			$out = ! empty( $result['error'] )
 				? array( 'error' => 'CONNECTION_ERROR : "' . $result['error'] . '"' )

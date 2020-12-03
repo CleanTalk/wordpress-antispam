@@ -388,7 +388,7 @@ function apbct_buffer__output(){
 	
 	$html = $dom->getElementsByTagName('html');
 	
-	$output = gettype($html) == 'object' && isset($html[0], $html[0]->childNodes, $html[0]->childNodes[0])
+	$output = gettype($html) == 'object' && isset($html[0], $html[0]->childNodes, $html[0]->childNodes[0]) && $dom->getElementsByTagName('rss')->length == 0
 		? $dom->saveHTML()
 		: $apbct->buffer;
 	
@@ -934,7 +934,7 @@ function ct_add_hidden_fields($field_name = 'ct_checkjs', $return_string = false
 	// Using only cookies
     if ($cookie_check && $apbct->settings['set_cookies'] == 1) {
 	    
-		$html =	"<script type='text/javascript' " . ( class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '' ) . ">
+		$html =	"<script type=\"text/javascript\" " . ( class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '' ) . ">
 			function ctSetCookie___from_backend(c_name, value) {
 				document.cookie = c_name + \"=\" + encodeURIComponent(value) + \"; path=/; samesite=lax\";
 			}
@@ -950,13 +950,13 @@ function ct_add_hidden_fields($field_name = 'ct_checkjs', $return_string = false
 
         $ct_input_challenge = sprintf("'%s'", $ct_checkjs_key);
     	$field_id = $field_name . '_' . $field_id_hash;
-		$html = "<input type='hidden' id='{$field_id}' name='{$field_name}' value='{$ct_checkjs_def}' />
-		<script type='text/javascript' " . ( class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '' ) . ">
-			window.addEventListener('DOMContentLoaded', function () {
+		$html = "<input type=\"hidden\" id=\"{$field_id}\" name=\"{$field_name}\" value=\"{$ct_checkjs_def}\" />
+		<script type=\"text/javascript\" " . ( class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '' ) . ">
+			window.addEventListener(\"DOMContentLoaded\", function () {
 				setTimeout(function(){
                     apbct_public_sendAJAX(
-                        {action: 'apbct_js_keys__get'},
-                        {callback: apbct_js_keys__set_input_value, input_name: '{$field_id}',silent: true, no_nonce: true}
+                        {action: \"apbct_js_keys__get\"},
+                        {callback: apbct_js_keys__set_input_value, input_name: \"{$field_id}\",silent: true, no_nonce: true}
                     );
                 }, 1000);
 			});
@@ -970,10 +970,10 @@ function ct_add_hidden_fields($field_name = 'ct_checkjs', $return_string = false
 
         $ct_input_challenge = sprintf("'%s'", $ct_checkjs_key);
     	$field_id = $field_name . '_' . $field_id_hash;
-		$html = "<input type='hidden' id='{$field_id}' name='{$field_name}' value='{$ct_checkjs_def}' />
-		<script type='text/javascript' " . ( class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '' ) . ">
+		$html = "<input type=\"hidden\" id=\"{$field_id}\" name=\"{$field_name}\" value=\"{$ct_checkjs_def}\" />
+		<script type=\"text/javascript\" " . ( class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '' ) . ">
 			setTimeout(function(){
-				var ct_input_name = '{$field_id}';
+				var ct_input_name = \"{$field_id}\";
 				if (document.getElementById(ct_input_name) !== null) {
 					var ct_input_value = document.getElementById(ct_input_name).value;
 					document.getElementById(ct_input_name).value = document.getElementById(ct_input_name).value.replace(ct_input_value, {$ct_input_challenge});
@@ -3342,7 +3342,8 @@ function ct_contact_form_validate() {
         ( isset( $_POST['somfrp_action'], $_POST['submitted'] ) && $_POST['somfrp_action'] == 'somfrp_lost_pass' ) || // Frontend Reset Password exclusion
         ( isset( $_POST['action'] ) && $_POST['action'] == 'dokan_save_account_details' ) ||
         \Cleantalk\Variables\Post::get('action') === 'frm_get_lookup_text_value' || // Exception for Formidable multilevel form
-        ( isset( $_POST['ihcaction'] ) && $_POST['ihcaction'] == 'reset_pass') //Reset pass exclusion
+        ( isset( $_POST['ihcaction'] ) && $_POST['ihcaction'] == 'reset_pass') || //Reset pass exclusion
+        ( isset( $_POST['action'],  $_POST['register_unspecified_nonce_field'] ) && $_POST['action'] == 'register' ) // Profile Builder have a direct integration
 		) {
         do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
         return null;
@@ -3568,7 +3569,8 @@ function ct_contact_form_validate_postdata() {
 		(isset($_POST['action']) && $_POST['action'] == 'infinite_scroll') || //Scroll
 		isset($_POST['gform_submit']) || //Skip gravity checking because of direct integration
 		(isset($_POST['lrm_action']) && $_POST['lrm_action'] == 'login') || //Skip login form
-        apbct_is_in_uri( 'xmlrpc.php?for=jetpack' )
+        apbct_is_in_uri( 'xmlrpc.php?for=jetpack' ) ||
+        apbct_is_in_uri( 'connector=bridge&task=put_sql' )
         ) {
         do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
         return null;
@@ -3946,5 +3948,38 @@ function apbct_form__enfold_contact_form__test_spam( $send, $new_post, $form_par
 	}
 
 	return $send;
+
+}
+
+// Profile Builder integration
+function apbct_form_profile_builder__check_register ( $errors, $fields, $global_request ){
+
+    if( isset( $global_request['action'] ) && $global_request['action'] == 'register' ) {
+
+        global $cleantalk_executed;
+
+        $data = ct_get_fields_any( $global_request );
+
+        $base_call_result = apbct_base_call(
+            array(
+                'message'         => !empty( $data['message'] )  ? json_encode( $data['message'] ) : '',
+                'sender_email'    => !empty( $data['email'] )    ? $data['email']                  : '',
+                'sender_nickname' => !empty( $data['nickname'] ) ? $data['nickname']               : '',
+                'post_info'       => array(
+                    'comment_type' => 'register_profile_builder'
+                ),
+            ), true
+        );
+
+        $ct_result = $base_call_result['ct_result'];
+
+        $cleantalk_executed = true;
+
+        if( $ct_result->allow == 0 ) {
+            $errors['error'] = $ct_result->comment;
+        }
+
+    }
+    return $errors;
 
 }

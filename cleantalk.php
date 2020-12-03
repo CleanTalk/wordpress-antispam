@@ -3,7 +3,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 5.149
+  Version: 5.150
   Author: СleanTalk <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -108,7 +108,8 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 	// Database constants
 	define('APBCT_TBL_FIREWALL_DATA', $apbct->db_prefix . 'cleantalk_sfw');      // Table with firewall data.
 	define('APBCT_TBL_FIREWALL_LOG',  $apbct->db_prefix . 'cleantalk_sfw_logs'); // Table with firewall logs.
-	define('APBCT_TBL_AC_LOG',        $apbct->db_prefix . 'cleantalk_ac_log'); // Table with firewall logs.
+	define('APBCT_TBL_AC_LOG',        $apbct->db_prefix . 'cleantalk_ac_log');   // Table with firewall logs.
+    define('APBCT_TBL_AC_UA_BL',      $apbct->db_prefix . 'cleantalk_ua_bl');    // Table with User Agents blacklist.
 	define('APBCT_TBL_SESSIONS',      $apbct->db_prefix . 'cleantalk_sessions'); // Table with session data.
     define('APBCT_SPAMSCAN_LOGS',     $apbct->db_prefix . 'cleantalk_spamscan_logs'); // Table with session data.
 	define('APBCT_SELECT_LIMIT',      5000); // Select limit for logs.
@@ -181,6 +182,7 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
         'ElfsightContactForm'  => array( 'hook' => 'elfsight_contact_form_mail', 'ajax' => true ),
         'SimpleMembership'     => array( 'hook' => 'swpm_front_end_registration_complete_user_data', 'ajax' => false ),
         'EstimationForm'       => array( 'hook' => 'send_email', 'ajax' => true ),
+        'LandingPageBuilder'   => array( 'hook' => 'ulpb_formBuilderEmail_ajax', 'ajax' => true ),
     );
     new  \Cleantalk\Antispam\Integrations( $apbct_active_integrations );
 	
@@ -223,6 +225,9 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 
     // Enfold Theme contact form
 	add_filter( 'avf_form_send', 'apbct_form__enfold_contact_form__test_spam', 4, 10 );
+
+	// Profile Builder integration
+    add_filter( 'wppb_output_field_errors_filter', 'apbct_form_profile_builder__check_register', 1, 3 );
 
     //Hooks for updating/adding settings
     //add_action ('added_option', 'apbct_after_options_added', 10, 2);
@@ -676,15 +681,26 @@ function apbct_activation( $network = false ) {
 			PRIMARY KEY (`id`),
 			INDEX (  `network` ,  `mask` )
 		);';
+
+	// UA BL
+    $sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_ua_bl` (
+			`id` INT(11) NOT NULL,
+			`ua_template` VARCHAR(512) NULL DEFAULT NULL,
+			`ua_status` TINYINT(1) NULL DEFAULT NULL,
+			PRIMARY KEY ( `id` ),
+			INDEX ( `ua_template` )
+		);';
 	
 	// SFW log
 	$sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_sfw_logs` (
 		`id` VARCHAR(40) NOT NULL,
 		`ip` VARCHAR(15) NOT NULL,
-		`status` ENUM(\'PASS_SFW\',\'DENY_SFW\',\'PASS_SFW__BY_WHITELIST\',\'PASS_SFW__BY_COOKIE\',\'DENY_ANTICRAWLER\',\'PASS_ANTICRAWLER\',\'DENY_ANTIFLOOD\',\'PASS_ANTIFLOOD\') NULL DEFAULT NULL,
+		`status` ENUM(\'PASS_SFW\',\'DENY_SFW\',\'PASS_SFW__BY_WHITELIST\',\'PASS_SFW__BY_COOKIE\',\'DENY_ANTICRAWLER\',\'PASS_ANTICRAWLER\',\'DENY_ANTICRAWLER_UA\',\'PASS_ANTICRAWLER_UA\',\'DENY_ANTIFLOOD\',\'PASS_ANTIFLOOD\') NULL DEFAULT NULL,
 		`all_entries` INT NOT NULL,
 		`blocked_entries` INT NOT NULL,
 		`entries_timestamp` INT NOT NULL,
+		`ua_id` INT(11) NULL DEFAULT NULL,
+		`ua_name` VARCHAR(1024) NOT NULL, 
 		PRIMARY KEY (`id`));';
 	
 	$sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_ac_log` (
@@ -788,15 +804,27 @@ function apbct_activation__new_blog($blog_id, $user_id, $domain, $path, $site_id
 				PRIMARY KEY (`id`),
 				INDEX (  `network` ,  `mask` )
 			);';
+
+        // UA BL
+        $sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_ua_bl` (
+			`id` INT(11) NOT NULL,
+			`ua_template` VARCHAR(512) NULL DEFAULT NULL,
+			`ua_status` TINYINT(1) NULL DEFAULT NULL,
+			PRIMARY KEY ( `id` ),
+			INDEX ( `ua_template` )
+		);';
+
 	
 	    // SFW log
 	    $sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_sfw_logs` (
 		`id` VARCHAR(40) NOT NULL,
 		`ip` VARCHAR(15) NOT NULL,
-		`status` ENUM(\'PASS_SFW\',\'DENY_SFW\',\'PASS_SFW__BY_WHITELIST\',\'PASS_SFW__BY_COOKIE\',\'DENY_ANTICRAWLER\',\'PASS_ANTICRAWLER\',\'DENY_ANTIFLOOD\',\'PASS_ANTIFLOOD\') NULL DEFAULT NULL,
+		`status` ENUM(\'PASS_SFW\',\'DENY_SFW\',\'PASS_SFW__BY_WHITELIST\',\'PASS_SFW__BY_COOKIE\',\'DENY_ANTICRAWLER\',\'PASS_ANTICRAWLER\',\'DENY_ANTICRAWLER_UA\',\'PASS_ANTICRAWLER_UA\',\'DENY_ANTIFLOOD\',\'PASS_ANTIFLOOD\') NULL DEFAULT NULL,
 		`all_entries` INT NOT NULL,
 		`blocked_entries` INT NOT NULL,
 		`entries_timestamp` INT NOT NULL,
+		`ua_id` INT(11) NULL DEFAULT NULL,
+		`ua_name` VARCHAR(1024) NOT NULL, 
 		PRIMARY KEY (`id`));';
 	
 	    $sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_ac_log` (
@@ -926,6 +954,7 @@ function apbct_deactivation__delete_common_tables() {
 	$wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->base_prefix.'cleantalk_ac_log`;');      // Deleting SFW logs
 	$wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->base_prefix.'cleantalk_sessions`;');      // Deleting session table
 	$wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->base_prefix.'cleantalk_spamscan_logs`;'); // Deleting user/comments scan result table
+    $wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->base_prefix.'cleantalk_ua_bl`;');         // Deleting AC UA black lists
 }
 
 function apbct_deactivation__delete_blog_tables() {
@@ -935,6 +964,7 @@ function apbct_deactivation__delete_blog_tables() {
 	$wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->prefix.'cleantalk_ac_log`;');           // Deleting SFW logs
 	$wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->prefix.'cleantalk_sessions`;');           // Deleting session table
 	$wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->prefix.'cleantalk_spamscan_logs`;'); // Deleting user/comments scan result table
+    $wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->prefix.'cleantalk_ua_bl`;');         // Deleting AC UA black lists
 }
 
 function apbct_deactivation__delete_meta(){
@@ -2007,6 +2037,7 @@ function apbct_sfw__delete_tables( $blog_id, $drop ) {
 	$wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->prefix.'cleantalk_sfw`;');       // Deleting SFW data
 	$wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->prefix.'cleantalk_sfw_logs`;');  // Deleting SFW logs
 	$wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->prefix.'cleantalk_ac_log`;');  // Deleting SFW logs
+    $wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->prefix.'cleantalk_ua_bl`;');   // Deleting AC UA black lists
 	
 	switch_to_blog($initial_blog);
 }

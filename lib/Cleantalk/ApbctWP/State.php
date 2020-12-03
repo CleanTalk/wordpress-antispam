@@ -61,6 +61,7 @@ class State
 		'sfw__anti_flood'               => 0,
 		'sfw__anti_flood__view_limit'   => 10,
 		'sfw__anti_crawler'             => 0,
+        'sfw__anti_crawler_ua'          => 0,
 		'apikey'                        => '',
 		'autoPubRevelantMess'           => 0,
 		

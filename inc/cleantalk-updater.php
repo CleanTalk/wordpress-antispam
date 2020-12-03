@@ -633,3 +633,59 @@ function apbct_update_to_5_146_4() {
 function apbct_update_to_5_148_0() {
     Cron::updateTask('antiflood__clear_table', 'apbct_antiflood__clear_table',  86400);
 }
+
+function apbct_update_to_5_149_2() {
+
+    global $apbct;
+
+    $sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_ua_bl` (
+			`id` INT(11) NOT NULL,
+			`ua_template` VARCHAR(512) NULL DEFAULT NULL,
+			`ua_status` TINYINT(1) NULL DEFAULT NULL,
+			PRIMARY KEY ( `id` ),
+			INDEX ( `ua_template` )
+		);';
+
+    $sqls[] = 'DROP TABLE IF EXISTS `%scleantalk_sfw_logs`;';
+
+    $sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_sfw_logs` (
+		`id` VARCHAR(40) NOT NULL,
+		`ip` VARCHAR(15) NOT NULL,
+		`status` ENUM(\'PASS_SFW\',\'DENY_SFW\',\'PASS_SFW__BY_WHITELIST\',\'PASS_SFW__BY_COOKIE\',\'DENY_ANTICRAWLER\',\'PASS_ANTICRAWLER\',\'DENY_ANTICRAWLER_UA\',\'PASS_ANTICRAWLER_UA\',\'DENY_ANTIFLOOD\',\'PASS_ANTIFLOOD\') NULL DEFAULT NULL,
+		`all_entries` INT NOT NULL,
+		`blocked_entries` INT NOT NULL,
+		`entries_timestamp` INT NOT NULL,
+		`ua_id` INT(11) NULL DEFAULT NULL,
+		`ua_name` VARCHAR(1024) NOT NULL, 
+		PRIMARY KEY (`id`));';
+
+    apbct_activation__create_tables( $sqls, $apbct->db_prefix );
+
+    $apbct->settings['sfw__anti_crawler_ua'] = 0;
+    $apbct->saveSettings();
+
+}
+
+function apbct_update_to_5_150_0() {
+
+	global $wpdb;
+
+	// Actions for WPMS
+	if( APBCT_WPMS ){
+		// Getting all blog ids
+		$initial_blog  = get_current_blog_id();
+		$blogs = array_keys($wpdb->get_results('SELECT blog_id FROM '. $wpdb->blogs, OBJECT_K));
+
+		foreach ($blogs as $blog) {
+
+			switch_to_blog($blog);
+
+			update_option( 'cleantalk_plugin_request_ids', array() );
+
+		}
+
+		// Restoring initial blog
+		switch_to_blog($initial_blog);
+	}
+
+}

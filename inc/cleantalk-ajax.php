@@ -320,6 +320,8 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 	    'wfu_ajax_action_ask_server', //WFU skip ask server
 	    'wcap_save_guest_data', //WooCommerce skip
 	    'ajaxlogin', //Skip ajax login redirect
+	    'heartbeat', //Gravity multipage
+	    'erforms_field_change_command', //ERForms internal request
     );
     
     // Skip test if
@@ -338,7 +340,8 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 		        (isset($message_obj['post_author']) && intval($message_obj['post_author']) == 0)
 	        )
         ) ||
-        (isset($_POST['action'], $_POST['arm_action']) && $_POST['action'] == 'arm_shortcode_form_ajax_action' && $_POST['arm_action'] == 'please-login') //arm forms skip login
+        (isset($_POST['action'], $_POST['arm_action']) && $_POST['action'] == 'arm_shortcode_form_ajax_action' && $_POST['arm_action'] == 'please-login') || //arm forms skip login
+        ( isset($_POST['action']) && $_POST['action'] == 'erf_login_user' && in_array( 'easy-registration-forms/erforms.php', apply_filters( 'active_plugins', get_option( 'active_plugins' ) ) ) ) //Easy Registration Forms login form skip
     )
     {
 	    do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
@@ -781,6 +784,10 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 				)
 			);
 		}
+		// Easy Registration Form
+        elseif( isset( $_POST['action'] ) && strpos($_POST['action'], 'erf_submit_form') !== false ) {
+            wp_send_json_error( array( 0 => array( 'username_error', $ct_result->comment ) ) );
+        }
 		else
 		{
 			die(json_encode(array( 'apbct' => array(
