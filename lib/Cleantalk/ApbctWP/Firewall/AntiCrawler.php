@@ -91,7 +91,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
                                                 // Cast result to int
                                                 // @ToDo check the output $entry
                                                 $ua_id        = preg_replace('/[^\d]*/', '', $entry[0]);
-                                                $ua_template  = isset($entry[1]) && apbct_is_regexp($entry[1]) ? Helper::db__prepare_param( $entry[1] ) : '';
+                                                $ua_template  = isset($entry[1]) && apbct_is_regexp($entry[1]) ? Helper::db__prepare_param( $entry[1] ) : 0;
                                                 $ua_status    = isset($entry[2]) ? $entry[2] : 0;
 
                                             }
@@ -169,7 +169,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 
                     foreach( $ua_bl_results as $ua_bl_result ){
 
-                        if( preg_match( "$". str_replace( '"', '', $ua_bl_result['ua_template'] ) ."$", Server::get('HTTP_USER_AGENT') ) ) {
+                        if( ! empty( $ua_bl_result['ua_template'] ) && preg_match( "$". str_replace( '"', '', $ua_bl_result['ua_template'] ) ."$", Server::get('HTTP_USER_AGENT') ) ) {
 
                             $this->ua_id = $ua_bl_result['id'];
 
