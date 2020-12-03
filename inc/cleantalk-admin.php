@@ -401,7 +401,7 @@ function apbct_admin__notice_message(){
 		}
 		
 		//key == "" || "enter key"
-		if (!apbct_api_key__is_correct() && $apbct->moderate_ip == 0){
+		if ( ( ! apbct_api_key__is_correct() && $apbct->moderate_ip == 0 ) && ! $apbct->white_label ){
 			echo "<div class='error'>"
 				."<h3>"
 					.sprintf(__("Please enter Access Key in %s settings to enable anti spam protection!", 'cleantalk-spam-protect'), "<a href='{$settings_link}'>$apbct->plugin_name</a>")
