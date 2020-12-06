@@ -143,30 +143,36 @@ function apbct_init() {
 
 
     // JetPack Contact form
-		$jetpack_active_modules = false;
-		if(defined('JETPACK__VERSION'))
-		{
-			if(isset($_POST['action']) && $_POST['action'] == 'grunion-contact-form' ){
-				if(JETPACK__VERSION=='3.4-beta')
-				{
-					add_filter('contact_form_is_spam', 'ct_contact_form_is_spam');
-				}
-				else if(JETPACK__VERSION=='3.4-beta2'||JETPACK__VERSION>='3.4')
-				{
-					add_filter('jetpack_contact_form_is_spam', 'ct_contact_form_is_spam_jetpack',50,2);
-				}
-				else
-				{
-					add_filter('contact_form_is_spam', 'ct_contact_form_is_spam');
-				}
-				$jetpack_active_modules = get_option('jetpack_active_modules');
-				if ((class_exists( 'Jetpack', false) && $jetpack_active_modules && in_array('comments', $jetpack_active_modules)))
-				{
-					$ct_jp_comments = true;
-				}
-			}else
-				add_filter('grunion_contact_form_field_html', 'ct_grunion_contact_form_field_html', 10, 2);
-		}
+    $jetpack_active_modules = false;
+    if(defined('JETPACK__VERSION'))
+    {
+        // Checking Jetpack contact form
+        if(isset($_POST['action']) && $_POST['action'] == 'grunion-contact-form' ){
+            if(JETPACK__VERSION=='3.4-beta')
+            {
+                add_filter('contact_form_is_spam', 'ct_contact_form_is_spam');
+            }
+            else if(JETPACK__VERSION=='3.4-beta2'||JETPACK__VERSION>='3.4')
+            {
+                add_filter('jetpack_contact_form_is_spam', 'ct_contact_form_is_spam_jetpack',50,2);
+            }
+            else
+            {
+                add_filter('contact_form_is_spam', 'ct_contact_form_is_spam');
+            }
+
+        }else {
+            add_filter('grunion_contact_form_field_html', 'ct_grunion_contact_form_field_html', 10, 2);
+        }
+
+        // Checking Jetpack comments form
+        $jetpack_active_modules = get_option('jetpack_active_modules');
+        if ((class_exists( 'Jetpack', false) && $jetpack_active_modules && in_array('comments', $jetpack_active_modules)))
+        {
+            $ct_jp_comments = true;
+        }
+
+    }
 
 	// WP Maintenance Mode (wpmm)
 		add_action('wpmm_head', 'apbct_form__wpmm__addField', 1);
@@ -1385,15 +1391,17 @@ function ct_preprocess_comment($comment) {
 		$ct_stop_words = $ct_result->stop_words;
 
 		$err_text = '<center>' . ((defined('CLEANTALK_DISABLE_BLOCKING_TITLE') && CLEANTALK_DISABLE_BLOCKING_TITLE == true) ? '' : '<b style="color: #49C73B;">Clean</b><b style="color: #349ebf;">Talk.</b> ') . __('Spam protection', 'cleantalk-spam-protect') . "</center><br><br>\n" . $ct_result->comment;
-		$err_text .= '<script>setTimeout("history.back()", 5000);</script>';
+		if( ! $ct_jp_comments ) {
+            $err_text .= '<script>setTimeout("history.back()", 5000);</script>';
+        }
 
 		// Terminate. Definitely spam.
 		if($ct_result->stop_queue == 1)
-			wp_die($err_text, 'Blacklisted', array('response' => 200, 'back_link' => true));
+			wp_die($err_text, 'Blacklisted', array('response' => 200, 'back_link' => ! $ct_jp_comments ));
 
 		// Terminate by user's setting.
 		if($ct_result->spam == 3)
-			wp_die($err_text, 'Blacklisted', array('response' => 200, 'back_link' => true));
+			wp_die($err_text, 'Blacklisted', array('response' => 200, 'back_link' => ! $ct_jp_comments));
 
 		// Trash comment.
 		if($ct_result->spam == 2){
@@ -1538,12 +1546,14 @@ function apbct_comment__wordpress__show_blacklists( $notify_message, $comment_id
  */
 function ct_die($comment_id, $comment_status) {
 
-    global $ct_comment;
+    global $ct_comment, $ct_jp_comments;
 
     do_action( 'apbct_pre_block_page', $ct_comment );
 
 	$err_text = '<center>' . ((defined('CLEANTALK_DISABLE_BLOCKING_TITLE') && CLEANTALK_DISABLE_BLOCKING_TITLE == true) ? '' : '<b style="color: #49C73B;">Clean</b><b style="color: #349ebf;">Talk.</b> ') . __('Spam protection', 'cleantalk-spam-protect') . "</center><br><br>\n" . $ct_comment;
-        $err_text .= '<script>setTimeout("history.back()", 5000);</script>';
+        if( ! $ct_jp_comments ) {
+            $err_text .= '<script>setTimeout("history.back()", 5000);</script>';
+        }
         if(isset($_POST['et_pb_contact_email']))
         {
         	$mes='<div id="et_pb_contact_form_1" class="et_pb_contact_form_container clearfix"><h1 class="et_pb_contact_main_title">Blacklisted</h1><div class="et-pb-contact-message"><p>'.$ct_comment.'</p></div></div>';
@@ -1551,7 +1561,7 @@ function ct_die($comment_id, $comment_status) {
         }
         else
         {
-        	wp_die($err_text, 'Blacklisted', array('response' => 200, 'back_link' => true));
+        	wp_die($err_text, 'Blacklisted', array('response' => 200, 'back_link' => ! $ct_jp_comments));
         }
 }
 
@@ -1561,9 +1571,13 @@ function ct_die($comment_id, $comment_status) {
  */
 function ct_die_extended($comment_body) {
 
+    global $ct_jp_comments;
+
 	$err_text = '<center>' . ((defined('CLEANTALK_DISABLE_BLOCKING_TITLE') && CLEANTALK_DISABLE_BLOCKING_TITLE == true) ? '' : '<b style="color: #49C73B;">Clean</b><b style="color: #349ebf;">Talk.</b> ') . __('Spam protection', 'cleantalk-spam-protect') . "</center><br><br>\n" . $comment_body;
+    if( ! $ct_jp_comments ) {
         $err_text .= '<script>setTimeout("history.back()", 5000);</script>';
-        wp_die($err_text, 'Blacklisted', array('response' => 200, 'back_link' => true));
+    }
+    wp_die($err_text, 'Blacklisted', array('response' => 200, 'back_link' => ! $ct_jp_comments));
 }
 
 /**
