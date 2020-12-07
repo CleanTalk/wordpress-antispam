@@ -685,11 +685,11 @@ function apbct_activation( $network = false ) {
 	// UA BL
     $sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_ua_bl` (
 			`id` INT(11) NOT NULL,
-			`ua_template` VARCHAR(512) NULL DEFAULT NULL,
+			`ua_template` VARCHAR(255) NULL DEFAULT NULL,
 			`ua_status` TINYINT(1) NULL DEFAULT NULL,
 			PRIMARY KEY ( `id` ),
-			INDEX ( `ua_template` )
-		);';
+			INDEX ( `ua_template` )			
+		) DEFAULT CHARSET=utf8;'; // Don't remove the default charset!
 	
 	// SFW log
 	$sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_sfw_logs` (
@@ -808,11 +808,11 @@ function apbct_activation__new_blog($blog_id, $user_id, $domain, $path, $site_id
         // UA BL
         $sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_ua_bl` (
 			`id` INT(11) NOT NULL,
-			`ua_template` VARCHAR(512) NULL DEFAULT NULL,
+			`ua_template` VARCHAR(255) NULL DEFAULT NULL,
 			`ua_status` TINYINT(1) NULL DEFAULT NULL,
 			PRIMARY KEY ( `id` ),
-			INDEX ( `ua_template` )
-		);';
+			INDEX ( `ua_template` )			
+		) DEFAULT CHARSET=utf8;'; // Don't remove the default charset!
 
 	
 	    // SFW log
