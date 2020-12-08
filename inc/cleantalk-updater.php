@@ -640,11 +640,11 @@ function apbct_update_to_5_149_2() {
 
     $sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_ua_bl` (
 			`id` INT(11) NOT NULL,
-			`ua_template` VARCHAR(512) NULL DEFAULT NULL,
+			`ua_template` VARCHAR(255) NULL DEFAULT NULL,
 			`ua_status` TINYINT(1) NULL DEFAULT NULL,
 			PRIMARY KEY ( `id` ),
-			INDEX ( `ua_template` )
-		);';
+			INDEX ( `ua_template` )			
+		) DEFAULT CHARSET=utf8;'; // Don't remove the default charset!
 
     $sqls[] = 'DROP TABLE IF EXISTS `%scleantalk_sfw_logs`;';
 
@@ -688,4 +688,21 @@ function apbct_update_to_5_150_0() {
 		switch_to_blog($initial_blog);
 	}
 
+}
+
+function apbct_update_to_5_150_1() {
+
+    global $apbct;
+
+    // UA BL with default charset
+    $sqls[] = 'DROP TABLE IF EXISTS `%scleantalk_ua_bl`;';
+    $sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_ua_bl` (
+			`id` INT(11) NOT NULL,
+			`ua_template` VARCHAR(255) NULL DEFAULT NULL,
+			`ua_status` TINYINT(1) NULL DEFAULT NULL,
+			PRIMARY KEY ( `id` ),
+			INDEX ( `ua_template` )			
+		) DEFAULT CHARSET=utf8;'; // Don't remove the default charset!
+
+    apbct_activation__create_tables( $sqls, $apbct->db_prefix );
 }
