@@ -1537,6 +1537,15 @@ function apbct_settings__validate($settings) {
 			$settings['apikey'] = '';
 		}
 	}
+
+	// Alt sessions table clearing
+    if( empty( $settings['set_cookies__sessions'] ) ) {
+        if( empty( $settings['store_urls__sessions'] ) ) {
+            apbct_alt_sessions__clear();
+        } else {
+            apbct_alt_sessions__clear( false );
+        }
+    }
 	
 	return $settings;
 }

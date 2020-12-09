@@ -1618,6 +1618,21 @@ function apbct_alt_sessions__remove_old(){
 		);
 	}
 }
+function apbct_alt_sessions__clear( $full_clear = true ) {
+    global $wpdb;
+    if( $full_clear ) {
+        $res = $wpdb->query(
+            'TRUNCATE TABLE '. APBCT_TBL_SESSIONS .';'
+        );
+    } else {
+        $res = $wpdb->query(
+            'DELETE FROM `'. APBCT_TBL_SESSIONS .'`
+            WHERE name NOT IN ( "apbct_urls", "apbct_site_referer" ) 
+            LIMIT 100000;'
+        );
+    }
+    return $res;
+}
 
 function apbct_alt_session__save($name, $value){
 	
