@@ -42,7 +42,7 @@ define('APBCT_DEBUG',            'cleantalk_debug');            //Option name wi
 define('APBCT_WPMS', (is_multisite() ? true : false)); // WMPS is enabled
 
 // Sessions
-define('APBCT_SEESION__LIVE_TIME', 86400*2);
+define('APBCT_SEESION__LIVE_TIME', 86400);
 define('APBCT_SEESION__CHANCE_TO_CLEAN', 100);
 
 // Different params
