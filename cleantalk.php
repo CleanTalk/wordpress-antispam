@@ -109,7 +109,7 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 	define('APBCT_TBL_FIREWALL_DATA', $apbct->db_prefix . 'cleantalk_sfw');      // Table with firewall data.
 	define('APBCT_TBL_FIREWALL_LOG',  $apbct->db_prefix . 'cleantalk_sfw_logs'); // Table with firewall logs.
 	define('APBCT_TBL_AC_LOG',        $apbct->db_prefix . 'cleantalk_ac_log');   // Table with firewall logs.
-    define('APBCT_TBL_AC_UA_BL',      $apbct->db_prefix . 'cleantalk_ua_bl');    // Table with User Agents blacklist.
+    define('APBCT_TBL_AC_UA_BL',      $apbct->db_prefix . 'cleantalk_ua_bl');    // Table with User-Agents blacklist.
 	define('APBCT_TBL_SESSIONS',      $apbct->db_prefix . 'cleantalk_sessions'); // Table with session data.
     define('APBCT_SPAMSCAN_LOGS',     $apbct->db_prefix . 'cleantalk_spamscan_logs'); // Table with session data.
 	define('APBCT_SELECT_LIMIT',      5000); // Select limit for logs.

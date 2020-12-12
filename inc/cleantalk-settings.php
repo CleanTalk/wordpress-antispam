@@ -439,9 +439,9 @@ function apbct_settings__set_fileds( $fields ){
 				),
 				'sfw__anti_crawler_ua' => array(
                     'type'        => 'checkbox',
-                    'title'       => __('Block bots by User Agents', 'cleantalk-spam-protect'),
+                    'title'       => __('Block bots by User-Agents', 'cleantalk-spam-protect'),
                     'parent'      => 'sfw__anti_crawler',
-                    'description' => __('The option allows you to block or allow bots by their User Agents. Supports black and white lists.', 'cleantalk-spam-protect')
+                    'description' => __('The option allows you to block or allow bots by their User-Agents. Supports black and white lists.', 'cleantalk-spam-protect')
                     . '<br>'
                     . __( 'This option improves the accuracy of Anti-Crawler and allows you to manage rules for specific bots.', 'cleantalk-spam-protect' ),
                 ),

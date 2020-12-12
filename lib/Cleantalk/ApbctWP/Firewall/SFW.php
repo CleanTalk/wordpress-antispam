@@ -386,7 +386,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 			
 			if( empty( $result['error'] ) ){
 
-			    // User Agents blacklist
+			    // User-Agents blacklist
                 if( ! empty( $result['file_ua_url'] ) && $apbct->settings['sfw__anti_crawler'] ){
                     $ua_bl_res = AntiCrawler::update( trim( $result['file_ua_url'] ) );
                     if( ! empty( $ua_bl_res['error'] ) )
