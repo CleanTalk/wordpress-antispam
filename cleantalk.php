@@ -183,6 +183,7 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
         'SimpleMembership'     => array( 'hook' => 'swpm_front_end_registration_complete_user_data', 'ajax' => false ),
         'EstimationForm'       => array( 'hook' => 'send_email', 'ajax' => true ),
         'LandingPageBuilder'   => array( 'hook' => 'ulpb_formBuilderEmail_ajax', 'ajax' => true ),
+        'WpMembers'            => array( 'hook' => 'wpmem_pre_register_data', 'ajax' => false ),
     );
     new  \Cleantalk\Antispam\Integrations( $apbct_active_integrations );
 	
