@@ -54,7 +54,8 @@ class Integrations
                                 'comment_type' => 'contact_form_wordpress_' . strtolower($current_integration),
                                 'post_url' => apbct_get_server_variable( 'HTTP_REFERER' ), // Page URL must be an previous page
                             ),
-                        )
+                        ),
+                        isset( $data['register'] ) ? true : false
                     );
 
                     $ct_result = $base_call_result['ct_result'];

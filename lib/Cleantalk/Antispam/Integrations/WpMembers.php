@@ -9,7 +9,9 @@ class WpMembers extends IntegrationBase
 
     function getDataForChecking( $argument )
     {
-        return ct_get_fields_any( $argument );
+        $data = ct_get_fields_any( $argument );
+        $data['register'] = true;
+        return $data;
     }
 
     function doBlock( $message )
