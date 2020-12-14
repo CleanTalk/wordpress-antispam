@@ -50,7 +50,3 @@ function ct_save_screen_option() {
     }, 10, 3 );
 
 }
-
-// Add checked icons into users table
-add_filter( 'manage_users_columns',       array( '\Cleantalk\ApbctWP\FindSpam\UsersChecker', 'ct_manage_users_columns' ), 10, 1 );
-add_filter( 'manage_users_custom_column', array( '\Cleantalk\ApbctWP\FindSpam\UsersChecker', 'ct_manage_users_custom_column' ), 10, 3 );
