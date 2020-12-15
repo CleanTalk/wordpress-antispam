@@ -179,15 +179,14 @@ function apbct_admin__init(){
 	}
 	
 	// Getting key like hoster. Only once!
-	if(!is_main_site() && $apbct->white_label && ( empty($apbct->api_key) || $apbct->settings['apikey'] == $apbct->network_settings['apikey'] ) ){
-		
-		$_POST['submit'] = 'get_key_auto';
-		$apbct->save('settings');
-		$settings = get_option('cleantalk_settings');
-		$apbct->api_key = $settings['apikey'];
-		unset($_POST['submit']);
-		
-	}
+    if(!is_main_site() && $apbct->white_label && ( empty($apbct->api_key) || $apbct->settings['apikey'] == $apbct->network_settings['apikey'] ) ){
+        $_POST['submit'] = 'get_key_auto';
+        $settings = apbct_settings__validate(array());
+        $apbct->api_key = $settings['apikey'];
+        $apbct->save('settings');
+        unset($_POST['submit']);
+
+    }
 }
 
 function apbct_admin__init___ajax_actions(){
