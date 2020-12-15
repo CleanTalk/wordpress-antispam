@@ -1095,7 +1095,7 @@ function ct_sfw_update($api_key = '', $immediate = false){
 							'spbc_remote_call_token'  => md5($api_key),
 							'spbc_remote_call_action' => 'sfw_update',
 							'plugin_name'             => 'apbct',
-                            'file_urls'               => $file_urls,
+                            'file_urls'               => str_replace( array( 'http://', 'https://' ), '', $file_urls ),
                             'url_count'               => $url_count,
                             'current_url'             => $current_url,
 						),

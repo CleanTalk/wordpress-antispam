@@ -442,7 +442,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 														'spbc_remote_call_token'  => md5( $ct_key ),
 														'spbc_remote_call_action' => 'sfw_update',
 														'plugin_name'             => 'apbct',
-														'file_urls'               => $file_url,
+														'file_urls'               => str_replace( array( 'http://', 'https://' ), '', $file_url ),
                                                         'url_count'               => count( $lines ),
                                                         'current_url'             => 0,
 													),
