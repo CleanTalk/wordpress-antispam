@@ -417,37 +417,31 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 										$data = gzdecode( $gz_data );
 										
 										if( $data !== false ){
-											
-											$result__clear_db = self::clear_data_table( $db, $db__table__data );
-											
-											if( empty( $result__clear_db['error'] ) ){
-												
-												$lines = Helper::buffer__parse__csv( $data );
-												
-												$patterns   = array();
-												$patterns[] = 'get';
-												
-												if( ! $immediate ){
-													$patterns[] = 'async';
-												}
-												
-												return Helper::http__request(
-													get_option( 'siteurl' ),
-													array(
-														'spbc_remote_call_token'  => md5( $ct_key ),
-														'spbc_remote_call_action' => 'sfw_update',
-														'plugin_name'             => 'apbct',
-														'file_urls'               => str_replace( array( 'http://', 'https://' ), '', $file_url ),
-                                                        'url_count'               => count( $lines ),
-                                                        'current_url'             => 0,
-                                                        // Additional params
-                                                        'firewall_updating_id'    => $apbct->data['firewall_updating_id'],
-													),
-													$patterns
-												);
-												
-											}else
-												return $result__clear_db;
+
+                                            $lines = Helper::buffer__parse__csv( $data );
+
+                                            $patterns   = array();
+                                            $patterns[] = 'get';
+
+                                            if( ! $immediate ){
+                                                $patterns[] = 'async';
+                                            }
+
+                                            return Helper::http__request(
+                                                get_option( 'siteurl' ),
+                                                array(
+                                                    'spbc_remote_call_token'  => md5( $ct_key ),
+                                                    'spbc_remote_call_action' => 'sfw_update',
+                                                    'plugin_name'             => 'apbct',
+                                                    'file_urls'               => str_replace( array( 'http://', 'https://' ), '', $file_url ),
+                                                    'url_count'               => count( $lines ),
+                                                    'current_url'             => 0,
+                                                    // Additional params
+                                                    'firewall_updating_id'    => $apbct->data['firewall_updating_id'],
+                                                ),
+                                                $patterns
+                                            );
+
 										}else
 											return array('error' => 'COULD_DECODE_MULTIFILE');
 									}else
