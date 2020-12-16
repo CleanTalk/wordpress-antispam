@@ -378,7 +378,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 	    global $apbct;
 
 		// Getting remote file name
-		if(!$file_url){
+		if( ! $file_url ){
 			
 			$result = \Cleantalk\Common\API::method__get_2s_blacklists_db($ct_key, 'multifiles', '3_0');
 			
@@ -422,13 +422,6 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 												
 												$lines = Helper::buffer__parse__csv( $data );
 												
-												/*$file_urls = array();
-												
-												while( current( $lines ) !== false ){
-													$file_urls[] = current( $lines )[0];
-													next( $lines );
-												}*/
-												
 												$patterns   = array();
 												$patterns[] = 'get';
 												
@@ -445,6 +438,8 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 														'file_urls'               => str_replace( array( 'http://', 'https://' ), '', $file_url ),
                                                         'url_count'               => count( $lines ),
                                                         'current_url'             => 0,
+                                                        // Additional params
+                                                        'firewall_updating_id'    => $apbct->data['firewall_updating_id'],
 													),
 													$patterns
 												);
@@ -561,4 +556,33 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 		}
 		$db->execute( "ALTER TABLE {$db__table__data} AUTO_INCREMENT = 1;" ); // Drop AUTO INCREMENT
 	}
+
+    /**
+     * Creatin a temporary updating table
+     *
+     * @param \wpdb $db database handler
+     */
+    public static function create_temp_tables( $db ){
+        $db->execute( 'CREATE TABLE IF NOT EXISTS `' . APBCT_TBL_FIREWALL_DATA . '_temp` LIKE `' . APBCT_TBL_FIREWALL_DATA . '`;' );
+
+    }
+
+    /**
+     * Removing a temporary updating table
+     *
+     * @param \wpdb $db database handler
+     */
+    public static function delete_main_data_tables( $db ){
+        $db->execute( 'DROP TABLE `'. APBCT_TBL_FIREWALL_DATA .'`;' );
+    }
+
+    /**
+     * Renamin a temporary updating table into production table name
+     *
+     * @param \wpdb $db database handler
+     */
+    public static function rename_data_tables( $db ){
+        $db->execute( 'ALTER TABLE `'. APBCT_TBL_FIREWALL_DATA .'_temp` RENAME `'. APBCT_TBL_FIREWALL_DATA .'`;' );
+    }
+
 }

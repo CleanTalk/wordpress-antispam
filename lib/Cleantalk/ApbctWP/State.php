@@ -201,6 +201,12 @@ class State
 		'feedback_request' => '',
 		'key_is_ok'        => 0,
 		'salt'             => '',
+
+        //FireWall
+        'firewall_updating_id'         => null,
+        'firewall_update_percent'      => 0,
+        'firewall_updating_last_start' => 0,
+
 	);
 	
 	public $def_network_settings = array(
