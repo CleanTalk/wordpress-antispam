@@ -141,9 +141,9 @@ class Helper
 				
 				// OVH
 			}elseif(isset($headers['X-Cdn-Any-Ip'], $headers['Remote-Ip'])){
-				$ip_type = self::ip__validate($headers['X-Cdn-Any-Ip']);
+				$ip_type = self::ip__validate($headers['Remote-Ip']);
 				if($ip_type)
-					$ips['real'] = $ip_type == 'v6' ? self::ip__v6_normalize($headers['X-Cdn-Any-Ip']) : $headers['X-Cdn-Any-Ip'];
+					$ips['real'] = $ip_type == 'v6' ? self::ip__v6_normalize($headers['Remote-Ip']) : $headers['Remote-Ip'];
 				
 				// Incapsula proxy
 			}elseif(isset($headers['Incap-Client-Ip'])){
