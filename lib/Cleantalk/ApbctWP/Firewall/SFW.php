@@ -538,7 +538,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
      */
     public static function create_temp_tables( $db ){
         $db->execute( 'CREATE TABLE IF NOT EXISTS `' . APBCT_TBL_FIREWALL_DATA . '_temp` LIKE `' . APBCT_TBL_FIREWALL_DATA . '`;' );
-
+        $db->execute( 'TRUNCATE TABLE `' . APBCT_TBL_FIREWALL_DATA . '_temp`;' );
     }
 
     /**
