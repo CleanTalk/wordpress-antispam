@@ -61,7 +61,7 @@ class State
 		'sfw__anti_flood'               => 0,
 		'sfw__anti_flood__view_limit'   => 10,
 		'sfw__anti_crawler'             => 0,
-        'sfw__anti_crawler_ua'          => 0,
+        'sfw__anti_crawler_ua'          => 1,
 		'apikey'                        => '',
 		'autoPubRevelantMess'           => 0,
 		
@@ -201,6 +201,12 @@ class State
 		'feedback_request' => '',
 		'key_is_ok'        => 0,
 		'salt'             => '',
+
+        //FireWall
+        'firewall_updating_id'         => null,
+        'firewall_update_percent'      => 0,
+        'firewall_updating_last_start' => 0,
+
 	);
 	
 	public $def_network_settings = array(

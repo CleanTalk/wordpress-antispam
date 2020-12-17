@@ -171,13 +171,15 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 			status = '$status',
 			all_entries = 1,
 			blocked_entries = 1,
-			entries_timestamp = '" . $time . "'
+			entries_timestamp = '" . $time . "',
+			ua_name = '" . Server::get('HTTP_USER_AGENT') . "'
 		ON DUPLICATE KEY
 		UPDATE
 			status = '$status',
 			all_entries = all_entries + 1,
 			blocked_entries = blocked_entries" . ( strpos( $status, 'DENY' ) !== false ? ' + 1' : '' ) . ",
-			entries_timestamp = '" . intval( $time ) . "'";
+			entries_timestamp = '" . intval( $time ) . "',
+			ua_name = '" . Server::get('HTTP_USER_AGENT') . "'";
 		
 		$this->db->execute( $query );
 	}
@@ -378,7 +380,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 	    global $apbct;
 
 		// Getting remote file name
-		if(!$file_url){
+		if( ! $file_url ){
 			
 			$result = \Cleantalk\Common\API::method__get_2s_blacklists_db($ct_key, 'multifiles', '3_0');
 			
@@ -386,7 +388,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 			
 			if( empty( $result['error'] ) ){
 
-			    // User Agents blacklist
+			    // User-Agents blacklist
                 if( ! empty( $result['file_ua_url'] ) && $apbct->settings['sfw__anti_crawler'] ){
                     $ua_bl_res = AntiCrawler::update( trim( $result['file_ua_url'] ) );
                     if( ! empty( $ua_bl_res['error'] ) )
@@ -415,42 +417,31 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 										$data = gzdecode( $gz_data );
 										
 										if( $data !== false ){
-											
-											$result__clear_db = self::clear_data_table( $db, $db__table__data );
-											
-											if( empty( $result__clear_db['error'] ) ){
-												
-												$lines = Helper::buffer__parse__csv( $data );
-												
-												/*$file_urls = array();
-												
-												while( current( $lines ) !== false ){
-													$file_urls[] = current( $lines )[0];
-													next( $lines );
-												}*/
-												
-												$patterns   = array();
-												$patterns[] = 'get';
-												
-												if( ! $immediate ){
-													$patterns[] = 'async';
-												}
-												
-												return Helper::http__request(
-													get_option( 'siteurl' ),
-													array(
-														'spbc_remote_call_token'  => md5( $ct_key ),
-														'spbc_remote_call_action' => 'sfw_update',
-														'plugin_name'             => 'apbct',
-														'file_urls'               => $file_url,
-                                                        'url_count'               => count( $lines ),
-                                                        'current_url'             => 0,
-													),
-													$patterns
-												);
-												
-											}else
-												return $result__clear_db;
+
+                                            $lines = Helper::buffer__parse__csv( $data );
+
+                                            $patterns   = array();
+                                            $patterns[] = 'get';
+
+                                            if( ! $immediate ){
+                                                $patterns[] = 'async';
+                                            }
+
+                                            return Helper::http__request(
+                                                get_option( 'siteurl' ),
+                                                array(
+                                                    'spbc_remote_call_token'  => md5( $ct_key ),
+                                                    'spbc_remote_call_action' => 'sfw_update',
+                                                    'plugin_name'             => 'apbct',
+                                                    'file_urls'               => str_replace( array( 'http://', 'https://' ), '', $file_url ),
+                                                    'url_count'               => count( $lines ),
+                                                    'current_url'             => 0,
+                                                    // Additional params
+                                                    'firewall_updating_id'    => $apbct->data['firewall_updating_id'],
+                                                ),
+                                                $patterns
+                                            );
+
 										}else
 											return array('error' => 'COULD_DECODE_MULTIFILE');
 									}else
@@ -469,7 +460,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 				return $result;
 		}else{
 			
-			$response_code = Helper::http__request($file_url, array(), 'get_code');
+			$response_code = Helper::http__request( 'https://' . $file_url, array(), 'get_code' );
 			
 			if( empty( $response_code['error'] ) ){
 			
@@ -539,26 +530,33 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 				return array('error' => 'FILE_COULD_NOT_GET_RESPONSE_CODE: '. $response_code['error'] );
 		}
 	}
-	
-	/**
-	 * Clear SFW table
-	 *
-	 * @param $db
-	 * @param $db__table__data
-	 *
-	 * @return string[]
-	 */
-	public static function clear_data_table( $db, $db__table__data ) {
-		
-		$db->execute( "TRUNCATE TABLE {$db__table__data};" );
-		$db->set_query( "SELECT COUNT(network) as cnt FROM {$db__table__data};" )->fetch(); // Check if it is clear
-		if( $db->result['cnt'] != 0 ){
-			$db->execute( "DELETE FROM {$db__table__data};" ); // Truncate table
-			$db->set_query( "SELECT COUNT(network) as cnt FROM {$db__table__data};" )->fetch(); // Check if it is clear
-			if( $db->result['cnt'] != 0 ){
-				return array( 'error' => 'COULD_NOT_CLEAR_SFW_TABLE' ); // throw an error
-			}
-		}
-		$db->execute( "ALTER TABLE {$db__table__data} AUTO_INCREMENT = 1;" ); // Drop AUTO INCREMENT
-	}
+
+    /**
+     * Creatin a temporary updating table
+     *
+     * @param \wpdb $db database handler
+     */
+    public static function create_temp_tables( $db ){
+        $db->execute( 'CREATE TABLE IF NOT EXISTS `' . APBCT_TBL_FIREWALL_DATA . '_temp` LIKE `' . APBCT_TBL_FIREWALL_DATA . '`;' );
+        $db->execute( 'TRUNCATE TABLE `' . APBCT_TBL_FIREWALL_DATA . '_temp`;' );
+    }
+
+    /**
+     * Removing a temporary updating table
+     *
+     * @param \wpdb $db database handler
+     */
+    public static function delete_main_data_tables( $db ){
+        $db->execute( 'DROP TABLE `'. APBCT_TBL_FIREWALL_DATA .'`;' );
+    }
+
+    /**
+     * Renamin a temporary updating table into production table name
+     *
+     * @param \wpdb $db database handler
+     */
+    public static function rename_data_tables( $db ){
+        $db->execute( 'ALTER TABLE `'. APBCT_TBL_FIREWALL_DATA .'_temp` RENAME `'. APBCT_TBL_FIREWALL_DATA .'`;' );
+    }
+
 }

@@ -53,6 +53,8 @@ class Helper
 		'apix1.cleantalk.org' => '35.158.52.161',
 		'apix2.cleantalk.org' => '18.206.49.217',
 		'apix3.cleantalk.org' => '3.18.23.246',
+		'apix4.cleantalk.org' => '44.227.90.42',
+		'apix5.cleantalk.org' => '15.188.198.212',
 		//ns
 		'netserv2.cleantalk.org' => '178.63.60.214',
 		'netserv3.cleantalk.org' => '188.40.14.173',
@@ -139,9 +141,9 @@ class Helper
 				
 				// OVH
 			}elseif(isset($headers['X-Cdn-Any-Ip'], $headers['Remote-Ip'])){
-				$ip_type = self::ip__validate($headers['X-Cdn-Any-Ip']);
+				$ip_type = self::ip__validate($headers['Remote-Ip']);
 				if($ip_type)
-					$ips['real'] = $ip_type == 'v6' ? self::ip__v6_normalize($headers['X-Cdn-Any-Ip']) : $headers['X-Cdn-Any-Ip'];
+					$ips['real'] = $ip_type == 'v6' ? self::ip__v6_normalize($headers['Remote-Ip']) : $headers['Remote-Ip'];
 				
 				// Incapsula proxy
 			}elseif(isset($headers['Incap-Client-Ip'])){
@@ -755,7 +757,8 @@ class Helper
 	 */
 	static function get_mime_type( $data, $type = '' )
 	{
-		if( @file_exists( $data )){
+        $data = str_replace( chr(0), '', $data ); // Clean input of null bytes
+		if( ! empty( $data ) && @file_exists( $data )){
 			$type = mime_content_type( $data );
 		}elseif( function_exists('finfo_open' ) ){
 			$finfo = finfo_open(FILEINFO_MIME_TYPE);

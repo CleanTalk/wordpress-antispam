@@ -439,9 +439,9 @@ function apbct_settings__set_fileds( $fields ){
 				),
 				'sfw__anti_crawler_ua' => array(
                     'type'        => 'checkbox',
-                    'title'       => __('Block bots by User Agents', 'cleantalk-spam-protect'),
+                    'title'       => __('Block bots by User-Agents', 'cleantalk-spam-protect'),
                     'parent'      => 'sfw__anti_crawler',
-                    'description' => __('The option allows you to block or allow bots by their User Agents. Supports black and white lists.', 'cleantalk-spam-protect')
+                    'description' => __('The option allows you to block or allow bots by their User-Agents. Supports black and white lists.', 'cleantalk-spam-protect')
                     . '<br>'
                     . __( 'This option improves the accuracy of Anti-Crawler and allows you to manage rules for specific bots.', 'cleantalk-spam-protect' ),
                 ),
@@ -1088,6 +1088,7 @@ function apbct_settings__field__statistics() {
 			$apbct->stats['sfw']['last_update_time'] ? date('M d Y H:i:s', $apbct->stats['sfw']['last_update_time']) : __('unknown', 'cleantalk-spam-protect'),
 			isset($sfw_netwoks_amount[0]['cnt']) ? $sfw_netwoks_amount[0]['cnt'] : __('unknown', 'cleantalk-spam-protect')
 		);
+		echo $apbct->data['firewall_updating_id'] ? ' ' . __('Under updating now:', 'cleantalk-spam-protect') . ' ' . $apbct->data['firewall_update_percent'] . '%' : '';
 		echo '<br>';
 
 		// SFW last sent logs
@@ -1537,6 +1538,15 @@ function apbct_settings__validate($settings) {
 			$settings['apikey'] = '';
 		}
 	}
+
+	// Alt sessions table clearing
+    if( empty( $settings['set_cookies__sessions'] ) ) {
+        if( empty( $settings['store_urls__sessions'] ) ) {
+            apbct_alt_sessions__clear();
+        } else {
+            apbct_alt_sessions__clear( false );
+        }
+    }
 	
 	return $settings;
 }

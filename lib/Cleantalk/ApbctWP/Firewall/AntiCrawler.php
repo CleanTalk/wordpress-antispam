@@ -169,7 +169,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 
                     foreach( $ua_bl_results as $ua_bl_result ){
 
-                        if( ! empty( $ua_bl_result['ua_template'] ) && preg_match( "$". str_replace( '"', '', $ua_bl_result['ua_template'] ) ."$", Server::get('HTTP_USER_AGENT') ) ) {
+                        if( ! empty( $ua_bl_result['ua_template'] ) && preg_match( "%". str_replace( '"', '', $ua_bl_result['ua_template'] ) ."%i", Server::get('HTTP_USER_AGENT') ) ) {
 
                             $this->ua_id = $ua_bl_result['id'];
 

@@ -37,10 +37,6 @@ function apbct_add_buttons_to_comments_and_users( $unused_argument ) {
         <img src="' . $apbct->logo__small__colored . '" alt="Cleantalk Antispam logo"  height="" style="width: 17px; vertical-align: text-bottom;" />
         ' . sprintf(__( 'Find spam %s', 'cleantalk-spam-protect'), $button_description ) . '
     </a>
-    <a href="https://cleantalk.org/my/show_requests?service_id=' . $apbct->data['service_id'] . '&int=week" target="_blank" class="button" style="margin:1px 0 0 0; display: inline-block;">
-        <img src="' . $apbct->logo__small__colored . '" alt="Cleantalk Antispam logo"  height="" style="width: 17px; vertical-align: text-bottom;" />
-        ' . __( 'CleanTalk Anti-Spam Log', 'cleantalk-spam-protect') . '
-    </a>
     ';
 
 }
@@ -183,15 +179,14 @@ function apbct_admin__init(){
 	}
 	
 	// Getting key like hoster. Only once!
-	if(!is_main_site() && $apbct->white_label && ( empty($apbct->api_key) || $apbct->settings['apikey'] == $apbct->network_settings['apikey'] ) ){
-		
-		$_POST['submit'] = 'get_key_auto';
-		$apbct->save('settings');
-		$settings = get_option('cleantalk_settings');
-		$apbct->api_key = $settings['apikey'];
-		unset($_POST['submit']);
-		
-	}
+    if(!is_main_site() && $apbct->white_label && ( empty($apbct->api_key) || $apbct->settings['apikey'] == $apbct->network_settings['apikey'] ) ){
+        $_POST['submit'] = 'get_key_auto';
+        $settings = apbct_settings__validate(array());
+        $apbct->api_key = $settings['apikey'];
+        $apbct->save('settings');
+        unset($_POST['submit']);
+
+    }
 }
 
 function apbct_admin__init___ajax_actions(){

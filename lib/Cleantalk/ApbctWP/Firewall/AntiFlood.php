@@ -147,13 +147,15 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule{
 			status = '$status',
 			all_entries = 1,
 			blocked_entries = 1,
-			entries_timestamp = '" . intval( $time ) . "'
+			entries_timestamp = '" . intval( $time ) . "',
+			ua_name = '" . Server::get('HTTP_USER_AGENT') . "'
 		ON DUPLICATE KEY
 		UPDATE
 			status = '$status',
 			all_entries = all_entries + 1,
 			blocked_entries = blocked_entries" . ( strpos( $status, 'DENY' ) !== false ? ' + 1' : '' ) . ",
-			entries_timestamp = '" . intval( $time ) . "'";
+			entries_timestamp = '" . intval( $time ) . "',
+			ua_name = '" . Server::get('HTTP_USER_AGENT') . "'";
 		
 		$this->db->execute( $query );
 	}

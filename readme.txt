@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 3.0
 Tested up to: 5.6
 Requires PHP: 5.4
-Stable tag: 5.150.1
+Stable tag: 5.151
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -579,6 +579,29 @@ If your website has forms that send data to external sources, you can enable opt
 10. Website's options.
 
 == Changelog ==
+
+= 5.151 Dec 17 2020 =
+ * Mod: Cleantalk Alternative Sessions. Store time reduces to 1 day.
+ * Fix: Unusable alternative cookies table clearing.
+ * Fix: AC UA case insensitive checking fixed.
+ * Fix: AC UA enabled by default.
+ * Fix: AC UA spelling fixed.
+ * Fix: skip ajax mailpoet import users.
+ * Fix: Helper::get_mime_type().
+ * Fix: Users - spam/not spam icons removed.
+ * Fix: Users/Comments - additional button removed.
+ * Integration: WP Members integration implemented.
+ * Fix: Prevent mod_security protection blocking.
+ * Fix: WLM sub site key getting fixed.
+ * New: SFW updating through a temporary table.
+ * New: UA logging for all FW modules.
+ * Fix: Replace clearing table from SFW updating process.
+ * Fix: SFW - Unused method removed.
+ * Fix: IP detection.
+ * Fix: Helper - Clean input of null bytes.
+ * Fix: SFW updating - https protocol returned.
+ * Fix: SFW updating - truncating temporary table.
+ * Fix: SFW updating process percents added.
 
 = 5.150.1 Dec 8 2020 =
  * Fix: Jetpack logic fixed.
