@@ -530,28 +530,6 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 				return array('error' => 'FILE_COULD_NOT_GET_RESPONSE_CODE: '. $response_code['error'] );
 		}
 	}
-	
-	/**
-	 * Clear SFW table
-	 *
-	 * @param $db
-	 * @param $db__table__data
-	 *
-	 * @return string[]
-	 */
-	public static function clear_data_table( $db, $db__table__data ) {
-		
-		$db->execute( "TRUNCATE TABLE {$db__table__data};" );
-		$db->set_query( "SELECT COUNT(network) as cnt FROM {$db__table__data};" )->fetch(); // Check if it is clear
-		if( $db->result['cnt'] != 0 ){
-			$db->execute( "DELETE FROM {$db__table__data};" ); // Truncate table
-			$db->set_query( "SELECT COUNT(network) as cnt FROM {$db__table__data};" )->fetch(); // Check if it is clear
-			if( $db->result['cnt'] != 0 ){
-				return array( 'error' => 'COULD_NOT_CLEAR_SFW_TABLE' ); // throw an error
-			}
-		}
-		$db->execute( "ALTER TABLE {$db__table__data} AUTO_INCREMENT = 1;" ); // Drop AUTO INCREMENT
-	}
 
     /**
      * Creatin a temporary updating table
