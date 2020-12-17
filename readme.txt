@@ -595,6 +595,13 @@ If your website has forms that send data to external sources, you can enable opt
  * Fix: WLM sub site key getting fixed.
  * New: SFW updating through a temporary table.
  * New: UA logging for all FW modules.
+ * Fix: Replace clearing table from SFW updating process.
+ * Fix: SFW - Unused method removed.
+ * Fix: IP detection.
+ * Fix: Helper - Clean input of null bytes.
+ * Fix: SFW updating - https protocol returned.
+ * Fix: SFW updating - truncating temporary table.
+ * Fix: SFW updating process percents added.
 
 = 5.150.1 Dec 8 2020 =
  * Fix: Jetpack logic fixed.
