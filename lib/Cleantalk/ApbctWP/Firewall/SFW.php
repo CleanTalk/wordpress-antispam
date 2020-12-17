@@ -460,7 +460,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 				return $result;
 		}else{
 			
-			$response_code = Helper::http__request($file_url, array(), 'get_code');
+			$response_code = Helper::http__request( 'https://' . $file_url, array(), 'get_code' );
 			
 			if( empty( $response_code['error'] ) ){
 			
