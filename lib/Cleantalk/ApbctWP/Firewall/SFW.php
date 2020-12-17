@@ -437,7 +437,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
                                                     'url_count'               => count( $lines ),
                                                     'current_url'             => 0,
                                                     // Additional params
-                                                    'firewall_updating_id'    => $apbct->data['firewall_updating_id'],
+                                                    'firewall_updating_id'    => $apbct->fw_stats['firewall_updating_id'],
                                                 ),
                                                 $patterns
                                             );

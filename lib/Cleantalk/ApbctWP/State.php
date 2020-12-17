@@ -202,11 +202,6 @@ class State
 		'key_is_ok'        => 0,
 		'salt'             => '',
 
-        //FireWall
-        'firewall_updating_id'         => null,
-        'firewall_update_percent'      => 0,
-        'firewall_updating_last_start' => 0,
-
 	);
 	
 	public $def_network_settings = array(
@@ -290,6 +285,13 @@ class State
 			),
 		)
 	);
+
+    private $default_fw_stats = array(
+        'firewall_updating'            => false,
+        'firewall_updating_id'         => null,
+        'firewall_update_percent'      => 0,
+        'firewall_updating_last_start' => 0,
+    );
 	
 	/**
 	 * @param string $option_prefix Database settings prefix
