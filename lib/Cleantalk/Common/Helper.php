@@ -757,6 +757,7 @@ class Helper
 	 */
 	static function get_mime_type( $data, $type = '' )
 	{
+        $data = str_replace( chr(0), '', $data ); // Clean input of null bytes
 		if( ! empty( $data ) && @file_exists( $data )){
 			$type = mime_content_type( $data );
 		}elseif( function_exists('finfo_open' ) ){
