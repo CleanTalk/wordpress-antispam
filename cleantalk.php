@@ -1120,8 +1120,9 @@ function ct_sfw_update( $api_key = '', $immediate = false ){
 
                     //Increment sfw entries
                     $apbct->stats['sfw']['entries'] += $result;
-                    $apbct->data['update_percent'] = round( ( ( (int) $current_url + 1 ) / (int) $url_count ), 2) * 100;
                     $apbct->save('stats');
+                    $apbct->data['firewall_update_percent'] = round( ( ( (int) $current_url + 1 ) / (int) $url_count ), 2) * 100;
+                    $apbct->save('data');
 
                     if ( $url_count > $current_url ) {
                         return Helper::http__request(
@@ -1147,7 +1148,7 @@ function ct_sfw_update( $api_key = '', $immediate = false ){
 
                         //Files array is empty update sfw stats
                         $apbct->data['last_firewall_updated'] = current_time('timestamp');
-                        $apbct->data['update_percent'] = 0;
+                        $apbct->data['firewall_update_percent'] = 0;
                         $apbct->data['firewall_updating_id'] = null;
                         $apbct->save('data');
 
