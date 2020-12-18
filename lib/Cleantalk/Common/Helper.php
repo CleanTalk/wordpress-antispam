@@ -55,6 +55,7 @@ class Helper
 		'apix3.cleantalk.org' => '3.18.23.246',
 		'apix4.cleantalk.org' => '44.227.90.42',
 		'apix5.cleantalk.org' => '15.188.198.212',
+        'apix6.cleantalk.org' => '54.219.94.72',
 		//ns
 		'netserv2.cleantalk.org' => '178.63.60.214',
 		'netserv3.cleantalk.org' => '188.40.14.173',
