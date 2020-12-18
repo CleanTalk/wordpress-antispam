@@ -146,7 +146,7 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule{
 			ip = '$ip',
 			status = '$status',
 			all_entries = 1,
-			blocked_entries = 1,
+			blocked_entries = " . ( strpos( $status, 'DENY' ) !== false ? 1 : 0 ) . ",
 			entries_timestamp = '" . intval( $time ) . "',
 			ua_name = '" . Server::get('HTTP_USER_AGENT') . "'
 		ON DUPLICATE KEY
