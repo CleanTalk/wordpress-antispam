@@ -332,9 +332,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 					$value['entries_timestamp'],
 				);
 				
-				if( $value['status'] )
-					$row[] = $value['status'];
-
+				$row[] = $value['status'];
                 $row[] = $value['ua_name']; // User-Agent name
                 $row[] = $value['ua_id']; // User-Agent ID
 
