@@ -706,3 +706,11 @@ function apbct_update_to_5_150_1() {
 
     apbct_activation__create_tables( $sqls, $apbct->db_prefix );
 }
+
+function apbct_update_to_5_151_1 () {
+    global $apbct;
+    $apbct->fw_stats['firewall_updating_id'] = $apbct->data['firewall_updating_id'];
+    $apbct->fw_stats['firewall_update_percent'] = $apbct->data['firewall_update_percent'];
+    $apbct->fw_stats['firewall_updating_last_start'] = $apbct->data['firewall_updating_last_start'];
+    $apbct->save('fw_stats');
+}

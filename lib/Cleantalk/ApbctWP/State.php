@@ -343,6 +343,11 @@ class State
 			if($this->option_prefix.'_'.$option_name === 'cleantalk_stats'){
 				$option = is_array($option) ? array_merge($this->def_stats, $option) : $this->def_stats;
 			}
+
+            // Default statistics
+            if($this->option_prefix.'_'.$option_name === 'cleantalk_fw_stats'){
+                $option = is_array($option) ? array_merge($this->default_fw_stats, $option) : $this->default_fw_stats;
+            }
 			
 			$this->$option_name = is_array($option) ? new ArrayObject($option) : $option;
 		}

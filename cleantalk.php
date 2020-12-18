@@ -67,7 +67,7 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
     
 	// Global ArrayObject with settings and other global varables
 	global $apbct;
-	$apbct = new \Cleantalk\ApbctWP\State('cleantalk', array('settings', 'data', 'debug', 'errors', 'remote_calls', 'stats'));
+	$apbct = new \Cleantalk\ApbctWP\State('cleantalk', array('settings', 'data', 'debug', 'errors', 'remote_calls', 'stats', 'fw_stats'));
 	
 	$apbct->base_name = 'cleantalk-spam-protect/cleantalk.php';
 	
