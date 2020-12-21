@@ -321,19 +321,16 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 				
 				$value['status'] = $value['status'] === 'PASS_SFW__BY_COOKIE' ? null               : $value['status'];
 				$value['status'] = $value['status'] === 'DENY_SFW'            ? null               : $value['status'];
-				
-				$row = array(
+
+                $data[] = array(
 					trim( $value['ip'] ),
 					$value['all_entries'],
 					$value['all_entries'] - $value['blocked_entries'],
 					$value['entries_timestamp'],
+                    $value['status'],
+                    $value['ua_name'], // User-Agent name
+                    $value['ua_id'],  // User-Agent ID
 				);
-				
-				$row[] = $value['status'];
-                $row[] = $value['ua_name']; // User-Agent name
-                $row[] = $value['ua_id']; // User-Agent ID
-
-				$data[] = $row;
 				
 			}
 			unset( $key, $value );
