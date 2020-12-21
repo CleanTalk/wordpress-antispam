@@ -1,5 +1,7 @@
 <?php
 
+use Cleantalk\Variables\Server;
+
 /**
  * Getting current user by cookie
  *
@@ -308,4 +310,17 @@ function apbct_wp_blacklist_check($author, $email, $url, $comment, $user_ip, $us
         return wp_blacklist_check( $author, $email, $url, $comment, $user_ip, $user_agent );
     }
 
+}
+
+/**
+ * Check if the site is being previewed in the Customizer.
+ * We can not use is_customize_preview() - the function must be called from init hook.
+ *
+ * @return bool
+ */
+function apbct_is_customize_preview() {
+
+    // Maybe not enough to check the Customizer preview
+    $uri = parse_url(Server::get('REQUEST_URI'));
+    return $uri && isset( $uri['query'] ) && strpos( $uri['query'], 'customize_changeset_uuid' ) !== false;
 }

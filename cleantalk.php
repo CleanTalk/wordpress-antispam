@@ -241,7 +241,7 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
     //add_action ('updated_option', 'apbct_after_options_updated', 10, 3);
 
 	// Public actions
-	if(!is_admin() && !apbct_is_ajax()){
+	if( ! is_admin() && ! apbct_is_ajax() && ! apbct_is_customize_preview() ){
 		
 		// Default search
 		//add_filter( 'get_search_form',  'apbct_forms__search__addField' );
@@ -252,7 +252,6 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 		if(isset($_GET['spbc_remote_call_token'], $_GET['spbc_remote_call_action'], $_GET['plugin_name']) && in_array($_GET['plugin_name'], array('antispam','anti-spam', 'apbct'))){
 			apbct_remote_call__perform();
 		}
-		
 		// SpamFireWall check
 		if( $apbct->plugin_version == APBCT_VERSION && // Do not call with first start
 			$apbct->settings['spam_firewall'] == 1 &&
