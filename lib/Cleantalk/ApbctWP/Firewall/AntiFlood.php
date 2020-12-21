@@ -140,10 +140,6 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule{
 	 */
 	public function update_log( $ip, $status ) {
 
-        if( in_array( $status, array( 'PASS_SFW__BY_WHITELIST', 'PASS_SFW', 'PASS_ANTIFLOOD', 'PASS_ANTICRAWLER', 'PASS_ANTICRAWLER_UA' ) ) ){
-            return;
-        }
-		
 		$id = md5( $ip . $this->module_name );
 		$time    = time();
 		
