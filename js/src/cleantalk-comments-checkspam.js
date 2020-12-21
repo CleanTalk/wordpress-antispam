@@ -323,10 +323,10 @@ jQuery(document).ready(function(){
 		document.cookie = 'ct_spam_dates_till='+ jQuery('#ct_date_range_till').val() +'; path=/; samesite=lax';
 		if( this.checked ) {
 			document.cookie = 'ct_spam_dates_allowed=1; path=/; samesite=lax';
-			jQuery('.ct_date').prop('checked', true).removeProp('disabled');
+			jQuery('.ct_date').prop('checked', true).attr('disabled',false);
 		} else {
 			document.cookie = 'ct_spam_dates_allowed=0; path=/; samesite=lax';
-			jQuery('.ct_date').prop('disabled', true).removeProp('checked');
+			jQuery('.ct_date').prop('disabled', true).attr('disabled',true);
 		}
 	});
 
