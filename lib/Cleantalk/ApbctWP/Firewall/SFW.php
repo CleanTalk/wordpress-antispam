@@ -320,6 +320,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 				$value['status'] = $value['status'] === 'PASS_ANTIFLOOD'      ? 'FLOOD_PROTECTION' : $value['status'];
 				
 				$value['status'] = $value['status'] === 'PASS_SFW__BY_COOKIE' ? null               : $value['status'];
+                $value['status'] = $value['status'] === 'PASS_SFW'            ? null               : $value['status'];
 				$value['status'] = $value['status'] === 'DENY_SFW'            ? null               : $value['status'];
 
                 $data[] = array(
