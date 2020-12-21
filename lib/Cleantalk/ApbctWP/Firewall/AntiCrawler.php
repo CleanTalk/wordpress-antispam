@@ -202,6 +202,9 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
                 if( Cookie::get( 'apbct_anticrawler_passed' ) == 1 ){
                     if( ! headers_sent() )
                         \Cleantalk\Common\Helper::apbct_cookie__set( 'apbct_anticrawler_passed', '0', time() - 86400, '/', null, false, true, 'Lax' );
+
+                    // Do logging an one passed request
+                    $this->update_log( $current_ip, 'PASS_ANTICRAWLER' );
                 }
 
                 $results[] = array( 'ip' => $current_ip, 'is_personal' => false, 'status' => 'PASS_ANTICRAWLER', );
@@ -296,11 +299,12 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 	 */
 	public function update_log( $ip, $status ) {
 
-        if( in_array( $status, array( 'PASS_SFW__BY_WHITELIST', 'PASS_SFW', 'PASS_ANTIFLOOD', 'PASS_ANTICRAWLER', 'PASS_ANTICRAWLER_UA' ) ) ){
-            return;
+	    if( strpos( '_UA', $status ) !== false ) {
+	        $id_str = $ip . $this->module_name . '_UA';
+        } else {
+            $id_str = $ip . $this->module_name;
         }
-		
-		$id   = md5( $ip . $status . $this->module_name );
+		$id   = md5( $id_str );
 		$time = time();
 		
 		$query = "INSERT INTO " . $this->db__table__logs . "
@@ -315,6 +319,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 				ua_name = '" . Server::get('HTTP_USER_AGENT') . "'
 			ON DUPLICATE KEY
 			UPDATE
+			    status = '$status',
 				all_entries = all_entries + 1,
 				blocked_entries = blocked_entries" . ( strpos( $status, 'DENY' ) !== false ? ' + 1' : '' ) . ",
 				entries_timestamp = '" . intval( $time ) . "',
