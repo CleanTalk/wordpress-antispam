@@ -580,6 +580,16 @@ If your website has forms that send data to external sources, you can enable opt
 
 == Changelog ==
 
+= 5.151.1 Dec 22 2020 =
+ * Upd: Firewall now has it's own options, independent from the other.
+ * Upd: New API server added.
+ * Fix: Wrong count of blocked entries fixed
+ * Fix: Skip logging for non-blocked requests.
+ * Fix: SFW sending logs fixed.
+ * Fix: SFW skip Customizer preview requests.
+ * Fix: FW do logging an one passed request.
+ * Fix: Logging exclusion moved to firewall class.
+
 = 5.151 Dec 17 2020 =
  * Mod: Cleantalk Alternative Sessions. Store time reduces to 1 day.
  * Fix: Unusable alternative cookies table clearing.
