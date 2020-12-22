@@ -589,6 +589,10 @@ If your website has forms that send data to external sources, you can enable opt
  * Fix: SFW skip Customizer preview requests.
  * Fix: FW do logging an one passed request.
  * Fix: Logging exclusion moved to firewall class.
+ * Fix: FW stats option fixed.
+ * Upd: New API server added.
+ * Fix: SFW logging logic fixed.
+ * Fix: SFW sent logs structure fixed.
 
 = 5.151 Dec 17 2020 =
  * Mod: Cleantalk Alternative Sessions. Store time reduces to 1 day.
@@ -612,10 +616,6 @@ If your website has forms that send data to external sources, you can enable opt
  * Fix: SFW updating - https protocol returned.
  * Fix: SFW updating - truncating temporary table.
  * Fix: SFW updating process percents added.
- * Fix: FW stats option fixed.
- * Upd: New API server added.
- * Fix: SFW logging logic fixed.
- * Fix: SFW sent logs structure fixed.
 
 = 5.150.1 Dec 8 2020 =
  * Fix: Jetpack logic fixed.
