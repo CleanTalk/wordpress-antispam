@@ -3499,7 +3499,7 @@ function ct_contact_form_validate() {
 				wp_die("<h1>".__('Spam protection by CleanTalk', 'cleantalk-spam-protect')."</h1><h2>".$ct_result->comment."</h2>", '', array('response' => 403, "back_link" => true, "text_direction" => 'ltr'));
             // Caldera Contact Forms
 			}elseif(isset($_POST['action']) && $_POST['action'] == 'cf_process_ajax_submit'){
-				print json_encode("<h3 style='color: red;'><red>".$ct_result->comment);
+				print "<h3 style='color: red;'><red>".$ct_result->comment."</red></h3>";
 				die();
 			// Mailster
 			}elseif(isset($_POST['_referer'], $_POST['formid'], $_POST['email'])){

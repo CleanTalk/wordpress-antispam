@@ -3,7 +3,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 5.151
+  Version: 5.151.1
   Author: СleanTalk <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -67,7 +67,7 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
     
 	// Global ArrayObject with settings and other global varables
 	global $apbct;
-	$apbct = new \Cleantalk\ApbctWP\State('cleantalk', array('settings', 'data', 'debug', 'errors', 'remote_calls', 'stats'));
+	$apbct = new \Cleantalk\ApbctWP\State('cleantalk', array('settings', 'data', 'debug', 'errors', 'remote_calls', 'stats', 'fw_stats'));
 	
 	$apbct->base_name = 'cleantalk-spam-protect/cleantalk.php';
 	
@@ -90,7 +90,7 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 	$apbct->data['user_counter']['since']       = isset($apbct->data['user_counter']['since'])       ? $apbct->data['user_counter']['since'] : date('d M');
 	$apbct->data['connection_reports']['since'] = isset($apbct->data['connection_reports']['since']) ? $apbct->data['user_counter']['since'] : date('d M');
 
-    $apbct->firewall_updating = (bool) $apbct->data['firewall_updating_id'];
+    $apbct->firewall_updating = (bool) $apbct->fw_stats['firewall_updating_id'];
 	
 	$apbct->settings_link = is_network_admin() ? 'settings.php?page=cleantalk' : 'options-general.php?page=cleantalk';
 	
@@ -241,7 +241,7 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
     //add_action ('updated_option', 'apbct_after_options_updated', 10, 3);
 
 	// Public actions
-	if(!is_admin() && !apbct_is_ajax()){
+	if( ! is_admin() && ! apbct_is_ajax() && ! apbct_is_customize_preview() ){
 		
 		// Default search
 		//add_filter( 'get_search_form',  'apbct_forms__search__addField' );
@@ -252,7 +252,6 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 		if(isset($_GET['spbc_remote_call_token'], $_GET['spbc_remote_call_action'], $_GET['plugin_name']) && in_array($_GET['plugin_name'], array('antispam','anti-spam', 'apbct'))){
 			apbct_remote_call__perform();
 		}
-		
 		// SpamFireWall check
 		if( $apbct->plugin_version == APBCT_VERSION && // Do not call with first start
 			$apbct->settings['spam_firewall'] == 1 &&
@@ -1049,24 +1048,24 @@ function ct_sfw_update( $api_key = '', $immediate = false ){
     // Prevent start another update at a time
     if(
         ! Get::get('firewall_updating_id') &&
-        $apbct->data['firewall_updating_id'] &&
-        time() - $apbct->data['firewall_updating_last_start'] < 60
+        $apbct->fw_stats['firewall_updating_id'] &&
+        time() - $apbct->fw_stats['firewall_updating_last_start'] < 60
     ){
         return true;
     }
 
     // Check if the update performs right now. Blocks remote calls with different ID
     if( Get::get('firewall_updating_id') &&
-        Get::get('firewall_updating_id') !== $apbct->data['firewall_updating_id']
+        Get::get('firewall_updating_id') !== $apbct->fw_stats['firewall_updating_id']
     ) {
         return array( 'error' => 'FIREWALL_IS_UPDATING' );
     }
 
     // Set new update ID
-    if( ! $apbct->data['firewall_updating_id'] || time() - $apbct->data['firewall_updating_last_start'] > 300 ){
-        $apbct->data['firewall_updating_id'] = md5( rand( 0, 100000 ) );
-        $apbct->data['firewall_updating_last_start'] = time();
-        $apbct->save( 'data' );
+    if( ! $apbct->fw_stats['firewall_updating_id'] || time() - $apbct->fw_stats['firewall_updating_last_start'] > 300 ){
+        $apbct->fw_stats['firewall_updating_id'] = md5( rand( 0, 100000 ) );
+        $apbct->fw_stats['firewall_updating_last_start'] = time();
+        $apbct->save( 'fw_stats' );
     }
 
 	$api_key = !empty($apbct->api_key) ? $apbct->api_key : $api_key;
@@ -1121,8 +1120,8 @@ function ct_sfw_update( $api_key = '', $immediate = false ){
                     //Increment sfw entries
                     $apbct->stats['sfw']['entries'] += $result;
                     $apbct->save('stats');
-                    $apbct->data['firewall_update_percent'] = round( ( ( (int) $current_url + 1 ) / (int) $url_count ), 2) * 100;
-                    $apbct->save('data');
+                    $apbct->fw_stats['firewall_update_percent'] = round( ( ( (int) $current_url + 1 ) / (int) $url_count ), 2) * 100;
+                    $apbct->save('fw_stats');
 
                     if ( $url_count > $current_url ) {
                         return Helper::http__request(
@@ -1135,7 +1134,7 @@ function ct_sfw_update( $api_key = '', $immediate = false ){
                                 'url_count'               => $url_count,
                                 'current_url'             => $current_url,
                                 // Additional params
-                                'firewall_updating_id'    => $apbct->data['firewall_updating_id'],
+                                'firewall_updating_id'    => $apbct->fw_stats['firewall_updating_id'],
                             ),
                             array('get', 'async')
                         );
@@ -1148,9 +1147,10 @@ function ct_sfw_update( $api_key = '', $immediate = false ){
 
                         //Files array is empty update sfw stats
                         $apbct->data['last_firewall_updated'] = current_time('timestamp');
-                        $apbct->data['firewall_update_percent'] = 0;
-                        $apbct->data['firewall_updating_id'] = null;
                         $apbct->save('data');
+                        $apbct->fw_stats['firewall_update_percent'] = 0;
+                        $apbct->fw_stats['firewall_updating_id'] = null;
+                        $apbct->save( 'fw_stats' );
 
                         //Files array is empty update sfw time
                         $apbct->stats['sfw']['last_update_time'] = time();
@@ -1176,7 +1176,7 @@ function ct_sfw_update( $api_key = '', $immediate = false ){
                     'spbc_remote_call_action' => 'sfw_update',
                     'plugin_name'             => 'apbct',
                     // Additional params
-                    'firewall_updating_id'    => $apbct->data['firewall_updating_id'],
+                    'firewall_updating_id'    => $apbct->fw_stats['firewall_updating_id'],
                 ),
                 array( 'get','async' )
             );

@@ -128,6 +128,9 @@ class Firewall
         foreach ( $this->fw_modules as $module ) {
             if( array_key_exists( $module->module_name, $results ) ){
                 foreach ( $results[$module->module_name] as $result ) {
+                    if( in_array( $result['status'], array( 'PASS_SFW__BY_WHITELIST', 'PASS_SFW', 'PASS_ANTIFLOOD', 'PASS_ANTICRAWLER', 'PASS_ANTICRAWLER_UA' ) ) ){
+                        continue;
+                    }
                     $module->update_log( $result['ip'], $result['status'] );
                 }
             }

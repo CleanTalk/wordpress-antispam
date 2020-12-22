@@ -60,7 +60,10 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule{
 				if( ! headers_sent() ){
 					\Cleantalk\Common\Helper::apbct_cookie__set( 'apbct_antiflood_passed', '0', time() - 86400, '/', null, false, true, 'Lax' );
 				}
-				
+
+                // Do logging an one passed request
+                $this->update_log( $current_ip, 'PASS_ANTIFLOOD' );
+
 				$results[] = array( 'ip' => $current_ip, 'is_personal' => false, 'status' => 'PASS_ANTIFLOOD', );
 				
 				return $results;
@@ -136,7 +139,7 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule{
 	 * @param $status
 	 */
 	public function update_log( $ip, $status ) {
-		
+
 		$id = md5( $ip . $this->module_name );
 		$time    = time();
 		
@@ -146,7 +149,7 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule{
 			ip = '$ip',
 			status = '$status',
 			all_entries = 1,
-			blocked_entries = 1,
+			blocked_entries = " . ( strpos( $status, 'DENY' ) !== false ? 1 : 0 ) . ",
 			entries_timestamp = '" . intval( $time ) . "',
 			ua_name = '" . Server::get('HTTP_USER_AGENT') . "'
 		ON DUPLICATE KEY

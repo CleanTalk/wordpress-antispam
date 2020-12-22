@@ -251,10 +251,10 @@ class CommentsChecker extends Checker
                     $uip=$c[$i]->comment_author_IP;
                     $uim=$c[$i]->comment_author_email;
 
-                    if(isset($result[$uip]) && $result[$uip]['appears'] == 1)
+                    if(isset($result[$uip]) && isset( $result[$uim]['appears'] ) && $result[$uip]['appears'] == 1)
                         $mark_spam_ip = true;
 
-                    if(isset($result[$uim]) && $result[$uim]['appears'] == 1)
+                    if(isset($result[$uim]) && isset( $result[$uim]['appears'] ) && $result[$uim]['appears'] == 1)
                         $mark_spam_email = true;
 
                     if ($mark_spam_ip || $mark_spam_email){

@@ -85,11 +85,12 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 
                     if( ! headers_sent() ){
                         \Cleantalk\Common\Helper::apbct_cookie__set( 'ct_sfw_passed', '0', time() + 86400 * 3, '/', null, false, true, 'Lax' );
-                    }
-
-                     else {
+                    } else {
                         $results[] = array( 'ip' => $current_ip, 'is_personal' => false, 'status' => 'PASS_SFW__BY_COOKIE', );
                     }
+
+                    // Do logging an one passed request
+                    $this->update_log( $current_ip, 'PASS_SFW' );
 
                     if( $this->sfw_counter ){
                         $this->apbct->data['sfw_counter']['all'] ++;
@@ -156,10 +157,6 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 	 * @param $status
 	 */
 	public function update_log( $ip, $status ) {
-		
-		if( in_array( $status, array( 'PASS_SFW__BY_WHITELIST', 'PASS_SFW', 'PASS_ANTIFLOOD', 'PASS_ANTICRAWLER' ) ) ){
-			return;
-		}
 
 		$id   = md5( $ip . $this->module_name );
 		$time = time();
@@ -170,7 +167,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 			ip = '$ip',
 			status = '$status',
 			all_entries = 1,
-			blocked_entries = 1,
+			blocked_entries = " . ( strpos( $status, 'DENY' ) !== false ? 1 : 0 ) . ",
 			entries_timestamp = '" . $time . "',
 			ua_name = '" . Server::get('HTTP_USER_AGENT') . "'
 		ON DUPLICATE KEY
@@ -323,22 +320,18 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 				$value['status'] = $value['status'] === 'PASS_ANTIFLOOD'      ? 'FLOOD_PROTECTION' : $value['status'];
 				
 				$value['status'] = $value['status'] === 'PASS_SFW__BY_COOKIE' ? null               : $value['status'];
+                $value['status'] = $value['status'] === 'PASS_SFW'            ? null               : $value['status'];
 				$value['status'] = $value['status'] === 'DENY_SFW'            ? null               : $value['status'];
-				
-				$row = array(
-					trim( $value['ip'] ),
-					$value['all_entries'],
-					$value['all_entries'] - $value['blocked_entries'],
-					$value['entries_timestamp'],
+
+                $data[] = array(
+					trim( $value['ip'] ),                                      // IP
+                    $value['blocked_entries'],                                 // Count showing of block pages
+					$value['all_entries'] - $value['blocked_entries'],         // Count passed requests after block pages
+					$value['entries_timestamp'],                               // Last timestamp
+                    $value['status'],                                          // Status
+                    $value['ua_name'],                                         // User-Agent name
+                    $value['ua_id'],                                           // User-Agent ID
 				);
-				
-				if( $value['status'] )
-					$row[] = $value['status'];
-
-                $row[] = $value['ua_name']; // User-Agent name
-                $row[] = $value['ua_id']; // User-Agent ID
-
-				$data[] = $row;
 				
 			}
 			unset( $key, $value );
@@ -437,7 +430,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
                                                     'url_count'               => count( $lines ),
                                                     'current_url'             => 0,
                                                     // Additional params
-                                                    'firewall_updating_id'    => $apbct->data['firewall_updating_id'],
+                                                    'firewall_updating_id'    => $apbct->fw_stats['firewall_updating_id'],
                                                 ),
                                                 $patterns
                                             );

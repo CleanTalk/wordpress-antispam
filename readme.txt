@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 3.0
 Tested up to: 5.6
 Requires PHP: 5.4
-Stable tag: 5.151
+Stable tag: 5.151.1
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -580,6 +580,16 @@ If your website has forms that send data to external sources, you can enable opt
 
 == Changelog ==
 
+= 5.151.1 Dec 22 2020 =
+ * Upd: Firewall now has it's own options, independent from the other.
+ * Upd: New API server added.
+ * Fix: Wrong count of blocked entries fixed
+ * Fix: Skip logging for non-blocked requests.
+ * Fix: SFW sending logs fixed.
+ * Fix: SFW skip Customizer preview requests.
+ * Fix: FW do logging an one passed request.
+ * Fix: Logging exclusion moved to firewall class.
+
 = 5.151 Dec 17 2020 =
  * Mod: Cleantalk Alternative Sessions. Store time reduces to 1 day.
  * Fix: Unusable alternative cookies table clearing.
@@ -602,6 +612,10 @@ If your website has forms that send data to external sources, you can enable opt
  * Fix: SFW updating - https protocol returned.
  * Fix: SFW updating - truncating temporary table.
  * Fix: SFW updating process percents added.
+ * Fix: FW stats option fixed.
+ * Upd: New API server added.
+ * Fix: SFW logging logic fixed.
+ * Fix: SFW sent logs structure fixed.
 
 = 5.150.1 Dec 8 2020 =
  * Fix: Jetpack logic fixed.

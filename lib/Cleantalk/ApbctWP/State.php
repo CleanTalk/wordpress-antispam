@@ -58,9 +58,9 @@ class State
 	public $def_settings = array(
 		
 		'spam_firewall'                 => 1,
-		'sfw__anti_flood'               => 0,
+		'sfw__anti_flood'               => 1,
 		'sfw__anti_flood__view_limit'   => 10,
-		'sfw__anti_crawler'             => 0,
+		'sfw__anti_crawler'             => 1,
         'sfw__anti_crawler_ua'          => 1,
 		'apikey'                        => '',
 		'autoPubRevelantMess'           => 0,
@@ -202,11 +202,6 @@ class State
 		'key_is_ok'        => 0,
 		'salt'             => '',
 
-        //FireWall
-        'firewall_updating_id'         => null,
-        'firewall_update_percent'      => 0,
-        'firewall_updating_last_start' => 0,
-
 	);
 	
 	public $def_network_settings = array(
@@ -290,6 +285,13 @@ class State
 			),
 		)
 	);
+
+    private $default_fw_stats = array(
+        'firewall_updating'            => false,
+        'firewall_updating_id'         => null,
+        'firewall_update_percent'      => 0,
+        'firewall_updating_last_start' => 0,
+    );
 	
 	/**
 	 * @param string $option_prefix Database settings prefix
@@ -341,6 +343,11 @@ class State
 			if($this->option_prefix.'_'.$option_name === 'cleantalk_stats'){
 				$option = is_array($option) ? array_merge($this->def_stats, $option) : $this->def_stats;
 			}
+
+            // Default statistics
+            if($this->option_prefix.'_'.$option_name === 'cleantalk_fw_stats'){
+                $option = is_array($option) ? array_merge($this->default_fw_stats, $option) : $this->default_fw_stats;
+            }
 			
 			$this->$option_name = is_array($option) ? new ArrayObject($option) : $option;
 		}
