@@ -612,6 +612,10 @@ If your website has forms that send data to external sources, you can enable opt
  * Fix: SFW updating - https protocol returned.
  * Fix: SFW updating - truncating temporary table.
  * Fix: SFW updating process percents added.
+ * Fix: FW stats option fixed.
+ * Upd: New API server added.
+ * Fix: SFW logging logic fixed.
+ * Fix: SFW sent logs structure fixed.
 
 = 5.150.1 Dec 8 2020 =
  * Fix: Jetpack logic fixed.
