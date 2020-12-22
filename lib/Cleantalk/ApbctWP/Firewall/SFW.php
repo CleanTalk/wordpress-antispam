@@ -324,13 +324,13 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 				$value['status'] = $value['status'] === 'DENY_SFW'            ? null               : $value['status'];
 
                 $data[] = array(
-					trim( $value['ip'] ),
-					$value['all_entries'],
-					$value['all_entries'] - $value['blocked_entries'],
-					$value['entries_timestamp'],
-                    $value['status'],
-                    $value['ua_name'], // User-Agent name
-                    $value['ua_id'],  // User-Agent ID
+					trim( $value['ip'] ),                                      // IP
+                    $value['blocked_entries'],                                 // Count showing of block pages
+					$value['all_entries'] - $value['blocked_entries'],         // Count passed requests after block pages
+					$value['entries_timestamp'],                               // Last timestamp
+                    $value['status'],                                          // Status
+                    $value['ua_name'],                                         // User-Agent name
+                    $value['ua_id'],                                           // User-Agent ID
 				);
 				
 			}
