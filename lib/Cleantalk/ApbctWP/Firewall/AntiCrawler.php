@@ -331,13 +331,15 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 	
 	public function _die( $result ){
 		
-		global $apbct;
+		global $apbct, $wpdb;
 		
 		// File exists?
 		if(file_exists(CLEANTALK_PLUGIN_DIR . "lib/Cleantalk/ApbctWP/Firewall/die_page_anticrawler.html")){
 			
 			$sfw_die_page = file_get_contents(CLEANTALK_PLUGIN_DIR . "lib/Cleantalk/ApbctWP/Firewall/die_page_anticrawler.html");
-			
+
+			$net_count = $wpdb->get_var('SELECT COUNT(*) FROM ' . APBCT_TBL_FIREWALL_DATA );
+
 			// Translation
 			$replaces = array(
 				'{SFW_DIE_NOTICE_IP}'              => __('Anti-Crawler Protection is activated for your IP ', 'cleantalk-spam-protect'),
@@ -345,7 +347,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 				'{SFW_DIE_YOU_WILL_BE_REDIRECTED}' => sprintf( __( 'You will be automatically redirected to the requested page after %d seconds.', 'cleantalk-spam-protect' ), 3 ) . '<br>' . __( 'Don\'t close this page. Please, wait for 3 seconds to pass to the page.', 'cleantalk-spam-protect' ),
 				'{CLEANTALK_TITLE}'                => __( 'Antispam by CleanTalk', 'cleantalk-spam-protect' ),
 				'{REMOTE_ADDRESS}'                 => $result['ip'],
-				'{SERVICE_ID}'                     => $this->apbct->data['service_id'],
+				'{SERVICE_ID}'                     => $this->apbct->data['service_id'] . ', ' . $net_count,
 				'{HOST}'                           => Server::get( 'HTTP_HOST' ),
 				'{COOKIE_ANTICRAWLER}'             => hash( 'sha256', $apbct->api_key . $apbct->data['salt'] ),
 				'{COOKIE_ANTICRAWLER_PASSED}'      => '1',
