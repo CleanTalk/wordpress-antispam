@@ -125,7 +125,8 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule{
 			$this->db->execute(
 				'DELETE
 				FROM ' . $this->db__table__ac_logs . '
-				WHERE interval_start < '. $interval_start .'
+				WHERE interval_start < '. $interval_start .' 
+				AND ua = "" 
 				LIMIT 100000;'
 			);
 		}
