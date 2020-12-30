@@ -249,7 +249,7 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
         add_action( 'wp_head', 'apbct_search_add_noindex', 1 );
 		
 		// Remote calls
-		if(isset($_GET['spbc_remote_call_token'], $_GET['spbc_remote_call_action'], $_GET['plugin_name']) && in_array($_GET['plugin_name'], array('antispam','anti-spam', 'apbct'))){
+		if( apbct_is_remote_call() ){
 			apbct_remote_call__perform();
 		}
 		// SpamFireWall check
@@ -485,6 +485,16 @@ function apbct_sfw_actions( $option, $value ) {
         }
     }
 
+}
+
+/**
+ * Checking if the current request is the Remote Call
+ *
+ * @return bool
+ */
+function apbct_is_remote_call() {
+        return isset($_GET['spbc_remote_call_token'], $_GET['spbc_remote_call_action'], $_GET['plugin_name']) &&
+        in_array($_GET['plugin_name'], array('antispam','anti-spam', 'apbct'));
 }
 
 /**
@@ -1072,11 +1082,8 @@ function ct_sfw_update( $api_key = '', $immediate = false ){
 
     if( $apbct->settings['spam_firewall'] == 1 && ( ! empty($api_key) || $apbct->data['moderate_ip'] ) ) {
 
-        if(
+        if( apbct_is_remote_call() ) {
             // Remote call is in process, do updating
-            isset($_GET['spbc_remote_call_token'], $_GET['spbc_remote_call_action'], $_GET['plugin_name']) &&
-            in_array($_GET['plugin_name'], array('antispam','anti-spam', 'apbct'))
-        ) {
 
             $file_urls   = isset($_GET['file_urls'])   ? urldecode( $_GET['file_urls'] )   : null;
             $url_count   = isset($_GET['url_count'])   ? urldecode( $_GET['url_count'] )   : null;
