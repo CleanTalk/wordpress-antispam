@@ -106,7 +106,8 @@ function apbct_base_call($params = array(), $reg_flag = false){
 	
     // Skip duplicate requests
     if( key_exists( $apbct->plugin_request_id, $apbct->plugin_request_ids ) &&
-        current_filter() !== 'woocommerce_registration_errors' ) //Prevent skip checking woocommerce registration during checkout
+        current_filter() !== 'woocommerce_registration_errors' && // Prevent skip checking woocommerce registration during checkout
+        current_filter() !== 'um_submit_form_register' )          // Prevent skip checking UltimateMember register
     {
 	    do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
 	    return array( 'ct_result' => new CleantalkResponse() );

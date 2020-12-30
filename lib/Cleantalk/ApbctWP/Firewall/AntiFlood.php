@@ -125,7 +125,8 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule{
 			$this->db->execute(
 				'DELETE
 				FROM ' . $this->db__table__ac_logs . '
-				WHERE interval_start < '. $interval_start .'
+				WHERE interval_start < '. $interval_start .' 
+				AND ua = "" 
 				LIMIT 100000;'
 			);
 		}
@@ -166,11 +167,15 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule{
 	public function _die( $result ) {
 		
 		parent::_die( $result );
-		
+
+		global $wpdb;
+
 		// File exists?
 		if( file_exists( CLEANTALK_PLUGIN_DIR . 'lib/Cleantalk/ApbctWP/Firewall/die_page_antiflood.html' ) ){
 			
 			$sfw_die_page = file_get_contents( CLEANTALK_PLUGIN_DIR . 'lib/Cleantalk/ApbctWP/Firewall/die_page_antiflood.html' );
+
+            $net_count = $wpdb->get_var('SELECT COUNT(*) FROM ' . APBCT_TBL_FIREWALL_DATA );
 			
 			// Translation
 			$replaces = array(
@@ -180,7 +185,7 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule{
 				'{CLEANTALK_TITLE}'                => __( 'Antispam by CleanTalk', 'cleantalk-spam-protect' ),
 				'{REMOTE_ADDRESS}'                 => $result['ip'],
 				'{REQUEST_URI}'                    => Server::get( 'REQUEST_URI' ),
-				'{SERVICE_ID}'                     => $this->apbct->data['service_id'],
+				'{SERVICE_ID}'                     => $this->apbct->data['service_id'] . ', ' . $net_count,
 				'{HOST}'                           => Server::get( 'HTTP_HOST' ),
 				'{GENERATED}'                      => '<p>The page was generated at&nbsp;' . date( 'D, d M Y H:i:s' ) . "</p>",
 				'{COOKIE_ANTIFLOOD_PASSED}'      => md5( $this->api_key . $result['ip'] ),

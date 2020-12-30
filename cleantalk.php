@@ -3,7 +3,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 5.151.1
+  Version: 5.151.2
   Author: СleanTalk <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -129,7 +129,10 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 	apbct_update_actions();
 
 	// Self cron
-	if(!defined('DOING_CRON') || (defined('DOING_CRON') && DOING_CRON !== true)){
+    if( ! apbct_is_remote_call() && // Do not doing CRON in remote call action
+        ! defined('DOING_CRON') ||
+        (defined('DOING_CRON') && DOING_CRON !== true)
+    ){
 		
 		$ct_cron = new Cron();
 		$ct_cron->checkTasks();
@@ -249,7 +252,7 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
         add_action( 'wp_head', 'apbct_search_add_noindex', 1 );
 		
 		// Remote calls
-		if(isset($_GET['spbc_remote_call_token'], $_GET['spbc_remote_call_action'], $_GET['plugin_name']) && in_array($_GET['plugin_name'], array('antispam','anti-spam', 'apbct'))){
+		if( apbct_is_remote_call() ){
 			apbct_remote_call__perform();
 		}
 		// SpamFireWall check
@@ -485,6 +488,16 @@ function apbct_sfw_actions( $option, $value ) {
         }
     }
 
+}
+
+/**
+ * Checking if the current request is the Remote Call
+ *
+ * @return bool
+ */
+function apbct_is_remote_call() {
+        return isset($_GET['spbc_remote_call_token'], $_GET['spbc_remote_call_action'], $_GET['plugin_name']) &&
+        in_array($_GET['plugin_name'], array('antispam','anti-spam', 'apbct'));
 }
 
 /**
@@ -1072,11 +1085,8 @@ function ct_sfw_update( $api_key = '', $immediate = false ){
 
     if( $apbct->settings['spam_firewall'] == 1 && ( ! empty($api_key) || $apbct->data['moderate_ip'] ) ) {
 
-        if(
+        if( apbct_is_remote_call() ) {
             // Remote call is in process, do updating
-            isset($_GET['spbc_remote_call_token'], $_GET['spbc_remote_call_action'], $_GET['plugin_name']) &&
-            in_array($_GET['plugin_name'], array('antispam','anti-spam', 'apbct'))
-        ) {
 
             $file_urls   = isset($_GET['file_urls'])   ? urldecode( $_GET['file_urls'] )   : null;
             $url_count   = isset($_GET['url_count'])   ? urldecode( $_GET['url_count'] )   : null;

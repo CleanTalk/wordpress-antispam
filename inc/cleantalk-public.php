@@ -3019,7 +3019,6 @@ function apbct_form__gravityForms__testSpam($is_spam, $form, $entry) {
 
     if (
 		$apbct->settings['contact_forms_test'] == 0 ||
-		$is_spam ||
 		$cleantalk_executed // Return unchanged result if the submission was already tested.
 	) {
         do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );

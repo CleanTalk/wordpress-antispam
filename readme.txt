@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 3.0
 Tested up to: 5.6
 Requires PHP: 5.4
-Stable tag: 5.151.1
+Stable tag: 5.151.2
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -579,6 +579,14 @@ If your website has forms that send data to external sources, you can enable opt
 10. Website's options.
 
 == Changelog ==
+
+= 5.151.2 Dec 30 2020 =
+ * Fix: Prevent skip checking UltimateMember register.
+ * Upd: SFW die pages updated - networks count added.
+ * Fix: AF auto cleaning table fixed.
+ * Fix: Removing spam flag on gravity forms checking.
+ * Fix: Remote call's request checking moved to separated func.
+ * Fix: Prevent CRON action from remote call request.
 
 = 5.151.1 Dec 22 2020 =
  * Upd: Firewall now has it's own options, independent from the other.

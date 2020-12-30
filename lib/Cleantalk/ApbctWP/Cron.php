@@ -74,6 +74,16 @@ class Cron
 	static public function updateTask($task, $handler, $period, $first_call = null){
 		self::addTask($task, $handler, $period, $first_call, true);
 	}
+
+    /**
+     * Getting list of tasks
+     *
+     * @return array
+     */
+    public function getTasks()
+    {
+        return $this->tasks;
+    }
 	
 	// Getting tasks which should be run. Putting tasks that should be run to $this->tasks_to_run
 	public function checkTasks()
