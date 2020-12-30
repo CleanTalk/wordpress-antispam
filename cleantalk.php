@@ -129,7 +129,10 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 	apbct_update_actions();
 
 	// Self cron
-	if(!defined('DOING_CRON') || (defined('DOING_CRON') && DOING_CRON !== true)){
+	if( ! defined('DOING_CRON') ||
+        (defined('DOING_CRON') && DOING_CRON !== true) ||
+        ! apbct_is_remote_call() // Do not doing CRON in remote call action
+    ){
 		
 		$ct_cron = new Cron();
 		$ct_cron->checkTasks();
