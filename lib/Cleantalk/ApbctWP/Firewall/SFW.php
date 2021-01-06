@@ -126,14 +126,16 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 				network, mask, status
 				FROM " . $this->db__table__data . "
 				WHERE network IN (". implode( ',', $needles ) .")
-				AND	network = " . $current_ip_v4 . " & mask");
+				AND	network = " . $current_ip_v4 . " & mask ORDER BY status DESC");
 			
 			if( ! empty( $db_results ) ){
 				
 				foreach( $db_results as $db_result ){
 					
-					if( $db_result['status'] == 1 )
-						$results[] = array('ip' => $current_ip, 'is_personal' => false, 'status' => 'PASS_SFW__BY_WHITELIST',);
+					if( $db_result['status'] == 1 ) {
+                        $results[] = array('ip' => $current_ip, 'is_personal' => false, 'status' => 'PASS_SFW__BY_WHITELIST',);
+                        break;
+                    }
 					else
 						$results[] = array('ip' => $current_ip, 'is_personal' => false, 'status' => 'DENY_SFW',);
 					
