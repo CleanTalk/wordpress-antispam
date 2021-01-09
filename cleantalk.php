@@ -193,6 +193,7 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
         'EstimationForm'       => array( 'hook' => 'send_email', 'ajax' => true ),
         'LandingPageBuilder'   => array( 'hook' => 'ulpb_formBuilderEmail_ajax', 'ajax' => true ),
         'WpMembers'            => array( 'hook' => 'wpmem_pre_register_data', 'ajax' => false ),
+        'Rafflepress'          => array( 'hook' => 'rafflepress_lite_giveaway_api', 'ajax' => true ),
     );
     new  \Cleantalk\Antispam\Integrations( $apbct_active_integrations );
 	
