@@ -1398,7 +1398,7 @@ function apbct_settings__validate($settings) {
 
 	//Sanitizing sfw__anti_flood__view_limit setting
 	$settings['sfw__anti_flood__view_limit'] = floor( intval( $settings['sfw__anti_flood__view_limit'] ) );
-	$settings['sfw__anti_flood__view_limit'] = ( $settings['sfw__anti_flood__view_limit'] == 0 ? 10 : $settings['sfw__anti_flood__view_limit'] ); // Default if 0 passed
+	$settings['sfw__anti_flood__view_limit'] = ( $settings['sfw__anti_flood__view_limit'] == 0 ? 20 : $settings['sfw__anti_flood__view_limit'] ); // Default if 0 passed
 	$settings['sfw__anti_flood__view_limit'] = ( $settings['sfw__anti_flood__view_limit'] < 5 ? 5 : $settings['sfw__anti_flood__view_limit'] ); //
 	
 	// Auto getting key

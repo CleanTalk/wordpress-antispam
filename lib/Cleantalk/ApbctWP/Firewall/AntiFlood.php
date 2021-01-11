@@ -13,7 +13,7 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule{
 	private $db__table__ac_logs;
 
 	private $api_key = '';
-	private $view_limit = 10;
+	private $view_limit = 20;
 	private $apbct = array();
 	private $store_interval  = 60;
 	private $block_period    = 30;
