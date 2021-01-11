@@ -322,6 +322,7 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 	    'ajaxlogin', //Skip ajax login redirect
 	    'heartbeat', //Gravity multipage
 	    'erforms_field_change_command', //ERForms internal request
+	    'wl_out_of_stock_notify', // Sumo Waitlist
     );
     
     // Skip test if
