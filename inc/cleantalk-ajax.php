@@ -323,6 +323,7 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 	    'heartbeat', //Gravity multipage
 	    'erforms_field_change_command', //ERForms internal request
 	    'wl_out_of_stock_notify', // Sumo Waitlist
+	    'rac_preadd_guest', //Rac internal request
     );
     
     // Skip test if
