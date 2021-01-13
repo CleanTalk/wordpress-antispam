@@ -1257,7 +1257,7 @@ function ct_preprocess_comment($comment) {
 
    	$comments_check_number = defined('CLEANTALK_CHECK_COMMENTS_NUMBER')  ? CLEANTALK_CHECK_COMMENTS_NUMBER : 3;
    	
-    if($apbct->settings['check_comments_number']){
+    if($apbct->settings['check_comments_number'] && $comment['comment_author_email']){
 	   	$args = array(
 			'author_email' => $comment['comment_author_email'],
     		'status' => 'approve',
