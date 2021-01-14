@@ -3,6 +3,7 @@
 namespace Cleantalk\ApbctWP\Firewall;
 
 use Cleantalk\ApbctWP\Helper;
+use Cleantalk\Common\Schema;
 use Cleantalk\Variables\Cookie;
 use Cleantalk\Variables\Get;
 use Cleantalk\Variables\Server;
@@ -534,6 +535,13 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
      * @param \wpdb $db database handler
      */
     public static function create_temp_tables( $db ){
+        global $wpdb, $apbct;
+        $sql = 'SHOW TABLES LIKE "%scleantalk_sfw";';
+        $sql = sprintf( $sql, $wpdb->prefix ); // Adding current blog prefix
+        $result = $wpdb->get_var( $sql );
+        if( ! $result ){
+            apbct_activation__create_tables( Schema::getSchema('sfw'), $apbct->db_prefix );
+        }
         $db->execute( 'CREATE TABLE IF NOT EXISTS `' . APBCT_TBL_FIREWALL_DATA . '_temp` LIKE `' . APBCT_TBL_FIREWALL_DATA . '`;' );
         $db->execute( 'TRUNCATE TABLE `' . APBCT_TBL_FIREWALL_DATA . '_temp`;' );
     }
