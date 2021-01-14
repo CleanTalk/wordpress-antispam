@@ -850,6 +850,8 @@ function apbct_deactivation__delete_all_options(){
 	delete_option('cleantalk_stats');
 	delete_option('cleantalk_timelabel_reg');
 	delete_option('cleantalk_debug');
+    delete_option('cleantalk_plugin_request_ids');
+    delete_option('cleantalk_fw_stats');
 }
 
 /**
