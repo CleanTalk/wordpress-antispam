@@ -580,6 +580,22 @@ If your website has forms that send data to external sources, you can enable opt
 
 == Changelog ==
 
+= 5.151.3 Jan 15 2020 =
+ * Fix: Prevent logging false blocking for whitelisted networks.
+ * Integration: Rafflepress integration implemented.
+ * Fix: AF limit increased to 20 by default.
+ * Fix: skip Sumo waitlist internal request.
+ * Fix: skip raq internal request.
+ * Fix: check comments number if comment email exists.
+ * New: Schema class added.
+ * Fix: SFW - Creation sfw table if not exist.
+ * Fix: Updater - Creation sfw table if not exist.
+ * New: Schema class used.
+ * New: AC disabled if networks count is 0.
+ * Fix: SFW updating id getting fixed.
+ * Fix: SFW networks counter fixed.
+ * Fix: Deleting options fixed.
+
 = 5.151.2 Dec 30 2020 =
  * Fix: Prevent skip checking UltimateMember register.
  * Upd: SFW die pages updated - networks count added.
