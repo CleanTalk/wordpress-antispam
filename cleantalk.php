@@ -968,16 +968,16 @@ function ct_sfw_update( $api_key = '', $immediate = false ){
         return array( 'error' => 'FIREWALL_IS_UPDATING' );
     }
 
-    // Set new update ID
-    if( ! $apbct->fw_stats['firewall_updating_id'] || time() - $apbct->fw_stats['firewall_updating_last_start'] > 300 ){
-        $apbct->fw_stats['firewall_updating_id'] = md5( rand( 0, 100000 ) );
-        $apbct->fw_stats['firewall_updating_last_start'] = time();
-        $apbct->save( 'fw_stats' );
-    }
-
 	$api_key = !empty($apbct->api_key) ? $apbct->api_key : $api_key;
 
     if( $apbct->settings['spam_firewall'] == 1 && ( ! empty($api_key) || $apbct->data['moderate_ip'] ) ) {
+
+        // Set new update ID
+        if( ! $apbct->fw_stats['firewall_updating_id'] || time() - $apbct->fw_stats['firewall_updating_last_start'] > 300 ){
+            $apbct->fw_stats['firewall_updating_id'] = md5( rand( 0, 100000 ) );
+            $apbct->fw_stats['firewall_updating_last_start'] = time();
+            $apbct->save( 'fw_stats' );
+        }
 
         if( apbct_is_remote_call() ) {
             // Remote call is in process, do updating
