@@ -1089,11 +1089,10 @@ function apbct_settings__field__statistics() {
 		echo '<br>';
 
 		// SFW last update
-		$sfw_netwoks_amount = $wpdb->get_results("SELECT count(*) AS cnt FROM `".$wpdb->prefix."cleantalk_sfw`", ARRAY_A);
 		printf(
 			__('SpamFireWall was updated %s. Now contains %s entries.', 'cleantalk-spam-protect'),
 			$apbct->stats['sfw']['last_update_time'] ? date('M d Y H:i:s', $apbct->stats['sfw']['last_update_time']) : __('unknown', 'cleantalk-spam-protect'),
-			isset($sfw_netwoks_amount[0]['cnt']) ? $sfw_netwoks_amount[0]['cnt'] : __('unknown', 'cleantalk-spam-protect')
+			$apbct->stats['sfw']['entries']
 		);
 		echo $apbct->fw_stats['firewall_updating_id'] ? ' ' . __('Under updating now:', 'cleantalk-spam-protect') . ' ' . $apbct->fw_stats['firewall_update_percent'] . '%' : '';
 		echo '<br>';

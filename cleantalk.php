@@ -950,7 +950,7 @@ function ct_get_cookie()
 
 function ct_sfw_update( $api_key = '', $immediate = false ){
 	
-	global $apbct;
+	global $apbct, $wpdb;
 
     // Prevent start another update at a time
     if(
@@ -988,10 +988,6 @@ function ct_sfw_update( $api_key = '', $immediate = false ){
 
             if( ! $file_urls ){
 
-                //Reset previous entries count
-                $apbct->stats['sfw']['entries'] = 0;
-                $apbct->save('stats');
-
                 // @todo We have to handle errors here
                 SFW::create_temp_tables( DB::getInstance() );
 
@@ -1021,9 +1017,6 @@ function ct_sfw_update( $api_key = '', $immediate = false ){
 
                     $current_url++;
 
-                    //Increment sfw entries
-                    $apbct->stats['sfw']['entries'] += $result;
-                    $apbct->save('stats');
                     $apbct->fw_stats['firewall_update_percent'] = round( ( ( (int) $current_url + 1 ) / (int) $url_count ), 2) * 100;
                     $apbct->save('fw_stats');
 
@@ -1057,6 +1050,7 @@ function ct_sfw_update( $api_key = '', $immediate = false ){
                         $apbct->save( 'fw_stats' );
 
                         //Files array is empty update sfw time
+                        $apbct->stats['sfw']['entries'] = $wpdb->get_var('SELECT COUNT(*) FROM ' . APBCT_TBL_FIREWALL_DATA );
                         $apbct->stats['sfw']['last_update_time'] = time();
                         $apbct->save('stats');
 
