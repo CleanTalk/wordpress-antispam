@@ -1,6 +1,7 @@
 <?php
 
 use Cleantalk\ApbctWP\Cron;
+use Cleantalk\Common\Schema;
 
 function apbct_run_update_actions($current_version, $new_version){
 	
@@ -713,4 +714,16 @@ function apbct_update_to_5_151_1 () {
     $apbct->fw_stats['firewall_update_percent'] = $apbct->data['firewall_update_percent'];
     $apbct->fw_stats['firewall_updating_last_start'] = $apbct->data['firewall_updating_last_start'];
     $apbct->save('fw_stats');
+}
+
+function apbct_update_to_5_151_3 ()
+{
+    global $wpdb, $apbct;
+    $sql = 'SHOW TABLES LIKE "%scleantalk_sfw";';
+    $sql = sprintf( $sql, $wpdb->prefix ); // Adding current blog prefix
+    $result = $wpdb->get_var( $sql );
+    if( ! $result ){
+        apbct_activation__create_tables( Schema::getSchema('sfw'), $apbct->db_prefix );
+        ct_sfw_update();
+    }
 }
