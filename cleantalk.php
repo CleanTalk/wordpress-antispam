@@ -17,6 +17,7 @@ use Cleantalk\ApbctWP\Cron;
 use Cleantalk\ApbctWP\DB;
 use Cleantalk\ApbctWP\Firewall\SFW;
 use Cleantalk\ApbctWP\Helper;
+use Cleantalk\Common\Schema;
 use Cleantalk\Variables\Get;
 
 $cleantalk_executed = false;
@@ -687,67 +688,13 @@ function apbct_sfw__check()
 
 /**
  * On activation, set a time, frequency and name of an action hook to be scheduled.
+ * @throws Exception
  */
 function apbct_activation( $network = false ) {
 	
 	global $wpdb;
-	
-	// SFW data
-	$sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_sfw` (
-			`id` INT(11) NOT NULL AUTO_INCREMENT,
-			`network` int(11) unsigned NOT NULL,
-			`mask` int(11) unsigned NOT NULL,
-			`status` TINYINT(1) NOT NULL DEFAULT 0,
-			PRIMARY KEY (`id`),
-			INDEX (  `network` ,  `mask` )
-		);';
 
-	// UA BL
-    $sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_ua_bl` (
-			`id` INT(11) NOT NULL,
-			`ua_template` VARCHAR(255) NULL DEFAULT NULL,
-			`ua_status` TINYINT(1) NULL DEFAULT NULL,
-			PRIMARY KEY ( `id` ),
-			INDEX ( `ua_template` )			
-		) DEFAULT CHARSET=utf8;'; // Don't remove the default charset!
-	
-	// SFW log
-	$sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_sfw_logs` (
-		`id` VARCHAR(40) NOT NULL,
-		`ip` VARCHAR(15) NOT NULL,
-		`status` ENUM(\'PASS_SFW\',\'DENY_SFW\',\'PASS_SFW__BY_WHITELIST\',\'PASS_SFW__BY_COOKIE\',\'DENY_ANTICRAWLER\',\'PASS_ANTICRAWLER\',\'DENY_ANTICRAWLER_UA\',\'PASS_ANTICRAWLER_UA\',\'DENY_ANTIFLOOD\',\'PASS_ANTIFLOOD\') NULL DEFAULT NULL,
-		`all_entries` INT NOT NULL,
-		`blocked_entries` INT NOT NULL,
-		`entries_timestamp` INT NOT NULL,
-		`ua_id` INT(11) NULL DEFAULT NULL,
-		`ua_name` VARCHAR(1024) NOT NULL, 
-		PRIMARY KEY (`id`));';
-	
-	$sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_ac_log` (
-		`id` VARCHAR(40) NOT NULL,
-		`ip` VARCHAR(40) NOT NULL,
-		`ua` VARCHAR(40) NOT NULL,
-		`entries` INT DEFAULT 0,
-		`interval_start` INT NOT NULL,
-		PRIMARY KEY (`id`));';
-	
-	// Sessions
-	$sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_sessions` (
-		`id` VARCHAR(64) NOT NULL,
-		`name` VARCHAR(40) NOT NULL,
-		`value` TEXT NULL DEFAULT NULL,
-		`last_update` DATETIME NULL DEFAULT NULL,
-		PRIMARY KEY (`name`(40), `id`(64)));';
-	
-	$sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_spamscan_logs` (
-		`id` int(11) NOT NULL AUTO_INCREMENT,
-        `scan_type` varchar(11) NOT NULL,
-        `start_time` datetime NOT NULL,
-        `finish_time` datetime NOT NULL,
-        `count_to_scan` int(11) DEFAULT NULL,
-        `found_spam` int(11) DEFAULT NULL,
-        `found_bad` int(11) DEFAULT NULL,
-        PRIMARY KEY (`id`));';
+	$sqls = Schema::getSchema();
 		
 	if($network && !defined('CLEANTALK_ACCESS_KEY')){
 		$initial_blog  = get_current_blog_id();
@@ -806,72 +753,18 @@ function apbct_activation__create_tables( $sqls, $db_prefix = '' ) {
 		apbct_log($errors);
 }
 
+/**
+ * On activation, set a time, frequency and name of an action hook to be scheduled for sub-sites.
+ * @throws Exception
+ */
 function apbct_activation__new_blog($blog_id, $user_id, $domain, $path, $site_id, $meta) {
     if (apbct_is_plugin_active_for_network('cleantalk-spam-protect/cleantalk.php')){
 
 		$settings = get_option('cleantalk_settings');
 
         switch_to_blog($blog_id);
-		
-		global $wpdb;
-		
-		// SFW data
-		$sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_sfw` (
-				`id` INT(11) NOT NULL AUTO_INCREMENT,
-				`network` int(11) unsigned NOT NULL,
-				`mask` int(11) unsigned NOT NULL,
-				`status` TINYINT(1) NOT NULL DEFAULT 0,
-				PRIMARY KEY (`id`),
-				INDEX (  `network` ,  `mask` )
-			);';
 
-        // UA BL
-        $sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_ua_bl` (
-			`id` INT(11) NOT NULL,
-			`ua_template` VARCHAR(255) NULL DEFAULT NULL,
-			`ua_status` TINYINT(1) NULL DEFAULT NULL,
-			PRIMARY KEY ( `id` ),
-			INDEX ( `ua_template` )			
-		) DEFAULT CHARSET=utf8;'; // Don't remove the default charset!
-
-	
-	    // SFW log
-	    $sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_sfw_logs` (
-		`id` VARCHAR(40) NOT NULL,
-		`ip` VARCHAR(15) NOT NULL,
-		`status` ENUM(\'PASS_SFW\',\'DENY_SFW\',\'PASS_SFW__BY_WHITELIST\',\'PASS_SFW__BY_COOKIE\',\'DENY_ANTICRAWLER\',\'PASS_ANTICRAWLER\',\'DENY_ANTICRAWLER_UA\',\'PASS_ANTICRAWLER_UA\',\'DENY_ANTIFLOOD\',\'PASS_ANTIFLOOD\') NULL DEFAULT NULL,
-		`all_entries` INT NOT NULL,
-		`blocked_entries` INT NOT NULL,
-		`entries_timestamp` INT NOT NULL,
-		`ua_id` INT(11) NULL DEFAULT NULL,
-		`ua_name` VARCHAR(1024) NOT NULL, 
-		PRIMARY KEY (`id`));';
-	
-	    $sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_ac_log` (
-		`id` VARCHAR(40) NOT NULL,
-		`ip` VARCHAR(40) NOT NULL,
-		`ua` VARCHAR(40) NOT NULL,
-		`entries` INT DEFAULT 0,
-		`interval_start` INT NOT NULL,
-		PRIMARY KEY (`id`));';
-
-		// Sessions
-		$sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_sessions` (
-			`id` VARCHAR(64) NOT NULL,
-			`name` TEXT NOT NULL,
-			`value` TEXT NULL DEFAULT NULL,
-			`last_update` DATETIME NULL DEFAULT NULL,
-			PRIMARY KEY (`id`(64), `name`(64)));';
-	
-	    $sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_spamscan_logs` (
-		`id` int(11) NOT NULL AUTO_INCREMENT,
-        `scan_type` varchar(11) NOT NULL,
-        `start_time` datetime NOT NULL,
-        `finish_time` datetime NOT NULL,
-        `count_to_scan` int(11) DEFAULT NULL,
-        `found_spam` int(11) DEFAULT NULL,
-        `found_bad` int(11) DEFAULT NULL,
-        PRIMARY KEY (`id`));';
+        $sqls = Schema::getSchema();
 		
 		// Cron tasks
 		Cron::addTask('check_account_status',  'ct_account_status_check',        3600, time() + 1800); // Checks account status
