@@ -659,7 +659,7 @@ function apbct_sfw__check()
 		)
 	) );
 	
-	if( $apbct->settings['sfw__anti_crawler'] ){
+	if( $apbct->settings['sfw__anti_crawler'] && $apbct->stats['sfw']['entries'] ){
 		$firewall->load_fw_module( new \Cleantalk\ApbctWP\Firewall\AntiCrawler(
 			APBCT_TBL_FIREWALL_LOG,
 			APBCT_TBL_AC_LOG,

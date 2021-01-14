@@ -34,7 +34,14 @@ function apbct_settings_add_page() {
 
 function apbct_settings__set_fileds( $fields ){
 	global $apbct;
-	
+
+    $additional_ac_title = '';
+	if( $apbct->api_key && is_null( $apbct->fw_stats['firewall_updating_id'] ) ) {
+	    if( ! $apbct->stats['sfw']['entries'] ) {
+            $additional_ac_title = ' <span style="color:red">' . esc_html__( 'The functionality was disabled because SpamFireWall database is empty.', 'cleantalk-spam-protect' ) . ' ' . '<a href="https://cleantalk.org/my/support/open" target="_blank" style="color:red">'. esc_html__( 'Contact to our support.', 'cleantalk-spam-protect' ) .'</a></span>';
+        }
+    }
+
 	$fields =  array(
 		
 		'main' => array(
@@ -107,7 +114,7 @@ function apbct_settings__set_fileds( $fields ){
 				),
 				'sfw__anti_crawler' => array(
 					'type'        => 'checkbox',
-					'title'       => __('Anti-Crawler', 'cleantalk-spam-protect'),
+					'title'       => __('Anti-Crawler', 'cleantalk-spam-protect') . $additional_ac_title,
 					'class'       => 'apbct_settings-field_wrapper--sub',
 					'parent'      => 'spam_firewall',
 					'childrens'   => array('sfw__anti_crawler_ua'),
