@@ -38,7 +38,7 @@ function apbct_settings__set_fileds( $fields ){
     $additional_ac_title = '';
 	if( $apbct->api_key && is_null( $apbct->fw_stats['firewall_updating_id'] ) ) {
 	    if( ! $apbct->stats['sfw']['entries'] ) {
-            $additional_ac_title = ' <span style="color:red">' . esc_html__( 'The functionality was disabled because SpamFireWall database is empty.', 'cleantalk-spam-protect' ) . ' ' . '<a href="https://cleantalk.org/my/support/open" target="_blank" style="color:red">'. esc_html__( 'Contact to our support.', 'cleantalk-spam-protect' ) .'</a></span>';
+            $additional_ac_title = ' <span style="color:red">' . esc_html__( 'The functionality was disabled because SpamFireWall database is empty. Please, do the synchronization or', 'cleantalk-spam-protect' ) . ' ' . '<a href="https://cleantalk.org/my/support/open" target="_blank" style="color:red">'. esc_html__( 'contact to our support.', 'cleantalk-spam-protect' ) .'</a></span>';
         }
     }
 
