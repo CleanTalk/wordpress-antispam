@@ -34,7 +34,14 @@ function apbct_settings_add_page() {
 
 function apbct_settings__set_fileds( $fields ){
 	global $apbct;
-	
+
+    $additional_ac_title = '';
+	if( $apbct->api_key && is_null( $apbct->fw_stats['firewall_updating_id'] ) ) {
+	    if( ! $apbct->stats['sfw']['entries'] ) {
+            $additional_ac_title = ' <span style="color:red">' . esc_html__( 'The functionality was disabled because SpamFireWall database is empty. Please, do the synchronization or', 'cleantalk-spam-protect' ) . ' ' . '<a href="https://cleantalk.org/my/support/open" target="_blank" style="color:red">'. esc_html__( 'contact to our support.', 'cleantalk-spam-protect' ) .'</a></span>';
+        }
+    }
+
 	$fields =  array(
 		
 		'main' => array(
@@ -107,7 +114,7 @@ function apbct_settings__set_fileds( $fields ){
 				),
 				'sfw__anti_crawler' => array(
 					'type'        => 'checkbox',
-					'title'       => __('Anti-Crawler', 'cleantalk-spam-protect'),
+					'title'       => __('Anti-Crawler', 'cleantalk-spam-protect') . $additional_ac_title,
 					'class'       => 'apbct_settings-field_wrapper--sub',
 					'parent'      => 'spam_firewall',
 					'childrens'   => array('sfw__anti_crawler_ua'),
@@ -1082,11 +1089,10 @@ function apbct_settings__field__statistics() {
 		echo '<br>';
 
 		// SFW last update
-		$sfw_netwoks_amount = $wpdb->get_results("SELECT count(*) AS cnt FROM `".$wpdb->prefix."cleantalk_sfw`", ARRAY_A);
 		printf(
 			__('SpamFireWall was updated %s. Now contains %s entries.', 'cleantalk-spam-protect'),
 			$apbct->stats['sfw']['last_update_time'] ? date('M d Y H:i:s', $apbct->stats['sfw']['last_update_time']) : __('unknown', 'cleantalk-spam-protect'),
-			isset($sfw_netwoks_amount[0]['cnt']) ? $sfw_netwoks_amount[0]['cnt'] : __('unknown', 'cleantalk-spam-protect')
+			$apbct->stats['sfw']['entries']
 		);
 		echo $apbct->fw_stats['firewall_updating_id'] ? ' ' . __('Under updating now:', 'cleantalk-spam-protect') . ' ' . $apbct->fw_stats['firewall_update_percent'] . '%' : '';
 		echo '<br>';
@@ -1398,7 +1404,7 @@ function apbct_settings__validate($settings) {
 
 	//Sanitizing sfw__anti_flood__view_limit setting
 	$settings['sfw__anti_flood__view_limit'] = floor( intval( $settings['sfw__anti_flood__view_limit'] ) );
-	$settings['sfw__anti_flood__view_limit'] = ( $settings['sfw__anti_flood__view_limit'] == 0 ? 10 : $settings['sfw__anti_flood__view_limit'] ); // Default if 0 passed
+	$settings['sfw__anti_flood__view_limit'] = ( $settings['sfw__anti_flood__view_limit'] == 0 ? 20 : $settings['sfw__anti_flood__view_limit'] ); // Default if 0 passed
 	$settings['sfw__anti_flood__view_limit'] = ( $settings['sfw__anti_flood__view_limit'] < 5 ? 5 : $settings['sfw__anti_flood__view_limit'] ); //
 	
 	// Auto getting key

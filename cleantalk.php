@@ -3,7 +3,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 5.151.2
+  Version: 5.151.3
   Author: СleanTalk <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -17,6 +17,7 @@ use Cleantalk\ApbctWP\Cron;
 use Cleantalk\ApbctWP\DB;
 use Cleantalk\ApbctWP\Firewall\SFW;
 use Cleantalk\ApbctWP\Helper;
+use Cleantalk\Common\Schema;
 use Cleantalk\Variables\Get;
 
 $cleantalk_executed = false;
@@ -193,6 +194,7 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
         'EstimationForm'       => array( 'hook' => 'send_email', 'ajax' => true ),
         'LandingPageBuilder'   => array( 'hook' => 'ulpb_formBuilderEmail_ajax', 'ajax' => true ),
         'WpMembers'            => array( 'hook' => 'wpmem_pre_register_data', 'ajax' => false ),
+        'Rafflepress'          => array( 'hook' => 'rafflepress_lite_giveaway_api', 'ajax' => true ),
     );
     new  \Cleantalk\Antispam\Integrations( $apbct_active_integrations );
 	
@@ -657,7 +659,7 @@ function apbct_sfw__check()
 		)
 	) );
 	
-	if( $apbct->settings['sfw__anti_crawler'] ){
+	if( $apbct->settings['sfw__anti_crawler'] && $apbct->stats['sfw']['entries'] ){
 		$firewall->load_fw_module( new \Cleantalk\ApbctWP\Firewall\AntiCrawler(
 			APBCT_TBL_FIREWALL_LOG,
 			APBCT_TBL_AC_LOG,
@@ -686,67 +688,13 @@ function apbct_sfw__check()
 
 /**
  * On activation, set a time, frequency and name of an action hook to be scheduled.
+ * @throws Exception
  */
 function apbct_activation( $network = false ) {
 	
 	global $wpdb;
-	
-	// SFW data
-	$sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_sfw` (
-			`id` INT(11) NOT NULL AUTO_INCREMENT,
-			`network` int(11) unsigned NOT NULL,
-			`mask` int(11) unsigned NOT NULL,
-			`status` TINYINT(1) NOT NULL DEFAULT 0,
-			PRIMARY KEY (`id`),
-			INDEX (  `network` ,  `mask` )
-		);';
 
-	// UA BL
-    $sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_ua_bl` (
-			`id` INT(11) NOT NULL,
-			`ua_template` VARCHAR(255) NULL DEFAULT NULL,
-			`ua_status` TINYINT(1) NULL DEFAULT NULL,
-			PRIMARY KEY ( `id` ),
-			INDEX ( `ua_template` )			
-		) DEFAULT CHARSET=utf8;'; // Don't remove the default charset!
-	
-	// SFW log
-	$sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_sfw_logs` (
-		`id` VARCHAR(40) NOT NULL,
-		`ip` VARCHAR(15) NOT NULL,
-		`status` ENUM(\'PASS_SFW\',\'DENY_SFW\',\'PASS_SFW__BY_WHITELIST\',\'PASS_SFW__BY_COOKIE\',\'DENY_ANTICRAWLER\',\'PASS_ANTICRAWLER\',\'DENY_ANTICRAWLER_UA\',\'PASS_ANTICRAWLER_UA\',\'DENY_ANTIFLOOD\',\'PASS_ANTIFLOOD\') NULL DEFAULT NULL,
-		`all_entries` INT NOT NULL,
-		`blocked_entries` INT NOT NULL,
-		`entries_timestamp` INT NOT NULL,
-		`ua_id` INT(11) NULL DEFAULT NULL,
-		`ua_name` VARCHAR(1024) NOT NULL, 
-		PRIMARY KEY (`id`));';
-	
-	$sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_ac_log` (
-		`id` VARCHAR(40) NOT NULL,
-		`ip` VARCHAR(40) NOT NULL,
-		`ua` VARCHAR(40) NOT NULL,
-		`entries` INT DEFAULT 0,
-		`interval_start` INT NOT NULL,
-		PRIMARY KEY (`id`));';
-	
-	// Sessions
-	$sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_sessions` (
-		`id` VARCHAR(64) NOT NULL,
-		`name` VARCHAR(40) NOT NULL,
-		`value` TEXT NULL DEFAULT NULL,
-		`last_update` DATETIME NULL DEFAULT NULL,
-		PRIMARY KEY (`name`(40), `id`(64)));';
-	
-	$sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_spamscan_logs` (
-		`id` int(11) NOT NULL AUTO_INCREMENT,
-        `scan_type` varchar(11) NOT NULL,
-        `start_time` datetime NOT NULL,
-        `finish_time` datetime NOT NULL,
-        `count_to_scan` int(11) DEFAULT NULL,
-        `found_spam` int(11) DEFAULT NULL,
-        `found_bad` int(11) DEFAULT NULL,
-        PRIMARY KEY (`id`));';
+	$sqls = Schema::getSchema();
 		
 	if($network && !defined('CLEANTALK_ACCESS_KEY')){
 		$initial_blog  = get_current_blog_id();
@@ -805,72 +753,18 @@ function apbct_activation__create_tables( $sqls, $db_prefix = '' ) {
 		apbct_log($errors);
 }
 
+/**
+ * On activation, set a time, frequency and name of an action hook to be scheduled for sub-sites.
+ * @throws Exception
+ */
 function apbct_activation__new_blog($blog_id, $user_id, $domain, $path, $site_id, $meta) {
     if (apbct_is_plugin_active_for_network('cleantalk-spam-protect/cleantalk.php')){
 
 		$settings = get_option('cleantalk_settings');
 
         switch_to_blog($blog_id);
-		
-		global $wpdb;
-		
-		// SFW data
-		$sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_sfw` (
-				`id` INT(11) NOT NULL AUTO_INCREMENT,
-				`network` int(11) unsigned NOT NULL,
-				`mask` int(11) unsigned NOT NULL,
-				`status` TINYINT(1) NOT NULL DEFAULT 0,
-				PRIMARY KEY (`id`),
-				INDEX (  `network` ,  `mask` )
-			);';
 
-        // UA BL
-        $sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_ua_bl` (
-			`id` INT(11) NOT NULL,
-			`ua_template` VARCHAR(255) NULL DEFAULT NULL,
-			`ua_status` TINYINT(1) NULL DEFAULT NULL,
-			PRIMARY KEY ( `id` ),
-			INDEX ( `ua_template` )			
-		) DEFAULT CHARSET=utf8;'; // Don't remove the default charset!
-
-	
-	    // SFW log
-	    $sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_sfw_logs` (
-		`id` VARCHAR(40) NOT NULL,
-		`ip` VARCHAR(15) NOT NULL,
-		`status` ENUM(\'PASS_SFW\',\'DENY_SFW\',\'PASS_SFW__BY_WHITELIST\',\'PASS_SFW__BY_COOKIE\',\'DENY_ANTICRAWLER\',\'PASS_ANTICRAWLER\',\'DENY_ANTICRAWLER_UA\',\'PASS_ANTICRAWLER_UA\',\'DENY_ANTIFLOOD\',\'PASS_ANTIFLOOD\') NULL DEFAULT NULL,
-		`all_entries` INT NOT NULL,
-		`blocked_entries` INT NOT NULL,
-		`entries_timestamp` INT NOT NULL,
-		`ua_id` INT(11) NULL DEFAULT NULL,
-		`ua_name` VARCHAR(1024) NOT NULL, 
-		PRIMARY KEY (`id`));';
-	
-	    $sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_ac_log` (
-		`id` VARCHAR(40) NOT NULL,
-		`ip` VARCHAR(40) NOT NULL,
-		`ua` VARCHAR(40) NOT NULL,
-		`entries` INT DEFAULT 0,
-		`interval_start` INT NOT NULL,
-		PRIMARY KEY (`id`));';
-
-		// Sessions
-		$sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_sessions` (
-			`id` VARCHAR(64) NOT NULL,
-			`name` TEXT NOT NULL,
-			`value` TEXT NULL DEFAULT NULL,
-			`last_update` DATETIME NULL DEFAULT NULL,
-			PRIMARY KEY (`id`(64), `name`(64)));';
-	
-	    $sqls[] = 'CREATE TABLE IF NOT EXISTS `%scleantalk_spamscan_logs` (
-		`id` int(11) NOT NULL AUTO_INCREMENT,
-        `scan_type` varchar(11) NOT NULL,
-        `start_time` datetime NOT NULL,
-        `finish_time` datetime NOT NULL,
-        `count_to_scan` int(11) DEFAULT NULL,
-        `found_spam` int(11) DEFAULT NULL,
-        `found_bad` int(11) DEFAULT NULL,
-        PRIMARY KEY (`id`));';
+        $sqls = Schema::getSchema();
 		
 		// Cron tasks
 		Cron::addTask('check_account_status',  'ct_account_status_check',        3600, time() + 1800); // Checks account status
@@ -956,6 +850,8 @@ function apbct_deactivation__delete_all_options(){
 	delete_option('cleantalk_stats');
 	delete_option('cleantalk_timelabel_reg');
 	delete_option('cleantalk_debug');
+    delete_option('cleantalk_plugin_request_ids');
+    delete_option('cleantalk_fw_stats');
 }
 
 /**
@@ -974,6 +870,7 @@ function apbct_deactivation__delete_common_tables() {
 	$wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->base_prefix.'cleantalk_sessions`;');      // Deleting session table
 	$wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->base_prefix.'cleantalk_spamscan_logs`;'); // Deleting user/comments scan result table
     $wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->base_prefix.'cleantalk_ua_bl`;');         // Deleting AC UA black lists
+    $wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->prefix.'cleantalk_sfw_temp`;');      // Deleting temporary SFW data
 }
 
 function apbct_deactivation__delete_blog_tables() {
@@ -984,6 +881,7 @@ function apbct_deactivation__delete_blog_tables() {
 	$wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->prefix.'cleantalk_sessions`;');           // Deleting session table
 	$wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->prefix.'cleantalk_spamscan_logs`;'); // Deleting user/comments scan result table
     $wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->prefix.'cleantalk_ua_bl`;');         // Deleting AC UA black lists
+    $wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->prefix.'cleantalk_sfw_temp`;');      // Deleting temporary SFW data
 }
 
 function apbct_deactivation__delete_meta(){
@@ -1056,7 +954,7 @@ function ct_get_cookie()
 
 function ct_sfw_update( $api_key = '', $immediate = false ){
 	
-	global $apbct;
+	global $apbct, $wpdb;
 
     // Prevent start another update at a time
     if(
@@ -1074,16 +972,16 @@ function ct_sfw_update( $api_key = '', $immediate = false ){
         return array( 'error' => 'FIREWALL_IS_UPDATING' );
     }
 
-    // Set new update ID
-    if( ! $apbct->fw_stats['firewall_updating_id'] || time() - $apbct->fw_stats['firewall_updating_last_start'] > 300 ){
-        $apbct->fw_stats['firewall_updating_id'] = md5( rand( 0, 100000 ) );
-        $apbct->fw_stats['firewall_updating_last_start'] = time();
-        $apbct->save( 'fw_stats' );
-    }
-
 	$api_key = !empty($apbct->api_key) ? $apbct->api_key : $api_key;
 
     if( $apbct->settings['spam_firewall'] == 1 && ( ! empty($api_key) || $apbct->data['moderate_ip'] ) ) {
+
+        // Set new update ID
+        if( ! $apbct->fw_stats['firewall_updating_id'] || time() - $apbct->fw_stats['firewall_updating_last_start'] > 300 ){
+            $apbct->fw_stats['firewall_updating_id'] = md5( rand( 0, 100000 ) );
+            $apbct->fw_stats['firewall_updating_last_start'] = time();
+            $apbct->save( 'fw_stats' );
+        }
 
         if( apbct_is_remote_call() ) {
             // Remote call is in process, do updating
@@ -1093,10 +991,6 @@ function ct_sfw_update( $api_key = '', $immediate = false ){
             $current_url = isset($_GET['current_url']) ? urldecode( $_GET['current_url'] ) : null;
 
             if( ! $file_urls ){
-
-                //Reset previous entries count
-                $apbct->stats['sfw']['entries'] = 0;
-                $apbct->save('stats');
 
                 // @todo We have to handle errors here
                 SFW::create_temp_tables( DB::getInstance() );
@@ -1127,9 +1021,6 @@ function ct_sfw_update( $api_key = '', $immediate = false ){
 
                     $current_url++;
 
-                    //Increment sfw entries
-                    $apbct->stats['sfw']['entries'] += $result;
-                    $apbct->save('stats');
                     $apbct->fw_stats['firewall_update_percent'] = round( ( ( (int) $current_url + 1 ) / (int) $url_count ), 2) * 100;
                     $apbct->save('fw_stats');
 
@@ -1163,6 +1054,7 @@ function ct_sfw_update( $api_key = '', $immediate = false ){
                         $apbct->save( 'fw_stats' );
 
                         //Files array is empty update sfw time
+                        $apbct->stats['sfw']['entries'] = $wpdb->get_var('SELECT COUNT(*) FROM ' . APBCT_TBL_FIREWALL_DATA );
                         $apbct->stats['sfw']['last_update_time'] = time();
                         $apbct->save('stats');
 
