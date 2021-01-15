@@ -725,6 +725,8 @@ function apbct_update_to_5_151_3 ()
     if( ! $result ){
         apbct_activation__create_tables( Schema::getSchema('sfw'), $apbct->db_prefix );
     }
+    $apbct->fw_stats['firewall_updating_last_start'] = 0;
+    $apbct->save('fw_stats');
     $apbct->stats['sfw']['entries'] = 0;
     $apbct->save('stats');
     ct_sfw_update();
