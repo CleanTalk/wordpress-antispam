@@ -195,7 +195,7 @@ class UsersChecker extends Checker
             // Checking comments IP/Email. Gathering $data for check.
             $data = array();
 
-            for( $i=0; $i < count($u); $i++ ){
+            for($i=0, $iMax = count($u); $i < $iMax; $i++ ){
 
                 $user_meta = get_user_meta( $u[$i]->ID, 'session_tokens', true );
                 if( is_array( $user_meta ) )
