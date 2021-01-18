@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 3.0
 Tested up to: 5.6
 Requires PHP: 5.4
-Stable tag: 5.151.3
+Stable tag: 5.151.4
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -579,6 +579,10 @@ If your website has forms that send data to external sources, you can enable opt
 10. Website's options.
 
 == Changelog ==
+
+= 5.151.4 Jan 18 2020 =
+ * Fix: Users checking performance fix.
+ * Fix: AC disabled if SFW contains less than 50 entries.
 
 = 5.151.3 Jan 15 2020 =
  * Fix: Prevent logging false blocking for whitelisted networks.
