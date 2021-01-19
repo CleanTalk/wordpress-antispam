@@ -36,8 +36,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 		$this->db__table__logs    = $log_table ?: null;
 		$this->db__table__ac_logs = $ac_logs_table ?: null;
         $this->db__table__ac_ua_bl= defined('APBCT_TBL_AC_UA_BL') ? APBCT_TBL_AC_UA_BL : null;
-		$this->sign = md5( Server::get('HTTP_USER_AGENT') . Server::get('SERVER_PROTOCOL') );
-	
+		$this->sign = md5( Server::get('HTTP_USER_AGENT') . Server::get('HTTPS') );
 		
 		foreach( $params as $param_name => $param ){
 			$this->$param_name = isset( $this->$param_name ) ? $param : false;
