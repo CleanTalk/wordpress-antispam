@@ -343,6 +343,14 @@ function apbct_is_skip_request( $ajax = false ) {
             /*    Here is ajax requests skipping     */
             /*****************************************/
 
+            // Bookly Plugin admin actions skip
+            if( apbct_is_plugin_active( 'bookly-responsive-appointment-booking-tool/main.php' ) &&
+                isset( $_POST['action'] ) &&
+                strpos( $_POST['action'], 'bookly' ) !== false &&
+                is_admin() ) {
+                return 'bookly_pro_update_staff_advanced';
+            }
+
         case false :
         default:
             /*****************************************/
