@@ -358,6 +358,13 @@ function apbct_is_skip_request( $ajax = false ) {
             {
                 return 'youzier_login_form';
             }
+            // InJob theme lost password skip
+            if( apbct_is_plugin_active( 'iwjob/iwjob.php' ) &&
+                isset( $_POST['action'] ) &&
+                $_POST['action'] === 'iwj_lostpass' )
+            {
+                return 'injob_theme_plugin';
+            }
 
             break;
 
