@@ -2030,6 +2030,8 @@ function ct_registration_errors($errors, $sanitized_user_login = null, $user_ema
         	$_POST['FB_userdata']['email'] = '';
         	$_POST['FB_userdata']['name'] = '';
         	return;
+        }elseif(defined('MGM_PLUGIN_NAME')) {
+        	ct_die_extended($ct_result->comment);
         }else{
 			if(is_wp_error($errors))
 				$errors->add('ct_error', $ct_result->comment);
