@@ -324,3 +324,32 @@ function apbct_is_customize_preview() {
     $uri = parse_url(Server::get('REQUEST_URI'));
     return $uri && isset( $uri['query'] ) && strpos( $uri['query'], 'customize_changeset_uuid' ) !== false;
 }
+
+
+/**
+ * Checking if the request must be skipped.
+ *
+ * @param $ajax bool The current request is the ajax request?
+ *
+ * @return bool|string   false or request name for logging
+ */
+function apbct_is_skip_request( $ajax = false ) {
+
+    /* !!! Have to use more than one factor to detect the request - is_plugin active() && $_POST['action'] !!! */
+
+    switch ( $ajax ) {
+        case true :
+            /*****************************************/
+            /*    Here is ajax requests skipping     */
+            /*****************************************/
+
+        case false :
+        default:
+            /*****************************************/
+            /*  Here is non-ajax requests skipping   */
+            /*****************************************/
+
+    }
+
+    return false;
+}
