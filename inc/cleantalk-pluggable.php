@@ -347,15 +347,26 @@ function apbct_is_skip_request( $ajax = false ) {
             if( apbct_is_plugin_active( 'bookly-responsive-appointment-booking-tool/main.php' ) &&
                 isset( $_POST['action'] ) &&
                 strpos( $_POST['action'], 'bookly' ) !== false &&
-                is_admin() ) {
+                is_admin() )
+            {
                 return 'bookly_pro_update_staff_advanced';
             }
+            // Youzier login form skip
+            if( apbct_is_plugin_active( 'youzer/youzer.php' ) &&
+                isset( $_POST['action'] ) &&
+                $_POST['action'] === 'yz_ajax_login' )
+            {
+                return 'youzier_login_form';
+            }
+
+            break;
 
         case false :
         default:
             /*****************************************/
             /*  Here is non-ajax requests skipping   */
             /*****************************************/
+            break;
 
     }
 
