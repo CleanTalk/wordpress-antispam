@@ -75,7 +75,7 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule{
 			$result = $this->db->fetch_all(
 				"SELECT SUM(entries) as total_count"
 				. ' FROM `' . $this->db__table__ac_logs . '`'
-				. " WHERE ip = '$current_ip' AND interval_start > '$time';"
+				. " WHERE ip = '$current_ip' AND interval_start > '$time' AND " . random_int( 10000, 100000 ) . ";"
 			);
 			
 			if( ! empty( $result ) && isset( $result[0]['total_count'] ) && $result[0]['total_count'] >= $this->view_limit ){

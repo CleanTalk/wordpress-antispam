@@ -221,9 +221,8 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 				"SELECT ip"
 				. ' FROM `' . $this->db__table__ac_logs . '`'
 				. " WHERE ip = '$current_ip'"
-				. " AND ua = '$this->sign';"
+				. " AND ua = '$this->sign' AND " . random_int( 10000, 100000 ) . ";"
 			);
-			
 			if( isset( $result['ip'] ) ){
 				
 				if( Cookie::get('apbct_antibot') !== hash( 'sha256', $this->api_key . $this->apbct->data['salt'] ) ){
