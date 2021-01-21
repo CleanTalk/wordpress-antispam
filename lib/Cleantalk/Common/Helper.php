@@ -2,13 +2,15 @@
 
 namespace Cleantalk\Common;
 
+use Cleantalk\Variables\Server;
+
 /**
  * CleanTalk Helper class.
  * Compatible with any CMS.
  *
  * @package       PHP Antispam by CleanTalk
  * @subpackage    Helper
- * @Version       3.4
+ * @Version       3.5
  * @author        Cleantalk team (welcome@cleantalk.org)
  * @copyright (C) 2014 CleanTalk team (http://cleantalk.org)
  * @license       GNU/GPL: http://www.gnu.org/copyleft/gpl.html
@@ -60,147 +62,212 @@ class Helper
 		'netserv2.cleantalk.org' => '178.63.60.214',
 		'netserv3.cleantalk.org' => '188.40.14.173',
 	);
-	
-	/**
-	 * Getting arrays of IP (REMOTE_ADDR, X-Forwarded-For, X-Real-Ip, Cf_Connecting_Ip)
-	 *
-	 * @param array $ip_types Type of IP you want to receive
-	 * @param bool  $v4_only
-	 *
-	 * @return array|mixed|null
-	 */
-	static public function ip__get($ip_types = array('real', 'remote_addr', 'x_forwarded_for', 'x_real_ip', 'cloud_flare'), $v4_only = true)
-	{
-		$ips = array_flip($ip_types); // Result array with IPs
-		$headers = apache_request_headers();
-		
-		// REMOTE_ADDR
-		if(isset($ips['remote_addr'])){
-			$ip_type = self::ip__validate( isset( $_SERVER['REMOTE_ADDR'] ) ? $_SERVER['REMOTE_ADDR'] : '' );
-			if($ip_type){
-				$ips['remote_addr'] = ($ip_type == 'v6' ? self::ip__v6_normalize(isset( $_SERVER['REMOTE_ADDR'] ) ? $_SERVER['REMOTE_ADDR'] : '' ) : isset( $_SERVER['REMOTE_ADDR'] )) ? $_SERVER['REMOTE_ADDR'] : '';
-			}
-		}
-		
-		// X-Forwarded-For
-		if(isset($ips['x_forwarded_for'])){
-			if(isset($headers['X-Forwarded-For'])){
-				$tmp = explode(",", trim($headers['X-Forwarded-For']));
-				$tmp = trim($tmp[0]);
-				$ip_type = self::ip__validate($tmp);
-				if($ip_type){
-					$ips['x_forwarded_for'] = $ip_type == 'v6' ? self::ip__v6_normalize($tmp) : $tmp;
-				}
-			}
-		}
-		
-		// X-Real-Ip
-		if(isset($ips['x_real_ip'])){
-			if(isset($headers['X-Real-Ip'])){
-				$tmp = explode(",", trim($headers['X-Real-Ip']));
-				$tmp = trim($tmp[0]);
-				$ip_type = self::ip__validate($tmp);
-				if($ip_type){
-					$ips['x_forwarded_for'] = $ip_type == 'v6' ? self::ip__v6_normalize($tmp) : $tmp;
-				}
-			}
-		}
-		
-		// Cloud Flare
-		if(isset($ips['cloud_flare'])){
-			if(isset($headers['CF-Connecting-IP'], $headers['CF-IPCountry'], $headers['CF-RAY']) || isset($headers['Cf-Connecting-Ip'], $headers['Cf-Ipcountry'], $headers['Cf-Ray'])){
-				$tmp = isset($headers['CF-Connecting-IP']) ? $headers['CF-Connecting-IP'] : $headers['Cf-Connecting-Ip'];
-				$tmp = strpos($tmp, ',') !== false ? explode(',', $tmp) : (array)$tmp;
-				$ip_type = self::ip__validate(trim($tmp[0]));
-				if($ip_type){
-					$ips['real'] = $ip_type == 'v6' ? self::ip__v6_normalize(trim($tmp[0])) : trim($tmp[0]);
-				}
-			}
-		}
-		
-		// Getting real IP from REMOTE_ADDR or Cf_Connecting_Ip if set or from (X-Forwarded-For, X-Real-Ip) if REMOTE_ADDR is local.
-		if(isset($ips['real'])){
-			
-			// Detect IP type
-			$ip_type = self::ip__validate(isset( $_SERVER['REMOTE_ADDR'] ) ? $_SERVER['REMOTE_ADDR'] : '');
-			if($ip_type)
-				$ips['real'] = ($ip_type == 'v6' ? self::ip__v6_normalize(isset( $_SERVER['REMOTE_ADDR'] ) ? $_SERVER['REMOTE_ADDR'] : '' ) : isset( $_SERVER['REMOTE_ADDR'] )) ? $_SERVER['REMOTE_ADDR'] : '';
-			
-			// Cloud Flare
-			if(isset($headers['CF-Connecting-IP'], $headers['CF-IPCountry'], $headers['CF-RAY']) || isset($headers['Cf-Connecting-Ip'], $headers['Cf-Ipcountry'], $headers['Cf-Ray'])){
-				$tmp = isset($headers['CF-Connecting-IP']) ? $headers['CF-Connecting-IP'] : $headers['Cf-Connecting-Ip'];
-				$tmp = strpos($tmp, ',') !== false ? explode(',', $tmp) : (array)$tmp;
-				$ip_type = self::ip__validate(trim($tmp[0]));
-				if($ip_type)
-					$ips['real'] = $ip_type == 'v6' ? self::ip__v6_normalize(trim($tmp[0])) : trim($tmp[0]);
-				
-				// Sucury
-			}elseif(isset($headers['X-Sucuri-Clientip'], $headers['X-Sucuri-Country'])){
-				$ip_type = self::ip__validate($headers['X-Sucuri-Clientip']);
-				if($ip_type)
-					$ips['real'] = $ip_type == 'v6' ? self::ip__v6_normalize($headers['X-Sucuri-Clientip']) : $headers['X-Sucuri-Clientip'];
-				
-				// OVH
-			}elseif(isset($headers['X-Cdn-Any-Ip'], $headers['Remote-Ip'])){
-				$ip_type = self::ip__validate($headers['Remote-Ip']);
-				if($ip_type)
-					$ips['real'] = $ip_type == 'v6' ? self::ip__v6_normalize($headers['Remote-Ip']) : $headers['Remote-Ip'];
-				
-				// Incapsula proxy
-			}elseif(isset($headers['Incap-Client-Ip'])){
-				$ip_type = self::ip__validate($headers['Incap-Client-Ip']);
-				if($ip_type)
-					$ips['real'] = $ip_type == 'v6' ? self::ip__v6_normalize($headers['Incap-Client-Ip']) : $headers['Incap-Client-Ip'];
-			}
-			
-			// Is private network
-			if($ip_type === false ||
-				($ip_type && 
-					(self::ip__is_private_network($ips['real'], $ip_type) || 
-						self::ip__mask_match(
-							$ips['real'],
-							(isset($_SERVER['SERVER_ADDR']) ? $_SERVER['SERVER_ADDR'] . '/24' : '127.0.0.1/24'),
-							$ip_type
-						)
-					)
-				)
-			){
-				
-				// X-Forwarded-For
-				if(isset($headers['X-Forwarded-For'])){
-					$tmp = explode(',', trim($headers['X-Forwarded-For']));
-					$tmp = trim($tmp[0]);
-					$ip_type = self::ip__validate($tmp);
-					if($ip_type)
-						$ips['real'] = $ip_type == 'v6' ? self::ip__v6_normalize($tmp) : $tmp;
-					
-					// X-Real-Ip
-				}elseif(isset($headers['X-Real-Ip'])){
-					$tmp = explode(',', trim($headers['X-Real-Ip']));
-					$tmp = trim($tmp[0]);
-					$ip_type = self::ip__validate($tmp);
-					if($ip_type)
-						$ips['real'] = $ip_type == 'v6' ? self::ip__v6_normalize($tmp) : $tmp;
-				}
-			}
-		}
-		
-		// Validating IPs
-		$result = array();
-		foreach($ips as $key => $ip){
-			$ip_version = self::ip__validate($ip);
-			if($ip && (($v4_only && $ip_version == 'v4') || !$v4_only)){
-				$result[$key] = $ip;
-			}
-		}
-		
-		$result = array_unique($result);
-		return count($result) > 1
-			? $result
-			: (reset($result) !== false
-				? reset($result)
-				: null);
-	}
+
+    /**
+     * Getting arrays of IP (REMOTE_ADDR, X-Forwarded-For, X-Real-Ip, Cf_Connecting_Ip)
+     *
+     * @param string $ip_type_to_get Type of IP you want to receive
+     * @param bool   $v4_only
+     *
+     * @return string|null
+     */
+    public static function ip__get( $ip_type_to_get = 'real', $v4_only = true)
+    {
+        $out = null;
+
+        switch( $ip_type_to_get ){
+
+            // Cloud Flare
+            case 'cloud_flare':
+                $headers = self::http__get_headers();
+                if( isset( $headers['Cf-Connecting-Ip'], $headers['Cf-Ipcountry'], $headers['Cf-Ray'] ) ){
+                    $tmp = strpos( $headers['Cf-Connecting-Ip'], ',' ) !== false
+                        ? explode( ',', $headers['Cf-Connecting-Ip'] )
+                        : (array) $headers['Cf-Connecting-Ip'];
+                    $ip_version = self::ip__validate( trim( $tmp[0] ) );
+                    if( $ip_version ){
+                        $out = $ip_version === 'v6' && ! $v4_only ? self::ip__v6_normalize( trim( $tmp[0] ) ) : trim( $tmp[0] );
+                    }
+                }
+                break;
+
+            // GTranslate
+            case 'gtranslate':
+                $headers = self::http__get_headers();
+                if( isset( $headers['X-Gt-Clientip'], $headers['X-Gt-Viewer-Ip'] ) ){
+                    $ip_version = self::ip__validate( $headers['X-Gt-Viewer-Ip'] );
+                    if( $ip_version ){
+                        $out = $ip_version === 'v6' && ! $v4_only ? self::ip__v6_normalize( $headers['X-Gt-Viewer-Ip'] ) : $headers['X-Gt-Viewer-Ip'];
+                    }
+                }
+                break;
+
+            // ezoic
+            case 'ezoic':
+                $headers = self::http__get_headers();
+                if( isset( $headers['X-Middleton'], $headers['X-Middleton-Ip'] ) ){
+                    $ip_version = self::ip__validate( $headers['X-Middleton-Ip'] );
+                    if( $ip_version ){
+                        $out = $ip_version === 'v6' && ! $v4_only ? self::ip__v6_normalize( $headers['X-Middleton-Ip'] ) : $headers['X-Middleton-Ip'];
+                    }
+                }
+                break;
+
+            // Sucury
+            case 'sucury':
+                $headers = self::http__get_headers();
+                if( isset( $headers['X-Sucuri-Clientip'] ) ){
+                    $ip_version = self::ip__validate( $headers['X-Sucuri-Clientip'] );
+                    if( $ip_version ){
+                        $out = $ip_version === 'v6' && ! $v4_only ? self::ip__v6_normalize( $headers['X-Sucuri-Clientip'] ) : $headers['X-Sucuri-Clientip'];
+                    }
+                }
+                break;
+
+            // X-Forwarded-By
+            case 'x_forwarded_by':
+                $headers = self::http__get_headers();
+                if( isset( $headers['X-Forwarded-By'], $headers['X-Client-Ip'] ) ){
+                    $ip_version = self::ip__validate( $headers['X-Client-Ip'] );
+                    if( $ip_version ){
+                        $out = $ip_version === 'v6' && ! $v4_only ? self::ip__v6_normalize( $headers['X-Client-Ip'] ) : $headers['X-Client-Ip'];
+                    }
+                }
+                break;
+
+            // Stackpath
+            case 'stackpath':
+                $headers = self::http__get_headers();
+                if( isset( $headers['X-Sp-Edge-Host'], $headers['X-Sp-Forwarded-Ip'] ) ){
+                    $ip_version = self::ip__validate( $headers['X-Sp-Forwarded-Ip'] );
+                    if( $ip_version ){
+                        $out = $ip_version === 'v6' && ! $v4_only ? self::ip__v6_normalize( $headers['X-Sp-Forwarded-Ip'] ) : $headers['X-Sp-Forwarded-Ip'];
+                    }
+                }
+                break;
+
+            // Ico-X-Forwarded-For
+            case 'ico_x_forwarded_for':
+                $headers = self::http__get_headers();
+                if( isset( $headers['Ico-X-Forwarded-For'], $headers['X-Forwarded-Host'] ) ){
+                    $ip_version = self::ip__validate( $headers['Ico-X-Forwarded-For'] );
+                    if( $ip_version ){
+                        $out = $ip_version === 'v6' && ! $v4_only ? self::ip__v6_normalize( $headers['Ico-X-Forwarded-For'] ) : $headers['Ico-X-Forwarded-For'];
+                    }
+                }
+                break;
+
+            // OVH
+            case 'ovh':
+                $headers = self::http__get_headers();
+                if( isset( $headers['X-Cdn-Any-Ip'], $headers['Remote-Ip'] ) ){
+                    $ip_version = self::ip__validate( $headers['Remote-Ip'] );
+                    if( $ip_version ){
+                        $out = $ip_version === 'v6' && ! $v4_only ? self::ip__v6_normalize( $headers['Remote-Ip'] ) : $headers['Remote-Ip'];
+                    }
+                }
+                break;
+
+            // Incapsula proxy
+            case 'incapsula':
+                $headers = self::http__get_headers();
+                if( isset( $headers['Incap-Client-Ip'], $headers['X-Forwarded-For'] ) ){
+                    $ip_version = self::ip__validate( $headers['Incap-Client-Ip'] );
+                    if( $ip_version ){
+                        $out = $ip_version === 'v6' && ! $v4_only ? self::ip__v6_normalize( $headers['Incap-Client-Ip'] ) : $headers['Incap-Client-Ip'];
+                    }
+                }
+                break;
+
+            // Remote addr
+            case 'remote_addr':
+                $ip_version = self::ip__validate( Server::get( 'REMOTE_ADDR' ) );
+                if( $ip_version ){
+                    $out = $ip_version === 'v6' && ! $v4_only ? self::ip__v6_normalize( Server::get( 'REMOTE_ADDR' ) ) : Server::get( 'REMOTE_ADDR' );
+                }
+                break;
+
+            // X-Forwarded-For
+            case 'x_forwarded_for':
+                $headers = self::http__get_headers();
+                if( isset( $headers['X-Forwarded-For'] ) ){
+                    $tmp     = explode( ',', trim( $headers['X-Forwarded-For'] ) );
+                    $tmp     = trim( $tmp[0] );
+                    $ip_version = self::ip__validate( $tmp );
+                    if( $ip_version ){
+                        $out = $ip_version === 'v6' && ! $v4_only ? self::ip__v6_normalize( $tmp ) : $tmp;
+                    }
+                }
+                break;
+
+            // X-Real-Ip
+            case 'x_real_ip':
+                $headers = self::http__get_headers();
+                if(isset($headers['X-Real-Ip'])){
+                    $tmp = explode(",", trim($headers['X-Real-Ip']));
+                    $tmp = trim($tmp[0]);
+                    $ip_version = self::ip__validate($tmp);
+                    if($ip_version){
+                        $out = $ip_version === 'v6' && ! $v4_only ? self::ip__v6_normalize($tmp) : $tmp;
+                    }
+                }
+                break;
+
+            // Real
+            // Getting real IP from REMOTE_ADDR or Cf_Connecting_Ip if set or from (X-Forwarded-For, X-Real-Ip) if REMOTE_ADDR is local.
+            case 'real':
+
+                // Detect IP type
+                $out = self::ip__get( 'cloud_flare', $v4_only );
+                $out = $out ?: self::ip__get( 'sucury', $v4_only );
+                $out = $out ?: self::ip__get( 'gtranslate', $v4_only );
+                $out = $out ?: self::ip__get( 'ezoic', $v4_only );
+                $out = $out ?: self::ip__get( 'stackpath', $v4_only );
+                $out = $out ?: self::ip__get( 'x_forwarded_by', $v4_only );
+                $out = $out ?: self::ip__get( 'ico_x_forwarded_for', $v4_only );
+                $out = $out ?: self::ip__get( 'ovh', $v4_only );
+                $out = $out ?: self::ip__get( 'incapsula', $v4_only );
+
+                $ip_version = self::ip__validate( $out );
+
+                // Is private network
+                if(
+                    $out &&
+                    (
+                        self::ip__is_private_network( $out, $ip_version ) ||
+                        self::ip__mask_match(
+                            $out,
+                            Server::get( 'SERVER_ADDR' ) ?: '127.0.0.1' . '/24',
+                            $ip_version
+                        )
+                    )
+                ){
+                    //@todo Remove local IP from x-forwarded-for and x-real-ip
+                    $out = $out ?: self::ip__get( 'x_forwarded_for', $v4_only );
+                    $out = $out ?: self::ip__get( 'x_real_ip', $v4_only );
+                }
+
+                $out = $out ?: self::ip__get( 'remote_addr', $v4_only );
+
+                break;
+
+            default:
+                $out = self::ip__get( 'real', $v4_only );
+        }
+
+        // Final validating IP
+        $ip_version = self::ip__validate( $out );
+
+        if( ! $ip_version ){
+            return null;
+
+        }elseif( $ip_version === 'v6' && $v4_only ){
+            return null;
+
+        }else{
+            return $out;
+        }
+    }
 	
 	/**
 	 * Checks if the IP is in private range
@@ -861,5 +928,33 @@ class Helper
                 break;
         }
         return $param;
+    }
+
+    /**
+     * Gets every HTTP_ headers from $_SERVER
+     *
+     * If Apache web server is missing then making
+     * Patch for apache_request_headers()
+     *
+     * returns array
+     */
+    public static function http__get_headers(){
+
+        $headers = array();
+        foreach($_SERVER as $key => $val){
+            if( 0 === stripos( $key, 'http_' ) ){
+                $server_key = preg_replace('/^http_/i', '', $key);
+                $key_parts = explode('_', $server_key);
+                if(count($key_parts) > 0 and strlen($server_key) > 2){
+                    foreach($key_parts as $part_index => $part){
+                        $key_parts[$part_index] = function_exists('mb_strtolower') ? mb_strtolower($part) : strtolower($part);
+                        $key_parts[$part_index][0] = strtoupper($key_parts[$part_index][0]);
+                    }
+                    $server_key = implode('-', $key_parts);
+                }
+                $headers[$server_key] = $val;
+            }
+        }
+        return $headers;
     }
 }
