@@ -639,10 +639,6 @@ function apbct_sfw__check()
 	if($apbct->rc_running || (!empty($spbc) && $spbc->rc_running))
 		return;
 	
-	$fw_init_options = array(
-		'set_cookies' => $apbct->settings['set_cookies']
-	);
-	
 	$firewall = new \Cleantalk\Common\Firewall(
 		DB::getInstance()
 	);
