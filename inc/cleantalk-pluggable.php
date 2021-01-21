@@ -336,6 +336,7 @@ function apbct_is_customize_preview() {
 function apbct_is_skip_request( $ajax = false ) {
 
     /* !!! Have to use more than one factor to detect the request - is_plugin active() && $_POST['action'] !!! */
+    //@ToDo Implement direct integration checking - if have the direct integration will be returned false
 
     switch ( $ajax ) {
         case true :
@@ -373,6 +374,13 @@ function apbct_is_skip_request( $ajax = false ) {
             /*****************************************/
             /*  Here is non-ajax requests skipping   */
             /*****************************************/
+            // BuddyPress edit profile checking skip
+            if( apbct_is_plugin_active( 'buddypress/bp-loader.php' ) &&
+                array_key_exists( 'profile-group-edit-submit', $_POST ) )
+            {
+                return 'buddypress_profile_edit';
+            }
+
             break;
 
     }
