@@ -93,13 +93,15 @@ function apbct_base_call($params = array(), $reg_flag = false){
         return array( 'ct_result' => new CleantalkResponse() );
     }
 	$cleantalk_executed = true;
-    
+
     // Request id rotation
-	$plugin_request_id__lifetime = 2;
-	$tmp = array();
-    foreach( $apbct->plugin_request_ids as $request_id => $request_time ){
-    	if( time() - $request_time < $plugin_request_id__lifetime )
-    		$tmp[ $request_id ] = $request_time;
+	$tmp = array();    
+    if ($apbct->plugin_request_ids && !empty($apbct->plugin_request_ids)) {
+		$plugin_request_id__lifetime = 2;
+	    foreach( $apbct->plugin_request_ids as $request_id => $request_time ){
+	    	if( time() - $request_time < $plugin_request_id__lifetime )
+	    		$tmp[ $request_id ] = $request_time;
+	    }
     }
 	$apbct->plugin_request_ids = $tmp;
 	$apbct->save('plugin_request_ids');
