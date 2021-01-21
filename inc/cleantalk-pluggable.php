@@ -380,6 +380,12 @@ function apbct_is_skip_request( $ajax = false ) {
             {
                 return 'buddypress_profile_edit';
             }
+            // UltimateMember password reset skip
+            if( apbct_is_plugin_active( 'ultimate-member/ultimate-member.php' ) &&
+                isset( $_POST['_um_password_reset'] ) && $_POST['_um_password_reset'] == 1 )
+            {
+                return 'ultimatemember_password_reset';
+            }
 
             break;
 
