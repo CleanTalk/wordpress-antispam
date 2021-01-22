@@ -241,10 +241,6 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 	// Profile Builder integration
     add_filter( 'wppb_output_field_errors_filter', 'apbct_form_profile_builder__check_register', 1, 3 );
 
-    //Hooks for updating/adding settings
-    //add_action ('added_option', 'apbct_after_options_added', 10, 2);
-    //add_action ('updated_option', 'apbct_after_options_updated', 10, 3);
-
 	// Public actions
 	if( ! is_admin() && ! apbct_is_ajax() && ! apbct_is_customize_preview() ){
 		
@@ -452,44 +448,6 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 	if($apbct->settings['gdpr_enabled'])
 		add_shortcode('cleantalk_gdpr_form', 'apbct_shrotcode_handler__GDPR_public_notice__form');
 	
-}
-
-/**
- * Hook for updating settings
- */
-function apbct_after_options_updated( $option, $old_value, $value ) {
-    apbct_sfw_actions( $option, $value );
-}
-
-/**
- * Hook for adding settings
- */
-function apbct_after_options_added( $option, $value ) {
-    apbct_sfw_actions( $option, $value );
-}
-
-function apbct_sfw_actions( $option, $value ) {
-
-    global $apbct;
-
-    if ( $option == 'cleantalk_settings' ) {
-
-        $api_key = ! empty( $value['apikey'] ) || $apbct->moderate_ip ? $value['apikey'] : $apbct->api_key;
-
-        // SFW actions
-        if( $value['spam_firewall'] == 1 ){
-
-            $result = ct_sfw_update( true, $api_key );
-            if( ! empty( $result['error'] ) )
-                $apbct->error_add( 'sfw_update', $result['error'] );
-
-            $result = ct_sfw_send_logs( true, $api_key );
-            if( ! empty( $result['error'] ) )
-                $apbct->error_add( 'sfw_send_logs', $result['error'] );
-
-        }
-    }
-
 }
 
 /**
