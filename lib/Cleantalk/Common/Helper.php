@@ -71,7 +71,7 @@ class Helper
      *
      * @return string|null
      */
-    public static function ip__get( $ip_type_to_get = 'real', $v4_only = true)
+    public static function ip__get( $ip_type_to_get = 'real', $v4_only = true, $headers = array() )
     {
         $out = null;
 
@@ -79,7 +79,7 @@ class Helper
 
             // Cloud Flare
             case 'cloud_flare':
-                $headers = self::http__get_headers();
+                $headers = $headers ?: self::http__get_headers();
                 if( isset( $headers['Cf-Connecting-Ip'], $headers['Cf-Ipcountry'], $headers['Cf-Ray'] ) ){
                     $tmp = strpos( $headers['Cf-Connecting-Ip'], ',' ) !== false
                         ? explode( ',', $headers['Cf-Connecting-Ip'] )
@@ -93,7 +93,7 @@ class Helper
 
             // GTranslate
             case 'gtranslate':
-                $headers = self::http__get_headers();
+                $headers = $headers ?: self::http__get_headers();
                 if( isset( $headers['X-Gt-Clientip'], $headers['X-Gt-Viewer-Ip'] ) ){
                     $ip_version = self::ip__validate( $headers['X-Gt-Viewer-Ip'] );
                     if( $ip_version ){
@@ -104,7 +104,7 @@ class Helper
 
             // ezoic
             case 'ezoic':
-                $headers = self::http__get_headers();
+                $headers = $headers ?: self::http__get_headers();
                 if( isset( $headers['X-Middleton'], $headers['X-Middleton-Ip'] ) ){
                     $ip_version = self::ip__validate( $headers['X-Middleton-Ip'] );
                     if( $ip_version ){
@@ -115,7 +115,7 @@ class Helper
 
             // Sucury
             case 'sucury':
-                $headers = self::http__get_headers();
+                $headers = $headers ?: self::http__get_headers();
                 if( isset( $headers['X-Sucuri-Clientip'] ) ){
                     $ip_version = self::ip__validate( $headers['X-Sucuri-Clientip'] );
                     if( $ip_version ){
@@ -126,7 +126,7 @@ class Helper
 
             // X-Forwarded-By
             case 'x_forwarded_by':
-                $headers = self::http__get_headers();
+                $headers = $headers ?: self::http__get_headers();
                 if( isset( $headers['X-Forwarded-By'], $headers['X-Client-Ip'] ) ){
                     $ip_version = self::ip__validate( $headers['X-Client-Ip'] );
                     if( $ip_version ){
@@ -137,7 +137,7 @@ class Helper
 
             // Stackpath
             case 'stackpath':
-                $headers = self::http__get_headers();
+                $headers = $headers ?: self::http__get_headers();
                 if( isset( $headers['X-Sp-Edge-Host'], $headers['X-Sp-Forwarded-Ip'] ) ){
                     $ip_version = self::ip__validate( $headers['X-Sp-Forwarded-Ip'] );
                     if( $ip_version ){
@@ -148,7 +148,7 @@ class Helper
 
             // Ico-X-Forwarded-For
             case 'ico_x_forwarded_for':
-                $headers = self::http__get_headers();
+                $headers = $headers ?: self::http__get_headers();
                 if( isset( $headers['Ico-X-Forwarded-For'], $headers['X-Forwarded-Host'] ) ){
                     $ip_version = self::ip__validate( $headers['Ico-X-Forwarded-For'] );
                     if( $ip_version ){
@@ -159,7 +159,7 @@ class Helper
 
             // OVH
             case 'ovh':
-                $headers = self::http__get_headers();
+                $headers = $headers ?: self::http__get_headers();
                 if( isset( $headers['X-Cdn-Any-Ip'], $headers['Remote-Ip'] ) ){
                     $ip_version = self::ip__validate( $headers['Remote-Ip'] );
                     if( $ip_version ){
@@ -170,7 +170,7 @@ class Helper
 
             // Incapsula proxy
             case 'incapsula':
-                $headers = self::http__get_headers();
+                $headers = $headers ?: self::http__get_headers();
                 if( isset( $headers['Incap-Client-Ip'], $headers['X-Forwarded-For'] ) ){
                     $ip_version = self::ip__validate( $headers['Incap-Client-Ip'] );
                     if( $ip_version ){
@@ -189,7 +189,7 @@ class Helper
 
             // X-Forwarded-For
             case 'x_forwarded_for':
-                $headers = self::http__get_headers();
+                $headers = $headers ?: self::http__get_headers();
                 if( isset( $headers['X-Forwarded-For'] ) ){
                     $tmp     = explode( ',', trim( $headers['X-Forwarded-For'] ) );
                     $tmp     = trim( $tmp[0] );
@@ -202,7 +202,7 @@ class Helper
 
             // X-Real-Ip
             case 'x_real_ip':
-                $headers = self::http__get_headers();
+                $headers = $headers ?: self::http__get_headers();
                 if(isset($headers['X-Real-Ip'])){
                     $tmp = explode(",", trim($headers['X-Real-Ip']));
                     $tmp = trim($tmp[0]);
@@ -218,15 +218,15 @@ class Helper
             case 'real':
 
                 // Detect IP type
-                $out = self::ip__get( 'cloud_flare', $v4_only );
-                $out = $out ?: self::ip__get( 'sucury', $v4_only );
-                $out = $out ?: self::ip__get( 'gtranslate', $v4_only );
-                $out = $out ?: self::ip__get( 'ezoic', $v4_only );
-                $out = $out ?: self::ip__get( 'stackpath', $v4_only );
-                $out = $out ?: self::ip__get( 'x_forwarded_by', $v4_only );
-                $out = $out ?: self::ip__get( 'ico_x_forwarded_for', $v4_only );
-                $out = $out ?: self::ip__get( 'ovh', $v4_only );
-                $out = $out ?: self::ip__get( 'incapsula', $v4_only );
+                $out = self::ip__get( 'cloud_flare', $v4_only, $headers );
+                $out = $out ?: self::ip__get( 'sucury', $v4_only, $headers );
+                $out = $out ?: self::ip__get( 'gtranslate', $v4_only, $headers );
+                $out = $out ?: self::ip__get( 'ezoic', $v4_only, $headers );
+                $out = $out ?: self::ip__get( 'stackpath', $v4_only, $headers );
+                $out = $out ?: self::ip__get( 'x_forwarded_by', $v4_only, $headers );
+                $out = $out ?: self::ip__get( 'ico_x_forwarded_for', $v4_only, $headers );
+                $out = $out ?: self::ip__get( 'ovh', $v4_only, $headers );
+                $out = $out ?: self::ip__get( 'incapsula', $v4_only, $headers );
 
                 $ip_version = self::ip__validate( $out );
 
@@ -243,16 +243,16 @@ class Helper
                     )
                 ){
                     //@todo Remove local IP from x-forwarded-for and x-real-ip
-                    $out = $out ?: self::ip__get( 'x_forwarded_for', $v4_only );
-                    $out = $out ?: self::ip__get( 'x_real_ip', $v4_only );
+                    $out = $out ?: self::ip__get( 'x_forwarded_for', $v4_only, $headers );
+                    $out = $out ?: self::ip__get( 'x_real_ip', $v4_only, $headers );
                 }
 
-                $out = $out ?: self::ip__get( 'remote_addr', $v4_only );
+                $out = $out ?: self::ip__get( 'remote_addr', $v4_only, $headers );
 
                 break;
 
             default:
-                $out = self::ip__get( 'real', $v4_only );
+                $out = self::ip__get( 'real', $v4_only, $headers );
         }
 
         // Final validating IP
