@@ -7,7 +7,7 @@ use PHPUnit\Framework\TestCase;
 
 class HelperTest extends TestCase
 {
-    public function setUp()
+    public function setUp() : void
     {
         $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
     }
