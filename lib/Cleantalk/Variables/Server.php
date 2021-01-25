@@ -39,7 +39,11 @@ class Server extends ServerVariables{
 		
 		$name = strtoupper( $name );
 		
-		if( function_exists( 'filter_input' ) )
+		if( $name === 'URI' ){
+		    $value = $this->get_variable(  'REQUEST_SCHEME' ) . '://' . $this->get_variable(  'SERVER_NAME' ) . $this->get_variable(  'REQUEST_URI' );
+        }
+		
+		if( empty( $value ) && function_exists( 'filter_input' ) )
 			$value = filter_input( INPUT_SERVER, $name );
 		
 		if( empty( $value ) )
