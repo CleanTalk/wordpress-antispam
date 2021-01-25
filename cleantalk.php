@@ -807,6 +807,9 @@ function apbct_deactivation__delete_all_options(){
 	delete_option('cleantalk_debug');
     delete_option('cleantalk_plugin_request_ids');
     delete_option('cleantalk_fw_stats');
+    delete_option( 'ct_plugin_do_activation_redirect' );
+    delete_option( 'sfw_update_first' );
+    delete_option( 'sfw_sync_first' );
 }
 
 /**
