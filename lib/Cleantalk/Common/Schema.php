@@ -62,7 +62,7 @@ class Schema
      * @return array                     Array of schemas
      * @throws \Exception                Throws if calling un-existed schema
      */
-    public static function getSchema($table = null )
+    public static function getSchema( $table = null )
     {
         if( is_null( $table ) ) {
             return self::$schemas;
