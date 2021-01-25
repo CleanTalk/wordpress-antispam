@@ -684,7 +684,8 @@ function apbct_activation( $network = false ) {
 	}
 	
 	// Additional options
-	add_option('ct_plugin_do_activation_redirect', true);
+	add_option( 'ct_plugin_do_activation_redirect', true );
+    add_option( 'sfw_update_first', true );
 }
 
 function apbct_activation__create_tables( $sqls, $db_prefix = '' ) {
@@ -930,9 +931,15 @@ function ct_sfw_update( $api_key = '', $immediate = false ){
 
     if( $apbct->settings['spam_firewall'] == 1 && ( ! empty($api_key) || $apbct->data['moderate_ip'] ) ) {
 
+        if( get_option( 'sfw_sync_first' ) ) {
+            $first = 'first';
+            delete_option( 'sfw_sync_first' );
+        } else {
+            $first = '';
+        }
         // Set new update ID
         if( ! $apbct->fw_stats['firewall_updating_id'] || time() - $apbct->fw_stats['firewall_updating_last_start'] > 300 ){
-            $apbct->fw_stats['firewall_updating_id'] = md5( rand( 0, 100000 ) );
+            $apbct->fw_stats['firewall_updating_id'] = md5( rand( 0, 100000 ) ) . $first;
             $apbct->fw_stats['firewall_updating_last_start'] = time();
             $apbct->save( 'fw_stats' );
         }
@@ -995,6 +1002,8 @@ function ct_sfw_update( $api_key = '', $immediate = false ){
                         );
                     } else {
 
+                        $is_first_updating = strpos( $apbct->fw_stats['firewall_updating_id'], 'first' );
+
                         // @todo We have to handle errors here
                         SFW::delete_main_data_tables( DB::getInstance() );
                         // @todo We have to handle errors here
@@ -1011,6 +1020,12 @@ function ct_sfw_update( $api_key = '', $immediate = false ){
                         $apbct->stats['sfw']['entries'] = $wpdb->get_var('SELECT COUNT(*) FROM ' . APBCT_TBL_FIREWALL_DATA );
                         $apbct->stats['sfw']['last_update_time'] = time();
                         $apbct->save('stats');
+
+                        // Running sfw update once again in 15 min if entries is < 4000
+                        if( $is_first_updating !== false && $apbct->stats['sfw']['entries'] < 4000 ) {
+                            wp_schedule_single_event( time() + 900, 'ct_sfw_update' );
+                            delete_option( 'sfw_sync_first' );
+                        }
 
                         // Delete update errors
                         $apbct->error_delete( 'sfw_update', 'save_settings' );

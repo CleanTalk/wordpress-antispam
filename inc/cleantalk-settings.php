@@ -1581,6 +1581,11 @@ function apbct_settings__sync( $direct_call = false ){
 		
 		// SFW actions
 		if( $apbct->settings['spam_firewall'] == 1 ){
+
+            if( get_option( 'sfw_update_first' ) ) {
+                add_option( 'sfw_sync_first', true );
+                delete_option( 'sfw_update_first' );
+            }
 			
 			$result = ct_sfw_update( $apbct->settings['apikey'] );
 			if( ! empty( $result['error'] ) )
