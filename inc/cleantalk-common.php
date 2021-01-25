@@ -86,15 +86,36 @@ function apbct_plugin_loaded() {
 function apbct_base_call($params = array(), $reg_flag = false){
 
 	global $apbct, $cleantalk_executed;
-
-    // URL, IP, Role exclusions
-    if( ! $cleantalk_executed && apbct_exclusions_check() ){
+	
+	/* Exclusions */
+	if( $cleantalk_executed ){
         do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
         return array( 'ct_result' => new CleantalkResponse() );
     }
+	
+    // URL, IP, Role exclusions
+    if( apbct_exclusions_check() ){
+        do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
+        return array( 'ct_result' => new CleantalkResponse() );
+    }
+    
+    // Reversed url exclusions. Pass everything except one.
+    if( apbct_exclusions_check__url__reversed() ){
+        do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
+        return array( 'ct_result' => new CleantalkResponse() );
+    }
+    
+    // Fields exclusions
+    if( ! empty( $params['message'] ) && is_array( $params['message'] ) ){
+        $params['message'] = apbct_array( $params['message'] )
+            ->get_keys( $apbct->settings['exclusions__fields'], $apbct->settings['exclusions__fields__use_regexp'] )
+            ->delete();
+    }
+    /* End of Exclusions */
+    
 	$cleantalk_executed = true;
-
-    // Request id rotation
+    
+    /* Request ID rotation */
 	$tmp = array();    
     if ($apbct->plugin_request_ids && !empty($apbct->plugin_request_ids)) {
 		$plugin_request_id__lifetime = 2;
@@ -117,26 +138,12 @@ function apbct_base_call($params = array(), $reg_flag = false){
     
     $apbct->plugin_request_ids = array_merge($apbct->plugin_request_ids, array($apbct->plugin_request_id => time() ) );
 	$apbct->save('plugin_request_ids');
- 
+    /* End of Request ID rotation */
+	
+	
 	$sender_info = !empty($params['sender_info'])
 		? \Cleantalk\ApbctWP\Helper::array_merge__save_numeric_keys__recursive(apbct_get_sender_info(), (array)$params['sender_info'])
 		: apbct_get_sender_info();
-
-	// Fields exclusions
-	if( ! empty( $params['message'] ) && is_array( $params['message'] ) ){
-
-		$params['message'] = apbct_array( $params['message'] )
-			->get_keys( $apbct->settings['exclusions__fields'], $apbct->settings['exclusions__fields__use_regexp'] )
-			->delete();
-	}
-	
-	// Reversed url exclusions. Pass everything except one.
-	if( ! apbct_exclusions_check__url__reversed() ){
-		return array(
-			'ct'        => false,
-			'ct_result' => new CleantalkResponse( null, null )
-		);
-	}
 	
 	$default_params = array(
 		
@@ -241,14 +248,13 @@ function apbct_base_call($params = array(), $reg_flag = false){
 
 function apbct_exclusions_check($func = null){
 	
-	global $apbct, $cleantalk_executed;
+	global $apbct;
 
 	// Common exclusions
 	if(
 		apbct_exclusions_check__ip() ||
 		apbct_exclusions_check__url() ||
-		apbct_is_user_role_in( $apbct->settings['exclusions__roles'] ) ||
-		$cleantalk_executed
+		apbct_is_user_role_in( $apbct->settings['exclusions__roles'] )
 	)
 		return true;
 	
