@@ -277,7 +277,7 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 	add_filter('script_loader_tag', 'apbct_add_async_attribute', 10, 3);
 	
     // Redirect admin to plugin settings.
-    if(!defined('WP_ALLOW_MULTISITE') || defined('WP_ALLOW_MULTISITE') && WP_ALLOW_MULTISITE == false)
+    if( ! defined('WP_ALLOW_MULTISITE') || ( defined('WP_ALLOW_MULTISITE') && WP_ALLOW_MULTISITE == false ) )
     	add_action('admin_init', 'apbct_plugin_redirect');
 	
 	// Deleting SFW tables when deleting websites
