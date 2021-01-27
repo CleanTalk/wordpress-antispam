@@ -237,7 +237,7 @@ class Helper
                         self::ip__is_private_network( $out, $ip_version ) ||
                         self::ip__mask_match(
                             $out,
-                            Server::get( 'SERVER_ADDR' ) ?: '127.0.0.1' . '/24',
+                            Server::get( 'SERVER_ADDR' ) . '/24',
                             $ip_version
                         )
                     )
@@ -296,6 +296,10 @@ class Helper
 	 */
 	static public function ip__mask_match($ip, $cidr, $ip_type = 'v4', $xtet_count = 0)
 	{
+        if( ! self::ip__validate( $ip ) || ! self::cidr__validate( $cidr ) ){
+            return false;
+        }
+
 		if(is_array($cidr)){
 			foreach($cidr as $curr_mask){
 				if(self::ip__mask_match($ip, $curr_mask, $ip_type)){
@@ -372,6 +376,18 @@ class Helper
 		if(filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6) && self::ip__v6_reduce($ip) != '0::0') return 'v6';  // IPv6
 		return false; // Unknown
 	}
+
+    /**
+     * Validate CIDR
+     *
+     * @param string $cidr expects string like 1.1.1.1/32
+     *
+     * @return bool
+     */
+    public static function cidr__validate( $cidr ){
+        $cidr = explode( '/', $cidr );
+        return isset( $cidr[0], $cidr[1] ) && self::ip__validate( $cidr[0] ) && preg_match( '@\d{1,2}@', $cidr[1] );
+    }
 	
 	/**
 	 * Expand IPv6
