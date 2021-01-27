@@ -128,24 +128,22 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 	
 	// Do update actions if version is changed
 	apbct_update_actions();
-
-	// Self cron
-    if( ! apbct_is_remote_call() && // Do not doing CRON in remote call action
-        ! defined('DOING_CRON') ||
-        (defined('DOING_CRON') && DOING_CRON !== true)
+    
+    // Self cron
+    $tasks_to_run = Cron::checkTasks(); // Check for current tasks. Drop tasks inner counters.
+    if(
+        ! empty( $tasks_to_run ) && // There is tasks to run
+        ! apbct_is_remote_call() && // Do not doing CRON in remote call action
+        (
+            ! defined( 'DOING_CRON' ) ||
+            ( defined( 'DOING_CRON' ) && DOING_CRON !== true )
+        )
     ){
-		
-		$ct_cron = new Cron();
-		$ct_cron->checkTasks();
-		
-		if(!empty($ct_cron->tasks_to_run)){
-			
-			define('CT_CRON', true); // Letting know functions that they are running under CT_CRON
-			$ct_cron->runTasks();
-			unset($ct_cron);
-			
-		}
-	}
+        $ct_cron = new Cron();
+        $ct_cron->setTasksToRun( $tasks_to_run );
+        $ct_cron->runTasks();
+        unset( $ct_cron );
+    }
 	
 	//Delete cookie for admin trial notice
 	add_action('wp_logout', 'apbct__hook__wp_logout__delete_trial_notice_cookie');
