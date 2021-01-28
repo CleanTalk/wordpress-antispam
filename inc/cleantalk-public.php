@@ -3428,7 +3428,6 @@ function ct_contact_form_validate() {
         do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
         return false;
     }
-    $cleantalk_executed=true;
 
     if(isset($_POST['TellAFriend_Link'])){
     	$tmp = $_POST['TellAFriend_Link'];
