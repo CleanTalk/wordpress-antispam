@@ -799,6 +799,8 @@ function apbct_search_add_noindex() {
  */
 function ct_woocommerce_checkout_check() {
 
+    global $apbct, $cleantalk_executed;
+
 	//Getting request params
 	$ct_temp_msg_data = ct_get_fields_any($_POST);
 
@@ -825,6 +827,10 @@ function ct_woocommerce_checkout_check() {
 			'sender_info'     => array('sender_url' => null),
 		)
 	);
+
+	if( $apbct->settings['wc_register_from_order'] ) {
+        $cleantalk_executed = false;
+    }
 
     $ct_result = $base_call_result['ct_result'];
 
