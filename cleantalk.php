@@ -908,6 +908,9 @@ function ct_get_cookie()
 	die();
 }
 
+// This action triggered by  wp_schedule_single_event( time() + 900, 'ct_sfw_update' );
+add_action( 'ct_sfw_update', 'ct_sfw_update' );
+
 function ct_sfw_update( $api_key = '', $immediate = false ){
 	
 	global $apbct, $wpdb;
@@ -934,7 +937,6 @@ function ct_sfw_update( $api_key = '', $immediate = false ){
 
         if( get_option( 'sfw_sync_first' ) ) {
             $first = 'first';
-            delete_option( 'sfw_sync_first' );
         } else {
             $first = '';
         }
