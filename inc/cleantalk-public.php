@@ -3247,7 +3247,6 @@ function apbct_form__inevio__testSpam() {
 
     $post_info['comment_type'] = 'contact_form_wordpress_inevio_theme';
 
-    $cleantalk_executed = true;
     $base_call_result = apbct_base_call(
         array(
             'message'         => $message,
