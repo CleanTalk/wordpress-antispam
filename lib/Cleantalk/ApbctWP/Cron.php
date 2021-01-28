@@ -162,7 +162,7 @@ class Cron
      */
     public function runTasks()
     {
-        global $spbc;
+        global $apbct;
         
         if( empty( $this->tasks_to_run ) ){
             return;
@@ -178,15 +178,15 @@ class Cron
                 
                 if(empty($result['error'])){
                     $this->tasks_completed[$task] = true;
-                    $spbc->error_delete($task, 'save_data', 'cron');
+                    $apbct->error_delete($task, 'save_data', 'cron');
                 }else{
                     $this->tasks_completed[$task] = false;
-                    $spbc->error_add($task, $result, 'cron');
+                    $apbct->error_add($task, $result, 'cron');
                 }
                 
             }else{
                 $this->tasks_completed[$task] = false;
-                $spbc->error_add($task, $this->handler.'_IS_NOT_EXISTS', 'cron');
+                $apbct->error_add($task, $this->handler.'_IS_NOT_EXISTS', 'cron');
             }
             
             $this->saveTask($task);
