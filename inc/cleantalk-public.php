@@ -3200,7 +3200,6 @@ function apbct_form__elementor_pro__testSpam() {
 
     $post_info['comment_type'] = 'contact_form_wordpress_elementor_pro';
 
-    $cleantalk_executed = true;
     $base_call_result = apbct_base_call(
         array(
             'message'         => $message,
