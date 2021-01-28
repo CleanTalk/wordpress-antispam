@@ -2469,8 +2469,6 @@ function apbct_form__ninjaForms__testSpam() {
 	    do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
 	    return;
     }
-	
-	$cleantalk_executed = true;
  
 	if(
 			$apbct->settings['contact_forms_test'] == 0
