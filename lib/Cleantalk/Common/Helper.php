@@ -296,9 +296,6 @@ class Helper
 	 */
 	static public function ip__mask_match($ip, $cidr, $ip_type = 'v4', $xtet_count = 0)
 	{
-        if( ! self::ip__validate( $ip ) || ! self::cidr__validate( $cidr ) ){
-            return false;
-        }
 
 		if(is_array($cidr)){
 			foreach($cidr as $curr_mask){
@@ -309,6 +306,10 @@ class Helper
 			unset($curr_mask);
 			return false;
 		}
+
+        if( ! self::ip__validate( $ip ) || ! self::cidr__validate( $cidr ) ){
+            return false;
+        }
 		
 		$xtet_base = ($ip_type == 'v4') ? 8 : 16;
 		
