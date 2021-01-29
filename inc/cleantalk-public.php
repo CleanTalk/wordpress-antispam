@@ -799,6 +799,8 @@ function apbct_search_add_noindex() {
  */
 function ct_woocommerce_checkout_check() {
 
+    global $apbct, $cleantalk_executed;
+
 	//Getting request params
 	$ct_temp_msg_data = ct_get_fields_any($_POST);
 
@@ -825,6 +827,10 @@ function ct_woocommerce_checkout_check() {
 			'sender_info'     => array('sender_url' => null),
 		)
 	);
+
+	if( $apbct->settings['wc_register_from_order'] ) {
+        $cleantalk_executed = false;
+    }
 
     $ct_result = $base_call_result['ct_result'];
 
@@ -2030,6 +2036,8 @@ function ct_registration_errors($errors, $sanitized_user_login = null, $user_ema
         	$_POST['FB_userdata']['email'] = '';
         	$_POST['FB_userdata']['name'] = '';
         	return;
+        }elseif(defined('MGM_PLUGIN_NAME')) {
+        	ct_die_extended($ct_result->comment);
         }else{
 			if(is_wp_error($errors))
 				$errors->add('ct_error', $ct_result->comment);
@@ -2467,8 +2475,6 @@ function apbct_form__ninjaForms__testSpam() {
 	    do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
 	    return;
     }
-	
-	$cleantalk_executed = true;
  
 	if(
 			$apbct->settings['contact_forms_test'] == 0
@@ -3200,7 +3206,6 @@ function apbct_form__elementor_pro__testSpam() {
 
     $post_info['comment_type'] = 'contact_form_wordpress_elementor_pro';
 
-    $cleantalk_executed = true;
     $base_call_result = apbct_base_call(
         array(
             'message'         => $message,
@@ -3247,7 +3252,6 @@ function apbct_form__inevio__testSpam() {
 
     $post_info['comment_type'] = 'contact_form_wordpress_inevio_theme';
 
-    $cleantalk_executed = true;
     $base_call_result = apbct_base_call(
         array(
             'message'         => $message,
@@ -3358,6 +3362,7 @@ function ct_contact_form_validate() {
         ( isset( $_POST['ihcaction'] ) && $_POST['ihcaction'] == 'reset_pass') || //Reset pass exclusion
         ( isset( $_POST['action'],  $_POST['register_unspecified_nonce_field'] ) && $_POST['action'] == 'register' ) || // Profile Builder have a direct integration
         ( isset( $_POST['_wpmem_register_nonce'] ) && wp_verify_nonce( $_POST['_wpmem_register_nonce'], 'wpmem_longform_nonce' ) ) // WP Members have a direct integration
+        /* !! Do not add actions here. Use apbct_is_skip_request() function below !! */
 		) {
         do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
         return null;
@@ -3405,6 +3410,12 @@ function ct_contact_form_validate() {
 			}
 		}
 	}
+
+    if( apbct_is_skip_request( false ) ) {
+        do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__ . '(' . apbct_is_skip_request() . ')', $_POST );
+        return false;
+    }
+
     $post_info['comment_type'] = 'feedback_general_contact_form';
 
 	$ct_temp_msg_data = ct_get_fields_any($_POST);
@@ -3423,7 +3434,6 @@ function ct_contact_form_validate() {
         do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
         return false;
     }
-    $cleantalk_executed=true;
 
     if(isset($_POST['TellAFriend_Link'])){
     	$tmp = $_POST['TellAFriend_Link'];

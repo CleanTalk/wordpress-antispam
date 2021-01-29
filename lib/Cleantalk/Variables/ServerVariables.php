@@ -11,45 +11,25 @@ namespace Cleantalk\Variables;
  * @package Cleantalk\Variables
  */
 class ServerVariables{
-	
-	static $instance;
 
-	public $variables = array();
-	
-	public function __construct(){}
-	public function __wakeup(){}
-	public function __clone(){}
-	
+	use \Cleantalk\Templates\Singleton;
+
 	/**
-	 * Constructor
-	 * @return $this
+	 * @var array Contains saved variables
 	 */
-	public static function getInstance(){
-		if (!isset(static::$instance)) {
-			static::$instance = new static;
-			static::$instance->init();
-		}
-		return static::$instance;
-	}
-	
-	/**
-	 * Alternative constructor
-	 */
-	protected function init(){
-	
-	}
-	
+	public $variables = [];
+
 	/**
 	 * Gets variable from ${_SOMETHING}
 	 *
-	 * @param $name
+	 * @param string $name Variable name
 	 *
-	 * @return string ${_SOMETHING}[ $name ]
+	 * @return string
 	 */
 	public static function get( $name ){
 		return static::getInstance()->get_variable( $name );
 	}
-	
+
 	/**
 	 * BLUEPRINT
 	 * Gets given ${_SOMETHING} variable and seva it to memory
@@ -60,17 +40,17 @@ class ServerVariables{
 	protected function get_variable( $name ){
 		return true;
 	}
-	
+
 	/**
 	 * Save variable to $this->variables[]
 	 *
 	 * @param string $name
 	 * @param string $value
 	 */
-	protected function remebmer_variable( $name, $value ){
+	protected function remember_variable( $name, $value ){
 		static::$instance->variables[$name] = $value;
 	}
-	
+
 	/**
 	 * Checks if variable contains given string
 	 *
@@ -81,5 +61,17 @@ class ServerVariables{
 	 */
 	static function has_string( $var, $string ){
 		return stripos( self::get( $var ), $string ) !== false;
+	}
+
+	/**
+	 * Checks if variable equal to $param
+	 *
+	 * @param string $var   Variable to compare
+	 * @param string $param Param to compare
+	 *
+	 * @return bool|int
+	 */
+	static function equal( $var, $param ){
+		return self::get( $var ) == $param;
 	}
 }

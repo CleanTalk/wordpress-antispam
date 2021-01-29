@@ -324,6 +324,7 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 	    'erforms_field_change_command', //ERForms internal request
 	    'wl_out_of_stock_notify', // Sumo Waitlist
 	    'rac_preadd_guest', //Rac internal request
+        /* !! Do not add actions here. Use apbct_is_skip_request() function below !! */
     );
     
     // Skip test if
@@ -348,6 +349,11 @@ function ct_ajax_hook($message_obj = false, $additional = false)
     )
     {
 	    do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
+        return false;
+    }
+
+    if( apbct_is_skip_request( true ) ) {
+        do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__ . '(' . apbct_is_skip_request() . ')', $_POST );
         return false;
     }
 

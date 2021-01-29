@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 3.0
 Tested up to: 5.6
 Requires PHP: 5.4
-Stable tag: 5.151.4
+Stable tag: 5.152
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -579,6 +579,35 @@ If your website has forms that send data to external sources, you can enable opt
 10. Website's options.
 
 == Changelog ==
+
+= 5.152 Jan 29 2020 =
+ * Fix: Using server protocol for AC checking.
+ * Fix: Prevent caching db queries for SFW.
+ * Fix: mgm registration temp fix.
+ * Upd: Checking skipped request replaced.
+ * Fix: Bookly plugin service requests checking skipped.
+ * Fix: Youzier login form skipped.
+ * Fix: InJob theme lost password skipped.
+ * Upd: Showing plugin version on SFW block page.
+ * Fix: fix request id rotation.
+ * Mod: Show "Insert users" button only for local web servers.
+ * Upd: Checking skipped request replaced for non-ajax requests.
+ * Fix: BuddyPress edit profile checking skippped.
+ * Fix: Unused code removed.
+ * Upd: Helper::ip__get() method updated.
+ * Fix: UltimateMember password reset skipped.
+ * Del: Unused code removed.
+ * New: Server::get() now can accept 'URI' as an parameter. Returns full URI like 'http://domain.net/request/path?parameter=value#fragment
+ * Mod: apbct_exclusions_check__url__reversed() simplifed and PHPDoc'ed.
+ * Mod: apbct_base_call exclusions revised.
+ * Mod: $cleantalk_executed chaos simplified.
+ * Upd: Shedule sfw update once again if it failed.
+ * Fix: Delete cleantalk options via uninstalling.
+ * Fix: Deleting table for network sites fixed.
+ * Fix: Using host header for AC checking.
+ * Fix: Expression formatting fixed.
+ * Mod: Cron. Do not runs when it already runs.
+ * Mod: Cron class updated.
 
 = 5.151.4 Jan 18 2020 =
  * Fix: Users checking performance fix.

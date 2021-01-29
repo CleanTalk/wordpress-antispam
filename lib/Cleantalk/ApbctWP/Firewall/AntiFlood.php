@@ -75,7 +75,7 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule{
 			$result = $this->db->fetch_all(
 				"SELECT SUM(entries) as total_count"
 				. ' FROM `' . $this->db__table__ac_logs . '`'
-				. " WHERE ip = '$current_ip' AND interval_start > '$time';"
+				. " WHERE ip = '$current_ip' AND interval_start > '$time' AND " . random_int( 10000, 100000 ) . ";"
 			);
 			
 			if( ! empty( $result ) && isset( $result[0]['total_count'] ) && $result[0]['total_count'] >= $this->view_limit ){
@@ -186,7 +186,7 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule{
 				'{REMOTE_ADDRESS}'                 => $result['ip'],
 				'{REQUEST_URI}'                    => Server::get( 'REQUEST_URI' ),
 				'{SERVICE_ID}'                     => $this->apbct->data['service_id'] . ', ' . $net_count,
-				'{HOST}'                           => Server::get( 'HTTP_HOST' ),
+				'{HOST}'                           => Server::get( 'HTTP_HOST' ) . ', ' . APBCT_VERSION,
 				'{GENERATED}'                      => '<p>The page was generated at&nbsp;' . date( 'D, d M Y H:i:s' ) . "</p>",
 				'{COOKIE_ANTIFLOOD_PASSED}'      => md5( $this->api_key . $result['ip'] ),
 			);

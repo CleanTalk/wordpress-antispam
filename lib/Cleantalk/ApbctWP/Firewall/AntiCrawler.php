@@ -15,7 +15,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 	private $api_key = '';
 	private $apbct = false;
 	private $store_interval = 60;
-	private $ua; //User-Agent
+	private $sign; //Signature - User-Agent + Protocol
     private $ua_id = 'null'; //User-Agent
 
 	private $ac_log_result = '';
@@ -36,8 +36,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 		$this->db__table__logs    = $log_table ?: null;
 		$this->db__table__ac_logs = $ac_logs_table ?: null;
         $this->db__table__ac_ua_bl= defined('APBCT_TBL_AC_UA_BL') ? APBCT_TBL_AC_UA_BL : null;
-		$this->ua = md5( Server::get('HTTP_USER_AGENT') );
-	
+		$this->sign = md5( Server::get('HTTP_USER_AGENT') . Server::get('HTTPS') . Server::get('HTTP_HOST') );
 		
 		foreach( $params as $param_name => $param ){
 			$this->$param_name = isset( $this->$param_name ) ? $param : false;
@@ -222,9 +221,8 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 				"SELECT ip"
 				. ' FROM `' . $this->db__table__ac_logs . '`'
 				. " WHERE ip = '$current_ip'"
-				. " AND ua = '$this->ua';"
+				. " AND ua = '$this->sign' AND " . random_int( 10000, 100000 ) . ";"
 			);
-			
 			if( isset( $result['ip'] ) ){
 				
 				if( Cookie::get('apbct_antibot') !== hash( 'sha256', $this->api_key . $this->apbct->data['salt'] ) ){
@@ -267,12 +265,12 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 		// @todo Rename ip column to sign. Use IP + UserAgent for it.
 		
 		foreach( $this->ip_array as $ip_origin => $current_ip ){
-			$id = md5( $current_ip . $this->ua . $interval_time );
+			$id = md5( $current_ip . $this->sign . $interval_time );
 			$this->db->execute(
 				"INSERT INTO " . $this->db__table__ac_logs . " SET
 					id = '$id',
 					ip = '$current_ip',
-					ua = '$this->ua',
+					ua = '$this->sign',
 					entries = 1,
 					interval_start = $interval_time
 				ON DUPLICATE KEY UPDATE
@@ -348,7 +346,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 				'{CLEANTALK_TITLE}'                => __( 'Antispam by CleanTalk', 'cleantalk-spam-protect' ),
 				'{REMOTE_ADDRESS}'                 => $result['ip'],
 				'{SERVICE_ID}'                     => $this->apbct->data['service_id'] . ', ' . $net_count,
-				'{HOST}'                           => Server::get( 'HTTP_HOST' ),
+				'{HOST}'                           => Server::get( 'HTTP_HOST' ) . ', ' . APBCT_VERSION,
 				'{COOKIE_ANTICRAWLER}'             => hash( 'sha256', $apbct->api_key . $apbct->data['salt'] ),
 				'{COOKIE_ANTICRAWLER_PASSED}'      => '1',
 				'{GENERATED}'                      => '<p>The page was generated at&nbsp;' . date( 'D, d M Y H:i:s' ) . "</p>",

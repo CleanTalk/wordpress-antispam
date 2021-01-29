@@ -324,3 +324,72 @@ function apbct_is_customize_preview() {
     $uri = parse_url(Server::get('REQUEST_URI'));
     return $uri && isset( $uri['query'] ) && strpos( $uri['query'], 'customize_changeset_uuid' ) !== false;
 }
+
+
+/**
+ * Checking if the request must be skipped.
+ *
+ * @param $ajax bool The current request is the ajax request?
+ *
+ * @return bool|string   false or request name for logging
+ */
+function apbct_is_skip_request( $ajax = false ) {
+
+    /* !!! Have to use more than one factor to detect the request - is_plugin active() && $_POST['action'] !!! */
+    //@ToDo Implement direct integration checking - if have the direct integration will be returned false
+
+    switch ( $ajax ) {
+        case true :
+            /*****************************************/
+            /*    Here is ajax requests skipping     */
+            /*****************************************/
+
+            // Bookly Plugin admin actions skip
+            if( apbct_is_plugin_active( 'bookly-responsive-appointment-booking-tool/main.php' ) &&
+                isset( $_POST['action'] ) &&
+                strpos( $_POST['action'], 'bookly' ) !== false &&
+                is_admin() )
+            {
+                return 'bookly_pro_update_staff_advanced';
+            }
+            // Youzier login form skip
+            if( apbct_is_plugin_active( 'youzer/youzer.php' ) &&
+                isset( $_POST['action'] ) &&
+                $_POST['action'] === 'yz_ajax_login' )
+            {
+                return 'youzier_login_form';
+            }
+            // InJob theme lost password skip
+            if( apbct_is_plugin_active( 'iwjob/iwjob.php' ) &&
+                isset( $_POST['action'] ) &&
+                $_POST['action'] === 'iwj_lostpass' )
+            {
+                return 'injob_theme_plugin';
+            }
+
+            break;
+
+        case false :
+        default:
+            /*****************************************/
+            /*  Here is non-ajax requests skipping   */
+            /*****************************************/
+            // BuddyPress edit profile checking skip
+            if( apbct_is_plugin_active( 'buddypress/bp-loader.php' ) &&
+                array_key_exists( 'profile-group-edit-submit', $_POST ) )
+            {
+                return 'buddypress_profile_edit';
+            }
+            // UltimateMember password reset skip
+            if( apbct_is_plugin_active( 'ultimate-member/ultimate-member.php' ) &&
+                isset( $_POST['_um_password_reset'] ) && $_POST['_um_password_reset'] == 1 )
+            {
+                return 'ultimatemember_password_reset';
+            }
+
+            break;
+
+    }
+
+    return false;
+}
