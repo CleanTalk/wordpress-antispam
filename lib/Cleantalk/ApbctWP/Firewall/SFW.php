@@ -128,7 +128,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 				FROM " . $this->db__table__data . "
 				WHERE network IN (". implode( ',', $needles ) .")
 				AND	network = " . $current_ip_v4 . " & mask 
-				AND " . random_int( 10000, 100000 ) . "  
+				AND " . rand( 1, 100000 ) . "  
 				ORDER BY status DESC");
 			
 			if( ! empty( $db_results ) ){
