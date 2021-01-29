@@ -580,6 +580,9 @@ If your website has forms that send data to external sources, you can enable opt
 
 == Changelog ==
 
+= 5.152.1 Jan 29 2020 =
+ * Fix: Function random_int() replaced by rand().
+
 = 5.152 Jan 29 2020 =
  * Fix: Using server protocol for AC checking.
  * Fix: Prevent caching db queries for SFW.
