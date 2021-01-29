@@ -2,7 +2,7 @@
 
 namespace Cleantalk\ApbctWP\FindSpam\ListTable;
 
-use CleantalkSP\Variables\Server;
+use Cleantalk\Variables\Server;
 
 class UsersScan extends Users
 {
