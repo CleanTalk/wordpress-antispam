@@ -580,7 +580,7 @@ If your website has forms that send data to external sources, you can enable opt
 
 == Changelog ==
 
-= 5.152 Jan 28 2020 =
+= 5.152 Jan 29 2020 =
  * Fix: Using server protocol for AC checking.
  * Fix: Prevent caching db queries for SFW.
  * Fix: mgm registration temp fix.
