@@ -27,7 +27,7 @@ if(!trait_exists('Cleantalk\Templates\Singleton')) {
         /**
          * Alternative constructor
          */
-        private function init(){
+        protected function init(){
 
         }
 

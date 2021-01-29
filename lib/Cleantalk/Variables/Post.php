@@ -46,7 +46,7 @@ class Post extends ServerVariables{
 			$value = isset( $_POST[ $name ] ) ? $_POST[ $name ]	: '';
 		
 		// Remember for thurther calls
-		static::getInstance()->remebmer_variable( $name, $value );
+		static::getInstance()->remember_variable( $name, $value );
 		
 		return $value;
 	}
