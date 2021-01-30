@@ -1013,8 +1013,8 @@ function ct_sfw_update( $api_key = '', $immediate = false ){
                         SFW::rename_data_tables( DB::getInstance() );
 
                         //Files array is empty update sfw stats
-                        $apbct->data['last_firewall_updated'] = current_time('timestamp');
-                        $apbct->save('data');
+                        $apbct->data['last_firewall_updated'] = current_time('timestamp'); // Unused
+                        $apbct->save('data'); // Unused
                         $apbct->fw_stats['firewall_update_percent'] = 0;
                         $apbct->fw_stats['firewall_updating_id'] = null;
                         $apbct->save( 'fw_stats' );
