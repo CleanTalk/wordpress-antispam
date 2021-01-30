@@ -931,8 +931,12 @@ function ct_sfw_update( $api_key = '', $immediate = false ){
     }
 
 	$api_key = !empty($apbct->api_key) ? $apbct->api_key : $api_key;
-
-    if( $apbct->settings['spam_firewall'] == 1 && ( ! empty($api_key) || $apbct->data['moderate_ip'] ) ) {
+    
+    if( empty( $api_key ) || ! $apbct->data['moderate_ip'] ){
+        return true;
+    }
+    
+    if( $apbct->settings['spam_firewall'] == 1 ) {
 
         if( get_option( 'sfw_sync_first' ) ) {
             $first = 'first';
@@ -1057,9 +1061,8 @@ function ct_sfw_update( $api_key = '', $immediate = false ){
             );
         }
 
-	}
-	
-	return array('error' => 'SFW_DISABLED');
+	}else
+        return array('error' => 'SFW_DISABLED');
 }
 
 function ct_sfw_send_logs($api_key = '')
