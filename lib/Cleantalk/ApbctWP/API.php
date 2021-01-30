@@ -27,7 +27,7 @@ class API extends \Cleantalk\Common\API
 	 *
 	 * @return array|bool
 	 */
-	static public function send_request($data, $url = self::URL, $timeout = 5, $ssl = false, $ssl_path = '')
+	static public function send_request($data, $url = self::URL, $timeout = 10, $ssl = false, $ssl_path = '')
 	{
 		global $apbct;
 		
