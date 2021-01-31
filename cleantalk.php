@@ -3,7 +3,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 5.152
+  Version: 5.152.3
   Author: СleanTalk <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -723,7 +723,6 @@ function apbct_activation__new_blog($blog_id, $user_id, $domain, $path, $site_id
 		Cron::addTask('check_account_status',  'ct_account_status_check',        3600, time() + 1800); // Checks account status
 		Cron::addTask('delete_spam_comments',  'ct_delete_spam_comments',        3600, time() + 3500); // Formerly ct_hourly_event_hook()
 		Cron::addTask('send_feedback',         'ct_send_feedback',               3600, time() + 3500); // Formerly ct_hourly_event_hook()
-		Cron::addTask('sfw_update',            'ct_sfw_update',                  86400, time() + 600);  // SFW update
 		Cron::addTask('send_sfw_logs',         'ct_sfw_send_logs',               3600, time() + 1800); // SFW send logs
 		Cron::addTask('get_brief_data',        'cleantalk_get_brief_data',       86400, time() + 3500); // Get data for dashboard widget
 		Cron::addTask('send_connection_report','ct_mail_send_connection_report', 86400, time() + 3500); // Send connection report to welcome@cleantalk.org
@@ -932,8 +931,12 @@ function ct_sfw_update( $api_key = '', $immediate = false ){
     }
 
 	$api_key = !empty($apbct->api_key) ? $apbct->api_key : $api_key;
-
-    if( $apbct->settings['spam_firewall'] == 1 && ( ! empty($api_key) || $apbct->data['moderate_ip'] ) ) {
+    
+    if( empty( $api_key ) && ! $apbct->data['moderate_ip'] ){
+        return true;
+    }
+    
+    if( $apbct->settings['spam_firewall'] == 1 ) {
 
         if( get_option( 'sfw_sync_first' ) ) {
             $first = 'first';
@@ -1013,8 +1016,8 @@ function ct_sfw_update( $api_key = '', $immediate = false ){
                         SFW::rename_data_tables( DB::getInstance() );
 
                         //Files array is empty update sfw stats
-                        $apbct->data['last_firewall_updated'] = current_time('timestamp');
-                        $apbct->save('data');
+                        $apbct->data['last_firewall_updated'] = current_time('timestamp'); // Unused
+                        $apbct->save('data'); // Unused
                         $apbct->fw_stats['firewall_update_percent'] = 0;
                         $apbct->fw_stats['firewall_updating_id'] = null;
                         $apbct->save( 'fw_stats' );
@@ -1058,9 +1061,8 @@ function ct_sfw_update( $api_key = '', $immediate = false ){
             );
         }
 
-	}
-	
-	return array('error' => 'SFW_DISABLED');
+	}else
+        return array('error' => 'SFW_DISABLED');
 }
 
 function ct_sfw_send_logs($api_key = '')

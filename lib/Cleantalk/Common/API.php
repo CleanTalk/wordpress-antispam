@@ -658,23 +658,6 @@ class API
 			$result = curl_exec($ch);
 			$errors = curl_error($ch);
 			curl_close($ch);
-
-			// Retry with SSL enabled if failed
-			if($result === false){
-				if($ssl === false){
-					return self::send_request($data, $url, $timeout, true, $ssl_path);
-				}
-				if (function_exists('gethostbynamel')) {
-					$server_ips = gethostbynamel('api.cleantalk.org');
-					if ($server_ips !== false && is_array($server_ips) && count($server_ips)) {
-                        foreach ($server_ips as $ip) {
-                            if( strpos( $url, $ip ) === false ) {
-                                return self::send_request($data, 'https://'.$ip);
-                            }
-                        }
-					}
-				}
-			}
 			
 		}else{
 			$errors = 'CURL_NOT_INSTALLED';

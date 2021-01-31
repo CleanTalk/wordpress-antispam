@@ -296,9 +296,6 @@ class Helper
 	 */
 	static public function ip__mask_match($ip, $cidr, $ip_type = 'v4', $xtet_count = 0)
 	{
-        if( ! self::ip__validate( $ip ) || ! self::cidr__validate( $cidr ) ){
-            return false;
-        }
 
 		if(is_array($cidr)){
 			foreach($cidr as $curr_mask){
@@ -309,6 +306,10 @@ class Helper
 			unset($curr_mask);
 			return false;
 		}
+
+        if( ! self::ip__validate( $ip ) || ! self::cidr__validate( $cidr ) ){
+            return false;
+        }
 		
 		$xtet_base = ($ip_type == 'v4') ? 8 : 16;
 		
@@ -552,7 +553,7 @@ class Helper
 				array(
 					CURLOPT_URL => $url,
 					CURLOPT_RETURNTRANSFER => true,
-					CURLOPT_CONNECTTIMEOUT_MS => 3000,
+					CURLOPT_CONNECTTIMEOUT_MS => 6000,
 					CURLOPT_FORBID_REUSE => true,
 					CURLOPT_USERAGENT => self::AGENT . '; ' . ( isset( $_SERVER['REMOTE_ADDR'] ) ? $_SERVER['REMOTE_ADDR'] : 'UNKNOWN_HOST' ),
 					CURLOPT_POST => true,
