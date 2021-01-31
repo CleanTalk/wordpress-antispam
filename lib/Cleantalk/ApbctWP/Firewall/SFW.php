@@ -2,6 +2,7 @@
 
 namespace Cleantalk\ApbctWP\Firewall;
 
+use Cleantalk\ApbctWP\API;
 use Cleantalk\ApbctWP\Helper;
 use Cleantalk\Common\Schema;
 use Cleantalk\Variables\Cookie;
@@ -344,7 +345,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 			unset( $key, $value );
 			
 			//Sending the request
-			$result = \Cleantalk\Common\API::method__sfw_logs( $ct_key, $data );
+			$result = API::method__sfw_logs( $ct_key, $data );
 			//Checking answer and deleting all lines from the table
 			if( empty( $result['error'] ) ){
 				if( $result['rows'] == count( $data ) ){
@@ -382,7 +383,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 		// Getting remote file name
 		if( ! $file_url ){
 			
-			$result = \Cleantalk\Common\API::method__get_2s_blacklists_db($ct_key, 'multifiles', '3_0');
+			$result = API::method__get_2s_blacklists_db($ct_key, 'multifiles', '3_0');
 			
 			sleep(4);
 			
