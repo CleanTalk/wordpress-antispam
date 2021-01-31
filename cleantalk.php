@@ -932,7 +932,7 @@ function ct_sfw_update( $api_key = '', $immediate = false ){
 
 	$api_key = !empty($apbct->api_key) ? $apbct->api_key : $api_key;
     
-    if( empty( $api_key ) || ! $apbct->data['moderate_ip'] ){
+    if( empty( $api_key ) && ! $apbct->data['moderate_ip'] ){
         return true;
     }
     
