@@ -146,6 +146,11 @@ class Cron
                 
                 $tasks_to_run[] = $task;
             }
+
+            // Hard bug fix
+            if( ! isset( $task_data['params'] ) ) {
+                $task_data['params'] = array();
+            }
             
         }
         
