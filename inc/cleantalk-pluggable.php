@@ -189,6 +189,17 @@ function apbct_is_plugin_active( $plugin ) {
 }
 
 /**
+ * Checks if the theme is active
+ *
+ * @param string $theme_name template name
+ *
+ * @return bool
+ */
+function apbct_is_theme_active ( $theme_name) {
+	return get_option( 'template' ) == $theme_name ? true : false;
+}
+
+/**
  * Checks if the plugin is active for network
  *
  * @param string $plugin relative path from plugin folder like cleantalk-spam-protect/cleantalk.php
@@ -366,7 +377,13 @@ function apbct_is_skip_request( $ajax = false ) {
             {
                 return 'injob_theme_plugin';
             }
-
+            // Divi builder save epanel
+            if ( apbct_is_theme_active( 'Divi' ) &&
+        		isset( $_POST['action'] ) &&
+        		$_POST['action'] == 'save_epanel' )
+            {
+            	return 'divi_builder_save_epanel';
+            }
             break;
 
         case false :
