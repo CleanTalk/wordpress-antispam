@@ -124,6 +124,23 @@ abstract class Checker
         <?php
     }
 
+    protected function getFooter() {
+        ?>
+        <div id = "ct_checktable_footer">
+            <p>
+            <strong>Purpose of use:</strong><br/>
+                Public VPN - not spam<br/>
+                TOR - potential spam<br/>
+                Hosting - potential spam<br/>
+            <br/>
+            <strong>Attacks count:</strong><br/>
+                IP - >=3 spam<br/>
+                E-mail - >=5 spam</br>
+            </p>
+        </div>
+        <?php
+    }
+    
     public static function writeSpamLog( $scan_type, $scan_date, $cnt_checked, $cnt_spam, $cnt_bad ) {
 
         global $wpdb;
