@@ -1922,7 +1922,7 @@ function ct_test_registration($nickname, $email, $ip){
  */
 function ct_registration_errors($errors, $sanitized_user_login = null, $user_email = null) {
 
-    global $ct_checkjs_register_form, $apbct_cookie_request_id_label, $apbct_cookie_register_ok_label, $bp, $ct_signup_done, $ct_negative_comment, $apbct, $ct_registration_error_comment, $cleantalk_executed;
+    global $ct_checkjs_register_form, $apbct_cookie_request_id_label, $apbct_cookie_register_ok_label, $apbct_cookie_request_id, $bp, $ct_signup_done, $ct_negative_comment, $apbct, $ct_registration_error_comment, $cleantalk_executed;
 
     // Go out if a registrered user action
     if (apbct_is_user_enable() === false) {
@@ -2048,6 +2048,7 @@ function ct_registration_errors($errors, $sanitized_user_login = null, $user_ema
 
     } else {
         if ($ct_result->id !== null) {
+	        $apbct_cookie_request_id = $ct_result->id;
             \Cleantalk\Common\Helper::apbct_cookie__set($apbct_cookie_register_ok_label, $ct_result->id, time()+10, '/');
             \Cleantalk\Common\Helper::apbct_cookie__set($apbct_cookie_request_id_label,  $ct_result->id, time()+10, '/');
         }
@@ -2176,12 +2177,20 @@ function ct_check_registration_erros($errors, $sanitized_user_login = null, $use
  * @return null
  */
 function apbct_user_register($user_id) {
-    global $apbct_cookie_request_id_label;
-    if (isset($_COOKIE[$apbct_cookie_request_id_label])) {
-        if(update_user_meta($user_id, 'ct_hash', $_COOKIE[$apbct_cookie_request_id_label])){
-            \Cleantalk\Common\Helper::apbct_cookie__set($apbct_cookie_request_id_label, '0', 1, '/');
-		}
-    }
+
+    global $apbct_cookie_request_id_label, $apbct_cookie_request_id;
+
+	if ( isset($_COOKIE[$apbct_cookie_request_id_label]) ) {
+	    if(update_user_meta($user_id, 'ct_hash', $_COOKIE[$apbct_cookie_request_id_label])){
+	        \Cleantalk\Common\Helper::apbct_cookie__set($apbct_cookie_request_id_label, '0', 1, '/');
+			}
+	    return;
+	}
+
+	if ( ! empty( $apbct_cookie_request_id ) ) {
+		update_user_meta($user_id, 'ct_hash', $apbct_cookie_request_id);
+	}
+
 }
 
 
