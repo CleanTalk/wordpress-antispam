@@ -662,9 +662,6 @@ function apbct_update_to_5_149_2() {
 
     apbct_activation__create_tables( $sqls, $apbct->db_prefix );
 
-    $apbct->settings['sfw__anti_crawler_ua'] = 1;
-    $apbct->saveSettings();
-
 }
 
 function apbct_update_to_5_150_0() {

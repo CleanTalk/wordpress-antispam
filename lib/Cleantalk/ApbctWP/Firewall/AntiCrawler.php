@@ -156,7 +156,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 	        }
 
             // UA check
-            if( $this->apbct->settings['sfw__anti_crawler_ua'] ) {
+            if( true ) {
 
                 $ua_bl_results = $this->db->fetch_all(
                     "SELECT * FROM " . $this->db__table__ac_ua_bl . " ORDER BY `ua_status` DESC;"
