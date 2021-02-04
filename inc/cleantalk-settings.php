@@ -693,7 +693,7 @@ function apbct_settings__display() {
 			
 			// Output spam count
 			if($apbct->key_is_ok && apbct_api_key__is_correct()){
-				if(!$apbct->white_label){
+				if( ! $apbct->white_label || is_main_site() ){
 					
 					// CP button
 					echo '<a class="cleantalk_link cleantalk_link-manual" target="__blank" href="https://cleantalk.org/my?user_token='.$apbct->user_token.'&cp_mode=antispam">'
@@ -704,7 +704,7 @@ function apbct_settings__display() {
 				}
 			}
 	
-			if( apbct_api_key__is_correct() && ! $apbct->white_label ){
+			if( apbct_api_key__is_correct() && ( ! $apbct->white_label || is_main_site() ) ){
 				// Sync button
 				echo '<button type="button" class="cleantalk_link cleantalk_link-auto" id="apbct_button__sync" title="Synchronizing account status, SpamFireWall database, all kind of journals.">'
 				     . '<i class="icon-upload-cloud"></i>&nbsp;&nbsp;'
@@ -717,7 +717,7 @@ function apbct_settings__display() {
 	
 			// Output spam count
 			if($apbct->key_is_ok && apbct_api_key__is_correct()){
-				if(!$apbct->white_label){
+				if( ! $apbct->white_label || is_main_site() ){
 					
 					// Support button
 					echo '<a class="cleantalk_link cleantalk_link-auto" target="__blank" href="https://wordpress.org/support/plugin/cleantalk-spam-protect">'.__('Support', 'cleantalk-spam-protect').'</a>';
