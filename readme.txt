@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 3.0
 Tested up to: 5.6
 Requires PHP: 5.4
-Stable tag: 5.152.4
+Stable tag: 5.152.5
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -579,6 +579,14 @@ If your website has forms that send data to external sources, you can enable opt
 10. Website's options.
 
 == Changelog ==
+
+= 5.152.5 Feb 04 2020 =
+ * Fix: SFW. Auto-updating interval decreased to 5 mins.
+ * Fix: Divi. Skip saving epanel.
+ * New: Find users/comments table. Add footer description.
+ * Fix: SFW. UA option removed.
+ * Fix: SFW. AC checking by UA enabled by default.
+ * Fix: SFW. AF disabled by default for the new installations.
 
 = 5.152.4 Feb 01 2020 =
  * Fix: Cron tasks compare fixed.
