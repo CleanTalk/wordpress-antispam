@@ -42,6 +42,7 @@ class CommentsChecker extends Checker
         echo '<form action="" method="POST">';
         $this->list_table->display();
         echo '</form>';
+        $this->getFooter();
 
     }
 
@@ -369,10 +370,12 @@ class CommentsChecker extends Checker
         }
 
         $backup_notice = '&nbsp;';
-        if ($cnt_spam > 0){
-            $backup_notice = __("Please do backup of WordPress database before delete any comments!", 'cleantalk-spam-protect');
+        $spam_system_notice = '&nbsp;';
+        if ($cnt_spam > 0) {
+            $backup_notice = __("Please do backup of WordPress database before delete any accounts!", 'cleantalk-spam-protect');
+            $spam_system_notice = __("Results are based on the decision of our spam checking system and do not give a complete guarantee that these comments are spam.", 'cleantalk-spam-protect');
         }
-        $return['message'] .= "<p>$backup_notice</p>";
+        $return['message'] .= "<p>$backup_notice</p><p>$spam_system_notice</p>";
 
         if($direct_call){
             return $return['message'];

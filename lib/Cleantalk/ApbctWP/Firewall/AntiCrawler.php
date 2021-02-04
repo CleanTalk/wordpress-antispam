@@ -156,42 +156,38 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 	        }
 
             // UA check
-            if( $this->apbct->settings['sfw__anti_crawler_ua'] ) {
+            $ua_bl_results = $this->db->fetch_all(
+                "SELECT * FROM " . $this->db__table__ac_ua_bl . " ORDER BY `ua_status` DESC;"
+            );
 
-                $ua_bl_results = $this->db->fetch_all(
-                    "SELECT * FROM " . $this->db__table__ac_ua_bl . " ORDER BY `ua_status` DESC;"
-                );
+            if( ! empty( $ua_bl_results ) ){
 
-                if( ! empty( $ua_bl_results ) ){
+                $is_blocked = false;
 
-                    $is_blocked = false;
+                foreach( $ua_bl_results as $ua_bl_result ){
 
-                    foreach( $ua_bl_results as $ua_bl_result ){
+                    if( ! empty( $ua_bl_result['ua_template'] ) && preg_match( "%". str_replace( '"', '', $ua_bl_result['ua_template'] ) ."%i", Server::get('HTTP_USER_AGENT') ) ) {
 
-                        if( ! empty( $ua_bl_result['ua_template'] ) && preg_match( "%". str_replace( '"', '', $ua_bl_result['ua_template'] ) ."%i", Server::get('HTTP_USER_AGENT') ) ) {
+                        $this->ua_id = $ua_bl_result['id'];
 
-                            $this->ua_id = $ua_bl_result['id'];
-
-                            if( $ua_bl_result['ua_status'] == 1 ) {
-                                // Whitelisted
-                                $results[] = array('ip' => $current_ip, 'is_personal' => false, 'status' => 'PASS_ANTICRAWLER_UA',);
-                                return $results;
-                                break;
-                            } else {
-                                // Blacklisted
-                                $results[] = array('ip' => $current_ip, 'is_personal' => false, 'status' => 'DENY_ANTICRAWLER_UA',);
-                                $is_blocked = true;
-                                break;
-                            }
-
+                        if( $ua_bl_result['ua_status'] == 1 ) {
+                            // Whitelisted
+                            $results[] = array('ip' => $current_ip, 'is_personal' => false, 'status' => 'PASS_ANTICRAWLER_UA',);
+                            return $results;
+                            break;
+                        } else {
+                            // Blacklisted
+                            $results[] = array('ip' => $current_ip, 'is_personal' => false, 'status' => 'DENY_ANTICRAWLER_UA',);
+                            $is_blocked = true;
+                            break;
                         }
 
                     }
 
-                    if( ! $is_blocked ) {
-                        $results[] = array('ip' => $current_ip, 'is_personal' => false, 'status' => 'PASS_ANTICRAWLER_UA',);
-                    }
+                }
 
+                if( ! $is_blocked ) {
+                    $results[] = array('ip' => $current_ip, 'is_personal' => false, 'status' => 'PASS_ANTICRAWLER_UA',);
                 }
 
             }

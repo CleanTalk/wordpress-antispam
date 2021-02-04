@@ -117,7 +117,6 @@ function apbct_settings__set_fileds( $fields ){
 					'title'       => __('Anti-Crawler', 'cleantalk-spam-protect') . $additional_ac_title,
 					'class'       => 'apbct_settings-field_wrapper--sub',
 					'parent'      => 'spam_firewall',
-					'childrens'   => array('sfw__anti_crawler_ua'),
 					'description' => __('Plugin shows SpamFireWall stop page for any bot, except allowed bots (Google, Yahoo and etc).', 'cleantalk-spam-protect')
                     . '<br>'
                     . __( 'Anti-Crawler includes blocking bots by the User-Agent. To enable/disable, open the Advanced settings, and turn on/off "Block by User-Agent".', 'cleantalk-spam-protect' ),
@@ -444,14 +443,6 @@ function apbct_settings__set_fileds( $fields ){
 					'options_callback_params' => array(true),
 					'class'                   => 'apbct_settings-field_wrapper--sub',
 				),
-				'sfw__anti_crawler_ua' => array(
-                    'type'        => 'checkbox',
-                    'title'       => __('Block bots by User-Agents', 'cleantalk-spam-protect'),
-                    'parent'      => 'sfw__anti_crawler',
-                    'description' => __('The option allows you to block or allow bots by their User-Agents. Supports black and white lists.', 'cleantalk-spam-protect')
-                    . '<br>'
-                    . __( 'This option improves the accuracy of Anti-Crawler and allows you to manage rules for specific bots.', 'cleantalk-spam-protect' ),
-                ),
 				'sfw__anti_flood__view_limit' => array(
 					'type'        => 'text',
 					'title'       => __('Anti-Flood Page Views Limit', 'cleantalk-spam-protect'),
@@ -702,7 +693,7 @@ function apbct_settings__display() {
 			
 			// Output spam count
 			if($apbct->key_is_ok && apbct_api_key__is_correct()){
-				if(!$apbct->white_label){
+				if( ! $apbct->white_label || is_main_site() ){
 					
 					// CP button
 					echo '<a class="cleantalk_link cleantalk_link-manual" target="__blank" href="https://cleantalk.org/my?user_token='.$apbct->user_token.'&cp_mode=antispam">'
@@ -713,7 +704,7 @@ function apbct_settings__display() {
 				}
 			}
 	
-			if( apbct_api_key__is_correct() && ! $apbct->white_label ){
+			if( apbct_api_key__is_correct() && ( ! $apbct->white_label || is_main_site() ) ){
 				// Sync button
 				echo '<button type="button" class="cleantalk_link cleantalk_link-auto" id="apbct_button__sync" title="Synchronizing account status, SpamFireWall database, all kind of journals.">'
 				     . '<i class="icon-upload-cloud"></i>&nbsp;&nbsp;'
@@ -726,7 +717,7 @@ function apbct_settings__display() {
 	
 			// Output spam count
 			if($apbct->key_is_ok && apbct_api_key__is_correct()){
-				if(!$apbct->white_label){
+				if( ! $apbct->white_label || is_main_site() ){
 					
 					// Support button
 					echo '<a class="cleantalk_link cleantalk_link-auto" target="__blank" href="https://wordpress.org/support/plugin/cleantalk-spam-protect">'.__('Support', 'cleantalk-spam-protect').'</a>';
