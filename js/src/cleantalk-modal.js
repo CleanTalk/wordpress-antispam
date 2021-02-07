@@ -28,6 +28,7 @@ cleantalkModal = {
         var innerCss = {
             styles: {
                 "position" : "relative",
+                "text-align" : "center",
                 "padding" : "30px",
                 "background" : "#FFF",
                 "border" : "1px solid rgba(0,0,0,0.75)",
