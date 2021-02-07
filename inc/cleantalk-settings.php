@@ -1032,6 +1032,7 @@ function apbct_settings__field__action_buttons(){
 			'<a href="edit-comments.php?page=ct_check_spam" class="ct_support_link">' . __('Check comments for spam', 'cleantalk-spam-protect') . '</a>',
 			'<a href="users.php?page=ct_check_users" class="ct_support_link">' . __('Check users for spam', 'cleantalk-spam-protect') . '</a>',
 			'<a href="#" class="ct_support_link" onclick="apbct_show_hide_elem(\'apbct_statistics\')">' . __('Statistics & Reports', 'cleantalk-spam-protect') . '</a>',
+			'<a href="#" class="ct_support_link" onclick="cleantalkModal.open(\'apbct_settings_templates\')">' . __('Import/Export settings', 'cleantalk-spam-protect') . '</a>',
 		)
 	);
 
