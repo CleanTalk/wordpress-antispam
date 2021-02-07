@@ -26,7 +26,7 @@ class UsersChecker extends Checker
             'ct_prev_till'                => !empty($prev_check['till'])     ? $prev_check['till'] : false,
             'ct_timeout'                  => __('Failed from timeout. Going to check users again.', 'cleantalk-spam-protect'),
             'ct_timeout_delete'           => __('Failed from timeout. Going to run a new attempt to delete spam users.', 'cleantalk-spam-protect'),
-            'ct_confirm_deletion_all'     => __('Delete all spam users?', 'cleantalk-spam-protect'),
+            'ct_confirm_deletion_all'     => __('Do you confirm deletion selected accounts and all content owned by the accounts? Please do backup of the site before deletion!', 'cleantalk-spam-protect'),
             'ct_iusers'                   => __('users.', 'cleantalk-spam-protect'),
             'ct_csv_filename'             => "user_check_by_".$current_user->user_login,
             'ct_status_string'            => __("Checked %s, found %s spam users and %s bad users (without IP or email)", 'cleantalk-spam-protect'),
