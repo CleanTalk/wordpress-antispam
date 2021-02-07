@@ -1,5 +1,7 @@
 <?php
 
+use Cleantalk\ApbctWP\CleantalkSettingsTemplates;
+
 /**
  * Admin action 'admin_menu' - Add the admin options page
  */
@@ -1142,6 +1144,13 @@ function apbct_settings__field__statistics() {
 	echo 'Plugin version: ' . APBCT_VERSION;
 		
 	echo '</div>';
+
+	// Templates
+	echo '<div id="apbct_settings_templates" class="apbct_settings-field_wrapper" style="display: none;">';
+	$def_settings = new CleantalkSettingsTemplates( $apbct->api_key );
+	echo $def_settings->getHtmlContent();
+	echo '</div>';
+
 }
 function apbct_get_all_child_domains($except_main_site = false) {
 	global $wpdb;
