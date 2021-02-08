@@ -1,7 +1,5 @@
 <?php
 
-require_once "../lib/autoloader.php";
-
 use Cleantalk\Common\Schema;
 
 class SchemaTest extends \PHPUnit\Framework\TestCase
