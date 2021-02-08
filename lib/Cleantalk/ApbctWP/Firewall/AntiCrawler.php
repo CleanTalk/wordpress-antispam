@@ -342,7 +342,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 				'{CLEANTALK_TITLE}'                => __( 'Antispam by CleanTalk', 'cleantalk-spam-protect' ),
 				'{REMOTE_ADDRESS}'                 => $result['ip'],
 				'{SERVICE_ID}'                     => $this->apbct->data['service_id'] . ', ' . $net_count,
-				'{HOST}'                           => Server::get( 'HTTP_HOST' ) . ', ' . APBCT_VERSION,
+				'{HOST}'                           => get_home_url() . ', ' . APBCT_VERSION,
 				'{COOKIE_ANTICRAWLER}'             => hash( 'sha256', $apbct->api_key . $apbct->data['salt'] ),
 				'{COOKIE_ANTICRAWLER_PASSED}'      => '1',
 				'{GENERATED}'                      => '<p>The page was generated at&nbsp;' . date( 'D, d M Y H:i:s' ) . "</p>",
