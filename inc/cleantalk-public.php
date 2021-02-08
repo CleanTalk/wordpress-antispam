@@ -1762,6 +1762,7 @@ function apbct_login__scripts(){
 
     // Differnt JS params
     wp_enqueue_script( 'ct_public', APBCT_URL_PATH . '/js/apbct-public.min.js', array( 'jquery' ), APBCT_VERSION, false /*in header*/ );
+	wp_enqueue_script('cleantalk-modal', plugins_url( '/cleantalk-spam-protect/js/cleantalk-modal.min.js' ),   array(),     APBCT_VERSION, false );
 
     wp_localize_script('ct_public', 'ctPublic', array(
         '_ajax_nonce' => wp_create_nonce('ct_secret_stuff'),
@@ -3753,6 +3754,7 @@ function ct_enqueue_scripts_public($hook){
 			
 			// Differnt JS params
 			wp_enqueue_script( 'ct_public', APBCT_URL_PATH . '/js/apbct-public.min.js', array( 'jquery' ), APBCT_VERSION, false /*in header*/ );
+			wp_enqueue_script('cleantalk-modal', plugins_url( '/cleantalk-spam-protect/js/cleantalk-modal.min.js' ),   array(),     APBCT_VERSION, false );
 			
 			wp_localize_script('ct_public', 'ctPublic', array(
 				'_ajax_nonce' => wp_create_nonce('ct_secret_stuff'),
