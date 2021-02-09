@@ -245,6 +245,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
                 }
 				
 				add_action( 'wp_head', array( '\Cleantalk\ApbctWP\Firewall\AntiCrawler', 'set_cookie' ) );
+				add_action( 'login_head', array( '\Cleantalk\ApbctWP\Firewall\AntiCrawler', 'set_cookie' ) );
 				
 			}
 
