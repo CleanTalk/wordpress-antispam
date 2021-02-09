@@ -441,7 +441,7 @@ function apbct_settings__set_fileds( $fields ){
 					'class'       => 'apbct_settings-field_wrapper',
 					'parent'      => 'spam_firewall',
 					'childrens'   => array('sfw__anti_flood__view_limit',),
-					'description' => __('Shows SpamFireWall page for bot which are trying to scan your website. Look for the page limit setting below.', 'cleantalk-spam-protect'),
+					'description' => __('Shows the SpamFireWall page for bots trying to crawl your site. Look at the page limit setting below.', 'cleantalk-spam-protect'),
 				),
 				'sfw__anti_flood__view_limit' => array(
 					'type'        => 'text',
