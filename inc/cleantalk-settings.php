@@ -111,7 +111,7 @@ function apbct_settings__set_fileds( $fields ){
 					'parent'      => 'spam_firewall',
 					'description' => __('Plugin shows SpamFireWall stop page for any bot, except allowed bots (Google, Yahoo and etc).', 'cleantalk-spam-protect')
                     . '<br>'
-                    . __( 'Anti-Crawler includes blocking bots by the User-Agent. To enable/disable, open the Advanced settings, and turn on/off "Block by User-Agent".', 'cleantalk-spam-protect' ),
+                    . __( 'Anti-Crawler includes blocking bots by the User-Agent. Use Personal lists in the Dashboard to filter specific User-Agents.', 'cleantalk-spam-protect' ),
 				),
 			),
 		),
