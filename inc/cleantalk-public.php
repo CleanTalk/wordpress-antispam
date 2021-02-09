@@ -181,7 +181,7 @@ function apbct_init() {
 		if(defined('WPCF7_VERSION')){
 			add_filter('wpcf7_form_elements', 'apbct_form__contactForm7__addField');
 			add_filter('wpcf7_validate', 'apbct_form__contactForm7__tesSpam__before_validate', 999, 2);
-			add_filter(WPCF7_VERSION >= '3.0.0' ? 'wpcf7_spam' : 'wpcf7_acceptance', 'apbct_form__contactForm7__testSpam');
+			add_filter(WPCF7_VERSION >= '3.0.0' ? 'wpcf7_spam' : 'wpcf7_acceptance', 'apbct_form__contactForm7__testSpam', 9999, 2);
 		}
 
     // Formidable
@@ -2355,21 +2355,21 @@ function apbct_form__contactForm7__tesSpam__before_validate($result = null, $tag
 /**
  * Test CF7 message for spam
  */
-function apbct_form__contactForm7__testSpam($param) {
+function apbct_form__contactForm7__testSpam($spam, $submission) {
 
     global $ct_checkjs_cf7, $apbct;
 
 	if(
 		$apbct->settings['contact_forms_test'] == 0 ||
-		$param == false && WPCF7_VERSION < '3.0.0'  ||
-		$param === true && WPCF7_VERSION >= '3.0.0' ||
+		$spam == false && WPCF7_VERSION < '3.0.0'  ||
+		$spam === true && WPCF7_VERSION >= '3.0.0' ||
 		$apbct->settings['protect_logged_in'] != 1 && is_user_logged_in() || // Skip processing for logged in users.
 		apbct_exclusions_check__url() ||
 		apbct_exclusions_check__ip() ||
 		isset($apbct->cf7_checked)
 	){
         do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
-		return $param;
+		return $spam;
 	}
 
 	$checkjs = apbct_js_test($ct_checkjs_cf7, $_POST)
@@ -2423,13 +2423,13 @@ function apbct_form__contactForm7__testSpam($param) {
 
 			add_filter('wpcf7_display_message', 'apbct_form__contactForm7__showResponse', 10, 2);
 
-		$param = WPCF7_VERSION >= '3.0.0' ? true : false;
+		$spam = WPCF7_VERSION >= '3.0.0' ? true : false;
 
     }
 
 	$apbct->cf7_checked = true;
 
-    return $param;
+    return $spam;
 }
 
 /**
