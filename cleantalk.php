@@ -1071,7 +1071,11 @@ function ct_sfw_send_logs($api_key = '')
 
 	$api_key = !empty($apbct->api_key) ? $apbct->api_key : $api_key;
 
-	if( $apbct->settings['spam_firewall'] == 1 && ( ! empty($api_key) || $apbct->data['moderate_ip'] ) ) {
+    if( empty( $api_key ) && ! $apbct->data['moderate_ip'] ){
+        return true;
+    }
+
+	if( $apbct->settings['spam_firewall'] == 1 ) {
 		
 		$result = SFW::send_log(
 			DB::getInstance(),
@@ -1088,9 +1092,8 @@ function ct_sfw_send_logs($api_key = '')
 
 		return $result;
 		
-	}
-	
-	return array('error' => 'SFW_DISABLED');
+	} else 
+		return array('error' => 'SFW_DISABLED');
 }
 
 function apbct_antiflood__clear_table(){
