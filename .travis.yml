@@ -1,9 +1,10 @@
-sudo: false
 dist: trusty
+
+os: linux
 
 language: php
 
-matrix:
+jobs:
   include:
     - env: TRAVISCI=phpunit
     - env: TRAVISCI=phpcs
