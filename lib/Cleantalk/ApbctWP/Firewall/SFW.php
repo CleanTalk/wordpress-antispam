@@ -243,7 +243,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 				'{CLEANTALK_TITLE}'                => ($this->test ? __('This is the testing page for SpamFireWall', 'cleantalk-spam-protect') : ''),
 				'{REMOTE_ADDRESS}'                 => $result['ip'],
 				'{SERVICE_ID}'                     => $this->apbct->data['service_id'] . ', ' . $net_count,
-				'{HOST}'                           => Server::get( 'HTTP_HOST' ) . ', ' . APBCT_VERSION,
+				'{HOST}'                           => get_home_url() . ', ' . APBCT_VERSION,
 				'{GENERATED}'                      => '<p>The page was generated at&nbsp;' . date( 'D, d M Y H:i:s' ) . "</p>",
 				'{REQUEST_URI}'                    => Server::get( 'REQUEST_URI' ),
 				
