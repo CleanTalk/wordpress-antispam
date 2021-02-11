@@ -384,6 +384,13 @@ function apbct_is_skip_request( $ajax = false ) {
             {
             	return 'divi_builder_save_epanel';
             }
+	        // Email Before Download plugin https://wordpress.org/plugins/email-before-download/ action skip
+	        if ( apbct_is_plugin_active( 'email-before-download/email-before-download.php' ) &&
+	             isset( $_POST['action'] ) &&
+	             $_POST['action'] === 'ebd_inline_links' )
+	        {
+		        return 'ebd_inline_links';
+	        }
             break;
 
         case false :
