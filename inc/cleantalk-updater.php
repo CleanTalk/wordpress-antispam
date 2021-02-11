@@ -728,3 +728,9 @@ function apbct_update_to_5_151_3 ()
     $apbct->save('stats');
     ct_sfw_update();
 }
+
+function apbct_update_to_5_151_6 ()
+{
+	global $apbct;
+	$apbct->error_delete( 'sfw_update', true );
+}

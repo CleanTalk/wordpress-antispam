@@ -1564,7 +1564,10 @@ function apbct_settings__sync( $direct_call = false ){
 		check_ajax_referer('ct_secret_nonce' );
 	
 	global $apbct;
-	
+
+	//Clearing all errors
+	$apbct->error_delete_all('and_save_data');
+
 	// Feedback with app_agent
 	ct_send_feedback('0:' . APBCT_AGENT); // 0 - request_id, agent version.
 	
