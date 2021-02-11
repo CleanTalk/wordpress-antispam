@@ -12,7 +12,7 @@ function apbct_run_update_actions($current_version, $new_version){
 	$new_version_str     = implode('.', $new_version);
 	
 	for($ver_major = $current_version[0]; $ver_major <= $new_version[0]; $ver_major++){
-		for($ver_minor = 0; $ver_minor <= 200; $ver_minor++){
+		for($ver_minor = 0; $ver_minor <= 300; $ver_minor++){
 			for($ver_fix = 0; $ver_fix <= 10; $ver_fix++){
 				
 				if(version_compare("{$ver_major}.{$ver_minor}.{$ver_fix}", $current_version_str, '<='))
@@ -20,6 +20,12 @@ function apbct_run_update_actions($current_version, $new_version){
 				
 				if(function_exists("apbct_update_to_{$ver_major}_{$ver_minor}_{$ver_fix}")){
 					$result = call_user_func("apbct_update_to_{$ver_major}_{$ver_minor}_{$ver_fix}");
+					if(!empty($result['error']))
+						break;
+				}
+
+				if( $ver_fix == 0 && function_exists("apbct_update_to_{$ver_major}_{$ver_minor}") ){
+					$result = call_user_func("apbct_update_to_{$ver_major}_{$ver_minor}");
 					if(!empty($result['error']))
 						break;
 				}
