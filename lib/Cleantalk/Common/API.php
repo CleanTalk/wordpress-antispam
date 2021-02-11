@@ -596,6 +596,50 @@ class API
 		
 		return $result;
 	}
+
+	/**
+	 * Settings tempaltes get API method wrapper
+	 *
+	 * @param $api_key
+	 * @param bool $do_check
+	 *
+	 * @return array|bool|mixed
+	 */
+	static public function method__services_templates_get( $api_key, $do_check = true)
+	{
+		$request = array(
+			'auth_key'    => $api_key,
+			'mode'        => 'site',
+		);
+
+		$result = static::send_request( $request );
+		$result = $do_check ? static::check_response($result, 'services_templates_get') : $result;
+
+		return $result;
+	}
+
+	/**
+	 * Settings tempaltes add API method wrapper
+	 *
+	 * @param $api_key
+	 * @param null $template_name
+	 * @param bool $do_check
+	 *
+	 * @return array|bool|mixed
+	 */
+	static public function method__services_templates_add( $api_key, $template_name = null, $do_check = true)
+	{
+		$request = array(
+			'auth_key'    => $api_key,
+			'name'        => $template_name,
+			'optoins_site'=> apbct_get_plugin_options(),
+		);
+
+		$result = static::send_request( $request );
+		$result = $do_check ? static::check_response($result, 'services_templates_get') : $result;
+
+		return $result;
+	}
 	
 	/**
 	 * Function sends raw request to API server

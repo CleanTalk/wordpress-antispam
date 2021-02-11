@@ -410,3 +410,7 @@ function apbct_is_skip_request( $ajax = false ) {
 
     return false;
 }
+
+function apbct_get_plugin_options() {
+	return array();
+}
