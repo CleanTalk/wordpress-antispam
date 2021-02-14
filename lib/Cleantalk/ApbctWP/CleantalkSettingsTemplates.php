@@ -34,42 +34,41 @@ class CleantalkSettingsTemplates {
 
 	public function getHtmlContent( $import_only = false )
 	{
+		$templates = self::get_options_template( $this->api_key );
 		$title = $this->getTitle();
-		$out = $this->getHtmlContentImport();
+		$out = $this->getHtmlContentImport( $templates );
 		if( ! $import_only ) {
-			$out .= $this->getHtmlContentExport();
+			$out .= $this->getHtmlContentExport( $templates );
 		}
 		return $title . '<br>' . $out;
 	}
 
-	private function getHtmlContentImport()
+	private function getHtmlContentImport( $templates )
 	{
-		$templatesSet = $this->getTemplates();
-		$exportButton = $this->getImportButton();
-		return $templatesSet . '<br>' . $exportButton . '<br><hr>';
+		$templatesSet = '<p><select>';
+		foreach( $templates as $template ) {
+			$templatesSet .= '<option id="apbcs_settings_template_id_' . $template['template_id'] . '">' . $template['name'] . '</option>';
+		}
+		$templatesSet .= '</select></p>';
+		$button = $this->getImportButton();
+		return $templatesSet . '<br>' . $button . '<br><hr>';
 	}
 
-	public function getHtmlContentExport()
+	public function getHtmlContentExport( $templates )
 	{
-		$templatesSet = $this->getTemplates();
-		$exportButton = $this->getExportButton();
-		return $templatesSet . '<br>' . $exportButton . '<br>';
+		$templatesSet = '<p><select>';
+		$templatesSet .= '<option checked="true">New template</option>';
+		foreach( $templates as $template ) {
+			$templatesSet .= '<option id="apbcs_settings_template_id_' . $template['template_id'] . '">' . $template['name'] . '</option>';
+		}
+		$templatesSet .= '</select></p>';
+		$button = $this->getExportButton();
+		return $templatesSet . '<br>' . $button . '<br>';
 	}
 
 	private function getTitle()
 	{
 		return '<h2>' . esc_html__( 'CkeanTalk settings templates.', 'cleantalk-spam-protect' ) . '</h2>';
-	}
-
-	private function getTemplates()
-	{
-		$templates = self::get_options_template( $this->api_key );
-		$out = '<p><select>';
-		$out .= '<option checked="true">New template</option>';
-		$out .= '<option>Custom template 1</option>';
-		$out .= '<option>Custom template 2</option>';
-		$out .= '</select></p>';
-		return $out;
 	}
 
 	private function getExportButton()
@@ -78,7 +77,7 @@ class CleantalkSettingsTemplates {
 	}
 
 	private function getImportButton(){
-		return '<button id="apbct_settings_templates_export" class="cleantalk_link cleantalk_link-manual">' . esc_html__( 'Import settings from selected template.', 'cleantalk-spam-protect' ) . '</button>';
+		return '<button id="apbct_settings_templates_import" class="cleantalk_link cleantalk_link-manual">' . esc_html__( 'Import settings from selected template.', 'cleantalk-spam-protect' ) . '</button>';
 	}
 
 }
