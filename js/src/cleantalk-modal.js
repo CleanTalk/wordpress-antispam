@@ -97,7 +97,7 @@ cleantalkModal = {
         /* Cleantalk Modal CSS end */
 
         var overlay = document.createElement( 'div' );
-        overlay.setAttribute( 'id', 'cleantalk-modal' );
+        overlay.setAttribute( 'id', 'cleantalk-modal-overlay' );
         document.body.append( overlay );
 
         document.body.classList.add( 'cleantalk-modal-opened' );
@@ -116,7 +116,7 @@ cleantalkModal = {
 
     close: function () {
         document.body.classList.remove( 'cleantalk-modal-opened' );
-        document.getElementById( 'cleantalk-modal' ).remove();
+        document.getElementById( 'cleantalk-modal-overlay' ).remove();
         document.getElementById( 'cleantalk-modal-styles' ).remove();
     }
 
@@ -124,7 +124,7 @@ cleantalkModal = {
 
 /* Cleantalk Modal helpers */
 document.addEventListener('click',function( e ){
-    if( e.target && e.target.id === 'cleantalk-modal' || e.target.id === 'cleantalk-modal-close' ){
+    if( e.target && e.target.id === 'cleantalk-modal-overlay' || e.target.id === 'cleantalk-modal-close' ){
         cleantalkModal.close();
     }
 });
