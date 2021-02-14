@@ -16,6 +16,20 @@ class CleantalkSettingsTemplates {
 	public function __construct( $api_key )
 	{
 		$this->api_key = $api_key;
+		if( $this->api_key ) {
+			add_filter( 'apbct_settings_action_buttons', array( $this, 'add_action_button' ), 10, 1 );
+		}
+	}
+
+	public function add_action_button( $links ) {
+		$link = '<a href="#" class="ct_support_link" onclick="cleantalkModal.open(\'apbct_settings_templates\')">' . __('Import/Export settings', 'cleantalk-spam-protect') . '</a>';
+		$links[]    = $link;
+		return $links;
+	}
+
+	public static function get_options_template( $api_key ) {
+		// @ToDo here will be API call services_templates_get
+		return '';
 	}
 
 	public function getHtmlContent( $import_only = false )
@@ -49,7 +63,7 @@ class CleantalkSettingsTemplates {
 
 	private function getTemplates()
 	{
-		// @ToDo here will be API call services_templates_get
+		$templates = self::get_options_template( $this->api_key );
 		$out = '<p><select>';
 		$out .= '<option checked="true">New template</option>';
 		$out .= '<option>Custom template 1</option>';

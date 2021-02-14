@@ -639,7 +639,13 @@ function apbct_settings__add_groups_and_fields( $fields ){
 function apbct_settings__display() {
 	
 	global $apbct;		
-		
+
+		// Hiiden modal layout Settings Templates
+		echo '<div id="apbct_settings_templates" class="apbct_settings-field_wrapper" style="display: none;">';
+		$def_settings = new CleantalkSettingsTemplates( $apbct->api_key );
+		echo $def_settings->getHtmlContent();
+		echo '</div>';
+
 		// Title
 		echo '<h2 class="apbct_settings-title">'.__($apbct->plugin_name, 'cleantalk-spam-protect').'</h2>';
 
@@ -1034,7 +1040,6 @@ function apbct_settings__field__action_buttons(){
 			'<a href="edit-comments.php?page=ct_check_spam" class="ct_support_link">' . __('Check comments for spam', 'cleantalk-spam-protect') . '</a>',
 			'<a href="users.php?page=ct_check_users" class="ct_support_link">' . __('Check users for spam', 'cleantalk-spam-protect') . '</a>',
 			'<a href="#" class="ct_support_link" onclick="apbct_show_hide_elem(\'apbct_statistics\')">' . __('Statistics & Reports', 'cleantalk-spam-protect') . '</a>',
-			'<a href="#" class="ct_support_link" onclick="cleantalkModal.open(\'apbct_settings_templates\')">' . __('Import/Export settings', 'cleantalk-spam-protect') . '</a>',
 		)
 	);
 
@@ -1143,12 +1148,6 @@ function apbct_settings__field__statistics() {
     echo '<br/>';
 	echo 'Plugin version: ' . APBCT_VERSION;
 		
-	echo '</div>';
-
-	// Templates
-	echo '<div id="apbct_settings_templates" class="apbct_settings-field_wrapper" style="display: none;">';
-	$def_settings = new CleantalkSettingsTemplates( $apbct->api_key );
-	echo $def_settings->getHtmlContent();
 	echo '</div>';
 
 }
@@ -1441,6 +1440,7 @@ function apbct_settings__validate($settings) {
 			
 			if(!empty($result['auth_key'])){
 				$settings['apikey'] = $result['auth_key'];
+				$settings_templates = CleantalkSettingsTemplates::get_options_template( $result['auth_key'] );
 			}
 			
 		}else{
