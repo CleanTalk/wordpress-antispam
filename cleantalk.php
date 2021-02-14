@@ -663,6 +663,9 @@ function apbct_activation( $network = false ) {
 			Cron::addTask('get_brief_data',        'cleantalk_get_brief_data',       86400, time() + 3500); // Get data for dashboard widget
 			Cron::addTask('send_connection_report','ct_mail_send_connection_report', 86400, time() + 3500); // Send connection report to welcome@cleantalk.org
 			Cron::addTask('antiflood__clear_table',  'apbct_antiflood__clear_table',        86400,    time() + 300); // Clear Anti-Flood table
+
+			// Flag for auto-updating once
+			add_option( 'sfw_update_first', true );
 		}
 		switch_to_blog($initial_blog);
 	}else{
@@ -676,14 +679,17 @@ function apbct_activation( $network = false ) {
 		Cron::addTask('get_brief_data',        'cleantalk_get_brief_data',       86400, time() + 3500); // Get data for dashboard widget
 		Cron::addTask('send_connection_report','ct_mail_send_connection_report', 86400, time() + 3500); // Send connection report to welcome@cleantalk.org
 		Cron::addTask('antiflood__clear_table',  'apbct_antiflood__clear_table',        86400,    time() + 300); // Clear Anti-Flood table
-		
+
+		// Flag for auto-updating once
+		add_option( 'sfw_update_first', true );
+
 		apbct_activation__create_tables($sqls);
 		ct_account_status_check(null, false);
 	}
 	
 	// Additional options
 	add_option( 'ct_plugin_do_activation_redirect', true );
-    add_option( 'sfw_update_first', true );
+
 }
 
 function apbct_activation__create_tables( $sqls, $db_prefix = '' ) {
