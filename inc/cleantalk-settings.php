@@ -640,12 +640,6 @@ function apbct_settings__display() {
 	
 	global $apbct;		
 
-		// Hiiden modal layout Settings Templates
-		echo '<div id="apbct_settings_templates" class="apbct_settings-field_wrapper" style="display: none;">';
-		$def_settings = new CleantalkSettingsTemplates( $apbct->api_key );
-		echo $def_settings->getHtmlContent();
-		echo '</div>';
-
 		// Title
 		echo '<h2 class="apbct_settings-title">'.__($apbct->plugin_name, 'cleantalk-spam-protect').'</h2>';
 
@@ -733,6 +727,14 @@ function apbct_settings__display() {
 					echo '<br>'
 					     . '<br>';
 				}
+			}
+
+			// Hidden modal layout Settings Templates
+			if($apbct->key_is_ok && apbct_api_key__is_correct()) {
+				echo '<div id="apbct_settings_templates" class="apbct_settings-field_wrapper" style="display: none;">';
+				$def_settings = new CleantalkSettingsTemplates( $apbct->api_key );
+				echo $def_settings->getHtmlContent();
+				echo '</div>';
 			}
 			
 			settings_fields('cleantalk_settings');
