@@ -152,6 +152,11 @@ cleantalkModal = {
         document.body.classList.remove( 'cleantalk-modal-opened' );
         document.getElementById( 'cleantalk-modal-overlay' ).remove();
         document.getElementById( 'cleantalk-modal-styles' ).remove();
+        document.dispatchEvent(
+            new CustomEvent( "cleantalkModalClosed", {
+                bubbles: true,
+            } )
+        );
     }
 
 };
