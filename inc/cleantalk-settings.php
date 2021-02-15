@@ -1661,10 +1661,20 @@ function apbct_settings__get_key_auto( $direct_call = false ) {
 			$apbct->settings['apikey'] = $settings['apikey'];
 		}
 
-		$out = array(
-			'success' => true,
-			'reload'  => true,
-		);
+		$templates = \Cleantalk\ApbctWP\CleantalkSettingsTemplates::get_options_template( $result['auth_key'] );
+
+		if( ! empty( $templates ) ) {
+			$templatesObj = new \Cleantalk\ApbctWP\CleantalkSettingsTemplates( $result['auth_key'] );
+			$out = array(
+				'success' => true,
+				'getTemplates'  => $templatesObj->getHtmlContent( true ),
+			);
+		} else {
+			$out = array(
+				'success' => true,
+				'reload'  => true,
+			);
+		}
 
 	}else{
 		$apbct->error_add(
