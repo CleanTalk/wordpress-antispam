@@ -45,6 +45,13 @@ jQuery(document).ready(function(){
 					setTimeout(function(){jQuery('#apbct_button__get_key_auto .apbct_success').hide(300);}, 2000);
 					if(result.reload)
 						document.location.reload();
+					if(result.getTemplates) {
+						cleantalkModal.loaded = result.getTemplates;
+						cleantalkModal.open();
+						document.addEventListener("cleantalkModalClosed", function( e ) {
+							document.location.reload();
+						});
+					}
 				}
 			}
 		);
