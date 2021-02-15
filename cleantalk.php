@@ -17,6 +17,7 @@ use Cleantalk\ApbctWP\Cron;
 use Cleantalk\ApbctWP\DB;
 use Cleantalk\ApbctWP\Firewall\SFW;
 use Cleantalk\ApbctWP\Helper;
+use Cleantalk\ApbctWP\RemoteCalls;
 use Cleantalk\Common\Schema;
 use Cleantalk\Variables\Get;
 
@@ -133,7 +134,7 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
     $tasks_to_run = Cron::checkTasks(); // Check for current tasks. Drop tasks inner counters.
     if(
         ! empty( $tasks_to_run ) && // There is tasks to run
-        ! apbct_is_remote_call() && // Do not doing CRON in remote call action
+        ! RemoteCalls::check() && // Do not doing CRON in remote call action
         (
             ! defined( 'DOING_CRON' ) ||
             ( defined( 'DOING_CRON' ) && DOING_CRON !== true )
@@ -249,9 +250,9 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
         add_action( 'wp_head', 'apbct_search_add_noindex', 1 );
 		
 		// Remote calls
-		if( apbct_is_remote_call() ){
-			apbct_remote_call__perform();
-		}
+		if( RemoteCalls::check() )
+            RemoteCalls::perform();
+		
 		// SpamFireWall check
 		if( $apbct->plugin_version == APBCT_VERSION && // Do not call with first start
 			$apbct->settings['spam_firewall'] == 1 &&
@@ -449,119 +450,6 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 	
 }
 
-/**
- * Checking if the current request is the Remote Call
- *
- * @return bool
- */
-function apbct_is_remote_call() {
-        return isset($_GET['spbc_remote_call_token'], $_GET['spbc_remote_call_action'], $_GET['plugin_name']) &&
-        in_array($_GET['plugin_name'], array('antispam','anti-spam', 'apbct'));
-}
-
-/**
-* Function preforms remote call
-*/
-function apbct_remote_call__perform()
-{
-	global $apbct;
-	
-	$remote_action = $_GET['spbc_remote_call_action'];
-
-	if( isset( $apbct->remote_calls[$remote_action] ) ){
-		if(time() - $apbct->remote_calls[$remote_action]['last_call'] > APBCT_REMOTE_CALL_SLEEP || ($remote_action == 'sfw_update' && isset($_GET['file_urls']))) {
-			
-			$apbct->remote_calls[$remote_action]['last_call'] = time();
-			$apbct->save('remote_calls');
-
-			if(strtolower($_GET['spbc_remote_call_token']) == strtolower(md5($apbct->api_key))){
-				
-				// Flag to let plugin know that Remote Call is running.
-				$apbct->rc_running = true;
-				
-				switch ($remote_action) {
-					
-				// Close renew banner
-					case 'close_renew_banner':
-						$apbct->data['notice_trial'] = 0;
-						$apbct->data['notice_renew'] = 0;
-						$apbct->saveData();
-						Cron::updateTask('check_account_status', 'ct_account_status_check',  86400);
-						die('OK');	
-						break;
-					
-				// SFW update
-					case 'sfw_update':
-						$result = ct_sfw_update( $apbct->api_key, true);
-						/**
-						 * @todo CRUNCH
-						 */
-						if(is_string($result) && strpos($result, 'FAIL') !== false){
-							$result = json_decode(substr($result, 5), true);
-						}
-						die(empty($result['error']) ? 'OK' : 'FAIL '.json_encode(array('error' => $result['error'])));
-						break;
-				
-				// SFW send logs
-					case 'sfw_send_logs':
-						$result = ct_sfw_send_logs();
-						die(empty($result['error']) ? 'OK' : 'FAIL '.json_encode(array('error' => $result['error'])));
-						break;
-					
-				// Update plugin
-					case 'update_plugin':
-						add_action('wp', 'apbct_rc__update', 1);
-						break;
-					
-				// Install plugin
-					case 'install_plugin':
-						add_action('wp', 'apbct_rc__install_plugin', 1);
-						break;
-					// Activate plugin
-					case 'activate_plugin':
-						$result = apbct_rc__activate_plugin($_GET['plugin']);
-						die(empty($result['error'])
-							? 'OK'
-							: 'FAIL '.json_encode(array('error' => $result['error'])));
-						break;
-					
-					// Insert API key
-					case 'insert_auth_key':
-						$result = apbct_rc__insert_auth_key($_GET['auth_key'], $_GET['plugin']);
-						die(empty($result['error'])
-							? 'OK'
-							: 'FAIL '.json_encode(array('error' => $result['error'])));
-						break;
-					
-					// Update settins
-					case 'update_settings':
-						$result = apbct_rc__update_settings($_GET);
-						die(empty($result['error'])
-							? 'OK'
-							: 'FAIL '.json_encode(array('error' => $result['error'])));
-						break;
-					// Deactivate plugin
-					case 'deactivate_plugin':
-						add_action('plugins_loaded', 'apbct_rc__deactivate_plugin', 1);
-						break;
-					
-					// Uninstall plugin
-					case 'uninstall_plugin':
-						add_action('plugins_loaded', 'apbct_rc__uninstall_plugin', 1);
-						break;
-					// No action found
-					default:
-						die('FAIL '.json_encode(array('error' => 'UNKNOWN_ACTION_2')));
-						break;
-				}
-				
-			}else
-				die('FAIL '.json_encode(array('error' => 'WRONG_TOKEN')));
-		}else
-			die('FAIL '.json_encode(array('error' => 'TOO_MANY_ATTEMPTS')));
-	}else
-		die('FAIL '.json_encode(array('error' => 'UNKNOWN_ACTION')));
-}
 
 /**
 * Function for SpamFireWall check
@@ -917,6 +805,12 @@ function ct_get_cookie()
 // This action triggered by  wp_schedule_single_event( time() + 900, 'ct_sfw_update' );
 add_action( 'ct_sfw_update', 'ct_sfw_update' );
 
+/**
+ * @param string $api_key
+ * @param bool $immediate
+ *
+ * @return array|bool|int|string[]
+ */
 function ct_sfw_update( $api_key = '', $immediate = false ){
 	
 	global $apbct, $wpdb;

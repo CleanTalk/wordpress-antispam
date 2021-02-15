@@ -228,39 +228,26 @@ class State
 		'service_id'         => 0,
 		'auto_update'        => 0,
 	);
-	
-	public $def_remote_calls = array(
-		'close_renew_banner' => array(
-			'last_call' => 0,
-		),
-		'sfw_update' => array(
-			'last_call' => 0,
-		),
-		'sfw_send_logs' => array(
-			'last_call' => 0,
-		),
-		'update_plugin' => array(
-			'last_call' => 0,
-		),
-		'install_plugin' => array(
-			'last_call' => 0,
-		),
-		'activate_plugin' => array(
-			'last_call' => 0,
-		),
-		'insert_auth_key' => array(
-			'last_call' => 0,
-		),
-		'deactivate_plugin' => array(
-			'last_call' => 0,
-		),
-		'uninstall_plugin' => array(
-			'last_call' => 0,
-		),
-		'update_settings' => array(
-			'last_call' => 0,
-		),
-	);
+    
+    public $def_remote_calls = array(
+    
+        //Common
+        'close_renew_banner' => array( 'last_call' => 0, 'cooldown' => 0 ),
+        'check_website'      => array( 'last_call' => 0, 'cooldown' => 0 ),
+        'update_settings'    => array( 'last_call' => 0, 'cooldown' => 0 ),
+        
+        // Firewall
+        'sfw_update'         => array( 'last_call' => 0, 'cooldown' => 0 ),
+        'sfw_send_logs'      => array( 'last_call' => 0, 'cooldown' => 0 ),
+        
+        // Installation
+        'update_plugin'      => array( 'last_call' => 0, 'cooldown' => 0 ),
+        'install_plugin'     => array( 'last_call' => 0, 'cooldown' => 0 ),
+        'activate_plugin'    => array( 'last_call' => 0, 'cooldown' => 0 ),
+        'insert_auth_key'    => array( 'last_call' => 0, 'cooldown' => 0 ),
+        'deactivate_plugin'  => array( 'last_call' => 0, 'cooldown' => 0 ),
+        'uninstall_plugin'   => array( 'last_call' => 0, 'cooldown' => 0 ),
+    );
 	
 	public $def_stats = array(
 		'sfw' => array(
