@@ -299,14 +299,13 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
         require_once( CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-find-spam.php' );
 		require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-admin.php');
 		require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-settings.php');
-		
-	    add_action( 'admin_init', 'apbct_admin__init___ajax_actions' );
-		
+
+	    add_action('admin_init',            'apbct_admin__init', 1);
+
 		if (!(defined( 'DOING_AJAX' ) && DOING_AJAX)){
 			
 			add_action('admin_enqueue_scripts', 'apbct_admin__enqueue_scripts');
-			
-			add_action('admin_init',            'apbct_admin__init', 1);
+
 			add_action('admin_menu',            'apbct_settings_add_page');
 			add_action('network_admin_menu',    'apbct_settings_add_page');
 			add_action('admin_notices',         'apbct_admin__notice_message');

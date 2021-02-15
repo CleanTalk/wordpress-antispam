@@ -185,16 +185,13 @@ function apbct_admin__init(){
         $apbct->api_key = $settings['apikey'];
         $apbct->save('settings');
         unset($_POST['submit']);
-
     }
-}
 
-function apbct_admin__init___ajax_actions(){
- 
 	// Settings
 	add_action('wp_ajax_apbct_settings__get__long_description', 'apbct_settings__get__long_description'); // Long description
- 
+
 	add_action( 'wp_ajax_apbct_sync', 'apbct_settings__sync' );
+
 }
 
 /**
