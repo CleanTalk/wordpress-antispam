@@ -893,7 +893,7 @@ function ct_sfw_update( $api_key = '', $immediate = false ){
                     $apbct->save('fw_stats');
 
                     if ( $url_count > $current_url ) {
-                        return Helper::http__request(
+                        return Helper::http__request__rc_to_host(
                             get_option('siteurl'),
                             array(
                                 'spbc_remote_call_token'  => md5($api_key),
@@ -949,7 +949,7 @@ function ct_sfw_update( $api_key = '', $immediate = false ){
 
         } else {
             // Go to init remote call
-            return Helper::http__request(
+            return Helper::http__request__rc_to_host(
                 get_option( 'siteurl' ),
                 array(
                     'spbc_remote_call_token'  => md5( $api_key ),
