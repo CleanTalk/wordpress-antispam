@@ -182,17 +182,22 @@ function apbct_admin__init(){
 	
 	// Getting key like hoster. Only once!
     if(!is_main_site() && $apbct->white_label && ( empty($apbct->api_key) || $apbct->settings['apikey'] == $apbct->network_settings['apikey'] ) ){
-        $_POST['submit'] = 'get_key_auto';
-        $settings = apbct_settings__validate(array());
-        $apbct->api_key = $settings['apikey'];
-        $apbct->save('settings');
-        unset($_POST['submit']);
+	    $res = apbct_settings__get_key_auto( true );
+	    if( isset( $res['auth_key'], $res['user_token'] ) ) {
+		    $settings = apbct_settings__validate(array(
+			    'apikey' => $res['auth_key'],
+            ));
+		    $apbct->api_key = $settings['apikey'];
+		    $apbct->save('settings');
+        }
     }
 
 	// Settings
 	add_action('wp_ajax_apbct_settings__get__long_description', 'apbct_settings__get__long_description'); // Long description
 
 	add_action( 'wp_ajax_apbct_sync', 'apbct_settings__sync' );
+
+	add_action( 'wp_ajax_apbct_get_key_auto', 'apbct_settings__get_key_auto' );
 
 	// Settings Templates
 	new CleantalkSettingsTemplates( $apbct->api_key );

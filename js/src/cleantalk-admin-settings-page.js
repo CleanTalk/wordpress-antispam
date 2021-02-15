@@ -32,6 +32,24 @@ jQuery(document).ready(function(){
 		});
 	});
 
+	// Key KEY automatically
+	jQuery('#apbct_button__get_key_auto').on('click', function(){
+		apbct_admin_sendAJAX(
+			{action: 'apbct_get_key_auto'},
+			{
+				timeout: 25000,
+				button: document.getElementById('apbct_button__get_key_auto' ),
+				spinner: jQuery('#apbct_button__get_key_auto .apbct_preloader_button' ),
+				callback: function(result, data, params, obj){
+					jQuery('#apbct_button__get_key_auto .apbct_success').show(300);
+					setTimeout(function(){jQuery('#apbct_button__get_key_auto .apbct_success').hide(300);}, 2000);
+					if(result.reload)
+						document.location.reload();
+				}
+			}
+		);
+	});
+
 	// Sync button
 	jQuery('#apbct_button__sync').on('click', function(){
 		apbct_admin_sendAJAX(
@@ -42,7 +60,7 @@ jQuery(document).ready(function(){
 				spinner: jQuery('#apbct_button__sync .apbct_preloader_button' ),
 				callback: function(result, data, params, obj){
 					jQuery('.apbct_success').show(300);
-					setTimeout(function(){jQuery('.apbct_success').hide(300);}, 2000)
+					setTimeout(function(){jQuery('.apbct_success').hide(300);}, 2000);
 					if(result.reload)
 						document.location.reload();
 				}
@@ -60,6 +78,15 @@ jQuery(document).ready(function(){
 
 	if (jQuery('#apbct_renew_notice').length || jQuery('#apbct_trial_notice').length) 
 		apbct_banner_check();
+
+	jQuery(document).on('change', '#templates_export',function( e ){
+		var optionSelected = jQuery("option:selected", this);
+		if ( optionSelected.is("#new_template") ) {
+			jQuery(this).parent().parent().find('[name="template_name"]').show();
+		} else {
+			jQuery(this).parent().parent().find('[name="template_name"]').hide();
+		}
+	});
 	
 });
 

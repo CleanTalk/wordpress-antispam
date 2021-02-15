@@ -982,11 +982,13 @@ function apbct_settings__field__apikey(){
 		}else{
 			
 			echo '<br /><br />';
-			
+
 			// Auto get key
 			if(!$apbct->ip_license){
-				echo '<button class="cleantalk_link cleantalk_link-manual apbct_setting---get_key_auto" name="submit" type="submit"  value="get_key_auto">'
+				echo '<button class="cleantalk_link cleantalk_link-manual apbct_setting---get_key_auto" id="apbct_button__get_key_auto" name="submit" type="button"  value="get_key_auto">'
 					.__('Get Access Key Automatically', 'cleantalk-spam-protect')
+				     . '<img style="margin-left: 10px;" class="apbct_preloader_button" src="' . APBCT_URL_PATH . '/inc/images/preloader2.gif" />'
+				     . '<img style="margin-left: 10px;" class="apbct_success --hide" src="' . APBCT_URL_PATH . '/inc/images/yes.png" />'
 				.'</button>';
 				echo '<input type="hidden" id="ct_admin_timezone" name="ct_admin_timezone" value="null" />';
 				echo '<br />';
@@ -1398,55 +1400,7 @@ function apbct_settings__validate($settings) {
 	$settings['sfw__anti_flood__view_limit'] = floor( intval( $settings['sfw__anti_flood__view_limit'] ) );
 	$settings['sfw__anti_flood__view_limit'] = ( $settings['sfw__anti_flood__view_limit'] == 0 ? 20 : $settings['sfw__anti_flood__view_limit'] ); // Default if 0 passed
 	$settings['sfw__anti_flood__view_limit'] = ( $settings['sfw__anti_flood__view_limit'] < 5 ? 5 : $settings['sfw__anti_flood__view_limit'] ); //
-	
-	// Auto getting key
-	if (isset($_POST['submit']) && $_POST['submit'] == 'get_key_auto'){
-		
-		$website        = parse_url(get_option('siteurl'), PHP_URL_HOST).parse_url(get_option('siteurl'), PHP_URL_PATH);
-		$platform       = 'wordpress';
-		$user_ip        = \Cleantalk\ApbctWP\Helper::ip__get(array('real'), false);
-		$timezone       = filter_input(INPUT_POST, 'ct_admin_timezone');
-		$language       = apbct_get_server_variable( 'HTTP_ACCEPT_LANGUAGE' );
-		$wpms           = APBCT_WPMS && defined('SUBDOMAIN_INSTALL') && !SUBDOMAIN_INSTALL ? true : false;
-		$white_label    = $apbct->network_settings['white_label']             ? 1                                                   : 0;
-		$hoster_api_key = $apbct->network_settings['white_label__hoster_key'] ? $apbct->network_settings['white_label__hoster_key'] : '';
-		
-		$result = \Cleantalk\ApbctWP\API::method__get_api_key(
-			! is_main_site() && $apbct->white_label ? 'anti-spam-hosting' : 'antispam',
-			ct_get_admin_email(),
-			$website,
-			$platform,
-			$timezone,
-			$language,
-			$user_ip,
-			$wpms,
-			$white_label,
-			$hoster_api_key
-		);
-		
-		if(empty($result['error'])){
-			
-			if(isset($result['user_token'])){
-				$apbct->data['user_token'] = $result['user_token'];
-			}
-			
-			if(!empty($result['auth_key'])){
-				$settings['apikey'] = $result['auth_key'];
-				$settings_templates = CleantalkSettingsTemplates::get_options_template( $result['auth_key'] );
-			}
-			
-		}else{
-			$apbct->error_add(
-				'key_get',
-				$result['error']
-				. ($apbct->white_label
-					? ' <button name="submit" type="submit" class="cleantalk_link cleantalk_link-manual" value="get_key_auto">'
-					: ''
-				)
-			);
-		}
-	}
-	
+
 	// Validating API key
 	$settings['apikey'] = strpos($settings['apikey'], '*') === false                 ? $settings['apikey']        : $apbct->settings['apikey'];
 	
@@ -1662,6 +1616,80 @@ function apbct_settings__sync( $direct_call = false ){
 	$apbct->saveData();
 	
 	die( json_encode( $out ) );
+}
+
+function apbct_settings__get_key_auto( $direct_call = false ) {
+
+	if( ! $direct_call )
+		check_ajax_referer('ct_secret_nonce' );
+
+	global $apbct;
+
+	$website        = parse_url(get_option('siteurl'), PHP_URL_HOST).parse_url(get_option('siteurl'), PHP_URL_PATH);
+	$platform       = 'wordpress';
+	$user_ip        = \Cleantalk\ApbctWP\Helper::ip__get(array('real'), false);
+	$timezone       = filter_input(INPUT_POST, 'ct_admin_timezone');
+	$language       = apbct_get_server_variable( 'HTTP_ACCEPT_LANGUAGE' );
+	$wpms           = APBCT_WPMS && defined('SUBDOMAIN_INSTALL') && !SUBDOMAIN_INSTALL ? true : false;
+	$white_label    = $apbct->network_settings['white_label']             ? 1                                                   : 0;
+	$hoster_api_key = $apbct->network_settings['white_label__hoster_key'] ? $apbct->network_settings['white_label__hoster_key'] : '';
+
+	$result = \Cleantalk\ApbctWP\API::method__get_api_key(
+		! is_main_site() && $apbct->white_label ? 'anti-spam-hosting' : 'antispam',
+		ct_get_admin_email(),
+		$website,
+		$platform,
+		$timezone,
+		$language,
+		$user_ip,
+		$wpms,
+		$white_label,
+		$hoster_api_key
+	);
+
+	if(empty($result['error'])){
+
+		if(isset($result['user_token'])){
+			$apbct->data['user_token'] = $result['user_token'];
+		}
+
+		if(!empty($result['auth_key'])){
+			// @ToDo we have to sanitize only api key. Not need to sanitize every settings here.
+			$settings = apbct_settings__validate(array(
+				'apikey' => $result['auth_key'],
+			));
+			$apbct->settings['apikey'] = $settings['apikey'];
+		}
+
+		$out = array(
+			'success' => true,
+			'reload'  => true,
+		);
+
+	}else{
+		$apbct->error_add(
+			'key_get',
+			$result['error']
+			. ($apbct->white_label
+				? ' <button name="submit" type="button" id="apbct_button__get_key_auto" class="cleantalk_link cleantalk_link-manual" value="get_key_auto">'
+				: ''
+			)
+		);
+		$apbct->saveErrors();
+		$out = array(
+			'success' => true,
+			'reload'  => false,
+		);
+	}
+
+	$apbct->saveSettings();
+	$apbct->saveData();
+
+	if( $direct_call ) {
+		return $result;
+	} else {
+		die( json_encode( $out ) );
+	}
 }
 
 function apbct_update_blogs_options ($blog_names = array(), $settings) {
