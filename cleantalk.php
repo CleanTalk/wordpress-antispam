@@ -1737,22 +1737,6 @@ function apbct_cookies_test()
 	}
 }
 
-function apbct_cookies__delete($cookie){
-	if(isset($_COOKIE[$cookie]))
-		setcookie($cookie, '', time()-3600);
-}
-
-function apbct_cookies__delete_all(){
-	if(count($_COOKIE)){
-		foreach($_COOKIE as $key => $val){
-			if(preg_match("/apbct_|ct_/", $key)){
-				setcookie($key, '', time()-3600);
-			}       
-		} unset($key, $val);
-	}
-	return false;
-}
-
 /**
  * Gets submit time
  * Uses Cookies with check via apbct_cookies_test()
