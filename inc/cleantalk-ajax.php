@@ -7,6 +7,8 @@ AJAX functions
 
 //$cleantalk_ajax_actions_to_check - array for POST 'actions' we should check.
 
+use Cleantalk\Variables\Post;
+
 $cleantalk_ajax_actions_to_check[] = 'qcf_validate_form';			//Quick Contact Form
 $cleantalk_ajax_actions_to_check[] = 'amoforms_submit';			//amoForms
 
@@ -357,6 +359,12 @@ function ct_ajax_hook($message_obj = false, $additional = false)
         return false;
     }
 
+    // Exception for "xoo" ? login form
+    if( Post::get( '_xoo_el_form' ) === 'login' ){
+        do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__ . '(' . apbct_is_skip_request() . ')', $_POST );
+        return false;
+    }
+    
     //General post_info for all ajax calls
 	$post_info = array(
 	    'comment_type' => 'feedback_ajax',
