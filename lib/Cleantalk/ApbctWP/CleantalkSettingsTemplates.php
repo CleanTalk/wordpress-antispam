@@ -29,7 +29,14 @@ class CleantalkSettingsTemplates {
 
 	public static function get_options_template( $api_key ) {
 		// @ToDo here will be API call services_templates_get
-		return '';
+		//\Cleantalk\Common\API::method__services_templates_get( $api_key );
+		return array(
+			1 => array(
+				'template_id' => 1,
+				'name' => 'Test Settings Template',
+				'options_site' => 'json_string',
+			),
+		);
 	}
 
 	public function getHtmlContent( $import_only = false )
