@@ -1,5 +1,7 @@
 <?php
 
+use Cleantalk\ApbctWP\CleantalkSettingsTemplates;
+
 require_once('cleantalk-settings.php');
 
 // Add buttons to comments list table
@@ -191,6 +193,9 @@ function apbct_admin__init(){
 	add_action('wp_ajax_apbct_settings__get__long_description', 'apbct_settings__get__long_description'); // Long description
 
 	add_action( 'wp_ajax_apbct_sync', 'apbct_settings__sync' );
+
+	// Settings Templates
+	new CleantalkSettingsTemplates( $apbct->api_key );
 
 }
 
