@@ -504,8 +504,25 @@ class State
 		if($save_flag)
 			$this->saveErrors();
 	}
-	
-	/**
+    
+    /**
+     * Set or deletes an error depends of the first bool parameter
+     *
+     * @param $add_error
+     * @param $error
+     * @param $type
+     * @param null $major_type
+     * @param bool $set_time
+     * @param bool $save_flag
+     */
+    public function error_toggle($add_error, $type, $error, $major_type = null, $set_time = true, $save_flag = true ){
+        if( $add_error )
+            $this->error_add( $type, $error, $major_type, $set_time );
+        else
+            $this->error_delete( $type, $save_flag, $major_type );
+    }
+    
+    /**
 	 * Magic.
 	 * Add new variables to storage[NEW_VARIABLE]
 	 * And duplicates it in storage['data'][NEW_VARIABLE]
