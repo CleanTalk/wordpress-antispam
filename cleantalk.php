@@ -853,7 +853,7 @@ function ct_sfw_update( $api_key = '', $immediate = false ){
             $apbct->save( 'fw_stats' );
         }
 
-        if( apbct_is_remote_call() ) {
+        if( RemoteCalls::check() ) {
             // Remote call is in process, do updating
 
             $file_urls   = isset($_GET['file_urls'])   ? urldecode( $_GET['file_urls'] )   : null;
