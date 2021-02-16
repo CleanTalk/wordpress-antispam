@@ -653,10 +653,10 @@ function ct_feedback($hash, $allow) {
 	global $apbct;
 	
     $ct_feedback = $hash . ':' . $allow . ';';
-    if($apbct->data['feedback_request'])
-		$apbct->data['feedback_request'] = $ct_feedback; 
+    if( ! $apbct->data['feedback_request'] )
+		$apbct->data['feedback_request'] = $ct_feedback;
     else
-		$apbct->data['feedback_request'] .= $ct_feedback; 
+		$apbct->data['feedback_request'] .= $ct_feedback;
 	
 	$apbct->saveData();
 }

@@ -384,6 +384,20 @@ function apbct_is_skip_request( $ajax = false ) {
             {
             	return 'divi_builder_save_epanel';
             }
+	        // Email Before Download plugin https://wordpress.org/plugins/email-before-download/ action skip
+	        if ( apbct_is_plugin_active( 'email-before-download/email-before-download.php' ) &&
+	             isset( $_POST['action'] ) &&
+	             $_POST['action'] === 'ebd_inline_links' )
+	        {
+		        return 'ebd_inline_links';
+	        }
+	        // WP Discuz skip service requests. The plugin have the direct integration
+	        if ( apbct_is_plugin_active( 'wpdiscuz/class.WpdiscuzCore.php' ) &&
+	             isset( $_POST['action'] ) &&
+	             strpos( $_POST['action'], 'wpd' ) !== false )
+	        {
+		        return 'ebd_inline_links';
+	        }
             break;
 
         case false :

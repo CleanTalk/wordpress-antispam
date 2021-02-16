@@ -428,7 +428,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
                                                 $patterns[] = 'async';
                                             }
 
-                                            return Helper::http__request(
+                                            return Helper::http__request__rc_to_host(
                                                 get_option( 'siteurl' ),
                                                 array(
                                                     'spbc_remote_call_token'  => md5( $ct_key ),

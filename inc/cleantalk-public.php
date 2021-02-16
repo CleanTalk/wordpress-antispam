@@ -2181,15 +2181,16 @@ function apbct_user_register($user_id) {
 
     global $apbct_cookie_request_id_label, $apbct_cookie_request_id;
 
+	if ( ! empty( $apbct_cookie_request_id ) ) {
+		update_user_meta($user_id, 'ct_hash', $apbct_cookie_request_id);
+		return;
+	}
+
 	if ( isset($_COOKIE[$apbct_cookie_request_id_label]) ) {
 	    if(update_user_meta($user_id, 'ct_hash', $_COOKIE[$apbct_cookie_request_id_label])){
 	        \Cleantalk\Common\Helper::apbct_cookie__set($apbct_cookie_request_id_label, '0', 1, '/');
 			}
 	    return;
-	}
-
-	if ( ! empty( $apbct_cookie_request_id ) ) {
-		update_user_meta($user_id, 'ct_hash', $apbct_cookie_request_id);
 	}
 
 }
