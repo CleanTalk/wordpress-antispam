@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 3.0
 Tested up to: 5.6
 Requires PHP: 5.4
-Stable tag: 5.152.5
+Stable tag: 5.153
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -579,6 +579,36 @@ If your website has forms that send data to external sources, you can enable opt
 10. Website's options.
 
 == Changelog ==
+
+= 5.153 Feb 17.02.2021 =
+ * New: Integrations. WPDiscuz integration implemented.
+ * New: Using custom modal message instead allert.
+ * New: JS cleantalk-modal added.
+ * New: Cleantalk\ApbctWP\RemoteCalls class.
+ * New: Remote calls using Cleantalk\ApbctWP\RemoteCalls class.
+ * New: Cleantalk\ApbctWP\Helper::http__request__rc_to_host(). Wrapper to using RC to the website itself. Makes testing RC before make main.
+ * New: Cleantalk\ApbctWP\State::error_toggle().
+ * New: SFW update. Make test RC before main.
+ * Udp: Integrations. Support several hooks for one integration.
+ * Fix: Users. Feedback sending via deleting user fixed.
+ * Fix: Users checker. Feedback sending via deleting user fixed.
+ * Fix: IP detection.
+ * Fix: Users scan. Confirmation message fixed.
+ * Fix: SFW. The anti-flood option moved to the advanced settings.
+ * Fix: SFW. Show the right url on block page for WPMS.
+ * Fix: SFW. The anti-crawler option description fixed.
+ * Fix: SFW. The anti-flood option description fixed.
+ * Fix: SFW. AC checking on login page fixed.
+ * Fix: CF7. Modified spam hook.
+ * Fix: SFW. send_logs returning error.
+ * Fix: Cleantalk class fixed.
+ * Fix: Clearing errors storage before sync.
+ * Fix: Clearing SFW errors on updating to 5.151.6.
+ * Fix: Updater. Support updating for versions without fix number implemented.
+ * Fix: "Email Before Download" plugin request will be skipped.
+ * Fix: SFW. Auto-updating option fixed for multisite activation.
+ * Fix: Exception for Xoo login form.
+ * Fix: Users deleting feedback fixed.
 
 = 5.152.5 Feb 04 2020 =
  * Fix: SFW. Auto-updating interval decreased to 5 mins.
