@@ -398,6 +398,11 @@ function apbct_is_skip_request( $ajax = false ) {
 	        {
 		        return 'ebd_inline_links';
 	        }
+            // Exception for "xoo" ? login form
+            if( Post::get( '_xoo_el_form' ) === 'login' ){
+                return 'xoo_login';
+            }
+            
             break;
 
         case false :
