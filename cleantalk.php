@@ -930,10 +930,10 @@ function ct_sfw_update( $api_key = '', $immediate = false ){
                         $apbct->stats['sfw']['last_update_time'] = time();
                         $apbct->save('stats');
 
-                        // Running sfw update once again in 15 min if entries is < 4000
+                        // Running sfw update once again in 12 min if entries is < 4000
                         if( $is_first_updating !== false ) {
                             if( $apbct->stats['sfw']['entries'] < 4000 ) {
-                                wp_schedule_single_event( time() + 300, 'ct_sfw_update' );
+                                wp_schedule_single_event( time() + 720, 'ct_sfw_update' );
                             }
                             delete_option( 'sfw_sync_first' );
                         }
