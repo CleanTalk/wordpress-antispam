@@ -287,7 +287,7 @@ function apbct_init() {
             ! empty( $pmpro_required_user_fields['bconfirmemail'] ) &&
             $pmpro_required_user_fields['bemail'] == $pmpro_required_user_fields['bconfirmemail']
         ) {
-            $check = ct_test_registration( $pmpro_required_user_fields['username'], $pmpro_required_user_fields['bemail'] );
+            $check = ct_test_registration( $pmpro_required_user_fields['username'], $pmpro_required_user_fields['bemail'], apbct_get_server_variable( 'REMOTE_ADDR' ) );
             if( $check['allow'] == 0 ) {
                 pmpro_setMessage( $check['comment'], 'pmpro_error' );
             }
@@ -1880,7 +1880,7 @@ function ct_test_message($nickname, $email, $ip, $text){
  * Check registrations for external plugins
  * @return array with checking result;
  */
-function ct_test_registration($nickname, $email, $ip = null ){
+function ct_test_registration($nickname, $email, $ip){
 
     global $ct_checkjs_register_form, $apbct;
 
@@ -3944,7 +3944,7 @@ function apbct_shrotcode_handler__GDPR_public_notice__form( $attrs ){
  * @return            array            array( 'status' => 'error' ) or array( 'status' => 'success' ) by default
  */
 function apbct_wilcity_reg_validation( $success, $data ) {
-	$check = ct_test_registration( $data['username'], $data['email'] );
+	$check = ct_test_registration( $data['username'], $data['email'], '' );
 	if( $check['allow'] == 0 ) {
 		return array( 'status' => 'error' );
 	}

@@ -148,12 +148,7 @@ function apbct_base_call($params = array(), $reg_flag = false){
 	$default_params = array(
 		
 		// IPs
-		'sender_ip'       => defined('CT_TEST_IP')
-            ? CT_TEST_IP
-            : ( isset($params['sender_ip'])
-                ? $params['sender_ip']
-                : \Cleantalk\ApbctWP\Helper::ip__get(array('real'), false)
-            ),
+		'sender_ip'       => defined('CT_TEST_IP') ? CT_TEST_IP : (isset($params['sender_ip']) ? $params['sender_ip'] : \Cleantalk\ApbctWP\Helper::ip__get(array('real'), false)),
 		'x_forwarded_for' => \Cleantalk\ApbctWP\Helper::ip__get(array('x_forwarded_for'), false),
 		'x_real_ip'       => \Cleantalk\ApbctWP\Helper::ip__get(array('x_real_ip'), false),
 		
