@@ -1403,7 +1403,7 @@ function apbct_settings__validate($settings) {
 		
 		$website        = parse_url(get_option('siteurl'), PHP_URL_HOST).parse_url(get_option('siteurl'), PHP_URL_PATH);
 		$platform       = 'wordpress';
-		$user_ip        = \Cleantalk\ApbctWP\Helper::ip__get(array('real'), false);
+		$user_ip        = \Cleantalk\ApbctWP\Helper::ip__get('real', false);
 		$timezone       = filter_input(INPUT_POST, 'ct_admin_timezone');
 		$language       = apbct_get_server_variable( 'HTTP_ACCEPT_LANGUAGE' );
 		$wpms           = APBCT_WPMS && defined('SUBDOMAIN_INSTALL') && !SUBDOMAIN_INSTALL ? true : false;
