@@ -1,5 +1,6 @@
 <?php
 
+use Cleantalk\Variables\Post;
 use Cleantalk\Variables\Server;
 
 /**
@@ -398,8 +399,11 @@ function apbct_is_skip_request( $ajax = false ) {
 	        {
 		        return 'ebd_inline_links';
 	        }
-            // Exception for "xoo" ? login form
-            if( Post::get( '_xoo_el_form' ) === 'login' ){
+            // Exception for plugin https://ru.wordpress.org/plugins/easy-login-woocommerce/ login form
+            if(
+                apbct_is_plugin_active( 'easy-login-woocommerce\xoo-el-main.php' ) &&
+                Post::get( '_xoo_el_form' ) === 'login'
+            ){
                 return 'xoo_login';
             }
             
