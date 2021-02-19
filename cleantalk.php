@@ -835,137 +835,133 @@ function ct_sfw_update( $api_key = '', $immediate = false ){
 
 	$api_key = !empty($apbct->api_key) ? $apbct->api_key : $api_key;
     
-    if( empty( $api_key ) && ! $apbct->data['moderate_ip'] ){
+    if( empty( $api_key ) || $apbct->settings['spam_firewall'] != 1 ){
         return true;
     }
-    
-    if( $apbct->settings['spam_firewall'] == 1 ) {
 
-        if( get_option( 'sfw_sync_first' ) ) {
-            $first = 'first';
-        } else {
-            $first = '';
-        }
-        // Set new update ID
-        if( ! $apbct->fw_stats['firewall_updating_id'] || time() - $apbct->fw_stats['firewall_updating_last_start'] > 300 ){
-            $apbct->fw_stats['firewall_updating_id'] = md5( rand( 0, 100000 ) ) . $first;
-            $apbct->fw_stats['firewall_updating_last_start'] = time();
-            $apbct->save( 'fw_stats' );
-        }
+    if( get_option( 'sfw_sync_first' ) ) {
+        $first = 'first';
+    } else {
+        $first = '';
+    }
+    // Set new update ID
+    if( ! $apbct->fw_stats['firewall_updating_id'] || time() - $apbct->fw_stats['firewall_updating_last_start'] > 300 ){
+        $apbct->fw_stats['firewall_updating_id'] = md5( rand( 0, 100000 ) ) . $first;
+        $apbct->fw_stats['firewall_updating_last_start'] = time();
+        $apbct->save( 'fw_stats' );
+    }
 
-        if( RemoteCalls::check() ) {
-            // Remote call is in process, do updating
+    if( RemoteCalls::check() ) {
+        // Remote call is in process, do updating
 
-            $file_urls   = isset($_GET['file_urls'])   ? urldecode( $_GET['file_urls'] )   : null;
-            $url_count   = isset($_GET['url_count'])   ? urldecode( $_GET['url_count'] )   : null;
-            $current_url = isset($_GET['current_url']) ? urldecode( $_GET['current_url'] ) : null;
+        $file_urls   = isset($_GET['file_urls'])   ? urldecode( $_GET['file_urls'] )   : null;
+        $url_count   = isset($_GET['url_count'])   ? urldecode( $_GET['url_count'] )   : null;
+        $current_url = isset($_GET['current_url']) ? urldecode( $_GET['current_url'] ) : null;
 
-            if( ! $file_urls ){
+        if( ! $file_urls ){
 
-                // @todo We have to handle errors here
-                SFW::create_temp_tables( DB::getInstance() );
+            // @todo We have to handle errors here
+            SFW::create_temp_tables( DB::getInstance() );
 
-                $result = SFW::update(
-                    DB::getInstance(),
-                    APBCT_TBL_FIREWALL_DATA . '_temp',
-                    $api_key,
-                    null,
-                    $immediate
-                );
-
-                return ! empty( $result['error'] )
-                    ? $result
-                    : true;
-
-            }elseif( $file_urls && $url_count > $current_url ){
-
-                $result = SFW::update(
-                    DB::getInstance(),
-                    APBCT_TBL_FIREWALL_DATA . '_temp',
-                    $api_key,
-                    str_replace( 'multifiles', $current_url, $file_urls ),
-                    $immediate
-                );
-
-                if( empty( $result['error'] ) ){
-
-                    $current_url++;
-
-                    $apbct->fw_stats['firewall_update_percent'] = round( ( ( (int) $current_url + 1 ) / (int) $url_count ), 2) * 100;
-                    $apbct->save('fw_stats');
-
-                    if ( $url_count > $current_url ) {
-                        return Helper::http__request__rc_to_host(
-                            get_option('siteurl'),
-                            array(
-                                'spbc_remote_call_token'  => md5($api_key),
-                                'spbc_remote_call_action' => 'sfw_update',
-                                'plugin_name'             => 'apbct',
-                                'file_urls'               => str_replace( array( 'http://', 'https://' ), '', $file_urls ),
-                                'url_count'               => $url_count,
-                                'current_url'             => $current_url,
-                                // Additional params
-                                'firewall_updating_id'    => $apbct->fw_stats['firewall_updating_id'],
-                            ),
-                            array('get', 'async')
-                        );
-                    } else {
-
-                        $is_first_updating = strpos( $apbct->fw_stats['firewall_updating_id'], 'first' );
-
-                        // @todo We have to handle errors here
-                        SFW::delete_main_data_tables( DB::getInstance() );
-                        // @todo We have to handle errors here
-                        SFW::rename_data_tables( DB::getInstance() );
-
-                        //Files array is empty update sfw stats
-                        $apbct->data['last_firewall_updated'] = current_time('timestamp'); // Unused
-                        $apbct->save('data'); // Unused
-                        $apbct->fw_stats['firewall_update_percent'] = 0;
-                        $apbct->fw_stats['firewall_updating_id'] = null;
-                        $apbct->save( 'fw_stats' );
-
-                        //Files array is empty update sfw time
-                        $apbct->stats['sfw']['entries'] = $wpdb->get_var('SELECT COUNT(*) FROM ' . APBCT_TBL_FIREWALL_DATA );
-                        $apbct->stats['sfw']['last_update_time'] = time();
-                        $apbct->save('stats');
-
-                        // Running sfw update once again in 12 min if entries is < 4000
-                        if( $is_first_updating !== false ) {
-                            if( $apbct->stats['sfw']['entries'] < 4000 ) {
-                                wp_schedule_single_event( time() + 720, 'ct_sfw_update' );
-                            }
-                            delete_option( 'sfw_sync_first' );
-                        }
-
-                        // Delete update errors
-                        $apbct->error_delete( 'sfw_update', 'save_settings' );
-
-                        // REMOVE AND RENAME
-                        return $result;
-                    }
-                }else
-                    return $result;
-            }else
-                return array('error' => 'SFW_UPDATE WRONG_FILE_URLS');
-
-        } else {
-            // Go to init remote call
-            return Helper::http__request__rc_to_host(
-                get_option( 'siteurl' ),
-                array(
-                    'spbc_remote_call_token'  => md5( $api_key ),
-                    'spbc_remote_call_action' => 'sfw_update',
-                    'plugin_name'             => 'apbct',
-                    // Additional params
-                    'firewall_updating_id'    => $apbct->fw_stats['firewall_updating_id'],
-                ),
-                array( 'get','async' )
+            $result = SFW::update(
+                DB::getInstance(),
+                APBCT_TBL_FIREWALL_DATA . '_temp',
+                $api_key,
+                null,
+                $immediate
             );
-        }
 
-	}else
-        return array('error' => 'SFW_DISABLED');
+            return ! empty( $result['error'] )
+                ? $result
+                : true;
+
+        }elseif( $file_urls && $url_count > $current_url ){
+
+            $result = SFW::update(
+                DB::getInstance(),
+                APBCT_TBL_FIREWALL_DATA . '_temp',
+                $api_key,
+                str_replace( 'multifiles', $current_url, $file_urls ),
+                $immediate
+            );
+
+            if( empty( $result['error'] ) ){
+
+                $current_url++;
+
+                $apbct->fw_stats['firewall_update_percent'] = round( ( ( (int) $current_url + 1 ) / (int) $url_count ), 2) * 100;
+                $apbct->save('fw_stats');
+
+                if ( $url_count > $current_url ) {
+                    return Helper::http__request__rc_to_host(
+                        get_option('siteurl'),
+                        array(
+                            'spbc_remote_call_token'  => md5($api_key),
+                            'spbc_remote_call_action' => 'sfw_update',
+                            'plugin_name'             => 'apbct',
+                            'file_urls'               => str_replace( array( 'http://', 'https://' ), '', $file_urls ),
+                            'url_count'               => $url_count,
+                            'current_url'             => $current_url,
+                            // Additional params
+                            'firewall_updating_id'    => $apbct->fw_stats['firewall_updating_id'],
+                        ),
+                        array('get', 'async')
+                    );
+                } else {
+
+                    $is_first_updating = strpos( $apbct->fw_stats['firewall_updating_id'], 'first' );
+
+                    // @todo We have to handle errors here
+                    SFW::delete_main_data_tables( DB::getInstance() );
+                    // @todo We have to handle errors here
+                    SFW::rename_data_tables( DB::getInstance() );
+
+                    //Files array is empty update sfw stats
+                    $apbct->data['last_firewall_updated'] = current_time('timestamp'); // Unused
+                    $apbct->save('data'); // Unused
+                    $apbct->fw_stats['firewall_update_percent'] = 0;
+                    $apbct->fw_stats['firewall_updating_id'] = null;
+                    $apbct->save( 'fw_stats' );
+
+                    //Files array is empty update sfw time
+                    $apbct->stats['sfw']['entries'] = $wpdb->get_var('SELECT COUNT(*) FROM ' . APBCT_TBL_FIREWALL_DATA );
+                    $apbct->stats['sfw']['last_update_time'] = time();
+                    $apbct->save('stats');
+
+                    // Running sfw update once again in 12 min if entries is < 4000
+                    if( $is_first_updating !== false ) {
+                        if( $apbct->stats['sfw']['entries'] < 4000 ) {
+                            wp_schedule_single_event( time() + 720, 'ct_sfw_update' );
+                        }
+                        delete_option( 'sfw_sync_first' );
+                    }
+
+                    // Delete update errors
+                    $apbct->error_delete( 'sfw_update', 'save_settings' );
+
+                    // REMOVE AND RENAME
+                    return $result;
+                }
+            }else
+                return $result;
+        }else
+            return array('error' => 'SFW_UPDATE WRONG_FILE_URLS');
+
+    } else {
+        // Go to init remote call
+        return Helper::http__request__rc_to_host(
+            get_option( 'siteurl' ),
+            array(
+                'spbc_remote_call_token'  => md5( $api_key ),
+                'spbc_remote_call_action' => 'sfw_update',
+                'plugin_name'             => 'apbct',
+                // Additional params
+                'firewall_updating_id'    => $apbct->fw_stats['firewall_updating_id'],
+            ),
+            array( 'get','async' )
+        );
+    }
+    
 }
 
 function ct_sfw_send_logs($api_key = '')
@@ -974,29 +970,24 @@ function ct_sfw_send_logs($api_key = '')
 
 	$api_key = !empty($apbct->api_key) ? $apbct->api_key : $api_key;
 
-    if( empty( $api_key ) && ! $apbct->data['moderate_ip'] ){
+    if( empty( $api_key ) || $apbct->settings['spam_firewall'] != 1 ){
         return true;
     }
+    
+    $result = SFW::send_log(
+        DB::getInstance(),
+        APBCT_TBL_FIREWALL_LOG,
+        $api_key
+    );
+    
+    if(empty($result['error'])){
+        $apbct->stats['sfw']['last_send_time'] = time();
+        $apbct->stats['sfw']['last_send_amount'] = $result['rows'];
+        $apbct->save('stats');
+        $apbct->error_delete( 'sfw_send_logs', 'save_settings' );
+    }
 
-	if( $apbct->settings['spam_firewall'] == 1 ) {
-		
-		$result = SFW::send_log(
-			DB::getInstance(),
-			APBCT_TBL_FIREWALL_LOG,
-			$api_key
-		);
-		
-		if(empty($result['error'])){
-			$apbct->stats['sfw']['last_send_time'] = time();
-			$apbct->stats['sfw']['last_send_amount'] = $result['rows'];
-			$apbct->save('stats');
-			$apbct->error_delete( 'sfw_send_logs', 'save_settings' );
-		}
-
-		return $result;
-		
-	} else 
-		return array('error' => 'SFW_DISABLED');
+    return $result;
 }
 
 function apbct_antiflood__clear_table(){
