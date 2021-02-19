@@ -2346,7 +2346,7 @@ function apbct_form__contactForm7__tesSpam__before_validate($result = null, $tag
 		$invalid_fields = $result->get_invalid_fields();
 		if(!empty($invalid_fields) && is_array($invalid_fields)){
 			$apbct->validation_error = $invalid_fields[key($invalid_fields)]['reason'];
-			apbct_form__contactForm7__testSpam(false);
+            apbct_form__contactForm7__testSpam( false, null );
 		}
 	}
 
@@ -2356,7 +2356,7 @@ function apbct_form__contactForm7__tesSpam__before_validate($result = null, $tag
 /**
  * Test CF7 message for spam
  */
-function apbct_form__contactForm7__testSpam($spam, $submission) {
+function apbct_form__contactForm7__testSpam($spam, $submission ) {
 
     global $ct_checkjs_cf7, $apbct;
 
