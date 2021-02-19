@@ -224,8 +224,8 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 
     // Custom register form (ticket_id=13668)
     add_action('website_neotrends_signup_fields_check',function( $username, $fields ){
-        $ip = Helper::ip__get( array('real'), false );
-        $ct_result = ct_test_registration( $username, $fields['email'], $ip );
+        $ip = Helper::ip__get( 'real', false );
+        $ct_result = ct_test_registration( $username, $fields['email'] );
         if( $ct_result['allow'] == 0 ) {
             ct_die_extended( $ct_result['comment'] );
         }
@@ -1454,7 +1454,7 @@ function apbct__hook__wp_logout__delete_trial_notice_cookie(){
 }
 
 function apbct_alt_session__id__get(){
-	$id = Helper::ip__get(array('real'))
+	$id = Helper::ip__get('real')
 		 .apbct_get_server_variable( 'HTTP_USER_AGENT' )
 		 .apbct_get_server_variable( 'HTTP_ACCEPT_LANGUAGE' );
 	return hash('sha256', $id);
