@@ -225,7 +225,7 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
     // Custom register form (ticket_id=13668)
     add_action('website_neotrends_signup_fields_check',function( $username, $fields ){
         $ip = Helper::ip__get( 'real', false );
-        $ct_result = ct_test_registration( $username, $fields['email'] );
+        $ct_result = ct_test_registration( $username, $fields['email'], $ip );
         if( $ct_result['allow'] == 0 ) {
             ct_die_extended( $ct_result['comment'] );
         }
