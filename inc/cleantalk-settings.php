@@ -924,8 +924,9 @@ function apbct_settings__field__state(){
 	// WooCommerce
 	if(class_exists('WooCommerce'))
 		echo '<img class="apbct_status_icon" src="'.($apbct->settings['wc_checkout_test'] == 1  ? $img : $img_no).'"/>'.__('WooCommerce checkout form', 'cleantalk-spam-protect');
-		if($apbct->moderate_ip)
-			print "<br /><br />The anti-spam service is paid by your hosting provider. License #".$apbct->data['ip_license'].".<br />";
+	
+    if($apbct->moderate_ip)
+        print "<br /><br />The anti-spam service is paid by your hosting provider. License #".$apbct->data['ip_license'].".<br />";
 	
 	print "</div>";
 }
