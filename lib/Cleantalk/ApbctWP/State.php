@@ -9,7 +9,7 @@ use ArrayObject;
  * 
  * @package Antiospam Plugin by CleanTalk
  * @subpackage State
- * @Version 2.0
+ * @Version 2.1
  * @author Cleantalk team (welcome@cleantalk.org)
  * @copyright (C) 2014 CleanTalk team (http://cleantalk.org)
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
@@ -375,7 +375,7 @@ class State
 	 */
 	public function saveSettings()
 	{
-		update_option($this->option_prefix.'_settings', (array)$this->settings);
+		return update_option($this->option_prefix.'_settings', (array)$this->settings);
 	}
 	
 	/**
