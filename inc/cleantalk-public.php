@@ -287,7 +287,7 @@ function apbct_init() {
             ! empty( $pmpro_required_user_fields['bconfirmemail'] ) &&
             $pmpro_required_user_fields['bemail'] == $pmpro_required_user_fields['bconfirmemail']
         ) {
-            $check = ct_test_registration( $pmpro_required_user_fields['username'], $pmpro_required_user_fields['bemail'], apbct_get_server_variable( 'REMOTE_ADDR' ) );
+	        $check = ct_test_registration( $pmpro_required_user_fields['username'], $pmpro_required_user_fields['bemail'] );
             if( $check['allow'] == 0 ) {
                 pmpro_setMessage( $check['comment'], 'pmpro_error' );
             }
@@ -1062,19 +1062,33 @@ function apbct_rorm__formidable__testSpam ( $errors, $form ) {
 
 	$ct_temp_msg_data = ct_get_fields_any($_POST['item_meta']);
 
-    $sender_email    = ($ct_temp_msg_data['email']    ? $ct_temp_msg_data['email']    : '');
-    $sender_nickname = ($ct_temp_msg_data['nickname'] ? $ct_temp_msg_data['nickname'] : '');
-    $subject         = ($ct_temp_msg_data['subject']  ? $ct_temp_msg_data['subject']  : '');
-    $contact_form    = ($ct_temp_msg_data['contact']  ? $ct_temp_msg_data['contact']  : true);
-    $message         = ($ct_temp_msg_data['message']  ? $ct_temp_msg_data['message']  : array());
-
+    $sender_email    = $ct_temp_msg_data['email']    ?: '';
+    $sender_nickname = $ct_temp_msg_data['nickname'] ?: '';
+    $subject         = $ct_temp_msg_data['subject']  ?: '';
+    $contact_form    = $ct_temp_msg_data['contact']  ?: true;
+    $message         = $ct_temp_msg_data['message']  ?: array();
+    
 	// Adding 'input_meta[]' to every field /Formidable fix/
-	$message = array_flip($message);
-	foreach($message as &$value){
+    // because filed names is 'input_meta[NUM]'
+    // Get all scalar values
+    $tmp_message = array();
+    $tmp_message2 = array();
+    foreach( $message as $key => $value ){
+        if( is_scalar( $value ) ){
+            $tmp_message[ $key ] = $value;
+        }else{
+            $tmp_message2[ $key ] = $value;
+        }
+    }
+    // Replacing key to input_meta[NUM] for scalar values
+    $tmp_message = array_flip($tmp_message);
+	foreach($tmp_message as &$value){
 		$value = 'item_meta['.$value.']';
 	} unset($value);
-	$message = array_flip($message);
-
+    $tmp_message = array_flip($tmp_message);
+    // Combine it with non-scalar values
+    $message = array_merge( $tmp_message, $tmp_message2 );
+    
     $checkjs = apbct_js_test('ct_checkjs', $_COOKIE)
 		? apbct_js_test('ct_checkjs', $_COOKIE)
 		: apbct_js_test('ct_checkjs', $_POST);
@@ -1435,7 +1449,7 @@ function ct_preprocess_comment($comment) {
 	// Change mail notification if license is out of date
 	if($apbct->data['moderate'] == 0){
 		$apbct->sender_email = $comment['comment_author_email'];
-		$apbct->sender_ip    = \Cleantalk\ApbctWP\Helper::ip__get(array('real'));
+		$apbct->sender_ip    = \Cleantalk\ApbctWP\Helper::ip__get('real');
 		add_filter('comment_moderation_text',   'apbct_comment__Wordpress__changeMailNotification', 100, 2); // Comment sent to moderation
 		add_filter('comment_notification_text', 'apbct_comment__Wordpress__changeMailNotification', 100, 2); // Comment approved
 	}
@@ -1880,7 +1894,7 @@ function ct_test_message($nickname, $email, $ip, $text){
  * Check registrations for external plugins
  * @return array with checking result;
  */
-function ct_test_registration($nickname, $email, $ip){
+function ct_test_registration($nickname, $email, $ip = null){
 
     global $ct_checkjs_register_form, $apbct;
 
@@ -2014,7 +2028,7 @@ function ct_registration_errors($errors, $sanitized_user_login = null, $user_ema
 		($ct_result->fast_submit == 1 || $ct_result->blacklisted == 1 || $ct_result->js_disabled == 1)
 	){
 		$apbct->sender_email = $user_email;
-		$apbct->sender_ip    = \Cleantalk\ApbctWP\Helper::ip__get(array('real'));
+		$apbct->sender_ip    = \Cleantalk\ApbctWP\Helper::ip__get('real');
 		add_filter('wp_new_user_notification_email_admin', 'apbct_registration__Wordpress__changeMailNotification', 100, 3);
 	}
 
@@ -2346,7 +2360,7 @@ function apbct_form__contactForm7__tesSpam__before_validate($result = null, $tag
 		$invalid_fields = $result->get_invalid_fields();
 		if(!empty($invalid_fields) && is_array($invalid_fields)){
 			$apbct->validation_error = $invalid_fields[key($invalid_fields)]['reason'];
-			apbct_form__contactForm7__testSpam(false);
+            apbct_form__contactForm7__testSpam( false, null );
 		}
 	}
 
@@ -2356,7 +2370,7 @@ function apbct_form__contactForm7__tesSpam__before_validate($result = null, $tag
 /**
  * Test CF7 message for spam
  */
-function apbct_form__contactForm7__testSpam($spam, $submission) {
+function apbct_form__contactForm7__testSpam($spam, $submission ) {
 
     global $ct_checkjs_cf7, $apbct;
 
@@ -2413,7 +2427,7 @@ function apbct_form__contactForm7__testSpam($spam, $submission) {
 		($ct_result->fast_submit == 1 || $ct_result->blacklisted == 1 || $ct_result->js_disabled == 1)
 	){
 		$apbct->sender_email = $sender_email;
-		$apbct->sender_ip    = \Cleantalk\ApbctWP\Helper::ip__get(array('real'));
+		$apbct->sender_ip    = \Cleantalk\ApbctWP\Helper::ip__get('real');
 		add_filter('wpcf7_mail_components', 'apbct_form__contactForm7__changeMailNotification');
 	}
 
@@ -2531,7 +2545,7 @@ function apbct_form__ninjaForms__testSpam() {
 		($ct_result->fast_submit == 1 || $ct_result->blacklisted == 1 || $ct_result->js_disabled == 1)
 	){
 		$apbct->sender_email = $sender_email;
-		$apbct->sender_ip    = \Cleantalk\ApbctWP\Helper::ip__get(array('real'));
+		$apbct->sender_ip    = \Cleantalk\ApbctWP\Helper::ip__get('real');
 		add_filter('ninja_forms_action_email_message', 'apbct_form__ninjaForms__changeMailNotification', 1, 3);
 	}
 
@@ -2774,7 +2788,7 @@ function apbct_form__WPForms__testSpam() {
 		($ct_result->fast_submit == 1 || $ct_result->blacklisted == 1 || $ct_result->js_disabled == 1)
 	){
 		$apbct->sender_email = $sender_email;
-		$apbct->sender_ip    = \Cleantalk\ApbctWP\Helper::ip__get(array('real'));
+		$apbct->sender_ip    = \Cleantalk\ApbctWP\Helper::ip__get('real');
 		add_filter('wpforms_email_message', 'apbct_form__WPForms__changeMailNotification', 100, 2);
 	}
 
