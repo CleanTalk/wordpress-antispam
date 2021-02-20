@@ -435,7 +435,12 @@ function apbct_is_skip_request( $ajax = false ) {
 }
 
 function apbct_get_plugin_options() {
-	return array();
+	global $apbct;
+	$settings = $apbct->settings;
+	if( isset( $settings['apikey'] ) ) {
+		unset( $settings['apikey'] );
+	}
+	return json_encode( $settings, JSON_FORCE_OBJECT );
 }
 
 function apbct_set_plugin_options( $template_id, $template_name, $settings ) {
