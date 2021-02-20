@@ -448,5 +448,13 @@ function apbct_set_plugin_options( $template_id, $template_name, $settings ) {
 }
 
 function apbct_reset_plugin_options() {
-	return true;
+	global $apbct;
+	$def_settings = $apbct->def_settings;
+	if( isset( $def_settings['apikey'] ) ) {
+		unset( $def_settings['apikey'] );
+	}
+	$settings = array_replace( (array) $apbct->settings, $def_settings );
+	$settings = apbct_settings__validate($settings);
+	$apbct->settings = $settings;
+	return $apbct->saveSettings();
 }
