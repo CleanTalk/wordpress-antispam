@@ -162,13 +162,21 @@ class CleantalkSettingsTemplates {
 
 	private function getTitle()
 	{
-		return '<h2>' . esc_html__( 'CleanTalk settings templates.', 'cleantalk-spam-protect' ) . '</h2>';
+		global $apbct;
+		if( $apbct->data['current_template'] ) {
+			$current_template_name = $apbct->data['current_template']['name'];
+		} else {
+			$current_template_name = 'default';
+		}
+		$content = '<h2>' . esc_html__( 'CleanTalk settings templates.', 'cleantalk-spam-protect' ) . '</h2>';
+		$content .= '<p>' . esc_html__( 'You are currently using:', 'cleantalk-spam-protect' ) . ' ' . $current_template_name . '</p>';
+		return $content;
 	}
 
 	private function getExportButton()
 	{
 		return '<button id="apbct_settings_templates_export_button" class="cleantalk_link cleantalk_link-manual">'
-		       . esc_html__( 'Export to selected template.', 'cleantalk-spam-protect' )
+		       . esc_html__( 'Export settings to selected template.', 'cleantalk-spam-protect' )
 		       . '<img style="margin-left: 10px;" class="apbct_preloader_button" src="' . APBCT_URL_PATH . '/inc/images/preloader2.gif" />'
 		       . '<img style="margin-left: 10px;" class="apbct_success --hide" src="' . APBCT_URL_PATH . '/inc/images/yes.png" />'
 		       . '</button>';
@@ -184,7 +192,7 @@ class CleantalkSettingsTemplates {
 
 	private function getResetButton(){
 		return '<button id="apbct_settings_templates_reset_button" class="cleantalk_link cleantalk_link-auto">'
-		       . esc_html__( 'Reset setting to defaults.', 'cleantalk-spam-protect' )
+		       . esc_html__( 'Reset settings to defaults.', 'cleantalk-spam-protect' )
 		       . '<img style="margin-left: 10px;" class="apbct_preloader_button" src="' . APBCT_URL_PATH . '/inc/images/preloader2.gif" />'
 		       . '<img style="margin-left: 10px;" class="apbct_success --hide" src="' . APBCT_URL_PATH . '/inc/images/yes.png" />'
 		       . '</button>';
