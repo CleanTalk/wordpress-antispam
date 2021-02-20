@@ -437,3 +437,11 @@ function apbct_is_skip_request( $ajax = false ) {
 function apbct_get_plugin_options() {
 	return array();
 }
+
+function apbct_set_plugin_options( $template_id, $template_name, $settings ) {
+	return true;
+}
+
+function apbct_reset_plugin_options() {
+	return true;
+}
