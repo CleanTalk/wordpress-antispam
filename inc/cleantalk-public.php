@@ -1062,19 +1062,33 @@ function apbct_rorm__formidable__testSpam ( $errors, $form ) {
 
 	$ct_temp_msg_data = ct_get_fields_any($_POST['item_meta']);
 
-    $sender_email    = ($ct_temp_msg_data['email']    ? $ct_temp_msg_data['email']    : '');
-    $sender_nickname = ($ct_temp_msg_data['nickname'] ? $ct_temp_msg_data['nickname'] : '');
-    $subject         = ($ct_temp_msg_data['subject']  ? $ct_temp_msg_data['subject']  : '');
-    $contact_form    = ($ct_temp_msg_data['contact']  ? $ct_temp_msg_data['contact']  : true);
-    $message         = ($ct_temp_msg_data['message']  ? $ct_temp_msg_data['message']  : array());
-
+    $sender_email    = $ct_temp_msg_data['email']    ?: '';
+    $sender_nickname = $ct_temp_msg_data['nickname'] ?: '';
+    $subject         = $ct_temp_msg_data['subject']  ?: '';
+    $contact_form    = $ct_temp_msg_data['contact']  ?: true;
+    $message         = $ct_temp_msg_data['message']  ?: array();
+    
 	// Adding 'input_meta[]' to every field /Formidable fix/
-	$message = array_flip($message);
-	foreach($message as &$value){
+    // because filed names is 'input_meta[NUM]'
+    // Get all scalar values
+    $tmp_message = array();
+    $tmp_message2 = array();
+    foreach( $message as $key => $value ){
+        if( is_scalar( $value ) ){
+            $tmp_message[ $key ] = $value;
+        }else{
+            $tmp_message2[ $key ] = $value;
+        }
+    }
+    // Replacing key to input_meta[NUM] for scalar values
+    $tmp_message = array_flip($tmp_message);
+	foreach($tmp_message as &$value){
 		$value = 'item_meta['.$value.']';
 	} unset($value);
-	$message = array_flip($message);
-
+    $tmp_message = array_flip($tmp_message);
+    // Combine it with non-scalar values
+    $message = array_merge( $tmp_message, $tmp_message2 );
+    
     $checkjs = apbct_js_test('ct_checkjs', $_COOKIE)
 		? apbct_js_test('ct_checkjs', $_COOKIE)
 		: apbct_js_test('ct_checkjs', $_POST);
