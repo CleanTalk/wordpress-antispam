@@ -840,6 +840,13 @@ class API
 				return $out;
 				
 				break;
+
+			case 'services_templates_add' :
+			case 'services_templates_update' :
+				return isset( $result['data'] ) && is_array( $result['data'] ) && count( $result['data'] ) === 1
+					? $result['data'][0]
+					: array('error' => 'NO_DATA');
+				break;
 			
 			default:
 				return isset($result['data']) && is_array($result['data'])
