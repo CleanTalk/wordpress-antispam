@@ -43,28 +43,37 @@ class CleantalkSettingsTemplates {
 	public function settings_templates_export_ajax()
 	{
 		check_ajax_referer('ct_secret_nonce', 'security');
+		$error_text = 'Export handler error.';
 		if( isset( $_POST['data'] ) && is_array( $_POST['data'] ) ) {
 			$template_info = $_POST['data'];
 			if( isset( $template_info['template_id'] ) ) {
 				$template_id = sanitize_text_field( $template_info['template_id'] );
-				$res = \Cleantalk\Common\API::method__services_templates_add( $this->api_key, $template_id );
-				if( empty( $res['error'] ) ) {
-					wp_send_json_success( esc_html__('Success. Reloading...', 'cleantalk-spam-protect' ) );
-				} else {
-					wp_send_json_error( $res['error'] );
+				$res = \Cleantalk\Common\API::method__services_templates_update( $this->api_key, $template_id );
+				if( is_array( $res ) && array_key_exists( 'operation_status', $res ) ) {
+					if( $res['operation_status'] === 'SUCCESS' ) {
+						wp_send_json_success( esc_html__('Success. Reloading...', 'cleantalk-spam-protect' ) );
+					}
+					if ( $res['operation_status'] === 'FAILED' ) {
+						wp_send_json_error( 'Error: ' . $res['operation_message'] );
+					}
 				}
+				$error_text = 'Template updating response is wrong.';
 			}
 			if( isset( $template_info['template_name'] ) ) {
 				$template_name = sanitize_text_field( $template_info['template_name'] );
 				$res = \Cleantalk\Common\API::method__services_templates_add( $this->api_key, $template_name );
-				if( empty( $res['error'] ) ) {
-					wp_send_json_success( esc_html__('Success. Reloading...', 'cleantalk-spam-protect' ) );
-				} else {
-					wp_send_json_error( $res['error'] );
+				if( is_array( $res ) && array_key_exists( 'operation_status', $res ) ) {
+					if( $res['operation_status'] === 'SUCCESS' ) {
+						wp_send_json_success( esc_html__('Success. Reloading...', 'cleantalk-spam-protect' ) );
+					}
+					if ( $res['operation_status'] === 'FAILED' ) {
+						wp_send_json_error( 'Error: ' . $res['operation_message'] );
+					}
 				}
+				$error_text = 'Template adding response is wrong.';
 			}
 		}
-		wp_send_json_error( 'Export handler error.' );
+		wp_send_json_error( 'Error: ' . $error_text );
 	}
 
 	public function settings_templates_import_ajax()
@@ -97,16 +106,18 @@ class CleantalkSettingsTemplates {
 
 	public static function get_options_template( $api_key )
 	{
-		// @ToDo here will be API call services_templates_get
-		//\Cleantalk\Common\API::method__services_templates_get( $api_key );
+		$res = \Cleantalk\Common\API::method__services_templates_get( $api_key );
+		if( is_array( $res ) ) {
+			if( array_key_exists( 'error', $res ) ) {
+				$templates = array();
+			} else {
+				$templates = $res;
+			}
+		} else {
+			$templates = array();
+		}
 		if( ! self::$templates ) {
-			self::$templates = array(
-				1 => array(
-					'template_id' => 1,
-					'name' => 'Test Settings Template',
-					'options_site' => 'json_string',
-				),
-			);
+			self::$templates = $templates;
 		}
 		return self::$templates;
 	}
@@ -126,17 +137,21 @@ class CleantalkSettingsTemplates {
 	private function getHtmlContentImport( $templates )
 	{
 		$templatesSet = '<h3>' . esc_html__( 'Import settings.', 'cleantalk-spam-protect' ) . '</h3>';
-		$templatesSet .= '<p><select id="apbct_settings_templates_import" >';
-		foreach( $templates as $template ) {
-			$templatesSet .= '<option 
+		if( count( $templates ) === 0 ) {
+			$templatesSet .= esc_html__( 'There are no settings templates.', 'cleantalk-spam-protect' );
+		} else {
+			$templatesSet .= '<p><select id="apbct_settings_templates_import" >';
+			foreach( $templates as $template ) {
+				$templatesSet .= '<option 
 									data-id="' . $template['template_id'] . '"
 									data-name="' . $template['name'] . '"
 									data-settings="' . $template['options_site'] . '">'
-			                 . $template['name']
-			                 . '</option>';
+				                 . $template['name']
+				                 . '</option>';
+			}
+			$templatesSet .= '</select></p>';
+			$button = $this->getImportButton();
 		}
-		$templatesSet .= '</select></p>';
-		$button = $this->getImportButton();
 		return $templatesSet . '<br>' . $button . '<br><hr>';
 	}
 
