@@ -8,7 +8,7 @@ class CleantalkSettingsTemplates {
 
 	private $api_key;
 
-	private static $templates = null;
+	private static $templates;
 
 	/**
 	 * CleantalkDefaultSettings constructor.
@@ -137,21 +137,24 @@ class CleantalkSettingsTemplates {
 	private function getHtmlContentImport( $templates )
 	{
 		$templatesSet = '<h3>' . esc_html__( 'Import settings.', 'cleantalk-spam-protect' ) . '</h3>';
+
 		if( count( $templates ) === 0 ) {
 			$templatesSet .= esc_html__( 'There are no settings templates.', 'cleantalk-spam-protect' );
-		} else {
-			$templatesSet .= '<p><select id="apbct_settings_templates_import" >';
-			foreach( $templates as $template ) {
-				$templatesSet .= '<option 
-									data-id="' . $template['template_id'] . '"
-									data-name="' . $template['name'] . '"
-									data-settings="' . $template['options_site'] . '">'
-				                 . $template['name']
-				                 . '</option>';
-			}
-			$templatesSet .= '</select></p>';
-			$button = $this->getImportButton();
+			return $templatesSet . '<br><hr>';
 		}
+
+		$templatesSet .= '<p><select id="apbct_settings_templates_import" >';
+		foreach( $templates as $template ) {
+			$templatesSet .= '<option 
+								data-id="' . $template['template_id'] . '"
+								data-name="' . $template['name'] . '"
+								data-settings="' . $template['options_site'] . '">'
+			                 . $template['name']
+			                 . '</option>';
+		}
+		$templatesSet .= '</select></p>';
+		$button       = $this->getImportButton();
+
 		return $templatesSet . '<br>' . $button . '<br><hr>';
 	}
 
@@ -192,24 +195,24 @@ class CleantalkSettingsTemplates {
 	{
 		return '<button id="apbct_settings_templates_export_button" class="cleantalk_link cleantalk_link-manual">'
 		       . esc_html__( 'Export settings to selected template.', 'cleantalk-spam-protect' )
-		       . '<img style="margin-left: 10px;" class="apbct_preloader_button" src="' . APBCT_URL_PATH . '/inc/images/preloader2.gif" />'
-		       . '<img style="margin-left: 10px;" class="apbct_success --hide" src="' . APBCT_URL_PATH . '/inc/images/yes.png" />'
+		       . '<img alt="Preloader ico" style="margin-left: 10px;" class="apbct_preloader_button" src="' . APBCT_URL_PATH . '/inc/images/preloader2.gif" />'
+		       . '<img alt="Success ico" style="margin-left: 10px;" class="apbct_success --hide" src="' . APBCT_URL_PATH . '/inc/images/yes.png" />'
 		       . '</button>';
 	}
 
 	private function getImportButton(){
 		return '<button id="apbct_settings_templates_import_button" class="cleantalk_link cleantalk_link-manual">'
 		       . esc_html__( 'Import settings from selected template.', 'cleantalk-spam-protect' )
-		       . '<img style="margin-left: 10px;" class="apbct_preloader_button" src="' . APBCT_URL_PATH . '/inc/images/preloader2.gif" />'
-		       . '<img style="margin-left: 10px;" class="apbct_success --hide" src="' . APBCT_URL_PATH . '/inc/images/yes.png" />'
+		       . '<img alt="Preloader ico" style="margin-left: 10px;" class="apbct_preloader_button" src="' . APBCT_URL_PATH . '/inc/images/preloader2.gif" />'
+		       . '<img alt="Success ico" style="margin-left: 10px;" class="apbct_success --hide" src="' . APBCT_URL_PATH . '/inc/images/yes.png" />'
 		       . '</button>';
 	}
 
 	private function getResetButton(){
 		return '<button id="apbct_settings_templates_reset_button" class="cleantalk_link cleantalk_link-auto">'
 		       . esc_html__( 'Reset settings to defaults.', 'cleantalk-spam-protect' )
-		       . '<img style="margin-left: 10px;" class="apbct_preloader_button" src="' . APBCT_URL_PATH . '/inc/images/preloader2.gif" />'
-		       . '<img style="margin-left: 10px;" class="apbct_success --hide" src="' . APBCT_URL_PATH . '/inc/images/yes.png" />'
+		       . '<img alt="Preloader ico" style="margin-left: 10px;" class="apbct_preloader_button" src="' . APBCT_URL_PATH . '/inc/images/preloader2.gif" />'
+		       . '<img alt="Success ico" style="margin-left: 10px;" class="apbct_success --hide" src="' . APBCT_URL_PATH . '/inc/images/yes.png" />'
 		       . '</button>';
 	}
 
