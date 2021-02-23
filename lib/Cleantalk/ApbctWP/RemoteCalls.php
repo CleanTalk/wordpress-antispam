@@ -45,7 +45,7 @@ class RemoteCalls
             if ( Get::get( 'test' ) )
                 die('OK');
             
-            if( time() - $apbct->remote_calls[ $action ]['last_call'] >= $cooldown ){
+            if( time() - $apbct->remote_calls[ $action ]['last_call'] >= $cooldown || ( $action === 'sfw_update' && isset($_GET['file_urls'] ) ) ){
                 
                 $apbct->remote_calls[$action]['last_call'] = time();
                 $apbct->save('remote_calls');
