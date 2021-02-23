@@ -580,6 +580,14 @@ If your website has forms that send data to external sources, you can enable opt
 
 == Changelog ==
 
+= 5.153.2 Feb 24 2021 =
+ * Fix: Integration. Registration on WICITY theme.
+ * Fix: Integration. Registration on Paid Memberships Pro
+ * Fix: IP detection.
+ * Fix: Error: SFW_DISABLED.
+ * Fix: Formidable form. Error with sophisticated field types.
+ * Fix: Remote Calls. Cooldown checking for the SFW update fixed.
+
 = 5.153.1 Feb 20 2021 =
  * Fix: CF7. Modified spam hook #2
 
