@@ -406,6 +406,14 @@ function apbct_is_skip_request( $ajax = false ) {
             ){
                 return 'xoo_login';
             }
+	        // Emails & Newsletters with Jackmail: skip all admin-side actions
+	        if(
+		        apbct_is_plugin_active( 'jackmail-newsletters/jackmail-newsletters.php' ) &&
+		        is_admin() &&
+		        strpos( Server::get('HTTP_REFERER'), 'jackmail_' ) !== false
+	        ){
+		        return 'jackmail_admin_actions';
+	        }
             
             break;
 
