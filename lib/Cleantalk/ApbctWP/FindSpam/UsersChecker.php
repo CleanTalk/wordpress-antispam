@@ -97,9 +97,9 @@ class UsersChecker extends Checker
 
         if( $cnt_checked > 0 ) {
 
-            // If we have checked users return last user reg date
+            // If we have checked users return last checking date
             $users = $tmp->get_results();
-            return self::getUserRegister( end( $users ) );
+            return date( "M j Y", strtotime( get_user_meta( end( $users ), 'ct_checked', true ) ) );
 
         } else {
 
