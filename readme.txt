@@ -587,6 +587,9 @@ If your website has forms that send data to external sources, you can enable opt
  * Fix: Error: SFW_DISABLED.
  * Fix: Formidable form. Error with sophisticated field types.
  * Fix: Remote Calls. Cooldown checking for the SFW update fixed.
+ * Fix: easy-login-woocommerce requests exclusion fixed.
+ * Fix: Jackmail plugin. Skip all admin-side actions.
+ * Fix: Remote Calls. Unused deactivation option removed.
 
 = 5.153.1 Feb 20 2021 =
  * Fix: CF7. Modified spam hook #2
