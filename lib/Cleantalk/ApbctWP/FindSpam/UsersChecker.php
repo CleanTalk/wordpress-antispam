@@ -66,10 +66,14 @@ class UsersChecker extends Checker
      */
     public static function get_count_text() {
 
-        $res = count_users();
+    	global $wpdb;
 
-        if( $res['total_users'] ) {
-            $text = sprintf( esc_html__ ('Total count of users: %s.', 'cleantalk-spam-protect' ), $res['total_users'] );
+	    $res = $wpdb->get_var("
+			SELECT COUNT(*)
+			FROM {$wpdb->users}");
+
+        if( $res ) {
+            $text = sprintf( esc_html__ ('Total count of users: %s.', 'cleantalk-spam-protect' ), $res );
         } else {
             $text = esc_html__( 'No users found.', 'cleantalk-spam-protect' );
         }
