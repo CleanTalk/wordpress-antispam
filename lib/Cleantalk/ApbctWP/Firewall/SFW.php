@@ -175,14 +175,14 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 			all_entries = 1,
 			blocked_entries = " . ( strpos( $status, 'DENY' ) !== false ? 1 : 0 ) . ",
 			entries_timestamp = '" . $time . "',
-			ua_name = '" . Server::get('HTTP_USER_AGENT') . "'
+			ua_name = '" . sanitize_text_field( Server::get('HTTP_USER_AGENT') ) . "'
 		ON DUPLICATE KEY
 		UPDATE
 			status = '$status',
 			all_entries = all_entries + 1,
 			blocked_entries = blocked_entries" . ( strpos( $status, 'DENY' ) !== false ? ' + 1' : '' ) . ",
 			entries_timestamp = '" . intval( $time ) . "',
-			ua_name = '" . Server::get('HTTP_USER_AGENT') . "'";
+			ua_name = '" . sanitize_text_field( Server::get('HTTP_USER_AGENT') ) . "'";
 		
 		$this->db->execute( $query );
 	}
@@ -350,7 +350,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 			if( empty( $result['error'] ) ){
 				if( $result['rows'] == count( $data ) ){
 					$db->execute( "TRUNCATE TABLE " . $log_table . ";" );
-					
+
 					return $result;
 				}
 				
