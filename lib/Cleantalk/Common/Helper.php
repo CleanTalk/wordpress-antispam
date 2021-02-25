@@ -232,7 +232,8 @@ class Helper
 
                 // Is private network
                 if(
-                    $out &&
+                    ! $out ||
+                    ($out &&
                     (
                         self::ip__is_private_network( $out, $ip_version ) ||
                         self::ip__mask_match(
@@ -240,7 +241,7 @@ class Helper
                             Server::get( 'SERVER_ADDR' ) . '/24',
                             $ip_version
                         )
-                    )
+                    ))
                 ){
                     //@todo Remove local IP from x-forwarded-for and x-real-ip
                     $out = $out ?: self::ip__get( 'x_forwarded_for', $v4_only, $headers );

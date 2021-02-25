@@ -1,5 +1,6 @@
 <?php
 
+use Cleantalk\Variables\Post;
 use Cleantalk\Variables\Server;
 
 /**
@@ -384,6 +385,36 @@ function apbct_is_skip_request( $ajax = false ) {
             {
             	return 'divi_builder_save_epanel';
             }
+	        // Email Before Download plugin https://wordpress.org/plugins/email-before-download/ action skip
+	        if ( apbct_is_plugin_active( 'email-before-download/email-before-download.php' ) &&
+	             isset( $_POST['action'] ) &&
+	             $_POST['action'] === 'ebd_inline_links' )
+	        {
+		        return 'ebd_inline_links';
+	        }
+	        // WP Discuz skip service requests. The plugin have the direct integration
+	        if ( apbct_is_plugin_active( 'wpdiscuz/class.WpdiscuzCore.php' ) &&
+	             isset( $_POST['action'] ) &&
+	             strpos( $_POST['action'], 'wpd' ) !== false )
+	        {
+		        return 'ebd_inline_links';
+	        }
+            // Exception for plugin https://ru.wordpress.org/plugins/easy-login-woocommerce/ login form
+            if(
+                apbct_is_plugin_active( 'easy-login-woocommerce/xoo-el-main.php' ) &&
+                Post::get( '_xoo_el_form' ) === 'login'
+            ){
+                return 'xoo_login';
+            }
+	        // Emails & Newsletters with Jackmail: skip all admin-side actions
+	        if(
+		        apbct_is_plugin_active( 'jackmail-newsletters/jackmail-newsletters.php' ) &&
+		        is_admin() &&
+		        strpos( Server::get('HTTP_REFERER'), 'jackmail_' ) !== false
+	        ){
+		        return 'jackmail_admin_actions';
+	        }
+            
             break;
 
         case false :

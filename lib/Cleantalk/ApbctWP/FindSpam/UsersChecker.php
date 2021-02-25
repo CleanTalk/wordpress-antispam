@@ -26,7 +26,7 @@ class UsersChecker extends Checker
             'ct_prev_till'                => !empty($prev_check['till'])     ? $prev_check['till'] : false,
             'ct_timeout'                  => __('Failed from timeout. Going to check users again.', 'cleantalk-spam-protect'),
             'ct_timeout_delete'           => __('Failed from timeout. Going to run a new attempt to delete spam users.', 'cleantalk-spam-protect'),
-            'ct_confirm_deletion_all'     => __('Delete all spam users?', 'cleantalk-spam-protect'),
+            'ct_confirm_deletion_all'     => __('Do you confirm deletion selected accounts and all content owned by the accounts? Please do backup of the site before deletion!', 'cleantalk-spam-protect'),
             'ct_iusers'                   => __('users.', 'cleantalk-spam-protect'),
             'ct_csv_filename'             => "user_check_by_".$current_user->user_login,
             'ct_status_string'            => __("Checked %s, found %s spam users and %s bad users (without IP or email)", 'cleantalk-spam-protect'),
@@ -66,10 +66,14 @@ class UsersChecker extends Checker
      */
     public static function get_count_text() {
 
-        $res = count_users();
+    	global $wpdb;
 
-        if( $res['total_users'] ) {
-            $text = sprintf( esc_html__ ('Total count of users: %s.', 'cleantalk-spam-protect' ), $res['total_users'] );
+	    $res = $wpdb->get_var("
+			SELECT COUNT(*)
+			FROM {$wpdb->users}");
+
+        if( $res ) {
+            $text = sprintf( esc_html__ ('Total count of users: %s.', 'cleantalk-spam-protect' ), $res );
         } else {
             $text = esc_html__( 'No users found.', 'cleantalk-spam-protect' );
         }
@@ -97,9 +101,9 @@ class UsersChecker extends Checker
 
         if( $cnt_checked > 0 ) {
 
-            // If we have checked users return last user reg date
+            // If we have checked users return last checking date
             $users = $tmp->get_results();
-            return self::getUserRegister( end( $users ) );
+            return date( "M j Y", strtotime( get_user_meta( end( $users ), 'ct_checked', true ) ) );
 
         } else {
 
@@ -209,7 +213,7 @@ class UsersChecker extends Checker
                 $curr_ip    = preg_match('/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/', $curr_ip) === 1 ? $curr_ip    : null;
                 $curr_email = preg_match('/^\S+@\S+\.\S+$/', $curr_email) === 1                    ? $curr_email : null;
 
-                if( empty( $curr_ip ) && empty( $curr_email ) ){
+                if( empty( $curr_ip ) || empty( $curr_email ) ){
                     $check_result['bad']++;
                     update_user_meta( $u[$i]->ID,'ct_bad','1',true );
                     update_user_meta( $u[$i]->ID, 'ct_checked', date("Y-m-d H:m:s"), true) ;

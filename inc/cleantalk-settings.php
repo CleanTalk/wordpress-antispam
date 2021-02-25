@@ -104,14 +104,6 @@ function apbct_settings__set_fileds( $fields ){
 					'description' => __("This option allows to filter spam bots before they access website. Also reduces CPU usage on hosting server and accelerates pages load time.", 'cleantalk-spam-protect'),
 					'childrens'   => array('sfw__anti_flood', 'sfw__anti_crawler'),
 				),
-				'sfw__anti_flood' => array(
-					'type'        => 'checkbox',
-					'title'       => __('Anti-Flood', 'cleantalk-spam-protect'),
-					'class'       => 'apbct_settings-field_wrapper--sub',
-					'parent'      => 'spam_firewall',
-					'childrens'   => array('sfw__anti_flood__view_limit',),
-					'description' => __('Shows SpamFireWall page for bot which are trying to scan your website. Look for the page limit setting below.', 'cleantalk-spam-protect'),
-				),
 				'sfw__anti_crawler' => array(
 					'type'        => 'checkbox',
 					'title'       => __('Anti-Crawler', 'cleantalk-spam-protect') . $additional_ac_title,
@@ -119,7 +111,7 @@ function apbct_settings__set_fileds( $fields ){
 					'parent'      => 'spam_firewall',
 					'description' => __('Plugin shows SpamFireWall stop page for any bot, except allowed bots (Google, Yahoo and etc).', 'cleantalk-spam-protect')
                     . '<br>'
-                    . __( 'Anti-Crawler includes blocking bots by the User-Agent. To enable/disable, open the Advanced settings, and turn on/off "Block by User-Agent".', 'cleantalk-spam-protect' ),
+                    . __( 'Anti-Crawler includes blocking bots by the User-Agent. Use Personal lists in the Dashboard to filter specific User-Agents.', 'cleantalk-spam-protect' ),
 				),
 			),
 		),
@@ -443,10 +435,18 @@ function apbct_settings__set_fileds( $fields ){
 					'options_callback_params' => array(true),
 					'class'                   => 'apbct_settings-field_wrapper--sub',
 				),
+				'sfw__anti_flood' => array(
+					'type'        => 'checkbox',
+					'title'       => __('Anti-Flood', 'cleantalk-spam-protect'),
+					'class'       => 'apbct_settings-field_wrapper',
+					'parent'      => 'spam_firewall',
+					'childrens'   => array('sfw__anti_flood__view_limit',),
+					'description' => __('Shows the SpamFireWall page for bots trying to crawl your site. Look at the page limit setting below.', 'cleantalk-spam-protect'),
+				),
 				'sfw__anti_flood__view_limit' => array(
 					'type'        => 'text',
 					'title'       => __('Anti-Flood Page Views Limit', 'cleantalk-spam-protect'),
-					'class'       => 'apbct_settings-field_wrapper',
+					'class'       => 'apbct_settings-field_wrapper--sub',
 					'parent'      => 'sfw__anti_flood',
 					'description' => __('Count of page view per 1 minute before plugin shows SpamFireWall page. SpamFireWall page active for 30 second after that valid visitor (with JavaScript) passes the page to the demanded page of the site.', 'cleantalk-spam-protect'),
 				),
@@ -924,8 +924,9 @@ function apbct_settings__field__state(){
 	// WooCommerce
 	if(class_exists('WooCommerce'))
 		echo '<img class="apbct_status_icon" src="'.($apbct->settings['wc_checkout_test'] == 1  ? $img : $img_no).'"/>'.__('WooCommerce checkout form', 'cleantalk-spam-protect');
-		if($apbct->moderate_ip)
-			print "<br /><br />The anti-spam service is paid by your hosting provider. License #".$apbct->data['ip_license'].".<br />";
+	
+    if($apbct->moderate_ip)
+        print "<br /><br />The anti-spam service is paid by your hosting provider. License #".$apbct->data['ip_license'].".<br />";
 	
 	print "</div>";
 }
@@ -1403,7 +1404,7 @@ function apbct_settings__validate($settings) {
 		
 		$website        = parse_url(get_option('siteurl'), PHP_URL_HOST).parse_url(get_option('siteurl'), PHP_URL_PATH);
 		$platform       = 'wordpress';
-		$user_ip        = \Cleantalk\ApbctWP\Helper::ip__get(array('real'), false);
+		$user_ip        = \Cleantalk\ApbctWP\Helper::ip__get('real', false);
 		$timezone       = filter_input(INPUT_POST, 'ct_admin_timezone');
 		$language       = apbct_get_server_variable( 'HTTP_ACCEPT_LANGUAGE' );
 		$wpms           = APBCT_WPMS && defined('SUBDOMAIN_INSTALL') && !SUBDOMAIN_INSTALL ? true : false;
@@ -1554,7 +1555,10 @@ function apbct_settings__sync( $direct_call = false ){
 		check_ajax_referer('ct_secret_nonce' );
 	
 	global $apbct;
-	
+
+	//Clearing all errors
+	$apbct->error_delete_all('and_save_data');
+
 	// Feedback with app_agent
 	ct_send_feedback('0:' . APBCT_AGENT); // 0 - request_id, agent version.
 	

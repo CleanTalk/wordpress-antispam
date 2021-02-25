@@ -276,7 +276,17 @@ if(typeof jQuery !== 'undefined') {
 							detail: { message: response.comment }
 						} )
 					);
-					alert(response.comment);
+
+					// Create hidden element contains result.
+					var apbct_result = document.createElement( 'div' );
+					apbct_result.setAttribute( 'id', 'apbct-result' );
+					apbct_result.style.display = 'none';
+					apbct_result.innerHTML = response.comment;
+					document.body.append( apbct_result );
+
+					// Show the element
+					cleantalkModal.open('apbct-result');
+
 					if(+response.stop_script == 1)
 						window.stop();
 				}

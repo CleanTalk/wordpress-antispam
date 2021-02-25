@@ -57,18 +57,18 @@ class Firewall
 	public function __construct( $db ){
 		$this->db       = $db;
 		$this->debug    = !! Get::get( 'debug' );
-		$this->ip_array = $this->ip__get( array('real'), true );
+		$this->ip_array = $this->ip__get( 'real', true );
 	}
 	
 	/**
 	 * Getting arrays of IP (REMOTE_ADDR, X-Forwarded-For, X-Real-Ip, Cf_Connecting_Ip)
 	 *
-	 * @param array $ips_input type of IP you want to receive
+	 * @param string $ips_input type of IP you want to receive
 	 * @param bool  $v4_only
 	 *
 	 * @return array|mixed|null
 	 */
-	public function ip__get( $ips_input = array( 'real', 'remote_addr', 'x_forwarded_for', 'x_real_ip', 'cloud_flare' ), $v4_only = true ){
+	public function ip__get( $ips_input = 'real', $v4_only = true ){
 		
 		$result = Helper::ip__get( $ips_input, $v4_only );
 		

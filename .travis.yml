@@ -1,5 +1,32 @@
+dist: trusty
+
+os: linux
+
 language: php
-php:
-  - "5.6"
-  - "7.3"
-script: phpunit --configuration tests/phpunit.xml --coverage-text
+
+jobs:
+  include:
+    - env: TRAVISCI=phpunit
+    - env: TRAVISCI=phpcs
+
+before_script:
+  - |
+    if [[ "$TRAVISCI" == "phpunit" ]] ; then
+      composer require phpunit/phpunit 7.*
+    fi
+  - |
+    if [[ "$TRAVISCI" == "phpcs" ]] ; then
+      composer require squizlabs/php_codesniffer
+      composer require phpcompatibility/php-compatibility
+      vendor/bin/phpcs --config-set installed_paths vendor/phpcompatibility/php-compatibility
+    fi
+
+script:
+  - |
+    if [[ "$TRAVISCI" == "phpunit" ]] ; then
+      vendor/bin/phpunit --configuration tests/phpunit.xml --coverage-text
+    fi
+  - |
+    if [[ "$TRAVISCI" == "phpcs" ]] ; then
+      vendor/bin/phpcs --standard=tests/.phpcs.xml
+    fi

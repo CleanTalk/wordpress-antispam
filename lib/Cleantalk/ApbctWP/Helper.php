@@ -71,4 +71,47 @@ class Helper extends \Cleantalk\Common\Helper
 	static public function http__request__get_content( $url ){
 		return static::http__request( $url, array(), 'get dont_split_to_array');
 	}
+    
+    static public function http__request__rc_to_host( $rc_action, $request_params, $patterns = array() ){
+        
+        global $apbct;
+        
+        $request_params__default = array(
+            'spbc_remote_call_token'  => md5( $apbct->api_key ),
+            'spbc_remote_call_action' => $rc_action,
+            'plugin_name'             => 'apbct',
+        );
+        
+        $result__rc_check_website = static::http__request(
+            get_option( 'siteurl' ),
+            array_merge( $request_params__default, $request_params, array( 'test' => 'test' ) ),
+            array( 'get', )
+        );
+        
+        if( empty( $result__rc_check_website['error'] ) ){
+            
+            if( preg_match( '@^.*?OK$@', $result__rc_check_website) ){
+                
+                static::http__request(
+                    get_option( 'siteurl' ),
+                    array_merge( $request_params__default, $request_params ),
+                    array_merge( array( 'get', ), $patterns )
+                );
+                
+            }else
+                return array(
+                    'error' => 'WRONG_SITE_RESPONSE ACTION: ' . $rc_action . ' RESPONSE: ' . htmlspecialchars( substr(
+                            ! is_string( $result__rc_check_website )
+                                ? print_r( $result__rc_check_website, true )
+                                : $result__rc_check_website,
+                            0,
+                            400
+                        ) )
+                );
+        }else
+            return array( 'error' => 'WRONG_SITE_RESPONSE TEST ACTION: ' . $rc_action . ' ERROR: ' . $result__rc_check_website['error'] );
+        
+        return true;
+    }
+    
 }

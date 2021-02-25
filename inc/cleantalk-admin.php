@@ -314,6 +314,8 @@ function apbct_admin__enqueue_scripts($hook){
 			'ip_license'    => $apbct->ip_license ? true : false,
             'key_changed'   => ! empty( $apbct->data['key_changed'] ) ? true : false,
 		));
+
+		wp_enqueue_script('cleantalk-modal', plugins_url( '/cleantalk-spam-protect/js/cleantalk-modal.min.js' ),   array(),     APBCT_VERSION);
 	}
 
     // COMMENTS page JavaScript
