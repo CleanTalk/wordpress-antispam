@@ -1068,6 +1068,7 @@ function apbct_rorm__formidable__testSpam ( $errors, $form ) {
     $contact_form    = $ct_temp_msg_data['contact']  ?: true;
     $message         = $ct_temp_msg_data['message']  ?: array();
     
+    // @todo convert key 'NUM' to 'input_meta[NUM]'
 	// Adding 'input_meta[]' to every field /Formidable fix/
     // because filed names is 'input_meta[NUM]'
     // Get all scalar values
