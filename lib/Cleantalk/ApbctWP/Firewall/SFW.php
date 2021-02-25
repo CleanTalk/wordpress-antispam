@@ -349,8 +349,11 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 			//Checking answer and deleting all lines from the table
 			if( empty( $result['error'] ) ){
 				if( $result['rows'] == count( $data ) ){
+				 
+					$db->execute( "BEGIN;" );
 					$db->execute( "TRUNCATE TABLE " . $log_table . ";" );
-
+					$db->execute( "COMMIT;" );
+					
 					return $result;
 				}
 				
