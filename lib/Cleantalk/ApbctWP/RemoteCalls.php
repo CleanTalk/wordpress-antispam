@@ -45,7 +45,7 @@ class RemoteCalls
             if ( Get::get( 'test' ) )
                 die('OK');
             
-            if( time() - $apbct->remote_calls[ $action ]['last_call'] >= $cooldown ){
+            if( time() - $apbct->remote_calls[ $action ]['last_call'] >= $cooldown || ( $action === 'sfw_update' && isset($_GET['file_urls'] ) ) ){
                 
                 $apbct->remote_calls[$action]['last_call'] = time();
                 $apbct->save('remote_calls');
@@ -58,30 +58,23 @@ class RemoteCalls
                     
                     $action = 'action__'.$action;
                     
-                    if(method_exists('Cleantalk\ApbctWP\RemoteCalls', $action)){
-                        
-                        if(get_option('spbc_deactivation_in_process') === false){ // Continue if plugin is active
-                            
-                            // Delay before perform action;
-                            if ( Get::get( 'delay' ) )
-                                sleep( Get::get( 'delay' ) );
-                            
-                            $action_result = RemoteCalls::$action();
-                            $response = empty( $action_result['error'] )
-                                ? 'OK'
-                                : 'FAIL ' . json_encode( array( 'error' => $action_result['error'] ) );
-                            
-                            if( ! Get::get( 'continue_execution' ) ){
-                                die( $response );
-                            }
-    
-                            return $response;
-    
-                            // Stop execution if plugin is deactivated
-                        }else{
-                            delete_option('cleantalk_deactivation_in_process');
-                            $out = 'FAIL '.json_encode(array('error' => 'PLUGIN_DEACTIVATION_IN_PROCESS'));
-                        }
+                    if( method_exists( 'Cleantalk\ApbctWP\RemoteCalls', $action ) ){
+
+	                    // Delay before perform action;
+	                    if ( Get::get( 'delay' ) )
+		                    sleep( Get::get( 'delay' ) );
+
+	                    $action_result = RemoteCalls::$action();
+	                    $response = empty( $action_result['error'] )
+		                    ? 'OK'
+		                    : 'FAIL ' . json_encode( array( 'error' => $action_result['error'] ) );
+
+	                    if( ! Get::get( 'continue_execution' ) ){
+		                    die( $response );
+	                    }
+
+	                    return $response;
+
                     }else
                         $out = 'FAIL '.json_encode(array('error' => 'UNKNOWN_ACTION_METHOD'));
                 }else

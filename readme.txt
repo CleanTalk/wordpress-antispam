@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 3.0
 Tested up to: 5.6
 Requires PHP: 5.4
-Stable tag: 5.153.1
+Stable tag: 5.153.3
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -579,6 +579,22 @@ If your website has forms that send data to external sources, you can enable opt
 10. Website's options.
 
 == Changelog ==
+
+= 5.153.3 Feb 25 2021 =
+ * Fix: Security. Preparing UA string for writing to the DB.
+
+= 5.153.2 Feb 25 2021 =
+ * Fix: Integration. Registration on WICITY theme.
+ * Fix: Integration. Registration on Paid Memberships Pro
+ * Fix: IP detection.
+ * Fix: Error: SFW_DISABLED.
+ * Fix: Formidable form. Error with sophisticated field types.
+ * Fix: Remote Calls. Cooldown checking for the SFW update fixed.
+ * Fix: easy-login-woocommerce requests exclusion fixed.
+ * Fix: Jackmail plugin. Skip all admin-side actions.
+ * Fix: Remote Calls. Unused deactivation option removed.
+ * Fix: Users checker. Last check date fixed.
+ * Fix: Users checker. Total users count description fixed.
 
 = 5.153.1 Feb 20 2021 =
  * Fix: CF7. Modified spam hook #2

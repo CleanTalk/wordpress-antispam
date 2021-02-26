@@ -66,10 +66,14 @@ class UsersChecker extends Checker
      */
     public static function get_count_text() {
 
-        $res = count_users();
+    	global $wpdb;
 
-        if( $res['total_users'] ) {
-            $text = sprintf( esc_html__ ('Total count of users: %s.', 'cleantalk-spam-protect' ), $res['total_users'] );
+	    $res = $wpdb->get_var("
+			SELECT COUNT(*)
+			FROM {$wpdb->users}");
+
+        if( $res ) {
+            $text = sprintf( esc_html__ ('Total count of users: %s.', 'cleantalk-spam-protect' ), $res );
         } else {
             $text = esc_html__( 'No users found.', 'cleantalk-spam-protect' );
         }
@@ -97,9 +101,9 @@ class UsersChecker extends Checker
 
         if( $cnt_checked > 0 ) {
 
-            // If we have checked users return last user reg date
+            // If we have checked users return last checking date
             $users = $tmp->get_results();
-            return self::getUserRegister( end( $users ) );
+            return date( "M j Y", strtotime( get_user_meta( end( $users ), 'ct_checked', true ) ) );
 
         } else {
 

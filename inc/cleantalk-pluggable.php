@@ -401,11 +401,19 @@ function apbct_is_skip_request( $ajax = false ) {
 	        }
             // Exception for plugin https://ru.wordpress.org/plugins/easy-login-woocommerce/ login form
             if(
-                apbct_is_plugin_active( 'easy-login-woocommerce\xoo-el-main.php' ) &&
+                apbct_is_plugin_active( 'easy-login-woocommerce/xoo-el-main.php' ) &&
                 Post::get( '_xoo_el_form' ) === 'login'
             ){
                 return 'xoo_login';
             }
+	        // Emails & Newsletters with Jackmail: skip all admin-side actions
+	        if(
+		        apbct_is_plugin_active( 'jackmail-newsletters/jackmail-newsletters.php' ) &&
+		        is_admin() &&
+		        strpos( Server::get('HTTP_REFERER'), 'jackmail_' ) !== false
+	        ){
+		        return 'jackmail_admin_actions';
+	        }
             
             break;
 
