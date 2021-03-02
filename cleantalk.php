@@ -967,12 +967,19 @@ function ct_sfw_update( $api_key = '', $immediate = false ){
 function ct_sfw_send_logs($api_key = '')
 {
 	global $apbct;
-
+	
 	$api_key = !empty($apbct->api_key) ? $apbct->api_key : $api_key;
-
-    if( empty( $api_key ) || $apbct->settings['spam_firewall'] != 1 ){
+	
+    if(
+        time() - $apbct->stats['sfw']['sending_logs__timestamp'] < 180 ||
+        empty( $api_key ) ||
+        $apbct->settings['spam_firewall'] != 1
+    ){
         return true;
     }
+    
+    $apbct->stats['sfw']['sending_logs__timestamp'] = time();
+    $apbct->save('stats');
     
     $result = SFW::send_log(
         DB::getInstance(),
@@ -981,12 +988,12 @@ function ct_sfw_send_logs($api_key = '')
     );
     
     if(empty($result['error'])){
-        $apbct->stats['sfw']['last_send_time'] = time();
-        $apbct->stats['sfw']['last_send_amount'] = $result['rows'];
-        $apbct->save('stats');
+        $apbct->stats['sfw']['last_send_time']          = time();
+        $apbct->stats['sfw']['last_send_amount']        = $result['rows'];
         $apbct->error_delete( 'sfw_send_logs', 'save_settings' );
+        $apbct->save('stats');
     }
-
+    
     return $result;
 }
 

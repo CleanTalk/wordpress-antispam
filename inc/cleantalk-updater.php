@@ -740,3 +740,12 @@ function apbct_update_to_5_151_6 ()
 	global $apbct;
 	$apbct->error_delete( 'sfw_update', true );
 }
+
+function apbct_update_to_5_153_4(){
+    
+    // Adding cooldown to sending SFW logs
+    global $apbct;
+    $apbct->stats['sfw']['sending_logs__timestamp'] = 0;
+    $apbct->save('stats');
+    
+}

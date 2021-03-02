@@ -251,10 +251,11 @@ class State
 	
 	public $def_stats = array(
 		'sfw' => array(
-			'last_send_time'   => 0,
-			'last_send_amount' => 0,
-			'last_update_time' => 0,
-			'entries'          => 0,
+            'sending_logs__timestamp' => 0,
+            'last_send_time'          => 0,
+            'last_send_amount'        => 0,
+            'last_update_time'        => 0,
+            'entries'                 => 0,
 		),
 		'last_sfw_block' => array(
 			'time' => 0,
