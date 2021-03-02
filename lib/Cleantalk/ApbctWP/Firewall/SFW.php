@@ -296,18 +296,19 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 		}
 		
 	}
-	
-	/**
-	 * Sends and wipe SFW log
-	 *
-	 * @param $db
-	 * @param $log_table
-	 * @param string $ct_key API key
-	 *
-	 * @return array|bool array('error' => STRING)
-	 */
-	public static function send_log( $db, $log_table, $ct_key ) {
-		
+    
+    /**
+     * Sends and wipe SFW log
+     *
+     * @param $db
+     * @param $log_table
+     * @param string $ct_key API key
+     * @param bool $use_delete_command Determs whether use DELETE or TRUNCATE to delete the logs table data
+     *
+     * @return array|bool array('error' => STRING)
+     */
+	public static function send_log( $db, $log_table, $ct_key, $use_delete_command ) {
+	    
 		//Getting logs
 		$query = "SELECT * FROM " . $log_table . ";";
 		$db->fetch_all( $query );
@@ -349,10 +350,14 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 			//Checking answer and deleting all lines from the table
 			if( empty( $result['error'] ) ){
 				if( $result['rows'] == count( $data ) ){
-				 
-					$db->execute( "BEGIN;" );
-					$db->execute( "TRUNCATE TABLE " . $log_table . ";" );
-					$db->execute( "COMMIT;" );
+				    
+                    $db->execute( "BEGIN;" );
+				    if( $use_delete_command ){
+                        $db->execute( "DELETE FROM " . $log_table . ";" );
+                    }else{
+                        $db->execute( "TRUNCATE TABLE " . $log_table . ";" );
+                    }
+                    $db->execute( "COMMIT;" );
 					
 					return $result;
 				}
