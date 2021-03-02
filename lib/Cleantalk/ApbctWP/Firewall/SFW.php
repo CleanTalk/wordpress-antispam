@@ -368,7 +368,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 			}
 			
 		} else{
-			return $result = array( 'rows' => 0 );
+            return array( 'rows' => 0 );
 		}
 	}
 	
