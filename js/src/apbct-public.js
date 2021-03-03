@@ -261,36 +261,46 @@ function apbct_public_sendAJAX(data, params, obj){
 		timeout: timeout,
 	});
 }
-if(typeof jQuery !== 'undefined') {
 
-	// Capturing responses and output block message for unknown AJAX forms
-	jQuery(document).ajaxComplete(function (event, xhr, settings) {
-		if (xhr.responseText && xhr.responseText.indexOf('"apbct') !== -1) {
-			var response = JSON.parse(xhr.responseText);
-			if (typeof response.apbct !== 'undefined') {
-				response = response.apbct;
-				if (response.blocked) {
-					document.dispatchEvent(
-						new CustomEvent( "apbctAjaxBockAlert", {
-							bubbles: true,
-							detail: { message: response.comment }
-						} )
-					);
+// Capturing responses and output block message for unknown AJAX forms
+var accessor = Object.getOwnPropertyDescriptor(XMLHttpRequest.prototype, 'responseText');
+Object.defineProperty(XMLHttpRequest.prototype, 'responseText', {
 
-					// Create hidden element contains result.
-					var apbct_result = document.createElement( 'div' );
-					apbct_result.setAttribute( 'id', 'apbct-result' );
-					apbct_result.style.display = 'none';
-					apbct_result.innerHTML = response.comment;
-					document.body.append( apbct_result );
+	get: function(){
+		apbct_showBlockedResponse( this.response );
+		return accessor.get.call(this);
+	},
+	configurable: true
 
-					// Show the element
-					cleantalkModal.open('apbct-result');
+});
+apbct_showBlockedResponse = function( response ){
 
-					if(+response.stop_script == 1)
-						window.stop();
-				}
-			}
+	var response = JSON.parse(response);
+	if (typeof response.apbct !== 'undefined') {
+		response = response.apbct;
+		if (response.blocked) {
+			document.dispatchEvent(
+				new CustomEvent( "apbctAjaxBockAlert", {
+					bubbles: true,
+					detail: { message: response.comment }
+				} )
+			);
+
+			// Create hidden element contains result.
+			var apbct_result = document.createElement( 'div' );
+			apbct_result.setAttribute( 'id', 'apbct-result' );
+			apbct_result.style.display = 'none';
+			apbct_result.innerHTML = response.comment;
+			document.body.append( apbct_result );
+
+			// Show the element
+			cleantalkModal.open('apbct-result');
+
+			if(+response.stop_script == 1)
+				window.stop();
 		}
-	});
-}
+	}
+
+	return true;
+
+};
