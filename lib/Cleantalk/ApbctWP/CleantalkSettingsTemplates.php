@@ -138,6 +138,15 @@ class CleantalkSettingsTemplates {
 	{
 		$templatesSet = '<h3>' . esc_html__( 'Import settings.', 'cleantalk-spam-protect' ) . '</h3>';
 
+		//Check available option_site parameter
+		if( count( $templates ) > 0 ) {
+			foreach( $templates as $key => $template ) {
+				if( empty( $template['options_site'] ) ) {
+					unset( $templates[$key] );
+				}
+			}
+		}
+
 		if( count( $templates ) === 0 ) {
 			$templatesSet .= esc_html__( 'There are no settings templates.', 'cleantalk-spam-protect' );
 			return $templatesSet . '<br><hr>';
