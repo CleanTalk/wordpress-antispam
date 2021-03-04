@@ -452,7 +452,13 @@ function apbct_get_plugin_options() {
 }
 
 function apbct_set_plugin_options( $template_id, $template_name, $settings ) {
-	return true;
+	global $apbct;
+	$settings = array_replace( (array) $apbct->settings, $settings );
+	$settings = apbct_settings__validate($settings);
+	$apbct->settings = $settings;
+	$apbct->data['current_settings_template_id'] = $template_id;
+	$apbct->data['current_settings_template_name'] = $template_name;
+	return $apbct->saveSettings() && $apbct->saveData();
 }
 
 function apbct_reset_plugin_options() {
