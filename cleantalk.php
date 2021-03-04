@@ -339,7 +339,7 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 			// Check AJAX requests
 				// if User is not logged in
 				// if Unknown action or Known action with mandatory check
-			if(	( ! apbct_is_user_logged_in() || $apbct->settings['protect_logged_in'] == 1)  &&
+			if(	( ! apbct_is_user_logged_in() || $apbct->settings['data__protect_logged_in'] == 1)  &&
 				isset( $_POST['action'] ) &&
                 ( ! in_array( $_POST['action'], $cleantalk_hooked_actions ) || in_array( $_POST['action'], $cleantalk_ajax_actions_to_check ) ) &&
                 ! array_search( $_POST['action'], array_column( $apbct_active_integrations, 'hook' ) )

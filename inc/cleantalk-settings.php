@@ -258,7 +258,7 @@ function apbct_settings__set_fileds( $fields ){
 		'data_processing' => array(
 			'title'          => __('Data Processing', 'cleantalk-spam-protect'),
 			'fields'         => array(
-				'protect_logged_in' => array(
+				'data__protect_logged_in' => array(
 					'title'       => __("Protect logged in Users", 'cleantalk-spam-protect'),
 					'description' => __('Turn this option on to check for spam any submissions (comments, contact forms and etc.) from registered Users.', 'cleantalk-spam-protect'),
 				),

@@ -307,7 +307,7 @@ function apbct_init() {
         add_action('wp_footer', 'apbct_hook__wp_footer', 1);
     }
 
-    if ($apbct->settings['protect_logged_in'] != 1 && is_user_logged_in()) {
+    if ($apbct->settings['data__protect_logged_in'] != 1 && is_user_logged_in()) {
         ct_contact_form_validate();
     }
 
@@ -449,7 +449,7 @@ function ct_validate_ccf_submission($value, $field_id, $required){
     }
 
 	//If the check for logged in users enabled
-	if($apbct->settings['protect_logged_in'] == 1 && is_user_logged_in()) {
+	if($apbct->settings['data__protect_logged_in'] == 1 && is_user_logged_in()) {
         do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
         return true;
     }
@@ -513,7 +513,7 @@ function ct_woocommerce_wishlist_check($args){
 
 	//Protect logged in users
 	if($args['wishlist_status'])
-		if($apbct->settings['protect_logged_in'] == 0) {
+		if($apbct->settings['data__protect_logged_in'] == 0) {
             do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
             return $args;
         }
@@ -749,7 +749,7 @@ function apbct_forms__search__testSpam( $search ){
 		empty($search) ||
 		$cleantalk_executed ||
 		$apbct->settings['forms__search_test'] == 0 ||
-		$apbct->settings['protect_logged_in'] != 1 && is_user_logged_in() // Skip processing for logged in users.
+		$apbct->settings['data__protect_logged_in'] != 1 && is_user_logged_in() // Skip processing for logged in users.
 	){
         do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
 		return $search;
@@ -785,7 +785,7 @@ function apbct_search_add_noindex() {
     if(
         ! is_search() || // If it is search results
         $apbct->settings['forms__search_test'] == 0 ||
-        $apbct->settings['protect_logged_in'] != 1 && is_user_logged_in() // Skip processing for logged in users.
+        $apbct->settings['data__protect_logged_in'] != 1 && is_user_logged_in() // Skip processing for logged in users.
     ){
         return ;
     }
@@ -1057,7 +1057,7 @@ function apbct_rorm__formidable__testSpam ( $errors, $form ) {
     }
 
     // Skip processing for logged in users.
-    if ( !$apbct->settings['protect_logged_in'] && is_user_logged_in()) {
+    if ( !$apbct->settings['data__protect_logged_in'] && is_user_logged_in()) {
         do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
         return $errors;
     }
@@ -1142,7 +1142,7 @@ function ct_bbp_new_pre_content ($comment) {
     }
 
     // Skip processing for logged in users and admin.
-    if ( !$apbct->settings['protect_logged_in'] && is_user_logged_in() ||
+    if ( !$apbct->settings['data__protect_logged_in'] && is_user_logged_in() ||
         apbct_exclusions_check()
     ) {
         do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
@@ -2381,7 +2381,7 @@ function apbct_form__contactForm7__testSpam( $spam, $submission = null ) {
 		$apbct->settings['forms__contact_forms_test'] == 0 ||
 		$spam == false && WPCF7_VERSION < '3.0.0'  ||
 		$spam === true && WPCF7_VERSION >= '3.0.0' ||
-		$apbct->settings['protect_logged_in'] != 1 && is_user_logged_in() || // Skip processing for logged in users.
+		$apbct->settings['data__protect_logged_in'] != 1 && is_user_logged_in() || // Skip processing for logged in users.
 		apbct_exclusions_check__url() ||
 		apbct_exclusions_check__ip() ||
 		isset($apbct->cf7_checked)
@@ -2506,7 +2506,7 @@ function apbct_form__ninjaForms__testSpam() {
  
 	if(
 			$apbct->settings['forms__contact_forms_test'] == 0
-		|| ($apbct->settings['protect_logged_in'] != 1 && is_user_logged_in()) // Skip processing for logged in users.
+		|| ($apbct->settings['data__protect_logged_in'] != 1 && is_user_logged_in()) // Skip processing for logged in users.
 		|| apbct_exclusions_check__url()
 	){
         do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
@@ -2604,7 +2604,7 @@ function apbct_form__seedprod_coming_soon__testSpam() {
 
     if(
         $apbct->settings['forms__contact_forms_test'] == 0
-        || ($apbct->settings['protect_logged_in'] != 1 && is_user_logged_in()) // Skip processing for logged in users.
+        || ($apbct->settings['data__protect_logged_in'] != 1 && is_user_logged_in()) // Skip processing for logged in users.
         || apbct_exclusions_check__url()
     ){
         do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
@@ -2757,7 +2757,7 @@ function apbct_form__WPForms__testSpam() {
 
 	if(
 		$apbct->settings['forms__contact_forms_test'] == 0 ||
-		$apbct->settings['protect_logged_in'] != 1 && is_user_logged_in() // Skip processing for logged in users.
+		$apbct->settings['data__protect_logged_in'] != 1 && is_user_logged_in() // Skip processing for logged in users.
 	){
         do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
 		return;
@@ -3215,7 +3215,7 @@ function apbct_form__elementor_pro__testSpam() {
 
     if(
         $apbct->settings['forms__contact_forms_test'] == 0
-        || ($apbct->settings['protect_logged_in'] != 1 && is_user_logged_in()) // Skip processing for logged in users.
+        || ($apbct->settings['data__protect_logged_in'] != 1 && is_user_logged_in()) // Skip processing for logged in users.
         || apbct_exclusions_check__url()
     ){
         do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
@@ -3265,7 +3265,7 @@ function apbct_form__inevio__testSpam() {
     if(
         stripos( $theme->get( 'Name' ), 'INEVIO' ) === false ||
         $apbct->settings['forms__contact_forms_test'] == 0 ||
-        ($apbct->settings['protect_logged_in'] != 1 && is_user_logged_in()) || // Skip processing for logged in users.
+        ($apbct->settings['data__protect_logged_in'] != 1 && is_user_logged_in()) || // Skip processing for logged in users.
         apbct_exclusions_check__url()
     ) {
         do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
@@ -3416,7 +3416,7 @@ function ct_contact_form_validate() {
     }
 	
     // Do not execute anti-spam test for logged in users.
-    if (isset($_COOKIE[LOGGED_IN_COOKIE]) && $apbct->settings['protect_logged_in'] != 1) {
+    if (isset($_COOKIE[LOGGED_IN_COOKIE]) && $apbct->settings['data__protect_logged_in'] != 1) {
         do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
         return null;
     }

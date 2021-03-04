@@ -59,7 +59,7 @@ class State
 
 		'apikey'                        => '',
 
-		// SpamFireWall settings
+		/* SpamFireWall settings */
         'sfw__enabled'                   => 1,
         'sfw__anti_flood'                => 0,
         'sfw__anti_flood__view_limit'    => 20,
@@ -90,8 +90,8 @@ class State
 		'comments__show_check_links'        => 1, // Shows check link to Cleantalk's DB.
 		'comments__manage_comments_on_public_page' => 0, // Allows to control comments on public page.
 		
-		// Data processing
-        'protect_logged_in' =>     1, // Do anit-spam tests to for logged in users.
+		/* Data processing */
+        'data__protect_logged_in' => 1, // Do anit-spam tests to for logged in users.
 		'use_ajax' =>              1,
 		'use_static_js_key' =>     -1,
 		'general_postdata_test' => 0, //CAPD
