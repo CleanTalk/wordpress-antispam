@@ -3804,7 +3804,7 @@ function ct_enqueue_scripts_public($hook){
 
 					wp_localize_script('ct_nocache', 'ctNocache', array(
 						'ajaxurl'                  => admin_url('admin-ajax.php'),
-						'info_flag'                => $apbct->settings['collect_details'] && $apbct->settings['data__set_cookies'] ? true : false,
+						'info_flag'                => $apbct->settings['misc__collect_details'] && $apbct->settings['data__set_cookies'] ? true : false,
 						'set_cookies_flag'         => $apbct->settings['data__set_cookies'] ? false : true,
 						'blog_home'                => get_home_url().'/',
 					));

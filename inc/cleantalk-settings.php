@@ -385,7 +385,7 @@ function apbct_settings__set_fileds( $fields ){
 		'misc' => array(
 			'html_after'     => '</div><br>',
 			'fields'         => array(
-				'collect_details' => array(
+				'misc__collect_details' => array(
 					'type'        => 'checkbox',
 					'title'       => __('Collect details about browsers', 'cleantalk-spam-protect'),
 					'description' => __("Checking this box you allow plugin store information about screen size and browser plugins of website visitors. The option in a beta state.", 'cleantalk-spam-protect'),
