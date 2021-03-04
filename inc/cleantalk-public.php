@@ -443,7 +443,7 @@ function ct_validate_ccf_submission($value, $field_id, $required){
 
 
 	//If the check for contact forms enabled
-	if(!$apbct->settings['contact_forms_test']) {
+	if(!$apbct->settings['forms__contact_forms_test']) {
         do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
         return true;
     }
@@ -855,7 +855,7 @@ function apbct_form__piratesForm__testSpam(){
 	global $apbct;
 
 	//Check for enabled option
-	if( !$apbct->settings['contact_forms_test']) {
+	if( !$apbct->settings['forms__contact_forms_test']) {
         do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
         return;
     }
@@ -1014,7 +1014,7 @@ function apbct_rorm__formidable__footerScripts($fields, $form) {
 
     global $apbct, $ct_checkjs_frm;
 
-    if ( !$apbct->settings['contact_forms_test'])
+    if ( !$apbct->settings['forms__contact_forms_test'])
         return false;
 
     $ct_checkjs_key = ct_get_checkjs_value();
@@ -1051,7 +1051,7 @@ function apbct_rorm__formidable__testSpam ( $errors, $form ) {
 
     global $apbct;
 
-    if ( !$apbct->settings['contact_forms_test']) {
+    if ( !$apbct->settings['forms__contact_forms_test']) {
         do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
         return $errors;
     }
@@ -2220,7 +2220,7 @@ function ct_grunion_contact_form_field_html($r, $field_label) {
 	
     global $ct_checkjs_jpcf, $ct_jpcf_patched, $ct_jpcf_fields, $apbct;
     
-    if ($apbct->settings['contact_forms_test'] == 1 && $ct_jpcf_patched === false && preg_match( "/(text|email)/i", $r)) {
+    if ($apbct->settings['forms__contact_forms_test'] == 1 && $ct_jpcf_patched === false && preg_match( "/(text|email)/i", $r)) {
 
         // Looking for element name prefix
         $name_patched = false;
@@ -2244,7 +2244,7 @@ function ct_contact_form_is_spam($form) {
 
 	global $ct_checkjs_jpcf, $apbct;
 
-    if ($apbct->settings['contact_forms_test'] == 0) {
+    if ($apbct->settings['forms__contact_forms_test'] == 0) {
         do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
         return null;
     }
@@ -2292,7 +2292,7 @@ function ct_contact_form_is_spam($form) {
 function ct_contact_form_is_spam_jetpack($is_spam,$form) {
     global $ct_checkjs_jpcf, $apbct;
 
-    if ($apbct->settings['contact_forms_test'] == 0) {
+    if ($apbct->settings['forms__contact_forms_test'] == 0) {
         do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
         return null;
     }
@@ -2339,7 +2339,7 @@ function apbct_form__contactForm7__addField($html) {
 
 
 
-    if ($apbct->settings['contact_forms_test'] == 0) {
+    if ($apbct->settings['forms__contact_forms_test'] == 0) {
         return $html;
     }
 
@@ -2378,7 +2378,7 @@ function apbct_form__contactForm7__testSpam( $spam, $submission = null ) {
     global $ct_checkjs_cf7, $apbct;
 
 	if(
-		$apbct->settings['contact_forms_test'] == 0 ||
+		$apbct->settings['forms__contact_forms_test'] == 0 ||
 		$spam == false && WPCF7_VERSION < '3.0.0'  ||
 		$spam === true && WPCF7_VERSION >= '3.0.0' ||
 		$apbct->settings['protect_logged_in'] != 1 && is_user_logged_in() || // Skip processing for logged in users.
@@ -2505,7 +2505,7 @@ function apbct_form__ninjaForms__testSpam() {
     }
  
 	if(
-			$apbct->settings['contact_forms_test'] == 0
+			$apbct->settings['forms__contact_forms_test'] == 0
 		|| ($apbct->settings['protect_logged_in'] != 1 && is_user_logged_in()) // Skip processing for logged in users.
 		|| apbct_exclusions_check__url()
 	){
@@ -2603,7 +2603,7 @@ function apbct_form__seedprod_coming_soon__testSpam() {
     global $apbct;
 
     if(
-        $apbct->settings['contact_forms_test'] == 0
+        $apbct->settings['forms__contact_forms_test'] == 0
         || ($apbct->settings['protect_logged_in'] != 1 && is_user_logged_in()) // Skip processing for logged in users.
         || apbct_exclusions_check__url()
     ){
@@ -2685,7 +2685,7 @@ function apbct_form__WPForms__addField($form_data, $some, $title, $description, 
 
 	global $apbct;
 
-    if($apbct->settings['contact_forms_test'] == 1)
+    if($apbct->settings['forms__contact_forms_test'] == 1)
 		ct_add_hidden_fields('checkjs_wpforms', false);
 
 }
@@ -2756,7 +2756,7 @@ function apbct_form__WPForms__testSpam() {
     global $apbct;
 
 	if(
-		$apbct->settings['contact_forms_test'] == 0 ||
+		$apbct->settings['forms__contact_forms_test'] == 0 ||
 		$apbct->settings['protect_logged_in'] != 1 && is_user_logged_in() // Skip processing for logged in users.
 	){
         do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
@@ -2891,7 +2891,7 @@ function ct_si_contact_form_validate($form_errors = array(), $form_id_num = 0) {
     }
 
 
-    if ($apbct->settings['contact_forms_test'] == 0) {
+    if ($apbct->settings['forms__contact_forms_test'] == 0) {
         do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
         return $form_errors;
     }
@@ -2966,7 +2966,7 @@ function ct_check_wplp(){
 
     if (!isset($_COOKIE[$ct_wplp_result_label])) {
         // First AJAX submit of WPLP form
-        if ($apbct->settings['contact_forms_test'] == 0) {
+        if ($apbct->settings['forms__contact_forms_test'] == 0) {
             do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
             return;
         }
@@ -3052,7 +3052,7 @@ function apbct_form__gravityForms__testSpam($is_spam, $form, $entry) {
     global $apbct, $cleantalk_executed, $ct_gform_is_spam, $ct_gform_response;
 
     if (
-		$apbct->settings['contact_forms_test'] == 0 ||
+		$apbct->settings['forms__contact_forms_test'] == 0 ||
 		$cleantalk_executed // Return unchanged result if the submission was already tested.
 	) {
         do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
@@ -3214,7 +3214,7 @@ function apbct_form__elementor_pro__testSpam() {
     global $apbct, $cleantalk_executed;
 
     if(
-        $apbct->settings['contact_forms_test'] == 0
+        $apbct->settings['forms__contact_forms_test'] == 0
         || ($apbct->settings['protect_logged_in'] != 1 && is_user_logged_in()) // Skip processing for logged in users.
         || apbct_exclusions_check__url()
     ){
@@ -3264,7 +3264,7 @@ function apbct_form__inevio__testSpam() {
     $theme = wp_get_theme();
     if(
         stripos( $theme->get( 'Name' ), 'INEVIO' ) === false ||
-        $apbct->settings['contact_forms_test'] == 0 ||
+        $apbct->settings['forms__contact_forms_test'] == 0 ||
         ($apbct->settings['protect_logged_in'] != 1 && is_user_logged_in()) || // Skip processing for logged in users.
         apbct_exclusions_check__url()
     ) {
@@ -3338,7 +3338,7 @@ function ct_contact_form_validate() {
         isset($_POST['fscf_submitted']) ||
         apbct_is_in_uri('/wc-api/') ||
         isset($_POST['log']) && isset($_POST['pwd']) && isset($_POST['wp-submit']) ||
-        isset($_POST[$ct_checkjs_frm]) && $apbct->settings['contact_forms_test'] == 1 ||// Formidable forms
+        isset($_POST[$ct_checkjs_frm]) && $apbct->settings['forms__contact_forms_test'] == 1 ||// Formidable forms
         ( isset($_POST['comment_post_ID']) && ! isset($_POST['comment-submit'] ) ) || // The comment form && ! DW Question & Answer
         isset($_GET['for']) ||
 		(isset($_POST['log'], $_POST['pwd'])) || //WooCommerce Sensei login form fix
@@ -3766,7 +3766,7 @@ function ct_enqueue_scripts_public($hook){
 		return;
 	}
 	
-	if($apbct->settings['forms__registrations_test'] || $apbct->settings['forms__comments_test'] || $apbct->settings['contact_forms_test'] || $apbct->settings['general_contact_forms_test'] || $apbct->settings['wc_checkout_test'] || $apbct->settings['check_external'] || $apbct->settings['check_internal'] || $apbct->settings['bp_private_messages'] || $apbct->settings['general_postdata_test']){
+	if($apbct->settings['forms__registrations_test'] || $apbct->settings['forms__comments_test'] || $apbct->settings['forms__contact_forms_test'] || $apbct->settings['general_contact_forms_test'] || $apbct->settings['wc_checkout_test'] || $apbct->settings['check_external'] || $apbct->settings['check_internal'] || $apbct->settings['bp_private_messages'] || $apbct->settings['general_postdata_test']){
 
 		if( ! $apbct->public_script_loaded ) {
 			

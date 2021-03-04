@@ -69,7 +69,7 @@ class State
 		/* Forms for protection */
         'forms__registrations_test'      => 1,
         'forms__comments_test'           => 1,
-        'contact_forms_test'             => 1, 
+        'forms__contact_forms_test'      => 1,
         'general_contact_forms_test'     => 1, // Antispam test for unsupported and untested contact forms 
 		'wc_checkout_test'               => 1, // WooCommerce checkout default test
 		'wc_register_from_order'         => 1, // Woocommerce registration during checkout
