@@ -516,13 +516,13 @@ function ct_get_checkjs_value(){
     global $apbct;
     
     // Use static JS keys
-	if($apbct->settings['use_static_js_key'] == 1){
+	if($apbct->settings['data__use_static_js_key'] == 1){
 		
 		$key = hash('sha256', $apbct->api_key.ct_get_admin_email().$apbct->salt);
 		
 	// Auto detecting. Detected.
 	}elseif(
-		$apbct->settings['use_static_js_key'] == - 1 &&
+		$apbct->settings['data__use_static_js_key'] == - 1 &&
 		  ( apbct_is_cache_plugins_exists() ||
 		    ( apbct_is_post() && $apbct->data['cache_detected'] == 1 )
 		  )

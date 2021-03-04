@@ -345,10 +345,10 @@ function apbct_update_to_5_127_0(){
 			switch_to_blog( $blog );
 			
 			$settings = get_option( 'cleantalk_settings' );
-			if( isset( $settings['use_static_js_key'] ) ){
-				$settings['use_static_js_key'] = $settings['use_static_js_key'] === 0
+			if( isset( $settings['data__use_static_js_key'] ) ){
+				$settings['data__use_static_js_key'] = $settings['data__use_static_js_key'] === 0
 					? - 1
-					: $settings['use_static_js_key'];
+					: $settings['data__use_static_js_key'];
 				update_option( 'cleantalk_settings', $settings );
 				
 				$data = get_option( 'cleantalk_data' );
@@ -375,9 +375,9 @@ function apbct_update_to_5_127_0(){
 		}
 	}else{
 		// Switch use_static_js_key to Auto if it was disabled
-		$apbct->settings['use_static_js_key'] = $apbct->settings['use_static_js_key'] === 0
+		$apbct->settings['data__use_static_js_key'] = $apbct->settings['data__use_static_js_key'] === 0
 			? -1
-			: $apbct->settings['use_static_js_key'];
+			: $apbct->settings['data__use_static_js_key'];
 		$apbct->saveSettings();
 	}
 }

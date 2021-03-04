@@ -270,7 +270,7 @@ function apbct_settings__set_fileds( $fields ){
 					'title'       => __('Use AJAX for JavaScript check', 'cleantalk-spam-protect'),
 					'description' => __('Options helps protect WordPress against spam with any caching plugins. Turn this option on to avoid issues with caching plugins. Turn off this option and SpamFireWall to be compatible with Accelerated mobile pages (AMP).', 'cleantalk-spam-protect'),
 				),
-				'use_static_js_key' => array(
+				'data__use_static_js_key' => array(
 					'title'       => __('Use static keys for JS check.', 'cleantalk-spam-protect'),
 					'description' => __('Could help if you have cache for AJAX requests and you are dealing with false positives. Slightly decreases protection quality. Auto - Static key will be used if caching plugin is spotted.', 'cleantalk-spam-protect'),
 					'options' => array(
