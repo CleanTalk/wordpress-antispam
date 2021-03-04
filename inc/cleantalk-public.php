@@ -3787,7 +3787,7 @@ function ct_enqueue_scripts_public($hook){
 
 			wp_localize_script('ct_public_gdpr', 'ctPublicGDPR', array(
 				'gdpr_forms' => array(),
-				'gdpr_text'  => $apbct->settings['gdpr_text'] ? $apbct->settings['gdpr_text'] : __('By using this form you agree with the storage and processing of your data by using the Privacy Policy on this website.', 'cleantalk-spam-protect'),
+				'gdpr__text'  => $apbct->settings['gdpr__text'] ? $apbct->settings['gdpr__text'] : __('By using this form you agree with the storage and processing of your data by using the Privacy Policy on this website.', 'cleantalk-spam-protect'),
 			));
 		}
 

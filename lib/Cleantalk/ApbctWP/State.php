@@ -121,7 +121,7 @@ class State
 		
 		// GDPR
 		'gdpr__enabled' => 0,
-		'gdpr_text'    => 'By using this form you agree with the storage and processing of your data by using the Privacy Policy on this website.',
+		'gdpr__text'    => 'By using this form you agree with the storage and processing of your data by using the Privacy Policy on this website.',
 		
 		// Msic
 		'store_urls'             => 1,

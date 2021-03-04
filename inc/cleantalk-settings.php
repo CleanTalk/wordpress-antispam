@@ -404,9 +404,9 @@ function apbct_settings__set_fileds( $fields ){
 					'type'        => 'checkbox',
 					'title'       => __('Allow to add GDPR notice via shortcode', 'cleantalk-spam-protect'),
 					'description' => __(' Adds small checkbox under your website form. To add it you should use the shortcode on the form\'s page: [cleantalk_gdpr_form id="FORM_ID"]', 'cleantalk-spam-protect'),
-					'childrens'   => array('gdpr_text'),
+					'childrens'   => array('gdpr__text'),
 				),
-				'gdpr_text' => array(
+				'gdpr__text' => array(
 					'type'        => 'text',
 					'title'       => __('GDPR text notice', 'cleantalk-spam-protect'),
 					'description' => __('This text will be added as a description to the GDPR checkbox.', 'cleantalk-spam-protect'),
