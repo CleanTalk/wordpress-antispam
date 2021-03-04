@@ -125,7 +125,7 @@ class State
 		'misc__async_js'                => 0,
 		'misc__store_urls'              => 1,
 		'misc__store_urls__sessions'    => 1,
-		'complete_deactivation'  => 0,
+		'misc_complete_deactivation'    => 0,
 		'dashboard_widget__show' => 1,
 
 		/* WordPress */
