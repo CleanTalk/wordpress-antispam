@@ -91,8 +91,8 @@ class State
 		'comments__manage_comments_on_public_page' => 0, // Allows to control comments on public page.
 		
 		/* Data processing */
-        'data__protect_logged_in' => 1, // Do anit-spam tests to for logged in users.
-		'use_ajax' =>              1,
+        'data__protect_logged_in' => 1, // Do anti-spam tests to for logged in users.
+		'data__use_ajax'          => 1,
 		'use_static_js_key' =>     -1,
 		'general_postdata_test' => 0, //CAPD
         'set_cookies'=>            1, // Disable cookies generatation to be compatible with Varnish.

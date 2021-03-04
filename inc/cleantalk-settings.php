@@ -266,7 +266,7 @@ function apbct_settings__set_fileds( $fields ){
 					'title'       => __("Don't check trusted user's comments", 'cleantalk-spam-protect'),
 					'description' => sprintf(__("Don't check comments for users with above %d comments.", 'cleantalk-spam-protect'), defined('CLEANTALK_CHECK_COMMENTS_NUMBER') ? CLEANTALK_CHECK_COMMENTS_NUMBER : 3),
 				),
-				'use_ajax' => array(
+				'data__use_ajax' => array(
 					'title'       => __('Use AJAX for JavaScript check', 'cleantalk-spam-protect'),
 					'description' => __('Options helps protect WordPress against spam with any caching plugins. Turn this option on to avoid issues with caching plugins. Turn off this option and SpamFireWall to be compatible with Accelerated mobile pages (AMP).', 'cleantalk-spam-protect'),
 				),

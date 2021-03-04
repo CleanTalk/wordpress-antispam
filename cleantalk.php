@@ -287,7 +287,7 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
     // After plugin loaded - to load locale as described in manual
     add_action('plugins_loaded', 'apbct_plugin_loaded' );
     
-    if(	!empty($apbct->settings['use_ajax']) && 
+    if(	!empty($apbct->settings['data__use_ajax']) &&
     	! apbct_is_in_uri( '.xml' ) &&
     	! apbct_is_in_uri( '.xsl' ) )
     {

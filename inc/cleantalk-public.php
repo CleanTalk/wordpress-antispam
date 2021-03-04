@@ -956,7 +956,7 @@ function ct_add_hidden_fields($field_name = 'ct_checkjs', $return_string = false
 		</script>";
 
 	// Using AJAX to get key
-    }elseif($apbct->settings['use_ajax'] && $ajax){
+    }elseif($apbct->settings['data__use_ajax'] && $ajax){
 
 		// Fix only for wp_footer -> apbct_hook__wp_head__set_cookie__ct_checkjs()
 		if($no_print)
@@ -3794,11 +3794,11 @@ function ct_enqueue_scripts_public($hook){
 	}
 
 	if(!defined('CLEANTALK_AJAX_USE_FOOTER_HEADER') || (defined('CLEANTALK_AJAX_USE_FOOTER_HEADER') && CLEANTALK_AJAX_USE_FOOTER_HEADER)){
-		if($apbct->settings['use_ajax'] && ! apbct_is_in_uri('.xml') && ! apbct_is_in_uri('.xsl')){
+		if($apbct->settings['data__use_ajax'] && ! apbct_is_in_uri('.xml') && ! apbct_is_in_uri('.xsl')){
 			if( ! apbct_is_in_uri('jm-ajax') ){
 
 				// Use AJAX for JavaScript check
-				if($apbct->settings['use_ajax']){
+				if($apbct->settings['data__use_ajax']){
 
 					wp_enqueue_script('ct_nocache',  plugins_url('/cleantalk-spam-protect/js/cleantalk_nocache.min.js'),  array(),         APBCT_VERSION, false /*in header*/);
 
