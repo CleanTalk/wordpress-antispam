@@ -413,7 +413,7 @@ function apbct_settings__set_fileds( $fields ){
 					'parent'      => 'gdpr__enabled',
 					'class'       => 'apbct_settings-field_wrapper--sub',
 				),
-				'store_urls' => array(
+				'misc__store_urls' => array(
 					'type'        => 'checkbox',
 					'title'       => __('Store visited URLs', 'cleantalk-spam-protect'),
 					'description' => __("Plugin stores last 10 visited URLs (HTTP REFFERERS) before visitor submits form on the site. You can see stored visited URLS for each visitor in your Dashboard. Turn the option on to improve Anti-Spam protection.", 'cleantalk-spam-protect'),
@@ -423,7 +423,7 @@ function apbct_settings__set_fileds( $fields ){
 					'type'        => 'checkbox',
 					'title'       => __('Use cookies less sessions', 'cleantalk-spam-protect'),
 					'description' => __('Doesn\'t use cookie or PHP sessions. Collect data for all types of bots.', 'cleantalk-spam-protect'),
-					'parent'      => 'store_urls',
+					'parent'      => 'misc__store_urls',
 					'class'       => 'apbct_settings-field_wrapper--sub',
 				),
 				'comment_notify' => array(

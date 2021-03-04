@@ -1531,7 +1531,7 @@ function apbct_store__urls(){
 	
     global $apbct;
 	
-	if($apbct->settings['store_urls'] && empty($apbct->flags__url_stored) && !headers_sent()){
+	if($apbct->settings['misc__store_urls'] && empty($apbct->flags__url_stored) && !headers_sent()){
 		
 		// URLs HISTORY
 		// Get current url
