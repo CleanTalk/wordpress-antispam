@@ -523,7 +523,7 @@ function apbct_admin__admin_bar__add( $wp_admin_bar ) {
 		}
 		$sfw_counter_str='';
 		//Don't compile if SFW counter disabled
-		if( $apbct->settings['sfw_counter'] == 1 &&  $apbct->settings['spam_firewall'] == 1){
+		if( $apbct->settings['sfw_counter'] == 1 &&  $apbct->settings['sfw__enabled'] == 1){
 			$sfw_counter=Array('all'=>$apbct->data['sfw_counter']['all'], 'blocked'=>$apbct->data['sfw_counter']['blocked']);
 			$sfw_counter_str='<span style="color: white;" title="'.__('All / Blocked events. Access attempts regitred by SpamFireWall counted since the last plugin activation.', 'cleantalk-spam-protect').'"><span style="color: white;"> | SpamFireWall: ' .$sfw_counter['all']. '</span> / <span style="color: red;">' .$sfw_counter['blocked']. '</span></span>';
 		}

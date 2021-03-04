@@ -56,8 +56,9 @@ class State
 	public $storage = array();
 	public $integrations = array();
 	public $def_settings = array(
-        
-        'spam_firewall'                  => 1,
+
+		// SpamFireWall settings
+        'sfw__enabled'                   => 1,
         'sfw__anti_flood'                => 0,
         'sfw__anti_flood__view_limit'    => 20,
         'sfw__anti_crawler'              => 1,

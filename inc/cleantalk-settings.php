@@ -98,7 +98,7 @@ function apbct_settings__set_fileds( $fields ){
 			'html_before'    => '<hr>',
 			'html_after'     => '',
 			'fields'         => array(
-				'spam_firewall' => array(
+				'sfw__enabled' => array(
 					'type'        => 'checkbox',
 					'title'       => __('SpamFireWall', 'cleantalk-spam-protect'),
 					'description' => __("This option allows to filter spam bots before they access website. Also reduces CPU usage on hosting server and accelerates pages load time.", 'cleantalk-spam-protect'),
@@ -108,7 +108,7 @@ function apbct_settings__set_fileds( $fields ){
 					'type'        => 'checkbox',
 					'title'       => __('Anti-Crawler', 'cleantalk-spam-protect') . $additional_ac_title,
 					'class'       => 'apbct_settings-field_wrapper--sub',
-					'parent'      => 'spam_firewall',
+					'parent'      => 'sfw__enabled',
 					'description' => __('Plugin shows SpamFireWall stop page for any bot, except allowed bots (Google, Yahoo and etc).', 'cleantalk-spam-protect')
                     . '<br>'
                     . __( 'Anti-Crawler includes blocking bots by the User-Agent. Use Personal lists in the Dashboard to filter specific User-Agents.', 'cleantalk-spam-protect' ),
@@ -310,7 +310,7 @@ function apbct_settings__set_fileds( $fields ){
                 'sfw__use_delete_to_clear_table' => array(
 					'title'       => __("Use DELETE SQL-command instead TRUNCATE to clear tables", 'cleantalk-spam-protect'),
 					'description' => __('Could help if you have blocked SpamFireWall tables in your database.', 'cleantalk-spam-protect'),
-                    'parent' => 'spam_firewall',
+                    'parent' => 'sfw__enabled',
 				),
 			),
 		),
@@ -444,7 +444,7 @@ function apbct_settings__set_fileds( $fields ){
 					'type'        => 'checkbox',
 					'title'       => __('Anti-Flood', 'cleantalk-spam-protect'),
 					'class'       => 'apbct_settings-field_wrapper',
-					'parent'      => 'spam_firewall',
+					'parent'      => 'sfw__enabled',
 					'childrens'   => array('sfw__anti_flood__view_limit',),
 					'description' => __('Shows the SpamFireWall page for bots trying to crawl your site. Look at the page limit setting below.', 'cleantalk-spam-protect'),
 				),
@@ -1535,7 +1535,7 @@ function apbct_settings__sync( $direct_call = false ){
 		$apbct->error_delete( 'key_invalid key_get', 'save' );
 		
 		// SFW actions
-		if( $apbct->settings['spam_firewall'] == 1 ){
+		if( $apbct->settings['sfw__enabled'] == 1 ){
 
             if( get_option( 'sfw_update_first' ) ) {
                 add_option( 'sfw_sync_first', true );

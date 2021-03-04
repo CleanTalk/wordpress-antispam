@@ -255,7 +255,7 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 		
 		// SpamFireWall check
 		if( $apbct->plugin_version == APBCT_VERSION && // Do not call with first start
-			$apbct->settings['spam_firewall'] == 1 &&
+			$apbct->settings['sfw__enabled'] == 1 &&
             apbct_is_get() &&
             ! apbct_wp_doing_cron()
 		){
@@ -834,7 +834,7 @@ function ct_sfw_update( $api_key = '', $immediate = false ){
 
 	$api_key = !empty($apbct->api_key) ? $apbct->api_key : $api_key;
     
-    if( empty( $api_key ) || $apbct->settings['spam_firewall'] != 1 ){
+    if( empty( $api_key ) || $apbct->settings['sfw__enabled'] != 1 ){
         return true;
     }
 
@@ -972,7 +972,7 @@ function ct_sfw_send_logs($api_key = '')
     if(
         time() - $apbct->stats['sfw']['sending_logs__timestamp'] < 180 ||
         empty( $api_key ) ||
-        $apbct->settings['spam_firewall'] != 1
+        $apbct->settings['sfw__enabled'] != 1
     ){
         return true;
     }
