@@ -395,7 +395,7 @@ function apbct_settings__set_fileds( $fields ){
 					'title'       => __('Send connection reports', 'cleantalk-spam-protect'),
 					'description' => __("Checking this box you allow plugin to send the information about your connection. The option in a beta state.", 'cleantalk-spam-protect'),
 				),
-				'async_js' => array(
+				'misc__async_js' => array(
 					'type'        => 'checkbox',
 					'title'       => __('Async JavaScript loading', 'cleantalk-spam-protect'),
 					'description' => __('Use async loading for scripts. Warning: This could reduce filtration quality.', 'cleantalk-spam-protect'),

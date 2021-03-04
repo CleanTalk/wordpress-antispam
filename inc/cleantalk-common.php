@@ -1069,7 +1069,7 @@ function apbct_add_async_attribute($tag, $handle, $src) {
 	    $handle === 'ct_external' ||
 	    $handle === 'ct_nocache'
 	){
-    	if( $apbct->settings['async_js'] )
+    	if( $apbct->settings['misc__async_js'] )
 	        $tag = str_replace( ' src', ' async="async" src', $tag );
 	    
 	    if( class_exists('Cookiebot_WP') )
