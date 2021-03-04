@@ -3844,7 +3844,7 @@ function ct_enqueue_scripts_public($hook){
 	}
 
 	// Debug
-	if($apbct->settings['debug_ajax']){
+	if($apbct->settings['misc__debug_ajax']){
 		wp_enqueue_script('ct_debug_js',  plugins_url('/cleantalk-spam-protect/js/cleantalk-debug-ajax.min.js'), array('jquery'), APBCT_VERSION, false /*in header*/);
 
 		wp_localize_script('ct_debug_js', 'apbctDebug', array(

@@ -112,9 +112,6 @@ class State
 		'admin_bar__daily_counter'    => 0,
 		'admin_bar__sfw_counter'      => 0,
 		
-		//Others
-		'debug_ajax'              => 0,
-		
 		// GDPR
 		'gdpr__enabled' => 0,
 		'gdpr__text'    => 'By using this form you agree with the storage and processing of your data by using the Privacy Policy on this website.',
@@ -126,6 +123,7 @@ class State
 		'misc__store_urls'              => 1,
 		'misc__store_urls__sessions'    => 1,
 		'misc__complete_deactivation'   => 0,
+		'misc__debug_ajax'              => 0,
 
 		/* WordPress */
 		'wp__use_builtin_http_api' => 1, // Using Wordpress HTTP built in API
