@@ -172,7 +172,7 @@ function apbct_update_to_5_116_0(){
 	global $apbct, $wpdb;
 	
 	$apbct->settings['misc__store_urls'] = 0;
-	$apbct->settings['store_urls__sessions'] = 0;
+	$apbct->settings['misc__store_urls__sessions'] = 0;
 	$apbct->saveSettings();
 	
 	$wpdb->query('CREATE TABLE IF NOT EXISTS `'. APBCT_TBL_SESSIONS .'` (
@@ -293,7 +293,7 @@ function apbct_update_to_5_126_0(){
 	global $apbct;
 	// Enable storing URLs
 	$apbct->settings['misc__store_urls'] = 1;
-	$apbct->settings['store_urls__sessions'] = 1;
+	$apbct->settings['misc__store_urls__sessions'] = 1;
 	$apbct->saveSettings();
 }
 

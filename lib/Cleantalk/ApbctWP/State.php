@@ -124,7 +124,7 @@ class State
 		'misc__send_connection_reports' => 0, // Send connection reports to Cleantalk servers
 		'misc__async_js'                => 0,
 		'misc__store_urls'              => 1,
-		'store_urls__sessions'   => 1,
+		'misc__store_urls__sessions'    => 1,
 		'comment_notify'         => 1,
 		'comment_notify__roles'  => array( 'administrator' ),
 		'complete_deactivation'  => 0,

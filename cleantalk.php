@@ -1540,7 +1540,7 @@ function apbct_store__urls(){
 		$current_url = $current_url ? substr($current_url, 0,256) : 'UNKNOWN';
 		
 		// Get already stored URLs
-		$urls = $apbct->settings['store_urls__sessions']
+		$urls = $apbct->settings['misc__store_urls__sessions']
 			? (array)apbct_alt_session__get('apbct_urls')
 			: (array)json_decode(filter_input(INPUT_COOKIE, 'apbct_urls'), true);
 		
@@ -1551,7 +1551,7 @@ function apbct_store__urls(){
 		$urls               = count($urls) > 10               ? array_slice($urls, 1, 10)               : $urls;
 		
 		// Saving
-		$apbct->settings['store_urls__sessions']
+		$apbct->settings['misc__store_urls__sessions']
 			? apbct_alt_session__save('apbct_urls', json_encode($urls))
 			: \Cleantalk\Common\Helper::apbct_cookie__set('apbct_urls', json_encode($urls), time()+86400*3, '/', parse_url(get_option('siteurl'),PHP_URL_HOST), false, true, 'Lax');
 		
@@ -1561,14 +1561,14 @@ function apbct_store__urls(){
 		$new_site_referer = $new_site_referer ? $new_site_referer : 'UNKNOWN';
 		
 		// Get already stored referer
-		$site_referer = $apbct->settings['store_urls__sessions']
+		$site_referer = $apbct->settings['misc__store_urls__sessions']
 			? apbct_alt_session__get('apbct_site_referer')
 			: filter_input(INPUT_COOKIE, 'apbct_site_referer');
 		
 		// Save if empty
 		if( !$site_referer || parse_url($new_site_referer, PHP_URL_HOST) !== apbct_get_server_variable( 'HTTP_HOST' ) ){
 			
-			$apbct->settings['store_urls__sessions']
+			$apbct->settings['misc__store_urls__sessions']
 				? apbct_alt_session__save('apbct_site_referer', $new_site_referer)
 				: \Cleantalk\Common\Helper::apbct_cookie__set('apbct_site_referer', $new_site_referer, time()+86400*3, '/', parse_url(get_option('siteurl'),PHP_URL_HOST), false, true, 'Lax');
 		}
@@ -1619,7 +1619,7 @@ function apbct_cookie(){
 	
 	global $apbct;
 	
-	if($apbct->settings['store_urls__sessions'] || $apbct->settings['data__set_cookies__sessions'])
+	if($apbct->settings['misc__store_urls__sessions'] || $apbct->settings['data__set_cookies__sessions'])
 		apbct_alt_sessions__remove_old();
 	
 	if(

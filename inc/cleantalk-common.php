@@ -395,11 +395,11 @@ function apbct_get_sender_info() {
 			: 0
 		: null;
 	
-	$site_referer = $apbct->settings['store_urls__sessions']
+	$site_referer = $apbct->settings['misc__store_urls__sessions']
 			? apbct_alt_session__get('apbct_site_referer')
 			: filter_input(INPUT_COOKIE, 'apbct_site_referer');
 	
-	$urls = $apbct->settings['store_urls__sessions']
+	$urls = $apbct->settings['misc__store_urls__sessions']
 			? (array)apbct_alt_session__get('apbct_urls')
 			: (array)json_decode(filter_input(INPUT_COOKIE, 'apbct_urls'), true);
 

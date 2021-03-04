@@ -417,9 +417,9 @@ function apbct_settings__set_fileds( $fields ){
 					'type'        => 'checkbox',
 					'title'       => __('Store visited URLs', 'cleantalk-spam-protect'),
 					'description' => __("Plugin stores last 10 visited URLs (HTTP REFFERERS) before visitor submits form on the site. You can see stored visited URLS for each visitor in your Dashboard. Turn the option on to improve Anti-Spam protection.", 'cleantalk-spam-protect'),
-					'childrens'   => array('store_urls__sessions'),
+					'childrens'   => array('misc__store_urls__sessions'),
 				),
-				'store_urls__sessions' => array(
+				'misc__store_urls__sessions' => array(
 					'type'        => 'checkbox',
 					'title'       => __('Use cookies less sessions', 'cleantalk-spam-protect'),
 					'description' => __('Doesn\'t use cookie or PHP sessions. Collect data for all types of bots.', 'cleantalk-spam-protect'),
@@ -1499,7 +1499,7 @@ function apbct_settings__validate($settings) {
 
 	// Alt sessions table clearing
     if( empty( $settings['data__set_cookies__sessions'] ) ) {
-        if( empty( $settings['store_urls__sessions'] ) ) {
+        if( empty( $settings['misc__store_urls__sessions'] ) ) {
             apbct_alt_sessions__clear();
         } else {
             apbct_alt_sessions__clear( false );
