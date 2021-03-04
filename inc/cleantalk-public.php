@@ -1765,7 +1765,7 @@ function ct_register_form() {
 
 	global $ct_checkjs_register_form, $apbct;
 
-    if ($apbct->settings['registrations_test'] == 0) {
+    if ($apbct->settings['forms__registrations_test'] == 0) {
         return false;
     }
 
@@ -1797,7 +1797,7 @@ function ct_login_message($message) {
 
     global $errors, $apbct, $apbct_cookie_register_ok_label;
     
-    if ($apbct->settings['registrations_test'] != 0){
+    if ($apbct->settings['forms__registrations_test'] != 0){
         if( isset($_GET['checkemail']) && 'registered' == $_GET['checkemail'] ){
 			if (isset($_COOKIE[$apbct_cookie_register_ok_label])){
 				if(is_wp_error($errors)){
@@ -1948,7 +1948,7 @@ function ct_registration_errors($errors, $sanitized_user_login = null, $user_ema
         return $errors;
     }
 
-    if ($apbct->settings['registrations_test'] == 0) {
+    if ($apbct->settings['forms__registrations_test'] == 0) {
         do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
         return $errors;
     }
@@ -2125,7 +2125,7 @@ function apbct_registration__UltimateMembers__check( $args ){
 
 	global $apbct, $cleantalk_executed;
 
-	if ($apbct->settings['registrations_test'] == 0) {
+	if ($apbct->settings['forms__registrations_test'] == 0) {
         do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
         return $args;
     }
@@ -3125,7 +3125,7 @@ function ct_s2member_registration_test($post_key) {
 
     global $apbct;
 
-    if ($apbct->settings['registrations_test'] == 0) {
+    if ($apbct->settings['forms__registrations_test'] == 0) {
         do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
         return null;
     }
@@ -3766,7 +3766,7 @@ function ct_enqueue_scripts_public($hook){
 		return;
 	}
 	
-	if($apbct->settings['registrations_test'] || $apbct->settings['comments_test'] || $apbct->settings['contact_forms_test'] || $apbct->settings['general_contact_forms_test'] || $apbct->settings['wc_checkout_test'] || $apbct->settings['check_external'] || $apbct->settings['check_internal'] || $apbct->settings['bp_private_messages'] || $apbct->settings['general_postdata_test']){
+	if($apbct->settings['forms__registrations_test'] || $apbct->settings['comments_test'] || $apbct->settings['contact_forms_test'] || $apbct->settings['general_contact_forms_test'] || $apbct->settings['wc_checkout_test'] || $apbct->settings['check_external'] || $apbct->settings['check_internal'] || $apbct->settings['bp_private_messages'] || $apbct->settings['general_postdata_test']){
 
 		if( ! $apbct->public_script_loaded ) {
 			

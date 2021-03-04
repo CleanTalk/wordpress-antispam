@@ -67,7 +67,7 @@ class State
         'sfw__use_delete_to_clear_table' => 0,
 		
 		/* Forms for protection */
-        'registrations_test'             => 1,
+        'forms__registrations_test'      => 1,
         'comments_test'                  => 1, 
         'contact_forms_test'             => 1, 
         'general_contact_forms_test'     => 1, // Antispam test for unsupported and untested contact forms 

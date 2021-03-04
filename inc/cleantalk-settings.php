@@ -130,7 +130,7 @@ function apbct_settings__set_fileds( $fields ){
 				.'<div id="apbct_settings__davanced_settings" style="display: none;">',
 			'html_after'     => '',
 			'fields'         => array(
-				'registrations_test' => array(
+				'forms__registrations_test' => array(
 					'title'       => __('Registration Forms', 'cleantalk-spam-protect'),
 					'description' => __('WordPress, BuddyPress, bbPress, S2Member, WooCommerce.', 'cleantalk-spam-protect'),
 				),
@@ -913,7 +913,7 @@ function apbct_settings__field__state(){
 	
 		print '<h2>'.__('Protection is active', 'cleantalk-spam-protect').'</h2>';
 	
-	echo '<img class="apbct_status_icon" src="'.($apbct->settings['registrations_test'] == 1       ? $img : $img_no).'"/>'.__('Registration forms', 'cleantalk-spam-protect');
+	echo '<img class="apbct_status_icon" src="'.($apbct->settings['forms__registrations_test'] == 1       ? $img : $img_no).'"/>'.__('Registration forms', 'cleantalk-spam-protect');
 	echo '<img class="apbct_status_icon" src="'.($apbct->settings['comments_test'] == 1              ? $img : $img_no).'"/>'.__('Comments forms', 'cleantalk-spam-protect');
 	echo '<img class="apbct_status_icon" src="'.($apbct->settings['contact_forms_test'] == 1         ? $img : $img_no).'"/>'.__('Contact forms', 'cleantalk-spam-protect');
 	echo '<img class="apbct_status_icon" src="'.($apbct->settings['general_contact_forms_test'] == 1 ? $img : $img_no).'"/>'.__('Custom contact forms', 'cleantalk-spam-protect');
