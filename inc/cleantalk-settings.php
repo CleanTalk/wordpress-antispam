@@ -146,7 +146,7 @@ function apbct_settings__set_fileds( $fields ){
 					'title'       => __('Custom contact forms', 'cleantalk-spam-protect'),
 					'description' => __('Anti spam test for any WordPress themes or contacts forms.', 'cleantalk-spam-protect'),
 				),
-				'search_test' => array(
+				'forms__search_test' => array(
 					'title'       => __('Test default Wordpress search form for spam', 'cleantalk-spam-protect'),
 					'description' => __('Spam protection for Search form.', 'cleantalk-spam-protect')
 						. (!$apbct->white_label || is_main_site()

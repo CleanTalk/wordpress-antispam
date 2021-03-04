@@ -728,7 +728,7 @@ function apbct_integration__buddyPres__private_msg_check( $bp_message_obj){
  */
 function apbct_forms__search__addField( $form ){
 	global $apbct;
-	if($apbct->settings['search_test'] == 1){
+	if($apbct->settings['forms__search_test'] == 1){
 		$js_filed = ct_add_hidden_fields('ct_checkjs_search_default', true, false, false, false);
 		$form = str_replace('</form>', $js_filed, $form);
 	}
@@ -748,7 +748,7 @@ function apbct_forms__search__testSpam( $search ){
 	if(
 		empty($search) ||
 		$cleantalk_executed ||
-		$apbct->settings['search_test'] == 0 ||
+		$apbct->settings['forms__search_test'] == 0 ||
 		$apbct->settings['protect_logged_in'] != 1 && is_user_logged_in() // Skip processing for logged in users.
 	){
         do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
@@ -784,7 +784,7 @@ function apbct_search_add_noindex() {
 
     if(
         ! is_search() || // If it is search results
-        $apbct->settings['search_test'] == 0 ||
+        $apbct->settings['forms__search_test'] == 0 ||
         $apbct->settings['protect_logged_in'] != 1 && is_user_logged_in() // Skip processing for logged in users.
     ){
         return ;
