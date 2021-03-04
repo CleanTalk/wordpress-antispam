@@ -516,7 +516,7 @@ function apbct_admin__admin_bar__add( $wp_admin_bar ) {
 		
 		$daily_counter_str='';
 		//Don't compile if daily counter disabled
-		if( $apbct->settings['daily_counter'] == 1){
+		if( $apbct->settings['admin_bar__daily_counter'] == 1){
 			$daily_counter=Array('accepted'=>array_sum($apbct->data['array_accepted']), 'blocked'=>array_sum($apbct->data['array_blocked']), 'all'=>array_sum($apbct->data['array_accepted']) + array_sum($apbct->data['array_blocked']));
 			//Previous version $daily_counter_str='<span style="color: white;" title="'.__('All / Allowed / Blocked submissions. The number of submissions for past 24 hours. ', 'cleantalk-spam-protect').'"><span style="color: white;"> | Day: ' .$daily_counter['all']. '</span> / <span style="color: green;">' .$daily_counter['accepted']. '</span> / <span style="color: red;">' .$daily_counter['blocked']. '</span></span>';
 			$daily_counter_str='<span style="color: white;" title="'.__('Allowed / Blocked submissions. The number of submissions for past 24 hours. ', 'cleantalk-spam-protect').'"><span style="color: white;"> | ' . __('Day', 'cleantalk-spam-protect') . ': </span><span style="color: green;">' .$daily_counter['accepted']. '</span> / <span style="color: red;">' .$daily_counter['blocked']. '</span></span>';
