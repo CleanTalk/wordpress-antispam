@@ -1252,12 +1252,12 @@ function ct_preprocess_comment($comment) {
     global $current_user, $comment_post_id, $ct_comment_done, $ct_jp_comments, $apbct;
 
 	// Send email notification for chosen groups of users
-	if($apbct->settings['wp__comment_notify'] && !empty($apbct->settings['comment_notify__roles']) && $apbct->data['moderate']){
+	if($apbct->settings['wp__comment_notify'] && !empty($apbct->settings['wp_comment_notify__roles']) && $apbct->data['moderate']){
 
 		add_filter('notify_post_author', 'apbct_comment__Wordpress__doNotify', 100, 2);
 
 		$users = get_users(array(
-			'role__in' => $apbct->settings['comment_notify__roles'],
+			'role__in' => $apbct->settings['wp_comment_notify__roles'],
 			'fileds' => array('user_email')
 		));
 
