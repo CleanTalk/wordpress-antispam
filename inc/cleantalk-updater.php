@@ -749,3 +749,13 @@ function apbct_update_to_5_153_4(){
     $apbct->save('stats');
     
 }
+
+function apbct_update_to_5_154_0(){
+
+	// Adding cooldown to sending SFW logs
+	global $apbct;
+	$apbct->data['current_settings_template_id'] = null;
+	$apbct->data['current_settings_template_name'] = null;
+	$apbct->saveData();
+
+}

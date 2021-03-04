@@ -141,6 +141,8 @@ class State
 		'js_keys_store_days' => 14, // JavaScript keys store days - 8 days now
 		'js_key_lifetime'    => 86400, // JavaScript key life time in seconds - 1 day now
 		'last_remote_call'   => 0, //Timestam of last remote call
+		'current_settings_template_id'   => null,  // Loaded settings template id
+		'current_settings_template_name' => null,  // Loaded settings template name
 		
 		// Antispam
 		'spam_store_days'         => 15, // Days before delete comments from folder Spam
