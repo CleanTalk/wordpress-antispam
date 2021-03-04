@@ -241,7 +241,7 @@ function apbct_settings__set_fileds( $fields ){
 					'title'       => __('Remove links from approved comments', 'cleantalk-spam-protect'),
 					'description' => __('Remove links from approved comments. Replace it with "[Link deleted]"', 'cleantalk-spam-protect'),
 				),
-				'show_check_links' => array(
+				'comments__show_check_links' => array(
 					'title'       => __('Show links to check Emails, IPs for spam', 'cleantalk-spam-protect'),
 					'description' => __('Shows little icon near IP addresses and Emails allowing you to check it via CleanTalk\'s database.', 'cleantalk-spam-protect'),
 					'display' => !$apbct->white_label,

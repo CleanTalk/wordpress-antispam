@@ -87,7 +87,7 @@ class State
 		'comments__check_comments_number'   => 1,
         'comments__remove_old_spam'         => 0,
 		'comments__remove_comments_links'   => 0, // Removes links from approved comments
-		'show_check_links' =>      1, // Shows check link to Cleantalk's DB.
+		'comments__show_check_links'        => 1, // Shows check link to Cleantalk's DB.
 		'manage_comments_on_public_page' =>      0, // Allows to control comments on public page.
 		
 		// Data processing

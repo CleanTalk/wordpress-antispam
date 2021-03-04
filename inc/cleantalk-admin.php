@@ -334,7 +334,7 @@ function apbct_admin__enqueue_scripts($hook){
             'ct_feedback_msg_whitelisted' => __("The sender has been whitelisted.", 'cleantalk-spam-protect'),
             'ct_feedback_msg_blacklisted' => __("The sender has been blacklisted.", 'cleantalk-spam-protect'),
             'ct_feedback_msg'             => sprintf(__("Feedback has been sent to %sCleanTalk Dashboard%s.", 'cleantalk-spam-protect'), $apbct->user_token ? "<a target='_blank' href=https://cleantalk.org/my?user_token={$apbct->user_token}&cp_mode=antispam>" : '', $apbct->user_token ? "</a>" : ''),
-            'ct_show_check_links'		  => (bool)$apbct->settings['show_check_links'],
+            'ct_show_check_links'		  => (bool)$apbct->settings['comments__show_check_links'],
             'ct_img_src_new_tab'          => plugin_dir_url(__FILE__)."images/new_window.gif",
         ));
     }
@@ -345,7 +345,7 @@ function apbct_admin__enqueue_scripts($hook){
         wp_enqueue_script('ct_users_editscreen',     plugins_url('/cleantalk-spam-protect/js/cleantalk-users-editscreen.min.js'), array(), APBCT_VERSION);
         wp_localize_script( 'ct_users_editscreen', 'ctUsersScreen', array(
             'spambutton_text'             => __("Find spam-users", 'cleantalk-spam-protect'),
-            'ct_show_check_links'		  => (bool)$apbct->settings['show_check_links'],
+            'ct_show_check_links'		  => (bool)$apbct->settings['comments__show_check_links'],
             'ct_img_src_new_tab'          => plugin_dir_url(__FILE__)."images/new_window.gif"
         ));
     }
