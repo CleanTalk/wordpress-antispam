@@ -110,7 +110,7 @@ class State
         'admin_bar__show'             => 1, // Show the admin bar.
 		'admin_bar__all_time_counter' => 0,
 		'admin_bar__daily_counter'    => 0,
-		'sfw_counter'      => 0,
+		'admin_bar__sfw_counter'      => 0,
 		
 		//Others
         'user_token'              => '',
@@ -178,7 +178,7 @@ class State
 		'array_accepted'     => array(),
 		'array_blocked'      => array(),
 		'current_hour'       => '',
-		'sfw_counter' => array(
+		'admin_bar__sfw_counter' => array(
 			'all'     => 0,
 			'blocked' => 0,
 		),

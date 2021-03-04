@@ -95,7 +95,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
                     $this->update_log( $current_ip, 'PASS_SFW' );
 
                     if( $this->sfw_counter ){
-                        $this->apbct->data['sfw_counter']['all'] ++;
+                        $this->apbct->data['admin_bar__sfw_counter']['all'] ++;
                         $this->apbct->saveData();
                     }
 
@@ -190,7 +190,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 	public function actions_for_denied( $result ){
 		
 		if( $this->sfw_counter ){
-			$this->apbct->data['sfw_counter']['blocked']++;
+			$this->apbct->data['admin_bar__sfw_counter']['blocked']++;
 			$this->apbct->saveData();
 		}
 		
