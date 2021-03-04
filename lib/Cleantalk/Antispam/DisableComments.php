@@ -53,7 +53,7 @@ class DisableComments{
 				$types_to_disable[] = 'post';
 			if( $this->apbct->settings['comments__disable_comments__pages'] )
 				$types_to_disable[] = 'page';
-			if( $this->apbct->settings['disable_comments__media'] )
+			if( $this->apbct->settings['comments__disable_comments__media'] )
 				$types_to_disable[] = 'media';
 		}
 		

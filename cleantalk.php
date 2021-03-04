@@ -101,7 +101,7 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 	}
 	
 	// Disabling comments
-	if($apbct->settings['comments__disable_comments__all'] || $apbct->settings['comments__disable_comments__posts'] || $apbct->settings['comments__disable_comments__pages'] || $apbct->settings['disable_comments__media']){
+	if($apbct->settings['comments__disable_comments__all'] || $apbct->settings['comments__disable_comments__posts'] || $apbct->settings['comments__disable_comments__pages'] || $apbct->settings['comments__disable_comments__media']){
 		\Cleantalk\Antispam\DisableComments::getInstance();
 	}
 	
