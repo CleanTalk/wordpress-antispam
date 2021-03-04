@@ -649,7 +649,7 @@ function apbct_deactivation( $network ) {
 			apbct_deactivation__delete_blog_tables();
 			delete_option('cleantalk_cron'); // Deleting cron entries
 			
-			if($apbct->settings['misc_complete_deactivation']){
+			if($apbct->settings['misc__complete_deactivation']){
 				apbct_deactivation__delete_all_options();
                 apbct_deactivation__delete_meta();
 				apbct_deactivation__delete_all_options__in_network();
@@ -664,7 +664,7 @@ function apbct_deactivation( $network ) {
 		apbct_deactivation__delete_common_tables();
 		delete_option('cleantalk_cron'); // Deleting cron entries
 		
-		if($apbct->settings['misc_complete_deactivation']) {
+		if($apbct->settings['misc__complete_deactivation']) {
             apbct_deactivation__delete_all_options();
             apbct_deactivation__delete_meta();
         }
@@ -675,7 +675,7 @@ function apbct_deactivation( $network ) {
 		apbct_deactivation__delete_common_tables();
 		delete_option('cleantalk_cron'); // Deleting cron entries
 		
-		if($apbct->settings['misc_complete_deactivation']) {
+		if($apbct->settings['misc__complete_deactivation']) {
 			apbct_deactivation__delete_all_options();
 			apbct_deactivation__delete_meta();
 		}
@@ -1163,9 +1163,9 @@ function apbct_rc__deactivate_plugin($plugin = null){
 	if($plugin){
 		
 		// Switching complete deactivation for security
-		if($plugin == 'security-malware-firewall/security-malware-firewall.php' && !empty($_GET['misc_complete_deactivation'])){
+		if($plugin == 'security-malware-firewall/security-malware-firewall.php' && !empty($_GET['misc__complete_deactivation'])){
 			$spbc_settings = get_option('spbc_settings');
-			$spbc_settings['misc_complete_deactivation'] = intval($_GET['misc_complete_deactivation']);
+			$spbc_settings['misc__complete_deactivation'] = intval($_GET['misc__complete_deactivation']);
 			update_option('spbc_settings', $spbc_settings);
 		}
 		
@@ -1206,9 +1206,9 @@ function apbct_rc__uninstall_plugin($plugin = null){
 	if($plugin){
 		
 		// Switching complete deactivation for security
-		if($plugin == 'security-malware-firewall/security-malware-firewall.php' && !empty($_GET['misc_complete_deactivation'])){
+		if($plugin == 'security-malware-firewall/security-malware-firewall.php' && !empty($_GET['misc__complete_deactivation'])){
 			$spbc_settings = get_option('spbc_settings');
-			$spbc_settings['misc_complete_deactivation'] = intval($_GET['misc_complete_deactivation']);
+			$spbc_settings['misc__complete_deactivation'] = intval($_GET['misc__complete_deactivation']);
 			update_option('spbc_settings', $spbc_settings);
 		}
 		

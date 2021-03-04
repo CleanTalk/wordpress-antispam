@@ -125,7 +125,7 @@ class State
 		'misc__async_js'                => 0,
 		'misc__store_urls'              => 1,
 		'misc__store_urls__sessions'    => 1,
-		'misc_complete_deactivation'    => 0,
+		'misc__complete_deactivation'   => 0,
 
 		/* WordPress */
 		'wp__use_builtin_http_api' => 1, // Using Wordpress HTTP built in API

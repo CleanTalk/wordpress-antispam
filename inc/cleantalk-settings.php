@@ -459,7 +459,7 @@ function apbct_settings__set_fileds( $fields ){
 					'type'        => 'checkbox',
 					'title'       => __('Show Dashboard Widget', 'cleantalk-spam-protect'),
 				),
-				'misc_complete_deactivation' => array(
+				'misc__complete_deactivation' => array(
 					'type'        => 'checkbox',
 					'title'       => __('Complete deactivation', 'cleantalk-spam-protect'),
 					'description' => __('Leave no trace in the system after deactivation.', 'cleantalk-spam-protect'),
