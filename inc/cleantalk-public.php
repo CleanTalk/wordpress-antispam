@@ -94,7 +94,7 @@ function apbct_init() {
 	}
 
 	//hook for Anonymous Post
-    if($apbct->settings['general_postdata_test'] == 1 && empty($_POST['ct_checkjs_cf7']))
+    if($apbct->settings['data__general_postdata_test'] == 1 && empty($_POST['ct_checkjs_cf7']))
     	add_action('wp', 'ct_contact_form_validate_postdata',1);
 
     if($apbct->settings['forms__general_contact_forms_test'] == 1 && empty($_POST['ct_checkjs_cf7'])){
@@ -115,7 +115,7 @@ function apbct_init() {
 		}*/
 	}
 
-    if($apbct->settings['general_postdata_test'] == 1 && empty($_POST['ct_checkjs_cf7']))
+    if($apbct->settings['data__general_postdata_test'] == 1 && empty($_POST['ct_checkjs_cf7']))
     	add_action('CMA_custom_post_type_nav', 'ct_contact_form_validate_postdata',1);
 
 	//add_action('wp_footer','ct_ajaxurl');
@@ -317,7 +317,7 @@ function apbct_init() {
             add_action( 'init', 'ct_contact_form_validate', 999 );
         }
         if( apbct_is_post() &&
-			$apbct->settings['general_postdata_test'] == 1 &&
+			$apbct->settings['data__general_postdata_test'] == 1 &&
 			!isset($_POST['ct_checkjs_cf7']) &&
 			!is_admin() &&
 			!apbct_is_user_role_in(array('administrator', 'moderator'))
@@ -3766,7 +3766,7 @@ function ct_enqueue_scripts_public($hook){
 		return;
 	}
 	
-	if($apbct->settings['forms__registrations_test'] || $apbct->settings['forms__comments_test'] || $apbct->settings['forms__contact_forms_test'] || $apbct->settings['forms__general_contact_forms_test'] || $apbct->settings['forms__wc_checkout_test'] || $apbct->settings['forms__check_external'] || $apbct->settings['forms__check_internal'] || $apbct->settings['comments__bp_private_messages'] || $apbct->settings['general_postdata_test']){
+	if($apbct->settings['forms__registrations_test'] || $apbct->settings['forms__comments_test'] || $apbct->settings['forms__contact_forms_test'] || $apbct->settings['forms__general_contact_forms_test'] || $apbct->settings['forms__wc_checkout_test'] || $apbct->settings['forms__check_external'] || $apbct->settings['forms__check_internal'] || $apbct->settings['comments__bp_private_messages'] || $apbct->settings['data__general_postdata_test']){
 
 		if( ! $apbct->public_script_loaded ) {
 			

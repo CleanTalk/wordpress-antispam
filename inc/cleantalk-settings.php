@@ -279,7 +279,7 @@ function apbct_settings__set_fileds( $fields ){
 						array('val' => -1, 'label' => __('Auto'),),
 					),
 				),
-				'general_postdata_test' => array(
+				'data__general_postdata_test' => array(
 					'title'       => __('Check all post data', 'cleantalk-spam-protect'),
 					'description' => __('Check all POST submissions from website visitors. Enable this option if you have spam misses on website.', 'cleantalk-spam-protect')
 						.(!$apbct->white_label
