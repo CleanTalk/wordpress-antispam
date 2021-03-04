@@ -79,7 +79,7 @@ class State
         'forms__check_internal'          => 0,
 		
 		/* Comments and messages */
-		'disable_comments__all'   => 0,
+		'comments__disable_comments__all'   => 0,
 		'disable_comments__posts' => 0,
 		'disable_comments__pages' => 0,
 		'disable_comments__media' => 0,

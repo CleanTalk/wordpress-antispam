@@ -198,7 +198,7 @@ function apbct_settings__set_fileds( $fields ){
 		'comments_and_messages' => array(
 			'title'          => __('Comments and Messages', 'cleantalk-spam-protect'),
 			'fields'         => array(
-				'disable_comments__all' => array(
+				'comments__disable_comments__all' => array(
 					'title' => __( 'Disable all comments', 'cleantalk-spam-protect'),
 					'description' => __( 'Disabling comments for all types of content.', 'cleantalk-spam-protect'),
 					'childrens' => array(
@@ -214,19 +214,19 @@ function apbct_settings__set_fileds( $fields ){
 				'disable_comments__posts' => array(
 					'title'           => __( 'Disable comments for all posts', 'cleantalk-spam-protect'),
 					'class'           => 'apbct_settings-field_wrapper--sub',
-					'parent'          => 'disable_comments__all',
+					'parent'          => 'comments__disable_comments__all',
 					'reverse_trigger' => true,
 				),
 				'disable_comments__pages' => array(
 					'title'           => __( 'Disable comments for all pages', 'cleantalk-spam-protect'),
 					'class'           => 'apbct_settings-field_wrapper--sub',
-					'parent'          => 'disable_comments__all',
+					'parent'          => 'comments__disable_comments__all',
 					'reverse_trigger' => true,
 				),
 				'disable_comments__media' => array(
 					'title'           => __( 'Disable comments for all media', 'cleantalk-spam-protect'),
 					'class'           => 'apbct_settings-field_wrapper--sub',
-					'parent'          => 'disable_comments__all',
+					'parent'          => 'comments__disable_comments__all',
 					'reverse_trigger' => true,
 				),
 				'bp_private_messages' => array(
