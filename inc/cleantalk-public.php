@@ -946,7 +946,7 @@ function ct_add_hidden_fields($field_name = 'ct_checkjs', $return_string = false
     $field_id_hash = md5(rand(0, 1000));
 
 	// Using only cookies
-    if ($cookie_check && $apbct->settings['set_cookies'] == 1) {
+    if ($cookie_check && $apbct->settings['data__set_cookies'] == 1) {
 	    
 		$html =	"<script type=\"text/javascript\" " . ( class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '' ) . ">
 			function ctSetCookie___from_backend(c_name, value) {
@@ -3804,8 +3804,8 @@ function ct_enqueue_scripts_public($hook){
 
 					wp_localize_script('ct_nocache', 'ctNocache', array(
 						'ajaxurl'                  => admin_url('admin-ajax.php'),
-						'info_flag'                => $apbct->settings['collect_details'] && $apbct->settings['set_cookies'] ? true : false,
-						'set_cookies_flag'         => $apbct->settings['set_cookies'] ? false : true,
+						'info_flag'                => $apbct->settings['collect_details'] && $apbct->settings['data__set_cookies'] ? true : false,
+						'set_cookies_flag'         => $apbct->settings['data__set_cookies'] ? false : true,
 						'blog_home'                => get_home_url().'/',
 					));
 				}

@@ -495,7 +495,7 @@ function apbct_sfw__check()
 			'api_key'       => $apbct->api_key,
 			'apbct'         => $apbct,
 			'cookie_domain' => parse_url( get_option( 'siteurl' ), PHP_URL_HOST ),
-			'set_cookies'    => $apbct->settings['set_cookies'],
+			'data__set_cookies'    => $apbct->settings['data__set_cookies'],
 		)
 	) );
 	
@@ -1623,7 +1623,7 @@ function apbct_cookie(){
 		apbct_alt_sessions__remove_old();
 	
 	if(
-		empty($apbct->settings['set_cookies']) || // Do not set cookies if option is disabled (for Varnish cache).
+		empty($apbct->settings['data__set_cookies']) || // Do not set cookies if option is disabled (for Varnish cache).
 		!empty($apbct->flags__cookies_setuped) || // Cookies already set
 		!empty($apbct->headers_sent)              // Headers sent
 	)

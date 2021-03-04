@@ -288,7 +288,7 @@ function apbct_settings__set_fileds( $fields ){
 						)
 						.'<br />' . __('СAUTION! Option can catch POST requests in WordPress backend', 'cleantalk-spam-protect'),
 				),
-				'set_cookies' => array(
+				'data__set_cookies' => array(
 					'title'       => __("Set cookies", 'cleantalk-spam-protect'),
 					'description' => __('Turn this option off to deny plugin generates any cookies on website front-end. This option is helpful if you use Varnish. But most of contact forms will not be protected if the option is turned off! <b>Warning: We strongly recommend you to enable this otherwise it could cause false positives spam detection.</b>', 'cleantalk-spam-protect'),
 					'childrens'   => array('set_cookies__sessions'),
@@ -296,7 +296,7 @@ function apbct_settings__set_fileds( $fields ){
 				'set_cookies__sessions' => array(
 					'title'       => __('Use alternative mechanism for cookies', 'cleantalk-spam-protect'),
 					'description' => __('Doesn\'t use cookie or PHP sessions. Collect data for all types of bots.', 'cleantalk-spam-protect'),
-					'parent'      => 'set_cookies',
+					'parent'      => 'data__set_cookies',
 					'class'       => 'apbct_settings-field_wrapper--sub',
 				),
 				'ssl_on' => array(
