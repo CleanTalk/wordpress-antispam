@@ -229,7 +229,7 @@ function apbct_settings__set_fileds( $fields ){
 					'parent'          => 'comments__disable_comments__all',
 					'reverse_trigger' => true,
 				),
-				'bp_private_messages' => array(
+				'comments__bp_private_messages' => array(
 					'title'       => __('BuddyPress Private Messages', 'cleantalk-spam-protect'),
 					'description' => __('Check buddyPress private messages.', 'cleantalk-spam-protect'),
 				),
