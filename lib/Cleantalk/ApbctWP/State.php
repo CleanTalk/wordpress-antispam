@@ -120,7 +120,7 @@ class State
 		'debug_ajax'              => 0,
 		
 		// GDPR
-		'gdpr_enabled' => 0,
+		'gdpr__enabled' => 0,
 		'gdpr_text'    => 'By using this form you agree with the storage and processing of your data by using the Privacy Policy on this website.',
 		
 		// Msic

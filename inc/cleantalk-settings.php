@@ -400,7 +400,7 @@ function apbct_settings__set_fileds( $fields ){
 					'title'       => __('Async JavaScript loading', 'cleantalk-spam-protect'),
 					'description' => __('Use async loading for scripts. Warning: This could reduce filtration quality.', 'cleantalk-spam-protect'),
 				),
-				'gdpr_enabled' => array(
+				'gdpr__enabled' => array(
 					'type'        => 'checkbox',
 					'title'       => __('Allow to add GDPR notice via shortcode', 'cleantalk-spam-protect'),
 					'description' => __(' Adds small checkbox under your website form. To add it you should use the shortcode on the form\'s page: [cleantalk_gdpr_form id="FORM_ID"]', 'cleantalk-spam-protect'),
@@ -410,7 +410,7 @@ function apbct_settings__set_fileds( $fields ){
 					'type'        => 'text',
 					'title'       => __('GDPR text notice', 'cleantalk-spam-protect'),
 					'description' => __('This text will be added as a description to the GDPR checkbox.', 'cleantalk-spam-protect'),
-					'parent'      => 'gdpr_enabled',
+					'parent'      => 'gdpr__enabled',
 					'class'       => 'apbct_settings-field_wrapper--sub',
 				),
 				'store_urls' => array(

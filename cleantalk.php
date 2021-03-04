@@ -444,7 +444,7 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
     }
 	
 	// Short code for GDPR
-	if($apbct->settings['gdpr_enabled'])
+	if($apbct->settings['gdpr__enabled'])
 		add_shortcode('cleantalk_gdpr_form', 'apbct_shrotcode_handler__GDPR_public_notice__form');
 	
 }

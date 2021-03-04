@@ -3781,7 +3781,7 @@ function ct_enqueue_scripts_public($hook){
 		}
 		
 		// GDPR script
-		if($apbct->settings['gdpr_enabled']){
+		if($apbct->settings['gdpr__enabled']){
 
 			wp_enqueue_script('ct_public_gdpr', APBCT_URL_PATH.'/js/apbct-public--gdpr.min.js', array('jquery', 'ct_public'), APBCT_VERSION, false /*in header*/);
 
