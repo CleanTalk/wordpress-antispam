@@ -358,9 +358,9 @@ function apbct_settings__set_fileds( $fields ){
 				'admin_bar__show' => array(
 					'title'       => __('Show statistics in admin bar', 'cleantalk-spam-protect'),
 					'description' => __('Show/hide icon in top level menu in WordPress backend. The number of submissions is being counted for past 24 hours.', 'cleantalk-spam-protect'),
-					'childrens' => array('all_time_counter','daily_counter','sfw_counter'),
+					'childrens' => array('admin_bar__all_time_counter','daily_counter','sfw_counter'),
 				),
-				'all_time_counter' => array(
+				'admin_bar__all_time_counter' => array(
 					'title'       => __('Show All-time counter', 'cleantalk-spam-protect'),
 					'description' => __('Display all-time requests counter in the admin bar. Counter displays number of requests since plugin installation.', 'cleantalk-spam-protect'),
 					'parent' => 'admin_bar__show',

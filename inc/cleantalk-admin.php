@@ -495,7 +495,7 @@ function apbct_admin__admin_bar__add( $wp_admin_bar ) {
 		//Reset or create all counters
 		if(!empty($_GET['ct_reset_all_counters'])){
 			$apbct->data['sfw_counter']      = array('all' => 0, 'blocked' => 0);
-			$apbct->data['all_time_counter'] = array('accepted' => 0, 'blocked' => 0);
+			$apbct->data['admin_bar__all_time_counter'] = array('accepted' => 0, 'blocked' => 0);
 			$apbct->data['user_counter']     = array('all' => 0, 'accepted' => 0, 'blocked' => 0, 'since' => date('d M'));
 			$apbct->data['array_accepted']   = array();
 			$apbct->data['array_blocked']    = array();
@@ -509,8 +509,8 @@ function apbct_admin__admin_bar__add( $wp_admin_bar ) {
 		
 		$all_time_counter_str='';
 		//Don't compile if all time counter disabled
-		if($apbct->settings['all_time_counter'] == 1){
-			$all_time_counter=Array('accepted'=>$apbct->data['all_time_counter']['accepted'], 'blocked'=>$apbct->data['all_time_counter']['blocked'], 'all'=>$apbct->data['all_time_counter']['accepted'] + $apbct->data['all_time_counter']['blocked']);
+		if($apbct->settings['admin_bar__all_time_counter'] == 1){
+			$all_time_counter=Array('accepted'=>$apbct->data['admin_bar__all_time_counter']['accepted'], 'blocked'=>$apbct->data['admin_bar__all_time_counter']['blocked'], 'all'=>$apbct->data['admin_bar__all_time_counter']['accepted'] + $apbct->data['admin_bar__all_time_counter']['blocked']);
 			$all_time_counter_str='<span style="color: white;" title="'.__('All / Allowed / Blocked submissions. The number of submissions is being counted since CleanTalk plugin installation.', 'cleantalk-spam-protect').'"><span style="color: white;"> | ' . __('All', 'cleantalk-spam-protect') . ': ' .$all_time_counter['all']. '</span> / <span style="color: green;">' .$all_time_counter['accepted']. '</span> / <span style="color: red;">' .$all_time_counter['blocked']. '</span></span>';
 		}
 		

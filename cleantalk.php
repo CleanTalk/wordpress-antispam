@@ -778,12 +778,12 @@ function ct_add_event($event_type)
 	//Add 1 to counters
 	if($event_type=='yes'){
 		$apbct->data['array_accepted'][$current_hour]++;
-		$apbct->data['all_time_counter']['accepted']++;
+		$apbct->data['admin_bar__all_time_counter']['accepted']++;
 		$apbct->data['user_counter']['accepted']++;
 	}
 	if($event_type=='no'){
 		$apbct->data['array_blocked'][$current_hour]++;
-		$apbct->data['all_time_counter']['blocked']++;
+		$apbct->data['admin_bar__all_time_counter']['blocked']++;
 		$apbct->data['user_counter']['blocked']++;
 	}	
 	

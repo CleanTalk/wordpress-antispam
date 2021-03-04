@@ -107,8 +107,8 @@ class State
 		'exclusions__roles'              => array('Administrator'),
 		
 		// Administrator Panel
-        'admin_bar__show'         => 1, // Show the admin bar.
-		'all_time_counter' => 0,
+        'admin_bar__show'             => 1, // Show the admin bar.
+		'admin_bar__all_time_counter' => 0,
 		'daily_counter'    => 0,
 		'sfw_counter'      => 0,
 		
@@ -182,7 +182,7 @@ class State
 			'all'     => 0,
 			'blocked' => 0,
 		),
-		'all_time_counter' => array(
+		'admin_bar__all_time_counter' => array(
 			'accepted' => 0,
 			'blocked'  => 0,
 		),
