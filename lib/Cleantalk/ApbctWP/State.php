@@ -98,14 +98,13 @@ class State
         'data__set_cookies'       => 1, // Disable cookies generatation to be compatible with Varnish.
         'data__set_cookies__sessions' => 0, // Use alt sessions for cookies.
         'data__ssl_on'            => 0, // Secure connection to servers
-		'use_buitin_http_api' =>   1, // Using Wordpress HTTP built in API
 		
 		// Exclusions
 		'exclusions__urls'               => '',
 		'exclusions__urls__use_regexp'   => 0,
 		'exclusions__fields'             => '',
 		'exclusions__fields__use_regexp' => 0,
-		'exclusions__roles'               => array('Administrator'),
+		'exclusions__roles'              => array('Administrator'),
 		
 		// Administrator Panel
         'show_adminbar'    => 1, // Show the admin bar.
@@ -131,6 +130,10 @@ class State
 		'comment_notify__roles'  => array( 'administrator' ),
 		'complete_deactivation'  => 0,
 		'dashboard_widget__show' => 1,
+
+		/* WordPress */
+		'wp__use_builtin_http_api' => 1, // Using Wordpress HTTP built in API
+
     );
 	
 	public $def_data = array(

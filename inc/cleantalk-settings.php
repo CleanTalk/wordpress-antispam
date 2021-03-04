@@ -303,7 +303,7 @@ function apbct_settings__set_fileds( $fields ){
 					'title'       => __("Use SSL", 'cleantalk-spam-protect'),
 					'description' => __('Turn this option on to use encrypted (SSL) connection with servers.', 'cleantalk-spam-protect'),
 				),
-				'use_buitin_http_api' => array(
+				'wp__use_builtin_http_api' => array(
 					'title'       => __("Use Wordpress HTTP API", 'cleantalk-spam-protect'),
 					'description' => __('Alternative way to connect the Cloud. Use this if you have connection problems.', 'cleantalk-spam-protect'),
 				),
