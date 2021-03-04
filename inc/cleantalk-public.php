@@ -905,7 +905,7 @@ function ct_comment_form($post_id){
         return false;
     }
 
-    if ( !$apbct->settings['comments_test']) {
+    if ( !$apbct->settings['forms__comments_test']) {
         return false;
     }
 
@@ -1136,7 +1136,7 @@ function ct_bbp_new_pre_content ($comment) {
 
     global $apbct, $current_user;
 
-    if ( !$apbct->settings['comments_test']) {
+    if ( !$apbct->settings['forms__comments_test']) {
         do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
         return $comment;
     }
@@ -1295,7 +1295,7 @@ function ct_preprocess_comment($comment) {
 		($comment['comment_type']!='trackback') &&
 		(
 			apbct_is_user_enable() === false ||
-			$apbct->settings['comments_test'] == 0 ||
+			$apbct->settings['forms__comments_test'] == 0 ||
 			$ct_comment_done ||
 			(isset($_SERVER['HTTP_REFERER']) && stripos($_SERVER['HTTP_REFERER'],'page=wysija_campaigns&action=editTemplate')!==false) ||
 			(isset($is_max_comments) && $is_max_comments) ||
@@ -3766,7 +3766,7 @@ function ct_enqueue_scripts_public($hook){
 		return;
 	}
 	
-	if($apbct->settings['forms__registrations_test'] || $apbct->settings['comments_test'] || $apbct->settings['contact_forms_test'] || $apbct->settings['general_contact_forms_test'] || $apbct->settings['wc_checkout_test'] || $apbct->settings['check_external'] || $apbct->settings['check_internal'] || $apbct->settings['bp_private_messages'] || $apbct->settings['general_postdata_test']){
+	if($apbct->settings['forms__registrations_test'] || $apbct->settings['forms__comments_test'] || $apbct->settings['contact_forms_test'] || $apbct->settings['general_contact_forms_test'] || $apbct->settings['wc_checkout_test'] || $apbct->settings['check_external'] || $apbct->settings['check_internal'] || $apbct->settings['bp_private_messages'] || $apbct->settings['general_postdata_test']){
 
 		if( ! $apbct->public_script_loaded ) {
 			
