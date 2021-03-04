@@ -3825,7 +3825,7 @@ function ct_enqueue_scripts_public($hook){
 	// Show controls for commentaries
 	if(in_array("administrator", $current_user->roles)){
 
-		if($apbct->settings['manage_comments_on_public_page']){
+		if($apbct->settings['comments__manage_comments_on_public_page']){
 
 			$ajax_nonce = wp_create_nonce( "ct_secret_nonce" );
 
@@ -3862,7 +3862,7 @@ function ct_wp_list_comments_args($options){
 	global $current_user, $apbct;
 	
 	if(in_array("administrator", $current_user->roles)){
-		if($apbct->settings['manage_comments_on_public_page']) {
+		if($apbct->settings['comments__manage_comments_on_public_page']) {
 			$theme = wp_get_theme();
 			$apbct->active_theme = $theme->get( 'Name' );
 			$options['end-callback'] = 'ct_comments_output';

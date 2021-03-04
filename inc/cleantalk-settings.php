@@ -246,7 +246,7 @@ function apbct_settings__set_fileds( $fields ){
 					'description' => __('Shows little icon near IP addresses and Emails allowing you to check it via CleanTalk\'s database.', 'cleantalk-spam-protect'),
 					'display' => !$apbct->white_label,
 				),
-				'manage_comments_on_public_page' => array(
+				'comments__manage_comments_on_public_page' => array(
 					'title'       => __('Manage comments on public pages', 'cleantalk-spam-protect'),
 					'description' => __('Allows administrators to manage comments on public post\'s pages with small interactive menu.', 'cleantalk-spam-protect'),
 					'display' => !$apbct->white_label,

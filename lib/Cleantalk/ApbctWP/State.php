@@ -88,7 +88,7 @@ class State
         'comments__remove_old_spam'         => 0,
 		'comments__remove_comments_links'   => 0, // Removes links from approved comments
 		'comments__show_check_links'        => 1, // Shows check link to Cleantalk's DB.
-		'manage_comments_on_public_page' =>      0, // Allows to control comments on public page.
+		'comments__manage_comments_on_public_page' => 0, // Allows to control comments on public page.
 		
 		// Data processing
         'protect_logged_in' =>     1, // Do anit-spam tests to for logged in users.
