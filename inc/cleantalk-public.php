@@ -97,7 +97,7 @@ function apbct_init() {
     if($apbct->settings['general_postdata_test'] == 1 && empty($_POST['ct_checkjs_cf7']))
     	add_action('wp', 'ct_contact_form_validate_postdata',1);
 
-    if($apbct->settings['general_contact_forms_test'] == 1 && empty($_POST['ct_checkjs_cf7'])){
+    if($apbct->settings['forms__general_contact_forms_test'] == 1 && empty($_POST['ct_checkjs_cf7'])){
 		add_action('CMA_custom_post_type_nav', 'ct_contact_form_validate_postdata',1);
 		//add_action('init','ct_contact_form_validate',1);
 		ct_contact_form_validate();
@@ -313,7 +313,7 @@ function apbct_init() {
 
     if (apbct_is_user_enable()) {
 
-        if ($apbct->settings['general_contact_forms_test'] == 1 && !isset($_POST['comment_post_ID']) && !isset($_GET['for'])){
+        if ($apbct->settings['forms__general_contact_forms_test'] == 1 && !isset($_POST['comment_post_ID']) && !isset($_GET['for'])){
             add_action( 'init', 'ct_contact_form_validate', 999 );
         }
         if( apbct_is_post() &&
@@ -3332,7 +3332,7 @@ function ct_contact_form_validate() {
         isset($_GET['ptype']) && $_GET['ptype']=='login' ||
         isset($_POST['ct_checkjs_register_form']) ||
         (isset($_POST['signup_username']) && isset($_POST['signup_password_confirm']) && isset($_POST['signup_submit']) ) ||
-        $apbct->settings['general_contact_forms_test'] == 0 ||
+        $apbct->settings['forms__general_contact_forms_test'] == 0 ||
         isset($_POST['bbp_topic_content']) ||
         isset($_POST['bbp_reply_content']) ||
         isset($_POST['fscf_submitted']) ||
@@ -3606,7 +3606,7 @@ function ct_contact_form_validate_postdata() {
         isset($_GET['ptype']) && $_GET['ptype']=='login' ||
         isset($_POST['ct_checkjs_register_form']) ||
         (isset($_POST['signup_username']) && isset($_POST['signup_password_confirm']) && isset($_POST['signup_submit']) ) ||
-        $apbct->settings['general_contact_forms_test']==0 ||
+        $apbct->settings['forms__general_contact_forms_test']==0 ||
         isset($_POST['bbp_topic_content']) ||
         isset($_POST['bbp_reply_content']) ||
         isset($_POST['fscf_submitted']) ||
@@ -3766,7 +3766,7 @@ function ct_enqueue_scripts_public($hook){
 		return;
 	}
 	
-	if($apbct->settings['forms__registrations_test'] || $apbct->settings['forms__comments_test'] || $apbct->settings['forms__contact_forms_test'] || $apbct->settings['general_contact_forms_test'] || $apbct->settings['wc_checkout_test'] || $apbct->settings['check_external'] || $apbct->settings['check_internal'] || $apbct->settings['bp_private_messages'] || $apbct->settings['general_postdata_test']){
+	if($apbct->settings['forms__registrations_test'] || $apbct->settings['forms__comments_test'] || $apbct->settings['forms__contact_forms_test'] || $apbct->settings['forms__general_contact_forms_test'] || $apbct->settings['wc_checkout_test'] || $apbct->settings['check_external'] || $apbct->settings['check_internal'] || $apbct->settings['bp_private_messages'] || $apbct->settings['general_postdata_test']){
 
 		if( ! $apbct->public_script_loaded ) {
 			

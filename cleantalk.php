@@ -173,7 +173,7 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 	}
 	
 	// Facebook
-	if ($apbct->settings['general_contact_forms_test'] == 1
+	if ($apbct->settings['forms__general_contact_forms_test'] == 1
 		&& (!empty($_POST['action']) && $_POST['action'] == 'fb_intialize')
 		&& !empty($_POST['FB_userdata'])
 	){
@@ -348,7 +348,7 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 			}
 			
 			//QAEngine Theme answers
-			if (intval($apbct->settings['general_contact_forms_test']))
+			if (intval($apbct->settings['forms__general_contact_forms_test']))
 				add_filter('et_pre_insert_question', 'ct_ajax_hook', 1, 1); // Questions
 				add_filter('et_pre_insert_answer',   'ct_ajax_hook', 1, 1); // Answers
 			
@@ -371,7 +371,7 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 				
 			require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public.php');
 		//Bitrix24 contact form
-		if ($apbct->settings['general_contact_forms_test'] == 1 &&
+		if ($apbct->settings['forms__general_contact_forms_test'] == 1 &&
 			!empty($_POST['your-phone']) &&
 			!empty($_POST['your-email']) &&
 			!empty($_POST['your-message'])

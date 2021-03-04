@@ -142,7 +142,7 @@ function apbct_settings__set_fileds( $fields ){
 					'title'       => __('Contact forms', 'cleantalk-spam-protect'),
 					'description' => __('Contact Form 7, Formidable forms, JetPack, Fast Secure Contact Form, WordPress Landing Pages, Gravity Forms.', 'cleantalk-spam-protect'),
 				),
-				'general_contact_forms_test' => array(
+				'forms__general_contact_forms_test' => array(
 					'title'       => __('Custom contact forms', 'cleantalk-spam-protect'),
 					'description' => __('Anti spam test for any WordPress themes or contacts forms.', 'cleantalk-spam-protect'),
 				),
@@ -916,7 +916,7 @@ function apbct_settings__field__state(){
 	echo '<img class="apbct_status_icon" src="'.($apbct->settings['forms__registrations_test'] == 1       ? $img : $img_no).'"/>'.__('Registration forms', 'cleantalk-spam-protect');
 	echo '<img class="apbct_status_icon" src="'.($apbct->settings['forms__comments_test'] == 1              ? $img : $img_no).'"/>'.__('Comments forms', 'cleantalk-spam-protect');
 	echo '<img class="apbct_status_icon" src="'.($apbct->settings['forms__contact_forms_test'] == 1         ? $img : $img_no).'"/>'.__('Contact forms', 'cleantalk-spam-protect');
-	echo '<img class="apbct_status_icon" src="'.($apbct->settings['general_contact_forms_test'] == 1 ? $img : $img_no).'"/>'.__('Custom contact forms', 'cleantalk-spam-protect');
+	echo '<img class="apbct_status_icon" src="'.($apbct->settings['forms__general_contact_forms_test'] == 1 ? $img : $img_no).'"/>'.__('Custom contact forms', 'cleantalk-spam-protect');
 	if(!$apbct->white_label || is_main_site())
 		echo '<img class="apbct_status_icon" src="'.($apbct->data['moderate'] == 1                     ? $img : $img_no).'"/>'
 	        .'<a style="color: black" href="https://blog.cleantalk.org/real-time-email-address-existence-validation/">'.__('Validate email for existence', 'cleantalk-spam-protect').'</a>';

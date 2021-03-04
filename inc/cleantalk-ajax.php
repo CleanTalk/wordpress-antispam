@@ -330,7 +330,7 @@ function ct_ajax_hook($message_obj = false, $additional = false)
     );
     
     // Skip test if
-    if( !$apbct->settings['general_contact_forms_test'] || // Test disabled
+    if( !$apbct->settings['forms__general_contact_forms_test'] || // Test disabled
         !apbct_is_user_enable($apbct->user) || // User is admin, editor, author
 	    // (function_exists('get_current_user_id') && get_current_user_id() != 0) || // Check with default wp_* function if it's admin
 	    (!$apbct->settings['protect_logged_in'] && ($apbct->user instanceof WP_User) && $apbct->user->ID !== 0 ) || // Logged in user
