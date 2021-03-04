@@ -76,7 +76,7 @@ class State
 		'forms__search_test'             => 1, // Test deafult Wordpress form
 		'forms__check_external'          => 0,
 		'forms__check_external__capture_buffer' => 0,
-        'check_internal'                 => 0,
+        'forms__check_internal'          => 0,
 		
 		/* Comments and messages */
 		'disable_comments__all'   => 0,

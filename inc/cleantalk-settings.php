@@ -168,7 +168,7 @@ function apbct_settings__set_fileds( $fields ){
 					'class'       => 'apbct_settings-field_wrapper--sub',
 					'parent'      => 'forms__check_external',
 				),
-				'check_internal' => array(
+				'forms__check_internal' => array(
 					'title'       => __('Protect internal forms', 'cleantalk-spam-protect'),
 					'description' => __('This option will enable protection for custom (hand-made) AJAX forms with PHP scripts handlers on your WordPress.', 'cleantalk-spam-protect'),
 				),
