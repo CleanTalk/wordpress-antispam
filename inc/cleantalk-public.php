@@ -132,7 +132,7 @@ function apbct_init() {
         if ($apbct->settings['forms__wc_checkout_test'] == 1) {
 	        add_filter('woocommerce_checkout_process', 'ct_woocommerce_checkout_check', 1, 3);
         }
-        if( isset($_REQUEST['wc-ajax']) && $_REQUEST['wc-ajax'] == 'checkout' && empty( $apbct->settings['wc_register_from_order'] ) ){
+        if( isset($_REQUEST['wc-ajax']) && $_REQUEST['wc-ajax'] == 'checkout' && empty( $apbct->settings['forms__wc_register_from_order'] ) ){
             remove_filter( 'woocommerce_registration_errors', 'ct_registration_errors', 1 );
         }
     }
@@ -830,7 +830,7 @@ function ct_woocommerce_checkout_check() {
 		)
 	);
 
-	if( $apbct->settings['wc_register_from_order'] ) {
+	if( $apbct->settings['forms__wc_register_from_order'] ) {
         $cleantalk_executed = false;
     }
 

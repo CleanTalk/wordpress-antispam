@@ -182,9 +182,9 @@ function apbct_settings__set_fileds( $fields ){
 				'forms__wc_checkout_test' => array(
 					'title'       => __('WooCommerce checkout form', 'cleantalk-spam-protect'),
 					'description' => __('Anti spam test for WooCommerce checkout form.', 'cleantalk-spam-protect'),
-					'childrens'   => array('wc_register_from_order')
+					'childrens'   => array('forms__wc_register_from_order')
 				),
-				'wc_register_from_order' => array(
+				'forms__wc_register_from_order' => array(
 					'title'           => __('Spam test for registration during checkout', 'cleantalk-spam-protect'),
 					'description'     => __('Enable anti spam test for registration process which during woocommerce\'s checkout.', 'cleantalk-spam-protect'),
 					'parent'          => 'forms__wc_checkout_test',
