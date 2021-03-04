@@ -113,7 +113,6 @@ class State
 		'admin_bar__sfw_counter'      => 0,
 		
 		//Others
-        'send_connection_reports' => 0, //Send connection reports to Cleantalk servers
 		'async_js'                => 0,
 		'debug_ajax'              => 0,
 		
@@ -123,6 +122,7 @@ class State
 		
 		// Msic
 		'misc__collect_details'         => 0, // Collect details about browser of the visitor.
+		'misc__send_connection_reports' => 0, //Send connection reports to Cleantalk servers
 		'store_urls'             => 1,
 		'store_urls__sessions'   => 1,
 		'comment_notify'         => 1,
