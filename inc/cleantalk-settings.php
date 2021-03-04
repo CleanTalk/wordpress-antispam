@@ -299,7 +299,7 @@ function apbct_settings__set_fileds( $fields ){
 					'parent'      => 'data__set_cookies',
 					'class'       => 'apbct_settings-field_wrapper--sub',
 				),
-				'ssl_on' => array(
+				'data__ssl_on' => array(
 					'title'       => __("Use SSL", 'cleantalk-spam-protect'),
 					'description' => __('Turn this option on to use encrypted (SSL) connection with servers.', 'cleantalk-spam-protect'),
 				),

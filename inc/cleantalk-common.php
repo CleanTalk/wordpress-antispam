@@ -174,7 +174,7 @@ function apbct_base_call($params = array(), $reg_flag = false){
 	$ct = new Cleantalk();
 
 	$ct->use_bultin_api = $apbct->settings['use_buitin_http_api'] ? true : false;
-	$ct->ssl_on         = $apbct->settings['ssl_on'];
+	$ct->ssl_on         = $apbct->settings['data__ssl_on'];
 	$ct->ssl_path       = APBCT_CASERT_PATH;
 	
 	// Options store url without shceme because of DB error with ''://'
