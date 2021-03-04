@@ -125,13 +125,13 @@ class State
 		'misc__async_js'                => 0,
 		'misc__store_urls'              => 1,
 		'misc__store_urls__sessions'    => 1,
-		'comment_notify'         => 1,
 		'comment_notify__roles'  => array( 'administrator' ),
 		'complete_deactivation'  => 0,
 		'dashboard_widget__show' => 1,
 
 		/* WordPress */
 		'wp__use_builtin_http_api' => 1, // Using Wordpress HTTP built in API
+		'wp__comment_notify'       => 1,
 
     );
 	
