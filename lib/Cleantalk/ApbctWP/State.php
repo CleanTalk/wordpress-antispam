@@ -113,7 +113,6 @@ class State
 		'admin_bar__sfw_counter'      => 0,
 		
 		//Others
-        'user_token'              => '',
         'collect_details'         => 0, // Collect details about browser of the visitor. 
         'send_connection_reports' => 0, //Send connection reports to Cleantalk servers
 		'async_js'                => 0,
