@@ -56,11 +56,13 @@ class State
 	public $storage = array();
 	public $integrations = array();
 	public $def_settings = array(
+        
+        'spam_firewall'                  => 1,
+        'sfw__anti_flood'                => 0,
+        'sfw__anti_flood__view_limit'    => 20,
+        'sfw__anti_crawler'              => 1,
+        'sfw__use_delete_to_clear_table' => 0,
 		
-		'spam_firewall'                 => 1,
-		'sfw__anti_flood'               => 0,
-		'sfw__anti_flood__view_limit'   => 20,
-		'sfw__anti_crawler'             => 1,
 		'apikey'                        => '',
 		'autoPubRevelantMess'           => 0,
 		
@@ -251,10 +253,11 @@ class State
 	
 	public $def_stats = array(
 		'sfw' => array(
-			'last_send_time'   => 0,
-			'last_send_amount' => 0,
-			'last_update_time' => 0,
-			'entries'          => 0,
+            'sending_logs__timestamp' => 0,
+            'last_send_time'          => 0,
+            'last_send_amount'        => 0,
+            'last_update_time'        => 0,
+            'entries'                 => 0,
 		),
 		'last_sfw_block' => array(
 			'time' => 0,
