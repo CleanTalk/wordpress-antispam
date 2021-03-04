@@ -96,7 +96,7 @@ class State
 		'data__use_static_js_key' => -1,
 		'data__general_postdata_test' => 0, //CAPD
         'data__set_cookies'       => 1, // Disable cookies generatation to be compatible with Varnish.
-        'set_cookies__sessions'=>  0, // Use alt sessions for cookies.
+        'data__set_cookies__sessions' => 0, // Use alt sessions for cookies.
         'ssl_on' =>                0, // Secure connection to servers 
 		'use_buitin_http_api' =>   1, // Using Wordpress HTTP built in API
 		

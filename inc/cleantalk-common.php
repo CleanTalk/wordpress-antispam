@@ -368,15 +368,15 @@ function apbct_get_sender_info() {
 	// Validate cookie from the backend
 	$cookie_is_ok = apbct_cookies_test();
     
-	$referer_previous = $apbct->settings['set_cookies__sessions']
+	$referer_previous = $apbct->settings['data__set_cookies__sessions']
 			? apbct_alt_session__get('apbct_prev_referer')
 			: filter_input(INPUT_COOKIE, 'apbct_prev_referer');
 	
-	$site_landing_ts = $apbct->settings['set_cookies__sessions']
+	$site_landing_ts = $apbct->settings['data__set_cookies__sessions']
 			? apbct_alt_session__get('apbct_site_landing_ts')
 			: filter_input(INPUT_COOKIE, 'apbct_site_landing_ts');
 	
-	$page_hits = $apbct->settings['set_cookies__sessions']
+	$page_hits = $apbct->settings['data__set_cookies__sessions']
 			? apbct_alt_session__get('apbct_page_hits')
 			: filter_input(INPUT_COOKIE, 'apbct_page_hits');
 		
