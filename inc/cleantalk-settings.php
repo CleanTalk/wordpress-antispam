@@ -202,7 +202,7 @@ function apbct_settings__set_fileds( $fields ){
 					'title' => __( 'Disable all comments', 'cleantalk-spam-protect'),
 					'description' => __( 'Disabling comments for all types of content.', 'cleantalk-spam-protect'),
 					'childrens' => array(
-						'disable_comments__posts',
+						'comments__disable_comments__posts',
 						'disable_comments__pages',
 						'disable_comments__media',
 					),
@@ -211,7 +211,7 @@ function apbct_settings__set_fileds( $fields ){
 						array( 'val' => 0, 'label' => __( 'Off' ), 'childrens_enable' => 1, ),
 					),
 				),
-				'disable_comments__posts' => array(
+				'comments__disable_comments__posts' => array(
 					'title'           => __( 'Disable comments for all posts', 'cleantalk-spam-protect'),
 					'class'           => 'apbct_settings-field_wrapper--sub',
 					'parent'          => 'comments__disable_comments__all',
