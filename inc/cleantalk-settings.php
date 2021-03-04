@@ -355,7 +355,7 @@ function apbct_settings__set_fileds( $fields ){
 			'html_before'    => '',
 			'html_after'     => '',
 			'fields'         => array(
-				'show_adminbar' => array(
+				'admin_bar__show' => array(
 					'title'       => __('Show statistics in admin bar', 'cleantalk-spam-protect'),
 					'description' => __('Show/hide icon in top level menu in WordPress backend. The number of submissions is being counted for past 24 hours.', 'cleantalk-spam-protect'),
 					'childrens' => array('all_time_counter','daily_counter','sfw_counter'),
@@ -363,19 +363,19 @@ function apbct_settings__set_fileds( $fields ){
 				'all_time_counter' => array(
 					'title'       => __('Show All-time counter', 'cleantalk-spam-protect'),
 					'description' => __('Display all-time requests counter in the admin bar. Counter displays number of requests since plugin installation.', 'cleantalk-spam-protect'),
-					'parent' => 'show_adminbar',
+					'parent' => 'admin_bar__show',
 					'class' => 'apbct_settings-field_wrapper--sub',
 				),
 				'daily_counter' => array(
 					'title'       => __('Show 24 hours counter', 'cleantalk-spam-protect'),
 					'description' => __('Display daily requests counter in the admin bar. Counter displays number of requests of the past 24 hours.', 'cleantalk-spam-protect'),
-					'parent' => 'show_adminbar',
+					'parent' => 'admin_bar__show',
 					'class' => 'apbct_settings-field_wrapper--sub',
 				),
 				'sfw_counter' => array(
 					'title'       => __('SpamFireWall counter', 'cleantalk-spam-protect'),
 					'description' => __('Display SpamFireWall requests in the admin bar. Counter displays number of requests since plugin installation.', 'cleantalk-spam-protect'),
-					'parent' => 'show_adminbar',
+					'parent' => 'admin_bar__show',
 					'class' => 'apbct_settings-field_wrapper--sub',
 				),
 			),

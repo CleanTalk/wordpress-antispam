@@ -483,7 +483,7 @@ function apbct_admin__admin_bar__add( $wp_admin_bar ) {
 	
 	global $apbct;
 	
-	if (current_user_can('activate_plugins') &&  $apbct->settings['show_adminbar'] == 1 && (apbct_api_key__is_correct($apbct->api_key) !== false || (defined('CLEANTALK_SHOW_ADMIN_BAR_FORCE') && CLEANTALK_SHOW_ADMIN_BAR_FORCE))) {
+	if (current_user_can('activate_plugins') &&  $apbct->settings['admin_bar__show'] == 1 && (apbct_api_key__is_correct($apbct->api_key) !== false || (defined('CLEANTALK_SHOW_ADMIN_BAR_FORCE') && CLEANTALK_SHOW_ADMIN_BAR_FORCE))) {
         
 		//Reset or create user counter
 		if(!empty($_GET['ct_reset_user_counter'])){
