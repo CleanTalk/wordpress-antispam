@@ -430,9 +430,9 @@ function apbct_settings__set_fileds( $fields ){
 					'type'        => 'checkbox',
 					'title'       => __('Notify users with selected roles about new approved comments. Hold CTRL to select multiple roles.', 'cleantalk-spam-protect'),
 					'description' => sprintf(__("If enabled, overrides similar Wordpress %sdiscussion settings%s.", 'cleantalk-spam-protect'), '<a href="options-discussion.php">','</a>'),
-					'childrens'   => array('wp_comment_notify__roles'),
+					'childrens'   => array('wp__comment_notify__roles'),
 				),
-				'wp_comment_notify__roles' => array(
+				'wp__comment_notify__roles' => array(
 					'type'                    => 'select',
 					'multiple'                => true,
 					'parent'                  => 'wp__comment_notify',

@@ -130,7 +130,7 @@ class State
 		/* WordPress */
 		'wp__use_builtin_http_api' => 1, // Using Wordpress HTTP built in API
 		'wp__comment_notify'       => 1,
-		'wp_comment_notify__roles' => array( 'administrator' ),
+		'wp__comment_notify__roles' => array( 'administrator' ),
 		'wp__dashboard_widget__show' => 1,
 
     );
