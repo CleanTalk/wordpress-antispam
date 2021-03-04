@@ -74,7 +74,7 @@ class State
 		'forms__wc_checkout_test'        => 1, // WooCommerce checkout default test
 		'forms__wc_register_from_order'  => 1, // Woocommerce registration during checkout
 		'forms__search_test'             => 1, // Test deafult Wordpress form
-		'check_external'                 => 0,
+		'forms__check_external'          => 0,
 		'check_external__capture_buffer' => 0,
         'check_internal'                 => 0,
 		

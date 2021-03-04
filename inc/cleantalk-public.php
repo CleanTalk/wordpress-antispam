@@ -33,7 +33,7 @@ function apbct_init() {
     	add_shortcode( 'et_pb_contact_form', 'ct_contact_form_validate' );
     }
 
-	if($apbct->settings['check_external']){
+	if($apbct->settings['forms__check_external']){
 
 		// Fixing form and directs it this site
 		if($apbct->settings['check_external__capture_buffer'] && !is_admin() && !apbct_is_ajax() && !apbct_is_post() && apbct_is_user_enable() && !(defined('DOING_CRON') && DOING_CRON) && !(defined('XMLRPC_REQUEST') && XMLRPC_REQUEST)){
@@ -3766,7 +3766,7 @@ function ct_enqueue_scripts_public($hook){
 		return;
 	}
 	
-	if($apbct->settings['forms__registrations_test'] || $apbct->settings['forms__comments_test'] || $apbct->settings['forms__contact_forms_test'] || $apbct->settings['forms__general_contact_forms_test'] || $apbct->settings['forms__wc_checkout_test'] || $apbct->settings['check_external'] || $apbct->settings['check_internal'] || $apbct->settings['bp_private_messages'] || $apbct->settings['general_postdata_test']){
+	if($apbct->settings['forms__registrations_test'] || $apbct->settings['forms__comments_test'] || $apbct->settings['forms__contact_forms_test'] || $apbct->settings['forms__general_contact_forms_test'] || $apbct->settings['forms__wc_checkout_test'] || $apbct->settings['forms__check_external'] || $apbct->settings['check_internal'] || $apbct->settings['bp_private_messages'] || $apbct->settings['general_postdata_test']){
 
 		if( ! $apbct->public_script_loaded ) {
 			
@@ -3811,7 +3811,7 @@ function ct_enqueue_scripts_public($hook){
 				}
 
 				// External forms check
-				if($apbct->settings['check_external'])
+				if($apbct->settings['forms__check_external'])
 					wp_enqueue_script('ct_external',  plugins_url('/cleantalk-spam-protect/js/cleantalk_external.min.js'), array('jquery'), APBCT_VERSION, false /*in header*/);
 
 				// Internal forms check

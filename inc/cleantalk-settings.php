@@ -157,7 +157,7 @@ function apbct_settings__set_fileds( $fields ){
 							: ''
 						)
 				),
-				'check_external' => array(
+				'forms__check_external' => array(
 					'title'       => __('Protect external forms', 'cleantalk-spam-protect'),
 					'description' => __('Turn this option on to protect forms on your WordPress that send data to third-part servers (like MailChimp).', 'cleantalk-spam-protect'),
 					'childrens'   => array('check_external__capture_buffer'),
@@ -166,7 +166,7 @@ function apbct_settings__set_fileds( $fields ){
 					'title'       => __('Capture buffer', 'cleantalk-spam-protect'),
 					'description' => __('This setting gives you more sophisticated and strengthened protection for external forms. But it could break plugins which use a buffer like Ninja Forms.', 'cleantalk-spam-protect'),
 					'class'       => 'apbct_settings-field_wrapper--sub',
-					'parent'      => 'check_external',
+					'parent'      => 'forms__check_external',
 				),
 				'check_internal' => array(
 					'title'       => __('Protect internal forms', 'cleantalk-spam-protect'),
