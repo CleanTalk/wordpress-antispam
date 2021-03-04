@@ -81,7 +81,7 @@ class State
 		/* Comments and messages */
 		'comments__disable_comments__all'   => 0,
 		'comments__disable_comments__posts' => 0,
-		'disable_comments__pages' => 0,
+		'comments__disable_comments__pages' => 0,
 		'disable_comments__media' => 0,
 		'bp_private_messages' =>   1, //buddyPress private messages test => ON
 		'check_comments_number' => 1,
