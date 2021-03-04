@@ -314,7 +314,7 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 			add_action('network_admin_notices', 'apbct_admin__notice_message');
 			
 			//Show widget only if enables and not IP license
-			if( $apbct->settings['dashboard_widget__show'] && ! $apbct->moderate_ip )
+			if( $apbct->settings['wp__dashboard_widget__show'] && ! $apbct->moderate_ip )
 				add_action('wp_dashboard_setup', 'ct_dashboard_statistics_widget' );
 		}
 		

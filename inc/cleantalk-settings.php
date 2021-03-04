@@ -455,7 +455,7 @@ function apbct_settings__set_fileds( $fields ){
 					'parent'      => 'sfw__anti_flood',
 					'description' => __('Count of page view per 1 minute before plugin shows SpamFireWall page. SpamFireWall page active for 30 second after that valid visitor (with JavaScript) passes the page to the demanded page of the site.', 'cleantalk-spam-protect'),
 				),
-				'dashboard_widget__show' => array(
+				'wp__dashboard_widget__show' => array(
 					'type'        => 'checkbox',
 					'title'       => __('Show Dashboard Widget', 'cleantalk-spam-protect'),
 				),
