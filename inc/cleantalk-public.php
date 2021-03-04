@@ -1445,7 +1445,7 @@ function ct_preprocess_comment($comment) {
 		add_action('comment_post', 'ct_die', 999, 2);
 	}
 
-	if($apbct->settings['remove_comments_links'] == 1){
+	if($apbct->settings['comments__remove_comments_links'] == 1){
 		$comment['comment_content'] = preg_replace("~(http|https|ftp|ftps)://(.*?)(\s|\n|[,.?!](\s|\n)|$)~", '[Link deleted]', $comment['comment_content']);
 	}
 

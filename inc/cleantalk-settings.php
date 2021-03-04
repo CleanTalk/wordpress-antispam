@@ -237,7 +237,7 @@ function apbct_settings__set_fileds( $fields ){
 					'title'       => __('Automatically delete spam comments', 'cleantalk-spam-protect'),
 					'description' => sprintf(__('Delete spam comments older than %d days.', 'cleantalk-spam-protect'),  $apbct->data['spam_store_days']),
 				),
-				'remove_comments_links' => array(
+				'comments__remove_comments_links' => array(
 					'title'       => __('Remove links from approved comments', 'cleantalk-spam-protect'),
 					'description' => __('Remove links from approved comments. Replace it with "[Link deleted]"', 'cleantalk-spam-protect'),
 				),
