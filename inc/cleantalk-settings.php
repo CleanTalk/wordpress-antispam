@@ -262,7 +262,7 @@ function apbct_settings__set_fileds( $fields ){
 					'title'       => __("Protect logged in Users", 'cleantalk-spam-protect'),
 					'description' => __('Turn this option on to check for spam any submissions (comments, contact forms and etc.) from registered Users.', 'cleantalk-spam-protect'),
 				),
-				'check_comments_number' => array(
+				'comments__check_comments_number' => array(
 					'title'       => __("Don't check trusted user's comments", 'cleantalk-spam-protect'),
 					'description' => sprintf(__("Don't check comments for users with above %d comments.", 'cleantalk-spam-protect'), defined('CLEANTALK_CHECK_COMMENTS_NUMBER') ? CLEANTALK_CHECK_COMMENTS_NUMBER : 3),
 				),
