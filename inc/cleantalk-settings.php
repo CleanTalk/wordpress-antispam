@@ -179,7 +179,7 @@ function apbct_settings__set_fileds( $fields ){
 		'wc' => array(
 			'title'          => __('WooCommerce', 'cleantalk-spam-protect'),
 			'fields'         => array(
-				'wc_checkout_test' => array(
+				'forms__wc_checkout_test' => array(
 					'title'       => __('WooCommerce checkout form', 'cleantalk-spam-protect'),
 					'description' => __('Anti spam test for WooCommerce checkout form.', 'cleantalk-spam-protect'),
 					'childrens'   => array('wc_register_from_order')
@@ -187,7 +187,7 @@ function apbct_settings__set_fileds( $fields ){
 				'wc_register_from_order' => array(
 					'title'           => __('Spam test for registration during checkout', 'cleantalk-spam-protect'),
 					'description'     => __('Enable anti spam test for registration process which during woocommerce\'s checkout.', 'cleantalk-spam-protect'),
-					'parent'          => 'wc_checkout_test',
+					'parent'          => 'forms__wc_checkout_test',
 					'class'           => 'apbct_settings-field_wrapper--sub',
 					'reverse_trigger' => true
 				),
@@ -928,7 +928,7 @@ function apbct_settings__field__state(){
 	
 	// WooCommerce
 	if(class_exists('WooCommerce'))
-		echo '<img class="apbct_status_icon" src="'.($apbct->settings['wc_checkout_test'] == 1  ? $img : $img_no).'"/>'.__('WooCommerce checkout form', 'cleantalk-spam-protect');
+		echo '<img class="apbct_status_icon" src="'.($apbct->settings['forms__wc_checkout_test'] == 1  ? $img : $img_no).'"/>'.__('WooCommerce checkout form', 'cleantalk-spam-protect');
 		if($apbct->moderate_ip)
 			print "<br /><br />The anti-spam service is paid by your hosting provider. License #".$apbct->data['ip_license'].".<br />";
 	

@@ -71,7 +71,7 @@ class State
         'forms__comments_test'           => 1,
         'forms__contact_forms_test'      => 1,
         'forms__general_contact_forms_test' => 1, // Antispam test for unsupported and untested contact forms
-		'wc_checkout_test'               => 1, // WooCommerce checkout default test
+		'forms__wc_checkout_test'        => 1, // WooCommerce checkout default test
 		'wc_register_from_order'         => 1, // Woocommerce registration during checkout
 		'search_test'                    => 1, // Test deafult Wordpress form
 		'check_external'                 => 0,

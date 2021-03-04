@@ -129,7 +129,7 @@ function apbct_init() {
     // WooCommerce registration
     if(class_exists('WooCommerce')){
         add_filter( 'woocommerce_registration_errors', 'ct_registration_errors', 1, 3 );
-        if ($apbct->settings['wc_checkout_test'] == 1) {
+        if ($apbct->settings['forms__wc_checkout_test'] == 1) {
 	        add_filter('woocommerce_checkout_process', 'ct_woocommerce_checkout_check', 1, 3);
         }
         if( isset($_REQUEST['wc-ajax']) && $_REQUEST['wc-ajax'] == 'checkout' && empty( $apbct->settings['wc_register_from_order'] ) ){
@@ -3766,7 +3766,7 @@ function ct_enqueue_scripts_public($hook){
 		return;
 	}
 	
-	if($apbct->settings['forms__registrations_test'] || $apbct->settings['forms__comments_test'] || $apbct->settings['forms__contact_forms_test'] || $apbct->settings['forms__general_contact_forms_test'] || $apbct->settings['wc_checkout_test'] || $apbct->settings['check_external'] || $apbct->settings['check_internal'] || $apbct->settings['bp_private_messages'] || $apbct->settings['general_postdata_test']){
+	if($apbct->settings['forms__registrations_test'] || $apbct->settings['forms__comments_test'] || $apbct->settings['forms__contact_forms_test'] || $apbct->settings['forms__general_contact_forms_test'] || $apbct->settings['forms__wc_checkout_test'] || $apbct->settings['check_external'] || $apbct->settings['check_internal'] || $apbct->settings['bp_private_messages'] || $apbct->settings['general_postdata_test']){
 
 		if( ! $apbct->public_script_loaded ) {
 			
