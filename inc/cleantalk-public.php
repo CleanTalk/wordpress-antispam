@@ -181,7 +181,9 @@ function apbct_init() {
 		if(defined('WPCF7_VERSION')){
 			add_filter('wpcf7_form_elements', 'apbct_form__contactForm7__addField');
 			add_filter('wpcf7_validate', 'apbct_form__contactForm7__tesSpam__before_validate', 999, 2);
-			add_filter(WPCF7_VERSION >= '3.0.0' ? 'wpcf7_spam' : 'wpcf7_acceptance', 'apbct_form__contactForm7__testSpam', 9999, 2);
+			$hook =  WPCF7_VERSION >= '3.0.0' ? 'wpcf7_spam' : 'wpcf7_acceptance';
+			$num_arg = WPCF7_VERSION >= '5.3.0' ? 2 : 1;
+			add_filter( $hook, 'apbct_form__contactForm7__testSpam', 9999, $num_arg );
 		}
 
     // Formidable
@@ -2361,7 +2363,7 @@ function apbct_form__contactForm7__tesSpam__before_validate($result = null, $tag
 		$invalid_fields = $result->get_invalid_fields();
 		if(!empty($invalid_fields) && is_array($invalid_fields)){
 			$apbct->validation_error = $invalid_fields[key($invalid_fields)]['reason'];
-            apbct_form__contactForm7__testSpam( false, null );
+            apbct_form__contactForm7__testSpam( false );
 		}
 	}
 
@@ -2371,7 +2373,7 @@ function apbct_form__contactForm7__tesSpam__before_validate($result = null, $tag
 /**
  * Test CF7 message for spam
  */
-function apbct_form__contactForm7__testSpam($spam, $submission ) {
+function apbct_form__contactForm7__testSpam( $spam, $submission = null ) {
 
     global $ct_checkjs_cf7, $apbct;
 
