@@ -233,7 +233,7 @@ function apbct_settings__set_fileds( $fields ){
 					'title'       => __('BuddyPress Private Messages', 'cleantalk-spam-protect'),
 					'description' => __('Check buddyPress private messages.', 'cleantalk-spam-protect'),
 				),
-				'remove_old_spam' => array(
+				'comments__remove_old_spam' => array(
 					'title'       => __('Automatically delete spam comments', 'cleantalk-spam-protect'),
 					'description' => sprintf(__('Delete spam comments older than %d days.', 'cleantalk-spam-protect'),  $apbct->data['spam_store_days']),
 				),

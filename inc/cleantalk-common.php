@@ -725,7 +725,7 @@ function ct_delete_spam_comments() {
 	
     global $apbct;
     
-    if ($apbct->settings['remove_old_spam'] == 1) {
+    if ($apbct->settings['comments__remove_old_spam'] == 1) {
         $last_comments = get_comments(array('status' => 'spam', 'number' => 1000, 'order' => 'ASC'));
         foreach ($last_comments as $c) {
         	$comment_date_gmt = strtotime($c->comment_date_gmt);
