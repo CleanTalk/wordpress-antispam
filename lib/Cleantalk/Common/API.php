@@ -634,7 +634,7 @@ class API
 			'method_name' => 'services_templates_add',
 			'auth_key'    => $api_key,
 			'name'        => $template_name,
-			'optoins_site'=> apbct_get_plugin_options(),
+			'options_site'=> apbct_get_plugin_options(),
 		);
 
 		$result = static::send_request( $request );
@@ -660,7 +660,7 @@ class API
 			'auth_key'    => $api_key,
 			'template_id' => $template_id,
 			'name'        => $template_name,
-			'optoins_site'=> apbct_get_plugin_options(),
+			'options_site'=> apbct_get_plugin_options(),
 		);
 
 		$result = static::send_request( $request );
