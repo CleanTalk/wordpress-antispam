@@ -113,9 +113,7 @@ class DB extends \Cleantalk\Common\DB
 	public function execute($query)
 	{
 		global $wpdb;
-
-		$query = esc_sql( $query );
-
+		
 		$this->db_result = $wpdb->query($query);
 		
 		return $this->db_result;
