@@ -102,7 +102,7 @@ function apbct_settings__set_fileds( $fields ){
 					'type'        => 'checkbox',
 					'title'       => __('SpamFireWall', 'cleantalk-spam-protect'),
 					'description' => __("This option allows to filter spam bots before they access website. Also reduces CPU usage on hosting server and accelerates pages load time.", 'cleantalk-spam-protect'),
-					'childrens'   => array('sfw__anti_flood', 'sfw__anti_crawler'),
+					'childrens'   => array('sfw__anti_flood', 'sfw__anti_crawler', 'sfw__use_delete_to_clear_table'),
 				),
 				'sfw__anti_crawler' => array(
 					'type'        => 'checkbox',
@@ -306,6 +306,11 @@ function apbct_settings__set_fileds( $fields ){
 				'use_buitin_http_api' => array(
 					'title'       => __("Use Wordpress HTTP API", 'cleantalk-spam-protect'),
 					'description' => __('Alternative way to connect the Cloud. Use this if you have connection problems.', 'cleantalk-spam-protect'),
+				),
+                'sfw__use_delete_to_clear_table' => array(
+					'title'       => __("Use DELETE SQL-command instead TRUNCATE to clear tables", 'cleantalk-spam-protect'),
+					'description' => __('Could help if you have blocked SpamFireWall tables in your database.', 'cleantalk-spam-protect'),
+                    'parent' => 'spam_firewall',
 				),
 			),
 		),

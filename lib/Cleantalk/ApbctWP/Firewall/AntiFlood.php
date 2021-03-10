@@ -152,16 +152,17 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule{
 			all_entries = 1,
 			blocked_entries = " . ( strpos( $status, 'DENY' ) !== false ? 1 : 0 ) . ",
 			entries_timestamp = '" . intval( $time ) . "',
-			ua_name = '" . Server::get('HTTP_USER_AGENT') . "'
+			ua_name = %s
 		ON DUPLICATE KEY
 		UPDATE
 			status = '$status',
 			all_entries = all_entries + 1,
 			blocked_entries = blocked_entries" . ( strpos( $status, 'DENY' ) !== false ? ' + 1' : '' ) . ",
 			entries_timestamp = '" . intval( $time ) . "',
-			ua_name = '" . Server::get('HTTP_USER_AGENT') . "'";
-		
-		$this->db->execute( $query );
+			ua_name = %s";
+
+		$this->db->prepare( $query, array( Server::get('HTTP_USER_AGENT'), Server::get('HTTP_USER_AGENT') ) );
+		$this->db->execute( $this->db->get_query() );
 	}
 	
 	public function _die( $result ) {

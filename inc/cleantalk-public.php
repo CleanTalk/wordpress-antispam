@@ -181,7 +181,9 @@ function apbct_init() {
 		if(defined('WPCF7_VERSION')){
 			add_filter('wpcf7_form_elements', 'apbct_form__contactForm7__addField');
 			add_filter('wpcf7_validate', 'apbct_form__contactForm7__tesSpam__before_validate', 999, 2);
-			add_filter(WPCF7_VERSION >= '3.0.0' ? 'wpcf7_spam' : 'wpcf7_acceptance', 'apbct_form__contactForm7__testSpam', 9999, 2);
+			$hook =  WPCF7_VERSION >= '3.0.0' ? 'wpcf7_spam' : 'wpcf7_acceptance';
+			$num_arg = WPCF7_VERSION >= '5.3.0' ? 2 : 1;
+			add_filter( $hook, 'apbct_form__contactForm7__testSpam', 9999, $num_arg );
 		}
 
     // Formidable
@@ -1068,6 +1070,7 @@ function apbct_rorm__formidable__testSpam ( $errors, $form ) {
     $contact_form    = $ct_temp_msg_data['contact']  ?: true;
     $message         = $ct_temp_msg_data['message']  ?: array();
     
+    // @todo convert key 'NUM' to 'input_meta[NUM]'
 	// Adding 'input_meta[]' to every field /Formidable fix/
     // because filed names is 'input_meta[NUM]'
     // Get all scalar values
@@ -2360,7 +2363,7 @@ function apbct_form__contactForm7__tesSpam__before_validate($result = null, $tag
 		$invalid_fields = $result->get_invalid_fields();
 		if(!empty($invalid_fields) && is_array($invalid_fields)){
 			$apbct->validation_error = $invalid_fields[key($invalid_fields)]['reason'];
-            apbct_form__contactForm7__testSpam( false, null );
+            apbct_form__contactForm7__testSpam( false );
 		}
 	}
 
@@ -2370,7 +2373,7 @@ function apbct_form__contactForm7__tesSpam__before_validate($result = null, $tag
 /**
  * Test CF7 message for spam
  */
-function apbct_form__contactForm7__testSpam($spam, $submission ) {
+function apbct_form__contactForm7__testSpam( $spam, $submission = null ) {
 
     global $ct_checkjs_cf7, $apbct;
 
@@ -3333,7 +3336,7 @@ function ct_contact_form_validate() {
         isset($_POST['bbp_topic_content']) ||
         isset($_POST['bbp_reply_content']) ||
         isset($_POST['fscf_submitted']) ||
-        apbct_is_in_uri('/wc-api/') ||
+        apbct_is_in_uri('/wc-api') ||
         isset($_POST['log']) && isset($_POST['pwd']) && isset($_POST['wp-submit']) ||
         isset($_POST[$ct_checkjs_frm]) && $apbct->settings['contact_forms_test'] == 1 ||// Formidable forms
         ( isset($_POST['comment_post_ID']) && ! isset($_POST['comment-submit'] ) ) || // The comment form && ! DW Question & Answer
@@ -3608,7 +3611,7 @@ function ct_contact_form_validate_postdata() {
         isset($_POST['bbp_reply_content']) ||
         isset($_POST['fscf_submitted']) ||
         isset($_POST['log']) && isset($_POST['pwd']) && isset($_POST['wp-submit'])||
-        apbct_is_in_uri('/wc-api/') ||
+        apbct_is_in_uri('/wc-api') ||
 		(isset($_POST['wc_reset_password'], $_POST['_wpnonce'], $_POST['_wp_http_referer'])) || //WooCommerce recovery password form
 		(isset($_POST['woocommerce-login-nonce'], $_POST['login'], $_POST['password'], $_POST['_wp_http_referer'])) || //WooCommerce login form
 		(isset($_POST['provider'], $_POST['authcode']) && $_POST['provider'] == 'Two_Factor_Totp') || //TwoFactor authorization

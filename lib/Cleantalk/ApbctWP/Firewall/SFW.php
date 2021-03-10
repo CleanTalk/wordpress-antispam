@@ -175,16 +175,17 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 			all_entries = 1,
 			blocked_entries = " . ( strpos( $status, 'DENY' ) !== false ? 1 : 0 ) . ",
 			entries_timestamp = '" . $time . "',
-			ua_name = '" . sanitize_text_field( Server::get('HTTP_USER_AGENT') ) . "'
+			ua_name = %s
 		ON DUPLICATE KEY
 		UPDATE
 			status = '$status',
 			all_entries = all_entries + 1,
 			blocked_entries = blocked_entries" . ( strpos( $status, 'DENY' ) !== false ? ' + 1' : '' ) . ",
 			entries_timestamp = '" . intval( $time ) . "',
-			ua_name = '" . sanitize_text_field( Server::get('HTTP_USER_AGENT') ) . "'";
-		
-		$this->db->execute( $query );
+			ua_name = %s";
+
+		$this->db->prepare( $query, array( Server::get('HTTP_USER_AGENT'), Server::get('HTTP_USER_AGENT') ) );
+		$this->db->execute( $this->db->get_query() );
 	}
 	
 	public function actions_for_denied( $result ){
@@ -296,18 +297,19 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 		}
 		
 	}
-	
-	/**
-	 * Sends and wipe SFW log
-	 *
-	 * @param $db
-	 * @param $log_table
-	 * @param string $ct_key API key
-	 *
-	 * @return array|bool array('error' => STRING)
-	 */
-	public static function send_log( $db, $log_table, $ct_key ) {
-		
+    
+    /**
+     * Sends and wipe SFW log
+     *
+     * @param $db
+     * @param $log_table
+     * @param string $ct_key API key
+     * @param bool $use_delete_command Determs whether use DELETE or TRUNCATE to delete the logs table data
+     *
+     * @return array|bool array('error' => STRING)
+     */
+	public static function send_log( $db, $log_table, $ct_key, $use_delete_command ) {
+	    
 		//Getting logs
 		$query = "SELECT * FROM " . $log_table . ";";
 		$db->fetch_all( $query );
@@ -349,8 +351,15 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 			//Checking answer and deleting all lines from the table
 			if( empty( $result['error'] ) ){
 				if( $result['rows'] == count( $data ) ){
-					$db->execute( "TRUNCATE TABLE " . $log_table . ";" );
-
+				    
+                    $db->execute( "BEGIN;" );
+				    if( $use_delete_command ){
+                        $db->execute( "DELETE FROM " . $log_table . ";" );
+                    }else{
+                        $db->execute( "TRUNCATE TABLE " . $log_table . ";" );
+                    }
+                    $db->execute( "COMMIT;" );
+					
 					return $result;
 				}
 				
@@ -360,7 +369,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 			}
 			
 		} else{
-			return $result = array( 'rows' => 0 );
+            return array( 'rows' => 0 );
 		}
 	}
 	

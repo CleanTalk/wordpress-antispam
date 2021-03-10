@@ -3,7 +3,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 5.153.3
+  Version: 5.153.4
   Author: СleanTalk <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -967,26 +967,34 @@ function ct_sfw_update( $api_key = '', $immediate = false ){
 function ct_sfw_send_logs($api_key = '')
 {
 	global $apbct;
-
+	
 	$api_key = !empty($apbct->api_key) ? $apbct->api_key : $api_key;
-
-    if( empty( $api_key ) || $apbct->settings['spam_firewall'] != 1 ){
+	
+    if(
+        time() - $apbct->stats['sfw']['sending_logs__timestamp'] < 180 ||
+        empty( $api_key ) ||
+        $apbct->settings['spam_firewall'] != 1
+    ){
         return true;
     }
+    
+    $apbct->stats['sfw']['sending_logs__timestamp'] = time();
+    $apbct->save('stats');
     
     $result = SFW::send_log(
         DB::getInstance(),
         APBCT_TBL_FIREWALL_LOG,
-        $api_key
+        $api_key,
+        (bool) $apbct->settings['sfw__use_delete_to_clear_table']
     );
     
     if(empty($result['error'])){
-        $apbct->stats['sfw']['last_send_time'] = time();
-        $apbct->stats['sfw']['last_send_amount'] = $result['rows'];
-        $apbct->save('stats');
+        $apbct->stats['sfw']['last_send_time']          = time();
+        $apbct->stats['sfw']['last_send_amount']        = $result['rows'];
         $apbct->error_delete( 'sfw_send_logs', 'save_settings' );
+        $apbct->save('stats');
     }
-
+    
     return $result;
 }
 
