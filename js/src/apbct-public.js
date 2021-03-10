@@ -273,10 +273,21 @@ Object.defineProperty(XMLHttpRequest.prototype, 'responseText', {
 	configurable: true
 
 });
+
+apbct_parseJSON = function( string ){
+	try{
+		var result = JSON.parse( string );
+	}catch( e ){
+		return false;
+	}
+	return result;
+};
+
 apbct_showBlockedResponse = function( response ){
 
-	var response = JSON.parse(response);
-	if (typeof response.apbct !== 'undefined') {
+	var response = apbct_parseJSON( response );
+
+	if (response !== false && typeof response.apbct !== 'undefined') {
 		response = response.apbct;
 		if (response.blocked) {
 			document.dispatchEvent(
