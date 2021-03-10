@@ -580,7 +580,7 @@ If your website has forms that send data to external sources, you can enable opt
 
 == Changelog ==
 
-= 5.153.4 Mar 09 2021 =
+= 5.153.4 Mar 10 2021 =
  * New: SFW. Log could be sent not more often than 3 minutes.
  * New: SFW. Possibility to use DELETE instead of TRUNCATE to delete SFW log.
  * New: Show response for all AJAX forms.
