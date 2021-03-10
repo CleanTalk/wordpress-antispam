@@ -909,38 +909,47 @@ function ct_sfw_update( $api_key = '', $immediate = false ){
                     );
                 } else {
 
-                    $is_first_updating = strpos( $apbct->fw_stats['firewall_updating_id'], 'first' );
+	                $result = SFW::firewall_update__write_to_db__exclusions( DB::getInstance(), APBCT_TBL_FIREWALL_DATA . '_temp' );
 
-                    // @todo We have to handle errors here
-                    SFW::delete_main_data_tables( DB::getInstance() );
-                    // @todo We have to handle errors here
-                    SFW::rename_data_tables( DB::getInstance() );
+	                if( empty( $result['error'] ) && is_int( $result ) ) {
 
-                    //Files array is empty update sfw stats
-                    $apbct->data['last_firewall_updated'] = current_time('timestamp'); // Unused
-                    $apbct->save('data'); // Unused
-                    $apbct->fw_stats['firewall_update_percent'] = 0;
-                    $apbct->fw_stats['firewall_updating_id'] = null;
-                    $apbct->save( 'fw_stats' );
+		                $is_first_updating = strpos( $apbct->fw_stats['firewall_updating_id'], 'first' );
 
-                    //Files array is empty update sfw time
-                    $apbct->stats['sfw']['entries'] = $wpdb->get_var('SELECT COUNT(*) FROM ' . APBCT_TBL_FIREWALL_DATA );
-                    $apbct->stats['sfw']['last_update_time'] = time();
-                    $apbct->save('stats');
+		                // REMOVE AND RENAME
+		                // @todo We have to handle errors here
+		                SFW::delete_main_data_tables( DB::getInstance() );
+		                // @todo We have to handle errors here
+		                SFW::rename_data_tables( DB::getInstance() );
 
-                    // Running sfw update once again in 12 min if entries is < 4000
-                    if( $is_first_updating !== false ) {
-                        if( $apbct->stats['sfw']['entries'] < 4000 ) {
-                            wp_schedule_single_event( time() + 720, 'ct_sfw_update' );
-                        }
-                        delete_option( 'sfw_sync_first' );
-                    }
+		                //Files array is empty update sfw stats
+		                $apbct->data['last_firewall_updated'] = current_time('timestamp'); // Unused
+		                $apbct->save('data'); // Unused
+		                $apbct->fw_stats['firewall_update_percent'] = 0;
+		                $apbct->fw_stats['firewall_updating_id'] = null;
+		                $apbct->save( 'fw_stats' );
 
-                    // Delete update errors
-                    $apbct->error_delete( 'sfw_update', 'save_settings' );
+		                //Files array is empty update sfw time
+		                $apbct->stats['sfw']['entries'] = $wpdb->get_var('SELECT COUNT(*) FROM ' . APBCT_TBL_FIREWALL_DATA );
+		                $apbct->stats['sfw']['last_update_time'] = time();
+		                $apbct->save('stats');
 
-                    // REMOVE AND RENAME
-                    return $result;
+		                // Running sfw update once again in 12 min if entries is < 4000
+		                if( $is_first_updating !== false ) {
+			                if( $apbct->stats['sfw']['entries'] < 4000 ) {
+				                wp_schedule_single_event( time() + 720, 'ct_sfw_update' );
+			                }
+			                delete_option( 'sfw_sync_first' );
+		                }
+
+		                // Delete update errors
+		                $apbct->error_delete( 'sfw_update', 'save_settings' );
+
+		                return $result;
+
+	                } else {
+		                return array( 'error' => 'SFW_UPDATE: EXCLUSIONS: ' . $result['error'] );
+	                }
+
                 }
             }else
                 return $result;
