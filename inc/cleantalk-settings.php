@@ -477,7 +477,7 @@ function apbct_settings__set_fileds__network( $fields ){
 	$additional_fields = array(
 		'main' => array(
 			'fields' => array(
-				'white_label' => array(
+				'wpms__white_label' => array(
 					'type' => 'checkbox',
 					'title' => __('Enable White Label Mode', 'cleantalk-spam-protect'),
 					'description' => sprintf(__("Learn more information %shere%s.", 'cleantalk-spam-protect'), '<a target="_blank" href="https://cleantalk.org/ru/help/hosting-white-label">', '</a>'),
@@ -489,7 +489,7 @@ function apbct_settings__set_fileds__network( $fields ){
 					'title' => __('Hoster API Key', 'cleantalk-spam-protect'),
 					'description' => sprintf(__("You can get it in %sCleantalk's Control Panel%s", 'cleantalk-spam-protect'), '<a target="_blank" href="https://cleantalk.org/my/profile">', '</a>'),
 					'type' => 'text',
-					'parent' => 'white_label',
+					'parent' => 'wpms__white_label',
 					'class' => 'apbct_settings-field_wrapper--sub',
 					'network' => true,
 					'required' => true,
@@ -498,7 +498,7 @@ function apbct_settings__set_fileds__network( $fields ){
 					'title' => __('Plugin name', 'cleantalk-spam-protect'),
 					'description' => sprintf(__("Specify plugin name. Leave empty for deafult %sAntispam by Cleantalk%s", 'cleantalk-spam-protect'), '<b>', '</b>'),
 					'type' => 'text',
-					'parent' => 'white_label',
+					'parent' => 'wpms__white_label',
 					'class' => 'apbct_settings-field_wrapper--sub',
 					'network' => true,
 					'required' => true,
@@ -516,7 +516,7 @@ function apbct_settings__set_fileds__network( $fields ){
 							: ''
 						),
 					'display'        => APBCT_WPMS && is_main_site(),
-					'disabled'       => $apbct->network_settings['white_label'],
+					'disabled'       => $apbct->network_settings['wpms__white_label'],
 					'network' => true,
 				),
 				'wpms__allow_custom_settings' => array(
@@ -1415,7 +1415,7 @@ function apbct_settings__validate($settings) {
 	$settings['apikey'] = defined( 'CLEANTALK_ACCESS_KEY')                           ? CLEANTALK_ACCESS_KEY       : $settings['apikey'];
 	$settings['apikey'] = ! is_main_site() && $apbct->white_label                           ? $apbct->settings['apikey'] : $settings['apikey'];
 	$settings['apikey'] = is_main_site() || $apbct->allow_custom_key || $apbct->white_label ? $settings['apikey']        : $apbct->network_settings['apikey'];
-	$settings['apikey'] = is_main_site() || !$settings['white_label']                       ? $settings['apikey']        : $apbct->settings['apikey'];
+	$settings['apikey'] = is_main_site() || !$settings['wpms__white_label']                       ? $settings['apikey']        : $apbct->settings['apikey'];
 	
 	// Sanitize setting values
 	foreach ($settings as &$setting ){
@@ -1443,7 +1443,7 @@ function apbct_settings__validate($settings) {
 		$network_settings = array(
 			'wpms__allow_custom_key'         => $settings['wpms__allow_custom_key'],
 			'wpms__allow_custom_settings'    => $settings['wpms__allow_custom_settings'],
-			'white_label'              => $settings['white_label'],
+			'wpms__white_label'              => $settings['wpms__white_label'],
 			'white_label__hoster_key'  => $settings['white_label__hoster_key'],
 			'white_label__plugin_name' => $settings['white_label__plugin_name'],
 			'use_settings_template'    => $settings['use_settings_template'],
@@ -1451,7 +1451,7 @@ function apbct_settings__validate($settings) {
 			'use_settings_template_apply_for_current' => $settings['use_settings_template_apply_for_current'],
 			'use_settings_template_apply_for_current_list_sites' => $settings['use_settings_template_apply_for_current_list_sites'],
 		);
-		unset( $settings['wpms__allow_custom_key'], $settings['white_label'], $settings['white_label__hoster_key'], $settings['white_label__plugin_name'] );
+		unset( $settings['wpms__allow_custom_key'], $settings['wpms__white_label'], $settings['white_label__hoster_key'], $settings['white_label__plugin_name'] );
 	}
 	
 	// Drop debug data
@@ -1636,7 +1636,7 @@ function apbct_settings__get_key_auto( $direct_call = false ) {
 	$timezone       = filter_input(INPUT_POST, 'ct_admin_timezone');
 	$language       = apbct_get_server_variable( 'HTTP_ACCEPT_LANGUAGE' );
 	$wpms           = APBCT_WPMS && defined('SUBDOMAIN_INSTALL') && !SUBDOMAIN_INSTALL ? true : false;
-	$white_label    = $apbct->network_settings['white_label']             ? 1                                                   : 0;
+	$white_label    = $apbct->network_settings['wpms__white_label']             ? 1                                                   : 0;
 	$hoster_api_key = $apbct->network_settings['white_label__hoster_key'] ? $apbct->network_settings['white_label__hoster_key'] : '';
 
 	$result = \Cleantalk\ApbctWP\API::method__get_api_key(
@@ -1798,7 +1798,7 @@ function apbct_settings__get__long_description(){
 	$setting_id = $_POST['setting_id'] ? $_POST['setting_id'] : '';
 	
 	$descriptions = array(
-		'white_label'              => array(
+		'wpms__white_label'              => array(
 			'title' => __( 'XSS check', 'cleantalk-spam-protect'),
 			'desc'  => __( 'Cross-Site Scripting (XSS) — prevents malicious code to be executed/sent to any user. As a result malicious scripts can not get access to the cookie files, session tokens and any other confidential information browsers use and store. Such scripts can even overwrite content of HTML pages. CleanTalk WAF monitors for patterns of these parameters and block them.', 'cleantalk-spam-protect'),
 		),

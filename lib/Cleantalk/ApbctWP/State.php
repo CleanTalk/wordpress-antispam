@@ -215,7 +215,7 @@ class State
 		'wpms__allow_custom_settings' => 1,
 		
 		// White label settings
-		'white_label'              => 0,
+		'wpms__white_label'              => 0,
 		'white_label__hoster_key'  => '',
 		'white_label__plugin_name' => 'Anti-Spam by CleanTalk',
 		'use_settings_template'    => 0,

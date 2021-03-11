@@ -361,7 +361,7 @@ function apbct_update_to_5_127_0(){
 			
 			if( defined( 'APBCT_WHITELABEL' ) ){
 				$apbct->network_settings = array(
-					'white_label'              => defined( 'APBCT_WHITELABEL' ) && APBCT_WHITELABEL == true ? 1 : 0,
+					'wpms__white_label'              => defined( 'APBCT_WHITELABEL' ) && APBCT_WHITELABEL == true ? 1 : 0,
 					'white_label__hoster_key'  => defined( 'APBCT_HOSTER_API_KEY' )  ? APBCT_HOSTER_API_KEY : '',
 					'white_label__plugin_name' => defined( 'APBCT_WHITELABEL_NAME' ) ? APBCT_WHITELABEL_NAME : APBCT_NAME,
 				);
@@ -386,11 +386,11 @@ function apbct_update_to_5_127_1(){
 	if(APBCT_WPMS && is_main_site()){
 		global $apbct;
 		$network_settings = get_site_option( 'cleantalk_network_settings' );
-		if( $network_settings !== false && empty( $network_settings['wpms__allow_custom_key'] ) && empty( $network_settings['white_label'] ) ){
+		if( $network_settings !== false && empty( $network_settings['wpms__allow_custom_key'] ) && empty( $network_settings['wpms__white_label'] ) ){
 			$network_settings['wpms__allow_custom_key'] = 1;
 			update_site_option( 'cleantalk_network_settings', $network_settings );
 		}
-		if( $network_settings !== false && $network_settings['white_label'] == 1 && $apbct->data['moderate'] == 0 ){
+		if( $network_settings !== false && $network_settings['wpms__white_label'] == 1 && $apbct->data['moderate'] == 0 ){
 			ct_account_status_check( $network_settings['apikey'] ? $network_settings['apikey'] : $apbct->settings['apikey'], false);
 		}
 	}
@@ -480,7 +480,7 @@ function apbct_update_to_5_138_0() {
 				$result = \Cleantalk\ApbctWP\API::method__notice_paid_till(
 					$settings['api_key'],
 					preg_replace('/http[s]?:\/\//', '', get_option('siteurl'), 1),
-					! is_main_site() && $net_settings['white_label'] ? 'anti-spam-hosting' : 'antispam'
+					! is_main_site() && $net_settings['wpms__white_label'] ? 'anti-spam-hosting' : 'antispam'
 				);
 				
 				if( empty( $result['error'] ) || ! empty( $result['valid'] ) ){

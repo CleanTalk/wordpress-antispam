@@ -82,7 +82,7 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 	// Customize \Cleantalk\ApbctWP\State
 	// Account status
 	
-	$apbct->white_label      = $apbct->network_settings['white_label'];
+	$apbct->white_label      = $apbct->network_settings['wpms__white_label'];
 	$apbct->allow_custom_key = $apbct->network_settings['wpms__allow_custom_key'];
 	$apbct->plugin_name      = $apbct->network_settings['white_label__plugin_name'] ? $apbct->network_settings['white_label__plugin_name'] : APBCT_NAME;
 	$apbct->api_key          = !APBCT_WPMS || $apbct->allow_custom_key || $apbct->white_label ? $apbct->settings['apikey'] : $apbct->network_settings['apikey'];
