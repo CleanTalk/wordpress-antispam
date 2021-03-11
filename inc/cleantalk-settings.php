@@ -481,11 +481,11 @@ function apbct_settings__set_fileds__network( $fields ){
 					'type' => 'checkbox',
 					'title' => __('Enable White Label Mode', 'cleantalk-spam-protect'),
 					'description' => sprintf(__("Learn more information %shere%s.", 'cleantalk-spam-protect'), '<a target="_blank" href="https://cleantalk.org/ru/help/hosting-white-label">', '</a>'),
-					'childrens' => array( 'white_label__hoster_key', 'white_label__plugin_name', 'wpms__allow_custom_key', ),
+					'childrens' => array( 'wpms__white_label__hoster_key', 'white_label__plugin_name', 'wpms__allow_custom_key', ),
 					'disabled' => defined('CLEANTALK_ACCESS_KEY'),
 					'network' => true,
 				),
-				'white_label__hoster_key' => array(
+				'wpms__white_label__hoster_key' => array(
 					'title' => __('Hoster API Key', 'cleantalk-spam-protect'),
 					'description' => sprintf(__("You can get it in %sCleantalk's Control Panel%s", 'cleantalk-spam-protect'), '<a target="_blank" href="https://cleantalk.org/my/profile">', '</a>'),
 					'type' => 'text',
@@ -1444,14 +1444,14 @@ function apbct_settings__validate($settings) {
 			'wpms__allow_custom_key'         => $settings['wpms__allow_custom_key'],
 			'wpms__allow_custom_settings'    => $settings['wpms__allow_custom_settings'],
 			'wpms__white_label'              => $settings['wpms__white_label'],
-			'white_label__hoster_key'  => $settings['white_label__hoster_key'],
+			'wpms__white_label__hoster_key'  => $settings['wpms__white_label__hoster_key'],
 			'white_label__plugin_name' => $settings['white_label__plugin_name'],
 			'use_settings_template'    => $settings['use_settings_template'],
 			'use_settings_template_apply_for_new' => $settings['use_settings_template_apply_for_new'],
 			'use_settings_template_apply_for_current' => $settings['use_settings_template_apply_for_current'],
 			'use_settings_template_apply_for_current_list_sites' => $settings['use_settings_template_apply_for_current_list_sites'],
 		);
-		unset( $settings['wpms__allow_custom_key'], $settings['wpms__white_label'], $settings['white_label__hoster_key'], $settings['white_label__plugin_name'] );
+		unset( $settings['wpms__allow_custom_key'], $settings['wpms__white_label'], $settings['wpms__white_label__hoster_key'], $settings['white_label__plugin_name'] );
 	}
 	
 	// Drop debug data
@@ -1637,7 +1637,7 @@ function apbct_settings__get_key_auto( $direct_call = false ) {
 	$language       = apbct_get_server_variable( 'HTTP_ACCEPT_LANGUAGE' );
 	$wpms           = APBCT_WPMS && defined('SUBDOMAIN_INSTALL') && !SUBDOMAIN_INSTALL ? true : false;
 	$white_label    = $apbct->network_settings['wpms__white_label']             ? 1                                                   : 0;
-	$hoster_api_key = $apbct->network_settings['white_label__hoster_key'] ? $apbct->network_settings['white_label__hoster_key'] : '';
+	$hoster_api_key = $apbct->network_settings['wpms__white_label__hoster_key'] ? $apbct->network_settings['wpms__white_label__hoster_key'] : '';
 
 	$result = \Cleantalk\ApbctWP\API::method__get_api_key(
 		! is_main_site() && $apbct->white_label ? 'anti-spam-hosting' : 'antispam',
@@ -1802,7 +1802,7 @@ function apbct_settings__get__long_description(){
 			'title' => __( 'XSS check', 'cleantalk-spam-protect'),
 			'desc'  => __( 'Cross-Site Scripting (XSS) — prevents malicious code to be executed/sent to any user. As a result malicious scripts can not get access to the cookie files, session tokens and any other confidential information browsers use and store. Such scripts can even overwrite content of HTML pages. CleanTalk WAF monitors for patterns of these parameters and block them.', 'cleantalk-spam-protect'),
 		),
-		'white_label__hoster_key'  => array(
+		'wpms__white_label__hoster_key'  => array(
 			'title' => __( 'SQL-injection check', 'cleantalk-spam-protect'),
 			'desc'  => __( 'SQL Injection — one of the most popular ways to hack websites and programs that work with databases. It is based on injection of a custom SQL code into database queries. It could transmit data through GET, POST requests or cookie files in an SQL code. If a website is vulnerable and execute such injections then it would allow attackers to apply changes to the website\'s MySQL database.', 'cleantalk-spam-protect'),
 		),

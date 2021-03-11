@@ -362,7 +362,7 @@ function apbct_update_to_5_127_0(){
 			if( defined( 'APBCT_WHITELABEL' ) ){
 				$apbct->network_settings = array(
 					'wpms__white_label'              => defined( 'APBCT_WHITELABEL' ) && APBCT_WHITELABEL == true ? 1 : 0,
-					'white_label__hoster_key'  => defined( 'APBCT_HOSTER_API_KEY' )  ? APBCT_HOSTER_API_KEY : '',
+					'wpms__white_label__hoster_key'  => defined( 'APBCT_HOSTER_API_KEY' )  ? APBCT_HOSTER_API_KEY : '',
 					'white_label__plugin_name' => defined( 'APBCT_WHITELABEL_NAME' ) ? APBCT_WHITELABEL_NAME : APBCT_NAME,
 				);
 			}elseif( defined( 'CLEANTALK_ACCESS_KEY' ) ){
