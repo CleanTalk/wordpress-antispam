@@ -752,11 +752,7 @@ function apbct_update_to_5_153_4(){
 
 function apbct_update_to_5_154_0(){
 
-	// Adding cooldown to sending SFW logs
-	global $apbct;
-	$apbct->data['current_settings_template_id'] = null;
-	$apbct->data['current_settings_template_name'] = null;
-	$apbct->saveData();
+	global $apbct, $wpdb;
 
 	// Old setting name => New setting name
 	$keys_map = array(
@@ -816,5 +812,66 @@ function apbct_update_to_5_154_0(){
 		'use_settings_template_apply_for_current_list_sites' => 'multisite__use_settings_template_apply_for_current_list_sites',
 	);
 
+	if( is_multisite() ){
+
+		$network_settings = get_site_option( 'cleantalk_network_settings' );
+
+		if( $network_settings ) {
+			// replacing old key to new keys
+			foreach( $network_settings as $key => $value ){
+				if( array_key_exists( $key, $keys_map ) ) {
+					$_network_settings[$keys_map[$key]] = $value;
+				} else {
+					$_network_settings[$key] = $value;
+				}
+			}
+			update_site_option( 'cleantalk_network_settings', $_network_settings );
+		}
+
+		$initial_blog  = get_current_blog_id();
+		$blogs = array_keys( $wpdb->get_results( 'SELECT blog_id FROM '. $wpdb->blogs, OBJECT_K ) );
+		foreach ( $blogs as $blog ) {
+			switch_to_blog( $blog );
+
+			$settings = get_option( 'cleantalk_settings' );
+
+			if( $settings ) {
+				// replacing old key to new keys
+				foreach( $settings as $key => $value ){
+					if( array_key_exists( $key, $keys_map ) ) {
+						$_settings[$keys_map[$key]] = $value;
+					} else {
+						$_settings[$key] = $value;
+					}
+				}
+				update_option( 'cleantalk_settings', $_settings );
+			}
+
+		}
+		switch_to_blog( $initial_blog );
+
+	} else {
+
+		$apbct->data['current_settings_template_id'] = null;
+		$apbct->data['current_settings_template_name'] = null;
+		$apbct->saveData();
+
+		$settings = (array) $apbct->settings;
+
+		if( $settings ) {
+			// replacing old key to new keys
+			foreach( $settings as $key => $value ){
+				if( array_key_exists( $key, $keys_map ) ) {
+					$_settings[$keys_map[$key]] = $value;
+				} else {
+					$_settings[$key] = $value;
+				}
+			}
+
+			$apbct->settings = $_settings;
+			$apbct->saveSettings();
+		}
+
+	}
 
 }
