@@ -59,6 +59,7 @@ class DB extends \Cleantalk\Common\DB
 		global $apbct;
 		$this->prefix = $apbct->db_prefix;
 	}
+
 	/**
 	 * Set $this->query string for next uses
 	 *
@@ -69,6 +70,16 @@ class DB extends \Cleantalk\Common\DB
 	{
 		$this->query = $query;
 		return $this;
+	}
+
+	/**
+	 * Set $this->query string for next uses
+	 *
+	 * @return string
+	 */
+	public function get_query()
+	{
+		return $this->query;
 	}
 	
 	/**
@@ -148,5 +159,10 @@ class DB extends \Cleantalk\Common\DB
 		$this->result = $wpdb->get_results($query, $response_type);
 		
 		return $this->result;
+	}
+
+	public function get_last_error() {
+		global $wpdb;
+		return $wpdb->last_error;
 	}
 }

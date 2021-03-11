@@ -175,16 +175,17 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 			all_entries = 1,
 			blocked_entries = " . ( strpos( $status, 'DENY' ) !== false ? 1 : 0 ) . ",
 			entries_timestamp = '" . $time . "',
-			ua_name = '" . sanitize_text_field( Server::get('HTTP_USER_AGENT') ) . "'
+			ua_name = %s
 		ON DUPLICATE KEY
 		UPDATE
 			status = '$status',
 			all_entries = all_entries + 1,
 			blocked_entries = blocked_entries" . ( strpos( $status, 'DENY' ) !== false ? ' + 1' : '' ) . ",
 			entries_timestamp = '" . intval( $time ) . "',
-			ua_name = '" . sanitize_text_field( Server::get('HTTP_USER_AGENT') ) . "'";
-		
-		$this->db->execute( $query );
+			ua_name = %s";
+
+		$this->db->prepare( $query, array( Server::get('HTTP_USER_AGENT'), Server::get('HTTP_USER_AGENT') ) );
+		$this->db->execute( $this->db->get_query() );
 	}
 	
 	public function actions_for_denied( $result ){
@@ -538,6 +539,41 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 			}else
 				return array('error' => 'FILE_COULD_NOT_GET_RESPONSE_CODE: '. $response_code['error'] );
 		}
+	}
+
+	public static function firewall_update__write_to_db__exclusions( $db, $db__table__data ) {
+
+		$query = 'INSERT INTO `' . $db__table__data . '` (network, mask, status) VALUES ';
+
+		$exclusions = array();
+
+		//Exclusion for servers IP (SERVER_ADDR)
+		if ( Server::get('HTTP_HOST') ) {
+
+			// Exceptions for local hosts
+			if( ! in_array( Server::get_domain(), array( 'lc', 'loc', 'lh' ) ) ){
+				$exclusions[] = Helper::dns__resolve( Server::get( 'HTTP_HOST' ) );
+				$exclusions[] = '127.0.0.1';
+			}
+		}
+
+		foreach ( $exclusions as $exclusion ) {
+			if ( Helper::ip__validate( $exclusion ) && sprintf( '%u', ip2long( $exclusion ) ) ) {
+				$query .= '(' . sprintf( '%u', ip2long( $exclusion ) ) . ', ' . sprintf( '%u', bindec( str_repeat( '1', 32 ) ) ) . ', 1),';
+			}
+		}
+
+		if( $exclusions ){
+
+			$sql_result = $db->execute( substr( $query, 0, - 1 ) . ';' );
+
+			return $sql_result === false
+				? array( 'error' => 'COULD_NOT_WRITE_TO_DB 4: ' . $db->get_last_error() )
+				: count( $exclusions );
+		}
+
+		return 0;
+
 	}
 
     /**

@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 3.0
 Tested up to: 5.7
 Requires PHP: 5.4
-Stable tag: 5.153.3
+Stable tag: 5.153.5
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -579,6 +579,18 @@ If your website has forms that send data to external sources, you can enable opt
 10. Website's options.
 
 == Changelog ==
+
+= 5.153.5 Mar 10 2021 =
+ * Fix: Show response for all AJAX forms.
+
+= 5.153.4 Mar 10 2021 =
+ * New: SFW. Log could be sent not more often than 3 minutes.
+ * New: SFW. Possibility to use DELETE instead of TRUNCATE to delete SFW log.
+ * New: Show response for all AJAX forms.
+ * Fix: SFW. Sending log. Committing transaction after TRUNCATE log table.
+ * Fix: Integration. CF7 different versions compatibility fixed.
+ * Fix: Exclusion for WooCommerce.
+ * Fix: Possible SQL-injections fixed.
 
 = 5.153.3 Feb 25 2021 =
  * Fix: Security. Preparing UA string for writing to the DB.
