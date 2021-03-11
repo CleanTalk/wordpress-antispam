@@ -481,7 +481,7 @@ function apbct_settings__set_fileds__network( $fields ){
 					'type' => 'checkbox',
 					'title' => __('Enable White Label Mode', 'cleantalk-spam-protect'),
 					'description' => sprintf(__("Learn more information %shere%s.", 'cleantalk-spam-protect'), '<a target="_blank" href="https://cleantalk.org/ru/help/hosting-white-label">', '</a>'),
-					'childrens' => array( 'wpms__white_label__hoster_key', 'white_label__plugin_name', 'wpms__allow_custom_key', ),
+					'childrens' => array( 'wpms__white_label__hoster_key', 'wpms__white_label__plugin_name', 'wpms__allow_custom_key', ),
 					'disabled' => defined('CLEANTALK_ACCESS_KEY'),
 					'network' => true,
 				),
@@ -494,7 +494,7 @@ function apbct_settings__set_fileds__network( $fields ){
 					'network' => true,
 					'required' => true,
 				),
-				'white_label__plugin_name' => array(
+				'wpms__white_label__plugin_name' => array(
 					'title' => __('Plugin name', 'cleantalk-spam-protect'),
 					'description' => sprintf(__("Specify plugin name. Leave empty for deafult %sAntispam by Cleantalk%s", 'cleantalk-spam-protect'), '<b>', '</b>'),
 					'type' => 'text',
@@ -1445,13 +1445,13 @@ function apbct_settings__validate($settings) {
 			'wpms__allow_custom_settings'    => $settings['wpms__allow_custom_settings'],
 			'wpms__white_label'              => $settings['wpms__white_label'],
 			'wpms__white_label__hoster_key'  => $settings['wpms__white_label__hoster_key'],
-			'white_label__plugin_name' => $settings['white_label__plugin_name'],
+			'wpms__white_label__plugin_name' => $settings['wpms__white_label__plugin_name'],
 			'use_settings_template'    => $settings['use_settings_template'],
 			'use_settings_template_apply_for_new' => $settings['use_settings_template_apply_for_new'],
 			'use_settings_template_apply_for_current' => $settings['use_settings_template_apply_for_current'],
 			'use_settings_template_apply_for_current_list_sites' => $settings['use_settings_template_apply_for_current_list_sites'],
 		);
-		unset( $settings['wpms__allow_custom_key'], $settings['wpms__white_label'], $settings['wpms__white_label__hoster_key'], $settings['white_label__plugin_name'] );
+		unset( $settings['wpms__allow_custom_key'], $settings['wpms__white_label'], $settings['wpms__white_label__hoster_key'], $settings['wpms__white_label__plugin_name'] );
 	}
 	
 	// Drop debug data
@@ -1806,7 +1806,7 @@ function apbct_settings__get__long_description(){
 			'title' => __( 'SQL-injection check', 'cleantalk-spam-protect'),
 			'desc'  => __( 'SQL Injection — one of the most popular ways to hack websites and programs that work with databases. It is based on injection of a custom SQL code into database queries. It could transmit data through GET, POST requests or cookie files in an SQL code. If a website is vulnerable and execute such injections then it would allow attackers to apply changes to the website\'s MySQL database.', 'cleantalk-spam-protect'),
 		),
-		'white_label__plugin_name' => array(
+		'wpms__white_label__plugin_name' => array(
 			'title' => __( 'Check uploaded files', 'cleantalk-spam-protect'),
 			'desc'  => __( 'The option checks each uploaded file to a website for malicious code. If it\'s possible for visitors to upload files to a website, for instance a work resume, then attackers could abuse it and upload an infected file to execute it later and get access to your website.', 'cleantalk-spam-protect'),
 		),

@@ -84,7 +84,7 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 	
 	$apbct->white_label      = $apbct->network_settings['wpms__white_label'];
 	$apbct->allow_custom_key = $apbct->network_settings['wpms__allow_custom_key'];
-	$apbct->plugin_name      = $apbct->network_settings['white_label__plugin_name'] ? $apbct->network_settings['white_label__plugin_name'] : APBCT_NAME;
+	$apbct->plugin_name      = $apbct->network_settings['wpms__white_label__plugin_name'] ? $apbct->network_settings['wpms__white_label__plugin_name'] : APBCT_NAME;
 	$apbct->api_key          = !APBCT_WPMS || $apbct->allow_custom_key || $apbct->white_label ? $apbct->settings['apikey'] : $apbct->network_settings['apikey'];
 	$apbct->key_is_ok        = !APBCT_WPMS || $apbct->allow_custom_key || $apbct->white_label ? $apbct->data['key_is_ok']  : $apbct->network_data['key_is_ok'];
 	$apbct->moderate         = !APBCT_WPMS || $apbct->allow_custom_key || $apbct->white_label ? $apbct->data['moderate']   : $apbct->network_data['moderate'];
