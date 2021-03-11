@@ -154,12 +154,12 @@ class CleantalkSettingsTemplates {
 
 		$templatesSet .= '<p><select id="apbct_settings_templates_import" >';
 		foreach( $templates as $template ) {
-			$templatesSet .= '<option 
-								data-id="' . $template['template_id'] . '"
-								data-name="' . $template['name'] . '"
-								data-settings="' . $template['options_site'] . '">'
+			$templatesSet .= "<option 
+								data-id='" . $template['template_id'] . "'
+								data-name='" . $template['name'] . "''
+								data-settings='" . $template['options_site'] . "'>"
 			                 . $template['name']
-			                 . '</option>';
+			                 . "</option>";
 		}
 		$templatesSet .= '</select></p>';
 		$button       = $this->getImportButton();
