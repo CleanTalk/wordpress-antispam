@@ -546,11 +546,11 @@ function apbct_settings__set_fileds__network( $fields ){
 					'title' => __('Apply for current sites.', 'cleantalk-spam-protect'),
 					'description' => __("Apply current settings template for selected sites.", 'cleantalk-spam-protect'),
 					'parent' => 'wpms__use_settings_template',
-					'childrens' => array( 'use_settings_template_apply_for_current_list_sites'),
+					'childrens' => array( 'wpms__use_settings_template_apply_for_current_list_sites'),
 					'class' => 'apbct_settings-field_wrapper--sub',
 					'network' => true,
 				),
-				'use_settings_template_apply_for_current_list_sites' => array(
+				'wpms__use_settings_template_apply_for_current_list_sites' => array(
 					'type'                    => 'select',
 					'multiple'                => true,
 					'options_callback'        => 'apbct_get_all_child_domains',
@@ -1449,7 +1449,7 @@ function apbct_settings__validate($settings) {
 			'wpms__use_settings_template'    => $settings['wpms__use_settings_template'],
 			'wpms__use_settings_template_apply_for_new' => $settings['wpms__use_settings_template_apply_for_new'],
 			'wpms__use_settings_template_apply_for_current' => $settings['wpms__use_settings_template_apply_for_current'],
-			'use_settings_template_apply_for_current_list_sites' => $settings['use_settings_template_apply_for_current_list_sites'],
+			'wpms__use_settings_template_apply_for_current_list_sites' => $settings['wpms__use_settings_template_apply_for_current_list_sites'],
 		);
 		unset( $settings['wpms__allow_custom_key'], $settings['wpms__white_label'], $settings['wpms__white_label__hoster_key'], $settings['wpms__white_label__plugin_name'] );
 	}
@@ -1488,8 +1488,8 @@ function apbct_settings__validate($settings) {
 				'service_id'  => $apbct->data['service_id'],
 			);
 			$apbct->saveNetworkData();
-			if (isset($settings['use_settings_template_apply_for_current_list_sites']) && !empty($settings['use_settings_template_apply_for_current_list_sites'])) {
-				apbct_update_blogs_options($settings['use_settings_template_apply_for_current_list_sites'], $settings);
+			if (isset($settings['wpms__use_settings_template_apply_for_current_list_sites']) && !empty($settings['wpms__use_settings_template_apply_for_current_list_sites'])) {
+				apbct_update_blogs_options($settings['wpms__use_settings_template_apply_for_current_list_sites'], $settings);
 			}
 		}
 		if(!$apbct->white_label && !is_main_site() && !$apbct->allow_custom_key){
@@ -1580,8 +1580,8 @@ function apbct_settings__sync( $direct_call = false ){
 				'service_id'  => $apbct->data['service_id'],
 			);
 			$apbct->saveNetworkData();
-			if (isset($settings['use_settings_template_apply_for_current_list_sites']) && !empty($settings['use_settings_template_apply_for_current_list_sites'])) {
-				apbct_update_blogs_options($settings['use_settings_template_apply_for_current_list_sites'], $settings);
+			if (isset($settings['wpms__use_settings_template_apply_for_current_list_sites']) && !empty($settings['wpms__use_settings_template_apply_for_current_list_sites'])) {
+				apbct_update_blogs_options($settings['wpms__use_settings_template_apply_for_current_list_sites'], $settings);
 			}
 		}
 		if(!$apbct->white_label && !is_main_site() && !$apbct->allow_custom_key){
