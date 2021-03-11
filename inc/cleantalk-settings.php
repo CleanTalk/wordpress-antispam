@@ -481,7 +481,7 @@ function apbct_settings__set_fileds__network( $fields ){
 					'type' => 'checkbox',
 					'title' => __('Enable White Label Mode', 'cleantalk-spam-protect'),
 					'description' => sprintf(__("Learn more information %shere%s.", 'cleantalk-spam-protect'), '<a target="_blank" href="https://cleantalk.org/ru/help/hosting-white-label">', '</a>'),
-					'childrens' => array( 'white_label__hoster_key', 'white_label__plugin_name', 'allow_custom_key', ),
+					'childrens' => array( 'white_label__hoster_key', 'white_label__plugin_name', 'wpms__allow_custom_key', ),
 					'disabled' => defined('CLEANTALK_ACCESS_KEY'),
 					'network' => true,
 				),
@@ -503,7 +503,7 @@ function apbct_settings__set_fileds__network( $fields ){
 					'network' => true,
 					'required' => true,
 				),
-				'allow_custom_key' => array(
+				'wpms__allow_custom_key' => array(
 					'type'           => 'checkbox',
 					'title'          => __('Allow users to use other key', 'cleantalk-spam-protect'),
 					'description'    => __('Allow users to use different Access key in their plugin settings on child blogs. They could use different CleanTalk account.', 'cleantalk-spam-protect')
@@ -1441,7 +1441,7 @@ function apbct_settings__validate($settings) {
 	// WPMS Logic.
 	if(APBCT_WPMS && is_main_site()){
 		$network_settings = array(
-			'allow_custom_key'         => $settings['allow_custom_key'],
+			'wpms__allow_custom_key'         => $settings['wpms__allow_custom_key'],
 			'allow_custom_settings'    => $settings['allow_custom_settings'],
 			'white_label'              => $settings['white_label'],
 			'white_label__hoster_key'  => $settings['white_label__hoster_key'],
@@ -1451,7 +1451,7 @@ function apbct_settings__validate($settings) {
 			'use_settings_template_apply_for_current' => $settings['use_settings_template_apply_for_current'],
 			'use_settings_template_apply_for_current_list_sites' => $settings['use_settings_template_apply_for_current_list_sites'],
 		);
-		unset( $settings['allow_custom_key'], $settings['white_label'], $settings['white_label__hoster_key'], $settings['white_label__plugin_name'] );
+		unset( $settings['wpms__allow_custom_key'], $settings['white_label'], $settings['white_label__hoster_key'], $settings['white_label__plugin_name'] );
 	}
 	
 	// Drop debug data

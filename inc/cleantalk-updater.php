@@ -367,7 +367,7 @@ function apbct_update_to_5_127_0(){
 				);
 			}elseif( defined( 'CLEANTALK_ACCESS_KEY' ) ){
 				$apbct->network_settings = array(
-					'allow_custom_key' => 0,
+					'wpms__allow_custom_key' => 0,
 					'apikey'           => CLEANTALK_ACCESS_KEY,
 				);
 			}
@@ -386,8 +386,8 @@ function apbct_update_to_5_127_1(){
 	if(APBCT_WPMS && is_main_site()){
 		global $apbct;
 		$network_settings = get_site_option( 'cleantalk_network_settings' );
-		if( $network_settings !== false && empty( $network_settings['allow_custom_key'] ) && empty( $network_settings['white_label'] ) ){
-			$network_settings['allow_custom_key'] = 1;
+		if( $network_settings !== false && empty( $network_settings['wpms__allow_custom_key'] ) && empty( $network_settings['white_label'] ) ){
+			$network_settings['wpms__allow_custom_key'] = 1;
 			update_site_option( 'cleantalk_network_settings', $network_settings );
 		}
 		if( $network_settings !== false && $network_settings['white_label'] == 1 && $apbct->data['moderate'] == 0 ){
@@ -468,7 +468,7 @@ function apbct_update_to_5_138_0() {
 			apbct_activation__create_tables($sqls);
 			
 			// Getting key
-			$settings = $net_settings['allow_custom_key']
+			$settings = $net_settings['wpms__allow_custom_key']
 				? get_option('cleantalk_settings')
 				: $main_blog_settings;
 			
