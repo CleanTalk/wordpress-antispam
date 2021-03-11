@@ -444,10 +444,23 @@ function apbct_is_skip_request( $ajax = false ) {
 
 function apbct_get_plugin_options() {
 	global $apbct;
-	$settings = $apbct->settings;
+	$settings = (array) $apbct->settings;
+	// Remove apikey from export
 	if( isset( $settings['apikey'] ) ) {
 		unset( $settings['apikey'] );
 	}
+	// Remove misc__debug_ajax from export
+	if( isset( $settings['misc__debug_ajax'] ) ) {
+		unset( $settings['misc__debug_ajax'] );
+	}
+	// Remove wpms__white_label__hoster_key from export
+	if( isset( $settings['wpms__white_label__hoster_key'] ) ) {
+		unset( $settings['wpms__white_label__hoster_key'] );
+	}
+	// Remove all WPMS from export
+	$settings = array_filter( $settings, function( $key ){
+		return strpos( $key, 'wpms__' ) === false;
+	}, ARRAY_FILTER_USE_KEY );
 	return json_encode( $settings, JSON_FORCE_OBJECT );
 }
 
