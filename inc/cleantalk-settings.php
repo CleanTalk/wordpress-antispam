@@ -519,7 +519,7 @@ function apbct_settings__set_fileds__network( $fields ){
 					'disabled'       => $apbct->network_settings['white_label'],
 					'network' => true,
 				),
-				'allow_custom_settings' => array(
+				'wpms__allow_custom_settings' => array(
 					'type'           => 'checkbox',
 					'title'          => __('Allow users to manage plugin settings', 'cleantalk-spam-protect'),
 					'description'    => __('Allow to change settings on child sites.', 'cleantalk-spam-protect'),
@@ -1200,7 +1200,7 @@ function apbct_settings__field__draw($params = array()){
 	$disabled = $params['parent'] && !$value_parent                                                                 ? ' disabled="disabled"' : '';        // Strait
 	$disabled = $params['parent'] && $params['reverse_trigger'] && !$value_parent                                   ? ' disabled="disabled"' : $disabled; // Reverse logic
 	$disabled = $params['disabled']                                                                                 ? ' disabled="disabled"' : $disabled; // Direct disable from params
-	$disabled = ! is_main_site() && $apbct->network_settings && ! $apbct->network_settings['allow_custom_settings'] ? ' disabled="disabled"' : $disabled; // Disabled by super admin on sub-sites
+	$disabled = ! is_main_site() && $apbct->network_settings && ! $apbct->network_settings['wpms__allow_custom_settings'] ? ' disabled="disabled"' : $disabled; // Disabled by super admin on sub-sites
 	
 	$childrens =  $params['childrens'] ? 'apbct_setting---' . implode(",apbct_setting---",$params['childrens']) : '';
 	$hide      =  $params['hide']      ? implode(",",$params['hide'])      : '';
@@ -1379,7 +1379,7 @@ function apbct_settings__validate($settings) {
 	global $apbct;
 	
 	// If user is not allowed to manage settings. Get settings from the storage
-	if( ! is_main_site() && ( ! $apbct->network_settings['allow_custom_settings'] ) ){
+	if( ! is_main_site() && ( ! $apbct->network_settings['wpms__allow_custom_settings'] ) ){
 		foreach ($apbct->settings as $key => $setting){
 			$settings[ $key ] = $setting;
 		}
@@ -1442,7 +1442,7 @@ function apbct_settings__validate($settings) {
 	if(APBCT_WPMS && is_main_site()){
 		$network_settings = array(
 			'wpms__allow_custom_key'         => $settings['wpms__allow_custom_key'],
-			'allow_custom_settings'    => $settings['allow_custom_settings'],
+			'wpms__allow_custom_settings'    => $settings['wpms__allow_custom_settings'],
 			'white_label'              => $settings['white_label'],
 			'white_label__hoster_key'  => $settings['white_label__hoster_key'],
 			'white_label__plugin_name' => $settings['white_label__plugin_name'],

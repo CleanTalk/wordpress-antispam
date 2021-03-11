@@ -212,7 +212,7 @@ class State
 		// Key
 		'apikey'                => '',
 		'wpms__allow_custom_key'      => 1,
-		'allow_custom_settings' => 1,
+		'wpms__allow_custom_settings' => 1,
 		
 		// White label settings
 		'white_label'              => 0,
