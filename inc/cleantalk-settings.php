@@ -530,10 +530,10 @@ function apbct_settings__set_fileds__network( $fields ){
 					'type' => 'checkbox',
 					'title' => __('Use settings template', 'cleantalk-spam-protect'),
 					'description' => __("Use the current settings template for child sites.", 'cleantalk-spam-protect'),
-					'childrens' => array( 'use_settings_template_apply_for_new', 'use_settings_template_apply_for_current'),
+					'childrens' => array( 'wpms__use_settings_template_apply_for_new', 'use_settings_template_apply_for_current'),
 					'network' => true,
 				),
-				'use_settings_template_apply_for_new' => array(
+				'wpms__use_settings_template_apply_for_new' => array(
 					'type' => 'checkbox',
 					'title' => __('Apply for newly added sites.', 'cleantalk-spam-protect'),
 					'description' => __("The newly added site will have the same preset settings template.", 'cleantalk-spam-protect'),
@@ -1447,7 +1447,7 @@ function apbct_settings__validate($settings) {
 			'wpms__white_label__hoster_key'  => $settings['wpms__white_label__hoster_key'],
 			'wpms__white_label__plugin_name' => $settings['wpms__white_label__plugin_name'],
 			'wpms__use_settings_template'    => $settings['wpms__use_settings_template'],
-			'use_settings_template_apply_for_new' => $settings['use_settings_template_apply_for_new'],
+			'wpms__use_settings_template_apply_for_new' => $settings['wpms__use_settings_template_apply_for_new'],
 			'use_settings_template_apply_for_current' => $settings['use_settings_template_apply_for_current'],
 			'use_settings_template_apply_for_current_list_sites' => $settings['use_settings_template_apply_for_current_list_sites'],
 		);
