@@ -477,33 +477,33 @@ function apbct_settings__set_fileds__network( $fields ){
 	$additional_fields = array(
 		'main' => array(
 			'fields' => array(
-				'wpms__white_label' => array(
+				'multisite__white_label' => array(
 					'type' => 'checkbox',
 					'title' => __('Enable White Label Mode', 'cleantalk-spam-protect'),
 					'description' => sprintf(__("Learn more information %shere%s.", 'cleantalk-spam-protect'), '<a target="_blank" href="https://cleantalk.org/ru/help/hosting-white-label">', '</a>'),
-					'childrens' => array( 'wpms__white_label__hoster_key', 'wpms__white_label__plugin_name', 'wpms__allow_custom_key', ),
+					'childrens' => array( 'multisite__white_label__hoster_key', 'multisite__white_label__plugin_name', 'multisite__allow_custom_key', ),
 					'disabled' => defined('CLEANTALK_ACCESS_KEY'),
 					'network' => true,
 				),
-				'wpms__white_label__hoster_key' => array(
+				'multisite__white_label__hoster_key' => array(
 					'title' => __('Hoster API Key', 'cleantalk-spam-protect'),
 					'description' => sprintf(__("You can get it in %sCleantalk's Control Panel%s", 'cleantalk-spam-protect'), '<a target="_blank" href="https://cleantalk.org/my/profile">', '</a>'),
 					'type' => 'text',
-					'parent' => 'wpms__white_label',
+					'parent' => 'multisite__white_label',
 					'class' => 'apbct_settings-field_wrapper--sub',
 					'network' => true,
 					'required' => true,
 				),
-				'wpms__white_label__plugin_name' => array(
+				'multisite__white_label__plugin_name' => array(
 					'title' => __('Plugin name', 'cleantalk-spam-protect'),
 					'description' => sprintf(__("Specify plugin name. Leave empty for deafult %sAntispam by Cleantalk%s", 'cleantalk-spam-protect'), '<b>', '</b>'),
 					'type' => 'text',
-					'parent' => 'wpms__white_label',
+					'parent' => 'multisite__white_label',
 					'class' => 'apbct_settings-field_wrapper--sub',
 					'network' => true,
 					'required' => true,
 				),
-				'wpms__allow_custom_key' => array(
+				'multisite__allow_custom_key' => array(
 					'type'           => 'checkbox',
 					'title'          => __('Allow users to use other key', 'cleantalk-spam-protect'),
 					'description'    => __('Allow users to use different Access key in their plugin settings on child blogs. They could use different CleanTalk account.', 'cleantalk-spam-protect')
@@ -516,47 +516,47 @@ function apbct_settings__set_fileds__network( $fields ){
 							: ''
 						),
 					'display'        => APBCT_WPMS && is_main_site(),
-					'disabled'       => $apbct->network_settings['wpms__white_label'],
+					'disabled'       => $apbct->network_settings['multisite__white_label'],
 					'network' => true,
 				),
-				'wpms__allow_custom_settings' => array(
+				'multisite__allow_custom_settings' => array(
 					'type'           => 'checkbox',
 					'title'          => __('Allow users to manage plugin settings', 'cleantalk-spam-protect'),
 					'description'    => __('Allow to change settings on child sites.', 'cleantalk-spam-protect'),
 					'display'        => APBCT_WPMS && is_main_site(),
 					'network'        => true,
 				),
-				'wpms__use_settings_template' => array(
+				'multisite__use_settings_template' => array(
 					'type' => 'checkbox',
 					'title' => __('Use settings template', 'cleantalk-spam-protect'),
 					'description' => __("Use the current settings template for child sites.", 'cleantalk-spam-protect'),
-					'childrens' => array( 'wpms__use_settings_template_apply_for_new', 'wpms__use_settings_template_apply_for_current'),
+					'childrens' => array( 'multisite__use_settings_template_apply_for_new', 'multisite__use_settings_template_apply_for_current'),
 					'network' => true,
 				),
-				'wpms__use_settings_template_apply_for_new' => array(
+				'multisite__use_settings_template_apply_for_new' => array(
 					'type' => 'checkbox',
 					'title' => __('Apply for newly added sites.', 'cleantalk-spam-protect'),
 					'description' => __("The newly added site will have the same preset settings template.", 'cleantalk-spam-protect'),
-					'parent' => 'wpms__use_settings_template',
+					'parent' => 'multisite__use_settings_template',
 					'class' => 'apbct_settings-field_wrapper--sub',
 					'network' => true,
 				),
-				'wpms__use_settings_template_apply_for_current' => array(
+				'multisite__use_settings_template_apply_for_current' => array(
 					'type' => 'checkbox',
 					'title' => __('Apply for current sites.', 'cleantalk-spam-protect'),
 					'description' => __("Apply current settings template for selected sites.", 'cleantalk-spam-protect'),
-					'parent' => 'wpms__use_settings_template',
-					'childrens' => array( 'wpms__use_settings_template_apply_for_current_list_sites'),
+					'parent' => 'multisite__use_settings_template',
+					'childrens' => array( 'multisite__use_settings_template_apply_for_current_list_sites'),
 					'class' => 'apbct_settings-field_wrapper--sub',
 					'network' => true,
 				),
-				'wpms__use_settings_template_apply_for_current_list_sites' => array(
+				'multisite__use_settings_template_apply_for_current_list_sites' => array(
 					'type'                    => 'select',
 					'multiple'                => true,
 					'options_callback'        => 'apbct_get_all_child_domains',
 					'options_callback_params' => array(true),
 					'class' => 'apbct_settings-field_wrapper--sub',
-					'parent' => 'wpms__use_settings_template_apply_for_current',
+					'parent' => 'multisite__use_settings_template_apply_for_current',
 					'description'             => __('Sites to apply settings. Hold CTRL to select multiple sites.', 'cleantalk-spam-protect'),
 					'network' => true,
 				),
@@ -1200,7 +1200,7 @@ function apbct_settings__field__draw($params = array()){
 	$disabled = $params['parent'] && !$value_parent                                                                 ? ' disabled="disabled"' : '';        // Strait
 	$disabled = $params['parent'] && $params['reverse_trigger'] && !$value_parent                                   ? ' disabled="disabled"' : $disabled; // Reverse logic
 	$disabled = $params['disabled']                                                                                 ? ' disabled="disabled"' : $disabled; // Direct disable from params
-	$disabled = ! is_main_site() && $apbct->network_settings && ! $apbct->network_settings['wpms__allow_custom_settings'] ? ' disabled="disabled"' : $disabled; // Disabled by super admin on sub-sites
+	$disabled = ! is_main_site() && $apbct->network_settings && ! $apbct->network_settings['multisite__allow_custom_settings'] ? ' disabled="disabled"' : $disabled; // Disabled by super admin on sub-sites
 	
 	$childrens =  $params['childrens'] ? 'apbct_setting---' . implode(",apbct_setting---",$params['childrens']) : '';
 	$hide      =  $params['hide']      ? implode(",",$params['hide'])      : '';
@@ -1379,7 +1379,7 @@ function apbct_settings__validate($settings) {
 	global $apbct;
 	
 	// If user is not allowed to manage settings. Get settings from the storage
-	if( ! is_main_site() && ( ! $apbct->network_settings['wpms__allow_custom_settings'] ) ){
+	if( ! is_main_site() && ( ! $apbct->network_settings['multisite__allow_custom_settings'] ) ){
 		foreach ($apbct->settings as $key => $setting){
 			$settings[ $key ] = $setting;
 		}
@@ -1415,7 +1415,7 @@ function apbct_settings__validate($settings) {
 	$settings['apikey'] = defined( 'CLEANTALK_ACCESS_KEY')                           ? CLEANTALK_ACCESS_KEY       : $settings['apikey'];
 	$settings['apikey'] = ! is_main_site() && $apbct->white_label                           ? $apbct->settings['apikey'] : $settings['apikey'];
 	$settings['apikey'] = is_main_site() || $apbct->allow_custom_key || $apbct->white_label ? $settings['apikey']        : $apbct->network_settings['apikey'];
-	$settings['apikey'] = is_main_site() || !$settings['wpms__white_label']                       ? $settings['apikey']        : $apbct->settings['apikey'];
+	$settings['apikey'] = is_main_site() || !$settings['multisite__white_label']                       ? $settings['apikey']        : $apbct->settings['apikey'];
 	
 	// Sanitize setting values
 	foreach ($settings as &$setting ){
@@ -1441,17 +1441,17 @@ function apbct_settings__validate($settings) {
 	// WPMS Logic.
 	if(APBCT_WPMS && is_main_site()){
 		$network_settings = array(
-			'wpms__allow_custom_key'         => $settings['wpms__allow_custom_key'],
-			'wpms__allow_custom_settings'    => $settings['wpms__allow_custom_settings'],
-			'wpms__white_label'              => $settings['wpms__white_label'],
-			'wpms__white_label__hoster_key'  => $settings['wpms__white_label__hoster_key'],
-			'wpms__white_label__plugin_name' => $settings['wpms__white_label__plugin_name'],
-			'wpms__use_settings_template'    => $settings['wpms__use_settings_template'],
-			'wpms__use_settings_template_apply_for_new' => $settings['wpms__use_settings_template_apply_for_new'],
-			'wpms__use_settings_template_apply_for_current' => $settings['wpms__use_settings_template_apply_for_current'],
-			'wpms__use_settings_template_apply_for_current_list_sites' => $settings['wpms__use_settings_template_apply_for_current_list_sites'],
+			'multisite__allow_custom_key'         => $settings['multisite__allow_custom_key'],
+			'multisite__allow_custom_settings'    => $settings['multisite__allow_custom_settings'],
+			'multisite__white_label'              => $settings['multisite__white_label'],
+			'multisite__white_label__hoster_key'  => $settings['multisite__white_label__hoster_key'],
+			'multisite__white_label__plugin_name' => $settings['multisite__white_label__plugin_name'],
+			'multisite__use_settings_template'    => $settings['multisite__use_settings_template'],
+			'multisite__use_settings_template_apply_for_new' => $settings['multisite__use_settings_template_apply_for_new'],
+			'multisite__use_settings_template_apply_for_current' => $settings['multisite__use_settings_template_apply_for_current'],
+			'multisite__use_settings_template_apply_for_current_list_sites' => $settings['multisite__use_settings_template_apply_for_current_list_sites'],
 		);
-		unset( $settings['wpms__allow_custom_key'], $settings['wpms__white_label'], $settings['wpms__white_label__hoster_key'], $settings['wpms__white_label__plugin_name'] );
+		unset( $settings['multisite__allow_custom_key'], $settings['multisite__white_label'], $settings['multisite__white_label__hoster_key'], $settings['multisite__white_label__plugin_name'] );
 	}
 	
 	// Drop debug data
@@ -1488,8 +1488,8 @@ function apbct_settings__validate($settings) {
 				'service_id'  => $apbct->data['service_id'],
 			);
 			$apbct->saveNetworkData();
-			if (isset($settings['wpms__use_settings_template_apply_for_current_list_sites']) && !empty($settings['wpms__use_settings_template_apply_for_current_list_sites'])) {
-				apbct_update_blogs_options($settings['wpms__use_settings_template_apply_for_current_list_sites'], $settings);
+			if (isset($settings['multisite__use_settings_template_apply_for_current_list_sites']) && !empty($settings['multisite__use_settings_template_apply_for_current_list_sites'])) {
+				apbct_update_blogs_options($settings['multisite__use_settings_template_apply_for_current_list_sites'], $settings);
 			}
 		}
 		if(!$apbct->white_label && !is_main_site() && !$apbct->allow_custom_key){
@@ -1580,8 +1580,8 @@ function apbct_settings__sync( $direct_call = false ){
 				'service_id'  => $apbct->data['service_id'],
 			);
 			$apbct->saveNetworkData();
-			if (isset($settings['wpms__use_settings_template_apply_for_current_list_sites']) && !empty($settings['wpms__use_settings_template_apply_for_current_list_sites'])) {
-				apbct_update_blogs_options($settings['wpms__use_settings_template_apply_for_current_list_sites'], $settings);
+			if (isset($settings['multisite__use_settings_template_apply_for_current_list_sites']) && !empty($settings['multisite__use_settings_template_apply_for_current_list_sites'])) {
+				apbct_update_blogs_options($settings['multisite__use_settings_template_apply_for_current_list_sites'], $settings);
 			}
 		}
 		if(!$apbct->white_label && !is_main_site() && !$apbct->allow_custom_key){
@@ -1636,8 +1636,8 @@ function apbct_settings__get_key_auto( $direct_call = false ) {
 	$timezone       = filter_input(INPUT_POST, 'ct_admin_timezone');
 	$language       = apbct_get_server_variable( 'HTTP_ACCEPT_LANGUAGE' );
 	$wpms           = APBCT_WPMS && defined('SUBDOMAIN_INSTALL') && !SUBDOMAIN_INSTALL ? true : false;
-	$white_label    = $apbct->network_settings['wpms__white_label']             ? 1                                                   : 0;
-	$hoster_api_key = $apbct->network_settings['wpms__white_label__hoster_key'] ? $apbct->network_settings['wpms__white_label__hoster_key'] : '';
+	$white_label    = $apbct->network_settings['multisite__white_label']             ? 1                                                   : 0;
+	$hoster_api_key = $apbct->network_settings['multisite__white_label__hoster_key'] ? $apbct->network_settings['multisite__white_label__hoster_key'] : '';
 
 	$result = \Cleantalk\ApbctWP\API::method__get_api_key(
 		! is_main_site() && $apbct->white_label ? 'anti-spam-hosting' : 'antispam',
@@ -1798,15 +1798,15 @@ function apbct_settings__get__long_description(){
 	$setting_id = $_POST['setting_id'] ? $_POST['setting_id'] : '';
 	
 	$descriptions = array(
-		'wpms__white_label'              => array(
+		'multisite__white_label'              => array(
 			'title' => __( 'XSS check', 'cleantalk-spam-protect'),
 			'desc'  => __( 'Cross-Site Scripting (XSS) — prevents malicious code to be executed/sent to any user. As a result malicious scripts can not get access to the cookie files, session tokens and any other confidential information browsers use and store. Such scripts can even overwrite content of HTML pages. CleanTalk WAF monitors for patterns of these parameters and block them.', 'cleantalk-spam-protect'),
 		),
-		'wpms__white_label__hoster_key'  => array(
+		'multisite__white_label__hoster_key'  => array(
 			'title' => __( 'SQL-injection check', 'cleantalk-spam-protect'),
 			'desc'  => __( 'SQL Injection — one of the most popular ways to hack websites and programs that work with databases. It is based on injection of a custom SQL code into database queries. It could transmit data through GET, POST requests or cookie files in an SQL code. If a website is vulnerable and execute such injections then it would allow attackers to apply changes to the website\'s MySQL database.', 'cleantalk-spam-protect'),
 		),
-		'wpms__white_label__plugin_name' => array(
+		'multisite__white_label__plugin_name' => array(
 			'title' => __( 'Check uploaded files', 'cleantalk-spam-protect'),
 			'desc'  => __( 'The option checks each uploaded file to a website for malicious code. If it\'s possible for visitors to upload files to a website, for instance a work resume, then attackers could abuse it and upload an infected file to execute it later and get access to your website.', 'cleantalk-spam-protect'),
 		),

@@ -211,17 +211,17 @@ class State
 		
 		// Key
 		'apikey'                => '',
-		'wpms__allow_custom_key'      => 1,
-		'wpms__allow_custom_settings' => 1,
+		'multisite__allow_custom_key'      => 1,
+		'multisite__allow_custom_settings' => 1,
 		
 		// White label settings
-		'wpms__white_label'              => 0,
-		'wpms__white_label__hoster_key'  => '',
-		'wpms__white_label__plugin_name' => 'Anti-Spam by CleanTalk',
-		'wpms__use_settings_template'    => 0,
-		'wpms__use_settings_template_apply_for_new' => 0,
-		'wpms__use_settings_template_apply_for_current' => 0,
-		'wpms__use_settings_template_apply_for_current_list_sites' => '',
+		'multisite__white_label'              => 0,
+		'multisite__white_label__hoster_key'  => '',
+		'multisite__white_label__plugin_name' => 'Anti-Spam by CleanTalk',
+		'multisite__use_settings_template'    => 0,
+		'multisite__use_settings_template_apply_for_new' => 0,
+		'multisite__use_settings_template_apply_for_current' => 0,
+		'multisite__use_settings_template_apply_for_current_list_sites' => '',
 	);
 	
 	public $def_network_data = array(

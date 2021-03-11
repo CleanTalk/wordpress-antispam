@@ -361,13 +361,13 @@ function apbct_update_to_5_127_0(){
 			
 			if( defined( 'APBCT_WHITELABEL' ) ){
 				$apbct->network_settings = array(
-					'wpms__white_label'              => defined( 'APBCT_WHITELABEL' ) && APBCT_WHITELABEL == true ? 1 : 0,
-					'wpms__white_label__hoster_key'  => defined( 'APBCT_HOSTER_API_KEY' )  ? APBCT_HOSTER_API_KEY : '',
-					'wpms__white_label__plugin_name' => defined( 'APBCT_WHITELABEL_NAME' ) ? APBCT_WHITELABEL_NAME : APBCT_NAME,
+					'multisite__white_label'              => defined( 'APBCT_WHITELABEL' ) && APBCT_WHITELABEL == true ? 1 : 0,
+					'multisite__white_label__hoster_key'  => defined( 'APBCT_HOSTER_API_KEY' )  ? APBCT_HOSTER_API_KEY : '',
+					'multisite__white_label__plugin_name' => defined( 'APBCT_WHITELABEL_NAME' ) ? APBCT_WHITELABEL_NAME : APBCT_NAME,
 				);
 			}elseif( defined( 'CLEANTALK_ACCESS_KEY' ) ){
 				$apbct->network_settings = array(
-					'wpms__allow_custom_key' => 0,
+					'multisite__allow_custom_key' => 0,
 					'apikey'           => CLEANTALK_ACCESS_KEY,
 				);
 			}
@@ -386,11 +386,11 @@ function apbct_update_to_5_127_1(){
 	if(APBCT_WPMS && is_main_site()){
 		global $apbct;
 		$network_settings = get_site_option( 'cleantalk_network_settings' );
-		if( $network_settings !== false && empty( $network_settings['wpms__allow_custom_key'] ) && empty( $network_settings['wpms__white_label'] ) ){
-			$network_settings['wpms__allow_custom_key'] = 1;
+		if( $network_settings !== false && empty( $network_settings['multisite__allow_custom_key'] ) && empty( $network_settings['multisite__white_label'] ) ){
+			$network_settings['multisite__allow_custom_key'] = 1;
 			update_site_option( 'cleantalk_network_settings', $network_settings );
 		}
-		if( $network_settings !== false && $network_settings['wpms__white_label'] == 1 && $apbct->data['moderate'] == 0 ){
+		if( $network_settings !== false && $network_settings['multisite__white_label'] == 1 && $apbct->data['moderate'] == 0 ){
 			ct_account_status_check( $network_settings['apikey'] ? $network_settings['apikey'] : $apbct->settings['apikey'], false);
 		}
 	}
@@ -468,7 +468,7 @@ function apbct_update_to_5_138_0() {
 			apbct_activation__create_tables($sqls);
 			
 			// Getting key
-			$settings = $net_settings['wpms__allow_custom_key']
+			$settings = $net_settings['multisite__allow_custom_key']
 				? get_option('cleantalk_settings')
 				: $main_blog_settings;
 			
@@ -480,7 +480,7 @@ function apbct_update_to_5_138_0() {
 				$result = \Cleantalk\ApbctWP\API::method__notice_paid_till(
 					$settings['api_key'],
 					preg_replace('/http[s]?:\/\//', '', get_option('siteurl'), 1),
-					! is_main_site() && $net_settings['wpms__white_label'] ? 'anti-spam-hosting' : 'antispam'
+					! is_main_site() && $net_settings['multisite__white_label'] ? 'anti-spam-hosting' : 'antispam'
 				);
 				
 				if( empty( $result['error'] ) || ! empty( $result['valid'] ) ){
@@ -805,15 +805,15 @@ function apbct_update_to_5_154_0(){
 		'comment_notify'                 => 'wp__comment_notify',
 		'comment_notify__roles'          => 'wp__comment_notify__roles',
 		'dashboard_widget__show'         => 'wp__dashboard_widget__show',
-		'allow_custom_key'               => 'wpms__allow_custom_key',
-		'allow_custom_settings'          => 'wpms__allow_custom_settings',
-		'white_label'                    => 'wpms__white_label',
-		'white_label__hoster_key'        => 'wpms__white_label__hoster_key',
-		'white_label__plugin_name'       => 'wpms__white_label__plugin_name',
-		'use_settings_template'          => 'wpms__use_settings_template',
-		'use_settings_template_apply_for_new' => 'wpms__use_settings_template_apply_for_new',
-		'use_settings_template_apply_for_current' => 'wpms__use_settings_template_apply_for_current',
-		'use_settings_template_apply_for_current_list_sites' => 'wpms__use_settings_template_apply_for_current_list_sites',
+		'allow_custom_key'               => 'multisite__allow_custom_key',
+		'allow_custom_settings'          => 'multisite__allow_custom_settings',
+		'white_label'                    => 'multisite__white_label',
+		'white_label__hoster_key'        => 'multisite__white_label__hoster_key',
+		'white_label__plugin_name'       => 'multisite__white_label__plugin_name',
+		'use_settings_template'          => 'multisite__use_settings_template',
+		'use_settings_template_apply_for_new' => 'multisite__use_settings_template_apply_for_new',
+		'use_settings_template_apply_for_current' => 'multisite__use_settings_template_apply_for_current',
+		'use_settings_template_apply_for_current_list_sites' => 'multisite__use_settings_template_apply_for_current_list_sites',
 	);
 
 

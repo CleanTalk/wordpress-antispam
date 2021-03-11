@@ -453,13 +453,13 @@ function apbct_get_plugin_options() {
 	if( isset( $settings['misc__debug_ajax'] ) ) {
 		unset( $settings['misc__debug_ajax'] );
 	}
-	// Remove wpms__white_label__hoster_key from export
-	if( isset( $settings['wpms__white_label__hoster_key'] ) ) {
-		unset( $settings['wpms__white_label__hoster_key'] );
+	// Remove multisite__white_label__hoster_key from export
+	if( isset( $settings['multisite__white_label__hoster_key'] ) ) {
+		unset( $settings['multisite__white_label__hoster_key'] );
 	}
 	// Remove all WPMS from export
 	$settings = array_filter( $settings, function( $key ){
-		return strpos( $key, 'wpms__' ) === false;
+		return strpos( $key, 'multisite__' ) === false;
 	}, ARRAY_FILTER_USE_KEY );
 	return json_encode( $settings, JSON_FORCE_OBJECT );
 }
