@@ -190,8 +190,8 @@ class CleantalkSettingsTemplates {
 	private function getTitle()
 	{
 		global $apbct;
-		if( $apbct->data['current_template'] ) {
-			$current_template_name = $apbct->data['current_template']['name'];
+		if( $apbct->data['current_settings_template_name'] ) {
+			$current_template_name = $apbct->data['current_settings_template_name'];
 		} else {
 			$current_template_name = 'default';
 		}
