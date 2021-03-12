@@ -287,7 +287,7 @@ apbct_showBlockedResponse = function( response ){
 
 	var response = apbct_parseJSON( response );
 
-	if (response !== false && typeof response.apbct !== 'undefined') {
+	if ( response && typeof response.apbct !== 'undefined' ) {
 		response = response.apbct;
 		if (response.blocked) {
 			document.dispatchEvent(
