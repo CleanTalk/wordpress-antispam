@@ -85,7 +85,7 @@ class Helper extends \Cleantalk\Common\Helper
         $result__rc_check_website = static::http__request(
             get_option( 'siteurl' ),
             array_merge( $request_params__default, $request_params, array( 'test' => 'test' ) ),
-            array( 'get', )
+            array( 'get', 'dont_split_to_array' )
         );
         
         if( empty( $result__rc_check_website['error'] ) ){
