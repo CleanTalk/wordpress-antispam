@@ -356,6 +356,14 @@ function apbct_is_skip_request( $ajax = false ) {
             /*    Here is ajax requests skipping     */
             /*****************************************/
 
+            // wpDiscuz - Online Users Addon for wpDiscuz
+            if(
+                apbct_is_plugin_active( 'wpdiscuz-online-users/wpdiscuz-ou.php' ) &&
+                Post::get( 'action' ) === 'wouPushNotification'
+            ){
+                return 'wpdiscuz_online_users__push_notification';
+            }
+            
             // Bookly Plugin admin actions skip
             if( apbct_is_plugin_active( 'bookly-responsive-appointment-booking-tool/main.php' ) &&
                 isset( $_POST['action'] ) &&
