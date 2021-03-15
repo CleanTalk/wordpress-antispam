@@ -967,12 +967,10 @@ function ct_add_hidden_fields($field_name = 'ct_checkjs', $return_string = false
 		$html = "<input type=\"hidden\" id=\"{$field_id}\" name=\"{$field_name}\" value=\"{$ct_checkjs_def}\" />
 		<script type=\"text/javascript\" " . ( class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '' ) . ">
 			window.addEventListener(\"DOMContentLoaded\", function () {
-				setTimeout(function(){
-                    apbct_public_sendAJAX(
-                        {action: \"apbct_js_keys__get\"},
-                        {callback: apbct_js_keys__set_input_value, input_name: \"{$field_id}\",silent: true, no_nonce: true}
-                    );
-                }, 1000);
+				apbct_public_sendREST(
+                    \"js_keys__get\",
+                    {callback: apbct_js_keys__set_input_value, input_name: \"{$field_id}\"}
+                )
 			});
 		</script>";
 
@@ -1783,7 +1781,9 @@ function apbct_login__scripts(){
 
     wp_localize_script('ct_public', 'ctPublic', array(
         '_ajax_nonce' => wp_create_nonce('ct_secret_stuff'),
+        '_rest_nonce' => wp_create_nonce('wp_rest'),
         '_ajax_url'   => admin_url('admin-ajax.php'),
+        '_rest_url'   => esc_url( get_rest_url() ),
     ));
 
     $apbct->public_script_loaded = true;
@@ -3773,10 +3773,12 @@ function ct_enqueue_scripts_public($hook){
 			// Differnt JS params
 			wp_enqueue_script( 'ct_public', APBCT_URL_PATH . '/js/apbct-public.min.js', array( 'jquery' ), APBCT_VERSION, false /*in header*/ );
 			wp_enqueue_script('cleantalk-modal', plugins_url( '/cleantalk-spam-protect/js/cleantalk-modal.min.js' ),   array(),     APBCT_VERSION, false );
-			
+
 			wp_localize_script('ct_public', 'ctPublic', array(
 				'_ajax_nonce' => wp_create_nonce('ct_secret_stuff'),
+				'_rest_nonce' => wp_create_nonce('wp_rest'),
 				'_ajax_url'   => admin_url('admin-ajax.php'),
+				'_rest_url'   => esc_url( get_rest_url() ),
 			));
 		}
 		

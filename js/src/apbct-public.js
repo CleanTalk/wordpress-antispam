@@ -262,6 +262,39 @@ function apbct_public_sendAJAX(data, params, obj){
 	});
 }
 
+function apbct_public_sendREST( route, params ) {
+
+	var callback = params.callback || null;
+
+	jQuery.ajax({
+		type: "POST",
+		url: ctPublic._rest_url + 'cleantalk-antispam/v1/' + route,
+		beforeSend : function ( xhr ) {
+			xhr.setRequestHeader( 'X-WP-Nonce', ctPublic._rest_nonce );
+		},
+		success: function(result){
+			if(result.error){
+				alert('Error happens: ' + (result.error || 'Unknown'));
+			}else{
+				if(callback) {
+					var obj = null;
+					callback(result, route, params, obj);
+				}
+			}
+		},
+		error: function(jqXHR, textStatus, errorThrown){
+			if( errorThrown ) {
+				console.log('APBCT_REST_ERROR');
+				console.log(jqXHR);
+				console.log(textStatus);
+				console.log('Anti-spam by Cleantalk plugin error: ' + errorThrown + 'Please, contact Cleantalk tech support https://wordpress.org/support/plugin/cleantalk-spam-protect/');
+				alert('Anti-spam by Cleantalk plugin error: ' + errorThrown + 'Please, contact Cleantalk tech support https://wordpress.org/support/plugin/cleantalk-spam-protect/');
+			}
+		},
+	});
+
+}
+
 // Capturing responses and output block message for unknown AJAX forms
 var accessor = Object.getOwnPropertyDescriptor(XMLHttpRequest.prototype, 'responseText');
 Object.defineProperty(XMLHttpRequest.prototype, 'responseText', {
