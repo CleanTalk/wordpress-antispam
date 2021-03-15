@@ -417,7 +417,7 @@ function apbct_is_skip_request( $ajax = false ) {
 	        // Newspaper theme login form
 	        if ( apbct_is_theme_active( 'Newspaper' ) &&
 	             isset( $_POST['action'] ) &&
-	             $_POST['action'] == 'td_mod_login' )
+	             ( $_POST['action'] == 'td_mod_login' || $_POST['action'] == 'td_mod_remember_pass' ) )
 	        {
 		        return 'Newspaper_theme_login_form';
 	        }
