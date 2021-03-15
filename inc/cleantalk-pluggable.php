@@ -441,6 +441,12 @@ function apbct_is_skip_request( $ajax = false ) {
             {
                 return 'ultimatemember_password_reset';
             }
+		    // UltimateMember password reset skip
+		    if( apbct_is_plugin_active( 'gravityformspaypal/paypal.php' ) &&
+		        ( apbct_is_in_uri('page=gf_paypal_ipn') || apbct_is_in_uri('callback=gravityformspaypal') ) )
+		    {
+			    return 'gravityformspaypal_processing_skipped';
+		    }
 
             break;
 
