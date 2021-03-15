@@ -414,6 +414,13 @@ function apbct_is_skip_request( $ajax = false ) {
 	        ){
 		        return 'jackmail_admin_actions';
 	        }
+	        // Newspaper theme login form
+	        if ( apbct_is_theme_active( 'Newspaper' ) &&
+	             isset( $_POST['action'] ) &&
+	             $_POST['action'] == 'td_mod_login' )
+	        {
+		        return 'Newspaper_theme_login_form';
+	        }
             
             break;
 
