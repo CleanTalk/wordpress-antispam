@@ -581,8 +581,15 @@ If your website has forms that send data to external sources, you can enable opt
 == Changelog ==
 
 = 5.154 Mar 16 2021 =
+ * New: Settings Templates functionality implemented.
+ * New: SFW. Anti-flood protection uses UA lists for filtration.
  * Fix: Forms. Getting check_js delay removed.
  * Fix: Forms. Rotation check_js fixed.
+ * Fix: Integration. Newspaper-theme login form protection skipped.
+ * Fix: Integration. Newspaper-theme reset password form protection skipped.
+ * Fix: Forms. Gravity Forms paypal addon processing skipped.
+ * Fix: Exclusion for wpDiscuz - Online Users Addon.
+ * Fix: Remote Calls. Wrapper http__request__rc_to_host() don't get an array
 
 = 5.153.7 Mar 15 2021 =
  * Fix: SFW. Updating fixed.
