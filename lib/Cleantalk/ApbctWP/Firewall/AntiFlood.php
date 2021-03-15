@@ -63,8 +63,6 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule{
 
 			if( ! empty( $ua_bl_results ) ){
 
-				$is_blocked = false;
-
 				foreach( $ua_bl_results as $ua_bl_result ){
 
 					if( ! empty( $ua_bl_result['ua_template'] ) && preg_match( "%". str_replace( '"', '', $ua_bl_result['ua_template'] ) ."%i", Server::get('HTTP_USER_AGENT') ) ) {
@@ -76,19 +74,10 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule{
 							$results[] = array('ip' => $current_ip, 'is_personal' => false, 'status' => 'PASS_ANTIFLOOD_UA',);
 							return $results;
 							break;
-						} else {
-							// Blacklisted
-							$results[] = array('ip' => $current_ip, 'is_personal' => false, 'status' => 'DENY_ANTIFLOOD_UA',);
-							$is_blocked = true;
-							break;
 						}
 
 					}
 
-				}
-
-				if( ! $is_blocked ) {
-					$results[] = array('ip' => $current_ip, 'is_personal' => false, 'status' => 'PASS_ANTIFLOOD_UA',);
 				}
 
 			}
