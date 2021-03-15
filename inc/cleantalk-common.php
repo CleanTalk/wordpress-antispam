@@ -530,6 +530,8 @@ function ct_get_checkjs_value(){
 	    $key = hash('sha256', $apbct->api_key.ct_get_admin_email().$apbct->salt);
 	    if( apbct_is_cache_plugins_exists() )
 		    $apbct->data['cache_detected'] = 1;
+
+		$apbct->saveData();
 	
     // Using dynamic JS keys
     }else{
@@ -567,9 +569,10 @@ function ct_get_checkjs_value(){
         }
 		
 		$apbct->data['cache_detected'] = 0;
-    }
 
-	$apbct->saveData();
+		$apbct->saveData();
+
+    }
 	
     return $key; 
 }
