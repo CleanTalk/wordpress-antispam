@@ -429,6 +429,12 @@ function apbct_is_skip_request( $ajax = false ) {
 	        {
 		        return 'Newspaper_theme_login_form';
 	        }
+	        // Save abandoned cart checking skip
+	        if ( apbct_is_plugin_active( 'woo-save-abandoned-carts/cartbounty-abandoned-carts.php' ) &&
+	             Post::get( 'action' ) === 'cartbounty_save' )
+	        {
+		        return 'cartbounty_save';
+	        }
             
             break;
 
