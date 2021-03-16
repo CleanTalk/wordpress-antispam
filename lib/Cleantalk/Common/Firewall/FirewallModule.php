@@ -81,6 +81,22 @@ class FirewallModule extends FirewallModule_abstract {
 			header('Pragma: no-cache');
 			header("HTTP/1.0 403 Forbidden");
 		}
+
+		if(! defined('DONOTCACHEPAGE') ){
+			define('DONOTCACHEPAGE', true);
+		}
+		if(! defined('DONOTCACHEDB')){
+			define('DONOTCACHEDB', true);
+		}
+		if(! defined('DONOTCDN')){
+			define('DONOTCDN', true);
+		}
+		if(! defined('DONOTCACHEOBJECT')){
+			define('DONOTCACHEOBJECT', true);
+		}
+		if( function_exists( 'wpfc_exclude_current_page' ) ) {
+			wpfc_exclude_current_page();
+		}
 		
 	}
 }
