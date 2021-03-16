@@ -435,6 +435,12 @@ function apbct_is_skip_request( $ajax = false ) {
 	        {
 		        return 'cartbounty_save';
 	        }
+	        // SUMODISCOUNT discout request skip
+	        if ( apbct_is_plugin_active( 'sumodiscounts/sumodiscounts.php' ) &&
+	             Post::get( 'action' ) === 'fp_apply_discount_for_first_purchase' )
+	        {
+		        return 'fp_apply_discount_for_first_purchase';
+	        }
             
             break;
 
