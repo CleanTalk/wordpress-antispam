@@ -20,7 +20,12 @@ cleantalkModal = {
                     } )
                 );
             };
-            apbct_admin_sendAJAX( { 'action' : action }, { 'callback': callback, 'notJson': true } );
+            if( typeof apbct_admin_sendAJAX === "function" ) {
+                apbct_admin_sendAJAX( { 'action' : action }, { 'callback': callback, 'notJson': true } );
+            } else {
+                apbct_public_sendAJAX( { 'action' : action }, { 'callback': callback, 'notJson': true } );
+            }
+
         }
     },
 
