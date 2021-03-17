@@ -713,3 +713,26 @@ function apbct_user__delete__hook($user_id, $reassign = null){
 		ct_feedback($hash, 0);
 	}
 }
+
+function apbct_test_connection(){
+    
+    $url_to_test = array(
+        'https://apix1.cleantalk.org',
+        'https://apix2.cleantalk.org',
+        'https://apix3.cleantalk.org',
+        'https://apix4.cleantalk.org',
+        'https://apix5.cleantalk.org',
+    );
+    
+    foreach($url_to_test as $url){
+        $start = microtime(true);
+        $result = \Cleantalk\ApbctWP\Helper::http__request__get_content($url);
+        $exec_time = microtime(true) - $start;
+        $out[$url] = array(
+            'result' => $result,
+            'exec_time' => $exec_time,
+            'error' => !empty($result['error']) ? $result['error']	: 'OK',
+        ) ;
+    }
+    return $out;
+}

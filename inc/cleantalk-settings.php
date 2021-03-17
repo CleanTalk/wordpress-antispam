@@ -859,7 +859,8 @@ function apbct_settings__field__debug(){
 	echo 'CLEANTALK_CHECK_MESSAGES_NUMBER '.	(defined('CLEANTALK_CHECK_MESSAGES_NUMBER') ? 	(CLEANTALK_CHECK_MESSAGES_NUMBER ? 	CLEANTALK_CHECK_MESSAGES_NUMBER : 0) : 'NOT_DEFINED')."<br>";
 	echo 'CLEANTALK_PLUGIN_DIR '.				(defined('CLEANTALK_PLUGIN_DIR') ? 				(CLEANTALK_PLUGIN_DIR ? 			CLEANTALK_PLUGIN_DIR : 'flase') : 'NOT_DEFINED')."<br>";
 	echo 'WP_ALLOW_MULTISITE '.					(defined('WP_ALLOW_MULTISITE') ? 				(WP_ALLOW_MULTISITE ?				'true' : 'flase') : 'NOT_DEFINED');
-	
+ 
+	echo '<h4><button type="submit" name="apbct_debug__check_connection" value="1">Check connection to API servers</button></h4>';
 	echo "<h4>Debug log: <button type='submit' value='debug_drop' name='submit' style='font-size: 11px; padding: 1px;'>Drop debug data</button></h4>";
 	echo "<div style='height: 500px; width: 80%; overflow: auto;'>";
 		
@@ -1460,6 +1461,12 @@ function apbct_settings__validate($settings) {
 		delete_option('cleantalk_debug');
 		return $settings;
 	}
+    
+    // Drop debug data
+    if( \CleantalkSP\Variables\Post::get('apbct_debug__check_connection') ){
+        $result = apbct_test_connection();
+        apbct_log($result);
+    }
 	
 	// Send connection reports
 	if (isset($_POST['submit']) && $_POST['submit'] == 'ct_send_connection_report'){
