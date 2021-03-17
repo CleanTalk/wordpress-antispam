@@ -580,7 +580,7 @@ If your website has forms that send data to external sources, you can enable opt
 
 == Changelog ==
 
-= 5.154 Mar 16 2021 =
+= 5.154 Mar 17 2021 =
  * New: Settings Templates functionality implemented.
  * New: SFW. Anti-flood protection uses UA lists for filtration.
  * Fix: Forms. Getting check_js delay removed.
@@ -590,6 +590,13 @@ If your website has forms that send data to external sources, you can enable opt
  * Fix: Forms. Gravity Forms paypal addon processing skipped.
  * Fix: Exclusion for wpDiscuz - Online Users Addon.
  * Fix: Remote Calls. Wrapper http__request__rc_to_host() don't get an array
+ * Fix: JS. Modal window fixed.
+ * Fix: JS. Show AJAX result fixed.
+ * Fix: Skip. Save abandoned cart checking skip.
+ * Fix: Skip. SUMODISCOUNT discout request skip.
+ * Fix: Skip. WP eMember login form skip.
+ * Fix: SFW. Do not cache constants added.
+ * Fix: SFW. AC/AF logging fixed.
 
 = 5.153.7 Mar 15 2021 =
  * Fix: SFW. Updating fixed.
