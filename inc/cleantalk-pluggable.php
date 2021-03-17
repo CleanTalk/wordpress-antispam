@@ -441,6 +441,12 @@ function apbct_is_skip_request( $ajax = false ) {
 	        {
 		        return 'fp_apply_discount_for_first_purchase';
 	        }
+	        // WP eMember login form skip
+	        if ( apbct_is_plugin_active( 'wp-eMember/wp_eMember.php' ) &&
+	             Post::get( 'action' ) === 'emember_ajax_login' )
+	        {
+		        return 'emember_ajax_login';
+	        }
             
             break;
 
