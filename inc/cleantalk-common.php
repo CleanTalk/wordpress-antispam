@@ -289,8 +289,8 @@ function apbct_exclusions_check($func = null){
  * @return bool
  */
 function apbct_exclusions_check__url__reversed(){
-	return defined( 'APBCT_URL_EXCLUSIONS__REVERSED' ) &&
-           ! \Cleantalk\Variables\Server::has_string( 'URI', APBCT_URL_EXCLUSIONS__REVERSED );
+    	return defined( 'APBCT_URL_EXCLUSIONS__REVERSED' ) &&
+           ! \Cleantalk\Variables\Server::has_string( 'REQUEST_URI', APBCT_URL_EXCLUSIONS__REVERSED );
 }
 
 /**
