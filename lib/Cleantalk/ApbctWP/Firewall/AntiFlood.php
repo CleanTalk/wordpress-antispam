@@ -116,14 +116,14 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule{
 			return $results;
 		} else{
 			// Do logging entries
-			$this->update_ac_log();
+			add_action( 'template_redirect', array( & $this, 'update_ac_log' ), 999 );
 		}
 		
 		return $results;
 		
 	}
 	
-	private function update_ac_log() {
+	public function update_ac_log() {
 		
 		$interval_time = Helper::time__get_interval_start( $this->store_interval );
 		
