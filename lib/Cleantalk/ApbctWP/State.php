@@ -9,7 +9,7 @@ use ArrayObject;
  * 
  * @package Antiospam Plugin by CleanTalk
  * @subpackage State
- * @Version 2.0
+ * @Version 2.1
  * @author Cleantalk team (welcome@cleantalk.org)
  * @copyright (C) 2014 CleanTalk team (http://cleantalk.org)
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
@@ -56,81 +56,81 @@ class State
 	public $storage = array();
 	public $integrations = array();
 	public $def_settings = array(
-        
-        'spam_firewall'                  => 1,
+
+		'apikey'                        => '',
+
+		/* SpamFireWall settings */
+        'sfw__enabled'                   => 1,
         'sfw__anti_flood'                => 0,
         'sfw__anti_flood__view_limit'    => 20,
         'sfw__anti_crawler'              => 1,
         'sfw__use_delete_to_clear_table' => 0,
 		
-		'apikey'                        => '',
-		'autoPubRevelantMess'           => 0,
-		
 		/* Forms for protection */
-        'registrations_test'             => 1,
-        'comments_test'                  => 1, 
-        'contact_forms_test'             => 1, 
-        'general_contact_forms_test'     => 1, // Antispam test for unsupported and untested contact forms 
-		'wc_checkout_test'               => 1, // WooCommerce checkout default test
-		'wc_register_from_order'         => 1, // Woocommerce registration during checkout
-		'search_test'                    => 1, // Test deafult Wordpress form
-		'check_external'                 => 0,
-		'check_external__capture_buffer' => 0,
-        'check_internal'                 => 0,
+        'forms__registrations_test'      => 1,
+        'forms__comments_test'           => 1,
+        'forms__contact_forms_test'      => 1,
+        'forms__general_contact_forms_test' => 1, // Antispam test for unsupported and untested contact forms
+		'forms__wc_checkout_test'        => 1, // WooCommerce checkout default test
+		'forms__wc_register_from_order'  => 1, // Woocommerce registration during checkout
+		'forms__search_test'             => 1, // Test deafult Wordpress form
+		'forms__check_external'          => 0,
+		'forms__check_external__capture_buffer' => 0,
+        'forms__check_internal'          => 0,
 		
 		/* Comments and messages */
-		'disable_comments__all'   => 0,
-		'disable_comments__posts' => 0,
-		'disable_comments__pages' => 0,
-		'disable_comments__media' => 0,
-		'bp_private_messages' =>   1, //buddyPress private messages test => ON
-		'check_comments_number' => 1,
-        'remove_old_spam' =>       0,
-		'remove_comments_links' => 0, // Removes links from approved comments
-		'show_check_links' =>      1, // Shows check link to Cleantalk's DB.
-		'manage_comments_on_public_page' =>      0, // Allows to control comments on public page.
+		'comments__disable_comments__all'   => 0,
+		'comments__disable_comments__posts' => 0,
+		'comments__disable_comments__pages' => 0,
+		'comments__disable_comments__media' => 0,
+		'comments__bp_private_messages'     => 1, //buddyPress private messages test => ON
+		'comments__check_comments_number'   => 1,
+        'comments__remove_old_spam'         => 0,
+		'comments__remove_comments_links'   => 0, // Removes links from approved comments
+		'comments__show_check_links'        => 1, // Shows check link to Cleantalk's DB.
+		'comments__manage_comments_on_public_page' => 0, // Allows to control comments on public page.
 		
-		// Data processing
-        'protect_logged_in' =>     1, // Do anit-spam tests to for logged in users.
-		'use_ajax' =>              1,
-		'use_static_js_key' =>     -1,
-		'general_postdata_test' => 0, //CAPD
-        'set_cookies'=>            1, // Disable cookies generatation to be compatible with Varnish.
-        'set_cookies__sessions'=>  0, // Use alt sessions for cookies.
-        'ssl_on' =>                0, // Secure connection to servers 
-		'use_buitin_http_api' =>   1, // Using Wordpress HTTP built in API
+		/* Data processing */
+        'data__protect_logged_in' => 1, // Do anti-spam tests to for logged in users.
+		'data__use_ajax'          => 1,
+		'data__use_static_js_key' => -1,
+		'data__general_postdata_test' => 0, //CAPD
+        'data__set_cookies'       => 1, // Disable cookies generatation to be compatible with Varnish.
+        'data__set_cookies__sessions' => 0, // Use alt sessions for cookies.
+        'data__ssl_on'            => 0, // Secure connection to servers
 		
 		// Exclusions
 		'exclusions__urls'               => '',
 		'exclusions__urls__use_regexp'   => 0,
 		'exclusions__fields'             => '',
 		'exclusions__fields__use_regexp' => 0,
-		'exclusions__roles'               => array('Administrator'),
+		'exclusions__roles'              => array('Administrator'),
 		
 		// Administrator Panel
-        'show_adminbar'    => 1, // Show the admin bar.
-		'all_time_counter' => 0,
-		'daily_counter'    => 0,
-		'sfw_counter'      => 0,
-		
-		//Others
-        'user_token'              => '',
-        'collect_details'         => 0, // Collect details about browser of the visitor. 
-        'send_connection_reports' => 0, //Send connection reports to Cleantalk servers
-		'async_js'                => 0,
-		'debug_ajax'              => 0,
+        'admin_bar__show'             => 1, // Show the admin bar.
+		'admin_bar__all_time_counter' => 0,
+		'admin_bar__daily_counter'    => 0,
+		'admin_bar__sfw_counter'      => 0,
 		
 		// GDPR
-		'gdpr_enabled' => 0,
-		'gdpr_text'    => 'By using this form you agree with the storage and processing of your data by using the Privacy Policy on this website.',
+		'gdpr__enabled' => 0,
+		'gdpr__text'    => 'By using this form you agree with the storage and processing of your data by using the Privacy Policy on this website.',
 		
 		// Msic
-		'store_urls'             => 1,
-		'store_urls__sessions'   => 1,
-		'comment_notify'         => 1,
-		'comment_notify__roles'  => array( 'administrator' ),
-		'complete_deactivation'  => 0,
-		'dashboard_widget__show' => 1,
+		'misc__collect_details'         => 0, // Collect details about browser of the visitor.
+		'misc__send_connection_reports' => 0, // Send connection reports to Cleantalk servers
+		'misc__async_js'                => 0,
+		'misc__store_urls'              => 1,
+		'misc__store_urls__sessions'    => 1,
+		'misc__complete_deactivation'   => 0,
+		'misc__debug_ajax'              => 0,
+
+		/* WordPress */
+		'wp__use_builtin_http_api' => 1, // Using Wordpress HTTP built in API
+		'wp__comment_notify'       => 1,
+		'wp__comment_notify__roles' => array( 'administrator' ),
+		'wp__dashboard_widget__show' => 1,
+
     );
 	
 	public $def_data = array(
@@ -141,6 +141,8 @@ class State
 		'js_keys_store_days' => 14, // JavaScript keys store days - 8 days now
 		'js_key_lifetime'    => 86400, // JavaScript key life time in seconds - 1 day now
 		'last_remote_call'   => 0, //Timestam of last remote call
+		'current_settings_template_id'   => null,  // Loaded settings template id
+		'current_settings_template_name' => null,  // Loaded settings template name
 		
 		// Antispam
 		'spam_store_days'         => 15, // Days before delete comments from folder Spam
@@ -173,11 +175,11 @@ class State
 		'array_accepted'     => array(),
 		'array_blocked'      => array(),
 		'current_hour'       => '',
-		'sfw_counter' => array(
+		'admin_bar__sfw_counter' => array(
 			'all'     => 0,
 			'blocked' => 0,
 		),
-		'all_time_counter' => array(
+		'admin_bar__all_time_counter' => array(
 			'accepted' => 0,
 			'blocked'  => 0,
 		),
@@ -209,17 +211,17 @@ class State
 		
 		// Key
 		'apikey'                => '',
-		'allow_custom_key'      => 1,
-		'allow_custom_settings' => 1,
+		'multisite__allow_custom_key'      => 1,
+		'multisite__allow_custom_settings' => 1,
 		
 		// White label settings
-		'white_label'              => 0,
-		'white_label__hoster_key'  => '',
-		'white_label__plugin_name' => 'Anti-Spam by CleanTalk',
-		'use_settings_template'    => 0,
-		'use_settings_template_apply_for_new' => 0,
-		'use_settings_template_apply_for_current' => 0,
-		'use_settings_template_apply_for_current_list_sites' => '',
+		'multisite__white_label'              => 0,
+		'multisite__white_label__hoster_key'  => '',
+		'multisite__white_label__plugin_name' => 'Anti-Spam by CleanTalk',
+		'multisite__use_settings_template'    => 0,
+		'multisite__use_settings_template_apply_for_new' => 0,
+		'multisite__use_settings_template_apply_for_current' => 0,
+		'multisite__use_settings_template_apply_for_current_list_sites' => '',
 	);
 	
 	public $def_network_data = array(
@@ -378,7 +380,7 @@ class State
 	 */
 	public function saveSettings()
 	{
-		update_option($this->option_prefix.'_settings', (array)$this->settings);
+		return update_option($this->option_prefix.'_settings', (array)$this->settings);
 	}
 	
 	/**

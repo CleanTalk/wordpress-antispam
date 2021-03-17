@@ -95,7 +95,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
                     $this->update_log( $current_ip, 'PASS_SFW' );
 
                     if( $this->sfw_counter ){
-                        $this->apbct->data['sfw_counter']['all'] ++;
+                        $this->apbct->data['admin_bar__sfw_counter']['all'] ++;
                         $this->apbct->saveData();
                     }
 
@@ -191,7 +191,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 	public function actions_for_denied( $result ){
 		
 		if( $this->sfw_counter ){
-			$this->apbct->data['sfw_counter']['blocked']++;
+			$this->apbct->data['admin_bar__sfw_counter']['blocked']++;
 			$this->apbct->saveData();
 		}
 		
@@ -328,6 +328,8 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 				
 				$value['status'] = $value['status'] === 'DENY_ANTIFLOOD'      ? 'FLOOD_PROTECTION' : $value['status'];
 				$value['status'] = $value['status'] === 'PASS_ANTIFLOOD'      ? 'FLOOD_PROTECTION' : $value['status'];
+				$value['status'] = $value['status'] === 'DENY_ANTIFLOOD_UA'   ? 'FLOOD_PROTECTION' : $value['status'];
+				$value['status'] = $value['status'] === 'PASS_ANTIFLOOD_UA'   ? 'FLOOD_PROTECTION' : $value['status'];
 				
 				$value['status'] = $value['status'] === 'PASS_SFW__BY_COOKIE' ? null               : $value['status'];
                 $value['status'] = $value['status'] === 'PASS_SFW'            ? null               : $value['status'];
@@ -399,7 +401,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 			if( empty( $result['error'] ) ){
 
 			    // User-Agents blacklist
-                if( ! empty( $result['file_ua_url'] ) && $apbct->settings['sfw__anti_crawler'] ){
+                if( ! empty( $result['file_ua_url'] ) && ( $apbct->settings['sfw__anti_crawler'] || $apbct->settings['sfw__anti_flood'] ) ){
                     $ua_bl_res = AntiCrawler::update( trim( $result['file_ua_url'] ) );
                     if( ! empty( $ua_bl_res['error'] ) )
                         $apbct->error_add( 'sfw_update', $ua_bl_res['error'] );
@@ -539,6 +541,41 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 			}else
 				return array('error' => 'FILE_COULD_NOT_GET_RESPONSE_CODE: '. $response_code['error'] );
 		}
+	}
+
+	public static function firewall_update__write_to_db__exclusions( $db, $db__table__data ) {
+
+		$query = 'INSERT INTO `' . $db__table__data . '` (network, mask, status) VALUES ';
+
+		$exclusions = array();
+
+		//Exclusion for servers IP (SERVER_ADDR)
+		if ( Server::get('HTTP_HOST') ) {
+
+			// Exceptions for local hosts
+			if( ! in_array( Server::get_domain(), array( 'lc', 'loc', 'lh' ) ) ){
+				$exclusions[] = Helper::dns__resolve( Server::get( 'HTTP_HOST' ) );
+				$exclusions[] = '127.0.0.1';
+			}
+		}
+
+		foreach ( $exclusions as $exclusion ) {
+			if ( Helper::ip__validate( $exclusion ) && sprintf( '%u', ip2long( $exclusion ) ) ) {
+				$query .= '(' . sprintf( '%u', ip2long( $exclusion ) ) . ', ' . sprintf( '%u', bindec( str_repeat( '1', 32 ) ) ) . ', 1),';
+			}
+		}
+
+		if( $exclusions ){
+
+			$sql_result = $db->execute( substr( $query, 0, - 1 ) . ';' );
+
+			return $sql_result === false
+				? array( 'error' => 'COULD_NOT_WRITE_TO_DB 4: ' . $db->get_last_error() )
+				: count( $exclusions );
+		}
+
+		return 0;
+
 	}
 
     /**

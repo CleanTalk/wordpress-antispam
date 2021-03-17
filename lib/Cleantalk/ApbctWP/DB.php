@@ -160,4 +160,9 @@ class DB extends \Cleantalk\Common\DB
 		
 		return $this->result;
 	}
+
+	public function get_last_error() {
+		global $wpdb;
+		return $wpdb->last_error;
+	}
 }

@@ -241,7 +241,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 			}else{
 
                 if( ! Cookie::get('apbct_antibot') ) {
-                    $this->update_ac_log();
+                    add_action( 'template_redirect', array( & $this, 'update_ac_log' ), 999 );
                 }
 				
 				add_action( 'wp_head', array( '\Cleantalk\ApbctWP\Firewall\AntiCrawler', 'set_cookie' ) );
@@ -255,8 +255,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 		
 	}
 	
-	private function update_ac_log() {
-		
+	public function update_ac_log() {
 		$interval_time = Helper::time__get_interval_start( $this->store_interval );
 		
 		// @todo Rename ip column to sign. Use IP + UserAgent for it.
