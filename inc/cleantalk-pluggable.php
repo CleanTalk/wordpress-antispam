@@ -422,6 +422,31 @@ function apbct_is_skip_request( $ajax = false ) {
 	        ){
 		        return 'jackmail_admin_actions';
 	        }
+	        // Newspaper theme login form
+	        if ( apbct_is_theme_active( 'Newspaper' ) &&
+	             isset( $_POST['action'] ) &&
+	             ( $_POST['action'] == 'td_mod_login' || $_POST['action'] == 'td_mod_remember_pass' ) )
+	        {
+		        return 'Newspaper_theme_login_form';
+	        }
+	        // Save abandoned cart checking skip
+	        if ( apbct_is_plugin_active( 'woo-save-abandoned-carts/cartbounty-abandoned-carts.php' ) &&
+	             Post::get( 'action' ) === 'cartbounty_save' )
+	        {
+		        return 'cartbounty_save';
+	        }
+	        // SUMODISCOUNT discout request skip
+	        if ( apbct_is_plugin_active( 'sumodiscounts/sumodiscounts.php' ) &&
+	             Post::get( 'action' ) === 'fp_apply_discount_for_first_purchase' )
+	        {
+		        return 'fp_apply_discount_for_first_purchase';
+	        }
+	        // WP eMember login form skip
+	        if ( apbct_is_plugin_active( 'wp-eMember/wp_eMember.php' ) &&
+	             Post::get( 'action' ) === 'emember_ajax_login' )
+	        {
+		        return 'emember_ajax_login';
+	        }
             
             break;
 
@@ -442,10 +467,60 @@ function apbct_is_skip_request( $ajax = false ) {
             {
                 return 'ultimatemember_password_reset';
             }
+		    // UltimateMember password reset skip
+		    if( apbct_is_plugin_active( 'gravityformspaypal/paypal.php' ) &&
+		        ( apbct_is_in_uri('page=gf_paypal_ipn') || apbct_is_in_uri('callback=gravityformspaypal') ) )
+		    {
+			    return 'gravityformspaypal_processing_skipped';
+		    }
 
             break;
 
     }
 
     return false;
+}
+
+function apbct_get_plugin_options() {
+	global $apbct;
+	$settings = (array) $apbct->settings;
+	// Remove apikey from export
+	if( isset( $settings['apikey'] ) ) {
+		unset( $settings['apikey'] );
+	}
+	// Remove misc__debug_ajax from export
+	if( isset( $settings['misc__debug_ajax'] ) ) {
+		unset( $settings['misc__debug_ajax'] );
+	}
+	// Remove multisite__white_label__hoster_key from export
+	if( isset( $settings['multisite__white_label__hoster_key'] ) ) {
+		unset( $settings['multisite__white_label__hoster_key'] );
+	}
+	// Remove all WPMS from export
+	$settings = array_filter( $settings, function( $key ){
+		return strpos( $key, 'multisite__' ) === false;
+	}, ARRAY_FILTER_USE_KEY );
+	return json_encode( $settings, JSON_FORCE_OBJECT );
+}
+
+function apbct_set_plugin_options( $template_id, $template_name, $settings ) {
+	global $apbct;
+	$settings = array_replace( (array) $apbct->settings, $settings );
+	$settings = apbct_settings__validate($settings);
+	$apbct->settings = $settings;
+	$apbct->data['current_settings_template_id'] = $template_id;
+	$apbct->data['current_settings_template_name'] = $template_name;
+	return $apbct->saveSettings() && $apbct->saveData();
+}
+
+function apbct_reset_plugin_options() {
+	global $apbct;
+	$def_settings = $apbct->def_settings;
+	if( isset( $def_settings['apikey'] ) ) {
+		unset( $def_settings['apikey'] );
+	}
+	$settings = array_replace( (array) $apbct->settings, $def_settings );
+	$settings = apbct_settings__validate($settings);
+	$apbct->settings = $settings;
+	return $apbct->saveSettings();
 }

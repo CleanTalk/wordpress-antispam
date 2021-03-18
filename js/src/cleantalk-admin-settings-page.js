@@ -32,6 +32,147 @@ jQuery(document).ready(function(){
 		});
 	});
 
+	// Key KEY automatically
+	jQuery('#apbct_button__get_key_auto').on('click', function(){
+		apbct_admin_sendAJAX(
+			{action: 'apbct_get_key_auto'},
+			{
+				timeout: 25000,
+				button: document.getElementById('apbct_button__get_key_auto' ),
+				spinner: jQuery('#apbct_button__get_key_auto .apbct_preloader_button' ),
+				callback: function(result, data, params, obj){
+					jQuery('#apbct_button__get_key_auto .apbct_success').show(300);
+					setTimeout(function(){jQuery('#apbct_button__get_key_auto .apbct_success').hide(300);}, 2000);
+					if(result.reload)
+						document.location.reload();
+					if(result.getTemplates) {
+						cleantalkModal.loaded = result.getTemplates;
+						cleantalkModal.open();
+						document.addEventListener("cleantalkModalClosed", function( e ) {
+							document.location.reload();
+						});
+					}
+				}
+			}
+		);
+	});
+
+	// Import settings
+	jQuery( document ).on('click', '#apbct_settings_templates_import_button', function(){
+		jQuery('#apbct-ajax-result').remove();
+		var optionSelected = jQuery('option:selected', jQuery('#apbct_settings_templates_import'));
+		var templateNameInput = jQuery('#apbct_settings_templates_import_name');
+		templateNameInput.css('border-color', 'inherit');
+		if( typeof optionSelected.data('id') === "undefined" ) {
+			console.log( 'Attribute "data-id" not set for the option.' );
+			return;
+		}
+		var data = {
+			'template_id' : optionSelected.data('id'),
+			'template_name' : optionSelected.data('name'),
+			'settings' : optionSelected.data('settings')
+		};
+		var button = this;
+		apbct_admin_sendAJAX(
+			{action: 'settings_templates_import', data: data},
+			{
+				timeout: 25000,
+				button: button,
+				spinner: jQuery('#apbct_settings_templates_import_button .apbct_preloader_button' ),
+				notJson: true,
+				callback: function(result, data, params, obj){
+					if(result.success) {
+						jQuery( "<p id='apbct-ajax-result' class='success'>" + result.data + "</p>" ).insertAfter( jQuery(button) );
+						jQuery('#apbct_settings_templates_import_button .apbct_success').show(300);
+						setTimeout(function(){jQuery('#apbct_settings_templates_import_button .apbct_success').hide(300);}, 2000);
+						document.addEventListener("cleantalkModalClosed", function( e ) {
+							document.location.reload();
+						});
+						setTimeout(function(){cleantalkModal.close()}, 2000);
+					} else {
+						jQuery( "<p id='apbct-ajax-result' class='error'>" + result.data + "</p>" ).insertAfter( jQuery(button) );
+					}
+				}
+			}
+		);
+	});
+
+	// Export settings
+	jQuery( document ).on('click', '#apbct_settings_templates_export_button', function(){
+		jQuery('#apbct-ajax-result').remove();
+		var optionSelected = jQuery('option:selected', jQuery('#apbct_settings_templates_export'));
+		var templateNameInput = jQuery('#apbct_settings_templates_export_name');
+		templateNameInput.css('border-color', 'inherit');
+		if( typeof optionSelected.data('id') === "undefined" ) {
+			console.log( 'Attribute "data-id" not set for the option.' );
+			return;
+		}
+		if( optionSelected.data('id') === 'new_template' ) {
+			var templateName = templateNameInput.val();
+			if( templateName === '' ) {
+				templateNameInput.css('border-color', 'red');
+				return;
+			}
+			var data = {
+				'template_name' : templateName
+			}
+		} else {
+			var data = {
+				'template_id' : optionSelected.data('id')
+			}
+		}
+		var button = this;
+		apbct_admin_sendAJAX(
+			{action: 'settings_templates_export', data: data},
+			{
+				timeout: 25000,
+				button: button,
+				spinner: jQuery('#apbct_settings_templates_export_button .apbct_preloader_button' ),
+				notJson: true,
+				callback: function(result, data, params, obj){
+					if(result.success) {
+						jQuery( "<p id='apbct-ajax-result' class='success'>" + result.data + "</p>" ).insertAfter( jQuery(button) );
+						jQuery('#apbct_settings_templates_export_button .apbct_success').show(300);
+						setTimeout(function(){jQuery('#apbct_settings_templates_export_button .apbct_success').hide(300);}, 2000);
+						document.addEventListener("cleantalkModalClosed", function( e ) {
+							document.location.reload();
+						});
+						setTimeout(function(){cleantalkModal.close()}, 2000);
+					} else {
+						jQuery( "<p id='apbct-ajax-result' class='error'>" + result.data + "</p>" ).insertAfter( jQuery(button) );
+					}
+				}
+			}
+		);
+	});
+
+	// Reset settings
+	jQuery( document ).on('click', '#apbct_settings_templates_reset_button', function(){
+		var button = this;
+		apbct_admin_sendAJAX(
+			{action: 'settings_templates_reset'},
+			{
+				timeout: 25000,
+				button: button,
+				spinner: jQuery('#apbct_settings_templates_reset_button .apbct_preloader_button' ),
+				notJson: true,
+				callback: function(result, data, params, obj){
+					if(result.success) {
+						jQuery( "<p id='apbct-ajax-result' class='success'>" + result.data + "</p>" ).insertAfter( jQuery(button) );
+						jQuery('#apbct_settings_templates_reset_button .apbct_success').show(300);
+						setTimeout(function(){jQuery('#apbct_settings_templates_reset_button .apbct_success').hide(300);}, 2000);
+						document.addEventListener("cleantalkModalClosed", function( e ) {
+							document.location.reload();
+						});
+						setTimeout(function(){cleantalkModal.close()}, 2000);
+					} else {
+						jQuery( "<p id='apbct-ajax-result' class='error'>" + result.data + "</p>" ).insertAfter( jQuery(button) );
+					}
+				}
+			}
+		);
+	});
+
 	// Sync button
 	jQuery('#apbct_button__sync').on('click', function(){
 		apbct_admin_sendAJAX(
@@ -41,8 +182,8 @@ jQuery(document).ready(function(){
 				button: document.getElementById('apbct_button__sync' ),
 				spinner: jQuery('#apbct_button__sync .apbct_preloader_button' ),
 				callback: function(result, data, params, obj){
-					jQuery('.apbct_success').show(300);
-					setTimeout(function(){jQuery('.apbct_success').hide(300);}, 2000)
+					jQuery('#apbct_button__sync .apbct_success').show(300);
+					setTimeout(function(){jQuery('#apbct_button__sync .apbct_success').hide(300);}, 2000);
 					if(result.reload)
 						document.location.reload();
 				}
@@ -60,6 +201,15 @@ jQuery(document).ready(function(){
 
 	if (jQuery('#apbct_renew_notice').length || jQuery('#apbct_trial_notice').length) 
 		apbct_banner_check();
+
+	jQuery(document).on('change', '#apbct_settings_templates_export',function(){
+		var optionSelected = jQuery("option:selected", this);
+		if ( optionSelected.data("id") === 'new_template' ) {
+			jQuery(this).parent().parent().find('#apbct_settings_templates_export_name').show();
+		} else {
+			jQuery(this).parent().parent().find('#apbct_settings_templates_export_name').hide();
+		}
+	});
 	
 });
 

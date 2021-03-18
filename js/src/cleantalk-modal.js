@@ -1,7 +1,35 @@
 /* Cleantalk Modal object */
 cleantalkModal = {
 
-    open: function ( elementIdToShow ) {
+    // Flags
+    loaded: false,
+    loading: false,
+    opened: false,
+    opening: false,
+
+    // Methods
+    load: function( action ) {
+        if( ! this.loaded ) {
+            this.loading = true;
+            callback = function( result, data, params, obj ) {
+                cleantalkModal.loading = false;
+                cleantalkModal.loaded = result;
+                document.dispatchEvent(
+                    new CustomEvent( "cleantalkModalContentLoaded", {
+                        bubbles: true,
+                    } )
+                );
+            };
+            if( typeof apbct_admin_sendAJAX === "function" ) {
+                apbct_admin_sendAJAX( { 'action' : action }, { 'callback': callback, 'notJson': true } );
+            } else {
+                apbct_public_sendAJAX( { 'action' : action }, { 'callback': callback, 'notJson': true } );
+            }
+
+        }
+    },
+
+    open: function () {
         /* Cleantalk Modal CSS start */
         var renderCss = function () {
             var cssStr = '';
@@ -89,7 +117,7 @@ cleantalkModal = {
         var cleantalkModalStyle = document.createElement( 'style' );
         cleantalkModalStyle.setAttribute( 'id', 'cleantalk-modal-styles' );
         cleantalkModalStyle.innerHTML = 'body.cleantalk-modal-opened{' + bodyCss + '}';
-        cleantalkModalStyle.innerHTML += '#cleantalk-modal{' + overlayCss + '}';
+        cleantalkModalStyle.innerHTML += '#cleantalk-modal-overlay{' + overlayCss + '}';
         cleantalkModalStyle.innerHTML += '#cleantalk-modal-close{' + closeCss + '}';
         cleantalkModalStyle.innerHTML += '#cleantalk-modal-close:before{' + closeCssBefore + '}';
         cleantalkModalStyle.innerHTML += '#cleantalk-modal-close:after{' + closeCssAfter + '}';
@@ -97,34 +125,55 @@ cleantalkModal = {
         /* Cleantalk Modal CSS end */
 
         var overlay = document.createElement( 'div' );
-        overlay.setAttribute( 'id', 'cleantalk-modal' );
+        overlay.setAttribute( 'id', 'cleantalk-modal-overlay' );
         document.body.append( overlay );
 
         document.body.classList.add( 'cleantalk-modal-opened' );
 
-        var inner = document.getElementById( elementIdToShow ).cloneNode( true );
-        inner.removeAttribute( 'id' );
-        inner.removeAttribute( 'class' );
-        inner.removeAttribute( 'style' );
+        var inner = document.createElement( 'div' );
+        inner.setAttribute( 'id', 'cleantalk-modal-inner' );
         inner.setAttribute( 'style', innerCss );
         overlay.append( inner );
 
         var close = document.createElement( 'div' );
         close.setAttribute( 'id', 'cleantalk-modal-close' );
         inner.append( close );
+
+        var content = document.createElement( 'div' );
+        if ( this.loaded ) {
+            content.innerHTML = this.loaded;
+        } else {
+            content.innerHTML = 'Loading...';
+            // @ToDo Here is hardcoded parameter. Have to get this from a 'data-' attribute.
+            this.load( 'get_options_template' );
+        }
+        content.setAttribute( 'id', 'cleantalk-modal-content' );
+        inner.append( content );
+
+        this.opened = true;
     },
 
     close: function () {
         document.body.classList.remove( 'cleantalk-modal-opened' );
-        document.getElementById( 'cleantalk-modal' ).remove();
+        document.getElementById( 'cleantalk-modal-overlay' ).remove();
         document.getElementById( 'cleantalk-modal-styles' ).remove();
+        document.dispatchEvent(
+            new CustomEvent( "cleantalkModalClosed", {
+                bubbles: true,
+            } )
+        );
     }
 
 };
 
 /* Cleantalk Modal helpers */
 document.addEventListener('click',function( e ){
-    if( e.target && e.target.id === 'cleantalk-modal' || e.target.id === 'cleantalk-modal-close' ){
+    if( e.target && e.target.id === 'cleantalk-modal-overlay' || e.target.id === 'cleantalk-modal-close' ){
         cleantalkModal.close();
+    }
+});
+document.addEventListener("cleantalkModalContentLoaded", function( e ) {
+    if( cleantalkModal.opened && cleantalkModal.loaded ) {
+        document.getElementById( 'cleantalk-modal-content' ).innerHTML = cleantalkModal.loaded;
     }
 });

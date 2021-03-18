@@ -173,8 +173,8 @@ function apbct_base_call($params = array(), $reg_flag = false){
 	
 	$ct = new Cleantalk();
 
-	$ct->use_bultin_api = $apbct->settings['use_buitin_http_api'] ? true : false;
-	$ct->ssl_on         = $apbct->settings['ssl_on'];
+	$ct->use_bultin_api = $apbct->settings['wp__use_builtin_http_api'] ? true : false;
+	$ct->ssl_on         = $apbct->settings['data__ssl_on'];
 	$ct->ssl_path       = APBCT_CASERT_PATH;
 	
 	// Options store url without shceme because of DB error with ''://'
@@ -289,8 +289,8 @@ function apbct_exclusions_check($func = null){
  * @return bool
  */
 function apbct_exclusions_check__url__reversed(){
-	return defined( 'APBCT_URL_EXCLUSIONS__REVERSED' ) &&
-           ! \Cleantalk\Variables\Server::has_string( 'URI', APBCT_URL_EXCLUSIONS__REVERSED );
+    	return defined( 'APBCT_URL_EXCLUSIONS__REVERSED' ) &&
+           ! \Cleantalk\Variables\Server::has_string( 'REQUEST_URI', APBCT_URL_EXCLUSIONS__REVERSED );
 }
 
 /**
@@ -368,15 +368,15 @@ function apbct_get_sender_info() {
 	// Validate cookie from the backend
 	$cookie_is_ok = apbct_cookies_test();
     
-	$referer_previous = $apbct->settings['set_cookies__sessions']
+	$referer_previous = $apbct->settings['data__set_cookies__sessions']
 			? apbct_alt_session__get('apbct_prev_referer')
 			: filter_input(INPUT_COOKIE, 'apbct_prev_referer');
 	
-	$site_landing_ts = $apbct->settings['set_cookies__sessions']
+	$site_landing_ts = $apbct->settings['data__set_cookies__sessions']
 			? apbct_alt_session__get('apbct_site_landing_ts')
 			: filter_input(INPUT_COOKIE, 'apbct_site_landing_ts');
 	
-	$page_hits = $apbct->settings['set_cookies__sessions']
+	$page_hits = $apbct->settings['data__set_cookies__sessions']
 			? apbct_alt_session__get('apbct_page_hits')
 			: filter_input(INPUT_COOKIE, 'apbct_page_hits');
 		
@@ -395,11 +395,11 @@ function apbct_get_sender_info() {
 			: 0
 		: null;
 	
-	$site_referer = $apbct->settings['store_urls__sessions']
+	$site_referer = $apbct->settings['misc__store_urls__sessions']
 			? apbct_alt_session__get('apbct_site_referer')
 			: filter_input(INPUT_COOKIE, 'apbct_site_referer');
 	
-	$urls = $apbct->settings['store_urls__sessions']
+	$urls = $apbct->settings['misc__store_urls__sessions']
 			? (array)apbct_alt_session__get('apbct_urls')
 			: (array)json_decode(filter_input(INPUT_COOKIE, 'apbct_urls'), true);
 
@@ -516,13 +516,13 @@ function ct_get_checkjs_value(){
     global $apbct;
     
     // Use static JS keys
-	if($apbct->settings['use_static_js_key'] == 1){
+	if($apbct->settings['data__use_static_js_key'] == 1){
 		
 		$key = hash('sha256', $apbct->api_key.ct_get_admin_email().$apbct->salt);
 		
 	// Auto detecting. Detected.
 	}elseif(
-		$apbct->settings['use_static_js_key'] == - 1 &&
+		$apbct->settings['data__use_static_js_key'] == - 1 &&
 		  ( apbct_is_cache_plugins_exists() ||
 		    ( apbct_is_post() && $apbct->data['cache_detected'] == 1 )
 		  )
@@ -530,6 +530,8 @@ function ct_get_checkjs_value(){
 	    $key = hash('sha256', $apbct->api_key.ct_get_admin_email().$apbct->salt);
 	    if( apbct_is_cache_plugins_exists() )
 		    $apbct->data['cache_detected'] = 1;
+
+		$apbct->saveData();
 	
     // Using dynamic JS keys
     }else{
@@ -567,9 +569,10 @@ function ct_get_checkjs_value(){
         }
 		
 		$apbct->data['cache_detected'] = 0;
-    }
 
-	$apbct->saveData();
+		$apbct->saveData();
+
+    }
 	
     return $key; 
 }
@@ -725,7 +728,7 @@ function ct_delete_spam_comments() {
 	
     global $apbct;
     
-    if ($apbct->settings['remove_old_spam'] == 1) {
+    if ($apbct->settings['comments__remove_old_spam'] == 1) {
         $last_comments = get_comments(array('status' => 'spam', 'number' => 1000, 'order' => 'ASC'));
         foreach ($last_comments as $c) {
         	$comment_date_gmt = strtotime($c->comment_date_gmt);
@@ -1077,7 +1080,7 @@ function apbct_add_async_attribute($tag, $handle, $src) {
 	    $handle === 'ct_external' ||
 	    $handle === 'ct_nocache'
 	){
-    	if( $apbct->settings['async_js'] )
+    	if( $apbct->settings['misc__async_js'] )
 	        $tag = str_replace( ' src', ' async="async" src', $tag );
 	    
 	    if( class_exists('Cookiebot_WP') )

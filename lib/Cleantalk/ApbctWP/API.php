@@ -37,7 +37,7 @@ class API extends \Cleantalk\Common\API
 		// Adding agent version to data
 		$data['agent'] = APBCT_AGENT;
 		
-		if($apbct->settings['use_buitin_http_api']){
+		if($apbct->settings['wp__use_builtin_http_api']){
 			
 			$args = array(
 				'body' => $data,
