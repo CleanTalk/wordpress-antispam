@@ -832,27 +832,35 @@ function ct_get_fields_any($arr, $message=array(), $email = null, $nickname = ar
 	if(count($arr)){
 		
 		foreach($arr as $key => $value){
-						
-			if(gettype($value) == 'string'){
-				
-				$tmp = strpos($value, '\\') !== false ? stripslashes($value) : $value;
-				$decoded_json_value = json_decode($tmp, true);
-				
-				// Decoding JSON
-				if($decoded_json_value !== null){
-					$value = $decoded_json_value;
-					
-				// Ajax Contact Forms. Get data from such strings:
-					// acfw30_name %% Blocked~acfw30_email %% s@cleantalk.org
-					// acfw30_textarea %% msg
-				}elseif(preg_match('/^\S+\s%%\s\S+.+$/', $value)){
-					$value = explode('~', $value);
-					foreach ($value as &$val){
-						$tmp = explode(' %% ', $val);
-						$val = array($tmp[0] => $tmp[1]);
-					}
-				}
-			}
+            
+            if( is_string( $value ) ){
+                
+                $tmp = strpos($value, '\\') !== false ? stripslashes($value) : $value;
+                
+                $decoded_json_value = json_decode($tmp, true);       // Try parse JSON from the string
+                parse_str( urldecode( $tmp ), $decoded_url_value ); // Try parse URL from the string
+                
+                // If there is "JSON data" set is it as a value
+                if($decoded_json_value !== null){
+                    $value = $decoded_json_value;
+                    
+                // If there is "URL data" set is it as a value
+                }elseif( ! ( count( $decoded_url_value ) === 1 && reset( $decoded_url_value ) === '' ) ){
+                    $value = $decoded_url_value;
+                    
+                // Ajax Contact Forms. Get data from such strings:
+                // acfw30_name %% Blocked~acfw30_email %% s@cleantalk.org
+                // acfw30_textarea %% msg
+                }elseif(preg_match('/^\S+\s%%\s\S+.+$/', $value)){
+                    
+                    $value = explode('~', $value);
+                    foreach ($value as &$val){
+                        $tmp = explode(' %% ', $val);
+                        $val = array($tmp[0] => $tmp[1]);
+                    }unset( $val );
+                    
+                }
+            }
 			
 			if(!is_array($value) && !is_object($value)){
 				
