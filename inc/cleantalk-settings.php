@@ -1,5 +1,7 @@
 <?php
 
+use Cleantalk\Variables\Post;
+
 /**
  * Admin action 'admin_menu' - Add the admin options page
  */
@@ -1463,7 +1465,7 @@ function apbct_settings__validate($settings) {
 	}
     
     // Drop debug data
-    if( \CleantalkSP\Variables\Post::get('apbct_debug__check_connection') ){
+    if( Post::get('apbct_debug__check_connection') ){
         $result = apbct_test_connection();
         apbct_log($result);
     }
