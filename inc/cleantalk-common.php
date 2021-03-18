@@ -4,6 +4,7 @@ use Cleantalk\Antispam\Cleantalk;
 use Cleantalk\Antispam\CleantalkRequest;
 use Cleantalk\Antispam\CleantalkResponse;
 use Cleantalk\Variables\Cookie;
+use Cleantalk\Variables\Server;
 
 function apbct_array( $array ){
 	return new \Cleantalk\Common\Arr( $array );
@@ -290,7 +291,7 @@ function apbct_exclusions_check($func = null){
  */
 function apbct_exclusions_check__url__reversed(){
     	return defined( 'APBCT_URL_EXCLUSIONS__REVERSED' ) &&
-           ! \Cleantalk\Variables\Server::has_string( 'REQUEST_URI', APBCT_URL_EXCLUSIONS__REVERSED );
+           ! Server::has_string( 'REQUEST_URI', APBCT_URL_EXCLUSIONS__REVERSED );
 }
 
 /**
@@ -312,10 +313,11 @@ function apbct_exclusions_check__url() {
             $exclusions = explode( ',', $apbct->settings['exclusions__urls'] );
         }
 
-		// Fix for AJAX forms
-		$haystack = apbct_get_server_variable( 'REQUEST_URI' ) == '/wp-admin/admin-ajax.php' && ! apbct_get_server_variable( 'HTTP_REFERER' )
-			? apbct_get_server_variable( 'HTTP_REFERER' )
-			: \Cleantalk\Variables\Server::get('HTTP_HOST') . apbct_get_server_variable( 'REQUEST_URI' );
+		// Fix for AJAX and WP REST API forms
+		$haystack = ( apbct_get_server_variable( 'REQUEST_URI' ) === '/wp-admin/admin-ajax.php' || stripos( apbct_get_server_variable( 'REQUEST_URI' ), '/wp-json/' ) === 0 )
+		            && apbct_get_server_variable( 'HTTP_REFERER' )
+			? str_ireplace( array( 'http://', 'https://', Server::get('HTTP_HOST') ), '', apbct_get_server_variable( 'HTTP_REFERER' ) )
+			: apbct_get_server_variable( 'REQUEST_URI' );
 
 		foreach ( $exclusions as $exclusion ) {
 			if (
