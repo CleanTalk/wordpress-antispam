@@ -186,17 +186,17 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 	}
 
     $apbct_active_integrations = array(
-        'ContactBank'          => array( 'hook' => 'contact_bank_frontend_ajax_call', 'ajax' => true ),
-        'FluentForm'           => array( 'hook' => 'fluentform_before_insert_submission', 'ajax' => false ),
-        'ElfsightContactForm'  => array( 'hook' => 'elfsight_contact_form_mail', 'ajax' => true ),
-        'SimpleMembership'     => array( 'hook' => 'swpm_front_end_registration_complete_user_data', 'ajax' => false ),
-        'EstimationForm'       => array( 'hook' => 'send_email', 'ajax' => true ),
-        'LandingPageBuilder'   => array( 'hook' => 'ulpb_formBuilderEmail_ajax', 'ajax' => true ),
-        'WpMembers'            => array( 'hook' => 'wpmem_pre_register_data', 'ajax' => false ),
-        'Rafflepress'          => array( 'hook' => 'rafflepress_lite_giveaway_api', 'ajax' => true ),
-	    'Wpdiscuz'             => array( 'hook' => array( 'wpdAddComment', 'wpdAddInlineComment' ), 'ajax' => true ),
+        'ContactBank'          => array( 'hook' => 'contact_bank_frontend_ajax_call',                'setting' => 'forms__contact_forms_test', 'ajax' => true ),
+        'FluentForm'           => array( 'hook' => 'fluentform_before_insert_submission',            'setting' => 'forms__contact_forms_test', 'ajax' => false ),
+        'ElfsightContactForm'  => array( 'hook' => 'elfsight_contact_form_mail',                     'setting' => 'forms__contact_forms_test', 'ajax' => true ),
+        'EstimationForm'       => array( 'hook' => 'send_email',                                     'setting' => 'forms__contact_forms_test', 'ajax' => true ),
+        'LandingPageBuilder'   => array( 'hook' => 'ulpb_formBuilderEmail_ajax',                     'setting' => 'forms__contact_forms_test', 'ajax' => true ),
+        'Rafflepress'          => array( 'hook' => 'rafflepress_lite_giveaway_api',                  'setting' => 'forms__contact_forms_test', 'ajax' => true ),
+        'SimpleMembership'     => array( 'hook' => 'swpm_front_end_registration_complete_user_data', 'setting' => 'forms__registrations_test', 'ajax' => false ),
+        'WpMembers'            => array( 'hook' => 'wpmem_pre_register_data',                        'setting' => 'forms__registrations_test', 'ajax' => false ),
+	    'Wpdiscuz'             => array( 'hook' => array( 'wpdAddComment', 'wpdAddInlineComment' ),  'setting' => 'forms__comments_test',      'ajax' => true ),
     );
-    new  \Cleantalk\Antispam\Integrations( $apbct_active_integrations );
+    new  \Cleantalk\Antispam\Integrations( $apbct_active_integrations, $apbct->settings );
 	
 	// Ninja Forms. Making GET action to POST action
     if( apbct_is_in_uri( 'admin-ajax.php' ) && sizeof($_POST) > 0 && isset($_GET['action']) && $_GET['action']=='ninja_forms_ajax_submit' )

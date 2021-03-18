@@ -10,12 +10,22 @@ class Integrations
     private $integrations = array();
 
     private $integration;
-
-    public function __construct( $integrations )
+    
+    /**
+     * Integrations constructor.
+     *
+     * @param array $integrations
+     * @param array $settings
+     */
+    public function __construct( $integrations, $settings )
     {
         $this->integrations = $integrations;
 
-        foreach( $this->integrations as $integration_name => $integration_info ) {
+        foreach( $this->integrations as $integration_name => $integration_info ){
+    
+            if( empty( $settings[ $integration_info['setting'] ] ) )
+                continue;
+            
             if( $integration_info['ajax'] ) {
             	if( is_array( $integration_info['hook'] ) ) {
             		foreach( $integration_info['hook'] as $hook ) {
