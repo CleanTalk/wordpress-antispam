@@ -262,19 +262,28 @@ function apbct_public_sendAJAX(data, params, obj){
 	});
 }
 
-// Capturing responses and output block message for unknown AJAX forms
-var accessor = Object.getOwnPropertyDescriptor(XMLHttpRequest.prototype, 'responseText');
-Object.defineProperty(XMLHttpRequest.prototype, 'responseText', {
+// // Capturing responses and output block message for unknown AJAX forms
+var send = window.XMLHttpRequest.prototype.send;
+function sendReplacement(data) {
+	if(this.onreadystatechange) {
+		this._onreadystatechange = this.onreadystatechange;
+	}
+	this.onreadystatechange = onReadyStateChangeReplacement;
+	return send.apply(this, arguments);
+}
 
-	get: function(){
-		apbct_showBlockedResponse( this.response );
-		return accessor.get.call(this);
-	},
-	configurable: true
+function onReadyStateChangeReplacement() {
+	if( this.readyState === 4 ){
+		apbct_showBlockedResponse( this.responseText );
+	}
+	if(this._onreadystatechange) {
+		return this._onreadystatechange.apply(this, arguments);
+	}
+}
 
-});
+window.XMLHttpRequest.prototype.send = sendReplacement;
 
-apbct_parseJSON = function( string ){
+function apbct_parseJSON( string ){
 	try{
 		var result = JSON.parse( string );
 	}catch( e ){
@@ -283,7 +292,7 @@ apbct_parseJSON = function( string ){
 	return result;
 };
 
-apbct_showBlockedResponse = function( response ){
+function apbct_showBlockedResponse( response ){
 
 	var response = apbct_parseJSON( response );
 
@@ -297,15 +306,9 @@ apbct_showBlockedResponse = function( response ){
 				} )
 			);
 
-			// Create hidden element contains result.
-			var apbct_result = document.createElement( 'div' );
-			apbct_result.setAttribute( 'id', 'apbct-result' );
-			apbct_result.style.display = 'none';
-			apbct_result.innerHTML = response.comment;
-			document.body.append( apbct_result );
-
-			// Show the element
-			cleantalkModal.open('apbct-result');
+			// Show the result by modal
+			cleantalkModal.loaded = response.comment;
+			cleantalkModal.open();
 
 			if(+response.stop_script == 1)
 				window.stop();
