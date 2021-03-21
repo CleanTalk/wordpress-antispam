@@ -106,19 +106,23 @@ class CleantalkSettingsTemplates {
 
 	public static function get_options_template( $api_key )
 	{
-		$res = \Cleantalk\Common\API::method__services_templates_get( $api_key );
-		if( is_array( $res ) ) {
-			if( array_key_exists( 'error', $res ) ) {
-				$templates = array();
-			} else {
-				$templates = $res;
-			}
-		} else {
-			$templates = array();
-		}
 		if( ! self::$templates ) {
+
+			$res = \Cleantalk\Common\API::method__services_templates_get( $api_key );
+			if( is_array( $res ) ) {
+				if( array_key_exists( 'error', $res ) ) {
+					$templates = array();
+				} else {
+					$templates = $res;
+				}
+			} else {
+				$templates = array();
+			}
+
 			self::$templates = $templates;
+
 		}
+
 		return self::$templates;
 	}
 
