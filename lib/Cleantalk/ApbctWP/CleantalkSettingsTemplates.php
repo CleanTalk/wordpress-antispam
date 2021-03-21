@@ -135,12 +135,12 @@ class CleantalkSettingsTemplates {
 			$out .= $this->getHtmlContentExport( $templates );
 			$out .= $this->getHtmlContentReset();
 		}
-		return $title . '<br>' . $out;
+		return $title . $out;
 	}
 
 	private function getHtmlContentImport( $templates )
 	{
-		$templatesSet = '<h3>' . esc_html__( 'Import settings.', 'cleantalk-spam-protect' ) . '</h3>';
+		$templatesSet = '<h3>' . esc_html__( 'Import settings', 'cleantalk-spam-protect' ) . '</h3>';
 
 		//Check available option_site parameter
 		if( count( $templates ) > 0 ) {
@@ -152,7 +152,7 @@ class CleantalkSettingsTemplates {
 		}
 
 		if( count( $templates ) === 0 ) {
-			$templatesSet .= esc_html__( 'There are no settings templates.', 'cleantalk-spam-protect' );
+			$templatesSet .= esc_html__( 'There are no settings templates', 'cleantalk-spam-protect' );
 			return $templatesSet . '<br><hr>';
 		}
 
@@ -173,22 +173,21 @@ class CleantalkSettingsTemplates {
 
 	public function getHtmlContentExport( $templates )
 	{
-		$templatesSet = '<h3>' . esc_html__( 'Export settings.', 'cleantalk-spam-protect' ) . '</h3>';
+		$templatesSet = '<h3>' . esc_html__( 'Export settings', 'cleantalk-spam-protect' ) . '</h3>';
 		$templatesSet .= '<p><select id="apbct_settings_templates_export" >';
 		$templatesSet .= '<option data-id="new_template" checked="true">New template</option>';
 		foreach( $templates as $template ) {
 			$templatesSet .= '<option data-id="' . $template['template_id'] . '">' . htmlspecialchars( $template['name'] ) . '</option>';
 		}
 		$templatesSet .= '</select></p>';
-		$templatesSet .= '<p><input type="text" id="apbct_settings_templates_export_name" name="apbct_settings_template_name" placeholder="' . esc_html__( 'Enter a template name.', 'cleantalk-spam-protect' ) . '" required /></p>';
+		$templatesSet .= '<p><input type="text" id="apbct_settings_templates_export_name" name="apbct_settings_template_name" placeholder="' . esc_html__( 'Enter a template name', 'cleantalk-spam-protect' ) . '" required /></p>';
 		$button = $this->getExportButton();
 		return $templatesSet . '<br>' . $button . '<br>';
 	}
 
 	public function getHtmlContentReset()
 	{
-		$content = '<h3>' . esc_html__( 'Reset settings.', 'cleantalk-spam-protect' ) . '</h3>';
-		return '<br><br><hr><br>' . $content . '<br>' .  $this->getResetButton() . '<br>';
+		return '<hr><br>' . $this->getResetButton() . '<br>';
 	}
 
 	private function getTitle()
@@ -199,7 +198,7 @@ class CleantalkSettingsTemplates {
 		} else {
 			$current_template_name = 'default';
 		}
-		$content = '<h2>' . esc_html__( 'CleanTalk settings templates.', 'cleantalk-spam-protect' ) . '</h2>';
+		$content = '<h2>' . esc_html__( 'CleanTalk settings templates', 'cleantalk-spam-protect' ) . '</h2>';
 		$content .= '<p>' . esc_html__( 'You are currently using:', 'cleantalk-spam-protect' ) . ' ' . $current_template_name . '</p>';
 		return $content;
 	}
@@ -207,7 +206,7 @@ class CleantalkSettingsTemplates {
 	private function getExportButton()
 	{
 		return '<button id="apbct_settings_templates_export_button" class="cleantalk_link cleantalk_link-manual">'
-		       . esc_html__( 'Export settings to selected template.', 'cleantalk-spam-protect' )
+		       . esc_html__( 'Export settings to selected template', 'cleantalk-spam-protect' )
 		       . '<img alt="Preloader ico" style="margin-left: 10px;" class="apbct_preloader_button" src="' . APBCT_URL_PATH . '/inc/images/preloader2.gif" />'
 		       . '<img alt="Success ico" style="margin-left: 10px;" class="apbct_success --hide" src="' . APBCT_URL_PATH . '/inc/images/yes.png" />'
 		       . '</button>';
@@ -215,15 +214,15 @@ class CleantalkSettingsTemplates {
 
 	private function getImportButton(){
 		return '<button id="apbct_settings_templates_import_button" class="cleantalk_link cleantalk_link-manual">'
-		       . esc_html__( 'Import settings from selected template.', 'cleantalk-spam-protect' )
+		       . esc_html__( 'Import settings from selected template', 'cleantalk-spam-protect' )
 		       . '<img alt="Preloader ico" style="margin-left: 10px;" class="apbct_preloader_button" src="' . APBCT_URL_PATH . '/inc/images/preloader2.gif" />'
 		       . '<img alt="Success ico" style="margin-left: 10px;" class="apbct_success --hide" src="' . APBCT_URL_PATH . '/inc/images/yes.png" />'
 		       . '</button>';
 	}
 
 	private function getResetButton(){
-		return '<button id="apbct_settings_templates_reset_button" class="cleantalk_link cleantalk_link-auto">'
-		       . esc_html__( 'Reset settings to defaults.', 'cleantalk-spam-protect' )
+		return '<button id="apbct_settings_templates_reset_button" class="ct_support_link">'
+		       . esc_html__( 'Reset settings to defaults', 'cleantalk-spam-protect' )
 		       . '<img alt="Preloader ico" style="margin-left: 10px;" class="apbct_preloader_button" src="' . APBCT_URL_PATH . '/inc/images/preloader2.gif" />'
 		       . '<img alt="Success ico" style="margin-left: 10px;" class="apbct_success --hide" src="' . APBCT_URL_PATH . '/inc/images/yes.png" />'
 		       . '</button>';
