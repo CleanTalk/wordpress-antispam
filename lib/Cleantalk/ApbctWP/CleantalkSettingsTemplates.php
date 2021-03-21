@@ -160,9 +160,9 @@ class CleantalkSettingsTemplates {
 		foreach( $templates as $template ) {
 			$templatesSet .= "<option 
 								data-id='" . $template['template_id'] . "'
-								data-name='" . $template['name'] . "''
+								data-name='" . htmlspecialchars( $template['name'] ) . "''
 								data-settings='" . $template['options_site'] . "'>"
-			                 . $template['name']
+			                 . htmlspecialchars( $template['name'] )
 			                 . "</option>";
 		}
 		$templatesSet .= '</select></p>';
@@ -177,7 +177,7 @@ class CleantalkSettingsTemplates {
 		$templatesSet .= '<p><select id="apbct_settings_templates_export" >';
 		$templatesSet .= '<option data-id="new_template" checked="true">New template</option>';
 		foreach( $templates as $template ) {
-			$templatesSet .= '<option data-id="' . $template['template_id'] . '">' . $template['name'] . '</option>';
+			$templatesSet .= '<option data-id="' . $template['template_id'] . '">' . htmlspecialchars( $template['name'] ) . '</option>';
 		}
 		$templatesSet .= '</select></p>';
 		$templatesSet .= '<p><input type="text" id="apbct_settings_templates_export_name" name="apbct_settings_template_name" placeholder="' . esc_html__( 'Enter a template name.', 'cleantalk-spam-protect' ) . '" required /></p>';
