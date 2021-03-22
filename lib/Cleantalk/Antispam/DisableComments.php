@@ -47,7 +47,7 @@ class DisableComments{
 		$types_to_disable = array();
 		
 		if( $this->apbct->settings['comments__disable_comments__all'] ){
-			$types_to_disable = array( 'page', 'post', 'media' );
+            $types_to_disable = array( 'all' );
 		}else{
 			if( $this->apbct->settings['comments__disable_comments__posts'] )
 				$types_to_disable[] = 'post';
@@ -71,8 +71,13 @@ class DisableComments{
 	}
 	
 	function is_current_type_to_disable( $type = '' ){
-		$type = $type ? $type : get_post_type();
-		return in_array( $type, $this->types_to_disable );
+        
+        if( $this->types_to_disable === array( 'all' ) ){
+            return true;
+        }
+        
+        $type = $type ?: get_post_type();
+        return in_array( $type, $this->types_to_disable );
 	}
 	
 	/**
