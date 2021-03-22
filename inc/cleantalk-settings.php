@@ -216,19 +216,19 @@ function apbct_settings__set_fileds( $fields ){
 				'comments__disable_comments__posts' => array(
 					'title'           => __( 'Disable comments for all posts', 'cleantalk-spam-protect'),
 					'class'           => 'apbct_settings-field_wrapper--sub',
-					'parent'          => 'comments__disable_comments__all',
+//					'parent'          => 'comments__disable_comments__all',
 					'reverse_trigger' => true,
 				),
 				'comments__disable_comments__pages' => array(
 					'title'           => __( 'Disable comments for all pages', 'cleantalk-spam-protect'),
 					'class'           => 'apbct_settings-field_wrapper--sub',
-					'parent'          => 'comments__disable_comments__all',
+//					'parent'          => 'comments__disable_comments__all',
 					'reverse_trigger' => true,
 				),
 				'comments__disable_comments__media' => array(
 					'title'           => __( 'Disable comments for all media', 'cleantalk-spam-protect'),
 					'class'           => 'apbct_settings-field_wrapper--sub',
-					'parent'          => 'comments__disable_comments__all',
+//					'parent'          => 'comments__disable_comments__all',
 					'reverse_trigger' => true,
 				),
 				'comments__bp_private_messages' => array(
