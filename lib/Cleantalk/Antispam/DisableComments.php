@@ -47,14 +47,16 @@ class DisableComments{
 		$types_to_disable = array();
 		
 		if( $this->apbct->settings['comments__disable_comments__all'] ){
-			$types_to_disable = array( 'page', 'post', 'media' );
+			$types_to_disable = array( 'page', 'post', 'media', 'attachment' );
 		}else{
 			if( $this->apbct->settings['comments__disable_comments__posts'] )
 				$types_to_disable[] = 'post';
 			if( $this->apbct->settings['comments__disable_comments__pages'] )
 				$types_to_disable[] = 'page';
-			if( $this->apbct->settings['comments__disable_comments__media'] )
-				$types_to_disable[] = 'media';
+			if( $this->apbct->settings['comments__disable_comments__media'] ){
+                $types_to_disable[] = 'media';
+                $types_to_disable[] = 'attachment';
+            }
 		}
 		
 		$this->is_wpms = APBCT_WPMS;
