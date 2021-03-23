@@ -965,6 +965,11 @@ class Helper
                 $key_parts = explode('_', $server_key);
                 if(count($key_parts) > 0 and strlen($server_key) > 2){
                     foreach($key_parts as $part_index => $part){
+                        
+                        if( $part_index === '' ){
+                            continue;
+                        }
+                        
                         $key_parts[$part_index] = function_exists('mb_strtolower') ? mb_strtolower($part) : strtolower($part);
                         $key_parts[$part_index][0] = strtoupper($key_parts[$part_index][0]);
                     }
