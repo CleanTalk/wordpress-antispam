@@ -48,7 +48,7 @@ class CleantalkSettingsTemplates {
 			$template_info = $_POST['data'];
 			if( isset( $template_info['template_id'] ) ) {
 				$template_id = sanitize_text_field( $template_info['template_id'] );
-				$res = \Cleantalk\Common\API::method__services_templates_update( $this->api_key, $template_id );
+				$res = \Cleantalk\Common\API::method__services_templates_update( $this->api_key, $template_id, $this->get_plugin_options() );
 				if( is_array( $res ) && array_key_exists( 'operation_status', $res ) ) {
 					if( $res['operation_status'] === 'SUCCESS' ) {
 						wp_send_json_success( esc_html__('Success. Reloading...', 'cleantalk-spam-protect' ) );
@@ -61,7 +61,7 @@ class CleantalkSettingsTemplates {
 			}
 			if( isset( $template_info['template_name'] ) ) {
 				$template_name = sanitize_text_field( $template_info['template_name'] );
-				$res = \Cleantalk\Common\API::method__services_templates_add( $this->api_key, $template_name );
+				$res = \Cleantalk\Common\API::method__services_templates_add( $this->api_key, $template_name, $this->get_plugin_options() );
 				if( is_array( $res ) && array_key_exists( 'operation_status', $res ) ) {
 					if( $res['operation_status'] === 'SUCCESS' ) {
 						wp_send_json_success( esc_html__('Success. Reloading...', 'cleantalk-spam-protect' ) );
@@ -82,7 +82,7 @@ class CleantalkSettingsTemplates {
 		if( isset( $_POST['data'] ) && is_array( $_POST['data'] ) ) {
 			$template_info = $_POST['data'];
 			if( isset( $template_info['template_id'], $template_info['template_name'], $template_info['settings'] ) ) {
-				$res = apbct_set_plugin_options( $template_info['template_id'], $template_info['template_name'], $template_info['settings'] );
+				$res = $this->set_plugin_options( $template_info['template_id'], $template_info['template_name'], $template_info['settings'] );
 				if( empty( $res['error'] ) ) {
 					wp_send_json_success( esc_html__('Success. Reloading...', 'cleantalk-spam-protect' ) );
 				} else {
@@ -96,7 +96,7 @@ class CleantalkSettingsTemplates {
 	public function settings_templates_reset_ajax()
 	{
 		check_ajax_referer('ct_secret_nonce', 'security');
-		$res = apbct_reset_plugin_options();
+		$res = $this->reset_plugin_options();
 		if( empty( $res['error'] ) ) {
 			wp_send_json_success( esc_html__('Success. Reloading...', 'cleantalk-spam-protect' ) );
 		} else {
@@ -226,6 +226,50 @@ class CleantalkSettingsTemplates {
 		       . '<img alt="Preloader ico" style="margin-left: 10px;" class="apbct_preloader_button" src="' . APBCT_URL_PATH . '/inc/images/preloader2.gif" />'
 		       . '<img alt="Success ico" style="margin-left: 10px;" class="apbct_success --hide" src="' . APBCT_URL_PATH . '/inc/images/yes.png" />'
 		       . '</button>';
+	}
+
+	private function get_plugin_options() {
+		global $apbct;
+		$settings = (array) $apbct->settings;
+		// Remove apikey from export
+		if( isset( $settings['apikey'] ) ) {
+			unset( $settings['apikey'] );
+		}
+		// Remove misc__debug_ajax from export
+		if( isset( $settings['misc__debug_ajax'] ) ) {
+			unset( $settings['misc__debug_ajax'] );
+		}
+		// Remove multisite__white_label__hoster_key from export
+		if( isset( $settings['multisite__white_label__hoster_key'] ) ) {
+			unset( $settings['multisite__white_label__hoster_key'] );
+		}
+		// Remove all WPMS from export
+		$settings = array_filter( $settings, function( $key ){
+			return strpos( $key, 'multisite__' ) === false;
+		}, ARRAY_FILTER_USE_KEY );
+		return json_encode( $settings, JSON_FORCE_OBJECT );
+	}
+
+	private function set_plugin_options( $template_id, $template_name, $settings ) {
+		global $apbct;
+		$settings = array_replace( (array) $apbct->settings, $settings );
+		$settings = apbct_settings__validate($settings);
+		$apbct->settings = $settings;
+		$apbct->data['current_settings_template_id'] = $template_id;
+		$apbct->data['current_settings_template_name'] = $template_name;
+		return $apbct->saveSettings() && $apbct->saveData();
+	}
+
+	private function reset_plugin_options() {
+		global $apbct;
+		$def_settings = $apbct->def_settings;
+		if( isset( $def_settings['apikey'] ) ) {
+			unset( $def_settings['apikey'] );
+		}
+		$settings = array_replace( (array) $apbct->settings, $def_settings );
+		$settings = apbct_settings__validate($settings);
+		$apbct->settings = $settings;
+		return $apbct->saveSettings();
 	}
 
 }

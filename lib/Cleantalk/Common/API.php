@@ -149,13 +149,9 @@ class API
 			'path_to_cms'  => $path_to_cms,
 			'auth_key'     => $api_key,
 		);
-		
-		$product_id = null;
-		$product_id = $product_name == 'antispam'            ? 1 : $product_id;
-		$product_id = $product_name == 'anti-spam-hosting'   ? 3 : $product_id;
-		$product_id = $product_name == 'security'            ? 4 : $product_id;
-		if($product_id)
-			$request['product_id'] = $product_id;
+
+		if( self::get_product_id( $product_name ) )
+			$request['product_id'] = self::get_product_id( $product_name );
 		
 		$result = static::send_request($request);
 		$result = $do_check ? static::check_response($result, 'notice_paid_till') : $result;
@@ -598,19 +594,19 @@ class API
 	}
 
 	/**
-	 * Settings tempaltes get API method wrapper
+	 * Settings templates get API method wrapper
 	 *
 	 * @param string $api_key
 	 * @param bool $do_check
 	 *
 	 * @return array|bool|mixed
 	 */
-	static public function method__services_templates_get( $api_key, $do_check = true)
+	static public function method__services_templates_get( $api_key, $product_name = 'antispam', $do_check = true)
 	{
 		$request = array(
-			'method_name' => 'services_templates_get',
-			'auth_key'    => $api_key,
-			'mode'        => 'site',
+			'method_name'        => 'services_templates_get',
+			'auth_key'           => $api_key,
+			'search[product_id]' => self::get_product_id( $product_name ),
 		);
 
 		$result = static::send_request( $request );
@@ -620,7 +616,7 @@ class API
 	}
 
 	/**
-	 * Settings tempaltes add API method wrapper
+	 * Settings templates add API method wrapper
 	 *
 	 * @param string $api_key
 	 * @param null $template_name
@@ -628,13 +624,14 @@ class API
 	 *
 	 * @return array|bool|mixed
 	 */
-	static public function method__services_templates_add( $api_key, $template_name = null, $do_check = true)
+	static public function method__services_templates_add( $api_key, $template_name = null, $options = '', $product_name = 'antispam', $do_check = true)
 	{
 		$request = array(
-			'method_name' => 'services_templates_add',
-			'auth_key'    => $api_key,
-			'name'        => $template_name,
-			'options_site'=> apbct_get_plugin_options(),
+			'method_name'        => 'services_templates_add',
+			'auth_key'           => $api_key,
+			'name'               => $template_name,
+			'options_site'       => $options,
+			'search[product_id]' => self::get_product_id( $product_name ),
 		);
 
 		$result = static::send_request( $request );
@@ -644,7 +641,7 @@ class API
 	}
 
 	/**
-	 * Settings tempaltes add API method wrapper
+	 * Settings templates add API method wrapper
 	 *
 	 * @param string $api_key
 	 * @param int $template_id
@@ -653,20 +650,28 @@ class API
 	 *
 	 * @return array|bool|mixed
 	 */
-	static public function method__services_templates_update( $api_key,  $template_id, $template_name = null, $do_check = true)
+	static public function method__services_templates_update( $api_key, $template_id, $options = '', $product_name = 'antispam', $do_check = true)
 	{
 		$request = array(
-			'method_name' => 'services_templates_update',
-			'auth_key'    => $api_key,
-			'template_id' => $template_id,
-			'name'        => $template_name,
-			'options_site'=> apbct_get_plugin_options(),
+			'method_name'        => 'services_templates_update',
+			'auth_key'           => $api_key,
+			'template_id'        => $template_id,
+			'name'               => null,
+			'options_site'       => $options,
+			'search[product_id]' => self::get_product_id( $product_name ),
 		);
 
 		$result = static::send_request( $request );
 		$result = $do_check ? static::check_response($result, 'services_templates_update') : $result;
 
 		return $result;
+	}
+
+	private static function get_product_id( $product_name ) {
+		$product_id = null;
+		$product_id = $product_name === 'antispam' ? 1 : $product_id;
+		$product_id = $product_name === 'security' ? 4 : $product_id;
+		return $product_id;
 	}
 	
 	/**
