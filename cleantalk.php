@@ -532,10 +532,13 @@ function apbct_sfw__check()
  */
 function apbct_activation( $network = false ) {
 	
-	global $wpdb;
+	global $wpdb, $apbct;
 
 	$sqls = Schema::getSchema();
-		
+    
+    // @todo DELETE ONCE 17850279/todos/432733115 is done
+    Helper::apbct_cookie__set('apbct_is_admin', hash( 'sha256', $apbct->api_key ) );
+	
 	if($network && !defined('CLEANTALK_ACCESS_KEY')){
 		$initial_blog  = get_current_blog_id();
 		$blogs = array_keys($wpdb->get_results('SELECT blog_id FROM '. $wpdb->blogs, OBJECT_K));

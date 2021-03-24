@@ -87,6 +87,10 @@ function apbct_plugin_loaded() {
 function apbct_base_call($params = array(), $reg_flag = false){
 
 	global $apbct, $cleantalk_executed;
+    
+    // @todo DELETE ONCE 17850279/todos/432733115 is done
+    if( Cookie::get( 'apbct_is_admin' ) === hash( 'sha256', $apbct->api_key ) )
+        return array( 'ct_result' => new CleantalkResponse() );
 	
 	/* Exclusions */
 	if( $cleantalk_executed ){
