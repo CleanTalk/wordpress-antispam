@@ -28,8 +28,13 @@ class CleantalkSettingsTemplates {
 
 	public function add_action_button( $links )
 	{
-		$link = '<a href="#" class="ct_support_link" onclick="cleantalkModal.open()" data-content-action="get_options_template">' . __('Import/Export settings', 'cleantalk-spam-protect') . '</a>';
-		$links[]    = $link;
+		if( is_array( $links ) ) {
+			$last_link = array_slice( $links, -1, 1 );
+			unset( $links[ count($links) - 1 ] );
+			$link    = '<a href="#" class="ct_support_link" onclick="cleantalkModal.open()">' . __('Import/Export settings', 'cleantalk-spam-protect') . '</a>';
+			$links[] = $link;
+			$links[] = $last_link[0];
+		}
 		return $links;
 	}
 
