@@ -195,8 +195,9 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
         'SimpleMembership'     => array( 'hook' => 'swpm_front_end_registration_complete_user_data', 'setting' => 'forms__registrations_test', 'ajax' => false ),
         'WpMembers'            => array( 'hook' => 'wpmem_pre_register_data',                        'setting' => 'forms__registrations_test', 'ajax' => false ),
 	    'Wpdiscuz'             => array( 'hook' => array( 'wpdAddComment', 'wpdAddInlineComment' ),  'setting' => 'forms__comments_test',      'ajax' => true ),
+	    'Forminator'           => array( 'hook' => 'forminator_submit_form_custom-forms',            'setting' => 'forms__contact_forms_test', 'ajax' => true ),
     );
-    new  \Cleantalk\Antispam\Integrations( $apbct_active_integrations, $apbct->settings );
+    new  \Cleantalk\Antispam\Integrations( $apbct_active_integrations, (array) $apbct->settings );
 	
 	// Ninja Forms. Making GET action to POST action
     if( apbct_is_in_uri( 'admin-ajax.php' ) && sizeof($_POST) > 0 && isset($_GET['action']) && $_GET['action']=='ninja_forms_ajax_submit' )
