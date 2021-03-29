@@ -792,14 +792,17 @@ class Helper
 
     /**
      * Universal method to adding cookies
+     * Wrapper for setcookie() Conisdering PHP version
      *
-     * @param $name
-     * @param string $value
-     * @param int $expires
+     * @see https://www.php.net/manual/ru/function.setcookie.php
+     *
+     * @param string $name     Cookie name
+     * @param string $value    Cookie value
+     * @param int    $expires  Expiration timestamp. 0 - expiration with session
      * @param string $path
-     * @param null $domain
-     * @param bool $secure
-     * @param bool $httponly
+     * @param null   $domain
+     * @param bool   $secure
+     * @param bool   $httponly
      * @param string $samesite
      *
      * @return void
