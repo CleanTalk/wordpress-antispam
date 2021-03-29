@@ -7,8 +7,9 @@ function ct_add_find_spam_pages(){
     // Check users pages
     $ct_check_users = add_users_page( __( "Check for spam", 'cleantalk-spam-protect'), __( "Find spam users", 'cleantalk-spam-protect'),    'activate_plugins', 'ct_check_users', array( '\Cleantalk\ApbctWP\FindSpam\Page', 'showFindSpamPage' ) );
     $ct_check_users_logs = add_users_page( __( "Scan logs", 'cleantalk-spam-protect'), '', 'activate_plugins', 'ct_check_users_logs', array( '\Cleantalk\ApbctWP\FindSpam\Page', 'showFindSpamPage' ) );
+    $ct_bad_users = add_users_page( __( "Non-checkable users", 'cleantalk-spam-protect'), '', 'activate_plugins', 'ct_check_users_bad', array( '\Cleantalk\ApbctWP\FindSpam\Page', 'showFindSpamPage' ) );
 
-    // Cheack comments pages
+    // Check comments pages
     $ct_check_spam  = add_comments_page( __( "Check for spam", 'cleantalk-spam-protect'), __( "Find spam comments", 'cleantalk-spam-protect'), 'activate_plugins', 'ct_check_spam',  array( '\Cleantalk\ApbctWP\FindSpam\Page', 'showFindSpamPage' ) );
     $ct_check_spam_logs  = add_comments_page( __( "Scan logs", 'cleantalk-spam-protect'), '', 'activate_plugins', 'ct_check_spam_logs',  array( '\Cleantalk\ApbctWP\FindSpam\Page', 'showFindSpamPage' ) );
 
@@ -21,6 +22,7 @@ function ct_add_find_spam_pages(){
     add_action( "load-$ct_check_users_logs",   array( '\Cleantalk\ApbctWP\FindSpam\Page', 'setScreenOption' ) );
     add_action( "load-$ct_check_spam",         array( '\Cleantalk\ApbctWP\FindSpam\Page', 'setScreenOption' ) );
     add_action( "load-$ct_check_spam_logs",    array( '\Cleantalk\ApbctWP\FindSpam\Page', 'setScreenOption' ) );
+	add_action( "load-$ct_bad_users",    array( '\Cleantalk\ApbctWP\FindSpam\Page', 'setScreenOption' ) );
 
 }
 
@@ -46,7 +48,7 @@ function ct_save_screen_option() {
 
     // Saving screen option for the pagination (per page option)
     add_filter( 'set-screen-option', function( $status, $option, $value ){
-        return ( $option == 'spam_per_page' ) ? (int) $value : $status;
+        return ( $option === 'spam_per_page' ) ? (int) $value : $status;
     }, 10, 3 );
 
 }

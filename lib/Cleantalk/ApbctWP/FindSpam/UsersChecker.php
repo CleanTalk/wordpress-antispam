@@ -59,6 +59,17 @@ class UsersChecker extends Checker
 
     }
 
+	public function getBadUsersPage(){
+
+		$this->list_table = new \Cleantalk\ApbctWP\FindSpam\ListTable\BadUsers();
+
+		echo '<h3>' . esc_html__( "These users can't be checked because they haven't IP or e-mail", 'cleantalk-spam-protect' ) . '</h3>';
+		echo '<form action="" method="POST">';
+		$this->list_table->display();
+		echo '</form>';
+
+	}
+
     /**
      * Getting a count of total users of the website and return formatted string about this.
      *
