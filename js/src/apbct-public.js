@@ -195,7 +195,6 @@ function apbct_js_keys__set_input_value(result, data, params, obj){
 	if( document.querySelectorAll('[name^=ct_checkjs]').length > 0 ) {
 		var elements = document.querySelectorAll('[name^=ct_checkjs]');
 		for ( var i = 0; i < elements.length; i++ ) {
-			console.log(elements[i]);
 			elements[i].value = result.js_key;
 		}
 	}
