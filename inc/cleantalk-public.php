@@ -925,13 +925,39 @@ function apbct_hook__wp_head__set_cookie__ct_checkjs() {
 }
 
 /**
- * Adds cookie script filed to footer
+ * Adds check_js script to the footer
  */
 function apbct_hook__wp_footer() {
 
-    //ct_add_hidden_fields(true, 'ct_checkjs', false, true, true);
+	global $apbct;
 
-    return null;
+	if( $apbct->settings['data__use_ajax'] ){
+
+		if( $apbct->use_rest_api )  {
+			$html = "<script type=\"text/javascript\" " . ( class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '' ) . ">
+				if( document.querySelectorAll('[name^=ct_checkjs]').length > 0 ) {
+					window.addEventListener('DOMContentLoaded', function () {
+						apbct_public_sendREST(
+		                    'js_keys__get',
+		                    { callback: apbct_js_keys__set_input_value }
+		                )
+					});
+				}				
+			</script>";
+		} else {
+			$html = "<script type=\"text/javascript\" " . ( class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '' ) . ">
+				window.addEventListener('DOMContentLoaded', function () {
+	                apbct_public_sendAJAX(
+	                    { action: 'apbct_js_keys__get' },
+	                    { callback: apbct_js_keys__set_input_value, no_nonce: true }
+	                );
+				});
+			</script>";
+		}
+
+		echo $html;
+
+	}
 }
 
 /**
@@ -964,15 +990,7 @@ function ct_add_hidden_fields($field_name = 'ct_checkjs', $return_string = false
 
         $ct_input_challenge = sprintf("'%s'", $ct_checkjs_key);
     	$field_id = $field_name . '_' . $field_id_hash;
-		$html = "<input type=\"hidden\" id=\"{$field_id}\" name=\"{$field_name}\" value=\"{$ct_checkjs_def}\" />
-		<script type=\"text/javascript\" " . ( class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '' ) . ">
-			window.addEventListener(\"DOMContentLoaded\", function () {
-				apbct_public_sendREST(
-                    \"js_keys__get\",
-                    {callback: apbct_js_keys__set_input_value, input_name: \"{$field_id}\"}
-                )
-			});
-		</script>";
+		$html = "<input type=\"hidden\" id=\"{$field_id}\" name=\"{$field_name}\" value=\"{$ct_checkjs_def}\" />";
 
 	// Set KEY from backend
     }else{

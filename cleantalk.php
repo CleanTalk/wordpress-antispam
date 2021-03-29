@@ -107,9 +107,8 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 	}
 	
 	// Passing JS key to frontend
-	// @ToDo have to remove these hooks in 5.157 (after two releases)
-	//add_action('wp_ajax_apbct_js_keys__get',        'apbct_js_keys__get__ajax');
-	//add_action('wp_ajax_nopriv_apbct_js_keys__get', 'apbct_js_keys__get__ajax');
+	add_action('wp_ajax_apbct_js_keys__get',        'apbct_js_keys__get__ajax');
+	add_action('wp_ajax_nopriv_apbct_js_keys__get', 'apbct_js_keys__get__ajax');
 
 	add_action( 'rest_api_init', 'prefix_register_my_rest_routes' );
 	function prefix_register_my_rest_routes() {

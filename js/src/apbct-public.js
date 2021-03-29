@@ -192,9 +192,12 @@ function apbct_visible_fields_set_cookie( visible_fields_collection ) {
 }
 
 function apbct_js_keys__set_input_value(result, data, params, obj){
-	if (document.getElementById(params.input_name) !== null) {
-		var ct_input_value = document.getElementById(params.input_name).value;
-		document.getElementById(params.input_name).value = document.getElementById(params.input_name).value.replace(ct_input_value, result.js_key);
+	if( document.querySelectorAll('[name^=ct_checkjs]').length > 0 ) {
+		var elements = document.querySelectorAll('[name^=ct_checkjs]');
+		for ( var i = 0; i < elements.length; i++ ) {
+			console.log(elements[i]);
+			elements[i].value = result.js_key;
+		}
 	}
 }
 function apbct_public_sendAJAX(data, params, obj){
