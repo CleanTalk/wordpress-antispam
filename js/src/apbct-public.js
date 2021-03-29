@@ -296,9 +296,6 @@ function apbct_public_sendREST( route, params ) {
 }
 
 // Capturing responses and output block message for unknown AJAX forms
-var accessor = Object.getOwnPropertyDescriptor(XMLHttpRequest.prototype, 'responseText');
-Object.defineProperty(XMLHttpRequest.prototype, 'responseText', {
-// // Capturing responses and output block message for unknown AJAX forms
 var send = window.XMLHttpRequest.prototype.send;
 function sendReplacement(data) {
 	if(this.onreadystatechange) {
@@ -326,7 +323,7 @@ function apbct_parseJSON( string ){
 		return false;
 	}
 	return result;
-};
+}
 
 function apbct_showBlockedResponse( response ){
 
