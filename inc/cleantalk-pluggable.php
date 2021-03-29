@@ -422,6 +422,31 @@ function apbct_is_skip_request( $ajax = false ) {
 	        ){
 		        return 'jackmail_admin_actions';
 	        }
+	        // Newspaper theme login form
+	        if ( apbct_is_theme_active( 'Newspaper' ) &&
+	             isset( $_POST['action'] ) &&
+	             ( $_POST['action'] == 'td_mod_login' || $_POST['action'] == 'td_mod_remember_pass' ) )
+	        {
+		        return 'Newspaper_theme_login_form';
+	        }
+	        // Save abandoned cart checking skip
+	        if ( apbct_is_plugin_active( 'woo-save-abandoned-carts/cartbounty-abandoned-carts.php' ) &&
+	             Post::get( 'action' ) === 'cartbounty_save' )
+	        {
+		        return 'cartbounty_save';
+	        }
+	        // SUMODISCOUNT discout request skip
+	        if ( apbct_is_plugin_active( 'sumodiscounts/sumodiscounts.php' ) &&
+	             Post::get( 'action' ) === 'fp_apply_discount_for_first_purchase' )
+	        {
+		        return 'fp_apply_discount_for_first_purchase';
+	        }
+	        // WP eMember login form skip
+	        if ( apbct_is_plugin_active( 'wp-eMember/wp_eMember.php' ) &&
+	             Post::get( 'action' ) === 'emember_ajax_login' )
+	        {
+		        return 'emember_ajax_login';
+	        }
             
             break;
 
@@ -442,6 +467,12 @@ function apbct_is_skip_request( $ajax = false ) {
             {
                 return 'ultimatemember_password_reset';
             }
+		    // UltimateMember password reset skip
+		    if( apbct_is_plugin_active( 'gravityformspaypal/paypal.php' ) &&
+		        ( apbct_is_in_uri('page=gf_paypal_ipn') || apbct_is_in_uri('callback=gravityformspaypal') ) )
+		    {
+			    return 'gravityformspaypal_processing_skipped';
+		    }
 
             break;
 
@@ -449,3 +480,4 @@ function apbct_is_skip_request( $ajax = false ) {
 
     return false;
 }
+

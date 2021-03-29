@@ -196,3 +196,20 @@ i.animate-spin{
 
 .--hide{ display: none; }
 .apbct_preloader_button{ height: 15px; margin-left: 5px; vertical-align: text-top; display: none; }
+
+/* Modal Window Stiles */
+#cleantalk-modal-content {
+    text-align: center;
+}
+#cleantalk-modal-content > * {
+    display: block;
+    width: 100%;
+}
+
+button.ct_support_link{
+    border: none;
+    background: transparent;
+    color: #666;
+    text-decoration: underline;
+    cursor: pointer;
+}

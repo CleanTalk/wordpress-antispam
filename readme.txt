@@ -11,7 +11,7 @@ Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, 
 
 == Description ==
 
-**Supports: Contact Form 7, Contact Form by WPForms, Ninja Forms, Gravity Forms, MailChimp, Formidable forms, WooCommerce, JetPack comments and contact form, BuddyPress, bbPress, S2Member, MailPoet, wpDiscuz, ConvertKit, ActiveCampaign, any WordPress registrations & contact forms and themes. Just set up and forget the spam!**
+**Supports: Contact Form 7, Contact Form by WPForms, Ninja Forms, Gravity Forms, MailChimp, Formidable forms, WooCommerce, JetPack comments and contact form, BuddyPress, bbPress, S2Member, MailPoet, wpDiscuz, ConvertKit, ActiveCampaign, Events Manager, any WordPress registrations & contact forms and themes. Just set up and forget the spam!**
 
 No CAPTCHA, no questions, no animal counting, no puzzles, no math and no spam bots. Universal AntiSpam plugin.
 
@@ -580,9 +580,23 @@ If your website has forms that send data to external sources, you can enable opt
 
 == Changelog ==
 
-= 5.154 Mar 16 2021 =
+= 5.154 Mar 17 2021 =
+ * New: Settings Templates functionality implemented.
+ * New: SFW. Anti-flood protection uses UA lists for filtration.
  * Fix: Forms. Getting check_js delay removed.
  * Fix: Forms. Rotation check_js fixed.
+ * Fix: Integration. Newspaper-theme login form protection skipped.
+ * Fix: Integration. Newspaper-theme reset password form protection skipped.
+ * Fix: Forms. Gravity Forms paypal addon processing skipped.
+ * Fix: Exclusion for wpDiscuz - Online Users Addon.
+ * Fix: Remote Calls. Wrapper http__request__rc_to_host() don't get an array
+ * Fix: JS. Modal window fixed.
+ * Fix: JS. Show AJAX result fixed.
+ * Fix: Skip. Save abandoned cart checking skip.
+ * Fix: Skip. SUMODISCOUNT discout request skip.
+ * Fix: Skip. WP eMember login form skip.
+ * Fix: SFW. Do not cache constants added.
+ * Fix: SFW. AC/AF logging fixed.
 
 = 5.153.7 Mar 15 2021 =
  * Fix: SFW. Updating fixed.

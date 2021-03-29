@@ -29,6 +29,12 @@ class Page
                 $this->spam_checker->getSpamLogsPage();
                 break;
 
+            case 'users_page_ct_check_users_bad' :
+                $this->current_tab = 2;
+                $this->generatePageHeader();
+                $this->spam_checker->getBadUsersPage();
+                break;
+
         }
 
     }
@@ -43,6 +49,7 @@ class Page
 
             case 'users_page_ct_check_users' :
             case 'users_page_ct_check_users_logs' :
+            case 'users_page_ct_check_users_bad' :
                 self::generateCheckUsersPage();
                 break;
 
@@ -96,6 +103,7 @@ class Page
         <div id="ct_check_tabs">
             <ul>
                 <li <?php echo (1 == $this->current_tab) ? 'class="active"' : ''; ?>><a href="<?php echo $this->spam_checker->getPageScriptName(); ?>?page=ct_check_<?php echo $this->spam_checker->getPageSlug(); ?>"><?php esc_html_e( 'Scan and new results', 'cleantalk-spam-protect') ?></a></li>
+                <li <?php echo (2 == $this->current_tab) ? 'class="active"' : ''; ?>><a href="<?php echo $this->spam_checker->getPageScriptName(); ?>?page=ct_check_<?php echo $this->spam_checker->getPageSlug(); ?>_bad"><?php esc_html_e( 'Non-checkable users', 'cleantalk-spam-protect') ?></a></li>
                 <li <?php echo (3 == $this->current_tab) ? 'class="active"' : ''; ?>><a href="<?php echo $this->spam_checker->getPageScriptName(); ?>?page=ct_check_<?php echo $this->spam_checker->getPageSlug(); ?>_logs"><?php esc_html_e( 'Scan logs', 'cleantalk-spam-protect') ?></a></li>
             </ul>
             <div id="ct_check_content">

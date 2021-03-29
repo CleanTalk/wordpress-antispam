@@ -1,5 +1,7 @@
 <?php
 
+use Cleantalk\ApbctWP\CleantalkSettingsTemplates;
+
 require_once('cleantalk-settings.php');
 
 // Add buttons to comments list table
@@ -180,21 +182,28 @@ function apbct_admin__init(){
 	
 	// Getting key like hoster. Only once!
     if(!is_main_site() && $apbct->white_label && ( empty($apbct->api_key) || $apbct->settings['apikey'] == $apbct->network_settings['apikey'] ) ){
-        $_POST['submit'] = 'get_key_auto';
-        $settings = apbct_settings__validate(array());
-        $apbct->api_key = $settings['apikey'];
-        $apbct->save('settings');
-        unset($_POST['submit']);
-
+	    $res = apbct_settings__get_key_auto( true );
+	    if( isset( $res['auth_key'], $res['user_token'] ) ) {
+		    $settings = apbct_settings__validate(array(
+			    'apikey' => $res['auth_key'],
+            ));
+		    $apbct->api_key = $settings['apikey'];
+		    $apbct->save('settings');
+        }
     }
-}
 
-function apbct_admin__init___ajax_actions(){
- 
 	// Settings
 	add_action('wp_ajax_apbct_settings__get__long_description', 'apbct_settings__get__long_description'); // Long description
- 
+
 	add_action( 'wp_ajax_apbct_sync', 'apbct_settings__sync' );
+
+	add_action( 'wp_ajax_apbct_get_key_auto', 'apbct_settings__get_key_auto' );
+
+	// Settings Templates
+    if( ! is_multisite() || is_main_site() || ( ! is_main_site() && $apbct->network_settings['wpms__allow_custom_settings'] ) ) {
+	    new CleantalkSettingsTemplates( $apbct->api_key );
+    }
+
 }
 
 /**
@@ -327,7 +336,7 @@ function apbct_admin__enqueue_scripts($hook){
             'ct_feedback_msg_whitelisted' => __("The sender has been whitelisted.", 'cleantalk-spam-protect'),
             'ct_feedback_msg_blacklisted' => __("The sender has been blacklisted.", 'cleantalk-spam-protect'),
             'ct_feedback_msg'             => sprintf(__("Feedback has been sent to %sCleanTalk Dashboard%s.", 'cleantalk-spam-protect'), $apbct->user_token ? "<a target='_blank' href=https://cleantalk.org/my?user_token={$apbct->user_token}&cp_mode=antispam>" : '', $apbct->user_token ? "</a>" : ''),
-            'ct_show_check_links'		  => (bool)$apbct->settings['show_check_links'],
+            'ct_show_check_links'		  => (bool)$apbct->settings['comments__show_check_links'],
             'ct_img_src_new_tab'          => plugin_dir_url(__FILE__)."images/new_window.gif",
         ));
     }
@@ -338,7 +347,7 @@ function apbct_admin__enqueue_scripts($hook){
         wp_enqueue_script('ct_users_editscreen',     plugins_url('/cleantalk-spam-protect/js/cleantalk-users-editscreen.min.js'), array(), APBCT_VERSION);
         wp_localize_script( 'ct_users_editscreen', 'ctUsersScreen', array(
             'spambutton_text'             => __("Find spam-users", 'cleantalk-spam-protect'),
-            'ct_show_check_links'		  => (bool)$apbct->settings['show_check_links'],
+            'ct_show_check_links'		  => (bool)$apbct->settings['comments__show_check_links'],
             'ct_img_src_new_tab'          => plugin_dir_url(__FILE__)."images/new_window.gif"
         ));
     }
@@ -476,7 +485,7 @@ function apbct_admin__admin_bar__add( $wp_admin_bar ) {
 	
 	global $apbct;
 	
-	if (current_user_can('activate_plugins') &&  $apbct->settings['show_adminbar'] == 1 && (apbct_api_key__is_correct($apbct->api_key) !== false || (defined('CLEANTALK_SHOW_ADMIN_BAR_FORCE') && CLEANTALK_SHOW_ADMIN_BAR_FORCE))) {
+	if (current_user_can('activate_plugins') &&  $apbct->settings['admin_bar__show'] == 1 && (apbct_api_key__is_correct($apbct->api_key) !== false || (defined('CLEANTALK_SHOW_ADMIN_BAR_FORCE') && CLEANTALK_SHOW_ADMIN_BAR_FORCE))) {
         
 		//Reset or create user counter
 		if(!empty($_GET['ct_reset_user_counter'])){
@@ -487,8 +496,8 @@ function apbct_admin__admin_bar__add( $wp_admin_bar ) {
         }
 		//Reset or create all counters
 		if(!empty($_GET['ct_reset_all_counters'])){
-			$apbct->data['sfw_counter']      = array('all' => 0, 'blocked' => 0);
-			$apbct->data['all_time_counter'] = array('accepted' => 0, 'blocked' => 0);
+			$apbct->data['admin_bar__sfw_counter']      = array('all' => 0, 'blocked' => 0);
+			$apbct->data['admin_bar__all_time_counter'] = array('accepted' => 0, 'blocked' => 0);
 			$apbct->data['user_counter']     = array('all' => 0, 'accepted' => 0, 'blocked' => 0, 'since' => date('d M'));
 			$apbct->data['array_accepted']   = array();
 			$apbct->data['array_blocked']    = array();
@@ -502,22 +511,22 @@ function apbct_admin__admin_bar__add( $wp_admin_bar ) {
 		
 		$all_time_counter_str='';
 		//Don't compile if all time counter disabled
-		if($apbct->settings['all_time_counter'] == 1){
-			$all_time_counter=Array('accepted'=>$apbct->data['all_time_counter']['accepted'], 'blocked'=>$apbct->data['all_time_counter']['blocked'], 'all'=>$apbct->data['all_time_counter']['accepted'] + $apbct->data['all_time_counter']['blocked']);
+		if($apbct->settings['admin_bar__all_time_counter'] == 1){
+			$all_time_counter=Array('accepted'=>$apbct->data['admin_bar__all_time_counter']['accepted'], 'blocked'=>$apbct->data['admin_bar__all_time_counter']['blocked'], 'all'=>$apbct->data['admin_bar__all_time_counter']['accepted'] + $apbct->data['admin_bar__all_time_counter']['blocked']);
 			$all_time_counter_str='<span style="color: white;" title="'.__('All / Allowed / Blocked submissions. The number of submissions is being counted since CleanTalk plugin installation.', 'cleantalk-spam-protect').'"><span style="color: white;"> | ' . __('All', 'cleantalk-spam-protect') . ': ' .$all_time_counter['all']. '</span> / <span style="color: green;">' .$all_time_counter['accepted']. '</span> / <span style="color: red;">' .$all_time_counter['blocked']. '</span></span>';
 		}
 		
 		$daily_counter_str='';
 		//Don't compile if daily counter disabled
-		if( $apbct->settings['daily_counter'] == 1){
+		if( $apbct->settings['admin_bar__daily_counter'] == 1){
 			$daily_counter=Array('accepted'=>array_sum($apbct->data['array_accepted']), 'blocked'=>array_sum($apbct->data['array_blocked']), 'all'=>array_sum($apbct->data['array_accepted']) + array_sum($apbct->data['array_blocked']));
 			//Previous version $daily_counter_str='<span style="color: white;" title="'.__('All / Allowed / Blocked submissions. The number of submissions for past 24 hours. ', 'cleantalk-spam-protect').'"><span style="color: white;"> | Day: ' .$daily_counter['all']. '</span> / <span style="color: green;">' .$daily_counter['accepted']. '</span> / <span style="color: red;">' .$daily_counter['blocked']. '</span></span>';
 			$daily_counter_str='<span style="color: white;" title="'.__('Allowed / Blocked submissions. The number of submissions for past 24 hours. ', 'cleantalk-spam-protect').'"><span style="color: white;"> | ' . __('Day', 'cleantalk-spam-protect') . ': </span><span style="color: green;">' .$daily_counter['accepted']. '</span> / <span style="color: red;">' .$daily_counter['blocked']. '</span></span>';
 		}
 		$sfw_counter_str='';
 		//Don't compile if SFW counter disabled
-		if( $apbct->settings['sfw_counter'] == 1 &&  $apbct->settings['spam_firewall'] == 1){
-			$sfw_counter=Array('all'=>$apbct->data['sfw_counter']['all'], 'blocked'=>$apbct->data['sfw_counter']['blocked']);
+		if( $apbct->settings['admin_bar__sfw_counter'] == 1 &&  $apbct->settings['sfw__enabled'] == 1){
+			$sfw_counter=Array('all'=>$apbct->data['admin_bar__sfw_counter']['all'], 'blocked'=>$apbct->data['admin_bar__sfw_counter']['blocked']);
 			$sfw_counter_str='<span style="color: white;" title="'.__('All / Blocked events. Access attempts regitred by SpamFireWall counted since the last plugin activation.', 'cleantalk-spam-protect').'"><span style="color: white;"> | SpamFireWall: ' .$sfw_counter['all']. '</span> / <span style="color: red;">' .$sfw_counter['blocked']. '</span></span>';
 		}
 		
@@ -703,4 +712,27 @@ function apbct_user__delete__hook($user_id, $reassign = null){
 	if ($hash !== '') {
 		ct_feedback($hash, 0);
 	}
+}
+
+function apbct_test_connection(){
+    
+    $url_to_test = array(
+        'https://apix1.cleantalk.org',
+        'https://apix2.cleantalk.org',
+        'https://apix3.cleantalk.org',
+        'https://apix4.cleantalk.org',
+        'https://apix5.cleantalk.org',
+    );
+    
+    foreach($url_to_test as $url){
+        $start = microtime(true);
+        $result = \Cleantalk\ApbctWP\Helper::http__request__get_content($url);
+        $exec_time = microtime(true) - $start;
+        $out[$url] = array(
+            'result' => $result,
+            'exec_time' => $exec_time,
+            'error' => !empty($result['error']) ? $result['error']	: 'OK',
+        ) ;
+    }
+    return $out;
 }

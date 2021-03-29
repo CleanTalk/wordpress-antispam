@@ -35,9 +35,11 @@ class Firewall
 		// Lowest
 		'PASS_SFW',
 		'PASS_SFW__BY_COOKIE',
+		'PASS_ANTIFLOOD_UA',
 		'PASS_ANTIFLOOD',
         'PASS_ANTICRAWLER_UA',
 		'PASS_ANTICRAWLER',
+		'DENY_ANTIFLOOD_UA',
 		'DENY_ANTIFLOOD',
         'DENY_ANTICRAWLER_UA',
 		'DENY_ANTICRAWLER',
@@ -128,7 +130,7 @@ class Firewall
         foreach ( $this->fw_modules as $module ) {
             if( array_key_exists( $module->module_name, $results ) ){
                 foreach ( $results[$module->module_name] as $result ) {
-                    if( in_array( $result['status'], array( 'PASS_SFW__BY_WHITELIST', 'PASS_SFW', 'PASS_ANTIFLOOD', 'PASS_ANTICRAWLER', 'PASS_ANTICRAWLER_UA' ) ) ){
+                    if( in_array( $result['status'], array( 'PASS_SFW__BY_WHITELIST', 'PASS_SFW', 'PASS_ANTIFLOOD', 'PASS_ANTICRAWLER', 'PASS_ANTICRAWLER_UA', 'PASS_ANTIFLOOD_UA' ) ) ){
                         continue;
                     }
                     $module->update_log( $result['ip'], $result['status'] );
@@ -204,6 +206,8 @@ class Firewall
 	 */
 	private function is_whitelisted( $results ) {
 
+		global $apbct;
+
         foreach ( $this->fw_modules as $module ) {
             if( array_key_exists( $module->module_name, $results ) ){
                 foreach ( $results[$module->module_name] as $fw_result ) {
@@ -212,6 +216,10 @@ class Firewall
                         strpos( $fw_result['status'], 'PASS_BY_WHITELIST' ) !== false ||
                         strpos( $fw_result['status'], 'PASS_SFW__BY_WHITELIST' ) !== false
                     ) {
+	                    if( ! headers_sent() ) {
+		                    $cookie_val = md5( $fw_result['ip'] . $apbct->api_key );
+		                    \Cleantalk\Common\Helper::apbct_cookie__set( 'ct_sfw_ip_wl', $cookie_val, time() + 86400 * 30, '/', null, false, true, 'Lax' );
+	                    }
                         return true;
                     }
                 }

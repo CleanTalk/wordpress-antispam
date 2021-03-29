@@ -1,5 +1,7 @@
 <?php
 
+use Cleantalk\Variables\Post;
+
 /**
  * Admin action 'admin_menu' - Add the admin options page
  */
@@ -98,7 +100,7 @@ function apbct_settings__set_fileds( $fields ){
 			'html_before'    => '<hr>',
 			'html_after'     => '',
 			'fields'         => array(
-				'spam_firewall' => array(
+				'sfw__enabled' => array(
 					'type'        => 'checkbox',
 					'title'       => __('SpamFireWall', 'cleantalk-spam-protect'),
 					'description' => __("This option allows to filter spam bots before they access website. Also reduces CPU usage on hosting server and accelerates pages load time.", 'cleantalk-spam-protect'),
@@ -108,7 +110,7 @@ function apbct_settings__set_fileds( $fields ){
 					'type'        => 'checkbox',
 					'title'       => __('Anti-Crawler', 'cleantalk-spam-protect') . $additional_ac_title,
 					'class'       => 'apbct_settings-field_wrapper--sub',
-					'parent'      => 'spam_firewall',
+					'parent'      => 'sfw__enabled',
 					'description' => __('Plugin shows SpamFireWall stop page for any bot, except allowed bots (Google, Yahoo and etc).', 'cleantalk-spam-protect')
                     . '<br>'
                     . __( 'Anti-Crawler includes blocking bots by the User-Agent. Use Personal lists in the Dashboard to filter specific User-Agents.', 'cleantalk-spam-protect' ),
@@ -130,23 +132,23 @@ function apbct_settings__set_fileds( $fields ){
 				.'<div id="apbct_settings__davanced_settings" style="display: none;">',
 			'html_after'     => '',
 			'fields'         => array(
-				'registrations_test' => array(
+				'forms__registrations_test' => array(
 					'title'       => __('Registration Forms', 'cleantalk-spam-protect'),
 					'description' => __('WordPress, BuddyPress, bbPress, S2Member, WooCommerce.', 'cleantalk-spam-protect'),
 				),
-				'comments_test' => array(
+				'forms__comments_test' => array(
 					'title'       => __('Comments form', 'cleantalk-spam-protect'),
 					'description' => __('WordPress, JetPack, WooCommerce.', 'cleantalk-spam-protect'),
 				),
-				'contact_forms_test' => array(
+				'forms__contact_forms_test' => array(
 					'title'       => __('Contact forms', 'cleantalk-spam-protect'),
 					'description' => __('Contact Form 7, Formidable forms, JetPack, Fast Secure Contact Form, WordPress Landing Pages, Gravity Forms.', 'cleantalk-spam-protect'),
 				),
-				'general_contact_forms_test' => array(
+				'forms__general_contact_forms_test' => array(
 					'title'       => __('Custom contact forms', 'cleantalk-spam-protect'),
 					'description' => __('Anti spam test for any WordPress themes or contacts forms.', 'cleantalk-spam-protect'),
 				),
-				'search_test' => array(
+				'forms__search_test' => array(
 					'title'       => __('Test default Wordpress search form for spam', 'cleantalk-spam-protect'),
 					'description' => __('Spam protection for Search form.', 'cleantalk-spam-protect')
 						. (!$apbct->white_label || is_main_site()
@@ -157,18 +159,18 @@ function apbct_settings__set_fileds( $fields ){
 							: ''
 						)
 				),
-				'check_external' => array(
+				'forms__check_external' => array(
 					'title'       => __('Protect external forms', 'cleantalk-spam-protect'),
 					'description' => __('Turn this option on to protect forms on your WordPress that send data to third-part servers (like MailChimp).', 'cleantalk-spam-protect'),
-					'childrens'   => array('check_external__capture_buffer'),
+					'childrens'   => array('forms__check_external__capture_buffer'),
 				),
-				'check_external__capture_buffer' => array(
+				'forms__check_external__capture_buffer' => array(
 					'title'       => __('Capture buffer', 'cleantalk-spam-protect'),
 					'description' => __('This setting gives you more sophisticated and strengthened protection for external forms. But it could break plugins which use a buffer like Ninja Forms.', 'cleantalk-spam-protect'),
 					'class'       => 'apbct_settings-field_wrapper--sub',
-					'parent'      => 'check_external',
+					'parent'      => 'forms__check_external',
 				),
-				'check_internal' => array(
+				'forms__check_internal' => array(
 					'title'       => __('Protect internal forms', 'cleantalk-spam-protect'),
 					'description' => __('This option will enable protection for custom (hand-made) AJAX forms with PHP scripts handlers on your WordPress.', 'cleantalk-spam-protect'),
 				),
@@ -179,15 +181,15 @@ function apbct_settings__set_fileds( $fields ){
 		'wc' => array(
 			'title'          => __('WooCommerce', 'cleantalk-spam-protect'),
 			'fields'         => array(
-				'wc_checkout_test' => array(
+				'forms__wc_checkout_test' => array(
 					'title'       => __('WooCommerce checkout form', 'cleantalk-spam-protect'),
 					'description' => __('Anti spam test for WooCommerce checkout form.', 'cleantalk-spam-protect'),
-					'childrens'   => array('wc_register_from_order')
+					'childrens'   => array('forms__wc_register_from_order')
 				),
-				'wc_register_from_order' => array(
+				'forms__wc_register_from_order' => array(
 					'title'           => __('Spam test for registration during checkout', 'cleantalk-spam-protect'),
 					'description'     => __('Enable anti spam test for registration process which during woocommerce\'s checkout.', 'cleantalk-spam-protect'),
-					'parent'          => 'wc_checkout_test',
+					'parent'          => 'forms__wc_checkout_test',
 					'class'           => 'apbct_settings-field_wrapper--sub',
 					'reverse_trigger' => true
 				),
@@ -198,55 +200,55 @@ function apbct_settings__set_fileds( $fields ){
 		'comments_and_messages' => array(
 			'title'          => __('Comments and Messages', 'cleantalk-spam-protect'),
 			'fields'         => array(
-				'disable_comments__all' => array(
+				'comments__disable_comments__all' => array(
 					'title' => __( 'Disable all comments', 'cleantalk-spam-protect'),
 					'description' => __( 'Disabling comments for all types of content.', 'cleantalk-spam-protect'),
 					'childrens' => array(
-						'disable_comments__posts',
-						'disable_comments__pages',
-						'disable_comments__media',
+						'comments__disable_comments__posts',
+						'comments__disable_comments__pages',
+						'comments__disable_comments__media',
 					),
 					'options' => array(
 						array( 'val' => 1, 'label' => __( 'On' ), 'childrens_enable' => 0, ),
 						array( 'val' => 0, 'label' => __( 'Off' ), 'childrens_enable' => 1, ),
 					),
 				),
-				'disable_comments__posts' => array(
+				'comments__disable_comments__posts' => array(
 					'title'           => __( 'Disable comments for all posts', 'cleantalk-spam-protect'),
 					'class'           => 'apbct_settings-field_wrapper--sub',
-					'parent'          => 'disable_comments__all',
+					'parent'          => 'comments__disable_comments__all',
 					'reverse_trigger' => true,
 				),
-				'disable_comments__pages' => array(
+				'comments__disable_comments__pages' => array(
 					'title'           => __( 'Disable comments for all pages', 'cleantalk-spam-protect'),
 					'class'           => 'apbct_settings-field_wrapper--sub',
-					'parent'          => 'disable_comments__all',
+					'parent'          => 'comments__disable_comments__all',
 					'reverse_trigger' => true,
 				),
-				'disable_comments__media' => array(
+				'comments__disable_comments__media' => array(
 					'title'           => __( 'Disable comments for all media', 'cleantalk-spam-protect'),
 					'class'           => 'apbct_settings-field_wrapper--sub',
-					'parent'          => 'disable_comments__all',
+					'parent'          => 'comments__disable_comments__all',
 					'reverse_trigger' => true,
 				),
-				'bp_private_messages' => array(
+				'comments__bp_private_messages' => array(
 					'title'       => __('BuddyPress Private Messages', 'cleantalk-spam-protect'),
 					'description' => __('Check buddyPress private messages.', 'cleantalk-spam-protect'),
 				),
-				'remove_old_spam' => array(
+				'comments__remove_old_spam' => array(
 					'title'       => __('Automatically delete spam comments', 'cleantalk-spam-protect'),
 					'description' => sprintf(__('Delete spam comments older than %d days.', 'cleantalk-spam-protect'),  $apbct->data['spam_store_days']),
 				),
-				'remove_comments_links' => array(
+				'comments__remove_comments_links' => array(
 					'title'       => __('Remove links from approved comments', 'cleantalk-spam-protect'),
 					'description' => __('Remove links from approved comments. Replace it with "[Link deleted]"', 'cleantalk-spam-protect'),
 				),
-				'show_check_links' => array(
+				'comments__show_check_links' => array(
 					'title'       => __('Show links to check Emails, IPs for spam', 'cleantalk-spam-protect'),
 					'description' => __('Shows little icon near IP addresses and Emails allowing you to check it via CleanTalk\'s database.', 'cleantalk-spam-protect'),
 					'display' => !$apbct->white_label,
 				),
-				'manage_comments_on_public_page' => array(
+				'comments__manage_comments_on_public_page' => array(
 					'title'       => __('Manage comments on public pages', 'cleantalk-spam-protect'),
 					'description' => __('Allows administrators to manage comments on public post\'s pages with small interactive menu.', 'cleantalk-spam-protect'),
 					'display' => !$apbct->white_label,
@@ -258,19 +260,19 @@ function apbct_settings__set_fileds( $fields ){
 		'data_processing' => array(
 			'title'          => __('Data Processing', 'cleantalk-spam-protect'),
 			'fields'         => array(
-				'protect_logged_in' => array(
+				'data__protect_logged_in' => array(
 					'title'       => __("Protect logged in Users", 'cleantalk-spam-protect'),
 					'description' => __('Turn this option on to check for spam any submissions (comments, contact forms and etc.) from registered Users.', 'cleantalk-spam-protect'),
 				),
-				'check_comments_number' => array(
+				'comments__check_comments_number' => array(
 					'title'       => __("Don't check trusted user's comments", 'cleantalk-spam-protect'),
 					'description' => sprintf(__("Don't check comments for users with above %d comments.", 'cleantalk-spam-protect'), defined('CLEANTALK_CHECK_COMMENTS_NUMBER') ? CLEANTALK_CHECK_COMMENTS_NUMBER : 3),
 				),
-				'use_ajax' => array(
+				'data__use_ajax' => array(
 					'title'       => __('Use AJAX for JavaScript check', 'cleantalk-spam-protect'),
 					'description' => __('Options helps protect WordPress against spam with any caching plugins. Turn this option on to avoid issues with caching plugins. Turn off this option and SpamFireWall to be compatible with Accelerated mobile pages (AMP).', 'cleantalk-spam-protect'),
 				),
-				'use_static_js_key' => array(
+				'data__use_static_js_key' => array(
 					'title'       => __('Use static keys for JS check.', 'cleantalk-spam-protect'),
 					'description' => __('Could help if you have cache for AJAX requests and you are dealing with false positives. Slightly decreases protection quality. Auto - Static key will be used if caching plugin is spotted.', 'cleantalk-spam-protect'),
 					'options' => array(
@@ -279,7 +281,7 @@ function apbct_settings__set_fileds( $fields ){
 						array('val' => -1, 'label' => __('Auto'),),
 					),
 				),
-				'general_postdata_test' => array(
+				'data__general_postdata_test' => array(
 					'title'       => __('Check all post data', 'cleantalk-spam-protect'),
 					'description' => __('Check all POST submissions from website visitors. Enable this option if you have spam misses on website.', 'cleantalk-spam-protect')
 						.(!$apbct->white_label
@@ -288,29 +290,29 @@ function apbct_settings__set_fileds( $fields ){
 						)
 						.'<br />' . __('СAUTION! Option can catch POST requests in WordPress backend', 'cleantalk-spam-protect'),
 				),
-				'set_cookies' => array(
+				'data__set_cookies' => array(
 					'title'       => __("Set cookies", 'cleantalk-spam-protect'),
 					'description' => __('Turn this option off to deny plugin generates any cookies on website front-end. This option is helpful if you use Varnish. But most of contact forms will not be protected if the option is turned off! <b>Warning: We strongly recommend you to enable this otherwise it could cause false positives spam detection.</b>', 'cleantalk-spam-protect'),
-					'childrens'   => array('set_cookies__sessions'),
+					'childrens'   => array('data__set_cookies__sessions'),
 				),
-				'set_cookies__sessions' => array(
+				'data__set_cookies__sessions' => array(
 					'title'       => __('Use alternative mechanism for cookies', 'cleantalk-spam-protect'),
 					'description' => __('Doesn\'t use cookie or PHP sessions. Collect data for all types of bots.', 'cleantalk-spam-protect'),
-					'parent'      => 'set_cookies',
+					'parent'      => 'data__set_cookies',
 					'class'       => 'apbct_settings-field_wrapper--sub',
 				),
-				'ssl_on' => array(
+				'data__ssl_on' => array(
 					'title'       => __("Use SSL", 'cleantalk-spam-protect'),
 					'description' => __('Turn this option on to use encrypted (SSL) connection with servers.', 'cleantalk-spam-protect'),
 				),
-				'use_buitin_http_api' => array(
+				'wp__use_builtin_http_api' => array(
 					'title'       => __("Use Wordpress HTTP API", 'cleantalk-spam-protect'),
 					'description' => __('Alternative way to connect the Cloud. Use this if you have connection problems.', 'cleantalk-spam-protect'),
 				),
                 'sfw__use_delete_to_clear_table' => array(
 					'title'       => __("Use DELETE SQL-command instead TRUNCATE to clear tables", 'cleantalk-spam-protect'),
 					'description' => __('Could help if you have blocked SpamFireWall tables in your database.', 'cleantalk-spam-protect'),
-                    'parent' => 'spam_firewall',
+                    'parent' => 'sfw__enabled',
 				),
 			),
 		),
@@ -355,27 +357,27 @@ function apbct_settings__set_fileds( $fields ){
 			'html_before'    => '',
 			'html_after'     => '',
 			'fields'         => array(
-				'show_adminbar' => array(
+				'admin_bar__show' => array(
 					'title'       => __('Show statistics in admin bar', 'cleantalk-spam-protect'),
 					'description' => __('Show/hide icon in top level menu in WordPress backend. The number of submissions is being counted for past 24 hours.', 'cleantalk-spam-protect'),
-					'childrens' => array('all_time_counter','daily_counter','sfw_counter'),
+					'childrens' => array('admin_bar__all_time_counter','admin_bar__daily_counter','admin_bar__sfw_counter'),
 				),
-				'all_time_counter' => array(
+				'admin_bar__all_time_counter' => array(
 					'title'       => __('Show All-time counter', 'cleantalk-spam-protect'),
 					'description' => __('Display all-time requests counter in the admin bar. Counter displays number of requests since plugin installation.', 'cleantalk-spam-protect'),
-					'parent' => 'show_adminbar',
+					'parent' => 'admin_bar__show',
 					'class' => 'apbct_settings-field_wrapper--sub',
 				),
-				'daily_counter' => array(
+				'admin_bar__daily_counter' => array(
 					'title'       => __('Show 24 hours counter', 'cleantalk-spam-protect'),
 					'description' => __('Display daily requests counter in the admin bar. Counter displays number of requests of the past 24 hours.', 'cleantalk-spam-protect'),
-					'parent' => 'show_adminbar',
+					'parent' => 'admin_bar__show',
 					'class' => 'apbct_settings-field_wrapper--sub',
 				),
-				'sfw_counter' => array(
+				'admin_bar__sfw_counter' => array(
 					'title'       => __('SpamFireWall counter', 'cleantalk-spam-protect'),
 					'description' => __('Display SpamFireWall requests in the admin bar. Counter displays number of requests since plugin installation.', 'cleantalk-spam-protect'),
-					'parent' => 'show_adminbar',
+					'parent' => 'admin_bar__show',
 					'class' => 'apbct_settings-field_wrapper--sub',
 				),
 			),
@@ -385,57 +387,57 @@ function apbct_settings__set_fileds( $fields ){
 		'misc' => array(
 			'html_after'     => '</div><br>',
 			'fields'         => array(
-				'collect_details' => array(
+				'misc__collect_details' => array(
 					'type'        => 'checkbox',
 					'title'       => __('Collect details about browsers', 'cleantalk-spam-protect'),
 					'description' => __("Checking this box you allow plugin store information about screen size and browser plugins of website visitors. The option in a beta state.", 'cleantalk-spam-protect'),
 				),
-				'send_connection_reports' => array(
+				'misc__send_connection_reports' => array(
 					'type'        => 'checkbox',
 					'title'       => __('Send connection reports', 'cleantalk-spam-protect'),
 					'description' => __("Checking this box you allow plugin to send the information about your connection. The option in a beta state.", 'cleantalk-spam-protect'),
 				),
-				'async_js' => array(
+				'misc__async_js' => array(
 					'type'        => 'checkbox',
 					'title'       => __('Async JavaScript loading', 'cleantalk-spam-protect'),
 					'description' => __('Use async loading for scripts. Warning: This could reduce filtration quality.', 'cleantalk-spam-protect'),
 				),
-				'gdpr_enabled' => array(
+				'gdpr__enabled' => array(
 					'type'        => 'checkbox',
 					'title'       => __('Allow to add GDPR notice via shortcode', 'cleantalk-spam-protect'),
 					'description' => __(' Adds small checkbox under your website form. To add it you should use the shortcode on the form\'s page: [cleantalk_gdpr_form id="FORM_ID"]', 'cleantalk-spam-protect'),
-					'childrens'   => array('gdpr_text'),
+					'childrens'   => array('gdpr__text'),
 				),
-				'gdpr_text' => array(
+				'gdpr__text' => array(
 					'type'        => 'text',
 					'title'       => __('GDPR text notice', 'cleantalk-spam-protect'),
 					'description' => __('This text will be added as a description to the GDPR checkbox.', 'cleantalk-spam-protect'),
-					'parent'      => 'gdpr_enabled',
+					'parent'      => 'gdpr__enabled',
 					'class'       => 'apbct_settings-field_wrapper--sub',
 				),
-				'store_urls' => array(
+				'misc__store_urls' => array(
 					'type'        => 'checkbox',
 					'title'       => __('Store visited URLs', 'cleantalk-spam-protect'),
 					'description' => __("Plugin stores last 10 visited URLs (HTTP REFFERERS) before visitor submits form on the site. You can see stored visited URLS for each visitor in your Dashboard. Turn the option on to improve Anti-Spam protection.", 'cleantalk-spam-protect'),
-					'childrens'   => array('store_urls__sessions'),
+					'childrens'   => array('misc__store_urls__sessions'),
 				),
-				'store_urls__sessions' => array(
+				'misc__store_urls__sessions' => array(
 					'type'        => 'checkbox',
 					'title'       => __('Use cookies less sessions', 'cleantalk-spam-protect'),
 					'description' => __('Doesn\'t use cookie or PHP sessions. Collect data for all types of bots.', 'cleantalk-spam-protect'),
-					'parent'      => 'store_urls',
+					'parent'      => 'misc__store_urls',
 					'class'       => 'apbct_settings-field_wrapper--sub',
 				),
-				'comment_notify' => array(
+				'wp__comment_notify' => array(
 					'type'        => 'checkbox',
 					'title'       => __('Notify users with selected roles about new approved comments. Hold CTRL to select multiple roles.', 'cleantalk-spam-protect'),
 					'description' => sprintf(__("If enabled, overrides similar Wordpress %sdiscussion settings%s.", 'cleantalk-spam-protect'), '<a href="options-discussion.php">','</a>'),
-					'childrens'   => array('comment_notify__roles'),
+					'childrens'   => array('wp__comment_notify__roles'),
 				),
-				'comment_notify__roles' => array(
+				'wp__comment_notify__roles' => array(
 					'type'                    => 'select',
 					'multiple'                => true,
-					'parent'                  => 'comment_notify',
+					'parent'                  => 'wp__comment_notify',
 					'options_callback'        => 'apbct_get_all_roles',
 					'options_callback_params' => array(true),
 					'class'                   => 'apbct_settings-field_wrapper--sub',
@@ -444,7 +446,7 @@ function apbct_settings__set_fileds( $fields ){
 					'type'        => 'checkbox',
 					'title'       => __('Anti-Flood', 'cleantalk-spam-protect'),
 					'class'       => 'apbct_settings-field_wrapper',
-					'parent'      => 'spam_firewall',
+					'parent'      => 'sfw__enabled',
 					'childrens'   => array('sfw__anti_flood__view_limit',),
 					'description' => __('Shows the SpamFireWall page for bots trying to crawl your site. Look at the page limit setting below.', 'cleantalk-spam-protect'),
 				),
@@ -455,11 +457,11 @@ function apbct_settings__set_fileds( $fields ){
 					'parent'      => 'sfw__anti_flood',
 					'description' => __('Count of page view per 1 minute before plugin shows SpamFireWall page. SpamFireWall page active for 30 second after that valid visitor (with JavaScript) passes the page to the demanded page of the site.', 'cleantalk-spam-protect'),
 				),
-				'dashboard_widget__show' => array(
+				'wp__dashboard_widget__show' => array(
 					'type'        => 'checkbox',
 					'title'       => __('Show Dashboard Widget', 'cleantalk-spam-protect'),
 				),
-				'complete_deactivation' => array(
+				'misc__complete_deactivation' => array(
 					'type'        => 'checkbox',
 					'title'       => __('Complete deactivation', 'cleantalk-spam-protect'),
 					'description' => __('Leave no trace in the system after deactivation.', 'cleantalk-spam-protect'),
@@ -477,33 +479,33 @@ function apbct_settings__set_fileds__network( $fields ){
 	$additional_fields = array(
 		'main' => array(
 			'fields' => array(
-				'white_label' => array(
+				'multisite__white_label' => array(
 					'type' => 'checkbox',
 					'title' => __('Enable White Label Mode', 'cleantalk-spam-protect'),
 					'description' => sprintf(__("Learn more information %shere%s.", 'cleantalk-spam-protect'), '<a target="_blank" href="https://cleantalk.org/ru/help/hosting-white-label">', '</a>'),
-					'childrens' => array( 'white_label__hoster_key', 'white_label__plugin_name', 'allow_custom_key', ),
+					'childrens' => array( 'multisite__white_label__hoster_key', 'multisite__white_label__plugin_name', 'multisite__allow_custom_key', ),
 					'disabled' => defined('CLEANTALK_ACCESS_KEY'),
 					'network' => true,
 				),
-				'white_label__hoster_key' => array(
+				'multisite__white_label__hoster_key' => array(
 					'title' => __('Hoster API Key', 'cleantalk-spam-protect'),
 					'description' => sprintf(__("You can get it in %sCleantalk's Control Panel%s", 'cleantalk-spam-protect'), '<a target="_blank" href="https://cleantalk.org/my/profile">', '</a>'),
 					'type' => 'text',
-					'parent' => 'white_label',
+					'parent' => 'multisite__white_label',
 					'class' => 'apbct_settings-field_wrapper--sub',
 					'network' => true,
 					'required' => true,
 				),
-				'white_label__plugin_name' => array(
+				'multisite__white_label__plugin_name' => array(
 					'title' => __('Plugin name', 'cleantalk-spam-protect'),
 					'description' => sprintf(__("Specify plugin name. Leave empty for deafult %sAntispam by Cleantalk%s", 'cleantalk-spam-protect'), '<b>', '</b>'),
 					'type' => 'text',
-					'parent' => 'white_label',
+					'parent' => 'multisite__white_label',
 					'class' => 'apbct_settings-field_wrapper--sub',
 					'network' => true,
 					'required' => true,
 				),
-				'allow_custom_key' => array(
+				'multisite__allow_custom_key' => array(
 					'type'           => 'checkbox',
 					'title'          => __('Allow users to use other key', 'cleantalk-spam-protect'),
 					'description'    => __('Allow users to use different Access key in their plugin settings on child blogs. They could use different CleanTalk account.', 'cleantalk-spam-protect')
@@ -516,47 +518,47 @@ function apbct_settings__set_fileds__network( $fields ){
 							: ''
 						),
 					'display'        => APBCT_WPMS && is_main_site(),
-					'disabled'       => $apbct->network_settings['white_label'],
+					'disabled'       => $apbct->network_settings['multisite__white_label'],
 					'network' => true,
 				),
-				'allow_custom_settings' => array(
+				'multisite__allow_custom_settings' => array(
 					'type'           => 'checkbox',
 					'title'          => __('Allow users to manage plugin settings', 'cleantalk-spam-protect'),
 					'description'    => __('Allow to change settings on child sites.', 'cleantalk-spam-protect'),
 					'display'        => APBCT_WPMS && is_main_site(),
 					'network'        => true,
 				),
-				'use_settings_template' => array(
+				'multisite__use_settings_template' => array(
 					'type' => 'checkbox',
 					'title' => __('Use settings template', 'cleantalk-spam-protect'),
 					'description' => __("Use the current settings template for child sites.", 'cleantalk-spam-protect'),
-					'childrens' => array( 'use_settings_template_apply_for_new', 'use_settings_template_apply_for_current'),
+					'childrens' => array( 'multisite__use_settings_template_apply_for_new', 'multisite__use_settings_template_apply_for_current'),
 					'network' => true,
 				),
-				'use_settings_template_apply_for_new' => array(
+				'multisite__use_settings_template_apply_for_new' => array(
 					'type' => 'checkbox',
 					'title' => __('Apply for newly added sites.', 'cleantalk-spam-protect'),
 					'description' => __("The newly added site will have the same preset settings template.", 'cleantalk-spam-protect'),
-					'parent' => 'use_settings_template',
+					'parent' => 'multisite__use_settings_template',
 					'class' => 'apbct_settings-field_wrapper--sub',
 					'network' => true,
 				),
-				'use_settings_template_apply_for_current' => array(
+				'multisite__use_settings_template_apply_for_current' => array(
 					'type' => 'checkbox',
 					'title' => __('Apply for current sites.', 'cleantalk-spam-protect'),
 					'description' => __("Apply current settings template for selected sites.", 'cleantalk-spam-protect'),
-					'parent' => 'use_settings_template',
-					'childrens' => array( 'use_settings_template_apply_for_current_list_sites'),
+					'parent' => 'multisite__use_settings_template',
+					'childrens' => array( 'multisite__use_settings_template_apply_for_current_list_sites'),
 					'class' => 'apbct_settings-field_wrapper--sub',
 					'network' => true,
 				),
-				'use_settings_template_apply_for_current_list_sites' => array(
+				'multisite__use_settings_template_apply_for_current_list_sites' => array(
 					'type'                    => 'select',
 					'multiple'                => true,
 					'options_callback'        => 'apbct_get_all_child_domains',
 					'options_callback_params' => array(true),
 					'class' => 'apbct_settings-field_wrapper--sub',
-					'parent' => 'use_settings_template_apply_for_current',
+					'parent' => 'multisite__use_settings_template_apply_for_current',
 					'description'             => __('Sites to apply settings. Hold CTRL to select multiple sites.', 'cleantalk-spam-protect'),
 					'network' => true,
 				),
@@ -642,7 +644,7 @@ function apbct_settings__add_groups_and_fields( $fields ){
 function apbct_settings__display() {
 	
 	global $apbct;		
-		
+
 		// Title
 		echo '<h2 class="apbct_settings-title">'.__($apbct->plugin_name, 'cleantalk-spam-protect').'</h2>';
 
@@ -859,7 +861,8 @@ function apbct_settings__field__debug(){
 	echo 'CLEANTALK_CHECK_MESSAGES_NUMBER '.	(defined('CLEANTALK_CHECK_MESSAGES_NUMBER') ? 	(CLEANTALK_CHECK_MESSAGES_NUMBER ? 	CLEANTALK_CHECK_MESSAGES_NUMBER : 0) : 'NOT_DEFINED')."<br>";
 	echo 'CLEANTALK_PLUGIN_DIR '.				(defined('CLEANTALK_PLUGIN_DIR') ? 				(CLEANTALK_PLUGIN_DIR ? 			CLEANTALK_PLUGIN_DIR : 'flase') : 'NOT_DEFINED')."<br>";
 	echo 'WP_ALLOW_MULTISITE '.					(defined('WP_ALLOW_MULTISITE') ? 				(WP_ALLOW_MULTISITE ?				'true' : 'flase') : 'NOT_DEFINED');
-	
+ 
+	echo '<h4><button type="submit" name="apbct_debug__check_connection" value="1">Check connection to API servers</button></h4>';
 	echo "<h4>Debug log: <button type='submit' value='debug_drop' name='submit' style='font-size: 11px; padding: 1px;'>Drop debug data</button></h4>";
 	echo "<div style='height: 500px; width: 80%; overflow: auto;'>";
 		
@@ -913,10 +916,10 @@ function apbct_settings__field__state(){
 	
 		print '<h2>'.__('Protection is active', 'cleantalk-spam-protect').'</h2>';
 	
-	echo '<img class="apbct_status_icon" src="'.($apbct->settings['registrations_test'] == 1       ? $img : $img_no).'"/>'.__('Registration forms', 'cleantalk-spam-protect');
-	echo '<img class="apbct_status_icon" src="'.($apbct->settings['comments_test'] == 1              ? $img : $img_no).'"/>'.__('Comments forms', 'cleantalk-spam-protect');
-	echo '<img class="apbct_status_icon" src="'.($apbct->settings['contact_forms_test'] == 1         ? $img : $img_no).'"/>'.__('Contact forms', 'cleantalk-spam-protect');
-	echo '<img class="apbct_status_icon" src="'.($apbct->settings['general_contact_forms_test'] == 1 ? $img : $img_no).'"/>'.__('Custom contact forms', 'cleantalk-spam-protect');
+	echo '<img class="apbct_status_icon" src="'.($apbct->settings['forms__registrations_test'] == 1       ? $img : $img_no).'"/>'.__('Registration forms', 'cleantalk-spam-protect');
+	echo '<img class="apbct_status_icon" src="'.($apbct->settings['forms__comments_test'] == 1              ? $img : $img_no).'"/>'.__('Comments forms', 'cleantalk-spam-protect');
+	echo '<img class="apbct_status_icon" src="'.($apbct->settings['forms__contact_forms_test'] == 1         ? $img : $img_no).'"/>'.__('Contact forms', 'cleantalk-spam-protect');
+	echo '<img class="apbct_status_icon" src="'.($apbct->settings['forms__general_contact_forms_test'] == 1 ? $img : $img_no).'"/>'.__('Custom contact forms', 'cleantalk-spam-protect');
 	if(!$apbct->white_label || is_main_site())
 		echo '<img class="apbct_status_icon" src="'.($apbct->data['moderate'] == 1                     ? $img : $img_no).'"/>'
 	        .'<a style="color: black" href="https://blog.cleantalk.org/real-time-email-address-existence-validation/">'.__('Validate email for existence', 'cleantalk-spam-protect').'</a>';
@@ -928,10 +931,9 @@ function apbct_settings__field__state(){
 	
 	// WooCommerce
 	if(class_exists('WooCommerce'))
-		echo '<img class="apbct_status_icon" src="'.($apbct->settings['wc_checkout_test'] == 1  ? $img : $img_no).'"/>'.__('WooCommerce checkout form', 'cleantalk-spam-protect');
-	
-    if($apbct->moderate_ip)
-        print "<br /><br />The anti-spam service is paid by your hosting provider. License #".$apbct->data['ip_license'].".<br />";
+		echo '<img class="apbct_status_icon" src="'.($apbct->settings['forms__wc_checkout_test'] == 1  ? $img : $img_no).'"/>'.__('WooCommerce checkout form', 'cleantalk-spam-protect');
+		if($apbct->moderate_ip)
+			print "<br /><br />The anti-spam service is paid by your hosting provider. License #".$apbct->data['ip_license'].".<br />";
 	
 	print "</div>";
 }
@@ -988,11 +990,13 @@ function apbct_settings__field__apikey(){
 		}else{
 			
 			echo '<br /><br />';
-			
+
 			// Auto get key
 			if(!$apbct->ip_license){
-				echo '<button class="cleantalk_link cleantalk_link-manual apbct_setting---get_key_auto" name="submit" type="submit"  value="get_key_auto">'
+				echo '<button class="cleantalk_link cleantalk_link-manual apbct_setting---get_key_auto" id="apbct_button__get_key_auto" name="submit" type="button"  value="get_key_auto">'
 					.__('Get Access Key Automatically', 'cleantalk-spam-protect')
+				     . '<img style="margin-left: 10px;" class="apbct_preloader_button" src="' . APBCT_URL_PATH . '/inc/images/preloader2.gif" />'
+				     . '<img style="margin-left: 10px;" class="apbct_success --hide" src="' . APBCT_URL_PATH . '/inc/images/yes.png" />'
 				.'</button>';
 				echo '<input type="hidden" id="ct_admin_timezone" name="ct_admin_timezone" value="null" />';
 				echo '<br />';
@@ -1131,11 +1135,11 @@ function apbct_settings__field__statistics() {
 						. ' name="submit"'
 						. ' class="cleantalk_link cleantalk_link-manual"'
 						. ' value="ct_send_connection_report"'
-						. (!$apbct->settings['send_connection_reports'] ? ' disabled="disabled"' : '')
+						. (!$apbct->settings['misc__send_connection_reports'] ? ' disabled="disabled"' : '')
 						. '>'
 							.__('Send report', 'cleantalk-spam-protect')
 						.'</button>';
-				if (!$apbct->settings['send_connection_reports']){
+				if (!$apbct->settings['misc__send_connection_reports']){
 					echo '<br><br>';
 					_e('Please, enable "Send connection reports" setting to be able to send reports', 'cleantalk-spam-protect');
 				}
@@ -1147,6 +1151,7 @@ function apbct_settings__field__statistics() {
 	echo 'Plugin version: ' . APBCT_VERSION;
 		
 	echo '</div>';
+
 }
 function apbct_get_all_child_domains($except_main_site = false) {
 	global $wpdb;
@@ -1198,7 +1203,7 @@ function apbct_settings__field__draw($params = array()){
 	$disabled = $params['parent'] && !$value_parent                                                                 ? ' disabled="disabled"' : '';        // Strait
 	$disabled = $params['parent'] && $params['reverse_trigger'] && !$value_parent                                   ? ' disabled="disabled"' : $disabled; // Reverse logic
 	$disabled = $params['disabled']                                                                                 ? ' disabled="disabled"' : $disabled; // Direct disable from params
-	$disabled = ! is_main_site() && $apbct->network_settings && ! $apbct->network_settings['allow_custom_settings'] ? ' disabled="disabled"' : $disabled; // Disabled by super admin on sub-sites
+	$disabled = ! is_main_site() && $apbct->network_settings && ! $apbct->network_settings['multisite__allow_custom_settings'] ? ' disabled="disabled"' : $disabled; // Disabled by super admin on sub-sites
 	
 	$childrens =  $params['childrens'] ? 'apbct_setting---' . implode(",apbct_setting---",$params['childrens']) : '';
 	$hide      =  $params['hide']      ? implode(",",$params['hide'])      : '';
@@ -1377,7 +1382,7 @@ function apbct_settings__validate($settings) {
 	global $apbct;
 	
 	// If user is not allowed to manage settings. Get settings from the storage
-	if( ! is_main_site() && ( ! $apbct->network_settings['allow_custom_settings'] ) ){
+	if( ! is_main_site() && ( ! $apbct->network_settings['multisite__allow_custom_settings'] ) ){
 		foreach ($apbct->settings as $key => $setting){
 			$settings[ $key ] = $setting;
 		}
@@ -1403,54 +1408,7 @@ function apbct_settings__validate($settings) {
 	$settings['sfw__anti_flood__view_limit'] = floor( intval( $settings['sfw__anti_flood__view_limit'] ) );
 	$settings['sfw__anti_flood__view_limit'] = ( $settings['sfw__anti_flood__view_limit'] == 0 ? 20 : $settings['sfw__anti_flood__view_limit'] ); // Default if 0 passed
 	$settings['sfw__anti_flood__view_limit'] = ( $settings['sfw__anti_flood__view_limit'] < 5 ? 5 : $settings['sfw__anti_flood__view_limit'] ); //
-	
-	// Auto getting key
-	if (isset($_POST['submit']) && $_POST['submit'] == 'get_key_auto'){
-		
-		$website        = parse_url(get_option('siteurl'), PHP_URL_HOST).parse_url(get_option('siteurl'), PHP_URL_PATH);
-		$platform       = 'wordpress';
-		$user_ip        = \Cleantalk\ApbctWP\Helper::ip__get('real', false);
-		$timezone       = filter_input(INPUT_POST, 'ct_admin_timezone');
-		$language       = apbct_get_server_variable( 'HTTP_ACCEPT_LANGUAGE' );
-		$wpms           = APBCT_WPMS && defined('SUBDOMAIN_INSTALL') && !SUBDOMAIN_INSTALL ? true : false;
-		$white_label    = $apbct->network_settings['white_label']             ? 1                                                   : 0;
-		$hoster_api_key = $apbct->network_settings['white_label__hoster_key'] ? $apbct->network_settings['white_label__hoster_key'] : '';
-		
-		$result = \Cleantalk\ApbctWP\API::method__get_api_key(
-			! is_main_site() && $apbct->white_label ? 'anti-spam-hosting' : 'antispam',
-			ct_get_admin_email(),
-			$website,
-			$platform,
-			$timezone,
-			$language,
-			$user_ip,
-			$wpms,
-			$white_label,
-			$hoster_api_key
-		);
-		
-		if(empty($result['error'])){
-			
-			if(isset($result['user_token'])){
-				$apbct->data['user_token'] = $result['user_token'];
-			}
-			
-			if(!empty($result['auth_key'])){
-				$settings['apikey'] = $result['auth_key'];
-			}
-			
-		}else{
-			$apbct->error_add(
-				'key_get',
-				$result['error']
-				. ($apbct->white_label
-					? ' <button name="submit" type="submit" class="cleantalk_link cleantalk_link-manual" value="get_key_auto">'
-					: ''
-				)
-			);
-		}
-	}
-	
+
 	// Validating API key
 	$settings['apikey'] = strpos($settings['apikey'], '*') === false                 ? $settings['apikey']        : $apbct->settings['apikey'];
 	
@@ -1460,7 +1418,7 @@ function apbct_settings__validate($settings) {
 	$settings['apikey'] = defined( 'CLEANTALK_ACCESS_KEY')                           ? CLEANTALK_ACCESS_KEY       : $settings['apikey'];
 	$settings['apikey'] = ! is_main_site() && $apbct->white_label                           ? $apbct->settings['apikey'] : $settings['apikey'];
 	$settings['apikey'] = is_main_site() || $apbct->allow_custom_key || $apbct->white_label ? $settings['apikey']        : $apbct->network_settings['apikey'];
-	$settings['apikey'] = is_main_site() || !$settings['white_label']                       ? $settings['apikey']        : $apbct->settings['apikey'];
+	$settings['apikey'] = is_main_site() || !$settings['multisite__white_label']                       ? $settings['apikey']        : $apbct->settings['apikey'];
 	
 	// Sanitize setting values
 	foreach ($settings as &$setting ){
@@ -1486,17 +1444,17 @@ function apbct_settings__validate($settings) {
 	// WPMS Logic.
 	if(APBCT_WPMS && is_main_site()){
 		$network_settings = array(
-			'allow_custom_key'         => $settings['allow_custom_key'],
-			'allow_custom_settings'    => $settings['allow_custom_settings'],
-			'white_label'              => $settings['white_label'],
-			'white_label__hoster_key'  => $settings['white_label__hoster_key'],
-			'white_label__plugin_name' => $settings['white_label__plugin_name'],
-			'use_settings_template'    => $settings['use_settings_template'],
-			'use_settings_template_apply_for_new' => $settings['use_settings_template_apply_for_new'],
-			'use_settings_template_apply_for_current' => $settings['use_settings_template_apply_for_current'],
-			'use_settings_template_apply_for_current_list_sites' => $settings['use_settings_template_apply_for_current_list_sites'],
+			'multisite__allow_custom_key'         => $settings['multisite__allow_custom_key'],
+			'multisite__allow_custom_settings'    => $settings['multisite__allow_custom_settings'],
+			'multisite__white_label'              => $settings['multisite__white_label'],
+			'multisite__white_label__hoster_key'  => $settings['multisite__white_label__hoster_key'],
+			'multisite__white_label__plugin_name' => $settings['multisite__white_label__plugin_name'],
+			'multisite__use_settings_template'    => $settings['multisite__use_settings_template'],
+			'multisite__use_settings_template_apply_for_new' => $settings['multisite__use_settings_template_apply_for_new'],
+			'multisite__use_settings_template_apply_for_current' => $settings['multisite__use_settings_template_apply_for_current'],
+			'multisite__use_settings_template_apply_for_current_list_sites' => $settings['multisite__use_settings_template_apply_for_current_list_sites'],
 		);
-		unset( $settings['allow_custom_key'], $settings['white_label'], $settings['white_label__hoster_key'], $settings['white_label__plugin_name'] );
+		unset( $settings['multisite__allow_custom_key'], $settings['multisite__white_label'], $settings['multisite__white_label__hoster_key'], $settings['multisite__white_label__plugin_name'] );
 	}
 	
 	// Drop debug data
@@ -1505,6 +1463,12 @@ function apbct_settings__validate($settings) {
 		delete_option('cleantalk_debug');
 		return $settings;
 	}
+    
+    // Drop debug data
+    if( Post::get('apbct_debug__check_connection') ){
+        $result = apbct_test_connection();
+        apbct_log($result);
+    }
 	
 	// Send connection reports
 	if (isset($_POST['submit']) && $_POST['submit'] == 'ct_send_connection_report'){
@@ -1533,8 +1497,8 @@ function apbct_settings__validate($settings) {
 				'service_id'  => $apbct->data['service_id'],
 			);
 			$apbct->saveNetworkData();
-			if (isset($settings['use_settings_template_apply_for_current_list_sites']) && !empty($settings['use_settings_template_apply_for_current_list_sites'])) {
-				apbct_update_blogs_options($settings['use_settings_template_apply_for_current_list_sites'], $settings);
+			if (isset($settings['multisite__use_settings_template_apply_for_current_list_sites']) && !empty($settings['multisite__use_settings_template_apply_for_current_list_sites'])) {
+				apbct_update_blogs_options($settings['multisite__use_settings_template_apply_for_current_list_sites'], $settings);
 			}
 		}
 		if(!$apbct->white_label && !is_main_site() && !$apbct->allow_custom_key){
@@ -1543,8 +1507,8 @@ function apbct_settings__validate($settings) {
 	}
 
 	// Alt sessions table clearing
-    if( empty( $settings['set_cookies__sessions'] ) ) {
-        if( empty( $settings['store_urls__sessions'] ) ) {
+    if( empty( $settings['data__set_cookies__sessions'] ) ) {
+        if( empty( $settings['misc__store_urls__sessions'] ) ) {
             apbct_alt_sessions__clear();
         } else {
             apbct_alt_sessions__clear( false );
@@ -1580,7 +1544,7 @@ function apbct_settings__sync( $direct_call = false ){
 		$apbct->error_delete( 'key_invalid key_get', 'save' );
 		
 		// SFW actions
-		if( $apbct->settings['spam_firewall'] == 1 ){
+		if( $apbct->settings['sfw__enabled'] == 1 ){
 
             if( get_option( 'sfw_update_first' ) ) {
                 add_option( 'sfw_sync_first', true );
@@ -1625,8 +1589,8 @@ function apbct_settings__sync( $direct_call = false ){
 				'service_id'  => $apbct->data['service_id'],
 			);
 			$apbct->saveNetworkData();
-			if (isset($settings['use_settings_template_apply_for_current_list_sites']) && !empty($settings['use_settings_template_apply_for_current_list_sites'])) {
-				apbct_update_blogs_options($settings['use_settings_template_apply_for_current_list_sites'], $settings);
+			if (isset($settings['multisite__use_settings_template_apply_for_current_list_sites']) && !empty($settings['multisite__use_settings_template_apply_for_current_list_sites'])) {
+				apbct_update_blogs_options($settings['multisite__use_settings_template_apply_for_current_list_sites'], $settings);
 			}
 		}
 		if(!$apbct->white_label && !is_main_site() && !$apbct->allow_custom_key){
@@ -1666,6 +1630,90 @@ function apbct_settings__sync( $direct_call = false ){
 	$apbct->saveData();
 	
 	die( json_encode( $out ) );
+}
+
+function apbct_settings__get_key_auto( $direct_call = false ) {
+
+	if( ! $direct_call )
+		check_ajax_referer('ct_secret_nonce' );
+
+	global $apbct;
+
+	$website        = parse_url(get_option('siteurl'), PHP_URL_HOST).parse_url(get_option('siteurl'), PHP_URL_PATH);
+	$platform       = 'wordpress';
+	$user_ip        = \Cleantalk\ApbctWP\Helper::ip__get(array('real'), false);
+	$timezone       = filter_input(INPUT_POST, 'ct_admin_timezone');
+	$language       = apbct_get_server_variable( 'HTTP_ACCEPT_LANGUAGE' );
+	$wpms           = APBCT_WPMS && defined('SUBDOMAIN_INSTALL') && !SUBDOMAIN_INSTALL ? true : false;
+	$white_label    = $apbct->network_settings['multisite__white_label']             ? 1                                                   : 0;
+	$hoster_api_key = $apbct->network_settings['multisite__white_label__hoster_key'] ? $apbct->network_settings['multisite__white_label__hoster_key'] : '';
+
+	$result = \Cleantalk\ApbctWP\API::method__get_api_key(
+		! is_main_site() && $apbct->white_label ? 'anti-spam-hosting' : 'antispam',
+		ct_get_admin_email(),
+		$website,
+		$platform,
+		$timezone,
+		$language,
+		$user_ip,
+		$wpms,
+		$white_label,
+		$hoster_api_key
+	);
+
+	if(empty($result['error'])){
+
+		if(isset($result['user_token'])){
+			$apbct->data['user_token'] = $result['user_token'];
+		}
+
+		if(!empty($result['auth_key'])){
+			// @ToDo we have to sanitize only api key. Not need to sanitize every settings here.
+			$settings = apbct_settings__validate(array(
+				'apikey' => $result['auth_key'],
+			));
+			$apbct->settings['apikey'] = $settings['apikey'];
+		}
+
+		$templates = \Cleantalk\ApbctWP\CleantalkSettingsTemplates::get_options_template( $result['auth_key'] );
+
+		if( ! empty( $templates ) ) {
+			$templatesObj = new \Cleantalk\ApbctWP\CleantalkSettingsTemplates( $result['auth_key'] );
+			$out = array(
+				'success' => true,
+				'getTemplates'  => $templatesObj->getHtmlContent( true ),
+			);
+		} else {
+			$out = array(
+				'success' => true,
+				'reload'  => true,
+			);
+		}
+
+	}else{
+		$apbct->error_add(
+			'key_get',
+			$result['error']
+			. ($apbct->white_label
+				? ' <button name="submit" type="button" id="apbct_button__get_key_auto" class="cleantalk_link cleantalk_link-manual" value="get_key_auto">'
+				: ''
+			)
+		);
+		$apbct->saveErrors();
+		$out = array(
+			'success' => true,
+			'reload'  => false,
+		);
+	}
+
+	$apbct->saveSettings();
+	$apbct->saveData();
+
+	if( $direct_call ) {
+		return $result;
+	} else {
+		die( json_encode( $out ) );
+	}
 }
 
 function apbct_update_blogs_options ($blog_names = array(), $settings) {
@@ -1759,15 +1807,15 @@ function apbct_settings__get__long_description(){
 	$setting_id = $_POST['setting_id'] ? $_POST['setting_id'] : '';
 	
 	$descriptions = array(
-		'white_label'              => array(
+		'multisite__white_label'              => array(
 			'title' => __( 'XSS check', 'cleantalk-spam-protect'),
 			'desc'  => __( 'Cross-Site Scripting (XSS) — prevents malicious code to be executed/sent to any user. As a result malicious scripts can not get access to the cookie files, session tokens and any other confidential information browsers use and store. Such scripts can even overwrite content of HTML pages. CleanTalk WAF monitors for patterns of these parameters and block them.', 'cleantalk-spam-protect'),
 		),
-		'white_label__hoster_key'  => array(
+		'multisite__white_label__hoster_key'  => array(
 			'title' => __( 'SQL-injection check', 'cleantalk-spam-protect'),
 			'desc'  => __( 'SQL Injection — one of the most popular ways to hack websites and programs that work with databases. It is based on injection of a custom SQL code into database queries. It could transmit data through GET, POST requests or cookie files in an SQL code. If a website is vulnerable and execute such injections then it would allow attackers to apply changes to the website\'s MySQL database.', 'cleantalk-spam-protect'),
 		),
-		'white_label__plugin_name' => array(
+		'multisite__white_label__plugin_name' => array(
 			'title' => __( 'Check uploaded files', 'cleantalk-spam-protect'),
 			'desc'  => __( 'The option checks each uploaded file to a website for malicious code. If it\'s possible for visitors to upload files to a website, for instance a work resume, then attackers could abuse it and upload an infected file to execute it later and get access to your website.', 'cleantalk-spam-protect'),
 		),

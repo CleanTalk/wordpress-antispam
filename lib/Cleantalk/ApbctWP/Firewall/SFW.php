@@ -95,7 +95,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
                     $this->update_log( $current_ip, 'PASS_SFW' );
 
                     if( $this->sfw_counter ){
-                        $this->apbct->data['sfw_counter']['all'] ++;
+                        $this->apbct->data['admin_bar__sfw_counter']['all'] ++;
                         $this->apbct->saveData();
                     }
 
@@ -191,7 +191,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 	public function actions_for_denied( $result ){
 		
 		if( $this->sfw_counter ){
-			$this->apbct->data['sfw_counter']['blocked']++;
+			$this->apbct->data['admin_bar__sfw_counter']['blocked']++;
 			$this->apbct->saveData();
 		}
 		
@@ -328,6 +328,8 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 				
 				$value['status'] = $value['status'] === 'DENY_ANTIFLOOD'      ? 'FLOOD_PROTECTION' : $value['status'];
 				$value['status'] = $value['status'] === 'PASS_ANTIFLOOD'      ? 'FLOOD_PROTECTION' : $value['status'];
+				$value['status'] = $value['status'] === 'DENY_ANTIFLOOD_UA'   ? 'FLOOD_PROTECTION' : $value['status'];
+				$value['status'] = $value['status'] === 'PASS_ANTIFLOOD_UA'   ? 'FLOOD_PROTECTION' : $value['status'];
 				
 				$value['status'] = $value['status'] === 'PASS_SFW__BY_COOKIE' ? null               : $value['status'];
                 $value['status'] = $value['status'] === 'PASS_SFW'            ? null               : $value['status'];
@@ -399,7 +401,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 			if( empty( $result['error'] ) ){
 
 			    // User-Agents blacklist
-                if( ! empty( $result['file_ua_url'] ) && $apbct->settings['sfw__anti_crawler'] ){
+                if( ! empty( $result['file_ua_url'] ) && ( $apbct->settings['sfw__anti_crawler'] || $apbct->settings['sfw__anti_flood'] ) ){
                     $ua_bl_res = AntiCrawler::update( trim( $result['file_ua_url'] ) );
                     if( ! empty( $ua_bl_res['error'] ) )
                         $apbct->error_add( 'sfw_update', $ua_bl_res['error'] );

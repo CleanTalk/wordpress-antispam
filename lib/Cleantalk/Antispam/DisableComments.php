@@ -46,14 +46,14 @@ class DisableComments{
 		
 		$types_to_disable = array();
 		
-		if( $this->apbct->settings['disable_comments__all'] ){
-			$types_to_disable = array( 'page', 'post', 'media' );
+		if( $this->apbct->settings['comments__disable_comments__all'] ){
+            $types_to_disable = array( 'all' );
 		}else{
-			if( $this->apbct->settings['disable_comments__posts'] )
+			if( $this->apbct->settings['comments__disable_comments__posts'] )
 				$types_to_disable[] = 'post';
-			if( $this->apbct->settings['disable_comments__pages'] )
+			if( $this->apbct->settings['comments__disable_comments__pages'] )
 				$types_to_disable[] = 'page';
-			if( $this->apbct->settings['disable_comments__media'] )
+			if( $this->apbct->settings['comments__disable_comments__media'] )
 				$types_to_disable[] = 'media';
 		}
 		
@@ -71,8 +71,13 @@ class DisableComments{
 	}
 	
 	function is_current_type_to_disable( $type = '' ){
-		$type = $type ? $type : get_post_type();
-		return in_array( $type, $this->types_to_disable );
+        
+        if( $this->types_to_disable === array( 'all' ) ){
+            return true;
+        }
+        
+        $type = $type ?: get_post_type();
+        return in_array( $type, $this->types_to_disable );
 	}
 	
 	/**
@@ -97,7 +102,7 @@ class DisableComments{
 			
 			if( is_admin() ){
 				
-				if( $this->apbct->settings['disable_comments__all'] ){
+				if( $this->apbct->settings['comments__disable_comments__all'] ){
 					add_action( 'admin_menu', array( $this,	'admin__filter_menu' ), 999 );
 					add_action( 'admin_print_styles-index.php', array( $this, 'admin__filter_css' ) );
 					add_action( 'admin_print_styles-profile.php', array( $this, 'admin__filter_css' ) );

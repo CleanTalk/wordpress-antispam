@@ -149,13 +149,9 @@ class API
 			'path_to_cms'  => $path_to_cms,
 			'auth_key'     => $api_key,
 		);
-		
-		$product_id = null;
-		$product_id = $product_name == 'antispam'            ? 1 : $product_id;
-		$product_id = $product_name == 'anti-spam-hosting'   ? 3 : $product_id;
-		$product_id = $product_name == 'security'            ? 4 : $product_id;
-		if($product_id)
-			$request['product_id'] = $product_id;
+
+		if( self::get_product_id( $product_name ) )
+			$request['product_id'] = self::get_product_id( $product_name );
 		
 		$result = static::send_request($request);
 		$result = $do_check ? static::check_response($result, 'notice_paid_till') : $result;
@@ -596,6 +592,109 @@ class API
 		
 		return $result;
 	}
+
+	/**
+	 * Settings templates get API method wrapper
+	 *
+	 * @param string $api_key
+	 * @param bool $do_check
+	 *
+	 * @return array|bool|mixed
+	 */
+	static public function method__services_templates_get( $api_key, $product_name = 'antispam', $do_check = true)
+	{
+		$request = array(
+			'method_name'        => 'services_templates_get',
+			'auth_key'           => $api_key,
+			'search[product_id]' => self::get_product_id( $product_name ),
+		);
+
+		$result = static::send_request( $request );
+		$result = $do_check ? static::check_response($result, 'services_templates_get') : $result;
+
+		return $result;
+	}
+
+	/**
+	 * Settings templates add API method wrapper
+	 *
+	 * @param string $api_key
+	 * @param null $template_name
+	 * @param bool $do_check
+	 *
+	 * @return array|bool|mixed
+	 */
+	static public function method__services_templates_add( $api_key, $template_name = null, $options = '', $product_name = 'antispam', $do_check = true)
+	{
+		$request = array(
+			'method_name'        => 'services_templates_add',
+			'auth_key'           => $api_key,
+			'name'               => $template_name,
+			'options_site'       => $options,
+			'search[product_id]' => self::get_product_id( $product_name ),
+		);
+
+		$result = static::send_request( $request );
+		$result = $do_check ? static::check_response($result, 'services_templates_add') : $result;
+
+		return $result;
+	}
+
+	/**
+	 * Settings templates add API method wrapper
+	 *
+	 * @param string $api_key
+	 * @param int $template_id
+	 * @param null $template_name
+	 * @param bool $do_check
+	 *
+	 * @return array|bool|mixed
+	 */
+	static public function method__services_templates_update( $api_key, $template_id, $options = '', $product_name = 'antispam', $do_check = true)
+	{
+		$request = array(
+			'method_name'        => 'services_templates_update',
+			'auth_key'           => $api_key,
+			'template_id'        => $template_id,
+			'name'               => null,
+			'options_site'       => $options,
+			'search[product_id]' => self::get_product_id( $product_name ),
+		);
+
+		$result = static::send_request( $request );
+		$result = $do_check ? static::check_response($result, 'services_templates_update') : $result;
+
+		return $result;
+	}
+
+	public static function method__private_list_add__sfw_wl( $user_token, $ip, $service_id, $do_check = true ) {
+
+		$request = array(
+			'method_name'        => 'private_list_add',
+			'user_token'         => $user_token,
+			'service_id'         => $service_id,
+			'records'            => $ip,
+			'service_type'       => 'spamfirewall',
+			'product_id'         => 1,
+			'record_type'        => 6,
+			'note'               => 'Website admin IP. Added automatically.',
+			'status'             => 'allow',
+			'expired'            => date( 'Y-m-d H:i:s', time() + 86400 * 30 ),
+		);
+
+		$result = static::send_request( $request );
+		$result = $do_check ? static::check_response($result) : $result;
+
+		return $result;
+
+	}
+
+	private static function get_product_id( $product_name ) {
+		$product_id = null;
+		$product_id = $product_name === 'antispam' ? 1 : $product_id;
+		$product_id = $product_name === 'security' ? 4 : $product_id;
+		return $product_id;
+	}
 	
 	/**
 	 * Function sends raw request to API server
@@ -767,6 +866,13 @@ class API
 				
 				return $out;
 				
+				break;
+
+			case 'services_templates_add' :
+			case 'services_templates_update' :
+				return isset( $result['data'] ) && is_array( $result['data'] ) && count( $result['data'] ) === 1
+					? $result['data'][0]
+					: array('error' => 'NO_DATA');
 				break;
 			
 			default:
