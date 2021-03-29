@@ -3,6 +3,8 @@
 use Cleantalk\Antispam\Cleantalk;
 use Cleantalk\Antispam\CleantalkRequest;
 use Cleantalk\Antispam\CleantalkResponse;
+use Cleantalk\ApbctWP\API;
+use Cleantalk\ApbctWP\Helper;
 use Cleantalk\Variables\Cookie;
 use Cleantalk\Variables\Server;
 
@@ -63,6 +65,8 @@ $ct_negative_comment = null;
 // Set globals to NULL to avoid massive DB requests. Globals will be set when needed only and by accessors only.
 $ct_server = NULL;
 $admin_email = NULL;
+
+add_action( 'wp_login', 'apbct_wp_login', 10, 2 );
 
 /**
  * Public action 'plugins_loaded' - Loads locale, see http://codex.wordpress.org/Function_Reference/load_plugin_textdomain
@@ -1090,4 +1094,40 @@ function apbct_add_async_attribute($tag, $handle, $src) {
     }
     
     return $tag;
+}
+
+function apbct_wp_login( $user_login, $user ) {
+
+	global $apbct;
+
+	// Break if the SpamFireWall is inactive
+	if( $apbct->settings['sfw__enabled'] != 1 &&
+	    ! apbct_is_get() &&
+	    apbct_wp_doing_cron()
+	){
+		return;
+	}
+
+	$ip = Helper::ip__get( 'real', true );
+
+	if( Cookie::get( 'ct_sfw_ip_wl' ) && Cookie::get( 'ct_sfw_ip_wl' ) === md5( $ip . $apbct->api_key ) ) {
+		return;
+	}
+
+	if( in_array( 'administrator', (array) $user->roles ) ) {
+		$res = apbct_private_list_add( $ip );
+		if( $res ) {
+			ct_sfw_update();
+		}
+	}
+
+}
+
+function apbct_private_list_add( $ip ) {
+	global $apbct;
+	if( Helper::ip__validate( $ip ) !== false ) {
+		$res = API::method__private_list_add__sfw_wl( $apbct->data['user_token'], $ip, $apbct->data['service_id'] );
+		return isset( $res['records'][0]['operation_status'] ) && $res['records'][0]['operation_status'] === 'SUCCESS';
+	}
+	return false;
 }

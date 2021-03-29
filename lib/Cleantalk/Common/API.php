@@ -667,6 +667,28 @@ class API
 		return $result;
 	}
 
+	public static function method__private_list_add__sfw_wl( $user_token, $ip, $service_id, $do_check = true ) {
+
+		$request = array(
+			'method_name'        => 'private_list_add',
+			'user_token'         => $user_token,
+			'service_id'         => $service_id,
+			'records'            => $ip,
+			'service_type'       => 'spamfirewall',
+			'product_id'         => 1,
+			'record_type'        => 6,
+			'note'               => 'Website admin IP. Added automatically.',
+			'status'             => 'allow',
+			'expired'            => date( 'Y-m-d H:i:s', time() + 86400 * 30 ),
+		);
+
+		$result = static::send_request( $request );
+		$result = $do_check ? static::check_response($result) : $result;
+
+		return $result;
+
+	}
+
 	private static function get_product_id( $product_name ) {
 		$product_id = null;
 		$product_id = $product_name === 'antispam' ? 1 : $product_id;
