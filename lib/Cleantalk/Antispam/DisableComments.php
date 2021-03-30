@@ -143,16 +143,16 @@ class DisableComments{
 		remove_menu_page( 'edit-comments.php' );
 		remove_submenu_page( 'options-general.php', 'options-discussion.php' );
 	}
-	
-	function template__check(){
-		if( is_singular() && $this->is_current_type_to_disable() ){
-			add_filter( 'comments_template', array( $this, 'template__replace' ), 20 );
-			wp_deregister_script( 'comment-reply' );
-			remove_action( 'wp_head', 'feed_links_extra', 3 );
-		}
-	}
-	
-	function template__replace(){
+    
+    public function template__check( $count, $post_id ){
+        if( is_singular() && $this->is_current_type_to_disable() ){
+            add_filter( 'comments_template', array( $this, 'template__replace' ), 20 );
+            wp_deregister_script( 'comment-reply' );
+            remove_action( 'wp_head', 'feed_links_extra', 3 );
+        }
+        return $count;
+    }
+	public function template__replace(){
 		return APBCT_DIR_PATH . 'templates/empty_comments.php';
 	}
 	
