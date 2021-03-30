@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 3.0
 Tested up to: 5.7
 Requires PHP: 5.4
-Stable tag: 5.154
+Stable tag: 5.155
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -39,7 +39,7 @@ No CAPTCHA, no questions, no animal counting, no puzzles, no math and no spam bo
 
 = Public reviews =
 > CleanTalk - Cloud-Based Anti-Spam Service to Keep Your Site Bot-Free.
-> <a href="https://newswatchtv.com/2018/07/18/cleantalk-newswatch-review/" rarget="_blank">NewsWatch Review</a>.
+> <a href="https://newswatchtv.com/2018/07/18/cleantalk-newswatch-review/" target="_blank">NewsWatch Review</a>.
 
 > Using CleanTalk on WPLift was a great test as we receive huge amounts of spam.
 > *Oliver Dale, <a href="http://wplift.com/wordpress-anti-spam-plugin" target="_blank">WPLift.com</a>.*
@@ -579,6 +579,33 @@ If your website has forms that send data to external sources, you can enable opt
 10. Website's options.
 
 == Changelog ==
+
+= 5.155 Mar 31 2021 =
+ * New: Debug. Check connection to API servers.
+ * New: Integration. Avada Form Builder.
+ * New: Integration. Forminator integration implemented.
+ * New: Users checker. Non-checked users tab added.
+ * New: SFW. Admin IP will be whitelisted automatically.
+ * Mod: Replace "bad" users/comments to "non-checkable".
+ * Mod: DisableComments. Disable all comments means disable all comments for any post type.
+ * Udp: Setting templates. Product ID support implemented.
+ * Udp: Settings. Reorder links actions buttons.
+ * Upd: Common. Getting check_js updated.
+ * Fix: Reversed URL exclusions.
+ * Fix: Settings. Sync button success ico fixed.
+ * Fix: Show response for all AJAX forms #3.
+ * Fix: GDPR. Warning text output.
+ * Fix: Integration class consider settings.
+ * Fix: Exclusions. URL exclusions fixed.
+ * Fix: Services Templates. Getting templates optimized.
+ * Fix: Services Templates. Possible XSS fixed.
+ * Fix: Services Templates. Design layout fixed.
+ * Fix: Family of settings comments__disable_comments__* dependencies.
+ * Fix: DisableComments class. Media post type includes 'attachment' type.
+ * Fix: Exclusion for Thrive Ultimatum.
+ * Fix: Common/Helper::http__get_headers() ignores empty header name parts.
+ * Fix: Exclusion for GiveWP plugin in apbct-public.js.
+ * Fix: Do not consider 501 as correct HTTP response code when getting FW data files.
 
 = 5.154 Mar 17 2021 =
  * New: Settings Templates functionality implemented.
