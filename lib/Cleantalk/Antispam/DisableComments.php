@@ -38,7 +38,7 @@ class DisableComments{
 	/**
 	 * Singleton constructor.
 	 */
-	function init(){
+    public function init(){
 		
 		global $apbct;
 		
@@ -72,7 +72,7 @@ class DisableComments{
 		
 	}
 	
-	function is_current_type_to_disable( $type = '' ){
+	public function is_current_type_to_disable( $type = '' ){
 		$type = $type ? $type : get_post_type();
 		return in_array( $type, $this->types_to_disable );
 	}
@@ -113,8 +113,8 @@ class DisableComments{
 			}
 		}
 	}
-	
-	function disable_rc_widget(){
+
+    public function disable_rc_widget(){
 		unregister_widget( 'WP_Widget_Recent_Comments' );
 	}
 	
@@ -130,11 +130,11 @@ class DisableComments{
 		</style>';
 	}
 	
-	function admin__filter_dashboard(){
+	public function admin__filter_dashboard(){
 		remove_meta_box( 'dashboard_recent_comments', 'dashboard', 'normal' );
 	}
 	
-	function admin__filter_menu(){
+	public function admin__filter_menu(){
 		global $pagenow;
 		
 		if( in_array( $pagenow, array( 'comment.php', 'edit-comments.php', 'options-discussion.php' ) ) )
@@ -156,17 +156,17 @@ class DisableComments{
 		return APBCT_DIR_PATH . 'templates/empty_comments.php';
 	}
 	
-	function filter__headers( $headers ){
+	public function filter__headers( $headers ){
 		unset( $headers['X-Pingback'] );
 		return $headers;
 	}
 	
-	function filter__query( $headers ){
+	public function filter__query( $headers ){
 		if( is_comment_feed() )
 			wp_die( __( 'Comments are closed.' ), '', array( 'response' => 403 ) );
 	}
-	
-	function filter__admin_bar(){
+
+    public function filter__admin_bar(){
 		if( is_admin_bar_showing() ){
 			remove_action( 'admin_bar_menu', 'wp_admin_bar_comments_menu', 60 );
 			if( $this->is_wpms ){
@@ -208,8 +208,8 @@ class DisableComments{
 	public function filter__comments_number( $count, $post_id ){
 		return $this->is_current_type_to_disable() ? 0 : $count;
 	}
-	
-	function remove__comment_links__wpms( $wp_admin_bar ){
+
+    public function remove__comment_links__wpms( $wp_admin_bar ){
 		if( is_user_logged_in() ){
 			
 			foreach ( (array) $wp_admin_bar->user->blogs as $blog ){
