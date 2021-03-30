@@ -606,6 +606,9 @@ If your website has forms that send data to external sources, you can enable opt
  * Fix: Common/Helper::http__get_headers() ignores empty header name parts.
  * Fix: Exclusion for GiveWP plugin in apbct-public.js.
  * Fix: Do not consider 501 as correct HTTP response code when getting FW data files.
+ * Fix: AntiCrawler::update(). Correct error codes.
+ * Fix: ApbctWP\Firewall\SFW::update(). Correct URLs for FILE with protocol.
+ * Fix: PHP 8 deprecated notices.
 
 = 5.154 Mar 17 2021 =
  * New: Settings Templates functionality implemented.
