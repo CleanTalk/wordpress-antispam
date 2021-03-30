@@ -52,7 +52,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 
         if( empty( $response_code['error'] ) ){
 
-            if( $response_code == 200 || $response_code == 501 ){
+            if( $response_code == 200 ){
 
                 $gz_data = \Cleantalk\ApbctWP\Helper::http__request__get_content( $file_url_ua );
 

@@ -355,7 +355,15 @@ function apbct_is_skip_request( $ajax = false ) {
             /*****************************************/
             /*    Here is ajax requests skipping     */
             /*****************************************/
-
+    
+            // Thrive Ultimatum
+            if(
+                apbct_is_plugin_active( 'thrive-ultimatum/thrive-ultimatum.php' ) &&
+                Post::get( 'action' ) === 'tve_dash_front_ajax'
+            ){
+                return 'thrive-ultimatum__links_from_email';
+            }
+            
             // wpDiscuz - Online Users Addon for wpDiscuz
             if(
                 apbct_is_plugin_active( 'wpdiscuz-online-users/wpdiscuz-ou.php' ) &&
