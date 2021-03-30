@@ -1498,7 +1498,7 @@ function apbct_settings__validate($settings) {
 			);
 			$apbct->saveNetworkData();
 			if (isset($settings['multisite__use_settings_template_apply_for_current_list_sites']) && !empty($settings['multisite__use_settings_template_apply_for_current_list_sites'])) {
-				apbct_update_blogs_options($settings['multisite__use_settings_template_apply_for_current_list_sites'], $settings);
+				apbct_update_blogs_options( $settings );
 			}
 		}
 		if(!$apbct->white_label && !is_main_site() && !$apbct->allow_custom_key){
@@ -1590,7 +1590,7 @@ function apbct_settings__sync( $direct_call = false ){
 			);
 			$apbct->saveNetworkData();
 			if (isset($settings['multisite__use_settings_template_apply_for_current_list_sites']) && !empty($settings['multisite__use_settings_template_apply_for_current_list_sites'])) {
-				apbct_update_blogs_options($settings['multisite__use_settings_template_apply_for_current_list_sites'], $settings);
+				apbct_update_blogs_options( $settings );
 			}
 		}
 		if(!$apbct->white_label && !is_main_site() && !$apbct->allow_custom_key){
@@ -1716,9 +1716,12 @@ function apbct_settings__get_key_auto( $direct_call = false ) {
 	}
 }
 
-function apbct_update_blogs_options ($blog_names = array(), $settings) {
+function apbct_update_blogs_options( $settings ){
+ 
 	global $wpdb;
-
+    
+    $blog_names = $settings['multisite__use_settings_template_apply_for_current_list_sites'] ?: array();
+	
 	$wp_blogs = $wpdb->get_results('SELECT blog_id, site_id FROM '. $wpdb->blogs, OBJECT_K);
 
 	foreach ($wp_blogs as $blog) {

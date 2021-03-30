@@ -409,7 +409,7 @@ class Cleantalk {
      * @param $msg
      * @return boolean|\CleantalkResponse
      */
-    private function sendRequest($data = null, $url, $server_timeout = 3)
+    private function sendRequest($data, $url, $server_timeout = 3)
 	{
 		$original_args = func_get_args();
         // Convert to array

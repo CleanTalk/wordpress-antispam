@@ -1664,7 +1664,7 @@ function apbct_js_test($field_name = 'ct_checkjs', $data = null) {
  * @param int $comment_post_id
  * @return string|bool
  */
-function ct_post_url($comment_id = null, $comment_post_id) {
+function ct_post_url( $comment_id, $comment_post_id ){
 
     if (empty($comment_post_id))
 	return null;
@@ -1878,10 +1878,15 @@ function ct_registration_errors_wpmu($errors) {
 }
 
 /**
- *  Shell for action register_post
- * @return array with errors
+ * Shell for action register_post
+ *
+ * @param $sanitized_user_login
+ * @param $user_email
+ * @param $errors
+ *
+ * @return void|WP_Error
  */
-function ct_register_post($sanitized_user_login = null, $user_email = null, $errors) {
+function ct_register_post($sanitized_user_login, $user_email, $errors) {
     return ct_registration_errors($errors, $sanitized_user_login, $user_email);
 }
 
@@ -1954,7 +1959,7 @@ function ct_test_registration($nickname, $email, $ip = null){
  * @param null $sanitized_user_login
  * @param null $user_email
  *
- * @return void with errors
+ * @return void|WP_Error
  */
 function ct_registration_errors($errors, $sanitized_user_login = null, $user_email = null) {
 
