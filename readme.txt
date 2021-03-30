@@ -591,6 +591,7 @@ If your website has forms that send data to external sources, you can enable opt
  * Udp: Setting templates. Product ID support implemented.
  * Udp: Settings. Reorder links actions buttons.
  * Upd: Common. Getting check_js updated.
+ * Upd: SFW. Description updated.
  * Fix: Reversed URL exclusions.
  * Fix: Settings. Sync button success ico fixed.
  * Fix: Show response for all AJAX forms #3.
@@ -609,6 +610,11 @@ If your website has forms that send data to external sources, you can enable opt
  * Fix: AntiCrawler::update(). Correct error codes.
  * Fix: ApbctWP\Firewall\SFW::update(). Correct URLs for FILE with protocol.
  * Fix: PHP 8 deprecated notices.
+ * Fix: Settings. Reversed dependencies. Applies to WooCommerce and Disable Comments settings.
+ * Fix: DisableComments::template__check() returns the correct number of comments for enabled types of posts.
+ * Fix: DisableComments class. Visibility of some methods.
+ * Exception: Paid Memberships Pro - Login Form.
+ * Fix: Exception the SFW check for queries with '/favicon.ico' string.
 
 = 5.154 Mar 17 2021 =
  * New: Settings Templates functionality implemented.
