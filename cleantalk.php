@@ -265,7 +265,8 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 		if( $apbct->plugin_version == APBCT_VERSION && // Do not call with first start
 			$apbct->settings['sfw__enabled'] == 1 &&
             apbct_is_get() &&
-            ! apbct_wp_doing_cron()
+            ! apbct_wp_doing_cron() &&
+            ! \Cleantalk\Variables\Server::in_uri( '/favicon.ico' )
 		){
 			apbct_sfw__check();
 	    }
