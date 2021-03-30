@@ -11,7 +11,7 @@ Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, 
 
 == Description ==
 
-**Supports: Contact Form 7, Contact Form by WPForms, Ninja Forms, Gravity Forms, MailChimp, Formidable forms, WooCommerce, JetPack comments and contact form, BuddyPress, bbPress, S2Member, MailPoet, wpDiscuz, ConvertKit, ActiveCampaign, Events Manager, any WordPress registrations & contact forms and themes. Just set up and forget the spam!**
+**Supports: Contact Form 7, Contact Form by WPForms, Ninja Forms, Gravity Forms, MailChimp, Formidable forms, Forminator, WooCommerce, JetPack comments and contact form, BuddyPress, bbPress, S2Member, MailPoet, wpDiscuz, ConvertKit, ActiveCampaign, Events Manager, any WordPress registrations & contact forms and themes. Just set up and forget the spam!**
 
 No CAPTCHA, no questions, no animal counting, no puzzles, no math and no spam bots. Universal AntiSpam plugin.
 
