@@ -184,14 +184,19 @@ function apbct_settings__set_fileds( $fields ){
 				'forms__wc_checkout_test' => array(
 					'title'       => __('WooCommerce checkout form', 'cleantalk-spam-protect'),
 					'description' => __('Anti spam test for WooCommerce checkout form.', 'cleantalk-spam-protect'),
-					'childrens'   => array('forms__wc_register_from_order')
+					'childrens'   => array('forms__wc_register_from_order'),
+                    'reverse_trigger' => true,
+                    'options' => array(
+                        array( 'val' => 1, 'label' => __( 'On' ), 'childrens_enable' => 0, ),
+                        array( 'val' => 0, 'label' => __( 'Off' ), 'childrens_enable' => 1, ),
+                    ),
 				),
 				'forms__wc_register_from_order' => array(
 					'title'           => __('Spam test for registration during checkout', 'cleantalk-spam-protect'),
 					'description'     => __('Enable anti spam test for registration process which during woocommerce\'s checkout.', 'cleantalk-spam-protect'),
 					'parent'          => 'forms__wc_checkout_test',
 					'class'           => 'apbct_settings-field_wrapper--sub',
-					'reverse_trigger' => true
+					'reverse_trigger' => true,
 				),
 			),
 		),
@@ -1201,7 +1206,7 @@ function apbct_settings__field__draw($params = array()){
 
 	// Is element is disabled
 	$disabled = $params['parent'] && !$value_parent                                                                 ? ' disabled="disabled"' : '';        // Strait
-	$disabled = $params['parent'] && $params['reverse_trigger'] && !$value_parent                                   ? ' disabled="disabled"' : $disabled; // Reverse logic
+	$disabled = $params['parent'] && $params['reverse_trigger'] && !$value_parent                                   ? '' : $disabled; // Reverse logic
 	$disabled = $params['disabled']                                                                                 ? ' disabled="disabled"' : $disabled; // Direct disable from params
 	$disabled = ! is_main_site() && $apbct->network_settings && ! $apbct->network_settings['multisite__allow_custom_settings'] ? ' disabled="disabled"' : $disabled; // Disabled by super admin on sub-sites
 	
