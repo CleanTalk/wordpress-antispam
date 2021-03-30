@@ -356,6 +356,15 @@ function apbct_is_skip_request( $ajax = false ) {
             /*    Here is ajax requests skipping     */
             /*****************************************/
     
+            // Paid Memberships Pro - Login Form
+            if(
+                apbct_is_plugin_active( 'paid-memberships-pro/paid-memberships-pro.php' ) &&
+                Post::get( 'rm_slug' ) === 'rm_login_form' &&
+                Post::get( 'rm_form_sub_id' )
+            ){
+                return 'paid_memberships_pro__login_form';
+            }
+            
             // Thrive Ultimatum
             if(
                 apbct_is_plugin_active( 'thrive-ultimatum/thrive-ultimatum.php' ) &&
