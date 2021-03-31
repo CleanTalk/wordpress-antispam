@@ -200,7 +200,7 @@ function apbct_admin__init(){
 	add_action( 'wp_ajax_apbct_get_key_auto', 'apbct_settings__get_key_auto' );
 
 	// Settings Templates
-    if( ! is_multisite() || is_main_site() || ( ! is_main_site() && $apbct->network_settings['wpms__allow_custom_settings'] ) ) {
+    if( ! is_multisite() || is_main_site() || ( ! is_main_site() && $apbct->network_settings['multisite__allow_custom_settings'] ) ) {
 	    new CleantalkSettingsTemplates( $apbct->api_key );
     }
 
