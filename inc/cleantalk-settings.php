@@ -1,5 +1,7 @@
 <?php
 
+use Cleantalk\Variables\Post;
+
 /**
  * Admin action 'admin_menu' - Add the admin options page
  */
@@ -101,7 +103,7 @@ function apbct_settings__set_fileds( $fields ){
 				'sfw__enabled' => array(
 					'type'        => 'checkbox',
 					'title'       => __('SpamFireWall', 'cleantalk-spam-protect'),
-					'description' => __("This option allows to filter spam bots before they access website. Also reduces CPU usage on hosting server and accelerates pages load time.", 'cleantalk-spam-protect'),
+					'description' => __("This option allows to filter spam bots before they access website. Also reduces CPU usage on hosting server and accelerates pages load time.", 'cleantalk-spam-protect') . '<br>' .esc_html__( 'If the setting is turned on, plugin will automatically add IP address for each session with administration rights to Personal list in the cloud.', 'cleantalk-spam-protect' ),
 					'childrens'   => array('sfw__anti_flood', 'sfw__anti_crawler', 'sfw__use_delete_to_clear_table'),
 				),
 				'sfw__anti_crawler' => array(
@@ -182,14 +184,19 @@ function apbct_settings__set_fileds( $fields ){
 				'forms__wc_checkout_test' => array(
 					'title'       => __('WooCommerce checkout form', 'cleantalk-spam-protect'),
 					'description' => __('Anti spam test for WooCommerce checkout form.', 'cleantalk-spam-protect'),
-					'childrens'   => array('forms__wc_register_from_order')
+					'childrens'   => array('forms__wc_register_from_order'),
+                    'reverse_trigger' => true,
+                    'options' => array(
+                        array( 'val' => 1, 'label' => __( 'On' ), 'childrens_enable' => 0, ),
+                        array( 'val' => 0, 'label' => __( 'Off' ), 'childrens_enable' => 1, ),
+                    ),
 				),
 				'forms__wc_register_from_order' => array(
 					'title'           => __('Spam test for registration during checkout', 'cleantalk-spam-protect'),
 					'description'     => __('Enable anti spam test for registration process which during woocommerce\'s checkout.', 'cleantalk-spam-protect'),
 					'parent'          => 'forms__wc_checkout_test',
 					'class'           => 'apbct_settings-field_wrapper--sub',
-					'reverse_trigger' => true
+					'reverse_trigger' => true,
 				),
 			),
 		),
@@ -214,19 +221,19 @@ function apbct_settings__set_fileds( $fields ){
 				'comments__disable_comments__posts' => array(
 					'title'           => __( 'Disable comments for all posts', 'cleantalk-spam-protect'),
 					'class'           => 'apbct_settings-field_wrapper--sub',
-					'parent'          => 'comments__disable_comments__all',
+//					'parent'          => 'comments__disable_comments__all',
 					'reverse_trigger' => true,
 				),
 				'comments__disable_comments__pages' => array(
 					'title'           => __( 'Disable comments for all pages', 'cleantalk-spam-protect'),
 					'class'           => 'apbct_settings-field_wrapper--sub',
-					'parent'          => 'comments__disable_comments__all',
+//					'parent'          => 'comments__disable_comments__all',
 					'reverse_trigger' => true,
 				),
 				'comments__disable_comments__media' => array(
 					'title'           => __( 'Disable comments for all media', 'cleantalk-spam-protect'),
 					'class'           => 'apbct_settings-field_wrapper--sub',
-					'parent'          => 'comments__disable_comments__all',
+//					'parent'          => 'comments__disable_comments__all',
 					'reverse_trigger' => true,
 				),
 				'comments__bp_private_messages' => array(
@@ -859,7 +866,8 @@ function apbct_settings__field__debug(){
 	echo 'CLEANTALK_CHECK_MESSAGES_NUMBER '.	(defined('CLEANTALK_CHECK_MESSAGES_NUMBER') ? 	(CLEANTALK_CHECK_MESSAGES_NUMBER ? 	CLEANTALK_CHECK_MESSAGES_NUMBER : 0) : 'NOT_DEFINED')."<br>";
 	echo 'CLEANTALK_PLUGIN_DIR '.				(defined('CLEANTALK_PLUGIN_DIR') ? 				(CLEANTALK_PLUGIN_DIR ? 			CLEANTALK_PLUGIN_DIR : 'flase') : 'NOT_DEFINED')."<br>";
 	echo 'WP_ALLOW_MULTISITE '.					(defined('WP_ALLOW_MULTISITE') ? 				(WP_ALLOW_MULTISITE ?				'true' : 'flase') : 'NOT_DEFINED');
-	
+ 
+	echo '<h4><button type="submit" name="apbct_debug__check_connection" value="1">Check connection to API servers</button></h4>';
 	echo "<h4>Debug log: <button type='submit' value='debug_drop' name='submit' style='font-size: 11px; padding: 1px;'>Drop debug data</button></h4>";
 	echo "<div style='height: 500px; width: 80%; overflow: auto;'>";
 		
@@ -1198,7 +1206,7 @@ function apbct_settings__field__draw($params = array()){
 
 	// Is element is disabled
 	$disabled = $params['parent'] && !$value_parent                                                                 ? ' disabled="disabled"' : '';        // Strait
-	$disabled = $params['parent'] && $params['reverse_trigger'] && !$value_parent                                   ? ' disabled="disabled"' : $disabled; // Reverse logic
+	$disabled = $params['parent'] && $params['reverse_trigger'] && !$value_parent                                   ? '' : $disabled; // Reverse logic
 	$disabled = $params['disabled']                                                                                 ? ' disabled="disabled"' : $disabled; // Direct disable from params
 	$disabled = ! is_main_site() && $apbct->network_settings && ! $apbct->network_settings['multisite__allow_custom_settings'] ? ' disabled="disabled"' : $disabled; // Disabled by super admin on sub-sites
 	
@@ -1460,6 +1468,12 @@ function apbct_settings__validate($settings) {
 		delete_option('cleantalk_debug');
 		return $settings;
 	}
+    
+    // Drop debug data
+    if( Post::get('apbct_debug__check_connection') ){
+        $result = apbct_test_connection();
+        apbct_log($result);
+    }
 	
 	// Send connection reports
 	if (isset($_POST['submit']) && $_POST['submit'] == 'ct_send_connection_report'){
@@ -1489,7 +1503,7 @@ function apbct_settings__validate($settings) {
 			);
 			$apbct->saveNetworkData();
 			if (isset($settings['multisite__use_settings_template_apply_for_current_list_sites']) && !empty($settings['multisite__use_settings_template_apply_for_current_list_sites'])) {
-				apbct_update_blogs_options($settings['multisite__use_settings_template_apply_for_current_list_sites'], $settings);
+				apbct_update_blogs_options( $settings );
 			}
 		}
 		if(!$apbct->white_label && !is_main_site() && !$apbct->allow_custom_key){
@@ -1581,7 +1595,7 @@ function apbct_settings__sync( $direct_call = false ){
 			);
 			$apbct->saveNetworkData();
 			if (isset($settings['multisite__use_settings_template_apply_for_current_list_sites']) && !empty($settings['multisite__use_settings_template_apply_for_current_list_sites'])) {
-				apbct_update_blogs_options($settings['multisite__use_settings_template_apply_for_current_list_sites'], $settings);
+				apbct_update_blogs_options( $settings );
 			}
 		}
 		if(!$apbct->white_label && !is_main_site() && !$apbct->allow_custom_key){
@@ -1707,9 +1721,12 @@ function apbct_settings__get_key_auto( $direct_call = false ) {
 	}
 }
 
-function apbct_update_blogs_options ($blog_names = array(), $settings) {
+function apbct_update_blogs_options( $settings ){
+ 
 	global $wpdb;
-
+    
+    $blog_names = $settings['multisite__use_settings_template_apply_for_current_list_sites'] ?: array();
+	
 	$wp_blogs = $wpdb->get_results('SELECT blog_id, site_id FROM '. $wpdb->blogs, OBJECT_K);
 
 	foreach ($wp_blogs as $blog) {

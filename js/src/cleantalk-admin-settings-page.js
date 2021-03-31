@@ -182,8 +182,8 @@ jQuery(document).ready(function(){
 				button: document.getElementById('apbct_button__sync' ),
 				spinner: jQuery('#apbct_button__sync .apbct_preloader_button' ),
 				callback: function(result, data, params, obj){
-					jQuery('.apbct_success').show(300);
-					setTimeout(function(){jQuery('.apbct_success').hide(300);}, 2000);
+					jQuery('#apbct_button__sync .apbct_success').show(300);
+					setTimeout(function(){jQuery('#apbct_button__sync .apbct_success').hide(300);}, 2000);
 					if(result.reload)
 						document.location.reload();
 				}

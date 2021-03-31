@@ -416,7 +416,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 					
 					if( empty( $response_code['error'] ) ){
 						
-						if( $response_code == 200 || $response_code == 501 ){
+						if( $response_code == 200 ){
 							
 							$gz_data = Helper::http__request__get_content( $file_url );
 							
@@ -471,12 +471,14 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 			}else
 				return $result;
 		}else{
+            
+            $file_url = 'https://' . $file_url;
+            
+            $response_code = Helper::http__request__get_response_code( $file_url );
+            
+            if( empty( $response_code['error'] ) ){
 			
-			$response_code = Helper::http__request( 'https://' . $file_url, array(), 'get_code' );
-			
-			if( empty( $response_code['error'] ) ){
-			
-				if( $response_code == 200 || $response_code == 501 ){ // Check if it's there
+				if( $response_code == 200 ){ // Check if it's there
 					
 					$gz_data = Helper::http__request__get_content( $file_url );
 					

@@ -52,7 +52,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 
         if( empty( $response_code['error'] ) ){
 
-            if( $response_code == 200 || $response_code == 501 ){
+            if( $response_code == 200 ){
 
                 $gz_data = \Cleantalk\ApbctWP\Helper::http__request__get_content( $file_url_ua );
 
@@ -109,17 +109,17 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
                                 }else
                                     return $result__clear_db;
                             }else
-                                return array('error' => 'COULD_DECODE_MULTIFILE');
+                                return array('error' => 'COULD_DECODE_UAL_FILE');
                         }else
                             return array('error' => 'FUNCTION_GZ_DECODE_DOES_NOT_EXIST');
                     }else
-                        return array('error' => 'WRONG_MULTIFILE_MIME_TYPE');
+                        return array('error' => 'WRONG_UAL_MIME_TYPE');
                 }else
-                    return array('error' => 'COULD_NOT_GET_MULTIFILE: ' . $gz_data['error'] );
+                    return array('error' => 'COULD_NOT_GET_UAL: ' . $gz_data['error'] );
             }else
-                return array('error' => 'MULTIFILE_BAD_RESPONSE_CODE: '. (int) $response_code );
+                return array('error' => 'UAL_BAD_RESPONSE_CODE: '. (int) $response_code );
         }else
-            return array('error' => 'MULTIFILE_COULD_NOT_GET_RESPONSE_CODE: '. $response_code['error'] );
+            return array('error' => 'UAL_COULD_NOT_GET_RESPONSE_CODE: '. $response_code['error'] );
 
     }
 

@@ -205,3 +205,11 @@ i.animate-spin{
     display: block;
     width: 100%;
 }
+
+button.ct_support_link{
+    border: none;
+    background: transparent;
+    color: #666;
+    text-decoration: underline;
+    cursor: pointer;
+}

@@ -3,7 +3,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 5.154
+  Version: 5.155
   Author: СleanTalk <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -18,6 +18,7 @@ use Cleantalk\ApbctWP\DB;
 use Cleantalk\ApbctWP\Firewall\SFW;
 use Cleantalk\ApbctWP\Helper;
 use Cleantalk\ApbctWP\RemoteCalls;
+use Cleantalk\ApbctWP\RestController;
 use Cleantalk\Common\Schema;
 use Cleantalk\Variables\Get;
 
@@ -108,6 +109,12 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 	// Passing JS key to frontend
 	add_action('wp_ajax_apbct_js_keys__get',        'apbct_js_keys__get__ajax');
 	add_action('wp_ajax_nopriv_apbct_js_keys__get', 'apbct_js_keys__get__ajax');
+
+	add_action( 'rest_api_init', 'prefix_register_my_rest_routes' );
+	function prefix_register_my_rest_routes() {
+		$controller = new RestController();
+		$controller->register_routes();
+	}
 	
 	// Database prefix
 	global $wpdb;
@@ -186,17 +193,18 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 	}
 
     $apbct_active_integrations = array(
-        'ContactBank'          => array( 'hook' => 'contact_bank_frontend_ajax_call', 'ajax' => true ),
-        'FluentForm'           => array( 'hook' => 'fluentform_before_insert_submission', 'ajax' => false ),
-        'ElfsightContactForm'  => array( 'hook' => 'elfsight_contact_form_mail', 'ajax' => true ),
-        'SimpleMembership'     => array( 'hook' => 'swpm_front_end_registration_complete_user_data', 'ajax' => false ),
-        'EstimationForm'       => array( 'hook' => 'send_email', 'ajax' => true ),
-        'LandingPageBuilder'   => array( 'hook' => 'ulpb_formBuilderEmail_ajax', 'ajax' => true ),
-        'WpMembers'            => array( 'hook' => 'wpmem_pre_register_data', 'ajax' => false ),
-        'Rafflepress'          => array( 'hook' => 'rafflepress_lite_giveaway_api', 'ajax' => true ),
-	    'Wpdiscuz'             => array( 'hook' => array( 'wpdAddComment', 'wpdAddInlineComment' ), 'ajax' => true ),
+        'ContactBank'          => array( 'hook' => 'contact_bank_frontend_ajax_call',                'setting' => 'forms__contact_forms_test', 'ajax' => true ),
+        'FluentForm'           => array( 'hook' => 'fluentform_before_insert_submission',            'setting' => 'forms__contact_forms_test', 'ajax' => false ),
+        'ElfsightContactForm'  => array( 'hook' => 'elfsight_contact_form_mail',                     'setting' => 'forms__contact_forms_test', 'ajax' => true ),
+        'EstimationForm'       => array( 'hook' => 'send_email',                                     'setting' => 'forms__contact_forms_test', 'ajax' => true ),
+        'LandingPageBuilder'   => array( 'hook' => 'ulpb_formBuilderEmail_ajax',                     'setting' => 'forms__contact_forms_test', 'ajax' => true ),
+        'Rafflepress'          => array( 'hook' => 'rafflepress_lite_giveaway_api',                  'setting' => 'forms__contact_forms_test', 'ajax' => true ),
+        'SimpleMembership'     => array( 'hook' => 'swpm_front_end_registration_complete_user_data', 'setting' => 'forms__registrations_test', 'ajax' => false ),
+        'WpMembers'            => array( 'hook' => 'wpmem_pre_register_data',                        'setting' => 'forms__registrations_test', 'ajax' => false ),
+	    'Wpdiscuz'             => array( 'hook' => array( 'wpdAddComment', 'wpdAddInlineComment' ),  'setting' => 'forms__comments_test',      'ajax' => true ),
+	    'Forminator'           => array( 'hook' => 'forminator_submit_form_custom-forms',            'setting' => 'forms__contact_forms_test', 'ajax' => true ),
     );
-    new  \Cleantalk\Antispam\Integrations( $apbct_active_integrations );
+    new  \Cleantalk\Antispam\Integrations( $apbct_active_integrations, (array) $apbct->settings );
 	
 	// Ninja Forms. Making GET action to POST action
     if( apbct_is_in_uri( 'admin-ajax.php' ) && sizeof($_POST) > 0 && isset($_GET['action']) && $_GET['action']=='ninja_forms_ajax_submit' )
@@ -257,7 +265,8 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 		if( $apbct->plugin_version == APBCT_VERSION && // Do not call with first start
 			$apbct->settings['sfw__enabled'] == 1 &&
             apbct_is_get() &&
-            ! apbct_wp_doing_cron()
+            ! apbct_wp_doing_cron() &&
+            ! \Cleantalk\Variables\Server::in_uri( '/favicon.ico' )
 		){
 			apbct_sfw__check();
 	    }

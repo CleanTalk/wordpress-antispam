@@ -95,7 +95,8 @@
 					form.parentElement.classList.contains('mec-booking') ||
 					form.action.toString().indexOf('activehosted.com') !== -1 || // Active Campaign
 					(form.id && form.id == 'caspioform') || //Caspio Form
-					form.name.classList && form.name.classList.contains('tinkoffPayRow') //TinkoffPayForm
+					(form.name.classList && form.name.classList.contains('tinkoffPayRow')) || // TinkoffPayForm
+					(form.name.classList && form.name.classList.contains('give-form ')) // GiveWP
 				)
 					continue;
 
@@ -192,9 +193,11 @@ function apbct_visible_fields_set_cookie( visible_fields_collection ) {
 }
 
 function apbct_js_keys__set_input_value(result, data, params, obj){
-	if (document.getElementById(params.input_name) !== null) {
-		var ct_input_value = document.getElementById(params.input_name).value;
-		document.getElementById(params.input_name).value = document.getElementById(params.input_name).value.replace(ct_input_value, result.js_key);
+	if( document.querySelectorAll('[name^=ct_checkjs]').length > 0 ) {
+		var elements = document.querySelectorAll('[name^=ct_checkjs]');
+		for ( var i = 0; i < elements.length; i++ ) {
+			elements[i].value = result.js_key;
+		}
 	}
 }
 function apbct_public_sendAJAX(data, params, obj){
@@ -262,28 +265,70 @@ function apbct_public_sendAJAX(data, params, obj){
 	});
 }
 
+function apbct_public_sendREST( route, params ) {
+
+	var callback = params.callback || null;
+
+	jQuery.ajax({
+		type: "POST",
+		url: ctPublic._rest_url + 'cleantalk-antispam/v1/' + route,
+		beforeSend : function ( xhr ) {
+			xhr.setRequestHeader( 'X-WP-Nonce', ctPublic._rest_nonce );
+		},
+		success: function(result){
+			if(result.error){
+				alert('Error happens: ' + (result.error || 'Unknown'));
+			}else{
+				if(callback) {
+					var obj = null;
+					callback(result, route, params, obj);
+				}
+			}
+		},
+		error: function(jqXHR, textStatus, errorThrown){
+			if( errorThrown ) {
+				console.log('APBCT_REST_ERROR');
+				console.log(jqXHR);
+				console.log(textStatus);
+				console.log('Anti-spam by Cleantalk plugin error: ' + errorThrown + 'Please, contact Cleantalk tech support https://wordpress.org/support/plugin/cleantalk-spam-protect/');
+				alert('Anti-spam by Cleantalk plugin error: ' + errorThrown + 'Please, contact Cleantalk tech support https://wordpress.org/support/plugin/cleantalk-spam-protect/');
+			}
+		},
+	});
+
+}
+
 // Capturing responses and output block message for unknown AJAX forms
-var accessor = Object.getOwnPropertyDescriptor(XMLHttpRequest.prototype, 'responseText');
-Object.defineProperty(XMLHttpRequest.prototype, 'responseText', {
+var send = window.XMLHttpRequest.prototype.send;
+function sendReplacement(data) {
+	if(this.onreadystatechange) {
+		this._onreadystatechange = this.onreadystatechange;
+	}
+	this.onreadystatechange = onReadyStateChangeReplacement;
+	return send.apply(this, arguments);
+}
 
-	get: function(){
-		apbct_showBlockedResponse( this.response );
-		return accessor.get.call(this);
-	},
-	configurable: true
+function onReadyStateChangeReplacement() {
+	if( this.readyState === 4 ){
+		apbct_showBlockedResponse( this.responseText );
+	}
+	if(this._onreadystatechange) {
+		return this._onreadystatechange.apply(this, arguments);
+	}
+}
 
-});
+window.XMLHttpRequest.prototype.send = sendReplacement;
 
-apbct_parseJSON = function( string ){
+function apbct_parseJSON( string ){
 	try{
 		var result = JSON.parse( string );
 	}catch( e ){
 		return false;
 	}
 	return result;
-};
+}
 
-apbct_showBlockedResponse = function( response ){
+function apbct_showBlockedResponse( response ){
 
 	var response = apbct_parseJSON( response );
 
