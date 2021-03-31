@@ -2709,7 +2709,7 @@ function apbct_form__WPForms__addField($form_data, $some, $title, $description, 
 	global $apbct;
 
     if($apbct->settings['forms__contact_forms_test'] == 1)
-		ct_add_hidden_fields('checkjs_wpforms', false);
+		ct_add_hidden_fields('ct_checkjs_wpforms', false);
 
 }
 
@@ -2786,7 +2786,7 @@ function apbct_form__WPForms__testSpam() {
 		return;
 	}
 
-	$checkjs = apbct_js_test('checkjs_wpforms', $_POST);
+	$checkjs = apbct_js_test('ct_checkjs_wpforms', $_POST);
 
 	$params = ct_get_fields_any($apbct->form_data);
 
