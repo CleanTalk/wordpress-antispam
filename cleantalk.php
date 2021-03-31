@@ -268,7 +268,9 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
             ! apbct_wp_doing_cron() &&
             ! \Cleantalk\Variables\Server::in_uri( '/favicon.ico' )
 		){
+            wp_suspend_cache_addition( true );
 			apbct_sfw__check();
+            wp_suspend_cache_addition( false );
 	    }
 		
 	}
