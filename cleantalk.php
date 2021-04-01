@@ -1766,9 +1766,9 @@ function apbct_get_submit_time()
 {	
 	global $apbct;
 	$apbct_timestamp = $apbct->settings['data__set_cookies__sessions']
-		? apbct_alt_session__get('apbct_timestamp')
-		: filter_input(INPUT_COOKIE, 'apbct_timestamp');
-	return apbct_cookies_test() == 1 ? time() - (int)$apbct_timestamp : null;
+		? (int)apbct_alt_session__get('apbct_timestamp')
+		: (int)filter_input(INPUT_COOKIE, 'apbct_timestamp');
+	return apbct_cookies_test() === 1 && $apbct_timestamp !== 0 ? time() - $apbct_timestamp : null;
 }
 
 /*
