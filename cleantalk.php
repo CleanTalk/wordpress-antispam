@@ -110,8 +110,8 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 	add_action('wp_ajax_apbct_js_keys__get',        'apbct_js_keys__get__ajax');
 	add_action('wp_ajax_nopriv_apbct_js_keys__get', 'apbct_js_keys__get__ajax');
 
-	add_action( 'rest_api_init', 'prefix_register_my_rest_routes' );
-	function prefix_register_my_rest_routes() {
+	add_action( 'rest_api_init', 'apbct_register_my_rest_routes' );
+	function apbct_register_my_rest_routes() {
 		$controller = new RestController();
 		$controller->register_routes();
 	}
