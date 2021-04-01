@@ -3,7 +3,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 5.154.1
+  Version: 5.155
   Author: СleanTalk <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -18,6 +18,7 @@ use Cleantalk\ApbctWP\DB;
 use Cleantalk\ApbctWP\Firewall\SFW;
 use Cleantalk\ApbctWP\Helper;
 use Cleantalk\ApbctWP\RemoteCalls;
+use Cleantalk\ApbctWP\RestController;
 use Cleantalk\Common\Schema;
 use Cleantalk\Variables\Get;
 
@@ -108,6 +109,12 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 	// Passing JS key to frontend
 	add_action('wp_ajax_apbct_js_keys__get',        'apbct_js_keys__get__ajax');
 	add_action('wp_ajax_nopriv_apbct_js_keys__get', 'apbct_js_keys__get__ajax');
+
+	add_action( 'rest_api_init', 'prefix_register_my_rest_routes' );
+	function prefix_register_my_rest_routes() {
+		$controller = new RestController();
+		$controller->register_routes();
+	}
 	
 	// Database prefix
 	global $wpdb;
@@ -195,8 +202,9 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
         'SimpleMembership'     => array( 'hook' => 'swpm_front_end_registration_complete_user_data', 'setting' => 'forms__registrations_test', 'ajax' => false ),
         'WpMembers'            => array( 'hook' => 'wpmem_pre_register_data',                        'setting' => 'forms__registrations_test', 'ajax' => false ),
 	    'Wpdiscuz'             => array( 'hook' => array( 'wpdAddComment', 'wpdAddInlineComment' ),  'setting' => 'forms__comments_test',      'ajax' => true ),
+	    'Forminator'           => array( 'hook' => 'forminator_submit_form_custom-forms',            'setting' => 'forms__contact_forms_test', 'ajax' => true ),
     );
-    new  \Cleantalk\Antispam\Integrations( $apbct_active_integrations, $apbct->settings );
+    new  \Cleantalk\Antispam\Integrations( $apbct_active_integrations, (array) $apbct->settings );
 	
 	// Ninja Forms. Making GET action to POST action
     if( apbct_is_in_uri( 'admin-ajax.php' ) && sizeof($_POST) > 0 && isset($_GET['action']) && $_GET['action']=='ninja_forms_ajax_submit' )
@@ -260,7 +268,9 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
             ! apbct_wp_doing_cron() &&
             ! \Cleantalk\Variables\Server::in_uri( '/favicon.ico' )
 		){
+            wp_suspend_cache_addition( true );
 			apbct_sfw__check();
+            wp_suspend_cache_addition( false );
 	    }
 		
 	}
@@ -1756,9 +1766,9 @@ function apbct_get_submit_time()
 {	
 	global $apbct;
 	$apbct_timestamp = $apbct->settings['data__set_cookies__sessions']
-		? apbct_alt_session__get('apbct_timestamp')
-		: filter_input(INPUT_COOKIE, 'apbct_timestamp');
-	return apbct_cookies_test() == 1 ? time() - (int)$apbct_timestamp : null;
+		? (int)apbct_alt_session__get('apbct_timestamp')
+		: (int)filter_input(INPUT_COOKIE, 'apbct_timestamp');
+	return apbct_cookies_test() === 1 && $apbct_timestamp !== 0 ? time() - $apbct_timestamp : null;
 }
 
 /*

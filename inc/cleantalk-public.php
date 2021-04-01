@@ -925,13 +925,39 @@ function apbct_hook__wp_head__set_cookie__ct_checkjs() {
 }
 
 /**
- * Adds cookie script filed to footer
+ * Adds check_js script to the footer
  */
 function apbct_hook__wp_footer() {
 
-    //ct_add_hidden_fields(true, 'ct_checkjs', false, true, true);
+	global $apbct;
 
-    return null;
+	if( $apbct->settings['data__use_ajax'] ){
+
+		if( $apbct->use_rest_api )  {
+			$html = "<script type=\"text/javascript\" " . ( class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '' ) . ">
+				if( document.querySelectorAll('[name^=ct_checkjs]').length > 0 ) {
+					window.addEventListener('DOMContentLoaded', function () {
+						apbct_public_sendREST(
+		                    'js_keys__get',
+		                    { callback: apbct_js_keys__set_input_value }
+		                )
+					});
+				}				
+			</script>";
+		} else {
+			$html = "<script type=\"text/javascript\" " . ( class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '' ) . ">
+				window.addEventListener('DOMContentLoaded', function () {
+	                apbct_public_sendAJAX(
+	                    { action: 'apbct_js_keys__get' },
+	                    { callback: apbct_js_keys__set_input_value, no_nonce: true }
+	                );
+				});
+			</script>";
+		}
+
+		echo $html;
+
+	}
 }
 
 /**
@@ -964,15 +990,7 @@ function ct_add_hidden_fields($field_name = 'ct_checkjs', $return_string = false
 
         $ct_input_challenge = sprintf("'%s'", $ct_checkjs_key);
     	$field_id = $field_name . '_' . $field_id_hash;
-		$html = "<input type=\"hidden\" id=\"{$field_id}\" name=\"{$field_name}\" value=\"{$ct_checkjs_def}\" />
-		<script type=\"text/javascript\" " . ( class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '' ) . ">
-			window.addEventListener(\"DOMContentLoaded\", function () {
-                apbct_public_sendAJAX(
-                    {action: \"apbct_js_keys__get\"},
-                    {callback: apbct_js_keys__set_input_value, input_name: \"{$field_id}\",silent: true, no_nonce: true}
-                );
-			});
-		</script>";
+		$html = "<input type=\"hidden\" id=\"{$field_id}\" name=\"{$field_name}\" value=\"{$ct_checkjs_def}\" />";
 
 	// Set KEY from backend
     }else{
@@ -1646,7 +1664,7 @@ function apbct_js_test($field_name = 'ct_checkjs', $data = null) {
  * @param int $comment_post_id
  * @return string|bool
  */
-function ct_post_url($comment_id = null, $comment_post_id) {
+function ct_post_url( $comment_id, $comment_post_id ){
 
     if (empty($comment_post_id))
 	return null;
@@ -1781,7 +1799,9 @@ function apbct_login__scripts(){
 
     wp_localize_script('ct_public', 'ctPublic', array(
         '_ajax_nonce' => wp_create_nonce('ct_secret_stuff'),
+        '_rest_nonce' => wp_create_nonce('wp_rest'),
         '_ajax_url'   => admin_url('admin-ajax.php'),
+        '_rest_url'   => esc_url( get_rest_url() ),
     ));
 
     $apbct->public_script_loaded = true;
@@ -1858,10 +1878,15 @@ function ct_registration_errors_wpmu($errors) {
 }
 
 /**
- *  Shell for action register_post
- * @return array with errors
+ * Shell for action register_post
+ *
+ * @param $sanitized_user_login
+ * @param $user_email
+ * @param $errors
+ *
+ * @return void|WP_Error
  */
-function ct_register_post($sanitized_user_login = null, $user_email = null, $errors) {
+function ct_register_post($sanitized_user_login, $user_email, $errors) {
     return ct_registration_errors($errors, $sanitized_user_login, $user_email);
 }
 
@@ -1934,7 +1959,7 @@ function ct_test_registration($nickname, $email, $ip = null){
  * @param null $sanitized_user_login
  * @param null $user_email
  *
- * @return void with errors
+ * @return void|WP_Error
  */
 function ct_registration_errors($errors, $sanitized_user_login = null, $user_email = null) {
 
@@ -2684,7 +2709,7 @@ function apbct_form__WPForms__addField($form_data, $some, $title, $description, 
 	global $apbct;
 
     if($apbct->settings['forms__contact_forms_test'] == 1)
-		ct_add_hidden_fields('checkjs_wpforms', false);
+		ct_add_hidden_fields('ct_checkjs_wpforms', false);
 
 }
 
@@ -2761,7 +2786,7 @@ function apbct_form__WPForms__testSpam() {
 		return;
 	}
 
-	$checkjs = apbct_js_test('checkjs_wpforms', $_POST);
+	$checkjs = apbct_js_test('ct_checkjs_wpforms', $_POST);
 
 	$params = ct_get_fields_any($apbct->form_data);
 
@@ -3771,10 +3796,12 @@ function ct_enqueue_scripts_public($hook){
 			// Differnt JS params
 			wp_enqueue_script( 'ct_public', APBCT_URL_PATH . '/js/apbct-public.min.js', array( 'jquery' ), APBCT_VERSION, false /*in header*/ );
 			wp_enqueue_script('cleantalk-modal', plugins_url( '/cleantalk-spam-protect/js/cleantalk-modal.min.js' ),   array(),     APBCT_VERSION, false );
-			
+
 			wp_localize_script('ct_public', 'ctPublic', array(
 				'_ajax_nonce' => wp_create_nonce('ct_secret_stuff'),
+				'_rest_nonce' => wp_create_nonce('wp_rest'),
 				'_ajax_url'   => admin_url('admin-ajax.php'),
+				'_rest_url'   => esc_url( get_rest_url() ),
 			));
 		}
 		

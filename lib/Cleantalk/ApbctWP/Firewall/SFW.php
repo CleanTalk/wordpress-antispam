@@ -471,10 +471,12 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 			}else
 				return $result;
 		}else{
-			
-			$response_code = Helper::http__request( 'https://' . $file_url, array(), 'get_code' );
-			
-			if( empty( $response_code['error'] ) ){
+            
+            $file_url = 'https://' . $file_url;
+            
+            $response_code = Helper::http__request__get_response_code( $file_url );
+            
+            if( empty( $response_code['error'] ) ){
 			
 				if( $response_code == 200 ){ // Check if it's there
 					
