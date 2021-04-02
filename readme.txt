@@ -581,8 +581,8 @@ If your website has forms that send data to external sources, you can enable opt
 == Changelog ==
 
 = 5.155.1 Apr 2 2021 =
- * New: Debug. Check connection to API servers.
- * New: Integration. Avada Form Builder.
+  * Fix: Using WP Rest API.
+  * Rollback: Show response for all AJAX forms.
 
 = 5.155 Mar 31 2021 =
  * New: Debug. Check connection to API servers.
