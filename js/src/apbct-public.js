@@ -314,13 +314,6 @@ if(typeof jQuery !== 'undefined') {
 						} )
 					);
 
-					// Create hidden element contains result.
-					var apbct_result = document.createElement( 'div' );
-					apbct_result.setAttribute( 'id', 'apbct-result' );
-					apbct_result.style.display = 'none';
-					apbct_result.innerHTML = response.comment;
-					document.body.append( apbct_result );
-
 					// Show the result by modal
 					cleantalkModal.loaded = response.comment;
 					cleantalkModal.open();
