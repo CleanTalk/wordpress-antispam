@@ -81,11 +81,20 @@ class Server extends ServerVariables {
 	}
 
 	/**
-	 * Checks if $_SERVER['REQUEST_URI'] contains string
+	 * Checks if the current request method is POST
 	 *
 	 * @return bool
 	 */
-	public static function is_post(){
+	public static function isPost(){
 		return self::get( 'REQUEST_METHOD' ) === 'POST';
 	}
+    
+    /**
+     * Checks if the current request method is GET
+     *
+     * @return bool
+     */
+    public static function isGet(){
+        return self::get( 'REQUEST_METHOD' ) === 'GET';
+    }
 }

@@ -298,59 +298,36 @@ function apbct_public_sendREST( route, params ) {
 
 }
 
-// Capturing responses and output block message for unknown AJAX forms
-var send = window.XMLHttpRequest.prototype.send;
-function sendReplacement(data) {
-	if(this.onreadystatechange) {
-		this._onreadystatechange = this.onreadystatechange;
-	}
-	this.onreadystatechange = onReadyStateChangeReplacement;
-	return send.apply(this, arguments);
-}
+if(typeof jQuery !== 'undefined') {
 
-function onReadyStateChangeReplacement() {
-	if( this.readyState === 4 ){
-		apbct_showBlockedResponse( this.responseText );
-	}
-	if(this._onreadystatechange) {
-		return this._onreadystatechange.apply(this, arguments);
-	}
-}
+	// Capturing responses and output block message for unknown AJAX forms
+	jQuery(document).ajaxComplete(function (event, xhr, settings) {
+		if (xhr.responseText && xhr.responseText.indexOf('"apbct') !== -1) {
+			var response = JSON.parse(xhr.responseText);
+			if (typeof response.apbct !== 'undefined') {
+				response = response.apbct;
+				if (response.blocked) {
+					document.dispatchEvent(
+						new CustomEvent( "apbctAjaxBockAlert", {
+							bubbles: true,
+							detail: { message: response.comment }
+						} )
+					);
 
-window.XMLHttpRequest.prototype.send = sendReplacement;
+					// Create hidden element contains result.
+					var apbct_result = document.createElement( 'div' );
+					apbct_result.setAttribute( 'id', 'apbct-result' );
+					apbct_result.style.display = 'none';
+					apbct_result.innerHTML = response.comment;
+					document.body.append( apbct_result );
 
-function apbct_parseJSON( string ){
-	try{
-		var result = JSON.parse( string );
-	}catch( e ){
-		return false;
-	}
-	return result;
-}
+					// Show the element
+					cleantalkModal.open('apbct-result');
 
-function apbct_showBlockedResponse( response ){
-
-	var response = apbct_parseJSON( response );
-
-	if ( response && typeof response.apbct !== 'undefined' ) {
-		response = response.apbct;
-		if (response.blocked) {
-			document.dispatchEvent(
-				new CustomEvent( "apbctAjaxBockAlert", {
-					bubbles: true,
-					detail: { message: response.comment }
-				} )
-			);
-
-			// Show the result by modal
-			cleantalkModal.loaded = response.comment;
-			cleantalkModal.open();
-
-			if(+response.stop_script == 1)
-				window.stop();
+					if(+response.stop_script == 1)
+						window.stop();
+				}
+			}
 		}
-	}
-
-	return true;
-
-};
+	});
+}

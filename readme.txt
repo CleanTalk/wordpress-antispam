@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 3.0
 Tested up to: 5.7
 Requires PHP: 5.4
-Stable tag: 5.155
+Stable tag: 5.155.1
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -579,6 +579,10 @@ If your website has forms that send data to external sources, you can enable opt
 10. Website's options.
 
 == Changelog ==
+
+= 5.155.1 Apr 2 2021 =
+  * Fix: Using WP Rest API.
+  * Rollback: Show response for all AJAX forms.
 
 = 5.155 Mar 31 2021 =
  * New: Debug. Check connection to API servers.
