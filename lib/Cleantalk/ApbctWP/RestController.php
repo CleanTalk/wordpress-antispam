@@ -15,6 +15,7 @@ class RestController extends \WP_REST_Controller {
 			array(
 				'methods'             => 'POST',
 				'callback'            => 'apbct_js_keys__get__ajax',
+				'permission_callback' => '__return_true',
 			)
 		) );
 	}
