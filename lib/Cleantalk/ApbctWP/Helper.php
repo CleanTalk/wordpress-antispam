@@ -88,6 +88,9 @@ class Helper extends \Cleantalk\Common\Helper
             array( 'get', 'dont_split_to_array' )
         );
         
+        // Considering empty response as error
+        $result__rc_check_website !== '' ?: $result__rc_check_website = array( 'error' => 'EMPTY_RESPONSE' );
+        
         if( empty( $result__rc_check_website['error'] ) ){
             
             if( preg_match( '@^.*?OK$@', $result__rc_check_website) ){
