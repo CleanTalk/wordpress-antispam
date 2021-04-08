@@ -1,5 +1,6 @@
 <?php
 
+use Cleantalk\Variables\Get;
 use Cleantalk\Variables\Post;
 use Cleantalk\Variables\Server;
 
@@ -495,6 +496,12 @@ function apbct_is_skip_request( $ajax = false ) {
 		        ( apbct_is_in_uri('page=gf_paypal_ipn') || apbct_is_in_uri('callback=gravityformspaypal') ) )
 		    {
 			    return 'gravityformspaypal_processing_skipped';
+		    }
+		    // MyListing theme service requests skip
+		    if ( ( apbct_is_theme_active( 'My Listing Child' ) || apbct_is_theme_active( 'My Listing' ) ) &&
+		         Get::get('mylisting-ajax') === '1' )
+		    {
+			    return 'mylisting_theme_service_requests_skip';
 		    }
 
             break;
