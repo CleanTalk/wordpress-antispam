@@ -620,7 +620,7 @@ class Helper
 			if(in_array('async', $presets))
 				return true;
 			
-			if($result){
+			if( $result && ! curl_error($ch) ){
 				
 				if(strpos($result, PHP_EOL) !== false && !in_array('dont_split_to_array', $presets))
 					$result = explode(PHP_EOL, $result);
