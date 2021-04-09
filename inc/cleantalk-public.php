@@ -3794,7 +3794,7 @@ function ct_enqueue_scripts_public($hook){
 		if( ! $apbct->public_script_loaded ) {
 			
 			// Differnt JS params
-			wp_enqueue_script( 'ct_public', APBCT_URL_PATH . '/js/apbct-public.min.js', array( 'jquery' ), APBCT_VERSION, false /*in header*/ );
+			wp_enqueue_script( 'ct_public', APBCT_URL_PATH . '/js/apbct-public.min.js?apbct_ver=' . APBCT_VERSION, array( 'jquery' ), APBCT_VERSION, false /*in header*/ );
 			wp_enqueue_script('cleantalk-modal', plugins_url( '/cleantalk-spam-protect/js/cleantalk-modal.min.js' ),   array(),     APBCT_VERSION, false );
 
 			wp_localize_script('ct_public', 'ctPublic', array(
