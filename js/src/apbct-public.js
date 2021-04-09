@@ -290,7 +290,6 @@ function apbct_public_sendREST( route, params ) {
 				console.log(jqXHR);
 				console.log(textStatus);
 				console.log('Anti-spam by Cleantalk plugin error: ' + errorThrown + 'Please, contact Cleantalk tech support https://wordpress.org/support/plugin/cleantalk-spam-protect/');
-				alert('Anti-spam by Cleantalk plugin error: ' + errorThrown + 'Please, contact Cleantalk tech support https://wordpress.org/support/plugin/cleantalk-spam-protect/');
 			}
 		},
 	});
