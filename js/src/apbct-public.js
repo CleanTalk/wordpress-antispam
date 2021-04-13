@@ -127,7 +127,26 @@
 }());
 
 function ctSetCookie(c_name, value) {
-	document.cookie = c_name + "=" + encodeURIComponent(value) + "; path=/; samesite=lax";
+
+	// Cookies disabled
+	if( +ctPublic.data__set_cookies === 0 ){
+		return;
+
+	// Using alternative cookies
+	}else if( +ctPublic.data__set_cookies__sessions === 1 ){
+		apbct_public_sendAJAX(
+			{
+				action: 'apbct_alt_session__save__AJAX',
+				name: c_name,
+				value: value,
+			},
+			{}
+		);
+
+	// Using traditional cookies
+	}else{
+		document.cookie = c_name + "=" + encodeURIComponent(value) + "; path=/; samesite=lax";
+	}
 }
 
 function apbct_collect_visible_fields( form ) {
@@ -200,6 +219,7 @@ function apbct_js_keys__set_input_value(result, data, params, obj){
 		}
 	}
 }
+
 function apbct_public_sendAJAX(data, params, obj){
 
 	// Default params

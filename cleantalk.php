@@ -109,7 +109,13 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 	// Passing JS key to frontend
 	add_action('wp_ajax_apbct_js_keys__get',        'apbct_js_keys__get__ajax');
 	add_action('wp_ajax_nopriv_apbct_js_keys__get', 'apbct_js_keys__get__ajax');
-
+	
+	// Alt sessions
+    if( $apbct->settings['data__set_cookies__sessions'] ){
+        add_action( 'wp_ajax_nopriv_apbct_alt_session__get__AJAX',  'apbct_alt_session__get__AJAX' );
+        add_action( 'wp_ajax_nopriv_apbct_alt_session__save__AJAX', 'apbct_alt_session__save__AJAX' );
+    }
+    
 	add_action( 'rest_api_init', 'prefix_register_my_rest_routes' );
 	function prefix_register_my_rest_routes() {
 		$controller = new RestController();
@@ -1506,6 +1512,10 @@ function apbct_alt_sessions__clear( $full_clear = true ) {
 }
 
 function apbct_alt_session__save($name, $value){
+    
+    // Bad incoming data
+	if( ! $name || ! $value )
+	    return;
 	
 	global $wpdb;
 	
@@ -1526,7 +1536,13 @@ function apbct_alt_session__save($name, $value){
 }
 
 function apbct_alt_session__get($name){
+    
+    // Bad incoming data
+    if( ! $name )
+        return;
+    
 	global $wpdb;
+	
     $session_id = apbct_alt_session__id__get();
 	$result = $wpdb->get_row(
 		$wpdb->prepare(
@@ -1535,16 +1551,31 @@ function apbct_alt_session__get($name){
 				WHERE id = %s AND name = %s;',
 			$session_id, $name
 		),
-		OBJECT
+		ARRAY_A
 	);
 	
-	$result = isset($result->value)
-		? strpos($result->value, '{') === 0
-			? (array)json_decode($result->value, true) // JSON
-			: $result->value
+	$result = isset($result['value'])
+		? (strpos($result['value'], '{') === 0
+			? (array)json_decode($result['value'], true) // JSON
+			: $result['value'])
 		: false;
-		
-	return $result ? $result : null;
+	
+	return $result ?: null;
+}
+
+function apbct_alt_session__save__AJAX(){
+    check_ajax_referer( 'ct_secret_stuff' );
+    apbct_alt_session__save(
+        \Cleantalk\Variables\Post::get( 'name' ),
+        \Cleantalk\Variables\Post::get( 'value' )
+    );
+}
+
+function apbct_alt_session__get__AJAX(){
+    check_ajax_referer( 'ct_secret_stuff' );
+    apbct_alt_session__get(
+        \Cleantalk\Variables\Post::get( 'name' )
+    );
 }
 
 function apbct_store__urls(){

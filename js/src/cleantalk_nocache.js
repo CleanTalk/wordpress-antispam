@@ -190,7 +190,10 @@ if(ct_nocache_executed==undefined)
 		if(location.href=='http://'+location.hostname+'/' || location.href=='https://'+location.hostname+'/')
 		{
 			isVisitedMain=1;
-			setTimeout(function() { document.cookie = "ct_visited_main = 1; path = /; samesite=lax"}, 1500);
+			setTimeout(function () {
+					ct_setCookie('ct_visited_main',
+						'1')
+				}, 1500);
 		}
 		
 		
@@ -205,7 +208,11 @@ if(ct_nocache_executed==undefined)
 		}
 		
 		cleantalk_user_info.is_main=isVisitedMain;
-		
-		setTimeout(function() { document.cookie = "ct_user_info = "+escape(JSON.stringify(cleantalk_user_info))+"; path = /; samesite=lax"}, 1500);
+
+		setTimeout(function () {
+			ctSetCookie(
+				'ct_user_info',
+				escape(JSON.stringify(cleantalk_user_info)));
+		}, 1500);
 	}
 }

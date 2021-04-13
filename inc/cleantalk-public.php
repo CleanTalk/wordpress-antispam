@@ -977,10 +977,13 @@ function ct_add_hidden_fields($field_name = 'ct_checkjs', $return_string = false
     if ($cookie_check && $apbct->settings['data__set_cookies'] == 1) {
 	    
 		$html =	"<script type=\"text/javascript\" " . ( class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '' ) . ">
-			function ctSetCookie___from_backend(c_name, value) {
-				document.cookie = c_name + \"=\" + encodeURIComponent(value) + \"; path=/; samesite=lax\";
-			}
-			ctSetCookie___from_backend('{$field_name}', '{$ct_checkjs_key}', '{$ct_checkjs_def}');
+            function apbct_attach_event_handler__backend(elem, event, callback){
+                if(typeof window.addEventListener === \"function\") elem.addEventListener(event, callback);
+                else                                              elem.attachEvent(event, callback);
+            }
+            apbct_attach_event_handler__backend(window, 'load', function(){
+                ctSetCookie('{$field_name}', '{$ct_checkjs_key}', '{$ct_checkjs_def}');
+            });
 		</script>";
 
 	// Using AJAX to get key
@@ -3804,6 +3807,8 @@ function ct_enqueue_scripts_public($hook){
 				'_rest_nonce' => wp_create_nonce('wp_rest'),
 				'_ajax_url'   => admin_url('admin-ajax.php'),
 				'_rest_url'   => esc_url( get_rest_url() ),
+                'data__set_cookies' => $apbct->settings['data__set_cookies'],
+                'data__set_cookies__sessions' => $apbct->settings['data__set_cookies__sessions'],
 			));
 		}
 		
