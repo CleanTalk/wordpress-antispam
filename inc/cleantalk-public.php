@@ -946,12 +946,14 @@ function apbct_hook__wp_footer() {
 			</script>";
 		} else {
 			$html = "<script type=\"text/javascript\" " . ( class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '' ) . ">
-				window.addEventListener('DOMContentLoaded', function () {
-	                apbct_public_sendAJAX(
-	                    { action: 'apbct_js_keys__get' },
-	                    { callback: apbct_js_keys__set_input_value, no_nonce: true }
-	                );
-				});
+				if( document.querySelectorAll('[name^=ct_checkjs]').length > 0 ) {
+					window.addEventListener('DOMContentLoaded', function () {
+		                apbct_public_sendAJAX(
+		                    { action: 'apbct_js_keys__get' },
+		                    { callback: apbct_js_keys__set_input_value, no_nonce: true }
+		                );
+					});
+				}
 			</script>";
 		}
 
