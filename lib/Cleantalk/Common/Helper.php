@@ -51,6 +51,10 @@ class Helper
 		'moderate4.cleantalk.org' => '159.69.51.30',
 		'moderate5.cleantalk.org' => '95.216.200.119',
 		'moderate6.cleantalk.org' => '138.68.234.8',
+//		'moderate7.cleantalk.org' => '168.119.82.149',
+		'moderate8.cleantalk.org' => '188.34.154.26',
+		'moderate9.cleantalk.org' => '51.81.55.251',
+		
 		// APIX
 		'apix1.cleantalk.org' => '35.158.52.161',
 		'apix2.cleantalk.org' => '18.206.49.217',
