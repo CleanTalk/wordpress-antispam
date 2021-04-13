@@ -10,9 +10,9 @@
   Domain Path: /i18n
 */
 
-use Cleantalk\ApbctWP\CleantalkUpgrader;
-use Cleantalk\ApbctWP\CleantalkUpgraderSkin;
-use Cleantalk\ApbctWP\CleantalkUpgraderSkin_Deprecated;
+use Cleantalk\ApbctWP\Upgrader;
+use Cleantalk\ApbctWP\UpgraderSkin;
+use Cleantalk\ApbctWP\UpgraderSkin_Deprecated;
 use Cleantalk\ApbctWP\Cron;
 use Cleantalk\ApbctWP\DB;
 use Cleantalk\ApbctWP\Firewall\SFW;
@@ -1125,9 +1125,9 @@ function apbct_rc__install_plugin($wp = null, $plugin = null){
 					include_once( ABSPATH . 'wp-admin/includes/misc.php' );
 
 					if (version_compare(PHP_VERSION, '5.6.0') >= 0 && version_compare($wp_version, '5.3') >= 0) {
-                        $installer= new CleantalkUpgrader( new CleantalkUpgraderSkin() );
+                        $installer= new Upgrader( new UpgraderSkin() );
                     } else {
-                        $installer= new CleantalkUpgrader( new CleantalkUpgraderSkin_Deprecated() );
+                        $installer= new Upgrader( new UpgraderSkin_Deprecated() );
                     }
 
 					$installer->install($result->download_link);
@@ -1264,91 +1264,121 @@ function apbct_rc__uninstall_plugin__check_deactivate(){
 }
 
 function apbct_rc__update(){
+ 
 	global $wp_version;
-
+	
 	//Upgrade params
-	$plugin      = 'cleantalk-spam-protect/cleantalk.php';
-	$plugin_slug = 'cleantalk-spam-protect';
-	$title 	     = __('Update Plugin');
-	$nonce 	     = 'upgrade-plugin_' . $plugin;
-	$url 	     = 'update.php?action=upgrade-plugin&plugin=' . urlencode( $plugin );
-    $activate_for_network = false;
-    if( APBCT_WPMS && is_main_site() && array_key_exists( $plugin, get_site_option( 'active_sitewide_plugins' ) ) ) {
-        $activate_for_network = true;
-    }
-	
-	$prev_version = APBCT_VERSION;
-	
+    $plugin               = 'cleantalk-spam-protect/cleantalk.php';
+    $plugin_slug          = 'cleantalk-spam-protect';
+    $title                = __( 'Update Plugin' );
+    $nonce                = 'upgrade-plugin_' . $plugin;
+    $url                  = 'update.php?action=upgrade-plugin&plugin=' . urlencode( $plugin );
+    $activate_for_network = APBCT_WPMS && is_main_site() && array_key_exists( $plugin, get_site_option( 'active_sitewide_plugins' ) );
+    $prev_version         = APBCT_VERSION;
+    
+    // Libs attachments
 	require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
 	include_once( ABSPATH . 'wp-admin/includes/class-wp-upgrader.php' );
 	include_once( ABSPATH . 'wp-admin/includes/file.php' );
 	include_once( ABSPATH . 'wp-admin/includes/misc.php' );
 	
+    // Upgrade
 	apbct_maintance_mode__enable( 30 );
 	
-	if (version_compare(PHP_VERSION, '5.6.0') >= 0 && version_compare($wp_version, '5.3') >= 0){
-		$upgrader = new CleantalkUpgrader( new CleantalkUpgraderSkin( compact('title', 'nonce', 'url', 'plugin') ) );
-	}else{
-		$upgrader = new CleantalkUpgrader( new CleantalkUpgraderSkin_Deprecated( compact('title', 'nonce', 'url', 'plugin') ) );
-	}
+    $upgrader = version_compare( PHP_VERSION, '5.6.0' ) >= 0 && version_compare( $wp_version, '5.3' ) >= 0
+        ? new Upgrader( new UpgraderSkin( compact('title', 'nonce', 'url', 'plugin') ) )
+        : new Upgrader( new UpgraderSkin_Deprecated( compact('title', 'nonce', 'url', 'plugin') ) );
 	
-    $upgrader_result = $upgrader->upgrade( $plugin );
-    if( is_wp_error( $upgrader_result ) ){
-        error_log('CleanTalk debug message:');
-        error_log( var_export( $upgrader_result->get_error_message(), 1) );
-    }
+    $upgrader->upgrade( $plugin );
 	
 	apbct_maintance_mode__disable();
-	
-	$result = activate_plugins( $plugin, '', $activate_for_network );
-	
-	// Changing response UP_TO_DATE to OK
-	if($upgrader->apbct_result === 'UP_TO_DATE')
-		$upgrader->apbct_result = 'OK';
-	
-	if($upgrader->apbct_result === 'OK'){
-		
-		if(is_wp_error($result)){
-			die('FAIL '. json_encode(array('error' => 'COULD_NOT_ACTIVATE', 'wp_error' => $result->get_error_message())));
-		}
-		
-		$httpResponseCode =  Helper::http__request(get_option('siteurl'), array(), 'get_code');
-		
-		if( strpos($httpResponseCode, '200') === false ){
-			
-			apbct_maintance_mode__enable( 30 );
-			
-			// Rollback
-			if (version_compare(PHP_VERSION, '5.6.0') >= 0 && version_compare($wp_version, '5.3') >= 0)
-				$rollback = new CleantalkUpgrader( new CleantalkUpgraderSkin( compact('title', 'nonce', 'url', 'plugin_slug', 'prev_version') ) );
-			else
-				$rollback = new CleantalkUpgrader( new CleantalkUpgraderSkin_Deprecated( compact('title', 'nonce', 'url', 'plugin_slug', 'prev_version') ) );
-			$rollback->rollback($plugin);
-			
-			apbct_maintance_mode__disable();
-			
-			// @todo add execution time
-			
-			$response = array(
-				'error'           => 'BAD_HTTP_CODE',
-				'http_code'       => $httpResponseCode,
-				'output'          => substr(file_get_contents(get_option('siteurl')), 0, 900),
-				'rollback_result' => $rollback->apbct_result,
-			);
-			
-			die('FAIL '.json_encode($response));
-		}
-		
-		$plugin_data = get_plugin_data(__FILE__);
-		$apbct_agent = 'wordpress-'.str_replace('.', '', $plugin_data['Version']);
-		ct_send_feedback('0:' . $apbct_agent);
-		
-		die('OK '.json_encode(array('agent' => $apbct_agent)));
-		
-	}else{
-		die('FAIL '. json_encode(array('error' => $upgrader->apbct_result)));
-	}
+    
+    apbct_rc__update__outputResult(
+        'UPDATE',
+        $upgrader->spbc_result
+    );
+    
+    if( $upgrader->apbct_result === 'OK' ){
+    
+        $result = activate_plugins( $plugin, '', $activate_for_network );
+    
+        // Changing response UP_TO_DATE to OK
+        if( $upgrader->apbct_result === 'UP_TO_DATE' ){
+            $upgrader->apbct_result = 'OK';
+        }
+    
+        apbct_rc__update__outputResult(
+            'PLUGIN_ACTIVATING',
+            is_wp_error( $result ) || $result === false ? 'FAIL' : 'OK',
+            array( 'wp_error' => is_wp_error( $result ) ? $result->get_error_message() : '' )
+        );
+        
+        $httpResponseCode = Helper::http__request__get_response_code( get_option( 'siteurl' ) );
+    
+        if( $httpResponseCode != 200 ){
+        
+            // Rollback
+            apbct_maintance_mode__enable( 30 );
+            
+            $rollback = version_compare(PHP_VERSION, '5.6.0') >= 0 && version_compare($wp_version, '5.3') >= 0
+                ? new Upgrader( new UpgraderSkin( compact('title', 'nonce', 'url', 'plugin') ) )
+                : new Upgrader( new UpgraderSkin_Deprecated( compact('title', 'nonce', 'url', 'plugin') ) );
+            $rollback->rollback( $plugin );
+            
+            apbct_maintance_mode__disable();
+
+            apbct_rc__update__outputResult(
+                'CHECK_RESPONSE',
+                'FAIL',
+                array(
+                    'error'           => 'BAD_HTTP_CODE',
+                    'http_code'       => $httpResponseCode,
+                    'output'          => htmlspecialchars( substr( SpbcHelper::http__request__get_content( get_option( 'siteurl' ) ), 0, 900 ) ),
+                    'rollback_result' => $rollback->apbct_result,
+                )
+            );
+        }
+    
+        apbct_rc__update__outputResult(
+            'CHECK_RESPONSE',
+            'OK'
+        );
+        
+    }
+    
+    die( 'OK' );
 }
+
+/**
+ * @param $stage
+ * @param $result
+ * @param array $response
+ *
+ * @return void
+ */
+function apbct_rc__update__outputResult( $stage, $result, $response = array() ){
+    
+    $response['stage'] = $stage;
+    $response['error'] = isset( $response['error'] ) ? $response['error'] : '';
+    
+    if( $result === true )
+        $result = 'OK';
+    if( $result === false )
+        $result = 'FAIL';
+    
+    $response['error'] = $response['error'] ?: '';
+    $response['error'] = $result !== 'OK' && empty( $response['error'] ) ? $result : $response['error'];
+    $response['agent'] = SPBC_AGENT;
+    
+    echo $result . ' ' . json_encode( $response );
+    
+    if( $result === 'FAIL' ){
+        die();
+    }
+    
+    echo '<br>';
+}
+
 
 function apbct_rc__update_settings($source) {
     

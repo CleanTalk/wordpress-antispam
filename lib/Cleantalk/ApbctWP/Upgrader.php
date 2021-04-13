@@ -11,7 +11,7 @@ namespace Cleantalk\ApbctWP;
  * @since      : 1.0.0
  */
 
-class CleantalkUpgrader extends \Plugin_Upgrader
+class Upgrader extends \Plugin_Upgrader
 {
 	
 	public $result;
