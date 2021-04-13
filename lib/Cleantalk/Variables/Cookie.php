@@ -44,7 +44,7 @@ class Cookie extends ServerVariables{
 		if( empty( $value ) )
 			$value = isset( $_COOKIE[ $name ] ) ? $_COOKIE[ $name ]	: '';
 		
-		// Remember for thurther calls
+		// Remember for further calls
 		static::getInstance()->remember_variable( $name, $value );
 		
 		return $value;
