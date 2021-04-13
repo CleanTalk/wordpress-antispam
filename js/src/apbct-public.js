@@ -260,7 +260,7 @@ function apbct_public_sendAJAX(data, params, obj){
 			if(!notJson) result = JSON.parse(result);
 			if(result.error){
 				setTimeout(function(){ if(progressbar) progressbar.fadeOut('slow'); }, 1000);
-				alert('Error happens: ' + (result.error || 'Unkown'));
+				console.log('Error happens: ' + (result.error || 'Unkown'));
 			}else{
 				if(callback) {
 					if (callback_params)
