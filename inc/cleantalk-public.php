@@ -357,7 +357,7 @@ function apbct_buffer__output(){
 	$site__host = parse_url($site_url,  PHP_URL_HOST);
 
 	$dom = new DOMDocument();
-	@$dom->loadHTML($apbct->buffer);
+	@$dom->loadHTML($apbct->buffer, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
 
 	$forms = $dom->getElementsByTagName('form');
 
