@@ -61,8 +61,6 @@ function apbct_admin_sendAJAX(data, params, obj){
 			console.log(jqXHR);
 			console.log(textStatus);
 			console.log(errorThrown);
-			if(errorThrown)
-				alert(errorThrown);
 		},
 		timeout: timeout,
 	});
