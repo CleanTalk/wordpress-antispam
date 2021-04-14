@@ -14,11 +14,12 @@ class DNS {
      * Function DNS request
      *
      * @param string $host URL
-     * @param bool   $return_first returns only first found IP, HOST, TTL
+     * @param bool $return_first returns only first found IP, HOST, TTL
+     * @param null|int $type DNS type name
      *
      * @return array
      */
-    public static function getRecord( $host, $return_first = false ){
+    public static function getRecord( $host, $return_first = false, $type = null ){
         
         $servers = array(
             "ip"   => null,
@@ -28,7 +29,9 @@ class DNS {
         
         // Get DNS records about URL
         if( function_exists( 'dns_get_record' ) ){
-            $records = dns_get_record( $host, DNS_A );
+            $records = $type
+                ? dns_get_record( $host, $type )
+                : dns_get_record( $host );
             if( $records !== false ){
                 $servers = array();
                 foreach( $records as $server ){
