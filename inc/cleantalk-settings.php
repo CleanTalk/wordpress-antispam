@@ -1409,6 +1409,18 @@ function apbct_settings__validate($settings) {
 		}
 	} unset($setting, $value);
 
+	// Actions with toggle SFW settings
+    // SFW was enabled
+    if( ! (int)$apbct->settings['sfw__enabled'] && (int)$settings['sfw__enabled'] ){
+        // Needs to be fired only after option was updated
+        add_action('update_option_cleantalk_settings' ,'apbct_sfw_update__init' );
+        add_action('add_option_cleantalk_settings' ,'apbct_sfw_update__init' );
+    }
+    // SFW was disabled
+    if( (int)$apbct->settings['sfw__enabled'] && ! (int)$settings['sfw__enabled'] ){
+        apbct_sfw__clear();
+    }
+	
 	//Sanitizing sfw__anti_flood__view_limit setting
 	$settings['sfw__anti_flood__view_limit'] = floor( intval( $settings['sfw__anti_flood__view_limit'] ) );
 	$settings['sfw__anti_flood__view_limit'] = ( $settings['sfw__anti_flood__view_limit'] == 0 ? 20 : $settings['sfw__anti_flood__view_limit'] ); // Default if 0 passed
