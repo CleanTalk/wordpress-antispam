@@ -1401,7 +1401,7 @@ function apbct_settings__validate($settings) {
 		}
 	} unset($setting, $value);
 	
-	// Set missing settings.
+	// Set missing network settings.
 	foreach($apbct->def_network_settings as $setting => $value){
 		if(!isset($settings[$setting])){
 			$settings[$setting] = null;
@@ -1475,20 +1475,20 @@ function apbct_settings__validate($settings) {
 	}
 	
 	// Drop debug data
-	if (isset($_POST['submit']) && $_POST['submit'] == 'debug_drop'){
+    if( Post::get( 'submit' ) === 'debug_drop' ){
 		$apbct->debug = false;
 		delete_option('cleantalk_debug');
 		return $settings;
 	}
     
-    // Drop debug data
+    // Test connections to servers
     if( Post::get('apbct_debug__check_connection') ){
         $result = apbct_test_connection();
         apbct_log($result);
     }
 	
 	// Send connection reports
-	if (isset($_POST['submit']) && $_POST['submit'] == 'ct_send_connection_report'){
+    if( Post::get( 'submit' ) === 'ct_send_connection_report' ){
 		ct_mail_send_connection_report();
 		return $settings;
 	}
