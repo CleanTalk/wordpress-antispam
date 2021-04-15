@@ -289,11 +289,11 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 			foreach( $replaces as $place_holder => $replace ){
 				$sfw_die_page = str_replace( $place_holder, $replace, $sfw_die_page );
 			}
-			
-			@wp_die($sfw_die_page, "Blacklisted", Array('response'=>403));
-			
+
+            die($sfw_die_page);
+
 		}else{
-			@wp_die("IP BLACKLISTED. Blocked by SFW " . $result['ip'], "Blacklisted", Array('response'=>403));
+            die("IP BLACKLISTED. Blocked by SFW " . $result['ip']);
 		}
 		
 	}
