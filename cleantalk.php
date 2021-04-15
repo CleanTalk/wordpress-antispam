@@ -563,7 +563,7 @@ function apbct_activation( $network = false ) {
 			Cron::addTask('check_account_status',  'ct_account_status_check',        3600, time() + 1800); // Checks account status
 			Cron::addTask('delete_spam_comments',  'ct_delete_spam_comments',        3600, time() + 3500); // Formerly ct_hourly_event_hook()
 			Cron::addTask('send_feedback',         'ct_send_feedback',               3600, time() + 3500); // Formerly ct_hourly_event_hook()
-			Cron::addTask('sfw_update',            'ct_sfw_update',                  86400, time() + 30);  // SFW update
+			Cron::addTask('sfw_update',            'apbct_sfw_update__init',         86400, time() + 30);  // SFW update
 			Cron::addTask('send_sfw_logs',         'ct_sfw_send_logs',               3600, time() + 1800); // SFW send logs
 			Cron::addTask('get_brief_data',        'cleantalk_get_brief_data',       86400, time() + 3500); // Get data for dashboard widget
 			Cron::addTask('send_connection_report','ct_mail_send_connection_report', 86400, time() + 3500); // Send connection report to welcome@cleantalk.org
@@ -579,7 +579,7 @@ function apbct_activation( $network = false ) {
 		Cron::addTask('check_account_status',  'ct_account_status_check',        3600, time() + 1800); // Checks account status
 		Cron::addTask('delete_spam_comments',  'ct_delete_spam_comments',        3600, time() + 3500); // Formerly ct_hourly_event_hook()
 		Cron::addTask('send_feedback',         'ct_send_feedback',               3600, time() + 3500); // Formerly ct_hourly_event_hook()
-		Cron::addTask('sfw_update',            'ct_sfw_update',                  86400, time() + 30);  // SFW update
+		Cron::addTask('sfw_update',            'apbct_sfw_update__init',         86400, time() + 30);  // SFW update
 		Cron::addTask('send_sfw_logs',         'ct_sfw_send_logs',               3600, time() + 1800); // SFW send logs
 		Cron::addTask('get_brief_data',        'cleantalk_get_brief_data',       86400, time() + 3500); // Get data for dashboard widget
 		Cron::addTask('send_connection_report','ct_mail_send_connection_report', 86400, time() + 3500); // Send connection report to welcome@cleantalk.org
@@ -639,7 +639,7 @@ function apbct_activation__new_blog($blog_id, $user_id, $domain, $path, $site_id
 		Cron::addTask('send_connection_report','ct_mail_send_connection_report', 86400, time() + 3500); // Send connection report to welcome@cleantalk.org
 	    Cron::addTask('antiflood__clear_table',  'apbct_antiflood__clear_table',        86400,    time() + 300); // Clear Anti-Flood table
 		apbct_activation__create_tables($sqls);
-		ct_sfw_update(); // Updating SFW
+        apbct_sfw_update__init(); // Updating SFW
 		ct_account_status_check(null, false);
 
 		if (isset($settings['multisite__use_settings_template_apply_for_new']) && $settings['multisite__use_settings_template_apply_for_new'] == 1) {
@@ -766,7 +766,7 @@ function apbct_plugin_redirect()
 	if (get_option('ct_plugin_do_activation_redirect', false) && !isset($_GET['activate-multi'])){
 		delete_option('ct_plugin_do_activation_redirect');
         ct_account_status_check(null, false);
-        ct_sfw_update(); // Updating SFW
+        apbct_sfw_update__init(); // Updating SFW
 		wp_redirect($apbct->settings_link);
 	}
 }
@@ -821,7 +821,27 @@ function ct_get_cookie()
 }
 
 // This action triggered by  wp_schedule_single_event( time() + 900, 'ct_sfw_update' );
-add_action( 'ct_sfw_update', 'ct_sfw_update' );
+add_action( 'apbct_sfw_update__init', 'apbct_sfw_update__init' );
+
+function apbct_sfw_update__init( $api_key = null ){
+    
+    global $apbct;
+    
+    error_log( var_export( current_action(), true ) );
+    
+    $api_key = ! empty( $api_key ) ? $api_key : $apbct->api_key;
+    
+    if( ! empty( $api_key ) ){
+        
+        return \Cleantalk\ApbctWP\Helper::http__request__rc_to_host(
+            'sfw_update',
+            array(),
+            array( 'async' )
+        );
+        
+    }else
+        return array('error' => 'KEY_EMPTY');
+}
 
 /**
  * @param string $api_key

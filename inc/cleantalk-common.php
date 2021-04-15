@@ -1108,7 +1108,7 @@ function apbct_wp_login( $user_login, $user ) {
 				$cookie_val = md5( $ip . $apbct->api_key );
 				\Cleantalk\Common\Helper::apbct_cookie__set( 'ct_sfw_ip_wl', $cookie_val, time() + 86400 * 30, '/', null, false, true, 'Lax' );
 			}
-			ct_sfw_update();
+            apbct_sfw_update__init();
 		}
 	}
 
