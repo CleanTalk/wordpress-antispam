@@ -848,7 +848,7 @@ class Helper
 	 *
 	 * @return string
 	 */
-	static function get_mime_type( $data, $type = '' )
+	public static function get_mime_type( $data, $type = '' )
 	{
         $data = str_replace( chr(0), '', $data ); // Clean input of null bytes
 		if( ! empty( $data ) && @file_exists( $data )){
@@ -861,7 +861,7 @@ class Helper
 		return $type;
 	}
 	
-	static function buffer__trim_and_clear_from_empty_lines( $buffer ){
+	public static function buffer__trim_and_clear_from_empty_lines( $buffer ){
 		$buffer = (array) $buffer;
 		foreach( $buffer as $indx => &$line ){
 			$line = trim( $line );
@@ -871,7 +871,7 @@ class Helper
 		return $buffer;
 	}
 	
-	static function buffer__parse__csv( $buffer ){
+	public static function buffer__parse__csv( $buffer ){
 		$buffer = explode( "\n", $buffer );
 		$buffer = self::buffer__trim_and_clear_from_empty_lines( $buffer );
 		foreach($buffer as &$line){
