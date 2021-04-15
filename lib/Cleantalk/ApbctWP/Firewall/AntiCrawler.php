@@ -367,9 +367,11 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 			}
 			$sfw_die_page = str_replace( "{DEBUG}", $debug, $sfw_die_page );
 
+            http_response_code(403);
             die($sfw_die_page);
 
 		}else{
+            http_response_code(403);
             die("IP BLACKLISTED. Blocked by AntiCrawler " . $result['ip']);
 		}
 		
