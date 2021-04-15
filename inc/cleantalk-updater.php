@@ -171,8 +171,8 @@ function apbct_update_to_5_116_0(){
 	
 	global $apbct, $wpdb;
 	
-	$apbct->settings['misc__store_urls'] = 0;
-	$apbct->settings['misc__store_urls__sessions'] = 0;
+	$apbct->settings['store_urls'] = 0;
+	$apbct->settings['store_urls__sessions'] = 0;
 	$apbct->saveSettings();
 	
 	$wpdb->query('CREATE TABLE IF NOT EXISTS `'. APBCT_TBL_SESSIONS .'` (
@@ -271,7 +271,7 @@ function apbct_update_to_5_119_0(){
 		switch_to_blog($initial_blog);
 	}
 	
-	// Drop work url 
+	// Drop work url
 	update_option(
 		'cleantalk_server',
 		array(
@@ -292,8 +292,8 @@ function apbct_update_to_5_124_0(){
 function apbct_update_to_5_126_0(){
 	global $apbct;
 	// Enable storing URLs
-	$apbct->settings['misc__store_urls'] = 1;
-	$apbct->settings['misc__store_urls__sessions'] = 1;
+	$apbct->settings['store_urls'] = 1;
+	$apbct->settings['store_urls__sessions'] = 1;
 	$apbct->saveSettings();
 }
 
@@ -345,10 +345,10 @@ function apbct_update_to_5_127_0(){
 			switch_to_blog( $blog );
 			
 			$settings = get_option( 'cleantalk_settings' );
-			if( isset( $settings['data__use_static_js_key'] ) ){
-				$settings['data__use_static_js_key'] = $settings['data__use_static_js_key'] === 0
+			if( isset( $settings['use_static_js_key'] ) ){
+				$settings['use_static_js_key'] = $settings['use_static_js_key'] === 0
 					? - 1
-					: $settings['data__use_static_js_key'];
+					: $settings['use_static_js_key'];
 				update_option( 'cleantalk_settings', $settings );
 				
 				$data = get_option( 'cleantalk_data' );
@@ -361,13 +361,13 @@ function apbct_update_to_5_127_0(){
 			
 			if( defined( 'APBCT_WHITELABEL' ) ){
 				$apbct->network_settings = array(
-					'multisite__white_label'              => defined( 'APBCT_WHITELABEL' ) && APBCT_WHITELABEL == true ? 1 : 0,
-					'multisite__white_label__hoster_key'  => defined( 'APBCT_HOSTER_API_KEY' )  ? APBCT_HOSTER_API_KEY : '',
-					'multisite__white_label__plugin_name' => defined( 'APBCT_WHITELABEL_NAME' ) ? APBCT_WHITELABEL_NAME : APBCT_NAME,
+					'white_label'              => defined( 'APBCT_WHITELABEL' ) && APBCT_WHITELABEL == true ? 1 : 0,
+					'white_label__hoster_key'  => defined( 'APBCT_HOSTER_API_KEY' )  ? APBCT_HOSTER_API_KEY : '',
+					'white_label__plugin_name' => defined( 'APBCT_WHITELABEL_NAME' ) ? APBCT_WHITELABEL_NAME : APBCT_NAME,
 				);
 			}elseif( defined( 'CLEANTALK_ACCESS_KEY' ) ){
 				$apbct->network_settings = array(
-					'multisite__allow_custom_key' => 0,
+					'allow_custom_key' => 0,
 					'apikey'           => CLEANTALK_ACCESS_KEY,
 				);
 			}
@@ -375,9 +375,9 @@ function apbct_update_to_5_127_0(){
 		}
 	}else{
 		// Switch use_static_js_key to Auto if it was disabled
-		$apbct->settings['data__use_static_js_key'] = $apbct->settings['data__use_static_js_key'] === 0
+		$apbct->settings['use_static_js_key'] = $apbct->settings['use_static_js_key'] === 0
 			? -1
-			: $apbct->settings['data__use_static_js_key'];
+			: $apbct->settings['use_static_js_key'];
 		$apbct->saveSettings();
 	}
 }
@@ -386,11 +386,11 @@ function apbct_update_to_5_127_1(){
 	if(APBCT_WPMS && is_main_site()){
 		global $apbct;
 		$network_settings = get_site_option( 'cleantalk_network_settings' );
-		if( $network_settings !== false && empty( $network_settings['multisite__allow_custom_key'] ) && empty( $network_settings['multisite__white_label'] ) ){
-			$network_settings['multisite__allow_custom_key'] = 1;
+		if( $network_settings !== false && empty( $network_settings['allow_custom_key'] ) && empty( $network_settings['white_label'] ) ){
+			$network_settings['allow_custom_key'] = 1;
 			update_site_option( 'cleantalk_network_settings', $network_settings );
 		}
-		if( $network_settings !== false && $network_settings['multisite__white_label'] == 1 && $apbct->data['moderate'] == 0 ){
+		if( $network_settings !== false && $network_settings['white_label'] == 1 && $apbct->data['moderate'] == 0 ){
 			ct_account_status_check( $network_settings['apikey'] ? $network_settings['apikey'] : $apbct->settings['apikey'], false);
 		}
 	}
@@ -468,7 +468,7 @@ function apbct_update_to_5_138_0() {
 			apbct_activation__create_tables($sqls);
 			
 			// Getting key
-			$settings = $net_settings['multisite__allow_custom_key']
+			$settings = $net_settings['allow_custom_key']
 				? get_option('cleantalk_settings')
 				: $main_blog_settings;
 			
@@ -480,7 +480,7 @@ function apbct_update_to_5_138_0() {
 				$result = \Cleantalk\ApbctWP\API::method__notice_paid_till(
 					$settings['api_key'],
 					preg_replace('/http[s]?:\/\//', '', get_option('siteurl'), 1),
-					! is_main_site() && $net_settings['multisite__white_label'] ? 'anti-spam-hosting' : 'antispam'
+					! is_main_site() && $net_settings['white_label'] ? 'anti-spam-hosting' : 'antispam'
 				);
 				
 				if( empty( $result['error'] ) || ! empty( $result['valid'] ) ){

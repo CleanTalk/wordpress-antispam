@@ -796,7 +796,8 @@ function apbct_settings__error__output($return = false){
 			'key_invalid' => __('Error occurred while API key validating. Error: ', 'cleantalk-spam-protect'),
 			'key_get' => __('Error occurred while automatically gettings access key. Error: ', 'cleantalk-spam-protect'),
 			'sfw_send_logs' => __('Error occurred while sending SpamFireWall logs. Error: ', 'cleantalk-spam-protect'),
-			'sfw_update' => __('Error occurred while updating SpamFireWall local base. Error: '            , 'cleantalk-spam-protect'),
+			'sfw_update' => __('Error occurred while updating SpamFireWall local base. Error: ', 'cleantalk-spam-protect'),
+			'ua_update' => __('Error occurred while updating User-Agents local base. Error: ', 'cleantalk-spam-protect'),
 			'account_check' => __('Error occurred while checking account status. Error: ', 'cleantalk-spam-protect'),
 			'api' => __('Error occurred while excuting API call. Error: ', 'cleantalk-spam-protect'),
 			

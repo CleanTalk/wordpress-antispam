@@ -309,8 +309,7 @@ function apbct_public_sendREST( route, params ) {
 				console.log('APBCT_REST_ERROR');
 				console.log(jqXHR);
 				console.log(textStatus);
-				console.log('Anti-spam by Cleantalk plugin error: ' + errorThrown + 'Please, contact Cleantalk tech support https://wordpress.org/support/plugin/cleantalk-spam-protect/');
-				alert('Anti-spam by Cleantalk plugin error: ' + errorThrown + 'Please, contact Cleantalk tech support https://wordpress.org/support/plugin/cleantalk-spam-protect/');
+				console.log('Anti-spam by Cleantalk plugin REST API error: ' + errorThrown + ' Please, contact Cleantalk tech support https://wordpress.org/support/plugin/cleantalk-spam-protect/');
 			}
 		},
 	});
@@ -333,15 +332,9 @@ if(typeof jQuery !== 'undefined') {
 						} )
 					);
 
-					// Create hidden element contains result.
-					var apbct_result = document.createElement( 'div' );
-					apbct_result.setAttribute( 'id', 'apbct-result' );
-					apbct_result.style.display = 'none';
-					apbct_result.innerHTML = response.comment;
-					document.body.append( apbct_result );
-
-					// Show the element
-					cleantalkModal.open('apbct-result');
+					// Show the result by modal
+					cleantalkModal.loaded = response.comment;
+					cleantalkModal.open();
 
 					if(+response.stop_script == 1)
 						window.stop();
