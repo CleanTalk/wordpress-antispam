@@ -16,14 +16,17 @@ use ArrayObject;
  */
 
 /**
- * COMMON
+ *   COMMON
  *
  * @property string       api_key
  *
- * STAND ALONE
+ *   SETTINGS GROUPS
+ * @property ArrayObject fw_stats
+ * @property ArrayObject stats
+ * @property ArrayObject settings
+ * @property ArrayObject data
  *
- * @property ArrayObject  settings
- * @property ArrayObject  data
+ *   STAND ALONE
  * @property ArrayObject  plugin_request_ids
  *
  * @property mixed        moderate_ip
@@ -39,7 +42,7 @@ use ArrayObject;
  * @property string       plugin_request_id
  * @property array|mixed  errors
  *
- * NETWORK
+ *   NETWORK
  * @property ArrayObject  network_data
  * @property ArrayObject  network_settings
  * @property mixed        allow_custom_key
