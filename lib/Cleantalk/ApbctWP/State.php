@@ -566,7 +566,7 @@ class State
 	 *
 	 * @return mixed
 	 */
-	public function __get($name)
+	public function &__get($name)
     {
 		// First check in storage
         if (isset($this->storage[$name])){
