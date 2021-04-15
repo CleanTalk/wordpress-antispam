@@ -388,6 +388,15 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
         $result = API::method__get_2s_blacklists_db( $api_key, 'multifiles', '3_0' );
         
         if( empty( $result['error'] ) ){
+    
+            // User-Agents blacklist
+            global $apbct;
+            
+            if( ! empty( $result['file_ua_url'] ) && ( $apbct->settings['sfw__anti_crawler'] || $apbct->settings['sfw__anti_flood'] ) ){
+                $ua_bl_res = AntiCrawler::update( trim( $result['file_ua_url'] ) );
+                if( ! empty( $ua_bl_res['error'] ) )
+                    $apbct->error_add( 'sfw_update', $ua_bl_res['error'] );
+            }
             
             if( ! empty( $result['file_url'] ) ){
                 
