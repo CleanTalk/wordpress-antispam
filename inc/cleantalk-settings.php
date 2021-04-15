@@ -1494,7 +1494,7 @@ function apbct_settings__validate($settings) {
 		return $settings;
 	}
 	
-	$apbct->saveData();
+	$apbct->save('data');
 
 	// WPMS Logic.
 	if(APBCT_WPMS){
@@ -1509,7 +1509,7 @@ function apbct_settings__validate($settings) {
 			$apbct->network_data = array(
 				'key_is_ok'   => $apbct->data['key_is_ok'],
 				'moderate'    => $apbct->data['moderate'],
-				'valid'       => $apbct->data['valid'],
+                'valid'       => $apbct->data['valid'] ?: 0,
 				'auto_update' => $apbct->data['auto_update'],
 				'user_token'  => $apbct->data['user_token'],
 				'service_id'  => $apbct->data['service_id'],
@@ -1640,7 +1640,7 @@ function apbct_settings__sync( $direct_call = false ){
 	
 	$out = array(
 		'success' => true,
-		'reload'  => $apbct->data['key_changed'],
+		'reload'  => isset( $apbct->data['key_changed'] ) ? $apbct->data['key_changed'] : 0,
 	);
 	
 	$apbct->data['key_changed'] = false;

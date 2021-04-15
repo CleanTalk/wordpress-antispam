@@ -713,9 +713,15 @@ function apbct_update_to_5_150_1() {
 
 function apbct_update_to_5_151_1 () {
     global $apbct;
-    $apbct->fw_stats['firewall_updating_id'] = $apbct->data['firewall_updating_id'];
-    $apbct->fw_stats['firewall_update_percent'] = $apbct->data['firewall_update_percent'];
-    $apbct->fw_stats['firewall_updating_last_start'] = $apbct->data['firewall_updating_last_start'];
+    $apbct->fw_stats['firewall_updating_id'] = isset( $apbct->data['firewall_updating_id'] )
+        ? $apbct->data['firewall_updating_id']
+        : '';
+    $apbct->fw_stats['firewall_update_percent'] = isset( $apbct->data['firewall_update_percent'] )
+        ? $apbct->data['firewall_update_percent']
+        : 0;
+    $apbct->fw_stats['firewall_updating_last_start'] = isset( $apbct->data['firewall_updating_last_start'] )
+        ? $apbct->data['firewall_updating_last_start']
+        : 0;
     $apbct->save('fw_stats');
 }
 
