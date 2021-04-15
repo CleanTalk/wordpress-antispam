@@ -836,8 +836,6 @@ function apbct_sfw_update__init( $api_key = null ){
     
     global $apbct;
     
-    error_log( var_export( current_action(), true ) );
-    
     $api_key = ! empty( $api_key ) ? $api_key : $apbct->api_key;
     
     if( ! empty( $api_key ) ){
