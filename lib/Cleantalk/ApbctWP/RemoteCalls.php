@@ -104,13 +104,10 @@ class RemoteCalls
      * @return string
      */
     public static function action__sfw_update(){
-        
         global $apbct;
-        
         $result = ct_sfw_update( $apbct->api_key, true );
         $apbct->error_toggle( ! empty( $result['error'] ), 'sfw_update', $result);
-        
-        return $result;
+        die(empty($result['error']) ? 'OK' : 'FAIL '.json_encode(array('error' => $result['error'])));
     }
     
     /**
