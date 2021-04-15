@@ -6,7 +6,7 @@ use ArrayObject;
 
 /**
  * CleanTalk Antispam State class
- * 
+ *
  * @package Antiospam Plugin by CleanTalk
  * @subpackage State
  * @Version 2.1
@@ -255,6 +255,10 @@ class State
         'insert_auth_key'    => array( 'last_call' => 0, 'cooldown' => 0 ),
         'deactivate_plugin'  => array( 'last_call' => 0, 'cooldown' => 0 ),
         'uninstall_plugin'   => array( 'last_call' => 0, 'cooldown' => 0 ),
+        
+        // debug
+        'debug'     => array( 'last_call' => 0, 'cooldown' => 0 ),
+        'debug_sfw' => array( 'last_call' => 0, 'cooldown' => 0 ),
     );
 	
 	public $def_stats = array(
@@ -278,7 +282,13 @@ class State
 				'amount' => 1,
 				'average_time' => 0,
 			),
-		)
+		),
+        'plugin' => array(
+            'install__timestamp' => 0,
+            'activation__timestamp' => 0,
+            'activation_previous__timestamp' => 0,
+            'activation__times' => 0,
+        )
 	);
 
     private $default_fw_stats = array(
@@ -286,6 +296,7 @@ class State
         'firewall_updating_id'         => null,
         'firewall_update_percent'      => 0,
         'firewall_updating_last_start' => 0,
+        'last_firewall_updated'        => 0,
     );
 	
 	/**
