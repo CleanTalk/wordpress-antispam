@@ -169,4 +169,33 @@ class RemoteCalls
         add_action( 'plugins_loaded', 'apbct_rc__uninstall_plugin', 1 );
     }
     
+    public static function action__debug(){
+        
+        global $apbct;
+        
+        $out['stats'] = $apbct->stats;
+        $out['settings'] = $apbct->settings;
+        $out['fw_stats'] = $apbct->fw_stats;
+        $out['data'] = $apbct->data;
+        $out['cron'] = $apbct->cron;
+        
+        // @todo make automatic replacement for timestamp to date
+        array_walk_recursive( $out, function(&$val, $key){
+            if( is_string( $val ) && preg_match( '@^\d{9,11}$@', $val ) && preg_match( '@time@', $key ) )
+                $val = date( 'Y-m-d H:i:s', $val );
+        });
+        
+        if( APBCT_WPMS ){
+            $out['network_settings'] = $apbct->network_settings;
+            $out['network_data'] = $apbct->network_data;
+        }
+        
+        $out = print_r($out, true);
+        $out = str_replace("\n", "<br>", $out);
+        $out = preg_replace("/[^\S]{4}/", "&nbsp;&nbsp;&nbsp;&nbsp;", $out);
+        
+        die( $out );
+        
+    }
+    
 }
