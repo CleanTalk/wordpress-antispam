@@ -133,15 +133,16 @@ function ctSetCookie(c_name, value) {
 		return;
 
 	// Using alternative cookies
-	}else if( +ctPublic.data__set_cookies__sessions === 1 ){
-		apbct_public_sendAJAX(
-			{
-				action: 'apbct_alt_session__save__AJAX',
-				name: c_name,
-				value: value,
-			},
-			{}
-		);
+	// @todo Deal with high server load
+	// }else if( +ctPublic.data__set_cookies__sessions === 1 ){
+	// 	apbct_public_sendAJAX(
+	// 		{
+	// 			action: 'apbct_alt_session__save__AJAX',
+	// 			name: c_name,
+	// 			value: value,
+	// 		},
+	// 		{}
+	// 	);
 
 	// Using traditional cookies
 	}else{
