@@ -834,14 +834,17 @@ function ct_get_fields_any($arr, $message=array(), $email = null, $nickname = ar
                 $tmp = strpos($value, '\\') !== false ? stripslashes($value) : $value;
                 
                 $decoded_json_value = json_decode($tmp, true);       // Try parse JSON from the string
-                parse_str( urldecode( $tmp ), $decoded_url_value ); // Try parse URL from the string
+	            if( strpos( $value, "\n" ) === false || strpos( $value, "\r" ) === false  ) {
+	            	// Parse an only single-lined string
+		            parse_str( urldecode( $tmp ), $decoded_url_value ); // Try parse URL from the string
+	            }
                 
                 // If there is "JSON data" set is it as a value
                 if($decoded_json_value !== null){
                     $value = $decoded_json_value;
                     
                 // If there is "URL data" set is it as a value
-                }elseif( ! ( count( $decoded_url_value ) === 1 && reset( $decoded_url_value ) === '' ) ){
+                }elseif( isset( $decoded_url_value ) && ! ( count( $decoded_url_value ) === 1 && reset( $decoded_url_value ) === '' ) ){
                     $value = $decoded_url_value;
                     
                 // Ajax Contact Forms. Get data from such strings:
