@@ -21,7 +21,6 @@ class RemoteCalls
         return
             Get::get('spbc_remote_call_token') &&
             Get::get('spbc_remote_call_action') &&
-            Get::get('plugin_name') &&
             in_array(Get::get('plugin_name'), array('antispam','anti-spam', 'apbct') );
     }
     
@@ -64,17 +63,11 @@ class RemoteCalls
 	                    if ( Get::get( 'delay' ) )
 		                    sleep( Get::get( 'delay' ) );
 
-	                    $action_result = RemoteCalls::$action();
-	                    $response = empty( $action_result['error'] )
-		                    ? 'OK'
-		                    : 'FAIL ' . json_encode( array( 'error' => $action_result['error'] ) );
-
-	                    if( ! Get::get( 'continue_execution' ) ){
-		                    die( $response );
-	                    }
-
-	                    return $response;
-
+	                    $out = RemoteCalls::$action();
+                        
+                        // Every remote call action handler should implement output or
+	                    // If out is empty(), the execution will continue
+	                    
                     }else
                         $out = 'FAIL '.json_encode(array('error' => 'UNKNOWN_ACTION_METHOD'));
                 }else
@@ -83,8 +76,9 @@ class RemoteCalls
                 $out = 'FAIL '.json_encode(array('error' => 'TOO_MANY_ATTEMPTS'));
         }else
             $out = 'FAIL '.json_encode(array('error' => 'UNKNOWN_ACTION'));
-        
-        die($out);
+    
+        if( $out )
+            die( $out );
     }
     
     /**
@@ -110,13 +104,10 @@ class RemoteCalls
      * @return string
      */
     public static function action__sfw_update(){
-        
         global $apbct;
-        
         $result = ct_sfw_update( $apbct->api_key, true );
         $apbct->error_toggle( ! empty( $result['error'] ), 'sfw_update', $result);
-        
-        return $result;
+        die(empty($result['error']) ? 'OK' : 'FAIL '.json_encode(array('error' => $result['error'])));
     }
     
     /**
@@ -176,6 +167,35 @@ class RemoteCalls
      */
     public static function action__uninstall_plugin(){
         add_action( 'plugins_loaded', 'apbct_rc__uninstall_plugin', 1 );
+    }
+    
+    public static function action__debug(){
+        
+        global $apbct;
+        
+        $out['stats'] = $apbct->stats;
+        $out['settings'] = $apbct->settings;
+        $out['fw_stats'] = $apbct->fw_stats;
+        $out['data'] = $apbct->data;
+        $out['cron'] = $apbct->cron;
+        
+        // @todo make automatic replacement for timestamp to date
+        array_walk_recursive( $out, function(&$val, $key){
+            if( is_string( $val ) && preg_match( '@^\d{9,11}$@', $val ) && preg_match( '@time@', $key ) )
+                $val = date( 'Y-m-d H:i:s', $val );
+        });
+        
+        if( APBCT_WPMS ){
+            $out['network_settings'] = $apbct->network_settings;
+            $out['network_data'] = $apbct->network_data;
+        }
+        
+        $out = print_r($out, true);
+        $out = str_replace("\n", "<br>", $out);
+        $out = preg_replace("/[^\S]{4}/", "&nbsp;&nbsp;&nbsp;&nbsp;", $out);
+        
+        die( $out );
+        
     }
     
 }

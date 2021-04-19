@@ -6,7 +6,7 @@ use ArrayObject;
 
 /**
  * CleanTalk Antispam State class
- * 
+ *
  * @package Antiospam Plugin by CleanTalk
  * @subpackage State
  * @Version 2.1
@@ -16,14 +16,17 @@ use ArrayObject;
  */
 
 /**
- * COMMON
+ *   COMMON
  *
  * @property string       api_key
  *
- * STAND ALONE
+ *   SETTINGS GROUPS
+ * @property ArrayObject fw_stats
+ * @property ArrayObject stats
+ * @property ArrayObject settings
+ * @property ArrayObject data
  *
- * @property ArrayObject  settings
- * @property ArrayObject  data
+ *   STAND ALONE
  * @property ArrayObject  plugin_request_ids
  *
  * @property mixed        moderate_ip
@@ -39,7 +42,7 @@ use ArrayObject;
  * @property string       plugin_request_id
  * @property array|mixed  errors
  *
- * NETWORK
+ *   NETWORK
  * @property ArrayObject  network_data
  * @property ArrayObject  network_settings
  * @property mixed        allow_custom_key
@@ -252,6 +255,10 @@ class State
         'insert_auth_key'    => array( 'last_call' => 0, 'cooldown' => 0 ),
         'deactivate_plugin'  => array( 'last_call' => 0, 'cooldown' => 0 ),
         'uninstall_plugin'   => array( 'last_call' => 0, 'cooldown' => 0 ),
+        
+        // debug
+        'debug'     => array( 'last_call' => 0, 'cooldown' => 0 ),
+        'debug_sfw' => array( 'last_call' => 0, 'cooldown' => 0 ),
     );
 	
 	public $def_stats = array(
@@ -275,7 +282,13 @@ class State
 				'amount' => 1,
 				'average_time' => 0,
 			),
-		)
+		),
+        'plugin' => array(
+            'install__timestamp' => 0,
+            'activation__timestamp' => 0,
+            'activation_previous__timestamp' => 0,
+            'activation__times' => 0,
+        )
 	);
 
     private $default_fw_stats = array(
@@ -283,6 +296,7 @@ class State
         'firewall_updating_id'         => null,
         'firewall_update_percent'      => 0,
         'firewall_updating_last_start' => 0,
+        'last_firewall_updated'        => 0,
     );
 	
 	/**
@@ -552,7 +566,7 @@ class State
 	 *
 	 * @return mixed
 	 */
-	public function __get($name)
+	public function &__get($name)
     {
 		// First check in storage
         if (isset($this->storage[$name])){

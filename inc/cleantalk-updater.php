@@ -100,7 +100,7 @@ function apbct_update_to_5_70_0(){
 	Cron::addTask('check_account_status', 'ct_account_status_check',  3600, time() + 1800); // New
 	Cron::addTask('delete_spam_comments', 'ct_delete_spam_comments',  3600, time() + 3500);
 	Cron::addTask('send_feedback',        'ct_send_feedback',         3600, time() + 3500);
-	Cron::addTask('sfw_update',           'ct_sfw_update',            86400, time() + 43200);
+	Cron::addTask('sfw_update',           'apbct_sfw_update__init',   86400, time() + 43200);
 	Cron::addTask('send_sfw_logs',        'ct_sfw_send_logs',         3600, time() + 1800); // New
 	Cron::addTask('get_brief_data',       'cleantalk_get_brief_data', 86400, time() + 3500);
 }
@@ -147,7 +147,7 @@ function apbct_update_to_5_109_0(){
 			Cron::addTask('check_account_status',  'ct_account_status_check',        3600, time() + 1800); // Checks account status
 			Cron::addTask('delete_spam_comments',  'ct_delete_spam_comments',        3600, time() + 3500); // Formerly ct_hourly_event_hook()
 			Cron::addTask('send_feedback',         'ct_send_feedback',               3600, time() + 3500); // Formerly ct_hourly_event_hook()
-			Cron::addTask('sfw_update',            'ct_sfw_update',                  86400, time() + 300);  // SFW update
+			Cron::addTask('sfw_update',            'apbct_sfw_update__init',         86400, time() + 300);  // SFW update
 			Cron::addTask('send_sfw_logs',         'ct_sfw_send_logs',               3600, time() + 1800); // SFW send logs
 			Cron::addTask('get_brief_data',        'cleantalk_get_brief_data',       86400, time() + 3500); // Get data for dashboard widget
 			Cron::addTask('send_connection_report','ct_mail_send_connection_report', 86400, time() + 3500); // Send connection report to welcome@cleantalk.org
@@ -164,7 +164,7 @@ function apbct_update_to_5_110_0(){
 }
 
 function apbct_update_to_5_115_1(){
-	ct_sfw_update();
+    apbct_sfw_update__init();
 }
 
 function apbct_update_to_5_116_0(){
@@ -713,9 +713,15 @@ function apbct_update_to_5_150_1() {
 
 function apbct_update_to_5_151_1 () {
     global $apbct;
-    $apbct->fw_stats['firewall_updating_id'] = $apbct->data['firewall_updating_id'];
-    $apbct->fw_stats['firewall_update_percent'] = $apbct->data['firewall_update_percent'];
-    $apbct->fw_stats['firewall_updating_last_start'] = $apbct->data['firewall_updating_last_start'];
+    $apbct->fw_stats['firewall_updating_id'] = isset( $apbct->data['firewall_updating_id'] )
+        ? $apbct->data['firewall_updating_id']
+        : '';
+    $apbct->fw_stats['firewall_update_percent'] = isset( $apbct->data['firewall_update_percent'] )
+        ? $apbct->data['firewall_update_percent']
+        : 0;
+    $apbct->fw_stats['firewall_updating_last_start'] = isset( $apbct->data['firewall_updating_last_start'] )
+        ? $apbct->data['firewall_updating_last_start']
+        : 0;
     $apbct->save('fw_stats');
 }
 
@@ -732,7 +738,7 @@ function apbct_update_to_5_151_3 ()
     $apbct->save('fw_stats');
     $apbct->stats['sfw']['entries'] = 0;
     $apbct->save('stats');
-    ct_sfw_update();
+    apbct_sfw_update__init();
 }
 
 function apbct_update_to_5_151_6 ()
@@ -889,4 +895,16 @@ function apbct_update_to_5_154_0(){
 
 	apbct_activation__create_tables( $sqls, $apbct->db_prefix );
 
+}
+
+function apbct_update_to_5_156_0(){
+    
+    global $apbct;
+    
+    $apbct->remote_calls['debug']     = array( 'last_call' => 0, 'cooldown' => 0 );
+    $apbct->remote_calls['debug_sfw'] = array( 'last_call' => 0, 'cooldown' => 0 );
+    $apbct->save('remote_calls');
+    
+    Cron::updateTask('sfw_update', 'apbct_sfw_update__init',   86400, rand( 0, 86400 ) );
+    
 }

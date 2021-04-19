@@ -348,10 +348,60 @@ function apbct_buffer__end(){
  */
 function apbct_buffer__output(){
 
+	global $apbct;
+
+	if( empty( $apbct->buffer ) )
+		return;
+
+	if( apbct_is_plugin_active( 'flow-flow/flow-flow.php' ) ) {
+		$output = apbct_buffer_modify_by_string();
+	} else {
+		$output = apbct_buffer_modify_by_dom();
+	}
+
+	echo $output;
+	die();
+}
+
+function apbct_buffer_modify_by_string() {
+
 	global $apbct, $wp;
 
-	if(empty($apbct->buffer))
-		return;
+	$site_url   = get_option('siteurl');
+	$site__host = parse_url($site_url,  PHP_URL_HOST);
+
+	preg_match_all( '/<form\s*.*>\s*.*<\/form>/', $apbct->buffer, $matches, PREG_SET_ORDER );
+
+	if( count( $matches ) > 0 ) {
+		foreach( $matches as $match ) {
+
+			preg_match( '/action="(\S*)"/', $match[0], $group_action );
+			$action = count( $group_action ) > 0  ? $group_action[1] : $site_url;
+
+			$action__host = parse_url($action,  PHP_URL_HOST);
+			if( $site__host != $action__host ) {
+
+				preg_match( '/method="(\S*)"/', $match[0], $group_method );
+				$method = count( $group_method ) > 0 ? $group_method[1] : 'get';
+
+				$hidden_fields  = '<input type="hidden" name="cleantalk_hidden_action" value="' . $action . '">';
+				$hidden_fields .= '<input type="hidden" name="cleantalk_hidden_method" value="' . $method . '">';
+
+				$modified_match = preg_replace( '/action="\S*"/', 'action="' . home_url(add_query_arg(array(), $wp->request)) . '"', $match[0] );
+				$modified_match = preg_replace( '/method="\S*"/', 'method="POST"', $modified_match );
+				$modified_match = str_replace( '</form>', $hidden_fields . '</form>', $modified_match );
+				$apbct->buffer = str_replace( $match[0], $modified_match, $apbct->buffer );
+			}
+		}
+	}
+
+	return $apbct->buffer;
+
+}
+
+function apbct_buffer_modify_by_dom() {
+
+	global $apbct, $wp;
 
 	$site_url   = get_option('siteurl');
 	$site__host = parse_url($site_url,  PHP_URL_HOST);
@@ -393,15 +443,13 @@ function apbct_buffer__output(){
 		}
 
 	} unset($form);
-	
+
 	$html = $dom->getElementsByTagName('html');
-	
-	$output = gettype($html) == 'object' && isset($html[0], $html[0]->childNodes, $html[0]->childNodes[0]) && $dom->getElementsByTagName('rss')->length == 0
+
+	return is_object( $html ) && isset( $html[0], $html[0]->childNodes, $html[0]->childNodes[0] ) && $dom->getElementsByTagName( 'rss' )->length == 0
 		? $dom->saveHTML()
 		: $apbct->buffer;
-	
-	echo $output;
-	die();
+
 }
 
 // MailChimp Premium for Wordpress
@@ -946,12 +994,14 @@ function apbct_hook__wp_footer() {
 			</script>";
 		} else {
 			$html = "<script type=\"text/javascript\" " . ( class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '' ) . ">
-				window.addEventListener('DOMContentLoaded', function () {
-	                apbct_public_sendAJAX(
-	                    { action: 'apbct_js_keys__get' },
-	                    { callback: apbct_js_keys__set_input_value, no_nonce: true }
-	                );
-				});
+				if( document.querySelectorAll('[name^=ct_checkjs]').length > 0 ) {
+					window.addEventListener('DOMContentLoaded', function () {
+		                apbct_public_sendAJAX(
+		                    { action: 'apbct_js_keys__get' },
+		                    { callback: apbct_js_keys__set_input_value, no_nonce: true }
+		                );
+					});
+				}
 			</script>";
 		}
 
@@ -975,10 +1025,13 @@ function ct_add_hidden_fields($field_name = 'ct_checkjs', $return_string = false
     if ($cookie_check && $apbct->settings['data__set_cookies'] == 1) {
 	    
 		$html =	"<script type=\"text/javascript\" " . ( class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '' ) . ">
-			function ctSetCookie___from_backend(c_name, value) {
-				document.cookie = c_name + \"=\" + encodeURIComponent(value) + \"; path=/; samesite=lax\";
-			}
-			ctSetCookie___from_backend('{$field_name}', '{$ct_checkjs_key}', '{$ct_checkjs_def}');
+            function apbct_attach_event_handler__backend(elem, event, callback){
+                if(typeof window.addEventListener === \"function\") elem.addEventListener(event, callback);
+                else                                              elem.attachEvent(event, callback);
+            }
+            apbct_attach_event_handler__backend(window, 'load', function(){
+                ctSetCookie('{$field_name}', '{$ct_checkjs_key}', '{$ct_checkjs_def}');
+            });
 		</script>";
 
 	// Using AJAX to get key
@@ -3802,6 +3855,8 @@ function ct_enqueue_scripts_public($hook){
 				'_rest_nonce' => wp_create_nonce('wp_rest'),
 				'_ajax_url'   => admin_url('admin-ajax.php'),
 				'_rest_url'   => esc_url( get_rest_url() ),
+                'data__set_cookies' => $apbct->settings['data__set_cookies'],
+                'data__set_cookies__sessions' => $apbct->settings['data__set_cookies__sessions'],
 			));
 		}
 		

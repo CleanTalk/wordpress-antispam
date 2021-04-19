@@ -117,4 +117,59 @@ class Helper extends \Cleantalk\Common\Helper
         return true;
     }
     
+    /**
+     * Wrapper for http_request
+     * Get data from remote GZ archive with all following checks
+     *
+     * @param string $url
+     *
+     * @return array|mixed|string
+     */
+    public static function http__get_data_from_remote_gz( $url ){
+        
+        $response_code = static::http__request__get_response_code( $url );
+        
+        if ( $response_code === 200 ) { // Check if it's there
+            
+            $data = static::http__request__get_content( $url );
+            
+            if ( empty( $data['error'] ) ){
+                
+                if( static::get_mime_type( $data, 'application/x-gzip' ) ){
+                    
+                    if(function_exists('gzdecode')) {
+                        
+                        $data = gzdecode( $data );
+                        
+                        if ( $data !== false ){
+                            return $data;
+                        }else
+                            return array( 'error' => 'Can not unpack datafile');
+                        
+                    }else
+                        return array( 'error' => 'Function gzdecode not exists. Please update your PHP at least to version 5.4 ' . $data['error'] );
+                }else
+                    return array('error' => 'Wrong file mime type: ' . $url);
+            }else
+                return array( 'error' => 'Getting datafile ' . $url . '. Error: '. $data['error'] );
+        }else
+            return array( 'error' => 'Bad HTTP response from file location: ' . $url );
+    }
+    
+    /**
+     * Wrapper for http__get_data_from_remote_gz
+     * Get data and parse CSV from remote GZ archive with all following checks
+     *
+     * @param string $url
+     *
+     * @return array|mixed|string
+     */
+    public static function http__get_data_from_remote_gz__and_parse_csv( $url ){
+    
+        $result = static::http__get_data_from_remote_gz( $url );
+        return empty( $result['error'] )
+            ? static::buffer__parse__csv( $result )
+            : $result;
+    }
+    
 }

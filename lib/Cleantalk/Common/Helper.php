@@ -51,6 +51,10 @@ class Helper
 		'moderate4.cleantalk.org' => '159.69.51.30',
 		'moderate5.cleantalk.org' => '95.216.200.119',
 		'moderate6.cleantalk.org' => '138.68.234.8',
+//		'moderate7.cleantalk.org' => '168.119.82.149',
+		'moderate8.cleantalk.org' => '188.34.154.26',
+		'moderate9.cleantalk.org' => '51.81.55.251',
+		
 		// APIX
 		'apix1.cleantalk.org' => '35.158.52.161',
 		'apix2.cleantalk.org' => '18.206.49.217',
@@ -844,7 +848,7 @@ class Helper
 	 *
 	 * @return string
 	 */
-	static function get_mime_type( $data, $type = '' )
+	public static function get_mime_type( $data, $type = '' )
 	{
         $data = str_replace( chr(0), '', $data ); // Clean input of null bytes
 		if( ! empty( $data ) && @file_exists( $data )){
@@ -857,7 +861,7 @@ class Helper
 		return $type;
 	}
 	
-	static function buffer__trim_and_clear_from_empty_lines( $buffer ){
+	public static function buffer__trim_and_clear_from_empty_lines( $buffer ){
 		$buffer = (array) $buffer;
 		foreach( $buffer as $indx => &$line ){
 			$line = trim( $line );
@@ -867,7 +871,7 @@ class Helper
 		return $buffer;
 	}
 	
-	static function buffer__parse__csv( $buffer ){
+	public static function buffer__parse__csv( $buffer ){
 		$buffer = explode( "\n", $buffer );
 		$buffer = self::buffer__trim_and_clear_from_empty_lines( $buffer );
 		foreach($buffer as &$line){

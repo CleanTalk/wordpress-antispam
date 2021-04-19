@@ -5,7 +5,7 @@ use Cleantalk\Antispam\CleantalkRequest;
 use Cleantalk\Antispam\CleantalkResponse;
 use Cleantalk\ApbctWP\API;
 use Cleantalk\ApbctWP\Helper;
-use Cleantalk\Variables\Cookie;
+use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\Variables\Server;
 
 function apbct_array( $array ){
@@ -373,19 +373,7 @@ function apbct_get_sender_info() {
 	
 	// Validate cookie from the backend
 	$cookie_is_ok = apbct_cookies_test();
-    
-	$referer_previous = $apbct->settings['data__set_cookies__sessions']
-			? apbct_alt_session__get('apbct_prev_referer')
-			: filter_input(INPUT_COOKIE, 'apbct_prev_referer');
 	
-	$site_landing_ts = $apbct->settings['data__set_cookies__sessions']
-			? apbct_alt_session__get('apbct_site_landing_ts')
-			: filter_input(INPUT_COOKIE, 'apbct_site_landing_ts');
-	
-	$page_hits = $apbct->settings['data__set_cookies__sessions']
-			? apbct_alt_session__get('apbct_page_hits')
-			: filter_input(INPUT_COOKIE, 'apbct_page_hits');
-		
 	if (count($_POST) > 0) {
 		foreach ($_POST as $k => $v) {
 			if (preg_match("/^(ct_check|checkjs).+/", $k)) {
@@ -400,17 +388,9 @@ function apbct_get_sender_info() {
 			? 1
 			: 0
 		: null;
-	
-	$site_referer = $apbct->settings['misc__store_urls__sessions']
-			? apbct_alt_session__get('apbct_site_referer')
-			: filter_input(INPUT_COOKIE, 'apbct_site_referer');
-	
-	$urls = $apbct->settings['misc__store_urls__sessions']
-			? (array)apbct_alt_session__get('apbct_urls')
-			: (array)json_decode(filter_input(INPUT_COOKIE, 'apbct_urls'), true);
 
 	// Visible fields processing
-    $visible_fields = apbct_visibile_fields__process( Cookie::get('apbct_visible_fields') );
+    $visible_fields = apbct_visible_fields__process( Cookie::get( 'apbct_visible_fields' ) );
 
 	return array(
 		'plugin_request_id'      => $apbct->plugin_request_id,
@@ -424,24 +404,24 @@ function apbct_get_sender_info() {
         'fields_number'          => sizeof($_POST),
         'direct_post'            => $cookie_is_ok === null && apbct_is_post() ? 1 : 0,
 		// Raw data to validated JavaScript test in the cloud                                                                                                          
-        'checkjs_data_cookies'   => !empty($_COOKIE['ct_checkjs'])                                 ? $_COOKIE['ct_checkjs']                                            : null, 
+        'checkjs_data_cookies'   => Cookie::get( 'ct_checkjs' ) ?: null,
         'checkjs_data_post'      => !empty($checkjs_data_post)                                     ? $checkjs_data_post                                                : null, 
 		// PHP cookies                                                                                                                                                 
-        'cookies_enabled'        => $cookie_is_ok,                                                                                                                     
-		'REFFERRER_PREVIOUS'     => !empty($referer_previous) && $cookie_is_ok                     ? $referer_previous                                                 : null,
-		'site_landing_ts'        => !empty($site_landing_ts) && $cookie_is_ok                      ? $site_landing_ts                                                  : null,
-		'page_hits'              => !empty($page_hits)                                             ? $page_hits                                                        : null,
+        'cookies_enabled'        => $cookie_is_ok,
+        'REFFERRER_PREVIOUS'     => Cookie::get( 'apbct_prev_referer' )    && $cookie_is_ok ? Cookie::get( 'apbct_prev_referer' )    : null,
+        'site_landing_ts'        => Cookie::get( 'apbct_site_landing_ts' ) && $cookie_is_ok ? Cookie::get( 'apbct_site_landing_ts' ) : null,
+        'page_hits'              => Cookie::get( 'apbct_page_hits' )                        ?: null,
 		// JS cookies                                                                                                                                                  
-        'js_info'                => !empty($_COOKIE['ct_user_info'])                               ? json_decode(stripslashes($_COOKIE['ct_user_info']), true)         : null,
-		'mouse_cursor_positions' => !empty($_COOKIE['ct_pointer_data'])                            ? json_decode(stripslashes($_COOKIE['ct_pointer_data']), true)      : null,
-		'js_timezone'            => !empty($_COOKIE['ct_timezone'])                                ? $_COOKIE['ct_timezone']                                           : null,
-		'key_press_timestamp'    => !empty($_COOKIE['ct_fkp_timestamp'])                           ? $_COOKIE['ct_fkp_timestamp']                                      : null,
-		'page_set_timestamp'     => !empty($_COOKIE['ct_ps_timestamp'])                            ? $_COOKIE['ct_ps_timestamp']                                       : null,
+        'js_info'                => !empty(Cookie::get( 'ct_user_info' ))                               ? json_decode(stripslashes(urldecode( Cookie::get( 'ct_user_info' ) )), true)         : null,
+		'mouse_cursor_positions' => !empty(Cookie::get( 'ct_pointer_data' ))                            ? json_decode(stripslashes(Cookie::get( 'ct_pointer_data' )), true)      : null,
+		'js_timezone'            => Cookie::get( 'ct_timezone' )      ?: null,
+		'key_press_timestamp'    => Cookie::get( 'ct_fkp_timestamp' ) ?: null,
+		'page_set_timestamp'     => Cookie::get( 'ct_ps_timestamp' )  ?: null,
 		'form_visible_inputs'    => !empty($visible_fields['visible_fields_count'])                ? $visible_fields['visible_fields_count']                           : null,
 		'apbct_visible_fields'   => !empty($visible_fields['visible_fields'])                      ? $visible_fields['visible_fields']                                 : null,
 		// Misc
-		'site_referer'           => !empty($site_referer)                                          ? $site_referer                                                     : null,
-		'source_url'             => !empty($urls)                                                  ? json_encode($urls)                                                : null,
+		'site_referer'           => Cookie::get( 'apbct_site_referer' ) ?: null,
+		'source_url'             => Cookie::get( 'apbct_urls' )         ? json_encode( Cookie::get( 'apbct_urls' ) ) : null,
 		// Debug stuff
 		'amp_detected'           => $amp_detected,
 		'hook'                   => current_filter()                    ? current_filter()            : 'no_hook',
@@ -455,17 +435,24 @@ function apbct_get_sender_info() {
 /**
  * Process visible fields for specific form to match the fields from request
  * 
- * @param string $visible_fields JSON string
+ * @param string|array $visible_fields JSON string
  * 
  * @return array
  */
-function apbct_visibile_fields__process( $visible_fields ) {
-
+function apbct_visible_fields__process( $visible_fields ) {
+    
+    $visible_fields = is_array( $visible_fields )
+        ? json_encode( $visible_fields )
+        : $visible_fields;
+    
+    // Do not decode if it's already decoded
     $fields_collection = json_decode( $visible_fields, true );
-
+    
     if( ! empty( $fields_collection ) ) {
+        
         foreach ($fields_collection as $current_fields) {
-            if( isset( $current_fields['visible_fields'] ) && isset( $current_fields['visible_fields_count'] ) ) {
+            
+            if( isset( $current_fields['visible_fields'], $current_fields['visible_fields_count'] ) ) {
 
                 $fields = explode( ' ', $current_fields['visible_fields'] );
 
@@ -847,14 +834,17 @@ function ct_get_fields_any($arr, $message=array(), $email = null, $nickname = ar
                 $tmp = strpos($value, '\\') !== false ? stripslashes($value) : $value;
                 
                 $decoded_json_value = json_decode($tmp, true);       // Try parse JSON from the string
-                parse_str( urldecode( $tmp ), $decoded_url_value ); // Try parse URL from the string
+	            if( strpos( $value, "\n" ) === false || strpos( $value, "\r" ) === false  ) {
+	            	// Parse an only single-lined string
+		            parse_str( urldecode( $tmp ), $decoded_url_value ); // Try parse URL from the string
+	            }
                 
                 // If there is "JSON data" set is it as a value
                 if($decoded_json_value !== null){
                     $value = $decoded_json_value;
                     
                 // If there is "URL data" set is it as a value
-                }elseif( ! ( count( $decoded_url_value ) === 1 && reset( $decoded_url_value ) === '' ) ){
+                }elseif( isset( $decoded_url_value ) && ! ( count( $decoded_url_value ) === 1 && reset( $decoded_url_value ) === '' ) ){
                     $value = $decoded_url_value;
                     
                 // Ajax Contact Forms. Get data from such strings:
@@ -1121,7 +1111,7 @@ function apbct_wp_login( $user_login, $user ) {
 				$cookie_val = md5( $ip . $apbct->api_key );
 				\Cleantalk\Common\Helper::apbct_cookie__set( 'ct_sfw_ip_wl', $cookie_val, time() + 86400 * 30, '/', null, false, true, 'Lax' );
 			}
-			ct_sfw_update();
+            apbct_sfw_update__init();
 		}
 	}
 

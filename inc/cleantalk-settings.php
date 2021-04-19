@@ -1402,7 +1402,7 @@ function apbct_settings__validate($settings) {
 		}
 	} unset($setting, $value);
 	
-	// Set missing settings.
+	// Set missing network settings.
 	foreach($apbct->def_network_settings as $setting => $value){
 		if(!isset($settings[$setting])){
 			$settings[$setting] = null;
@@ -1410,6 +1410,18 @@ function apbct_settings__validate($settings) {
 		}
 	} unset($setting, $value);
 
+	// Actions with toggle SFW settings
+    // SFW was enabled
+    if( ! (int)$apbct->settings['sfw__enabled'] && (int)$settings['sfw__enabled'] ){
+        // Needs to be fired only after option was updated
+        add_action('update_option_cleantalk_settings' ,'apbct_sfw_update__init' );
+        add_action('add_option_cleantalk_settings' ,'apbct_sfw_update__init' );
+    }
+    // SFW was disabled
+    if( (int)$apbct->settings['sfw__enabled'] && ! (int)$settings['sfw__enabled'] ){
+        apbct_sfw__clear();
+    }
+	
 	//Sanitizing sfw__anti_flood__view_limit setting
 	$settings['sfw__anti_flood__view_limit'] = floor( intval( $settings['sfw__anti_flood__view_limit'] ) );
 	$settings['sfw__anti_flood__view_limit'] = ( $settings['sfw__anti_flood__view_limit'] == 0 ? 20 : $settings['sfw__anti_flood__view_limit'] ); // Default if 0 passed
@@ -1464,25 +1476,25 @@ function apbct_settings__validate($settings) {
 	}
 	
 	// Drop debug data
-	if (isset($_POST['submit']) && $_POST['submit'] == 'debug_drop'){
+    if( Post::get( 'submit' ) === 'debug_drop' ){
 		$apbct->debug = false;
 		delete_option('cleantalk_debug');
 		return $settings;
 	}
     
-    // Drop debug data
+    // Test connections to servers
     if( Post::get('apbct_debug__check_connection') ){
         $result = apbct_test_connection();
         apbct_log($result);
     }
 	
 	// Send connection reports
-	if (isset($_POST['submit']) && $_POST['submit'] == 'ct_send_connection_report'){
+    if( Post::get( 'submit' ) === 'ct_send_connection_report' ){
 		ct_mail_send_connection_report();
 		return $settings;
 	}
 	
-	$apbct->saveData();
+	$apbct->save('data');
 
 	// WPMS Logic.
 	if(APBCT_WPMS){
@@ -1497,7 +1509,7 @@ function apbct_settings__validate($settings) {
 			$apbct->network_data = array(
 				'key_is_ok'   => $apbct->data['key_is_ok'],
 				'moderate'    => $apbct->data['moderate'],
-				'valid'       => $apbct->data['valid'],
+                'valid'       => $apbct->data['valid'] ?: 0,
 				'auto_update' => $apbct->data['auto_update'],
 				'user_token'  => $apbct->data['user_token'],
 				'service_id'  => $apbct->data['service_id'],
@@ -1557,7 +1569,7 @@ function apbct_settings__sync( $direct_call = false ){
                 delete_option( 'sfw_update_first' );
             }
 			
-			$result = ct_sfw_update( $apbct->settings['apikey'] );
+			$result = apbct_sfw_update__init( $apbct->settings['apikey'] );
 			if( ! empty( $result['error'] ) )
 				$apbct->error_add( 'sfw_update', $result['error'] );
 			
@@ -1628,7 +1640,7 @@ function apbct_settings__sync( $direct_call = false ){
 	
 	$out = array(
 		'success' => true,
-		'reload'  => $apbct->data['key_changed'],
+		'reload'  => isset( $apbct->data['key_changed'] ) ? $apbct->data['key_changed'] : 0,
 	);
 	
 	$apbct->data['key_changed'] = false;
