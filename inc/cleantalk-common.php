@@ -742,8 +742,8 @@ function ct_delete_spam_comments() {
 * @return array
 */ 
 function ct_get_fields_any($arr, $message=array(), $email = null, $nickname = array('nick' => '', 'first' => '', 'last' => ''), $subject = null, $contact = true, $prev_name = ''){
-	
-	//Skip request if fields exists
+
+    //Skip request if fields exists
 	$skip_params = array(
 	    'ipn_track_id', 	// PayPal IPN #
 	    'txn_type', 		// PayPal transaction type
@@ -824,55 +824,63 @@ function ct_get_fields_any($arr, $message=array(), $email = null, $nickname = ar
 	
    	if( apbct_array( array( $_POST, $_GET ) )->get_keys( $skip_params )->result() )
         $contact = false;
-	
+
 	if(count($arr)){
-		
+
 		foreach($arr as $key => $value){
-            
+
             if( is_string( $value ) ){
-                
+
                 $tmp = strpos($value, '\\') !== false ? stripslashes($value) : $value;
-                
+
+                # Remove html tags from $value
+                $tmp = preg_replace( '@<.*?>@', '', $tmp);
+
                 $decoded_json_value = json_decode($tmp, true);       // Try parse JSON from the string
                 parse_str( urldecode( $tmp ), $decoded_url_value ); // Try parse URL from the string
-                
+
                 // If there is "JSON data" set is it as a value
                 if($decoded_json_value !== null){
+
+                    if(isset($arr['action']) && $arr['action'] === 'nf_ajax_submit') {
+                        unset($decoded_json_value['settings']);
+                    }
+
                     $value = $decoded_json_value;
-                    
+
                 // If there is "URL data" set is it as a value
                 }elseif( ! ( count( $decoded_url_value ) === 1 && reset( $decoded_url_value ) === '' ) ){
                     $value = $decoded_url_value;
-                    
+
                 // Ajax Contact Forms. Get data from such strings:
                 // acfw30_name %% Blocked~acfw30_email %% s@cleantalk.org
                 // acfw30_textarea %% msg
                 }elseif(preg_match('/^\S+\s%%\s\S+.+$/', $value)){
-                    
+
                     $value = explode('~', $value);
                     foreach ($value as &$val){
                         $tmp = explode(' %% ', $val);
                         $val = array($tmp[0] => $tmp[1]);
                     }unset( $val );
-                    
+
                 }
             }
-			
+
 			if(!is_array($value) && !is_object($value)){
-				
+
 				if (in_array($key, $skip_params, true) && $key != 0 && $key != '' || preg_match("/^ct_checkjs/", $key))
 					$contact = false;
-				
+
 				if($value === '')
 					continue;
-				
+
 				// Skipping fields names with strings from (array)skip_fields_with_strings
 				foreach($skip_fields_with_strings as $needle){
 					if (preg_match("/".$needle."/", $prev_name.$key) == 1){
 						continue(2);
 					}
 				}unset($needle);
-				
+
 				// Obfuscating params
 				foreach($obfuscate_params as $needle){
 					if (strpos($key, $needle) !== false){
@@ -882,21 +890,21 @@ function ct_get_fields_any($arr, $message=array(), $email = null, $nickname = ar
 				}unset($needle);
 
                 $value_for_email = trim( strip_shortcodes( $value ) );    // Removes shortcodes to do better spam filtration on server side.
-				
+
 				// Email
 				if ( ! $email && preg_match( "/^\S+@\S+\.\S+$/", $value_for_email ) ) {
 					$email = $value_for_email;
 
                 // Removes whitespaces
                 $value = urldecode( trim( strip_shortcodes( $value ) ) ); // Fully cleaned message
-					
+
 				// Names
 				}elseif (preg_match("/name/i", $key)){
-					
+
 					preg_match("/((name.?)?(your|first|for)(.?name)?)/", $key, $match_forename);
 					preg_match("/((name.?)?(last|family|second|sur)(.?name)?)/", $key, $match_surname);
 					preg_match("/(name.?)?(nick|user)(.?name)?/", $key, $match_nickname);
-					
+
 					if(count($match_forename) > 1)
 						$nickname['first'] = $value;
 					elseif(count($match_surname) > 1)
@@ -905,26 +913,25 @@ function ct_get_fields_any($arr, $message=array(), $email = null, $nickname = ar
 						$nickname['nick'] = $value;
 					else
 						$message[$prev_name.$key] = $value;
-						
+
 				// Subject
 				}elseif ($subject === null && preg_match("/subject/i", $key)){
 					$subject = $value;
-				
+
 				// Message
 				}else{
-					$message[$prev_name.$key] = $value;					
+					$message[$prev_name.$key] = $value;
 				}
-				
+
 			}elseif(!is_object($value)){
-				
 				$prev_name_original = $prev_name;
 				$prev_name = ($prev_name === '' ? $key.'_' : $prev_name.$key.'_');
-				
+
 				$temp = ct_get_fields_any($value, $message, $email, $nickname, $subject, $contact, $prev_name);
-				
+
 				$message 	= $temp['message'];
 				$email 		= ($temp['email'] 		? $temp['email'] : null);
-				$nickname 	= ($temp['nickname'] 	? $temp['nickname'] : null);				
+				$nickname 	= ($temp['nickname'] 	? $temp['nickname'] : null);
 				$subject 	= ($temp['subject'] 	? $temp['subject'] : null);
 				if($contact === true)
 					$contact = ($temp['contact'] === false ? false : true);
