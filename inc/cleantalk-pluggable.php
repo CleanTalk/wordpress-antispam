@@ -404,12 +404,12 @@ function apbct_is_skip_request( $ajax = false ) {
             {
                 return 'injob_theme_plugin';
             }
-            // Divi builder save epanel
+            // Divi builder skip
             if ( apbct_is_theme_active( 'Divi' ) &&
         		isset( $_POST['action'] ) &&
-        		$_POST['action'] == 'save_epanel' )
+                 ( $_POST['action'] === 'save_epanel' || $_POST['action'] === 'et_fb_ajax_save' ) )
             {
-            	return 'divi_builder_save_epanel';
+            	return 'divi_builder_skip';
             }
 	        // Email Before Download plugin https://wordpress.org/plugins/email-before-download/ action skip
 	        if ( apbct_is_plugin_active( 'email-before-download/email-before-download.php' ) &&
