@@ -348,10 +348,60 @@ function apbct_buffer__end(){
  */
 function apbct_buffer__output(){
 
+	global $apbct;
+
+	if( empty( $apbct->buffer ) )
+		return;
+
+	if( strpos( $apbct->buffer, '$cont.before($errCont);' ) !== false ) {
+		$output = apbct_buffer_modify_by_string();
+	} else {
+		$output = apbct_buffer_modify_by_dom();
+	}
+
+	echo $output;
+	die();
+}
+
+function apbct_buffer_modify_by_string() {
+
 	global $apbct, $wp;
 
-	if(empty($apbct->buffer))
-		return;
+	$site_url   = get_option('siteurl');
+	$site__host = parse_url($site_url,  PHP_URL_HOST);
+
+	preg_match_all( '/<form\s*.*>\s*.*<\/form>/', $apbct->buffer, $matches, PREG_SET_ORDER );
+
+	if( count( $matches ) > 0 ) {
+		foreach( $matches as $match ) {
+
+			preg_match( '/action="(\S*)"/', $match[0], $group_action );
+			$action = count( $group_action ) > 0  ? $group_action[1] : $site_url;
+
+			$action__host = parse_url($action,  PHP_URL_HOST);
+			if( $site__host != $action__host ) {
+
+				preg_match( '/method="(\S*)"/', $match[0], $group_method );
+				$method = count( $group_method ) > 0 ? $group_method[1] : 'get';
+
+				$hidden_fields  = '<input type="hidden" name="cleantalk_hidden_action" value="' . $action . '">';
+				$hidden_fields .= '<input type="hidden" name="cleantalk_hidden_method" value="' . $method . '">';
+
+				$modified_match = preg_replace( '/action="\S*"/', 'action="' . home_url(add_query_arg(array(), $wp->request)) . '"', $match[0] );
+				$modified_match = preg_replace( '/method="\S*"/', 'method="POST"', $modified_match );
+				$modified_match = str_replace( '</form>', $hidden_fields . '</form>', $modified_match );
+				$apbct->buffer = str_replace( $match[0], $modified_match, $apbct->buffer );
+			}
+		}
+	}
+
+	return $apbct->buffer;
+
+}
+
+function apbct_buffer_modify_by_dom() {
+
+	global $apbct, $wp;
 
 	$site_url   = get_option('siteurl');
 	$site__host = parse_url($site_url,  PHP_URL_HOST);
@@ -393,15 +443,13 @@ function apbct_buffer__output(){
 		}
 
 	} unset($form);
-	
+
 	$html = $dom->getElementsByTagName('html');
-	
-	$output = gettype($html) == 'object' && isset($html[0], $html[0]->childNodes, $html[0]->childNodes[0]) && $dom->getElementsByTagName('rss')->length == 0
+
+	return is_object( $html ) && isset( $html[0], $html[0]->childNodes, $html[0]->childNodes[0] ) && $dom->getElementsByTagName( 'rss' )->length == 0
 		? $dom->saveHTML()
 		: $apbct->buffer;
-	
-	echo $output;
-	die();
+
 }
 
 // MailChimp Premium for Wordpress
