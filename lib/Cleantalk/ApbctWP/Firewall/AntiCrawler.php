@@ -337,11 +337,13 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 				$debug = '';
 			}
 			$sfw_die_page = str_replace( "{DEBUG}", $debug, $sfw_die_page );
-			
-			@wp_die($sfw_die_page, "Blacklisted", Array('response'=>403));
-			
+
+            http_response_code(403);
+            die($sfw_die_page);
+
 		}else{
-			@wp_die("IP BLACKLISTED. Blocked by AntiCrawler " . $result['ip'], "Blacklisted", Array('response'=>403));
+            http_response_code(403);
+            die("IP BLACKLISTED. Blocked by AntiCrawler " . $result['ip']);
 		}
 		
 	}
