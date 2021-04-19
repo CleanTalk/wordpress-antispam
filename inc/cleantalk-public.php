@@ -353,7 +353,7 @@ function apbct_buffer__output(){
 	if( empty( $apbct->buffer ) )
 		return;
 
-	if( strpos( $apbct->buffer, '$cont.before($errCont);' ) !== false ) {
+	if( apbct_is_plugin_active( 'flow-flow/flow-flow.php' ) ) {
 		$output = apbct_buffer_modify_by_string();
 	} else {
 		$output = apbct_buffer_modify_by_dom();
