@@ -465,7 +465,12 @@ function apbct_is_skip_request( $ajax = false ) {
 	        {
 		        return 'emember_ajax_login';
 	        }
-            
+	        // Avada theme saving settings
+	        if ( apbct_is_theme_active( 'Avada' ) &&
+	             Post::get('action') === 'fusion_options_ajax_save' )
+	        {
+		        return 'Avada_theme_saving_settings';
+	        }
             break;
 
         case false :
