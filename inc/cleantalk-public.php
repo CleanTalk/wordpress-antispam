@@ -2938,7 +2938,7 @@ function ct_quform_post_validate($result, $form) {
 
 	$ct_result = $base_call_result['ct_result'];
 	if ($ct_result->allow == 0) {
-		die(json_encode(array('type' => 'error', 'apbct' => array('blocked' => true, 'comment' => $ct_result->comment))));
+		die(json_encode(array('type' => 'error', 'apbct' => array('blocked' => true, 'comment' => $ct_result->comment)), JSON_HEX_QUOT | JSON_HEX_TAG));
 	} else {
 		return $result;
 	}
@@ -3368,7 +3368,7 @@ function apbct_form__inevio__testSpam() {
     $ct_result = $base_call_result['ct_result'];
 
     if ( $ct_result->allow == 0 ) {
-        die(json_encode(array('apbct' => array('blocked' => true, 'comment' => $ct_result->comment,))));
+        die(json_encode(array('apbct' => array('blocked' => true, 'comment' => $ct_result->comment,)), JSON_HEX_QUOT | JSON_HEX_TAG));
     }
 
     return true;
