@@ -3138,22 +3138,14 @@ function apbct_form__gravityForms__testSpam($is_spam, $form, $entry) {
 	$ct_temp = array();
 	foreach($entry as $key => $value){
 		if(is_numeric($key))
-			$ct_temp[$key]=$value;
+			$ct_temp['input_' . $key]=$value;
 	} unset($key, $value);
 
 	$ct_temp_msg_data = ct_get_fields_any($ct_temp);
     $sender_email    = ($ct_temp_msg_data['email']    ? $ct_temp_msg_data['email']    : '');
     $sender_nickname = ($ct_temp_msg_data['nickname'] ? $ct_temp_msg_data['nickname'] : '');
     $subject         = ($ct_temp_msg_data['subject']  ? $ct_temp_msg_data['subject']  : '');
-    $contact_form    = ($ct_temp_msg_data['contact']  ? $ct_temp_msg_data['contact']  : true);
     $message         = ($ct_temp_msg_data['message']  ? $ct_temp_msg_data['message']  : array());
-	
-	// Adding 'input_' to every field /Gravity Forms fix/
-	$tmp = $message;
-    $message = array();
-	foreach($tmp as $key => $value){
-		$message[ 'input_' . $key] = $value;
-	} unset( $key, $value, $tmp );
 
     if($subject != '')
         $message['subject'] = $subject;
