@@ -741,8 +741,11 @@ function ct_delete_spam_comments() {
 * Get data from an ARRAY recursively
 * @return array
 */ 
-function ct_get_fields_any($arr, $message=array(), $email = null, $nickname = array('nick' => '', 'first' => '', 'last' => ''), $subject = null, $contact = true, $prev_name = ''){
-	
+function ct_get_fields_any($arr, $message=array(), $email = null, $nickname = array('nick' => '', 'first' => '', 'last' => ''), $subject = null, $contact = true, $prev_name = '', $invisible_fields = array()){
+
+	$visible_fields = apbct_visible_fields__process( Cookie::get( 'apbct_visible_fields' ) );
+	$visible_fields_arr = isset( $visible_fields['visible_fields'] ) ? explode( ' ', $visible_fields['visible_fields'] ) : array();
+
 	//Skip request if fields exists
 	$skip_params = array(
 	    'ipn_track_id', 	// PayPal IPN #
@@ -828,7 +831,12 @@ function ct_get_fields_any($arr, $message=array(), $email = null, $nickname = ar
 	if(count($arr)){
 		
 		foreach($arr as $key => $value){
-            
+
+			if( ! array_key_exists( $key, array_flip( $visible_fields_arr ) ) ) {
+				$invisible_fields[] = array( $key => $value );
+				continue;
+			}
+
             if( is_string( $value ) ){
                 
                 $tmp = strpos($value, '\\') !== false ? stripslashes($value) : $value;
@@ -900,14 +908,15 @@ function ct_get_fields_any($arr, $message=array(), $email = null, $nickname = ar
 					preg_match("/((name.?)?(last|family|second|sur)(.?name)?)/", $key, $match_surname);
 					preg_match("/(name.?)?(nick|user)(.?name)?/", $key, $match_nickname);
 					
-					if(count($match_forename) > 1)
+					if(count($match_forename) > 1) {
 						$nickname['first'] = $value;
-					elseif(count($match_surname) > 1)
+					} elseif(count($match_surname) > 1){
 						$nickname['last'] = $value;
-					elseif(count($match_nickname) > 1)
+					} elseif(count($match_nickname) > 1){
 						$nickname['nick'] = $value;
-					else
+					} else {
 						$message[$prev_name.$key] = $value;
+					}
 						
 				// Subject
 				}elseif ($subject === null && preg_match("/subject/i", $key)){
@@ -923,7 +932,7 @@ function ct_get_fields_any($arr, $message=array(), $email = null, $nickname = ar
 				$prev_name_original = $prev_name;
 				$prev_name = ($prev_name === '' ? $key.'_' : $prev_name.$key.'_');
 				
-				$temp = ct_get_fields_any($value, $message, $email, $nickname, $subject, $contact, $prev_name);
+				$temp = ct_get_fields_any($value, $message, $email, $nickname, $subject, $contact, $prev_name, $invisible_fields);
 				
 				$message 	= $temp['message'];
 				$email 		= ($temp['email'] 		? $temp['email'] : null);
@@ -959,7 +968,8 @@ function ct_get_fields_any($arr, $message=array(), $email = null, $nickname = ar
 		'nickname' 	=> $nickname,
 		'subject' 	=> $subject,
 		'contact' 	=> $contact,
-		'message' 	=> $message
+		'message' 	=> $message,
+	    'invisible_fields' => $invisible_fields,
 	);	
 	return $return_param;
 }
