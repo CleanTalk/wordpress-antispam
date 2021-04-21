@@ -419,6 +419,8 @@ function apbct_get_sender_info() {
 		'page_set_timestamp'     => Cookie::get( 'ct_ps_timestamp' )  ?: null,
 		'form_visible_inputs'    => !empty($visible_fields['visible_fields_count'])                ? $visible_fields['visible_fields_count']                           : null,
 		'apbct_visible_fields'   => !empty($visible_fields['visible_fields'])                      ? $visible_fields['visible_fields']                                 : null,
+		'form_invisible_inputs'  => !empty($visible_fields['invisible_fields_count'])              ? $visible_fields['invisible_fields_count']                         : null,
+		'apbct_invisible_fields' => !empty($visible_fields['invisible_fields'])                    ? $visible_fields['invisible_fields']                               : null,
 		// Misc
 		'site_referer'           => Cookie::get( 'apbct_site_referer' ) ?: null,
 		'source_url'             => Cookie::get( 'apbct_urls' )         ? json_encode( Cookie::get( 'apbct_urls' ) ) : null,
