@@ -3087,13 +3087,69 @@ function apbct_form__gravityForms__testSpam($is_spam, $form, $entry) {
         return $is_spam;
     }
 
-	$ct_temp = array();
-	foreach($entry as $key => $value){
-		if(is_numeric($key))
-			$ct_temp[$key]=$value;
-	} unset($key, $value);
+    $form_fields = (isset($form['fields'])) ? $form['fields'] : false;
+    $form_fields_for_ct = array();
+	$form_fields_intermediate = array();
+	$email = '';
+	$nickname = array();
 
-	$ct_temp_msg_data = ct_get_fields_any($ct_temp);
+    if($form_fields) {
+    	foreach ($form_fields as $field) {
+			$field_id = $field['id'];
+			$field_visibility = $field['visibility'];
+			$field_type = $field['type'];
+			$field_inputs = $field['inputs'];
+
+			if($field_inputs) {
+				foreach ($field_inputs as $input) {
+					$input_id = $input['id'];
+
+					if(isset($entry[$input_id]) && $entry[$input_id]) {
+						$form_fields_intermediate[] = array(
+							'f_name' => 'input_' . $input_id,
+							'f_visibility' => $field_visibility,
+							'f_type' => $field_type,
+							'f_data' => $entry[$input_id]
+						);
+						$form_fields_for_ct['input_' . $input_id] = $entry[$input_id];
+					}
+				}
+			} else {
+				if(isset($entry[$field_id]) && $entry[$field_id]) {
+					$form_fields_intermediate[] = array(
+						'f_name' => 'input_' . $field_id,
+						'f_visibility' => $field_visibility,
+						'f_type' => $field_type,
+						'f_data' => $entry[$field_id]
+					);
+					$form_fields_for_ct['input_' . $field_id] = $entry[$field_id];
+				}
+			}
+	    }
+    }
+
+	# Search nickname and email
+    if($form_fields_intermediate) {
+    	foreach ($form_fields_intermediate as $field) {
+    		if($field['f_type'] === 'email') {
+			    $email = $field['f_data'];
+		    }
+
+		    if($field['f_type'] === 'name') {
+			    $nickname[] = $field['f_data'];
+		    }
+	    }
+    }
+
+    if(!$form_fields_for_ct) {
+	    foreach($entry as $key => $value){
+		    if(is_numeric($key))
+			    $form_fields_for_ct[$key]=$value;
+	    } unset($key, $value);
+    }
+
+	$ct_temp_msg_data = ct_get_fields_any($form_fields_for_ct, array(), $email, $nickname);
+
     $sender_email    = ($ct_temp_msg_data['email']    ? $ct_temp_msg_data['email']    : '');
     $sender_nickname = ($ct_temp_msg_data['nickname'] ? $ct_temp_msg_data['nickname'] : '');
     $subject         = ($ct_temp_msg_data['subject']  ? $ct_temp_msg_data['subject']  : '');
