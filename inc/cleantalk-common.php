@@ -902,21 +902,27 @@ function ct_get_fields_any($arr, $message=array(), $email = null, $nickname = ar
                 $value = urldecode( trim( strip_shortcodes( $value ) ) ); // Fully cleaned message
 
 				// Names
-				}elseif (preg_match("/name/i", $key)){
-					if(in_array($key, $visible_fields_arr)) {
-						preg_match("/((name.?)?(your|first|for)(.?name)?)/", $key, $match_forename);
-						preg_match("/((name.?)?(last|family|second|sur)(.?name)?)/", $key, $match_surname);
-						preg_match("/(name.?)?(nick|user)(.?name)?/", $key, $match_nickname);
+				// if there is an visible fields array then we take the name from it,
+				//	ignoring the hidden fields with name
+				}elseif (
+					preg_match("/name/i", $key) !== false &&
+					(
+						empty($visible_fields_arr) ||
+						in_array($key, $visible_fields_arr)
+					)
+				) {
+					preg_match("/((name.?)?(your|first|for)(.?name)?)/", $key, $match_forename);
+					preg_match("/((name.?)?(last|family|second|sur)(.?name)?)/", $key, $match_surname);
+					preg_match("/(name.?)?(nick|user)(.?name)?/", $key, $match_nickname);
 
-						if(count($match_forename) > 1)
-							$nickname['first'] = $value;
-						elseif(count($match_surname) > 1)
-							$nickname['last'] = $value;
-						elseif(count($match_nickname) > 1)
-							$nickname['nick'] = $value;
-						else
-							$message[$prev_name.$key] = $value;
-					}
+					if(count($match_forename) > 1)
+						$nickname['first'] = $value;
+					elseif(count($match_surname) > 1)
+						$nickname['last'] = $value;
+					elseif(count($match_nickname) > 1)
+						$nickname['nick'] = $value;
+					else
+						$message[$prev_name.$key] = $value;
 				// Subject
 				}elseif ($subject === null && preg_match("/subject/i", $key)){
 					$subject = $value;
