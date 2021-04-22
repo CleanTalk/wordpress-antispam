@@ -3876,16 +3876,11 @@ function ct_enqueue_scripts_public($hook){
 	if(!defined('CLEANTALK_AJAX_USE_FOOTER_HEADER') || (defined('CLEANTALK_AJAX_USE_FOOTER_HEADER') && CLEANTALK_AJAX_USE_FOOTER_HEADER)){
 		if( ! apbct_is_in_uri('.xml') && ! apbct_is_in_uri('.xsl') && ! apbct_is_in_uri('jm-ajax') ){
 
-			// Use AJAX for JavaScript check
-			if($apbct->settings['data__use_ajax']){
-
-				wp_enqueue_script('ct_nocache',  plugins_url('/cleantalk-spam-protect/js/cleantalk_nocache.min.js'),  array(),         APBCT_VERSION, false /*in header*/);
-
-				wp_localize_script('ct_nocache', 'ctNocache', array(
-					'ajaxurl'                  => admin_url('admin-ajax.php'),
-					'info_flag'                => $apbct->settings['misc__collect_details'] && $apbct->settings['data__set_cookies'] ? true : false,
+			// Collect details about browsers
+			if($apbct->settings['misc__collect_details']){
+				wp_enqueue_script('ct_collect_details',  plugins_url('/cleantalk-spam-protect/js/cleantalk_collect_details.min.js'),  array(),         APBCT_VERSION, false /*in header*/);
+				wp_localize_script('ct_collect_details', 'ctCollectDetails', array(
 					'set_cookies_flag'         => $apbct->settings['data__set_cookies'] ? false : true,
-					'blog_home'                => get_home_url().'/',
 				));
 			}
 
