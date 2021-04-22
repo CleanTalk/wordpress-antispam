@@ -313,7 +313,7 @@ function apbct_public_sendREST( route, params ) {
 		},
 		success: function(result){
 			if(result.error){
-				alert('Error happens: ' + (result.error || 'Unknown'));
+				console.log('Error happens: ' + (result.error || 'Unknown'));
 			}else{
 				if(callback) {
 					var obj = null;
