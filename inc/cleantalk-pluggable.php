@@ -471,6 +471,12 @@ function apbct_is_skip_request( $ajax = false ) {
 	        {
 		        return 'Avada_theme_saving_settings';
 	        }
+	        // Formidable skip - this is the durect integration
+	        if ( apbct_is_plugin_active( 'formidable/formidable.php' ) &&
+	             Post::get( 'action' ) === 'frm_entries_update' )
+	        {
+		        return 'formidable_skip';
+	        }
             break;
 
         case false :
