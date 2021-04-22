@@ -3,11 +3,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-<<<<<<< HEAD
   Version: 5.156.300
-=======
-  Version: 5.156.200
->>>>>>> 96c65795d699ef15c78d34e3ffc1ea62a5f123ba
   Author: СleanTalk <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
