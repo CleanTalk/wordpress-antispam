@@ -3874,31 +3874,29 @@ function ct_enqueue_scripts_public($hook){
 	}
 
 	if(!defined('CLEANTALK_AJAX_USE_FOOTER_HEADER') || (defined('CLEANTALK_AJAX_USE_FOOTER_HEADER') && CLEANTALK_AJAX_USE_FOOTER_HEADER)){
-		if($apbct->settings['data__use_ajax'] && ! apbct_is_in_uri('.xml') && ! apbct_is_in_uri('.xsl')){
-			if( ! apbct_is_in_uri('jm-ajax') ){
+		if( ! apbct_is_in_uri('.xml') && ! apbct_is_in_uri('.xsl') && ! apbct_is_in_uri('jm-ajax') ){
 
-				// Use AJAX for JavaScript check
-				if($apbct->settings['data__use_ajax']){
+			// Use AJAX for JavaScript check
+			if($apbct->settings['data__use_ajax']){
 
-					wp_enqueue_script('ct_nocache',  plugins_url('/cleantalk-spam-protect/js/cleantalk_nocache.min.js'),  array(),         APBCT_VERSION, false /*in header*/);
+				wp_enqueue_script('ct_nocache',  plugins_url('/cleantalk-spam-protect/js/cleantalk_nocache.min.js'),  array(),         APBCT_VERSION, false /*in header*/);
 
-					wp_localize_script('ct_nocache', 'ctNocache', array(
-						'ajaxurl'                  => admin_url('admin-ajax.php'),
-						'info_flag'                => $apbct->settings['misc__collect_details'] && $apbct->settings['data__set_cookies'] ? true : false,
-						'set_cookies_flag'         => $apbct->settings['data__set_cookies'] ? false : true,
-						'blog_home'                => get_home_url().'/',
-					));
-				}
-
-				// External forms check
-				if($apbct->settings['forms__check_external'])
-					wp_enqueue_script('ct_external',  plugins_url('/cleantalk-spam-protect/js/cleantalk_external.min.js'), array('jquery'), APBCT_VERSION, false /*in header*/);
-
-				// Internal forms check
-				if($apbct->settings['forms__check_internal'])
-					wp_enqueue_script('ct_internal',  plugins_url('/cleantalk-spam-protect/js/cleantalk_internal.min.js'), array('jquery'), APBCT_VERSION, false /*in header*/);
-
+				wp_localize_script('ct_nocache', 'ctNocache', array(
+					'ajaxurl'                  => admin_url('admin-ajax.php'),
+					'info_flag'                => $apbct->settings['misc__collect_details'] && $apbct->settings['data__set_cookies'] ? true : false,
+					'set_cookies_flag'         => $apbct->settings['data__set_cookies'] ? false : true,
+					'blog_home'                => get_home_url().'/',
+				));
 			}
+
+			// External forms check
+			if($apbct->settings['forms__check_external'])
+				wp_enqueue_script('ct_external',  plugins_url('/cleantalk-spam-protect/js/cleantalk_external.min.js'), array('jquery'), APBCT_VERSION, false /*in header*/);
+
+			// Internal forms check
+			if($apbct->settings['forms__check_internal'])
+				wp_enqueue_script('ct_internal',  plugins_url('/cleantalk-spam-protect/js/cleantalk_internal.min.js'), array('jquery'), APBCT_VERSION, false /*in header*/);
+
 		}
 	}
 
