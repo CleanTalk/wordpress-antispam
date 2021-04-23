@@ -199,9 +199,10 @@ function apbct_settings__set_fileds( $fields ){
 					'reverse_trigger' => true,
 				),
 				'forms__wc_add_to_cart' => array(
-					'title'           => __('Check when adding an item to the cart', 'cleantalk-spam-protect'),
-					'description'     => __('Spam check when adding a good to the cart by an anonymous user.', 'cleantalk-spam-protect'),
+					'title'           => __('Check anonymous users when they add new items to the cart', 'cleantalk-spam-protect'),
+					'description'     => __('All anonymous users will be checked for spam if they add a new item to their shopping cart.', 'cleantalk-spam-protect'),
 					'reverse_trigger' => false,
+					'class'           => 'apbct_settings-field_wrapper--sub',
 					'options' => array(
 						array( 'val' => 1, 'label' => __( 'On' ) ),
 						array( 'val' => 0, 'label' => __( 'Off' ) ),
