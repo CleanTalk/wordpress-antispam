@@ -198,6 +198,15 @@ function apbct_settings__set_fileds( $fields ){
 					'class'           => 'apbct_settings-field_wrapper--sub',
 					'reverse_trigger' => true,
 				),
+				'forms__wc_add_to_cart' => array(
+					'title'           => __('Check when adding an item to the cart', 'cleantalk-spam-protect'),
+					'description'     => __('When adding a product by an un-logged user, the user is checked by the plugin.', 'cleantalk-spam-protect'),
+					'reverse_trigger' => false,
+					'options' => array(
+						array( 'val' => 1, 'label' => __( 'On' ) ),
+						array( 'val' => 0, 'label' => __( 'Off' ) ),
+					),
+				),
 			),
 		),
 		

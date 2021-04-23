@@ -135,6 +135,11 @@ function apbct_init() {
         if( isset($_REQUEST['wc-ajax']) && $_REQUEST['wc-ajax'] == 'checkout' && empty( $apbct->settings['forms__wc_register_from_order'] ) ){
             remove_filter( 'woocommerce_registration_errors', 'ct_registration_errors', 1 );
         }
+
+	    //Woocommerce public functions
+	    if(! apbct_is_user_logged_in() && $apbct->settings['forms__wc_add_to_cart']) {
+		    require_once( CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-wc.php' );
+	    }
     }
 
 	// WooCommerce whishlist
