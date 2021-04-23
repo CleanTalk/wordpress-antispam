@@ -1,5 +1,7 @@
 <?php
 
+use Cleantalk\Variables\Server;
+
 /**
  * Init functions
  * @return 	mixed[] Array of options
@@ -136,10 +138,8 @@ function apbct_init() {
             remove_filter( 'woocommerce_registration_errors', 'ct_registration_errors', 1 );
         }
 
-	    //Woocommerce public functions
-	    if(! apbct_is_user_logged_in() && $apbct->settings['forms__wc_add_to_cart']) {
-		    require_once( CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-wc.php' );
-	    }
+	    //Woocommerce add_to_cart action
+        add_action( 'woocommerce_add_to_cart', 'apbct_wc__add_to_cart_unlogged_user', 10, 6 );
     }
 
 	// WooCommerce whishlist
@@ -848,6 +848,62 @@ function ct_woocommerce_checkout_check() {
 			'refresh' => 'false',
 			'reload' => 'false'
 		));
+    }
+}
+
+/**
+ * Triggered when adding an item to the shopping cart
+ * for un-logged users
+ *
+ * @param $cart_item_key
+ * @param $product_id
+ * @param $quantity
+ * @param $variation_id
+ * @param $variation
+ * @param $cart_item_data
+ * @return void
+ */
+
+function apbct_wc__add_to_cart_unlogged_user($cart_item_key, $product_id, $quantity, $variation_id, $variation, $cart_item_data) {
+    global $apbct;
+
+    if(! apbct_is_user_logged_in() && $apbct->settings['forms__wc_add_to_cart']) {
+        /**
+         * Getting request params
+         * POST contains an array of product information
+         * Example: Array
+         *(
+         *    [product_sku] => woo-beanie
+         *    [product_id] => 15
+         *    [quantity] => 1
+         *)
+         */
+        $message = $_POST ?: array();
+
+        $post_info['comment_type'] = 'order__add_to_cart';
+        $post_info['post_url'] = Server::get('HTTP_REFERER');
+
+        //Making a call
+        $base_call_result = apbct_base_call(
+            array(
+                'message' => $message,
+                'post_info' => $post_info,
+                'js_on' => apbct_js_test('ct_checkjs', $_COOKIE),
+                'sender_info' => array('sender_url' => null),
+            )
+        );
+
+        $ct_result = $base_call_result['ct_result'];
+
+        if ($ct_result->allow == 0) {
+            wp_send_json(array(
+                'result' => 'failure',
+                'messages' => "<ul class=\"woocommerce-error\"><li>" . $ct_result->comment . "</li></ul>",
+                'refresh' => 'false',
+                'reload' => 'false',
+                'response_type' => 'wc_add_to_cart_block'
+            ));
+        }
     }
 }
 
