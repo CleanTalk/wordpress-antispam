@@ -810,6 +810,7 @@ class Helper
      * @param string $samesite
      *
      * @return void
+     * @deprecated
      */
     public static function apbct_cookie__set ($name, $value = '', $expires = 0, $path = '', $domain = null, $secure = false, $httponly = false, $samesite = 'Lax' ) {
 
