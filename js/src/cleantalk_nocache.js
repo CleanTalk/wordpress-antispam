@@ -65,12 +65,16 @@ function ct_getCookie(name) {
 function ct_setCookie(name, value)
 {
     if (ctNocache.set_cookies_flag) {
-        document.cookie = name+" =; expires=Thu, 01 Jan 1970 00:00:01 GMT; path = /; samesite=lax";
-        document.cookie = name+" =; expires=Thu, 01 Jan 1970 00:00:01 GMT; samesite=lax";
+		var ctSecure = location.protocol === 'https:' ? '; secure' : '';
+        document.cookie = name+" =; expires=Thu, 01 Jan 1970 00:00:01 GMT; path = /; samesite=lax" + ctSecure;
+        document.cookie = name+" =; expires=Thu, 01 Jan 1970 00:00:01 GMT; samesite=lax" + ctSecure;
         
         var date = new Date;
         date.setDate(date.getDate() + 1);
-        setTimeout(function() { document.cookie = name+"=" + value + "; expires=" + date.toUTCString() + "; path = /; samesite=lax"}, 500);
+        setTimeout(function() {
+			var ctSecure = location.protocol === 'https:' ? '; secure' : '';
+        	document.cookie = name+"=" + value + "; expires=" + date.toUTCString() + "; path = /; samesite=lax" + ctSecure;
+		}, 500);
     }
 
     return null;

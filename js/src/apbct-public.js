@@ -146,7 +146,8 @@ function ctSetCookie(c_name, value) {
 
 	// Using traditional cookies
 	}else{
-		document.cookie = c_name + "=" + encodeURIComponent(value) + "; path=/; samesite=lax";
+		var ctSecure = location.protocol === 'https:' ? '; secure' : '';
+		document.cookie = c_name + "=" + encodeURIComponent(value) + "; path=/; samesite=lax" + ctSecure;
 	}
 }
 
