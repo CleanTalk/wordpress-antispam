@@ -540,7 +540,7 @@ class Helper
 	 *
 	 * @return array|bool (array || array('error' => true))
 	 */
-	static public function http__request($url, $data = array(), $presets = null, $opts = array())
+	public static function http__request($url, $data = array(), $presets = array(), $opts = array())
 	{
 		if(function_exists('curl_init')){
 			
@@ -615,19 +615,20 @@ class Helper
 				}
 				
 			}
-			unset($preset);
 			
 			curl_setopt_array($ch, $opts);
 			$result = curl_exec($ch);
 			
 			// RETURN if async request
-			if(in_array('async', $presets))
-				return true;
-			
+			if( in_array( 'async', $presets, true ) ){
+                return true;
+            }
+            
 			if( $result && ! curl_error($ch) ){
-				
-				if(strpos($result, PHP_EOL) !== false && !in_array('dont_split_to_array', $presets))
-					$result = explode(PHP_EOL, $result);
+                
+                if( strpos( $result, PHP_EOL ) !== false && ! in_array( 'dont_split_to_array', $presets ) ){
+                    $result = explode( PHP_EOL, $result );
+                }
 				
 				// Get code crossPHP method
 				if(in_array('get_code', $presets)){
@@ -644,8 +645,8 @@ class Helper
 		/**
 		 * Getting HTTP-response code without cURL
 		 */
-		if($presets && ($presets == 'get_code' || (is_array($presets) && in_array('get_code', $presets)))
-			&& isset($out['error']) && $out['error'] == 'CURL_NOT_INSTALLED'
+        if( in_array( 'get_code', $presets, true ) &&
+            isset( $out['error'] ) && $out['error'] == 'CURL_NOT_INSTALLED'
 		){
 			$headers = get_headers($url);
 			$out = (int)preg_replace('/.*(\d{3}).*/', '$1', $headers[0]);
