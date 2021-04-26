@@ -86,7 +86,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
                 if( Cookie::get( 'ct_sfw_passed' ) ){
 
                     if( ! headers_sent() ){
-                        \Cleantalk\Common\Helper::apbct_cookie__set( 'ct_sfw_passed', '0', time() + 86400 * 3, '/', null, false, true, 'Lax' );
+                        Cookie::set( 'ct_sfw_passed', '0', time() + 86400 * 3, '/', null, true, 'Lax' );
                     } else {
                         $results[] = array( 'ip' => $current_ip, 'is_personal' => false, 'status' => 'PASS_SFW__BY_COOKIE', );
                     }
@@ -201,7 +201,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 		if( $this->set_cookies &&  ! headers_sent() ) {
 		    $status = $result['status'] == 'PASS_SFW__BY_WHITELIST' ? '1' : '0';
             $cookie_val = md5( $result['ip'] . $this->api_key ) . $status;
-            \Cleantalk\ApbctWP\Helper::apbct_cookie__set( 'ct_sfw_pass_key', $cookie_val, time() + 86400 * 30, '/', null, false );
+			Cookie::set( 'ct_sfw_pass_key', $cookie_val, time() + 86400 * 30, '/', null, false );
         }
 	}
 	
