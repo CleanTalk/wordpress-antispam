@@ -599,6 +599,8 @@ function apbct_activation( $network = false ) {
 	
 	// Additional options
 	add_option( 'ct_plugin_do_activation_redirect', true );
+	global $user;
+    apbct_add_admin_ip_to_swf_whitelist( $user->user_login, $user );
 
 }
 
@@ -644,7 +646,7 @@ function apbct_activation__new_blog($blog_id, $user_id, $domain, $path, $site_id
 		Cron::addTask('send_connection_report','ct_mail_send_connection_report', 86400, time() + 3500); // Send connection report to welcome@cleantalk.org
 	    Cron::addTask('antiflood__clear_table',  'apbct_antiflood__clear_table',        86400,    time() + 300); // Clear Anti-Flood table
 		apbct_activation__create_tables($sqls);
-        apbct_sfw_update__init(); // Updating SFW
+        apbct_sfw_update__init( 3 ); // Updating SFW
 		ct_account_status_check(null, false);
 
 		if (isset($settings['multisite__use_settings_template_apply_for_new']) && $settings['multisite__use_settings_template_apply_for_new'] == 1) {

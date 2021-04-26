@@ -66,7 +66,7 @@ $ct_negative_comment = null;
 $ct_server = NULL;
 $admin_email = NULL;
 
-add_action( 'wp_login', 'apbct_wp_login', 10, 2 );
+add_action( 'wp_login', 'apbct_add_admin_ip_to_swf_whitelist', 10, 2 );
 
 /**
  * Public action 'plugins_loaded' - Loads locale, see http://codex.wordpress.org/Function_Reference/load_plugin_textdomain
@@ -1099,42 +1099,43 @@ function apbct_add_async_attribute($tag, $handle, $src) {
     return $tag;
 }
 
-function apbct_wp_login( $user_login, $user ) {
+function apbct_add_admin_ip_to_swf_whitelist( $user_login, $user ) {
 
 	global $apbct;
 
-	// Break if the SpamFireWall is inactive
-	if( $apbct->settings['sfw__enabled'] != 1 &&
-	    ! apbct_is_get() &&
-	    apbct_wp_doing_cron()
-	){
-		return;
-	}
-
 	$ip = Helper::ip__get( 'real', true );
-
-	if( Cookie::get( 'ct_sfw_ip_wl' ) && Cookie::get( 'ct_sfw_ip_wl' ) === md5( $ip . $apbct->api_key ) ) {
-		return;
-	}
-
-	if( in_array( 'administrator', (array) $user->roles ) ) {
-		$res = apbct_private_list_add( $ip );
-		if( $res ) {
-			if( ! headers_sent() ) {
-				$cookie_val = md5( $ip . $apbct->api_key );
-				\Cleantalk\Common\Helper::apbct_cookie__set( 'ct_sfw_ip_wl', $cookie_val, time() + 86400 * 30, '/', null, false, true, 'Lax' );
-			}
-            apbct_sfw_update__init();
-		}
-	}
+	
+	if(
+        $apbct->settings['sfw__enabled'] && // Break if the SpamFireWall is inactive
+        Server::isGet() &&
+        ! apbct_wp_doing_cron() &&
+        in_array( 'administrator', (array) $user->roles, true ) &&
+        Cookie::get( 'ct_sfw_ip_wl' ) && Cookie::get( 'ct_sfw_ip_wl' ) !== md5( $ip . $apbct->api_key ) &&
+        apbct_private_list_add( $ip ) &&
+        ! headers_sent()
+    ) {
+            \Cleantalk\Common\Helper::apbct_cookie__set(
+                'ct_sfw_ip_wl',
+                md5( $ip . $apbct->api_key ),
+                time() + 86400 * 30,
+                '/',
+                null,
+                false,
+                true,
+                'Lax'
+            );
+    }
 
 }
 
-function apbct_private_list_add( $ip ) {
-	global $apbct;
-	if( Helper::ip__validate( $ip ) !== false ) {
-		$res = API::method__private_list_add__sfw_wl( $apbct->data['user_token'], $ip, $apbct->data['service_id'] );
-		return isset( $res['records'][0]['operation_status'] ) && $res['records'][0]['operation_status'] === 'SUCCESS';
-	}
-	return false;
+function apbct_private_list_add( $ip ){
+    
+    global $apbct;
+    
+    if( Helper::ip__validate( $ip ) ){
+        $result = API::method__private_list_add__sfw_wl( $apbct->data['user_token'], $ip, $apbct->data['service_id'] );
+        return empty( $result['error'] );
+    }
+    
+    return false;
 }
