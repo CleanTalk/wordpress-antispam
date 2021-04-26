@@ -905,6 +905,15 @@ function apbct_update_to_5_156_0(){
     $apbct->remote_calls['debug_sfw'] = array( 'last_call' => 0, 'cooldown' => 0 );
     $apbct->save('remote_calls');
     
-    Cron::updateTask('sfw_update', 'apbct_sfw_update__init',   86400, rand( 0, 86400 ) );
+    Cron::updateTask('sfw_update', 'apbct_sfw_update__init',   86400, time() + 42300 );
+    
+}
+
+function apbct_update_to_5_157_0(){
+    
+    global $apbct;
+    
+    $apbct->remote_calls['sfw_update__worker'] = array( 'last_call' => 0, 'cooldown' => 0 );
+    $apbct->save('remote_calls');
     
 }
