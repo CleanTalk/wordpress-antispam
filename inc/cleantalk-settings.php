@@ -1577,7 +1577,7 @@ function apbct_settings__sync( $direct_call = false ){
                 delete_option( 'sfw_update_first' );
             }
 			
-			$result = apbct_sfw_update__init( $apbct->settings['apikey'] );
+			$result = apbct_sfw_update__init( 5 );
 			if( ! empty( $result['error'] ) )
 				$apbct->error_add( 'sfw_update', $result['error'] );
 			

@@ -247,6 +247,7 @@ class State
         
         // Firewall
         'sfw_update'         => array( 'last_call' => 0, 'cooldown' => 0 ),
+        'sfw_update__worker' => array( 'last_call' => 0, 'cooldown' => 0 ),
         'sfw_send_logs'      => array( 'last_call' => 0, 'cooldown' => 0 ),
         
         // Installation
