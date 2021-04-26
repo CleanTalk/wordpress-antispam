@@ -178,11 +178,16 @@ class RemoteCalls
         $out['fw_stats'] = $apbct->fw_stats;
         $out['data'] = $apbct->data;
         $out['cron'] = $apbct->cron;
+        $out['errors'] = $apbct->errors;
         
-        // @todo make automatic replacement for timestamp to date
+        array_walk( $out, function(&$val, $key){
+            $val = (array) $val;
+        });
+        
         array_walk_recursive( $out, function(&$val, $key){
-            if( is_string( $val ) && preg_match( '@^\d{9,11}$@', $val ) && preg_match( '@time@', $key ) )
+            if( is_int( $val ) && preg_match( '@^\d{9,11}$@', $val ) ){
                 $val = date( 'Y-m-d H:i:s', $val );
+            }
         });
         
         if( APBCT_WPMS ){
