@@ -794,48 +794,6 @@ class Helper
 	{
 		return is_string($string) && is_array(json_decode($string, true)) ? true : false;
 	}
-
-    /**
-     * Universal method to adding cookies
-     * Wrapper for setcookie() Conisdering PHP version
-     *
-     * @see https://www.php.net/manual/ru/function.setcookie.php
-     *
-     * @param string $name     Cookie name
-     * @param string $value    Cookie value
-     * @param int    $expires  Expiration timestamp. 0 - expiration with session
-     * @param string $path
-     * @param null   $domain
-     * @param bool   $secure
-     * @param bool   $httponly
-     * @param string $samesite
-     *
-     * @return void
-     */
-    public static function apbct_cookie__set ($name, $value = '', $expires = 0, $path = '', $domain = null, $secure = false, $httponly = false, $samesite = 'Lax' ) {
-
-        // For PHP 7.3+ and above
-        if( version_compare( phpversion(), '7.3.0', '>=' ) ){
-
-            $params = array(
-                'expires'  => $expires,
-                'path'     => $path,
-                'domain'   => $domain,
-                'secure'   => $secure,
-                'httponly' => $httponly,
-            );
-
-            if($samesite)
-                $params['samesite'] = $samesite;
-
-            setcookie( $name, $value, $params );
-
-            // For PHP 5.6 - 7.2
-        }else {
-            setcookie( $name, $value, $expires, $path, $domain, $secure, $httponly );
-        }
-
-    }
 	
 	public static function time__get_interval_start( $interval = 300 ){
 		return time() - ( ( time() - strtotime( date( 'd F Y' ) ) ) % $interval );

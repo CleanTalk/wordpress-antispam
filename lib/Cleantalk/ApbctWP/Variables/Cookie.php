@@ -35,4 +35,46 @@ class Cookie extends \Cleantalk\Variables\Cookie {
         return $value;
     }
     
+    /**
+     * Universal method to adding cookies
+     * Wrapper for setcookie() Conisdering PHP version
+     *
+     * @see https://www.php.net/manual/ru/function.setcookie.php
+     *
+     * @param string $name     Cookie name
+     * @param string $value    Cookie value
+     * @param int    $expires  Expiration timestamp. 0 - expiration with session
+     * @param string $path
+     * @param null   $domain
+     * @param bool   $secure
+     * @param bool   $httponly
+     * @param string $samesite
+     *
+     * @return void
+     */
+    public static function set ($name, $value = '', $expires = 0, $path = '', $domain = null, $secure = false, $httponly = false, $samesite = 'Lax' ) {
+        
+        // For PHP 7.3+ and above
+        if( version_compare( phpversion(), '7.3.0', '>=' ) ){
+            
+            $params = array(
+                'expires'  => $expires,
+                'path'     => $path,
+                'domain'   => $domain,
+                'secure'   => $secure,
+                'httponly' => $httponly,
+            );
+            
+            if($samesite)
+                $params['samesite'] = $samesite;
+            
+            setcookie( $name, $value, $params );
+            
+            // For PHP 5.6 - 7.2
+        }else {
+            setcookie( $name, $value, $expires, $path, $domain, $secure, $httponly );
+        }
+        
+    }
+    
 }
