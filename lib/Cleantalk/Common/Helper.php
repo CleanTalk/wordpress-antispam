@@ -790,9 +790,9 @@ class Helper
 	 *
 	 * @return bool
 	 */
-	public static function is_json($string)
-	{
-		return is_string($string) && is_array(json_decode($string, true)) ? true : false;
+	public static function is_json($string){
+	    
+        return is_string( $string ) && is_array( json_decode( $string, true ) );
 	}
 	
 	public static function time__get_interval_start( $interval = 300 ){
