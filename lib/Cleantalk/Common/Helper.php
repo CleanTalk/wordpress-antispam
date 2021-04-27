@@ -299,7 +299,7 @@ class Helper
 	 *
 	 * @return bool
 	 */
-	static public function ip__mask_match($ip, $cidr, $ip_type = 'v4', $xtet_count = 0)
+	public static function ip__mask_match($ip, $cidr, $ip_type = 'v4', $xtet_count = 0)
 	{
 
 		if(is_array($cidr)){
@@ -375,7 +375,7 @@ class Helper
 	 *
 	 * @return string|bool
 	 */
-	static public function ip__validate($ip)
+	public static function ip__validate($ip)
 	{
 		if(!$ip) return false; // NULL || FALSE || '' || so on...
 		if(filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) && $ip != '0.0.0.0') return 'v4';  // IPv4
@@ -402,7 +402,7 @@ class Helper
 	 *
 	 * @return string IPv6
 	 */
-	static public function ip__v6_normalize($ip)
+	public static function ip__v6_normalize($ip)
 	{
 		$ip = trim($ip);
 		// Searching for ::ffff:xx.xx.xx.xx patterns and turn it to IPv6
@@ -430,7 +430,7 @@ class Helper
 	 *
 	 * @return string IPv6
 	 */
-	static public function ip__v6_reduce($ip)
+	public static function ip__v6_reduce($ip)
 	{
 		if(strpos($ip, ':') !== false){
 			$ip = preg_replace('/:0{1,4}/', ':', $ip);
@@ -447,7 +447,7 @@ class Helper
 	 *
 	 * @return false|int|string
 	 */
-	static public function ip__is_cleantalks($ip)
+	public static function ip__is_cleantalks($ip)
 	{
 		if(self::ip__validate($ip)){
 			$url = array_search($ip, self::$cleantalks_servers);
@@ -465,7 +465,7 @@ class Helper
 	 *
 	 * @return false|int|string
 	 */
-	static public function ip__resolve__cleantalks($ip)
+	public static function ip__resolve__cleantalks($ip)
 	{
 		if(self::ip__validate($ip)){
 			$url = array_search($ip, self::$cleantalks_servers);
@@ -501,7 +501,7 @@ class Helper
 	 *
 	 * @return bool
 	 */
-	static public function dns__resolve($host, $out = false)
+	public static function dns__resolve($host, $out = false)
 	{
 		
 		// Get DNS records about URL
@@ -790,7 +790,7 @@ class Helper
 	 *
 	 * @return bool
 	 */
-	static public function is_json($string)
+	public static function is_json($string)
 	{
 		return is_string($string) && is_array(json_decode($string, true)) ? true : false;
 	}
@@ -846,7 +846,7 @@ class Helper
 	 *
 	 * @return false|string
 	 */
-	static public function buffer__csv__pop_line( &$csv ){
+	public static function buffer__csv__pop_line( &$csv ){
 		$pos  = strpos( $csv, "\n" );
 		$line = substr( $csv, 0, $pos );
 		$csv  = substr_replace( $csv, '', 0, $pos + 1 );
@@ -861,7 +861,7 @@ class Helper
 	 *
 	 * @return array|false
 	 */
-	static public function buffer__csv__get_map( &$csv ){
+	public static function buffer__csv__get_map( &$csv ){
 		$line = static::buffer__csv__pop_line( $csv );
 		return explode( ',', $line );
 	}
@@ -874,7 +874,7 @@ class Helper
 	 *
 	 * @return array|false
 	 */
-	static public function buffer__csv__pop_line_to_array( &$csv, $map = array() ){
+	public static function buffer__csv__pop_line_to_array( &$csv, $map = array() ){
 		$line = trim( static::buffer__csv__pop_line( $csv ) );
 		$line = strpos( $line, '\'' ) === 0
 			? str_getcsv($line, ',', '\'')

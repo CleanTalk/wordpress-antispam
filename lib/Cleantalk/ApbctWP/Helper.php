@@ -35,7 +35,7 @@ class Helper extends \Cleantalk\Common\Helper
 	 *
 	 * @return array|bool (array || array('error' => true))
 	 */
-	static public function http__request($url, $data = array(), $presets = null, $opts = array())
+	public static function http__request($url, $data = array(), $presets = null, $opts = array())
 	{
 		// Set APBCT User-Agent and passing data to parent method
 		$opts = self::array_merge__save_numeric_keys(
@@ -56,7 +56,7 @@ class Helper extends \Cleantalk\Common\Helper
 	 *
 	 * @return array|mixed|string
 	 */
-	static public function http__request__get_response_code( $url ){
+	public static function http__request__get_response_code( $url ){
 		return static::http__request( $url, array(), 'get_code');
 	}
 	
@@ -68,7 +68,7 @@ class Helper extends \Cleantalk\Common\Helper
 	 *
 	 * @return array|mixed|string
 	 */
-	static public function http__request__get_content( $url ){
+	public static function http__request__get_content( $url ){
 		return static::http__request( $url, array(), 'get dont_split_to_array');
 	}
     
