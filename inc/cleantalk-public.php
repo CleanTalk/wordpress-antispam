@@ -3534,7 +3534,13 @@ function ct_contact_form_validate() {
         \Cleantalk\Variables\Post::get('action') === 'frm_get_lookup_text_value' || // Exception for Formidable multilevel form
         ( isset( $_POST['ihcaction'] ) && $_POST['ihcaction'] == 'reset_pass') || //Reset pass exclusion
         ( isset( $_POST['action'],  $_POST['register_unspecified_nonce_field'] ) && $_POST['action'] == 'register' ) || // Profile Builder have a direct integration
-        ( isset( $_POST['_wpmem_register_nonce'] ) && wp_verify_nonce( $_POST['_wpmem_register_nonce'], 'wpmem_longform_nonce' ) ) // WP Members have a direct integration
+        ( isset( $_POST['_wpmem_register_nonce'] ) && wp_verify_nonce( $_POST['_wpmem_register_nonce'], 'wpmem_longform_nonce' ) ) || // WP Members have a direct integration
+        apbct_is_in_uri('/settings/') && isset($_POST['submit'])                || // Buddypress integration
+        apbct_is_in_uri('/settings/notifications/') && isset($_POST['submit'])  || // Buddypress integration
+        apbct_is_in_uri('/settings/profile/') && isset($_POST['submit'])        || // Buddypress integration
+        apbct_is_in_uri('/settings/data/') && isset($_POST['submit'])           || // Buddypress integration
+        apbct_is_in_uri('/settings/delete-account/') && isset($_POST['submit']) || // Buddypress integration
+        apbct_is_in_uri('/profile/') && isset($_POST['submit'])                    // Buddypress integration
         /* !! Do not add actions here. Use apbct_is_skip_request() function below !! */
 		) {
         do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
