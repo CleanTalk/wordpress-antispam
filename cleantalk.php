@@ -1729,38 +1729,6 @@ function apbct_store__urls(){
 	}
 }
 
-/**
- * Universal method to adding cookies.
- * Use \Cleantalk\Common\Helper::apbct_cookie__set() instead.
- * @deprecated
- */
-function apbct_cookie__set($name, $value = '', $expires = 0, $path = '', $domain = null, $secure = false, $httponly = false, $samesite = 'Lax' ){
-	
-	// For PHP 7.3+ and above
-	if( version_compare( phpversion(), '7.3.0', '>=' ) ){
-		
-		$params = array(
-			'expires'  => $expires,
-			'path'     => $path,
-			'domain'   => $domain,
-			'secure'   => $secure,
-			'httponly' => $httponly,
-		);
-		
-		if($samesite)
-			$params['samesite'] = $samesite;
-		
-		setcookie( $name, $value, $params );
-		
-	// For PHP 5.6 - 7.2
-	}else {
-        if($samesite)
-            $path = $path . '; samesite=' . $samesite;
-        setcookie( $name, $value, $expires, $path, $domain, $secure, $httponly );
-    }
-
-}
-
 /*
  * Set Cookies test for cookie test
  * Sets cookies with pararms timestamp && landing_timestamp && pervious_referer
