@@ -201,7 +201,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 		if( $this->data__set_cookies == 1 && ! headers_sent() ) {
 		    $status = $result['status'] == 'PASS_SFW__BY_WHITELIST' ? '1' : '0';
             $cookie_val = md5( $result['ip'] . $this->api_key ) . $status;
-            \Cleantalk\ApbctWP\Helper::apbct_cookie__set( 'ct_sfw_pass_key', $cookie_val, time() + 86400 * 30, '/', null, false );
+            \Cleantalk\ApbctWP\Variables\Cookie::setNativeCookie( 'ct_sfw_pass_key', $cookie_val, time() + 86400 * 30, '/', null, false );
         }
 	}
 	

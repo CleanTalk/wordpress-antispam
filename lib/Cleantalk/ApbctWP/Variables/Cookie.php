@@ -7,7 +7,7 @@ use Cleantalk\ApbctWP\Helper;
 
 class Cookie extends \Cleantalk\Variables\Cookie {
     
-    public static function get( $name, $raw = false ){
+    public static function get( $name, $default = '', $raw = false ){
     
         global $apbct;
         
@@ -42,10 +42,10 @@ class Cookie extends \Cleantalk\Variables\Cookie {
         // Decoding by default
         if( ! $raw ){
             $value = urldecode( $value ); // URL decode
-            $value = Helper::is_json( $value ) ? \GuzzleHttp\json_decode( $value, true ) : $value; // JSON decode
+            $value = Helper::is_json( $value ) ? json_decode( $value, true ) : $value; // JSON decode
         }
         
-        return $value;
+        return ! $value ? $default : $value;
     }
     
     /**

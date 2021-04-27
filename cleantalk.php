@@ -1605,7 +1605,7 @@ function apbct_store__urls(){
 		$current_url = $current_url ? substr($current_url, 0,256) : 'UNKNOWN';
 		
 		// Get already stored URLs
-		$urls = \Cleantalk\ApbctWP\Variables\Cookie::get( 'apbct_urls');
+		$urls = \Cleantalk\ApbctWP\Variables\Cookie::get( 'apbct_urls', array() );
 		$urls[$current_url][] = time();
 		
 		// Rotating. Saving only latest 10
