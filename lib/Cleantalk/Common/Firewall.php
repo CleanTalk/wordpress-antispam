@@ -218,7 +218,7 @@ class Firewall
                     ) {
 	                    if( ! headers_sent() ) {
 		                    $cookie_val = md5( $fw_result['ip'] . $apbct->api_key );
-		                    \Cleantalk\Common\Helper::apbct_cookie__set( 'ct_sfw_ip_wl', $cookie_val, time() + 86400 * 30, '/', null, false, true, 'Lax' );
+		                    \Cleantalk\ApbctWP\Variables\Cookie::set( 'ct_sfw_ip_wl', $cookie_val, time() + 86400 * 30, '/', null, false, true, 'Lax' );
 	                    }
                         return true;
                     }

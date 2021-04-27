@@ -1114,7 +1114,7 @@ function apbct_add_admin_ip_to_swf_whitelist( $user_login, $user ) {
         apbct_private_list_add( $ip ) &&
         ! headers_sent()
     ) {
-            \Cleantalk\Common\Helper::apbct_cookie__set(
+            \Cleantalk\ApbctWP\Variables\Cookie::set(
                 'ct_sfw_ip_wl',
                 md5( $ip . $apbct->api_key ),
                 time() + 86400 * 30,
