@@ -1533,12 +1533,8 @@ function apbct_settings__validate($settings) {
 	}
 
 	// Alt sessions table clearing
-    if( empty( $settings['data__set_cookies__sessions'] ) ) {
-        if( empty( $settings['misc__store_urls__sessions'] ) ) {
-            apbct_alt_sessions__clear();
-        } else {
-            apbct_alt_sessions__clear( false );
-        }
+    if( ! $settings['data__set_cookies__sessions'] ) {
+        \Cleantalk\ApbctWP\Variables\AltSessions::wipe();
     }
 	
 	return $settings;

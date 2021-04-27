@@ -22,6 +22,7 @@ use Cleantalk\ApbctWP\RemoteCalls;
 use Cleantalk\ApbctWP\RestController;
 use Cleantalk\Common\Schema;
 use Cleantalk\Variables\Get;
+use Cleantalk\Variables\Server;
 
 $cleantalk_executed = false;
 
@@ -1577,95 +1578,9 @@ function apbct__hook__wp_logout__delete_trial_notice_cookie(){
 		setcookie('ct_trial_banner_closed', '', time()-3600);
 }
 
-function apbct_alt_session__id__get(){
-	$id = Helper::ip__get('real')
-		 .apbct_get_server_variable( 'HTTP_USER_AGENT' )
-		 .apbct_get_server_variable( 'HTTP_ACCEPT_LANGUAGE' );
-	return hash('sha256', $id);
-}
-
-function apbct_alt_sessions__remove_old(){
-	if(rand(0, 1000) < APBCT_SEESION__CHANCE_TO_CLEAN){
-		global $wpdb;
-		$wpdb->query(
-			'DELETE
-				FROM `'. APBCT_TBL_SESSIONS .'`
-				WHERE last_update < NOW() - INTERVAL '. APBCT_SEESION__LIVE_TIME .' SECOND
-				LIMIT 100000;'
-		);
-	}
-}
-function apbct_alt_sessions__clear( $full_clear = true ) {
-    global $wpdb;
-    if( $full_clear ) {
-        $res = $wpdb->query(
-            'TRUNCATE TABLE '. APBCT_TBL_SESSIONS .';'
-        );
-    } else {
-        $res = $wpdb->query(
-            'DELETE FROM `'. APBCT_TBL_SESSIONS .'`
-            WHERE name NOT IN ( "apbct_urls", "apbct_site_referer" ) 
-            LIMIT 100000;'
-        );
-    }
-    return $res;
-}
-
-function apbct_alt_session__save($name, $value){
-    
-    // Bad incoming data
-	if( ! $name || ! $value )
-	    return;
-	
-	global $wpdb;
-	
-	$session_id = apbct_alt_session__id__get();
-	
-	$wpdb->query(
-		$wpdb->prepare(
-			'INSERT INTO '. APBCT_TBL_SESSIONS .'
-				(id, name, value, last_update)
-				VALUES (%s, %s, %s, %s)
-			ON DUPLICATE KEY UPDATE
-				value = %s,
-				last_update = %s',
-			$session_id, $name, $value, date('Y-m-d H:i:s'), $value, date('Y-m-d H:i:s')
-		)
-	);
-	
-}
-
-function apbct_alt_session__get($name){
-    
-    // Bad incoming data
-    if( ! $name )
-        return;
-    
-	global $wpdb;
-	
-    $session_id = apbct_alt_session__id__get();
-	$result = $wpdb->get_row(
-		$wpdb->prepare(
-			'SELECT value 
-				FROM `'. APBCT_TBL_SESSIONS .'`
-				WHERE id = %s AND name = %s;',
-			$session_id, $name
-		),
-		ARRAY_A
-	);
-	
-	$result = isset($result['value'])
-		? (strpos($result['value'], '{') === 0
-			? (array)json_decode($result['value'], true) // JSON
-			: $result['value'])
-		: false;
-	
-	return $result ?: null;
-}
-
 function apbct_alt_session__save__AJAX(){
     check_ajax_referer( 'ct_secret_stuff' );
-    apbct_alt_session__save(
+    \Cleantalk\ApbctWP\Variables\AltSessions::set(
         \Cleantalk\Variables\Post::get( 'name' ),
         \Cleantalk\Variables\Post::get( 'value' )
     );
@@ -1673,7 +1588,7 @@ function apbct_alt_session__save__AJAX(){
 
 function apbct_alt_session__get__AJAX(){
     check_ajax_referer( 'ct_secret_stuff' );
-    apbct_alt_session__get(
+    \Cleantalk\ApbctWP\Variables\AltSessions::get(
         \Cleantalk\Variables\Post::get( 'name' )
     );
 }
@@ -1686,15 +1601,11 @@ function apbct_store__urls(){
 		
 		// URLs HISTORY
 		// Get current url
-		$current_url = apbct_get_server_variable( 'HTTP_HOST' ) . apbct_get_server_variable( 'REQUEST_URI' );
-
+		$current_url = Server::get( 'HTTP_HOST' ) . Server::get( 'REQUEST_URI' );
 		$current_url = $current_url ? substr($current_url, 0,256) : 'UNKNOWN';
 		
 		// Get already stored URLs
-		$urls = $apbct->settings['misc__store_urls__sessions']
-			? (array)apbct_alt_session__get('apbct_urls')
-			: (array)json_decode(filter_input(INPUT_COOKIE, 'apbct_urls'), true);
-		
+		$urls = \Cleantalk\ApbctWP\Variables\Cookie::get( 'apbct_urls');
 		$urls[$current_url][] = time();
 		
 		// Rotating. Saving only latest 10
@@ -1702,9 +1613,7 @@ function apbct_store__urls(){
 		$urls               = count($urls) > 10               ? array_slice($urls, 1, 10)               : $urls;
 		
 		// Saving
-		$apbct->settings['misc__store_urls__sessions']
-			? apbct_alt_session__save('apbct_urls', json_encode($urls))
-			: \Cleantalk\ApbctWP\Variables\Cookie::set('apbct_urls', json_encode($urls), time()+86400*3, '/', parse_url(get_option('siteurl'),PHP_URL_HOST), false, true, 'Lax');
+        \Cleantalk\ApbctWP\Variables\Cookie::set('apbct_urls', json_encode($urls), time()+86400*3, '/', parse_url(get_option('siteurl'),PHP_URL_HOST), false, true, 'Lax');
 		
 		// REFERER
 		// Get current fererer
@@ -1712,16 +1621,11 @@ function apbct_store__urls(){
 		$new_site_referer = $new_site_referer ? $new_site_referer : 'UNKNOWN';
 		
 		// Get already stored referer
-		$site_referer = $apbct->settings['misc__store_urls__sessions']
-			? apbct_alt_session__get('apbct_site_referer')
-			: filter_input(INPUT_COOKIE, 'apbct_site_referer');
+		$site_referer = \Cleantalk\ApbctWP\Variables\Cookie::get('apbct_site_referer' );
 		
 		// Save if empty
 		if( !$site_referer || parse_url($new_site_referer, PHP_URL_HOST) !== apbct_get_server_variable( 'HTTP_HOST' ) ){
-			
-			$apbct->settings['misc__store_urls__sessions']
-				? apbct_alt_session__save('apbct_site_referer', $new_site_referer)
-				: \Cleantalk\ApbctWP\Variables\Cookie::set('apbct_site_referer', $new_site_referer, time()+86400*3, '/', parse_url(get_option('siteurl'),PHP_URL_HOST), false, true, 'Lax');
+			\Cleantalk\ApbctWP\Variables\Cookie::set('apbct_site_referer', $new_site_referer, time()+86400*3, '/', parse_url(get_option('siteurl'),PHP_URL_HOST), false, true, 'Lax');
 		}
 		
 		$apbct->flags__url_stored = true;
@@ -1737,9 +1641,6 @@ function apbct_store__urls(){
 function apbct_cookie(){
 	
 	global $apbct;
-	
-	if($apbct->settings['misc__store_urls__sessions'] || $apbct->settings['data__set_cookies__sessions'])
-		apbct_alt_sessions__remove_old();
 	
 	if(
 		empty($apbct->settings['data__set_cookies']) || // Do not set cookies if option is disabled (for Varnish cache).
@@ -1769,53 +1670,41 @@ function apbct_cookie(){
 // Submit time
 	if(empty($_POST['ct_multipage_form'])){ // Do not start/reset page timer if it is multipage form (Gravitiy forms))
 		$apbct_timestamp = time();
-		$apbct->settings['data__set_cookies__sessions']
-			? apbct_alt_session__save('apbct_timestamp', $apbct_timestamp)
-			: \Cleantalk\ApbctWP\Variables\Cookie::set('apbct_timestamp', $apbct_timestamp,  0, '/', $domain, false, true, 'Lax' );
+		\Cleantalk\ApbctWP\Variables\Cookie::set('apbct_timestamp', $apbct_timestamp,  0, '/', $domain, false, true, 'Lax' );
 		$cookie_test_value['cookies_names'][] = 'apbct_timestamp';
 		$cookie_test_value['check_value'] .= $apbct_timestamp;
 	}
 
 // Pervious referer
-	if(apbct_get_server_variable( 'HTTP_REFERER' )){
-		$apbct->settings['data__set_cookies__sessions']
-			? apbct_alt_session__save('apbct_prev_referer', apbct_get_server_variable( 'HTTP_REFERER' ))
-			: \Cleantalk\ApbctWP\Variables\Cookie::set('apbct_prev_referer', apbct_get_server_variable( 'HTTP_REFERER' ), 0, '/', $domain, false, true, 'Lax' );
+	if( Server::get( 'HTTP_REFERER' ) ){
+		\Cleantalk\ApbctWP\Variables\Cookie::set('apbct_prev_referer', Server::get( 'HTTP_REFERER' ), 0, '/', $domain, false, true, 'Lax' );
 		$cookie_test_value['cookies_names'][] = 'apbct_prev_referer';
 		$cookie_test_value['check_value'] .= apbct_get_server_variable( 'HTTP_REFERER' );
 	}
 	
 // Landing time
-	$site_landing_timestamp = $apbct->settings['data__set_cookies__sessions']
-		? apbct_alt_session__get('apbct_site_landing_ts')
-		: filter_input(INPUT_COOKIE, 'apbct_site_landing_ts');
+	$site_landing_timestamp = \Cleantalk\ApbctWP\Variables\Cookie::get( 'apbct_site_landing_ts' );
 	if(!$site_landing_timestamp){
 		$site_landing_timestamp = time();
-		$apbct->settings['data__set_cookies__sessions']
-			? apbct_alt_session__save('apbct_site_landing_ts', $site_landing_timestamp)
-			: \Cleantalk\ApbctWP\Variables\Cookie::set('apbct_site_landing_ts', $site_landing_timestamp, 0, '/', $domain, false, true, 'Lax' );
+		\Cleantalk\ApbctWP\Variables\Cookie::set('apbct_site_landing_ts', $site_landing_timestamp, 0, '/', $domain, false, true, 'Lax' );
 	}
 	$cookie_test_value['cookies_names'][] = 'apbct_site_landing_ts';
 	$cookie_test_value['check_value'] .= $site_landing_timestamp;
 	
 // Page hits	
 	// Get
-	$page_hits = $apbct->settings['data__set_cookies__sessions']
-		? apbct_alt_session__get('apbct_page_hits')
-		: filter_input(INPUT_COOKIE, 'apbct_page_hits');
+	$page_hits = \Cleantalk\ApbctWP\Variables\Cookie::get( 'apbct_page_hits' );
 	// Set / Increase
 	$page_hits = intval($page_hits) ? $page_hits + 1 : 1;
 	
-	$apbct->settings['data__set_cookies__sessions']
-		? apbct_alt_session__save('apbct_page_hits', $page_hits)
-		: \Cleantalk\ApbctWP\Variables\Cookie::set('apbct_page_hits', $page_hits, 0, '/', $domain, false, true, 'Lax' );
+	\Cleantalk\ApbctWP\Variables\Cookie::set('apbct_page_hits', $page_hits, 0, '/', $domain, false, true, 'Lax' );
 	
 	$cookie_test_value['cookies_names'][] = 'apbct_page_hits';
 	$cookie_test_value['check_value'] .= $page_hits;
 	
 	// Cookies test
 	$cookie_test_value['check_value'] = md5($cookie_test_value['check_value']);
-	if(!$apbct->settings['data__set_cookies__sessions'])
+    if( ! $apbct->settings['data__set_cookies__sessions'] )
         \Cleantalk\ApbctWP\Variables\Cookie::set('apbct_cookies_test', urlencode(json_encode($cookie_test_value)), 0, '/', $domain, false, true, 'Lax' );
 	
 	$apbct->flags__cookies_setuped = true;
@@ -1862,11 +1751,8 @@ function apbct_cookies_test()
  * @return null|int;
  */
 function apbct_get_submit_time()
-{	
-	global $apbct;
-	$apbct_timestamp = $apbct->settings['data__set_cookies__sessions']
-		? (int)apbct_alt_session__get('apbct_timestamp')
-		: (int)filter_input(INPUT_COOKIE, 'apbct_timestamp');
+{
+	$apbct_timestamp = (int) \Cleantalk\ApbctWP\Variables\Cookie::get( 'apbct_timestamp' );
 	return apbct_cookies_test() === 1 && $apbct_timestamp !== 0 ? time() - $apbct_timestamp : null;
 }
 
