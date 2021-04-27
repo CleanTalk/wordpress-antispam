@@ -914,6 +914,10 @@ function apbct_update_to_5_157_0(){
     global $apbct;
     
     $apbct->remote_calls['sfw_update__worker'] = array( 'last_call' => 0, 'cooldown' => 0 );
-    $apbct->save('remote_calls');
+    $apbct->save( 'remote_calls' );
     
+    if( $apbct->settings['data__set_cookies__sessions'] ){
+        $apbct->settings['data__set_cookies'] = 2;
+        $apbct->save( 'settings' );
+    }
 }

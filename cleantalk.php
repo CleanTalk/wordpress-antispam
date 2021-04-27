@@ -119,7 +119,7 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 	add_action('wp_ajax_nopriv_apbct_js_keys__get', 'apbct_js_keys__get__ajax');
     
     // Alt sessions
-    if( $apbct->settings['data__set_cookies__sessions'] ){
+    if( $apbct->settings['data__set_cookies'] == 2 ){
         add_action( 'wp_ajax_nopriv_apbct_alt_session__get__AJAX',  'apbct_alt_session__get__AJAX' );
         add_action( 'wp_ajax_nopriv_apbct_alt_session__save__AJAX', 'apbct_alt_session__save__AJAX' );
     }
@@ -1704,7 +1704,7 @@ function apbct_cookie(){
 	
 	// Cookies test
 	$cookie_test_value['check_value'] = md5($cookie_test_value['check_value']);
-    if( ! $apbct->settings['data__set_cookies__sessions'] )
+    if( $apbct->settings['data__set_cookies'] == 1 )
         \Cleantalk\ApbctWP\Variables\Cookie::set('apbct_cookies_test', urlencode(json_encode($cookie_test_value)), 0, '/', $domain, false, true, 'Lax' );
 	
 	$apbct->flags__cookies_setuped = true;
@@ -1720,8 +1720,9 @@ function apbct_cookies_test()
 {
 	global $apbct;
 	
-	if($apbct->settings['data__set_cookies__sessions'])
-		return 1;
+	if( $apbct->settings['data__set_cookies'] == 2 ){
+        return 1;
+    }
 	
 	if(isset($_COOKIE['apbct_cookies_test'])){
 		

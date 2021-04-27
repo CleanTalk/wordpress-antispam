@@ -65,7 +65,7 @@ class Cookie extends \Cleantalk\Variables\Cookie {
         
         global $apbct;
         
-        if( $apbct->settings['data__set_cookies__sessions'] ){
+        if( $apbct->settings['data__set_cookies'] == 2 ){
             AltSessions::set( $name, $value );
         }else{
             self::setNativeCookie( $name, $value, $expires, $path, $domain, $secure, $httponly, $samesite );

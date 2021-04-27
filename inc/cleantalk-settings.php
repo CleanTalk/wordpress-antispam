@@ -305,17 +305,19 @@ function apbct_settings__set_fileds( $fields ){
 						)
 						.'<br />' . __('СAUTION! Option can catch POST requests in WordPress backend', 'cleantalk-spam-protect'),
 				),
-				'data__set_cookies' => array(
-					'title'       => __("Set cookies", 'cleantalk-spam-protect'),
-					'description' => __('Turn this option off to deny plugin generates any cookies on website front-end. This option is helpful if you use Varnish. But most of contact forms will not be protected if the option is turned off! <b>Warning: We strongly recommend you to enable this otherwise it could cause false positives spam detection.</b>', 'cleantalk-spam-protect'),
-					'childrens'   => array('data__set_cookies__sessions'),
-				),
-				'data__set_cookies__sessions' => array(
-					'title'       => __('Use alternative mechanism for cookies', 'cleantalk-spam-protect'),
-					'description' => __('Doesn\'t use cookie or PHP sessions. Collect data for all types of bots.', 'cleantalk-spam-protect'),
-					'parent'      => 'data__set_cookies',
-					'class'       => 'apbct_settings-field_wrapper--sub',
-				),
+                'data__set_cookies' => array(
+                    'title'       => __("Set cookies", 'cleantalk-spam-protect'),
+                    'description' => __('Turn this option off or use alternative machanism for cookies to deny plugin generates any cookies on website front-end.', 'cleantalk-spam-protect')
+                                     . '<br>' . __('This option is helpful if you use Varnish. Most of contact forms will have poor protection if the option is turned off!', 'cleantalk-spam-protect')
+                                     . '<br>' . __('Alternative mechanism will store data in database and will not set cookies in browser, so the cache solutions will work just fine.', 'cleantalk-spam-protect')
+                                     . '<br><b>' . __('Warning: We strongly recommend you not to disable this, otherwise it could cause false positives spam detection.', 'cleantalk-spam-protect') . '</b>',
+                    'input_type' => 'radio',
+                    'options' => array(
+                        array('val' => 1, 'label' => __('On', 'cleantalk-spam-protect'), ),
+                        array('val' => 0, 'label' => __('Off', 'cleantalk-spam-protect'), ),
+                        array('val' => 2, 'label' => __('Use alternative mechanism for cookies', 'cleantalk-spam-protect'), ),
+                    ),
+                ),
 				'data__ssl_on' => array(
 					'title'       => __("Use SSL", 'cleantalk-spam-protect'),
 					'description' => __('Turn this option on to use encrypted (SSL) connection with servers.', 'cleantalk-spam-protect'),
@@ -1533,7 +1535,7 @@ function apbct_settings__validate($settings) {
 	}
 
 	// Alt sessions table clearing
-    if( ! $settings['data__set_cookies__sessions'] ) {
+    if( $settings['data__set_cookies'] != 2 ) {
         \Cleantalk\ApbctWP\Variables\AltSessions::wipe();
     }
 	

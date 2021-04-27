@@ -3931,7 +3931,6 @@ function ct_enqueue_scripts_public($hook){
 				'_ajax_url'   => admin_url('admin-ajax.php'),
 				'_rest_url'   => esc_url( get_rest_url() ),
                 'data__set_cookies' => $apbct->settings['data__set_cookies'],
-                'data__set_cookies__sessions' => $apbct->settings['data__set_cookies__sessions'],
 			));
 		}
 		

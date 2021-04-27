@@ -134,7 +134,7 @@ function ctSetCookie(c_name, value) {
 
 	// Using alternative cookies
 	// @todo Deal with high server load
-	// }else if( +ctPublic.data__set_cookies__sessions === 1 ){
+	// }else if( +ctPublic.data__set_cookies === 2 ){
 	// 	apbct_public_sendAJAX(
 	// 		{
 	// 			action: 'apbct_alt_session__save__AJAX',
