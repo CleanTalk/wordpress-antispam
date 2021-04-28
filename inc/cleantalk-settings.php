@@ -306,16 +306,27 @@ function apbct_settings__set_fileds( $fields ){
 						.'<br />' . __('СAUTION! Option can catch POST requests in WordPress backend', 'cleantalk-spam-protect'),
 				),
                 'data__set_cookies' => array(
-                    'title'       => __("Set cookies", 'cleantalk-spam-protect'),
-                    'description' => __('Turn this option off or use alternative machanism for cookies to deny plugin generates any cookies on website front-end.', 'cleantalk-spam-protect')
-                                     . '<br>' . __('This option is helpful if you use Varnish. Most of contact forms will have poor protection if the option is turned off!', 'cleantalk-spam-protect')
-                                     . '<br>' . __('Alternative mechanism will store data in database and will not set cookies in browser, so the cache solutions will work just fine.', 'cleantalk-spam-protect')
-                                     . '<br><b>' . __('Warning: We strongly recommend you not to disable this, otherwise it could cause false positives spam detection.', 'cleantalk-spam-protect') . '</b>',
-                    'input_type' => 'radio',
-                    'options' => array(
-                        array('val' => 1, 'label' => __('On', 'cleantalk-spam-protect'), ),
-                        array('val' => 0, 'label' => __('Off', 'cleantalk-spam-protect'), ),
-                        array('val' => 2, 'label' => __('Use alternative mechanism for cookies', 'cleantalk-spam-protect'), ),
+                    'title'       => __( "Set cookies", 'cleantalk-spam-protect' ),
+                    'description' => __( 'Turn this option off or use alternative mechanism for cookies to forbid the plugin generate any cookies on website\'s front-end.', 'cleantalk-spam-protect' )
+                                     . '<br>' . __( 'This option is helpful if you are using Varnish. Most contact forms will have poor protection if the option is turned off!', 'cleantalk-spam-protect' )
+                                     . '<br>' . __( 'Alternative mechanism will store data in database and will not set cookies in browser, so the cache solutions will work just fine.', 'cleantalk-spam-protect' )
+                                     . '<br><b>' . __( 'Warning: We strongly recommend you keep the setting on, otherwise it could cause false positives spam detection.', 'cleantalk-spam-protect' ) . '</b>',
+                    'input_type'  => 'radio',
+                    'options'     => array(
+                        array( 'val' => 1, 'label' => __( 'On', 'cleantalk-spam-protect' ), 'childrens_enable' => 0, ),
+                        array( 'val' => 0, 'label' => __( 'Off', 'cleantalk-spam-protect' ), 'childrens_enable' => 0, ),
+                        array( 'val' => 2, 'label' => __( 'Use alternative mechanism for cookies', 'cleantalk-spam-protect' ), 'childrens_enable' => 1, ),
+                    ),
+                    'childrens'   => array( 'data__set_cookies__alt_sessions_type' )
+                ),
+                'data__set_cookies__alt_sessions_type' => array(
+                    'title'       => __( 'Alternative cookies handler type', 'cleantalk-spam-protect' ),
+                    'description' => __( 'This could be helpful if you are using alternative mechanism for cookies and have REST API disabled. REST works faster.', 'cleantalk-spam-protect' ),
+                    'class'       => 'apbct_settings-field_wrapper--sub',
+                    'input_type'  => 'radio',
+                    'options'     => array(
+                        array( 'val' => 1, 'label' => __( 'Use REST API', 'cleantalk-spam-protect' ), ),
+                        array( 'val' => 2, 'label' => __( 'Use AJAX handler', 'cleantalk-spam-protect' ), ),
                     ),
                 ),
 				'data__ssl_on' => array(

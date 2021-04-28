@@ -1035,8 +1035,7 @@ function ct_add_hidden_fields($field_name = 'ct_checkjs', $return_string = false
     $field_id_hash = md5(rand(0, 1000));
 
 	// Using only cookies
-    if ($cookie_check && $apbct->settings['data__set_cookies'] == 1) {
-	    
+    if ($cookie_check && $apbct->settings['data__set_cookies'] ) {
 		$html =	"<script type=\"text/javascript\" " . ( class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '' ) . ">
             function apbct_attach_event_handler__backend(elem, event, callback){
                 if(typeof window.addEventListener === \"function\") elem.addEventListener(event, callback);

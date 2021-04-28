@@ -918,6 +918,9 @@ function apbct_update_to_5_157_0(){
     
     if( $apbct->settings['data__set_cookies__sessions'] ){
         $apbct->settings['data__set_cookies'] = 2;
-        $apbct->save( 'settings' );
     }
+    $apbct->settings['data__set_cookies__alt_sessions_type'] = 1;
+    
+    $apbct->save( 'settings' );
+    
 }

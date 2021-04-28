@@ -408,6 +408,7 @@ function apbct_get_sender_info() {
         'checkjs_data_post'      => !empty($checkjs_data_post)                                     ? $checkjs_data_post                                                : null, 
 		// PHP cookies                                                                                                                                                 
         'cookies_enabled'        => $cookie_is_ok,
+        'data__set_cookies'      => $apbct->settings['data__set_cookies'],
         'REFFERRER_PREVIOUS'     => Cookie::get( 'apbct_prev_referer' )    && $cookie_is_ok ? Cookie::get( 'apbct_prev_referer' )    : null,
         'site_landing_ts'        => Cookie::get( 'apbct_site_landing_ts' ) && $cookie_is_ok ? Cookie::get( 'apbct_site_landing_ts' ) : null,
         'page_hits'              => Cookie::get( 'apbct_page_hits' )                        ?: null,
