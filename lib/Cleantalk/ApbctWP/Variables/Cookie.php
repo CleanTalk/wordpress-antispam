@@ -40,7 +40,7 @@ class Cookie extends \Cleantalk\Variables\Cookie {
         }
         
         // Decoding by default
-        if( ! $raw ){
+        if( ! $raw  ){
             $value = urldecode( $value ); // URL decode
             $value = Helper::is_json( $value ) ? json_decode( $value, true ) : $value; // JSON decode
         }
@@ -65,10 +65,14 @@ class Cookie extends \Cleantalk\Variables\Cookie {
         
         global $apbct;
         
-        if( $apbct->settings['data__set_cookies'] == 2 ){
-            AltSessions::set( $name, $value );
-        }else{
+        if( $apbct->settings['data__set_cookies'] == 0 ){
+            return;
+    
+        }elseif( $apbct->settings['data__set_cookies'] == 1 ){
             self::setNativeCookie( $name, $value, $expires, $path, $domain, $secure, $httponly, $samesite );
+            
+        }elseif( $apbct->settings['data__set_cookies'] == 2 ){
+            AltSessions::set( $name, $value );
         }
         
     }

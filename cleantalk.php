@@ -118,10 +118,10 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 	add_action('wp_ajax_apbct_js_keys__get',        'apbct_js_keys__get__ajax');
 	add_action('wp_ajax_nopriv_apbct_js_keys__get', 'apbct_js_keys__get__ajax');
     
-    // Alt sessions
-    if( $apbct->settings['data__set_cookies'] == 2 ){
-        add_action( 'wp_ajax_nopriv_apbct_alt_session__get__AJAX',  'apbct_alt_session__get__AJAX' );
-        add_action( 'wp_ajax_nopriv_apbct_alt_session__save__AJAX', 'apbct_alt_session__save__AJAX' );
+    // Using alternative sessions with ajax
+    if( $apbct->settings['data__set_cookies'] == 2 && $apbct->settings['data__set_cookies__alt_sessions_type'] == 2 ){
+        add_action( 'wp_ajax_nopriv_apbct_alt_session__get__AJAX',  array( \Cleantalk\ApbctWP\Variables\AltSessions::class, 'get_fromRemote'  ) );
+        add_action( 'wp_ajax_nopriv_apbct_alt_session__save__AJAX', array( \Cleantalk\ApbctWP\Variables\AltSessions::class, 'set_fromRemote'  ) );
     }
 	
 	add_action( 'rest_api_init', 'apbct_register_my_rest_routes' );
@@ -1575,21 +1575,6 @@ function cleantalk_get_brief_data(){
 function apbct__hook__wp_logout__delete_trial_notice_cookie(){
 	if(!headers_sent())
 		setcookie('ct_trial_banner_closed', '', time()-3600);
-}
-
-function apbct_alt_session__save__AJAX(){
-    check_ajax_referer( 'ct_secret_stuff' );
-    \Cleantalk\ApbctWP\Variables\AltSessions::set(
-        \Cleantalk\Variables\Post::get( 'name' ),
-        \Cleantalk\Variables\Post::get( 'value' )
-    );
-}
-
-function apbct_alt_session__get__AJAX(){
-    check_ajax_referer( 'ct_secret_stuff' );
-    \Cleantalk\ApbctWP\Variables\AltSessions::get(
-        \Cleantalk\Variables\Post::get( 'name' )
-    );
 }
 
 function apbct_store__urls(){

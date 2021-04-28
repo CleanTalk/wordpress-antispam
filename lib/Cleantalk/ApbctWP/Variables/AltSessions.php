@@ -83,11 +83,10 @@ class AltSessions {
             ARRAY_A
         );
         
-        $result = isset($result['value'])
-            ? (strpos($result['value'], '{') === 0
-                ? (array)json_decode($result['value'], true) // JSON
-                : $result['value'])
-            : false;
+        return isset( $result['value'] ) ? $result['value'] : '';
+    }
+    
+    public static function get_fromRemote( \WP_REST_Request $request = null ){
         
         if( ! $request ){
             check_ajax_referer( 'ct_secret_stuff' );
