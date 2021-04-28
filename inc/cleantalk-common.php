@@ -490,12 +490,9 @@ function apbct_visible_fields__process( $visible_fields ) {
 /*
  * Outputs JS key for AJAX-use only. Stops script.
  */
-function apbct_js_keys__get__ajax( $direct_call = false ){
-	
-	die(json_encode(array(
-		'js_key' => ct_get_checkjs_value()
-	)));
-
+function apbct_js_keys__get__ajax( $request ){
+    
+    die( json_encode( array( 'js_key' => ct_get_checkjs_value() ) ) );
 }
 
 /**
