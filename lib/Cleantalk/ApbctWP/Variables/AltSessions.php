@@ -45,7 +45,7 @@ class AltSessions {
         
     }
     
-    public static function set_fromRemote( \WP_REST_Request $request = null ){
+    public static function set_fromRemote( $request = null ){
         
         if( ! $request ){
             check_ajax_referer( 'ct_secret_stuff' );
@@ -86,7 +86,7 @@ class AltSessions {
         return isset( $result['value'] ) ? $result['value'] : '';
     }
     
-    public static function get_fromRemote( \WP_REST_Request $request = null ){
+    public static function get_fromRemote( $request = null ){
         
         if( ! $request ){
             check_ajax_referer( 'ct_secret_stuff' );
