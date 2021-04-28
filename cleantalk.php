@@ -601,8 +601,7 @@ function apbct_activation( $network = false ) {
 	
 	// Additional options
 	add_option( 'ct_plugin_do_activation_redirect', true );
-	global $user;
-    apbct_add_admin_ip_to_swf_whitelist( $user->user_login, $user );
+    apbct_add_admin_ip_to_swf_whitelist( null, null );
 
 }
 

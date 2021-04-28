@@ -1102,7 +1102,8 @@ function apbct_add_async_attribute($tag, $handle, $src) {
 function apbct_add_admin_ip_to_swf_whitelist( $user_login, $user ) {
 
 	global $apbct;
-
+	
+	$user = ! $user instanceof WP_User ? apbct_wp_get_current_user() : $user;
 	$ip = Helper::ip__get( 'real', true );
 	
 	if(
