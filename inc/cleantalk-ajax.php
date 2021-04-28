@@ -164,7 +164,7 @@ function ct_validate_email_ajaxlogin($email=null, $is_ajax=true){
 		$checkjs = apbct_js_test('ct_checkjs', $_POST);
 	    $sender_info['post_checkjs_passed'] = $checkjs;
 		if ($checkjs === null){
-			$checkjs = apbct_js_test('ct_checkjs', $_COOKIE);
+			$checkjs = apbct_js_test('ct_checkjs', $_COOKIE, true);
 			$sender_info['cookie_checkjs_passed'] = $checkjs;
 		}
 		
@@ -213,7 +213,7 @@ function ct_user_register_ajaxlogin($user_id)
 		$checkjs = apbct_js_test('ct_checkjs', $_POST);
 	    $sender_info['post_checkjs_passed'] = $checkjs;
 		if ($checkjs === null){
-			$checkjs = apbct_js_test('ct_checkjs', $_COOKIE);
+			$checkjs = apbct_js_test('ct_checkjs', $_COOKIE, true);
 			$sender_info['cookie_checkjs_passed'] = $checkjs;
 		}
 		
@@ -368,7 +368,7 @@ function ct_ajax_hook($message_obj = false, $additional = false)
         $post_info['comment_type'] = 'feedback_ajax_external_form';
     }
 
-	$checkjs = apbct_js_test('ct_checkjs', $_COOKIE);
+	$checkjs = apbct_js_test('ct_checkjs', $_COOKIE, true);
 		
     if(isset($_POST['user_login']))
 		$sender_nickname = $_POST['user_login'];

@@ -1693,15 +1693,20 @@ function ct_die_extended($comment_body) {
  *
  * @return int|null
  */
-function apbct_js_test($field_name = 'ct_checkjs', $data = null) {
+function apbct_js_test($field_name = 'ct_checkjs', $data = null, $is_cookie = false ) {
 
     global $apbct;
-
+    
     $out = null;
 
-    if($data && isset($data[$field_name])){
-
-	    $js_key = trim($data[$field_name]);
+    if(
+        ($data && isset($data[$field_name])) ||
+        ($is_cookie && $apbct->settings['data__set_cookies'] == 2 && \Cleantalk\ApbctWP\Variables\Cookie::get( $field_name ))
+    ){
+     
+	    $js_key = $is_cookie && $apbct->settings['data__set_cookies'] == 2
+            ? \Cleantalk\ApbctWP\Variables\Cookie::get( $field_name )
+            : trim($data[$field_name]);
 
 	    // Check static key
 	    if(
@@ -1993,7 +1998,7 @@ function ct_test_registration($nickname, $email, $ip = null){
 		$checkjs =  apbct_js_test($ct_checkjs_register_form, $_POST);
 		$sender_info['post_checkjs_passed'] = $checkjs;
 	}else{
-		$checkjs =  $checkjs = apbct_js_test('ct_checkjs', $_COOKIE);
+		$checkjs =  $checkjs = apbct_js_test('ct_checkjs', $_COOKIE, true);
         $sender_info['cookie_checkjs_passed'] = $checkjs;
 	}
 
@@ -2082,13 +2087,13 @@ function ct_registration_errors($errors, $sanitized_user_login = null, $user_ema
 
 
     if(current_filter() == 'woocommerce_registration_errors'){
-	    $checkjs = apbct_js_test('ct_checkjs', $_COOKIE);
+	    $checkjs = apbct_js_test('ct_checkjs', $_COOKIE, true);
 	    $checkjs_post   = null;
 	    $checkjs_cookie = $checkjs;
     }else{
 	    // This hack can be helpfull when plugin uses with untested themes&signups plugins.
 	    $checkjs_post   = apbct_js_test($ct_checkjs_register_form, $_POST);
-	    $checkjs_cookie = apbct_js_test('ct_checkjs', $_COOKIE);
+	    $checkjs_cookie = apbct_js_test('ct_checkjs', $_COOKIE, true);
 	    $checkjs = $checkjs_cookie ? $checkjs_cookie : $checkjs_post;
     }
 
@@ -2224,7 +2229,7 @@ function apbct_registration__UltimateMembers__check( $args ){
 
 	// This hack can be helpfull when plugin uses with untested themes&signups plugins.
 	if ($checkjs == 0) {
-		$checkjs = apbct_js_test('ct_checkjs', $_COOKIE);
+		$checkjs = apbct_js_test('ct_checkjs', $_COOKIE, true);
 		$sender_info['cookie_checkjs_passed'] = $checkjs;
 	}
 
@@ -2480,7 +2485,7 @@ function apbct_form__contactForm7__testSpam( $spam, $submission = null ) {
 
 	$checkjs = apbct_js_test($ct_checkjs_cf7, $_POST)
 		? apbct_js_test($ct_checkjs_cf7, $_POST)
-		: apbct_js_test('ct_checkjs', $_COOKIE);
+		: apbct_js_test('ct_checkjs', $_COOKIE, true);
 
 	$ct_temp_msg_data = ct_get_fields_any($_POST);
 
@@ -2601,7 +2606,7 @@ function apbct_form__ninjaForms__testSpam() {
 		return;
 	}
 
-	$checkjs = apbct_js_test('ct_checkjs', $_COOKIE);
+	$checkjs = apbct_js_test('ct_checkjs', $_COOKIE, true);
 
 	// Choosing between POST and GET
 	$params = ct_get_fields_any(isset($_GET['ninja_forms_ajax_submit']) || isset($_GET['nf_ajax_submit']) ? $_GET : $_POST);
@@ -2938,7 +2943,7 @@ function ct_quform_post_validate($result, $form) {
 	// @ToDo If we have several emails at the form - will be used only the first detected!
 	$sender_email    = ($ct_temp_msg_data['email']    ? $ct_temp_msg_data['email']    : '');
 
-	$checkjs = apbct_js_test('ct_checkjs', $_COOKIE);
+	$checkjs = apbct_js_test('ct_checkjs', $_COOKIE, true);
 	$base_call_result = apbct_base_call(
 		array(
 			'message'         => $form->getValues(),
@@ -3228,7 +3233,7 @@ function apbct_form__gravityForms__testSpam($is_spam, $form, $entry) {
 
 	$checkjs = apbct_js_test('ct_checkjs', $_POST)
 		? apbct_js_test('ct_checkjs', $_POST)
-		: apbct_js_test('ct_checkjs', $_COOKIE);
+		: apbct_js_test('ct_checkjs', $_COOKIE, true);
 
     $base_call_result = apbct_base_call(
 		array(
