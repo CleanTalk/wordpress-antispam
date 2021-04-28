@@ -469,12 +469,10 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
             return $data;
     }
     
-	public static function update__write_to_db__exclusions( $db, $db__table__data ) {
+	public static function update__write_to_db__exclusions( $db, $db__table__data, $exclusions = array() ) {
 
 		$query = 'INSERT INTO `' . $db__table__data . '` (network, mask, status) VALUES ';
-
-		$exclusions = array();
-
+		
 		//Exclusion for servers IP (SERVER_ADDR)
 		if ( Server::get('HTTP_HOST') ) {
 
