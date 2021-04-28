@@ -1042,7 +1042,7 @@ function ct_add_hidden_fields($field_name = 'ct_checkjs', $return_string = false
                 else                                              elem.attachEvent(event, callback);
             }
             apbct_attach_event_handler__backend(window, 'load', function(){
-                ctSetCookie('{$field_name}', '{$ct_checkjs_key}', '{$ct_checkjs_def}');
+                ctSetCookie('{$field_name}', '{$ct_checkjs_key}' );
             });
 		</script>";
 

@@ -16,14 +16,15 @@
 		else                                                 elem.detachEvent(event, callback);
 	}
 
-	ctSetCookie("ct_ps_timestamp", Math.floor(new Date().getTime()/1000));
-	ctSetCookie("ct_fkp_timestamp", "0");
-	ctSetCookie("ct_pointer_data", "0");
-	ctSetCookie("ct_timezone", "0");
-
-	setTimeout(function(){
-		ctSetCookie("ct_timezone", ct_date.getTimezoneOffset()/60*(-1));
-	},1000);
+	ctSetCookie(
+		[
+			[ "ct_ps_timestamp", Math.floor(new Date().getTime() / 1000) ],
+			[ "ct_fkp_timestamp", "0" ],
+			[ "ct_pointer_data", "0" ],
+			[ "ct_timezone", ct_date.getTimezoneOffset()/60*(-1) ],
+			[ "apbct_visible_fields", "0" ],
+		]
+	);
 
 	//Writing first key press timestamp
 	var ctFunctionFirstKey = function output(event){
@@ -80,8 +81,6 @@
 	// Ready function
 	function apbct_ready(){
 
-		ctSetCookie("apbct_visible_fields", 0);
-
 		setTimeout(function(){
 
 			var visible_fields_collection = {};
@@ -126,27 +125,47 @@
 
 }());
 
-function ctSetCookie(c_name, value) {
+function ctSetCookie( cookies, value, expires ){
+
+	if( typeof cookies === 'string' && typeof value === 'string' || typeof value === 'number'){
+		var skip_alt = cookies === 'ct_pointer_data' || cookies === 'ct_user_info';
+		cookies = [ [ cookies, value, expires ] ];
+	}
 
 	// Cookies disabled
 	if( +ctPublic.data__set_cookies === 0 ){
 		return;
 
-	// Using alternative cookies
-	// @todo Deal with high server load
-	// }else if( +ctPublic.data__set_cookies === 2 ){
-	// 	apbct_public_sendAJAX(
-	// 		{
-	// 			action: 'apbct_alt_session__save__AJAX',
-	// 			name: c_name,
-	// 			value: value,
-	// 		},
-	// 		{}
-	// 	);
-
 	// Using traditional cookies
-	}else{
-		document.cookie = c_name + "=" + encodeURIComponent(value) + "; path=/; samesite=lax";
+	}else if( +ctPublic.data__set_cookies === 1 ){
+		cookies.forEach( function (item, i, arr	) {
+			var expires = typeof item[2] !== 'undefined' ? "expires=" + expires + '; ' : '';
+			document.cookie = item[0] + "=" + encodeURIComponent(item[1]) + "; " + expires + "path=/; samesite=lax";
+		});
+
+	// Using alternative cookies
+	}else if( +ctPublic.data__set_cookies === 2 && ! skip_alt ){
+
+		// Using REST API handler
+		if( +ctPublic.data__set_cookies__alt_sessions_type === 1 ){
+			apbct_public_sendREST(
+				'alt_sessions',
+				{
+					method: 'POST',
+					data: { cookies: cookies }
+				}
+			);
+
+		// Using AJAX request and handler
+		}else if( +ctPublic.data__set_cookies__alt_sessions_type === 2 ) {
+			apbct_public_sendAJAX(
+				{
+					action: 'apbct_alt_session__save__AJAX',
+					cookies: cookies,
+				},
+				{}
+			);
+		}
 	}
 }
 
