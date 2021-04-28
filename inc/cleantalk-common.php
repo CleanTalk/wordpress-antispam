@@ -420,6 +420,8 @@ function apbct_get_sender_info() {
 		'page_set_timestamp'     => Cookie::get( 'ct_ps_timestamp' )  ?: null,
 		'form_visible_inputs'    => !empty($visible_fields['visible_fields_count'])                ? $visible_fields['visible_fields_count']                           : null,
 		'apbct_visible_fields'   => !empty($visible_fields['visible_fields'])                      ? $visible_fields['visible_fields']                                 : null,
+		'form_invisible_inputs'  => !empty($visible_fields['invisible_fields_count'])              ? $visible_fields['invisible_fields_count']                         : null,
+		'apbct_invisible_fields' => !empty($visible_fields['invisible_fields'])                    ? $visible_fields['invisible_fields']                               : null,
 		// Misc
 		'site_referer'           => Cookie::get( 'apbct_site_referer' ) ?: null,
 		'source_url'             => Cookie::get( 'apbct_urls' )         ? json_encode( Cookie::get( 'apbct_urls' ) ) : null,
@@ -838,8 +840,11 @@ function ct_get_fields_any($arr, $message=array(), $email = null, $nickname = ar
                 $tmp = preg_replace( '@<.*?>@', '', $tmp);
 
                 $decoded_json_value = json_decode($tmp, true);       // Try parse JSON from the string
-                parse_str( urldecode( $tmp ), $decoded_url_value ); // Try parse URL from the string
-
+	            if( strpos( $value, "\n" ) === false || strpos( $value, "\r" ) === false  ) {
+	            	// Parse an only single-lined string
+		            parse_str( urldecode( $tmp ), $decoded_url_value ); // Try parse URL from the string
+	            }
+                
                 // If there is "JSON data" set is it as a value
                 if($decoded_json_value !== null){
 
@@ -850,7 +855,7 @@ function ct_get_fields_any($arr, $message=array(), $email = null, $nickname = ar
                     $value = $decoded_json_value;
 
                 // If there is "URL data" set is it as a value
-                }elseif( ! ( count( $decoded_url_value ) === 1 && reset( $decoded_url_value ) === '' ) ){
+                }elseif( isset( $decoded_url_value ) && ! ( count( $decoded_url_value ) === 1 && reset( $decoded_url_value ) === '' ) ){
                     $value = $decoded_url_value;
 
                 // Ajax Contact Forms. Get data from such strings:

@@ -404,12 +404,12 @@ function apbct_is_skip_request( $ajax = false ) {
             {
                 return 'injob_theme_plugin';
             }
-            // Divi builder save epanel
+            // Divi builder skip
             if ( apbct_is_theme_active( 'Divi' ) &&
         		isset( $_POST['action'] ) &&
-        		$_POST['action'] == 'save_epanel' )
+                 ( $_POST['action'] === 'save_epanel' || $_POST['action'] === 'et_fb_ajax_save' ) )
             {
-            	return 'divi_builder_save_epanel';
+            	return 'divi_builder_skip';
             }
 	        // Email Before Download plugin https://wordpress.org/plugins/email-before-download/ action skip
 	        if ( apbct_is_plugin_active( 'email-before-download/email-before-download.php' ) &&
@@ -465,7 +465,18 @@ function apbct_is_skip_request( $ajax = false ) {
 	        {
 		        return 'emember_ajax_login';
 	        }
-            
+	        // Avada theme saving settings
+	        if ( apbct_is_theme_active( 'Avada' ) &&
+	             Post::get('action') === 'fusion_options_ajax_save' )
+	        {
+		        return 'Avada_theme_saving_settings';
+	        }
+	        // Formidable skip - this is the durect integration
+	        if ( apbct_is_plugin_active( 'formidable/formidable.php' ) &&
+	             Post::get( 'action' ) === 'frm_entries_update' )
+	        {
+		        return 'formidable_skip';
+	        }
             break;
 
         case false :

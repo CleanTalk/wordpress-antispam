@@ -353,10 +353,60 @@ function apbct_buffer__end(){
  */
 function apbct_buffer__output(){
 
+	global $apbct;
+
+	if( empty( $apbct->buffer ) )
+		return;
+
+	if( apbct_is_plugin_active( 'flow-flow/flow-flow.php' ) ) {
+		$output = apbct_buffer_modify_by_string();
+	} else {
+		$output = apbct_buffer_modify_by_dom();
+	}
+
+	echo $output;
+	die();
+}
+
+function apbct_buffer_modify_by_string() {
+
 	global $apbct, $wp;
 
-	if(empty($apbct->buffer))
-		return;
+	$site_url   = get_option('siteurl');
+	$site__host = parse_url($site_url,  PHP_URL_HOST);
+
+	preg_match_all( '/<form\s*.*>\s*.*<\/form>/', $apbct->buffer, $matches, PREG_SET_ORDER );
+
+	if( count( $matches ) > 0 ) {
+		foreach( $matches as $match ) {
+
+			preg_match( '/action="(\S*)"/', $match[0], $group_action );
+			$action = count( $group_action ) > 0  ? $group_action[1] : $site_url;
+
+			$action__host = parse_url($action,  PHP_URL_HOST);
+			if( $site__host != $action__host ) {
+
+				preg_match( '/method="(\S*)"/', $match[0], $group_method );
+				$method = count( $group_method ) > 0 ? $group_method[1] : 'get';
+
+				$hidden_fields  = '<input type="hidden" name="cleantalk_hidden_action" value="' . $action . '">';
+				$hidden_fields .= '<input type="hidden" name="cleantalk_hidden_method" value="' . $method . '">';
+
+				$modified_match = preg_replace( '/action="\S*"/', 'action="' . home_url(add_query_arg(array(), $wp->request)) . '"', $match[0] );
+				$modified_match = preg_replace( '/method="\S*"/', 'method="POST"', $modified_match );
+				$modified_match = str_replace( '</form>', $hidden_fields . '</form>', $modified_match );
+				$apbct->buffer = str_replace( $match[0], $modified_match, $apbct->buffer );
+			}
+		}
+	}
+
+	return $apbct->buffer;
+
+}
+
+function apbct_buffer_modify_by_dom() {
+
+	global $apbct, $wp;
 
 	$site_url   = get_option('siteurl');
 	$site__host = parse_url($site_url,  PHP_URL_HOST);
@@ -400,13 +450,11 @@ function apbct_buffer__output(){
 	} unset($form);
 	
 	$html = $dom->getElementsByTagName('html');
-	
-	$output = gettype($html) == 'object' && isset($html[0], $html[0]->childNodes, $html[0]->childNodes[0]) && $dom->getElementsByTagName('rss')->length == 0
+
+	return is_object( $html ) && isset( $html[0], $html[0]->childNodes, $html[0]->childNodes[0] ) && $dom->getElementsByTagName( 'rss' )->length == 0
 		? $dom->saveHTML()
 		: $apbct->buffer;
-	
-	echo $output;
-	die();
+
 }
 
 // MailChimp Premium for Wordpress
@@ -2955,7 +3003,7 @@ function ct_quform_post_validate($result, $form) {
 
 	$ct_result = $base_call_result['ct_result'];
 	if ($ct_result->allow == 0) {
-		die(json_encode(array('type' => 'error', 'apbct' => array('blocked' => true, 'comment' => $ct_result->comment))));
+		die(json_encode(array('type' => 'error', 'apbct' => array('blocked' => true, 'comment' => $ct_result->comment)), JSON_HEX_QUOT | JSON_HEX_TAG));
 	} else {
 		return $result;
 	}
@@ -3441,7 +3489,7 @@ function apbct_form__inevio__testSpam() {
     $ct_result = $base_call_result['ct_result'];
 
     if ( $ct_result->allow == 0 ) {
-        die(json_encode(array('apbct' => array('blocked' => true, 'comment' => $ct_result->comment,))));
+        die(json_encode(array('apbct' => array('blocked' => true, 'comment' => $ct_result->comment,)), JSON_HEX_QUOT | JSON_HEX_TAG));
     }
 
     return true;
@@ -3958,6 +4006,14 @@ function ct_enqueue_scripts_public($hook){
             ! apbct_is_in_uri( '.xsl' ) &&
             ! apbct_is_in_uri( 'jm-ajax' )
         ){
+    
+            // Collect details about browsers
+            if($apbct->settings['misc__collect_details']){
+                wp_enqueue_script('ct_collect_details',  plugins_url('/cleantalk-spam-protect/js/cleantalk_collect_details.min.js'),  array(),         APBCT_VERSION, false /*in header*/);
+                wp_localize_script('ct_collect_details', 'ctCollectDetails', array(
+                    'set_cookies_flag' => $apbct->settings['data__set_cookies'] ? false : true,
+                ));
+            }
             
             wp_enqueue_script('ct_nocache',  plugins_url('/cleantalk-spam-protect/js/cleantalk_nocache.min.js'),  array(),         APBCT_VERSION, false /*in header*/);
             wp_localize_script('ct_nocache', 'ctNocache', array(

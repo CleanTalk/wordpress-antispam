@@ -18,6 +18,6 @@ class ContactBank extends IntegrationBase
 
     function doBlock( $message )
     {
-        die(json_encode(array('apbct' => array('blocked' => true, 'comment' => $message,))));
+        die(json_encode(array('apbct' => array('blocked' => true, 'comment' => $message,)), JSON_HEX_QUOT | JSON_HEX_TAG));
     }
 }

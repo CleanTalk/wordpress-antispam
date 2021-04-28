@@ -140,7 +140,8 @@ function ctSetCookie( cookies, value, expires ){
 	}else if( +ctPublic.data__set_cookies === 1 ){
 		cookies.forEach( function (item, i, arr	) {
 			var expires = typeof item[2] !== 'undefined' ? "expires=" + expires + '; ' : '';
-			document.cookie = item[0] + "=" + encodeURIComponent(item[1]) + "; " + expires + "path=/; samesite=lax";
+			var ctSecure = location.protocol === 'https:' ? '; secure' : '';
+			document.cookie = item[0] + "=" + encodeURIComponent(item[1]) + "; " + expires + "path=/; samesite=lax" + ctSecure;
 		});
 
 	// Using alternative cookies
@@ -175,6 +176,8 @@ function apbct_collect_visible_fields( form ) {
 	var inputs = [],
 		inputs_visible = '',
 		inputs_visible_count = 0,
+		inputs_invisible = '',
+		inputs_invisible_count = 0,
 		inputs_with_duplicate_names = [];
 
 	for(var key in form.elements){
@@ -185,40 +188,54 @@ function apbct_collect_visible_fields( form ) {
 	// Filter fields
 	inputs = inputs.filter(function(elem){
 
-		// Filter fields
-		if( getComputedStyle(elem).display    === "none" ||   // hidden
-			getComputedStyle(elem).visibility === "hidden" || // hidden
-			getComputedStyle(elem).opacity    === "0" ||      // hidden
-			elem.getAttribute("type")         === "hidden" || // type == hidden
-			elem.getAttribute("type")         === "submit" || // type == submit
-			//elem.value                        === ""       || // empty value
-			elem.getAttribute('name')         === null ||
-			inputs_with_duplicate_names.indexOf( elem.getAttribute('name') ) !== -1 // name already added
-		){
+		// Filter already added fields
+		if( inputs_with_duplicate_names.indexOf( elem.getAttribute('name') ) !== -1 ){
 			return false;
 		}
-
-		// Visible fields count
-		inputs_visible_count++;
-
 		// Filter inputs with same names for type == radio
 		if( -1 !== ['radio', 'checkbox'].indexOf( elem.getAttribute("type") )){
 			inputs_with_duplicate_names.push( elem.getAttribute('name') );
 			return false;
 		}
-
 		return true;
 	});
 
 	// Visible fields
 	inputs.forEach(function(elem, i, elements){
-		inputs_visible += " " + elem.getAttribute("name");
+		// Unnecessary fields
+		if(
+			elem.getAttribute("type")         === "submit" || // type == submit
+			elem.getAttribute('name')         === null     ||
+			elem.getAttribute('name')         === 'ct_checkjs'
+		) {
+			return;
+		}
+		// Invisible fields
+		if(
+			getComputedStyle(elem).display    === "none" ||   // hidden
+			getComputedStyle(elem).visibility === "hidden" || // hidden
+			getComputedStyle(elem).opacity    === "0" ||      // hidden
+			elem.getAttribute("type")         === "hidden" // type == hidden
+		) {
+			inputs_invisible += " " + elem.getAttribute("name");
+			inputs_invisible_count++;
+		}
+		// Visible fields
+		else {
+			inputs_visible += " " + elem.getAttribute("name");
+			inputs_visible_count++;
+		}
+
 	});
+
+	inputs_invisible = inputs_invisible.trim();
 	inputs_visible = inputs_visible.trim();
 
 	return {
 		visible_fields : inputs_visible,
 		visible_fields_count : inputs_visible_count,
+		invisible_fields : inputs_invisible,
+		invisible_fields_count : inputs_invisible_count,
 	}
 
 }
@@ -319,7 +336,7 @@ function apbct_public_sendREST( route, params ) {
 		},
 		success: function(result){
 			if(result.error){
-				alert('Error happens: ' + (result.error || 'Unknown'));
+				console.log('Error happens: ' + (result.error || 'Unknown'));
 			}else{
 				if(callback) {
 					var obj = null;

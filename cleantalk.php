@@ -1574,7 +1574,7 @@ function cleantalk_get_brief_data(){
 //Delete cookie for admin trial notice
 function apbct__hook__wp_logout__delete_trial_notice_cookie(){
 	if(!headers_sent())
-		setcookie('ct_trial_banner_closed', '', time()-3600);
+		Cookie::set('ct_trial_banner_closed', '', time()-3600);
 }
 
 function apbct_store__urls(){
