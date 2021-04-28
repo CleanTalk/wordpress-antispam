@@ -476,11 +476,16 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 		//Exclusion for servers IP (SERVER_ADDR)
 		if ( Server::get('HTTP_HOST') ) {
 
-			// Exceptions for local hosts
+			// Do not add exceptions for local hosts
 			if( ! in_array( Server::get_domain(), array( 'lc', 'loc', 'lh' ) ) ){
 				$exclusions[] = Helper::dns__resolve( Server::get( 'HTTP_HOST' ) );
 				$exclusions[] = '127.0.0.1';
-			}
+            
+            // And delete all 127.0.0.1 entries for local hosts
+			}else{
+			    global $wpdb;
+			    $wpdb->query( 'DELETE FROM ' . $db__table__data . ' WHERE network = ' . ip2long( '127.0.0.1' ) . ';' );
+            }
 		}
 
 		foreach ( $exclusions as $exclusion ) {
