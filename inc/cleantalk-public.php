@@ -538,8 +538,8 @@ function ct_validate_ccf_submission($value, $field_id, $required){
 	$post_info['comment_type'] = 'feedback_custom_contact_forms';
     $post_info['post_url'] = apbct_get_server_variable( 'HTTP_REFERER' );
 
-	$checkjs = apbct_js_test('ct_checkjs', $_COOKIE)
-		? apbct_js_test('ct_checkjs', $_COOKIE)
+	$checkjs = apbct_js_test('ct_checkjs', $_COOKIE, true)
+		? apbct_js_test('ct_checkjs', $_COOKIE, true)
 		: apbct_js_test('ct_checkjs', $_POST);
 
 	//Making a call
@@ -592,8 +592,8 @@ function ct_woocommerce_wishlist_check($args){
 	$post_info['comment_type'] = 'feedback';
     $post_info['post_url'] = apbct_get_server_variable( 'HTTP_REFERER' );
 
-	$checkjs = apbct_js_test('ct_checkjs', $_COOKIE)
-		? apbct_js_test('ct_checkjs', $_COOKIE)
+	$checkjs = apbct_js_test('ct_checkjs', $_COOKIE, true)
+		? apbct_js_test('ct_checkjs', $_COOKIE, true)
 		: apbct_js_test('ct_checkjs', $_POST);
 
 	//Making a call
@@ -658,7 +658,7 @@ function apbct_integration__buddyPres__activityWall( $is_spam, $activity_obj = n
 				'post_url'     => apbct_get_server_variable( 'HTTP_REFERER' ),
 				'comment_type' => 'buddypress_activitywall',
 			),
-			'js_on'           => apbct_js_test('ct_checkjs', $_COOKIE),
+			'js_on'           => apbct_js_test('ct_checkjs', $_COOKIE, true),
 			'sender_info'     => array('sender_url' => null),
 		)
 	);
@@ -760,8 +760,8 @@ function apbct_integration__buddyPres__private_msg_check( $bp_message_obj){
 				'comment_type' => 'buddypress_comment',
 				'post_url'     => apbct_get_server_variable( 'HTTP_REFERER' ),
 			),
-			'js_on'   => apbct_js_test('ct_checkjs', $_COOKIE)
-				? apbct_js_test('ct_checkjs', $_COOKIE)
+			'js_on'   => apbct_js_test('ct_checkjs', $_COOKIE, true)
+				? apbct_js_test('ct_checkjs', $_COOKIE, true)
 				: apbct_js_test('ct_checkjs', $_POST),
 			'sender_info'     => array('sender_url' => null),
 		)
@@ -878,7 +878,7 @@ function ct_woocommerce_checkout_check() {
 			'sender_email'    => $sender_email,
 			'sender_nickname' => $sender_nickname,
 			'post_info'       => $post_info,
-			'js_on'           => apbct_js_test('ct_checkjs', $_COOKIE),
+			'js_on'           => apbct_js_test('ct_checkjs', $_COOKIE, true),
 			'sender_info'     => array('sender_url' => null),
 		)
 	);
@@ -936,7 +936,7 @@ function apbct_wc__add_to_cart_unlogged_user($cart_item_key, $product_id, $quant
             array(
                 'message' => $message,
                 'post_info' => $post_info,
-                'js_on' => apbct_js_test('ct_checkjs', $_COOKIE),
+                'js_on' => apbct_js_test('ct_checkjs', $_COOKIE, true),
                 'sender_info' => array('sender_url' => null),
             )
         );
@@ -992,7 +992,7 @@ function apbct_form__piratesForm__testSpam(){
 			'sender_email'    => $sender_email,
 			'sender_nickname' => $sender_nickname,
 			'post_info'       => $post_info,
-			'js_on'           => apbct_js_test('ct_checkjs', $_COOKIE),
+			'js_on'           => apbct_js_test('ct_checkjs', $_COOKIE, true),
 			'sender_info'     => array('sender_url' => null),
 		)
 	);
@@ -1221,8 +1221,8 @@ function apbct_rorm__formidable__testSpam ( $errors, $form ) {
     // Combine it with non-scalar values
     $message = array_merge( $tmp_message, $tmp_message2 );
     
-    $checkjs = apbct_js_test('ct_checkjs', $_COOKIE)
-		? apbct_js_test('ct_checkjs', $_COOKIE)
+    $checkjs = apbct_js_test('ct_checkjs', $_COOKIE, true)
+		? apbct_js_test('ct_checkjs', $_COOKIE, true)
 		: apbct_js_test('ct_checkjs', $_POST);
 
     $base_call_result = apbct_base_call(
@@ -1279,8 +1279,8 @@ function ct_bbp_new_pre_content ($comment) {
     }
 
 
-	$checkjs = apbct_js_test('ct_checkjs', $_COOKIE)
-		? apbct_js_test('ct_checkjs', $_COOKIE)
+	$checkjs = apbct_js_test('ct_checkjs', $_COOKIE, true)
+		? apbct_js_test('ct_checkjs', $_COOKIE, true)
 		: apbct_js_test('ct_checkjs', $_POST);
 
     $post_info['comment_type'] = 'bbpress_comment';
@@ -1467,8 +1467,8 @@ function ct_preprocess_comment($comment) {
 	// Comment type
 	$post_info['comment_type'] = empty($post_info['comment_type']) ? 'general_comment' : $post_info['comment_type'];
 
-	$checkjs = apbct_js_test('ct_checkjs', $_COOKIE)
-		? apbct_js_test('ct_checkjs', $_COOKIE)
+	$checkjs = apbct_js_test('ct_checkjs', $_COOKIE, true)
+		? apbct_js_test('ct_checkjs', $_COOKIE, true)
 		: apbct_js_test('ct_checkjs', $_POST);
 
 
@@ -2021,7 +2021,7 @@ function ct_test_message($nickname, $email, $ip, $text){
 			'sender_email'    => $email,
 			'sender_nickname' => $nickname,
 			'post_info'       => array('comment_type' => 'feedback_plugin_check'),
-			'js_on'           => apbct_js_test('ct_checkjs', $_COOKIE),
+			'js_on'           => apbct_js_test('ct_checkjs', $_COOKIE, true),
 		)
 	);
 
