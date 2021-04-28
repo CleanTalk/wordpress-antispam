@@ -328,6 +328,8 @@ function apbct_settings__set_fileds( $fields ){
                         array( 'val' => 1, 'label' => __( 'Use REST API', 'cleantalk-spam-protect' ), ),
                         array( 'val' => 2, 'label' => __( 'Use AJAX handler', 'cleantalk-spam-protect' ), ),
                     ),
+                    'parent' => 'data__set_cookies',
+                    'disabled' => $apbct->settings['data__set_cookies'] != 2,
                 ),
 				'data__ssl_on' => array(
 					'title'       => __("Use SSL", 'cleantalk-spam-protect'),
