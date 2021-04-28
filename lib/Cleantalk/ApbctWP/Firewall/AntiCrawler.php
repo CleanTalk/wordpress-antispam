@@ -164,7 +164,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
             }
         	
             // Skip by cookie
-            if( Cookie::get('apbct_antibot') == hash( 'sha256', $this->api_key . $this->apbct->data['salt'] ) ) {
+            if( Cookie::get('wordpress_apbct_antibot') == hash( 'sha256', $this->api_key . $this->apbct->data['salt'] ) ) {
                 if( Cookie::get( 'apbct_anticrawler_passed' ) == 1 ){
                     if( ! headers_sent() )
 	                    Cookie::set( 'apbct_anticrawler_passed', '0', time() - 86400, '/', null, true, 'Lax' );
@@ -192,7 +192,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 			);
 			if( isset( $result['ip'] ) ){
 				
-				if( Cookie::get('apbct_antibot') !== hash( 'sha256', $this->api_key . $this->apbct->data['salt'] ) ){
+				if( Cookie::get('wordpress_apbct_antibot') !== hash( 'sha256', $this->api_key . $this->apbct->data['salt'] ) ){
 					
 					$results[] = array( 'ip' => $current_ip, 'is_personal' => false, 'status' => 'DENY_ANTICRAWLER', );
 					
@@ -211,7 +211,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 				
 			}else{
 
-                if( ! Cookie::get('apbct_antibot') ) {
+                if( ! Cookie::get('wordpress_apbct_antibot') ) {
                     add_action( 'template_redirect', array( & $this, 'update_ac_log' ), 999 );
                 }
 				
@@ -252,7 +252,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 	
 	public static function set_cookie(){
 		global $apbct;
-		echo '<script>var ctSecure = location.protocol === "https:" ? "; secure" : ""; document.cookie = "apbct_antibot=' . hash( 'sha256', $apbct->api_key . $apbct->data['salt'] ) . '; path=/; expires=0; samesite=lax" + ctSecure;</script>';
+		echo '<script>var ctSecure = location.protocol === "https:" ? "; secure" : ""; document.cookie = "wordpress_apbct_antibot=' . hash( 'sha256', $apbct->api_key . $apbct->data['salt'] ) . '; path=/; expires=0; samesite=lax" + ctSecure;</script>';
 	}
 	
 	/**

@@ -81,12 +81,12 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 		// Skip by cookie
 		foreach( $this->ip_array as $current_ip ){
 
-			if( substr( Cookie::get( 'ct_sfw_pass_key' ), 0, 32 ) == md5( $current_ip . $this->api_key ) ){
+			if( substr( Cookie::get( 'wordpress_ct_sfw_pass_key' ), 0, 32 ) == md5( $current_ip . $this->api_key ) ){
 
-                if( Cookie::get( 'ct_sfw_passed' ) ){
+                if( Cookie::get( 'wordpress_ct_sfw_passed' ) ){
 
                     if( ! headers_sent() ){
-                        Cookie::set( 'ct_sfw_passed', '0', time() + 86400 * 3, '/', null, true, 'Lax' );
+                        Cookie::set( 'wordpress_ct_sfw_passed', '0', time() + 86400 * 3, '/', null, true, 'Lax' );
                     } else {
                         $results[] = array( 'ip' => $current_ip, 'is_personal' => false, 'status' => 'PASS_SFW__BY_COOKIE', );
                     }
@@ -101,8 +101,8 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 
                 }
 
-                if( strlen( Cookie::get( 'ct_sfw_pass_key' ) ) > 32 ) {
-                    $status = substr( Cookie::get( 'ct_sfw_pass_key' ), -1 );
+                if( strlen( Cookie::get( 'wordpress_ct_sfw_pass_key' ) ) > 32 ) {
+                    $status = substr( Cookie::get( 'wordpress_ct_sfw_pass_key' ), -1 );
                 }
 
                 if( $status ) {
@@ -201,7 +201,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 		if( $this->set_cookies &&  ! headers_sent() ) {
 		    $status = $result['status'] == 'PASS_SFW__BY_WHITELIST' ? '1' : '0';
             $cookie_val = md5( $result['ip'] . $this->api_key ) . $status;
-			Cookie::set( 'ct_sfw_pass_key', $cookie_val, time() + 86400 * 30, '/', null, false );
+			Cookie::set( 'wordpress_ct_sfw_pass_key', $cookie_val, time() + 86400 * 30, '/', null, false );
         }
 	}
 	
@@ -249,7 +249,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 				'{REQUEST_URI}'                    => Server::get( 'REQUEST_URI' ),
 				
 				// Cookie
-				'{COOKIE_PREFIX}'      => '',
+				'{COOKIE_PREFIX}'      => 'wordpress_',
 				'{COOKIE_DOMAIN}'      => $this->cookie_domain,
 				'{COOKIE_SFW}'         => $this->test ? $this->test_ip : $cookie_val,
 				'{COOKIE_ANTICRAWLER}' => hash( 'sha256', $apbct->api_key . $apbct->data['salt'] ),
