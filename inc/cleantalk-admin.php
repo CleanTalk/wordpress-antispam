@@ -118,8 +118,8 @@ function ct_dashboard_statistics_widget_output( $post, $callback_args ) {
 					<tr>
 						<td><?php echo $val[0]; ?></td>
 
-						<td>
-                            <?php echo $val[1] ? "<img src='https://cleantalk.org/images/flags/".strtolower($val[1]['country_code']).".png'>" : ''; ?>
+						<td class="ct_widget_block__country_cell">
+                            <?php echo $val[1] ? "<img src='" . APBCT_URL_PATH . "/inc/images/flags/".strtolower($val[1]['country_code']).".png'>" : ''; ?>
                             <?php echo $val[1]['country_name']; ?>
                         </td>
 
@@ -173,11 +173,10 @@ function ct_dashboard_statistics_widget_output( $post, $callback_args ) {
  * Admin action 'admin_init' - Add the admin settings and such
  */
 function apbct_admin__init(){
-	
 	global $apbct;
 
 	// Getting dashboard widget statistics
-	if(!empty($_POST['ct_brief_refresh'])){
+    if(!empty($_POST['ct_brief_refresh'])){
 		$apbct->data['brief_data'] = \Cleantalk\ApbctWP\API::method__get_antispam_report_breif($apbct->api_key);
 
 		# expanding data about the country
@@ -186,7 +185,7 @@ function apbct_admin__init(){
                 $ip = $ip_data[0];
                 $ip_data[1] = array(
                     'country_name' => 'Unknown',
-                    'country_code' => $ip_data[1]
+                    'country_code' => 'cleantalk'
                 );
 
                 if(isset($ip)) {
@@ -196,7 +195,7 @@ function apbct_admin__init(){
                     if(is_array($country_data_clear) && isset($country_data_clear['country_name']) && isset($country_data_clear['country_code'])) {
                         $ip_data[1] = array(
                             'country_name' => $country_data_clear['country_name'],
-                            'country_code' => $country_data_clear['country_code']
+                            'country_code' => (!preg_match('/[^A-Za-z0-9]/', $country_data_clear['country_code'])) ? $country_data_clear['country_code'] : 'cleantalk'
                         );
                     }
                 }
