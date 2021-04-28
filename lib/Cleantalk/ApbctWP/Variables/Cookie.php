@@ -62,7 +62,7 @@ class Cookie extends \Cleantalk\Variables\Cookie {
      * @param bool $httponly
      * @param string $samesite
      */
-    public static function set ($name, $value = '', $expires = 0, $path = '', $domain = null, $secure = null, $httponly = false, $samesite = 'Lax' ) {
+    public static function set ($name, $value = '', $expires = 0, $path = '', $domain = '', $secure = null, $httponly = false, $samesite = 'Lax' ) {
         
         global $apbct;
         
@@ -95,12 +95,12 @@ class Cookie extends \Cleantalk\Variables\Cookie {
      *
      * @return void
      */
-    public static function setNativeCookie ($name, $value = '', $expires = 0, $path = '', $domain = null, $secure = null, $httponly = false, $samesite = 'Lax' ) {
+    public static function setNativeCookie ($name, $value = '', $expires = 0, $path = '', $domain = '', $secure = null, $httponly = false, $samesite = 'Lax' ) {
     
         // For PHP 7.3+ and above
         if( version_compare( phpversion(), '7.3.0', '>=' ) ){
     
-            $secure = ! is_null( $secure ) ? $secure : Server::get('HTTPS') !== 'off' || Server::get('SERVER_PORT') == 443;
+            $secure = ! is_null( $secure ) ? $secure : Server::get('HTTPS') || Server::get('SERVER_PORT') == 443;
             
             $params = array(
                 'expires'  => $expires,
