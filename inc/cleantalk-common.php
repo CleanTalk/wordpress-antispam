@@ -1119,7 +1119,7 @@ function apbct_add_admin_ip_to_swf_whitelist( $user_login, $user ) {
                 time() + 86400 * 30,
                 '/',
                 null,
-                false,
+                null,
                 true,
                 'Lax'
             );

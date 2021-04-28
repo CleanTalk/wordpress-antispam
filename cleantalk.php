@@ -1597,7 +1597,7 @@ function apbct_store__urls(){
 		$urls               = count($urls) > 10               ? array_slice($urls, 1, 10)               : $urls;
 		
 		// Saving
-        \Cleantalk\ApbctWP\Variables\Cookie::set('apbct_urls', json_encode($urls), time()+86400*3, '/', parse_url(get_option('siteurl'),PHP_URL_HOST), false, true, 'Lax');
+        \Cleantalk\ApbctWP\Variables\Cookie::set('apbct_urls', json_encode($urls), time()+86400*3, '/', parse_url(get_option('siteurl'),PHP_URL_HOST), null, true, 'Lax');
 		
 		// REFERER
 		// Get current fererer
@@ -1609,7 +1609,7 @@ function apbct_store__urls(){
 		
 		// Save if empty
 		if( !$site_referer || parse_url($new_site_referer, PHP_URL_HOST) !== apbct_get_server_variable( 'HTTP_HOST' ) ){
-			\Cleantalk\ApbctWP\Variables\Cookie::set('apbct_site_referer', $new_site_referer, time()+86400*3, '/', parse_url(get_option('siteurl'),PHP_URL_HOST), false, true, 'Lax');
+			\Cleantalk\ApbctWP\Variables\Cookie::set('apbct_site_referer', $new_site_referer, time()+86400*3, '/', parse_url(get_option('siteurl'),PHP_URL_HOST), null, true, 'Lax');
 		}
 		
 		$apbct->flags__url_stored = true;
@@ -1654,14 +1654,14 @@ function apbct_cookie(){
 // Submit time
 	if(empty($_POST['ct_multipage_form'])){ // Do not start/reset page timer if it is multipage form (Gravitiy forms))
 		$apbct_timestamp = time();
-		\Cleantalk\ApbctWP\Variables\Cookie::set('apbct_timestamp', $apbct_timestamp,  0, '/', $domain, false, true, 'Lax' );
+		\Cleantalk\ApbctWP\Variables\Cookie::set('apbct_timestamp', $apbct_timestamp,  0, '/', $domain, null, true, 'Lax' );
 		$cookie_test_value['cookies_names'][] = 'apbct_timestamp';
 		$cookie_test_value['check_value'] .= $apbct_timestamp;
 	}
 
 // Pervious referer
 	if( Server::get( 'HTTP_REFERER' ) ){
-		\Cleantalk\ApbctWP\Variables\Cookie::set('apbct_prev_referer', Server::get( 'HTTP_REFERER' ), 0, '/', $domain, false, true, 'Lax' );
+		\Cleantalk\ApbctWP\Variables\Cookie::set('apbct_prev_referer', Server::get( 'HTTP_REFERER' ), 0, '/', $domain, null, true, 'Lax' );
 		$cookie_test_value['cookies_names'][] = 'apbct_prev_referer';
 		$cookie_test_value['check_value'] .= apbct_get_server_variable( 'HTTP_REFERER' );
 	}
@@ -1670,7 +1670,7 @@ function apbct_cookie(){
 	$site_landing_timestamp = \Cleantalk\ApbctWP\Variables\Cookie::get( 'apbct_site_landing_ts' );
 	if(!$site_landing_timestamp){
 		$site_landing_timestamp = time();
-		\Cleantalk\ApbctWP\Variables\Cookie::set('apbct_site_landing_ts', $site_landing_timestamp, 0, '/', $domain, false, true, 'Lax' );
+		\Cleantalk\ApbctWP\Variables\Cookie::set('apbct_site_landing_ts', $site_landing_timestamp, 0, '/', $domain, null, true, 'Lax' );
 	}
 	$cookie_test_value['cookies_names'][] = 'apbct_site_landing_ts';
 	$cookie_test_value['check_value'] .= $site_landing_timestamp;
@@ -1681,7 +1681,7 @@ function apbct_cookie(){
 	// Set / Increase
 	$page_hits = intval($page_hits) ? $page_hits + 1 : 1;
 	
-	\Cleantalk\ApbctWP\Variables\Cookie::set('apbct_page_hits', $page_hits, 0, '/', $domain, false, true, 'Lax' );
+	\Cleantalk\ApbctWP\Variables\Cookie::set('apbct_page_hits', $page_hits, 0, '/', $domain, null, true, 'Lax' );
 	
 	$cookie_test_value['cookies_names'][] = 'apbct_page_hits';
 	$cookie_test_value['check_value'] .= $page_hits;
@@ -1689,7 +1689,7 @@ function apbct_cookie(){
 	// Cookies test
 	$cookie_test_value['check_value'] = md5($cookie_test_value['check_value']);
     if( $apbct->settings['data__set_cookies'] == 1 )
-        \Cleantalk\ApbctWP\Variables\Cookie::set('apbct_cookies_test', urlencode(json_encode($cookie_test_value)), 0, '/', $domain, false, true, 'Lax' );
+        \Cleantalk\ApbctWP\Variables\Cookie::set('apbct_cookies_test', urlencode(json_encode($cookie_test_value)), 0, '/', $domain, null, true, 'Lax' );
 	
 	$apbct->flags__cookies_setuped = true;
 	
