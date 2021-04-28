@@ -45,7 +45,23 @@ class AltSessions {
         
     }
     
-    public static function get($name){
+    public static function set_fromRemote( \WP_REST_Request $request = null ){
+        
+        if( ! $request ){
+            check_ajax_referer( 'ct_secret_stuff' );
+            $cookies_to_set = (array) \Cleantalk\Variables\Post::get( 'cookies' );
+        }else{
+            $cookies_to_set = $request->get_param( 'cookies' );
+        }
+        
+        foreach( $cookies_to_set as $cookie_to_set ){
+            \Cleantalk\ApbctWP\Variables\Cookie::set( $cookie_to_set[0], $cookie_to_set[1] );
+        }
+        
+        wp_send_json( array( 'success' => true ) );
+    }
+    
+    public static function get( $name ){
     
         self::cleanFromOld();
         
@@ -73,7 +89,16 @@ class AltSessions {
                 : $result['value'])
             : false;
         
-        return $result ?: null;
+        if( ! $request ){
+            check_ajax_referer( 'ct_secret_stuff' );
+        }
+        
+        $value = \Cleantalk\ApbctWP\Variables\Cookie::get( $request
+            ? $request->get_param( 'cookies' )
+            : \Cleantalk\Variables\Post::get( 'name' )
+        );
+    
+        wp_send_json( array( 'success' => true, 'value' => $value ) );
     }
     
     public static function cleanFromOld(){

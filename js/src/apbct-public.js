@@ -288,10 +288,13 @@ function apbct_public_sendAJAX(data, params, obj){
 function apbct_public_sendREST( route, params ) {
 
 	var callback = params.callback || null;
+	var data     = params.data || [];
+	var method   = params.method || 'POST';
 
 	jQuery.ajax({
-		type: "POST",
+		type: method,
 		url: ctPublic._rest_url + 'cleantalk-antispam/v1/' + route,
+		data: data,
 		beforeSend : function ( xhr ) {
 			xhr.setRequestHeader( 'X-WP-Nonce', ctPublic._rest_nonce );
 		},
