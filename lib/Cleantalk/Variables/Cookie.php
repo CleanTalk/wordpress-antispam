@@ -67,9 +67,9 @@ class Cookie extends ServerVariables{
 	 *
 	 * @return void
 	 */
-	public static function set ( $name, $value = '', $expires = 0, $path = '', $domain = null, $httponly = false, $samesite = 'Lax' ) {
-
-		$secure = Server::get('HTTPS') !== 'off' || Server::get('SERVER_PORT') == 443;
+	public static function set ( $name, $value = '', $expires = 0, $path = '', $domain = null, $secure = null, $httponly = false, $samesite = 'Lax' ) {
+        
+        $secure = ! is_null( $secure ) ? $secure : Server::get('HTTPS') !== 'off' || Server::get('SERVER_PORT') == 443;
 
 		// For PHP 7.3+ and above
 		if( version_compare( phpversion(), '7.3.0', '>=' ) ){

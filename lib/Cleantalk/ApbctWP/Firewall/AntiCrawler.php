@@ -167,7 +167,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
             if( Cookie::get('apbct_antibot') == hash( 'sha256', $this->api_key . $this->apbct->data['salt'] ) ) {
                 if( Cookie::get( 'apbct_anticrawler_passed' ) == 1 ){
                     if( ! headers_sent() )
-                        \Cleantalk\ApbctWP\Variables\Cookie::set( 'apbct_anticrawler_passed', '0', time() - 86400, '/', null, false, true, 'Lax' );
+                        Cookie::set( 'apbct_anticrawler_passed', '0', time() - 86400, '/', null, null, true, 'Lax' );
 
                     // Do logging an one passed request
                     $this->update_log( $current_ip, 'PASS_ANTICRAWLER' );

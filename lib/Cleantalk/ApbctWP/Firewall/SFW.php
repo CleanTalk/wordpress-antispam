@@ -81,7 +81,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 		// Skip by cookie
 		foreach( $this->ip_array as $current_ip ){
 
-			if( substr( Cookie::get( 'ct_sfw_pass_key' ), 0, 32 ) == md5( $current_ip . $this->api_key ) ){
+			if( strpos( Cookie::get( 'ct_sfw_pass_key' ), md5( $current_ip . $this->api_key ) ) === 0 ){
 
                 if( Cookie::get( 'ct_sfw_passed' ) ){
 

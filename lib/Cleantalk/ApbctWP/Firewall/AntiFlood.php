@@ -86,7 +86,7 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule{
 			if( Cookie::get( 'apbct_antiflood_passed' ) === md5( $current_ip . $this->api_key ) ){
 				
 				if( ! headers_sent() ){
-					\Cleantalk\ApbctWP\Variables\Cookie::set( 'apbct_antiflood_passed', '0', time() - 86400, '/', null, null, true, 'Lax' );
+					Cookie::set( 'apbct_antiflood_passed', '0', time() - 86400, '/', null, null, true, 'Lax' );
 				}
 
                 // Do logging an one passed request
