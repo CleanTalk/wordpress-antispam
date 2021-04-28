@@ -413,8 +413,8 @@ function apbct_get_sender_info() {
         'site_landing_ts'        => Cookie::get( 'apbct_site_landing_ts' ) && $cookie_is_ok ? Cookie::get( 'apbct_site_landing_ts' ) : null,
         'page_hits'              => Cookie::get( 'apbct_page_hits' )                        ?: null,
 		// JS cookies                                                                                                                                                  
-        'js_info'                => !empty(Cookie::get( 'ct_user_info' ))                               ? json_decode(stripslashes(urldecode( Cookie::get( 'ct_user_info' ) )), true)         : null,
-		'mouse_cursor_positions' => !empty(Cookie::get( 'ct_pointer_data' ))                            ? json_decode(stripslashes(Cookie::get( 'ct_pointer_data' )), true)      : null,
+        'js_info'                => Cookie::get( 'ct_user_info', null ),
+		'mouse_cursor_positions' => Cookie::get( 'ct_pointer_data', null ),
 		'js_timezone'            => Cookie::get( 'ct_timezone' )      ?: null,
 		'key_press_timestamp'    => Cookie::get( 'ct_fkp_timestamp' ) ?: null,
 		'page_set_timestamp'     => Cookie::get( 'ct_ps_timestamp' )  ?: null,
