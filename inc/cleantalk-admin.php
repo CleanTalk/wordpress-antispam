@@ -120,7 +120,7 @@ function ct_dashboard_statistics_widget_output( $post, $callback_args ) {
 
 						<td class="ct_widget_block__country_cell">
                             <?php echo $val[1] ? "<img src='" . APBCT_URL_PATH . "/inc/images/flags/".strtolower( isset( $val[1]['country_code'] ) ? $val[1]['country_code'] : 'a1' ).".png'>" : ''; ?>
-                            <?php echo $val[1]['country_name']; ?>
+                            <?php echo isset( $val[1]['country_name'] ) ? $val[1]['country_name'] : 'Unknown'; ?>
                         </td>
 
 						<td style='text-align: center;'><?php echo $val[2]; ?></td>
