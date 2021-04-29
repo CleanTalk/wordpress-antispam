@@ -6,6 +6,6 @@ namespace Cleantalk\Antispam\Integrations;
 
 abstract class IntegrationBase
 {
-    abstract function getDataForChecking( $argument );
-    abstract function doBlock( $message );
+    abstract public function getDataForChecking( $argument );
+    abstract public function doBlock( $message );
 }
