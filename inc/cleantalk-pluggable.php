@@ -514,6 +514,12 @@ function apbct_is_skip_request( $ajax = false ) {
 		    {
 			    return 'mylisting_theme_service_requests_skip';
 		    }
+		    // HappyForms skip every requests. HappyForms have the direct integration
+		    if( apbct_is_plugin_active( 'happyforms-upgrade/happyforms-upgrade.php' ) &&
+		        ( Post::get('happyforms_message_nonce') !== ''  ) )
+		    {
+			    return 'happyform_skipped';
+		    }
 
             break;
 
