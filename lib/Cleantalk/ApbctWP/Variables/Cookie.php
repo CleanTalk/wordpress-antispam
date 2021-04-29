@@ -8,7 +8,7 @@ use Cleantalk\Variables\Server;
 
 class Cookie extends \Cleantalk\Variables\Cookie {
     
-    public static function get( $name, $default = '', $raw = false ){
+    public static function get( $name, $default = '', $cast_to = null, $raw = false ){
     
         global $apbct;
         
@@ -44,6 +44,10 @@ class Cookie extends \Cleantalk\Variables\Cookie {
         if( ! $raw  ){
             $value = urldecode( $value ); // URL decode
             $value = Helper::is_json( $value ) ? json_decode( $value, true ) : $value; // JSON decode
+            if( ! is_null( $cast_to ) ){
+                settype( $value, $cast_to );
+                $value = $cast_to === 'array' && $value === array('') ? array() : $value;
+            }
         }
         
         return ! $value ? $default : $value;

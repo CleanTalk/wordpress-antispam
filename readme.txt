@@ -1,10 +1,10 @@
 === Spam protection, AntiSpam, FireWall by CleanTalk ===
-Contributors: safronik 
+Contributors: safronik
 Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 3.0
 Tested up to: 5.7
 Requires PHP: 5.4
-Stable tag: 5.156
+Stable tag: 5.157
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -160,7 +160,7 @@ All the CleanTalk Spam FireWall activity is being logged in the process of filte
 Spam FireWall can mitigate HTTP/HTTPS DDoS attacks. When an intruder makes GET requests to attack your website, Spam FireWall blocks all requests from bad IP addresses. Your website gives the intruder a special page with the description of DDoS rejection instead of the website pages. Therefore Spam FireWall helps to reduce CPU usage of your server.
 [youtube https://www.youtube.com/watch?v=Eu5Zqryvj4k]
 
-= Spam FireWall: Anti-Flood & Anti-Crawler = 
+= Spam FireWall: Anti-Flood & Anti-Crawler =
 Spam FireWall: Anti-Flood and Anti-Crawler options are intended for blocking unwanted bots, content parsing, shop goods prices parsing or aggressive website scanning bots. Learn more https://cleantalk.org/help/anti-flood-and-anti-crawler
 
 = XML-RPC brute force protection =
@@ -580,7 +580,74 @@ If your website has forms that send data to external sources, you can enable opt
 
 == Changelog ==
 
-= 5.155.2 Apr 15 2021 =
+= 5.157 Apr 28 2021 =
+ * New: Invisible fields collecting implemented.
+ * New: A dev and a fix version suffix support.
+ * New: Variables. Cookie::set() method added.
+ * New: Split Cleantalk\Common\DB::method__private_list_add__sfw_wl() in two Cleantalk\Common\DB::method__private_list_add() and Cleantalk\ApbctWP\DB::method__private_list_add__sfw_wl().
+ * New: Split Cleantalk\ApbctWP\Helper::http__request__rc_to_host() in two Cleantalk\ApbctWP\Helper::http__request__rc_to_host() and Cleantalk\ApbctWP\Helper::http__request__rc_to_host__test().
+ * New: Updater script for 5.157.
+ * New: Update/delete SpamFireWall database when it enable/disable. Improvements.
+ * New: \Cleantalk\ApbctWP\Variables::AltSessions class.
+ * New: "Set cookies" setting now has 3 options "On", "Off" and "Use alternative mechanism for cookies".
+ * New: REST API route '/alt_sessions' and callbacks.
+ * Mod: Compatibility with Thrive Leads - remove deleted the modal window about successful sending when blocking the user.
+ * Mod: changed the handling of gravityform fields, added a check for the visibility of the field when processing the name.
+ * Mod: Added a setting for Woocommerce, which includes checking the un-logged user when adding an item to the cart. If the user does not pass the verification, the product is not added to the cart.
+ * Mod: Added a settings for Woocommerce - correction.
+ * Mod: WC add to cart - change settings description.
+ * Mod: Cleantalk\ApbctWP\RemoteCalls::debug() improved.
+ * Mod: SpaFirewall update.
+ * Mod: add buddypress integration for user account personal data.
+ * Mod: Moving \Cleantalk\Common\Helper::apbct_cookie__set() to \Cleantalk\ApbctWP\Variables::set() function.
+ * Mod: Using \Cleantalk\ApbctWP\Variables::set() instead of \Cleantalk\Common\Helper::apbct_cookie__set().
+ * Mod: Extend \Cleantalk\ApbctWP\Variables to use alternative sessions.
+ * Mod: Using \Cleantalk\ApbctWP\Variables\AltSessions class instead of set of "apbct_alt_sessions__" functions.
+ * Mod: added loading of country flags from the plugin.
+ * Mod: added styles for the widget with anti-spam statistics.
+ * Mod: Improving ct_enqueue_scripts_public().
+ * Mod: Update for JS ctSetCookie().
+ * Mod: AltSessions and Cookie using 'data__set_cookies' and 'data__set_cookies' settings.
+ * Mod: Minified JS updated.
+ * Upd: Setting cookies updating.
+ * Upd: Setting cookies by JS updating.
+ * Fix: SFW. DB result handling.
+ * Fix: Integration. Avada theme settings saving fixed.
+ * Fix: Cleantalk modal. Layout fixed.
+ * Fix: Possible use an html on ajax forms blocking message.
+ * Fix: Include JS logic fixed.
+ * Fix: Refactoring. Collecting details about browser refactored.
+ * Fix: Refactoring. Alert replacing by console log on REST request handling.
+ * Fix: Integration. Gravity Forms integration fixed.
+ * Fix: ignoring the hidden fields with name if visible fields exists.
+ * Fix: Integration. Formidable multi-step form protection fixed.
+ * Fix: add max z-index for #cleantalk-modal-overlay.
+ * Fix: Cannot read property 'response_type' of undefined - xhr.responseJSON - undefined where action wc_add_to_cart_block.
+ * Fix: Helper. Set cookies method is deprecated now.
+ * Fix: Adding admin IP to whitelist during the login in and plugin activation.
+ * Fix: SpamFirewall. Don't set cookies if option is disabled.
+ * Fix: Sorting methods modifiers in \Cleantalk\Common\Helper and \Cleantalk\ApbctWP\Helper classes.
+ * Fix: Using \Cleantalk\ApbctWP\Variables\Cookies.
+ * Fix: A dev and a fix version suffix support.
+ * Fix: Adding admin IP to whitelist during the login in and plugin activation.
+ * Fix: New setting 'Alternative cookies handler type'.
+ * Fix: sender_info params.
+ * Fix: SpamFirewall deleting 127.0.0.1 from local base during update on local website.
+ * Fix: apbct_js_test() considering "Alternative cookie" setting.
+ * Fix: Cleantalk\ApbctWP\VariablesCookie::set() automatically set secure flag if null passed.
+ * Fix: Check JS via Cookie with the Alternative Cookie on.
+ * Fix: Automatically set "secure" param when setcookie() called.
+ * Fix: 'Alternative cookies handler type' setting layout.
+ * Fix: For legacy apbct__hook__wp_logout__delete_trial_notice_cookie().
+ * Fix: Cleantalk\ApbctWP\Variables::set_fromRemote(), Cleantalk\ApbctWP\Variables::get_fromRemote() fix parameter type.
+ * Fix: SpamFirewall add admin IP when login in or activate plugin.
+ * Fix: Dashboard widget. Showing default Cleantalk's flag if country not found.
+ * Fix: Dashboard widget. Showing 'Unknown' country name if country not found.
+ * Del: Unused apbct_cookie__set() function.
+ * Del: "Use alternative mechanism for cookies" setting.
+ * Del: "Use cookies less sessions" setting.
+
+= 5.156 Apr 15 2021 =
  * New: ApbctWP\RemoteCalls::action__debug().
  * New: ApbctWP\Helper::http__get_data_from_remote_gz__and_parse_csv();
  * New: ApbctWP\Helper::http__get_data_from_remote_gz();
