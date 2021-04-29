@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 3.0
 Tested up to: 5.7
 Requires PHP: 5.4
-Stable tag: 5.157
+Stable tag: 5.157.1
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -579,6 +579,10 @@ If your website has forms that send data to external sources, you can enable opt
 10. Website's options.
 
 == Changelog ==
+
+= 5.157.1 Apr 29 2021 =
+ * Mod: \Cleantalk\ApbctWP\Variables\Cookie::get() now has 'cast_to' param. If defined trying to cast to a given type.
+ * Fix: \Cleantalk\ApbctWP\Variables\Cookie::get() calls using 'cast_to' param if needed.
 
 = 5.157 Apr 28 2021 =
  * New: Invisible fields collecting implemented.
