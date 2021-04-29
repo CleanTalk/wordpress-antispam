@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 3.0
 Tested up to: 5.7
 Requires PHP: 5.4
-Stable tag: 5.155.2
+Stable tag: 5.156
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -579,6 +579,45 @@ If your website has forms that send data to external sources, you can enable opt
 10. Website's options.
 
 == Changelog ==
+
+= 5.155.2 Apr 15 2021 =
+ * New: ApbctWP\RemoteCalls::action__debug().
+ * New: ApbctWP\Helper::http__get_data_from_remote_gz__and_parse_csv();
+ * New: ApbctWP\Helper::http__get_data_from_remote_gz();
+ * New: Update/delete SpamFireWall database when it enable/disable.
+ * New: \Cleantalk\Common\DNS class. Allows to get with DNS records and theirs different parameters.
+ * New: No cookies if disabled from frontend. Alternative cookies if enabled from frontend.
+ * New: \Cleantalk\ApbctWP\Variables\Cookie extends Cleantalk\Common\Variables\Cookie and automatically supports alternative cookies.
+ * Mod: Don't use alternative cookies for JS cookies for now.
+ * Mod: ApbctWP\State default data.
+ * Mod: Small code improvements.
+ * Mod: Minor code improvements.
+ * Mod: Using apbct_sfw_update__init instead() of ct_sfw_update().
+ * Mod: Updater script to 5.156.
+ * Upd: \Cleantalk\ApbctWP\RemoteCalls.
+ * Upd: *.min. files update.
+ * Upd: Current moderate*.cleantalk.org IP servers update.
+ * Refactor: SpamFireWall update.
+ * Fix: ApbctWP\RemoteCalls::action__sfw_update().
+ * Fix: \Cleantalk\Common\DNS could request specific DNS type record.
+ * Fix: Anti Spam. External forms protection capturing buffer fixed.
+ * Fix: SFW. Notices disabled on blocking pages.
+ * Fix: Admin ajax handler fixed - alert removed.
+ * Fix: No alert when error fires.
+ * Fix: Notice. change 'wpms__allow_custom_settings' to 'multisite__allow_custom_settings' in cleantalk-admin.php.
+ * Fix: Getting JS key by ajax fixed.
+ * Fix: No alert when AJAX fails.
+ * Fix: Send plugin version as parameter when apbct-public.min.js script attaching.
+ * Fix: The AJAX REST API error text unique.
+ * Fix: No alert message when AJAX (REST) error happens.
+ * Fix: Skip. MyListing theme service requests skip.
+ * Fix: \Cleantalk\ApbctWP\Helper::http__request__rc_to_host(). Considering empty response as error.
+ * Fix: \Cleantalk\Common\Helper::http__request(). Empty error while SFW update.
+ * Fix: REST API. Required parameter added.
+ * Fix: PHP Notices and Warnings.
+ * Fix: AntiCrawler UA update.
+ * Fix: JS and CSS minified.
+ * Fix: ApbctWP\State __get using &. *
 
 = 5.155.2 Apr 6 2021 =
  * Fix: Renaming setting to their original names in old update scripts.

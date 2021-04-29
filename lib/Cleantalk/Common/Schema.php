@@ -4,8 +4,10 @@ namespace Cleantalk\Common;
 
 class Schema
 {
-    /*
-     * Array of schemas
+    /**
+     * Set of schemas in array
+     *
+     * @var array
      */
     private static $schemas = array(
         'sfw' => 'CREATE TABLE IF NOT EXISTS `%scleantalk_sfw` (

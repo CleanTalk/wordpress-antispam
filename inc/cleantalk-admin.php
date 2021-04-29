@@ -117,10 +117,12 @@ function ct_dashboard_statistics_widget_output( $post, $callback_args ) {
 <?php			foreach($apbct->brief_data['top5_spam_ip'] as $val){ ?>				
 					<tr>
 						<td><?php echo $val[0]; ?></td>
-						<td><?php echo $val[1] ? "<img src='https://cleantalk.org/images/flags/".strtolower($val[1]).".png'>" : ''; ?>&nbsp;<?php 
-							echo $val[1]
-								? locale_get_display_region('sl-Latn-'.$val[1].'-nedis', substr(get_locale(), 0, 2))
-								: 'Unknown'; ?></td>
+
+						<td class="ct_widget_block__country_cell">
+                            <?php echo $val[1] ? "<img src='" . APBCT_URL_PATH . "/inc/images/flags/".strtolower( isset( $val[1]['country_code'] ) ? $val[1]['country_code'] : 'a1' ).".png'>" : ''; ?>
+                            <?php echo isset( $val[1]['country_name'] ) ? $val[1]['country_name'] : 'Unknown'; ?>
+                        </td>
+
 						<td style='text-align: center;'><?php echo $val[2]; ?></td>
 					</tr>
 <?php			} ?>
@@ -171,15 +173,40 @@ function ct_dashboard_statistics_widget_output( $post, $callback_args ) {
  * Admin action 'admin_init' - Add the admin settings and such
  */
 function apbct_admin__init(){
-	
 	global $apbct;
-	
+
 	// Getting dashboard widget statistics
-	if(!empty($_POST['ct_brief_refresh'])){
+    if(!empty($_POST['ct_brief_refresh'])){
 		$apbct->data['brief_data'] = \Cleantalk\ApbctWP\API::method__get_antispam_report_breif($apbct->api_key);
+
+		# expanding data about the country
+		if(isset($apbct->data['brief_data']['top5_spam_ip']) && !empty($apbct->data['brief_data']['top5_spam_ip'])) {
+            foreach ($apbct->data['brief_data']['top5_spam_ip'] as $key => $ip_data) {
+                $ip = $ip_data[0];
+                $ip_data[1] = array(
+                    'country_name' => 'Unknown',
+                    'country_code' => 'cleantalk'
+                );
+
+                if(isset($ip)) {
+                    $country_data = \Cleantalk\ApbctWP\API::method__ip_info($ip);
+                    $country_data_clear = current($country_data);
+
+                    if(is_array($country_data_clear) && isset($country_data_clear['country_name']) && isset($country_data_clear['country_code'])) {
+                        $ip_data[1] = array(
+                            'country_name' => $country_data_clear['country_name'],
+                            'country_code' => (!preg_match('/[^A-Za-z0-9]/', $country_data_clear['country_code'])) ? $country_data_clear['country_code'] : 'cleantalk'
+                        );
+                    }
+                }
+
+                $apbct->data['brief_data']['top5_spam_ip'][$key] = $ip_data;
+            }
+        }
+
 		$apbct->saveData();
 	}
-	
+
 	// Getting key like hoster. Only once!
     if(!is_main_site() && $apbct->white_label && ( empty($apbct->api_key) || $apbct->settings['apikey'] == $apbct->network_settings['apikey'] ) ){
 	    $res = apbct_settings__get_key_auto( true );

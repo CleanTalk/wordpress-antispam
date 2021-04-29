@@ -3,7 +3,6 @@
 namespace Cleantalk\Common;
 
 use Cleantalk\Common\Helper as Helper;
-use Cleantalk\Variables\Cookie;
 use Cleantalk\Variables\Get;
 
 /**
@@ -219,7 +218,7 @@ class Firewall
                     ) {
 	                    if( ! headers_sent() ) {
 		                    $cookie_val = md5( $fw_result['ip'] . $apbct->api_key );
-		                    Cookie::set( 'ct_sfw_ip_wl', $cookie_val, time() + 86400 * 30, '/', null, true, 'Lax' );
+		                    \Cleantalk\ApbctWP\Variables\Cookie::set( 'ct_sfw_ip_wl', $cookie_val, time() + 86400 * 30, '/', null, null, true, 'Lax' );
 	                    }
                         return true;
                     }

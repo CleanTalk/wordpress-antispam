@@ -39,7 +39,7 @@ function apbct_settings__set_fileds( $fields ){
 
     $additional_ac_title = '';
 	if( $apbct->api_key && is_null( $apbct->fw_stats['firewall_updating_id'] ) ) {
-	    if( ! $apbct->stats['sfw']['entries'] ) {
+	    if( $apbct->settings['sfw__enabled'] && ! $apbct->stats['sfw']['entries'] ) {
             $additional_ac_title = ' <span style="color:red">' . esc_html__( 'The functionality was disabled because SpamFireWall database is empty. Please, do the synchronization or', 'cleantalk-spam-protect' ) . ' ' . '<a href="https://cleantalk.org/my/support/open" target="_blank" style="color:red">'. esc_html__( 'contact to our support.', 'cleantalk-spam-protect' ) .'</a></span>';
         }
     }
@@ -198,6 +198,16 @@ function apbct_settings__set_fileds( $fields ){
 					'class'           => 'apbct_settings-field_wrapper--sub',
 					'reverse_trigger' => true,
 				),
+				'forms__wc_add_to_cart' => array(
+					'title'           => __('Check anonymous users when they add new items to the cart', 'cleantalk-spam-protect'),
+					'description'     => __('All anonymous users will be checked for spam if they add a new item to their shopping cart.', 'cleantalk-spam-protect'),
+					'reverse_trigger' => false,
+					'class'           => 'apbct_settings-field_wrapper--sub',
+					'options' => array(
+						array( 'val' => 1, 'label' => __( 'On' ) ),
+						array( 'val' => 0, 'label' => __( 'Off' ) ),
+					),
+				),
 			),
 		),
 		
@@ -295,17 +305,32 @@ function apbct_settings__set_fileds( $fields ){
 						)
 						.'<br />' . __('СAUTION! Option can catch POST requests in WordPress backend', 'cleantalk-spam-protect'),
 				),
-				'data__set_cookies' => array(
-					'title'       => __("Set cookies", 'cleantalk-spam-protect'),
-					'description' => __('Turn this option off to deny plugin generates any cookies on website front-end. This option is helpful if you use Varnish. But most of contact forms will not be protected if the option is turned off! <b>Warning: We strongly recommend you to enable this otherwise it could cause false positives spam detection.</b>', 'cleantalk-spam-protect'),
-					'childrens'   => array('data__set_cookies__sessions'),
-				),
-				'data__set_cookies__sessions' => array(
-					'title'       => __('Use alternative mechanism for cookies', 'cleantalk-spam-protect'),
-					'description' => __('Doesn\'t use cookie or PHP sessions. Collect data for all types of bots.', 'cleantalk-spam-protect'),
-					'parent'      => 'data__set_cookies',
-					'class'       => 'apbct_settings-field_wrapper--sub',
-				),
+                'data__set_cookies' => array(
+                    'title'       => __( "Set cookies", 'cleantalk-spam-protect' ),
+                    'description' => __( 'Turn this option off or use alternative mechanism for cookies to forbid the plugin generate any cookies on website\'s front-end.', 'cleantalk-spam-protect' )
+                                     . '<br>' . __( 'This option is helpful if you are using Varnish. Most contact forms will have poor protection if the option is turned off!', 'cleantalk-spam-protect' )
+                                     . '<br>' . __( 'Alternative mechanism will store data in database and will not set cookies in browser, so the cache solutions will work just fine.', 'cleantalk-spam-protect' )
+                                     . '<br><b>' . __( 'Warning: We strongly recommend you keep the setting on, otherwise it could cause false positives spam detection.', 'cleantalk-spam-protect' ) . '</b>',
+                    'input_type'  => 'radio',
+                    'options'     => array(
+                        array( 'val' => 1, 'label' => __( 'On', 'cleantalk-spam-protect' ), 'childrens_enable' => 0, ),
+                        array( 'val' => 0, 'label' => __( 'Off', 'cleantalk-spam-protect' ), 'childrens_enable' => 0, ),
+                        array( 'val' => 2, 'label' => __( 'Use alternative mechanism for cookies', 'cleantalk-spam-protect' ), 'childrens_enable' => 1, ),
+                    ),
+                    'childrens'   => array( 'data__set_cookies__alt_sessions_type' )
+                ),
+                'data__set_cookies__alt_sessions_type' => array(
+                    'title'       => __( 'Alternative cookies handler type', 'cleantalk-spam-protect' ),
+                    'description' => __( 'This could be helpful if you are using alternative mechanism for cookies and have REST API disabled. REST works faster.', 'cleantalk-spam-protect' ),
+                    'class'       => 'apbct_settings-field_wrapper--sub',
+                    'input_type'  => 'radio',
+                    'options'     => array(
+                        array( 'val' => 1, 'label' => __( 'Use REST API', 'cleantalk-spam-protect' ), ),
+                        array( 'val' => 2, 'label' => __( 'Use AJAX handler', 'cleantalk-spam-protect' ), ),
+                    ),
+                    'parent' => 'data__set_cookies',
+                    'disabled' => $apbct->settings['data__set_cookies'] != 2,
+                ),
 				'data__ssl_on' => array(
 					'title'       => __("Use SSL", 'cleantalk-spam-protect'),
 					'description' => __('Turn this option on to use encrypted (SSL) connection with servers.', 'cleantalk-spam-protect'),
@@ -424,14 +449,6 @@ function apbct_settings__set_fileds( $fields ){
 					'type'        => 'checkbox',
 					'title'       => __('Store visited URLs', 'cleantalk-spam-protect'),
 					'description' => __("Plugin stores last 10 visited URLs (HTTP REFFERERS) before visitor submits form on the site. You can see stored visited URLS for each visitor in your Dashboard. Turn the option on to improve Anti-Spam protection.", 'cleantalk-spam-protect'),
-					'childrens'   => array('misc__store_urls__sessions'),
-				),
-				'misc__store_urls__sessions' => array(
-					'type'        => 'checkbox',
-					'title'       => __('Use cookies less sessions', 'cleantalk-spam-protect'),
-					'description' => __('Doesn\'t use cookie or PHP sessions. Collect data for all types of bots.', 'cleantalk-spam-protect'),
-					'parent'      => 'misc__store_urls',
-					'class'       => 'apbct_settings-field_wrapper--sub',
 				),
 				'wp__comment_notify' => array(
 					'type'        => 'checkbox',
@@ -1412,13 +1429,11 @@ function apbct_settings__validate($settings) {
 
 	// Actions with toggle SFW settings
     // SFW was enabled
-    if( ! (int)$apbct->settings['sfw__enabled'] && (int)$settings['sfw__enabled'] ){
-        // Needs to be fired only after option was updated
-        add_action('update_option_cleantalk_settings' ,'apbct_sfw_update__init' );
-        add_action('add_option_cleantalk_settings' ,'apbct_sfw_update__init' );
-    }
+    if( ! $apbct->settings['sfw__enabled'] && $settings['sfw__enabled'] ){
+        apbct_sfw_update__init( 3 );
+        
     // SFW was disabled
-    if( (int)$apbct->settings['sfw__enabled'] && ! (int)$settings['sfw__enabled'] ){
+    }elseif( $apbct->settings['sfw__enabled'] && ! $settings['sfw__enabled'] ){
         apbct_sfw__clear();
     }
 	
@@ -1525,12 +1540,8 @@ function apbct_settings__validate($settings) {
 	}
 
 	// Alt sessions table clearing
-    if( empty( $settings['data__set_cookies__sessions'] ) ) {
-        if( empty( $settings['misc__store_urls__sessions'] ) ) {
-            apbct_alt_sessions__clear();
-        } else {
-            apbct_alt_sessions__clear( false );
-        }
+    if( $settings['data__set_cookies'] != 2 ) {
+        \Cleantalk\ApbctWP\Variables\AltSessions::wipe();
     }
 	
 	return $settings;
@@ -1569,7 +1580,7 @@ function apbct_settings__sync( $direct_call = false ){
                 delete_option( 'sfw_update_first' );
             }
 			
-			$result = apbct_sfw_update__init( $apbct->settings['apikey'] );
+			$result = apbct_sfw_update__init( 5 );
 			if( ! empty( $result['error'] ) )
 				$apbct->error_add( 'sfw_update', $result['error'] );
 			

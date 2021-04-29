@@ -18,6 +18,31 @@ class RestController extends \WP_REST_Controller {
 				'permission_callback' => '__return_true',
 			)
 		) );
+        
+        register_rest_route( $this->namespace, "/alt_sessions", array(
+            array(
+                'methods'             => 'POST',
+                'callback'            => array( \Cleantalk\ApbctWP\Variables\AltSessions::class, 'set_fromRemote' ),
+                'args'                => array(
+                    'cookies' => array(
+                        'type'     => 'array',
+                        'required' => true,
+                    ),
+                ),
+                'permission_callback' => '__return_true',
+            ),
+            array(
+                'methods'             => 'GET',
+                'callback'            => array( \Cleantalk\ApbctWP\Variables\AltSessions::class, 'get_fromRemote' ),
+                'args'                => array(
+                    'name' => array(
+                        'type'     => 'string',
+                        'required' => true,
+                    ),
+                ),
+                'permission_callback' => '__return_true',
+            )
+        ) );
 	}
 
 }

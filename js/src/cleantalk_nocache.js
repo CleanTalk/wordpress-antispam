@@ -62,30 +62,14 @@ function ct_getCookie(name) {
   return matches ? decodeURIComponent(matches[1]) : undefined;
 }
 
-function ct_setCookie(name, value)
-{
-    if (ctNocache.set_cookies_flag) {
-		var ctSecure = location.protocol === 'https:' ? '; secure' : '';
-        document.cookie = name+" =; expires=Thu, 01 Jan 1970 00:00:01 GMT; path = /; samesite=lax" + ctSecure;
-        document.cookie = name+" =; expires=Thu, 01 Jan 1970 00:00:01 GMT; samesite=lax" + ctSecure;
-        
-        var date = new Date;
-        date.setDate(date.getDate() + 1);
-        setTimeout(function() {
-			var ctSecure = location.protocol === 'https:' ? '; secure' : '';
-        	document.cookie = name+"=" + value + "; expires=" + date.toUTCString() + "; path = /; samesite=lax" + ctSecure;
-		}, 500);
-    }
-
-    return null;
-}
-
 function ct_callback(req)
 {
 	ct_cookie = req.responseText.trim();
 	//alert('Key value: ' + ct_cookie);
-	
-	ct_setCookie('ct_checkjs', ct_cookie);
+
+	var date = new Date;
+	date.setDate(date.getDate() + 1);
+	ctSetCookie('ct_checkjs', ct_cookie, date.toUTCString());
 	
 	for(i=0;i<document.forms.length;i++)
 	{
@@ -195,9 +179,8 @@ if(ct_nocache_executed==undefined)
 		{
 			isVisitedMain=1;
 			setTimeout(function () {
-					ct_setCookie('ct_visited_main',
-						'1')
-				}, 1500);
+				ctSetCookie('ct_visited_main', '1');
+			}, 1500);
 		}
 		
 		
@@ -214,9 +197,7 @@ if(ct_nocache_executed==undefined)
 		cleantalk_user_info.is_main=isVisitedMain;
 
 		setTimeout(function () {
-			ctSetCookie(
-				'ct_user_info',
-				escape(JSON.stringify(cleantalk_user_info)));
+			ctSetCookie( 'ct_user_info',	escape(JSON.stringify(cleantalk_user_info) ) );
 		}, 1500);
 	}
 }

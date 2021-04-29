@@ -3,8 +3,8 @@
 namespace Cleantalk\ApbctWP\Firewall;
 
 use Cleantalk\ApbctWP\API;
+use Cleantalk\ApbctWP\DB;
 use Cleantalk\ApbctWP\Helper;
-use Cleantalk\Common\Schema;
 use Cleantalk\Variables\Cookie;
 use Cleantalk\Variables\Get;
 use Cleantalk\Variables\Server;
@@ -20,7 +20,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 	private $sfw_counter = false;
 	private $api_key = false;
 	private $apbct = array();
-	private $set_cookies = false;
+	private $data__set_cookies = false;
 	private $cookie_domain = false;
 	
 	public $module_name = 'SFW';
@@ -81,12 +81,12 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 		// Skip by cookie
 		foreach( $this->ip_array as $current_ip ){
 
-			if( substr( Cookie::get( 'wordpress_ct_sfw_pass_key' ), 0, 32 ) == md5( $current_ip . $this->api_key ) ){
+			if( strpos( Cookie::get( 'ct_sfw_pass_key' ), md5( $current_ip . $this->api_key ) ) === 0 ){
 
-                if( Cookie::get( 'wordpress_ct_sfw_passed' ) ){
+                if( Cookie::get( 'ct_sfw_passed' ) ){
 
                     if( ! headers_sent() ){
-                        Cookie::set( 'wordpress_ct_sfw_passed', '0', time() + 86400 * 3, '/', null, true, 'Lax' );
+                        \Cleantalk\ApbctWP\Variables\Cookie::set( 'ct_sfw_passed', '0', time() + 86400 * 3, '/', null, null, true, 'Lax' );
                     } else {
                         $results[] = array( 'ip' => $current_ip, 'is_personal' => false, 'status' => 'PASS_SFW__BY_COOKIE', );
                     }
@@ -101,8 +101,8 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 
                 }
 
-                if( strlen( Cookie::get( 'wordpress_ct_sfw_pass_key' ) ) > 32 ) {
-                    $status = substr( Cookie::get( 'wordpress_ct_sfw_pass_key' ), -1 );
+                if( strlen( Cookie::get( 'ct_sfw_pass_key' ) ) > 32 ) {
+                    $status = substr( Cookie::get( 'ct_sfw_pass_key' ), -1 );
                 }
 
                 if( $status ) {
@@ -136,12 +136,12 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 				
 				foreach( $db_results as $db_result ){
 					
-					if( $db_result['status'] == 1 ) {
+					if( (int) $db_result['status'] === 1 ) {
                         $results[] = array('ip' => $current_ip, 'is_personal' => false, 'status' => 'PASS_SFW__BY_WHITELIST',);
                         break;
+                    }else{
+                        $results[] = array( 'ip' => $current_ip, 'is_personal' => false, 'status' => 'DENY_SFW', );
                     }
-					else
-						$results[] = array('ip' => $current_ip, 'is_personal' => false, 'status' => 'DENY_SFW',);
 					
 				}
 				
@@ -198,10 +198,16 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 	}
 	
 	public function actions_for_passed( $result ){
-		if( $this->set_cookies &&  ! headers_sent() ) {
+		if( $this->data__set_cookies == 1 && ! headers_sent() ) {
 		    $status = $result['status'] == 'PASS_SFW__BY_WHITELIST' ? '1' : '0';
             $cookie_val = md5( $result['ip'] . $this->api_key ) . $status;
-			Cookie::set( 'wordpress_ct_sfw_pass_key', $cookie_val, time() + 86400 * 30, '/', null, false );
+            \Cleantalk\ApbctWP\Variables\Cookie::setNativeCookie(
+                'ct_sfw_pass_key',
+                $cookie_val,
+                time() + 86400 * 30,
+                '/',
+                null,
+                null );
         }
 	}
 	
@@ -249,7 +255,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 				'{REQUEST_URI}'                    => Server::get( 'REQUEST_URI' ),
 				
 				// Cookie
-				'{COOKIE_PREFIX}'      => 'wordpress_',
+				'{COOKIE_PREFIX}'      => '',
 				'{COOKIE_DOMAIN}'      => $this->cookie_domain,
 				'{COOKIE_SFW}'         => $this->test ? $this->test_ip : $cookie_val,
 				'{COOKIE_ANTICRAWLER}' => hash( 'sha256', $apbct->api_key . $apbct->data['salt'] ),
@@ -390,15 +396,6 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
         $result = API::method__get_2s_blacklists_db( $api_key, 'multifiles', '3_0' );
         
         if( empty( $result['error'] ) ){
-    
-            // User-Agents blacklist
-            global $apbct;
-            
-            if( ! empty( $result['file_ua_url'] ) && ( $apbct->settings['sfw__anti_crawler'] || $apbct->settings['sfw__anti_flood'] ) ){
-                $ua_bl_res = AntiCrawler::update( trim( $result['file_ua_url'] ) );
-                if( ! empty( $ua_bl_res['error'] ) )
-                    $apbct->error_add( 'sfw_update', $ua_bl_res['error'] );
-            }
             
             if( ! empty( $result['file_url'] ) ){
                 
@@ -407,7 +404,8 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
                 if( empty( $data['error'] ) ){
                     
                     return array(
-                        'multifile_url' => $result['file_url'],
+                        'multifile_url' => trim( $result['file_url'] ),
+                        'useragent_url' => trim( $result['file_ua_url'] ),
                         'file_urls'     => $data,
                     );
                     
@@ -471,20 +469,23 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
             return $data;
     }
     
-	public static function firewall_update__write_to_db__exclusions( $db, $db__table__data ) {
+	public static function update__write_to_db__exclusions( $db, $db__table__data, $exclusions = array() ) {
 
 		$query = 'INSERT INTO `' . $db__table__data . '` (network, mask, status) VALUES ';
-
-		$exclusions = array();
-
+		
 		//Exclusion for servers IP (SERVER_ADDR)
 		if ( Server::get('HTTP_HOST') ) {
 
-			// Exceptions for local hosts
+			// Do not add exceptions for local hosts
 			if( ! in_array( Server::get_domain(), array( 'lc', 'loc', 'lh' ) ) ){
 				$exclusions[] = Helper::dns__resolve( Server::get( 'HTTP_HOST' ) );
 				$exclusions[] = '127.0.0.1';
-			}
+            
+            // And delete all 127.0.0.1 entries for local hosts
+			}else{
+			    global $wpdb;
+			    $wpdb->query( 'DELETE FROM ' . $db__table__data . ' WHERE network = ' . ip2long( '127.0.0.1' ) . ';' );
+            }
 		}
 
 		foreach ( $exclusions as $exclusion ) {
@@ -505,40 +506,89 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 		return 0;
 
 	}
-
+    
     /**
-     * Creatin a temporary updating table
+     * Creating a temporary updating table
      *
-     * @param \wpdb $db database handler
+     * @param DB $db database handler
+     * @param array|string $table_names Array with table names to create
+     *
+     * @return bool|array
      */
-    public static function create_temp_tables( $db ){
-        global $wpdb, $apbct;
-        $sql = 'SHOW TABLES LIKE "%scleantalk_sfw";';
-        $sql = sprintf( $sql, $wpdb->prefix ); // Adding current blog prefix
-        $result = $wpdb->get_var( $sql );
-        if( ! $result ){
-            apbct_activation__create_tables( Schema::getSchema('sfw'), $apbct->db_prefix );
+    public static function create_temp_tables( $db, $table_names ){
+    
+        // Cast it to array for simple input
+        $table_names = (array) $table_names;
+    
+        foreach( $table_names as $table_name ){
+    
+            $table_name__temp = $table_name . '_temp';
+            
+            if( ! $db->execute( 'CREATE TABLE IF NOT EXISTS `' . $table_name__temp . '` LIKE `' . $table_name . '`;' ) ){
+                return array( 'error' => 'CREATE TEMP TABLES: COULD NOT CREATE' . $table_name__temp );
+            }
+            
+            if( ! $db->execute( 'TRUNCATE TABLE `' . $table_name__temp . '`;' ) ){
+                return array( 'error' => 'CREATE TEMP TABLES: COULD NOT TRUNCATE' . $table_name__temp );
+            }
         }
-        $db->execute( 'CREATE TABLE IF NOT EXISTS `' . APBCT_TBL_FIREWALL_DATA . '_temp` LIKE `' . APBCT_TBL_FIREWALL_DATA . '`;' );
-        $db->execute( 'TRUNCATE TABLE `' . APBCT_TBL_FIREWALL_DATA . '_temp`;' );
+        
+        return true;
     }
-
+    
     /**
-     * Removing a temporary updating table
+     * Delete tables with given names if they exists
      *
-     * @param \wpdb $db database handler
+     * @param DB $db
+     * @param array|string $table_names Array with table names to delete
+     *
+     * @return bool|array
      */
-    public static function delete_main_data_tables( $db ){
-        $db->execute( 'DROP TABLE `'. APBCT_TBL_FIREWALL_DATA .'`;' );
+    public static function data_tables__delete( $db, $table_names ){
+        
+        // Cast it to array for simple input
+        $table_names = (array) $table_names;
+        
+        foreach( $table_names as $table_name ){
+            
+            if( ! $db->isTableExists( $table_name ) ){
+                return array( 'error' => 'DELETE TABLE: TABLE IS NOT EXISTS: ' . $table_name);
+            }
+            
+            $db->execute( 'DROP TABLE ' . $table_name . ';' );
+        }
+        
+        return true;
     }
-
+    
     /**
-     * Renamin a temporary updating table into production table name
+     * Renaming a temporary updating table into production table name
      *
-     * @param \wpdb $db database handler
+     * @param DB $db database handler
+     * @param array|string $table_names Array with table names to rename
+     *
+     * @return bool|array
      */
-    public static function rename_data_tables( $db ){
-        $db->execute( 'ALTER TABLE `'. APBCT_TBL_FIREWALL_DATA .'_temp` RENAME `'. APBCT_TBL_FIREWALL_DATA .'`;' );
+    public static function rename_data_tables__from_temp_to_main( $db, $table_names ){
+    
+        // Cast it to array for simple input
+        $table_names = (array) $table_names;
+    
+        foreach( $table_names as $table_name ){
+    
+            $table_name__temp = $table_name . '_temp';
+            
+            if( ! $db->isTableExists( $table_name__temp ) )
+                return array( 'error' => 'RENAME TABLE: TEMPORARY TABLE IS NOT EXISTS: ' . $table_name__temp );
+            
+            if( $db->isTableExists( $table_name  ) )
+                return array( 'error' => 'RENAME TABLE: MAIN TABLE IS STILL EXISTS: ' . $table_name );
+            
+            $db->execute( 'ALTER TABLE `' . $table_name__temp . '` RENAME `' . $table_name . '`;' );
+            
+        }
+        
+        return true;
     }
 
 }

@@ -66,7 +66,7 @@ $ct_negative_comment = null;
 $ct_server = NULL;
 $admin_email = NULL;
 
-add_action( 'wp_login', 'apbct_wp_login', 10, 2 );
+add_action( 'wp_login', 'apbct_add_admin_ip_to_swf_whitelist', 10, 2 );
 
 /**
  * Public action 'plugins_loaded' - Loads locale, see http://codex.wordpress.org/Function_Reference/load_plugin_textdomain
@@ -161,7 +161,7 @@ function apbct_base_call($params = array(), $reg_flag = false){
 		
 		// Misc
 		'auth_key'        => $apbct->api_key,
-		'js_on'           => apbct_js_test('ct_checkjs', $_COOKIE) ? 1 : apbct_js_test('ct_checkjs', $_POST),
+		'js_on'           => apbct_js_test('ct_checkjs', $_COOKIE, true) ? 1 : apbct_js_test('ct_checkjs', $_POST),
 		
 		'agent'           => APBCT_AGENT,
 		'sender_info'     => $sender_info,
@@ -408,12 +408,13 @@ function apbct_get_sender_info() {
         'checkjs_data_post'      => !empty($checkjs_data_post)                                     ? $checkjs_data_post                                                : null, 
 		// PHP cookies                                                                                                                                                 
         'cookies_enabled'        => $cookie_is_ok,
+        'data__set_cookies'      => $apbct->settings['data__set_cookies'],
         'REFFERRER_PREVIOUS'     => Cookie::get( 'apbct_prev_referer' )    && $cookie_is_ok ? Cookie::get( 'apbct_prev_referer' )    : null,
         'site_landing_ts'        => Cookie::get( 'apbct_site_landing_ts' ) && $cookie_is_ok ? Cookie::get( 'apbct_site_landing_ts' ) : null,
         'page_hits'              => Cookie::get( 'apbct_page_hits' )                        ?: null,
 		// JS cookies                                                                                                                                                  
-        'js_info'                => !empty(Cookie::get( 'ct_user_info' ))                               ? json_decode(stripslashes(urldecode( Cookie::get( 'ct_user_info' ) )), true)         : null,
-		'mouse_cursor_positions' => !empty(Cookie::get( 'ct_pointer_data' ))                            ? json_decode(stripslashes(Cookie::get( 'ct_pointer_data' )), true)      : null,
+        'js_info'                => Cookie::get( 'ct_user_info', null ),
+		'mouse_cursor_positions' => Cookie::get( 'ct_pointer_data', null ),
 		'js_timezone'            => Cookie::get( 'ct_timezone' )      ?: null,
 		'key_press_timestamp'    => Cookie::get( 'ct_fkp_timestamp' ) ?: null,
 		'page_set_timestamp'     => Cookie::get( 'ct_ps_timestamp' )  ?: null,
@@ -491,12 +492,9 @@ function apbct_visible_fields__process( $visible_fields ) {
 /*
  * Outputs JS key for AJAX-use only. Stops script.
  */
-function apbct_js_keys__get__ajax( $direct_call = false ){
-	
-	die(json_encode(array(
-		'js_key' => ct_get_checkjs_value()
-	)));
-
+function apbct_js_keys__get__ajax( $request ){
+    
+    die( json_encode( array( 'js_key' => ct_get_checkjs_value() ) ) );
 }
 
 /**
@@ -744,8 +742,8 @@ function ct_delete_spam_comments() {
 * @return array
 */ 
 function ct_get_fields_any($arr, $message=array(), $email = null, $nickname = array('nick' => '', 'first' => '', 'last' => ''), $subject = null, $contact = true, $prev_name = ''){
-	
-	//Skip request if fields exists
+
+    //Skip request if fields exists
 	$skip_params = array(
 	    'ipn_track_id', 	// PayPal IPN #
 	    'txn_type', 		// PayPal transaction type
@@ -826,15 +824,21 @@ function ct_get_fields_any($arr, $message=array(), $email = null, $nickname = ar
 	
    	if( apbct_array( array( $_POST, $_GET ) )->get_keys( $skip_params )->result() )
         $contact = false;
-	
+
+	$visible_fields = apbct_visible_fields__process( Cookie::get( 'apbct_visible_fields' ) );
+	$visible_fields_arr = isset( $visible_fields['visible_fields'] ) ? explode( ' ', $visible_fields['visible_fields'] ) : array();
+
 	if(count($arr)){
-		
+
 		foreach($arr as $key => $value){
-            
+
             if( is_string( $value ) ){
-                
+
                 $tmp = strpos($value, '\\') !== false ? stripslashes($value) : $value;
-                
+
+                # Remove html tags from $value
+                $tmp = preg_replace( '@<.*?>@', '', $tmp);
+
                 $decoded_json_value = json_decode($tmp, true);       // Try parse JSON from the string
 	            if( strpos( $value, "\n" ) === false || strpos( $value, "\r" ) === false  ) {
 	            	// Parse an only single-lined string
@@ -843,41 +847,46 @@ function ct_get_fields_any($arr, $message=array(), $email = null, $nickname = ar
                 
                 // If there is "JSON data" set is it as a value
                 if($decoded_json_value !== null){
+
+                    if(isset($arr['action']) && $arr['action'] === 'nf_ajax_submit') {
+                        unset($decoded_json_value['settings']);
+                    }
+
                     $value = $decoded_json_value;
-                    
+
                 // If there is "URL data" set is it as a value
                 }elseif( isset( $decoded_url_value ) && ! ( count( $decoded_url_value ) === 1 && reset( $decoded_url_value ) === '' ) ){
                     $value = $decoded_url_value;
-                    
+
                 // Ajax Contact Forms. Get data from such strings:
                 // acfw30_name %% Blocked~acfw30_email %% s@cleantalk.org
                 // acfw30_textarea %% msg
                 }elseif(preg_match('/^\S+\s%%\s\S+.+$/', $value)){
-                    
+
                     $value = explode('~', $value);
                     foreach ($value as &$val){
                         $tmp = explode(' %% ', $val);
                         $val = array($tmp[0] => $tmp[1]);
                     }unset( $val );
-                    
+
                 }
             }
-			
+
 			if(!is_array($value) && !is_object($value)){
-				
+
 				if (in_array($key, $skip_params, true) && $key != 0 && $key != '' || preg_match("/^ct_checkjs/", $key))
 					$contact = false;
-				
+
 				if($value === '')
 					continue;
-				
+
 				// Skipping fields names with strings from (array)skip_fields_with_strings
 				foreach($skip_fields_with_strings as $needle){
 					if (preg_match("/".$needle."/", $prev_name.$key) == 1){
 						continue(2);
 					}
 				}unset($needle);
-				
+
 				// Obfuscating params
 				foreach($obfuscate_params as $needle){
 					if (strpos($key, $needle) !== false){
@@ -887,21 +896,28 @@ function ct_get_fields_any($arr, $message=array(), $email = null, $nickname = ar
 				}unset($needle);
 
                 $value_for_email = trim( strip_shortcodes( $value ) );    // Removes shortcodes to do better spam filtration on server side.
-				
+
 				// Email
 				if ( ! $email && preg_match( "/^\S+@\S+\.\S+$/", $value_for_email ) ) {
 					$email = $value_for_email;
 
                 // Removes whitespaces
                 $value = urldecode( trim( strip_shortcodes( $value ) ) ); // Fully cleaned message
-					
+
 				// Names
-				}elseif (preg_match("/name/i", $key)){
-					
+				// if there is an visible fields array then we take the name from it,
+				//	ignoring the hidden fields with name
+				}elseif (
+					preg_match("/name/i", $key) !== false &&
+					(
+						empty($visible_fields_arr) ||
+						in_array($key, $visible_fields_arr)
+					)
+				) {
 					preg_match("/((name.?)?(your|first|for)(.?name)?)/", $key, $match_forename);
 					preg_match("/((name.?)?(last|family|second|sur)(.?name)?)/", $key, $match_surname);
 					preg_match("/(name.?)?(nick|user)(.?name)?/", $key, $match_nickname);
-					
+
 					if(count($match_forename) > 1)
 						$nickname['first'] = $value;
 					elseif(count($match_surname) > 1)
@@ -910,26 +926,24 @@ function ct_get_fields_any($arr, $message=array(), $email = null, $nickname = ar
 						$nickname['nick'] = $value;
 					else
 						$message[$prev_name.$key] = $value;
-						
 				// Subject
 				}elseif ($subject === null && preg_match("/subject/i", $key)){
 					$subject = $value;
-				
+
 				// Message
 				}else{
-					$message[$prev_name.$key] = $value;					
+					$message[$prev_name.$key] = $value;
 				}
-				
+
 			}elseif(!is_object($value)){
-				
 				$prev_name_original = $prev_name;
 				$prev_name = ($prev_name === '' ? $key.'_' : $prev_name.$key.'_');
-				
+
 				$temp = ct_get_fields_any($value, $message, $email, $nickname, $subject, $contact, $prev_name);
-				
+
 				$message 	= $temp['message'];
 				$email 		= ($temp['email'] 		? $temp['email'] : null);
-				$nickname 	= ($temp['nickname'] 	? $temp['nickname'] : null);				
+				$nickname 	= ($temp['nickname'] 	? $temp['nickname'] : null);
 				$subject 	= ($temp['subject'] 	? $temp['subject'] : null);
 				if($contact === true)
 					$contact = ($temp['contact'] === false ? false : true);
@@ -962,7 +976,7 @@ function ct_get_fields_any($arr, $message=array(), $email = null, $nickname = ar
 		'subject' 	=> $subject,
 		'contact' 	=> $contact,
 		'message' 	=> $message
-	);	
+	);
 	return $return_param;
 }
 
@@ -1088,42 +1102,45 @@ function apbct_add_async_attribute($tag, $handle, $src) {
     return $tag;
 }
 
-function apbct_wp_login( $user_login, $user ) {
+function apbct_add_admin_ip_to_swf_whitelist( $user_login, $user ) {
 
 	global $apbct;
-
-	// Break if the SpamFireWall is inactive
-	if( $apbct->settings['sfw__enabled'] != 1 &&
-	    ! apbct_is_get() &&
-	    apbct_wp_doing_cron()
-	){
-		return;
-	}
-
+	
+	$user = ! $user instanceof WP_User ? apbct_wp_get_current_user() : $user;
 	$ip = Helper::ip__get( 'real', true );
-
-	if( Cookie::get( 'ct_sfw_ip_wl' ) && Cookie::get( 'ct_sfw_ip_wl' ) === md5( $ip . $apbct->api_key ) ) {
-		return;
-	}
-
-	if( in_array( 'administrator', (array) $user->roles ) ) {
-		$res = apbct_private_list_add( $ip );
-		if( $res ) {
-			if( ! headers_sent() ) {
-				$cookie_val = md5( $ip . $apbct->api_key );
-				Cookie::set( 'ct_sfw_ip_wl', $cookie_val, time() + 86400 * 30, '/', null, true, 'Lax' );
-			}
-            apbct_sfw_update__init();
-		}
-	}
+	
+	if(
+        $apbct->settings['sfw__enabled'] && // Break if the SpamFireWall is inactive
+        Server::isGet() &&
+        ! apbct_wp_doing_cron() &&
+        in_array( 'administrator', (array) $user->roles, true ) &&
+        Cookie::get( 'ct_sfw_ip_wl' ) !== md5( $ip . $apbct->api_key ) &&
+        \Cleantalk\ApbctWP\Firewall\SFW::update__write_to_db__exclusions( \Cleantalk\Common\DB::getInstance(), APBCT_TBL_FIREWALL_DATA, array( $ip ) ) &&
+        apbct_private_list_add( $ip ) &&
+        ! headers_sent()
+    ) {
+            \Cleantalk\ApbctWP\Variables\Cookie::set(
+                'ct_sfw_ip_wl',
+                md5( $ip . $apbct->api_key ),
+                time() + 86400 * 30,
+                '/',
+                null,
+                null,
+                true,
+                'Lax'
+            );
+    }
 
 }
 
-function apbct_private_list_add( $ip ) {
-	global $apbct;
-	if( Helper::ip__validate( $ip ) !== false ) {
-		$res = API::method__private_list_add__sfw_wl( $apbct->data['user_token'], $ip, $apbct->data['service_id'] );
-		return isset( $res['records'][0]['operation_status'] ) && $res['records'][0]['operation_status'] === 'SUCCESS';
-	}
-	return false;
+function apbct_private_list_add( $ip ){
+    
+    global $apbct;
+    
+    if( Helper::ip__validate( $ip ) ){
+        $result = API::method__private_list_add__sfw_wl( $apbct->data['user_token'], $ip, $apbct->data['service_id'] );
+        return empty( $result['error'] );
+    }
+    
+    return false;
 }
