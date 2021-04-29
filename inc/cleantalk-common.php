@@ -390,7 +390,7 @@ function apbct_get_sender_info() {
 		: null;
 
 	// Visible fields processing
-    $visible_fields = apbct_visible_fields__process( Cookie::get( 'apbct_visible_fields' ) );
+    $visible_fields = apbct_visible_fields__process( Cookie::get( 'apbct_visible_fields' , array(), 'array' ) );
 
 	return array(
 		'plugin_request_id'      => $apbct->plugin_request_id,
@@ -825,7 +825,7 @@ function ct_get_fields_any($arr, $message=array(), $email = null, $nickname = ar
    	if( apbct_array( array( $_POST, $_GET ) )->get_keys( $skip_params )->result() )
         $contact = false;
 
-	$visible_fields = apbct_visible_fields__process( Cookie::get( 'apbct_visible_fields' ) );
+	$visible_fields = apbct_visible_fields__process( Cookie::get( 'apbct_visible_fields', array(), 'array' ) );
 	$visible_fields_arr = isset( $visible_fields['visible_fields'] ) ? explode( ' ', $visible_fields['visible_fields'] ) : array();
 
 	if(count($arr)){
