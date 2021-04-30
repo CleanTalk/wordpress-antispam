@@ -828,6 +828,16 @@ function ct_get_fields_any($arr, $message=array(), $email = null, $nickname = ar
 	$visible_fields = apbct_visible_fields__process( Cookie::get( 'apbct_visible_fields', array(), 'array' ) );
 	$visible_fields_arr = isset( $visible_fields['visible_fields'] ) ? explode( ' ', $visible_fields['visible_fields'] ) : array();
 
+	$nickname_default = true;
+	if(is_array($nickname)) {
+        foreach ($nickname as $v) {
+            if($v) $nickname_default = false;
+        }
+    }
+	if(is_string($nickname)) {
+        $nickname_default = false;
+    }
+
 	if(count($arr)){
 
 		foreach($arr as $key => $value){
@@ -908,6 +918,7 @@ function ct_get_fields_any($arr, $message=array(), $email = null, $nickname = ar
 				// if there is an visible fields array then we take the name from it,
 				//	ignoring the hidden fields with name
 				}elseif (
+                    $nickname_default &&
 					preg_match("/name/i", $key) !== false &&
 					(
 						empty($visible_fields_arr) ||
@@ -960,7 +971,7 @@ function ct_get_fields_any($arr, $message=array(), $email = null, $nickname = ar
     } unset($v);
 	
 	//If top iteration, returns compiled name field. Example: "Nickname Firtsname Lastname".
-	if($prev_name === ''){
+	if($nickname_default && $prev_name === ''){
 		if(!empty($nickname)){
 			$nickname_str = '';
 			foreach($nickname as $value){
