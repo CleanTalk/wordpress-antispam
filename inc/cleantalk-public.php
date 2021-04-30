@@ -3645,7 +3645,9 @@ function ct_contact_form_validate() {
         apbct_is_in_uri('/settings/profile/') && isset($_POST['submit'])        || // Buddypress integration
         apbct_is_in_uri('/settings/data/') && isset($_POST['submit'])           || // Buddypress integration
         apbct_is_in_uri('/settings/delete-account/') && isset($_POST['submit']) || // Buddypress integration
-        apbct_is_in_uri('/profile/') && isset($_POST['submit'])                    // Buddypress integration
+        apbct_is_in_uri('/profile/') && isset($_POST['submit'])                 || // Buddypress integration
+        ( isset( $_POST['action'] ) && $_POST['action'] == 'bwfan_insert_abandoned_cart' ) || // Autonami Marketing Automations - WC Plugin - integration
+        ( isset( $_POST['action'] ) && $_POST['action'] == 'check_email_exists' )             // Handling an unknown action check_email_exists
         /* !! Do not add actions here. Use apbct_is_skip_request() function below !! */
 		) {
         do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
