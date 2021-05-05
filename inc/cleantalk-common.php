@@ -982,7 +982,7 @@ function ct_get_fields_any($arr, $message=array(), $email = null, $nickname = ar
 	
     $return_param = array(
 		'email' 	=> $email,
-		'nickname' 	=> $nickname_str ?: $nickname,
+		'nickname' 	=> $nickname_str,
 		'subject' 	=> $subject,
 		'contact' 	=> $contact,
 		'message' 	=> $message
