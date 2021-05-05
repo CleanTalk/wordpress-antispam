@@ -581,7 +581,7 @@ If your website has forms that send data to external sources, you can enable opt
 == Changelog ==
 
 = 5.157.2 May 05 2021 =
- * Fix: Code. get_fields_any() names detection fixed.
+ * Fix: Code. get_fields_any() notice fixed.
  * Fix: Integration. Gravity Forms integration fixed.
  * Fix: Forms. Nicknames detecting fixed.
 
