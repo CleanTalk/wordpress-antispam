@@ -971,18 +971,19 @@ function ct_get_fields_any($arr, $message=array(), $email = null, $nickname = ar
     } unset($v);
 	
 	//If top iteration, returns compiled name field. Example: "Nickname Firtsname Lastname".]
-	$nickname_str = '';
-	if($nickname_default && $prev_name === ''){
+	if( ( $nickname_default && $prev_name === '' ) || is_array( $nickname ) ){
 		if(!empty($nickname)){
+			$nickname_str = '';
 			foreach($nickname as $value){
 				$nickname_str .= ($value ? $value." " : "");
 			}unset($value);
 		}
+		$nickname = $nickname_str;
 	}
 	
     $return_param = array(
 		'email' 	=> $email,
-		'nickname' 	=> $nickname_str,
+		'nickname' 	=> $nickname,
 		'subject' 	=> $subject,
 		'contact' 	=> $contact,
 		'message' 	=> $message
