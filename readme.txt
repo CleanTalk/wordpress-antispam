@@ -580,6 +580,11 @@ If your website has forms that send data to external sources, you can enable opt
 
 == Changelog ==
 
+= 5.157.2 May 05 2021 =
+ * Fix: Code. get_fields_any() names detection fixed.
+ * Fix: Integration. Gravity Forms integration fixed.
+ * Fix: Forms. Nicknames detecting fixed.
+
 = 5.157.1 Apr 29 2021 =
  * Mod: \Cleantalk\ApbctWP\Variables\Cookie::get() now has 'cast_to' param. If defined trying to cast to a given type.
  * Fix: \Cleantalk\ApbctWP\Variables\Cookie::get() calls using 'cast_to' param if needed.
