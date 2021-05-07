@@ -1702,19 +1702,44 @@ function ct_die($comment_id, $comment_status) {
 
     do_action( 'apbct_pre_block_page', $ct_comment );
 
-	$err_text = '<center>' . ((defined('CLEANTALK_DISABLE_BLOCKING_TITLE') && CLEANTALK_DISABLE_BLOCKING_TITLE == true) ? '' : '<b style="color: #49C73B;">Clean</b><b style="color: #349ebf;">Talk.</b> ') . __('Spam protection', 'cleantalk-spam-protect') . "</center><br><br>\n" . $ct_comment;
-        if( ! $ct_jp_comments ) {
-            $err_text .= '<script>setTimeout("history.back()", 5000);</script>';
-        }
-        if(isset($_POST['et_pb_contact_email']))
-        {
-        	$mes='<div id="et_pb_contact_form_1" class="et_pb_contact_form_container clearfix"><h1 class="et_pb_contact_main_title">Blacklisted</h1><div class="et-pb-contact-message"><p>'.$ct_comment.'</p></div></div>';
-        	wp_die($mes, 'Blacklisted', array('back_link' => true,'response'=>200));
-        }
-        else
-        {
-        	wp_die($err_text, 'Blacklisted', array('response' => 200, 'back_link' => ! $ct_jp_comments));
-        }
+    $message_title = __('Spam protection', 'cleantalk-spam-protect');
+    if(defined('CLEANTALK_DISABLE_BLOCKING_TITLE') && CLEANTALK_DISABLE_BLOCKING_TITLE != true) {
+    	$message_title = '<b style="color: #49C73B;">Clean</b><b style="color: #349ebf;">Talk.</b> ' . $message_title;
+    }
+    if(isset($_POST['et_pb_contact_email'])) {
+	    $message_title = 'Blacklisted';
+    }
+
+    $back_link = '';
+	$back_script = '';
+	if( ! $ct_jp_comments ) {
+		$back_script = '<script>setTimeout("history.back()", 5000);</script>';
+	} else {
+		$back_link = '<a href="' . $_SERVER['HTTP_REFERER'] . '">' . __('Back') . '</a>';
+	}
+
+	if(file_exists(CLEANTALK_PLUGIN_DIR . "templates/lock-pages/lock-page-ct-die.html")){
+
+		$ct_die_page = file_get_contents(CLEANTALK_PLUGIN_DIR . "templates/lock-pages/lock-page-ct-die.html");
+
+		// Translation
+		$replaces = array(
+			'{MESSAGE_TITLE}' => $message_title,
+			'{MESSAGE}'       => $ct_comment,
+			'{BACK_LINK}'     => $back_link,
+			'{BACK_SCRIPT}'   => $back_script
+		);
+
+		foreach( $replaces as $place_holder => $replace ){
+			$ct_die_page = str_replace( $place_holder, $replace, $ct_die_page );
+		}
+
+		http_response_code(200);
+		die($ct_die_page);
+	}
+
+	http_response_code(200);
+	die("Forbidden. Sender blacklisted. Blocked by Cleantalk");
 }
 
 /**
