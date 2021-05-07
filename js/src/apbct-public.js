@@ -217,8 +217,13 @@ function apbct_collect_visible_fields( form ) {
 			getComputedStyle(elem).opacity    === "0" ||      // hidden
 			elem.getAttribute("type")         === "hidden" // type == hidden
 		) {
-			inputs_invisible += " " + elem.getAttribute("name");
-			inputs_invisible_count++;
+			if( elem.classList.contains("wp-editor-area") ) {
+				inputs_visible += " " + elem.getAttribute("name");
+				inputs_visible_count++;
+			} else {
+				inputs_invisible += " " + elem.getAttribute("name");
+				inputs_invisible_count++;
+			}
 		}
 		// Visible fields
 		else {
