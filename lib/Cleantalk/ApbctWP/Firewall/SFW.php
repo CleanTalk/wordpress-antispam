@@ -382,6 +382,66 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
             return array( 'rows' => 0 );
 		}
 	}
+
+	/**
+	 * Gets multifile with data to update Firewall.
+	 *
+	 * @param string $api_key API key
+	 *
+	 * @return array
+	 */
+	public static function direct_update__get_db( $api_key ){
+
+		// Getting remote file name
+		$result = API::method__get_2s_blacklists_db( $api_key, null, '3_0' );
+
+		if( empty( $result['error'] ) ){
+
+			return array(
+				'blacklist'  => $result['data'],
+				'useragents' => $result['data_user_agents'],
+			);
+
+		}else
+			return $result;
+	}
+
+	public static function direct_update( $db, $db__table__data, array $blacklists ){
+
+		for( $count_result = 0; current($blacklists) !== false; ) {
+
+			$query = "INSERT INTO ".$db__table__data." (network, mask, status) VALUES ";
+
+			for( $i = 0, $values = array(); APBCT_WRITE_LIMIT !== $i && current( $blacklists ) !== false; $i ++, $count_result ++, next( $blacklists ) ){
+
+				$entry = current($blacklists);
+
+				if(empty($entry))
+					continue;
+
+				if ( APBCT_WRITE_LIMIT !== $i ) {
+
+					// Cast result to int
+					$ip   = preg_replace('/[^\d]*/', '', $entry[0]);
+					$mask = preg_replace('/[^\d]*/', '', $entry[1]);
+					$private = isset($entry[2]) ? $entry[2] : 0;
+
+				}
+
+				$values[] = '('. $ip .','. $mask .','. $private .')';
+
+			}
+
+			if( ! empty( $values ) ){
+				$query .= implode( ',', $values ) . ';';
+				$db->execute( $query );
+			}
+
+		}
+
+		return $count_result;
+
+	}
     
     /**
      * Gets multifile with data to update Firewall.

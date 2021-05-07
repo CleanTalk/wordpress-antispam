@@ -907,6 +907,12 @@ class API
                     ? true
                     : array( 'error' => 'COULDNT_ADD_WL_IP');
                 break;
+
+			case '2s_blacklists_db':
+				return isset( $result['data'] ) && isset( $result['data_user_agents'] )
+					? $result
+					: $result['data'];
+				break;
 				
 			default:
 				return isset($result['data']) && is_array($result['data'])

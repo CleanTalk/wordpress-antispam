@@ -94,6 +94,49 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
             return array('error' => 'UAL_UPDATE_ERROR: '. $lines['error'] );
     }
 
+	public static function direct_update( array $useragents ) {
+
+		$result__clear_db = self::clear_data_table( \Cleantalk\ApbctWP\DB::getInstance(), APBCT_TBL_AC_UA_BL );
+
+		if( empty( $result__clear_db['error'] ) ){
+
+			for( $count_result = 0; current($useragents) !== false; ) {
+
+				$query = "INSERT INTO " . APBCT_TBL_AC_UA_BL . " (id, ua_template, ua_status) VALUES ";
+
+				for( $i = 0, $values = array(); APBCT_WRITE_LIMIT !== $i && current( $useragents ) !== false; $i ++, $count_result ++, next( $useragents ) ){
+
+					$entry = current($useragents);
+
+					if(empty($entry))
+						continue;
+
+					if ( APBCT_WRITE_LIMIT !== $i ) {
+
+						// Cast result to int
+						// @ToDo check the output $entry
+						$ua_id        = preg_replace('/[^\d]*/', '', $entry[0]);
+						$ua_template  = isset($entry[1]) && apbct_is_regexp($entry[1]) ? Helper::db__prepare_param( $entry[1] ) : 0;
+						$ua_status    = isset($entry[2]) ? $entry[2] : 0;
+
+					}
+
+					$values[] = '('. $ua_id .','. $ua_template .','. $ua_status .')';
+
+				}
+
+				if( ! empty( $values ) ){
+					$query = $query . implode( ',', $values ) . ';';
+					\Cleantalk\ApbctWP\DB::getInstance()->execute( $query );
+				}
+
+			}
+			return $count_result;
+		}else
+			return $result__clear_db;
+
+	}
+
     private static function clear_data_table($db, $db__table__data) {
 
         $db->execute( "TRUNCATE TABLE {$db__table__data};" );

@@ -871,15 +871,118 @@ function apbct_sfw_update__init( $delay = 0 ){
     $apbct->fw_stats['firewall_updating_id']         = md5( rand( 0, 100000 ) );
     $apbct->fw_stats['firewall_updating_last_start'] = time();
     $apbct->save( 'fw_stats' );
-    
-    return \Cleantalk\ApbctWP\Helper::http__request__rc_to_host(
-        'sfw_update__worker',
-        array(
-            'delay' => $delay,
-            'firewall_updating_id' => $apbct->fw_stats['firewall_updating_id'],
-        ),
-        array( 'async' )
-    );
+
+	$rc_action = 'sfw_update__worker';
+	$request_params = array(
+		'delay' => $delay,
+		'firewall_updating_id' => $apbct->fw_stats['firewall_updating_id'],
+	);
+	$patterns = array( 'async' );
+
+	$result__rc_check_website = \Cleantalk\ApbctWP\Helper::http__request__rc_to_host__test(
+		$rc_action,
+		array(  'spbc_remote_call_token'  => md5( $apbct->api_key ),
+		        'spbc_remote_call_action' => $rc_action,
+		        'plugin_name'             => 'apbct', ),
+		array( 'get', 'dont_split_to_array' ),
+	);
+
+	if( ! empty( $result__rc_check_website['error'] ) ){
+		return apbct_sfw_direct_update();
+	}
+
+    return \Cleantalk\ApbctWP\Helper::http__request__rc_to_host( $rc_action, $request_params, $patterns  );
+}
+
+/**
+ * Gather all process about SFW updating in this flow
+ *
+ * @return array|bool|int|string[]
+ */
+function apbct_sfw_direct_update() {
+
+	global $apbct;
+
+	$api_key = $apbct->api_key;
+
+	// Key is empty
+	if( empty( $api_key ) ){
+		return array( 'error' => 'KEY_EMPTY' );
+	}
+
+	// Getting BL
+	$result = SFW::direct_update__get_db( $api_key );
+
+	if ( empty( $result['error'] ) ) {
+
+		$blacklists = $result['blacklist'];
+		$useragents = $result['useragents'];
+
+		// Preparing database infrastructure
+		apbct_activation__create_tables( Schema::getSchema( 'sfw' ), $apbct->db_prefix );
+		SFW::create_temp_tables( DB::getInstance(), APBCT_TBL_FIREWALL_DATA );
+
+		/*
+		 * UPDATING UA LIST
+		 */
+		if( $useragents && ( $apbct->settings['sfw__anti_crawler'] || $apbct->settings['sfw__anti_flood'] ) ){
+
+			$ua_result = AntiCrawler::direct_update( $useragents );
+
+			if( ! empty( $ua_result['error'] ) ){
+				array( 'error' => 'UPDATING UA LIST: ' . $result['error'] );
+			}
+
+			if( ! is_int( $ua_result ) ){
+				return array( 'error' => 'UPDATING UA LIST: : WRONG_RESPONSE AntiCrawler::update' );
+			}
+
+		}
+
+		/*
+			 * UPDATING BLACK LIST
+			 */
+		$upd_result = SFW::direct_update(
+			DB::getInstance(),
+			APBCT_TBL_FIREWALL_DATA . '_temp',
+			$blacklists
+		);
+
+		if( ! empty( $upd_result['error'] ) ){
+			array( 'error' => 'PROCESS FILE: ' . $result['error'] );
+		}
+
+		if( ! is_int( $upd_result ) ){
+			return array( 'error' => 'PROCESS FILE: WRONG RESPONSE FROM update__write_to_db' );
+		}
+
+		/*
+		 * UPDATING EXCLUSIONS LIST
+		 */
+		$excl_result = SFW::update__write_to_db__exclusions(
+			DB::getInstance(),
+			APBCT_TBL_FIREWALL_DATA . '_temp'
+		);
+
+		if( ! empty( $excl_result['error'] ) ){
+			array( 'error' => 'EXCLUSIONS: ' . $result['error'] );
+		}
+
+		if( ! is_int( $excl_result ) ){
+			return array( 'error' => 'EXCLUSIONS: WRONG_RESPONSE update__write_to_db__exclusions' );
+		}
+
+		/*
+		 * END OF UPDATE
+		 */
+
+		return apbct_sfw_update__end_of_update();
+
+	}
+
+	return $result;
+
+
 }
 
 /**
@@ -944,46 +1047,8 @@ function apbct_sfw_update__worker(){
     
     // End of update
     }else{
-    
-        global $wpdb;
-        
-        // REMOVE AND RENAME
-        $result = SFW::data_tables__delete( DB::getInstance(), APBCT_TBL_FIREWALL_DATA );
-        if( ! empty( $result['error'] ) )
-            return $result;
-        $result = SFW::rename_data_tables__from_temp_to_main( DB::getInstance(), APBCT_TBL_FIREWALL_DATA );
-        if( ! empty( $result['error'] ) )
-            return $result;
-        
-        // Increment firewall entries
-        $apbct->fw_stats['firewall_update_percent'] = 0;
-        $apbct->fw_stats['firewall_updating_id'] = null;
-        $apbct->fw_stats['last_firewall_updated'] = time();
-        $apbct->save( 'fw_stats' );
-    
-        $apbct->stats['sfw']['entries'] = $wpdb->get_var('SELECT COUNT(*) FROM ' . APBCT_TBL_FIREWALL_DATA );
-        $apbct->stats['sfw']['last_update_time'] = time();
-        $apbct->save( 'stats' );
-    
-        $apbct->data['last_firewall_updated'] = current_time('timestamp');
-        $apbct->save('data'); // Unused
-        
-        // Running sfw update once again in 12 min if entries is < 4000
-        if( ! $apbct->stats['sfw']['last_update_time'] &&
-            $apbct->stats['sfw']['entries'] < 4000
-        ){
-            wp_schedule_single_event( time() + 720, 'apbct_sfw_update__init' );
-        }
-    
-        // Delete update errors
-        $apbct->error_delete( 'sfw_update', 'save_settings' );
-    
-        // Get update period for server
-        $update_period = \Cleantalk\Common\DNS::getServerTTL( 'spamfirewall-ttl.cleantalk.org' );
-        $update_period = (int)$update_period > 14400 ?  (int) $update_period : 14400;
-        Cron::updateTask('sfw_update', 'apbct_sfw_update__init', $update_period );
-    
-        return true;
+
+    	return apbct_sfw_update__end_of_update();
         
     }
 }
@@ -1088,6 +1153,50 @@ function apbct_sfw_update__process_exclusions( $multifile_url, $updating_id ){
         ),
         array( 'async' )
     );
+}
+
+function apbct_sfw_update__end_of_update() {
+
+	global $apbct, $wpdb;
+
+	// REMOVE AND RENAME
+	$result = SFW::data_tables__delete( DB::getInstance(), APBCT_TBL_FIREWALL_DATA );
+	if( ! empty( $result['error'] ) )
+		return $result;
+	$result = SFW::rename_data_tables__from_temp_to_main( DB::getInstance(), APBCT_TBL_FIREWALL_DATA );
+	if( ! empty( $result['error'] ) )
+		return $result;
+
+	// Increment firewall entries
+	$apbct->fw_stats['firewall_update_percent'] = 0;
+	$apbct->fw_stats['firewall_updating_id'] = null;
+	$apbct->fw_stats['last_firewall_updated'] = time();
+	$apbct->save( 'fw_stats' );
+
+	$apbct->stats['sfw']['entries'] = $wpdb->get_var('SELECT COUNT(*) FROM ' . APBCT_TBL_FIREWALL_DATA );
+	$apbct->stats['sfw']['last_update_time'] = time();
+	$apbct->save( 'stats' );
+
+	$apbct->data['last_firewall_updated'] = current_time('timestamp');
+	$apbct->save('data'); // Unused
+
+	// Running sfw update once again in 12 min if entries is < 4000
+	if( ! $apbct->stats['sfw']['last_update_time'] &&
+	    $apbct->stats['sfw']['entries'] < 4000
+	){
+		wp_schedule_single_event( time() + 720, 'apbct_sfw_update__init' );
+	}
+
+	// Delete update errors
+	$apbct->error_delete( 'sfw_update', 'save_settings' );
+
+	// Get update period for server
+	$update_period = \Cleantalk\Common\DNS::getServerTTL( 'spamfirewall-ttl.cleantalk.org' );
+	$update_period = (int)$update_period > 14400 ?  (int) $update_period : 14400;
+	Cron::updateTask('sfw_update', 'apbct_sfw_update__init', $update_period );
+
+	return true;
+
 }
 
 function ct_sfw_send_logs($api_key = '')
