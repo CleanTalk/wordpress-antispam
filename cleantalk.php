@@ -1671,14 +1671,41 @@ function apbct_maintance_mode__disable() {
 	}
 }
 
-function cleantalk_get_brief_data(){
+function cleantalk_get_brief_data( $api_key = null ){
 	
     global $apbct;
-	
-	$apbct->data['brief_data'] = \Cleantalk\ApbctWP\API::method__get_antispam_report_breif($apbct->api_key);
+
+	$api_key = is_null( $api_key ) ? $apbct->api_key : $api_key;
+
+	$apbct->data['brief_data'] = \Cleantalk\ApbctWP\API::method__get_antispam_report_breif( $api_key );
+
+	# expanding data about the country
+	if(isset($apbct->data['brief_data']['top5_spam_ip']) && !empty($apbct->data['brief_data']['top5_spam_ip'])) {
+		foreach ($apbct->data['brief_data']['top5_spam_ip'] as $key => $ip_data) {
+			$ip = $ip_data[0];
+			$ip_data[1] = array(
+				'country_name' => 'Unknown',
+				'country_code' => 'cleantalk'
+			);
+
+			if(isset($ip)) {
+				$country_data = \Cleantalk\ApbctWP\API::method__ip_info($ip);
+				$country_data_clear = current($country_data);
+
+				if(is_array($country_data_clear) && isset($country_data_clear['country_name']) && isset($country_data_clear['country_code'])) {
+					$ip_data[1] = array(
+						'country_name' => $country_data_clear['country_name'],
+						'country_code' => (!preg_match('/[^A-Za-z0-9]/', $country_data_clear['country_code'])) ? $country_data_clear['country_code'] : 'cleantalk'
+					);
+				}
+			}
+
+			$apbct->data['brief_data']['top5_spam_ip'][$key] = $ip_data;
+		}
+	}
+
 	$apbct->saveData();
-	
-	return;
+
 }
 
 //Delete cookie for admin trial notice

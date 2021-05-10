@@ -1591,7 +1591,7 @@ function apbct_settings__sync( $direct_call = false ){
 		}
 		
 		// Updating brief data for dashboard widget
-		$apbct->data['brief_data'] = \Cleantalk\ApbctWP\API::method__get_antispam_report_breif( $apbct->settings['apikey'] );
+		cleantalk_get_brief_data( $apbct->settings['apikey'] );
 		
 		// Key is not valid
 	}else{
