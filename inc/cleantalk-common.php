@@ -925,9 +925,9 @@ function ct_get_fields_any($arr, $message=array(), $email = null, $nickname = ar
 						in_array($key, $visible_fields_arr)
 					)
 				) {
-					preg_match("/(name.?)?(your|first|for)(.?name)/", $key, $match_forename);
-					preg_match("/(name.?)?(last|family|second|sur)(.?name)/", $key, $match_surname);
-					preg_match("/(name.?)?(nick|user)(.?name)?/", $key, $match_nickname);
+					preg_match("/(name.?(your|first|for)|(your|first|for).?name)/", $key, $match_forename);
+					preg_match("/(name.?(last|family|second|sur)|(last|family|second|sur).?name)/", $key, $match_surname);
+					preg_match("/(name.?(nick|user)|(nick|user).?name)/", $key, $match_nickname);
 
 					if(count($match_forename) > 1)
 						$nickname['first'] = $value;
