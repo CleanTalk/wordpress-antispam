@@ -867,10 +867,18 @@ function apbct_sfw_update__init( $delay = 0 ){
         return array( 'error' => 'SFW UPDATE INIT: KEY_EMPTY' );
     }
     
+    if( ! $apbct->key_is_ok ){
+        return array( 'error' => 'SFW UPDATE INIT: KEY_IS_NOT_VALID' );
+    }
+    
     // Set a new update ID and an update time start
     $apbct->fw_stats['firewall_updating_id']         = md5( rand( 0, 100000 ) );
     $apbct->fw_stats['firewall_updating_last_start'] = time();
     $apbct->save( 'fw_stats' );
+    
+    // Delete update errors
+    $apbct->error_delete( 'sfw_update', 'save_data' );
+    $apbct->error_delete( 'sfw_update', 'save_data', 'cron' );
     
     return \Cleantalk\ApbctWP\Helper::http__request__rc_to_host(
         'sfw_update__worker',
@@ -899,24 +907,28 @@ function apbct_sfw_update__worker(){
     $useragent_url = Get::get( 'useragent_url' );
 	
     $api_key = $apbct->api_key;
-	
+    
+    if( ! $apbct->key_is_ok ){
+        return array( 'error' => 'KEY_IS_NOT_VALID' );
+    }
+    
     // Check if the update performs right now. Blocks remote calls with different ID
     // This was done to make sure that we won't have multiple updates at a time
     if( $updating_id !== $apbct->fw_stats['firewall_updating_id'] ){
         return array( 'error' => 'WRONG_UPDATE_ID' );
-    }
-    
-    // Key is empty
-    if( empty( $api_key ) ){
-        return array( 'error' => 'KEY_EMPTY' );
     }
 
     // First call. Getting files URL ( multifile )
     if( ! $multifile_url ){
         
         // Preparing database infrastructure
+        // Creating SFW tables to make sure that they are exist
         apbct_activation__create_tables( Schema::getSchema( 'sfw' ), $apbct->db_prefix );
-        SFW::create_temp_tables( DB::getInstance(), APBCT_TBL_FIREWALL_DATA );
+        
+        // Preparing temporary tables
+        $result = SFW::create_temp_tables( DB::getInstance(), APBCT_TBL_FIREWALL_DATA );
+        if( ! empty( $result['error'] ) )
+            return $result;
         
         return apbct_sfw_update__get_multifiles( $api_key, $updating_id );
     
@@ -976,7 +988,8 @@ function apbct_sfw_update__worker(){
         }
     
         // Delete update errors
-        $apbct->error_delete( 'sfw_update', 'save_settings' );
+        $apbct->error_delete( 'sfw_update', 'save_data' );
+        $apbct->error_delete( 'sfw_update', 'save_data', 'cron');
     
         // Get update period for server
         $update_period = \Cleantalk\Common\DNS::getServerTTL( 'spamfirewall-ttl.cleantalk.org' );
