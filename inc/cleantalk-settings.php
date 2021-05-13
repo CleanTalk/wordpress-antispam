@@ -268,6 +268,11 @@ function apbct_settings__set_fileds( $fields ){
 					'description' => __('Allows administrators to manage comments on public post\'s pages with small interactive menu.', 'cleantalk-spam-protect'),
 					'display' => !$apbct->white_label,
 				),
+				'comments__hide_website_field' => array(
+					'title'       => __('Hide the "Website" field', 'cleantalk-spam-protect'),
+					'description' => __('This option hides the "Website" field on the comment form.', 'cleantalk-spam-protect'),
+					'display' => !$apbct->white_label,
+				),
 			),
 		),
 		
