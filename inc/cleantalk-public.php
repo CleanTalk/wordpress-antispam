@@ -1750,11 +1750,42 @@ function ct_die_extended($comment_body) {
 
     global $ct_jp_comments;
 
-	$err_text = '<center>' . ((defined('CLEANTALK_DISABLE_BLOCKING_TITLE') && CLEANTALK_DISABLE_BLOCKING_TITLE == true) ? '' : '<b style="color: #49C73B;">Clean</b><b style="color: #349ebf;">Talk.</b> ') . __('Spam protection', 'cleantalk-spam-protect') . "</center><br><br>\n" . $comment_body;
-    if( ! $ct_jp_comments ) {
-        $err_text .= '<script>setTimeout("history.back()", 5000);</script>';
+    $message_title = __('Spam protection', 'cleantalk-spam-protect');
+    if(defined('CLEANTALK_DISABLE_BLOCKING_TITLE') && CLEANTALK_DISABLE_BLOCKING_TITLE != true) {
+        $message_title = '<b style="color: #49C73B;">Clean</b><b style="color: #349ebf;">Talk.</b> ' . $message_title;
     }
-    wp_die($err_text, 'Blacklisted', array('response' => 200, 'back_link' => ! $ct_jp_comments));
+
+    $back_link = '';
+    $back_script = '';
+    if( ! $ct_jp_comments ) {
+        $back_script = '<script>setTimeout("history.back()", 5000);</script>';
+    } else {
+        $back_link = '<a href="' . $_SERVER['HTTP_REFERER'] . '">' . __('Back') . '</a>';
+    }
+
+
+    if(file_exists(CLEANTALK_PLUGIN_DIR . "templates/lock-pages/lock-page-ct-die.html")){
+
+        $ct_die_page = file_get_contents(CLEANTALK_PLUGIN_DIR . "templates/lock-pages/lock-page-ct-die.html");
+
+        // Translation
+        $replaces = array(
+            '{MESSAGE_TITLE}' => $message_title,
+            '{MESSAGE}'       => $comment_body,
+            '{BACK_LINK}'     => $back_link,
+            '{BACK_SCRIPT}'   => $back_script
+        );
+
+        foreach( $replaces as $place_holder => $replace ){
+            $ct_die_page = str_replace( $place_holder, $replace, $ct_die_page );
+        }
+
+        http_response_code(200);
+        die($ct_die_page);
+    }
+
+    http_response_code(200);
+    die("Forbidden. Sender blacklisted. Blocked by Cleantalk");
 }
 
 /**
