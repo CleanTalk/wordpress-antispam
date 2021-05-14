@@ -264,6 +264,9 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 	// Profile Builder integration
     add_filter( 'wppb_output_field_errors_filter', 'apbct_form_profile_builder__check_register', 1, 3 );
 
+    // WP Foro register system integration
+	add_filter( 'wpforo_create_profile', 'wpforo_create_profile__check_register', 1, 1 );
+
 	// Public actions
 	if( ! is_admin() && ! apbct_is_ajax() && ! apbct_is_customize_preview() ){
 		

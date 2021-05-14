@@ -1,5 +1,6 @@
 <?php
 
+use Cleantalk\ApbctWP\Helper;
 use Cleantalk\Variables\Server;
 
 /**
@@ -4364,4 +4365,19 @@ function apbct_form_profile_builder__check_register ( $errors, $fields, $global_
     }
     return $errors;
 
+}
+
+// WP Foro register system integration
+function wpforo_create_profile__check_register( $user_fields ) {
+
+	global $ct_signup_done;
+
+	$ip = Helper::ip__get( 'real', false );
+	$check = ct_test_registration( $user_fields['user_login'], $user_fields['user_email'], $ip );
+	if( $check['allow'] == 0 ) {
+		return array( 'error' => $check['comment'] );
+	}
+
+	$ct_signup_done = true;
+	return $user_fields;
 }
