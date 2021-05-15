@@ -277,6 +277,7 @@ function apbct_public_sendAJAX(data, params, obj){
 	var progressbar = params.progressbar || null;
 	var silent      = params.silent      || null;
 	var no_nonce    = params.no_nonce    || null;
+	var apbct_ajax  = params.apbct_ajax  || null;
 
 	if(typeof (data) === 'string') {
 		if( ! no_nonce )
@@ -293,7 +294,7 @@ function apbct_public_sendAJAX(data, params, obj){
 
 	jQuery.ajax({
 		type: "POST",
-		url: ctPublic._ajax_url,
+		url: apbct_ajax ? ctPublic._apbct_ajax_url : ctPublic._ajax_url,
 		data: data,
 		async: async,
 		success: function(result){
