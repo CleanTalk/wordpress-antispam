@@ -1,6 +1,6 @@
 <?php
 
-namespace Cleantalk\ApbctWP\Variables;
+namespace Cleantalk\Variables;
 
 use PHPUnit\Framework\TestCase;
 
@@ -17,8 +17,6 @@ class CookieTest extends TestCase {
 		self::assertEquals($var, $_COOKIE['variable']);
 		$wrong_var = Cookie::get( 'wrong_variable' );
 		self::assertEmpty($wrong_var);
-		$arr = Cookie::get( 'variable_arr', array(), 'array' );
-		$this->assertIsArray($arr);
 	}
 
 	protected function tearDown()
