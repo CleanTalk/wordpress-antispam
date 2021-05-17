@@ -471,6 +471,12 @@ function apbct_is_skip_request( $ajax = false ) {
 	        {
 		        return 'Avada_theme_saving_settings';
 	        }
+	        // Formidable skip - this is the durect integration
+	        if ( apbct_is_plugin_active( 'formidable/formidable.php' ) &&
+	             Post::get( 'action' ) === 'frm_entries_update' )
+	        {
+		        return 'formidable_skip';
+	        }
             break;
 
         case false :
@@ -507,6 +513,12 @@ function apbct_is_skip_request( $ajax = false ) {
 		         Get::get('mylisting-ajax') === '1' )
 		    {
 			    return 'mylisting_theme_service_requests_skip';
+		    }
+		    // HappyForms skip every requests. HappyForms have the direct integration
+		    if( apbct_is_plugin_active( 'happyforms-upgrade/happyforms-upgrade.php' ) &&
+		        ( Post::get('happyforms_message_nonce') !== ''  ) )
+		    {
+			    return 'happyform_skipped';
 		    }
 
             break;

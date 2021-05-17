@@ -35,7 +35,7 @@ class Helper extends \Cleantalk\Common\Helper
 	 *
 	 * @return array|bool (array || array('error' => true))
 	 */
-	static public function http__request($url, $data = array(), $presets = null, $opts = array())
+	public static function http__request($url, $data = array(), $presets = null, $opts = array())
 	{
 		// Set APBCT User-Agent and passing data to parent method
 		$opts = self::array_merge__save_numeric_keys(
@@ -56,7 +56,7 @@ class Helper extends \Cleantalk\Common\Helper
 	 *
 	 * @return array|mixed|string
 	 */
-	static public function http__request__get_response_code( $url ){
+	public static function http__request__get_response_code( $url ){
 		return static::http__request( $url, array(), 'get_code');
 	}
 	
@@ -68,53 +68,98 @@ class Helper extends \Cleantalk\Common\Helper
 	 *
 	 * @return array|mixed|string
 	 */
-	static public function http__request__get_content( $url ){
+	public static function http__request__get_content( $url ){
 		return static::http__request( $url, array(), 'get dont_split_to_array');
 	}
     
-    static public function http__request__rc_to_host( $rc_action, $request_params, $patterns = array() ){
+    /**
+     * Performs remote call to the current website
+     *
+     * @param string $rc_action
+     * @param array  $request_params
+     * @param array  $patterns
+     * @param bool   $do_check Perform check before main remote call or not
+     *
+     * @return bool|string[]
+     */
+    public static function http__request__rc_to_host( $rc_action, $request_params, $patterns = array(), $do_check = true ){
         
         global $apbct;
-        
-        $request_params__default = array(
+    
+        $request_params = array_merge( array(
             'spbc_remote_call_token'  => md5( $apbct->api_key ),
             'spbc_remote_call_action' => $rc_action,
             'plugin_name'             => 'apbct',
+        ), $request_params );
+        $patterns = array_merge(
+            array(
+                'get',
+                'dont_split_to_array'
+            ),
+            $patterns );
+        
+        if( $do_check ){
+            $result__rc_check_website = static::http__request__rc_to_host__test( $rc_action, $request_params, $patterns );
+            if( ! empty( $result__rc_check_website['error'] ) ){
+                return $result__rc_check_website;
+            }
+        }
+        
+        static::http__request(
+            get_option( 'siteurl' ),
+            $request_params,
+            $patterns
         );
         
-        $result__rc_check_website = static::http__request(
+        return true;
+    }
+    
+    /**
+     * Performs test remote call to the current website
+     * Expects 'OK' string as good response
+     *
+     * @param array $request_params
+     * @param array $patterns
+     *
+     * @return array|bool|string
+     */
+    public static function http__request__rc_to_host__test( $rc_action, $request_params, $patterns = array() ){
+	    
+        // Delete async pattern to get the result in this process
+        $key = array_search( 'async', $patterns, true );
+	    if( $key ){
+            unset( $patterns[ $key ] );
+        }
+	    
+        $result = static::http__request(
             get_option( 'siteurl' ),
-            array_merge( $request_params__default, $request_params, array( 'test' => 'test' ) ),
-            array( 'get', 'dont_split_to_array' )
+            array_merge( $request_params, array( 'test' => 'test' ) ),
+            $patterns
         );
         
         // Considering empty response as error
-        $result__rc_check_website !== '' ?: $result__rc_check_website = array( 'error' => 'EMPTY_RESPONSE' );
-        
-        if( empty( $result__rc_check_website['error'] ) ){
+	    if( $result === '' ){
+            $result = array( 'error' => 'EMPTY_RESPONSE' );
+	        
+        // Wrap and pass error
+        }elseif( ! empty( $result['error'] ) ){
+            $result = array( 'error' => 'WRONG_SITE_RESPONSE TEST ACTION: ' . $rc_action . ' ERROR: ' . $result['error'] );
             
-            if( preg_match( '@^.*?OK$@', $result__rc_check_website) ){
-                
-                static::http__request(
-                    get_option( 'siteurl' ),
-                    array_merge( $request_params__default, $request_params ),
-                    array_merge( array( 'get', ), $patterns )
-                );
-                
-            }else
-                return array(
-                    'error' => 'WRONG_SITE_RESPONSE ACTION: ' . $rc_action . ' RESPONSE: ' . htmlspecialchars( substr(
-                            ! is_string( $result__rc_check_website )
-                                ? print_r( $result__rc_check_website, true )
-                                : $result__rc_check_website,
-                            0,
-                            400
-                        ) )
-                );
-        }else
-            return array( 'error' => 'WRONG_SITE_RESPONSE TEST ACTION: ' . $rc_action . ' ERROR: ' . $result__rc_check_website['error'] );
-        
-        return true;
+        // Expects 'OK' string as good response otherwise - error
+        }elseif( ! preg_match( '@^.*?OK$@', $result ) ){
+            $result = array(
+                'error' => 'WRONG_SITE_RESPONSE ACTION: ' . $rc_action . ' RESPONSE: ' . '"' . htmlspecialchars( substr(
+                        ! is_string( $result )
+                            ? print_r( $result, true )
+                            : $result,
+                        0,
+                        400
+                    ) )
+                    . '"'
+            );
+        }
+	    
+        return $result;
     }
     
     /**

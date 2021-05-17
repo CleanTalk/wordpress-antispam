@@ -206,7 +206,7 @@ class Cleantalk {
 					'/\s?ct_cookies_test=.*?[^;]*;?/',
 					'/\s?ct_ps_timestamp=.*?[^;]*;?/',
 					'/\s?ct_fkp_timestamp=\d*?[^;]*;?/',
-					'/\s?ct_sfw_pass_key=\d*?[^;]*;?/',
+					'/\s?wordpress_ct_sfw_pass_key=\d*?[^;]*;?/',
 					'/\s?apbct_page_hits=\d*?[^;]*;?/',
 					'/\s?apbct_visible_fields_count=\d*?[^;]*;?/',
 					'/\s?apbct_visible_fields=%7B.*%7D[^;]*;?/',

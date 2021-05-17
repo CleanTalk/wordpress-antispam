@@ -75,6 +75,7 @@ cleantalkModal = {
                 "cursor" : "pointer",
                 "top" : "-8px",
                 "right" : "-8px",
+                "box-sizing" : "content-box",
             },
             toString: renderCss
         };

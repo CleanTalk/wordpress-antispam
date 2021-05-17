@@ -94,6 +94,49 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
             return array('error' => 'UAL_UPDATE_ERROR: '. $lines['error'] );
     }
 
+	public static function direct_update( array $useragents ) {
+
+		$result__clear_db = self::clear_data_table( \Cleantalk\ApbctWP\DB::getInstance(), APBCT_TBL_AC_UA_BL );
+
+		if( empty( $result__clear_db['error'] ) ){
+
+			for( $count_result = 0; current($useragents) !== false; ) {
+
+				$query = "INSERT INTO " . APBCT_TBL_AC_UA_BL . " (id, ua_template, ua_status) VALUES ";
+
+				for( $i = 0, $values = array(); APBCT_WRITE_LIMIT !== $i && current( $useragents ) !== false; $i ++, $count_result ++, next( $useragents ) ){
+
+					$entry = current($useragents);
+
+					if(empty($entry))
+						continue;
+
+					if ( APBCT_WRITE_LIMIT !== $i ) {
+
+						// Cast result to int
+						// @ToDo check the output $entry
+						$ua_id        = preg_replace('/[^\d]*/', '', $entry[0]);
+						$ua_template  = isset($entry[1]) && apbct_is_regexp($entry[1]) ? Helper::db__prepare_param( $entry[1] ) : 0;
+						$ua_status    = isset($entry[2]) ? $entry[2] : 0;
+
+					}
+
+					$values[] = '('. $ua_id .','. $ua_template .','. $ua_status .')';
+
+				}
+
+				if( ! empty( $values ) ){
+					$query = $query . implode( ',', $values ) . ';';
+					\Cleantalk\ApbctWP\DB::getInstance()->execute( $query );
+				}
+
+			}
+			return $count_result;
+		}else
+			return $result__clear_db;
+
+	}
+
     private static function clear_data_table($db, $db__table__data) {
 
         $db->execute( "TRUNCATE TABLE {$db__table__data};" );
@@ -164,10 +207,10 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
             }
         	
             // Skip by cookie
-            if( Cookie::get('apbct_antibot') == hash( 'sha256', $this->api_key . $this->apbct->data['salt'] ) ) {
+            if( Cookie::get('wordpress_apbct_antibot') == hash( 'sha256', $this->api_key . $this->apbct->data['salt'] ) ) {
                 if( Cookie::get( 'apbct_anticrawler_passed' ) == 1 ){
                     if( ! headers_sent() )
-                        \Cleantalk\Common\Helper::apbct_cookie__set( 'apbct_anticrawler_passed', '0', time() - 86400, '/', null, false, true, 'Lax' );
+                        Cookie::set( 'apbct_anticrawler_passed', '0', time() - 86400, '/', null, null, true, 'Lax' );
 
                     // Do logging an one passed request
                     $this->update_log( $current_ip, 'PASS_ANTICRAWLER' );
@@ -192,7 +235,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 			);
 			if( isset( $result['ip'] ) ){
 				
-				if( Cookie::get('apbct_antibot') !== hash( 'sha256', $this->api_key . $this->apbct->data['salt'] ) ){
+				if( Cookie::get('wordpress_apbct_antibot') !== hash( 'sha256', $this->api_key . $this->apbct->data['salt'] ) ){
 					
 					$results[] = array( 'ip' => $current_ip, 'is_personal' => false, 'status' => 'DENY_ANTICRAWLER', );
 					
@@ -201,7 +244,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 					if( Cookie::get( 'apbct_anticrawler_passed' ) === '1' ){
 						
 						if( ! headers_sent() )
-							\Cleantalk\Common\Helper::apbct_cookie__set( 'apbct_anticrawler_passed', '0', time() - 86400, '/', null, false, true, 'Lax' );
+							\Cleantalk\ApbctWP\Variables\Cookie::set( 'apbct_anticrawler_passed', '0', time() - 86400, '/', null, false, true, 'Lax' );
 						
 						$results[] = array( 'ip' => $current_ip, 'is_personal' => false, 'status' => 'PASS_ANTICRAWLER', );
 						
@@ -211,7 +254,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 				
 			}else{
 
-                if( ! Cookie::get('apbct_antibot') ) {
+                if( ! Cookie::get('wordpress_apbct_antibot') ) {
                     add_action( 'template_redirect', array( & $this, 'update_ac_log' ), 999 );
                 }
 				
@@ -252,7 +295,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 	
 	public static function set_cookie(){
 		global $apbct;
-		echo '<script>document.cookie = "apbct_antibot=' . hash( 'sha256', $apbct->api_key . $apbct->data['salt'] ) . '; path=/; expires=0; samesite=lax";</script>';
+		echo '<script>var ctSecure = location.protocol === "https:" ? "; secure" : ""; document.cookie = "wordpress_apbct_antibot=' . hash( 'sha256', $apbct->api_key . $apbct->data['salt'] ) . '; path=/; expires=0; samesite=lax" + ctSecure;</script>';
 	}
 	
 	/**

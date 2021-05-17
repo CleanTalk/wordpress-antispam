@@ -666,24 +666,51 @@ class API
 
 		return $result;
 	}
-
-	public static function method__private_list_add__sfw_wl( $user_token, $ip, $service_id, $do_check = true ) {
+    
+    /**
+     *
+     *
+     * @param string $user_token
+     * @param string $service_id
+     * @param string $ip
+     * @param string $service_type
+     * @param int $product_id
+     * @param int $record_type
+     * @param string $note Description text
+     * @param string $status allow|deny
+     * @param string $expired Date Y-m-d H:i:s
+     * @param bool $do_check
+     *
+     * @return array|bool|bool[]|mixed|string[]
+     */
+	public static function method__private_list_add(
+        $user_token,
+        $service_id,
+        $ip,
+        $service_type,
+        $product_id,
+        $record_type,
+        $note,
+        $status,
+        $expired,
+        $do_check = true
+    ) {
 
 		$request = array(
 			'method_name'        => 'private_list_add',
 			'user_token'         => $user_token,
 			'service_id'         => $service_id,
 			'records'            => $ip,
-			'service_type'       => 'spamfirewall',
-			'product_id'         => 1,
-			'record_type'        => 6,
-			'note'               => 'Website admin IP. Added automatically.',
-			'status'             => 'allow',
-			'expired'            => date( 'Y-m-d H:i:s', time() + 86400 * 30 ),
+			'service_type'       => $service_type,
+			'product_id'         => $product_id,
+			'record_type'        => $record_type,
+			'note'               => $note,
+			'status'             => $status,
+			'expired'            => $expired,
 		);
 
 		$result = static::send_request( $request );
-		$result = $do_check ? static::check_response($result) : $result;
+        $result = $do_check ? static::check_response( $result, 'private_list_add') : $result;
 
 		return $result;
 
@@ -875,6 +902,18 @@ class API
 					: array('error' => 'NO_DATA');
 				break;
 			
+            case 'private_list_add':
+                return isset( $res['records'][0]['operation_status'] ) && $res['records'][0]['operation_status'] === 'SUCCESS'
+                    ? true
+                    : array( 'error' => 'COULDNT_ADD_WL_IP');
+                break;
+
+			case '2s_blacklists_db':
+				return isset( $result['data'] ) && isset( $result['data_user_agents'] )
+					? $result
+					: $result['data'];
+				break;
+				
 			default:
 				return isset($result['data']) && is_array($result['data'])
 					? $result['data']
