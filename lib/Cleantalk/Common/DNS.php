@@ -29,9 +29,10 @@ class DNS {
         
         // Get DNS records about URL
         if( function_exists( 'dns_get_record' ) ){
+        	// Localhosts generates errors. block these by @
             $records = $type
-                ? dns_get_record( $host, $type )
-                : dns_get_record( $host );
+                ? @dns_get_record( $host, $type )
+                : @dns_get_record( $host );
             if( $records !== false ){
                 $servers = array();
                 foreach( $records as $server ){

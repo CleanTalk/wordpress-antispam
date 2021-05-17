@@ -922,5 +922,7 @@ function apbct_update_to_5_157_0(){
     $apbct->settings['data__set_cookies__alt_sessions_type'] = 1;
     
     $apbct->save( 'settings' );
+
+	cleantalk_get_brief_data( $apbct->api_key );
     
 }
