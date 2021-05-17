@@ -1183,8 +1183,10 @@ function apbct_get_all_child_domains($except_main_site = false) {
 
 	if ($except_main_site) {
 		foreach ($wp_blogs as $blog) {
-			if ($blog->blog_id != $blog->site_id)
-				$blogs[] = get_blog_details( array( 'blog_id' => $blog->blog_id ) )->blogname;
+			if ($blog->blog_id != $blog->site_id){
+				$blog_details = get_blog_details( array( 'blog_id' => $blog->blog_id ) );
+				$blogs[] = '#' . $blog_details->id . ' ' . $blog_details->blogname;
+			}
 		}
 	}
 	return $blogs;
