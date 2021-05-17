@@ -969,11 +969,11 @@ function ct_get_fields_any($arr, $message=array(), $email = null, $nickname = ar
             break;
         }
     } unset($v);
-	
+
 	//If top iteration, returns compiled name field. Example: "Nickname Firtsname Lastname".]
-	if( ( $nickname_default && $prev_name === '' ) || is_array( $nickname ) ){
-		$nickname_str = '';
+	if($nickname_default && $prev_name === ''){
 		if(!empty($nickname)){
+			$nickname_str = '';
 			foreach($nickname as $value){
 				$nickname_str .= ($value ? $value." " : "");
 			}unset($value);
