@@ -879,6 +879,10 @@ function apbct_sfw_update__init( $delay = 0 ){
     $apbct->fw_stats['firewall_updating_last_start'] = time();
     $apbct->save( 'fw_stats' );
 
+	// Delete update errors
+	$apbct->error_delete( 'sfw_update', 'save_data' );
+	$apbct->error_delete( 'sfw_update', 'save_data', 'cron' );
+
 	$rc_action = 'sfw_update__worker';
 	$request_params = array(
 		'delay' => $delay,
