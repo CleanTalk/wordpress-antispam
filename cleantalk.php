@@ -887,7 +887,7 @@ function apbct_sfw_update__init( $delay = 0 ){
 		array(  'spbc_remote_call_token'  => md5( $apbct->api_key ),
 		        'spbc_remote_call_action' => $rc_action,
 		        'plugin_name'             => 'apbct', ),
-		array( 'get', 'dont_split_to_array' ),
+		array( 'get', 'dont_split_to_array' )
 	);
 
 	if( ! empty( $result__rc_check_website['error'] ) ){
