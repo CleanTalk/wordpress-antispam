@@ -1043,26 +1043,32 @@ function apbct_hook__wp_footer() {
 
 	if( $apbct->settings['data__use_ajax'] ){
 
+		$timeout = $apbct->settings['misc__async_js'] ? 1000 : 0;
+
 		if( $apbct->use_rest_api )  {
 			$html = "<script type=\"text/javascript\" " . ( class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '' ) . ">				
 				window.addEventListener('DOMContentLoaded', function () {
-					if( document.querySelectorAll('[name^=ct_checkjs]').length > 0 ) {
-						apbct_public_sendREST(
-		                    'js_keys__get',
-		                    { callback: apbct_js_keys__set_input_value }
-		                )
-		            }    
+					setTimeout(function(){
+						if( document.querySelectorAll('[name^=ct_checkjs]').length > 0 ) {
+							apbct_public_sendREST(
+			                    'js_keys__get',
+			                    { callback: apbct_js_keys__set_input_value }
+			                )
+			            } 
+					},". $timeout .");					   
 				});								
 			</script>";
 		} else {
 			$html = "<script type=\"text/javascript\" " . ( class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '' ) . ">				
 				window.addEventListener('DOMContentLoaded', function () {
-					if( document.querySelectorAll('[name^=ct_checkjs]').length > 0 ) {
-		                apbct_public_sendAJAX(
-		                    { action: 'apbct_js_keys__get' },
-		                    { callback: apbct_js_keys__set_input_value, no_nonce: true }
-		                );
-		            }    
+					setTimeout(function(){
+						if( document.querySelectorAll('[name^=ct_checkjs]').length > 0 ) {
+			                apbct_public_sendAJAX(
+			                    { action: 'apbct_js_keys__get' },
+			                    { callback: apbct_js_keys__set_input_value, no_nonce: true }
+			                );
+			            }
+					},". $timeout .");					    
 				});				
 			</script>";
 		}
