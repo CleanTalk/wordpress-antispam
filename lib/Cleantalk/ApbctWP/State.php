@@ -170,6 +170,7 @@ class State
 		'notice_renew' => 0,
 		'notice_review' => 0,
 		'notice_auto_update' => 0,
+		'notice_incompatibility' => array(),
 		
 		// Brief data
 		'brief_data' => array(
