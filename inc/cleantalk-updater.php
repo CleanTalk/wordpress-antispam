@@ -929,19 +929,21 @@ function apbct_update_to_5_157_0(){
 
 function apbct_update_to_5_157_10() {
 
-	global $wpdb, $abpct;
+	global $wpdb, $apbct;
 
 	$wp_blogs = $wpdb->get_results('SELECT blog_id, site_id FROM '. $wpdb->blogs, OBJECT_K);
-	$current_sites_list = $abpct->network_settings['multisite__use_settings_template_apply_for_current_list_sites'];
+	$current_sites_list = $apbct->settings['multisite__use_settings_template_apply_for_current_list_sites'];
 
-	foreach ($wp_blogs as $blog) {
-		$blog_details = get_blog_details( array( 'blog_id' => $blog->blog_id ) );
-		$site_list_index = array_search( $blog_details->blogname, $current_sites_list, true );
-		if( $site_list_index !== false ) {
-			$current_sites_list[$site_list_index] = $blog_details->id;
+	if( is_array( $wp_blogs ) && is_array( $current_sites_list ) ) {
+		foreach ($wp_blogs as $blog) {
+			$blog_details = get_blog_details( array( 'blog_id' => $blog->blog_id ) );
+			$site_list_index = array_search( $blog_details->blogname, $current_sites_list, true );
+			if( $site_list_index !== false ) {
+				$current_sites_list[$site_list_index] = $blog_details->id;
+			}
 		}
+		$apbct->settings['multisite__use_settings_template_apply_for_current_list_sites'] = $current_sites_list;
+		$apbct->saveSettings();
 	}
-	$abpct->network_settings['multisite__use_settings_template_apply_for_current_list_sites'] = $current_sites_list;
-	$abpct->save('network_settings');
 
 }
