@@ -633,7 +633,14 @@ function apbct_settings__add_groups_and_fields( $fields ){
 			if(!empty($field['options_callback'])){
 				$options = call_user_func_array($field['options_callback'], !empty($field['options_callback_params']) ? $field['options_callback_params'] : array());
 				foreach ($options as &$option){
-					$option = array('val' => $option, 'label' => $option);
+					if( is_array( $option ) ) {
+						$option = array(
+							'val'   => isset($option['val']) ? $option['val'] : current( $option ),
+							'label' => isset($option['label']) ? $option['label'] : end( $option )
+						);
+					} else {
+						$option = array('val' => $option, 'label' => $option);
+					}
 				} unset($option);
 				$field['options'] = $options;
 			}
@@ -1185,7 +1192,10 @@ function apbct_get_all_child_domains($except_main_site = false) {
 		foreach ($wp_blogs as $blog) {
 			if ($blog->blog_id != $blog->site_id){
 				$blog_details = get_blog_details( array( 'blog_id' => $blog->blog_id ) );
-				$blogs[] = '#' . $blog_details->id . ' ' . $blog_details->blogname;
+				$blogs[] = array(
+					'val' => $blog_details->id,
+					'label' => '#' . $blog_details->id . ' ' . $blog_details->blogname
+				);
 			}
 		}
 	}
