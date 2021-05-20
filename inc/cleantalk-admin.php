@@ -460,13 +460,9 @@ function apbct_admin__notice_message(){
 		}
 
 		//notice_incompatibility
-		if ($apbct->notice_show && !empty($apbct->data['notice_incompatibility'])){
+		if ($apbct->notice_show && !empty($apbct->data['notice_incompatibility']) && $page_is_ct_settings){
 		    foreach ($apbct->data['notice_incompatibility'] as $notice) {
-			    echo '<div class="error">
-				        <h3><b>'.
-			         __("Wrong <a href='{$settings_link}'><b style=\"color: #49C73B;\">Clean</b><b style=\"color: #349ebf;\">Talk</b> access key</a>! Please check it or ask <a target=\"_blank\" href=\"https://wordpress.org/support/plugin/cleantalk-spam-protect/\">support</a>.", 'cleantalk-spam-protect').
-			         '</b></h3>
-			        </div>';
+			    echo '<div class="error">' . $notice['message'] . '</div>';
             }
 		}
 	}
