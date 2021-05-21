@@ -3,7 +3,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 5.158
+  Version: 5.157.21-dev
   Author: СleanTalk <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -897,7 +897,7 @@ function apbct_sfw_update__init( $delay = 0 ){
         
         if( strpos( $result['error'], 'WRONG_SITE_RESPONSE' ) === false ){
             
-            $result = apbct_sfw_update__worker( $apbct->fw_stats['firewall_updating_id'] );
+            $result = apbct_sfw_update__worker();
             if( ! empty( $result['error'] ) ){
                 apbct_sfw_update__cleanData();
             }
@@ -942,7 +942,7 @@ function apbct_sfw_update__worker( $updating_id = null, $multifile_url = null, $
 
     // Check if the update performs right now. Blocks remote calls with different ID
     // This was done to make sure that we won't have multiple updates at a time
-    if( $updating_id != $apbct->fw_stats['firewall_updating_id'] ){
+    if( $updating_id !== $apbct->fw_stats['firewall_updating_id'] ){
         return array( 'error' => 'WRONG_UPDATE_ID' );
     }
 
