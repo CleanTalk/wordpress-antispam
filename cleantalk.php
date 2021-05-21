@@ -867,11 +867,11 @@ function apbct_sfw_update__init( $delay = 0 ){
     }
     
     // Key is empty
-    if( ! $apbct->api_key ){
+    if( ! $apbct->settings['apikey'] ){
         return array( 'error' => 'SFW UPDATE INIT: KEY_EMPTY' );
     }
     
-    if( ! $apbct->key_is_ok ){
+    if( ! $apbct->data['key_is_ok'] ){
         return array( 'error' => 'SFW UPDATE INIT: KEY_IS_NOT_VALID' );
     }
 
@@ -1015,7 +1015,7 @@ function apbct_sfw_update__worker(){
 	
     $api_key = $apbct->api_key;
 
-    if( ! $apbct->key_is_ok ){
+    if( ! $apbct->data['key_is_ok'] ){
         return array( 'error' => 'KEY_IS_NOT_VALID' );
     }
 
