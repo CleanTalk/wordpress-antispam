@@ -49,8 +49,9 @@ class Compatibility
 				'plugin_name' => 'W3 Total Cache',
 				'callback' => 'w3tc_late_init_callback',
 				'message' => '<h3><b>'.
-				             __("The W3 Total Cache plugin settings are not compatible with SpamFireWall by <b style=\"color: #49C73B;\">Clean</b><b style=\"color: #349ebf;\">Talk</b>. Please read the instructions on how to fix this situation by clicking on <a href='https://cleantalk.org/help/cleantalk-and-w3-total-cache'>the link.</a>", 'cleantalk-spam-protect') .
-				             '</b></h3>'
+				             __("Current W3 Total Cache cache mode is not compatible with SpamFireWall. Please read the instructions on how to fix this issue in <a href='https://cleantalk.org/help/cleantalk-and-w3-total-cache'>the article.</a>", 'cleantalk-spam-protect') .
+				             '</b></h3>
+							 <script>jQuery(document).ready(function(){jQuery("#apbct_setting_sfw__enabled").prop("disabled",true)})</script>'
 			),
 		);
 	}
