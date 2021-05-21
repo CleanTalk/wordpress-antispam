@@ -139,7 +139,7 @@ class Helper extends \Cleantalk\Common\Helper
         
         // Considering empty response as error
 	    if( $result === '' ){
-            $result = array( 'error' => 'EMPTY_RESPONSE' );
+            $result = array( 'error' => 'WRONG_SITE_RESPONSE TEST ACTION : ' . $rc_action . ' ERROR: EMPTY_RESPONSE' );
 	        
         // Wrap and pass error
         }elseif( ! empty( $result['error'] ) ){
