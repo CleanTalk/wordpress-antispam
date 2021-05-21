@@ -15,7 +15,10 @@ namespace Cleantalk\Common\Firewall;
 abstract class FirewallModule_abstract {
 	
 	public $module_name;
-	
+    
+    /**
+     * @var \Cleantalk\ApbctWP\DB
+     */
 	protected $db;
 	protected $db__table__logs;
 	protected $db__table__data;
