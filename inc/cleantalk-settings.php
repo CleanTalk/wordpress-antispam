@@ -1581,12 +1581,7 @@ function apbct_settings__sync( $direct_call = false ){
 		
 		// SFW actions
 		if( $apbct->settings['sfw__enabled'] == 1 ){
-
-            if( get_option( 'sfw_update_first' ) ) {
-                add_option( 'sfw_sync_first', true );
-                delete_option( 'sfw_update_first' );
-            }
-			
+		 
 			$result = apbct_sfw_update__init( 5 );
 			if( ! empty( $result['error'] ) )
 				$apbct->error_add( 'sfw_update', $result['error'] );
