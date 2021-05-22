@@ -624,7 +624,7 @@ class Helper
                 return true;
             }
             
-			if( $result && ! curl_error($ch) ){
+			if( $result !== false ){
                 
                 if( strpos( $result, PHP_EOL ) !== false && ! in_array( 'dont_split_to_array', $presets ) ){
                     $result = explode( PHP_EOL, $result );
