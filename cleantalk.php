@@ -897,7 +897,7 @@ function apbct_sfw_update__init( $delay = 0 ){
         
         if( strpos( $result['error'], 'WRONG_SITE_RESPONSE' ) === false ){
             
-            $result = apbct_sfw_update__worker();
+            $result = apbct_sfw_update__worker( $apbct->fw_stats['firewall_updating_id'] );
             if( ! empty( $result['error'] ) ){
                 apbct_sfw_update__cleanData();
             }
@@ -942,7 +942,7 @@ function apbct_sfw_update__worker( $updating_id = null, $multifile_url = null, $
 
     // Check if the update performs right now. Blocks remote calls with different ID
     // This was done to make sure that we won't have multiple updates at a time
-    if( $updating_id !== $apbct->fw_stats['firewall_updating_id'] ){
+    if( $updating_id != $apbct->fw_stats['firewall_updating_id'] ){
         return array( 'error' => 'WRONG_UPDATE_ID' );
     }
 
