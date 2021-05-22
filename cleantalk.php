@@ -928,11 +928,11 @@ function apbct_sfw_update__worker( $updating_id = null, $multifile_url = null, $
     
     sleep(1);
     
-    $updating_id   = $updating_id ?   : Get::get( 'firewall_updating_id' );
-    $multifile_url = $multifile_url ? : Get::get( 'multifile_url' );
-    $url_count     = $url_count ?     : Get::get( 'url_count' );
-    $current_url   = $current_url ?   : Get::get( 'current_url' );
-    $useragent_url = $useragent_url ? : Get::get( 'useragent_url' );
+    $updating_id   = $updating_id   ?: Get::get( 'firewall_updating_id' );
+    $multifile_url = $multifile_url ?: Get::get( 'multifile_url' );
+    $url_count     = $url_count     ?: Get::get( 'url_count' );
+    $useragent_url = $useragent_url ?: Get::get( 'useragent_url' );
+    $current_url   = isset( $current_url ) ? $current_url : Get::get( 'current_url' );
 	
     $api_key = $apbct->api_key;
 
@@ -942,7 +942,7 @@ function apbct_sfw_update__worker( $updating_id = null, $multifile_url = null, $
 
     // Check if the update performs right now. Blocks remote calls with different ID
     // This was done to make sure that we won't have multiple updates at a time
-    if( $updating_id != $apbct->fw_stats['firewall_updating_id'] ){
+    if( $updating_id !== $apbct->fw_stats['firewall_updating_id'] ){
         return array( 'error' => 'WRONG_UPDATE_ID' );
     }
 
@@ -998,7 +998,7 @@ function apbct_sfw_update__get_multifiles( $api_key, $updating_id ){
         return array( 'error' => 'GET MULTIFILE: ' . $result['error'] );
     }
     
-    $result = Helper::http__request__rc_to_host(
+    $rc_result = Helper::http__request__rc_to_host(
         'sfw_update__worker',
         array(
             'multifile_url'           => str_replace( array( 'http://', 'https://' ), '', $result['multifile_url'] ),
@@ -1010,9 +1010,9 @@ function apbct_sfw_update__get_multifiles( $api_key, $updating_id ){
         array( 'async' )
     );
     
-    if( ! empty( $result['error'] ) ){
+    if( ! empty( $rc_result['error'] ) ){
         
-        if( strpos( $result['error'], 'WRONG_SITE_RESPONSE' ) ){
+        if( strpos( $rc_result['error'], 'WRONG_SITE_RESPONSE' ) ){
             
             return apbct_sfw_update__worker(
                 $updating_id,
@@ -1022,6 +1022,8 @@ function apbct_sfw_update__get_multifiles( $api_key, $updating_id ){
                 str_replace( array( 'http://', 'https://' ), '', $result['useragent_url'] )
             );
         }
+    
+        return array( 'error' => 'GET MULTIFILE: ' . $result['error'] );
     }
     
     return $result;
@@ -1040,7 +1042,7 @@ function apbct_sfw_update__process_ua( $multifile_url, $url_count, $current_url,
         return array( 'error' => 'UPDATING UA LIST: : WRONG_RESPONSE AntiCrawler::update' );
     }
     
-    $rtesult = Helper::http__request__rc_to_host(
+    $rc_result = Helper::http__request__rc_to_host(
         'sfw_update__worker',
         array(
             'multifile_url'        => str_replace( array( 'http://', 'https://' ), '', $multifile_url ),
@@ -1051,9 +1053,9 @@ function apbct_sfw_update__process_ua( $multifile_url, $url_count, $current_url,
         array( 'async' )
     );
     
-    if( ! empty( $result['error'] ) ){
+    if( ! empty( $rc_result['error'] ) ){
         
-        if( strpos( $result['error'], 'WRONG_SITE_RESPONSE' ) === false ){
+        if( strpos( $rc_result['error'], 'WRONG_SITE_RESPONSE' ) === false ){
             
             return apbct_sfw_update__worker(
                 $updating_id,
@@ -1062,6 +1064,8 @@ function apbct_sfw_update__process_ua( $multifile_url, $url_count, $current_url,
                 $current_url
             );
         }
+    
+        return array( 'error' => 'UPDATE UA LIST: ' . $result['error'] );
     }
     
     return $result;
@@ -1084,7 +1088,7 @@ function apbct_sfw_update__process_file( $multifile_url, $url_count, $current_ur
         return array( 'error' => 'PROCESS FILE: WRONG RESPONSE FROM update__write_to_db' );
     }
     
-    $result = Helper::http__request__rc_to_host(
+    $rc_result = Helper::http__request__rc_to_host(
         'sfw_update__worker',
         array(
             'multifile_url'        => str_replace( array( 'http://', 'https://' ), '', $multifile_url ),
@@ -1095,9 +1099,9 @@ function apbct_sfw_update__process_file( $multifile_url, $url_count, $current_ur
         array( 'async' )
     );
     
-    if( ! empty( $result['error'] ) ){
+    if( ! empty( $rc_result['error'] ) ){
         
-        if( strpos( $result['error'], 'WRONG_SITE_RESPONSE' ) === false ){
+        if( strpos( $rc_result['error'], 'WRONG_SITE_RESPONSE' ) === false ){
             
             return apbct_sfw_update__worker(
                 $updating_id,
@@ -1106,6 +1110,8 @@ function apbct_sfw_update__process_file( $multifile_url, $url_count, $current_ur
                 $current_url + 1
             );
         }
+    
+        return array( 'error' => 'PROCESS FILE: ' . $result['error'] );
     }
     
     return $result;
@@ -1127,7 +1133,7 @@ function apbct_sfw_update__process_exclusions( $multifile_url, $updating_id ){
         return array( 'error' => 'EXCLUSIONS: WRONG_RESPONSE update__write_to_db__exclusions' );
     }
     
-    $result = Helper::http__request__rc_to_host(
+    $rc_result = Helper::http__request__rc_to_host(
         'sfw_update__worker',
         array(
             'multifile_url'        => str_replace( array( 'http://', 'https://' ), '', $multifile_url ),
@@ -1136,15 +1142,17 @@ function apbct_sfw_update__process_exclusions( $multifile_url, $updating_id ){
         array( 'async' )
     );
     
-    if( ! empty( $result['error'] ) ){
+    if( ! empty( $rc_result['error'] ) ){
         
-        if( strpos( $result['error'], 'WRONG_SITE_RESPONSE' ) === false ){
+        if( strpos( $rc_result['error'], 'WRONG_SITE_RESPONSE' ) === false ){
             
             return apbct_sfw_update__worker(
                 $updating_id,
                 str_replace( array( 'http://', 'https://' ), '', $multifile_url )
             );
         }
+    
+        return array( 'error' => 'EXCLUSIONS: ' . $result['error'] );
     }
     
     return $result;
