@@ -895,7 +895,7 @@ function apbct_sfw_update__init( $delay = 0 ){
     
     if( ! empty( $result['error'] ) ){
         
-        if( strpos( $result['error'], 'WRONG_SITE_RESPONSE' ) === false ){
+        if( strpos( $result['error'], 'WRONG_SITE_RESPONSE' ) !== false ){
             
             $result = apbct_sfw_update__worker( $apbct->fw_stats['firewall_updating_id'] );
             if( ! empty( $result['error'] ) ){
@@ -1012,7 +1012,7 @@ function apbct_sfw_update__get_multifiles( $api_key, $updating_id ){
     
     if( ! empty( $rc_result['error'] ) ){
         
-        if( strpos( $rc_result['error'], 'WRONG_SITE_RESPONSE' ) ){
+        if( strpos( $rc_result['error'], 'WRONG_SITE_RESPONSE' ) !== false ){
             
             return apbct_sfw_update__worker(
                 $updating_id,
@@ -1030,7 +1030,6 @@ function apbct_sfw_update__get_multifiles( $api_key, $updating_id ){
 }
 
 function apbct_sfw_update__process_ua( $multifile_url, $url_count, $current_url, $updating_id, $useragent_url ){
-    
     
     $result = AntiCrawler::update( 'https://' . $useragent_url );
     
@@ -1055,7 +1054,7 @@ function apbct_sfw_update__process_ua( $multifile_url, $url_count, $current_url,
     
     if( ! empty( $rc_result['error'] ) ){
         
-        if( strpos( $rc_result['error'], 'WRONG_SITE_RESPONSE' ) === false ){
+        if( strpos( $rc_result['error'], 'WRONG_SITE_RESPONSE' ) !== false ){
             
             return apbct_sfw_update__worker(
                 $updating_id,
@@ -1101,7 +1100,7 @@ function apbct_sfw_update__process_file( $multifile_url, $url_count, $current_ur
     
     if( ! empty( $rc_result['error'] ) ){
         
-        if( strpos( $rc_result['error'], 'WRONG_SITE_RESPONSE' ) === false ){
+        if( strpos( $rc_result['error'], 'WRONG_SITE_RESPONSE' ) !== false ){
             
             return apbct_sfw_update__worker(
                 $updating_id,
@@ -1144,7 +1143,7 @@ function apbct_sfw_update__process_exclusions( $multifile_url, $updating_id ){
     
     if( ! empty( $rc_result['error'] ) ){
         
-        if( strpos( $rc_result['error'], 'WRONG_SITE_RESPONSE' ) === false ){
+        if( strpos( $rc_result['error'], 'WRONG_SITE_RESPONSE' ) !== false ){
             
             return apbct_sfw_update__worker(
                 $updating_id,
