@@ -1461,7 +1461,7 @@ function apbct_settings__validate($settings) {
 	
 	$settings['apikey'] = !empty($settings['apikey'])                                       ? trim($settings['apikey'])  : '';
 	$settings['apikey'] = defined( 'CLEANTALK_ACCESS_KEY')                           ? CLEANTALK_ACCESS_KEY       : $settings['apikey'];
-	$settings['apikey'] = ! is_main_site() && $apbct->white_label                           ? $apbct->settings['apikey'] : $settings['apikey'];
+	$settings['apikey'] = ! is_main_site() && $apbct->white_label && $apbct->settings['apikey']  ? $apbct->settings['apikey'] : $settings['apikey'];
 	$settings['apikey'] = is_main_site() || $apbct->allow_custom_key || $apbct->white_label ? $settings['apikey']        : $apbct->network_settings['apikey'];
 	$settings['apikey'] = is_main_site() || !$settings['multisite__white_label']                       ? $settings['apikey']        : $apbct->settings['apikey'];
 	
