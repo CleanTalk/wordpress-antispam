@@ -1043,26 +1043,32 @@ function apbct_hook__wp_footer() {
 
 	if( $apbct->settings['data__use_ajax'] ){
 
+		$timeout = $apbct->settings['misc__async_js'] ? 1000 : 0;
+
 		if( $apbct->use_rest_api )  {
 			$html = "<script type=\"text/javascript\" " . ( class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '' ) . ">				
 				window.addEventListener('DOMContentLoaded', function () {
-					if( document.querySelectorAll('[name^=ct_checkjs]').length > 0 ) {
-						apbct_public_sendREST(
-		                    'js_keys__get',
-		                    { callback: apbct_js_keys__set_input_value }
-		                )
-		            }    
+					setTimeout(function(){
+						if( document.querySelectorAll('[name^=ct_checkjs]').length > 0 ) {
+							apbct_public_sendREST(
+			                    'js_keys__get',
+			                    { callback: apbct_js_keys__set_input_value }
+			                )
+			            } 
+					},". $timeout .");					   
 				});								
 			</script>";
 		} else {
 			$html = "<script type=\"text/javascript\" " . ( class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '' ) . ">				
 				window.addEventListener('DOMContentLoaded', function () {
-					if( document.querySelectorAll('[name^=ct_checkjs]').length > 0 ) {
-		                apbct_public_sendAJAX(
-		                    { action: 'apbct_js_keys__get' },
-		                    { callback: apbct_js_keys__set_input_value, apbct_ajax: true }
-		                );
-		            }    
+					setTimeout(function(){
+						if( document.querySelectorAll('[name^=ct_checkjs]').length > 0 ) {
+			                apbct_public_sendAJAX(
+			                    { action: 'apbct_js_keys__get' },
+			                    { callback: apbct_js_keys__set_input_value, no_nonce: true }
+			                );
+			            }
+					},". $timeout .");					    
 				});				
 			</script>";
 		}
@@ -1496,6 +1502,15 @@ function ct_preprocess_comment($comment) {
         }
     }
 
+    // Add honeypot_website field
+	$honeypot_website = 0;
+
+    if(isset($apbct->settings['comments__hide_website_field']) && $apbct->settings['comments__hide_website_field']) {
+		if(isset($_POST['url']) && !empty($_POST['url']) && $post_info['comment_type'] === 'comment' && isset($_POST['comment_post_ID'])) {
+			$honeypot_website = 1;
+		}
+    }
+
     $base_call_result = apbct_base_call(
 		array(
 			'message'         => $comment['comment_content'],
@@ -1513,6 +1528,7 @@ function ct_preprocess_comment($comment) {
 						'page_url' => apbct_get_server_variable( 'HTTP_HOST' ) . apbct_get_server_variable( 'REQUEST_URI' ),
 					))
 			),
+			'honeypot_website' => $honeypot_website
 		)
 	);
     $ct_result = $base_call_result['ct_result'];

@@ -493,6 +493,9 @@ class UsersChecker extends Checker
                     'key' => 'ct_marked_as_spam',
                     'compare' => '1'
                 ),
+	            array(
+		            'key' => 'ct_checked_now'
+	            ),
             ),
             'orderby' => 'registered',
             'order' => 'ASC',

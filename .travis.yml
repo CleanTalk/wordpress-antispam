@@ -4,6 +4,13 @@ os: linux
 
 language: php
 
+notifications:
+  email:
+    recipients:
+      - plugins@cleantalk.org
+    on_failure: always
+    on_success: never
+
 jobs:
   include:
     - env: TRAVISCI=phpunit

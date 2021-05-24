@@ -3,7 +3,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 5.157.8-fix
+  Version: 5.158-dev
   Author: СleanTalk <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -218,6 +218,7 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 	    'Wpdiscuz'             => array( 'hook' => array( 'wpdAddComment', 'wpdAddInlineComment' ),  'setting' => 'forms__comments_test',      'ajax' => true ),
 	    'Forminator'           => array( 'hook' => 'forminator_submit_form_custom-forms',            'setting' => 'forms__contact_forms_test', 'ajax' => true ),
         'HappyForm'            => array( 'hook' => 'happyforms_validate_submission',                 'setting' => 'forms__contact_forms_test', 'ajax' => false ),
+        'EaelLoginRegister'    => array( 'hook' => 'eael/login-register/before-register',            'setting' => 'forms__registrations_test', 'ajax' => false ),
     );
     new  \Cleantalk\Antispam\Integrations( $apbct_active_integrations, (array) $apbct->settings );
 	
@@ -866,146 +867,79 @@ function apbct_sfw_update__init( $delay = 0 ){
     }
     
     // Key is empty
-    if( ! $apbct->api_key ){
+    if( ! $apbct->settings['apikey'] ){
         return array( 'error' => 'SFW UPDATE INIT: KEY_EMPTY' );
     }
     
+    if( ! $apbct->data['key_is_ok'] ){
+        return array( 'error' => 'SFW UPDATE INIT: KEY_IS_NOT_VALID' );
+    }
+
     // Set a new update ID and an update time start
     $apbct->fw_stats['firewall_updating_id']         = md5( rand( 0, 100000 ) );
     $apbct->fw_stats['firewall_updating_last_start'] = time();
     $apbct->save( 'fw_stats' );
 
-	$rc_action = 'sfw_update__worker';
-	$request_params = array(
-		'delay' => $delay,
-		'firewall_updating_id' => $apbct->fw_stats['firewall_updating_id'],
+	// Delete update errors
+	$apbct->error_delete( 'sfw_update', 'save_data' );
+	$apbct->error_delete( 'sfw_update', 'save_data', 'cron' );
+
+	$result = \Cleantalk\ApbctWP\Helper::http__request__rc_to_host(
+        'sfw_update__worker',
+		array(
+            'delay' => $delay,
+            'firewall_updating_id' => $apbct->fw_stats['firewall_updating_id']
+        ),
+		array( 'async' )
 	);
-	$patterns = array( 'async' );
-
-	$result__rc_check_website = \Cleantalk\ApbctWP\Helper::http__request__rc_to_host__test(
-		$rc_action,
-		array(  'spbc_remote_call_token'  => md5( $apbct->api_key ),
-		        'spbc_remote_call_action' => $rc_action,
-		        'plugin_name'             => 'apbct', ),
-		array( 'get', 'dont_split_to_array' ),
-	);
-
-	if( ! empty( $result__rc_check_website['error'] ) ){
-		return apbct_sfw_direct_update();
-	}
-
-    return \Cleantalk\ApbctWP\Helper::http__request__rc_to_host( $rc_action, $request_params, $patterns  );
-}
-
-/**
- * Gather all process about SFW updating in this flow
- *
- * @return array|bool|int|string[]
- */
-function apbct_sfw_direct_update() {
-
-	global $apbct;
-
-	$api_key = $apbct->api_key;
-
-	// Key is empty
-	if( empty( $api_key ) ){
-		return array( 'error' => 'KEY_EMPTY' );
-	}
-
-	// Getting BL
-	$result = SFW::direct_update__get_db( $api_key );
-
-	if ( empty( $result['error'] ) ) {
-
-		$blacklists = $result['blacklist'];
-		$useragents = $result['useragents'];
-
-		// Preparing database infrastructure
-		apbct_activation__create_tables( Schema::getSchema( 'sfw' ), $apbct->db_prefix );
-		SFW::create_temp_tables( DB::getInstance(), APBCT_TBL_FIREWALL_DATA );
-
-		/*
-		 * UPDATING UA LIST
-		 */
-		if( $useragents && ( $apbct->settings['sfw__anti_crawler'] || $apbct->settings['sfw__anti_flood'] ) ){
-
-			$ua_result = AntiCrawler::direct_update( $useragents );
-
-			if( ! empty( $ua_result['error'] ) ){
-				array( 'error' => 'UPDATING UA LIST: ' . $result['error'] );
-			}
-
-			if( ! is_int( $ua_result ) ){
-				return array( 'error' => 'UPDATING UA LIST: : WRONG_RESPONSE AntiCrawler::update' );
-			}
-
-		}
-
-		/*
-			 * UPDATING BLACK LIST
-			 */
-		$upd_result = SFW::direct_update(
-			DB::getInstance(),
-			APBCT_TBL_FIREWALL_DATA . '_temp',
-			$blacklists
-		);
-
-		if( ! empty( $upd_result['error'] ) ){
-			array( 'error' => 'PROCESS FILE: ' . $result['error'] );
-		}
-
-		if( ! is_int( $upd_result ) ){
-			return array( 'error' => 'PROCESS FILE: WRONG RESPONSE FROM update__write_to_db' );
-		}
-
-		/*
-		 * UPDATING EXCLUSIONS LIST
-		 */
-		$excl_result = SFW::update__write_to_db__exclusions(
-			DB::getInstance(),
-			APBCT_TBL_FIREWALL_DATA . '_temp'
-		);
-
-		if( ! empty( $excl_result['error'] ) ){
-			array( 'error' => 'EXCLUSIONS: ' . $result['error'] );
-		}
-
-		if( ! is_int( $excl_result ) ){
-			return array( 'error' => 'EXCLUSIONS: WRONG_RESPONSE update__write_to_db__exclusions' );
-		}
-
-		/*
-		 * END OF UPDATE
-		 */
-
-		return apbct_sfw_update__end_of_update();
-
-	}
-
-	return $result;
-
-
+    
+    if( ! empty( $result['error'] ) ){
+        
+        if( strpos( $result['error'], 'WRONG_SITE_RESPONSE' ) !== false ){
+            
+            $result = apbct_sfw_update__worker( $apbct->fw_stats['firewall_updating_id'] );
+            if( ! empty( $result['error'] ) ){
+                apbct_sfw_update__cleanData();
+            }
+            
+            return $result;
+        }
+    }
+    
+    return $result;
 }
 
 /**
  * Called by sfw_update__worker remote call
  * gather all process about SFW updating
  *
+ * @param string $updating_id
+ * @param string $multifile_url
+ * @param string $url_count
+ * @param string $current_url
+ * @param string $useragent_url
+ *
  * @return array|bool|int|string[]
+ * @throws Exception
  */
-function apbct_sfw_update__worker(){
+function apbct_sfw_update__worker( $updating_id = null, $multifile_url = null, $url_count = null, $current_url = null, $useragent_url = null ){
  
 	global $apbct;
     
-    $updating_id   = Get::get( 'firewall_updating_id' );
-    $multifile_url = Get::get( 'multifile_url' );
-    $url_count     = Get::get( 'url_count' );
-    $current_url   = Get::get( 'current_url' );
-    $useragent_url = Get::get( 'useragent_url' );
+    sleep(1);
+    
+    $updating_id   = $updating_id   ?: Get::get( 'firewall_updating_id' );
+    $multifile_url = $multifile_url ?: Get::get( 'multifile_url' );
+    $url_count     = $url_count     ?: Get::get( 'url_count' );
+    $useragent_url = $useragent_url ?: Get::get( 'useragent_url' );
+    $current_url   = isset( $current_url ) ? $current_url : Get::get( 'current_url' );
 	
     $api_key = $apbct->api_key;
-	
+
+    if( ! $apbct->data['key_is_ok'] ){
+        return array( 'error' => 'KEY_IS_NOT_VALID' );
+    }
+
     // Check if the update performs right now. Blocks remote calls with different ID
     // This was done to make sure that we won't have multiple updates at a time
     if( $updating_id !== $apbct->fw_stats['firewall_updating_id'] ){
@@ -1021,8 +955,13 @@ function apbct_sfw_update__worker(){
     if( ! $multifile_url ){
         
         // Preparing database infrastructure
+        // Creating SFW tables to make sure that they are exist
         apbct_activation__create_tables( Schema::getSchema( 'sfw' ), $apbct->db_prefix );
-        SFW::create_temp_tables( DB::getInstance(), APBCT_TBL_FIREWALL_DATA );
+
+        // Preparing temporary tables
+        $result = SFW::create_temp_tables( DB::getInstance(), APBCT_TBL_FIREWALL_DATA );
+        if( ! empty( $result['error'] ) )
+            return $result;
         
         return apbct_sfw_update__get_multifiles( $api_key, $updating_id );
     
@@ -1052,7 +991,7 @@ function apbct_sfw_update__worker(){
     }else{
 
     	return apbct_sfw_update__end_of_update();
-        
+
     }
 }
 
@@ -1064,7 +1003,7 @@ function apbct_sfw_update__get_multifiles( $api_key, $updating_id ){
         return array( 'error' => 'GET MULTIFILE: ' . $result['error'] );
     }
     
-    return Helper::http__request__rc_to_host(
+    $rc_result = Helper::http__request__rc_to_host(
         'sfw_update__worker',
         array(
             'multifile_url'           => str_replace( array( 'http://', 'https://' ), '', $result['multifile_url'] ),
@@ -1075,10 +1014,27 @@ function apbct_sfw_update__get_multifiles( $api_key, $updating_id ){
         ),
         array( 'async' )
     );
+    
+    if( ! empty( $rc_result['error'] ) ){
+        
+        if( strpos( $rc_result['error'], 'WRONG_SITE_RESPONSE' ) !== false ){
+            
+            return apbct_sfw_update__worker(
+                $updating_id,
+                str_replace( array( 'http://', 'https://' ), '', $result['multifile_url'] ),
+                count( $result['file_urls'] ),
+                0,
+                str_replace( array( 'http://', 'https://' ), '', $result['useragent_url'] )
+            );
+        }
+    
+        return array( 'error' => 'GET MULTIFILE: ' . $result['error'] );
+    }
+    
+    return $result;
 }
 
 function apbct_sfw_update__process_ua( $multifile_url, $url_count, $current_url, $updating_id, $useragent_url ){
-    
     
     $result = AntiCrawler::update( 'https://' . $useragent_url );
     
@@ -1090,7 +1046,7 @@ function apbct_sfw_update__process_ua( $multifile_url, $url_count, $current_url,
         return array( 'error' => 'UPDATING UA LIST: : WRONG_RESPONSE AntiCrawler::update' );
     }
     
-    return Helper::http__request__rc_to_host(
+    $rc_result = Helper::http__request__rc_to_host(
         'sfw_update__worker',
         array(
             'multifile_url'        => str_replace( array( 'http://', 'https://' ), '', $multifile_url ),
@@ -1101,6 +1057,22 @@ function apbct_sfw_update__process_ua( $multifile_url, $url_count, $current_url,
         array( 'async' )
     );
     
+    if( ! empty( $rc_result['error'] ) ){
+        
+        if( strpos( $rc_result['error'], 'WRONG_SITE_RESPONSE' ) !== false ){
+            
+            return apbct_sfw_update__worker(
+                $updating_id,
+                str_replace( array( 'http://', 'https://' ), '', $multifile_url ),
+                $url_count,
+                $current_url
+            );
+        }
+    
+        return array( 'error' => 'UPDATE UA LIST: ' . $result['error'] );
+    }
+    
+    return $result;
 }
 
 
@@ -1120,16 +1092,33 @@ function apbct_sfw_update__process_file( $multifile_url, $url_count, $current_ur
         return array( 'error' => 'PROCESS FILE: WRONG RESPONSE FROM update__write_to_db' );
     }
     
-    return Helper::http__request__rc_to_host(
+    $rc_result = Helper::http__request__rc_to_host(
         'sfw_update__worker',
         array(
             'multifile_url'        => str_replace( array( 'http://', 'https://' ), '', $multifile_url ),
             'url_count'            => $url_count,
-            'current_url'          => ++ $current_url,
+            'current_url'          => $current_url + 1,
             'firewall_updating_id' => $updating_id,
         ),
         array( 'async' )
     );
+    
+    if( ! empty( $rc_result['error'] ) ){
+        
+        if( strpos( $rc_result['error'], 'WRONG_SITE_RESPONSE' ) !== false ){
+            
+            return apbct_sfw_update__worker(
+                $updating_id,
+                str_replace( array( 'http://', 'https://' ), '', $multifile_url ),
+                $url_count,
+                $current_url + 1
+            );
+        }
+    
+        return array( 'error' => 'PROCESS FILE: ' . $result['error'] );
+    }
+    
+    return $result;
     
 }
 
@@ -1148,7 +1137,7 @@ function apbct_sfw_update__process_exclusions( $multifile_url, $updating_id ){
         return array( 'error' => 'EXCLUSIONS: WRONG_RESPONSE update__write_to_db__exclusions' );
     }
     
-    return Helper::http__request__rc_to_host(
+    $rc_result = Helper::http__request__rc_to_host(
         'sfw_update__worker',
         array(
             'multifile_url'        => str_replace( array( 'http://', 'https://' ), '', $multifile_url ),
@@ -1156,6 +1145,21 @@ function apbct_sfw_update__process_exclusions( $multifile_url, $updating_id ){
         ),
         array( 'async' )
     );
+    
+    if( ! empty( $rc_result['error'] ) ){
+        
+        if( strpos( $rc_result['error'], 'WRONG_SITE_RESPONSE' ) !== false ){
+            
+            return apbct_sfw_update__worker(
+                $updating_id,
+                str_replace( array( 'http://', 'https://' ), '', $multifile_url )
+            );
+        }
+    
+        return array( 'error' => 'EXCLUSIONS: ' . $result['error'] );
+    }
+    
+    return $result;
 }
 
 function apbct_sfw_update__end_of_update() {
@@ -1200,6 +1204,17 @@ function apbct_sfw_update__end_of_update() {
 
 	return true;
 
+}
+
+function apbct_sfw_update__cleanData(){
+    
+    global $apbct;
+    
+    SFW::data_tables__delete( DB::getInstance(), APBCT_TBL_FIREWALL_DATA . '_temp' );
+    
+    $apbct->fw_stats['firewall_update_percent'] = 0;
+    $apbct->fw_stats['firewall_updating_id'] = null;
+    $apbct->save( 'fw_stats' );
 }
 
 function ct_sfw_send_logs($api_key = '')

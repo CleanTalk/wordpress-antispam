@@ -3,7 +3,7 @@ Contributors: safronik
 Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 3.0
 Tested up to: 5.7
-Requires PHP: 5.4
+Requires PHP: 5.6
 Stable tag: 5.157.1
 License: GPLv2
 
@@ -579,6 +579,11 @@ If your website has forms that send data to external sources, you can enable opt
 10. Website's options.
 
 == Changelog ==
+
+= 5.157.2 May 05 2021 =
+ * Fix: Code. get_fields_any() notice fixed.
+ * Fix: Integration. Gravity Forms integration fixed.
+ * Fix: Forms. Nicknames detecting fixed.
 
 = 5.157.1 Apr 29 2021 =
  * Mod: \Cleantalk\ApbctWP\Variables\Cookie::get() now has 'cast_to' param. If defined trying to cast to a given type.

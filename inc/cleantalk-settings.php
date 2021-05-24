@@ -268,6 +268,11 @@ function apbct_settings__set_fileds( $fields ){
 					'description' => __('Allows administrators to manage comments on public post\'s pages with small interactive menu.', 'cleantalk-spam-protect'),
 					'display' => !$apbct->white_label,
 				),
+				'comments__hide_website_field' => array(
+					'title'       => __('Hide the "Website" field', 'cleantalk-spam-protect'),
+					'description' => __('This option hides the "Website" field on the comment form.', 'cleantalk-spam-protect'),
+					'display' => !$apbct->white_label,
+				),
 			),
 		),
 		
@@ -633,7 +638,14 @@ function apbct_settings__add_groups_and_fields( $fields ){
 			if(!empty($field['options_callback'])){
 				$options = call_user_func_array($field['options_callback'], !empty($field['options_callback_params']) ? $field['options_callback_params'] : array());
 				foreach ($options as &$option){
-					$option = array('val' => $option, 'label' => $option);
+					if( is_array( $option ) ) {
+						$option = array(
+							'val'   => isset($option['val']) ? $option['val'] : current( $option ),
+							'label' => isset($option['label']) ? $option['label'] : end( $option )
+						);
+					} else {
+						$option = array('val' => $option, 'label' => $option);
+					}
 				} unset($option);
 				$field['options'] = $options;
 			}
@@ -1183,8 +1195,13 @@ function apbct_get_all_child_domains($except_main_site = false) {
 
 	if ($except_main_site) {
 		foreach ($wp_blogs as $blog) {
-			if ($blog->blog_id != $blog->site_id)
-				$blogs[] = get_blog_details( array( 'blog_id' => $blog->blog_id ) )->blogname;
+			if ($blog->blog_id != $blog->site_id){
+				$blog_details = get_blog_details( array( 'blog_id' => $blog->blog_id ) );
+				$blogs[] = array(
+					'val' => $blog_details->id,
+					'label' => '#' . $blog_details->id . ' ' . $blog_details->blogname
+				);
+			}
 		}
 	}
 	return $blogs;
@@ -1574,12 +1591,7 @@ function apbct_settings__sync( $direct_call = false ){
 		
 		// SFW actions
 		if( $apbct->settings['sfw__enabled'] == 1 ){
-
-            if( get_option( 'sfw_update_first' ) ) {
-                add_option( 'sfw_sync_first', true );
-                delete_option( 'sfw_update_first' );
-            }
-			
+		 
 			$result = apbct_sfw_update__init( 5 );
 			if( ! empty( $result['error'] ) )
 				$apbct->error_add( 'sfw_update', $result['error'] );

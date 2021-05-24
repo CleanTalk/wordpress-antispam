@@ -133,13 +133,8 @@ class RemoteCalls
         $apbct->error_toggle( ! empty( $result['error'] ), 'sfw_update', $result);
     
         if( ! empty( $result['error'] ) ){
-            
-            // Delete temporary tables if error_occurs
-            SFW::data_tables__delete( DB::getInstance(), APBCT_TBL_FIREWALL_DATA . '_temp' );
-            
-            $apbct->fw_stats['firewall_update_percent'] = 0;
-            $apbct->fw_stats['firewall_updating_id'] = null;
-            $apbct->save( 'fw_stats' );
+    
+            apbct_sfw_update__cleanData();
             
             die( 'FAIL ' . json_encode( array( 'error' => $result['error'] ) ) );
         }

@@ -254,6 +254,8 @@ class API
 			'rows'        => count($data),
 			'timestamp'   => time()
 		);
+  
+		$request['data'] = str_replace( '"EMPTY_ASSOCIATIVE_ARRAY"', '{}', $request['data'] );
 		
 		$result = static::send_request($request);
 		$result = $do_check ? static::check_response($result, 'sfw_logs') : $result;

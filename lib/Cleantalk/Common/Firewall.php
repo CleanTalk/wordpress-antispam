@@ -133,7 +133,12 @@ class Firewall
                     if( in_array( $result['status'], array( 'PASS_SFW__BY_WHITELIST', 'PASS_SFW', 'PASS_ANTIFLOOD', 'PASS_ANTICRAWLER', 'PASS_ANTICRAWLER_UA', 'PASS_ANTIFLOOD_UA' ) ) ){
                         continue;
                     }
-                    $module->update_log( $result['ip'], $result['status'] );
+                    $module->update_log(
+                        $result['ip'],
+                        $result['status'],
+                        isset( $result['network'] )     ? $result['network']     : null,
+                        isset( $result['is_personal'] ) ? $result['is_personal'] : null
+                    );
                 }
             }
         }

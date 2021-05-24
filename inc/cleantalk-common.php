@@ -149,6 +149,12 @@ function apbct_base_call($params = array(), $reg_flag = false){
 	$sender_info = !empty($params['sender_info'])
 		? \Cleantalk\ApbctWP\Helper::array_merge__save_numeric_keys__recursive(apbct_get_sender_info(), (array)$params['sender_info'])
 		: apbct_get_sender_info();
+
+	$honeypot_website = null;
+
+	if(isset($params['honeypot_website'])) {
+		$honeypot_website = $params['honeypot_website'];
+	}
 	
 	$default_params = array(
 		
@@ -166,6 +172,7 @@ function apbct_base_call($params = array(), $reg_flag = false){
 		'agent'           => APBCT_AGENT,
 		'sender_info'     => $sender_info,
 		'submit_time'     => apbct_get_submit_time(),
+		'honeypot_website' => $honeypot_website
 	);
 	
 	// Send $_SERVER if couldn't find IP
@@ -816,7 +823,7 @@ function ct_get_fields_any($arr, $message=array(), $email = null, $nickname = ar
 		// Ultimate Form Builder
 		'form_data_%d_name',
 	);
-	
+
 	// Reset $message if we have a sign-up data
     $skip_message_post = array(
         'edd_action', // Easy Digital Downloads
@@ -925,9 +932,9 @@ function ct_get_fields_any($arr, $message=array(), $email = null, $nickname = ar
 						in_array($key, $visible_fields_arr)
 					)
 				) {
-					preg_match("/(name.?)?(your|first|for)(.?name)/", $key, $match_forename);
-					preg_match("/(name.?)?(last|family|second|sur)(.?name)/", $key, $match_surname);
-					preg_match("/(name.?)?(nick|user)(.?name)?/", $key, $match_nickname);
+					preg_match("/(name.?(your|first|for)|(your|first|for).?name)/", $key, $match_forename);
+					preg_match("/(name.?(last|family|second|sur)|(last|family|second|sur).?name)/", $key, $match_surname);
+					preg_match("/(name.?(nick|user)|(nick|user).?name)/", $key, $match_nickname);
 
 					if(count($match_forename) > 1)
 						$nickname['first'] = $value;
@@ -969,11 +976,11 @@ function ct_get_fields_any($arr, $message=array(), $email = null, $nickname = ar
             break;
         }
     } unset($v);
-	
+
 	//If top iteration, returns compiled name field. Example: "Nickname Firtsname Lastname".]
-	if( ( $nickname_default && $prev_name === '' ) || is_array( $nickname ) ){
-		$nickname_str = '';
+	if($nickname_default && $prev_name === ''){
 		if(!empty($nickname)){
+			$nickname_str = '';
 			foreach($nickname as $value){
 				$nickname_str .= ($value ? $value." " : "");
 			}unset($value);
@@ -1154,4 +1161,49 @@ function apbct_private_list_add( $ip ){
     }
     
     return false;
+}
+
+/**
+ * Hide website field from standard comments form
+ */
+add_filter( 'comment_form_default_fields', 'apbct__change_type_website_field' );
+function apbct__change_type_website_field( $fields ){
+
+	global $apbct;
+
+	if(isset($apbct->settings['comments__hide_website_field']) && $apbct->settings['comments__hide_website_field']) {
+		if(isset($fields['url']) && $fields['url']) {
+			$fields['url'] = '<input id="url" name="url" type="hidden" value="' . esc_attr( $commenter['comment_author_url'] ) . '" size="30" maxlength="200" />';
+		}
+	}
+
+	return $fields;
+}
+
+/**
+ * Add styles if website field hidden
+ */
+add_action( 'wp_print_styles', 'apbct__styles_if_website_hidden' );
+function apbct__styles_if_website_hidden() {
+	global $apbct;
+
+	if(isset($apbct->settings['comments__hide_website_field']) && $apbct->settings['comments__hide_website_field']) {
+		$styles = "
+		<style>
+		.comment-form-cookies-consent {
+			width:100%;
+			overflow: hidden;
+		}
+		@media (min-width: 768px) {
+			#respond .comment-form-email {
+				margin-right: 0 !important;
+			}
+			#respond .comment-form-author, #respond .comment-form-email {
+    			width: 47.058% !important;
+			}
+		}
+		</style>";
+
+		echo $styles;
+	}
 }

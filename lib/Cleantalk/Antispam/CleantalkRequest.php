@@ -155,9 +155,14 @@ class CleantalkRequest {
     * Method name
     * @var string
     */
-    public $method_name = 'check_message'; 
+    public $method_name = 'check_message';
 
-    /**
+	/**
+	 * @var int|null
+	 */
+	public $honeypot_website;
+
+	/**
      * Fill params with constructor
      * @param type $params
      */
@@ -178,6 +183,7 @@ class CleantalkRequest {
 		$this->submit_time     = isset($params['submit_time'])      ? (int)$params['submit_time']                 : null;
 		$this->post_info       = isset($params['post_info'])        ? (string)json_encode($params['post_info'])   : null;
 		$this->sender_info     = isset($params['sender_info'])      ? (string)json_encode($params['sender_info']) : null;
+	    $this->honeypot_website = isset($params['honeypot_website']) ? (int)$params['honeypot_website']  : null;
 		
 	    $this->message = ! empty( $params['message'] )
 		    ? ( ! is_scalar( $params['message'] )
