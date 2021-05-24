@@ -1169,7 +1169,7 @@ function apbct_private_list_add( $ip ){
 add_filter( 'comment_form_default_fields', 'apbct__change_type_website_field' );
 function apbct__change_type_website_field( $fields ){
 
-	global $apbct;
+	global $apbct, $commenter;
 
 	if(isset($apbct->settings['comments__hide_website_field']) && $apbct->settings['comments__hide_website_field']) {
 		if(isset($fields['url']) && $fields['url']) {
