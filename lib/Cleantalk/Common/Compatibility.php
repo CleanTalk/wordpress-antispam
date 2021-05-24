@@ -18,72 +18,79 @@ use Cleantalk\ApbctWP\CleantalkSettingsTemplates;
 class Compatibility
 {
 	public $notices = array();
+	
+    private $possible_issues = array(
+        'w3_total_cache' => array(
+            'callback' => 'w3tcCheckLateInit__callback',
+        ),
+    );
 
 	public function __construct() {
-		if($compatibility_issues = $this->compatibility_issues()) {
-			foreach ($compatibility_issues as $issue) {
-				$res = call_user_func(array($this, $issue['callback']));
-
-				if($res) {
-					$this->notices[] = $issue;
-				}
-			}
-
-			global $apbct;
-			if(!empty($this->notices)) {
-				$apbct->data['notice_incompatibility'] = $this->notices;
-				$apbct->data['notice_show'] = 1;
-			} else {
-				$apbct->data['notice_incompatibility'] = array();
-				$apbct->data['notice_show'] = 0;
-			}
-		}
+	    	  
+        foreach( $this->possible_issues as $plugin_name => $issue ){
+            $this->{$issue['callback']}() && $this->setNoticesByPlugin( $plugin_name );
+        }
+        
+        global $apbct;
+        
+        if( $this->notices ){
+            
+            // @todo save previous setting and restore it once the problem is gone
+            $apbct->settings['sfw__enabled'] = 0;
+            $apbct->save('settings');
+            
+            $apbct->data['notice_incompatibility'] = $this->notices;
+        }else{
+            $apbct->data['notice_incompatibility'] = array();
+        }
+        
+        $apbct->save('data');
+        // @todo do not save data each time
 	}
 
 	/**
 	 * Function return array compatibility_issues
+     *
+     * @return true
 	 */
-	private function compatibility_issues () {
-		return array(
-			array(
-				'plugin_name' => 'W3 Total Cache',
-				'callback' => 'w3tc_late_init_callback',
-				'message' => '<h3><b>'.
-				             __("Current W3 Total Cache cache mode is not compatible with SpamFireWall. Please read the instructions on how to fix this issue in <a href='https://cleantalk.org/help/cleantalk-and-w3-total-cache'>the article.</a>", 'cleantalk-spam-protect') .
-				             '</b></h3>
-							 <script>jQuery(document).ready(function(){jQuery("#apbct_setting_sfw__enabled").prop("disabled",true)})</script>'
-			),
-		);
+	private function setNoticesByPlugin( $plugin ){
+	    
+        $messages = array(
+            'w3_total_cache' => __('Current W3 Total Cache cache mode is not compatible with SpamFireWall. Please read the instructions on how to fix this issue in <a href="https://cleantalk.org/help/cleantalk-and-w3-total-cache" > the article.</a>'),
+        );
+        
+        $this->notices[ $plugin ] = $messages[ $plugin ];
+        
+        return true;
 	}
-
+ 
+	
+	
 	/**
 	 * W3 Total Cache check late init option
 	 *
 	 * @return boolean
 	 */
-	public function w3tc_late_init_callback() {
-		if ( ! is_plugin_active('w3-total-cache/w3-total-cache.php')) {
-			return false;
-		}
-
-		if(file_exists(WP_CONTENT_DIR . DIRECTORY_SEPARATOR . 'w3tc-config/master.php')) {
-			$w3_config = file_get_contents(WP_CONTENT_DIR . DIRECTORY_SEPARATOR . 'w3tc-config/master.php');
-			$w3_config = str_replace('<?php exit; ?>', '', $w3_config);
-			$w3_config = json_decode($w3_config, true);
-
-			if(
-			    (isset($w3_config['pgcache.cache.ssl']) && ! $w3_config['pgcache.cache.ssl']) ||
-			    (isset($w3_config['pgcache.late_init']) && $w3_config['pgcache.late_init'])) {
-				return false;
-			}
-
-			global $apbct;
-			$settings = get_option( 'cleantalk_settings' );
-			$settings['sfw__enabled'] = 0;
-			update_option('cleantalk_settings', $settings);
-			$apbct->settings['sfw__enabled'] = 0;
-
-			return true;
-		}
-	}
+	public function w3tcCheckLateInit__callback(){
+	    
+        if(
+            is_plugin_active( 'w3-total-cache/w3-total-cache.php' ) &&
+            file_exists( WP_CONTENT_DIR . DIRECTORY_SEPARATOR . 'w3tc-config/master.php' )
+        ){
+            $w3_config = file_get_contents( WP_CONTENT_DIR . DIRECTORY_SEPARATOR . 'w3tc-config/master.php' );
+            $w3_config = str_replace( '<?php exit; ?>', '', $w3_config );
+            $w3_config = json_decode( $w3_config, true );
+            
+            if(
+                ( isset( $w3_config['pgcache.cache.ssl'] ) && ! $w3_config['pgcache.cache.ssl'] ) ||
+                ( isset( $w3_config['pgcache.late_init'] ) && $w3_config['pgcache.late_init'] ) )
+            {
+                return false;
+            }
+            
+            return true;
+        }
+        
+        return false;
+    }
 }

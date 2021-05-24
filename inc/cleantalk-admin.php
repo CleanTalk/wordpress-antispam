@@ -192,9 +192,6 @@ function apbct_admin__init(){
         }
     }
 
-    // Check compatibility
-    do_action('apbct__check_compatibility');
-
 	// Settings
 	add_action('wp_ajax_apbct_settings__get__long_description', 'apbct_settings__get__long_description'); // Long description
 
@@ -206,7 +203,10 @@ function apbct_admin__init(){
     if( ! is_multisite() || is_main_site() || ( ! is_main_site() && $apbct->network_settings['multisite__allow_custom_settings'] ) ) {
 	    new CleantalkSettingsTemplates( $apbct->api_key );
     }
-
+    
+    // Check compatibility
+    do_action( 'apbct__check_compatibility' );
+    
 }
 
 /**
@@ -460,9 +460,9 @@ function apbct_admin__notice_message(){
 		}
 
 		//notice_incompatibility
-		if ($apbct->notice_show && !empty($apbct->data['notice_incompatibility']) && $page_is_ct_settings){
+        if( ! empty( $apbct->data['notice_incompatibility'] ) && $page_is_ct_settings ){
 		    foreach ($apbct->data['notice_incompatibility'] as $notice) {
-			    echo '<div class="error">' . $notice['message'] . '</div>';
+			    echo '<div class="error">' . $notice . '</div>';
             }
 		}
 	}
@@ -752,5 +752,5 @@ function apbct_test_connection(){
  */
 add_action('apbct__check_compatibility', 'apbct__check_compatibility_handler');
 function apbct__check_compatibility_handler() {
-    (new \Cleantalk\Common\Compatibility());
+    new \Cleantalk\Common\Compatibility();
 }
