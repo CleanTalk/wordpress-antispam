@@ -945,11 +945,6 @@ function apbct_sfw_update__worker( $updating_id = null, $multifile_url = null, $
     if( $updating_id !== $apbct->fw_stats['firewall_updating_id'] ){
         return array( 'error' => 'WRONG_UPDATE_ID' );
     }
-    
-    // Key is empty
-    if( empty( $api_key ) ){
-        return array( 'error' => 'KEY_EMPTY' );
-    }
 
     // First call. Getting files URL ( multifile )
     if( ! $multifile_url ){
