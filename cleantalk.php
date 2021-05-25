@@ -521,7 +521,7 @@ function apbct_sfw__check()
 		APBCT_TBL_FIREWALL_LOG,
 		APBCT_TBL_FIREWALL_DATA,
 		array(
-			'admin_bar__sfw_counter'   => $apbct->settings['admin_bar__sfw_counter'],
+			'sfw_counter'   => $apbct->settings['admin_bar__sfw_counter'],
 			'api_key'       => $apbct->api_key,
 			'apbct'         => $apbct,
 			'cookie_domain' => parse_url( get_option( 'siteurl' ), PHP_URL_HOST ),
