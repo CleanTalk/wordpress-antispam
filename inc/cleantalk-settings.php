@@ -349,6 +349,17 @@ function apbct_settings__set_fileds( $fields ){
 					'description' => __('Could help if you have blocked SpamFireWall tables in your database.', 'cleantalk-spam-protect'),
                     'parent' => 'sfw__enabled',
 				),
+                'data__pixel' => array(
+                    'title'       => __('Use attachment to improve IP-detection', 'cleantalk-spam-protect'),
+                    'description' => __('Upload small graphic file from Cleantalk\'s server to improve IP-detection.', 'cleantalk-spam-protect')
+                     . '<br>' . __('"Auto" use JavaScript option if cache solutions found.', 'cleantalk-spam-protect'),
+                    'options'     => array(
+                        array( 'val' => 1, 'label' => __( 'Via direct output', 'cleantalk-spam-protect' ), ),
+                        array( 'val' => 2, 'label' => __( 'Via JavaScript', 'cleantalk-spam-protect' ), ),
+                        array( 'val' => 3, 'label' => __( 'Auto', 'cleantalk-spam-protect' ), ),
+                        array( 'val' => 0, 'label' => __( 'Off', 'cleantalk-spam-protect' ), ),
+                    ),
+                ),
 			),
 		),
 		

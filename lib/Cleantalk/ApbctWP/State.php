@@ -104,6 +104,7 @@ class State
         'data__set_cookies'                    => 1, // Set cookies: Disable - 0 / Enable - 1 / Use Alternative cookies - 2.
         'data__set_cookies__alt_sessions_type' => 1, // Alternative cookies handler type: REST API - 1 / AJAX - 2
         'data__ssl_on'                         => 0, // Secure connection to servers
+        'data__pixel'                          => '0',
 		
 		// Exclusions
 		'exclusions__urls'               => '',

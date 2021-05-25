@@ -973,17 +973,14 @@ function apbct_update_to_5_158_0(){
                 }
             }
             $apbct->settings['multisite__use_settings_template_apply_for_current_list_sites'] = $current_sites_list;
-            $apbct->settings['comments__hide_website_field'] = 0;
+            $apbct->settings['comments__hide_website_field'] = '0';
+            $apbct->settings['data__pixel'] = '0';
             $apbct->saveSettings();
         }
         
     }else{
-        $apbct->settings['comments__hide_website_field'] = 0;
+        $apbct->settings['comments__hide_website_field'] = '0';
+        $apbct->settings['data__pixel'] = '0';
         $apbct->saveSettings();
     }
-    
-    // Initialing new setting
-    $apbct->settings['data__pixel'] = 0;
-    $apbct->save( 'settings' );
-    
 }

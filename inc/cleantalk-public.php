@@ -10,7 +10,25 @@ use Cleantalk\Variables\Server;
 function apbct_init() {
 
     global $ct_wplp_result_label, $ct_jp_comments, $ct_post_data_label, $ct_post_data_authnet_label, $apbct, $test_external_forms, $cleantalk_executed, $wpdb;
-
+    
+    // Pixel
+    if( $apbct->settings['data__pixel'] ){
+        
+        $pixel_hash = md5(
+            \Cleantalk\Common\Helper::ip__get()
+                . $apbct->api_key
+                . \Cleantalk\Common\Helper::time__get_interval_start( 3600 * 3 ) // Unique for every 3 hours
+        );
+        
+        // Change server each 3 hours depending on current time interval
+        $servers = array_keys( \Cleantalk\Common\Helper::$cleantalks_moderate_servers );
+        $server_num = \Cleantalk\Common\Helper::time__get_interval_start( 3600 * 3 ) % count($servers);
+        $pixel_server = $servers[ $server_num ];
+        
+        $apbct->pixel_url = 'https://' . $pixel_server . '/pixel/' . $pixel_hash . '.gif';
+        
+    }
+    
     //Check internal forms with such "action" http://wordpress.loc/contact-us/some_script.php
     if((isset($_POST['action']) && $_POST['action'] == 'ct_check_internal') &&
         $apbct->settings['forms__check_internal']
@@ -1041,6 +1059,14 @@ function apbct_hook__wp_footer() {
 
 	global $apbct;
 
+	// Pixel
+    if(
+        $apbct->settings['data__pixel'] === '1' ||
+        ( $apbct->settings['data__pixel'] === '3' && ! apbct_is_cache_plugins_exists() )
+    ){
+        echo '<img style="display: none; left: 99999px;" src="' .  $apbct->pixel_url . '">';
+    }
+	
 	if( $apbct->settings['data__use_ajax'] ){
 
 		$timeout = $apbct->settings['misc__async_js'] ? 1000 : 0;
@@ -1993,6 +2019,10 @@ function apbct_login__scripts(){
         '_rest_nonce' => wp_create_nonce('wp_rest'),
         '_ajax_url'   => admin_url('admin-ajax.php'),
         '_rest_url'   => esc_url( get_rest_url() ),
+        'pixel__setting' => $apbct->settings['data__pixel'],
+        'pixel__enabled' => $apbct->settings['data__pixel'] === '2' ||
+                                                  ( $apbct->settings['data__pixel'] === '3' && apbct_is_cache_plugins_exists() ),
+        'pixel__url'     => $apbct->pixel_url,
     ));
 
     $apbct->public_script_loaded = true;
@@ -4115,6 +4145,10 @@ function ct_enqueue_scripts_public($hook){
 				'_rest_url'   => esc_url( get_rest_url() ),
                 'data__set_cookies' => $apbct->settings['data__set_cookies'],
                 'data__set_cookies__alt_sessions_type' => $apbct->settings['data__set_cookies__alt_sessions_type'],
+                'pixel__setting'                       => $apbct->settings['data__pixel'],
+                'pixel__enabled'                       => $apbct->settings['data__pixel'] === '2' ||
+                                                          ( $apbct->settings['data__pixel'] === '3' && apbct_is_cache_plugins_exists() ),
+                'pixel__url'                           => $apbct->pixel_url,
 			));
 		}
   
