@@ -433,7 +433,7 @@ function apbct_get_sender_info() {
 		'site_referer'           => Cookie::get( 'apbct_site_referer' ) ?: null,
 		'source_url'             => Cookie::get( 'apbct_urls' )         ? json_encode( Cookie::get( 'apbct_urls' ) ) : null,
 		'pixel_url'              => Cookie::get('apbct_pixel_url'),
-		'pixel_setting'          => $apbct->setting['data__pixel'],
+		'pixel_setting'          => $apbct->settings['data__pixel'],
 		// Debug stuff
 		'amp_detected'           => $amp_detected,
 		'hook'                   => current_filter()                    ? current_filter()            : 'no_hook',
