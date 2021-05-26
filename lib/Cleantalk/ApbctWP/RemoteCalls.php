@@ -3,8 +3,8 @@
 
 namespace Cleantalk\ApbctWP;
 
+use Cleantalk\ApbctWP\Firewall\SFW;
 use Cleantalk\Variables\Get;
-use Cleantalk\ApbctWP\Cron;
 
 class RemoteCalls
 {
@@ -21,7 +21,6 @@ class RemoteCalls
         return
             Get::get('spbc_remote_call_token') &&
             Get::get('spbc_remote_call_action') &&
-            Get::get('plugin_name') &&
             in_array(Get::get('plugin_name'), array('antispam','anti-spam', 'apbct') );
     }
     
@@ -42,8 +41,9 @@ class RemoteCalls
             $cooldown = isset($apbct->remote_calls[$action]['cooldown']) ? $apbct->remote_calls[$action]['cooldown'] : self::COOLDOWN;
             
             // Return OK for test remote calls
-            if ( Get::get( 'test' ) )
+            if ( Get::get( 'test' ) ){
                 die('OK');
+            }
             
             if( time() - $apbct->remote_calls[ $action ]['last_call'] >= $cooldown || ( $action === 'sfw_update' && isset($_GET['file_urls'] ) ) ){
                 
@@ -61,20 +61,23 @@ class RemoteCalls
                     if( method_exists( 'Cleantalk\ApbctWP\RemoteCalls', $action ) ){
 
 	                    // Delay before perform action;
-	                    if ( Get::get( 'delay' ) )
+                        if ( Get::get( 'delay' ) ){
 		                    sleep( Get::get( 'delay' ) );
+		                    $params = $_GET;
+		                    unset( $params['delay'] );
+                            return Helper::http__request__rc_to_host(
+                                Get::get( 'spbc_remote_action' ),
+                                $params,
+                                array( 'async' ),
+                                false
+                            );
+                        }
 
-	                    $action_result = RemoteCalls::$action();
-	                    $response = empty( $action_result['error'] )
-		                    ? 'OK'
-		                    : 'FAIL ' . json_encode( array( 'error' => $action_result['error'] ) );
-
-	                    if( ! Get::get( 'continue_execution' ) ){
-		                    die( $response );
-	                    }
-
-	                    return $response;
-
+	                    $out = RemoteCalls::$action();
+                        
+                        // Every remote call action handler should implement output or
+	                    // If out is empty(), the execution will continue
+	                    
                     }else
                         $out = 'FAIL '.json_encode(array('error' => 'UNKNOWN_ACTION_METHOD'));
                 }else
@@ -83,8 +86,9 @@ class RemoteCalls
                 $out = 'FAIL '.json_encode(array('error' => 'TOO_MANY_ATTEMPTS'));
         }else
             $out = 'FAIL '.json_encode(array('error' => 'UNKNOWN_ACTION'));
-        
-        die($out);
+    
+        if( $out )
+            die( $out );
     }
     
     /**
@@ -110,13 +114,33 @@ class RemoteCalls
      * @return string
      */
     public static function action__sfw_update(){
+        global $apbct;
+        $result = apbct_sfw_update__init();
+        $apbct->error_toggle( ! empty( $result['error'] ), 'sfw_update', $result);
+        die(empty($result['error']) ? 'OK' : 'FAIL '.json_encode(array('error' => $result['error'])));
+    }
+    
+    /**
+     * SFW update
+     *
+     * @return string
+     */
+    public static function action__sfw_update__worker(){
         
         global $apbct;
+        $result = apbct_sfw_update__worker();
         
-        $result = ct_sfw_update( $apbct->api_key, true );
         $apbct->error_toggle( ! empty( $result['error'] ), 'sfw_update', $result);
-        
-        return $result;
+    
+        if( ! empty( $result['error'] ) ){
+    
+            apbct_sfw_update__cleanData();
+            
+            die( 'FAIL ' . json_encode( array( 'error' => $result['error'] ) ) );
+        }
+    
+        die( 'OK' );
+    
     }
     
     /**
@@ -176,6 +200,40 @@ class RemoteCalls
      */
     public static function action__uninstall_plugin(){
         add_action( 'plugins_loaded', 'apbct_rc__uninstall_plugin', 1 );
+    }
+    
+    public static function action__debug(){
+        
+        global $apbct;
+        
+        $out['stats'] = $apbct->stats;
+        $out['settings'] = $apbct->settings;
+        $out['fw_stats'] = $apbct->fw_stats;
+        $out['data'] = $apbct->data;
+        $out['cron'] = $apbct->cron;
+        $out['errors'] = $apbct->errors;
+        
+        array_walk( $out, function(&$val, $key){
+            $val = (array) $val;
+        });
+        
+        array_walk_recursive( $out, function(&$val, $key){
+            if( is_int( $val ) && preg_match( '@^\d{9,11}$@', $val ) ){
+                $val = date( 'Y-m-d H:i:s', $val );
+            }
+        });
+        
+        if( APBCT_WPMS ){
+            $out['network_settings'] = $apbct->network_settings;
+            $out['network_data'] = $apbct->network_data;
+        }
+        
+        $out = print_r($out, true);
+        $out = str_replace("\n", "<br>", $out);
+        $out = preg_replace("/[^\S]{4}/", "&nbsp;&nbsp;&nbsp;&nbsp;", $out);
+        
+        die( $out );
+        
     }
     
 }

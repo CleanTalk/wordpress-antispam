@@ -100,7 +100,7 @@ function apbct_update_to_5_70_0(){
 	Cron::addTask('check_account_status', 'ct_account_status_check',  3600, time() + 1800); // New
 	Cron::addTask('delete_spam_comments', 'ct_delete_spam_comments',  3600, time() + 3500);
 	Cron::addTask('send_feedback',        'ct_send_feedback',         3600, time() + 3500);
-	Cron::addTask('sfw_update',           'ct_sfw_update',            86400, time() + 43200);
+	Cron::addTask('sfw_update',           'apbct_sfw_update__init',   86400, time() + 43200);
 	Cron::addTask('send_sfw_logs',        'ct_sfw_send_logs',         3600, time() + 1800); // New
 	Cron::addTask('get_brief_data',       'cleantalk_get_brief_data', 86400, time() + 3500);
 }
@@ -147,7 +147,7 @@ function apbct_update_to_5_109_0(){
 			Cron::addTask('check_account_status',  'ct_account_status_check',        3600, time() + 1800); // Checks account status
 			Cron::addTask('delete_spam_comments',  'ct_delete_spam_comments',        3600, time() + 3500); // Formerly ct_hourly_event_hook()
 			Cron::addTask('send_feedback',         'ct_send_feedback',               3600, time() + 3500); // Formerly ct_hourly_event_hook()
-			Cron::addTask('sfw_update',            'ct_sfw_update',                  86400, time() + 300);  // SFW update
+			Cron::addTask('sfw_update',            'apbct_sfw_update__init',         86400, time() + 300);  // SFW update
 			Cron::addTask('send_sfw_logs',         'ct_sfw_send_logs',               3600, time() + 1800); // SFW send logs
 			Cron::addTask('get_brief_data',        'cleantalk_get_brief_data',       86400, time() + 3500); // Get data for dashboard widget
 			Cron::addTask('send_connection_report','ct_mail_send_connection_report', 86400, time() + 3500); // Send connection report to welcome@cleantalk.org
@@ -164,7 +164,7 @@ function apbct_update_to_5_110_0(){
 }
 
 function apbct_update_to_5_115_1(){
-	ct_sfw_update();
+    apbct_sfw_update__init();
 }
 
 function apbct_update_to_5_116_0(){
@@ -713,9 +713,15 @@ function apbct_update_to_5_150_1() {
 
 function apbct_update_to_5_151_1 () {
     global $apbct;
-    $apbct->fw_stats['firewall_updating_id'] = $apbct->data['firewall_updating_id'];
-    $apbct->fw_stats['firewall_update_percent'] = $apbct->data['firewall_update_percent'];
-    $apbct->fw_stats['firewall_updating_last_start'] = $apbct->data['firewall_updating_last_start'];
+    $apbct->fw_stats['firewall_updating_id'] = isset( $apbct->data['firewall_updating_id'] )
+        ? $apbct->data['firewall_updating_id']
+        : '';
+    $apbct->fw_stats['firewall_update_percent'] = isset( $apbct->data['firewall_update_percent'] )
+        ? $apbct->data['firewall_update_percent']
+        : 0;
+    $apbct->fw_stats['firewall_updating_last_start'] = isset( $apbct->data['firewall_updating_last_start'] )
+        ? $apbct->data['firewall_updating_last_start']
+        : 0;
     $apbct->save('fw_stats');
 }
 
@@ -732,7 +738,7 @@ function apbct_update_to_5_151_3 ()
     $apbct->save('fw_stats');
     $apbct->stats['sfw']['entries'] = 0;
     $apbct->save('stats');
-    ct_sfw_update();
+    apbct_sfw_update__init();
 }
 
 function apbct_update_to_5_151_6 ()
@@ -889,4 +895,92 @@ function apbct_update_to_5_154_0(){
 
 	apbct_activation__create_tables( $sqls, $apbct->db_prefix );
 
+}
+
+function apbct_update_to_5_156_0(){
+    
+    global $apbct;
+    
+    $apbct->remote_calls['debug']     = array( 'last_call' => 0, 'cooldown' => 0 );
+    $apbct->remote_calls['debug_sfw'] = array( 'last_call' => 0, 'cooldown' => 0 );
+    $apbct->save('remote_calls');
+    
+    Cron::updateTask('sfw_update', 'apbct_sfw_update__init',   86400, time() + 42300 );
+    
+}
+
+function apbct_update_to_5_157_0(){
+    
+    global $apbct;
+    
+    $apbct->remote_calls['sfw_update__worker'] = array( 'last_call' => 0, 'cooldown' => 0 );
+    $apbct->save( 'remote_calls' );
+    
+    if( ! empty( $apbct->settings['data__set_cookies__sessions'] ) ){
+        $apbct->settings['data__set_cookies'] = 2;
+    }
+    $apbct->settings['data__set_cookies__alt_sessions_type'] = 1;
+    
+    $apbct->save( 'settings' );
+
+	cleantalk_get_brief_data( $apbct->api_key );
+    
+}
+
+function apbct_update_to_5_158_0(){
+    
+    global $apbct, $wpdb;
+    
+    $sqls[] = 'ALTER TABLE `%scleantalk_sfw`'
+              . ' ADD COLUMN `source` TINYINT(1) NULL DEFAULT NULL AFTER `status`;';
+    
+    $sqls[] = 'ALTER TABLE `%scleantalk_sfw_logs`'
+              . ' ADD COLUMN `source` TINYINT(1) NULL DEFAULT NULL AFTER `ua_name`,'
+              . ' ADD COLUMN `network` VARCHAR(20) NULL DEFAULT NULL AFTER `source`,'
+              . ' ADD COLUMN `first_url` VARCHAR(100) NULL DEFAULT NULL AFTER `network`,'
+              . ' ADD COLUMN `last_url` VARCHAR(100) NULL DEFAULT NULL AFTER `first_url`;';
+    
+    if( APBCT_WPMS ){
+        // Getting all blog ids
+        $initial_blog  = get_current_blog_id();
+        $blogs = array_keys($wpdb->get_results('SELECT blog_id FROM '. $wpdb->blogs, OBJECT_K));
+        
+        foreach ($blogs as $blog) {
+            
+            switch_to_blog($blog);
+            apbct_activation__create_tables($sqls);
+        }
+        
+        // Restoring initial blog
+        switch_to_blog($initial_blog);
+        
+    }else{
+        apbct_activation__create_tables($sqls);
+    }
+    
+    // Update from fix branch
+    if(APBCT_WPMS && is_main_site()){
+        
+        $wp_blogs = $wpdb->get_results('SELECT blog_id, site_id FROM '. $wpdb->blogs, OBJECT_K);
+        $current_sites_list = $apbct->settings['multisite__use_settings_template_apply_for_current_list_sites'];
+        
+        if( is_array( $wp_blogs ) && is_array( $current_sites_list ) ) {
+            foreach ($wp_blogs as $blog) {
+                $blog_details = get_blog_details( array( 'blog_id' => $blog->blog_id ) );
+                $site_list_index = array_search( $blog_details->blogname, $current_sites_list, true );
+                if( $site_list_index !== false ) {
+                    $current_sites_list[$site_list_index] = $blog_details->id;
+                }
+            }
+            $apbct->settings['multisite__use_settings_template_apply_for_current_list_sites'] = $current_sites_list;
+            $apbct->settings['comments__hide_website_field'] = '0';
+            $apbct->settings['data__pixel'] = '0';
+            $apbct->saveSettings();
+        }
+        
+    }else{
+        $apbct->settings['comments__hide_website_field'] = '0';
+        $apbct->settings['data__pixel'] = '0';
+        $apbct->saveSettings();
+    }
 }

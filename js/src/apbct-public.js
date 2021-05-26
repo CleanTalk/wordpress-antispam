@@ -16,14 +16,15 @@
 		else                                                 elem.detachEvent(event, callback);
 	}
 
-	ctSetCookie("ct_ps_timestamp", Math.floor(new Date().getTime()/1000));
-	ctSetCookie("ct_fkp_timestamp", "0");
-	ctSetCookie("ct_pointer_data", "0");
-	ctSetCookie("ct_timezone", "0");
-
-	setTimeout(function(){
-		ctSetCookie("ct_timezone", ct_date.getTimezoneOffset()/60*(-1));
-	},1000);
+	ctSetCookie(
+		[
+			[ "ct_ps_timestamp", Math.floor(new Date().getTime() / 1000) ],
+			[ "ct_fkp_timestamp", "0" ],
+			[ "ct_pointer_data", "0" ],
+			[ "ct_timezone", ct_date.getTimezoneOffset()/60*(-1) ],
+			[ "apbct_visible_fields", "0" ],
+		]
+	);
 
 	//Writing first key press timestamp
 	var ctFunctionFirstKey = function output(event){
@@ -80,7 +81,12 @@
 	// Ready function
 	function apbct_ready(){
 
-		ctSetCookie("apbct_visible_fields", 0);
+		if( +ctPublic.pixel__setting ){
+			ctSetCookie( 'apbct_pixel_url', ctPublic.pixel__url );
+			if( +ctPublic.pixel__enabled ){
+				jQuery('body').append( '<img style="display: none; left: 99999px;" src="' + ctPublic.pixel__url + '">' );
+			}
+		}
 
 		setTimeout(function(){
 
@@ -126,8 +132,49 @@
 
 }());
 
-function ctSetCookie(c_name, value) {
-	document.cookie = c_name + "=" + encodeURIComponent(value) + "; path=/; samesite=lax";
+function ctSetCookie( cookies, value, expires ){
+
+	if( typeof cookies === 'string' && typeof value === 'string' || typeof value === 'number'){
+		var skip_alt = cookies === 'ct_pointer_data' || cookies === 'ct_user_info';
+		cookies = [ [ cookies, value, expires ] ];
+	}
+
+	// Cookies disabled
+	if( +ctPublic.data__set_cookies === 0 ){
+		return;
+
+	// Using traditional cookies
+	}else if( +ctPublic.data__set_cookies === 1 ){
+		cookies.forEach( function (item, i, arr	) {
+			var expires = typeof item[2] !== 'undefined' ? "expires=" + expires + '; ' : '';
+			var ctSecure = location.protocol === 'https:' ? '; secure' : '';
+			document.cookie = item[0] + "=" + encodeURIComponent(item[1]) + "; " + expires + "path=/; samesite=lax" + ctSecure;
+		});
+
+	// Using alternative cookies
+	}else if( +ctPublic.data__set_cookies === 2 && ! skip_alt ){
+
+		// Using REST API handler
+		if( +ctPublic.data__set_cookies__alt_sessions_type === 1 ){
+			apbct_public_sendREST(
+				'alt_sessions',
+				{
+					method: 'POST',
+					data: { cookies: cookies }
+				}
+			);
+
+		// Using AJAX request and handler
+		}else if( +ctPublic.data__set_cookies__alt_sessions_type === 2 ) {
+			apbct_public_sendAJAX(
+				{
+					action: 'apbct_alt_session__save__AJAX',
+					cookies: cookies,
+				},
+				{}
+			);
+		}
+	}
 }
 
 function apbct_collect_visible_fields( form ) {
@@ -136,6 +183,8 @@ function apbct_collect_visible_fields( form ) {
 	var inputs = [],
 		inputs_visible = '',
 		inputs_visible_count = 0,
+		inputs_invisible = '',
+		inputs_invisible_count = 0,
 		inputs_with_duplicate_names = [];
 
 	for(var key in form.elements){
@@ -146,40 +195,59 @@ function apbct_collect_visible_fields( form ) {
 	// Filter fields
 	inputs = inputs.filter(function(elem){
 
-		// Filter fields
-		if( getComputedStyle(elem).display    === "none" ||   // hidden
-			getComputedStyle(elem).visibility === "hidden" || // hidden
-			getComputedStyle(elem).opacity    === "0" ||      // hidden
-			elem.getAttribute("type")         === "hidden" || // type == hidden
-			elem.getAttribute("type")         === "submit" || // type == submit
-			//elem.value                        === ""       || // empty value
-			elem.getAttribute('name')         === null ||
-			inputs_with_duplicate_names.indexOf( elem.getAttribute('name') ) !== -1 // name already added
-		){
+		// Filter already added fields
+		if( inputs_with_duplicate_names.indexOf( elem.getAttribute('name') ) !== -1 ){
 			return false;
 		}
-
-		// Visible fields count
-		inputs_visible_count++;
-
 		// Filter inputs with same names for type == radio
 		if( -1 !== ['radio', 'checkbox'].indexOf( elem.getAttribute("type") )){
 			inputs_with_duplicate_names.push( elem.getAttribute('name') );
 			return false;
 		}
-
 		return true;
 	});
 
 	// Visible fields
 	inputs.forEach(function(elem, i, elements){
-		inputs_visible += " " + elem.getAttribute("name");
+		// Unnecessary fields
+		if(
+			elem.getAttribute("type")         === "submit" || // type == submit
+			elem.getAttribute('name')         === null     ||
+			elem.getAttribute('name')         === 'ct_checkjs'
+		) {
+			return;
+		}
+		// Invisible fields
+		if(
+			getComputedStyle(elem).display    === "none" ||   // hidden
+			getComputedStyle(elem).visibility === "hidden" || // hidden
+			getComputedStyle(elem).opacity    === "0" ||      // hidden
+			elem.getAttribute("type")         === "hidden" // type == hidden
+		) {
+			if( elem.classList.contains("wp-editor-area") ) {
+				inputs_visible += " " + elem.getAttribute("name");
+				inputs_visible_count++;
+			} else {
+				inputs_invisible += " " + elem.getAttribute("name");
+				inputs_invisible_count++;
+			}
+		}
+		// Visible fields
+		else {
+			inputs_visible += " " + elem.getAttribute("name");
+			inputs_visible_count++;
+		}
+
 	});
+
+	inputs_invisible = inputs_invisible.trim();
 	inputs_visible = inputs_visible.trim();
 
 	return {
 		visible_fields : inputs_visible,
 		visible_fields_count : inputs_visible_count,
+		invisible_fields : inputs_invisible,
+		invisible_fields_count : inputs_invisible_count,
 	}
 
 }
@@ -200,6 +268,7 @@ function apbct_js_keys__set_input_value(result, data, params, obj){
 		}
 	}
 }
+
 function apbct_public_sendAJAX(data, params, obj){
 
 	// Default params
@@ -240,7 +309,7 @@ function apbct_public_sendAJAX(data, params, obj){
 			if(!notJson) result = JSON.parse(result);
 			if(result.error){
 				setTimeout(function(){ if(progressbar) progressbar.fadeOut('slow'); }, 1000);
-				alert('Error happens: ' + (result.error || 'Unkown'));
+				console.log('Error happens: ' + (result.error || 'Unkown'));
 			}else{
 				if(callback) {
 					if (callback_params)
@@ -267,16 +336,19 @@ function apbct_public_sendAJAX(data, params, obj){
 function apbct_public_sendREST( route, params ) {
 
 	var callback = params.callback || null;
+	var data     = params.data || [];
+	var method   = params.method || 'POST';
 
 	jQuery.ajax({
-		type: "POST",
+		type: method,
 		url: ctPublic._rest_url + 'cleantalk-antispam/v1/' + route,
+		data: data,
 		beforeSend : function ( xhr ) {
 			xhr.setRequestHeader( 'X-WP-Nonce', ctPublic._rest_nonce );
 		},
 		success: function(result){
 			if(result.error){
-				alert('Error happens: ' + (result.error || 'Unknown'));
+				console.log('Error happens: ' + (result.error || 'Unknown'));
 			}else{
 				if(callback) {
 					var obj = null;
@@ -289,8 +361,7 @@ function apbct_public_sendREST( route, params ) {
 				console.log('APBCT_REST_ERROR');
 				console.log(jqXHR);
 				console.log(textStatus);
-				console.log('Anti-spam by Cleantalk plugin error: ' + errorThrown + 'Please, contact Cleantalk tech support https://wordpress.org/support/plugin/cleantalk-spam-protect/');
-				alert('Anti-spam by Cleantalk plugin error: ' + errorThrown + 'Please, contact Cleantalk tech support https://wordpress.org/support/plugin/cleantalk-spam-protect/');
+				console.log('Anti-spam by Cleantalk plugin REST API error: ' + errorThrown + ' Please, contact Cleantalk tech support https://wordpress.org/support/plugin/cleantalk-spam-protect/');
 			}
 		},
 	});
@@ -312,13 +383,6 @@ if(typeof jQuery !== 'undefined') {
 							detail: { message: response.comment }
 						} )
 					);
-
-					// Create hidden element contains result.
-					var apbct_result = document.createElement( 'div' );
-					apbct_result.setAttribute( 'id', 'apbct-result' );
-					apbct_result.style.display = 'none';
-					apbct_result.innerHTML = response.comment;
-					document.body.append( apbct_result );
 
 					// Show the result by modal
 					cleantalkModal.loaded = response.comment;

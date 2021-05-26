@@ -5,7 +5,7 @@ use Cleantalk\Antispam\CleantalkRequest;
 use Cleantalk\Antispam\CleantalkResponse;
 use Cleantalk\ApbctWP\API;
 use Cleantalk\ApbctWP\Helper;
-use Cleantalk\Variables\Cookie;
+use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\Variables\Server;
 
 function apbct_array( $array ){
@@ -66,7 +66,7 @@ $ct_negative_comment = null;
 $ct_server = NULL;
 $admin_email = NULL;
 
-add_action( 'wp_login', 'apbct_wp_login', 10, 2 );
+add_action( 'wp_login', 'apbct_add_admin_ip_to_swf_whitelist', 10, 2 );
 
 /**
  * Public action 'plugins_loaded' - Loads locale, see http://codex.wordpress.org/Function_Reference/load_plugin_textdomain
@@ -149,6 +149,12 @@ function apbct_base_call($params = array(), $reg_flag = false){
 	$sender_info = !empty($params['sender_info'])
 		? \Cleantalk\ApbctWP\Helper::array_merge__save_numeric_keys__recursive(apbct_get_sender_info(), (array)$params['sender_info'])
 		: apbct_get_sender_info();
+
+	$honeypot_website = null;
+
+	if(isset($params['honeypot_website'])) {
+		$honeypot_website = $params['honeypot_website'];
+	}
 	
 	$default_params = array(
 		
@@ -161,11 +167,12 @@ function apbct_base_call($params = array(), $reg_flag = false){
 		
 		// Misc
 		'auth_key'        => $apbct->api_key,
-		'js_on'           => apbct_js_test('ct_checkjs', $_COOKIE) ? 1 : apbct_js_test('ct_checkjs', $_POST),
+		'js_on'           => apbct_js_test('ct_checkjs', $_COOKIE, true) ? 1 : apbct_js_test('ct_checkjs', $_POST),
 		
 		'agent'           => APBCT_AGENT,
 		'sender_info'     => $sender_info,
 		'submit_time'     => apbct_get_submit_time(),
+		'honeypot_website' => $honeypot_website
 	);
 	
 	// Send $_SERVER if couldn't find IP
@@ -373,19 +380,7 @@ function apbct_get_sender_info() {
 	
 	// Validate cookie from the backend
 	$cookie_is_ok = apbct_cookies_test();
-    
-	$referer_previous = $apbct->settings['data__set_cookies__sessions']
-			? apbct_alt_session__get('apbct_prev_referer')
-			: filter_input(INPUT_COOKIE, 'apbct_prev_referer');
 	
-	$site_landing_ts = $apbct->settings['data__set_cookies__sessions']
-			? apbct_alt_session__get('apbct_site_landing_ts')
-			: filter_input(INPUT_COOKIE, 'apbct_site_landing_ts');
-	
-	$page_hits = $apbct->settings['data__set_cookies__sessions']
-			? apbct_alt_session__get('apbct_page_hits')
-			: filter_input(INPUT_COOKIE, 'apbct_page_hits');
-		
 	if (count($_POST) > 0) {
 		foreach ($_POST as $k => $v) {
 			if (preg_match("/^(ct_check|checkjs).+/", $k)) {
@@ -400,17 +395,9 @@ function apbct_get_sender_info() {
 			? 1
 			: 0
 		: null;
-	
-	$site_referer = $apbct->settings['misc__store_urls__sessions']
-			? apbct_alt_session__get('apbct_site_referer')
-			: filter_input(INPUT_COOKIE, 'apbct_site_referer');
-	
-	$urls = $apbct->settings['misc__store_urls__sessions']
-			? (array)apbct_alt_session__get('apbct_urls')
-			: (array)json_decode(filter_input(INPUT_COOKIE, 'apbct_urls'), true);
 
 	// Visible fields processing
-    $visible_fields = apbct_visibile_fields__process( Cookie::get('apbct_visible_fields') );
+    $visible_fields = apbct_visible_fields__process( Cookie::get( 'apbct_visible_fields' , array(), 'array' ) );
 
 	return array(
 		'plugin_request_id'      => $apbct->plugin_request_id,
@@ -424,24 +411,29 @@ function apbct_get_sender_info() {
         'fields_number'          => sizeof($_POST),
         'direct_post'            => $cookie_is_ok === null && apbct_is_post() ? 1 : 0,
 		// Raw data to validated JavaScript test in the cloud                                                                                                          
-        'checkjs_data_cookies'   => !empty($_COOKIE['ct_checkjs'])                                 ? $_COOKIE['ct_checkjs']                                            : null, 
+        'checkjs_data_cookies'   => Cookie::get( 'ct_checkjs' ) ?: null,
         'checkjs_data_post'      => !empty($checkjs_data_post)                                     ? $checkjs_data_post                                                : null, 
 		// PHP cookies                                                                                                                                                 
-        'cookies_enabled'        => $cookie_is_ok,                                                                                                                     
-		'REFFERRER_PREVIOUS'     => !empty($referer_previous) && $cookie_is_ok                     ? $referer_previous                                                 : null,
-		'site_landing_ts'        => !empty($site_landing_ts) && $cookie_is_ok                      ? $site_landing_ts                                                  : null,
-		'page_hits'              => !empty($page_hits)                                             ? $page_hits                                                        : null,
+        'cookies_enabled'        => $cookie_is_ok,
+        'data__set_cookies'      => $apbct->settings['data__set_cookies'],
+        'REFFERRER_PREVIOUS'     => Cookie::get( 'apbct_prev_referer' )    && $cookie_is_ok ? Cookie::get( 'apbct_prev_referer' )    : null,
+        'site_landing_ts'        => Cookie::get( 'apbct_site_landing_ts' ) && $cookie_is_ok ? Cookie::get( 'apbct_site_landing_ts' ) : null,
+        'page_hits'              => Cookie::get( 'apbct_page_hits' )                        ?: null,
 		// JS cookies                                                                                                                                                  
-        'js_info'                => !empty($_COOKIE['ct_user_info'])                               ? json_decode(stripslashes($_COOKIE['ct_user_info']), true)         : null,
-		'mouse_cursor_positions' => !empty($_COOKIE['ct_pointer_data'])                            ? json_decode(stripslashes($_COOKIE['ct_pointer_data']), true)      : null,
-		'js_timezone'            => !empty($_COOKIE['ct_timezone'])                                ? $_COOKIE['ct_timezone']                                           : null,
-		'key_press_timestamp'    => !empty($_COOKIE['ct_fkp_timestamp'])                           ? $_COOKIE['ct_fkp_timestamp']                                      : null,
-		'page_set_timestamp'     => !empty($_COOKIE['ct_ps_timestamp'])                            ? $_COOKIE['ct_ps_timestamp']                                       : null,
+        'js_info'                => Cookie::get( 'ct_user_info', null ),
+		'mouse_cursor_positions' => Cookie::get( 'ct_pointer_data', null ),
+		'js_timezone'            => Cookie::get( 'ct_timezone' )      ?: null,
+		'key_press_timestamp'    => Cookie::get( 'ct_fkp_timestamp' ) ?: null,
+		'page_set_timestamp'     => Cookie::get( 'ct_ps_timestamp' )  ?: null,
 		'form_visible_inputs'    => !empty($visible_fields['visible_fields_count'])                ? $visible_fields['visible_fields_count']                           : null,
 		'apbct_visible_fields'   => !empty($visible_fields['visible_fields'])                      ? $visible_fields['visible_fields']                                 : null,
+		'form_invisible_inputs'  => !empty($visible_fields['invisible_fields_count'])              ? $visible_fields['invisible_fields_count']                         : null,
+		'apbct_invisible_fields' => !empty($visible_fields['invisible_fields'])                    ? $visible_fields['invisible_fields']                               : null,
 		// Misc
-		'site_referer'           => !empty($site_referer)                                          ? $site_referer                                                     : null,
-		'source_url'             => !empty($urls)                                                  ? json_encode($urls)                                                : null,
+		'site_referer'           => Cookie::get( 'apbct_site_referer' ) ?: null,
+		'source_url'             => Cookie::get( 'apbct_urls' )         ? json_encode( Cookie::get( 'apbct_urls' ) ) : null,
+		'pixel_url'              => Cookie::get('apbct_pixel_url'),
+		'pixel_setting'          => $apbct->settings['data__pixel'],
 		// Debug stuff
 		'amp_detected'           => $amp_detected,
 		'hook'                   => current_filter()                    ? current_filter()            : 'no_hook',
@@ -455,17 +447,24 @@ function apbct_get_sender_info() {
 /**
  * Process visible fields for specific form to match the fields from request
  * 
- * @param string $visible_fields JSON string
+ * @param string|array $visible_fields JSON string
  * 
  * @return array
  */
-function apbct_visibile_fields__process( $visible_fields ) {
-
+function apbct_visible_fields__process( $visible_fields ) {
+    
+    $visible_fields = is_array( $visible_fields )
+        ? json_encode( $visible_fields )
+        : $visible_fields;
+    
+    // Do not decode if it's already decoded
     $fields_collection = json_decode( $visible_fields, true );
-
+    
     if( ! empty( $fields_collection ) ) {
+        
         foreach ($fields_collection as $current_fields) {
-            if( isset( $current_fields['visible_fields'] ) && isset( $current_fields['visible_fields_count'] ) ) {
+            
+            if( isset( $current_fields['visible_fields'], $current_fields['visible_fields_count'] ) ) {
 
                 $fields = explode( ' ', $current_fields['visible_fields'] );
 
@@ -502,12 +501,9 @@ function apbct_visibile_fields__process( $visible_fields ) {
 /*
  * Outputs JS key for AJAX-use only. Stops script.
  */
-function apbct_js_keys__get__ajax( $direct_call = false ){
-	
-	die(json_encode(array(
-		'js_key' => ct_get_checkjs_value()
-	)));
-
+function apbct_js_keys__get__ajax( $request ){
+    
+    die( json_encode( array( 'js_key' => ct_get_checkjs_value() ) ) );
 }
 
 /**
@@ -755,8 +751,8 @@ function ct_delete_spam_comments() {
 * @return array
 */ 
 function ct_get_fields_any($arr, $message=array(), $email = null, $nickname = array('nick' => '', 'first' => '', 'last' => ''), $subject = null, $contact = true, $prev_name = ''){
-	
-	//Skip request if fields exists
+
+    //Skip request if fields exists
 	$skip_params = array(
 	    'ipn_track_id', 	// PayPal IPN #
 	    'txn_type', 		// PayPal transaction type
@@ -829,7 +825,7 @@ function ct_get_fields_any($arr, $message=array(), $email = null, $nickname = ar
 		// Ultimate Form Builder
 		'form_data_%d_name',
 	);
-	
+
 	// Reset $message if we have a sign-up data
     $skip_message_post = array(
         'edd_action', // Easy Digital Downloads
@@ -837,55 +833,79 @@ function ct_get_fields_any($arr, $message=array(), $email = null, $nickname = ar
 	
    	if( apbct_array( array( $_POST, $_GET ) )->get_keys( $skip_params )->result() )
         $contact = false;
-	
+
+	$visible_fields = apbct_visible_fields__process( Cookie::get( 'apbct_visible_fields', array(), 'array' ) );
+	$visible_fields_arr = isset( $visible_fields['visible_fields'] ) ? explode( ' ', $visible_fields['visible_fields'] ) : array();
+
+	$nickname_default = true;
+	if(is_array($nickname)) {
+        foreach ($nickname as $v) {
+            if($v) $nickname_default = false;
+        }
+    }
+	if(is_string($nickname)) {
+        $nickname_default = false;
+    }
+
 	if(count($arr)){
-		
+
 		foreach($arr as $key => $value){
-            
+
             if( is_string( $value ) ){
-                
+
                 $tmp = strpos($value, '\\') !== false ? stripslashes($value) : $value;
-                
+
+                # Remove html tags from $value
+                $tmp = preg_replace( '@<.*?>@', '', $tmp);
+
                 $decoded_json_value = json_decode($tmp, true);       // Try parse JSON from the string
-                parse_str( urldecode( $tmp ), $decoded_url_value ); // Try parse URL from the string
+	            if( strpos( $value, "\n" ) === false || strpos( $value, "\r" ) === false  ) {
+	            	// Parse an only single-lined string
+		            parse_str( urldecode( $tmp ), $decoded_url_value ); // Try parse URL from the string
+	            }
                 
                 // If there is "JSON data" set is it as a value
                 if($decoded_json_value !== null){
+
+                    if(isset($arr['action']) && $arr['action'] === 'nf_ajax_submit') {
+                        unset($decoded_json_value['settings']);
+                    }
+
                     $value = $decoded_json_value;
-                    
+
                 // If there is "URL data" set is it as a value
-                }elseif( ! ( count( $decoded_url_value ) === 1 && reset( $decoded_url_value ) === '' ) ){
+                }elseif( isset( $decoded_url_value ) && ! ( count( $decoded_url_value ) === 1 && reset( $decoded_url_value ) === '' ) ){
                     $value = $decoded_url_value;
-                    
+
                 // Ajax Contact Forms. Get data from such strings:
                 // acfw30_name %% Blocked~acfw30_email %% s@cleantalk.org
                 // acfw30_textarea %% msg
                 }elseif(preg_match('/^\S+\s%%\s\S+.+$/', $value)){
-                    
+
                     $value = explode('~', $value);
                     foreach ($value as &$val){
                         $tmp = explode(' %% ', $val);
                         $val = array($tmp[0] => $tmp[1]);
                     }unset( $val );
-                    
+
                 }
             }
-			
+
 			if(!is_array($value) && !is_object($value)){
-				
+
 				if (in_array($key, $skip_params, true) && $key != 0 && $key != '' || preg_match("/^ct_checkjs/", $key))
 					$contact = false;
-				
+
 				if($value === '')
 					continue;
-				
+
 				// Skipping fields names with strings from (array)skip_fields_with_strings
 				foreach($skip_fields_with_strings as $needle){
 					if (preg_match("/".$needle."/", $prev_name.$key) == 1){
 						continue(2);
 					}
 				}unset($needle);
-				
+
 				// Obfuscating params
 				foreach($obfuscate_params as $needle){
 					if (strpos($key, $needle) !== false){
@@ -895,21 +915,29 @@ function ct_get_fields_any($arr, $message=array(), $email = null, $nickname = ar
 				}unset($needle);
 
                 $value_for_email = trim( strip_shortcodes( $value ) );    // Removes shortcodes to do better spam filtration on server side.
-				
+
 				// Email
 				if ( ! $email && preg_match( "/^\S+@\S+\.\S+$/", $value_for_email ) ) {
 					$email = $value_for_email;
 
                 // Removes whitespaces
                 $value = urldecode( trim( strip_shortcodes( $value ) ) ); // Fully cleaned message
-					
+
 				// Names
-				}elseif (preg_match("/name/i", $key)){
-					
-					preg_match("/((name.?)?(your|first|for)(.?name)?)/", $key, $match_forename);
-					preg_match("/((name.?)?(last|family|second|sur)(.?name)?)/", $key, $match_surname);
-					preg_match("/(name.?)?(nick|user)(.?name)?/", $key, $match_nickname);
-					
+				// if there is an visible fields array then we take the name from it,
+				//	ignoring the hidden fields with name
+				}elseif (
+                    $nickname_default &&
+					preg_match("/name/i", $key) !== false &&
+					(
+						empty($visible_fields_arr) ||
+						in_array($key, $visible_fields_arr)
+					)
+				) {
+					preg_match("/(name.?(your|first|for)|(your|first|for).?name)/", $key, $match_forename);
+					preg_match("/(name.?(last|family|second|sur)|(last|family|second|sur).?name)/", $key, $match_surname);
+					preg_match("/(name.?(nick|user)|(nick|user).?name)/", $key, $match_nickname);
+
 					if(count($match_forename) > 1)
 						$nickname['first'] = $value;
 					elseif(count($match_surname) > 1)
@@ -918,26 +946,24 @@ function ct_get_fields_any($arr, $message=array(), $email = null, $nickname = ar
 						$nickname['nick'] = $value;
 					else
 						$message[$prev_name.$key] = $value;
-						
 				// Subject
 				}elseif ($subject === null && preg_match("/subject/i", $key)){
 					$subject = $value;
-				
+
 				// Message
 				}else{
-					$message[$prev_name.$key] = $value;					
+					$message[$prev_name.$key] = $value;
 				}
-				
+
 			}elseif(!is_object($value)){
-				
 				$prev_name_original = $prev_name;
 				$prev_name = ($prev_name === '' ? $key.'_' : $prev_name.$key.'_');
-				
+
 				$temp = ct_get_fields_any($value, $message, $email, $nickname, $subject, $contact, $prev_name);
-				
+
 				$message 	= $temp['message'];
 				$email 		= ($temp['email'] 		? $temp['email'] : null);
-				$nickname 	= ($temp['nickname'] 	? $temp['nickname'] : null);				
+				$nickname 	= ($temp['nickname'] 	? $temp['nickname'] : null);
 				$subject 	= ($temp['subject'] 	? $temp['subject'] : null);
 				if($contact === true)
 					$contact = ($temp['contact'] === false ? false : true);
@@ -952,9 +978,9 @@ function ct_get_fields_any($arr, $message=array(), $email = null, $nickname = ar
             break;
         }
     } unset($v);
-	
-	//If top iteration, returns compiled name field. Example: "Nickname Firtsname Lastname".
-	if($prev_name === ''){
+
+	//If top iteration, returns compiled name field. Example: "Nickname Firtsname Lastname".]
+	if($nickname_default && $prev_name === ''){
 		if(!empty($nickname)){
 			$nickname_str = '';
 			foreach($nickname as $value){
@@ -970,7 +996,7 @@ function ct_get_fields_any($arr, $message=array(), $email = null, $nickname = ar
 		'subject' 	=> $subject,
 		'contact' 	=> $contact,
 		'message' 	=> $message
-	);	
+	);
 	return $return_param;
 }
 
@@ -1096,42 +1122,90 @@ function apbct_add_async_attribute($tag, $handle, $src) {
     return $tag;
 }
 
-function apbct_wp_login( $user_login, $user ) {
+function apbct_add_admin_ip_to_swf_whitelist( $user_login, $user ) {
 
 	global $apbct;
-
-	// Break if the SpamFireWall is inactive
-	if( $apbct->settings['sfw__enabled'] != 1 &&
-	    ! apbct_is_get() &&
-	    apbct_wp_doing_cron()
-	){
-		return;
-	}
-
+	
+	$user = ! $user instanceof WP_User ? apbct_wp_get_current_user() : $user;
 	$ip = Helper::ip__get( 'real', true );
-
-	if( Cookie::get( 'ct_sfw_ip_wl' ) && Cookie::get( 'ct_sfw_ip_wl' ) === md5( $ip . $apbct->api_key ) ) {
-		return;
-	}
-
-	if( in_array( 'administrator', (array) $user->roles ) ) {
-		$res = apbct_private_list_add( $ip );
-		if( $res ) {
-			if( ! headers_sent() ) {
-				$cookie_val = md5( $ip . $apbct->api_key );
-				\Cleantalk\Common\Helper::apbct_cookie__set( 'ct_sfw_ip_wl', $cookie_val, time() + 86400 * 30, '/', null, false, true, 'Lax' );
-			}
-			ct_sfw_update();
-		}
-	}
+	
+	if(
+        $apbct->settings['sfw__enabled'] && // Break if the SpamFireWall is inactive
+        Server::isGet() &&
+        ! apbct_wp_doing_cron() &&
+        in_array( 'administrator', (array) $user->roles, true ) &&
+        Cookie::get( 'ct_sfw_ip_wl' ) !== md5( $ip . $apbct->api_key ) &&
+        \Cleantalk\ApbctWP\Firewall\SFW::update__write_to_db__exclusions( \Cleantalk\Common\DB::getInstance(), APBCT_TBL_FIREWALL_DATA, array( $ip ) ) &&
+        apbct_private_list_add( $ip ) &&
+        ! headers_sent()
+    ) {
+            \Cleantalk\ApbctWP\Variables\Cookie::set(
+                'ct_sfw_ip_wl',
+                md5( $ip . $apbct->api_key ),
+                time() + 86400 * 30,
+                '/',
+                null,
+                null,
+                true,
+                'Lax'
+            );
+    }
 
 }
 
-function apbct_private_list_add( $ip ) {
-	global $apbct;
-	if( Helper::ip__validate( $ip ) !== false ) {
-		$res = API::method__private_list_add__sfw_wl( $apbct->data['user_token'], $ip, $apbct->data['service_id'] );
-		return isset( $res['records'][0]['operation_status'] ) && $res['records'][0]['operation_status'] === 'SUCCESS';
+function apbct_private_list_add( $ip ){
+    
+    global $apbct;
+    
+    if( Helper::ip__validate( $ip ) ){
+        $result = API::method__private_list_add__sfw_wl( $apbct->data['user_token'], $ip, $apbct->data['service_id'] );
+        return empty( $result['error'] );
+    }
+    
+    return false;
+}
+
+/**
+ * Hide website field from standard comments form
+ */
+add_filter( 'comment_form_default_fields', 'apbct__change_type_website_field' );
+function apbct__change_type_website_field( $fields ){
+
+	global $apbct, $commenter;
+
+	if(isset($apbct->settings['comments__hide_website_field']) && $apbct->settings['comments__hide_website_field']) {
+		if(isset($fields['url']) && $fields['url']) {
+			$fields['url'] = '<input id="url" name="url" type="hidden" value="' . esc_attr( $commenter['comment_author_url'] ) . '" size="30" maxlength="200" />';
+		}
 	}
-	return false;
+
+	return $fields;
+}
+
+/**
+ * Add styles if website field hidden
+ */
+add_action( 'wp_print_styles', 'apbct__styles_if_website_hidden' );
+function apbct__styles_if_website_hidden() {
+	global $apbct;
+
+	if(isset($apbct->settings['comments__hide_website_field']) && $apbct->settings['comments__hide_website_field']) {
+		$styles = "
+		<style>
+		.comment-form-cookies-consent {
+			width:100%;
+			overflow: hidden;
+		}
+		@media (min-width: 768px) {
+			#respond .comment-form-email {
+				margin-right: 0 !important;
+			}
+			#respond .comment-form-author, #respond .comment-form-email {
+    			width: 47.058% !important;
+			}
+		}
+		</style>";
+
+		echo $styles;
+	}
 }

@@ -133,7 +133,12 @@ class Firewall
                     if( in_array( $result['status'], array( 'PASS_SFW__BY_WHITELIST', 'PASS_SFW', 'PASS_ANTIFLOOD', 'PASS_ANTICRAWLER', 'PASS_ANTICRAWLER_UA', 'PASS_ANTIFLOOD_UA' ) ) ){
                         continue;
                     }
-                    $module->update_log( $result['ip'], $result['status'] );
+                    $module->update_log(
+                        $result['ip'],
+                        $result['status'],
+                        isset( $result['network'] )     ? $result['network']     : null,
+                        isset( $result['is_personal'] ) ? $result['is_personal'] : null
+                    );
                 }
             }
         }
@@ -218,7 +223,7 @@ class Firewall
                     ) {
 	                    if( ! headers_sent() ) {
 		                    $cookie_val = md5( $fw_result['ip'] . $apbct->api_key );
-		                    \Cleantalk\Common\Helper::apbct_cookie__set( 'ct_sfw_ip_wl', $cookie_val, time() + 86400 * 30, '/', null, false, true, 'Lax' );
+		                    \Cleantalk\ApbctWP\Variables\Cookie::set( 'ct_sfw_ip_wl', $cookie_val, time() + 86400 * 30, '/', null, null, true, 'Lax' );
 	                    }
                         return true;
                     }

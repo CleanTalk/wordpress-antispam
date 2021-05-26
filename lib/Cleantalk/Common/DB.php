@@ -108,4 +108,15 @@ class DB
 	 * @return array|object|null
 	 */
 	public function fetch_all($query = false, $response_type = false){ }
+    
+    /**
+     * Checks if the table exists
+     *
+     * @param $table_name
+     *
+     * @return bool
+     */
+    public function isTableExists( $table_name ){
+        return (bool) $this->execute( 'SHOW TABLES LIKE "' . $table_name . '"' );
+    }
 }

@@ -39,6 +39,19 @@ class Helper
 			'0:0:0:0:0:0:a:1/128', // ::ffff:127.0.0.1
 		),
 	);
+    
+    public static $cleantalks_moderate_servers = array(
+        // MODERATE
+        'moderate1.cleantalk.org' => '162.243.144.175',
+        'moderate2.cleantalk.org' => '159.203.121.181',
+        'moderate3.cleantalk.org' => '88.198.153.60',
+        'moderate4.cleantalk.org' => '159.69.51.30',
+        'moderate5.cleantalk.org' => '95.216.200.119',
+        'moderate6.cleantalk.org' => '138.68.234.8',
+//		'moderate7.cleantalk.org' => '168.119.82.149',
+        'moderate8.cleantalk.org' => '188.34.154.26',
+        'moderate9.cleantalk.org' => '51.81.55.251',
+    );
 	
 	/**
 	 * @var array Set of CleanTalk servers
@@ -51,6 +64,10 @@ class Helper
 		'moderate4.cleantalk.org' => '159.69.51.30',
 		'moderate5.cleantalk.org' => '95.216.200.119',
 		'moderate6.cleantalk.org' => '138.68.234.8',
+//		'moderate7.cleantalk.org' => '168.119.82.149',
+		'moderate8.cleantalk.org' => '188.34.154.26',
+		'moderate9.cleantalk.org' => '51.81.55.251',
+		
 		// APIX
 		'apix1.cleantalk.org' => '35.158.52.161',
 		'apix2.cleantalk.org' => '18.206.49.217',
@@ -295,7 +312,7 @@ class Helper
 	 *
 	 * @return bool
 	 */
-	static public function ip__mask_match($ip, $cidr, $ip_type = 'v4', $xtet_count = 0)
+	public static function ip__mask_match($ip, $cidr, $ip_type = 'v4', $xtet_count = 0)
 	{
 
 		if(is_array($cidr)){
@@ -371,7 +388,7 @@ class Helper
 	 *
 	 * @return string|bool
 	 */
-	static public function ip__validate($ip)
+	public static function ip__validate($ip)
 	{
 		if(!$ip) return false; // NULL || FALSE || '' || so on...
 		if(filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) && $ip != '0.0.0.0') return 'v4';  // IPv4
@@ -398,7 +415,7 @@ class Helper
 	 *
 	 * @return string IPv6
 	 */
-	static public function ip__v6_normalize($ip)
+	public static function ip__v6_normalize($ip)
 	{
 		$ip = trim($ip);
 		// Searching for ::ffff:xx.xx.xx.xx patterns and turn it to IPv6
@@ -426,7 +443,7 @@ class Helper
 	 *
 	 * @return string IPv6
 	 */
-	static public function ip__v6_reduce($ip)
+	public static function ip__v6_reduce($ip)
 	{
 		if(strpos($ip, ':') !== false){
 			$ip = preg_replace('/:0{1,4}/', ':', $ip);
@@ -443,7 +460,7 @@ class Helper
 	 *
 	 * @return false|int|string
 	 */
-	static public function ip__is_cleantalks($ip)
+	public static function ip__is_cleantalks($ip)
 	{
 		if(self::ip__validate($ip)){
 			$url = array_search($ip, self::$cleantalks_servers);
@@ -461,7 +478,7 @@ class Helper
 	 *
 	 * @return false|int|string
 	 */
-	static public function ip__resolve__cleantalks($ip)
+	public static function ip__resolve__cleantalks($ip)
 	{
 		if(self::ip__validate($ip)){
 			$url = array_search($ip, self::$cleantalks_servers);
@@ -497,7 +514,7 @@ class Helper
 	 *
 	 * @return bool
 	 */
-	static public function dns__resolve($host, $out = false)
+	public static function dns__resolve($host, $out = false)
 	{
 		
 		// Get DNS records about URL
@@ -536,7 +553,7 @@ class Helper
 	 *
 	 * @return array|bool (array || array('error' => true))
 	 */
-	static public function http__request($url, $data = array(), $presets = null, $opts = array())
+	public static function http__request($url, $data = array(), $presets = array(), $opts = array())
 	{
 		if(function_exists('curl_init')){
 			
@@ -611,19 +628,20 @@ class Helper
 				}
 				
 			}
-			unset($preset);
 			
 			curl_setopt_array($ch, $opts);
 			$result = curl_exec($ch);
 			
 			// RETURN if async request
-			if(in_array('async', $presets))
-				return true;
-			
-			if($result){
-				
-				if(strpos($result, PHP_EOL) !== false && !in_array('dont_split_to_array', $presets))
-					$result = explode(PHP_EOL, $result);
+			if( in_array( 'async', $presets, true ) ){
+                return true;
+            }
+            
+			if( $result !== false ){
+                
+                if( strpos( $result, PHP_EOL ) !== false && ! in_array( 'dont_split_to_array', $presets ) ){
+                    $result = explode( PHP_EOL, $result );
+                }
 				
 				// Get code crossPHP method
 				if(in_array('get_code', $presets)){
@@ -640,8 +658,8 @@ class Helper
 		/**
 		 * Getting HTTP-response code without cURL
 		 */
-		if($presets && ($presets == 'get_code' || (is_array($presets) && in_array('get_code', $presets)))
-			&& isset($out['error']) && $out['error'] == 'CURL_NOT_INSTALLED'
+        if( in_array( 'get_code', $presets, true ) &&
+            isset( $out['error'] ) && $out['error'] == 'CURL_NOT_INSTALLED'
 		){
 			$headers = get_headers($url);
 			$out = (int)preg_replace('/.*(\d{3}).*/', '$1', $headers[0]);
@@ -785,52 +803,10 @@ class Helper
 	 *
 	 * @return bool
 	 */
-	static public function is_json($string)
-	{
-		return is_string($string) && is_array(json_decode($string, true)) ? true : false;
+	public static function is_json($string){
+	    
+        return is_string( $string ) && is_array( json_decode( $string, true ) );
 	}
-
-    /**
-     * Universal method to adding cookies
-     * Wrapper for setcookie() Conisdering PHP version
-     *
-     * @see https://www.php.net/manual/ru/function.setcookie.php
-     *
-     * @param string $name     Cookie name
-     * @param string $value    Cookie value
-     * @param int    $expires  Expiration timestamp. 0 - expiration with session
-     * @param string $path
-     * @param null   $domain
-     * @param bool   $secure
-     * @param bool   $httponly
-     * @param string $samesite
-     *
-     * @return void
-     */
-    public static function apbct_cookie__set ($name, $value = '', $expires = 0, $path = '', $domain = null, $secure = false, $httponly = false, $samesite = 'Lax' ) {
-
-        // For PHP 7.3+ and above
-        if( version_compare( phpversion(), '7.3.0', '>=' ) ){
-
-            $params = array(
-                'expires'  => $expires,
-                'path'     => $path,
-                'domain'   => $domain,
-                'secure'   => $secure,
-                'httponly' => $httponly,
-            );
-
-            if($samesite)
-                $params['samesite'] = $samesite;
-
-            setcookie( $name, $value, $params );
-
-            // For PHP 5.6 - 7.2
-        }else {
-            setcookie( $name, $value, $expires, $path, $domain, $secure, $httponly );
-        }
-
-    }
 	
 	public static function time__get_interval_start( $interval = 300 ){
 		return time() - ( ( time() - strtotime( date( 'd F Y' ) ) ) % $interval );
@@ -844,7 +820,7 @@ class Helper
 	 *
 	 * @return string
 	 */
-	static function get_mime_type( $data, $type = '' )
+	public static function get_mime_type( $data, $type = '' )
 	{
         $data = str_replace( chr(0), '', $data ); // Clean input of null bytes
 		if( ! empty( $data ) && @file_exists( $data )){
@@ -857,7 +833,7 @@ class Helper
 		return $type;
 	}
 	
-	static function buffer__trim_and_clear_from_empty_lines( $buffer ){
+	public static function buffer__trim_and_clear_from_empty_lines( $buffer ){
 		$buffer = (array) $buffer;
 		foreach( $buffer as $indx => &$line ){
 			$line = trim( $line );
@@ -867,7 +843,7 @@ class Helper
 		return $buffer;
 	}
 	
-	static function buffer__parse__csv( $buffer ){
+	public static function buffer__parse__csv( $buffer ){
 		$buffer = explode( "\n", $buffer );
 		$buffer = self::buffer__trim_and_clear_from_empty_lines( $buffer );
 		foreach($buffer as &$line){
@@ -883,7 +859,7 @@ class Helper
 	 *
 	 * @return false|string
 	 */
-	static public function buffer__csv__pop_line( &$csv ){
+	public static function buffer__csv__pop_line( &$csv ){
 		$pos  = strpos( $csv, "\n" );
 		$line = substr( $csv, 0, $pos );
 		$csv  = substr_replace( $csv, '', 0, $pos + 1 );
@@ -898,7 +874,7 @@ class Helper
 	 *
 	 * @return array|false
 	 */
-	static public function buffer__csv__get_map( &$csv ){
+	public static function buffer__csv__get_map( &$csv ){
 		$line = static::buffer__csv__pop_line( $csv );
 		return explode( ',', $line );
 	}
@@ -911,7 +887,7 @@ class Helper
 	 *
 	 * @return array|false
 	 */
-	static public function buffer__csv__pop_line_to_array( &$csv, $map = array() ){
+	public static function buffer__csv__pop_line_to_array( &$csv, $map = array() ){
 		$line = trim( static::buffer__csv__pop_line( $csv ) );
 		$line = strpos( $line, '\'' ) === 0
 			? str_getcsv($line, ',', '\'')
@@ -969,7 +945,7 @@ class Helper
                 if(count($key_parts) > 0 and strlen($server_key) > 2){
                     foreach($key_parts as $part_index => $part){
                         
-                        if( $part_index === '' ){
+                        if( $part_index === '' || $part === '' ){
                             continue;
                         }
                         

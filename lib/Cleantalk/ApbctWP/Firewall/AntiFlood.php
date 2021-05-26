@@ -86,7 +86,7 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule{
 			if( Cookie::get( 'apbct_antiflood_passed' ) === md5( $current_ip . $this->api_key ) ){
 				
 				if( ! headers_sent() ){
-					\Cleantalk\Common\Helper::apbct_cookie__set( 'apbct_antiflood_passed', '0', time() - 86400, '/', null, false, true, 'Lax' );
+					Cookie::set( 'apbct_antiflood_passed', '0', time() - 86400, '/', null, null, true, 'Lax' );
 				}
 
                 // Do logging an one passed request
@@ -223,11 +223,13 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule{
 			foreach( $replaces as $place_holder => $replace ){
 				$sfw_die_page = str_replace( $place_holder, $replace, $sfw_die_page );
 			}
-			
-			wp_die( $sfw_die_page, 'Blacklisted', array( 'response' => 403 ) );
-			
+
+            http_response_code(403);
+            die($sfw_die_page);
+
 		} else{
-			wp_die( "IP BLACKLISTED. Blocked by AntiFlood " . $result['ip'], 'Blacklisted', array( 'response' => 403 ) );
+            http_response_code(403);
+            die("IP BLACKLISTED. Blocked by AntiFlood " . $result['ip']);
 		}
 		
 	}

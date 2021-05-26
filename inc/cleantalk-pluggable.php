@@ -1,5 +1,6 @@
 <?php
 
+use Cleantalk\Variables\Get;
 use Cleantalk\Variables\Post;
 use Cleantalk\Variables\Server;
 
@@ -403,12 +404,12 @@ function apbct_is_skip_request( $ajax = false ) {
             {
                 return 'injob_theme_plugin';
             }
-            // Divi builder save epanel
+            // Divi builder skip
             if ( apbct_is_theme_active( 'Divi' ) &&
         		isset( $_POST['action'] ) &&
-        		$_POST['action'] == 'save_epanel' )
+                 ( $_POST['action'] === 'save_epanel' || $_POST['action'] === 'et_fb_ajax_save' ) )
             {
-            	return 'divi_builder_save_epanel';
+            	return 'divi_builder_skip';
             }
 	        // Email Before Download plugin https://wordpress.org/plugins/email-before-download/ action skip
 	        if ( apbct_is_plugin_active( 'email-before-download/email-before-download.php' ) &&
@@ -464,7 +465,18 @@ function apbct_is_skip_request( $ajax = false ) {
 	        {
 		        return 'emember_ajax_login';
 	        }
-            
+	        // Avada theme saving settings
+	        if ( apbct_is_theme_active( 'Avada' ) &&
+	             Post::get('action') === 'fusion_options_ajax_save' )
+	        {
+		        return 'Avada_theme_saving_settings';
+	        }
+	        // Formidable skip - this is the durect integration
+	        if ( apbct_is_plugin_active( 'formidable/formidable.php' ) &&
+	             Post::get( 'action' ) === 'frm_entries_update' )
+	        {
+		        return 'formidable_skip';
+	        }
             break;
 
         case false :
@@ -472,6 +484,12 @@ function apbct_is_skip_request( $ajax = false ) {
             /*****************************************/
             /*  Here is non-ajax requests skipping   */
             /*****************************************/
+			// WC payment APIs
+		    if( apbct_is_plugin_active( 'woocommerce/woocommerce.php' ) &&
+		        apbct_is_in_uri( 'wc-api=2checkout_ipn_convert_plus') )
+		    {
+			    return 'wc-payment-api';
+		    }
             // BuddyPress edit profile checking skip
             if( apbct_is_plugin_active( 'buddypress/bp-loader.php' ) &&
                 array_key_exists( 'profile-group-edit-submit', $_POST ) )
@@ -489,6 +507,23 @@ function apbct_is_skip_request( $ajax = false ) {
 		        ( apbct_is_in_uri('page=gf_paypal_ipn') || apbct_is_in_uri('callback=gravityformspaypal') ) )
 		    {
 			    return 'gravityformspaypal_processing_skipped';
+		    }
+		    // MyListing theme service requests skip
+		    if ( ( apbct_is_theme_active( 'My Listing Child' ) || apbct_is_theme_active( 'My Listing' ) ) &&
+		         Get::get('mylisting-ajax') === '1' )
+		    {
+			    return 'mylisting_theme_service_requests_skip';
+		    }
+		    // HappyForms skip every requests. HappyForms have the direct integration
+		    if( apbct_is_plugin_active( 'happyforms-upgrade/happyforms-upgrade.php' ) &&
+		        ( Post::get('happyforms_message_nonce') !== ''  ) )
+		    {
+			    return 'happyform_skipped';
+		    }
+		    if( apbct_is_plugin_active( 'essential-addons-for-elementor-lite/essential_adons_elementor.php' ) &&
+		        ( Post::get('eael-login-submit') !== '' && Post::get('eael-user-login') !== '' ) )
+		    {
+			    return 'eael_login_skipped';
 		    }
 
             break;

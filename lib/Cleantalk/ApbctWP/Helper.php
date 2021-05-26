@@ -35,7 +35,7 @@ class Helper extends \Cleantalk\Common\Helper
 	 *
 	 * @return array|bool (array || array('error' => true))
 	 */
-	static public function http__request($url, $data = array(), $presets = null, $opts = array())
+	public static function http__request($url, $data = array(), $presets = null, $opts = array())
 	{
 		// Set APBCT User-Agent and passing data to parent method
 		$opts = self::array_merge__save_numeric_keys(
@@ -56,7 +56,7 @@ class Helper extends \Cleantalk\Common\Helper
 	 *
 	 * @return array|mixed|string
 	 */
-	static public function http__request__get_response_code( $url ){
+	public static function http__request__get_response_code( $url ){
 		return static::http__request( $url, array(), 'get_code');
 	}
 	
@@ -68,50 +68,153 @@ class Helper extends \Cleantalk\Common\Helper
 	 *
 	 * @return array|mixed|string
 	 */
-	static public function http__request__get_content( $url ){
+	public static function http__request__get_content( $url ){
 		return static::http__request( $url, array(), 'get dont_split_to_array');
 	}
     
-    static public function http__request__rc_to_host( $rc_action, $request_params, $patterns = array() ){
+    /**
+     * Performs remote call to the current website
+     *
+     * @param string $rc_action
+     * @param array  $request_params
+     * @param array  $patterns
+     * @param bool   $do_check Perform check before main remote call or not
+     *
+     * @return bool|string[]
+     */
+    public static function http__request__rc_to_host( $rc_action, $request_params, $patterns = array(), $do_check = true ){
         
         global $apbct;
-        
-        $request_params__default = array(
+    
+        $request_params = array_merge( array(
             'spbc_remote_call_token'  => md5( $apbct->api_key ),
             'spbc_remote_call_action' => $rc_action,
             'plugin_name'             => 'apbct',
-        );
+        ), $request_params );
+        $patterns = array_merge(
+            array(
+                'get',
+                'dont_split_to_array'
+            ),
+            $patterns );
         
-        $result__rc_check_website = static::http__request(
+        if( $do_check ){
+            $result__rc_check_website = static::http__request__rc_to_host__test( $rc_action, $request_params, $patterns );
+            if( ! empty( $result__rc_check_website['error'] ) ){
+                return $result__rc_check_website;
+            }
+        }
+        
+        static::http__request(
             get_option( 'siteurl' ),
-            array_merge( $request_params__default, $request_params, array( 'test' => 'test' ) ),
-            array( 'get', 'dont_split_to_array' )
+            $request_params,
+            $patterns
         );
-        
-        if( empty( $result__rc_check_website['error'] ) ){
-            
-            if( preg_match( '@^.*?OK$@', $result__rc_check_website) ){
-                
-                static::http__request(
-                    get_option( 'siteurl' ),
-                    array_merge( $request_params__default, $request_params ),
-                    array_merge( array( 'get', ), $patterns )
-                );
-                
-            }else
-                return array(
-                    'error' => 'WRONG_SITE_RESPONSE ACTION: ' . $rc_action . ' RESPONSE: ' . htmlspecialchars( substr(
-                            ! is_string( $result__rc_check_website )
-                                ? print_r( $result__rc_check_website, true )
-                                : $result__rc_check_website,
-                            0,
-                            400
-                        ) )
-                );
-        }else
-            return array( 'error' => 'WRONG_SITE_RESPONSE TEST ACTION: ' . $rc_action . ' ERROR: ' . $result__rc_check_website['error'] );
         
         return true;
+    }
+    
+    /**
+     * Performs test remote call to the current website
+     * Expects 'OK' string as good response
+     *
+     * @param array $request_params
+     * @param array $patterns
+     *
+     * @return array|bool|string
+     */
+    public static function http__request__rc_to_host__test( $rc_action, $request_params, $patterns = array() ){
+	    
+        // Delete async pattern to get the result in this process
+        $key = array_search( 'async', $patterns, true );
+	    if( $key ){
+            unset( $patterns[ $key ] );
+        }
+	    
+        $result = static::http__request(
+            get_option( 'siteurl' ),
+            array_merge( $request_params, array( 'test' => 'test' ) ),
+            $patterns
+        );
+        
+        // Considering empty response as error
+	    if( $result === '' ){
+            $result = array( 'error' => 'WRONG_SITE_RESPONSE TEST ACTION : ' . $rc_action . ' ERROR: EMPTY_RESPONSE' );
+	        
+        // Wrap and pass error
+        }elseif( ! empty( $result['error'] ) ){
+            $result = array( 'error' => 'WRONG_SITE_RESPONSE TEST ACTION: ' . $rc_action . ' ERROR: ' . $result['error'] );
+            
+        // Expects 'OK' string as good response otherwise - error
+        }elseif( ! preg_match( '@^.*?OK$@', $result ) ){
+            $result = array(
+                'error' => 'WRONG_SITE_RESPONSE ACTION: ' . $rc_action . ' RESPONSE: ' . '"' . htmlspecialchars( substr(
+                        ! is_string( $result )
+                            ? print_r( $result, true )
+                            : $result,
+                        0,
+                        400
+                    ) )
+                    . '"'
+            );
+        }
+	    
+        return $result;
+    }
+    
+    /**
+     * Wrapper for http_request
+     * Get data from remote GZ archive with all following checks
+     *
+     * @param string $url
+     *
+     * @return array|mixed|string
+     */
+    public static function http__get_data_from_remote_gz( $url ){
+        
+        $response_code = static::http__request__get_response_code( $url );
+        
+        if ( $response_code === 200 ) { // Check if it's there
+            
+            $data = static::http__request__get_content( $url );
+            
+            if ( empty( $data['error'] ) ){
+                
+                if( static::get_mime_type( $data, 'application/x-gzip' ) ){
+                    
+                    if(function_exists('gzdecode')) {
+                        
+                        $data = gzdecode( $data );
+                        
+                        if ( $data !== false ){
+                            return $data;
+                        }else
+                            return array( 'error' => 'Can not unpack datafile');
+                        
+                    }else
+                        return array( 'error' => 'Function gzdecode not exists. Please update your PHP at least to version 5.4 ' . $data['error'] );
+                }else
+                    return array('error' => 'Wrong file mime type: ' . $url);
+            }else
+                return array( 'error' => 'Getting datafile ' . $url . '. Error: '. $data['error'] );
+        }else
+            return array( 'error' => 'Bad HTTP response from file location: ' . $url );
+    }
+    
+    /**
+     * Wrapper for http__get_data_from_remote_gz
+     * Get data and parse CSV from remote GZ archive with all following checks
+     *
+     * @param string $url
+     *
+     * @return array|mixed|string
+     */
+    public static function http__get_data_from_remote_gz__and_parse_csv( $url ){
+    
+        $result = static::http__get_data_from_remote_gz( $url );
+        return empty( $result['error'] )
+            ? static::buffer__parse__csv( $result )
+            : $result;
     }
     
 }

@@ -224,7 +224,7 @@ class UsersChecker extends Checker
                 $curr_ip    = preg_match('/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/', $curr_ip) === 1 ? $curr_ip    : null;
                 $curr_email = preg_match('/^\S+@\S+\.\S+$/', $curr_email) === 1                    ? $curr_email : null;
 
-                if( empty( $curr_ip ) || empty( $curr_email ) ){
+                if( empty( $curr_ip ) && empty( $curr_email ) ){
                     $check_result['bad']++;
                     update_user_meta( $u[$i]->ID,'ct_bad','1',true );
                     update_user_meta( $u[$i]->ID, 'ct_checked', date("Y-m-d H:m:s"), true) ;
@@ -493,6 +493,9 @@ class UsersChecker extends Checker
                     'key' => 'ct_marked_as_spam',
                     'compare' => '1'
                 ),
+	            array(
+		            'key' => 'ct_checked_now'
+	            ),
             ),
             'orderby' => 'registered',
             'order' => 'ASC',

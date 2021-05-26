@@ -6,7 +6,7 @@ use ArrayObject;
 
 /**
  * CleanTalk Antispam State class
- * 
+ *
  * @package Antiospam Plugin by CleanTalk
  * @subpackage State
  * @Version 2.1
@@ -16,14 +16,17 @@ use ArrayObject;
  */
 
 /**
- * COMMON
+ *   COMMON
  *
  * @property string       api_key
  *
- * STAND ALONE
+ *   SETTINGS GROUPS
+ * @property ArrayObject fw_stats
+ * @property ArrayObject stats
+ * @property ArrayObject settings
+ * @property ArrayObject data
  *
- * @property ArrayObject  settings
- * @property ArrayObject  data
+ *   STAND ALONE
  * @property ArrayObject  plugin_request_ids
  *
  * @property mixed        moderate_ip
@@ -39,7 +42,7 @@ use ArrayObject;
  * @property string       plugin_request_id
  * @property array|mixed  errors
  *
- * NETWORK
+ *   NETWORK
  * @property ArrayObject  network_data
  * @property ArrayObject  network_settings
  * @property mixed        allow_custom_key
@@ -52,7 +55,7 @@ use ArrayObject;
 class State
 {
 	public $user = null;
-	public $use_rest_api = 0;
+	public $use_rest_api = 1;
 	public $option_prefix = 'cleantalk';
 	public $storage = array();
 	public $integrations = array();
@@ -60,26 +63,27 @@ class State
 
 		'apikey'                        => '',
 
-		/* SpamFireWall settings */
+		// SpamFireWall settings
         'sfw__enabled'                   => 1,
         'sfw__anti_flood'                => 0,
         'sfw__anti_flood__view_limit'    => 20,
         'sfw__anti_crawler'              => 1,
         'sfw__use_delete_to_clear_table' => 0,
 		
-		/* Forms for protection */
+		// Forms for protection
         'forms__registrations_test'      => 1,
         'forms__comments_test'           => 1,
         'forms__contact_forms_test'      => 1,
         'forms__general_contact_forms_test' => 1, // Antispam test for unsupported and untested contact forms
 		'forms__wc_checkout_test'        => 1, // WooCommerce checkout default test
 		'forms__wc_register_from_order'  => 1, // Woocommerce registration during checkout
-		'forms__search_test'             => 1, // Test deafult Wordpress form
+		'forms__wc_add_to_cart'          => 0, // Woocommerce add to cart
+		'forms__search_test'             => 1, // Test default Wordpress form
 		'forms__check_external'          => 0,
 		'forms__check_external__capture_buffer' => 0,
         'forms__check_internal'          => 0,
 		
-		/* Comments and messages */
+		// Comments and messages
 		'comments__disable_comments__all'   => 0,
 		'comments__disable_comments__posts' => 0,
 		'comments__disable_comments__pages' => 0,
@@ -90,15 +94,17 @@ class State
 		'comments__remove_comments_links'   => 0, // Removes links from approved comments
 		'comments__show_check_links'        => 1, // Shows check link to Cleantalk's DB.
 		'comments__manage_comments_on_public_page' => 0, // Allows to control comments on public page.
+		'comments__hide_website_field'      => 0, // Hide website field from comment form
 		
-		/* Data processing */
-        'data__protect_logged_in' => 1, // Do anti-spam tests to for logged in users.
-		'data__use_ajax'          => 1,
-		'data__use_static_js_key' => -1,
-		'data__general_postdata_test' => 0, //CAPD
-        'data__set_cookies'       => 1, // Disable cookies generatation to be compatible with Varnish.
-        'data__set_cookies__sessions' => 0, // Use alt sessions for cookies.
-        'data__ssl_on'            => 0, // Secure connection to servers
+		// Data processing
+        'data__protect_logged_in'              => 1, // Do anti-spam tests to for logged in users.
+		'data__use_ajax'                       => 1,
+		'data__use_static_js_key'              => -1,
+		'data__general_postdata_test'          => 0, //CAPD
+        'data__set_cookies'                    => 1, // Set cookies: Disable - 0 / Enable - 1 / Use Alternative cookies - 2.
+        'data__set_cookies__alt_sessions_type' => 1, // Alternative cookies handler type: REST API - 1 / AJAX - 2
+        'data__ssl_on'                         => 0, // Secure connection to servers
+        'data__pixel'                          => '0',
 		
 		// Exclusions
 		'exclusions__urls'               => '',
@@ -122,11 +128,10 @@ class State
 		'misc__send_connection_reports' => 0, // Send connection reports to Cleantalk servers
 		'misc__async_js'                => 0,
 		'misc__store_urls'              => 1,
-		'misc__store_urls__sessions'    => 1,
 		'misc__complete_deactivation'   => 0,
 		'misc__debug_ajax'              => 0,
 
-		/* WordPress */
+		// WordPress
 		'wp__use_builtin_http_api' => 1, // Using Wordpress HTTP built in API
 		'wp__comment_notify'       => 1,
 		'wp__comment_notify__roles' => array( 'administrator' ),
@@ -243,6 +248,7 @@ class State
         
         // Firewall
         'sfw_update'         => array( 'last_call' => 0, 'cooldown' => 0 ),
+        'sfw_update__worker' => array( 'last_call' => 0, 'cooldown' => 0 ),
         'sfw_send_logs'      => array( 'last_call' => 0, 'cooldown' => 0 ),
         
         // Installation
@@ -252,6 +258,10 @@ class State
         'insert_auth_key'    => array( 'last_call' => 0, 'cooldown' => 0 ),
         'deactivate_plugin'  => array( 'last_call' => 0, 'cooldown' => 0 ),
         'uninstall_plugin'   => array( 'last_call' => 0, 'cooldown' => 0 ),
+        
+        // debug
+        'debug'     => array( 'last_call' => 0, 'cooldown' => 0 ),
+        'debug_sfw' => array( 'last_call' => 0, 'cooldown' => 0 ),
     );
 	
 	public $def_stats = array(
@@ -275,7 +285,13 @@ class State
 				'amount' => 1,
 				'average_time' => 0,
 			),
-		)
+		),
+        'plugin' => array(
+            'install__timestamp' => 0,
+            'activation__timestamp' => 0,
+            'activation_previous__timestamp' => 0,
+            'activation__times' => 0,
+        )
 	);
 
     private $default_fw_stats = array(
@@ -283,6 +299,7 @@ class State
         'firewall_updating_id'         => null,
         'firewall_update_percent'      => 0,
         'firewall_updating_last_start' => 0,
+        'last_firewall_updated'        => 0,
     );
 	
 	/**
@@ -552,7 +569,7 @@ class State
 	 *
 	 * @return mixed
 	 */
-	public function __get($name)
+	public function &__get($name)
     {
 		// First check in storage
         if (isset($this->storage[$name])){

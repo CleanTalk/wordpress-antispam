@@ -16,7 +16,35 @@ namespace Cleantalk\ApbctWP;
  */
 class API extends \Cleantalk\Common\API
 {
-	/**
+    /**
+     * @param $user_token
+     * @param $service_id
+     * @param $ip
+     * @param $servie_type
+     * @param $product_id
+     * @param $record_type
+     * @param $note
+     * @param $status
+     *
+     * @return array|bool|mixed|string[]
+     */
+    public static function method__private_list_add__sfw_wl( $user_token, $service_id, $ip ) {
+        
+        return static::method__private_list_add(
+            $user_token,
+            $service_id,
+            $ip,
+            'spamfirewall',
+            1,
+            6,
+            'Website admin IP. Added automatically.',
+            'allow',
+            date( 'Y-m-d H:i:s', time() + 86400 * 30 )
+        );
+    }
+    
+    
+    /**
 	 * Function sends raw request to API server.
 	 * May use built in Wordpress HTTP-API
 	 *
