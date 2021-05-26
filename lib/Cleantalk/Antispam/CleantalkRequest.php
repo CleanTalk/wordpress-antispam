@@ -177,9 +177,12 @@ class CleantalkRequest {
 		$this->agent           = isset($params['agent'])            ? (string)$params['agent']                    : null;
 		$this->auth_key        = isset($params['auth_key'])         ? (string)$params['auth_key']                 : null;
 		$this->sender_email    = isset($params['sender_email'])     ? (string)$params['sender_email']             : null;
+		
 		// crunch for "PHP Notice:  Array to string conversion". Error appears only on Gravity forms
         // @todo fix gat_fields_any
-        $params['sender_nickname'] = is_array( $params['sender_nickname'] ) ? current( $params['sender_nickname'] ) : $params['sender_nickname'];
+        if( isset( $params['sender_nickname'] ) && is_array( $params['sender_nickname'] ) )
+            $params['sender_nickname'] = current( $params['sender_nickname'] );
+        
 		$this->sender_nickname = !empty($params['sender_nickname']) ? (string)$params['sender_nickname']          : null;
 		$this->phone           = !empty($params['phone'])           ? (string)$params['phone']                    : null;
 		$this->js_on           = isset($params['js_on'])            ? (int)$params['js_on']                       : null;
