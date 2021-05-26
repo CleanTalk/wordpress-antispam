@@ -335,7 +335,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 				entries_timestamp = '" . intval( $time ) . "',
 				ua_id = " . $this->ua_id . ",
 				ua_name = %s,
-				last_url = %s,";
+				last_url = %s";
 
 		$this->db->prepare(
 		    $query,
