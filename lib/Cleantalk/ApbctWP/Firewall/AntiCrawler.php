@@ -337,7 +337,17 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 				ua_name = %s,
 				last_url = %s,";
 
-		$this->db->prepare( $query, array( Server::get('HTTP_USER_AGENT'), Server::get('HTTP_USER_AGENT') ) );
+		$this->db->prepare(
+		    $query,
+            array(
+                Server::get('HTTP_USER_AGENT'),
+                substr( Server::get( 'HTTP_HOST' ) . Server::get( 'REQUEST_URI' ), 0, 100 ),
+                substr( Server::get( 'HTTP_HOST' ) . Server::get( 'REQUEST_URI' ), 0, 100 ),
+    
+                Server::get('HTTP_USER_AGENT'),
+                substr( Server::get( 'HTTP_HOST' ) . Server::get( 'REQUEST_URI' ), 0, 100 ),
+            )
+        );
 		$this->db->execute( $this->db->get_query() );
 	}
 	
