@@ -43,9 +43,6 @@ class Compatibility
         }else{
             $apbct->data['notice_incompatibility'] = array();
         }
-        
-        $apbct->save('data');
-        // @todo do not save data each time
 	}
 
 	/**
