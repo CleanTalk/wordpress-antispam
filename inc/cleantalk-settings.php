@@ -352,7 +352,7 @@ function apbct_settings__set_fileds( $fields ){
                 'data__pixel' => array(
                     'title'       => __('Use attachment to improve IP-detection', 'cleantalk-spam-protect'),
                     'description' => __('Upload small graphic file from Cleantalk\'s server to improve IP-detection.', 'cleantalk-spam-protect')
-                     . '<br>' . __('"Auto" use JavaScript option if cache solutions found.', 'cleantalk-spam-protect'),
+                     . '<br>' . __('"Auto" use JavaScript option if cache solutions are found.', 'cleantalk-spam-protect'),
                     'options'     => array(
                         array( 'val' => 1, 'label' => __( 'Via direct output', 'cleantalk-spam-protect' ), ),
                         array( 'val' => 2, 'label' => __( 'Via JavaScript', 'cleantalk-spam-protect' ), ),
