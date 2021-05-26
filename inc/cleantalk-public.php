@@ -2955,6 +2955,9 @@ function apbct_from__WPForms__gatherData($entry, $form){
 	    $field_id = $form_field['id'];
 	    $field_type = $form_field['type'];
         $field_label = $form_field['label'] ?: '';
+        if( ! isset( $entry_fields_data[$field_id] ) ){
+            continue;
+        }
 	    $entry_field_value = $entry_fields_data[$field_id];
 
         # search email field
