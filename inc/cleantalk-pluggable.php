@@ -477,8 +477,8 @@ function apbct_is_skip_request( $ajax = false ) {
 	        {
 		        return 'formidable_skip';
 	        }
-	        // Formidable skip - this is the durect integration
-	        if ( Post::get( 'action' ) === 'mk_theme_save' ){
+	        // Artbees Jupiter theme saving settings
+	        if ( Post::get( 'action' ) === 'mk_theme_save' && strpos( get_template(), 'jupiter' ) !== false ){
 		        return 'artbees_jupiter_6_skip';
 	        }
             break;
