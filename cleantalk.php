@@ -3,7 +3,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 5.158.1-fix
+  Version: 5.158.2-fix
   Author: СleanTalk <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -372,7 +372,8 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 			if(	( ! apbct_is_user_logged_in() || $apbct->settings['data__protect_logged_in'] == 1)  &&
 				isset( $_POST['action'] ) &&
                 ( ! in_array( $_POST['action'], $cleantalk_hooked_actions ) || in_array( $_POST['action'], $cleantalk_ajax_actions_to_check ) ) &&
-                ! array_search( $_POST['action'], array_column( $apbct_active_integrations, 'hook' ) )
+                ! array_search( $_POST['action'], array_column( $apbct_active_integrations, 'hook' ) ) &&
+                $_POST['action'] !== 'wiloke_themeoptions_ajax_save' // fix conflict with wiloke theme and unknown plugin, that removes standard authorization cookies
 			){
 				ct_ajax_hook();
 			}
