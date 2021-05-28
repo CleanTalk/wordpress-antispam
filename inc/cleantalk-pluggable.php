@@ -481,6 +481,10 @@ function apbct_is_skip_request( $ajax = false ) {
 	        if ( Post::get( 'action' ) === 'mk_theme_save' && strpos( get_template(), 'jupiter' ) !== false ){
 		        return 'artbees_jupiter_6_skip';
 	        }
+            // fix conflict with wiloke theme and unknown plugin, that removes standard authorization cookies
+            if ( Post::get( 'action' ) === 'wiloke_themeoptions_ajax_save' ){
+                return 'wiloke_themeoptions_ajax_save_skip';
+            }
             break;
 
         case false :

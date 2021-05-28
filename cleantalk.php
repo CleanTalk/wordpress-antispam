@@ -372,8 +372,7 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 			if(	( ! apbct_is_user_logged_in() || $apbct->settings['data__protect_logged_in'] == 1)  &&
 				isset( $_POST['action'] ) &&
                 ( ! in_array( $_POST['action'], $cleantalk_hooked_actions ) || in_array( $_POST['action'], $cleantalk_ajax_actions_to_check ) ) &&
-                ! array_search( $_POST['action'], array_column( $apbct_active_integrations, 'hook' ) ) &&
-                $_POST['action'] !== 'wiloke_themeoptions_ajax_save' // fix conflict with wiloke theme and unknown plugin, that removes standard authorization cookies
+                ! array_search( $_POST['action'], array_column( $apbct_active_integrations, 'hook' ) )
 			){
 				ct_ajax_hook();
 			}
