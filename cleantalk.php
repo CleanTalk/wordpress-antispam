@@ -218,7 +218,7 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 	    'Wpdiscuz'             => array( 'hook' => array( 'wpdAddComment', 'wpdAddInlineComment' ),  'setting' => 'forms__comments_test',      'ajax' => true ),
 	    'Forminator'           => array( 'hook' => 'forminator_submit_form_custom-forms',            'setting' => 'forms__contact_forms_test', 'ajax' => true ),
         'HappyForm'            => array( 'hook' => 'happyforms_validate_submission',                 'setting' => 'forms__contact_forms_test', 'ajax' => false ),
-        'EaelLoginRegister'    => array( 'hook' => 'eael/login-register/before-register',            'setting' => 'forms__registrations_test', 'ajax' => false ),
+        'EaelLoginRegister'    => array( 'hook' => array ('eael/login-register/before-register', 'wp_ajax_nopriv_eael/login-register/before-register' , 'wp_ajax_eael/login-register/before-register'),            'setting' => 'forms__registrations_test', 'ajax' => false ),
     );
     new  \Cleantalk\Antispam\Integrations( $apbct_active_integrations, (array) $apbct->settings );
 	

@@ -485,6 +485,15 @@ function apbct_is_skip_request( $ajax = false ) {
             if ( Post::get( 'action' ) === 'wiloke_themeoptions_ajax_save' && apbct_is_theme_active( 'wilcity' ) ){
                 return 'wiloke_themeoptions_ajax_save_skip';
             }
+	        // Essentials addons for elementor - light and pro
+	        if(
+		        ( apbct_is_plugin_active( 'essential-addons-for-elementor-lite/essential_adons_elementor.php' ) ||
+		          apbct_is_plugin_active( 'essential-addons-elementor/essential_adons_elementor.php' ) ) &&
+		        ( Post::get('eael-login-submit') !== '' && Post::get('eael-user-login') !== '' ) )
+	        {
+		        return 'eael_login_skipped';
+	        }
+
             break;
 
         case false :
@@ -528,7 +537,10 @@ function apbct_is_skip_request( $ajax = false ) {
 		    {
 			    return 'happyform_skipped';
 		    }
-		    if( apbct_is_plugin_active( 'essential-addons-for-elementor-lite/essential_adons_elementor.php' ) &&
+		    // Essentials addons for elementor - light and pro
+		    if(
+		        ( apbct_is_plugin_active( 'essential-addons-for-elementor-lite/essential_adons_elementor.php' ) ||
+		          apbct_is_plugin_active( 'essential-addons-elementor/essential_adons_elementor.php' ) ) &&
 		        ( Post::get('eael-login-submit') !== '' && Post::get('eael-user-login') !== '' ) )
 		    {
 			    return 'eael_login_skipped';
