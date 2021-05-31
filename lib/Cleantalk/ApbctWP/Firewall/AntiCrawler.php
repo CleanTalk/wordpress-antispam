@@ -164,7 +164,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
         foreach( $this->ip_array as $ip_origin => $current_ip ) {
 	        
         	// Skip by 301 response code
-	        if( http_response_code() == 301 ){
+	        if( $this->is_redirected() ){
 		        $results[] = array( 'ip' => $current_ip, 'is_personal' => false, 'status' => 'PASS_ANTICRAWLER', );
 		        return $results;
 	        }
@@ -422,4 +422,19 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
         return false;
 
     }
+
+	private function is_redirected()
+	{
+		$is_redirect = false;
+		if( Server::get( 'HTTP_REFERER' ) !== '' && Server::get( 'HTTP_HOST' ) !== '' && $this->is_cloudflare() ) {
+			$parse_referer = parse_url( Server::get( 'HTTP_REFERER' ) );
+			$is_redirect = Server::get( 'HTTP_HOST' ) !== $parse_referer['host'];
+		}
+		return http_response_code() == 301 || $is_redirect;
+	}
+
+	private function is_cloudflare()
+	{
+		return Server::get('HTTP_CF_RAY') && Server::get('HTTP_CF_CONNECTING_IP') && Server::get('HTTP_CF_REQUEST_ID');
+	}
 }
