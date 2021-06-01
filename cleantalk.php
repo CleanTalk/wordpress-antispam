@@ -1262,7 +1262,7 @@ function apbct_antiflood__clear_table(){
 	
 	global $apbct;
 	
-	if( $apbct->settings['sfw__anti_flood'] ){
+	if( $apbct->settings['sfw__anti_flood'] || $apbct->settings['sfw__anti_crawler'] ){
 		
 		$anti_flood = new \Cleantalk\ApbctWP\Firewall\AntiFlood(
 			APBCT_TBL_FIREWALL_LOG,
