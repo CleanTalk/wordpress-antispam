@@ -627,17 +627,17 @@ function apbct_update_to_5_146_3() {
 	update_option( 'cleantalk_plugin_request_ids', array() );
 }
 
-function apbct_update_to_5_146_4() {
-	
-	global $apbct;
-	
-	$sqls[] = 'ALTER TABLE `%scleantalk_sfw`
-		ADD COLUMN IF NOT EXISTS `id` INT(11) NOT NULL AUTO_INCREMENT FIRST';
-	
-	apbct_activation__create_tables( $sqls, $apbct->db_prefix );
-	
-
-}
+//function apbct_update_to_5_146_4() {
+//
+//	global $apbct;
+//
+//	$sqls[] = 'ALTER TABLE `%scleantalk_sfw`
+//		ADD COLUMN IF NOT EXISTS `id` INT(11) NOT NULL AUTO_INCREMENT FIRST';
+//
+//	apbct_activation__create_tables( $sqls, $apbct->db_prefix );
+//
+//
+//}
 function apbct_update_to_5_148_0() {
 	$cron = new Cron();
 	$cron->updateTask('antiflood__clear_table', 'apbct_antiflood__clear_table',  86400);
