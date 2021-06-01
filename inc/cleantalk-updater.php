@@ -632,8 +632,7 @@ function apbct_update_to_5_146_4() {
 	global $apbct;
 	
 	$sqls[] = 'ALTER TABLE `%scleantalk_sfw`
-		ADD COLUMN IF NOT EXISTS `id` INT(11) NOT NULL AUTO_INCREMENT FIRST,
-		ADD PRIMARY KEY (`id`);';
+		ADD COLUMN IF NOT EXISTS `id` INT(11) NOT NULL AUTO_INCREMENT FIRST';
 	
 	apbct_activation__create_tables( $sqls, $apbct->db_prefix );
 	
