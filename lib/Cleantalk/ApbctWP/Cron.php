@@ -11,8 +11,8 @@ class Cron extends \Cleantalk\Common\Cron {
 	 */
 	public function getCronLastStart()
 	{
-		$cron_options = get_option( $this->cron_option_name );
-		return ( ! empty( $cron_options ) && isset( $cron_options['last_start'] ) ) ? $cron_options['last_start'] : 0;
+		global $apbct;
+		return $apbct->stats['cron']['last_start'];
 	}
 
 	/**
@@ -22,7 +22,10 @@ class Cron extends \Cleantalk\Common\Cron {
 	 */
 	public function setCronLastStart()
 	{
-		return update_option( $this->cron_option_name, array('last_start' => time(), 'tasks' => $this->getTasks()) );
+		global $apbct;
+		$apbct->stats['cron']['last_start'] = time();
+		$apbct->save('stats');
+		return true;
 	}
 
 	/**

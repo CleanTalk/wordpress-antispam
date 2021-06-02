@@ -292,7 +292,10 @@ class State
             'activation__timestamp' => 0,
             'activation_previous__timestamp' => 0,
             'activation__times' => 0,
-        )
+        ),
+		'cron' => array(
+			'last_start' => 0,
+		),
 	);
 
     private $default_fw_stats = array(

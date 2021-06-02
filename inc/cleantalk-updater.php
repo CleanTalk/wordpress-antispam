@@ -984,3 +984,9 @@ function apbct_update_to_5_158_0(){
         $apbct->saveSettings();
     }
 }
+
+function apbct_update_to_5_158_2() {
+	global $apbct;
+	$apbct->stats['cron']['last_start'] = 0;
+	$apbct->save('stats');
+}
