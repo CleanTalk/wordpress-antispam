@@ -1528,12 +1528,12 @@ function ct_preprocess_comment($comment) {
         }
     }
 
-    // Add honeypot_website field
-	$honeypot_website = 0;
+    // Add honeypot_field field
+	$honeypot_field = 1;
 
     if(isset($apbct->settings['comments__hide_website_field']) && $apbct->settings['comments__hide_website_field']) {
 		if(isset($_POST['url']) && !empty($_POST['url']) && $post_info['comment_type'] === 'comment' && isset($_POST['comment_post_ID'])) {
-			$honeypot_website = 1;
+			$honeypot_field = 0;
 		}
     }
 
@@ -1554,7 +1554,7 @@ function ct_preprocess_comment($comment) {
 						'page_url' => apbct_get_server_variable( 'HTTP_HOST' ) . apbct_get_server_variable( 'REQUEST_URI' ),
 					))
 			),
-			'honeypot_website' => $honeypot_website
+			'honeypot_field' => $honeypot_field
 		)
 	);
     $ct_result = $base_call_result['ct_result'];

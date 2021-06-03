@@ -160,7 +160,7 @@ class CleantalkRequest {
 	/**
 	 * @var int|null
 	 */
-	public $honeypot_website;
+	public $honeypot_field;
 
 	/**
      * Fill params with constructor
@@ -189,7 +189,7 @@ class CleantalkRequest {
 		$this->submit_time     = isset($params['submit_time'])      ? (int)$params['submit_time']                 : null;
 		$this->post_info       = isset($params['post_info'])        ? (string)json_encode($params['post_info'])   : null;
 		$this->sender_info     = isset($params['sender_info'])      ? (string)json_encode($params['sender_info']) : null;
-	    $this->honeypot_website = isset($params['honeypot_website']) ? (int)$params['honeypot_website']  : null;
+	    $this->honeypot_field = isset($params['honeypot_field']) ? (int)$params['honeypot_field']  : null;
 		
 	    $this->message = ! empty( $params['message'] )
 		    ? ( ! is_scalar( $params['message'] )
