@@ -353,7 +353,7 @@ function apbct_settings__set_fileds( $fields ){
                     'parent' => 'sfw__enabled',
 				),
                 'data__pixel' => array(
-                    'title'       => __('Use attachment to improve IP-detection', 'cleantalk-spam-protect'),
+                    'title'       => __('Add a CleanTalk Pixel to improve IP-detection', 'cleantalk-spam-protect'),
                     'description' => __('Upload small graphic file from Cleantalk\'s server to improve IP-detection.', 'cleantalk-spam-protect')
                      . '<br>' . __('"Auto" use JavaScript option if cache solutions are found.', 'cleantalk-spam-protect'),
                     'options'     => array(
