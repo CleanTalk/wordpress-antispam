@@ -150,10 +150,10 @@ function apbct_base_call($params = array(), $reg_flag = false){
 		? \Cleantalk\ApbctWP\Helper::array_merge__save_numeric_keys__recursive(apbct_get_sender_info(), (array)$params['sender_info'])
 		: apbct_get_sender_info();
 
-	$honeypot_website = null;
+	$honeypot_field = null;
 
-	if(isset($params['honeypot_website'])) {
-		$honeypot_website = $params['honeypot_website'];
+	if(isset($params['honeypot_field'])) {
+		$honeypot_field = $params['honeypot_field'];
 	}
 	
 	$default_params = array(
@@ -172,7 +172,7 @@ function apbct_base_call($params = array(), $reg_flag = false){
 		'agent'           => APBCT_AGENT,
 		'sender_info'     => $sender_info,
 		'submit_time'     => apbct_get_submit_time(),
-		'honeypot_website' => $honeypot_website
+		'honeypot_field' => $honeypot_field
 	);
 	
 	// Send $_SERVER if couldn't find IP

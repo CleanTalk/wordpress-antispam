@@ -221,7 +221,10 @@ function apbct_admin__init(){
     if( ! is_multisite() || is_main_site() || ( ! is_main_site() && $apbct->network_settings['multisite__allow_custom_settings'] ) ) {
 	    new CleantalkSettingsTemplates( $apbct->api_key );
     }
-
+    
+    // Check compatibility
+    do_action( 'apbct__check_compatibility' );
+    
 }
 
 /**
@@ -290,7 +293,7 @@ function apbct_admin__enqueue_scripts($hook){
 
 	wp_localize_script( 'ct_admin_js_notices', 'ctAdminCommon', array(
 		'_ajax_nonce'         => wp_create_nonce( 'ct_secret_nonce' ),
-		'_ajax_url'           => admin_url( 'admin-ajax.php' ),
+		'_ajax_url'           => admin_url( 'admin-ajax.php', 'relative' ),
 		'plugin_name'        => $apbct->plugin_name,
 		'logo'               => '<img src="' . $apbct->logo . '" alt=""  height="" style="width: 17px; vertical-align: text-bottom;" />',
 		'logo_small'         => '<img src="' . $apbct->logo__small . '" alt=""  height="" style="width: 17px; vertical-align: text-bottom;" />',
@@ -472,6 +475,13 @@ function apbct_admin__notice_message(){
 					__("Wrong <a href='{$settings_link}'><b style=\"color: #49C73B;\">Clean</b><b style=\"color: #349ebf;\">Talk</b> access key</a>! Please check it or ask <a target=\"_blank\" href=\"https://wordpress.org/support/plugin/cleantalk-spam-protect/\">support</a>.", 'cleantalk-spam-protect').
 				'</b></h3>
 			</div>';
+		}
+
+		//notice_incompatibility
+        if( ! empty( $apbct->data['notice_incompatibility'] ) && $page_is_ct_settings ){
+		    foreach ($apbct->data['notice_incompatibility'] as $notice) {
+			    echo '<div class="error">' . $notice . '</div>';
+            }
 		}
 	}
 
@@ -870,4 +880,12 @@ function apbct_test_connection(){
         ) ;
     }
     return $out;
+}
+
+/**
+ * Check compatibility action
+ */
+add_action('apbct__check_compatibility', 'apbct__check_compatibility_handler');
+function apbct__check_compatibility_handler() {
+    new \Cleantalk\Common\Compatibility();
 }

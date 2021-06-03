@@ -891,7 +891,7 @@ class API
 					$tmp[date('Y-m-d', time() - 86400 * 7 + 86400 * $i)] = 0;
 				}
 				$out['spam_stat'] = (array)array_merge($tmp, isset($out['spam_stat']) ? $out['spam_stat'] : array());
-				$out['top5_spam_ip'] = isset($out['top5_spam_ip']) ? $out['top5_spam_ip'] : array();
+				$out['top5_spam_ip'] = isset($out['top5_spam_ip']) ? array_slice($out['top5_spam_ip'], 0, 5) : array();
 				
 				return $out;
 				

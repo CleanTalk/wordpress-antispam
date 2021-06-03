@@ -43,7 +43,9 @@ function apbct_settings__set_fileds( $fields ){
             $additional_ac_title = ' <span style="color:red">' . esc_html__( 'The functionality was disabled because SpamFireWall database is empty. Please, do the synchronization or', 'cleantalk-spam-protect' ) . ' ' . '<a href="https://cleantalk.org/my/support/open" target="_blank" style="color:red">'. esc_html__( 'contact to our support.', 'cleantalk-spam-protect' ) .'</a></span>';
         }
     }
-
+    
+    error_log( var_export( $apbct->data['notice_incompatibility'], true ) );
+	
 	$fields =  array(
 		
 		'main' => array(
@@ -105,6 +107,7 @@ function apbct_settings__set_fileds( $fields ){
 					'title'       => __('SpamFireWall', 'cleantalk-spam-protect'),
 					'description' => __("This option allows to filter spam bots before they access website. Also reduces CPU usage on hosting server and accelerates pages load time.", 'cleantalk-spam-protect') . '<br>' .esc_html__( 'If the setting is turned on, plugin will automatically add IP address for each session with administration rights to Personal list in the cloud.', 'cleantalk-spam-protect' ),
 					'childrens'   => array('sfw__anti_flood', 'sfw__anti_crawler', 'sfw__use_delete_to_clear_table'),
+                    'disabled' => (bool) $apbct->data['notice_incompatibility'],
 				),
 				'sfw__anti_crawler' => array(
 					'type'        => 'checkbox',
@@ -293,7 +296,7 @@ function apbct_settings__set_fileds( $fields ){
 					'description' => __('Options helps protect WordPress against spam with any caching plugins. Turn this option on to avoid issues with caching plugins. Turn off this option and SpamFireWall to be compatible with Accelerated mobile pages (AMP).', 'cleantalk-spam-protect'),
 				),
 				'data__use_static_js_key' => array(
-					'title'       => __('Use static keys for JS check.', 'cleantalk-spam-protect'),
+					'title'       => __('Use static keys for JavaScript check', 'cleantalk-spam-protect'),
 					'description' => __('Could help if you have cache for AJAX requests and you are dealing with false positives. Slightly decreases protection quality. Auto - Static key will be used if caching plugin is spotted.', 'cleantalk-spam-protect'),
 					'options' => array(
 						array('val' => 1, 'label'  => __('On'),  ),
@@ -350,7 +353,7 @@ function apbct_settings__set_fileds( $fields ){
                     'parent' => 'sfw__enabled',
 				),
                 'data__pixel' => array(
-                    'title'       => __('Use attachment to improve IP-detection', 'cleantalk-spam-protect'),
+                    'title'       => __('Add a CleanTalk Pixel to improve IP-detection', 'cleantalk-spam-protect'),
                     'description' => __('Upload small graphic file from Cleantalk\'s server to improve IP-detection.', 'cleantalk-spam-protect')
                      . '<br>' . __('"Auto" use JavaScript option if cache solutions are found.', 'cleantalk-spam-protect'),
                     'options'     => array(

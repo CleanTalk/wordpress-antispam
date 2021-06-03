@@ -171,6 +171,7 @@ class State
 		'notice_renew' => 0,
 		'notice_review' => 0,
 		'notice_auto_update' => 0,
+		'notice_incompatibility' => array(),
 		
 		// Brief data
 		'brief_data' => array(
@@ -291,7 +292,10 @@ class State
             'activation__timestamp' => 0,
             'activation_previous__timestamp' => 0,
             'activation__times' => 0,
-        )
+        ),
+		'cron' => array(
+			'last_start' => 0,
+		),
 	);
 
     private $default_fw_stats = array(
