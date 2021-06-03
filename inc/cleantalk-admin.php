@@ -275,7 +275,7 @@ function apbct_admin__enqueue_scripts($hook){
 
 	wp_localize_script( 'ct_admin_js_notices', 'ctAdminCommon', array(
 		'_ajax_nonce'         => wp_create_nonce( 'ct_secret_nonce' ),
-		'_ajax_url'           => admin_url( 'admin-ajax.php' ),
+		'_ajax_url'           => admin_url( 'admin-ajax.php', 'relative' ),
 		'plugin_name'        => $apbct->plugin_name,
 		'logo'               => '<img src="' . $apbct->logo . '" alt=""  height="" style="width: 17px; vertical-align: text-bottom;" />',
 		'logo_small'         => '<img src="' . $apbct->logo__small . '" alt=""  height="" style="width: 17px; vertical-align: text-bottom;" />',

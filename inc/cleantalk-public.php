@@ -2017,7 +2017,7 @@ function apbct_login__scripts(){
     wp_localize_script('ct_public', 'ctPublic', array(
         '_ajax_nonce' => wp_create_nonce('ct_secret_stuff'),
         '_rest_nonce' => wp_create_nonce('wp_rest'),
-        '_ajax_url'   => admin_url('admin-ajax.php'),
+        '_ajax_url'   => admin_url('admin-ajax.php', 'relative'),
         '_rest_url'   => esc_url( get_rest_url() ),
         'pixel__setting' => $apbct->settings['data__pixel'],
         'pixel__enabled' => $apbct->settings['data__pixel'] === '2' ||
@@ -4144,7 +4144,7 @@ function ct_enqueue_scripts_public($hook){
 			wp_localize_script('ct_public', 'ctPublic', array(
 				'_ajax_nonce' => wp_create_nonce('ct_secret_stuff'),
 				'_rest_nonce' => wp_create_nonce('wp_rest'),
-				'_ajax_url'   => admin_url('admin-ajax.php'),
+				'_ajax_url'   => admin_url('admin-ajax.php', 'relative'),
 				'_rest_url'   => esc_url( get_rest_url() ),
                 'data__set_cookies' => $apbct->settings['data__set_cookies'],
                 'data__set_cookies__alt_sessions_type' => $apbct->settings['data__set_cookies__alt_sessions_type'],
@@ -4175,7 +4175,7 @@ function ct_enqueue_scripts_public($hook){
             
             wp_enqueue_script('ct_nocache',  plugins_url('/cleantalk-spam-protect/js/cleantalk_nocache.min.js'),  array(),         APBCT_VERSION, false /*in header*/);
             wp_localize_script('ct_nocache', 'ctNocache', array(
-                'ajaxurl'                  => admin_url('admin-ajax.php'),
+                'ajaxurl'                  => admin_url('admin-ajax.php', 'relative'),
                 'info_flag'                => $apbct->settings['misc__collect_details'] && $apbct->settings['data__set_cookies'],
                 'set_cookies_flag'         => (bool) $apbct->settings['data__set_cookies'],
                 'blog_home'                => get_home_url().'/',
@@ -4217,7 +4217,7 @@ function ct_enqueue_scripts_public($hook){
 
 			wp_localize_script('ct_public_admin_js', 'ctPublicAdmin', array(
 				'ct_ajax_nonce'               => $ajax_nonce,
-				'ajaxurl'                     => admin_url('admin-ajax.php'),
+				'ajaxurl'                     => admin_url('admin-ajax.php', 'relative'),
 				'ct_feedback_error'           => __('Error occurred while sending feedback.', 'cleantalk-spam-protect'),
 				'ct_feedback_no_hash'         => __('Feedback wasn\'t sent. There is no associated request.', 'cleantalk-spam-protect'),
 				'ct_feedback_msg'             => sprintf(__("Feedback has been sent to %sCleanTalk Dashboard%s.", 'cleantalk-spam-protect'), $apbct->user_token ? "<a target='_blank' href=https://cleantalk.org/my/show_requests?user_token={$apbct->user_token}&cp_mode=antispam>" : '', $apbct->user_token ? "</a>" : ''),
