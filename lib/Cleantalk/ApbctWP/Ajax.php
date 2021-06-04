@@ -47,9 +47,17 @@ class Ajax {
 	private function handleRequest( $request )
 	{
 		require_once( __DIR__ . '/../../../inc/cleantalk-ajax-handlers.php' );
+
+		global $apbct;
+
 		switch( $request['action'] ) {
 			case 'apbct_js_keys__get' :
 				apbct_js_keys__get();
+				break;
+			case 'apbct_email_check_before_post' :
+				if ( $apbct->settings['data__email_check_before_post'] ) {
+					apbct_email_check_before_post();
+				}
 				break;
 			default :
 				return;

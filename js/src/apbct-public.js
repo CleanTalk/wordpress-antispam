@@ -81,6 +81,7 @@
 			apbct_public_sendAJAX(
 				{action: 'apbct_email_check_before_post', data : {'email' : current_email}},
 				{
+					apbct_ajax: 1,
 					callback: function (result) {
 						if (result.result) {
 							ctCheckedEmails[current_email] = {'result' : result.result, 'timestamp': Date.now() / 1000 |0};

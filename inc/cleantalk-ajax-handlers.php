@@ -24,3 +24,15 @@ function apbct_js_keys__get() {
 	require_once( __DIR__ . '/cleantalk-pluggable.php' );
 	apbct_js_keys__get__ajax();
 }
+
+function apbct_email_check_before_post() {
+	if (count($_POST) && isset($_POST['data']['email']) && !empty($_POST['data']['email'])) {
+		$email = trim($_POST['data']['email']);
+		$result = \Cleantalk\ApbctWP\API::method__email_check($email);
+		if (isset($result['data'])) {
+			die(json_encode(array('result' => $result['data'])));
+		}
+		die(json_encode(array('error' => 'ERROR_CHECKING_EMAIL')));
+	}
+	die(json_encode(array('error' => 'EMPTY_DATA')));
+}
