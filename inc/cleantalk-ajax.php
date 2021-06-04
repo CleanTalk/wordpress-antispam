@@ -326,6 +326,7 @@ function ct_ajax_hook($message_obj = false, $additional = false)
 	    'erforms_field_change_command', //ERForms internal request
 	    'wl_out_of_stock_notify', // Sumo Waitlist
 	    'rac_preadd_guest', //Rac internal request
+	    'apbct_email_check_before_post', //Interal request
         /* !! Do not add actions here. Use apbct_is_skip_request() function below !! */
     );
     

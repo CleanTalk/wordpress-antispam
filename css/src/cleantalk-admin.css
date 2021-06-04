@@ -36,13 +36,23 @@
 }
 
 #wp-admin-bar-cleantalk_admin_bar__parent_node div.cleantalk_admin_bar__sum_counter{
+	color: white;
 	background: #d63638;
 	display: inline;
 	text-align: center;
-	padding: 2px 4px 2px 4px !important;
+	padding: 2px 5px !important;
 	border-radius: 8px;
 	vertical-align: unset;
 	font-size: 9px;
+}
+
+.cleantalk_admin_bar__blocked div{
+	cursor: not-allowed !important;
+}
+
+.cleantalk_admin_bar__title{
+	vertical-align: top;
+	margin-left: 5px !important;
 }
 
 .cleantalk_admin_bar__separator{
