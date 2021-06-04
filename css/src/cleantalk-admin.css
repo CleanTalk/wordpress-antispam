@@ -50,6 +50,10 @@
 	cursor: not-allowed !important;
 }
 
+.cleantalk_admin_bar__blocked div a{
+	color: #777 !important;
+}
+
 .cleantalk_admin_bar__title{
 	vertical-align: top;
 	margin-left: 5px !important;
