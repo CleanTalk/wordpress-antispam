@@ -1091,7 +1091,7 @@ function apbct_hook__wp_footer() {
 						if( document.querySelectorAll('[name^=ct_checkjs]').length > 0 ) {
 			                apbct_public_sendAJAX(
 			                    { action: 'apbct_js_keys__get' },
-			                    { callback: apbct_js_keys__set_input_value, no_nonce: true }
+			                    { callback: apbct_js_keys__set_input_value, apbct_ajax: 1 }
 			                );
 			            }
 					},". $timeout .");					    
