@@ -366,7 +366,55 @@ class State
 			$this->$option_name = is_array($option) ? new ArrayObject($option) : $option;
 		}
 	}
-	
+
+	public static function setDefinitions()
+	{
+		global $wpdb, $apbct;
+
+		$db_prefix = ! $apbct->white_label && defined('CLEANTALK_ACCESS_KEY') ? $wpdb->base_prefix : $wpdb->prefix;
+		
+		if( ! defined( 'APBCT_SEESION__LIVE_TIME' ) ) {
+			define( 'APBCT_SEESION__LIVE_TIME', 86400 );
+		}
+		if( ! defined( 'APBCT_SEESION__CHANCE_TO_CLEAN' ) ) {
+			define( 'APBCT_SEESION__CHANCE_TO_CLEAN', 100 );
+		}
+
+		// Database constants
+		if( ! defined( 'APBCT_TBL_FIREWALL_DATA' ) ) {
+			// Table with firewall data.
+			define( 'APBCT_TBL_FIREWALL_DATA', $db_prefix . 'cleantalk_sfw' );
+		}
+		if( ! defined( 'APBCT_TBL_FIREWALL_LOG' ) ) {
+			// Table with firewall logs.
+			define( 'APBCT_TBL_FIREWALL_LOG', $db_prefix . 'cleantalk_sfw_logs' );
+		}
+		if( ! defined( 'APBCT_TBL_AC_LOG' ) ) {
+			// Table with firewall logs.
+			define( 'APBCT_TBL_AC_LOG', $db_prefix . 'cleantalk_ac_log' );
+		}
+		if( ! defined( 'APBCT_TBL_AC_UA_BL' ) ) {
+			// Table with User-Agents blacklist.
+			define( 'APBCT_TBL_AC_UA_BL', $db_prefix . 'cleantalk_ua_bl' );
+		}
+		if( ! defined( 'APBCT_TBL_SESSIONS' ) ) {
+			// Table with session data.
+			define( 'APBCT_TBL_SESSIONS', $db_prefix . 'cleantalk_sessions' );
+		}
+		if( ! defined( 'APBCT_SPAMSCAN_LOGS' ) ) {
+			// Table with session data.
+			define( 'APBCT_SPAMSCAN_LOGS', $db_prefix . 'cleantalk_spamscan_logs' );
+		}
+		if( ! defined( 'APBCT_SELECT_LIMIT' ) ) {
+			// Select limit for logs.
+			define( 'APBCT_SELECT_LIMIT', 5000 );
+		} 
+		if( ! defined( 'APBCT_WRITE_LIMIT' ) ) {
+			// Write limit for firewall data.
+			define( 'APBCT_WRITE_LIMIT', 5000 );
+		}
+	}
+
 	/**
 	 * Get specified option from database
 	 *

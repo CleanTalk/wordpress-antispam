@@ -15,6 +15,7 @@ if( !defined( 'APBCT_VERSION' ) ) {
 
 global $apbct;
 $apbct = new \Cleantalk\ApbctWP\State('cleantalk', array('settings', 'data'));
+\Cleantalk\ApbctWP\State::setDefinitions();
 
 /*******************************************************************/
 /*******************  H A N D L E R S   H E R E  *******************/
