@@ -2019,6 +2019,7 @@ function apbct_login__scripts(){
         '_rest_nonce' => wp_create_nonce('wp_rest'),
         '_ajax_url'   => admin_url('admin-ajax.php', 'relative'),
         '_rest_url'   => esc_url( get_rest_url() ),
+        '_apbct_ajax_url'   => APBCT_URL_PATH . '/lib/Cleantalk/ApbctWP/Ajax.php',
         'pixel__setting' => $apbct->settings['data__pixel'],
         'pixel__enabled' => $apbct->settings['data__pixel'] === '2' ||
                                                   ( $apbct->settings['data__pixel'] === '3' && apbct_is_cache_plugins_exists() ),
