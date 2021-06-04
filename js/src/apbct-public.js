@@ -4,7 +4,8 @@
 		ctTimeMs = new Date().getTime(),
 		ctMouseEventTimerFlag = true, //Reading interval flag
 		ctMouseData = [],
-		ctMouseDataCounter = 0;
+		ctMouseDataCounter = 0,
+		ctCheckedEmails = {};
 
 	function apbct_attach_event_handler(elem, event, callback){
 		if(typeof window.addEventListener === "function") elem.addEventListener(event, callback);
@@ -74,12 +75,41 @@
 		apbct_remove_event_handler(window, "keydown", ctFunctionFirstKey);
 	}
 
+	function checkEmail(e) {
+		var current_email = e.target.value;
+		if (current_email && !(current_email in ctCheckedEmails)) {
+			apbct_public_sendAJAX(
+				{action: 'apbct_email_check_before_post', data : {'email' : current_email}},
+				{
+					callback: function (result) {
+						if (result.result) {
+							ctCheckedEmails[current_email] = {'result' : result.result, 'timestamp': Date.now() / 1000 |0};
+							ctSetCookie('ct_checked_emails', JSON.stringify(ctCheckedEmails));
+						}
+					},
+				}
+			);		
+		}
+	}
+
 	apbct_attach_event_handler(window, "mousemove", ctFunctionMouseMove);
 	apbct_attach_event_handler(window, "mousedown", ctFunctionFirstKey);
 	apbct_attach_event_handler(window, "keydown", ctFunctionFirstKey);
 
 	// Ready function
 	function apbct_ready(){
+
+		if( +ctPublic.pixel__setting ){
+			ctSetCookie( 'apbct_pixel_url', ctPublic.pixel__url );
+			if( +ctPublic.pixel__enabled ){
+				jQuery('body').append( '<img style="display: none; left: 99999px;" src="' + ctPublic.pixel__url + '">' );
+			}
+		}
+
+		if ( +ctPublic.data__email_check_before_post) {
+			ctSetCookie( 'ct_checked_emails', '0');
+			jQuery("input[type = 'email'], #email").blur(checkEmail);
+		}
 
 		setTimeout(function(){
 

@@ -43,7 +43,9 @@ function apbct_settings__set_fileds( $fields ){
             $additional_ac_title = ' <span style="color:red">' . esc_html__( 'The functionality was disabled because SpamFireWall database is empty. Please, do the synchronization or', 'cleantalk-spam-protect' ) . ' ' . '<a href="https://cleantalk.org/my/support/open" target="_blank" style="color:red">'. esc_html__( 'contact to our support.', 'cleantalk-spam-protect' ) .'</a></span>';
         }
     }
-
+    
+    error_log( var_export( $apbct->data['notice_incompatibility'], true ) );
+	
 	$fields =  array(
 		
 		'main' => array(
@@ -105,6 +107,7 @@ function apbct_settings__set_fileds( $fields ){
 					'title'       => __('SpamFireWall', 'cleantalk-spam-protect'),
 					'description' => __("This option allows to filter spam bots before they access website. Also reduces CPU usage on hosting server and accelerates pages load time.", 'cleantalk-spam-protect') . '<br>' .esc_html__( 'If the setting is turned on, plugin will automatically add IP address for each session with administration rights to Personal list in the cloud.', 'cleantalk-spam-protect' ),
 					'childrens'   => array('sfw__anti_flood', 'sfw__anti_crawler', 'sfw__use_delete_to_clear_table'),
+                    'disabled' => (bool) $apbct->data['notice_incompatibility'],
 				),
 				'sfw__anti_crawler' => array(
 					'type'        => 'checkbox',
@@ -293,7 +296,7 @@ function apbct_settings__set_fileds( $fields ){
 					'description' => __('Options helps protect WordPress against spam with any caching plugins. Turn this option on to avoid issues with caching plugins. Turn off this option and SpamFireWall to be compatible with Accelerated mobile pages (AMP).', 'cleantalk-spam-protect'),
 				),
 				'data__use_static_js_key' => array(
-					'title'       => __('Use static keys for JS check.', 'cleantalk-spam-protect'),
+					'title'       => __('Use static keys for JavaScript check', 'cleantalk-spam-protect'),
 					'description' => __('Could help if you have cache for AJAX requests and you are dealing with false positives. Slightly decreases protection quality. Auto - Static key will be used if caching plugin is spotted.', 'cleantalk-spam-protect'),
 					'options' => array(
 						array('val' => 1, 'label'  => __('On'),  ),
@@ -349,6 +352,21 @@ function apbct_settings__set_fileds( $fields ){
 					'description' => __('Could help if you have blocked SpamFireWall tables in your database.', 'cleantalk-spam-protect'),
                     'parent' => 'sfw__enabled',
 				),
+                'data__pixel' => array(
+                    'title'       => __('Add a CleanTalk Pixel to improve IP-detection', 'cleantalk-spam-protect'),
+                    'description' => __('Upload small graphic file from Cleantalk\'s server to improve IP-detection.', 'cleantalk-spam-protect')
+                     . '<br>' . __('"Auto" use JavaScript option if cache solutions are found.', 'cleantalk-spam-protect'),
+                    'options'     => array(
+                        array( 'val' => 1, 'label' => __( 'Via direct output', 'cleantalk-spam-protect' ), ),
+                        array( 'val' => 2, 'label' => __( 'Via JavaScript', 'cleantalk-spam-protect' ), ),
+                        array( 'val' => 3, 'label' => __( 'Auto', 'cleantalk-spam-protect' ), ),
+                        array( 'val' => 0, 'label' => __( 'Off', 'cleantalk-spam-protect' ), ),
+                    ),
+                ),
+                'data__email_check_before_post' => array(
+                	'title' 	  => __('Check email before POST request', 'cleantalk-spam-protect'),
+                	'description' => __('Check email address before sending form data', 'cleantalk-spam-protect'),
+                ),
 			),
 		),
 		
@@ -638,7 +656,14 @@ function apbct_settings__add_groups_and_fields( $fields ){
 			if(!empty($field['options_callback'])){
 				$options = call_user_func_array($field['options_callback'], !empty($field['options_callback_params']) ? $field['options_callback_params'] : array());
 				foreach ($options as &$option){
-					$option = array('val' => $option, 'label' => $option);
+					if( is_array( $option ) ) {
+						$option = array(
+							'val'   => isset($option['val']) ? $option['val'] : current( $option ),
+							'label' => isset($option['label']) ? $option['label'] : end( $option )
+						);
+					} else {
+						$option = array('val' => $option, 'label' => $option);
+					}
 				} unset($option);
 				$field['options'] = $options;
 			}
@@ -1190,7 +1215,10 @@ function apbct_get_all_child_domains($except_main_site = false) {
 		foreach ($wp_blogs as $blog) {
 			if ($blog->blog_id != $blog->site_id){
 				$blog_details = get_blog_details( array( 'blog_id' => $blog->blog_id ) );
-				$blogs[] = '#' . $blog_details->id . ' ' . $blog_details->blogname;
+				$blogs[] = array(
+					'val' => $blog_details->id,
+					'label' => '#' . $blog_details->id . ' ' . $blog_details->blogname
+				);
 			}
 		}
 	}
@@ -1456,7 +1484,7 @@ function apbct_settings__validate($settings) {
 	
 	$settings['apikey'] = !empty($settings['apikey'])                                       ? trim($settings['apikey'])  : '';
 	$settings['apikey'] = defined( 'CLEANTALK_ACCESS_KEY')                           ? CLEANTALK_ACCESS_KEY       : $settings['apikey'];
-	$settings['apikey'] = ! is_main_site() && $apbct->white_label                           ? $apbct->settings['apikey'] : $settings['apikey'];
+	$settings['apikey'] = ! is_main_site() && $apbct->white_label && $apbct->settings['apikey']  ? $apbct->settings['apikey'] : $settings['apikey'];
 	$settings['apikey'] = is_main_site() || $apbct->allow_custom_key || $apbct->white_label ? $settings['apikey']        : $apbct->network_settings['apikey'];
 	$settings['apikey'] = is_main_site() || !$settings['multisite__white_label']                       ? $settings['apikey']        : $apbct->settings['apikey'];
 	
@@ -1581,12 +1609,7 @@ function apbct_settings__sync( $direct_call = false ){
 		
 		// SFW actions
 		if( $apbct->settings['sfw__enabled'] == 1 ){
-
-            if( get_option( 'sfw_update_first' ) ) {
-                add_option( 'sfw_sync_first', true );
-                delete_option( 'sfw_update_first' );
-            }
-			
+		 
 			$result = apbct_sfw_update__init( 5 );
 			if( ! empty( $result['error'] ) )
 				$apbct->error_add( 'sfw_update', $result['error'] );

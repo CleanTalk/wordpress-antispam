@@ -37,7 +37,14 @@ class Integrations
 		            add_action( 'wp_ajax_nopriv_' . $integration_info['hook'], array( $this, 'checkSpam' ), 1 );
 	            }
             } else {
-                add_action( $integration_info['hook'], array( $this, 'checkSpam' ) );
+	            if( is_array( $integration_info['hook'] ) ) {
+		            foreach ( $integration_info['hook'] as $hook ) {
+			            add_action( $hook, array( $this, 'checkSpam' ) );
+		            }
+	            } else {
+		            add_action( $integration_info['hook'], array( $this, 'checkSpam' ) );
+	            }
+
             }
         }
     }

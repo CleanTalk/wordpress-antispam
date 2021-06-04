@@ -10,7 +10,25 @@ use Cleantalk\Variables\Server;
 function apbct_init() {
 
     global $ct_wplp_result_label, $ct_jp_comments, $ct_post_data_label, $ct_post_data_authnet_label, $apbct, $test_external_forms, $cleantalk_executed, $wpdb;
-
+    
+    // Pixel
+    if( $apbct->settings['data__pixel'] ){
+        
+        $pixel_hash = md5(
+            \Cleantalk\Common\Helper::ip__get()
+                . $apbct->api_key
+                . \Cleantalk\Common\Helper::time__get_interval_start( 3600 * 3 ) // Unique for every 3 hours
+        );
+        
+        // Change server each 3 hours depending on current time interval
+        $servers = array_keys( \Cleantalk\Common\Helper::$cleantalks_moderate_servers );
+        $server_num = \Cleantalk\Common\Helper::time__get_interval_start( 3600 * 3 ) % count($servers);
+        $pixel_server = $servers[ $server_num ];
+        
+        $apbct->pixel_url = 'https://' . $pixel_server . '/pixel/' . $pixel_hash . '.gif';
+        
+    }
+    
     //Check internal forms with such "action" http://wordpress.loc/contact-us/some_script.php
     if((isset($_POST['action']) && $_POST['action'] == 'ct_check_internal') &&
         $apbct->settings['forms__check_internal']
@@ -1041,6 +1059,14 @@ function apbct_hook__wp_footer() {
 
 	global $apbct;
 
+	// Pixel
+    if(
+        $apbct->settings['data__pixel'] === '1' ||
+        ( $apbct->settings['data__pixel'] === '3' && ! apbct_is_cache_plugins_exists() )
+    ){
+        echo '<img style="display: none; left: 99999px;" src="' .  $apbct->pixel_url . '">';
+    }
+	
 	if( $apbct->settings['data__use_ajax'] ){
 
 		$timeout = $apbct->settings['misc__async_js'] ? 1000 : 0;
@@ -1502,12 +1528,12 @@ function ct_preprocess_comment($comment) {
         }
     }
 
-    // Add honeypot_website field
-	$honeypot_website = 0;
+    // Add honeypot_field field
+	$honeypot_field = 1;
 
     if(isset($apbct->settings['comments__hide_website_field']) && $apbct->settings['comments__hide_website_field']) {
 		if(isset($_POST['url']) && !empty($_POST['url']) && $post_info['comment_type'] === 'comment' && isset($_POST['comment_post_ID'])) {
-			$honeypot_website = 1;
+			$honeypot_field = 0;
 		}
     }
 
@@ -1528,7 +1554,7 @@ function ct_preprocess_comment($comment) {
 						'page_url' => apbct_get_server_variable( 'HTTP_HOST' ) . apbct_get_server_variable( 'REQUEST_URI' ),
 					))
 			),
-			'honeypot_website' => $honeypot_website
+			'honeypot_field' => $honeypot_field
 		)
 	);
     $ct_result = $base_call_result['ct_result'];
@@ -1991,8 +2017,15 @@ function apbct_login__scripts(){
     wp_localize_script('ct_public', 'ctPublic', array(
         '_ajax_nonce' => wp_create_nonce('ct_secret_stuff'),
         '_rest_nonce' => wp_create_nonce('wp_rest'),
-        '_ajax_url'   => admin_url('admin-ajax.php'),
+        '_ajax_url'   => admin_url('admin-ajax.php', 'relative'),
         '_rest_url'   => esc_url( get_rest_url() ),
+        'pixel__setting' => $apbct->settings['data__pixel'],
+        'pixel__enabled' => $apbct->settings['data__pixel'] === '2' ||
+                                                  ( $apbct->settings['data__pixel'] === '3' && apbct_is_cache_plugins_exists() ),
+        'pixel__url'     => $apbct->pixel_url,
+        'data__set_cookies' => $apbct->settings['data__set_cookies'],
+        'data__set_cookies__alt_sessions_type' => $apbct->settings['data__set_cookies__alt_sessions_type'],
+        'data__email_check_before_post' 	   =>$apbct->settings['data__email_check_before_post'],
     ));
 
     $apbct->public_script_loaded = true;
@@ -2925,6 +2958,9 @@ function apbct_from__WPForms__gatherData($entry, $form){
 	    $field_id = $form_field['id'];
 	    $field_type = $form_field['type'];
         $field_label = $form_field['label'] ?: '';
+        if( ! isset( $entry_fields_data[$field_id] ) ){
+            continue;
+        }
 	    $entry_field_value = $entry_fields_data[$field_id];
 
         # search email field
@@ -4111,10 +4147,15 @@ function ct_enqueue_scripts_public($hook){
 			wp_localize_script('ct_public', 'ctPublic', array(
 				'_ajax_nonce' => wp_create_nonce('ct_secret_stuff'),
 				'_rest_nonce' => wp_create_nonce('wp_rest'),
-				'_ajax_url'   => admin_url('admin-ajax.php'),
+				'_ajax_url'   => admin_url('admin-ajax.php', 'relative'),
 				'_rest_url'   => esc_url( get_rest_url() ),
                 'data__set_cookies' => $apbct->settings['data__set_cookies'],
                 'data__set_cookies__alt_sessions_type' => $apbct->settings['data__set_cookies__alt_sessions_type'],
+                'pixel__setting'                       => $apbct->settings['data__pixel'],
+                'pixel__enabled'                       => $apbct->settings['data__pixel'] === '2' ||
+                                                          ( $apbct->settings['data__pixel'] === '3' && apbct_is_cache_plugins_exists() ),
+                'pixel__url'                           => $apbct->pixel_url,
+                'data__email_check_before_post' 	   =>$apbct->settings['data__email_check_before_post'],
 			));
 		}
   
@@ -4138,7 +4179,7 @@ function ct_enqueue_scripts_public($hook){
             
             wp_enqueue_script('ct_nocache',  plugins_url('/cleantalk-spam-protect/js/cleantalk_nocache.min.js'),  array(),         APBCT_VERSION, false /*in header*/);
             wp_localize_script('ct_nocache', 'ctNocache', array(
-                'ajaxurl'                  => admin_url('admin-ajax.php'),
+                'ajaxurl'                  => admin_url('admin-ajax.php', 'relative'),
                 'info_flag'                => $apbct->settings['misc__collect_details'] && $apbct->settings['data__set_cookies'],
                 'set_cookies_flag'         => (bool) $apbct->settings['data__set_cookies'],
                 'blog_home'                => get_home_url().'/',
@@ -4180,7 +4221,7 @@ function ct_enqueue_scripts_public($hook){
 
 			wp_localize_script('ct_public_admin_js', 'ctPublicAdmin', array(
 				'ct_ajax_nonce'               => $ajax_nonce,
-				'ajaxurl'                     => admin_url('admin-ajax.php'),
+				'ajaxurl'                     => admin_url('admin-ajax.php', 'relative'),
 				'ct_feedback_error'           => __('Error occurred while sending feedback.', 'cleantalk-spam-protect'),
 				'ct_feedback_no_hash'         => __('Feedback wasn\'t sent. There is no associated request.', 'cleantalk-spam-protect'),
 				'ct_feedback_msg'             => sprintf(__("Feedback has been sent to %sCleanTalk Dashboard%s.", 'cleantalk-spam-protect'), $apbct->user_token ? "<a target='_blank' href=https://cleantalk.org/my/show_requests?user_token={$apbct->user_token}&cp_mode=antispam>" : '', $apbct->user_token ? "</a>" : ''),

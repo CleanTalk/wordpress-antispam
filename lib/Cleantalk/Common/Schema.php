@@ -15,6 +15,7 @@ class Schema
 			`network` int(11) unsigned NOT NULL,
 			`mask` int(11) unsigned NOT NULL,
 			`status` TINYINT(1) NOT NULL DEFAULT 0,
+			`source` TINYINT(1) NULL DEFAULT NULL,
 			PRIMARY KEY (`id`),
 			INDEX (  `network` ,  `mask` )
 		    );',
@@ -33,7 +34,11 @@ class Schema
             `blocked_entries` INT NOT NULL,
             `entries_timestamp` INT NOT NULL,
             `ua_id` INT(11) NULL DEFAULT NULL,
-            `ua_name` VARCHAR(1024) NOT NULL, 
+            `ua_name` VARCHAR(1024) NOT NULL,
+            `source` TINYINT(1) NULL DEFAULT NULL,
+            `network` VARCHAR(20) NULL DEFAULT NULL,
+            `first_url` VARCHAR(100) NULL DEFAULT NULL,
+            `last_url` VARCHAR(100) NULL DEFAULT NULL,
             PRIMARY KEY (`id`));',
         'ac_logs' => 'CREATE TABLE IF NOT EXISTS `%scleantalk_ac_log` (
             `id` VARCHAR(40) NOT NULL,

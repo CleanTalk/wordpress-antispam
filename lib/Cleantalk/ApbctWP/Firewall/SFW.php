@@ -86,9 +86,21 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
                 if( Cookie::get( 'ct_sfw_passed' ) ){
 
                     if( ! headers_sent() ){
-                        \Cleantalk\ApbctWP\Variables\Cookie::set( 'ct_sfw_passed', '0', time() + 86400 * 3, '/', null, null, true, 'Lax' );
+                        \Cleantalk\ApbctWP\Variables\Cookie::set(
+                            'ct_sfw_passed',
+                            '0',
+                            time() + 86400 * 3,
+                            '/',
+                            null,
+                            null,
+                            true,
+                            'Lax' );
                     } else {
-                        $results[] = array( 'ip' => $current_ip, 'is_personal' => false, 'status' => 'PASS_SFW__BY_COOKIE', );
+                        $results[] = array(
+                            'ip'          => $current_ip,
+                            'is_personal' => false,
+                            'status'      => 'PASS_SFW__BY_COOKIE'
+                        );
                     }
 
                     // Do logging an one passed request
@@ -106,7 +118,11 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
                 }
 
                 if( $status ) {
-                    $results[] = array('ip' => $current_ip, 'is_personal' => false, 'status' => 'PASS_SFW__BY_WHITELIST',);
+                    $results[] = array(
+                        'ip'          => $current_ip,
+                        'is_personal' => false,
+                        'status'      => 'PASS_SFW__BY_WHITELIST'
+                    );
                 }
 					
 				return $results;
@@ -125,66 +141,93 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 			$needles = array_unique( $needles );
 			
 			$db_results = $this->db->fetch_all("SELECT
-				network, mask, status
+				network, mask, status, source
 				FROM " . $this->db__table__data . "
 				WHERE network IN (". implode( ',', $needles ) .")
 				AND	network = " . $current_ip_v4 . " & mask 
 				AND " . rand( 1, 100000 ) . "  
 				ORDER BY status DESC");
-			
+            
+    
 			if( ! empty( $db_results ) ){
 				
 				foreach( $db_results as $db_result ){
-					
-					if( (int) $db_result['status'] === 1 ) {
-                        $results[] = array('ip' => $current_ip, 'is_personal' => false, 'status' => 'PASS_SFW__BY_WHITELIST',);
-                        break;
-                    }else{
-                        $results[] = array( 'ip' => $current_ip, 'is_personal' => false, 'status' => 'DENY_SFW', );
-                    }
+                    
+                    $result_entry = array(
+                        'ip'          => $current_ip,
+                        'network'     => long2ip( $db_result['network'] ) . '/' . Helper::ip__mask__long_to_number( $db_result['mask'] ),
+                        'is_personal' => $db_result['source'],
+                    );
+                    
+					if( (int) $db_result['status'] === 1 ) { $result_entry['status'] = 'PASS_SFW__BY_WHITELIST'; break; }
+                    if( (int) $db_result['status'] === 0 ) { $result_entry['status'] = 'DENY_SFW'; }
 					
 				}
 				
 			}else{
-				
-				$results[] = array( 'ip' => $current_ip, 'is_personal' => false, 'status' => 'PASS_SFW' );
-				
+                
+                $result_entry = array(
+                    'ip'          => $current_ip,
+                    'is_personal' => null,
+                    'status'      => 'PASS_SFW',
+                );
+                
 			}
+		 
+			$results[] = $result_entry;
 		}
 		
 		return $results;
 	}
-	
-	/**
-	 * Add entry to SFW log.
-	 * Writes to database.
-	 *
-	 * @param string $ip
-	 * @param $status
-	 */
-	public function update_log( $ip, $status ) {
+    
+    /**
+     * Add entry to SFW log.
+     * Writes to database.
+     *
+     * @param string $ip
+     * @param $status
+     * @param string $network
+     * @param string $source
+     */
+	public function update_log( $ip, $status, $network = 'NULL', $source = 'NULL' ) {
 
 		$id   = md5( $ip . $this->module_name );
 		$time = time();
-		
-		$query = "INSERT INTO " . $this->db__table__logs . "
-		SET
-			id = '$id',
-			ip = '$ip',
-			status = '$status',
-			all_entries = 1,
-			blocked_entries = " . ( strpos( $status, 'DENY' ) !== false ? 1 : 0 ) . ",
-			entries_timestamp = '" . $time . "',
-			ua_name = %s
-		ON DUPLICATE KEY
-		UPDATE
-			status = '$status',
-			all_entries = all_entries + 1,
-			blocked_entries = blocked_entries" . ( strpos( $status, 'DENY' ) !== false ? ' + 1' : '' ) . ",
-			entries_timestamp = '" . intval( $time ) . "',
-			ua_name = %s";
 
-		$this->db->prepare( $query, array( Server::get('HTTP_USER_AGENT'), Server::get('HTTP_USER_AGENT') ) );
+		$this->db->prepare( "INSERT INTO " . $this->db__table__logs . "
+            SET
+                id = '$id',
+                ip = '$ip',
+                status = '$status',
+                all_entries = 1,
+                blocked_entries = " . ( strpos( $status, 'DENY' ) !== false ? 1 : 0 ) . ",
+                entries_timestamp = '" . $time . "',
+                ua_name = %s,
+                source = $source,
+                network = %s,
+                first_url = %s,
+                last_url = %s
+            ON DUPLICATE KEY
+            UPDATE
+                status = '$status',
+                source = $source,
+                all_entries = all_entries + 1,
+                blocked_entries = blocked_entries" . ( strpos( $status, 'DENY' ) !== false ? ' + 1' : '' ) . ",
+                entries_timestamp = '" . intval( $time ) . "',
+                ua_name = %s,
+                network = %s,
+                last_url = %s",
+            array( 
+                Server::get('HTTP_USER_AGENT'),
+                $network,
+                substr( Server::get( 'HTTP_HOST' ) . Server::get( 'REQUEST_URI' ), 0, 100 ),
+                substr( Server::get( 'HTTP_HOST' ) . Server::get( 'REQUEST_URI' ), 0, 100 ),
+    
+                Server::get('HTTP_USER_AGENT') ,
+                $network,
+                substr( Server::get( 'HTTP_HOST' ) . Server::get( 'REQUEST_URI' ), 0, 100 ),
+            )
+        );
 		$this->db->execute( $this->db->get_query() );
 	}
 	
@@ -219,7 +262,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 	 */
 	public function _die( $result ){
 		
-		global $apbct, $wpdb;
+		global $apbct;
 		
 		parent::_die( $result );
 		
@@ -236,7 +279,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 			
 			$sfw_die_page = file_get_contents(CLEANTALK_PLUGIN_DIR . "lib/Cleantalk/ApbctWP/Firewall/die_page_sfw.html");
 
-            $net_count = $wpdb->get_var('SELECT COUNT(*) FROM ' . APBCT_TBL_FIREWALL_DATA );
+            $net_count = $apbct->stats['sfw']['entries'];
 
             $status = $result['status'] == 'PASS_SFW__BY_WHITELIST' ? '1' : '0';
             $cookie_val = md5( $result['ip'] . $this->api_key ) . $status;
@@ -317,7 +360,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
      * @return array|bool array('error' => STRING)
      */
 	public static function send_log( $db, $log_table, $ct_key, $use_delete_command ) {
-	    
+	 
 		//Getting logs
 		$query = "SELECT * FROM " . $log_table . ";";
 		$db->fetch_all( $query );
@@ -326,7 +369,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 			
 			//Compile logs
 			$data = array();
-			foreach( $db->result as $key => $value ){
+			foreach( $db->result as $key => &$value ){
 				
 				// Converting statuses to API format
 				$value['status'] = $value['status'] === 'DENY_ANTICRAWLER'    ? 'BOT_PROTECTION'   : $value['status'];
@@ -339,10 +382,24 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 				$value['status'] = $value['status'] === 'DENY_ANTIFLOOD_UA'   ? 'FLOOD_PROTECTION' : $value['status'];
 				$value['status'] = $value['status'] === 'PASS_ANTIFLOOD_UA'   ? 'FLOOD_PROTECTION' : $value['status'];
 				
-				$value['status'] = $value['status'] === 'PASS_SFW__BY_COOKIE' ? null               : $value['status'];
-                $value['status'] = $value['status'] === 'PASS_SFW'            ? null               : $value['status'];
-				$value['status'] = $value['status'] === 'DENY_SFW'            ? null               : $value['status'];
-
+				$value['status'] = $value['status'] === 'PASS_SFW__BY_COOKIE' ? 'DB_MATCH'         : $value['status'];
+                $value['status'] = $value['status'] === 'PASS_SFW'            ? 'DB_MATCH'         : $value['status'];
+				$value['status'] = $value['status'] === 'DENY_SFW'            ? 'DB_MATCH'         : $value['status'];
+                
+                $value['status'] = $value['source']                           ? 'PERSONAL_LIST_MATCH' : $value['status'];
+				
+				$additional = array();
+				if( $value['network'] ){
+                    $additional['nd'] = $value['network'];
+                }
+                if( $value['first_url'] ){
+                    $additional['fu'] = $value['first_url'];
+                }
+                if( $value['last_url'] ){
+                    $additional['lu'] = $value['last_url'];
+                }
+                $additional = $additional ?: 'EMPTY_ASSOCIATIVE_ARRAY';
+				
                 $data[] = array(
 					trim( $value['ip'] ),                                      // IP
                     $value['blocked_entries'],                                 // Count showing of block pages
@@ -351,6 +408,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
                     $value['status'],                                          // Status
                     $value['ua_name'],                                         // User-Agent name
                     $value['ua_id'],                                           // User-Agent ID
+                    $additional                                                // Network, first URL, last URL
 				);
 				
 			}
@@ -494,7 +552,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
             
             for( $count_result = 0; current($data) !== false; ) {
                 
-                $query = "INSERT INTO ".$db__table__data." (network, mask, status) VALUES ";
+                $query = "INSERT INTO ".$db__table__data." (network, mask, status, source) VALUES ";
                 
                 for( $i = 0, $values = array(); APBCT_WRITE_LIMIT !== $i && current( $data ) !== false; $i ++, $count_result ++, next( $data ) ){
                     
@@ -504,15 +562,23 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
                         continue;
                     
                     if ( APBCT_WRITE_LIMIT !== $i ) {
+    
+                        if( ! isset( $entry[0], $entry[1] ) ){
+                            continue;
+                        }
                         
                         // Cast result to int
-                        $ip   = preg_replace('/[^\d]*/', '', $entry[0]);
-                        $mask = preg_replace('/[^\d]*/', '', $entry[1]);
-                        $private = isset($entry[2]) ? $entry[2] : 0;
-                        
+                        $ip     = preg_replace( '/[^\d]*/', '', $entry[0] );
+                        $mask   = preg_replace( '/[^\d]*/', '', $entry[1] );
+                        $status = isset( $entry[2] ) ? $entry[2]       : 0;
+                        $source = isset( $entry[3] ) ? (int) $entry[3] : 'NULL';
+
+                        if( ! $ip || ! $mask || ! $source || ( ! $status && $status !== 0 ) ){
+                            continue;
+                        }
+
+                        $values[] = '('. $ip .','. $mask .','. $status .','. $source .')';
                     }
-                    
-                    $values[] = '('. $ip .','. $mask .','. $private .')';
                     
                 }
                 

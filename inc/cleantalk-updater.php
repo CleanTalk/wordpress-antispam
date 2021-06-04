@@ -926,3 +926,67 @@ function apbct_update_to_5_157_0(){
 	cleantalk_get_brief_data( $apbct->api_key );
     
 }
+
+function apbct_update_to_5_158_0(){
+    
+    global $apbct, $wpdb;
+    
+    $sqls[] = 'ALTER TABLE `%scleantalk_sfw`'
+              . ' ADD COLUMN `source` TINYINT(1) NULL DEFAULT NULL AFTER `status`;';
+    
+    $sqls[] = 'ALTER TABLE `%scleantalk_sfw_logs`'
+              . ' ADD COLUMN `source` TINYINT(1) NULL DEFAULT NULL AFTER `ua_name`,'
+              . ' ADD COLUMN `network` VARCHAR(20) NULL DEFAULT NULL AFTER `source`,'
+              . ' ADD COLUMN `first_url` VARCHAR(100) NULL DEFAULT NULL AFTER `network`,'
+              . ' ADD COLUMN `last_url` VARCHAR(100) NULL DEFAULT NULL AFTER `first_url`;';
+    
+    if( APBCT_WPMS ){
+        // Getting all blog ids
+        $initial_blog  = get_current_blog_id();
+        $blogs = array_keys($wpdb->get_results('SELECT blog_id FROM '. $wpdb->blogs, OBJECT_K));
+        
+        foreach ($blogs as $blog) {
+            
+            switch_to_blog($blog);
+            apbct_activation__create_tables($sqls);
+        }
+        
+        // Restoring initial blog
+        switch_to_blog($initial_blog);
+        
+    }else{
+        apbct_activation__create_tables($sqls);
+    }
+    
+    // Update from fix branch
+    if(APBCT_WPMS && is_main_site()){
+        
+        $wp_blogs = $wpdb->get_results('SELECT blog_id, site_id FROM '. $wpdb->blogs, OBJECT_K);
+        $current_sites_list = $apbct->settings['multisite__use_settings_template_apply_for_current_list_sites'];
+        
+        if( is_array( $wp_blogs ) && is_array( $current_sites_list ) ) {
+            foreach ($wp_blogs as $blog) {
+                $blog_details = get_blog_details( array( 'blog_id' => $blog->blog_id ) );
+                $site_list_index = array_search( $blog_details->blogname, $current_sites_list, true );
+                if( $site_list_index !== false ) {
+                    $current_sites_list[$site_list_index] = $blog_details->id;
+                }
+            }
+            $apbct->settings['multisite__use_settings_template_apply_for_current_list_sites'] = $current_sites_list;
+            $apbct->settings['comments__hide_website_field'] = '0';
+            $apbct->settings['data__pixel'] = '0';
+            $apbct->saveSettings();
+        }
+        
+    }else{
+        $apbct->settings['comments__hide_website_field'] = '0';
+        $apbct->settings['data__pixel'] = '0';
+        $apbct->saveSettings();
+    }
+}
+
+function apbct_update_to_5_158_2() {
+	global $apbct;
+	$apbct->stats['cron']['last_start'] = 0;
+	$apbct->save('stats');
+}

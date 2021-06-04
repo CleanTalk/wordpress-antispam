@@ -3,8 +3,8 @@ Contributors: safronik
 Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 3.0
 Tested up to: 5.7
-Requires PHP: 5.4
-Stable tag: 5.157.1
+Requires PHP: 5.6
+Stable tag: 5.158.1
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -579,6 +579,58 @@ If your website has forms that send data to external sources, you can enable opt
 10. Website's options.
 
 == Changelog ==
+
+= 5.158 May 27 2021 =
+ * Fix: Firewall. SQL-request error.
+
+= 5.158 May 26 2021 =
+ * New. Integration. WP Foro register system integration.
+ * New. Integration. Elementor essentials LoginRegister integration implemented.
+ * New: SQL-schema and updater for extended SpamFirewall logs.
+ * New: Extended SpamFirewall logs.
+ * New: Pixel.
+ * Mod: Few improvements to SFW update.
+ * Mod: add settings for hidding website field from comment form.
+ * Mod: Few improvements to SFW update #2.
+ * Mod: Possibility to send empty JSON object in API.
+ * Mod: Extended SpamFirewall logs for AntiCrawler module.
+ * Upd: SFW. Direct updating method implemented.
+ * Upd. Settings. Network settings templates updated.
+ * Upd: Firewall. Improvements to update system.
+ * Upd: Firewall. Improvements to update system.
+ * Fix: replace wp_die to die in ct_die(), refactoring ct_die()
+ * Fix. Forms. Exclude field wp-editor-area from collecting visible fields.
+ * Fix. Widget. Widget content logic fixed.
+ * Fix: Forms. Nicknames detecting fixed #2.
+ * Fix: Forms. Getting check_js key fixed.
+ * Fix: update ct_die_extended() as ct_die().
+ * Fix. Code. Getting delay before js code get if async option enabled.
+ * Fix. WPMU. Blog id added in settings templates list.
+ * Fix. Integration. Elementor essentials LoginRegister login form protection skipped.
+ * Fix. WPMU. Blog id added in settings templates list.
+ * Fix. Readme. Required PHP version increased to 5.6.
+ * Fix. Updater. 5_157_10 updating fixed #2.
+ * Fix. JS. DOMContentLoaded used instead jQuery(document).ready().
+ * Fix: SpamFirewall. Update. "FW UPDATE INIT: KEY_EMPTY", "SFW UPDATE INIT: KEY_IS_NOT_VALID" errors.
+ * Fix. Users checker. Export to the csv fixed.
+ * Fix: SpamFirewall. Update. Error "WRONG_UPDATE_ID".
+ * Fix: SpamFirewall. Update. "FW UPDATE INIT: KEY_EMPTY", "SFW UPDATE INIT: KEY_IS_NOT_VALID" errors.
+ * Fix: SpamFirewall. Update. Error "WRONG_UPDATE_ID".
+ * Fix: \Cleantalk\Common\Helper::http__request() consider only boolean false (empty string '' considering as good) as bad response.
+ * Fix: SpamFirewall. Update.
+ * Fix: SpamFirewall. Update #2.
+ * Fix: WPMS empty apikey in options
+ * Fix: "Mod: add settings for hidding website field from comment form".
+ * Fix: Common/Helper::http__get_headers() fixed.
+ * Fix: SpamFirewall admin bar counter.
+ * Fix: "Fix: Common/Helper::http__get_headers() fixed."
+ * Fix: Pixel.
+ * Fix: "Pixel" setting description.
+ * Fix: Extended SpamFirewall logs for AntiCrawler module.
+ * Fix: Extended SpamFirewall logs for AntiCrawler module #2.
+ * Fix: WPFroms. PHP notice.
+ * Fix: Gravity Forms. PHP notice.
+ * Revert: Fix: Code. get_fields_any() notice fixed.
 
 = 5.157.2 May 05 2021 =
  * Fix: Code. get_fields_any() notice fixed.

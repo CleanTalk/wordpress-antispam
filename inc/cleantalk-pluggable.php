@@ -477,6 +477,23 @@ function apbct_is_skip_request( $ajax = false ) {
 	        {
 		        return 'formidable_skip';
 	        }
+	        // Artbees Jupiter theme saving settings
+	        if ( Post::get( 'action' ) === 'mk_theme_save' && strpos( get_template(), 'jupiter' ) !== false ){
+		        return 'artbees_jupiter_6_skip';
+	        }
+            // fix conflict with wiloke theme and unknown plugin, that removes standard authorization cookies
+            if ( Post::get( 'action' ) === 'wiloke_themeoptions_ajax_save' && apbct_is_theme_active( 'wilcity' ) ){
+                return 'wiloke_themeoptions_ajax_save_skip';
+            }
+	        // Essentials addons for elementor - light and pro
+	        if(
+		        ( apbct_is_plugin_active( 'essential-addons-for-elementor-lite/essential_adons_elementor.php' ) ||
+		          apbct_is_plugin_active( 'essential-addons-elementor/essential_adons_elementor.php' ) ) &&
+		        ( Post::get('eael-login-submit') !== '' && Post::get('eael-user-login') !== '' ) )
+	        {
+		        return 'eael_login_skipped';
+	        }
+
             break;
 
         case false :
@@ -519,6 +536,14 @@ function apbct_is_skip_request( $ajax = false ) {
 		        ( Post::get('happyforms_message_nonce') !== ''  ) )
 		    {
 			    return 'happyform_skipped';
+		    }
+		    // Essentials addons for elementor - light and pro
+		    if(
+		        ( apbct_is_plugin_active( 'essential-addons-for-elementor-lite/essential_adons_elementor.php' ) ||
+		          apbct_is_plugin_active( 'essential-addons-elementor/essential_adons_elementor.php' ) ) &&
+		        ( Post::get('eael-login-submit') !== '' && Post::get('eael-user-login') !== '' ) )
+		    {
+			    return 'eael_login_skipped';
 		    }
 
             break;
