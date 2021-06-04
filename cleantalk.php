@@ -113,11 +113,7 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 	if($apbct->settings['comments__disable_comments__all'] || $apbct->settings['comments__disable_comments__posts'] || $apbct->settings['comments__disable_comments__pages'] || $apbct->settings['comments__disable_comments__media']){
 		\Cleantalk\Antispam\DisableComments::getInstance();
 	}
-	
-	// Passing JS key to frontend
-	add_action('wp_ajax_apbct_js_keys__get',        'apbct_js_keys__get__ajax');
-	add_action('wp_ajax_nopriv_apbct_js_keys__get', 'apbct_js_keys__get__ajax');
-    
+
     // Using alternative sessions with ajax
     if( $apbct->settings['data__set_cookies'] == 2 && $apbct->settings['data__set_cookies__alt_sessions_type'] == 2 ){
         add_action( 'wp_ajax_nopriv_apbct_alt_session__get__AJAX',  array( \Cleantalk\ApbctWP\Variables\AltSessions::class, 'get_fromRemote'  ) );
