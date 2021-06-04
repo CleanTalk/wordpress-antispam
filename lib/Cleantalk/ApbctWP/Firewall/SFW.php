@@ -563,12 +563,20 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
                     
                     if ( APBCT_WRITE_LIMIT !== $i ) {
     
+                        if( ! isset( $entry[0], $entry[1] ) ){
+                            continue;
+                        }
+                        
                         // Cast result to int
                         $ip     = preg_replace( '/[^\d]*/', '', $entry[0] );
                         $mask   = preg_replace( '/[^\d]*/', '', $entry[1] );
                         $status = isset( $entry[2] ) ? $entry[2]       : 0;
                         $source = isset( $entry[3] ) ? (int) $entry[3] : 'NULL';
-                        
+
+                        if( ! $ip || ! $mask || ! $source || ( ! $status && $status !== 0 ) ){
+                            continue;
+                        }
+
                         $values[] = '('. $ip .','. $mask .','. $status .','. $source .')';
                     }
                     
