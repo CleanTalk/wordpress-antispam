@@ -150,10 +150,10 @@ function apbct_base_call($params = array(), $reg_flag = false){
 		? \Cleantalk\ApbctWP\Helper::array_merge__save_numeric_keys__recursive(apbct_get_sender_info(), (array)$params['sender_info'])
 		: apbct_get_sender_info();
 
-	$honeypot_website = null;
+	$honeypot_field = null;
 
-	if(isset($params['honeypot_website'])) {
-		$honeypot_website = $params['honeypot_website'];
+	if(isset($params['honeypot_field'])) {
+		$honeypot_field = $params['honeypot_field'];
 	}
 	
 	$default_params = array(
@@ -172,7 +172,7 @@ function apbct_base_call($params = array(), $reg_flag = false){
 		'agent'           => APBCT_AGENT,
 		'sender_info'     => $sender_info,
 		'submit_time'     => apbct_get_submit_time(),
-		'honeypot_website' => $honeypot_website
+		'honeypot_field' => $honeypot_field
 	);
 	
 	// Send $_SERVER if couldn't find IP
@@ -432,6 +432,8 @@ function apbct_get_sender_info() {
 		// Misc
 		'site_referer'           => Cookie::get( 'apbct_site_referer' ) ?: null,
 		'source_url'             => Cookie::get( 'apbct_urls' )         ? json_encode( Cookie::get( 'apbct_urls' ) ) : null,
+		'pixel_url'              => Cookie::get('apbct_pixel_url'),
+		'pixel_setting'          => $apbct->settings['data__pixel'],
 		// Debug stuff
 		'amp_detected'           => $amp_detected,
 		'hook'                   => current_filter()                    ? current_filter()            : 'no_hook',
@@ -1169,7 +1171,7 @@ function apbct_private_list_add( $ip ){
 add_filter( 'comment_form_default_fields', 'apbct__change_type_website_field' );
 function apbct__change_type_website_field( $fields ){
 
-	global $apbct;
+	global $apbct, $commenter;
 
 	if(isset($apbct->settings['comments__hide_website_field']) && $apbct->settings['comments__hide_website_field']) {
 		if(isset($fields['url']) && $fields['url']) {

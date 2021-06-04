@@ -262,7 +262,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 	 */
 	public function _die( $result ){
 		
-		global $apbct, $wpdb;
+		global $apbct;
 		
 		parent::_die( $result );
 		
@@ -279,7 +279,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 			
 			$sfw_die_page = file_get_contents(CLEANTALK_PLUGIN_DIR . "lib/Cleantalk/ApbctWP/Firewall/die_page_sfw.html");
 
-            $net_count = $wpdb->get_var('SELECT COUNT(*) FROM ' . APBCT_TBL_FIREWALL_DATA );
+            $net_count = $apbct->stats['sfw']['entries'];
 
             $status = $result['status'] == 'PASS_SFW__BY_WHITELIST' ? '1' : '0';
             $cookie_val = md5( $result['ip'] . $this->api_key ) . $status;

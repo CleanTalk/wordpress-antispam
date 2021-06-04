@@ -103,7 +103,8 @@ class RemoteCalls
         $apbct->data['notice_trial'] = 0;
         $apbct->data['notice_renew'] = 0;
         $apbct->saveData();
-        Cron::updateTask( 'check_account_status', 'ct_account_status_check', 86400 );
+        $cron = new Cron();
+	    $cron->updateTask( 'check_account_status', 'ct_account_status_check', 86400 );
         
         return 'OK';
     }

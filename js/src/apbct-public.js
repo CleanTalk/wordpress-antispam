@@ -81,6 +81,13 @@
 	// Ready function
 	function apbct_ready(){
 
+		if( +ctPublic.pixel__setting ){
+			ctSetCookie( 'apbct_pixel_url', ctPublic.pixel__url );
+			if( +ctPublic.pixel__enabled ){
+				jQuery('body').append( '<img style="display: none; left: 99999px;" src="' + ctPublic.pixel__url + '">' );
+			}
+		}
+
 		setTimeout(function(){
 
 			var visible_fields_collection = {};

@@ -164,7 +164,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
         foreach( $this->ip_array as $ip_origin => $current_ip ) {
 	        
         	// Skip by 301 response code
-	        if( http_response_code() == 301 ){
+	        if( $this->is_redirected() ){
 		        $results[] = array( 'ip' => $current_ip, 'is_personal' => false, 'status' => 'PASS_ANTICRAWLER', );
 		        return $results;
 	        }
@@ -324,7 +324,9 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 				blocked_entries = " . ( strpos( $status, 'DENY' ) !== false ? 1 : 0 ) . ",
 				entries_timestamp = '" . intval( $time ) . "',
 				ua_id = " . $this->ua_id . ",
-				ua_name = %s
+				ua_name = %s,
+				first_url = %s,
+                last_url = %s
 			ON DUPLICATE KEY
 			UPDATE
 			    status = '$status',
@@ -332,22 +334,33 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 				blocked_entries = blocked_entries" . ( strpos( $status, 'DENY' ) !== false ? ' + 1' : '' ) . ",
 				entries_timestamp = '" . intval( $time ) . "',
 				ua_id = " . $this->ua_id . ",
-				ua_name = %s";
+				ua_name = %s,
+				last_url = %s";
 
-		$this->db->prepare( $query, array( Server::get('HTTP_USER_AGENT'), Server::get('HTTP_USER_AGENT') ) );
+		$this->db->prepare(
+		    $query,
+            array(
+                Server::get('HTTP_USER_AGENT'),
+                substr( Server::get( 'HTTP_HOST' ) . Server::get( 'REQUEST_URI' ), 0, 100 ),
+                substr( Server::get( 'HTTP_HOST' ) . Server::get( 'REQUEST_URI' ), 0, 100 ),
+    
+                Server::get('HTTP_USER_AGENT'),
+                substr( Server::get( 'HTTP_HOST' ) . Server::get( 'REQUEST_URI' ), 0, 100 ),
+            )
+        );
 		$this->db->execute( $this->db->get_query() );
 	}
 	
 	public function _die( $result ){
 		
-		global $apbct, $wpdb;
+		global $apbct;
 		
 		// File exists?
 		if(file_exists(CLEANTALK_PLUGIN_DIR . "lib/Cleantalk/ApbctWP/Firewall/die_page_anticrawler.html")){
 			
 			$sfw_die_page = file_get_contents(CLEANTALK_PLUGIN_DIR . "lib/Cleantalk/ApbctWP/Firewall/die_page_anticrawler.html");
 
-			$net_count = $wpdb->get_var('SELECT COUNT(*) FROM ' . APBCT_TBL_FIREWALL_DATA );
+			$net_count = $apbct->stats['sfw']['entries'];
 
 			// Translation
 			$replaces = array(
@@ -409,4 +422,19 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
         return false;
 
     }
+
+	private function is_redirected()
+	{
+		$is_redirect = false;
+		if( Server::get( 'HTTP_REFERER' ) !== '' && Server::get( 'HTTP_HOST' ) !== '' && $this->is_cloudflare() ) {
+			$parse_referer = parse_url( Server::get( 'HTTP_REFERER' ) );
+			$is_redirect = Server::get( 'HTTP_HOST' ) !== $parse_referer['host'];
+		}
+		return http_response_code() == 301 || $is_redirect;
+	}
+
+	private function is_cloudflare()
+	{
+		return Server::get('HTTP_CF_RAY') && Server::get('HTTP_CF_CONNECTING_IP') && Server::get('HTTP_CF_REQUEST_ID');
+	}
 }

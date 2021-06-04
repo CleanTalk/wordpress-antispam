@@ -39,6 +39,19 @@ class Helper
 			'0:0:0:0:0:0:a:1/128', // ::ffff:127.0.0.1
 		),
 	);
+    
+    public static $cleantalks_moderate_servers = array(
+        // MODERATE
+        'moderate1.cleantalk.org' => '162.243.144.175',
+        'moderate2.cleantalk.org' => '159.203.121.181',
+        'moderate3.cleantalk.org' => '88.198.153.60',
+        'moderate4.cleantalk.org' => '159.69.51.30',
+        'moderate5.cleantalk.org' => '95.216.200.119',
+        'moderate6.cleantalk.org' => '138.68.234.8',
+//		'moderate7.cleantalk.org' => '168.119.82.149',
+        'moderate8.cleantalk.org' => '188.34.154.26',
+        'moderate9.cleantalk.org' => '51.81.55.251',
+    );
 	
 	/**
 	 * @var array Set of CleanTalk servers
@@ -932,7 +945,7 @@ class Helper
                 if(count($key_parts) > 0 and strlen($server_key) > 2){
                     foreach($key_parts as $part_index => $part){
                         
-                        if( $part_index === '' ){
+                        if( $part_index === '' || $part === '' ){
                             continue;
                         }
                         

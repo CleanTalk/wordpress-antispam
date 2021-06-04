@@ -104,6 +104,7 @@ class State
         'data__set_cookies'                    => 1, // Set cookies: Disable - 0 / Enable - 1 / Use Alternative cookies - 2.
         'data__set_cookies__alt_sessions_type' => 1, // Alternative cookies handler type: REST API - 1 / AJAX - 2
         'data__ssl_on'                         => 0, // Secure connection to servers
+        'data__pixel'                          => '0',
 		
 		// Exclusions
 		'exclusions__urls'               => '',
@@ -170,6 +171,7 @@ class State
 		'notice_renew' => 0,
 		'notice_review' => 0,
 		'notice_auto_update' => 0,
+		'notice_incompatibility' => array(),
 		
 		// Brief data
 		'brief_data' => array(
@@ -290,7 +292,10 @@ class State
             'activation__timestamp' => 0,
             'activation_previous__timestamp' => 0,
             'activation__times' => 0,
-        )
+        ),
+		'cron' => array(
+			'last_start' => 0,
+		),
 	);
 
     private $default_fw_stats = array(

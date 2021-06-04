@@ -28,3 +28,23 @@
 }
 
 #apbct_gdpr_open_modal:hover{cursor: pointer}
+
+#wp-admin-bar-cleantalk_admin_bar__parent_node img.cleantalk_admin_bar__apbct_icon{
+	width: 18px;
+	height: 18px;
+	margin-top: 7px;
+}
+
+#wp-admin-bar-cleantalk_admin_bar__parent_node div.cleantalk_admin_bar__sum_counter{
+	background: #d63638;
+	display: inline;
+	text-align: center;
+	padding: 2px 4px 2px 4px !important;
+	border-radius: 8px;
+	vertical-align: unset;
+	font-size: 9px;
+}
+
+.cleantalk_admin_bar__separator{
+	height: 0px !important;
+}
