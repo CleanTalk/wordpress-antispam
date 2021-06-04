@@ -195,7 +195,9 @@ function ctSetCookie( cookies, value, expires ){
 					action: 'apbct_alt_session__save__AJAX',
 					cookies: cookies,
 				},
-				{}
+				{
+					apbct_ajax: 1,
+				}
 			);
 		}
 	}

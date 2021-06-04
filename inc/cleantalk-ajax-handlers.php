@@ -36,3 +36,11 @@ function apbct_email_check_before_post() {
 	}
 	die(json_encode(array('error' => 'EMPTY_DATA')));
 }
+
+function apbct_alt_session__save__AJAX() {
+	Cleantalk\ApbctWP\Variables\AltSessions::set_fromRemote();
+}
+
+function apbct_alt_session__get__AJAX() {
+	Cleantalk\ApbctWP\Variables\AltSessions::get_fromRemote();
+}

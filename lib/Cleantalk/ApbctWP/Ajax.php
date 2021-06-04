@@ -59,6 +59,18 @@ class Ajax {
 					apbct_email_check_before_post();
 				}
 				break;
+			case 'apbct_alt_session__save__AJAX':
+				// Using alternative sessions with ajax
+				if( $apbct->settings['data__set_cookies'] == 2 && $apbct->settings['data__set_cookies__alt_sessions_type'] == 2 ){
+					apbct_alt_session__save__AJAX();
+				}
+				break;
+			case 'apbct_alt_session__get__AJAX' :
+				// Using alternative sessions with ajax
+				if( $apbct->settings['data__set_cookies'] == 2 && $apbct->settings['data__set_cookies__alt_sessions_type'] == 2 ){
+					apbct_alt_session__get__AJAX();
+				}
+				break;
 			default :
 				return;
 		}

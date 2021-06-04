@@ -114,12 +114,6 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 		\Cleantalk\Antispam\DisableComments::getInstance();
 	}
 
-    // Using alternative sessions with ajax
-    if( $apbct->settings['data__set_cookies'] == 2 && $apbct->settings['data__set_cookies__alt_sessions_type'] == 2 ){
-        add_action( 'wp_ajax_nopriv_apbct_alt_session__get__AJAX',  array( \Cleantalk\ApbctWP\Variables\AltSessions::class, 'get_fromRemote'  ) );
-        add_action( 'wp_ajax_nopriv_apbct_alt_session__save__AJAX', array( \Cleantalk\ApbctWP\Variables\AltSessions::class, 'set_fromRemote'  ) );
-    }
-
 	add_action( 'rest_api_init', 'apbct_register_my_rest_routes' );
 	function apbct_register_my_rest_routes() {
 		$controller = new RestController();
