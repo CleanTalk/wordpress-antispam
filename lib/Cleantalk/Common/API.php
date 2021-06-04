@@ -206,7 +206,32 @@ class API
 		
 		return $result;
 	}
-	
+
+	/**
+	 * Wrapper for notice_paid_till API method.
+	 * Gets information about renew notice.
+	 *
+	 * @param string $api_key     API key
+	 * @param string $path_to_cms Website URL
+	 * @param string $product_name
+	 * @param bool   $do_check
+	 *
+	 * @return array|bool|mixed
+	 */
+	static public function method__email_check($email, $cache_only = true, $do_check = true)
+	{
+		$request = array(
+			'method_name'  => 'email_check',
+			'cache_only'   => $cache_only ? '1' : '0',
+			'email'        => $email,
+		);
+
+		$result = static::send_request($request);
+		$result = $do_check ? static::check_response($result, 'email_check') : $result;
+		
+		return $result;
+	}
+		
 	/**
 	 * Wrapper for spam_check API method.
 	 * Checks IP|email via CleanTalk's database.
@@ -879,7 +904,10 @@ class API
 				return $result;
 				
 				break;
-			
+			case 'email_check':
+				$result = isset($result['data']) ? $result : array('error' => 'NO_DATA');
+				return $result;
+			break;				
 			// get_antispam_report_breif
 			case 'get_antispam_report_breif':
 				

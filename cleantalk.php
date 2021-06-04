@@ -123,7 +123,11 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
         add_action( 'wp_ajax_nopriv_apbct_alt_session__get__AJAX',  array( \Cleantalk\ApbctWP\Variables\AltSessions::class, 'get_fromRemote'  ) );
         add_action( 'wp_ajax_nopriv_apbct_alt_session__save__AJAX', array( \Cleantalk\ApbctWP\Variables\AltSessions::class, 'set_fromRemote'  ) );
     }
-	
+
+	if ( $apbct->settings['data__email_check_before_post'] ) {
+		add_action( 'wp_ajax_nopriv_apbct_email_check_before_post', 'email_check_before_post');
+	}	
+
 	add_action( 'rest_api_init', 'apbct_register_my_rest_routes' );
 	function apbct_register_my_rest_routes() {
 		$controller = new RestController();
@@ -840,6 +844,18 @@ function ct_get_cookie()
 	$ct_checkjs_key = ct_get_checkjs_value();
 	print $ct_checkjs_key;
 	die();
+}
+
+function email_check_before_post() {
+	if (count($_POST) && isset($_POST['data']['email']) && !empty($_POST['data']['email'])) {
+		$email = trim($_POST['data']['email']);
+		$result = \Cleantalk\ApbctWP\API::method__email_check($email);
+		if (isset($result['data'])) {
+			die(json_encode(array('result' => $result['data'])));
+		}
+		die(json_encode(array('error' => 'ERROR_CHECKING_EMAIL')));		
+	}
+	die(json_encode(array('error' => 'EMPTY_DATA')));	
 }
 
 // Clears

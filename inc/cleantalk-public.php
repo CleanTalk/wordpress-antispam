@@ -2025,6 +2025,7 @@ function apbct_login__scripts(){
         'pixel__url'     => $apbct->pixel_url,
         'data__set_cookies' => $apbct->settings['data__set_cookies'],
         'data__set_cookies__alt_sessions_type' => $apbct->settings['data__set_cookies__alt_sessions_type'],
+        'data__email_check_before_post' 	   =>$apbct->settings['data__email_check_before_post'],
     ));
 
     $apbct->public_script_loaded = true;
@@ -4154,6 +4155,7 @@ function ct_enqueue_scripts_public($hook){
                 'pixel__enabled'                       => $apbct->settings['data__pixel'] === '2' ||
                                                           ( $apbct->settings['data__pixel'] === '3' && apbct_is_cache_plugins_exists() ),
                 'pixel__url'                           => $apbct->pixel_url,
+                'data__email_check_before_post' 	   =>$apbct->settings['data__email_check_before_post'],
 			));
 		}
   

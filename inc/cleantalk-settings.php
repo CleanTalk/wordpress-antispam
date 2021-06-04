@@ -363,6 +363,10 @@ function apbct_settings__set_fileds( $fields ){
                         array( 'val' => 0, 'label' => __( 'Off', 'cleantalk-spam-protect' ), ),
                     ),
                 ),
+                'data__email_check_before_post' => array(
+                	'title' 	  => __('Check email before POST request', 'cleantalk-spam-protect'),
+                	'description' => __('Check email address before sending form data', 'cleantalk-spam-protect'),
+                ),
 			),
 		),
 		
