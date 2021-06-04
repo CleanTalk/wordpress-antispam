@@ -33,15 +33,21 @@ class UsersScan extends Users
 
             $user_obj = get_userdata( $user_id );
 
-            $this->items[] = array(
-                'ct_id' => $user_obj->ID,
-                'ct_username'   => $user_obj,
-                'ct_name'  => $user_obj->display_name,
-                'ct_email' => $user_obj->user_email,
-                'ct_signed_up' => $user_obj->user_registered,
-                'ct_role' => implode( ', ', $user_obj->roles ),
-                'ct_posts' => count_user_posts( $user_id ),
+            $items = array(
+	            'ct_id' => $user_obj->ID,
+	            'ct_username'   => $user_obj,
+	            'ct_name'  => $user_obj->display_name,
+	            'ct_email' => $user_obj->user_email,
+	            'ct_signed_up' => $user_obj->user_registered,
+	            'ct_role' => implode( ', ', $user_obj->roles ),
+	            'ct_posts' => count_user_posts( $user_id ),
             );
+
+	        if( $this->wc_active ) {
+		        $items['ct_orders'] = $this->get_wc_orders_count( $user_obj->ID );
+	        }
+
+            $this->items[] = $items;
 
         }
 

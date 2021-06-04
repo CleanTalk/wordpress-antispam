@@ -7,6 +7,8 @@ class Users extends \Cleantalk\ApbctWP\CleantalkListTable
 
     protected $apbct;
 
+    protected $wc_active = false;
+
     function __construct(){
 
         parent::__construct(array(
@@ -18,6 +20,10 @@ class Users extends \Cleantalk\ApbctWP\CleantalkListTable
 
         $this->row_actions_handler();
 
+	    if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', get_option( 'active_plugins' ) ) ) ) {
+		    $this->wc_active = true;
+	    }
+
         $this->prepare_items();
 
         global $apbct;
@@ -27,15 +33,19 @@ class Users extends \Cleantalk\ApbctWP\CleantalkListTable
 
     // Set columns
     function get_columns(){
-        return array(
-            'cb'            => '<input type="checkbox" />',
-            'ct_username'      => esc_html__( 'Username', 'cleantalk-spam-protect'),
-            'ct_name'          => esc_html__( 'Name', 'cleantalk-spam-protect'),
-            'ct_email'         => esc_html__( 'E-mail', 'cleantalk-spam-protect'),
-            'ct_signed_up'     => esc_html__( 'Signed up', 'cleantalk-spam-protect'),
-            'ct_role'          => esc_html__( 'Role', 'cleantalk-spam-protect'),
-            'ct_posts'         => esc_html__( 'Posts', 'cleantalk-spam-protect'),
-        );
+    	$columns = array(
+		    'cb'            => '<input type="checkbox" />',
+		    'ct_username'      => esc_html__( 'Username', 'cleantalk-spam-protect'),
+		    'ct_name'          => esc_html__( 'Name', 'cleantalk-spam-protect'),
+		    'ct_email'         => esc_html__( 'E-mail', 'cleantalk-spam-protect'),
+		    'ct_signed_up'     => esc_html__( 'Signed up', 'cleantalk-spam-protect'),
+		    'ct_role'          => esc_html__( 'Role', 'cleantalk-spam-protect'),
+		    'ct_posts'         => esc_html__( 'Posts', 'cleantalk-spam-protect'),
+	    );
+    	if( $this->wc_active ) {
+		    $columns['ct_orders'] = esc_html__( 'Completed WC orders', 'cleantalk-spam-protect') ;
+	    }
+        return $columns;
     }
 
     // CheckBox column
@@ -103,6 +113,7 @@ class Users extends \Cleantalk\ApbctWP\CleantalkListTable
             case 'ct_checked':
             case 'ct_spam':
             case 'ct_bad':
+            case 'ct_orders':
                 return $item[ $column_name ];
             default:
                 return print_r( $item, true ) ;
@@ -273,5 +284,22 @@ class Users extends \Cleantalk\ApbctWP\CleantalkListTable
                 ID IN ($ids_string)");
 
     }
+
+	protected function get_wc_orders_count( $user_id )
+	{
+		$args = array(
+			'post_type'   => 'shop_order',
+			'post_status' => 'wc-completed',
+			'numberposts' => -1,
+			'meta_key'    => '_customer_user',
+			'meta_value'  => $user_id,
+		);
+
+		$description = '';
+		if( $count = count( get_posts( $args ) ) ) {
+			$description = esc_html__( 'Do "accurate check" to skip checking this user', 'cleantalk-spam-protect' );
+		}
+		return '<p>'.$count.'</p><i>'.$description.'</i>';
+	}
 
 }
