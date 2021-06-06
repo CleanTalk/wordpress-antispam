@@ -119,10 +119,10 @@ class GetFieldsAny {
 	 */
 	private $processed_data = array(
 		'email' 	=> '',
-		'nickname' 	=> '',
+		'nickname' 	=> array(),
 		'subject' 	=> '',
-		'contact' 	=> '',
-		'message' 	=> ''
+		'contact' 	=> true,
+		'message' 	=> array()
 	);
 
 	/**
@@ -138,7 +138,7 @@ class GetFieldsAny {
 	/**
 	 * @var string
 	 */
-	private $prev_name;
+	private $prev_name = '';
 
 	/**
 	 * GetFieldsAny constructor.
@@ -299,16 +299,16 @@ class GetFieldsAny {
 					preg_match("/(name.?(nick|user)|(nick|user).?name)/", $key, $match_nickname);
 
 					if( count($match_forename) > 1 ) {
-						$this->processed_data['nickname'] = array( 'first' => $value );
+						$this->processed_data['nickname']['first'] = $value;
 					}
 					elseif( count($match_surname) > 1 ) {
-						$this->processed_data['nickname'] = array( 'last' => $value );
+						$this->processed_data['nickname']['last'] = $value;
 					}
 					elseif( count($match_nickname) > 1 ) {
-						$this->processed_data['nickname'] = array( 'nick' => $value );
+						$this->processed_data['nickname']['nick'] = $value;
 					}
 					else {
-						$this->processed_data['message'] = array( $this->prev_name . $key => $value );
+						$this->processed_data['message'][$this->prev_name . $key] = $value;
 					}
 
 				// Subject
@@ -317,7 +317,7 @@ class GetFieldsAny {
 
 				// Message
 				}else{
-					$this->processed_data['message'] = array( $this->prev_name . $key => $value );
+					$this->processed_data['message'][$this->prev_name . $key] = $value;
 				}
 
 			}elseif(!is_object($value)){
