@@ -13,9 +13,3 @@ if( ! function_exists( 'add_filter' ) ) {
 		return null;
 	}
 }
-
-if( ! function_exists( 'strip_shortcodes' ) ) {
-	function strip_shortcodes( $arg1 ) {
-		return $arg1;
-	}
-}
