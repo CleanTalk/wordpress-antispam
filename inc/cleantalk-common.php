@@ -4,6 +4,7 @@ use Cleantalk\Antispam\Cleantalk;
 use Cleantalk\Antispam\CleantalkRequest;
 use Cleantalk\Antispam\CleantalkResponse;
 use Cleantalk\ApbctWP\API;
+use Cleantalk\ApbctWP\GetFieldsAny;
 use Cleantalk\ApbctWP\Helper;
 use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\Variables\Server;
@@ -747,271 +748,35 @@ function ct_delete_spam_comments() {
     return null; 
 }
 
-/*
-* Get data from an ARRAY recursively
-* @return array
-*/ 
+/**
+ * Get data from an ARRAY recursively
+ *
+ * @param $arr
+ * @param array $message
+ * @param null $email
+ * @param array $nickname
+ * @param null $subject
+ * @param bool $contact
+ * @param string $prev_name
+ *
+ * @return array
+ * @deprecated Use ct_gfa()
+ */
 function ct_get_fields_any($arr, $message=array(), $email = null, $nickname = array('nick' => '', 'first' => '', 'last' => ''), $subject = null, $contact = true, $prev_name = ''){
 
-    //Skip request if fields exists
-	$skip_params = array(
-	    'ipn_track_id', 	// PayPal IPN #
-	    'txn_type', 		// PayPal transaction type
-	    'payment_status', 	// PayPal payment status
-	    'ccbill_ipn', 		// CCBill IPN 
-		'ct_checkjs', 		// skip ct_checkjs field
-		'api_mode',         // DigiStore-API
-		'loadLastCommentId' // Plugin: WP Discuz. ticket_id=5571
-    );
-	
-	// Fields to replace with ****
-    $obfuscate_params = array(
-        'password',
-        'pass',
-        'pwd',
-		'pswd'
-    );
-	
-	// Skip feilds with these strings and known service fields
-	$skip_fields_with_strings = array( 
-		// Common
-		'ct_checkjs', //Do not send ct_checkjs
-		'nonce', //nonce for strings such as 'rsvp_nonce_name'
-		'security',
-		// 'action',
-		'http_referer',
-		'referer-page',
-		'timestamp',
-		'captcha',
-		// Formidable Form
-		'form_key',
-		'submit_entry',
-		// Custom Contact Forms
-		'form_id',
-		'ccf_form',
-		'form_page',
-		// Qu Forms
-		'iphorm_uid',
-		'form_url',
-		'post_id',
-		'iphorm_ajax',
-		'iphorm_id',
-		// Fast SecureContact Froms
-		'fs_postonce_1',
-		'fscf_submitted',
-		'mailto_id',
-		'si_contact_action',
-		// Ninja Forms
-		'formData_id',
-		'formData_settings',
-		'formData_fields_\d+_id',
-		'formData_fields_\d+_files.*',		
-		// E_signature
-		'recipient_signature',
-		'output_\d+_\w{0,2}',
-		// Contact Form by Web-Settler protection
-        '_formId',
-        '_returnLink',
-		// Social login and more
-		'_save',
-		'_facebook',
-		'_social',
-		'user_login-',
-		// Contact Form 7
-		'_wpcf7',
-		'ebd_settings',
-		'ebd_downloads_',
-		'ecole_origine',
-		'signature',
-		// Ultimate Form Builder
-		'form_data_%d_name',
-	);
+	return ct_gfa( $arr, $email, $nickname );
 
-	// Reset $message if we have a sign-up data
-    $skip_message_post = array(
-        'edd_action', // Easy Digital Downloads
-    );
-	
-   	if( apbct_array( array( $_POST, $_GET ) )->get_keys( $skip_params )->result() )
-        $contact = false;
-
-	$visible_fields = apbct_visible_fields__process( Cookie::get( 'apbct_visible_fields', array(), 'array' ) );
-	$visible_fields_arr = isset( $visible_fields['visible_fields'] ) ? explode( ' ', $visible_fields['visible_fields'] ) : array();
-
-	$nickname_default = true;
-	if(is_array($nickname)) {
-        foreach ($nickname as $v) {
-            if($v) $nickname_default = false;
-        }
-    }
-	if(is_string($nickname)) {
-        $nickname_default = false;
-    }
-
-	if(count($arr)){
-
-		foreach($arr as $key => $value){
-
-            if( is_string( $value ) ){
-
-                $tmp = strpos($value, '\\') !== false ? stripslashes($value) : $value;
-
-                # Remove html tags from $value
-                $tmp = preg_replace( '@<.*?>@', '', $tmp);
-
-                $decoded_json_value = json_decode($tmp, true);       // Try parse JSON from the string
-	            if( strpos( $value, "\n" ) === false || strpos( $value, "\r" ) === false  ) {
-	            	// Parse an only single-lined string
-		            parse_str( urldecode( $tmp ), $decoded_url_value ); // Try parse URL from the string
-	            }
-                
-                // If there is "JSON data" set is it as a value
-                if($decoded_json_value !== null){
-
-                    if(isset($arr['action']) && $arr['action'] === 'nf_ajax_submit') {
-                        unset($decoded_json_value['settings']);
-                    }
-
-                    $value = $decoded_json_value;
-
-                // If there is "URL data" set is it as a value
-                }elseif( isset( $decoded_url_value ) && ! ( count( $decoded_url_value ) === 1 && reset( $decoded_url_value ) === '' ) ){
-                    $value = $decoded_url_value;
-
-                // Ajax Contact Forms. Get data from such strings:
-                // acfw30_name %% Blocked~acfw30_email %% s@cleantalk.org
-                // acfw30_textarea %% msg
-                }elseif(preg_match('/^\S+\s%%\s\S+.+$/', $value)){
-
-                    $value = explode('~', $value);
-                    foreach ($value as &$val){
-                        $tmp = explode(' %% ', $val);
-                        $val = array($tmp[0] => $tmp[1]);
-                    }unset( $val );
-
-                }
-            }
-
-			if(!is_array($value) && !is_object($value)){
-
-				if (in_array($key, $skip_params, true) && $key != 0 && $key != '' || preg_match("/^ct_checkjs/", $key))
-					$contact = false;
-
-				if($value === '')
-					continue;
-
-				// Skipping fields names with strings from (array)skip_fields_with_strings
-				foreach($skip_fields_with_strings as $needle){
-					if (preg_match("/".$needle."/", $prev_name.$key) == 1){
-						continue(2);
-					}
-				}unset($needle);
-
-				// Obfuscating params
-				foreach($obfuscate_params as $needle){
-					if (strpos($key, $needle) !== false){
-						$value = ct_obfuscate_param($value);
-						continue(2);
-					}
-				}unset($needle);
-
-                $value_for_email = trim( strip_shortcodes( $value ) );    // Removes shortcodes to do better spam filtration on server side.
-
-				// Email
-				if ( ! $email && preg_match( "/^\S+@\S+\.\S+$/", $value_for_email ) ) {
-					$email = $value_for_email;
-
-                // Removes whitespaces
-                $value = urldecode( trim( strip_shortcodes( $value ) ) ); // Fully cleaned message
-
-				// Names
-				// if there is an visible fields array then we take the name from it,
-				//	ignoring the hidden fields with name
-				}elseif (
-                    $nickname_default &&
-					preg_match("/name/i", $key) !== false &&
-					(
-						empty($visible_fields_arr) ||
-						in_array($key, $visible_fields_arr)
-					)
-				) {
-					preg_match("/(name.?(your|first|for)|(your|first|for).?name)/", $key, $match_forename);
-					preg_match("/(name.?(last|family|second|sur)|(last|family|second|sur).?name)/", $key, $match_surname);
-					preg_match("/(name.?(nick|user)|(nick|user).?name)/", $key, $match_nickname);
-
-					if(count($match_forename) > 1)
-						$nickname['first'] = $value;
-					elseif(count($match_surname) > 1)
-						$nickname['last'] = $value;
-					elseif(count($match_nickname) > 1)
-						$nickname['nick'] = $value;
-					else
-						$message[$prev_name.$key] = $value;
-				// Subject
-				}elseif ($subject === null && preg_match("/subject/i", $key)){
-					$subject = $value;
-
-				// Message
-				}else{
-					$message[$prev_name.$key] = $value;
-				}
-
-			}elseif(!is_object($value)){
-				$prev_name_original = $prev_name;
-				$prev_name = ($prev_name === '' ? $key.'_' : $prev_name.$key.'_');
-
-				$temp = ct_get_fields_any($value, $message, $email, $nickname, $subject, $contact, $prev_name);
-
-				$message 	= $temp['message'];
-				$email 		= ($temp['email'] 		? $temp['email'] : null);
-				$nickname 	= ($temp['nickname'] 	? $temp['nickname'] : null);
-				$subject 	= ($temp['subject'] 	? $temp['subject'] : null);
-				if($contact === true)
-					$contact = ($temp['contact'] === false ? false : true);
-				$prev_name 	= $prev_name_original;
-			}
-		} unset($key, $value);
-	}
-	
-    foreach ($skip_message_post as $v) {
-        if (isset($_POST[$v])) {
-            $message = null;
-            break;
-        }
-    } unset($v);
-
-	//If top iteration, returns compiled name field. Example: "Nickname Firtsname Lastname".]
-	if($nickname_default && $prev_name === ''){
-		if(!empty($nickname)){
-			$nickname_str = '';
-			foreach($nickname as $value){
-				$nickname_str .= ($value ? $value." " : "");
-			}unset($value);
-		}
-		$nickname = $nickname_str;
-	}
-	
-    $return_param = array(
-		'email' 	=> $email,
-		'nickname' 	=> $nickname,
-		'subject' 	=> $subject,
-		'contact' 	=> $contact,
-		'message' 	=> $message
-	);
-	return $return_param;
 }
 
 /**
-* Masks a value with asterisks (*)
-* @return string
+* Get data from an ARRAY recursively
+* @return array
 */
-function ct_obfuscate_param($value = null) {
-    if ($value && (!is_object($value) || !is_array($value))) {
-        $length = strlen($value);
-        $value = str_repeat('*', $length);
-    }
+function ct_gfa( $input_array, $email = '', $nickname = '' ) {
 
-    return $value;
+	$gfa = new GetFieldsAny( $input_array );
+	return $gfa->getFields( $email, $nickname );
+
 }
 
 //New ct_get_fields_any_postdata
