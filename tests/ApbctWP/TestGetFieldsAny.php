@@ -13,6 +13,14 @@ if( file_exists( 'inc/cleantalk-common.php' ) ) {
 use Cleantalk\ApbctWP\GetFieldsAny;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * State class placeholder
+ */
+global $apbct;
+$apbct = new class {
+	public $settings = array('data__set_cookies' => 1);
+};
+
 class TestGetFieldsAny extends TestCase {
 
 	/**
@@ -43,13 +51,6 @@ class TestGetFieldsAny extends TestCase {
 		);
 		$this->gfa = new GetFieldsAny( $this->post );
 
-		/**
-		 * State class placeholder
-		 */
-		global $apbct;
-		$apbct = new class {
-			public $settings = array('data__set_cookies' => 1);
-		};
 	}
 
 	public function testgetFields()
