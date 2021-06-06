@@ -2,6 +2,10 @@
 require_once dirname( dirname( __FILE__ ) ) . '/lib/autoloader.php';
 require_once dirname( dirname( __FILE__ ) ) . '/lib/cleantalk-php-patch.php';
 
+if( !defined( 'APBCT_VERSION' ) ) {
+	define( 'APBCT_VERSION', 'some-version' );
+}
+
 global $apbct;
 $apbct = new \Cleantalk\ApbctWP\State('cleantalk', array('settings', 'data'));
 \Cleantalk\ApbctWP\State::setDefinitions();
