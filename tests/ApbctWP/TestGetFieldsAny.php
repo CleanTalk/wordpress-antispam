@@ -42,6 +42,14 @@ class TestGetFieldsAny extends TestCase {
 			'ct_checkjs_cf7' => '150095430',
 		);
 		$this->gfa = new GetFieldsAny( $this->post );
+
+		/**
+		 * State class placeholder
+		 */
+		global $apbct;
+		$apbct = new class {
+			public $settings = array('data__set_cookies' => 1);
+		};
 	}
 
 	public function testgetFields()
