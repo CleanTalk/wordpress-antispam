@@ -280,20 +280,23 @@ class GetFieldsAny {
 				$value = urldecode( trim( $this->strip_shortcodes( $value ) ) ); // Fully cleaned message
 
 				// Email
-				if ( ! $this->preprocessed_email && preg_match( "/^\S+@\S+\.\S+$/", $value_for_email ) ) {
+				if ( preg_match( "/^\S+@\S+\.\S+$/", $value_for_email ) ) {
+					// Bypass email collecting if it is set by attribute.
+					if( $this->preprocessed_email ) {
+						continue;
+					}
 					$this->processed_data['email'] = $value_for_email;
 
 				// Names
-				}elseif (
-					! $this->preprocessed_nickname &&
-					false !== stripos( $key, "name" ) &&
-					(
-						// if there is an visible fields array then we take the name from it,
-						// ignoring the hidden fields with name
-						empty( $this->visible_fields_arr ) ||
-						in_array( $key, $this->visible_fields_arr, true )
-					)
-				) {
+				}elseif ( false !== stripos( $key, "name" ) ) {
+					// Bypass name collecting if it is set by attribute or it is on invisible fields.
+					if(
+						$this->preprocessed_nickname &&
+					    ( empty( $this->visible_fields_arr ) ||
+					     in_array( $key, $this->visible_fields_arr, true ) )
+					) {
+						continue;
+					}
 					preg_match("/(name.?(your|first|for)|(your|first|for).?name)/", $key, $match_forename);
 					preg_match("/(name.?(last|family|second|sur)|(last|family|second|sur).?name)/", $key, $match_surname);
 					preg_match("/(name.?(nick|user)|(nick|user).?name)/", $key, $match_nickname);
