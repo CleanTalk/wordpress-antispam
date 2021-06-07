@@ -990,7 +990,7 @@ function apbct_sfw_update__worker(
         // Maximum is 90% because there are User-Agents to update. Leaving them 10% of all percents.
         $apbct->fw_stats['firewall_update_percent'] = round( ( ( (int) $current_url + 1 ) / (int) $url_count ), 2 ) * 90 + 10;
         $apbct->save( 'fw_stats' );
-;
+
         return apbct_sfw_update__process_file( $multifile_url, $url_count, $current_url, $updating_id );
         
     // Main update is complete. Adding exclusions.
