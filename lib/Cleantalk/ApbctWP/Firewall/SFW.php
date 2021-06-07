@@ -545,7 +545,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
      * @return array|bool array('error' => STRING)
      */
     public static function update__write_to_db( $db, $db__table__data, $file_url = null ){
-    
+        
         $data = Helper::http__get_data_from_remote_gz__and_parse_csv( $file_url );
         
         if( empty( $data['errors'] ) ){
@@ -562,8 +562,8 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
                         continue;
                     
                     if ( APBCT_WRITE_LIMIT !== $i ) {
-    
-                        if( ! isset( $entry[0], $entry[1] ) ){
+                        
+                        if( empty( $entry[0] )  || empty ($entry[1] ) ){
                             continue;
                         }
                         
@@ -573,11 +573,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
                         $status = isset( $entry[2] ) ? $entry[2]       : 0;
                         $source = isset( $entry[3] ) ? (int) $entry[3] : 'NULL';
 
-                        if( ! $ip || ! $mask || ! $source || ( ! $status && $status !== 0 ) ){
-                            continue;
-                        }
-
-                        $values[] = '('. $ip .','. $mask .','. $status .','. $source .')';
+                        $values[] = "($ip, $mask, $status, $source)";
                     }
                     
                 }
