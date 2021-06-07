@@ -929,8 +929,6 @@ function apbct_sfw_update__init( $delay = 0 ){
  * @param string $url_count
  * @param string $current_url
  * @param string $useragent_url
- * @param string $expected_networks_count // count networks for update in cleantalk_sfw
- * @param string $expected_ua_count // count ua for update in cleantalk_sfw
  *
  * @return array|bool|int|string[]
  * @throws Exception
@@ -940,11 +938,9 @@ function apbct_sfw_update__worker(
     $multifile_url = null,
     $url_count = null,
     $current_url = null,
-    $useragent_url = null,
-    $expected_networks_count = null,
-    $expected_ua_count = null ) {
- 
-	global $apbct;
+    $useragent_url = null) {
+
+    global $apbct;
     
     sleep(1);
     
@@ -953,8 +949,6 @@ function apbct_sfw_update__worker(
     $url_count     = $url_count     ?: Get::get( 'url_count' );
     $useragent_url = $useragent_url ?: Get::get( 'useragent_url' );
     $current_url   = isset( $current_url ) ? $current_url : Get::get( 'current_url' );
-    $expected_networks_count = $expected_networks_count ?: $apbct->fw_stats['expected_networks_count'];
-    //$expected_ua_count = $expected_ua_count ?: $apbct->fw_stats['expected_ua_count'];
 
     $api_key = $apbct->api_key;
 
@@ -1007,13 +1001,14 @@ function apbct_sfw_update__worker(
     // End of update
     }else{
 
-    	return apbct_sfw_update__end_of_update($expected_networks_count);
+    	return apbct_sfw_update__end_of_update();
 
     }
 }
 
 function apbct_sfw_update__get_multifiles( $api_key, $updating_id ){
-    
+    global $apbct;
+
     $result = SFW::update__get_multifile( $api_key );
     
     if( ! empty( $result['error'] ) ){
@@ -1023,11 +1018,28 @@ function apbct_sfw_update__get_multifiles( $api_key, $updating_id ){
     /**
      * Save expected_networks_count and expected_ua_count if exists
      */
-    if(!empty($result['expected_networks_count']) || !empty($result['expected_ua_count'])) {
-        global $apbct;
+    if(!empty($result['expected_records_count'])) {
 
-        $apbct->fw_stats['expected_networks_count'] = isset($result['expected_networks_count']) ? $result['expected_networks_count'] : null;
-        $apbct->fw_stats['expected_ua_count'] = isset($result['expected_ua_count']) ? $result['expected_ua_count'] : null;
+        $expected_records_count_data = Helper::http__get_data_from_remote_gz__and_parse_csv( $result['expected_records_count'] );
+
+        if( ! empty( $expected_records_count_arr['error'] ) ){
+            return array( 'error' => 'GET EXPECTED RECORDS COUNT DATA: ' . $result['error'] );
+        }
+
+        $expected_networks_count = 0;
+        $expected_ua_count = 0;
+
+        foreach ($expected_records_count_data as $value) {
+            if(trim($value[0], '"') === 'networks_count') {
+                $expected_networks_count = $value[1];
+            }
+            if(trim($value[0], '"') === 'ua_count') {
+                $expected_ua_count = $value[1];
+            }
+        }
+
+        $apbct->fw_stats['expected_networks_count'] = $expected_networks_count;
+        $apbct->fw_stats['expected_ua_count'] = $expected_ua_count;
         $apbct->save( 'fw_stats' );
     }
 
@@ -1151,7 +1163,8 @@ function apbct_sfw_update__process_file( $multifile_url, $url_count, $current_ur
 }
 
 function apbct_sfw_update__process_exclusions( $multifile_url, $updating_id ){
-    
+    global $apbct;
+
     $result = SFW::update__write_to_db__exclusions(
         DB::getInstance(),
         APBCT_TBL_FIREWALL_DATA . '_temp'
@@ -1169,8 +1182,6 @@ function apbct_sfw_update__process_exclusions( $multifile_url, $updating_id ){
      * Update expected_networks_count
      */
     if($result > 0) {
-        global $apbct;
-
         $apbct->fw_stats['expected_networks_count'] += $result;
         $apbct->save( 'fw_stats' );
     }
@@ -1200,7 +1211,7 @@ function apbct_sfw_update__process_exclusions( $multifile_url, $updating_id ){
     return $result;
 }
 
-function apbct_sfw_update__end_of_update($expected_networks_count) {
+function apbct_sfw_update__end_of_update() {
 
 	global $apbct, $wpdb;
 
@@ -1225,8 +1236,29 @@ function apbct_sfw_update__end_of_update($expected_networks_count) {
     /**
      * Checking the integrity of the sfw database update
      */
-    if($apbct->stats['sfw']['entries'] != $expected_networks_count) {
+    global $ct_cron;
+    $is_cron_running = (bool) $ct_cron;
 
+    if($apbct->fw_stats['expected_networks_count'] && $apbct->stats['sfw']['entries'] != $apbct->fw_stats['expected_networks_count']) {
+
+        # call manually
+        if(! $is_cron_running) {
+            return array(
+                'error' => 'The discrepancy between the amount of data received for the update and in the final table: ' . APBCT_TBL_FIREWALL_DATA . '. RECEIVED: ' . $apbct->fw_stats['expected_networks_count'] . '. ADDED: ' . $apbct->stats['sfw']['entries']);
+        }
+
+        #call cron
+        if($apbct->fw_stats['failed_update_attempt']) {
+            return array(
+                'error' => 'The discrepancy between the amount of data received for the update and in the final table: ' . APBCT_TBL_FIREWALL_DATA . '. RECEIVED: ' . $apbct->fw_stats['expected_networks_count'] . '. ADDED: ' . $apbct->stats['sfw']['entries']);
+        }
+
+        $apbct->fw_stats['failed_update_attempt'] = true;
+        $apbct->save( 'fw_stats' );
+
+        $cron = new Cron();
+        $cron->updateTask('sfw_update', 'apbct_sfw_update__init', 86400, time() + 180 );
+        return false;
     }
 
     $apbct->data['last_firewall_updated'] = current_time('timestamp');
@@ -1247,6 +1279,14 @@ function apbct_sfw_update__end_of_update($expected_networks_count) {
 	$update_period = (int)$update_period > 14400 ?  (int) $update_period : 14400;
 	$cron = new Cron();
 	$cron->updateTask('sfw_update', 'apbct_sfw_update__init', $update_period );
+
+    /**
+     * Update fw data if update completed
+     */
+    $apbct->fw_stats['failed_update_attempt'] = false;
+    $apbct->fw_stats['expected_networks_count'] = false;
+
+    $apbct->save( 'fw_stats' );
 
 	return true;
 
