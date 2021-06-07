@@ -1091,7 +1091,7 @@ function apbct_hook__wp_footer() {
 						if( document.querySelectorAll('[name^=ct_checkjs]').length > 0 ) {
 			                apbct_public_sendAJAX(
 			                    { action: 'apbct_js_keys__get' },
-			                    { callback: apbct_js_keys__set_input_value, no_nonce: true }
+			                    { callback: apbct_js_keys__set_input_value, apbct_ajax: 1 }
 			                );
 			            }
 					},". $timeout .");					    
@@ -2019,6 +2019,7 @@ function apbct_login__scripts(){
         '_rest_nonce' => wp_create_nonce('wp_rest'),
         '_ajax_url'   => admin_url('admin-ajax.php', 'relative'),
         '_rest_url'   => esc_url( get_rest_url() ),
+        '_apbct_ajax_url'   => APBCT_URL_PATH . '/lib/Cleantalk/ApbctWP/Ajax.php',
         'pixel__setting' => $apbct->settings['data__pixel'],
         'pixel__enabled' => $apbct->settings['data__pixel'] === '2' ||
                                                   ( $apbct->settings['data__pixel'] === '3' && apbct_is_cache_plugins_exists() ),
@@ -4149,6 +4150,7 @@ function ct_enqueue_scripts_public($hook){
 				'_rest_nonce' => wp_create_nonce('wp_rest'),
 				'_ajax_url'   => admin_url('admin-ajax.php', 'relative'),
 				'_rest_url'   => esc_url( get_rest_url() ),
+				'_apbct_ajax_url'   => APBCT_URL_PATH . '/lib/Cleantalk/ApbctWP/Ajax.php',
                 'data__set_cookies' => $apbct->settings['data__set_cookies'],
                 'data__set_cookies__alt_sessions_type' => $apbct->settings['data__set_cookies__alt_sessions_type'],
                 'pixel__setting'                       => $apbct->settings['data__pixel'],

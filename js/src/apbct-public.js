@@ -81,6 +81,7 @@
 			apbct_public_sendAJAX(
 				{action: 'apbct_email_check_before_post', data : {'email' : current_email}},
 				{
+					apbct_ajax: 1,
 					callback: function (result) {
 						if (result.result) {
 							ctCheckedEmails[current_email] = {'result' : result.result, 'timestamp': Date.now() / 1000 |0};
@@ -194,7 +195,9 @@ function ctSetCookie( cookies, value, expires ){
 					action: 'apbct_alt_session__save__AJAX',
 					cookies: cookies,
 				},
-				{}
+				{
+					apbct_ajax: 1,
+				}
 			);
 		}
 	}
@@ -307,6 +310,7 @@ function apbct_public_sendAJAX(data, params, obj){
 	var progressbar = params.progressbar || null;
 	var silent      = params.silent      || null;
 	var no_nonce    = params.no_nonce    || null;
+	var apbct_ajax  = params.apbct_ajax  || null;
 
 	if(typeof (data) === 'string') {
 		if( ! no_nonce )
@@ -323,7 +327,7 @@ function apbct_public_sendAJAX(data, params, obj){
 
 	jQuery.ajax({
 		type: "POST",
-		url: ctPublic._ajax_url,
+		url: apbct_ajax ? ctPublic._apbct_ajax_url : ctPublic._ajax_url,
 		data: data,
 		async: async,
 		success: function(result){

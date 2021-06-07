@@ -56,10 +56,6 @@ define('APBCT_DEBUG',            'cleantalk_debug');            //Option name wi
 // Multisite
 define('APBCT_WPMS', (is_multisite() ? true : false)); // WMPS is enabled
 
-// Sessions
-define('APBCT_SEESION__LIVE_TIME', 86400);
-define('APBCT_SEESION__CHANCE_TO_CLEAN', 100);
-
 // Different params
 define('APBCT_REMOTE_CALL_SLEEP', 5); // Minimum time between remote call
 
@@ -113,20 +109,6 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 	if($apbct->settings['comments__disable_comments__all'] || $apbct->settings['comments__disable_comments__posts'] || $apbct->settings['comments__disable_comments__pages'] || $apbct->settings['comments__disable_comments__media']){
 		\Cleantalk\Antispam\DisableComments::getInstance();
 	}
-	
-	// Passing JS key to frontend
-	add_action('wp_ajax_apbct_js_keys__get',        'apbct_js_keys__get__ajax');
-	add_action('wp_ajax_nopriv_apbct_js_keys__get', 'apbct_js_keys__get__ajax');
-    
-    // Using alternative sessions with ajax
-    if( $apbct->settings['data__set_cookies'] == 2 && $apbct->settings['data__set_cookies__alt_sessions_type'] == 2 ){
-        add_action( 'wp_ajax_nopriv_apbct_alt_session__get__AJAX',  array( \Cleantalk\ApbctWP\Variables\AltSessions::class, 'get_fromRemote'  ) );
-        add_action( 'wp_ajax_nopriv_apbct_alt_session__save__AJAX', array( \Cleantalk\ApbctWP\Variables\AltSessions::class, 'set_fromRemote'  ) );
-    }
-
-	if ( $apbct->settings['data__email_check_before_post'] ) {
-		add_action( 'wp_ajax_nopriv_apbct_email_check_before_post', 'email_check_before_post');
-	}	
 
 	add_action( 'rest_api_init', 'apbct_register_my_rest_routes' );
 	function apbct_register_my_rest_routes() {
@@ -138,16 +120,10 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 	global $wpdb;
 	$apbct->db_prefix = !APBCT_WPMS || $apbct->allow_custom_key || $apbct->white_label ? $wpdb->prefix : $wpdb->base_prefix;
 	$apbct->db_prefix = !$apbct->white_label && defined('CLEANTALK_ACCESS_KEY') ? $wpdb->base_prefix : $wpdb->prefix;
-	// Database constants
-	define('APBCT_TBL_FIREWALL_DATA', $apbct->db_prefix . 'cleantalk_sfw');      // Table with firewall data.
-	define('APBCT_TBL_FIREWALL_LOG',  $apbct->db_prefix . 'cleantalk_sfw_logs'); // Table with firewall logs.
-	define('APBCT_TBL_AC_LOG',        $apbct->db_prefix . 'cleantalk_ac_log');   // Table with firewall logs.
-    define('APBCT_TBL_AC_UA_BL',      $apbct->db_prefix . 'cleantalk_ua_bl');    // Table with User-Agents blacklist.
-	define('APBCT_TBL_SESSIONS',      $apbct->db_prefix . 'cleantalk_sessions'); // Table with session data.
-    define('APBCT_SPAMSCAN_LOGS',     $apbct->db_prefix . 'cleantalk_spamscan_logs'); // Table with session data.
-	define('APBCT_SELECT_LIMIT',      5000); // Select limit for logs.
-	define('APBCT_WRITE_LIMIT',       5000); // Write limit for firewall data.
-	
+
+	// Set some defines
+	\Cleantalk\ApbctWP\State::setDefinitions();
+
 	/** @todo HARDCODE FIX */
 	if($apbct->plugin_version === '1.0.0')
 		$apbct->plugin_version = '5.100';
@@ -844,18 +820,6 @@ function ct_get_cookie()
 	$ct_checkjs_key = ct_get_checkjs_value();
 	print $ct_checkjs_key;
 	die();
-}
-
-function email_check_before_post() {
-	if (count($_POST) && isset($_POST['data']['email']) && !empty($_POST['data']['email'])) {
-		$email = trim($_POST['data']['email']);
-		$result = \Cleantalk\ApbctWP\API::method__email_check($email);
-		if (isset($result['data'])) {
-			die(json_encode(array('result' => $result['data'])));
-		}
-		die(json_encode(array('error' => 'ERROR_CHECKING_EMAIL')));		
-	}
-	die(json_encode(array('error' => 'EMPTY_DATA')));	
 }
 
 // Clears
