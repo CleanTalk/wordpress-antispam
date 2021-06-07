@@ -903,7 +903,7 @@ function apbct_sfw_update__init( $delay = 0 ){
         ),
 		array( 'async' )
 	);
-    
+
     if( ! empty( $result['error'] ) ){
         
         if( strpos( $result['error'], 'WRONG_SITE_RESPONSE' ) !== false ){
@@ -929,11 +929,20 @@ function apbct_sfw_update__init( $delay = 0 ){
  * @param string $url_count
  * @param string $current_url
  * @param string $useragent_url
+ * @param string $expected_networks_count // count networks for update in cleantalk_sfw
+ * @param string $expected_ua_count // count ua for update in cleantalk_sfw
  *
  * @return array|bool|int|string[]
  * @throws Exception
  */
-function apbct_sfw_update__worker( $updating_id = null, $multifile_url = null, $url_count = null, $current_url = null, $useragent_url = null ){
+function apbct_sfw_update__worker(
+    $updating_id = null,
+    $multifile_url = null,
+    $url_count = null,
+    $current_url = null,
+    $useragent_url = null,
+    $expected_networks_count = null,
+    $expected_ua_count = null ) {
  
 	global $apbct;
     
@@ -944,7 +953,9 @@ function apbct_sfw_update__worker( $updating_id = null, $multifile_url = null, $
     $url_count     = $url_count     ?: Get::get( 'url_count' );
     $useragent_url = $useragent_url ?: Get::get( 'useragent_url' );
     $current_url   = isset( $current_url ) ? $current_url : Get::get( 'current_url' );
-	
+    $expected_networks_count = $expected_networks_count ?: $apbct->fw_stats['expected_networks_count'];
+    //$expected_ua_count = $expected_ua_count ?: $apbct->fw_stats['expected_ua_count'];
+
     $api_key = $apbct->api_key;
 
     if( ! $apbct->data['key_is_ok'] ){
@@ -968,7 +979,7 @@ function apbct_sfw_update__worker( $updating_id = null, $multifile_url = null, $
         $result = SFW::create_temp_tables( DB::getInstance(), APBCT_TBL_FIREWALL_DATA );
         if( ! empty( $result['error'] ) )
             return $result;
-        
+
         return apbct_sfw_update__get_multifiles( $api_key, $updating_id );
     
     // User-Agents blacklist
@@ -976,7 +987,7 @@ function apbct_sfw_update__worker( $updating_id = null, $multifile_url = null, $
     
         $apbct->fw_stats['firewall_update_percent'] = 10;
         $apbct->save( 'fw_stats' );
-        
+
         return apbct_sfw_update__process_ua( $multifile_url, $url_count, $current_url, $updating_id, $useragent_url );
         
     // Writing data form URL gz file
@@ -985,18 +996,18 @@ function apbct_sfw_update__worker( $updating_id = null, $multifile_url = null, $
         // Maximum is 90% because there are User-Agents to update. Leaving them 10% of all percents.
         $apbct->fw_stats['firewall_update_percent'] = round( ( ( (int) $current_url + 1 ) / (int) $url_count ), 2 ) * 90 + 10;
         $apbct->save( 'fw_stats' );
-    
+;
         return apbct_sfw_update__process_file( $multifile_url, $url_count, $current_url, $updating_id );
         
     // Main update is complete. Adding exclusions.
     }elseif( $url_count && $url_count === $current_url ){
-    
+
         return apbct_sfw_update__process_exclusions( $multifile_url, $updating_id );
     
     // End of update
     }else{
 
-    	return apbct_sfw_update__end_of_update();
+    	return apbct_sfw_update__end_of_update($expected_networks_count);
 
     }
 }
@@ -1008,7 +1019,18 @@ function apbct_sfw_update__get_multifiles( $api_key, $updating_id ){
     if( ! empty( $result['error'] ) ){
         return array( 'error' => 'GET MULTIFILE: ' . $result['error'] );
     }
-    
+
+    /**
+     * Save expected_networks_count and expected_ua_count if exists
+     */
+    if(!empty($result['expected_networks_count']) || !empty($result['expected_ua_count'])) {
+        global $apbct;
+
+        $apbct->fw_stats['expected_networks_count'] = isset($result['expected_networks_count']) ? $result['expected_networks_count'] : null;
+        $apbct->fw_stats['expected_ua_count'] = isset($result['expected_ua_count']) ? $result['expected_ua_count'] : null;
+        $apbct->save( 'fw_stats' );
+    }
+
     $rc_result = Helper::http__request__rc_to_host(
         'sfw_update__worker',
         array(
@@ -1142,6 +1164,16 @@ function apbct_sfw_update__process_exclusions( $multifile_url, $updating_id ){
     if( ! is_int( $result ) ){
         return array( 'error' => 'EXCLUSIONS: WRONG_RESPONSE update__write_to_db__exclusions' );
     }
+
+    /**
+     * Update expected_networks_count
+     */
+    if($result > 0) {
+        global $apbct;
+
+        $apbct->fw_stats['expected_networks_count'] += $result;
+        $apbct->save( 'fw_stats' );
+    }
     
     $rc_result = Helper::http__request__rc_to_host(
         'sfw_update__worker',
@@ -1168,7 +1200,7 @@ function apbct_sfw_update__process_exclusions( $multifile_url, $updating_id ){
     return $result;
 }
 
-function apbct_sfw_update__end_of_update() {
+function apbct_sfw_update__end_of_update($expected_networks_count) {
 
 	global $apbct, $wpdb;
 
@@ -1190,7 +1222,14 @@ function apbct_sfw_update__end_of_update() {
 	$apbct->stats['sfw']['last_update_time'] = time();
 	$apbct->save( 'stats' );
 
-	$apbct->data['last_firewall_updated'] = current_time('timestamp');
+    /**
+     * Checking the integrity of the sfw database update
+     */
+    if($apbct->stats['sfw']['entries'] != $expected_networks_count) {
+
+    }
+
+    $apbct->data['last_firewall_updated'] = current_time('timestamp');
 	$apbct->save('data'); // Unused
 
 	// Running sfw update once again in 12 min if entries is < 4000

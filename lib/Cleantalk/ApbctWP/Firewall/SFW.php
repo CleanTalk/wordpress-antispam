@@ -512,7 +512,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
         
         // Getting remote file name
         $result = API::method__get_2s_blacklists_db( $api_key, 'multifiles', '3_0' );
-        
+
         if( empty( $result['error'] ) ){
             
             if( ! empty( $result['file_url'] ) ){
@@ -525,6 +525,9 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
                         'multifile_url' => trim( $result['file_url'] ),
                         'useragent_url' => trim( $result['file_ua_url'] ),
                         'file_urls'     => $data,
+                        // TODO: get expected_networks_count and expected_ua_count from 2s_blacklists_db
+                        'expected_networks_count' => 9400,
+                        'expected_ua_count' => 400
                     );
                     
                 }else
