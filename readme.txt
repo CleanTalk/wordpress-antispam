@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 3.0
 Tested up to: 5.7
 Requires PHP: 5.6
-Stable tag: 5.158.1
+Stable tag: 5.159
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -579,6 +579,39 @@ If your website has forms that send data to external sources, you can enable opt
 10. Website's options.
 
 == Changelog ==
+
+= 5.159 Jun 09 2021 =
+ * New. Admin Bar. Common admin bar implemented.
+ * New: email check before post.
+ * New: New admin bar style.
+ * New. SFW. Updating integrity control implemented.
+ * New. Custom Ajax. Email checking before post.
+ * New. Custom Ajax. Getting JS key.
+ * New. Custom Ajax. Alternative cookies.
+ * Upd. Integrations. Support multiple non-ajax hooks.
+ * Upd. Cron. Cron class and cron usage updated.
+ * Upd. Pixel. Pixel setting is "auto" for the new installations.
+ * Upd. Users checker. Users with completed WC orders no checked.
+ * Upd. WPMS settings.
+ * Mod. limiting the size of an array top5_spam_ip to five elements in widget.
+ * Mod. update data__pixel title.
+ * Mod. Update data__use_static_js_key title.
+ * Mod. add 'relative' parameter in admin_url() for getting ajaxurl.
+ * Mod. update field name honeypot_field, reverse logic
+ * Fix. resolve conflict with wiloke theme and unknown plugin, that removes standard authorization cookies.
+ * Fix. moved the wiloke_theme options_ajax_save_skip check to apbct_is_skip_request function.
+ * Fix. added a theme check along with a hook wiloke_themeoptions_ajax_save_skip.
+ * Fix. Integration. Essentials addons for elementor integration fixed.
+ * Fix. AC/AF. Clearing AC table via cron fixed.
+ * Fix. SFW. Obtaining the count of the networks was fixed.
+ * Fix. Cron. Last cron start fixed.
+ * Fix. cookies for login page.
+ * Fix. Firewall. Update. Filtering bad data.
+ * Fix. Custom Ajax. Localized login scripts.
+ * Fix. API. Cleantalk\ApbctWP\API fixed to work on SHORTINIT mode.
+ * Fix. Custom Ajax. Getting JS key - removed WP ajax hooks.
+ * Fix. GetFieldsAny. Bypassing collecting email and names logic fixed.
+ * Fix. New admin bar style. Sorting plugins by Alphabet.
 
 = 5.158 May 27 2021 =
  * Fix: Firewall. SQL-request error.
