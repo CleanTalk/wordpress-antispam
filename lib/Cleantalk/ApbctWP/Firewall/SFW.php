@@ -517,15 +517,15 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
             
             if( ! empty( $result['file_url'] ) ){
                 
-                $data = Helper::http__get_data_from_remote_gz__and_parse_csv( str_replace( 'apix3', 'api-next', $result['file_url'] ) );
+                $data = Helper::http__get_data_from_remote_gz__and_parse_csv( $result['file_url'] );
                 
                 if( empty( $data['error'] ) ){
                     
                     return array(
-                        'multifile_url' => trim( str_replace( 'apix3', 'api-next', $result['file_url'] ) ),
-                        'useragent_url' => trim( str_replace( 'apix3', 'api-next', $result['file_ua_url'] ) ),
+                        'multifile_url' => trim( $result['file_url'] ),
+                        'useragent_url' => trim( $result['file_ua_url'] ),
                         'file_urls'     => $data,
-                        'expected_records_count' => trim( str_replace( 'apix3', 'api-next', $result['file_ck_url'] ) ),
+                        'file_ck_url'   => trim( $result['file_ck_url'] ),
                     );
                     
                 }else

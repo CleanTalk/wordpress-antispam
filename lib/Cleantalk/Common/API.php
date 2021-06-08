@@ -16,7 +16,7 @@ namespace Cleantalk\Common;
 class API
 {
 	/* Default params  */
-	const URL = 'https://api-next.cleantalk.org';
+	const URL = 'https://api.cleantalk.org';
 	const AGENT = 'ct-api-3.2';
 	
 	/**

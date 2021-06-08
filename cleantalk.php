@@ -903,7 +903,7 @@ function apbct_sfw_update__init( $delay = 0 ){
         ),
 		array( 'async' )
 	);
-
+    
     if( ! empty( $result['error'] ) ){
         
         if( strpos( $result['error'], 'WRONG_SITE_RESPONSE' ) !== false ){
@@ -949,7 +949,7 @@ function apbct_sfw_update__worker(
     $url_count     = $url_count     ?: Get::get( 'url_count' );
     $useragent_url = $useragent_url ?: Get::get( 'useragent_url' );
     $current_url   = isset( $current_url ) ? $current_url : Get::get( 'current_url' );
-
+	
     $api_key = $apbct->api_key;
 
     if( ! $apbct->data['key_is_ok'] ){
@@ -973,7 +973,7 @@ function apbct_sfw_update__worker(
         $result = SFW::create_temp_tables( DB::getInstance(), APBCT_TBL_FIREWALL_DATA );
         if( ! empty( $result['error'] ) )
             return $result;
-
+        
         return apbct_sfw_update__get_multifiles( $api_key, $updating_id );
     
     // User-Agents blacklist
@@ -981,7 +981,7 @@ function apbct_sfw_update__worker(
     
         $apbct->fw_stats['firewall_update_percent'] = 10;
         $apbct->save( 'fw_stats' );
-
+        
         return apbct_sfw_update__process_ua( $multifile_url, $url_count, $current_url, $updating_id, $useragent_url );
         
     // Writing data form URL gz file
@@ -990,12 +990,12 @@ function apbct_sfw_update__worker(
         // Maximum is 90% because there are User-Agents to update. Leaving them 10% of all percents.
         $apbct->fw_stats['firewall_update_percent'] = round( ( ( (int) $current_url + 1 ) / (int) $url_count ), 2 ) * 90 + 10;
         $apbct->save( 'fw_stats' );
-
+    
         return apbct_sfw_update__process_file( $multifile_url, $url_count, $current_url, $updating_id );
         
     // Main update is complete. Adding exclusions.
     }elseif( $url_count && $url_count === $current_url ){
-
+    
         return apbct_sfw_update__process_exclusions( $multifile_url, $updating_id );
     
     // End of update
@@ -1007,6 +1007,7 @@ function apbct_sfw_update__worker(
 }
 
 function apbct_sfw_update__get_multifiles( $api_key, $updating_id ){
+
     global $apbct;
 
     $result = SFW::update__get_multifile( $api_key );
@@ -1014,34 +1015,29 @@ function apbct_sfw_update__get_multifiles( $api_key, $updating_id ){
     if( ! empty( $result['error'] ) ){
         return array( 'error' => 'GET MULTIFILE: ' . $result['error'] );
     }
+    
+    // Save expected_networks_count and expected_ua_count if exists
+    $file_ck_url__data = Helper::http__get_data_from_remote_gz__and_parse_csv( $result['expected_records_count'] );
 
-    /**
-     * Save expected_networks_count and expected_ua_count if exists
-     */
-    if(!empty($result['expected_records_count'])) {
-
-        $expected_records_count_data = Helper::http__get_data_from_remote_gz__and_parse_csv( $result['expected_records_count'] );
-
-        if( ! empty( $expected_records_count_arr['error'] ) ){
-            return array( 'error' => 'GET EXPECTED RECORDS COUNT DATA: ' . $result['error'] );
-        }
-
-        $expected_networks_count = 0;
-        $expected_ua_count = 0;
-
-        foreach ($expected_records_count_data as $value) {
-            if(trim($value[0], '"') === 'networks_count') {
-                $expected_networks_count = $value[1];
-            }
-            if(trim($value[0], '"') === 'ua_count') {
-                $expected_ua_count = $value[1];
-            }
-        }
-
-        $apbct->fw_stats['expected_networks_count'] = $expected_networks_count;
-        $apbct->fw_stats['expected_ua_count'] = $expected_ua_count;
-        $apbct->save( 'fw_stats' );
+    if( ! empty( $expected_records_count_arr['error'] ) ){
+        return array( 'error' => 'GET EXPECTED RECORDS COUNT DATA: ' . $result['error'] );
     }
+
+    $expected_networks_count = 0;
+    $expected_ua_count       = 0;
+
+    foreach( $file_ck_url__data as &$value ) {
+        if( trim( $value[0], '"' ) === 'networks_count' ){
+            $expected_networks_count = $value[1];
+        }
+        if( trim( $value[0], '"' ) === 'ua_count' ) {
+            $expected_ua_count = $value[1];
+        }
+    }
+
+    $apbct->fw_stats['expected_networks_count'] = $expected_networks_count;
+    $apbct->fw_stats['expected_ua_count']       = $expected_ua_count;
+    $apbct->save( 'fw_stats' );
 
     $rc_result = Helper::http__request__rc_to_host(
         'sfw_update__worker',
@@ -1181,7 +1177,7 @@ function apbct_sfw_update__process_exclusions( $multifile_url, $updating_id ){
     /**
      * Update expected_networks_count
      */
-    if($result > 0) {
+    if( $result > 0 ) {
         $apbct->fw_stats['expected_networks_count'] += $result;
         $apbct->save( 'fw_stats' );
     }
@@ -1237,18 +1233,17 @@ function apbct_sfw_update__end_of_update() {
      * Checking the integrity of the sfw database update
      */
     global $ct_cron;
-    $is_cron_running = (bool) $ct_cron;
 
-    if($apbct->fw_stats['expected_networks_count'] && $apbct->stats['sfw']['entries'] != $apbct->fw_stats['expected_networks_count']) {
+    if( $apbct->stats['sfw']['entries'] != $apbct->fw_stats['expected_networks_count'] ) {
 
         # call manually
-        if(! $is_cron_running) {
+        if( ! $ct_cron ){
             return array(
                 'error' => 'The discrepancy between the amount of data received for the update and in the final table: ' . APBCT_TBL_FIREWALL_DATA . '. RECEIVED: ' . $apbct->fw_stats['expected_networks_count'] . '. ADDED: ' . $apbct->stats['sfw']['entries']);
         }
 
         #call cron
-        if($apbct->fw_stats['failed_update_attempt']) {
+        if( $apbct->fw_stats['failed_update_attempt'] ) {
             return array(
                 'error' => 'The discrepancy between the amount of data received for the update and in the final table: ' . APBCT_TBL_FIREWALL_DATA . '. RECEIVED: ' . $apbct->fw_stats['expected_networks_count'] . '. ADDED: ' . $apbct->stats['sfw']['entries']);
         }
@@ -1283,7 +1278,7 @@ function apbct_sfw_update__end_of_update() {
     /**
      * Update fw data if update completed
      */
-    $apbct->fw_stats['failed_update_attempt'] = false;
+    $apbct->fw_stats['failed_update_attempt']   = false;
     $apbct->fw_stats['expected_networks_count'] = false;
 
     $apbct->save( 'fw_stats' );
