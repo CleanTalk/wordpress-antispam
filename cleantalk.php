@@ -997,7 +997,7 @@ function apbct_sfw_update__get_multifiles( $api_key, $updating_id ){
     }
     
     // Save expected_networks_count and expected_ua_count if exists
-    $file_ck_url__data = Helper::http__get_data_from_remote_gz__and_parse_csv( $result['expected_records_count'] );
+    $file_ck_url__data = Helper::http__get_data_from_remote_gz__and_parse_csv( $result['file_ck_url'] );
 
     if( ! empty( $file_ck_url__data['error'] ) ){
         return array( 'error' => 'GET EXPECTED RECORDS COUNT DATA: ' . $result['error'] );
