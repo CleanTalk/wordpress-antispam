@@ -130,7 +130,7 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 	
 	// Do update actions if version is changed
 	apbct_update_actions();
-    
+
     // Self cron
 	$ct_cron = new Cron();
 	$tasks_to_run = $ct_cron->checkTasks(); // Check for current tasks. Drop tasks inner counters.
@@ -913,9 +913,14 @@ function apbct_sfw_update__init( $delay = 0 ){
  * @return array|bool|int|string[]
  * @throws Exception
  */
-function apbct_sfw_update__worker( $updating_id = null, $multifile_url = null, $url_count = null, $current_url = null, $useragent_url = null ){
- 
-	global $apbct;
+function apbct_sfw_update__worker(
+    $updating_id = null,
+    $multifile_url = null,
+    $url_count = null,
+    $current_url = null,
+    $useragent_url = null) {
+
+    global $apbct;
     
     sleep(1);
     
@@ -982,13 +987,38 @@ function apbct_sfw_update__worker( $updating_id = null, $multifile_url = null, $
 }
 
 function apbct_sfw_update__get_multifiles( $api_key, $updating_id ){
-    
+
+    global $apbct;
+
     $result = SFW::update__get_multifile( $api_key );
     
     if( ! empty( $result['error'] ) ){
         return array( 'error' => 'GET MULTIFILE: ' . $result['error'] );
     }
     
+    // Save expected_networks_count and expected_ua_count if exists
+    $file_ck_url__data = Helper::http__get_data_from_remote_gz__and_parse_csv( $result['expected_records_count'] );
+
+    if( ! empty( $file_ck_url__data['error'] ) ){
+        return array( 'error' => 'GET EXPECTED RECORDS COUNT DATA: ' . $result['error'] );
+    }
+
+    $expected_networks_count = 0;
+    $expected_ua_count       = 0;
+
+    foreach( $file_ck_url__data as $value ) {
+        if( trim( $value[0], '"' ) === 'networks_count' ){
+            $expected_networks_count = $value[1];
+        }
+        if( trim( $value[0], '"' ) === 'ua_count' ) {
+            $expected_ua_count = $value[1];
+        }
+    }
+
+    $apbct->fw_stats['expected_networks_count'] = $expected_networks_count;
+    $apbct->fw_stats['expected_ua_count']       = $expected_ua_count;
+    $apbct->save( 'fw_stats' );
+
     $rc_result = Helper::http__request__rc_to_host(
         'sfw_update__worker',
         array(
@@ -1109,7 +1139,8 @@ function apbct_sfw_update__process_file( $multifile_url, $url_count, $current_ur
 }
 
 function apbct_sfw_update__process_exclusions( $multifile_url, $updating_id ){
-    
+    global $apbct;
+
     $result = SFW::update__write_to_db__exclusions(
         DB::getInstance(),
         APBCT_TBL_FIREWALL_DATA . '_temp'
@@ -1121,6 +1152,14 @@ function apbct_sfw_update__process_exclusions( $multifile_url, $updating_id ){
     
     if( ! is_int( $result ) ){
         return array( 'error' => 'EXCLUSIONS: WRONG_RESPONSE update__write_to_db__exclusions' );
+    }
+
+    /**
+     * Update expected_networks_count
+     */
+    if( $result > 0 ) {
+        $apbct->fw_stats['expected_networks_count'] += $result;
+        $apbct->save( 'fw_stats' );
     }
     
     $rc_result = Helper::http__request__rc_to_host(
@@ -1170,7 +1209,34 @@ function apbct_sfw_update__end_of_update() {
 	$apbct->stats['sfw']['last_update_time'] = time();
 	$apbct->save( 'stats' );
 
-	$apbct->data['last_firewall_updated'] = current_time('timestamp');
+    /**
+     * Checking the integrity of the sfw database update
+     */
+    global $ct_cron;
+
+    if( $apbct->stats['sfw']['entries'] != $apbct->fw_stats['expected_networks_count'] ) {
+
+        # call manually
+        if( ! $ct_cron ){
+            return array(
+                'error' => 'The discrepancy between the amount of data received for the update and in the final table: ' . APBCT_TBL_FIREWALL_DATA . '. RECEIVED: ' . $apbct->fw_stats['expected_networks_count'] . '. ADDED: ' . $apbct->stats['sfw']['entries']);
+        }
+
+        #call cron
+        if( $apbct->fw_stats['failed_update_attempt'] ) {
+            return array(
+                'error' => 'The discrepancy between the amount of data received for the update and in the final table: ' . APBCT_TBL_FIREWALL_DATA . '. RECEIVED: ' . $apbct->fw_stats['expected_networks_count'] . '. ADDED: ' . $apbct->stats['sfw']['entries']);
+        }
+
+        $apbct->fw_stats['failed_update_attempt'] = true;
+        $apbct->save( 'fw_stats' );
+
+        $cron = new Cron();
+        $cron->updateTask('sfw_update', 'apbct_sfw_update__init', 86400, time() + 180 );
+        return false;
+    }
+
+    $apbct->data['last_firewall_updated'] = current_time('timestamp');
 	$apbct->save('data'); // Unused
 
 	// Running sfw update once again in 12 min if entries is < 4000
@@ -1188,6 +1254,14 @@ function apbct_sfw_update__end_of_update() {
 	$update_period = (int)$update_period > 14400 ?  (int) $update_period : 14400;
 	$cron = new Cron();
 	$cron->updateTask('sfw_update', 'apbct_sfw_update__init', $update_period );
+
+    /**
+     * Update fw data if update completed
+     */
+    $apbct->fw_stats['failed_update_attempt']   = false;
+    $apbct->fw_stats['expected_networks_count'] = false;
+
+    $apbct->save( 'fw_stats' );
 
 	return true;
 

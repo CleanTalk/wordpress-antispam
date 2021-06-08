@@ -511,8 +511,8 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
     public static function update__get_multifile( $api_key ){
         
         // Getting remote file name
-        $result = API::method__get_2s_blacklists_db( $api_key, 'multifiles', '3_0' );
-        
+        $result = API::method__get_2s_blacklists_db( $api_key, 'multifiles', '3_1' );
+
         if( empty( $result['error'] ) ){
             
             if( ! empty( $result['file_url'] ) ){
@@ -525,6 +525,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
                         'multifile_url' => trim( $result['file_url'] ),
                         'useragent_url' => trim( $result['file_ua_url'] ),
                         'file_urls'     => $data,
+                        'file_ck_url'   => trim( $result['file_ck_url'] ),
                     );
                     
                 }else
