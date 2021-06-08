@@ -1693,8 +1693,12 @@ function apbct_settings__get_key_auto( $direct_call = false ) {
 	$language       = apbct_get_server_variable( 'HTTP_ACCEPT_LANGUAGE' );
 	$wpms           = APBCT_WPMS && defined('SUBDOMAIN_INSTALL') && !SUBDOMAIN_INSTALL ? true : false;
 	$white_label    = $apbct->network_settings['multisite__white_label']             ? 1                                                   : 0;
+	$admin_email    = get_option('admin_email');
+	if (function_exists('is_multisite') && is_multisite() && $apbct->white_label) { 
+		$admin_email = get_site_option( 'admin_email' ); 
+	}
 	$result = \Cleantalk\ApbctWP\API::method__get_api_key('antispam',
-		ct_get_admin_email(),
+		$admin_email,
 		$website,
 		$platform,
 		$timezone,
