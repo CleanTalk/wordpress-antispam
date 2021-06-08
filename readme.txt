@@ -598,6 +598,7 @@ If your website has forms that send data to external sources, you can enable opt
  * Mod. Update data__use_static_js_key title.
  * Mod. add 'relative' parameter in admin_url() for getting ajaxurl.
  * Mod. update field name honeypot_field, reverse logic
+ * Mod. changed website field from comments form: type text, display none.
  * Fix. resolve conflict with wiloke theme and unknown plugin, that removes standard authorization cookies.
  * Fix. moved the wiloke_theme options_ajax_save_skip check to apbct_is_skip_request function.
  * Fix. added a theme check along with a hook wiloke_themeoptions_ajax_save_skip.
