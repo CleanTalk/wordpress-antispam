@@ -943,7 +943,7 @@ function apbct__change_type_website_field( $fields ){
 
 	if(isset($apbct->settings['comments__hide_website_field']) && $apbct->settings['comments__hide_website_field']) {
 		if(isset($fields['url']) && $fields['url']) {
-			$fields['url'] = '<input id="url" name="url" type="hidden" value="' . esc_attr( $commenter['comment_author_url'] ) . '" size="30" maxlength="200" />';
+			$fields['url'] = '<input id="honeypot-field-url" name="url" type="text" value="' . esc_attr( $commenter['comment_author_url'] ) . '" size="30" maxlength="200" />';
 		}
 	}
 
@@ -960,6 +960,9 @@ function apbct__styles_if_website_hidden() {
 	if(isset($apbct->settings['comments__hide_website_field']) && $apbct->settings['comments__hide_website_field']) {
 		$styles = "
 		<style>
+		#honeypot-field-url {
+			display: none !important;
+		}
 		.comment-form-cookies-consent {
 			width:100%;
 			overflow: hidden;
