@@ -3,7 +3,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 5.158.2-dev
+  Version: 5.158.3-dev
   Author: СleanTalk <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -55,10 +55,6 @@ define('APBCT_DEBUG',            'cleantalk_debug');            //Option name wi
 
 // Multisite
 define('APBCT_WPMS', (is_multisite() ? true : false)); // WMPS is enabled
-
-// Sessions
-define('APBCT_SEESION__LIVE_TIME', 86400);
-define('APBCT_SEESION__CHANCE_TO_CLEAN', 100);
 
 // Different params
 define('APBCT_REMOTE_CALL_SLEEP', 5); // Minimum time between remote call
@@ -113,20 +109,6 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 	if($apbct->settings['comments__disable_comments__all'] || $apbct->settings['comments__disable_comments__posts'] || $apbct->settings['comments__disable_comments__pages'] || $apbct->settings['comments__disable_comments__media']){
 		\Cleantalk\Antispam\DisableComments::getInstance();
 	}
-	
-	// Passing JS key to frontend
-	add_action('wp_ajax_apbct_js_keys__get',        'apbct_js_keys__get__ajax');
-	add_action('wp_ajax_nopriv_apbct_js_keys__get', 'apbct_js_keys__get__ajax');
-    
-    // Using alternative sessions with ajax
-    if( $apbct->settings['data__set_cookies'] == 2 && $apbct->settings['data__set_cookies__alt_sessions_type'] == 2 ){
-        add_action( 'wp_ajax_nopriv_apbct_alt_session__get__AJAX',  array( \Cleantalk\ApbctWP\Variables\AltSessions::class, 'get_fromRemote'  ) );
-        add_action( 'wp_ajax_nopriv_apbct_alt_session__save__AJAX', array( \Cleantalk\ApbctWP\Variables\AltSessions::class, 'set_fromRemote'  ) );
-    }
-
-	if ( $apbct->settings['data__email_check_before_post'] ) {
-		add_action( 'wp_ajax_nopriv_apbct_email_check_before_post', 'email_check_before_post');
-	}	
 
 	add_action( 'rest_api_init', 'apbct_register_my_rest_routes' );
 	function apbct_register_my_rest_routes() {
@@ -138,23 +120,17 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 	global $wpdb;
 	$apbct->db_prefix = !APBCT_WPMS || $apbct->allow_custom_key || $apbct->white_label ? $wpdb->prefix : $wpdb->base_prefix;
 	$apbct->db_prefix = !$apbct->white_label && defined('CLEANTALK_ACCESS_KEY') ? $wpdb->base_prefix : $wpdb->prefix;
-	// Database constants
-	define('APBCT_TBL_FIREWALL_DATA', $apbct->db_prefix . 'cleantalk_sfw');      // Table with firewall data.
-	define('APBCT_TBL_FIREWALL_LOG',  $apbct->db_prefix . 'cleantalk_sfw_logs'); // Table with firewall logs.
-	define('APBCT_TBL_AC_LOG',        $apbct->db_prefix . 'cleantalk_ac_log');   // Table with firewall logs.
-    define('APBCT_TBL_AC_UA_BL',      $apbct->db_prefix . 'cleantalk_ua_bl');    // Table with User-Agents blacklist.
-	define('APBCT_TBL_SESSIONS',      $apbct->db_prefix . 'cleantalk_sessions'); // Table with session data.
-    define('APBCT_SPAMSCAN_LOGS',     $apbct->db_prefix . 'cleantalk_spamscan_logs'); // Table with session data.
-	define('APBCT_SELECT_LIMIT',      5000); // Select limit for logs.
-	define('APBCT_WRITE_LIMIT',       5000); // Write limit for firewall data.
-	
+
+	// Set some defines
+	\Cleantalk\ApbctWP\State::setDefinitions();
+
 	/** @todo HARDCODE FIX */
 	if($apbct->plugin_version === '1.0.0')
 		$apbct->plugin_version = '5.100';
 	
 	// Do update actions if version is changed
 	apbct_update_actions();
-    
+
     // Self cron
 	$ct_cron = new Cron();
 	$tasks_to_run = $ct_cron->checkTasks(); // Check for current tasks. Drop tasks inner counters.
@@ -846,18 +822,6 @@ function ct_get_cookie()
 	die();
 }
 
-function email_check_before_post() {
-	if (count($_POST) && isset($_POST['data']['email']) && !empty($_POST['data']['email'])) {
-		$email = trim($_POST['data']['email']);
-		$result = \Cleantalk\ApbctWP\API::method__email_check($email);
-		if (isset($result['data'])) {
-			die(json_encode(array('result' => $result['data'])));
-		}
-		die(json_encode(array('error' => 'ERROR_CHECKING_EMAIL')));		
-	}
-	die(json_encode(array('error' => 'EMPTY_DATA')));	
-}
-
 // Clears
 function apbct_sfw__clear(){
     
@@ -949,9 +913,14 @@ function apbct_sfw_update__init( $delay = 0 ){
  * @return array|bool|int|string[]
  * @throws Exception
  */
-function apbct_sfw_update__worker( $updating_id = null, $multifile_url = null, $url_count = null, $current_url = null, $useragent_url = null ){
- 
-	global $apbct;
+function apbct_sfw_update__worker(
+    $updating_id = null,
+    $multifile_url = null,
+    $url_count = null,
+    $current_url = null,
+    $useragent_url = null) {
+
+    global $apbct;
     
     sleep(1);
     
@@ -1018,13 +987,38 @@ function apbct_sfw_update__worker( $updating_id = null, $multifile_url = null, $
 }
 
 function apbct_sfw_update__get_multifiles( $api_key, $updating_id ){
-    
+
+    global $apbct;
+
     $result = SFW::update__get_multifile( $api_key );
     
     if( ! empty( $result['error'] ) ){
         return array( 'error' => 'GET MULTIFILE: ' . $result['error'] );
     }
     
+    // Save expected_networks_count and expected_ua_count if exists
+    $file_ck_url__data = Helper::http__get_data_from_remote_gz__and_parse_csv( $result['expected_records_count'] );
+
+    if( ! empty( $file_ck_url__data['error'] ) ){
+        return array( 'error' => 'GET EXPECTED RECORDS COUNT DATA: ' . $result['error'] );
+    }
+
+    $expected_networks_count = 0;
+    $expected_ua_count       = 0;
+
+    foreach( $file_ck_url__data as $value ) {
+        if( trim( $value[0], '"' ) === 'networks_count' ){
+            $expected_networks_count = $value[1];
+        }
+        if( trim( $value[0], '"' ) === 'ua_count' ) {
+            $expected_ua_count = $value[1];
+        }
+    }
+
+    $apbct->fw_stats['expected_networks_count'] = $expected_networks_count;
+    $apbct->fw_stats['expected_ua_count']       = $expected_ua_count;
+    $apbct->save( 'fw_stats' );
+
     $rc_result = Helper::http__request__rc_to_host(
         'sfw_update__worker',
         array(
@@ -1145,7 +1139,8 @@ function apbct_sfw_update__process_file( $multifile_url, $url_count, $current_ur
 }
 
 function apbct_sfw_update__process_exclusions( $multifile_url, $updating_id ){
-    
+    global $apbct;
+
     $result = SFW::update__write_to_db__exclusions(
         DB::getInstance(),
         APBCT_TBL_FIREWALL_DATA . '_temp'
@@ -1157,6 +1152,14 @@ function apbct_sfw_update__process_exclusions( $multifile_url, $updating_id ){
     
     if( ! is_int( $result ) ){
         return array( 'error' => 'EXCLUSIONS: WRONG_RESPONSE update__write_to_db__exclusions' );
+    }
+
+    /**
+     * Update expected_networks_count
+     */
+    if( $result > 0 ) {
+        $apbct->fw_stats['expected_networks_count'] += $result;
+        $apbct->save( 'fw_stats' );
     }
     
     $rc_result = Helper::http__request__rc_to_host(
@@ -1206,7 +1209,34 @@ function apbct_sfw_update__end_of_update() {
 	$apbct->stats['sfw']['last_update_time'] = time();
 	$apbct->save( 'stats' );
 
-	$apbct->data['last_firewall_updated'] = current_time('timestamp');
+    /**
+     * Checking the integrity of the sfw database update
+     */
+    global $ct_cron;
+
+    if( $apbct->stats['sfw']['entries'] != $apbct->fw_stats['expected_networks_count'] ) {
+
+        # call manually
+        if( ! $ct_cron ){
+            return array(
+                'error' => 'The discrepancy between the amount of data received for the update and in the final table: ' . APBCT_TBL_FIREWALL_DATA . '. RECEIVED: ' . $apbct->fw_stats['expected_networks_count'] . '. ADDED: ' . $apbct->stats['sfw']['entries']);
+        }
+
+        #call cron
+        if( $apbct->fw_stats['failed_update_attempt'] ) {
+            return array(
+                'error' => 'The discrepancy between the amount of data received for the update and in the final table: ' . APBCT_TBL_FIREWALL_DATA . '. RECEIVED: ' . $apbct->fw_stats['expected_networks_count'] . '. ADDED: ' . $apbct->stats['sfw']['entries']);
+        }
+
+        $apbct->fw_stats['failed_update_attempt'] = true;
+        $apbct->save( 'fw_stats' );
+
+        $cron = new Cron();
+        $cron->updateTask('sfw_update', 'apbct_sfw_update__init', 86400, time() + 180 );
+        return false;
+    }
+
+    $apbct->data['last_firewall_updated'] = current_time('timestamp');
 	$apbct->save('data'); // Unused
 
 	// Running sfw update once again in 12 min if entries is < 4000
@@ -1224,6 +1254,14 @@ function apbct_sfw_update__end_of_update() {
 	$update_period = (int)$update_period > 14400 ?  (int) $update_period : 14400;
 	$cron = new Cron();
 	$cron->updateTask('sfw_update', 'apbct_sfw_update__init', $update_period );
+
+    /**
+     * Update fw data if update completed
+     */
+    $apbct->fw_stats['failed_update_attempt']   = false;
+    $apbct->fw_stats['expected_networks_count'] = false;
+
+    $apbct->save( 'fw_stats' );
 
 	return true;
 

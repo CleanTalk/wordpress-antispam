@@ -524,6 +524,19 @@ function apbct_admin__admin_bar__add_structure( $wp_admin_bar ) {
     ) );
     
     // Security
+    $title = $apbct->notice_trial
+        ? "<span><a style='color: red;' href='https://cleantalk.org/my/bill/recharge?utm_source=wp-backend&utm_medium=cpc&utm_campaign=WP%20backend%20trial&user_token={$apbct->user_token}&cp_mode=antispam' target='_blank'>" . __('Renew Anti-Spam', 'cleantalk-spam-protect') . '</a></span>'
+        : '<a>' . __( 'Anti-Spam', 'cleantalk-spam-protect' ) . '</a>';
+    
+    $wp_admin_bar->add_node( array(
+        'parent' => 'cleantalk_admin_bar__parent_node',
+        'id'    => 'apbct__parent_node',
+        'title' => '<div class="cleantalk-admin_bar__parent">'
+                . $title
+            . '</div>'
+    ) );
+    
+    // Antispam
     // Install link
     if( ! $spbc ){
         $spbc_title = '<a>' . __( 'Security', 'security-malware-firewall' ) . '</a>';
@@ -538,24 +551,10 @@ function apbct_admin__admin_bar__add_structure( $wp_admin_bar ) {
             'parent' => 'cleantalk_admin_bar__parent_node',
             'id'    => 'spbc__parent_node',
             'title' => '<div class="cleantalk-admin_bar__parent">'
-                    . $spbc_title
-                . '</div>'
+                       . $spbc_title
+                       . '</div>'
         ) );
     }
-    
-    // Anti-Spam
-    $title = $apbct->notice_trial
-        ? "<span><a style='color: red;' href='https://cleantalk.org/my/bill/recharge?utm_source=wp-backend&utm_medium=cpc&utm_campaign=WP%20backend%20trial&user_token={$apbct->user_token}&cp_mode=antispam' target='_blank'>" . __('Renew Anti-Spam', 'cleantalk-spam-protect') . '</a></span>'
-        : '<a>' . __( 'Anti-Spam', 'cleantalk-spam-protect' ) . '</a>';
-    
-    $wp_admin_bar->add_node( array(
-        'parent' => 'cleantalk_admin_bar__parent_node',
-        'id'    => 'apbct__parent_node',
-        'title' => '<div class="cleantalk-admin_bar__parent">'
-                . $title
-            . '</div>'
-    ) );
-    
 }
 
 function apbct_admin__admin_bar__add_parent_icon( $icon ){

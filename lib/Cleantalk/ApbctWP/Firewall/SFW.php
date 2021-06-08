@@ -511,8 +511,8 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
     public static function update__get_multifile( $api_key ){
         
         // Getting remote file name
-        $result = API::method__get_2s_blacklists_db( $api_key, 'multifiles', '3_0' );
-        
+        $result = API::method__get_2s_blacklists_db( $api_key, 'multifiles', '3_1' );
+
         if( empty( $result['error'] ) ){
             
             if( ! empty( $result['file_url'] ) ){
@@ -525,6 +525,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
                         'multifile_url' => trim( $result['file_url'] ),
                         'useragent_url' => trim( $result['file_ua_url'] ),
                         'file_urls'     => $data,
+                        'file_ck_url'   => trim( $result['file_ck_url'] ),
                     );
                     
                 }else
@@ -545,7 +546,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
      * @return array|bool array('error' => STRING)
      */
     public static function update__write_to_db( $db, $db__table__data, $file_url = null ){
-    
+        
         $data = Helper::http__get_data_from_remote_gz__and_parse_csv( $file_url );
         
         if( empty( $data['errors'] ) ){
@@ -562,8 +563,8 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
                         continue;
                     
                     if ( APBCT_WRITE_LIMIT !== $i ) {
-    
-                        if( ! isset( $entry[0], $entry[1] ) ){
+                        
+                        if( empty( $entry[0] )  || empty ($entry[1] ) ){
                             continue;
                         }
                         
@@ -573,11 +574,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
                         $status = isset( $entry[2] ) ? $entry[2]       : 0;
                         $source = isset( $entry[3] ) ? (int) $entry[3] : 'NULL';
 
-                        if( ! $ip || ! $mask || ! $source || ( ! $status && $status !== 0 ) ){
-                            continue;
-                        }
-
-                        $values[] = '('. $ip .','. $mask .','. $status .','. $source .')';
+                        $values[] = "($ip, $mask, $status, $source)";
                     }
                     
                 }
