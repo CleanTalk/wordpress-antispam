@@ -604,10 +604,14 @@ function apbct_is_cache_plugins_exists(){
  * @return 	string Admin e-mail
  */
 function ct_get_admin_email() {
-	global $admin_email;
+	global $admin_email, $apbct;
+	
 	if(!isset($admin_email))
 	{
 	    $admin_email = get_option('admin_email');
+    	if (function_exists('is_multisite') && is_multisite() && $apbct->white_label) { 
+			$admin_email = get_site_option( 'admin_email' ); 
+		}
 	}
 	return $admin_email;
 }
