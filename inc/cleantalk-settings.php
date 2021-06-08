@@ -43,9 +43,7 @@ function apbct_settings__set_fileds( $fields ){
             $additional_ac_title = ' <span style="color:red">' . esc_html__( 'The functionality was disabled because SpamFireWall database is empty. Please, do the synchronization or', 'cleantalk-spam-protect' ) . ' ' . '<a href="https://cleantalk.org/my/support/open" target="_blank" style="color:red">'. esc_html__( 'contact to our support.', 'cleantalk-spam-protect' ) .'</a></span>';
         }
     }
-    
-    error_log( var_export( $apbct->data['notice_incompatibility'], true ) );
-	
+
 	$fields =  array(
 		
 		'main' => array(
