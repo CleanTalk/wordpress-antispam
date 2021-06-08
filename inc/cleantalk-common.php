@@ -442,6 +442,8 @@ function apbct_get_sender_info() {
 		'headers_sent__where'    => !empty($apbct->headers_sent__where) ? $apbct->headers_sent__where : false,
 		'request_type'           => apbct_get_server_variable('REQUEST_METHOD') ? apbct_get_server_variable('REQUEST_METHOD') : 'UNKNOWN',
 		'email_check'			 => Cookie::get( 'ct_checked_emails' ) ? json_encode(Cookie::get( 'ct_checked_emails' )) : null,
+		'screen_info'			 => Cookie::get( 'ct_screen_info' ) ? json_encode(Cookie::get( 'ct_screen_info' )) : null,
+		'has_scrolled'			 => Cookie::get( 'ct_has_scrolled' ) ? json_encode(Cookie::get( 'ct_has_scrolled' )) : null,
 	);
 }
 

@@ -5,7 +5,8 @@
 		ctMouseEventTimerFlag = true, //Reading interval flag
 		ctMouseData = [],
 		ctMouseDataCounter = 0,
-		ctCheckedEmails = {};
+		ctCheckedEmails = {},
+		ctScrollCollected = false;
 
 	function apbct_attach_event_handler(elem, event, callback){
 		if(typeof window.addEventListener === "function") elem.addEventListener(event, callback);
@@ -93,9 +94,17 @@
 		}
 	}
 
+	function ctSetHasScrolled() {
+		if( ! ctScrollCollected ) {
+			ctSetCookie("ct_has_scrolled", JSON.stringify( true ) );
+			ctScrollCollected = true;
+		}
+	}
+
 	apbct_attach_event_handler(window, "mousemove", ctFunctionMouseMove);
 	apbct_attach_event_handler(window, "mousedown", ctFunctionFirstKey);
 	apbct_attach_event_handler(window, "keydown", ctFunctionFirstKey);
+	apbct_attach_event_handler(window, "scroll", ctSetHasScrolled);
 
 	// Ready function
 	function apbct_ready(){
@@ -111,6 +120,10 @@
 			ctSetCookie( 'ct_checked_emails', '0');
 			jQuery("input[type = 'email'], #email").blur(checkEmail);
 		}
+
+		// Collect scrolling info
+		ctSetCookie( 'ct_screen_info', apbctGetScreenInfo() );
+		ctSetCookie("ct_has_scrolled", JSON.stringify( false ) );
 
 		setTimeout(function(){
 
@@ -393,6 +406,19 @@ function apbct_public_sendREST( route, params ) {
 		},
 	});
 
+}
+
+function apbctGetScreenInfo() {
+	return JSON.stringify({
+		fullWidth : document.documentElement.scrollWidth,
+		fullHeight : Math.max(
+			document.body.scrollHeight, document.documentElement.scrollHeight,
+			document.body.offsetHeight, document.documentElement.offsetHeight,
+			document.body.clientHeight, document.documentElement.clientHeight
+		),
+		visibleWidth : document.documentElement.clientWidth,
+		visibleHeight : document.documentElement.clientHeight,
+	});
 }
 
 if(typeof jQuery !== 'undefined') {
