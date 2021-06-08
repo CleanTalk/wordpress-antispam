@@ -224,7 +224,6 @@ class State
 		
 		// White label settings
 		'multisite__white_label'              => 0,
-		'multisite__white_label__hoster_key'  => '',
 		'multisite__white_label__plugin_name' => 'Anti-Spam by CleanTalk',
 		'multisite__use_settings_template'    => 0,
 		'multisite__use_settings_template_apply_for_new' => 0,

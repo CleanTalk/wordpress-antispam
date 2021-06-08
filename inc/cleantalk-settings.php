@@ -528,18 +528,9 @@ function apbct_settings__set_fileds__network( $fields ){
 					'type' => 'checkbox',
 					'title' => __('Enable White Label Mode', 'cleantalk-spam-protect'),
 					'description' => sprintf(__("Learn more information %shere%s.", 'cleantalk-spam-protect'), '<a target="_blank" href="https://cleantalk.org/ru/help/hosting-white-label">', '</a>'),
-					'childrens' => array( 'multisite__white_label__hoster_key', 'multisite__white_label__plugin_name', 'multisite__allow_custom_key', ),
+					'childrens' => array( 'multisite__white_label__plugin_name', 'multisite__allow_custom_key', ),
 					'disabled' => defined('CLEANTALK_ACCESS_KEY'),
 					'network' => true,
-				),
-				'multisite__white_label__hoster_key' => array(
-					'title' => __('Hoster API Key', 'cleantalk-spam-protect'),
-					'description' => sprintf(__("You can get it in %sCleantalk's Control Panel%s", 'cleantalk-spam-protect'), '<a target="_blank" href="https://cleantalk.org/my/profile">', '</a>'),
-					'type' => 'text',
-					'parent' => 'multisite__white_label',
-					'class' => 'apbct_settings-field_wrapper--sub',
-					'network' => true,
-					'required' => true,
 				),
 				'multisite__white_label__plugin_name' => array(
 					'title' => __('Plugin name', 'cleantalk-spam-protect'),
@@ -552,7 +543,7 @@ function apbct_settings__set_fileds__network( $fields ){
 				),
 				'multisite__allow_custom_key' => array(
 					'type'           => 'checkbox',
-					'title'          => __('Allow users to use other key', 'cleantalk-spam-protect'),
+					'title'          => __('Allow users to use own key', 'cleantalk-spam-protect'),
 					'description'    => __('Allow users to use different Access key in their plugin settings on child blogs. They could use different CleanTalk account.', 'cleantalk-spam-protect')
 						. (defined('CLEANTALK_ACCESS_KEY')
 							? ' <span style="color: red">'
@@ -1515,14 +1506,13 @@ function apbct_settings__validate($settings) {
 			'multisite__allow_custom_key'         => $settings['multisite__allow_custom_key'],
 			'multisite__allow_custom_settings'    => $settings['multisite__allow_custom_settings'],
 			'multisite__white_label'              => $settings['multisite__white_label'],
-			'multisite__white_label__hoster_key'  => $settings['multisite__white_label__hoster_key'],
 			'multisite__white_label__plugin_name' => $settings['multisite__white_label__plugin_name'],
 			'multisite__use_settings_template'    => $settings['multisite__use_settings_template'],
 			'multisite__use_settings_template_apply_for_new' => $settings['multisite__use_settings_template_apply_for_new'],
 			'multisite__use_settings_template_apply_for_current' => $settings['multisite__use_settings_template_apply_for_current'],
 			'multisite__use_settings_template_apply_for_current_list_sites' => $settings['multisite__use_settings_template_apply_for_current_list_sites'],
 		);
-		unset( $settings['multisite__allow_custom_key'], $settings['multisite__white_label'], $settings['multisite__white_label__hoster_key'], $settings['multisite__white_label__plugin_name'] );
+		unset( $settings['multisite__allow_custom_key'], $settings['multisite__white_label'], $settings['multisite__white_label__plugin_name'] );
 	}
 	
 	// Drop debug data
@@ -1705,19 +1695,19 @@ function apbct_settings__get_key_auto( $direct_call = false ) {
 	$language       = apbct_get_server_variable( 'HTTP_ACCEPT_LANGUAGE' );
 	$wpms           = APBCT_WPMS && defined('SUBDOMAIN_INSTALL') && !SUBDOMAIN_INSTALL ? true : false;
 	$white_label    = $apbct->network_settings['multisite__white_label']             ? 1                                                   : 0;
-	$hoster_api_key = $apbct->network_settings['multisite__white_label__hoster_key'] ? $apbct->network_settings['multisite__white_label__hoster_key'] : '';
-
-	$result = \Cleantalk\ApbctWP\API::method__get_api_key(
-		! is_main_site() && $apbct->white_label ? 'anti-spam-hosting' : 'antispam',
-		ct_get_admin_email(),
+	$admin_email = get_option('admin_email');
+	if (function_exists('is_multisite') && is_multisite() && $apbct->white_label) { 
+		$admin_email = get_site_option( 'admin_email' ); 
+	}
+	$result = \Cleantalk\ApbctWP\API::method__get_api_key('antispam',
+		$admin_email,
 		$website,
 		$platform,
 		$timezone,
 		$language,
 		$user_ip,
 		$wpms,
-		$white_label,
-		$hoster_api_key
+		$white_label
 	);
 
 	if(empty($result['error'])){

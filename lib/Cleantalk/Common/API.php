@@ -63,7 +63,7 @@ class API
 	 *
 	 * @return array|bool|mixed
 	 */
-	static public function method__get_api_key($product_name, $email, $website, $platform, $timezone = null, $language = null, $user_ip = null, $wpms = false, $white_label = false, $hoster_api_key = '', $do_check = true)
+	static public function method__get_api_key($product_name, $email, $website, $platform, $timezone = null, $language = null, $user_ip = null, $wpms = false, $white_label = false, $do_check = true)
 	{
 		$request = array(
 			'method_name'          => 'get_api_key',
@@ -75,8 +75,7 @@ class API
 			'http_accept_language' => $language,
 			'user_ip'              => $user_ip,
 			'wpms_setup'           => $wpms,
-			'hoster_whitelabel'    => $white_label,
-			'hoster_api_key'       => $hoster_api_key,
+			'hoster_whitelabel'    => $white_label
 		);
 		
 		$result = static::send_request($request);

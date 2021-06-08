@@ -244,10 +244,6 @@ class CleantalkSettingsTemplates {
 		if( isset( $settings['misc__debug_ajax'] ) ) {
 			unset( $settings['misc__debug_ajax'] );
 		}
-		// Remove multisite__white_label__hoster_key from export
-		if( isset( $settings['multisite__white_label__hoster_key'] ) ) {
-			unset( $settings['multisite__white_label__hoster_key'] );
-		}
 		// Remove all WPMS from export
 		$settings = array_filter( $settings, function( $key ){
 			return strpos( $key, 'multisite__' ) === false;
