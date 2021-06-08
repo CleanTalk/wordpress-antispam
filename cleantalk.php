@@ -150,7 +150,7 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 	
 	// Do update actions if version is changed
 	apbct_update_actions();
-    
+
     // Self cron
 	$ct_cron = new Cron();
 	$tasks_to_run = $ct_cron->checkTasks(); // Check for current tasks. Drop tasks inner counters.
@@ -1019,14 +1019,14 @@ function apbct_sfw_update__get_multifiles( $api_key, $updating_id ){
     // Save expected_networks_count and expected_ua_count if exists
     $file_ck_url__data = Helper::http__get_data_from_remote_gz__and_parse_csv( $result['expected_records_count'] );
 
-    if( ! empty( $expected_records_count_arr['error'] ) ){
+    if( ! empty( $file_ck_url__data['error'] ) ){
         return array( 'error' => 'GET EXPECTED RECORDS COUNT DATA: ' . $result['error'] );
     }
 
     $expected_networks_count = 0;
     $expected_ua_count       = 0;
 
-    foreach( $file_ck_url__data as &$value ) {
+    foreach( $file_ck_url__data as $value ) {
         if( trim( $value[0], '"' ) === 'networks_count' ){
             $expected_networks_count = $value[1];
         }
