@@ -1622,8 +1622,7 @@ function apbct_settings__sync( $direct_call = false ){
 		if(is_main_site()){
 			
 			// Network settings
-			$network_settings['apikey'] = $apbct->settings['apikey'];
-			$apbct->network_settings = $network_settings;
+			$apbct->network_settings['apikey'] = $apbct->settings['apikey'];
 			$apbct->saveNetworkSettings();
 			
 			// Network data
