@@ -163,7 +163,7 @@ class GetFieldsAny {
 	public function getFields( $email = '', $nickname = '' )
 	{
 		$this->preprocessed_email = $email;
-		$this->preprocessed_nickname = $nickname;
+		$this->preprocessed_nickname = is_string( $nickname ) ? $nickname : '';
 
 		if( count( $this->input_array ) ){
 
