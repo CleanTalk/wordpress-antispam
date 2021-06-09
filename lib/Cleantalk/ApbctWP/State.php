@@ -476,7 +476,7 @@ class State
 	 */
 	public function saveNetworkData()
 	{
-		update_site_option($this->option_prefix.'_network_data', $this->network_data);
+		update_site_option($this->option_prefix.'_network_data', (array)$this->network_data);
 	}
 	
 	/**
@@ -484,7 +484,7 @@ class State
 	 */
 	public function saveNetworkSettings()
 	{
-		update_site_option($this->option_prefix.'_network_settings', $this->network_settings);
+		update_site_option($this->option_prefix.'_network_settings', (array)$this->network_settings);
 	}
 	
 	/**
