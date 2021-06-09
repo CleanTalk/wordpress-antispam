@@ -473,8 +473,8 @@ function apbct_visible_fields__process( $visible_fields ) {
                 $fields = explode( ' ', $current_fields['visible_fields'] );
 
                 // This fields belong this request
-                // @ToDo we have to implement a logic to find form fields (fields names, fields count) in serialized/nested/encoded items. not only $_POST.
-                if( count( array_intersect( array_keys($_POST), $fields ) ) > 0 ) {
+                $fields_to_check = apbct_get_fields_to_check();
+                if( count( array_intersect( array_keys($fields_to_check), $fields ) ) > 0 ) {
                     // WP Forms visible fields formatting
                     if(strpos($visible_fields, 'wpforms') !== false){
                         $visible_fields = preg_replace(
@@ -500,6 +500,24 @@ function apbct_visible_fields__process( $visible_fields ) {
     }
 	
 	return array();
+}
+
+/**
+ * Get fields from POST to checking on visible fields.
+ *
+ * @return array
+ */
+function apbct_get_fields_to_check() {
+	//Formidable fields
+	if( isset( $_POST['item_meta'] ) && is_array( $_POST['item_meta'] ) ) {
+		$fields = array();
+		foreach ( $_POST['item_meta'] as $key => $item ) {
+			$fields['item_meta['. $key .']'] = $item;
+		}
+		return $fields;
+	}
+	// @ToDo we have to implement a logic to find form fields (fields names, fields count) in serialized/nested/encoded items. not only $_POST.
+	return $_POST;
 }
 
 /*
