@@ -858,7 +858,7 @@ function apbct_sfw_update__init( $delay = 0 ){
     }
     
     // Key is empty
-    if( ! $apbct->settings['apikey'] ){
+    if( ! $apbct->settings['apikey'] && !$apbct->ip_license){
         return array( 'error' => 'SFW UPDATE INIT: KEY_EMPTY' );
     }
     
