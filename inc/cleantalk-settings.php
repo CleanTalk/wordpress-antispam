@@ -537,7 +537,6 @@ function apbct_settings__set_fileds__network( $fields ){
 					'parent' => 'multisite__white_label',
 					'class' => 'apbct_settings-field_wrapper--sub',
 					'network' => true,
-					'required' => true,
 				),
 				'multisite__allow_custom_key' => array(
 					'type'           => 'checkbox',
