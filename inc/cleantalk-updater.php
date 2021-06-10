@@ -362,7 +362,6 @@ function apbct_update_to_5_127_0(){
 			if( defined( 'APBCT_WHITELABEL' ) ){
 				$apbct->network_settings = array(
 					'white_label'              => defined( 'APBCT_WHITELABEL' ) && APBCT_WHITELABEL == true ? 1 : 0,
-					'white_label__hoster_key'  => defined( 'APBCT_HOSTER_API_KEY' )  ? APBCT_HOSTER_API_KEY : '',
 					'white_label__plugin_name' => defined( 'APBCT_WHITELABEL_NAME' ) ? APBCT_WHITELABEL_NAME : APBCT_NAME,
 				);
 			}elseif( defined( 'CLEANTALK_ACCESS_KEY' ) ){
@@ -810,7 +809,6 @@ function apbct_update_to_5_154_0(){
 		'allow_custom_key'               => 'multisite__allow_custom_key',
 		'allow_custom_settings'          => 'multisite__allow_custom_settings',
 		'white_label'                    => 'multisite__white_label',
-		'white_label__hoster_key'        => 'multisite__white_label__hoster_key',
 		'white_label__plugin_name'       => 'multisite__white_label__plugin_name',
 		'use_settings_template'          => 'multisite__use_settings_template',
 		'use_settings_template_apply_for_new' => 'multisite__use_settings_template_apply_for_new',
@@ -983,4 +981,10 @@ function apbct_update_to_5_158_0(){
         $apbct->settings['data__pixel'] = '0';
         $apbct->saveSettings();
     }
+}
+
+function apbct_update_to_5_158_2() {
+	global $apbct;
+	$apbct->stats['cron']['last_start'] = 0;
+	$apbct->save('stats');
 }

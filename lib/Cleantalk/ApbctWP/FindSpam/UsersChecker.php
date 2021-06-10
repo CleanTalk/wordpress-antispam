@@ -153,6 +153,11 @@ class UsersChecker extends Checker
 
         global $apbct, $wpdb;
 
+	    $wc_active = false;
+	    if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', get_option( 'active_plugins' ) ) ) ) {
+		    $wc_active = true;
+	    }
+
         $amount = !empty($_POST['amount']) && intval($_POST['amount'])
             ? intval($_POST['amount'])
             : 100;
@@ -171,6 +176,12 @@ class UsersChecker extends Checker
             $from_till = " AND $wpdb->users.user_registered >= '$from_date' AND $wpdb->users.user_registered <= '$till_date'";
 
         }
+
+        $wc_orders = '';
+
+        if( $wc_active && ! empty( $_POST['accurate_check'] ) ) {
+	        $wc_orders = " AND NOT EXISTS (SELECT posts.* FROM {$wpdb->posts} AS posts INNER JOIN {$wpdb->postmeta} AS postmeta WHERE posts.post_type = 'shop_order' AND posts.post_status = 'wc-completed' AND posts.ID = postmeta.post_id AND postmeta.meta_key = '_customer_user' AND postmeta.meta_value = {$wpdb->users}.ID)";
+        }
 	
 	    $u = $wpdb->get_results("
 			SELECT {$wpdb->users}.ID, {$wpdb->users}.user_email, {$wpdb->users}.user_registered
@@ -179,6 +190,7 @@ class UsersChecker extends Checker
 				NOT EXISTS(SELECT * FROM {$wpdb->usermeta} as meta WHERE {$wpdb->users}.ID = meta.user_id AND meta.meta_key = 'ct_bad') AND
 		        NOT EXISTS(SELECT * FROM {$wpdb->usermeta} as meta WHERE {$wpdb->users}.ID = meta.user_id AND meta.meta_key = 'ct_checked') AND
 		        NOT EXISTS(SELECT * FROM {$wpdb->usermeta} as meta WHERE {$wpdb->users}.ID = meta.user_id AND meta.meta_key = 'ct_checked_now')
+		        $wc_orders
 			    $from_till
 			ORDER BY {$wpdb->users}.user_registered ASC
 			LIMIT $amount;"

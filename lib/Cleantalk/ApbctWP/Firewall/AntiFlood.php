@@ -197,14 +197,14 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule{
 		
 		parent::_die( $result );
 
-		global $wpdb;
+		global $apbct;
 
 		// File exists?
 		if( file_exists( CLEANTALK_PLUGIN_DIR . 'lib/Cleantalk/ApbctWP/Firewall/die_page_antiflood.html' ) ){
 			
 			$sfw_die_page = file_get_contents( CLEANTALK_PLUGIN_DIR . 'lib/Cleantalk/ApbctWP/Firewall/die_page_antiflood.html' );
 
-            $net_count = $wpdb->get_var('SELECT COUNT(*) FROM ' . APBCT_TBL_FIREWALL_DATA );
+            $net_count = $apbct->stats['sfw']['entries'];
 			
 			// Translation
 			$replaces = array(
