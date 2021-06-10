@@ -210,6 +210,7 @@ function ctSetCookie( cookies, value, expires ){
 				},
 				{
 					apbct_ajax: 1,
+					notJson: 1,
 				}
 			);
 		}
