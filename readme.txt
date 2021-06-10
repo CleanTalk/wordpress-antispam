@@ -580,7 +580,7 @@ If your website has forms that send data to external sources, you can enable opt
 
 == Changelog ==
 
-= 5.159 Jun 09 2021 =
+= 5.159 Jun 10 2021 =
  * New. Admin Bar. Common admin bar implemented.
  * New: email check before post.
  * New: New admin bar style.
@@ -613,6 +613,16 @@ If your website has forms that send data to external sources, you can enable opt
  * Fix. Custom Ajax. Getting JS key - removed WP ajax hooks.
  * Fix. GetFieldsAny. Bypassing collecting email and names logic fixed.
  * Fix. New admin bar style. Sorting plugins by Alphabet.
+ * Fix. ct_get_admin_email return network email if set.
+ * Fix. Fixed the name of the key containing the file address to check the number of records.
+ * Fix. Comments checker. Non-checkable users tab removed.
+ * Fix. Visible fields. Formidable visible fields collecting fixed.
+ * Fix. Get fields any fixed.
+ * Fix. empty key error for hosting.
+ * Fix. WPMS. Api key saving fixed.
+ * Fix. WPMS. Network settings saving fixed.
+ * Fix. WPMS. Plugin name setting field is not required now.
+ * Fix. Alt sessions js fixed.
 
 = 5.158 May 27 2021 =
  * Fix: Firewall. SQL-request error.
