@@ -959,4 +959,18 @@ class Helper
         }
         return $headers;
     }
+
+	/**
+	 * Its own implementation of the native method long2ip()
+	 *
+	 * @return string
+	 */
+	public static function ip__long2ip( $ipl32 ) {
+		$ip[0] = ( $ipl32 >> 24 ) & 255;
+		$ip[1] = ( $ipl32 >> 16 ) & 255;
+		$ip[2] = ( $ipl32 >> 8 ) & 255;
+		$ip[3] = $ipl32 & 255;
+
+		return implode( '.', $ip );
+	}
 }
