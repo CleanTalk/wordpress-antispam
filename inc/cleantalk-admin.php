@@ -448,7 +448,7 @@ function apbct_admin__notice_message(){
 						"<a href='{$settings_link}'>".$apbct->plugin_name."</a>", 
 						"<a href=\"https://cleantalk.org/my/bill/recharge?utm_source=wp-backend&utm_medium=cpc&utm_campaign=WP%20backend%20trial$user_token&cp_mode=antispam\" target=\"_blank\"><b>premium version</b></a>") .
 					'</h3>
-					<h4 style = "color: gray">Account status updates every 24 hours.</h4>
+					<h4 style = "color: gray">' . esc_html__( 'Account status updates every 24 hours.', 'cleantalk-spam-protect' ) . '</h4>
 				</div>';
 				$apbct->notice_show = false;
 			}
@@ -456,19 +456,21 @@ function apbct_admin__notice_message(){
 		
 		//Renew notice from apbct_admin_init().api_method__notice_paid_till()
 		if ($apbct->notice_show && $apbct->notice_renew == 1 && $apbct->moderate_ip == 0 && !$apbct->white_label) {
-			$renew_link = "<a href=\"https://cleantalk.org/my/bill/recharge?utm_source=wp-backend&utm_medium=cpc&utm_campaign=WP%%20backend%%20renew$user_token&cp_mode=antispam\" target=\"_blank\">%s</a>";
-			$button_html 	= sprintf($renew_link, '<input type="button" class="button button-primary" value="'.__('RENEW ANTI-SPAM', 'cleantalk-spam-protect').'"  />');
-			$link_html 		= sprintf($renew_link, "<b>".__('next year', 'cleantalk-spam-protect')."</b>");
-			
-			echo '<div class="updated" id="apbct_renew_notice">
-				<h3>'. 
-					sprintf(__("Please renew your anti-spam license for %s.", 'cleantalk-spam-protect'), $link_html).
-				'</h3>
-				<h4 style = "color: gray">Account status updates every 24 hours.</h4>
+			if(isset($_GET['page']) && in_array($_GET['page'], array('cleantalk', 'ct_check_spam', 'ct_check_users'))){
+				$renew_link = "<a href=\"https://cleantalk.org/my/bill/recharge?utm_source=wp-backend&utm_medium=cpc&utm_campaign=WP%%20backend%%20renew$user_token&cp_mode=antispam\" target=\"_blank\">%s</a>";
+				$button_html 	= sprintf($renew_link, '<input type="button" class="button button-primary" value="'.__('RENEW ANTI-SPAM', 'cleantalk-spam-protect').'"  />');
+				$link_html 		= sprintf($renew_link, "<b>".__('next year', 'cleantalk-spam-protect')."</b>");
+
+				echo '<div class="updated" id="apbct_renew_notice">
+				<h3>'.
+				     sprintf(__("Please renew your anti-spam license for %s.", 'cleantalk-spam-protect'), $link_html).
+				     '</h3>
+				<h4 style = "color: gray">' . esc_html__( 'Account status updates every 24 hours.', 'cleantalk-spam-protect' ) . '</h4>
 				'.$button_html.'
 				<br/><br/>
 			</div>';
-			$apbct->notice_show = false;
+				$apbct->notice_show = false;
+			}
 		}
 		
 		//"Wrong access key" notice (if ct_update_option().METHOD_notice_validate_key returns a error)
