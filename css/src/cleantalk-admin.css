@@ -29,6 +29,16 @@
 
 #apbct_gdpr_open_modal:hover{cursor: pointer}
 
+#wp-admin-bar-cleantalk_admin_bar__parent_node{
+	margin-right: 5px;
+}
+
+#wp-admin-bar-cleantalk_admin_bar__parent_node img.cleantalk_admin_bar__spbc_icon{
+	width: 14px;
+	height: 17px;
+	margin-top: 7px;
+}
+
 #wp-admin-bar-cleantalk_admin_bar__parent_node img.cleantalk_admin_bar__apbct_icon{
 	width: 18px;
 	height: 18px;
