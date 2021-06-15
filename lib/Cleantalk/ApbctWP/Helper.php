@@ -214,7 +214,7 @@ class Helper extends \Cleantalk\Common\Helper
         $result = static::http__get_data_from_remote_gz( $url );
         return empty( $result['error'] )
             ? static::buffer__parse__csv( $result )
-            : $result['error'];
+            : $result;
     }
     
 }
