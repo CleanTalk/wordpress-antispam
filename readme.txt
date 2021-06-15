@@ -11,8 +11,6 @@ Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, 
 
 == Description ==
 
-**Supports: Contact Form 7, Contact Form by WPForms, Ninja Forms, Gravity Forms, MailChimp, Formidable forms, Forminator, WooCommerce, JetPack comments and contact form, BuddyPress, bbPress, S2Member, MailPoet, wpDiscuz, ConvertKit, ActiveCampaign, Events Manager, Avada Theme Form Builder, any WordPress registrations & contact forms and themes. Just set up and forget the spam!**
-
 No CAPTCHA, no questions, no animal counting, no puzzles, no math and no spam bots. Universal AntiSpam plugin.
 
 = AntiSpam features =
@@ -57,16 +55,13 @@ CleanTalk is a free anti spam plugin which work with the premium Cloud AntiSpam 
 Native spam protection for WordPress, JetPack comments and any other comment plugins. The plugin moves spam comments to SPAM folder or you can set the option to ban spam comments silently. You can also enable the option in the plugin settings to auto-delete comments from SPAM folder.
 
 = Spam bots registrations filter =
-Filters spam bots on registration forms of WordPress, BuddyPress, bbPress, S2Member, WooCommerce, Profile builder, Login with AJAX and any other registration plugins.
 
 = Spam filter for contact forms =
-The plugin is tested and ready to protect from spam emails via Formidable forms, Contact form 7, JetPack Contact form, Fast Secure Contact form, Ninja forms, Landing Page Builder, Gravity forms, Contact Form by BestWebSoft, Simple Contact Form Plugin - PirateForms, Visual Form Builder, Contact Form by WebDorado, Contact Form Email, MW WP Form, Contact Form by Jeff Bulllins, Contact Us Form, WCP Contact Form, WPForms Lite, Custom Contact, Forms, Caldera Forms, Visual Form Builder, Contact Form Clean and Simple, Divi by Elegant Themes, The7 theme and any other themes or custom contact forms, amoForms, Ultimate Form Builder, Contact Bank - Contact Forms Builder, Forms easily built with Smart Forms, Usernoise contact form, Contact Form by Web-Settler, HubSpot Marketing Free, QuForm, Form Maker by 10Web, WP User Frontend, NEX-Forms.
 
 = WooCommerce spam filter =
 Anti-spam by CleanTalk filters spam registrations and spam reviews for WooCommerce. The plugin is fully compatible with WooCommerce 2.1 and higher.
 
 = Newsletters antispam filter =
-Anti-spam by CleanTalk filters spam subscriptions for MailPoet, MailChimp, PopupAlly and many other newsletter plugins.
 
 = Spam filter for theme contact forms =
 The plugin blocks spam emails via any theme (built-in ones included) contact forms. The plugin filters spam emails silently (without any error notices on WordPress frontend) in AJAX forms as well.
@@ -81,7 +76,6 @@ Spam protection for everything about bbPress: logins, registrations, forums, top
 * Any submission to the site (checkbox 'Check all POST data')
 
 = Compatible with WordPress cache plugins =
-* W3 Total Cache, Quick Cache, WP Fastest Cache, Hyper Cache, WP Super cache, WP-Rocket and any other cache plugins.
 
 = Check existing comments for spam. Bulk spam comments removal. Spam comment Cleaner =
 With the help of anti-spam by CleanTalk you can inspect through existing comments to find and quickly delete spam comments at once. To use this function, go to WP Console -> Comments -> Find spam comments.
