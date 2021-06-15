@@ -758,7 +758,7 @@ function apbct_spbc_admin__admin_bar__add_child_nodes( $wp_admin_bar ){
     $wp_admin_bar->add_node( array(
         'parent' => 'spbc__parent_node',
         'id'	 => 'apbct_admin_bar__install',
-        'title'  => '<a target="_blank" style="color: #4291d1; font-weight: bold;" href="plugin-install.php?s=Security%20and%20Malware%20scan%20by%20CleanTalk%20&tab=search">' . __( 'Install Security by CleanTalk', 'cleantalk-spam-protect' ) . '</a>',
+        'title'  => '<a target="_blank" href="plugin-install.php?s=Security%20and%20Malware%20scan%20by%20CleanTalk%20&tab=search">' . __( 'Install Security by CleanTalk', 'cleantalk-spam-protect' ) . '</a>',
     ) );
     
     $wp_admin_bar->add_node( array(
