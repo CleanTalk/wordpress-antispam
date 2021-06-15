@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 3.0
 Tested up to: 5.7
 Requires PHP: 5.6
-Stable tag: 5.159.1
+Stable tag: 5.159.2
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -569,10 +569,20 @@ If your website has forms that send data to external sources, you can enable opt
 6. The Dashboard with a map of most spam active countries per your account.
 7. The plugin deletes/removes the existing spam comments and users accounts.
 8. CleanTalk's dashboard update link.
-9. Auto upadte confimation.
+9. Auto update confirmation.
 10. Website's options.
 
 == Changelog ==
+
+= 5.159.2 Jun 15 2021 =
+ * Fix. Renew notice banner shows only on cleantalk pages.
+ * Fix. SFW updating. Getting remote data error handling fixed.
+ * Upd. Readme updated.
+ * Fix. SFW. Auto-updating fixed.
+ * Fix: Admin bar style. Install link is no longer highlighted.
+ * Fix: Admin bar style. Style for security icon.
+ * Fix: Admin bar. Reset buttons counters leads to the same page.
+ * Fix. Manual register link fixed.
 
 = 5.159.1 Jun 10 2021 =
  * Fix: Cron. Cron calling in cleantalk-updater.php fixed.
