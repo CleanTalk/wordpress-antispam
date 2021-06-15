@@ -1206,6 +1206,14 @@ function apbct_sfw_update__end_of_update() {
 	$apbct->save( 'fw_stats' );
 
 	$apbct->stats['sfw']['entries'] = $wpdb->get_var('SELECT COUNT(*) FROM ' . APBCT_TBL_FIREWALL_DATA );
+
+	// Running sfw update once again in 12 min if entries is < 4000
+	if( ! $apbct->stats['sfw']['last_update_time'] &&
+	    $apbct->stats['sfw']['entries'] < 4000
+	){
+		wp_schedule_single_event( time() + 720, 'apbct_sfw_update__init' );
+	}
+
 	$apbct->stats['sfw']['last_update_time'] = time();
 	$apbct->save( 'stats' );
 
@@ -1238,13 +1246,6 @@ function apbct_sfw_update__end_of_update() {
 
     $apbct->data['last_firewall_updated'] = current_time('timestamp');
 	$apbct->save('data'); // Unused
-
-	// Running sfw update once again in 12 min if entries is < 4000
-	if( ! $apbct->stats['sfw']['last_update_time'] &&
-	    $apbct->stats['sfw']['entries'] < 4000
-	){
-		wp_schedule_single_event( time() + 720, 'apbct_sfw_update__init' );
-	}
 
 	// Delete update errors
 	$apbct->error_delete( 'sfw_update', 'save_settings' );
