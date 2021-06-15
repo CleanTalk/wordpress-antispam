@@ -862,7 +862,9 @@ function apbct_settings__error__output($return = false){
 					}
 					continue;
 				}
-				
+				if (!empty($type)&& $apbct->white_label && !is_main_site() && ($type == 'sfw_update' || $type == 'key_invalid' || $type == 'account_check')) {
+					continue;
+				}				
 				$errors_out[$type] = '';
 				if(isset($error['error_time'])) 
 					$errors_out[$type] .= date('Y-m-d H:i:s', $error['error_time']) . ': ';
