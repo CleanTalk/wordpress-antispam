@@ -1000,7 +1000,7 @@ function apbct_sfw_update__get_multifiles( $api_key, $updating_id ){
     $file_ck_url__data = Helper::http__get_data_from_remote_gz__and_parse_csv( $result['file_ck_url'] );
 
     if( ! empty( $file_ck_url__data['error'] ) ){
-        return array( 'error' => 'GET EXPECTED RECORDS COUNT DATA: ' . $result['error'] );
+        return array( 'error' => 'GET EXPECTED RECORDS COUNT DATA: ' . $file_ck_url__data['error'] );
     }
 
     $expected_networks_count = 0;
