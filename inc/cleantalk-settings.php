@@ -1050,7 +1050,7 @@ function apbct_settings__field__apikey(){
 				'<a class="apbct_color--gray" target="__blank" href="'
 					. sprintf( 'https://cleantalk.org/register?platform=wordpress&email=%s&website=%s',
 						urlencode(ct_get_admin_email()),
-						urlencode(parse_url(get_option('siteurl'),PHP_URL_HOST))
+						urlencode(get_bloginfo('url'))
 					)
 					. '">',
 				'</a>'
