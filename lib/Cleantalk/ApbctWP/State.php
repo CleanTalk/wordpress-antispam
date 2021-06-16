@@ -55,7 +55,7 @@ use ArrayObject;
 class State
 {
 	public $user = null;
-	public $use_rest_api = 1;
+	public $use_rest_api = 0;
 	public $option_prefix = 'cleantalk';
 	public $storage = array();
 	public $integrations = array();
@@ -104,7 +104,8 @@ class State
         'data__set_cookies'                    => 1, // Set cookies: Disable - 0 / Enable - 1 / Use Alternative cookies - 2.
         'data__set_cookies__alt_sessions_type' => 1, // Alternative cookies handler type: REST API - 1 / AJAX - 2
         'data__ssl_on'                         => 0, // Secure connection to servers
-        'data__pixel'                          => '0',
+        'data__pixel'                          => '3',
+    	'data__email_check_before_post'		   => 1,
 		
 		// Exclusions
 		'exclusions__urls'               => '',
@@ -171,6 +172,7 @@ class State
 		'notice_renew' => 0,
 		'notice_review' => 0,
 		'notice_auto_update' => 0,
+		'notice_incompatibility' => array(),
 		
 		// Brief data
 		'brief_data' => array(
@@ -222,7 +224,6 @@ class State
 		
 		// White label settings
 		'multisite__white_label'              => 0,
-		'multisite__white_label__hoster_key'  => '',
 		'multisite__white_label__plugin_name' => 'Anti-Spam by CleanTalk',
 		'multisite__use_settings_template'    => 0,
 		'multisite__use_settings_template_apply_for_new' => 0,
@@ -291,7 +292,10 @@ class State
             'activation__timestamp' => 0,
             'activation_previous__timestamp' => 0,
             'activation__times' => 0,
-        )
+        ),
+		'cron' => array(
+			'last_start' => 0,
+		),
 	);
 
     private $default_fw_stats = array(
@@ -300,6 +304,8 @@ class State
         'firewall_update_percent'      => 0,
         'firewall_updating_last_start' => 0,
         'last_firewall_updated'        => 0,
+        'expected_networks_count'      => 0,
+        'expected_ua_count'            => 0,
     );
 	
 	/**
@@ -361,7 +367,55 @@ class State
 			$this->$option_name = is_array($option) ? new ArrayObject($option) : $option;
 		}
 	}
-	
+
+	public static function setDefinitions()
+	{
+		global $wpdb, $apbct;
+
+		$db_prefix = ! $apbct->white_label && defined('CLEANTALK_ACCESS_KEY') ? $wpdb->base_prefix : $wpdb->prefix;
+		
+		if( ! defined( 'APBCT_SEESION__LIVE_TIME' ) ) {
+			define( 'APBCT_SEESION__LIVE_TIME', 86400 );
+		}
+		if( ! defined( 'APBCT_SEESION__CHANCE_TO_CLEAN' ) ) {
+			define( 'APBCT_SEESION__CHANCE_TO_CLEAN', 100 );
+		}
+
+		// Database constants
+		if( ! defined( 'APBCT_TBL_FIREWALL_DATA' ) ) {
+			// Table with firewall data.
+			define( 'APBCT_TBL_FIREWALL_DATA', $db_prefix . 'cleantalk_sfw' );
+		}
+		if( ! defined( 'APBCT_TBL_FIREWALL_LOG' ) ) {
+			// Table with firewall logs.
+			define( 'APBCT_TBL_FIREWALL_LOG', $db_prefix . 'cleantalk_sfw_logs' );
+		}
+		if( ! defined( 'APBCT_TBL_AC_LOG' ) ) {
+			// Table with firewall logs.
+			define( 'APBCT_TBL_AC_LOG', $db_prefix . 'cleantalk_ac_log' );
+		}
+		if( ! defined( 'APBCT_TBL_AC_UA_BL' ) ) {
+			// Table with User-Agents blacklist.
+			define( 'APBCT_TBL_AC_UA_BL', $db_prefix . 'cleantalk_ua_bl' );
+		}
+		if( ! defined( 'APBCT_TBL_SESSIONS' ) ) {
+			// Table with session data.
+			define( 'APBCT_TBL_SESSIONS', $db_prefix . 'cleantalk_sessions' );
+		}
+		if( ! defined( 'APBCT_SPAMSCAN_LOGS' ) ) {
+			// Table with session data.
+			define( 'APBCT_SPAMSCAN_LOGS', $db_prefix . 'cleantalk_spamscan_logs' );
+		}
+		if( ! defined( 'APBCT_SELECT_LIMIT' ) ) {
+			// Select limit for logs.
+			define( 'APBCT_SELECT_LIMIT', 5000 );
+		} 
+		if( ! defined( 'APBCT_WRITE_LIMIT' ) ) {
+			// Write limit for firewall data.
+			define( 'APBCT_WRITE_LIMIT', 5000 );
+		}
+	}
+
 	/**
 	 * Get specified option from database
 	 *
@@ -422,7 +476,7 @@ class State
 	 */
 	public function saveNetworkData()
 	{
-		update_site_option($this->option_prefix.'_network_data', $this->network_data);
+		update_site_option($this->option_prefix.'_network_data', (array)$this->network_data);
 	}
 	
 	/**
@@ -430,7 +484,7 @@ class State
 	 */
 	public function saveNetworkSettings()
 	{
-		update_site_option($this->option_prefix.'_network_settings', $this->network_settings);
+		update_site_option($this->option_prefix.'_network_settings', (array)$this->network_settings);
 	}
 	
 	/**

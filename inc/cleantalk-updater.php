@@ -97,15 +97,17 @@ function apbct_update_to_5_70_0(){
 	wp_clear_scheduled_hook('cleantalk_get_brief_data_hook');
 	
 	// Adding Self cron system tasks
-	Cron::addTask('check_account_status', 'ct_account_status_check',  3600, time() + 1800); // New
-	Cron::addTask('delete_spam_comments', 'ct_delete_spam_comments',  3600, time() + 3500);
-	Cron::addTask('send_feedback',        'ct_send_feedback',         3600, time() + 3500);
-	Cron::addTask('sfw_update',           'apbct_sfw_update__init',   86400, time() + 43200);
-	Cron::addTask('send_sfw_logs',        'ct_sfw_send_logs',         3600, time() + 1800); // New
-	Cron::addTask('get_brief_data',       'cleantalk_get_brief_data', 86400, time() + 3500);
+	$cron = new Cron();
+	$cron->addTask('check_account_status', 'ct_account_status_check',  3600, time() + 1800); // New
+	$cron->addTask('delete_spam_comments', 'ct_delete_spam_comments',  3600, time() + 3500);
+	$cron->addTask('send_feedback',        'ct_send_feedback',         3600, time() + 3500);
+	$cron->addTask('sfw_update',           'apbct_sfw_update__init',   86400, time() + 43200);
+	$cron->addTask('send_sfw_logs',        'ct_sfw_send_logs',         3600, time() + 1800); // New
+	$cron->addTask('get_brief_data',       'cleantalk_get_brief_data', 86400, time() + 3500);
 }
 function apbct_update_to_5_74_0(){
-	Cron::removeTask('send_daily_request');
+	$cron = new Cron();
+	$cron->removeTask('send_daily_request');
 }
 
 function apbct_update_to_5_97_0(){
@@ -144,13 +146,14 @@ function apbct_update_to_5_109_0(){
 			$wpdb->query(sprintf($sfw_data_query, $wpdb->prefix . 'cleantalk_sfw'));       // Table for SpamFireWall data
 			$wpdb->query(sprintf($sfw_log_query,  $wpdb->prefix . 'cleantalk_sfw_logs'));  // Table for SpamFireWall logs
 			// Cron tasks
-			Cron::addTask('check_account_status',  'ct_account_status_check',        3600, time() + 1800); // Checks account status
-			Cron::addTask('delete_spam_comments',  'ct_delete_spam_comments',        3600, time() + 3500); // Formerly ct_hourly_event_hook()
-			Cron::addTask('send_feedback',         'ct_send_feedback',               3600, time() + 3500); // Formerly ct_hourly_event_hook()
-			Cron::addTask('sfw_update',            'apbct_sfw_update__init',         86400, time() + 300);  // SFW update
-			Cron::addTask('send_sfw_logs',         'ct_sfw_send_logs',               3600, time() + 1800); // SFW send logs
-			Cron::addTask('get_brief_data',        'cleantalk_get_brief_data',       86400, time() + 3500); // Get data for dashboard widget
-			Cron::addTask('send_connection_report','ct_mail_send_connection_report', 86400, time() + 3500); // Send connection report to welcome@cleantalk.org
+			$cron = new Cron();
+			$cron->addTask('check_account_status',  'ct_account_status_check',        3600, time() + 1800); // Checks account status
+			$cron->addTask('delete_spam_comments',  'ct_delete_spam_comments',        3600, time() + 3500); // Formerly ct_hourly_event_hook()
+			$cron->addTask('send_feedback',         'ct_send_feedback',               3600, time() + 3500); // Formerly ct_hourly_event_hook()
+			$cron->addTask('sfw_update',            'apbct_sfw_update__init',         86400, time() + 300);  // SFW update
+			$cron->addTask('send_sfw_logs',         'ct_sfw_send_logs',               3600, time() + 1800); // SFW send logs
+			$cron->addTask('get_brief_data',        'cleantalk_get_brief_data',       86400, time() + 3500); // Get data for dashboard widget
+			$cron->addTask('send_connection_report','ct_mail_send_connection_report', 86400, time() + 3500); // Send connection report to welcome@cleantalk.org
 		}
 		switch_to_blog($initial_blog);
 	}
@@ -362,7 +365,6 @@ function apbct_update_to_5_127_0(){
 			if( defined( 'APBCT_WHITELABEL' ) ){
 				$apbct->network_settings = array(
 					'white_label'              => defined( 'APBCT_WHITELABEL' ) && APBCT_WHITELABEL == true ? 1 : 0,
-					'white_label__hoster_key'  => defined( 'APBCT_HOSTER_API_KEY' )  ? APBCT_HOSTER_API_KEY : '',
 					'white_label__plugin_name' => defined( 'APBCT_WHITELABEL_NAME' ) ? APBCT_WHITELABEL_NAME : APBCT_NAME,
 				);
 			}elseif( defined( 'CLEANTALK_ACCESS_KEY' ) ){
@@ -638,7 +640,8 @@ function apbct_update_to_5_146_4() {
 
 }
 function apbct_update_to_5_148_0() {
-    Cron::updateTask('antiflood__clear_table', 'apbct_antiflood__clear_table',  86400);
+	$cron = new Cron();
+	$cron->updateTask('antiflood__clear_table', 'apbct_antiflood__clear_table',  86400);
 }
 
 function apbct_update_to_5_149_2() {
@@ -810,7 +813,6 @@ function apbct_update_to_5_154_0(){
 		'allow_custom_key'               => 'multisite__allow_custom_key',
 		'allow_custom_settings'          => 'multisite__allow_custom_settings',
 		'white_label'                    => 'multisite__white_label',
-		'white_label__hoster_key'        => 'multisite__white_label__hoster_key',
 		'white_label__plugin_name'       => 'multisite__white_label__plugin_name',
 		'use_settings_template'          => 'multisite__use_settings_template',
 		'use_settings_template_apply_for_new' => 'multisite__use_settings_template_apply_for_new',
@@ -904,8 +906,9 @@ function apbct_update_to_5_156_0(){
     $apbct->remote_calls['debug']     = array( 'last_call' => 0, 'cooldown' => 0 );
     $apbct->remote_calls['debug_sfw'] = array( 'last_call' => 0, 'cooldown' => 0 );
     $apbct->save('remote_calls');
-    
-    Cron::updateTask('sfw_update', 'apbct_sfw_update__init',   86400, time() + 42300 );
+
+    $cron = new Cron();
+	$cron->updateTask('sfw_update', 'apbct_sfw_update__init',   86400, time() + 42300 );
     
 }
 
@@ -983,4 +986,10 @@ function apbct_update_to_5_158_0(){
         $apbct->settings['data__pixel'] = '0';
         $apbct->saveSettings();
     }
+}
+
+function apbct_update_to_5_158_2() {
+	global $apbct;
+	$apbct->stats['cron']['last_start'] = 0;
+	$apbct->save('stats');
 }

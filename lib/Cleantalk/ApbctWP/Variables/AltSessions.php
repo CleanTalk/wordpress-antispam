@@ -48,7 +48,6 @@ class AltSessions {
     public static function set_fromRemote( $request = null ){
         
         if( ! $request ){
-            check_ajax_referer( 'ct_secret_stuff' );
             $cookies_to_set = (array) \Cleantalk\Variables\Post::get( 'cookies' );
         }else{
             $cookies_to_set = $request->get_param( 'cookies' );
@@ -87,11 +86,7 @@ class AltSessions {
     }
     
     public static function get_fromRemote( $request = null ){
-        
-        if( ! $request ){
-            check_ajax_referer( 'ct_secret_stuff' );
-        }
-        
+
         $value = \Cleantalk\ApbctWP\Variables\Cookie::get( $request
             ? $request->get_param( 'cookies' )
             : \Cleantalk\Variables\Post::get( 'name' )

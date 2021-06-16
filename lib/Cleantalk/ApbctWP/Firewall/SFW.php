@@ -262,7 +262,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 	 */
 	public function _die( $result ){
 		
-		global $apbct, $wpdb;
+		global $apbct;
 		
 		parent::_die( $result );
 		
@@ -279,7 +279,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 			
 			$sfw_die_page = file_get_contents(CLEANTALK_PLUGIN_DIR . "lib/Cleantalk/ApbctWP/Firewall/die_page_sfw.html");
 
-            $net_count = $wpdb->get_var('SELECT COUNT(*) FROM ' . APBCT_TBL_FIREWALL_DATA );
+            $net_count = $apbct->stats['sfw']['entries'];
 
             $status = $result['status'] == 'PASS_SFW__BY_WHITELIST' ? '1' : '0';
             $cookie_val = md5( $result['ip'] . $this->api_key ) . $status;
@@ -511,8 +511,8 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
     public static function update__get_multifile( $api_key ){
         
         // Getting remote file name
-        $result = API::method__get_2s_blacklists_db( $api_key, 'multifiles', '3_0' );
-        
+        $result = API::method__get_2s_blacklists_db( $api_key, 'multifiles', '3_1' );
+
         if( empty( $result['error'] ) ){
             
             if( ! empty( $result['file_url'] ) ){
@@ -525,6 +525,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
                         'multifile_url' => trim( $result['file_url'] ),
                         'useragent_url' => trim( $result['file_ua_url'] ),
                         'file_urls'     => $data,
+                        'file_ck_url'   => trim( $result['file_ck_url'] ),
                     );
                     
                 }else
@@ -545,7 +546,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
      * @return array|bool array('error' => STRING)
      */
     public static function update__write_to_db( $db, $db__table__data, $file_url = null ){
-    
+        
         $data = Helper::http__get_data_from_remote_gz__and_parse_csv( $file_url );
         
         if( empty( $data['errors'] ) ){
@@ -562,14 +563,18 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
                         continue;
                     
                     if ( APBCT_WRITE_LIMIT !== $i ) {
-    
+                        
+                        if( empty( $entry[0] )  || empty ($entry[1] ) ){
+                            continue;
+                        }
+                        
                         // Cast result to int
                         $ip     = preg_replace( '/[^\d]*/', '', $entry[0] );
                         $mask   = preg_replace( '/[^\d]*/', '', $entry[1] );
                         $status = isset( $entry[2] ) ? $entry[2]       : 0;
                         $source = isset( $entry[3] ) ? (int) $entry[3] : 'NULL';
-                        
-                        $values[] = '('. $ip .','. $mask .','. $status .','. $source .')';
+
+                        $values[] = "($ip, $mask, $status, $source)";
                     }
                     
                 }

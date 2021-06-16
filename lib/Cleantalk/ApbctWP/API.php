@@ -63,9 +63,12 @@ class API extends \Cleantalk\Common\API
 		$url = defined('CLEANTALK_API_URL') ? CLEANTALK_API_URL : $url;
 		
 		// Adding agent version to data
-		$data['agent'] = APBCT_AGENT;
+		$data['agent'] = defined( 'APBCT_AGENT' ) ? APBCT_AGENT : '';
 		
-		if($apbct->settings['wp__use_builtin_http_api']){
+		if(
+			$apbct->settings['wp__use_builtin_http_api'] &&
+		    ( ! defined( 'SHORTINIT' ) || ( defined( 'SHORTINIT' ) && SHORTINIT === false ) )
+		){
 			
 			$args = array(
 				'body' => $data,

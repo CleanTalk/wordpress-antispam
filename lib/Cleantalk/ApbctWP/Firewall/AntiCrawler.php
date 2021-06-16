@@ -69,12 +69,18 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 
                         if ( APBCT_WRITE_LIMIT !== $i ) {
 
+                            if( ! isset( $entry[0], $entry[1] ) ){
+                                continue;
+                            }
+
                             // Cast result to int
-                            // @ToDo check the output $entry
                             $ua_id        = preg_replace('/[^\d]*/', '', $entry[0]);
                             $ua_template  = isset($entry[1]) && apbct_is_regexp($entry[1]) ? Helper::db__prepare_param( $entry[1] ) : 0;
                             $ua_status    = isset($entry[2]) ? $entry[2] : 0;
 
+                            if( ! $ua_id || ! $ua_template ){
+                                continue;
+                            }
                         }
 
                         $values[] = '('. $ua_id .','. $ua_template .','. $ua_status .')';
@@ -353,14 +359,14 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 	
 	public function _die( $result ){
 		
-		global $apbct, $wpdb;
+		global $apbct;
 		
 		// File exists?
 		if(file_exists(CLEANTALK_PLUGIN_DIR . "lib/Cleantalk/ApbctWP/Firewall/die_page_anticrawler.html")){
 			
 			$sfw_die_page = file_get_contents(CLEANTALK_PLUGIN_DIR . "lib/Cleantalk/ApbctWP/Firewall/die_page_anticrawler.html");
 
-			$net_count = $wpdb->get_var('SELECT COUNT(*) FROM ' . APBCT_TBL_FIREWALL_DATA );
+			$net_count = $apbct->stats['sfw']['entries'];
 
 			// Translation
 			$replaces = array(
