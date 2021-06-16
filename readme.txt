@@ -55,13 +55,16 @@ CleanTalk is a free anti spam plugin which work with the premium Cloud AntiSpam 
 Native spam protection for WordPress, JetPack comments and any other comment plugins. The plugin moves spam comments to SPAM folder or you can set the option to ban spam comments silently. You can also enable the option in the plugin settings to auto-delete comments from SPAM folder.
 
 = Spam bots registrations filter =
+Blocks spam registration in all forms, forums and boards.
 
 = Spam filter for contact forms =
+Blocks spam in any contact forms. We have made direct integrations with many popular forms, form builders and contact forms of various Themes.
 
 = WooCommerce spam filter =
 Anti-spam by CleanTalk filters spam registrations and spam reviews for WooCommerce. The plugin is fully compatible with WooCommerce 2.1 and higher.
 
 = Newsletters antispam filter =
+Blocks spam in any subscription forms. We have tested anti-spam protection and made direct integrations for many popular subscription forms.
 
 = Spam filter for theme contact forms =
 The plugin blocks spam emails via any theme (built-in ones included) contact forms. The plugin filters spam emails silently (without any error notices on WordPress frontend) in AJAX forms as well.
@@ -76,6 +79,10 @@ Spam protection for everything about bbPress: logins, registrations, forums, top
 * Any submission to the site (checkbox 'Check all POST data')
 
 = Compatible with WordPress cache plugins =
+Cleantalk Anti-Spam has been tested with many caching plugins and we have made integrations for the most popular caching plugins.
+
+If you have questions about spam protection support for a particular plugin or compatibility, you can ask a question on Support Forum.
+https://wordpress.org/support/plugin/cleantalk-spam-protect/
 
 = Check existing comments for spam. Bulk spam comments removal. Spam comment Cleaner =
 With the help of anti-spam by CleanTalk you can inspect through existing comments to find and quickly delete spam comments at once. To use this function, go to WP Console -> Comments -> Find spam comments.
