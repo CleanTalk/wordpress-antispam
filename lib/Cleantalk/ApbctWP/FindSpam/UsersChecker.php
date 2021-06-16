@@ -29,7 +29,7 @@ class UsersChecker extends Checker
             'ct_confirm_deletion_all'     => __('Do you confirm deletion selected accounts and all content owned by the accounts? Please do backup of the site before deletion!', 'cleantalk-spam-protect'),
             'ct_iusers'                   => __('users.', 'cleantalk-spam-protect'),
             'ct_csv_filename'             => "user_check_by_".$current_user->user_login,
-            'ct_status_string'            => __("Checked %s, found %s spam users and %s non-checkable users (without IP or email)", 'cleantalk-spam-protect'),
+            'ct_status_string'            => __("Checked %s, found %s spam users and %s non-checkable users (without IP and email)", 'cleantalk-spam-protect'),
             'ct_status_string_warning'    => "<p>".__("Please do backup of WordPress database before delete any accounts!", 'cleantalk-spam-protect')."</p>"
         ));
 
@@ -407,7 +407,7 @@ class UsersChecker extends Checker
 
         if( ! $direct_call ) {
             $return['message'] .= sprintf (
-                esc_html__('Checked %s, found %s spam users and %s non-checkable users (without IP or email)', 'cleantalk-spam-protect'),
+                esc_html__('Checked %s, found %s spam users and %s non-checkable users (without IP and email)', 'cleantalk-spam-protect'),
                 $cnt_checked,
                 $cnt_spam,
                 $cnt_bad
@@ -421,7 +421,7 @@ class UsersChecker extends Checker
 
             if ( $res ) {
                 $return['message'] .= sprintf (
-                    __("Last check %s: checked %s users, found %s spam users and %s non-checkable users (without IP or email).", 'cleantalk-spam-protect'),
+                    __("Last check %s: checked %s users, found %s spam users and %s non-checkable users (without IP and email).", 'cleantalk-spam-protect'),
                     self::lastCheckDate(),
                     $cnt_checked,
                     $cnt_spam,

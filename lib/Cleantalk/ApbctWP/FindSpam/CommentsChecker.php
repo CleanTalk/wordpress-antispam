@@ -27,7 +27,7 @@ class CommentsChecker extends Checker
             'ct_confirm_trash_all'        => __('Trash all spam comments from the list?', 'cleantalk-spam-protect'),
             'ct_confirm_spam_all'         => __('Mark as spam all comments from the list?', 'cleantalk-spam-protect'),
             'ct_comments_added_after'     => __('comments', 'cleantalk-spam-protect'),
-            'ct_status_string'            => __('Checked %s, found %s spam comments and %s non-checkable comments (without IP or email).', 'cleantalk-spam-protect'),
+            'ct_status_string'            => __('Checked %s, found %s spam comments and %s non-checkable comments (without IP and email).', 'cleantalk-spam-protect'),
             'ct_status_string_warning'    => '<p>'.__('Please do backup of WordPress database before delete any accounts!', 'cleantalk-spam-protect').'</p>',
             'start'                       => !empty($_COOKIE['ct_comments_start_check']) ? true : false,
         ));
@@ -340,7 +340,7 @@ class CommentsChecker extends Checker
 
         if( ! $direct_call ) {
             $return['message'] .= sprintf (
-                esc_html__('Checked %s, found %s spam comments and %s non-checkable comments (without IP or email)', 'cleantalk-spam-protect'),
+                esc_html__('Checked %s, found %s spam comments and %s non-checkable comments (without IP and email)', 'cleantalk-spam-protect'),
                 $cnt_checked,
                 $cnt_spam,
                 $cnt_bad
@@ -355,7 +355,7 @@ class CommentsChecker extends Checker
             if ( $res ) {
 
                 $return['message'] .= sprintf (
-                    __("Last check %s: checked %s comments, found %s spam comments and %s non-checkable comments (without IP or email).", 'cleantalk-spam-protect'),
+                    __("Last check %s: checked %s comments, found %s spam comments and %s non-checkable comments (without IP and email).", 'cleantalk-spam-protect'),
                     self::lastCheckDate(),
                     $cnt_checked,
                     $cnt_spam,
