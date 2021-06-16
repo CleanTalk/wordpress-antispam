@@ -188,8 +188,13 @@ function apbct_admin__init(){
         ){
             add_action( 'admin_bar_menu', 'apbct_admin__admin_bar__add_structure', 999 );
         }
-        add_filter( 'cleantalk_admin_bar__add_icon_to_parent_node', 'apbct_admin__admin_bar__add_parent_icon', 10, 1 );
-        add_action( 'admin_bar_menu', 'apbct_admin__admin_bar__add_child_nodes', 1000 );
+        
+        add_action( 'cleantalk_admin_bar__prepare_counters',        'apbct_admin__admin_bar__prepare_counters' );
+        // Temporary disable the icon
+        //add_filter( 'cleantalk_admin_bar__parent_node__before', 'apbct_admin__admin_bar__add_parent_icon', 10, 1 );
+        add_filter( 'cleantalk_admin_bar__parent_node__after', 'apbct_admin__admin_bar__add_counter', 10, 1 );
+        
+        add_action( 'admin_bar_menu',                               'apbct_admin__admin_bar__add_child_nodes', 1000 );
         if( ! $spbc ){
             add_filter( 'admin_bar_menu', 'apbct_spbc_admin__admin_bar__add_child_nodes', 1001 );
         }
@@ -518,11 +523,16 @@ function apbct_admin__admin_bar__add_structure( $wp_admin_bar ) {
     
     global $spbc, $apbct;
     
+    do_action( 'cleantalk_admin_bar__prepare_counters' );
+    
     // Adding parent node
     $wp_admin_bar->add_node( array(
         'id'    => 'cleantalk_admin_bar__parent_node',
-        'title' =>  apply_filters('cleantalk_admin_bar__add_icon_to_parent_node', '' )
-            . '<span class="cleantalk_admin_bar__title">' . __('CleanTalk', 'cleantalk-spam-protect') . '</span>',
+        'title' =>
+            apply_filters('cleantalk_admin_bar__parent_node__before', '' ) .
+            '<span class="cleantalk_admin_bar__title">' . __('CleanTalk', 'cleantalk-spam-protect') . '</span>' .
+            apply_filters('cleantalk_admin_bar__parent_node__after', '' ),
+        'meta' => array( 'class' => 'cleantalk-admin_bar--list_wrapper'),
     ) );
     
     // Security
@@ -535,7 +545,7 @@ function apbct_admin__admin_bar__add_structure( $wp_admin_bar ) {
         'id'    => 'apbct__parent_node',
         'title' => '<div class="cleantalk-admin_bar__parent">'
                 . $title
-            . '</div>'
+            . '</div>',
     ) );
     
     // Antispam
@@ -553,13 +563,19 @@ function apbct_admin__admin_bar__add_structure( $wp_admin_bar ) {
             'parent' => 'cleantalk_admin_bar__parent_node',
             'id'    => 'spbc__parent_node',
             'title' => '<div class="cleantalk-admin_bar__parent">'
-                       . $spbc_title
-                       . '</div>'
+                    . $spbc_title
+                . '</div>'
         ) );
     }
 }
 
-function apbct_admin__admin_bar__add_parent_icon( $icon ){
+/**
+ * Prepares properties for counters in $apbct
+ * Handles counter reset
+ *
+ * @return void
+ */
+function apbct_admin__admin_bar__prepare_counters(){
     
     global $apbct;
     
@@ -616,15 +632,25 @@ function apbct_admin__admin_bar__add_parent_icon( $icon ){
         );
         $apbct->counter__sum += $apbct->counter__sfw['all'];
     }
-    
-    $counter__sum__layout = $apbct->counter__sum
-        ? ( '<div class="cleantalk_admin_bar__sum_counter">' . $apbct->counter__sum . '</div>')
-        : '';
-    
+}
+
+function apbct_admin__admin_bar__add_parent_icon( $icon ){
     
     return $icon
-        . '<img class="cleantalk_admin_bar__apbct_icon" src="' . APBCT_URL_PATH . '/inc/images/logo.png" alt="">&nbsp;'
+        . '<img class="cleantalk_admin_bar__apbct_icon" src="' . APBCT_URL_PATH . '/inc/images/logo.png" alt="">&nbsp;';
+}
+
+function apbct_admin__admin_bar__add_counter( $after ){
+    
+    global $apbct;
+    
+    $counter__sum__layout = ( $after ? ' / ' : '<div class="cleantalk_admin_bar__sum_counter">' ) .
+            '<span title="All anti-spam events">' . $apbct->counter__sum . '</span>' .
+        '</div>';
+    
+    return ( $after ? substr( $after, 0, -6 ) : $after )
         . $counter__sum__layout;
+    
 }
 
 function apbct_admin__admin_bar__add_child_nodes( $wp_admin_bar ) {
