@@ -520,7 +520,17 @@ function apbct_settings__set_fileds( $fields ){
 function apbct_settings__set_fileds__network( $fields ){
 	global $apbct;
 	$additional_fields = array(
-		'main' => array(
+		'wpms_settings' => array(
+			'default_params' => array(),
+			'description'    => '',
+			'html_before'    => '<br>'
+				.'<span id="ct_adv_showhide">'
+				.'<a href="#" class="apbct_color--gray" onclick="event.preventDefault(); apbct_show_hide_elem(\'apbct_settings__dwpms_settings\');">'
+				.__('WordPress Multisite (WPMS) settings', 'cleantalk-spam-protect')
+				.'</a>'
+				.'</span>'
+				.'<div id="apbct_settings__dwpms_settings" style="display: none;">',
+			'html_after'     => '</div><br>',
 			'fields' => array(
 				'multisite__white_label' => array(
 					'type' => 'checkbox',
@@ -537,6 +547,7 @@ function apbct_settings__set_fileds__network( $fields ){
 					'parent' => 'multisite__white_label',
 					'class' => 'apbct_settings-field_wrapper--sub',
 					'network' => true,
+					'required' => true,
 				),
 				'multisite__allow_custom_key' => array(
 					'type'           => 'checkbox',
