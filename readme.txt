@@ -571,6 +571,9 @@ If your website has forms that send data to external sources, you can enable opt
 
 == Changelog ==
 
+= 5.159.3 Jun 15 2021 =
+ * Fix: Admin bar. Conflict with previous version of Security by Cleantalk.
+
 = 5.159.2 Jun 15 2021 =
  * Fix. Renew notice banner shows only on cleantalk pages.
  * Fix. SFW updating. Getting remote data error handling fixed.
