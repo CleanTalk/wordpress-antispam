@@ -4,14 +4,12 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 3.0
 Tested up to: 5.7
 Requires PHP: 5.6
-Stable tag: 5.159.1
+Stable tag: 5.159.2
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
 
 == Description ==
-
-**Supports: Contact Form 7, Contact Form by WPForms, Ninja Forms, Gravity Forms, MailChimp, Formidable forms, Forminator, WooCommerce, JetPack comments and contact form, BuddyPress, bbPress, S2Member, MailPoet, wpDiscuz, ConvertKit, ActiveCampaign, Events Manager, Avada Theme Form Builder, any WordPress registrations & contact forms and themes. Just set up and forget the spam!**
 
 No CAPTCHA, no questions, no animal counting, no puzzles, no math and no spam bots. Universal AntiSpam plugin.
 
@@ -57,16 +55,16 @@ CleanTalk is a free anti spam plugin which work with the premium Cloud AntiSpam 
 Native spam protection for WordPress, JetPack comments and any other comment plugins. The plugin moves spam comments to SPAM folder or you can set the option to ban spam comments silently. You can also enable the option in the plugin settings to auto-delete comments from SPAM folder.
 
 = Spam bots registrations filter =
-Filters spam bots on registration forms of WordPress, BuddyPress, bbPress, S2Member, WooCommerce, Profile builder, Login with AJAX and any other registration plugins.
+Blocks spam registration in all forms, forums and boards.
 
 = Spam filter for contact forms =
-The plugin is tested and ready to protect from spam emails via Formidable forms, Contact form 7, JetPack Contact form, Fast Secure Contact form, Ninja forms, Landing Page Builder, Gravity forms, Contact Form by BestWebSoft, Simple Contact Form Plugin - PirateForms, Visual Form Builder, Contact Form by WebDorado, Contact Form Email, MW WP Form, Contact Form by Jeff Bulllins, Contact Us Form, WCP Contact Form, WPForms Lite, Custom Contact, Forms, Caldera Forms, Visual Form Builder, Contact Form Clean and Simple, Divi by Elegant Themes, The7 theme and any other themes or custom contact forms, amoForms, Ultimate Form Builder, Contact Bank - Contact Forms Builder, Forms easily built with Smart Forms, Usernoise contact form, Contact Form by Web-Settler, HubSpot Marketing Free, QuForm, Form Maker by 10Web, WP User Frontend, NEX-Forms.
+Blocks spam in any contact forms. We have made direct integrations with many popular forms, form builders and contact forms of various Themes.
 
 = WooCommerce spam filter =
 Anti-spam by CleanTalk filters spam registrations and spam reviews for WooCommerce. The plugin is fully compatible with WooCommerce 2.1 and higher.
 
 = Newsletters antispam filter =
-Anti-spam by CleanTalk filters spam subscriptions for MailPoet, MailChimp, PopupAlly and many other newsletter plugins.
+Blocks spam in any subscription forms. We have tested anti-spam protection and made direct integrations for many popular subscription forms.
 
 = Spam filter for theme contact forms =
 The plugin blocks spam emails via any theme (built-in ones included) contact forms. The plugin filters spam emails silently (without any error notices on WordPress frontend) in AJAX forms as well.
@@ -81,7 +79,10 @@ Spam protection for everything about bbPress: logins, registrations, forums, top
 * Any submission to the site (checkbox 'Check all POST data')
 
 = Compatible with WordPress cache plugins =
-* W3 Total Cache, Quick Cache, WP Fastest Cache, Hyper Cache, WP Super cache, WP-Rocket and any other cache plugins.
+Cleantalk Anti-Spam has been tested with many caching plugins and we have made integrations for the most popular caching plugins.
+
+If you have questions about spam protection support for a particular plugin or compatibility, you can ask a question on Support Forum.
+https://wordpress.org/support/plugin/cleantalk-spam-protect/
 
 = Check existing comments for spam. Bulk spam comments removal. Spam comment Cleaner =
 With the help of anti-spam by CleanTalk you can inspect through existing comments to find and quickly delete spam comments at once. To use this function, go to WP Console -> Comments -> Find spam comments.
@@ -575,10 +576,27 @@ If your website has forms that send data to external sources, you can enable opt
 6. The Dashboard with a map of most spam active countries per your account.
 7. The plugin deletes/removes the existing spam comments and users accounts.
 8. CleanTalk's dashboard update link.
-9. Auto upadte confimation.
+9. Auto update confirmation.
 10. Website's options.
 
 == Changelog ==
+
+= 5.159.2 Jun 15 2021 =
+ * Fix. Renew notice banner shows only on cleantalk pages.
+ * Fix. SFW updating. Getting remote data error handling fixed.
+ * Upd. Readme updated.
+ * Fix. SFW. Auto-updating fixed.
+ * Fix: Admin bar style. Install link is no longer highlighted.
+ * Fix: Admin bar style. Style for security icon.
+ * Fix: Admin bar. Reset buttons counters leads to the same page.
+ * Fix. Manual register link fixed.
+ * Fix: do not display errors on subsites when wl is enabled.
+ * Fix: Admin bar. Rapid fix.
+ * Fix. Skipping. WPForms check restricted email request skipped.
+ * Fix. Helper. CURL request timeout increased.
+ * Fix. Comments/users checker. Description fixed.
+ * Fix. Get fields any. Preset nickname parameter fixed.
+ * Fix: wpms settings.
 
 = 5.159.1 Jun 10 2021 =
  * Fix: Cron. Cron calling in cleantalk-updater.php fixed.

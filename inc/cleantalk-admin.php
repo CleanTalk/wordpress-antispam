@@ -188,8 +188,13 @@ function apbct_admin__init(){
         ){
             add_action( 'admin_bar_menu', 'apbct_admin__admin_bar__add_structure', 999 );
         }
-        add_filter( 'cleantalk_admin_bar__add_icon_to_parent_node', 'apbct_admin__admin_bar__add_parent_icon', 10, 1 );
-        add_action( 'admin_bar_menu', 'apbct_admin__admin_bar__add_child_nodes', 1000 );
+        
+        add_action( 'cleantalk_admin_bar__prepare_counters',        'apbct_admin__admin_bar__prepare_counters' );
+        // Temporary disable the icon
+        //add_filter( 'cleantalk_admin_bar__parent_node__before', 'apbct_admin__admin_bar__add_parent_icon', 10, 1 );
+        add_filter( 'cleantalk_admin_bar__parent_node__after', 'apbct_admin__admin_bar__add_counter', 10, 1 );
+        
+        add_action( 'admin_bar_menu',                               'apbct_admin__admin_bar__add_child_nodes', 1000 );
         if( ! $spbc ){
             add_filter( 'admin_bar_menu', 'apbct_spbc_admin__admin_bar__add_child_nodes', 1001 );
         }
@@ -448,7 +453,7 @@ function apbct_admin__notice_message(){
 						"<a href='{$settings_link}'>".$apbct->plugin_name."</a>", 
 						"<a href=\"https://cleantalk.org/my/bill/recharge?utm_source=wp-backend&utm_medium=cpc&utm_campaign=WP%20backend%20trial$user_token&cp_mode=antispam\" target=\"_blank\"><b>premium version</b></a>") .
 					'</h3>
-					<h4 style = "color: gray">Account status updates every 24 hours.</h4>
+					<h4 style = "color: gray">' . esc_html__( 'Account status updates every 24 hours.', 'cleantalk-spam-protect' ) . '</h4>
 				</div>';
 				$apbct->notice_show = false;
 			}
@@ -456,19 +461,21 @@ function apbct_admin__notice_message(){
 		
 		//Renew notice from apbct_admin_init().api_method__notice_paid_till()
 		if ($apbct->notice_show && $apbct->notice_renew == 1 && $apbct->moderate_ip == 0 && !$apbct->white_label) {
-			$renew_link = "<a href=\"https://cleantalk.org/my/bill/recharge?utm_source=wp-backend&utm_medium=cpc&utm_campaign=WP%%20backend%%20renew$user_token&cp_mode=antispam\" target=\"_blank\">%s</a>";
-			$button_html 	= sprintf($renew_link, '<input type="button" class="button button-primary" value="'.__('RENEW ANTI-SPAM', 'cleantalk-spam-protect').'"  />');
-			$link_html 		= sprintf($renew_link, "<b>".__('next year', 'cleantalk-spam-protect')."</b>");
-			
-			echo '<div class="updated" id="apbct_renew_notice">
-				<h3>'. 
-					sprintf(__("Please renew your anti-spam license for %s.", 'cleantalk-spam-protect'), $link_html).
-				'</h3>
-				<h4 style = "color: gray">Account status updates every 24 hours.</h4>
+			if(isset($_GET['page']) && in_array($_GET['page'], array('cleantalk', 'ct_check_spam', 'ct_check_users'))){
+				$renew_link = "<a href=\"https://cleantalk.org/my/bill/recharge?utm_source=wp-backend&utm_medium=cpc&utm_campaign=WP%%20backend%%20renew$user_token&cp_mode=antispam\" target=\"_blank\">%s</a>";
+				$button_html 	= sprintf($renew_link, '<input type="button" class="button button-primary" value="'.__('RENEW ANTI-SPAM', 'cleantalk-spam-protect').'"  />');
+				$link_html 		= sprintf($renew_link, "<b>".__('next year', 'cleantalk-spam-protect')."</b>");
+
+				echo '<div class="updated" id="apbct_renew_notice">
+				<h3>'.
+				     sprintf(__("Please renew your anti-spam license for %s.", 'cleantalk-spam-protect'), $link_html).
+				     '</h3>
+				<h4 style = "color: gray">' . esc_html__( 'Account status updates every 24 hours.', 'cleantalk-spam-protect' ) . '</h4>
 				'.$button_html.'
 				<br/><br/>
 			</div>';
-			$apbct->notice_show = false;
+				$apbct->notice_show = false;
+			}
 		}
 		
 		//"Wrong access key" notice (if ct_update_option().METHOD_notice_validate_key returns a error)
@@ -516,11 +523,16 @@ function apbct_admin__admin_bar__add_structure( $wp_admin_bar ) {
     
     global $spbc, $apbct;
     
+    do_action( 'cleantalk_admin_bar__prepare_counters' );
+    
     // Adding parent node
     $wp_admin_bar->add_node( array(
         'id'    => 'cleantalk_admin_bar__parent_node',
-        'title' =>  apply_filters('cleantalk_admin_bar__add_icon_to_parent_node', '' )
-            . '<span class="cleantalk_admin_bar__title">' . __('CleanTalk', 'cleantalk-spam-protect') . '</span>',
+        'title' =>
+            apply_filters('cleantalk_admin_bar__parent_node__before', '' ) .
+            '<span class="cleantalk_admin_bar__title">' . __('CleanTalk', 'cleantalk-spam-protect') . '</span>' .
+            apply_filters('cleantalk_admin_bar__parent_node__after', '' ),
+        'meta' => array( 'class' => 'cleantalk-admin_bar--list_wrapper'),
     ) );
     
     // Security
@@ -533,7 +545,7 @@ function apbct_admin__admin_bar__add_structure( $wp_admin_bar ) {
         'id'    => 'apbct__parent_node',
         'title' => '<div class="cleantalk-admin_bar__parent">'
                 . $title
-            . '</div>'
+            . '</div>',
     ) );
     
     // Antispam
@@ -551,13 +563,19 @@ function apbct_admin__admin_bar__add_structure( $wp_admin_bar ) {
             'parent' => 'cleantalk_admin_bar__parent_node',
             'id'    => 'spbc__parent_node',
             'title' => '<div class="cleantalk-admin_bar__parent">'
-                       . $spbc_title
-                       . '</div>'
+                    . $spbc_title
+                . '</div>'
         ) );
     }
 }
 
-function apbct_admin__admin_bar__add_parent_icon( $icon ){
+/**
+ * Prepares properties for counters in $apbct
+ * Handles counter reset
+ *
+ * @return void
+ */
+function apbct_admin__admin_bar__prepare_counters(){
     
     global $apbct;
     
@@ -614,15 +632,25 @@ function apbct_admin__admin_bar__add_parent_icon( $icon ){
         );
         $apbct->counter__sum += $apbct->counter__sfw['all'];
     }
-    
-    $counter__sum__layout = $apbct->counter__sum
-        ? ( '<div class="cleantalk_admin_bar__sum_counter">' . $apbct->counter__sum . '</div>')
-        : '';
-    
+}
+
+function apbct_admin__admin_bar__add_parent_icon( $icon ){
     
     return $icon
-        . '<img class="cleantalk_admin_bar__apbct_icon" src="' . APBCT_URL_PATH . '/inc/images/logo.png" alt="">&nbsp;'
+        . '<img class="cleantalk_admin_bar__apbct_icon" src="' . APBCT_URL_PATH . '/inc/images/logo.png" alt="">&nbsp;';
+}
+
+function apbct_admin__admin_bar__add_counter( $after ){
+    
+    global $apbct;
+    
+    $counter__sum__layout = ( $after ? ' / ' : '<div class="cleantalk_admin_bar__sum_counter">' ) .
+            '<span title="All anti-spam events">' . $apbct->counter__sum . '</span>' .
+        '</div>';
+    
+    return ( $after ? substr( $after, 0, -6 ) : $after )
         . $counter__sum__layout;
+    
 }
 
 function apbct_admin__admin_bar__add_child_nodes( $wp_admin_bar ) {
@@ -728,7 +756,7 @@ function apbct_admin__admin_bar__add_child_nodes( $wp_admin_bar ) {
     $args = array(
         'parent' => 'apbct__parent_node',
         'id'	 => 'ct_reset_counter',
-        'title'  => '<hr style="margin-top: 7px;"><a href="?ct_reset_user_counter=1" title="Reset your personal counter of submissions.">'.__('Reset first counter', 'cleantalk-spam-protect').'</a>',
+        'title'  => '<hr style="margin-top: 7px;"><a href="?' . http_build_query(array_merge( $_GET, array( 'ct_reset_all_counters' => 1  ) ) ) . '" title="Reset your personal counter of submissions.">' . __('Reset first counter', 'cleantalk-spam-protect') . '</a>',
     );
     $wp_admin_bar->add_node( $args );// add a child item to our parent item. Counter reset.
     
@@ -736,7 +764,7 @@ function apbct_admin__admin_bar__add_child_nodes( $wp_admin_bar ) {
     $args = array(
         'parent' => 'apbct__parent_node',
         'id'	 => 'ct_reset_counters_all',
-        'title'  => '<a href="?ct_reset_all_counters=1" title="Reset all counters.">'.__('Reset all counters', 'cleantalk-spam-protect').'</a>',
+        'title'  => '<a href="?' . http_build_query(array_merge( $_GET, array( 'page' => 1  ) ) ). '" title="Reset all counters.">'.__('Reset all counters', 'cleantalk-spam-protect').'</a>',
     );
     $wp_admin_bar->add_node( $args );
     
@@ -756,7 +784,7 @@ function apbct_spbc_admin__admin_bar__add_child_nodes( $wp_admin_bar ){
     $wp_admin_bar->add_node( array(
         'parent' => 'spbc__parent_node',
         'id'	 => 'apbct_admin_bar__install',
-        'title'  => '<a target="_blank" style="color: #4291d1; font-weight: bold;" href="plugin-install.php?s=Security%20and%20Malware%20scan%20by%20CleanTalk%20&tab=search">' . __( 'Install Security by CleanTalk', 'cleantalk-spam-protect' ) . '</a>',
+        'title'  => '<a target="_blank" href="plugin-install.php?s=Security%20and%20Malware%20scan%20by%20CleanTalk%20&tab=search">' . __( 'Install Security by CleanTalk', 'cleantalk-spam-protect' ) . '</a>',
     ) );
     
     $wp_admin_bar->add_node( array(

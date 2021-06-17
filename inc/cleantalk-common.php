@@ -784,14 +784,29 @@ function ct_delete_spam_comments() {
  */
 function ct_get_fields_any($arr, $message=array(), $email = null, $nickname = array('nick' => '', 'first' => '', 'last' => ''), $subject = null, $contact = true, $prev_name = ''){
 
+	if ( is_array( $nickname ) )
+	{
+		$nickname_str = '';
+		foreach ( $nickname as $value )
+		{
+			$nickname_str .= ($value ? $value . " " : "");
+		}
+		$nickname = trim( $nickname_str );
+	}
+
 	return ct_gfa( $arr, $email, $nickname );
 
 }
 
 /**
-* Get data from an ARRAY recursively
-* @return array
-*/
+ * Get data from an ARRAY recursively
+ *
+ * @param array $input_array
+ * @param string $email
+ * @param string $nickname
+ *
+ * @return array
+ */
 function ct_gfa( $input_array, $email = '', $nickname = '' ) {
 
 	$gfa = new GetFieldsAny( $input_array );

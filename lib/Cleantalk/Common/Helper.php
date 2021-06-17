@@ -571,7 +571,7 @@ class Helper
 				array(
 					CURLOPT_URL => $url,
 					CURLOPT_RETURNTRANSFER => true,
-					CURLOPT_CONNECTTIMEOUT_MS => 6000,
+					CURLOPT_CONNECTTIMEOUT_MS => 10000,
 					CURLOPT_FORBID_REUSE => true,
 					CURLOPT_USERAGENT => self::AGENT . '; ' . ( isset( $_SERVER['REMOTE_ADDR'] ) ? $_SERVER['REMOTE_ADDR'] : 'UNKNOWN_HOST' ),
 					CURLOPT_POST => true,
