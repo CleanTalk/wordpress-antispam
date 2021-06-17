@@ -190,7 +190,7 @@ function apbct_admin__init(){
         }
     
         add_action( 'cleantalk_admin_bar__parent_node__before', 'apbct_admin__admin_bar__prepare_counters' );
-        add_action( 'cleantalk_admin_bar__add_icon_to_parent_node',    'spbc_admin__admin_bar__prepare_counters' );
+        add_action( 'cleantalk_admin_bar__add_icon_to_parent_node', 'apbct_admin__admin_bar__prepare_counters' );
         // Temporary disable the icon
         //add_filter( 'cleantalk_admin_bar__parent_node__before', 'apbct_admin__admin_bar__add_parent_icon', 10, 1 );
         add_filter( 'cleantalk_admin_bar__parent_node__after', 'apbct_admin__admin_bar__add_counter', 10, 1 );
