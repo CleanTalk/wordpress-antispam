@@ -505,7 +505,7 @@ function apbct_is_skip_request( $ajax = false ) {
 	        if ( ( apbct_is_plugin_active( 'fluentformpro/fluentformpro.php' ) || apbct_is_plugin_active( 'fluentform/fluentform.php' ) ) &&
 	             Post::get( 'action' ) === 'active_step' )
 	        {
-		        return 'formidable_skip';
+		        return 'fluentform_skip';
 	        }
             break;
 
