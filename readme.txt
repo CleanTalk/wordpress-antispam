@@ -590,6 +590,13 @@ If your website has forms that send data to external sources, you can enable opt
  * Fix: Admin bar style. Style for security icon.
  * Fix: Admin bar. Reset buttons counters leads to the same page.
  * Fix. Manual register link fixed.
+ * Fix: do not display errors on subsites when wl is enabled.
+ * Fix: Admin bar. Rapid fix.
+ * Fix. Skipping. WPForms check restricted email request skipped.
+ * Fix. Helper. CURL request timeout increased.
+ * Fix. Comments/users checker. Description fixed.
+ * Fix. Get fields any. Preset nickname parameter fixed.
+ * Fix: wpms settings.
 
 = 5.159.1 Jun 10 2021 =
  * Fix: Cron. Cron calling in cleantalk-updater.php fixed.
