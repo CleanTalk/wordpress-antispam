@@ -3,7 +3,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 5.159.1
+  Version: 5.159.2
   Author: СleanTalk <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -1000,7 +1000,7 @@ function apbct_sfw_update__get_multifiles( $api_key, $updating_id ){
     $file_ck_url__data = Helper::http__get_data_from_remote_gz__and_parse_csv( $result['file_ck_url'] );
 
     if( ! empty( $file_ck_url__data['error'] ) ){
-        return array( 'error' => 'GET EXPECTED RECORDS COUNT DATA: ' . $result['error'] );
+        return array( 'error' => 'GET EXPECTED RECORDS COUNT DATA: ' . $file_ck_url__data['error'] );
     }
 
     $expected_networks_count = 0;
@@ -1206,6 +1206,14 @@ function apbct_sfw_update__end_of_update() {
 	$apbct->save( 'fw_stats' );
 
 	$apbct->stats['sfw']['entries'] = $wpdb->get_var('SELECT COUNT(*) FROM ' . APBCT_TBL_FIREWALL_DATA );
+
+	// Running sfw update once again in 12 min if entries is < 4000
+	if( ! $apbct->stats['sfw']['last_update_time'] &&
+	    $apbct->stats['sfw']['entries'] < 4000
+	){
+		wp_schedule_single_event( time() + 720, 'apbct_sfw_update__init' );
+	}
+
 	$apbct->stats['sfw']['last_update_time'] = time();
 	$apbct->save( 'stats' );
 
@@ -1238,13 +1246,6 @@ function apbct_sfw_update__end_of_update() {
 
     $apbct->data['last_firewall_updated'] = current_time('timestamp');
 	$apbct->save('data'); // Unused
-
-	// Running sfw update once again in 12 min if entries is < 4000
-	if( ! $apbct->stats['sfw']['last_update_time'] &&
-	    $apbct->stats['sfw']['entries'] < 4000
-	){
-		wp_schedule_single_event( time() + 720, 'apbct_sfw_update__init' );
-	}
 
 	// Delete update errors
 	$apbct->error_delete( 'sfw_update', 'save_settings' );

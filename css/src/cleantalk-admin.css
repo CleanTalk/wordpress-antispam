@@ -29,6 +29,16 @@
 
 #apbct_gdpr_open_modal:hover{cursor: pointer}
 
+#wp-admin-bar-cleantalk_admin_bar__parent_node{
+	margin-right: 5px;
+}
+
+#wp-admin-bar-cleantalk_admin_bar__parent_node img.cleantalk_admin_bar__spbc_icon{
+	width: 14px;
+	height: 17px;
+	margin-top: 7px;
+}
+
 #wp-admin-bar-cleantalk_admin_bar__parent_node img.cleantalk_admin_bar__apbct_icon{
 	width: 18px;
 	height: 18px;
@@ -36,14 +46,9 @@
 }
 
 #wp-admin-bar-cleantalk_admin_bar__parent_node div.cleantalk_admin_bar__sum_counter{
-	color: white;
-	background: #d63638;
+	color: #999;
 	display: inline;
-	text-align: center;
 	padding: 2px 5px !important;
-	border-radius: 8px;
-	vertical-align: unset;
-	font-size: 9px;
 }
 
 .cleantalk_admin_bar__blocked div{
@@ -56,9 +61,12 @@
 
 .cleantalk_admin_bar__title{
 	vertical-align: top;
-	margin-left: 5px !important;
 }
 
 .cleantalk_admin_bar__separator{
 	height: 0px !important;
+}
+
+.cleantalk-admin_bar--list_wrapper .ab-sub-wrapper ul:last-child{
+	margin-bottom: 5px !important;
 }

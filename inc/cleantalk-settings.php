@@ -520,7 +520,17 @@ function apbct_settings__set_fileds( $fields ){
 function apbct_settings__set_fileds__network( $fields ){
 	global $apbct;
 	$additional_fields = array(
-		'main' => array(
+		'wpms_settings' => array(
+			'default_params' => array(),
+			'description'    => '',
+			'html_before'    => '<br>'
+				.'<span id="ct_adv_showhide">'
+				.'<a href="#" class="apbct_color--gray" onclick="event.preventDefault(); apbct_show_hide_elem(\'apbct_settings__dwpms_settings\');">'
+				.__('WordPress Multisite (WPMS) settings', 'cleantalk-spam-protect')
+				.'</a>'
+				.'</span>'
+				.'<div id="apbct_settings__dwpms_settings" style="display: none;">',
+			'html_after'     => '</div><br>',
 			'fields' => array(
 				'multisite__white_label' => array(
 					'type' => 'checkbox',
@@ -862,7 +872,9 @@ function apbct_settings__error__output($return = false){
 					}
 					continue;
 				}
-				
+				if (!empty($type)&& $apbct->white_label && !is_main_site() && ($type == 'sfw_update' || $type == 'key_invalid' || $type == 'account_check')) {
+					continue;
+				}				
 				$errors_out[$type] = '';
 				if(isset($error['error_time'])) 
 					$errors_out[$type] .= date('Y-m-d H:i:s', $error['error_time']) . ': ';
@@ -1050,7 +1062,7 @@ function apbct_settings__field__apikey(){
 				'<a class="apbct_color--gray" target="__blank" href="'
 					. sprintf( 'https://cleantalk.org/register?platform=wordpress&email=%s&website=%s',
 						urlencode(ct_get_admin_email()),
-						urlencode(parse_url(get_option('siteurl'),PHP_URL_HOST))
+						urlencode(get_bloginfo('url'))
 					)
 					. '">',
 				'</a>'
