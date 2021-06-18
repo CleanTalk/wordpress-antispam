@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 3.0
 Tested up to: 5.7
 Requires PHP: 5.6
-Stable tag: 5.159.2
+Stable tag: 5.159.4
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -55,16 +55,13 @@ CleanTalk is a free anti spam plugin which work with the premium Cloud AntiSpam 
 Native spam protection for WordPress, JetPack comments and any other comment plugins. The plugin moves spam comments to SPAM folder or you can set the option to ban spam comments silently. You can also enable the option in the plugin settings to auto-delete comments from SPAM folder.
 
 = Spam bots registrations filter =
-Blocks spam registration in all forms, forums and boards.
 
 = Spam filter for contact forms =
-Blocks spam in any contact forms. We have made direct integrations with many popular forms, form builders and contact forms of various Themes.
 
 = WooCommerce spam filter =
 Anti-spam by CleanTalk filters spam registrations and spam reviews for WooCommerce. The plugin is fully compatible with WooCommerce 2.1 and higher.
 
 = Newsletters antispam filter =
-Blocks spam in any subscription forms. We have tested anti-spam protection and made direct integrations for many popular subscription forms.
 
 = Spam filter for theme contact forms =
 The plugin blocks spam emails via any theme (built-in ones included) contact forms. The plugin filters spam emails silently (without any error notices on WordPress frontend) in AJAX forms as well.
@@ -79,10 +76,6 @@ Spam protection for everything about bbPress: logins, registrations, forums, top
 * Any submission to the site (checkbox 'Check all POST data')
 
 = Compatible with WordPress cache plugins =
-Cleantalk Anti-Spam has been tested with many caching plugins and we have made integrations for the most popular caching plugins.
-
-If you have questions about spam protection support for a particular plugin or compatibility, you can ask a question on Support Forum.
-https://wordpress.org/support/plugin/cleantalk-spam-protect/
 
 = Check existing comments for spam. Bulk spam comments removal. Spam comment Cleaner =
 With the help of anti-spam by CleanTalk you can inspect through existing comments to find and quickly delete spam comments at once. To use this function, go to WP Console -> Comments -> Find spam comments.
@@ -163,9 +156,6 @@ Spam FireWall can mitigate HTTP/HTTPS DDoS attacks. When an intruder makes GET r
 
 = Spam FireWall: Anti-Flood & Anti-Crawler =
 Spam FireWall: Anti-Flood and Anti-Crawler options are intended for blocking unwanted bots, content parsing, shop goods prices parsing or aggressive website scanning bots. Learn more https://cleantalk.org/help/anti-flood-and-anti-crawler
-
-= XML-RPC brute force protection =
-Spam FireWall can mitigate XML-RPC brute force attacks. It blocks XML-RPC attacks from bad IP addresses. This helps to prevent bruteforce attacks by a Remote Procedure Call.
 
 = No spam comments, no spam registrations, no spam contact emails, no spam trackbacks. CAPTCHA-free anti-spam for WordPress =
 Spam is one of the most irritating things. Spam rates are increasing every year and conventional anti-spam can no longer handle all spam bots. CleanTalk prevents and automatically blocks spam. You'll be surprised how effective CleanTalk is in protecting from spam.
@@ -580,6 +570,12 @@ If your website has forms that send data to external sources, you can enable opt
 10. Website's options.
 
 == Changelog ==
+
+= 5.159.4 Jun 17 2021 =
+ * Fix: Admin bar. PHP error.
+
+= 5.159.3 Jun 15 2021 =
+ * Fix: Admin bar. Conflict with previous version of Security by Cleantalk.
 
 = 5.159.2 Jun 15 2021 =
  * Fix. Renew notice banner shows only on cleantalk pages.
