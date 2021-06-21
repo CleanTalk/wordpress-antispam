@@ -1487,7 +1487,13 @@ function apbct_settings__validate($settings) {
 	$settings['apikey'] = ! is_main_site() && $apbct->white_label && $apbct->settings['apikey']  ? $apbct->settings['apikey'] : $settings['apikey'];
 	$settings['apikey'] = is_main_site() || $apbct->allow_custom_key || $apbct->white_label ? $settings['apikey']        : $apbct->network_settings['apikey'];
 	$settings['apikey'] = is_main_site() || !$settings['multisite__white_label']                       ? $settings['apikey']        : $apbct->settings['apikey'];
-	
+
+	// Show notice if the api key is empty
+	if( ! apbct_api_key__is_correct() ) {
+		$apbct->data['key_is_ok'] = false;
+		$apbct->data['notice_show'] = 1;
+	}
+
 	// Sanitize setting values
 	foreach ($settings as &$setting ){
 		if( is_scalar( $setting ) )
