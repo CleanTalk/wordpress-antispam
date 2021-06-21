@@ -176,8 +176,7 @@ function apbct_admin__init(){
     
     // Admin bar
     $apbct->admin_bar_enabled =  $apbct->settings['admin_bar__show'] &&
-        current_user_can( 'activate_plugins' ) &&
-        apbct_api_key__is_correct() !== false;
+        current_user_can( 'activate_plugins' );
     
 //    ( defined( 'CLEANTALK_SHOW_ADMIN_BAR_FORCE' ) && CLEANTALK_SHOW_ADMIN_BAR_FORCE ) &&
     if( $apbct->admin_bar_enabled ){
