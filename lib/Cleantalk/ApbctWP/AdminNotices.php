@@ -49,10 +49,6 @@ class AdminNotices {
 		$this->is_cleantalk_page = isset( $_GET['page'] ) && in_array( $_GET['page'], array( 'cleantalk', 'ct_check_spam', 'ct_check_users' ) );
 		$this->user_token = $this->apbct->user_token ? '&user_token=' . $this->apbct->user_token : '';
 
-		/*** DEBUG! ***/
-		$this->apbct->notice_show = $this->apbct->notice_trial = 1;
-		/*** DEBUG! ***/
-
 		$self_owned_key = $this->apbct->moderate_ip == 0 && ! defined( 'CLEANTALK_ACCESS_KEY' );
 		$is_dashboard   = is_network_admin() || is_admin();
 		$is_admin       = current_user_can('activate_plugins');
