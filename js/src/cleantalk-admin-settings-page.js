@@ -199,7 +199,7 @@ jQuery(document).ready(function(){
 		apbct_settings__showDescription(self, self.attr('setting'));
 	});
 
-	if (jQuery('#apbct_renew_notice').length || jQuery('#apbct_trial_notice').length) 
+	if (jQuery('#cleantalk_notice_renew').length || jQuery('#cleantalk_notice_trial').length)
 		apbct_banner_check();
 
 	jQuery(document).on('change', '#apbct_settings_templates_export',function(){
@@ -223,10 +223,10 @@ function apbct_banner_check() {
 			{
 				callback: function(result, data, params, obj){
 					if (result.close_renew_banner) {
-						if (jQuery('#apbct_renew_notice').length)
-							jQuery('#apbct_renew_notice').hide('slow');
-						if (jQuery('#apbct_trial_notice').length)
-							jQuery('#apbct_trial_notice').hide('slow');
+						if (jQuery('#cleantalk_notice_renew').length)
+							jQuery('#cleantalk_notice_renew').hide('slow');
+						if (jQuery('#cleantalk_notice_trial').length)
+							jQuery('#cleantalk_notice_trial').hide('slow');
 						clearInterval(bannerChecker);
 					}
 				}
