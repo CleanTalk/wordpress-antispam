@@ -38,9 +38,10 @@
 }
 
 #wp-admin-bar-cleantalk_admin_bar__parent_node .icon-attention-alt {
-	background: red;
+	background: #d63638;
 	color: #fff;
 	border-radius: 50%;
+    font-size: 12px;
 }
 
 #wp-admin-bar-cleantalk_admin_bar__parent_node img.cleantalk_admin_bar__spbc_icon{
