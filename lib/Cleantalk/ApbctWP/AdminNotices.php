@@ -213,7 +213,7 @@ class AdminNotices {
 
 	public function add_attention_mark( $after ) {
 		if( $this->apbct->notice_show ) {
-			return $after . '<i style="color:red;" class="icon-attention-alt"></i>';
+			return $after . '<i class="icon-attention-alt"></i>';
 		}
 		return $after;
 	}

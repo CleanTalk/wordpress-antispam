@@ -425,7 +425,7 @@ function apbct_admin__admin_bar__add_structure( $wp_admin_bar ) {
         ? "<span><a href='https://cleantalk.org/my/bill/recharge?utm_source=wp-backend&utm_medium=cpc&utm_campaign=WP%20backend%20trial&user_token={$apbct->user_token}&cp_mode=antispam' target='_blank'>" . __('Renew Anti-Spam', 'cleantalk-spam-protect') . '</a></span>'
         : '<span><a>' . __( 'Anti-Spam', 'cleantalk-spam-protect' ) . '</a></span>';
 
-	$attention_mark = $apbct->notice_show ? '<i style="color:red;" class="icon-attention-alt"></i>' : '';
+	$attention_mark = $apbct->notice_show ? '<i class="icon-attention-alt"></i>' : '';
 	$title = $title . $attention_mark;
 
     $wp_admin_bar->add_node( array(
@@ -545,7 +545,7 @@ function apbct_admin__admin_bar__add_child_nodes( $wp_admin_bar ) {
 	
 	global $apbct;
 
-	$attention_mark = $apbct->notice_show ? '<i style="color:red;" class="icon-attention-alt"></i>' : '';
+	$attention_mark = $apbct->notice_show ? '<i class="icon-attention-alt"></i>' : '';
 
     // User's counter
     $wp_admin_bar->add_node( array(
