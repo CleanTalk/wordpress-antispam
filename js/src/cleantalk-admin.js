@@ -7,7 +7,7 @@ jQuery(document).ready(function(){
 		document.cookie = "apbct_update_banner_closed=1; path=/; expires=" + ct_date.toUTCString() + "; samesite=lax" + ctSecure;
 	});
 	
-	jQuery('li a[href="options-general.php?page=cleantalk"]').css('white-space','nowrap');
+	jQuery('li a[href="options-general.php?page=cleantalk"]').css('white-space','nowrap').css('display','inline-block');
 
 	jQuery('body').on('click', '.apbct-notice .notice-dismiss', function(e){
 		var apbct_notice_name = jQuery(e.target).parent().attr('id');

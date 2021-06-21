@@ -68,6 +68,8 @@ class AdminNotices {
 					}
 				}
 
+				add_filter( 'cleantalk_admin_bar__parent_node__after', array( $this, 'add_attention_mark' ), 20, 1 );
+
 			}
 
 		}
@@ -207,6 +209,13 @@ class AdminNotices {
 			wp_send_json_error( esc_html__( 'Notice name is not allowed.', 'cleantalk-spam-protect' ) );
 		}
 
+	}
+
+	public function add_attention_mark( $after ) {
+		if( $this->apbct->notice_show ) {
+			return $after . '<i style="color:red;" class="icon-attention-alt"></i>';
+		}
+		return $after;
 	}
 
 }

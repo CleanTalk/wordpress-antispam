@@ -425,7 +425,10 @@ function apbct_admin__admin_bar__add_structure( $wp_admin_bar ) {
     $title = $apbct->notice_trial
         ? "<span><a href='https://cleantalk.org/my/bill/recharge?utm_source=wp-backend&utm_medium=cpc&utm_campaign=WP%20backend%20trial&user_token={$apbct->user_token}&cp_mode=antispam' target='_blank'>" . __('Renew Anti-Spam', 'cleantalk-spam-protect') . '</a></span>'
         : '<a>' . __( 'Anti-Spam', 'cleantalk-spam-protect' ) . '</a>';
-    
+
+	$attention_mark = $apbct->notice_show ? '<i style="color:red;" class="icon-attention-alt"></i>' : '';
+	$title = $title . $attention_mark;
+
     $wp_admin_bar->add_node( array(
         'parent' => 'cleantalk_admin_bar__parent_node',
         'id'    => 'apbct__parent_node',
@@ -542,7 +545,9 @@ function apbct_admin__admin_bar__add_counter( $after ){
 function apbct_admin__admin_bar__add_child_nodes( $wp_admin_bar ) {
 	
 	global $apbct;
-    
+
+	$attention_mark = $apbct->notice_show ? '<i style="color:red;" class="icon-attention-alt"></i>' : '';
+
     // User's counter
     $wp_admin_bar->add_node( array(
         'parent' => 'apbct__parent_node',
@@ -617,7 +622,7 @@ function apbct_admin__admin_bar__add_child_nodes( $wp_admin_bar ) {
     $wp_admin_bar->add_node( array(
         'parent' => 'apbct__parent_node',
         'id'	 => 'ct_settings_link',
-        'title'  => '<a href="'.$apbct->settings_link.'">'.__('Settings', 'cleantalk-spam-protect').'</a>',
+        'title'  => '<a href="'.$apbct->settings_link.'">'.__('Settings', 'cleantalk-spam-protect').'</a>' . $attention_mark,
     ));
     
     // Add a child item to our parent item. Bulk checks.
