@@ -175,7 +175,6 @@ function apbct_admin__init(){
 	global $apbct, $spbc;
     
     // Admin bar
-    
     $apbct->admin_bar_enabled =  $apbct->settings['admin_bar__show'] &&
         current_user_can( 'activate_plugins' ) &&
         apbct_api_key__is_correct() !== false;
@@ -382,121 +381,6 @@ function apbct_admin__enqueue_scripts($hook){
         ));
     }
 
-}
-
-/**
- * Notice blog owner if plugin is used without Access key 
- * @return bool 
- */
-function apbct_admin__notice_message(){
-	
-	global $apbct;
-	
-	$page = get_current_screen();
-	
-	//General notice control flags
-	$self_owned_key = 	($apbct->moderate_ip == 0 && !defined('CLEANTALK_ACCESS_KEY') ? true : false);
-	$is_dashboard = 	(is_network_admin() || is_admin() ? true : false);
-	$is_admin = 		(current_user_can('activate_plugins') ? true : false);
-	
-	$page_is_ct_settings = (in_array($page->id, array('settings_page_cleantalk', 'settings_page_cleantalk-network', 'comments_page_ct_check_spam', 'users_page_ct_check_users')) ? true : false);
-	
-	//Misc
-	$user_token =    ($apbct->user_token ? '&user_token='.$apbct->user_token : '');
-
-	if( is_network_admin() ) {
-		$site_url = get_site_option('siteurl');
-		$site_url = preg_match( '/\/$/', $site_url ) ? $site_url : $site_url . '/';
-		$settings_link = $site_url . 'wp-admin/options-general.php?page=cleantalk';
-    } else {
-		$settings_link = 'options-general.php?page=cleantalk';
-    }
-		
-	if($self_owned_key && $is_dashboard && $is_admin){
-		// Auto update notice
-		/* Disabled at 09.09.2018
-		if($apbct->notice_auto_update == 1 && $apbct->auto_update != -1 && empty($_COOKIE['apbct_update_banner_closed'])){
-			$link 	= '<a href="https://cleantalk.org/help/cleantalk-auto-update" target="_blank">%s</a>';
-			$button = sprintf($link, '<input type="button" class="button button-primary" value="'.__('Learn more', 'cleantalk-spam-protect').'"  />');
-			echo '<div class="error notice is-dismissible apbct_update_notice">'
-				.'<h3>'
-					.__('Do you know that Anti-Spam by CleanTalk has auto update option?', 'cleantalk-spam-protect')
-					.'</br></br>'
-					.$button
-				.'</h3>'
-			.'</div>';
-		}
-		*/
-		//Unable to get key automatically (if apbct_admin__init().getAutoKey() returns error)
-		if ($apbct->notice_show && !empty($apbct->errors['get_key']) && !$apbct->white_label){
-			echo '<div class="error">
-				<h3>' . sprintf(__("Unable to get Access key automatically: %s", 'cleantalk-spam-protect'), $apbct->api_key).
-					"<a target='__blank' style='margin-left: 10px' href='https://cleantalk.org/register?platform=wordpress&email=" . urlencode(ct_get_admin_email())."&website=" . urlencode(parse_url(get_option('siteurl'),PHP_URL_HOST))."'>".__('Get the Access key', 'cleantalk-spam-protect').'</a>
-				</h3>
-			</div>';
-		}
-		
-		//key == "" || "enter key"
-		if ( ( ! apbct_api_key__is_correct() && $apbct->moderate_ip == 0 ) && ! $apbct->white_label ){
-			echo "<div class='error'>"
-				."<h3>"
-					.sprintf(__("Please enter Access Key in %s settings to enable anti spam protection!", 'cleantalk-spam-protect'), "<a href='{$settings_link}'>$apbct->plugin_name</a>")
-				."</h3>"
-			."</div>";
-			$apbct->notice_show = false;
-		}
-		
-		//"Trial period ends" notice from apbct_admin__init().api_method__notice_paid_till()
-		if ($apbct->notice_show && $apbct->notice_trial == 1 && $apbct->moderate_ip == 0 && !$apbct->white_label) {
-			if(isset($_GET['page']) && in_array($_GET['page'], array('cleantalk', 'ct_check_spam', 'ct_check_users'))){
-				echo '<div class="error" id="apbct_trial_notice">
-					<h3>' . sprintf(__("%s trial period ends, please upgrade to %s!", 'cleantalk-spam-protect'),
-						"<a href='{$settings_link}'>".$apbct->plugin_name."</a>", 
-						"<a href=\"https://cleantalk.org/my/bill/recharge?utm_source=wp-backend&utm_medium=cpc&utm_campaign=WP%20backend%20trial$user_token&cp_mode=antispam\" target=\"_blank\"><b>premium version</b></a>") .
-					'</h3>
-					<h4 style = "color: gray">' . esc_html__( 'Account status updates every 24 hours.', 'cleantalk-spam-protect' ) . '</h4>
-				</div>';
-				$apbct->notice_show = false;
-			}
-		}
-		
-		//Renew notice from apbct_admin_init().api_method__notice_paid_till()
-		if ($apbct->notice_show && $apbct->notice_renew == 1 && $apbct->moderate_ip == 0 && !$apbct->white_label) {
-			if(isset($_GET['page']) && in_array($_GET['page'], array('cleantalk', 'ct_check_spam', 'ct_check_users'))){
-				$renew_link = "<a href=\"https://cleantalk.org/my/bill/recharge?utm_source=wp-backend&utm_medium=cpc&utm_campaign=WP%%20backend%%20renew$user_token&cp_mode=antispam\" target=\"_blank\">%s</a>";
-				$button_html 	= sprintf($renew_link, '<input type="button" class="button button-primary" value="'.__('RENEW ANTI-SPAM', 'cleantalk-spam-protect').'"  />');
-				$link_html 		= sprintf($renew_link, "<b>".__('next year', 'cleantalk-spam-protect')."</b>");
-
-				echo '<div class="updated" id="apbct_renew_notice">
-				<h3>'.
-				     sprintf(__("Please renew your anti-spam license for %s.", 'cleantalk-spam-protect'), $link_html).
-				     '</h3>
-				<h4 style = "color: gray">' . esc_html__( 'Account status updates every 24 hours.', 'cleantalk-spam-protect' ) . '</h4>
-				'.$button_html.'
-				<br/><br/>
-			</div>';
-				$apbct->notice_show = false;
-			}
-		}
-		
-		//"Wrong access key" notice (if ct_update_option().METHOD_notice_validate_key returns a error)
-		if ($apbct->notice_show && $page_is_ct_settings && !$apbct->data['key_is_ok'] && $apbct->moderate_ip == 0 && !$apbct->white_label){
-			echo '<div class="error">
-				<h3><b>'.
-					__("Wrong <a href='{$settings_link}'><b style=\"color: #49C73B;\">Clean</b><b style=\"color: #349ebf;\">Talk</b> access key</a>! Please check it or ask <a target=\"_blank\" href=\"https://wordpress.org/support/plugin/cleantalk-spam-protect/\">support</a>.", 'cleantalk-spam-protect').
-				'</b></h3>
-			</div>';
-		}
-
-		//notice_incompatibility
-        if( ! empty( $apbct->data['notice_incompatibility'] ) && $page_is_ct_settings ){
-		    foreach ($apbct->data['notice_incompatibility'] as $notice) {
-			    echo '<div class="error">' . $notice . '</div>';
-            }
-		}
-	}
-
-	return true;
 }
 
 function apbct_admin__badge__get_premium($print = true, $out = ''){

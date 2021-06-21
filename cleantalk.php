@@ -10,6 +10,7 @@
   Domain Path: /i18n
 */
 
+use Cleantalk\ApbctWP\AdminNotices;
 use Cleantalk\ApbctWP\CleantalkUpgrader;
 use Cleantalk\ApbctWP\CleantalkUpgraderSkin;
 use Cleantalk\ApbctWP\CleantalkUpgraderSkin_Deprecated;
@@ -319,7 +320,10 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 		require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-admin.php');
 		require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-settings.php');
 
-	    add_action('admin_init',            'apbct_admin__init', 1);
+	    add_action( 'admin_init',            'apbct_admin__init', 1 );
+
+	    // Show notices
+	    add_action( 'admin_init', array( AdminNotices::class, 'show_admin_notices' ) );
 
 		if (!(defined( 'DOING_AJAX' ) && DOING_AJAX)){
 			
@@ -327,8 +331,6 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 
 			add_action('admin_menu',            'apbct_settings_add_page');
 			add_action('network_admin_menu',    'apbct_settings_add_page');
-			add_action('admin_notices',         'apbct_admin__notice_message');
-			add_action('network_admin_notices', 'apbct_admin__notice_message');
 			
 			//Show widget only if enables and not IP license
 			if( $apbct->settings['wp__dashboard_widget__show'] && ! $apbct->moderate_ip )
@@ -720,6 +722,9 @@ function apbct_deactivation__delete_all_options(){
     delete_option('cleantalk_plugin_request_ids');
     delete_option('cleantalk_fw_stats');
     delete_option( 'ct_plugin_do_activation_redirect' );
+    foreach( AdminNotices::get_notices() as $notice ) {
+    	delete_option( 'cleantalk_' . $notice . '_dismissed' );
+    }
 }
 
 /**
