@@ -14,7 +14,7 @@ class AdminNotices {
 	/**
 	 * @var array
 	 */
-	private const NOTICES = array(
+	const NOTICES = array(
 		'notice_get_key_error',
 		'notice_key_is_incorrect',
 		'notice_trial',
