@@ -515,11 +515,11 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 
         if( empty( $result['error'] ) ){
             
-            if( ! empty( $result['file_url'] ) )
+            if( empty( $result['file_url'] ) )
                 return array( 'error' => 'No file_url parameter provided.' );
-            if( ! empty( $result['file_ua_url'] ) )
+            if( empty( $result['file_ua_url'] ) )
                 return array( 'error' => 'No file_ua_url parameter provided.' );
-            if( ! empty( $result['file_ck_url'] ) )
+            if( empty( $result['file_ck_url'] ) )
                 return array( 'error' => 'No file_ck_url parameter provided.' );
 
             $data = Helper::http__get_data_from_remote_gz__and_parse_csv( $result['file_url'] );
