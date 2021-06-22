@@ -606,8 +606,12 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
             
             // And delete all 127.0.0.1 entries for local hosts
 			}else{
-			    global $wpdb;
+			    global $wpdb, $apbct;
 			    $wpdb->query( 'DELETE FROM ' . $db__table__data . ' WHERE network = ' . ip2long( '127.0.0.1' ) . ';' );
+				if( $wpdb->last_result > 0 ) {
+					$apbct->fw_stats['expected_networks_count'] -= $wpdb->last_result;
+					$apbct->save( 'fw_stats' );
+				}
             }
 		}
 
