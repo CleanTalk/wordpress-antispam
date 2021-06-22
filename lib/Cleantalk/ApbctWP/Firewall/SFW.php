@@ -515,23 +515,26 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 
         if( empty( $result['error'] ) ){
             
-            if( ! empty( $result['file_url'] ) ){
-                
-                $data = Helper::http__get_data_from_remote_gz__and_parse_csv( $result['file_url'] );
-                
-                if( empty( $data['error'] ) ){
-                    
-                    return array(
-                        'multifile_url' => trim( $result['file_url'] ),
-                        'useragent_url' => trim( $result['file_ua_url'] ),
-                        'file_urls'     => $data,
-                        'file_ck_url'   => trim( $result['file_ck_url'] ),
-                    );
-                    
-                }else
-                    return array( 'error' => 'FW. Get multifile. ' . $data['error'] );
+            if( ! empty( $result['file_url'] ) )
+                return array( 'error' => 'No file_url parameter provided.' );
+            if( ! empty( $result['file_ua_url'] ) )
+                return array( 'error' => 'No file_ua_url parameter provided.' );
+            if( ! empty( $result['file_ck_url'] ) )
+                return array( 'error' => 'No file_ck_url parameter provided.' );
+
+            $data = Helper::http__get_data_from_remote_gz__and_parse_csv( $result['file_url'] );
+
+            if( empty( $data['error'] ) ){
+
+                return array(
+                    'multifile_url' => trim( $result['file_url'] ),
+                    'useragent_url' => trim( $result['file_ua_url'] ),
+                    'file_urls'     => $data,
+                    'file_ck_url'   => trim( $result['file_ck_url'] ),
+                );
+
             }else
-                return array( 'error' => 'FW. Get multifile. BAD_RESPONSE' );
+                return array( 'error' => $data['error'] );
         }else
             return $result;
     }
