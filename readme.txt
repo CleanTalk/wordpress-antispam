@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 3.0
 Tested up to: 5.7
 Requires PHP: 5.6
-Stable tag: 5.159.4
+Stable tag: 5.159.5
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -570,6 +570,24 @@ If your website has forms that send data to external sources, you can enable opt
 10. Website's options.
 
 == Changelog ==
+
+= 5.159.5 Jun 24 2021 =
+ * New. Admin bar. Attention mark added.
+ * Upd. Admin notices have been rebuilt.
+ * Fix: skip fluentform multistep request.
+ * Fix: correct fluent_form skip name.
+ * Fix. Admin notices. Trial and renew notices ID attributes renamed.
+ * Fix: Admin bar. Trial notice font color changed.
+ * Fix. Admin bar. Show admin bar without api key.
+ * Fix. Admin bar. Show attention badge if the api key is empty.
+ * Fix. AC. Skip checking on 302 redirects.
+ * Fix: added IF NOT EXISTS after ADD COLUMN in cleantalk-updater.php
+ * Fix: removed ADD PRIMARY KEY from apbct_update_to_5_146_4
+ * Fix: removed apbct_update_to_5_146_4
+ * Fix: Checking output parameters of API-method get_2s_blacklists_db.
+ * Fix. SFW. Writing exclusions fixed.
+ * Fix. Integration. GF names detection fixed.
+ * Fix. Integration. WPForms nicknames detecting fixed.
 
 = 5.159.4 Jun 17 2021 =
  * Fix: Admin bar. PHP error.
