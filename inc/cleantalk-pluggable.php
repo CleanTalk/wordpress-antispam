@@ -493,7 +493,20 @@ function apbct_is_skip_request( $ajax = false ) {
 	        {
 		        return 'eael_login_skipped';
 	        }
-
+	        // WPForms check restricted email skipped
+	        if(
+		        ( apbct_is_plugin_active( 'wpforms/wpforms.php' ) ) &&
+		        ( Post::get('action') === 'wpforms_restricted_email' && Post::get('token') !== '' )
+	        )
+	        {
+		        return 'wpforms_check_restricted_email';
+	        }
+	        // FluentForm multistep skip 
+	        if ( ( apbct_is_plugin_active( 'fluentformpro/fluentformpro.php' ) || apbct_is_plugin_active( 'fluentform/fluentform.php' ) ) &&
+	             Post::get( 'action' ) === 'active_step' )
+	        {
+		        return 'fluentform_skip';
+	        }
             break;
 
         case false :

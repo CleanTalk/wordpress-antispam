@@ -442,7 +442,7 @@ function apbct_update_to_5_138_0() {
 		`mask` int(11) unsigned NOT NULL,
 		INDEX (  `network` ,  `mask` )
 		);';
-	$sqls[] = 'ALTER TABLE `%scleantalk_sfw` ADD COLUMN status TINYINT(1) NOT NULL DEFAULT 0 AFTER mask;';
+	$sqls[] = 'ALTER TABLE `%scleantalk_sfw` ADD COLUMN IF NOT EXISTS status TINYINT(1) NOT NULL DEFAULT 0 AFTER mask;';
 	
 	// Actions for WPMS
 	if( APBCT_WPMS ){
@@ -538,8 +538,8 @@ function apbct_update_to_5_142_0() {
 		PRIMARY KEY (`id`));';
 	
 	$sqls[] = 'ALTER TABLE `%scleantalk_sfw_logs`
-		ADD COLUMN `id` VARCHAR(40) NOT NULL FIRST,
-		ADD COLUMN `status` ENUM(\'PASS_SFW\',\'DENY_SFW\',\'PASS_SFW_BY_WHITELIST\',\'PASS_SFW_BY_COOKIE\',\'DENY_ANTIBOT\',\'DENY_ANTICRAWLER\') NOT NULL AFTER `ip`,
+		ADD COLUMN IF NOT EXISTS `id` VARCHAR(40) NOT NULL FIRST,
+		ADD COLUMN IF NOT EXISTS `status` ENUM(\'PASS_SFW\',\'DENY_SFW\',\'PASS_SFW_BY_WHITELIST\',\'PASS_SFW_BY_COOKIE\',\'DENY_ANTIBOT\',\'DENY_ANTICRAWLER\') NOT NULL AFTER `ip`,
 		DROP PRIMARY KEY,
 		ADD PRIMARY KEY (`id`);';
 	
@@ -627,18 +627,17 @@ function apbct_update_to_5_146_3() {
 	update_option( 'cleantalk_plugin_request_ids', array() );
 }
 
-function apbct_update_to_5_146_4() {
-	
-	global $apbct;
-	
-	$sqls[] = 'ALTER TABLE `%scleantalk_sfw`
-		ADD COLUMN `id` INT(11) NOT NULL AUTO_INCREMENT FIRST,
-		ADD PRIMARY KEY (`id`);';
-	
-	apbct_activation__create_tables( $sqls, $apbct->db_prefix );
-	
-
-}
+//function apbct_update_to_5_146_4() {
+//
+//	global $apbct;
+//
+//	$sqls[] = 'ALTER TABLE `%scleantalk_sfw`
+//		ADD COLUMN IF NOT EXISTS `id` INT(11) NOT NULL AUTO_INCREMENT FIRST';
+//
+//	apbct_activation__create_tables( $sqls, $apbct->db_prefix );
+//
+//
+//}
 function apbct_update_to_5_148_0() {
 	$cron = new Cron();
 	$cron->updateTask('antiflood__clear_table', 'apbct_antiflood__clear_table',  86400);
@@ -935,13 +934,13 @@ function apbct_update_to_5_158_0(){
     global $apbct, $wpdb;
     
     $sqls[] = 'ALTER TABLE `%scleantalk_sfw`'
-              . ' ADD COLUMN `source` TINYINT(1) NULL DEFAULT NULL AFTER `status`;';
+              . ' ADD COLUMN IF NOT EXISTS `source` TINYINT(1) NULL DEFAULT NULL AFTER `status`;';
     
     $sqls[] = 'ALTER TABLE `%scleantalk_sfw_logs`'
-              . ' ADD COLUMN `source` TINYINT(1) NULL DEFAULT NULL AFTER `ua_name`,'
-              . ' ADD COLUMN `network` VARCHAR(20) NULL DEFAULT NULL AFTER `source`,'
-              . ' ADD COLUMN `first_url` VARCHAR(100) NULL DEFAULT NULL AFTER `network`,'
-              . ' ADD COLUMN `last_url` VARCHAR(100) NULL DEFAULT NULL AFTER `first_url`;';
+              . ' ADD COLUMN IF NOT EXISTS `source` TINYINT(1) NULL DEFAULT NULL AFTER `ua_name`,'
+              . ' ADD COLUMN IF NOT EXISTS `network` VARCHAR(20) NULL DEFAULT NULL AFTER `source`,'
+              . ' ADD COLUMN IF NOT EXISTS `first_url` VARCHAR(100) NULL DEFAULT NULL AFTER `network`,'
+              . ' ADD COLUMN IF NOT EXISTS `last_url` VARCHAR(100) NULL DEFAULT NULL AFTER `first_url`;';
     
     if( APBCT_WPMS ){
         // Getting all blog ids
