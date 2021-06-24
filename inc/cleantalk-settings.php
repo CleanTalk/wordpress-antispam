@@ -43,6 +43,13 @@ function apbct_settings__set_fileds( $fields ){
             $additional_ac_title = ' <span style="color:red">' . esc_html__( 'The functionality was disabled because SpamFireWall database is empty. Please, do the synchronization or', 'cleantalk-spam-protect' ) . ' ' . '<a href="https://cleantalk.org/my/support/open" target="_blank" style="color:red">'. esc_html__( 'contact to our support.', 'cleantalk-spam-protect' ) .'</a></span>';
         }
     }
+	$additional_sfw_description = '';
+	if( ! empty( $apbct->data['notice_incompatibility'] ) ){
+		$additional_sfw_description .= '<br>';
+		foreach( $apbct->data['notice_incompatibility'] as $notice ) {
+			$additional_sfw_description .= '<span style="color:red">' . $notice . '</span><br>';
+		}
+	}
 
 	$fields =  array(
 		
@@ -103,7 +110,8 @@ function apbct_settings__set_fileds( $fields ){
 				'sfw__enabled' => array(
 					'type'        => 'checkbox',
 					'title'       => __('SpamFireWall', 'cleantalk-spam-protect'),
-					'description' => __("This option allows to filter spam bots before they access website. Also reduces CPU usage on hosting server and accelerates pages load time.", 'cleantalk-spam-protect') . '<br>' .esc_html__( 'If the setting is turned on, plugin will automatically add IP address for each session with administration rights to Personal list in the cloud.', 'cleantalk-spam-protect' ),
+					'description' => __("This option allows to filter spam bots before they access website. Also reduces CPU usage on hosting server and accelerates pages load time.", 'cleantalk-spam-protect') . '<br>' .esc_html__( 'If the setting is turned on, plugin will automatically add IP address for each session with administration rights to Personal list in the cloud.', 'cleantalk-spam-protect' )
+				    . $additional_sfw_description,
 					'childrens'   => array('sfw__anti_flood', 'sfw__anti_crawler', 'sfw__use_delete_to_clear_table'),
 				),
 				'sfw__anti_crawler' => array(

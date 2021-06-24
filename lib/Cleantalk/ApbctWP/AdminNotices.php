@@ -153,7 +153,7 @@ class AdminNotices {
 
 	public function notice_incompatibility()
 	{
-		if( ! empty( $this->apbct->data['notice_incompatibility'] ) && $this->is_cleantalk_page ){
+		if( ! empty( $this->apbct->data['notice_incompatibility'] ) && $this->is_cleantalk_page && $this->apbct->settings['sfw__enabled'] ){
 			foreach ($this->apbct->data['notice_incompatibility'] as $notice) {
 				$this->generate_notice_html( $notice );
 			}
