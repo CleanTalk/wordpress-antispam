@@ -32,11 +32,6 @@ class Compatibility
         global $apbct;
         
         if( $this->notices ){
-            
-            // @todo save previous setting and restore it once the problem is gone
-            $apbct->settings['sfw__enabled'] = 0;
-            $apbct->save('settings');
-            
             $apbct->data['notice_incompatibility'] = $this->notices;
         }else{
             $apbct->data['notice_incompatibility'] = array();
