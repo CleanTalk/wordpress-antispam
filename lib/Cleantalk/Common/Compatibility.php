@@ -2,8 +2,6 @@
 
 namespace Cleantalk\Common;
 
-use Cleantalk\ApbctWP\CleantalkSettingsTemplates;
-
 /**
  * CleanTalk Compatibility class.
  *
@@ -43,6 +41,7 @@ class Compatibility
         }else{
             $apbct->data['notice_incompatibility'] = array();
         }
+		$apbct->saveData();
 	}
 
 	/**
