@@ -20,10 +20,18 @@ class HappyForm extends IntegrationBase {
 	}
 
 	public function doBlock( $message ) {
+		wp_send_json_error( array(
+			'html' => '<div class="happyforms-form happyforms-styles">
+							<h3 class="happyforms-form__title">Sample Form</h3>
+							<form action="" method="post" novalidate="true">
+							<div class="happyforms-flex"><div class="happyforms-message-notices">
+							<div class="happyforms-message-notice error">
+							<h2>' . $message . '</h2></div></div>
+							</form></div>'
+		) );
+	}
 
-		add_filter( 'happyforms_validate_submission', function( $is_valid, $request, $form ){
-			return false;
-		}, 1, 3 );
-
+	public function allow() {
+		return true;
 	}
 }

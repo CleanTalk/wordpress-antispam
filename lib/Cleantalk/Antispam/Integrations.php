@@ -88,7 +88,11 @@ class Integrations
 
                     if ($ct_result->allow == 0) {
                         // Do blocking if it is a spam
-                        $this->integration->doBlock( $ct_result->comment );
+                        return $this->integration->doBlock( $ct_result->comment );
+                    }
+
+                    if($ct_result->allow != 0 && method_exists($this->integration, 'allow')) {
+	                    return $this->integration->allow();
                     }
                 } else {
                     // @ToDo have to handle an error
