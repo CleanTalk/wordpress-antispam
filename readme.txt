@@ -568,6 +568,8 @@ If your website has forms that send data to external sources, you can enable opt
 8. CleanTalk's dashboard update link.
 9. Auto update confirmation.
 10. Website's options.
+11. CleanTalk's dashboard.
+12. SpamFireWall log.
 
 == Changelog ==
 
