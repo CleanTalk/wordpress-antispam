@@ -105,7 +105,6 @@ function apbct_settings__set_fileds( $fields ){
 					'title'       => __('SpamFireWall', 'cleantalk-spam-protect'),
 					'description' => __("This option allows to filter spam bots before they access website. Also reduces CPU usage on hosting server and accelerates pages load time.", 'cleantalk-spam-protect') . '<br>' .esc_html__( 'If the setting is turned on, plugin will automatically add IP address for each session with administration rights to Personal list in the cloud.', 'cleantalk-spam-protect' ),
 					'childrens'   => array('sfw__anti_flood', 'sfw__anti_crawler', 'sfw__use_delete_to_clear_table'),
-                    'disabled' => (bool) $apbct->data['notice_incompatibility'],
 				),
 				'sfw__anti_crawler' => array(
 					'type'        => 'checkbox',
