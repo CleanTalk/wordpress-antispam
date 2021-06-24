@@ -3702,6 +3702,13 @@ function ct_contact_form_validate() {
         return null;
     }
 
+    // Skip REST API requests
+    if ( Server::isPost() && Server::in_uri( 'rest_route') )
+    {
+        do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
+    	return null;
+    }
+    
     //Skip woocommerce checkout
     if (apbct_is_in_uri('wc-ajax=update_order_review') ||
         apbct_is_in_uri('wc-ajax=checkout') ||
