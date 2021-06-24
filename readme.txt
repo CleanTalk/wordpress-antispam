@@ -574,6 +574,7 @@ If your website has forms that send data to external sources, you can enable opt
 = 5.159.5 Jun 24 2021 =
  * New: Admin bar. Attention mark added.
  * Upd: Admin notices have been rebuilt.
+ * Upd: Integrations with HappyForms updated.
  * Fix: Skip fluentform multistep request.
  * Fix: Correct fluent_form skip name.
  * Fix: Admin notices. Trial and renew notices ID attributes renamed.
@@ -588,6 +589,13 @@ If your website has forms that send data to external sources, you can enable opt
  * Fix: SFW. Writing exclusions fixed.
  * Fix: Integration. GF names detection fixed.
  * Fix: Integration. WPForms nicknames detecting fixed.
+ * Fix. SFW. Updating fixed.
+ * Fix: Excluding REST API requests from check.
+ * Fix. Admin notices. Incompatibility notice fixed.
+ * Fix. Compatibility. Notice saving fixed.
+ * Fix. Compatibility. Prevent disabling SFW on incompatibility detected.
+ * Fix. Compatibility. SFW option is no longer disabled on incompatibility detected.
+ * Fix. Admin bar. Reset counters fixed.
 
 = 5.159.4 Jun 17 2021 =
  * Fix: Admin bar. PHP error.
