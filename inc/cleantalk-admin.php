@@ -646,7 +646,7 @@ function apbct_admin__admin_bar__add_child_nodes( $wp_admin_bar ) {
     $args = array(
         'parent' => 'apbct__parent_node',
         'id'	 => 'ct_reset_counter',
-        'title'  => '<hr style="margin-top: 7px;"><a href="?' . http_build_query(array_merge( $_GET, array( 'ct_reset_all_counters' => 1  ) ) ) . '" title="Reset your personal counter of submissions.">' . __('Reset first counter', 'cleantalk-spam-protect') . '</a>',
+        'title'  => '<hr style="margin-top: 7px;"><a href="?' . http_build_query(array_merge( $_GET, array( 'ct_reset_user_counter' => 1  ) ) ) . '" title="Reset your personal counter of submissions.">' . __('Reset first counter', 'cleantalk-spam-protect') . '</a>',
     );
     $wp_admin_bar->add_node( $args );// add a child item to our parent item. Counter reset.
     
@@ -654,7 +654,7 @@ function apbct_admin__admin_bar__add_child_nodes( $wp_admin_bar ) {
     $args = array(
         'parent' => 'apbct__parent_node',
         'id'	 => 'ct_reset_counters_all',
-        'title'  => '<a href="?' . http_build_query(array_merge( $_GET, array( 'page' => 1  ) ) ). '" title="Reset all counters.">'.__('Reset all counters', 'cleantalk-spam-protect').'</a>',
+        'title'  => '<a href="?' . http_build_query(array_merge( $_GET, array( 'ct_reset_all_counters' => 1  ) ) ). '" title="Reset all counters.">'.__('Reset all counters', 'cleantalk-spam-protect').'</a>',
     );
     $wp_admin_bar->add_node( $args );
     
