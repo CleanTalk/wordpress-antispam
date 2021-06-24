@@ -155,7 +155,7 @@ class AdminNotices {
 	{
 		if( ! empty( $this->apbct->data['notice_incompatibility'] ) && $this->is_cleantalk_page ){
 			foreach ($this->apbct->data['notice_incompatibility'] as $notice) {
-				echo '<div class="error">' . $notice . '</div>';
+				$this->generate_notice_html( $notice );
 			}
 		}
 	}
