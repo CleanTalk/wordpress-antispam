@@ -4371,11 +4371,21 @@ function apbct_form_profile_builder__check_register ( $errors, $fields, $global_
 
         if( $ct_result->allow == 0 ) {
             $errors['error'] = $ct_result->comment;
+	        $GLOBALS['global_profile_builder_error'] = $ct_result->comment;
+
+	        add_filter( 'wppb_general_top_error_message', 'apbct_form_profile_builder__error_message', 1 );
         }
 
     }
     return $errors;
 
+}
+
+/**
+ * Profile Builder Integration - add error message in response
+ */
+function apbct_form_profile_builder__error_message() {
+	return '<p id="wppb_form_general_message" class="wppb-error">'. $GLOBALS['global_profile_builder_error'] .'</p>';
 }
 
 // WP Foro register system integration
