@@ -236,6 +236,15 @@ function apbct_is_ajax() {
 }
 
 /**
+ * Checks if the request is REST
+ *
+ * @return boolean
+ */
+function apbct_is_rest() {
+	return defined( 'REST_REQUEST' ) && REST_REQUEST;
+}
+
+/**
  * Checks if the user is logged in
  *
  * @return bool
