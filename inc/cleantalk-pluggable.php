@@ -558,6 +558,11 @@ function apbct_is_skip_request( $ajax = false ) {
 		    {
 			    return 'eael_login_skipped';
 		    }
+			// Autonami Marketing Automations service request
+		    if( apbct_is_rest() && Post::get('automation_id') !== '' && Post::get('unique_key') !== '' )
+		    {
+			    return 'autonami-rest';
+		    }
 
             break;
 
