@@ -856,10 +856,11 @@ function apbct_sfw_update__init( $delay = 0 ){
     
     // Prevent start an update if update is already running and started less than 2 minutes ago
     if(
+	    ! $apbct->settings['sfw__enabled'] &&
         $apbct->fw_stats['firewall_updating_id'] &&
         time() - $apbct->fw_stats['firewall_updating_last_start'] < 120
     ){
-        return array( 'error' => 'SFW UPDATE INIT: FIREWALL_IS_ALREADY_UPDATING' );
+        return false;
     }
     
     // Key is empty
