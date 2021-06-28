@@ -148,8 +148,18 @@ abstract class Cron
      */
     public function updateTask( $task, $handler, $period, $first_call = null, $params = array() )
     {
-        $this->removeTask( $task );
-        return $this->addTask( $task, $handler, $period, $first_call, $params );
+    	$tasks = ! empty( $this->tasks ) ? $this->tasks : $this->getTasks();
+	    if( isset( $tasks[ $task ] ) ){
+		    // Rewrite the task
+		    $tasks[$task] = array(
+			    'handler'   => $handler,
+			    'next_call' => $first_call,
+			    'period'    => $period,
+			    'params'    => $params,
+		    );
+		    return $this->saveTasks( $tasks );
+	    }
+	    return false;
     }
 
     /**
