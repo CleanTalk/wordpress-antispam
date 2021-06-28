@@ -859,7 +859,7 @@ function apbct_sfw_update__init( $delay = 0 ){
         $apbct->fw_stats['firewall_updating_id'] &&
         time() - $apbct->fw_stats['firewall_updating_last_start'] < 120
     ){
-        return false;
+        return array( 'error' => 'SFW UPDATE INIT: FIREWALL_IS_ALREADY_UPDATING' );
     }
     
     // Key is empty
