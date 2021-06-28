@@ -280,7 +280,9 @@ class GetFieldsAny {
 				$value = urldecode( trim( $this->strip_shortcodes( $value ) ) ); // Fully cleaned message
 
 				// Email
-				if ( preg_match( "/^\S+@\S+\.\S+$/", $value_for_email ) ) {
+				if ( preg_match( "/^\S+@\S+\.\S+$/", $value_for_email ) &&
+				     ( empty( $this->visible_fields_arr ) ||
+				     in_array( $key, $this->visible_fields_arr, true ) ) ) {
 					// Bypass email collecting if it is set by attribute.
 					if( $this->preprocessed_email ) {
 						continue;
