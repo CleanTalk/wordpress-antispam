@@ -42,6 +42,9 @@ class AdminNotices {
 	 */
 	private $user_token;
 
+	/**
+	 * AdminNotices constructor.
+	 */
 	private function __construct()
 	{
 		global $apbct;
@@ -76,6 +79,11 @@ class AdminNotices {
 
 	}
 
+	/**
+	 * Get singleton instance of AdminNotices
+	 *
+	 * @return AdminNotices
+	 */
 	private static function get_instance()
 	{
 		if ( ! isset( self::$instance ) ) {
@@ -84,6 +92,9 @@ class AdminNotices {
 		return self::$instance;
 	}
 
+	/**
+	 * Initialize method
+	 */
 	public static function show_admin_notices()
 	{
 		$admin_notices = self::get_instance();
@@ -97,11 +108,9 @@ class AdminNotices {
 		}
 	}
 
-	public static function get_notices()
-	{
-		return self::NOTICES;
-	}
-
+	/**
+	 * Callback for the notice hook
+	 */
 	public function notice_get_key_error()
 	{
 		if( $this->apbct->notice_show && ! empty( $this->apbct->errors['key_get'] ) && ! $this->apbct->white_label ){
@@ -113,6 +122,9 @@ class AdminNotices {
 		}
 	}
 
+	/**
+	 * Callback for the notice hook
+	 */
 	public function notice_key_is_incorrect()
 	{
 		if ( ( ! apbct_api_key__is_correct() && $this->apbct->moderate_ip == 0 ) && ! $this->apbct->white_label ){
@@ -123,6 +135,9 @@ class AdminNotices {
 		}
 	}
 
+	/**
+	 * Callback for the notice hook
+	 */
 	public function notice_trial()
 	{
 		if ( $this->apbct->notice_show && $this->apbct->notice_trial == 1 && $this->apbct->moderate_ip == 0 && ! $this->apbct->white_label ) {
@@ -136,6 +151,10 @@ class AdminNotices {
 		}
 	}
 
+	/**
+	 * Callback for the notice hook
+	 * @deprecated
+	 */
 	public function notice_renew()
 	{
 		if ( $this->apbct->notice_show && $this->apbct->notice_renew == 1 && $this->apbct->moderate_ip == 0 && ! $this->apbct->white_label ) {
@@ -151,6 +170,9 @@ class AdminNotices {
 		}
 	}
 
+	/**
+	 * Callback for the notice hook
+	 */
 	public function notice_incompatibility()
 	{
 		if( ! empty( $this->apbct->data['notice_incompatibility'] ) && $this->is_cleantalk_page && $this->apbct->settings['sfw__enabled'] ){
@@ -211,6 +233,13 @@ class AdminNotices {
 
 	}
 
+	/**
+	 * Callback for the admin-bar filtering hook
+	 *
+	 * @param $after
+	 *
+	 * @return string
+	 */
 	public function add_attention_mark( $after ) {
 		if( $this->apbct->notice_show ) {
 			return $after . '<i class="icon-attention-alt"></i>';

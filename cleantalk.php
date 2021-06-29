@@ -722,7 +722,7 @@ function apbct_deactivation__delete_all_options(){
     delete_option('cleantalk_plugin_request_ids');
     delete_option('cleantalk_fw_stats');
     delete_option( 'ct_plugin_do_activation_redirect' );
-    foreach( AdminNotices::get_notices() as $notice ) {
+    foreach( AdminNotices::NOTICES as $notice ) {
     	delete_option( 'cleantalk_' . $notice . '_dismissed' );
     }
 }
