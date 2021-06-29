@@ -362,17 +362,13 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 	public static function send_log( $db, $log_table, $ct_key, $use_delete_command ) {
 	 
 		//Getting logs
-		$query = "SELECT * FROM " . $log_table . ";";
+		$query = "SELECT * FROM $log_table ORDER BY entries_timestamp DESC LIMIT 0," . APBCT_SFW_SEND_LOGS_LIMIT .";";
 		$db->fetch_all( $query );
 		
-		if( $logs_count = count( $db->result ) ){
+		if( count( $db->result ) ){
 
 			$logs = $db->result;
-
-			if( $logs_count > APBCT_SFW_SEND_LOGS_LIMIT ) {
-				$logs = array_slice( $logs, 0, APBCT_SFW_SEND_LOGS_LIMIT );
-			}
-
+			
 			//Compile logs
 			$ids_to_delete = array();
 			$data = array();
@@ -430,7 +426,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 				if( $result['rows'] == count( $data ) ){
 				    
                     $db->execute( "BEGIN;" );
-					$db->execute( "DELETE FROM " . $log_table . " WHERE id IN ( '" . implode( '\',\'', $ids_to_delete ) . "' );" );
+					$db->execute( "DELETE FROM $log_table WHERE id IN ( '" . implode( '\',\'', $ids_to_delete ) . "' );" );
 				    $db->execute( "COMMIT;" );
 					
 					return $result;
