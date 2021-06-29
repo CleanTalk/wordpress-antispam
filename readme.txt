@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 3.0
 Tested up to: 5.7
 Requires PHP: 5.6
-Stable tag: 5.159.5
+Stable tag: 5.160
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -572,6 +572,21 @@ If your website has forms that send data to external sources, you can enable opt
 12. SpamFireWall log.
 
 == Changelog ==
+
+= 5.160 Jun 30 2021 =
+ * New. Rest API request detecting implemented.
+ * Upd. SFW. AntiCrawler was disabled for the new installations.
+ * Upd. SFW. AntiCrawler option moved to the advanced settings section.
+ * Mod: email is taken only from visible fields
+ * Mod: remove error message about firewall updating
+ * Mod: excluded for test WC_Gateway_Tpay_Basic
+ * Fix: Added exclude for happyforms.php in apbct_is_skip_request.
+ * Fix: Added an error message in the form response
+ * Fix: Skip wpforms general requests because of direct integration.
+ * Fix. Integration. Autonami Marketing Automations service request kipped.
+ * Fix. Cron. Update task method fixed.
+ * Fix. SFW. Prevent updating while SFW is disabled.
+ * Fix. Cron. Restoring cron tasks during plugin updating.
 
 = 5.159.5 Jun 24 2021 =
  * New: Admin bar. Attention mark added.
