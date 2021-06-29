@@ -574,7 +574,7 @@ function apbct_is_skip_request( $ajax = false ) {
 			    return 'autonami-rest';
 		    }
 		    //Skip wforms because of direct integration
-		    if ( apbct_is_plugin_active( 'plugins/wpforms/wpforms.php' ) && isset( $_POST['wpforms'] ) ) {
+		    if ( apbct_is_plugin_active( 'wpforms/wpforms.php' ) && isset( $_POST['wpforms'] ) ) {
 			    return 'wp_forms';
 		    }
 
