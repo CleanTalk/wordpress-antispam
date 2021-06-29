@@ -67,7 +67,7 @@ class State
         'sfw__enabled'                   => 1,
         'sfw__anti_flood'                => 0,
         'sfw__anti_flood__view_limit'    => 20,
-        'sfw__anti_crawler'              => 1,
+        'sfw__anti_crawler'              => 0,
         'sfw__use_delete_to_clear_table' => 0,
 		
 		// Forms for protection
