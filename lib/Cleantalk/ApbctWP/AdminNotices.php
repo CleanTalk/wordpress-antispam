@@ -236,7 +236,7 @@ class AdminNotices {
 	/**
 	 * Callback for the admin-bar filtering hook
 	 *
-	 * @param $after
+	 * @param string $after
 	 *
 	 * @return string
 	 */
