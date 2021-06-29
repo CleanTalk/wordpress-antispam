@@ -414,6 +414,10 @@ class State
 			// Write limit for firewall data.
 			define( 'APBCT_WRITE_LIMIT', 5000 );
 		}
+		if( ! defined( 'APBCT_SFW_SEND_LOGS_LIMIT' ) ) {
+			// Limit for firewall logs sending.
+			define( 'APBCT_SFW_SEND_LOGS_LIMIT', 1000 );
+		}
 	}
 
 	/**

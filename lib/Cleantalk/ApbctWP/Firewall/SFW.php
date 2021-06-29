@@ -365,12 +365,21 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 		$query = "SELECT * FROM " . $log_table . ";";
 		$db->fetch_all( $query );
 		
-		if( count( $db->result ) ){
-			
+		if( $logs_count = count( $db->result ) ){
+
+			$logs = $db->result;
+
+			if( $logs_count > APBCT_SFW_SEND_LOGS_LIMIT ) {
+				$logs = array_slice( $logs, 0, APBCT_SFW_SEND_LOGS_LIMIT );
+			}
+
 			//Compile logs
+			$ids_to_delete = array();
 			$data = array();
-			foreach( $db->result as $key => &$value ){
-				
+			foreach( $logs as $key => &$value ){
+
+				$ids_to_delete[] = $value['id'];
+
 				// Converting statuses to API format
 				$value['status'] = $value['status'] === 'DENY_ANTICRAWLER'    ? 'BOT_PROTECTION'   : $value['status'];
 				$value['status'] = $value['status'] === 'PASS_ANTICRAWLER'    ? 'BOT_PROTECTION'   : $value['status'];
@@ -421,12 +430,8 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 				if( $result['rows'] == count( $data ) ){
 				    
                     $db->execute( "BEGIN;" );
-				    if( $use_delete_command ){
-                        $db->execute( "DELETE FROM " . $log_table . ";" );
-                    }else{
-                        $db->execute( "TRUNCATE TABLE " . $log_table . ";" );
-                    }
-                    $db->execute( "COMMIT;" );
+					$db->execute( "DELETE FROM " . $log_table . " WHERE id IN ( '" . implode( '\',\'', $ids_to_delete ) . "' );" );
+				    $db->execute( "COMMIT;" );
 					
 					return $result;
 				}
