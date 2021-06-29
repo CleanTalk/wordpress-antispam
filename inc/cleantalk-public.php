@@ -3721,12 +3721,6 @@ function ct_contact_form_validate() {
         do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
     	return null;
     }
-    
-    //Skip wforms because of direct integration
-    if ( isset($_POST['wpforms']) ) {
-    	do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
-    	return null;
-    }
 
     //Skip woocommerce add_to_cart
 	if( ! empty( $_POST['add-to-cart'] ) )
