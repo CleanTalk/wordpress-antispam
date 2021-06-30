@@ -19,13 +19,11 @@ function apbct_init() {
                 . $apbct->api_key
                 . \Cleantalk\Common\Helper::time__get_interval_start( 3600 * 3 ) // Unique for every 3 hours
         );
-        
-        // Change server each 3 hours depending on current time interval
-        $servers = array_keys( \Cleantalk\Common\Helper::$cleantalks_moderate_servers );
-        $server_num = \Cleantalk\Common\Helper::time__get_interval_start( 3600 * 3 ) % count($servers);
-        $pixel_server = $servers[ $server_num ];
-        
-        $apbct->pixel_url = 'https://' . $pixel_server . '/pixel/' . $pixel_hash . '.gif';
+
+        $server = get_option('cleantalk_server');
+        $server_url = isset( $server['ct_work_url'] ) ? $apbct->server['ct_work_url'] : APBCT_MODERATE_URL;
+        $pixel = '/pixel/' . $pixel_hash . '.gif';
+        $apbct->pixel_url = str_replace( 'http://', 'https://', $server_url ) . $pixel;
         
     }
     

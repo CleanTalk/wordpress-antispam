@@ -46,7 +46,7 @@ define('APBCT_CASERT_PATH',      file_exists(ABSPATH . WPINC . '/certificates/ca
 
 // API params
 define('APBCT_AGENT',        'wordpress-' . $plugin_version__agent );
-define('APBCT_MODERATE_URL', 'http://moderate.cleantalk.org'); //Api URL
+define('APBCT_MODERATE_URL', 'https://moderate.cleantalk.org'); //Api URL
 
 // Option names
 define('APBCT_DATA',             'cleantalk_data');             //Option name with different plugin data.
