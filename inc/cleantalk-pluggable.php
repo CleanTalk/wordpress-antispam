@@ -561,7 +561,8 @@ function apbct_is_skip_request( $ajax = false ) {
 			    return 'mylisting_theme_service_requests_skip';
 		    }
 		    // HappyForms skip every requests. HappyForms have the direct integration
-		    if( apbct_is_plugin_active( 'happyforms-upgrade/happyforms-upgrade.php' ) &&
+		    if( apbct_is_plugin_active( 'happyforms-upgrade/happyforms-upgrade.php' ) ||
+		        apbct_is_plugin_active( 'happyforms/happyforms.php' ) &&
 		        ( Post::get('happyforms_message_nonce') !== ''  ) )
 		    {
 			    return 'happyform_skipped';
@@ -578,6 +579,10 @@ function apbct_is_skip_request( $ajax = false ) {
 		    if( apbct_is_rest() && Post::get('automation_id') !== '' && Post::get('unique_key') !== '' )
 		    {
 			    return 'autonami-rest';
+		    }
+		    //Skip wforms because of direct integration
+		    if ( apbct_is_plugin_active( 'wpforms/wpforms.php' ) && isset( $_POST['wpforms'] ) ) {
+			    return 'wp_forms';
 		    }
 
             break;

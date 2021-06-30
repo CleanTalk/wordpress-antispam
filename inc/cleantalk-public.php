@@ -1224,7 +1224,12 @@ function apbct_rorm__formidable__testSpam ( $errors, $form ) {
         return $errors;
     }
 
-	$ct_temp_msg_data = ct_get_fields_any($_POST['item_meta']);
+    $form_data = array();
+    foreach( $_POST['item_meta'] as $key => $value ) {
+	    $form_data['item_meta[' . $key . ']'] = $value;
+    }
+
+	$ct_temp_msg_data = ct_get_fields_any( $form_data );
 
     $sender_email    = $ct_temp_msg_data['email']    ?: '';
     $sender_nickname = $ct_temp_msg_data['nickname'] ?: '';
@@ -3644,6 +3649,7 @@ function ct_contact_form_validate() {
 		((isset($_POST['woocommerce-login-nonce']) || isset($_POST['_wpnonce'])) && isset($_POST['login'], $_POST['password'], $_POST['_wp_http_referer'])) || // WooCommerce login form
 		(isset($_POST['wc-api']) && strtolower($_POST['wc-api']) == 'wc_gateway_systempay') || // Woo Systempay payment plugin
         apbct_is_in_uri( 'wc-api=WC_Gateway_Realex_Redirect') || // Woo Realex payment Gateway plugin
+        apbct_is_in_uri( 'wc-api=WC_Gateway_Tpay_Basic')      || // Tpay payment Gateway plugin
         (isset($_POST['_wpcf7'], $_POST['_wpcf7_version'], $_POST['_wpcf7_locale'])) || //CF7 fix)
 		(isset($_POST['hash'], $_POST['device_unique_id'], $_POST['device_name'])) ||//Mobile Assistant Connector fix
 		isset($_POST['gform_submit']) || //Gravity form
@@ -3718,12 +3724,6 @@ function ct_contact_form_validate() {
     )
     {
         do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
-    	return null;
-    }
-    
-    //Skip wforms because of direct integration
-    if ( isset($_POST['wpforms']) ) {
-    	do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
     	return null;
     }
 
@@ -3931,6 +3931,7 @@ function ct_contact_form_validate_postdata() {
         isset($_POST['fscf_submitted']) ||
         isset($_POST['log']) && isset($_POST['pwd']) && isset($_POST['wp-submit'])||
         apbct_is_in_uri('/wc-api') ||
+        apbct_is_in_uri( 'wc-api=WC_Gateway_Tpay_Basic')      || // Tpay payment Gateway plugin
 		(isset($_POST['wc_reset_password'], $_POST['_wpnonce'], $_POST['_wp_http_referer'])) || //WooCommerce recovery password form
 		(isset($_POST['woocommerce-login-nonce'], $_POST['login'], $_POST['password'], $_POST['_wp_http_referer'])) || //WooCommerce login form
 		(isset($_POST['provider'], $_POST['authcode']) && $_POST['provider'] == 'Two_Factor_Totp') || //TwoFactor authorization
@@ -4377,11 +4378,21 @@ function apbct_form_profile_builder__check_register ( $errors, $fields, $global_
 
         if( $ct_result->allow == 0 ) {
             $errors['error'] = $ct_result->comment;
+	        $GLOBALS['global_profile_builder_error'] = $ct_result->comment;
+
+	        add_filter( 'wppb_general_top_error_message', 'apbct_form_profile_builder__error_message', 1 );
         }
 
     }
     return $errors;
 
+}
+
+/**
+ * Profile Builder Integration - add error message in response
+ */
+function apbct_form_profile_builder__error_message() {
+	return '<p id="wppb_form_general_message" class="wppb-error">'. $GLOBALS['global_profile_builder_error'] .'</p>';
 }
 
 // WP Foro register system integration

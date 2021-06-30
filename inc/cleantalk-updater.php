@@ -992,3 +992,38 @@ function apbct_update_to_5_158_2() {
 	$apbct->stats['cron']['last_start'] = 0;
 	$apbct->save('stats');
 }
+
+function apbct_update_to_5_159_6() {
+
+	global $wpdb;
+
+	$ct_cron = new Cron();
+
+	if( is_multisite() ){
+		$initial_blog  = get_current_blog_id();
+		$blogs = array_keys($wpdb->get_results('SELECT blog_id FROM '. $wpdb->blogs, OBJECT_K));
+		foreach ($blogs as $blog) {
+			switch_to_blog($blog);
+			// Cron tasks
+			$ct_cron->addTask('check_account_status',  'ct_account_status_check',        3600, time() + 1800); // Checks account status
+			$ct_cron->addTask('delete_spam_comments',  'ct_delete_spam_comments',        3600, time() + 3500); // Formerly ct_hourly_event_hook()
+			$ct_cron->addTask('send_feedback',         'ct_send_feedback',               3600, time() + 3500); // Formerly ct_hourly_event_hook()
+			$ct_cron->addTask('sfw_update',            'apbct_sfw_update__init',         86400 );  // SFW update
+			$ct_cron->addTask('send_sfw_logs',         'ct_sfw_send_logs',               3600, time() + 1800); // SFW send logs
+			$ct_cron->addTask('get_brief_data',        'cleantalk_get_brief_data',       86400, time() + 3500); // Get data for dashboard widget
+			$ct_cron->addTask('send_connection_report','ct_mail_send_connection_report', 86400, time() + 3500); // Send connection report to welcome@cleantalk.org
+			$ct_cron->addTask('antiflood__clear_table',  'apbct_antiflood__clear_table',        86400,    time() + 300); // Clear Anti-Flood table
+		}
+		switch_to_blog($initial_blog);
+	}else{
+		// Cron tasks
+		$ct_cron->addTask('check_account_status',  'ct_account_status_check',        3600, time() + 1800); // Checks account status
+		$ct_cron->addTask('delete_spam_comments',  'ct_delete_spam_comments',        3600, time() + 3500); // Formerly ct_hourly_event_hook()
+		$ct_cron->addTask('send_feedback',         'ct_send_feedback',               3600, time() + 3500); // Formerly ct_hourly_event_hook()
+		$ct_cron->addTask('sfw_update',            'apbct_sfw_update__init',         86400 );  // SFW update
+		$ct_cron->addTask('send_sfw_logs',         'ct_sfw_send_logs',               3600, time() + 1800); // SFW send logs
+		$ct_cron->addTask('get_brief_data',        'cleantalk_get_brief_data',       86400, time() + 3500); // Get data for dashboard widget
+		$ct_cron->addTask('send_connection_report','ct_mail_send_connection_report', 86400, time() + 3500); // Send connection report to welcome@cleantalk.org
+		$ct_cron->addTask('antiflood__clear_table',  'apbct_antiflood__clear_table',        86400,    time() + 300); // Clear Anti-Flood table
+	}
+}

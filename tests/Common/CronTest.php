@@ -4,29 +4,27 @@ class CronTest extends PHPUnit\Framework\TestCase
 {
     protected $cron_object;
 
+    protected $tasks = array(
+	    'sfw_update' => array(
+		    'handler' => 'apbct_sfw_update__init',
+		    'next_call' => 1613737797,
+		    'period' => 86400,
+		    'params' => array(),
+		    'processing' => null,
+		    'last_call' => 0,
+	    ),
+	    'send_sfw_logs' => array(
+		    'handler' => 'apbct_sfw_send_logs',
+		    'next_call' => 1613674684,
+		    'period' => 3600,
+		    'params' => array(),
+		    'processing' => null,
+		    'last_call' => 0,
+	    ),
+    );
+
     protected function setUp()
     {
-        $tasks = array(
-            'sfw_update' => array(
-                'handler' => 'apbct_sfw_update__init',
-                'next_call' => 1613737797,
-                'period' => 86400,
-                'params' => array(),
-                'processing' => null,
-                'last_call' => 0,
-            ),
-            'send_sfw_logs' => array(
-                'handler' => 'apbct_sfw_send_logs',
-                'next_call' => 1613674684,
-                'period' => 3600,
-                'params' => array(),
-                'processing' => null,
-                'last_call' => 0,
-            ),
-        );
-        $authorizeNet = $this->getMockBuilder('\Cleantalk\Common\Cron')
-            ->setMethods(array())
-            ->getMock();
         $stub = $this->getMockForAbstractClass('\Cleantalk\Common\Cron');
         $stub->expects( self::any() )
             ->method('saveTasks')
@@ -39,13 +37,13 @@ class CronTest extends PHPUnit\Framework\TestCase
             ->willReturn(123456);
         $stub->expects( self::any() )
             ->method('getTasks')
-            ->willReturn($tasks);
+            ->willReturn($this->tasks);
         $this->cron_object = $stub;
 
         $reflection = new \ReflectionClass( $this->cron_object );
         $reflection_property = $reflection->getProperty( 'tasks' );
         $reflection_property->setAccessible( true );
-        $reflection_property->setValue( $this->cron_object, $tasks );
+        $reflection_property->setValue( $this->cron_object, $this->tasks );
     }
 
     public function testAddTaskDouble() {
@@ -66,6 +64,10 @@ class CronTest extends PHPUnit\Framework\TestCase
 
     public function testUpdateTask() {
         self::assertTrue( $this->cron_object->updateTask( 'sfw_update', 'apbct_sfw_update', 86400, time() + 60 ) );
+    }
+
+	public function testUpdateTaskWrong() {
+        self::assertFalse( $this->cron_object->updateTask( 'sfw_update_wrong', 'apbct_sfw_update', 86400, time() + 60 ) );
     }
 
     public function testCheckTasks() {

@@ -42,7 +42,7 @@ class cleantalk_widget extends WP_Widget
 		// Parsing incoming params
 		$blocked = number_format($apbct->data['spam_count'], 0, ',', ' ');
 		
-		$a_style = 'cursor: pointer; display: block; padding: 5px 0 5px; text-align: center; text-decoration: none; border-radius: 5px; -moz-border-radius: 5px; -webkit-border-radius: 5px; font-weight: normal; height: 100%; width: 100%; ';
+		$a_style = 'cursor: pointer; display: block; padding: 5px 0 5px; text-align: center; text-decoration: none; border-radius: 5px; -moz-border-radius: 5px; -webkit-border-radius: 5px; font-weight: normal; width: 100%; ';
 		$strong_style = 'display: block; font-size: 15px; line-height: 16px; padding: 0 13px; white-space: nowrap; ';
 		
 		if(!isset($instance['style'])){
