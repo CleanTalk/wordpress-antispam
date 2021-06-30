@@ -406,6 +406,13 @@ function apbct_is_skip_request( $ajax = false ) {
             {
                 return 'youzier_login_form';
             }
+	        // Youzify login form skip
+	        if( apbct_is_plugin_active( 'youzify/youzify.php' ) &&
+	            isset( $_POST['action'] ) &&
+	            $_POST['action'] === 'youzify_ajax_login' )
+	        {
+		        return 'youzify_login_form';
+	        }
             // InJob theme lost password skip
             if( apbct_is_plugin_active( 'iwjob/iwjob.php' ) &&
                 isset( $_POST['action'] ) &&
