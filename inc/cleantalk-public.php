@@ -1224,7 +1224,12 @@ function apbct_rorm__formidable__testSpam ( $errors, $form ) {
         return $errors;
     }
 
-	$ct_temp_msg_data = ct_get_fields_any($_POST['item_meta']);
+    $form_data = array();
+    foreach( $_POST['item_meta'] as $key => $value ) {
+	    $form_data['item_meta[' . $key . ']'] = $value;
+    }
+
+	$ct_temp_msg_data = ct_get_fields_any( $form_data );
 
     $sender_email    = $ct_temp_msg_data['email']    ?: '';
     $sender_nickname = $ct_temp_msg_data['nickname'] ?: '';
