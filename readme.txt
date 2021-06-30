@@ -587,6 +587,10 @@ If your website has forms that send data to external sources, you can enable opt
  * Fix. Cron. Update task method fixed.
  * Fix. SFW. Prevent updating while SFW is disabled.
  * Fix. Cron. Restoring cron tasks during plugin updating.
+ * Fix. SFW. Logs sending used limit.
+ * Fix: set correct api_key value for ajax calls.
+ * Fix. Frontend widget. The widget layout fixed.
+ * Fix. Integration. Formidable preparing data for checking.
 
 = 5.159.5 Jun 24 2021 =
  * New: Admin bar. Attention mark added.
