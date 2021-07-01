@@ -177,6 +177,8 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 	// Iphorm
 	if( isset( $_POST['iphorm_ajax'], $_POST['iphorm_id'], $_POST['iphorm_uid'] ) 	){
 		require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public.php');
+		require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-integrations.php');
+		require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-validate.php');
 		require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-ajax.php');
 		ct_ajax_hook();
 	}
@@ -372,8 +374,8 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 				add_filter('et_pre_insert_answer',   'ct_ajax_hook', 1, 1); // Answers
 			
 			// Formidable
-			add_filter( 'frm_entries_before_create', 'apbct_rorm__formidable__testSpam', 10, 2 );
-			add_action( 'frm_entries_footer_scripts', 'apbct_rorm__formidable__footerScripts', 20, 2 );
+			add_filter( 'frm_entries_before_create', 'apbct_form__formidable__testSpam', 10, 2 );
+			add_action( 'frm_entries_footer_scripts', 'apbct_form__formidable__footerScripts', 20, 2 );
 			
             // Some of plugins to register a users use AJAX context.
             add_filter('registration_errors', 'ct_registration_errors', 1, 3);
