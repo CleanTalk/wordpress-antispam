@@ -15,10 +15,12 @@
         resolveFromConfigFile="true"
         xsi:schemaLocation="https://getpsalm.org/schema/config config.xsd"
         limitMethodComplexity="true"
-        errorBaseline="psalm-baseline.xml"
 >
     <projectFiles>
         <directory name="./inc"/>
+        <ignoreFiles>
+            <file name="./inc/cleantalk-public-validate.php" />
+        </ignoreFiles>
     </projectFiles>
 
 </psalm>
