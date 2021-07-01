@@ -5,3 +5,6 @@ node_modules
 package*
 gulpfile.js
 .idea
+/vendor/
+composer.lock
+checkstyle.xml
