@@ -53,6 +53,17 @@ function apbct_version_standartization($version){
 	return $version;
 }
 
+function apbct_get_table_columns( $table_name ) {
+	global $wpdb;
+	$query = 'SHOW COLUMNS FROM ' . $table_name;
+	$res = $wpdb->get_results( $query, ARRAY_A );
+	$columns_names = array();
+	foreach ( $res as $column ) {
+		$columns_names[] = $column['Field'];
+	}
+	return $columns_names;
+}
+
 function apbct_update_to_5_50_0(){
 	global $wpdb;
 	$wpdb->query('CREATE TABLE IF NOT EXISTS `'. APBCT_TBL_FIREWALL_DATA .'` (
@@ -442,7 +453,11 @@ function apbct_update_to_5_138_0() {
 		`mask` int(11) unsigned NOT NULL,
 		INDEX (  `network` ,  `mask` )
 		);';
-	$sqls[] = 'ALTER TABLE `%scleantalk_sfw` ADD COLUMN IF NOT EXISTS status TINYINT(1) NOT NULL DEFAULT 0 AFTER mask;';
+
+	$table_sfw_columns = apbct_get_table_columns( APBCT_TBL_FIREWALL_DATA );
+	if( ! in_array( 'status', $table_sfw_columns ) ) {
+		$sqls[] = 'ALTER TABLE `%scleantalk_sfw` ADD COLUMN status TINYINT(1) NOT NULL DEFAULT 0 AFTER mask;';
+	}
 	
 	// Actions for WPMS
 	if( APBCT_WPMS ){
@@ -536,12 +551,18 @@ function apbct_update_to_5_142_0() {
 		`entries` INT DEFAULT 0,
 		`interval_start` INT NOT NULL,
 		PRIMARY KEY (`id`));';
-	
-	$sqls[] = 'ALTER TABLE `%scleantalk_sfw_logs`
-		ADD COLUMN IF NOT EXISTS `id` VARCHAR(40) NOT NULL FIRST,
-		ADD COLUMN IF NOT EXISTS `status` ENUM(\'PASS_SFW\',\'DENY_SFW\',\'PASS_SFW_BY_WHITELIST\',\'PASS_SFW_BY_COOKIE\',\'DENY_ANTIBOT\',\'DENY_ANTICRAWLER\') NOT NULL AFTER `ip`,
+
+	$table_sfw_logs_columns = apbct_get_table_columns( APBCT_TBL_FIREWALL_LOG );
+	if( ! in_array( 'id', $table_sfw_logs_columns ) ) {
+		$status = ! in_array( 'status', $table_sfw_logs_columns ) ? ' ADD COLUMN `status` ENUM(\'PASS_SFW\',\'DENY_SFW\',\'PASS_SFW_BY_WHITELIST\',\'PASS_SFW_BY_COOKIE\',\'DENY_ANTIBOT\',\'DENY_ANTICRAWLER\') NOT NULL AFTER `ip`,' : '';
+		$sqls[] = 'ALTER TABLE `%scleantalk_sfw_logs`
+		ADD COLUMN `id` VARCHAR(40) NOT NULL FIRST,
+		' . $status . '
 		DROP PRIMARY KEY,
 		ADD PRIMARY KEY (`id`);';
+	}
+
+
 	
 	apbct_activation__create_tables( $sqls );
 	
@@ -627,17 +648,6 @@ function apbct_update_to_5_146_3() {
 	update_option( 'cleantalk_plugin_request_ids', array() );
 }
 
-//function apbct_update_to_5_146_4() {
-//
-//	global $apbct;
-//
-//	$sqls[] = 'ALTER TABLE `%scleantalk_sfw`
-//		ADD COLUMN IF NOT EXISTS `id` INT(11) NOT NULL AUTO_INCREMENT FIRST';
-//
-//	apbct_activation__create_tables( $sqls, $apbct->db_prefix );
-//
-//
-//}
 function apbct_update_to_5_148_0() {
 	$cron = new Cron();
 	$cron->updateTask('antiflood__clear_table', 'apbct_antiflood__clear_table',  86400);
@@ -932,15 +942,25 @@ function apbct_update_to_5_157_0(){
 function apbct_update_to_5_158_0(){
     
     global $apbct, $wpdb;
-    
-    $sqls[] = 'ALTER TABLE `%scleantalk_sfw`'
-              . ' ADD COLUMN IF NOT EXISTS `source` TINYINT(1) NULL DEFAULT NULL AFTER `status`;';
-    
-    $sqls[] = 'ALTER TABLE `%scleantalk_sfw_logs`'
-              . ' ADD COLUMN IF NOT EXISTS `source` TINYINT(1) NULL DEFAULT NULL AFTER `ua_name`,'
-              . ' ADD COLUMN IF NOT EXISTS `network` VARCHAR(20) NULL DEFAULT NULL AFTER `source`,'
-              . ' ADD COLUMN IF NOT EXISTS `first_url` VARCHAR(100) NULL DEFAULT NULL AFTER `network`,'
-              . ' ADD COLUMN IF NOT EXISTS `last_url` VARCHAR(100) NULL DEFAULT NULL AFTER `first_url`;';
+
+    $table_sfw_columns = apbct_get_table_columns( APBCT_TBL_FIREWALL_DATA );
+    $table_sfw_logs_columns = apbct_get_table_columns( APBCT_TBL_FIREWALL_LOG );
+
+    if( ! in_array( 'source', $table_sfw_columns ) ) {
+	    $sqls[] = 'ALTER TABLE `%scleantalk_sfw` ADD COLUMN `source` TINYINT(1) NULL DEFAULT NULL AFTER `status`;';
+    }
+
+	if( ! in_array( 'source', $table_sfw_logs_columns ) ) {
+		$network = ! in_array( 'network', $table_sfw_logs_columns ) ? ' ADD COLUMN `network` VARCHAR(20) NULL DEFAULT NULL AFTER `source`,' : '';
+		$first_url = ! in_array( 'first_url', $table_sfw_logs_columns ) ? ' ADD COLUMN `first_url` VARCHAR(100) NULL DEFAULT NULL AFTER `network`,' : '';
+		$last_url = ! in_array( 'last_url', $table_sfw_logs_columns ) ? ' ADD COLUMN `last_url` VARCHAR(100) NULL DEFAULT NULL AFTER `first_url`' : '';
+		$sqls[] = 'ALTER TABLE `%scleantalk_sfw_logs`'
+		          . ' ADD COLUMN `source` TINYINT(1) NULL DEFAULT NULL AFTER `ua_name`,'
+		          . $network
+		          . $first_url
+		          . $last_url
+		          . ';';
+	}
     
     if( APBCT_WPMS ){
         // Getting all blog ids
@@ -1025,5 +1045,46 @@ function apbct_update_to_5_159_6() {
 		$ct_cron->addTask('get_brief_data',        'cleantalk_get_brief_data',       86400, time() + 3500); // Get data for dashboard widget
 		$ct_cron->addTask('send_connection_report','ct_mail_send_connection_report', 86400, time() + 3500); // Send connection report to welcome@cleantalk.org
 		$ct_cron->addTask('antiflood__clear_table',  'apbct_antiflood__clear_table',        86400,    time() + 300); // Clear Anti-Flood table
+	}
+}
+
+function apbct_update_to_5_159_7() {
+	global $wpdb;
+
+	$table_sfw_columns = apbct_get_table_columns( APBCT_TBL_FIREWALL_DATA );
+	$table_sfw_logs_columns = apbct_get_table_columns( APBCT_TBL_FIREWALL_LOG );
+
+	if( ! in_array( 'source', $table_sfw_columns ) ) {
+		$sqls[] = 'ALTER TABLE `%scleantalk_sfw` ADD COLUMN `source` TINYINT(1) NULL DEFAULT NULL AFTER `status`;';
+	}
+
+	if( ! in_array( 'source', $table_sfw_logs_columns ) ) {
+		$network = ! in_array( 'network', $table_sfw_logs_columns ) ? ' ADD COLUMN `network` VARCHAR(20) NULL DEFAULT NULL AFTER `source`,' : '';
+		$first_url = ! in_array( 'first_url', $table_sfw_logs_columns ) ? ' ADD COLUMN `first_url` VARCHAR(100) NULL DEFAULT NULL AFTER `network`,' : '';
+		$last_url = ! in_array( 'last_url', $table_sfw_logs_columns ) ? ' ADD COLUMN `last_url` VARCHAR(100) NULL DEFAULT NULL AFTER `first_url`' : '';
+		$sqls[] = 'ALTER TABLE `%scleantalk_sfw_logs`'
+		          . ' ADD COLUMN `source` TINYINT(1) NULL DEFAULT NULL AFTER `ua_name`,'
+		          . $network
+		          . $first_url
+		          . $last_url
+		          . ';';
+	}
+
+	if( APBCT_WPMS ){
+		// Getting all blog ids
+		$initial_blog  = get_current_blog_id();
+		$blogs = array_keys($wpdb->get_results('SELECT blog_id FROM '. $wpdb->blogs, OBJECT_K));
+
+		foreach ($blogs as $blog) {
+
+			switch_to_blog($blog);
+			apbct_activation__create_tables($sqls);
+		}
+
+		// Restoring initial blog
+		switch_to_blog($initial_blog);
+
+	}else{
+		apbct_activation__create_tables($sqls);
 	}
 }
