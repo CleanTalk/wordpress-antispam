@@ -16,8 +16,8 @@ class Ajax {
 		define( 'DOING_AJAX', true );
 		define( 'SHORTINIT', true );
 
-		require_once( $_SERVER['DOCUMENT_ROOT'] . '/wp-load.php' );
-		require_once( $_SERVER['DOCUMENT_ROOT'] . '/wp-includes/pluggable.php' );
+		require_once( '../../../../../../wp-load.php' );
+		require_once( '../../../../../../wp-includes/pluggable.php' );
 
 		$this->checkRequest();
 
