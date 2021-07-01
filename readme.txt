@@ -573,7 +573,7 @@ If your website has forms that send data to external sources, you can enable opt
 
 == Changelog ==
 
-= 5.159.7 Jun 30 2021 =
+= 5.159.7 Jul 01 2021 =
  * Fix. Updater fixed.
 
 = 5.159.6 Jun 30 2021 =
