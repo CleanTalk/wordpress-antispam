@@ -9,10 +9,5 @@
     ],
     "require": {
         "vimeo/psalm": "^4.8"
-    },
-    "scripts": {
-        "psalm": [
-            "vendor/bin/psalm --report=checkstyle.xml"
-        ]
     }
 }
