@@ -1051,6 +1051,8 @@ function apbct_update_to_5_159_6() {
 function apbct_update_to_5_159_7() {
 	global $wpdb;
 
+	$sqls = array();
+
 	$table_sfw_columns = apbct_get_table_columns( APBCT_TBL_FIREWALL_DATA );
 	$table_sfw_logs_columns = apbct_get_table_columns( APBCT_TBL_FIREWALL_LOG );
 
