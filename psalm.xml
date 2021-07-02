@@ -15,7 +15,7 @@
         limitMethodComplexity="true"
 >
     <projectFiles>
-        <file name="inc/cleantalk-updater.php" />
+        <file name="./inc/cleantalk-updater.php" />
     </projectFiles>
 
     <stubs>
