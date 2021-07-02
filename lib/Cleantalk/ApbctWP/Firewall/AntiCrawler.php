@@ -434,7 +434,9 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 		$is_redirect = false;
 		if( Server::get( 'HTTP_REFERER' ) !== '' && Server::get( 'HTTP_HOST' ) !== '' && $this->is_cloudflare() ) {
 			$parse_referer = parse_url( Server::get( 'HTTP_REFERER' ) );
-			$is_redirect = Server::get( 'HTTP_HOST' ) !== $parse_referer['host'];
+			if( $parse_referer && isset( $parse_referer['host'] ) ) {
+				$is_redirect = Server::get( 'HTTP_HOST' ) !== $parse_referer['host'];
+			}
 		}
 		return http_response_code() === 301 || http_response_code() === 302 || $is_redirect;
 	}
