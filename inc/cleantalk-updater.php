@@ -883,6 +883,7 @@ function apbct_update_to_5_151_1 () {
 
 /**
  * @return void
+ * @throws Exception
  */
 function apbct_update_to_5_151_3 ()
 {
