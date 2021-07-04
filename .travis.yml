@@ -16,9 +16,9 @@ jobs:
     - env: TRAVISCI=phpunit
     - env: TRAVISCI=phpcs
     - env: TRAVISCI=psalm
-    - env: WP_VERSION=master WP_MULTISITE=0
 
 before_script:
+  - source tests/wp-test-setup.sh wordpress_test root '' localhost latest
   - |
     if [[ "$TRAVISCI" == "phpunit" ]] ; then
       composer require phpunit/phpunit 7.*
@@ -31,11 +31,10 @@ before_script:
     fi
   - |
     if [[ "$TRAVISCI" == "psalm" ]] ; then
-      source tests/wp-test-setup.sh
+      composer require phpunit/phpunit 7.*
       composer require vimeo/psalm
       composer require humanmade/psalm-plugin-wordpress
       composer require php-stubs/wordpress-stubs
-
     fi
 
 script:

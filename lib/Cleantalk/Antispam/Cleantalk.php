@@ -194,7 +194,7 @@ class Cleantalk {
 			else
 				$cookie_name = 'COOKIE';
 
-			if( $ct_tmp ) {
+			if( $ct_tmp && isset( $ct_tmp[$cookie_name] ) ) {
 				$ct_tmp[$cookie_name] = preg_replace(array(
 					'/\s?ct_checkjs=[a-z0-9]*[^;]*;?/',
 					'/\s?ct_timezone=.{0,1}\d{1,2}[^;]*;?/',

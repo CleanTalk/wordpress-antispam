@@ -277,7 +277,8 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 			$apbct->settings['sfw__enabled'] == 1 &&
             apbct_is_get() &&
             ! apbct_wp_doing_cron() &&
-            ! \Cleantalk\Variables\Server::in_uri( '/favicon.ico' )
+            ! \Cleantalk\Variables\Server::in_uri( '/favicon.ico' ) &&
+		    ! apbct_is_cli()
 		){
             wp_suspend_cache_addition( true );
 			apbct_sfw__check();
