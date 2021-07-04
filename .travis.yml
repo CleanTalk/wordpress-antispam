@@ -49,5 +49,9 @@ script:
   - |
     if [[ "$TRAVISCI" == "psalm" ]] ; then
       ls
+      cd ..
+      ls
+      cd ..
+      ls
       vendor/bin/psalm --no-cache --config=psalm.xml
     fi
