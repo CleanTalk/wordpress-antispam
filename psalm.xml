@@ -22,6 +22,7 @@
         <file name="vendor/php-stubs/wordpress-stubs/wordpress-stubs.php" />
         <file name="tests/psalm-stubs.php" />
         <file name="lib/Cleantalk/ApbctWP/State.php" />
+        <file name="cleantalk.php" />
         <file name="inc/cleantalk-pluggable.php" />
     </stubs>
 
