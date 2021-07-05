@@ -17,16 +17,11 @@
 >
     <projectFiles>
         <file name="inc/cleantalk-updater.php" />
+        <file name="inc/cleantalk-admin.php" />
     </projectFiles>
 
     <stubs>
         <file name="vendor/php-stubs/wordpress-stubs/wordpress-stubs.php" />
-        <file name="lib/Cleantalk/ApbctWP/State.php" />
-        <file name="inc/cleantalk-pluggable.php" />
     </stubs>
-
-    <plugins>
-        <pluginClass class="PsalmWordPress\Plugin"/>
-    </plugins>
 
 </psalm>
