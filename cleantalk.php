@@ -613,7 +613,11 @@ function apbct_activation( $network = false ) {
 }
 
 function apbct_activation__create_tables( $sqls, $db_prefix = '' ) {
-	
+
+	if( ! is_array( $sqls ) && empty( $sqls ) ) {
+		return;
+	}
+
     global $wpdb;
     
     $db_prefix = $db_prefix ? $db_prefix : $wpdb->prefix;
