@@ -1265,21 +1265,24 @@ function apbct_update_to_5_159_7() {
 		          . ';';
 	}
 
-	if( APBCT_WPMS ){
-		// Getting all blog ids
-		$initial_blog  = get_current_blog_id();
-		$blogs = array_keys($_wpdb->get_results('SELECT blog_id FROM '. $_wpdb->blogs, OBJECT_K));
+	if( ! empty( $sqls ) ) {
+		if( APBCT_WPMS ){
+			// Getting all blog ids
+			$initial_blog  = get_current_blog_id();
+			$blogs = array_keys($_wpdb->get_results('SELECT blog_id FROM '. $_wpdb->blogs, OBJECT_K));
 
-		foreach ($blogs as $blog) {
+			foreach ($blogs as $blog) {
 
-			switch_to_blog($blog);
+				switch_to_blog($blog);
+				apbct_activation__create_tables($sqls);
+			}
+
+			// Restoring initial blog
+			switch_to_blog($initial_blog);
+
+		}else{
 			apbct_activation__create_tables($sqls);
 		}
-
-		// Restoring initial blog
-		switch_to_blog($initial_blog);
-
-	}else{
-		apbct_activation__create_tables($sqls);
 	}
+
 }
