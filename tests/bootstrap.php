@@ -41,6 +41,5 @@ if( getenv( 'TRAVISCI' ) === 'psalm' ) {
 	$wp_admin_dir = dirname( __FILE__, 5 );
 	require_once $wp_admin_dir . '/wp-admin/includes/class-wp-upgrader.php';
 	require_once $wp_admin_dir . '/wp-admin/includes/class-plugin-upgrader.php';
-
 }
 
