@@ -290,10 +290,18 @@ if( ! is_admin() && ! apbct_is_ajax() && ! apbct_is_customize_preview() ){
 // Activation/deactivation functions must be in main plugin file.
 // http://codex.wordpress.org/Function_Reference/register_activation_hook
 register_activation_hook( __FILE__, 'apbct_activation' );
+function apbct_activation( $network_wide ) {
+	\Cleantalk\ApbctWP\Activator::activation( $network_wide );
+}
 register_deactivation_hook( __FILE__, 'apbct_deactivation' );
-
+function apbct_deactivation( $network_wide ) {
+	\Cleantalk\ApbctWP\Deactivator::deactivation( $network_wide );
+}
 // Hook for newly added blog
 add_action('wpmu_new_blog', 'apbct_activation__new_blog', 10, 6);
+function apbct_activation__new_blog( $blog_id, $_user_id, $_domain, $_path, $_site_id, $_meta ) {
+	\Cleantalk\ApbctWP\Activator::activation( false, $blog_id );
+}
 
 // Async loading for JavaScript
 add_filter('script_loader_tag', 'apbct_add_async_attribute', 10, 3);
@@ -556,7 +564,7 @@ function apbct_sfw__check()
  * On activation, set a time, frequency and name of an action hook to be scheduled.
  * @throws Exception
  */
-function apbct_activation( $network = false ) {
+function _apbct_activation( $network = false ) {
 	
 	global $wpdb, $apbct;
 	
@@ -636,7 +644,7 @@ function apbct_activation__create_tables( $sqls, $db_prefix = '' ) {
  * On activation, set a time, frequency and name of an action hook to be scheduled for sub-sites.
  * @throws Exception
  */
-function apbct_activation__new_blog($blog_id, $user_id, $domain, $path, $site_id, $meta) {
+function _apbct_activation__new_blog($blog_id, $user_id, $domain, $path, $site_id, $meta) {
     if (apbct_is_plugin_active_for_network('cleantalk-spam-protect/cleantalk.php')){
 
 		$settings = get_option('cleantalk_settings');
@@ -669,52 +677,9 @@ function apbct_activation__new_blog($blog_id, $user_id, $domain, $path, $site_id
 /**
  * On deactivation, clear schedule.
  */
-function apbct_deactivation( $network ) {
+function _apbct_deactivation( $network ) {
 	
-	global $apbct, $wpdb;
-	
-	// Deactivation for network
-	if(is_multisite() && $network){
-		
-		$initial_blog  = get_current_blog_id();
-		$blogs = array_keys($wpdb->get_results('SELECT blog_id FROM '. $wpdb->blogs, OBJECT_K));
-		foreach ($blogs as $blog) {
-			switch_to_blog($blog);
-			apbct_deactivation__delete_blog_tables();
-			delete_option('cleantalk_cron'); // Deleting cron entries
-			
-			if($apbct->settings['misc__complete_deactivation']){
-				apbct_deactivation__delete_all_options();
-                apbct_deactivation__delete_meta();
-				apbct_deactivation__delete_all_options__in_network();
-			}
-			
-		}
-		switch_to_blog($initial_blog);
-		
-	// Deactivation for blog
-	}elseif(is_multisite()){
-		
-		apbct_deactivation__delete_common_tables();
-		delete_option('cleantalk_cron'); // Deleting cron entries
-		
-		if($apbct->settings['misc__complete_deactivation']) {
-            apbct_deactivation__delete_all_options();
-            apbct_deactivation__delete_meta();
-        }
-		
-	// Deactivation on standalone blog
-	}elseif(!is_multisite()){
-		
-		apbct_deactivation__delete_common_tables();
-		delete_option('cleantalk_cron'); // Deleting cron entries
-		
-		if($apbct->settings['misc__complete_deactivation']) {
-			apbct_deactivation__delete_all_options();
-			apbct_deactivation__delete_meta();
-		}
-	
-	}
+
 }
 
 /**
