@@ -18,6 +18,7 @@
     <projectFiles>
         <file name="inc/cleantalk-updater.php" />
         <file name="inc/cleantalk-admin.php" />
+        <file name="inc/cleantalk-ajax.php" />
     </projectFiles>
 
     <stubs>
