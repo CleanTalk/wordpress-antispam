@@ -252,11 +252,10 @@ function ct_mc4wp_ajax_hook( array $errors )
  * @return array|bool|string|null
  *
  * @throws Exception
- * @psalm-suppress UnusedVariable
  */
 function ct_ajax_hook( $message_obj = null )
 {
-	global $apbct, $current_user;
+	global $current_user;
 	
 	$message_obj = (array) $message_obj;
 	
@@ -327,7 +326,8 @@ function ct_ajax_hook( $message_obj = null )
 	    'apbct_email_check_before_post', //Interal request
         /* !! Do not add actions here. Use apbct_is_skip_request() function below !! */
     );
-    
+
+    global $apbct;
     // Skip test if
     if( !$apbct->settings['forms__general_contact_forms_test'] || // Test disabled
         !apbct_is_user_enable($apbct->user) || // User is admin, editor, author
