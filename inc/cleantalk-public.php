@@ -793,7 +793,7 @@ function ct_die_extended($comment_body) {
  * Validates JavaScript anti-spam test
  *
  * @param string $field_name filed to serach in data
- * @param null   $data Data to search in
+ * @param array|null   $data Data to search in
  * @param bool   $random_key
  *
  * @return int|null
