@@ -14,20 +14,34 @@ add_action( 'wp_ajax_apbct_settings__check_renew_banner', 'apbct_settings__check
 // Crunch for Anti-Bot
 add_action( 'admin_head','apbct_admin_set_cookie_for_anti_bot' );
 
+/**
+ * Crunch for Anti-Bot
+ * Hooked by 'admin_head'
+ */
 function apbct_admin_set_cookie_for_anti_bot(){
 	global $apbct;
 	echo '<script ' . ( class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '' ) . '>var ctSecure = location.protocol === "https:" ? "; secure" : ""; document.cookie = "wordpress_apbct_antibot=' . hash( 'sha256', $apbct->api_key . $apbct->data['salt'] ) . '; path=/; expires=0; samesite=lax" + ctSecure;</script>';
 }
 
-function apbct_add_buttons_to_comments_and_users( $unused_argument ) {
+
+/**
+ * Add buttons to comments list table
+ * Hooked by 'manage_comments_nav' and 'manage_users_extra_tablenav'
+ *
+ * @param $_unused_argument
+ */
+function apbct_add_buttons_to_comments_and_users( $_unused_argument ) {
 
     global $apbct;
-    $current_screen = get_current_screen();
 
-    if( 'users' == $current_screen->base ) {
+    if( is_null( $current_screen = get_current_screen() ) ) {
+        return;
+    }
+
+    if( 'users' === $current_screen->base ) {
         $button_url__check = $current_screen->base . '.php?page=ct_check_users';
         $button_description = 'users';
-    } elseif ( 'edit-comments' == $current_screen->base ) {
+    } elseif ( 'edit-comments' === $current_screen->base ) {
         $button_url__check = $current_screen->base . '.php?page=ct_check_spam';
         $button_description = 'comments';
     } else {
@@ -43,7 +57,10 @@ function apbct_add_buttons_to_comments_and_users( $unused_argument ) {
 
 }
 
-//Adding widget
+/**
+ * Adding widget
+ * Hooked by 'wp_dashboard_setup'
+ */
 function ct_dashboard_statistics_widget() {
 	
 	global $apbct;
@@ -57,8 +74,13 @@ function ct_dashboard_statistics_widget() {
 	}
 }
 
-// Outputs statistics widget content
-function ct_dashboard_statistics_widget_output( $post, $callback_args ) {
+/**
+ * Outputs statistics widget content
+ *
+ * @param $_post
+ * @param $_callback_args
+ */
+function ct_dashboard_statistics_widget_output( $_post, $_callback_args ) {
 
 	global $apbct, $current_user;
 	
@@ -169,6 +191,8 @@ function ct_dashboard_statistics_widget_output( $post, $callback_args ) {
 
 /**
  * Admin action 'admin_init' - Add the admin settings and such
+ *
+ * @psalm-suppress UndefinedFunction
  */
 function apbct_admin__init(){
  
@@ -177,8 +201,7 @@ function apbct_admin__init(){
     // Admin bar
     $apbct->admin_bar_enabled =  $apbct->settings['admin_bar__show'] &&
         current_user_can( 'activate_plugins' );
-    
-//    ( defined( 'CLEANTALK_SHOW_ADMIN_BAR_FORCE' ) && CLEANTALK_SHOW_ADMIN_BAR_FORCE ) &&
+
     if( $apbct->admin_bar_enabled ){
         if(
             ! has_action('admin_bar_menu', 'apbct_admin__admin_bar__add_structure' ) &&
@@ -187,8 +210,8 @@ function apbct_admin__init(){
             add_action( 'admin_bar_menu', 'apbct_admin__admin_bar__add_structure', 999 );
         }
     
-        add_action( 'cleantalk_admin_bar__parent_node__before', 'apbct_admin__admin_bar__prepare_counters' );
-        add_action( 'cleantalk_admin_bar__add_icon_to_parent_node', 'apbct_admin__admin_bar__prepare_counters' );
+        add_filter( 'cleantalk_admin_bar__parent_node__before', 'apbct_admin__admin_bar__prepare_counters' );
+        add_filter( 'cleantalk_admin_bar__add_icon_to_parent_node', 'apbct_admin__admin_bar__prepare_counters' );
         // Temporary disable the icon
         //add_filter( 'cleantalk_admin_bar__parent_node__before', 'apbct_admin__admin_bar__add_parent_icon', 10, 1 );
         add_filter( 'cleantalk_admin_bar__parent_node__after', 'apbct_admin__admin_bar__add_counter', 10, 1 );
@@ -198,7 +221,6 @@ function apbct_admin__init(){
             add_filter( 'admin_bar_menu', 'apbct_spbc_admin__admin_bar__add_child_nodes', 1001 );
         }
     }
-    
 	
 	// Getting dashboard widget statistics
     if(!empty($_POST['ct_brief_refresh'])){
@@ -236,9 +258,13 @@ function apbct_admin__init(){
 
 /**
  * Manage links in plugins list
+ *
+ * @param $links
+ * @param $_file
+ *
  * @return array
-*/
-function apbct_admin__plugin_action_links($links, $file) {
+ */
+function apbct_admin__plugin_action_links($links, $_file) {
 	
 	global $apbct;
 	
@@ -250,8 +276,12 @@ function apbct_admin__plugin_action_links($links, $file) {
 
 /**
  * Manage links and plugins page
+ *
+ * @param $links
+ * @param $file
+ *
  * @return array
-*/
+ */
 function apbct_admin__register_plugin_links($links, $file){
 	
 	global $apbct;
@@ -290,7 +320,7 @@ function apbct_admin__register_plugin_links($links, $file){
  * Admin action 'admin_enqueue_scripts' - Enqueue admin script of reloading admin page after needed AJAX events
  * @param 	string $hook URL of hooked page
  */
-function apbct_admin__enqueue_scripts($hook){
+function apbct_admin__enqueue_scripts( $hook ){
 	
 	global $apbct;
 	
@@ -382,6 +412,14 @@ function apbct_admin__enqueue_scripts($hook){
 
 }
 
+/**
+ * Premium badge layout
+ *
+ * @param bool $print
+ * @param string $out
+ *
+ * @return null|string
+ */
 function apbct_admin__badge__get_premium($print = true, $out = ''){
 	
 	global $apbct;
@@ -403,6 +441,11 @@ function apbct_admin__badge__get_premium($print = true, $out = ''){
 		return $out;
 }
 
+/**
+ * Admin bar logic
+ *
+ * @param $wp_admin_bar
+ */
 function apbct_admin__admin_bar__add_structure( $wp_admin_bar ) {
     
     global $spbc, $apbct;
@@ -782,7 +825,14 @@ function apbct_comment__unmark_red($message) {
 	return $message;
 }
 
-// Ajax action feedback form comments page.
+/**
+ * Ajax action feedback form comments page.
+ *
+ * @param null $comment_id
+ * @param null $comment_status
+ * @param bool $change_status
+ * @param null $direct_call
+ */
 function apbct_comment__send_feedback($comment_id = null, $comment_status = null, $change_status = false, $direct_call = null){
 	
 	// For AJAX call
@@ -833,7 +883,13 @@ function apbct_comment__send_feedback($comment_id = null, $comment_status = null
 	}
 }
 
-// Ajax action feedback form user page.
+/**
+ * Ajax action feedback form user page.
+ *
+ * @param null $user_id
+ * @param null $status
+ * @param null $direct_call
+ */
 function apbct_user__send_feedback($user_id = null, $status = null, $direct_call = null){
 	
 	check_ajax_referer('ct_secret_nonce', 'security');
@@ -869,9 +925,13 @@ function apbct_user__send_feedback($user_id = null, $status = null, $direct_call
 
 /**
  * Send feedback when user deleted
- * @return null 
+ *
+ * @param $user_id
+ * @param null $_reassign
+ *
+ * @return null
  */
-function apbct_user__delete__hook($user_id, $reassign = null){
+function apbct_user__delete__hook($user_id, $_reassign = null){
 	
 	$hash = get_user_meta($user_id, 'ct_hash', true);
 	if ($hash !== '') {
@@ -879,6 +939,11 @@ function apbct_user__delete__hook($user_id, $reassign = null){
 	}
 }
 
+/**
+ * Check connection to the API servers
+ *
+ * @return mixed
+ */
 function apbct_test_connection(){
     
     $url_to_test = array(
