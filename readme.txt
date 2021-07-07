@@ -2,9 +2,9 @@
 Contributors: safronik
 Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 3.0
-Tested up to: 5.7
+Tested up to: 5.8
 Requires PHP: 5.6
-Stable tag: 5.159.7
+Stable tag: 5.159.8
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -572,6 +572,14 @@ If your website has forms that send data to external sources, you can enable opt
 12. SpamFireWall log.
 
 == Changelog ==
+
+= 5.159.8 Jul 07 2021 =
+ * Fix: Fixed the connection error Ajax.php when the site files are in a subfolder.
+ * Fix. SFW. Anticrawler redirect detection fixed.
+ * Fix. Checking sql before the tables creating.
+ * Fix. Updater fixed.
+ * Fix: Set alt cookies if sg optimizer is enabled.
+ * Fix: Exclusion for GiveWP plugin in apbct-public.js. #2
 
 = 5.159.7 Jul 01 2021 =
  * Fix. Updater fixed.

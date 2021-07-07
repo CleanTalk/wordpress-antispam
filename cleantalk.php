@@ -3,7 +3,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 5.159.8-fix
+  Version: 5.159.8
   Author: СleanTalk <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -176,7 +176,9 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 	
 	// Iphorm
 	if( isset( $_POST['iphorm_ajax'], $_POST['iphorm_id'], $_POST['iphorm_uid'] ) 	){
+		require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-validate.php');
 		require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public.php');
+		require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-integrations.php');
 		require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-ajax.php');
 		ct_ajax_hook();
 	}
@@ -186,7 +188,9 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 		&& (!empty($_POST['action']) && $_POST['action'] == 'fb_intialize')
 		&& !empty($_POST['FB_userdata'])
 	){
+		require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-validate.php');
 		require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public.php');
+		require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-integrations.php');
 		if (apbct_is_user_enable()){
 			$ct_check_post_result=false;
 			ct_registration_errors(null);
@@ -273,7 +277,8 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 			$apbct->settings['sfw__enabled'] == 1 &&
             apbct_is_get() &&
             ! apbct_wp_doing_cron() &&
-            ! \Cleantalk\Variables\Server::in_uri( '/favicon.ico' )
+            ! \Cleantalk\Variables\Server::in_uri( '/favicon.ico' ) &&
+		    ! apbct_is_cli()
 		){
             wp_suspend_cache_addition( true );
 			apbct_sfw__check();
@@ -341,8 +346,10 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 			
 			$cleantalk_hooked_actions = array();
 			$cleantalk_ajax_actions_to_check = array();
-			
+
+			require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-validate.php');
 			require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public.php');
+			require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-integrations.php');
 			require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-ajax.php');
 			
 			// Feedback for comments
@@ -372,8 +379,8 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 				add_filter('et_pre_insert_answer',   'ct_ajax_hook', 1, 1); // Answers
 			
 			// Formidable
-			add_filter( 'frm_entries_before_create', 'apbct_rorm__formidable__testSpam', 10, 2 );
-			add_action( 'frm_entries_footer_scripts', 'apbct_rorm__formidable__footerScripts', 20, 2 );
+			add_filter( 'frm_entries_before_create', 'apbct_form__formidable__testSpam', 10, 2 );
+			add_action( 'frm_entries_footer_scripts', 'apbct_form__formidable__footerScripts', 20, 2 );
 			
             // Some of plugins to register a users use AJAX context.
             add_filter('registration_errors', 'ct_registration_errors', 1, 3);
@@ -381,14 +388,18 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
             add_action('user_register', 'apbct_user_register');
 			
 			if(class_exists('BuddyPress')){
+				require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-validate.php');
 				require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public.php');
+				require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-integrations.php');
 				add_filter('bp_activity_is_spam_before_save', 'apbct_integration__buddyPres__activityWall', 999 ,2); /* ActivityWall */
 				add_action('bp_locate_template', 'apbct_integration__buddyPres__getTemplateName', 10, 6); 
 			}
 			
 		}
-				
-			require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public.php');
+
+	    require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-validate.php');
+	    require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public.php');
+	    require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-integrations.php');
 		//Bitrix24 contact form
 		if ($apbct->settings['forms__general_contact_forms_test'] == 1 &&
 			!empty($_POST['your-phone']) &&
@@ -417,10 +428,10 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 	
 	// Public pages actions
     }else{
-		
-		require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public.php');
 
-
+	    require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-validate.php');
+	    require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public.php');
+	    require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-integrations.php');
 
 		add_action('wp_enqueue_scripts', 'ct_enqueue_scripts_public');
 		

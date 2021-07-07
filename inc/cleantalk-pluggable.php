@@ -245,6 +245,15 @@ function apbct_is_rest() {
 }
 
 /**
+ * Checks if the request is the command line access
+ *
+ * @return boolean
+ */
+function apbct_is_cli() {
+	return PHP_SAPI === "cli";
+}
+
+/**
  * Checks if the user is logged in
  *
  * @return bool

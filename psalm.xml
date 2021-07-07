@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<psalm
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="https://getpsalm.org/schema/config"
+        name="Psalm for Cleantalk AntiSpam Protection"
+        autoloader="tests/bootstrap.php"
+        errorLevel="4"
+        throwExceptionOnError="0"
+        findUnusedCode="true"
+        ensureArrayStringOffsetsExist="true"
+        ensureArrayIntOffsetsExist="true"
+        hoistConstants="true"
+        phpVersion="5.6"
+        hideExternalErrors="true"
+        xsi:schemaLocation="https://getpsalm.org/schema/config config.xsd"
+        limitMethodComplexity="true"
+>
+    <projectFiles>
+        <file name="inc/cleantalk-updater.php" />
+    </projectFiles>
+
+    <stubs>
+        <file name="vendor/php-stubs/wordpress-stubs/wordpress-stubs.php" />
+        <file name="lib/Cleantalk/ApbctWP/State.php" />
+        <file name="inc/cleantalk-pluggable.php" />
+    </stubs>
+
+    <plugins>
+        <pluginClass class="PsalmWordPress\Plugin"/>
+    </plugins>
+
+</psalm>
