@@ -19,6 +19,7 @@
         <file name="inc/cleantalk-updater.php" />
         <file name="inc/cleantalk-admin.php" />
         <file name="inc/cleantalk-ajax.php" />
+        <file name="inc/cleantalk-settings.php" />
     </projectFiles>
 
     <stubs>

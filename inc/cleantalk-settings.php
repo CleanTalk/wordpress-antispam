@@ -25,16 +25,15 @@ function apbct_settings_add_page() {
 	if(!in_array($pagenow, array('options.php', 'options-general.php', 'settings.php', 'admin.php')))
 		return;
 	
-	register_setting('cleantalk_settings', 'cleantalk_settings', 'apbct_settings__validate');
+	register_setting('cleantalk_settings', 'cleantalk_settings', array('type' => 'string', 'sanitize_callback' => 'apbct_settings__validate', 'default' => null));
 	
-	$fields = array();
-	$fields = apbct_settings__set_fileds($fields);
+	$fields = apbct_settings__set_fileds();
 	$fields = APBCT_WPMS && is_main_site() ? apbct_settings__set_fileds__network($fields) : $fields;
 	apbct_settings__add_groups_and_fields($fields);
 	
 }
 
-function apbct_settings__set_fileds( $fields ){
+function apbct_settings__set_fileds( ){
 	global $apbct;
 
     $additional_ac_title = '';
@@ -652,8 +651,8 @@ function apbct_settings__add_groups_and_fields( $fields ){
 	);
 	
 	foreach($apbct->settings_fields_in_groups as $group_name => $group){
-		
-		add_settings_section('apbct_section__'.$group_name, '', 'apbct_section__'.$group_name, 'cleantalk-spam-protect');
+
+		add_settings_section('apbct_section__'.$group_name, '', '', 'cleantalk-spam-protect');
 		
 		foreach($group['fields'] as $field_name => $field){
 			
@@ -813,7 +812,6 @@ function apbct_settings__display() {
 	if(!$apbct->white_label){
 		// Translate banner for non EN locale
 		if(substr(get_locale(), 0, 2) != 'en'){
-			global $ct_translate_banner_template;
 			require_once(CLEANTALK_PLUGIN_DIR.'templates/translate_banner.php');
 			printf($ct_translate_banner_template, substr(get_locale(), 0, 2));
 		}
@@ -945,7 +943,6 @@ function apbct_settings__field__state(){
 	$img = $path_to_img."yes.png";
 	$img_no = $path_to_img."no.png";
 	$img_no_gray = $path_to_img."no_gray.png";
-	$preloader = $path_to_img."preloader.gif";
 	$color="black";
 
 	if( ! $apbct->key_is_ok ){
@@ -1120,7 +1117,7 @@ function apbct_settings__field__action_buttons(){
 
 function apbct_settings__field__statistics() {
 
-	global $apbct, $wpdb;
+	global $apbct;
 	
 	echo '<div id="apbct_statistics" class="apbct_settings-field_wrapper" style="display: none;">';
 
@@ -1239,9 +1236,7 @@ function apbct_get_all_child_domains($except_main_site = false) {
  * @return array
  */
 function apbct_get_all_roles($except_subscriber = false) {
-	
-	global $wp_roles;
-	
+
 	$wp_roles = new WP_Roles();
 	$roles = $wp_roles->get_names();
 	
@@ -1503,7 +1498,7 @@ function apbct_settings__validate($settings) {
 
 	// Sanitize setting values
 	foreach ($settings as &$setting ){
-		if( is_scalar( $setting ) )
+		if( is_string( $setting ) )
 			$setting = preg_replace( '/[<"\'>]/', '', trim( $setting ) ); // Make HTML code inactive
 	}
 	
@@ -1659,12 +1654,12 @@ function apbct_settings__sync( $direct_call = false ){
 				'service_id'  => $apbct->data['service_id'],
 			);
 			$apbct->saveNetworkData();
-			if (isset($settings['multisite__use_settings_template_apply_for_current_list_sites']) && !empty($settings['multisite__use_settings_template_apply_for_current_list_sites'])) {
-				apbct_update_blogs_options( $settings );
+			if (isset($apbct->settings['multisite__use_settings_template_apply_for_current_list_sites']) && !empty($apbct->settings['multisite__use_settings_template_apply_for_current_list_sites'])) {
+				apbct_update_blogs_options( $apbct->settings );
 			}
 		}
 		if(!$apbct->white_label && !is_main_site() && !$apbct->allow_custom_key){
-			$settings['apikey'] = '';
+			$apbct->settings['apikey'] = '';
 		}
 	}
 	
@@ -1711,11 +1706,11 @@ function apbct_settings__get_key_auto( $direct_call = false ) {
 
 	$website        = parse_url(get_option('siteurl'), PHP_URL_HOST).parse_url(get_option('siteurl'), PHP_URL_PATH);
 	$platform       = 'wordpress';
-	$user_ip        = \Cleantalk\ApbctWP\Helper::ip__get(array('real'), false);
+	$user_ip        = \Cleantalk\ApbctWP\Helper::ip__get('real', false);
 	$timezone       = filter_input(INPUT_POST, 'ct_admin_timezone');
 	$language       = apbct_get_server_variable( 'HTTP_ACCEPT_LANGUAGE' );
 	$wpms           = APBCT_WPMS && defined('SUBDOMAIN_INSTALL') && !SUBDOMAIN_INSTALL ? true : false;
-	$white_label    = $apbct->network_settings['multisite__white_label']             ? 1                                                   : 0;
+	$white_label    = $apbct->network_settings['multisite__white_label'] ? true : false;
 	$admin_email    = get_option('admin_email');
 	if (function_exists('is_multisite') && is_multisite() && $apbct->white_label) { 
 		$admin_email = get_site_option( 'admin_email' ); 
@@ -1840,13 +1835,10 @@ function apbct_settings__sanitize__exclusions($exclusions, $regexp = false){
         case 0 :
         default :
             return implode( ',', $result );
-            break;
         case 1 :
             return implode( "\n", $result );
-            break;
         case 2 :
             return implode( "\r\n", $result );
-            break;
     }
 }
 
@@ -1872,8 +1864,6 @@ function apbct_settings_show_gdpr_text($print = false){
 }
 
 function apbct_settings__get__long_description(){
-	
-	global $apbct;
 	
 	check_ajax_referer('ct_secret_nonce' );
 	
