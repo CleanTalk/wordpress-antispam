@@ -26,4 +26,13 @@
         <file name="vendor/php-stubs/wordpress-stubs/wordpress-stubs.php" />
     </stubs>
 
+    <issueHandlers>
+      <MissingPropertyType errorLevel="suppress" />
+      <UnusedClass>
+        <errorLevel type="suppress">
+          <referencedClass name="cleantalk_widget" />
+        </errorLevel>
+      </UnusedClass>
+    </issueHandlers>
+    
 </psalm>
