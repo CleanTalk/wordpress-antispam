@@ -22,7 +22,7 @@ function apbct_wp_get_current_user(){
 				? $current_user->ID
 				: null;
 		}else{
-			$user_id = empty($user_id) && defined('LOGGED_IN_COOKIE') && !empty($_COOKIE[LOGGED_IN_COOKIE])
+			$user_id = defined('LOGGED_IN_COOKIE') && !empty($_COOKIE[LOGGED_IN_COOKIE])
 				? apbct_wp_validate_auth_cookie($_COOKIE[LOGGED_IN_COOKIE], 'logged_in')
 				: null;
 		}
@@ -369,233 +369,227 @@ function apbct_is_skip_request( $ajax = false ) {
     /* !!! Have to use more than one factor to detect the request - is_plugin active() && $_POST['action'] !!! */
     //@ToDo Implement direct integration checking - if have the direct integration will be returned false
 
-    switch ( $ajax ) {
-        case true :
-            /*****************************************/
-            /*    Here is ajax requests skipping     */
-            /*****************************************/
-    
-            // Paid Memberships Pro - Login Form
-            if(
-                apbct_is_plugin_active( 'paid-memberships-pro/paid-memberships-pro.php' ) &&
-                Post::get( 'rm_slug' ) === 'rm_login_form' &&
-                Post::get( 'rm_form_sub_id' )
-            ){
-                return 'paid_memberships_pro__login_form';
-            }
-            
-            // Thrive Ultimatum
-            if(
-                apbct_is_plugin_active( 'thrive-ultimatum/thrive-ultimatum.php' ) &&
-                Post::get( 'action' ) === 'tve_dash_front_ajax'
-            ){
-                return 'thrive-ultimatum__links_from_email';
-            }
-            
-            // wpDiscuz - Online Users Addon for wpDiscuz
-            if(
-                apbct_is_plugin_active( 'wpdiscuz-online-users/wpdiscuz-ou.php' ) &&
-                Post::get( 'action' ) === 'wouPushNotification'
-            ){
-                return 'wpdiscuz_online_users__push_notification';
-            }
-            
-            // Bookly Plugin admin actions skip
-            if( apbct_is_plugin_active( 'bookly-responsive-appointment-booking-tool/main.php' ) &&
-                isset( $_POST['action'] ) &&
-                strpos( $_POST['action'], 'bookly' ) !== false &&
-                is_admin() )
-            {
-                return 'bookly_pro_update_staff_advanced';
-            }
-            // Youzier login form skip
-            if( apbct_is_plugin_active( 'youzer/youzer.php' ) &&
-                isset( $_POST['action'] ) &&
-                $_POST['action'] === 'yz_ajax_login' )
-            {
-                return 'youzier_login_form';
-            }
-	        // Youzify login form skip
-	        if( apbct_is_plugin_active( 'youzify/youzify.php' ) &&
-	            isset( $_POST['action'] ) &&
-	            $_POST['action'] === 'youzify_ajax_login' )
-	        {
-		        return 'youzify_login_form';
-	        }
-            // InJob theme lost password skip
-            if( apbct_is_plugin_active( 'iwjob/iwjob.php' ) &&
-                isset( $_POST['action'] ) &&
-                $_POST['action'] === 'iwj_lostpass' )
-            {
-                return 'injob_theme_plugin';
-            }
-            // Divi builder skip
-            if ( apbct_is_theme_active( 'Divi' ) &&
-        		isset( $_POST['action'] ) &&
-                 ( $_POST['action'] === 'save_epanel' || $_POST['action'] === 'et_fb_ajax_save' ) )
-            {
-            	return 'divi_builder_skip';
-            }
-	        // Email Before Download plugin https://wordpress.org/plugins/email-before-download/ action skip
-	        if ( apbct_is_plugin_active( 'email-before-download/email-before-download.php' ) &&
-	             isset( $_POST['action'] ) &&
-	             $_POST['action'] === 'ebd_inline_links' )
-	        {
-		        return 'ebd_inline_links';
-	        }
-	        // WP Discuz skip service requests. The plugin have the direct integration
-	        if ( apbct_is_plugin_active( 'wpdiscuz/class.WpdiscuzCore.php' ) &&
-	             isset( $_POST['action'] ) &&
-	             strpos( $_POST['action'], 'wpd' ) !== false )
-	        {
-		        return 'ebd_inline_links';
-	        }
-            // Exception for plugin https://ru.wordpress.org/plugins/easy-login-woocommerce/ login form
-            if(
-                apbct_is_plugin_active( 'easy-login-woocommerce/xoo-el-main.php' ) &&
-                Post::get( '_xoo_el_form' ) === 'login'
-            ){
-                return 'xoo_login';
-            }
-	        // Emails & Newsletters with Jackmail: skip all admin-side actions
-	        if(
-		        apbct_is_plugin_active( 'jackmail-newsletters/jackmail-newsletters.php' ) &&
-		        is_admin() &&
-		        strpos( Server::get('HTTP_REFERER'), 'jackmail_' ) !== false
-	        ){
-		        return 'jackmail_admin_actions';
-	        }
-	        // Newspaper theme login form
-	        if ( apbct_is_theme_active( 'Newspaper' ) &&
-	             isset( $_POST['action'] ) &&
-	             ( $_POST['action'] == 'td_mod_login' || $_POST['action'] == 'td_mod_remember_pass' ) )
-	        {
-		        return 'Newspaper_theme_login_form';
-	        }
-	        // Save abandoned cart checking skip
-	        if ( apbct_is_plugin_active( 'woo-save-abandoned-carts/cartbounty-abandoned-carts.php' ) &&
-	             Post::get( 'action' ) === 'cartbounty_save' )
-	        {
-		        return 'cartbounty_save';
-	        }
-	        // SUMODISCOUNT discout request skip
-	        if ( apbct_is_plugin_active( 'sumodiscounts/sumodiscounts.php' ) &&
-	             Post::get( 'action' ) === 'fp_apply_discount_for_first_purchase' )
-	        {
-		        return 'fp_apply_discount_for_first_purchase';
-	        }
-	        // WP eMember login form skip
-	        if ( apbct_is_plugin_active( 'wp-eMember/wp_eMember.php' ) &&
-	             Post::get( 'action' ) === 'emember_ajax_login' )
-	        {
-		        return 'emember_ajax_login';
-	        }
-	        // Avada theme saving settings
-	        if ( apbct_is_theme_active( 'Avada' ) &&
-	             Post::get('action') === 'fusion_options_ajax_save' )
-	        {
-		        return 'Avada_theme_saving_settings';
-	        }
-	        // Formidable skip - this is the durect integration
-	        if ( apbct_is_plugin_active( 'formidable/formidable.php' ) &&
-	             Post::get( 'action' ) === 'frm_entries_update' )
-	        {
-		        return 'formidable_skip';
-	        }
-	        // Artbees Jupiter theme saving settings
-	        if ( Post::get( 'action' ) === 'mk_theme_save' && strpos( get_template(), 'jupiter' ) !== false ){
-		        return 'artbees_jupiter_6_skip';
-	        }
-            // fix conflict with wiloke theme and unknown plugin, that removes standard authorization cookies
-            if ( Post::get( 'action' ) === 'wiloke_themeoptions_ajax_save' && apbct_is_theme_active( 'wilcity' ) ){
-                return 'wiloke_themeoptions_ajax_save_skip';
-            }
-	        // Essentials addons for elementor - light and pro
-	        if(
-		        ( apbct_is_plugin_active( 'essential-addons-for-elementor-lite/essential_adons_elementor.php' ) ||
-		          apbct_is_plugin_active( 'essential-addons-elementor/essential_adons_elementor.php' ) ) &&
-		        ( Post::get('eael-login-submit') !== '' && Post::get('eael-user-login') !== '' ) )
-	        {
-		        return 'eael_login_skipped';
-	        }
-	        // WPForms check restricted email skipped
-	        if(
-		        ( apbct_is_plugin_active( 'wpforms/wpforms.php' ) ) &&
-		        ( Post::get('action') === 'wpforms_restricted_email' && Post::get('token') !== '' )
-	        )
-	        {
-		        return 'wpforms_check_restricted_email';
-	        }
-	        // FluentForm multistep skip 
-	        if ( ( apbct_is_plugin_active( 'fluentformpro/fluentformpro.php' ) || apbct_is_plugin_active( 'fluentform/fluentform.php' ) ) &&
-	             Post::get( 'action' ) === 'active_step' )
-	        {
-		        return 'fluentform_skip';
-	        }
-            break;
+    if ($ajax) {
+        /*****************************************/
+        /*    Here is ajax requests skipping     */
+        /*****************************************/
 
-        case false :
-        default:
-            /*****************************************/
-            /*  Here is non-ajax requests skipping   */
-            /*****************************************/
-			// WC payment APIs
-		    if( apbct_is_plugin_active( 'woocommerce/woocommerce.php' ) &&
-		        apbct_is_in_uri( 'wc-api=2checkout_ipn_convert_plus') )
-		    {
-			    return 'wc-payment-api';
-		    }
-            // BuddyPress edit profile checking skip
-            if( apbct_is_plugin_active( 'buddypress/bp-loader.php' ) &&
-                array_key_exists( 'profile-group-edit-submit', $_POST ) )
-            {
-                return 'buddypress_profile_edit';
-            }
-            // UltimateMember password reset skip
-            if( apbct_is_plugin_active( 'ultimate-member/ultimate-member.php' ) &&
-                isset( $_POST['_um_password_reset'] ) && $_POST['_um_password_reset'] == 1 )
-            {
-                return 'ultimatemember_password_reset';
-            }
-		    // UltimateMember password reset skip
-		    if( apbct_is_plugin_active( 'gravityformspaypal/paypal.php' ) &&
-		        ( apbct_is_in_uri('page=gf_paypal_ipn') || apbct_is_in_uri('callback=gravityformspaypal') ) )
-		    {
-			    return 'gravityformspaypal_processing_skipped';
-		    }
-		    // MyListing theme service requests skip
-		    if ( ( apbct_is_theme_active( 'My Listing Child' ) || apbct_is_theme_active( 'My Listing' ) ) &&
-		         Get::get('mylisting-ajax') === '1' )
-		    {
-			    return 'mylisting_theme_service_requests_skip';
-		    }
-		    // HappyForms skip every requests. HappyForms have the direct integration
-		    if( apbct_is_plugin_active( 'happyforms-upgrade/happyforms-upgrade.php' ) ||
-		        apbct_is_plugin_active( 'happyforms/happyforms.php' ) &&
-		        ( Post::get('happyforms_message_nonce') !== ''  ) )
-		    {
-			    return 'happyform_skipped';
-		    }
-		    // Essentials addons for elementor - light and pro
-		    if(
-		        ( apbct_is_plugin_active( 'essential-addons-for-elementor-lite/essential_adons_elementor.php' ) ||
-		          apbct_is_plugin_active( 'essential-addons-elementor/essential_adons_elementor.php' ) ) &&
-		        ( Post::get('eael-login-submit') !== '' && Post::get('eael-user-login') !== '' ) )
-		    {
-			    return 'eael_login_skipped';
-		    }
-			// Autonami Marketing Automations service request
-		    if( apbct_is_rest() && Post::get('automation_id') !== '' && Post::get('unique_key') !== '' )
-		    {
-			    return 'autonami-rest';
-		    }
-		    //Skip wforms because of direct integration
-		    if ( apbct_is_plugin_active( 'wpforms/wpforms.php' ) && isset( $_POST['wpforms'] ) ) {
-			    return 'wp_forms';
-		    }
+        // Paid Memberships Pro - Login Form
+        if(
+            apbct_is_plugin_active( 'paid-memberships-pro/paid-memberships-pro.php' ) &&
+            Post::get( 'rm_slug' ) === 'rm_login_form' &&
+            Post::get( 'rm_form_sub_id' )
+        ){
+            return 'paid_memberships_pro__login_form';
+        }
+        
+        // Thrive Ultimatum
+        if(
+            apbct_is_plugin_active( 'thrive-ultimatum/thrive-ultimatum.php' ) &&
+            Post::get( 'action' ) === 'tve_dash_front_ajax'
+        ){
+            return 'thrive-ultimatum__links_from_email';
+        }
+        
+        // wpDiscuz - Online Users Addon for wpDiscuz
+        if(
+            apbct_is_plugin_active( 'wpdiscuz-online-users/wpdiscuz-ou.php' ) &&
+            Post::get( 'action' ) === 'wouPushNotification'
+        ){
+            return 'wpdiscuz_online_users__push_notification';
+        }
+        
+        // Bookly Plugin admin actions skip
+        if( apbct_is_plugin_active( 'bookly-responsive-appointment-booking-tool/main.php' ) &&
+            isset( $_POST['action'] ) &&
+            strpos( $_POST['action'], 'bookly' ) !== false &&
+            is_admin() )
+        {
+            return 'bookly_pro_update_staff_advanced';
+        }
+        // Youzier login form skip
+        if( apbct_is_plugin_active( 'youzer/youzer.php' ) &&
+            isset( $_POST['action'] ) &&
+            $_POST['action'] === 'yz_ajax_login' )
+        {
+            return 'youzier_login_form';
+        }
+        // Youzify login form skip
+        if( apbct_is_plugin_active( 'youzify/youzify.php' ) &&
+            isset( $_POST['action'] ) &&
+            $_POST['action'] === 'youzify_ajax_login' )
+        {
+	        return 'youzify_login_form';
+        }
+        // InJob theme lost password skip
+        if( apbct_is_plugin_active( 'iwjob/iwjob.php' ) &&
+            isset( $_POST['action'] ) &&
+            $_POST['action'] === 'iwj_lostpass' )
+        {
+            return 'injob_theme_plugin';
+        }
+        // Divi builder skip
+        if ( apbct_is_theme_active( 'Divi' ) &&
+    		isset( $_POST['action'] ) &&
+             ( $_POST['action'] === 'save_epanel' || $_POST['action'] === 'et_fb_ajax_save' ) )
+        {
+        	return 'divi_builder_skip';
+        }
+        // Email Before Download plugin https://wordpress.org/plugins/email-before-download/ action skip
+        if ( apbct_is_plugin_active( 'email-before-download/email-before-download.php' ) &&
+             isset( $_POST['action'] ) &&
+             $_POST['action'] === 'ebd_inline_links' )
+        {
+	        return 'ebd_inline_links';
+        }
+        // WP Discuz skip service requests. The plugin have the direct integration
+        if ( apbct_is_plugin_active( 'wpdiscuz/class.WpdiscuzCore.php' ) &&
+             isset( $_POST['action'] ) &&
+             strpos( $_POST['action'], 'wpd' ) !== false )
+        {
+	        return 'ebd_inline_links';
+        }
+        // Exception for plugin https://ru.wordpress.org/plugins/easy-login-woocommerce/ login form
+        if(
+            apbct_is_plugin_active( 'easy-login-woocommerce/xoo-el-main.php' ) &&
+            Post::get( '_xoo_el_form' ) === 'login'
+        ){
+            return 'xoo_login';
+        }
+        // Emails & Newsletters with Jackmail: skip all admin-side actions
+        if(
+	        apbct_is_plugin_active( 'jackmail-newsletters/jackmail-newsletters.php' ) &&
+	        is_admin() &&
+	        strpos( Server::get('HTTP_REFERER'), 'jackmail_' ) !== false
+        ){
+	        return 'jackmail_admin_actions';
+        }
+        // Newspaper theme login form
+        if ( apbct_is_theme_active( 'Newspaper' ) &&
+             isset( $_POST['action'] ) &&
+             ( $_POST['action'] == 'td_mod_login' || $_POST['action'] == 'td_mod_remember_pass' ) )
+        {
+	        return 'Newspaper_theme_login_form';
+        }
+        // Save abandoned cart checking skip
+        if ( apbct_is_plugin_active( 'woo-save-abandoned-carts/cartbounty-abandoned-carts.php' ) &&
+             Post::get( 'action' ) === 'cartbounty_save' )
+        {
+	        return 'cartbounty_save';
+        }
+        // SUMODISCOUNT discout request skip
+        if ( apbct_is_plugin_active( 'sumodiscounts/sumodiscounts.php' ) &&
+             Post::get( 'action' ) === 'fp_apply_discount_for_first_purchase' )
+        {
+	        return 'fp_apply_discount_for_first_purchase';
+        }
+        // WP eMember login form skip
+        if ( apbct_is_plugin_active( 'wp-eMember/wp_eMember.php' ) &&
+             Post::get( 'action' ) === 'emember_ajax_login' )
+        {
+	        return 'emember_ajax_login';
+        }
+        // Avada theme saving settings
+        if ( apbct_is_theme_active( 'Avada' ) &&
+             Post::get('action') === 'fusion_options_ajax_save' )
+        {
+	        return 'Avada_theme_saving_settings';
+        }
+        // Formidable skip - this is the durect integration
+        if ( apbct_is_plugin_active( 'formidable/formidable.php' ) &&
+             Post::get( 'action' ) === 'frm_entries_update' )
+        {
+	        return 'formidable_skip';
+        }
+        // Artbees Jupiter theme saving settings
+        if ( Post::get( 'action' ) === 'mk_theme_save' && strpos( get_template(), 'jupiter' ) !== false ){
+	        return 'artbees_jupiter_6_skip';
+        }
+        // fix conflict with wiloke theme and unknown plugin, that removes standard authorization cookies
+        if ( Post::get( 'action' ) === 'wiloke_themeoptions_ajax_save' && apbct_is_theme_active( 'wilcity' ) ){
+            return 'wiloke_themeoptions_ajax_save_skip';
+        }
+        // Essentials addons for elementor - light and pro
+        if(
+	        ( apbct_is_plugin_active( 'essential-addons-for-elementor-lite/essential_adons_elementor.php' ) ||
+	          apbct_is_plugin_active( 'essential-addons-elementor/essential_adons_elementor.php' ) ) &&
+	        ( Post::get('eael-login-submit') !== '' && Post::get('eael-user-login') !== '' ) )
+        {
+	        return 'eael_login_skipped';
+        }
+        // WPForms check restricted email skipped
+        if(
+	        ( apbct_is_plugin_active( 'wpforms/wpforms.php' ) ) &&
+	        ( Post::get('action') === 'wpforms_restricted_email' && Post::get('token') !== '' )
+        )
+        {
+	        return 'wpforms_check_restricted_email';
+        }
+        // FluentForm multistep skip 
+        if ( ( apbct_is_plugin_active( 'fluentformpro/fluentformpro.php' ) || apbct_is_plugin_active( 'fluentform/fluentform.php' ) ) &&
+             Post::get( 'action' ) === 'active_step' )
+        {
+	        return 'fluentform_skip';
+        }    	
+    } else {
 
-            break;
-
+        /*****************************************/
+        /*  Here is non-ajax requests skipping   */
+        /*****************************************/
+		// WC payment APIs
+	    if( apbct_is_plugin_active( 'woocommerce/woocommerce.php' ) &&
+	        apbct_is_in_uri( 'wc-api=2checkout_ipn_convert_plus') )
+	    {
+		    return 'wc-payment-api';
+	    }
+        // BuddyPress edit profile checking skip
+        if( apbct_is_plugin_active( 'buddypress/bp-loader.php' ) &&
+            array_key_exists( 'profile-group-edit-submit', $_POST ) )
+        {
+            return 'buddypress_profile_edit';
+        }
+        // UltimateMember password reset skip
+        if( apbct_is_plugin_active( 'ultimate-member/ultimate-member.php' ) &&
+            isset( $_POST['_um_password_reset'] ) && $_POST['_um_password_reset'] == 1 )
+        {
+            return 'ultimatemember_password_reset';
+        }
+	    // UltimateMember password reset skip
+	    if( apbct_is_plugin_active( 'gravityformspaypal/paypal.php' ) &&
+	        ( apbct_is_in_uri('page=gf_paypal_ipn') || apbct_is_in_uri('callback=gravityformspaypal') ) )
+	    {
+		    return 'gravityformspaypal_processing_skipped';
+	    }
+	    // MyListing theme service requests skip
+	    if ( ( apbct_is_theme_active( 'My Listing Child' ) || apbct_is_theme_active( 'My Listing' ) ) &&
+	         Get::get('mylisting-ajax') === '1' )
+	    {
+		    return 'mylisting_theme_service_requests_skip';
+	    }
+	    // HappyForms skip every requests. HappyForms have the direct integration
+	    if( apbct_is_plugin_active( 'happyforms-upgrade/happyforms-upgrade.php' ) ||
+	        apbct_is_plugin_active( 'happyforms/happyforms.php' ) &&
+	        ( Post::get('happyforms_message_nonce') !== ''  ) )
+	    {
+		    return 'happyform_skipped';
+	    }
+	    // Essentials addons for elementor - light and pro
+	    if(
+	        ( apbct_is_plugin_active( 'essential-addons-for-elementor-lite/essential_adons_elementor.php' ) ||
+	          apbct_is_plugin_active( 'essential-addons-elementor/essential_adons_elementor.php' ) ) &&
+	        ( Post::get('eael-login-submit') !== '' && Post::get('eael-user-login') !== '' ) )
+	    {
+		    return 'eael_login_skipped';
+	    }
+		// Autonami Marketing Automations service request
+	    if( apbct_is_rest() && Post::get('automation_id') !== '' && Post::get('unique_key') !== '' )
+	    {
+		    return 'autonami-rest';
+	    }
+	    //Skip wforms because of direct integration
+	    if ( apbct_is_plugin_active( 'wpforms/wpforms.php' ) && isset( $_POST['wpforms'] ) ) {
+		    return 'wp_forms';
+	    }    	
     }
 
     return false;

@@ -17,16 +17,23 @@
 >
     <projectFiles>
         <file name="inc/cleantalk-updater.php" />
+        <file name="inc/cleantalk-admin.php" />
+        <file name="inc/cleantalk-ajax.php" />
+        <file name="inc/cleantalk-settings.php" />
+        <file name="inc/cleantalk-pluggable.php" />
     </projectFiles>
 
     <stubs>
         <file name="vendor/php-stubs/wordpress-stubs/wordpress-stubs.php" />
-        <file name="lib/Cleantalk/ApbctWP/State.php" />
-        <file name="inc/cleantalk-pluggable.php" />
     </stubs>
 
-    <plugins>
-        <pluginClass class="PsalmWordPress\Plugin"/>
-    </plugins>
-
+    <issueHandlers>
+      <MissingPropertyType errorLevel="suppress" />
+      <UnusedClass>
+        <errorLevel type="suppress">
+          <referencedClass name="cleantalk_widget" />
+        </errorLevel>
+      </UnusedClass>
+    </issueHandlers>
+    
 </psalm>

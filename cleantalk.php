@@ -344,8 +344,8 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 		
 		if(apbct_is_ajax() || isset($_POST['cma-action'])){
 			
-			$cleantalk_hooked_actions = array();
-			$cleantalk_ajax_actions_to_check = array();
+			$_cleantalk_hooked_actions = array();
+			$_cleantalk_ajax_actions_to_check = array();
 
 			require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-validate.php');
 			require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public.php');
@@ -367,7 +367,7 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 				// if Unknown action or Known action with mandatory check
 			if(	( ! apbct_is_user_logged_in() || $apbct->settings['data__protect_logged_in'] == 1)  &&
 				isset( $_POST['action'] ) &&
-                ( ! in_array( $_POST['action'], $cleantalk_hooked_actions ) || in_array( $_POST['action'], $cleantalk_ajax_actions_to_check ) ) &&
+                ( ! in_array( $_POST['action'], $_cleantalk_hooked_actions ) || in_array( $_POST['action'], $_cleantalk_ajax_actions_to_check ) ) &&
                 ! array_search( $_POST['action'], array_column( $apbct_active_integrations, 'hook' ) )
 			){
 				ct_ajax_hook();

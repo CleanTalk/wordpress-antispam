@@ -83,9 +83,9 @@ class cleantalk_widget extends WP_Widget
 	{
 		// Widget admin form
 		
-		$title = isset( $instance[ 'title' ] ) ? $instance[ 'title' ] : $title = __( 'Spam blocked', 'cleantalk-spam-protect');
-		$style = isset( $instance[ 'style' ] ) ? $instance[ 'style' ] : $style = 'ct_style';
-		$refid = isset( $instance[ 'refid' ] ) ? $instance[ 'refid' ] : $refid = '';
+		$title = isset( $instance[ 'title' ] ) ? $instance[ 'title' ] : __( 'Spam blocked', 'cleantalk-spam-protect');
+		$style = isset( $instance[ 'style' ] ) ? $instance[ 'style' ] : 'ct_style';
+		$refid = isset( $instance[ 'refid' ] ) ? $instance[ 'refid' ] : '';
 		// Title field
 		echo '<p>'
 			.'<label for="' . $this->get_field_id( 'title' ) . '">' . __( 'Title:', 'cleantalk-spam-protect') . '</label>'
@@ -106,6 +106,8 @@ class cleantalk_widget extends WP_Widget
 			.'<label for="' . $this->get_field_id( 'refid' ) . '">' . __( 'Referal link ID:', 'cleantalk-spam-protect') . '</label>'
 			.'<input class="widefat" id="'.$this->get_field_id( 'refid' ).'" name="'.$this->get_field_name( 'refid' ).'" type="text" value="'.$refid.'" />'
 		.'</p>';
+		
+		return 'noform';
 	}
 		
 	// Updating widget replacing old instances with new
