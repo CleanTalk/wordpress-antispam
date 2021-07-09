@@ -85,11 +85,11 @@ class Firewall
 		/**
 		 * Check IP in REMOTE_ADDR, add to result
 		 */
-		$remote_addr_ip = filter_var($_SERVER['REMOTE_ADDR'], FILTER_VALIDATE_IP, FILTER_FLAG_IPV4);
+		$remote_addr_ip = Helper::ip__get( 'remote_addr', $v4_only );
 
-		if( $remote_addr_ip &&
+		if( !empty($remote_addr_ip) &&
 			!empty($real_ip) &&
-			ip2long($remote_addr_ip) !== ip2long($real_ip)
+			$remote_addr_ip !== $real_ip
 		) {
 			$result['remote_addr'] = $remote_addr_ip;
 		}
