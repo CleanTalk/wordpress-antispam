@@ -1272,8 +1272,9 @@ function apbct_sfw_update__end_of_update() {
 	$apbct->error_delete( 'sfw_update', 'save_settings' );
 
 	// Get update period for server
-	$update_period = \Cleantalk\Common\DNS::getServerTTL( 'spamfirewall-ttl.cleantalk.org' );
-	$update_period = (int)$update_period > 14400 ?  (int) $update_period : 14400;
+	$update_period = \Cleantalk\Common\DNS::getRecord( 'spamfirewall-ttl-txt.cleantalk.org', true, DNS_TXT );
+	$update_period = isset( $update_period['txt'] ) ? $update_period['txt'] : 0;
+	$update_period = (int) $update_period > 43200 ?  (int) $update_period : 43200;
 	$cron = new Cron();
 	$cron->updateTask('sfw_update', 'apbct_sfw_update__init', $update_period );
 
