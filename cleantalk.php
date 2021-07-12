@@ -3,7 +3,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 5.159.8
+  Version: 5.159.9-fix
   Author: СleanTalk <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -1076,7 +1076,7 @@ function apbct_sfw_update__process_ua( $multifile_url, $url_count, $current_url,
     $result = AntiCrawler::update( 'https://' . $useragent_url );
     
     if( ! empty( $result['error'] ) ){
-        array( 'error' => 'UPDATING UA LIST: ' . $result['error'] );
+        return array( 'error' => 'UPDATING UA LIST: ' . $result['error'] );
     }
     
     if( ! is_int( $result ) ){
@@ -1122,7 +1122,7 @@ function apbct_sfw_update__process_file( $multifile_url, $url_count, $current_ur
     );
     
     if( ! empty( $result['error'] ) ){
-        array( 'error' => 'PROCESS FILE: ' . $result['error'] );
+        return array( 'error' => 'PROCESS FILE: ' . $result['error'] );
     }
     
     if( ! is_int( $result ) ){
@@ -1168,7 +1168,7 @@ function apbct_sfw_update__process_exclusions( $multifile_url, $updating_id ){
     );
     
     if( ! empty( $result['error'] ) ){
-        array( 'error' => 'EXCLUSIONS: ' . $result['error'] );
+        return array( 'error' => 'EXCLUSIONS: ' . $result['error'] );
     }
     
     if( ! is_int( $result ) ){
