@@ -873,7 +873,7 @@ function apbct_sfw_update__init( $delay = 0 ){
     if(
 	    ! $apbct->settings['sfw__enabled'] &&
         $apbct->fw_stats['firewall_updating_id'] &&
-        time() - $apbct->fw_stats['firewall_updating_last_start'] < 120
+        time() - $apbct->fw_stats['firewall_updating_last_start'] < 900
     ){
         return false;
     }
