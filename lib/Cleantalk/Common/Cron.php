@@ -153,7 +153,7 @@ abstract class Cron
 		    // Rewrite the task
 		    $tasks[$task] = array(
 			    'handler'   => $handler,
-			    'next_call' => $first_call,
+			    'next_call' => is_null( $first_call ) ? time() + $period : $first_call,
 			    'period'    => $period,
 			    'params'    => $params,
 		    );
