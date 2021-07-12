@@ -1076,7 +1076,7 @@ function apbct_sfw_update__process_ua( $multifile_url, $url_count, $current_url,
     $result = AntiCrawler::update( 'https://' . $useragent_url );
     
     if( ! empty( $result['error'] ) ){
-        array( 'error' => 'UPDATING UA LIST: ' . $result['error'] );
+        return array( 'error' => 'UPDATING UA LIST: ' . $result['error'] );
     }
     
     if( ! is_int( $result ) ){
@@ -1122,7 +1122,7 @@ function apbct_sfw_update__process_file( $multifile_url, $url_count, $current_ur
     );
     
     if( ! empty( $result['error'] ) ){
-        array( 'error' => 'PROCESS FILE: ' . $result['error'] );
+        return array( 'error' => 'PROCESS FILE: ' . $result['error'] );
     }
     
     if( ! is_int( $result ) ){
@@ -1168,7 +1168,7 @@ function apbct_sfw_update__process_exclusions( $multifile_url, $updating_id ){
     );
     
     if( ! empty( $result['error'] ) ){
-        array( 'error' => 'EXCLUSIONS: ' . $result['error'] );
+        return array( 'error' => 'EXCLUSIONS: ' . $result['error'] );
     }
     
     if( ! is_int( $result ) ){
