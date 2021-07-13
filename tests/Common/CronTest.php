@@ -84,7 +84,3 @@ class CronTest extends PHPUnit\Framework\TestCase
 function apbct_sfw_send_logs() {
 	return true;
 }
-
-function apbct_sfw_update__init() {
-	return true;
-}

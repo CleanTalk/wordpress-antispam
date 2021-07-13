@@ -332,6 +332,10 @@ class State
 			
 			// Setting default options
 			if($this->option_prefix.'_'.$option_name === 'cleantalk_settings'){
+				if ( !$option ) {
+					//Set alt cookies if sg optimizer is installed
+					$this->def_settings['data__set_cookies'] = defined('SiteGround_Optimizer\VERSION') ? 2 : 1;
+				}
 				$option = is_array($option) ? array_merge($this->def_settings, $option) : $this->def_settings;
 			}
 			

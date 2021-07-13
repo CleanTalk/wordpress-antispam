@@ -3,7 +3,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 5.159.6
+  Version: 5.159.9-dev
   Author: СleanTalk <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -176,7 +176,9 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 	
 	// Iphorm
 	if( isset( $_POST['iphorm_ajax'], $_POST['iphorm_id'], $_POST['iphorm_uid'] ) 	){
+		require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-validate.php');
 		require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public.php');
+		require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-integrations.php');
 		require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-ajax.php');
 		ct_ajax_hook();
 	}
@@ -186,7 +188,9 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 		&& (!empty($_POST['action']) && $_POST['action'] == 'fb_intialize')
 		&& !empty($_POST['FB_userdata'])
 	){
+		require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-validate.php');
 		require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public.php');
+		require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-integrations.php');
 		if (apbct_is_user_enable()){
 			$ct_check_post_result=false;
 			ct_registration_errors(null);
@@ -273,7 +277,8 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 			$apbct->settings['sfw__enabled'] == 1 &&
             apbct_is_get() &&
             ! apbct_wp_doing_cron() &&
-            ! \Cleantalk\Variables\Server::in_uri( '/favicon.ico' )
+            ! \Cleantalk\Variables\Server::in_uri( '/favicon.ico' ) &&
+		    ! apbct_is_cli()
 		){
             wp_suspend_cache_addition( true );
 			apbct_sfw__check();
@@ -339,10 +344,12 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 		
 		if(apbct_is_ajax() || isset($_POST['cma-action'])){
 			
-			$cleantalk_hooked_actions = array();
-			$cleantalk_ajax_actions_to_check = array();
-			
+			$_cleantalk_hooked_actions = array();
+			$_cleantalk_ajax_actions_to_check = array();
+
+			require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-validate.php');
 			require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public.php');
+			require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-integrations.php');
 			require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-ajax.php');
 			
 			// Feedback for comments
@@ -360,7 +367,7 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 				// if Unknown action or Known action with mandatory check
 			if(	( ! apbct_is_user_logged_in() || $apbct->settings['data__protect_logged_in'] == 1)  &&
 				isset( $_POST['action'] ) &&
-                ( ! in_array( $_POST['action'], $cleantalk_hooked_actions ) || in_array( $_POST['action'], $cleantalk_ajax_actions_to_check ) ) &&
+                ( ! in_array( $_POST['action'], $_cleantalk_hooked_actions ) || in_array( $_POST['action'], $_cleantalk_ajax_actions_to_check ) ) &&
                 ! array_search( $_POST['action'], array_column( $apbct_active_integrations, 'hook' ) )
 			){
 				ct_ajax_hook();
@@ -372,8 +379,8 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 				add_filter('et_pre_insert_answer',   'ct_ajax_hook', 1, 1); // Answers
 			
 			// Formidable
-			add_filter( 'frm_entries_before_create', 'apbct_rorm__formidable__testSpam', 10, 2 );
-			add_action( 'frm_entries_footer_scripts', 'apbct_rorm__formidable__footerScripts', 20, 2 );
+			add_filter( 'frm_entries_before_create', 'apbct_form__formidable__testSpam', 10, 2 );
+			add_action( 'frm_entries_footer_scripts', 'apbct_form__formidable__footerScripts', 20, 2 );
 			
             // Some of plugins to register a users use AJAX context.
             add_filter('registration_errors', 'ct_registration_errors', 1, 3);
@@ -381,14 +388,18 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
             add_action('user_register', 'apbct_user_register');
 			
 			if(class_exists('BuddyPress')){
+				require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-validate.php');
 				require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public.php');
+				require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-integrations.php');
 				add_filter('bp_activity_is_spam_before_save', 'apbct_integration__buddyPres__activityWall', 999 ,2); /* ActivityWall */
 				add_action('bp_locate_template', 'apbct_integration__buddyPres__getTemplateName', 10, 6); 
 			}
 			
 		}
-				
-			require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public.php');
+
+	    require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-validate.php');
+	    require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public.php');
+	    require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-integrations.php');
 		//Bitrix24 contact form
 		if ($apbct->settings['forms__general_contact_forms_test'] == 1 &&
 			!empty($_POST['your-phone']) &&
@@ -417,10 +428,10 @@ if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
 	
 	// Public pages actions
     }else{
-		
-		require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public.php');
 
-
+	    require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-validate.php');
+	    require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public.php');
+	    require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-integrations.php');
 
 		add_action('wp_enqueue_scripts', 'ct_enqueue_scripts_public');
 		
@@ -602,7 +613,11 @@ function apbct_activation( $network = false ) {
 }
 
 function apbct_activation__create_tables( $sqls, $db_prefix = '' ) {
-	
+
+	if( ! is_array( $sqls ) && empty( $sqls ) ) {
+		return;
+	}
+
     global $wpdb;
     
     $db_prefix = $db_prefix ? $db_prefix : $wpdb->prefix;
@@ -858,7 +873,7 @@ function apbct_sfw_update__init( $delay = 0 ){
     if(
 	    ! $apbct->settings['sfw__enabled'] &&
         $apbct->fw_stats['firewall_updating_id'] &&
-        time() - $apbct->fw_stats['firewall_updating_last_start'] < 120
+        time() - $apbct->fw_stats['firewall_updating_last_start'] < 900
     ){
         return false;
     }
@@ -1061,7 +1076,7 @@ function apbct_sfw_update__process_ua( $multifile_url, $url_count, $current_url,
     $result = AntiCrawler::update( 'https://' . $useragent_url );
     
     if( ! empty( $result['error'] ) ){
-        array( 'error' => 'UPDATING UA LIST: ' . $result['error'] );
+        return array( 'error' => 'UPDATING UA LIST: ' . $result['error'] );
     }
     
     if( ! is_int( $result ) ){
@@ -1107,7 +1122,7 @@ function apbct_sfw_update__process_file( $multifile_url, $url_count, $current_ur
     );
     
     if( ! empty( $result['error'] ) ){
-        array( 'error' => 'PROCESS FILE: ' . $result['error'] );
+        return array( 'error' => 'PROCESS FILE: ' . $result['error'] );
     }
     
     if( ! is_int( $result ) ){
@@ -1153,7 +1168,7 @@ function apbct_sfw_update__process_exclusions( $multifile_url, $updating_id ){
     );
     
     if( ! empty( $result['error'] ) ){
-        array( 'error' => 'EXCLUSIONS: ' . $result['error'] );
+        return array( 'error' => 'EXCLUSIONS: ' . $result['error'] );
     }
     
     if( ! is_int( $result ) ){
@@ -1257,8 +1272,9 @@ function apbct_sfw_update__end_of_update() {
 	$apbct->error_delete( 'sfw_update', 'save_settings' );
 
 	// Get update period for server
-	$update_period = \Cleantalk\Common\DNS::getServerTTL( 'spamfirewall-ttl.cleantalk.org' );
-	$update_period = (int)$update_period > 14400 ?  (int) $update_period : 14400;
+	$update_period = \Cleantalk\Common\DNS::getRecord( 'spamfirewall-ttl-txt.cleantalk.org', true, DNS_TXT );
+	$update_period = isset( $update_period['txt'] ) ? $update_period['txt'] : 0;
+	$update_period = (int) $update_period > 43200 ?  (int) $update_period : 43200;
 	$cron = new Cron();
 	$cron->updateTask('sfw_update', 'apbct_sfw_update__init', $update_period );
 

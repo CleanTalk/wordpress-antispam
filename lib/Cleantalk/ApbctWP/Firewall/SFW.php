@@ -467,6 +467,8 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 
 	public static function direct_update( $db, $db__table__data, array $blacklists ){
 
+		reset($blacklists);
+
 		for( $count_result = 0; current($blacklists) !== false; ) {
 
 			$query = "INSERT INTO ".$db__table__data." (network, mask, status) VALUES ";
@@ -554,7 +556,9 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
         $data = Helper::http__get_data_from_remote_gz__and_parse_csv( $file_url );
         
         if( empty( $data['errors'] ) ){
-            
+
+	        reset($data);
+
             for( $count_result = 0; current($data) !== false; ) {
                 
                 $query = "INSERT INTO ".$db__table__data." (network, mask, status, source) VALUES ";

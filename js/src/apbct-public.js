@@ -139,7 +139,7 @@
 					form.action.toString().indexOf('activehosted.com') !== -1 || // Active Campaign
 					(form.id && form.id == 'caspioform') || //Caspio Form
 					(form.name.classList && form.name.classList.contains('tinkoffPayRow')) || // TinkoffPayForm
-					(form.name.classList && form.name.classList.contains('give-form ')) // GiveWP
+					(form.name.classList && form.name.classList.contains('give-form')) // GiveWP
 				)
 					continue;
 
