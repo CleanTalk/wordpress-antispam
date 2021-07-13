@@ -249,57 +249,62 @@ class Cleantalk {
      * @param $msg
      * @return boolean|\CleantalkResponse
      */
-    private function httpRequest($msg) {
+    private function httpRequest( $msg ) {
 		
 		// Using current server without changing it
-        $result = !empty($this->work_url) && ($this->server_changed + $this->server_ttl > time())
-	        ? $this->sendRequest($msg, $this->work_url, $this->server_timeout)
+        $result = ! empty( $this->work_url )
+	        ? $this->sendRequest( $msg, $this->work_url, $this->server_timeout )
 			: false;
 
-		// Changing server
-        if ($result === false || (is_object($result) && $result->errno != 0)) {
-			
-            // Split server url to parts
-            preg_match("/^(https?:\/\/)([^\/:]+)(.*)/i", $this->server_url, $matches);
-            
-            $url_protocol = isset($matches[1]) ? $matches[1] : '';
-            $url_host     = isset($matches[2]) ? $matches[2] : '';
-            $url_suffix   = isset($matches[3]) ? $matches[3] : '';
-            
-			$servers = $this->get_servers_ip($url_host);
-
-			// Loop until find work server
-			foreach ($servers as $server) {
-				
-				$dns = \Cleantalk\ApbctWP\Helper::ip__resolve__cleantalks($server['ip']);
-				if(!$dns)
-					continue;
-				
-				$this->work_url = $url_protocol.$dns.$url_suffix;
-				$this->server_ttl = $server['ttl'];
-
-				$result = $this->sendRequest($msg, $this->work_url, $this->server_timeout);
-
-				if ($result !== false && $result->errno === 0) {
-					$this->server_change = true;
-					break;
-				}
-			}
+		// Changing server if no work_url or request has an error
+        if ( $result === false || ( is_object( $result ) && $result->errno != 0 ) ) {
+            $this->rotateModerate();
         }
 		
-        $response = new CleantalkResponse(null, $result);
+        $response = new CleantalkResponse( null, $result );
 		
-        if (!empty($this->data_codepage) && $this->data_codepage !== 'UTF-8') {
-            if (!empty($response->comment))
-            $response->comment = $this->stringFromUTF8($response->comment, $this->data_codepage);
-            if (!empty($response->errstr))
-            $response->errstr = $this->stringFromUTF8($response->errstr, $this->data_codepage);
-            if (!empty($response->sms_error_text))
-            $response->sms_error_text = $this->stringFromUTF8($response->sms_error_text, $this->data_codepage);
+        if ( ! empty( $this->data_codepage ) && $this->data_codepage !== 'UTF-8' ) {
+            if ( ! empty( $response->comment ) ) {
+	            $response->comment = $this->stringFromUTF8( $response->comment, $this->data_codepage );
+            }
+            if ( ! empty( $response->errstr ) ) {
+	            $response->errstr = $this->stringFromUTF8( $response->errstr, $this->data_codepage );
+            }
+            if ( ! empty($response->sms_error_text ) ) {
+	            $response->sms_error_text = $this->stringFromUTF8( $response->sms_error_text, $this->data_codepage );
+            }
         }
 		
         return $response;
     }
+
+	public function rotateModerate()
+	{
+		// Split server url to parts
+		preg_match("/^(https?:\/\/)([^\/:]+)(.*)/i", $this->server_url, $matches);
+
+		$url_protocol = isset($matches[1]) ? $matches[1] : '';
+		$url_host     = isset($matches[2]) ? $matches[2] : '';
+		$url_suffix   = isset($matches[3]) ? $matches[3] : '';
+
+		$servers = $this->get_servers_ip($url_host);
+
+		// Loop until find work server
+		foreach ( $servers as $server ) {
+
+			$dns = \Cleantalk\ApbctWP\Helper::ip__resolve__cleantalks($server['ip']);
+			if( ! $dns ) {
+				continue;
+			}
+
+			$this->work_url = $url_protocol.$dns.$url_suffix;
+			$this->server_ttl = $server['ttl'];
+
+			$this->server_change = true;
+			break;
+
+		}
+	}
     
     /**
      * Function DNS request

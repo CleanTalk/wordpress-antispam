@@ -261,6 +261,21 @@ function apbct_base_call($params = array(), $reg_flag = false){
 	
 }
 
+function apbct_rotate_moderate() {
+	$ct = new Cleantalk();
+	$ct->rotateModerate();
+	if ($ct->server_change) {
+		update_option(
+			'cleantalk_server',
+			array(
+				'ct_work_url'       => $ct->work_url,
+				'ct_server_ttl'     => $ct->server_ttl,
+				'ct_server_changed' => time(),
+			)
+		);
+	}
+}
+
 function apbct_exclusions_check($func = null){
 	
 	global $apbct;

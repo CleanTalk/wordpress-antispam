@@ -114,5 +114,6 @@ class Activator {
 		$ct_cron->addTask('get_brief_data',        'cleantalk_get_brief_data',       86400, time() + 3500); // Get data for dashboard widget
 		$ct_cron->addTask('send_connection_report','ct_mail_send_connection_report', 86400, time() + 3500); // Send connection report to welcome@cleantalk.org
 		$ct_cron->addTask('antiflood__clear_table','apbct_antiflood__clear_table',   86400, time() + 300);  // Clear Anti-Flood table
+		$ct_cron->addTask('rotate_moderate',       'apbct_rotate_moderate',          86400, time() + 3500); // Rotate moderate server
 	}
 }
