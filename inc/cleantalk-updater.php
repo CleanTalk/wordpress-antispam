@@ -1290,7 +1290,7 @@ function apbct_update_to_5_159_7() {
 /**
  * @return  void
  */
-function apbct_update_to_5_160_0() {
+function apbct_update_to_5_159_9() {
 	$cron = new Cron();
 	$cron->addTask('rotate_moderate',       'apbct_rotate_moderate',          86400, time() + 3500); // Rotate moderate server
 }
