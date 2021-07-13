@@ -104,8 +104,16 @@ class Cleantalk {
      *
      */
     public $max_server_timeout = 1500;
-	
-    /**
+
+	/**
+	 * List of the down servers.
+	 * Non responsible moderate servers list
+	 *
+	 * @var array
+	 */
+	private array $downServers;
+
+	/**
      * Function checks whether it is possible to publish the message
      *
      * @param CleantalkRequest $request
@@ -258,7 +266,12 @@ class Cleantalk {
 
 		// Changing server if no work_url or request has an error
         if ( $result === false || ( is_object( $result ) && $result->errno != 0 ) ) {
+        	$this->downServers[] = $this->work_url;
             $this->rotateModerate();
+	        $result = $this->httpRequest( $msg );
+	        if ($result !== false && $result->errno === 0) {
+		        $this->server_change = true;
+	        }
         }
 		
         $response = new CleantalkResponse( null, $result );
@@ -298,8 +311,13 @@ class Cleantalk {
 			}
 
 			$this->work_url = $url_protocol.$dns.$url_suffix;
-			$this->server_ttl = $server['ttl'];
 
+			// Do not checking previous down server
+			if( ! empty( $this->downServers ) && in_array( $this->work_url, $this->downServers ) ) {
+				continue;
+			}
+
+			$this->server_ttl = $server['ttl'];
 			$this->server_change = true;
 			break;
 
