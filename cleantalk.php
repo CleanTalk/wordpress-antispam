@@ -3,7 +3,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 5.159.8-dev
+  Version: 5.159.9
   Author: СleanTalk <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -63,7 +63,7 @@ define('APBCT_REMOTE_CALL_SLEEP', 5); // Minimum time between remote call
 if( ! defined( 'CLEANTALK_PLUGIN_DIR' ) ){
     define('CLEANTALK_PLUGIN_DIR', dirname(__FILE__ ) . '/');
 }
-    
+
 // PHP functions patches
 require_once(CLEANTALK_PLUGIN_DIR . 'lib/cleantalk-php-patch.php');  // Pathces fpr different functions which not exists
 
@@ -351,8 +351,8 @@ if (is_admin() || is_network_admin()){
 
 	if(apbct_is_ajax() || isset($_POST['cma-action'])){
 
-		$cleantalk_hooked_actions = array();
-		$cleantalk_ajax_actions_to_check = array();
+		$_cleantalk_hooked_actions = array();
+		$_cleantalk_ajax_actions_to_check = array();
 
 		require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-validate.php');
 		require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public.php');
@@ -374,7 +374,7 @@ if (is_admin() || is_network_admin()){
 			// if Unknown action or Known action with mandatory check
 		if(	( ! apbct_is_user_logged_in() || $apbct->settings['data__protect_logged_in'] == 1)  &&
 			isset( $_POST['action'] ) &&
-            ( ! in_array( $_POST['action'], $cleantalk_hooked_actions ) || in_array( $_POST['action'], $cleantalk_ajax_actions_to_check ) ) &&
+            ( ! in_array( $_POST['action'], $_cleantalk_hooked_actions ) || in_array( $_POST['action'], $_cleantalk_ajax_actions_to_check ) ) &&
             ! array_search( $_POST['action'], array_column( $apbct_active_integrations, 'hook' ) )
 		){
 			ct_ajax_hook();
@@ -834,7 +834,7 @@ function apbct_sfw_update__init( $delay = 0 ){
     if(
 	    ! $apbct->settings['sfw__enabled'] &&
         $apbct->fw_stats['firewall_updating_id'] &&
-        time() - $apbct->fw_stats['firewall_updating_last_start'] < 120
+        time() - $apbct->fw_stats['firewall_updating_last_start'] < 900
     ){
         return false;
     }
@@ -1037,7 +1037,7 @@ function apbct_sfw_update__process_ua( $multifile_url, $url_count, $current_url,
     $result = AntiCrawler::update( 'https://' . $useragent_url );
     
     if( ! empty( $result['error'] ) ){
-        array( 'error' => 'UPDATING UA LIST: ' . $result['error'] );
+        return array( 'error' => 'UPDATING UA LIST: ' . $result['error'] );
     }
     
     if( ! is_int( $result ) ){
@@ -1083,7 +1083,7 @@ function apbct_sfw_update__process_file( $multifile_url, $url_count, $current_ur
     );
     
     if( ! empty( $result['error'] ) ){
-        array( 'error' => 'PROCESS FILE: ' . $result['error'] );
+        return array( 'error' => 'PROCESS FILE: ' . $result['error'] );
     }
     
     if( ! is_int( $result ) ){
@@ -1129,7 +1129,7 @@ function apbct_sfw_update__process_exclusions( $multifile_url, $updating_id ){
     );
     
     if( ! empty( $result['error'] ) ){
-        array( 'error' => 'EXCLUSIONS: ' . $result['error'] );
+        return array( 'error' => 'EXCLUSIONS: ' . $result['error'] );
     }
     
     if( ! is_int( $result ) ){
@@ -1233,8 +1233,9 @@ function apbct_sfw_update__end_of_update() {
 	$apbct->error_delete( 'sfw_update', 'save_settings' );
 
 	// Get update period for server
-	$update_period = \Cleantalk\Common\DNS::getServerTTL( 'spamfirewall-ttl.cleantalk.org' );
-	$update_period = (int)$update_period > 14400 ?  (int) $update_period : 14400;
+	$update_period = \Cleantalk\Common\DNS::getRecord( 'spamfirewall-ttl-txt.cleantalk.org', true, DNS_TXT );
+	$update_period = isset( $update_period['txt'] ) ? $update_period['txt'] : 0;
+	$update_period = (int) $update_period > 43200 ?  (int) $update_period : 43200;
 	$cron = new Cron();
 	$cron->updateTask('sfw_update', 'apbct_sfw_update__init', $update_period );
 
