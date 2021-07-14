@@ -17,7 +17,17 @@ class Ajax {
 		define( 'SHORTINIT', true );
 
 		require_once( '../../../../../../wp-load.php' );
+		require_once( '../../../../../../wp-includes/capabilities.php' );
+		require_once( '../../../../../../wp-includes/class-wp-role.php' );
+		require_once( '../../../../../../wp-includes/class-wp-roles.php' );
+		require_once( '../../../../../../wp-includes/user.php' );
+		require_once( '../../../../../../wp-includes/class-wp-user.php' );
+		require_once( '../../../../../../wp-includes/option.php' );
+		require_once( '../../../../../../wp-includes/default-constants.php' );
+		wp_plugin_directory_constants();
+		wp_cookie_constants();
 		require_once( '../../../../../../wp-includes/pluggable.php' );
+		require_once( '../../../inc/cleantalk-pluggable.php' );
 
 		$this->checkRequest();
 
@@ -112,13 +122,25 @@ class Ajax {
 	private function wp_verify_nonce( $nonce, $action )
 	{
 		$nonce = (string) $nonce;
-		$uid   = apply_filters( 'nonce_user_logged_out', 0, $action );
+		$user  = apbct_wp_get_current_user();
+		$uid   = is_null( $user ) ? 0 : $user->ID;
+		if ( ! $uid ) {
+			/**
+			 * Filters whether the user who generated the nonce is logged out.
+			 *
+			 * @since 3.5.0
+			 *
+			 * @param int    $uid    ID of the nonce-owning user.
+			 * @param string $action The nonce action.
+			 */
+			$uid = apply_filters( 'nonce_user_logged_out', $uid, $action );
+		}
 
 		if ( empty( $nonce ) ) {
 			return false;
 		}
 
-		$token = '';
+		$token = $this->wp_get_session_token();
 		$i     = $this->wp_nonce_tick();
 
 		// Nonce generated 0-12 hours ago.
@@ -147,6 +169,12 @@ class Ajax {
 		$nonce_life = apply_filters( 'nonce_life', DAY_IN_SECONDS );
 
 		return ceil( time() / ( $nonce_life / 2 ) );
+	}
+
+	private function wp_get_session_token()
+	{
+		$cookie = wp_parse_auth_cookie( '', 'logged_in' );
+		return ! empty( $cookie['token'] ) ? $cookie['token'] : '';
 	}
 
 }
