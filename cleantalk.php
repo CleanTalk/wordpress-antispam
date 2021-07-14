@@ -857,7 +857,6 @@ function apbct_sfw__clear(){
 // This action triggered by  wp_schedule_single_event( time() + 900, 'ct_sfw_update' );
 add_action( 'apbct_sfw_update__init', 'apbct_sfw_update__init' );
 
-
 /**
  * Called by sfw_update remote call
  * Starts SFW update and could use a delay before start
@@ -879,7 +878,7 @@ function apbct_sfw_update__init( $delay = 0 ){
     }
     
     // Key is empty
-    if( ! $apbct->settings['apikey'] && !$apbct->ip_license){
+    if( ! $apbct->api_key && !$apbct->ip_license){
         return array( 'error' => 'SFW UPDATE INIT: KEY_EMPTY' );
     }
     
