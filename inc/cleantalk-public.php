@@ -716,7 +716,7 @@ function ct_die($comment_id, $comment_status) {
 	$back_script = '';
 	if( ! $ct_jp_comments ) {
 		$back_script = '<script>setTimeout("history.back()", 5000);</script>';
-	} else {
+	} else if( isset( $_SERVER['HTTP_REFERER'] ) ) {
 		$back_link = '<a href="' . $_SERVER['HTTP_REFERER'] . '">' . __('Back') . '</a>';
 	}
 
