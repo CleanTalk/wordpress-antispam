@@ -3,19 +3,21 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 5.159.9
+  Version: 5.159.9-dev
   Author: СleanTalk <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
   Domain Path: /i18n
 */
 
+use Cleantalk\ApbctWP\Activator;
 use Cleantalk\ApbctWP\AdminNotices;
 use Cleantalk\ApbctWP\CleantalkUpgrader;
 use Cleantalk\ApbctWP\CleantalkUpgraderSkin;
 use Cleantalk\ApbctWP\CleantalkUpgraderSkin_Deprecated;
 use Cleantalk\ApbctWP\Cron;
 use Cleantalk\ApbctWP\DB;
+use Cleantalk\ApbctWP\Deactivator;
 use Cleantalk\ApbctWP\Firewall\AntiCrawler;
 use Cleantalk\ApbctWP\Firewall\SFW;
 use Cleantalk\ApbctWP\Helper;
@@ -46,7 +48,7 @@ define('APBCT_CASERT_PATH',      file_exists(ABSPATH . WPINC . '/certificates/ca
 
 // API params
 define('APBCT_AGENT',        'wordpress-' . $plugin_version__agent );
-define('APBCT_MODERATE_URL', 'http://moderate.cleantalk.org'); //Api URL
+define('APBCT_MODERATE_URL', 'https://moderate.cleantalk.org'); //Api URL
 
 // Option names
 define('APBCT_DATA',             'cleantalk_data');             //Option name with different plugin data.
@@ -60,425 +62,429 @@ define('APBCT_WPMS', (is_multisite() ? true : false)); // WMPS is enabled
 // Different params
 define('APBCT_REMOTE_CALL_SLEEP', 5); // Minimum time between remote call
 
-if( !defined( 'CLEANTALK_PLUGIN_DIR' ) ){
-	
+if( ! defined( 'CLEANTALK_PLUGIN_DIR' ) ){
     define('CLEANTALK_PLUGIN_DIR', dirname(__FILE__ ) . '/');
-    
-	// PHP functions patches
-	require_once(CLEANTALK_PLUGIN_DIR . 'lib/cleantalk-php-patch.php');  // Pathces fpr different functions which not exists
-	
-	// Base classes
-    require_once(CLEANTALK_PLUGIN_DIR . 'lib/autoloader.php');                // Autoloader
-	
-    require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-pluggable.php');  // Pluggable functions
-    require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-common.php');
-    
-	// Global ArrayObject with settings and other global varables
-	global $apbct;
-	$apbct = new \Cleantalk\ApbctWP\State('cleantalk', array('settings', 'data', 'debug', 'errors', 'remote_calls', 'stats', 'fw_stats'));
-	
-	$apbct->base_name = 'cleantalk-spam-protect/cleantalk.php';
-	
-	$apbct->plugin_request_id = md5( microtime() ); // Identify plugin execution
-	
-	$apbct->logo                 = plugin_dir_url(__FILE__) . 'inc/images/logo.png';
-	$apbct->logo__small          = plugin_dir_url(__FILE__) . 'inc/images/logo_small.png';
-	$apbct->logo__small__colored = plugin_dir_url(__FILE__) . 'inc/images/logo_color.png';
-	
-	// Customize \Cleantalk\ApbctWP\State
-	// Account status
-	
-	$apbct->white_label      = $apbct->network_settings['multisite__white_label'];
-	$apbct->allow_custom_key = $apbct->network_settings['multisite__allow_custom_key'];
-	$apbct->plugin_name      = $apbct->network_settings['multisite__white_label__plugin_name'] ? $apbct->network_settings['multisite__white_label__plugin_name'] : APBCT_NAME;
-	$apbct->api_key          = !APBCT_WPMS || $apbct->allow_custom_key || $apbct->white_label ? $apbct->settings['apikey'] : $apbct->network_settings['apikey'];
-	$apbct->key_is_ok        = !APBCT_WPMS || $apbct->allow_custom_key || $apbct->white_label ? $apbct->data['key_is_ok']  : $apbct->network_data['key_is_ok'];
-	$apbct->moderate         = !APBCT_WPMS || $apbct->allow_custom_key || $apbct->white_label ? $apbct->data['moderate']   : $apbct->network_data['moderate'];
-	
-	$apbct->data['user_counter']['since']       = isset($apbct->data['user_counter']['since'])       ? $apbct->data['user_counter']['since'] : date('d M');
-	$apbct->data['connection_reports']['since'] = isset($apbct->data['connection_reports']['since']) ? $apbct->data['user_counter']['since'] : date('d M');
+}
 
-    $apbct->firewall_updating = (bool) $apbct->fw_stats['firewall_updating_id'];
-	
-	$apbct->settings_link = is_network_admin() ? 'settings.php?page=cleantalk' : 'options-general.php?page=cleantalk';
-	
-	if(!$apbct->white_label){
-		require_once( CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-widget.php');
-	}
-	
-	// Disabling comments
-	if($apbct->settings['comments__disable_comments__all'] || $apbct->settings['comments__disable_comments__posts'] || $apbct->settings['comments__disable_comments__pages'] || $apbct->settings['comments__disable_comments__media']){
-		\Cleantalk\Antispam\DisableComments::getInstance();
-	}
+// PHP functions patches
+require_once(CLEANTALK_PLUGIN_DIR . 'lib/cleantalk-php-patch.php');  // Pathces fpr different functions which not exists
 
-	add_action( 'rest_api_init', 'apbct_register_my_rest_routes' );
-	function apbct_register_my_rest_routes() {
-		$controller = new RestController();
-		$controller->register_routes();
-	}
-	
-	// Database prefix
-	global $wpdb;
-	$apbct->db_prefix = !APBCT_WPMS || $apbct->allow_custom_key || $apbct->white_label ? $wpdb->prefix : $wpdb->base_prefix;
-	$apbct->db_prefix = !$apbct->white_label && defined('CLEANTALK_ACCESS_KEY') ? $wpdb->base_prefix : $wpdb->prefix;
+// Base classes
+require_once(CLEANTALK_PLUGIN_DIR . 'lib/autoloader.php');                // Autoloader
 
-	// Set some defines
-	\Cleantalk\ApbctWP\State::setDefinitions();
+require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-pluggable.php');  // Pluggable functions
+require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-common.php');
 
-	/** @todo HARDCODE FIX */
-	if($apbct->plugin_version === '1.0.0')
-		$apbct->plugin_version = '5.100';
-	
-	// Do update actions if version is changed
-	apbct_update_actions();
+// Global ArrayObject with settings and other global varables
+global $apbct;
+$apbct = new \Cleantalk\ApbctWP\State('cleantalk', array('settings', 'data', 'debug', 'errors', 'remote_calls', 'stats', 'fw_stats'));
 
-    // Self cron
-	$ct_cron = new Cron();
-	$tasks_to_run = $ct_cron->checkTasks(); // Check for current tasks. Drop tasks inner counters.
-    if(
-	    $tasks_to_run && // There is tasks to run
-        ! RemoteCalls::check() && // Do not doing CRON in remote call action
-        (
-            ! defined( 'DOING_CRON' ) ||
-            ( defined( 'DOING_CRON' ) && DOING_CRON !== true )
-        )
-    ){
-	    $cron_res = $ct_cron->runTasks( $tasks_to_run );
-	    if( is_array( $cron_res ) ) {
-	    	foreach( $cron_res as $task => $res ) {
-	    		if( $res === true ) {
-				    $apbct->error_delete( $task, 'save_data', 'cron' );
-			    } else {
-				    $apbct->error_add( $task, $res, 'cron' );
-			    }
+$apbct->base_name = 'cleantalk-spam-protect/cleantalk.php';
+
+$apbct->plugin_request_id = md5( microtime() ); // Identify plugin execution
+
+$apbct->logo                 = plugin_dir_url(__FILE__) . 'inc/images/logo.png';
+$apbct->logo__small          = plugin_dir_url(__FILE__) . 'inc/images/logo_small.png';
+$apbct->logo__small__colored = plugin_dir_url(__FILE__) . 'inc/images/logo_color.png';
+
+// Customize \Cleantalk\ApbctWP\State
+// Account status
+
+$apbct->white_label      = $apbct->network_settings['multisite__white_label'];
+$apbct->allow_custom_key = $apbct->network_settings['multisite__allow_custom_key'];
+$apbct->plugin_name      = $apbct->network_settings['multisite__white_label__plugin_name'] ? $apbct->network_settings['multisite__white_label__plugin_name'] : APBCT_NAME;
+$apbct->api_key          = !APBCT_WPMS || $apbct->allow_custom_key || $apbct->white_label ? $apbct->settings['apikey'] : $apbct->network_settings['apikey'];
+$apbct->key_is_ok        = !APBCT_WPMS || $apbct->allow_custom_key || $apbct->white_label ? $apbct->data['key_is_ok']  : $apbct->network_data['key_is_ok'];
+$apbct->moderate         = !APBCT_WPMS || $apbct->allow_custom_key || $apbct->white_label ? $apbct->data['moderate']   : $apbct->network_data['moderate'];
+
+$apbct->data['user_counter']['since']       = isset($apbct->data['user_counter']['since'])       ? $apbct->data['user_counter']['since'] : date('d M');
+$apbct->data['connection_reports']['since'] = isset($apbct->data['connection_reports']['since']) ? $apbct->data['user_counter']['since'] : date('d M');
+
+$apbct->firewall_updating = (bool) $apbct->fw_stats['firewall_updating_id'];
+
+$apbct->settings_link = is_network_admin() ? 'settings.php?page=cleantalk' : 'options-general.php?page=cleantalk';
+
+if(!$apbct->white_label){
+	require_once( CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-widget.php');
+}
+
+// Disabling comments
+if($apbct->settings['comments__disable_comments__all'] || $apbct->settings['comments__disable_comments__posts'] || $apbct->settings['comments__disable_comments__pages'] || $apbct->settings['comments__disable_comments__media']){
+	\Cleantalk\Antispam\DisableComments::getInstance();
+}
+
+add_action( 'rest_api_init', 'apbct_register_my_rest_routes' );
+function apbct_register_my_rest_routes() {
+	$controller = new RestController();
+	$controller->register_routes();
+}
+
+// Database prefix
+global $wpdb;
+$apbct->db_prefix = !APBCT_WPMS || $apbct->allow_custom_key || $apbct->white_label ? $wpdb->prefix : $wpdb->base_prefix;
+$apbct->db_prefix = !$apbct->white_label && defined('CLEANTALK_ACCESS_KEY') ? $wpdb->base_prefix : $wpdb->prefix;
+
+// Set some defines
+\Cleantalk\ApbctWP\State::setDefinitions();
+
+/** @todo HARDCODE FIX */
+if($apbct->plugin_version === '1.0.0')
+	$apbct->plugin_version = '5.100';
+
+// Do update actions if version is changed
+apbct_update_actions();
+
+// Self cron
+$ct_cron = new Cron();
+$tasks_to_run = $ct_cron->checkTasks(); // Check for current tasks. Drop tasks inner counters.
+if(
+    $tasks_to_run && // There is tasks to run
+    ! RemoteCalls::check() && // Do not doing CRON in remote call action
+    (
+        ! defined( 'DOING_CRON' ) ||
+        ( defined( 'DOING_CRON' ) && DOING_CRON !== true )
+    )
+){
+    $cron_res = $ct_cron->runTasks( $tasks_to_run );
+    if( is_array( $cron_res ) ) {
+        foreach( $cron_res as $task => $res ) {
+            if( $res === true ) {
+			    $apbct->error_delete( $task, 'save_data', 'cron' );
+		    } else {
+			    $apbct->error_add( $task, $res, 'cron' );
 		    }
 	    }
     }
-	
-	//Delete cookie for admin trial notice
-	add_action('wp_logout', 'apbct__hook__wp_logout__delete_trial_notice_cookie');
-	
-	// Set cookie only for public pages and for non-AJAX requests
-	if (!is_admin() && !apbct_is_ajax() && !defined('DOING_CRON')
-		&& empty($_POST['ct_checkjs_register_form']) // Buddy press registration fix
-		&& empty($_GET['ct_checkjs_search_default']) // Search form fix
-		&& empty($_POST['action']) //bbPress
-	){
-		add_action('template_redirect','apbct_cookie', 2);
-		add_action('template_redirect','apbct_store__urls', 2);
-		if (empty($_POST) && empty($_GET)){
-			apbct_cookie();
-			apbct_store__urls();
-		}
+}
+
+//Delete cookie for admin trial notice
+add_action('wp_logout', 'apbct__hook__wp_logout__delete_trial_notice_cookie');
+
+// Set cookie only for public pages and for non-AJAX requests
+if (!is_admin() && !apbct_is_ajax() && !defined('DOING_CRON')
+	&& empty($_POST['ct_checkjs_register_form']) // Buddy press registration fix
+	&& empty($_GET['ct_checkjs_search_default']) // Search form fix
+	&& empty($_POST['action']) //bbPress
+){
+	add_action('template_redirect','apbct_cookie', 2);
+	add_action('template_redirect','apbct_store__urls', 2);
+	if (empty($_POST) && empty($_GET)){
+		apbct_cookie();
+		apbct_store__urls();
 	}
-		
-	// Early checks
-	
-	// Iphorm
-	if( isset( $_POST['iphorm_ajax'], $_POST['iphorm_id'], $_POST['iphorm_uid'] ) 	){
+}
+
+// Early checks
+
+// Iphorm
+if( isset( $_POST['iphorm_ajax'], $_POST['iphorm_id'], $_POST['iphorm_uid'] ) 	){
+	require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-validate.php');
+	require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public.php');
+	require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-integrations.php');
+	require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-ajax.php');
+	ct_ajax_hook();
+}
+
+// Facebook
+if ($apbct->settings['forms__general_contact_forms_test'] == 1
+	&& (!empty($_POST['action']) && $_POST['action'] == 'fb_intialize')
+	&& !empty($_POST['FB_userdata'])
+){
+	require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-validate.php');
+	require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public.php');
+	require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-integrations.php');
+	if (apbct_is_user_enable()){
+		$ct_check_post_result=false;
+		ct_registration_errors(null);
+	}
+
+}
+
+$apbct_active_integrations = array(
+    'ContactBank'          => array( 'hook' => 'contact_bank_frontend_ajax_call',                'setting' => 'forms__contact_forms_test', 'ajax' => true ),
+    'FluentForm'           => array( 'hook' => 'fluentform_before_insert_submission',            'setting' => 'forms__contact_forms_test', 'ajax' => false ),
+    'ElfsightContactForm'  => array( 'hook' => 'elfsight_contact_form_mail',                     'setting' => 'forms__contact_forms_test', 'ajax' => true ),
+    'EstimationForm'       => array( 'hook' => 'send_email',                                     'setting' => 'forms__contact_forms_test', 'ajax' => true ),
+    'LandingPageBuilder'   => array( 'hook' => 'ulpb_formBuilderEmail_ajax',                     'setting' => 'forms__contact_forms_test', 'ajax' => true ),
+    'Rafflepress'          => array( 'hook' => 'rafflepress_lite_giveaway_api',                  'setting' => 'forms__contact_forms_test', 'ajax' => true ),
+    'SimpleMembership'     => array( 'hook' => 'swpm_front_end_registration_complete_user_data', 'setting' => 'forms__registrations_test', 'ajax' => false ),
+    'WpMembers'            => array( 'hook' => 'wpmem_pre_register_data',                        'setting' => 'forms__registrations_test', 'ajax' => false ),
+    'Wpdiscuz'             => array( 'hook' => array( 'wpdAddComment', 'wpdAddInlineComment' ),  'setting' => 'forms__comments_test',      'ajax' => true ),
+    'Forminator'           => array( 'hook' => 'forminator_submit_form_custom-forms',            'setting' => 'forms__contact_forms_test', 'ajax' => true ),
+    'HappyForm'            => array( 'hook' => 'happyforms_validate_submission',                 'setting' => 'forms__contact_forms_test', 'ajax' => false ),
+    'EaelLoginRegister'    => array( 'hook' => array ('eael/login-register/before-register', 'wp_ajax_nopriv_eael/login-register/before-register' , 'wp_ajax_eael/login-register/before-register'),            'setting' => 'forms__registrations_test', 'ajax' => false ),
+);
+new  \Cleantalk\Antispam\Integrations( $apbct_active_integrations, (array) $apbct->settings );
+
+// Ninja Forms. Making GET action to POST action
+if( apbct_is_in_uri( 'admin-ajax.php' ) && sizeof($_POST) > 0 && isset($_GET['action']) && $_GET['action']=='ninja_forms_ajax_submit' )
+    $_POST['action']='ninja_forms_ajax_submit';
+
+add_action( 'wp_ajax_nopriv_ninja_forms_ajax_submit', 'apbct_form__ninjaForms__testSpam', 1);
+add_action( 'wp_ajax_ninja_forms_ajax_submit',        'apbct_form__ninjaForms__testSpam', 1);
+add_action( 'wp_ajax_nopriv_nf_ajax_submit',          'apbct_form__ninjaForms__testSpam', 1);
+add_action( 'wp_ajax_nf_ajax_submit',                 'apbct_form__ninjaForms__testSpam', 1);
+add_action( 'ninja_forms_process',                    'apbct_form__ninjaForms__testSpam', 1); // Depricated ?
+
+// SeedProd Coming Soon Page Pro integration
+add_action( 'wp_ajax_seed_cspv5_subscribe_callback',          'apbct_form__seedprod_coming_soon__testSpam', 1 );
+add_action( 'wp_ajax_nopriv_seed_cspv5_subscribe_callback',   'apbct_form__seedprod_coming_soon__testSpam', 1 );
+add_action( 'wp_ajax_seed_cspv5_contactform_callback',        'apbct_form__seedprod_coming_soon__testSpam', 1 );
+add_action( 'wp_ajax_nopriv_seed_cspv5_contactform_callback', 'apbct_form__seedprod_coming_soon__testSpam', 1 );
+
+// The 7 theme contact form integration
+add_action( 'wp_ajax_nopriv_dt_send_mail', 'apbct_form__the7_contact_form', 1 );
+add_action( 'wp_ajax_dt_send_mail', 'apbct_form__the7_contact_form', 1 );
+
+// Elementor Pro page builder forms
+add_action( 'wp_ajax_elementor_pro_forms_send_form',        'apbct_form__elementor_pro__testSpam' );
+add_action( 'wp_ajax_nopriv_elementor_pro_forms_send_form', 'apbct_form__elementor_pro__testSpam' );
+
+// Custom register form (ticket_id=13668)
+add_action('website_neotrends_signup_fields_check',function( $username, $fields ){
+    $ip = Helper::ip__get( 'real', false );
+    $ct_result = ct_test_registration( $username, $fields['email'], $ip );
+    if( $ct_result['allow'] == 0 ) {
+        ct_die_extended( $ct_result['comment'] );
+    }
+}, 1, 2);
+
+// INEVIO theme integration
+add_action( 'wp_ajax_contact_form_handler',        'apbct_form__inevio__testSpam', 1 );
+add_action( 'wp_ajax_nopriv_contact_form_handler', 'apbct_form__inevio__testSpam', 1 );
+
+// Enfold Theme contact form
+add_filter( 'avf_form_send', 'apbct_form__enfold_contact_form__test_spam', 4, 10 );
+
+// Profile Builder integration
+add_filter( 'wppb_output_field_errors_filter', 'apbct_form_profile_builder__check_register', 1, 3 );
+
+// WP Foro register system integration
+add_filter( 'wpforo_create_profile', 'wpforo_create_profile__check_register', 1, 1 );
+
+// Public actions
+if( ! is_admin() && ! apbct_is_ajax() && ! apbct_is_customize_preview() ){
+
+	// Default search
+	//add_filter( 'get_search_form',  'apbct_forms__search__addField' );
+	add_filter( 'get_search_query', 'apbct_forms__search__testSpam' );
+    add_action( 'wp_head', 'apbct_search_add_noindex', 1 );
+
+	// Remote calls
+	if( RemoteCalls::check() )
+        RemoteCalls::perform();
+
+	// SpamFireWall check
+	if( $apbct->plugin_version == APBCT_VERSION && // Do not call with first start
+		$apbct->settings['sfw__enabled'] == 1 &&
+        apbct_is_get() &&
+        ! apbct_wp_doing_cron() &&
+        ! \Cleantalk\Variables\Server::in_uri( '/favicon.ico' ) &&
+	    ! apbct_is_cli()
+	){
+        wp_suspend_cache_addition( true );
+		apbct_sfw__check();
+        wp_suspend_cache_addition( false );
+    }
+
+}
+
+// Activation/deactivation functions must be in main plugin file.
+// http://codex.wordpress.org/Function_Reference/register_activation_hook
+register_activation_hook( __FILE__, 'apbct_activation' );
+function apbct_activation( $network_wide ) {
+	Activator::activation( $network_wide );
+}
+register_deactivation_hook( __FILE__, 'apbct_deactivation' );
+function apbct_deactivation( $network_wide ) {
+	Deactivator::deactivation( $network_wide );
+}
+// Hook for newly added blog
+add_action('wpmu_new_blog', 'apbct_activation__new_blog', 10, 6);
+function apbct_activation__new_blog( $blog_id, $_user_id, $_domain, $_path, $_site_id, $_meta ) {
+	Activator::activation( false, $blog_id );
+}
+
+// Async loading for JavaScript
+add_filter('script_loader_tag', 'apbct_add_async_attribute', 10, 3);
+
+// Redirect admin to plugin settings.
+if( ! defined('WP_ALLOW_MULTISITE') || ( defined('WP_ALLOW_MULTISITE') && WP_ALLOW_MULTISITE == false ) )
+    add_action('admin_init', 'apbct_plugin_redirect');
+
+// Deleting SFW tables when deleting websites
+if(defined('WP_ALLOW_MULTISITE') && WP_ALLOW_MULTISITE === true)
+	add_action( 'delete_blog', 'apbct_sfw__delete_tables', 10, 2 );
+
+// After plugin loaded - to load locale as described in manual
+add_action('plugins_loaded', 'apbct_plugin_loaded' );
+
+if(	!empty($apbct->settings['data__use_ajax']) &&
+    ! apbct_is_in_uri( '.xml' ) &&
+    ! apbct_is_in_uri( '.xsl' ) )
+{
+	add_action( 'wp_ajax_nopriv_ct_get_cookie', 'ct_get_cookie',1 );
+	add_action( 'wp_ajax_ct_get_cookie', 'ct_get_cookie',1 );
+}
+
+// Admin panel actions
+if (is_admin() || is_network_admin()){
+
+    require_once( CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-find-spam.php' );
+	require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-admin.php');
+	require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-settings.php');
+
+    add_action( 'admin_init',            'apbct_admin__init', 1 );
+
+    // Show notices
+    add_action( 'admin_init', array( AdminNotices::class, 'show_admin_notices' ) );
+
+	if (!(defined( 'DOING_AJAX' ) && DOING_AJAX)){
+
+		add_action('admin_enqueue_scripts', 'apbct_admin__enqueue_scripts');
+
+		add_action('admin_menu',            'apbct_settings_add_page');
+		add_action('network_admin_menu',    'apbct_settings_add_page');
+
+		//Show widget only if enables and not IP license
+		if( $apbct->settings['wp__dashboard_widget__show'] && ! $apbct->moderate_ip )
+			add_action('wp_dashboard_setup', 'ct_dashboard_statistics_widget' );
+	}
+
+	if(apbct_is_ajax() || isset($_POST['cma-action'])){
+
+		$_cleantalk_hooked_actions = array();
+		$_cleantalk_ajax_actions_to_check = array();
+
 		require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-validate.php');
 		require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public.php');
 		require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-integrations.php');
 		require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-ajax.php');
-		ct_ajax_hook();
-	}
-	
-	// Facebook
-	if ($apbct->settings['forms__general_contact_forms_test'] == 1
-		&& (!empty($_POST['action']) && $_POST['action'] == 'fb_intialize')
-		&& !empty($_POST['FB_userdata'])
-	){
-		require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-validate.php');
-		require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public.php');
-		require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-integrations.php');
-		if (apbct_is_user_enable()){
-			$ct_check_post_result=false;
-			ct_registration_errors(null);
+
+		// Feedback for comments
+		if(isset($_POST['action']) && $_POST['action'] == 'ct_feedback_comment'){
+			add_action( 'wp_ajax_nopriv_ct_feedback_comment', 'apbct_comment__send_feedback',1 );
+			add_action( 'wp_ajax_ct_feedback_comment',        'apbct_comment__send_feedback',1 );
 		}
-		
-	}
+		if(isset($_POST['action']) && $_POST['action'] == 'ct_feedback_user'){
+			add_action( 'wp_ajax_nopriv_ct_feedback_user', 'apbct_user__send_feedback',1 );
+			add_action( 'wp_ajax_ct_feedback_user',        'apbct_user__send_feedback',1 );
+		}
 
-    $apbct_active_integrations = array(
-        'ContactBank'          => array( 'hook' => 'contact_bank_frontend_ajax_call',                'setting' => 'forms__contact_forms_test', 'ajax' => true ),
-        'FluentForm'           => array( 'hook' => 'fluentform_before_insert_submission',            'setting' => 'forms__contact_forms_test', 'ajax' => false ),
-        'ElfsightContactForm'  => array( 'hook' => 'elfsight_contact_form_mail',                     'setting' => 'forms__contact_forms_test', 'ajax' => true ),
-        'EstimationForm'       => array( 'hook' => 'send_email',                                     'setting' => 'forms__contact_forms_test', 'ajax' => true ),
-        'LandingPageBuilder'   => array( 'hook' => 'ulpb_formBuilderEmail_ajax',                     'setting' => 'forms__contact_forms_test', 'ajax' => true ),
-        'Rafflepress'          => array( 'hook' => 'rafflepress_lite_giveaway_api',                  'setting' => 'forms__contact_forms_test', 'ajax' => true ),
-        'SimpleMembership'     => array( 'hook' => 'swpm_front_end_registration_complete_user_data', 'setting' => 'forms__registrations_test', 'ajax' => false ),
-        'WpMembers'            => array( 'hook' => 'wpmem_pre_register_data',                        'setting' => 'forms__registrations_test', 'ajax' => false ),
-	    'Wpdiscuz'             => array( 'hook' => array( 'wpdAddComment', 'wpdAddInlineComment' ),  'setting' => 'forms__comments_test',      'ajax' => true ),
-	    'Forminator'           => array( 'hook' => 'forminator_submit_form_custom-forms',            'setting' => 'forms__contact_forms_test', 'ajax' => true ),
-        'HappyForm'            => array( 'hook' => 'happyforms_validate_submission',                 'setting' => 'forms__contact_forms_test', 'ajax' => false ),
-        'EaelLoginRegister'    => array( 'hook' => array ('eael/login-register/before-register', 'wp_ajax_nopriv_eael/login-register/before-register' , 'wp_ajax_eael/login-register/before-register'),            'setting' => 'forms__registrations_test', 'ajax' => false ),
-    );
-    new  \Cleantalk\Antispam\Integrations( $apbct_active_integrations, (array) $apbct->settings );
-	
-	// Ninja Forms. Making GET action to POST action
-    if( apbct_is_in_uri( 'admin-ajax.php' ) && sizeof($_POST) > 0 && isset($_GET['action']) && $_GET['action']=='ninja_forms_ajax_submit' )
-    	$_POST['action']='ninja_forms_ajax_submit';
-    
-	add_action( 'wp_ajax_nopriv_ninja_forms_ajax_submit', 'apbct_form__ninjaForms__testSpam', 1);
-	add_action( 'wp_ajax_ninja_forms_ajax_submit',        'apbct_form__ninjaForms__testSpam', 1);
-	add_action( 'wp_ajax_nopriv_nf_ajax_submit',          'apbct_form__ninjaForms__testSpam', 1);
-	add_action( 'wp_ajax_nf_ajax_submit',                 'apbct_form__ninjaForms__testSpam', 1);
-	add_action( 'ninja_forms_process',                    'apbct_form__ninjaForms__testSpam', 1); // Depricated ?
-
-    // SeedProd Coming Soon Page Pro integration
-    add_action( 'wp_ajax_seed_cspv5_subscribe_callback',          'apbct_form__seedprod_coming_soon__testSpam', 1 );
-    add_action( 'wp_ajax_nopriv_seed_cspv5_subscribe_callback',   'apbct_form__seedprod_coming_soon__testSpam', 1 );
-    add_action( 'wp_ajax_seed_cspv5_contactform_callback',        'apbct_form__seedprod_coming_soon__testSpam', 1 );
-    add_action( 'wp_ajax_nopriv_seed_cspv5_contactform_callback', 'apbct_form__seedprod_coming_soon__testSpam', 1 );
-
-    // The 7 theme contact form integration
-    add_action( 'wp_ajax_nopriv_dt_send_mail', 'apbct_form__the7_contact_form', 1 );
-    add_action( 'wp_ajax_dt_send_mail', 'apbct_form__the7_contact_form', 1 );
-
-    // Elementor Pro page builder forms
-    add_action( 'wp_ajax_elementor_pro_forms_send_form',        'apbct_form__elementor_pro__testSpam' );
-    add_action( 'wp_ajax_nopriv_elementor_pro_forms_send_form', 'apbct_form__elementor_pro__testSpam' );
-
-    // Custom register form (ticket_id=13668)
-    add_action('website_neotrends_signup_fields_check',function( $username, $fields ){
-        $ip = Helper::ip__get( 'real', false );
-        $ct_result = ct_test_registration( $username, $fields['email'], $ip );
-        if( $ct_result['allow'] == 0 ) {
-            ct_die_extended( $ct_result['comment'] );
-        }
-    }, 1, 2);
-
-    // INEVIO theme integration
-    add_action( 'wp_ajax_contact_form_handler',        'apbct_form__inevio__testSpam', 1 );
-    add_action( 'wp_ajax_nopriv_contact_form_handler', 'apbct_form__inevio__testSpam', 1 );
-
-    // Enfold Theme contact form
-	add_filter( 'avf_form_send', 'apbct_form__enfold_contact_form__test_spam', 4, 10 );
-
-	// Profile Builder integration
-    add_filter( 'wppb_output_field_errors_filter', 'apbct_form_profile_builder__check_register', 1, 3 );
-
-    // WP Foro register system integration
-	add_filter( 'wpforo_create_profile', 'wpforo_create_profile__check_register', 1, 1 );
-
-	// Public actions
-	if( ! is_admin() && ! apbct_is_ajax() && ! apbct_is_customize_preview() ){
-		
-		// Default search
-		//add_filter( 'get_search_form',  'apbct_forms__search__addField' );
-		add_filter( 'get_search_query', 'apbct_forms__search__testSpam' );
-        add_action( 'wp_head', 'apbct_search_add_noindex', 1 );
-		
-		// Remote calls
-		if( RemoteCalls::check() )
-            RemoteCalls::perform();
-		
-		// SpamFireWall check
-		if( $apbct->plugin_version == APBCT_VERSION && // Do not call with first start
-			$apbct->settings['sfw__enabled'] == 1 &&
-            apbct_is_get() &&
-            ! apbct_wp_doing_cron() &&
-            ! \Cleantalk\Variables\Server::in_uri( '/favicon.ico' ) &&
-		    ! apbct_is_cli()
+		// Check AJAX requests
+			// if User is not logged in
+			// if Unknown action or Known action with mandatory check
+		if(	( ! apbct_is_user_logged_in() || $apbct->settings['data__protect_logged_in'] == 1)  &&
+			isset( $_POST['action'] ) &&
+            ( ! in_array( $_POST['action'], $_cleantalk_hooked_actions ) || in_array( $_POST['action'], $_cleantalk_ajax_actions_to_check ) ) &&
+            ! array_search( $_POST['action'], array_column( $apbct_active_integrations, 'hook' ) )
 		){
-            wp_suspend_cache_addition( true );
-			apbct_sfw__check();
-            wp_suspend_cache_addition( false );
-	    }
-		
-	}
-		
-		
-    // Activation/deactivation functions must be in main plugin file.
-    // http://codex.wordpress.org/Function_Reference/register_activation_hook
-    register_activation_hook( __FILE__, 'apbct_activation' );
-    register_deactivation_hook( __FILE__, 'apbct_deactivation' );
-	
-	// Hook for newly added blog
-	add_action('wpmu_new_blog', 'apbct_activation__new_blog', 10, 6);
-	
-	// Async loading for JavaScript
-	add_filter('script_loader_tag', 'apbct_add_async_attribute', 10, 3);
-	
-    // Redirect admin to plugin settings.
-    if( ! defined('WP_ALLOW_MULTISITE') || ( defined('WP_ALLOW_MULTISITE') && WP_ALLOW_MULTISITE == false ) )
-    	add_action('admin_init', 'apbct_plugin_redirect');
-	
-	// Deleting SFW tables when deleting websites
-	if(defined('WP_ALLOW_MULTISITE') && WP_ALLOW_MULTISITE === true)
-		add_action( 'delete_blog', 'apbct_sfw__delete_tables', 10, 2 );
-       
-    // After plugin loaded - to load locale as described in manual
-    add_action('plugins_loaded', 'apbct_plugin_loaded' );
-    
-    if(	!empty($apbct->settings['data__use_ajax']) &&
-    	! apbct_is_in_uri( '.xml' ) &&
-    	! apbct_is_in_uri( '.xsl' ) )
-    {
-		add_action( 'wp_ajax_nopriv_ct_get_cookie', 'ct_get_cookie',1 );
-		add_action( 'wp_ajax_ct_get_cookie', 'ct_get_cookie',1 );
-	}
-	
-	// Admin panel actions
-    if (is_admin() || is_network_admin()){
-
-        require_once( CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-find-spam.php' );
-		require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-admin.php');
-		require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-settings.php');
-
-	    add_action( 'admin_init',            'apbct_admin__init', 1 );
-
-	    // Show notices
-	    add_action( 'admin_init', array( AdminNotices::class, 'show_admin_notices' ) );
-
-		if (!(defined( 'DOING_AJAX' ) && DOING_AJAX)){
-			
-			add_action('admin_enqueue_scripts', 'apbct_admin__enqueue_scripts');
-
-			add_action('admin_menu',            'apbct_settings_add_page');
-			add_action('network_admin_menu',    'apbct_settings_add_page');
-			
-			//Show widget only if enables and not IP license
-			if( $apbct->settings['wp__dashboard_widget__show'] && ! $apbct->moderate_ip )
-				add_action('wp_dashboard_setup', 'ct_dashboard_statistics_widget' );
+			ct_ajax_hook();
 		}
-		
-		if(apbct_is_ajax() || isset($_POST['cma-action'])){
-			
-			$_cleantalk_hooked_actions = array();
-			$_cleantalk_ajax_actions_to_check = array();
 
+		//QAEngine Theme answers
+		if (intval($apbct->settings['forms__general_contact_forms_test']))
+			add_filter('et_pre_insert_question', 'ct_ajax_hook', 1, 1); // Questions
+			add_filter('et_pre_insert_answer',   'ct_ajax_hook', 1, 1); // Answers
+
+		// Formidable
+		add_filter( 'frm_entries_before_create', 'apbct_form__formidable__testSpam', 10, 2 );
+		add_action( 'frm_entries_footer_scripts', 'apbct_form__formidable__footerScripts', 20, 2 );
+
+        // Some of plugins to register a users use AJAX context.
+        add_filter('registration_errors', 'ct_registration_errors', 1, 3);
+		add_filter('registration_errors', 'ct_check_registration_erros', 999999, 3);
+        add_action('user_register', 'apbct_user_register');
+
+		if(class_exists('BuddyPress')){
 			require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-validate.php');
 			require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public.php');
 			require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-integrations.php');
-			require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-ajax.php');
-			
-			// Feedback for comments
-			if(isset($_POST['action']) && $_POST['action'] == 'ct_feedback_comment'){
-				add_action( 'wp_ajax_nopriv_ct_feedback_comment', 'apbct_comment__send_feedback',1 );
-				add_action( 'wp_ajax_ct_feedback_comment',        'apbct_comment__send_feedback',1 );
-			}
-			if(isset($_POST['action']) && $_POST['action'] == 'ct_feedback_user'){
-				add_action( 'wp_ajax_nopriv_ct_feedback_user', 'apbct_user__send_feedback',1 );
-				add_action( 'wp_ajax_ct_feedback_user',        'apbct_user__send_feedback',1 );
-			}
-			
-			// Check AJAX requests
-				// if User is not logged in
-				// if Unknown action or Known action with mandatory check
-			if(	( ! apbct_is_user_logged_in() || $apbct->settings['data__protect_logged_in'] == 1)  &&
-				isset( $_POST['action'] ) &&
-                ( ! in_array( $_POST['action'], $_cleantalk_hooked_actions ) || in_array( $_POST['action'], $_cleantalk_ajax_actions_to_check ) ) &&
-                ! array_search( $_POST['action'], array_column( $apbct_active_integrations, 'hook' ) )
-			){
-				ct_ajax_hook();
-			}
-			
-			//QAEngine Theme answers
-			if (intval($apbct->settings['forms__general_contact_forms_test']))
-				add_filter('et_pre_insert_question', 'ct_ajax_hook', 1, 1); // Questions
-				add_filter('et_pre_insert_answer',   'ct_ajax_hook', 1, 1); // Answers
-			
-			// Formidable
-			add_filter( 'frm_entries_before_create', 'apbct_form__formidable__testSpam', 10, 2 );
-			add_action( 'frm_entries_footer_scripts', 'apbct_form__formidable__footerScripts', 20, 2 );
-			
-            // Some of plugins to register a users use AJAX context.
-            add_filter('registration_errors', 'ct_registration_errors', 1, 3);
-			add_filter('registration_errors', 'ct_check_registration_erros', 999999, 3);
-            add_action('user_register', 'apbct_user_register');
-			
-			if(class_exists('BuddyPress')){
-				require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-validate.php');
-				require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public.php');
-				require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-integrations.php');
-				add_filter('bp_activity_is_spam_before_save', 'apbct_integration__buddyPres__activityWall', 999 ,2); /* ActivityWall */
-				add_action('bp_locate_template', 'apbct_integration__buddyPres__getTemplateName', 10, 6); 
-			}
-			
+			add_filter('bp_activity_is_spam_before_save', 'apbct_integration__buddyPres__activityWall', 999 ,2); /* ActivityWall */
+			add_action('bp_locate_template', 'apbct_integration__buddyPres__getTemplateName', 10, 6);
 		}
 
-	    require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-validate.php');
-	    require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public.php');
-	    require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-integrations.php');
-		//Bitrix24 contact form
-		if ($apbct->settings['forms__general_contact_forms_test'] == 1 &&
-			!empty($_POST['your-phone']) &&
-			!empty($_POST['your-email']) &&
-			!empty($_POST['your-message'])
-		){
-			$ct_check_post_result=false;
-			ct_contact_form_validate();
-		}
-		
-		// Sends feedback to the cloud about comments
-		// add_action('wp_set_comment_status', 'ct_comment_send_feedback', 10, 2);	
-		
-		// Sends feedback to the cloud about deleted users
-		global $pagenow;
-		if($pagenow=='users.php')
-			add_action('delete_user', 'apbct_user__delete__hook', 10, 2);
+	}
 
-		if( $pagenow=='plugins.php' || apbct_is_in_uri( 'plugins.php' ) ){
+    require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-validate.php');
+    require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public.php');
+    require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-integrations.php');
+	//Bitrix24 contact form
+	if ($apbct->settings['forms__general_contact_forms_test'] == 1 &&
+		!empty($_POST['your-phone']) &&
+		!empty($_POST['your-email']) &&
+		!empty($_POST['your-message'])
+	){
+		$ct_check_post_result=false;
+		ct_contact_form_validate();
+	}
 
-			add_filter('plugin_action_links_'.plugin_basename(__FILE__), 'apbct_admin__plugin_action_links', 10, 2);
-			add_filter('network_admin_plugin_action_links_'.plugin_basename(__FILE__), 'apbct_admin__plugin_action_links', 10, 2);
+	// Sends feedback to the cloud about comments
+	// add_action('wp_set_comment_status', 'ct_comment_send_feedback', 10, 2);
 
-			add_filter('plugin_row_meta', 'apbct_admin__register_plugin_links', 10, 2);
-		}
-	
-	// Public pages actions
-    }else{
+	// Sends feedback to the cloud about deleted users
+	global $pagenow;
+	if($pagenow=='users.php')
+		add_action('delete_user', 'apbct_user__delete__hook', 10, 2);
 
-	    require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-validate.php');
-	    require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public.php');
-	    require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-integrations.php');
+	if( $pagenow=='plugins.php' || apbct_is_in_uri( 'plugins.php' ) ){
 
-		add_action('wp_enqueue_scripts', 'ct_enqueue_scripts_public');
-		
-		// Init action.
-		add_action('plugins_loaded', 'apbct_init', 1);
-		
-		// Comments
-		add_filter('preprocess_comment', 'ct_preprocess_comment', 1, 1);     // param - comment data array
-		add_filter('comment_text', 'ct_comment_text' );
-		add_filter('wp_die_handler', 'apbct_comment__sanitize_data__before_wp_die', 1); // Check comments after validation
+		add_filter('plugin_action_links_'.plugin_basename(__FILE__), 'apbct_admin__plugin_action_links', 10, 2);
+		add_filter('network_admin_plugin_action_links_'.plugin_basename(__FILE__), 'apbct_admin__plugin_action_links', 10, 2);
 
-		// Registrations
-	    if(!isset($_POST['wp-submit'])){
-		    add_action('login_form_register', 'apbct_cookie');
-		    add_action('login_form_register', 'apbct_store__urls');
-	    }
-	    add_action('login_enqueue_scripts', 'apbct_login__scripts');
-		add_action('register_form',       'ct_register_form');
-		add_filter('registration_errors', 'ct_registration_errors', 1, 3);
-		add_filter('registration_errors', 'ct_check_registration_erros', 999999, 3);
-		add_action('user_register',       'apbct_user_register');
+		add_filter('plugin_row_meta', 'apbct_admin__register_plugin_links', 10, 2);
+	}
 
-		// Multisite registrations
-		add_action('signup_extra_fields','ct_register_form');
-		add_filter('wpmu_validate_user_signup', 'ct_registration_errors_wpmu', 10, 3);
+// Public pages actions
+}else{
 
-		// Login form - for notifications only
-		add_filter('login_message', 'ct_login_message');
-		
-		// Comments output hook
-		add_filter('wp_list_comments_args', 'ct_wp_list_comments_args');
-		
-		// Ait-Themes fix
-		if(isset($_GET['ait-action']) && $_GET['ait-action']=='register'){
-			$tmp=$_POST['redirect_to'];
-			unset($_POST['redirect_to']);
-			ct_contact_form_validate();
-			$_POST['redirect_to']=$tmp;
-		}
+    require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-validate.php');
+    require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public.php');
+    require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-integrations.php');
+
+	add_action('wp_enqueue_scripts', 'ct_enqueue_scripts_public');
+
+	// Init action.
+	add_action('plugins_loaded', 'apbct_init', 1);
+
+	// Comments
+	add_filter('preprocess_comment', 'ct_preprocess_comment', 1, 1);     // param - comment data array
+	add_filter('comment_text', 'ct_comment_text' );
+	add_filter('wp_die_handler', 'apbct_comment__sanitize_data__before_wp_die', 1); // Check comments after validation
+
+	// Registrations
+    if(!isset($_POST['wp-submit'])){
+	    add_action('login_form_register', 'apbct_cookie');
+	    add_action('login_form_register', 'apbct_store__urls');
     }
-	
-	// Short code for GDPR
-	if($apbct->settings['gdpr__enabled'])
-		add_shortcode('cleantalk_gdpr_form', 'apbct_shrotcode_handler__GDPR_public_notice__form');
+    add_action('login_enqueue_scripts', 'apbct_login__scripts');
+	add_action('register_form',       'ct_register_form');
+	add_filter('registration_errors', 'ct_registration_errors', 1, 3);
+	add_filter('registration_errors', 'ct_check_registration_erros', 999999, 3);
+	add_action('user_register',       'apbct_user_register');
 
+	// Multisite registrations
+	add_action('signup_extra_fields','ct_register_form');
+	add_filter('wpmu_validate_user_signup', 'ct_registration_errors_wpmu', 10, 3);
+
+	// Login form - for notifications only
+	add_filter('login_message', 'ct_login_message');
+
+	// Comments output hook
+	add_filter('wp_list_comments_args', 'ct_wp_list_comments_args');
+
+	// Ait-Themes fix
+	if(isset($_GET['ait-action']) && $_GET['ait-action']=='register'){
+		$tmp=$_POST['redirect_to'];
+		unset($_POST['redirect_to']);
+		ct_contact_form_validate();
+		$_POST['redirect_to']=$tmp;
+	}
 }
 
+// Short code for GDPR
+if($apbct->settings['gdpr__enabled'])
+	add_shortcode('cleantalk_gdpr_form', 'apbct_shrotcode_handler__GDPR_public_notice__form');
 
 /**
 * Function for SpamFireWall check
@@ -557,226 +563,16 @@ function apbct_sfw__check()
 }
 
 /**
- * On activation, set a time, frequency and name of an action hook to be scheduled.
- * @throws Exception
+ * Creating specific tables
+ *
+ * @param $sqls
+ * @param string $db_prefix
+ *
+ * @return void
+ * @depreacted Use Activator::create_tables() instead
  */
-function apbct_activation( $network = false ) {
-	
-	global $wpdb, $apbct;
-	
-	$apbct->stats['plugin']['activation_previous__timestamp'] = $apbct->stats['plugin']['activation__timestamp'];
-	$apbct->stats['plugin']['activation__timestamp'] = time();
-	$apbct->stats['plugin']['activation__times'] += 1;
-    $apbct->save('stats');
-	
-	$sqls = Schema::getSchema();
-	$ct_cron = new Cron();
-
-	if($network && !defined('CLEANTALK_ACCESS_KEY')){
-		$initial_blog  = get_current_blog_id();
-		$blogs = array_keys($wpdb->get_results('SELECT blog_id FROM '. $wpdb->blogs, OBJECT_K));
-		foreach ($blogs as $blog) {
-			switch_to_blog($blog);
-			apbct_activation__create_tables($sqls);
-			// Cron tasks
-
-			$ct_cron->addTask('check_account_status',  'ct_account_status_check',        3600, time() + 1800); // Checks account status
-			$ct_cron->addTask('delete_spam_comments',  'ct_delete_spam_comments',        3600, time() + 3500); // Formerly ct_hourly_event_hook()
-			$ct_cron->addTask('send_feedback',         'ct_send_feedback',               3600, time() + 3500); // Formerly ct_hourly_event_hook()
-			$ct_cron->addTask('sfw_update',            'apbct_sfw_update__init',         86400 );  // SFW update
-			$ct_cron->addTask('send_sfw_logs',         'ct_sfw_send_logs',               3600, time() + 1800); // SFW send logs
-			$ct_cron->addTask('get_brief_data',        'cleantalk_get_brief_data',       86400, time() + 3500); // Get data for dashboard widget
-			$ct_cron->addTask('send_connection_report','ct_mail_send_connection_report', 86400, time() + 3500); // Send connection report to welcome@cleantalk.org
-			$ct_cron->addTask('antiflood__clear_table',  'apbct_antiflood__clear_table',        86400,    time() + 300); // Clear Anti-Flood table
-		}
-		switch_to_blog($initial_blog);
-	}else{
-		
-		// Cron tasks
-		$ct_cron->addTask('check_account_status',  'ct_account_status_check',        3600, time() + 1800); // Checks account status
-		$ct_cron->addTask('delete_spam_comments',  'ct_delete_spam_comments',        3600, time() + 3500); // Formerly ct_hourly_event_hook()
-		$ct_cron->addTask('send_feedback',         'ct_send_feedback',               3600, time() + 3500); // Formerly ct_hourly_event_hook()
-		$ct_cron->addTask('sfw_update',            'apbct_sfw_update__init',         86400 );  // SFW update
-		$ct_cron->addTask('send_sfw_logs',         'ct_sfw_send_logs',               3600, time() + 1800); // SFW send logs
-		$ct_cron->addTask('get_brief_data',        'cleantalk_get_brief_data',       86400, time() + 3500); // Get data for dashboard widget
-		$ct_cron->addTask('send_connection_report','ct_mail_send_connection_report', 86400, time() + 3500); // Send connection report to welcome@cleantalk.org
-		$ct_cron->addTask('antiflood__clear_table',  'apbct_antiflood__clear_table',        86400,    time() + 300); // Clear Anti-Flood table
-  
-		apbct_activation__create_tables($sqls);
-		ct_account_status_check(null, false);
-	}
-	
-	// Additional options
-	add_option( 'ct_plugin_do_activation_redirect', true );
-    apbct_add_admin_ip_to_swf_whitelist( null, null );
-
-}
-
 function apbct_activation__create_tables( $sqls, $db_prefix = '' ) {
-
-	if( ! is_array( $sqls ) && empty( $sqls ) ) {
-		return;
-	}
-
-    global $wpdb;
-    
-    $db_prefix = $db_prefix ? $db_prefix : $wpdb->prefix;
-    
-	$wpdb->show_errors = false;
-	foreach($sqls as $sql){
-		$sql = sprintf($sql, $db_prefix); // Adding current blog prefix
-		$result = $wpdb->query($sql);
-		if($result === false)
-			$errors[] = "Failed.\nQuery: {$wpdb->last_query}\nError: {$wpdb->last_error}";
-	}
-	$wpdb->show_errors = true;
-	
-	// Logging errors
-	if(!empty($errors))
-		apbct_log($errors);
-}
-
-/**
- * On activation, set a time, frequency and name of an action hook to be scheduled for sub-sites.
- * @throws Exception
- */
-function apbct_activation__new_blog($blog_id, $user_id, $domain, $path, $site_id, $meta) {
-    if (apbct_is_plugin_active_for_network('cleantalk-spam-protect/cleantalk.php')){
-
-		$settings = get_option('cleantalk_settings');
-
-        switch_to_blog($blog_id);
-
-        $sqls = Schema::getSchema();
-
-	    $ct_cron = new Cron();
-
-		// Cron tasks
-	    $ct_cron->addTask('check_account_status',  'ct_account_status_check',        3600, time() + 1800); // Checks account status
-	    $ct_cron->addTask('delete_spam_comments',  'ct_delete_spam_comments',        3600, time() + 3500); // Formerly ct_hourly_event_hook()
-	    $ct_cron->addTask('send_feedback',         'ct_send_feedback',               3600, time() + 3500); // Formerly ct_hourly_event_hook()
-	    $ct_cron->addTask('send_sfw_logs',         'ct_sfw_send_logs',               3600, time() + 1800); // SFW send logs
-	    $ct_cron->addTask('get_brief_data',        'cleantalk_get_brief_data',       86400, time() + 3500); // Get data for dashboard widget
-	    $ct_cron->addTask('send_connection_report','ct_mail_send_connection_report', 86400, time() + 3500); // Send connection report to welcome@cleantalk.org
-	    $ct_cron->addTask('antiflood__clear_table',  'apbct_antiflood__clear_table',        86400,    time() + 300); // Clear Anti-Flood table
-		apbct_activation__create_tables($sqls);
-        apbct_sfw_update__init( 3 ); // Updating SFW
-		ct_account_status_check(null, false);
-
-		if (isset($settings['multisite__use_settings_template_apply_for_new']) && $settings['multisite__use_settings_template_apply_for_new'] == 1) {
-			update_option('cleantalk_settings', $settings);
-		}
-        restore_current_blog();
-    }
-}
-
-/**
- * On deactivation, clear schedule.
- */
-function apbct_deactivation( $network ) {
-	
-	global $apbct, $wpdb;
-	
-	// Deactivation for network
-	if(is_multisite() && $network){
-		
-		$initial_blog  = get_current_blog_id();
-		$blogs = array_keys($wpdb->get_results('SELECT blog_id FROM '. $wpdb->blogs, OBJECT_K));
-		foreach ($blogs as $blog) {
-			switch_to_blog($blog);
-			apbct_deactivation__delete_blog_tables();
-			delete_option('cleantalk_cron'); // Deleting cron entries
-			
-			if($apbct->settings['misc__complete_deactivation']){
-				apbct_deactivation__delete_all_options();
-                apbct_deactivation__delete_meta();
-				apbct_deactivation__delete_all_options__in_network();
-			}
-			
-		}
-		switch_to_blog($initial_blog);
-		
-	// Deactivation for blog
-	}elseif(is_multisite()){
-		
-		apbct_deactivation__delete_common_tables();
-		delete_option('cleantalk_cron'); // Deleting cron entries
-		
-		if($apbct->settings['misc__complete_deactivation']) {
-            apbct_deactivation__delete_all_options();
-            apbct_deactivation__delete_meta();
-        }
-		
-	// Deactivation on standalone blog
-	}elseif(!is_multisite()){
-		
-		apbct_deactivation__delete_common_tables();
-		delete_option('cleantalk_cron'); // Deleting cron entries
-		
-		if($apbct->settings['misc__complete_deactivation']) {
-			apbct_deactivation__delete_all_options();
-			apbct_deactivation__delete_meta();
-		}
-	
-	}
-}
-
-/**
- * Delete all cleantalk_* entries from _options table
- */
-function apbct_deactivation__delete_all_options(){
-	delete_option('cleantalk_settings');
-	delete_option('cleantalk_data');
-	delete_option('cleantalk_cron');
-	delete_option('cleantalk_errors');
-	delete_option('cleantalk_remote_calls');
-	delete_option('cleantalk_server');
-	delete_option('cleantalk_stats');
-	delete_option('cleantalk_timelabel_reg');
-	delete_option('cleantalk_debug');
-    delete_option('cleantalk_plugin_request_ids');
-    delete_option('cleantalk_fw_stats');
-    delete_option( 'ct_plugin_do_activation_redirect' );
-    foreach( AdminNotices::NOTICES as $notice ) {
-    	delete_option( 'cleantalk_' . $notice . '_dismissed' );
-    }
-}
-
-/**
- * Delete all cleantalk_* entries from _sitemeta table
- */
-function apbct_deactivation__delete_all_options__in_network(){
-	delete_site_option('cleantalk_network_settings');
-	delete_site_option('cleantalk_network_data');
-}
-
-function apbct_deactivation__delete_common_tables() {
-	global $wpdb;
-	$wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->base_prefix.'cleantalk_sfw`;');           // Deleting SFW data
-	$wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->base_prefix.'cleantalk_sfw_logs`;');      // Deleting SFW logs
-    $wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->base_prefix.'cleantalk_sfw__flood_logs`;');   // Deleting SFW logs
-	$wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->base_prefix.'cleantalk_ac_log`;');      // Deleting SFW logs
-	$wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->base_prefix.'cleantalk_sessions`;');      // Deleting session table
-	$wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->base_prefix.'cleantalk_spamscan_logs`;'); // Deleting user/comments scan result table
-    $wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->base_prefix.'cleantalk_ua_bl`;');         // Deleting AC UA black lists
-    $wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->base_prefix.'cleantalk_sfw_temp`;');      // Deleting temporary SFW data
-}
-
-function apbct_deactivation__delete_blog_tables() {
-	global $wpdb;
-	$wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->prefix.'cleantalk_sfw`;');                // Deleting SFW data
-	$wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->prefix.'cleantalk_sfw_logs`;');          // Deleting SFW logs
-	$wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->prefix.'cleantalk_sfw__flood_logs`;');   // Deleting SFW logs
-	$wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->prefix.'cleantalk_ac_log`;');           // Deleting SFW logs
-	$wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->prefix.'cleantalk_sessions`;');           // Deleting session table
-	$wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->prefix.'cleantalk_spamscan_logs`;'); // Deleting user/comments scan result table
-    $wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->prefix.'cleantalk_ua_bl`;');         // Deleting AC UA black lists
-    $wpdb->query('DROP TABLE IF EXISTS `'. $wpdb->prefix.'cleantalk_sfw_temp`;');      // Deleting temporary SFW data
-}
-
-function apbct_deactivation__delete_meta(){
-	global $wpdb;
-	$wpdb->query("DELETE FROM {$wpdb->usermeta} WHERE meta_key IN ('ct_bad', 'ct_checked', 'ct_checked_now', 'ct_marked_as_spam', 'ct_hash');");
+	Activator::create_tables( $sqls, $db_prefix );
 }
 
 /**

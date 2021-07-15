@@ -4,6 +4,7 @@ use Cleantalk\Antispam\Cleantalk;
 use Cleantalk\Antispam\CleantalkRequest;
 use Cleantalk\Antispam\CleantalkResponse;
 use Cleantalk\ApbctWP\API;
+use Cleantalk\ApbctWP\Cron;
 use Cleantalk\ApbctWP\GetFieldsAny;
 use Cleantalk\ApbctWP\Helper;
 use Cleantalk\ApbctWP\Variables\Cookie;
@@ -193,7 +194,7 @@ function apbct_base_call($params = array(), $reg_flag = false){
 	// Options store url without shceme because of DB error with ''://'
 	$config = ct_get_server();
 	$ct->server_url     = APBCT_MODERATE_URL;
-	$ct->work_url       = preg_match('/http:\/\/.+/', $config['ct_work_url']) ? $config['ct_work_url'] : null;
+	$ct->work_url       = preg_match('/https:\/\/.+/', $config['ct_work_url']) ? $config['ct_work_url'] : null;
 	$ct->server_ttl     = $config['ct_server_ttl'];
 	$ct->server_changed = $config['ct_server_changed'];
 
@@ -238,6 +239,8 @@ function apbct_base_call($params = array(), $reg_flag = false){
 				'ct_server_changed' => time(),
 			)
 		);
+	    $cron = new Cron();
+	    $cron->updateTask( 'rotate_moderate', 'apbct_rotate_moderate', 86400 ); // Rotate moderate server
     }
 
     $ct_result = ct_change_plugin_resonse($ct_result, $ct_request->js_on);
@@ -259,6 +262,21 @@ function apbct_base_call($params = array(), $reg_flag = false){
 
     return array('ct' => $ct, 'ct_result' => $ct_result);
 	
+}
+
+function apbct_rotate_moderate() {
+	$ct = new Cleantalk();
+	$ct->rotateModerate();
+	if ($ct->server_change) {
+		update_option(
+			'cleantalk_server',
+			array(
+				'ct_work_url'       => $ct->work_url,
+				'ct_server_ttl'     => $ct->server_ttl,
+				'ct_server_changed' => time(),
+			)
+		);
+	}
 }
 
 function apbct_exclusions_check($func = null){
@@ -632,26 +650,24 @@ function ct_get_admin_email() {
 
 /**
  * Inner function - Current Cleantalk working server info
- * @return 	mixed[] Array of server data
+ * @return 	array Array of server data
  */
-function ct_get_server($force=false) {
+function ct_get_server() {
 	global $ct_server;
-	if(!$force && isset($ct_server) && isset($ct_server['ct_work_url']) && !empty($ct_server['ct_work_url'])){
-		
+	if( ! is_null( $ct_server ) && isset( $ct_server['ct_work_url'] ) && ! empty( $ct_server['ct_work_url'] ) ){
 		return $ct_server;
-		
-	}else{
-		
-	    $ct_server = get_option('cleantalk_server');
-	    if (!is_array($ct_server)){
-	        $ct_server = array(
+
+	}
+
+	$ct_server = get_option('cleantalk_server');
+	if (!is_array($ct_server)){
+	    $ct_server = array(
 				'ct_work_url' => NULL,
 				'ct_server_ttl' => NULL,
 				'ct_server_changed' => NULL
 			);
-	    }
-	    return $ct_server;
 	}
+	return $ct_server;
 }
 
 /**
@@ -735,6 +751,8 @@ function ct_send_feedback($feedback_request = null) {
 					'ct_server_changed' => time(),
                 )
             );
+	        $cron = new Cron();
+	        $cron->updateTask( 'rotate_moderate', 'apbct_rotate_moderate', 86400 ); // Rotate moderate server
         }
 		
         return true;
