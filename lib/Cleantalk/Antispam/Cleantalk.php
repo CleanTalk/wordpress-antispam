@@ -260,7 +260,7 @@ class Cleantalk {
     private function httpRequest( $msg ) {
 		
 		// Using current server without changing it
-        $result = ! empty( $this->work_url )
+        $result = ! empty( $this->work_url ) && $this->server_changed + 86400 > time()
 	        ? $this->sendRequest( $msg, $this->work_url, $this->server_timeout )
 			: false;
 
