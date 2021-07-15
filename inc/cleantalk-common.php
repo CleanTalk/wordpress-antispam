@@ -151,7 +151,7 @@ function apbct_base_call($params = array(), $reg_flag = false){
 		? \Cleantalk\ApbctWP\Helper::array_merge__save_numeric_keys__recursive(apbct_get_sender_info(), (array)$params['sender_info'])
 		: apbct_get_sender_info();
 
-	$honeypot_field = null;
+	$honeypot_field = 1;
 
 	if(isset($params['honeypot_field'])) {
 		$honeypot_field = $params['honeypot_field'];
