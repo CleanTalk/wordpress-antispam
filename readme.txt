@@ -573,12 +573,13 @@ If your website has forms that send data to external sources, you can enable opt
 
 == Changelog ==
 
-= 5.159.9 Jul 14 2021 =
+= 5.159.9 Jul 15 2021 =
  * Fix. SFW. Updating cooldown increased up to 15 min.
  * Fix. Cron. Next call time set by task updating fixed.
  * Fix. SFW. Reset blacklist array before processing.
  * Fix. SFW. Some errors handling fixed.
  * Fix. SFW. Getting update period from dns fixed.
+ * Fix. Ajax. Checking nonce for logged in users fixed.
 
 = 5.159.8 Jul 07 2021 =
  * Fix: Fixed the connection error Ajax.php when the site files are in a subfolder.
