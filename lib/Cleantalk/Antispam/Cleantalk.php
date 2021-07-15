@@ -111,7 +111,7 @@ class Cleantalk {
 	 *
 	 * @var array
 	 */
-	private array $downServers;
+	private $downServers;
 
 	/**
      * Function checks whether it is possible to publish the message
