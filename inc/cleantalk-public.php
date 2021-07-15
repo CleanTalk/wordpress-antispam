@@ -481,6 +481,11 @@ function apbct_hook__wp_head__set_cookie__ct_checkjs() {
  */
 function apbct_hook__wp_footer() {
 
+	# Return false if page is excluded
+	if (apbct_exclusions_check__url()) {
+		return false;
+	}
+
 	global $apbct;
 
 	// Pixel
@@ -533,6 +538,11 @@ function apbct_hook__wp_footer() {
  * @param 	bool $random_key switch on generation random key for every page load
  */
 function ct_add_hidden_fields($field_name = 'ct_checkjs', $return_string = false, $cookie_check = false, $no_print = false, $ajax = true) {
+
+	# Return false if page is excluded
+	if (apbct_exclusions_check__url()) {
+		return false;
+	}
 
     global $ct_checkjs_def, $apbct;
 

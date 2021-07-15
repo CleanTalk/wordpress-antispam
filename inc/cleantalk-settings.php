@@ -1442,8 +1442,12 @@ function apbct_settings__validate($settings) {
 	global $apbct;
 	
 	// If user is not allowed to manage settings. Get settings from the storage
-	if( ! is_main_site() && ( ! $apbct->network_settings['multisite__allow_custom_settings'] ) ){
+	if( ! is_main_site() && ! $apbct->network_settings['multisite__allow_custom_settings'] ){
 		foreach ($apbct->settings as $key => $setting){
+			// Do not reset apikey to default is allow_custom_key is active
+			if( $key === 'apikey' && $apbct->allow_custom_key ) {
+				continue;
+			}
 			$settings[ $key ] = $setting;
 		}
 	}
