@@ -266,14 +266,15 @@ class Cleantalk {
 
 		// Changing server if no work_url or request has an error
         if ( $result === false || ( is_object( $result ) && $result->errno != 0 ) ) {
-        	$this->downServers[] = $this->work_url;
+        	if( ! empty( $this->work_url ) ) {
+		        $this->downServers[] = $this->work_url;
+	        }
             $this->rotateModerate();
-	        $result = $this->httpRequest( $msg );
+	        $result = $this->sendRequest( $msg, $this->work_url );
 	        if ($result !== false && $result->errno === 0) {
 		        $this->server_change = true;
 	        }
         }
-		
         $response = new CleantalkResponse( null, $result );
 		
         if ( ! empty( $this->data_codepage ) && $this->data_codepage !== 'UTF-8' ) {
