@@ -2,6 +2,8 @@
 
 namespace Cleantalk\Common;
 
+use Exception;
+
 class Schema
 {
     /**
@@ -67,7 +69,7 @@ class Schema
     /**
      * @param null|string $table         Name of called table
      * @return array                     Array of schemas
-     * @throws \Exception                Throws if calling un-existed schema
+     * @throws Exception                Throws if calling un-existed schema
      */
     public static function getSchema( $table = null )
     {
@@ -79,7 +81,7 @@ class Schema
             return array( self::$schemas[$table] );
         }
 
-        throw new \Exception( 'Called table scheme not exist.' );
+        throw new Exception( 'Called table scheme not exist.' );
     }
 
 }
