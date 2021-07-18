@@ -29,7 +29,7 @@ class Helper extends \Cleantalk\Common\Helper
 	 * ssl      - use SSL
 	 *
 	 * @param string       $url     URL
-	 * @param array        $data    POST|GET indexed array with data to send
+	 * @param array|string|int $data    POST|GET indexed array with data to send
 	 * @param string|array $presets String or Array with presets: get_code, async, get, ssl, dont_split_to_array
 	 * @param array        $opts    Optional option for CURL connection
 	 *
