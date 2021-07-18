@@ -2,6 +2,8 @@
 
 namespace Cleantalk\Variables;
 
+use Cleantalk\Templates\Singleton;
+
 /**
  * Class ServerVariables
  * Safety handler for ${_SOMETHING}
@@ -9,15 +11,16 @@ namespace Cleantalk\Variables;
  * @usage \Cleantalk\Variables\{SOMETHING}::get( $name );
  *
  * @package Cleantalk\Variables
+ * @psalm-suppress PossiblyUnusedProperty
  */
-class ServerVariables{
+abstract class ServerVariables{
 
-	use \Cleantalk\Templates\Singleton;
+	use Singleton;
 
 	/**
 	 * @var array Contains saved variables
 	 */
-	public $variables = [];
+	public $variables = array();
 
 	/**
 	 * Gets variable from ${_SOMETHING}
@@ -32,14 +35,12 @@ class ServerVariables{
 
 	/**
 	 * BLUEPRINT
-	 * Gets given ${_SOMETHING} variable and seva it to memory
+	 * Gets given ${_SOMETHING} variable and save it to memory
 	 * @param $name
 	 *
 	 * @return mixed|string
 	 */
-	protected function get_variable( $name ){
-		return true;
-	}
+	abstract protected function get_variable( $name );
 
 	/**
 	 * Save variable to $this->variables[]
@@ -57,9 +58,9 @@ class ServerVariables{
 	 * @param string $var    Haystack to search in
 	 * @param string $string Needle to search
 	 *
-	 * @return bool|int
+	 * @return bool
 	 */
-	static function has_string( $var, $string ){
+	public static function has_string( $var, $string ){
 		return stripos( self::get( $var ), $string ) !== false;
 	}
 
@@ -69,9 +70,10 @@ class ServerVariables{
 	 * @param string $var   Variable to compare
 	 * @param string $param Param to compare
 	 *
-	 * @return bool|int
+	 * @return bool
+	 * @psalm-suppress PossiblyUnusedMethod
 	 */
-	static function equal( $var, $param ){
-		return self::get( $var ) == $param;
+	public static function equal( $var, $param ){
+		return self::get( $var ) === $param;
 	}
 }
