@@ -3,7 +3,6 @@
 
 namespace Cleantalk\ApbctWP;
 
-use Cleantalk\ApbctWP\Firewall\SFW;
 use Cleantalk\Variables\Get;
 
 class RemoteCalls
@@ -27,7 +26,7 @@ class RemoteCalls
     /**
      * Execute corresponding method of RemoteCalls if exists
      *
-     * @return void|string
+     * @return bool|string|string[]|null
      */
     public static function perform(){
         
@@ -58,11 +57,11 @@ class RemoteCalls
                     
                     $action = 'action__'.$action;
                     
-                    if( method_exists( 'Cleantalk\ApbctWP\RemoteCalls', $action ) ){
+                    if( method_exists( __CLASS__, $action ) ){
 
 	                    // Delay before perform action;
                         if ( Get::get( 'delay' ) ){
-		                    sleep( Get::get( 'delay' ) );
+		                    sleep( (int) Get::get( 'delay' ) );
 		                    $params = $_GET;
 		                    unset( $params['delay'] );
                             return Helper::http__request__rc_to_host(
@@ -73,22 +72,27 @@ class RemoteCalls
                             );
                         }
 
-	                    $out = RemoteCalls::$action();
+	                    $out = self::$action();
                         
                         // Every remote call action handler should implement output or
 	                    // If out is empty(), the execution will continue
 	                    
-                    }else
-                        $out = 'FAIL '.json_encode(array('error' => 'UNKNOWN_ACTION_METHOD'));
-                }else
-                    $out = 'FAIL '.json_encode(array('error' => 'WRONG_TOKEN'));
-            }else
-                $out = 'FAIL '.json_encode(array('error' => 'TOO_MANY_ATTEMPTS'));
-        }else
-            $out = 'FAIL '.json_encode(array('error' => 'UNKNOWN_ACTION'));
+                    }else {
+	                    $out = 'FAIL ' . json_encode( array( 'error' => 'UNKNOWN_ACTION_METHOD' ) );
+                    }
+                }else {
+	                $out = 'FAIL ' . json_encode( array( 'error' => 'WRONG_TOKEN' ) );
+                }
+            }else {
+	            $out = 'FAIL ' . json_encode( array( 'error' => 'TOO_MANY_ATTEMPTS' ) );
+            }
+        }else {
+	        $out = 'FAIL ' . json_encode( array( 'error' => 'UNKNOWN_ACTION' ) );
+        }
     
-        if( $out )
-            die( $out );
+        if( $out ) {
+	        die( $out );
+        }
     }
     
     /**
@@ -112,7 +116,9 @@ class RemoteCalls
     /**
      * SFW update
      *
-     * @return string
+     * @return void
+     *
+     * @psalm-suppress UnusedVariable
      */
     public static function action__sfw_update(){
         global $apbct;
@@ -125,6 +131,8 @@ class RemoteCalls
      * SFW update
      *
      * @return string
+     *
+     * @psalm-suppress UnusedVariable
      */
     public static function action__sfw_update__worker(){
         
@@ -214,12 +222,12 @@ class RemoteCalls
         $out['cron'] = $apbct->cron;
         $out['errors'] = $apbct->errors;
         
-        array_walk( $out, function(&$val, $key){
+        array_walk( $out, function(&$val, $_key){
             $val = (array) $val;
         });
         
-        array_walk_recursive( $out, function(&$val, $key){
-            if( is_int( $val ) && preg_match( '@^\d{9,11}$@', $val ) ){
+        array_walk_recursive( $out, function(&$val, $_key){
+            if( is_int( $val ) && preg_match( '@^\d{9,11}$@', (string) $val ) ){
                 $val = date( 'Y-m-d H:i:s', $val );
             }
         });
