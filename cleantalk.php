@@ -1189,7 +1189,7 @@ function apbct_rc__install_plugin($_wp = null, $plugin = null){
 					'plugin_information',
 					array(
 						'slug' => $plugin_slug,
-						'fileds' => array('version' => true, 'download_link' => true,),
+						'fields' => array('version' => true, 'download_link' => true,),
 					)
 				);
 				
