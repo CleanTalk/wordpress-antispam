@@ -12,7 +12,7 @@ namespace Cleantalk\Variables;
  */
 class Get extends ServerVariables{
 	
-	static $instance;
+	public static $instance;
 	
 	/**
 	 * Constructor
@@ -27,7 +27,7 @@ class Get extends ServerVariables{
 	}
 	
 	/**
-	 * Gets given $_GET variable and seva it to memory
+	 * Gets given $_GET variable and save it to memory
 	 * @param $name
 	 *
 	 * @return mixed|string
@@ -35,18 +35,22 @@ class Get extends ServerVariables{
 	protected function get_variable( $name ){
 		
 		// Return from memory. From $this->variables
-		if(isset(static::$instance->variables[$name]))
-			return static::$instance->variables[$name];
-		
-		if( function_exists( 'filter_input' ) )
-			$value = filter_input( INPUT_GET, $name );
-		
-		if( empty( $value ) )
-			$value = isset( $_GET[ $name ] ) ? $_GET[ $name ]	: '';
-		
-		// Remember for thurther calls
-		static::getInstance()->remember_variable( $name, $value );
-		
-		return $value;
+		if( ! isset( static::$instance->variables[ $name ] ) ) {
+			if ( function_exists( 'filter_input' ) ) {
+				$value = filter_input( INPUT_GET, $name );
+			}
+
+			if ( empty( $value ) ) {
+				$value = isset( $_GET[ $name ] ) ? $_GET[ $name ] : '';
+			}
+
+			// Remember for further calls
+			static::getInstance()->remember_variable( $name, $value );
+
+			return $value;
+		}
+
+		return static::$instance->variables[ $name ];
+
 	}
 }
