@@ -12,6 +12,9 @@ namespace Cleantalk\Common;
  * @copyright (C) 2014 CleanTalk team (http://cleantalk.org)
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  * @see https://github.com/CleanTalk/php-antispam
+ *
+ * @psalm-suppress UnusedProperty
+ * @psalm-suppress PossiblyUnusedProperty
 */
 
 class DB
@@ -25,7 +28,7 @@ class DB
 	private $query;
 	
 	/**
-	 * @var wpdb result
+	 * @var \wpdb result
 	 */
 	private $db_result;
 	
@@ -55,7 +58,7 @@ class DB
 	
 	/**
 	 * Alternative constructor.
-	 * Initilize Database object and write it to property.
+	 * Initialize Database object and write it to property.
 	 * Set tables prefix.
 	 */
 	private function init(){ }
@@ -64,7 +67,8 @@ class DB
 	 * Set $this->query string for next uses
 	 *
 	 * @param $query
-	 * @return $this
+	 * @return $this|void
+	 * @psalm-suppress PossiblyUnusedMethod
 	 */
 	public function set_query($query){ }
 	
@@ -74,7 +78,8 @@ class DB
 	 * @param string $query
 	 * @param array  $vars
 	 *
-	 * @return $this
+	 * @return $this|void
+	 * @psalm-suppress PossiblyUnusedMethod
 	 */
 	public function prepare($query, $vars = array()){ }
 	
@@ -83,7 +88,8 @@ class DB
 	 *
 	 * @param $query
 	 *
-	 * @return bool|int Raw result
+	 * @return bool|int|void Raw result
+	 * @psalm-suppress PossiblyUnusedParam
 	 */
 	public function execute($query){ }
 	
@@ -95,6 +101,7 @@ class DB
 	 * @param bool $response_type
 	 *
 	 * @return array|object|void|null
+	 * @psalm-suppress PossiblyUnusedMethod
 	 */
 	public function fetch($query = false, $response_type = false){ }
 	
@@ -105,7 +112,8 @@ class DB
 	 * @param bool $query
 	 * @param bool $response_type
 	 *
-	 * @return array|object|null
+	 * @return array|object|null|void
+	 * @psalm-suppress PossiblyUnusedMethod
 	 */
 	public function fetch_all($query = false, $response_type = false){ }
     
@@ -115,6 +123,7 @@ class DB
      * @param $table_name
      *
      * @return bool
+     * @psalm-suppress PossiblyUnusedMethod
      */
     public function isTableExists( $table_name ){
         return (bool) $this->execute( 'SHOW TABLES LIKE "' . $table_name . '"' );
