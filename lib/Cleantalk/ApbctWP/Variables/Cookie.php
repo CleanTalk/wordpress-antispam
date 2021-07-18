@@ -7,8 +7,16 @@ use Cleantalk\ApbctWP\Helper;
 use Cleantalk\Variables\Server;
 
 class Cookie extends \Cleantalk\Variables\Cookie {
-    
-    public static function get( $name, $default = '', $cast_to = null, $raw = false ){
+
+	/**
+	 * @param string $name
+	 * @param string|array $default
+	 * @param null|string $cast_to
+	 * @param false $raw
+	 *
+	 * @return array|mixed|string|void
+	 */
+	public static function get( $name, $default = '', $cast_to = null, $raw = false ){
     
         global $apbct;
         
