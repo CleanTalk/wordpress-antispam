@@ -701,9 +701,9 @@ function apbct_comment__wordpress__show_blacklists( $notify_message, $comment_id
 
 /**
  * Set die page with Cleantalk comment.
- * @global array $ct_comment
+ * @global null $ct_comment
     $err_text = '<center><b style="color: #49C73B;">Clean</b><b style="color: #349ebf;">Talk.</b> ' . __('Spam protection', 'cleantalk-spam-protect') . "</center><br><br>\n" . $ct_comment;
- * @param type $comment_status
+ * @param null $comment_status
  */
 function ct_die($comment_id, $comment_status) {
 
