@@ -78,10 +78,12 @@ class DB
 	 * @param string $query
 	 * @param array  $vars
 	 *
-	 * @return $this|void
+	 * @return $this
 	 * @psalm-suppress PossiblyUnusedMethod
 	 */
-	public function prepare($query, $vars = array()){ }
+	public function prepare($query, $vars = array()){
+		return $this;
+	}
 	
 	/**
 	 * Run any raw request
