@@ -39,13 +39,13 @@ class CleantalkRequest {
 
     /**
      * User message
-     * @var null|scalar
+     * @var string
      */
     public $message;
 
     /**
      * Post example with last comments
-     * @var null|scalar
+     * @var string
      */
     public $example;
 
@@ -173,6 +173,7 @@ class CleantalkRequest {
      * Fill params with constructor
      * @param array $params
 	 * @psalm-suppress PossiblyUnusedMethod
+	 * @psalm-suppress InvalidPropertyAssignmentValue
      */
     public function __construct($params = null) {
 		
