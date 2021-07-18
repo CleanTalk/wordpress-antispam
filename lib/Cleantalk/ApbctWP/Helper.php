@@ -33,7 +33,7 @@ class Helper extends \Cleantalk\Common\Helper
 	 * @param string|array $presets String or Array with presets: get_code, async, get, ssl, dont_split_to_array
 	 * @param array        $opts    Optional option for CURL connection
 	 *
-	 * @return array|bool (array || array('error' => true))
+	 * @return array|bool|string (array || array('error' => true))
 	 */
 	public static function http__request($url, $data = array(), $presets = null, $opts = array())
 	{
