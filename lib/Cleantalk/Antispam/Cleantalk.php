@@ -275,7 +275,7 @@ class Cleantalk {
 		        $this->server_change = true;
 	        }
         }
-        $response = new CleantalkResponse( null, $result );
+        $response = new CleantalkResponse( $result );
 		
         if ( ! empty( $this->data_codepage ) && $this->data_codepage !== 'UTF-8' ) {
             if ( ! empty( $response->comment ) ) {
