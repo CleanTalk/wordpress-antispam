@@ -2,6 +2,8 @@
 
 namespace Cleantalk\Antispam;
 
+use Cleantalk\Templates\Singleton;
+
 /**
  * Class DisableComments
  * Discribes functions needed to use disable comments functionality
@@ -14,7 +16,7 @@ namespace Cleantalk\Antispam;
  */
 class DisableComments{
 	
-	use \Cleantalk\Templates\Singleton;
+	use Singleton;
 	
 	/**
 	 * Determs is Wordpress Multisite is enabled
@@ -31,7 +33,7 @@ class DisableComments{
 	private $types_to_disable;
 	
 	/**
-	 * @var /Cleantalk/ApbctState antispam instance
+	 * @var \Cleantalk\ApbctWP\State antispam instance
 	 */
 	private $apbct;
 	
@@ -49,10 +51,12 @@ class DisableComments{
 		if( $this->apbct->settings['comments__disable_comments__all'] ){
 			$types_to_disable = array( 'page', 'post', 'media', 'attachment' );
 		}else{
-			if( $this->apbct->settings['comments__disable_comments__posts'] )
+			if( $this->apbct->settings['comments__disable_comments__posts'] ) {
 				$types_to_disable[] = 'post';
-			if( $this->apbct->settings['comments__disable_comments__pages'] )
+			}
+			if( $this->apbct->settings['comments__disable_comments__pages'] ) {
 				$types_to_disable[] = 'page';
+			}
 			if( $this->apbct->settings['comments__disable_comments__media'] ){
                 $types_to_disable[] = 'media';
                 $types_to_disable[] = 'attachment';
@@ -71,9 +75,14 @@ class DisableComments{
 		add_action( 'enqueue_block_editor_assets', array( $this, 'filter__gutenberg_blocks' ) );
 		
 	}
-	
+
+	/**
+	 * @param string|bool $type
+	 *
+	 * @return bool
+	 */
 	public function is_current_type_to_disable( $type = '' ){
-		$type = $type ? $type : get_post_type();
+		$type = $type ?: get_post_type();
 		return in_array( $type, $this->types_to_disable );
 	}
 	
@@ -86,7 +95,6 @@ class DisableComments{
 			foreach ( $this->types_to_disable as $type ){
 				// we need to know what native support was for later
 				if( post_type_supports( $type, 'comments' ) ){
-					// $this->modified_types[] = $type;
 					remove_post_type_support( $type, 'comments' );
 					remove_post_type_support( $type, 'trackbacks' );
 				}
@@ -118,7 +126,7 @@ class DisableComments{
 		unregister_widget( 'WP_Widget_Recent_Comments' );
 	}
 	
-	function admin__filter_css(){
+	public function admin__filter_css(){
 		echo '<style>
 			#dashboard_right_now .comment-count,
 			#dashboard_right_now .comment-mod-count,
@@ -137,14 +145,15 @@ class DisableComments{
 	public function admin__filter_menu(){
 		global $pagenow;
 		
-		if( in_array( $pagenow, array( 'comment.php', 'edit-comments.php', 'options-discussion.php' ) ) )
+		if( in_array( $pagenow, array( 'comment.php', 'edit-comments.php', 'options-discussion.php' ) ) ) {
 			wp_die( __( 'Comments are closed.' ), '', array( 'response' => 403 ) );
+		}
 		
 		remove_menu_page( 'edit-comments.php' );
 		remove_submenu_page( 'options-general.php', 'options-discussion.php' );
 	}
     
-    public function template__check( $count, $post_id ){
+    public function template__check( $count, $_post_id ){
         if( is_singular() && $this->is_current_type_to_disable() ){
             add_filter( 'comments_template', array( $this, 'template__replace' ), 20 );
             wp_deregister_script( 'comment-reply' );
@@ -161,9 +170,10 @@ class DisableComments{
 		return $headers;
 	}
 	
-	public function filter__query( $headers ){
-		if( is_comment_feed() )
+	public function filter__query( $_headers ){
+		if( is_comment_feed() ) {
 			wp_die( __( 'Comments are closed.' ), '', array( 'response' => 403 ) );
+		}
 	}
 
     public function filter__admin_bar(){
@@ -178,14 +188,14 @@ class DisableComments{
 	/**
 	 * Determines if scripts should be enqueued
 	 */
-	public function filter__gutenberg_blocks( $hook ){
+	public function filter__gutenberg_blocks( $_hook ){
 		if( $this->is_current_type_to_disable() ){
 			wp_enqueue_script(
 				'cleantalk-disable-comments-gutenberg',
 				plugin_dir_url( __FILE__ ) . 'assets/apbct-disable-comments.js',
 				array(),
 				APBCT_VERSION,
-				'in_footer'
+				true
 			);
 			wp_localize_script(
 				'cleantalk-disable-comments-gutenberg',
@@ -197,15 +207,15 @@ class DisableComments{
 		}
 	}
 	
-	public function filter__existing_comments( $comments, $post_id ){
+	public function filter__existing_comments( $comments, $_post_id ){
 		return $this->is_current_type_to_disable() ? array() : $comments;
 	}
 	
-	public function filter__comment_status( $open, $post_id ){
+	public function filter__comment_status( $open, $_post_id ){
 		return $this->is_current_type_to_disable() ? false : $open;
 	}
 	
-	public function filter__comments_number( $count, $post_id ){
+	public function filter__comments_number( $count, $_post_id ){
 		return $this->is_current_type_to_disable() ? 0 : $count;
 	}
 
@@ -216,8 +226,9 @@ class DisableComments{
 				$wp_admin_bar->remove_menu( 'blog-' . $blog->userblog_id . '-c' );
 			}
 			
-		}else
+		}else {
 			$wp_admin_bar->remove_menu( 'blog-' . get_current_blog_id() . '-c' );
+		}
 		
 	}
 }
