@@ -27,7 +27,7 @@ abstract class ServerVariables{
 	 *
 	 * @param string $name Variable name
 	 *
-	 * @return string
+	 * @return string|array
 	 */
 	public static function get( $name ){
 		return static::getInstance()->get_variable( $name );
