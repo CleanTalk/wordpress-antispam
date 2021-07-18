@@ -514,7 +514,7 @@ function apbct_sfw__check()
 		$spbc_key = !empty($spbc_settings['spbc_key']) ? $spbc_settings['spbc_key'] : false;
 		if($_GET['access'] === $apbct->api_key || ($spbc_key !== false && $_GET['access'] === $spbc_key)){
 			\Cleantalk\Variables\Cookie::set('spbc_firewall_pass_key', md5(apbct_get_server_variable( 'REMOTE_ADDR' ) . $spbc_key),       time()+1200, '/', '');
-			\Cleantalk\Variables\Cookie::set('ct_sfw_pass_key',        md5(apbct_get_server_variable( 'REMOTE_ADDR' ) . $apbct->api_key), time()+1200, '/', null);
+			\Cleantalk\Variables\Cookie::set('ct_sfw_pass_key',        md5(apbct_get_server_variable( 'REMOTE_ADDR' ) . $apbct->api_key), time()+1200, '/', '');
 			return;
 		}
 		unset($spbc_settings, $spbc_key);
