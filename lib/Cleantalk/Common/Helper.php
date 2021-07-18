@@ -21,7 +21,7 @@ class Helper
 	/**
 	 * Default user agent for HTTP requests
 	 */
-	public const AGENT = 'Cleantalk-Helper/4.0';
+	const AGENT = 'Cleantalk-Helper/4.0';
 	
 	/**
 	 * @var array Set of private networks IPv4 and IPv6
