@@ -64,7 +64,7 @@ class Cookie extends ServerVariables{
 	 * @param string $value    Cookie value
 	 * @param int    $expires  Expiration timestamp. 0 - expiration with session
 	 * @param string $path
-	 * @param null|string $domain
+	 * @param string $domain
 	 * @param bool   $secure
 	 * @param bool   $httponly
 	 * @param string $samesite
@@ -72,7 +72,7 @@ class Cookie extends ServerVariables{
 	 * @return void
 	 * @psalm-suppress PossiblyUnusedMethod
 	 */
-	public static function set( $name, $value = '', $expires = 0, $path = '', $domain = null, $secure = null, $httponly = false, $samesite = 'Lax' ) {
+	public static function set( $name, $value = '', $expires = 0, $path = '', $domain = '', $secure = null, $httponly = false, $samesite = 'Lax' ) {
         
         $secure = ! is_null( $secure ) ? $secure : Server::get('HTTPS') !== 'off' || Server::get('SERVER_PORT') == 443;
 
