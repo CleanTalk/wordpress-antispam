@@ -57,12 +57,12 @@ class Cookie extends \Cleantalk\Variables\Cookie {
      * Universal method to adding cookies
      * Using Alternative Sessions or native cookies depends on settings
      *
-     * @param $name
+     * @param string $name
      * @param string $value
      * @param int $expires
      * @param string $path
-     * @param null $domain
-     * @param bool $secure
+     * @param string $domain
+     * @param bool|null $secure
      * @param bool $httponly
      * @param string $samesite
      */
