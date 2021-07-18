@@ -1,10 +1,9 @@
 <?php
 
-
 namespace Cleantalk\ApbctWP\Variables;
 
-
 use Cleantalk\ApbctWP\Helper;
+use Cleantalk\Variables\Post;
 use Cleantalk\Variables\Server;
 
 class AltSessions {
@@ -12,7 +11,7 @@ class AltSessions {
     public static $sessions_already_cleaned = false;
     
     public static function getID(){
-        $id = Helper::ip__get( 'real' )
+        $id = Helper::ip__get()
             . Server::get( 'HTTP_USER_AGENT' )
             . Server::get( 'HTTP_ACCEPT_LANGUAGE' );
         return hash('sha256', $id);
@@ -48,13 +47,13 @@ class AltSessions {
     public static function set_fromRemote( $request = null ){
         
         if( ! $request ){
-            $cookies_to_set = (array) \Cleantalk\Variables\Post::get( 'cookies' );
+            $cookies_to_set = (array) Post::get( 'cookies' );
         }else{
             $cookies_to_set = $request->get_param( 'cookies' );
         }
         
         foreach( $cookies_to_set as $cookie_to_set ){
-            \Cleantalk\ApbctWP\Variables\Cookie::set( $cookie_to_set[0], $cookie_to_set[1] );
+            Cookie::set( $cookie_to_set[0], $cookie_to_set[1] );
         }
         
         wp_send_json( array( 'success' => true ) );
@@ -66,7 +65,7 @@ class AltSessions {
         
         // Bad incoming data
         if( ! $name ){
-            return;
+            return false;
         }
         
         global $wpdb;
@@ -87,19 +86,20 @@ class AltSessions {
     
     public static function get_fromRemote( $request = null ){
 
-        $value = \Cleantalk\ApbctWP\Variables\Cookie::get( $request
+        $value = Cookie::get( $request
             ? $request->get_param( 'cookies' )
-            : \Cleantalk\Variables\Post::get( 'name' )
+            : Post::get( 'name' )
         );
     
         wp_send_json( array( 'success' => true, 'value' => $value ) );
     }
     
     public static function cleanFromOld(){
-        
+
+	    global $wpdb;
+
         if( ! self::$sessions_already_cleaned && rand(0, 1000) < APBCT_SEESION__CHANCE_TO_CLEAN){
             
-            global $wpdb;
             self::$sessions_already_cleaned = true;
             
             $wpdb->query(
@@ -111,7 +111,7 @@ class AltSessions {
         }
     }
     
-    public static function wipe( $full_clear = true ) {
+    public static function wipe() {
         global $wpdb;
         return $wpdb->query(
             'TRUNCATE TABLE '. APBCT_TBL_SESSIONS .';'
