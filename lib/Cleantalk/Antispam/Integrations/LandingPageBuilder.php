@@ -7,15 +7,15 @@ namespace Cleantalk\Antispam\Integrations;
 class LandingPageBuilder extends IntegrationBase
 {
 
-    function getDataForChecking( $argument )
+    public function getDataForChecking( $argument )
     {
-        if( isset( $_POST ) ) {
+        if( ! empty( $_POST ) ) {
             return ct_get_fields_any( $_POST );
         }
         return null;
     }
 
-    function doBlock( $message )
+    public function doBlock( $message )
     {
         $return['Error'] = $message;
         $return['database'] = 'false';

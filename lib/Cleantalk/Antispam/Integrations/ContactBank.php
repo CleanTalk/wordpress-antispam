@@ -7,7 +7,7 @@ namespace Cleantalk\Antispam\Integrations;
 class ContactBank extends IntegrationBase
 {
 
-    function getDataForChecking( $argument )
+    public function getDataForChecking( $argument )
     {
         if( isset( $_REQUEST['param'] ) ) {
             parse_str( isset( $_REQUEST['data'] ) ? base64_decode( $_REQUEST['data'] ) : '', $form_data );
@@ -16,7 +16,7 @@ class ContactBank extends IntegrationBase
         return null;
     }
 
-    function doBlock( $message )
+    public function doBlock( $message )
     {
         die(json_encode(array('apbct' => array('blocked' => true, 'comment' => $message,)), JSON_HEX_QUOT | JSON_HEX_TAG));
     }

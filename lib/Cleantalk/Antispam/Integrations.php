@@ -7,11 +7,9 @@ namespace Cleantalk\Antispam;
 class Integrations
 {
 
-    private $integrations = array();
+    private $integrations;
 
-    private $integration;
-    
-    /**
+	/**
      * Integrations constructor.
      *
      * @param array $integrations
@@ -21,7 +19,7 @@ class Integrations
     {
         $this->integrations = $integrations;
 
-        foreach( $this->integrations as $integration_name => $integration_info ){
+        foreach( $this->integrations as $_integration_name => $integration_info ){
     
             if( empty( $settings[ $integration_info['setting'] ] ) )
                 continue;
@@ -49,6 +47,10 @@ class Integrations
         }
     }
 
+	/**
+	 * @param $argument
+	 * @psalm-suppress UnusedVariable
+	 */
     public function checkSpam( $argument )
     {
         global $cleantalk_executed;
@@ -59,14 +61,14 @@ class Integrations
             // Instantiate the integration object
             $class = '\\Cleantalk\\Antispam\\Integrations\\' . $current_integration;
             if( class_exists( $class )) {
-                $this->integration = new $class();
-                if( ! ( $this->integration instanceof \Cleantalk\Antispam\Integrations\IntegrationBase ) ) {
+                $integration = new $class();
+                if( ! ( $integration instanceof \Cleantalk\Antispam\Integrations\IntegrationBase ) ) {
                     // @ToDo have to handle an error
                     do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, array('Integration is not instanse of IntegrationBase class.') );
                     return;
                 }
                 // Run data collecting for spam checking
-                $data = $this->integration->getDataForChecking( $argument );
+                $data = $integration->getDataForChecking( $argument );
                 if( ! is_null( $data ) ) {
                     // Go spam checking
                     $base_call_result = apbct_base_call(
@@ -88,11 +90,11 @@ class Integrations
 
                     if ($ct_result->allow == 0) {
                         // Do blocking if it is a spam
-                        return $this->integration->doBlock( $ct_result->comment );
+                        return $integration->doBlock( $ct_result->comment );
                     }
 
-                    if($ct_result->allow != 0 && method_exists($this->integration, 'allow')) {
-	                    return $this->integration->allow();
+                    if($ct_result->allow != 0 && method_exists( $integration, 'allow')) {
+	                    return $integration->allow();
                     }
                 } else {
                     // @ToDo have to handle an error
