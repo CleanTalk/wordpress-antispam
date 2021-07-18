@@ -1775,7 +1775,7 @@ function apbct_cookies_test()
 	
 	if(isset($_COOKIE['apbct_cookies_test'])){
 		
-		$cookie_test = json_decode( urldecode( $_COOKIE['apbct_cookies_test'] ), true, 512, JSON_THROW_ON_ERROR );
+		$cookie_test = json_decode( urldecode( $_COOKIE['apbct_cookies_test'] ), true );
 		
 		if(!is_array($cookie_test)) {
 			return 0;
