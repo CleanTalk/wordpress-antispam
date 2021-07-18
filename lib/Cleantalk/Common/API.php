@@ -16,8 +16,8 @@ namespace Cleantalk\Common;
 class API
 {
 	/* Default params  */
-	public const URL = 'https://api.cleantalk.org';
-	public const AGENT = 'ct-api-3.2';
+	const URL = 'https://api.cleantalk.org';
+	const AGENT = 'ct-api-3.2';
 	
 	/**
 	 * Wrapper for 2s_blacklists_db API method.
