@@ -73,6 +73,8 @@ class Helper
      * @param bool   $v4_only
      *
      * @return string|null
+     *
+     * @psalm-suppress InvalidReturnStatement
      */
     public static function ip__get( $ip_type_to_get = 'real', $v4_only = true, $headers = array() )
     {
