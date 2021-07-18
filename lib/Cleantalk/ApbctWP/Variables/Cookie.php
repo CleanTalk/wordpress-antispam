@@ -14,7 +14,7 @@ class Cookie extends \Cleantalk\Variables\Cookie {
 	 * @param null|string $cast_to
 	 * @param false $raw
 	 *
-	 * @return array|mixed|string|void
+	 * @return string|array
 	 */
 	public static function get( $name, $default = '', $cast_to = null, $raw = false ){
     
@@ -92,7 +92,7 @@ class Cookie extends \Cleantalk\Variables\Cookie {
 
     /**
      * Universal method to adding cookies
-     * Wrapper for setcookie() Conisdering PHP version
+     * Wrapper for setcookie() Considering PHP version
      *
      * @see https://www.php.net/manual/ru/function.setcookie.php
      *
@@ -100,7 +100,7 @@ class Cookie extends \Cleantalk\Variables\Cookie {
      * @param string $value    Cookie value
      * @param int    $expires  Expiration timestamp. 0 - expiration with session
      * @param string $path
-     * @param null   $domain
+     * @param string $domain
      * @param bool   $secure
      * @param bool   $httponly
      * @param string $samesite
@@ -133,7 +133,5 @@ class Cookie extends \Cleantalk\Variables\Cookie {
         }
         
     }
-    
-    
-    
+
 }
