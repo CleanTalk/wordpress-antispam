@@ -4,6 +4,7 @@ namespace Cleantalk\Antispam;
 
 /**
  * Request class
+ * @psalm-suppress PossiblyUnusedProperty
  */
 class CleantalkRequest {
 
@@ -11,114 +12,120 @@ class CleantalkRequest {
      *  All http request headers
      * @var string
      */
-     public $all_headers = null;
+     public $all_headers;
      
      /**
      *  IP address of connection
      * @var string
      */
-     //public $remote_addr = null;
      
      /**
      *  Last error number
      * @var integer
      */
-     public $last_error_no = null;
+     public $last_error_no;
      
      /**
      *  Last error time
      * @var integer
      */
-     public $last_error_time = null;
+     public $last_error_time;
      
      /**
      *  Last error text
      * @var string
      */
-     public $last_error_text = null;
+     public $last_error_text;
 
     /**
      * User message
-     * @var string
+     * @var null|scalar
      */
-    public $message = null;
+    public $message;
 
     /**
      * Post example with last comments
-     * @var string
+     * @var null|scalar
      */
-    public $example = null;
+    public $example;
 
     /**
      * Auth key
      * @var string
      */
-    public $auth_key = null;
+    public $auth_key;
 
     /**
      * Engine
      * @var string
      */
-    public $agent = null;
+    public $agent;
 
     /**
      * Is check for stoplist,
      * valid are 0|1
      * @var int
      */
-    public $stoplist_check = null;
+    public $stoplist_check;
 
     /**
      * Language server response,
      * valid are 'en' or 'ru'
      * @var string
      */
-    public $response_lang = null;
+    public $response_lang;
 
     /**
      * User IP
-     * @var strings
+     * @var string
      */
-    public $sender_ip = null;
+    public $sender_ip;
 
     /**
      * User email
-     * @var strings
+     * @var string
      */
-    public $sender_email = null;
+    public $sender_email;
 
     /**
      * User nickname
      * @var string
      */
-    public $sender_nickname = null;
+    public $sender_nickname;
 
     /**
      * Sender info JSON string
      * @var string
      */
-    public $sender_info = null;
+    public $sender_info;
 
     /**
      * Post info JSON string
      * @var string
      */
-    public $post_info = null;
+    public $post_info;
 
     /**
      * Is allow links, email and icq,
      * valid are 1|0
      * @var int
      */
-    public $allow_links = null;
+    public $allow_links;
 
     /**
      * Time form filling
      * @var int
      */
-    public $submit_time = null;
-    
+    public $submit_time;
+
+	/**
+	 * @var string|null
+	 */
     public $x_forwarded_for = '';
+
+	/**
+	 * @var string|null
+	 */
     public $x_real_ip = '';
 
     /**
@@ -130,26 +137,26 @@ class CleantalkRequest {
 	 *  1 - JS enabled at the client broswer
      * @var int
      */
-    public $js_on = null;
+    public $js_on;
 
     /**
      * user time zone
      * @var string
      */
-    public $tz = null;
+    public $tz;
 
     /**
      * Feedback string,
      * valid are 'requset_id:(1|0)'
      * @var string
      */
-    public $feedback = null;
+    public $feedback;
 
     /**
      * Phone number
-     * @var type 
+     * @var string
      */
-    public $phone = null;
+    public $phone;
     
     /**
     * Method name
@@ -164,7 +171,8 @@ class CleantalkRequest {
 
 	/**
      * Fill params with constructor
-     * @param type $params
+     * @param array $params
+	 * @psalm-suppress PossiblyUnusedMethod
      */
     public function __construct($params = null) {
 		
@@ -180,8 +188,9 @@ class CleantalkRequest {
 		
 		// crunch for "PHP Notice:  Array to string conversion". Error appears only on Gravity forms
         // @todo fix gat_fields_any
-        if( isset( $params['sender_nickname'] ) && is_array( $params['sender_nickname'] ) )
-            $params['sender_nickname'] = current( $params['sender_nickname'] );
+        if( isset( $params['sender_nickname'] ) && is_array( $params['sender_nickname'] ) ) {
+	        $params['sender_nickname'] = current( $params['sender_nickname'] );
+        }
         
 		$this->sender_nickname = !empty($params['sender_nickname']) ? (string)$params['sender_nickname']          : null;
 		$this->phone           = !empty($params['phone'])           ? (string)$params['phone']                    : null;
