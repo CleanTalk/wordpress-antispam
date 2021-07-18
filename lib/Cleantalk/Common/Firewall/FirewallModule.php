@@ -21,6 +21,7 @@ class FirewallModule extends FirewallModule_abstract {
 	 * @param $log_table
 	 * @param $data_table
 	 * @param array $params
+	 * @psalm-suppress PossiblyUnusedMethod
 	 */
 	public function __construct( $log_table, $data_table, $params = array() ){
 	
@@ -32,11 +33,22 @@ class FirewallModule extends FirewallModule_abstract {
 	 * Use this method to execute main logic of the module.
 	 *
 	 * @return array  Array of the check results
+	 * @psalm-suppress PossiblyUnusedMethod
 	 */
-	public function check(){}
-	
+	public function check(){
+		return array();
+	}
+
+	/**
+	 * @param $result
+	 * @psalm-suppress PossiblyUnusedMethod
+	 */
 	public function actions_for_denied( $result ){}
-	
+
+	/**
+	 * @param $result
+	 * @psalm-suppress PossiblyUnusedMethod
+	 */
 	public function actions_for_passed( $result ){}
 	
 	/**
@@ -52,25 +64,11 @@ class FirewallModule extends FirewallModule_abstract {
 	public function setIpArray( $ip_array ) {
 		$this->ip_array = $ip_array;
 	}
-	
-	public function getIpArray() {
-		return $this->ip_array;
-	}
-	
+
 	/**
-	 * @param mixed $db__table__data
+	 * @param $result
+	 * @psalm-suppress PossiblyUnusedMethod
 	 */
-	public function setDbTableData( $db__table__data ) {
-		$this->db__table__data = $db__table__data;
-	}
-	
-	/**
-	 * @param mixed $db__table__logs
-	 */
-	public function setDbTableLogs( $db__table__logs ) {
-		$this->db__table__logs = $db__table__logs;
-	}
-	
 	public function _die( $result ){
 		
 		// Headers
