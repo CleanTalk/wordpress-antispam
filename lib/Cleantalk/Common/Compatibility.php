@@ -12,6 +12,8 @@ namespace Cleantalk\Common;
  * @copyright (C) 2014 CleanTalk team (http://cleantalk.org)
  * @license       GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  * @see           https://github.com/CleanTalk/php-antispam
+ *
+ * @psalm-suppress UnusedProperty
  */
 class Compatibility
 {
@@ -61,6 +63,7 @@ class Compatibility
 	 * W3 Total Cache check late init option
 	 *
 	 * @return boolean
+	 * @psalm-suppress PossiblyUnusedMethod
 	 */
 	public function w3tcCheckLateInit__callback(){
 	    
