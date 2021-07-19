@@ -956,7 +956,7 @@ function apbct_sfw_update__process_file( $multifile_url, $url_count, $current_ur
             );
         }
     
-        return array( 'error' => 'PROCESS FILE: ' . $result['error'] );
+        return array( 'error' => 'PROCESS FILE: ' . $rc_result['error'] );
     }
     
     return $result;
