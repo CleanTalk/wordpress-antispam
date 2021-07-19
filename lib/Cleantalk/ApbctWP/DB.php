@@ -27,7 +27,7 @@ class DB extends \Cleantalk\Common\DB
 	private $query;
 	
 	/**
-	 * @var wpdb result
+	 * @var \wpdb result
 	 */
 	private $db_result;
 	
@@ -94,8 +94,8 @@ class DB extends \Cleantalk\Common\DB
 	{
 		global $wpdb;
 		
-		$query = $query ? $query : $this->query;
-		$vars  = $vars  ? $vars  : array();
+		$query = $query ?: $this->query;
+		$vars  = $vars ?: array();
 		array_unshift($vars, $query);
 		
 		$this->query = call_user_func_array(array($wpdb, 'prepare'), $vars);
@@ -120,20 +120,20 @@ class DB extends \Cleantalk\Common\DB
 	}
 	
 	/**
-	 * Fetchs first column from query.
+	 * Fetch first column from query.
 	 * May receive raw or prepared query.
 	 *
 	 * @param string $query
-	 * @param bool $response_type
+	 * @param bool|string $response_type
 	 *
 	 * @return array|object|void|null
 	 */
-	public function fetch($query = false, $response_type = false)
+	public function fetch($query = '', $response_type = false)
 	{
 		global $wpdb;
 		
-		$query         = $query         ? $query         : $this->query;
-		$response_type = $response_type ? $response_type : ARRAY_A;
+		$query         = $query ?: $this->query;
+		$response_type = $response_type ?: ARRAY_A;
 		
 		$this->result = $wpdb->get_row($query, $response_type);
 		
@@ -141,26 +141,30 @@ class DB extends \Cleantalk\Common\DB
 	}
 	
 	/**
-	 * Fetchs all result from query.
+	 * Fetch all result from query.
 	 * May receive raw or prepared query.
 	 *
 	 * @param string $query
-	 * @param bool $response_type
+	 * @param bool|string $response_type
 	 *
 	 * @return array|object|null
 	 */
-	public function fetch_all($query = false, $response_type = false)
+	public function fetch_all($query = '', $response_type = false)
 	{
 		global $wpdb;
 		
-		$query         = $query         ? $query         : $this->query;
-		$response_type = $response_type ? $response_type : ARRAY_A;
+		$query         = $query ?: $this->query;
+		$response_type = $response_type ?: ARRAY_A;
 		
 		$this->result = $wpdb->get_results($query, $response_type);
 		
 		return $this->result;
 	}
 
+	/**
+	 * @return string
+	 * @psalm-suppress PossiblyUnusedMethod
+	 */
 	public function get_last_error() {
 		global $wpdb;
 		return $wpdb->last_error;
