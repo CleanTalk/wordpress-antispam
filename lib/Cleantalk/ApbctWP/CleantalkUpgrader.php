@@ -75,7 +75,12 @@ class CleantalkUpgrader extends \Plugin_Upgrader
 		
 		return true;
 	}
-	
+
+	/**
+	 * @param array|object $options
+	 *
+	 * @return array|bool|string|\WP_Error
+	 */
 	public function run( $options ) {
 		
 		$defaults = array(
@@ -109,6 +114,7 @@ class CleantalkUpgrader extends \Plugin_Upgrader
 		$this->skin->before();
 
 		if ( is_wp_error($res) ) {
+			/** @psalm-suppress InvalidScalarArgument */
 			$this->skin->error($res);
 			$this->skin->after();
 			if ( ! $options['is_multi'] ) {
