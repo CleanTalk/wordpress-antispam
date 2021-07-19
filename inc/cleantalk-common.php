@@ -791,7 +791,7 @@ function ct_delete_spam_comments() {
  *
  * @param $arr
  * @param array $message
- * @param null $email
+ * @param null|string $email
  * @param array $nickname
  * @param null $subject
  * @param bool $contact
