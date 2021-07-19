@@ -1,10 +1,13 @@
 <?php
 
-use Cleantalk\Variables\Server;
+use Cleantalk\ApbctWP\Variables\Cookie;
+use Cleantalk\Common\Helper;
 
 /**
  * Init functions
- * @return 	mixed[] Array of options
+ *
+ * @throws Exception
+ * @psalm-suppress UnusedVariable
  */
 function apbct_init() {
 
@@ -14,9 +17,9 @@ function apbct_init() {
     if( $apbct->settings['data__pixel'] ){
 
         $pixel_hash = md5(
-            \Cleantalk\Common\Helper::ip__get()
+            Helper::ip__get()
                 . $apbct->api_key
-                . \Cleantalk\Common\Helper::time__get_interval_start( 3600 * 3 ) // Unique for every 3 hours
+                . Helper::time__get_interval_start( 3600 * 3 ) // Unique for every 3 hours
         );
 
         $server = get_option('cleantalk_server');
@@ -26,7 +29,7 @@ function apbct_init() {
     }
 
     //Check internal forms with such "action" http://wordpress.loc/contact-us/some_script.php
-    if((isset($_POST['action']) && $_POST['action'] == 'ct_check_internal') &&
+    if( (isset($_POST['action']) && $_POST['action'] === 'ct_check_internal') &&
         $apbct->settings['forms__check_internal']
     ){
         $ct_result = ct_contact_form_validate();
@@ -84,7 +87,7 @@ function apbct_init() {
 			unset($_POST['cleantalk_hidden_method']);
 			ct_contact_form_validate();
 			if(!apbct_is_ajax()){
-				print "<html><body><form method='$method' action='$action'>";
+				print "<html lang=''><body><form method='$method' action='$action'>";
 				ct_print_form($_POST, '');
 				print "</form></body></html>";
 				print "<script " . ( class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '' ) . ">
@@ -111,12 +114,12 @@ function apbct_init() {
 	}
 
 	//hook for Anonymous Post
-    if($apbct->settings['data__general_postdata_test'] == 1 && empty($_POST['ct_checkjs_cf7']))
-    	add_action('wp', 'ct_contact_form_validate_postdata',1);
+    if($apbct->settings['data__general_postdata_test'] == 1 && empty($_POST['ct_checkjs_cf7'])) {
+	    add_action( 'wp', 'ct_contact_form_validate_postdata', 1 );
+    }
 
     if($apbct->settings['forms__general_contact_forms_test'] == 1 && empty($_POST['ct_checkjs_cf7'])){
 		add_action('CMA_custom_post_type_nav', 'ct_contact_form_validate_postdata',1);
-		//add_action('init','ct_contact_form_validate',1);
 		ct_contact_form_validate();
 		if(isset($_POST['reg_redirect_link'])&&isset($_POST['tmpl_registration_nonce_field']))
 		{
@@ -125,10 +128,9 @@ function apbct_init() {
 		}
 	}
 
-    if($apbct->settings['data__general_postdata_test'] == 1 && empty($_POST['ct_checkjs_cf7']))
-    	add_action('CMA_custom_post_type_nav', 'ct_contact_form_validate_postdata',1);
-
-	//add_action('wp_footer','ct_ajaxurl');
+    if($apbct->settings['data__general_postdata_test'] == 1 && empty($_POST['ct_checkjs_cf7'])) {
+	    add_action( 'CMA_custom_post_type_nav', 'ct_contact_form_validate_postdata', 1 );
+    }
 
     // Fast Secure contact form
 	if(defined('FSCF_VERSION')){
@@ -142,7 +144,7 @@ function apbct_init() {
         if ($apbct->settings['forms__wc_checkout_test'] == 1) {
 	        add_filter('woocommerce_checkout_process', 'ct_woocommerce_checkout_check', 1, 3);
         }
-        if( isset($_REQUEST['wc-ajax']) && $_REQUEST['wc-ajax'] == 'checkout' && empty( $apbct->settings['forms__wc_register_from_order'] ) ){
+        if( isset($_REQUEST['wc-ajax']) && $_REQUEST['wc-ajax'] === 'checkout' && empty( $apbct->settings['forms__wc_register_from_order'] ) ){
             remove_filter( 'woocommerce_registration_errors', 'ct_registration_errors', 1 );
         }
 
@@ -151,20 +153,21 @@ function apbct_init() {
     }
 
 	// WooCommerce whishlist
-	if(class_exists('WC_Wishlists_Wishlist'))
-		add_filter('wc_wishlists_create_list_args', 'ct_woocommerce_wishlist_check', 1, 1);
+	if(class_exists('WC_Wishlists_Wishlist')) {
+		add_filter( 'wc_wishlists_create_list_args', 'ct_woocommerce_wishlist_check', 1, 1 );
+	}
 
 
     // JetPack Contact form
     if(defined('JETPACK__VERSION'))
     {
         // Checking Jetpack contact form
-        if(isset($_POST['action']) && $_POST['action'] == 'grunion-contact-form' ){
-            if(JETPACK__VERSION=='3.4-beta')
+        if(isset($_POST['action']) && $_POST['action'] === 'grunion-contact-form' ){
+            if( JETPACK__VERSION === '3.4-beta')
             {
                 add_filter('contact_form_is_spam', 'ct_contact_form_is_spam');
             }
-            else if(JETPACK__VERSION=='3.4-beta2'||JETPACK__VERSION>='3.4')
+            else if( JETPACK__VERSION === '3.4-beta2' || JETPACK__VERSION >= '3.4')
             {
                 add_filter('jetpack_contact_form_is_spam', 'ct_contact_form_is_spam_jetpack',50,2);
             }
@@ -186,7 +189,7 @@ function apbct_init() {
 
     }
 
-	// WP Maintenance Mode (wpmm)
+	// WP Maintenance Mode (wpms)
 	add_action('wpmm_head', 'apbct_form__wpmm__addField', 1);
 
     // Contact Form7
@@ -214,7 +217,6 @@ function apbct_init() {
 		add_filter('pp_registration_validation', 'ct_registration_errors_ppress', 11, 2);
 	}
 
-
     // bbPress
 	if(class_exists('bbPress')){
 		add_filter('bbp_new_topic_pre_title', 'ct_bbp_get_topic', 1);
@@ -225,8 +227,9 @@ function apbct_init() {
 	}
 
 	//Custom Contact Forms
-	if(defined('CCF_VERSION'))
-		add_filter('ccf_field_validator', 'ct_ccf', 1, 4);
+	if(defined('CCF_VERSION')) {
+		add_filter( 'ccf_field_validator', 'ct_ccf', 1, 4 );
+	}
 
     add_action('comment_form', 'ct_comment_form');
 
@@ -243,7 +246,6 @@ function apbct_init() {
 	if (defined('WS_PLUGIN__S2MEMBER_PRO_VERSION')){
 		$post_keys = array_keys($_POST);
 		foreach($post_keys as $post_key){
-
 			// Detect POST keys like /s2member_pro.*registration/
 			if(strpos($post_key, 's2member') !== false && strpos($post_key, 'registration') !== false){
 				ct_s2member_registration_test($post_key);
@@ -270,13 +272,14 @@ function apbct_init() {
 
 	//Pirate forms
 	if(defined('PIRATE_FORMS_VERSION')){
-		if(isset($_POST['pirate-forms-contact-name']) && $_POST['pirate-forms-contact-name'] && isset($_POST['pirate-forms-contact-email']) && $_POST['pirate-forms-contact-email'])
+		if(isset($_POST['pirate-forms-contact-name']) && $_POST['pirate-forms-contact-name'] && isset($_POST['pirate-forms-contact-email']) && $_POST['pirate-forms-contact-email']) {
 			apbct_form__piratesForm__testSpam();
+		}
 	}
 
 	// WPForms
 	// Adding fields
-	 add_action('wpforms_frontend_output', 'apbct_form__WPForms__addField', 1000, 5);
+	add_action('wpforms_frontend_output', 'apbct_form__WPForms__addField', 1000, 5);
 	// Gathering data to validate
 	add_filter('wpforms_process_before_filter', 'apbct_from__WPForms__gatherData', 100, 2);
 	// Do spam check
@@ -301,7 +304,7 @@ function apbct_init() {
             $pmpro_required_user_fields['bemail'] == $pmpro_required_user_fields['bconfirmemail']
         ) {
 	        $check = ct_test_registration( $pmpro_required_user_fields['username'], $pmpro_required_user_fields['bemail'] );
-            if( $check['allow'] == 0 ) {
+            if( $check['allow'] == 0 && function_exists('pmpro_setMessage') ) {
                 pmpro_setMessage( $check['comment'], 'pmpro_error' );
             }
         }
@@ -361,8 +364,9 @@ function apbct_buffer__output(){
 
 	global $apbct;
 
-	if( empty( $apbct->buffer ) )
+	if( empty( $apbct->buffer ) ) {
 		return;
+	}
 
 	if( apbct_is_plugin_active( 'flow-flow/flow-flow.php' ) ) {
 		$output = apbct_buffer_modify_by_string();
@@ -425,14 +429,14 @@ function apbct_buffer_modify_by_dom() {
 	foreach($forms as $form){
 
 		$action = $form->getAttribute('action');
-		$action = $action ? $action : $site_url;
+		$action = $action ?: $site_url;
 		$action__host = parse_url($action,  PHP_URL_HOST);
 
 		// Check if the form directed to the third party site
 		if($site__host != $action__host){
 
 			$method = $form->getAttribute('method');
-			$method = $method ? $method : 'get';
+			$method = $method ?: 'get';
 			// Directs form to our site
 			$form->setAttribute('method', 'POST');
 			$form->setAttribute('action', home_url(add_query_arg(array(), $wp->request)));
@@ -457,7 +461,7 @@ function apbct_buffer_modify_by_dom() {
 
 	$html = $dom->getElementsByTagName('html');
 
-	return is_object( $html ) && isset( $html[0], $html[0]->childNodes, $html[0]->childNodes[0] ) && $dom->getElementsByTagName( 'rss' )->length == 0
+	return is_object( $html ) && isset( $html[0], $html[0]->childNodes[0] ) && $dom->getElementsByTagName( 'rss' )->length == 0
 		? $dom->saveHTML()
 		: $apbct->buffer;
 
@@ -475,15 +479,16 @@ function apbct_hook__wp_head__set_cookie__ct_checkjs() {
 
 /**
  * Adds check_js script to the footer
+ * @psalm-suppress UnusedVariable
  */
 function apbct_hook__wp_footer() {
 
+	global $apbct;
+
 	# Return false if page is excluded
 	if (apbct_exclusions_check__url()) {
-		return false;
+		return;
 	}
-
-	global $apbct;
 
 	// Pixel
     if(
@@ -507,7 +512,7 @@ function apbct_hook__wp_footer() {
 			                    { callback: apbct_js_keys__set_input_value }
 			                )
 			            } 
-					},". $timeout .");					   
+					},". $timeout . ")					   
 				});								
 			</script>";
 		} else {
@@ -520,7 +525,7 @@ function apbct_hook__wp_footer() {
 			                    { callback: apbct_js_keys__set_input_value, apbct_ajax: 1 }
 			                );
 			            }
-					},". $timeout .");					    
+					},". $timeout . ")					    
 				});				
 			</script>";
 		}
@@ -531,8 +536,17 @@ function apbct_hook__wp_footer() {
 }
 
 /**
- * Adds hidden filed to define avaialbility of client's JavaScript
- * @param 	bool $random_key switch on generation random key for every page load
+ * Adds hidden filed to define availability of client's JavaScript
+ *
+ * @param string $field_name
+ * @param bool $return_string
+ * @param bool $cookie_check
+ * @param bool $no_print
+ * @param bool $ajax
+ *
+ * @return array|false|string|string[]|void
+ *
+ * @psalm-suppress UnusedVariable
  */
 function ct_add_hidden_fields($field_name = 'ct_checkjs', $return_string = false, $cookie_check = false, $no_print = false, $ajax = true) {
 
@@ -544,7 +558,7 @@ function ct_add_hidden_fields($field_name = 'ct_checkjs', $return_string = false
     global $ct_checkjs_def, $apbct;
 
     $ct_checkjs_key = ct_get_checkjs_value();
-    $field_id_hash = md5(rand(0, 1000));
+    $field_id_hash = md5((string)rand(0, 1000));
 
 	// Using only cookies
     if ($cookie_check && $apbct->settings['data__set_cookies'] ) {
@@ -562,8 +576,9 @@ function ct_add_hidden_fields($field_name = 'ct_checkjs', $return_string = false
     }elseif($apbct->settings['data__use_ajax'] && $ajax){
 
 		// Fix only for wp_footer -> apbct_hook__wp_head__set_cookie__ct_checkjs()
-		if($no_print)
+		if($no_print) {
 			return;
+		}
 
     	$field_id = $field_name . '_' . $field_id_hash;
 		$html = "<input type=\"hidden\" id=\"{$field_id}\" name=\"{$field_name}\" value=\"{$ct_checkjs_def}\" />";
@@ -571,8 +586,9 @@ function ct_add_hidden_fields($field_name = 'ct_checkjs', $return_string = false
 	// Set KEY from backend
     }else{
 		// Fix only for wp_footer -> apbct_hook__wp_head__set_cookie__ct_checkjs()
-		if($no_print)
+		if($no_print) {
 			return;
+		}
 
         $ct_input_challenge = sprintf("'%s'", $ct_checkjs_key);
     	$field_id = $field_name . '_' . $field_id_hash;
@@ -605,7 +621,7 @@ function ct_add_hidden_fields($field_name = 'ct_checkjs', $return_string = false
  * @param int $comment_ID Comment id
  * @return bool flag
  */
-function apbct_comment__Wordpress__doNotify($maybe_notify, $comment_ID){
+function apbct_comment__Wordpress__doNotify($_maybe_notify, $_comment_ID){
 	return true;
 }
 
@@ -617,7 +633,7 @@ function apbct_comment__Wordpress__doNotify($maybe_notify, $comment_ID){
  *
  * @return string
  */
-function apbct_comment__Wordpress__changeMailNotificationGroups($notify_message, $comment_id){
+function apbct_comment__Wordpress__changeMailNotificationGroups($notify_message, $_comment_id){
 	return $notify_message
 		.PHP_EOL
 		.'---'.PHP_EOL
@@ -631,9 +647,9 @@ function apbct_comment__Wordpress__changeMailNotificationGroups($notify_message,
  * @param integer    $comment_id
  *
  * @return array
- * @global SpbcState $apbct
+ * @global \Cleantalk\ApbctWP\State $apbct
  */
-function apbct_comment__Wordpress__changeMailNotificationRecipients($emails, $comment_id){
+function apbct_comment__Wordpress__changeMailNotificationRecipients($emails, $_comment_id){
 	global $apbct;
 	return array_unique(array_merge($emails, (array)json_decode($apbct->comment_notification_recipients, true)));
 }
@@ -642,33 +658,31 @@ function apbct_comment__Wordpress__changeMailNotificationRecipients($emails, $co
  * Changes email notification for spam comment for native Wordpress comment system
  *
  * @param string $notify_message Body of email notification
- * @param int $comment_id Comment id
+ * @param $_comment_id
+ *
  * @return string Body for email notification
  */
-function apbct_comment__Wordpress__changeMailNotification($notify_message, $comment_id){
+function apbct_comment__Wordpress__changeMailNotification($notify_message, $_comment_id){
 
 	global $apbct;
 
-	$notify_message =
-		PHP_EOL
-		.__('CleanTalk AntiSpam: This message is possible spam.', 'cleantalk-spam-protect')
-		."\n".__('You could check it in CleanTalk\'s anti-spam database:', 'cleantalk-spam-protect')
-		."\n".'IP: https://cleantalk.org/blacklists/' . $apbct->sender_ip
-		."\n".'Email: https://cleantalk.org/blacklists/' . $apbct->sender_email
-		."\n".PHP_EOL . sprintf(
-			__('Activate protection in your Anti-Spam Dashboard: %s.', 'clentalk'),
-			'https://cleantalk.org/my/?cp_mode=antispam&utm_source=newsletter&utm_medium=email&utm_campaign=wp_spam_comment_passed'
-			.($apbct->data['user_token']
-				? '&iser_token='.$apbct->data['user_token']
-				: ''
-			)
+	return PHP_EOL
+       . __('CleanTalk AntiSpam: This message is possible spam.', 'cleantalk-spam-protect')
+       . "\n" . __('You could check it in CleanTalk\'s anti-spam database:', 'cleantalk-spam-protect')
+       . "\n" . 'IP: https://cleantalk.org/blacklists/' . $apbct->sender_ip
+       . "\n" . 'Email: https://cleantalk.org/blacklists/' . $apbct->sender_email
+       . "\n" . PHP_EOL . sprintf(
+		__('Activate protection in your Anti-Spam Dashboard: %s.', 'clentalk'),
+		'https://cleantalk.org/my/?cp_mode=antispam&utm_source=newsletter&utm_medium=email&utm_campaign=wp_spam_comment_passed'
+		.($apbct->data['user_token']
+			? '&iser_token='.$apbct->data['user_token']
+			: ''
 		)
-		.PHP_EOL . '---'
-		.PHP_EOL
-		.PHP_EOL
-		.$notify_message;
-
-	return $notify_message;
+	)
+       . PHP_EOL . '---'
+       . PHP_EOL
+       . PHP_EOL
+       . $notify_message;
 
 }
 
@@ -702,10 +716,10 @@ function apbct_comment__wordpress__show_blacklists( $notify_message, $comment_id
 /**
  * Set die page with Cleantalk comment.
  * @global null $ct_comment
-    $err_text = '<center><b style="color: #49C73B;">Clean</b><b style="color: #349ebf;">Talk.</b> ' . __('Spam protection', 'cleantalk-spam-protect') . "</center><br><br>\n" . $ct_comment;
+ *   $err_text = '<center><b style="color: #49C73B;">Clean</b><b style="color: #349ebf;">Talk.</b> ' . __('Spam protection', 'cleantalk-spam-protect') . "</center><br><br>\n" . $ct_comment;
  * @param null $comment_status
  */
-function ct_die($comment_id, $comment_status) {
+function ct_die($_comment_id, $_comment_status) {
 
     global $ct_comment, $ct_jp_comments;
 
@@ -753,7 +767,7 @@ function ct_die($comment_id, $comment_status) {
 
 /**
  * Set die page with Cleantalk comment from parameter.
- * @param type $comment_body
+ * @param $comment_body
  */
 function ct_die_extended($comment_body) {
 
@@ -800,8 +814,8 @@ function ct_die_extended($comment_body) {
  * Validates JavaScript anti-spam test
  *
  * @param string $field_name filed to serach in data
- * @param array|null   $data Data to search in
- * @param bool   $random_key
+ * @param array|null $data Data to search in
+ * @param bool $is_cookie
  *
  * @return int|null
  */
@@ -813,11 +827,11 @@ function apbct_js_test($field_name = 'ct_checkjs', $data = null, $is_cookie = fa
 
     if(
         ($data && isset($data[$field_name])) ||
-        ($is_cookie && $apbct->settings['data__set_cookies'] == 2 && \Cleantalk\ApbctWP\Variables\Cookie::get( $field_name ))
+        ($is_cookie && $apbct->settings['data__set_cookies'] == 2 && Cookie::get( $field_name ))
     ){
 
 	    $js_key = $is_cookie && $apbct->settings['data__set_cookies'] == 2
-            ? \Cleantalk\ApbctWP\Variables\Cookie::get( $field_name )
+            ? Cookie::get( $field_name )
             : trim($data[$field_name]);
 
 	    // Check static key
@@ -842,14 +856,17 @@ function apbct_js_test($field_name = 'ct_checkjs', $data = null, $is_cookie = fa
 
 /**
  * Get post url
+ *
  * @param int $comment_id
  * @param int $comment_post_id
- * @return string|bool
+ *
+ * @return string|null
  */
 function ct_post_url( $comment_id, $comment_post_id ){
 
-    if (empty($comment_post_id))
-	return null;
+    if (empty($comment_post_id)) {
+	    return null;
+    }
 
     if ($comment_id === null) {
 	    $last_comment = get_comments('number=1');
@@ -858,8 +875,9 @@ function ct_post_url( $comment_id, $comment_post_id ){
     $permalink = get_permalink($comment_post_id);
 
     $post_url = null;
-    if ($permalink !== null)
-	$post_url = $permalink . '#comment-' . $comment_id;
+    if ($permalink !== null) {
+	    $post_url = $permalink . '#comment-' . $comment_id;
+    }
 
     return $post_url;
 }
@@ -873,21 +891,24 @@ function ct_set_not_approved() {
 }
 
 /**
- * @author Artem Leontiev
  * Public filter 'pre_comment_approved' - Mark comment approved if it's not 'spam' only
- * @return 	int 1
+ *
+ * @param $approved
+ * @param $_comment
+ *
+ * @return int|string "spam"|1
  */
-function ct_set_approved($approved, $comment) {
-    if ($approved == 'spam'){
+function ct_set_approved($approved, $_comment) {
+    if ( $approved === 'spam'){
         return $approved;
-    } else {
-        return 1;
     }
+
+	return 1;
 }
 
 /**
  * Public filter 'pre_comment_approved' - Mark comment unapproved always
- * @return 	int Zero
+ * @return 	string
  */
 function ct_set_comment_spam() {
     return 'spam';
@@ -903,12 +924,10 @@ function ct_set_meta($comment_id, $comment_status) {
     $hash1 = ct_hash();
     if (!empty($hash1)) {
         update_comment_meta($comment_id, 'ct_hash', $hash1);
-        if (function_exists('base64_encode') && isset($comment_status) && $comment_status != 'spam') {
+        if (function_exists('base64_encode') && isset($comment_status) && $comment_status !== 'spam') {
 			$post_url = ct_post_url($comment_id, $comment_post_id);
 			$post_url = base64_encode($post_url);
-			if ($post_url === false)
-			return false;
-			// 01 - URL to approved comment
+	        // 01 - URL to approved comment
 			$feedback_request = $hash1 . ':' . '01' . ':' . $post_url . ';';
 			ct_send_feedback($feedback_request);
 		}
@@ -921,8 +940,10 @@ function ct_set_meta($comment_id, $comment_status) {
  * @global string $ct_stop_words
  * @param int $comment_id
  * @param int $comment_status Not use
+ *
+ * @psalm-suppress UndefinedMethod
  */
-function ct_mark_red($comment_id, $comment_status) {
+function ct_mark_red($comment_id, $_comment_status) {
     global $ct_stop_words;
 
     $comment = get_comment($comment_id, 'ARRAY_A');
@@ -939,7 +960,7 @@ function ct_mark_red($comment_id, $comment_status) {
 //
 //Send post to trash
 //
-function ct_wp_trash_comment($comment_id, $comment_status){
+function ct_wp_trash_comment($comment_id, $_comment_status){
 	wp_trash_comment($comment_id);
 }
 
@@ -948,9 +969,10 @@ function ct_wp_trash_comment($comment_id, $comment_status){
 	* @return bool
 */
 function ct_plugin_active($plugin_name){
-	foreach (get_option('active_plugins') as $k => $v) {
-	    if ($plugin_name == $v)
+	foreach (get_option('active_plugins') as $_k => $v) {
+	    if ($plugin_name == $v) {
 		    return true;
+	    }
 	}
 	return false;
 }
@@ -960,7 +982,7 @@ function ct_plugin_active($plugin_name){
 function apbct_login__scripts(){
     global $apbct;
 
-    // Differnt JS params
+    // Different JS params
     wp_enqueue_script( 'ct_public', APBCT_URL_PATH . '/js/apbct-public.min.js', array( 'jquery' ), APBCT_VERSION, false /*in header*/ );
 	wp_enqueue_script('cleantalk-modal', plugins_url( '/cleantalk-spam-protect/js/cleantalk-modal.min.js' ),   array(),     APBCT_VERSION, false );
 
@@ -984,7 +1006,7 @@ function apbct_login__scripts(){
 
 /**
  * Inner function - Finds and returns pattern in string
- * @return null|bool
+ * @return bool
  */
 function ct_get_data_from_submit($value = null, $field_name = null) {
     if (!$value || !$field_name || !is_string($value)) {
@@ -993,6 +1015,7 @@ function ct_get_data_from_submit($value = null, $field_name = null) {
     if (preg_match("/[a-z0-9_\-]*" . $field_name. "[a-z0-9_\-]*$/", $value)) {
         return true;
     }
+	return false;
 }
 
 /**
@@ -1052,8 +1075,9 @@ function ct_print_form( $arr, $k ){
 
 /**
  * Attaches public scripts and styles.
+ * @psalm-suppress UnusedVariable
  */
-function ct_enqueue_scripts_public($hook){
+function ct_enqueue_scripts_public($_hook){
 
 	global $current_user, $apbct;
 
@@ -1075,7 +1099,7 @@ function ct_enqueue_scripts_public($hook){
 
 		if( ! $apbct->public_script_loaded ) {
 
-			// Differnt JS params
+			// Different JS params
 			wp_enqueue_script( 'ct_public', APBCT_URL_PATH . '/js/apbct-public.min.js?apbct_ver=' . APBCT_VERSION, array( 'jquery' ), APBCT_VERSION, false /*in header*/ );
 			wp_enqueue_script('cleantalk-modal', plugins_url( '/cleantalk-spam-protect/js/cleantalk-modal.min.js' ),   array(),     APBCT_VERSION, false );
 
@@ -1129,7 +1153,7 @@ function ct_enqueue_scripts_public($hook){
 
 			wp_localize_script('ct_public_gdpr', 'ctPublicGDPR', array(
 				'gdpr_forms' => array(),
-				'gdpr_text'  => $apbct->settings['gdpr__text'] ? $apbct->settings['gdpr__text'] : __('By using this form you agree with the storage and processing of your data by using the Privacy Policy on this website.', 'cleantalk-spam-protect'),
+				'gdpr_text'  => $apbct->settings['gdpr__text'] ?: __( 'By using this form you agree with the storage and processing of your data by using the Privacy Policy on this website.', 'cleantalk-spam-protect' ),
 			));
 		}
 
@@ -1196,9 +1220,9 @@ function ct_wp_list_comments_args($options){
 }
 
 /**
- * Callback function for the bootom comment output.
+ * Callback function for the bottom comment output.
  */
-function ct_comments_output($curr_comment, $param2, $wp_list_comments_args){
+function ct_comments_output($curr_comment, $_param2, $wp_list_comments_args){
 
 	global $apbct;
 
@@ -1217,23 +1241,27 @@ function ct_comments_output($curr_comment, $param2, $wp_list_comments_args){
 				." <a href='{$settings_link}' target='_blank'>CleanTalk</a>"
 			."</p></div>";
 		// Outputs email if exists
-		if($email)
+		if($email) {
 			echo "<a href='https://cleantalk.org/blacklists/$email' target='_blank' title='https://cleantalk.org/blacklists/$email'>"
-			."$email"
-				."&nbsp;<img src='".plugins_url()."/cleantalk-spam-protect/inc/images/new_window.gif' border='0' style='float:none; box-shadow: transparent 0 0 0 !important;'/>"
-			."</a>";
-		else
-			echo __('No email', 'cleantalk-spam-protect');
+			     . "$email"
+			     . "&nbsp;<img src='" . plugins_url() . "/cleantalk-spam-protect/inc/images/new_window.gif' border='0' style='float:none; box-shadow: transparent 0 0 0 !important;'/>"
+			     . "</a>";
+		}
+		else {
+			echo __( 'No email', 'cleantalk-spam-protect' );
+		}
 		echo "&nbsp;|&nbsp;";
 
 		// Outputs IP if exists
-		if($ip)
+		if($ip) {
 			echo "<a href='https://cleantalk.org/blacklists/$ip' target='_blank' title='https://cleantalk.org/blacklists/$ip'>"
-			."$ip"
-				."&nbsp;<img src='".plugins_url()."/cleantalk-spam-protect/inc/images/new_window.gif' border='0' style='float:none; box-shadow: transparent 0 0 0 !important;'/>"
-			."</a>";
-		else
-			echo __('No IP', 'cleantalk-spam-protect');
+			     . "$ip"
+			     . "&nbsp;<img src='" . plugins_url() . "/cleantalk-spam-protect/inc/images/new_window.gif' border='0' style='float:none; box-shadow: transparent 0 0 0 !important;'/>"
+			     . "</a>";
+		}
+		else {
+			echo __( 'No IP', 'cleantalk-spam-protect' );
+		}
 		echo '&nbsp;|&nbsp;';
 
 		echo "<span commentid='$id' class='ct_this_is ct_this_is_spam' href='#'>".__('Mark as spam', 'cleantalk-spam-protect')."</span>";
@@ -1257,7 +1285,7 @@ function ct_comments_output($curr_comment, $param2, $wp_list_comments_args){
 }
 
 /**
- * Callback function for the bootom comment output.
+ * Callback function for the bottom comment output.
  *
  * attrs = array()
  */
@@ -1265,12 +1293,13 @@ function apbct_shrotcode_handler__GDPR_public_notice__form( $attrs ){
 
 	$out = '';
 
-	if(isset($attrs['id']))
-		$out .= 'ctPublicGDPR.gdpr_forms.push("'.$attrs['id'].'");';
+	if(isset($attrs['id'])) {
+		$out .= 'ctPublicGDPR.gdpr_forms.push("' . $attrs['id'] . '");';
+	}
 
-	if(isset($attrs['text']))
-		$out .= 'ctPublicGDPR.gdpr_text = "'.$attrs['text'].'";';
+	if(isset($attrs['text'])) {
+		$out .= 'ctPublicGDPR.gdpr_text = "' . $attrs['text'] . '";';
+	}
 
-	$out = '<script ' . ( class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '' ) . '>'.$out.'</script>';
-	return $out;
+	return '<script ' . ( class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '' ) . '>' . $out . '</script>';
 }
