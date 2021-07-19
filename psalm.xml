@@ -17,17 +17,16 @@
         limitMethodComplexity="true"
 >
     <projectFiles>
-        <file name="cleantalk.php"/>
-        <file name="inc/cleantalk-updater.php"/>
-        <file name="inc/cleantalk-admin.php"/>
-        <file name="inc/cleantalk-ajax.php"/>
-        <file name="inc/cleantalk-settings.php"/>
-        <file name="inc/cleantalk-pluggable.php"/>
-        <directory name="lib"/>
+        <directory name="./"/>
         <ignoreFiles>
+            <directory name="node_modules"/>
+            <directory name="tests"/>
+            <directory name="vendor"/>
             <file name="lib/Cleantalk/Templates/Singleton.php"/>
-            <file name="cleantalk.php"/>
-            <directory name="lib/Cleantalk/ApbctWP"/>
+            <file name="lib/Cleantalk/ApbctWP/CleantalkListTable.php"/>
+            <file name="inc/cleantalk-common.php"/>
+            <file name="inc/cleantalk-public-validate.php"/>
+            <file name="inc/cleantalk-public-integrations.php"/>
         </ignoreFiles>
     </projectFiles>
 
@@ -53,6 +52,7 @@
         <UnusedVariable>
             <errorLevel type="suppress">
                 <file name="cleantalk.php"/>
+                <directory name="templates"/>
             </errorLevel>
         </UnusedVariable>
         <PossiblyUnusedMethod>
