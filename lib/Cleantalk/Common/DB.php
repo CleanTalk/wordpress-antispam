@@ -99,25 +99,25 @@ class DB
 	 * Fetchs first column from query.
 	 * May receive raw or prepared query.
 	 *
-	 * @param bool $query
-	 * @param bool $response_type
+	 * @param string $query
+	 * @param bool|string $response_type
 	 *
 	 * @return array|object|void|null
 	 * @psalm-suppress PossiblyUnusedMethod
 	 */
-	public function fetch($query = false, $response_type = false){ }
+	public function fetch($query = '', $response_type = false){ }
 	
 	/**
 	 * Fetchs all result from query.
 	 * May receive raw or prepared query.
 	 *
-	 * @param bool $query
-	 * @param bool $response_type
+	 * @param string $query
+	 * @param bool|string $response_type
 	 *
 	 * @return array|object|null|void
 	 * @psalm-suppress PossiblyUnusedMethod
 	 */
-	public function fetch_all($query = false, $response_type = false){ }
+	public function fetch_all($query = '', $response_type = false){ }
     
     /**
      * Checks if the table exists
