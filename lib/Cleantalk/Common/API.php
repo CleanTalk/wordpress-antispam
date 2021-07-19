@@ -695,7 +695,7 @@ class API
 	 * Settings templates add API method wrapper
 	 *
 	 * @param string $api_key
-	 * @param null $template_name
+	 * @param null|string $template_name
 	 * @param bool $do_check
 	 *
 	 * @return array|bool|mixed
