@@ -26,7 +26,6 @@
             <file name="lib/Cleantalk/ApbctWP/CleantalkListTable.php"/>
             <file name="inc/cleantalk-common.php"/>
             <file name="inc/cleantalk-public-validate.php"/>
-            <file name="inc/cleantalk-public-integrations.php"/>
         </ignoreFiles>
     </projectFiles>
 
