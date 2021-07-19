@@ -857,7 +857,7 @@ function apbct_js_test($field_name = 'ct_checkjs', $data = null, $is_cookie = fa
 /**
  * Get post url
  *
- * @param int $comment_id
+ * @param int|null $comment_id
  * @param int $comment_post_id
  *
  * @return string|null
