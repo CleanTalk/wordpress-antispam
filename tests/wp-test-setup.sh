@@ -5,17 +5,14 @@ DB_USER=$2
 DB_PASS=$3
 DB_HOST=${4-localhost}
 WP_VERSION=${5-latest}
-print $DB_NAME
-print $DB_USER
-print $DB_PASS
-print $DB_HOST
 # WordPress test setup script for Travis CI
 
 export WP_CORE_DIR=/tmp/wordpress
 export WP_TESTS_DIR=/tmp/wordpress-tests
 
 # Init database
-mysql -e 'CREATE DATABASE wordpress_test;' -uroot
+#Only for TravisCI
+#mysql -e 'CREATE DATABASE wordpress_test;' -uroot
 
 # Grab specified version of WordPress from github
 wget -nv -O /tmp/wordpress.tar.gz https://wordpress.org/latest.tar.gz
