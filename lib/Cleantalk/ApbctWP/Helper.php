@@ -207,7 +207,7 @@ class Helper extends \Cleantalk\Common\Helper
      *
      * @param string $url
      *
-     * @return array|mixed|string
+     * @return array|string
      */
     public static function http__get_data_from_remote_gz__and_parse_csv( $url ){
     
