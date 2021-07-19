@@ -828,10 +828,10 @@ function apbct_comment__unmark_red($message) {
 /**
  * Ajax action feedback form comments page.
  *
- * @param null $comment_id
- * @param null $comment_status
+ * @param null|int $comment_id
+ * @param null|string $comment_status
  * @param bool $change_status
- * @param null $direct_call
+ * @param null|bool $direct_call
  */
 function apbct_comment__send_feedback($comment_id = null, $comment_status = null, $change_status = false, $direct_call = null){
 	
