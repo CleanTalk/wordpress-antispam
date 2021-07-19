@@ -2,14 +2,14 @@ name: APBCT complete testing
 
 on:
   push:
-    branches: [ master, dev, fix ]
+    branches: [ ghaction ]
   pull_request:
-    branches: [ master ]
+    branches: [ master, dev ]
 
 jobs:
   build:
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
 
     steps:
       - uses: actions/checkout@v2
