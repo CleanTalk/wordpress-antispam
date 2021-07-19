@@ -6,11 +6,6 @@ namespace Cleantalk\ApbctWP;
 
 class Ajax {
 
-	/**
-	 * string
-	 */
-	private $table_prefix;
-
 	public function __construct()
 	{
 		define( 'DOING_AJAX', true );
@@ -132,6 +127,7 @@ class Ajax {
 			 *
 			 * @param int    $uid    ID of the nonce-owning user.
 			 * @param string $action The nonce action.
+			 * @psalm-suppress TooManyArguments
 			 */
 			$uid = apply_filters( 'nonce_user_logged_out', $uid, $action );
 		}
