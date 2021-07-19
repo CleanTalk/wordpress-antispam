@@ -5,7 +5,10 @@ DB_USER=$2
 DB_PASS=$3
 DB_HOST=${4-localhost}
 WP_VERSION=${5-latest}
-
+print DB_NAME
+print DB_USER
+print DB_PASS
+print DB_HOST
 # WordPress test setup script for Travis CI
 
 export WP_CORE_DIR=/tmp/wordpress

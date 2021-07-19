@@ -25,7 +25,7 @@ jobs:
           php-version: 7.4
 
       - name: Setup test WP
-        run: source tests/wp-test-setup.sh wordpress_test root 'root' localhost latest
+        run: source tests/wp-test-setup.sh wordpress_test root root localhost latest
 
       - name: Validate composer.json and composer.lock
         run: composer validate --strict
