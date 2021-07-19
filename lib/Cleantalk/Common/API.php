@@ -28,7 +28,7 @@ class API
      * @param string      $version API method version
 	 * @param boolean     $do_check
 	 *
-	 * @return mixed|string|array ('error' => STRING)
+	 * @return string|array ('error' => STRING)
 	 *
 	 * @psalm-suppress PossiblyUnusedMethod
 	 */
@@ -286,7 +286,7 @@ class API
 	 * @param array  $data
 	 * @param bool   $do_check
 	 *
-	 * @return array|bool|mixed
+	 * @return array|bool
 	 *
 	 * @psalm-suppress PossiblyUnusedMethod
 	 */
