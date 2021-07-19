@@ -1634,6 +1634,7 @@ function apbct__hook__wp_logout__delete_trial_notice_cookie(){
  * Store URLs
  *
  * @throws JsonException
+ * @ToDo need to be refactored psalm notices about InvalidArrayOffset
  */
 function apbct_store__urls(){
 	
@@ -1649,9 +1650,11 @@ function apbct_store__urls(){
 		
 		// Get already stored URLs
 		$urls = Cookie::get( 'apbct_urls', array(), 'array' );
+		/** @psalm-suppress InvalidArrayOffset */
 		$urls[$current_url][] = time();
 		
 		// Rotating. Saving only latest 10
+		/** @psalm-suppress InvalidArrayOffset */
 		$urls[$current_url] = count($urls[$current_url]) > 10 ? array_slice($urls[$current_url], 1, 10) : $urls[$current_url];
 		$urls               = count($urls) > 10               ? array_slice($urls, 1, 10)               : $urls;
 		
