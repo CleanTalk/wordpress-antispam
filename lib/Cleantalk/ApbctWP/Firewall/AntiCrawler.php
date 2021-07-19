@@ -2,18 +2,24 @@
 
 namespace Cleantalk\ApbctWP\Firewall;
 
-use Cleantalk\Common\Helper as Helper;
+use Cleantalk\Common\Helper;
 use Cleantalk\Variables\Cookie;
 use Cleantalk\Variables\Server;
 
+/**
+ * Class AntiCrawler
+ * @package Cleantalk\ApbctWP\Firewall
+ *
+ * @psalm-suppress PossiblyUnusedProperty
+ */
 class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 	
 	public $module_name = 'ANTICRAWLER';
 	
-	private $db__table__ac_logs = null;
-	private $db__table__ac_ua_bl = null;
+	private $db__table__ac_logs;
+	private $db__table__ac_ua_bl;
 	private $api_key = '';
-	private $apbct = false;
+	private $apbct;
 	private $store_interval = 60;
 	private $sign; //Signature - User-Agent + Protocol
     private $ua_id = 'null'; //User-Agent
@@ -64,24 +70,18 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 
                         $entry = current($lines);
 
-                        if(empty($entry))
-                            continue;
-
-                        if ( APBCT_WRITE_LIMIT !== $i ) {
-
-                            if( ! isset( $entry[0], $entry[1] ) ){
-                                continue;
-                            }
-
-                            // Cast result to int
-                            $ua_id        = preg_replace('/[^\d]*/', '', $entry[0]);
-                            $ua_template  = isset($entry[1]) && apbct_is_regexp($entry[1]) ? Helper::db__prepare_param( $entry[1] ) : 0;
-                            $ua_status    = isset($entry[2]) ? $entry[2] : 0;
-
-                            if( ! $ua_id || ! $ua_template ){
-                                continue;
-                            }
+                        if( empty($entry) || ! isset( $entry[0], $entry[1] ) ) {
+	                        continue;
                         }
+
+	                    // Cast result to int
+	                    $ua_id        = preg_replace('/[^\d]*/', '', $entry[0]);
+	                    $ua_template  = isset($entry[1]) && apbct_is_regexp($entry[1]) ? Helper::db__prepare_param( $entry[1] ) : 0;
+	                    $ua_status    = isset($entry[2]) ? $entry[2] : 0;
+
+	                    if( ! $ua_id || ! $ua_template ){
+		                    continue;
+	                    }
 
                         $values[] = '('. $ua_id .','. $ua_template .','. $ua_status .')';
 
@@ -94,54 +94,13 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 
                 }
                 return $count_result;
-            }else
-                return $result__clear_db;
-        }else
-            return array('error' => 'UAL_UPDATE_ERROR: '. $lines['error'] );
+            }else {
+	            return $result__clear_db;
+            }
+        }else {
+	        return array( 'error' => 'UAL_UPDATE_ERROR: ' . $lines['error'] );
+        }
     }
-
-	public static function direct_update( array $useragents ) {
-
-		$result__clear_db = self::clear_data_table( \Cleantalk\ApbctWP\DB::getInstance(), APBCT_TBL_AC_UA_BL );
-
-		if( empty( $result__clear_db['error'] ) ){
-
-			for( $count_result = 0; current($useragents) !== false; ) {
-
-				$query = "INSERT INTO " . APBCT_TBL_AC_UA_BL . " (id, ua_template, ua_status) VALUES ";
-
-				for( $i = 0, $values = array(); APBCT_WRITE_LIMIT !== $i && current( $useragents ) !== false; $i ++, $count_result ++, next( $useragents ) ){
-
-					$entry = current($useragents);
-
-					if(empty($entry))
-						continue;
-
-					if ( APBCT_WRITE_LIMIT !== $i ) {
-
-						// Cast result to int
-						// @ToDo check the output $entry
-						$ua_id        = preg_replace('/[^\d]*/', '', $entry[0]);
-						$ua_template  = isset($entry[1]) && apbct_is_regexp($entry[1]) ? Helper::db__prepare_param( $entry[1] ) : 0;
-						$ua_status    = isset($entry[2]) ? $entry[2] : 0;
-
-					}
-
-					$values[] = '('. $ua_id .','. $ua_template .','. $ua_status .')';
-
-				}
-
-				if( ! empty( $values ) ){
-					$query = $query . implode( ',', $values ) . ';';
-					\Cleantalk\ApbctWP\DB::getInstance()->execute( $query );
-				}
-
-			}
-			return $count_result;
-		}else
-			return $result__clear_db;
-
-	}
 
     private static function clear_data_table($db, $db__table__data) {
 
@@ -167,7 +126,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 		
 		$results = array();
 				
-        foreach( $this->ip_array as $ip_origin => $current_ip ) {
+        foreach( $this->ip_array as $_ip_origin => $current_ip ) {
 	        
         	// Skip by 301 response code
 	        if( $this->is_redirected() ){
@@ -194,7 +153,6 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
                             // Whitelisted
                             $results[] = array('ip' => $current_ip, 'is_personal' => false, 'status' => 'PASS_ANTICRAWLER_UA',);
                             return $results;
-                            break;
                         } else {
                             // Blacklisted
                             $results[] = array('ip' => $current_ip, 'is_personal' => false, 'status' => 'DENY_ANTICRAWLER_UA',);
@@ -215,8 +173,9 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
             // Skip by cookie
             if( Cookie::get('wordpress_apbct_antibot') == hash( 'sha256', $this->api_key . $this->apbct->data['salt'] ) ) {
                 if( Cookie::get( 'apbct_anticrawler_passed' ) == 1 ){
-                    if( ! headers_sent() )
-                        Cookie::set( 'apbct_anticrawler_passed', '0', time() - 86400, '/', null, null, true, 'Lax' );
+                    if( ! headers_sent() ) {
+	                    Cookie::set( 'apbct_anticrawler_passed', '0', time() - 86400, '/', '', null, true, 'Lax' );
+                    }
 
                     // Do logging an one passed request
                     $this->update_log( $current_ip, 'PASS_ANTICRAWLER' );
@@ -230,7 +189,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
         }
 		
         // Common check
-		foreach( $this->ip_array as $ip_origin => $current_ip ){
+		foreach( $this->ip_array as $_ip_origin => $current_ip ){
 
 		    // IP check
 			$result = $this->db->fetch(
@@ -249,8 +208,9 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 					
 					if( Cookie::get( 'apbct_anticrawler_passed' ) === '1' ){
 						
-						if( ! headers_sent() )
-							\Cleantalk\ApbctWP\Variables\Cookie::set( 'apbct_anticrawler_passed', '0', time() - 86400, '/', null, false, true, 'Lax' );
+						if( ! headers_sent() ) {
+							\Cleantalk\ApbctWP\Variables\Cookie::set( 'apbct_anticrawler_passed', '0', time() - 86400, '/', '', false, true, 'Lax' );
+						}
 						
 						$results[] = array( 'ip' => $current_ip, 'is_personal' => false, 'status' => 'PASS_ANTICRAWLER', );
 						
@@ -278,9 +238,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 	public function update_ac_log() {
 		$interval_time = Helper::time__get_interval_start( $this->store_interval );
 		
-		// @todo Rename ip column to sign. Use IP + UserAgent for it.
-		
-		foreach( $this->ip_array as $ip_origin => $current_ip ){
+		foreach( $this->ip_array as $_ip_origin => $current_ip ){
 			$id = md5( $current_ip . $this->sign . $interval_time );
 			$this->db->execute(
 				"INSERT INTO " . $this->db__table__ac_logs . " SET
@@ -313,6 +271,8 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 	 */
 	public function update_log( $ip, $status ) {
 
+		/** @psalm-suppress InvalidLiteralArgument */
+
 	    if( strpos( '_UA', $status ) !== false ) {
 	        $id_str = $ip . $this->module_name . '_UA';
         } else {
@@ -328,7 +288,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 				status = '$status',
 				all_entries = 1,
 				blocked_entries = " . ( strpos( $status, 'DENY' ) !== false ? 1 : 0 ) . ",
-				entries_timestamp = '" . intval( $time ) . "',
+				entries_timestamp = '" . $time . "',
 				ua_id = " . $this->ua_id . ",
 				ua_name = %s,
 				first_url = %s,
@@ -338,7 +298,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 			    status = '$status',
 				all_entries = all_entries + 1,
 				blocked_entries = blocked_entries" . ( strpos( $status, 'DENY' ) !== false ? ' + 1' : '' ) . ",
-				entries_timestamp = '" . intval( $time ) . "',
+				entries_timestamp = '" . $time . "',
 				ua_id = " . $this->ua_id . ",
 				ua_name = %s,
 				last_url = %s";
