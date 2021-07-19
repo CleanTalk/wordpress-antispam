@@ -1,4 +1,4 @@
-name: PHP Composer
+name: APBCT complete testing
 
 on:
   push:
@@ -13,6 +13,19 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+
+      - name: Setup MySQL
+        run: |
+          sudo /etc/init.d/mysql start
+          mysql -e 'CREATE DATABASE wordpress_test' -uroot -proot
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 7.4
+
+      - name: Setup test WP
+        run: source tests/wp-test-setup.sh wordpress_test root 'root' localhost latest
 
       - name: Validate composer.json and composer.lock
         run: composer validate --strict
