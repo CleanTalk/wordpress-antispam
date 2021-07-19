@@ -31,9 +31,7 @@ sed -i "s/youremptytestdbnamehere/$DB_NAME/" "$WP_TESTS_DIR"/wp-tests-config.php
 sed -i "s/yourusernamehere/$DB_USER/" "$WP_TESTS_DIR"/wp-tests-config.php
 sed -i "s/yourpasswordhere/$DB_PASS/" "$WP_TESTS_DIR"/wp-tests-config.php
 sed -i "s|localhost|${DB_HOST}|" "$WP_TESTS_DIR"/wp-tests-config.php
-ls
-cd ..
-ls
+
 if [[ "$TRAVISCI" == "psalm" ]] ; then
   # Put various components in proper folders
   plugin_slug=$(basename $(pwd))
