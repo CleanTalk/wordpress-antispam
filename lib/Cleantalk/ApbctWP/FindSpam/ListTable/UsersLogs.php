@@ -38,20 +38,24 @@ class UsersLogs extends Users
     }
 
     function get_bulk_actions() {
-        $actions = array(
-            'delete'    => 'Delete'
-        );
-        return $actions;
+	    return array(
+	        'delete'    => 'Delete'
+	    );
     }
 
     function bulk_actions_handler() {
 
-        if( empty($_POST['spamids']) || empty($_POST['_wpnonce']) ) return;
+        if( empty($_POST['spamids']) || empty($_POST['_wpnonce']) ) {
+	        return;
+        }
 
-        if ( ! $action = $this->current_action() ) return;
+        if ( ! $this->current_action() ) {
+	        return;
+        }
 
-        if( ! wp_verify_nonce( $_POST['_wpnonce'], 'bulk-' . $this->_args['plural'] ) )
-            wp_die('nonce error');
+        if( ! wp_verify_nonce( $_POST['_wpnonce'], 'bulk-' . $this->_args['plural'] ) ) {
+	        wp_die( 'nonce error' );
+        }
 
         $this->removeLogs( $_POST['spamids'] );
 
