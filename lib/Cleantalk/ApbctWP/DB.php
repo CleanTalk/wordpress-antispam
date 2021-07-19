@@ -123,7 +123,7 @@ class DB extends \Cleantalk\Common\DB
 	 * Fetchs first column from query.
 	 * May receive raw or prepared query.
 	 *
-	 * @param bool $query
+	 * @param string $query
 	 * @param bool $response_type
 	 *
 	 * @return array|object|void|null
@@ -144,7 +144,7 @@ class DB extends \Cleantalk\Common\DB
 	 * Fetchs all result from query.
 	 * May receive raw or prepared query.
 	 *
-	 * @param bool $query
+	 * @param string $query
 	 * @param bool $response_type
 	 *
 	 * @return array|object|null
