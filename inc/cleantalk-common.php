@@ -152,12 +152,6 @@ function apbct_base_call($params = array(), $reg_flag = false){
 		? \Cleantalk\ApbctWP\Helper::array_merge__save_numeric_keys__recursive(apbct_get_sender_info(), (array)$params['sender_info'])
 		: apbct_get_sender_info();
 
-	$honeypot_field = 1;
-
-	if(isset($params['honeypot_field'])) {
-		$honeypot_field = $params['honeypot_field'];
-	}
-	
 	$default_params = array(
 		
 		// IPs
@@ -173,10 +167,16 @@ function apbct_base_call($params = array(), $reg_flag = false){
 		
 		'agent'           => APBCT_AGENT,
 		'sender_info'     => $sender_info,
-		'submit_time'     => apbct_get_submit_time(),
-		'honeypot_field' => $honeypot_field
+		'submit_time'     => apbct_get_submit_time()
 	);
-	
+
+	/**
+	 * Add honeypot_field if exists in params
+	 */
+	if(isset($params['honeypot_field'])) {
+		$default_params['honeypot_field'] = $params['honeypot_field'];
+	}
+
 	// Send $_SERVER if couldn't find IP
 	if(empty($default_params['sender_ip']))
 		$default_params['sender_info']['server_info'] = $_SERVER;
@@ -994,7 +994,7 @@ function apbct__change_type_website_field( $fields ){
 
 	if(isset($apbct->settings['comments__hide_website_field']) && $apbct->settings['comments__hide_website_field']) {
 		if(isset($fields['url']) && $fields['url']) {
-			$fields['url'] = '<input id="honeypot-field-url" name="url" type="text" value="' . esc_attr( $commenter['comment_author_url'] ) . '" size="30" maxlength="200" />';
+			$fields['url'] = '<input id="honeypot-field-url" autocomplete="off" name="url" type="text" value="' . esc_attr( $commenter['comment_author_url'] ) . '" size="30" maxlength="200" />';
 		}
 	}
 

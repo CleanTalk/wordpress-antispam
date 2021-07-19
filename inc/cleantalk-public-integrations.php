@@ -902,34 +902,47 @@ function ct_preprocess_comment($comment) {
 	}
 
 	// Add honeypot_field field
-	$honeypot_field = 1;
+//	$honeypot_field = 1;
+//
+//	if(isset($apbct->settings['comments__hide_website_field']) && $apbct->settings['comments__hide_website_field']) {
+//		if(isset($_POST['url']) && !empty($_POST['url']) && $post_info['comment_type'] === 'comment' && isset($_POST['comment_post_ID'])) {
+//			$honeypot_field = 0;
+//		}
+//	}
 
+	$base_call_data = array(
+		'message'         => $comment['comment_content'],
+		'example'         => $example,
+		'sender_email'    => $comment['comment_author_email'],
+		'sender_nickname' => $comment['comment_author'],
+		'post_info'       => $post_info,
+		'js_on'           => $checkjs,
+		'sender_info'     => array(
+			'sender_url' => @$comment['comment_author_url'],
+			'form_validation' => !isset($apbct->validation_error)
+				? null
+				: json_encode(array(
+					'validation_notice' => $apbct->validation_error,
+					'page_url' => apbct_get_server_variable( 'HTTP_HOST' ) . apbct_get_server_variable( 'REQUEST_URI' ),
+				))
+		)
+	);
+
+	/**
+	 * Add honeypot_field to $base_call_data is comments__hide_website_field on
+	 */
 	if(isset($apbct->settings['comments__hide_website_field']) && $apbct->settings['comments__hide_website_field']) {
+		$honeypot_field = 1;
+
 		if(isset($_POST['url']) && !empty($_POST['url']) && $post_info['comment_type'] === 'comment' && isset($_POST['comment_post_ID'])) {
 			$honeypot_field = 0;
 		}
+
+		$base_call_data['honeypot_field'] = $honeypot_field;
 	}
 
-	$base_call_result = apbct_base_call(
-		array(
-			'message'         => $comment['comment_content'],
-			'example'         => $example,
-			'sender_email'    => $comment['comment_author_email'],
-			'sender_nickname' => $comment['comment_author'],
-			'post_info'       => $post_info,
-			'js_on'           => $checkjs,
-			'sender_info'     => array(
-				'sender_url' => @$comment['comment_author_url'],
-				'form_validation' => !isset($apbct->validation_error)
-					? null
-					: json_encode(array(
-						'validation_notice' => $apbct->validation_error,
-						'page_url' => apbct_get_server_variable( 'HTTP_HOST' ) . apbct_get_server_variable( 'REQUEST_URI' ),
-					))
-			),
-			'honeypot_field' => $honeypot_field
-		)
-	);
+	$base_call_result = apbct_base_call($base_call_data);
+
 	$ct_result = $base_call_result['ct_result'];
 
 	ct_hash($ct_result->id);
