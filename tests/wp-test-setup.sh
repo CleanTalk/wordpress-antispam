@@ -31,10 +31,14 @@ sed -i "s/youremptytestdbnamehere/$DB_NAME/" "$WP_TESTS_DIR"/wp-tests-config.php
 sed -i "s/yourusernamehere/$DB_USER/" "$WP_TESTS_DIR"/wp-tests-config.php
 sed -i "s/yourpasswordhere/$DB_PASS/" "$WP_TESTS_DIR"/wp-tests-config.php
 sed -i "s|localhost|${DB_HOST}|" "$WP_TESTS_DIR"/wp-tests-config.php
-
-# Put various components in proper folders
-plugin_slug=$(basename $(pwd))
-plugin_dir=$WP_CORE_DIR/wp-content/plugins/cleantalk-spam-protect
+ls
 cd ..
-mv $plugin_slug $plugin_dir
-cd $plugin_dir
+ls
+if [[ "$TRAVISCI" == "psalm" ]] ; then
+  # Put various components in proper folders
+  plugin_slug=$(basename $(pwd))
+  plugin_dir=$WP_CORE_DIR/wp-content/plugins/cleantalk-spam-protect
+  cd ..
+  mv $plugin_slug $plugin_dir
+  cd $plugin_dir
+fi
