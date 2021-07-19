@@ -19,7 +19,6 @@
     <projectFiles>
         <directory name="./"/>
         <ignoreFiles>
-            <directory name="node_modules"/>
             <directory name="tests"/>
             <directory name="vendor"/>
             <file name="lib/Cleantalk/Templates/Singleton.php"/>
