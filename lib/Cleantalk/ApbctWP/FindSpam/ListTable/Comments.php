@@ -23,7 +23,12 @@ class Comments extends \Cleantalk\ApbctWP\CleantalkListTable
         $this->apbct = $apbct;
 
     }
-    // Set columns
+
+	/**
+     * Set columns
+     *
+	 * @return array
+	 */
     function get_columns(){
         return array(
             'cb'             => '<input type="checkbox" />',
@@ -33,12 +38,24 @@ class Comments extends \Cleantalk\ApbctWP\CleantalkListTable
         );
     }
 
-    // CheckBox column
+	/**
+     * CheckBox column
+     *
+	 * @param object $item
+     * @psalm-suppress InvalidArrayAccess
+	 */
     function column_cb( $item ){
         echo '<input type="checkbox" name="spamids[]" id="cb-select-'. $item['ct_id'] .'" value="'. $item['ct_id'] .'" />';
     }
 
-    // Author (first) column
+	/**
+     * Author (first) column
+     *
+	 * @param $item
+	 *
+	 * @return string
+     * @psalm-suppress PossiblyUnusedMethod
+	 */
     function column_ct_author( $item ) {
 
         $column_content = '';
@@ -78,6 +95,12 @@ class Comments extends \Cleantalk\ApbctWP\CleantalkListTable
 
     }
 
+	/**
+	 * @param $item
+	 *
+	 * @return string
+     * @psalm-suppress PossiblyUnusedMethod
+	 */
     function column_ct_comment( $item ){
 
         $id = $item['ct_id'];
@@ -108,6 +131,10 @@ class Comments extends \Cleantalk\ApbctWP\CleantalkListTable
 
     }
 
+	/**
+	 * @param $item
+     * @psalm-suppress PossiblyUnusedMethod
+	 */
     function column_ct_response_to( $item ) {
         $post_id = $item['ct_response_to'];
         ?>
@@ -127,7 +154,15 @@ class Comments extends \Cleantalk\ApbctWP\CleantalkListTable
         <?php
     }
 
-    // Rest of columns
+	/**
+     * Rest of columns
+	 *
+	 * @param object $item
+	 * @param string $column_name
+	 *
+	 * @return bool|string|void
+     * @psalm-suppress InvalidArrayAccess
+	 */
     function column_default( $item, $column_name ) {
         switch( $column_name ) {
             case 'ct_author':
@@ -144,27 +179,31 @@ class Comments extends \Cleantalk\ApbctWP\CleantalkListTable
     }
 
     function get_bulk_actions() {
-        $actions = array(
+	    return array(
             'spam'      => esc_html__( 'Mark as spam', 'cleantalk-spam-protect' ),
             'trash'     => esc_html__( 'Move to trash', 'cleantalk-spam-protect' ),
         );
-        return $actions;
     }
 
     function bulk_actions_handler() {
 
-        if( empty($_POST['spamids']) || empty($_POST['_wpnonce']) ) return;
+        if( empty($_POST['spamids']) || empty($_POST['_wpnonce']) ) {
+	        return;
+        }
 
-        if ( ! $action = $this->current_action() ) return;
+        if ( ! $action = $this->current_action() ) {
+	        return;
+        }
 
-        if( ! wp_verify_nonce( $_POST['_wpnonce'], 'bulk-' . $this->_args['plural'] ) )
-            wp_die('nonce error');
+        if( ! wp_verify_nonce( $_POST['_wpnonce'], 'bulk-' . $this->_args['plural'] ) ) {
+	        wp_die( 'nonce error' );
+        }
 
-        if( 'trash' == $action ) {
+        if( 'trash' === $action ) {
             $this->moveToTrash( $_POST['spamids'] );
         }
 
-        if( 'spam' == $action ) {
+        if( 'spam' === $action ) {
             $this->moveToSpam( $_POST['spamids'] );
         }
 
@@ -172,23 +211,25 @@ class Comments extends \Cleantalk\ApbctWP\CleantalkListTable
 
     function row_actions_handler() {
 
-        if( empty($_GET['action']) ) return;
+        if( empty($_GET['action']) ) {
+	        return;
+        }
 
-        if( $_GET['action'] == 'approve' ) {
+        if( $_GET['action'] === 'approve' ) {
 
             $id = filter_input( INPUT_GET, 'spam', FILTER_SANITIZE_NUMBER_INT );
             $this->approveSpam( $id );
 
         }
 
-        if( $_GET['action'] == 'trash' ) {
+        if( $_GET['action'] === 'trash' ) {
 
             $id = filter_input( INPUT_GET, 'spam', FILTER_SANITIZE_NUMBER_INT );
             $this->moveToTrash( array( $id ) );
 
         }
 
-        if( $_GET['action'] == 'spam' ) {
+        if( $_GET['action'] === 'spam' ) {
 
             $id = filter_input( INPUT_GET, 'spam', FILTER_SANITIZE_NUMBER_INT );
             $this->moveToSpam( array( $id ) );
@@ -207,16 +248,11 @@ class Comments extends \Cleantalk\ApbctWP\CleantalkListTable
 
     function approveSpam( $id ) {
 
-        $comment_meta = delete_comment_meta( $id, 'ct_marked_as_spam' );
+        $comment_meta = delete_comment_meta( (int) $id, 'ct_marked_as_spam' );
 
         if( $comment_meta ) {
-
-            $comment = get_comment($id, 'ARRAY_A');
-            $comment['comment_approved'] = 1;
-
-            wp_update_comment( $comment );
-            apbct_comment__send_feedback( $id, 'approve', false, true );
-
+	        wp_set_comment_status( (int) $id, '1' );
+            apbct_comment__send_feedback( (int) $id, 'approve', false, true );
         }
 
     }
@@ -225,8 +261,8 @@ class Comments extends \Cleantalk\ApbctWP\CleantalkListTable
 
         if( ! empty( $ids ) ) {
             foreach ( $ids as $id) {
-                delete_comment_meta( $id, 'ct_marked_as_spam' );
-                $comment = get_comment( $id );
+                delete_comment_meta( (int) $id, 'ct_marked_as_spam' );
+                $comment = get_comment( (int) $id );
                 wp_trash_comment( $comment );
             }
         }
@@ -237,54 +273,73 @@ class Comments extends \Cleantalk\ApbctWP\CleantalkListTable
 
         if( ! empty( $ids ) ) {
             foreach ( $ids as $id) {
-                delete_comment_meta( $id, 'ct_marked_as_spam' );
-                $comment = get_comment( $id );
+                delete_comment_meta( (int) $id, 'ct_marked_as_spam' );
+                $comment = get_comment( (int) $id );
                 wp_spam_comment( $comment );
             }
         }
 
     }
 
+	/**
+	 * @return \WP_Comment_Query
+     * @psalm-suppress PossiblyUnusedMethod
+	 */
     public function getTotal() {
 
-        $total_comments = new \WP_Comment_Query();
-        return $total_comments;
+	    return new \WP_Comment_Query();
 
     }
 
+	/**
+	 * @return \WP_Comment_Query
+     * @psalm-suppress PossiblyUnusedMethod
+	 */
     public function getChecked() {
 
         $params_spam = array(
             'meta_key' => 'ct_checked',
         );
-        $spam_comments = new \WP_Comment_Query($params_spam);
-        return $spam_comments;
+
+	    return new \WP_Comment_Query($params_spam);
 
     }
 
+	/**
+	 * @return \WP_Comment_Query
+     * @psalm-suppress PossiblyUnusedMethod
+	 */
     public function getCheckedNow() {
 
         $params_spam = array(
             'meta_key' => 'ct_checked_now',
         );
-        $spam_comments = new \WP_Comment_Query($params_spam);
-        return $spam_comments;
+
+	    return new \WP_Comment_Query($params_spam);
 
     }
 
+	/**
+	 * @return \WP_Comment_Query
+     * @psalm-suppress PossiblyUnusedMethod
+	 */
     public function getSpam() {
 
         $params_spam = array(
             'meta_key' => 'ct_marked_as_spam',
         );
-        $spam_comments = new \WP_Comment_Query($params_spam);
-        return $spam_comments;
+
+	    return new \WP_Comment_Query($params_spam);
 
     }
 
+	/**
+     * Spam comments
+     *
+	 * @return \WP_Comment_Query
+	 */
     public function getSpamNow() {
 
-        // Spam comments
         $params_spam = array(
             'meta_query' => array(
                 'relation' => 'AND',
@@ -298,18 +353,24 @@ class Comments extends \Cleantalk\ApbctWP\CleantalkListTable
                 ),
             )
         );
-        $spam_comments = new \WP_Comment_Query($params_spam);
-        return $spam_comments;
+
+	    return new \WP_Comment_Query($params_spam);
 
     }
 
-    public function getBad() { // Without IP and EMAIL
+	/**
+     * Without IP and EMAIL
+     *
+	 * @return \WP_Comment_Query
+     * @psalm-suppress PossiblyUnusedMethod
+	 */
+    public function getBad() {
 
         $params_bad = array(
             'meta_key' => 'ct_bad',
         );
-        $bad_users = new \WP_Comment_Query($params_bad);
-        return $bad_users;
+
+	    return new \WP_Comment_Query($params_bad);
 
     }
 
@@ -317,8 +378,8 @@ class Comments extends \Cleantalk\ApbctWP\CleantalkListTable
 
         global $wpdb;
         $query = "SELECT * FROM " . APBCT_SPAMSCAN_LOGS . " WHERE scan_type = 'comments'";
-        $res = $wpdb->get_results( $query, ARRAY_A );
-        return $res;
+
+	    return $wpdb->get_results( $query, ARRAY_A );
 
     }
 
