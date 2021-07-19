@@ -6,6 +6,12 @@ use Cleantalk\Common\Helper as Helper;
 use Cleantalk\Variables\Cookie;
 use Cleantalk\Variables\Server;
 
+/**
+ * Class AntiFlood
+ * @package Cleantalk\ApbctWP\Firewall
+ *
+ * @psalm-suppress PossiblyUnusedProperty
+ */
 class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule{
 	
 	public $module_name = 'ANTIFLOOD';
@@ -17,7 +23,6 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule{
 	private $view_limit = 20;
 	private $apbct = array();
 	private $store_interval  = 60;
-	private $block_period    = 30;
 	private $chance_to_clean = 20;
 
     public $isExcluded = false;
@@ -54,7 +59,7 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule{
 		
 		$time = time() - $this->store_interval;
 		
-		foreach( $this->ip_array as $ip_origin => $current_ip ){
+		foreach( $this->ip_array as $_ip_origin => $current_ip ){
 
 			// UA check
 			$ua_bl_results = $this->db->fetch_all(
@@ -67,13 +72,10 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule{
 
 					if( ! empty( $ua_bl_result['ua_template'] ) && preg_match( "%". str_replace( '"', '', $ua_bl_result['ua_template'] ) ."%i", Server::get('HTTP_USER_AGENT') ) ) {
 
-						$this->ua_id = $ua_bl_result['id'];
-
 						if( $ua_bl_result['ua_status'] == 1 ) {
 							// Whitelisted
 							$results[] = array('ip' => $current_ip, 'is_personal' => false, 'status' => 'PASS_ANTIFLOOD_UA',);
 							return $results;
-							break;
 						}
 
 					}
@@ -86,7 +88,7 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule{
 			if( Cookie::get( 'apbct_antiflood_passed' ) === md5( $current_ip . $this->api_key ) ){
 				
 				if( ! headers_sent() ){
-					Cookie::set( 'apbct_antiflood_passed', '0', time() - 86400, '/', null, null, true, 'Lax' );
+					Cookie::set( 'apbct_antiflood_passed', '0', time() - 86400, '/', '', null, true );
 				}
 
                 // Do logging an one passed request
@@ -129,7 +131,7 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule{
 		
 		// @todo Rename ip column to sign. Use IP + UserAgent for it.
 		
-		foreach( $this->ip_array as $ip_origin => $current_ip ){
+		foreach( $this->ip_array as $_ip_origin => $current_ip ){
 			$id = md5( $current_ip . $interval_time );
 			$this->db->execute(
 				"INSERT INTO " . $this->db__table__ac_logs . " SET
@@ -179,14 +181,14 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule{
 			status = '$status',
 			all_entries = 1,
 			blocked_entries = " . ( strpos( $status, 'DENY' ) !== false ? 1 : 0 ) . ",
-			entries_timestamp = '" . intval( $time ) . "',
+			entries_timestamp = '" . $time . "',
 			ua_name = %s
 		ON DUPLICATE KEY
 		UPDATE
 			status = '$status',
 			all_entries = all_entries + 1,
 			blocked_entries = blocked_entries" . ( strpos( $status, 'DENY' ) !== false ? ' + 1' : '' ) . ",
-			entries_timestamp = '" . intval( $time ) . "',
+			entries_timestamp = '" . $time . "',
 			ua_name = %s";
 
 		$this->db->prepare( $query, array( Server::get('HTTP_USER_AGENT'), Server::get('HTTP_USER_AGENT') ) );
