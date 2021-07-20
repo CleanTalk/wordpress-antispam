@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * @psalm-suppress InvalidGlobal
+ */
+global $apbct;
+
 // If this file is called directly, abort.
 if ( ! defined( 'DOING_AJAX' ) ) {
 	http_response_code( 403 );
