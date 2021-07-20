@@ -19,6 +19,8 @@ class Ajax {
 		require_once( '../../../../../../wp-includes/class-wp-user.php' );
 		require_once( '../../../../../../wp-includes/option.php' );
 		require_once( '../../../../../../wp-includes/default-constants.php' );
+		require_once( '../../../../../../wp-includes/class-wp-session-tokens.php' );
+		require_once( '../../../../../../wp-includes/class-wp-user-meta-session-tokens.php' );
 		wp_plugin_directory_constants();
 		wp_cookie_constants();
 		require_once( '../../../../../../wp-includes/pluggable.php' );
@@ -117,7 +119,7 @@ class Ajax {
 	private function wp_verify_nonce( $nonce, $action )
 	{
 		$nonce = (string) $nonce;
-		$user  = apbct_wp_get_current_user();
+		$user  = wp_get_current_user();
 		$uid   = is_null( $user ) ? 0 : $user->ID;
 		if ( ! $uid ) {
 			/**
