@@ -339,6 +339,13 @@ function apbct_init() {
 	    	ct_contact_form_validate_postdata();
 	    }
     }
+
+	/**
+	 * Integration with custom forms
+	 */
+	if(!empty($_POST) && apbct_custom_forms_trappings()) {
+		ct_contact_form_validate();
+	}
 }
 
 function apbct_buffer__start(){

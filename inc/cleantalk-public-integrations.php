@@ -2788,3 +2788,17 @@ function wpforo_create_profile__check_register( $user_fields ) {
 	$ct_signup_done = true;
 	return $user_fields;
 }
+
+/**
+ * Function checks for signs in the post request to perform validation and returns true|false
+ */
+function apbct_custom_forms_trappings() {
+	global $apbct;
+
+	// Registration form of Wishlist Members plugin
+	if($apbct->settings['forms__registrations_test'] && isset($_POST['action']) && $_POST['action'] === 'wpm_register') {
+		return true;
+	}
+
+	return false;
+}
