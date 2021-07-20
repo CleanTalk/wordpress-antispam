@@ -50,6 +50,7 @@
         <UnusedVariable>
             <errorLevel type="suppress">
                 <file name="cleantalk.php"/>
+                <file name="inc/cleantalk-ajax-handlers.php"/>
                 <directory name="templates"/>
             </errorLevel>
         </UnusedVariable>
