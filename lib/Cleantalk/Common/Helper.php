@@ -85,7 +85,7 @@ class Helper
             // Cloud Flare
             case 'cloud_flare':
                 $headers = $headers ?: self::http__get_headers();
-                if( isset( $headers['Cf-Connecting-Ip'], $headers['Cf-Ipcountry'], $headers['Cf-Ray'] ) ){
+                if( isset( $headers['Cf-Connecting-Ip'], $headers['Cf-Ray'] ) ){
                     $tmp = strpos( $headers['Cf-Connecting-Ip'], ',' ) !== false
                         ? explode( ',', $headers['Cf-Connecting-Ip'] )
                         : (array) $headers['Cf-Connecting-Ip'];
