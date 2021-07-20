@@ -101,7 +101,8 @@ function ct_contact_form_validate() {
 	    apbct_is_in_uri('/settings/delete-account/') && isset($_POST['submit']) || // Buddypress integration
 	    apbct_is_in_uri('/profile/') && isset($_POST['submit'])                 || // Buddypress integration
 	    ( isset( $_POST['action'] ) && $_POST['action'] == 'bwfan_insert_abandoned_cart' ) || // Autonami Marketing Automations - WC Plugin - integration
-	    ( isset( $_POST['action'] ) && $_POST['action'] == 'check_email_exists' )             // Handling an unknown action check_email_exists
+	    ( isset( $_POST['action'] ) && $_POST['action'] == 'check_email_exists' ) ||             // Handling an unknown action check_email_exists
+	    Server::in_uri( 'cleantalk-antispam/v1/alt_sessions') // Skip test for alt sessions
 		/* !! Do not add actions here. Use apbct_is_skip_request() function below !! */
 	) {
 		do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
@@ -342,7 +343,8 @@ function ct_contact_form_validate_postdata() {
 	    isset($_POST['gform_submit']) || //Skip gravity checking because of direct integration
 	    (isset($_POST['lrm_action']) && $_POST['lrm_action'] == 'login') || //Skip login form
 	    apbct_is_in_uri( 'xmlrpc.php?for=jetpack' ) ||
-	    apbct_is_in_uri( 'connector=bridge&task=put_sql' )
+	    apbct_is_in_uri( 'connector=bridge&task=put_sql' ) ||
+	    Server::in_uri( 'cleantalk-antispam/v1/alt_sessions') // Skip test for alt sessions
 	) {
 		do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
 		return null;
