@@ -85,10 +85,19 @@ class Helper
             // Cloud Flare
             case 'cloud_flare':
                 $headers = $headers ?: self::http__get_headers();
-                if( isset( $headers['Cf-Connecting-Ip'], $headers['Cf-Ray'] ) ){
-                    $tmp = strpos( $headers['Cf-Connecting-Ip'], ',' ) !== false
-                        ? explode( ',', $headers['Cf-Connecting-Ip'] )
-                        : (array) $headers['Cf-Connecting-Ip'];
+                if(
+                    isset( $headers['Cf-Connecting-Ip'] ) &&
+                    ( isset( $headers['Cf-Ray'] ) || isset( $headers['X-Wpe-Request-Id'] ) ) &&
+                    ! isset( $headers['X-Gt-Clientip'] )
+                ){
+                    if( isset( $headers['Cf-Pseudo-Ipv4'], $headers['Cf-Pseudo-Ipv6'] ) ){
+                        $source = $headers['Cf-Pseudo-Ipv6'];
+                    }else{
+                        $source = $headers['Cf-Connecting-Ip'];
+                    }
+                    $tmp = strpos( $source, ',' ) !== false
+                        ? explode( ',', $source )
+                        : (array) $source;
                     $ip_version = self::ip__validate( trim( $tmp[0] ) );
                     if( $ip_version ){
                         $out = $ip_version === 'v6' && ! $v4_only ? self::ip__v6_normalize( trim( $tmp[0] ) ) : trim( $tmp[0] );
