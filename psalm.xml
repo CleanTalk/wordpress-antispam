@@ -23,7 +23,6 @@
             <directory name="vendor"/>
             <file name="lib/Cleantalk/Templates/Singleton.php"/>
             <file name="lib/Cleantalk/ApbctWP/CleantalkListTable.php"/>
-            <file name="inc/cleantalk-common.php"/>
             <file name="inc/cleantalk-public-validate.php"/>
         </ignoreFiles>
     </projectFiles>
@@ -50,6 +49,7 @@
         <UnusedVariable>
             <errorLevel type="suppress">
                 <file name="cleantalk.php"/>
+                <file name="inc/cleantalk-common.php"/>
                 <file name="inc/cleantalk-ajax-handlers.php"/>
                 <directory name="templates"/>
             </errorLevel>
