@@ -36,7 +36,7 @@ class Activator {
 
 			// Additional options
 			add_option( 'ct_plugin_do_activation_redirect', true );
-			apbct_add_admin_ip_to_swf_whitelist( null, null );
+			apbct_add_admin_ip_to_swf_whitelist( null );
 
 		} else {
 			// Do actions for the new blog created
