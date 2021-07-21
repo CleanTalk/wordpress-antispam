@@ -75,6 +75,7 @@ class Helper
      * @return string|null
      *
      * @psalm-suppress InvalidReturnStatement
+     * @psalm-suppress ComplexMethod
      */
     public static function ip__get( $ip_type_to_get = 'real', $v4_only = true, $headers = array() )
     {
