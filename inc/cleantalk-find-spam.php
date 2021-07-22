@@ -15,6 +15,7 @@ function ct_add_find_spam_pages(){
 
     // Remove some pages from main menu
     remove_submenu_page( 'users.php',         'ct_check_users_logs' );
+    remove_submenu_page( 'users.php',         'ct_check_users_bad' );
     remove_submenu_page( 'edit-comments.php', 'ct_check_spam_logs' );
 
     // Set screen option for every pages
