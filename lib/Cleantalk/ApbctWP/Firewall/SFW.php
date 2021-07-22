@@ -5,7 +5,7 @@ namespace Cleantalk\ApbctWP\Firewall;
 use Cleantalk\ApbctWP\API;
 use Cleantalk\ApbctWP\DB;
 use Cleantalk\ApbctWP\Helper;
-use Cleantalk\Variables\Cookie;
+use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\Variables\Get;
 use Cleantalk\Variables\Server;
 
@@ -28,7 +28,12 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 	private $real_ip;
 	private $debug;
 	private $debug_data = '';
-	
+
+	/**
+	 * @var string Content of the die page
+	 */
+	private $sfw_die_page;
+
 	/**
 	 * FireWall_module constructor.
 	 * Use this method to prepare any data for the module working.
@@ -86,7 +91,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
                 if( Cookie::get( 'ct_sfw_passed' ) ){
 
                     if( ! headers_sent() ){
-                        \Cleantalk\ApbctWP\Variables\Cookie::set(
+                        Cookie::set(
                             'ct_sfw_passed',
                             '0',
                             time() + 86400 * 3,
@@ -243,7 +248,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 		if( $this->data__set_cookies == 1 && ! headers_sent() ) {
 		    $status = $result['status'] === 'PASS_SFW__BY_WHITELIST' ? '1' : '0';
             $cookie_val = md5( $result['ip'] . $this->api_key ) . $status;
-            \Cleantalk\ApbctWP\Variables\Cookie::setNativeCookie(
+            Cookie::setNativeCookie(
                 'ct_sfw_pass_key',
                 $cookie_val,
                 time() + 86400 * 30,
@@ -273,8 +278,10 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 		
 		// File exists?
 		if(file_exists(CLEANTALK_PLUGIN_DIR . "lib/Cleantalk/ApbctWP/Firewall/die_page_sfw.html")){
-			
-			$sfw_die_page = file_get_contents(CLEANTALK_PLUGIN_DIR . "lib/Cleantalk/ApbctWP/Firewall/die_page_sfw.html");
+
+			$this->sfw_die_page = file_get_contents(CLEANTALK_PLUGIN_DIR . "lib/Cleantalk/ApbctWP/Firewall/die_page_sfw.html");
+
+			$js_url = APBCT_URL_PATH . '/js/apbct-public--functions.min.js?' . APBCT_VERSION;
 
             $net_count = $apbct->stats['sfw']['entries'];
 
@@ -306,6 +313,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 				'{TEST_IP__HEADER}' => '',
 				'{TEST_IP}'         => '',
 				'{REAL_IP}'         => '',
+				'{SCRIPT_URL}'      => $js_url
 			);
 			
 			// Test
@@ -333,17 +341,49 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 			$replaces['{DEBUG}'] = isset( $debug ) ? $debug : '';
 			
 			foreach( $replaces as $place_holder => $replace ){
-				$sfw_die_page = str_replace( $place_holder, $replace, $sfw_die_page );
+				$this->sfw_die_page = str_replace( $place_holder, $replace, $this->sfw_die_page );
 			}
 
-            http_response_code(403);
-            die($sfw_die_page);
-
-		}else{
-            http_response_code(403);
-            die("IP BLACKLISTED. Blocked by SFW " . $result['ip']);
 		}
+
+		add_action( 'init', array( $this, 'print_die_page' ) );
 		
+	}
+
+	public function print_die_page() {
+
+		global $apbct;
+
+		$localize_js = array(
+			'_ajax_nonce' => wp_create_nonce('ct_secret_stuff'),
+			'_rest_nonce' => wp_create_nonce('wp_rest'),
+			'_ajax_url'   => admin_url('admin-ajax.php', 'relative'),
+			'_rest_url'   => esc_url( get_rest_url() ),
+			'_apbct_ajax_url'   => APBCT_URL_PATH . '/lib/Cleantalk/ApbctWP/Ajax.php',
+			'data__set_cookies' => $apbct->settings['data__set_cookies'],
+			'data__set_cookies__alt_sessions_type' => $apbct->settings['data__set_cookies__alt_sessions_type'],
+		);
+
+		$js_jquery_url = includes_url() . 'js/jquery/jquery.min.js';
+
+		$replaces = array(
+			'{JQUERY_SCRIPT_URL}'=> $js_jquery_url,
+			'{LOCALIZE_SCRIPT}' => 'var ctPublicFunctions = ' . json_encode( $localize_js ),
+		);
+
+		foreach( $replaces as $place_holder => $replace ){
+			$this->sfw_die_page = str_replace( $place_holder, $replace, $this->sfw_die_page );
+		}
+
+		http_response_code(403);
+
+		// File exists?
+		if(file_exists( CLEANTALK_PLUGIN_DIR . "lib/Cleantalk/ApbctWP/Firewall/die_page_sfw.html")){
+			die($this->sfw_die_page);
+
+		}
+
+		die("IP BLACKLISTED. Blocked by SFW " . $this->apbct->stats['last_sfw_block']['ip']);
 	}
 
     /**
