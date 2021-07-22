@@ -670,11 +670,14 @@ class Helper
 	}
 
 	/**
-	 * @param array $urls
+	 * Do multi curl requests.
+	 *
+	 * @param array $urls      Array of URLs to requests
+	 * @param string $write_to Path to the writing files dir
 	 *
 	 * @return array
 	 */
-	public static function http__multi_request( $urls )
+	public static function http__multi_request( $urls, $write_to = '' )
 	{
 		if( ! is_array( $urls ) || empty( $urls ) ) {
 			return array( 'error' => 'CURL_MULTI: Parameter is not an array.' );
@@ -718,7 +721,14 @@ class Helper
 		{
 			$info = curl_getinfo($curl_arr[$i], CURLINFO_HTTP_CODE);
 			if( 200 == $info ) {
-				$results[] = curl_multi_getcontent( $curl_arr[$i] );;
+				if( ! empty( $write_to ) && is_dir( $write_to ) && is_writable( $write_to ) ) {
+					// @ToDo have to handle writing errors
+					file_put_contents(  $write_to . apbct_get_file_name( $urls[$i] ), curl_multi_getcontent( $curl_arr[$i] ) );
+					$results[] = 'success';
+				} else {
+					$results[] = curl_multi_getcontent( $curl_arr[$i] );
+				}
+
 			} else {
 				$results[] = 'error';
 			}
