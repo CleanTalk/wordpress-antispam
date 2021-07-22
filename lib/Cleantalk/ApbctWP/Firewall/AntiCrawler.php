@@ -3,7 +3,7 @@
 namespace Cleantalk\ApbctWP\Firewall;
 
 use Cleantalk\Common\Helper;
-use Cleantalk\Variables\Cookie;
+use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\Variables\Server;
 
 /**
@@ -27,6 +27,11 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 	private $ac_log_result = '';
 	
 	public $isExcluded = false;
+
+	/**
+	 * @var string Content of the die page
+	 */
+	private $sfw_die_page;
 	
 	/**
 	 * AntiBot constructor.
@@ -259,7 +264,13 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 	
 	public static function set_cookie(){
 		global $apbct;
-		echo '<script>var ctSecure = location.protocol === "https:" ? "; secure" : ""; document.cookie = "wordpress_apbct_antibot=' . hash( 'sha256', $apbct->api_key . $apbct->data['salt'] ) . '; path=/; expires=0; samesite=lax" + ctSecure;</script>';
+
+		if( $apbct->settings['data__set_cookies'] == 0 && ! is_admin() ){
+			return;
+		}
+
+		echo '<script>ctSetCookie( "wordpress_apbct_antibot", "' . hash( 'sha256', $apbct->api_key . $apbct->data['salt'] ) . '", 0 );</script>';
+
 	}
 	
 	/**
@@ -324,7 +335,9 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 		// File exists?
 		if(file_exists(CLEANTALK_PLUGIN_DIR . "lib/Cleantalk/ApbctWP/Firewall/die_page_anticrawler.html")){
 			
-			$sfw_die_page = file_get_contents(CLEANTALK_PLUGIN_DIR . "lib/Cleantalk/ApbctWP/Firewall/die_page_anticrawler.html");
+			$this->sfw_die_page = file_get_contents(CLEANTALK_PLUGIN_DIR . "lib/Cleantalk/ApbctWP/Firewall/die_page_anticrawler.html");
+
+			$js_url = APBCT_URL_PATH . '/js/apbct-public--functions.min.js?' . APBCT_VERSION;
 
 			$net_count = $apbct->stats['sfw']['entries'];
 
@@ -340,10 +353,11 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 				'{COOKIE_ANTICRAWLER}'             => hash( 'sha256', $apbct->api_key . $apbct->data['salt'] ),
 				'{COOKIE_ANTICRAWLER_PASSED}'      => '1',
 				'{GENERATED}'                      => '<p>The page was generated at&nbsp;' . date( 'D, d M Y H:i:s' ) . "</p>",
+				'{SCRIPT_URL}'                     => $js_url
 			);
 			
 			foreach( $replaces as $place_holder => $replace ){
-				$sfw_die_page = str_replace( $place_holder, $replace, $sfw_die_page );
+				$this->sfw_die_page = str_replace( $place_holder, $replace, $this->sfw_die_page );
 			}
 			
 			if( isset( $_GET['debug'] ) ){
@@ -358,16 +372,49 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 			}else{
 				$debug = '';
 			}
-			$sfw_die_page = str_replace( "{DEBUG}", $debug, $sfw_die_page );
+			$this->sfw_die_page = str_replace( "{DEBUG}", $debug, $this->sfw_die_page );
 
-            http_response_code(403);
-            die($sfw_die_page);
 
-		}else{
-            http_response_code(403);
-            die("IP BLACKLISTED. Blocked by AntiCrawler " . $result['ip']);
 		}
+
+		add_action( 'init', array( $this, 'print_die_page' ) );
 		
+	}
+
+	public function print_die_page() {
+
+		global $apbct;
+
+		$localize_js = array(
+			'_ajax_nonce' => wp_create_nonce('ct_secret_stuff'),
+			'_rest_nonce' => wp_create_nonce('wp_rest'),
+			'_ajax_url'   => admin_url('admin-ajax.php', 'relative'),
+			'_rest_url'   => esc_url( get_rest_url() ),
+			'_apbct_ajax_url'   => APBCT_URL_PATH . '/lib/Cleantalk/ApbctWP/Ajax.php',
+			'data__set_cookies' => $apbct->settings['data__set_cookies'],
+			'data__set_cookies__alt_sessions_type' => $apbct->settings['data__set_cookies__alt_sessions_type'],
+		);
+
+		$js_jquery_url = includes_url() . 'js/jquery/jquery.min.js';
+
+		$replaces = array(
+			'{JQUERY_SCRIPT_URL}'=> $js_jquery_url,
+			'{LOCALIZE_SCRIPT}' => 'var ctPublicFunctions = ' . json_encode( $localize_js ),
+		);
+
+		foreach( $replaces as $place_holder => $replace ){
+			$this->sfw_die_page = str_replace( $place_holder, $replace, $this->sfw_die_page );
+		}
+
+		http_response_code(403);
+
+		// File exists?
+		if(file_exists( CLEANTALK_PLUGIN_DIR . "lib/Cleantalk/ApbctWP/Firewall/die_page_sfw.html")){
+			die($this->sfw_die_page);
+
+		}
+
+		die("IP BLACKLISTED. Blocked by AntiCrawler " . $this->apbct->stats['last_sfw_block']['ip']);
 	}
 
     private function check_exclusions() {
