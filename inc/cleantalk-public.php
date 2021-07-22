@@ -984,29 +984,14 @@ function ct_plugin_active($plugin_name){
 	return false;
 }
 
-
-
+/**
+ * @psalm-suppress UnusedVariable
+ */
 function apbct_login__scripts(){
+
     global $apbct;
 
-    // Different JS params
-    wp_enqueue_script( 'ct_public', APBCT_URL_PATH . '/js/apbct-public.min.js', array( 'jquery' ), APBCT_VERSION, false /*in header*/ );
-	wp_enqueue_script('cleantalk-modal', plugins_url( '/cleantalk-spam-protect/js/cleantalk-modal.min.js' ),   array(),     APBCT_VERSION, false );
-
-    wp_localize_script('ct_public', 'ctPublic', array(
-        '_ajax_nonce' => wp_create_nonce('ct_secret_stuff'),
-        '_rest_nonce' => wp_create_nonce('wp_rest'),
-        '_ajax_url'   => admin_url('admin-ajax.php', 'relative'),
-        '_rest_url'   => esc_url( get_rest_url() ),
-        '_apbct_ajax_url'   => APBCT_URL_PATH . '/lib/Cleantalk/ApbctWP/Ajax.php',
-        'pixel__setting' => $apbct->settings['data__pixel'],
-        'pixel__enabled' => $apbct->settings['data__pixel'] === '2' ||
-                                                  ( $apbct->settings['data__pixel'] === '3' && apbct_is_cache_plugins_exists() ),
-        'pixel__url'     => $apbct->pixel_url,
-        'data__set_cookies' => $apbct->settings['data__set_cookies'],
-        'data__set_cookies__alt_sessions_type' => $apbct->settings['data__set_cookies__alt_sessions_type'],
-        'data__email_check_before_post' 	   =>$apbct->settings['data__email_check_before_post'],
-    ));
+	apbct_enqueue_and_localize_public_scripts();
 
     $apbct->public_script_loaded = true;
 }
@@ -1106,24 +1091,8 @@ function ct_enqueue_scripts_public($_hook){
 
 		if( ! $apbct->public_script_loaded ) {
 
-			// Different JS params
-			wp_enqueue_script( 'ct_public', APBCT_URL_PATH . '/js/apbct-public.min.js?apbct_ver=' . APBCT_VERSION, array( 'jquery' ), APBCT_VERSION, false /*in header*/ );
-			wp_enqueue_script('cleantalk-modal', plugins_url( '/cleantalk-spam-protect/js/cleantalk-modal.min.js' ),   array(),     APBCT_VERSION, false );
+			apbct_enqueue_and_localize_public_scripts();
 
-			wp_localize_script('ct_public', 'ctPublic', array(
-				'_ajax_nonce' => wp_create_nonce('ct_secret_stuff'),
-				'_rest_nonce' => wp_create_nonce('wp_rest'),
-				'_ajax_url'   => admin_url('admin-ajax.php', 'relative'),
-				'_rest_url'   => esc_url( get_rest_url() ),
-				'_apbct_ajax_url'   => APBCT_URL_PATH . '/lib/Cleantalk/ApbctWP/Ajax.php',
-                'data__set_cookies' => $apbct->settings['data__set_cookies'],
-                'data__set_cookies__alt_sessions_type' => $apbct->settings['data__set_cookies__alt_sessions_type'],
-                'pixel__setting'                       => $apbct->settings['data__pixel'],
-                'pixel__enabled'                       => $apbct->settings['data__pixel'] === '2' ||
-                                                          ( $apbct->settings['data__pixel'] === '3' && apbct_is_cache_plugins_exists() ),
-                'pixel__url'                           => $apbct->pixel_url,
-                'data__email_check_before_post' 	   =>$apbct->settings['data__email_check_before_post'],
-			));
 		}
 
 		// ct_nocache
@@ -1206,6 +1175,35 @@ function ct_enqueue_scripts_public($_hook){
 			'reload_time'             => 10000,
 		));
 	}
+}
+
+function apbct_enqueue_and_localize_public_scripts() {
+
+	global $apbct;
+
+	// Different JS params
+	wp_enqueue_script( 'ct_public_functions', APBCT_URL_PATH . '/js/apbct-public--functions.min.js', array( 'jquery' ), APBCT_VERSION );
+	wp_enqueue_script( 'ct_public', APBCT_URL_PATH . '/js/apbct-public.min.js', array( 'jquery', 'ct_public_functions' ), APBCT_VERSION );
+	wp_enqueue_script('cleantalk-modal', plugins_url( '/cleantalk-spam-protect/js/cleantalk-modal.min.js' ),   array(),     APBCT_VERSION );
+
+	wp_localize_script('ct_public_functions', 'ctPublicFunctions', array(
+		'_ajax_nonce' => wp_create_nonce('ct_secret_stuff'),
+		'_rest_nonce' => wp_create_nonce('wp_rest'),
+		'_ajax_url'   => admin_url('admin-ajax.php', 'relative'),
+		'_rest_url'   => esc_url( get_rest_url() ),
+		'_apbct_ajax_url'   => APBCT_URL_PATH . '/lib/Cleantalk/ApbctWP/Ajax.php',
+		'data__set_cookies' => $apbct->settings['data__set_cookies'],
+		'data__set_cookies__alt_sessions_type' => $apbct->settings['data__set_cookies__alt_sessions_type'],
+	));
+
+	wp_localize_script('ct_public', 'ctPublic', array(
+		'pixel__setting' => $apbct->settings['data__pixel'],
+		'pixel__enabled' => $apbct->settings['data__pixel'] === '2' ||
+		                    ( $apbct->settings['data__pixel'] === '3' && apbct_is_cache_plugins_exists() ),
+		'pixel__url'     => $apbct->pixel_url,
+		'data__email_check_before_post' 	   =>$apbct->settings['data__email_check_before_post'],
+	));
+
 }
 
 /**
