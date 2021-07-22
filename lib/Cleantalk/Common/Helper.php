@@ -1068,13 +1068,11 @@ class Helper
 	/**
 	 * @param $url string
 	 *
-	 * @return string|void
+	 * @return string
 	 */
 	private static function getFilenameFromUrl( $url )
 	{
 		$array = explode( '/', $url );
-		if( is_array( $array ) && count( $array ) ) {
-			return end( $array );
-		}
+		return end( $array );
 	}
 }
