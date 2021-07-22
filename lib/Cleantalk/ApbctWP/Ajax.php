@@ -13,6 +13,8 @@ class Ajax {
 
 		require_once( '../../../../../../wp-load.php' );
 		require_once( '../../../../../../wp-includes/capabilities.php' );
+		require_once( '../../../../../../wp-includes/kses.php' );
+		require_once( '../../../../../../wp-includes/rest-api.php' );
 		require_once( '../../../../../../wp-includes/class-wp-role.php' );
 		require_once( '../../../../../../wp-includes/class-wp-roles.php' );
 		require_once( '../../../../../../wp-includes/user.php' );
