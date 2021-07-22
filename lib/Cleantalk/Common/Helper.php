@@ -676,6 +676,7 @@ class Helper
 	 * @param string $write_to Path to the writing files dir
 	 *
 	 * @return array
+	 * @psalm-suppress PossiblyUnusedMethod
 	 */
 	public static function http__multi_request( $urls, $write_to = '' )
 	{
@@ -723,7 +724,7 @@ class Helper
 			if( 200 == $info ) {
 				if( ! empty( $write_to ) && is_dir( $write_to ) && is_writable( $write_to ) ) {
 					// @ToDo have to handle writing errors
-					file_put_contents(  $write_to . apbct_get_file_name( $urls[$i] ), curl_multi_getcontent( $curl_arr[$i] ) );
+					file_put_contents(  $write_to . self::getFilenameFromUrl( $urls[$i] ), curl_multi_getcontent( $curl_arr[$i] ) );
 					$results[] = 'success';
 				} else {
 					$results[] = curl_multi_getcontent( $curl_arr[$i] );
@@ -737,10 +738,10 @@ class Helper
 	}
 	
 	/**
-	 * Merging arrays without reseting numeric keys
+	 * Merging arrays without resetting numeric keys
 	 *
-	 * @param array $arr1 One-dimentional array
-	 * @param array $arr2 One-dimentional array
+	 * @param array $arr1 One-dimensional array
+	 * @param array $arr2 One-dimensional array
 	 *
 	 * @return array Merged array
 	 */
@@ -1062,5 +1063,18 @@ class Helper
 		$ip[3] = $ipl32 & 255;
 
 		return implode( '.', $ip );
+	}
+
+	/**
+	 * @param $url string
+	 *
+	 * @return string|void
+	 */
+	private static function getFilenameFromUrl( $url )
+	{
+		$array = explode( '/', $url );
+		if( is_array( $array ) && count( $array ) ) {
+			return end( $array );
+		}
 	}
 }
