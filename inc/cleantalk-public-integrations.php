@@ -2407,6 +2407,7 @@ function apbct_form__gravityForms__testSpam($is_spam, $_form, $entry) {
 	global $apbct, $cleantalk_executed, $ct_gform_is_spam, $ct_gform_response;
 
 	if (
+		$is_spam ||
 		$apbct->settings['forms__contact_forms_test'] == 0 ||
 		$cleantalk_executed // Return unchanged result if the submission was already tested.
 	) {
