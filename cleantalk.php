@@ -1645,7 +1645,7 @@ function apbct_store__urls(){
 		// URLs HISTORY
 		// Get current url
 		$current_url = Server::get( 'HTTP_HOST' ) . Server::get( 'REQUEST_URI' );
-		$current_url = $current_url ? substr($current_url, 0,256) : 'UNKNOWN';
+		$current_url = $current_url ? substr($current_url, 0,128) : 'UNKNOWN';
 		$site_url = parse_url(get_option('siteurl'),PHP_URL_HOST);
 		
 		// Get already stored URLs
@@ -1655,8 +1655,8 @@ function apbct_store__urls(){
 		
 		// Rotating. Saving only latest 10
 		/** @psalm-suppress InvalidArrayOffset */
-		$urls[$current_url] = count($urls[$current_url]) > 10 ? array_slice($urls[$current_url], 1, 10) : $urls[$current_url];
-		$urls               = count($urls) > 10               ? array_slice($urls, 1, 10)               : $urls;
+		$urls[$current_url] = count($urls[$current_url]) > 5 ? array_slice($urls[$current_url], 1, 5) : $urls[$current_url];
+		$urls               = count($urls) > 5               ? array_slice($urls, 1, 5)               : $urls;
 		
 		// Saving
         Cookie::set('apbct_urls', json_encode( $urls ), time() + 86400 * 3, '/', $site_url, null, true, 'Lax');
