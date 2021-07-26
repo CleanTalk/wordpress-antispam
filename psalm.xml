@@ -21,7 +21,6 @@
         <ignoreFiles>
             <directory name="tests"/>
             <directory name="vendor"/>
-            <directory name="fw_files"/>
             <file name="lib/Cleantalk/Templates/Singleton.php"/>
             <file name="lib/Cleantalk/ApbctWP/CleantalkListTable.php"/>
             <file name="inc/cleantalk-public-validate.php"/>
