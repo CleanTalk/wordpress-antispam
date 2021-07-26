@@ -901,9 +901,7 @@ function apbct_sfw_update__create_temp_tables() {
 }
 
 /**
- * @param null $concrete_file
- *
- * @return array
+ * @psalm-suppress UnusedParam
  */
 function apbct_sfw_update__process_files( $concrete_file = null ) {
 
