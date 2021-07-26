@@ -2030,7 +2030,7 @@ function apbct_from__WPForms__gatherData($entry, $form){
 		# search name
 		if($field_type === 'name') {
 			if(is_array($entry_field_value)) {
-				$handled_result['name'][] = implode(' ', $entry_field_value);
+				$handled_result['name'][] = implode(' ', array_slice($entry_field_value, 0, 3));
 			} else {
 				$handled_result['name'][] = array('nick' => $entry_field_value, 'first' => '', 'last' => '');
 			}
