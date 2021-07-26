@@ -4,8 +4,6 @@
 namespace Cleantalk\Common;
 
 
-use Cleantalk\ApbctWP\CleantalkListTable;
-
 abstract class Queue {
 
 	const QUEUE_NAME = 'sfw_update_queue';
@@ -34,16 +32,14 @@ abstract class Queue {
 
 	/**
 	 * @param string $stage_name
-	 * @param bool|string|int $is_last_stage
 	 */
-	public function addStage( $stage_name, $args = array(), $is_last_stage = '0' )
+	public function addStage( $stage_name, $args = array() )
 	{
 		$this->queue['stages'][] = array(
 			'name' => $stage_name,
 			'status'  => 'NULL',
 			'tries'   => '0',
-			'args'    => $args,
-			'is_last' => $is_last_stage
+			'args'    => $args
 		);
 		$this->saveQueue( $this->queue );
 	}
@@ -88,8 +84,7 @@ abstract class Queue {
 						if( isset( $result['next_stage'] ) ) {
 							$this->addStage(
 								$result['next_stage']['name'],
-								isset( $result['next_stage']['args'] ) ? $result['next_stage']['args'] : array(),
-								isset( $result['next_stage']['is_last'] ) ? $result['next_stage']['is_last'] : false
+								isset( $result['next_stage']['args'] ) ? $result['next_stage']['args'] : array()
 							);
 						}
 
@@ -97,8 +92,7 @@ abstract class Queue {
 							foreach( $result['next_stages'] as $next_stage ) {
 								$this->addStage(
 									$next_stage['name'],
-									isset( $next_stage['args'] ) ? $next_stage['args'] : array(),
-									isset( $next_stage['is_last'] ) ? $next_stage['is_last'] : false
+									isset( $next_stage['args'] ) ? $next_stage['args'] : array()
 								);
 							}
 						}
@@ -134,9 +128,6 @@ abstract class Queue {
 	{
 		if( count( $this->queue['stages'] ) > 0 ) {
 			foreach ( $this->queue['stages'] as $stage ) {
-				if ( $stage['is_last'] && $stage['status'] === 'FINISHED' ) {
-					return true;
-				}
 				if( $stage['status'] !== 'FINISHED' ) {
 					return false;
 				}

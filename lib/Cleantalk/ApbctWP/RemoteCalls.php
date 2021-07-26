@@ -135,12 +135,9 @@ class RemoteCalls
      * @psalm-suppress UnusedVariable
      */
     public static function action__sfw_update__worker(){
-        
-        global $apbct;
+
         $result = apbct_sfw_update__worker();
-        
-        $apbct->error_toggle( ! empty( $result['error'] ), 'sfw_update', $result);
-    
+
         if( ! empty( $result['error'] ) ){
     
             apbct_sfw_update__cleanData();

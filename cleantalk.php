@@ -678,7 +678,7 @@ function apbct_sfw_update__init( $delay = 0 ){
     // Prevent start an update if update is already running and started less than 10 minutes ago
     if(
         $apbct->fw_stats['firewall_updating_id'] &&
-        /*time() - $apbct->fw_stats['firewall_updating_last_start'] < 600 &&*/
+        time() - $apbct->fw_stats['firewall_updating_last_start'] < 600 &&
 	    apbct_sfw_update__is_in_progress()
     ){
         return false;
@@ -714,7 +714,7 @@ function apbct_sfw_update__init( $delay = 0 ){
 	apbct_prepare_upd_dir();
 
 	$cron = new Cron();
-	$cron->addTask('sfw_update_checker', 'apbct_sfw_update__checker', 0, time() + 15 );
+	$cron->addTask('sfw_update_checker', 'apbct_sfw_update__checker', 15, time() + 15 );
 
 	return Helper::http__request__rc_to_host(
         'sfw_update__worker',
@@ -754,7 +754,8 @@ function apbct_sfw_update__worker() {
 
 	if( isset( $result['error'] ) ) {
 		$apbct->error_add('sfw_update', $result['error'] );
-		return true;
+		$apbct->saveErrors();
+		return $result['error'];
 	}
 
 	if( $queue->isQueueFinished() ) {
@@ -766,8 +767,7 @@ function apbct_sfw_update__worker() {
 				$apbct->error_add('sfw_update', $stage['error'] );
 			}
 		}
-		// Do logging the queue process and clear the queue
-		// \Cleantalk\ApbctWP\Queue::clearQueue();
+		// Do logging the queue process here
 		return true;
 
 	}
@@ -778,7 +778,9 @@ function apbct_sfw_update__worker() {
 	}
 
 	$cron = new Cron();
-	$cron->updateTask('sfw_update_checker', 'apbct_sfw_update__checker', 0, time() + 15 );
+	if( ! $cron->updateTask('sfw_update_checker', 'apbct_sfw_update__checker', 15, time() + 15 ) ) {
+		$cron->addTask('sfw_update_checker', 'apbct_sfw_update__checker', 15, time() + 15 );
+	}
 
 	return Helper::http__request__rc_to_host(
 		'sfw_update__worker',
@@ -873,7 +875,6 @@ function apbct_sfw_update__download_files( $urls ) {
 
 }
 
-
 function apbct_sfw_update__create_tables() {
 	global $apbct;
 	// Preparing database infrastructure
@@ -899,51 +900,52 @@ function apbct_sfw_update__create_temp_tables() {
 	);
 }
 
+/**
+ * @param null $concrete_file
+ *
+ * @return array
+ */
 function apbct_sfw_update__process_files( $concrete_file = null ) {
 
-	if( is_null( $concrete_file ) ) {
-		$dir_name = APBCT_DIR_PATH . '/fw_files/';
-		$files = glob( $dir_name . '/*' );
-		$files = array_filter( $files, static function( $element ) {
-			return strpos( $element, 'list' ) !== false;
-		} );
-		if( count( $files ) ) {
-			$next_stages = array();
-			foreach( $files as $file) {
-				$next_stages[] = array(
-					'name' => 'apbct_sfw_update__process_files',
-					'args' => $file,
-					'is_last' => '0'
-				);
-			}
-			$next_stages[] = array(
-				'name' => 'apbct_sfw_update__process_files'
-			);
-			return array(
-				'next_stages' => $next_stages
-			);
-		} else {
-			return array(
-				'next_stage' => array(
-					'name'    => 'apbct_sfw_update__process_exclusions',
-				)
-			);
-		}
-	} else {
+	$dir_name = APBCT_DIR_PATH . '/fw_files/';
+	$files = glob( $dir_name . '/*' );
+	$files = array_filter( $files, static function( $element ) {
+		return strpos( $element, 'list' ) !== false;
+	} );
+
+	if( count( $files ) ) {
+
+		reset( $files );
+		$concrete_file = current( $files );
 
 		if( strpos( $concrete_file, 'bl_list' ) !== false ) {
-			return apbct_sfw_update__process_file( $concrete_file );
+			$result = apbct_sfw_update__process_file( $concrete_file );
 		}
 
 		if( strpos( $concrete_file, 'ua_list' ) !== false ) {
-			return apbct_sfw_update__process_ua( $concrete_file );
+			$result = apbct_sfw_update__process_ua( $concrete_file );
 		}
 
 		if( strpos( $concrete_file, 'ck_list' ) !== false ) {
-			return apbct_sfw_update__process_ck( $concrete_file );
+			$result = apbct_sfw_update__process_ck( $concrete_file );
 		}
 
+		if( ! empty( $result['error'] ) ) {
+			return $result;
+		}
+		return array(
+			'next_stage' => array(
+				'name'    => 'apbct_sfw_update__process_files',
+				'args'    => $concrete_file
+			)
+		);
 	}
+
+	return array(
+		'next_stage' => array(
+			'name'    => 'apbct_sfw_update__process_exclusions',
+		)
+	);
 
 }
 
@@ -1034,7 +1036,6 @@ function apbct_sfw_update__process_ck( $file_path ) {
 
 }
 
-
 function apbct_sfw_update__process_exclusions(){
     global $apbct;
 
@@ -1061,10 +1062,10 @@ function apbct_sfw_update__process_exclusions(){
 
 	return array(
 		'next_stage' => array(
-			'name'    => 'apbct_sfw_update__end_of_update',
-			'is_last' => '1'
+			'name'    => 'apbct_sfw_update__end_of_update'
 		)
 	);
+
 }
 
 function apbct_sfw_update__end_of_update() {
@@ -1140,6 +1141,7 @@ function apbct_sfw_update__end_of_update() {
 	$update_period = (int) $update_period > 43200 ?  (int) $update_period : 43200;
 	$cron = new Cron();
 	$cron->updateTask('sfw_update', 'apbct_sfw_update__init', $update_period );
+	$cron->updateTask('sfw_update_checker', 'apbct_sfw_update__checker', 0 );
 
     /**
      * Update fw data if update completed
@@ -1185,7 +1187,14 @@ function apbct_prepare_upd_dir() {
 }
 
 function apbct_sfw_update__checker() {
-
+	$queue = new \Cleantalk\ApbctWP\Queue();
+	if( count( $queue->queue['stages'] ) ) {
+		foreach( $queue->queue['stages'] as $stage ) {
+			if ( $stage['status'] === 'NULL' ) {
+				return apbct_sfw_update__worker();
+			}
+		}
+	}
 }
 
 function apbct_sfw_update__cleanData(){
