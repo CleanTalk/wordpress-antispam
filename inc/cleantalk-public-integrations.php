@@ -2029,14 +2029,12 @@ function apbct_from__WPForms__gatherData($entry, $form){
 
 		# search name
 		if($field_type === 'name') {
-			if( ! isset($handled_result['name']) || empty($handled_result['name'])) {
-				if(is_array($entry_field_value)) {
-					$handled_result['name'] = implode(' ', $entry_field_value);
-				} else {
-					$handled_result['name'] = array('nick' => $entry_field_value, 'first' => '', 'last' => '');
-				}
-				continue;
+			if(is_array($entry_field_value)) {
+				$handled_result['name'][] = implode(' ', $entry_field_value);
+			} else {
+				$handled_result['name'][] = array('nick' => $entry_field_value, 'first' => '', 'last' => '');
 			}
+			continue;
 		}
 
 		# Add field label as key for result array
@@ -2109,7 +2107,7 @@ function apbct_form__WPForms__testSpam() {
 	$checkjs = apbct_js_test('ct_checkjs_wpforms', $_POST);
 
 	$email = $apbct->form_data['email'] ?: null;
-	$nickname = $apbct->form_data['name'] ?: null;
+	$nickname = $apbct->form_data['name'] && is_array( $apbct->form_data['name'] ) ? array_shift( $apbct->form_data['name'] ) : null;
 	$form_data = $apbct->form_data;
 
 	if($email) {
@@ -2119,7 +2117,7 @@ function apbct_form__WPForms__testSpam() {
 		unset($form_data['name']);
 	}
 
-	$params = ct_get_fields_any($apbct->form_data, $email);
+	$params = ct_get_fields_any($apbct->form_data, $email, $nickname );
 
 	if(is_array($params['nickname'])) {
 		$params['nickname'] = implode(' ', $params['nickname']);
