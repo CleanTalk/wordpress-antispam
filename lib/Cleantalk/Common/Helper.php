@@ -678,12 +678,80 @@ class Helper
 		
 		return $out;
 	}
+
+	/**
+	 * Do multi curl requests.
+	 *
+	 * @param array $urls      Array of URLs to requests
+	 * @param string $write_to Path to the writing files dir
+	 *
+	 * @return array
+	 * @psalm-suppress PossiblyUnusedMethod
+	 */
+	public static function http__multi_request( $urls, $write_to = '' )
+	{
+		if( ! is_array( $urls ) || empty( $urls ) ) {
+			return array( 'error' => 'CURL_MULTI: Parameter is not an array.' );
+		}
+
+		foreach( $urls as $url ) {
+			if( ! is_string( $url ) ) {
+				return array( 'error' => 'CURL_MULTI: Parameter elements must be strings.' );
+			}
+		}
+
+		$urls_count = count( $urls );
+		$curl_arr = array();
+		$master = curl_multi_init();
+
+		for($i = 0; $i < $urls_count; $i++)
+		{
+			$url =$urls[$i];
+			$curl_arr[$i] = curl_init($url);
+			$opts = array(
+				CURLOPT_RETURNTRANSFER => true,
+				CURLOPT_CONNECTTIMEOUT_MS => 10000,
+				CURLOPT_FORBID_REUSE => true,
+				CURLOPT_USERAGENT => self::AGENT . '; ' . ( isset( $_SERVER['REMOTE_ADDR'] ) ? $_SERVER['REMOTE_ADDR'] : 'UNKNOWN_HOST' ),
+				CURLOPT_HTTPHEADER => array('Expect:'), // Fix for large data and old servers http://php.net/manual/ru/function.curl-setopt.php#82418
+				CURLOPT_FOLLOWLOCATION => true,
+				CURLOPT_MAXREDIRS => 5,
+			);
+			curl_setopt_array($curl_arr[$i], $opts);
+			curl_multi_add_handle($master, $curl_arr[$i]);
+		}
+
+		do {
+			curl_multi_exec($master,$running);
+			// @ToDo place here sleep(500) to avoid possible CPU overusing
+		} while($running > 0);
+
+		$results = array();
+
+		for($i = 0; $i < $urls_count; $i++)
+		{
+			$info = curl_getinfo($curl_arr[$i], CURLINFO_HTTP_CODE);
+			if( 200 == $info ) {
+				if( ! empty( $write_to ) && is_dir( $write_to ) && is_writable( $write_to ) ) {
+					// @ToDo have to handle writing errors
+					file_put_contents(  $write_to . self::getFilenameFromUrl( $urls[$i] ), curl_multi_getcontent( $curl_arr[$i] ) );
+					$results[] = 'success';
+				} else {
+					$results[] = curl_multi_getcontent( $curl_arr[$i] );
+				}
+
+			} else {
+				$results[] = 'error';
+			}
+		}
+		return $results;
+	}
 	
 	/**
-	 * Merging arrays without reseting numeric keys
+	 * Merging arrays without resetting numeric keys
 	 *
-	 * @param array $arr1 One-dimentional array
-	 * @param array $arr2 One-dimentional array
+	 * @param array $arr1 One-dimensional array
+	 * @param array $arr2 One-dimensional array
 	 *
 	 * @return array Merged array
 	 */
@@ -1005,5 +1073,16 @@ class Helper
 		$ip[3] = $ipl32 & 255;
 
 		return implode( '.', $ip );
+	}
+
+	/**
+	 * @param $url string
+	 *
+	 * @return string
+	 */
+	private static function getFilenameFromUrl( $url )
+	{
+		$array = explode( '/', $url );
+		return end( $array );
 	}
 }

@@ -57,54 +57,73 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 		
 	}
 
-    public static function update( $file_url_ua ) {
-	    
-        $lines = \Cleantalk\ApbctWP\Helper::http__get_data_from_remote_gz__and_parse_csv( $file_url_ua );
-    
-        if( empty( $lines['errors'] ) ){
-            
-            $result__clear_db = self::clear_data_table( \Cleantalk\ApbctWP\DB::getInstance(), APBCT_TBL_AC_UA_BL );
-        
-            if( empty( $result__clear_db['error'] ) ){
+    public static function update( $file_path_ua ) {
 
-                for( $count_result = 0; current($lines) !== false; ) {
+	    $file_content = file_get_contents( $file_path_ua );
 
-                    $query = "INSERT INTO " . APBCT_TBL_AC_UA_BL . " (id, ua_template, ua_status) VALUES ";
+	    if(function_exists('gzdecode')) {
 
-                    for( $i = 0, $values = array(); APBCT_WRITE_LIMIT !== $i && current( $lines ) !== false; $i ++, $count_result ++, next( $lines ) ){
+		    $unzipped_content = gzdecode( $file_content );
 
-                        $entry = current($lines);
+		    if ( $unzipped_content !== false ) {
 
-                        if( empty($entry) || ! isset( $entry[0], $entry[1] ) ) {
-	                        continue;
-                        }
+			    $lines = \Cleantalk\ApbctWP\Helper::buffer__parse__csv( $unzipped_content );
 
-	                    // Cast result to int
-	                    $ua_id        = preg_replace('/[^\d]*/', '', $entry[0]);
-	                    $ua_template  = isset($entry[1]) && apbct_is_regexp($entry[1]) ? Helper::db__prepare_param( $entry[1] ) : 0;
-	                    $ua_status    = isset($entry[2]) ? $entry[2] : 0;
+			    if( empty( $lines['errors'] ) ){
 
-	                    if( ! $ua_id || ! $ua_template ){
-		                    continue;
-	                    }
+				    $result__clear_db = self::clear_data_table( \Cleantalk\ApbctWP\DB::getInstance(), APBCT_TBL_AC_UA_BL );
 
-                        $values[] = '('. $ua_id .','. $ua_template .','. $ua_status .')';
+				    if( empty( $result__clear_db['error'] ) ){
 
-                    }
+					    for( $count_result = 0; current($lines) !== false; ) {
 
-                    if( ! empty( $values ) ){
-                        $query = $query . implode( ',', $values ) . ';';
-                        \Cleantalk\ApbctWP\DB::getInstance()->execute( $query );
-                    }
+						    $query = "INSERT INTO " . APBCT_TBL_AC_UA_BL . " (id, ua_template, ua_status) VALUES ";
 
-                }
-                return $count_result;
-            }else {
-	            return $result__clear_db;
-            }
-        }else {
-	        return array( 'error' => 'UAL_UPDATE_ERROR: ' . $lines['error'] );
-        }
+						    for( $i = 0, $values = array(); APBCT_WRITE_LIMIT !== $i && current( $lines ) !== false; $i ++, $count_result ++, next( $lines ) ){
+
+							    $entry = current($lines);
+
+							    if( empty($entry) || ! isset( $entry[0], $entry[1] ) ) {
+								    continue;
+							    }
+
+							    // Cast result to int
+							    $ua_id        = preg_replace('/[^\d]*/', '', $entry[0]);
+							    $ua_template  = isset($entry[1]) && apbct_is_regexp($entry[1]) ? Helper::db__prepare_param( $entry[1] ) : 0;
+							    $ua_status    = isset($entry[2]) ? $entry[2] : 0;
+
+							    if( ! $ua_id || ! $ua_template ){
+								    continue;
+							    }
+
+							    $values[] = '('. $ua_id .','. $ua_template .','. $ua_status .')';
+
+						    }
+
+						    if( ! empty( $values ) ){
+							    $query = $query . implode( ',', $values ) . ';';
+							    \Cleantalk\ApbctWP\DB::getInstance()->execute( $query );
+							    if( file_exists( $file_path_ua ) ) {
+								    unlink($file_path_ua);
+							    }
+						    }
+
+					    }
+					    return $count_result;
+				    }else {
+					    return $result__clear_db;
+				    }
+			    }else {
+				    return array( 'error' => 'UAL_UPDATE_ERROR: ' . $lines['error'] );
+			    }
+
+		    } else {
+			    return array( 'error' => 'Can not unpack datafile');
+		    }
+	    } else {
+		    return array( 'error' => 'Function gzdecode not exists. Please update your PHP at least to version 5.4 ' );
+	    }
+
     }
 
     private static function clear_data_table($db, $db__table__data) {

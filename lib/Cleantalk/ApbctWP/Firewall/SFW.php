@@ -478,49 +478,6 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
             return array( 'rows' => 0 );
 		}
 	}
-
-    /**
-     * Gets multifile with data to update Firewall.
-     *
-     * @param string $api_key API key
-     *
-     * @return array
-     */
-    public static function update__get_multifile( $api_key ){
-        
-        // Getting remote file name
-        $result = API::method__get_2s_blacklists_db( $api_key, 'multifiles', '3_1' );
-
-        if( empty( $result['error'] ) ){
-            
-            if( empty( $result['file_url'] ) ) {
-	            return array( 'error' => 'No file_url parameter provided.' );
-            }
-            if( empty( $result['file_ua_url'] ) ) {
-	            return array( 'error' => 'No file_ua_url parameter provided.' );
-            }
-            if( empty( $result['file_ck_url'] ) ) {
-	            return array( 'error' => 'No file_ck_url parameter provided.' );
-            }
-
-            $data = Helper::http__get_data_from_remote_gz__and_parse_csv( $result['file_url'] );
-
-            if( empty( $data['error'] ) ){
-
-                return array(
-                    'multifile_url' => trim( $result['file_url'] ),
-                    'useragent_url' => trim( $result['file_ua_url'] ),
-                    'file_urls'     => $data,
-                    'file_ck_url'   => trim( $result['file_ck_url'] ),
-                );
-
-            }else {
-	            return array( 'error' => $data['error'] );
-            }
-        }else {
-	        return $result;
-        }
-    }
     
     /**
      * Updates SFW local base
@@ -532,47 +489,66 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
      * @return array|int array('error' => STRING)
      */
     public static function update__write_to_db( $db, $db__table__data, $file_url = null ){
-        
-        $data = Helper::http__get_data_from_remote_gz__and_parse_csv( $file_url );
-        
-        if( empty( $data['errors'] ) ){
 
-	        reset($data);
+    	$file_content = file_get_contents( $file_url );
 
-            for( $count_result = 0; current($data) !== false; ) {
-                
-                $query = "INSERT INTO ".$db__table__data." (network, mask, status, source) VALUES ";
-                
-                for( $i = 0, $values = array(); APBCT_WRITE_LIMIT !== $i && current( $data ) !== false; $i ++, $count_result ++, next( $data ) ){
-                    
-                    $entry = current($data);
-                    
-                    if( empty( $entry ) || empty( $entry[0] )  || empty ($entry[1] ) ) {
-	                    continue;
-                    }
+	    if(function_exists('gzdecode')) {
 
-	                // Cast result to int
-	                $ip     = preg_replace( '/[^\d]*/', '', $entry[0] );
-	                $mask   = preg_replace( '/[^\d]*/', '', $entry[1] );
-	                $status = isset( $entry[2] ) ? $entry[2]       : 0;
-	                $source = isset( $entry[3] ) ? (int) $entry[3] : 'NULL';
+		    $unzipped_content = gzdecode( $file_content );
 
-	                $values[] = "($ip, $mask, $status, $source)";
-                    
-                }
-                
-                if( ! empty( $values ) ){
-                    $query .= implode( ',', $values ) . ';';
-                    $db->execute( $query );
-                }
-                
-            }
-            
-            return $count_result;
-            
-        }else {
-	        return $data;
-        }
+		    if ( $unzipped_content !== false ) {
+
+			    $data = Helper::buffer__parse__csv( $unzipped_content );
+
+			    if( empty( $data['errors'] ) ){
+
+				    reset($data);
+
+				    for( $count_result = 0; current($data) !== false; ) {
+
+					    $query = "INSERT INTO ".$db__table__data." (network, mask, status, source) VALUES ";
+
+					    for( $i = 0, $values = array(); APBCT_WRITE_LIMIT !== $i && current( $data ) !== false; $i ++, $count_result ++, next( $data ) ){
+
+						    $entry = current($data);
+
+						    if( empty( $entry ) || empty( $entry[0] )  || empty ($entry[1] ) ) {
+							    continue;
+						    }
+
+						    // Cast result to int
+						    $ip     = preg_replace( '/[^\d]*/', '', $entry[0] );
+						    $mask   = preg_replace( '/[^\d]*/', '', $entry[1] );
+						    $status = isset( $entry[2] ) ? $entry[2]       : 0;
+						    $source = isset( $entry[3] ) ? (int) $entry[3] : 'NULL';
+
+						    $values[] = "($ip, $mask, $status, $source)";
+
+					    }
+
+					    if( ! empty( $values ) ){
+						    $query .= implode( ',', $values ) . ';';
+						    $db->execute( $query );
+						    if( file_exists( $file_url ) ) {
+						    	unlink($file_url);
+						    }
+					    }
+
+				    }
+
+				    return $count_result;
+
+			    }else {
+				    return $data;
+			    }
+
+		    } else {
+			    return array( 'error' => 'Can not unpack datafile');
+		    }
+	    } else {
+		    return array( 'error' => 'Function gzdecode not exists. Please update your PHP at least to version 5.4 ');
+	    }
+
     }
     
 	public static function update__write_to_db__exclusions( $db, $db__table__data, $exclusions = array() ) {
