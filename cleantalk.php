@@ -1138,7 +1138,7 @@ function apbct_sfw_update__end_of_update() {
 	// Get update period for server
 	$update_period = DNS::getRecord( 'spamfirewall-ttl-txt.cleantalk.org', true, DNS_TXT );
 	$update_period = isset( $update_period['txt'] ) ? $update_period['txt'] : 0;
-	$update_period = (int) $update_period > 43200 ?  (int) $update_period : 43200;
+	$update_period = (int) $update_period > 14400 ?  (int) $update_period : 14400;
 	$cron = new Cron();
 	$cron->updateTask('sfw_update', 'apbct_sfw_update__init', $update_period );
 	$cron->updateTask('sfw_update_checker', 'apbct_sfw_update__checker', 0 );
