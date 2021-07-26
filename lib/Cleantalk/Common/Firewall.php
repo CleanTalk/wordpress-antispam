@@ -76,10 +76,30 @@ class Firewall
 	 * @return array
 	 */
 	public function ip__get( $ips_input = 'real', $v4_only = true ){
-		
-		$result = Helper::ip__get( $ips_input, $v4_only );
-		
-		return ! empty( $result ) ? array( 'real' => $result ) : array();
+
+		$real_ip = Helper::ip__get( $ips_input, $v4_only );
+		$result = array();
+
+		/**
+		 * Add real ip to result
+		 */
+		if( !empty($real_ip) ) {
+			$result['real'] = $real_ip;
+		}
+
+		/**
+		 * Check IP in REMOTE_ADDR, add to result
+		 */
+		$remote_addr_ip = Helper::ip__get( 'remote_addr', $v4_only );
+
+		if( !empty($remote_addr_ip) &&
+		    !empty($real_ip) &&
+		    $remote_addr_ip !== $real_ip
+		) {
+			$result['remote_addr'] = $remote_addr_ip;
+		}
+
+		return $result;
 		
 	}
 	
