@@ -1029,7 +1029,7 @@ function apbct_sfw_update__process_ck( $file_path ) {
 			return array( 'error' => 'Can not unpack datafile');
 		}
 	} else {
-		return array( 'error' => 'Function gzdecode not exists. Please update your PHP at least to version 5.4 ' . $data['error'] );
+		return array( 'error' => 'Function gzdecode not exists. Please update your PHP at least to version 5.4 ' );
 	}
 
 }
@@ -1171,7 +1171,7 @@ function apbct_prepare_upd_dir() {
 			return array( 'error', 'Can not find FW files.' );
 		}
 		if( count( $files ) === 0 ) {
-			return (bool) file_put_contents( $dir_name . 'index.php', '<?php' . "\n" );
+			return (bool) file_put_contents( $dir_name . 'index.php', '<?php' . PHP_EOL );
 		}
 		foreach( $files as $file ){
 			if( is_file( $file ) ) {

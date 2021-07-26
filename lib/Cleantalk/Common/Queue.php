@@ -34,7 +34,7 @@ abstract class Queue {
 
 	/**
 	 * @param string $stage_name
-	 * @param false $is_last_stage
+	 * @param bool|string|int $is_last_stage
 	 */
 	public function addStage( $stage_name, $args = array(), $is_last_stage = '0' )
 	{
@@ -115,17 +115,6 @@ abstract class Queue {
 				}
 			} unset( $stage );
 		}
-	}
-
-	public function isStageWaiting() {
-		if( count( $this->queue['stages'] ) > 0 ) {
-			foreach ( $this->queue['stages'] as $stage ) {
-				if ( $stage['status'] === 'IN_PROGRESS' ) {
-					return true;
-				}
-			}
-		}
-		return false;
 	}
 
 	public function isQueueInProgress()

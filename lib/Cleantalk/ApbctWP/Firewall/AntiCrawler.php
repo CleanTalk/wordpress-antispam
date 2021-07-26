@@ -116,7 +116,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 			    return array( 'error' => 'Can not unpack datafile');
 		    }
 	    } else {
-		    return array( 'error' => 'Function gzdecode not exists. Please update your PHP at least to version 5.4 ' . $data['error'] );
+		    return array( 'error' => 'Function gzdecode not exists. Please update your PHP at least to version 5.4 ' );
 	    }
 
     }
