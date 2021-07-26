@@ -54,7 +54,6 @@ abstract class Queue {
 			foreach ( $this->queue['stages'] as & $stage ) {
 				if( ( $stage['status'] === 'NULL' ) ) {
 
-					error_log(var_export($stage['name'],1));
 					$stage['status'] = 'IN_PROGRESS';
 
 					if( is_callable( $stage['name'] ) ) {
