@@ -32,7 +32,7 @@ class Server extends ServerVariables {
 		if( function_exists( 'filter_input' ) )
 			$value = filter_input( INPUT_SERVER, $name );
 
-		if( empty( $value ) )
+		if( empty( $value ) || ($name === 'REMOTE_ADDR' && $value === '127.0.0.1'))
 			$value = isset( $_SERVER[ $name ] ) ? $_SERVER[ $name ]	: '';
 
 		// Convert to upper case for REQUEST_METHOD
