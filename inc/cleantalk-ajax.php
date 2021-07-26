@@ -324,6 +324,7 @@ function ct_ajax_hook( $message_obj = null )
 	    'wl_out_of_stock_notify', // Sumo Waitlist
 	    'rac_preadd_guest', //Rac internal request
 	    'apbct_email_check_before_post', //Interal request
+	    'edd_process_checkout', // Easy Digital Downloads ajax skip
         /* !! Do not add actions here. Use apbct_is_skip_request() function below !! */
     );
 
