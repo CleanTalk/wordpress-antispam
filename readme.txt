@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 3.0
 Tested up to: 5.8
 Requires PHP: 5.6
-Stable tag: 5.159.9
+Stable tag: 5.160
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -572,6 +572,33 @@ If your website has forms that send data to external sources, you can enable opt
 12. SpamFireWall log.
 
 == Changelog ==
+
+= 5.160 Jul 28 2021 =
+ * New: SFW. SFW alternative cookie implemented.
+ * New: SFW. AC alternative cookie implemented.
+ * New: SFW. AF alternative cookie implemented.
+ * New: Helper. Curl multi wrapper added.
+ * New: Queue class implemented.
+ * Mod: Changed the processing of the honeypot_field for standard comment.
+ * Mod: Added integration for Wishlist Members registration form.
+ * Mod: Store visited URLs amount reduces to 5 with 128 symbols by URL.
+ * Upd: Public js scripts separated.
+ * Upd: SFW. Updating process modified.
+ * Fix: Moderate rotating fixed.
+ * Fix: SFW. Process file errors handling fixed.
+ * Fix: Pluggable. Expression fixed.
+ * Fix: Ajax. User detection fixed..
+ * Fix: Ajax. Ajax handlers fixed.
+ * Fix: IP-detection for Cloudflare CDN.
+ * Fix: Skip test for ajax alt_session request.
+ * Fix: Set cookies on dashboard pages even if the setting is off.
+ * Fix: Ajax. Ajax class fixed.
+ * Fix: Users scanner. Remove redundant menu.
+ * Fix: Added an exception for the action edd_process_checkout Easy Didgital Downloads plugi
+ * Fix: SFW. Changed method for getting addr ip.
+ * Fix: Integration. WPForms names gathering fixed.
+ * Fix: SFW. Min update interval decreased to 14400 seconds.
+ * Fix: Integration. WPForms names gathering fixed.
 
 = 5.159.9 Jul 15 2021 =
  * Fix. SFW. Updating cooldown increased up to 15 min.
