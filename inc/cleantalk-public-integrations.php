@@ -2400,7 +2400,7 @@ function apbct_form__gravityForms__addField($form_string, $form){
  * @return boolean
  * @psalm-suppress UnusedVariable
  */
-function apbct_form__gravityForms__testSpam($is_spam, $_form, $entry) {
+function apbct_form__gravityForms__testSpam($is_spam, $form, $entry) {
 
 	global $apbct, $cleantalk_executed, $ct_gform_is_spam, $ct_gform_response;
 
@@ -2413,13 +2413,68 @@ function apbct_form__gravityForms__testSpam($is_spam, $_form, $entry) {
 	}
 
 	$form_fields_for_ct = array();
-	foreach($entry as $key => $value){
-		if(is_numeric($key)) {
-			$form_fields_for_ct[ 'input_' . $key ] = $value;
+	$form_fields = (isset($form['fields'])) ? $form['fields'] : false;
+	$form_fields_intermediate = array();
+	$email = '';
+	$nickname = array();
+
+	if($form_fields) {
+		foreach ($form_fields as $field) {
+			$field_id = $field['id'];
+			$field_visibility = $field['visibility'];
+			$field_type = $field['type'];
+			$field_inputs = $field['inputs'];
+
+			if($field_inputs) {
+				foreach ($field_inputs as $input) {
+					$input_id = $input['id'];
+
+					if(isset($entry[$input_id]) && $entry[$input_id]) {
+						$form_fields_intermediate[] = array(
+							'f_name' => 'input_' . $input_id,
+							'f_visibility' => $field_visibility,
+							'f_type' => $field_type,
+							'f_data' => $entry[$input_id]
+						);
+						$form_fields_for_ct['input_' . $input_id] = $entry[$input_id];
+					}
+				}
+			} else {
+				if(isset($entry[$field_id]) && $entry[$field_id]) {
+					$form_fields_intermediate[] = array(
+						'f_name' => 'input_' . $field_id,
+						'f_visibility' => $field_visibility,
+						'f_type' => $field_type,
+						'f_data' => $entry[$field_id]
+					);
+					$form_fields_for_ct['input_' . $field_id] = $entry[$field_id];
+				}
+			}
 		}
 	}
 
-	$ct_temp_msg_data = ct_get_fields_any( $form_fields_for_ct );
+	# Search nickname and email
+	if($form_fields_intermediate) {
+		foreach ($form_fields_intermediate as $field) {
+			if($field['f_type'] === 'email') {
+				$email = $field['f_data'];
+			}
+
+			if($field['f_type'] === 'name') {
+				$nickname[] = $field['f_data'];
+			}
+		}
+	}
+
+	if(!$form_fields_for_ct) {
+		foreach($entry as $key => $value){
+			if(is_numeric($key)) {
+				$form_fields_for_ct[ 'input_' . $key ] = $value;
+			}
+		} unset($key, $value);
+	}
+
+	$ct_temp_msg_data = ct_get_fields_any($form_fields_for_ct, $email, array_shift($nickname));
 
 	$sender_email    = $ct_temp_msg_data['email'] ?: '';
 	$sender_nickname = $ct_temp_msg_data['nickname'] ?: '';
