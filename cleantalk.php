@@ -837,6 +837,8 @@ function apbct_sfw_update__get_multifiles(){
 
 function apbct_sfw_update__download_files( $urls ) {
 
+	sleep(3);
+
 	//Reset keys
 	$urls = array_values( $urls );
 	$results = Helper::http__multi_request( $urls, APBCT_DIR_PATH . '/fw_files/' );
