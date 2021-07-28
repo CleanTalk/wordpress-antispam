@@ -530,7 +530,16 @@ function apbct_is_skip_request( $ajax = false ) {
              Post::get( 'action' ) === 'active_step' )
         {
 	        return 'fluentform_skip';
-        }    	
+        }
+
+	    // W2DC - https://codecanyon.net/item/web-20-directory-plugin-for-wordpress/6463373
+	    if( apbct_is_plugin_active( 'w2dc/w2dc.php' ) &&
+	        isset( $_POST['action'] ) &&
+	        $_POST['action'] === 'vp_w2dc_ajax_vpt_option_save' &&
+	        is_admin() )
+	    {
+		    return 'w2dc_skipped';
+	    }
     } else {
 
         /*****************************************/
@@ -589,7 +598,7 @@ function apbct_is_skip_request( $ajax = false ) {
 	    //Skip wforms because of direct integration
 	    if ( apbct_is_plugin_active( 'wpforms/wpforms.php' ) && isset( $_POST['wpforms'] ) ) {
 		    return 'wp_forms';
-	    }    	
+	    }
     }
 
     return false;
