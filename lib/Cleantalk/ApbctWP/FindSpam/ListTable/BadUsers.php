@@ -11,7 +11,7 @@ class BadUsers extends Users {
 		$columns = $this->get_columns();
 		$this->_column_headers = array( $columns, array(), array() );
 
-		$per_page_option = ! is_null( get_current_screen() ) ? get_current_screen()->get_option( 'per_page', 'option' ) : 10;
+		$per_page_option = ! is_null( get_current_screen() ) ? get_current_screen()->get_option( 'per_page', 'option' ) : '10';
 		$per_page = get_user_meta( get_current_user_id(), $per_page_option, true );
 		if( ! $per_page ) {
 			$per_page = 10;
@@ -24,7 +24,7 @@ class BadUsers extends Users {
 			'per_page'    => $per_page,
 		) );
 
-		$current_page = (int) $this->get_pagenum();
+		$current_page = $this->get_pagenum();
 
 		$scanned_users_to_show = array_slice( $scanned_users->get_results(), ( ( $current_page - 1 ) * $per_page ), $per_page );
 
@@ -81,10 +81,12 @@ class BadUsers extends Users {
 						 ."&nbsp;<img src='" . APBCT_URL_PATH . "/inc/images/new_window.gif' alt='Ico: open in new window' border='0' style='float:none' />"
 						 ."</a>"
 						: '');
-			}else
-				$column_content .= esc_html__( 'No IP adress', 'cleantalk-spam-protect');
-		}else
-			$column_content .= esc_html__( 'No IP adress', 'cleantalk-spam-protect');
+			}else {
+				$column_content .= esc_html__( 'No IP adress', 'cleantalk-spam-protect' );
+			}
+		}else {
+			$column_content .= esc_html__( 'No IP adress', 'cleantalk-spam-protect' );
+		}
 
 		return $column_content;
 
@@ -97,7 +99,7 @@ class BadUsers extends Users {
 	}
 
 	function get_bulk_actions() {
-		return null;
+		return array();
 	}
 
 	function no_items() {

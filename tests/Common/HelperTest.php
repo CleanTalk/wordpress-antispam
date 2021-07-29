@@ -14,4 +14,17 @@ class HelperTest extends TestCase
     {
         $this->assertEquals('127.0.0.1', Helper::ip__get());
     }
+
+    public function test_http__multi_request_error() {
+    	$this->assertArrayHasKey( 'error', Helper::http__multi_request( 'string' ) );
+	    $this->assertArrayHasKey( 'error', Helper::http__multi_request( '' ) );
+	    $this->assertArrayHasKey( 'error', Helper::http__multi_request( array() ) );
+	    $this->assertArrayHasKey( 'error', Helper::http__multi_request( array(array('https://google.com')) ) );
+    }
+
+	public function test_http__multi_request_success() {
+    	$res = Helper::http__multi_request( array('https://google.com') );
+		$this->assertIsArray( $res );
+		$this->assertContainsOnly( 'string', $res );
+	}
 }

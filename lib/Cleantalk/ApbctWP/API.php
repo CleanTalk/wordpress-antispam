@@ -27,6 +27,7 @@ class API extends \Cleantalk\Common\API
      * @param $status
      *
      * @return array|bool|mixed|string[]
+     * @psalm-suppress PossiblyUnusedMethod
      */
     public static function method__private_list_add__sfw_wl( $user_token, $service_id, $ip ) {
         
@@ -53,9 +54,9 @@ class API extends \Cleantalk\Common\API
 	 * @param int $timeout
 	 * @param bool Do we need to use SSL
 	 *
-	 * @return array|bool
+	 * @return array|string
 	 */
-	static public function send_request($data, $url = self::URL, $timeout = 10, $ssl = false, $ssl_path = '')
+	public static function send_request($data, $url = self::URL, $timeout = 10, $ssl = false, $ssl_path = '')
 	{
 		global $apbct;
 		
@@ -88,13 +89,12 @@ class API extends \Cleantalk\Common\API
 		// Call CURL version if disabled
 		}else{
 			$ssl_path = $ssl_path
-				? $ssl_path
-				: (defined('APBCT_CASERT_PATH') ? APBCT_CASERT_PATH : '');
+				?: (defined('APBCT_CASERT_PATH') ? APBCT_CASERT_PATH : '');
 			$result = parent::send_request($data, $url, $timeout, $ssl, $ssl_path);
 		}
 		
 		return empty($result) || !empty($errors)
-			? array('error' => true, 'error' => $errors)
+			? array( 'error' => $errors )
 			: $result;
 	}
 }

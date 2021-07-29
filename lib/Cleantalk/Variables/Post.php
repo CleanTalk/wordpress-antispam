@@ -13,7 +13,7 @@ namespace Cleantalk\Variables;
  */
 class Post extends ServerVariables{
 	
-	static $instance;
+	public static $instance;
 	
 	/**
 	 * Constructor
@@ -28,7 +28,7 @@ class Post extends ServerVariables{
 	}
 	
 	/**
-	 * Gets given $_POST variable and seva it to memory
+	 * Gets given $_POST variable and save it to memory
 	 * @param $name
 	 *
 	 * @return mixed|string
@@ -36,18 +36,22 @@ class Post extends ServerVariables{
 	protected function get_variable( $name ){
 		
 		// Return from memory. From $this->variables
-		if(isset(static::$instance->variables[$name]))
-			return static::$instance->variables[$name];
-		
-		if( function_exists( 'filter_input' ) )
-			$value = filter_input( INPUT_POST, $name );
-		
-		if( empty( $value ) )
-			$value = isset( $_POST[ $name ] ) ? $_POST[ $name ]	: '';
-		
-		// Remember for thurther calls
-		static::getInstance()->remember_variable( $name, $value );
-		
-		return $value;
+		if( ! isset( static::$instance->variables[ $name ] ) ) {
+			if ( function_exists( 'filter_input' ) ) {
+				$value = filter_input( INPUT_POST, $name );
+			}
+
+			if ( empty( $value ) ) {
+				$value = isset( $_POST[ $name ] ) ? $_POST[ $name ] : '';
+			}
+
+			// Remember for further calls
+			static::getInstance()->remember_variable( $name, $value );
+
+			return $value;
+		}
+
+		return static::$instance->variables[ $name ];
+
 	}
 }

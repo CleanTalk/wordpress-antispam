@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * @psalm-suppress InvalidGlobal
+ */
+global $apbct;
+
 // If this file is called directly, abort.
 if ( ! defined( 'DOING_AJAX' ) ) {
 	http_response_code( 403 );
@@ -13,7 +18,6 @@ if( !defined( 'APBCT_VERSION' ) ) {
 	define( 'APBCT_VERSION', $plugin_info['Version'] );
 }
 
-global $apbct;
 $apbct = new \Cleantalk\ApbctWP\State('cleantalk', array('settings', 'data'));
 $apbct->white_label      = $apbct->network_settings['multisite__white_label'];
 $apbct->allow_custom_key = $apbct->network_settings['multisite__allow_custom_key'];

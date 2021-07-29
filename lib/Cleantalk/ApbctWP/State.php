@@ -51,14 +51,14 @@ use ArrayObject;
  *
  * MISC
  *
+ * @psalm-suppress PossiblyUnusedProperty
  */
 class State
 {
-	public $user = null;
+	public $user;
 	public $use_rest_api = 0;
 	public $option_prefix = 'cleantalk';
 	public $storage = array();
-	public $integrations = array();
 	public $def_settings = array(
 
 		'apikey'                        => '',
@@ -344,7 +344,7 @@ class State
 				$option = is_array($option) ? array_merge($this->def_data,     $option) : $this->def_data;
 				// Generate salt
 				$option['salt'] = empty($option['salt'])
-					? str_pad(rand(0, getrandmax()), 6, '0').str_pad(rand(0, getrandmax()), 6, '0')
+					? str_pad((string)rand(0, getrandmax()), 6, '0').str_pad((string)rand(0, getrandmax()), 6, '0')
 					: $option['salt'];
 			}
 			
@@ -433,7 +433,7 @@ class State
 	{
 		$option = get_option('cleantalk_'.$option_name, null);
 		
-		$this->$option_name = gettype($option) === 'array'
+		$this->$option_name = is_array( $option )
 			? new ArrayObject($option)
 			: $option;
 	}
@@ -529,8 +529,9 @@ class State
 		if( ($type == 'send_logs'          && $error == 'NO_LOGS_TO_SEND') ||
 			($type == 'send_firewall_logs' && $error == 'NO_LOGS_TO_SEND') ||
 			$error == 'LOG_FILE_NOT_EXISTS'
-		)
+		) {
 			return;
+		}
 		
 		$error = array(
 			'error'      => $error,
@@ -558,22 +559,26 @@ class State
 	public function error_delete($type, $save_flag = false, $major_type = null)
 	{
 		/** @noinspection DuplicatedCode */
-		if(is_string($type))
-			$type = explode(' ', $type);
+		if(is_string($type)) {
+			$type = explode( ' ', $type );
+		}
 		
 		foreach($type as $val){
 			if($major_type){
-				if(isset($this->errors[$major_type][$val]))
-					unset($this->errors[$major_type][$val]);
+				if(isset($this->errors[$major_type][$val])) {
+					unset( $this->errors[ $major_type ][ $val ] );
+				}
 			}else{
-				if(isset($this->errors[$val]))
-					unset($this->errors[$val]);
+				if(isset($this->errors[$val])) {
+					unset( $this->errors[ $val ] );
+				}
 			}
 		}
 		
 		// Save if flag is set and there are changes
-		if($save_flag)
+		if($save_flag) {
 			$this->saveErrors();
+		}
 	}
 	
 	/**
@@ -586,8 +591,9 @@ class State
 	public function error_delete_all($save_flag = false)
 	{
 		$this->errors = array();
-		if($save_flag)
+		if($save_flag) {
 			$this->saveErrors();
+		}
 	}
     
     /**
@@ -601,10 +607,12 @@ class State
      * @param bool $save_flag
      */
     public function error_toggle($add_error, $type, $error, $major_type = null, $set_time = true, $save_flag = true ){
-        if( $add_error )
-            $this->error_add( $type, $error, $major_type, $set_time );
-        else
-            $this->error_delete( $type, $save_flag, $major_type );
+        if( $add_error ) {
+	        $this->error_add( $type, $error, $major_type, $set_time );
+        }
+        else {
+	        $this->error_delete( $type, $save_flag, $major_type );
+        }
     }
     
     /**

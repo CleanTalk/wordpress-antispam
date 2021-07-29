@@ -173,7 +173,7 @@ class GetFieldsAny {
 
 		foreach ($this->skip_message_post as $v) {
 			if (isset($_POST[$v])) {
-				$message = null;
+				$this->processed_data['message'] = null;
 				break;
 			}
 		}
@@ -271,7 +271,6 @@ class GetFieldsAny {
 				foreach( $this->obfuscate_params as $needle ){
 					if ( strpos($key, $needle) !== false ) {
 						$value = $this->obfuscate_param( $value );
-						continue(2);
 					}
 				}
 
@@ -327,7 +326,7 @@ class GetFieldsAny {
 
 			}elseif(!is_object($value)){
 
-				if( $value === '' ) {
+				if( empty( $value ) ) {
 					continue;
 				}
 
@@ -369,12 +368,12 @@ class GetFieldsAny {
 	/**
 	 * Masks a value with asterisks (*)
 	 *
-	 * @param null $value
+	 * @param null|string $value
 	 *
 	 * @return string|null
 	 */
 	private function obfuscate_param($value = null) {
-		if ($value && (!is_object($value) || !is_array($value))) {
+		if( $value ) {
 			$length = strlen($value);
 			$value = str_repeat('*', $length);
 		}

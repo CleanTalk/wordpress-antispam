@@ -10,7 +10,7 @@ use Cleantalk\Variables\Server;
  *
  * @package       PHP Antispam by CleanTalk
  * @subpackage    Helper
- * @Version       3.5
+ * @Version       4.0
  * @author        Cleantalk team (welcome@cleantalk.org)
  * @copyright (C) 2014 CleanTalk team (http://cleantalk.org)
  * @license       GNU/GPL: http://www.gnu.org/copyleft/gpl.html
@@ -21,7 +21,7 @@ class Helper
 	/**
 	 * Default user agent for HTTP requests
 	 */
-	const AGENT = 'Cleantalk-Helper/3.4';
+	const AGENT = 'Cleantalk-Helper/4.0';
 	
 	/**
 	 * @var array Set of private networks IPv4 and IPv6
@@ -39,19 +39,6 @@ class Helper
 			'0:0:0:0:0:0:a:1/128', // ::ffff:127.0.0.1
 		),
 	);
-    
-    public static $cleantalks_moderate_servers = array(
-        // MODERATE
-        'moderate1.cleantalk.org' => '162.243.144.175',
-        'moderate2.cleantalk.org' => '159.203.121.181',
-        'moderate3.cleantalk.org' => '88.198.153.60',
-        'moderate4.cleantalk.org' => '159.69.51.30',
-        'moderate5.cleantalk.org' => '95.216.200.119',
-        'moderate6.cleantalk.org' => '138.68.234.8',
-//		'moderate7.cleantalk.org' => '168.119.82.149',
-        'moderate8.cleantalk.org' => '188.34.154.26',
-        'moderate9.cleantalk.org' => '51.81.55.251',
-    );
 	
 	/**
 	 * @var array Set of CleanTalk servers
@@ -64,7 +51,6 @@ class Helper
 		'moderate4.cleantalk.org' => '159.69.51.30',
 		'moderate5.cleantalk.org' => '95.216.200.119',
 		'moderate6.cleantalk.org' => '138.68.234.8',
-//		'moderate7.cleantalk.org' => '168.119.82.149',
 		'moderate8.cleantalk.org' => '188.34.154.26',
 		'moderate9.cleantalk.org' => '51.81.55.251',
 		
@@ -87,6 +73,9 @@ class Helper
      * @param bool   $v4_only
      *
      * @return string|null
+     *
+     * @psalm-suppress InvalidReturnStatement
+     * @psalm-suppress ComplexMethod
      */
     public static function ip__get( $ip_type_to_get = 'real', $v4_only = true, $headers = array() )
     {
@@ -97,10 +86,19 @@ class Helper
             // Cloud Flare
             case 'cloud_flare':
                 $headers = $headers ?: self::http__get_headers();
-                if( isset( $headers['Cf-Connecting-Ip'], $headers['Cf-Ipcountry'], $headers['Cf-Ray'] ) ){
-                    $tmp = strpos( $headers['Cf-Connecting-Ip'], ',' ) !== false
-                        ? explode( ',', $headers['Cf-Connecting-Ip'] )
-                        : (array) $headers['Cf-Connecting-Ip'];
+                if(
+                    isset( $headers['Cf-Connecting-Ip'] ) &&
+                    ( isset( $headers['Cf-Ray'] ) || isset( $headers['X-Wpe-Request-Id'] ) ) &&
+                    ! isset( $headers['X-Gt-Clientip'] )
+                ){
+                    if( isset( $headers['Cf-Pseudo-Ipv4'], $headers['Cf-Pseudo-Ipv6'] ) ){
+                        $source = $headers['Cf-Pseudo-Ipv6'];
+                    }else{
+                        $source = $headers['Cf-Connecting-Ip'];
+                    }
+                    $tmp = strpos( $source, ',' ) !== false
+                        ? explode( ',', $source )
+                        : (array) $source;
                     $ip_version = self::ip__validate( trim( $tmp[0] ) );
                     if( $ip_version ){
                         $out = $ip_version === 'v6' && ! $v4_only ? self::ip__v6_normalize( trim( $tmp[0] ) ) : trim( $tmp[0] );
@@ -250,15 +248,15 @@ class Helper
                 // Is private network
                 if(
                     ! $out ||
-                    ($out &&
                     (
+                        is_string( $ip_version ) && (
                         self::ip__is_private_network( $out, $ip_version ) ||
                         self::ip__mask_match(
                             $out,
                             Server::get( 'SERVER_ADDR' ) . '/24',
                             $ip_version
-                        )
-                    ))
+                        ) )
+                    )
                 ){
                     //@todo Remove local IP from x-forwarded-for and x-real-ip
                     $out = $out ?: self::ip__get( 'x_forwarded_for', $v4_only, $headers );
@@ -295,7 +293,7 @@ class Helper
 	 *
 	 * @return bool
 	 */
-	static function ip__is_private_network($ip, $ip_type = 'v4')
+	public static function ip__is_private_network($ip, $ip_type = 'v4')
 	{
 		return self::ip__mask_match($ip, self::$private_networks[$ip_type], $ip_type);
 	}
@@ -306,11 +304,12 @@ class Helper
 	 * Hextet by hextet for IPv6
 	 *
 	 * @param string $ip
-	 * @param string $cidr       work to compare with
+	 * @param string|array $cidr       work to compare with
 	 * @param string $ip_type    IPv6 or IPv4
 	 * @param int    $xtet_count Recursive counter. Determs current part of address to check.
 	 *
 	 * @return bool
+	 * @psalm-suppress InvalidScalarArgument
 	 */
 	public static function ip__mask_match($ip, $cidr, $ip_type = 'v4', $xtet_count = 0)
 	{
@@ -321,7 +320,6 @@ class Helper
 					return true;
 				}
 			}
-			unset($curr_mask);
 			return false;
 		}
 
@@ -329,28 +327,29 @@ class Helper
             return false;
         }
 		
-		$xtet_base = ($ip_type == 'v4') ? 8 : 16;
+		$xtet_base = ($ip_type === 'v4') ? 8 : 16;
 		
 		// Calculate mask
 		$exploded = explode('/', $cidr);
 		$net_ip = $exploded[0];
-		$mask = $exploded[1];
+		$mask = (int) $exploded[1];
 		
 		// Exit condition
 		$xtet_end = ceil($mask / $xtet_base);
-		if($xtet_count == $xtet_end)
+		if($xtet_count == $xtet_end) {
 			return true;
+		}
 		
-		// Lenght of bits for comparsion
+		// Length of bits for comparison
 		$mask = $mask - $xtet_base * $xtet_count >= $xtet_base ? $xtet_base : $mask - $xtet_base * $xtet_count;
 		
 		// Explode by octets/hextets from IP and Net
-		$net_ip_xtets = explode($ip_type == 'v4' ? '.' : ':', $net_ip);
-		$ip_xtets = explode($ip_type == 'v4' ? '.' : ':', $ip);
+		$net_ip_xtets = explode( $ip_type === 'v4' ? '.' : ':', $net_ip);
+		$ip_xtets = explode( $ip_type === 'v4' ? '.' : ':', $ip);
 		
 		// Standartizing. Getting current octets/hextets. Adding leading zeros.
-		$net_xtet = str_pad(decbin($ip_type == 'v4' ? $net_ip_xtets[$xtet_count] : @hexdec($net_ip_xtets[$xtet_count])), $xtet_base, 0, STR_PAD_LEFT);
-		$ip_xtet = str_pad(decbin($ip_type == 'v4' ? $ip_xtets[$xtet_count] : @hexdec($ip_xtets[$xtet_count])), $xtet_base, 0, STR_PAD_LEFT);
+		$net_xtet = str_pad(decbin( $ip_type === 'v4' ? $net_ip_xtets[$xtet_count] : @hexdec($net_ip_xtets[$xtet_count])), $xtet_base, 0, STR_PAD_LEFT);
+		$ip_xtet = str_pad(decbin( $ip_type === 'v4' ? $ip_xtets[$xtet_count] : @hexdec($ip_xtets[$xtet_count])), $xtet_base, 0, STR_PAD_LEFT);
 		
 		// Comparing bit by bit
 		for($i = 0, $result = true; $mask != 0; $mask--, $i++){
@@ -361,8 +360,9 @@ class Helper
 		}
 		
 		// Recursing. Moving to next octet/hextet.
-		if($result)
-			$result = self::ip__mask_match($ip, $cidr, $ip_type, $xtet_count + 1);
+		if($result) {
+			$result = self::ip__mask_match( $ip, $cidr, $ip_type, $xtet_count + 1 );
+		}
 		
 		return $result;
 		
@@ -374,10 +374,11 @@ class Helper
 	 * @param int $long_mask
 	 *
 	 * @return int
+	 * @psalm-suppress PossiblyUnusedMethod
 	 */
-	static function ip__mask__long_to_number($long_mask)
+	public static function ip__mask__long_to_number($long_mask)
 	{
-		$num_mask = strpos((string)decbin($long_mask), '0');
+		$num_mask = strpos( decbin($long_mask), '0');
 		return $num_mask === false ? 32 : $num_mask;
 	}
 	
@@ -390,9 +391,15 @@ class Helper
 	 */
 	public static function ip__validate($ip)
 	{
-		if(!$ip) return false; // NULL || FALSE || '' || so on...
-		if(filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) && $ip != '0.0.0.0') return 'v4';  // IPv4
-		if(filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6) && self::ip__v6_reduce($ip) != '0::0') return 'v6';  // IPv6
+		if(!$ip) { // NULL || FALSE || '' || so on...
+			return false;
+		}
+		if(filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) && $ip != '0.0.0.0') { // IPv4
+			return 'v4';
+		}
+		if(filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6) && self::ip__v6_reduce($ip) != '0::0') { // IPv6
+			return 'v6';
+		}
 		return false; // Unknown
 	}
 
@@ -420,7 +427,7 @@ class Helper
 		$ip = trim($ip);
 		// Searching for ::ffff:xx.xx.xx.xx patterns and turn it to IPv6
 		if(preg_match('/^::ffff:([0-9]{1,3}\.?){4}$/', $ip)){
-			$ip = dechex(sprintf("%u", ip2long(substr($ip, 7))));
+			$ip = dechex((int)sprintf("%u", ip2long(substr($ip, 7))));
 			$ip = '0:0:0:0:0:0:' . (strlen($ip) > 4 ? substr('abcde', 0, -4) : '0') . ':' . substr($ip, -4, 4);
 			// Normalizing hextets number
 		}elseif(strpos($ip, '::') !== false){
@@ -448,7 +455,7 @@ class Helper
 		if(strpos($ip, ':') !== false){
 			$ip = preg_replace('/:0{1,4}/', ':', $ip);
 			$ip = preg_replace('/:{2,}/', '::', $ip);
-			$ip = strpos($ip, '0') === 0 ? substr($ip, 1) : $ip;
+			$ip = strpos($ip, '0') === 0 && substr($ip, 1) !== false ? substr($ip, 1) : $ip;
 		}
 		return $ip;
 	}
@@ -458,17 +465,17 @@ class Helper
 	 *
 	 * @param string $ip
 	 *
-	 * @return false|int|string
+	 * @return bool
+	 * @psalm-suppress PossiblyUnusedMethod
 	 */
 	public static function ip__is_cleantalks($ip)
 	{
 		if(self::ip__validate($ip)){
 			$url = array_search($ip, self::$cleantalks_servers);
-			return $url
-				? true
-				: false;
-		}else
-			return false;
+			return (bool) $url;
+		}
+
+		return false;
 	}
 	
 	/**
@@ -476,17 +483,17 @@ class Helper
 	 *
 	 * @param $ip
 	 *
-	 * @return false|int|string
+	 * @return false|int|string|bool
 	 */
 	public static function ip__resolve__cleantalks($ip)
 	{
 		if(self::ip__validate($ip)){
 			$url = array_search($ip, self::$cleantalks_servers);
 			return $url
-				? $url
-				: self::ip__resolve($ip);
-		}else
-			return $ip;
+				?: self::ip__resolve($ip);
+		}
+
+		return $ip;
 	}
 	
 	/**
@@ -496,12 +503,13 @@ class Helper
 	 *
 	 * @return string
 	 */
-	static public function ip__resolve($ip)
+	public static function ip__resolve($ip)
 	{
 		if(self::ip__validate($ip)){
 			$url = gethostbyaddr($ip);
-			if($url)
+			if($url) {
 				return $url;
+			}
 		}
 		return $ip;
 	}
@@ -513,6 +521,7 @@ class Helper
 	 * @param bool $out
 	 *
 	 * @return bool
+	 * @psalm-suppress PossiblyUnusedMethod
 	 */
 	public static function dns__resolve($host, $out = false)
 	{
@@ -547,11 +556,11 @@ class Helper
 	 * ssl      - use SSL
 	 *
 	 * @param string       $url     URL
-	 * @param array        $data    POST|GET indexed array with data to send
+	 * @param array|string|int        $data    POST|GET indexed array with data to send
 	 * @param string|array $presets String or Array with presets: get_code, async, get, ssl, dont_split_to_array
 	 * @param array        $opts    Optional option for CURL connection
 	 *
-	 * @return array|bool (array || array('error' => true))
+	 * @return array|bool|string (array || array('error' => true))
 	 */
 	public static function http__request($url, $data = array(), $presets = array(), $opts = array())
 	{
@@ -639,7 +648,7 @@ class Helper
             
 			if( $result !== false ){
                 
-                if( strpos( $result, PHP_EOL ) !== false && ! in_array( 'dont_split_to_array', $presets ) ){
+                if( is_string( $result ) && strpos( $result, PHP_EOL ) !== false && ! in_array( 'dont_split_to_array', $presets ) ){
                     $result = explode( PHP_EOL, $result );
                 }
 				
@@ -650,16 +659,18 @@ class Helper
 				}
 				curl_close($ch);
 				$out = $result;
-			}else
-				$out = array('error' => curl_error($ch));
-		}else
-			$out = array('error' => 'CURL_NOT_INSTALLED');
+			}else {
+				$out = array( 'error' => curl_error( $ch ) );
+			}
+		}else {
+			$out = array( 'error' => 'CURL_NOT_INSTALLED' );
+		}
 		
 		/**
 		 * Getting HTTP-response code without cURL
 		 */
         if( in_array( 'get_code', $presets, true ) &&
-            isset( $out['error'] ) && $out['error'] == 'CURL_NOT_INSTALLED'
+            isset( $out['error'] ) && $out['error'] === 'CURL_NOT_INSTALLED'
 		){
 			$headers = get_headers($url);
 			$out = (int)preg_replace('/.*(\d{3}).*/', '$1', $headers[0]);
@@ -667,12 +678,80 @@ class Helper
 		
 		return $out;
 	}
+
+	/**
+	 * Do multi curl requests.
+	 *
+	 * @param array $urls      Array of URLs to requests
+	 * @param string $write_to Path to the writing files dir
+	 *
+	 * @return array
+	 * @psalm-suppress PossiblyUnusedMethod
+	 */
+	public static function http__multi_request( $urls, $write_to = '' )
+	{
+		if( ! is_array( $urls ) || empty( $urls ) ) {
+			return array( 'error' => 'CURL_MULTI: Parameter is not an array.' );
+		}
+
+		foreach( $urls as $url ) {
+			if( ! is_string( $url ) ) {
+				return array( 'error' => 'CURL_MULTI: Parameter elements must be strings.' );
+			}
+		}
+
+		$urls_count = count( $urls );
+		$curl_arr = array();
+		$master = curl_multi_init();
+
+		for($i = 0; $i < $urls_count; $i++)
+		{
+			$url =$urls[$i];
+			$curl_arr[$i] = curl_init($url);
+			$opts = array(
+				CURLOPT_RETURNTRANSFER => true,
+				CURLOPT_CONNECTTIMEOUT_MS => 10000,
+				CURLOPT_FORBID_REUSE => true,
+				CURLOPT_USERAGENT => self::AGENT . '; ' . ( isset( $_SERVER['REMOTE_ADDR'] ) ? $_SERVER['REMOTE_ADDR'] : 'UNKNOWN_HOST' ),
+				CURLOPT_HTTPHEADER => array('Expect:'), // Fix for large data and old servers http://php.net/manual/ru/function.curl-setopt.php#82418
+				CURLOPT_FOLLOWLOCATION => true,
+				CURLOPT_MAXREDIRS => 5,
+			);
+			curl_setopt_array($curl_arr[$i], $opts);
+			curl_multi_add_handle($master, $curl_arr[$i]);
+		}
+
+		do {
+			curl_multi_exec($master,$running);
+			// @ToDo place here sleep(500) to avoid possible CPU overusing
+		} while($running > 0);
+
+		$results = array();
+
+		for($i = 0; $i < $urls_count; $i++)
+		{
+			$info = curl_getinfo($curl_arr[$i], CURLINFO_HTTP_CODE);
+			if( 200 == $info ) {
+				if( ! empty( $write_to ) && is_dir( $write_to ) && is_writable( $write_to ) ) {
+					// @ToDo have to handle writing errors
+					file_put_contents(  $write_to . self::getFilenameFromUrl( $urls[$i] ), curl_multi_getcontent( $curl_arr[$i] ) );
+					$results[] = 'success';
+				} else {
+					$results[] = curl_multi_getcontent( $curl_arr[$i] );
+				}
+
+			} else {
+				$results[] = 'error';
+			}
+		}
+		return $results;
+	}
 	
 	/**
-	 * Merging arrays without reseting numeric keys
+	 * Merging arrays without resetting numeric keys
 	 *
-	 * @param array $arr1 One-dimentional array
-	 * @param array $arr2 One-dimentional array
+	 * @param array $arr1 One-dimensional array
+	 * @param array $arr2 One-dimensional array
 	 *
 	 * @return array Merged array
 	 */
@@ -691,6 +770,7 @@ class Helper
 	 * @param array $arr2 One-dimentional array
 	 *
 	 * @return array Merged array
+	 * @psalm-suppress PossiblyUnusedMethod
 	 */
 	public static function array_merge__save_numeric_keys__recursive($arr1, $arr2)
 	{
@@ -729,43 +809,45 @@ class Helper
 	{
 		// Array || object
 		if(is_array($data) || is_object($data)){
-			foreach($data as $key => &$val){
+			foreach($data as $_key => &$val){
 				$val = self::removeNonUTF8($val);
 			}
-			unset($key, $val);
+			unset($val);
 			
 			//String
 		}else{
-			if(!preg_match('//u', $data))
+			if(!preg_match('//u', $data)) {
 				$data = 'Nulled. Not UTF8 encoded or malformed.';
+			}
 		}
 		return $data;
 	}
-	
+
 	/**
 	 * Function convert anything to UTF8 and removes non UTF8 characters
 	 *
 	 * @param array|object|string $obj
-	 * @param string              $data_codepage
+	 * @param null|string $data_codepage
 	 *
-	 * @return mixed(array|object|string)
+	 * @return array|false|mixed|string|string[]|null
 	 */
 	public static function toUTF8($obj, $data_codepage = null)
 	{
 		// Array || object
 		if(is_array($obj) || is_object($obj)){
-			foreach($obj as $key => &$val){
+			foreach($obj as $_key => &$val){
 				$val = self::toUTF8($val, $data_codepage);
 			}
-			unset($key, $val);
+			unset($val);
 			
 			//String
 		}else{
 			if(!preg_match('//u', $obj) && function_exists('mb_detect_encoding') && function_exists('mb_convert_encoding')){
 				$encoding = mb_detect_encoding($obj);
-				$encoding = $encoding ? $encoding : $data_codepage;
-				if($encoding)
-					$obj = mb_convert_encoding($obj, 'UTF-8', $encoding);
+				$encoding = $encoding ?: $data_codepage;
+				if($encoding) {
+					$obj = mb_convert_encoding( $obj, 'UTF-8', $encoding );
+				}
 			}
 		}
 		return $obj;
@@ -783,15 +865,16 @@ class Helper
 	{
 		// Array || object
 		if(is_array($obj) || is_object($obj)){
-			foreach($obj as $key => &$val){
+			foreach($obj as $_key => &$val){
 				$val = self::fromUTF8($val, $data_codepage);
 			}
-			unset($key, $val);
+			unset($val);
 			
 			//String
 		}else{
-			if(preg_match('u', $obj) && function_exists('mb_convert_encoding') && $data_codepage !== null)
-				$obj = mb_convert_encoding($obj, $data_codepage, 'UTF-8');
+			if(preg_match('u', $obj) && function_exists('mb_convert_encoding') && $data_codepage !== null) {
+				$obj = mb_convert_encoding( $obj, $data_codepage, 'UTF-8' );
+			}
 		}
 		return $obj;
 	}
@@ -799,7 +882,7 @@ class Helper
 	/**
 	 * Checks if the string is JSON type
 	 *
-	 * @param string
+	 * @param string $string
 	 *
 	 * @return bool
 	 */
@@ -807,7 +890,13 @@ class Helper
 	    
         return is_string( $string ) && is_array( json_decode( $string, true ) );
 	}
-	
+
+	/**
+	 * @param int $interval
+	 *
+	 * @return int
+	 * @psalm-suppress PossiblyUnusedMethod
+	 */
 	public static function time__get_interval_start( $interval = 300 ){
 		return time() - ( ( time() - strtotime( date( 'd F Y' ) ) ) % $interval );
 	}
@@ -819,6 +908,7 @@ class Helper
 	 * @param string $type Default mime type. Returns if we failed to detect type
 	 *
 	 * @return string
+	 * @psalm-suppress PossiblyUnusedMethod
 	 */
 	public static function get_mime_type( $data, $type = '' )
 	{
@@ -842,7 +932,13 @@ class Helper
 		}
 		return $buffer;
 	}
-	
+
+	/**
+	 * @param $buffer
+	 *
+	 * @return array
+	 * @psalm-suppress PossiblyUnusedMethod
+	 */
 	public static function buffer__parse__csv( $buffer ){
 		$buffer = explode( "\n", $buffer );
 		$buffer = self::buffer__trim_and_clear_from_empty_lines( $buffer );
@@ -867,12 +963,13 @@ class Helper
 	}
 	
 	/**
-	 * Pops line from the csv buffer and fromat it by map to array
+	 * Pops line from the csv buffer and format it by map to array
 	 *
 	 * @param $csv
 	 * @param array $map
 	 *
 	 * @return array|false
+	 * @psalm-suppress PossiblyUnusedMethod
 	 */
 	public static function buffer__csv__get_map( &$csv ){
 		$line = static::buffer__csv__pop_line( $csv );
@@ -880,47 +977,50 @@ class Helper
 	}
 	
 	/**
-	 * Pops line from the csv buffer and fromat it by map to array
+	 * Pops line from the csv buffer and format it by map to array
 	 *
 	 * @param $csv
 	 * @param array $map
 	 *
 	 * @return array|false
+	 * @psalm-suppress PossiblyUnusedMethod
 	 */
 	public static function buffer__csv__pop_line_to_array( &$csv, $map = array() ){
 		$line = trim( static::buffer__csv__pop_line( $csv ) );
 		$line = strpos( $line, '\'' ) === 0
 			? str_getcsv($line, ',', '\'')
 			: explode( ',', $line );
-		if( $map )
+		if( $map ) {
 			$line = array_combine( $map, $line );
+		}
 		return $line;
 	}
 
     /**
      * Escapes MySQL params
      *
-     * @param string|int $param
+     * @param string|int|array $param
      * @param string     $quotes
      *
-     * @return int|string
+     * @return int|string|array
+     * @psalm-suppress PossiblyUnusedMethod
      */
     public static function db__prepare_param($param, $quotes = '\'')
     {
+	    global $wpdb;
         if(is_array($param)){
             foreach($param as &$par){
                 $par = self::db__prepare_param($par);
-            }
+            }unset($par);
         }
         switch(true){
             case is_numeric($param):
-                $param = intval($param);
+                $param = (int) $param;
                 break;
-            case is_string($param) && strtolower($param) == 'null':
+            case is_string($param) && strtolower($param) === 'null':
                 $param = 'NULL';
                 break;
             case is_string($param):
-                global $wpdb;
                 $param = $quotes . $wpdb->_real_escape($param) . $quotes;
                 break;
         }
@@ -942,10 +1042,10 @@ class Helper
             if( 0 === stripos( $key, 'http_' ) ){
                 $server_key = preg_replace('/^http_/i', '', $key);
                 $key_parts = explode('_', $server_key);
-                if(count($key_parts) > 0 and strlen($server_key) > 2){
+                if(strlen($server_key) > 2){
                     foreach($key_parts as $part_index => $part){
                         
-                        if( $part_index === '' || $part === '' ){
+                        if( $part === '' ){
                             continue;
                         }
                         
@@ -964,6 +1064,7 @@ class Helper
 	 * Its own implementation of the native method long2ip()
 	 *
 	 * @return string
+	 * @psalm-suppress PossiblyUnusedMethod
 	 */
 	public static function ip__long2ip( $ipl32 ) {
 		$ip[0] = ( $ipl32 >> 24 ) & 255;
@@ -972,5 +1073,16 @@ class Helper
 		$ip[3] = $ipl32 & 255;
 
 		return implode( '.', $ip );
+	}
+
+	/**
+	 * @param $url string
+	 *
+	 * @return string
+	 */
+	private static function getFilenameFromUrl( $url )
+	{
+		$array = explode( '/', $url );
+		return end( $array );
 	}
 }

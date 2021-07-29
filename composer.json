@@ -1,6 +1,7 @@
 {
     "name": "cleantalk/cleantalk-spam-protect",
     "description": "Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.",
+    "license": "GPL-3.0-or-later",
     "authors": [
         {
             "name": "Cleantalk Team",
@@ -11,6 +12,16 @@
         "vimeo/psalm": "^4.8",
         "humanmade/psalm-plugin-wordpress": "^2.0",
         "php-stubs/wordpress-stubs": "^5.7",
-        "phpunit/phpunit": "7.5"
+        "phpunit/phpunit": "^7.5",
+        "squizlabs/php_codesniffer": "3.*",
+        "phpcompatibility/php-compatibility": "^9.3"
+    },
+    "scripts": {
+        "test": [
+            "vendor/bin/phpunit --configuration tests/phpunit.xml",
+            "vendor/bin/phpcs --config-set installed_paths vendor/phpcompatibility/php-compatibility",
+            "vendor/bin/phpcs --standard=tests/.phpcs.xml",
+            "vendor/bin/psalm --no-cache --config=psalm.xml"
+        ]
     }
 }

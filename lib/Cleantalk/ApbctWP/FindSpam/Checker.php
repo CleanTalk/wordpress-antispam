@@ -32,12 +32,20 @@ abstract class Checker
 
     }
 
+	/**
+	 * @return string
+     * @psalm-suppress PossiblyUnusedMethod
+	 */
     public function getPageTitle() {
 
         return $this->page_title;
 
     }
 
+	/**
+	 * @return mixed
+     * @psalm-suppress PossiblyUnusedMethod
+	 */
     public function getPageScriptName() {
 
         return $this->page_script_name;
@@ -46,6 +54,7 @@ abstract class Checker
 
     /**
      * @return mixed
+     * @psalm-suppress PossiblyUnusedMethod
      */
     public function getPageSlug()
     {
@@ -54,6 +63,7 @@ abstract class Checker
 
     /**
      * @return mixed
+     * @psalm-suppress PossiblyUnusedMethod
      */
     public function getApbct()
     {
@@ -148,7 +158,7 @@ abstract class Checker
             APBCT_SPAMSCAN_LOGS,
             array(
                 'scan_type' => $scan_type,
-                'start_time' => $scan_date, //@ToDo this is the END date. Need to place both: start and and of scanning
+                'start_time' => $scan_date, //@ToDo this is the END date. Need to place both: start and end of scanning
                 'count_to_scan' => $cnt_checked,
                 'found_spam' => $cnt_spam,
                 'found_bad' => $cnt_bad

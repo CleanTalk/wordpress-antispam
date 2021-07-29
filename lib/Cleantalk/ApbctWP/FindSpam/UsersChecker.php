@@ -59,6 +59,9 @@ class UsersChecker extends Checker
 
     }
 
+	/**
+	 * @psalm-suppress PossiblyUnusedMethod
+	 */
 	public function getBadUsersPage(){
 
 		$this->list_table = new \Cleantalk\ApbctWP\FindSpam\ListTable\BadUsers();
@@ -74,6 +77,8 @@ class UsersChecker extends Checker
      * Getting a count of total users of the website and return formatted string about this.
      *
      * @return string
+     *
+     * @psalm-suppress PossiblyUnusedMethod
      */
     public static function get_count_text() {
 
@@ -159,7 +164,7 @@ class UsersChecker extends Checker
 	    }
 
         $amount = !empty($_POST['amount']) && intval($_POST['amount'])
-            ? intval($_POST['amount'])
+            ? (int) $_POST['amount']
             : 100;
 
         $skip_roles = array(
@@ -210,57 +215,62 @@ class UsersChecker extends Checker
                 // Leaving users only with first comment's date. Unsetting others.
                 foreach( $u as $user_index => $user ){
 
-                    if( ! isset( $curr_date ) )
-                        $curr_date = ( substr( $user->user_registered, 0, 10 ) ? substr( $user->user_registered, 0, 10 ) : '' );
+                    if( ! isset( $curr_date ) ) {
+	                    $curr_date = ( substr( $user->user_registered, 0, 10 ) ?: '' );
+                    }
 
-                    if( substr( $user->user_registered, 0, 10 ) != $curr_date )
-                        unset( $u[$user_index] );
+                    if( substr( $user->user_registered, 0, 10 ) != $curr_date ) {
+	                    unset( $u[ $user_index ] );
+                    }
 
                 }
-                unset( $user_index, $user );
             }
 
             // Checking comments IP/Email. Gathering $data for check.
             $data = array();
 
-            for($i=0, $iMax = count($u); $i < $iMax; $i++ ){
+	        foreach ( $u as $i => $iValue ) {
 
-                $user_meta = get_user_meta( $u[$i]->ID, 'session_tokens', true );
-                if( is_array( $user_meta ) )
-                    $user_meta = array_values( $user_meta );
+	            $user_meta = get_user_meta( $iValue->ID, 'session_tokens', true );
+	            if( is_array( $user_meta ) ) {
+		            $user_meta = array_values( $user_meta );
+	            }
 
-                $curr_ip    = !empty( $user_meta[0]['ip' ])      ? trim( $user_meta[0]['ip'] )      : '';
-                $curr_email = !empty( $u[$i]->user_email ) ? trim( $u[$i]->user_email ) : '';
+	            $curr_ip    = !empty( $user_meta[0]['ip' ])      ? trim( $user_meta[0]['ip'] )      : '';
+	            $curr_email = !empty( $iValue->user_email ) ? trim( $iValue->user_email ) : '';
 
-                // Check for identity
-                $curr_ip    = preg_match('/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/', $curr_ip) === 1 ? $curr_ip    : null;
-                $curr_email = preg_match('/^\S+@\S+\.\S+$/', $curr_email) === 1                    ? $curr_email : null;
+	            // Check for identity
+	            $curr_ip    = preg_match('/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/', $curr_ip) === 1 ? $curr_ip    : null;
+	            $curr_email = preg_match('/^\S+@\S+\.\S+$/', $curr_email) === 1                    ? $curr_email : null;
 
-                if( empty( $curr_ip ) && empty( $curr_email ) ){
-                    $check_result['bad']++;
-                    update_user_meta( $u[$i]->ID,'ct_bad','1',true );
-                    update_user_meta( $u[$i]->ID, 'ct_checked', date("Y-m-d H:m:s"), true) ;
-                    update_user_meta( $u[$i]->ID, 'ct_checked_now', '1', true) ;
-                    unset( $u[$i] );
-                }else{
-                    if( !empty( $curr_ip ) )
-                        $data[] = $curr_ip;
-                    if( !empty( $curr_email ) )
-                        $data[] = $curr_email;
-                    // Patch for empty IP/Email
-                    $u[$i]->data = new \stdClass();
-                    $u[$i]->user_ip    = empty($curr_ip)    ? 'none' : $curr_ip;
-                    $u[$i]->user_email = empty($curr_email) ? 'none' : $curr_email;
-                }
-            }
+	            if( empty( $curr_ip ) && empty( $curr_email ) ){
+	                $check_result['bad']++;
+	                update_user_meta( $iValue->ID,'ct_bad','1',true );
+	                update_user_meta( $iValue->ID, 'ct_checked', date("Y-m-d H:m:s"), true) ;
+	                update_user_meta( $iValue->ID, 'ct_checked_now', '1', true) ;
+	                unset( $u[$i] );
+	            }else{
+	                if( !empty( $curr_ip ) ) {
+		                $data[] = $curr_ip;
+	                }
+	                if( !empty( $curr_email ) ) {
+		                $data[] = $curr_email;
+	                }
+	                // Patch for empty IP/Email
+	                $iValue->data       = new \stdClass();
+	                $iValue->user_ip    = empty($curr_ip)    ? 'none' : $curr_ip;
+	                $iValue->user_email = empty($curr_email) ? 'none' : $curr_email;
+	            }
+	        }
 
-            // Recombining after checking and unsettting
+	        // Recombining after checking and unsetting
             $u = array_values( $u );
 
             // Drop if data empty and there's no users to check
-            if( count( $data ) == 0 ){
-                if( $_POST['unchecked'] === 0 )
-                    $check_result['end'] = 1;
+            if( count( $data ) === 0 ){
+                if( $_POST['unchecked'] === 0 ) {
+	                $check_result['end'] = 1;
+                }
                 print json_encode( $check_result );
                 die();
             }
@@ -269,49 +279,47 @@ class UsersChecker extends Checker
 
             if( empty( $result['error'] ) ){
 
-                for( $i=0; $i < sizeof( $u ); $i++ ) {
+	            foreach ( $u as $iValue ) {
 
-                    $check_result['checked']++;
-                    update_user_meta( $u[$i]->ID, 'ct_checked', date("Y-m-d H:m:s"), true) ;
-                    update_user_meta( $u[$i]->ID, 'ct_checked_now', date("Y-m-d H:m:s"), true) ;
+	                $check_result['checked']++;
+	                update_user_meta( $iValue->ID, 'ct_checked', date("Y-m-d H:m:s"), true) ;
+	                update_user_meta( $iValue->ID, 'ct_checked_now', date("Y-m-d H:m:s"), true) ;
 
-                    // Do not display forbidden roles.
-                    foreach ( $skip_roles as $role ) {
-                        $user_meta  = get_userdata($u[$i]->ID);
-                        $user_roles = $user_meta->roles;
-                        if ( in_array( $role, $user_roles ) ){
-                            delete_user_meta( $u[$i]->ID, 'ct_marked_as_spam' );
-                            continue 2;
-                        }
-                    }
+	                // Do not display forbidden roles.
+	                foreach ( $skip_roles as $role ) {
+	                    $user_meta  = get_userdata( $iValue->ID);
+	                    $user_roles = $user_meta->roles;
+	                    if ( in_array( $role, $user_roles ) ){
+	                        delete_user_meta( $iValue->ID, 'ct_marked_as_spam' );
+	                        continue 2;
+	                    }
+	                }
 
-                    $mark_spam_ip = false;
-                    $mark_spam_email = false;
+	                $mark_spam_ip = false;
+	                $mark_spam_email = false;
 
-                    $uip = $u[$i]->user_ip;
-                    $uim = $u[$i]->user_email;
+	                $uip = $iValue->user_ip;
+	                $uim = $iValue->user_email;
 
-                    if( isset( $result[$uip] ) && $result[$uip]['appears'] == 1 )
-                        $mark_spam_ip = true;
+	                if( isset( $result[$uip] ) && $result[$uip]['appears'] == 1 ) {
+		                $mark_spam_ip = true;
+	                }
 
-                    if( isset($result[$uim]) && $result[$uim]['appears'] == 1 )
-                        $mark_spam_email = true;
+	                if( isset($result[$uim]) && $result[$uim]['appears'] == 1 ) {
+		                $mark_spam_email = true;
+	                }
 
-                    if ( $mark_spam_ip || $mark_spam_email ){
-                        $check_result['spam']++;
-                        update_user_meta( $u[$i]->ID, 'ct_marked_as_spam', '1', true );
-                    }
+	                if ( $mark_spam_ip || $mark_spam_email ){
+	                    $check_result['spam']++;
+	                    update_user_meta( $iValue->ID, 'ct_marked_as_spam', '1', true );
+	                }
 
-                }
-
-                echo json_encode( $check_result );
+	            }
 
             } else {
 
                 $check_result['error'] = 1;
                 $check_result['error_message'] = $result['error'];
-
-                echo json_encode( $check_result );
 
             }
         } else {
@@ -321,11 +329,10 @@ class UsersChecker extends Checker
             $log_data  = static::get_log_data();
             static::writeSpamLog( 'users', date("Y-m-d H:i:s"), $log_data['checked'], $log_data['spam'], $log_data['bad'] );
 
-            echo json_encode( $check_result );
-
         }
+	    echo json_encode( $check_result );
 
-        die;
+	    die;
 
     }
 
@@ -364,8 +371,9 @@ class UsersChecker extends Checker
 
     public static function ct_ajax_info($direct_call = false) {
 
-        if (!$direct_call)
-            check_ajax_referer( 'ct_secret_nonce', 'security' );
+        if (!$direct_call) {
+	        check_ajax_referer( 'ct_secret_nonce', 'security' );
+        }
 	
         global $wpdb;
         
@@ -413,8 +421,6 @@ class UsersChecker extends Checker
                 $cnt_bad
             );
         } else {
-
-            global $wpdb;
 
             $query = "SELECT * FROM " . APBCT_SPAMSCAN_LOGS . " WHERE scan_type = 'users' ORDER BY start_time DESC";
             $res = $wpdb->get_row( $query, ARRAY_A );
@@ -515,17 +521,18 @@ class UsersChecker extends Checker
 
         $u = get_users( $params );
 
-        for( $i=0; $i < count($u); $i++ ){
-            $user_meta = get_user_meta( $u[$i]->ID, 'session_tokens', true );
-            if( is_array( $user_meta ) )
-                $user_meta = array_values( $user_meta );
-            $text .= $u[$i]->user_login.',';
-            $text .= $u[$i]->data->user_email.',';
-            $text .= ! empty( $user_meta[0]['ip']) ? trim( $user_meta[0]['ip'] ) : '';
-            $text .=  PHP_EOL;
-        }
+	    foreach ( $u as $iValue ) {
+	        $user_meta = get_user_meta( $iValue->ID, 'session_tokens', true );
+	        if( is_array( $user_meta ) ) {
+		        $user_meta = array_values( $user_meta );
+	        }
+	        $text .= $iValue->user_login . ',';
+	        $text .= $iValue->data->user_email . ',';
+	        $text .= ! empty( $user_meta[0]['ip']) ? trim( $user_meta[0]['ip'] ) : '';
+	        $text .=  PHP_EOL;
+	    }
 
-        $filename = ! empty( $_POST['filename'] ) ? $_POST['filename'] : false;
+	    $filename = ! empty( $_POST['filename'] ) ? $_POST['filename'] : false;
 
         if( $filename !== false ) {
             header('Content-Type: text/csv');
@@ -539,47 +546,47 @@ class UsersChecker extends Checker
 	
 	public static function ct_ajax_insert_users()
 	{
-	
 		check_ajax_referer( 'ct_secret_nonce', 'security' );
+
+		global $wpdb;
 		
-		//* DELETION
+		//* TEST DELETION
 		if(!empty($_POST['delete'])){
 			$users = get_users(array('search' => 'user_*', 'search_columns' => array('login', 'nicename')));
 			$deleted = 0;
 			$amount_to_delete = 1000;
 			foreach($users as $user){
-				if($deleted >= $amount_to_delete)
+				if($deleted >= $amount_to_delete) {
 					break;
-				if(wp_delete_user($user->ID))
-					$deleted++;
+				}
+				if(wp_delete_user($user->ID)) {
+					$deleted ++;
+				}
 			}
 			print "$deleted";
 			die();
 		}
-		//*/
-		
-		//* INSERTION
-		global $wpdb;
+
+		// TEST INSERTION
 		$to_insert = 500;
 		$result = $wpdb->get_results('SELECT network FROM `'. APBCT_TBL_FIREWALL_DATA .'` LIMIT '. $to_insert .';', ARRAY_A);
 		
-		if($result){
-			$ip = array();
+		if( $result ){
+			$ips = array();
 			foreach($result as $value){
 				$ips[] = long2ip($value['network']);
 			}
-			unset($value);
 			
 			$inserted = 0;
-			for($i=0; $i<$to_insert; $i++){
-				$rnd=mt_rand(1,10000000);
+			for( $i=0; $i < $to_insert; $i++ ){
+				$rnd = mt_rand(1,10000000);
 				
 				$user_name = "user_$rnd";
 				$email="stop_email_$rnd@example.com";
 				
 				$user_id = wp_create_user(
 					$user_name,
-					rand(),
+					(string) rand(),
 					$email
 				);
 				
@@ -587,30 +594,30 @@ class UsersChecker extends Checker
 				
 				update_user_meta($curr_user->ID, 'session_tokens', array($rnd => array('ip' => $ips[$i])));
 				
-				if (is_int($user_id))
-					$inserted++;
+				if (is_int($user_id)) {
+					$inserted ++;
+				}
 				
 			}
 		}else{
 			$inserted = '0';
 		}
-		//*/
 		
 		print "$inserted";
 		die();
 	}
     
-    public static function ct_ajax_delete_all_users($count_all = 0)
+    public static function ct_ajax_delete_all_users( $count_all = 0 )
     {
         check_ajax_referer( 'ct_secret_nonce', 'security' );
 
         global $wpdb;
 
-        $r = $wpdb->get_results("select count(*) as cnt from $wpdb->usermeta where meta_key='ct_marked_as_spam';", OBJECT );
+        $r = $wpdb->get_var( "select count(*) as cnt from $wpdb->usermeta where meta_key='ct_marked_as_spam';" );
 
-        if(!empty($r)){
+        if( ! is_null( $r ) ){
 
-            $count_all = $r ? $r[0]->cnt : 0;
+            $count_all = (int) $r;
 
             $args = array(
                 'meta_key' => 'ct_marked_as_spam',
@@ -628,7 +635,7 @@ class UsersChecker extends Checker
             }
         }
 
-        die($count_all);
+        die( $count_all );
     }
 
     /**
@@ -636,6 +643,8 @@ class UsersChecker extends Checker
      *
      * @param $columns
      * @return mixed
+     *
+     * @psalm-suppress PossiblyUnusedMethod
      */
     public static function ct_manage_users_columns( $columns ) {
 

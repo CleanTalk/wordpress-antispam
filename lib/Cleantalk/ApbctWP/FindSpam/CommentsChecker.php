@@ -2,6 +2,8 @@
 
 namespace Cleantalk\ApbctWP\FindSpam;
 
+use Cleantalk\ApbctWP\API;
+
 class CommentsChecker extends Checker
 {
 
@@ -60,6 +62,7 @@ class CommentsChecker extends Checker
      * Getting a count of total comments of the website and return formatted string about this.
      *
      * @return string
+     * @psalm-suppress PossiblyUnusedMethod
      */
     public static function get_count_text() {
 
@@ -117,7 +120,7 @@ class CommentsChecker extends Checker
             $till_date = date('Y-m-d', intval(strtotime($_POST['till'])));
         }
 
-        // Gettings comments 100 unchecked comments
+        // Getting comments 100 unchecked comments
         if(isset($_COOKIE['ct_comments_safe_check'])){
             $c = $wpdb->get_results("
 			SELECT comment_ID, comment_date_gmt, comment_author_IP, comment_author_email
@@ -173,13 +176,13 @@ class CommentsChecker extends Checker
             'error' => 0
         );
 
-        if(sizeof($c)>0){
+        if( count($c) > 0){
 
-            // Coverting $c to objects
+            // Converting $c to objects
             if(is_array($c[0])){
                 foreach($c as $key => $value){
                     $c[$key] = (object)$value;
-                } unset($key, $value);
+                }
             }
 
             if(!empty($_POST['accurate_check'])){
@@ -187,83 +190,89 @@ class CommentsChecker extends Checker
 
                 foreach($c as $comment_index => $comment){
 
-                    if(!isset($curr_date))
-                        $curr_date = (substr($comment->comment_date_gmt, 0, 10) ? substr($comment->comment_date_gmt, 0, 10) : '');
+                    if(!isset($curr_date)) {
+	                    $curr_date = ( substr( $comment->comment_date_gmt, 0, 10 ) ?: '' );
+                    }
 
-                    if(substr($comment->comment_date_gmt, 0, 10) != $curr_date)
-                        unset($c[$comment_index]);
+                    if(substr($comment->comment_date_gmt, 0, 10) != $curr_date) {
+	                    unset( $c[ $comment_index ] );
+                    }
 
                 }
-                unset($comment_index, $comment);
             }
 
             // Checking comments IP/Email. Gathering $data for check.
-            $data = Array();
-            for($i=0;$i<sizeof($c);$i++){
+            $data = array();
+	        foreach ( $c as $i => $iValue ) {
 
-                $curr_ip = $c[$i]->comment_author_IP;
-                $curr_email = $c[$i]->comment_author_email;
+	            $curr_ip = $iValue->comment_author_IP;
+	            $curr_email = $iValue->comment_author_email;
 
-                // Check for identity
-                $curr_ip    = preg_match('/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/', $curr_ip) === 1 ? $curr_ip    : null;
-                $curr_email = preg_match('/^\S+@\S+\.\S+$/', $curr_email) === 1                    ? $curr_email : null;
+	            // Check for identity
+	            $curr_ip    = preg_match('/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/', $curr_ip) === 1 ? $curr_ip    : null;
+	            $curr_email = preg_match('/^\S+@\S+\.\S+$/', $curr_email) === 1                    ? $curr_email : null;
 
-                if(empty($curr_ip) && empty($curr_email)){
-                    $check_result['bad']++;
-                    update_comment_meta($c[$i]->comment_ID,'ct_bad','1');
-                    update_comment_meta($c[$i]->comment_ID,'ct_checked','1');
-                    update_comment_meta($c[$i]->comment_ID,'ct_checked_now','1');
-                    unset($c[$i]);
-                }else{
-                    if(!empty($curr_ip))
-                        $data[] = $curr_ip;
-                    if(!empty($curr_email))
-                        $data[] = $curr_email;
-                    // Patch for empty IP/Email
-                    $c[$i]->comment_author_IP    = empty($curr_ip)    ? 'none' : $curr_ip;
-                    $c[$i]->comment_author_email = empty($curr_email) ? 'none' : $curr_email;
-                }
-            }
+	            if(empty($curr_ip) && empty($curr_email)){
+	                $check_result['bad']++;
+	                update_comment_meta( $iValue->comment_ID,'ct_bad','1');
+	                update_comment_meta( $iValue->comment_ID,'ct_checked','1');
+	                update_comment_meta( $iValue->comment_ID,'ct_checked_now','1');
+	                unset($c[$i]);
+	            }else{
+	                if(!empty($curr_ip)) {
+		                $data[] = $curr_ip;
+	                }
+	                if(!empty($curr_email)) {
+		                $data[] = $curr_email;
+	                }
+	                // Patch for empty IP/Email
+	                $iValue->comment_author_IP    = empty($curr_ip)    ? 'none' : $curr_ip;
+	                $iValue->comment_author_email = empty($curr_email) ? 'none' : $curr_email;
+	            }
+	        }
 
-            // Recombining after checking and unsettting
+	        // Recombining after checking and unsetting
             $c = array_values($c);
 
             // Drop if data empty and there's no comments to check
-            if(count($data) == 0){
-                if($_POST['unchecked'] === 0)
-                    $check_result['end'] = 1;
+            if(count($data) === 0){
+                if($_POST['unchecked'] === 0) {
+	                $check_result['end'] = 1;
+                }
                 print json_encode($check_result);
                 die();
             }
 
-            $result = \Cleantalk\ApbctWP\API::method__spam_check_cms($apbct->api_key, $data, !empty($_POST['accurate_check']) ? $curr_date : null);
+            $result = API::method__spam_check_cms($apbct->api_key, $data, !empty($_POST['accurate_check']) ? $curr_date : null);
 
             if(empty($result['error'])){
 
-                for($i=0;$i<sizeof($c);$i++){
+	            foreach ( $c as $iValue ) {
 
-                    $mark_spam_ip = false;
-                    $mark_spam_email = false;
+	                $mark_spam_ip = false;
+	                $mark_spam_email = false;
 
-                    $check_result['checked']++;
-                    update_comment_meta($c[$i]->comment_ID,'ct_checked',date("Y-m-d H:m:s"));
-                    update_comment_meta( $c[$i]->comment_ID, 'ct_checked_now', date("Y-m-d H:m:s"), true) ;
+	                $check_result['checked']++;
+	                update_comment_meta( $iValue->comment_ID,'ct_checked',date("Y-m-d H:m:s"));
+	                update_comment_meta( $iValue->comment_ID, 'ct_checked_now', date("Y-m-d H:m:s"), true) ;
 
-                    $uip=$c[$i]->comment_author_IP;
-                    $uim=$c[$i]->comment_author_email;
+	                $uip= $iValue->comment_author_IP;
+	                $uim= $iValue->comment_author_email;
 
-                    if(isset($result[$uip]) && isset( $result[$uim]['appears'] ) && $result[$uip]['appears'] == 1)
-                        $mark_spam_ip = true;
+	                if(isset($result[$uip]) && isset( $result[$uim]['appears'] ) && $result[$uip]['appears'] == 1) {
+		                $mark_spam_ip = true;
+	                }
 
-                    if(isset($result[$uim]) && isset( $result[$uim]['appears'] ) && $result[$uim]['appears'] == 1)
-                        $mark_spam_email = true;
+	                if(isset($result[$uim]) && isset( $result[$uim]['appears'] ) && $result[$uim]['appears'] == 1) {
+		                $mark_spam_email = true;
+	                }
 
-                    if ($mark_spam_ip || $mark_spam_email){
-                        $check_result['spam']++;
-                        update_comment_meta($c[$i]->comment_ID,'ct_marked_as_spam','1');
-                    }
-                }
-                print json_encode($check_result);
+	                if ($mark_spam_ip || $mark_spam_email){
+	                    $check_result['spam']++;
+	                    update_comment_meta( $iValue->comment_ID,'ct_marked_as_spam','1');
+	                }
+	            }
+	            print json_encode($check_result);
 
             }else{
                 $check_result['error'] = 1;
@@ -286,8 +295,11 @@ class CommentsChecker extends Checker
 
     public static function ct_ajax_info($direct_call = false){
 
-        if (!$direct_call)
-            check_ajax_referer( 'ct_secret_nonce', 'security' );
+	    global $wpdb;
+
+        if (!$direct_call) {
+	        check_ajax_referer( 'ct_secret_nonce', 'security' );
+        }
 
         // Checked comments
         $params_checked = array(
@@ -347,8 +359,6 @@ class CommentsChecker extends Checker
             );
         } else {
 
-            global $wpdb;
-
             $query = "SELECT * FROM " . APBCT_SPAMSCAN_LOGS . " WHERE scan_type = 'comments' ORDER BY start_time DESC";
             $res = $wpdb->get_row( $query, ARRAY_A );
 
@@ -388,9 +398,10 @@ class CommentsChecker extends Checker
 
     public static function ct_ajax_clear_comments(){
 
+	    global $wpdb;
+
         check_ajax_referer( 'ct_secret_nonce', 'security' );
 
-        global $wpdb;
         $wpdb->query("DELETE FROM {$wpdb->commentmeta} WHERE meta_key IN ('ct_checked_now')");
 
         if ( isset($_POST['from']) && isset($_POST['till']) ) {
@@ -493,10 +504,11 @@ class CommentsChecker extends Checker
         );
         $cnt_all = get_comments($args_spam);
 
-        for( $i=0; $i < sizeof( $c_spam ); $i++ ){
-            wp_trash_comment( $c_spam[$i]->comment_ID );
-            usleep(10000);
-        }
+	    foreach ( $c_spam as $iValue ) {
+	        wp_trash_comment( $iValue->comment_ID );
+	        usleep(10000);
+	    }
+	    /** @psalm-suppress InvalidArgument */
         print $cnt_all;
         die();
     }
@@ -527,13 +539,14 @@ class CommentsChecker extends Checker
                 )
             )
         );
-        $cnt_all = get_comments($args_spam);
+        $cnt_all = get_comments( $args_spam );
 
-        for( $i=0; $i < sizeof( $c_spam ); $i++ ){
-            wp_spam_comment( $c_spam[$i]->comment_ID );
-            usleep(10000);
-        }
-        print $cnt_all;
+	    foreach ( $c_spam as $iValue ) {
+	        wp_spam_comment( $iValue->comment_ID );
+	        usleep(10000);
+	    }
+	    /** @psalm-suppress InvalidArgument */
+	    print $cnt_all;
         die();
     }
 

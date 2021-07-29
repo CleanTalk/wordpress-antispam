@@ -12,7 +12,7 @@ namespace Cleantalk\Variables;
  */
 class Cookie extends ServerVariables{
 	
-	static $instance;
+	public static $instance;
 	
 	/**
 	 * Constructor
@@ -27,7 +27,7 @@ class Cookie extends ServerVariables{
 	}
 	
 	/**
-	 * Gets given $_COOKIE variable and seva it to memory
+	 * Gets given $_COOKIE variable and save it to memory
 	 * @param $name
 	 *
 	 * @return mixed|string
@@ -35,19 +35,23 @@ class Cookie extends ServerVariables{
 	protected function get_variable( $name ){
 		
 		// Return from memory. From $this->variables
-		if(isset(static::$instance->variables[$name]))
-			return static::$instance->variables[$name];
-		
-		if( function_exists( 'filter_input' ) )
-			$value = filter_input( INPUT_COOKIE, $name );
-		
-		if( empty( $value ) )
-			$value = isset( $_COOKIE[ $name ] ) ? $_COOKIE[ $name ]	: '';
-		
-		// Remember for further calls
-		static::getInstance()->remember_variable( $name, $value );
-		
-		return $value;
+		if( ! isset( static::$instance->variables[ $name ] ) ) {
+			if ( function_exists( 'filter_input' ) ) {
+				$value = filter_input( INPUT_COOKIE, $name );
+			}
+
+			if ( empty( $value ) ) {
+				$value = isset( $_COOKIE[ $name ] ) ? $_COOKIE[ $name ] : '';
+			}
+
+			// Remember for further calls
+			static::getInstance()->remember_variable( $name, $value );
+
+			return $value;
+		}
+
+		return static::$instance->variables[ $name ];
+
 	}
 
 	/**
@@ -60,14 +64,15 @@ class Cookie extends ServerVariables{
 	 * @param string $value    Cookie value
 	 * @param int    $expires  Expiration timestamp. 0 - expiration with session
 	 * @param string $path
-	 * @param null   $domain
+	 * @param string $domain
 	 * @param bool   $secure
 	 * @param bool   $httponly
 	 * @param string $samesite
 	 *
 	 * @return void
+	 * @psalm-suppress PossiblyUnusedMethod
 	 */
-	public static function set ( $name, $value = '', $expires = 0, $path = '', $domain = null, $secure = null, $httponly = false, $samesite = 'Lax' ) {
+	public static function set( $name, $value = '', $expires = 0, $path = '', $domain = '', $secure = null, $httponly = false, $samesite = 'Lax' ) {
         
         $secure = ! is_null( $secure ) ? $secure : Server::get('HTTPS') !== 'off' || Server::get('SERVER_PORT') == 443;
 

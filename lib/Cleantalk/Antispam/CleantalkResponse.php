@@ -4,110 +4,111 @@ namespace Cleantalk\Antispam;
 
 /**
  * Response class
+ * @psalm-suppress PossiblyUnusedProperty
  */
 class CleantalkResponse {
 
     /**
-     * Received feedback nubmer
+     * Received feedback number
      * @var int
      */
-    public $received = null;
+    public $received;
 	
     /**
      *  Is stop words
-     * @var int
+     * @var null|string
      */
-    public $stop_words = null;
+    public $stop_words;
     
     /**
      * Cleantalk comment
-     * @var string
+     * @var null|string
      */
-    public $comment = null;
+    public $comment;
 
     /**
      * Is blacklisted
      * @var int
      */
-    public $blacklisted = null;
+    public $blacklisted;
 
     /**
      * Is allow, 1|0
      * @var int
      */
-    public $allow = null;
+    public $allow;
 
     /**
      * Request ID
      * @var int
      */
-    public $id = null;
+    public $id;
 
     /**
      * Request errno
      * @var int
      */
-    public $errno = null;
+    public $errno;
 
     /**
      * Error string
      * @var string
      */
-    public $errstr = null;
+    public $errstr;
 
     /**
      * Is fast submit, 1|0
      * @var string
      */
-    public $fast_submit = null;
+    public $fast_submit;
 
     /**
      * Is spam comment
      * @var string
      */
-    public $spam = null;
+    public $spam;
 
     /**
      * Is JS
-     * @var type 
+     * @var int
      */
-    public $js_disabled = null;
+    public $js_disabled;
 
     /**
      * Sms check
-     * @var type 
+     * @var int
      */
-    public $sms_allow = null;
+    public $sms_allow;
 
     /**
      * Sms code result
-     * @var type 
+     * @var int
      */
-    public $sms = null;
+    public $sms;
 	
     /**
      * Sms error code
-     * @var type 
+     * @var int
      */
-    public $sms_error_code = null;
+    public $sms_error_code;
 	
     /**
      * Sms error code
-     * @var type 
+     * @var string
      */
-    public $sms_error_text = null;
+    public $sms_error_text;
     
 	/**
      * Stop queue message, 1|0
      * @var int  
      */
-    public $stop_queue = null;
+    public $stop_queue;
 	
     /**
-     * Account shuld by deactivated after registration, 1|0
+     * Account should by deactivated after registration, 1|0
      * @var int  
      */
-    public $inactive = null;
+    public $inactive;
 
     /**
      * Account status 
@@ -123,38 +124,33 @@ class CleantalkResponse {
     /**
      * Create server response
      *
-     * @param type $response
-     * @param type $obj
+     * @param object $obj
      */
-    function __construct($response = null, $obj = null) {
-        if ($response && is_array($response) && count($response) > 0) {
-            foreach ($response as $param => $value) {
-                $this->{$param} = $value;
-            }
-        } else {
-            $this->errno = (isset($obj->errno)) ? $obj->errno : 0;
-            $this->errstr = (isset($obj->errstr)) ? preg_replace("/.+(\*\*\*.+\*\*\*).+/", "$1", $obj->errstr) : null;
+    public function __construct( $obj = null ) {
 
-            $this->stop_words = isset($obj->stop_words) ? utf8_decode($obj->stop_words) : null;
-            $this->comment = isset($obj->comment) ? utf8_decode($obj->comment) : null;
-            $this->blacklisted = (isset($obj->blacklisted)) ? $obj->blacklisted : null;
-            $this->allow = (isset($obj->allow)) ? $obj->allow : 1;
-            $this->id = (isset($obj->id)) ? $obj->id : null;
-            $this->fast_submit = (isset($obj->fast_submit)) ? $obj->fast_submit : 0;
-            $this->spam = (isset($obj->spam)) ? $obj->spam : 0;
-            $this->js_disabled = (isset($obj->js_disabled)) ? $obj->js_disabled : 0;
-            $this->sms_allow = (isset($obj->sms_allow)) ? $obj->sms_allow : null;
-            $this->sms = (isset($obj->sms)) ? $obj->sms : null;
-            $this->sms_error_code = (isset($obj->sms_error_code)) ? $obj->sms_error_code : null;
-            $this->sms_error_text = (isset($obj->sms_error_text)) ? $obj->sms_error_text : null;
-            $this->stop_queue = (isset($obj->stop_queue)) ? $obj->stop_queue : 0;
-            $this->inactive = (isset($obj->inactive)) ? $obj->inactive : 0;
-            $this->account_status = (isset($obj->account_status)) ? $obj->account_status : -1;
-			$this->received = (isset($obj->received)) ? $obj->received : -1;
-			$this->codes = (isset($obj->codes)) ? explode(' ', $obj->codes) : array();
+	    $this->errno = isset($obj->errno) ? $obj->errno : 0;
+	    $this->errstr = isset($obj->errstr) ? preg_replace("/.+(\*\*\*.+\*\*\*).+/", "$1", $obj->errstr) : null;
 
-            if ($this->errno !== 0 && $this->errstr !== null && $this->comment === null)
-                $this->comment = '*** ' . $this->errstr . ' Antispam service cleantalk.org ***'; 
-        }
+	    $this->stop_words = isset($obj->stop_words) ? utf8_decode($obj->stop_words) : null;
+	    $this->comment = isset($obj->comment) ? utf8_decode($obj->comment) : null;
+	    $this->blacklisted = isset($obj->blacklisted) ? $obj->blacklisted : null;
+	    $this->allow = isset($obj->allow) ? $obj->allow : 1;
+	    $this->id = isset($obj->id) ? $obj->id : null;
+	    $this->fast_submit = isset($obj->fast_submit) ? $obj->fast_submit : 0;
+	    $this->spam = isset($obj->spam) ? $obj->spam : 0;
+	    $this->js_disabled = isset($obj->js_disabled) ? $obj->js_disabled : 0;
+	    $this->sms_allow = isset($obj->sms_allow) ? $obj->sms_allow : null;
+	    $this->sms = isset($obj->sms) ? $obj->sms : null;
+	    $this->sms_error_code = isset($obj->sms_error_code) ? $obj->sms_error_code : null;
+	    $this->sms_error_text = isset($obj->sms_error_text) ? $obj->sms_error_text : null;
+	    $this->stop_queue = isset($obj->stop_queue) ? $obj->stop_queue : 0;
+	    $this->inactive = isset($obj->inactive) ? $obj->inactive : 0;
+	    $this->account_status = isset($obj->account_status) ? $obj->account_status : -1;
+	    $this->received = isset($obj->received) ? $obj->received : -1;
+	    $this->codes = isset($obj->codes) ? explode(' ', $obj->codes) : array();
+
+	    if ($this->errno !== 0 && $this->errstr !== null && $this->comment === null) {
+		    $this->comment = '*** ' . $this->errstr . ' Antispam service cleantalk.org ***';
+	    }
     }
 }

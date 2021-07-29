@@ -466,7 +466,7 @@ function apbct_settings__set_fileds( ){
 				'misc__store_urls' => array(
 					'type'        => 'checkbox',
 					'title'       => __('Store visited URLs', 'cleantalk-spam-protect'),
-					'description' => __("Plugin stores last 10 visited URLs (HTTP REFFERERS) before visitor submits form on the site. You can see stored visited URLS for each visitor in your Dashboard. Turn the option on to improve Anti-Spam protection.", 'cleantalk-spam-protect'),
+					'description' => __("Plugin stores last 5 visited URLs (HTTP REFERRERS) before visitor submits form on the site. You can see stored visited URLS for each visitor in your Dashboard. Turn the option on to improve Anti-Spam protection.", 'cleantalk-spam-protect'),
 				),
 				'wp__comment_notify' => array(
 					'type'        => 'checkbox',

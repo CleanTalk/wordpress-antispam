@@ -12,6 +12,10 @@ class EaelLoginRegister extends IntegrationBase {
 		return $data;
 	}
 
+	/**
+	 * @param $message
+	 * @psalm-suppress UnusedVariable
+	 */
 	public function doBlock( $message ) {
 		global $ct_comment;
 		$ct_comment = $message;

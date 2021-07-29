@@ -23,7 +23,6 @@ class CleantalkSettingsTemplates {
 		add_action( 'wp_ajax_settings_templates_export', array( $this, 'settings_templates_export_ajax' ) );
 		add_action( 'wp_ajax_settings_templates_import', array( $this, 'settings_templates_import_ajax' ) );
 		add_action( 'wp_ajax_settings_templates_reset', array( $this, 'settings_templates_reset_ajax' ) );
-		add_action( 'apbct_settings_template_get', array( $this, 'open_templates_dialog' ) );
 	}
 
 	public function add_action_button( $links )
@@ -53,7 +52,7 @@ class CleantalkSettingsTemplates {
 			$template_info = $_POST['data'];
 			if( isset( $template_info['template_id'] ) ) {
 				$template_id = sanitize_text_field( $template_info['template_id'] );
-				$res = \Cleantalk\Common\API::method__services_templates_update( $this->api_key, $template_id, $this->get_plugin_options() );
+				$res = \Cleantalk\Common\API::method__services_templates_update( $this->api_key, (int) $template_id, $this->get_plugin_options() );
 				if( is_array( $res ) && array_key_exists( 'operation_status', $res ) ) {
 					if( $res['operation_status'] === 'SUCCESS' ) {
 						wp_send_json_success( esc_html__('Success. Reloading...', 'cleantalk-spam-protect' ) );

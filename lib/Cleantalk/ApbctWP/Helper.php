@@ -29,11 +29,11 @@ class Helper extends \Cleantalk\Common\Helper
 	 * ssl      - use SSL
 	 *
 	 * @param string       $url     URL
-	 * @param array        $data    POST|GET indexed array with data to send
+	 * @param array|string|int $data    POST|GET indexed array with data to send
 	 * @param string|array $presets String or Array with presets: get_code, async, get, ssl, dont_split_to_array
 	 * @param array        $opts    Optional option for CURL connection
 	 *
-	 * @return array|bool (array || array('error' => true))
+	 * @return array|bool|string (array || array('error' => true))
 	 */
 	public static function http__request($url, $data = array(), $presets = null, $opts = array())
 	{
@@ -207,7 +207,7 @@ class Helper extends \Cleantalk\Common\Helper
      *
      * @param string $url
      *
-     * @return array|mixed|string
+     * @return array|string
      */
     public static function http__get_data_from_remote_gz__and_parse_csv( $url ){
     

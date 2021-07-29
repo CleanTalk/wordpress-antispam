@@ -9,6 +9,7 @@
         findUnusedCode="true"
         ensureArrayStringOffsetsExist="true"
         ensureArrayIntOffsetsExist="true"
+        allowNamedArgumentCalls="false"
         hoistConstants="true"
         phpVersion="5.6"
         hideExternalErrors="true"
@@ -16,24 +17,49 @@
         limitMethodComplexity="true"
 >
     <projectFiles>
-        <file name="inc/cleantalk-updater.php" />
-        <file name="inc/cleantalk-admin.php" />
-        <file name="inc/cleantalk-ajax.php" />
-        <file name="inc/cleantalk-settings.php" />
-        <file name="inc/cleantalk-pluggable.php" />
+        <directory name="./"/>
+        <ignoreFiles>
+            <directory name="tests"/>
+            <directory name="vendor"/>
+            <file name="lib/Cleantalk/Templates/Singleton.php"/>
+            <file name="lib/Cleantalk/ApbctWP/CleantalkListTable.php"/>
+            <file name="inc/cleantalk-public-validate.php"/>
+        </ignoreFiles>
     </projectFiles>
 
     <stubs>
-        <file name="vendor/php-stubs/wordpress-stubs/wordpress-stubs.php" />
+        <file name="vendor/php-stubs/wordpress-stubs/wordpress-stubs.php"/>
     </stubs>
 
     <issueHandlers>
-      <MissingPropertyType errorLevel="suppress" />
-      <UnusedClass>
-        <errorLevel type="suppress">
-          <referencedClass name="cleantalk_widget" />
-        </errorLevel>
-      </UnusedClass>
+        <MissingPropertyType errorLevel="suppress"/>
+        <UnusedClass>
+            <errorLevel type="suppress">
+                <referencedClass name="Cleantalk\Antispam\Cleantalk"/>
+                <referencedClass name="Cleantalk\ApbctWP\GetFieldsAny"/>
+                <referencedClass name="cleantalk_widget"/>
+                <directory name="lib/Cleantalk/Antispam/Integrations"/>
+            </errorLevel>
+        </UnusedClass>
+        <InvalidGlobal>
+            <errorLevel type="suppress">
+                <file name="cleantalk.php"/>
+            </errorLevel>
+        </InvalidGlobal>
+        <UnusedVariable>
+            <errorLevel type="suppress">
+                <file name="cleantalk.php"/>
+                <file name="inc/cleantalk-common.php"/>
+                <file name="inc/cleantalk-ajax-handlers.php"/>
+                <directory name="templates"/>
+            </errorLevel>
+        </UnusedVariable>
+        <PossiblyUnusedMethod>
+            <errorLevel type="suppress">
+                <file name="lib/Cleantalk/ApbctWP/State.php"/>
+                <file name="lib/Cleantalk/ApbctWP/RemoteCalls.php"/>
+            </errorLevel>
+        </PossiblyUnusedMethod>
     </issueHandlers>
-    
+
 </psalm>

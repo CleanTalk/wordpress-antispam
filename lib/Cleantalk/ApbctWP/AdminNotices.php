@@ -7,7 +7,7 @@ namespace Cleantalk\ApbctWP;
 class AdminNotices {
 
 	/**
-	 * @var AdminNotices
+	 * @var null|AdminNotices
 	 */
 	private static $instance;
 
@@ -86,7 +86,7 @@ class AdminNotices {
 	 */
 	private static function get_instance()
 	{
-		if ( ! isset( self::$instance ) ) {
+		if ( is_null( self::$instance ) ) {
 			self::$instance = new static();
 		}
 		return self::$instance;
@@ -110,6 +110,7 @@ class AdminNotices {
 
 	/**
 	 * Callback for the notice hook
+	 * @psalm-suppress PossiblyUnusedMethod
 	 */
 	public function notice_get_key_error()
 	{
@@ -124,6 +125,7 @@ class AdminNotices {
 
 	/**
 	 * Callback for the notice hook
+	 * @psalm-suppress PossiblyUnusedMethod
 	 */
 	public function notice_key_is_incorrect()
 	{
@@ -137,6 +139,7 @@ class AdminNotices {
 
 	/**
 	 * Callback for the notice hook
+	 * @psalm-suppress PossiblyUnusedMethod
 	 */
 	public function notice_trial()
 	{
@@ -154,6 +157,7 @@ class AdminNotices {
 	/**
 	 * Callback for the notice hook
 	 * @deprecated
+	 * @psalm-suppress PossiblyUnusedMethod
 	 */
 	public function notice_renew()
 	{
@@ -172,6 +176,7 @@ class AdminNotices {
 
 	/**
 	 * Callback for the notice hook
+	 * @psalm-suppress PossiblyUnusedMethod
 	 */
 	public function notice_incompatibility()
 	{

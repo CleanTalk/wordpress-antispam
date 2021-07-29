@@ -18,6 +18,7 @@ class DNS {
      * @param null|int $type DNS type name
      *
      * @return array
+     * @psalm-suppress NullableReturnStatement
      */
     public static function getRecord( $host, $return_first = false, $type = null ){
         
@@ -64,11 +65,12 @@ class DNS {
     /**
      * @param $servers
      *
-     * @return null
+     * @return array|null
+     * @psalm-suppress PossiblyUnusedMethod
      */
     public static function findFastestServer( $servers ){
         
-        $tmp               = null;
+        $tmp               = array();
         $fast_server_found = false;
         
         foreach( $servers as $server ){
@@ -97,7 +99,7 @@ class DNS {
     /**
      * Function to check response time
      * @param string URL
-     * @return int Response time
+     * @return int|float Response time
      */
     public static function getResponseTime( $host ){
         
@@ -129,6 +131,7 @@ class DNS {
      * @param $host
      *
      * @return int|false
+     * @psalm-suppress PossiblyUnusedMethod
      */
     public static function getServerTTL( $host ){
         
@@ -136,5 +139,5 @@ class DNS {
         
         return $server['ttl'];
     }
-    
+
 }

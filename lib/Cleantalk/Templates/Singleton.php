@@ -2,11 +2,11 @@
 
 namespace Cleantalk\Templates;
 
-if(!trait_exists('Cleantalk\Templates\Singleton')) {
+if( ! trait_exists( 'Cleantalk\Templates\Singleton' ) ) {
 
     trait Singleton{
 
-        static $instance;
+        public static $instance;
 
         public function __construct(){}
         public function __wakeup(){}

@@ -7,12 +7,12 @@ namespace Cleantalk\Antispam\Integrations;
 class Rafflepress extends IntegrationBase
 {
 
-    function getDataForChecking( $argument )
+    public function getDataForChecking( $argument )
     {
         return ct_get_fields_any( $_POST );
     }
 
-    function doBlock( $message )
+    public function doBlock( $message )
     {
         wp_send_json(
             array(
