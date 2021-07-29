@@ -48,12 +48,24 @@ class Users extends \Cleantalk\ApbctWP\CleantalkListTable
         return $columns;
     }
 
-    // CheckBox column
+	/**
+	 * CheckBox column
+	 *
+	 * @param object $item
+	 * @psalm-suppress InvalidArrayAccess
+	 */
     function column_cb( $item ){
         echo '<input type="checkbox" name="spamids[]" id="cb-select-'. $item['ct_id'] .'" value="'. $item['ct_id'] .'" />';
     }
 
-    // Username (first) column
+	/**
+	 * Username (first) column
+	 *
+	 * @param $item
+	 *
+	 * @return string
+	 * @psalm-suppress PossiblyUnusedMethod
+	 */
     function column_ct_username( $item ) {
         $user_obj = $item['ct_username'];
         $email  = $user_obj->user_email;
@@ -101,7 +113,15 @@ class Users extends \Cleantalk\ApbctWP\CleantalkListTable
 
     }
 
-    // Rest of columns
+	/**
+	 * Rest of columns
+	 *
+	 * @param object $item
+	 * @param string $column_name
+	 *
+	 * @return bool|string|void
+	 * @psalm-suppress InvalidArrayAccess
+	 */
     function column_default( $item, $column_name ) {
         switch( $column_name ) {
             case 'ct_name':
@@ -121,20 +141,24 @@ class Users extends \Cleantalk\ApbctWP\CleantalkListTable
     }
 
     function get_bulk_actions() {
-        $actions = array(
-            'delete'    => 'Delete'
-        );
-        return $actions;
+	    return array(
+	        'delete'    => 'Delete'
+	    );
     }
 
     function bulk_actions_handler() {
 
-        if( empty($_POST['spamids']) || empty($_POST['_wpnonce']) ) return;
+        if( empty($_POST['spamids']) || empty($_POST['_wpnonce']) ) {
+	        return;
+        }
 
-        if ( ! $action = $this->current_action() ) return;
+        if ( ! $this->current_action() ) {
+	        return;
+        }
 
-        if( ! wp_verify_nonce( $_POST['_wpnonce'], 'bulk-' . $this->_args['plural'] ) )
-            wp_die('nonce error');
+        if( ! wp_verify_nonce( $_POST['_wpnonce'], 'bulk-' . $this->_args['plural'] ) ) {
+	        wp_die( 'nonce error' );
+        }
 
         $this->removeSpam( $_POST['spamids'] );
 
@@ -142,9 +166,11 @@ class Users extends \Cleantalk\ApbctWP\CleantalkListTable
 
     function row_actions_handler() {
 
-        if( empty($_GET['action']) ) return;
+        if( empty($_GET['action']) ) {
+	        return;
+        }
 
-        if( $_GET['action'] == 'delete' ) {
+        if( $_GET['action'] === 'delete' ) {
 
             $id = filter_input( INPUT_GET, 'spam', FILTER_SANITIZE_NUMBER_INT );
             $this->removeSpam( array( $id ) );
@@ -165,7 +191,7 @@ class Users extends \Cleantalk\ApbctWP\CleantalkListTable
 
         foreach( $ids as $id ) {
 
-        	$user_id = sanitize_key( $id ) ;
+        	$user_id = (int) sanitize_key( $id ) ;
 
         	//Send feedback
 	        $hash = get_user_meta($user_id, 'ct_hash', true);
@@ -180,6 +206,10 @@ class Users extends \Cleantalk\ApbctWP\CleantalkListTable
 
     }
 
+	/**
+	 * @return \WP_User_Query
+	 * @psalm-suppress PossiblyUnusedMethod
+	 */
     public function getTotal() {
 
         $params_total = array(
@@ -187,11 +217,15 @@ class Users extends \Cleantalk\ApbctWP\CleantalkListTable
             'count'=>true,
             'orderby' => 'user_registered'
         );
-        $total_users = new \WP_User_Query($params_total);
-        return $total_users;
+
+	    return new \WP_User_Query($params_total);
 
     }
 
+	/**
+	 * @return \WP_User_Query
+	 * @psalm-suppress PossiblyUnusedMethod
+	 */
     public function getChecked() {
 
         $params_spam = array(
@@ -199,11 +233,15 @@ class Users extends \Cleantalk\ApbctWP\CleantalkListTable
             'meta_key' => 'ct_checked',
             'count_total' => true,
         );
-        $spam_users = new \WP_User_Query($params_spam);
-        return $spam_users;
+
+	    return new \WP_User_Query($params_spam);
 
     }
 
+	/**
+	 * @return \WP_User_Query
+	 * @psalm-suppress PossiblyUnusedMethod
+	 */
     public function getCheckedNow() {
 
         $params_spam = array(
@@ -211,11 +249,15 @@ class Users extends \Cleantalk\ApbctWP\CleantalkListTable
             'meta_key' => 'ct_checked_now',
             'count_total' => true,
         );
-        $spam_users = new \WP_User_Query($params_spam);
-        return $spam_users;
+
+	    return new \WP_User_Query($params_spam);
 
     }
 
+	/**
+	 * @return \WP_User_Query
+	 * @psalm-suppress PossiblyUnusedMethod
+	 */
     public function getSpam() {
 
         $params_spam = array(
@@ -223,8 +265,8 @@ class Users extends \Cleantalk\ApbctWP\CleantalkListTable
             'meta_key' => 'ct_marked_as_spam',
             'count_total' => true,
         );
-        $spam_users = new \WP_User_Query($params_spam);
-        return $spam_users;
+
+	    return new \WP_User_Query($params_spam);
 
     }
 
@@ -245,8 +287,8 @@ class Users extends \Cleantalk\ApbctWP\CleantalkListTable
             ),
             'count_total' => true,
         );
-        $spam_users = new \WP_User_Query($params_spam);
-        return $spam_users;
+
+	    return new \WP_User_Query($params_spam);
 
     }
 
@@ -257,8 +299,8 @@ class Users extends \Cleantalk\ApbctWP\CleantalkListTable
             'meta_key' => 'ct_bad',
             'count_total' => true,
         );
-        $bad_users = new \WP_User_Query($params_bad);
-        return $bad_users;
+
+	    return new \WP_User_Query($params_bad);
 
     }
 
@@ -266,8 +308,8 @@ class Users extends \Cleantalk\ApbctWP\CleantalkListTable
 
         global $wpdb;
         $query = "SELECT * FROM " . APBCT_SPAMSCAN_LOGS . " WHERE scan_type = 'users'";
-        $res = $wpdb->get_results( $query, ARRAY_A );
-        return $res;
+
+	    return $wpdb->get_results( $query, ARRAY_A );
 
     }
 

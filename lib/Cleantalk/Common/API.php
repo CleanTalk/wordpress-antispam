@@ -4,10 +4,10 @@ namespace Cleantalk\Common;
 
 /**
  * CleanTalk API class.
- * Mostly contains wrappers for API methods. Check and send mehods.
+ * Mostly contains wrappers for API methods. Check and send methods.
  * Compatible with any CMS.
  *
- * @version       3.3
+ * @version       4.0
  * @author        Cleantalk team (welcome@cleantalk.org)
  * @copyright (C) 2014 CleanTalk team (http://cleantalk.org)
  * @license       GNU/GPL: http://www.gnu.org/copyleft/gpl.html
@@ -28,9 +28,11 @@ class API
      * @param string      $version API method version
 	 * @param boolean     $do_check
 	 *
-	 * @return mixed|string|array('error' => STRING)
+	 * @return string|array ('error' => STRING)
+	 *
+	 * @psalm-suppress PossiblyUnusedMethod
 	 */
-	static public function method__get_2s_blacklists_db($api_key, $out = null, $version = '1_0', $do_check = true)
+	public static function method__get_2s_blacklists_db($api_key, $out = null, $version = '1_0', $do_check = true)
 	{
 		$request = array(
 			'method_name' => '2s_blacklists_db',
@@ -62,8 +64,10 @@ class API
 	 * @param bool        $do_check
 	 *
 	 * @return array|bool|mixed
+	 *
+	 * @psalm-suppress PossiblyUnusedMethod
 	 */
-	static public function method__get_api_key($product_name, $email, $website, $platform, $timezone = null, $language = null, $user_ip = null, $wpms = false, $white_label = false, $do_check = true)
+	public static function method__get_api_key($product_name, $email, $website, $platform, $timezone = null, $language = null, $user_ip = null, $wpms = false, $white_label = false, $do_check = true)
 	{
 		$request = array(
 			'method_name'          => 'get_api_key',
@@ -93,8 +97,10 @@ class API
 	 * @param boolean $do_check
 	 *
 	 * @return array|bool|mixed
+	 *
+	 * @psalm-suppress PossiblyUnusedMethod
 	 */
-	static public function method__get_antispam_report($host, $period = 1, $do_check = true)
+	public static function method__get_antispam_report($host, $period = 1, $do_check = true)
 	{
 		$request = Array(
 			'method_name' => 'get_antispam_report',
@@ -116,8 +122,10 @@ class API
 	 * @param bool   $do_check
 	 *
 	 * @return array|bool|mixed
+	 *
+	 * @psalm-suppress PossiblyUnusedMethod
 	 */
-	static public function method__get_antispam_report_breif($api_key, $do_check = true)
+	public static function method__get_antispam_report_breif($api_key, $do_check = true)
 	{
 		$request = array(
 			'method_name' => 'get_antispam_report_breif',
@@ -140,8 +148,10 @@ class API
 	 * @param bool   $do_check
 	 *
 	 * @return array|bool|mixed
+	 *
+	 * @psalm-suppress PossiblyUnusedMethod
 	 */
-	static public function method__notice_paid_till($api_key, $path_to_cms, $product_name = 'antispam', $do_check = true)
+	public static function method__notice_paid_till($api_key, $path_to_cms, $product_name = 'antispam', $do_check = true)
 	{
 		$request = array(
 			'method_name'  => 'notice_paid_till',
@@ -166,8 +176,10 @@ class API
 	 * @param bool   $do_check
 	 *
 	 * @return array|bool|mixed
+	 *
+	 * @psalm-suppress PossiblyUnusedMethod
 	 */
-	static public function method__ip_info($data, $do_check = true)
+	public static function method__ip_info($data, $do_check = true)
 	{
 		$request = array(
 			'method_name' => 'ip_info',
@@ -189,8 +201,10 @@ class API
 	 * @param bool        $do_check
 	 *
 	 * @return array|bool|mixed
+	 *
+	 * @psalm-suppress PossiblyUnusedMethod
 	 */
-	static public function method__spam_check_cms($api_key, $data, $date = null, $do_check = true)
+	public static function method__spam_check_cms($api_key, $data, $date = null, $do_check = true)
 	{
 		$request = Array(
 			'method_name' => 'spam_check_cms',
@@ -198,7 +212,9 @@ class API
 			'data'        => is_array($data) ? implode(',', $data) : $data,
 		);
 		
-		if($date) $request['date'] = $date;
+		if($date) {
+			$request['date'] = $date;
+		}
 		
 		$result = static::send_request($request, self::URL, 20);
 		$result = $do_check ? static::check_response($result, 'spam_check_cms') : $result;
@@ -216,8 +232,10 @@ class API
 	 * @param bool   $do_check
 	 *
 	 * @return array|bool|mixed
+	 *
+	 * @psalm-suppress PossiblyUnusedMethod
 	 */
-	static public function method__email_check($email, $cache_only = true, $do_check = true)
+	public static function method__email_check($email, $cache_only = true, $do_check = true)
 	{
 		$request = array(
 			'method_name'  => 'email_check',
@@ -241,8 +259,10 @@ class API
 	 * @param bool        $do_check
 	 *
 	 * @return array|bool|mixed
+	 *
+	 * @psalm-suppress PossiblyUnusedMethod
 	 */
-	static public function method__spam_check($api_key, $data, $date = null, $do_check = true)
+	public static function method__spam_check($api_key, $data, $date = null, $do_check = true)
 	{
 		$request = Array(
 			'method_name' => 'spam_check',
@@ -266,9 +286,11 @@ class API
 	 * @param array  $data
 	 * @param bool   $do_check
 	 *
-	 * @return array|bool|mixed
+	 * @return array|bool
+	 *
+	 * @psalm-suppress PossiblyUnusedMethod
 	 */
-	static public function method__sfw_logs($api_key, $data, $do_check = true)
+	public static function method__sfw_logs($api_key, $data, $do_check = true)
 	{
 		
 		$request = array(
@@ -296,8 +318,10 @@ class API
 	 * @param bool   $do_check
 	 *
 	 * @return array|bool|mixed
+	 *
+	 * @psalm-suppress PossiblyUnusedMethod
 	 */
-	static public function method__security_logs($api_key, $data, $do_check = true)
+	public static function method__security_logs($api_key, $data, $do_check = true)
 	{
 		$request = array(
 			'auth_key'    => $api_key,
@@ -322,8 +346,10 @@ class API
 	 * @param bool   $do_check
 	 *
 	 * @return array|bool|mixed
+	 *
+	 * @psalm-suppress PossiblyUnusedMethod
 	 */
-	static public function method__security_logs__sendFWData($api_key, $data, $do_check = true)
+	public static function method__security_logs__sendFWData($api_key, $data, $do_check = true)
 	{
 		
 		$request = array(
@@ -348,8 +374,10 @@ class API
 	 * @param bool   $do_check
 	 *
 	 * @return array|bool|mixed
+	 *
+	 * @psalm-suppress PossiblyUnusedMethod
 	 */
-	static public function method__security_logs__feedback($api_key, $do_check = true)
+	public static function method__security_logs__feedback($api_key, $do_check = true)
 	{
 		$request = array(
 			'auth_key'    => $api_key,
@@ -371,8 +399,10 @@ class API
 	 * @param bool   $do_check
 	 *
 	 * @return array|bool|mixed
+	 *
+	 * @psalm-suppress PossiblyUnusedMethod
 	 */
-	static public function method__security_firewall_data($api_key, $do_check = true)
+	public static function method__security_firewall_data($api_key, $do_check = true)
 	{
 		
 		$request = array(
@@ -394,8 +424,10 @@ class API
 	 * @param bool   $do_check
 	 *
 	 * @return array|bool|mixed
+	 *
+	 * @psalm-suppress PossiblyUnusedMethod
 	 */
-	static public function method__security_firewall_data_file($api_key, $do_check = true)
+	public static function method__security_firewall_data_file($api_key, $do_check = true)
 	{
 		
 		$request = array(
@@ -421,8 +453,10 @@ class API
 	 * @param bool   $do_check
 	 *
 	 * @return array|bool|mixed
+	 *
+	 * @psalm-suppress PossiblyUnusedMethod
 	 */
-	static public function method__security_linksscan_logs($api_key, $scan_time, $scan_result, $links_total, $links_list, $do_check = true)
+	public static function method__security_linksscan_logs($api_key, $scan_time, $scan_result, $links_total, $links_list, $do_check = true)
 	{
 		$request = array(
 			'auth_key'          => $api_key,
@@ -453,8 +487,10 @@ class API
 	 * @param bool   $do_check
 	 *
 	 * @return array|bool|mixed
+	 *
+	 * @psalm-suppress PossiblyUnusedMethod
 	 */
-	static public function method__security_mscan_logs($api_key, $service_id, $scan_time, $scan_result, $scanned_total, $modified, $unknown, $do_check = true)
+	public static function method__security_mscan_logs($api_key, $service_id, $scan_time, $scan_result, $scanned_total, $modified, $unknown, $do_check = true)
 	{
 		$request = array(
 			'method_name'      => 'security_mscan_logs',
@@ -492,8 +528,10 @@ class API
 	 * @param bool   $do_check
 	 *
 	 * @return array|bool|mixed
+	 *
+	 * @psalm-suppress PossiblyUnusedMethod
 	 */
-	static public function method__security_mscan_files($api_key, $file_path, $file, $file_md5, $weak_spots, $do_check = true)
+	public static function method__security_mscan_files($api_key, $file_path, $file, $file_md5, $weak_spots, $do_check = true)
 	{
 		$request = array(
 			'method_name'    => 'security_mscan_files',
@@ -520,8 +558,10 @@ class API
 	 * @param bool               $do_check
 	 *
 	 * @return array|bool|mixed
+	 *
+	 * @psalm-suppress PossiblyUnusedMethod
 	 */
-	static public function method__backlinks_check_cms($api_key, $data, $date = null, $do_check = true)
+	public static function method__backlinks_check_cms($api_key, $data, $date = null, $do_check = true)
 	{
 		$request = array(
 			'method_name' => 'backlinks_check_cms',
@@ -529,7 +569,9 @@ class API
 			'data'        => is_array($data) ? implode(',', $data) : $data,
 		);
 		
-		if($date) $request['date'] = $date;
+		if($date) {
+			$request['date'] = $date;
+		}
 		
 		$result = static::send_request($request);
 		$result = $do_check ? static::check_response($result, 'backlinks_check_cms') : $result;
@@ -546,8 +588,10 @@ class API
 	 * @param bool   $do_check
 	 *
 	 * @return array|bool|mixed
+	 *
+	 * @psalm-suppress PossiblyUnusedMethod
 	 */
-	static public function method__security_backend_logs($api_key, $logs, $do_check = true)
+	public static function method__security_backend_logs($api_key, $logs, $do_check = true)
 	{
 		$request = array(
 			'method_name' => 'security_backend_logs',
@@ -575,8 +619,10 @@ class API
 	 * @param bool   $do_check
 	 *
 	 * @return array|bool|mixed
+	 *
+	 * @psalm-suppress PossiblyUnusedMethod
 	 */
-	static public function method__security_mscan_repairs($api_key, $repair_result, $repair_comment, $repaired_processed_files, $repaired_total_files_proccessed, $backup_id, $do_check = true)
+	public static function method__security_mscan_repairs($api_key, $repair_result, $repair_comment, $repaired_processed_files, $repaired_total_files_proccessed, $backup_id, $do_check = true)
 	{
 		$request = array(
 			'method_name'                  => 'security_mscan_repairs',
@@ -604,8 +650,10 @@ class API
 	 * @param bool   $do_check
 	 *
 	 * @return array|bool|mixed
+	 *
+	 * @psalm-suppress PossiblyUnusedMethod
 	 */
-	static public function method__request_checksums($api_key, $plugins_and_themes_to_refresh, $do_check = true)
+	public static function method__request_checksums($api_key, $plugins_and_themes_to_refresh, $do_check = true)
 	{
 		$request = array(
 			'method_name' => 'request_checksums',
@@ -626,8 +674,10 @@ class API
 	 * @param bool $do_check
 	 *
 	 * @return array|bool|mixed
+	 *
+	 * @psalm-suppress PossiblyUnusedMethod
 	 */
-	static public function method__services_templates_get( $api_key, $product_name = 'antispam', $do_check = true)
+	public static function method__services_templates_get( $api_key, $product_name = 'antispam', $do_check = true)
 	{
 		$request = array(
 			'method_name'        => 'services_templates_get',
@@ -645,12 +695,14 @@ class API
 	 * Settings templates add API method wrapper
 	 *
 	 * @param string $api_key
-	 * @param null $template_name
+	 * @param null|string $template_name
 	 * @param bool $do_check
 	 *
 	 * @return array|bool|mixed
+	 *
+	 * @psalm-suppress PossiblyUnusedMethod
 	 */
-	static public function method__services_templates_add( $api_key, $template_name = null, $options = '', $product_name = 'antispam', $do_check = true)
+	public static function method__services_templates_add( $api_key, $template_name = null, $options = '', $product_name = 'antispam', $do_check = true)
 	{
 		$request = array(
 			'method_name'        => 'services_templates_add',
@@ -671,12 +723,15 @@ class API
 	 *
 	 * @param string $api_key
 	 * @param int $template_id
-	 * @param null $template_name
+	 * @param string $options
+	 * @param string $product_name
 	 * @param bool $do_check
 	 *
 	 * @return array|bool|mixed
+	 *
+	 * @psalm-suppress PossiblyUnusedMethod
 	 */
-	static public function method__services_templates_update( $api_key, $template_id, $options = '', $product_name = 'antispam', $do_check = true)
+	public static function method__services_templates_update( $api_key, $template_id, $options = '', $product_name = 'antispam', $do_check = true)
 	{
 		$request = array(
 			'method_name'        => 'services_templates_update',
@@ -708,6 +763,8 @@ class API
      * @param bool $do_check
      *
      * @return array|bool|bool[]|mixed|string[]
+     *
+     * @psalm-suppress PossiblyUnusedMethod
      */
 	public static function method__private_list_add(
         $user_token,
@@ -748,20 +805,23 @@ class API
 		$product_id = $product_name === 'security' ? 4 : $product_id;
 		return $product_id;
 	}
-	
+
 	/**
 	 * Function sends raw request to API server
 	 *
-	 * @param array   $data    to send
-	 * @param string  $url     of API server
+	 * @param array $data to send
+	 * @param string $_url
 	 * @param integer $timeout timeout in seconds
-	 * @param boolean $ssl     use ssl on not
+	 * @param boolean $ssl use ssl on not
+	 * @param string $ssl_path
 	 *
-	 * @return array|bool
+	 * @return array|string
 	 */
-	static public function send_request($data, $url = self::URL, $timeout = 10, $ssl = false, $ssl_path = '')
+	public static function send_request($data, $_url = self::URL, $timeout = 10, $ssl = false, $ssl_path = '')
 	{
-		// Possibility to switch agent vaersion
+		global $apbct_debug;
+
+		// Possibility to switch agent version
 		$data['agent'] = !empty($data['agent'])
 			? $data['agent']
 			: (defined('CLEANTALK_AGENT') ? CLEANTALK_AGENT : self::AGENT);
@@ -772,13 +832,12 @@ class API
 		
 		// For debug purposes
 		if(defined('CLEANTALK_DEBUG') && CLEANTALK_DEBUG){
-			global $apbct_debug;
 			$apbct_debug['sent_data']      = $data;
 			$apbct_debug['request_string'] = $data_string;
 		}
 		
 		// Possibility to switch API url
-		$url = defined('CLEANTALK_API_URL') ? CLEANTALK_API_URL : $url;
+		$url = defined('CLEANTALK_API_URL') ? CLEANTALK_API_URL : $_url;
 		
 		if(function_exists('curl_init')){
 			
@@ -792,9 +851,7 @@ class API
 			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 			curl_setopt($ch, CURLOPT_HTTPHEADER, array('Expect:'));
 			
-			$ssl_path = $ssl_path
-				? $ssl_path
-				: (defined('CLEANTALK_CASERT_PATH') ? CLEANTALK_CASERT_PATH : '');
+			$ssl_path = $ssl_path ?: ( defined( 'CLEANTALK_CASERT_PATH' ) ? CLEANTALK_CASERT_PATH : '' );
 			
 			// Switch on/off SSL
 			if($ssl && $ssl_path){
@@ -826,7 +883,7 @@ class API
 					),
 				);
 				$context = stream_context_create($opts);
-				$result = @file_get_contents($url, 0, $context);
+				$result = @file_get_contents($url, false, $context);
 				
 				$errors = $result === false
 					? $errors . '_FAILED_TO_USE_FILE_GET_CONTENTS'
@@ -850,16 +907,16 @@ class API
 	 *
 	 * @return mixed (array || array('error' => true))
 	 */
-	static public function check_response($result, $method_name = null)
+	public static function check_response($result, $method_name = null)
 	{
 		// Errors handling
 		// Bad connection
 		if(is_array($result) && isset($result['error'])){
 			$last = error_get_last();
-			$out = ! empty( $result['error'] )
+
+			return ! empty( $result['error'] )
 				? array( 'error' => 'CONNECTION_ERROR : "' . $result['error'] . '"' )
 				: array( 'error' => 'CONNECTION_ERROR : "Unknown Error. Last error: ' . $last['message'] );
-			return $out;
 		}
 		
 		// JSON decode errors
@@ -882,7 +939,7 @@ class API
 			}
 		}
 		
-		// Pathces for different methods
+		// Patches for different methods
 		switch($method_name){
 			
 			// notice_paid_till
@@ -897,16 +954,15 @@ class API
 				   )
 				)
 					$result['valid'] = 0;
-				else
+				else {
 					$result['valid'] = 1;
+				}
 				
 				return $result;
-				
-				break;
+
 			case 'email_check':
-				$result = isset($result['data']) ? $result : array('error' => 'NO_DATA');
-				return $result;
-			break;				
+				return isset($result['data']) ? $result : array( 'error' => 'NO_DATA');
+
 			// get_antispam_report_breif
 			case 'get_antispam_report_breif':
 				
@@ -917,37 +973,31 @@ class API
 				for($tmp = array(), $i = 0; $i < 7; $i++){
 					$tmp[date('Y-m-d', time() - 86400 * 7 + 86400 * $i)] = 0;
 				}
-				$out['spam_stat'] = (array)array_merge($tmp, isset($out['spam_stat']) ? $out['spam_stat'] : array());
+				$out['spam_stat'] = array_merge($tmp, isset($out['spam_stat']) ? $out['spam_stat'] : array());
 				$out['top5_spam_ip'] = isset($out['top5_spam_ip']) ? array_slice($out['top5_spam_ip'], 0, 5) : array();
 				
 				return $out;
-				
-				break;
 
 			case 'services_templates_add' :
 			case 'services_templates_update' :
 				return isset( $result['data'] ) && is_array( $result['data'] ) && count( $result['data'] ) === 1
 					? $result['data'][0]
 					: array('error' => 'NO_DATA');
-				break;
 			
             case 'private_list_add':
-                return isset( $res['records'][0]['operation_status'] ) && $res['records'][0]['operation_status'] === 'SUCCESS'
+                return isset( $result['records'][0]['operation_status'] ) && $result['records'][0]['operation_status'] === 'SUCCESS'
                     ? true
                     : array( 'error' => 'COULDNT_ADD_WL_IP');
-                break;
 
 			case '2s_blacklists_db':
 				return isset( $result['data'] ) && isset( $result['data_user_agents'] )
 					? $result
 					: $result['data'];
-				break;
 				
 			default:
 				return isset($result['data']) && is_array($result['data'])
 					? $result['data']
 					: array('error' => 'NO_DATA');
-				break;
 		}
 	}
 }

@@ -177,15 +177,18 @@
 			box-shadow: none;
 		}
 	</style>
+	<script src='{JQUERY_SCRIPT_URL}'></script>
+	<script>
+		{LOCALIZE_SCRIPT}
+	</script>
+	<script src='{SCRIPT_URL}'></script>
 	<script>
 		var ct_date = new Date;
 
 		function set_spamFireWallCookie(cookie_name, cookie_value) {
 			var date = new Date;
 			date.setDate(date.getDate() + 30);
-			var ctSecure = location.protocol === 'https:' ? '; secure' : '';
-			document.cookie = cookie_name + '=' + escape(cookie_value) + '; path=/; expires=' + date.toUTCString() + '; samesite=lax' + ctSecure;
-			return null;
+			ctSetCookie( cookie_name, escape(cookie_value), date.toUTCString() );
 		}
 
 		function get_current_url() {

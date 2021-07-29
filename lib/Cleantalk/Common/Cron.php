@@ -125,6 +125,7 @@ abstract class Cron
      * @param string $task
      *
      * @return bool
+     * @psalm-suppress PossiblyUnusedReturnValue
      */
     public function removeTask( $task )
     {
@@ -169,6 +170,7 @@ abstract class Cron
      * Get cron option name
      *
      * @return string
+     * @psalm-suppress PossiblyUnusedMethod
      */
     public function getCronOptionName() {
         return $this->cron_option_name;
@@ -242,14 +244,14 @@ abstract class Cron
             if( is_callable( $this->tasks[$task]['handler'] ) ){
 
                 if( $this->debug ) {
-                    error_log( var_export( 'Task ' . $task . ' will be run.', 1 ) );
+                    error_log( var_export( 'Task ' . $task . ' will be run.', true ) );
                 }
 
                 $result = call_user_func_array( $this->tasks[$task]['handler'], isset( $this->tasks[$task]['params'] ) ? $this->tasks[$task]['params'] : array() );
 
                 if( $this->debug ) {
-                    error_log( var_export( 'Result:', 1 ) );
-                    error_log( var_export( $result, 1 ) );
+                    error_log( var_export( 'Result:', true ) );
+                    error_log( var_export( $result, true ) );
                 }
 
                 if( empty( $result['error'] ) ){

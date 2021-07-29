@@ -2,18 +2,24 @@
 
 namespace Cleantalk\ApbctWP\Firewall;
 
-use Cleantalk\Common\Helper as Helper;
-use Cleantalk\Variables\Cookie;
+use Cleantalk\Common\Helper;
+use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\Variables\Server;
 
+/**
+ * Class AntiCrawler
+ * @package Cleantalk\ApbctWP\Firewall
+ *
+ * @psalm-suppress PossiblyUnusedProperty
+ */
 class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 	
 	public $module_name = 'ANTICRAWLER';
 	
-	private $db__table__ac_logs = null;
-	private $db__table__ac_ua_bl = null;
+	private $db__table__ac_logs;
+	private $db__table__ac_ua_bl;
 	private $api_key = '';
-	private $apbct = false;
+	private $apbct;
 	private $store_interval = 60;
 	private $sign; //Signature - User-Agent + Protocol
     private $ua_id = 'null'; //User-Agent
@@ -21,6 +27,11 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 	private $ac_log_result = '';
 	
 	public $isExcluded = false;
+
+	/**
+	 * @var string Content of the die page
+	 */
+	private $sfw_die_page;
 	
 	/**
 	 * AntiBot constructor.
@@ -46,102 +57,74 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 		
 	}
 
-    public static function update( $file_url_ua ) {
-	    
-        $lines = \Cleantalk\ApbctWP\Helper::http__get_data_from_remote_gz__and_parse_csv( $file_url_ua );
-    
-        if( empty( $lines['errors'] ) ){
-            
-            $result__clear_db = self::clear_data_table( \Cleantalk\ApbctWP\DB::getInstance(), APBCT_TBL_AC_UA_BL );
-        
-            if( empty( $result__clear_db['error'] ) ){
+    public static function update( $file_path_ua ) {
 
-                for( $count_result = 0; current($lines) !== false; ) {
+	    $file_content = file_get_contents( $file_path_ua );
 
-                    $query = "INSERT INTO " . APBCT_TBL_AC_UA_BL . " (id, ua_template, ua_status) VALUES ";
+	    if(function_exists('gzdecode')) {
 
-                    for( $i = 0, $values = array(); APBCT_WRITE_LIMIT !== $i && current( $lines ) !== false; $i ++, $count_result ++, next( $lines ) ){
+		    $unzipped_content = gzdecode( $file_content );
 
-                        $entry = current($lines);
+		    if ( $unzipped_content !== false ) {
 
-                        if(empty($entry))
-                            continue;
+			    $lines = \Cleantalk\ApbctWP\Helper::buffer__parse__csv( $unzipped_content );
 
-                        if ( APBCT_WRITE_LIMIT !== $i ) {
+			    if( empty( $lines['errors'] ) ){
 
-                            if( ! isset( $entry[0], $entry[1] ) ){
-                                continue;
-                            }
+				    $result__clear_db = self::clear_data_table( \Cleantalk\ApbctWP\DB::getInstance(), APBCT_TBL_AC_UA_BL );
 
-                            // Cast result to int
-                            $ua_id        = preg_replace('/[^\d]*/', '', $entry[0]);
-                            $ua_template  = isset($entry[1]) && apbct_is_regexp($entry[1]) ? Helper::db__prepare_param( $entry[1] ) : 0;
-                            $ua_status    = isset($entry[2]) ? $entry[2] : 0;
+				    if( empty( $result__clear_db['error'] ) ){
 
-                            if( ! $ua_id || ! $ua_template ){
-                                continue;
-                            }
-                        }
+					    for( $count_result = 0; current($lines) !== false; ) {
 
-                        $values[] = '('. $ua_id .','. $ua_template .','. $ua_status .')';
+						    $query = "INSERT INTO " . APBCT_TBL_AC_UA_BL . " (id, ua_template, ua_status) VALUES ";
 
-                    }
+						    for( $i = 0, $values = array(); APBCT_WRITE_LIMIT !== $i && current( $lines ) !== false; $i ++, $count_result ++, next( $lines ) ){
 
-                    if( ! empty( $values ) ){
-                        $query = $query . implode( ',', $values ) . ';';
-                        \Cleantalk\ApbctWP\DB::getInstance()->execute( $query );
-                    }
+							    $entry = current($lines);
 
-                }
-                return $count_result;
-            }else
-                return $result__clear_db;
-        }else
-            return array('error' => 'UAL_UPDATE_ERROR: '. $lines['error'] );
+							    if( empty($entry) || ! isset( $entry[0], $entry[1] ) ) {
+								    continue;
+							    }
+
+							    // Cast result to int
+							    $ua_id        = preg_replace('/[^\d]*/', '', $entry[0]);
+							    $ua_template  = isset($entry[1]) && apbct_is_regexp($entry[1]) ? Helper::db__prepare_param( $entry[1] ) : 0;
+							    $ua_status    = isset($entry[2]) ? $entry[2] : 0;
+
+							    if( ! $ua_id || ! $ua_template ){
+								    continue;
+							    }
+
+							    $values[] = '('. $ua_id .','. $ua_template .','. $ua_status .')';
+
+						    }
+
+						    if( ! empty( $values ) ){
+							    $query = $query . implode( ',', $values ) . ';';
+							    \Cleantalk\ApbctWP\DB::getInstance()->execute( $query );
+							    if( file_exists( $file_path_ua ) ) {
+								    unlink($file_path_ua);
+							    }
+						    }
+
+					    }
+					    return $count_result;
+				    }else {
+					    return $result__clear_db;
+				    }
+			    }else {
+				    return array( 'error' => 'UAL_UPDATE_ERROR: ' . $lines['error'] );
+			    }
+
+		    } else {
+			    return array( 'error' => 'Can not unpack datafile');
+		    }
+	    } else {
+		    return array( 'error' => 'Function gzdecode not exists. Please update your PHP at least to version 5.4 ' );
+	    }
+
     }
-
-	public static function direct_update( array $useragents ) {
-
-		$result__clear_db = self::clear_data_table( \Cleantalk\ApbctWP\DB::getInstance(), APBCT_TBL_AC_UA_BL );
-
-		if( empty( $result__clear_db['error'] ) ){
-
-			for( $count_result = 0; current($useragents) !== false; ) {
-
-				$query = "INSERT INTO " . APBCT_TBL_AC_UA_BL . " (id, ua_template, ua_status) VALUES ";
-
-				for( $i = 0, $values = array(); APBCT_WRITE_LIMIT !== $i && current( $useragents ) !== false; $i ++, $count_result ++, next( $useragents ) ){
-
-					$entry = current($useragents);
-
-					if(empty($entry))
-						continue;
-
-					if ( APBCT_WRITE_LIMIT !== $i ) {
-
-						// Cast result to int
-						// @ToDo check the output $entry
-						$ua_id        = preg_replace('/[^\d]*/', '', $entry[0]);
-						$ua_template  = isset($entry[1]) && apbct_is_regexp($entry[1]) ? Helper::db__prepare_param( $entry[1] ) : 0;
-						$ua_status    = isset($entry[2]) ? $entry[2] : 0;
-
-					}
-
-					$values[] = '('. $ua_id .','. $ua_template .','. $ua_status .')';
-
-				}
-
-				if( ! empty( $values ) ){
-					$query = $query . implode( ',', $values ) . ';';
-					\Cleantalk\ApbctWP\DB::getInstance()->execute( $query );
-				}
-
-			}
-			return $count_result;
-		}else
-			return $result__clear_db;
-
-	}
 
     private static function clear_data_table($db, $db__table__data) {
 
@@ -167,7 +150,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 		
 		$results = array();
 				
-        foreach( $this->ip_array as $ip_origin => $current_ip ) {
+        foreach( $this->ip_array as $_ip_origin => $current_ip ) {
 	        
         	// Skip by 301 response code
 	        if( $this->is_redirected() ){
@@ -194,7 +177,6 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
                             // Whitelisted
                             $results[] = array('ip' => $current_ip, 'is_personal' => false, 'status' => 'PASS_ANTICRAWLER_UA',);
                             return $results;
-                            break;
                         } else {
                             // Blacklisted
                             $results[] = array('ip' => $current_ip, 'is_personal' => false, 'status' => 'DENY_ANTICRAWLER_UA',);
@@ -215,8 +197,9 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
             // Skip by cookie
             if( Cookie::get('wordpress_apbct_antibot') == hash( 'sha256', $this->api_key . $this->apbct->data['salt'] ) ) {
                 if( Cookie::get( 'apbct_anticrawler_passed' ) == 1 ){
-                    if( ! headers_sent() )
-                        Cookie::set( 'apbct_anticrawler_passed', '0', time() - 86400, '/', null, null, true, 'Lax' );
+                    if( ! headers_sent() ) {
+	                    Cookie::set( 'apbct_anticrawler_passed', '0', time() - 86400, '/', '', null, true, 'Lax' );
+                    }
 
                     // Do logging an one passed request
                     $this->update_log( $current_ip, 'PASS_ANTICRAWLER' );
@@ -230,7 +213,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
         }
 		
         // Common check
-		foreach( $this->ip_array as $ip_origin => $current_ip ){
+		foreach( $this->ip_array as $_ip_origin => $current_ip ){
 
 		    // IP check
 			$result = $this->db->fetch(
@@ -249,8 +232,9 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 					
 					if( Cookie::get( 'apbct_anticrawler_passed' ) === '1' ){
 						
-						if( ! headers_sent() )
-							\Cleantalk\ApbctWP\Variables\Cookie::set( 'apbct_anticrawler_passed', '0', time() - 86400, '/', null, false, true, 'Lax' );
+						if( ! headers_sent() ) {
+							\Cleantalk\ApbctWP\Variables\Cookie::set( 'apbct_anticrawler_passed', '0', time() - 86400, '/', '', false, true, 'Lax' );
+						}
 						
 						$results[] = array( 'ip' => $current_ip, 'is_personal' => false, 'status' => 'PASS_ANTICRAWLER', );
 						
@@ -278,9 +262,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 	public function update_ac_log() {
 		$interval_time = Helper::time__get_interval_start( $this->store_interval );
 		
-		// @todo Rename ip column to sign. Use IP + UserAgent for it.
-		
-		foreach( $this->ip_array as $ip_origin => $current_ip ){
+		foreach( $this->ip_array as $_ip_origin => $current_ip ){
 			$id = md5( $current_ip . $this->sign . $interval_time );
 			$this->db->execute(
 				"INSERT INTO " . $this->db__table__ac_logs . " SET
@@ -301,7 +283,13 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 	
 	public static function set_cookie(){
 		global $apbct;
-		echo '<script>var ctSecure = location.protocol === "https:" ? "; secure" : ""; document.cookie = "wordpress_apbct_antibot=' . hash( 'sha256', $apbct->api_key . $apbct->data['salt'] ) . '; path=/; expires=0; samesite=lax" + ctSecure;</script>';
+
+		if( $apbct->settings['data__set_cookies'] == 0 && ! is_admin() ){
+			return;
+		}
+
+		echo '<script>ctSetCookie( "wordpress_apbct_antibot", "' . hash( 'sha256', $apbct->api_key . $apbct->data['salt'] ) . '", 0 );</script>';
+
 	}
 	
 	/**
@@ -312,6 +300,8 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 	 * @param $status
 	 */
 	public function update_log( $ip, $status ) {
+
+		/** @psalm-suppress InvalidLiteralArgument */
 
 	    if( strpos( '_UA', $status ) !== false ) {
 	        $id_str = $ip . $this->module_name . '_UA';
@@ -328,7 +318,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 				status = '$status',
 				all_entries = 1,
 				blocked_entries = " . ( strpos( $status, 'DENY' ) !== false ? 1 : 0 ) . ",
-				entries_timestamp = '" . intval( $time ) . "',
+				entries_timestamp = '" . $time . "',
 				ua_id = " . $this->ua_id . ",
 				ua_name = %s,
 				first_url = %s,
@@ -338,7 +328,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 			    status = '$status',
 				all_entries = all_entries + 1,
 				blocked_entries = blocked_entries" . ( strpos( $status, 'DENY' ) !== false ? ' + 1' : '' ) . ",
-				entries_timestamp = '" . intval( $time ) . "',
+				entries_timestamp = '" . $time . "',
 				ua_id = " . $this->ua_id . ",
 				ua_name = %s,
 				last_url = %s";
@@ -364,7 +354,9 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 		// File exists?
 		if(file_exists(CLEANTALK_PLUGIN_DIR . "lib/Cleantalk/ApbctWP/Firewall/die_page_anticrawler.html")){
 			
-			$sfw_die_page = file_get_contents(CLEANTALK_PLUGIN_DIR . "lib/Cleantalk/ApbctWP/Firewall/die_page_anticrawler.html");
+			$this->sfw_die_page = file_get_contents(CLEANTALK_PLUGIN_DIR . "lib/Cleantalk/ApbctWP/Firewall/die_page_anticrawler.html");
+
+			$js_url = APBCT_URL_PATH . '/js/apbct-public--functions.min.js?' . APBCT_VERSION;
 
 			$net_count = $apbct->stats['sfw']['entries'];
 
@@ -380,10 +372,11 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 				'{COOKIE_ANTICRAWLER}'             => hash( 'sha256', $apbct->api_key . $apbct->data['salt'] ),
 				'{COOKIE_ANTICRAWLER_PASSED}'      => '1',
 				'{GENERATED}'                      => '<p>The page was generated at&nbsp;' . date( 'D, d M Y H:i:s' ) . "</p>",
+				'{SCRIPT_URL}'                     => $js_url
 			);
 			
 			foreach( $replaces as $place_holder => $replace ){
-				$sfw_die_page = str_replace( $place_holder, $replace, $sfw_die_page );
+				$this->sfw_die_page = str_replace( $place_holder, $replace, $this->sfw_die_page );
 			}
 			
 			if( isset( $_GET['debug'] ) ){
@@ -398,16 +391,49 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 			}else{
 				$debug = '';
 			}
-			$sfw_die_page = str_replace( "{DEBUG}", $debug, $sfw_die_page );
+			$this->sfw_die_page = str_replace( "{DEBUG}", $debug, $this->sfw_die_page );
 
-            http_response_code(403);
-            die($sfw_die_page);
 
-		}else{
-            http_response_code(403);
-            die("IP BLACKLISTED. Blocked by AntiCrawler " . $result['ip']);
 		}
+
+		add_action( 'init', array( $this, 'print_die_page' ) );
 		
+	}
+
+	public function print_die_page() {
+
+		global $apbct;
+
+		$localize_js = array(
+			'_ajax_nonce' => wp_create_nonce('ct_secret_stuff'),
+			'_rest_nonce' => wp_create_nonce('wp_rest'),
+			'_ajax_url'   => admin_url('admin-ajax.php', 'relative'),
+			'_rest_url'   => esc_url( get_rest_url() ),
+			'_apbct_ajax_url'   => APBCT_URL_PATH . '/lib/Cleantalk/ApbctWP/Ajax.php',
+			'data__set_cookies' => $apbct->settings['data__set_cookies'],
+			'data__set_cookies__alt_sessions_type' => $apbct->settings['data__set_cookies__alt_sessions_type'],
+		);
+
+		$js_jquery_url = includes_url() . 'js/jquery/jquery.min.js';
+
+		$replaces = array(
+			'{JQUERY_SCRIPT_URL}'=> $js_jquery_url,
+			'{LOCALIZE_SCRIPT}' => 'var ctPublicFunctions = ' . json_encode( $localize_js ),
+		);
+
+		foreach( $replaces as $place_holder => $replace ){
+			$this->sfw_die_page = str_replace( $place_holder, $replace, $this->sfw_die_page );
+		}
+
+		http_response_code(403);
+
+		// File exists?
+		if(file_exists( CLEANTALK_PLUGIN_DIR . "lib/Cleantalk/ApbctWP/Firewall/die_page_sfw.html")){
+			die($this->sfw_die_page);
+
+		}
+
+		die("IP BLACKLISTED. Blocked by AntiCrawler " . $this->apbct->stats['last_sfw_block']['ip']);
 	}
 
     private function check_exclusions() {

@@ -2,10 +2,16 @@
 
 namespace Cleantalk\ApbctWP\Firewall;
 
-use Cleantalk\Common\Helper as Helper;
-use Cleantalk\Variables\Cookie;
+use Cleantalk\Common\Helper;
+use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\Variables\Server;
 
+/**
+ * Class AntiFlood
+ * @package Cleantalk\ApbctWP\Firewall
+ *
+ * @psalm-suppress PossiblyUnusedProperty
+ */
 class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule{
 	
 	public $module_name = 'ANTIFLOOD';
@@ -17,10 +23,14 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule{
 	private $view_limit = 20;
 	private $apbct = array();
 	private $store_interval  = 60;
-	private $block_period    = 30;
 	private $chance_to_clean = 20;
 
     public $isExcluded = false;
+
+	/**
+	 * @var string Content of the die page
+	 */
+	private $sfw_die_page;
 
 	/**
 	 * AntiCrawler constructor.
@@ -54,7 +64,7 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule{
 		
 		$time = time() - $this->store_interval;
 		
-		foreach( $this->ip_array as $ip_origin => $current_ip ){
+		foreach( $this->ip_array as $_ip_origin => $current_ip ){
 
 			// UA check
 			$ua_bl_results = $this->db->fetch_all(
@@ -67,13 +77,10 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule{
 
 					if( ! empty( $ua_bl_result['ua_template'] ) && preg_match( "%". str_replace( '"', '', $ua_bl_result['ua_template'] ) ."%i", Server::get('HTTP_USER_AGENT') ) ) {
 
-						$this->ua_id = $ua_bl_result['id'];
-
 						if( $ua_bl_result['ua_status'] == 1 ) {
 							// Whitelisted
 							$results[] = array('ip' => $current_ip, 'is_personal' => false, 'status' => 'PASS_ANTIFLOOD_UA',);
 							return $results;
-							break;
 						}
 
 					}
@@ -86,7 +93,7 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule{
 			if( Cookie::get( 'apbct_antiflood_passed' ) === md5( $current_ip . $this->api_key ) ){
 				
 				if( ! headers_sent() ){
-					Cookie::set( 'apbct_antiflood_passed', '0', time() - 86400, '/', null, null, true, 'Lax' );
+					Cookie::set( 'apbct_antiflood_passed', '0', time() - 86400, '/', '', null, true );
 				}
 
                 // Do logging an one passed request
@@ -129,7 +136,7 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule{
 		
 		// @todo Rename ip column to sign. Use IP + UserAgent for it.
 		
-		foreach( $this->ip_array as $ip_origin => $current_ip ){
+		foreach( $this->ip_array as $_ip_origin => $current_ip ){
 			$id = md5( $current_ip . $interval_time );
 			$this->db->execute(
 				"INSERT INTO " . $this->db__table__ac_logs . " SET
@@ -179,14 +186,14 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule{
 			status = '$status',
 			all_entries = 1,
 			blocked_entries = " . ( strpos( $status, 'DENY' ) !== false ? 1 : 0 ) . ",
-			entries_timestamp = '" . intval( $time ) . "',
+			entries_timestamp = '" . $time . "',
 			ua_name = %s
 		ON DUPLICATE KEY
 		UPDATE
 			status = '$status',
 			all_entries = all_entries + 1,
 			blocked_entries = blocked_entries" . ( strpos( $status, 'DENY' ) !== false ? ' + 1' : '' ) . ",
-			entries_timestamp = '" . intval( $time ) . "',
+			entries_timestamp = '" . $time . "',
 			ua_name = %s";
 
 		$this->db->prepare( $query, array( Server::get('HTTP_USER_AGENT'), Server::get('HTTP_USER_AGENT') ) );
@@ -202,7 +209,9 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule{
 		// File exists?
 		if( file_exists( CLEANTALK_PLUGIN_DIR . 'lib/Cleantalk/ApbctWP/Firewall/die_page_antiflood.html' ) ){
 			
-			$sfw_die_page = file_get_contents( CLEANTALK_PLUGIN_DIR . 'lib/Cleantalk/ApbctWP/Firewall/die_page_antiflood.html' );
+			$this->sfw_die_page = file_get_contents( CLEANTALK_PLUGIN_DIR . 'lib/Cleantalk/ApbctWP/Firewall/die_page_antiflood.html' );
+
+			$js_url = APBCT_URL_PATH . '/js/apbct-public--functions.min.js?' . APBCT_VERSION;
 
             $net_count = $apbct->stats['sfw']['entries'];
 			
@@ -218,20 +227,53 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule{
 				'{HOST}'                           => get_home_url() . ', ' . APBCT_VERSION,
 				'{GENERATED}'                      => '<p>The page was generated at&nbsp;' . date( 'D, d M Y H:i:s' ) . "</p>",
 				'{COOKIE_ANTIFLOOD_PASSED}'      => md5( $this->api_key . $result['ip'] ),
+				'{SCRIPT_URL}'                     => $js_url
 			);
 			
 			foreach( $replaces as $place_holder => $replace ){
-				$sfw_die_page = str_replace( $place_holder, $replace, $sfw_die_page );
+				$this->sfw_die_page = str_replace( $place_holder, $replace, $this->sfw_die_page );
 			}
 
-            http_response_code(403);
-            die($sfw_die_page);
+			add_action( 'init', array( $this, 'print_die_page' ) );
 
-		} else{
-            http_response_code(403);
-            die("IP BLACKLISTED. Blocked by AntiFlood " . $result['ip']);
 		}
 		
+	}
+
+	public function print_die_page() {
+
+		global $apbct;
+
+		$localize_js = array(
+			'_ajax_nonce' => wp_create_nonce('ct_secret_stuff'),
+			'_rest_nonce' => wp_create_nonce('wp_rest'),
+			'_ajax_url'   => admin_url('admin-ajax.php', 'relative'),
+			'_rest_url'   => esc_url( get_rest_url() ),
+			'_apbct_ajax_url'   => APBCT_URL_PATH . '/lib/Cleantalk/ApbctWP/Ajax.php',
+			'data__set_cookies' => $apbct->settings['data__set_cookies'],
+			'data__set_cookies__alt_sessions_type' => $apbct->settings['data__set_cookies__alt_sessions_type'],
+		);
+
+		$js_jquery_url = includes_url() . 'js/jquery/jquery.min.js';
+
+		$replaces = array(
+			'{JQUERY_SCRIPT_URL}'=> $js_jquery_url,
+			'{LOCALIZE_SCRIPT}' => 'var ctPublicFunctions = ' . json_encode( $localize_js ),
+		);
+
+		foreach( $replaces as $place_holder => $replace ){
+			$this->sfw_die_page = str_replace( $place_holder, $replace, $this->sfw_die_page );
+		}
+
+		http_response_code(403);
+
+		// File exists?
+		if(file_exists( CLEANTALK_PLUGIN_DIR . "lib/Cleantalk/ApbctWP/Firewall/die_page_sfw.html")){
+			die($this->sfw_die_page);
+
+		}
+
+		die("IP BLACKLISTED. Blocked by AntiFlood " . $this->apbct->stats['last_sfw_block']['ip']);
 	}
 
     private function check_exclusions() {

@@ -466,7 +466,7 @@ function apbct_settings__set_fileds( ){
 				'misc__store_urls' => array(
 					'type'        => 'checkbox',
 					'title'       => __('Store visited URLs', 'cleantalk-spam-protect'),
-					'description' => __("Plugin stores last 10 visited URLs (HTTP REFFERERS) before visitor submits form on the site. You can see stored visited URLS for each visitor in your Dashboard. Turn the option on to improve Anti-Spam protection.", 'cleantalk-spam-protect'),
+					'description' => __("Plugin stores last 5 visited URLs (HTTP REFERRERS) before visitor submits form on the site. You can see stored visited URLS for each visitor in your Dashboard. Turn the option on to improve Anti-Spam protection.", 'cleantalk-spam-protect'),
 				),
 				'wp__comment_notify' => array(
 					'type'        => 'checkbox',
@@ -1442,8 +1442,12 @@ function apbct_settings__validate($settings) {
 	global $apbct;
 	
 	// If user is not allowed to manage settings. Get settings from the storage
-	if( ! is_main_site() && ( ! $apbct->network_settings['multisite__allow_custom_settings'] ) ){
+	if( ! is_main_site() && ! $apbct->network_settings['multisite__allow_custom_settings'] ){
 		foreach ($apbct->settings as $key => $setting){
+			// Do not reset apikey to default is allow_custom_key is active
+			if( $key === 'apikey' && $apbct->allow_custom_key ) {
+				continue;
+			}
 			$settings[ $key ] = $setting;
 		}
 	}

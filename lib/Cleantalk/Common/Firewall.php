@@ -2,6 +2,8 @@
 
 namespace Cleantalk\Common;
 
+use Cleantalk\ApbctWP\Variables\Cookie;
+use Cleantalk\Common\Firewall\FirewallModule;
 use Cleantalk\Common\Helper as Helper;
 use Cleantalk\Variables\Get;
 
@@ -18,6 +20,8 @@ use Cleantalk\Variables\Get;
  * @copyright (C) 2014 CleanTalk team (http://cleantalk.org)
  * @license       GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  * @see           https://github.com/CleanTalk/php-antispam
+ *
+ * @psalm-suppress PossiblyUnusedProperty
  */
 class Firewall
 {
@@ -49,8 +53,9 @@ class Firewall
 	);
 	
 	private $fw_modules = array();
+
 	private $module_names = array();
-	
+
 	/**
 	 * Creates Database driver instance.
 	 *
@@ -58,8 +63,8 @@ class Firewall
 	 */
 	public function __construct( $db ){
 		$this->db       = $db;
-		$this->debug    = !! Get::get( 'debug' );
-		$this->ip_array = $this->ip__get( 'real', true );
+		$this->debug    = (bool) Get::get( 'debug' );
+		$this->ip_array = $this->ip__get();
 	}
 	
 	/**
@@ -68,7 +73,7 @@ class Firewall
 	 * @param string $ips_input type of IP you want to receive
 	 * @param bool  $v4_only
 	 *
-	 * @return array|mixed|null
+	 * @return array
 	 */
 	public function ip__get( $ips_input = 'real', $v4_only = true ){
 		
@@ -83,9 +88,9 @@ class Firewall
 	 * For inner usage only.
 	 * Not returns anything, the result is private storage of the modules.
 	 *
-	 * @param \Cleantalk\Common\Firewall\FirewallModule $module
+	 * @param FirewallModule $module
 	 */
-	public function load_fw_module( \Cleantalk\Common\Firewall\FirewallModule $module ) {
+	public function load_fw_module( FirewallModule $module ) {
 		
 		if( ! in_array( $module, $this->fw_modules ) ) {
 			$module->setDb( $this->db );
@@ -102,7 +107,7 @@ class Firewall
 	 * @return void   returns die page or set cookies
 	 */
 	public function run() {
-		
+
 		$this->module_names = array_keys( $this->fw_modules );
 		
 		$results = array();
@@ -223,7 +228,7 @@ class Firewall
                     ) {
 	                    if( ! headers_sent() ) {
 		                    $cookie_val = md5( $fw_result['ip'] . $apbct->api_key );
-		                    \Cleantalk\ApbctWP\Variables\Cookie::set( 'ct_sfw_ip_wl', $cookie_val, time() + 86400 * 30, '/', null, null, true, 'Lax' );
+		                    Cookie::set( 'ct_sfw_ip_wl', $cookie_val, time() + 86400 * 30, '/', '', null, true, 'Lax' );
 	                    }
                         return true;
                     }

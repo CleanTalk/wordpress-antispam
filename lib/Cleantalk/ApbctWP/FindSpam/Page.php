@@ -32,6 +32,7 @@ class Page
             case 'users_page_ct_check_users_bad' :
                 $this->current_tab = 2;
                 $this->generatePageHeader();
+                /** @psalm-suppress UndefinedMethod */
                 $this->spam_checker->getBadUsersPage();
                 break;
 

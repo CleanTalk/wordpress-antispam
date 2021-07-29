@@ -12,7 +12,7 @@ namespace Cleantalk\Variables;
  */
 class Request extends ServerVariables{
 	
-	static $instance;
+	public static $instance;
 	
 	/**
 	 * Constructor
@@ -27,7 +27,7 @@ class Request extends ServerVariables{
 	}
 	
 	/**
-	 * Gets given $_REQUEST variable and seva it to memory
+	 * Gets given $_REQUEST variable and save it to memory
 	 * @param $name
 	 *
 	 * @return mixed|string
@@ -35,12 +35,13 @@ class Request extends ServerVariables{
 	protected function get_variable( $name ){
 		
 		// Return from memory. From $this->variables
-		if(isset(static::$instance->variables[$name]))
-			return static::$instance->variables[$name];
+		if(isset(static::$instance->variables[$name])) {
+			return static::$instance->variables[ $name ];
+		}
 		
 		$value = isset( $_REQUEST[ $name ] ) ? $_REQUEST[ $name ]	: '';
 		
-		// Remember for thurther calls
+		// Remember for further calls
 		static::getInstance()->remember_variable( $name, $value );
 		
 		return $value;

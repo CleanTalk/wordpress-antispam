@@ -9,7 +9,7 @@ class SimpleMembership extends IntegrationBase
 
     protected $member_info = array();
 
-    function getDataForChecking( $member_info )
+    public function getDataForChecking( $member_info )
     {
         $this->member_info = $member_info;
 
@@ -21,7 +21,11 @@ class SimpleMembership extends IntegrationBase
         );
     }
 
-    function doBlock( $message )
+	/**
+	 * @param $message
+	 * @psalm-suppress UnusedVariable
+	 */
+    public function doBlock( $message )
     {
         global $ct_comment;
         $ct_comment = $message;

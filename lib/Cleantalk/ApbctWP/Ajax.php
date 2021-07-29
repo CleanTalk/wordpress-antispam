@@ -6,11 +6,6 @@ namespace Cleantalk\ApbctWP;
 
 class Ajax {
 
-	/**
-	 * string
-	 */
-	private $table_prefix;
-
 	public function __construct()
 	{
 		define( 'DOING_AJAX', true );
@@ -18,12 +13,16 @@ class Ajax {
 
 		require_once( '../../../../../../wp-load.php' );
 		require_once( '../../../../../../wp-includes/capabilities.php' );
+		require_once( '../../../../../../wp-includes/kses.php' );
+		require_once( '../../../../../../wp-includes/rest-api.php' );
 		require_once( '../../../../../../wp-includes/class-wp-role.php' );
 		require_once( '../../../../../../wp-includes/class-wp-roles.php' );
 		require_once( '../../../../../../wp-includes/user.php' );
 		require_once( '../../../../../../wp-includes/class-wp-user.php' );
 		require_once( '../../../../../../wp-includes/option.php' );
 		require_once( '../../../../../../wp-includes/default-constants.php' );
+		require_once( '../../../../../../wp-includes/class-wp-session-tokens.php' );
+		require_once( '../../../../../../wp-includes/class-wp-user-meta-session-tokens.php' );
 		wp_plugin_directory_constants();
 		wp_cookie_constants();
 		require_once( '../../../../../../wp-includes/pluggable.php' );
@@ -122,7 +121,7 @@ class Ajax {
 	private function wp_verify_nonce( $nonce, $action )
 	{
 		$nonce = (string) $nonce;
-		$user  = apbct_wp_get_current_user();
+		$user  = wp_get_current_user();
 		$uid   = is_null( $user ) ? 0 : $user->ID;
 		if ( ! $uid ) {
 			/**
@@ -132,6 +131,7 @@ class Ajax {
 			 *
 			 * @param int    $uid    ID of the nonce-owning user.
 			 * @param string $action The nonce action.
+			 * @psalm-suppress TooManyArguments
 			 */
 			$uid = apply_filters( 'nonce_user_logged_out', $uid, $action );
 		}

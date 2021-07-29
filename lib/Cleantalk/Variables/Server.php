@@ -12,7 +12,7 @@ namespace Cleantalk\Variables;
  */
 class Server extends ServerVariables {
 
-	static $instance;
+	public static $instance;
 
 	/**
 	 * Gets given $_SERVER variable and save it to memory
@@ -29,21 +29,25 @@ class Server extends ServerVariables {
 
 		$name = strtoupper( $name );
 
-		if( function_exists( 'filter_input' ) )
+		if( function_exists( 'filter_input' ) ) {
 			$value = filter_input( INPUT_SERVER, $name );
+		}
 
-		if( empty( $value ) )
-			$value = isset( $_SERVER[ $name ] ) ? $_SERVER[ $name ]	: '';
+		if( empty( $value ) ) {
+			$value = isset( $_SERVER[ $name ] ) ? $_SERVER[ $name ] : '';
+		}
 
 		// Convert to upper case for REQUEST_METHOD
-		if( in_array( $name, array( 'REQUEST_METHOD' ) ) )
+		if( $name === 'REQUEST_METHOD' ) {
 			$value = strtoupper( $value );
+		}
 
 		// Convert HTML chars for HTTP_USER_AGENT, HTTP_USER_AGENT, SERVER_NAME
-		if( in_array( $name, array( 'HTTP_USER_AGENT', 'HTTP_USER_AGENT', 'SERVER_NAME' ) ) )
+		if( in_array( $name, array( 'HTTP_USER_AGENT', 'HTTP_USER_AGENT', 'SERVER_NAME' ) ) ) {
 			$value = htmlspecialchars( $value );
+		}
 
-		// Remember for thurther calls
+		// Remember for further calls
 		static::getInstance()->remember_variable( $name, $value );
 
 		return $value;
@@ -55,15 +59,30 @@ class Server extends ServerVariables {
 	 * @param string $needle
 	 *
 	 * @return bool
+	 * @psalm-suppress PossiblyUnusedMethod
 	 */
 	public static function in_uri( $needle ){
 		return self::has_string( 'REQUEST_URI', $needle );
 	}
 
+	/**
+	 * Is the host contains the string
+	 *
+	 * @param string $needle
+	 *
+	 * @return bool
+	 * @psalm-suppress PossiblyUnusedMethod
+	 */
 	public static function in_host( $needle ){
 		return self::has_string( 'HTTP_HOST', $needle );
 	}
 
+	/**
+	 * Getting domain name
+	 *
+	 * @return false|string
+	 * @psalm-suppress PossiblyUnusedMethod
+	 */
 	public static function get_domain(){
 		preg_match( '@\.(\S+)\/?$@', self::get( 'HTTP_HOST' ), $matches );
 		return isset( $matches[1] ) ? $matches[1] : false;
@@ -75,6 +94,7 @@ class Server extends ServerVariables {
 	 * @param string $needle needle
 	 *
 	 * @return bool
+	 * @psalm-suppress PossiblyUnusedMethod
 	 */
 	public static function in_referer( $needle ){
 		return self::has_string( 'HTTP_REFERER', $needle );
@@ -84,6 +104,7 @@ class Server extends ServerVariables {
 	 * Checks if the current request method is POST
 	 *
 	 * @return bool
+	 * @psalm-suppress PossiblyUnusedMethod
 	 */
 	public static function isPost(){
 		return self::get( 'REQUEST_METHOD' ) === 'POST';
@@ -93,6 +114,7 @@ class Server extends ServerVariables {
      * Checks if the current request method is GET
      *
      * @return bool
+     * @psalm-suppress PossiblyUnusedMethod
      */
     public static function isGet(){
         return self::get( 'REQUEST_METHOD' ) === 'GET';

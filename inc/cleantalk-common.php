@@ -4,6 +4,7 @@ use Cleantalk\Antispam\Cleantalk;
 use Cleantalk\Antispam\CleantalkRequest;
 use Cleantalk\Antispam\CleantalkResponse;
 use Cleantalk\ApbctWP\API;
+use Cleantalk\ApbctWP\Cron;
 use Cleantalk\ApbctWP\GetFieldsAny;
 use Cleantalk\ApbctWP\Helper;
 use Cleantalk\ApbctWP\Variables\Cookie;
@@ -63,9 +64,6 @@ $ct_admin_notoice_period = 21600;
 // It uses for BuddyPress registrations to avoid double checks
 $ct_negative_comment = null;
 
-// Set globals to NULL to avoid massive DB requests. Globals will be set when needed only and by accessors only.
-$ct_server = NULL;
-$admin_email = NULL;
 
 add_action( 'wp_login', 'apbct_add_admin_ip_to_swf_whitelist', 10, 2 );
 
@@ -74,7 +72,7 @@ add_action( 'wp_login', 'apbct_add_admin_ip_to_swf_whitelist', 10, 2 );
  */
 function apbct_plugin_loaded() {
 	$dir=plugin_basename( dirname( __FILE__ ) ) . '/../i18n';
-    $loaded=load_plugin_textdomain('cleantalk-spam-protect', false, $dir);
+    load_plugin_textdomain('cleantalk-spam-protect', false, $dir);
 }
 
 /**
@@ -91,7 +89,7 @@ function apbct_plugin_loaded() {
  */
 function apbct_base_call($params = array(), $reg_flag = false){
 
-	global $apbct, $cleantalk_executed;
+	global $cleantalk_executed;
 	
 	/* Exclusions */
 	if( $cleantalk_executed ){
@@ -110,7 +108,9 @@ function apbct_base_call($params = array(), $reg_flag = false){
         do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
         return array( 'ct_result' => new CleantalkResponse() );
     }
-    
+
+    global $apbct;
+
     // Fields exclusions
     if( ! empty( $params['message'] ) && is_array( $params['message'] ) ){
         $params['message'] = apbct_array( $params['message'] )
@@ -151,12 +151,6 @@ function apbct_base_call($params = array(), $reg_flag = false){
 		? \Cleantalk\ApbctWP\Helper::array_merge__save_numeric_keys__recursive(apbct_get_sender_info(), (array)$params['sender_info'])
 		: apbct_get_sender_info();
 
-	$honeypot_field = null;
-
-	if(isset($params['honeypot_field'])) {
-		$honeypot_field = $params['honeypot_field'];
-	}
-	
 	$default_params = array(
 		
 		// IPs
@@ -172,10 +166,16 @@ function apbct_base_call($params = array(), $reg_flag = false){
 		
 		'agent'           => APBCT_AGENT,
 		'sender_info'     => $sender_info,
-		'submit_time'     => apbct_get_submit_time(),
-		'honeypot_field' => $honeypot_field
+		'submit_time'     => apbct_get_submit_time()
 	);
-	
+
+	/**
+	 * Add honeypot_field if exists in params
+	 */
+	if(isset($params['honeypot_field'])) {
+		$default_params['honeypot_field'] = $params['honeypot_field'];
+	}
+
 	// Send $_SERVER if couldn't find IP
 	if(empty($default_params['sender_ip']))
 		$default_params['sender_info']['server_info'] = $_SERVER;
@@ -193,7 +193,7 @@ function apbct_base_call($params = array(), $reg_flag = false){
 	// Options store url without shceme because of DB error with ''://'
 	$config = ct_get_server();
 	$ct->server_url     = APBCT_MODERATE_URL;
-	$ct->work_url       = preg_match('/http:\/\/.+/', $config['ct_work_url']) ? $config['ct_work_url'] : null;
+	$ct->work_url       = preg_match('/https:\/\/.+/', $config['ct_work_url']) ? $config['ct_work_url'] : null;
 	$ct->server_ttl     = $config['ct_server_ttl'];
 	$ct->server_changed = $config['ct_server_changed'];
 
@@ -238,6 +238,8 @@ function apbct_base_call($params = array(), $reg_flag = false){
 				'ct_server_changed' => time(),
 			)
 		);
+	    $cron = new Cron();
+	    $cron->updateTask( 'rotate_moderate', 'apbct_rotate_moderate', 86400 ); // Rotate moderate server
     }
 
     $ct_result = ct_change_plugin_resonse($ct_result, $ct_request->js_on);
@@ -259,6 +261,21 @@ function apbct_base_call($params = array(), $reg_flag = false){
 
     return array('ct' => $ct, 'ct_result' => $ct_result);
 	
+}
+
+function apbct_rotate_moderate() {
+	$ct = new Cleantalk();
+	$ct->rotateModerate();
+	if ($ct->server_change) {
+		update_option(
+			'cleantalk_server',
+			array(
+				'ct_work_url'       => $ct->work_url,
+				'ct_server_ttl'     => $ct->server_ttl,
+				'ct_server_changed' => time(),
+			)
+		);
+	}
 }
 
 function apbct_exclusions_check($func = null){
@@ -290,7 +307,6 @@ function apbct_exclusions_check($func = null){
 			break;
 		default:
 			return false;
-			break;
 	}
 	
 	return false;
@@ -328,7 +344,7 @@ function apbct_exclusions_check__url() {
 		// Fix for AJAX and WP REST API forms
 		$haystack = ( apbct_get_server_variable( 'REQUEST_URI' ) === '/wp-admin/admin-ajax.php' || stripos( apbct_get_server_variable( 'REQUEST_URI' ), '/wp-json/' ) === 0 )
 		            && apbct_get_server_variable( 'HTTP_REFERER' )
-			? str_ireplace( array( 'http://', 'https://', Server::get('HTTP_HOST') ), '', apbct_get_server_variable( 'HTTP_REFERER' ) )
+			? str_ireplace( array( 'http://', 'https://', strval(Server::get('HTTP_HOST'))), '', apbct_get_server_variable( 'HTTP_REFERER' ) )
 			: apbct_get_server_variable( 'REQUEST_URI' );
 
 		foreach ( $exclusions as $exclusion ) {
@@ -341,6 +357,8 @@ function apbct_exclusions_check__url() {
 		}
 		return false;
 	}
+
+	return false;
 }
 /**
  * @deprecated 5.128 Using IP white-lists instead
@@ -376,9 +394,7 @@ function apbct_exclusions_check__ip(){
  * @return array 
  */
 function apbct_get_sender_info() {
-	
-	global $apbct;
-	
+		
 	// Validate cookie from the backend
 	$cookie_is_ok = apbct_cookies_test();
 	
@@ -399,6 +415,8 @@ function apbct_get_sender_info() {
 
 	// Visible fields processing
     $visible_fields = apbct_visible_fields__process( Cookie::get( 'apbct_visible_fields' , array(), 'array' ) );
+
+	global $apbct;
 
 	return array(
 		'plugin_request_id'      => $apbct->plugin_request_id,
@@ -421,8 +439,8 @@ function apbct_get_sender_info() {
         'site_landing_ts'        => Cookie::get( 'apbct_site_landing_ts' ) && $cookie_is_ok ? Cookie::get( 'apbct_site_landing_ts' ) : null,
         'page_hits'              => Cookie::get( 'apbct_page_hits' )                        ?: null,
 		// JS cookies                                                                                                                                                  
-        'js_info'                => Cookie::get( 'ct_user_info', null ),
-		'mouse_cursor_positions' => Cookie::get( 'ct_pointer_data', null ),
+        'js_info'                => Cookie::get( 'ct_user_info' ),
+		'mouse_cursor_positions' => Cookie::get( 'ct_pointer_data' ),
 		'js_timezone'            => Cookie::get( 'ct_timezone' )      ?: null,
 		'key_press_timestamp'    => Cookie::get( 'ct_fkp_timestamp' ) ?: null,
 		'page_set_timestamp'     => Cookie::get( 'ct_ps_timestamp' )  ?: null,
@@ -477,7 +495,7 @@ function apbct_visible_fields__process( $visible_fields ) {
                 if( count( array_intersect( array_keys($fields_to_check), $fields ) ) > 0 ) {
                     // WP Forms visible fields formatting
                     if(strpos($visible_fields, 'wpforms') !== false){
-                        $visible_fields = preg_replace(
+                        $current_fields = preg_replace(
                             array('/\[/', '/\]/'),
                             '',
                             str_replace(
@@ -622,36 +640,23 @@ function apbct_is_cache_plugins_exists(){
  * @return 	string Admin e-mail
  */
 function ct_get_admin_email() {
-	global $admin_email;
-	if(!isset($admin_email))
-	{
-	    $admin_email = get_option('admin_email');
-	}
-	return $admin_email;
+	return get_option('admin_email');;
 }
 
 /**
  * Inner function - Current Cleantalk working server info
- * @return 	mixed[] Array of server data
+ * @return 	array Array of server data
  */
-function ct_get_server($force=false) {
-	global $ct_server;
-	if(!$force && isset($ct_server) && isset($ct_server['ct_work_url']) && !empty($ct_server['ct_work_url'])){
-		
-		return $ct_server;
-		
-	}else{
-		
-	    $ct_server = get_option('cleantalk_server');
-	    if (!is_array($ct_server)){
-	        $ct_server = array(
+function ct_get_server() {
+	$ct_server = get_option('cleantalk_server');
+	if (!is_array($ct_server)){
+	    $ct_server = array(
 				'ct_work_url' => NULL,
 				'ct_server_ttl' => NULL,
 				'ct_server_changed' => NULL
 			);
-	    }
-	    return $ct_server;
 	}
+	return $ct_server;
 }
 
 /**
@@ -688,6 +693,8 @@ function ct_feedback($hash, $allow) {
 		$apbct->data['feedback_request'] .= $ct_feedback;
 	
 	$apbct->saveData();
+
+	return $ct_feedback;
 }
 
 /**
@@ -724,7 +731,7 @@ function ct_send_feedback($feedback_request = null) {
 		$ct->server_ttl     = $config['ct_server_ttl'];
 		$ct->server_changed = $config['ct_server_changed'];
 				
-        $ct->sendFeedback($ct_request);
+        $ct_result = $ct->sendFeedback($ct_request);
 		
         if ($ct->server_change) {
             update_option(
@@ -735,9 +742,12 @@ function ct_send_feedback($feedback_request = null) {
 					'ct_server_changed' => time(),
                 )
             );
+	        $cron = new Cron();
+	        $cron->updateTask( 'rotate_moderate', 'apbct_rotate_moderate', 86400 ); // Rotate moderate server
         }
-		
-        return true;
+		if ($ct_result) {
+			return true;
+		}
     }
 
     return false;
@@ -756,7 +766,7 @@ function ct_delete_spam_comments() {
         $last_comments = get_comments(array('status' => 'spam', 'number' => 1000, 'order' => 'ASC'));
         foreach ($last_comments as $c) {
         	$comment_date_gmt = strtotime($c->comment_date_gmt);
-        	if ($comment_date_gmt && is_numeric($comment_date_gmt)) {
+        	if ($comment_date_gmt) {
 	            if (time() - $comment_date_gmt > 86400 * $apbct->data['spam_store_days']) {
 	                // Force deletion old spam comments
 	                wp_delete_comment($c->comment_ID, true);
@@ -773,7 +783,7 @@ function ct_delete_spam_comments() {
  *
  * @param $arr
  * @param array $message
- * @param null $email
+ * @param null|string $email
  * @param array $nickname
  * @param null $subject
  * @param bool $contact
@@ -782,7 +792,7 @@ function ct_delete_spam_comments() {
  * @return array
  * @deprecated Use ct_gfa()
  */
-function ct_get_fields_any($arr, $message=array(), $email = null, $nickname = array('nick' => '', 'first' => '', 'last' => ''), $subject = null, $contact = true, $prev_name = ''){
+function ct_get_fields_any($arr, $email = null, $nickname = array('nick' => '', 'first' => '', 'last' => '')){
 
 	if ( is_array( $nickname ) )
 	{
@@ -844,7 +854,7 @@ function ct_get_fields_any_postdata($arr, $message=array()){
  * @return bool
  */
 function apbct_is_regexp($regexp){
-	return @preg_match('/' . $regexp . '/', null) !== false;
+	return @preg_match('/' . $regexp . '/', '') !== false;
 }
 
 function cleantalk_debug($key,$value)
@@ -890,7 +900,7 @@ function ct_change_plugin_resonse($ct_result = null, $checkjs = null) {
 
 /**
 * Does ey has correct symbols? Checks against regexp ^[a-z\d]{3,15}$
-* @param api_key
+* @param string api_key
 * @return bool
 */
 function apbct_api_key__is_correct($api_key = null)
@@ -900,7 +910,7 @@ function apbct_api_key__is_correct($api_key = null)
     return $api_key && preg_match('/^[a-z\d]{3,15}$/', $api_key) ? true : false;
 }
 
-function apbct_add_async_attribute($tag, $handle, $src) {
+function apbct_add_async_attribute($tag, $handle) {
 	
 	global $apbct;
 	
@@ -923,7 +933,7 @@ function apbct_add_async_attribute($tag, $handle, $src) {
     return $tag;
 }
 
-function apbct_add_admin_ip_to_swf_whitelist( $user_login, $user ) {
+function apbct_add_admin_ip_to_swf_whitelist( $user ) {
 
 	global $apbct;
 	
@@ -945,7 +955,7 @@ function apbct_add_admin_ip_to_swf_whitelist( $user_login, $user ) {
                 md5( $ip . $apbct->api_key ),
                 time() + 86400 * 30,
                 '/',
-                null,
+                '',
                 null,
                 true,
                 'Lax'
@@ -972,11 +982,11 @@ function apbct_private_list_add( $ip ){
 add_filter( 'comment_form_default_fields', 'apbct__change_type_website_field' );
 function apbct__change_type_website_field( $fields ){
 
-	global $apbct, $commenter;
+	global $apbct;
 
 	if(isset($apbct->settings['comments__hide_website_field']) && $apbct->settings['comments__hide_website_field']) {
 		if(isset($fields['url']) && $fields['url']) {
-			$fields['url'] = '<input id="honeypot-field-url" name="url" type="text" value="' . esc_attr( $commenter['comment_author_url'] ) . '" size="30" maxlength="200" />';
+			$fields['url'] = '<input id="honeypot-field-url" autocomplete="off" name="url" type="text" value="" size="30" maxlength="200" />';
 		}
 	}
 

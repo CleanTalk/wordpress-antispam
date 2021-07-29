@@ -6,17 +6,17 @@ class CleantalkUpgraderSkin extends \WP_Upgrader_Skin
 {
 	
 	public $upgrader;
-	public $done_header = false;
-	public $done_footer = false;
+	public $done_header;
+	public $done_footer;
 
 	/**
 	 * Holds the result of an upgrade.
 	 *
 	 * @since 2.8.0
-	 * @var string|bool|WP_Error
+	 * @var string|bool|\WP_Error
 	 */
-	public $result = false;
-	public $options = array();
+	public $result;
+	public $options;
 	
 	/**
 	 */
@@ -34,7 +34,7 @@ class CleantalkUpgraderSkin extends \WP_Upgrader_Skin
 	
 	/**
 	 *
-	 * @param string|WP_Error $errors
+	 * @param string|\WP_Error $errors
 	 */
 	public function error($errors) {
 		if(is_wp_error($errors)){

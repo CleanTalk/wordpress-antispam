@@ -7,8 +7,16 @@ use Cleantalk\ApbctWP\Helper;
 use Cleantalk\Variables\Server;
 
 class Cookie extends \Cleantalk\Variables\Cookie {
-    
-    public static function get( $name, $default = '', $cast_to = null, $raw = false ){
+
+	/**
+	 * @param string $name
+	 * @param string|array $default
+	 * @param null|string $cast_to
+	 * @param false $raw
+	 *
+	 * @return string|array
+	 */
+	public static function get( $name, $default = '', $cast_to = null, $raw = false ){
     
         global $apbct;
         
@@ -57,12 +65,12 @@ class Cookie extends \Cleantalk\Variables\Cookie {
      * Universal method to adding cookies
      * Using Alternative Sessions or native cookies depends on settings
      *
-     * @param $name
+     * @param string $name
      * @param string $value
      * @param int $expires
      * @param string $path
-     * @param null $domain
-     * @param bool $secure
+     * @param string $domain
+     * @param bool|null $secure
      * @param bool $httponly
      * @param string $samesite
      */
@@ -70,21 +78,21 @@ class Cookie extends \Cleantalk\Variables\Cookie {
         
         global $apbct;
         
-        if( $apbct->settings['data__set_cookies'] == 0 ){
+        if( $apbct->settings['data__set_cookies'] == 0 && ! is_admin() ){
             return;
     
-        }elseif( $apbct->settings['data__set_cookies'] == 1 ){
-            self::setNativeCookie( $name, $value, $expires, $path, $domain, $secure, $httponly, $samesite );
-            
         }elseif( $apbct->settings['data__set_cookies'] == 2 ){
             AltSessions::set( $name, $value );
+            
+        }else/*if( $apbct->settings['data__set_cookies'] == 1 )*/{
+            self::setNativeCookie( $name, $value, $expires, $path, $domain, $secure, $httponly, $samesite );
         }
         
     }
 
     /**
      * Universal method to adding cookies
-     * Wrapper for setcookie() Conisdering PHP version
+     * Wrapper for setcookie() Considering PHP version
      *
      * @see https://www.php.net/manual/ru/function.setcookie.php
      *
@@ -92,7 +100,7 @@ class Cookie extends \Cleantalk\Variables\Cookie {
      * @param string $value    Cookie value
      * @param int    $expires  Expiration timestamp. 0 - expiration with session
      * @param string $path
-     * @param null   $domain
+     * @param string $domain
      * @param bool   $secure
      * @param bool   $httponly
      * @param string $samesite
@@ -125,7 +133,5 @@ class Cookie extends \Cleantalk\Variables\Cookie {
         }
         
     }
-    
-    
-    
+
 }

@@ -2,7 +2,9 @@
 
 namespace Cleantalk\Common\Firewall;
 
-/*
+use Cleantalk\ApbctWP\DB;
+
+/**
  * The abstract class for any FireWall modules.
  * Compatible with any CMS.
  *
@@ -11,13 +13,16 @@ namespace Cleantalk\Common\Firewall;
  * @copyright (C) 2014 CleanTalk team (http://cleantalk.org)
  * @license       GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  * @since 2.49
+ * @package Cleantalk\Common\Firewall
+ *
+ * @psalm-suppress PossiblyUnusedProperty
  */
 abstract class FirewallModule_abstract {
 	
 	public $module_name;
     
     /**
-     * @var \Cleantalk\ApbctWP\DB
+     * @var DB
      */
 	protected $db;
 	protected $db__table__logs;
@@ -42,6 +47,7 @@ abstract class FirewallModule_abstract {
 	 * @param $log_table
 	 * @param $data_table
 	 * @param array $params
+	 * @psalm-suppress PossiblyUnusedMethod
 	 */
 	abstract public function __construct( $log_table, $data_table, $params = array() );
 	
@@ -49,6 +55,7 @@ abstract class FirewallModule_abstract {
 	 * Use this method to execute main logic of the module.
 	 *
 	 * @return array  Array of the check results
+	 * @psalm-suppress PossiblyUnusedMethod
 	 */
 	abstract public function check();
 	

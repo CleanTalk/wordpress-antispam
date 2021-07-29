@@ -7,7 +7,7 @@ namespace Cleantalk\Antispam\Integrations;
 class FluentForm extends IntegrationBase
 {
 
-    function getDataForChecking( $argument )
+    public function getDataForChecking( $argument )
     {
         if( isset( $_POST['data'] ) ) {
             parse_str( $_POST['data'], $form_data );
@@ -16,7 +16,7 @@ class FluentForm extends IntegrationBase
         return null;
     }
 
-    function doBlock($message)
+    public function doBlock($message)
     {
         wp_send_json(
             array(

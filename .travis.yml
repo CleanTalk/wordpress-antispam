@@ -11,6 +11,12 @@ notifications:
     on_failure: always
     on_success: never
 
+branches:
+  only:
+    - master
+    - dev
+    - fix
+
 jobs:
   include:
     - env: TRAVISCI=phpunit
