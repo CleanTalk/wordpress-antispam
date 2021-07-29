@@ -573,7 +573,7 @@ If your website has forms that send data to external sources, you can enable opt
 
 == Changelog ==
 
-= 5.160 Jul 28 2021 =
+= 5.160 Jul 29 2021 =
  * New: SFW. SFW alternative cookie implemented.
  * New: SFW. AC alternative cookie implemented.
  * New: SFW. AF alternative cookie implemented.
