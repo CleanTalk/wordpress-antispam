@@ -982,11 +982,11 @@ function apbct_private_list_add( $ip ){
 add_filter( 'comment_form_default_fields', 'apbct__change_type_website_field' );
 function apbct__change_type_website_field( $fields ){
 
-	global $apbct, $commenter;
+	global $apbct;
 
 	if(isset($apbct->settings['comments__hide_website_field']) && $apbct->settings['comments__hide_website_field']) {
 		if(isset($fields['url']) && $fields['url']) {
-			$fields['url'] = '<input id="honeypot-field-url" autocomplete="off" name="url" type="text" value="' . esc_attr( $commenter['comment_author_url'] ) . '" size="30" maxlength="200" />';
+			$fields['url'] = '<input id="honeypot-field-url" autocomplete="off" name="url" type="text" value="" size="30" maxlength="200" />';
 		}
 	}
 
