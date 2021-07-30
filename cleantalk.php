@@ -817,6 +817,9 @@ function apbct_sfw_update__get_multifiles(){
 					$urls[] = $value[0];
 				}
 
+				$apbct->fw_stats['firewall_update_percent'] = 100 / count( $urls );
+				$apbct->save( 'fw_stats' );
+
 				return array(
 					'next_stage' => array(
 						'name'    => 'apbct_sfw_update__download_files',
@@ -907,6 +910,8 @@ function apbct_sfw_update__create_temp_tables() {
  */
 function apbct_sfw_update__process_files( $concrete_file = null ) {
 
+	global $apbct;
+
 	$dir_name = APBCT_DIR_PATH . '/fw_files/';
 	$files = glob( $dir_name . '/*' );
 	$files = array_filter( $files, static function( $element ) {
@@ -933,6 +938,10 @@ function apbct_sfw_update__process_files( $concrete_file = null ) {
 		if( ! empty( $result['error'] ) ) {
 			return $result;
 		}
+
+		$apbct->fw_stats['firewall_update_percent'] = 100 / count( $files );
+		$apbct->save( 'fw_stats' );
+
 		return array(
 			'next_stage' => array(
 				'name'    => 'apbct_sfw_update__process_files',
