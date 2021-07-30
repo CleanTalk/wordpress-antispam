@@ -257,6 +257,7 @@ class CleantalkSettingsTemplates {
 		$apbct->settings = $settings;
 		$apbct->data['current_settings_template_id'] = $template_id;
 		$apbct->data['current_settings_template_name'] = $template_name;
+		$apbct->data['key_changed'] = 1;
 		return $apbct->saveSettings() && $apbct->saveData();
 	}
 
