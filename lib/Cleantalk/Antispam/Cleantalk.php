@@ -209,23 +209,25 @@ class Cleantalk {
 				$cookie_name = 'COOKIE';
 			}
 
-			if( $ct_tmp && isset( $ct_tmp[$cookie_name] ) ) {
-				$ct_tmp[$cookie_name] = preg_replace(array(
-					'/\s?ct_checkjs=[a-z0-9]*[^;]*;?/',
-					'/\s?ct_timezone=.{0,1}\d{1,2}[^;]*;?/',
-					'/\s?ct_pointer_data=.*5D[^;]*;?/',
-					'/\s?apbct_timestamp=\d*[^;]*;?/',
-					'/\s?apbct_site_landing_ts=\d*[^;]*;?/',
-					'/\s?apbct_cookies_test=%7B.*%7D[^;]*;?/',
-					'/\s?apbct_prev_referer=http.*?[^;]*;?/',
-					'/\s?ct_cookies_test=.*?[^;]*;?/',
-					'/\s?ct_ps_timestamp=.*?[^;]*;?/',
-					'/\s?ct_fkp_timestamp=\d*?[^;]*;?/',
-					'/\s?wordpress_ct_sfw_pass_key=\d*?[^;]*;?/',
-					'/\s?apbct_page_hits=\d*?[^;]*;?/',
-					'/\s?apbct_visible_fields_count=\d*?[^;]*;?/',
-					'/\s?apbct_visible_fields=%7B.*%7D[^;]*;?/',
-				), '', $ct_tmp[$cookie_name]);
+			if( $ct_tmp ) {
+				if( isset( $ct_tmp[$cookie_name] ) ) {
+					$ct_tmp[$cookie_name] = preg_replace(array(
+						'/\s?ct_checkjs=[a-z0-9]*[^;]*;?/',
+						'/\s?ct_timezone=.{0,1}\d{1,2}[^;]*;?/',
+						'/\s?ct_pointer_data=.*5D[^;]*;?/',
+						'/\s?apbct_timestamp=\d*[^;]*;?/',
+						'/\s?apbct_site_landing_ts=\d*[^;]*;?/',
+						'/\s?apbct_cookies_test=%7B.*%7D[^;]*;?/',
+						'/\s?apbct_prev_referer=http.*?[^;]*;?/',
+						'/\s?ct_cookies_test=.*?[^;]*;?/',
+						'/\s?ct_ps_timestamp=.*?[^;]*;?/',
+						'/\s?ct_fkp_timestamp=\d*?[^;]*;?/',
+						'/\s?wordpress_ct_sfw_pass_key=\d*?[^;]*;?/',
+						'/\s?apbct_page_hits=\d*?[^;]*;?/',
+						'/\s?apbct_visible_fields_count=\d*?[^;]*;?/',
+						'/\s?apbct_visible_fields=%7B.*%7D[^;]*;?/',
+					), '', $ct_tmp[$cookie_name]);
+				}
 				$request->all_headers = json_encode($ct_tmp);
 			}
 
@@ -294,7 +296,10 @@ class Cleantalk {
 		
         return $response;
     }
-
+    
+    /**
+     * * @todo Refactor / fix logic errors
+     */
 	public function rotateModerate()
 	{
 		// Split server url to parts
@@ -305,7 +310,11 @@ class Cleantalk {
 		$url_suffix   = isset($matches[3]) ? $matches[3] : '';
 
 		$servers = $this->get_servers_ip($url_host);
-
+  
+		if( ! $servers ){
+		    return;
+        }
+		
 		// Loop until find work server
 		foreach ( $servers as $server ) {
 
@@ -329,6 +338,8 @@ class Cleantalk {
 	}
     
     /**
+     * * @todo Refactor / fix logic errors
+     *
      * Function DNS request
      * @param $host
      * @return array|null
@@ -343,7 +354,7 @@ class Cleantalk {
 		
 		// Get DNS records about URL
         if (function_exists('dns_get_record')) {
-            $records = dns_get_record($host, DNS_A);
+            $records = @dns_get_record($host, DNS_A);
             if ($records !== FALSE) {
                 foreach ($records as $server) {
                     $servers[] = $server;
