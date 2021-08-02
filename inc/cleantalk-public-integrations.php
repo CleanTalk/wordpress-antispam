@@ -357,9 +357,7 @@ function apbct_forms__search__testSpam( $search ){
 		return $search;
 	}
 
-	if(apbct_is_user_logged_in()) {
-		$user = wp_get_current_user();
-	}
+    $user = apbct_is_user_logged_in() ? wp_get_current_user() : null;
 
 	$base_call_result = apbct_base_call(
 		array(
