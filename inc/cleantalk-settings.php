@@ -869,6 +869,11 @@ function apbct_settings__error__output($return = false){
 				if(is_array(current($error))){
 					
 					foreach($error as $sub_type => $sub_error){
+                        
+                        if( isset($sub_error['error']) && strpos( $sub_error['error'], 'SFW_IS_DISABLED' ) !== false ){
+                            continue;
+                        }
+					    
 						$errors_out[$sub_type] = '';
 						if(isset($sub_error['error_time']))
 							$errors_out[$sub_type] .= date('Y-m-d H:i:s', $sub_error['error_time']) . ': ';
