@@ -296,7 +296,10 @@ class Cleantalk {
 		
         return $response;
     }
-
+    
+    /**
+     * * @todo Refactor / fix logic errors
+     */
 	public function rotateModerate()
 	{
 		// Split server url to parts
@@ -307,7 +310,11 @@ class Cleantalk {
 		$url_suffix   = isset($matches[3]) ? $matches[3] : '';
 
 		$servers = $this->get_servers_ip($url_host);
-
+  
+		if( ! $servers ){
+		    return;
+        }
+		
 		// Loop until find work server
 		foreach ( $servers as $server ) {
 
@@ -331,6 +338,8 @@ class Cleantalk {
 	}
     
     /**
+     * * @todo Refactor / fix logic errors
+     *
      * Function DNS request
      * @param $host
      * @return array|null
@@ -345,7 +354,7 @@ class Cleantalk {
 		
 		// Get DNS records about URL
         if (function_exists('dns_get_record')) {
-            $records = dns_get_record($host, DNS_A);
+            $records = @dns_get_record($host, DNS_A);
             if ($records !== FALSE) {
                 foreach ($records as $server) {
                     $servers[] = $server;
