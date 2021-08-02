@@ -21,7 +21,7 @@ function ctSetCookie( cookies, value, expires ){
     }else if( +ctPublicFunctions.data__set_cookies === 2 && ! skip_alt ){
 
         // Using REST API handler
-        if( +ctPublicFunctions.data__set_cookies__alt_sessions_type === 1 ){
+        if( +ctPublicFunctions.data__set_cookies__alt_sessions_type === 0 ){
             apbct_public_sendREST(
                 'alt_sessions',
                 {
@@ -31,7 +31,7 @@ function ctSetCookie( cookies, value, expires ){
             );
 
             // Using AJAX request and handler
-        }else if( +ctPublicFunctions.data__set_cookies__alt_sessions_type === 2 ) {
+        }else if( +ctPublicFunctions.data__set_cookies__alt_sessions_type === 1 ) {
             apbct_public_sendAJAX(
                 {
                     action: 'apbct_alt_session__save__AJAX',

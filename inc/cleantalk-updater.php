@@ -1103,7 +1103,7 @@ function apbct_update_to_5_157_0(){
     if( ! empty( $apbct->settings['data__set_cookies__sessions'] ) ){
         $apbct->settings['data__set_cookies'] = 2;
     }
-    $apbct->settings['data__set_cookies__alt_sessions_type'] = 1;
+    $apbct->settings['data__set_cookies__alt_sessions_type'] = 0;
     
     $apbct->save( 'settings' );
 

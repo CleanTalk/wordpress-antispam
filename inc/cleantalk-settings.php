@@ -328,8 +328,8 @@ function apbct_settings__set_fileds( ){
                     'class'       => 'apbct_settings-field_wrapper--sub',
                     'input_type'  => 'radio',
                     'options'     => array(
-                        array( 'val' => 1, 'label' => __( 'Use REST API', 'cleantalk-spam-protect' ), ),
-                        array( 'val' => 2, 'label' => __( 'Use AJAX handler', 'cleantalk-spam-protect' ), ),
+                        array( 'val' => 0, 'label' => __( 'Use REST API', 'cleantalk-spam-protect' ), ),
+                        array( 'val' => 1, 'label' => __( 'Use AJAX handler', 'cleantalk-spam-protect' ), ),
                     ),
                     'parent' => 'data__set_cookies',
                     'disabled' => $apbct->settings['data__set_cookies'] != 2,
@@ -1302,7 +1302,7 @@ function apbct_settings__field__draw($params = array()){
 			
 			// Radio type
 			case 'radio':
-				
+
 				// Title
 				echo isset($params['title'])
 					? '<h4 class="apbct_settings-field_title apbct_settings-field_title--'.$params['type'].'">'.$params['title'].'</h4>'
