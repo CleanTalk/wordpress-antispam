@@ -877,12 +877,25 @@ function apbct_settings__error__output($return = false){
 					}
 					continue;
 				}
-				if (!empty($type)&& $apbct->white_label && !is_main_site() && ($type == 'sfw_update' || $type == 'key_invalid' || $type == 'account_check')) {
+				
+				if (
+				    ! empty($type) &&
+                    $apbct->white_label &&
+                    !is_main_site() &&
+                    in_array( $type, array( 'sfw_update', 'key_invalid', 'account_check') )
+                ){
 					continue;
-				}				
+				}
+				
+				if( isset($error['error']) && strpos( $error['error'], 'SFW_IS_DISABLED' ) !== false ){
+				    continue;
+                }
+				
 				$errors_out[$type] = '';
-				if(isset($error['error_time'])) 
+                
+                if( isset( $error['error_time'] ) )
 					$errors_out[$type] .= date('Y-m-d H:i:s', $error['error_time']) . ': ';
+     
 				$errors_out[$type] .= (isset($error_texts[$type]) ? $error_texts[$type] : $error_texts['unknown']) . ' ' . (isset($error['error']) ? $error['error'] : '');
 				
 			}
