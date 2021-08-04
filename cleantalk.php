@@ -698,6 +698,7 @@ function apbct_sfw_update__init( $delay = 0 ){
     }
 
     // Set a new update ID and an update time start
+    $apbct->fw_stats['calls'] = 0;
     $apbct->fw_stats['firewall_updating_id']         = md5( (string) rand( 0, 100000 ) );
     $apbct->fw_stats['firewall_updating_last_start'] = time();
     $apbct->save( 'fw_stats' );
@@ -742,7 +743,20 @@ function apbct_sfw_update__worker() {
     if( ! $apbct->data['key_is_ok'] ){
         return array( 'error' => 'Worker: KEY_IS_NOT_VALID' );
     }
-
+    
+    if( ! isset( $apbct->fw_stats['calls'] ) ){
+        $apbct->fw_stats['calls'] = 0;
+    }
+    
+    $apbct->fw_stats['calls']++;
+    $apbct->save('fw_stats');
+    
+    if( $apbct->fw_stats['calls'] > 600 ){
+        $apbct->error_add('sfw_update', 'WORKER_CALL_LIMIT_EXCEEDED' );
+        $apbct->saveErrors();
+        return 'WORKER_CALL_LIMIT_EXCEEDED';
+    }
+    
 	$queue = new \Cleantalk\ApbctWP\Queue();
 
 	if( count( $queue->queue['stages'] ) === 0 ) {
