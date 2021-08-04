@@ -327,6 +327,7 @@ function apbct_admin__enqueue_scripts( $hook ){
 	// Scripts to all admin pages
 	wp_enqueue_script('ct_admin_js_notices', plugins_url('/cleantalk-spam-protect/js/cleantalk-admin.min.js'),   array(), APBCT_VERSION);
 	wp_enqueue_style ('ct_admin_css',        plugins_url('/cleantalk-spam-protect/css/cleantalk-admin.min.css'), array(), APBCT_VERSION, 'all');
+    wp_enqueue_style ('ct_icons',            plugins_url('/cleantalk-spam-protect/css/cleantalk-icons.min.css'), array(), APBCT_VERSION, 'all');
 
 	wp_localize_script( 'ct_admin_js_notices', 'ctAdminCommon', array(
 		'_ajax_nonce'         => wp_create_nonce( 'ct_secret_nonce' ),
@@ -374,7 +375,6 @@ function apbct_admin__enqueue_scripts( $hook ){
 		
 		wp_enqueue_script('cleantalk_admin_js_settings_page', plugins_url('/cleantalk-spam-protect/js/cleantalk-admin-settings-page.min.js'),   array(),     APBCT_VERSION);
 		wp_enqueue_style('cleantalk_admin_css_settings_page', plugins_url('/cleantalk-spam-protect/css/cleantalk-admin-settings-page.min.css'), array(),     APBCT_VERSION, 'all');
-	    wp_enqueue_style ('ct_icons',                         plugins_url('/cleantalk-spam-protect/css/cleantalk-icons.min.css'), array(),                   APBCT_VERSION, 'all');
 		
 		wp_localize_script( 'cleantalk_admin_js_settings_page', 'ctSettingsPage', array(
 			'ct_subtitle'   => $apbct->ip_license ? __('Hosting AntiSpam', 'cleantalk-spam-protect') : '',
@@ -576,7 +576,7 @@ function apbct_admin__admin_bar__add_counter( $after ){
     global $apbct;
     
     $counter__sum__layout = ( $after ? ' / ' : '<div class="cleantalk_admin_bar__sum_counter">' ) .
-            '<span title="All anti-spam events">' . $apbct->counter__sum . '</span>' .
+            '<span title="' . __( 'All anti-spam events', 'cleantalk-spam-protect' ) . '">' . $apbct->counter__sum . '</span>' .
         '</div>';
     
     return ( $after ? substr( $after, 0, -6 ) : $after )
@@ -589,14 +589,24 @@ function apbct_admin__admin_bar__add_child_nodes( $wp_admin_bar ) {
 	global $apbct;
 
 	$attention_mark = $apbct->notice_show ? '<i class="icon-attention-alt"></i>' : '';
-
+    
+    $wp_admin_bar->add_node( array(
+        'parent' => 'apbct__parent_node',
+        'id'     => 'apbct_admin_bar__counter_header',
+        'title'  => __( 'Counters:', 'cleantalk-spam-protect' ),
+    ) );
+	
     // User's counter
     $wp_admin_bar->add_node( array(
         'parent' => 'apbct__parent_node',
         'id'	 => 'apbct_admin_bar__counter__user',
-        'title'  => '<a>' . __('Since', 'cleantalk-spam-protect') . '&nbsp;' . $apbct->counter__user['since'] . ': '
+        'title'  => '<a>'
+            . __('Since', 'cleantalk-spam-protect') . '&nbsp;' . $apbct->counter__user['since'] . ': '
             . '<span style="color: green;">' . $apbct->counter__user['accepted']. '</span> / '
-            . '<span style="color: red;">' . $apbct->counter__user['blocked'] . '</span></a>',
+            . '<span style="color: red;">' . $apbct->counter__user['blocked'] . '</span>'
+            . '<i class="icon-help-circled" title="'
+                . __( 'Shows amount of alllowed and blocked requests since the date.', 'cleantalk-spam-protect' ) . '"></i>'
+        .'</a>',
     ) );
     
     // All-time counter
@@ -604,13 +614,15 @@ function apbct_admin__admin_bar__add_child_nodes( $wp_admin_bar ) {
         $wp_admin_bar->add_node( array(
             'parent' => 'apbct__parent_node',
             'id'     => 'apbct_admin_bar__counter__all_time',
-            'title'  =>
-                '<a><span title="' . __('All / Allowed / Blocked submissions. The number of submissions is being counted since CleanTalk plugin installation.', 'cleantalk-spam-protect').'">'
-                . __('Since installation', 'cleantalk-spam-protect') .  ': '
-                . '<span style="color: white;">' . $apbct->counter__all_time['all']. '</span> / '
-                . '<span style="color: green;">' . $apbct->counter__all_time['accepted']. '</span> / '
-                . '<span style="color: red;">' .$apbct->counter__all_time['blocked']. '</span>'
-                . '</span></a>',
+            'title'  => '<a>'
+                . '<span>'
+                    . __('Since activation', 'cleantalk-spam-protect') .  ': '
+                    . '<span style="color: white;">' . $apbct->counter__all_time['all']. '</span> / '
+                    . '<span style="color: green;">' . $apbct->counter__all_time['accepted']. '</span> / '
+                    . '<span style="color: red;">' .$apbct->counter__all_time['blocked']. '</span>'
+                . '</span>'
+                . '<i class="icon-help-circled" title="' . __('All / Allowed / Blocked submissions. The number of submissions is being counted since CleanTalk plugin installation.', 'cleantalk-spam-protect').'"></i>'
+            . '</a>',
         ) );
     }
     
@@ -619,12 +631,14 @@ function apbct_admin__admin_bar__add_child_nodes( $wp_admin_bar ) {
         $wp_admin_bar->add_node( array(
             'parent' => 'apbct__parent_node',
             'id'	 => 'apbct_admin_bar__counter__daily',
-            'title'  =>
-                '<a><span title="'.__('Allowed / Blocked submissions. The number of submissions for past 24 hours. ', 'cleantalk-spam-protect').'">'
-                . __('Day', 'cleantalk-spam-protect') . ': '
-                . '<span style="color: green;">' .$apbct->counter__daily['accepted']. '</span> / '
-                . '<span style="color: red;">' .$apbct->counter__daily['blocked']. '</span>'
-                . '</span></a>',
+            'title'  => '<a>'
+                . '<span>'
+                    . __('Day', 'cleantalk-spam-protect') . ': '
+                    . '<span style="color: green;">' .$apbct->counter__daily['accepted']. '</span> / '
+                    . '<span style="color: red;">' .$apbct->counter__daily['blocked']. '</span>'
+                . '</span>'
+                . '<i class="icon-help-circled" title="'.__('Allowed / Blocked submissions. The number of submissions for past 24 hours. ', 'cleantalk-spam-protect').'"></i>'
+            . '</a>',
         ) );
     }
     
@@ -633,14 +647,30 @@ function apbct_admin__admin_bar__add_child_nodes( $wp_admin_bar ) {
         $wp_admin_bar->add_node( array(
             'parent' => 'apbct__parent_node',
             'id'	 => 'apbct_admin_bar__counter__sfw',
-            'title'  =>
-                '<a><span title="'.__('All / Blocked events. Access attempts triggered by SpamFireWall counted since the last plugin activation.', 'cleantalk-spam-protect').'">'
-                . __('SpamFireWall', 'cleantalk-spam-protect' ) . ': '
-                . '<span style="color: white;">'. $apbct->counter__sfw['all']. '</span> / '
-                . '<span style="color: red;">' .$apbct->counter__sfw['blocked']. '</span>'
-                . '</span></a>'
+            'title'  => '<a>'
+                . '<span>'
+                    . __('SpamFireWall', 'cleantalk-spam-protect' ) . ': '
+                    . '<span style="color: white;">'. $apbct->counter__sfw['all']. '</span> / '
+                    . '<span style="color: red;">' .$apbct->counter__sfw['blocked']. '</span>'
+                . '</span>'
+                . '<i class="icon-help-circled" title="'.__('All / Blocked events. Access attempts triggered by SpamFireWall counted since the last plugin activation.', 'cleantalk-spam-protect').'"></i>'
+            . '</a>',
         ) );
     }
+    
+    // User counter reset.
+    $wp_admin_bar->add_node( array(
+        'parent' => 'apbct__parent_node',
+        'id'	 => 'ct_reset_counter',
+        'title'  => '<hr style="margin-top: 7px; border: 1px solid #888;"><a href="?' . http_build_query(array_merge( $_GET, array( 'ct_reset_user_counter' => 1  ) ) ) . '" title="Reset your personal counter of submissions.">' . __('Reset first counter', 'cleantalk-spam-protect') . '</a>',
+    ) );
+    
+    // Reset ALL counter
+    $wp_admin_bar->add_node( array(
+        'parent' => 'apbct__parent_node',
+        'id'	 => 'ct_reset_counters_all',
+        'title'  => '<a href="?' . http_build_query(array_merge( $_GET, array( 'ct_reset_all_counters' => 1  ) ) ). '" title="' . __('Reset all counters', 'cleantalk-spam-protect') . '">'.__('Reset all counters', 'cleantalk-spam-protect').'</a>',
+    ) );
     
     // Counter separator
     if( $apbct->counter__sum ){
@@ -650,15 +680,6 @@ function apbct_admin__admin_bar__add_child_nodes( $wp_admin_bar ) {
             'title'  =>'<hr style="margin-top: 7px;" />',
             'meta' => array( 'class' => 'cleantalk_admin_bar__separator')
         ) );
-    }
-    
-    // Dashboard link
-    if(!$apbct->white_label){
-        $wp_admin_bar->add_node( array(
-        'parent' => 'apbct__parent_node',
-        'id'	 => 'ct_dashboard_link',
-        'title'  => '<a href="https://cleantalk.org/my/?user_token='.$apbct->user_token.'&utm_source=wp-backend&utm_medium=admin-bar&cp_mode=antispam " target="_blank">'.__('Dashboard', 'cleantalk-spam-protect').'</a>',
-        ));
     }
 
     $wp_admin_bar->add_node( array(
@@ -684,22 +705,6 @@ function apbct_admin__admin_bar__add_child_nodes( $wp_admin_bar ) {
             'title'  => '<a href="users.php?page=ct_check_users" title="Bulk spam users removal tool.">'.__('Check users for spam', 'cleantalk-spam-protect').'</a>',
         ) );
     }
-    
-    // User counter reset.
-    $args = array(
-        'parent' => 'apbct__parent_node',
-        'id'	 => 'ct_reset_counter',
-        'title'  => '<hr style="margin-top: 7px;"><a href="?' . http_build_query(array_merge( $_GET, array( 'ct_reset_user_counter' => 1  ) ) ) . '" title="Reset your personal counter of submissions.">' . __('Reset first counter', 'cleantalk-spam-protect') . '</a>',
-    );
-    $wp_admin_bar->add_node( $args );// add a child item to our parent item. Counter reset.
-    
-    // Reset ALL counter
-    $args = array(
-        'parent' => 'apbct__parent_node',
-        'id'	 => 'ct_reset_counters_all',
-        'title'  => '<a href="?' . http_build_query(array_merge( $_GET, array( 'ct_reset_all_counters' => 1  ) ) ). '" title="Reset all counters.">'.__('Reset all counters', 'cleantalk-spam-protect').'</a>',
-    );
-    $wp_admin_bar->add_node( $args );
     
     // Support link
     if(!$apbct->white_label){
@@ -727,12 +732,11 @@ function apbct_spbc_admin__admin_bar__add_child_nodes( $wp_admin_bar ){
         'meta' => array( 'class' => 'cleantalk_admin_bar__separator' )
     ) );
     
-    // Users online counter
+    // Counter header
     $wp_admin_bar->add_node( array(
         'parent' => 'spbc__parent_node',
-        'title'  => '<a><span>' . __( 'Users online:', 'cleantalk-spam-protect' ) . '</span>'
-                    . '&nbsp;<b class="spbc-admin_bar--user_counter">' .  0 . '</b></a>',
-        'id'     => 'spbc_admin_bar__counter__online',
+        'id'     => 'spbc_admin_bar__counter_header',
+        'title'  => '<a>' . __( 'Counters:', 'security-malware-firewall' ) . '</a>',
         'meta' => array( 'class' => 'cleantalk_admin_bar__blocked' ),
     ) );
     
@@ -740,33 +744,44 @@ function apbct_spbc_admin__admin_bar__add_child_nodes( $wp_admin_bar ){
     $wp_admin_bar->add_node( array(
         'parent' => 'spbc__parent_node',
         'id'     => 'spbc_admin_bar__counter__logins',
-        'title'  => '<a><span>' . __('Logins:', 'cleantalk-spam-protect') . '</span>&nbsp;'
-            . '<span style="color: white;" title="' . __('Blocked login attempts in the local database.', 'cleantalk-spam-protect') . '">'
-                . '<span style="color: white;">'
-                . '<span style="color: green;">'
-                    .  0
-                . '</span> / '
-                . '<span style="color: red;">'
-                    .  0
-                . '</span>'
-            . '</span></a>',
+        'meta' => array( 'class' => 'cleantalk_admin_bar__counter'),
+        'title'  => '<a>'
+            . '<span>' . __('Logins:', 'cleantalk-spam-protect') . '</span>&nbsp;'
+            . '<span style="color: white;">'
+                . '<b style="color: green;">' . 0 . '</b> / '
+                . '<b style="color: red;">' . 0 . '</b>'
+            . '</span>'
+            . '<i class="icon-help-circled" title="' . __('Blocked login attempts in the local database for past 24 hours.', 'cleantalk-spam-protect') . '"></i>'
+        . '</a>',
         'meta' => array( 'class' => 'cleantalk_admin_bar__blocked' ),
     ) );
-    
     
     // Firewall blocked / allowed counter
     $wp_admin_bar->add_node( array(
         'parent' => 'spbc__parent_node',
         'id'     => 'spbc_admin_bar__counter__firewall',
-        'title'  => '<a><span>' .__( 'Security Firewall: ', 'cleantalk-spam-protect' ) .'</span>&nbsp;'
-            . '<span style="color: white;" title="'.__('Passed / Blocked requests by Security Firewall.', 'cleantalk-spam-protect').'">'
-                . '<span style="color: green;">'
-                    . 0
-                . '</span> / '
-                . '<span style="color: red;">'
-                    . 0
-                . '</span>'
-            . '</span></a>',
+        'meta' => array( 'class' => 'cleantalk_admin_bar__counter'),
+        'title'  => '<a>'
+            .'<b>' .__( 'Security Firewall: ', 'cleantalk-spam-protect' ) .'</b>&nbsp;'
+                . '<b style="color: white;">'
+                . '<b style="color: green;">' . 0 . '</b> / '
+                . '<b style="color: red;">' . 0 . '</b>'
+            . '</b>'
+            . '<i class="icon-help-circled" title="'.__('Passed / Blocked requests by Security Firewall for past 24 hours.', 'cleantalk-spam-protect').'"></i>'
+        . '</a>',
+        'meta' => array( 'class' => 'cleantalk_admin_bar__blocked' ),
+    ) );
+    
+    // Users online counter
+    $wp_admin_bar->add_node( array(
+        'parent' => 'spbc__parent_node',
+        'id'     => 'spbc_admin_bar__counter__online',
+        'meta' => array( 'class' => 'cleantalk_admin_bar__elem cleantalk_admin_bar__counter'),
+        'title'  => '<a>'
+            . '<span>' . __( 'Users online:', 'cleantalk-spam-protect' ) . '</span>'
+            . '&nbsp;<b class="spbc-admin_bar--user_counter">' . 0 . '</b>'
+            . '<i class="icon-help-circled" title="' . __( 'Shows amount of currently logged in administrators. Updates each 10 seconds.', 'cleantalk-spam-protect' ) . '"></i>'
+        . '</a>',
         'meta' => array( 'class' => 'cleantalk_admin_bar__blocked' ),
     ) );
     
@@ -776,14 +791,6 @@ function apbct_spbc_admin__admin_bar__add_child_nodes( $wp_admin_bar ){
         'id'     => 'spbc_admin_bar__separator',
         'title'  =>'<hr style="margin-top: 7px;" />',
         'meta' => array( 'class' => 'cleantalk_admin_bar__separator')
-    ) );
-    
-    // Dashboard
-    $wp_admin_bar->add_node( array(
-        'parent' => 'spbc__parent_node',
-        'id'     => 'spbc_admin_bar__dashboard_link',
-        'title'  => '<a>' . __( 'Dashboard', 'cleantalk-spam-protect' ) . '</a>',
-        'meta' => array( 'class' => 'cleantalk_admin_bar__blocked' ),
     ) );
     
     // Settings
@@ -799,8 +806,8 @@ function apbct_spbc_admin__admin_bar__add_child_nodes( $wp_admin_bar ){
         'parent' => 'spbc__parent_node',
         'id'     => 'spbc_admin_bar__scanner_link',
         'title'  => '<a style="display:inline">' . __( 'Scanner', 'cleantalk-spam-protect' ) . '</a>'
-                    . '/'
-                    . '<a style="display:inline">' . __( 'Start scan', 'cleantalk-spam-protect' ) . '</a>',
+            . '/'
+        . '<a style="display:inline">' . __( 'Start scan', 'cleantalk-spam-protect' ) . '</a>',
         'meta' => array( 'class' => 'cleantalk_admin_bar__blocked' ),
     ) );
     
