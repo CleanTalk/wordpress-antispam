@@ -211,14 +211,15 @@ class RemoteCalls
     public static function action__debug(){
         
         global $apbct;
-        
-        $out['stats'] = $apbct->stats;
+
+        $out['stats']    = $apbct->stats;
         $out['settings'] = $apbct->settings;
         $out['fw_stats'] = $apbct->fw_stats;
-        $out['data'] = $apbct->data;
-        $out['cron'] = $apbct->cron;
-        $out['errors'] = $apbct->errors;
-        
+        $out['data']     = $apbct->data;
+        $out['cron']     = $apbct->cron;
+        $out['errors']   = $apbct->errors;
+        $out['queue']    = get_option( 'cleantalk_sfw_update_queue' );
+
         array_walk( $out, function(&$val, $_key){
             $val = (array) $val;
         });

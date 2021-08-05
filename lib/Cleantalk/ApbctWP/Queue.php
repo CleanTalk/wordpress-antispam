@@ -18,7 +18,7 @@ class Queue extends \Cleantalk\Common\Queue {
 		return delete_option( self::QUEUE_NAME );
 	}
 
-	function saveQueue( $queue )
+	public function saveQueue( $queue )
 	{
 		return update_option( self::QUEUE_NAME, $queue );
 	}

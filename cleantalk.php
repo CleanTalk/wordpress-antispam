@@ -3,7 +3,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 5.160.2-dev
+  Version: 5.160.3-dev
   Author: СleanTalk <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -696,7 +696,12 @@ function apbct_sfw_update__init( $delay = 0 ){
     if( ! $apbct->data['key_is_ok'] ){
         return array( 'error' => 'SFW UPDATE INIT: KEY_IS_NOT_VALID' );
     }
-
+    
+    $prepare_dir__result = apbct_prepare_upd_dir();
+    if( ! empty( $prepare_dir__result['error'] ) ){
+        return $prepare_dir__result;
+    }
+    
     // Set a new update ID and an update time start
     $apbct->fw_stats['calls'] = 0;
     $apbct->fw_stats['firewall_updating_id']         = md5( (string) rand( 0, 100000 ) );
@@ -706,16 +711,14 @@ function apbct_sfw_update__init( $delay = 0 ){
 	// Delete update errors
 	$apbct->error_delete( 'sfw_update', 'save_data' );
 	$apbct->error_delete( 'sfw_update', 'save_data', 'cron' );
-
-	\Cleantalk\ApbctWP\Queue::clearQueue();
-
+    
+    \Cleantalk\ApbctWP\Queue::clearQueue();
+    
 	$queue = new \Cleantalk\ApbctWP\Queue();
 	$queue->addStage( 'apbct_sfw_update__get_multifiles' );
-
-	apbct_prepare_upd_dir();
-
+	
 	$cron = new Cron();
-	$cron->addTask('sfw_update_checker', 'apbct_sfw_update__checker', 15, time() + 15 );
+	$cron->addTask('sfw_update_checker', 'apbct_sfw_update__checker', 15 );
 
 	return Helper::http__request__rc_to_host(
         'sfw_update__worker',
@@ -740,6 +743,8 @@ function apbct_sfw_update__worker() {
 
     global $apbct;
 
+    usleep( 10000 );
+    
     if( ! $apbct->data['key_is_ok'] ){
         return array( 'error' => 'Worker: KEY_IS_NOT_VALID' );
     }
@@ -783,17 +788,11 @@ function apbct_sfw_update__worker() {
 		}
 		// Do logging the queue process here
 		return true;
-
 	}
 
+    // This is the repeat stage request, do not generate any new RC
 	if( stripos( Get::get('stage'), 'Repeat' ) !== false ) {
-		// This is the repeat stage request, do not generate any new RC
 		return true;
-	}
-
-	$cron = new Cron();
-	if( ! $cron->updateTask('sfw_update_checker', 'apbct_sfw_update__checker', 15, time() + 15 ) ) {
-		$cron->addTask('sfw_update_checker', 'apbct_sfw_update__checker', 15, time() + 15 );
 	}
 
 	return Helper::http__request__rc_to_host(
@@ -919,10 +918,7 @@ function apbct_sfw_update__create_temp_tables() {
 	);
 }
 
-/**
- * @psalm-suppress UnusedParam
- */
-function apbct_sfw_update__process_files( $concrete_file = null ) {
+function apbct_sfw_update__process_files() {
 
 	global $apbct;
 
@@ -959,7 +955,6 @@ function apbct_sfw_update__process_files( $concrete_file = null ) {
 		return array(
 			'next_stage' => array(
 				'name'    => 'apbct_sfw_update__process_files',
-				'args'    => $concrete_file
 			)
 		);
 	}
@@ -1188,22 +1183,20 @@ function apbct_prepare_upd_dir() {
 	$dir_name = APBCT_DIR_PATH . '/fw_files/';
 	if( ! is_dir( $dir_name ) ) {
 		if( ! mkdir( $dir_name ) && ! is_dir( $dir_name ) ) {
-			return array( 'error', 'Can not to make FW dir.' );
+			return array( 'error' => 'Can not to make FW dir.' );
 		}
 	} else {
 		$files = glob( $dir_name . '/*' );
 		if( $files === false ) {
-			return array( 'error', 'Can not find FW files.' );
+			return array( 'error' => 'Can not find FW files.' );
 		}
 		if( count( $files ) === 0 ) {
 			return (bool) file_put_contents( $dir_name . 'index.php', '<?php' . PHP_EOL );
 		}
 		foreach( $files as $file ){
-			if( is_file( $file ) ) {
-				if( unlink( $file ) === false ) {
-					return array( 'error', 'Can not delete the FW file: ' . $file );
-				}
-			}
+			if( is_file( $file ) && unlink( $file ) === false ){
+			    return array( 'error' => 'Can not delete the FW file: ' . $file );
+            }
 		}
 	}
 	return (bool) file_put_contents( $dir_name . 'index.php', '<?php' );
@@ -1218,6 +1211,8 @@ function apbct_sfw_update__checker() {
 			}
 		}
 	}
+	
+	return true;
 }
 
 function apbct_sfw_update__cleanData(){

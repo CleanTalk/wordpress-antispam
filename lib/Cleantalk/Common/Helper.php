@@ -733,9 +733,9 @@ class Helper
 			$info = curl_getinfo($curl_arr[$i], CURLINFO_HTTP_CODE);
 			if( 200 == $info ) {
 				if( ! empty( $write_to ) && is_dir( $write_to ) && is_writable( $write_to ) ) {
-					// @ToDo have to handle writing errors
-					file_put_contents(  $write_to . self::getFilenameFromUrl( $urls[$i] ), curl_multi_getcontent( $curl_arr[$i] ) );
-					$results[] = 'success';
+					$results[] = file_put_contents(  $write_to . self::getFilenameFromUrl( $urls[$i] ), curl_multi_getcontent( $curl_arr[$i] ) )
+                        ? 'success'
+					    : 'error';
 				} else {
 					$results[] = curl_multi_getcontent( $curl_arr[$i] );
 				}

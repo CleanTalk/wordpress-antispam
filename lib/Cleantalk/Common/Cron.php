@@ -153,6 +153,7 @@ abstract class Cron
     public function updateTask( $task, $handler, $period, $first_call = null, $params = array() )
     {
     	$tasks = ! empty( $this->tasks ) ? $this->tasks : $this->getTasks();
+
 	    if( isset( $tasks[ $task ] ) ){
 		    // Rewrite the task
 		    $tasks[$task] = array(
@@ -163,6 +164,7 @@ abstract class Cron
 		    );
 		    return $this->saveTasks( $tasks );
 	    }
+
 	    return false;
     }
 

@@ -10,7 +10,7 @@ abstract class Queue {
 
 	public $queue;
 
-	function __construct()
+	public function __construct()
 	{
 		$queue = $this->getQueue();
 		if( $queue !== false && isset( $queue['stages'] ) ) {
@@ -24,15 +24,14 @@ abstract class Queue {
 		}
 	}
 
-	abstract function getQueue();
+	abstract public function getQueue();
 
-	abstract static function clearQueue();
-
-	abstract function saveQueue( $queue );
-
-	/**
-	 * @param string $stage_name
-	 */
+	abstract public function saveQueue( $queue );
+    
+    /**
+     * @param string $stage_name
+     * @param array $args
+     */
 	public function addStage( $stage_name, $args = array() )
 	{
 		$this->queue['stages'][] = array(
