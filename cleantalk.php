@@ -722,7 +722,10 @@ function apbct_sfw_update__init( $delay = 0 ){
 
 	return Helper::http__request__rc_to_host(
         'sfw_update__worker',
-		array( 'delay' => $delay ),
+		array(
+            'firewall_updating_id' => $apbct->fw_stats['firewall_updating_id'],
+            'delay' => $delay
+        ),
 		array( 'async' )
 	);
 }
@@ -747,6 +750,13 @@ function apbct_sfw_update__worker() {
     
     if( ! $apbct->data['key_is_ok'] ){
         return array( 'error' => 'Worker: KEY_IS_NOT_VALID' );
+    }
+    
+    if(
+        Get::equal( 'firewall_updating_id', '' ) ||
+      ! Get::equal( 'firewall_updating_id', $apbct->fw_stats['firewall_updating_id'] )
+    ){
+        return 'SFW UPDATE WORKER: WRONG_UPDATE_ID';
     }
     
     if( ! isset( $apbct->fw_stats['calls'] ) ){
@@ -797,7 +807,7 @@ function apbct_sfw_update__worker() {
 
 	return Helper::http__request__rc_to_host(
 		'sfw_update__worker',
-		array(),
+		array( 'firewall_updating_id' => $apbct->fw_stats['firewall_updating_id'] ),
 		array( 'async' )
 	);
 
@@ -923,7 +933,7 @@ function apbct_sfw_update__process_files() {
 	global $apbct;
 
 	$dir_name = APBCT_DIR_PATH . '/fw_files/';
-	$files = glob( $dir_name . '/*' );
+    $files = glob( $dir_name . '/*csv.gz' );
 	$files = array_filter( $files, static function( $element ) {
 		return strpos( $element, 'list' ) !== false;
 	} );

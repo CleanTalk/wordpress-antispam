@@ -45,6 +45,8 @@ abstract class Queue {
 
 	public function executeStage()
 	{
+	    global $apbct;
+	    
 		if( count( $this->queue['stages'] ) > 0 ) {
 			foreach ( $this->queue['stages'] as & $stage ) {
 				if( ( $stage['status'] === 'NULL' ) ) {
@@ -75,7 +77,10 @@ abstract class Queue {
 							}
 							return \Cleantalk\ApbctWP\Helper::http__request__rc_to_host(
 								'sfw_update__worker',
-								array( 'stage' => 'Repeat ' . $stage['name'] ),
+								array(
+								    'firewall_updating_id' => $apbct->fw_stats['firewall_updating_id'],
+                                    'stage' => 'Repeat ' . $stage['name']
+                                ),
 								array( 'async' )
 							);
 						}
