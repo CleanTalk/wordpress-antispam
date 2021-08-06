@@ -2251,6 +2251,7 @@ function apbct_test_connection(){
         'https://apix2.cleantalk.org',
         'https://apix3.cleantalk.org',
         'https://apix4.cleantalk.org',
+        'https://apix5.cleantalk.org',
         'https://apix6.cleantalk.org',
         'https://apix7.cleantalk.org',
         'https://apix8.cleantalk.org',
