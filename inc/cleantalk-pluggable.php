@@ -540,6 +540,12 @@ function apbct_is_skip_request( $ajax = false ) {
 	    {
 		    return 'w2dc_skipped';
 	    }
+        if ( apbct_is_plugin_active( 'elementor/elementor.php' ) &&
+            isset( $_POST['actions_save_builder_action'] ) && 
+            $_POST['actions_save_builder_action'] === 'save_builder' &&
+            is_admin() ) {
+            return 'elementor_skip';
+        }
     } else {
 
         /*****************************************/
