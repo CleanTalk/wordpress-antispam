@@ -599,6 +599,12 @@ function apbct_is_skip_request( $ajax = false ) {
 	    if ( apbct_is_plugin_active( 'wpforms/wpforms.php' ) && isset( $_POST['wpforms'] ) ) {
 		    return 'wp_forms';
 	    }
+        // Formidable skip - this is the durect integration
+        if ( apbct_is_plugin_active( 'formidable/formidable.php' ) &&
+             Post::get( 'frm_action' ) === 'update' )
+        {
+            return 'formidable_skip';
+        }
     }
 
     return false;
