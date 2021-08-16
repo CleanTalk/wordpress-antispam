@@ -2242,10 +2242,11 @@ function apbct_update__set_version__from_plugin($ver){
 /**
  * Check connection to the API servers
  *
- * @return mixed
+ * @return array
  */
 function apbct_test_connection(){
     
+    $out = array();
     $url_to_test = array(
         'https://apix1.cleantalk.org',
         'https://apix2.cleantalk.org',
@@ -2258,14 +2259,16 @@ function apbct_test_connection(){
     );
     
     foreach($url_to_test as $url){
+        
         $start = microtime(true);
         $result = \Cleantalk\ApbctWP\Helper::http__request__get_content($url);
-        $exec_time = microtime(true) - $start;
+        
         $out[$url] = array(
-            'result' => $result,
-            'exec_time' => $exec_time,
-            'error' => !empty($result['error']) ? $result['error']	: 'OK',
+            'result' => !empty($result['error']) ? $result['error']	: 'OK',
+            'exec_time' => microtime(true) - $start,
+            'response' => $result,
         ) ;
     }
+    
     return $out;
 }
