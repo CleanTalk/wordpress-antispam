@@ -630,16 +630,18 @@ class State
 			$this->storage['data'][$name] = $value;
 		}
     }
-	
-	/**
-	 * Magic.
-	 * Search and get param from: storage, data, api_key, database
-	 *
-	 * @param $name
-	 *
-	 * @return mixed
-	 */
-	public function &__get($name)
+    
+    /**
+     * Dynamically get options in order:
+     * 1. Trying to get it from the storage (options like data, settings, fw_stats and so on)
+     * 2. Trying to get it from the storage['data']
+     * 3. Trying to get it from the DB by name
+     *
+     * @param $name
+     *
+     * @return mixed
+     */
+    public function &__get($name)
     {
 		// First check in storage
         if (isset($this->storage[$name])){
