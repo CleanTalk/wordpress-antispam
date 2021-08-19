@@ -579,6 +579,8 @@ class Helper
 			$opts = self::array_merge__save_numeric_keys(
 				array(
 					CURLOPT_URL => $url,
+                    CURLOPT_TIMEOUT => 15,
+                    CURLOPT_LOW_SPEED_TIME => 10,
 					CURLOPT_RETURNTRANSFER => true,
 					CURLOPT_CONNECTTIMEOUT_MS => 10000,
 					CURLOPT_FORBID_REUSE => true,
