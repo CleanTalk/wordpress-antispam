@@ -82,7 +82,12 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 		
 		$results = array();
         $status = 0;
-		
+
+        //Skip if zero sfw entries, eg sfw not updated yet
+		if (!isset($this->apbct->stats['sfw']) || (isset($this->apbct->stats['sfw']['entries']) && $this->apbct->stats['sfw']['entries'] === 0)) {
+			return $results;
+		}		
+
 		// Skip by cookie
 		foreach( $this->ip_array as $current_ip ){
 
@@ -132,7 +137,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 				return $results;
 			}
 		}
-		
+
 		// Common check
 		foreach($this->ip_array as $_origin => $current_ip){
 			
