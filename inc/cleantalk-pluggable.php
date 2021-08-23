@@ -113,18 +113,19 @@ function apbct_wp_validate_auth_cookie( $cookie = '', $scheme = '' ) {
  * @param string $path Optional.
  * @param string $scheme Optional.
  *
- * @return bool|WP_User
+ * @return string
  */
 function apbct_get_rest_url( $blog_id = null, $path = '/', $scheme = 'rest' ) {
+
+	global $wp_rewrite;
+
     if ( empty( $path ) ) {
         $path = '/';
     }
  
     $path = '/' . ltrim( $path, '/' );
  
-    if ( is_multisite() && get_blog_option( $blog_id, 'permalink_structure' ) || get_option( 'permalink_structure' ) ) {
-        global $wp_rewrite;
- 
+    if ( is_multisite() && ( get_blog_option( $blog_id, 'permalink_structure' ) || get_option( 'permalink_structure' ) ) ) {
         if ( $wp_rewrite->using_index_permalinks() ) {
             $url = get_home_url( $blog_id, $wp_rewrite->index . '/' . rest_get_url_prefix(), $scheme );
         } else {
@@ -170,6 +171,7 @@ function apbct_get_rest_url( $blog_id = null, $path = '/', $scheme = 'rest' ) {
      * @param string   $path    REST route.
      * @param int|null $blog_id Blog ID.
      * @param string   $scheme  Sanitization scheme.
+     * @psalm-suppress TooManyArguments
      */
     return apply_filters( 'rest_url', $url, $path, $blog_id, $scheme );
 }
