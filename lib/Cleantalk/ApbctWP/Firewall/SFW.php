@@ -84,7 +84,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
         $status = 0;
 
         //Skip if sfw not updated yet
-		if (!isset($this->apbct->stats['sfw']) || (isset($this->apbct->stats['sfw']['last_update_time']) && $this->apbct->stats['sfw']['last_update_time'] === 0)) {
+		if (!$this->apbct->stats['sfw']['last_update_time']) {
 			return $results;
 		}		
 
