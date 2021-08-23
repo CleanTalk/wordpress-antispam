@@ -687,6 +687,12 @@ function apbct_is_skip_request( $ajax = false ) {
         {
             return 'formidable_skip';
         }
+	    // WC payment APIs
+	    if( apbct_is_plugin_active( 'woocommerce/woocommerce.php' ) &&
+	        apbct_is_in_uri( 'wc-ajax=iwd_opc_update_order_review') )
+	    {
+		    return 'cartflows_save_cart';
+	    }
     }
 
     return false;
