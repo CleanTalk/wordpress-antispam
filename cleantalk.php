@@ -740,7 +740,7 @@ function apbct_sfw_update__init( $delay = 0 ){
  * @param null|string|int $current_url
  * @param string $useragent_url
  *
- * @return array|bool|int|string[]
+ * @return array|bool|int|string|string[]
  */
 function apbct_sfw_update__worker() {
 
