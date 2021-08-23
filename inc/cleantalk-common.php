@@ -979,7 +979,7 @@ function apbct_private_list_add( $ip ){
 /**
  * Hide website field from standard comments form
  */
-add_filter( 'comment_form_default_fields', 'apbct__change_type_website_field' );
+add_filter( 'comment_form_default_fields', 'apbct__change_type_website_field' , 999, 1);
 function apbct__change_type_website_field( $fields ){
 
 	global $apbct;
