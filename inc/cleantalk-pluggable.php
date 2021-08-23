@@ -616,6 +616,12 @@ function apbct_is_skip_request( $ajax = false ) {
             is_admin() ) {
             return 'elementor_skip';
         }
+	    // Enfold theme saving settings
+	    if ( apbct_is_theme_active( 'Enfold' ) &&
+	         Post::get('action') === 'avia_ajax_save_options_page' )
+	    {
+		    return 'Enfold_theme_saving_settings';
+	    }
     } else {
 
         /*****************************************/
