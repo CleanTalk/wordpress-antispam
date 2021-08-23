@@ -622,8 +622,7 @@ class UsersChecker extends Checker
             $args = array(
                 'meta_key' => 'ct_marked_as_spam',
                 'meta_value' => '1',
-                'fields' => array('ID'),
-                'number' => 50
+                'fields' => array('ID')
             );
             $users = get_users($args);
 

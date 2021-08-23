@@ -348,8 +348,8 @@ class Helper
 		$ip_xtets = explode( $ip_type === 'v4' ? '.' : ':', $ip);
 		
 		// Standartizing. Getting current octets/hextets. Adding leading zeros.
-		$net_xtet = str_pad(decbin( $ip_type === 'v4' ? $net_ip_xtets[$xtet_count] : @hexdec($net_ip_xtets[$xtet_count])), $xtet_base, 0, STR_PAD_LEFT);
-		$ip_xtet = str_pad(decbin( $ip_type === 'v4' ? $ip_xtets[$xtet_count] : @hexdec($ip_xtets[$xtet_count])), $xtet_base, 0, STR_PAD_LEFT);
+		$net_xtet = str_pad(decbin( ($ip_type === 'v4' && is_int($net_ip_xtets[$xtet_count])) ? $net_ip_xtets[$xtet_count] : @hexdec($net_ip_xtets[$xtet_count])), $xtet_base, 0, STR_PAD_LEFT);
+		$ip_xtet = str_pad(decbin( ($ip_type === 'v4' && is_int($ip_xtet[$xtet_count])) ? $ip_xtets[$xtet_count] : @hexdec($ip_xtets[$xtet_count])), $xtet_base, 0, STR_PAD_LEFT);
 		
 		// Comparing bit by bit
 		for($i = 0, $result = true; $mask != 0; $mask--, $i++){
@@ -579,6 +579,8 @@ class Helper
 			$opts = self::array_merge__save_numeric_keys(
 				array(
 					CURLOPT_URL => $url,
+                    CURLOPT_TIMEOUT => 15,
+                    CURLOPT_LOW_SPEED_TIME => 10,
 					CURLOPT_RETURNTRANSFER => true,
 					CURLOPT_CONNECTTIMEOUT_MS => 10000,
 					CURLOPT_FORBID_REUSE => true,
