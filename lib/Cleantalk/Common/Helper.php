@@ -194,6 +194,17 @@ class Helper
                 }
                 break;
 
+			// Incapsula proxy like "X-Clientside":"10.10.10.10:62967 -> 192.168.1.1:443"
+            case 'clientside':
+                $headers = $headers ?: self::http__get_headers();
+                if( isset( $headers['X-Clientside'] ) && ( preg_match( '/^([0-9a-f.:]+):\d+ -> ([0-9a-f.:]+):\d+$/', $headers['X-Clientside'], $matches )  && isset( $matches[1] ) ) ) {
+	                $ip_version = self::ip__validate( $matches[1] );
+	                if( $ip_version ){
+		                $out = $ip_version === 'v6' && ! $v4_only ? self::ip__v6_normalize( $matches[1] ) : $matches[1];
+	                }
+                }
+                break;
+
             // Remote addr
             case 'remote_addr':
                 $ip_version = self::ip__validate( Server::get( 'REMOTE_ADDR' ) );
@@ -242,6 +253,7 @@ class Helper
                 $out = $out ?: self::ip__get( 'ico_x_forwarded_for', $v4_only, $headers );
                 $out = $out ?: self::ip__get( 'ovh', $v4_only, $headers );
                 $out = $out ?: self::ip__get( 'incapsula', $v4_only, $headers );
+                $out = $out ?: self::ip__get( 'clientside', $v4_only, $headers );
 
                 $ip_version = self::ip__validate( $out );
 
