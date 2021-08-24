@@ -10,8 +10,16 @@ abstract class Queue {
 
 	public $queue;
 
+	/**
+	 * Process identifier
+	 *
+	 * @var int
+	 */
+	private $pid;
+
 	public function __construct()
 	{
+		$this->pid = mt_rand( 0, mt_getrandmax() );
 		$queue = $this->getQueue();
 		if( $queue !== false && isset( $queue['stages'] ) ) {
 			$this->queue = $queue;
@@ -38,7 +46,8 @@ abstract class Queue {
 			'name' => $stage_name,
 			'status'  => 'NULL',
 			'tries'   => '0',
-			'args'    => $args
+			'args'    => $args,
+			'pid'    => null,
 		);
 		$this->saveQueue( $this->queue );
 	}
