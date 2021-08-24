@@ -300,6 +300,7 @@ class State
 
     private $default_fw_stats = array(
         'firewall_updating'            => false,
+        'updating_folder'              => 'fw_files',
         'firewall_updating_id'         => null,
         'firewall_update_percent'      => 0,
         'firewall_updating_last_start' => 0,

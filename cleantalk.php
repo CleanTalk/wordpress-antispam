@@ -706,6 +706,7 @@ function apbct_sfw_update__init( $delay = 0 ){
     $apbct->fw_stats['calls'] = 0;
     $apbct->fw_stats['firewall_updating_id']         = md5( (string) rand( 0, 100000 ) );
     $apbct->fw_stats['firewall_updating_last_start'] = time();
+    $apbct->fw_stats['updating_folder'] = APBCT_DIR_PATH . DIRECTORY_SEPARATOR . 'fw_files_for_blog_' . get_current_blog_id() . DIRECTORY_SEPARATOR;
     $apbct->save( 'fw_stats' );
 
 	// Delete update errors
@@ -863,11 +864,13 @@ function apbct_sfw_update__get_multifiles(){
 
 function apbct_sfw_update__download_files( $urls ) {
 
+	global $apbct;
+
 	sleep(3);
 
 	//Reset keys
 	$urls = array_values( $urls );
-	$results = Helper::http__multi_request( $urls, APBCT_DIR_PATH . '/fw_files/' );
+	$results = Helper::http__multi_request( $urls, $apbct->fw_stats['updating_folder'] );
 	$count_urls = count( $urls );
 	$count_results = count( $results );
 
@@ -932,8 +935,7 @@ function apbct_sfw_update__process_files() {
 
 	global $apbct;
 
-	$dir_name = APBCT_DIR_PATH . '/fw_files/';
-    $files = glob( $dir_name . '/*csv.gz' );
+    $files = glob( $apbct->fw_stats['updating_folder'] . '/*csv.gz' );
 	$files = array_filter( $files, static function( $element ) {
 		return strpos( $element, 'list' ) !== false;
 	} );
@@ -1190,7 +1192,10 @@ function apbct_sfw_update__is_in_progress() {
 }
 
 function apbct_prepare_upd_dir() {
-	$dir_name = APBCT_DIR_PATH . '/fw_files/';
+
+	global $apbct;
+
+	$dir_name = $apbct->fw_stats['updating_folder'];
 	if( ! is_dir( $dir_name ) ) {
 		if( ! mkdir( $dir_name ) && ! is_dir( $dir_name ) ) {
 			return array( 'error' => 'Can not to make FW dir.' );
