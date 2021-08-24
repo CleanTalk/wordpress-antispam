@@ -640,7 +640,7 @@ function apbct_is_cache_plugins_exists(){
  * @return 	string Admin e-mail
  */
 function ct_get_admin_email() {
-	return get_option('admin_email');;
+	return get_option('admin_email');
 }
 
 /**
