@@ -724,6 +724,8 @@ class Helper
 			$curl_arr[$i] = curl_init($url);
 			$opts = array(
 				CURLOPT_RETURNTRANSFER => true,
+				CURLOPT_TIMEOUT => 15,
+				CURLOPT_LOW_SPEED_TIME => 10,
 				CURLOPT_CONNECTTIMEOUT_MS => 10000,
 				CURLOPT_FORBID_REUSE => true,
 				CURLOPT_USERAGENT => self::AGENT . '; ' . ( isset( $_SERVER['REMOTE_ADDR'] ) ? $_SERVER['REMOTE_ADDR'] : 'UNKNOWN_HOST' ),
