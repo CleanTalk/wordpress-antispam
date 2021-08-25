@@ -293,9 +293,14 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
             $status = $result['status'] === 'PASS_SFW__BY_WHITELIST' ? '1' : '0';
             $cookie_val = md5( $result['ip'] . $this->api_key ) . $status;
 
+            $block_message = sprintf(
+            	esc_html__( 'SpamFireWall is checking your browser and IP %s for spam bots', 'cleantalk-spam-protect' ),
+	            '<a href="' . $result['ip'] . '" target="_blank">' . $result['ip'] . '</a>'
+            );
+
 			// Translation
 			$replaces = array(
-				'{SFW_DIE_NOTICE_IP}'              => __('SpamFireWall is activated for your IP ', 'cleantalk-spam-protect'),
+				'{SFW_DIE_NOTICE_IP}'              => $block_message,
 				'{SFW_DIE_MAKE_SURE_JS_ENABLED}'   => __( 'To continue working with the web site, please make sure that you have enabled JavaScript.', 'cleantalk-spam-protect' ),
 				'{SFW_DIE_CLICK_TO_PASS}'          => __('Please click the link below to pass the protection,', 'cleantalk-spam-protect'),
 				'{SFW_DIE_YOU_WILL_BE_REDIRECTED}' => sprintf(__('Or you will be automatically redirected to the requested page after %d seconds.', 'cleantalk-spam-protect'), 3),
