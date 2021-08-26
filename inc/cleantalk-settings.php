@@ -430,9 +430,46 @@ function apbct_settings__set_fileds( ){
 				),
 			),
 		),
-		
+
+		// SFW features
+		// Admin bar
+		'sfw_features' => array(
+			'title'          => __('SFW features', 'cleantalk-spam-protect'),
+			'default_params' => array(),
+			'description'    => '',
+			'html_before'    => '',
+			'html_after'     => '',
+			'fields'         => array(
+				'sfw__anti_crawler' => array(
+					'type'        => 'checkbox',
+					'title'       => __('Anti-Crawler', 'cleantalk-spam-protect') . $additional_ac_title,
+					'class'       => 'apbct_settings-field_wrapper',
+					'parent'      => 'sfw__enabled',
+					'description' => __('Plugin shows SpamFireWall stop page for any bot, except allowed bots (Google, Yahoo and etc).', 'cleantalk-spam-protect')
+					                 . '<br>'
+					                 . __( 'Anti-Crawler includes blocking bots by the User-Agent. Use Personal lists in the Dashboard to filter specific User-Agents.', 'cleantalk-spam-protect' ),
+				),
+				'sfw__anti_flood' => array(
+					'type'        => 'checkbox',
+					'title'       => __('Anti-Flood', 'cleantalk-spam-protect'),
+					'class'       => 'apbct_settings-field_wrapper',
+					'parent'      => 'sfw__enabled',
+					'childrens'   => array('sfw__anti_flood__view_limit',),
+					'description' => __('Shows the SpamFireWall page for bots trying to crawl your site. Look at the page limit setting below.', 'cleantalk-spam-protect'),
+				),
+				'sfw__anti_flood__view_limit' => array(
+					'type'        => 'text',
+					'title'       => __('Anti-Flood Page Views Limit', 'cleantalk-spam-protect'),
+					'class'       => 'apbct_settings-field_wrapper--sub',
+					'parent'      => 'sfw__anti_flood',
+					'description' => __('Count of page view per 1 minute before plugin shows SpamFireWall page. SpamFireWall page active for 30 second after that valid visitor (with JavaScript) passes the page to the demanded page of the site.', 'cleantalk-spam-protect'),
+				),
+			),
+		),
+
 		// Misc
 		'misc' => array(
+			'title'          => __('Miscellaneous', 'cleantalk-spam-protect'),
 			'html_after'     => '</div><br>',
 			'fields'         => array(
 				'misc__collect_details' => array(
@@ -481,30 +518,6 @@ function apbct_settings__set_fileds( ){
 					'options_callback'        => 'apbct_get_all_roles',
 					'options_callback_params' => array(true),
 					'class'                   => 'apbct_settings-field_wrapper--sub',
-				),
-				'sfw__anti_crawler' => array(
-					'type'        => 'checkbox',
-					'title'       => __('Anti-Crawler', 'cleantalk-spam-protect') . $additional_ac_title,
-					'class'       => 'apbct_settings-field_wrapper',
-					'parent'      => 'sfw__enabled',
-					'description' => __('Plugin shows SpamFireWall stop page for any bot, except allowed bots (Google, Yahoo and etc).', 'cleantalk-spam-protect')
-					                 . '<br>'
-					                 . __( 'Anti-Crawler includes blocking bots by the User-Agent. Use Personal lists in the Dashboard to filter specific User-Agents.', 'cleantalk-spam-protect' ),
-				),
-				'sfw__anti_flood' => array(
-					'type'        => 'checkbox',
-					'title'       => __('Anti-Flood', 'cleantalk-spam-protect'),
-					'class'       => 'apbct_settings-field_wrapper',
-					'parent'      => 'sfw__enabled',
-					'childrens'   => array('sfw__anti_flood__view_limit',),
-					'description' => __('Shows the SpamFireWall page for bots trying to crawl your site. Look at the page limit setting below.', 'cleantalk-spam-protect'),
-				),
-				'sfw__anti_flood__view_limit' => array(
-					'type'        => 'text',
-					'title'       => __('Anti-Flood Page Views Limit', 'cleantalk-spam-protect'),
-					'class'       => 'apbct_settings-field_wrapper--sub',
-					'parent'      => 'sfw__anti_flood',
-					'description' => __('Count of page view per 1 minute before plugin shows SpamFireWall page. SpamFireWall page active for 30 second after that valid visitor (with JavaScript) passes the page to the demanded page of the site.', 'cleantalk-spam-protect'),
 				),
 				'wp__dashboard_widget__show' => array(
 					'type'        => 'checkbox',
