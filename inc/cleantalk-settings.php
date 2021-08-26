@@ -432,7 +432,6 @@ function apbct_settings__set_fileds( ){
 		),
 
 		// SFW features
-		// Admin bar
 		'sfw_features' => array(
 			'title'          => __('SFW features', 'cleantalk-spam-protect'),
 			'default_params' => array(),
@@ -440,6 +439,18 @@ function apbct_settings__set_fileds( ){
 			'html_before'    => '',
 			'html_after'     => '',
 			'fields'         => array(
+				'sfw__random_get' => array(
+					'type'        => 'radio',
+					'options' => array(
+						array('val' => 1, 'label'  => __('On'),  ),
+						array('val' => 0, 'label'  => __('Off'), ),
+						array('val' => -1, 'label' => __('Auto'),),
+					),
+					'title'       => __('Uniq GET option', 'cleantalk-spam-protect'),
+					'class'       => 'apbct_settings-field_wrapper',
+					'parent'      => 'sfw__enabled',
+					'description' => __('Set uniq GET option for SpamFireWall.', 'cleantalk-spam-protect'),
+				),
 				'sfw__anti_crawler' => array(
 					'type'        => 'checkbox',
 					'title'       => __('Anti-Crawler', 'cleantalk-spam-protect') . $additional_ac_title,

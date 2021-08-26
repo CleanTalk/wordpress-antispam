@@ -417,6 +417,8 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 			'_apbct_ajax_url'   => APBCT_URL_PATH . '/lib/Cleantalk/ApbctWP/Ajax.php',
 			'data__set_cookies' => $apbct->settings['data__set_cookies'],
 			'data__set_cookies__alt_sessions_type' => $apbct->settings['data__set_cookies__alt_sessions_type'],
+			'sfw__random_get' => $apbct->settings['sfw__random_get'] === '1' ||
+			                     ( $apbct->settings['sfw__random_get'] === '-1' && apbct_is_cache_plugins_exists() )
 		);
 
 		$js_jquery_url = includes_url() . 'js/jquery/jquery.min.js';

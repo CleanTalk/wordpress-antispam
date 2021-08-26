@@ -239,8 +239,12 @@
 		}, 2500 );
 
 		if(location.search.search('debug=1') === -1) {
+			var apbctSfwRandomGet = '';
+			if( +ctPublicFunctions.sfw__random_get ) {
+				apbctSfwRandomGet = '?sfw=pass' + Math.round(ct_date.getTime()/1000);
+			}
 			setTimeout(function(){
-				window.location.href = window.location.origin + window.location.pathname + '?sfw=pass' + Math.round(ct_date.getTime()/1000);
+				window.location.href = window.location.origin + window.location.pathname + apbctSfwRandomGet;
 			}, reload_timeout);
 		}
 
