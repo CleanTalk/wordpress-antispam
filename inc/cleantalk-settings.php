@@ -433,7 +433,7 @@ function apbct_settings__set_fileds( ){
 
 		// SFW features
 		'sfw_features' => array(
-			'title'          => __('SFW features', 'cleantalk-spam-protect'),
+			'title'          => __('SpamFireWall features', 'cleantalk-spam-protect'),
 			'default_params' => array(),
 			'description'    => '',
 			'html_before'    => '',
@@ -449,7 +449,7 @@ function apbct_settings__set_fileds( ){
 					'title'       => __('Uniq GET option', 'cleantalk-spam-protect'),
 					'class'       => 'apbct_settings-field_wrapper',
 					'parent'      => 'sfw__enabled',
-					'description' => __('Set uniq GET option for SpamFireWall.', 'cleantalk-spam-protect'),
+					'description' => __('If a visitor gets the SpamFireWall page, the plugin will put a unique GET variable in the URL to avoid issues with caching plugins. Example: https://SITE.COM/?sfw=pass1629985735', 'cleantalk-spam-protect'),
 				),
 				'sfw__anti_crawler' => array(
 					'type'        => 'checkbox',
