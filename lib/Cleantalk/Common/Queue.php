@@ -10,8 +10,19 @@ abstract class Queue {
 
 	public $queue;
 
+	private $unstarted_stage;
+
+	/**
+	 * Process identifier
+	 *
+	 * @var int
+	 */
+	private $pid;
+
 	public function __construct()
 	{
+		$this->pid = mt_rand( 0, mt_getrandmax() );
+
 		$queue = $this->getQueue();
 		if( $queue !== false && isset( $queue['stages'] ) ) {
 			$this->queue = $queue;
@@ -27,6 +38,16 @@ abstract class Queue {
 	abstract public function getQueue();
 
 	abstract public function saveQueue( $queue );
+
+	/**
+	 * Refreshes the $this->queue from the DB
+	 *
+	 * @return void
+	 */
+	public function refreshQueue()
+	{
+		$this->queue = $this->getQueue();
+	}
     
     /**
      * @param string $stage_name
@@ -38,7 +59,8 @@ abstract class Queue {
 			'name' => $stage_name,
 			'status'  => 'NULL',
 			'tries'   => '0',
-			'args'    => $args
+			'args'    => $args,
+			'pid'    => null,
 		);
 		$this->saveQueue( $this->queue );
 	}
@@ -46,98 +68,117 @@ abstract class Queue {
 	public function executeStage()
 	{
 	    global $apbct;
-	    
-		if( count( $this->queue['stages'] ) > 0 ) {
-			foreach ( $this->queue['stages'] as & $stage ) {
-				if( ( $stage['status'] === 'NULL' ) ) {
 
-					$stage['status'] = 'IN_PROGRESS';
+		$stage_to_execute = null;
 
-					if( is_callable( $stage['name'] ) ) {
+		if( $this->hasUnstartedStages() ){
 
-						++$stage['tries'];
+			$this->queue['stages'][ $this->unstarted_stage ]['status'] = 'IN_PROGRESS';
+			$this->queue['stages'][ $this->unstarted_stage ]['pid']    = $this->pid;
 
-						if( ! empty( $stage['args'] ) ) {
-							$result = $stage['name']( $stage['args'] );
-						} else {
-							$result = $stage['name']();
-						}
+			$this->saveQueue( $this->queue );
 
-						if( isset( $result['error'] ) ) {
-							$stage['status'] = 'NULL';
-							if( isset( $result['update_args']['args'] ) ) {
-								$stage['args'] = $result['update_args']['args'];
-							}
-							$this->saveQueue( $this->queue );
-							if( $stage['tries'] >= 3 ) {
-								$stage['status'] = 'FINISHED';
-								$stage['error'] = $result['error'];
-								$this->saveQueue( $this->queue );
-								return $result;
-							}
-							return \Cleantalk\ApbctWP\Helper::http__request__rc_to_host(
-								'sfw_update__worker',
-								array(
-								    'firewall_updating_id' => $apbct->fw_stats['firewall_updating_id'],
-                                    'stage' => 'Repeat ' . $stage['name']
-                                ),
-								array( 'async' )
-							);
-						}
+			usleep( 1000 );
 
-						if( isset( $result['next_stage'] ) ) {
-							$this->addStage(
-								$result['next_stage']['name'],
-								isset( $result['next_stage']['args'] ) ? $result['next_stage']['args'] : array()
-							);
-						}
+			$this->refreshQueue();
 
-						if( isset( $result['next_stages'] ) && count( $result['next_stages'] ) ) {
-							foreach( $result['next_stages'] as $next_stage ) {
-								$this->addStage(
-									$next_stage['name'],
-									isset( $next_stage['args'] ) ? $next_stage['args'] : array()
-								);
-							}
-						}
+			if( $this->queue['stages'][ $this->unstarted_stage ]['pid'] !== $this->pid ){
+				return true;
+			}
 
-						$stage['status'] = 'FINISHED';
-						$this->saveQueue( $this->queue );
+			$stage_to_execute = &$this->queue['stages'][ $this->unstarted_stage ];
+		}
 
-						return $result;
+		if( $stage_to_execute ) {
 
-					}
+			if( is_callable( $stage_to_execute['name'] ) ) {
 
-					return array( 'error' => $stage['name'] . ' is not a callable function.' );
+				++$stage_to_execute['tries'];
 
+				if( ! empty( $stage_to_execute['args'] ) ) {
+					$result = $stage_to_execute['name']( $stage_to_execute['args'] );
+				} else {
+					$result = $stage_to_execute['name']();
 				}
-			} unset( $stage );
+
+				if( isset( $result['error'] ) ) {
+					$stage_to_execute['status'] = 'NULL';
+					if( isset( $result['update_args']['args'] ) ) {
+						$stage_to_execute['args'] = $result['update_args']['args'];
+					}
+					$this->saveQueue( $this->queue );
+					if( $stage_to_execute['tries'] >= 3 ) {
+						$stage_to_execute['status'] = 'FINISHED';
+						$stage_to_execute['error'] = $result['error'];
+						$this->saveQueue( $this->queue );
+						return $result;
+					}
+					return \Cleantalk\ApbctWP\Helper::http__request__rc_to_host(
+						'sfw_update__worker',
+						array(
+						    'firewall_updating_id' => $apbct->fw_stats['firewall_updating_id'],
+                            'stage' => 'Repeat ' . $stage_to_execute['name']
+                        ),
+						array( 'async' )
+					);
+				}
+
+				if( isset( $result['next_stage'] ) ) {
+					$this->addStage(
+						$result['next_stage']['name'],
+						isset( $result['next_stage']['args'] ) ? $result['next_stage']['args'] : array()
+					);
+				}
+
+				if( isset( $result['next_stages'] ) && count( $result['next_stages'] ) ) {
+					foreach( $result['next_stages'] as $next_stage ) {
+						$this->addStage(
+							$next_stage['name'],
+							isset( $next_stage['args'] ) ? $next_stage['args'] : array()
+						);
+					}
+				}
+
+				$stage_to_execute['status'] = 'FINISHED';
+				$this->saveQueue( $this->queue );
+
+				return $result;
+
+			}
+
+			return array( 'error' => $stage_to_execute['name'] . ' is not a callable function.' );
+
 		}
 	}
 
 	public function isQueueInProgress()
 	{
-		if( count( $this->queue['stages'] ) > 0 ) {
-			foreach ( $this->queue['stages'] as $stage ) {
-				if( $stage['status'] === 'FINISHED' ) {
-					continue;
-				}
-				return true;
-			}
-		}
-		return false;
+		return
+			count( $this->queue['stages'] ) &&
+			(
+				in_array( 'NULL', array_column( $this->queue['stages'], 'status' ), true ) ||
+				in_array( 'IN_PROGRESS', array_column( $this->queue['stages'], 'status' ), true )
+			);
 	}
 
 	public function isQueueFinished()
 	{
-		if( count( $this->queue['stages'] ) > 0 ) {
-			foreach ( $this->queue['stages'] as $stage ) {
-				if( $stage['status'] !== 'FINISHED' ) {
-					return false;
-				}
-			}
+		return ! $this->isQueueInProgress();
+	}
+
+	/**
+	 * Checks if the queue is over
+	 *
+	 * @return bool
+	 */
+	public function hasUnstartedStages()
+	{
+		if( count( $this->queue['stages'] ) > 0 ){
+			$this->unstarted_stage = array_search('NULL', array_column( $this->queue['stages'], 'status' ), true );
+			return is_int( $this->unstarted_stage );
 		}
-		return true;
+
+		return false;
 	}
 
 }
