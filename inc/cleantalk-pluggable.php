@@ -608,6 +608,10 @@ function apbct_is_skip_request( $ajax = false ) {
 	    {
 		    return 'w2dc_skipped';
 	    }
+        //SiteOrigin pagebuilder skip save
+        if ( apbct_is_plugin_active('siteorigin-panels/siteorigin-panels.php') && Post::get('action') === 'save-widget') {
+            return 'SiteOrigin pagebuilder';
+        }
     } else {
 
         /*****************************************/
