@@ -438,6 +438,8 @@ class State
 		$this->$option_name = is_array( $option )
 			? new ArrayObject($option)
 			: $option;
+			
+		return $option;
 	}
 	
 	/**
@@ -657,8 +659,7 @@ class State
 		// Otherwise try to get it from db settings table
 		// it will be arrayObject || scalar || null
 		}else{
-			$this->getOption($name);
-			return $this->storage[$name];
+			return $this->getOption($name);
 		}
 		
 	}
