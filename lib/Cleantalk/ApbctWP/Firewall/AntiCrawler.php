@@ -103,12 +103,14 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 						    if( ! empty( $values ) ){
 							    $query = $query . implode( ',', $values ) . ';';
 							    \Cleantalk\ApbctWP\DB::getInstance()->execute( $query );
-							    if( file_exists( $file_path_ua ) ) {
-								    unlink($file_path_ua);
-							    }
 						    }
 
 					    }
+
+					    if( file_exists( $file_path_ua ) ) {
+						    unlink($file_path_ua);
+					    }
+
 					    return $count_result;
 				    }else {
 					    return $result__clear_db;
