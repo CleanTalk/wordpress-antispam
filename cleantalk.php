@@ -743,7 +743,7 @@ function apbct_sfw_update__init( $delay = 0 ){
  *
  * @return array|bool|int|string|string[]
  */
-function apbct_sfw_update__worker() {
+function apbct_sfw_update__worker( $checker_work = false ) {
 
     global $apbct;
 
@@ -754,8 +754,9 @@ function apbct_sfw_update__worker() {
     }
     
     if(
-        Get::equal( 'firewall_updating_id', '' ) ||
-      ! Get::equal( 'firewall_updating_id', $apbct->fw_stats['firewall_updating_id'] )
+	    ! $checker_work &&
+	    ( Get::equal( 'firewall_updating_id', '' ) ||
+        ! Get::equal( 'firewall_updating_id', $apbct->fw_stats['firewall_updating_id'] ) )
     ){
         return 'SFW UPDATE WORKER: WRONG_UPDATE_ID';
     }
@@ -1222,7 +1223,7 @@ function apbct_sfw_update__checker() {
 	if( count( $queue->queue['stages'] ) ) {
 		foreach( $queue->queue['stages'] as $stage ) {
 			if ( $stage['status'] === 'NULL' ) {
-				return apbct_sfw_update__worker();
+				return apbct_sfw_update__worker( true );
 			}
 		}
 	}
