@@ -578,6 +578,12 @@ If your website has forms that send data to external sources, you can enable opt
 
 == Changelog ==
 
+= 5.160.2 Aug 26 2021 =
+ * Fix. Pixel. Auto mode fixed.
+
+= 5.160.1 Aug 6 2021 =
+ * Fix: SpamFirewall update.
+
 = 5.160 Jul 29 2021 =
  * New: SFW. SFW alternative cookie implemented.
  * New: SFW. AC alternative cookie implemented.
