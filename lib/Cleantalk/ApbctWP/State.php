@@ -659,7 +659,8 @@ class State
 		// Otherwise try to get it from db settings table
 		// it will be arrayObject || scalar || null
 		}else{
-			return $this->getOption($name);
+	        $option = $this->getOption($name);
+			return $option;
 		}
 		
 	}
