@@ -34,6 +34,7 @@ No CAPTCHA, no questions, no animal counting, no puzzles, no math and no spam bo
 18. Disable comments.
 19. Spam FireWall: Anti-Flood
 20. Spam FireWall: Anti-Crawler
+21. Hide «Website» field for comments
 
 = Public reviews =
 > CleanTalk - Cloud-Based Anti-Spam Service to Keep Your Site Bot-Free.
@@ -96,6 +97,10 @@ IP/email address list. This option helps to strengthen the spam protection from 
 = Private black list for Spam FireWall =
 It allows you to add individual IP addresses and subnets to Spam FireWall. It
 blocks the spam attacks from IP addresses which are not included in the SFW base yet. This option can help to block HTTP/HTTPS DDoS, SQL, brute force attacks and any others that made it through the HTTP/HTTPS. You can add not only the certain IP addresses, but also a separate subnet to your personal black list.
+
+= Hide «Website» field for comments =
+This option hides the «Website» field from standard WordPress comments forms. After that spammers won't be able to send spam links using «Website» field in the bottom of the comments form.
+This option is disabled by default and can be enabled in plugin Settings in your WordPress dashboard.
 
 = Low false/positive rate =
 This plugin uses multiple anti-spam tests to filter spam bots having as low false/positive rate as possible. Multiple anti-spam tests help to avoid false/positive blocks of the real website visitors even if one of the tests failed.
