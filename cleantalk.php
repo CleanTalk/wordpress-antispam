@@ -146,7 +146,7 @@ $ct_cron = new Cron();
 $tasks_to_run = $ct_cron->checkTasks(); // Check for current tasks. Drop tasks inner counters.
 if(
     $tasks_to_run && // There is tasks to run
-    ! RemoteCalls::check() && // Do not doing CRON in remote call action
+    ! RemoteCalls::check() && // Do not do CRON in remote call action
     (
         ! defined( 'DOING_CRON' ) ||
         ( defined( 'DOING_CRON' ) && DOING_CRON !== true )
