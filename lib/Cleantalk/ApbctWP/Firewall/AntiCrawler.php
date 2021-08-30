@@ -92,7 +92,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 							    $ua_template  = isset($entry[1]) && apbct_is_regexp($entry[1]) ? Helper::db__prepare_param( $entry[1] ) : 0;
 							    $ua_status    = isset($entry[2]) ? $entry[2] : 0;
 
-							    if( ! $ua_id || ! $ua_template ){
+							    if( ! $ua_template ){
 								    continue;
 							    }
 
