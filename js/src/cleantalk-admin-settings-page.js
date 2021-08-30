@@ -324,8 +324,6 @@ function apbctSettingsDependencies(ids, enable){
 
 	elems.forEach(function(elem, i, arr){
 
-		console.log( elem.getAttribute('id') );
-
 		var do_disable = function(){elem.setAttribute('disabled', 'disabled');},
 			do_enable  = function(){elem.removeAttribute('disabled');};
 
