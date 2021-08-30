@@ -610,6 +610,14 @@ If your website has forms that send data to external sources, you can enable opt
  * Fix: Integration. WPForms names gathering fixed.
  * Fix: SFW. Min update interval decreased to 14400 seconds.
  * Fix: Integration. WPForms names gathering fixed.
+ * Fix: Cleantalk.php. dns_get_record() error handling.
+ * Fix: Search form integration. PHP Notice.
+ * Fix: Default value for "Alternative Cookie Type" setting.
+ * Fix: SpamFirewall. Omit SFW_IS_DISABLED error.
+ * Fix: SpamFirewall. Updating percent output.
+ * Fix. Settings templates. Sync after template loading.
+ * Fix. SFW. Updating process percents fixed.
+ * Fix. Antispam. All headers parameter fixed.
 
 = 5.159.9 Jul 15 2021 =
  * Fix. SFW. Updating cooldown increased up to 15 min.
