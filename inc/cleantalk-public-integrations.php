@@ -2403,6 +2403,7 @@ function apbct_form__gravityForms__testSpam($is_spam, $form, $entry) {
 	global $apbct, $cleantalk_executed, $ct_gform_is_spam, $ct_gform_response;
 
 	if (
+		$is_spam ||
 		$apbct->settings['forms__contact_forms_test'] == 0 ||
 		$cleantalk_executed // Return unchanged result if the submission was already tested.
 	) {
@@ -2500,6 +2501,7 @@ function apbct_form__gravityForms__testSpam($is_spam, $form, $entry) {
 		$is_spam = true;
 		$ct_gform_is_spam = true;
 		$ct_gform_response = $ct_result->comment;
+		add_action( 'gform_entry_created', 'apbct_form__gravityForms__add_entry_note' );
 	}
 
 	return $is_spam;
@@ -2514,6 +2516,19 @@ function apbct_form__gravityForms__showResponse( $confirmation, $form, $_entry, 
 	}
 
 	return $confirmation;
+}
+
+/**
+ * Adds a note to the entry once the spam status is set (GF 2.4.18+).
+ *
+ * @param array $entry The entry that was created.
+ */
+function apbct_form__gravityForms__add_entry_note( $entry ) {
+	if ( rgar( $entry, 'status' ) !== 'spam' || ! method_exists( 'GFAPI', 'add_note' ) ) {
+		return;
+	}
+
+	GFAPI::add_note( $entry['id'], 0, 'CleanTalk', __( 'This entry has been marked as spam.', 'cleantalk-spam-protect' ), 'cleantalk', 'success' );
 }
 
 /**
