@@ -627,8 +627,8 @@ class Helper
 					
 					// Make a request, don't wait for an answer
 					case 'async':
-						$opts[CURLOPT_CONNECTTIMEOUT_MS] = 1000;
-						$opts[CURLOPT_TIMEOUT_MS] = 1000;
+						$opts[CURLOPT_CONNECTTIMEOUT_MS] = 2000;
+						$opts[CURLOPT_TIMEOUT_MS] = 2000;
 						break;
 					
 					case 'get':
