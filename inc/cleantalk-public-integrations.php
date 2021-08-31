@@ -2522,6 +2522,8 @@ function apbct_form__gravityForms__showResponse( $confirmation, $form, $_entry, 
  * Adds a note to the entry once the spam status is set (GF 2.4.18+).
  *
  * @param array $entry The entry that was created.
+ * @psalm-suppress UndefinedClass
+ * @psalm-suppress UndefinedFunction
  */
 function apbct_form__gravityForms__add_entry_note( $entry ) {
 	if ( rgar( $entry, 'status' ) !== 'spam' || ! method_exists( 'GFAPI', 'add_note' ) ) {
