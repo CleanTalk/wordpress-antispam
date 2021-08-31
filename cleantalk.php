@@ -752,14 +752,15 @@ function apbct_sfw_update__worker( $checker_work = false ) {
     if( ! $apbct->data['key_is_ok'] ){
         return array( 'error' => 'Worker: KEY_IS_NOT_VALID' );
     }
-    
-    if(
-	    ! $checker_work &&
-	    ( Get::equal( 'firewall_updating_id', '' ) ||
-        ! Get::equal( 'firewall_updating_id', $apbct->fw_stats['firewall_updating_id'] ) )
-    ){
-        return 'SFW UPDATE WORKER: WRONG_UPDATE_ID';
-    }
+
+	if( ! $checker_work ){
+		if(
+			Get::equal( 'firewall_updating_id', '' ) ||
+			! Get::equal( 'firewall_updating_id', $apbct->fw_stats['firewall_updating_id'] )
+		){
+			return array( 'error' => 'Worker: WRONG_UPDATE_ID' );
+		}
+	}
     
     if( ! isset( $apbct->fw_stats['calls'] ) ){
         $apbct->fw_stats['calls'] = 0;
