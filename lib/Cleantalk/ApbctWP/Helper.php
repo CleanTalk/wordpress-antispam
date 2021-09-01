@@ -198,7 +198,7 @@ class Helper extends \Cleantalk\Common\Helper
             }else
                 return array( 'error' => 'Getting datafile ' . $url . '. Error: '. $data['error'] );
         }else
-            return array( 'error' => 'Bad HTTP response from file location: ' . $url );
+            return array( 'error' => 'Bad HTTP response (' . (int) $response_code . ') from file location: ' . $url );
     }
     
     /**
