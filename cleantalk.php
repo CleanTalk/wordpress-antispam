@@ -2254,16 +2254,7 @@ function apbct_update__set_version__from_plugin($ver){
 function apbct_test_connection(){
     
     $out = array();
-    $url_to_test = array(
-        'https://apix1.cleantalk.org',
-        'https://apix2.cleantalk.org',
-        'https://apix3.cleantalk.org',
-        'https://apix4.cleantalk.org',
-        'https://apix5.cleantalk.org',
-        'https://apix6.cleantalk.org',
-        'https://apix7.cleantalk.org',
-        'https://apix8.cleantalk.org',
-    );
+    $url_to_test = array_keys( \Cleantalk\Common\Helper::$cleantalks_servers );
     
     foreach($url_to_test as $url){
         
