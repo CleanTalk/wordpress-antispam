@@ -612,6 +612,10 @@ function apbct_is_skip_request( $ajax = false ) {
         if ( apbct_is_plugin_active('siteorigin-panels/siteorigin-panels.php') && Post::get('action') === 'save-widget') {
             return 'SiteOrigin pagebuilder';
         }
+        //Skip classfields email check
+        if ( apbct_is_theme_active('Classfields') && Post::get('action') === 'tmpl_ajax_check_user_email') {
+            return 'ClassFields checkemail';
+        }
     } else {
 
         /*****************************************/
