@@ -611,7 +611,7 @@ function apbct_is_skip_request( $ajax = false ) {
 		    return 'w2dc_skipped';
 	    }
         if ( apbct_is_plugin_active( 'elementor/elementor.php' ) &&
-            isset( $_POST['actions_save_builder_action'] ) && 
+            isset( $_POST['actions_save_builder_action'] ) &&
             $_POST['actions_save_builder_action'] === 'save_builder' &&
             is_admin() ) {
             return 'elementor_skip';
@@ -622,6 +622,14 @@ function apbct_is_skip_request( $ajax = false ) {
 	    {
 		    return 'Enfold_theme_saving_settings';
 	    }
+        //SiteOrigin pagebuilder skip save
+        if ( apbct_is_plugin_active('siteorigin-panels/siteorigin-panels.php') && Post::get('action') === 'save-widget') {
+            return 'SiteOrigin pagebuilder';
+        }
+        //Skip classfields email check
+        if ( apbct_is_theme_active('Classfields') && Post::get('action') === 'tmpl_ajax_check_user_email') {
+            return 'ClassFields checkemail';
+        }
     } else {
 
         /*****************************************/
