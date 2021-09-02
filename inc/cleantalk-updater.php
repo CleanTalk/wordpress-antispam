@@ -1300,6 +1300,11 @@ function apbct_update_to_5_159_9() {
  */
 function apbct_update_to_5_161_0() {
 
+	global $apbct;
+
+	$apbct->settings['sfw__random_get'] = '1';
+	$apbct->saveSettings();
+
 	apbct_remove_upd_folder( APBCT_DIR_PATH . '/fw_files' );
 
 }

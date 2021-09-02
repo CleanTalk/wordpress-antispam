@@ -69,7 +69,7 @@ class State
         'sfw__anti_flood__view_limit'    => 20,
         'sfw__anti_crawler'              => 0,
         'sfw__use_delete_to_clear_table' => 0,
-        'sfw__random_get'                => 0,
+        'sfw__random_get'                => -1,
 
 		// Forms for protection
         'forms__registrations_test'      => 1,
