@@ -1181,6 +1181,9 @@ function apbct_sfw_update__end_of_update() {
     $apbct->fw_stats['failed_update_attempt']   = false;
     $apbct->fw_stats['expected_networks_count'] = false;
 
+	apbct_remove_upd_folder( $apbct->fw_stats['updating_folder'] );
+	apbct_remove_upd_folder( APBCT_DIR_PATH . '/fw_files' );
+
     $apbct->save( 'fw_stats' );
 
 	return true;
@@ -1217,6 +1220,26 @@ function apbct_prepare_upd_dir() {
 		}
 	}
 	return (bool) file_put_contents( $dir_name . 'index.php', '<?php' );
+}
+
+function apbct_remove_upd_folder( $dir_name ) {
+
+	if( is_dir( $dir_name ) ) {
+
+		$files = glob( $dir_name . '/*' );
+
+		if( ! empty( $files ) ) {
+			foreach( $files as $file ){
+				if( is_file( $file ) ){
+					unlink( $file );
+				}
+			}
+		}
+
+		rmdir( $dir_name );
+
+	}
+
 }
 
 function apbct_sfw_update__checker() {
