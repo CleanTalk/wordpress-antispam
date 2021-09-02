@@ -1233,6 +1233,9 @@ function apbct_remove_upd_folder( $dir_name ) {
 				if( is_file( $file ) ){
 					unlink( $file );
 				}
+				if( is_dir( $file ) ) {
+					apbct_remove_upd_folder( $file );
+				}
 			}
 		}
 
