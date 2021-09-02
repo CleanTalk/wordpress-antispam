@@ -911,10 +911,10 @@ class API
 	{
 		// Errors handling
 		// Bad connection
-		if(is_array($result) && isset($result['error'])){
+		if(is_array($result)) {
 			$last = error_get_last();
 
-			return ! empty( $result['error'] )
+			return ( isset($result['error']) && !empty( $result['error'] ) )
 				? array( 'error' => 'CONNECTION_ERROR : "' . $result['error'] . '"' )
 				: array( 'error' => 'CONNECTION_ERROR : "Unknown Error. Last error: ' . $last['message'] );
 		}
