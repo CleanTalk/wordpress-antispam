@@ -1182,7 +1182,6 @@ function apbct_sfw_update__end_of_update() {
     $apbct->fw_stats['expected_networks_count'] = false;
 
 	apbct_remove_upd_folder( $apbct->fw_stats['updating_folder'] );
-	apbct_remove_upd_folder( APBCT_DIR_PATH . '/fw_files' );
 
     $apbct->save( 'fw_stats' );
 

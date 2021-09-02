@@ -1294,3 +1294,12 @@ function apbct_update_to_5_159_9() {
 	$cron = new Cron();
 	$cron->addTask('rotate_moderate',       'apbct_rotate_moderate',          86400, time() + 3500); // Rotate moderate server
 }
+
+/**
+ * @return  void
+ */
+function apbct_update_to_5_161_0() {
+
+	apbct_remove_upd_folder( APBCT_DIR_PATH . '/fw_files' );
+
+}
