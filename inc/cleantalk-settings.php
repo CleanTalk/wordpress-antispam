@@ -1390,9 +1390,6 @@ function apbct_settings__field__draw($params = array()){
 				echo isset($params['title'])
 					? '<h4 class="apbct_settings-field_title apbct_settings-field_title--'.$params['type'].'">'.$params['title'].'</h4>'
 					: '';
-				echo isset($params['long_description'])
-					? '<i setting="'.$params['name'].'" class="apbct_settings-long_description---show icon-help-circled"></i>'
-					: '';
 				echo '<select'
 				    . ' id="apbct_setting_'.$params['name'].'"'
 					. " class='apbct_setting_{$params['type']} apbct_setting---{$params['name']}'"
