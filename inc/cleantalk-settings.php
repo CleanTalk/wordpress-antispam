@@ -562,11 +562,42 @@ function apbct_settings__set_fileds__network( $fields ){
 				.'<div id="apbct_settings__dwpms_settings" style="display: none;">',
 			'html_after'     => '</div><br>',
 			'fields' => array(
+				'multisite__work_mode' => array(
+					'type'       => 'select',
+					'options' => array(
+						array( 'val' => 1, 'label' => __('Mutual Account, Individual Access Keys', 'cleantalk-spam-protect'), 'children_enable' => 1, ),
+						array( 'val' => 2, 'label' => __('Mutual Account, Mutual Access Key', 'cleantalk-spam-protect'), 'children_enable' => 0, ),
+						array( 'val' => 3, 'label' => __('Individual accounts, individual Access keys', 'cleantalk-spam-protect'), 'children_enable' => 0, ),
+					),
+					'title'            => __( 'Wordpress Multisite Work Mode', 'cleantalk-spam-protect' ),
+					'description'      => __( 'You can choose the work mode here for the child blogs and how they will operate with the CleanTalk Cloud. Press "?" for the detailed description.', 'cleantalk-spam-protect' ),
+					'long_description' => true,
+					'display'          => APBCT_WPMS && is_main_site(),
+					'childrens'        => array( 'multisite__hoster_api_key' ),
+					'network'          => true,
+				),
+				'multisite__hoster_api_key'   => array(
+					'type'             => 'text',
+					'required'         => true,
+					'title'            => __( 'Hoster API key', 'cleantalk-spam-protect' ),
+					'description'      => __( 'Another API key allowing you to hold multiple blogs on an account.', 'cleantalk-spam-protect' ),
+					'class'            => 'apbct_settings-field_wrapper--sub',
+					'long_description' => true,
+					'display'          => APBCT_WPMS && is_main_site(),
+					'disabled'         => ! isset( $apbct->network_settings['multisite__work_mode'] ) || $apbct->network_settings['multisite__work_mode'] != 1,
+					'parent'           => 'multisite__work_mode',
+					'network'          => true,
+				),
+				'multisite__service_utilization' => array(
+					'type'     => 'field',
+					'callback' => 'apbct_field_service_utilization',
+					'display'  => APBCT_WPMS && is_main_site() && $apbct->network_settings['multisite__work_mode'] == 1,
+				),
 				'multisite__white_label' => array(
 					'type' => 'checkbox',
 					'title' => __('Enable White Label Mode', 'cleantalk-spam-protect'),
 					'description' => sprintf(__("Learn more information %shere%s.", 'cleantalk-spam-protect'), '<a target="_blank" href="https://cleantalk.org/ru/help/hosting-white-label">', '</a>'),
-					'childrens' => array( 'multisite__white_label__plugin_name', 'multisite__allow_custom_key', ),
+					'childrens' => array( 'multisite__white_label__plugin_name' ),
 					'disabled' => defined('CLEANTALK_ACCESS_KEY'),
 					'network' => true,
 				),
@@ -576,22 +607,6 @@ function apbct_settings__set_fileds__network( $fields ){
 					'type' => 'text',
 					'parent' => 'multisite__white_label',
 					'class' => 'apbct_settings-field_wrapper--sub',
-					'network' => true,
-				),
-				'multisite__allow_custom_key' => array(
-					'type'           => 'checkbox',
-					'title'          => __('Allow users to use own key', 'cleantalk-spam-protect'),
-					'description'    => __('Allow users to use different Access key in their plugin settings on child blogs. They could use different CleanTalk account.', 'cleantalk-spam-protect')
-						. (defined('CLEANTALK_ACCESS_KEY')
-							? ' <span style="color: red">'
-							. __('Constant <b>CLEANTALK_ACCESS_KEY</b> is set. All websites will use API key from this constant. Look into wp-config.php', 'cleantalk-spam-protect')
-							. '<br>'
-							. __('You are not able to use white label mode while <b>CLEANTALK_ACCESS_KEY</b> is defined.', 'cleantalk-spam-protect')
-							. '</span>'
-							: ''
-						),
-					'display'        => APBCT_WPMS && is_main_site(),
-					'disabled'       => $apbct->network_settings['multisite__white_label'],
 					'network' => true,
 				),
 				'multisite__allow_custom_settings' => array(
@@ -795,7 +810,7 @@ function apbct_settings__display() {
 				// Sync button
 				echo '<button type="button" class="cleantalk_link cleantalk_link-auto" id="apbct_button__sync" title="Synchronizing account status, SpamFireWall database, all kind of journals.">'
 				     . '<i class="icon-upload-cloud"></i>&nbsp;&nbsp;'
-				     . __( 'Synchronize with Cloud', 'security-malware-firewall' )
+				     . __( 'Synchronize with Cloud', 'cleantalk-spam-protect' )
 				     . '<img style="margin-left: 10px;" class="apbct_preloader_button" src="' . APBCT_URL_PATH . '/inc/images/preloader2.gif" />'
 				     . '<img style="margin-left: 10px;" class="apbct_success --hide" src="' . APBCT_URL_PATH . '/inc/images/yes.png" />'
 				     . '</button>';
@@ -1048,7 +1063,7 @@ function apbct_settings__field__apikey(){
 	
 		// Using key from Main site, or from CLEANTALK_ACCESS_KEY constant
 		if(APBCT_WPMS && !is_main_site() && (!$apbct->allow_custom_key || defined('CLEANTALK_ACCESS_KEY'))){
-			_e('<h3>Key is provided by Super Admin.</h3>', 'cleantalk-spam-protect');
+			_e('<h3>Access key is provided by network administrator</h3>', 'cleantalk-spam-protect');
 			return;
 		}
 		
@@ -1128,6 +1143,38 @@ function apbct_settings__field__apikey(){
 			}
 		}
 	
+	echo '</div>';
+}
+
+function apbct_field_service_utilization(){
+
+	global $apbct;
+
+	echo '<div class="apbct_wrapper_field">';
+
+	if( $apbct->services_count && $apbct->services_max && $apbct->services_utilization ){
+
+		echo sprintf(
+			__( 'Hoster account utilization: %s%% ( %s of %s websites ).', 'cleantalk-spam-protect' ),
+			$apbct->services_utilization * 100,
+			$apbct->services_count,
+			$apbct->services_max
+		);
+
+		// Link to the dashboard, so user could extend your subscription for more sites
+		if( $apbct->services_utilization * 100 >= 90 ){
+			echo '&nbsp';
+			echo sprintf(
+				__( 'You could extend your subscription %shere%s.', 'cleantalk-spam-protect' ),
+				'<a href="' . $apbct->dashboard_link . '" target="_blank">',
+				'</a>'
+			);
+		}
+
+	}else{
+		_e( 'Enter the Hoster API key and synchronize with cloud to find out your hoster account utilization.', 'cleantalk-spam-protect' );
+	}
+
 	echo '</div>';
 }
 
@@ -1399,6 +1446,10 @@ function apbct_settings__field__draw($params = array()){
 			        . ' name="cleantalk_settings['.$params['name'].']'.($params['multiple'] ? '[]"' : '"')
 			        . ($params['multiple'] ? ' size="'. count($params['options']). '""' : '')
 					. ($params['multiple'] ? ' multiple="multiple"' : '')
+				    . ( $params['childrens']
+						? ' onchange="apbctSettingsDependencies(\'' . $childrens . '\', jQuery(this).find(\'option:selected\').data(\'children_enable\'))"'
+						: ''
+				     )
 			        . $disabled
 					. ($params['required'] ? ' required="required"' : '')
 					. ' >';
@@ -1406,6 +1457,7 @@ function apbct_settings__field__draw($params = array()){
 					foreach($params['options'] as $option){
 						echo '<option'
 							. ' value="' . $option['val'] . '"'
+						    . (isset( $option['children_enable'] ) ? ' data-children_enable=' . $option['children_enable'] . ' ' : ' ')
 							. ($params['multiple']
 								? (!empty($value) && in_array($option['val'], $value) ? ' selected="selected"' : '')
 							    : ($value == $option['val']         ?  'selected="selected"' : '')
@@ -1564,9 +1616,8 @@ function apbct_settings__validate($settings) {
 	$settings['exclusions__fields'] = $result ? $result: '';
 	
 	// WPMS Logic.
-	if(APBCT_WPMS && is_main_site()){
+	if( APBCT_WPMS && is_main_site() ){
 		$network_settings = array(
-			'multisite__allow_custom_key'         => $settings['multisite__allow_custom_key'],
 			'multisite__allow_custom_settings'    => $settings['multisite__allow_custom_settings'],
 			'multisite__white_label'              => $settings['multisite__white_label'],
 			'multisite__white_label__plugin_name' => $settings['multisite__white_label__plugin_name'],
@@ -1575,7 +1626,17 @@ function apbct_settings__validate($settings) {
 			'multisite__use_settings_template_apply_for_current' => $settings['multisite__use_settings_template_apply_for_current'],
 			'multisite__use_settings_template_apply_for_current_list_sites' => $settings['multisite__use_settings_template_apply_for_current_list_sites'],
 		);
-		unset( $settings['multisite__allow_custom_key'], $settings['multisite__white_label'], $settings['multisite__white_label__plugin_name'] );
+		unset( $settings['multisite__white_label'], $settings['multisite__white_label__plugin_name'] );
+
+		if( isset( $settings['multisite__hoster_api_key'] ) ){
+			$network_settings['multisite__hoster_api_key'] = $settings['multisite__hoster_api_key'];
+			unset( $settings['multisite__hoster_api_key'] );
+		}
+
+		if( isset( $settings['multisite__work_mode'] ) ){
+			$network_settings['multisite__work_mode'] = $settings['multisite__work_mode'];
+			unset( $settings['multisite__work_mode'] );
+		}
 	}
 	
 	// Drop debug data
@@ -1699,6 +1760,13 @@ function apbct_settings__sync( $direct_call = false ){
 				'user_token'  => $apbct->data['user_token'],
 				'service_id'  => $apbct->data['service_id'],
 			);
+
+			if( $apbct->network_settings['multisite__work_mode'] == 1 ){
+				$apbct->data['services_count ']      = isset( $result['services_count'] )       ? $result['services_count'] : '';
+				$apbct->data['services_max']         = isset( $result['services_max'] )         ? $result['services_max'] : '';
+				$apbct->data['services_utilization'] = isset( $result['services_utilization'] ) ? $result['services_utilization'] : '';
+			}
+
 			$apbct->saveNetworkData();
 			if (isset($apbct->settings['multisite__use_settings_template_apply_for_current_list_sites']) && !empty($apbct->settings['multisite__use_settings_template_apply_for_current_list_sites'])) {
 				apbct_update_blogs_options( $apbct->settings );
@@ -1757,6 +1825,7 @@ function apbct_settings__get_key_auto( $direct_call = false ) {
 	$language       = apbct_get_server_variable( 'HTTP_ACCEPT_LANGUAGE' );
 	$wpms           = APBCT_WPMS && defined('SUBDOMAIN_INSTALL') && !SUBDOMAIN_INSTALL ? true : false;
 	$white_label    = $apbct->network_settings['multisite__white_label'] ? true : false;
+	$hoster_api_key = $apbct->network_settings['multisite__hoster_api_key'];
 	$admin_email    = get_option('admin_email');
 	if (function_exists('is_multisite') && is_multisite() && $apbct->white_label) { 
 		$admin_email = get_site_option( 'admin_email' ); 
@@ -1769,7 +1838,8 @@ function apbct_settings__get_key_auto( $direct_call = false ) {
 		$language,
 		$user_ip,
 		$wpms,
-		$white_label
+		$white_label,
+		$hoster_api_key
 	);
 
 	if(empty($result['error'])){
@@ -1913,20 +1983,23 @@ function apbct_settings__get__long_description(){
 	
 	check_ajax_referer('ct_secret_nonce' );
 	
-	$setting_id = $_POST['setting_id'] ? $_POST['setting_id'] : '';
+	$setting_id = $_POST['setting_id'] ?: '';
 	
 	$descriptions = array(
-		'multisite__white_label'              => array(
-			'title' => __( 'XSS check', 'cleantalk-spam-protect'),
-			'desc'  => __( 'Cross-Site Scripting (XSS) — prevents malicious code to be executed/sent to any user. As a result malicious scripts can not get access to the cookie files, session tokens and any other confidential information browsers use and store. Such scripts can even overwrite content of HTML pages. CleanTalk WAF monitors for patterns of these parameters and block them.', 'cleantalk-spam-protect'),
+		'multisite__work_mode' => array(
+			'title' => __( 'Wordpress Multisite Work Mode', 'cleantalk-spam-protect' ),
+			'desc'  => __(
+				'<h4>Mutual Account, Individual Access Keys</h4>'
+				. '<span>Each blog uses a separate key from the network administrator account. Each blog has its own separate security log, settings, personal lists. Key will be provided automatically to each blog once it is created or during the plugin activation process. The key could be changed only by the network administrator.</span>'
+				. '<h4>Mutual Account, Mutual Access Key</h4>'
+				. '<span>All blogs use one mutual key. They also share security logs, settings and personal lists with each other. Network administrator holds the key.</span>'
+				. '<h4>Individual accounts, individual Access keys</h4>'
+				. '<span>Each blog uses its own account and its own key. Separate security logs, settings, personal lists. Blog administrator can change the key on his own.</span>'
+				, 'cleantalk-spam-protect' )
 		),
-		'multisite__white_label__hoster_key'  => array(
-			'title' => __( 'SQL-injection check', 'cleantalk-spam-protect'),
-			'desc'  => __( 'SQL Injection — one of the most popular ways to hack websites and programs that work with databases. It is based on injection of a custom SQL code into database queries. It could transmit data through GET, POST requests or cookie files in an SQL code. If a website is vulnerable and execute such injections then it would allow attackers to apply changes to the website\'s MySQL database.', 'cleantalk-spam-protect'),
-		),
-		'multisite__white_label__plugin_name' => array(
-			'title' => __( 'Check uploaded files', 'cleantalk-spam-protect'),
-			'desc'  => __( 'The option checks each uploaded file to a website for malicious code. If it\'s possible for visitors to upload files to a website, for instance a work resume, then attackers could abuse it and upload an infected file to execute it later and get access to your website.', 'cleantalk-spam-protect'),
+		'multisite__hoster_api_key'             => array(
+			'title' => __( 'Hoster API key', 'cleantalk-spam-protect' ),
+			'desc'  => __( 'You could find it here:<br><a href ="https://cleantalk-screenshots.s3.amazonaws.com/help/hosting-antispam/hapi-ru.png"><img src="https://cleantalk-screenshots.s3.amazonaws.com/help/hosting-antispam/hapi-ru.png"></a><br>Press on the screenshot to zoom.', 'cleantalk-spam-protect' )
 		),
 	);
 	

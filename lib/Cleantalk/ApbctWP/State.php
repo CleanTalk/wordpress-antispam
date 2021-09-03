@@ -220,8 +220,9 @@ class State
 		
 		// Key
 		'apikey'                => '',
-		'multisite__allow_custom_key'      => 1,
 		'multisite__allow_custom_settings' => 1,
+		'multisite__work_mode'             => 1,
+		'multisite__hoster_api_key'        => '',
 		
 		// White label settings
 		'multisite__white_label'              => 0,
@@ -371,6 +372,32 @@ class State
             }
 			
 			$this->$option_name = is_array($option) ? new ArrayObject($option) : $option;
+
+			/* Adding some dynamic properties */
+
+			// Standalone or main site
+			$this->api_key = $this->settings['apikey'];
+			$this->dashboard_link = 'https://cleantalk.org/my/' . ( $this->user_token ? '?user_token=' . $this->user_token : '' );
+			$this->notice_show  = $this->notice_show || $this->errors;
+
+			// Network
+			if( ! is_main_site() ){
+
+				// Custom key allowed
+				if( $this->multisite__work_mode != 2 ){
+
+				// Mutual key
+				}elseif( $this->multisite__work_mode == 2 ){
+
+					$this->api_key        = $this->network_settings['apikey'];
+					$this->key_is_ok      = $this->network_data['key_is_ok'];
+					$this->user_token     = $this->network_data['user_token'];
+					$this->service_id     = $this->network_data['service_id'];
+					$this->moderate       = $this->network_data['moderate'];
+					$this->notice_show    = false;
+				}
+			}
+
 		}
 	}
 

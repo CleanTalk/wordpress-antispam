@@ -1307,4 +1307,9 @@ function apbct_update_to_5_161_0() {
 
 	apbct_remove_upd_folder( APBCT_DIR_PATH . '/fw_files' );
 
+	if( $apbct->is_multisite ){
+		$apbct->network_settings = array_merge( (array) $apbct->network_settings, $apbct->default_network_settings );
+		$apbct->save('network_settings');
+	}
+
 }
