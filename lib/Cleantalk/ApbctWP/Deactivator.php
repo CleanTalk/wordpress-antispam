@@ -58,22 +58,15 @@ class Deactivator {
 	/**
 	 * Delete all cleantalk_* entries from _options table
 	 */
-	public static function delete_all_options(){
-		delete_option('cleantalk_settings');
-		delete_option('cleantalk_data');
-		delete_option('cleantalk_cron');
-		delete_option('cleantalk_errors');
-		delete_option('cleantalk_remote_calls');
-		delete_option('cleantalk_server');
-		delete_option('cleantalk_stats');
-		delete_option('cleantalk_timelabel_reg');
-		delete_option('cleantalk_debug');
-		delete_option('cleantalk_plugin_request_ids');
-		delete_option('cleantalk_fw_stats');
-		delete_option( 'ct_plugin_do_activation_redirect' );
-		foreach( AdminNotices::NOTICES as $notice ) {
-			delete_option( 'cleantalk_' . $notice . '_dismissed' );
-		}
+	public static function delete_all_options() {
+	    global $wpdb;
+
+        $wild = '%';
+        $find = 'cleantalk';
+        $like = $wpdb->esc_like( $find ) . $wild;
+        $sql  = $wpdb->prepare( "DELETE FROM $wpdb->options WHERE option_name LIKE %s", $like );
+
+        $wpdb->query($sql);
 	}
 
 	/**
