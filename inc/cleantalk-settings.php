@@ -580,7 +580,7 @@ function apbct_settings__set_fileds__network( $fields ){
 					'type'             => 'text',
 					'required'         => true,
 					'title'            => __( 'Hoster API key', 'cleantalk-spam-protect' ),
-					'description'      => __( 'Another API key allowing you to hold multiple blogs on an account.', 'cleantalk-spam-protect' ),
+					'description'      => sprintf( __( 'Copy the key from your %sCleantalk Profile%s', 'cleantalk-spam-protect' ), '<a href="https://cleantalk.org/my/profile#api_keys" target="_blank">', '</a>' ),
 					'class'            => 'apbct_settings-field_wrapper--sub',
 					'long_description' => true,
 					'display'          => APBCT_WPMS && is_main_site(),
