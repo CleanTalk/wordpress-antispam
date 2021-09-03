@@ -676,12 +676,14 @@ class State
     {
 		// First check in storage
         if (isset($this->storage[$name])){
-            return $this->storage[$name];
+			$option = $this->storage[$name];
+	        return $option;
 	        
 		// Then in data
         }elseif(isset($this->storage['data'][$name])){
 			$this->$name = $this->storage['data'][$name];
-			return $this->storage['data'][$name];
+			$option = $this->storage['data'][$name];
+	        return $option;
 			
 		// Otherwise try to get it from db settings table
 		// it will be arrayObject || scalar || null
