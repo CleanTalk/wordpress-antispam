@@ -1299,7 +1299,7 @@ function apbct_update_to_5_159_9() {
 /**
  * @return  void
  */
-function apbct_update_to_5_161_0() {
+function apbct_update_to_5_160_4() {
 
 	global $apbct;
 
