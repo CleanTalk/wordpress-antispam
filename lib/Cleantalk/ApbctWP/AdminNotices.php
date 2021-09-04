@@ -223,7 +223,7 @@ class AdminNotices {
 	{
 	    $notice_date_option = get_option( 'cleantalk_' . $notice_uid . '_dismissed' );
 
-	    if( $notice_date_option !== false ) {
+	    if( $notice_date_option !== false && \Cleantalk\Common\Helper::dateValidate($notice_date_option)) {
             $current_date = date_create();
             $notice_date = date_create( get_option( 'cleantalk_' . $notice_uid . '_dismissed' ) );
 
