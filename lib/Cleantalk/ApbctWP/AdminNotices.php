@@ -223,13 +223,13 @@ class AdminNotices {
 	{
 	    $notice_date_option = get_option( 'cleantalk_' . $notice_uid . '_dismissed' );
 
-	    if($notice_date_option) {
+	    if( $notice_date_option !== false ) {
             $current_date = date_create();
-            $notice_date = date_create(get_option( 'cleantalk_' . $notice_uid . '_dismissed' ));
+            $notice_date = date_create( get_option( 'cleantalk_' . $notice_uid . '_dismissed' ) );
 
-            $diff = date_diff($current_date, $notice_date);
+            $diff = date_diff( $current_date, $notice_date );
 
-            if($diff->days <= self::DAYS_INTERVAL_HIDING_NOTICE) {
+            if( $diff->days <= self::DAYS_INTERVAL_HIDING_NOTICE ) {
                 return true;
             }
         }
