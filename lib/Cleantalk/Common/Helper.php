@@ -1110,8 +1110,8 @@ class Helper
 	public static function dateValidate($date) {
         $date_arr  = explode('-', $date);
 
-        if(is_array($date_arr) && count($date_arr) === 3) {
-            if (checkdate($date_arr[1], $date_arr[2], $date_arr[0])) {
+        if(count($date_arr) === 3) {
+            if (checkdate((int)$date_arr[1], (int)$date_arr[2], (int)$date_arr[0])) {
                 return true;
             }
         }
