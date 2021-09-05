@@ -2583,14 +2583,14 @@ function apbct_form__the7_contact_form() {
 		$sender_email    = $ct_temp_msg_data['email'] ?: '';
 		$sender_nickname = $ct_temp_msg_data['nickname'] ?: '';
 		$subject         = $ct_temp_msg_data['subject'] ?: '';
-		$contact_form    = $ct_temp_msg_data['contact'] ?: true;
+		$contact_form    = ! $ct_temp_msg_data['contact'];
 		$message         = $ct_temp_msg_data['message'] ?: array();
 		if ($subject !== '') {
 			$message = array_merge(array('subject' => $subject), $message);
 		}
 
 		// Skip submission if no data found
-		if ($sender_email === ''|| !$contact_form) {
+		if ( $sender_email === ''|| ! $contact_form ) {
 			do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
 			return false;
 		}
