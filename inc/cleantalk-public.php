@@ -510,7 +510,7 @@ function apbct_hook__wp_footer() {
 		$timeout = $apbct->settings['misc__async_js'] ? 1000 : 0;
 
 		if( $apbct->use_rest_api )  {
-			$html = "<script type=\"text/javascript\" " . ( class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '' ) . ">				
+			$html = "<script type=\"text/javascript\" " . ( class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '' ) . ">
 				window.addEventListener('DOMContentLoaded', function () {
 					setTimeout(function(){
 						if( document.querySelectorAll('[name^=ct_checkjs]').length > 0 ) {
@@ -518,12 +518,12 @@ function apbct_hook__wp_footer() {
 			                    'js_keys__get',
 			                    { callback: apbct_js_keys__set_input_value }
 			                )
-			            } 
-					},". $timeout . ")					   
-				});								
+			            }
+					},". $timeout . ")
+				});
 			</script>";
 		} else {
-			$html = "<script type=\"text/javascript\" " . ( class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '' ) . ">				
+			$html = "<script type=\"text/javascript\" " . ( class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '' ) . ">
 				window.addEventListener('DOMContentLoaded', function () {
 					setTimeout(function(){
 						if( document.querySelectorAll('[name^=ct_checkjs]').length > 0 ) {
@@ -532,8 +532,8 @@ function apbct_hook__wp_footer() {
 			                    { callback: apbct_js_keys__set_input_value, apbct_ajax: 1 }
 			                );
 			            }
-					},". $timeout . ")					    
-				});				
+					},". $timeout . ")
+				});
 			</script>";
 		}
 
@@ -1137,7 +1137,7 @@ function ct_enqueue_scripts_public($_hook){
 
     // External forms check
     if($apbct->settings['forms__check_external']){
-        wp_enqueue_script( 'ct_external', plugins_url( '/cleantalk-spam-protect/js/cleantalk_external.min.js' ), array( 'jquery' ), APBCT_VERSION, false /*in header*/ );
+        wp_enqueue_script( 'ct_external', plugins_url( '/cleantalk-spam-protect/js/src/cleantalk_external.js' ), array( 'jquery' ), APBCT_VERSION, false /*in header*/ );
     }
 
     // Internal forms check

@@ -133,20 +133,20 @@ if( class_exists('LFB_Core') ) {
  * @param null $email
  */
 function ct_validate_email_ajaxlogin( $email=null ){
-	
+
 	$email = is_null( $email ) ? $email : $_POST['email'];
 	$email = sanitize_email($email);
 	$is_good = ! ( ! filter_var( $email, FILTER_VALIDATE_EMAIL ) || email_exists( $email ) );
-	
+
 	if( class_exists('AjaxLogin') && isset($_POST['action']) && $_POST['action'] === 'validate_email' ){
-		
+
 		$checkjs = apbct_js_test('ct_checkjs', $_POST);
 	    $sender_info['post_checkjs_passed'] = $checkjs;
 		if ($checkjs === null){
 			$checkjs = apbct_js_test('ct_checkjs', $_COOKIE, true);
 			$sender_info['cookie_checkjs_passed'] = $checkjs;
 		}
-		
+
 		//Making a call
 		$base_call_result = apbct_base_call(
 			array(
@@ -157,14 +157,14 @@ function ct_validate_email_ajaxlogin( $email=null ){
 			),
 			true
 		);
-		
+
 		$ct_result = $base_call_result['ct_result'];
-		
+
 		if ($ct_result->allow===0){
 			$is_good=false;
 		}
 	}
-	
+
 	if($is_good){
 		$ajaxresult=array(
             'description' => null,
@@ -178,7 +178,7 @@ function ct_validate_email_ajaxlogin( $email=null ){
             'code' => 'error'
             );
 	}
-	
+
 	$ajaxresult = json_encode($ajaxresult);
 	print $ajaxresult;
 	wp_die();
@@ -195,14 +195,14 @@ function ct_user_register_ajaxlogin( $user_id )
 {
 	if( class_exists('AjaxLogin') && isset($_POST['action']) && $_POST['action'] === 'register_submit' )
 	{
-	    
+
 		$checkjs = apbct_js_test('ct_checkjs', $_POST);
 	    $sender_info['post_checkjs_passed'] = $checkjs;
 		if ($checkjs === null){
 			$checkjs = apbct_js_test('ct_checkjs', $_COOKIE, true);
 			$sender_info['cookie_checkjs_passed'] = $checkjs;
 		}
-		
+
 		//Making a call
 		$base_call_result = apbct_base_call(
 			array(
@@ -213,9 +213,9 @@ function ct_user_register_ajaxlogin( $user_id )
 			),
 			true
 		);
-		
+
 		$ct_result = $base_call_result['ct_result'];
-		
+
 		if ($ct_result->allow === 0)
 		{
 			wp_delete_user($user_id);
@@ -256,12 +256,12 @@ function ct_mc4wp_ajax_hook( array $errors )
 function ct_ajax_hook( $message_obj = null )
 {
 	global $current_user;
-	
+
 	$message_obj = (array) $message_obj;
-	
+
 	// Get current_user and set it globally
 	apbct_wp_set_current_user($current_user instanceof WP_User ? $current_user	: apbct_wp_get_current_user() );
-	
+
     // $_REQUEST['action'] to skip. Go out because of not spam data
     $skip_post = array(
         'apbct_js_keys__get',  // Our service code
@@ -358,7 +358,7 @@ function ct_ajax_hook( $message_obj = null )
         do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__ . '(' . apbct_is_skip_request() . ')', $_POST );
         return false;
     }
-    
+
     //General post_info for all ajax calls
 	$post_info = array(
 	    'comment_type' => 'feedback_ajax',
@@ -369,30 +369,30 @@ function ct_ajax_hook( $message_obj = null )
     }
 
 	$checkjs = apbct_js_test('ct_checkjs', $_COOKIE, true);
-	
+
 	//QAEngine Theme answers
     if( !empty($message_obj) && isset($message_obj['post_type'], $message_obj['post_content']) ){
 		$curr_user = get_user_by('id', $message_obj['author']);
 		if (!$curr_user)
-			$curr_user = get_user_by('id', $message_obj['post_author']);			
+			$curr_user = get_user_by('id', $message_obj['post_author']);
 		$ct_post_temp['comment'] = $message_obj['post_content'];
         $ct_post_temp['email'] = $curr_user->data->user_email;
 		$ct_post_temp['name'] = $curr_user->data->user_login;
     }
-	
+
     //CSCF fix
     if(isset($_POST['action']) && $_POST['action'] === 'cscf-submitform'){
 		$ct_post_temp[] = $message_obj['comment_author'];
         $ct_post_temp[] = $message_obj['comment_author_email'];
 		$ct_post_temp[] = $message_obj['comment_content'];
     }
-		
+
 	//??? fix
     if(isset($_POST['action'], $_POST['target']) && ( $_POST['action'] === 'request_appointment' || $_POST['action'] === 'send_message')){
 		$ct_post_temp=$_POST;
     	$ct_post_temp['target']=1;
     }
-  	
+
 	//UserPro fix
 	if(isset($_POST['action'], $_POST['template']) && $_POST['action'] === 'userpro_process_form' && $_POST['template'] === 'register'){
 		$ct_post_temp = $_POST;
@@ -437,11 +437,11 @@ function ct_ajax_hook( $message_obj = null )
 	if (isset($_POST['action']) && $_POST['action'] === 'ufbl_front_form_action'){
 		$ct_post_temp = $_POST;
 		foreach ($ct_post_temp as $key => $_value) {
-			if (preg_match('/form_data_\d_name/', $key)) 
+			if (preg_match('/form_data_\d_name/', $key))
 				unset($ct_post_temp[$key]);
 		}
 	}
-	
+
 	$ct_temp_msg_data = isset($ct_post_temp)
 		? ct_get_fields_any($ct_post_temp)
 		: ct_get_fields_any($_POST);
@@ -454,13 +454,13 @@ function ct_ajax_hook( $message_obj = null )
     if( $subject !== '' ) {
         $message['subject'] = $subject;
     }
-    
+
     // Skip submission if no data found
     if ( $sender_email === ''|| $contact_form === false ) {
 	    do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
 	    return false;
     }
-	
+
 	 // Mailpoet fix
     if (isset($message['wysijaData'], $message['wysijaplugin'], $message['task'], $message['controller']) && $message['wysijaplugin'] === 'wysija-newsletters' && $message['controller'] === 'campaigns') {
 	    do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
@@ -473,7 +473,7 @@ function ct_ajax_hook( $message_obj = null )
     	return false;
     }
 
-	
+
 	// WP Foto Vote Fix
 	if (!empty($_FILES)){
 		foreach($message as $key => $_value){
@@ -483,7 +483,7 @@ function ct_ajax_hook( $message_obj = null )
 			}
 		}
 	}
-	
+
 	/**
 	 * @todo Contact form detect
 	 */
@@ -500,7 +500,7 @@ function ct_ajax_hook( $message_obj = null )
 			break;
 		}
 	}
-	
+
 	$base_call_result = apbct_base_call(
 		array(
 			'message'         => $message,
@@ -512,7 +512,7 @@ function ct_ajax_hook( $message_obj = null )
 		)
 	);
 	$ct_result = $base_call_result['ct_result'];
-	
+
 	if ($ct_result->allow == 0)
 	{
 		if ( isset($_POST['action']) && $_POST['action'] === 'wpuf_submit_register' ) {

@@ -11,7 +11,8 @@ function ct_protect_external(){
 				if(
 					action.indexOf('activehosted.com') !== -1 ||   // ActiveCampaign form
 					action.indexOf('app.convertkit.com') !== -1 || // ConvertKit form
-					( document.forms[i].firstChild.classList !== undefined && document.forms[i].firstChild.classList.contains('cb-form-group') ) // Convertbox form
+					( document.forms[i].firstChild.classList !== undefined && document.forms[i].firstChild.classList.contains('cb-form-group') ) || // Convertbox form
+                    ( document.forms[i].classList !== undefined && document.forms[i].classList.contains('ml-block-form') )
 				) {
 
 					jQuery( document.forms[i] ).before('<i class="cleantalk_placeholder" style="display: none;"></i>');
