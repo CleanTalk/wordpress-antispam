@@ -702,6 +702,8 @@ function apbct_sfw_update__init( $delay = 0 ){
         return array( 'error' => 'SFW UPDATE INIT: KEY_IS_NOT_VALID' );
     }
 
+    $apbct->fw_stats['updating_folder'] = APBCT_DIR_PATH . DIRECTORY_SEPARATOR . 'fw_files_for_blog_' . get_current_blog_id() . DIRECTORY_SEPARATOR;
+
     $prepare_dir__result = apbct_prepare_upd_dir();
     if( ! empty( $prepare_dir__result['error'] ) ){
         return $prepare_dir__result;
