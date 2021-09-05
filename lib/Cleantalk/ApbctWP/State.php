@@ -83,7 +83,7 @@ class State
 		'forms__check_external'          => 0,
 		'forms__check_external__capture_buffer' => 0,
         'forms__check_internal'          => 0,
-		
+
 		// Comments and messages
 		'comments__disable_comments__all'   => 0,
 		'comments__disable_comments__posts' => 0,
@@ -96,7 +96,7 @@ class State
 		'comments__show_check_links'        => 1, // Shows check link to Cleantalk's DB.
 		'comments__manage_comments_on_public_page' => 0, // Allows to control comments on public page.
 		'comments__hide_website_field'      => 0, // Hide website field from comment form
-		
+
 		// Data processing
         'data__protect_logged_in'              => 1, // Do anti-spam tests to for logged in users.
 		'data__use_ajax'                       => 1,
@@ -107,24 +107,24 @@ class State
         'data__ssl_on'                         => 0, // Secure connection to servers
         'data__pixel'                          => '3',
     	'data__email_check_before_post'		   => 1,
-		
+
 		// Exclusions
 		'exclusions__urls'               => '',
 		'exclusions__urls__use_regexp'   => 0,
 		'exclusions__fields'             => '',
 		'exclusions__fields__use_regexp' => 0,
 		'exclusions__roles'              => array('Administrator'),
-		
+
 		// Administrator Panel
         'admin_bar__show'             => 1, // Show the admin bar.
 		'admin_bar__all_time_counter' => 0,
 		'admin_bar__daily_counter'    => 0,
 		'admin_bar__sfw_counter'      => 0,
-		
+
 		// GDPR
 		'gdpr__enabled' => 0,
 		'gdpr__text'    => 'By using this form you agree with the storage and processing of your data by using the Privacy Policy on this website.',
-		
+
 		// Msic
 		'misc__collect_details'         => 0, // Collect details about browser of the visitor.
 		'misc__send_connection_reports' => 0, // Send connection reports to Cleantalk servers
@@ -140,9 +140,9 @@ class State
 		'wp__dashboard_widget__show' => 1,
 
     );
-	
+
 	public $def_data = array(
-		
+
 		// Plugin data
 		'plugin_version'     => APBCT_VERSION,
 		'js_keys'            => array(), // Keys to do JavaScript antispam test
@@ -151,12 +151,12 @@ class State
 		'last_remote_call'   => 0, //Timestam of last remote call
 		'current_settings_template_id'   => null,  // Loaded settings template id
 		'current_settings_template_name' => null,  // Loaded settings template name
-		
+
 		// Antispam
 		'spam_store_days'         => 15, // Days before delete comments from folder Spam
 		'relevance_test'          => 0, // Test comment for relevance
 		'notice_api_errors'       => 0, // Send API error notices to WP admin
-		
+
 		// Account data
 		'service_id'    => 0,
 		'moderate'      => 0,
@@ -166,7 +166,7 @@ class State
 		'auto_update'   => 0,
 		'user_token'    => '', // User token for auto login into spam statistics
 		'license_trial' => 0,
-		
+
 		// Notices
 		'notice_show' => 0,
 		'notice_trial' => 0,
@@ -174,13 +174,13 @@ class State
 		'notice_review' => 0,
 		'notice_auto_update' => 0,
 		'notice_incompatibility' => array(),
-		
+
 		// Brief data
 		'brief_data' => array(
 			'spam_stat' => array(),
 			'top5_spam_ip' => array(),
 		),
-		
+
 		'array_accepted'     => array(),
 		'array_blocked'      => array(),
 		'current_hour'       => '',
@@ -203,21 +203,21 @@ class State
 			'negative_report' => array(),
 			// 'since'        => date('d M'),
 		),
-		
+
 		// A-B tests
 		'ab_test' => array(
 			'sfw_enabled' => false,
 		),
-		
+
 		// Misc
 		'feedback_request' => '',
 		'key_is_ok'        => 0,
 		'salt'             => '',
 
 	);
-	
+
 	public $def_network_settings = array(
-		
+
 		// Key
 		'apikey'                => '',
 		'multisite__allow_custom_settings' => 1,
@@ -232,7 +232,7 @@ class State
 		'multisite__use_settings_template_apply_for_current' => 0,
 		'multisite__use_settings_template_apply_for_current_list_sites' => '',
 	);
-	
+
 	public $def_network_data = array(
 		'key_is_ok'          => 0,
 		'moderate'           => 0,
@@ -241,19 +241,19 @@ class State
 		'service_id'         => 0,
 		'auto_update'        => 0,
 	);
-    
+
     public $def_remote_calls = array(
-    
+
         //Common
         'close_renew_banner' => array( 'last_call' => 0, 'cooldown' => 0 ),
         'check_website'      => array( 'last_call' => 0, 'cooldown' => 0 ),
         'update_settings'    => array( 'last_call' => 0, 'cooldown' => 0 ),
-        
+
         // Firewall
         'sfw_update'         => array( 'last_call' => 0, 'cooldown' => 0 ),
         'sfw_update__worker' => array( 'last_call' => 0, 'cooldown' => 0 ),
         'sfw_send_logs'      => array( 'last_call' => 0, 'cooldown' => 0 ),
-        
+
         // Installation
         'update_plugin'      => array( 'last_call' => 0, 'cooldown' => 0 ),
         'install_plugin'     => array( 'last_call' => 0, 'cooldown' => 0 ),
@@ -261,12 +261,12 @@ class State
         'insert_auth_key'    => array( 'last_call' => 0, 'cooldown' => 0 ),
         'deactivate_plugin'  => array( 'last_call' => 0, 'cooldown' => 0 ),
         'uninstall_plugin'   => array( 'last_call' => 0, 'cooldown' => 0 ),
-        
+
         // debug
         'debug'     => array( 'last_call' => 0, 'cooldown' => 0 ),
         'debug_sfw' => array( 'last_call' => 0, 'cooldown' => 0 ),
     );
-	
+
 	public $def_stats = array(
 		'sfw' => array(
             'sending_logs__timestamp' => 0,
@@ -302,15 +302,16 @@ class State
 
     private $default_fw_stats = array(
         'firewall_updating'            => false,
-        'updating_folder'              => 'fw_files',
+        'updating_folder'              => APBCT_DIR_PATH . '/fw_files/',
         'firewall_updating_id'         => null,
         'firewall_update_percent'      => 0,
         'firewall_updating_last_start' => 0,
         'last_firewall_updated'        => 0,
         'expected_networks_count'      => 0,
         'expected_ua_count'            => 0,
+        'update_mode'                  => 0,
     );
-	
+
 	/**
 	 * @param string $option_prefix Database settings prefix
 	 * @param array $options        Array of strings. Types of settings you want to get.
@@ -318,21 +319,21 @@ class State
 	public function __construct($option_prefix, $options = array('settings'))
 	{
 		$this->option_prefix = $option_prefix;
-		
+
 		// Network settings
 		$option = get_site_option($this->option_prefix.'_network_settings');
 		$option = is_array($option) ? array_merge($this->def_network_settings, $option) : $this->def_network_settings;
 		$this->network_settings = new ArrayObject($option);
-		
+
 		// Network data
 		$option = get_site_option($this->option_prefix.'_network_data');
 		$option = is_array($option) ? array_merge($this->def_network_data, $option) : $this->def_network_data;
 		$this->network_data = new ArrayObject($option);
-		
+
 		foreach($options as $option_name){
-			
+
 			$option = get_option($this->option_prefix.'_'.$option_name);
-			
+
 			// Setting default options
 			if($this->option_prefix.'_'.$option_name === 'cleantalk_settings'){
 				if ( !$option ) {
@@ -341,7 +342,7 @@ class State
 				}
 				$option = is_array($option) ? array_merge($this->def_settings, $option) : $this->def_settings;
 			}
-			
+
 			// Setting default data
 			if($this->option_prefix.'_'.$option_name === 'cleantalk_data'){
 				$option = is_array($option) ? array_merge($this->def_data,     $option) : $this->def_data;
@@ -350,12 +351,12 @@ class State
 					? str_pad((string)rand(0, getrandmax()), 6, '0').str_pad((string)rand(0, getrandmax()), 6, '0')
 					: $option['salt'];
 			}
-			
+
 			// Setting default errors
 			if($this->option_prefix.'_'.$option_name === 'cleantalk_errors'){
 				$option = $option ? $option : array();
 			}
-			
+
 			// Default remote calls
 			if($this->option_prefix.'_'.$option_name === 'cleantalk_remote_calls'){
 				$option = is_array($option) ? array_merge($this->def_remote_calls, $option) : $this->def_remote_calls;
@@ -370,7 +371,7 @@ class State
             if($this->option_prefix.'_'.$option_name === 'cleantalk_fw_stats'){
                 $option = is_array($option) ? array_merge($this->default_fw_stats, $option) : $this->default_fw_stats;
             }
-			
+
 			$this->$option_name = is_array($option) ? new ArrayObject($option) : $option;
 
 			/* Adding some dynamic properties */
@@ -406,7 +407,7 @@ class State
 		global $wpdb, $apbct;
 
 		$db_prefix = ! $apbct->white_label && defined('CLEANTALK_ACCESS_KEY') ? $wpdb->base_prefix : $wpdb->prefix;
-		
+
 		if( ! defined( 'APBCT_SEESION__LIVE_TIME' ) ) {
 			define( 'APBCT_SEESION__LIVE_TIME', 86400 );
 		}
@@ -442,7 +443,7 @@ class State
 		if( ! defined( 'APBCT_SELECT_LIMIT' ) ) {
 			// Select limit for logs.
 			define( 'APBCT_SELECT_LIMIT', 5000 );
-		} 
+		}
 		if( ! defined( 'APBCT_WRITE_LIMIT' ) ) {
 			// Write limit for firewall data.
 			define( 'APBCT_WRITE_LIMIT', 5000 );
@@ -461,14 +462,14 @@ class State
 	private function getOption($option_name)
 	{
 		$option = get_option('cleantalk_'.$option_name, null);
-		
+
 		$this->$option_name = is_array( $option )
 			? new ArrayObject($option)
 			: $option;
-			
+
 		return $option;
 	}
-	
+
 	/**
 	 * Save option to database
 	 *
@@ -485,7 +486,7 @@ class State
 		}
 		update_option($option_name_to_save, $arr, $autoload);
 	}
-	
+
 	/**
 	 * Save PREFIX_setting to DB.
 	 */
@@ -493,7 +494,7 @@ class State
 	{
 		return update_option($this->option_prefix.'_settings', (array)$this->settings);
 	}
-	
+
 	/**
 	 * Save PREFIX_data to DB.
 	 */
@@ -501,7 +502,7 @@ class State
 	{
 		update_option($this->option_prefix.'_data', (array)$this->data);
 	}
-	
+
 	/**
 	 * Save PREFIX_error to DB.
 	 */
@@ -509,7 +510,7 @@ class State
 	{
 		update_option($this->option_prefix.'_errors', (array)$this->errors);
 	}
-	
+
 	/**
 	 * Save PREFIX_network_data to DB.
 	 */
@@ -517,7 +518,7 @@ class State
 	{
 		update_site_option($this->option_prefix.'_network_data', (array)$this->network_data);
 	}
-	
+
 	/**
 	 * Save PREFIX_network_data to DB.
 	 */
@@ -525,7 +526,7 @@ class State
 	{
 		update_site_option($this->option_prefix.'_network_settings', (array)$this->network_settings);
 	}
-	
+
 	/**
 	 * Unset and delete option from DB.
 	 *
@@ -539,7 +540,7 @@ class State
 			delete_option( ($use_prefix ? $this->option_prefix.'_' : '') . $option_name);
 		}
 	}
-	
+
 	/**
 	 * Prepares an adds an error to the plugin's data
 	 *
@@ -555,7 +556,7 @@ class State
 		$error = is_array($error)
 			? $error['error']
 			: $error;
-		
+
 		// Exceptions
 		if( ($type == 'send_logs'          && $error == 'NO_LOGS_TO_SEND') ||
 			($type == 'send_firewall_logs' && $error == 'NO_LOGS_TO_SEND') ||
@@ -563,21 +564,21 @@ class State
 		) {
 			return;
 		}
-		
+
 		$error = array(
 			'error'      => $error,
 			'error_time' => $set_time ? current_time('timestamp') : null,
 		);
-		
+
 		if(!empty($major_type)){
 			$this->errors[$major_type][$type] = $error;
 		}else{
 			$this->errors[$type] = $error;
 		}
-		
+
 		$this->saveErrors();
 	}
-	
+
 	/**
 	 * Deletes an error from the plugin's data
 	 *
@@ -593,7 +594,7 @@ class State
 		if(is_string($type)) {
 			$type = explode( ' ', $type );
 		}
-		
+
 		foreach($type as $val){
 			if($major_type){
 				if(isset($this->errors[$major_type][$val])) {
@@ -605,13 +606,13 @@ class State
 				}
 			}
 		}
-		
+
 		// Save if flag is set and there are changes
 		if($save_flag) {
 			$this->saveErrors();
 		}
 	}
-	
+
 	/**
 	 * Deletes all errors from the plugin's data
 	 *
@@ -626,7 +627,7 @@ class State
 			$this->saveErrors();
 		}
 	}
-    
+
     /**
      * Set or deletes an error depends of the first bool parameter
      *
@@ -645,7 +646,7 @@ class State
 	        $this->error_delete( $type, $save_flag, $major_type );
         }
     }
-    
+
     /**
 	 * Magic.
 	 * Add new variables to storage[NEW_VARIABLE]
@@ -661,7 +662,7 @@ class State
 			$this->storage['data'][$name] = $value;
 		}
     }
-    
+
     /**
      * Dynamically get options in order:
      * 1. Trying to get it from the storage (options like data, settings, fw_stats and so on)
@@ -678,32 +679,32 @@ class State
         if (isset($this->storage[$name])){
 			$option = $this->storage[$name];
 	        return $option;
-	        
+
 		// Then in data
         }elseif(isset($this->storage['data'][$name])){
 			$this->$name = $this->storage['data'][$name];
 			$option = $this->storage['data'][$name];
 	        return $option;
-			
+
 		// Otherwise try to get it from db settings table
 		// it will be arrayObject || scalar || null
 		}else{
 	        $option = $this->getOption($name);
 			return $option;
 		}
-		
+
 	}
-	
+
 	public function __isset($name)
 	{
 		return isset($this->storage[$name]);
 	}
-	
+
 	public function __unset($name)
 	{
 		unset($this->storage[$name]);
 	}
-	
+
 	public function server(){
 		return \Cleantalk\Variables\Server::getInstance();
 	}

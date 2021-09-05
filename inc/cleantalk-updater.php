@@ -2,6 +2,7 @@
 
 use Cleantalk\ApbctWP\Cron;
 use Cleantalk\Common\Schema;
+use Cleantalk\Variables\Server;
 
 /**
  * Main function to compare versions and run necessary update functions.
@@ -1298,7 +1299,7 @@ function apbct_update_to_5_159_9() {
 /**
  * @return  void
  */
-function apbct_update_to_5_161_0() {
+function apbct_update_to_5_160_4() {
 
 	global $apbct;
 
@@ -1312,4 +1313,6 @@ function apbct_update_to_5_161_0() {
 		$apbct->save('network_settings');
 	}
 
+	apbct_remove_upd_folder( ABSPATH . '/wp-admin/fw_files' );
+	apbct_remove_upd_folder( Server::get('DOCUMENT_ROOT') . '/fw_files' );
 }

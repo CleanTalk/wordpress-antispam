@@ -6,6 +6,11 @@ namespace Cleantalk\ApbctWP;
 
 class AdminNotices {
 
+    /*
+     * The time interval in which notifications hidden by the user are not displayed
+     */
+    const DAYS_INTERVAL_HIDING_NOTICE = 14;
+
 	/**
 	 * @var null|AdminNotices
 	 */
@@ -55,6 +60,7 @@ class AdminNotices {
 		$self_owned_key = $this->apbct->moderate_ip == 0 && ! defined( 'CLEANTALK_ACCESS_KEY' );
 		$is_dashboard   = is_network_admin() || is_admin();
 		$is_admin       = current_user_can('activate_plugins');
+        $uid            = get_current_user_id();
 
 		if( $self_owned_key && $is_dashboard && $is_admin ) {
 
@@ -65,7 +71,9 @@ class AdminNotices {
 			} else {
 
 				foreach( self::NOTICES as $notice ) {
-					if( $this->is_cleantalk_page || ! $this->is_dismissed_notice( $notice ) ) {
+                    $notice_uid = $notice . '_' . $uid;
+
+					if( $this->is_cleantalk_page || ! $this->is_dismissed_notice( $notice_uid ) ) {
 						add_action('admin_notices',         array( $this, $notice ) );
 						add_action('network_admin_notices', array( $this, $notice ) );
 					}
@@ -208,12 +216,25 @@ class AdminNotices {
 	/**
 	 * Check dismiss status of the notice
 	 *
-	 * @param string $notice
+	 * @param string $notice_uid
 	 * @return bool
 	 */
-	private function is_dismissed_notice( $notice )
+	private function is_dismissed_notice( $notice_uid )
 	{
-		return (bool) get_option( 'cleantalk_' . $notice . '_dismissed' );
+	    $notice_date_option = get_option( 'cleantalk_' . $notice_uid . '_dismissed' );
+
+	    if( $notice_date_option !== false && \Cleantalk\Common\Helper::dateValidate($notice_date_option)) {
+            $current_date = date_create();
+            $notice_date = date_create( get_option( 'cleantalk_' . $notice_uid . '_dismissed' ) );
+
+            $diff = date_diff( $current_date, $notice_date );
+
+            if( $diff->days <= self::DAYS_INTERVAL_HIDING_NOTICE ) {
+                return true;
+            }
+        }
+
+		return false;
 	}
 
 	public function set_notice_dismissed() {
@@ -225,9 +246,12 @@ class AdminNotices {
 		}
 
 		$notice = sanitize_text_field( $_POST['notice_id'] );
+		$uid = get_current_user_id();
+        $notice_uid = $notice . '_' . $uid;
+        $current_date = current_time( 'Y-m-d' );
 
 		if( in_array( str_replace( 'cleantalk_', '', $notice ), self::NOTICES, true ) ) {
-			if( update_option( $notice . '_dismissed', 1 ) ) {
+			if( update_option( $notice_uid . '_dismissed', $current_date ) ) {
 				wp_send_json_success();
 			} else {
 				wp_send_json_error( esc_html__( 'Notice status not updated.', 'cleantalk-spam-protect' ) );
