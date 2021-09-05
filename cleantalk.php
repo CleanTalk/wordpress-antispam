@@ -1114,12 +1114,9 @@ function apbct_sfw_update__end_of_update() {
 
 	// REMOVE AND RENAME
 	$result = SFW::data_tables__delete( DB::getInstance(), APBCT_TBL_FIREWALL_DATA );
-	if( ! empty( $result['error'] ) ) {
-        $apbct->fw_stats['update_mode'] = 0;
-        $apbct->save('fw_stats');
-		return $result;
-	}
-	$result = SFW::rename_data_tables__from_temp_to_main( DB::getInstance(), APBCT_TBL_FIREWALL_DATA );
+	if( empty( $result['error'] ) ) {
+        $result = SFW::rename_data_tables__from_temp_to_main( DB::getInstance(), APBCT_TBL_FIREWALL_DATA );
+    }
 	if( ! empty( $result['error'] ) ) {
         $apbct->fw_stats['update_mode'] = 0;
         $apbct->save('fw_stats');
