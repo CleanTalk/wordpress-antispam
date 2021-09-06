@@ -64,11 +64,20 @@ class API
 	 * @param bool        $do_check
 	 *
 	 * @return array|bool|mixed
-	 *
-	 * @psalm-suppress PossiblyUnusedMethod
 	 */
-	public static function method__get_api_key($product_name, $email, $website, $platform, $timezone = null, $language = null, $user_ip = null, $wpms = false, $white_label = false, $do_check = true)
-	{
+	public static function method__get_api_key(
+		$product_name,
+		$email,
+		$website,
+		$platform,
+		$timezone = null,
+		$language = null,
+		$user_ip = null,
+		$wpms = false,
+		$white_label = false,
+		$hoster_api_key = '',
+		$do_check = true
+	){
 		$request = array(
 			'method_name'          => 'get_api_key',
 			'product_name'         => $product_name,
@@ -79,12 +88,13 @@ class API
 			'http_accept_language' => $language,
 			'user_ip'              => $user_ip,
 			'wpms_setup'           => $wpms,
-			'hoster_whitelabel'    => $white_label
+			'hoster_whitelabel'    => $white_label,
+			'hoster_api_key'       => $hoster_api_key,
 		);
-		
+
 		$result = static::send_request($request);
 		$result = $do_check ? static::check_response($result, 'get_api_key') : $result;
-		
+
 		return $result;
 	}
 	

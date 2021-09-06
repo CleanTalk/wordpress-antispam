@@ -20,7 +20,7 @@ if( !defined( 'APBCT_VERSION' ) ) {
 
 $apbct = new \Cleantalk\ApbctWP\State('cleantalk', array('settings', 'data'));
 $apbct->white_label      = $apbct->network_settings['multisite__white_label'];
-$apbct->allow_custom_key = $apbct->network_settings['multisite__allow_custom_key'];
+$apbct->allow_custom_key = $apbct->network_settings['multisite__work_mode'] = 3;
 $apbct->api_key          = ! is_multisite() || $apbct->allow_custom_key || $apbct->white_label ? $apbct->settings['apikey'] : $apbct->network_settings['apikey'];
 \Cleantalk\ApbctWP\State::setDefinitions();
 
