@@ -92,8 +92,8 @@ class API extends \Cleantalk\Common\API
 				?: (defined('APBCT_CASERT_PATH') ? APBCT_CASERT_PATH : '');
 			$result = parent::send_request($data, $url, $timeout, $ssl, $ssl_path);
 		}
-		
-		return empty($result) || !empty($errors)
+        
+        return ! empty( $errors )
 			? array( 'error' => $errors )
 			: $result;
 	}
