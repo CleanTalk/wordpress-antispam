@@ -98,7 +98,7 @@ $apbct->logo__small__colored = plugin_dir_url(__FILE__) . 'inc/images/logo_color
 // Account status
 
 $apbct->white_label      = $apbct->network_settings['multisite__white_label'];
-$apbct->allow_custom_key = $apbct->network_settings['multisite__work_mode'] == 3;
+$apbct->allow_custom_key = $apbct->network_settings['multisite__work_mode'] != 2;
 $apbct->plugin_name      = $apbct->network_settings['multisite__white_label__plugin_name'] ? $apbct->network_settings['multisite__white_label__plugin_name'] : APBCT_NAME;
 $apbct->api_key          = !APBCT_WPMS || $apbct->allow_custom_key || $apbct->white_label ? $apbct->settings['apikey'] : $apbct->network_settings['apikey'];
 $apbct->key_is_ok        = !APBCT_WPMS || $apbct->allow_custom_key || $apbct->white_label ? $apbct->data['key_is_ok']  : $apbct->network_data['key_is_ok'];
