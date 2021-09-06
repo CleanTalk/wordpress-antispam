@@ -93,7 +93,7 @@ class API extends \Cleantalk\Common\API
 			$result = parent::send_request($data, $url, $timeout, $ssl, $ssl_path);
 		}
         
-        return ! empty( $errors )
+        return empty( $result ) || ! empty( $errors )
 			? array( 'error' => $errors )
 			: $result;
 	}
