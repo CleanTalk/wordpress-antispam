@@ -1137,7 +1137,7 @@ function ct_enqueue_scripts_public($_hook){
 
     // External forms check
     if($apbct->settings['forms__check_external']){
-        wp_enqueue_script( 'ct_external', plugins_url( '/cleantalk-spam-protect/js/src/cleantalk_external.js' ), array( 'jquery' ), APBCT_VERSION, false /*in header*/ );
+        wp_enqueue_script( 'ct_external', plugins_url( '/cleantalk-spam-protect/js/cleantalk_external.min.js' ), array( 'jquery' ), APBCT_VERSION, false /*in header*/ );
     }
 
     // Internal forms check
