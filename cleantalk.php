@@ -2300,7 +2300,6 @@ function apbct_test_connection(){
         $out[$url] = array(
             'result' => !empty($result['error']) ? $result['error']	: 'OK',
             'exec_time' => microtime(true) - $start,
-            'response' => $result,
         ) ;
     }
 
