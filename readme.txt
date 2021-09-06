@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 3.0
 Tested up to: 5.8
 Requires PHP: 5.6
-Stable tag: 5.160.3
+Stable tag: 5.161
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -577,6 +577,67 @@ If your website has forms that send data to external sources, you can enable opt
 12. SpamFireWall log.
 
 == Changelog ==
+
+= 5.161 Sep 09 2021 =
+ * Fix: Cleantalk.php. dns_get_record() error handling.
+ * Fix: Search form integration. PHP Notice.
+ * Fix: Default value for "Alternative Cookie Type" setting.
+ * Fix: SpamFirewall. Updating percent output.
+ * Fix: SpamFirewall. Omit SFW_IS_DISABLED error.
+ * Mod: Admin-bar.
+ * Fix: SpamFirewall update.
+ * Fix: apbct_log(). Log time.
+ * Mod: Debug RC. Servers_connection item added.
+ * Mod: apbct_test_connection() moved to cleantalk.php.
+ * Fix: skip elementor save template.
+ * Fix: skip formidable base check.
+ * Fix: remove limit for request in delete all spam users.
+ * Mod: apbct_test_connection() improvements.
+ * Fix: Helper::http__request() timeout is 15 seconds.
+ * New: Helper::http__request() low speed time is 10 seconds.
+ * Fix: decbin int type in helper.
+ * Fix: add apbct_get_rest_url func.
+ * Fix: Error report form Cleantalk.php.
+ * Fix: skip sfw check if sfw not updated.
+ * Fix. Integration. Enfold theme saving options skip protection.
+ * Fix. Integration. Cartflows saving cart skip protection.
+ * Fix: getOption return variable.
+ * Fix: skip sfw if last_update_time is zero.
+ * Fix: skip last_update_time sfw check.
+ * Fix: add priority to comment_form_default_fields hook.
+ * New. Helper. IP detecting improved.
+ * Fix. Helper. Multi-curl timeout added.
+ * Upd. SFW. SFW block page updated.
+ * Upd. SFW. AC block page updated.
+ * Upd. Settings. SFW features settings moved to the separated block.
+ * Fix. SFW. Random get parameter for redirecting block page updated.
+ * Fix. Settings. SFW features settings description fixed.
+ * New: Queue. Transaction system.
+ * Fix: skip siteorigin pagebuilder save widget.
+ * New: Readme. Hide «Website» field for comments added.
+ * Fix. Helper. Async curl timeout increased.
+ * Fix. Integration. Blogvault requests skipped.
+ * Fix: skip classfields check_email action.
+ * Mod: Show real HTTP code in a error during downloading GZ file.
+ * Mod: Debug call extended.
+ * Mod: Admin notices. Added the ability to hide a banner with notifications for each individual administrator for two weeks.
+ * Fix. Settings. Long description output fixed.
+ * Fix. Settings. JS debug data removed.
+ * Fix. SFW. Deleting fw files folder.
+ * Fix: api error handle.
+ * Fix: SFW. Added update mode if sfw-updater works with tables.
+ * New. WPMS. New multisite logic implemented.
+ * Fix: Setting. Select field type fixed.
+ * Fix: Сhanged the function delete_all_options() of removing plugin options when fully uninstalled.
+ * Fix. WPMS. Hoster API key description fixed.
+ * Fix: Admin notices. get_option expression is checking more strictly.
+ * New: Helper. Added method for validate date format as 'Y-m-d'.
+ * Fix: SFW. Default FW folder fixed.
+ * Fix: SFW. FW folder on the first sync fixed.
+ * Fix: SFW. Remove wrong FW folders.
+ * Fix: SFW. Refactoring apbct_sfw_update__end_of_update().
+ * Mod: apbct_test_connection().
+ * Fix: /ApbctWP/API::send_request() with empty result.
 
 = 5.160.3 Aug 31 2021 =
  * New: Queue. Transaction system.
