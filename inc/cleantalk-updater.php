@@ -1309,4 +1309,8 @@ function apbct_update_to_5_160_4() {
 	apbct_remove_upd_folder( APBCT_DIR_PATH . '/fw_files' );
 	apbct_remove_upd_folder( ABSPATH . '/wp-admin/fw_files' );
 	apbct_remove_upd_folder( Server::get('DOCUMENT_ROOT') . '/fw_files' );
+	$file_path = Server::get('DOCUMENT_ROOT') . '/fw_filesindex.php';
+	if( is_file( $file_path ) && is_writable( $file_path ) ){
+	    unlink( $file_path );
+    }
 }
