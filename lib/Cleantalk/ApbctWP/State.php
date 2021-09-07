@@ -302,7 +302,7 @@ class State
 
     private $default_fw_stats = array(
         'firewall_updating'            => false,
-        'updating_folder'              => APBCT_DIR_PATH . '/fw_files/',
+        'updating_folder'              => '',
         'firewall_updating_id'         => null,
         'firewall_update_percent'      => 0,
         'firewall_updating_last_start' => 0,

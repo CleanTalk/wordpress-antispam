@@ -1211,6 +1211,11 @@ function apbct_prepare_upd_dir() {
 	global $apbct;
 
 	$dir_name = $apbct->fw_stats['updating_folder'];
+
+	if( $dir_name === '' ) {
+		return array( 'error' => 'FW dir can not be blank.' );
+	}
+
 	if( ! is_dir( $dir_name ) ) {
 		if( ! mkdir( $dir_name ) && ! is_dir( $dir_name ) ) {
 			return array( 'error' => 'Can not to make FW dir.' );
