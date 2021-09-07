@@ -66,7 +66,7 @@ function apbct_settings__set_fileds( ){
 					'callback'    => 'apbct_settings__field__statistics',
 				),
 				'api_key' => array(
-					'display'        => !$apbct->white_label || is_main_site(),
+					'display'        => $apbct->multisite__work_mode != 2 || is_main_site(),
 					'callback'       => 'apbct_settings__field__apikey',
 				),
 			),
