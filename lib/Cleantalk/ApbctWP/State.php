@@ -385,10 +385,10 @@ class State
 			if( ! is_main_site() ){
 
 				// Custom key allowed
-				if( $this->multisite__work_mode != 2 ){
+				if( $this->network_settings['multisite__work_mode'] != 2 ){
 
 				// Mutual key
-				}elseif( $this->multisite__work_mode == 2 ){
+				}elseif( $this->network_settings['multisite__work_mode'] == 2 ){
 
 					$this->api_key        = $this->network_settings['apikey'];
 					$this->key_is_ok      = $this->network_data['key_is_ok'];
