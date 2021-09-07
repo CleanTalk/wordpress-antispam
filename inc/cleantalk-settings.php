@@ -573,7 +573,7 @@ function apbct_settings__set_fileds__network( $fields ){
 					'description'      => __( 'You can choose the work mode here for the child blogs and how they will operate with the CleanTalk Cloud. Press "?" for the detailed description.', 'cleantalk-spam-protect' ),
 					'long_description' => true,
 					'display'          => APBCT_WPMS && is_main_site(),
-					'childrens'        => array( 'multisite__hoster_api_key' ),
+					'childrens'        => array( 'multisite__hoster_api_key', 'multisite__white_label' ),
 					'network'          => true,
 				),
 				'multisite__hoster_api_key'   => array(
@@ -590,15 +590,18 @@ function apbct_settings__set_fileds__network( $fields ){
 				),
 				'multisite__service_utilization' => array(
 					'type'     => 'field',
+					'class'    => 'apbct_settings-field_wrapper--sub',
 					'callback' => 'apbct_field_service_utilization',
 					'display'  => APBCT_WPMS && is_main_site() && $apbct->network_settings['multisite__work_mode'] == 1,
 				),
 				'multisite__white_label' => array(
-					'type' => 'checkbox',
-					'title' => __('Enable White Label Mode', 'cleantalk-spam-protect'),
-					'description' => sprintf(__("Learn more information %shere%s.", 'cleantalk-spam-protect'), '<a target="_blank" href="https://cleantalk.org/ru/help/hosting-white-label">', '</a>'),
-					'childrens' => array( 'multisite__white_label__plugin_name' ),
-					'disabled' => defined('CLEANTALK_ACCESS_KEY'),
+					'type'             => 'checkbox',
+					'title'            => __('Enable White Label Mode', 'cleantalk-spam-protect'),
+					'description'      => sprintf(__("Learn more information %shere%s.", 'cleantalk-spam-protect'), '<a target="_blank" href="https://cleantalk.org/ru/help/hosting-white-label">', '</a>'),
+					'childrens'        => array( 'multisite__white_label__plugin_name' ),
+					'disabled'         => defined('CLEANTALK_ACCESS_KEY') || ! isset( $apbct->network_settings['multisite__work_mode'] ) || $apbct->network_settings['multisite__work_mode'] != 1,
+					'parent'           => 'multisite__work_mode',
+					'class'            => 'apbct_settings-field_wrapper--sub',
 					'network' => true,
 				),
 				'multisite__white_label__plugin_name' => array(
