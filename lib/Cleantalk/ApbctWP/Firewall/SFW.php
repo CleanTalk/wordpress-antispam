@@ -82,7 +82,12 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 		
 		$results = array();
         $status = 0;
-		
+
+        //Skip if sfw not updated yet
+		if (!$this->apbct->stats['sfw']['last_update_time']) {
+			return $results;
+		}		
+
 		// Skip by cookie
 		foreach( $this->ip_array as $current_ip ){
 
@@ -132,7 +137,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 				return $results;
 			}
 		}
-		
+
 		// Common check
 		foreach($this->ip_array as $_origin => $current_ip){
 			
@@ -288,9 +293,14 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
             $status = $result['status'] === 'PASS_SFW__BY_WHITELIST' ? '1' : '0';
             $cookie_val = md5( $result['ip'] . $this->api_key ) . $status;
 
+            $block_message = sprintf(
+            	esc_html__( 'SpamFireWall is checking your browser and IP %s for spam bots', 'cleantalk-spam-protect' ),
+	            '<a href="' . $result['ip'] . '" target="_blank">' . $result['ip'] . '</a>'
+            );
+
 			// Translation
 			$replaces = array(
-				'{SFW_DIE_NOTICE_IP}'              => __('SpamFireWall is activated for your IP ', 'cleantalk-spam-protect'),
+				'{SFW_DIE_NOTICE_IP}'              => $block_message,
 				'{SFW_DIE_MAKE_SURE_JS_ENABLED}'   => __( 'To continue working with the web site, please make sure that you have enabled JavaScript.', 'cleantalk-spam-protect' ),
 				'{SFW_DIE_CLICK_TO_PASS}'          => __('Please click the link below to pass the protection,', 'cleantalk-spam-protect'),
 				'{SFW_DIE_YOU_WILL_BE_REDIRECTED}' => sprintf(__('Or you will be automatically redirected to the requested page after %d seconds.', 'cleantalk-spam-protect'), 3),
@@ -362,6 +372,8 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 			'_apbct_ajax_url'   => APBCT_URL_PATH . '/lib/Cleantalk/ApbctWP/Ajax.php',
 			'data__set_cookies' => $apbct->settings['data__set_cookies'],
 			'data__set_cookies__alt_sessions_type' => $apbct->settings['data__set_cookies__alt_sessions_type'],
+			'sfw__random_get' => $apbct->settings['sfw__random_get'] === '1' ||
+			                     ( $apbct->settings['sfw__random_get'] === '-1' && apbct_is_cache_plugins_exists() )
 		);
 
 		$js_jquery_url = includes_url() . 'js/jquery/jquery.min.js';

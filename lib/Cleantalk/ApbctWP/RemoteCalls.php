@@ -210,8 +210,9 @@ class RemoteCalls
     
     public static function action__debug(){
         
-        global $apbct;
+        global $apbct, $wpdb;
 
+        $out['sfw_data_base_size'] = $wpdb->get_var('SELECT COUNT(*) FROM ' . APBCT_TBL_FIREWALL_DATA );
         $out['stats']    = $apbct->stats;
         $out['settings'] = $apbct->settings;
         $out['fw_stats'] = $apbct->fw_stats;
@@ -219,7 +220,16 @@ class RemoteCalls
         $out['cron']     = $apbct->cron;
         $out['errors']   = $apbct->errors;
         $out['queue']    = get_option( 'cleantalk_sfw_update_queue' );
+        $out['servers_connection'] = apbct_test_connection();
 
+        if( APBCT_WPMS ){
+            $out['network_settings'] = $apbct->network_settings;
+            $out['network_data'] = $apbct->network_data;
+        }
+        
+        if( Get::equal( 'out', 'json' ) ){
+            die( json_encode( $out ) );
+        }
         array_walk( $out, function(&$val, $_key){
             $val = (array) $val;
         });
@@ -230,10 +240,6 @@ class RemoteCalls
             }
         });
         
-        if( APBCT_WPMS ){
-            $out['network_settings'] = $apbct->network_settings;
-            $out['network_data'] = $apbct->network_data;
-        }
         
         $out = print_r($out, true);
         $out = str_replace("\n", "<br>", $out);

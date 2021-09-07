@@ -344,7 +344,8 @@ function ct_contact_form_validate_postdata() {
 	    (isset($_POST['lrm_action']) && $_POST['lrm_action'] == 'login') || //Skip login form
 	    apbct_is_in_uri( 'xmlrpc.php?for=jetpack' ) ||
 	    apbct_is_in_uri( 'connector=bridge&task=put_sql' ) ||
-	    Server::in_uri( 'cleantalk-antispam/v1/alt_sessions') // Skip test for alt sessions
+	    Server::in_uri( 'cleantalk-antispam/v1/alt_sessions') || // Skip test for alt sessions
+	    ( apbct_is_in_uri( 'bvMethod=' ) && apbct_is_in_uri( 'bvVersion=' ) && isset($_POST['apipage']) && $_POST['apipage'] === 'blogvault' )
 	) {
 		do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
 		return null;

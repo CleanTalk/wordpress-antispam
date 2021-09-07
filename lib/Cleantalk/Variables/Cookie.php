@@ -87,9 +87,13 @@ class Cookie extends ServerVariables{
 				'httponly' => $httponly,
 			);
 
-			if($samesite)
+			if($samesite) {
 				$params['samesite'] = $samesite;
+			}
 
+			/**
+			 * @psalm-suppress InvalidArgument
+			 */
 			setcookie( $name, $value, $params );
 
 			// For PHP 5.6 - 7.2

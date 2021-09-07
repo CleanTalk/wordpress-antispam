@@ -324,8 +324,6 @@ function apbctSettingsDependencies(ids, enable){
 
 	elems.forEach(function(elem, i, arr){
 
-		console.log( elem.getAttribute('id') );
-
 		var do_disable = function(){elem.setAttribute('disabled', 'disabled');},
 			do_enable  = function(){elem.removeAttribute('disabled');};
 
@@ -385,7 +383,7 @@ function apbct_settings__showDescription(label, setting_id){
 
 
 	apbct_admin_sendAJAX(
-		{action: 'apbct_settings__get_description', setting_id: setting_id},
+		{action: 'apbct_settings__get__long_description', setting_id: setting_id},
 		{
 			spinner: obj.children('img'),
 			callback: function(result, data, params, obj){

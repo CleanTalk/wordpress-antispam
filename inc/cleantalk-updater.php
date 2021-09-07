@@ -2,6 +2,7 @@
 
 use Cleantalk\ApbctWP\Cron;
 use Cleantalk\Common\Schema;
+use Cleantalk\Variables\Server;
 
 /**
  * Main function to compare versions and run necessary update functions.
@@ -1293,4 +1294,19 @@ function apbct_update_to_5_159_7() {
 function apbct_update_to_5_159_9() {
 	$cron = new Cron();
 	$cron->addTask('rotate_moderate',       'apbct_rotate_moderate',          86400, time() + 3500); // Rotate moderate server
+}
+
+/**
+ * @return  void
+ */
+function apbct_update_to_5_160_4() {
+
+	global $apbct;
+
+	$apbct->settings['sfw__random_get'] = '1';
+	$apbct->saveSettings();
+
+	apbct_remove_upd_folder( APBCT_DIR_PATH . '/fw_files' );
+	apbct_remove_upd_folder( ABSPATH . '/wp-admin/fw_files' );
+	apbct_remove_upd_folder( Server::get('DOCUMENT_ROOT') . '/fw_files' );
 }

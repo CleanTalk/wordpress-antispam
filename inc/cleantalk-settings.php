@@ -430,9 +430,57 @@ function apbct_settings__set_fileds( ){
 				),
 			),
 		),
-		
+
+		// SFW features
+		'sfw_features' => array(
+			'title'          => __('SpamFireWall features', 'cleantalk-spam-protect'),
+			'default_params' => array(),
+			'description'    => '',
+			'html_before'    => '',
+			'html_after'     => '',
+			'fields'         => array(
+				'sfw__random_get' => array(
+					'type'        => 'radio',
+					'options' => array(
+						array('val' => 1, 'label'  => __('On'),  ),
+						array('val' => 0, 'label'  => __('Off'), ),
+						array('val' => -1, 'label' => __('Auto'),),
+					),
+					'title'       => __('Uniq GET option', 'cleantalk-spam-protect'),
+					'class'       => 'apbct_settings-field_wrapper',
+					'parent'      => 'sfw__enabled',
+					'description' => __('If a visitor gets the SpamFireWall page, the plugin will put a unique GET variable in the URL to avoid issues with caching plugins. Example: https://SITE.COM/?sfw=pass1629985735', 'cleantalk-spam-protect'),
+				),
+				'sfw__anti_crawler' => array(
+					'type'        => 'checkbox',
+					'title'       => __('Anti-Crawler', 'cleantalk-spam-protect') . $additional_ac_title,
+					'class'       => 'apbct_settings-field_wrapper',
+					'parent'      => 'sfw__enabled',
+					'description' => __('Plugin shows SpamFireWall stop page for any bot, except allowed bots (Google, Yahoo and etc).', 'cleantalk-spam-protect')
+					                 . '<br>'
+					                 . __( 'Anti-Crawler includes blocking bots by the User-Agent. Use Personal lists in the Dashboard to filter specific User-Agents.', 'cleantalk-spam-protect' ),
+				),
+				'sfw__anti_flood' => array(
+					'type'        => 'checkbox',
+					'title'       => __('Anti-Flood', 'cleantalk-spam-protect'),
+					'class'       => 'apbct_settings-field_wrapper',
+					'parent'      => 'sfw__enabled',
+					'childrens'   => array('sfw__anti_flood__view_limit',),
+					'description' => __('Shows the SpamFireWall page for bots trying to crawl your site. Look at the page limit setting below.', 'cleantalk-spam-protect'),
+				),
+				'sfw__anti_flood__view_limit' => array(
+					'type'        => 'text',
+					'title'       => __('Anti-Flood Page Views Limit', 'cleantalk-spam-protect'),
+					'class'       => 'apbct_settings-field_wrapper--sub',
+					'parent'      => 'sfw__anti_flood',
+					'description' => __('Count of page view per 1 minute before plugin shows SpamFireWall page. SpamFireWall page active for 30 second after that valid visitor (with JavaScript) passes the page to the demanded page of the site.', 'cleantalk-spam-protect'),
+				),
+			),
+		),
+
 		// Misc
 		'misc' => array(
+			'title'          => __('Miscellaneous', 'cleantalk-spam-protect'),
 			'html_after'     => '</div><br>',
 			'fields'         => array(
 				'misc__collect_details' => array(
@@ -481,30 +529,6 @@ function apbct_settings__set_fileds( ){
 					'options_callback'        => 'apbct_get_all_roles',
 					'options_callback_params' => array(true),
 					'class'                   => 'apbct_settings-field_wrapper--sub',
-				),
-				'sfw__anti_crawler' => array(
-					'type'        => 'checkbox',
-					'title'       => __('Anti-Crawler', 'cleantalk-spam-protect') . $additional_ac_title,
-					'class'       => 'apbct_settings-field_wrapper',
-					'parent'      => 'sfw__enabled',
-					'description' => __('Plugin shows SpamFireWall stop page for any bot, except allowed bots (Google, Yahoo and etc).', 'cleantalk-spam-protect')
-					                 . '<br>'
-					                 . __( 'Anti-Crawler includes blocking bots by the User-Agent. Use Personal lists in the Dashboard to filter specific User-Agents.', 'cleantalk-spam-protect' ),
-				),
-				'sfw__anti_flood' => array(
-					'type'        => 'checkbox',
-					'title'       => __('Anti-Flood', 'cleantalk-spam-protect'),
-					'class'       => 'apbct_settings-field_wrapper',
-					'parent'      => 'sfw__enabled',
-					'childrens'   => array('sfw__anti_flood__view_limit',),
-					'description' => __('Shows the SpamFireWall page for bots trying to crawl your site. Look at the page limit setting below.', 'cleantalk-spam-protect'),
-				),
-				'sfw__anti_flood__view_limit' => array(
-					'type'        => 'text',
-					'title'       => __('Anti-Flood Page Views Limit', 'cleantalk-spam-protect'),
-					'class'       => 'apbct_settings-field_wrapper--sub',
-					'parent'      => 'sfw__anti_flood',
-					'description' => __('Count of page view per 1 minute before plugin shows SpamFireWall page. SpamFireWall page active for 30 second after that valid visitor (with JavaScript) passes the page to the demanded page of the site.', 'cleantalk-spam-protect'),
 				),
 				'wp__dashboard_widget__show' => array(
 					'type'        => 'checkbox',
@@ -1365,9 +1389,6 @@ function apbct_settings__field__draw($params = array()){
 			case 'select':
 				echo isset($params['title'])
 					? '<h4 class="apbct_settings-field_title apbct_settings-field_title--'.$params['type'].'">'.$params['title'].'</h4>'
-					: '';
-				echo isset($params['long_description'])
-					? '<i setting="'.$params['name'].'" class="apbct_settings-long_description---show icon-help-circled"></i>'
 					: '';
 				echo '<select'
 				    . ' id="apbct_setting_'.$params['name'].'"'

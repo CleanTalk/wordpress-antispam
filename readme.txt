@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 3.0
 Tested up to: 5.8
 Requires PHP: 5.6
-Stable tag: 5.160
+Stable tag: 5.160.3
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -34,6 +34,7 @@ No CAPTCHA, no questions, no animal counting, no puzzles, no math and no spam bo
 18. Disable comments.
 19. Spam FireWall: Anti-Flood
 20. Spam FireWall: Anti-Crawler
+21. Hide «Website» field for comments
 
 = Public reviews =
 > CleanTalk - Cloud-Based Anti-Spam Service to Keep Your Site Bot-Free.
@@ -96,6 +97,10 @@ IP/email address list. This option helps to strengthen the spam protection from 
 = Private black list for Spam FireWall =
 It allows you to add individual IP addresses and subnets to Spam FireWall. It
 blocks the spam attacks from IP addresses which are not included in the SFW base yet. This option can help to block HTTP/HTTPS DDoS, SQL, brute force attacks and any others that made it through the HTTP/HTTPS. You can add not only the certain IP addresses, but also a separate subnet to your personal black list.
+
+= Hide «Website» field for comments =
+This option hides the «Website» field from standard WordPress comments forms. After that spammers won't be able to send spam links using «Website» field in the bottom of the comments form.
+This option is disabled by default and can be enabled in plugin Settings in your WordPress dashboard.
 
 = Low false/positive rate =
 This plugin uses multiple anti-spam tests to filter spam bots having as low false/positive rate as possible. Multiple anti-spam tests help to avoid false/positive blocks of the real website visitors even if one of the tests failed.
@@ -573,6 +578,19 @@ If your website has forms that send data to external sources, you can enable opt
 
 == Changelog ==
 
+= 5.160.3 Aug 31 2021 =
+ * New: Queue. Transaction system.
+ * Fix. SFW. Updating for the new clients fixed.
+ * Fix. SFW. Deleting UA file fixed.
+ * Fix. SFW. Updating via cron fixed.
+ * Fix. SFW. Updating process for multisite fixed.
+
+= 5.160.2 Aug 26 2021 =
+ * Fix. Pixel. Auto mode fixed.
+
+= 5.160.1 Aug 6 2021 =
+ * Fix: SpamFirewall update.
+
 = 5.160 Jul 29 2021 =
  * New: SFW. SFW alternative cookie implemented.
  * New: SFW. AC alternative cookie implemented.
@@ -599,6 +617,14 @@ If your website has forms that send data to external sources, you can enable opt
  * Fix: Integration. WPForms names gathering fixed.
  * Fix: SFW. Min update interval decreased to 14400 seconds.
  * Fix: Integration. WPForms names gathering fixed.
+ * Fix: Cleantalk.php. dns_get_record() error handling.
+ * Fix: Search form integration. PHP Notice.
+ * Fix: Default value for "Alternative Cookie Type" setting.
+ * Fix: SpamFirewall. Omit SFW_IS_DISABLED error.
+ * Fix: SpamFirewall. Updating percent output.
+ * Fix. Settings templates. Sync after template loading.
+ * Fix. SFW. Updating process percents fixed.
+ * Fix. Antispam. All headers parameter fixed.
 
 = 5.159.9 Jul 15 2021 =
  * Fix. SFW. Updating cooldown increased up to 15 min.

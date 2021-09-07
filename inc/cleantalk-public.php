@@ -500,9 +500,9 @@ function apbct_hook__wp_footer() {
 	// Pixel
     if(
         $apbct->settings['data__pixel'] === '1' ||
-        ( $apbct->settings['data__pixel'] === '3' && ! apbct_is_cache_plugins_exists() )
+        ( $apbct->settings['data__pixel'] === '3' && apbct_is_cache_plugins_exists() )
     ){
-        echo '<img style="display: none; left: 99999px;" src="' .  $apbct->pixel_url . '">';
+        echo '<img alt="Cleantalk Pixel" id="apbct_pixel" style="display: none; left: 99999px;" src="' .  $apbct->pixel_url . '">';
     }
 
 	if( $apbct->settings['data__use_ajax'] ){

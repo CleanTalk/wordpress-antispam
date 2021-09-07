@@ -113,18 +113,19 @@ function apbct_wp_validate_auth_cookie( $cookie = '', $scheme = '' ) {
  * @param string $path Optional.
  * @param string $scheme Optional.
  *
- * @return bool|WP_User
+ * @return string
  */
 function apbct_get_rest_url( $blog_id = null, $path = '/', $scheme = 'rest' ) {
+
+	global $wp_rewrite;
+
     if ( empty( $path ) ) {
         $path = '/';
     }
  
     $path = '/' . ltrim( $path, '/' );
  
-    if ( is_multisite() && get_blog_option( $blog_id, 'permalink_structure' ) || get_option( 'permalink_structure' ) ) {
-        global $wp_rewrite;
- 
+    if ( is_multisite() && ( get_blog_option( $blog_id, 'permalink_structure' ) || get_option( 'permalink_structure' ) ) ) {
         if ( $wp_rewrite->using_index_permalinks() ) {
             $url = get_home_url( $blog_id, $wp_rewrite->index . '/' . rest_get_url_prefix(), $scheme );
         } else {
@@ -170,6 +171,7 @@ function apbct_get_rest_url( $blog_id = null, $path = '/', $scheme = 'rest' ) {
      * @param string   $path    REST route.
      * @param int|null $blog_id Blog ID.
      * @param string   $scheme  Sanitization scheme.
+     * @psalm-suppress TooManyArguments
      */
     return apply_filters( 'rest_url', $url, $path, $blog_id, $scheme );
 }
@@ -608,6 +610,18 @@ function apbct_is_skip_request( $ajax = false ) {
 	    {
 		    return 'w2dc_skipped';
 	    }
+        if ( apbct_is_plugin_active( 'elementor/elementor.php' ) &&
+            isset( $_POST['actions_save_builder_action'] ) &&
+            $_POST['actions_save_builder_action'] === 'save_builder' &&
+            is_admin() ) {
+            return 'elementor_skip';
+        }
+	    // Enfold theme saving settings
+	    if ( apbct_is_theme_active( 'Enfold' ) &&
+	         Post::get('action') === 'avia_ajax_save_options_page' )
+	    {
+		    return 'Enfold_theme_saving_settings';
+	    }
         //SiteOrigin pagebuilder skip save
         if ( apbct_is_plugin_active('siteorigin-panels/siteorigin-panels.php') && Post::get('action') === 'save-widget') {
             return 'SiteOrigin pagebuilder';
@@ -681,6 +695,12 @@ function apbct_is_skip_request( $ajax = false ) {
         {
             return 'formidable_skip';
         }
+	    // WC payment APIs
+	    if( apbct_is_plugin_active( 'woocommerce/woocommerce.php' ) &&
+	        apbct_is_in_uri( 'wc-ajax=iwd_opc_update_order_review') )
+	    {
+		    return 'cartflows_save_cart';
+	    }
     }
 
     return false;

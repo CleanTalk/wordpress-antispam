@@ -744,7 +744,6 @@ function apbct_spbc_admin__admin_bar__add_child_nodes( $wp_admin_bar ){
     $wp_admin_bar->add_node( array(
         'parent' => 'spbc__parent_node',
         'id'     => 'spbc_admin_bar__counter__logins',
-        'meta' => array( 'class' => 'cleantalk_admin_bar__counter'),
         'title'  => '<a>'
             . '<span>' . __('Logins:', 'cleantalk-spam-protect') . '</span>&nbsp;'
             . '<span style="color: white;">'
@@ -760,7 +759,6 @@ function apbct_spbc_admin__admin_bar__add_child_nodes( $wp_admin_bar ){
     $wp_admin_bar->add_node( array(
         'parent' => 'spbc__parent_node',
         'id'     => 'spbc_admin_bar__counter__firewall',
-        'meta' => array( 'class' => 'cleantalk_admin_bar__counter'),
         'title'  => '<a>'
             .'<b>' .__( 'Security Firewall: ', 'cleantalk-spam-protect' ) .'</b>&nbsp;'
                 . '<b style="color: white;">'
@@ -776,7 +774,6 @@ function apbct_spbc_admin__admin_bar__add_child_nodes( $wp_admin_bar ){
     $wp_admin_bar->add_node( array(
         'parent' => 'spbc__parent_node',
         'id'     => 'spbc_admin_bar__counter__online',
-        'meta' => array( 'class' => 'cleantalk_admin_bar__elem cleantalk_admin_bar__counter'),
         'title'  => '<a>'
             . '<span>' . __( 'Users online:', 'cleantalk-spam-protect' ) . '</span>'
             . '&nbsp;<b class="spbc-admin_bar--user_counter">' . 0 . '</b>'
@@ -944,34 +941,6 @@ function apbct_user__delete__hook($user_id, $_reassign = null){
 	if ($hash !== '') {
 		ct_feedback($hash, 0);
 	}
-}
-
-/**
- * Check connection to the API servers
- *
- * @return mixed
- */
-function apbct_test_connection(){
-    
-    $url_to_test = array(
-        'https://apix1.cleantalk.org',
-        'https://apix2.cleantalk.org',
-        'https://apix3.cleantalk.org',
-        'https://apix4.cleantalk.org',
-        'https://apix5.cleantalk.org',
-    );
-    
-    foreach($url_to_test as $url){
-        $start = microtime(true);
-        $result = \Cleantalk\ApbctWP\Helper::http__request__get_content($url);
-        $exec_time = microtime(true) - $start;
-        $out[$url] = array(
-            'result' => $result,
-            'exec_time' => $exec_time,
-            'error' => !empty($result['error']) ? $result['error']	: 'OK',
-        ) ;
-    }
-    return $out;
 }
 
 /**

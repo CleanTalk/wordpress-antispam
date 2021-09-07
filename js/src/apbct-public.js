@@ -112,7 +112,9 @@
 		if( +ctPublic.pixel__setting ){
 			ctSetCookie( 'apbct_pixel_url', ctPublic.pixel__url );
 			if( +ctPublic.pixel__enabled ){
-				jQuery('body').append( '<img style="display: none; left: 99999px;" src="' + ctPublic.pixel__url + '">' );
+				if( ! document.getElementById('apbct_pixel') ) {
+					jQuery('body').append( '<img alt="Cleantalk Pixel" id="apbct_pixel" style="display: none; left: 99999px;" src="' + ctPublic.pixel__url + '">' );
+				}
 			}
 		}
 

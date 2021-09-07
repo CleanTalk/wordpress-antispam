@@ -8,4 +8,4 @@ gulpfile.js
 /vendor/
 composer.lock
 checkstyle.xml
-/fw_files/
+/fw_files*

@@ -92,7 +92,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 							    $ua_template  = isset($entry[1]) && apbct_is_regexp($entry[1]) ? Helper::db__prepare_param( $entry[1] ) : 0;
 							    $ua_status    = isset($entry[2]) ? $entry[2] : 0;
 
-							    if( ! $ua_id || ! $ua_template ){
+							    if( ! $ua_template ){
 								    continue;
 							    }
 
@@ -103,12 +103,14 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 						    if( ! empty( $values ) ){
 							    $query = $query . implode( ',', $values ) . ';';
 							    \Cleantalk\ApbctWP\DB::getInstance()->execute( $query );
-							    if( file_exists( $file_path_ua ) ) {
-								    unlink($file_path_ua);
-							    }
 						    }
 
 					    }
+
+					    if( file_exists( $file_path_ua ) ) {
+						    unlink($file_path_ua);
+					    }
+
 					    return $count_result;
 				    }else {
 					    return $result__clear_db;
@@ -360,9 +362,14 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 
 			$net_count = $apbct->stats['sfw']['entries'];
 
+			$block_message = sprintf(
+				esc_html__( 'Anti-Crawler Protection is checking your browser and IP %s for spam bots', 'cleantalk-spam-protect' ),
+				'<a href="' . $result['ip'] . '" target="_blank">' . $result['ip'] . '</a>'
+			);
+
 			// Translation
 			$replaces = array(
-				'{SFW_DIE_NOTICE_IP}'              => __('Anti-Crawler Protection is activated for your IP ', 'cleantalk-spam-protect'),
+				'{SFW_DIE_NOTICE_IP}'              => $block_message,
 				'{SFW_DIE_MAKE_SURE_JS_ENABLED}'   => __( 'To continue working with the web site, please make sure that you have enabled JavaScript.', 'cleantalk-spam-protect' ),
 				'{SFW_DIE_YOU_WILL_BE_REDIRECTED}' => sprintf( __( 'You will be automatically redirected to the requested page after %d seconds.', 'cleantalk-spam-protect' ), 3 ) . '<br>' . __( 'Don\'t close this page. Please, wait for 3 seconds to pass to the page.', 'cleantalk-spam-protect' ),
 				'{CLEANTALK_TITLE}'                => __( 'Antispam by CleanTalk', 'cleantalk-spam-protect' ),
@@ -412,6 +419,8 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 			'_apbct_ajax_url'   => APBCT_URL_PATH . '/lib/Cleantalk/ApbctWP/Ajax.php',
 			'data__set_cookies' => $apbct->settings['data__set_cookies'],
 			'data__set_cookies__alt_sessions_type' => $apbct->settings['data__set_cookies__alt_sessions_type'],
+			'sfw__random_get' => $apbct->settings['sfw__random_get'] === '1' ||
+			                     ( $apbct->settings['sfw__random_get'] === '-1' && apbct_is_cache_plugins_exists() )
 		);
 
 		$js_jquery_url = includes_url() . 'js/jquery/jquery.min.js';
