@@ -576,6 +576,9 @@ class Helper
 	 */
 	public static function http__request($url, $data = array(), $presets = array(), $opts = array())
 	{
+        
+        $url .= ( parse_url( $url, PHP_URL_QUERY ) ? '&' : '?' ) . 'no_cache=' . rand( 0, getrandmax() );
+	    
 		if(function_exists('curl_init')){
 
 			$ch = curl_init();
@@ -600,7 +603,13 @@ class Helper
 					CURLOPT_POST => true,
 					CURLOPT_SSL_VERIFYPEER => false,
 					CURLOPT_SSL_VERIFYHOST => 0,
-					CURLOPT_HTTPHEADER => array('Expect:'), // Fix for large data and old servers http://php.net/manual/ru/function.curl-setopt.php#82418
+					CURLOPT_HTTPHEADER => array(
+					    'Expect:', // Fix for large data and old servers http://php.net/manual/ru/function.curl-setopt.php#82418
+                        'Expires: '.date(DATE_RFC822, mktime(0, 0, 0, 1, 1, 1971)),
+                        'Cache-Control: no-store, no-cache, must-revalidate',
+                        'Cache-Control: post-check=0, pre-check=0',
+                        'Pragma: no-cache',
+                    ),
 					CURLOPT_FOLLOWLOCATION => true,
 					CURLOPT_MAXREDIRS => 5,
 				),
@@ -632,7 +641,7 @@ class Helper
 						break;
 
 					case 'get':
-						$opts[CURLOPT_URL] .= $data ? '?' . str_replace("&amp;", "&", http_build_query($data)) : '';
+						$opts[CURLOPT_URL] .= $data ? '&' . str_replace("&amp;", "&", http_build_query($data)) : '';
 						$opts[CURLOPT_CUSTOMREQUEST] = 'GET';
 						$opts[CURLOPT_POST] = false;
 						$opts[CURLOPT_POSTFIELDS] = null;
