@@ -1675,7 +1675,7 @@ function apbct_settings__validate($settings) {
 			$apbct->network_data = array(
 				'key_is_ok'   => $apbct->data['key_is_ok'],
 				'moderate'    => $apbct->data['moderate'],
-                'valid'       => $apbct->data['valid'] ?: 0,
+                'valid'       => isset( $apbct->data['valid'] ) ? $apbct->data['valid'] : 0,
 				'auto_update' => $apbct->data['auto_update'],
 				'user_token'  => $apbct->data['user_token'],
 				'service_id'  => $apbct->data['service_id'],
