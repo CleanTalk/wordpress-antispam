@@ -1828,7 +1828,7 @@ function apbct_settings__get_key_auto( $direct_call = false ) {
 	$wpms           = APBCT_WPMS && defined('SUBDOMAIN_INSTALL') && !SUBDOMAIN_INSTALL ? true : false;
 	$white_label    = $apbct->network_settings['multisite__white_label'] ? true : false;
 	$hoster_api_key = $apbct->network_settings['multisite__hoster_api_key'];
-	$admin_email    = get_option('admin_email');
+	$admin_email    = $apbct->network_settings['multisite__work_mode'] == 1 ? get_site_option( 'admin_email' ) : get_option( 'admin_email' );
 	if (function_exists('is_multisite') && is_multisite() && $apbct->white_label) { 
 		$admin_email = get_site_option( 'admin_email' ); 
 	}
