@@ -627,8 +627,8 @@ function apbct_is_skip_request( $ajax = false ) {
             return 'SiteOrigin pagebuilder';
         }
         //Skip classfields email check
-        if ( apbct_is_theme_active('Classfields') && Post::get('action') === 'tmpl_ajax_check_user_email') {
-            return 'ClassFields checkemail';
+        if ( apbct_is_theme_active('Classifieds') && Post::get('action') === 'tmpl_ajax_check_user_email') {
+            return 'Classifieds checkemail';
         }
     } else {
 
