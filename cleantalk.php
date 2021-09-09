@@ -1112,7 +1112,9 @@ function apbct_sfw_update__end_of_update() {
 
 	$apbct->fw_stats['update_mode'] = 1;
 	$apbct->save('fw_stats');
-
+    usleep( 100000 );
+	
+	
 	// REMOVE AND RENAME
 	$result = SFW::data_tables__delete( DB::getInstance(), APBCT_TBL_FIREWALL_DATA );
 	if( empty( $result['error'] ) ) {
