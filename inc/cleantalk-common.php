@@ -913,16 +913,21 @@ function apbct_api_key__is_correct($api_key = null)
 function apbct_add_async_attribute($tag, $handle) {
 	
 	global $apbct;
-	
-    if(
-    	$handle === 'ct_public' ||
-	    $handle === 'ct_public_gdpr' ||
-	    $handle === 'ct_debug_js' ||
-	    $handle === 'ct_public_admin_js' ||
-	    $handle === 'ct_internal' ||
-	    $handle === 'ct_external' ||
-	    $handle === 'ct_nocache'
-	){
+    
+    $scripts_handles_names = array(
+        'ct_public',
+        'ct_public_functions',
+        'ct_public_gdpr',
+        'ct_debug_js',
+        'ct_public_admin_js',
+        'ct_internal',
+        'ct_external',
+        'ct_nocache',
+        'ct_collect_details',
+        'cleantalk-modal',
+    );
+    
+    if (in_array($handle, $scripts_handles_names, true)) {
     	if( $apbct->settings['misc__async_js'] )
 	        $tag = str_replace( ' src', ' async="async" src', $tag );
 	    
