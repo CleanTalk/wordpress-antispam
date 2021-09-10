@@ -1320,3 +1320,14 @@ function apbct_update_to_5_160_4() {
 	    unlink( $file_path );
     }
 }
+
+function apbct_update_to_5_161_1() {
+
+    global $apbct;
+
+    if( $apbct->is_multisite ){
+        $apbct->network_settings = array_merge( (array) $apbct->network_settings, $apbct->default_network_settings );
+        $apbct->saveNetworkSettings();
+    }
+
+}
