@@ -114,7 +114,7 @@ function apbct_base_call($params = array(), $reg_flag = false){
     // Fields exclusions
     if( ! empty( $params['message'] ) && is_array( $params['message'] ) ){
         $params['message'] = apbct_array( $params['message'] )
-            ->get_keys( $apbct->settings['exclusions__fields'], $apbct->settings['exclusions__fields__use_regexp'] )
+            ->getKeys( $apbct->settings['exclusions__fields'], $apbct->settings['exclusions__fields__use_regexp'] )
             ->delete();
     }
     /* End of Exclusions */
@@ -295,13 +295,13 @@ function apbct_exclusions_check($func = null){
 		case 'ct_contact_form_validate_postdata':
 			if(
 				(defined( 'DOING_AJAX' ) && DOING_AJAX) ||
-				apbct_array( $_POST )->get_keys( 'members_search_submit' )->result()
+				apbct_array( $_POST )->getKeys( 'members_search_submit' )->result()
 			)
 				return true;
 			break;
 		case 'ct_contact_form_validate':
 			if(
-				apbct_array( $_POST )->get_keys( 'members_search_submit' )->result()
+				apbct_array( $_POST )->getKeys( 'members_search_submit' )->result()
 			)
 				return true;
 			break;

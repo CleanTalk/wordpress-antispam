@@ -348,7 +348,7 @@ class GetFieldsAny {
 	 */
 	private function isProcessForm()
 	{
-		if( apbct_array( array( $_POST, $_GET ) )->get_keys( $this->skip_params )->result() ) {
+		if( apbct_array( array( $_POST, $_GET ) )->getKeys( $this->skip_params )->result() ) {
 			$this->contact = false;
 		}
 	}
