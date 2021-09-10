@@ -404,9 +404,9 @@ class State
 
 	public static function setDefinitions()
 	{
-		global $wpdb, $apbct;
+		global $wpdb;
 
-		$db_prefix = ! $apbct->white_label && defined('CLEANTALK_ACCESS_KEY') ? $wpdb->base_prefix : $wpdb->prefix;
+		$db_prefix = APBCT_WPMS && is_main_site() ? $wpdb->base_prefix : $wpdb->prefix;
 
 		if( ! defined( 'APBCT_SEESION__LIVE_TIME' ) ) {
 			define( 'APBCT_SEESION__LIVE_TIME', 86400 );
