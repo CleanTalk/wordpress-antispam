@@ -727,7 +727,7 @@ function apbct_sfw_update__init( $delay = 0 ){
 	$cron = new Cron();
 	$cron->addTask('sfw_update_checker', 'apbct_sfw_update__checker', 15 );
 
-	return Helper::http__request__rc_to_host(
+	return Helper::httpRequestRcToHost(
         'sfw_update__worker',
 		array(
             'firewall_updating_id' => $apbct->fw_stats['firewall_updating_id'],
@@ -814,7 +814,7 @@ function apbct_sfw_update__worker( $checker_work = false ) {
 		return true;
 	}
 
-	return Helper::http__request__rc_to_host(
+	return Helper::httpRequestRcToHost(
 		'sfw_update__worker',
 		array( 'firewall_updating_id' => $apbct->fw_stats['firewall_updating_id'] ),
 		array( 'async' )
@@ -836,7 +836,7 @@ function apbct_sfw_update__get_multifiles(){
 	if( empty( $result['error'] ) ){
 
 		if( ! empty( $result['file_url'] ) ) {
-			$file_urls = Helper::http__get_data_from_remote_gz__and_parse_csv( $result['file_url'] );
+			$file_urls = Helper::httpGetDataFromRemoteGzAndParseCsv( $result['file_url'] );
 			if( empty( $file_urls['error'] ) ){
 				if( ! empty( $result['file_ua_url'] ) ) {
 					$file_urls[][0] = $result['file_ua_url'];
@@ -2300,7 +2300,7 @@ function apbct_test_connection(){
     foreach($url_to_test as $url){
 
         $start = microtime(true);
-        $result = \Cleantalk\ApbctWP\Helper::http__request__get_content($url);
+        $result = \Cleantalk\ApbctWP\Helper::httpRequestGetContent($url);
 
         $out[$url] = array(
             'result' => !empty($result['error']) ? $result['error']	: 'OK',

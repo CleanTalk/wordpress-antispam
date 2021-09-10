@@ -62,7 +62,7 @@ class RemoteCalls
                             $params = $_GET;
                             unset($params['delay']);
 
-                            return Helper::http__request__rc_to_host(
+                            return Helper::httpRequestRcToHost(
                                 Get::get('spbc_remote_action'),
                                 $params,
                                 array('async'),

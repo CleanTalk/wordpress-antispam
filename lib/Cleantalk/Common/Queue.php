@@ -110,7 +110,7 @@ abstract class Queue
                         return $result;
                     }
 
-                    return \Cleantalk\ApbctWP\Helper::http__request__rc_to_host(
+                    return \Cleantalk\ApbctWP\Helper::httpRequestRcToHost(
                         'sfw_update__worker',
                         array(
                             'firewall_updating_id' => $apbct->fw_stats['firewall_updating_id'],
