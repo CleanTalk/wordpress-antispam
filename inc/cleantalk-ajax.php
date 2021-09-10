@@ -805,7 +805,7 @@ function ct_ajax_hook( $message_obj = null )
 		die(json_encode(array( 'apbct' => array(
 			'blocked' => true,
 			'comment' => $ct_result->comment,
-			'stop_script' => Post::has_string('action', 'tve_leads_ajax_')
+			'stop_script' => Post::hasString('action', 'tve_leads_ajax_')
 				? 1
 				: 0
 		))));

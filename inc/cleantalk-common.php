@@ -319,7 +319,7 @@ function apbct_exclusions_check($func = null){
  */
 function apbct_exclusions_check__url__reversed(){
     	return defined( 'APBCT_URL_EXCLUSIONS__REVERSED' ) &&
-           ! Server::has_string( 'REQUEST_URI', APBCT_URL_EXCLUSIONS__REVERSED );
+           ! Server::hasString( 'REQUEST_URI', APBCT_URL_EXCLUSIONS__REVERSED );
 }
 
 /**

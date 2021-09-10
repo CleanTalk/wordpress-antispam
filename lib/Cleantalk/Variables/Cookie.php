@@ -32,7 +32,7 @@ class Cookie extends ServerVariables{
 	 *
 	 * @return mixed|string
 	 */
-	protected function get_variable( $name ){
+	protected function getVariable( $name ){
 		
 		// Return from memory. From $this->variables
 		if( ! isset( static::$instance->variables[ $name ] ) ) {
@@ -45,7 +45,7 @@ class Cookie extends ServerVariables{
 			}
 
 			// Remember for further calls
-			static::getInstance()->remember_variable( $name, $value );
+			static::getInstance()->rememberVariable( $name, $value );
 
 			return $value;
 		}

@@ -45,7 +45,7 @@ class Cookie extends \Cleantalk\Variables\Cookie {
             }
     
             // Remember for further calls
-            static::getInstance()->remember_variable( $name, $value );
+            static::getInstance()->rememberVariable( $name, $value );
         }
         
         // Decoding by default

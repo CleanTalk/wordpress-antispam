@@ -21,7 +21,7 @@ class Server extends ServerVariables {
 	 *
 	 * @return mixed|string
 	 */
-	protected function get_variable( $name ){
+	protected function getVariable( $name ){
 
 		// Return from memory. From $this->server
 		if(isset(static::$instance->variables[$name]))
@@ -48,7 +48,7 @@ class Server extends ServerVariables {
 		}
 
 		// Remember for further calls
-		static::getInstance()->remember_variable( $name, $value );
+		static::getInstance()->rememberVariable( $name, $value );
 
 		return $value;
 	}
@@ -62,7 +62,7 @@ class Server extends ServerVariables {
 	 * @psalm-suppress PossiblyUnusedMethod
 	 */
 	public static function in_uri( $needle ){
-		return self::has_string( 'REQUEST_URI', $needle );
+		return self::hasString( 'REQUEST_URI', $needle );
 	}
 
 	/**
@@ -74,7 +74,7 @@ class Server extends ServerVariables {
 	 * @psalm-suppress PossiblyUnusedMethod
 	 */
 	public static function in_host( $needle ){
-		return self::has_string( 'HTTP_HOST', $needle );
+		return self::hasString( 'HTTP_HOST', $needle );
 	}
 
 	/**
@@ -97,7 +97,7 @@ class Server extends ServerVariables {
 	 * @psalm-suppress PossiblyUnusedMethod
 	 */
 	public static function in_referer( $needle ){
-		return self::has_string( 'HTTP_REFERER', $needle );
+		return self::hasString( 'HTTP_REFERER', $needle );
 	}
 
 	/**
