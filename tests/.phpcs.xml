@@ -24,4 +24,5 @@
 	<config name="testVersion" value="5.6-"/>
 
 	<rule ref="PHPCompatibility"/>
+	<rule ref="PSR12"/>
 </ruleset>
