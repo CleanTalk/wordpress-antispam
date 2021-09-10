@@ -908,7 +908,7 @@ function apbct_update_to_5_151_3 ()
 function apbct_update_to_5_151_6 ()
 {
 	global $apbct;
-	$apbct->error_delete( 'sfw_update', true );
+	$apbct->errorDelete( 'sfw_update', true );
 }
 
 /**

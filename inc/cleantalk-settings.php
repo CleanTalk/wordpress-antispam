@@ -1606,15 +1606,15 @@ function apbct_settings__validate($settings) {
 	// URLs
 	$result  = apbct_settings__sanitize__exclusions($settings['exclusions__urls'],   $settings['exclusions__urls__use_regexp']);
 	$result === false
-		? $apbct->error_add( 'exclusions_urls', 'is not valid: "' . $settings['exclusions__urls'] . '"', 'settings_validate' )
-		: $apbct->error_delete( 'exclusions_urls', true, 'settings_validate' );
+		? $apbct->errorAdd( 'exclusions_urls', 'is not valid: "' . $settings['exclusions__urls'] . '"', 'settings_validate' )
+		: $apbct->errorDelete( 'exclusions_urls', true, 'settings_validate' );
 	$settings['exclusions__urls'] = $result ? $result: '';
 	
 	// Fields
 	$result  = apbct_settings__sanitize__exclusions($settings['exclusions__fields'],   $settings['exclusions__fields__use_regexp']);
 	$result === false
-		? $apbct->error_add( 'exclusions_fields', 'is not valid: "' . $settings['exclusions__fields'] . '"', 'settings_validate' )
-		: $apbct->error_delete( 'exclusions_fields', true, 'settings_validate' );
+		? $apbct->errorAdd( 'exclusions_fields', 'is not valid: "' . $settings['exclusions__fields'] . '"', 'settings_validate' )
+		: $apbct->errorDelete( 'exclusions_fields', true, 'settings_validate' );
 	$settings['exclusions__fields'] = $result ? $result: '';
 	
 	// WPMS Logic.
@@ -1706,7 +1706,7 @@ function apbct_settings__sync( $direct_call = false ){
 	global $apbct;
 
 	//Clearing all errors
-	$apbct->error_delete_all('and_save_data');
+	$apbct->errorDeleteAll('and_save_data');
 
 	// Feedback with app_agent
 	ct_send_feedback('0:' . APBCT_AGENT); // 0 - request_id, agent version.
@@ -1721,18 +1721,18 @@ function apbct_settings__sync( $direct_call = false ){
 	if( $result ){
 		
 		// Deleting errors about invalid key
-		$apbct->error_delete( 'key_invalid key_get', 'save' );
+		$apbct->errorDelete( 'key_invalid key_get', 'save' );
 		
 		// SFW actions
 		if( $apbct->settings['sfw__enabled'] == 1 ){
 		 
 			$result = apbct_sfw_update__init( 5 );
 			if( ! empty( $result['error'] ) )
-				$apbct->error_add( 'sfw_update', $result['error'] );
+				$apbct->errorAdd( 'sfw_update', $result['error'] );
 			
 			$result = ct_sfw_send_logs( $apbct->settings['apikey'] );
 			if( ! empty( $result['error'] ) )
-				$apbct->error_add( 'sfw_send_logs', $result['error'] );
+				$apbct->errorAdd( 'sfw_send_logs', $result['error'] );
 			
 		}
 		
@@ -1742,7 +1742,7 @@ function apbct_settings__sync( $direct_call = false ){
 		// Key is not valid
 	}else{
 		$apbct->data['key_is_ok'] = false;
-		$apbct->error_add( 'key_invalid', __( 'Testing is failed. Please check the Access key.', 'cleantalk-spam-protect' ) );
+		$apbct->errorAdd( 'key_invalid', __( 'Testing is failed. Please check the Access key.', 'cleantalk-spam-protect' ) );
 	}
 	
 	// WPMS Logic.
@@ -1874,7 +1874,7 @@ function apbct_settings__get_key_auto( $direct_call = false ) {
 		}
 
 	}else{
-		$apbct->error_add(
+		$apbct->errorAdd(
 			'key_get',
 			$result['error']
 			. ($apbct->white_label

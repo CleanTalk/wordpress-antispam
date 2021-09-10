@@ -156,9 +156,9 @@ if(
     if( is_array( $cron_res ) ) {
         foreach( $cron_res as $task => $res ) {
             if( $res === true ) {
-			    $apbct->error_delete( $task, 'save_data', 'cron' );
+			    $apbct->errorDelete( $task, 'save_data', 'cron' );
 		    } else {
-			    $apbct->error_add( $task, $res, 'cron' );
+			    $apbct->errorAdd( $task, $res, 'cron' );
 		    }
 	    }
     }
@@ -716,8 +716,8 @@ function apbct_sfw_update__init( $delay = 0 ){
     $apbct->save( 'fw_stats' );
 
 	// Delete update errors
-	$apbct->error_delete( 'sfw_update', 'save_data' );
-	$apbct->error_delete( 'sfw_update', 'save_data', 'cron' );
+	$apbct->errorDelete( 'sfw_update', 'save_data' );
+	$apbct->errorDelete( 'sfw_update', 'save_data', 'cron' );
 
     \Cleantalk\ApbctWP\Queue::clearQueue();
 
@@ -776,7 +776,7 @@ function apbct_sfw_update__worker( $checker_work = false ) {
     $apbct->save('fw_stats');
 
     if( $apbct->fw_stats['calls'] > 600 ){
-        $apbct->error_add('sfw_update', 'WORKER_CALL_LIMIT_EXCEEDED' );
+        $apbct->errorAdd('sfw_update', 'WORKER_CALL_LIMIT_EXCEEDED' );
         $apbct->saveErrors();
         return 'WORKER_CALL_LIMIT_EXCEEDED';
     }
@@ -791,7 +791,7 @@ function apbct_sfw_update__worker( $checker_work = false ) {
 	$result = $queue->executeStage();
 
 	if( isset( $result['error'] ) ) {
-		$apbct->error_add('sfw_update', $result['error'] );
+		$apbct->errorAdd('sfw_update', $result['error'] );
 		$apbct->saveErrors();
 		return $result['error'];
 	}
@@ -802,7 +802,7 @@ function apbct_sfw_update__worker( $checker_work = false ) {
 		$queue->saveQueue( $queue->queue );
 		foreach( $queue->queue['stages'] as $stage ) {
 			if( isset( $stage['error'] ) ) {
-				$apbct->error_add('sfw_update', $stage['error'] );
+				$apbct->errorAdd('sfw_update', $stage['error'] );
 			}
 		}
 		// Do logging the queue process here
@@ -1176,7 +1176,7 @@ function apbct_sfw_update__end_of_update() {
 	$apbct->save('data'); // Unused
 
 	// Delete update errors
-	$apbct->error_delete( 'sfw_update', 'save_settings' );
+	$apbct->errorDelete( 'sfw_update', 'save_settings' );
 
 	// Get update period for server
 	$update_period = DNS::getRecord( 'spamfirewall-ttl-txt.cleantalk.org', true, DNS_TXT );
@@ -1311,7 +1311,7 @@ function ct_sfw_send_logs($api_key = '')
     if(empty($result['error'])){
         $apbct->stats['sfw']['last_send_time']          = time();
         $apbct->stats['sfw']['last_send_amount']        = $result['rows'];
-        $apbct->error_delete( 'sfw_send_logs', 'save_settings' );
+        $apbct->errorDelete( 'sfw_send_logs', 'save_settings' );
         $apbct->save('stats');
     }
 
@@ -2025,12 +2025,12 @@ function ct_account_status_check($api_key = null, $process_errors = true){
 		$cron = new Cron();
 		$cron->updateTask('check_account_status', 'ct_account_status_check',  86400);
 
-		$apbct->error_delete('account_check', 'save');
+		$apbct->errorDelete('account_check', 'save');
 
 		$apbct->saveData();
 
 	}elseif($process_errors){
-		$apbct->error_add('account_check', $result);
+		$apbct->errorAdd('account_check', $result);
 	}
 
 	if(!empty($result['valid'])){

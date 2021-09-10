@@ -123,7 +123,7 @@ class RemoteCalls
     public static function action__sfw_update(){
         global $apbct;
         $result = apbct_sfw_update__init();
-        $apbct->error_toggle( ! empty( $result['error'] ), 'sfw_update', $result);
+        $apbct->errorToggle( ! empty( $result['error'] ), 'sfw_update', $result);
         die(empty($result['error']) ? 'OK' : 'FAIL '.json_encode(array('error' => $result['error'])));
     }
     
