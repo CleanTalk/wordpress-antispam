@@ -349,7 +349,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 		$this->db->execute( $this->db->get_query() );
 	}
 	
-	public function _die( $result ){
+	public function diePage( $result ){
 		
 		global $apbct;
 		

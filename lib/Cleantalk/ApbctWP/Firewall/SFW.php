@@ -58,7 +58,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 	/**
 	 * @param $ips
 	 */
-	public function ip__append_additional( &$ips ){
+	public function ipAppendAdditional( &$ips ){
 		
 		$this->real_ip = isset($ips['real']) ? $ips['real'] : null;
 		
@@ -240,7 +240,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 		$this->db->execute( $this->db->get_query() );
 	}
 	
-	public function actions_for_denied( $result ){
+	public function actionsForDenied( $result ){
 		
 		if( $this->sfw_counter ){
 			$this->apbct->data['admin_bar__sfw_counter']['blocked']++;
@@ -249,7 +249,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 		
 	}
 	
-	public function actions_for_passed( $result ){
+	public function actionsForPassed( $result ){
 		if( $this->data__set_cookies == 1 && ! headers_sent() ) {
 		    $status = $result['status'] === 'PASS_SFW__BY_WHITELIST' ? '1' : '0';
             $cookie_val = md5( $result['ip'] . $this->api_key ) . $status;
@@ -267,11 +267,11 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 	 *
 	 * @param $result
 	 */
-	public function _die( $result ){
+	public function diePage( $result ){
 		
 		global $apbct;
 		
-		parent::_die( $result );
+		parent::diePage( $result );
 		
 		// Statistics
 		if(!empty($this->blocked_ips)){

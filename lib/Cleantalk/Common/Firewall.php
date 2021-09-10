@@ -93,7 +93,7 @@ class Firewall
     {
         if ( ! in_array($module, $this->fw_modules)) {
             $module->setDb($this->db);
-            $module->ip__append_additional($this->ip_array);
+            $module->ipAppendAdditional($this->ip_array);
             $this->fw_modules[$module->module_name] = $module;
             $module->setIpArray($this->ip_array);
         }

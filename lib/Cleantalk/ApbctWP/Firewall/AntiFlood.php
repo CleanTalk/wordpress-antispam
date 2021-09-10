@@ -200,9 +200,9 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule{
 		$this->db->execute( $this->db->get_query() );
 	}
 	
-	public function _die( $result ) {
+	public function diePage( $result ) {
 		
-		parent::_die( $result );
+		parent::diePage( $result );
 
 		global $apbct;
 
