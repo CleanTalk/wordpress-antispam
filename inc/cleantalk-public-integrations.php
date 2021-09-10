@@ -1027,7 +1027,7 @@ function ct_preprocess_comment($comment) {
 	// Change mail notification if license is out of date
 	if($apbct->data['moderate'] == 0){
 		$apbct->sender_email = $comment['comment_author_email'];
-		$apbct->sender_ip    = Helper::ip__get('real');
+		$apbct->sender_ip    = Helper::ipGet('real');
 		add_filter('comment_moderation_text',   'apbct_comment__Wordpress__changeMailNotification', 100, 2); // Comment sent to moderation
 		add_filter('comment_notification_text', 'apbct_comment__Wordpress__changeMailNotification', 100, 2); // Comment approved
 	}
@@ -1296,7 +1296,7 @@ function ct_registration_errors($errors, $sanitized_user_login = null, $user_ema
 	   ($ct_result->fast_submit == 1 || $ct_result->blacklisted == 1 || $ct_result->js_disabled == 1)
 	){
 		$apbct->sender_email = $user_email;
-		$apbct->sender_ip    = Helper::ip__get('real');
+		$apbct->sender_ip    = Helper::ipGet('real');
 		add_filter('wp_new_user_notification_email_admin', 'apbct_registration__Wordpress__changeMailNotification', 100, 3);
 	}
 
@@ -1710,7 +1710,7 @@ function apbct_form__contactForm7__testSpam( $spam, $_submission = null ) {
 	   ($ct_result->fast_submit == 1 || $ct_result->blacklisted == 1 || $ct_result->js_disabled == 1)
 	){
 		$apbct->sender_email = $sender_email;
-		$apbct->sender_ip    = Helper::ip__get();
+		$apbct->sender_ip    = Helper::ipGet();
 		add_filter('wpcf7_mail_components', 'apbct_form__contactForm7__changeMailNotification');
 	}
 
@@ -1832,7 +1832,7 @@ function apbct_form__ninjaForms__testSpam() {
 	   ($ct_result->fast_submit == 1 || $ct_result->blacklisted == 1 || $ct_result->js_disabled == 1)
 	){
 		$apbct->sender_email = $sender_email;
-		$apbct->sender_ip    = Helper::ip__get('real');
+		$apbct->sender_ip    = Helper::ipGet('real');
 		add_filter('ninja_forms_action_email_message', 'apbct_form__ninjaForms__changeMailNotification', 1, 3);
 	}
 
@@ -2145,7 +2145,7 @@ function apbct_form__WPForms__testSpam() {
 	   ($ct_result->fast_submit == 1 || $ct_result->blacklisted == 1 || $ct_result->js_disabled == 1)
 	){
 		$apbct->sender_email = $sender_email;
-		$apbct->sender_ip    = Helper::ip__get('real');
+		$apbct->sender_ip    = Helper::ipGet('real');
 		add_filter('wpforms_email_message', 'apbct_form__WPForms__changeMailNotification', 100, 2);
 	}
 
@@ -2847,7 +2847,7 @@ function wpforo_create_profile__check_register( $user_fields ) {
 
 	global $ct_signup_done;
 
-	$ip = Helper::ip__get( 'real', false );
+	$ip = Helper::ipGet( 'real', false );
 	$check = ct_test_registration( $user_fields['user_login'], $user_fields['user_email'], $ip );
 	if( $check['allow'] == 0 ) {
 		return array( 'error' => $check['comment'] );

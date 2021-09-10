@@ -1822,7 +1822,7 @@ function apbct_settings__get_key_auto( $direct_call = false ) {
 
 	$website        = parse_url(get_option('siteurl'), PHP_URL_HOST).parse_url(get_option('siteurl'), PHP_URL_PATH);
 	$platform       = 'wordpress';
-	$user_ip        = \Cleantalk\ApbctWP\Helper::ip__get('real', false);
+	$user_ip        = \Cleantalk\ApbctWP\Helper::ipGet('real', false);
 	$timezone       = filter_input(INPUT_POST, 'ct_admin_timezone');
 	$language       = apbct_get_server_variable( 'HTTP_ACCEPT_LANGUAGE' );
 	$wpms           = APBCT_WPMS && defined('SUBDOMAIN_INSTALL') && !SUBDOMAIN_INSTALL ? true : false;

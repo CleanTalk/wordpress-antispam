@@ -248,7 +248,7 @@ add_action( 'wp_ajax_nopriv_elementor_pro_forms_send_form', 'apbct_form__element
 
 // Custom register form (ticket_id=13668)
 add_action('website_neotrends_signup_fields_check',function( $username, $fields ){
-    $ip = Helper::ip__get( 'real', false );
+    $ip = Helper::ipGet( 'real', false );
     $ct_result = ct_test_registration( $username, $fields['email'], $ip );
     if( $ct_result['allow'] == 0 ) {
         ct_die_extended( $ct_result['comment'] );
@@ -878,7 +878,7 @@ function apbct_sfw_update__download_files( $urls ) {
 
 	//Reset keys
 	$urls = array_values( $urls );
-	$results = Helper::http__multi_request( $urls, $apbct->fw_stats['updating_folder'] );
+	$results = Helper::httpMultiRequest( $urls, $apbct->fw_stats['updating_folder'] );
 	$count_urls = count( $urls );
 	$count_results = count( $results );
 
@@ -1039,7 +1039,7 @@ function apbct_sfw_update__process_ck( $file_path ) {
 
 		if ( $unzipped_content !== false ) {
 
-			$file_ck_url__data = Helper::buffer__parse__csv( $unzipped_content );
+			$file_ck_url__data = Helper::bufferParseCsv( $unzipped_content );
 
 			if( ! empty( $file_ck_url__data['error'] ) ){
 				return array( 'error' => 'GET EXPECTED RECORDS COUNT DATA: ' . $file_ck_url__data['error'] );
@@ -1594,7 +1594,7 @@ function apbct_rc__update(){
 			die( 'FAIL ' . json_encode( array( 'error' => 'COULD_NOT_ACTIVATE', 'wp_error' => $result->get_error_message() ) ) );
 		}
 
-		$httpResponseCode =  Helper::http__request(get_option('siteurl'), array(), 'get_code');
+		$httpResponseCode =  Helper::httpRequest(get_option('siteurl'), array(), 'get_code');
 
 		if( strpos($httpResponseCode, '200') === false ){
 

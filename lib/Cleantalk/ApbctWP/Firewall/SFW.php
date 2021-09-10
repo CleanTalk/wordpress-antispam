@@ -63,7 +63,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 		$this->real_ip = isset($ips['real']) ? $ips['real'] : null;
 		
 		if( Get::get( 'sfw_test_ip' ) ){
-			if( Helper::ip__validate( Get::get( 'sfw_test_ip' ) ) !== false ){
+			if(Helper::ipValidate( Get::get( 'sfw_test_ip' ) ) !== false ){
 				$ips['sfw_test'] = Get::get( 'sfw_test_ip' );
 				$this->test_ip   = Get::get( 'sfw_test_ip' );
 				$this->test      = true;
@@ -164,7 +164,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
                     
                     $result_entry = array(
                         'ip'          => $current_ip,
-                        'network'     => Helper::ip__long2ip( $db_result['network'] ) . '/' . Helper::ip__mask__long_to_number( $db_result['mask'] ),
+                        'network'     => Helper::ipLong2ip( $db_result['network'] ) . '/' . Helper::ipMaskLongToNumber( $db_result['mask'] ),
                         'is_personal' => $db_result['source'],
                     );
                     
@@ -510,7 +510,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 
 		    if ( $unzipped_content !== false ) {
 
-			    $data = Helper::buffer__parse__csv( $unzipped_content );
+			    $data = Helper::bufferParseCsv( $unzipped_content );
 
 			    if( empty( $data['errors'] ) ){
 
@@ -574,7 +574,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 
 			// Do not add exceptions for local hosts
 			if( ! in_array( Server::getDomain(), array( 'lc', 'loc', 'lh' ) ) ){
-				$exclusions[] = Helper::dns__resolve( Server::get( 'HTTP_HOST' ) );
+				$exclusions[] = Helper::dnsResolve( Server::get( 'HTTP_HOST' ) );
 				$exclusions[] = '127.0.0.1';
             
             // And delete all 127.0.0.1 entries for local hosts
@@ -588,7 +588,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 		}
 
 		foreach ( $exclusions as $exclusion ) {
-			if ( Helper::ip__validate( $exclusion ) && sprintf( '%u', ip2long( $exclusion ) ) ) {
+			if (Helper::ipValidate( $exclusion ) && sprintf( '%u', ip2long( $exclusion ) ) ) {
 				$query .= '(' . sprintf( '%u', ip2long( $exclusion ) ) . ', ' . sprintf( '%u', bindec( str_repeat( '1', 32 ) ) ) . ', 1),';
 			}
 		}

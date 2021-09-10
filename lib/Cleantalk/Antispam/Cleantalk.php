@@ -318,7 +318,7 @@ class Cleantalk {
 		// Loop until find work server
 		foreach ( $servers as $server ) {
 
-			$dns = Helper::ip__resolve__cleantalks($server['ip']);
+			$dns = Helper::ipResolveCleantalks($server['ip']);
 			if( ! $dns ) {
 				continue;
 			}

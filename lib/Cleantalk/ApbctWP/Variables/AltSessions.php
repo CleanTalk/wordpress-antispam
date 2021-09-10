@@ -11,7 +11,7 @@ class AltSessions {
     public static $sessions_already_cleaned = false;
     
     public static function getID(){
-        $id = Helper::ip__get()
+        $id = Helper::ipGet()
             . Server::get( 'HTTP_USER_AGENT' )
             . Server::get( 'HTTP_ACCEPT_LANGUAGE' );
         return hash('sha256', $id);

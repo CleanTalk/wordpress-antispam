@@ -77,7 +77,7 @@ class Firewall
 	 */
 	public function ip__get( $ips_input = 'real', $v4_only = true ){
 		
-		$result = Helper::ip__get( $ips_input, $v4_only );
+		$result = Helper::ipGet( $ips_input, $v4_only );
 		
 		return ! empty( $result ) ? array( 'real' => $result ) : array();
 		

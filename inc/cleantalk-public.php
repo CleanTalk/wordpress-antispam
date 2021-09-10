@@ -17,9 +17,9 @@ function apbct_init() {
     if( $apbct->settings['data__pixel'] ){
 
         $pixel_hash = md5(
-            Helper::ip__get()
+            Helper::ipGet()
                 . $apbct->api_key
-                . Helper::time__get_interval_start( 3600 * 3 ) // Unique for every 3 hours
+                . Helper::timeGetIntervalStart(3600 * 3 ) // Unique for every 3 hours
         );
 
         $server = get_option('cleantalk_server');

@@ -148,7 +148,7 @@ function apbct_base_call($params = array(), $reg_flag = false){
 	
 	
 	$sender_info = !empty($params['sender_info'])
-		? \Cleantalk\ApbctWP\Helper::array_merge__save_numeric_keys__recursive(apbct_get_sender_info(), (array)$params['sender_info'])
+		? \Cleantalk\ApbctWP\Helper::arrayMergeSaveNumericKeysRecursive(apbct_get_sender_info(), (array)$params['sender_info'])
 		: apbct_get_sender_info();
 
 	$default_params = array(
@@ -156,9 +156,9 @@ function apbct_base_call($params = array(), $reg_flag = false){
 		// IPs
 		'sender_ip'       => defined('CT_TEST_IP')
             ? CT_TEST_IP
-            : \Cleantalk\ApbctWP\Helper::ip__get('remote_addr', false),
-		'x_forwarded_for' => \Cleantalk\ApbctWP\Helper::ip__get('x_forwarded_for', false),
-		'x_real_ip'       => \Cleantalk\ApbctWP\Helper::ip__get('x_real_ip', false),
+            : \Cleantalk\ApbctWP\Helper::ipGet('remote_addr', false),
+		'x_forwarded_for' => \Cleantalk\ApbctWP\Helper::ipGet('x_forwarded_for', false),
+		'x_real_ip'       => \Cleantalk\ApbctWP\Helper::ipGet('x_real_ip', false),
 		
 		// Misc
 		'auth_key'        => $apbct->api_key,
@@ -181,7 +181,7 @@ function apbct_base_call($params = array(), $reg_flag = false){
 		$default_params['sender_info']['server_info'] = $_SERVER;
 	
 	$ct_request = new CleantalkRequest(
-		\Cleantalk\ApbctWP\Helper::array_merge__save_numeric_keys__recursive($default_params, $params)
+		\Cleantalk\ApbctWP\Helper::arrayMergeSaveNumericKeysRecursive($default_params, $params)
 	);
 	
 	$ct = new Cleantalk();
@@ -373,7 +373,7 @@ function apbct_exclusions_check__ip(){
 	
 	if( apbct_get_server_variable( 'REMOTE_ADDR' ) ){
 		
-		if( \Cleantalk\ApbctWP\Helper::ip__is_cleantalks( apbct_get_server_variable( 'REMOTE_ADDR' ) ) ){
+		if( \Cleantalk\ApbctWP\Helper::ipIsCleantalks( apbct_get_server_variable( 'REMOTE_ADDR' ) ) ){
 			return true;
 		}
 		
@@ -421,7 +421,7 @@ function apbct_get_sender_info() {
 	return array(
 		'plugin_request_id'      => $apbct->plugin_request_id,
  		'wpms'                   => is_multisite() ? 'yes' : 'no',
-		'remote_addr'            => \Cleantalk\ApbctWP\Helper::ip__get('remote_addr', false),
+		'remote_addr'            => \Cleantalk\ApbctWP\Helper::ipGet('remote_addr', false),
         'REFFERRER'              => apbct_get_server_variable( 'HTTP_REFERER' ),
         'USER_AGENT'             => apbct_get_server_variable( 'HTTP_USER_AGENT' ),
 		'page_url'               => apbct_get_server_variable( 'SERVER_NAME' ) . apbct_get_server_variable( 'REQUEST_URI' ),
@@ -943,7 +943,7 @@ function apbct_add_admin_ip_to_swf_whitelist( $user ) {
 	global $apbct;
 	
 	$user = ! $user instanceof WP_User ? apbct_wp_get_current_user() : $user;
-	$ip = Helper::ip__get( 'real', true );
+	$ip = Helper::ipGet( 'real', true );
 	
 	if(
         $apbct->settings['sfw__enabled'] && // Break if the SpamFireWall is inactive
@@ -973,7 +973,7 @@ function apbct_private_list_add( $ip ){
     
     global $apbct;
     
-    if( Helper::ip__validate( $ip ) ){
+    if( Helper::ipValidate( $ip ) ){
         $result = API::method__private_list_add__sfw_wl( $apbct->data['user_token'], $ip, $apbct->data['service_id'] );
         return empty( $result['error'] );
     }

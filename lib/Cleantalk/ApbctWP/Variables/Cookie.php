@@ -51,7 +51,7 @@ class Cookie extends \Cleantalk\Variables\Cookie {
         // Decoding by default
         if( ! $raw  ){
             $value = urldecode( $value ); // URL decode
-            $value = Helper::is_json( $value ) ? json_decode( $value, true ) : $value; // JSON decode
+            $value = Helper::isJson( $value ) ? json_decode( $value, true ) : $value; // JSON decode
             if( ! is_null( $cast_to ) ){
                 settype( $value, $cast_to );
                 $value = $cast_to === 'array' && $value === array('') ? array() : $value;

@@ -67,7 +67,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 
 		    if ( $unzipped_content !== false ) {
 
-			    $lines = \Cleantalk\ApbctWP\Helper::buffer__parse__csv( $unzipped_content );
+			    $lines = \Cleantalk\ApbctWP\Helper::bufferParseCsv( $unzipped_content );
 
 			    if( empty( $lines['errors'] ) ){
 
@@ -89,7 +89,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 
 							    // Cast result to int
 							    $ua_id        = preg_replace('/[^\d]*/', '', $entry[0]);
-							    $ua_template  = isset($entry[1]) && apbct_is_regexp($entry[1]) ? Helper::db__prepare_param( $entry[1] ) : 0;
+							    $ua_template  = isset($entry[1]) && apbct_is_regexp($entry[1]) ? Helper::dbPrepareParam( $entry[1] ) : 0;
 							    $ua_status    = isset($entry[2]) ? $entry[2] : 0;
 
 							    if( ! $ua_template ){
@@ -262,7 +262,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 	}
 	
 	public function update_ac_log() {
-		$interval_time = Helper::time__get_interval_start( $this->store_interval );
+		$interval_time = Helper::timeGetIntervalStart( $this->store_interval );
 		
 		foreach( $this->ip_array as $_ip_origin => $current_ip ){
 			$id = md5( $current_ip . $this->sign . $interval_time );

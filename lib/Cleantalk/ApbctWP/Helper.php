@@ -35,17 +35,17 @@ class Helper extends \Cleantalk\Common\Helper
 	 *
 	 * @return array|bool|string (array || array('error' => true))
 	 */
-	public static function http__request($url, $data = array(), $presets = null, $opts = array())
+	public static function httpRequest($url, $data = array(), $presets = null, $opts = array())
 	{
 		// Set APBCT User-Agent and passing data to parent method
-		$opts = self::array_merge__save_numeric_keys(
+		$opts = self::arrayMergeSaveNumericKeys(
 			array(
 				CURLOPT_USERAGENT => 'APBCT-wordpress/' . (defined('APBCT_VERSION') ? APBCT_VERSION : 'unknown') . '; ' . get_bloginfo('url'),
 			),
 			$opts
 		);
 		
-		return parent::http__request($url, $data, $presets, $opts);
+		return parent::httpRequest($url, $data, $presets, $opts);
 	}
 	
 	/**
@@ -57,7 +57,7 @@ class Helper extends \Cleantalk\Common\Helper
 	 * @return array|mixed|string
 	 */
 	public static function http__request__get_response_code( $url ){
-		return static::http__request( $url, array(), 'get_code');
+		return static::httpRequest( $url, array(), 'get_code');
 	}
 	
 	/**
@@ -69,7 +69,7 @@ class Helper extends \Cleantalk\Common\Helper
 	 * @return array|mixed|string
 	 */
 	public static function http__request__get_content( $url ){
-		return static::http__request( $url, array(), 'get dont_split_to_array');
+		return static::httpRequest( $url, array(), 'get dont_split_to_array');
 	}
     
     /**
@@ -105,7 +105,7 @@ class Helper extends \Cleantalk\Common\Helper
             }
         }
         
-        static::http__request(
+        static::httpRequest(
             get_option( 'siteurl' ),
             $request_params,
             $patterns
@@ -131,7 +131,7 @@ class Helper extends \Cleantalk\Common\Helper
             unset( $patterns[ $key ] );
         }
 	    
-        $result = static::http__request(
+        $result = static::httpRequest(
             get_option( 'siteurl' ),
             array_merge( $request_params, array( 'test' => 'test' ) ),
             $patterns
@@ -180,7 +180,7 @@ class Helper extends \Cleantalk\Common\Helper
             
             if ( empty( $data['error'] ) ){
                 
-                if( static::get_mime_type( $data, 'application/x-gzip' ) ){
+                if( static::getMimeType( $data, 'application/x-gzip' ) ){
                     
                     if(function_exists('gzdecode')) {
                         
@@ -213,7 +213,7 @@ class Helper extends \Cleantalk\Common\Helper
     
         $result = static::http__get_data_from_remote_gz( $url );
         return empty( $result['error'] )
-            ? static::buffer__parse__csv( $result )
+            ? static::bufferParseCsv( $result )
             : $result;
     }
     

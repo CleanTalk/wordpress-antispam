@@ -132,7 +132,7 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule{
 	
 	public function update_ac_log() {
 		
-		$interval_time = Helper::time__get_interval_start( $this->store_interval );
+		$interval_time = Helper::timeGetIntervalStart( $this->store_interval );
 		
 		// @todo Rename ip column to sign. Use IP + UserAgent for it.
 		
@@ -156,7 +156,7 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule{
 	public function clear_table() {
 		
 		if( rand( 0, 100 ) < $this->chance_to_clean ){
-			$interval_start = \Cleantalk\ApbctWP\Helper::time__get_interval_start( $this->store_interval );
+			$interval_start = \Cleantalk\ApbctWP\Helper::timeGetIntervalStart( $this->store_interval );
 			$this->db->execute(
 				'DELETE
 				FROM ' . $this->db__table__ac_logs . '
