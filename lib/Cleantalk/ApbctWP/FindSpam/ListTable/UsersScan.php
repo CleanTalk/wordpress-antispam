@@ -54,7 +54,7 @@ class UsersScan extends Users
     }
 
     function extra_tablenav( $which ) {
-        if( isset( $_SERVER['SERVER_ADDR'] ) && $_SERVER['SERVER_ADDR'] === '127.0.0.1' && in_array( Server::get_domain(), array( 'lc', 'loc', 'lh' ) )){
+        if( isset( $_SERVER['SERVER_ADDR'] ) && $_SERVER['SERVER_ADDR'] === '127.0.0.1' && in_array( Server::getDomain(), array( 'lc', 'loc', 'lh' ) )){
             ?>
             <button type="button" class="button action ct_insert_users">Insert users</button>
             <button type="button" class="button action ct_insert_users__delete">Delete inserted</button>

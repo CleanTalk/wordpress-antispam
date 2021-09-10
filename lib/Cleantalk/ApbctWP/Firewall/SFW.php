@@ -573,7 +573,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 		if ( Server::get('HTTP_HOST') ) {
 
 			// Do not add exceptions for local hosts
-			if( ! in_array( Server::get_domain(), array( 'lc', 'loc', 'lh' ) ) ){
+			if( ! in_array( Server::getDomain(), array( 'lc', 'loc', 'lh' ) ) ){
 				$exclusions[] = Helper::dns__resolve( Server::get( 'HTTP_HOST' ) );
 				$exclusions[] = '127.0.0.1';
             

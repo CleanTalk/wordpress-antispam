@@ -285,8 +285,8 @@ if( ! is_admin() && ! apbct_is_ajax() && ! apbct_is_customize_preview() ){
 		$apbct->settings['sfw__enabled'] == 1 &&
         apbct_is_get() &&
         ! apbct_wp_doing_cron() &&
-        ! \Cleantalk\Variables\Server::in_uri( '/favicon.ico' ) &&
-	    ! apbct_is_cli()
+        ! \Cleantalk\Variables\Server::inUri( '/favicon.ico' ) &&
+        ! apbct_is_cli()
 	){
         wp_suspend_cache_addition( true );
 		apbct_sfw__check();
