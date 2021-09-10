@@ -161,7 +161,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule{
 	        }
 
             // UA check
-            $ua_bl_results = $this->db->fetch_all(
+            $ua_bl_results = $this->db->fetchAll(
                 "SELECT * FROM " . $this->db__table__ac_ua_bl . " ORDER BY `ua_status` DESC;"
             );
 

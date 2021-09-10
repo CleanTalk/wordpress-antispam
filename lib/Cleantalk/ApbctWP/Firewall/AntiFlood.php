@@ -67,7 +67,7 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule{
 		foreach( $this->ip_array as $_ip_origin => $current_ip ){
 
 			// UA check
-			$ua_bl_results = $this->db->fetch_all(
+			$ua_bl_results = $this->db->fetchAll(
 				"SELECT * FROM " . $this->db__table__ac_ua_bl . " ORDER BY `ua_status` DESC;"
 			);
 
@@ -107,7 +107,7 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule{
 			
 			// @todo Rename ip column to sign. Use IP + UserAgent for it.
 			
-			$result = $this->db->fetch_all(
+			$result = $this->db->fetchAll(
 				"SELECT SUM(entries) as total_count"
 				. ' FROM `' . $this->db__table__ac_logs . '`'
 				. " WHERE ip = '$current_ip' AND interval_start > '$time' AND " . rand( 1, 100000 ) . ";"

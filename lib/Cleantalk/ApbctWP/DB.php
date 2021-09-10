@@ -66,7 +66,7 @@ class DB extends \Cleantalk\Common\DB
 	 * @param $query
 	 * @return $this
 	 */
-	public function set_query($query)
+	public function setQuery($query)
 	{
 		$this->query = $query;
 		return $this;
@@ -149,7 +149,7 @@ class DB extends \Cleantalk\Common\DB
 	 *
 	 * @return array|object|null
 	 */
-	public function fetch_all($query = '', $response_type = false)
+	public function fetchAll($query = '', $response_type = false)
 	{
 		global $wpdb;
 		

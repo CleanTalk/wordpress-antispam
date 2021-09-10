@@ -149,10 +149,10 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 			}
 			$needles = array_unique( $needles );
 			
-			$db_results = $this->db->fetch_all("SELECT
+			$db_results = $this->db->fetchAll("SELECT
 				network, mask, status, source
 				FROM " . $this->db__table__data . "
-				WHERE network IN (". implode( ',', $needles ) .")
+				WHERE network IN (" . implode( ',', $needles ) . ")
 				AND	network = " . $current_ip_v4 . " & mask 
 				AND " . rand( 1, 100000 ) . "  
 				ORDER BY status DESC");
