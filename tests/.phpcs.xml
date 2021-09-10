@@ -18,6 +18,7 @@
 	<exclude-pattern>fw_files/*</exclude-pattern>
 	<arg name="colors"/>
 	<arg name="extensions" value="php"/>
+	<arg name="exclude" value="PSR12.ControlStructures.ControlStructureSpacing"/>
 	<arg value="n"/>
 
 	<!-- Rules: Check PHP version compatibility -->
