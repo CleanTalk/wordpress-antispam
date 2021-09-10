@@ -12,7 +12,7 @@ namespace Cleantalk\Common\Firewall;
  * @license       GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  * @since 2.49
  */
-class FirewallModule extends FirewallModule_abstract {
+class FirewallModule extends FirewallModuleAbstract {
 	
 	/**
 	 * FireWall_module constructor.
