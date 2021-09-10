@@ -22,7 +22,7 @@ class RestController extends \WP_REST_Controller {
         register_rest_route( $this->namespace, "/alt_sessions", array(
             array(
                 'methods'             => 'POST',
-                'callback'            => array( \Cleantalk\ApbctWP\Variables\AltSessions::class, 'set_fromRemote' ),
+                'callback'            => array( \Cleantalk\ApbctWP\Variables\AltSessions::class, 'setFromRemote'),
                 'args'                => array(
                     'cookies' => array(
                         'type'     => 'array',
@@ -33,7 +33,7 @@ class RestController extends \WP_REST_Controller {
             ),
             array(
                 'methods'             => 'GET',
-                'callback'            => array( \Cleantalk\ApbctWP\Variables\AltSessions::class, 'get_fromRemote' ),
+                'callback'            => array( \Cleantalk\ApbctWP\Variables\AltSessions::class, 'getFromRemote'),
                 'args'                => array(
                     'name' => array(
                         'type'     => 'string',

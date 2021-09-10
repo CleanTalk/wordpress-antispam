@@ -46,9 +46,9 @@ function apbct_email_check_before_post() {
 }
 
 function apbct_alt_session__save__AJAX() {
-	Cleantalk\ApbctWP\Variables\AltSessions::set_fromRemote();
+	Cleantalk\ApbctWP\Variables\AltSessions::setFromRemote();
 }
 
 function apbct_alt_session__get__AJAX() {
-	Cleantalk\ApbctWP\Variables\AltSessions::get_fromRemote();
+	Cleantalk\ApbctWP\Variables\AltSessions::getFromRemote();
 }
