@@ -1832,7 +1832,7 @@ function apbct_settings__get_key_auto( $direct_call = false ) {
 	if (function_exists('is_multisite') && is_multisite() && $apbct->white_label) { 
 		$admin_email = get_site_option( 'admin_email' ); 
 	}
-	$result = \Cleantalk\ApbctWP\API::method__get_api_key('antispam',
+	$result = \Cleantalk\ApbctWP\API::methodGetApiKey('antispam',
 		$admin_email,
 		$website,
 		$platform,

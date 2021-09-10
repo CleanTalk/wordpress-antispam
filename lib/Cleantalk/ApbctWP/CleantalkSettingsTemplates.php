@@ -52,7 +52,7 @@ class CleantalkSettingsTemplates {
 			$template_info = $_POST['data'];
 			if( isset( $template_info['template_id'] ) ) {
 				$template_id = sanitize_text_field( $template_info['template_id'] );
-				$res = \Cleantalk\Common\API::method__services_templates_update( $this->api_key, (int) $template_id, $this->get_plugin_options() );
+				$res = \Cleantalk\Common\API::methodServicesTemplatesUpdate( $this->api_key, (int) $template_id, $this->get_plugin_options() );
 				if( is_array( $res ) && array_key_exists( 'operation_status', $res ) ) {
 					if( $res['operation_status'] === 'SUCCESS' ) {
 						wp_send_json_success( esc_html__('Success. Reloading...', 'cleantalk-spam-protect' ) );
@@ -65,7 +65,7 @@ class CleantalkSettingsTemplates {
 			}
 			if( isset( $template_info['template_name'] ) ) {
 				$template_name = sanitize_text_field( $template_info['template_name'] );
-				$res = \Cleantalk\Common\API::method__services_templates_add( $this->api_key, $template_name, $this->get_plugin_options() );
+				$res = \Cleantalk\Common\API::methodServicesTemplatesAdd( $this->api_key, $template_name, $this->get_plugin_options() );
 				if( is_array( $res ) && array_key_exists( 'operation_status', $res ) ) {
 					if( $res['operation_status'] === 'SUCCESS' ) {
 						wp_send_json_success( esc_html__('Success. Reloading...', 'cleantalk-spam-protect' ) );
@@ -112,7 +112,7 @@ class CleantalkSettingsTemplates {
 	{
 		if( ! self::$templates ) {
 
-			$res = \Cleantalk\Common\API::method__services_templates_get( $api_key );
+			$res = \Cleantalk\Common\API::methodServicesTemplatesGet( $api_key );
 			if( is_array( $res ) ) {
 				if( array_key_exists( 'error', $res ) ) {
 					$templates = array();

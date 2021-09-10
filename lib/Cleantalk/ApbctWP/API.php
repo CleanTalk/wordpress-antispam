@@ -31,7 +31,7 @@ class API extends \Cleantalk\Common\API
      */
     public static function method__private_list_add__sfw_wl( $user_token, $service_id, $ip ) {
         
-        return static::method__private_list_add(
+        return static::methodPrivateListAdd(
             $user_token,
             $service_id,
             $ip,
@@ -56,7 +56,7 @@ class API extends \Cleantalk\Common\API
 	 *
 	 * @return array|string
 	 */
-	public static function send_request($data, $url = self::URL, $timeout = 10, $ssl = false, $ssl_path = '')
+	public static function sendRequest($data, $url = self::URL, $timeout = 10, $ssl = false, $ssl_path = '')
 	{
 		global $apbct;
 		
@@ -90,7 +90,7 @@ class API extends \Cleantalk\Common\API
 		}else{
 			$ssl_path = $ssl_path
 				?: (defined('APBCT_CASERT_PATH') ? APBCT_CASERT_PATH : '');
-			$result = parent::send_request($data, $url, $timeout, $ssl, $ssl_path);
+			$result = parent::sendRequest($data, $url, $timeout, $ssl, $ssl_path);
 		}
         
         return empty( $result ) || ! empty( $errors )

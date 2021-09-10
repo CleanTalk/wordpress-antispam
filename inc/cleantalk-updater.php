@@ -595,7 +595,7 @@ function apbct_update_to_5_138_0() {
 				
 				$data = get_option( 'cleantalk_data', array() );
 				
-				$result = \Cleantalk\ApbctWP\API::method__notice_paid_till(
+				$result = \Cleantalk\ApbctWP\API::methodNoticePaidTill(
 					$settings['api_key'],
 					preg_replace('/http[s]?:\/\//', '', get_option('siteurl'), 1),
 					! is_main_site() && $net_settings['white_label'] ? 'anti-spam-hosting' : 'antispam'

@@ -831,7 +831,7 @@ function apbct_sfw_update__get_multifiles(){
 	}
 
 	// Getting remote file name
-	$result = API::method__get_2s_blacklists_db( $apbct->api_key, 'multifiles', '3_1' );
+	$result = API::methodGet2sBlacklistsDb( $apbct->api_key, 'multifiles', '3_1' );
 
 	if( empty( $result['error'] ) ){
 
@@ -1678,7 +1678,7 @@ function apbct_rc__insert_auth_key($key, $plugin){
 
 			if($key && preg_match('/^[a-z\d]{3,15}$/', $key)){
 
-				$result = API::method__notice_paid_till(
+				$result = API::methodNoticePaidTill(
 					$key,
 					preg_replace('/http[s]?:\/\//', '', get_option('siteurl'), 1), // Site URL
 					'security'
@@ -1765,7 +1765,7 @@ function cleantalk_get_brief_data( $api_key = null ){
 
 	$api_key = is_null( $api_key ) ? $apbct->api_key : $api_key;
 
-	$apbct->data['brief_data'] = API::method__get_antispam_report_breif( $api_key );
+	$apbct->data['brief_data'] = API::methodGetAntispamReportBreif( $api_key );
 
 	# expanding data about the country
 	if(isset($apbct->data['brief_data']['top5_spam_ip']) && !empty($apbct->data['brief_data']['top5_spam_ip'])) {
@@ -1777,7 +1777,7 @@ function cleantalk_get_brief_data( $api_key = null ){
 			);
 
 			if(isset($ip)) {
-				$country_data = API::method__ip_info($ip);
+				$country_data = API::methodIpInfo($ip);
 				$country_data_clear = current($country_data);
 
 				if(is_array($country_data_clear) && isset($country_data_clear['country_name']) && isset($country_data_clear['country_code'])) {
@@ -1995,7 +1995,7 @@ function ct_account_status_check($api_key = null, $process_errors = true){
 	global $apbct;
 
 	$api_key = $api_key ?: $apbct->api_key;
-	$result = API::method__notice_paid_till(
+	$result = API::methodNoticePaidTill(
 		$api_key,
 		preg_replace('/http[s]?:\/\//', '', get_option('siteurl'), 1),
 		! is_main_site() && $apbct->white_label ? 'anti-spam-hosting' : 'antispam'

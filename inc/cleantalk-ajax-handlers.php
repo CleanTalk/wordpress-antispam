@@ -36,7 +36,7 @@ function apbct_js_keys__get() {
 function apbct_email_check_before_post() {
 	if (count($_POST) && isset($_POST['data']['email']) && !empty($_POST['data']['email'])) {
 		$email = trim($_POST['data']['email']);
-		$result = \Cleantalk\ApbctWP\API::method__email_check($email);
+		$result = \Cleantalk\ApbctWP\API::methodEmailCheck($email);
 		if (isset($result['data'])) {
 			die(json_encode(array('result' => $result['data'])));
 		}

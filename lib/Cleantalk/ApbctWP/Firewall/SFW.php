@@ -469,7 +469,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule {
 			unset( $value );
 			
 			//Sending the request
-			$result = API::method__sfw_logs( $ct_key, $data );
+			$result = API::methodSfwLogs( $ct_key, $data );
 			//Checking answer and deleting all lines from the table
 			if( empty( $result['error'] ) ){
 				if( $result['rows'] == count( $data ) ){
