@@ -534,7 +534,7 @@ function apbct_sfw__check()
 		DB::getInstance()
 	);
 
-	$firewall->load_fw_module( new SFW(
+	$firewall->loadFwModule( new SFW(
 		APBCT_TBL_FIREWALL_LOG,
 		APBCT_TBL_FIREWALL_DATA,
 		array(
@@ -547,7 +547,7 @@ function apbct_sfw__check()
 	) );
 
 	if( $apbct->settings['sfw__anti_crawler'] && $apbct->stats['sfw']['entries'] > 50 ){
-		$firewall->load_fw_module( new \Cleantalk\ApbctWP\Firewall\AntiCrawler(
+		$firewall->loadFwModule( new \Cleantalk\ApbctWP\Firewall\AntiCrawler(
 			APBCT_TBL_FIREWALL_LOG,
 			APBCT_TBL_AC_LOG,
 			array(
@@ -558,7 +558,7 @@ function apbct_sfw__check()
 	}
 
 	if( $apbct->settings['sfw__anti_flood'] && is_null( apbct_wp_get_current_user() ) ){
-		$firewall->load_fw_module( new AntiFlood(
+		$firewall->loadFwModule( new AntiFlood(
 			APBCT_TBL_FIREWALL_LOG,
 			APBCT_TBL_AC_LOG,
 			array(
