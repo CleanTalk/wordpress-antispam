@@ -928,7 +928,7 @@ function apbct_sfw_update__create_tables() {
 
 function apbct_sfw_update__create_temp_tables() {
 	// Preparing temporary tables
-	$result = SFW::create_temp_tables( DB::getInstance(), APBCT_TBL_FIREWALL_DATA );
+	$result = SFW::createTempTables( DB::getInstance(), APBCT_TBL_FIREWALL_DATA );
 	if( ! empty( $result['error'] ) ) {
 		return $result;
 	}
@@ -993,7 +993,7 @@ function apbct_sfw_update__process_file( $file_path ){
 		return array( 'error' => 'PROCESS FILE: ' . $file_path . ' is not exists.' );
 	}
 
-	$result = SFW::update__write_to_db(
+	$result = SFW::updateWriteToDb(
 		DB::getInstance(),
 		APBCT_TBL_FIREWALL_DATA . '_temp',
 		$file_path
@@ -1077,7 +1077,7 @@ function apbct_sfw_update__process_ck( $file_path ) {
 function apbct_sfw_update__process_exclusions(){
     global $apbct;
 
-    $result = SFW::update__write_to_db__exclusions(
+    $result = SFW::updateWriteToDbExclusions(
         DB::getInstance(),
         APBCT_TBL_FIREWALL_DATA . '_temp'
     );
@@ -1114,9 +1114,9 @@ function apbct_sfw_update__end_of_update() {
 	$apbct->save('fw_stats');
 
 	// REMOVE AND RENAME
-	$result = SFW::data_tables__delete( DB::getInstance(), APBCT_TBL_FIREWALL_DATA );
+	$result = SFW::dataTablesDelete( DB::getInstance(), APBCT_TBL_FIREWALL_DATA );
 	if( empty( $result['error'] ) ) {
-        $result = SFW::rename_data_tables__from_temp_to_main( DB::getInstance(), APBCT_TBL_FIREWALL_DATA );
+        $result = SFW::renameDataTablesFromTempToMain( DB::getInstance(), APBCT_TBL_FIREWALL_DATA );
     }
 	if( ! empty( $result['error'] ) ) {
         $apbct->fw_stats['update_mode'] = 0;
@@ -1277,7 +1277,7 @@ function apbct_sfw_update__cleanData(){
 
     global $apbct;
 
-    SFW::data_tables__delete( DB::getInstance(), APBCT_TBL_FIREWALL_DATA . '_temp' );
+    SFW::dataTablesDelete( DB::getInstance(), APBCT_TBL_FIREWALL_DATA . '_temp' );
 
     $apbct->fw_stats['firewall_update_percent'] = 0;
     $apbct->fw_stats['firewall_updating_id'] = null;
@@ -1301,7 +1301,7 @@ function ct_sfw_send_logs($api_key = '')
     $apbct->stats['sfw']['sending_logs__timestamp'] = time();
     $apbct->save('stats');
 
-    $result = SFW::send_log(
+    $result = SFW::sendLog(
         DB::getInstance(),
         APBCT_TBL_FIREWALL_LOG,
         $api_key,
