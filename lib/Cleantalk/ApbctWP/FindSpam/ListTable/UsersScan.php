@@ -46,7 +46,7 @@ class UsersScan extends Users
             );
 
             if ( $this->wc_active ) {
-                $items['ct_orders'] = $this->get_wc_orders_count($user_obj->ID);
+                $items['ct_orders'] = $this->getWcOrdersCount($user_obj->ID);
             }
 
             $this->items[] = $items;
