@@ -974,7 +974,7 @@ function apbct_private_list_add( $ip ){
     global $apbct;
     
     if( Helper::ipValidate( $ip ) ){
-        $result = API::method__private_list_add__sfw_wl( $apbct->data['user_token'], $ip, $apbct->data['service_id'] );
+        $result = API::methodPrivateListAddSfwWl( $apbct->data['user_token'], $ip, $apbct->data['service_id'] );
         return empty( $result['error'] );
     }
     
