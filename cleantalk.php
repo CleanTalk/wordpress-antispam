@@ -343,7 +343,7 @@ if (is_admin() || is_network_admin()){
     add_action( 'admin_init',            'apbct_admin__init', 1 );
 
     // Show notices
-    add_action( 'admin_init', array( AdminNotices::class, 'show_admin_notices' ) );
+    add_action( 'admin_init', array( AdminNotices::class, 'showAdminNotices') );
 
 	if (!(defined( 'DOING_AJAX' ) && DOING_AJAX)){
 
