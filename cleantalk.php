@@ -112,7 +112,7 @@ $apbct->firewall_updating = (bool) $apbct->fw_stats['firewall_updating_id'];
 $apbct->settings_link = is_network_admin() ? 'settings.php?page=cleantalk' : 'options-general.php?page=cleantalk';
 
 if(!$apbct->white_label){
-	require_once( CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-widget.php');
+	require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalkWidget.php');
 }
 
 // Disabling comments
