@@ -1332,7 +1332,7 @@ function apbct_antiflood__clear_table(){
 			)
 		);
 		$anti_flood->setDb( DB::getInstance() );
-		$anti_flood->clear_table();
+		$anti_flood->clearTable();
 		unset( $anti_flood );
 	}
 }
