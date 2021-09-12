@@ -15,7 +15,7 @@ use Cleantalk\ApbctWP\AdminNotices;
 use Cleantalk\ApbctWP\API;
 use Cleantalk\ApbctWP\CleantalkUpgrader;
 use Cleantalk\ApbctWP\CleantalkUpgraderSkin;
-use Cleantalk\ApbctWP\CleantalkUpgraderSkin_Deprecated;
+use Cleantalk\ApbctWP\CleantalkUpgraderSkinDeprecated;
 use Cleantalk\ApbctWP\Cron;
 use Cleantalk\ApbctWP\DB;
 use Cleantalk\ApbctWP\Deactivator;
@@ -1378,7 +1378,7 @@ function apbct_rc__install_plugin($_wp = null, $plugin = null){
 					if (version_compare(PHP_VERSION, '5.6.0') >= 0 && version_compare($wp_version, '5.3') >= 0) {
                         $installer= new CleantalkUpgrader( new CleantalkUpgraderSkin() );
                     } else {
-                        $installer= new CleantalkUpgrader( new CleantalkUpgraderSkin_Deprecated() );
+                        $installer= new CleantalkUpgrader( new CleantalkUpgraderSkinDeprecated() );
                     }
 
 					$installer->install($result->download_link);
@@ -1570,7 +1570,7 @@ function apbct_rc__update(){
 	if (version_compare(PHP_VERSION, '5.6.0') >= 0 && version_compare($wp_version, '5.3') >= 0){
 		$upgrader = new CleantalkUpgrader( new CleantalkUpgraderSkin( compact('title', 'nonce', 'url', 'plugin') ) );
 	}else{
-		$upgrader = new CleantalkUpgrader( new CleantalkUpgraderSkin_Deprecated( compact('title', 'nonce', 'url', 'plugin') ) );
+		$upgrader = new CleantalkUpgrader( new CleantalkUpgraderSkinDeprecated( compact('title', 'nonce', 'url', 'plugin') ) );
 	}
 
     $upgrader_result = $upgrader->upgrade( $plugin );
@@ -1605,7 +1605,7 @@ function apbct_rc__update(){
 				$rollback = new CleantalkUpgrader( new CleantalkUpgraderSkin( compact( 'title', 'nonce', 'url', 'plugin_slug', 'prev_version' ) ) );
 			}
 			else {
-				$rollback = new CleantalkUpgrader( new CleantalkUpgraderSkin_Deprecated( compact( 'title', 'nonce', 'url', 'plugin_slug', 'prev_version' ) ) );
+				$rollback = new CleantalkUpgrader( new CleantalkUpgraderSkinDeprecated( compact( 'title', 'nonce', 'url', 'plugin_slug', 'prev_version' ) ) );
 			}
 			$rollback->rollback($plugin);
 
