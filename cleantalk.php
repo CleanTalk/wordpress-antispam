@@ -583,7 +583,7 @@ function apbct_sfw__check()
  * @depreacted Use Activator::create_tables() instead
  */
 function apbct_activation__create_tables( $sqls, $db_prefix = '' ) {
-	Activator::create_tables( $sqls, $db_prefix );
+	Activator::createTables( $sqls, $db_prefix );
 }
 
 /**
