@@ -34,11 +34,15 @@ add_action( 'wp_ajax_ajax_info_users',        array( '\Cleantalk\ApbctWP\FindSpa
 add_action( 'wp_ajax_ajax_ct_get_csv_file',   array( '\Cleantalk\ApbctWP\FindSpam\UsersChecker', 'ctGetCsvFile') );
 add_action( 'wp_ajax_ajax_delete_all_users',  array( '\Cleantalk\ApbctWP\FindSpam\UsersChecker', 'ctAjaxDeleteAllUsers') );
 
-add_action( 'wp_ajax_ajax_clear_comments',    array( '\Cleantalk\ApbctWP\FindSpam\CommentsChecker', 'ct_ajax_clear_comments' ) );
-add_action( 'wp_ajax_ajax_check_comments',    array( '\Cleantalk\ApbctWP\FindSpam\CommentsChecker', 'ct_ajax_check_comments' ) );
-add_action( 'wp_ajax_ajax_info_comments',     array( '\Cleantalk\ApbctWP\FindSpam\CommentsChecker', 'ct_ajax_info' ) );
-add_action( 'wp_ajax_ajax_trash_all',         array( '\Cleantalk\ApbctWP\FindSpam\CommentsChecker', 'ct_ajax_trash_all' ) );
-add_action( 'wp_ajax_ajax_spam_all',          array( '\Cleantalk\ApbctWP\FindSpam\CommentsChecker', 'ct_ajax_spam_all' ) );
+add_action( 'wp_ajax_ajax_clear_comments',    array( '\Cleantalk\ApbctWP\FindSpam\CommentsChecker',
+    'ctAjaxClearComments'
+) );
+add_action( 'wp_ajax_ajax_check_comments',    array( '\Cleantalk\ApbctWP\FindSpam\CommentsChecker',
+    'ctAjaxCheckComments'
+) );
+add_action( 'wp_ajax_ajax_info_comments',     array( '\Cleantalk\ApbctWP\FindSpam\CommentsChecker', 'ctAjaxInfo') );
+add_action( 'wp_ajax_ajax_trash_all',         array( '\Cleantalk\ApbctWP\FindSpam\CommentsChecker', 'ctAjaxTrashAll') );
+add_action( 'wp_ajax_ajax_spam_all',          array( '\Cleantalk\ApbctWP\FindSpam\CommentsChecker', 'ctAjaxSpamAll') );
 
 // Debug
 add_action( 'wp_ajax_ajax_insert_users',  array( '\Cleantalk\ApbctWP\FindSpam\UsersChecker', 'ctAjaxInsertUsers') );
