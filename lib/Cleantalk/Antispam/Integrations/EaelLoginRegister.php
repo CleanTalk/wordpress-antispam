@@ -1,24 +1,26 @@
 <?php
 
-
 namespace Cleantalk\Antispam\Integrations;
 
+class EaelLoginRegister extends IntegrationBase
+{
+    public function getDataForChecking($argument)
+    {
+        $data             = ct_get_fields_any($_POST);
+        $data['register'] = true;
 
-class EaelLoginRegister extends IntegrationBase {
+        return $data;
+    }
 
-	public function getDataForChecking( $argument ) {
-		$data = ct_get_fields_any( $_POST );
-		$data['register'] = true;
-		return $data;
-	}
-
-	/**
-	 * @param $message
-	 * @psalm-suppress UnusedVariable
-	 */
-	public function doBlock( $message ) {
-		global $ct_comment;
-		$ct_comment = $message;
-		ct_die( null, null );
-	}
+    /**
+     * @param $message
+     *
+     * @psalm-suppress UnusedVariable
+     */
+    public function doBlock($message)
+    {
+        global $ct_comment;
+        $ct_comment = $message;
+        ct_die(null, null);
+    }
 }
