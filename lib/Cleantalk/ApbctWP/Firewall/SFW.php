@@ -234,7 +234,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
                 substr(Server::get('HTTP_HOST') . Server::get('REQUEST_URI'), 0, 100),
             )
         );
-        $this->db->execute($this->db->get_query());
+        $this->db->execute($this->db->getQuery());
     }
 
     public function actionsForDenied($result)
@@ -609,7 +609,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
             $sql_result = $db->execute(substr($query, 0, -1) . ';');
 
             return $sql_result === false
-                ? array('error' => 'COULD_NOT_WRITE_TO_DB 4: ' . $db->get_last_error())
+                ? array('error' => 'COULD_NOT_WRITE_TO_DB 4: ' . $db->getLastError())
                 : count($exclusions);
         }
 

@@ -197,7 +197,7 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule
 			ua_name = %s";
 
         $this->db->prepare($query, array(Server::get('HTTP_USER_AGENT'), Server::get('HTTP_USER_AGENT')));
-        $this->db->execute($this->db->get_query());
+        $this->db->execute($this->db->getQuery());
     }
 
     public function diePage($result)

@@ -369,7 +369,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
                 substr(Server::get('HTTP_HOST') . Server::get('REQUEST_URI'), 0, 100),
             )
         );
-        $this->db->execute($this->db->get_query());
+        $this->db->execute($this->db->getQuery());
     }
 
     public function diePage($result)
