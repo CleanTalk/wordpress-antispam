@@ -510,6 +510,59 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
         }
     }
 
+    public static function directUpdateGetBlackLists($api_key)
+    {
+        // Getting remote file name
+        $result = API::methodGet2sBlacklistsDb($api_key, null, '3_1');
+
+        if ( empty($result['error']) ) {
+            return array(
+                'blacklist'  => isset($result['data'])             ? $result['data']             : null,
+                'useragents' => isset($result['data_user_agents']) ? $result['data_user_agents'] : null,
+                'bl_count'   => isset($result['networks_count'])   ? $result['networks_count']   : null,
+                'ua_count'   => isset($result['ua_count'])         ? $result['ua_count']         : null,
+            );
+        }
+
+        return $result;
+    }
+
+    public static function directUpdate($db, $db__table__data, $blacklists)
+    {
+        if ( ! is_array($blacklists) ) {
+            return array('error' => 'BlackLists is not an array.');
+        }
+        for ( $count_result = 0; current($blacklists) !== false; ) {
+            $query = "INSERT INTO " . $db__table__data . " (network, mask, status) VALUES ";
+
+            for (
+                $i = 0, $values = array();
+                APBCT_WRITE_LIMIT !== $i && current($blacklists) !== false;
+                $i++, $count_result++, next($blacklists)
+            ) {
+                $entry = current($blacklists);
+
+                if ( empty($entry) ) {
+                    continue;
+                }
+
+                // Cast result to int
+                $ip      = preg_replace('/[^\d]*/', '', $entry[0]);
+                $mask    = preg_replace('/[^\d]*/', '', $entry[1]);
+                $private = isset($entry[2]) ? $entry[2] : 0;
+
+                $values[] = '(' . $ip . ',' . $mask . ',' . $private . ')';
+            }
+
+            if ( ! empty($values) ) {
+                $query .= implode(',', $values) . ';';
+                $db->execute($query);
+            }
+        }
+
+        return $count_result;
+    }
+
     /**
      * Updates SFW local base
      *

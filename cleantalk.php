@@ -813,7 +813,7 @@ function apbct_sfw_update__init($delay = 0)
 
     $prepare_dir__result = apbct_prepare_upd_dir();
     if ( ! empty($prepare_dir__result['error']) ) {
-        return $prepare_dir__result;
+        return apbct_sfw_direct_update();
     }
 
     // Set a new update ID and an update time start
@@ -1207,7 +1207,7 @@ function apbct_sfw_update__process_exclusions()
     );
 }
 
-function apbct_sfw_update__end_of_update()
+function apbct_sfw_update__end_of_update($is_direct_update = false)
 {
     global $apbct, $wpdb;
 
@@ -1245,6 +1245,7 @@ function apbct_sfw_update__end_of_update()
     }
 
     $apbct->stats['sfw']['last_update_time'] = time();
+    $apbct->stats['sfw']['last_update_way']  = $is_direct_update ? 'Direct update' : 'Queue update';
     $apbct->save('stats');
 
     /**
@@ -1384,6 +1385,86 @@ function apbct_sfw_update__checker()
     }
 
     return true;
+}
+
+function apbct_sfw_direct_update()
+{
+    global $apbct;
+
+    $api_key = $apbct->api_key;
+
+    // Key is empty
+    if ( empty($api_key) ) {
+        return array('error' => 'SFW DIRECT UPDATE: KEY_IS_EMPTY');
+    }
+
+    // Getting BL
+    $result = SFW::directUpdateGetBlackLists($api_key);
+
+    if ( empty($result['error']) ) {
+        $blacklists = $result['blacklist'];
+        $useragents = $result['useragents'];
+        $bl_count   = $result['bl_count'];
+        $ua_count   = $result['ua_count'];
+
+        if ( isset($bl_count, $ua_count) ) {
+            $apbct->fw_stats['expected_networks_count'] = $bl_count;
+            $apbct->fw_stats['expected_ua_count']       = $ua_count;
+            $apbct->save('fw_stats');
+        }
+
+        // Preparing database infrastructure
+        apbct_activation__create_tables(Schema::getSchema('sfw'), $apbct->db_prefix);
+        SFW::createTempTables(DB::getInstance(), APBCT_TBL_FIREWALL_DATA);
+
+        /**
+         * UPDATING UA LIST
+         */
+        if ( $useragents && ($apbct->settings['sfw__anti_crawler'] || $apbct->settings['sfw__anti_flood']) ) {
+            $ua_result = AntiCrawler::directUpdate($useragents);
+
+            if ( ! empty($ua_result['error']) ) {
+                return array('error' => 'DIRECT UPDATING UA LIST: ' . $result['error']);
+            }
+
+            if ( ! is_int($ua_result) ) {
+                return array('error' => 'DIRECT UPDATING UA LIST: : WRONG_RESPONSE AntiCrawler::directUpdate');
+            }
+        }
+
+        /**
+         * UPDATING BLACK LIST
+         */
+        $upd_result = SFW::directUpdate(
+            DB::getInstance(),
+            APBCT_TBL_FIREWALL_DATA . '_temp',
+            $blacklists
+        );
+
+        if ( ! empty($upd_result['error']) ) {
+            return array('error' => 'DIRECT UPDATING BLACK LIST: ' . $upd_result['error']);
+        }
+
+        if ( ! is_int($upd_result) ) {
+            return array('error' => 'DIRECT UPDATING BLACK LIST: WRONG RESPONSE FROM SFW::directUpdate');
+        }
+
+        /**
+         * UPDATING EXCLUSIONS LIST
+         */
+        $excl_result = apbct_sfw_update__process_exclusions();
+
+        if ( ! empty($excl_result['error']) ) {
+            return array('error' => 'DIRECT UPDATING EXCLUSIONS: ' . $excl_result['error']);
+        }
+
+        /**
+         * END OF UPDATE
+         */
+        return apbct_sfw_update__end_of_update(true);
+    }
+
+    return $result;
 }
 
 function apbct_sfw_update__cleanData()
