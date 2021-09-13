@@ -400,10 +400,10 @@ class State
 
             /* Adding some dynamic properties */
 
-            // Standalone or main site
-            $this->api_key        = $this->settings['apikey'];
-            $this->dashboard_link = 'https://cleantalk.org/my/' . ($this->user_token ? '?user_token=' . $this->user_token : '');
-            $this->notice_show    = $this->notice_show || count((array)$this->errors);
+			// Standalone or main site
+			$this->api_key = $this->settings['apikey'];
+			$this->dashboard_link = 'https://cleantalk.org/my/' . ( $this->user_token ? '?user_token=' . $this->user_token : '' );
+			$this->notice_show  = $this->notice_show || $this->isHaveErrors();
 
             // Network
             if ( ! is_main_site()) {
@@ -665,6 +665,26 @@ class State
         } else {
             $this->errorDelete($type, $save_flag, $major_type);
         }
+    }
+
+    /**
+     * Checking if errors are in the setting, and they are not empty.
+     *
+     * @return bool
+     */
+    public function isHaveErrors()
+    {
+        if ( count((array)$this->errors) ) {
+            foreach ( (array)$this->errors as $error ) {
+                if ( is_array($error) ) {
+                    return (bool)count($error);
+                }
+            }
+
+            return true;
+        }
+
+        return false;
     }
 
     /**
