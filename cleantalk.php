@@ -1223,7 +1223,7 @@ function apbct_prepare_upd_dir() {
 
     ! is_dir($dir_name) && mkdir($dir_name); // Creating the folder
 
-    chmod(APBCT_DIR_PATH, octdec($previous_permissions)); // Rollback permissions
+    chmod(APBCT_DIR_PATH, (int) octdec($previous_permissions)); // Rollback permissions
 
 	if( ! is_dir( $dir_name ) ) {
 
