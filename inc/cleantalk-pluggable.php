@@ -660,42 +660,40 @@ function apbct_is_skip_request($ajax = false)
              isset($_POST['_um_password_reset']) && $_POST['_um_password_reset'] == 1 ) {
             return 'ultimatemember_password_reset';
         }
-	    // UltimateMember password reset skip
-	    if( apbct_is_plugin_active( 'gravityformspaypal/paypal.php' ) &&
-	        ( apbct_is_in_uri('page=gf_paypal_ipn') || apbct_is_in_uri('callback=gravityformspaypal') ) )
-	    {
-		    return 'gravityformspaypal_processing_skipped';
-	    }
-	    // MyListing theme service requests skip
-	    if ( ( apbct_is_theme_active( 'My Listing Child' ) || apbct_is_theme_active( 'My Listing' ) ) &&
-	         Get::get('mylisting-ajax') === '1' )
-	    {
-		    return 'mylisting_theme_service_requests_skip';
-	    }
-	    // HappyForms skip every requests. HappyForms have the direct integration
-	    if( ( apbct_is_plugin_active( 'happyforms-upgrade/happyforms-upgrade.php' ) ||
-	        apbct_is_plugin_active( 'happyforms/happyforms.php' ) ) &&
-	        ( Post::get('happyforms_message_nonce') !== ''  ) )
-	    {
-		    return 'happyform_skipped';
-	    }
-	    // Essentials addons for elementor - light and pro
-	    if(
-	        ( apbct_is_plugin_active( 'essential-addons-for-elementor-lite/essential_adons_elementor.php' ) ||
-	          apbct_is_plugin_active( 'essential-addons-elementor/essential_adons_elementor.php' ) ) &&
-	        ( Post::get('eael-login-submit') !== '' && Post::get('eael-user-login') !== '' ) )
-	    {
-		    return 'eael_login_skipped';
-	    }
-		// Autonami Marketing Automations service request
-	    if( apbct_is_rest() && Post::get('automation_id') !== '' && Post::get('unique_key') !== '' )
-	    {
-		    return 'autonami-rest';
-	    }
-	    //Skip wforms because of direct integration
-	    if ( apbct_is_plugin_active( 'wpforms/wpforms.php' ) && ( Post::get('wpforms') || Post::get('actions') === 'wpforms_submit' ) ) {
-		    return 'wp_forms';
-	    }
+        // UltimateMember password reset skip
+        if ( apbct_is_plugin_active('gravityformspaypal/paypal.php') &&
+             (apbct_is_in_uri('page=gf_paypal_ipn') || apbct_is_in_uri('callback=gravityformspaypal')) ) {
+            return 'gravityformspaypal_processing_skipped';
+        }
+        // MyListing theme service requests skip
+        if ( (apbct_is_theme_active('My Listing Child') || apbct_is_theme_active('My Listing')) &&
+             Get::get('mylisting-ajax') === '1' ) {
+            return 'mylisting_theme_service_requests_skip';
+        }
+        // HappyForms skip every requests. HappyForms have the direct integration
+        if ( (apbct_is_plugin_active('happyforms-upgrade/happyforms-upgrade.php') ||
+              apbct_is_plugin_active('happyforms/happyforms.php')) &&
+             (Post::get('happyforms_message_nonce') !== '') ) {
+            return 'happyform_skipped';
+        }
+        // Essentials addons for elementor - light and pro
+        if (
+            (apbct_is_plugin_active('essential-addons-for-elementor-lite/essential_adons_elementor.php') ||
+             apbct_is_plugin_active('essential-addons-elementor/essential_adons_elementor.php')) &&
+            (Post::get('eael-login-submit') !== '' && Post::get('eael-user-login') !== '') ) {
+            return 'eael_login_skipped';
+        }
+        // Autonami Marketing Automations service request
+        if ( apbct_is_rest() && Post::get('automation_id') !== '' && Post::get('unique_key') !== '' ) {
+            return 'autonami-rest';
+        }
+        //Skip wforms because of direct integration
+        if (
+            apbct_is_plugin_active('wpforms/wpforms.php') &&
+            (Post::get('wpforms') || Post::get('actions') === 'wpforms_submit')
+        ) {
+            return 'wp_forms';
+        }
         // Formidable skip - this is the durect integration
         if ( apbct_is_plugin_active('formidable/formidable.php') &&
              Post::get('frm_action') === 'update' ) {

@@ -1211,9 +1211,9 @@ function apbct_sfw_update__end_of_update()
 {
     global $apbct, $wpdb;
 
-	$apbct->fw_stats['update_mode'] = 1;
-	$apbct->save('fw_stats');
-    usleep( 100000 );
+    $apbct->fw_stats['update_mode'] = 1;
+    $apbct->save('fw_stats');
+    usleep(100000);
 
 
     // REMOVE AND RENAME
@@ -1328,26 +1328,23 @@ function apbct_prepare_upd_dir()
 
     ! is_dir($dir_name) && mkdir($dir_name); // Creating the folder
 
-    chmod(APBCT_DIR_PATH, (int) octdec($previous_permissions)); // Rollback permissions
+    chmod(APBCT_DIR_PATH, (int)octdec($previous_permissions)); // Rollback permissions
 
-	if( ! is_dir( $dir_name ) ) {
-
-        return ! is_writable( APBCT_DIR_PATH )
-            ? array( 'error' => 'Can not to make FW dir. Low permissions: ' . fileperms( APBCT_DIR_PATH ) )
-            : array( 'error' => 'Can not to make FW dir. Unknown reason.' );
-
-	} else {
-
-		$files = glob( $dir_name . '/*' );
-		if( $files === false ) {
-			return array( 'error' => 'Can not find FW files.' );
-		}
-		if( count( $files ) === 0 ) {
-			return (bool) file_put_contents( $dir_name . 'index.php', '<?php' . PHP_EOL );
-		}
-		foreach( $files as $file ){
-			if( is_file( $file ) && unlink( $file ) === false ){
-			    return array( 'error' => 'Can not delete the FW file: ' . $file );
+    if ( ! is_dir($dir_name) ) {
+        return ! is_writable(APBCT_DIR_PATH)
+            ? array('error' => 'Can not to make FW dir. Low permissions: ' . fileperms(APBCT_DIR_PATH))
+            : array('error' => 'Can not to make FW dir. Unknown reason.');
+    } else {
+        $files = glob($dir_name . '/*');
+        if ( $files === false ) {
+            return array('error' => 'Can not find FW files.');
+        }
+        if ( count($files) === 0 ) {
+            return (bool)file_put_contents($dir_name . 'index.php', '<?php' . PHP_EOL);
+        }
+        foreach ( $files as $file ) {
+            if ( is_file($file) && unlink($file) === false ) {
+                return array('error' => 'Can not delete the FW file: ' . $file);
             }
         }
     }

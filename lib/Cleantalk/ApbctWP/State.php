@@ -400,10 +400,10 @@ class State
 
             /* Adding some dynamic properties */
 
-			// Standalone or main site
-			$this->api_key = $this->settings['apikey'];
-			$this->dashboard_link = 'https://cleantalk.org/my/' . ( $this->user_token ? '?user_token=' . $this->user_token : '' );
-			$this->notice_show  = $this->notice_show || $this->isHaveErrors();
+            // Standalone or main site
+            $this->api_key = $this->settings['apikey'];
+            $this->dashboard_link = 'https://cleantalk.org/my/' . ( $this->user_token ? '?user_token=' . $this->user_token : '' );
+            $this->notice_show  = $this->notice_show || $this->isHaveErrors();
 
             // Network
             if ( ! is_main_site()) {
