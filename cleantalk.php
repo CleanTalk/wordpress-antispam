@@ -1112,6 +1112,8 @@ function apbct_sfw_update__end_of_update() {
 
 	$apbct->fw_stats['update_mode'] = 1;
 	$apbct->save('fw_stats');
+    usleep( 100000 );
+
 
 	// REMOVE AND RENAME
 	$result = SFW::data_tables__delete( DB::getInstance(), APBCT_TBL_FIREWALL_DATA );
@@ -1216,11 +1218,21 @@ function apbct_prepare_upd_dir() {
 		return array( 'error' => 'FW dir can not be blank.' );
 	}
 
+    $previous_permissions = substr(sprintf('%o', fileperms(APBCT_DIR_PATH)), -3); // Saving prev permissions
+    chmod(APBCT_DIR_PATH, 777); // Changing permissions
+
+    ! is_dir($dir_name) && mkdir($dir_name); // Creating the folder
+
+    chmod(APBCT_DIR_PATH, octdec($previous_permissions)); // Rollback permissions
+
 	if( ! is_dir( $dir_name ) ) {
-		if( ! mkdir( $dir_name ) && ! is_dir( $dir_name ) ) {
-			return array( 'error' => 'Can not to make FW dir.' );
-		}
+
+        return ! is_writable( APBCT_DIR_PATH )
+            ? array( 'error' => 'Can not to make FW dir. Low permissions: ' . fileperms( APBCT_DIR_PATH ) )
+            : array( 'error' => 'Can not to make FW dir. Unknown reason.' );
+
 	} else {
+
 		$files = glob( $dir_name . '/*' );
 		if( $files === false ) {
 			return array( 'error' => 'Can not find FW files.' );

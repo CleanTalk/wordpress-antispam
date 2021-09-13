@@ -627,8 +627,8 @@ function apbct_is_skip_request( $ajax = false ) {
             return 'SiteOrigin pagebuilder';
         }
         //Skip classfields email check
-        if ( apbct_is_theme_active('Classfields') && Post::get('action') === 'tmpl_ajax_check_user_email') {
-            return 'ClassFields checkemail';
+        if ( apbct_is_theme_active('Classifieds') && Post::get('action') === 'tmpl_ajax_check_user_email') {
+            return 'Classifieds checkemail';
         }
     } else {
 
@@ -686,7 +686,7 @@ function apbct_is_skip_request( $ajax = false ) {
 		    return 'autonami-rest';
 	    }
 	    //Skip wforms because of direct integration
-	    if ( apbct_is_plugin_active( 'wpforms/wpforms.php' ) && isset( $_POST['wpforms'] ) ) {
+	    if ( apbct_is_plugin_active( 'wpforms/wpforms.php' ) && ( Post::get('wpforms') || Post::get('actions') === 'wpforms_submit' ) ) {
 		    return 'wp_forms';
 	    }
         // Formidable skip - this is the durect integration
