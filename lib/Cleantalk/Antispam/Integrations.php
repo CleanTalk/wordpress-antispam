@@ -46,7 +46,6 @@ class Integrations
     /**
      * @param $argument
      *
-     * @return void
      * @psalm-suppress UnusedVariable
      */
     public function checkSpam($argument)
@@ -102,7 +101,6 @@ class Integrations
                     }
                 } else {
                     // @ToDo have to handle an error
-                    return;
                 }
             }
         }

@@ -24,6 +24,7 @@ class FirewallModule extends FirewallModuleAbstract
      * @param array $params
      *
      * @psalm-suppress PossiblyUnusedMethod
+     * @psalm-suppress PossiblyUnusedParam
      */
     public function __construct($log_table, $data_table, $params = array())
     {

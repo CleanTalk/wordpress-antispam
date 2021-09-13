@@ -44,6 +44,8 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
      */
     public function __construct($log_table, $data_table, $params = array())
     {
+        parent::__construct($log_table, $data_table, $params);
+
         $this->db__table__data = $data_table ?: null;
         $this->db__table__logs = $log_table ?: null;
 

@@ -11,6 +11,9 @@ function cleantalk_load_widget()
     register_widget('CleantalkWidget');
 }
 
+/**
+ * @psalm-suppress UnusedClass
+ */
 class CleantalkWidget extends WP_Widget // phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNamespace
 {
     public function __construct()
