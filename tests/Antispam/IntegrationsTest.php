@@ -28,7 +28,7 @@ class IntegrationsTest extends TestCase {
 			'Wpdiscuz'             => array( 'hook' => array( 'wpdAddComment', 'wpdAddInlineComment' ), 'ajax' => true ),
 		);
 		$class = new \ReflectionClass( '\Cleantalk\Antispam\Integrations' );
-		$this->method = $class->getMethod('get_current_integration_triggered');
+		$this->method = $class->getMethod('getCurrentIntegrationTriggered');
 		$this->method->setAccessible(true);
 		$this->integrations = $class->newInstanceWithoutConstructor();
 		$property = $class->getProperty('integrations');
