@@ -426,7 +426,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
     {
         //Getting logs
         $query = "SELECT * FROM $log_table ORDER BY entries_timestamp DESC LIMIT 0," . APBCT_SFW_SEND_LOGS_LIMIT . ";";
-        $db->fetch_all($query);
+        $db->fetchAll($query);
 
         if (count($db->result)) {
             $logs = $db->result;

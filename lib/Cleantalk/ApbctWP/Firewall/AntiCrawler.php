@@ -133,10 +133,10 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
     private static function clearDataTable($db, $db__table__data)
     {
         $db->execute("TRUNCATE TABLE {$db__table__data};");
-        $db->set_query("SELECT COUNT(*) as cnt FROM {$db__table__data};")->fetch(); // Check if it is clear
+        $db->setQuery("SELECT COUNT(*) as cnt FROM {$db__table__data};")->fetch(); // Check if it is clear
         if ( $db->result['cnt'] != 0 ) {
             $db->execute("DELETE FROM {$db__table__data};"); // Truncate table
-            $db->set_query("SELECT COUNT(*) as cnt FROM {$db__table__data};")->fetch(); // Check if it is clear
+            $db->setQuery("SELECT COUNT(*) as cnt FROM {$db__table__data};")->fetch(); // Check if it is clear
             if ( $db->result['cnt'] != 0 ) {
                 return array('error' => 'COULD_NOT_CLEAR_UA_BL_TABLE'); // throw an error
             }

@@ -146,7 +146,7 @@ class Firewall
                     ) {
                         continue;
                     }
-                    $module->update_log(
+                    $module->updateLog(
                         $result['ip'],
                         $result['status'],
                         isset($result['network']) ? $result['network'] : null,
@@ -164,11 +164,11 @@ class Firewall
             if (strpos($result['status'], $module_name)) {
                 // Blocked
                 if (strpos($result['status'], 'DENY') !== false) {
-                    $this->fw_modules[$module_name]->actions_for_denied($result);
-                    $this->fw_modules[$module_name]->_die($result);
+                    $this->fw_modules[$module_name]->actionsForDenied($result);
+                    $this->fw_modules[$module_name]->diePage($result);
                     // Allowed
                 } else {
-                    $this->fw_modules[$module_name]->actions_for_passed($result);
+                    $this->fw_modules[$module_name]->actionsForPassed($result);
                 }
             }
         }
