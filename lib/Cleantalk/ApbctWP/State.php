@@ -426,7 +426,7 @@ class State
     {
         global $wpdb;
 
-        $db_prefix = APBCT_WPMS && is_main_site() ? $wpdb->base_prefix : $wpdb->prefix;
+        $db_prefix = is_multisite() && is_main_site() ? $wpdb->base_prefix : $wpdb->prefix;
 
         if ( ! defined('APBCT_SEESION__LIVE_TIME')) {
             define('APBCT_SEESION__LIVE_TIME', 86400);
