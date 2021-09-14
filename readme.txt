@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 3.0
 Tested up to: 5.8
 Requires PHP: 5.6
-Stable tag: 5.161
+Stable tag: 5.161.1
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -577,6 +577,9 @@ If your website has forms that send data to external sources, you can enable opt
 12. SpamFireWall log.
 
 == Changelog ==
+
+= 5.161.1 Sep 14 2021 =
+ * Fix. State. Checking empty errors fixed.
 
 = 5.161 Sep 09 2021 =
  * Fix: Cleantalk.php. dns_get_record() error handling.
