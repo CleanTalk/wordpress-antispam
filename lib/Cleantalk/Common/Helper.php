@@ -739,7 +739,9 @@ class Helper
             isset($out['error']) && $out['error'] === 'CURL_NOT_INSTALLED'
         ) {
             $headers = get_headers($url);
-            $out     = (int)preg_replace('/.*(\d{3}).*/', '$1', $headers[0]);
+            $out     = $headers !== false
+	            ? (int)preg_replace('/.*(\d{3}).*/', '$1', $headers[0])
+	            : array('error' => 'Couldnt get headers');
         }
 
         return $out;
