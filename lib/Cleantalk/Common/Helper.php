@@ -671,7 +671,7 @@ class Helper
 
                     // Get headers only
                     case 'get_code':
-	                    // @todo not all server support HEAD htt-request type. Need to be changed to GET here.
+                        // @todo not all server support HEAD htt-request type. Need to be changed to GET here.
                         $opts[CURLOPT_HEADER] = true;
                         $opts[CURLOPT_NOBODY] = true;
                         break;
