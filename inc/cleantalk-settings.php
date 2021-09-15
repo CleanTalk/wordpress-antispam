@@ -260,11 +260,11 @@ function apbct_settings__set_fileds()
                 ),
                 'forms__wc_honeypot'         => array(
                     'title'           => __(
-                        'Add a hidden field to the order form as a trap for bots',
+                        'Add a honeypot field',
                         'cleantalk-spam-protect'
                     ),
                     'description'     => __(
-                        'If the field is filled in during the order process, it means that the form was filled out by a bot, not a person.',
+                        'This option adds a honeypot to the order form to improve spam protection. Enable this option if you have passed spam on the order form.',
                         'cleantalk-spam-protect'
                     ),
                     'reverse_trigger' => false,
