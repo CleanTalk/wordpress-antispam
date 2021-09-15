@@ -797,7 +797,7 @@ function apbct_sfw_update__init($delay = 0)
     }
 
     if ( ! $apbct->settings['sfw__enabled'] ) {
-        return array('error' => 'SFW UPDATE INIT: SFW_IS_DISABLED');
+        return false;
     }
 
     // Key is empty
