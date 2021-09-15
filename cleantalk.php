@@ -1414,8 +1414,13 @@ function apbct_sfw_direct_update()
         }
 
         // Preparing database infrastructure
+        // @ToDo need to implement returning result of the Activator::createTables work.
         apbct_activation__create_tables(Schema::getSchema('sfw'), $apbct->db_prefix);
-        SFW::createTempTables(DB::getInstance(), APBCT_TBL_FIREWALL_DATA);
+
+        $result__creating_tmp_table = SFW::createTempTables(DB::getInstance(), APBCT_TBL_FIREWALL_DATA);
+        if ( ! empty($result__creating_tmp_table['error']) ) {
+            return array('error' => 'DIRECT UPDATING CREATE TMP TABLE: ' . $result__creating_tmp_table['error']);
+        }
 
         /**
          * UPDATING UA LIST
