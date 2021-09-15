@@ -556,7 +556,10 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
 
             if ( ! empty($values) ) {
                 $query .= implode(',', $values) . ';';
-                $db->execute($query);
+                $result = $db->execute($query);
+                if ( $result === false ) {
+                    return array( 'error' => $db->getLastError() );
+                }
             }
         }
 

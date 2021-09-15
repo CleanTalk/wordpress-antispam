@@ -162,7 +162,10 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
 
                 if ( ! empty($values) ) {
                     $query = $query . implode(',', $values) . ';';
-                    \Cleantalk\ApbctWP\DB::getInstance()->execute($query);
+                    $result = \Cleantalk\ApbctWP\DB::getInstance()->execute($query);
+                    if ( $result === false ) {
+                        return array( 'error' => \Cleantalk\ApbctWP\DB::getInstance()->getLastError() );
+                    }
                 }
             }
 
