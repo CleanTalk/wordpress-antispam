@@ -671,8 +671,9 @@ class Helper
 
                     // Get headers only
                     case 'get_code':
-                        $opts[CURLOPT_HEADER] = true;
-                        $opts[CURLOPT_NOBODY] = true;
+                        $opts[CURLOPT_HEADER] = true; // Header is output
+                        $opts[CURLOPT_NOBODY] = true; // No body in output method set to HEAD
+                        $opts[CURLOPT_HTTPGET] = true; // Method set to GET
                         break;
 
                     // Make a request, don't wait for an answer
