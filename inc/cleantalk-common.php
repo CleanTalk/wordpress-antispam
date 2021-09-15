@@ -1092,6 +1092,17 @@ function apbct__styles_if_website_hidden()
 
         echo $styles;
     }
+
+    if ( isset($apbct->settings['forms__wc_honeypot']) && $apbct->settings['forms__wc_honeypot'] ) {
+        $styles = "
+		<style>
+		#apbct_wc_honeypot {
+			display: none !important;
+		}
+		</style>";
+
+        echo $styles;
+    }
 }
 
 /**
@@ -1104,14 +1115,15 @@ function apbct__wc_add_honeypot_field( $fields ) {
     global $apbct;
 
     if ( isset($apbct->settings['forms__wc_honeypot']) && $apbct->settings['forms__wc_honeypot'] ) {
-        $fields['apbct_wc_honeypot'] = array(
-            'type'      => 'text',
-            'label'     => '',
+        $fields['billing']['apbct_wc_honeypot'] = array(
+            'id'            => 'apbct_wc_honeypot',
+            'type'          => 'text',
+            'label'         => '',
             'placeholder'   => '',
-            'required'  => false,
-            'class'     => array('form-row-wide'),
-            'clear'     => true,
-            'autocomplete' => 'off'
+            'required'      => false,
+            'class'         => array('form-row-wide'),
+            'clear'         => true,
+            'autocomplete'  => 'off'
         );
     }
 

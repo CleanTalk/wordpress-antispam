@@ -464,17 +464,30 @@ function ct_woocommerce_checkout_check()
     $post_info['comment_type'] = 'order';
     $post_info['post_url']     = apbct_get_server_variable('HTTP_REFERER');
 
-    //Making a call
-    $base_call_result = apbct_base_call(
-        array(
-            'message'         => $message,
-            'sender_email'    => $sender_email,
-            'sender_nickname' => $sender_nickname,
-            'post_info'       => $post_info,
-            'js_on'           => apbct_js_test('ct_checkjs', $_COOKIE, true),
-            'sender_info'     => array('sender_url' => null),
-        )
+    $base_call_data = array(
+        'message'         => $message,
+        'sender_email'    => $sender_email,
+        'sender_nickname' => $sender_nickname,
+        'post_info'       => $post_info,
+        'js_on'           => apbct_js_test('ct_checkjs', $_COOKIE, true),
+        'sender_info'     => array('sender_url' => null)
     );
+
+    /**
+     * Add honeypot_field to $base_call_data is forms__wc_honeypot on
+     */
+    if ( isset($apbct->settings['forms__wc_honeypot']) && $apbct->settings['forms__wc_honeypot'] ) {
+        $honeypot_field = 1;
+
+        if ( isset($_POST['apbct_wc_honeypot']) && ! empty($_POST['apbct_wc_honeypot']) ) {
+            $honeypot_field = 0;
+        }
+
+        $base_call_data['honeypot_field'] = $honeypot_field;
+    }
+
+    //Making a call
+    $base_call_result = apbct_base_call($base_call_data);
 
     if ( $apbct->settings['forms__wc_register_from_order'] ) {
         $cleantalk_executed = false;
