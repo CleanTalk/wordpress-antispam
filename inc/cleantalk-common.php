@@ -1093,3 +1093,27 @@ function apbct__styles_if_website_hidden()
         echo $styles;
     }
 }
+
+/**
+ * Woocommerce honeypot
+ */
+add_filter( 'woocommerce_checkout_fields' , 'apbct__wc_add_honeypot_field' );
+
+function apbct__wc_add_honeypot_field( $fields ) {
+
+    global $apbct;
+
+    if ( isset($apbct->settings['forms__wc_honeypot']) && $apbct->settings['forms__wc_honeypot'] ) {
+        $fields['apbct_wc_honeypot'] = array(
+            'type'      => 'text',
+            'label'     => '',
+            'placeholder'   => '',
+            'required'  => false,
+            'class'     => array('form-row-wide'),
+            'clear'     => true,
+            'autocomplete' => 'off'
+        );
+    }
+
+    return $fields;
+}

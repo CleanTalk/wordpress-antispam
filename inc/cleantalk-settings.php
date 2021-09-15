@@ -258,6 +258,22 @@ function apbct_settings__set_fileds()
                         array('val' => 0, 'label' => __('Off')),
                     ),
                 ),
+                'forms__wc_honeypot'         => array(
+                    'title'           => __(
+                        'Add a hidden field to the order form as a trap for bots',
+                        'cleantalk-spam-protect'
+                    ),
+                    'description'     => __(
+                        'If the field is filled in during the order process, it means that the form was filled out by a bot, not a person.',
+                        'cleantalk-spam-protect'
+                    ),
+                    'reverse_trigger' => false,
+                    'class'           => 'apbct_settings-field_wrapper--sub',
+                    'options'         => array(
+                        array('val' => 1, 'label' => __('On')),
+                        array('val' => 0, 'label' => __('Off')),
+                    ),
+                ),
             ),
         ),
 
