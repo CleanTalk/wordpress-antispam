@@ -479,7 +479,7 @@ function ct_woocommerce_checkout_check()
     if ( $apbct->settings['forms__wc_honeypot'] ) {
         $honeypot_field = 1;
 
-        if ( ! empty($_POST['apbct_wc_honeypot']) ) {
+        if ( Post::get('apbct_wc_honeypot') ) {
             $honeypot_field = 0;
         }
 
