@@ -536,6 +536,11 @@ function apbct_update_to_5_127_1()
                 false
             );
         }
+    } elseif ( is_main_site() ) {
+        ct_account_status_check(
+            $apbct->settings['apikey'],
+            false
+        );
     }
 }
 
