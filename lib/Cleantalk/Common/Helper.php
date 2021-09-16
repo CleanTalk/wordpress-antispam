@@ -649,7 +649,7 @@ class Helper
                         'Expect:',
                         // Fix for large data and old servers http://php.net/manual/ru/function.curl-setopt.php#82418
                         'Expires: ' . date(DATE_RFC822, mktime(0, 0, 0, 1, 1, 1971)),
-                        'Cache-Control: no-store, no-cache, must-revalidate',
+                        'Cache-Control: no-store, no-cache, must-revalidate, max-age=0',
                         'Cache-Control: post-check=0, pre-check=0',
                         'Pragma: no-cache',
                     ),
