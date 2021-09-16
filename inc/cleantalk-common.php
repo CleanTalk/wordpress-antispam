@@ -1109,9 +1109,8 @@ function apbct__styles_if_website_hidden()
  * Woocommerce honeypot
  */
 add_filter( 'woocommerce_checkout_fields' , 'apbct__wc_add_honeypot_field' );
-
-function apbct__wc_add_honeypot_field( $fields ) {
-
+function apbct__wc_add_honeypot_field($fields)
+{
     global $apbct;
 
     if ( isset($apbct->settings['forms__wc_honeypot']) && $apbct->settings['forms__wc_honeypot'] ) {
