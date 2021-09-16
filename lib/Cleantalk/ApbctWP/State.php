@@ -83,7 +83,7 @@ class State
         // Woocommerce registration during checkout
         'forms__wc_add_to_cart'                    => 0,
         // Woocommerce honeypot
-        'forms__wc_honeypot'                       => 0,
+        'forms__wc_honeypot'                       => 1,
         // Woocommerce add to cart
         'forms__search_test'                       => 1,
         // Test default Wordpress form

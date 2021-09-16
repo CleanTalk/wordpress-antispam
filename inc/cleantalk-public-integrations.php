@@ -476,10 +476,10 @@ function ct_woocommerce_checkout_check()
     /**
      * Add honeypot_field to $base_call_data is forms__wc_honeypot on
      */
-    if ( isset($apbct->settings['forms__wc_honeypot']) && $apbct->settings['forms__wc_honeypot'] ) {
+    if ( $apbct->settings['forms__wc_honeypot'] ) {
         $honeypot_field = 1;
 
-        if ( isset($_POST['apbct_wc_honeypot']) && ! empty($_POST['apbct_wc_honeypot']) ) {
+        if ( ! empty($_POST['apbct_wc_honeypot']) ) {
             $honeypot_field = 0;
         }
 

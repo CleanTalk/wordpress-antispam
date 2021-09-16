@@ -267,7 +267,6 @@ function apbct_settings__set_fileds()
                         'This option adds a honeypot to the order form to improve spam protection. Enable this option if you have passed spam on the order form.',
                         'cleantalk-spam-protect'
                     ),
-                    'reverse_trigger' => false,
                     'class'           => 'apbct_settings-field_wrapper--sub',
                     'options'         => array(
                         array('val' => 1, 'label' => __('On')),
