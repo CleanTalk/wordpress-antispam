@@ -1426,8 +1426,8 @@ function apbct_update_to_5_161_1()
  */
 function apbct_update_to_5_162_0()
 {
-	global $apbct;
-	
-	$apbct->settings['forms__wc_honeypot'] = '1';
-	$apbct->saveSettings();
+    global $apbct;
+
+    $apbct->settings['forms__wc_honeypot'] = '1';
+    $apbct->saveSettings();
 }

@@ -1108,7 +1108,7 @@ function apbct__styles_if_website_hidden()
 /**
  * Woocommerce honeypot
  */
-add_filter( 'woocommerce_checkout_fields' , 'apbct__wc_add_honeypot_field' );
+add_filter('woocommerce_checkout_fields', 'apbct__wc_add_honeypot_field');
 function apbct__wc_add_honeypot_field($fields)
 {
     global $apbct;
