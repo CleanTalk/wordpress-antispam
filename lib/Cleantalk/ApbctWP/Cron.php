@@ -11,9 +11,7 @@ class Cron extends \Cleantalk\Common\Cron
      */
     public function getCronLastStart()
     {
-        global $apbct;
-
-        return $apbct->stats['cron']['last_start'];
+        return get_option('cleantalk_cron_last_start');
     }
 
     /**
@@ -23,9 +21,9 @@ class Cron extends \Cleantalk\Common\Cron
      */
     public function setCronLastStart()
     {
-        global $apbct;
-        $apbct->stats['cron']['last_start'] = time();
-        $apbct->save('stats');
+        update_option('cleantalk_cron_last_start', time());
+
+        usleep(rand(100, 1000));
 
         return true;
     }
