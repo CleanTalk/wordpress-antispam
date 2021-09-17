@@ -39,7 +39,7 @@ abstract class Cron
     public function __construct(
         $cron_option_name = 'cleantalk_cron',
         $task_execution_min_interval = 120,
-        $cron_execution_min_interval = 600
+        $cron_execution_min_interval = 120
     ) {
         /*
          * @todo perform this logic
