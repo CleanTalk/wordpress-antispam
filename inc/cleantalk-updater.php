@@ -1,6 +1,7 @@
 <?php
 
 use Cleantalk\ApbctWP\Cron;
+use Cleantalk\ApbctWP\Helper;
 use Cleantalk\Common\Schema;
 use Cleantalk\Variables\Server;
 
@@ -1418,5 +1419,34 @@ function apbct_update_to_5_161_1()
     if ( $apbct->is_multisite ) {
         $apbct->network_settings = array_merge((array)$apbct->network_settings, $apbct->default_network_settings);
         $apbct->saveNetworkSettings();
+    }
+}
+
+function apbct_update_to_5_161_2()
+{
+    global $apbct;
+    // Set type of the alt cookies
+    if ( $apbct->settings['data__set_cookies'] == 2 ) {
+        // Check custom ajax availability
+        $res_custom_ajax = Helper::httpRequestGetResponseCode(esc_url(APBCT_URL_PATH . '/lib/Cleantalk/ApbctWP/Ajax.php'));
+        if ( $res_custom_ajax != 400 ) {
+            // Check rest availability
+            $res_rest = Helper::httpRequestGetResponseCode(esc_url(apbct_get_rest_url()));
+            if ( $res_rest != 200 ) {
+                // Check WP ajax availability
+                $res_ajax = Helper::httpRequestGetResponseCode(admin_url('admin-ajax.php'));
+                if ( $res_ajax != 400 ) {
+                    // There is no available alt cookies types. Cookies will be disabled.
+                    $apbct->settings['data__set_cookies'] = 0;
+                } else {
+                    $apbct->settings['data__set_cookies__alt_sessions_type'] = 2;
+                }
+            } else {
+                $apbct->settings['data__set_cookies__alt_sessions_type'] = 0;
+            }
+        } else {
+            $apbct->settings['data__set_cookies__alt_sessions_type'] = 1;
+        }
+        $apbct->saveSettings();
     }
 }
