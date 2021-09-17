@@ -1179,7 +1179,7 @@ function apbct_settings__error__output($return = false)
             'exclusions_fields' => 'Field Exclusions',
 
             // Unknown
-            'unknown'           => __('Unknown error. Error: ', 'cleantalk-spam-protect'),
+            'unknown'           => __('Unknown error type: ', 'cleantalk-spam-protect'),
         );
 
         $errors_out = array();
@@ -1197,7 +1197,7 @@ function apbct_settings__error__output($return = false)
                             $errors_out[$sub_type] .= date('Y-m-d H:i:s', $sub_error['error_time']) . ': ';
                         }
                         $errors_out[$sub_type] .= (isset($error_texts[$type]) ? $error_texts[$type] : ucfirst($type)) . ': ';
-                        $errors_out[$sub_type] .= (isset($error_texts[$sub_type]) ? $error_texts[$sub_type] : $error_texts['unknown']) . ' ' . $sub_error['error'];
+                        $errors_out[$sub_type] .= (isset($error_texts[$sub_type]) ? $error_texts[$sub_type] : ( $error_texts['unknown'] . $sub_type . ' ' . __('Error: ', 'cleantalk-spam-protect') ) . ' ' . $sub_error['error'] );
                     }
                     continue;
                 }
