@@ -166,7 +166,11 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
                     );
 
                     if ((int)$db_result['status'] === 1) {
-                        $result_entry['status'] = 'PASS_SFW__BY_WHITELIST';
+                        $pass_swf_status = 'PASS_SFW__BY_WHITELIST';
+                        if ( $_origin === 'sfw_test' ) {
+                            $pass_swf_status = 'PASS_SFW__BY_STATUS';
+                        }
+                        $result_entry['status'] = $pass_swf_status;
                         break;
                     }
                     if ((int)$db_result['status'] === 0) {
@@ -293,6 +297,23 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
 
             $status     = $result['status'] === 'PASS_SFW__BY_WHITELIST' ? '1' : '0';
             $cookie_val = md5($result['ip'] . $this->api_key) . $status;
+    
+            /**
+             * Message about IP status
+             */
+            $message_ip_status = __(
+                'IP in the common blacklist',
+                'cleantalk-spam-protect'
+            );
+            $message_ip_status_color = 'red';
+            
+            if($result['status'] === 'PASS_SFW__BY_STATUS') {
+                $message_ip_status = __(
+                    'IP in the common whitelist',
+                    'cleantalk-spam-protect'
+                );
+                $message_ip_status_color = 'green';
+            }
 
             $block_message = sprintf(
                 esc_html__('SpamFireWall is checking your browser and IP %s for spam bots', 'cleantalk-spam-protect'),
@@ -339,7 +360,11 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
                 '{TEST_IP__HEADER}'                => '',
                 '{TEST_IP}'                        => '',
                 '{REAL_IP}'                        => '',
-                '{SCRIPT_URL}'                     => $js_url
+                '{SCRIPT_URL}'                     => $js_url,
+                
+                // Message about IP status
+                '{MESSAGE_IP_STATUS}'              => $message_ip_status,
+                '{MESSAGE_IP_STATUS_COLOR}'        => $message_ip_status_color,
             );
 
             // Test
