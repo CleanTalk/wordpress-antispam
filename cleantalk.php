@@ -157,28 +157,31 @@ if ( $apbct->plugin_version === '1.0.0' ) {
 // Do update actions if version is changed
 apbct_update_actions();
 
-// Self cron
-$ct_cron      = new Cron();
-$tasks_to_run = $ct_cron->checkTasks(); // Check for current tasks. Drop tasks inner counters.
-if (
-    $tasks_to_run && // There is tasks to run
-    ! RemoteCalls::check() && // Do not do CRON in remote call action
-    (
-        ! defined('DOING_CRON') ||
-        (defined('DOING_CRON') && DOING_CRON !== true)
-    )
-) {
-    $cron_res = $ct_cron->runTasks($tasks_to_run);
-    if ( is_array($cron_res) ) {
-        foreach ( $cron_res as $task => $res ) {
-            if ( $res === true ) {
-                $apbct->errorDelete($task, 'save_data', 'cron');
-            } else {
-                $apbct->errorAdd($task, $res, 'cron');
+add_action('init', function () {
+    global $apbct;
+    // Self cron
+    $ct_cron = new Cron();
+    $tasks_to_run = $ct_cron->checkTasks(); // Check for current tasks. Drop tasks inner counters.
+    if (
+        $tasks_to_run && // There is tasks to run
+        ! RemoteCalls::check() && // Do not do CRON in remote call action
+        (
+            ! defined('DOING_CRON') ||
+            (defined('DOING_CRON') && DOING_CRON !== true)
+        )
+    ) {
+        $cron_res = $ct_cron->runTasks($tasks_to_run);
+        if ( is_array($cron_res) ) {
+            foreach ( $cron_res as $task => $res ) {
+                if ( $res === true ) {
+                    $apbct->errorDelete($task, 'save_data', 'cron');
+                } else {
+                    $apbct->errorAdd($task, $res, 'cron');
+                }
             }
         }
     }
-}
+});
 
 //Delete cookie for admin trial notice
 add_action('wp_logout', 'apbct__hook__wp_logout__delete_trial_notice_cookie');
