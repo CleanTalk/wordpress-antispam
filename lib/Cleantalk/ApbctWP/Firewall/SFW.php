@@ -166,11 +166,10 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
                     );
 
                     if ((int)$db_result['status'] === 1) {
-                        $pass_swf_status = 'PASS_SFW__BY_WHITELIST';
+                        $result_entry['status'] = 'PASS_SFW__BY_WHITELIST';
                         if ( $_origin === 'sfw_test' ) {
-                            $pass_swf_status = 'PASS_SFW__BY_STATUS';
+                            $result_entry['status'] = 'PASS_SFW__BY_STATUS';
                         }
-                        $result_entry['status'] = $pass_swf_status;
                         break;
                     }
                     if ((int)$db_result['status'] === 0) {
@@ -297,7 +296,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
 
             $status     = $result['status'] === 'PASS_SFW__BY_WHITELIST' ? '1' : '0';
             $cookie_val = md5($result['ip'] . $this->api_key) . $status;
-    
+
             /**
              * Message about IP status
              */
