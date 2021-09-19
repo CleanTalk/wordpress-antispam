@@ -28,6 +28,8 @@ abstract class Cron
     // Interval in seconds for cron work availability
     protected $cron_execution_min_interval;
 
+    private $pid;
+
     /**
      * Cron constructor.
      * Getting tasks option.
@@ -50,6 +52,7 @@ abstract class Cron
         }
         */
 
+        $this->pid                         = mt_rand(0, mt_getrandmax());
         $this->cron_option_name            = $cron_option_name;
         $this->task_execution_min_interval = $task_execution_min_interval;
         $this->cron_execution_min_interval = $cron_execution_min_interval;
@@ -190,7 +193,9 @@ abstract class Cron
     public function checkTasks()
     {
         // No tasks to run
-        if (empty($this->tasks)) {
+        if ( ! empty($this->tasks) ) {
+            update_option('cleantalk_cron_pid', $this->pid);
+        } else {
             return false;
         }
 
@@ -237,11 +242,15 @@ abstract class Cron
      */
     public function runTasks($tasks)
     {
-        if (empty($tasks)) {
+        if ( empty($tasks) ) {
             return;
         }
 
-        if ( ! $this->setCronLastStart()) {
+        if ( ! $this->setCronLastStart() ) {
+            return;
+        }
+
+        if ( get_option('cleantalk_cron_pid') !== $this->pid ) {
             return;
         }
 
