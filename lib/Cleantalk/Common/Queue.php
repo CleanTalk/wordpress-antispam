@@ -75,8 +75,8 @@ abstract class Queue
             $this->queue['stages'][$this->unstarted_stage]['pid']    = $this->pid;
 
             $this->saveQueue($this->queue);
-	
-	        sleep( 2 );
+
+            sleep(2);
 
             $this->refreshQueue();
 
