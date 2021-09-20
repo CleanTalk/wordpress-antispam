@@ -194,7 +194,7 @@ class Ajax
             require_once __DIR__ . '/../../../inc/cleantalk-wp-core-dir.php';
             if ( function_exists('apbct_get_wp_core_dir') ) {
                 $dir = apbct_get_wp_core_dir();
-                if( is_dir($dir) && file_exists($dir . '/wp-load.php') ) {
+                if ( is_dir($dir) && file_exists($dir . '/wp-load.php') ) {
                     return $dir;
                 }
             }
@@ -204,6 +204,7 @@ class Ajax
         $dir = $_SERVER['DOCUMENT_ROOT'];
         if ( file_exists($dir . '/wp-load.php') ) {
             $this->storeFoundWpDir($dir);
+
             return $dir;
         }
 
@@ -212,9 +213,10 @@ class Ajax
             $index_content = file_get_contents($dir . '/index.php');
             if ( preg_match("@'\S*wp-blog-header\.php'@", $index_content, $matches) ) {
                 $blog_header = trim($matches[0], "'");
-                $dir = $_SERVER['DOCUMENT_ROOT'] . str_replace('/wp-blog-header.php', '', $blog_header);
+                $dir         = $_SERVER['DOCUMENT_ROOT'] . str_replace('/wp-blog-header.php', '', $blog_header);
                 if ( file_exists($dir . '/wp-load.php') ) {
                     $this->storeFoundWpDir($dir);
+
                     return $dir;
                 }
             }
@@ -224,6 +226,7 @@ class Ajax
         $dir = '../../../../../..';
         if ( file_exists($dir . '/wp-load.php') ) {
             $this->storeFoundWpDir($dir);
+
             return $dir;
         }
 
@@ -236,8 +239,10 @@ class Ajax
         $file = __DIR__ . '/../../../inc/cleantalk-wp-core-dir.php';
         if ( file_exists($file) ) {
             $content = file_get_contents($file);
-            $content = str_replace('{APBCT_WP_CORE_DIR}', $dir, $content);
-            file_put_contents($file, $content);
+            if ( strpos($content, '{APBCT_WP_CORE_DIR}') !== false ) {
+                $content = str_replace('{APBCT_WP_CORE_DIR}', $dir, $content);
+                file_put_contents($file, $content);
+            }
         }
     }
 }
