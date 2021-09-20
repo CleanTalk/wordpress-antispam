@@ -385,6 +385,8 @@ function ct_ajax_hook($message_obj = null)
         'edd_process_checkout',
         // Easy Digital Downloads ajax skip
         /* !! Do not add actions here. Use apbct_is_skip_request() function below !! */
+        //Unknown plugin Ticket #25047
+        'alhbrmeu',
     );
 
     global $apbct;
