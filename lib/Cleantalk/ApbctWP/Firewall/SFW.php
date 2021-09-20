@@ -297,23 +297,6 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
             $status     = $result['status'] === 'PASS_SFW__BY_WHITELIST' ? '1' : '0';
             $cookie_val = md5($result['ip'] . $this->api_key) . $status;
 
-            /**
-             * Message about IP status
-             */
-            $message_ip_status = __(
-                'IP in the common blacklist',
-                'cleantalk-spam-protect'
-            );
-            $message_ip_status_color = 'red';
-
-            if ($result['status'] === 'PASS_SFW__BY_STATUS') {
-                $message_ip_status = __(
-                    'IP in the common whitelist',
-                    'cleantalk-spam-protect'
-                );
-                $message_ip_status_color = 'green';
-            }
-
             $block_message = sprintf(
                 esc_html__('SpamFireWall is checking your browser and IP %s for spam bots', 'cleantalk-spam-protect'),
                 '<a href="' . $result['ip'] . '" target="_blank">' . $result['ip'] . '</a>'
@@ -362,9 +345,29 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
                 '{SCRIPT_URL}'                     => $js_url,
 
                 // Message about IP status
-                '{MESSAGE_IP_STATUS}'              => $message_ip_status,
-                '{MESSAGE_IP_STATUS_COLOR}'        => $message_ip_status_color,
+                '{MESSAGE_IP_STATUS}'              => '',
             );
+    
+            /**
+             * Message about IP status
+             */
+            if (! empty($_GET['sfw_test_ip'])) {
+                $message_ip_status = __(
+                    'IP in the common blacklist',
+                    'cleantalk-spam-protect'
+                );
+                $message_ip_status_color = 'red';
+        
+                if ($result['status'] === 'PASS_SFW__BY_STATUS') {
+                    $message_ip_status = __(
+                        'IP in the common whitelist',
+                        'cleantalk-spam-protect'
+                    );
+                    $message_ip_status_color = 'green';
+                }
+    
+                $replaces['{MESSAGE_IP_STATUS}'] = "<h3 style='color:$message_ip_status_color;'>$message_ip_status</h3>";
+            }
 
             // Test
             if ($this->test) {
