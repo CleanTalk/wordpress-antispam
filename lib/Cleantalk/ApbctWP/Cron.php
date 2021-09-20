@@ -21,11 +21,7 @@ class Cron extends \Cleantalk\Common\Cron
      */
     public function setCronLastStart()
     {
-        update_option('cleantalk_cron_last_start', time());
-
-        usleep(rand(100, 1000));
-
-        return true;
+        return update_option('cleantalk_cron_last_start', time());
     }
 
     /**
