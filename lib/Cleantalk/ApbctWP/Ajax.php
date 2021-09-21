@@ -4,27 +4,34 @@ namespace Cleantalk\ApbctWP;
 
 class Ajax
 {
-
     public function __construct()
     {
         define('DOING_AJAX', true);
         define('SHORTINIT', true);
 
-        require_once('../../../../../../wp-load.php');
-        require_once('../../../../../../wp-includes/capabilities.php');
-        require_once('../../../../../../wp-includes/kses.php');
-        require_once('../../../../../../wp-includes/rest-api.php');
-        require_once('../../../../../../wp-includes/class-wp-role.php');
-        require_once('../../../../../../wp-includes/class-wp-roles.php');
-        require_once('../../../../../../wp-includes/user.php');
-        require_once('../../../../../../wp-includes/class-wp-user.php');
-        require_once('../../../../../../wp-includes/option.php');
-        require_once('../../../../../../wp-includes/default-constants.php');
-        require_once('../../../../../../wp-includes/class-wp-session-tokens.php');
-        require_once('../../../../../../wp-includes/class-wp-user-meta-session-tokens.php');
+        $dir = $this->getWpDir();
+
+        if ( $dir === false ) {
+            // Not found WP directory
+            http_response_code(404);
+            die('0');
+        }
+
+        require_once($dir . '/wp-load.php');
+        require_once($dir . '/wp-includes/capabilities.php');
+        require_once($dir . '/wp-includes/kses.php');
+        require_once($dir . '/wp-includes/rest-api.php');
+        require_once($dir . '/wp-includes/class-wp-role.php');
+        require_once($dir . '/wp-includes/class-wp-roles.php');
+        require_once($dir . '/wp-includes/user.php');
+        require_once($dir . '/wp-includes/class-wp-user.php');
+        require_once($dir . '/wp-includes/option.php');
+        require_once($dir . '/wp-includes/default-constants.php');
+        require_once($dir . '/wp-includes/class-wp-session-tokens.php');
+        require_once($dir . '/wp-includes/class-wp-user-meta-session-tokens.php');
         wp_plugin_directory_constants();
         wp_cookie_constants();
-        require_once('../../../../../../wp-includes/pluggable.php');
+        require_once($dir . '/wp-includes/pluggable.php');
         require_once('../../../inc/cleantalk-pluggable.php');
 
         $this->checkRequest();
@@ -173,6 +180,41 @@ class Ajax
         $cookie = wp_parse_auth_cookie('', 'logged_in');
 
         return ! empty($cookie['token']) ? $cookie['token'] : '';
+    }
+
+    /**
+     * Trying to find WordPress core directory
+     *
+     * @return false|string
+     */
+    private function getWpDir()
+    {
+        // Try to find WP in the DOCUMENT ROOT
+        $dir = $_SERVER['DOCUMENT_ROOT'];
+        if ( file_exists($dir . '/wp-load.php') ) {
+            return $dir;
+        }
+
+        // Try to find WP in the relative path
+        $dir = '../../../../../..';
+        if ( file_exists($dir . '/wp-load.php') ) {
+            return $dir;
+        }
+
+        // Parse index.php and try to find WP in the includes
+        if ( file_exists($dir . '/index.php') ) {
+            $index_content = file_get_contents($dir . '/index.php');
+            if ( preg_match("@'\S*wp-blog-header\.php'@", $index_content, $matches) ) {
+                $blog_header = trim($matches[0], "'");
+                $dir = $_SERVER['DOCUMENT_ROOT'] . str_replace('/wp-blog-header.php', '', $blog_header);
+                if ( file_exists($dir . '/wp-load.php') ) {
+                    return $dir;
+                }
+            }
+        }
+
+        // WP directory not found
+        return false;
     }
 }
 
