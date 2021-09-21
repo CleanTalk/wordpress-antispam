@@ -167,6 +167,9 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
 
                     if ((int)$db_result['status'] === 1) {
                         $result_entry['status'] = 'PASS_SFW__BY_WHITELIST';
+                        if ( $_origin === 'sfw_test' ) {
+                            $result_entry['status'] = 'PASS_SFW__BY_STATUS';
+                        }
                         break;
                     }
                     if ((int)$db_result['status'] === 0) {
@@ -339,8 +342,32 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
                 '{TEST_IP__HEADER}'                => '',
                 '{TEST_IP}'                        => '',
                 '{REAL_IP}'                        => '',
-                '{SCRIPT_URL}'                     => $js_url
+                '{SCRIPT_URL}'                     => $js_url,
+
+                // Message about IP status
+                '{MESSAGE_IP_STATUS}'              => '',
             );
+
+            /**
+             * Message about IP status
+             */
+            if (! empty($_GET['sfw_test_ip'])) {
+                $message_ip_status = __(
+                    'IP in the common blacklist',
+                    'cleantalk-spam-protect'
+                );
+                $message_ip_status_color = 'red';
+
+                if ($result['status'] === 'PASS_SFW__BY_STATUS') {
+                    $message_ip_status = __(
+                        'IP in the common whitelist',
+                        'cleantalk-spam-protect'
+                    );
+                    $message_ip_status_color = 'green';
+                }
+
+                $replaces['{MESSAGE_IP_STATUS}'] = "<h3 style='color:$message_ip_status_color;'>$message_ip_status</h3>";
+            }
 
             // Test
             if ($this->test) {
