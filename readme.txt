@@ -578,6 +578,37 @@ If your website has forms that send data to external sources, you can enable opt
 
 == Changelog ==
 
+= 5.162 Sep 23 2021 =
+ * New. SFW. Fall back updating system implemented.
+ * New: Integration. Added honeypot wc.
+ * New: SFW. Added new status PASS_SFW__BY_STATUS for showing die_page.
+ * Upd: Cookies. Alternative cookies types was updated.
+ * Upd: Ajax. Finding the right WP directory implemented.
+ * Fix: Updater fixed.
+ * Fix: Firewall update. Not existing FW table.
+ * Fix: State. DB prefix fixed.
+ * Fix: WPForms. Excluding from the custom contact forms check.
+ * Fix. State. DB prefix definition fixed.
+ * Fix: SpamFirewall update. Increasing delay in queue transactions, adding time of the queue task start
+ * Fix: State. Show notices fixed.
+ * Fix: State. Some logic moved from a loop.
+ * Fix: Adding a error if Common/Helper::http_request() couldn't get HTTP code via get_headers().
+ * Fix: SFW. Do not AC checking, if cookies were disabled.
+ * Fix: http_request() with preset 'get_code' using GET HTTP method instead of HEAD now.
+ * Fix: SFW. Direct update DB errors handled.
+ * Fix: SFW. Direct update creating temp table errors handled.
+ * Fix: SpamFirewall update. SFW_IS_DISABLED is not a error. apbct_sfw_update__init() returns false in this case.
+ * Fix: Extended header. Cache-Control: max-age=0 in the /Common/Helper::httpRequest()
+ * Fix: Updater. Fixed data__use_static_js_key settings name.
+ * Fix: Updater. start ct_account_status_check() if main site in 5.127+ versions
+ * Fix: Adding error handling to DB::execute() in ApbctWP\SFW.
+ * Fix: Cron. Cron last start flag improved.
+ * Fix: Cron. Cron execution cooldown decreased to 2 min.
+ * Fix: Adding more info in 'Unknown' type error.
+ * Fix: Exclude Forminator double requests on multipage form.
+ * Fix: Settings. Alt cookies types validating fixed.
+ * Fix: Ajax. WP core dir parsing fixed.
+
 = 5.161.1 Sep 14 2021 =
  * Fix. State. Checking empty errors fixed.
 
