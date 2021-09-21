@@ -1070,7 +1070,7 @@ function apbct__styles_if_website_hidden()
 {
     global $apbct;
 
-    if ( isset($apbct->settings['comments__hide_website_field']) && $apbct->settings['comments__hide_website_field'] ) {
+    if ( $apbct->settings['comments__hide_website_field'] ) {
         $styles = "
 		<style>
 		#honeypot-field-url {
@@ -1092,4 +1092,39 @@ function apbct__styles_if_website_hidden()
 
         echo $styles;
     }
+
+    if ( $apbct->settings['forms__wc_honeypot'] ) {
+        $styles = "
+		<style>
+		.apbct_wc_honeypot {
+			display: none !important;
+		}
+		</style>";
+
+        echo $styles;
+    }
+}
+
+/**
+ * Woocommerce honeypot
+ */
+add_filter('woocommerce_checkout_fields', 'apbct__wc_add_honeypot_field');
+function apbct__wc_add_honeypot_field($fields)
+{
+    global $apbct;
+
+    if ( $apbct->settings['forms__wc_honeypot'] ) {
+        $fields['billing']['apbct_wc_honeypot'] = array(
+            'id'            => 'apbct_wc_honeypot',
+            'type'          => 'text',
+            'label'         => '',
+            'placeholder'   => '',
+            'required'      => false,
+            'class'         => array('form-row-wide', 'apbct_wc_honeypot'),
+            'clear'         => true,
+            'autocomplete'  => 'off'
+        );
+    }
+
+    return $fields;
 }

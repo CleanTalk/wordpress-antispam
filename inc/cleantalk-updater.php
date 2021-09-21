@@ -483,10 +483,10 @@ function apbct_update_to_5_127_0()
             switch_to_blog($blog);
 
             $settings = get_option('cleantalk_settings');
-            if ( isset($settings['use_static_js_key']) ) {
-                $settings['use_static_js_key'] = $settings['use_static_js_key'] === 0
+            if ( isset($settings['data__use_static_js_key']) ) {
+                $settings['data__use_static_js_key'] = $settings['data__use_static_js_key'] === 0
                     ? -1
-                    : $settings['use_static_js_key'];
+                    : $settings['data__use_static_js_key'];
                 update_option('cleantalk_settings', $settings);
 
                 $data = get_option('cleantalk_data');
@@ -511,10 +511,10 @@ function apbct_update_to_5_127_0()
             $apbct->saveNetworkSettings();
         }
     } else {
-        // Switch use_static_js_key to Auto if it was disabled
-        $apbct->settings['use_static_js_key'] = $apbct->settings['use_static_js_key'] === 0
+        // Switch data__use_static_js_key to Auto if it was disabled
+        $apbct->settings['data__use_static_js_key'] = $apbct->settings['data__use_static_js_key'] === 0
             ? -1
-            : $apbct->settings['use_static_js_key'];
+            : $apbct->settings['data__use_static_js_key'];
         $apbct->saveSettings();
     }
 }
@@ -537,6 +537,11 @@ function apbct_update_to_5_127_1()
                 false
             );
         }
+    } elseif ( is_main_site() ) {
+        ct_account_status_check(
+            $apbct->settings['apikey'],
+            false
+        );
     }
 }
 
@@ -1449,4 +1454,15 @@ function apbct_update_to_5_161_2()
         }
         $apbct->saveSettings();
     }
+}
+
+/**
+ * 5.162
+ */
+function apbct_update_to_5_162_0()
+{
+    global $apbct;
+
+    $apbct->settings['forms__wc_honeypot'] = '1';
+    $apbct->saveSettings();
 }

@@ -613,7 +613,12 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
 
                         if ( ! empty($values)) {
                             $query .= implode(',', $values) . ';';
-                            $db->execute($query);
+                            if ( ! $db->execute($query) ) {
+                                return array(
+                                    'error' => 'WRITE ERROR: FAILED TO INSERT DATA: ' . $db__table__data
+                                        . ' DB Error: ' . $db->getLastError()
+                                );
+                            }
                             if (file_exists($file_url)) {
                                 unlink($file_url);
                             }
@@ -691,11 +696,13 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
             $table_name__temp = $table_name . '_temp';
 
             if ( ! $db->execute('CREATE TABLE IF NOT EXISTS `' . $table_name__temp . '` LIKE `' . $table_name . '`;')) {
-                return array('error' => 'CREATE TEMP TABLES: COULD NOT CREATE' . $table_name__temp);
+                return array('error' => 'CREATE TEMP TABLES: COULD NOT CREATE ' . $table_name__temp
+                    . ' DB Error: ' . $db->getLastError() );
             }
 
             if ( ! $db->execute('TRUNCATE TABLE `' . $table_name__temp . '`;')) {
-                return array('error' => 'CREATE TEMP TABLES: COULD NOT TRUNCATE' . $table_name__temp);
+                return array('error' => 'CREATE TEMP TABLES: COULD NOT TRUNCATE' . $table_name__temp
+                    . ' DB Error: ' . $db->getLastError() );
             }
         }
 
@@ -720,7 +727,12 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
                 return array('error' => 'DELETE TABLE: TABLE IS NOT EXISTS: ' . $table_name);
             }
 
-            $db->execute('DROP TABLE ' . $table_name . ';');
+            if ( ! $db->execute('DROP TABLE ' . $table_name . ';') ) {
+                return array(
+                    'error' => 'DELETE TABLE: FAILED TO DROP: ' . $table_name
+                               . ' DB Error: ' . $db->getLastError()
+                );
+            }
         }
 
         return true;
@@ -750,7 +762,12 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
                 return array('error' => 'RENAME TABLE: MAIN TABLE IS STILL EXISTS: ' . $table_name);
             }
 
-            $db->execute('ALTER TABLE `' . $table_name__temp . '` RENAME `' . $table_name . '`;');
+            if ( ! $db->execute('ALTER TABLE `' . $table_name__temp . '` RENAME `' . $table_name . '`;') ) {
+                return array(
+                    'error' => 'RENAME TABLE: FAILED TO RENAME: ' . $table_name
+                               . ' DB Error: ' . $db->getLastError()
+                );
+            }
         }
 
         return true;

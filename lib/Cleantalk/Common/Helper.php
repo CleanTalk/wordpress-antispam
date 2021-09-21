@@ -649,7 +649,7 @@ class Helper
                         'Expect:',
                         // Fix for large data and old servers http://php.net/manual/ru/function.curl-setopt.php#82418
                         'Expires: ' . date(DATE_RFC822, mktime(0, 0, 0, 1, 1, 1971)),
-                        'Cache-Control: no-store, no-cache, must-revalidate',
+                        'Cache-Control: no-store, no-cache, must-revalidate, max-age=0',
                         'Cache-Control: post-check=0, pre-check=0',
                         'Pragma: no-cache',
                     ),
@@ -671,9 +671,9 @@ class Helper
 
                     // Get headers only
                     case 'get_code':
-                        // @todo not all server support HEAD htt-request type. Need to be changed to GET here.
-                        $opts[CURLOPT_HEADER] = true;
-                        $opts[CURLOPT_NOBODY] = true;
+                        $opts[CURLOPT_HEADER] = true; // Header is output
+                        $opts[CURLOPT_NOBODY] = true; // No body in output method set to HEAD
+                        $opts[CURLOPT_HTTPGET] = true; // Method set to GET
                         break;
 
                     // Make a request, don't wait for an answer
@@ -736,11 +736,13 @@ class Helper
         /**
          * Getting HTTP-response code without cURL
          */
-        if (in_array('get_code', $presets, true) &&
-            isset($out['error']) && $out['error'] === 'CURL_NOT_INSTALLED'
+        if ( in_array('get_code', $presets, true) &&
+             isset($out['error']) && $out['error'] === 'CURL_NOT_INSTALLED'
         ) {
             $headers = get_headers($url);
-            $out     = (int)preg_replace('/.*(\d{3}).*/', '$1', $headers[0]);
+            $out     = $headers !== false
+                ? (int)preg_replace('/.*(\d{3}).*/', '$1', $headers[0])
+                : array('error' => 'Couldnt get headers');
         }
 
         return $out;

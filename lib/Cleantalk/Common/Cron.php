@@ -39,7 +39,7 @@ abstract class Cron
     public function __construct(
         $cron_option_name = 'cleantalk_cron',
         $task_execution_min_interval = 120,
-        $cron_execution_min_interval = 600
+        $cron_execution_min_interval = 120
     ) {
         /*
          * @todo perform this logic
@@ -190,7 +190,11 @@ abstract class Cron
     public function checkTasks()
     {
         // No tasks to run
-        if (empty($this->tasks)) {
+        if ( empty($this->tasks) ) {
+            return false;
+        }
+
+        if ( ! $this->setCronLastStart() ) {
             return false;
         }
 
@@ -238,10 +242,6 @@ abstract class Cron
     public function runTasks($tasks)
     {
         if (empty($tasks)) {
-            return;
-        }
-
-        if ( ! $this->setCronLastStart()) {
             return;
         }
 

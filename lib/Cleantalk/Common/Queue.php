@@ -71,11 +71,12 @@ abstract class Queue
 
         if ($this->hasUnstartedStages()) {
             $this->queue['stages'][$this->unstarted_stage]['status'] = 'IN_PROGRESS';
+            $this->queue['stages'][$this->unstarted_stage]['start']  = time();
             $this->queue['stages'][$this->unstarted_stage]['pid']    = $this->pid;
 
             $this->saveQueue($this->queue);
 
-            usleep(1000);
+            sleep(2);
 
             $this->refreshQueue();
 

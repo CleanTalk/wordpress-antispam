@@ -259,6 +259,21 @@ function apbct_settings__set_fileds()
                         array('val' => 0, 'label' => __('Off')),
                     ),
                 ),
+                'forms__wc_honeypot'         => array(
+                    'title'           => __(
+                        'Add a honeypot field',
+                        'cleantalk-spam-protect'
+                    ),
+                    'description'     => __(
+                        'This option adds a honeypot to the order form to improve spam protection. Enable this option if you have passed spam on the order form.',
+                        'cleantalk-spam-protect'
+                    ),
+                    'class'           => 'apbct_settings-field_wrapper--sub',
+                    'options'         => array(
+                        array('val' => 1, 'label' => __('On')),
+                        array('val' => 0, 'label' => __('Off')),
+                    ),
+                ),
             ),
         ),
 
@@ -1169,7 +1184,7 @@ function apbct_settings__error__output($return = false)
             'exclusions_fields' => 'Field Exclusions',
 
             // Unknown
-            'unknown'           => __('Unknown error. Error: ', 'cleantalk-spam-protect'),
+            'unknown'           => __('Unknown error type: ', 'cleantalk-spam-protect'),
         );
 
         $errors_out = array();
@@ -1187,7 +1202,7 @@ function apbct_settings__error__output($return = false)
                             $errors_out[$sub_type] .= date('Y-m-d H:i:s', $sub_error['error_time']) . ': ';
                         }
                         $errors_out[$sub_type] .= (isset($error_texts[$type]) ? $error_texts[$type] : ucfirst($type)) . ': ';
-                        $errors_out[$sub_type] .= (isset($error_texts[$sub_type]) ? $error_texts[$sub_type] : $error_texts['unknown']) . ' ' . $sub_error['error'];
+                        $errors_out[$sub_type] .= (isset($error_texts[$sub_type]) ? $error_texts[$sub_type] : ( $error_texts['unknown'] . $sub_type . ' ' . __('Error: ', 'cleantalk-spam-protect') ) . ' ' . $sub_error['error'] );
                     }
                     continue;
                 }
