@@ -195,6 +195,12 @@ class Ajax
             return $dir;
         }
 
+        // Try to find WP in the relative path
+        $dir = '../../../../../..';
+        if ( file_exists($dir . '/wp-load.php') ) {
+            return $dir;
+        }
+
         // Parse index.php and try to find WP in the includes
         if ( file_exists($dir . '/index.php') ) {
             $index_content = file_get_contents($dir . '/index.php');
@@ -205,12 +211,6 @@ class Ajax
                     return $dir;
                 }
             }
-        }
-
-        // Try to find WP in the relative path
-        $dir = '../../../../../..';
-        if ( file_exists($dir . '/wp-load.php') ) {
-            return $dir;
         }
 
         // WP directory not found
