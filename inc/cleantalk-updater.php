@@ -266,14 +266,6 @@ function apbct_update_to_5_110_0()
 /**
  * @return void
  */
-function apbct_update_to_5_115_1()
-{
-    apbct_sfw_update__init();
-}
-
-/**
- * @return void
- */
 function apbct_update_to_5_116_0()
 {
     global $apbct, $wpdb;
@@ -935,7 +927,6 @@ function apbct_update_to_5_151_3()
     $apbct->save('fw_stats');
     $apbct->stats['sfw']['entries'] = 0;
     $apbct->save('stats');
-    apbct_sfw_update__init();
 }
 
 /**
