@@ -141,6 +141,14 @@ function apbct_register_my_rest_routes()
     $controller->register_routes();
 }
 
+// Alt cookies via WP ajax handler
+add_action('wp_ajax_nopriv_apbct_alt_session__save__AJAX', 'apbct_alt_session__save__WP_AJAX');
+add_action('wp_ajax_apbct_alt_session__save__AJAX', 'apbct_alt_session__save__WP_AJAX');
+function apbct_alt_session__save__WP_AJAX()
+{
+    Cleantalk\ApbctWP\Variables\AltSessions::setFromRemote();
+}
+
 // Database prefix
 global $wpdb;
 $apbct->db_prefix = ! APBCT_WPMS || $apbct->allow_custom_key || $apbct->white_label ? $wpdb->prefix : $wpdb->base_prefix;

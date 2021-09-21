@@ -1,5 +1,6 @@
 <?php
 
+use Cleantalk\ApbctWP\Helper;
 use Cleantalk\Variables\Post;
 
 /**
@@ -443,19 +444,8 @@ function apbct_settings__set_fileds()
                     'childrens'   => array('data__set_cookies__alt_sessions_type')
                 ),
                 'data__set_cookies__alt_sessions_type' => array(
-                    'title'       => __('Alternative cookies handler type', 'cleantalk-spam-protect'),
-                    'description' => __(
-                        'This could be helpful if you are using alternative mechanism for cookies and have REST API disabled. REST works faster.',
-                        'cleantalk-spam-protect'
-                    ),
-                    'class'       => 'apbct_settings-field_wrapper--sub',
-                    'input_type'  => 'radio',
-                    'options'     => array(
-                        array('val' => 0, 'label' => __('Use REST API', 'cleantalk-spam-protect'),),
-                        array('val' => 1, 'label' => __('Use AJAX handler', 'cleantalk-spam-protect'),),
-                    ),
-                    'parent'      => 'data__set_cookies',
-                    'disabled'    => $apbct->settings['data__set_cookies'] != 2,
+                    'display'    => $apbct->settings['data__set_cookies'] == 2,
+                    'callback' => 'apbct_settings__check_alt_cookies_types'
                 ),
                 'data__ssl_on'                         => array(
                     'title'       => __("Use SSL", 'cleantalk-spam-protect'),
@@ -2106,6 +2096,17 @@ function apbct_settings__validate($settings)
         \Cleantalk\ApbctWP\Variables\AltSessions::wipe();
     }
 
+    // Set type of the alt cookies
+    if ( $apbct->settings['data__set_cookies'] != 2 && $settings['data__set_cookies'] == 2 ) {
+        $alt_cookies_type = apbct_settings__get_alt_cookies_type();
+        if ( $alt_cookies_type === false ) {
+            // There is no available alt cookies types. Cookies will be disabled.
+            $settings['data__set_cookies'] = 0;
+        } else {
+            $settings['data__set_cookies__alt_sessions_type'] = $alt_cookies_type;
+        }
+    }
+
     return $settings;
 }
 
@@ -2443,4 +2444,60 @@ function apbct_settings__check_renew_banner()
             array('close_renew_banner' => ($apbct->data['notice_trial'] == 0 && $apbct->data['notice_renew'] == 0) ? true : false)
         )
     );
+}
+
+/**
+ * Checking availability of the handlers and return alt cookies type
+ *
+ * @return int|false
+ */
+function apbct_settings__get_alt_cookies_type()
+{
+    // Check custom ajax availability
+    $res_custom_ajax = Helper::httpRequestGetResponseCode(esc_url(APBCT_URL_PATH . '/lib/Cleantalk/ApbctWP/Ajax.php'));
+    if ( $res_custom_ajax == 400 ) {
+        return 1;
+    }
+
+    // Check rest availability
+    $res_rest = Helper::httpRequestGetResponseCode(esc_url(apbct_get_rest_url()));
+    if ( $res_rest == 200 ) {
+        return 0;
+    }
+
+    // Check WP ajax availability
+    $res_ajax = Helper::httpRequestGetResponseCode(admin_url('admin-ajax.php'));
+    if ( $res_ajax == 400 ) {
+        return 2;
+    }
+
+    return false;
+}
+
+function apbct_settings__check_alt_cookies_types()
+{
+    global $apbct;
+
+    switch ( $apbct->settings['data__set_cookies__alt_sessions_type'] ) {
+        case '0':
+            $alt_cookies_type = esc_html__('REST API', 'cleantalk-spam-protect');
+            break;
+        case '1':
+            $alt_cookies_type = esc_html__('Custom AJAX handler', 'cleantalk-spam-protect');
+            break;
+        case '2':
+            $alt_cookies_type = esc_html__('WP AJAX handler', 'cleantalk-spam-protect');
+            break;
+        default:
+            $alt_cookies_type = esc_html__('UNKNOWN', 'cleantalk-spam-protect');
+            break;
+    }
+
+    echo '<div class="apbct_settings-field_wrapper apbct_settings-field_wrapper--sub">';
+    echo sprintf(
+        esc_html__('Alternative cookies type was set on %s', 'cleantalk-spam-protect'),
+        '<strong>' . $alt_cookies_type . '</strong><br>'
+    );
+
+    echo '</div>';
 }

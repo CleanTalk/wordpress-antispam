@@ -119,7 +119,7 @@ class State
         'data__set_cookies'                        => 1,
         // Set cookies: Disable - 0 / Enable - 1 / Use Alternative cookies - 2.
         'data__set_cookies__alt_sessions_type'     => 0,
-        // Alternative cookies handler type: REST API - 0 / AJAX - 1
+        // Alternative cookies handler type: REST API - 0 / custom AJAX - 1 / WP AJAX - 2
         'data__ssl_on'                             => 0,
         // Secure connection to servers
         'data__pixel'                              => '3',
