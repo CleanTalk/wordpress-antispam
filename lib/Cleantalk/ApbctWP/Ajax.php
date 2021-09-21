@@ -189,21 +189,9 @@ class Ajax
      */
     private function getWpDir()
     {
-        // Try to get saved WP dir
-        if ( file_exists(__DIR__ . '/../../../inc/cleantalk-wp-core-dir.php') ) {
-            require_once __DIR__ . '/../../../inc/cleantalk-wp-core-dir.php';
-            if ( function_exists('apbct_get_wp_core_dir') ) {
-                $dir = apbct_get_wp_core_dir();
-                if( is_dir($dir) && file_exists($dir . '/wp-load.php') ) {
-                    return $dir;
-                }
-            }
-        }
-
         // Try to find WP in the DOCUMENT ROOT
         $dir = $_SERVER['DOCUMENT_ROOT'];
         if ( file_exists($dir . '/wp-load.php') ) {
-            $this->storeFoundWpDir($dir);
             return $dir;
         }
 
@@ -214,7 +202,6 @@ class Ajax
                 $blog_header = trim($matches[0], "'");
                 $dir = $_SERVER['DOCUMENT_ROOT'] . str_replace('/wp-blog-header.php', '', $blog_header);
                 if ( file_exists($dir . '/wp-load.php') ) {
-                    $this->storeFoundWpDir($dir);
                     return $dir;
                 }
             }
@@ -223,22 +210,11 @@ class Ajax
         // Try to find WP in the relative path
         $dir = '../../../../../..';
         if ( file_exists($dir . '/wp-load.php') ) {
-            $this->storeFoundWpDir($dir);
             return $dir;
         }
 
         // WP directory not found
         return false;
-    }
-
-    private function storeFoundWpDir($dir)
-    {
-        $file = __DIR__ . '/../../../inc/cleantalk-wp-core-dir.php';
-        if ( file_exists($file) ) {
-            $content = file_get_contents($file);
-            $content = str_replace('{APBCT_WP_CORE_DIR}', $dir, $content);
-            file_put_contents($file, $content);
-        }
     }
 }
 
