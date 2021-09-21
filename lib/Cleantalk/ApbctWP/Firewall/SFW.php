@@ -347,7 +347,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
                 // Message about IP status
                 '{MESSAGE_IP_STATUS}'              => '',
             );
-    
+
             /**
              * Message about IP status
              */
@@ -357,7 +357,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
                     'cleantalk-spam-protect'
                 );
                 $message_ip_status_color = 'red';
-        
+
                 if ($result['status'] === 'PASS_SFW__BY_STATUS') {
                     $message_ip_status = __(
                         'IP in the common whitelist',
@@ -365,7 +365,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
                     );
                     $message_ip_status_color = 'green';
                 }
-    
+
                 $replaces['{MESSAGE_IP_STATUS}'] = "<h3 style='color:$message_ip_status_color;'>$message_ip_status</h3>";
             }
 
