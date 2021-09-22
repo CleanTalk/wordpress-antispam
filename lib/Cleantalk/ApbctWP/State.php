@@ -406,7 +406,7 @@ class State
         // Standalone or main site
         $this->api_key        = $this->settings['apikey'];
         $this->dashboard_link = 'https://cleantalk.org/my/' . ($this->user_token ? '?user_token=' . $this->user_token : '');
-        $this->notice_show    = $this->data['notice_show'] || $this->isHaveErrors();
+        $this->notice_show    = $this->data['notice_trial'] || $this->data['notice_renew'] || $this->isHaveErrors();
 
         // Network
         if ( ! is_main_site() ) {
