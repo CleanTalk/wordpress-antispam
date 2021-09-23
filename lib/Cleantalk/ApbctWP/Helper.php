@@ -96,7 +96,6 @@ class Helper extends \Cleantalk\Common\Helper
         ), $request_params);
         $patterns       = array_merge(
             array(
-                'get',
                 'dont_split_to_array'
             ),
             $patterns

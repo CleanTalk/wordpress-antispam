@@ -2,7 +2,7 @@
 
 namespace Cleantalk\ApbctWP;
 
-use Cleantalk\Variables\Get;
+use Cleantalk\Variables\Request;
 
 class RemoteCalls
 {
@@ -16,9 +16,9 @@ class RemoteCalls
     public static function check()
     {
         return
-            Get::get('spbc_remote_call_token') &&
-            Get::get('spbc_remote_call_action') &&
-            in_array(Get::get('plugin_name'), array('antispam', 'anti-spam', 'apbct'));
+            Request::get('spbc_remote_call_token') &&
+            Request::get('spbc_remote_call_action') &&
+            in_array(Request::get('plugin_name'), array('antispam', 'anti-spam', 'apbct'));
     }
 
     /**
@@ -30,14 +30,14 @@ class RemoteCalls
     {
         global $apbct;
 
-        $action = strtolower(Get::get('spbc_remote_call_action'));
-        $token  = strtolower(Get::get('spbc_remote_call_token'));
+        $action = strtolower(Request::get('spbc_remote_call_action'));
+        $token  = strtolower(Request::get('spbc_remote_call_token'));
 
         if (isset($apbct->remote_calls[$action])) {
             $cooldown = isset($apbct->remote_calls[$action]['cooldown']) ? $apbct->remote_calls[$action]['cooldown'] : self::COOLDOWN;
 
             // Return OK for test remote calls
-            if (Get::get('test')) {
+            if (Request::get('test')) {
                 die('OK');
             }
 
@@ -57,13 +57,13 @@ class RemoteCalls
 
                     if (method_exists(__CLASS__, $action)) {
                         // Delay before perform action;
-                        if (Get::get('delay')) {
-                            sleep((int)Get::get('delay'));
+                        if (Request::get('delay')) {
+                            sleep((int)Request::get('delay'));
                             $params = $_GET;
                             unset($params['delay']);
 
                             return Helper::httpRequestRcToHost(
-                                Get::get('spbc_remote_action'),
+                                Request::get('spbc_remote_action'),
                                 $params,
                                 array('async'),
                                 false
@@ -226,7 +226,7 @@ class RemoteCalls
             $out['network_data']     = $apbct->network_data;
         }
 
-        if (Get::equal('out', 'json')) {
+        if (Request::equal('out', 'json')) {
             die(json_encode($out));
         }
         array_walk($out, function (&$val, $_key) {
