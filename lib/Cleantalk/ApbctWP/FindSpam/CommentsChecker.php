@@ -349,12 +349,12 @@ class CommentsChecker extends Checker
         );
         $bad_comments = new \WP_Comment_Query($params_bad);
         $cnt_bad      = count($bad_comments->get_comments());
-    
+
         /**
          * Total comments
          */
         $total_comments = wp_count_comments()->total_comments;
-    
+
         $return = array(
             'message' => '',
             'spam'    => $cnt_spam,
