@@ -43,7 +43,7 @@ class RemoteCalls
 
             if (
                 time() - $apbct->remote_calls[$action]['last_call'] >= $cooldown ||
-                ( $action === 'sfw_update' && isset($_GET['file_urls']) )
+                ( $action === 'sfw_update' && Request::get('file_urls') )
             ) {
                 $apbct->remote_calls[$action]['last_call'] = time();
                 $apbct->save('remote_calls');
@@ -59,7 +59,7 @@ class RemoteCalls
                         // Delay before perform action;
                         if (Request::get('delay')) {
                             sleep((int)Request::get('delay'));
-                            $params = $_GET;
+                            $params = $_REQUEST;
                             unset($params['delay']);
 
                             return Helper::httpRequestRcToHost(
@@ -172,7 +172,7 @@ class RemoteCalls
      */
     public static function action__activate_plugin() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
-        return apbct_rc__activate_plugin($_GET['plugin']);
+        return apbct_rc__activate_plugin(Request::get('plugin'));
     }
 
     /**
@@ -180,7 +180,7 @@ class RemoteCalls
      */
     public static function action__insert_auth_key() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
-        return apbct_rc__insert_auth_key($_GET['auth_key'], $_GET['plugin']);
+        return apbct_rc__insert_auth_key(Request::get('auth_key'), Request::get('plugin'));
     }
 
     /**
@@ -188,7 +188,7 @@ class RemoteCalls
      */
     public static function action__update_settings() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
-        return apbct_rc__update_settings($_GET);
+        return apbct_rc__update_settings($_REQUEST);
     }
 
     /**
