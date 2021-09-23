@@ -2483,7 +2483,7 @@ function apbct_settings__check_alt_cookies_types()
             $alt_cookies_type = esc_html__('REST API', 'cleantalk-spam-protect');
             break;
         case '1':
-            $alt_cookies_type = esc_html__('Custom AJAX handler', 'cleantalk-spam-protect');
+            $alt_cookies_type = esc_html__('CleanTalk AJAX handler', 'cleantalk-spam-protect');
             break;
         case '2':
             $alt_cookies_type = esc_html__('WP AJAX handler', 'cleantalk-spam-protect');
