@@ -2,7 +2,7 @@
 
 namespace Cleantalk\ApbctWP;
 
-class CleantalkUpgraderSkin extends \WP_Upgrader_Skin
+class CleantalkUpgraderSkinDeprecated extends \WP_Upgrader_Skin
 {
     public $upgrader;
     public $done_header;
@@ -15,6 +15,7 @@ class CleantalkUpgraderSkin extends \WP_Upgrader_Skin
      * @var string|bool|\WP_Error
      */
     public $result;
+
     public $options;
 
     public function header()
@@ -28,8 +29,10 @@ class CleantalkUpgraderSkin extends \WP_Upgrader_Skin
     /**
      *
      * @param string $string
+     *
+     * @psalm-suppress MethodSignatureMismatch
      */
-    public function feedback($string, ...$args)
+    public function feedback($string)
     {
     }
 
