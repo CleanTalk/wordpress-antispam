@@ -25,25 +25,8 @@ class CronTest extends PHPUnit\Framework\TestCase
 
     protected function setUp()
     {
-        $stub = $this->getMockForAbstractClass('\Cleantalk\Common\Cron');
-        $stub->expects( self::any() )
-            ->method('saveTasks')
-            ->willReturn(true);
-        $stub->expects( self::any() )
-            ->method('setCronLastStart')
-            ->willReturn(true);
-        $stub->expects( self::any() )
-            ->method('getCronLastStart')
-            ->willReturn(123456);
-        $stub->expects( self::any() )
-            ->method('getTasks')
-            ->willReturn($this->tasks);
-        $this->cron_object = $stub;
-
-        $reflection = new \ReflectionClass( $this->cron_object );
-        $reflection_property = $reflection->getProperty( 'tasks' );
-        $reflection_property->setAccessible( true );
-        $reflection_property->setValue( $this->cron_object, $this->tasks );
+        update_option('cleantalk_cron', $this->tasks);
+        $this->cron_object = new \Cleantalk\ApbctWP\Cron();
     }
 
     public function testAddTaskDouble() {
@@ -75,8 +58,10 @@ class CronTest extends PHPUnit\Framework\TestCase
     }
 
     public function testRunTasks() {
+        $cron = new \Cleantalk\ApbctWP\Cron();
+        $cron->checkTasks();
         $tasks_to_run = array( 'send_sfw_logs' );
-        self::assertEquals( array('send_sfw_logs'=>true), $this->cron_object->runTasks( $tasks_to_run ) );
+        self::assertEquals( array('send_sfw_logs'=>true), $cron->runTasks( $tasks_to_run ) );
     }
 
 }
