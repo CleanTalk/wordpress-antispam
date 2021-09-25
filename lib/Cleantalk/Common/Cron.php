@@ -28,7 +28,7 @@ abstract class Cron
     // Interval in seconds for cron work availability
     protected $cron_execution_min_interval;
 
-    private $pid;
+    private $id;
 
     /**
      * Cron constructor.
@@ -51,13 +51,22 @@ abstract class Cron
             $this->$param_name = isset( $this->$param_name ) ? $param : null;
         }
         */
-
-        $this->pid                         = mt_rand(0, mt_getrandmax());
+        
         $this->cron_option_name            = $cron_option_name;
         $this->task_execution_min_interval = $task_execution_min_interval;
         $this->cron_execution_min_interval = $cron_execution_min_interval;
-        if (time() - $this->getCronLastStart() > $this->cron_execution_min_interval) {
+        if( time() - $this->getCronLastStart() > $this->cron_execution_min_interval ){
+    
+            if ( ! $this->setCronLastStart() ) {
+                return;
+            }
+            
             $this->tasks = $this->getTasks();
+        
+            if( ! empty( $this->tasks ) ){
+                $this->createId();
+                usleep( 10000 ); // 10 ms
+            }
         }
     }
 
@@ -193,12 +202,10 @@ abstract class Cron
     public function checkTasks()
     {
         // No tasks to run
-        if ( ! empty($this->tasks) ) {
-            update_option('cleantalk_cron_pid', $this->pid);
-        } else {
+        if( empty( $this->tasks ) || get_option('cleantalk_cron_pid') !== $this->id ){
             return false;
         }
-
+        
         $tasks_to_run = array();
         foreach ($this->tasks as $task => &$task_data) {
             if (
@@ -246,14 +253,6 @@ abstract class Cron
             return;
         }
 
-        if ( ! $this->setCronLastStart() ) {
-            return;
-        }
-
-        if ( get_option('cleantalk_cron_pid') !== $this->pid ) {
-            return;
-        }
-
         foreach ($tasks as $task) {
             if (is_callable($this->tasks[$task]['handler'])) {
                 if ($this->debug) {
@@ -292,5 +291,14 @@ abstract class Cron
         $this->saveTasks($this->tasks);
 
         return $this->tasks_completed;
+    }
+    
+    /**
+     * Generates and save Cron ID to the base
+     */
+    public function createId()
+    {
+        $this->id = mt_rand( 0, mt_getrandmax());
+        update_option( 'cleantalk_cron_pid', $this->id );
     }
 }
