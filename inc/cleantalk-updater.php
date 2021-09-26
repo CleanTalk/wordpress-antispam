@@ -1457,3 +1457,18 @@ function apbct_update_to_5_162_0()
     $apbct->settings['forms__wc_honeypot'] = '1';
     $apbct->saveSettings();
 }
+
+/**
+ * 5.163
+ */
+function apbct_update_to_5_162_1()
+{
+    global $apbct;
+    if (
+        ! isset($apbct->stats['sfw']['update_period']) ||
+        (isset($apbct->stats['sfw']['update_period']) && $apbct->stats['sfw']['update_period'] == 0)
+    ) {
+        $apbct->stats['sfw']['update_period'] = 14400;
+        $apbct->save('stats');
+    }
+}
