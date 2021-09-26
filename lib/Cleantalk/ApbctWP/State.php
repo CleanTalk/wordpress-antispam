@@ -669,6 +669,11 @@ class State
         }
     }
 
+    public function errorExists($error_type)
+    {
+        return array_key_exists($error_type, (array)$this->errors);
+    }
+
     /**
      * Checking if errors are in the setting, and they are not empty.
      *
