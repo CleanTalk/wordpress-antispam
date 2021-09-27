@@ -4,7 +4,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 5.161.4-dev
+  Version: 5.162.1-dev
   Author: СleanTalk <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -31,7 +31,7 @@ use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\Common\DNS;
 use Cleantalk\Common\Firewall;
 use Cleantalk\Common\Schema;
-use Cleantalk\Variables\Get;
+use Cleantalk\Variables\Request;
 use Cleantalk\Variables\Server;
 
 global $apbct, $wpdb, $pagenow;
@@ -905,8 +905,8 @@ function apbct_sfw_update__worker($checker_work = false)
 
     if ( ! $checker_work ) {
         if (
-            Get::equal('firewall_updating_id', '') ||
-            ! Get::equal('firewall_updating_id', $apbct->fw_stats['firewall_updating_id'])
+            Request::equal('firewall_updating_id', '') ||
+            ! Request::equal('firewall_updating_id', $apbct->fw_stats['firewall_updating_id'])
         ) {
             return array('error' => 'Worker: WRONG_UPDATE_ID');
         }
@@ -956,7 +956,7 @@ function apbct_sfw_update__worker($checker_work = false)
     }
 
     // This is the repeat stage request, do not generate any new RC
-    if ( stripos(Get::get('stage'), 'Repeat') !== false ) {
+    if ( stripos(Request::get('stage'), 'Repeat') !== false ) {
         return true;
     }
 

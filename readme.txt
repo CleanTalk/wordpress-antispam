@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 3.0
 Tested up to: 5.8
 Requires PHP: 5.6
-Stable tag: 5.161.1
+Stable tag: 5.162
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -608,6 +608,7 @@ If your website has forms that send data to external sources, you can enable opt
  * Fix: Exclude Forminator double requests on multipage form.
  * Fix: Settings. Alt cookies types validating fixed.
  * Fix: Ajax. WP core dir parsing fixed.
+ * Fix: Settings. Ajax handler title fixed.
 
 = 5.161.1 Sep 14 2021 =
  * Fix. State. Checking empty errors fixed.
