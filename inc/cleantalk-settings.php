@@ -506,7 +506,7 @@ function apbct_settings__set_fileds()
                     'type'        => 'textarea',
                     'title'       => __('URL exclusions', 'cleantalk-spam-protect'),
                     'description' => __(
-                        'You could type here URL you want to exclude. Use comma or new lines as separator.',
+                        'You could type here a part of the URL you want to exclude. No need to type whole URL with "www" and protocol. Use comma or new lines as separator.',
                         'cleantalk-spam-protect'
                     ),
                 ),
