@@ -51,21 +51,20 @@ abstract class Cron
             $this->$param_name = isset( $this->$param_name ) ? $param : null;
         }
         */
-        
+
         $this->cron_option_name            = $cron_option_name;
         $this->task_execution_min_interval = $task_execution_min_interval;
         $this->cron_execution_min_interval = $cron_execution_min_interval;
-        if( time() - $this->getCronLastStart() > $this->cron_execution_min_interval ){
-    
+        if ( time() - $this->getCronLastStart() > $this->cron_execution_min_interval ) {
             if ( ! $this->setCronLastStart() ) {
                 return;
             }
-            
+
             $this->tasks = $this->getTasks();
-        
-            if( ! empty( $this->tasks ) ){
+
+            if ( ! empty($this->tasks) ) {
                 $this->createId();
-                usleep( 10000 ); // 10 ms
+                usleep(10000); // 10 ms
             }
         }
     }
@@ -202,10 +201,10 @@ abstract class Cron
     public function checkTasks()
     {
         // No tasks to run
-        if( empty( $this->tasks ) || get_option('cleantalk_cron_pid') !== $this->id ){
+        if ( empty($this->tasks) || get_option('cleantalk_cron_pid') !== $this->id ) {
             return false;
         }
-        
+
         $tasks_to_run = array();
         foreach ($this->tasks as $task => &$task_data) {
             if (
@@ -292,13 +291,13 @@ abstract class Cron
 
         return $this->tasks_completed;
     }
-    
+
     /**
      * Generates and save Cron ID to the base
      */
     public function createId()
     {
-        $this->id = mt_rand( 0, mt_getrandmax());
-        update_option( 'cleantalk_cron_pid', $this->id );
+        $this->id = mt_rand(0, mt_getrandmax());
+        update_option('cleantalk_cron_pid', $this->id);
     }
 }
