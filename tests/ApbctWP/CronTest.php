@@ -54,10 +54,13 @@ class CronTest extends PHPUnit\Framework\TestCase
     }
 
     public function testCheckTasks() {
-        self::assertIsArray( $this->cron_object->checkTasks() );
+        update_option('cleantalk_cron_last_start', time() - 900);
+        $cron = new \Cleantalk\ApbctWP\Cron();
+        self::assertIsArray( $cron->checkTasks() );
     }
 
     public function testRunTasks() {
+        update_option('cleantalk_cron_last_start', time() - 900);
         $cron = new \Cleantalk\ApbctWP\Cron();
         $cron->checkTasks();
         $tasks_to_run = array( 'send_sfw_logs' );
