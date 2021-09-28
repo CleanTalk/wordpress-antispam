@@ -530,7 +530,6 @@ function apbct_settings__set_fileds()
                     'type'                    => 'select',
                     'multiple'                => true,
                     'options_callback'        => 'apbct_get_all_roles',
-                    'options_callback_params' => array(true),
                     'description'             => __(
                         'Roles which bypass spam test. Hold CTRL to select multiple roles.',
                         'cleantalk-spam-protect'
@@ -729,7 +728,6 @@ function apbct_settings__set_fileds()
                     'multiple'                => true,
                     'parent'                  => 'wp__comment_notify',
                     'options_callback'        => 'apbct_get_all_roles',
-                    'options_callback_params' => array(true),
                     'class'                   => 'apbct_settings-field_wrapper--sub',
                 ),
                 'wp__dashboard_widget__show'    => array(
@@ -1707,25 +1705,15 @@ function apbct_get_all_child_domains($except_main_site = false)
 }
 
 /**
- * Get all current Wordpress roles, could except 'subscriber' role
- *
- * @param bool $except_subscriber
+ * Get all current Wordpress roles
  *
  * @return array
  */
-function apbct_get_all_roles($except_subscriber = false)
+function apbct_get_all_roles()
 {
     $wp_roles = new WP_Roles();
-    $roles    = $wp_roles->get_names();
 
-    if ( $except_subscriber ) {
-        $key = array_search('Subscriber', $roles);
-        if ( $key !== false ) {
-            unset($roles[$key]);
-        }
-    }
-
-    return $roles;
+    return $wp_roles->get_names();
 }
 
 function apbct_settings__field__draw($params = array())
