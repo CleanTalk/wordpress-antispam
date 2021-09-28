@@ -608,6 +608,11 @@ function apbct_admin__badge__get_premium($print = true, $out = '')
 function apbct_admin__admin_bar__add_structure($wp_admin_bar)
 {
     global $spbc, $apbct;
+    $plugin_name = __('CleanTalk', 'cleantalk-spam-protect');
+
+    if ($apbct->white_label) {
+        $plugin_name = $apbct->plugin_name;
+    }
 
     do_action('cleantalk_admin_bar__prepare_counters');
 
@@ -617,7 +622,7 @@ function apbct_admin__admin_bar__add_structure($wp_admin_bar)
         'title' =>
             apply_filters('cleantalk_admin_bar__add_icon_to_parent_node', '') . // @deprecated
             apply_filters('cleantalk_admin_bar__parent_node__before', '') .
-            '<span class="cleantalk_admin_bar__title">' . __('CleanTalk', 'cleantalk-spam-protect') . '</span>' .
+            '<span class="cleantalk_admin_bar__title">' . $plugin_name . '</span>' .
             apply_filters('cleantalk_admin_bar__parent_node__after', ''),
         'meta'  => array('class' => 'cleantalk-admin_bar--list_wrapper'),
     ));
