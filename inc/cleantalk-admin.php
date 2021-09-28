@@ -339,12 +339,14 @@ function apbct_admin__plugin_action_links($links, $_file)
  *
  * @param $links
  * @param $file
+ * @param $plugin_data
  *
  * @return array
  */
-function apbct_admin__register_plugin_links($links, $file)
+function apbct_admin__register_plugin_links($links, $file, $plugin_data)
 {
     global $apbct;
+    $plugin_name = $plugin_data['Name'] ?: 'Antispam by Cleantalk';
 
     //Return if it's not our plugin
     if ( $file != $apbct->base_name ) {
@@ -354,7 +356,7 @@ function apbct_admin__register_plugin_links($links, $file)
     if ( $apbct->white_label ) {
         $links   = array_slice($links, 0, 1);
         $links[] = "<script " . (class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '') . ">jQuery('.plugin-title strong').each(function(i, item){
-		if(jQuery(item).html() == 'Anti-Spam by CleanTalk')
+		if(jQuery(item).html() == '{$plugin_name}')
 			jQuery(item).html('{$apbct->plugin_name}');
 		});</script>";
 
