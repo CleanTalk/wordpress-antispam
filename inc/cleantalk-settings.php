@@ -760,7 +760,7 @@ function apbct_settings__set_fileds__network($fields)
                                 . __('WordPress Multisite (WPMS) settings', 'cleantalk-spam-protect')
                                 . '</a>'
                                 . '</span>'
-                                . '<div id="apbct_settings__dwpms_settings" style="display: none;">',
+                                . '<div id="apbct_settings__dwpms_settings" style="display: block;">',
             'html_after'     => '</div><br>',
             'fields'         => array(
                 'multisite__work_mode'                                          => array(
