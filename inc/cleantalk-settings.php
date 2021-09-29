@@ -856,6 +856,7 @@ function apbct_settings__set_fileds__network($fields)
                     'title'       => __('Allow users to manage plugin settings', 'cleantalk-spam-protect'),
                     'description' => __('Allow to change settings on child sites.', 'cleantalk-spam-protect'),
                     'display'     => APBCT_WPMS && is_main_site(),
+                    'disabled'    => $apbct->network_settings['multisite__work_mode'] == 2,
                     'network'     => true,
                 ),
                 'multisite__use_settings_template'                              => array(
@@ -1729,8 +1730,12 @@ function apbct_settings__field__draw($params = array())
     $disabled = $params['parent'] && ! $value_parent ? ' disabled="disabled"' : '';        // Strait
     $disabled = $params['parent'] && $params['reverse_trigger'] && ! $value_parent ? '' : $disabled; // Reverse logic
     $disabled = $params['disabled'] ? ' disabled="disabled"' : $disabled; // Direct disable from params
-    $disabled = ! is_main_site(
-    ) && $apbct->network_settings && ! $apbct->network_settings['multisite__allow_custom_settings'] ? ' disabled="disabled"' : $disabled; // Disabled by super admin on sub-sites
+    $disabled =
+        ! is_main_site() &&
+        $apbct->network_settings &&
+        ( ! $apbct->network_settings['multisite__allow_custom_settings'] || $apbct->network_settings['multisite__work_mode'] == 2 )
+            ? ' disabled="disabled"'
+            : $disabled; // Disabled by super admin on sub-sites
 
     $childrens = $params['childrens'] ? 'apbct_setting---' . implode(",apbct_setting---", $params['childrens']) : '';
     $hide      = $params['hide'] ? implode(",", $params['hide']) : '';
