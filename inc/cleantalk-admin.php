@@ -659,7 +659,7 @@ function apbct_admin__admin_bar__add_structure($wp_admin_bar)
             : '<a>' . __('Security', 'security-malware-firewall') . '</a>';
     }
 
-    if ( isset($spbc_title) ) {
+    if ( isset($spbc_title) && is_main_site() ) {
         $wp_admin_bar->add_node(array(
             'parent' => 'cleantalk_admin_bar__parent_node',
             'id'     => 'spbc__parent_node',
