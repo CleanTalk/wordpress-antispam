@@ -2098,6 +2098,7 @@ function apbct_settings__validate($settings)
     }
 
     // Set type of the alt cookies
+    $settings['data__set_cookies__alt_sessions_type'] = $apbct->settings['data__set_cookies__alt_sessions_type'];
     if ( $apbct->settings['data__set_cookies'] != 2 && $settings['data__set_cookies'] == 2 ) {
         $alt_cookies_type = apbct_settings__get_alt_cookies_type();
         if ( $alt_cookies_type === false ) {
