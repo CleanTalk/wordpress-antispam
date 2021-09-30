@@ -638,6 +638,22 @@ function apbct_sfw__check()
         return;
     }
 
+    // Checking if database was outdated
+    $is_sfw_outdated = $apbct->stats['sfw']['last_update_time'] + $apbct->stats['sfw']['update_period'] * 3 < time();
+
+    $apbct->errorToggle(
+        $is_sfw_outdated,
+        'sfw_outdated',
+        esc_html__(
+            'SpamFireWall database is outdated. Please, try to synchronize with the cloud.',
+            'cleantalk-spam-protect'
+        )
+    );
+
+    if ( $is_sfw_outdated ) {
+        return;
+    }
+
     $firewall = new Firewall(
         DB::getInstance()
     );
@@ -818,6 +834,15 @@ function apbct_sfw_update__init($delay = 0)
 
     if ( ! $apbct->data['key_is_ok'] ) {
         return array('error' => 'SFW UPDATE INIT: KEY_IS_NOT_VALID');
+    }
+
+    // Get update period for server
+    $update_period = DNS::getRecord('spamfirewall-ttl-txt.cleantalk.org', true, DNS_TXT);
+    $update_period = isset($update_period['txt']) ? $update_period['txt'] : 0;
+    $update_period = (int)$update_period > 14400 ? (int)$update_period : 14400;
+    if ( $apbct->stats['sfw']['update_period'] != $update_period ) {
+        $apbct->stats['sfw']['update_period'] = $update_period;
+        $apbct->save('stats');
     }
 
     $apbct->fw_stats['updating_folder'] = APBCT_DIR_PATH . DIRECTORY_SEPARATOR . 'fw_files_for_blog_' . get_current_blog_id() . DIRECTORY_SEPARATOR;
@@ -1296,12 +1321,8 @@ function apbct_sfw_update__end_of_update($is_direct_update = false)
     // Delete update errors
     $apbct->errorDelete('sfw_update', 'save_settings');
 
-    // Get update period for server
-    $update_period = DNS::getRecord('spamfirewall-ttl-txt.cleantalk.org', true, DNS_TXT);
-    $update_period = isset($update_period['txt']) ? $update_period['txt'] : 0;
-    $update_period = (int)$update_period > 14400 ? (int)$update_period : 14400;
-    $cron          = new Cron();
-    $cron->updateTask('sfw_update', 'apbct_sfw_update__init', $update_period);
+    $cron = new Cron();
+    $cron->updateTask('sfw_update', 'apbct_sfw_update__init', $apbct->stats['sfw']['update_period']);
     $cron->removeTask('sfw_update_checker');
 
     /**

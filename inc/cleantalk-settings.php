@@ -1175,7 +1175,11 @@ function apbct_settings__error__output($return = false)
                 'Error occurred while checking account status. Error: ',
                 'cleantalk-spam-protect'
             ),
-            'api'               => __('Error occurred while excuting API call. Error: ', 'cleantalk-spam-protect'),
+            'api'               => __('Error occurred while executing API call. Error: ', 'cleantalk-spam-protect'),
+            'sfw_outdated'        => __(
+                'Error occurred on last SpamFireWall check. Error: ',
+                'cleantalk-spam-protect'
+            ),
 
             // Validating settings
             'settings_validate' => 'Validate Settings',

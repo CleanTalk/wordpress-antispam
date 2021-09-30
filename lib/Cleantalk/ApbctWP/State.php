@@ -294,7 +294,9 @@ class State
             'last_send_time'          => 0,
             'last_send_amount'        => 0,
             'last_update_time'        => 0,
+            'last_update_way'         => '',
             'entries'                 => 0,
+            'update_period'           => 14400,
         ),
         'last_sfw_block' => array(
             'time' => 0,
@@ -662,11 +664,16 @@ class State
      */
     public function errorToggle($add_error, $type, $error, $major_type = null, $set_time = true, $save_flag = true)
     {
-        if ($add_error) {
+        if ( $add_error && ! $this->errorExists($type) ) {
             $this->errorAdd($type, $error, $major_type, $set_time);
-        } else {
+        } elseif ( $this->errorExists($type) ) {
             $this->errorDelete($type, $save_flag, $major_type);
         }
+    }
+
+    public function errorExists($error_type)
+    {
+        return array_key_exists($error_type, (array)$this->errors);
     }
 
     /**
