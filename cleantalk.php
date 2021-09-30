@@ -533,7 +533,7 @@ if ( is_admin() || is_network_admin() ) {
             2
         );
 
-        add_filter('plugin_row_meta', 'apbct_admin__register_plugin_links', 10, 2);
+        add_filter('plugin_row_meta', 'apbct_admin__register_plugin_links', 10, 3);
     }
 // Public pages actions
 } else {

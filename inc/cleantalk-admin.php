@@ -339,12 +339,14 @@ function apbct_admin__plugin_action_links($links, $_file)
  *
  * @param $links
  * @param $file
+ * @param $plugin_data
  *
  * @return array
  */
-function apbct_admin__register_plugin_links($links, $file)
+function apbct_admin__register_plugin_links($links, $file, $plugin_data)
 {
     global $apbct;
+    $plugin_name = $plugin_data['Name'] ?: 'Antispam by Cleantalk';
 
     //Return if it's not our plugin
     if ( $file != $apbct->base_name ) {
@@ -354,7 +356,7 @@ function apbct_admin__register_plugin_links($links, $file)
     if ( $apbct->white_label ) {
         $links   = array_slice($links, 0, 1);
         $links[] = "<script " . (class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '') . ">jQuery('.plugin-title strong').each(function(i, item){
-		if(jQuery(item).html() == 'Anti-Spam by CleanTalk')
+		if(jQuery(item).html() == '{$plugin_name}')
 			jQuery(item).html('{$apbct->plugin_name}');
 		});</script>";
 
@@ -607,6 +609,11 @@ function apbct_admin__badge__get_premium($print = true, $out = '')
 function apbct_admin__admin_bar__add_structure($wp_admin_bar)
 {
     global $spbc, $apbct;
+    $plugin_name = __('CleanTalk', 'cleantalk-spam-protect');
+
+    if ($apbct->white_label) {
+        $plugin_name = $apbct->plugin_name;
+    }
 
     do_action('cleantalk_admin_bar__prepare_counters');
 
@@ -616,7 +623,7 @@ function apbct_admin__admin_bar__add_structure($wp_admin_bar)
         'title' =>
             apply_filters('cleantalk_admin_bar__add_icon_to_parent_node', '') . // @deprecated
             apply_filters('cleantalk_admin_bar__parent_node__before', '') .
-            '<span class="cleantalk_admin_bar__title">' . __('CleanTalk', 'cleantalk-spam-protect') . '</span>' .
+            '<span class="cleantalk_admin_bar__title">' . $plugin_name . '</span>' .
             apply_filters('cleantalk_admin_bar__parent_node__after', ''),
         'meta'  => array('class' => 'cleantalk-admin_bar--list_wrapper'),
     ));
@@ -653,7 +660,7 @@ function apbct_admin__admin_bar__add_structure($wp_admin_bar)
             : '<a>' . __('Security', 'security-malware-firewall') . '</a>';
     }
 
-    if ( isset($spbc_title) ) {
+    if ( isset($spbc_title) && is_main_site() ) {
         $wp_admin_bar->add_node(array(
             'parent' => 'cleantalk_admin_bar__parent_node',
             'id'     => 'spbc__parent_node',
