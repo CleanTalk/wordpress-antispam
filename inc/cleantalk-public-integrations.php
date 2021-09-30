@@ -1831,7 +1831,7 @@ function apbct_form__contactForm7__testSpam($spam, $_submission = null)
         $apbct->settings['forms__contact_forms_test'] == 0 ||
         ($spam === false && defined('WPCF7_VERSION') && WPCF7_VERSION < '3.0.0') ||
         ($spam === true && defined('WPCF7_VERSION') && WPCF7_VERSION >= '3.0.0') ||
-        ($apbct->settings['data__protect_logged_in'] != 1 && is_user_logged_in()) || // Skip processing for logged in users.
+        ($apbct->settings['data__protect_logged_in'] != 1 && apbct_is_user_logged_in()) || // Skip processing for logged in users.
         apbct_exclusions_check__url() ||
         apbct_exclusions_check__ip() ||
         isset($apbct->cf7_checked)
@@ -2621,6 +2621,9 @@ function apbct_form__gravityForms__testSpam($is_spam, $form, $entry)
     if (
         $is_spam ||
         $apbct->settings['forms__contact_forms_test'] == 0 ||
+        ($apbct->settings['data__protect_logged_in'] != 1 && apbct_is_user_logged_in()) || // Skip processing for logged in users.
+        apbct_exclusions_check__url() ||
+        apbct_exclusions_check__ip() ||
         $cleantalk_executed // Return unchanged result if the submission was already tested.
     ) {
         do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
