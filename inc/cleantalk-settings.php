@@ -2084,6 +2084,7 @@ function apbct_settings__validate($settings)
         \Cleantalk\ApbctWP\Variables\AltSessions::wipe();
     }
 
+    // @ToDo combine selecting of the ajax handler type
     // Set type of the alt cookies
     if ( $apbct->settings['data__set_cookies'] != 2 && $settings['data__set_cookies'] == 2 ) {
         $alt_cookies_type = apbct_settings__get_alt_cookies_type();
@@ -2092,6 +2093,19 @@ function apbct_settings__validate($settings)
             $settings['data__set_cookies'] = 0;
         } else {
             $settings['data__set_cookies__alt_sessions_type'] = $alt_cookies_type;
+        }
+    }
+
+    // @ToDo combine selecting of the ajax handler type
+    // Set type of the AJAX getting of js
+    $settings['data__use_ajax__type'] = $apbct->settings['data__use_ajax__type'];
+    if ( $apbct->settings['data__use_ajax'] != 1 && $settings['data__use_ajax'] == 1 ) {
+        $ajax_type = apbct_settings__get_alt_cookies_type();
+        if ( $ajax_type === false ) {
+            // There is no available ajax types. AJAX js will be disabled.
+            $settings['data__use_ajax'] = 0;
+        } else {
+            $settings['data__use_ajax__type'] = $ajax_type;
         }
     }
 
