@@ -661,7 +661,7 @@ function apbct_admin__admin_bar__add_structure($wp_admin_bar)
     }
 
     if ( isset($spbc_title) &&
-         (is_main_site() || $apbct->white_label) ) {
+         (is_main_site() || !$apbct->white_label) ) {
         $wp_admin_bar->add_node(array(
             'parent' => 'cleantalk_admin_bar__parent_node',
             'id'     => 'spbc__parent_node',
