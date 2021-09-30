@@ -639,21 +639,20 @@ function apbct_sfw__check()
     }
 
     // Checking if database was outdated
-    if ( $apbct->stats['sfw']['last_update_time'] + $apbct->stats['sfw']['update_period'] * 3 < time() ) {
-        if ( ! $apbct->errorExists('sfw_outdated') ) {
-            $apbct->errorAdd(
-                'sfw_outdated',
-                esc_html__(
-                    'SpamFireWall database is outdated. Please, try to synchronize with the cloud.',
-                    'cleantalk-spam-protect'
-                )
-            );
-        }
+    $is_sfw_outdated = $apbct->stats['sfw']['last_update_time'] + $apbct->stats['sfw']['update_period'] * 3 < time();
 
+    $apbct->errorToggle(
+        $is_sfw_outdated,
+        'sfw_outdated',
+        esc_html__(
+            'SpamFireWall database is outdated. Please, try to synchronize with the cloud.',
+            'cleantalk-spam-protect'
+        )
+    );
+
+    if ( $is_sfw_outdated ) {
         return;
     }
-
-    $apbct->errorDelete('sfw_outdated', true);
 
     $firewall = new Firewall(
         DB::getInstance()

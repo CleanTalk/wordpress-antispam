@@ -664,9 +664,9 @@ class State
      */
     public function errorToggle($add_error, $type, $error, $major_type = null, $set_time = true, $save_flag = true)
     {
-        if ($add_error) {
+        if ( $add_error && ! $this->errorExists($type) ) {
             $this->errorAdd($type, $error, $major_type, $set_time);
-        } else {
+        } elseif ( $this->errorExists($type) ) {
             $this->errorDelete($type, $save_flag, $major_type);
         }
     }
