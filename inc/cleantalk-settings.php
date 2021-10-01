@@ -750,10 +750,7 @@ function apbct_settings__set_fileds()
 function apbct_settings__set_fileds__network($fields)
 {
     global $apbct;
-    
-    $plugin_name = $apbct->plugin_name;
-    $plugin_name_bold = '<b>'.$plugin_name.'</b>';
-    
+
     $additional_fields = array(
         'wpms_settings' => array(
             'default_params' => array(),
@@ -844,12 +841,12 @@ function apbct_settings__set_fileds__network($fields)
                     'title'       => __('Plugin name', 'cleantalk-spam-protect'),
                     'description' => sprintf(
                         __(
-                            "Specify plugin name. Leave empty for default ",
+                            "Specify plugin name. Leave empty for deafult %sAntispam by Cleantalk%s",
                             'cleantalk-spam-protect'
                         ),
                         '<b>',
                         '</b>'
-                    ) . $plugin_name_bold,
+                    ),
                     'type'        => 'text',
                     'parent'      => 'multisite__white_label',
                     'class'       => 'apbct_settings-field_wrapper--sub',
