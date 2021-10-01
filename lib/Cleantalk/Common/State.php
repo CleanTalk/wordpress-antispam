@@ -2,6 +2,8 @@
 
 namespace Cleantalk\Common;
 
+use Cleantalk\ApbctWP\State\OptionsFactory;
+
 abstract class State
 {
     /**
@@ -18,10 +20,10 @@ abstract class State
      * @param string $option_prefix
      * @param array $options
      */
-    public function __construct($option_prefix, $options = array('settings'))
+    public function __construct($option_prefix, OptionsFactory $options, )
     {
         $this->option_prefix = $option_prefix;
-        $this->options       = $options;
+        $this->options       = $options->options;
         $this->setDefinitions();
         $this->setOptions();
         $this->init();

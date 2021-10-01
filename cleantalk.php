@@ -93,8 +93,12 @@ require_once(CLEANTALK_PLUGIN_DIR . 'lib/autoloader.php');                // Aut
 require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-pluggable.php');  // Pluggable functions
 require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-common.php');
 
+$options = new Cleantalk\ApbctWP\State\OptionsFactory(
+    array('settings', 'data', 'debug', 'errors', 'remote_calls', 'stats', 'fw_stats'),
+    is_multisite()
+);
 // Global ArrayObject with settings and other global variables
-$apbct = new State('cleantalk', array('settings', 'data', 'debug', 'errors', 'remote_calls', 'stats', 'fw_stats'));
+$apbct = new State('cleantalk', $options);
 
 $apbct->base_name = 'cleantalk-spam-protect/cleantalk.php';
 
