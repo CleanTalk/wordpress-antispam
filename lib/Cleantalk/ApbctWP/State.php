@@ -56,7 +56,6 @@ use ArrayObject;
 class State
 {
     public $user;
-    public $use_rest_api = 0;
     public $option_prefix = 'cleantalk';
     public $storage = array();
     public $def_settings = array(
