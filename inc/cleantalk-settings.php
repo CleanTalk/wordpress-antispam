@@ -841,7 +841,7 @@ function apbct_settings__set_fileds__network($fields)
                     'title'       => __('Plugin name', 'cleantalk-spam-protect'),
                     'description' => sprintf(
                         __(
-                            "Specify plugin name. Leave empty for deafult %sAntispam by Cleantalk%s",
+                            "Specify plugin name. Leave empty for deafult %sAnti-spam by Cleantalk%s",
                             'cleantalk-spam-protect'
                         ),
                         '<b>',
