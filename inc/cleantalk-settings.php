@@ -2045,8 +2045,7 @@ function apbct_settings__validate($settings)
     // Drop debug data
     if ( Post::get('submit') === 'debug_drop' ) {
         $apbct->debug = false;
-        delete_option('cleantalk_debug');
-
+        $apbct->deleteOption('debug', true);
         return $settings;
     }
 

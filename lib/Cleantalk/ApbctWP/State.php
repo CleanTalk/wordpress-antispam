@@ -9,56 +9,31 @@ use ArrayObject;
  *
  * @package Antiospam Plugin by CleanTalk
  * @subpackage State
- * @Version 2.1
+ * @Version 3.0
  * @author Cleantalk team (welcome@cleantalk.org)
- * @copyright (C) 2014 CleanTalk team (http://cleantalk.org)
+ * @copyright (C) 2021 CleanTalk team (http://cleantalk.org)
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
- */
-
-/**
- *   COMMON
- *
- * @property string api_key
- *
- *   SETTINGS GROUPS
- * @property ArrayObject fw_stats
- * @property ArrayObject stats
- * @property ArrayObject settings
- * @property ArrayObject data
- *
- *   STAND ALONE
- * @property ArrayObject plugin_request_ids
- *
- * @property mixed moderate_ip
- * @property mixed|string plugin_version
- * @property mixed|string db_prefix
- * @property string settings_link
- * @property int key_is_ok
- * @property string logo__small__colored
- * @property string logo__small
- * @property string logo
- * @property string plugin_name
- * @property string base_name
- * @property string plugin_request_id
- * @property array|mixed errors
- *
- *   NETWORK
- * @property ArrayObject network_data
- * @property ArrayObject network_settings
- * @property mixed allow_custom_key
- * @property bool white_label
- * @property mixed moderate
- *
- * MISC
  *
  * @psalm-suppress PossiblyUnusedProperty
  */
-class State
+
+class State extends \Cleantalk\Common\State
 {
+    /**
+     * @var  \WP_User
+     */
     public $user;
+
+    /**
+     * @var int
+     */
     public $use_rest_api = 0;
-    public $option_prefix = 'cleantalk';
+
+    /**
+     * @var array
+     */
     public $storage = array();
+
     public $def_settings = array(
 
         'apikey'                                   => '',
@@ -335,98 +310,7 @@ class State
         'update_mode'                  => 0,
     );
 
-    /**
-     * @param string $option_prefix Database settings prefix
-     * @param array $options Array of strings. Types of settings you want to get.
-     */
-    public function __construct($option_prefix, $options = array('settings'))
-    {
-        $this->option_prefix = $option_prefix;
-
-        // Network settings
-        $option                 = get_site_option($this->option_prefix . '_network_settings');
-        $option                 = is_array($option) ? array_merge(
-            $this->def_network_settings,
-            $option
-        ) : $this->def_network_settings;
-        $this->network_settings = new ArrayObject($option);
-
-        // Network data
-        $option             = get_site_option($this->option_prefix . '_network_data');
-        $option             = is_array($option) ? array_merge(
-            $this->def_network_data,
-            $option
-        ) : $this->def_network_data;
-        $this->network_data = new ArrayObject($option);
-
-        foreach ($options as $option_name) {
-            $option = get_option($this->option_prefix . '_' . $option_name);
-
-            // Setting default options
-            if ($this->option_prefix . '_' . $option_name === 'cleantalk_settings') {
-                if ( ! $option) {
-                    //Set alt cookies if sg optimizer is installed
-                    $this->def_settings['data__set_cookies'] = defined('SiteGround_Optimizer\VERSION') ? 2 : 1;
-                }
-                $option = is_array($option) ? array_merge($this->def_settings, $option) : $this->def_settings;
-            }
-
-            // Setting default data
-            if ($this->option_prefix . '_' . $option_name === 'cleantalk_data') {
-                $option = is_array($option) ? array_merge($this->def_data, $option) : $this->def_data;
-                // Generate salt
-                $option['salt'] = empty($option['salt'])
-                    ? str_pad((string)rand(0, getrandmax()), 6, '0') . str_pad((string)rand(0, getrandmax()), 6, '0')
-                    : $option['salt'];
-            }
-
-            // Setting default errors
-            if ($this->option_prefix . '_' . $option_name === 'cleantalk_errors') {
-                $option = $option ? $option : array();
-            }
-
-            // Default remote calls
-            if ($this->option_prefix . '_' . $option_name === 'cleantalk_remote_calls') {
-                $option = is_array($option) ? array_merge($this->def_remote_calls, $option) : $this->def_remote_calls;
-            }
-
-            // Default statistics
-            if ($this->option_prefix . '_' . $option_name === 'cleantalk_stats') {
-                $option = is_array($option) ? array_merge($this->def_stats, $option) : $this->def_stats;
-            }
-
-            // Default statistics
-            if ($this->option_prefix . '_' . $option_name === 'cleantalk_fw_stats') {
-                $option = is_array($option) ? array_merge($this->default_fw_stats, $option) : $this->default_fw_stats;
-            }
-
-            $this->$option_name = is_array($option) ? new ArrayObject($option) : $option;
-        }
-
-        /* Adding some dynamic properties */
-
-        // Standalone or main site
-        $this->api_key        = $this->settings['apikey'];
-        $this->dashboard_link = 'https://cleantalk.org/my/' . ($this->user_token ? '?user_token=' . $this->user_token : '');
-        $this->notice_show    = $this->data['notice_trial'] || $this->data['notice_renew'] || $this->isHaveErrors();
-
-        // Network
-        if ( ! is_main_site() ) {
-            // Custom key allowed
-            if ( $this->network_settings['multisite__work_mode'] != 2 ) {
-                // Mutual key
-            } elseif ( $this->network_settings['multisite__work_mode'] == 2 ) {
-                $this->api_key     = $this->network_settings['apikey'];
-                $this->key_is_ok   = $this->network_data['key_is_ok'];
-                $this->user_token  = $this->network_data['user_token'];
-                $this->service_id  = $this->network_data['service_id'];
-                $this->moderate    = $this->network_data['moderate'];
-                $this->notice_show = false;
-            }
-        }
-    }
-
-    public static function setDefinitions()
+    protected function setDefinitions()
     {
         global $wpdb;
 
@@ -478,14 +362,93 @@ class State
         }
     }
 
+    protected function setOptions()
+    {
+        // Network settings
+        $net_option                 = get_site_option($this->option_prefix . '_network_settings');
+        $net_option                 = is_array($net_option)
+            ? array_merge($this->def_network_settings, $net_option)
+            : $this->def_network_settings;
+        $this->network_settings     = new ArrayObject($net_option);
+
+        // Network data
+        $net_data             = get_site_option($this->option_prefix . '_network_data');
+        $net_data             = is_array($net_data)
+            ? array_merge($this->def_network_data, $net_data)
+            : $this->def_network_data;
+        $this->network_data   = new ArrayObject($net_data);
+
+        foreach ($this->options as $option_name) {
+            $option = get_option($this->option_prefix . '_' . $option_name);
+
+            // Setting default options
+            if ($this->option_prefix . '_' . $option_name === 'cleantalk_settings') {
+                if ( ! $option) {
+                    //Set alt cookies if sg optimizer is installed
+                    $this->def_settings['data__set_cookies'] = defined('SiteGround_Optimizer\VERSION') ? 2 : 1;
+                }
+                $option = is_array($option) ? array_merge($this->def_settings, $option) : $this->def_settings;
+            }
+
+            // Setting default data
+            if ($this->option_prefix . '_' . $option_name === 'cleantalk_data') {
+                $option = is_array($option) ? array_merge($this->def_data, $option) : $this->def_data;
+                // Generate salt
+                $option['salt'] = empty($option['salt'])
+                    ? str_pad((string)rand(0, getrandmax()), 6, '0') . str_pad((string)rand(0, getrandmax()), 6, '0')
+                    : $option['salt'];
+            }
+
+            // Setting default errors
+            if ($this->option_prefix . '_' . $option_name === 'cleantalk_errors') {
+                $option = $option ?: array();
+            }
+
+            // Default remote calls
+            if ($this->option_prefix . '_' . $option_name === 'cleantalk_remote_calls') {
+                $option = is_array($option) ? array_merge($this->def_remote_calls, $option) : $this->def_remote_calls;
+            }
+
+            // Default statistics
+            if ($this->option_prefix . '_' . $option_name === 'cleantalk_stats') {
+                $option = is_array($option) ? array_merge($this->def_stats, $option) : $this->def_stats;
+            }
+
+            // Default statistics
+            if ($this->option_prefix . '_' . $option_name === 'cleantalk_fw_stats') {
+                $option = is_array($option) ? array_merge($this->default_fw_stats, $option) : $this->default_fw_stats;
+            }
+
+            $this->$option_name = is_array($option) ? new ArrayObject($option) : $option;
+        }
+    }
+
+    protected function init()
+    {
+        // Standalone or main site
+        $this->api_key        = $this->settings['apikey'];
+        $this->dashboard_link = 'https://cleantalk.org/my/' . ($this->user_token ? '?user_token=' . $this->user_token : '');
+        $this->notice_show    = $this->data['notice_trial'] || $this->data['notice_renew'] || $this->isHaveErrors();
+
+        // Network with Mutual key
+        if ( ! is_main_site() && $this->network_settings['multisite__work_mode'] == 2 ) {
+            $this->api_key     = $this->network_settings['apikey'];
+            $this->key_is_ok   = $this->network_data['key_is_ok'];
+            $this->user_token  = $this->network_data['user_token'];
+            $this->service_id  = $this->network_data['service_id'];
+            $this->moderate    = $this->network_data['moderate'];
+            $this->notice_show = false;
+        }
+    }
+
     /**
      * Get specified option from database
      *
      * @param string $option_name
      */
-    private function getOption($option_name)
+    protected function getOption($option_name)
     {
-        $option = get_option('cleantalk_' . $option_name, null);
+        $option = get_option($this->option_prefix . '_' . $option_name, null);
 
         $this->$option_name = is_array($option)
             ? new ArrayObject($option)
@@ -722,7 +685,7 @@ class State
      *
      * @return mixed
      */
-    public function &__get($name)
+    public function __get($name)
     {
         // First check in storage
         if (isset($this->storage[$name])) {
@@ -736,7 +699,7 @@ class State
 
             return $option;
 
-            // Otherwise try to get it from db settings table
+            // Otherwise, try to get it from db settings table
             // it will be arrayObject || scalar || null
         } else {
             $option = $this->getOption($name);
@@ -753,30 +716,5 @@ class State
     public function __unset($name)
     {
         unset($this->storage[$name]);
-    }
-
-    public function server()
-    {
-        return \Cleantalk\Variables\Server::getInstance();
-    }
-
-    public function cookie()
-    {
-        return \Cleantalk\Variables\Cookie::getInstance();
-    }
-
-    public function request()
-    {
-        return \Cleantalk\Variables\Request::getInstance();
-    }
-
-    public function post()
-    {
-        return \Cleantalk\Variables\Post::getInstance();
-    }
-
-    public function get()
-    {
-        return \Cleantalk\Variables\Get::getInstance();
     }
 }
