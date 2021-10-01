@@ -825,7 +825,7 @@ function apbct_settings__set_fileds__network($fields)
                     'title'       => __('Enable White Label Mode', 'cleantalk-spam-protect'),
                     'description' => sprintf(
                         __("Learn more information %shere%s.", 'cleantalk-spam-protect'),
-                        '<a target="_blank" href="https://cleantalk.org/ru/help/hosting-white-label">',
+                        '<a target="_blank" href="https://cleantalk.org/help/hosting-white-label">',
                         '</a>'
                     ),
                     'childrens'   => array('multisite__white_label__plugin_name'),
