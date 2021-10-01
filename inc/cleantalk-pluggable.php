@@ -619,7 +619,7 @@ function apbct_is_skip_request($ajax = false)
              is_admin() ) {
             return 'w2dc_skipped';
         }
-        if ( apbct_is_plugin_active('elementor/elementor.php') &&
+        if ( (apbct_is_plugin_active('elementor/elementor.php') || apbct_is_plugin_active('elementor-pro/elementor-pro.php')) &&
              isset($_POST['actions_save_builder_action']) &&
              $_POST['actions_save_builder_action'] === 'save_builder' &&
              is_admin() ) {
