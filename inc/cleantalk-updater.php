@@ -70,6 +70,19 @@ function apbct_run_update_actions( $current_version, $new_version ) {
 		}
 	}
 
+	// 
+    global $apbct;
+
+    $api_key = $apbct->api_key;
+    if ($api_key && preg_match('/^[a-z\d]{3,15}$/', $api_key)) {
+        // Key is good by default
+        $apbct->data['key_is_ok'] = true;
+    } else {
+        $apbct->data['key_is_ok'] = false;
+        $apbct->data['notice_show'] = 1;
+    }
+    $apbct->save('data');
+
 	return true;
 }
 
@@ -179,13 +192,6 @@ function apbct_update_to_5_110_0(){
 	global $apbct;
 	unset($apbct->data['last_remote_call']);
     $apbct->save('remote_calls');
-}
-
-/**
- * @return void
- */
-function apbct_update_to_5_115_1(){
-    apbct_sfw_update__init();
 }
 
 /**
