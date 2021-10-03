@@ -8,7 +8,13 @@ class HappyForm extends IntegrationBase
     {
         if ( isset($_POST['happyforms_form_id']) ) {
             $data = array();
-            foreach ( $_POST as $key => $value ) {
+
+            /**
+             * Filter for POST
+             */
+            $input_array = apply_filters('apbct__filter_post', $_POST);
+
+            foreach ( $input_array as $key => $value ) {
                 if ( strpos($key, $_POST['happyforms_form_id']) !== false ) {
                     $data[$key] = $value;
                 }
