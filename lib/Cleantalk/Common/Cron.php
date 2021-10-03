@@ -179,7 +179,8 @@ abstract class Cron
             return $this->saveTasks($tasks);
         }
 
-        return false;
+        // Add task if it's disappeared
+        return $this->addTask($task, $handler, $period, $first_call, $params);
     }
 
     /**
