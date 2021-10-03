@@ -2716,6 +2716,16 @@ function apbct_form__gravityForms__testSpam($is_spam, $form, $entry)
 
     # Search nickname and email
     if ( $form_fields_intermediate ) {
+        if ($apbct->settings['exclusions__fields']) {
+            $exclusion_fields = explode(',', $apbct->settings['exclusions__fields']);
+
+            foreach ($form_fields_intermediate as $key => $field) {
+                if (in_array($field['f_name'], $exclusion_fields)) {
+                    unset($form_fields_intermediate[$key]);
+                }
+            }
+        }
+
         foreach ( $form_fields_intermediate as $field ) {
             if ( $field['f_type'] === 'email' ) {
                 $email = $field['f_data'];
