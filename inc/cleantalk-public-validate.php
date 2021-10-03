@@ -433,13 +433,14 @@ function ct_contact_form_validate_postdata()
 }
 
 add_filter('apbct__filter_post', 'apbct__filter_form_data', 10);
-function apbct__filter_form_data($form_data) {
+function apbct__filter_form_data($form_data)
+{
     global $apbct;
-    
+
     if ($apbct->settings['exclusions__fields__use_regexp']) {
         return $form_data;
     }
-    
+
     if ($apbct->settings['exclusions__fields']) {
         $exclusion_fields = explode(',', $apbct->settings['exclusions__fields']);
 
