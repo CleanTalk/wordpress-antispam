@@ -19,7 +19,10 @@ if ( ! defined('APBCT_VERSION') ) {
     define('APBCT_VERSION', $plugin_info['Version']);
 }
 
-$apbct                   = new \Cleantalk\ApbctWP\State('cleantalk', array('settings', 'data'));
+$options = new Cleantalk\ApbctWP\State\OptionsFactory(
+    array('settings', 'data')
+);
+$apbct                   = new \Cleantalk\ApbctWP\State('cleantalk', $options);
 $apbct->white_label      = $apbct->network_settings['multisite__white_label'];
 $apbct->allow_custom_key = $apbct->network_settings['multisite__work_mode'] != 2;
 $apbct->api_key          = ! is_multisite(

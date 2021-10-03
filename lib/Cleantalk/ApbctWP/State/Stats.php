@@ -4,6 +4,7 @@ namespace Cleantalk\ApbctWP\State;
 
 use Cleantalk\Common\State\Options;
 
+/** @psalm-suppress UnusedClass */
 class Stats extends Options
 {
     /**

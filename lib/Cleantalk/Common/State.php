@@ -18,9 +18,9 @@ abstract class State
 
     /**
      * @param string $option_prefix
-     * @param array $options
+     * @param OptionsFactory $options
      */
-    public function __construct($option_prefix, OptionsFactory $options, )
+    public function __construct($option_prefix, OptionsFactory $options)
     {
         $this->option_prefix = $option_prefix;
         $this->options       = $options->options;

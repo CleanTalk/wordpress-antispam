@@ -9,7 +9,7 @@ class OptionsFactory
     /**
      * @param array $options
      */
-    public function __construct($options = array('settings'), $is_network = false)
+    public function __construct($options = array('settings'))
     {
         if ( ! is_array($options) ) {
             //throw new cleantalkInvalidArgumentException('$options must be an array.');

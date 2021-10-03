@@ -4,6 +4,8 @@ namespace Cleantalk\ApbctWP\State;
 
 use Cleantalk\Common\State\Options;
 
+/** @psalm-suppress UnusedClass */
+// phpcs:ignore Squiz.Classes.ValidClassName.NotCamelCaps
 class Network_settings extends Options
 {
     /**

@@ -88,30 +88,29 @@ class State extends \Cleantalk\Common\State
 
     protected function setOptions()
     {
-        foreach ($this->options as $option_obj) {
-
+        foreach ( $this->options as $option_obj ) {
             $reflect_option_obj = new \ReflectionClass($option_obj);
-            $option_name = $reflect_option_obj->getShortName();
-            $option_name = mb_strtolower($option_name);
+            $option_name        = $reflect_option_obj->getShortName();
+            $option_name        = mb_strtolower($option_name);
 
-            if ( strpos( $option_name, 'network' ) !== false ) {
+            if ( strpos($option_name, 'network') !== false ) {
                 $option = get_site_option($this->option_prefix . '_' . $option_name);
             } else {
                 $option = get_option($this->option_prefix . '_' . $option_name);
             }
 
-            $option = is_array($option)&& isset($option_obj->defaults)
+            $option = is_array($option) && isset($option_obj->defaults)
                 ? array_merge($option_obj->defaults, $option)
                 : $option_obj->defaults;
 
-            if ($this->option_prefix . '_' . $option_name === 'cleantalk_data') {
+            if ( $this->option_prefix . '_' . $option_name === 'cleantalk_data' ) {
                 // Generate salt
                 $option['salt'] = empty($option['salt'])
                     ? str_pad((string)rand(0, getrandmax()), 6, '0') . str_pad((string)rand(0, getrandmax()), 6, '0')
                     : $option['salt'];
             }
 
-            $this->$option_name = is_array( $option ) ? new \ArrayObject( $option ) : $option;
+            $this->$option_name = is_array($option) ? new \ArrayObject($option) : $option;
         }
     }
 

@@ -94,8 +94,7 @@ require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-pluggable.php');  // Pluggabl
 require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-common.php');
 
 $options = new Cleantalk\ApbctWP\State\OptionsFactory(
-    array('settings', 'data', 'debug', 'errors', 'remote_calls', 'stats', 'fw_stats'),
-    is_multisite()
+    array('settings', 'data', 'debug', 'errors', 'remote_calls', 'stats', 'fw_stats')
 );
 // Global ArrayObject with settings and other global variables
 $apbct = new State('cleantalk', $options);

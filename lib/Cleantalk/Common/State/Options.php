@@ -2,6 +2,7 @@
 
 namespace Cleantalk\Common\State;
 
+/** @psalm-suppress PossiblyUnusedProperty */
 abstract class Options
 {
     public $defaults;
