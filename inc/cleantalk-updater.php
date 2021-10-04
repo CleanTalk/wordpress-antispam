@@ -1465,6 +1465,14 @@ function apbct_update_to_5_162_1()
 {
     global $apbct;
 
+    if (
+        ! isset($apbct->stats['sfw']['update_period']) ||
+        (isset($apbct->stats['sfw']['update_period']) && $apbct->stats['sfw']['update_period'] == 0)
+    ) {
+        $apbct->stats['sfw']['update_period'] = 14400;
+        $apbct->save('stats');
+    }
+
     // Set type of the AJAX handler for the ajax js
     if ( $apbct->settings['data__use_ajax'] == 1 ) {
         // Check custom ajax availability

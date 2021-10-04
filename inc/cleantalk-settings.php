@@ -506,7 +506,7 @@ function apbct_settings__set_fileds()
                     'type'        => 'textarea',
                     'title'       => __('URL exclusions', 'cleantalk-spam-protect'),
                     'description' => __(
-                        'You could type here URL you want to exclude. Use comma or new lines as separator.',
+                        'You could type here a part of the URL you want to exclude. No need to type whole URL with "www" and protocol. Use comma or new lines as separator.',
                         'cleantalk-spam-protect'
                     ),
                 ),
@@ -750,6 +750,7 @@ function apbct_settings__set_fileds()
 function apbct_settings__set_fileds__network($fields)
 {
     global $apbct;
+
     $additional_fields = array(
         'wpms_settings' => array(
             'default_params' => array(),
@@ -760,7 +761,7 @@ function apbct_settings__set_fileds__network($fields)
                                 . __('WordPress Multisite (WPMS) settings', 'cleantalk-spam-protect')
                                 . '</a>'
                                 . '</span>'
-                                . '<div id="apbct_settings__dwpms_settings" style="display: none;">',
+                                . '<div id="apbct_settings__dwpms_settings" style="display: block;">',
             'html_after'     => '</div><br>',
             'fields'         => array(
                 'multisite__work_mode'                                          => array(
@@ -825,7 +826,7 @@ function apbct_settings__set_fileds__network($fields)
                     'title'       => __('Enable White Label Mode', 'cleantalk-spam-protect'),
                     'description' => sprintf(
                         __("Learn more information %shere%s.", 'cleantalk-spam-protect'),
-                        '<a target="_blank" href="https://cleantalk.org/ru/help/hosting-white-label">',
+                        '<a target="_blank" href="https://cleantalk.org/help/hosting-white-label">',
                         '</a>'
                     ),
                     'childrens'   => array('multisite__white_label__plugin_name'),
@@ -840,7 +841,7 @@ function apbct_settings__set_fileds__network($fields)
                     'title'       => __('Plugin name', 'cleantalk-spam-protect'),
                     'description' => sprintf(
                         __(
-                            "Specify plugin name. Leave empty for deafult %sAntispam by Cleantalk%s",
+                            "Specify plugin name. Leave empty for deafult %sAnti-spam by Cleantalk%s",
                             'cleantalk-spam-protect'
                         ),
                         '<b>',
@@ -856,6 +857,7 @@ function apbct_settings__set_fileds__network($fields)
                     'title'       => __('Allow users to manage plugin settings', 'cleantalk-spam-protect'),
                     'description' => __('Allow to change settings on child sites.', 'cleantalk-spam-protect'),
                     'display'     => APBCT_WPMS && is_main_site(),
+                    'disabled'    => $apbct->network_settings['multisite__work_mode'] == 2,
                     'network'     => true,
                 ),
                 'multisite__use_settings_template'                              => array(
@@ -1174,7 +1176,11 @@ function apbct_settings__error__output($return = false)
                 'Error occurred while checking account status. Error: ',
                 'cleantalk-spam-protect'
             ),
-            'api'               => __('Error occurred while excuting API call. Error: ', 'cleantalk-spam-protect'),
+            'api'               => __('Error occurred while executing API call. Error: ', 'cleantalk-spam-protect'),
+            'sfw_outdated'        => __(
+                'Error occurred on last SpamFireWall check. Error: ',
+                'cleantalk-spam-protect'
+            ),
 
             // Validating settings
             'settings_validate' => 'Validate Settings',
@@ -1729,8 +1735,12 @@ function apbct_settings__field__draw($params = array())
     $disabled = $params['parent'] && ! $value_parent ? ' disabled="disabled"' : '';        // Strait
     $disabled = $params['parent'] && $params['reverse_trigger'] && ! $value_parent ? '' : $disabled; // Reverse logic
     $disabled = $params['disabled'] ? ' disabled="disabled"' : $disabled; // Direct disable from params
-    $disabled = ! is_main_site(
-    ) && $apbct->network_settings && ! $apbct->network_settings['multisite__allow_custom_settings'] ? ' disabled="disabled"' : $disabled; // Disabled by super admin on sub-sites
+    $disabled =
+        ! is_main_site() &&
+        $apbct->network_settings &&
+        ( ! $apbct->network_settings['multisite__allow_custom_settings'] || $apbct->network_settings['multisite__work_mode'] == 2 )
+            ? ' disabled="disabled"'
+            : $disabled; // Disabled by super admin on sub-sites
 
     $childrens = $params['childrens'] ? 'apbct_setting---' . implode(",apbct_setting---", $params['childrens']) : '';
     $hide      = $params['hide'] ? implode(",", $params['hide']) : '';
@@ -1907,7 +1917,11 @@ function apbct_settings__validate($settings)
     global $apbct;
 
     // If user is not allowed to manage settings. Get settings from the storage
-    if ( ! is_main_site() && ! $apbct->network_settings['multisite__allow_custom_settings'] ) {
+    if (
+        ! is_main_site() &&
+        ! $apbct->network_settings['multisite__allow_custom_settings'] &&
+        current_filter() === 'sanitize_option_cleantalk_settings' // Do in only if settings were saved
+    ) {
         foreach ( $apbct->settings as $key => $setting ) {
             // Do not reset apikey to default is allow_custom_key is active
             if ( $key === 'apikey' && $apbct->allow_custom_key ) {
@@ -2032,8 +2046,7 @@ function apbct_settings__validate($settings)
     // Drop debug data
     if ( Post::get('submit') === 'debug_drop' ) {
         $apbct->debug = false;
-        delete_option('cleantalk_debug');
-
+        $apbct->deleteOption('debug', true);
         return $settings;
     }
 
@@ -2086,6 +2099,7 @@ function apbct_settings__validate($settings)
 
     // @ToDo combine selecting of the ajax handler type
     // Set type of the alt cookies
+    $settings['data__set_cookies__alt_sessions_type'] = $apbct->settings['data__set_cookies__alt_sessions_type'];
     if ( $apbct->settings['data__set_cookies'] != 2 && $settings['data__set_cookies'] == 2 ) {
         $alt_cookies_type = apbct_settings__get_alt_cookies_type();
         if ( $alt_cookies_type === false ) {

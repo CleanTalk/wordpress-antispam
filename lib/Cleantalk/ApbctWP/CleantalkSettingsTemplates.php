@@ -95,8 +95,8 @@ class CleantalkSettingsTemplates
             $template_info = $_POST['data'];
             if ( isset($template_info['template_id'], $template_info['template_name'], $template_info['settings']) ) {
                 $res = $this->setPluginOptions(
-                    $template_info['template_id'],
-                    $template_info['template_name'],
+                    (int)$template_info['template_id'],
+                    htmlspecialchars($template_info['template_name']),
                     $template_info['settings']
                 );
                 if ( empty($res['error']) ) {
@@ -273,15 +273,49 @@ class CleantalkSettingsTemplates
 
     private function setPluginOptions($template_id, $template_name, $settings)
     {
-        global $apbct;
-        $settings                                      = array_replace((array)$apbct->settings, $settings);
-        $settings                                      = apbct_settings__validate($settings);
-        $apbct->settings                               = $settings;
-        $apbct->data['current_settings_template_id']   = $template_id;
-        $apbct->data['current_settings_template_name'] = $template_name;
-        $apbct->data['key_changed']                    = 1;
+        global $apbct, $wpdb;
 
-        return $apbct->saveSettings() && $apbct->saveData();
+        /**
+         * $blog_ids is an array of the IDs to apply settings for these blogs
+         */
+        $blogs_ids = apply_filters('apbct_template_save_to', array());
+
+        if ( is_multisite() && is_array($blogs_ids) && count($blogs_ids) ) {
+            $initial_blog = get_current_blog_id();
+            if ( ! in_array($initial_blog, $blogs_ids) ) {
+                $blogs_ids[] = $initial_blog;
+            }
+            $available_blogs = $wpdb->get_col('SELECT blog_id FROM ' . $wpdb->prefix . 'blogs;');
+            foreach ( $blogs_ids as $blog_id ) {
+                if ( ! in_array($blog_id, $available_blogs) ) {
+                    continue;
+                }
+                switch_to_blog($blog_id);
+                $old_settings = get_option($apbct->option_prefix . '_settings');
+                $old_data = get_option($apbct->option_prefix . '_data');
+                if ( $old_settings !== false && $old_data !== false ) {
+                    $new_settings = array_replace($old_settings, $settings);
+                    $new_settings = apbct_settings__validate($new_settings);
+                    $data['current_settings_template_id'] = $template_id;
+                    $data['current_settings_template_name'] = $template_name;
+                    $data['key_changed'] = 1;
+                    $new_data = array_replace($old_data, $data);
+                    update_option($apbct->option_prefix . '_settings', $new_settings);
+                    update_option($apbct->option_prefix . '_data', $new_data);
+                }
+                restore_current_blog();
+            }
+            switch_to_blog($initial_blog);
+        } else {
+            $settings = array_replace((array)$apbct->settings, $settings);
+            $settings = apbct_settings__validate($settings);
+            $apbct->settings = $settings;
+            $apbct->data['current_settings_template_id'] = $template_id;
+            $apbct->data['current_settings_template_name'] = $template_name;
+            $apbct->data['key_changed'] = 1;
+
+            return $apbct->saveSettings() && $apbct->saveData();
+        }
     }
 
     private function resetPluginOptions()
