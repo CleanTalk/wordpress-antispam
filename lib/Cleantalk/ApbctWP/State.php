@@ -25,11 +25,6 @@ class State extends \Cleantalk\Common\State
     public $user;
 
     /**
-     * @var int
-     */
-    public $use_rest_api = 0;
-
-    /**
      * @var array
      */
     public $storage = array();
@@ -88,6 +83,8 @@ class State extends \Cleantalk\Common\State
         'data__protect_logged_in'                  => 1,
         // Do anti-spam tests to for logged in users.
         'data__use_ajax'                           => 1,
+        'data__use_ajax__type'                     => 1,
+        // Ajax handler type: REST API - 0 / custom AJAX - 1 / WP AJAX - 2
         'data__use_static_js_key'                  => -1,
         'data__general_postdata_test'              => 0,
         //CAPD
