@@ -438,6 +438,14 @@ function apbct__filter_form_data($form_data)
     global $apbct;
 
     if ($apbct->settings['exclusions__fields__use_regexp']) {
+        $exclusion_regexp = $apbct->settings['exclusions__fields'];
+
+        foreach (array_keys($form_data) as $key) {
+            if (preg_match('/' . $exclusion_regexp . '/', $key) === 1) {
+                unset($form_data[$key]);
+            }
+        }
+
         return $form_data;
     }
 
