@@ -1,6 +1,5 @@
 <?php
 
-
 namespace Cleantalk\Variables;
 
 /**
@@ -11,47 +10,49 @@ namespace Cleantalk\Variables;
  *
  * @package Cleantalk\Variables
  */
-class Post extends ServerVariables{
-	
-	public static $instance;
-	
-	/**
-	 * Constructor
-	 * @return $this
-	 */
-	public static function getInstance(){
-		if (!isset(static::$instance)) {
-			static::$instance = new static;
-			static::$instance->init();
-		}
-		return static::$instance;
-	}
-	
-	/**
-	 * Gets given $_POST variable and save it to memory
-	 * @param $name
-	 *
-	 * @return mixed|string
-	 */
-	protected function get_variable( $name ){
-		
-		// Return from memory. From $this->variables
-		if( ! isset( static::$instance->variables[ $name ] ) ) {
-			if ( function_exists( 'filter_input' ) ) {
-				$value = filter_input( INPUT_POST, $name );
-			}
+class Post extends ServerVariables
+{
+    public static $instance;
 
-			if ( empty( $value ) ) {
-				$value = isset( $_POST[ $name ] ) ? $_POST[ $name ] : '';
-			}
+    /**
+     * Constructor
+     * @return $this
+     */
+    public static function getInstance()
+    {
+        if (! isset(static::$instance)) {
+            static::$instance = new static();
+            static::$instance->init();
+        }
 
-			// Remember for further calls
-			static::getInstance()->remember_variable( $name, $value );
+        return static::$instance;
+    }
 
-			return $value;
-		}
+    /**
+     * Gets given $_POST variable and save it to memory
+     *
+     * @param $name
+     *
+     * @return mixed|string
+     */
+    protected function getVariable($name)
+    {
+        // Return from memory. From $this->variables
+        if (! isset(static::$instance->variables[$name])) {
+            if (function_exists('filter_input')) {
+                $value = filter_input(INPUT_POST, $name);
+            }
 
-		return static::$instance->variables[ $name ];
+            if (empty($value)) {
+                $value = isset($_POST[$name]) ? $_POST[$name] : '';
+            }
 
-	}
+            // Remember for further calls
+            static::getInstance()->rememberVariable($name, $value);
+
+            return $value;
+        }
+
+        return static::$instance->variables[$name];
+    }
 }

@@ -6,6 +6,7 @@
 	<file>../</file>
 	<exclude-pattern>/vendor/</exclude-pattern>
 	<exclude-pattern>/node_modules/</exclude-pattern>
+	<exclude-pattern>/lib/Cleantalk/ApbctWP/CleantalkListTable.php</exclude-pattern>
 
 	<!-- How to scan -->
 	<!-- Usage instructions: https://github.com/squizlabs/PHP_CodeSniffer/wiki/Usage -->
@@ -18,10 +19,13 @@
 	<exclude-pattern>fw_files/*</exclude-pattern>
 	<arg name="colors"/>
 	<arg name="extensions" value="php"/>
+	<arg name="exclude" value="PSR12.ControlStructures.ControlStructureSpacing"/>
+	<arg value="n"/>
 
 	<!-- Rules: Check PHP version compatibility -->
 	<!-- https://github.com/PHPCompatibility/PHPCompatibility#sniffing-your-code-for-compatibility-with-specific-php-versions -->
 	<config name="testVersion" value="5.6-"/>
 
 	<rule ref="PHPCompatibility"/>
+	<rule ref="PSR12"/>
 </ruleset>

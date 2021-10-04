@@ -1,25 +1,23 @@
 <?php
 
-
 namespace Cleantalk\ApbctWP;
 
+class Queue extends \Cleantalk\Common\Queue
+{
+    const QUEUE_NAME = 'cleantalk_sfw_update_queue';
 
-class Queue extends \Cleantalk\Common\Queue {
+    public function getQueue()
+    {
+        return get_option(self::QUEUE_NAME);
+    }
 
-	const QUEUE_NAME = 'cleantalk_sfw_update_queue';
+    public static function clearQueue()
+    {
+        return delete_option(self::QUEUE_NAME);
+    }
 
-	public function getQueue()
-	{
-		return get_option( self::QUEUE_NAME );
-	}
-
-	public static function clearQueue()
-	{
-		return delete_option( self::QUEUE_NAME );
-	}
-
-	public function saveQueue( $queue )
-	{
-		return update_option( self::QUEUE_NAME, $queue );
-	}
+    public function saveQueue($queue)
+    {
+        return update_option(self::QUEUE_NAME, $queue);
+    }
 }

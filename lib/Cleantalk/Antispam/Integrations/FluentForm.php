@@ -1,18 +1,17 @@
 <?php
 
-
 namespace Cleantalk\Antispam\Integrations;
-
 
 class FluentForm extends IntegrationBase
 {
-
-    public function getDataForChecking( $argument )
+    public function getDataForChecking($argument)
     {
-        if( isset( $_POST['data'] ) ) {
-            parse_str( $_POST['data'], $form_data );
+        if ( isset($_POST['data']) ) {
+            parse_str($_POST['data'], $form_data);
+
             return ct_get_fields_any($form_data);
         }
+
         return null;
     }
 
@@ -25,7 +24,8 @@ class FluentForm extends IntegrationBase
                         $message
                     )
                 )
-            ), 422
+            ),
+            422
         );
     }
 }

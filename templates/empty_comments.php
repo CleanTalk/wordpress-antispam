@@ -1,2 +1,3 @@
 <?php
- // Empty comments template
+
+// Empty comments template

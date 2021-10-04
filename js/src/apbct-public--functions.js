@@ -42,6 +42,16 @@ function ctSetCookie( cookies, value, expires ){
                     notJson: 1,
                 }
             );
+        } else if( +ctPublicFunctions.data__set_cookies__alt_sessions_type === 2 ) {
+            apbct_public_sendAJAX(
+                {
+                    action: 'apbct_alt_session__save__AJAX',
+                    cookies: cookies,
+                },
+                {
+                    notJson: 1,
+                }
+            );
         }
     }
 }

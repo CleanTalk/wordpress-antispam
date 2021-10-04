@@ -175,7 +175,7 @@ class Schema
         if (array_key_exists($table, self::$schemas)) {
             return array(self::$schemas[$table]);
         }
-        
+       
         throw new Exception('Called table scheme not exist.');
     }
 }
