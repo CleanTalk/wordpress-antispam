@@ -750,6 +750,7 @@ function apbct_settings__set_fileds()
 function apbct_settings__set_fileds__network($fields)
 {
     global $apbct;
+
     $additional_fields = array(
         'wpms_settings' => array(
             'default_params' => array(),
@@ -825,7 +826,7 @@ function apbct_settings__set_fileds__network($fields)
                     'title'       => __('Enable White Label Mode', 'cleantalk-spam-protect'),
                     'description' => sprintf(
                         __("Learn more information %shere%s.", 'cleantalk-spam-protect'),
-                        '<a target="_blank" href="https://cleantalk.org/ru/help/hosting-white-label">',
+                        '<a target="_blank" href="https://cleantalk.org/help/hosting-white-label">',
                         '</a>'
                     ),
                     'childrens'   => array('multisite__white_label__plugin_name'),
@@ -840,7 +841,7 @@ function apbct_settings__set_fileds__network($fields)
                     'title'       => __('Plugin name', 'cleantalk-spam-protect'),
                     'description' => sprintf(
                         __(
-                            "Specify plugin name. Leave empty for deafult %sAntispam by Cleantalk%s",
+                            "Specify plugin name. Leave empty for deafult %sAnti-spam by Cleantalk%s",
                             'cleantalk-spam-protect'
                         ),
                         '<b>',

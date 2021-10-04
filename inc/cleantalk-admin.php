@@ -355,10 +355,18 @@ function apbct_admin__register_plugin_links($links, $file, $plugin_data)
 
     if ( $apbct->white_label ) {
         $links   = array_slice($links, 0, 1);
-        $links[] = "<script " . (class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '') . ">jQuery('.plugin-title strong').each(function(i, item){
-		if(jQuery(item).html() == '{$plugin_name}')
-			jQuery(item).html('{$apbct->plugin_name}');
-		});</script>";
+        $links[] = "<script " . (class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '') . ">
+        function changedPluginName(){
+            jQuery('.plugin-title strong').each(function(i, item){
+            if(jQuery(item).html() == '{$plugin_name}')
+                jQuery(item).html('{$apbct->plugin_name}');
+            });
+        }
+        changedPluginName();
+		jQuery( document ).ajaxComplete(function() {
+            changedPluginName();
+        });
+		</script>";
 
         return $links;
     }

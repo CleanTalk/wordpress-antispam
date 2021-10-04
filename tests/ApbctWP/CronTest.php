@@ -50,7 +50,8 @@ class CronTest extends PHPUnit\Framework\TestCase
     }
 
 	public function testUpdateTaskWrong() {
-        self::assertFalse( $this->cron_object->updateTask( 'sfw_update_wrong', 'apbct_sfw_update', 86400, time() + 60 ) );
+        // The wrong task must be added instead of skipped it
+        self::assertTrue( $this->cron_object->updateTask( 'sfw_update_wrong', 'apbct_sfw_update', 86400, time() + 60 ) );
     }
 
     public function testCheckTasks() {
