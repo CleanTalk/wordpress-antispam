@@ -2440,7 +2440,12 @@ function ct_quform_post_validate($result, $form)
         $comment_type = 'contact_form_wordpress_quforms_singlepage';
     }
 
-    $ct_temp_msg_data = ct_get_fields_any($form->getValues());
+    /**
+     * Filter for POST
+     */
+    $input_array = apply_filters('apbct__filter_post', $form->getValues());
+
+    $ct_temp_msg_data = ct_get_fields_any($input_array);
     // @ToDo If we have several emails at the form - will be used only the first detected!
     $sender_email = $ct_temp_msg_data['email'] ?: '';
 
