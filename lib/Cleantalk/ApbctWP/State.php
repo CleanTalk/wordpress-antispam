@@ -113,7 +113,7 @@ class State
         // Do anti-spam tests to for logged in users.
         'data__use_ajax'                           => 1,
         'data__use_ajax__type'                     => 1,
-        // Alternative cookies handler type: REST API - 0 / custom AJAX - 1 / WP AJAX - 2
+        // Ajax handler type: REST API - 0 / custom AJAX - 1 / WP AJAX - 2
         'data__use_static_js_key'                  => -1,
         'data__general_postdata_test'              => 0,
         //CAPD
