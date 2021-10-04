@@ -2281,12 +2281,8 @@ function apbct_settings__get_key_auto($direct_call = false)
             $apbct->data['user_token'] = $result['user_token'];
         }
 
-        if ( ! empty($result['auth_key']) ) {
-            // @ToDo we have to sanitize only api key. Not need to sanitize every settings here.
-            $settings                  = apbct_settings__validate(array(
-                'apikey' => $result['auth_key'],
-            ));
-            $apbct->settings['apikey'] = $settings['apikey'];
+        if ( ! empty($result['auth_key']) && apbct_api_key__is_correct($result['auth_key']) ) {
+            $apbct->settings['apikey'] = trim($result['auth_key']);
         }
 
         $templates = \Cleantalk\ApbctWP\CleantalkSettingsTemplates::getOptionsTemplate($result['auth_key']);
