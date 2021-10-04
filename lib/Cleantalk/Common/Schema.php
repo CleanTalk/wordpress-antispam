@@ -2,6 +2,8 @@
 
 namespace Cleantalk\Common;
 
+use Exception;
+
 class Schema
 {
     /**

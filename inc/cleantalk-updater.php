@@ -82,6 +82,9 @@ function apbct_run_update_actions( $current_version, $new_version ) {
         $apbct->data['notice_show'] = 1;
     }
     $apbct->save('data');
+    
+    // Start SFW update
+    apbct_sfw_update__init();
 
 	return true;
 }
@@ -365,7 +368,9 @@ function apbct_update_to_5_127_1(){
 		if( $network_settings !== false && $network_settings['white_label'] == 1 && $apbct->data['moderate'] == 0 ){
 			ct_account_status_check( $network_settings['apikey'] ? $network_settings['apikey'] : $apbct->settings['apikey'], false);
 		}
-	}
+	} else {
+        ct_account_status_check( $apbct->settings['apikey'], false);
+    }
 }
 
 /**
