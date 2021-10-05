@@ -312,6 +312,11 @@ class State extends \Cleantalk\Common\State
         global $wpdb;
 
         $db_prefix = is_multisite() && is_main_site() ? $wpdb->base_prefix : $wpdb->prefix;
+        // Use tables from main site on wpms_mode=2
+        $fw_db_prefix =
+            is_multisite() && ! is_main_site() && $this->network_settings['multisite__work_mode'] == 2
+                ? $wpdb->base_prefix
+                : $db_prefix;
 
         if ( ! defined('APBCT_SEESION__LIVE_TIME')) {
             define('APBCT_SEESION__LIVE_TIME', 86400);
@@ -323,19 +328,19 @@ class State extends \Cleantalk\Common\State
         // Database constants
         if ( ! defined('APBCT_TBL_FIREWALL_DATA')) {
             // Table with firewall data.
-            define('APBCT_TBL_FIREWALL_DATA', $db_prefix . 'cleantalk_sfw');
+            define('APBCT_TBL_FIREWALL_DATA', $fw_db_prefix . 'cleantalk_sfw');
         }
         if ( ! defined('APBCT_TBL_FIREWALL_LOG')) {
             // Table with firewall logs.
-            define('APBCT_TBL_FIREWALL_LOG', $db_prefix . 'cleantalk_sfw_logs');
+            define('APBCT_TBL_FIREWALL_LOG', $fw_db_prefix . 'cleantalk_sfw_logs');
         }
         if ( ! defined('APBCT_TBL_AC_LOG')) {
             // Table with firewall logs.
-            define('APBCT_TBL_AC_LOG', $db_prefix . 'cleantalk_ac_log');
+            define('APBCT_TBL_AC_LOG', $fw_db_prefix . 'cleantalk_ac_log');
         }
         if ( ! defined('APBCT_TBL_AC_UA_BL')) {
             // Table with User-Agents blacklist.
-            define('APBCT_TBL_AC_UA_BL', $db_prefix . 'cleantalk_ua_bl');
+            define('APBCT_TBL_AC_UA_BL', $fw_db_prefix . 'cleantalk_ua_bl');
         }
         if ( ! defined('APBCT_TBL_SESSIONS')) {
             // Table with session data.
@@ -429,6 +434,11 @@ class State extends \Cleantalk\Common\State
 
         // Network with Mutual key
         if ( ! is_main_site() && $this->network_settings['multisite__work_mode'] == 2 ) {
+            // Get stats from main blog
+            switch_to_blog(get_main_site_id());
+            $main_blog_stats = get_option($this->option_prefix . '_stats');
+            restore_current_blog();
+            $this->stats = $main_blog_stats;
             $this->api_key     = $this->network_settings['apikey'];
             $this->key_is_ok   = $this->network_data['key_is_ok'];
             $this->user_token  = $this->network_data['user_token'];

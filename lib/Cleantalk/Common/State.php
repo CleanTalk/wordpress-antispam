@@ -22,8 +22,8 @@ abstract class State
     {
         $this->option_prefix = $option_prefix;
         $this->options       = $options;
-        $this->setDefinitions();
         $this->setOptions();
+        $this->setDefinitions();
         $this->init();
     }
 
