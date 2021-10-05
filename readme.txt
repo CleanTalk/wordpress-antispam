@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 3.0
 Tested up to: 5.8
 Requires PHP: 5.6
-Stable tag: 5.162
+Stable tag: 5.163
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -577,6 +577,36 @@ If your website has forms that send data to external sources, you can enable opt
 12. SpamFireWall log.
 
 == Changelog ==
+
+= 5.163 Oct 07 2021 =
+ * New: State. errorExists method implemented.
+ * New: SFW. Disabling SFW when the database was outdated.
+ * New: Settings templates. Saving template to the several blogs implemented.
+ * New: Settings. WPMS settings always show now.
+ * New: WPMS. No show any sub-sites errors on wpms mode 2.
+ * New: WPMS. Plugin settings are disabled on sub-sites on wpms mode 2.
+ * Mod: Remote Calls using POST instead of GET request type.
+ * Mod: Helper. No cache GET parameter renamed.
+ * Mod: Cron. Transactions implemented #2.
+ * Mod: Settings. "URL Exclusions" description updated.
+ * Upd: Getting JS. AJAX handler type selecting updated.
+ * Fix: Added lost info about total comments in CommentChecker::ctAjaxInfo
+ * Fix: add subscriber to skip list.
+ * Fix: Changed the plugin name in the list of plugins when enabling White Label
+ * Fix: Changed the plugin name in the admin bar when enabling White Label
+ * Fix: Feedback. Comments feedback description fixed.
+ * Fix: Hide information about Security in admin bar if it is not main site.
+ * Fix: SFW. Error toggle used instead of error add/delete.
+ * Fix: Alt cookies. Selecting type of alt cookies bug fixed.
+ * Fix: protect logged users in gravity.
+ * Fix: Updated the condition for showing a link to the security installation in the admin bar.
+ * Fix: reverse condition for WL security link.
+ * Fix: WPMS. Addition WL info link fixed.
+ * Changed plugin name in plugin settings multisite__white_label__plugin_name.
+ * Fix: rename plugin name after search plugins if WL is on.
+ * Fix: Renamed Antispam by Cleantalk to Anti-spam by Cleantalk
+ * Fix: add elementor-pro to skip save action.
+ * Fix: WPMS. Sanitize api key during getting key fixed.
 
 = 5.162 Sep 23 2021 =
  * New. SFW. Fall back updating system implemented.
