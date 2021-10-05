@@ -162,7 +162,6 @@ $apbct->db_prefix = ! $apbct->white_label && defined('CLEANTALK_ACCESS_KEY') ? $
 if ( $apbct->plugin_version === '1.0.0' ) {
     $apbct->plugin_version = '5.100';
 }
-
 // Do update actions if version is changed
 apbct_update_actions();
 
@@ -181,11 +180,11 @@ add_action('init', function () {
     ) {
         $cron_res = $ct_cron->runTasks($tasks_to_run);
         if ( is_array($cron_res) ) {
-            foreach ( $cron_res as $task => $res ) {
+            foreach ( $cron_res as $_task => $res ) {
                 if ( $res === true ) {
-                    $apbct->errorDelete($task, 'save_data', 'cron');
+                    $apbct->errorDelete('cron', 'save_data');
                 } else {
-                    $apbct->errorAdd($task, $res, 'cron');
+                    $apbct->errorAdd('cron', $res);
                 }
             }
         }
