@@ -512,9 +512,14 @@ function ct_ajax_hook($message_obj = null)
         }
     }
 
+    /**
+     * Filter for POST
+     */
+    $input_array = apply_filters('apbct__filter_post', $_POST);
+
     $ct_temp_msg_data = isset($ct_post_temp)
         ? ct_get_fields_any($ct_post_temp)
-        : ct_get_fields_any($_POST);
+        : ct_get_fields_any($input_array);
 
     $sender_email    = $ct_temp_msg_data['email'] ?: '';
     $sender_nickname = $ct_temp_msg_data['nickname'] ?: '';

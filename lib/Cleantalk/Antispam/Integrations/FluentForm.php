@@ -9,7 +9,12 @@ class FluentForm extends IntegrationBase
         if ( isset($_POST['data']) ) {
             parse_str($_POST['data'], $form_data);
 
-            return ct_get_fields_any($form_data);
+            /**
+             * Filter for POST
+             */
+            $input_array = apply_filters('apbct__filter_post', $form_data);
+
+            return ct_get_fields_any($input_array);
         }
 
         return null;

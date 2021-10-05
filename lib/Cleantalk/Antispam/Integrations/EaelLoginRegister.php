@@ -6,7 +6,12 @@ class EaelLoginRegister extends IntegrationBase
 {
     public function getDataForChecking($argument)
     {
-        $data             = ct_get_fields_any($_POST);
+        /**
+         * Filter for POST
+         */
+        $input_array = apply_filters('apbct__filter_post', $_POST);
+
+        $data             = ct_get_fields_any($input_array);
         $data['register'] = true;
 
         return $data;

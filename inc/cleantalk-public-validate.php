@@ -175,7 +175,12 @@ function ct_contact_form_validate()
 
     $post_info['comment_type'] = 'feedback_general_contact_form';
 
-    $ct_temp_msg_data = ct_get_fields_any($_POST);
+    /**
+     * Filter for POST
+     */
+    $input_array = apply_filters('apbct__filter_post', $_POST);
+
+    $ct_temp_msg_data = ct_get_fields_any($input_array);
 
     $sender_email    = ($ct_temp_msg_data['email'] ? $ct_temp_msg_data['email'] : '');
     $sender_nickname = ($ct_temp_msg_data['nickname'] ? $ct_temp_msg_data['nickname'] : '');
@@ -366,7 +371,12 @@ function ct_contact_form_validate_postdata()
         return null;
     }
 
-    $message = ct_get_fields_any_postdata($_POST);
+    /**
+     * Filter for POST
+     */
+    $input_array = apply_filters('apbct__filter_post', $_POST);
+
+    $message = ct_get_fields_any_postdata($input_array);
 
     // ???
     if ( strlen(json_encode($message)) < 10 ) {
@@ -420,4 +430,35 @@ function ct_contact_form_validate_postdata()
     }
 
     return null;
+}
+
+add_filter('apbct__filter_post', 'apbct__filter_form_data', 10);
+function apbct__filter_form_data($form_data)
+{
+    global $apbct;
+
+    if ($apbct->settings['exclusions__fields']) {
+        // regular expression exception
+        if ($apbct->settings['exclusions__fields__use_regexp']) {
+            $exclusion_regexp = $apbct->settings['exclusions__fields'];
+
+            foreach (array_keys($form_data) as $key) {
+                if (preg_match('/' . $exclusion_regexp . '/', $key) === 1) {
+                    unset($form_data[$key]);
+                }
+            }
+
+            return $form_data;
+        }
+
+        $exclusion_fields = explode(',', $apbct->settings['exclusions__fields']);
+
+        foreach (array_keys($form_data) as $key) {
+            if (in_array($key, $exclusion_fields)) {
+                unset($form_data[$key]);
+            }
+        }
+    }
+
+    return $form_data;
 }

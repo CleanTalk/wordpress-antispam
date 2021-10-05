@@ -74,8 +74,13 @@ function ct_validate_ccf_submission($value, $_field_id, $_required)
 
     unset($ct_global_temporary_data['count']);
 
+    /**
+     * Filter for POST
+     */
+    $input_array = apply_filters('apbct__filter_post', $_POST);
+
     //Getting request params
-    $ct_temp_msg_data = ct_get_fields_any($_POST);
+    $ct_temp_msg_data = ct_get_fields_any($input_array);
 
     unset($ct_global_temporary_data);
 
@@ -449,8 +454,13 @@ function ct_woocommerce_checkout_check()
 {
     global $apbct, $cleantalk_executed;
 
+    /**
+     * Filter for POST
+     */
+    $input_array = apply_filters('apbct__filter_post', $_POST);
+
     //Getting request params
-    $ct_temp_msg_data = ct_get_fields_any($_POST);
+    $ct_temp_msg_data = ct_get_fields_any($input_array);
 
     $sender_email    = $ct_temp_msg_data['email'] ?: '';
     $sender_nickname = $ct_temp_msg_data['nickname'] ?: '';
@@ -584,8 +594,13 @@ function apbct_form__piratesForm__testSpam()
         return;
     }
 
+    /**
+     * Filter for POST
+     */
+    $input_array = apply_filters('apbct__filter_post', $_POST);
+
     //Getting request params
-    $ct_temp_msg_data = ct_get_fields_any($_POST);
+    $ct_temp_msg_data = ct_get_fields_any($input_array);
 
     $sender_email    = $ct_temp_msg_data['email'] ?: '';
     $sender_nickname = $ct_temp_msg_data['nickname'] ?: '';
@@ -707,8 +722,13 @@ function apbct_form__formidable__testSpam($errors, $_form)
         return $errors;
     }
 
+    /**
+     * Filter for POST
+     */
+    $input_array = apply_filters('apbct__filter_post', $_POST['item_meta']);
+
     $form_data = array();
-    foreach ( $_POST['item_meta'] as $key => $value ) {
+    foreach ( $input_array as $key => $value ) {
         $form_data['item_meta[' . $key . ']'] = $value;
     }
 
@@ -1843,7 +1863,12 @@ function apbct_form__contactForm7__testSpam($spam, $_submission = null)
 
     $checkjs = apbct_js_test($ct_checkjs_cf7, $_POST) ?: apbct_js_test('ct_checkjs', $_COOKIE, true);
 
-    $ct_temp_msg_data = ct_get_fields_any($_POST);
+    /**
+     * Filter for POST
+     */
+    $input_array = apply_filters('apbct__filter_post', $_POST);
+
+    $ct_temp_msg_data = ct_get_fields_any($input_array);
 
     $sender_email    = $ct_temp_msg_data['email'] ?: '';
     $sender_nickname = $ct_temp_msg_data['nickname'] ?: '';
@@ -1968,9 +1993,14 @@ function apbct_form__ninjaForms__testSpam()
 
     $checkjs = apbct_js_test('ct_checkjs', $_COOKIE, true);
 
+    /**
+     * Filter for POST
+     */
+    $input_array = apply_filters('apbct__filter_post', $_POST);
+
     // Choosing between POST and GET
     $params = ct_get_fields_any(
-        isset($_GET['ninja_forms_ajax_submit']) || isset($_GET['nf_ajax_submit']) ? $_GET : $_POST
+        isset($_GET['ninja_forms_ajax_submit']) || isset($_GET['nf_ajax_submit']) ? $_GET : $input_array
     );
 
     $sender_email    = $params['email'] ?: '';
@@ -2096,7 +2126,12 @@ function apbct_form__seedprod_coming_soon__testSpam()
         return;
     }
 
-    $ct_temp_msg_data = ct_get_fields_any($_REQUEST);
+    /**
+     * Filter for POST
+     */
+    $input_array = apply_filters('apbct__filter_post', $_REQUEST);
+
+    $ct_temp_msg_data = ct_get_fields_any($input_array);
 
     $sender_email    = $ct_temp_msg_data['email'] ?: '';
     $sender_nickname = $ct_temp_msg_data['nickname'] ?: '';
@@ -2191,7 +2226,12 @@ function apbct_from__WPForms__gatherData($entry, $form)
     global $apbct;
     $handled_result = array();
 
-    $entry_fields_data = $entry['fields'] ?: array();
+    /**
+     * Filter for POST
+     */
+    $input_array = apply_filters('apbct__filter_post', $entry['fields']);
+
+    $entry_fields_data = $input_array ?: array();
     $form_fields_info  = $form['fields'] ?: array();
 
     foreach ( $form_fields_info as $form_field ) {
@@ -2400,7 +2440,12 @@ function ct_quform_post_validate($result, $form)
         $comment_type = 'contact_form_wordpress_quforms_singlepage';
     }
 
-    $ct_temp_msg_data = ct_get_fields_any($form->getValues());
+    /**
+     * Filter for POST
+     */
+    $input_array = apply_filters('apbct__filter_post', $form->getValues());
+
+    $ct_temp_msg_data = ct_get_fields_any($input_array);
     // @ToDo If we have several emails at the form - will be used only the first detected!
     $sender_email = $ct_temp_msg_data['email'] ?: '';
 
@@ -2463,8 +2508,13 @@ function ct_si_contact_form_validate($form_errors = array(), $_form_id_num = 0)
         return $form_errors;
     }
 
+    /**
+     * Filter for POST
+     */
+    $input_array = apply_filters('apbct__filter_post', $_POST);
+
     //getting info from custom fields
-    $ct_temp_msg_data = ct_get_fields_any($_POST);
+    $ct_temp_msg_data = ct_get_fields_any($input_array);
 
     $sender_email    = $ct_temp_msg_data['email'] ?: '';
     $sender_nickname = $ct_temp_msg_data['nickname'] ?: '';
@@ -2674,6 +2724,22 @@ function apbct_form__gravityForms__testSpam($is_spam, $form, $entry)
 
     # Search nickname and email
     if ( $form_fields_intermediate ) {
+        $form_fields_intermediate_keys = array();
+        foreach ($form_fields_intermediate as $key => $field) {
+            $form_fields_intermediate_keys[$field['f_name']] = $key;
+        }
+
+        /**
+         * Filter for POST
+         */
+        $input_data = apply_filters('apbct__filter_post', $form_fields_intermediate_keys);
+
+        foreach ($form_fields_intermediate as $key => $field) {
+            if (!in_array($field['f_name'], array_keys($input_data))) {
+                unset($form_fields_intermediate[$key]);
+            }
+        }
+
         foreach ( $form_fields_intermediate as $field ) {
             if ( $field['f_type'] === 'email' ) {
                 $email = $field['f_data'];
@@ -2694,7 +2760,12 @@ function apbct_form__gravityForms__testSpam($is_spam, $form, $entry)
         unset($key, $value);
     }
 
-    $ct_temp_msg_data = ct_get_fields_any($form_fields_for_ct, $email, array_shift($nickname));
+    /**
+     * Filter for POST
+     */
+    $input_data = apply_filters('apbct__filter_post', $form_fields_for_ct);
+
+    $ct_temp_msg_data = ct_get_fields_any($input_data, $email, array_shift($nickname));
 
     $sender_email    = $ct_temp_msg_data['email'] ?: '';
     $sender_nickname = $ct_temp_msg_data['nickname'] ?: '';
@@ -2808,7 +2879,12 @@ function apbct_form__the7_contact_form()
     if ( check_ajax_referer('dt_contact_form', 'nonce', false) && ! empty($_POST) ) {
         $post_info['comment_type'] = 'contact_the7_theme_contact_form';
 
-        $ct_temp_msg_data = ct_get_fields_any($_POST);
+        /**
+         * Filter for POST
+         */
+        $input_array = apply_filters('apbct__filter_post', $_POST);
+
+        $ct_temp_msg_data = ct_get_fields_any($input_array);
 
         $sender_email    = $ct_temp_msg_data['email'] ?: '';
         $sender_nickname = $ct_temp_msg_data['nickname'] ?: '';
@@ -2872,7 +2948,12 @@ function apbct_form__elementor_pro__testSpam()
         return;
     }
 
-    $ct_temp_msg_data = ct_get_fields_any($_POST);
+    /**
+     * Filter for POST
+     */
+    $input_array = apply_filters('apbct__filter_post', $_POST);
+
+    $ct_temp_msg_data = ct_get_fields_any($input_array);
 
     $sender_email    = $ct_temp_msg_data['email'] ?: '';
     $sender_nickname = $ct_temp_msg_data['nickname'] ?: '';
