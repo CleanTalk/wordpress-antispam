@@ -1499,4 +1499,14 @@ function apbct_update_to_5_162_1()
         }
         $apbct->saveSettings();
     }
+
+    // Migrate old WPMS to the new wpms mode
+    if ( isset($apbct->settings['multisite__allow_custom_key']) ) {
+        if ( $apbct->settings['multisite__allow_custom_key'] == 1 ) {
+            $apbct->settings['multisite__work_mode'] = 1;
+        } else {
+            $apbct->settings['multisite__work_mode'] = 2;
+        }
+        $apbct->saveSettings();
+    }
 }
