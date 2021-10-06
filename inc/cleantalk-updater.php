@@ -1414,6 +1414,14 @@ function apbct_update_to_5_161_1()
 
     if ( $apbct->is_multisite ) {
         $apbct->network_settings = array_merge((array)$apbct->network_settings, $apbct->default_network_settings);
+        // Migrate old WPMS to the new wpms mode
+        if ( isset($apbct->network_settings['multisite__allow_custom_key']) ) {
+            if ( $apbct->network_settings['multisite__allow_custom_key'] == 1 ) {
+                $apbct->network_settings['multisite__work_mode'] = 1;
+            } else {
+                $apbct->network_settings['multisite__work_mode'] = 2;
+            }
+        }
         $apbct->saveNetworkSettings();
     }
 }
@@ -1501,8 +1509,8 @@ function apbct_update_to_5_162_1()
     }
 
     // Migrate old WPMS to the new wpms mode
-    if ( isset($apbct->settings['multisite__allow_custom_key']) ) {
-        if ( $apbct->settings['multisite__allow_custom_key'] == 1 ) {
+    if ( isset($apbct->network_settings['multisite__allow_custom_key']) ) {
+        if ( $apbct->network_settings['multisite__allow_custom_key'] == 1 ) {
             $apbct->network_settings['multisite__work_mode'] = 1;
         } else {
             $apbct->network_settings['multisite__work_mode'] = 2;
