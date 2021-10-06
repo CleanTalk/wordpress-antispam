@@ -59,6 +59,23 @@ Native spam protection for WordPress, JetPack comments and any other comment plu
 
 = Spam filter for contact forms =
 
+= Contact Form by WPForms spam filter =
+Plugin extends Contact Form by WPForms to provide spam protection. It filters spam submissions for each type of forms - simple contact form, marketing form, request a quote and etc.
+
+= Elementor Website Builder filter =
+Plugin extends spam protection for Elementor Website Builder. It filters spam submisssions and tested for contact form type.
+
+= Gravity forms spam filter =
+Plugin extends spam protection for Gravity forms. It filters spam submisssions for any type of forms.
+
+= Formidable Form Builder spam filter =
+Plugin extends spam protection for Formidable Form Builder. It filters spam submisssions for any type of forms - Contact Form, Survey & Quiz Forms.
+
+= Contact Form 7 spam filter =
+Plugin extends spam protection for Contact Form 7 (CF7). It can be used with any other third-party spam filters.
+
+= Ninja forms contact form spam filter =
+
 = WooCommerce spam filter =
 Anti-spam by CleanTalk filters spam registrations and spam reviews for WooCommerce. The plugin is fully compatible with WooCommerce 2.1 and higher.
 
