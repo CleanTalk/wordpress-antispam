@@ -841,7 +841,7 @@ function apbct_settings__set_fileds__network($fields)
                     'title'       => __('Plugin name', 'cleantalk-spam-protect'),
                     'description' => sprintf(
                         __(
-                            "Specify plugin name. Leave empty for deafult %sAnti-spam by Cleantalk%s",
+                            "Specify plugin name. Leave empty for deafult %sAnti-Spam by Cleantalk%s",
                             'cleantalk-spam-protect'
                         ),
                         '<b>',
@@ -1943,7 +1943,7 @@ function apbct_settings__validate($settings)
     // Set missing network settings.
     foreach ( $apbct->def_network_settings as $setting => $value ) {
         if ( ! isset($settings[$setting]) ) {
-            $settings[$setting] = null;
+            $settings[$setting] = $value;
             settype($settings[$setting], gettype($value));
         }
     }
@@ -2034,12 +2034,10 @@ function apbct_settings__validate($settings)
 
         if ( isset($settings['multisite__hoster_api_key']) ) {
             $network_settings['multisite__hoster_api_key'] = $settings['multisite__hoster_api_key'];
-            unset($settings['multisite__hoster_api_key']);
         }
 
         if ( isset($settings['multisite__work_mode']) ) {
             $network_settings['multisite__work_mode'] = $settings['multisite__work_mode'];
-            unset($settings['multisite__work_mode']);
         }
     }
 
