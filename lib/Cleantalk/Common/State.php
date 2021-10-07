@@ -7,7 +7,7 @@ abstract class State
     /**
      * @var string
      */
-    protected $option_prefix = '';
+    public $option_prefix = '';
 
     /**
      * @var array
