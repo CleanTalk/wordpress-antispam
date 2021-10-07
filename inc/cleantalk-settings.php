@@ -2280,6 +2280,7 @@ function apbct_settings__get_key_auto($direct_call = false)
         }
 
         if ( ! empty($result['auth_key']) && apbct_api_key__is_correct($result['auth_key']) ) {
+            $apbct->data['key_changed'] = trim($result['auth_key']) !== $apbct->settings['apikey'];
             $apbct->settings['apikey'] = trim($result['auth_key']);
         }
 
