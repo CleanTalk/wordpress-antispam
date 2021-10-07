@@ -2327,13 +2327,11 @@ function apbct_update_blogs_options($settings)
 {
     global $wpdb;
 
-    $blog_names = $settings['multisite__use_settings_template_apply_for_current_list_sites'] ?: array();
+    $blog_ids = $settings['multisite__use_settings_template_apply_for_current_list_sites'] ?: array();
 
-    $wp_blogs = $wpdb->get_results('SELECT blog_id, site_id FROM ' . $wpdb->blogs, OBJECT_K);
-
+    $wp_blogs = $wpdb->get_results('SELECT blog_id FROM ' . $wpdb->blogs, OBJECT_K);
     foreach ( $wp_blogs as $blog ) {
-        $blog_name = get_blog_details(array('blog_id' => $blog->blog_id))->blogname;
-        if ( in_array($blog_name, $blog_names) ) {
+        if ( in_array($blog->blog_id, $blog_ids) ) {
             update_blog_option($blog->blog_id, 'cleantalk_settings', $settings);
         }
     }
