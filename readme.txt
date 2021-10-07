@@ -624,6 +624,13 @@ If your website has forms that send data to external sources, you can enable opt
  * Fix: Renamed Antispam by Cleantalk to Anti-spam by Cleantalk
  * Fix: add elementor-pro to skip save action.
  * Fix: WPMS. Sanitize api key during getting key fixed.
+ * Fix: Cron. Cron results errors handling fixed.
+ * Fix: WPMS. Migrate old WPMS to the new wpms mode.
+ * Fix: WPMS. Using main site data on wpms_mode=2.
+ * Fix: Helper. Hard use https for the curl requests.
+ * Fix: WPMS. Sanitize network settings fixed.
+ * Fix: WPMS. Applying settings for selected blogs fixed.
+ * Fix: Getting key. Sync after getting key fixed.
 
 = 5.162 Sep 23 2021 =
  * New. SFW. Fall back updating system implemented.
