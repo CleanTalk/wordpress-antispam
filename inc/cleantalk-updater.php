@@ -637,7 +637,7 @@ function apbct_update_to_5_138_0()
 
                 $result = \Cleantalk\ApbctWP\API::methodNoticePaidTill(
                     $settings['api_key'],
-                    preg_replace('/http[s]?:\/\//', '', get_option('siteurl'), 1),
+                    preg_replace('/http[s]?:\/\//', '', get_option('home'), 1),
                     ! is_main_site() && $net_settings['white_label'] ? 'anti-spam-hosting' : 'antispam'
                 );
 

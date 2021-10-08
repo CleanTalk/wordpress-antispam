@@ -401,7 +401,7 @@ function apbct_buffer_modify_by_string()
 {
     global $apbct, $wp;
 
-    $site_url   = get_option('siteurl');
+    $site_url   = get_option('home');
     $site__host = parse_url($site_url, PHP_URL_HOST);
 
     preg_match_all('/<form\s*.*>\s*.*<\/form>/', $apbct->buffer, $matches, PREG_SET_ORDER);
@@ -438,7 +438,7 @@ function apbct_buffer_modify_by_dom()
 {
     global $apbct, $wp;
 
-    $site_url   = get_option('siteurl');
+    $site_url   = get_option('home');
     $site__host = parse_url($site_url, PHP_URL_HOST);
 
     $dom = new DOMDocument();

@@ -666,7 +666,7 @@ function apbct_sfw__check()
                 'sfw_counter'       => $apbct->settings['admin_bar__sfw_counter'],
                 'api_key'           => $apbct->api_key,
                 'apbct'             => $apbct,
-                'cookie_domain'     => parse_url(get_option('siteurl'), PHP_URL_HOST),
+                'cookie_domain'     => parse_url(get_option('home'), PHP_URL_HOST),
                 'data__set_cookies' => $apbct->settings['data__set_cookies'],
             )
         )
@@ -1825,7 +1825,7 @@ function apbct_rc__update()
             );
         }
 
-        $httpResponseCode = Helper::httpRequest(get_option('siteurl'), array(), 'get_code');
+        $httpResponseCode = Helper::httpRequest(get_option('home'), array(), 'get_code');
 
         if ( strpos($httpResponseCode, '200') === false ) {
             apbct_maintenance_mode__enable(30);
@@ -1849,7 +1849,7 @@ function apbct_rc__update()
             $response = array(
                 'error'           => 'BAD_HTTP_CODE',
                 'http_code'       => $httpResponseCode,
-                'output'          => substr(file_get_contents(get_option('siteurl')), 0, 900),
+                'output'          => substr(file_get_contents(get_option('home')), 0, 900),
                 'rollback_result' => $rollback->apbct_result,
             );
 
@@ -1909,7 +1909,7 @@ function apbct_rc__insert_auth_key($key, $plugin)
             if ( $key && preg_match('/^[a-z\d]{3,15}$/', $key) ) {
                 $result = API::methodNoticePaidTill(
                     $key,
-                    preg_replace('/http[s]?:\/\//', '', get_option('siteurl'), 1), // Site URL
+                    preg_replace('/http[s]?:\/\//', '', get_option('home'), 1), // Site URL
                     'security'
                 );
 
@@ -2056,7 +2056,7 @@ function apbct_store__urls()
         // Get current url
         $current_url = Server::get('HTTP_HOST') . Server::get('REQUEST_URI');
         $current_url = $current_url ? substr($current_url, 0, 128) : 'UNKNOWN';
-        $site_url    = parse_url(get_option('siteurl'), PHP_URL_HOST);
+        $site_url    = parse_url(get_option('home'), PHP_URL_HOST);
 
         // Get already stored URLs
         $urls = Cookie::get('apbct_urls', array(), 'array');
@@ -2241,7 +2241,7 @@ function ct_account_status_check($api_key = null, $process_errors = true)
     $api_key = $api_key ?: $apbct->api_key;
     $result  = API::methodNoticePaidTill(
         $api_key,
-        preg_replace('/http[s]?:\/\//', '', get_option('siteurl'), 1),
+        preg_replace('/http[s]?:\/\//', '', get_option('home'), 1),
         ! is_main_site() && $apbct->white_label ? 'anti-spam-hosting' : 'antispam'
     );
 

@@ -118,7 +118,7 @@ class AdminNotices
         if ( $this->apbct->notice_show && ! empty($this->apbct->errors['key_get']) && ! $this->apbct->white_label ) {
             $register_link =
                 'https://cleantalk.org/register?platform=wordpress&email=' . urlencode(ct_get_admin_email()) .
-                '&website=' . urlencode(get_option('siteurl'));
+                '&website=' . urlencode(get_option('home'));
             $content       =
                 sprintf(
                     __("Unable to get Access key automatically: %s", 'cleantalk-spam-protect'),
