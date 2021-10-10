@@ -99,15 +99,14 @@ abstract class Queue
 
                 if (isset($result['error'])) {
                     $stage_to_execute['status'] = 'NULL';
+                    $stage_to_execute['error'][]  = $result['error'];
                     if (isset($result['update_args']['args'])) {
                         $stage_to_execute['args'] = $result['update_args']['args'];
                     }
                     $this->saveQueue($this->queue);
                     if ($stage_to_execute['tries'] >= 3) {
                         $stage_to_execute['status'] = 'FINISHED';
-                        $stage_to_execute['error']  = $result['error'];
                         $this->saveQueue($this->queue);
-
                         return $result;
                     }
 
