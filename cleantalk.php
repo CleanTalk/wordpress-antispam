@@ -1112,7 +1112,7 @@ function apbct_sfw_update__process_files()
             return $result;
         }
 
-        $apbct->fw_stats['firewall_update_percent'] = round(100 / count($files), 2) * 100;
+        $apbct->fw_stats['firewall_update_percent'] = round(100 / count($files), 2);
         $apbct->save('fw_stats');
 
         return array(
