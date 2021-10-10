@@ -1238,7 +1238,8 @@ function apbct_sfw_update__process_exclusions()
 
     return array(
         'next_stage' => array(
-            'name' => 'apbct_sfw_update__end_of_update'
+            'name' => 'apbct_sfw_update__end_of_update',
+            'accepted_tries' => 1
         )
     );
 }
