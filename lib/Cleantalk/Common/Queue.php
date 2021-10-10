@@ -51,12 +51,13 @@ abstract class Queue
      * @param string $stage_name
      * @param array $args
      */
-    public function addStage($stage_name, $args = array())
+    public function addStage($stage_name, $args = array(), $accepted_tries = 3)
     {
         $this->queue['stages'][] = array(
             'name'   => $stage_name,
             'status' => 'NULL',
             'tries'  => '0',
+            'accepted_tries'  => $accepted_tries,
             'args'   => $args,
             'pid'    => null,
         );
@@ -104,7 +105,8 @@ abstract class Queue
                         $stage_to_execute['args'] = $result['update_args']['args'];
                     }
                     $this->saveQueue($this->queue);
-                    if ($stage_to_execute['tries'] >= 3) {
+                    $accepted_tries = isset($stage_to_execute['accepted_tries']) ? $stage_to_execute['accepted_tries'] : 3;
+                    if ($stage_to_execute['tries'] >= $accepted_tries) {
                         $stage_to_execute['status'] = 'FINISHED';
                         $this->saveQueue($this->queue);
                         return $result;
@@ -123,7 +125,8 @@ abstract class Queue
                 if (isset($result['next_stage'])) {
                     $this->addStage(
                         $result['next_stage']['name'],
-                        isset($result['next_stage']['args']) ? $result['next_stage']['args'] : array()
+                        isset($result['next_stage']['args']) ? $result['next_stage']['args'] : array(),
+                        isset($result['next_stage']['accepted_tries']) ? $result['next_stage']['accepted_tries'] : 3
                     );
                 }
 
@@ -131,7 +134,8 @@ abstract class Queue
                     foreach ($result['next_stages'] as $next_stage) {
                         $this->addStage(
                             $next_stage['name'],
-                            isset($next_stage['args']) ? $next_stage['args'] : array()
+                            isset($next_stage['args']) ? $next_stage['args'] : array(),
+                            isset($result['next_stage']['accepted_tries']) ? $result['next_stage']['accepted_tries'] : 3
                         );
                     }
                 }
