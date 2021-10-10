@@ -1249,7 +1249,7 @@ function apbct_sfw_update__end_of_update($is_direct_update = false)
 
     $apbct->fw_stats['update_mode'] = 1;
     $apbct->save('fw_stats');
-    usleep(100000);
+    usleep(10000);
 
 
     // REMOVE AND RENAME
