@@ -3187,3 +3187,18 @@ function apbct_custom_forms_trappings()
 
     return false;
 }
+
+/**
+ * UsersWP plugin integration
+ */
+function apbct_form__uwp_validate($result, $_type, $data)
+{
+    if ( isset($data['username'], $data['email']) ) {
+        $check = ct_test_registration($data['username'], $data['email'], Helper::ipGet());
+        if ( $check['allow'] == 0 ) {
+            return new WP_Error('invalid_email', $check['comment']);
+        }
+    }
+
+    return $result;
+}

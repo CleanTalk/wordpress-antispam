@@ -324,6 +324,9 @@ function apbct_init()
         return $pmpro_required_user_fields;
     });
 
+    // UsersWP plugin integration
+    add_filter('uwp_validate_result', 'apbct_form__uwp_validate', 3, 10);
+
     //
     // Load JS code to website footer
     //
