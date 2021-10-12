@@ -595,6 +595,11 @@ If your website has forms that send data to external sources, you can enable opt
 
 == Changelog ==
 
+= 5.163.1 Oct 12 2021 =
+ * Fix: Queue. Errors of each try fixed.
+ * Fix: SFW. Sleep before deleting tables was reduced.
+ * Fix: Queue. Accepted tries argument implemented.
+
 = 5.163 Oct 07 2021 =
  * New: State. errorExists method implemented.
  * New: SFW. Disabling SFW when the database was outdated.
