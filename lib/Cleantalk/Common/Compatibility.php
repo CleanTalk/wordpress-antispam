@@ -23,6 +23,9 @@ class Compatibility
         'w3_total_cache' => array(
             'callback' => 'w3tcCheckLateInitCallback',
         ),
+        'wp_rocket_cache' => array(
+            'callback' => 'wpRocketCallback',
+        ),
     );
 
     public function __construct()
@@ -52,6 +55,10 @@ class Compatibility
             'w3_total_cache' => __(
                 'Current W3 Total Cache cache mode is not compatible with SpamFireWall. Please read the instructions on how to fix this issue in <a href="https://cleantalk.org/help/cleantalk-and-w3-total-cache" > the article.</a>'
             ),
+            'wp_rocket_cache' => esc_html__(
+                'SpamFireWall is not compatible with active WP Rocket cache plugin.',
+                'cleantalk-spam-protect'
+            )
         );
 
         $this->notices[$plugin] = $messages[$plugin];
@@ -86,5 +93,10 @@ class Compatibility
         }
 
         return false;
+    }
+
+    function wpRocketCallback()
+    {
+        return is_plugin_active('wp-rocket/wp-rocket.php') && defined('WP_ROCKET_VERSION');
     }
 }
