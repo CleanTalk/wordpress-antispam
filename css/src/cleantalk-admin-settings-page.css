@@ -213,3 +213,18 @@ button.ct_support_link{
     text-decoration: underline;
     cursor: pointer;
 }
+.apbct-btn-as-link {
+    padding: 0;
+    margin: 0;
+    vertical-align: baseline;
+    color: gray;
+    border: 0 none;
+    border-bottom: 1px solid;
+    cursor: pointer;
+    font-weight: 700;
+}
+#apbct-account-email[contenteditable="true"] {
+    padding: 6px;
+    background-color: #fff;
+    border: 1px solid #ccc;
+}

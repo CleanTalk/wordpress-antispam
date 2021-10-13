@@ -1469,17 +1469,33 @@ function apbct_settings__field__apikey()
         // Warnings and GDPR
         printf(
             __(
-                'Admin e-mail (%s) will be used for registration, if you want to use other email please %sGet Access Key Manually%s.',
+                'Admin e-mail %s (%s) will be used for registration, if you want to use other email please %sGet Access Key Manually%s.',
                 'cleantalk-spam-protect'
             ),
-            ct_get_admin_email(),
-            '<a class="apbct_color--gray" target="__blank" href="'
+            '<span id="apbct-account-email">'
+                . ct_get_admin_email() .
+            '</span>',
+
+            '<button type="button"
+                id="apbct-change-account-email"
+                class="apbct-btn-as-link"
+                data-default-text="'
+                    . __('change email','cleantalk-spam-protect') .
+                '"
+                data-save-text="'
+                    . __('save','cleantalk-spam-protect') .
+                '">'
+                . __('change email','cleantalk-spam-protect') .
+            '</button>',
+
+            '<a class="apbct_color--gray" target="__blank" id="apbct-key-manually-link" href="'
             . sprintf(
                 'https://cleantalk.org/register?platform=wordpress&email=%s&website=%s',
                 urlencode(ct_get_admin_email()),
                 urlencode(get_bloginfo('url'))
             )
             . '">',
+            
             '</a>'
         );
 
@@ -2255,12 +2271,8 @@ function apbct_settings__get_key_auto($direct_call = false)
     $wpms           = APBCT_WPMS && defined('SUBDOMAIN_INSTALL') && ! SUBDOMAIN_INSTALL ? true : false;
     $white_label    = $apbct->network_settings['multisite__white_label'] ? true : false;
     $hoster_api_key = $apbct->network_settings['multisite__hoster_api_key'];
-    $admin_email    = $apbct->network_settings['multisite__work_mode'] == 1 ? get_site_option(
-        'admin_email'
-    ) : get_option('admin_email');
-    if ( function_exists('is_multisite') && is_multisite() && $apbct->white_label ) {
-        $admin_email = get_site_option('admin_email');
-    }
+    $admin_email    = ct_get_admin_email();
+
     $result = \Cleantalk\ApbctWP\API::methodGetApiKey(
         'antispam',
         $admin_email,
@@ -2322,6 +2334,123 @@ function apbct_settings__get_key_auto($direct_call = false)
     } else {
         die(json_encode($out));
     }
+}
+
+function apbct_settings__update_account_email()
+{
+    global $apbct;
+    
+    $account_email = isset($_POST['accountEmail']) ? $_POST['accountEmail'] : false;
+    
+    // not valid email
+    if (!$account_email || !filter_var($_POST['accountEmail'], FILTER_VALIDATE_EMAIL)) {
+        die(
+            json_encode(
+                array(
+                    'error' => 'Please, enter valid email.'
+                )
+            )
+        );
+    }
+    
+    if (!is_multisite()) {
+        // email not changed
+        if ($account_email === $apbct->data['account_email']) {
+            die(
+                json_encode(
+                    array(
+                        'success' => 'ok'
+                    )
+                )
+            );
+        }
+
+        $apbct->data['account_email'] = $account_email;
+        $apbct->saveData();
+
+        // Link GET ACCESS KEY MANUALLY
+        $manually_link = sprintf(
+            'https://cleantalk.org/register?platform=wordpress&email=%s&website=%s',
+            urlencode(ct_get_admin_email()),
+            urlencode(get_bloginfo('url'))
+        );
+
+        die(
+            json_encode(
+                array(
+                    'success' => 'ok',
+                    'manuallyLink' => $manually_link
+                )
+            )
+        );
+    }
+    
+    if (
+        is_main_site() || 
+        $apbct->network_settings['multisite__work_mode'] == 1 || 
+        $apbct->network_settings['multisite__work_mode'] == 2
+    ) {
+        // email not changed
+        if ($account_email === get_site_option('admin_email')) {
+            die(
+                json_encode(
+                    array(
+                        'success' => 'ok'
+                    )
+                )
+            );
+        }
+
+        update_site_option('admin_email', $account_email);
+        $apbct->data['account_email'] = $account_email;
+        $apbct->saveData();
+
+        // Link GET ACCESS KEY MANUALLY
+        $manually_link = sprintf(
+            'https://cleantalk.org/register?platform=wordpress&email=%s&website=%s',
+            urlencode(ct_get_admin_email()),
+            urlencode(get_bloginfo('url'))
+        );
+
+        die(
+            json_encode(
+                array(
+                    'success' => 'ok',
+                    'manuallyLink' => $manually_link
+                )
+            )
+        );
+    }
+
+    $blog_id = get_current_blog_id();
+    // email not changed
+    if ($account_email === get_network_option($blog_id, 'admin_email')) {
+        die(
+        json_encode(
+            array(
+                'success' => 'ok'
+            )
+        )
+        );
+    }
+
+    update_network_option($blog_id, 'admin_email', $account_email);
+
+    // Link GET ACCESS KEY MANUALLY
+    $manually_link = sprintf(
+        'https://cleantalk.org/register?platform=wordpress&email=%s&website=%s',
+        urlencode(ct_get_admin_email()),
+        urlencode(get_bloginfo('url'))
+    );
+
+    die(
+        json_encode(
+            array(
+                'success' => 'ok',
+                'manuallyLink' => $manually_link
+            )
+        )
+    );
 }
 
 function apbct_update_blogs_options($settings)

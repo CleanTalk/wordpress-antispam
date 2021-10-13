@@ -210,6 +210,47 @@ jQuery(document).ready(function(){
 			jQuery(this).parent().parent().find('#apbct_settings_templates_export_name').hide();
 		}
 	});
+
+	/**
+	 * Change cleantalk account email
+	 */
+	jQuery('#apbct-change-account-email').on('click', function (e) {
+		e.preventDefault();
+		
+		var $this = jQuery(this);
+		var accountEmail = jQuery('#apbct-account-email').text();
+
+		$this.toggleClass('active');
+		
+		if ($this.hasClass('active')) {
+			$this.text($this.data('save-text'));
+			jQuery('#apbct-account-email').attr('contenteditable', 'true');
+		} else {
+			apbct_admin_sendAJAX(
+				{
+					action: 'apbct_update_account_email',
+					accountEmail: accountEmail
+				},
+				{
+					timeout: 5000,
+					callback: function(result, data, params, obj){
+						if (result.success !== undefined && result.success === 'ok') {
+							if (result.manuallyLink !== undefined) {
+								jQuery('#apbct-key-manually-link').attr('href', result.manuallyLink);
+							}
+						}
+
+						if (result.error !== undefined) {
+							jQuery('#apbct-account-email').css('border-color', 'red');
+						}
+					}
+				}
+			);
+
+			jQuery('#apbct-account-email').attr('contenteditable', 'false');
+			$this.text($this.data('default-text'));
+		}
+	});
 	
 });
 

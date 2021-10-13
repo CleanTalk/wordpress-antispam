@@ -301,6 +301,8 @@ function apbct_admin__init()
     add_action('wp_ajax_apbct_sync', 'apbct_settings__sync');
 
     add_action('wp_ajax_apbct_get_key_auto', 'apbct_settings__get_key_auto');
+    
+    add_action('wp_ajax_apbct_update_account_email', 'apbct_settings__update_account_email');
 
     // Settings Templates
     if (
@@ -506,13 +508,13 @@ function apbct_admin__enqueue_scripts($hook)
 
         wp_enqueue_script(
             'cleantalk_admin_js_settings_page',
-            plugins_url('/cleantalk-spam-protect/js/cleantalk-admin-settings-page.min.js'),
+            plugins_url('/cleantalk-spam-protect/js/src/cleantalk-admin-settings-page.js'),
             array(),
             APBCT_VERSION
         );
         wp_enqueue_style(
             'cleantalk_admin_css_settings_page',
-            plugins_url('/cleantalk-spam-protect/css/cleantalk-admin-settings-page.min.css'),
+            plugins_url('/cleantalk-spam-protect/css/src/cleantalk-admin-settings-page.css'),
             array(),
             APBCT_VERSION,
             'all'
