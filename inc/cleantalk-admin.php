@@ -508,13 +508,13 @@ function apbct_admin__enqueue_scripts($hook)
 
         wp_enqueue_script(
             'cleantalk_admin_js_settings_page',
-            plugins_url('/cleantalk-spam-protect/js/src/cleantalk-admin-settings-page.js'),
+            plugins_url('/cleantalk-spam-protect/js/cleantalk-admin-settings-page.min.js'),
             array(),
             APBCT_VERSION
         );
         wp_enqueue_style(
             'cleantalk_admin_css_settings_page',
-            plugins_url('/cleantalk-spam-protect/css/src/cleantalk-admin-settings-page.css'),
+            plugins_url('/cleantalk-spam-protect/css/cleantalk-admin-settings-page.min.css'),
             array(),
             APBCT_VERSION,
             'all'
