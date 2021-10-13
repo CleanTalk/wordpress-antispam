@@ -430,7 +430,7 @@ class State extends \Cleantalk\Common\State
         // Standalone or main site
         $this->api_key        = $this->settings['apikey'];
         $this->dashboard_link = 'https://cleantalk.org/my/' . ($this->user_token ? '?user_token=' . $this->user_token : '');
-        $this->notice_show    = $this->data['notice_trial'] || $this->data['notice_renew'] || $this->isHaveErrors();
+        $this->notice_show    = $this->data['notice_trial'] || $this->data['notice_renew'] || $this->data['notice_incompatibility'] || $this->isHaveErrors();
 
         // Network with Mutual key
         if ( ! is_main_site() && $this->network_settings['multisite__work_mode'] == 2 ) {
