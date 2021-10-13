@@ -95,7 +95,13 @@ class Compatibility
         return false;
     }
 
-    function wpRocketCallback()
+    /**
+     * WP Rocket existing checking
+     *
+     * @return boolean
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public function wpRocketCallback()
     {
         return is_plugin_active('wp-rocket/wp-rocket.php') && defined('WP_ROCKET_VERSION');
     }
