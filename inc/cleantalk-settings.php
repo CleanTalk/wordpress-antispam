@@ -1108,7 +1108,13 @@ function apbct_settings__display()
     }
 
     echo '<br>';
-    echo '<button name="submit" class="cleantalk_link cleantalk_link-manual" value="save_changes">' .
+
+    // Disabled save button if key empty
+    $disabled = '';
+    if (! $apbct->key_is_ok) {
+        $disabled = 'disabled';
+    }
+    echo '<button name="submit" class="cleantalk_link cleantalk_link-manual" value="save_changes" '.$disabled.'>' .
          __('Save Changes') . '</button>';
 
     echo "</form>";
@@ -1469,7 +1475,7 @@ function apbct_settings__field__apikey()
         // Warnings and GDPR
         printf(
             __(
-                'Admin e-mail %s %s will be used for registration, if you want to use other email please %sGet Access Key Manually%s.',
+                'Admin e-mail %s %s will be used for registration, оr click here to %sGet Access Key Manually%s.',
                 'cleantalk-spam-protect'
             ),
             '<span id="apbct-account-email">'

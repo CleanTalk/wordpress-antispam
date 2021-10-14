@@ -251,7 +251,22 @@ jQuery(document).ready(function(){
 			$this.text($this.data('default-text'));
 		}
 	});
-	
+
+	/**
+	 * Validate apkikey and hide get auto btn
+	 */
+	jQuery('#apbct_setting_apikey').on('input', function () {
+		var enteredValue = jQuery(this).val();
+		
+		if (enteredValue === '' || enteredValue.match(/^[a-z\d]{3,15}$/) === null) {
+			jQuery('#apbct_button__get_key_auto').show();
+			jQuery('button.cleantalk_link[value="save_changes"]').prop('disabled', true);
+			return;
+		}
+		
+		jQuery('#apbct_button__get_key_auto').hide();
+		jQuery('button.cleantalk_link[value="save_changes"]').prop('disabled', false);
+	});
 });
 
 /**

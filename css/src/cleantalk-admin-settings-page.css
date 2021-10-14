@@ -221,7 +221,6 @@ button.ct_support_link{
     border: 0 none;
     border-bottom: 1px solid;
     cursor: pointer;
-    font-weight: 700;
 }
 #apbct-account-email[contenteditable="true"] {
     padding: 6px;
