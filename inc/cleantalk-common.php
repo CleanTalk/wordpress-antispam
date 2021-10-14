@@ -686,10 +686,7 @@ function ct_get_admin_email()
     }
 
     // Main site, common account
-    if (
-        is_main_site() ||
-        $apbct->network_settings['multisite__work_mode'] != 3)
-    {
+    if (is_main_site() || $apbct->network_settings['multisite__work_mode'] != 3) {
         return $apbct->data['account_email'] ?: get_site_option('admin_email');
     }
 

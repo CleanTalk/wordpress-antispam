@@ -1114,7 +1114,7 @@ function apbct_settings__display()
     if (! $apbct->key_is_ok) {
         $disabled = 'disabled';
     }
-    echo '<button name="submit" class="cleantalk_link cleantalk_link-manual" value="save_changes" '.$disabled.'>' .
+    echo '<button name="submit" class="cleantalk_link cleantalk_link-manual" value="save_changes" ' . $disabled . '>' .
          __('Save Changes') . '</button>';
 
     echo "</form>";
@@ -1481,9 +1481,7 @@ function apbct_settings__field__apikey()
             '<span id="apbct-account-email">'
                 . ct_get_admin_email() .
             '</span>',
-
             apbct_settings__btn_change_account_email_html(),
-
             '<a class="apbct_color--gray" target="__blank" id="apbct-key-manually-link" href="'
             . sprintf(
                 'https://cleantalk.org/register?platform=wordpress&email=%s&website=%s',
@@ -1491,7 +1489,6 @@ function apbct_settings__field__apikey()
                 urlencode(get_bloginfo('url'))
             )
             . '">',
-            
             '</a>'
         );
 
@@ -2335,9 +2332,9 @@ function apbct_settings__get_key_auto($direct_call = false)
 function apbct_settings__update_account_email()
 {
     global $apbct;
-    
+
     $account_email = isset($_POST['accountEmail']) ? $_POST['accountEmail'] : false;
-    
+
     // not valid email
     if (!$account_email || !filter_var($_POST['accountEmail'], FILTER_VALIDATE_EMAIL)) {
         die(
@@ -2352,11 +2349,11 @@ function apbct_settings__update_account_email()
     // protection against accidental request from a child site in the shared account mode
     if (!is_main_site() && isset($apbct->network_settings['multisite__work_mode']) && $apbct->network_settings['multisite__work_mode'] != 3) {
         die(
-        json_encode(
-            array(
-                'error' => 'Please, enter valid email.'
+            json_encode(
+                array(
+                    'error' => 'Please, enter valid email.'
+                )
             )
-        )
         );
     }
 
@@ -2587,7 +2584,7 @@ function apbct_settings__btn_change_account_email_html()
 
     if (
         ! is_main_site() &&
-        isset($apbct->network_settings['multisite__work_mode']) && 
+        isset($apbct->network_settings['multisite__work_mode']) &&
         $apbct->network_settings['multisite__work_mode'] == 1) {
         return '';
     }
@@ -2596,11 +2593,11 @@ function apbct_settings__btn_change_account_email_html()
                 id="apbct-change-account-email"
                 class="apbct-btn-as-link"
                 data-default-text="'
-                    . __('change email','cleantalk-spam-protect') .
+                    . __('change email', 'cleantalk-spam-protect') .
                     '"
                 data-save-text="'
-                    . __('save','cleantalk-spam-protect') .
+                    . __('save', 'cleantalk-spam-protect') .
                     '">'
-                . __('change email','cleantalk-spam-protect') .
+                . __('change email', 'cleantalk-spam-protect') .
             '</button>)';
 }
