@@ -441,9 +441,9 @@ function apbct_settings__set_fileds()
                             'childrens_enable' => 1,
                         ),
                     ),
-                    'childrens'   => array('data__set_cookies__alt_sessions_type')
+                    'childrens'   => array('data__ajax_type')
                 ),
-                'data__set_cookies__alt_sessions_type' => array(
+                'data__ajax_type' => array(
                     'display'    => $apbct->settings['data__set_cookies'] == 2,
                     'callback' => 'apbct_settings__check_alt_cookies_types'
                 ),
@@ -2061,6 +2061,27 @@ function apbct_settings__validate($settings)
         return $settings;
     }
 
+    // Ajax type
+    $available_ajax_type = apbct_settings__get_ajax_type();
+
+    if (!isset($apbct->data['ajax_type'])) {
+        $apbct->data['ajax_type'] = $available_ajax_type;
+    }
+
+    if (
+        (isset($settings['data__set_cookies']) && $settings['data__set_cookies'] == 2) ||
+        (isset($settings['data__use_ajax']) && $settings['data__use_ajax'] == 1)
+    ) {
+        if ( $available_ajax_type === false ) {
+            // There is no available alt cookies types. Cookies will be disabled.
+            // There is no available ajax types. AJAX js will be disabled.
+            $settings['data__set_cookies'] = 0;
+            $settings['data__use_ajax'] = 0;
+        } else {
+            $apbct->data['ajax_type'] = $available_ajax_type;
+        }
+    }
+
     $apbct->save('data');
 
     // WPMS Logic.
@@ -2093,32 +2114,6 @@ function apbct_settings__validate($settings)
     // Alt sessions table clearing
     if ( $settings['data__set_cookies'] != 2 ) {
         \Cleantalk\ApbctWP\Variables\AltSessions::wipe();
-    }
-
-    // @ToDo combine selecting of the ajax handler type
-    // Set type of the alt cookies
-    $settings['data__set_cookies__alt_sessions_type'] = $apbct->settings['data__set_cookies__alt_sessions_type'];
-    if ( $apbct->settings['data__set_cookies'] != 2 && $settings['data__set_cookies'] == 2 ) {
-        $alt_cookies_type = apbct_settings__get_alt_cookies_type();
-        if ( $alt_cookies_type === false ) {
-            // There is no available alt cookies types. Cookies will be disabled.
-            $settings['data__set_cookies'] = 0;
-        } else {
-            $settings['data__set_cookies__alt_sessions_type'] = $alt_cookies_type;
-        }
-    }
-
-    // @ToDo combine selecting of the ajax handler type
-    // Set type of the AJAX getting of js
-    $settings['data__use_ajax__type'] = $apbct->settings['data__use_ajax__type'];
-    if ( $apbct->settings['data__use_ajax'] != 1 && $settings['data__use_ajax'] == 1 ) {
-        $ajax_type = apbct_settings__get_alt_cookies_type();
-        if ( $ajax_type === false ) {
-            // There is no available ajax types. AJAX js will be disabled.
-            $settings['data__use_ajax'] = 0;
-        } else {
-            $settings['data__use_ajax__type'] = $ajax_type;
-        }
     }
 
     return $settings;
@@ -2456,28 +2451,28 @@ function apbct_settings__check_renew_banner()
 }
 
 /**
- * Checking availability of the handlers and return alt cookies type
+ * Checking availability of the handlers and return ajax type
  *
  * @return int|false
  */
-function apbct_settings__get_alt_cookies_type()
+function apbct_settings__get_ajax_type()
 {
-    // Check custom ajax availability
+    // Check custom ajax availability - 1
     $res_custom_ajax = Helper::httpRequestGetResponseCode(esc_url(APBCT_URL_PATH . '/lib/Cleantalk/ApbctWP/Ajax.php'));
     if ( $res_custom_ajax == 400 ) {
-        return 1;
+        return 'custom_ajax';
     }
 
-    // Check rest availability
+    // Check rest availability - 0
     $res_rest = Helper::httpRequestGetResponseCode(esc_url(apbct_get_rest_url()));
     if ( $res_rest == 200 ) {
-        return 0;
+        return 'rest';
     }
 
-    // Check WP ajax availability
+    // Check WP ajax availability - 2
     $res_ajax = Helper::httpRequestGetResponseCode(admin_url('admin-ajax.php'));
     if ( $res_ajax == 400 ) {
-        return 2;
+        return 'admin_ajax';
     }
 
     return false;
@@ -2487,14 +2482,14 @@ function apbct_settings__check_alt_cookies_types()
 {
     global $apbct;
 
-    switch ( $apbct->settings['data__set_cookies__alt_sessions_type'] ) {
-        case '0':
+    switch ( $apbct->data['ajax_type'] ) {
+        case 'rest':
             $alt_cookies_type = esc_html__('REST API', 'cleantalk-spam-protect');
             break;
-        case '1':
+        case 'custom_ajax':
             $alt_cookies_type = esc_html__('CleanTalk AJAX handler', 'cleantalk-spam-protect');
             break;
-        case '2':
+        case 'admin_ajax':
             $alt_cookies_type = esc_html__('WP AJAX handler', 'cleantalk-spam-protect');
             break;
         default:

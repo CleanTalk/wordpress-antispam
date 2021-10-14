@@ -1124,9 +1124,10 @@ function apbct_update_to_5_157_0()
     if ( ! empty($apbct->settings['data__set_cookies__sessions']) ) {
         $apbct->settings['data__set_cookies'] = 2;
     }
-    $apbct->settings['data__set_cookies__alt_sessions_type'] = 0;
+    $apbct->data['ajax_type'] = 'rest';
 
     $apbct->save('settings');
+    $apbct->save('data');
 
     cleantalk_get_brief_data($apbct->api_key);
 }
@@ -1443,15 +1444,16 @@ function apbct_update_to_5_161_2()
                     // There is no available alt cookies types. Cookies will be disabled.
                     $apbct->settings['data__set_cookies'] = 0;
                 } else {
-                    $apbct->settings['data__set_cookies__alt_sessions_type'] = 2;
+                    $apbct->data['ajax_type'] = 'admin_ajax';
                 }
             } else {
-                $apbct->settings['data__set_cookies__alt_sessions_type'] = 0;
+                $apbct->data['ajax_type'] = 'rest';
             }
         } else {
-            $apbct->settings['data__set_cookies__alt_sessions_type'] = 1;
+            $apbct->data['ajax_type'] = 'custom_ajax';
         }
         $apbct->saveSettings();
+        $apbct->saveData();
     }
 }
 
@@ -1497,15 +1499,16 @@ function apbct_update_to_5_162_1()
                     // There is no available alt cookies types. Cookies will be disabled.
                     $apbct->settings['data__use_ajax'] = 0;
                 } else {
-                    $apbct->settings['data__use_ajax__type'] = 2;
+                    $apbct->data['ajax_type'] = 'admin_ajax';
                 }
             } else {
-                $apbct->settings['data__use_ajax__type'] = 0;
+                $apbct->data['ajax_type'] = 'rest';
             }
         } else {
-            $apbct->settings['data__use_ajax__type'] = 1;
+            $apbct->data['ajax_type'] = 'custom_ajax';
         }
         $apbct->saveSettings();
+        $apbct->saveData();
     }
 
     // Migrate old WPMS to the new wpms mode
