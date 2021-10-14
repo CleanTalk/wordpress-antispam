@@ -1469,24 +1469,14 @@ function apbct_settings__field__apikey()
         // Warnings and GDPR
         printf(
             __(
-                'Admin e-mail %s (%s) will be used for registration, if you want to use other email please %sGet Access Key Manually%s.',
+                'Admin e-mail %s %s will be used for registration, if you want to use other email please %sGet Access Key Manually%s.',
                 'cleantalk-spam-protect'
             ),
             '<span id="apbct-account-email">'
                 . ct_get_admin_email() .
             '</span>',
 
-            '<button type="button"
-                id="apbct-change-account-email"
-                class="apbct-btn-as-link"
-                data-default-text="'
-                    . __('change email','cleantalk-spam-protect') .
-                '"
-                data-save-text="'
-                    . __('save','cleantalk-spam-protect') .
-                '">'
-                . __('change email','cleantalk-spam-protect') .
-            '</button>',
+            apbct_settings__btn_change_account_email_html(),
 
             '<a class="apbct_color--gray" target="__blank" id="apbct-key-manually-link" href="'
             . sprintf(
@@ -2352,89 +2342,31 @@ function apbct_settings__update_account_email()
             )
         );
     }
-    
-    if (!is_multisite()) {
-        // email not changed
-        if ($account_email === $apbct->data['account_email']) {
-            die(
-                json_encode(
-                    array(
-                        'success' => 'ok'
-                    )
-                )
-            );
-        }
 
-        $apbct->data['account_email'] = $account_email;
-        $apbct->saveData();
-
-        // Link GET ACCESS KEY MANUALLY
-        $manually_link = sprintf(
-            'https://cleantalk.org/register?platform=wordpress&email=%s&website=%s',
-            urlencode(ct_get_admin_email()),
-            urlencode(get_bloginfo('url'))
-        );
-
-        die(
-            json_encode(
-                array(
-                    'success' => 'ok',
-                    'manuallyLink' => $manually_link
-                )
-            )
-        );
-    }
-    
-    if (
-        is_main_site() || 
-        $apbct->network_settings['multisite__work_mode'] == 1 || 
-        $apbct->network_settings['multisite__work_mode'] == 2
-    ) {
-        // email not changed
-        if ($account_email === get_site_option('admin_email')) {
-            die(
-                json_encode(
-                    array(
-                        'success' => 'ok'
-                    )
-                )
-            );
-        }
-
-        update_site_option('admin_email', $account_email);
-        $apbct->data['account_email'] = $account_email;
-        $apbct->saveData();
-
-        // Link GET ACCESS KEY MANUALLY
-        $manually_link = sprintf(
-            'https://cleantalk.org/register?platform=wordpress&email=%s&website=%s',
-            urlencode(ct_get_admin_email()),
-            urlencode(get_bloginfo('url'))
-        );
-
-        die(
-            json_encode(
-                array(
-                    'success' => 'ok',
-                    'manuallyLink' => $manually_link
-                )
-            )
-        );
-    }
-
-    $blog_id = get_current_blog_id();
-    // email not changed
-    if ($account_email === get_network_option($blog_id, 'admin_email')) {
+    // protection against accidental request from a child site in the shared account mode
+    if (!is_main_site() && isset($apbct->network_settings['multisite__work_mode']) && $apbct->network_settings['multisite__work_mode'] != 3) {
         die(
         json_encode(
             array(
-                'success' => 'ok'
+                'error' => 'Please, enter valid email.'
             )
         )
         );
     }
 
-    update_network_option($blog_id, 'admin_email', $account_email);
+    // email not changed
+    if (isset($apbct->data['account_email']) && $account_email === $apbct->data['account_email']) {
+        die(
+            json_encode(
+                array(
+                    'success' => 'ok'
+                )
+            )
+        );
+    }
+
+    $apbct->data['account_email'] = $account_email;
+    $apbct->saveData();
 
     // Link GET ACCESS KEY MANUALLY
     $manually_link = sprintf(
@@ -2638,4 +2570,31 @@ function apbct_settings__check_alt_cookies_types()
     );
 
     echo '</div>';
+}
+
+/**
+ * Show button for changed account email
+ */
+function apbct_settings__btn_change_account_email_html()
+{
+    global $apbct;
+
+    if (
+        ! is_main_site() &&
+        isset($apbct->network_settings['multisite__work_mode']) && 
+        $apbct->network_settings['multisite__work_mode'] == 1) {
+        return '';
+    }
+
+    return '(<button type="button"
+                id="apbct-change-account-email"
+                class="apbct-btn-as-link"
+                data-default-text="'
+                    . __('change email','cleantalk-spam-protect') .
+                    '"
+                data-save-text="'
+                    . __('save','cleantalk-spam-protect') .
+                    '">'
+                . __('change email','cleantalk-spam-protect') .
+            '</button>)';
 }
