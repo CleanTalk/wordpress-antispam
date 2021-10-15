@@ -213,3 +213,12 @@ button.ct_support_link{
     text-decoration: underline;
     cursor: pointer;
 }
+
+#apbct_settings__davanced_settings {
+    position: relative;
+}
+#apbct_hidden_section_nav {
+    position: absolute;
+    top: 0;
+    right: 20px;
+}
