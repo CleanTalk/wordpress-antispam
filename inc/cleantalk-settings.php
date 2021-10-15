@@ -1129,8 +1129,10 @@ function apbct_settings__display()
     }
 
     echo '<br>';
-    echo '<button name="submit" class="cleantalk_link cleantalk_link-manual" value="save_changes">' .
-         __('Save Changes') . '</button>';
+    echo '<div id="apbct_settings__before_button_section"></div>';
+    echo '<div id="apbct_settings__button_section"><button name="submit" class="cleantalk_link cleantalk_link-manual" value="save_changes">'
+         . __('Save Changes')
+         . '</button></div>';
 
     echo "</form>";
 

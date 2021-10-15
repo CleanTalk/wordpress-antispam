@@ -210,7 +210,11 @@ jQuery(document).ready(function(){
 			jQuery(this).parent().parent().find('#apbct_settings_templates_export_name').hide();
 		}
 	});
-	
+
+	apbct_save_button_position();
+	window.addEventListener('scroll', apbct_save_button_position);
+	jQuery('#ct_adv_showhide a').on('click', apbct_save_button_position);
+
 });
 
 /**
@@ -399,4 +403,27 @@ function apbct_settings__showDescription(label, setting_id){
 		},
 		obj
 	);
+}
+
+function apbct_save_button_position() {
+	if (
+		document.getElementById('apbct_settings__before_button_section') === null ||
+		document.getElementById('apbct_settings__button_section') === null ||
+		document.getElementById('apbct_settings__davanced_settings') === null
+	) {
+		return;
+	}
+	var docInnerHeight = window.innerHeight;
+	var advSettingsBlock = document.getElementById('apbct_settings__davanced_settings');
+	var buttonBlock = document.getElementById('apbct_settings__button_section');
+	var buttonOffset = document.getElementById('apbct_settings__before_button_section').getBoundingClientRect().top;
+	var buttonHeight = buttonBlock.getBoundingClientRect().height;
+
+	if( getComputedStyle(advSettingsBlock).display === "none" || docInnerHeight > buttonOffset + buttonHeight ) {
+		buttonBlock.style.bottom = '';
+		buttonBlock.style.top = buttonOffset + 'px';
+	} else {
+		buttonBlock.style.bottom = '0px';
+		buttonBlock.style.top = '';
+	}
 }
