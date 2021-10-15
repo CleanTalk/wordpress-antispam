@@ -964,6 +964,13 @@ function apbct_api_key__is_correct($api_key = null)
     return $api_key && preg_match('/^[a-z\d]{3,15}$/', $api_key) ? true : false;
 }
 
+function apbct__is_hosting_license()
+{
+    global $apbct;
+
+    return $apbct->data['moderate_ip'] && $apbct->data['ip_license'];
+}
+
 function apbct_add_async_attribute($tag, $handle)
 {
     global $apbct;
