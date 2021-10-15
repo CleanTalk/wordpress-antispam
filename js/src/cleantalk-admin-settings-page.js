@@ -218,13 +218,24 @@ jQuery(document).ready(function(){
 		e.preventDefault();
 		
 		var $this = jQuery(this);
-		var accountEmail = jQuery('#apbct-account-email').text();
+		var accountEmailField = jQuery('#apbct-account-email');
+		var accountEmail = accountEmailField.text();
 
 		$this.toggleClass('active');
 		
 		if ($this.hasClass('active')) {
 			$this.text($this.data('save-text'));
-			jQuery('#apbct-account-email').attr('contenteditable', 'true');
+			accountEmailField.attr('contenteditable', 'true');
+			accountEmailField.on('keydown', function (e) {
+				if (e.code === 'Enter') {
+					e.preventDefault()
+				}
+			})
+			accountEmailField.on('input', function (e) {
+				if (e.inputType === 'insertParagraph') {
+					e.preventDefault()
+				}
+			})
 		} else {
 			apbct_admin_sendAJAX(
 				{
@@ -247,7 +258,7 @@ jQuery(document).ready(function(){
 				}
 			);
 
-			jQuery('#apbct-account-email').attr('contenteditable', 'false');
+			accountEmailField.attr('contenteditable', 'false');
 			$this.text($this.data('default-text'));
 		}
 	});
