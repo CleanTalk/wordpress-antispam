@@ -364,7 +364,8 @@ function ct_contact_form_validate_postdata()
          apbct_is_in_uri('xmlrpc.php?for=jetpack') ||
          apbct_is_in_uri('connector=bridge&task=put_sql') ||
          Server::inUri('cleantalk-antispam/v1/alt_sessions') || // Skip test for alt sessions
-         (apbct_is_in_uri('bvMethod=') && apbct_is_in_uri('bvVersion=') && isset($_POST['apipage']) && $_POST['apipage'] === 'blogvault')
+         (apbct_is_in_uri('bvMethod=') && apbct_is_in_uri('bvVersion=') && isset($_POST['apipage']) && $_POST['apipage'] === 'blogvault') ||
+         (isset($_POST['wpstg-username'], $_POST['wpstg-pass'], $_POST['wpstg-submit']) && $_POST['wpstg-submit'] == 'Log In') //Accept Stripe Payments
     ) {
         do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
 
