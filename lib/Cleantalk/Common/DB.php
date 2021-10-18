@@ -147,6 +147,6 @@ class DB
      */
     public function isTableExists($table_name)
     {
-        return (bool)$this->execute("SHOW TABLES LIKE " . $table_name);
+        return (bool)$this->execute("SHOW TABLES LIKE '" . $table_name . "'");
     }
 }
