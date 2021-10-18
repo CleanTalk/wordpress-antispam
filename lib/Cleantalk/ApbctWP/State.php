@@ -149,6 +149,7 @@ class State extends \Cleantalk\Common\State
         'notice_api_errors'              => 0, // Send API error notices to WP admin
 
         // Account data
+        'account_email'                  => '',
         'service_id'                     => 0,
         'moderate'                       => 0,
         'moderate_ip'                    => 0,
@@ -304,6 +305,8 @@ class State extends \Cleantalk\Common\State
         'expected_ua_count'            => 0,
         'update_mode'                  => 0,
     );
+
+    public $errors;
 
     protected function setDefinitions()
     {

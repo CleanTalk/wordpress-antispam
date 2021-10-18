@@ -88,7 +88,7 @@ class Server extends ServerVariables
      */
     public static function getDomain()
     {
-        preg_match('@\.(\S+)\/?$@', self::get('HTTP_HOST'), $matches);
+        preg_match('@\S+\.(\S+)\/?$@', self::get('HTTP_HOST'), $matches);
 
         return isset($matches[1]) ? $matches[1] : false;
     }
