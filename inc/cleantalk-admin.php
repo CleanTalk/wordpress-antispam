@@ -302,6 +302,8 @@ function apbct_admin__init()
 
     add_action('wp_ajax_apbct_get_key_auto', 'apbct_settings__get_key_auto');
 
+    add_action('wp_ajax_apbct_update_account_email', 'apbct_settings__update_account_email');
+
     // Settings Templates
     if (
             ! is_multisite() ||

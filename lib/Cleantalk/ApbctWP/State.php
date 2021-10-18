@@ -151,6 +151,7 @@ class State extends \Cleantalk\Common\State
         'notice_api_errors'              => 0, // Send API error notices to WP admin
 
         // Account data
+        'account_email'                  => '',
         'service_id'                     => 0,
         'moderate'                       => 0,
         'moderate_ip'                    => 0,
@@ -430,7 +431,7 @@ class State extends \Cleantalk\Common\State
         // Standalone or main site
         $this->api_key        = $this->settings['apikey'];
         $this->dashboard_link = 'https://cleantalk.org/my/' . ($this->user_token ? '?user_token=' . $this->user_token : '');
-        $this->notice_show    = $this->data['notice_trial'] || $this->data['notice_renew'] || $this->data['notice_incompatibility'] || $this->isHaveErrors();
+        $this->notice_show    = $this->data['notice_trial'] || $this->data['notice_renew'] || $this->isHaveErrors();
 
         // Network with Mutual key
         if ( ! is_main_site() && $this->network_settings['multisite__work_mode'] == 2 ) {

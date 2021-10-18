@@ -678,7 +678,20 @@ function apbct_is_cache_plugins_exists()
  */
 function ct_get_admin_email()
 {
-    return get_option('admin_email');
+    global $apbct;
+
+    // Not WPMS
+    if (!is_multisite()) {
+        return $apbct->data['account_email'] ?: get_option('admin_email');
+    }
+
+    // Main site, common account
+    if (is_main_site() || $apbct->network_settings['multisite__work_mode'] != 3) {
+        return $apbct->data['account_email'] ?: get_site_option('admin_email');
+    }
+
+    // Individual account, individual key
+    return $apbct->data['account_email'] ?: get_blog_option(get_current_blog_id(), 'admin_email');
 }
 
 /**

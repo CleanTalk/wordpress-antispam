@@ -2328,7 +2328,7 @@ function ct_mail_send_connection_report()
         $message .= '</table></body></html>';
 
         $headers = "Content-type: text/html; charset=windows-1251 \r\n";
-        $headers .= 'From: ' . get_option('admin_email');
+        $headers .= 'From: ' . ct_get_admin_email();
         mail($to, $subject, $message, $headers);
     }
 
