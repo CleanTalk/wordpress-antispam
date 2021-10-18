@@ -1072,7 +1072,10 @@ function apbct_settings__display()
         }
     }
 
-    if ( apbct_api_key__is_correct() && ($apbct->network_settings['multisite__work_mode'] != 2 || is_main_site()) ) {
+    if (
+        (apbct_api_key__is_correct() || apbct__is_hosting_license()) &&
+        ($apbct->network_settings['multisite__work_mode'] != 2 || is_main_site())
+    ) {
         // Sync button
         echo '<button type="button" class="cleantalk_link cleantalk_link-auto" id="apbct_button__sync" title="Synchronizing account status, SpamFireWall database, all kind of journals.">'
              . '<i class="icon-upload-cloud"></i>&nbsp;&nbsp;'
@@ -1573,6 +1576,10 @@ function apbct_settings__field__action_buttons()
             echo $link . '&nbsp;&nbsp;&nbsp;&nbsp;';
         }
         echo '</div>';
+    } elseif ( apbct__is_hosting_license() ) {
+        echo '<a href="#" class="ct_support_link" onclick="apbct_show_hide_elem(\'apbct_statistics\')">'
+             . __('Statistics & Reports', 'cleantalk-spam-protect')
+             . '</a>';
     }
 
     echo '</div>';
