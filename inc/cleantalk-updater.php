@@ -1521,3 +1521,28 @@ function apbct_update_to_5_162_1()
         $apbct->saveNetworkSettings();
     }
 }
+
+/**
+ * 5.164
+ */
+function apbct_update_to_5_164_0()
+{
+    global $apbct;
+
+    $alt_cookies_type = $apbct->settings['data__set_cookies__alt_sessions_type'] ?: 0;
+
+    switch ((int)$alt_cookies_type) {
+        case 0:
+            $alt_cookies_type = 'rest';
+            break;
+        case 1:
+            $alt_cookies_type = 'custom_ajax';
+            break;
+        case 2:
+            $alt_cookies_type = 'admin_ajax';
+            break;
+    }
+
+    $apbct->data['ajax_type'] = $alt_cookies_type;
+    $apbct->saveData();
+}
