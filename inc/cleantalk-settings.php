@@ -153,6 +153,7 @@ function apbct_settings__set_fileds()
                                 . __('Advanced settings', 'cleantalk-spam-protect')
                                 . '</a>'
                                 . '</span>'
+                                . '<div id="apbct_settings__before_advanced_settings"></div>'
                                 . '<div id="apbct_settings__davanced_settings" style="display: none;">',
             'html_after'     => '',
             'section'        => 'hidden_section',
@@ -662,7 +663,7 @@ function apbct_settings__set_fileds()
         'misc'                  => array(
             'title'      => __('Miscellaneous', 'cleantalk-spam-protect'),
             'section'    => 'hidden_section',
-            'html_after' => '<div id="apbct_hidden_section_nav">{HIDDEN_SECTION_NAV}</div></div><br>',
+            'html_after' => '<div id="apbct_hidden_section_nav">{HIDDEN_SECTION_NAV}</div></div>',
             'fields'     => array(
                 'misc__collect_details'         => array(
                     'type'        => 'checkbox',
@@ -770,7 +771,7 @@ function apbct_settings__set_fileds__network($fields)
                                 . '</a>'
                                 . '</span>'
                                 . '<div id="apbct_settings__dwpms_settings" style="display: block;">',
-            'html_after'     => '</div><br>',
+            'html_after'     => '</div>',
             'fields'         => array(
                 'multisite__work_mode'                                          => array(
                     'type'             => 'select',
@@ -1128,12 +1129,12 @@ function apbct_settings__display()
         echo ! empty($group['html_after']) ? $group['html_after'] : '';
     }
 
-    echo '<br>';
-    echo '<div id="apbct_settings__before_button_section"></div>';
+    echo '<div id="apbct_settings__after_advanced_settings"></div>';
     echo '<div id="apbct_settings__button_section"><button name="submit" class="cleantalk_link cleantalk_link-manual" value="save_changes">'
          . __('Save Changes')
          . '</button></div>';
 
+    echo '<div class="clear"></div>';
     echo "</form>";
 
     if ( ! $apbct->white_label ) {

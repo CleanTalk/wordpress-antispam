@@ -34,7 +34,10 @@ i.animate-spin {
 
 .apbct_settings-field_content{ display: inline-block; }
 .apbct_settings-field_content--checkbox{  }
-.apbct_settings-field_content--radio{ width: 70%; }
+.apbct_settings-field_content--radio,
+.apbct_settings-field_wrapper > .apbct_settings-field_description {
+    width: 70%;
+}
 .apbct_settings-field_content--text{  }
 
 .apbct_settings-field_title{}
@@ -221,6 +224,10 @@ button.ct_support_link{
     position: absolute;
     top: 0;
     right: 20px;
+    width: calc(30% - 210px - 15px - 20px);
+}
+#apbct_settings__after_advanced_settings{
+    margin-bottom: 20px;
 }
 #apbct_settings__button_section {
     position: fixed;

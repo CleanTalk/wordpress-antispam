@@ -407,23 +407,42 @@ function apbct_settings__showDescription(label, setting_id){
 
 function apbct_save_button_position() {
 	if (
-		document.getElementById('apbct_settings__before_button_section') === null ||
+		document.getElementById('apbct_settings__before_advanced_settings') === null ||
+		document.getElementById('apbct_settings__after_advanced_settings') === null ||
 		document.getElementById('apbct_settings__button_section') === null ||
-		document.getElementById('apbct_settings__davanced_settings') === null
+		document.getElementById('apbct_settings__davanced_settings') === null ||
+		document.getElementById('apbct_hidden_section_nav') === null
 	) {
 		return;
 	}
 	var docInnerHeight = window.innerHeight;
 	var advSettingsBlock = document.getElementById('apbct_settings__davanced_settings');
+	var advSettingsOffset = advSettingsBlock.getBoundingClientRect().top;
+	var advSettingsOffsetBefore = document.getElementById('apbct_settings__before_advanced_settings').getBoundingClientRect().top;
 	var buttonBlock = document.getElementById('apbct_settings__button_section');
-	var buttonOffset = document.getElementById('apbct_settings__before_button_section').getBoundingClientRect().top;
 	var buttonHeight = buttonBlock.getBoundingClientRect().height;
+	var buttonOffset = document.getElementById('apbct_settings__after_advanced_settings').getBoundingClientRect().top + 20;
+	var navBlock = document.getElementById('apbct_hidden_section_nav');
 
-	if( getComputedStyle(advSettingsBlock).display === "none" || docInnerHeight > buttonOffset + buttonHeight ) {
+	// Set Save button position
+	if ( getComputedStyle(advSettingsBlock).display === "none" || docInnerHeight > buttonOffset + buttonHeight ) {
 		buttonBlock.style.bottom = '';
 		buttonBlock.style.top = buttonOffset + 'px';
 	} else {
-		buttonBlock.style.bottom = '0px';
-		buttonBlock.style.top = '';
+		if ( docInnerHeight < advSettingsOffsetBefore + buttonHeight ) {
+			buttonBlock.style.bottom = '';
+			buttonBlock.style.top = advSettingsOffsetBefore + 20 + 'px';
+		} else {
+			buttonBlock.style.bottom = '0px';
+			buttonBlock.style.top = '';
+		}
+
+	}
+
+	// Set nav position
+	if ( advSettingsOffset <= 0 ) {
+		navBlock.style.top = - advSettingsOffset + 30 + 'px';
+	} else {
+		navBlock.style.top = '0px';
 	}
 }
