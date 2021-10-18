@@ -2068,10 +2068,7 @@ function apbct_settings__validate($settings)
 
     // Ajax type
     $available_ajax_type = apbct_settings__get_ajax_type();
-
-    if (!isset($apbct->data['ajax_type'])) {
-        $apbct->data['ajax_type'] = $available_ajax_type;
-    }
+    $apbct->data['ajax_type'] = $available_ajax_type;
 
     if (
         (isset($settings['data__set_cookies']) && $settings['data__set_cookies'] == 2) ||
@@ -2082,8 +2079,6 @@ function apbct_settings__validate($settings)
             // There is no available ajax types. AJAX js will be disabled.
             $settings['data__set_cookies'] = 0;
             $settings['data__use_ajax'] = 0;
-        } else {
-            $apbct->data['ajax_type'] = $available_ajax_type;
         }
     }
 

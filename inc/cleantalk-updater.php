@@ -1529,7 +1529,7 @@ function apbct_update_to_5_164_0()
 {
     global $apbct;
 
-    $alt_cookies_type = $apbct->settings['data__set_cookies__alt_sessions_type'] ?: 0;
+    $alt_cookies_type = $apbct->settings['data__set_cookies__alt_sessions_type'] ?: false;
 
     switch ((int)$alt_cookies_type) {
         case 0:
