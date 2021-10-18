@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 3.0
 Tested up to: 5.8
 Requires PHP: 5.6
-Stable tag: 5.163.1
+Stable tag: 5.164
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -594,6 +594,26 @@ If your website has forms that send data to external sources, you can enable opt
 12. SpamFireWall log.
 
 == Changelog ==
+
+= 5.164 Oct 21 2021 =
+ * New: Integration. UsersWP plugin integration implemented.
+ * New. SFW. Incompatibility WP-Rocket notice added.
+ * Mod: Added the functionality of changing the mail when receiving the key during the initial installation.
+ * Mod: Custom admin email. Added minified js and css files
+ * Mod: validate api key before save settings for new accounts
+ * Mod: Antispam. Comments check. Send feedback with hash:01:url data only if post_info->post_url is empty.
+ * Fix: State. Option prefix field is public now.
+ * Fix: Using get_option('home') for getting the blog url instead get_option('siteurl').
+ * Fix: State. Magic __get notice fixed.
+ * Fix. State. Exclamation mark fixed.
+ * Fix. Common. Getting REST url fixed.
+ * Fix: SFW. Update percents fixed.
+ * Fix: DB. isTableExists method fixed.
+ * Fix. State. $errors field added.
+ * Fix: Server::getDomain(). Fixed regexp.
+ * Fix: skip log-in request wpstg.
+ * Fix: SFW. Work on hosting licenses fixed.
+ * Fix: set prefix_name for cleantalk-icons css.
 
 = 5.163.1 Oct 12 2021 =
  * Fix: Queue. Errors of each try fixed.
