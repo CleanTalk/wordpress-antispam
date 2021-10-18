@@ -2453,7 +2453,7 @@ function apbct_settings__check_renew_banner()
 /**
  * Checking availability of the handlers and return ajax type
  *
- * @return int|false
+ * @return string|false
  */
 function apbct_settings__get_ajax_type()
 {
