@@ -522,7 +522,7 @@ function apbct_hook__wp_footer()
     if ( $apbct->settings['data__use_ajax'] ) {
         $timeout = $apbct->settings['misc__async_js'] ? 1000 : 0;
 
-        if ( $apbct->settings['data__use_ajax__type'] == 0 ) {
+        if ( $apbct->data['ajax_type'] == 'rest' ) {
             $html =
                 "<script type=\"text/javascript\" " . (class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '')
                 . ">				
@@ -538,7 +538,7 @@ function apbct_hook__wp_footer()
                     });								
                 </script>";
         } else {
-            $use_cleantalk_ajax = $apbct->settings['data__use_ajax__type'] == 1 ? 1 : 0;
+            $use_cleantalk_ajax = $apbct->data['ajax_type'] == 'custom_ajax' ? 'custom_ajax' : 'rest';
             $html =
                 "<script type=\"text/javascript\" " . (class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '')
                 . ">				
@@ -547,7 +547,7 @@ function apbct_hook__wp_footer()
                             if( document.querySelectorAll('[name^=ct_checkjs]').length > 0 ) {
                                 apbct_public_sendAJAX(
                                     { action: 'apbct_js_keys__get' },
-                                    { callback: apbct_js_keys__set_input_value, apbct_ajax: " . $use_cleantalk_ajax . " }
+                                    { callback: apbct_js_keys__set_input_value, apbct_ajax: '" . $use_cleantalk_ajax . "' }
                                 )
                             }
                         }," . $timeout . ")					    
@@ -1309,7 +1309,7 @@ function apbct_enqueue_and_localize_public_scripts()
         '_rest_url'                            => esc_url(apbct_get_rest_url()),
         '_apbct_ajax_url'                      => APBCT_URL_PATH . '/lib/Cleantalk/ApbctWP/Ajax.php',
         'data__set_cookies'                    => $apbct->settings['data__set_cookies'],
-        'data__set_cookies__alt_sessions_type' => $apbct->settings['data__set_cookies__alt_sessions_type'],
+        'data__ajax_type'                      => $apbct->data['ajax_type'],
     ));
 
     wp_localize_script('ct_public', 'ctPublic', array(
