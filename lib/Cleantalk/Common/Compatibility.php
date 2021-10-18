@@ -103,6 +103,10 @@ class Compatibility
      */
     public function wpRocketCallback()
     {
-        return is_plugin_active('wp-rocket/wp-rocket.php') && defined('WP_ROCKET_VERSION');
+        global $apbct;
+        return
+            $apbct->settings['sfw__enabled'] &&
+            is_plugin_active('wp-rocket/wp-rocket.php') &&
+            defined('WP_ROCKET_VERSION');
     }
 }

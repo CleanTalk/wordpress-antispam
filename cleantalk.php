@@ -992,7 +992,7 @@ function apbct_sfw_update__get_multifiles()
                     $urls[] = $value[0];
                 }
 
-                $apbct->fw_stats['firewall_update_percent'] = 100 / count($urls);
+                $apbct->fw_stats['firewall_update_percent'] = round(100 / count($urls), 2);
                 $apbct->save('fw_stats');
 
                 return array(
