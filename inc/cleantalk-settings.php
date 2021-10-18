@@ -1475,7 +1475,7 @@ function apbct_settings__field__apikey()
         // Warnings and GDPR
         printf(
             __(
-                'Admin e-mail %s %s will be used for registration, оr click here to %sGet Access Key Manually%s.',
+                'Admin e-mail %s %s will be used for registration оr click here to %sGet Access Key Manually%s.',
                 'cleantalk-spam-protect'
             ),
             '<span id="apbct-account-email">'

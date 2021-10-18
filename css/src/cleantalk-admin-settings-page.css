@@ -227,3 +227,8 @@ button.ct_support_link{
     background-color: #fff;
     border: 1px solid #ccc;
 }
+button[value="save_changes"]:disabled {
+    color: #2271b1;
+    border-color: #2271b1;
+    background: #f6f7f7;
+}
