@@ -149,12 +149,12 @@ function apbct_settings__set_fileds()
             'description'    => '',
             'html_before'    => '<hr><br>'
                                 . '<span id="ct_adv_showhide">'
-                                . '<a href="#" class="apbct_color--gray" onclick="event.preventDefault(); apbct_show_hide_elem(\'apbct_settings__davanced_settings\');">'
+                                . '<a href="#" class="apbct_color--gray" onclick="event.preventDefault(); apbct_show_hide_elem(\'apbct_settings__advanced_settings\');">'
                                 . __('Advanced settings', 'cleantalk-spam-protect')
                                 . '</a>'
                                 . '</span>'
                                 . '<div id="apbct_settings__before_advanced_settings"></div>'
-                                . '<div id="apbct_settings__davanced_settings" style="display: none;">',
+                                . '<div id="apbct_settings__advanced_settings" style="display: none;">',
             'html_after'     => '',
             'section'        => 'hidden_section',
             'fields'         => array(

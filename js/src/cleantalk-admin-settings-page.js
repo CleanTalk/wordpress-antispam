@@ -410,13 +410,13 @@ function apbct_save_button_position() {
 		document.getElementById('apbct_settings__before_advanced_settings') === null ||
 		document.getElementById('apbct_settings__after_advanced_settings') === null ||
 		document.getElementById('apbct_settings__button_section') === null ||
-		document.getElementById('apbct_settings__davanced_settings') === null ||
+		document.getElementById('apbct_settings__advanced_settings') === null ||
 		document.getElementById('apbct_hidden_section_nav') === null
 	) {
 		return;
 	}
 	var docInnerHeight = window.innerHeight;
-	var advSettingsBlock = document.getElementById('apbct_settings__davanced_settings');
+	var advSettingsBlock = document.getElementById('apbct_settings__advanced_settings');
 	var advSettingsOffset = advSettingsBlock.getBoundingClientRect().top;
 	var advSettingsOffsetBefore = document.getElementById('apbct_settings__before_advanced_settings').getBoundingClientRect().top;
 	var buttonBlock = document.getElementById('apbct_settings__button_section');
