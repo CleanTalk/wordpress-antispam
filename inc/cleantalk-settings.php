@@ -2333,7 +2333,7 @@ function apbct_settings__update_account_email()
 {
     global $apbct;
 
-    $account_email = isset($_POST['accountEmail']) ? $_POST['accountEmail'] : false;
+    $account_email = Post::get('accountEmail');
 
     // not valid email
     if (!$account_email || !filter_var($_POST['accountEmail'], FILTER_VALIDATE_EMAIL)) {
