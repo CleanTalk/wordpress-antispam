@@ -1077,7 +1077,10 @@ function apbct_settings__display()
         }
     }
 
-    if ( apbct_api_key__is_correct() && ($apbct->network_settings['multisite__work_mode'] != 2 || is_main_site()) ) {
+    if (
+        (apbct_api_key__is_correct() || apbct__is_hosting_license()) &&
+        ($apbct->network_settings['multisite__work_mode'] != 2 || is_main_site())
+    ) {
         // Sync button
         echo '<button type="button" class="cleantalk_link cleantalk_link-auto" id="apbct_button__sync" title="Synchronizing account status, SpamFireWall database, all kind of journals.">'
              . '<i class="icon-upload-cloud"></i>&nbsp;&nbsp;'
@@ -1113,7 +1116,13 @@ function apbct_settings__display()
     }
 
     echo '<br>';
-    echo '<button name="submit" class="cleantalk_link cleantalk_link-manual" value="save_changes">' .
+
+    // Disabled save button if key empty
+    $disabled = '';
+    if (! $apbct->key_is_ok) {
+        $disabled = 'disabled';
+    }
+    echo '<button name="submit" class="cleantalk_link cleantalk_link-manual" value="save_changes" ' . $disabled . '>' .
          __('Save Changes') . '</button>';
 
     echo "</form>";
@@ -1474,11 +1483,14 @@ function apbct_settings__field__apikey()
         // Warnings and GDPR
         printf(
             __(
-                'Admin e-mail (%s) will be used for registration, if you want to use other email please %sGet Access Key Manually%s.',
+                'Admin e-mail %s %s will be used for registration оr click here to %sGet Access Key Manually%s.',
                 'cleantalk-spam-protect'
             ),
-            ct_get_admin_email(),
-            '<a class="apbct_color--gray" target="__blank" href="'
+            '<span id="apbct-account-email">'
+                . ct_get_admin_email() .
+            '</span>',
+            apbct_settings__btn_change_account_email_html(),
+            '<a class="apbct_color--gray" target="__blank" id="apbct-key-manually-link" href="'
             . sprintf(
                 'https://cleantalk.org/register?platform=wordpress&email=%s&website=%s',
                 urlencode(ct_get_admin_email()),
@@ -1569,6 +1581,10 @@ function apbct_settings__field__action_buttons()
             echo $link . '&nbsp;&nbsp;&nbsp;&nbsp;';
         }
         echo '</div>';
+    } elseif ( apbct__is_hosting_license() ) {
+        echo '<a href="#" class="ct_support_link" onclick="apbct_show_hide_elem(\'apbct_statistics\')">'
+             . __('Statistics & Reports', 'cleantalk-spam-protect')
+             . '</a>';
     }
 
     echo '</div>';
@@ -2250,12 +2266,8 @@ function apbct_settings__get_key_auto($direct_call = false)
     $wpms           = APBCT_WPMS && defined('SUBDOMAIN_INSTALL') && ! SUBDOMAIN_INSTALL ? true : false;
     $white_label    = $apbct->network_settings['multisite__white_label'] ? true : false;
     $hoster_api_key = $apbct->network_settings['multisite__hoster_api_key'];
-    $admin_email    = $apbct->network_settings['multisite__work_mode'] == 1 ? get_site_option(
-        'admin_email'
-    ) : get_option('admin_email');
-    if ( function_exists('is_multisite') && is_multisite() && $apbct->white_label ) {
-        $admin_email = get_site_option('admin_email');
-    }
+    $admin_email    = ct_get_admin_email();
+
     $result = \Cleantalk\ApbctWP\API::methodGetApiKey(
         'antispam',
         $admin_email,
@@ -2317,6 +2329,65 @@ function apbct_settings__get_key_auto($direct_call = false)
     } else {
         die(json_encode($out));
     }
+}
+
+function apbct_settings__update_account_email()
+{
+    global $apbct;
+
+    $account_email = Post::get('accountEmail');
+
+    // not valid email
+    if (!$account_email || !filter_var($_POST['accountEmail'], FILTER_VALIDATE_EMAIL)) {
+        die(
+            json_encode(
+                array(
+                    'error' => 'Please, enter valid email.'
+                )
+            )
+        );
+    }
+
+    // protection against accidental request from a child site in the shared account mode
+    if (!is_main_site() && isset($apbct->network_settings['multisite__work_mode']) && $apbct->network_settings['multisite__work_mode'] != 3) {
+        die(
+            json_encode(
+                array(
+                    'error' => 'Please, enter valid email.'
+                )
+            )
+        );
+    }
+
+    // email not changed
+    if (isset($apbct->data['account_email']) && $account_email === $apbct->data['account_email']) {
+        die(
+            json_encode(
+                array(
+                    'success' => 'ok'
+                )
+            )
+        );
+    }
+
+    $apbct->data['account_email'] = $account_email;
+    $apbct->saveData();
+
+    // Link GET ACCESS KEY MANUALLY
+    $manually_link = sprintf(
+        'https://cleantalk.org/register?platform=wordpress&email=%s&website=%s',
+        urlencode(ct_get_admin_email()),
+        urlencode(get_bloginfo('url'))
+    );
+
+    die(
+        json_encode(
+            array(
+                'success' => 'ok',
+                'manuallyLink' => $manually_link
+            )
+        )
+    );
 }
 
 function apbct_update_blogs_options($settings)
@@ -2532,4 +2603,31 @@ function apbct_settings__ajax_handler_type_notification()
     );
 
     echo '</div>';
+}
+
+/**
+ * Show button for changed account email
+ */
+function apbct_settings__btn_change_account_email_html()
+{
+    global $apbct;
+
+    if (
+        ! is_main_site() &&
+        isset($apbct->network_settings['multisite__work_mode']) &&
+        $apbct->network_settings['multisite__work_mode'] == 1) {
+        return '';
+    }
+
+    return '(<button type="button"
+                id="apbct-change-account-email"
+                class="apbct-btn-as-link"
+                data-default-text="'
+                    . __('change email', 'cleantalk-spam-protect') .
+                    '"
+                data-save-text="'
+                    . __('save', 'cleantalk-spam-protect') .
+                    '">'
+                . __('change email', 'cleantalk-spam-protect') .
+            '</button>)';
 }
