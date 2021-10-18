@@ -1086,7 +1086,7 @@ function ct_preprocess_comment($comment)
     }
 
     // Change comment flow only for new authors
-    if ( ! empty($new_user) || $ct_result->stop_words !== null || $ct_result->spam == 1 ) {
+    if (! empty($new_user) || $ct_result->stop_words !== null || $ct_result->spam == 1) {
         add_action('comment_post', 'ct_set_meta', 10, 2);
     }
 
