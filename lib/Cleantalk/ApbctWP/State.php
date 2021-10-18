@@ -308,6 +308,8 @@ class State extends \Cleantalk\Common\State
         'update_mode'                  => 0,
     );
 
+    public $errors;
+
     protected function setDefinitions()
     {
         global $wpdb;
