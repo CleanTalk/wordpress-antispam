@@ -378,6 +378,11 @@ function apbct_settings__set_fileds()
                         'Options helps protect WordPress against spam with any caching plugins. Turn this option on to avoid issues with caching plugins. Turn off this option and SpamFireWall to be compatible with Accelerated mobile pages (AMP).',
                         'cleantalk-spam-protect'
                     ),
+                    'childrens'   => array('data__ajax_type_checking_js')
+                ),
+                'data__ajax_type_checking_js' => array(
+                    'display'    => $apbct->settings['data__use_ajax'] == 1,
+                    'callback' => 'apbct_settings__ajax_handler_type_notification'
                 ),
                 'data__use_static_js_key'              => array(
                     'title'       => __('Use static keys for JavaScript check', 'cleantalk-spam-protect'),
@@ -2500,6 +2505,34 @@ function apbct_settings__check_alt_cookies_types()
     echo '<div class="apbct_settings-field_wrapper apbct_settings-field_wrapper--sub">';
     echo sprintf(
         esc_html__('Alternative cookies type was set on %s', 'cleantalk-spam-protect'),
+        '<strong>' . $alt_cookies_type . '</strong><br>'
+    );
+
+    echo '</div>';
+}
+
+function apbct_settings__ajax_handler_type_notification()
+{
+    global $apbct;
+
+    switch ( $apbct->data['ajax_type'] ) {
+        case 'rest':
+            $alt_cookies_type = esc_html__('REST API', 'cleantalk-spam-protect');
+            break;
+        case 'custom_ajax':
+            $alt_cookies_type = esc_html__('CleanTalk AJAX handler', 'cleantalk-spam-protect');
+            break;
+        case 'admin_ajax':
+            $alt_cookies_type = esc_html__('WP AJAX handler', 'cleantalk-spam-protect');
+            break;
+        default:
+            $alt_cookies_type = esc_html__('UNKNOWN', 'cleantalk-spam-protect');
+            break;
+    }
+
+    echo '<div class="apbct_settings-field_wrapper apbct_settings-field_wrapper--sub">';
+    echo sprintf(
+        esc_html__('JavaScript check was set on %s', 'cleantalk-spam-protect'),
         '<strong>' . $alt_cookies_type . '</strong><br>'
     );
 
