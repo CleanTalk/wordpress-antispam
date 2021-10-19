@@ -1108,14 +1108,13 @@ function apbct_settings__display()
     settings_fields('cleantalk_settings');
     do_settings_fields('cleantalk', 'cleantalk_section_settings_main');
 
-    $hidden_groups = '';
+    $hidden_groups = '<ul>';
     foreach ( $apbct->settings_fields_in_groups as $group_name => $group ) {
-        $hidden_groups .= '<ul>';
         if ( isset($group['section']) && $group['section'] === 'hidden_section' ) {
             $hidden_groups .= '<li><a href="#apbct_setting_group__' . $group_name . '">' . $group['title'] . '</a></li>';
         }
-        $hidden_groups .= '</ul>';
     }
+    $hidden_groups .= '</ul>';
     $hidden_groups .= '<div id="apbct_settings__button_section"><button name="submit" class="cleantalk_link cleantalk_link-manual" value="save_changes">'
                            . __('Save Changes')
                            . '</button></div>';
