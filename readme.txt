@@ -599,6 +599,7 @@ If your website has forms that send data to external sources, you can enable opt
  * New: Integration. UsersWP plugin integration implemented.
  * New. SFW. Incompatibility WP-Rocket notice added.
  * New: Settings. Advanced settings navigation implemented.
+ * New: Server variables. isSSL method added.
  * Mod: Added the functionality of changing the mail when receiving the key during the initial installation.
  * Mod: Custom admin email. Added minified js and css files
  * Mod: validate api key before save settings for new accounts
@@ -615,6 +616,9 @@ If your website has forms that send data to external sources, you can enable opt
  * Fix: skip log-in request wpstg.
  * Fix: SFW. Work on hosting licenses fixed.
  * Fix: set prefix_name for cleantalk-icons css.
+ * Fix: Helper. Hard use https for the curl requests.
+ * Fix: Helper. Home url slash added.
+ * Fix: SFW. Using direct updating if remote calls not working.
 
 = 5.163.1 Oct 12 2021 =
  * Fix: Queue. Errors of each try fixed.
