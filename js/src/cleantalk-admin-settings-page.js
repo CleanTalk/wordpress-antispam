@@ -215,6 +215,74 @@ jQuery(document).ready(function(){
 	window.addEventListener('scroll', apbct_save_button_position);
 	jQuery('#ct_adv_showhide a').on('click', apbct_save_button_position);
 
+
+	/**
+	 * Change cleantalk account email
+	 */
+	jQuery('#apbct-change-account-email').on('click', function (e) {
+		e.preventDefault();
+
+		var $this = jQuery(this);
+		var accountEmailField = jQuery('#apbct-account-email');
+		var accountEmail = accountEmailField.text();
+
+		$this.toggleClass('active');
+
+		if ($this.hasClass('active')) {
+			$this.text($this.data('save-text'));
+			accountEmailField.attr('contenteditable', 'true');
+			accountEmailField.on('keydown', function (e) {
+				if (e.code === 'Enter') {
+					e.preventDefault()
+				}
+			})
+			accountEmailField.on('input', function (e) {
+				if (e.inputType === 'insertParagraph') {
+					e.preventDefault()
+				}
+			})
+		} else {
+			apbct_admin_sendAJAX(
+				{
+					action: 'apbct_update_account_email',
+					accountEmail: accountEmail
+				},
+				{
+					timeout: 5000,
+					callback: function(result, data, params, obj){
+						if (result.success !== undefined && result.success === 'ok') {
+							if (result.manuallyLink !== undefined) {
+								jQuery('#apbct-key-manually-link').attr('href', result.manuallyLink);
+							}
+						}
+
+						if (result.error !== undefined) {
+							jQuery('#apbct-account-email').css('border-color', 'red');
+						}
+					}
+				}
+			);
+
+			accountEmailField.attr('contenteditable', 'false');
+			$this.text($this.data('default-text'));
+		}
+	});
+
+	/**
+	 * Validate apkikey and hide get auto btn
+	 */
+	jQuery('#apbct_setting_apikey').on('input', function () {
+		var enteredValue = jQuery(this).val();
+
+		if (enteredValue === '' || enteredValue.match(/^[a-z\d]{3,15}$/) === null) {
+			jQuery('#apbct_button__get_key_auto').show();
+			jQuery('button.cleantalk_link[value="save_changes"]').prop('disabled', true);
+			return;
+		}
+
+		jQuery('#apbct_button__get_key_auto').hide();
+		jQuery('button.cleantalk_link[value="save_changes"]').prop('disabled', false);
+	});
 });
 
 /**

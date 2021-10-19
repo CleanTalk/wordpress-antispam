@@ -216,6 +216,25 @@ button.ct_support_link{
     text-decoration: underline;
     cursor: pointer;
 }
+.apbct-btn-as-link {
+    padding: 0;
+    margin: 0;
+    vertical-align: baseline;
+    color: gray;
+    border: 0 none;
+    border-bottom: 1px solid;
+    cursor: pointer;
+}
+#apbct-account-email[contenteditable="true"] {
+    padding: 6px;
+    background-color: #fff;
+    border: 1px solid #ccc;
+}
+button[value="save_changes"]:disabled {
+    color: #2271b1;
+    border-color: #2271b1;
+    background: #f6f7f7;
+}
 #apbct_settings__advanced_settings {
     position: relative;
 }

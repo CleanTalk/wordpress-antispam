@@ -83,14 +83,11 @@ class State extends \Cleantalk\Common\State
         'data__protect_logged_in'                  => 1,
         // Do anti-spam tests to for logged in users.
         'data__use_ajax'                           => 1,
-        'data__use_ajax__type'                     => 1,
         // Ajax handler type: REST API - 0 / custom AJAX - 1 / WP AJAX - 2
         'data__use_static_js_key'                  => -1,
         'data__general_postdata_test'              => 0,
         //CAPD
         'data__set_cookies'                        => 1,
-        // Set cookies: Disable - 0 / Enable - 1 / Use Alternative cookies - 2.
-        'data__set_cookies__alt_sessions_type'     => 0,
         // Alternative cookies handler type: REST API - 0 / custom AJAX - 1 / WP AJAX - 2
         'data__ssl_on'                             => 0,
         // Secure connection to servers
@@ -144,6 +141,7 @@ class State extends \Cleantalk\Common\State
         'last_remote_call'               => 0, //Timestam of last remote call
         'current_settings_template_id'   => null,  // Loaded settings template id
         'current_settings_template_name' => null,  // Loaded settings template name
+        'ajax_type'                      => false, // Ajax type
 
         // Antispam
         'spam_store_days'                => 15, // Days before delete comments from folder Spam
@@ -151,6 +149,7 @@ class State extends \Cleantalk\Common\State
         'notice_api_errors'              => 0, // Send API error notices to WP admin
 
         // Account data
+        'account_email'                  => '',
         'service_id'                     => 0,
         'moderate'                       => 0,
         'moderate_ip'                    => 0,
@@ -306,6 +305,8 @@ class State extends \Cleantalk\Common\State
         'expected_ua_count'            => 0,
         'update_mode'                  => 0,
     );
+
+    public $errors;
 
     protected function setDefinitions()
     {
