@@ -848,7 +848,15 @@ function apbct_sfw_update__init($delay = 0)
     $apbct->fw_stats['updating_folder'] = APBCT_DIR_PATH . DIRECTORY_SEPARATOR . 'fw_files_for_blog_' . get_current_blog_id() . DIRECTORY_SEPARATOR;
 
     $prepare_dir__result = apbct_prepare_upd_dir();
-    if ( ! empty($prepare_dir__result['error']) ) {
+    $test_rc_result = Helper::httpRequestRcToHostTest(
+        'sfw_update__worker',
+        array(
+            'spbc_remote_call_token' => md5($apbct->api_key),
+            'spbc_remote_call_action' => 'sfw_update__worker',
+            'plugin_name' => 'apbct'
+        )
+    );
+    if ( ! empty($prepare_dir__result['error']) || ! empty($test_rc_result['error']) ) {
         return apbct_sfw_direct_update();
     }
 
