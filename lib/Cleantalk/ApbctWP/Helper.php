@@ -109,7 +109,7 @@ class Helper extends \Cleantalk\Common\Helper
         }
 
         static::httpRequest(
-            get_option('home'),
+            substr(get_option('home'), -1) === '/' ? get_option('home') : get_option('home') . '/',
             $request_params,
             $patterns
         );
@@ -135,7 +135,7 @@ class Helper extends \Cleantalk\Common\Helper
         }
 
         $result = static::httpRequest(
-            get_option('home'),
+            substr(get_option('home'), -1) === '/' ? get_option('home') : get_option('home') . '/',
             array_merge($request_params, array('test' => 'test')),
             $patterns
         );
