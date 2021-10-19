@@ -1133,7 +1133,7 @@ function apbct_settings__display()
     }
 
     echo '<div id="apbct_settings__after_advanced_settings"></div>';
-    echo '<button name="submit" class="cleantalk_link cleantalk_link-manual" value="save_changes">'
+    echo '<button id="apbct_settings__main_save_button" name="submit" class="cleantalk_link cleantalk_link-manual" value="save_changes">'
          . __('Save Changes')
          . '</button>';
 
