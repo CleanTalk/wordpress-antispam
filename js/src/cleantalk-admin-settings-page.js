@@ -433,7 +433,7 @@ function apbct_save_button_position() {
 			buttonBlock.style.bottom = '';
 			buttonBlock.style.top = advSettingsOffsetBefore + 20 + 'px';
 		} else {
-			buttonBlock.style.bottom = '0px';
+			buttonBlock.style.bottom = 0;
 			buttonBlock.style.top = '';
 		}
 
@@ -443,6 +443,6 @@ function apbct_save_button_position() {
 	if ( advSettingsOffset <= 0 ) {
 		navBlock.style.top = - advSettingsOffset + 30 + 'px';
 	} else {
-		navBlock.style.top = '0px';
+		navBlock.style.top = 0;
 	}
 }
