@@ -29,10 +29,10 @@ jQuery(document).ready(function(){
 				text : apbct_checking_status_text
 			});
 			var apbct_add_ico_ok = jQuery('<i>', {
-				class : 'icon-ok'
+				class :  'apbct-icon-ok'
 			});
 			var apbct_add_ico_cancel = jQuery('<i>', {
-				class : 'icon-cancel',
+				class :  'apbct-icon-cancel',
 				css : {
 					color : 'red'
 				}

@@ -446,7 +446,7 @@ function apbct_settings__showDescription(label, setting_id){
 
 	label.after("<div id='apbct_long_desc__"+setting_id+"' class='apbct_long_desc'></div>");
 	var obj = jQuery('#apbct_long_desc__'+setting_id);
-	obj.append("<i class='icon-spin1 animate-spin'></i>")
+	obj.append("<i class= 'apbct-icon-spin1 animate-spin'></i>")
 		.append("<div class='apbct_long_desc__angle'></div>")
 		.css({
 			top: label.position().top - 5,
@@ -462,7 +462,7 @@ function apbct_settings__showDescription(label, setting_id){
 
 				obj.empty()
 					.append("<div class='apbct_long_desc__angle'></div>")
-					.append("<i class='apbct_long_desc__cancel icon-cancel'></i>")
+					.append("<i class='apbct_long_desc__cancel apbct-icon-cancel'></i>")
 					.append("<h3 class='apbct_long_desc__title'>"+result.title+"</h3>")
 					.append("<p>"+result.desc+"</p>");
 

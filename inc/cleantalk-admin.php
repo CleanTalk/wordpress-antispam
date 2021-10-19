@@ -646,7 +646,7 @@ function apbct_admin__admin_bar__add_structure($wp_admin_bar)
         ) . '</a></span>'
         : '<span><a>' . __('Anti-Spam', 'cleantalk-spam-protect') . '</a></span>';
 
-    $attention_mark = $apbct->notice_show ? '<i class="icon-attention-alt"></i>' : '';
+    $attention_mark = $apbct->notice_show ? '<i class="apbct-icon-attention-alt"></i>' : '';
     $title          = $title . $attention_mark;
 
     $wp_admin_bar->add_node(array(
@@ -777,7 +777,7 @@ function apbct_admin__admin_bar__add_child_nodes($wp_admin_bar)
 {
     global $apbct;
 
-    $attention_mark = $apbct->notice_show ? '<i class="icon-attention-alt"></i>' : '';
+    $attention_mark = $apbct->notice_show ? '<i class="apbct-icon-attention-alt"></i>' : '';
 
     $wp_admin_bar->add_node(array(
         'parent' => 'apbct__parent_node',
@@ -793,7 +793,7 @@ function apbct_admin__admin_bar__add_child_nodes($wp_admin_bar)
                     . __('Since', 'cleantalk-spam-protect') . '&nbsp;' . $apbct->counter__user['since'] . ': '
                     . '<span style="color: green;">' . $apbct->counter__user['accepted'] . '</span> / '
                     . '<span style="color: red;">' . $apbct->counter__user['blocked'] . '</span>'
-                    . '<i class="icon-help-circled" title="'
+                    . '<i class="apbct-icon-help-circled" title="'
                     . __(
                         'Shows amount of alllowed and blocked requests since the date.',
                         'cleantalk-spam-protect'
@@ -813,7 +813,7 @@ function apbct_admin__admin_bar__add_child_nodes($wp_admin_bar)
                         . '<span style="color: green;">' . $apbct->counter__all_time['accepted'] . '</span> / '
                         . '<span style="color: red;">' . $apbct->counter__all_time['blocked'] . '</span>'
                         . '</span>'
-                        . '<i class="icon-help-circled" title="' . __(
+                        . '<i class="apbct-icon-help-circled" title="' . __(
                             'All / Allowed / Blocked submissions. The number of submissions is being counted since CleanTalk plugin installation.',
                             'cleantalk-spam-protect'
                         ) . '"></i>'
@@ -832,7 +832,7 @@ function apbct_admin__admin_bar__add_child_nodes($wp_admin_bar)
                         . '<span style="color: green;">' . $apbct->counter__daily['accepted'] . '</span> / '
                         . '<span style="color: red;">' . $apbct->counter__daily['blocked'] . '</span>'
                         . '</span>'
-                        . '<i class="icon-help-circled" title="' . __(
+                        . '<i class="apbct-icon-help-circled" title="' . __(
                             'Allowed / Blocked submissions. The number of submissions for past 24 hours. ',
                             'cleantalk-spam-protect'
                         ) . '"></i>'
@@ -851,7 +851,7 @@ function apbct_admin__admin_bar__add_child_nodes($wp_admin_bar)
                         . '<span style="color: white;">' . $apbct->counter__sfw['all'] . '</span> / '
                         . '<span style="color: red;">' . $apbct->counter__sfw['blocked'] . '</span>'
                         . '</span>'
-                        . '<i class="icon-help-circled" title="' . __(
+                        . '<i class="apbct-icon-help-circled" title="' . __(
                             'All / Blocked events. Access attempts triggered by SpamFireWall counted since the last plugin activation.',
                             'cleantalk-spam-protect'
                         ) . '"></i>'
@@ -972,7 +972,7 @@ function apbct_spbc_admin__admin_bar__add_child_nodes($wp_admin_bar)
                     . '<b style="color: green;">' . 0 . '</b> / '
                     . '<b style="color: red;">' . 0 . '</b>'
                     . '</span>'
-                    . '<i class="icon-help-circled" title="' . __(
+                    . '<i class="apbct-icon-help-circled" title="' . __(
                         'Blocked login attempts in the local database for past 24 hours.',
                         'cleantalk-spam-protect'
                     ) . '"></i>'
@@ -990,7 +990,7 @@ function apbct_spbc_admin__admin_bar__add_child_nodes($wp_admin_bar)
                     . '<b style="color: green;">' . 0 . '</b> / '
                     . '<b style="color: red;">' . 0 . '</b>'
                     . '</b>'
-                    . '<i class="icon-help-circled" title="' . __(
+                    . '<i class="apbct-icon-help-circled" title="' . __(
                         'Passed / Blocked requests by Security Firewall for past 24 hours.',
                         'cleantalk-spam-protect'
                     ) . '"></i>'
@@ -1005,7 +1005,7 @@ function apbct_spbc_admin__admin_bar__add_child_nodes($wp_admin_bar)
         'title'  => '<a>'
                     . '<span>' . __('Users online:', 'cleantalk-spam-protect') . '</span>'
                     . '&nbsp;<b class="spbc-admin_bar--user_counter">' . 0 . '</b>'
-                    . '<i class="icon-help-circled" title="' . __(
+                    . '<i class="apbct-icon-help-circled" title="' . __(
                         'Shows amount of currently logged in administrators. Updates each 10 seconds.',
                         'cleantalk-spam-protect'
                     ) . '"></i>'

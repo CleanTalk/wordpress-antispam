@@ -294,7 +294,7 @@ class AdminNotices
     public function addAttentionMark($after)
     {
         if ( $this->apbct->notice_show ) {
-            return $after . '<i class="icon-attention-alt"></i>';
+            return $after . '<i class="apbct-icon-attention-alt"></i>';
         }
 
         return $after;

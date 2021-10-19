@@ -1093,7 +1093,7 @@ function apbct_settings__display()
     ) {
         // Sync button
         echo '<button type="button" class="cleantalk_link cleantalk_link-auto" id="apbct_button__sync" title="Synchronizing account status, SpamFireWall database, all kind of journals.">'
-             . '<i class="icon-upload-cloud"></i>&nbsp;&nbsp;'
+             . '<i class="apbct-icon-upload-cloud"></i>&nbsp;&nbsp;'
              . __('Synchronize with Cloud', 'cleantalk-spam-protect')
              . '<img style="margin-left: 10px;" class="apbct_preloader_button" src="' . APBCT_URL_PATH . '/inc/images/preloader2.gif" />'
              . '<img style="margin-left: 10px;" class="apbct_success --hide" src="' . APBCT_URL_PATH . '/inc/images/yes.png" />'
@@ -1818,7 +1818,7 @@ function apbct_settings__field__draw($params = array())
                  . $params['title']
                  . '</label>';
             echo isset($params['long_description'])
-                ? '<i setting="' . $params['name'] . '" class="apbct_settings-long_description---show icon-help-circled"></i>'
+                ? '<i setting="' . $params['name'] . '" class="apbct_settings-long_description---show apbct-icon-help-circled"></i>'
                 : '';
             echo '<div class="apbct_settings-field_description">'
                  . $params['description']
@@ -1834,7 +1834,7 @@ function apbct_settings__field__draw($params = array())
 
             // Popup description
             echo isset($params['long_description'])
-                ? '<i setting="' . $params['name'] . '" class="apbct_settings-long_description---show icon-help-circled"></i>'
+                ? '<i setting="' . $params['name'] . '" class="apbct_settings-long_description---show apbct-icon-help-circled"></i>'
                 : '';
 
             echo '<div class="apbct_settings-field_content apbct_settings-field_content--' . $params['type'] . '">';
@@ -1901,7 +1901,7 @@ function apbct_settings__field__draw($params = array())
 
             echo '</select>';
             echo isset($params['long_description'])
-                ? '<i setting="' . $params['name'] . '" class="apbct_settings-long_description---show icon-help-circled"></i>'
+                ? '<i setting="' . $params['name'] . '" class="apbct_settings-long_description---show apbct-icon-help-circled"></i>'
                 : '';
             echo isset($params['description'])
                 ? '<div class="apbct_settings-field_description">' . $params['description'] . '</div>'
