@@ -226,7 +226,6 @@ button.ct_support_link{
     position: absolute;
     top: 0;
     right: 20px;
-    width: calc(30% - 20px);
 }
 #apbct_settings__after_advanced_settings{
     margin-bottom: 20px;
