@@ -1134,7 +1134,6 @@ function apbct_settings__display()
          . __('Save Changes')
          . '</button></div>';
 
-    echo '<div class="clear"></div>';
     echo "</form>";
 
     if ( ! $apbct->white_label ) {
