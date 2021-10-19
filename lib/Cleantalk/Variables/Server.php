@@ -127,4 +127,15 @@ class Server extends ServerVariables
     {
         return self::get('REQUEST_METHOD') === 'GET';
     }
+
+    /**
+     * Determines if SSL is used.
+     *
+     * @return bool True if SSL, otherwise false.
+     */
+    public static function isSSL() {
+        return self::get('HTTPS') === 'on' ||
+               self::get('HTTPS') === '1' ||
+               self::get('SERVER_PORT') == '443';
+    }
 }
