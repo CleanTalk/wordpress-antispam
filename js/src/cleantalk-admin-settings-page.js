@@ -418,25 +418,24 @@ function apbct_save_button_position() {
 	var docInnerHeight = window.innerHeight;
 	var advSettingsBlock = document.getElementById('apbct_settings__advanced_settings');
 	var advSettingsOffset = advSettingsBlock.getBoundingClientRect().top;
-	var advSettingsOffsetBefore = document.getElementById('apbct_settings__before_advanced_settings').getBoundingClientRect().top;
 	var buttonBlock = document.getElementById('apbct_settings__button_section');
 	var buttonHeight = buttonBlock.getBoundingClientRect().height;
-	var buttonOffset = document.getElementById('apbct_settings__after_advanced_settings').getBoundingClientRect().top + 20;
 	var navBlock = document.getElementById('apbct_hidden_section_nav');
+	var navBlockOffset = navBlock.getBoundingClientRect().top;
+	var navBlockHeight = navBlock.getBoundingClientRect().height;
 
 	// Set Save button position
-	if ( getComputedStyle(advSettingsBlock).display === "none" || docInnerHeight > buttonOffset + buttonHeight ) {
-		buttonBlock.style.bottom = '';
-		buttonBlock.style.top = buttonOffset + 'px';
-	} else {
-		if ( docInnerHeight < advSettingsOffsetBefore + buttonHeight ) {
+	if ( getComputedStyle(advSettingsBlock).display !== "none" ) {
+		jQuery('#apbct_settings__main_save_button').hide();
+		if ( docInnerHeight < navBlockOffset + navBlockHeight + buttonHeight ) {
 			buttonBlock.style.bottom = '';
-			buttonBlock.style.top = advSettingsOffsetBefore + 20 + 'px';
+			buttonBlock.style.top = navBlockOffset + navBlockHeight + 20 + 'px';
 		} else {
 			buttonBlock.style.bottom = 0;
 			buttonBlock.style.top = '';
 		}
-
+	} else {
+		jQuery('#apbct_settings__main_save_button').show();
 	}
 
 	// Set nav position

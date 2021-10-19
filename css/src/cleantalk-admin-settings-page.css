@@ -216,15 +216,17 @@ button.ct_support_link{
     text-decoration: underline;
     cursor: pointer;
 }
-
 #apbct_settings__advanced_settings {
     position: relative;
+}
+#apbct_settings__advanced_settings_inner {
+    width: 70%;
 }
 #apbct_hidden_section_nav {
     position: absolute;
     top: 0;
     right: 20px;
-    width: calc(30% - 210px - 15px - 20px);
+    width: calc(30% - 20px);
 }
 #apbct_settings__after_advanced_settings{
     margin-bottom: 20px;

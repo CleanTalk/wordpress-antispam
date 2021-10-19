@@ -154,7 +154,8 @@ function apbct_settings__set_fileds()
                                 . '</a>'
                                 . '</span>'
                                 . '<div id="apbct_settings__before_advanced_settings"></div>'
-                                . '<div id="apbct_settings__advanced_settings" style="display: none;">',
+                                . '<div id="apbct_settings__advanced_settings" style="display: none;">'
+                                . '<div id="apbct_settings__advanced_settings_inner">',
             'html_after'     => '',
             'section'        => 'hidden_section',
             'fields'         => array(
@@ -663,7 +664,7 @@ function apbct_settings__set_fileds()
         'misc'                  => array(
             'title'      => __('Miscellaneous', 'cleantalk-spam-protect'),
             'section'    => 'hidden_section',
-            'html_after' => '<div id="apbct_hidden_section_nav">{HIDDEN_SECTION_NAV}</div></div>',
+            'html_after' => '</div><div id="apbct_hidden_section_nav">{HIDDEN_SECTION_NAV}</div></div>',
             'fields'     => array(
                 'misc__collect_details'         => array(
                     'type'        => 'checkbox',
@@ -1115,6 +1116,9 @@ function apbct_settings__display()
         }
         $hidden_groups .= '</ul>';
     }
+    $hidden_groups .= '<div id="apbct_settings__button_section"><button name="submit" class="cleantalk_link cleantalk_link-manual" value="save_changes">'
+                           . __('Save Changes')
+                           . '</button></div>';
 
     foreach ( $apbct->settings_fields_in_groups as $group_name => $group ) {
         echo ! empty($group['html_before']) ? $group['html_before'] : '';
@@ -1130,9 +1134,9 @@ function apbct_settings__display()
     }
 
     echo '<div id="apbct_settings__after_advanced_settings"></div>';
-    echo '<div id="apbct_settings__button_section"><button name="submit" class="cleantalk_link cleantalk_link-manual" value="save_changes">'
+    echo '<button name="submit" class="cleantalk_link cleantalk_link-manual" value="save_changes">'
          . __('Save Changes')
-         . '</button></div>';
+         . '</button>';
 
     echo "</form>";
 
