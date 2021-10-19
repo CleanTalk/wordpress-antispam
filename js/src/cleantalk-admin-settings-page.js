@@ -211,18 +211,23 @@ jQuery(document).ready(function(){
 		}
 	});
 
+	apbct_save_button_position();
+	window.addEventListener('scroll', apbct_save_button_position);
+	jQuery('#ct_adv_showhide a').on('click', apbct_save_button_position);
+
+
 	/**
 	 * Change cleantalk account email
 	 */
 	jQuery('#apbct-change-account-email').on('click', function (e) {
 		e.preventDefault();
-		
+
 		var $this = jQuery(this);
 		var accountEmailField = jQuery('#apbct-account-email');
 		var accountEmail = accountEmailField.text();
 
 		$this.toggleClass('active');
-		
+
 		if ($this.hasClass('active')) {
 			$this.text($this.data('save-text'));
 			accountEmailField.attr('contenteditable', 'true');
@@ -268,13 +273,13 @@ jQuery(document).ready(function(){
 	 */
 	jQuery('#apbct_setting_apikey').on('input', function () {
 		var enteredValue = jQuery(this).val();
-		
+
 		if (enteredValue === '' || enteredValue.match(/^[a-z\d]{3,15}$/) === null) {
 			jQuery('#apbct_button__get_key_auto').show();
 			jQuery('button.cleantalk_link[value="save_changes"]').prop('disabled', true);
 			return;
 		}
-		
+
 		jQuery('#apbct_button__get_key_auto').hide();
 		jQuery('button.cleantalk_link[value="save_changes"]').prop('disabled', false);
 	});
@@ -466,4 +471,45 @@ function apbct_settings__showDescription(label, setting_id){
 		},
 		obj
 	);
+}
+
+function apbct_save_button_position() {
+	if (
+		document.getElementById('apbct_settings__before_advanced_settings') === null ||
+		document.getElementById('apbct_settings__after_advanced_settings') === null ||
+		document.getElementById('apbct_settings__button_section') === null ||
+		document.getElementById('apbct_settings__advanced_settings') === null ||
+		document.getElementById('apbct_hidden_section_nav') === null
+	) {
+		return;
+	}
+	var docInnerHeight = window.innerHeight;
+	var advSettingsBlock = document.getElementById('apbct_settings__advanced_settings');
+	var advSettingsOffset = advSettingsBlock.getBoundingClientRect().top;
+	var buttonBlock = document.getElementById('apbct_settings__button_section');
+	var buttonHeight = buttonBlock.getBoundingClientRect().height;
+	var navBlock = document.getElementById('apbct_hidden_section_nav');
+	var navBlockOffset = navBlock.getBoundingClientRect().top;
+	var navBlockHeight = navBlock.getBoundingClientRect().height;
+
+	// Set Save button position
+	if ( getComputedStyle(advSettingsBlock).display !== "none" ) {
+		jQuery('#apbct_settings__main_save_button').hide();
+		if ( docInnerHeight < navBlockOffset + navBlockHeight + buttonHeight ) {
+			buttonBlock.style.bottom = '';
+			buttonBlock.style.top = navBlockOffset + navBlockHeight + 20 + 'px';
+		} else {
+			buttonBlock.style.bottom = 0;
+			buttonBlock.style.top = '';
+		}
+	} else {
+		jQuery('#apbct_settings__main_save_button').show();
+	}
+
+	// Set nav position
+	if ( advSettingsOffset <= 0 ) {
+		navBlock.style.top = - advSettingsOffset + 30 + 'px';
+	} else {
+		navBlock.style.top = 0;
+	}
 }

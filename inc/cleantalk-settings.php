@@ -149,12 +149,15 @@ function apbct_settings__set_fileds()
             'description'    => '',
             'html_before'    => '<hr><br>'
                                 . '<span id="ct_adv_showhide">'
-                                . '<a href="#" class="apbct_color--gray" onclick="event.preventDefault(); apbct_show_hide_elem(\'apbct_settings__davanced_settings\');">'
+                                . '<a href="#" class="apbct_color--gray" onclick="event.preventDefault(); apbct_show_hide_elem(\'apbct_settings__advanced_settings\');">'
                                 . __('Advanced settings', 'cleantalk-spam-protect')
                                 . '</a>'
                                 . '</span>'
-                                . '<div id="apbct_settings__davanced_settings" style="display: none;">',
+                                . '<div id="apbct_settings__before_advanced_settings"></div>'
+                                . '<div id="apbct_settings__advanced_settings" style="display: none;">'
+                                . '<div id="apbct_settings__advanced_settings_inner">',
             'html_after'     => '',
+            'section'        => 'hidden_section',
             'fields'         => array(
                 'forms__registrations_test'             => array(
                     'title'       => __('Registration Forms', 'cleantalk-spam-protect'),
@@ -222,6 +225,7 @@ function apbct_settings__set_fileds()
         // Comments and Messages
         'wc'                    => array(
             'title'  => __('WooCommerce', 'cleantalk-spam-protect'),
+            'section' => 'hidden_section',
             'fields' => array(
                 'forms__wc_checkout_test'       => array(
                     'title'           => __('WooCommerce checkout form', 'cleantalk-spam-protect'),
@@ -280,6 +284,7 @@ function apbct_settings__set_fileds()
         // Comments and Messages
         'comments_and_messages' => array(
             'title'  => __('Comments and Messages', 'cleantalk-spam-protect'),
+            'section' => 'hidden_section',
             'fields' => array(
                 'comments__disable_comments__all'          => array(
                     'title'       => __('Disable all comments', 'cleantalk-spam-protect'),
@@ -357,6 +362,7 @@ function apbct_settings__set_fileds()
         // Data Processing
         'data_processing'       => array(
             'title'  => __('Data Processing', 'cleantalk-spam-protect'),
+            'section' => 'hidden_section',
             'fields' => array(
                 'data__protect_logged_in'              => array(
                     'title'       => __("Protect logged in Users", 'cleantalk-spam-protect'),
@@ -506,6 +512,7 @@ function apbct_settings__set_fileds()
         // Exclusions
         'exclusions'            => array(
             'title'  => __('Exclusions', 'cleantalk-spam-protect'),
+            'section' => 'hidden_section',
             'fields' => array(
                 'exclusions__urls'               => array(
                     'type'        => 'textarea',
@@ -550,6 +557,7 @@ function apbct_settings__set_fileds()
             'description'    => '',
             'html_before'    => '',
             'html_after'     => '',
+            'section'        => 'hidden_section',
             'fields'         => array(
                 'admin_bar__show'             => array(
                     'title'       => __('Show statistics in admin bar', 'cleantalk-spam-protect'),
@@ -600,6 +608,7 @@ function apbct_settings__set_fileds()
             'description'    => '',
             'html_before'    => '',
             'html_after'     => '',
+            'section'        => 'hidden_section',
             'fields'         => array(
                 'sfw__random_get'             => array(
                     'type'        => 'radio',
@@ -659,7 +668,8 @@ function apbct_settings__set_fileds()
         // Misc
         'misc'                  => array(
             'title'      => __('Miscellaneous', 'cleantalk-spam-protect'),
-            'html_after' => '</div><br>',
+            'section'    => 'hidden_section',
+            'html_after' => '</div><div id="apbct_hidden_section_nav">{HIDDEN_SECTION_NAV}</div></div>',
             'fields'     => array(
                 'misc__collect_details'         => array(
                     'type'        => 'checkbox',
@@ -767,7 +777,7 @@ function apbct_settings__set_fileds__network($fields)
                                 . '</a>'
                                 . '</span>'
                                 . '<div id="apbct_settings__dwpms_settings" style="display: block;">',
-            'html_after'     => '</div><br>',
+            'html_after'     => '</div>',
             'fields'         => array(
                 'multisite__work_mode'                                          => array(
                     'type'             => 'select',
@@ -1106,24 +1116,42 @@ function apbct_settings__display()
     settings_fields('cleantalk_settings');
     do_settings_fields('cleantalk', 'cleantalk_section_settings_main');
 
-    foreach ( $apbct->settings_fields_in_groups as $group_name => $group ) {
-        echo ! empty($group['html_before']) ? $group['html_before'] : '';
-        echo ! empty($group['title']) ? '<h3 style="margin-left: 220px;">' . $group['title'] . '</h3>' : '';
-
-        do_settings_fields('cleantalk', 'apbct_section__' . $group_name);
-
-        echo ! empty($group['html_after']) ? $group['html_after'] : '';
-    }
-
-    echo '<br>';
-
     // Disabled save button if key empty
     $disabled = '';
     if (! $apbct->key_is_ok) {
         $disabled = 'disabled';
     }
-    echo '<button name="submit" class="cleantalk_link cleantalk_link-manual" value="save_changes" ' . $disabled . '>' .
-         __('Save Changes') . '</button>';
+
+    $hidden_groups = '<ul>';
+    foreach ( $apbct->settings_fields_in_groups as $group_name => $group ) {
+        if ( isset($group['section']) && $group['section'] === 'hidden_section' ) {
+            $hidden_groups .= '<li><a href="#apbct_setting_group__' . $group_name . '">' . $group['title'] . '</a></li>';
+        }
+    }
+    $hidden_groups .= '</ul>';
+    $hidden_groups .= '<div id="apbct_settings__button_section"><button name="submit" class="cleantalk_link cleantalk_link-manual" value="save_changes" ' . $disabled . '>'
+                           . __('Save Changes')
+                           . '</button></div>';
+
+    foreach ( $apbct->settings_fields_in_groups as $group_name => $group ) {
+        echo ! empty($group['html_before']) ? $group['html_before'] : '';
+        echo ! empty($group['title']) ? '<h3 style="margin-left: 220px;" id="apbct_setting_group__' . $group_name . '">' . $group['title'] . '</h3>' : '';
+
+        do_settings_fields('cleantalk', 'apbct_section__' . $group_name);
+
+        if ( ! empty($group['html_after']) && strpos($group['html_after'], '{HIDDEN_SECTION_NAV}') !== false ) {
+            $group['html_after'] = str_replace('{HIDDEN_SECTION_NAV}', $hidden_groups, $group['html_after']);
+        }
+
+        echo ! empty($group['html_after']) ? $group['html_after'] : '';
+    }
+
+    echo '<div id="apbct_settings__after_advanced_settings"></div>';
+
+    echo '<button id="apbct_settings__main_save_button" name="submit" class="cleantalk_link cleantalk_link-manual" value="save_changes" ' . $disabled . '>'
+         . __('Save Changes')
+         . '</button>';
+    echo '<br>';
 
     echo "</form>";
 

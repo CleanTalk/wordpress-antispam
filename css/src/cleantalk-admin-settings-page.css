@@ -34,7 +34,10 @@ i.animate-spin {
 
 .apbct_settings-field_content{ display: inline-block; }
 .apbct_settings-field_content--checkbox{  }
-.apbct_settings-field_content--radio{ width: 70%; }
+.apbct_settings-field_content--radio,
+.apbct_settings-field_wrapper > .apbct_settings-field_description {
+    width: 70%;
+}
 .apbct_settings-field_content--text{  }
 
 .apbct_settings-field_title{}
@@ -231,4 +234,24 @@ button[value="save_changes"]:disabled {
     color: #2271b1;
     border-color: #2271b1;
     background: #f6f7f7;
+}
+#apbct_settings__advanced_settings {
+    position: relative;
+}
+#apbct_settings__advanced_settings_inner {
+    width: 70%;
+}
+#apbct_hidden_section_nav {
+    position: absolute;
+    top: 0;
+    right: 20px;
+}
+#apbct_settings__after_advanced_settings{
+    margin-bottom: 20px;
+}
+#apbct_settings__button_section {
+    position: fixed;
+    background: #f0f0f1;
+    width: 100%;
+    padding-bottom: 20px;
 }
