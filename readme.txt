@@ -598,6 +598,7 @@ If your website has forms that send data to external sources, you can enable opt
 = 5.164 Oct 21 2021 =
  * New: Integration. UsersWP plugin integration implemented.
  * New. SFW. Incompatibility WP-Rocket notice added.
+ * New: Settings. Advanced settings navigation implemented.
  * Mod: Added the functionality of changing the mail when receiving the key during the initial installation.
  * Mod: Custom admin email. Added minified js and css files
  * Mod: validate api key before save settings for new accounts
