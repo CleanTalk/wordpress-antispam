@@ -619,6 +619,10 @@ If your website has forms that send data to external sources, you can enable opt
  * Fix: Helper. Hard use https for the curl requests.
  * Fix: Helper. Home url slash added.
  * Fix: SFW. Using direct updating if remote calls not working.
+ * Fix: Settings. Save button z-index added.
+ * Fix: Admin bar. Exclamation mark style fixed.
+ * Fix: Settings. Api key description on active IP license added.
+ * Fix: Sender info. Getting page_url on ajax/rest requests fixed.
 
 = 5.163.1 Oct 12 2021 =
  * Fix: Queue. Errors of each try fixed.
