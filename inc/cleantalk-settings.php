@@ -1435,7 +1435,7 @@ function apbct_settings__field__state()
     }
     if ( $apbct->moderate_ip ) {
         print "<br /><br />The anti-spam service is paid by your hosting provider. License #" . $apbct->data['ip_license'] . ".<br />";
-        if( $apbct->api_key ) {
+        if ( $apbct->api_key ) {
             print esc_html__('The access key is not required.', 'cleantalk-spam-protect');
         }
     }
