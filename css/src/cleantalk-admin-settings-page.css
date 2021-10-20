@@ -251,7 +251,7 @@ button[value="save_changes"]:disabled {
 }
 #apbct_settings__button_section {
     position: fixed;
-    background: #f0f0f1;
+    z-index: 9999;
     width: 100%;
     padding-bottom: 20px;
 }
