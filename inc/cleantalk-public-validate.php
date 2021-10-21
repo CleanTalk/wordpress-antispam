@@ -480,14 +480,15 @@ function apbct__filter_form_data($form_data)
 /**
  * Filtering array to exclude another array
  * Example: delete fields from $_POST
- * 
+ *
  * @param $array
  * @param array $excluded_matches
  * @param int $level
  *
  * @return array|mixed
  */
-function apbct__filter_array_recursive(& $array, $excluded_matches, $level = 0) {
+function apbct__filter_array_recursive(&$array, $excluded_matches, $level = 0)
+{
     if (! is_array($array) || empty($array)) {
         return $array;
     }
