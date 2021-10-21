@@ -23,9 +23,6 @@ class Compatibility
         'w3_total_cache' => array(
             'callback' => 'w3tcCheckLateInitCallback',
         ),
-        'wp_rocket_cache' => array(
-            'callback' => 'wpRocketCallback',
-        ),
     );
 
     public function __construct()
