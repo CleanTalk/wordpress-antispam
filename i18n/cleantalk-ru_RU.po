@@ -157,7 +157,7 @@ msgstr "Получить ключ вручную"
 
 #: inc/cleantalk-admin.php:408
 #, php-format
-msgid "Please enter Access Key in %s settings to enable anti spam protection!"
+msgid "Please enter the Access Key in %s plugin to enable spam protection!"
 msgstr ""
 "Пожалуйста, укажите Ключ доступа в настройках %s для активации защиты от "
 "спама!"
