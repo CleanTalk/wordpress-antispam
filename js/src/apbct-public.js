@@ -6,7 +6,8 @@
 		ctMouseData = [],
 		ctMouseDataCounter = 0,
 		ctCheckedEmails = {},
-		ctScrollCollected = false;
+		ctScrollCollected = false,
+		ctMouseMovedCollected = false;
 
 	function apbct_attach_event_handler(elem, event, callback){
 		if(typeof window.addEventListener === "function") elem.addEventListener(event, callback);
@@ -37,6 +38,7 @@
 
 	//Logging mouse position each 150 ms
 	var ctFunctionMouseMove = function output(event){
+		ctSetMouseMoved();
 		if(ctMouseEventTimerFlag === true){
 
 			ctMouseData.push([
@@ -91,6 +93,13 @@
 		}
 	}
 
+	function ctSetMouseMoved() {
+		if( ! ctMouseMovedCollected ) {
+			ctSetCookie("ct_mouse_moved", 'true');
+			ctMouseMovedCollected = true;
+		}
+	}
+
 	apbct_attach_event_handler(window, "mousemove", ctFunctionMouseMove);
 	apbct_attach_event_handler(window, "mousedown", ctFunctionFirstKey);
 	apbct_attach_event_handler(window, "keydown", ctFunctionFirstKey);
@@ -108,6 +117,7 @@
 			["apbct_visible_fields", "0"],
 			["ct_screen_info", apbctGetScreenInfo()],
 			["ct_has_scrolled", 'false'],
+			["ct_mouse_moved", 'false'],
 		];
 
 		if( +ctPublic.pixel__setting ){
