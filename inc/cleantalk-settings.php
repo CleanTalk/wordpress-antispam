@@ -1236,11 +1236,11 @@ function apbct_settings__error__output($return = false)
 
         $errors_out = array();
 
-        $errors = apbct_settings__prepare_errors($errors);
+        $errors = apbct_settings__prepare_errors((array)$errors);
 
         foreach ( $errors as $type => $error ) {
             if ( ! empty($error) ) {
-                if ( count($error) > 2 ) {
+                if ( count($error) > 2 || ( ! isset( $error['error'], $error['error_time'] ) ) ) {
                     foreach ( $error as $sub_type => $sub_error ) {
                         if ( $sub_type === 'error' || $sub_type === 'error_time' ) {
                             continue;
