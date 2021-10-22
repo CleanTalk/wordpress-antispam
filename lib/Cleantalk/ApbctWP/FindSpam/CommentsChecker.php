@@ -21,7 +21,7 @@ class CommentsChecker extends Checker
 
         wp_enqueue_script(
             'ct_comments_checkspam',
-            plugins_url('/cleantalk-spam-protect/js/cleantalk-comments-checkspam.min.js'),
+            plugins_url('/cleantalk-spam-protect/js/src/cleantalk-comments-checkspam.js'),
             array('jquery', 'jqueryui'),
             APBCT_VERSION
         );
@@ -119,60 +119,23 @@ class CommentsChecker extends Checker
         check_ajax_referer('ct_secret_nonce', 'security');
 
         global $wpdb, $apbct;
+        $sql_where = '';
 
         if ( isset($_POST['from'], $_POST['till']) ) {
             $from_date = date('Y-m-d', intval(strtotime($_POST['from'])));
             $till_date = date('Y-m-d', intval(strtotime($_POST['till'])));
+            
+            $sql_where = "WHERE comment_date_gmt > '$from_date 00:00:00' AND comment_date_gmt < '$till_date 23:59:59'";
         }
 
-        // Getting comments 100 unchecked comments
-        if ( isset($_COOKIE['ct_comments_safe_check']) ) {
-            $c = $wpdb->get_results(
-                "
-			SELECT comment_ID, comment_date_gmt, comment_author_IP, comment_author_email
-			FROM {$wpdb->comments} as comm
-			WHERE 
-				(comm.comment_approved = '1' OR comm.comment_approved = '0')
-				AND NOT EXISTS(
-				SELECT comment_id, meta_key
-					FROM {$wpdb->commentmeta} as meta
-					WHERE comm.comment_ID = meta.comment_id AND (meta_key = 'ct_checked' OR meta_key = 'ct_bad')
-			)
-			ORDER BY comment_date_gmt
-			LIMIT 100",
-                ARRAY_A
-            );
-        } else {
-            $params = array(
-                'meta_query' => array(
-                    'relation' => 'AND',
-                    array(
-                        'key'     => 'ct_checked_now',
-                        'compare' => 'NOT EXISTS'
-                    ),
-                    array(
-                        'key'     => 'ct_checked',
-                        'compare' => 'NOT EXISTS'
-                    ),
-                    array(
-                        'key'     => 'ct_bad',
-                        'compare' => 'NOT EXISTS'
-                    )
-                ),
-                'orderby'    => 'comment_date_gmt',
-                'order'      => 'ASC',
-                'number'     => 100
-            );
-            if ( isset($from_date, $till_date) ) {
-                $params['date_query'] = array(
-                    'column'    => 'comment_date_gmt',
-                    'after'     => $from_date,
-                    'before'    => $till_date,
-                    'inclusive' => true,
-                );
-            }
-            $c = get_comments($params);
-        }
+        $offset = $_COOKIE['apbct_check_comments_offset'] ?: 0;
+
+        $c = $wpdb->get_results(
+            "SELECT comment_ID, comment_date_gmt, comment_author_IP, comment_author_email
+                       FROM $wpdb->comments
+                       $sql_where
+                       ORDER BY comment_ID
+                       LIMIT 100 OFFSET $offset" );
 
         $check_result = array(
             'end'     => 0,
@@ -216,9 +179,6 @@ class CommentsChecker extends Checker
 
                 if ( empty($curr_ip) && empty($curr_email) ) {
                     $check_result['bad']++;
-                    update_comment_meta($iValue->comment_ID, 'ct_bad', '1');
-                    update_comment_meta($iValue->comment_ID, 'ct_checked', '1');
-                    update_comment_meta($iValue->comment_ID, 'ct_checked_now', '1');
                     unset($c[$i]);
                 } else {
                     if ( ! empty($curr_ip) ) {
@@ -232,6 +192,10 @@ class CommentsChecker extends Checker
                     $iValue->comment_author_email = empty($curr_email) ? 'none' : $curr_email;
                 }
             }
+
+            // save count bad comments to State:data
+            $apbct->data['count_bad_comments'] += $check_result['bad'];
+            $apbct->saveData();
 
             // Recombining after checking and unsetting
             $c = array_values($c);
@@ -257,8 +221,6 @@ class CommentsChecker extends Checker
                     $mark_spam_email = false;
 
                     $check_result['checked']++;
-                    update_comment_meta($iValue->comment_ID, 'ct_checked', date("Y-m-d H:m:s"));
-                    update_comment_meta($iValue->comment_ID, 'ct_checked_now', date("Y-m-d H:m:s"), true);
 
                     $uip = $iValue->comment_author_IP;
                     $uim = $iValue->comment_author_email;
@@ -276,6 +238,11 @@ class CommentsChecker extends Checker
                         update_comment_meta($iValue->comment_ID, 'ct_marked_as_spam', '1');
                     }
                 }
+                
+                // save count checked comments to State:data
+                $apbct->data['count_checked_comments'] += $check_result['checked'];
+                $apbct->saveData();
+
                 print json_encode($check_result);
             } else {
                 $check_result['error']         = 1;
@@ -302,19 +269,13 @@ class CommentsChecker extends Checker
 
     public static function ctAjaxInfo($direct_call = false)
     {
-        global $wpdb;
+        global $wpdb, $apbct;
 
         if ( ! $direct_call ) {
             check_ajax_referer('ct_secret_nonce', 'security');
         }
 
-        // Checked comments
-        $params_checked   = array(
-            'meta_key' => 'ct_checked_now',
-            'orderby'  => 'ct_checked_now'
-        );
-        $checked_comments = new \WP_Comment_Query($params_checked);
-        $cnt_checked      = count($checked_comments->get_comments());
+        $cnt_checked      = $apbct->data['count_checked_comments'];
 
         // Spam comments
         $params_spam   = array(
@@ -322,33 +283,16 @@ class CommentsChecker extends Checker
                 'relation' => 'AND',
                 array(
                     'key'     => 'ct_marked_as_spam',
-                    'compare' => 'EXISTS'
-                ),
-                array(
-                    'key'     => 'ct_checked_now',
-                    'compare' => 'EXISTS'
-                ),
+                    'compare' => '=',
+                    'value'   => 1
+                )
             ),
         );
         $spam_comments = new \WP_Comment_Query($params_spam);
         $cnt_spam      = count($spam_comments->get_comments());
 
         // Bad comments (without IP and Email)
-        $params_bad   = array(
-            'meta_query' => array(
-                'relation' => 'AND',
-                array(
-                    'key'     => 'ct_bad',
-                    'compare' => 'EXISTS'
-                ),
-                array(
-                    'key'     => 'ct_checked_now',
-                    'compare' => 'EXISTS'
-                ),
-            ),
-        );
-        $bad_comments = new \WP_Comment_Query($params_bad);
-        $cnt_bad      = count($bad_comments->get_comments());
+        $cnt_bad      = $apbct->data['count_bad_comments'];
 
         /**
          * Total comments
@@ -418,35 +362,16 @@ class CommentsChecker extends Checker
 
     public static function ctAjaxClearComments()
     {
-        global $wpdb;
+        global $wpdb ,$apbct;
 
         check_ajax_referer('ct_secret_nonce', 'security');
-
-        $wpdb->query("DELETE FROM {$wpdb->commentmeta} WHERE meta_key IN ('ct_checked_now')");
-
-        if ( isset($_POST['from']) && isset($_POST['till']) ) {
-            if (
-                preg_match('/[a-zA-Z]{3}\s{1}\d{1,2}\s{1}\d{4}/', $_POST['from']) &&
-                preg_match('/[a-zA-Z]{3}\s{1}\d{1,2}\s{1}\d{4}/', $_POST['till'])
-            ) {
-                $from = date('Y-m-d', intval(strtotime($_POST['from']))) . ' 00:00:00';
-                $till = date('Y-m-d', intval(strtotime($_POST['till']))) . ' 23:59:59';
-
-                $wpdb->query(
-                    "DELETE FROM {$wpdb->commentmeta} WHERE 
-                meta_key IN ('ct_checked','ct_marked_as_spam','ct_bad') 
-                AND meta_value >= '{$from}' 
-                AND meta_value <= '{$till}';"
-                );
-                die();
-            } else {
-                $wpdb->query(
-                    "DELETE FROM {$wpdb->commentmeta} WHERE 
-                meta_key IN ('ct_checked','ct_marked_as_spam','ct_bad')"
-                );
-                die();
-            }
-        }
+    
+        $apbct->data['count_checked_comments'] = 0;
+        $apbct->data['count_bad_comments'] = 0;
+        $apbct->saveData();
+        
+        $wpdb->query("DELETE FROM {$wpdb->commentmeta} WHERE meta_key IN ('ct_marked_as_spam')");
+        die;
     }
 
     private static function getLogData()

@@ -308,37 +308,7 @@ class Comments extends \Cleantalk\ApbctWP\CleantalkListTable
      */
     public function getChecked()
     {
-        $params_spam = array(
-            'meta_key' => 'ct_checked',
-        );
-
-        return new \WP_Comment_Query($params_spam);
-    }
-
-    /**
-     * @return \WP_Comment_Query
-     * @psalm-suppress PossiblyUnusedMethod
-     */
-    public function getCheckedNow()
-    {
-        $params_spam = array(
-            'meta_key' => 'ct_checked_now',
-        );
-
-        return new \WP_Comment_Query($params_spam);
-    }
-
-    /**
-     * @return \WP_Comment_Query
-     * @psalm-suppress PossiblyUnusedMethod
-     */
-    public function getSpam()
-    {
-        $params_spam = array(
-            'meta_key' => 'ct_marked_as_spam',
-        );
-
-        return new \WP_Comment_Query($params_spam);
+        return $this->apbct->data['count_checked_comments'];
     }
 
     /**
@@ -349,17 +319,7 @@ class Comments extends \Cleantalk\ApbctWP\CleantalkListTable
     public function getSpamNow()
     {
         $params_spam = array(
-            'meta_query' => array(
-                'relation' => 'AND',
-                array(
-                    'key'     => 'ct_marked_as_spam',
-                    'compare' => 'EXISTS'
-                ),
-                array(
-                    'key'     => 'ct_checked_now',
-                    'compare' => 'EXISTS'
-                ),
-            )
+            'meta_key' => 'ct_marked_as_spam',
         );
 
         return new \WP_Comment_Query($params_spam);
@@ -373,11 +333,7 @@ class Comments extends \Cleantalk\ApbctWP\CleantalkListTable
      */
     public function getBad()
     {
-        $params_bad = array(
-            'meta_key' => 'ct_bad',
-        );
-
-        return new \WP_Comment_Query($params_bad);
+        return $this->apbct->data['count_bad_comments'];
     }
 
     public function getScansLogs()
