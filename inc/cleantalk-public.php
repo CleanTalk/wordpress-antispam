@@ -600,7 +600,8 @@ function ct_add_hidden_fields(
                     else                                              elem.attachEvent(event, callback);
                 }
                 apbct_attach_event_handler__backend(window, 'load', function(){
-                    ctSetCookie('{$field_name}', '{$ct_checkjs_key}' );
+                    if (typeof ctSetCookie === \"function\")
+                        ctSetCookie('{$field_name}', '{$ct_checkjs_key}' );
                 });
 		    </script>";
         // Using AJAX to get key
