@@ -565,10 +565,39 @@ class State extends \Cleantalk\Common\State
             'error_time' => $set_time ? current_time('timestamp') : null,
         );
 
+        //@ToDo Have to rebuild subtypes. These are too difficult to process now.
         if ( ! empty($major_type)) {
-            $this->errors[$major_type][$type] = $error;
+            if ( is_array($this->errors[$major_type][$type]) && count($this->errors[$major_type][$type]) >= 5 ) {
+                array_shift($this->errors[$major_type][$type]);
+            }
+            $this->errors[$major_type][$type][] = $error;
         } else {
-            $this->errors[$type] = $error;
+            // Remove subtype errors from processing.
+            // No need to array_shift for these
+            $sub_errors = array();
+            if ( is_array($this->errors[$type]) ) {
+                foreach ( $this->errors[$type] as $key => $sub_error ) {
+                    if ( is_string($key) ) {
+                        $sub_errors[$key] = $sub_error;
+                        unset($this->errors[$type][$key]);
+                    }
+                }
+            }
+
+            // Drop first element if errors array length is more than 5
+            if ( is_array($this->errors[$type]) && count($this->errors[$type]) >= 5 ) {
+                array_shift($this->errors[$type]);
+            }
+
+            // Add the error to the errors array
+            $this->errors[$type][] = $error;
+
+            // Add the sub error to the errors array
+            if ( count($sub_errors) ) {
+                foreach ( $sub_errors as $sub_key => $sub_val ) {
+                    $this->errors[$type][$sub_key] = $sub_val;
+                }
+            }
         }
 
         $this->saveErrors();

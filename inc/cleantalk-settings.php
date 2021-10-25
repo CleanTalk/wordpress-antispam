@@ -1215,6 +1215,7 @@ function apbct_settings__error__output($return = false)
                 'cleantalk-spam-protect'
             ),
             'api'               => __('Error occurred while executing API call. Error: ', 'cleantalk-spam-protect'),
+            'cron'              => __('Error occurred while executing CleantalkCron job. Error: ', 'cleantalk-spam-protect'),
             'sfw_outdated'        => __(
                 'Error occurred on last SpamFireWall check. Error: ',
                 'cleantalk-spam-protect'
@@ -1231,10 +1232,15 @@ function apbct_settings__error__output($return = false)
 
         $errors_out = array();
 
+        $errors = apbct_settings__prepare_errors((array)$errors);
+
         foreach ( $errors as $type => $error ) {
             if ( ! empty($error) ) {
-                if ( is_array(current($error)) ) {
+                if ( count($error) > 2 || ( ! isset($error['error'], $error['error_time']) ) ) {
                     foreach ( $error as $sub_type => $sub_error ) {
+                        if ( $sub_type === 'error' || $sub_type === 'error_time' ) {
+                            continue;
+                        }
                         if ( isset($sub_error['error']) && strpos($sub_error['error'], 'SFW_IS_DISABLED') !== false ) {
                             continue;
                         }
@@ -1246,7 +1252,6 @@ function apbct_settings__error__output($return = false)
                         $errors_out[$sub_type] .= (isset($error_texts[$type]) ? $error_texts[$type] : ucfirst($type)) . ': ';
                         $errors_out[$sub_type] .= (isset($error_texts[$sub_type]) ? $error_texts[$sub_type] : ( $error_texts['unknown'] . $sub_type . ' ' . __('Error: ', 'cleantalk-spam-protect') ) . ' ' . $sub_error['error'] );
                     }
-                    continue;
                 }
 
                 if (
@@ -1293,6 +1298,34 @@ function apbct_settings__error__output($return = false)
     } else {
         echo $out;
     }
+}
+
+/**
+ * Get only last error from each error types from errors array
+ *
+ * @param array $errors
+ *
+ * @return array
+ */
+function apbct_settings__prepare_errors($errors)
+{
+    $prepared_errors = array();
+
+    if ( is_array($errors) ) {
+        foreach ( $errors as $type => $error ) {
+            if ( is_array($error) ) {
+                foreach ( $error as $key => $error_info ) {
+                    if ( is_string($key) ) {
+                        $prepared_errors[$type][$key] =  end($error_info);
+                    } else {
+                        $prepared_errors[$type] =  $error_info;
+                    }
+                }
+            }
+        }
+    }
+
+    return $prepared_errors;
 }
 
 function apbct_settings__field__debug()

@@ -1548,3 +1548,12 @@ function apbct_update_to_5_164_0()
     $apbct->data['ajax_type'] = $alt_cookies_type;
     $apbct->saveData();
 }
+
+/**
+ * 5.164.2
+ */
+function apbct_update_to_5_164_2()
+{
+    global $apbct;
+    $apbct->errorDeleteAll();
+}
