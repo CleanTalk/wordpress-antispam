@@ -2310,6 +2310,12 @@ function apbct_settings__sync($direct_call = false)
     die(json_encode($out));
 }
 
+/**
+ * @param bool $direct_call
+ *
+ * @return array|bool|false[]|mixed|string|string[]|void
+ * @psalm-suppress RedundantCondition
+ */
 function apbct_settings__get_key_auto($direct_call = false)
 {
     if ( ! $direct_call ) {
