@@ -845,7 +845,8 @@ function apbct_sfw_update__init($delay = 0)
         $apbct->save('stats');
     }
 
-    $apbct->fw_stats['updating_folder'] = APBCT_DIR_PATH . DIRECTORY_SEPARATOR . 'fw_files_for_blog_' . get_current_blog_id() . DIRECTORY_SEPARATOR;
+    $wp_upload_dir = wp_upload_dir();
+    $apbct->fw_stats['updating_folder'] = $wp_upload_dir['basedir'] . DIRECTORY_SEPARATOR . 'cleantalk_fw_files_for_blog_' . get_current_blog_id() . DIRECTORY_SEPARATOR;
 
     $prepare_dir__result = apbct_prepare_upd_dir();
     $test_rc_result = Helper::httpRequestRcToHostTest(

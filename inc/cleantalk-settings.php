@@ -1037,10 +1037,9 @@ function apbct_settings__display()
             . '<br>';
         echo __('Plugin Homepage at', 'cleantalk-spam-protect') .
              ' <a href="https://cleantalk.org" target="_blank">cleantalk.org</a>.<br/>';
-        echo '<span id="apbct_gdpr_open_modal" style="text-decoration: underline;">' . __(
-            'GDPR compliance',
-            'cleantalk-spam-protect'
-        ) . '</span><br/>';
+        echo '<a href="https://cleantalk.org/publicoffer#cleantalk_gdpr_compliance" target="_blank">'
+             . __('GDPR compliance', 'cleantalk-spam-protect')
+             . '</a><br/>';
         echo __('Use s@cleantalk.org to test plugin in any WordPress form.', 'cleantalk-spam-protect') . '<br>';
         echo __('CleanTalk is registered Trademark. All rights reserved.', 'cleantalk-spam-protect') . '<br/>';
         if ( $apbct->key_is_ok ) {
@@ -1051,9 +1050,6 @@ function apbct_settings__display()
             ) . '</b><br />';
         }
         apbct_admin__badge__get_premium();
-        echo '<div id="gdpr_dialog" style="display: none; padding: 7px;">';
-        apbct_settings_show_gdpr_text('print');
-        echo '</div>';
         echo '</div>';
     }
 
@@ -2513,31 +2509,6 @@ function apbct_settings__sanitize__exclusions($exclusions, $regexp = false)
             return implode("\n", $result);
         case 2:
             return implode("\r\n", $result);
-    }
-}
-
-function apbct_settings_show_gdpr_text($print = false)
-{
-    $out = wpautop('The notice requirements remain and are expanded. They must include the retention time for personal data, and contact information for data controller and data protection officer has to be provided.
-	Automated individual decision-making, including profiling (Article 22) is contestable, similarly to the Data Protection Directive (Article 15). Citizens have rights to question and fight significant decisions that affect them that have been made on a solely-algorithmic basis. Many media outlets have commented on the introduction of a "right to explanation" of algorithmic decisions, but legal scholars have since argued that the existence of such a right is highly unclear without judicial tests and is limited at best.
-	To be able to demonstrate compliance with the GDPR, the data controller should implement measures, which meet the principles of data protection by design and data protection by default. Privacy by design and by default (Article 25) require data protection measures to be designed into the development of business processes for products and services. Such measures include pseudonymising personal data, by the controller, as soon as possible (Recital 78).
-	It is the responsibility and the liability of the data controller to implement effective measures and be able to demonstrate the compliance of processing activities even if the processing is carried out by a data processor on behalf of the controller (Recital 74).
-	Data Protection Impact Assessments (Article 35) have to be conducted when specific risks occur to the rights and freedoms of data subjects. Risk assessment and mitigation is required and prior approval of the national data protection authorities (DPAs) is required for high risks. Data protection officers (Articles 37–39) are required to ensure compliance within organisations.
-	They have to be appointed:')
-    . '<ul style="padding: 0px 25px; list-style: disc;">'
-    . '<li>for all public authorities, except for courts acting in their judicial capacity</li>'
-    . '<li>if the core activities of the controller or the processor are:</li>'
-    . '<ul style="padding: 0px 25px; list-style: disc;">'
-    . '<li>processing operations, which, by virtue of their nature, their scope and/or their purposes, require regular and systematic monitoring of data subjects on a large scale</li>'
-    . '<li>processing on a large scale of special categories of data pursuant to Article 9 and personal data relating to criminal convictions and offences referred to in Article 10;</li>'
-    . '</ul>'
-    . '</li>'
-    . '</ul>';
-
-    if ( $print ) {
-        echo $out;
-    } else {
-        return $out;
     }
 }
 
