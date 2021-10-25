@@ -9,7 +9,7 @@ class SettingsTest extends TestCase
     /**
      * @var string[]
      */
-    private array $errors;
+    private $errors;
 
     public function setUp()
     {
