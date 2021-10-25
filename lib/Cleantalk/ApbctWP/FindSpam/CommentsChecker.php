@@ -21,7 +21,7 @@ class CommentsChecker extends Checker
 
         wp_enqueue_script(
             'ct_comments_checkspam',
-            plugins_url('/cleantalk-spam-protect/js/src/cleantalk-comments-checkspam.js'),
+            plugins_url('/cleantalk-spam-protect/js/cleantalk-comments-checkspam.min.js'),
             array('jquery', 'jqueryui'),
             APBCT_VERSION
         );
@@ -124,7 +124,7 @@ class CommentsChecker extends Checker
         if ( isset($_POST['from'], $_POST['till']) ) {
             $from_date = date('Y-m-d', intval(strtotime($_POST['from'])));
             $till_date = date('Y-m-d', intval(strtotime($_POST['till'])));
-            
+
             $sql_where = "WHERE comment_date_gmt > '$from_date 00:00:00' AND comment_date_gmt < '$till_date 23:59:59'";
         }
 
@@ -135,7 +135,8 @@ class CommentsChecker extends Checker
                        FROM $wpdb->comments
                        $sql_where
                        ORDER BY comment_ID
-                       LIMIT 100 OFFSET $offset" );
+                       LIMIT 100 OFFSET $offset"
+        );
 
         $check_result = array(
             'end'     => 0,
@@ -238,7 +239,7 @@ class CommentsChecker extends Checker
                         update_comment_meta($iValue->comment_ID, 'ct_marked_as_spam', '1');
                     }
                 }
-                
+
                 // save count checked comments to State:data
                 $apbct->data['count_checked_comments'] += $check_result['checked'];
                 $apbct->saveData();
@@ -365,23 +366,20 @@ class CommentsChecker extends Checker
         global $wpdb ,$apbct;
 
         check_ajax_referer('ct_secret_nonce', 'security');
-    
+
         $apbct->data['count_checked_comments'] = 0;
         $apbct->data['count_bad_comments'] = 0;
         $apbct->saveData();
-        
+
         $wpdb->query("DELETE FROM {$wpdb->commentmeta} WHERE meta_key IN ('ct_marked_as_spam')");
         die;
     }
 
     private static function getLogData()
     {
-        // Checked users
-        $params_spam   = array(
-            'meta_key' => 'ct_checked_now',
-        );
-        $spam_comments = new \WP_Comment_Query($params_spam);
-        $cnt_checked   = count($spam_comments->get_comments());
+        global $apbct;
+
+        $cnt_checked   = $apbct->data['count_checked_comments'];
 
         // Spam users
         $params_spam   = array(
@@ -389,33 +387,15 @@ class CommentsChecker extends Checker
                 'relation' => 'AND',
                 array(
                     'key'     => 'ct_marked_as_spam',
-                    'compare' => 'EXISTS'
-                ),
-                array(
-                    'key'     => 'ct_checked_now',
-                    'compare' => 'EXISTS'
+                    'compare' => '=',
+                    'value'   => 1
                 ),
             ),
         );
         $spam_comments = new \WP_Comment_Query($params_spam);
         $cnt_spam      = count($spam_comments->get_comments());
 
-        // Bad users (without IP and Email)
-        $params_bad    = array(
-            'meta_query' => array(
-                'relation' => 'AND',
-                array(
-                    'key'     => 'ct_bad',
-                    'compare' => 'EXISTS'
-                ),
-                array(
-                    'key'     => 'ct_checked_now',
-                    'compare' => 'EXISTS'
-                ),
-            ),
-        );
-        $spam_comments = new \WP_Comment_Query($params_bad);
-        $cnt_bad       = count($spam_comments->get_comments());
+        $cnt_bad       = $apbct->data['count_bad_comments'];
 
         return array(
             'spam'    => $cnt_spam,
