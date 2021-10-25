@@ -1236,7 +1236,7 @@ function apbct_settings__error__output($return = false)
 
         foreach ( $errors as $type => $error ) {
             if ( ! empty($error) ) {
-                if ( count($error) > 2 || ( ! isset( $error['error'], $error['error_time'] ) ) ) {
+                if ( count($error) > 2 || ( ! isset($error['error'], $error['error_time']) ) ) {
                     foreach ( $error as $sub_type => $sub_error ) {
                         if ( $sub_type === 'error' || $sub_type === 'error_time' ) {
                             continue;
