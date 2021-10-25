@@ -321,6 +321,7 @@ function apbct_is_ajax()
  * Checks if the request is REST
  *
  * @return boolean
+ * @psalm-suppress RedundantCondition
  */
 function apbct_is_rest()
 {
@@ -398,11 +399,12 @@ function apbct_is_in_uri($str)
     return stripos(apbct_get_server_variable('REQUEST_URI'), $str) !== false;
 }
 
-/*
+/**
  * Checking if current request is a cron job
  * Support for wordpress < 4.8.0
  *
  * @return bool
+ * @psalm-suppress RedundantCondition
  */
 function apbct_wp_doing_cron()
 {

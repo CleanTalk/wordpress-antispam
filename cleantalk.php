@@ -2338,6 +2338,7 @@ function ct_mail_send_connection_report()
 
         $headers = "Content-type: text/html; charset=windows-1251 \r\n";
         $headers .= 'From: ' . ct_get_admin_email();
+        /** @psalm-suppress UnusedFunctionCall */
         mail($to, $subject, $message, $headers);
     }
 
