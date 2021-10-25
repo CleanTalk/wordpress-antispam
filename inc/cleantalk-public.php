@@ -8,6 +8,7 @@ use Cleantalk\Common\Helper;
  *
  * @throws Exception
  * @psalm-suppress UnusedVariable
+ * @psalm-suppress RedundantCondition
  */
 function apbct_init()
 {

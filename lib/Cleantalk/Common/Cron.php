@@ -162,6 +162,7 @@ abstract class Cron
      * @param array $params
      *
      * @return bool
+     * @psalm-suppress PossiblyUnusedReturnValue
      */
     public function updateTask($task, $handler, $period, $first_call = null, $params = array())
     {

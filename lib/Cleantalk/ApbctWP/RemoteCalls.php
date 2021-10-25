@@ -25,6 +25,7 @@ class RemoteCalls
      * Execute corresponding method of RemoteCalls if exists
      *
      * @return bool|string|string[]|null
+     * @psalm-suppress PossiblyUnusedReturnValue
      */
     public static function perform()
     {

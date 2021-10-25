@@ -290,6 +290,7 @@ class AdminNotices
      * @param string $after
      *
      * @return string
+     * @psalm-suppress PossiblyUnusedReturnValue
      */
     public function addAttentionMark($after)
     {

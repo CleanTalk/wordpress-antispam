@@ -348,6 +348,8 @@ class Cleantalk
      * @todo Refactor / fix logic errors
      *
      * Function DNS request
+     *
+     * @psalm-suppress RedundantCondition
      */
     public function getServersIp($host)
     {
