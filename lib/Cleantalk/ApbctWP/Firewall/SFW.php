@@ -82,11 +82,6 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
         $results = array();
         $status  = 0;
 
-        //Skip if sfw not updated yet
-        if ( ! $this->apbct->stats['sfw']['last_update_time']) {
-            return $results;
-        }
-
         // Skip by cookie
         foreach ($this->ip_array as $current_ip) {
             if (strpos(Cookie::get('ct_sfw_pass_key'), md5($current_ip . $this->api_key)) === 0) {

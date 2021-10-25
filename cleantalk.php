@@ -363,6 +363,7 @@ if ( ! is_admin() && ! apbct_is_ajax() && ! apbct_is_customize_preview() ) {
     // SpamFireWall check
     if ( $apbct->plugin_version == APBCT_VERSION && // Do not call with first start
          $apbct->settings['sfw__enabled'] == 1 &&
+         $apbct->stats['sfw']['last_update_time'] &&
          apbct_is_get() &&
          ! apbct_wp_doing_cron() &&
          ! \Cleantalk\Variables\Server::inUri('/favicon.ico') &&
