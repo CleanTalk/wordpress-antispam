@@ -6,7 +6,8 @@
 		ctMouseData = [],
 		ctMouseDataCounter = 0,
 		ctCheckedEmails = {},
-		ctScrollCollected = false;
+		ctScrollCollected = false,
+		ctMouseMovedCollected = false;
 
 	function apbct_attach_event_handler(elem, event, callback){
 		if(typeof window.addEventListener === "function") elem.addEventListener(event, callback);
@@ -17,16 +18,6 @@
 		if(typeof window.removeEventListener === "function") elem.removeEventListener(event, callback);
 		else                                                 elem.detachEvent(event, callback);
 	}
-
-	ctSetCookie(
-		[
-			[ "ct_ps_timestamp", Math.floor(new Date().getTime() / 1000) ],
-			[ "ct_fkp_timestamp", "0" ],
-			[ "ct_pointer_data", "0" ],
-			[ "ct_timezone", ct_date.getTimezoneOffset()/60*(-1) ],
-			[ "apbct_visible_fields", "0" ],
-		]
-	);
 
 	//Writing first key press timestamp
 	var ctFunctionFirstKey = function output(event){
@@ -47,6 +38,7 @@
 
 	//Logging mouse position each 150 ms
 	var ctFunctionMouseMove = function output(event){
+		ctSetMouseMoved();
 		if(ctMouseEventTimerFlag === true){
 
 			ctMouseData.push([
@@ -96,8 +88,15 @@
 
 	function ctSetHasScrolled() {
 		if( ! ctScrollCollected ) {
-			ctSetCookie("ct_has_scrolled", JSON.stringify( true ) );
+			ctSetCookie("ct_has_scrolled", 'true');
 			ctScrollCollected = true;
+		}
+	}
+
+	function ctSetMouseMoved() {
+		if( ! ctMouseMovedCollected ) {
+			ctSetCookie("ct_mouse_moved", 'true');
+			ctMouseMovedCollected = true;
 		}
 	}
 
@@ -109,8 +108,20 @@
 	// Ready function
 	function apbct_ready(){
 
+		// Collect scrolling info
+		var initCookies = [
+			["ct_ps_timestamp", Math.floor(new Date().getTime() / 1000)],
+			["ct_fkp_timestamp", "0"],
+			["ct_pointer_data", "0"],
+			["ct_timezone", ct_date.getTimezoneOffset()/60*(-1) ],
+			["apbct_visible_fields", "0"],
+			["ct_screen_info", apbctGetScreenInfo()],
+			["ct_has_scrolled", 'false'],
+			["ct_mouse_moved", 'false'],
+		];
+
 		if( +ctPublic.pixel__setting ){
-			ctSetCookie( 'apbct_pixel_url', ctPublic.pixel__url );
+			initCookies.push(['apbct_pixel_url', ctPublic.pixel__url]);
 			if( +ctPublic.pixel__enabled ){
 				if( ! document.getElementById('apbct_pixel') ) {
 					jQuery('body').append( '<img alt="Cleantalk Pixel" id="apbct_pixel" style="display: none; left: 99999px;" src="' + ctPublic.pixel__url + '">' );
@@ -119,13 +130,11 @@
 		}
 
 		if ( +ctPublic.data__email_check_before_post) {
-			ctSetCookie( 'ct_checked_emails', '0');
+			initCookies.push(['ct_checked_emails', '0']);
 			jQuery("input[type = 'email'], #email").blur(checkEmail);
 		}
 
-		// Collect scrolling info
-		ctSetCookie( 'ct_screen_info', apbctGetScreenInfo() );
-		ctSetCookie("ct_has_scrolled", JSON.stringify( false ) );
+		ctSetCookie(initCookies);
 
 		setTimeout(function(){
 

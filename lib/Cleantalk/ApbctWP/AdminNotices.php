@@ -140,7 +140,7 @@ class AdminNotices
     {
         if ( ( ! apbct_api_key__is_correct() && $this->apbct->moderate_ip == 0) && ! $this->apbct->white_label ) {
             $content = sprintf(
-                __("Please enter Access Key in %s settings to enable anti spam protection!", 'cleantalk-spam-protect'),
+                __("Please enter the Access Key in %s plugin to enable spam protection!", 'cleantalk-spam-protect'),
                 "<a href='{$this->settings_link}'>{$this->apbct->plugin_name}</a>"
             );
             $id      = 'cleantalk_' . __FUNCTION__;
