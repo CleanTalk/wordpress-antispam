@@ -18,20 +18,20 @@ class Schema
      */
     private static $structureSchemas = array(
         'sfw' => array(
-            'id' => 'INT(11) NOT NULL AUTO_INCREMENT',
-            'network' => 'int(11) unsigned NOT NULL',
-            'mask' => 'int(11) unsigned NOT NULL',
-            'status' => 'TINYINT(1) NOT NULL DEFAULT 0',
-            'source' => 'TINYINT(1) NULL DEFAULT NULL',
+            'id' => 'INT NOT NULL AUTO_INCREMENT',
+            'network' => 'INT unsigned NOT NULL',
+            'mask' => 'INT unsigned NOT NULL',
+            'status' => 'TINYINT NOT NULL DEFAULT 0',
+            'source' => 'TINYINT NULL DEFAULT NULL',
             '__indexes' => 'PRIMARY KEY (`id`), INDEX (  `network` ,  `mask` )',
-            '__createkey' => 'int(11) unsigned primary KEY AUTO_INCREMENT FIRST'
+            '__createkey' => 'INT unsigned primary KEY AUTO_INCREMENT FIRST'
         ),
         'ua_bl' => array(
-            'id' => 'INT(11) NOT NULL',
+            'id' => 'INT NOT NULL',
             'ua_template' => 'VARCHAR(255) NULL DEFAULT NULL',
-            'ua_status' => 'TINYINT(1) NULL DEFAULT NULL',
+            'ua_status' => 'TINYINT NULL DEFAULT NULL',
             '__indexes' => 'PRIMARY KEY ( `id` ), INDEX ( `ua_template` )',
-            '__createkey' => 'int(11) unsigned primary KEY FIRST'
+            '__createkey' => 'INT unsigned primary KEY FIRST'
         ),
         'sfw_logs' => array(
             'id' => 'VARCHAR(40) NOT NULL',
@@ -40,9 +40,9 @@ class Schema
             'all_entries' => 'INT NOT NULL',
             'blocked_entries' => 'INT NOT NULL',
             'entries_timestamp' => 'INT NOT NULL',
-            'ua_id' => 'INT(11) NULL DEFAULT NULL',
+            'ua_id' => 'INT NULL DEFAULT NULL',
             'ua_name' => 'VARCHAR(1024) NOT NULL',
-            'source' => 'TINYINT(1) NULL DEFAULT NULL',
+            'source' => 'TINYINT NULL DEFAULT NULL',
             'network' => 'VARCHAR(20) NULL DEFAULT NULL',
             'first_url' => 'VARCHAR(100) NULL DEFAULT NULL',
             'last_url' => 'VARCHAR(100) NULL DEFAULT NULL',
@@ -67,15 +67,15 @@ class Schema
             '__createkey' => 'VARCHAR(64) NOT NULL primary KEY FIRST'
         ),
         'spamscan_logs' => array(
-            'id' => 'int(11) NOT NULL AUTO_INCREMENT',
-            'scan_type' => 'varchar(11) NOT NULL',
-            'start_time' => 'datetime NOT NULL',
-            'finish_time' => 'datetime NOT NULL',
-            'count_to_scan' => 'int(11) DEFAULT NULL',
-            'found_spam' => 'int(11) DEFAULT NULL',
-            'found_bad' => 'int(11) DEFAULT NULL',
+            'id' => 'INT NOT NULL AUTO_INCREMENT',
+            'scan_type' => 'VARCHAR(11) NOT NULL',
+            'start_time' => 'DATETIME NOT NULL',
+            'finish_time' => 'DATETIME NOT NULL',
+            'count_to_scan' => 'INT DEFAULT NULL',
+            'found_spam' => 'INT DEFAULT NULL',
+            'found_bad' => 'INT DEFAULT NULL',
             '__indexes' => 'PRIMARY KEY (`id`)',
-            '__createkey' => 'int(11) unsigned primary KEY AUTO_INCREMENT FIRST'
+            '__createkey' => 'INT unsigned primary KEY AUTO_INCREMENT FIRST'
         ),
     );
 
@@ -107,18 +107,18 @@ class Schema
      */
     private static $schemas = array(
         'sfw' => 'CREATE TABLE IF NOT EXISTS `%scleantalk_sfw` (
-			`id` INT(11) NOT NULL AUTO_INCREMENT,
-			`network` int(11) unsigned NOT NULL,
-			`mask` int(11) unsigned NOT NULL,
-			`status` TINYINT(1) NOT NULL DEFAULT 0,
-			`source` TINYINT(1) NULL DEFAULT NULL,
+			`id` INT NOT NULL AUTO_INCREMENT,
+			`network` INT unsigned NOT NULL,
+			`mask` INT unsigned NOT NULL,
+			`status` TINYINT NOT NULL DEFAULT 0,
+			`source` TINYINT NULL DEFAULT NULL,
 			PRIMARY KEY (`id`),
 			INDEX (  `network` ,  `mask` )
 		    );',
         'ua_bl' => 'CREATE TABLE IF NOT EXISTS `%scleantalk_ua_bl` (
-			`id` INT(11) NOT NULL,
+			`id` INT NOT NULL,
 			`ua_template` VARCHAR(255) NULL DEFAULT NULL,
-			`ua_status` TINYINT(1) NULL DEFAULT NULL,
+			`ua_status` TINYINT NULL DEFAULT NULL,
 			PRIMARY KEY ( `id` ),
 			INDEX ( `ua_template` )			
 		    ) DEFAULT CHARSET=utf8;', // Don't remove the default charset!
@@ -129,9 +129,9 @@ class Schema
             `all_entries` INT NOT NULL,
             `blocked_entries` INT NOT NULL,
             `entries_timestamp` INT NOT NULL,
-            `ua_id` INT(11) NULL DEFAULT NULL,
+            `ua_id` INT NULL DEFAULT NULL,
             `ua_name` VARCHAR(1024) NOT NULL,
-            `source` TINYINT(1) NULL DEFAULT NULL,
+            `source` TINYINT NULL DEFAULT NULL,
             `network` VARCHAR(20) NULL DEFAULT NULL,
             `first_url` VARCHAR(100) NULL DEFAULT NULL,
             `last_url` VARCHAR(100) NULL DEFAULT NULL,
@@ -150,13 +150,13 @@ class Schema
             `last_update` DATETIME NULL DEFAULT NULL,
             PRIMARY KEY (`name`(40), `id`(64)));',
         'spamscan_logs' => 'CREATE TABLE IF NOT EXISTS `%scleantalk_spamscan_logs` (
-            `id` int(11) NOT NULL AUTO_INCREMENT,
-            `scan_type` varchar(11) NOT NULL,
-            `start_time` datetime NOT NULL,
-            `finish_time` datetime NOT NULL,
-            `count_to_scan` int(11) DEFAULT NULL,
-            `found_spam` int(11) DEFAULT NULL,
-            `found_bad` int(11) DEFAULT NULL,
+            `id` INT NOT NULL AUTO_INCREMENT,
+            `scan_type` VARCHAR(11) NOT NULL,
+            `start_time` DATETIME NOT NULL,
+            `finish_time` DATETIME NOT NULL,
+            `count_to_scan` INT DEFAULT NULL,
+            `found_spam` INT DEFAULT NULL,
+            `found_bad` INT DEFAULT NULL,
             PRIMARY KEY (`id`));',
     );
     
