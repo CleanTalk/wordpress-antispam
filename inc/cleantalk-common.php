@@ -5,16 +5,19 @@ use Cleantalk\Antispam\CleantalkRequest;
 use Cleantalk\Antispam\CleantalkResponse;
 use Cleantalk\ApbctWP\API;
 use Cleantalk\ApbctWP\Cron;
+use Cleantalk\ApbctWP\Firewall\SFW;
 use Cleantalk\ApbctWP\GetFieldsAny;
 use Cleantalk\ApbctWP\Helper;
 use Cleantalk\ApbctWP\Variables\Cookie;
+use Cleantalk\Common\DB;
 use Cleantalk\Variables\Server;
 
-function apbct_array( $array ){
-	return new \Cleantalk\Common\Arr( $array );
+function apbct_array($array)
+{
+    return new \Cleantalk\Common\Arr($array);
 }
 
-$ct_checkjs_frm = 'ct_checkjs_frm';
+$ct_checkjs_frm           = 'ct_checkjs_frm';
 $ct_checkjs_register_form = 'ct_checkjs_register_form';
 
 $apbct_cookie_request_id_label  = 'request_id';
@@ -24,8 +27,8 @@ $ct_checkjs_cf7 = 'ct_checkjs_cf7';
 $ct_cf7_comment = '';
 
 $ct_checkjs_jpcf = 'ct_checkjs_jpcf';
-$ct_jpcf_patched = false; 
-$ct_jpcf_fields = array('name', 'email');
+$ct_jpcf_patched = false;
+$ct_jpcf_fields  = array('name', 'email');
 
 // Comment already proccessed
 $ct_comment_done = false;
@@ -39,10 +42,10 @@ $ct_registration_error_comment = false;
 // Default value for JS test
 $ct_checkjs_def = 0;
 
-// COOKIE label to store request id for last approved  
+// COOKIE label to store request id for last approved
 $ct_approved_request_id_label = 'ct_approved_request_id';
 
-// Last request id approved for publication 
+// Last request id approved for publication
 $ct_approved_request_id = null;
 
 // Trial notice show time in minutes
@@ -54,7 +57,7 @@ $renew_notice_showtime = 10;
 // COOKIE label for WP Landing Page proccessing result
 $ct_wplp_result_label = 'ct_wplp_result';
 
-// Flag indicates active JetPack comments 
+// Flag indicates active JetPack comments
 $ct_jp_comments = false;
 
 // WP admin email notice interval in seconds
@@ -65,18 +68,20 @@ $ct_admin_notoice_period = 21600;
 $ct_negative_comment = null;
 
 
-add_action( 'wp_login', 'apbct_add_admin_ip_to_swf_whitelist', 10, 2 );
+add_action('wp_login', 'apbct_add_admin_ip_to_swf_whitelist', 10, 2);
 
 /**
  * Public action 'plugins_loaded' - Loads locale, see http://codex.wordpress.org/Function_Reference/load_plugin_textdomain
  */
-function apbct_plugin_loaded() {
-	$dir=plugin_basename( dirname( __FILE__ ) ) . '/../i18n';
+function apbct_plugin_loaded()
+{
+    $dir = plugin_basename(dirname(__FILE__)) . '/../i18n';
     load_plugin_textdomain('cleantalk-spam-protect', false, $dir);
 }
 
 /**
  * Inner function - Request's wrapper for anything
+ *
  * @param array Array of parameters:
  *  'message' - string
  *  'example' - string
@@ -85,231 +90,249 @@ function apbct_plugin_loaded() {
  *  'sender_nickname' - string
  *  'sender_info' - array
  *  'post_info' - string
+ *
  * @return array array('ct'=> Cleantalk, 'ct_result' => CleantalkResponse)
  */
-function apbct_base_call($params = array(), $reg_flag = false){
+function apbct_base_call($params = array(), $reg_flag = false)
+{
+    global $cleantalk_executed;
 
-	global $cleantalk_executed;
-	
-	/* Exclusions */
-	if( $cleantalk_executed ){
-        do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
-        return array( 'ct_result' => new CleantalkResponse() );
+    /* Exclusions */
+    if ( $cleantalk_executed ) {
+        do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
+
+        return array('ct_result' => new CleantalkResponse());
     }
-	
+
     // URL, IP, Role exclusions
-    if( apbct_exclusions_check() ){
-        do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
-        return array( 'ct_result' => new CleantalkResponse() );
+    if ( apbct_exclusions_check() ) {
+        do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
+
+        return array('ct_result' => new CleantalkResponse());
     }
-    
+
     // Reversed url exclusions. Pass everything except one.
-    if( apbct_exclusions_check__url__reversed() ){
-        do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
-        return array( 'ct_result' => new CleantalkResponse() );
+    if ( apbct_exclusions_check__url__reversed() ) {
+        do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
+
+        return array('ct_result' => new CleantalkResponse());
     }
 
     global $apbct;
 
     // Fields exclusions
-    if( ! empty( $params['message'] ) && is_array( $params['message'] ) ){
-        $params['message'] = apbct_array( $params['message'] )
-            ->get_keys( $apbct->settings['exclusions__fields'], $apbct->settings['exclusions__fields__use_regexp'] )
+    if ( ! empty($params['message']) && is_array($params['message']) ) {
+        $params['message'] = apbct_array($params['message'])
+            ->getKeys($apbct->settings['exclusions__fields'], $apbct->settings['exclusions__fields__use_regexp'])
             ->delete();
     }
     /* End of Exclusions */
-    
-	$cleantalk_executed = true;
-    
+
+    $cleantalk_executed = true;
+
     /* Request ID rotation */
-	$tmp = array();    
-    if ($apbct->plugin_request_ids && !empty($apbct->plugin_request_ids)) {
-		$plugin_request_id__lifetime = 2;
-	    foreach( $apbct->plugin_request_ids as $request_id => $request_time ){
-	    	if( time() - $request_time < $plugin_request_id__lifetime )
-	    		$tmp[ $request_id ] = $request_time;
-	    }
+    $tmp = array();
+    if ( $apbct->plugin_request_ids && ! empty($apbct->plugin_request_ids) ) {
+        $plugin_request_id__lifetime = 2;
+        foreach ( $apbct->plugin_request_ids as $request_id => $request_time ) {
+            if ( time() - $request_time < $plugin_request_id__lifetime ) {
+                $tmp[$request_id] = $request_time;
+            }
+        }
     }
-	$apbct->plugin_request_ids = $tmp;
-	$apbct->save('plugin_request_ids');
-	
+    $apbct->plugin_request_ids = $tmp;
+    $apbct->save('plugin_request_ids');
+
     // Skip duplicate requests
-    if( key_exists( $apbct->plugin_request_id, $apbct->plugin_request_ids ) &&
+    if (
+        key_exists($apbct->plugin_request_id, $apbct->plugin_request_ids) &&
         current_filter() !== 'woocommerce_registration_errors' && // Prevent skip checking woocommerce registration during checkout
-        current_filter() !== 'um_submit_form_register' )          // Prevent skip checking UltimateMember register
-    {
-	    do_action( 'apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST );
-	    return array( 'ct_result' => new CleantalkResponse() );
+        current_filter() !== 'um_submit_form_register' // Prevent skip checking UltimateMember register
+    ) {
+        do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
+
+        return array('ct_result' => new CleantalkResponse());
     }
-    
-    $apbct->plugin_request_ids = array_merge($apbct->plugin_request_ids, array($apbct->plugin_request_id => time() ) );
-	$apbct->save('plugin_request_ids');
+
+    $apbct->plugin_request_ids = array_merge($apbct->plugin_request_ids, array($apbct->plugin_request_id => time()));
+    $apbct->save('plugin_request_ids');
     /* End of Request ID rotation */
-	
-	
-	$sender_info = !empty($params['sender_info'])
-		? \Cleantalk\ApbctWP\Helper::array_merge__save_numeric_keys__recursive(apbct_get_sender_info(), (array)$params['sender_info'])
-		: apbct_get_sender_info();
 
-	$default_params = array(
-		
-		// IPs
-		'sender_ip'       => defined('CT_TEST_IP')
+
+    $sender_info = ! empty($params['sender_info'])
+        ? \Cleantalk\ApbctWP\Helper::arrayMergeSaveNumericKeysRecursive(
+            apbct_get_sender_info(),
+            (array)$params['sender_info']
+        )
+        : apbct_get_sender_info();
+
+    $default_params = array(
+
+        // IPs
+        'sender_ip'       => defined('CT_TEST_IP')
             ? CT_TEST_IP
-            : \Cleantalk\ApbctWP\Helper::ip__get('remote_addr', false),
-		'x_forwarded_for' => \Cleantalk\ApbctWP\Helper::ip__get('x_forwarded_for', false),
-		'x_real_ip'       => \Cleantalk\ApbctWP\Helper::ip__get('x_real_ip', false),
-		
-		// Misc
-		'auth_key'        => $apbct->api_key,
-		'js_on'           => apbct_js_test('ct_checkjs', $_COOKIE, true) ? 1 : apbct_js_test('ct_checkjs', $_POST),
-		
-		'agent'           => APBCT_AGENT,
-		'sender_info'     => $sender_info,
-		'submit_time'     => apbct_get_submit_time()
-	);
+            : \Cleantalk\ApbctWP\Helper::ipGet('remote_addr', false),
+        'x_forwarded_for' => \Cleantalk\ApbctWP\Helper::ipGet('x_forwarded_for', false),
+        'x_real_ip'       => \Cleantalk\ApbctWP\Helper::ipGet('x_real_ip', false),
 
-	/**
-	 * Add honeypot_field if exists in params
-	 */
-	if(isset($params['honeypot_field'])) {
-		$default_params['honeypot_field'] = $params['honeypot_field'];
-	}
+        // Misc
+        'auth_key'        => $apbct->api_key,
+        'js_on'           => apbct_js_test('ct_checkjs', $_COOKIE, true) ? 1 : apbct_js_test('ct_checkjs', $_POST),
 
-	// Send $_SERVER if couldn't find IP
-	if(empty($default_params['sender_ip']))
-		$default_params['sender_info']['server_info'] = $_SERVER;
-	
-	$ct_request = new CleantalkRequest(
-		\Cleantalk\ApbctWP\Helper::array_merge__save_numeric_keys__recursive($default_params, $params)
-	);
-	
-	$ct = new Cleantalk();
+        'agent'       => APBCT_AGENT,
+        'sender_info' => $sender_info,
+        'submit_time' => apbct_get_submit_time()
+    );
 
-	$ct->use_bultin_api = $apbct->settings['wp__use_builtin_http_api'] ? true : false;
-	$ct->ssl_on         = $apbct->settings['data__ssl_on'];
-	$ct->ssl_path       = APBCT_CASERT_PATH;
-	
-	// Options store url without shceme because of DB error with ''://'
-	$config = ct_get_server();
-	$ct->server_url     = APBCT_MODERATE_URL;
-	$ct->work_url       = preg_match('/https:\/\/.+/', $config['ct_work_url']) ? $config['ct_work_url'] : null;
-	$ct->server_ttl     = $config['ct_server_ttl'];
-	$ct->server_changed = $config['ct_server_changed'];
+    /**
+     * Add honeypot_field if exists in params
+     */
+    if ( isset($params['honeypot_field']) ) {
+        $default_params['honeypot_field'] = $params['honeypot_field'];
+    }
 
-	$start = microtime(true);
-	$ct_result = $reg_flag
-		? @$ct->isAllowUser($ct_request)
-		: @$ct->isAllowMessage($ct_request);
-	$exec_time = microtime(true) - $start;
+    // Send $_SERVER if couldn't find IP
+    if ( empty($default_params['sender_ip']) ) {
+        $default_params['sender_info']['server_info'] = $_SERVER;
+    }
 
-	// Statistics
-	// Average request time
-	apbct_statistics__rotate($exec_time);
-	// Last request
-	$apbct->stats['last_request']['time'] = time();
-	$apbct->stats['last_request']['server'] = $ct->work_url;
-	$apbct->save('stats');
+    $ct_request = new CleantalkRequest(
+        \Cleantalk\ApbctWP\Helper::arrayMergeSaveNumericKeysRecursive($default_params, $params)
+    );
 
-	// Connection reports
-	if ($ct_result->errno === 0 && empty($ct_result->errstr))
+    $ct = new Cleantalk();
+
+    $ct->use_bultin_api = $apbct->settings['wp__use_builtin_http_api'] ? true : false;
+    $ct->ssl_on         = $apbct->settings['data__ssl_on'];
+    $ct->ssl_path       = APBCT_CASERT_PATH;
+
+    // Options store url without shceme because of DB error with ''://'
+    $config             = ct_get_server();
+    $ct->server_url     = APBCT_MODERATE_URL;
+    $ct->work_url       = preg_match('/https:\/\/.+/', $config['ct_work_url']) ? $config['ct_work_url'] : null;
+    $ct->server_ttl     = $config['ct_server_ttl'];
+    $ct->server_changed = $config['ct_server_changed'];
+
+    $start     = microtime(true);
+    $ct_result = $reg_flag
+        ? @$ct->isAllowUser($ct_request)
+        : @$ct->isAllowMessage($ct_request);
+    $exec_time = microtime(true) - $start;
+
+    // Statistics
+    // Average request time
+    apbct_statistics__rotate($exec_time);
+    // Last request
+    $apbct->stats['last_request']['time']   = time();
+    $apbct->stats['last_request']['server'] = $ct->work_url;
+    $apbct->save('stats');
+
+    // Connection reports
+    if ( $ct_result->errno === 0 && empty($ct_result->errstr) ) {
         $apbct->data['connection_reports']['success']++;
-    else
-    {
+    } else {
         $apbct->data['connection_reports']['negative']++;
         $apbct->data['connection_reports']['negative_report'][] = array(
-			'date' => date("Y-m-d H:i:s"),
-			'page_url' => apbct_get_server_variable( 'REQUEST_URI' ),
-			'lib_report' => $ct_result->errstr,
-			'work_url' => $ct->work_url,
-		);
+            'date'       => date("Y-m-d H:i:s"),
+            'page_url'   => apbct_get_server_variable('REQUEST_URI'),
+            'lib_report' => $ct_result->errstr,
+            'work_url'   => $ct->work_url,
+        );
 
-		if(count($apbct->data['connection_reports']['negative_report']) > 20)
-			$apbct->data['connection_reports']['negative_report'] = array_slice($apbct->data['connection_reports']['negative_report'], -20, 20);
-
+        if ( count($apbct->data['connection_reports']['negative_report']) > 20 ) {
+            $apbct->data['connection_reports']['negative_report'] = array_slice(
+                $apbct->data['connection_reports']['negative_report'],
+                -20,
+                20
+            );
+        }
     }
 
-    if ($ct->server_change) {
-		update_option(
-			'cleantalk_server',
-			array(
-				'ct_work_url'       => $ct->work_url,
-				'ct_server_ttl'     => $ct->server_ttl,
-				'ct_server_changed' => time(),
-			)
-		);
-	    $cron = new Cron();
-	    $cron->updateTask( 'rotate_moderate', 'apbct_rotate_moderate', 86400 ); // Rotate moderate server
+    if ( $ct->server_change ) {
+        update_option(
+            'cleantalk_server',
+            array(
+                'ct_work_url'       => $ct->work_url,
+                'ct_server_ttl'     => $ct->server_ttl,
+                'ct_server_changed' => time(),
+            )
+        );
+        $cron = new Cron();
+        $cron->updateTask('rotate_moderate', 'apbct_rotate_moderate', 86400); // Rotate moderate server
     }
 
     $ct_result = ct_change_plugin_resonse($ct_result, $ct_request->js_on);
 
-	// Restart submit form counter for failed requests
-    if ($ct_result->allow == 0){
-		apbct_cookie(); // Setting page timer and cookies
-       	ct_add_event('no');
-    }else{
-       	ct_add_event('yes');
+    // Restart submit form counter for failed requests
+    if ( $ct_result->allow == 0 ) {
+        apbct_cookie(); // Setting page timer and cookies
+        ct_add_event('no');
+    } else {
+        ct_add_event('yes');
     }
 
     //Strip tags from comment
-	$ct_result->comment = strip_tags($ct_result->comment, '<p><a><br>');
+    $ct_result->comment = strip_tags($ct_result->comment, '<p><a><br>');
 
-	// Set cookies if it's not.
-	if(empty($apbct->flags__cookies_setuped))
-		apbct_cookie();
+    // Set cookies if it's not.
+    if ( empty($apbct->flags__cookies_setuped) ) {
+        apbct_cookie();
+    }
 
     return array('ct' => $ct, 'ct_result' => $ct_result);
-	
 }
 
-function apbct_rotate_moderate() {
-	$ct = new Cleantalk();
-	$ct->rotateModerate();
-	if ($ct->server_change) {
-		update_option(
-			'cleantalk_server',
-			array(
-				'ct_work_url'       => $ct->work_url,
-				'ct_server_ttl'     => $ct->server_ttl,
-				'ct_server_changed' => time(),
-			)
-		);
-	}
+function apbct_rotate_moderate()
+{
+    $ct = new Cleantalk();
+    $ct->rotateModerate();
+    if ( $ct->server_change ) {
+        update_option(
+            'cleantalk_server',
+            array(
+                'ct_work_url'       => $ct->work_url,
+                'ct_server_ttl'     => $ct->server_ttl,
+                'ct_server_changed' => time(),
+            )
+        );
+    }
 }
 
-function apbct_exclusions_check($func = null){
-	
-	global $apbct;
+function apbct_exclusions_check($func = null)
+{
+    global $apbct;
 
-	// Common exclusions
-	if(
-		apbct_exclusions_check__ip() ||
-		apbct_exclusions_check__url() ||
-		apbct_is_user_role_in( $apbct->settings['exclusions__roles'] )
-	)
-		return true;
-	
-	// Personal exclusions
-	switch ($func){
-		case 'ct_contact_form_validate_postdata':
-			if(
-				(defined( 'DOING_AJAX' ) && DOING_AJAX) ||
-				apbct_array( $_POST )->get_keys( 'members_search_submit' )->result()
-			)
-				return true;
-			break;
-		case 'ct_contact_form_validate':
-			if(
-				apbct_array( $_POST )->get_keys( 'members_search_submit' )->result()
-			)
-				return true;
-			break;
-		default:
-			return false;
-	}
-	
-	return false;
+    // Common exclusions
+    if (
+        apbct_exclusions_check__ip() ||
+        apbct_exclusions_check__url() ||
+        apbct_is_user_role_in($apbct->settings['exclusions__roles'])
+    ) {
+        return true;
+    }
+
+    // Personal exclusions
+    switch ( $func ) {
+        case 'ct_contact_form_validate_postdata':
+            if (
+                (defined('DOING_AJAX') && DOING_AJAX) ||
+                apbct_array($_POST)->getKeys('members_search_submit')->result()
+            ) {
+                return true;
+            }
+            break;
+        case 'ct_contact_form_validate':
+            if (
+                apbct_array($_POST)->getKeys('members_search_submit')->result()
+            ) {
+                return true;
+            }
+            break;
+        default:
+            return false;
+    }
+
+    return false;
 }
 
 /**
@@ -317,9 +340,10 @@ function apbct_exclusions_check($func = null){
  *
  * @return bool
  */
-function apbct_exclusions_check__url__reversed(){
-    	return defined( 'APBCT_URL_EXCLUSIONS__REVERSED' ) &&
-           ! Server::has_string( 'REQUEST_URI', APBCT_URL_EXCLUSIONS__REVERSED );
+function apbct_exclusions_check__url__reversed()
+{
+    return defined('APBCT_URL_EXCLUSIONS__REVERSED') &&
+           ! Server::hasString('REQUEST_URI', APBCT_URL_EXCLUSIONS__REVERSED);
 }
 
 /**
@@ -327,174 +351,195 @@ function apbct_exclusions_check__url__reversed(){
  *
  * @return bool
  */
-function apbct_exclusions_check__url() {
-	
-	global $apbct;
-	
-	if ( ! empty( $apbct->settings['exclusions__urls'] ) ) {
+function apbct_exclusions_check__url()
+{
+    global $apbct;
 
-	    if( strpos( $apbct->settings['exclusions__urls'], "\r\n" ) !== false ) {
-            $exclusions = explode( "\r\n", $apbct->settings['exclusions__urls'] );
-        } elseif( strpos( $apbct->settings['exclusions__urls'], "\n" ) !== false ) {
-            $exclusions = explode( "\n", $apbct->settings['exclusions__urls'] );
+    if ( ! empty($apbct->settings['exclusions__urls']) ) {
+        if ( strpos($apbct->settings['exclusions__urls'], "\r\n") !== false ) {
+            $exclusions = explode("\r\n", $apbct->settings['exclusions__urls']);
+        } elseif ( strpos($apbct->settings['exclusions__urls'], "\n") !== false ) {
+            $exclusions = explode("\n", $apbct->settings['exclusions__urls']);
         } else {
-            $exclusions = explode( ',', $apbct->settings['exclusions__urls'] );
+            $exclusions = explode(',', $apbct->settings['exclusions__urls']);
         }
 
-		// Fix for AJAX and WP REST API forms
-		$haystack = ( apbct_get_server_variable( 'REQUEST_URI' ) === '/wp-admin/admin-ajax.php' || stripos( apbct_get_server_variable( 'REQUEST_URI' ), '/wp-json/' ) === 0 )
-		            && apbct_get_server_variable( 'HTTP_REFERER' )
-			? str_ireplace( array( 'http://', 'https://', strval(Server::get('HTTP_HOST'))), '', apbct_get_server_variable( 'HTTP_REFERER' ) )
-			: apbct_get_server_variable( 'REQUEST_URI' );
+        // Fix for AJAX and WP REST API forms
+        $haystack =
+            (
+                apbct_get_server_variable('REQUEST_URI') === '/wp-admin/admin-ajax.php' ||
+                stripos(apbct_get_server_variable('REQUEST_URI'), '/wp-json/') === 0
+            ) &&
+            apbct_get_server_variable('HTTP_REFERER')
+            ? str_ireplace(
+                array('http://', 'https://', strval(Server::get('HTTP_HOST'))),
+                '',
+                apbct_get_server_variable('HTTP_REFERER')
+            )
+            : apbct_get_server_variable('REQUEST_URI');
 
-		foreach ( $exclusions as $exclusion ) {
-			if (
-				($apbct->settings['exclusions__urls__use_regexp'] && preg_match( '@' . $exclusion . '@', $haystack ) === 1) ||
-				stripos( $haystack, $exclusion ) !== false
-			){
-				return true;
-			}
-		}
-		return false;
-	}
+        foreach ( $exclusions as $exclusion ) {
+            if (
+                (
+                    $apbct->settings['exclusions__urls__use_regexp'] &&
+                    preg_match('@' . $exclusion . '@', $haystack) === 1
+                ) ||
+                stripos($haystack, $exclusion) !== false
+            ) {
+                return true;
+            }
+        }
 
-	return false;
+        return false;
+    }
+
+    return false;
 }
+
 /**
- * @deprecated 5.128 Using IP white-lists instead
+ * @return bool
  * @deprecated since 18.09.2019
  * Checks if sender_ip is in exclusion list
  *
- * @return bool
+ * @deprecated 5.128 Using IP white-lists instead
  */
-function apbct_exclusions_check__ip(){
-	
-	global $cleantalk_ip_exclusions;
-	
-	if( apbct_get_server_variable( 'REMOTE_ADDR' ) ){
-		
-		if( \Cleantalk\ApbctWP\Helper::ip__is_cleantalks( apbct_get_server_variable( 'REMOTE_ADDR' ) ) ){
-			return true;
-		}
-		
-		if( ! empty( $cleantalk_ip_exclusions ) && is_array( $cleantalk_ip_exclusions ) ){
-			foreach ( $cleantalk_ip_exclusions as $exclusion ){
-				if( stripos( apbct_get_server_variable( 'REMOTE_ADDR' ), $exclusion ) !== false ){
-					return true;
-				}
-			}
-		}
-	}
-	
-	return false;
+function apbct_exclusions_check__ip()
+{
+    global $cleantalk_ip_exclusions;
+
+    if ( apbct_get_server_variable('REMOTE_ADDR') ) {
+        if ( \Cleantalk\ApbctWP\Helper::ipIsCleantalks(apbct_get_server_variable('REMOTE_ADDR')) ) {
+            return true;
+        }
+
+        if ( ! empty($cleantalk_ip_exclusions) && is_array($cleantalk_ip_exclusions) ) {
+            foreach ( $cleantalk_ip_exclusions as $exclusion ) {
+                if ( stripos(apbct_get_server_variable('REMOTE_ADDR'), $exclusion) !== false ) {
+                    return true;
+                }
+            }
+        }
+    }
+
+    return false;
 }
 
 /**
- * Inner function - Default data array for senders 
- * @return array 
+ * Inner function - Default data array for senders
+ * @return array
  */
-function apbct_get_sender_info() {
-		
-	// Validate cookie from the backend
-	$cookie_is_ok = apbct_cookies_test();
-	
-	if (count($_POST) > 0) {
-		foreach ($_POST as $k => $v) {
-			if (preg_match("/^(ct_check|checkjs).+/", $k)) {
-        		$checkjs_data_post = $v; 
-			}
-		}
-	}
-	
-	// AMP check
-	$amp_detected = apbct_get_server_variable( 'HTTP_REFERER' )
-		? strpos(apbct_get_server_variable( 'HTTP_REFERER' ), '/amp/') !== false || strpos(apbct_get_server_variable( 'HTTP_REFERER' ), '?amp=1') !== false || strpos(apbct_get_server_variable( 'HTTP_REFERER' ), '&amp=1') !== false
-			? 1
-			: 0
-		: null;
+function apbct_get_sender_info()
+{
+    // Validate cookie from the backend
+    $cookie_is_ok = apbct_cookies_test();
 
-	// Visible fields processing
-    $visible_fields = apbct_visible_fields__process( Cookie::get( 'apbct_visible_fields' , array(), 'array' ) );
+    if ( count($_POST) > 0 ) {
+        foreach ( $_POST as $k => $v ) {
+            if ( preg_match("/^(ct_check|checkjs).+/", $k) ) {
+                $checkjs_data_post = $v;
+            }
+        }
+    }
 
-	global $apbct;
+    // AMP check
+    $amp_detected =
+        apbct_get_server_variable('HTTP_REFERER')
+        ? (
+            strpos(apbct_get_server_variable('HTTP_REFERER'), '/amp/') !== false ||
+            strpos(apbct_get_server_variable('HTTP_REFERER'), '?amp=1') !== false ||
+            strpos(apbct_get_server_variable('HTTP_REFERER'), '&amp=1') !== false
+            ? 1
+            : 0
+        )
+        : null;
 
-	return array(
-		'plugin_request_id'      => $apbct->plugin_request_id,
- 		'wpms'                   => is_multisite() ? 'yes' : 'no',
-		'remote_addr'            => \Cleantalk\ApbctWP\Helper::ip__get('remote_addr', false),
-        'REFFERRER'              => apbct_get_server_variable( 'HTTP_REFERER' ),
-        'USER_AGENT'             => apbct_get_server_variable( 'HTTP_USER_AGENT' ),
-		'page_url'               => apbct_get_server_variable( 'SERVER_NAME' ) . apbct_get_server_variable( 'REQUEST_URI' ),
+    // Visible fields processing
+    $visible_fields = apbct_visible_fields__process(Cookie::get('apbct_visible_fields', array(), 'array'));
+
+    global $apbct;
+
+    return array(
+        'plugin_request_id'      => $apbct->plugin_request_id,
+        'wpms'                   => is_multisite() ? 'yes' : 'no',
+        'remote_addr'            => \Cleantalk\ApbctWP\Helper::ipGet('remote_addr', false),
+        'REFFERRER'              => apbct_get_server_variable('HTTP_REFERER'),
+        'USER_AGENT'             => apbct_get_server_variable('HTTP_USER_AGENT'),
+        'page_url'               => apbct_get_server_variable('SERVER_NAME') . apbct_get_server_variable('REQUEST_URI'),
         'cms_lang'               => substr(get_locale(), 0, 2),
         'ct_options'             => json_encode($apbct->settings),
         'fields_number'          => sizeof($_POST),
         'direct_post'            => $cookie_is_ok === null && apbct_is_post() ? 1 : 0,
-		// Raw data to validated JavaScript test in the cloud                                                                                                          
-        'checkjs_data_cookies'   => Cookie::get( 'ct_checkjs' ) ?: null,
-        'checkjs_data_post'      => !empty($checkjs_data_post)                                     ? $checkjs_data_post                                                : null, 
-		// PHP cookies                                                                                                                                                 
+        // Raw data to validated JavaScript test in the cloud
+        'checkjs_data_cookies'   => Cookie::get('ct_checkjs') ?: null,
+        'checkjs_data_post'      => ! empty($checkjs_data_post) ? $checkjs_data_post : null,
+        // PHP cookies
         'cookies_enabled'        => $cookie_is_ok,
         'data__set_cookies'      => $apbct->settings['data__set_cookies'],
-        'REFFERRER_PREVIOUS'     => Cookie::get( 'apbct_prev_referer' )    && $cookie_is_ok ? Cookie::get( 'apbct_prev_referer' )    : null,
-        'site_landing_ts'        => Cookie::get( 'apbct_site_landing_ts' ) && $cookie_is_ok ? Cookie::get( 'apbct_site_landing_ts' ) : null,
-        'page_hits'              => Cookie::get( 'apbct_page_hits' )                        ?: null,
-		// JS cookies                                                                                                                                                  
-        'js_info'                => Cookie::get( 'ct_user_info' ),
-		'mouse_cursor_positions' => Cookie::get( 'ct_pointer_data' ),
-		'js_timezone'            => Cookie::get( 'ct_timezone' )      ?: null,
-		'key_press_timestamp'    => Cookie::get( 'ct_fkp_timestamp' ) ?: null,
-		'page_set_timestamp'     => Cookie::get( 'ct_ps_timestamp' )  ?: null,
-		'form_visible_inputs'    => !empty($visible_fields['visible_fields_count'])                ? $visible_fields['visible_fields_count']                           : null,
-		'apbct_visible_fields'   => !empty($visible_fields['visible_fields'])                      ? $visible_fields['visible_fields']                                 : null,
-		'form_invisible_inputs'  => !empty($visible_fields['invisible_fields_count'])              ? $visible_fields['invisible_fields_count']                         : null,
-		'apbct_invisible_fields' => !empty($visible_fields['invisible_fields'])                    ? $visible_fields['invisible_fields']                               : null,
-		// Misc
-		'site_referer'           => Cookie::get( 'apbct_site_referer' ) ?: null,
-		'source_url'             => Cookie::get( 'apbct_urls' )         ? json_encode( Cookie::get( 'apbct_urls' ) ) : null,
-		'pixel_url'              => Cookie::get('apbct_pixel_url'),
-		'pixel_setting'          => $apbct->settings['data__pixel'],
-		// Debug stuff
-		'amp_detected'           => $amp_detected,
-		'hook'                   => current_filter()                    ? current_filter()            : 'no_hook',
-		'headers_sent'           => !empty($apbct->headers_sent)        ? $apbct->headers_sent        : false,
-		'headers_sent__hook'     => !empty($apbct->headers_sent__hook)  ? $apbct->headers_sent__hook  : 'no_hook',
-		'headers_sent__where'    => !empty($apbct->headers_sent__where) ? $apbct->headers_sent__where : false,
-		'request_type'           => apbct_get_server_variable('REQUEST_METHOD') ? apbct_get_server_variable('REQUEST_METHOD') : 'UNKNOWN',
-		'email_check'			 => Cookie::get( 'ct_checked_emails' ) ? json_encode(Cookie::get( 'ct_checked_emails' )) : null,
-		'screen_info'			 => Cookie::get( 'ct_screen_info' ) ? json_encode(Cookie::get( 'ct_screen_info' )) : null,
-		'has_scrolled'			 => Cookie::get( 'ct_has_scrolled' ) ? json_encode(Cookie::get( 'ct_has_scrolled' )) : null,
-	);
+        'REFFERRER_PREVIOUS'     => Cookie::get('apbct_prev_referer') && $cookie_is_ok ? Cookie::get(
+            'apbct_prev_referer'
+        ) : null,
+        'site_landing_ts'        => Cookie::get('apbct_site_landing_ts') && $cookie_is_ok ? Cookie::get(
+            'apbct_site_landing_ts'
+        ) : null,
+        'page_hits'              => Cookie::get('apbct_page_hits') ?: null,
+        // JS cookies
+        'js_info'                => Cookie::get('ct_user_info'),
+        'mouse_cursor_positions' => Cookie::get('ct_pointer_data'),
+        'js_timezone'            => Cookie::get('ct_timezone') ?: null,
+        'key_press_timestamp'    => Cookie::get('ct_fkp_timestamp') ?: null,
+        'page_set_timestamp'     => Cookie::get('ct_ps_timestamp') ?: null,
+        'form_visible_inputs'    => ! empty($visible_fields['visible_fields_count']) ? $visible_fields['visible_fields_count'] : null,
+        'apbct_visible_fields'   => ! empty($visible_fields['visible_fields']) ? $visible_fields['visible_fields'] : null,
+        'form_invisible_inputs'  => ! empty($visible_fields['invisible_fields_count']) ? $visible_fields['invisible_fields_count'] : null,
+        'apbct_invisible_fields' => ! empty($visible_fields['invisible_fields']) ? $visible_fields['invisible_fields'] : null,
+        // Misc
+        'site_referer'           => Cookie::get('apbct_site_referer') ?: null,
+        'source_url'             => Cookie::get('apbct_urls') ? json_encode(Cookie::get('apbct_urls')) : null,
+        'pixel_url'              => Cookie::get('apbct_pixel_url'),
+        'pixel_setting'          => $apbct->settings['data__pixel'],
+        // Debug stuff
+        'amp_detected'           => $amp_detected,
+        'hook'                   => current_filter() ? current_filter() : 'no_hook',
+        'headers_sent'           => ! empty($apbct->headers_sent) ? $apbct->headers_sent : false,
+        'headers_sent__hook'     => ! empty($apbct->headers_sent__hook) ? $apbct->headers_sent__hook : 'no_hook',
+        'headers_sent__where'    => ! empty($apbct->headers_sent__where) ? $apbct->headers_sent__where : false,
+        'request_type'           => apbct_get_server_variable('REQUEST_METHOD') ? apbct_get_server_variable(
+            'REQUEST_METHOD'
+        ) : 'UNKNOWN',
+        'email_check'            => Cookie::get('ct_checked_emails') ? json_encode(
+            Cookie::get('ct_checked_emails')
+        ) : null,
+        'screen_info'            => Cookie::get('ct_screen_info') ? json_encode(Cookie::get('ct_screen_info')) : null,
+        'has_scrolled'           => Cookie::get('ct_has_scrolled') ? json_encode(Cookie::get('ct_has_scrolled')) : null,
+    );
 }
 
 /**
  * Process visible fields for specific form to match the fields from request
- * 
+ *
  * @param string|array $visible_fields JSON string
- * 
+ *
  * @return array
  */
-function apbct_visible_fields__process( $visible_fields ) {
-    
-    $visible_fields = is_array( $visible_fields )
-        ? json_encode( $visible_fields )
+function apbct_visible_fields__process($visible_fields)
+{
+    $visible_fields = is_array($visible_fields)
+        ? json_encode($visible_fields)
         : $visible_fields;
-    
-    // Do not decode if it's already decoded
-    $fields_collection = json_decode( $visible_fields, true );
-    
-    if( ! empty( $fields_collection ) ) {
-        
-        foreach ($fields_collection as $current_fields) {
-            
-            if( isset( $current_fields['visible_fields'], $current_fields['visible_fields_count'] ) ) {
 
-                $fields = explode( ' ', $current_fields['visible_fields'] );
+    // Do not decode if it's already decoded
+    $fields_collection = json_decode($visible_fields, true);
+
+    if ( ! empty($fields_collection) ) {
+        foreach ( $fields_collection as $current_fields ) {
+            if ( isset($current_fields['visible_fields'], $current_fields['visible_fields_count']) ) {
+                $fields = explode(' ', $current_fields['visible_fields']);
 
                 // This fields belong this request
                 $fields_to_check = apbct_get_fields_to_check();
-                if( count( array_intersect( array_keys($fields_to_check), $fields ) ) > 0 ) {
+                if ( count(array_intersect(array_keys($fields_to_check), $fields)) > 0 ) {
                     // WP Forms visible fields formatting
-                    if(strpos($visible_fields, 'wpforms') !== false){
+                    if ( strpos($visible_fields, 'wpforms') !== false ) {
                         $current_fields = preg_replace(
                             array('/\[/', '/\]/'),
                             '',
@@ -511,13 +556,12 @@ function apbct_visible_fields__process( $visible_fields ) {
                     }
 
                     return $current_fields;
-
                 }
             }
         }
     }
-	
-	return array();
+
+    return array();
 }
 
 /**
@@ -525,25 +569,28 @@ function apbct_visible_fields__process( $visible_fields ) {
  *
  * @return array
  */
-function apbct_get_fields_to_check() {
-	//Formidable fields
-	if( isset( $_POST['item_meta'] ) && is_array( $_POST['item_meta'] ) ) {
-		$fields = array();
-		foreach ( $_POST['item_meta'] as $key => $item ) {
-			$fields['item_meta['. $key .']'] = $item;
-		}
-		return $fields;
-	}
-	// @ToDo we have to implement a logic to find form fields (fields names, fields count) in serialized/nested/encoded items. not only $_POST.
-	return $_POST;
+function apbct_get_fields_to_check()
+{
+    //Formidable fields
+    if ( isset($_POST['item_meta']) && is_array($_POST['item_meta']) ) {
+        $fields = array();
+        foreach ( $_POST['item_meta'] as $key => $item ) {
+            $fields['item_meta[' . $key . ']'] = $item;
+        }
+
+        return $fields;
+    }
+
+    // @ToDo we have to implement a logic to find form fields (fields names, fields count) in serialized/nested/encoded items. not only $_POST.
+    return $_POST;
 }
 
 /*
  * Outputs JS key for AJAX-use only. Stops script.
  */
-function apbct_js_keys__get__ajax(){
-    
-    die( json_encode( array( 'js_key' => ct_get_checkjs_value() ) ) );
+function apbct_js_keys__get__ajax()
+{
+    die(json_encode(array('js_key' => ct_get_checkjs_value())));
 }
 
 /**
@@ -553,229 +600,243 @@ function apbct_js_keys__get__ajax(){
  *
  * @return int|string|null
  */
-function ct_get_checkjs_value(){
-	
+function ct_get_checkjs_value()
+{
     global $apbct;
-    
+
     // Use static JS keys
-	if($apbct->settings['data__use_static_js_key'] == 1){
-		
-		$key = hash('sha256', $apbct->api_key.ct_get_admin_email().$apbct->salt);
-		
-	// Auto detecting. Detected.
-	}elseif(
-		$apbct->settings['data__use_static_js_key'] == - 1 &&
-		  ( apbct_is_cache_plugins_exists() ||
-		    ( apbct_is_post() && $apbct->data['cache_detected'] == 1 )
-		  )
-	){
-	    $key = hash('sha256', $apbct->api_key.ct_get_admin_email().$apbct->salt);
-	    if( apbct_is_cache_plugins_exists() )
-		    $apbct->data['cache_detected'] = 1;
+    if ( $apbct->settings['data__use_static_js_key'] == 1 ) {
+        $key = hash('sha256', $apbct->api_key . ct_get_admin_email() . $apbct->salt);
+        // Auto detecting. Detected.
+    } elseif (
+        $apbct->settings['data__use_static_js_key'] == -1 &&
+        (apbct_is_cache_plugins_exists() ||
+         (apbct_is_post() && $apbct->data['cache_detected'] == 1)
+        )
+    ) {
+        $key = hash('sha256', $apbct->api_key . ct_get_admin_email() . $apbct->salt);
+        if ( apbct_is_cache_plugins_exists() ) {
+            $apbct->data['cache_detected'] = 1;
+        }
 
-		$apbct->saveData();
-	
-    // Using dynamic JS keys
-    }else{
-		
-        $keys = $apbct->data['js_keys'];
+        $apbct->saveData();
+        // Using dynamic JS keys
+    } else {
+        $keys          = $apbct->data['js_keys'];
         $keys_checksum = md5(json_encode($keys));
-        
-        $key = null;
-        $latest_key_time = 0;
-        
-        foreach ($keys as $k => $t) {
 
+        $key             = null;
+        $latest_key_time = 0;
+
+        foreach ( $keys as $k => $t ) {
             // Removing key if it's to old
-            if (time() - $t > $apbct->data['js_keys_store_days'] * 86400 * 7) {
+            if ( time() - $t > $apbct->data['js_keys_store_days'] * 86400 * 7 ) {
                 unset($keys[$k]);
                 continue;
             }
 
-            if ($t > $latest_key_time) {
+            if ( $t > $latest_key_time ) {
                 $latest_key_time = $t;
-                $key = $k;
+                $key             = $k;
             }
         }
-        
+
         // Set new key if the latest key is too old
-        if (time() - $latest_key_time > $apbct->data['js_key_lifetime']) {
-            $key = rand();
+        if ( time() - $latest_key_time > $apbct->data['js_key_lifetime'] ) {
+            $key        = rand();
             $keys[$key] = time();
         }
-        
+
         // Save keys if they were changed
-        if (md5(json_encode($keys)) != $keys_checksum) {
+        if ( md5(json_encode($keys)) != $keys_checksum ) {
             $apbct->data['js_keys'] = $keys;
             // $apbct->saveData();
         }
-		
-		$apbct->data['cache_detected'] = 0;
 
-		$apbct->saveData();
+        $apbct->data['cache_detected'] = 0;
 
+        $apbct->saveData();
     }
-	
-    return $key; 
+
+    return $key;
 }
 
-function apbct_is_cache_plugins_exists(){
-	return
-		defined('WP_ROCKET_VERSION') ||                           // WPRocket
-		defined('LSCWP_DIR') ||                                   // LiteSpeed Cache
-		defined('WPFC_WP_CONTENT_BASENAME') ||                    // WP Fastest Cache
-		defined('W3TC') ||                                        // W3 Total Cache
-		defined('WPO_VERSION') ||                                 // WP-Optimize – Clean, Compress, Cache
-		defined('AUTOPTIMIZE_PLUGIN_VERSION') ||                  // Autoptimize
-		defined('WPCACHEHOME') ||                                 // WP Super Cache
-		defined('WPHB_VERSION') ||                                // Hummingbird – Speed up, Cache, Optimize Your CSS and JS
-		defined('CE_FILE') ||                                     // Cache Enabler – WordPress Cache
-		class_exists('\RedisObjectCache') ||                   // Redis Object Cache
-		defined('SiteGround_Optimizer\VERSION') ||                // SG Optimizer
-		class_exists('\WP_Rest_Cache_Plugin\Includes\Plugin'); // WP REST Cache
+function apbct_is_cache_plugins_exists()
+{
+    return
+        defined('WP_ROCKET_VERSION') ||                           // WPRocket
+        defined('LSCWP_DIR') ||                                   // LiteSpeed Cache
+        defined('WPFC_WP_CONTENT_BASENAME') ||                    // WP Fastest Cache
+        defined('W3TC') ||                                        // W3 Total Cache
+        defined('WPO_VERSION') ||                                 // WP-Optimize – Clean, Compress, Cache
+        defined('AUTOPTIMIZE_PLUGIN_VERSION') ||                  // Autoptimize
+        defined('WPCACHEHOME') ||                                 // WP Super Cache
+        defined(
+            'WPHB_VERSION'
+        ) ||                                // Hummingbird – Speed up, Cache, Optimize Your CSS and JS
+        defined('CE_FILE') ||                                     // Cache Enabler – WordPress Cache
+        class_exists('\RedisObjectCache') ||                   // Redis Object Cache
+        defined('SiteGround_Optimizer\VERSION') ||                // SG Optimizer
+        class_exists('\WP_Rest_Cache_Plugin\Includes\Plugin'); // WP REST Cache
 }
 
 /**
  * Inner function - Current site admin e-mail
- * @return 	string Admin e-mail
+ * @return    string Admin e-mail
  */
-function ct_get_admin_email() {
-	return get_option('admin_email');
+function ct_get_admin_email()
+{
+    return get_option('admin_email');
 }
 
 /**
  * Inner function - Current Cleantalk working server info
- * @return 	array Array of server data
+ * @return    array Array of server data
  */
-function ct_get_server() {
-	$ct_server = get_option('cleantalk_server');
-	if (!is_array($ct_server)){
-	    $ct_server = array(
-				'ct_work_url' => NULL,
-				'ct_server_ttl' => NULL,
-				'ct_server_changed' => NULL
-			);
-	}
-	return $ct_server;
+function ct_get_server()
+{
+    $ct_server = get_option('cleantalk_server');
+    if ( ! is_array($ct_server) ) {
+        $ct_server = array(
+            'ct_work_url'       => null,
+            'ct_server_ttl'     => null,
+            'ct_server_changed' => null
+        );
+    }
+
+    return $ct_server;
 }
 
 /**
  * Inner function - Stores ang returns cleantalk hash of current comment
- * @param	string New hash or NULL
- * @return 	string New hash or current hash depending on parameter
+ *
+ * @param string New hash or NULL
+ *
+ * @return    string New hash or current hash depending on parameter
  */
-function ct_hash($new_hash = '') {
+function ct_hash($new_hash = '')
+{
     /**
      * Current hash
      */
     static $hash;
 
-    if (!empty($new_hash)) {
+    if ( ! empty($new_hash) ) {
         $hash = $new_hash;
     }
+
     return $hash;
 }
 
 /**
- * Inner function - Write manual moderation results to PHP sessions 
- * @param 	string $hash Cleantalk comment hash
- * @param 	string $message comment_content
- * @param 	int $allow flag good comment (1) or bad (0)
- * @return 	string comment_content w\o cleantalk resume
+ * Inner function - Write manual moderation results to PHP sessions
+ *
+ * @param string $hash Cleantalk comment hash
+ * @param string $message comment_content
+ * @param int $allow flag good comment (1) or bad (0)
+ *
+ * @return    string comment_content w\o cleantalk resume
  */
-function ct_feedback($hash, $allow) {
-	global $apbct;
-	
-    $ct_feedback = $hash . ':' . $allow . ';';
-    if( ! $apbct->data['feedback_request'] )
-		$apbct->data['feedback_request'] = $ct_feedback;
-    else
-		$apbct->data['feedback_request'] .= $ct_feedback;
-	
-	$apbct->saveData();
+function ct_feedback($hash, $allow)
+{
+    global $apbct;
 
-	return $ct_feedback;
+    $ct_feedback = $hash . ':' . $allow . ';';
+    if ( ! $apbct->data['feedback_request'] ) {
+        $apbct->data['feedback_request'] = $ct_feedback;
+    } else {
+        $apbct->data['feedback_request'] .= $ct_feedback;
+    }
+
+    $apbct->saveData();
+
+    return $ct_feedback;
 }
 
 /**
  * Inner function - Sends the results of moderation
  * Scheduled in 3600 seconds!
+ *
  * @param string $feedback_request
+ *
  * @return bool
  */
-function ct_send_feedback($feedback_request = null) {
-	
-	global $apbct;
-	
-    if (empty($feedback_request) && isset($apbct->data['feedback_request']) && preg_match("/^[a-z0-9\;\:]+$/", $apbct->data['feedback_request'])){
-		$feedback_request = $apbct->data['feedback_request'];
-		$apbct->data['feedback_request'] = '';
-		$apbct->saveData();
+function ct_send_feedback($feedback_request = null)
+{
+    global $apbct;
+
+    if (
+        empty($feedback_request) &&
+        isset($apbct->data['feedback_request']) &&
+        preg_match("/^[a-z0-9\;\:]+$/", $apbct->data['feedback_request'])
+    ) {
+        $feedback_request                = $apbct->data['feedback_request'];
+        $apbct->data['feedback_request'] = '';
+        $apbct->saveData();
     }
-	
-    if ($feedback_request !== null) {
-				
+
+    if ( $feedback_request !== null ) {
         $ct_request = new CleantalkRequest(array(
-			// General
-			'auth_key' => $apbct->api_key,
-			// Additional
-			'feedback' => $feedback_request,
-		));
-		
+            // General
+            'auth_key' => $apbct->api_key,
+            // Additional
+            'feedback' => $feedback_request,
+        ));
+
         $ct = new Cleantalk();
-		
-		// Server URL handling
-		$config = ct_get_server();
-		$ct->server_url     = APBCT_MODERATE_URL;
-		$ct->work_url       = preg_match('/http:\/\/.+/', $config['ct_work_url']) ? $config['ct_work_url'] : null;
-		$ct->server_ttl     = $config['ct_server_ttl'];
-		$ct->server_changed = $config['ct_server_changed'];
-				
+
+        // Server URL handling
+        $config             = ct_get_server();
+        $ct->server_url     = APBCT_MODERATE_URL;
+        $ct->work_url       = preg_match('/http:\/\/.+/', $config['ct_work_url']) ? $config['ct_work_url'] : null;
+        $ct->server_ttl     = $config['ct_server_ttl'];
+        $ct->server_changed = $config['ct_server_changed'];
+
         $ct_result = $ct->sendFeedback($ct_request);
-		
-        if ($ct->server_change) {
+
+        if ( $ct->server_change ) {
             update_option(
                 'cleantalk_server',
-				array(
-					'ct_work_url'       => $ct->work_url,
-					'ct_server_ttl'     => $ct->server_ttl,
-					'ct_server_changed' => time(),
+                array(
+                    'ct_work_url'       => $ct->work_url,
+                    'ct_server_ttl'     => $ct->server_ttl,
+                    'ct_server_changed' => time(),
                 )
             );
-	        $cron = new Cron();
-	        $cron->updateTask( 'rotate_moderate', 'apbct_rotate_moderate', 86400 ); // Rotate moderate server
+            $cron = new Cron();
+            $cron->updateTask('rotate_moderate', 'apbct_rotate_moderate', 86400); // Rotate moderate server
         }
-		if ($ct_result) {
-			return true;
-		}
+        if ( $ct_result ) {
+            return true;
+        }
     }
 
     return false;
 }
 
 /**
- * Delete old spam comments 
+ * Delete old spam comments
  * Scheduled in 3600 seconds!
- * @return null 
+ * @return null
  */
-function ct_delete_spam_comments() {
-	
+function ct_delete_spam_comments()
+{
     global $apbct;
-    
-    if ($apbct->settings['comments__remove_old_spam'] == 1) {
+
+    if ( $apbct->settings['comments__remove_old_spam'] == 1 ) {
         $last_comments = get_comments(array('status' => 'spam', 'number' => 1000, 'order' => 'ASC'));
-        foreach ($last_comments as $c) {
-        	$comment_date_gmt = strtotime($c->comment_date_gmt);
-        	if ($comment_date_gmt) {
-	            if (time() - $comment_date_gmt > 86400 * $apbct->data['spam_store_days']) {
-	                // Force deletion old spam comments
-	                wp_delete_comment($c->comment_ID, true);
-	            }         		
-        	}
+        foreach ( $last_comments as $c ) {
+            $comment_date_gmt = strtotime($c->comment_date_gmt);
+            if ( $comment_date_gmt ) {
+                if ( time() - $comment_date_gmt > 86400 * $apbct->data['spam_store_days'] ) {
+                    // Force deletion old spam comments
+                    wp_delete_comment($c->comment_ID, true);
+                }
+            }
         }
     }
 
-    return null; 
+    return null;
 }
 
 /**
@@ -792,20 +853,17 @@ function ct_delete_spam_comments() {
  * @return array
  * @deprecated Use ct_gfa()
  */
-function ct_get_fields_any($arr, $email = null, $nickname = array('nick' => '', 'first' => '', 'last' => '')){
+function ct_get_fields_any($arr, $email = null, $nickname = array('nick' => '', 'first' => '', 'last' => ''))
+{
+    if ( is_array($nickname) ) {
+        $nickname_str = '';
+        foreach ( $nickname as $value ) {
+            $nickname_str .= ($value ? $value . " " : "");
+        }
+        $nickname = trim($nickname_str);
+    }
 
-	if ( is_array( $nickname ) )
-	{
-		$nickname_str = '';
-		foreach ( $nickname as $value )
-		{
-			$nickname_str .= ($value ? $value . " " : "");
-		}
-		$nickname = trim( $nickname_str );
-	}
-
-	return ct_gfa( $arr, $email, $nickname );
-
+    return ct_gfa($arr, $email, $nickname);
 }
 
 /**
@@ -817,33 +875,37 @@ function ct_get_fields_any($arr, $email = null, $nickname = array('nick' => '', 
  *
  * @return array
  */
-function ct_gfa( $input_array, $email = '', $nickname = '' ) {
+function ct_gfa($input_array, $email = '', $nickname = '')
+{
+    $gfa = new GetFieldsAny($input_array);
 
-	$gfa = new GetFieldsAny( $input_array );
-	return $gfa->getFields( $email, $nickname );
-
+    return $gfa->getFields($email, $nickname);
 }
 
 //New ct_get_fields_any_postdata
-function ct_get_fields_any_postdata($arr, $message=array()){
-	$skip_params = array(
-	    'ipn_track_id', // PayPal IPN #
-	    'txn_type', // PayPal transaction type
-	    'payment_status', // PayPal payment status
+function ct_get_fields_any_postdata($arr, $message = array())
+{
+    $skip_params = array(
+        'ipn_track_id', // PayPal IPN #
+        'txn_type', // PayPal transaction type
+        'payment_status', // PayPal payment status
     );
-		
-	foreach($arr as $key => $value){
-		if(!is_array($value)){
-			if($value == '')
-				continue;
-			if (!(in_array($key, $skip_params) || preg_match("/^ct_checkjs/", $key)) && $value!='')
-	        	$message[$key] = $value;
-		}else{
-			$temp = ct_get_fields_any_postdata($value);
-			$message = (count($temp) == 0 ? $message : array_merge($message, $temp));
-		}
-	}
-	return $message;
+
+    foreach ( $arr as $key => $value ) {
+        if ( ! is_array($value) ) {
+            if ( $value == '' ) {
+                continue;
+            }
+            if ( ! (in_array($key, $skip_params) || preg_match("/^ct_checkjs/", $key)) && $value != '' ) {
+                $message[$key] = $value;
+            }
+        } else {
+            $temp    = ct_get_fields_any_postdata($value);
+            $message = (count($temp) == 0 ? $message : array_merge($message, $temp));
+        }
+    }
+
+    return $message;
 }
 
 /**
@@ -853,67 +915,67 @@ function ct_get_fields_any_postdata($arr, $message=array()){
  *
  * @return bool
  */
-function apbct_is_regexp($regexp){
-	return @preg_match('/' . $regexp . '/', '') !== false;
+function apbct_is_regexp($regexp)
+{
+    return @preg_match('/' . $regexp . '/', '') !== false;
 }
 
-function cleantalk_debug($key,$value)
+function cleantalk_debug($key, $value)
 {
-	if(isset($_COOKIE) && isset($_COOKIE['cleantalk_debug']))
-	{
-		@header($key.": ".$value);
-	}
+    if ( isset($_COOKIE) && isset($_COOKIE['cleantalk_debug']) ) {
+        @header($key . ": " . $value);
+    }
 }
 
 /**
-* Function changes CleanTalk result object if an error occurred.
-* @return object
-*/ 
-function ct_change_plugin_resonse($ct_result = null, $checkjs = null) {
-	
-	global $apbct;
-	
-    if (!$ct_result) {
+ * Function changes CleanTalk result object if an error occurred.
+ * @return object
+ */
+function ct_change_plugin_resonse($ct_result = null, $checkjs = null)
+{
+    global $apbct;
+
+    if ( ! $ct_result ) {
         return $ct_result;
     }
-    
-    if(@intval($ct_result->errno) != 0)
-    {
-    	if($checkjs === null || $checkjs != 1)
-    	{
-    		$ct_result->allow = 0;
-    		$ct_result->spam = 1;
-    		$ct_result->comment = sprintf('We\'ve got an issue: %s. Forbidden. Please, enable Javascript. %s.',
+
+    if ( @intval($ct_result->errno) != 0 ) {
+        if ( $checkjs === null || $checkjs != 1 ) {
+            $ct_result->allow   = 0;
+            $ct_result->spam    = 1;
+            $ct_result->comment = sprintf(
+                'We\'ve got an issue: %s. Forbidden. Please, enable Javascript. %s.',
                 $ct_result->comment,
                 $apbct->plugin_name
             );
-    	}
-    	else
-    	{
-    		$ct_result->allow = 1;
-    		$ct_result->comment = 'Allow';
-    	}
+        } else {
+            $ct_result->allow   = 1;
+            $ct_result->comment = 'Allow';
+        }
     }
 
     return $ct_result;
 }
 
 /**
-* Does ey has correct symbols? Checks against regexp ^[a-z\d]{3,15}$
-* @param string api_key
-* @return bool
-*/
+ * Does ey has correct symbols? Checks against regexp ^[a-z\d]{3,15}$
+ *
+ * @param string api_key
+ *
+ * @return bool
+ */
 function apbct_api_key__is_correct($api_key = null)
 {
-	global $apbct;
-	$api_key = $api_key !== null ? $api_key : $apbct->api_key;
+    global $apbct;
+    $api_key = $api_key !== null ? $api_key : $apbct->api_key;
+
     return $api_key && preg_match('/^[a-z\d]{3,15}$/', $api_key) ? true : false;
 }
 
-function apbct_add_async_attribute($tag, $handle) {
-	
-	global $apbct;
-    
+function apbct_add_async_attribute($tag, $handle)
+{
+    global $apbct;
+
     $scripts_handles_names = array(
         'ct_public',
         'ct_public_functions',
@@ -926,87 +988,90 @@ function apbct_add_async_attribute($tag, $handle) {
         'ct_collect_details',
         'cleantalk-modal',
     );
-    
-    if (in_array($handle, $scripts_handles_names, true)) {
-    	if( $apbct->settings['misc__async_js'] )
-	        $tag = str_replace( ' src', ' async="async" src', $tag );
-	    
-	    if( class_exists('Cookiebot_WP') )
-		    $tag = str_replace( ' src', ' data-cookieconsent="ignore" src', $tag );
+
+    if ( in_array($handle, $scripts_handles_names, true) ) {
+        if ( $apbct->settings['misc__async_js'] ) {
+            $tag = str_replace(' src', ' async="async" src', $tag);
+        }
+
+        if ( class_exists('Cookiebot_WP') ) {
+            $tag = str_replace(' src', ' data-cookieconsent="ignore" src', $tag);
+        }
     }
-    
+
     return $tag;
 }
 
-function apbct_add_admin_ip_to_swf_whitelist( $user ) {
+function apbct_add_admin_ip_to_swf_whitelist($user)
+{
+    global $apbct;
 
-	global $apbct;
-	
-	$user = ! $user instanceof WP_User ? apbct_wp_get_current_user() : $user;
-	$ip = Helper::ip__get( 'real', true );
-	
-	if(
+    $user = ! $user instanceof WP_User ? apbct_wp_get_current_user() : $user;
+    $ip   = Helper::ipGet('real', true);
+
+    if (
         $apbct->settings['sfw__enabled'] && // Break if the SpamFireWall is inactive
         Server::isGet() &&
         ! apbct_wp_doing_cron() &&
-        in_array( 'administrator', (array) $user->roles, true ) &&
-        Cookie::get( 'ct_sfw_ip_wl' ) !== md5( $ip . $apbct->api_key ) &&
-        \Cleantalk\ApbctWP\Firewall\SFW::update__write_to_db__exclusions( \Cleantalk\Common\DB::getInstance(), APBCT_TBL_FIREWALL_DATA, array( $ip ) ) &&
-        apbct_private_list_add( $ip ) &&
+        in_array('administrator', (array)$user->roles, true) &&
+        Cookie::get('ct_sfw_ip_wl') !== md5($ip . $apbct->api_key) &&
+        SFW::updateWriteToDbExclusions(DB::getInstance(), APBCT_TBL_FIREWALL_DATA, array($ip)) &&
+        apbct_private_list_add($ip) &&
         ! headers_sent()
     ) {
-            \Cleantalk\ApbctWP\Variables\Cookie::set(
-                'ct_sfw_ip_wl',
-                md5( $ip . $apbct->api_key ),
-                time() + 86400 * 30,
-                '/',
-                '',
-                null,
-                true,
-                'Lax'
-            );
+        \Cleantalk\ApbctWP\Variables\Cookie::set(
+            'ct_sfw_ip_wl',
+            md5($ip . $apbct->api_key),
+            time() + 86400 * 30,
+            '/',
+            '',
+            null,
+            true,
+            'Lax'
+        );
     }
-
 }
 
-function apbct_private_list_add( $ip ){
-    
+function apbct_private_list_add($ip)
+{
     global $apbct;
-    
-    if( Helper::ip__validate( $ip ) ){
-        $result = API::method__private_list_add__sfw_wl( $apbct->data['user_token'], $ip, $apbct->data['service_id'] );
-        return empty( $result['error'] );
+
+    if ( Helper::ipValidate($ip) ) {
+        $result = API::methodPrivateListAddSfwWl($apbct->data['user_token'], $ip, $apbct->data['service_id']);
+
+        return empty($result['error']);
     }
-    
+
     return false;
 }
 
 /**
  * Hide website field from standard comments form
  */
-add_filter( 'comment_form_default_fields', 'apbct__change_type_website_field' , 999, 1);
-function apbct__change_type_website_field( $fields ){
+add_filter('comment_form_default_fields', 'apbct__change_type_website_field', 999, 1);
+function apbct__change_type_website_field($fields)
+{
+    global $apbct;
 
-	global $apbct;
+    if ( isset($apbct->settings['comments__hide_website_field']) && $apbct->settings['comments__hide_website_field'] ) {
+        if ( isset($fields['url']) && $fields['url'] ) {
+            $fields['url'] = '<input id="honeypot-field-url" autocomplete="off" name="url" type="text" value="" size="30" maxlength="200" />';
+        }
+    }
 
-	if(isset($apbct->settings['comments__hide_website_field']) && $apbct->settings['comments__hide_website_field']) {
-		if(isset($fields['url']) && $fields['url']) {
-			$fields['url'] = '<input id="honeypot-field-url" autocomplete="off" name="url" type="text" value="" size="30" maxlength="200" />';
-		}
-	}
-
-	return $fields;
+    return $fields;
 }
 
 /**
  * Add styles if website field hidden
  */
-add_action( 'wp_print_styles', 'apbct__styles_if_website_hidden' );
-function apbct__styles_if_website_hidden() {
-	global $apbct;
+add_action('wp_print_styles', 'apbct__styles_if_website_hidden');
+function apbct__styles_if_website_hidden()
+{
+    global $apbct;
 
-	if(isset($apbct->settings['comments__hide_website_field']) && $apbct->settings['comments__hide_website_field']) {
-		$styles = "
+    if ( $apbct->settings['comments__hide_website_field'] ) {
+        $styles = "
 		<style>
 		#honeypot-field-url {
 			display: none !important;
@@ -1025,6 +1090,41 @@ function apbct__styles_if_website_hidden() {
 		}
 		</style>";
 
-		echo $styles;
-	}
+        echo $styles;
+    }
+
+    if ( $apbct->settings['forms__wc_honeypot'] ) {
+        $styles = "
+		<style>
+		.apbct_wc_honeypot {
+			display: none !important;
+		}
+		</style>";
+
+        echo $styles;
+    }
+}
+
+/**
+ * Woocommerce honeypot
+ */
+add_filter('woocommerce_checkout_fields', 'apbct__wc_add_honeypot_field');
+function apbct__wc_add_honeypot_field($fields)
+{
+    global $apbct;
+
+    if ( $apbct->settings['forms__wc_honeypot'] ) {
+        $fields['billing']['apbct_wc_honeypot'] = array(
+            'id'            => 'apbct_wc_honeypot',
+            'type'          => 'text',
+            'label'         => '',
+            'placeholder'   => '',
+            'required'      => false,
+            'class'         => array('form-row-wide', 'apbct_wc_honeypot'),
+            'clear'         => true,
+            'autocomplete'  => 'off'
+        );
+    }
+
+    return $fields;
 }
