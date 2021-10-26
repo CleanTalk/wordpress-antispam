@@ -1166,20 +1166,6 @@ function ct_enqueue_scripts_public($_hook)
                     'set_cookies_flag' => $apbct->settings['data__set_cookies'] ? false : true,
                 ));
             }
-
-            wp_enqueue_script(
-                'ct_nocache',
-                plugins_url('/cleantalk-spam-protect/js/cleantalk_nocache.min.js'),
-                array(),
-                APBCT_VERSION,
-                false /*in header*/
-            );
-            wp_localize_script('ct_nocache', 'ctNocache', array(
-                'ajaxurl'          => admin_url('admin-ajax.php', 'relative'),
-                'info_flag'        => $apbct->settings['misc__collect_details'] && $apbct->settings['data__set_cookies'],
-                'set_cookies_flag' => (bool)$apbct->settings['data__set_cookies'],
-                'blog_home'        => get_home_url() . '/',
-            ));
         }
 
         // GDPR script

@@ -52,19 +52,18 @@ if( ct_collect_details === undefined )
 
     cleantalk_user_info.screen=cleantalk_screen_info;
 
-    var cleantalk_plugins=Array();
-    var prev;
+    var cleantalk_plugins = Array();
     var cnt=0;
-    for(var i=0;i<navigator.plugins.length;i++)
+    for(var i=0, prev = ''; i<navigator.plugins.length; i++)
     {
         var plugin = navigator.plugins[i];
-        var plugin = plugin.name+" "+(plugin.version || '')
-        if (prev == plugin ) continue;
+        plugin = plugin.name+" "+(plugin.version || '')
+        if (prev === plugin ) continue;
         cleantalk_plugins[cnt]=plugin;
         cnt++;
         prev = plugin;
     }
-    cleantalk_user_info.plugins=cleantalk_plugins;
+    cleantalk_user_info.plugins = cleantalk_plugins;
 
     cleantalk_user_info.timezone_offset = -new Date().getTimezoneOffset()/60;
     cleantalk_user_info.datetime = Math.round((new Date().getTime())/1000);
@@ -86,8 +85,8 @@ if( ct_collect_details === undefined )
             {
                 flashInstalled = 1;
             }
-        } catch(e) {};
-    };
+        } catch(e) {}
+    }
 
     cleantalk_user_info.is_flash=flashInstalled;
 
