@@ -883,6 +883,18 @@ function ct_ajax_hook($message_obj = null)
             wp_send_json_error(array(0 => array('username_error', $ct_result->comment)));
         }
 
+        // Kali Form Integration
+        if ( Post::hasString('action', 'kaliforms_form_process') ) {
+            die(
+                json_encode(
+                    array(
+                        'status' => 'ok',
+                        'thank_you_message' => $ct_result->comment
+                    )
+                )
+            );
+        }
+
         // Regular block output
         die(
             json_encode(
