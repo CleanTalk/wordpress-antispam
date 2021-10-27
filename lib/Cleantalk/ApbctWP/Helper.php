@@ -147,7 +147,7 @@ class Helper extends \Cleantalk\Common\Helper
         } elseif ( ! empty($result['error'])) {
             $result = array('error' => 'WRONG_SITE_RESPONSE TEST ACTION: ' . $rc_action . ' ERROR: ' . $result['error']);
             // Expects 'OK' string as good response otherwise - error
-        } elseif ( ! preg_match('@^.*?OK$@', $result)) {
+        } elseif ( ! is_string($result) || ( is_string($result) && ! preg_match('@^.*?OK$@', $result) ) ) {
             $result = array(
                 'error' => 'WRONG_SITE_RESPONSE ACTION: ' .
                            $rc_action .
