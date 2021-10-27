@@ -56,8 +56,8 @@ function ct_clear_comments(){
 		from = jQuery('#ct_date_range_from').val();
 		till = jQuery('#ct_date_range_till').val();
 	}
-	
-	document.cookie = 'apbct_check_comments_offset' + "=" + 0 + "; path=/";
+	var ctSecure = location.protocol === 'https:' ? '; secure' : '';
+	document.cookie = 'apbct_check_comments_offset' + "=" + 0 + "; path=/; samesite=lax" + ctSecure;
 	
 	var data = {
 		'action'   : 'ajax_clear_comments',
@@ -104,7 +104,7 @@ function ct_send_comments(){
 		'security': ct_ajax_nonce,
 		'new_check': ct_new_check,
 		'unchecked': ct_unchecked,
-		'offset' : Number(getCookie('apbct_check_comments_offset'))
+		'offset' : Number(ctGetCookie('apbct_check_comments_offset'))
 	};
 	
 	if(ct_accurate_check)
@@ -160,7 +160,7 @@ function ct_send_comments(){
 						location.href = 'edit-comments.php?page=ct_check_spam';
 					}
 
-					var offset = Number(getCookie('apbct_check_comments_offset')) + 100;
+					var offset = Number(ctGetCookie('apbct_check_comments_offset')) + 100;
 					document.cookie = 'apbct_check_comments_offset' + "=" + offset + "; path=/";
 					
 					ct_send_comments();
@@ -446,7 +446,7 @@ jQuery(document).ready(function(){
  * @param name
  * @returns {string|undefined}
  */
-function getCookie(name) {
+function ctGetCookie(name) {
 	let matches = document.cookie.match(new RegExp(
 		"(?:^|; )" + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + "=([^;]*)"
 	));
