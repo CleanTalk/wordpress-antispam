@@ -17,6 +17,16 @@ use Cleantalk\Variables\Server;
 
 function apbct_run_update_actions( $current_version, $new_version )
 {
+    global $apbct;
+
+    // Excludes the repeated call of the plugin update if the process is already running.
+    if ((int)$apbct->stats['plugin']['plugin_is_being_updated'] === 1) {
+        return false;
+    }
+
+    $apbct->stats['plugin']['plugin_is_being_updated'] = 1;
+    $apbct->save('stats');
+
 	$current_version_arr = apbct_version_standardization( $current_version );
 	$new_version_arr     = apbct_version_standardization( $new_version );
 	$current_version_str = implode( '.', $current_version_arr );
@@ -69,17 +79,8 @@ function apbct_run_update_actions( $current_version, $new_version )
 		}
 	}
 
-    global $apbct;
-
-    $api_key = $apbct->api_key;
-    if ($api_key && preg_match('/^[a-z\d]{3,15}$/', $api_key)) {
-        // Key is good by default
-        $apbct->data['key_is_ok'] = true;
-    } else {
-        $apbct->data['key_is_ok'] = false;
-        $apbct->data['notice_show'] = 1;
-    }
-    $apbct->save('data');
+    $apbct->stats['plugin']['plugin_is_being_updated'] = 0;
+    $apbct->save('stats');
 
     // Start SFW update
     apbct_sfw_update__init();
@@ -161,6 +162,24 @@ function apbct_update_to_5_97_0()
 		$apbct->data['connection_reports']['negative_report'] = array_slice($apbct->data['connection_reports']['negative_report'], -20, 20);
 
 	$apbct->saveData();
+}
+
+/**
+ * @return void
+ */
+function apbct_update_to_5_103_0()
+{
+    global $apbct;
+
+    $api_key = $apbct->api_key;
+    if ($api_key && preg_match('/^[a-z\d]{3,15}$/', $api_key)) {
+        // Key is good by default
+        $apbct->data['key_is_ok'] = true;
+    } else {
+        $apbct->data['key_is_ok'] = false;
+        $apbct->data['notice_show'] = 1;
+    }
+    $apbct->save('data');
 }
 
 /**
