@@ -206,6 +206,9 @@ class State extends \Cleantalk\Common\State
         'key_is_ok'                   => 0,
         'salt'                        => '',
 
+        // Comment's test
+        'count_checked_comments'      => 0,
+        'count_bad_comments'          => 0,
     );
 
     public $def_network_settings = array(
