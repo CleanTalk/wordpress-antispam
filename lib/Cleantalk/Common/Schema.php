@@ -10,7 +10,7 @@ class Schema
      * Schema table prefix
      */
     private static $schemaTablePrefix = 'cleantalk_';
-    
+
     /**
      * Structure of schema
      *
@@ -82,15 +82,15 @@ class Schema
     /**
      * Return $schemaTablePrefix
      */
-    public static function getSchemaTablePrefix ()
+    public static function getSchemaTablePrefix()
     {
         return self::$schemaTablePrefix;
     }
-    
+
     /**
      * Return $structure_schemas
      */
-    public static function getStructureSchemas ()
+    public static function getStructureSchemas()
     {
         return self::$structureSchemas;
     }

@@ -1048,7 +1048,7 @@ function apbct_sfw_update__create_tables()
     // Preparing database infrastructure
     // Creating SFW tables to make sure that they are exist
     $db_tables_creator = new DbTablesCreator();
-    $table_name = $apbct->db_prefix.Schema::getSchemaTablePrefix().'sfw';
+    $table_name = $apbct->db_prefix . Schema::getSchemaTablePrefix() . 'sfw';
     $db_tables_creator->createTable($table_name);
 
     return array(
@@ -1431,7 +1431,7 @@ function apbct_sfw_direct_update()
         // Preparing database infrastructure
         // @ToDo need to implement returning result of the Activator::createTables work.
         $db_tables_creator = new DbTablesCreator();
-        $table_name = $apbct->db_prefix.Schema::getSchemaTablePrefix().'sfw';
+        $table_name = $apbct->db_prefix . Schema::getSchemaTablePrefix() . 'sfw';
         $db_tables_creator->createTable($table_name);
 
         $result__creating_tmp_table = SFW::createTempTables(DB::getInstance(), APBCT_TBL_FIREWALL_DATA);
