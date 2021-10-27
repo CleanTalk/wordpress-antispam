@@ -79,7 +79,7 @@ class DbAnalyzer {
                         }
                     }
                 }
-                switch_to_blog(1);
+                switch_to_blog(get_main_site_id());
             }
             else {
                 foreach ($schema_table_keys as $table_key) {

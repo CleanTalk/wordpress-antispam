@@ -48,6 +48,7 @@ class DbColumnCreator {
     private function addColumnsIfNotExists()
     {
         global $wpdb;
+        $wpdb->show_errors = true;
         $schema_table_structure = Schema::getStructureSchemas();
         $table_key = explode(Schema::getSchemaTablePrefix(), $this->dbTableName)[1];
         $db_column_names = array();
@@ -96,41 +97,12 @@ class DbColumnCreator {
             $counter++;
         }
         
-        $wpdb->show_errors = true;
-        
         // Logging errors
         if(!empty($errors)) {
             apbct_log( $errors );
         }
     }
     
-    /**
-     * Create column in table
-     */
-    public function createColumn ($table_name, $column_name, $column_params, $after = '')
-    {
-        global $wpdb;
-        
-        $sql = "ALTER TABLE `$table_name`";
-        $sql .= " ADD COLUMN $column_name";
-        $sql .= " $column_params";
-        if ($after) {
-            $sql .= " AFTER $after";
-        }
-        
-        $result = $wpdb->query( $sql );
-        if( $result === false ) {
-            $errors[] = "Failed.\nQuery: $wpdb->last_query\nError: $wpdb->last_error";
-        }
-        
-        $wpdb->show_errors = true;
-        
-        // Logging errors
-        if(!empty($errors)) {
-            apbct_log( $errors );
-        }
-    }
-
     /**
      * Get information about table changes
      */
