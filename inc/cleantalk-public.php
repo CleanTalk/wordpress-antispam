@@ -603,7 +603,7 @@ function ct_add_hidden_fields(
                     if (typeof ctSetCookie === \"function\")
                         ctSetCookie('{$field_name}', '{$ct_checkjs_key}' );
                     else 
-                        console.log('APBCT_AJAX_ERROR');
+                        console.log('APBCT ERROR: apbct-public--functions is not loaded.');
                 });
 		    </script>";
         // Using AJAX to get key
