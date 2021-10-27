@@ -529,12 +529,12 @@ function apbct_update_to_5_150_0()
     global $wpdb;
 
     // Actions for WPMS
-    if ( APBCT_WPMS ) {
+    if (APBCT_WPMS) {
         // Getting all blog ids
         $initial_blog = get_current_blog_id();
         $blogs        = array_keys($wpdb->get_results('SELECT blog_id FROM ' . $wpdb->blogs, OBJECT_K));
 
-        foreach ( $blogs as $blog ) {
+        foreach ($blogs as $blog) {
             switch_to_blog($blog);
 
             update_option('cleantalk_plugin_request_ids', array());
@@ -548,7 +548,7 @@ function apbct_update_to_5_150_0()
 /**
  * @return void
  */
-function apbct_update_to_5_151_1 ()
+function apbct_update_to_5_151_1()
 {
     global $apbct;
     $apbct->fw_stats['firewall_updating_id']         = isset($apbct->data['firewall_updating_id'])
@@ -661,50 +661,47 @@ function apbct_update_to_5_154_0()
         'use_settings_template_apply_for_current_list_sites' => 'multisite__use_settings_template_apply_for_current_list_sites',
     );
 
-    if ( is_multisite() ) {
+    if (is_multisite()) {
+        $network_settings = get_site_option('cleantalk_network_settings');
 
-        $network_settings = get_site_option( 'cleantalk_network_settings' );
-
-        if ( $network_settings ) {
+        if ($network_settings) {
             $_network_settings = array();
             // replacing old key to new keys
-            foreach( $network_settings as $key => $value ){
-                if( array_key_exists( $key, $keys_map ) ) {
+            foreach ($network_settings as $key => $value) {
+                if (array_key_exists($key, $keys_map)) {
                     $_network_settings[$keys_map[$key]] = $value;
                 } else {
                     $_network_settings[$key] = $value;
                 }
             }
-            if( ! empty( $_network_settings ) ) {
-                update_site_option( 'cleantalk_network_settings', $_network_settings );
+            if (! empty($_network_settings)) {
+                update_site_option('cleantalk_network_settings', $_network_settings);
             }
         }
 
         $initial_blog  = get_current_blog_id();
-        $blogs = array_keys( $wpdb->get_results( 'SELECT blog_id FROM '. $wpdb->blogs, OBJECT_K ) );
-        foreach ( $blogs as $blog ) {
-            switch_to_blog( $blog );
+        $blogs = array_keys($wpdb->get_results('SELECT blog_id FROM ' . $wpdb->blogs, OBJECT_K));
+        foreach ($blogs as $blog) {
+            switch_to_blog($blog);
 
-            $settings = get_option( 'cleantalk_settings' );
+            $settings = get_option('cleantalk_settings');
 
-            if( $settings ) {
+            if ($settings) {
                 // replacing old key to new keys
                 $_settings = array();
-                foreach( $settings as $key => $value ){
-                    if( array_key_exists( $key, $keys_map ) ) {
+                foreach ($settings as $key => $value) {
+                    if (array_key_exists($key, $keys_map)) {
                         $_settings[$keys_map[$key]] = $value;
                     } else {
                         $_settings[$key] = $value;
                     }
                 }
-                if( ! empty( $_settings ) ){
-                    update_option( 'cleantalk_settings', $_settings );
+                if (! empty($_settings)) {
+                    update_option('cleantalk_settings', $_settings);
                 }
             }
-
         }
         switch_to_blog( $initial_blog );
-
     } else {
         $apbct->data['current_settings_template_id'] = null;
         $apbct->data['current_settings_template_name'] = null;
@@ -712,11 +709,11 @@ function apbct_update_to_5_154_0()
 
         $settings = (array) $apbct->settings;
 
-        if( $settings ) {
+        if ($settings) {
             $_settings = array();
             // replacing old key to new keys
-            foreach( $settings as $key => $value ){
-                if( array_key_exists( $key, $keys_map ) ) {
+            foreach ($settings as $key => $value) {
+                if (array_key_exists($key, $keys_map)) {
                     $_settings[$keys_map[$key]] = $value;
                 } else {
                     $_settings[$key] = $value;
@@ -741,7 +738,7 @@ function apbct_update_to_5_156_0()
     $apbct->save('remote_calls');
 
     $cron = new Cron();
-    $cron->updateTask('sfw_update', 'apbct_sfw_update__init',   86400, time() + 42300 );
+    $cron->updateTask('sfw_update', 'apbct_sfw_update__init', 86400, time() + 42300);
 }
 
 /**
@@ -751,10 +748,10 @@ function apbct_update_to_5_157_0()
 {
     global $apbct;
 
-    $apbct->remote_calls['sfw_update__worker'] = array( 'last_call' => 0, 'cooldown' => 0 );
+    $apbct->remote_calls['sfw_update__worker'] = array('last_call' => 0, 'cooldown' => 0);
     $apbct->save('remote_calls');
 
-    if ( ! empty($apbct->settings['data__set_cookies__sessions']) ) {
+    if (! empty($apbct->settings['data__set_cookies__sessions'])) {
         $apbct->settings['data__set_cookies'] = 2;
     }
     $apbct->settings['data__set_cookies__alt_sessions_type'] = 0;
@@ -774,16 +771,16 @@ function apbct_update_to_5_158_0()
     $_wpdb = $wpdb;
 
     // Update from fix branch
-    if ( APBCT_WPMS && is_main_site() ) {
+    if (APBCT_WPMS && is_main_site()) {
         $wp_blogs           = $_wpdb->get_results('SELECT blog_id, site_id FROM ' . $_wpdb->blogs, OBJECT_K);
         $current_sites_list = $apbct->settings['multisite__use_settings_template_apply_for_current_list_sites'];
         
-        if ( is_array($wp_blogs) && is_array($current_sites_list) ) {
-            foreach ( $wp_blogs as $blog ) {
+        if (is_array($wp_blogs) && is_array($current_sites_list)) {
+            foreach ($wp_blogs as $blog) {
                 $blog_details = get_blog_details(array('blog_id' => $blog->blog_id));
-                if ( $blog_details ) {
+                if ($blog_details) {
                     $site_list_index = array_search($blog_details->blogname, $current_sites_list, true);
-                    if ( $site_list_index !== false ) {
+                    if ($site_list_index !== false) {
                         $current_sites_list[$site_list_index] = $blog_details->id;
                     }
                 }
@@ -819,10 +816,10 @@ function apbct_update_to_5_159_6()
 
     $ct_cron = new Cron();
 
-    if ( is_multisite() ) {
+    if (is_multisite()) {
         $initial_blog = get_current_blog_id();
         $blogs        = array_keys($wpdb->get_results('SELECT blog_id FROM ' . $wpdb->blogs, OBJECT_K));
-        foreach ( $blogs as $blog ) {
+        foreach ($blogs as $blog) {
             switch_to_blog($blog);
             // Cron tasks
             $ct_cron->addTask(
@@ -924,7 +921,7 @@ function apbct_update_to_5_160_4()
 
     apbct_remove_upd_folder(APBCT_DIR_PATH . '/fw_files');
 
-    if ( $apbct->is_multisite ) {
+    if ($apbct->is_multisite) {
         $apbct->network_settings = array_merge((array)$apbct->network_settings, $apbct->default_network_settings);
         $apbct->save('network_settings');
     }
@@ -932,7 +929,7 @@ function apbct_update_to_5_160_4()
     apbct_remove_upd_folder(ABSPATH . '/wp-admin/fw_files');
     apbct_remove_upd_folder(Server::get('DOCUMENT_ROOT') . '/fw_files');
     $file_path = Server::get('DOCUMENT_ROOT') . '/fw_filesindex.php';
-    if ( is_file($file_path) && is_writable($file_path) ) {
+    if (is_file($file_path) && is_writable($file_path)) {
         unlink($file_path);
     }
 }
@@ -941,7 +938,7 @@ function apbct_update_to_5_161_1()
 {
     global $apbct;
 
-    if ( $apbct->is_multisite ) {
+    if ($apbct->is_multisite) {
         $apbct->network_settings = array_merge((array)$apbct->network_settings, $apbct->default_network_settings);
         $apbct->saveNetworkSettings();
     }
@@ -951,16 +948,16 @@ function apbct_update_to_5_161_2()
 {
     global $apbct;
     // Set type of the alt cookies
-    if ( $apbct->settings['data__set_cookies'] == 2 ) {
+    if ($apbct->settings['data__set_cookies'] == 2) {
         // Check custom ajax availability
         $res_custom_ajax = Helper::httpRequestGetResponseCode(esc_url(APBCT_URL_PATH . '/lib/Cleantalk/ApbctWP/Ajax.php'));
-        if ( $res_custom_ajax != 400 ) {
+        if ($res_custom_ajax != 400) {
             // Check rest availability
             $res_rest = Helper::httpRequestGetResponseCode(esc_url(apbct_get_rest_url()));
-            if ( $res_rest != 200 ) {
+            if ($res_rest != 200) {
                 // Check WP ajax availability
                 $res_ajax = Helper::httpRequestGetResponseCode(admin_url('admin-ajax.php'));
-                if ( $res_ajax != 400 ) {
+                if ($res_ajax != 400) {
                     // There is no available alt cookies types. Cookies will be disabled.
                     $apbct->settings['data__set_cookies'] = 0;
                 } else {
@@ -1008,13 +1005,13 @@ function apbct_update_to_5_162_1()
         $res_custom_ajax = Helper::httpRequestGetResponseCode(
             esc_url(APBCT_URL_PATH . '/lib/Cleantalk/ApbctWP/Ajax.php')
         );
-        if ( $res_custom_ajax != 400 ) {
+        if ($res_custom_ajax != 400) {
             // Check rest availability
             $res_rest = Helper::httpRequestGetResponseCode(esc_url(apbct_get_rest_url()));
-            if ( $res_rest != 200 ) {
+            if ($res_rest != 200) {
                 // Check WP ajax availability
                 $res_ajax = Helper::httpRequestGetResponseCode(admin_url('admin-ajax.php'));
-                if ( $res_ajax != 400 ) {
+                if ($res_ajax != 400) {
                     // There is no available alt cookies types. Cookies will be disabled.
                     $apbct->settings['data__use_ajax'] = 0;
                 } else {
