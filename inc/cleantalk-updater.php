@@ -448,7 +448,6 @@ function apbct_update_to_5_138_0()
         $net_settings = get_site_option('cleantalk_network_settings');
 
         foreach ($blogs_ids as $blog) {
-
             // Update time limit to prevent exec time error
             set_time_limit(20);
 
@@ -461,7 +460,6 @@ function apbct_update_to_5_138_0()
 
             // Update plugin status
             if (! empty($settings['apikey'])) {
-
                 $data = get_option('cleantalk_data', array());
 
                 $result = \Cleantalk\ApbctWP\API::method__notice_paid_till(
@@ -470,7 +468,7 @@ function apbct_update_to_5_138_0()
                     ! is_main_site() && $net_settings['white_label'] ? 'anti-spam-hosting' : 'antispam'
                 );
 
-                if (empty($result['error'] ) || ! empty($result['valid'])) {
+                if (empty($result['error']) || ! empty($result['valid'])) {
                     // Notices
                     $data['notice_show']        = isset($result['show_notice'])             ? (int)$result['show_notice']             : 0;
                     $data['notice_renew']       = isset($result['renew'])                   ? (int)$result['renew']                   : 0;
@@ -701,7 +699,7 @@ function apbct_update_to_5_154_0()
                 }
             }
         }
-        switch_to_blog( $initial_blog );
+        switch_to_blog($initial_blog);
     } else {
         $apbct->data['current_settings_template_id'] = null;
         $apbct->data['current_settings_template_name'] = null;
@@ -774,7 +772,7 @@ function apbct_update_to_5_158_0()
     if (APBCT_WPMS && is_main_site()) {
         $wp_blogs           = $_wpdb->get_results('SELECT blog_id, site_id FROM ' . $_wpdb->blogs, OBJECT_K);
         $current_sites_list = $apbct->settings['multisite__use_settings_template_apply_for_current_list_sites'];
-        
+
         if (is_array($wp_blogs) && is_array($current_sites_list)) {
             foreach ($wp_blogs as $blog) {
                 $blog_details = get_blog_details(array('blog_id' => $blog->blog_id));
