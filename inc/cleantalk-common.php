@@ -1118,7 +1118,7 @@ function apbct__styles_if_website_hidden()
     if ( $apbct->settings['forms__wc_honeypot'] ) {
         $styles = "
 		<style>
-		.apbct_wc_honeypot {
+		.wc_apbct_email_id {
 			display: none !important;
 		}
 		</style>";
@@ -1136,13 +1136,13 @@ function apbct__wc_add_honeypot_field($fields)
     global $apbct;
 
     if ( $apbct->settings['forms__wc_honeypot'] ) {
-        $fields['billing']['apbct_wc_honeypot'] = array(
-            'id'            => 'apbct_wc_honeypot',
+        $fields['billing']['wc_apbct_email_id'] = array(
+            'id'            => 'wc_apbct_email_id',
             'type'          => 'text',
             'label'         => '',
             'placeholder'   => '',
             'required'      => false,
-            'class'         => array('form-row-wide', 'apbct_wc_honeypot'),
+            'class'         => array('form-row-wide', 'wc_apbct_email_id'),
             'clear'         => true,
             'autocomplete'  => 'off'
         );
