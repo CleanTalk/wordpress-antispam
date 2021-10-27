@@ -18,6 +18,7 @@ use Cleantalk\Variables\Server;
 function apbct_run_update_actions( $current_version, $new_version )
 {
     global $apbct;
+    $need_start_update_sfw = false;
 
     // Excludes the repeated call of the plugin update if the process is already running.
     if ((int)$apbct->stats['plugin']['plugin_is_being_updated'] === 1) {
@@ -37,6 +38,11 @@ function apbct_run_update_actions( $current_version, $new_version )
     // Create not exists tables
     if ($db_analyzer->getNotExistsTables()) {
         foreach ($db_analyzer->getNotExistsTables() as $table) {
+            // Checking whether to run the SFW update
+            if (substr($table, -3) === 'sfw') {
+                $need_start_update_sfw = true;
+            }
+
             $db_tables_creator = new \Cleantalk\ApbctWP\UpdatePlugin\DbTablesCreator();
             $db_tables_creator->createTable($table);
         }
@@ -47,6 +53,13 @@ function apbct_run_update_actions( $current_version, $new_version )
         foreach ($db_analyzer->getExistsTables() as $table_name) {
             $db_column_creator = new \Cleantalk\ApbctWP\UpdatePlugin\DbColumnCreator($table_name);
             $db_column_creator->execute();
+
+            if ($db_column_creator->getTableChangedStatus()) {
+                // Checking whether to run the SFW update
+                if (substr($table_name, -3) === 'sfw') {
+                    $need_start_update_sfw = true;
+                }
+            }
         }
     }
 
@@ -83,7 +96,9 @@ function apbct_run_update_actions( $current_version, $new_version )
     $apbct->save('stats');
 
     // Start SFW update
-    apbct_sfw_update__init();
+    if ($need_start_update_sfw) {
+        apbct_sfw_update__init();
+    }
 
 	return true;
 }

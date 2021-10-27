@@ -10,6 +10,11 @@ class DbColumnCreator {
      * Table name
      */
     private $dbTableName;
+
+    /**
+     * Tables that have been changed
+     */
+    private $dbTableChanged;
     
     /**
      * Table structure
@@ -19,6 +24,7 @@ class DbColumnCreator {
     public function __construct($table_name)
     {
         $this->dbTableName = $table_name;
+        $this->dbTableChanged = false;
     }
     
     /**
@@ -63,6 +69,7 @@ class DbColumnCreator {
             $sql .= " ADD COLUMN `id`";
             $sql .= " " . $schema_table_structure[$table_key]['__createkey'];
             $result = $wpdb->query( $sql );
+            $this->dbTableChanged = true;
             if( $result === false ) {
                 $errors[] = "Failed.\nQuery: $wpdb->last_query\nError: $wpdb->last_error";
             }
@@ -81,6 +88,7 @@ class DbColumnCreator {
                 }
                 
                 $result = $wpdb->query( $sql );
+                $this->dbTableChanged = true;
                 if( $result === false ) {
                     $errors[] = "Failed.\nQuery: $wpdb->last_query\nError: $wpdb->last_error";
                 }
@@ -121,5 +129,13 @@ class DbColumnCreator {
         if(!empty($errors)) {
             apbct_log( $errors );
         }
+    }
+
+    /**
+     * Get information about table changes
+     */
+    public function getTableChangedStatus()
+    {
+        return $this->dbTableChanged;
     }
 }
