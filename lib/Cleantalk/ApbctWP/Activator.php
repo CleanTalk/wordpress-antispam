@@ -2,6 +2,7 @@
 
 namespace Cleantalk\ApbctWP;
 
+use Cleantalk\ApbctWP\UpdatePlugin\DbTablesCreator;
 use Cleantalk\Common\Schema;
 
 class Activator
@@ -9,6 +10,8 @@ class Activator
     public static function activation($network_wide, $concrete_blog_id = null)
     {
         global $wpdb, $apbct;
+
+        $db_tables_creator = new DbTablesCreator();
 
         if ( is_null($concrete_blog_id) ) {
             // Do actions for the all blogs on activation
@@ -22,13 +25,13 @@ class Activator
                 $blogs        = array_keys($wpdb->get_results('SELECT blog_id FROM ' . $wpdb->blogs, OBJECT_K));
                 foreach ( $blogs as $blog ) {
                     switch_to_blog($blog);
-                    self::createTables(Schema::getSchema());
+                    $db_tables_creator->createAllTables();
                     self::setCronJobs();
                 }
                 switch_to_blog($initial_blog);
             } else {
                 self::setCronJobs();
-                apbct_activation__create_tables(Schema::getSchema());
+                $db_tables_creator->createAllTables();
                 ct_account_status_check(null, false);
             }
 
@@ -43,7 +46,7 @@ class Activator
                 switch_to_blog($concrete_blog_id);
 
                 self::setCronJobs(false);
-                apbct_activation__create_tables(Schema::getSchema());
+                $db_tables_creator->createAllTables();
                 apbct_sfw_update__init(3); // Updating SFW
                 ct_account_status_check(null, false);
 
@@ -52,40 +55,6 @@ class Activator
                 }
                 restore_current_blog();
             }
-        }
-    }
-
-    /**
-     * Creating specific tables
-     *
-     * @param $sqls
-     * @param string $db_prefix
-     *
-     * @return void
-     */
-    public static function createTables($sqls, $db_prefix = '')
-    {
-        if ( ! is_array($sqls) && empty($sqls) ) {
-            return;
-        }
-
-        global $wpdb;
-
-        $db_prefix = $db_prefix ?: $wpdb->prefix;
-
-        $wpdb->show_errors = false;
-        foreach ( $sqls as $sql ) {
-            $sql = sprintf($sql, $db_prefix); // Adding current blog prefix
-            $result = $wpdb->query($sql);
-            if ( $result === false ) {
-                $errors[] = "Failed.\nQuery: $wpdb->last_query\nError: $wpdb->last_error";
-            }
-        }
-        $wpdb->show_errors = true;
-
-        // Logging errors
-        if ( ! empty($errors) ) {
-            apbct_log($errors);
         }
     }
 
