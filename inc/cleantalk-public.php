@@ -390,7 +390,7 @@ function apbct_buffer__output()
         return;
     }
 
-    if ( apbct_is_plugin_active('flow-flow/flow-flow.php') ) {
+    if ( apbct_is_plugin_active('flow-flow/flow-flow.php') || apbct_is_theme_active('epico') ) {
         $output = apbct_buffer_modify_by_string();
     } else {
         $output = apbct_buffer_modify_by_dom();
