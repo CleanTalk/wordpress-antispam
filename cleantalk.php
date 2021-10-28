@@ -27,6 +27,7 @@ use Cleantalk\ApbctWP\Helper;
 use Cleantalk\ApbctWP\RemoteCalls;
 use Cleantalk\ApbctWP\RestController;
 use Cleantalk\ApbctWP\State;
+use Cleantalk\ApbctWP\UpdatePlugin\DbTablesCreator;
 use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\Common\DNS;
 use Cleantalk\Common\Firewall;
@@ -704,20 +705,6 @@ function apbct_sfw__check()
 }
 
 /**
- * Creating specific tables
- *
- * @param $sqls
- * @param string $db_prefix
- *
- * @return void
- * @depreacted Use Activator::create_tables() instead
- */
-function apbct_activation__create_tables($sqls, $db_prefix = '')
-{
-    Activator::createTables($sqls, $db_prefix);
-}
-
-/**
  * Redirects admin to plugin settings after activation.
  * @psalm-suppress UnusedVariable
  */
@@ -1069,7 +1056,9 @@ function apbct_sfw_update__create_tables()
     global $apbct;
     // Preparing database infrastructure
     // Creating SFW tables to make sure that they are exist
-    apbct_activation__create_tables(Schema::getSchema('sfw'), $apbct->db_prefix);
+    $db_tables_creator = new DbTablesCreator();
+    $table_name = $apbct->db_prefix . Schema::getSchemaTablePrefix() . 'sfw';
+    $db_tables_creator->createTable($table_name);
 
     return array(
         'next_stage' => array(
@@ -1451,7 +1440,9 @@ function apbct_sfw_direct_update()
 
         // Preparing database infrastructure
         // @ToDo need to implement returning result of the Activator::createTables work.
-        apbct_activation__create_tables(Schema::getSchema('sfw'), $apbct->db_prefix);
+        $db_tables_creator = new DbTablesCreator();
+        $table_name = $apbct->db_prefix . Schema::getSchemaTablePrefix() . 'sfw';
+        $db_tables_creator->createTable($table_name);
 
         $result__creating_tmp_table = SFW::createTempTables(DB::getInstance(), APBCT_TBL_FIREWALL_DATA);
         if ( ! empty($result__creating_tmp_table['error']) ) {
