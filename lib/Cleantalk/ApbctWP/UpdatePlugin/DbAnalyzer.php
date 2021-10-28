@@ -8,8 +8,6 @@ class DbAnalyzer
 {
     /**
      * Contain DB Schema
-     *
-     * @var $dbSchema
      */
     private $dbSchema;
 
