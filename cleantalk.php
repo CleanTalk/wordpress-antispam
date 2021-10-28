@@ -482,10 +482,6 @@ if ( is_admin() || is_network_admin() ) {
         } // Questions
         add_filter('et_pre_insert_answer', 'ct_ajax_hook', 1, 1); // Answers
 
-        // Formidable
-        add_filter('frm_entries_before_create', 'apbct_form__formidable__testSpam', 10, 2);
-        add_action('frm_entries_footer_scripts', 'apbct_form__formidable__footerScripts', 20, 2);
-
         // Some of plugins to register a users use AJAX context.
         add_filter('registration_errors', 'ct_registration_errors', 1, 3);
         add_filter('registration_errors', 'ct_check_registration_erros', 999999, 3);

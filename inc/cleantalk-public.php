@@ -204,7 +204,7 @@ function apbct_init()
     }
 
     // Formidable
-    add_filter('frm_entries_before_create', 'apbct_form__formidable__testSpam', 10, 2);
+    add_filter('frm_entries_before_create', 'apbct_form__formidable__testSpam', 999999, 2);
     add_action('frm_entries_footer_scripts', 'apbct_form__formidable__footerScripts', 20, 2);
 
     // BuddyPress
@@ -604,7 +604,7 @@ function ct_add_hidden_fields(
                     if (typeof ctSetCookie === \"function\")
                         ctSetCookie('{$field_name}', '{$ct_checkjs_key}' );
                     else 
-                        console.log('APBCT_AJAX_ERROR');
+                        console.log('APBCT ERROR: apbct-public--functions is not loaded.');
                 });
 		    </script>";
         // Using AJAX to get key
