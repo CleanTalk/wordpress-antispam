@@ -4,7 +4,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 5.164.1-dev
+  Version: 5.164.2-dev
   Author: СleanTalk <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -363,6 +363,7 @@ if ( ! is_admin() && ! apbct_is_ajax() && ! apbct_is_customize_preview() ) {
     // SpamFireWall check
     if ( $apbct->plugin_version == APBCT_VERSION && // Do not call with first start
          $apbct->settings['sfw__enabled'] == 1 &&
+         $apbct->stats['sfw']['last_update_time'] &&
          apbct_is_get() &&
          ! apbct_wp_doing_cron() &&
          ! \Cleantalk\Variables\Server::inUri('/favicon.ico') &&
@@ -480,10 +481,6 @@ if ( is_admin() || is_network_admin() ) {
             add_filter('et_pre_insert_question', 'ct_ajax_hook', 1, 1);
         } // Questions
         add_filter('et_pre_insert_answer', 'ct_ajax_hook', 1, 1); // Answers
-
-        // Formidable
-        add_filter('frm_entries_before_create', 'apbct_form__formidable__testSpam', 10, 2);
-        add_action('frm_entries_footer_scripts', 'apbct_form__formidable__footerScripts', 20, 2);
 
         // Some of plugins to register a users use AJAX context.
         add_filter('registration_errors', 'ct_registration_errors', 1, 3);
