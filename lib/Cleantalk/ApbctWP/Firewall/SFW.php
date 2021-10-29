@@ -745,11 +745,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
         $table_names = (array)$table_names;
 
         foreach ($table_names as $table_name) {
-            if ( ! $db->isTableExists($table_name)) {
-                return array('error' => 'DELETE TABLE: TABLE IS NOT EXISTS: ' . $table_name);
-            }
-
-            if ( ! $db->execute('DROP TABLE ' . $table_name . ';') ) {
+            if ( $db->isTableExists($table_name) && ! $db->execute('DROP TABLE ' . $table_name . ';') ) {
                 return array(
                     'error' => 'DELETE TABLE: FAILED TO DROP: ' . $table_name
                                . ' DB Error: ' . $db->getLastError()
