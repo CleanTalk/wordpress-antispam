@@ -455,7 +455,7 @@ function apbct__filter_form_data($form_data)
         $excluded_fields = explode(',', $apbct->settings['exclusions__fields']);
 
         foreach ($excluded_fields as $excluded_field) {
-            preg_match_all('/\[([\S]*?)\]/', $excluded_field, $matches);
+            preg_match_all('/\[(\S*?)\]/', $excluded_field, $matches);
 
             if (!empty($matches[1])) {
                 $excluded_matches = $matches[1];

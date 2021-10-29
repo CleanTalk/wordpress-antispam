@@ -513,7 +513,7 @@ function ct_ajax_hook($message_obj = null)
     }
 
     // Kali form integration
-    if ( isset($_POST['action']) && $_POST['action'] === 'kaliforms_form_process' ) {
+    if (Post::hasString('action', 'kaliforms_form_process')) {
         $ct_post_temp = $_POST['data'];
     }
 
