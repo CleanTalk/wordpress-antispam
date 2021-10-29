@@ -452,14 +452,66 @@ function apbct__filter_form_data($form_data)
             return $form_data;
         }
 
-        $exclusion_fields = explode(',', $apbct->settings['exclusions__fields']);
+        $excluded_fields = explode(',', $apbct->settings['exclusions__fields']);
 
-        foreach (array_keys($form_data) as $key) {
-            if (in_array($key, $exclusion_fields)) {
-                unset($form_data[$key]);
+        foreach ($excluded_fields as $excluded_field) {
+            preg_match_all('/\[(\S*?)\]/', $excluded_field, $matches);
+
+            if (!empty($matches[1])) {
+                $excluded_matches = $matches[1];
+                $first_el = strstr($excluded_field, '[', true);
+                array_unshift($excluded_matches, $first_el);
+                foreach ($excluded_matches as $k => $v) {
+                    if ($v === '') {
+                        unset($excluded_matches[$k]);
+                    }
+                }
+
+                $form_data = apbct__filter_array_recursive($form_data, $excluded_matches);
+            } else {
+                $form_data = apbct__filter_array_recursive($form_data, array($excluded_field));
             }
         }
     }
 
     return $form_data;
+}
+
+/**
+ * Filtering array to exclude another array
+ * Example: delete fields from $_POST
+ *
+ * @param $array
+ * @param array $excluded_matches
+ * @param int $level
+ *
+ * @return array|mixed
+ */
+function apbct__filter_array_recursive(&$array, $excluded_matches, $level = 0)
+{
+    if (! is_array($array) || empty($array)) {
+        return $array;
+    }
+
+    foreach ($array as $key => $value) {
+        if ((string) $key !== (string) $excluded_matches[$level]) {
+            continue;
+        }
+
+        if (is_array($value)) {
+            $level++;
+
+            if ($level === count($excluded_matches)) {
+                unset($array[$key]);
+                return $array;
+            }
+
+            $array[$key] = apbct__filter_array_recursive($value, $excluded_matches, $level);
+        } else {
+            unset($array[$key]);
+            return $array;
+        }
+    }
+
+    return $array;
 }
