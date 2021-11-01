@@ -944,6 +944,8 @@ function apbct_sfw_update__worker($checker_work = false)
         $apbct->errorAdd('sfw_update', $result['error']);
         $apbct->saveErrors();
 
+        apbct_sfw_update__fallback();
+
         return $result['error'];
     }
 
@@ -1556,6 +1558,34 @@ function apbct_sfw_update__cleanData()
     $apbct->fw_stats['firewall_update_percent'] = 0;
     $apbct->fw_stats['firewall_updating_id']    = null;
     $apbct->save('fw_stats');
+}
+
+function apbct_sfw_update__fallback()
+{
+    global $apbct;
+
+    /**
+     * Remove the upd folder
+     */
+    if ( $apbct->fw_stats['updating_folder'] ) {
+        apbct_remove_upd_folder($apbct->fw_stats['updating_folder']);
+    }
+
+    /**
+     * Remove SFW updating checker cron-task
+     */
+    $cron = new Cron();
+    $cron->removeTask('sfw_update_checker');
+
+    /**
+     * Remove _temp table
+     */
+    apbct_sfw_update__cleanData();
+
+    /**
+     * Create SFW table if not exists
+     */
+    apbct_sfw_update__create_tables();
 }
 
 function ct_sfw_send_logs($api_key = '')
