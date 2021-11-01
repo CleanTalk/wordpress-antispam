@@ -1338,7 +1338,7 @@ function ct_test_registration($nickname, $email, $ip = null)
         true
     );
     $ct_result        = $base_call_result['ct_result'];
-
+    ct_hash($ct_result->id);
     $result = array(
         'allow'   => $ct_result->allow,
         'comment' => $ct_result->comment,
@@ -1449,7 +1449,7 @@ function ct_registration_errors($errors, $sanitized_user_login = null, $user_ema
         true
     );
     $ct_result        = $base_call_result['ct_result'];
-
+    ct_hash($ct_result->id);
     // Change mail notification if license is out of date
     if ( $apbct->data['moderate'] == 0 &&
          ($ct_result->fast_submit == 1 || $ct_result->blacklisted == 1 || $ct_result->js_disabled == 1)
@@ -1654,18 +1654,9 @@ function ct_check_registration_erros($errors, $_sanitized_user_login = null, $_u
  */
 function apbct_user_register($user_id)
 {
-    global $apbct_cookie_request_id_label, $apbct_cookie_request_id;
-
-    if ( ! empty($apbct_cookie_request_id) ) {
-        update_user_meta($user_id, 'ct_hash', $apbct_cookie_request_id);
-
-        return;
-    }
-
-    if ( isset($_COOKIE[$apbct_cookie_request_id_label]) ) {
-        if ( update_user_meta($user_id, 'ct_hash', $_COOKIE[$apbct_cookie_request_id_label]) ) {
-            Cookie::set($apbct_cookie_request_id_label, '0', 1, '/');
-        }
+    $hash = ct_hash();
+    if ( ! empty($hash) ) {
+        update_user_meta($user_id, 'ct_hash', $hash);
     }
 }
 
