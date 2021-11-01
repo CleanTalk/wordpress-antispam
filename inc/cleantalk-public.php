@@ -168,17 +168,9 @@ function apbct_init()
     // JetPack Contact form
     if ( defined('JETPACK__VERSION') ) {
         // Checking Jetpack contact form
-        if ( isset($_POST['action']) && $_POST['action'] === 'grunion-contact-form' ) {
-            if ( JETPACK__VERSION === '3.4-beta' ) {
-                add_filter('contact_form_is_spam', 'ct_contact_form_is_spam');
-            } elseif ( JETPACK__VERSION === '3.4-beta2' || JETPACK__VERSION >= '3.4' ) {
-                add_filter('jetpack_contact_form_is_spam', 'ct_contact_form_is_spam_jetpack', 50, 2);
-            } else {
-                add_filter('contact_form_is_spam', 'ct_contact_form_is_spam');
-            }
-        } else {
-            add_filter('grunion_contact_form_field_html', 'ct_grunion_contact_form_field_html', 10, 2);
-        }
+        add_filter('contact_form_is_spam', 'ct_contact_form_is_spam');
+        add_filter('jetpack_contact_form_is_spam', 'ct_contact_form_is_spam_jetpack', 50, 2);
+        add_filter('grunion_contact_form_field_html', 'ct_grunion_contact_form_field_html', 10, 2);
 
         // Checking Jetpack comments form
         $jetpack_active_modules = get_option('jetpack_active_modules');
