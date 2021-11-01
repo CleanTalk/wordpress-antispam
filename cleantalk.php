@@ -1244,41 +1244,109 @@ function apbct_sfw_update__process_exclusions()
 
     return array(
         'next_stage' => array(
-            'name' => 'apbct_sfw_update__end_of_update',
+            'name' => 'apbct_sfw_update__end_of_update__renaming_tables',
             'accepted_tries' => 1
         )
     );
 }
 
-function apbct_sfw_update__end_of_update($is_direct_update = false)
+function apbct_sfw_update__end_of_update__renaming_tables()
 {
-    global $apbct, $wpdb;
+    global $apbct;
+
+    if ( ! DB::getInstance()->isTableExists(APBCT_TBL_FIREWALL_DATA) ) {
+        return array('error' => 'Error while completing data: SFW main table does not exist.');
+    }
+
+    if ( ! DB::getInstance()->isTableExists(APBCT_TBL_FIREWALL_DATA . '_temp') ) {
+        return array('error' => 'Error while completing data: SFW temp table does not exist.');
+    }
 
     $apbct->fw_stats['update_mode'] = 1;
     $apbct->save('fw_stats');
     usleep(10000);
-
 
     // REMOVE AND RENAME
     $result = SFW::dataTablesDelete(DB::getInstance(), APBCT_TBL_FIREWALL_DATA);
     if ( empty($result['error']) ) {
         $result = SFW::renameDataTablesFromTempToMain(DB::getInstance(), APBCT_TBL_FIREWALL_DATA);
     }
-    if ( ! empty($result['error']) ) {
-        $apbct->fw_stats['update_mode'] = 0;
-        $apbct->save('fw_stats');
 
+    $apbct->fw_stats['update_mode'] = 0;
+    $apbct->save('fw_stats');
+
+    if ( ! empty($result['error']) ) {
         return $result;
     }
+
+    return array(
+        'next_stage' => array(
+            'name' => 'apbct_sfw_update__end_of_update__checking_data',
+            'accepted_tries' => 1
+        )
+    );
+}
+
+function apbct_sfw_update__end_of_update__checking_data()
+{
+    global $apbct, $wpdb;
+
+    if ( ! DB::getInstance()->isTableExists(APBCT_TBL_FIREWALL_DATA) ) {
+        return array('error' => 'Error while checking data: SFW main table does not exist.');
+    }
+
+    $apbct->stats['sfw']['entries'] = $wpdb->get_var('SELECT COUNT(*) FROM ' . APBCT_TBL_FIREWALL_DATA);
+    $apbct->save('stats');
+
+    /**
+     * Checking the integrity of the sfw database update
+     */
+    if ( $apbct->stats['sfw']['entries'] != $apbct->fw_stats['expected_networks_count'] ) {
+        return array(
+            'error' =>
+                'The discrepancy between the amount of data received for the update and in the final table: '
+                . APBCT_TBL_FIREWALL_DATA
+                . '. RECEIVED: ' . $apbct->fw_stats['expected_networks_count']
+                . '. ADDED: ' . $apbct->stats['sfw']['entries']
+        );
+    }
+
+    return array(
+        'next_stage' => array(
+            'name' => 'apbct_sfw_update__end_of_update__updating_stats',
+            'accepted_tries' => 1
+        )
+    );
+}
+
+function apbct_sfw_update__end_of_update__updating_stats($is_direct_update = false)
+{
+    global $apbct;
 
     // Increment firewall entries
     $apbct->fw_stats['firewall_update_percent'] = 0;
     $apbct->fw_stats['firewall_updating_id']    = null;
-    $apbct->fw_stats['last_firewall_updated']   = time();
-    $apbct->fw_stats['update_mode']             = 0;
+    $apbct->fw_stats['expected_networks_count'] = false;
     $apbct->save('fw_stats');
 
-    $apbct->stats['sfw']['entries'] = $wpdb->get_var('SELECT COUNT(*) FROM ' . APBCT_TBL_FIREWALL_DATA);
+    $apbct->stats['sfw']['last_update_time'] = time();
+    $apbct->stats['sfw']['last_update_way']  = $is_direct_update ? 'Direct update' : 'Queue update';
+    $apbct->save('stats');
+
+    return array(
+        'next_stage' => array(
+            'name' => 'apbct_sfw_update__end_of_update',
+            'accepted_tries' => 1
+        )
+    );
+}
+
+function apbct_sfw_update__end_of_update()
+{
+    global $apbct;
+
+    // Delete update errors
+    $apbct->errorDelete('sfw_update', 'save_settings');
 
     // Running sfw update once again in 12 min if entries is < 4000
     if ( ! $apbct->stats['sfw']['last_update_time'] &&
@@ -1287,60 +1355,11 @@ function apbct_sfw_update__end_of_update($is_direct_update = false)
         wp_schedule_single_event(time() + 720, 'apbct_sfw_update__init');
     }
 
-    $apbct->stats['sfw']['last_update_time'] = time();
-    $apbct->stats['sfw']['last_update_way']  = $is_direct_update ? 'Direct update' : 'Queue update';
-    $apbct->save('stats');
-
-    /**
-     * Checking the integrity of the sfw database update
-     */
-    //@ToDo NEED TO BE REVIEWED
-    global $ct_cron;
-
-    if ( $apbct->stats['sfw']['entries'] != $apbct->fw_stats['expected_networks_count'] ) {
-        # call manually
-        /** @psalm-suppress TypeDoesNotContainType */
-        if ( ! $ct_cron ) {
-            return array(
-                'error' => 'The discrepancy between the amount of data received for the update and in the final table: ' . APBCT_TBL_FIREWALL_DATA . '. RECEIVED: ' . $apbct->fw_stats['expected_networks_count'] . '. ADDED: ' . $apbct->stats['sfw']['entries']
-            );
-        }
-
-        #call cron
-        if ( $apbct->fw_stats['failed_update_attempt'] ) {
-            return array(
-                'error' => 'The discrepancy between the amount of data received for the update and in the final table: ' . APBCT_TBL_FIREWALL_DATA . '. RECEIVED: ' . $apbct->fw_stats['expected_networks_count'] . '. ADDED: ' . $apbct->stats['sfw']['entries']
-            );
-        }
-
-        $apbct->fw_stats['failed_update_attempt'] = true;
-        $apbct->save('fw_stats');
-
-        $cron = new Cron();
-        $cron->updateTask('sfw_update', 'apbct_sfw_update__init', 86400, time() + 180);
-
-        return false;
-    }
-
-    $apbct->data['last_firewall_updated'] = current_time('timestamp');
-    $apbct->save('data'); // Unused
-
-    // Delete update errors
-    $apbct->errorDelete('sfw_update', 'save_settings');
-
     $cron = new Cron();
     $cron->updateTask('sfw_update', 'apbct_sfw_update__init', $apbct->stats['sfw']['update_period']);
     $cron->removeTask('sfw_update_checker');
 
-    /**
-     * Update fw data if update completed
-     */
-    $apbct->fw_stats['failed_update_attempt']   = false;
-    $apbct->fw_stats['expected_networks_count'] = false;
-
     apbct_remove_upd_folder($apbct->fw_stats['updating_folder']);
-
-    $apbct->save('fw_stats');
 
     return true;
 }
@@ -1496,9 +1515,33 @@ function apbct_sfw_direct_update()
         }
 
         /**
+         * DELETING AND RENAMING THE TABLES
+         */
+        $rename_tables_res = apbct_sfw_update__end_of_update__renaming_tables();
+        if ( ! empty($rename_tables_res['error']) ) {
+            return array('error' => 'DIRECT UPDATING BLACK LIST: ' . $rename_tables_res['error']);
+        }
+
+        /**
+         * CHECKING THE UPDATE
+         */
+        $check_data_res = apbct_sfw_update__end_of_update__checking_data();
+        if ( ! empty($check_data_res['error']) ) {
+            return array('error' => 'DIRECT UPDATING BLACK LIST: ' . $check_data_res['error']);
+        }
+
+        /**
+         * WRITE UPDATING STATS
+         */
+        $update_stats_res = apbct_sfw_update__end_of_update__updating_stats(true);
+        if ( ! empty($update_stats_res['error']) ) {
+            return array('error' => 'DIRECT UPDATING BLACK LIST: ' . $update_stats_res['error']);
+        }
+
+        /**
          * END OF UPDATE
          */
-        return apbct_sfw_update__end_of_update(true);
+        return apbct_sfw_update__end_of_update();
     }
 
     return $result;
