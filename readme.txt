@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 3.0
 Tested up to: 5.8
 Requires PHP: 5.6
-Stable tag: 5.164.1
+Stable tag: 5.165
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -594,6 +594,37 @@ If your website has forms that send data to external sources, you can enable opt
 12. SpamFireWall log.
 
 == Changelog ==
+
+= 5.165 Nov 08 2021 =
+ * New: Public. Mouse moved flag implemented.
+ * Upd: State. Errors adding method updated.
+ * Upd: Settings. Errors show function updated.
+ * Upd: Updater. Clean errors options for new errors structure.
+ * Upd: Public. Cookies aggregation.
+ * Mod: Improving the functionality of checking comments for spam.
+ * Mod: CommentsChecker - updated functionality and refactoring
+ * Mod: merged inc/cleantalk-updater.php
+ * Mod: merged UpdatePlugin dir
+ * Mod: merged Schema.php
+ * Mod: merged SchemaTest.php
+ * Mod: merged cleantalk.php
+ * Mod: merged State.php, Activator.php
+ * Fix: SFW. Directory for FW files moved to wordpress uploads directory.
+ * Fix: Settings. GDPR link fixed.
+ * Fix: testrequesttohost error handle.
+ * Fix: check ctsetcookie before call.
+ * Fix: Settings. Save button padding fixed.
+ * Fix: add console.log if ctSetcookie is not defined.
+ * Fix: SFW. Skip if sfw not updated yet.
+ * Fix: change console output if apbct-public-functions.js is not loaded.
+ * Fix: Added secure and samesite in cookie
+ * Fix: Renamed field apbct_wc_honeypot to wc_apbct_email_id
+ * Fix.Users.Feedback about deleting user implemented.
+ * Fix. SFW. Deleting table fixed.
+ * Fix: set buffer type to string if epico theme is active.
+ * Fix: Integration. Jetpack contact forms hooks fixed.
+ * Fix: SFW. Separating the end of update stage into several stages.
+ * Fix: SFW. Fallback function on SFW updating errors implemented.
 
 = 5.164.1 Oct 21 2021 =
  * Fix. SFW. Incompatibility WP-Rocket notice removed.
