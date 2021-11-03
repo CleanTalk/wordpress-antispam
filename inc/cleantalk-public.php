@@ -280,14 +280,6 @@ function apbct_init()
         }
     }
 
-    // WPForms
-    // Adding fields
-    add_action('wpforms_frontend_output', 'apbct_form__WPForms__addField', 1000, 5);
-    // Gathering data to validate
-    add_filter('wpforms_process_before_filter', 'apbct_from__WPForms__gatherData', 100, 2);
-    // Do spam check
-    add_filter('wpforms_process_initial_errors', 'apbct_form__WPForms__showResponse', 100, 2);
-
     // QForms integration
     add_filter('quform_post_validate', 'ct_quform_post_validate', 10, 2);
 

@@ -349,6 +349,14 @@ add_filter('wppb_output_field_errors_filter', 'apbct_form_profile_builder__check
 // WP Foro register system integration
 add_filter('wpforo_create_profile', 'wpforo_create_profile__check_register', 1, 1);
 
+// WPForms
+// Adding fields
+add_action('wpforms_frontend_output', 'apbct_form__WPForms__addField', 1000, 5);
+// Gathering data to validate
+add_filter('wpforms_process_before_filter', 'apbct_from__WPForms__gatherData', 100, 2);
+// Do spam check
+add_filter('wpforms_process_initial_errors', 'apbct_form__WPForms__showResponse', 100, 2);
+
 // Public actions
 if ( ! is_admin() && ! apbct_is_ajax() && ! apbct_is_customize_preview() ) {
     // Default search
