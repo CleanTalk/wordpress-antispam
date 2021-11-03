@@ -1328,6 +1328,7 @@ function apbct_sfw_update__end_of_update__updating_stats($is_direct_update = fal
     $apbct->fw_stats['expected_networks_count'] = false;
     $apbct->save('fw_stats');
 
+    $is_first_updating = ! $apbct->stats['sfw']['last_update_time'];
     $apbct->stats['sfw']['last_update_time'] = time();
     $apbct->stats['sfw']['last_update_way']  = $is_direct_update ? 'Direct update' : 'Queue update';
     $apbct->save('stats');
@@ -1335,12 +1336,13 @@ function apbct_sfw_update__end_of_update__updating_stats($is_direct_update = fal
     return array(
         'next_stage' => array(
             'name' => 'apbct_sfw_update__end_of_update',
-            'accepted_tries' => 1
+            'accepted_tries' => 1,
+            'args' => $is_first_updating
         )
     );
 }
 
-function apbct_sfw_update__end_of_update()
+function apbct_sfw_update__end_of_update($is_first_updating = false)
 {
     global $apbct;
 
@@ -1348,7 +1350,7 @@ function apbct_sfw_update__end_of_update()
     $apbct->errorDelete('sfw_update', 'save_settings');
 
     // Running sfw update once again in 12 min if entries is < 4000
-    if ( ! $apbct->stats['sfw']['last_update_time'] &&
+    if ( $is_first_updating &&
          $apbct->stats['sfw']['entries'] < 4000
     ) {
         wp_schedule_single_event(time() + 720, 'apbct_sfw_update__init');
