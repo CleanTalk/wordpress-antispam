@@ -625,6 +625,10 @@ If your website has forms that send data to external sources, you can enable opt
  * Fix: Integration. Jetpack contact forms hooks fixed.
  * Fix: SFW. Separating the end of update stage into several stages.
  * Fix: SFW. Fallback function on SFW updating errors implemented.
+ * Fix. Integration. WP Forms hooks fixed.
+ * Fix. SFW. Auto updating for new users fixed.
+ * Fix. Comment. Set meta fixed.
+ * Fix: WPMS. Settings saving fixed.
 
 = 5.164.1 Oct 21 2021 =
  * Fix. SFW. Incompatibility WP-Rocket notice removed.
