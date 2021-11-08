@@ -2022,8 +2022,9 @@ function apbct_settings__validate($settings)
     unset($setting, $value);
 
     // Set missing network settings.
+    $stored_network_options = get_site_option($apbct->option_prefix . '_network_settings');
     foreach ( $apbct->def_network_settings as $setting => $value ) {
-        if ( ! isset($settings[$setting]) ) {
+        if ( ! isset($settings[$setting]) && ! array_key_exists($setting, $stored_network_options) ) {
             $settings[$setting] = $value;
             settype($settings[$setting], gettype($value));
         }
