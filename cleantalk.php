@@ -1362,6 +1362,13 @@ function apbct_sfw_update__end_of_update($is_first_updating = false)
 
     apbct_remove_upd_folder($apbct->fw_stats['updating_folder']);
 
+    // Reset all FW stats
+    $apbct->fw_stats['firewall_update_percent'] = 0;
+    $apbct->fw_stats['firewall_updating_id']    = null;
+    $apbct->fw_stats['expected_networks_count'] = false;
+    $apbct->fw_stats['expected_ua_count'] = false;
+    $apbct->save('fw_stats');
+
     return true;
 }
 
