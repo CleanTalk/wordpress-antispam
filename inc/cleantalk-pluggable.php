@@ -646,6 +646,12 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'Classified checkemail';
         }
+        if (
+            (apbct_is_plugin_active('uncanny-toolkit-pro/uncanny-toolkit-pro.php') || apbct_is_plugin_active('uncanny-learndash-toolkit'))
+            && Post::get('action') === 'ult-forgot-password'
+        ) {
+            return 'Uncanny Toolkit';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
