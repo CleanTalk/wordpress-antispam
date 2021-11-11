@@ -1584,6 +1584,7 @@ function apbct_sfw_update__fallback()
      */
     $cron = new Cron();
     $cron->removeTask('sfw_update_checker');
+    $cron->updateTask('sfw_update', 'apbct_sfw_update__init', $apbct->stats['sfw']['update_period']);
 
     /**
      * Remove _temp table
