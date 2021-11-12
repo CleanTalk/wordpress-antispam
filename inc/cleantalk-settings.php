@@ -27,10 +27,12 @@ function apbct_settings_add_page()
         return;
     }
 
+    $callback_format = version_compare($wp_version, '4.7') >= 0 ? array('type' => 'string', 'sanitize_callback' => 'apbct_settings__validate', 'default' => null) : 'apbct_settings__validate';
+
     register_setting(
         'cleantalk_settings',
         'cleantalk_settings',
-        array('type' => 'string', 'sanitize_callback' => 'apbct_settings__validate', 'default' => null)
+        $callback_format
     );
 
     $fields = apbct_settings__set_fileds();
