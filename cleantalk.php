@@ -791,7 +791,7 @@ function apbct_sfw__clear()
     $apbct->save('stats');
 }
 
-// This action triggered by  wp_schedule_single_event( time() + 900, 'ct_sfw_update' );
+// This action triggered by  wp_schedule_single_event( time() + 720, 'apbct_sfw_update__init' );
 add_action('apbct_sfw_update__init', 'apbct_sfw_update__init');
 
 /**
@@ -1321,12 +1321,6 @@ function apbct_sfw_update__end_of_update__checking_data()
 function apbct_sfw_update__end_of_update__updating_stats($is_direct_update = false)
 {
     global $apbct;
-
-    // Increment firewall entries
-    $apbct->fw_stats['firewall_update_percent'] = 0;
-    $apbct->fw_stats['firewall_updating_id']    = null;
-    $apbct->fw_stats['expected_networks_count'] = false;
-    $apbct->save('fw_stats');
 
     $is_first_updating = ! $apbct->stats['sfw']['last_update_time'];
     $apbct->stats['sfw']['last_update_time'] = time();
