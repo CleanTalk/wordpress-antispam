@@ -1446,7 +1446,6 @@ function ct_registration_errors($errors, $sanitized_user_login = null, $user_ema
         $reg_flag = false;
     }
 
-
     $base_call_result = apbct_base_call(
         array(
             'sender_email'    => $user_email,
