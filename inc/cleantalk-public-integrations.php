@@ -1360,6 +1360,7 @@ function ct_test_registration($nickname, $email, $ip = null)
 function ct_registration_errors($errors, $sanitized_user_login = null, $user_email = null)
 {
     global $ct_checkjs_register_form, $apbct_cookie_request_id_label, $apbct_cookie_register_ok_label, $apbct_cookie_request_id, $bp, $ct_signup_done, $ct_negative_comment, $apbct, $ct_registration_error_comment, $cleantalk_executed;
+    $reg_flag = true;
 
     // Go out if a registered user action
     if ( apbct_is_user_enable() === false ) {
@@ -1414,7 +1415,6 @@ function ct_registration_errors($errors, $sanitized_user_login = null, $user_ema
         return $errors;
     }
 
-
     if ( current_filter() === 'woocommerce_registration_errors' ) {
         $checkjs        = apbct_js_test('ct_checkjs', $_COOKIE, true);
         $checkjs_post   = null;
@@ -1439,6 +1439,14 @@ function ct_registration_errors($errors, $sanitized_user_login = null, $user_ema
             : null,
     );
 
+    /**
+     * Changing the type of check for BuddyPress
+     */
+    if (Post::get('signup_username') && Post::get('signup_email')) {
+        $reg_flag = false;
+    }
+
+
     $base_call_result = apbct_base_call(
         array(
             'sender_email'    => $user_email,
@@ -1446,7 +1454,7 @@ function ct_registration_errors($errors, $sanitized_user_login = null, $user_ema
             'sender_info'     => $sender_info,
             'js_on'           => $checkjs,
         ),
-        true
+        $reg_flag
     );
     $ct_result        = $base_call_result['ct_result'];
     ct_hash($ct_result->id);
