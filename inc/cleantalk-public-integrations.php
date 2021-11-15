@@ -329,14 +329,17 @@ function apbct_integration__buddyPres__private_msg_check($bp_message_obj)
         }
     }
 
+    $exception_action = false;
     if ( ! empty($is_max_comments) ) {
-        do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
-
-        return;
+        $exception_action = true;
     }
 
     $sender_user_obj = get_user_by('id', $bp_message_obj->sender_id);
 
+    $sender_info = array('sender_url' => null);
+    if ( $exception_action ) {
+        $sender_info['exception_action'] = 1;
+    }
     //Making a call
     $base_call_result = apbct_base_call(
         array(
@@ -348,7 +351,7 @@ function apbct_integration__buddyPres__private_msg_check($bp_message_obj)
                 'post_url'     => apbct_get_server_variable('HTTP_REFERER'),
             ),
             'js_on'           => apbct_js_test('ct_checkjs', $_COOKIE, true) ?: apbct_js_test('ct_checkjs', $_POST),
-            'sender_info'     => array('sender_url' => null),
+            'sender_info'     => $sender_info
         )
     );
 
@@ -977,7 +980,6 @@ function ct_preprocess_comment($comment)
             $apbct->settings['forms__comments_test'] == 0 ||
             $ct_comment_done ||
             (isset($_SERVER['HTTP_REFERER']) && stripos($_SERVER['HTTP_REFERER'], 'page=wysija_campaigns&action=editTemplate') !== false) ||
-            (isset($is_max_comments) && $is_max_comments) ||
             (isset($_SERVER['HTTP_REFERER']) && strpos($_SERVER['REQUEST_URI'], '/wp-admin/') !== false)
         )
     ) {
@@ -1038,6 +1040,21 @@ function ct_preprocess_comment($comment)
         }
     }
 
+    $sender_info = array(
+        'sender_url'      => @$comment['comment_author_url'],
+        'form_validation' => ! isset($apbct->validation_error)
+            ? null
+            : json_encode(
+                array(
+                    'validation_notice' => $apbct->validation_error,
+                    'page_url'          => apbct_get_server_variable('HTTP_HOST') . apbct_get_server_variable('REQUEST_URI'),
+                )
+            )
+    );
+    if (isset($is_max_comments) && $is_max_comments) {
+        $sender_info['exception_action'] = 1;
+    }
+
     $base_call_data = array(
         'message'         => $comment['comment_content'],
         'example'         => $example,
@@ -1045,17 +1062,7 @@ function ct_preprocess_comment($comment)
         'sender_nickname' => $comment['comment_author'],
         'post_info'       => $post_info,
         'js_on'           => $checkjs,
-        'sender_info'     => array(
-            'sender_url'      => @$comment['comment_author_url'],
-            'form_validation' => ! isset($apbct->validation_error)
-                ? null
-                : json_encode(
-                    array(
-                        'validation_notice' => $apbct->validation_error,
-                        'page_url'          => apbct_get_server_variable('HTTP_HOST') . apbct_get_server_variable('REQUEST_URI'),
-                    )
-                )
-        )
+        'sender_info'     => $sender_info,
     );
 
     /**
