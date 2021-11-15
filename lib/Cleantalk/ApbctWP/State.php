@@ -578,7 +578,7 @@ class State extends \Cleantalk\Common\State
             // Remove subtype errors from processing.
             // No need to array_shift for these
             $sub_errors = array();
-            if ( is_array($this->errors[$type]) ) {
+            if ( isset($this->errors[$type]) && is_array($this->errors[$type]) ) {
                 foreach ( $this->errors[$type] as $key => $sub_error ) {
                     if ( is_string($key) ) {
                         $sub_errors[$key] = $sub_error;
@@ -588,7 +588,7 @@ class State extends \Cleantalk\Common\State
             }
 
             // Drop first element if errors array length is more than 5
-            if ( is_array($this->errors[$type]) && count($this->errors[$type]) >= 5 ) {
+            if ( isset($this->errors[$type]) && is_array($this->errors[$type]) && count($this->errors[$type]) >= 5 ) {
                 array_shift($this->errors[$type]);
             }
 
