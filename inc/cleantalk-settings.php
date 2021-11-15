@@ -8,7 +8,7 @@ use Cleantalk\Variables\Post;
  */
 function apbct_settings_add_page()
 {
-    global $apbct, $pagenow;
+    global $apbct, $pagenow, $wp_version;
 
     $parent_slug = is_network_admin() ? 'settings.php' : 'options-general.php';
     $callback    = is_network_admin() ? 'apbct_settings__display__network' : 'apbct_settings__display';
