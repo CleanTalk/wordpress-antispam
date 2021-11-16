@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 3.0
 Tested up to: 5.8
 Requires PHP: 5.6
-Stable tag: 5.165.1
+Stable tag: 5.166
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -594,6 +594,18 @@ If your website has forms that send data to external sources, you can enable opt
 12. SpamFireWall log.
 
 == Changelog ==
+
+= 5.166 Nov 18 2021 =
+ * Fix: skip ult-forgot-password action.
+ * Fix: Uncanny toolkit skip.
+ * Fix: SFW. Clearing FW stats fixed.
+ * Fix: SFW. Updating fallback fixed.
+ * Fix: SFW. Updating FW stats fixed.
+ * Mod: Changed the type of verification on check_message during registration in BuddyPress
+ * Fix: register_settings for wp < 4.7.
+ * Fix: Comment scanners. Getting cookie fixed.
+ * Fix: check if errors exists in state.
+ * Fix: update sfw after enabled.
 
 = 5.165.1 Nov 09 2021 =
  * Fix. Settings. Saving settings fixed.
