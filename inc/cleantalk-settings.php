@@ -2,13 +2,14 @@
 
 use Cleantalk\ApbctWP\Helper;
 use Cleantalk\Variables\Post;
+use Cleantalk\ApbctWP\Cron;
 
 /**
  * Admin action 'admin_menu' - Add the admin options page
  */
 function apbct_settings_add_page()
 {
-    global $apbct, $pagenow;
+    global $apbct, $pagenow, $wp_version;
 
     $parent_slug = is_network_admin() ? 'settings.php' : 'options-general.php';
     $callback    = is_network_admin() ? 'apbct_settings__display__network' : 'apbct_settings__display';
@@ -27,10 +28,12 @@ function apbct_settings_add_page()
         return;
     }
 
+    $callback_format = version_compare($wp_version, '4.7') >= 0 ? array('type' => 'string', 'sanitize_callback' => 'apbct_settings__validate', 'default' => null) : 'apbct_settings__validate';
+
     register_setting(
         'cleantalk_settings',
         'cleantalk_settings',
-        array('type' => 'string', 'sanitize_callback' => 'apbct_settings__validate', 'default' => null)
+        $callback_format
     );
 
     $fields = apbct_settings__set_fileds();
@@ -2034,7 +2037,8 @@ function apbct_settings__validate($settings)
     // Actions with toggle SFW settings
     // SFW was enabled
     if ( ! $apbct->settings['sfw__enabled'] && $settings['sfw__enabled'] ) {
-        apbct_sfw_update__init(3);
+        $cron = new Cron();
+        $cron->updateTask('sfw_update', 'apbct_sfw_update__init', 180);
         // SFW was disabled
     } elseif ( $apbct->settings['sfw__enabled'] && ! $settings['sfw__enabled'] ) {
         apbct_sfw__clear();
