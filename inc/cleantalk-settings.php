@@ -2,6 +2,7 @@
 
 use Cleantalk\ApbctWP\Helper;
 use Cleantalk\Variables\Post;
+use Cleantalk\ApbctWP\Cron;
 
 /**
  * Admin action 'admin_menu' - Add the admin options page
@@ -2036,7 +2037,8 @@ function apbct_settings__validate($settings)
     // Actions with toggle SFW settings
     // SFW was enabled
     if ( ! $apbct->settings['sfw__enabled'] && $settings['sfw__enabled'] ) {
-        apbct_sfw_update__init(3);
+        $cron = new Cron();
+        $cron->updateTask('sfw_update', 'apbct_sfw_update__init', 180);
         // SFW was disabled
     } elseif ( $apbct->settings['sfw__enabled'] && ! $settings['sfw__enabled'] ) {
         apbct_sfw__clear();
