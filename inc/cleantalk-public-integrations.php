@@ -2894,7 +2894,7 @@ function apbct_form__the7_contact_form()
         }
 
         // Skip submission if no data found
-        if ( ! $contact_form ) {
+        if ( $sender_email === '' || ! $contact_form ) {
             do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
 
             return false;
