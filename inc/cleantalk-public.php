@@ -1230,7 +1230,7 @@ function ct_enqueue_scripts_public($_hook)
                     $apbct->user_token ? "<a target='_blank' href=https://cleantalk.org/my/show_requests?user_token={$apbct->user_token}&cp_mode=antispam>" : '',
                     $apbct->user_token ? "</a>" : ''
                 ) . ' ' . esc_html__('The service accepts feedback only for requests made no more than 7 or 45 days 
-                (if the Additional package is activated) ago.', 'cleantalk-spam-protect'),
+                (if the Extra package is activated) ago.', 'cleantalk-spam-protect'),
             ));
         }
     }
