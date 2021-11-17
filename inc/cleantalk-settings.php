@@ -2467,6 +2467,10 @@ function apbct_update_blogs_options($settings)
 {
     global $wpdb;
 
+    if ( isset($settings['apikey']) ) {
+        unset($settings['apikey']);
+    }
+
     $blog_ids = $settings['multisite__use_settings_template_apply_for_current_list_sites'] ?: array();
 
     $wp_blogs = $wpdb->get_results('SELECT blog_id FROM ' . $wpdb->blogs, OBJECT_K);
