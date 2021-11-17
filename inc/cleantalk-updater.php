@@ -21,7 +21,9 @@ function apbct_run_update_actions($current_version, $new_version)
     $need_start_update_sfw = false;
 
     // Excludes the repeated call of the plugin update if the process is already running.
-    if ((int)$apbct->stats['plugin']['plugin_is_being_updated'] === 1) {
+    if ( isset($apbct->stats['plugin']['plugin_is_being_updated']) &&
+        (int)$apbct->stats['plugin']['plugin_is_being_updated'] === 1
+    ) {
         return false;
     }
 
