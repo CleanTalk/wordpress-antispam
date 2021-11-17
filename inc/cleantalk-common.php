@@ -161,7 +161,7 @@ function apbct_base_call($params = array(), $reg_flag = false)
     /**
      * Add exception_action if exists in params
      */
-    if ( empty( $params['sender_email'] ) ) {
+    if ( empty($params['sender_email']) ) {
         $sender_info['exception_action'] = 1;
     }
 
