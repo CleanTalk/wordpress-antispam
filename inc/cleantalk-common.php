@@ -158,13 +158,6 @@ function apbct_base_call($params = array(), $reg_flag = false)
         )
         : apbct_get_sender_info();
 
-    /**
-     * Add exception_action if exists in params
-     */
-    if ( empty( $params['sender_email'] ) ) {
-        $sender_info['exception_action'] = 1;
-    }
-
     $default_params = array(
 
         // IPs
@@ -182,6 +175,16 @@ function apbct_base_call($params = array(), $reg_flag = false)
         'sender_info' => $sender_info,
         'submit_time' => apbct_get_submit_time()
     );
+
+    /**
+     * Add exception_action if exists in params
+     */
+    if (
+        empty( $params['sender_email'] ) ||
+        ( isset($params['exception_action']) && $default_params['exception_action'] == 1 )
+    ) {
+        $default_params['exception_action'] = 1;
+    }
 
     /**
      * Add honeypot_field if exists in params
