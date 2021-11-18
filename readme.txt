@@ -606,9 +606,12 @@ If your website has forms that send data to external sources, you can enable opt
  * Fix: Comment scanners. Getting cookie fixed.
  * Fix: check if errors exists in state.
  * Fix: update sfw after enabled.
- * Upd: Antispam. Prevent skip requests without emails.
- * Upd: Antispam. Prevent skip requests trusted users.
  * Fix: WPMS. Settings validating fixed.
+ * Fix: wpforms skip remove token validation.
+ * Fix. Text. Feedback description fixed.
+ * Fix: WPMS. Delete api key from settings template used.
+ * Fix. Updater. Notice fixed.
+ * Fix: WPMS. Setting transferring to the sub sites fixed.
 
 = 5.165.1 Nov 09 2021 =
  * Fix. Settings. Saving settings fixed.
