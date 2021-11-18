@@ -2476,6 +2476,10 @@ function apbct_update_blogs_options($settings)
     $wp_blogs = $wpdb->get_results('SELECT blog_id FROM ' . $wpdb->blogs, OBJECT_K);
     foreach ( $wp_blogs as $blog ) {
         if ( in_array($blog->blog_id, $blog_ids) ) {
+            $current_blog_settings = get_blog_option($blog->blog_id, 'cleantalk_settings');
+            if ( isset($current_blog_settings['apikey']) ) {
+                $settings['apikey'] = $current_blog_settings['apikey'];
+            }
             update_blog_option($blog->blog_id, 'cleantalk_settings', $settings);
         }
     }
