@@ -422,6 +422,8 @@ function apbct_exclusions_check__ip()
  */
 function apbct_get_sender_info()
 {
+    global $apbct;
+
     // Validate cookie from the backend
     $cookie_is_ok = apbct_cookies_test();
 
@@ -446,9 +448,9 @@ function apbct_get_sender_info()
         : null;
 
     // Visible fields processing
-    $visible_fields = apbct_visible_fields__process(Cookie::get('apbct_visible_fields', array(), 'array'));
+    $visible_fields_collection = apbct_visible_fields__get_collection();
 
-    global $apbct;
+    $visible_fields = apbct_visible_fields__process($visible_fields_collection);
 
     return array(
         'plugin_request_id'      => $apbct->plugin_request_id,
@@ -516,6 +518,29 @@ function apbct_sender_info___get_page_url()
     return  Server::get('SERVER_NAME') . Server::get('REQUEST_URI');
 }
 
+function apbct_visible_fields__get_collection()
+{
+    global $apbct;
+
+    if( $apbct->settings['data__set_cookies'] == 1 ) {
+        // Get from separated native cookies and convert it to collection
+        $visible_fields_cookies_array = array_filter( $_COOKIE, static function ( $key ) {
+            return strpos($key, 'apbct_visible_fields_') !== false;
+        }, ARRAY_FILTER_USE_KEY );
+        $visible_fields_collection = array();
+        foreach ( $visible_fields_cookies_array as $visible_fields_key => $visible_fields_value ) {
+            $prepared_key = str_replace('apbct_visible_fields_', '', $visible_fields_key);
+            $prepared_value = json_decode(str_replace('\\', '', $visible_fields_value), JSON_OBJECT_AS_ARRAY);
+            $visible_fields_collection[$prepared_key] = $prepared_value;
+        }
+    } else {
+        // Get from alt cookies storage
+        $visible_fields_collection = Cookie::get('apbct_visible_fields', array(), 'array');
+    }
+
+    return $visible_fields_collection;
+}
+
 /**
  * Process visible fields for specific form to match the fields from request
  *
@@ -526,22 +551,24 @@ function apbct_sender_info___get_page_url()
 function apbct_visible_fields__process($visible_fields)
 {
     $visible_fields = is_array($visible_fields)
-        ? json_encode($visible_fields)
+        ? json_encode($visible_fields, JSON_FORCE_OBJECT)
         : $visible_fields;
 
     // Do not decode if it's already decoded
     $fields_collection = json_decode($visible_fields, true);
 
     if ( ! empty($fields_collection) ) {
+
+        // These fields belong this request
+        $fields_to_check = apbct_get_fields_to_check();
+
         foreach ( $fields_collection as $current_fields ) {
             if ( isset($current_fields['visible_fields'], $current_fields['visible_fields_count']) ) {
                 $fields = explode(' ', $current_fields['visible_fields']);
 
-                // This fields belong this request
-                $fields_to_check = apbct_get_fields_to_check();
                 if ( count(array_intersect(array_keys($fields_to_check), $fields)) > 0 ) {
                     // WP Forms visible fields formatting
-                    if ( strpos($visible_fields, 'wpforms') !== false ) {
+                    if ( strpos($current_fields['visible_fields'], 'wpforms') !== false ) {
                         $current_fields = preg_replace(
                             array('/\[/', '/\]/'),
                             '',
