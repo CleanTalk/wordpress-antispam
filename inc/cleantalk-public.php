@@ -1269,7 +1269,7 @@ function apbct_enqueue_and_localize_public_scripts()
 }
 
 /**
- * Reassign callbackback function for the bootom of comment output.
+ * Reassign callback function for the bottom of comment output.
  */
 function ct_wp_list_comments_args($options)
 {
