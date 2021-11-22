@@ -522,15 +522,15 @@ function apbct_visible_fields__get_collection()
 {
     global $apbct;
 
-    if( $apbct->settings['data__set_cookies'] == 1 ) {
+    if ( $apbct->settings['data__set_cookies'] == 1 ) {
         // Get from separated native cookies and convert it to collection
-        $visible_fields_cookies_array = array_filter( $_COOKIE, static function ( $key ) {
+        $visible_fields_cookies_array = array_filter($_COOKIE, static function ($key) {
             return strpos($key, 'apbct_visible_fields_') !== false;
-        }, ARRAY_FILTER_USE_KEY );
+        }, ARRAY_FILTER_USE_KEY);
         $visible_fields_collection = array();
         foreach ( $visible_fields_cookies_array as $visible_fields_key => $visible_fields_value ) {
             $prepared_key = str_replace('apbct_visible_fields_', '', $visible_fields_key);
-            $prepared_value = json_decode(str_replace('\\', '', $visible_fields_value), JSON_OBJECT_AS_ARRAY);
+            $prepared_value = json_decode(str_replace('\\', '', $visible_fields_value), true);
             $visible_fields_collection[$prepared_key] = $prepared_value;
         }
     } else {
@@ -558,7 +558,6 @@ function apbct_visible_fields__process($visible_fields)
     $fields_collection = json_decode($visible_fields, true);
 
     if ( ! empty($fields_collection) ) {
-
         // These fields belong this request
         $fields_to_check = apbct_get_fields_to_check();
 
