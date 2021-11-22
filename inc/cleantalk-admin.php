@@ -1,6 +1,8 @@
 <?php
 
+use Cleantalk\ApbctWP\DebugTab;
 use Cleantalk\ApbctWP\CleantalkSettingsTemplates;
+use Cleantalk\Variables\Server;
 
 require_once('cleantalk-settings.php');
 
@@ -311,6 +313,11 @@ function apbct_admin__init()
             ( ! is_main_site() && $apbct->network_settings['multisite__allow_custom_settings'])
     ) {
         new CleantalkSettingsTemplates($apbct->api_key);
+    }
+
+    // Show debug tab on localhosts
+    if ( in_array(Server::getDomain(), array( 'lc', 'loc', 'lh', 'test' )) ) {
+        new DebugTab();
     }
 
     // Check compatibility

@@ -1,8 +1,10 @@
 <?php
 
+use Cleantalk\ApbctWP\DebugTab;
 use Cleantalk\ApbctWP\Helper;
 use Cleantalk\Variables\Post;
 use Cleantalk\ApbctWP\Cron;
+use Cleantalk\Variables\Server;
 
 /**
  * Admin action 'admin_menu' - Add the admin options page
@@ -85,6 +87,10 @@ function apbct_settings__set_fileds()
                 ),
                 'connection_reports' => array(
                     'callback' => 'apbct_settings__field__statistics',
+                ),
+                'debug_tab' => array(
+                    'callback' => 'apbct_settings__field__debug_tab',
+                    'display'  => Server::getDomain(), array( 'lc', 'loc', 'lh', 'test' ),
                 ),
                 'api_key'            => array(
                     'callback' => 'apbct_settings__field__apikey',
@@ -1770,6 +1776,13 @@ function apbct_settings__field__statistics()
     echo '<br/>';
     echo 'Plugin version: ' . APBCT_VERSION;
 
+    echo '</div>';
+}
+
+function apbct_settings__field__debug_tab()
+{
+    echo '<div id="apbct_debug_tab" class="apbct_settings-field_wrapper" style="display: none;">';
+    echo DebugTab::debugTabOutput();
     echo '</div>';
 }
 
