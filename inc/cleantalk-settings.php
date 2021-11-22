@@ -674,14 +674,6 @@ function apbct_settings__set_fileds()
             'section'    => 'hidden_section',
             'html_after' => '</div><div id="apbct_hidden_section_nav">{HIDDEN_SECTION_NAV}</div></div>',
             'fields'     => array(
-                'misc__collect_details'         => array(
-                    'type'        => 'checkbox',
-                    'title'       => __('Collect details about browsers', 'cleantalk-spam-protect'),
-                    'description' => __(
-                        "Checking this box you allow plugin store information about screen size and browser plugins of website visitors. The option in a beta state.",
-                        'cleantalk-spam-protect'
-                    ),
-                ),
                 'misc__send_connection_reports' => array(
                     'type'        => 'checkbox',
                     'title'       => __('Send connection reports', 'cleantalk-spam-protect'),
