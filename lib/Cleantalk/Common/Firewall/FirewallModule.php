@@ -87,10 +87,9 @@ class FirewallModule extends FirewallModuleAbstract
     public function diePage($result)
     {
         // JCH Optimize caching preventing
-        add_filter('jch_optimize_page_cache_set_caching', static function($_is_cache_active){
+        add_filter('jch_optimize_page_cache_set_caching', static function ($_is_cache_active) {
             return false;
         }, 999, 1);
-        
         // Headers
         if (headers_sent() === false) {
             header('Expires: ' . date(DATE_RFC822, mktime(0, 0, 0, 1, 1, 1971)));

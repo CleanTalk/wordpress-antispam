@@ -744,7 +744,7 @@ function ct_die($_comment_id, $_comment_status)
     global $ct_comment, $ct_jp_comments;
 
     // JCH Optimize caching preventing
-    add_filter('jch_optimize_page_cache_set_caching', static function($_is_cache_active){
+    add_filter('jch_optimize_page_cache_set_caching', static function ($_is_cache_active) {
         return false;
     }, 999, 1);
 
@@ -799,7 +799,7 @@ function ct_die_extended($comment_body)
     global $ct_jp_comments;
 
     // JCH Optimize caching preventing
-    add_filter('jch_optimize_page_cache_set_caching', static function($_is_cache_active){
+    add_filter('jch_optimize_page_cache_set_caching', static function ($_is_cache_active) {
         return false;
     }, 999, 1);
 
