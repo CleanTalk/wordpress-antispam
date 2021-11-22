@@ -190,6 +190,11 @@ add_action('init', function () {
             }
         }
     }
+
+    // Remote calls
+    if ( RemoteCalls::check() ) {
+        RemoteCalls::perform();
+    }
 });
 
 //Delete cookie for admin trial notice
@@ -363,11 +368,6 @@ if ( ! is_admin() && ! apbct_is_ajax() && ! apbct_is_customize_preview() ) {
     //add_filter( 'get_search_form',  'apbct_forms__search__addField' );
     add_filter('get_search_query', 'apbct_forms__search__testSpam');
     add_action('wp_head', 'apbct_search_add_noindex', 1);
-
-    // Remote calls
-    if ( RemoteCalls::check() ) {
-        RemoteCalls::perform();
-    }
 
     // SpamFireWall check
     if ( $apbct->plugin_version == APBCT_VERSION && // Do not call with first start
