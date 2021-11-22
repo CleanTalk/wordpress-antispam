@@ -181,7 +181,7 @@ function apbct_base_call($params = array(), $reg_flag = false)
      */
     if (
         empty($params['sender_email']) ||
-        ( isset($params['exception_action']) && $default_params['exception_action'] == 1 )
+        ( isset($params['exception_action']) && $params['exception_action'] == 1 )
     ) {
         $default_params['exception_action'] = 1;
     }
