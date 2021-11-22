@@ -247,4 +247,29 @@ class RemoteCalls
 
         die($out);
     }
+
+    /**
+     * The 'Cron::updateTask' remote call handler
+     */
+    public static function action__cron_update_task() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+    {
+        $update_result = false;
+
+        if (
+            Request::get('task') &&
+            Request::get('handler') &&
+            Request::get('period') &&
+            Request::get('first_call')
+        ) {
+            $cron = new Cron();
+            $update_result = $cron->updateTask(
+                Request::get('task'),
+                Request::get('handler'),
+                (int)Request::get('period'),
+                (int)Request::get('first_call')
+            );
+        }
+
+        die($update_result ? 'OK' : 'FAIL');
+    }
 }
