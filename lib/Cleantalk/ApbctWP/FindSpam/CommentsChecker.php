@@ -143,7 +143,8 @@ class CommentsChecker extends Checker
             'checked' => 0,
             'spam'    => 0,
             'bad'     => 0,
-            'error'   => 0
+            'error'   => 0,
+            'total'   => wp_count_comments()->total_comments,
         );
 
         if ( count($c) > 0 ) {
