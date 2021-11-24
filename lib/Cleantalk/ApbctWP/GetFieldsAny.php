@@ -357,7 +357,7 @@ class GetFieldsAny
      */
     private function getVisibleFields()
     {
-        $visible_fields_collection = apbct_visible_fields__get_collection();
+        $visible_fields_collection = Cookie::getVisibleFields();
 
         // Visible fields processing
         $visible_fields = apbct_visible_fields__process($visible_fields_collection);

@@ -448,7 +448,7 @@ function apbct_get_sender_info()
         : null;
 
     // Visible fields processing
-    $visible_fields_collection = apbct_visible_fields__get_collection();
+    $visible_fields_collection = Cookie::getVisibleFields();
 
     $visible_fields = apbct_visible_fields__process($visible_fields_collection);
 
@@ -516,29 +516,6 @@ function apbct_sender_info___get_page_url()
         return Server::get('HTTP_REFERER');
     }
     return  Server::get('SERVER_NAME') . Server::get('REQUEST_URI');
-}
-
-function apbct_visible_fields__get_collection()
-{
-    global $apbct;
-
-    if ( $apbct->settings['data__set_cookies'] == 1 ) {
-        // Get from separated native cookies and convert it to collection
-        $visible_fields_cookies_array = array_filter($_COOKIE, static function ($key) {
-            return strpos($key, 'apbct_visible_fields_') !== false;
-        }, ARRAY_FILTER_USE_KEY);
-        $visible_fields_collection = array();
-        foreach ( $visible_fields_cookies_array as $visible_fields_key => $visible_fields_value ) {
-            $prepared_key = str_replace('apbct_visible_fields_', '', $visible_fields_key);
-            $prepared_value = json_decode(str_replace('\\', '', $visible_fields_value), true);
-            $visible_fields_collection[$prepared_key] = $prepared_value;
-        }
-    } else {
-        // Get from alt cookies storage
-        $visible_fields_collection = Cookie::get('apbct_visible_fields', array(), 'array');
-    }
-
-    return $visible_fields_collection;
 }
 
 /**
