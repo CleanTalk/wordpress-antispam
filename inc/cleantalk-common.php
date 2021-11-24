@@ -10,6 +10,7 @@ use Cleantalk\ApbctWP\GetFieldsAny;
 use Cleantalk\ApbctWP\Helper;
 use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\Common\DB;
+use Cleantalk\Variables\Post;
 use Cleantalk\Variables\Server;
 
 function apbct_array($array)
@@ -591,6 +592,29 @@ function apbct_get_fields_to_check()
 function apbct_js_keys__get__ajax()
 {
     die(json_encode(array('js_key' => ct_get_checkjs_value())));
+}
+
+/**
+ * Checking email before POST
+ */
+function apbct_email_check_before_post()
+{
+    global $apbct;
+    $ajax_type = $apbct->data['ajax_type'];
+    $email = isset($_POST['data']['email']) ? trim($_POST['data']['email']) : null;
+
+    if ($ajax_type === 'rest') {
+        $email = trim(Post::get('email'));
+    }
+
+    if ( $email ) {
+        $result = \Cleantalk\ApbctWP\API::methodEmailCheck($email);
+        if ( isset($result['data']) ) {
+            die(json_encode(array('result' => $result['data'])));
+        }
+        die(json_encode(array('error' => 'ERROR_CHECKING_EMAIL')));
+    }
+    die(json_encode(array('error' => 'EMPTY_DATA')));
 }
 
 /**

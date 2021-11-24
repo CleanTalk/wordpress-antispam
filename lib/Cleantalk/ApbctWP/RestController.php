@@ -43,5 +43,20 @@ class RestController extends \WP_REST_Controller
                 'permission_callback' => '__return_true',
             )
         ));
+
+        // REST route for checking email before POST
+        register_rest_route($this->namespace, "/check_email_before_post", array(
+            array(
+                'methods'             => 'POST',
+                'callback'            => 'apbct_email_check_before_post',
+                'args'                => array(
+                    'email' => array(
+                        'type'     => 'email',
+                        'required' => true,
+                    ),
+                ),
+                'permission_callback' => '__return_true',
+            )
+        ));
     }
 }
