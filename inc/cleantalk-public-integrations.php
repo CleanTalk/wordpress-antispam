@@ -417,6 +417,7 @@ function apbct_forms__search__testSpam($search)
             'sender_email'    => $user !== null ? $user->user_email : null,
             'sender_nickname' => $user !== null ? $user->user_login : null,
             'post_info'       => array('comment_type' => 'site_search_wordpress'),
+            'exception_action' => 0,
         )
     );
     $ct_result        = $base_call_result['ct_result'];
