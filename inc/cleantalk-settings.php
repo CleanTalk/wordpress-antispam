@@ -2191,6 +2191,11 @@ function apbct_settings__validate($settings)
         \Cleantalk\ApbctWP\Variables\AltSessions::wipe();
     }
 
+    /**
+     * Triggered before returning the settings
+     */
+    do_action('apbct_before_returning_settings', $settings);
+
     return $settings;
 }
 
@@ -2678,4 +2683,37 @@ function apbct_settings__btn_change_account_email_html()
                     '">'
                 . __('change email', 'cleantalk-spam-protect') .
             '</button>)';
+}
+
+/**
+ * Implementation of service_update_local_settings functionality
+ */
+add_action('apbct_before_returning_settings', 'apbct__send_local_settings_to_api');
+
+function apbct__send_local_settings_to_api($settings)
+{
+    if (empty($settings) || !is_array($settings)) {
+        return;
+    }
+
+    global $apbct;
+
+    // Settings to JSON
+    $settings = json_encode($settings);
+
+    // Apikey
+    $apikey = $apbct->api_key;
+
+    // Hostname
+    $hostname = preg_replace('/^(https?:)?(\/\/)?(www\.)?/', '', get_site_url());
+
+    Helper::httpRequest(
+        'https://api-next.cleantalk.org',
+        array(
+            'method_name' => 'service_update_local_settings',
+            'auth_key' => $apikey,
+            'hostname' => $hostname,
+            'settings' => $settings
+        ),
+        'async');
 }
