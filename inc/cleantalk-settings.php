@@ -1159,6 +1159,8 @@ function apbct_settings__display()
 
     echo "</form>";
 
+    echo '<form id="debug__cron_set" method="POST"></form>';
+
     if ( ! $apbct->white_label ) {
         // Translate banner for non EN locale
         if ( substr(get_locale(), 0, 2) != 'en' ) {
@@ -1781,6 +1783,7 @@ function apbct_settings__field__statistics()
 function apbct_settings__field__debug_tab()
 {
     echo '<div id="apbct_debug_tab" class="apbct_settings-field_wrapper" style="display: none;">';
+    echo apbct_debug__set_sfw_update_cron();
     echo '</div>';
 }
 
@@ -2697,4 +2700,21 @@ function apbct_settings__btn_change_account_email_html()
                     '">'
                 . __('change email', 'cleantalk-spam-protect') .
             '</button>)';
+}
+
+/**
+ * Staff thing - set sfw_update cron task
+ */
+function apbct_debug__set_sfw_update_cron()
+{
+    global $apbct;
+
+    return '<input form="debug__cron_set" type="hidden" name="spbc_remote_call_action" value="cron_update_task" />'
+           . '<input form="debug__cron_set" type="hidden" name="plugin_name"             value="apbct" />'
+           . '<input form="debug__cron_set" type="hidden" name="spbc_remote_call_token"  value="' . md5($apbct->api_key) . '" />'
+           . '<input form="debug__cron_set" type="hidden" name="task"                    value="sfw_update" />'
+           . '<input form="debug__cron_set" type="hidden" name="handler"                 value="apbct_sfw_update__init" />'
+           . '<input form="debug__cron_set" type="hidden" name="period"                  value="' . $apbct->stats['sfw']['update_period'] . '" />'
+           . '<input form="debug__cron_set" type="hidden" name="first_call"              value="' . (time() + 60) . '" />'
+           . '<input form="debug__cron_set" type="submit" value="Set SFW update to 60 seconds from now" />';
 }
