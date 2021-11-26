@@ -294,6 +294,11 @@ $apbct_active_integrations = array(
         'setting' => 'forms__registrations_test',
         'ajax'    => false
     ),
+    'CalculatedFieldsForm' => array(
+        'hook'    => 'cpcff_process_data',
+        'setting' => 'forms__general_contact_forms_test',
+        'ajax'    => false
+    ),
 );
 new  \Cleantalk\Antispam\Integrations($apbct_active_integrations, (array)$apbct->settings);
 
