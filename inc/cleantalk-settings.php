@@ -1526,57 +1526,60 @@ function apbct_settings__field__apikey()
         echo '<a id="apbct_showApiKey" class="ct_support_link" style="display: block" href="#">'
              . __('Show the access key', 'cleantalk-spam-protect')
              . '</a>';
-        // "Auto Get Key" buttons. License agreement
-    } else {
-        echo '<br /><br />';
-
-        // Auto get key
-        if ( ! $apbct->ip_license ) {
-            echo '<button class="cleantalk_link cleantalk_link-manual apbct_setting---get_key_auto" id="apbct_button__get_key_auto" name="submit" type="button"  value="get_key_auto">'
-                 . __('Get Access Key Automatically', 'cleantalk-spam-protect')
-                 . '<img style="margin-left: 10px;" class="apbct_preloader_button" src="' . APBCT_URL_PATH . '/inc/images/preloader2.gif" />'
-                 . '<img style="margin-left: 10px;" class="apbct_success --hide" src="' . APBCT_URL_PATH . '/inc/images/yes.png" />'
-                 . '</button>';
-            echo '<input type="hidden" id="ct_admin_timezone" name="ct_admin_timezone" value="null" />';
-            echo '<br />';
-            echo '<br />';
-        }
-
-        // Warnings and GDPR
-        printf(
-            __(
-                'Admin e-mail %s %s will be used for registration оr click here to %sGet Access Key Manually%s.',
-                'cleantalk-spam-protect'
-            ),
-            '<span id="apbct-account-email">'
-                . ct_get_admin_email() .
-            '</span>',
-            apbct_settings__btn_change_account_email_html(),
-            '<a class="apbct_color--gray" target="__blank" id="apbct-key-manually-link" href="'
-            . sprintf(
-                'https://cleantalk.org/register?platform=wordpress&email=%s&website=%s',
-                urlencode(ct_get_admin_email()),
-                urlencode(get_bloginfo('url'))
-            )
-            . '">',
-            '</a>'
-        );
-
-        // License agreement
-        if ( ! $apbct->ip_license ) {
-            echo '<div>';
-            echo '<input checked type="checkbox" id="license_agreed" onclick="apbctSettingsDependencies(\'apbct_setting---get_key_auto\');"/>';
-            echo '<label for="spbc_license_agreed">';
-            printf(
-                __('I accept %sLicense Agreement%s.', 'cleantalk-spam-protect'),
-                '<a class = "apbct_color--gray" href="https://cleantalk.org/publicoffer" target="_blank">',
-                '</a>'
-            );
-            echo "</label>";
-            echo '</div>';
-        }
     }
 
+    // "Auto Get Key" buttons. License agreement
+    echo '<div id="apbct_button__get_key_auto__wrapper">';
+
+    echo '<br /><br />';
+
+    // Auto get key
+    if ( ! $apbct->ip_license ) {
+        echo '<button class="cleantalk_link cleantalk_link-manual apbct_setting---get_key_auto" id="apbct_button__get_key_auto" name="submit" type="button"  value="get_key_auto">'
+             . __('Get Access Key Automatically', 'cleantalk-spam-protect')
+             . '<img style="margin-left: 10px;" class="apbct_preloader_button" src="' . APBCT_URL_PATH . '/inc/images/preloader2.gif" />'
+             . '<img style="margin-left: 10px;" class="apbct_success --hide" src="' . APBCT_URL_PATH . '/inc/images/yes.png" />'
+             . '</button>';
+        echo '<input type="hidden" id="ct_admin_timezone" name="ct_admin_timezone" value="null" />';
+        echo '<br />';
+        echo '<br />';
+    }
+
+    // Warnings and GDPR
+    printf(
+        __(
+            'Admin e-mail %s %s will be used for registration оr click here to %sGet Access Key Manually%s.',
+            'cleantalk-spam-protect'
+        ),
+        '<span id="apbct-account-email">'
+            . ct_get_admin_email() .
+        '</span>',
+        apbct_settings__btn_change_account_email_html(),
+        '<a class="apbct_color--gray" target="__blank" id="apbct-key-manually-link" href="'
+        . sprintf(
+            'https://cleantalk.org/register?platform=wordpress&email=%s&website=%s',
+            urlencode(ct_get_admin_email()),
+            urlencode(get_bloginfo('url'))
+        )
+        . '">',
+        '</a>'
+    );
+
+    // License agreement
+    if ( ! $apbct->ip_license ) {
+        echo '<div>';
+        echo '<input checked type="checkbox" id="license_agreed" onclick="apbctSettingsDependencies(\'apbct_setting---get_key_auto\');"/>';
+        echo '<label for="spbc_license_agreed">';
+        printf(
+            __('I accept %sLicense Agreement%s.', 'cleantalk-spam-protect'),
+            '<a class = "apbct_color--gray" href="https://cleantalk.org/publicoffer" target="_blank">',
+            '</a>'
+        );
+        echo "</label>";
+        echo '</div>';
+    }
+
+    echo '</div>';
     echo '</div>';
 }
 
