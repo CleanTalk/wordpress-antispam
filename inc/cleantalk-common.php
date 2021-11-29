@@ -599,8 +599,6 @@ function apbct_js_keys__get__ajax()
  */
 function apbct_email_check_before_post()
 {
-    global $apbct;
-    $ajax_type = $apbct->data['ajax_type'];
     $email = trim(Post::get('email'));
 
     if ( $email ) {
