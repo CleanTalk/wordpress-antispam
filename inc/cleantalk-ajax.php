@@ -538,8 +538,7 @@ function ct_ajax_hook($message_obj = null)
     }
 
     // Skip submission if no data found
-    // @ToDo need to pass requests without email but this way generates extra service requests. need to exclude service requests early
-    if ( $sender_email === '' || $contact_form === false ) {
+    if ( $contact_form === false ) {
         do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
 
         return false;
