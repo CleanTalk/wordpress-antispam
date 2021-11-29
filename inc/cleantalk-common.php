@@ -601,11 +601,7 @@ function apbct_email_check_before_post()
 {
     global $apbct;
     $ajax_type = $apbct->data['ajax_type'];
-    $email = isset($_POST['data']['email']) ? trim($_POST['data']['email']) : null;
-
-    if ($ajax_type === 'rest') {
-        $email = trim(Post::get('email'));
-    }
+    $email = trim(Post::get('email'));
 
     if ( $email ) {
         $result = \Cleantalk\ApbctWP\API::methodEmailCheck($email);

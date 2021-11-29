@@ -91,7 +91,7 @@
 				apbct_public_sendAJAX(
 					{
 						action: 'apbct_email_check_before_post',
-						data : {'email' : current_email},
+						email : current_email,
 					},
 					{
 						apbct_ajax: 1,
@@ -107,7 +107,7 @@
 				apbct_public_sendAJAX(
 					{
 						action: 'apbct_email_check_before_post',
-						data : {'email' : current_email},
+						email : current_email,
 					},
 					{
 						callback: function (result) {
