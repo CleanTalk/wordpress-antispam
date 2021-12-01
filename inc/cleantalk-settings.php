@@ -2,13 +2,15 @@
 
 use Cleantalk\ApbctWP\Helper;
 use Cleantalk\Variables\Post;
+use Cleantalk\ApbctWP\Cron;
+use Cleantalk\Variables\Server;
 
 /**
  * Admin action 'admin_menu' - Add the admin options page
  */
 function apbct_settings_add_page()
 {
-    global $apbct, $pagenow;
+    global $apbct, $pagenow, $wp_version;
 
     $parent_slug = is_network_admin() ? 'settings.php' : 'options-general.php';
     $callback    = is_network_admin() ? 'apbct_settings__display__network' : 'apbct_settings__display';
@@ -27,10 +29,12 @@ function apbct_settings_add_page()
         return;
     }
 
+    $callback_format = version_compare($wp_version, '4.7') >= 0 ? array('type' => 'string', 'sanitize_callback' => 'apbct_settings__validate', 'default' => null) : 'apbct_settings__validate';
+
     register_setting(
         'cleantalk_settings',
         'cleantalk_settings',
-        array('type' => 'string', 'sanitize_callback' => 'apbct_settings__validate', 'default' => null)
+        $callback_format
     );
 
     $fields = apbct_settings__set_fileds();
@@ -82,6 +86,10 @@ function apbct_settings__set_fileds()
                 ),
                 'connection_reports' => array(
                     'callback' => 'apbct_settings__field__statistics',
+                ),
+                'debug_tab' => array(
+                    'callback' => 'apbct_settings__field__debug_tab',
+                    'display'  => Server::getDomain(), array( 'lc', 'loc', 'lh', 'test' ),
                 ),
                 'api_key'            => array(
                     'callback' => 'apbct_settings__field__apikey',
@@ -671,14 +679,6 @@ function apbct_settings__set_fileds()
             'section'    => 'hidden_section',
             'html_after' => '</div><div id="apbct_hidden_section_nav">{HIDDEN_SECTION_NAV}</div></div>',
             'fields'     => array(
-                'misc__collect_details'         => array(
-                    'type'        => 'checkbox',
-                    'title'       => __('Collect details about browsers', 'cleantalk-spam-protect'),
-                    'description' => __(
-                        "Checking this box you allow plugin store information about screen size and browser plugins of website visitors. The option in a beta state.",
-                        'cleantalk-spam-protect'
-                    ),
-                ),
                 'misc__send_connection_reports' => array(
                     'type'        => 'checkbox',
                     'title'       => __('Send connection reports', 'cleantalk-spam-protect'),
@@ -1151,6 +1151,8 @@ function apbct_settings__display()
 
     echo "</form>";
 
+    echo '<form id="debug__cron_set" method="POST"></form>';
+
     if ( ! $apbct->white_label ) {
         // Translate banner for non EN locale
         if ( substr(get_locale(), 0, 2) != 'en' ) {
@@ -1524,57 +1526,60 @@ function apbct_settings__field__apikey()
         echo '<a id="apbct_showApiKey" class="ct_support_link" style="display: block" href="#">'
              . __('Show the access key', 'cleantalk-spam-protect')
              . '</a>';
-        // "Auto Get Key" buttons. License agreement
-    } else {
-        echo '<br /><br />';
-
-        // Auto get key
-        if ( ! $apbct->ip_license ) {
-            echo '<button class="cleantalk_link cleantalk_link-manual apbct_setting---get_key_auto" id="apbct_button__get_key_auto" name="submit" type="button"  value="get_key_auto">'
-                 . __('Get Access Key Automatically', 'cleantalk-spam-protect')
-                 . '<img style="margin-left: 10px;" class="apbct_preloader_button" src="' . APBCT_URL_PATH . '/inc/images/preloader2.gif" />'
-                 . '<img style="margin-left: 10px;" class="apbct_success --hide" src="' . APBCT_URL_PATH . '/inc/images/yes.png" />'
-                 . '</button>';
-            echo '<input type="hidden" id="ct_admin_timezone" name="ct_admin_timezone" value="null" />';
-            echo '<br />';
-            echo '<br />';
-        }
-
-        // Warnings and GDPR
-        printf(
-            __(
-                'Admin e-mail %s %s will be used for registration оr click here to %sGet Access Key Manually%s.',
-                'cleantalk-spam-protect'
-            ),
-            '<span id="apbct-account-email">'
-                . ct_get_admin_email() .
-            '</span>',
-            apbct_settings__btn_change_account_email_html(),
-            '<a class="apbct_color--gray" target="__blank" id="apbct-key-manually-link" href="'
-            . sprintf(
-                'https://cleantalk.org/register?platform=wordpress&email=%s&website=%s',
-                urlencode(ct_get_admin_email()),
-                urlencode(get_bloginfo('url'))
-            )
-            . '">',
-            '</a>'
-        );
-
-        // License agreement
-        if ( ! $apbct->ip_license ) {
-            echo '<div>';
-            echo '<input checked type="checkbox" id="license_agreed" onclick="apbctSettingsDependencies(\'apbct_setting---get_key_auto\');"/>';
-            echo '<label for="spbc_license_agreed">';
-            printf(
-                __('I accept %sLicense Agreement%s.', 'cleantalk-spam-protect'),
-                '<a class = "apbct_color--gray" href="https://cleantalk.org/publicoffer" target="_blank">',
-                '</a>'
-            );
-            echo "</label>";
-            echo '</div>';
-        }
     }
 
+    // "Auto Get Key" buttons. License agreement
+    echo '<div id="apbct_button__get_key_auto__wrapper">';
+
+    echo '<br /><br />';
+
+    // Auto get key
+    if ( ! $apbct->ip_license ) {
+        echo '<button class="cleantalk_link cleantalk_link-manual apbct_setting---get_key_auto" id="apbct_button__get_key_auto" name="submit" type="button"  value="get_key_auto">'
+             . __('Get Access Key Automatically', 'cleantalk-spam-protect')
+             . '<img style="margin-left: 10px;" class="apbct_preloader_button" src="' . APBCT_URL_PATH . '/inc/images/preloader2.gif" />'
+             . '<img style="margin-left: 10px;" class="apbct_success --hide" src="' . APBCT_URL_PATH . '/inc/images/yes.png" />'
+             . '</button>';
+        echo '<input type="hidden" id="ct_admin_timezone" name="ct_admin_timezone" value="null" />';
+        echo '<br />';
+        echo '<br />';
+    }
+
+    // Warnings and GDPR
+    printf(
+        __(
+            'Admin e-mail %s %s will be used for registration оr click here to %sGet Access Key Manually%s.',
+            'cleantalk-spam-protect'
+        ),
+        '<span id="apbct-account-email">'
+            . ct_get_admin_email() .
+        '</span>',
+        apbct_settings__btn_change_account_email_html(),
+        '<a class="apbct_color--gray" target="__blank" id="apbct-key-manually-link" href="'
+        . sprintf(
+            'https://cleantalk.org/register?platform=wordpress&email=%s&website=%s',
+            urlencode(ct_get_admin_email()),
+            urlencode(get_bloginfo('url'))
+        )
+        . '">',
+        '</a>'
+    );
+
+    // License agreement
+    if ( ! $apbct->ip_license ) {
+        echo '<div>';
+        echo '<input checked type="checkbox" id="license_agreed" onclick="apbctSettingsDependencies(\'apbct_setting---get_key_auto\');"/>';
+        echo '<label for="spbc_license_agreed">';
+        printf(
+            __('I accept %sLicense Agreement%s.', 'cleantalk-spam-protect'),
+            '<a class = "apbct_color--gray" href="https://cleantalk.org/publicoffer" target="_blank">',
+            '</a>'
+        );
+        echo "</label>";
+        echo '</div>';
+    }
+
+    echo '</div>';
     echo '</div>';
 }
 
@@ -1767,6 +1772,13 @@ function apbct_settings__field__statistics()
     echo '<br/>';
     echo 'Plugin version: ' . APBCT_VERSION;
 
+    echo '</div>';
+}
+
+function apbct_settings__field__debug_tab()
+{
+    echo '<div id="apbct_debug_tab" class="apbct_settings-field_wrapper" style="display: none;">';
+    echo apbct_debug__set_sfw_update_cron();
     echo '</div>';
 }
 
@@ -2024,8 +2036,10 @@ function apbct_settings__validate($settings)
     // Set missing network settings.
     $stored_network_options = get_site_option($apbct->option_prefix . '_network_settings', array());
     foreach ( $apbct->def_network_settings as $setting => $value ) {
-        if ( ! isset($settings[$setting]) && ! array_key_exists($setting, $stored_network_options) ) {
-            $settings[$setting] = $value;
+        if ( ! isset($settings[$setting]) ) {
+            if ( ! array_key_exists($setting, $stored_network_options) ) {
+                $settings[$setting] = $value;
+            }
             settype($settings[$setting], gettype($value));
         }
     }
@@ -2034,7 +2048,8 @@ function apbct_settings__validate($settings)
     // Actions with toggle SFW settings
     // SFW was enabled
     if ( ! $apbct->settings['sfw__enabled'] && $settings['sfw__enabled'] ) {
-        apbct_sfw_update__init(3);
+        $cron = new Cron();
+        $cron->updateTask('sfw_update', 'apbct_sfw_update__init', 180);
         // SFW was disabled
     } elseif ( $apbct->settings['sfw__enabled'] && ! $settings['sfw__enabled'] ) {
         apbct_sfw__clear();
@@ -2461,11 +2476,19 @@ function apbct_update_blogs_options($settings)
 {
     global $wpdb;
 
+    if ( isset($settings['apikey']) ) {
+        unset($settings['apikey']);
+    }
+
     $blog_ids = $settings['multisite__use_settings_template_apply_for_current_list_sites'] ?: array();
 
     $wp_blogs = $wpdb->get_results('SELECT blog_id FROM ' . $wpdb->blogs, OBJECT_K);
     foreach ( $wp_blogs as $blog ) {
         if ( in_array($blog->blog_id, $blog_ids) ) {
+            $current_blog_settings = get_blog_option($blog->blog_id, 'cleantalk_settings');
+            if ( isset($current_blog_settings['apikey']) ) {
+                $settings['apikey'] = $current_blog_settings['apikey'];
+            }
             update_blog_option($blog->blog_id, 'cleantalk_settings', $settings);
         }
     }
@@ -2672,4 +2695,21 @@ function apbct_settings__btn_change_account_email_html()
                     '">'
                 . __('change email', 'cleantalk-spam-protect') .
             '</button>)';
+}
+
+/**
+ * Staff thing - set sfw_update cron task
+ */
+function apbct_debug__set_sfw_update_cron()
+{
+    global $apbct;
+
+    return '<input form="debug__cron_set" type="hidden" name="spbc_remote_call_action" value="cron_update_task" />'
+           . '<input form="debug__cron_set" type="hidden" name="plugin_name"             value="apbct" />'
+           . '<input form="debug__cron_set" type="hidden" name="spbc_remote_call_token"  value="' . md5($apbct->api_key) . '" />'
+           . '<input form="debug__cron_set" type="hidden" name="task"                    value="sfw_update" />'
+           . '<input form="debug__cron_set" type="hidden" name="handler"                 value="apbct_sfw_update__init" />'
+           . '<input form="debug__cron_set" type="hidden" name="period"                  value="' . $apbct->stats['sfw']['update_period'] . '" />'
+           . '<input form="debug__cron_set" type="hidden" name="first_call"              value="' . (time() + 60) . '" />'
+           . '<input form="debug__cron_set" type="submit" value="Set SFW update to 60 seconds from now" />';
 }

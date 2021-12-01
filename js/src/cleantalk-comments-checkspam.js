@@ -147,6 +147,7 @@ function ct_send_comments(){
 					ct_comments_checked += msg.checked;
 					ct_comments_spam += msg.spam;
 					ct_comments_bad += msg.bad;
+					ct_comments_total += msg.total;
 					ct_unchecked = ct_comments_total - ct_comments_checked - ct_comments_bad;
 					var status_string = String(ctCommentsCheck.ct_status_string);
 					var status_string = status_string.printf(ct_comments_checked, ct_comments_spam, ct_comments_bad);
@@ -447,7 +448,7 @@ jQuery(document).ready(function(){
  * @returns {string|undefined}
  */
 function ctGetCookie(name) {
-	let matches = document.cookie.match(new RegExp(
+	var matches = document.cookie.match(new RegExp(
 		"(?:^|; )" + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + "=([^;]*)"
 	));
 	return matches ? decodeURIComponent(matches[1]) : undefined;

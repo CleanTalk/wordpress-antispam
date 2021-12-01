@@ -1,7 +1,7 @@
 function ctSetCookie( cookies, value, expires ){
 
     if( typeof cookies === 'string' && typeof value === 'string' || typeof value === 'number'){
-        var skip_alt = cookies === 'ct_pointer_data' || cookies === 'ct_user_info';
+        var skip_alt = cookies === 'ct_pointer_data';
         cookies = [ [ cookies, value, expires ] ];
     }
 

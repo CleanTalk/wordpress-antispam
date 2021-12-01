@@ -1,6 +1,7 @@
 <?php
 
 use Cleantalk\ApbctWP\CleantalkSettingsTemplates;
+use Cleantalk\Variables\Server;
 
 require_once('cleantalk-settings.php');
 
@@ -313,6 +314,11 @@ function apbct_admin__init()
         new CleantalkSettingsTemplates($apbct->api_key);
     }
 
+    // Show debug tab on localhosts
+    if ( in_array(Server::getDomain(), array( 'lc', 'loc', 'lh', 'test' )) ) {
+        add_filter('apbct_settings_action_buttons', 'apbct__add_debug_tab', 50, 1);
+    }
+
     // Check compatibility
     do_action('apbct__check_compatibility');
 }
@@ -552,7 +558,7 @@ function apbct_admin__enqueue_scripts($hook)
                 $apbct->user_token ? "<a target='_blank' href=https://cleantalk.org/my?user_token={$apbct->user_token}&cp_mode=antispam>" : '',
                 $apbct->user_token ? "</a>" : ''
             ) . ' ' . esc_html__('The service accepts feedback only for requests made no more than 7 or 45 days 
-            (if the Additional package is activated) ago.', 'cleantalk-spam-protect'),
+            (if the Extra package is activated) ago.', 'cleantalk-spam-protect'),
             'ct_show_check_links'         => (bool)$apbct->settings['comments__show_check_links'],
             'ct_img_src_new_tab'          => plugin_dir_url(__FILE__) . "images/new_window.gif",
         ));
@@ -1186,4 +1192,21 @@ add_action('apbct__check_compatibility', 'apbct__check_compatibility_handler');
 function apbct__check_compatibility_handler()
 {
     new \Cleantalk\Common\Compatibility();
+}
+
+/**
+ * @param $links
+ * Adding debug tab on the settings page
+ *
+ * @return array|mixed
+ */
+function apbct__add_debug_tab($links)
+{
+    if ( is_array($links) ) {
+        $debug_link    = '<a href="#" class="ct_support_link" onclick="apbct_show_hide_elem(\'apbct_debug_tab\')">' .
+                         __('Debug', 'cleantalk-spam-protect') . '</a>';
+        $links[] = $debug_link;
+    }
+
+    return $links;
 }

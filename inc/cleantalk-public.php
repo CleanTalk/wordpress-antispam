@@ -1128,33 +1128,6 @@ function ct_enqueue_scripts_public($_hook)
             apbct_enqueue_and_localize_public_scripts();
         }
 
-        // ct_nocache
-        // @todo needs to be refactored
-        if (
-            (
-                ! defined('CLEANTALK_AJAX_USE_FOOTER_HEADER') ||
-                (defined('CLEANTALK_AJAX_USE_FOOTER_HEADER') && CLEANTALK_AJAX_USE_FOOTER_HEADER)
-            ) &&
-            $apbct->settings['data__use_ajax'] && // Use AJAX for JavaScript check
-            ! apbct_is_in_uri('.xml') &&
-            ! apbct_is_in_uri('.xsl') &&
-            ! apbct_is_in_uri('jm-ajax')
-        ) {
-            // Collect details about browsers
-            if ( $apbct->settings['misc__collect_details'] ) {
-                wp_enqueue_script(
-                    'ct_collect_details',
-                    plugins_url('/cleantalk-spam-protect/js/cleantalk_collect_details.min.js'),
-                    array(),
-                    APBCT_VERSION,
-                    false /*in header*/
-                );
-                wp_localize_script('ct_collect_details', 'ctCollectDetails', array(
-                    'set_cookies_flag' => $apbct->settings['data__set_cookies'] ? false : true,
-                ));
-            }
-        }
-
         // GDPR script
         if ( $apbct->settings['gdpr__enabled'] ) {
             wp_enqueue_script(
@@ -1230,7 +1203,7 @@ function ct_enqueue_scripts_public($_hook)
                     $apbct->user_token ? "<a target='_blank' href=https://cleantalk.org/my/show_requests?user_token={$apbct->user_token}&cp_mode=antispam>" : '',
                     $apbct->user_token ? "</a>" : ''
                 ) . ' ' . esc_html__('The service accepts feedback only for requests made no more than 7 or 45 days 
-                (if the Additional package is activated) ago.', 'cleantalk-spam-protect'),
+                (if the Extra package is activated) ago.', 'cleantalk-spam-protect'),
             ));
         }
     }
@@ -1297,7 +1270,7 @@ function apbct_enqueue_and_localize_public_scripts()
 }
 
 /**
- * Reassign callbackback function for the bootom of comment output.
+ * Reassign callback function for the bottom of comment output.
  */
 function ct_wp_list_comments_args($options)
 {

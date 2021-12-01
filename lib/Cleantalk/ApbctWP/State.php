@@ -112,9 +112,7 @@ class State extends \Cleantalk\Common\State
         'gdpr__enabled'                            => 0,
         'gdpr__text'                               => 'By using this form you agree with the storage and processing of your data by using the Privacy Policy on this website.',
 
-        // Msic
-        'misc__collect_details'                    => 0,
-        // Collect details about browser of the visitor.
+        // Misc
         'misc__send_connection_reports'            => 0,
         // Send connection reports to Cleantalk servers
         'misc__async_js'                           => 0,
@@ -260,6 +258,9 @@ class State extends \Cleantalk\Common\State
         // debug
         'debug'              => array('last_call' => 0, 'cooldown' => 0),
         'debug_sfw'          => array('last_call' => 0, 'cooldown' => 0),
+
+        // cron update
+        'cron_update_task'   => array('last_call' => 0),
     );
 
     public $def_stats = array(
@@ -578,7 +579,7 @@ class State extends \Cleantalk\Common\State
             // Remove subtype errors from processing.
             // No need to array_shift for these
             $sub_errors = array();
-            if ( is_array($this->errors[$type]) ) {
+            if ( isset($this->errors[$type]) && is_array($this->errors[$type]) ) {
                 foreach ( $this->errors[$type] as $key => $sub_error ) {
                     if ( is_string($key) ) {
                         $sub_errors[$key] = $sub_error;
@@ -588,7 +589,7 @@ class State extends \Cleantalk\Common\State
             }
 
             // Drop first element if errors array length is more than 5
-            if ( is_array($this->errors[$type]) && count($this->errors[$type]) >= 5 ) {
+            if ( isset($this->errors[$type]) && is_array($this->errors[$type]) && count($this->errors[$type]) >= 5 ) {
                 array_shift($this->errors[$type]);
             }
 

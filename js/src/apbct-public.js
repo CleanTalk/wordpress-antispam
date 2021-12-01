@@ -71,18 +71,54 @@
 	function checkEmail(e) {
 		var current_email = e.target.value;
 		if (current_email && !(current_email in ctCheckedEmails)) {
-			apbct_public_sendAJAX(
-				{action: 'apbct_email_check_before_post', data : {'email' : current_email}},
-				{
-					apbct_ajax: 1,
-					callback: function (result) {
-						if (result.result) {
-							ctCheckedEmails[current_email] = {'result' : result.result, 'timestamp': Date.now() / 1000 |0};
-							ctSetCookie('ct_checked_emails', JSON.stringify(ctCheckedEmails));
-						}
+			// Using REST API handler
+			if( ctPublicFunctions.data__ajax_type === 'rest' ){
+				apbct_public_sendREST(
+					'check_email_before_post',
+					{
+						method: 'POST',
+						data: {'email' : current_email},
+						callback: function (result) {
+							if (result.result) {
+								ctCheckedEmails[current_email] = {'result' : result.result, 'timestamp': Date.now() / 1000 |0};
+								ctSetCookie('ct_checked_emails', JSON.stringify(ctCheckedEmails));
+							}
+						},
+					}
+				);
+				// Using AJAX request and handler
+			}else if( ctPublicFunctions.data__ajax_type === 'custom_ajax' ) {
+				apbct_public_sendAJAX(
+					{
+						action: 'apbct_email_check_before_post',
+						email : current_email,
 					},
-				}
-			);		
+					{
+						apbct_ajax: 1,
+						callback: function (result) {
+							if (result.result) {
+								ctCheckedEmails[current_email] = {'result' : result.result, 'timestamp': Date.now() / 1000 |0};
+								ctSetCookie('ct_checked_emails', JSON.stringify(ctCheckedEmails));
+							}
+						},
+					}
+				);
+			} else if( ctPublicFunctions.data__ajax_type === 'admin_ajax' ) {
+				apbct_public_sendAJAX(
+					{
+						action: 'apbct_email_check_before_post',
+						email : current_email,
+					},
+					{
+						callback: function (result) {
+							if (result.result) {
+								ctCheckedEmails[current_email] = {'result' : result.result, 'timestamp': Date.now() / 1000 |0};
+								ctSetCookie('ct_checked_emails', JSON.stringify(ctCheckedEmails));
+							}
+						},
+					}
+				);
+			}
 		}
 	}
 

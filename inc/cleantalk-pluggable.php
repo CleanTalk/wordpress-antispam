@@ -601,8 +601,8 @@ function apbct_is_skip_request($ajax = false)
         }
         // WPForms check restricted email skipped
         if (
-            (apbct_is_plugin_active('wpforms/wpforms.php')) &&
-            (Post::get('action') === 'wpforms_restricted_email' && Post::get('token') !== '')
+            apbct_is_plugin_active('wpforms/wpforms.php') &&
+            Post::get('action') === 'wpforms_restricted_email'
         ) {
             return 'wpforms_check_restricted_email';
         }
@@ -645,6 +645,12 @@ function apbct_is_skip_request($ajax = false)
             && Post::get('action') === 'tmpl_ajax_check_user_email'
         ) {
             return 'Classified checkemail';
+        }
+        if (
+            (apbct_is_plugin_active('uncanny-toolkit-pro/uncanny-toolkit-pro.php') || apbct_is_plugin_active('uncanny-learndash-toolkit'))
+            && Post::get('action') === 'ult-forgot-password'
+        ) {
+            return 'Uncanny Toolkit';
         }
     } else {
         /*****************************************/

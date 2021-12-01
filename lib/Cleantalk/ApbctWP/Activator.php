@@ -27,11 +27,13 @@ class Activator
                     switch_to_blog($blog);
                     $db_tables_creator->createAllTables();
                     self::setCronJobs();
+                    self::maybeGetApiKey();
                 }
                 switch_to_blog($initial_blog);
             } else {
                 self::setCronJobs();
                 $db_tables_creator->createAllTables();
+                self::maybeGetApiKey();
                 ct_account_status_check(null, false);
             }
 
@@ -47,6 +49,7 @@ class Activator
 
                 self::setCronJobs(false);
                 $db_tables_creator->createAllTables();
+                self::maybeGetApiKey();
                 apbct_sfw_update__init(3); // Updating SFW
                 ct_account_status_check(null, false);
 
@@ -104,5 +107,34 @@ class Activator
             time() + 300
         );  // Clear Anti-Flood table
         $ct_cron->addTask('rotate_moderate', 'apbct_rotate_moderate', 86400, time() + 3500); // Rotate moderate server
+    }
+
+    /**
+     * Checking if a third party hook need to get API key automatically
+     *
+     * @return void
+     */
+    private static function maybeGetApiKey()
+    {
+        global $apbct;
+        if (
+            $apbct->api_key ||
+            ( ! is_main_site() && $apbct->network_settings['multisite__work_mode'] != 2 )
+        ) {
+            return;
+        }
+        /**
+         * Filters a getting API key flag
+         *
+         * @param bool Set true if you want to get key automatically after activation the plugin
+         */
+        $is_get_api_key = apply_filters('apbct_is_get_api_key', false);
+        if ( $is_get_api_key ) {
+            $get_key = apbct_settings__get_key_auto(true);
+            if ( empty($get_key['error']) ) {
+                $apbct->data['key_changed'] = true;
+                $apbct->save('data');
+            }
+        }
     }
 }
