@@ -1265,6 +1265,7 @@ function apbct_enqueue_and_localize_public_scripts()
                                            ($apbct->settings['data__pixel'] === '3' && apbct_is_cache_plugins_exists()),
         'pixel__url'                    => $apbct->pixel_url,
         'data__email_check_before_post' => $apbct->settings['data__email_check_before_post'],
+        'data__set_cookies'             => $apbct->settings['data__set_cookies'],
     ));
 }
 

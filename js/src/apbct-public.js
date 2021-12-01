@@ -71,18 +71,54 @@
 	function checkEmail(e) {
 		var current_email = e.target.value;
 		if (current_email && !(current_email in ctCheckedEmails)) {
-			apbct_public_sendAJAX(
-				{action: 'apbct_email_check_before_post', data : {'email' : current_email}},
-				{
-					apbct_ajax: 1,
-					callback: function (result) {
-						if (result.result) {
-							ctCheckedEmails[current_email] = {'result' : result.result, 'timestamp': Date.now() / 1000 |0};
-							ctSetCookie('ct_checked_emails', JSON.stringify(ctCheckedEmails));
-						}
+			// Using REST API handler
+			if( ctPublicFunctions.data__ajax_type === 'rest' ){
+				apbct_public_sendREST(
+					'check_email_before_post',
+					{
+						method: 'POST',
+						data: {'email' : current_email},
+						callback: function (result) {
+							if (result.result) {
+								ctCheckedEmails[current_email] = {'result' : result.result, 'timestamp': Date.now() / 1000 |0};
+								ctSetCookie('ct_checked_emails', JSON.stringify(ctCheckedEmails));
+							}
+						},
+					}
+				);
+				// Using AJAX request and handler
+			}else if( ctPublicFunctions.data__ajax_type === 'custom_ajax' ) {
+				apbct_public_sendAJAX(
+					{
+						action: 'apbct_email_check_before_post',
+						email : current_email,
 					},
-				}
-			);		
+					{
+						apbct_ajax: 1,
+						callback: function (result) {
+							if (result.result) {
+								ctCheckedEmails[current_email] = {'result' : result.result, 'timestamp': Date.now() / 1000 |0};
+								ctSetCookie('ct_checked_emails', JSON.stringify(ctCheckedEmails));
+							}
+						},
+					}
+				);
+			} else if( ctPublicFunctions.data__ajax_type === 'admin_ajax' ) {
+				apbct_public_sendAJAX(
+					{
+						action: 'apbct_email_check_before_post',
+						email : current_email,
+					},
+					{
+						callback: function (result) {
+							if (result.result) {
+								ctCheckedEmails[current_email] = {'result' : result.result, 'timestamp': Date.now() / 1000 |0};
+								ctSetCookie('ct_checked_emails', JSON.stringify(ctCheckedEmails));
+							}
+						},
+					}
+				);
+			}
 		}
 	}
 
@@ -114,11 +150,26 @@
 			["ct_fkp_timestamp", "0"],
 			["ct_pointer_data", "0"],
 			["ct_timezone", ct_date.getTimezoneOffset()/60*(-1) ],
-			["apbct_visible_fields", "0"],
 			["ct_screen_info", apbctGetScreenInfo()],
 			["ct_has_scrolled", 'false'],
 			["ct_mouse_moved", 'false'],
 		];
+
+		if( + ctPublic.data__set_cookies !== 1 ) {
+			initCookies.push(['apbct_visible_fields', '0']);
+		} else {
+			// Delete all visible fields cookies on load the page
+			var cookiesArray = document.cookie.split(";");
+			if( cookiesArray.length !== 0 ) {
+				for ( var i = 0; i < cookiesArray.length; i++ ) {
+					var currentCookie = cookiesArray[i].trim();
+					var cookieName = currentCookie.split("=")[0];
+					if( cookieName.indexOf("apbct_visible_fields_") === 0 ) {
+						ctDeleteCookie(cookieName);
+					}
+				}
+			}
+		}
 
 		if( +ctPublic.pixel__setting ){
 			initCookies.push(['apbct_pixel_url', ctPublic.pixel__url]);
@@ -158,11 +209,16 @@
 				visible_fields_collection[i] = apbct_collect_visible_fields( form );
 
 				form.onsubmit_prev = form.onsubmit;
+
+				form.ctFormIndex = i;
 				form.onsubmit = function (event) {
 
-					var visible_fields = {};
-					visible_fields[0] = apbct_collect_visible_fields(this);
-					apbct_visible_fields_set_cookie( visible_fields );
+					if ( + ctPublic.data__set_cookies !== 1 && typeof event.target.ctFormIndex !== 'undefined' ) {
+
+						var visible_fields = {};
+						visible_fields[0] = apbct_collect_visible_fields(this);
+						apbct_visible_fields_set_cookie( visible_fields, event.target.ctFormIndex );
+					}
 
 					// Call previous submit action
 					if (event.target.onsubmit_prev instanceof Function) {
@@ -256,12 +312,18 @@ function apbct_collect_visible_fields( form ) {
 
 }
 
-function apbct_visible_fields_set_cookie( visible_fields_collection ) {
+function apbct_visible_fields_set_cookie( visible_fields_collection, form_id ) {
 
 	var collection = typeof visible_fields_collection === 'object' && visible_fields_collection !== null ?  visible_fields_collection : {};
 
-	ctSetCookie("apbct_visible_fields", JSON.stringify( collection ) );
-
+	if( + ctPublic.data__set_cookies === 1 ) {
+		for ( var i in collection ) {
+			var collectionIndex = form_id !== undefined ? form_id : i;
+			ctSetCookie("apbct_visible_fields_" + collectionIndex, JSON.stringify( collection[i] ) );
+		}
+	} else {
+		ctSetCookie("apbct_visible_fields", JSON.stringify( collection ) );
+	}
 }
 
 function apbct_js_keys__set_input_value(result, data, params, obj){

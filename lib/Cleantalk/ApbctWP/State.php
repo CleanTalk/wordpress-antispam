@@ -258,6 +258,9 @@ class State extends \Cleantalk\Common\State
         // debug
         'debug'              => array('last_call' => 0, 'cooldown' => 0),
         'debug_sfw'          => array('last_call' => 0, 'cooldown' => 0),
+
+        // cron update
+        'cron_update_task'   => array('last_call' => 0),
     );
 
     public $def_stats = array(

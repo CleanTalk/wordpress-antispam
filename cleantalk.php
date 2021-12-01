@@ -154,6 +154,9 @@ function apbct_alt_session__save__WP_AJAX()
 add_action('wp_ajax_nopriv_apbct_js_keys__get', 'apbct_js_keys__get__ajax');
 add_action('wp_ajax_apbct_js_keys__get', 'apbct_js_keys__get__ajax');
 
+// Checking email before POST
+add_action('wp_ajax_nopriv_apbct_email_check_before_post', 'apbct_email_check_before_post');
+
 // Database prefix
 global $wpdb;
 $apbct->db_prefix = ! APBCT_WPMS || $apbct->allow_custom_key || $apbct->white_label ? $wpdb->prefix : $wpdb->base_prefix;
@@ -191,6 +194,13 @@ add_action('init', function () {
         }
     }
 });
+
+if ( $apbct->settings && $apbct->key_is_ok ) {
+    // Remote calls
+    if ( RemoteCalls::check() ) {
+        RemoteCalls::perform();
+    }
+}
 
 //Delete cookie for admin trial notice
 add_action('wp_logout', 'apbct__hook__wp_logout__delete_trial_notice_cookie');
@@ -368,11 +378,6 @@ if ( ! is_admin() && ! apbct_is_ajax() && ! apbct_is_customize_preview() ) {
     //add_filter( 'get_search_form',  'apbct_forms__search__addField' );
     add_filter('get_search_query', 'apbct_forms__search__testSpam');
     add_action('wp_head', 'apbct_search_add_noindex', 1);
-
-    // Remote calls
-    if ( RemoteCalls::check() ) {
-        RemoteCalls::perform();
-    }
 
     // SpamFireWall check
     if ( $apbct->plugin_version == APBCT_VERSION && // Do not call with first start
