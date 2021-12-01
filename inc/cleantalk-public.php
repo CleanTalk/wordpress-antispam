@@ -743,6 +743,11 @@ function ct_die($_comment_id, $_comment_status)
 {
     global $ct_comment, $ct_jp_comments;
 
+    // JCH Optimize caching preventing
+    add_filter('jch_optimize_page_cache_set_caching', static function ($_is_cache_active) {
+        return false;
+    }, 999, 1);
+
     do_action('apbct_pre_block_page', $ct_comment);
 
     $message_title = __('Spam protection', 'cleantalk-spam-protect');
@@ -792,6 +797,11 @@ function ct_die($_comment_id, $_comment_status)
 function ct_die_extended($comment_body)
 {
     global $ct_jp_comments;
+
+    // JCH Optimize caching preventing
+    add_filter('jch_optimize_page_cache_set_caching', static function ($_is_cache_active) {
+        return false;
+    }, 999, 1);
 
     $message_title = __('Spam protection', 'cleantalk-spam-protect');
     if ( defined('CLEANTALK_DISABLE_BLOCKING_TITLE') && CLEANTALK_DISABLE_BLOCKING_TITLE != true ) {
