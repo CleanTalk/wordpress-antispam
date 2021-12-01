@@ -71,7 +71,7 @@ class Ajax
                 break;
             case 'apbct_email_check_before_post':
                 if ( $apbct->settings['data__email_check_before_post'] ) {
-                    apbct_email_check_before_post();
+                    apbct_email_check_before_post_from_custom_ajax();
                 }
                 break;
             case 'apbct_alt_session__save__AJAX':

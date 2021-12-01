@@ -275,14 +275,19 @@ jQuery(document).ready(function(){
 		var enteredValue = jQuery(this).val();
 
 		if (enteredValue === '' || enteredValue.match(/^[a-z\d]{3,15}$/) === null) {
-			jQuery('#apbct_button__get_key_auto').show();
+			jQuery('#apbct_button__get_key_auto__wrapper').show();
 			jQuery('button.cleantalk_link[value="save_changes"]').prop('disabled', true);
 			return;
 		}
 
-		jQuery('#apbct_button__get_key_auto').hide();
+		jQuery('#apbct_button__get_key_auto__wrapper').hide();
 		jQuery('button.cleantalk_link[value="save_changes"]').prop('disabled', false);
 	});
+
+	if ( jQuery('#apbct_setting_apikey').val() ) {
+		jQuery('#apbct_button__get_key_auto__wrapper').hide();
+	}
+
 });
 
 /**

@@ -119,13 +119,14 @@ class CommentsChecker extends Checker
         check_ajax_referer('ct_secret_nonce', 'security');
 
         global $wpdb, $apbct;
-        $sql_where = '';
 
+        $sql_where = "WHERE NOT comment_approved = 'spam'";
+        $sql_where .= " AND comment_type = 'comment'";
         if ( isset($_POST['from'], $_POST['till']) ) {
             $from_date = date('Y-m-d', intval(strtotime($_POST['from'])));
             $till_date = date('Y-m-d', intval(strtotime($_POST['till'])));
 
-            $sql_where = "WHERE comment_date_gmt > '$from_date 00:00:00' AND comment_date_gmt < '$till_date 23:59:59'";
+            $sql_where = " AND comment_date_gmt > '$from_date 00:00:00' AND comment_date_gmt < '$till_date 23:59:59'";
         }
 
         $offset = $_COOKIE['apbct_check_comments_offset'] ?: 0;
@@ -143,7 +144,8 @@ class CommentsChecker extends Checker
             'checked' => 0,
             'spam'    => 0,
             'bad'     => 0,
-            'error'   => 0
+            'error'   => 0,
+            'total'   => wp_count_comments()->total_comments,
         );
 
         if ( count($c) > 0 ) {

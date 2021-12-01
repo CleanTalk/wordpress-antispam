@@ -122,7 +122,7 @@ class AdminNotices
             $content       =
                 sprintf(
                     __("Unable to get Access key automatically: %s", 'cleantalk-spam-protect'),
-                    $this->apbct->errors['key_get']['error']
+                    end($this->apbct->errors['key_get'])['error']
                 ) .
                 '<a target="_blank" style="margin-left: 10px" href="' . $register_link . '">' .
                 esc_html__('Get the Access key', 'cleantalk-spam-protect') .
