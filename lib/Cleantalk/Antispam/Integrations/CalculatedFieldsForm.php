@@ -6,7 +6,6 @@ class CalculatedFieldsForm extends IntegrationBase
 {
     public function getDataForChecking($argument)
     {
-        
         if ( ! empty($_POST) ) {
             /**
              * Filter for POST
