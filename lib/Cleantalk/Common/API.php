@@ -1044,4 +1044,35 @@ class API
                     : array('error' => 'NO_DATA');
         }
     }
+
+    /**
+     * Send local plugin settings to API
+     */
+    public static function sendLocalSettings($settings)
+    {
+        if (empty($settings) || !is_array($settings)) {
+            return;
+        }
+
+        global $apbct;
+
+        // Settings to JSON
+        $settings = json_encode($settings);
+
+        // Apikey
+        $apikey = $apbct->api_key;
+
+        // Hostname
+        $hostname = preg_replace('/^(https?:)?(\/\/)?(www\.)?/', '', get_site_url());
+
+        Helper::httpRequest(
+            'https://api-next.cleantalk.org',
+            array(
+                'method_name' => 'service_update_local_settings',
+                'auth_key' => $apikey,
+                'hostname' => $hostname,
+                'settings' => $settings
+            ),
+            'async');
+    }
 }
