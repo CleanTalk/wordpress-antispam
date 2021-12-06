@@ -1,7 +1,7 @@
 function ctSetCookie( cookies, value, expires ){
 
     if( typeof cookies === 'string' && typeof value === 'string' || typeof value === 'number'){
-        var skip_alt = cookies === 'ct_pointer_data' || cookies === 'ct_user_info';
+        var skip_alt = cookies === 'ct_pointer_data';
         cookies = [ [ cookies, value, expires ] ];
     }
 
@@ -53,6 +53,23 @@ function ctSetCookie( cookies, value, expires ){
                 }
             );
         }
+    }
+}
+
+function ctDeleteCookie(cookieName) {
+    // Cookies disabled
+    if( +ctPublicFunctions.data__set_cookies === 0 ){
+        return;
+
+    // Using traditional cookies
+    }else if( +ctPublicFunctions.data__set_cookies === 1 ){
+
+        var ctSecure = location.protocol === 'https:' ? '; secure' : '';
+        document.cookie = cookieName + "=\"\"; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; samesite=lax" + ctSecure;
+
+    // Using alternative cookies
+    }else if( +ctPublicFunctions.data__set_cookies === 2 ){
+        // @ToDo implement this logic
     }
 }
 

@@ -10,6 +10,7 @@ use Cleantalk\ApbctWP\GetFieldsAny;
 use Cleantalk\ApbctWP\Helper;
 use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\Common\DB;
+use Cleantalk\Variables\Post;
 use Cleantalk\Variables\Server;
 
 function apbct_array($array)
@@ -422,6 +423,8 @@ function apbct_exclusions_check__ip()
  */
 function apbct_get_sender_info()
 {
+    global $apbct;
+
     // Validate cookie from the backend
     $cookie_is_ok = apbct_cookies_test();
 
@@ -446,9 +449,9 @@ function apbct_get_sender_info()
         : null;
 
     // Visible fields processing
-    $visible_fields = apbct_visible_fields__process(Cookie::get('apbct_visible_fields', array(), 'array'));
+    $visible_fields_collection = Cookie::getVisibleFields();
 
-    global $apbct;
+    $visible_fields = apbct_visible_fields__process($visible_fields_collection);
 
     return array(
         'plugin_request_id'      => $apbct->plugin_request_id,
@@ -474,8 +477,6 @@ function apbct_get_sender_info()
             'apbct_site_landing_ts'
         ) : null,
         'page_hits'              => Cookie::get('apbct_page_hits') ?: null,
-        // JS cookies
-        'js_info'                => Cookie::get('ct_user_info'),
         'mouse_cursor_positions' => Cookie::get('ct_pointer_data'),
         'js_timezone'            => Cookie::get('ct_timezone') ?: null,
         'key_press_timestamp'    => Cookie::get('ct_fkp_timestamp') ?: null,
@@ -526,22 +527,23 @@ function apbct_sender_info___get_page_url()
 function apbct_visible_fields__process($visible_fields)
 {
     $visible_fields = is_array($visible_fields)
-        ? json_encode($visible_fields)
+        ? json_encode($visible_fields, JSON_FORCE_OBJECT)
         : $visible_fields;
 
     // Do not decode if it's already decoded
     $fields_collection = json_decode($visible_fields, true);
 
     if ( ! empty($fields_collection) ) {
+        // These fields belong this request
+        $fields_to_check = apbct_get_fields_to_check();
+
         foreach ( $fields_collection as $current_fields ) {
             if ( isset($current_fields['visible_fields'], $current_fields['visible_fields_count']) ) {
                 $fields = explode(' ', $current_fields['visible_fields']);
 
-                // This fields belong this request
-                $fields_to_check = apbct_get_fields_to_check();
                 if ( count(array_intersect(array_keys($fields_to_check), $fields)) > 0 ) {
                     // WP Forms visible fields formatting
-                    if ( strpos($visible_fields, 'wpforms') !== false ) {
+                    if ( strpos($current_fields['visible_fields'], 'wpforms') !== false ) {
                         $current_fields = preg_replace(
                             array('/\[/', '/\]/'),
                             '',
@@ -593,6 +595,23 @@ function apbct_get_fields_to_check()
 function apbct_js_keys__get__ajax()
 {
     die(json_encode(array('js_key' => ct_get_checkjs_value())));
+}
+
+/**
+ * Checking email before POST
+ */
+function apbct_email_check_before_post()
+{
+    $email = trim(Post::get('email'));
+
+    if ( $email ) {
+        $result = \Cleantalk\ApbctWP\API::methodEmailCheck($email);
+        if ( isset($result['data']) ) {
+            die(json_encode(array('result' => $result['data'])));
+        }
+        die(json_encode(array('error' => 'ERROR_CHECKING_EMAIL')));
+    }
+    die(json_encode(array('error' => 'EMPTY_DATA')));
 }
 
 /**
