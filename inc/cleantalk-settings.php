@@ -2381,7 +2381,7 @@ function apbct_settings__get_key_auto($direct_call = false)
             $apbct->settings['apikey'] = trim($result['auth_key']);
         }
 
-        $templates = \Cleantalk\ApbctWP\CleantalkSettingsTemplates::getOptionsTemplate($result['auth_key']);
+        $templates = ! $direct_call ? \Cleantalk\ApbctWP\CleantalkSettingsTemplates::getOptionsTemplate($result['auth_key']) : '';
 
         if ( ! empty($templates) ) {
             $templatesObj = new \Cleantalk\ApbctWP\CleantalkSettingsTemplates($result['auth_key']);
