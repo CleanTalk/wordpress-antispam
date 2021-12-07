@@ -2350,9 +2350,16 @@ function apbct_settings__get_key_auto($direct_call = false)
     $hoster_api_key = $apbct->network_settings['multisite__hoster_api_key'];
     $admin_email    = ct_get_admin_email();
 
+    /**
+     * Filters the email to get API key
+     *
+     * @param string email to get API key
+     */
+    $filtered_admin_email = apply_filters('apbct_get_api_key_email', $admin_email);
+
     $result = \Cleantalk\ApbctWP\API::methodGetApiKey(
         'antispam',
-        $admin_email,
+        $filtered_admin_email,
         $website,
         $platform,
         $timezone,
@@ -2360,7 +2367,8 @@ function apbct_settings__get_key_auto($direct_call = false)
         $user_ip,
         $wpms,
         $white_label,
-        $hoster_api_key
+        $hoster_api_key,
+        $filtered_admin_email !== $admin_email
     );
 
     if ( empty($result['error']) ) {
