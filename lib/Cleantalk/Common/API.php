@@ -1050,10 +1050,6 @@ class API
      */
     public static function sendLocalSettings($settings)
     {
-        if (empty($settings) || !is_array($settings)) {
-            return;
-        }
-
         global $apbct;
 
         // Settings to JSON
