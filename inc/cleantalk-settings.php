@@ -2692,5 +2692,7 @@ add_action('apbct_before_returning_settings', 'apbct__send_local_settings_to_api
 
 function apbct__send_local_settings_to_api($settings)
 {
-    \Cleantalk\Common\API::sendLocalSettings($settings);
+    global $apbct;
+
+    \Cleantalk\Common\API::sendLocalSettings($settings, $apbct->api_key);
 }

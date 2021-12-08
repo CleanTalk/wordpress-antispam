@@ -1048,15 +1048,10 @@ class API
     /**
      * Send local plugin settings to API
      */
-    public static function sendLocalSettings($settings)
+    public static function sendLocalSettings($settings, $apikey)
     {
-        global $apbct;
-
         // Settings to JSON
         $settings = json_encode($settings);
-
-        // Apikey
-        $apikey = $apbct->api_key;
 
         // Hostname
         $hostname = preg_replace('/^(https?:)?(\/\/)?(www\.)?/', '', get_site_url());
