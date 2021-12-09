@@ -709,18 +709,25 @@ function ct_get_admin_email()
 {
     global $apbct;
 
-    // Not WPMS
-    if (!is_multisite()) {
-        return $apbct->data['account_email'] ?: get_option('admin_email');
+    if ( ! is_multisite() ) {
+        // Not WPMS
+        $admin_email = get_option('admin_email');
+    } elseif ( is_main_site() || $apbct->network_settings['multisite__work_mode'] != 3) {
+        // WPMS - Main site, common account
+        $admin_email = get_site_option('admin_email');
+    } else {
+        // WPMS - Individual account, individual key
+        $admin_email = get_blog_option(get_current_blog_id(), 'admin_email');
     }
 
-    // Main site, common account
-    if (is_main_site() || $apbct->network_settings['multisite__work_mode'] != 3) {
-        return $apbct->data['account_email'] ?: get_site_option('admin_email');
+    if ( $apbct->data['account_email'] ) {
+        add_filter('apbct_get_api_key_email', function () {
+            global $apbct;
+            return $apbct->data['account_email'];
+        });
     }
 
-    // Individual account, individual key
-    return $apbct->data['account_email'] ?: get_blog_option(get_current_blog_id(), 'admin_email');
+    return $admin_email;
 }
 
 /**
