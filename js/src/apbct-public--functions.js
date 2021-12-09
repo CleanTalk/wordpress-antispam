@@ -56,6 +56,23 @@ function ctSetCookie( cookies, value, expires ){
     }
 }
 
+function ctDeleteCookie(cookieName) {
+    // Cookies disabled
+    if( +ctPublicFunctions.data__set_cookies === 0 ){
+        return;
+
+    // Using traditional cookies
+    }else if( +ctPublicFunctions.data__set_cookies === 1 ){
+
+        var ctSecure = location.protocol === 'https:' ? '; secure' : '';
+        document.cookie = cookieName + "=\"\"; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; samesite=lax" + ctSecure;
+
+    // Using alternative cookies
+    }else if( +ctPublicFunctions.data__set_cookies === 2 ){
+        // @ToDo implement this logic
+    }
+}
+
 function apbct_public_sendAJAX(data, params, obj){
 
     // Default params
