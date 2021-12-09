@@ -177,6 +177,13 @@ function apbct_base_call($params = array(), $reg_flag = false)
     );
 
     /**
+     * Add exception_action sender email is empty
+     */
+    if ( empty($params['sender_email']) && ! isset($params['exception_action']) ) {
+        $params['exception_action'] = 1;
+    }
+
+    /**
      * Add honeypot_field if exists in params
      */
     if ( isset($params['honeypot_field']) ) {

@@ -329,10 +329,9 @@ function apbct_integration__buddyPres__private_msg_check($bp_message_obj)
         }
     }
 
+    $exception_action = false;
     if ( ! empty($is_max_comments) ) {
-        do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
-
-        return;
+        $exception_action = true;
     }
 
     $sender_user_obj = get_user_by('id', $bp_message_obj->sender_id);
@@ -349,6 +348,7 @@ function apbct_integration__buddyPres__private_msg_check($bp_message_obj)
             ),
             'js_on'           => apbct_js_test('ct_checkjs', $_COOKIE, true) ?: apbct_js_test('ct_checkjs', $_POST),
             'sender_info'     => array('sender_url' => null),
+            'exception_action' => $exception_action === true ? 1 : null
         )
     );
 
@@ -417,6 +417,7 @@ function apbct_forms__search__testSpam($search)
             'sender_email'    => $user !== null ? $user->user_email : null,
             'sender_nickname' => $user !== null ? $user->user_login : null,
             'post_info'       => array('comment_type' => 'site_search_wordpress'),
+            'exception_action' => 0,
         )
     );
     $ct_result        = $base_call_result['ct_result'];
@@ -977,7 +978,6 @@ function ct_preprocess_comment($comment)
             $apbct->settings['forms__comments_test'] == 0 ||
             $ct_comment_done ||
             (isset($_SERVER['HTTP_REFERER']) && stripos($_SERVER['HTTP_REFERER'], 'page=wysija_campaigns&action=editTemplate') !== false) ||
-            (isset($is_max_comments) && $is_max_comments) ||
             (isset($_SERVER['HTTP_REFERER']) && strpos($_SERVER['REQUEST_URI'], '/wp-admin/') !== false)
         )
     ) {
@@ -1055,7 +1055,8 @@ function ct_preprocess_comment($comment)
                         'page_url'          => apbct_get_server_variable('HTTP_HOST') . apbct_get_server_variable('REQUEST_URI'),
                     )
                 )
-        )
+        ),
+        'exception_action' => isset($is_max_comments) && $is_max_comments ? 1 : null,
     );
 
     /**
@@ -2894,7 +2895,7 @@ function apbct_form__the7_contact_form()
         }
 
         // Skip submission if no data found
-        if ( $sender_email === '' || ! $contact_form ) {
+        if ( ! $contact_form ) {
             do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
 
             return false;
