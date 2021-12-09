@@ -61,6 +61,10 @@
 					padding: 10px 0 5px 10px;;
 					border-bottom: 1px solid gray;
 				}
+#ct_widget_wrapper .ct_widget_block table td.ct_widget_block__country_cell img {
+	width: 16px !important;
+	height: auto;
+}
 				
 		.ct_widget_button{
 			display: block;
@@ -95,6 +99,10 @@
 		margin-right: 1em;
 		vertical-align: middle;
 	}
+#ct_widget_wrapper .ct_widget_wprapper_total_blocked img.ct_widget_small_logo {
+	width: 24px !important;
+	height: 24px !important;
+}
 #ct_widget_button_view_all{
     cursor: pointer;
     border: 1px solid #0074a2;
