@@ -1046,24 +1046,28 @@ class API
     }
 
     /**
-     * Send local plugin settings to API
+     * Sending of local settings API method wrapper
+     *
+     * @param string $api_key
+     * @param string $hostname
+     * @param string $settings
+     *
+     * @return array|bool|mixed
+     *
+     * @psalm-suppress PossiblyUnusedMethod
      */
-    public static function sendLocalSettings($settings, $apikey)
-    {
-        // Settings to JSON
-        $settings = json_encode($settings);
+    public static function methodSendLocalSettings(
+        $api_key,
+        $hostname,
+        $settings
+    ) {
+        $request = array(
+            'method_name' => 'service_update_local_settings',
+            'auth_key' => $api_key,
+            'hostname' => $hostname,
+            'settings' => $settings
+        );
 
-        // Hostname
-        $hostname = preg_replace('/^(https?:)?(\/\/)?(www\.)?/', '', get_site_url());
-
-        Helper::httpRequest(
-            'https://api-next.cleantalk.org',
-            array(
-                'method_name' => 'service_update_local_settings',
-                'auth_key' => $apikey,
-                'hostname' => $hostname,
-                'settings' => $settings
-            ),
-            'async');
+        return static::sendRequest($request);
     }
 }

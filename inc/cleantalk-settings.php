@@ -2694,5 +2694,11 @@ function apbct__send_local_settings_to_api($settings)
 {
     global $apbct;
 
-    \Cleantalk\Common\API::sendLocalSettings($settings, $apbct->api_key);
+    // Settings to JSON
+    $settings = json_encode($settings);
+
+    // Hostname
+    $hostname = preg_replace('/^(https?:)?(\/\/)?(www\.)?/', '', get_site_url());
+
+    \Cleantalk\Common\API::methodSendLocalSettings($apbct->api_key, $hostname, $settings);
 }
