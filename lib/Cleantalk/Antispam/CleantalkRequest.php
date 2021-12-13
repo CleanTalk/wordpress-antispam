@@ -8,7 +8,6 @@ namespace Cleantalk\Antispam;
  */
 class CleantalkRequest
 {
-
     /**
      *  All http request headers
      * @var string
