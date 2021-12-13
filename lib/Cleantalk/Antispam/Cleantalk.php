@@ -231,6 +231,7 @@ class Cleantalk
                         '/\s?apbct_page_hits=\d*?[^;]*;?/',
                         '/\s?apbct_visible_fields_count=\d*?[^;]*;?/',
                         '/\s?apbct_visible_fields=%7B.*%7D[^;]*;?/',
+                        '/\s?apbct_visible_fields_\d=%7B.*%7D[^;]*;?/',
                     ), '', $ct_tmp[$cookie_name]);
                 }
                 $request->all_headers = json_encode($ct_tmp);
