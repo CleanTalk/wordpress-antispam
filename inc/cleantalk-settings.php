@@ -524,7 +524,7 @@ function apbct_settings__set_fileds()
             'fields' => array(
                 'exclusions__log_excluded_requests'        => array(
                     'title'       => __('Log excluded requests', 'cleantalk-spam-protect'),
-                    'description' => __('Turn the option on to log some type of the excluded requests, like comments from approved authors or POST requests without an Email address', 'cleantalk-spam-protect'),
+                    'description' => __('Enable the option to log some types of the excluded requests, like comments from approved authors or POST requests without an Email address', 'cleantalk-spam-protect'),
                 ),
                 'exclusions__urls'               => array(
                     'type'        => 'textarea',
