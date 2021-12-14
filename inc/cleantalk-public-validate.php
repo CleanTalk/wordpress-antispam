@@ -173,6 +173,20 @@ function ct_contact_form_validate()
         return false;
     }
 
+    // Skip CalculatedFieldsForm
+    if (
+        apbct_is_plugin_active('calculated-fields-form/cp_calculatedfieldsf.php') ||
+        apbct_is_plugin_active('calculated-fields-form/cp_calculatedfieldsf_free.php')
+    ) {
+        foreach ( $_POST as $key => $value ) {
+            if ( strpos($key, 'calculatedfields') !== false ) {
+                do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
+
+                return null;
+            }
+        }
+    }
+
     $post_info['comment_type'] = 'feedback_general_contact_form';
 
     /**
@@ -192,7 +206,7 @@ function ct_contact_form_validate()
     }
 
     // Skip submission if no data found
-    if ( $sender_email === '' || ! $contact_form ) {
+    if ( ! $contact_form ) {
         do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
 
         return false;

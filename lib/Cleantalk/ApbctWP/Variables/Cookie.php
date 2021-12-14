@@ -141,4 +141,34 @@ class Cookie extends \Cleantalk\Variables\Cookie
             setcookie($name, $value, $expires, $path, $domain, $secure, $httponly);
         }
     }
+
+    /**
+     * Getting visible fields collection
+     *
+     * @return array
+     *
+     * @psalm-suppress InvalidReturnType, InvalidReturnStatement
+     */
+    public static function getVisibleFields()
+    {
+        global $apbct;
+
+        if ( $apbct->settings['data__set_cookies'] == 1 ) {
+            // Get from separated native cookies and convert it to collection
+            $visible_fields_cookies_array = array_filter($_COOKIE, static function ($key) {
+                return strpos($key, 'apbct_visible_fields_') !== false;
+            }, ARRAY_FILTER_USE_KEY);
+            $visible_fields_collection = array();
+            foreach ( $visible_fields_cookies_array as $visible_fields_key => $visible_fields_value ) {
+                $prepared_key = str_replace('apbct_visible_fields_', '', $visible_fields_key);
+                $prepared_value = json_decode(str_replace('\\', '', $visible_fields_value), true);
+                $visible_fields_collection[$prepared_key] = $prepared_value;
+            }
+        } else {
+            // Get from alt cookies storage
+            $visible_fields_collection = self::get('apbct_visible_fields', array(), 'array');
+        }
+
+        return $visible_fields_collection;
+    }
 }

@@ -10,6 +10,7 @@ use Cleantalk\ApbctWP\GetFieldsAny;
 use Cleantalk\ApbctWP\Helper;
 use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\Common\DB;
+use Cleantalk\Variables\Post;
 use Cleantalk\Variables\Server;
 
 function apbct_array($array)
@@ -175,6 +176,21 @@ function apbct_base_call($params = array(), $reg_flag = false)
         'sender_info' => $sender_info,
         'submit_time' => apbct_get_submit_time()
     );
+
+    /**
+     * Add exception_action sender email is empty
+     */
+    if ( empty($params['sender_email']) && ! isset($params['exception_action']) ) {
+        $params['exception_action'] = 1;
+    }
+
+    /**
+     * Skip checking excepted requests if the "Log excluded requests" option is disabled.
+     */
+    if ( isset($params['exception_action']) && $params['exception_action'] == 1 && ! $apbct->settings['exclusions__log_excluded_requests'] ) {
+        do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
+        return array('ct_result' => new CleantalkResponse());
+    }
 
     /**
      * Add honeypot_field if exists in params
@@ -422,6 +438,8 @@ function apbct_exclusions_check__ip()
  */
 function apbct_get_sender_info()
 {
+    global $apbct;
+
     // Validate cookie from the backend
     $cookie_is_ok = apbct_cookies_test();
 
@@ -446,9 +464,9 @@ function apbct_get_sender_info()
         : null;
 
     // Visible fields processing
-    $visible_fields = apbct_visible_fields__process(Cookie::get('apbct_visible_fields', array(), 'array'));
+    $visible_fields_collection = Cookie::getVisibleFields();
 
-    global $apbct;
+    $visible_fields = apbct_visible_fields__process($visible_fields_collection);
 
     return array(
         'plugin_request_id'      => $apbct->plugin_request_id,
@@ -524,22 +542,23 @@ function apbct_sender_info___get_page_url()
 function apbct_visible_fields__process($visible_fields)
 {
     $visible_fields = is_array($visible_fields)
-        ? json_encode($visible_fields)
+        ? json_encode($visible_fields, JSON_FORCE_OBJECT)
         : $visible_fields;
 
     // Do not decode if it's already decoded
     $fields_collection = json_decode($visible_fields, true);
 
     if ( ! empty($fields_collection) ) {
+        // These fields belong this request
+        $fields_to_check = apbct_get_fields_to_check();
+
         foreach ( $fields_collection as $current_fields ) {
             if ( isset($current_fields['visible_fields'], $current_fields['visible_fields_count']) ) {
                 $fields = explode(' ', $current_fields['visible_fields']);
 
-                // This fields belong this request
-                $fields_to_check = apbct_get_fields_to_check();
                 if ( count(array_intersect(array_keys($fields_to_check), $fields)) > 0 ) {
                     // WP Forms visible fields formatting
-                    if ( strpos($visible_fields, 'wpforms') !== false ) {
+                    if ( strpos($current_fields['visible_fields'], 'wpforms') !== false ) {
                         $current_fields = preg_replace(
                             array('/\[/', '/\]/'),
                             '',
@@ -591,6 +610,23 @@ function apbct_get_fields_to_check()
 function apbct_js_keys__get__ajax()
 {
     die(json_encode(array('js_key' => ct_get_checkjs_value())));
+}
+
+/**
+ * Checking email before POST
+ */
+function apbct_email_check_before_post()
+{
+    $email = trim(Post::get('email'));
+
+    if ( $email ) {
+        $result = \Cleantalk\ApbctWP\API::methodEmailCheck($email);
+        if ( isset($result['data']) ) {
+            die(json_encode(array('result' => $result['data'])));
+        }
+        die(json_encode(array('error' => 'ERROR_CHECKING_EMAIL')));
+    }
+    die(json_encode(array('error' => 'EMPTY_DATA')));
 }
 
 /**
@@ -688,18 +724,25 @@ function ct_get_admin_email()
 {
     global $apbct;
 
-    // Not WPMS
-    if (!is_multisite()) {
-        return $apbct->data['account_email'] ?: get_option('admin_email');
+    if ( ! is_multisite() ) {
+        // Not WPMS
+        $admin_email = get_option('admin_email');
+    } elseif ( is_main_site() || $apbct->network_settings['multisite__work_mode'] != 3) {
+        // WPMS - Main site, common account
+        $admin_email = get_site_option('admin_email');
+    } else {
+        // WPMS - Individual account, individual key
+        $admin_email = get_blog_option(get_current_blog_id(), 'admin_email');
     }
 
-    // Main site, common account
-    if (is_main_site() || $apbct->network_settings['multisite__work_mode'] != 3) {
-        return $apbct->data['account_email'] ?: get_site_option('admin_email');
+    if ( $apbct->data['account_email'] ) {
+        add_filter('apbct_get_api_key_email', function () {
+            global $apbct;
+            return $apbct->data['account_email'];
+        });
     }
 
-    // Individual account, individual key
-    return $apbct->data['account_email'] ?: get_blog_option(get_current_blog_id(), 'admin_email');
+    return $admin_email;
 }
 
 /**

@@ -76,6 +76,7 @@ class API
         $wpms = false,
         $white_label = false,
         $hoster_api_key = '',
+        $email_filtered = false,
         $do_check = true
     ) {
         $request = array(
@@ -90,6 +91,7 @@ class API
             'wpms_setup'           => $wpms,
             'hoster_whitelabel'    => $white_label,
             'hoster_api_key'       => $hoster_api_key,
+            'email_filtered'       => $email_filtered
         );
 
         $result = static::sendRequest($request);

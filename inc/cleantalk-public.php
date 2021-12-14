@@ -743,6 +743,11 @@ function ct_die($_comment_id, $_comment_status)
 {
     global $ct_comment, $ct_jp_comments;
 
+    // JCH Optimize caching preventing
+    add_filter('jch_optimize_page_cache_set_caching', static function ($_is_cache_active) {
+        return false;
+    }, 999, 1);
+
     do_action('apbct_pre_block_page', $ct_comment);
 
     $message_title = __('Spam protection', 'cleantalk-spam-protect');
@@ -792,6 +797,11 @@ function ct_die($_comment_id, $_comment_status)
 function ct_die_extended($comment_body)
 {
     global $ct_jp_comments;
+
+    // JCH Optimize caching preventing
+    add_filter('jch_optimize_page_cache_set_caching', static function ($_is_cache_active) {
+        return false;
+    }, 999, 1);
 
     $message_title = __('Spam protection', 'cleantalk-spam-protect');
     if ( defined('CLEANTALK_DISABLE_BLOCKING_TITLE') && CLEANTALK_DISABLE_BLOCKING_TITLE != true ) {
@@ -1265,6 +1275,7 @@ function apbct_enqueue_and_localize_public_scripts()
                                            ($apbct->settings['data__pixel'] === '3' && apbct_is_cache_plugins_exists()),
         'pixel__url'                    => $apbct->pixel_url,
         'data__email_check_before_post' => $apbct->settings['data__email_check_before_post'],
+        'data__set_cookies'             => $apbct->settings['data__set_cookies'],
     ));
 }
 

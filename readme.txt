@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 3.0
 Tested up to: 5.8
 Requires PHP: 5.6
-Stable tag: 5.166
+Stable tag: 5.167
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -594,6 +594,20 @@ If your website has forms that send data to external sources, you can enable opt
 12. SpamFireWall log.
 
 == Changelog ==
+
+= 5.167 Dec 06 2021 =
+ * Fix. Comment scanner. Scanning loop fixed.
+ * Fix. Comment scanner. Scan only not spam comments.
+ * Mod: Launching a suitable ajax handler for checking email before POST
+ * Upd. RC. Remote calls checking moved to the root of the main file.
+ * New. Activation. Hook for getting key auto added.
+ * Fix. Admin notices. Errors about getting key fixed.
+ * Fix. Visible fields. Getting visible fields collection method moved to the Cookie class
+ * Fix. Visible fields. Getting visible fields collection method moved
+ * Fix. Settings. Getting key button fixed.
+ * Fix: Removed ajax_type from apbct_email_check_before_post
+ * Fixed Ajax.php errors with apbct_email_check_before_post  
+ * Fix: Add integration for CalculatedFieldsForm and fixed scripts  
 
 = 5.166 Nov 18 2021 =
  * Fix: skip ult-forgot-password action.

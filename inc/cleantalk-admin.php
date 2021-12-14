@@ -1,6 +1,7 @@
 <?php
 
 use Cleantalk\ApbctWP\CleantalkSettingsTemplates;
+use Cleantalk\Variables\Server;
 
 require_once('cleantalk-settings.php');
 
@@ -311,6 +312,11 @@ function apbct_admin__init()
             ( ! is_main_site() && $apbct->network_settings['multisite__allow_custom_settings'])
     ) {
         new CleantalkSettingsTemplates($apbct->api_key);
+    }
+
+    // Show debug tab on localhosts
+    if ( in_array(Server::getDomain(), array( 'lc', 'loc', 'lh', 'test' )) ) {
+        add_filter('apbct_settings_action_buttons', 'apbct__add_debug_tab', 50, 1);
     }
 
     // Check compatibility
@@ -1186,4 +1192,21 @@ add_action('apbct__check_compatibility', 'apbct__check_compatibility_handler');
 function apbct__check_compatibility_handler()
 {
     new \Cleantalk\Common\Compatibility();
+}
+
+/**
+ * @param $links
+ * Adding debug tab on the settings page
+ *
+ * @return array|mixed
+ */
+function apbct__add_debug_tab($links)
+{
+    if ( is_array($links) ) {
+        $debug_link    = '<a href="#" class="ct_support_link" onclick="apbct_show_hide_elem(\'apbct_debug_tab\')">' .
+                         __('Debug', 'cleantalk-spam-protect') . '</a>';
+        $links[] = $debug_link;
+    }
+
+    return $links;
 }

@@ -95,6 +95,8 @@ class State extends \Cleantalk\Common\State
         'data__email_check_before_post'            => 1,
 
         // Exclusions
+        // Send to the cloud some excepted requests
+        'exclusions__log_excluded_requests'        => 1,
         'exclusions__urls'                         => '',
         'exclusions__urls__use_regexp'             => 0,
         'exclusions__fields'                       => '',
@@ -258,6 +260,9 @@ class State extends \Cleantalk\Common\State
         // debug
         'debug'              => array('last_call' => 0, 'cooldown' => 0),
         'debug_sfw'          => array('last_call' => 0, 'cooldown' => 0),
+
+        // cron update
+        'cron_update_task'   => array('last_call' => 0),
     );
 
     public $def_stats = array(

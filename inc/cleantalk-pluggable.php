@@ -1,5 +1,6 @@
 <?php
 
+use Cleantalk\ApbctWP\RemoteCalls;
 use Cleantalk\Variables\Get;
 use Cleantalk\Variables\Post;
 use Cleantalk\Variables\Server;
@@ -464,6 +465,14 @@ function apbct_is_skip_request($ajax = false)
 {
     /* !!! Have to use more than one factor to detect the request - is_plugin active() && $_POST['action'] !!! */
     //@ToDo Implement direct integration checking - if have the direct integration will be returned false
+
+    if ( RemoteCalls::check() ) {
+        return 'CleanTalk RemoteCall request.';
+    }
+
+    if ( is_admin() ) {
+        return 'Admin side request.';
+    }
 
     if ( $ajax ) {
         /*****************************************/
