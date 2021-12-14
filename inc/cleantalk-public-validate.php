@@ -206,7 +206,7 @@ function ct_contact_form_validate()
     }
 
     // Skip submission if no data found
-    if ( $sender_email === '' || ! $contact_form ) {
+    if ( ! $contact_form ) {
         do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
 
         return false;

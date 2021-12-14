@@ -170,6 +170,11 @@ class CleantalkRequest
     public $honeypot_field;
 
     /**
+     * @var int|null
+     */
+    public $exception_action;
+
+    /**
      * Fill params with constructor
      *
      * @param array $params
@@ -202,6 +207,7 @@ class CleantalkRequest
         $this->post_info       = isset($params['post_info']) ? (string)json_encode($params['post_info']) : null;
         $this->sender_info     = isset($params['sender_info']) ? (string)json_encode($params['sender_info']) : null;
         $this->honeypot_field  = isset($params['honeypot_field']) ? (int)$params['honeypot_field'] : null;
+        $this->exception_action  = isset($params['exception_action']) ? (int)$params['exception_action'] : null;
 
         $this->message = ! empty($params['message'])
             ? (! is_scalar($params['message'])

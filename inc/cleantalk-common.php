@@ -178,6 +178,21 @@ function apbct_base_call($params = array(), $reg_flag = false)
     );
 
     /**
+     * Add exception_action sender email is empty
+     */
+    if ( empty($params['sender_email']) && ! isset($params['exception_action']) ) {
+        $params['exception_action'] = 1;
+    }
+
+    /**
+     * Skip checking excepted requests if the "Log excluded requests" option is disabled.
+     */
+    if ( isset($params['exception_action']) && $params['exception_action'] == 1 && ! $apbct->settings['exclusions__log_excluded_requests'] ) {
+        do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
+        return array('ct_result' => new CleantalkResponse());
+    }
+
+    /**
      * Add honeypot_field if exists in params
      */
     if ( isset($params['honeypot_field']) ) {
