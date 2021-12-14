@@ -601,6 +601,7 @@ If your website has forms that send data to external sources, you can enable opt
  * Upd. Get key. email_filtered parameter added.
  * Upd: Antispam. Prevent skip requests without emails.
  * Upd: Antispam. Prevent skip requests trusted users.
+ * Mod: Implementation of sending plugin settings to service_update_local_settings
  * Fix. Antispam. Exception action argument fixed.
  * Fix. Antispam. Preventing catch RC requests.
  * Fix. Antispam. Preventing catch website search requests.
