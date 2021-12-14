@@ -1096,3 +1096,15 @@ function apbct_update_to_5_164_2()
     global $apbct;
     $apbct->errorDeleteAll();
 }
+
+/**
+ * 5.167.1
+ */
+function apbct_update_to_5_167_1()
+{
+    global $apbct;
+
+    // For the current installations, after updating the option will turn off
+    $apbct->settings['exclusions__log_excluded_requests'] = '0';
+    $apbct->saveSettings();
+}
