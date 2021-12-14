@@ -860,6 +860,7 @@ class API
      * @return array|bool|mixed
      *
      * @psalm-suppress PossiblyUnusedMethod
+     * @psalm-suppress PossiblyUnusedReturnValue
      */
     public static function methodSendLocalSettings(
         $api_key,
