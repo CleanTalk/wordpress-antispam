@@ -848,6 +848,36 @@ class API
         return $result;
     }
 
+    /**
+     * Sending of local settings API method wrapper
+     *
+     * @param string $api_key
+     * @param string $hostname
+     * @param string $settings
+     *
+     * @return array|bool|mixed
+     *
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public static function methodSendLocalSettings(
+        $api_key,
+        $hostname,
+        $settings,
+        $do_check = true
+    ) {
+        $request = array(
+            'method_name' => 'service_update_local_settings',
+            'auth_key' => $api_key,
+            'hostname' => $hostname,
+            'settings' => $settings
+        );
+
+        $result = static::sendRequest($request);
+        $result = $do_check ? static::checkResponse($result, 'send_local_settings') : $result;
+
+        return $result;
+    }
+
     private static function getProductId($product_name)
     {
         $product_id = null;
@@ -1043,31 +1073,5 @@ class API
                     ? $result['data']
                     : array('error' => 'NO_DATA');
         }
-    }
-
-    /**
-     * Sending of local settings API method wrapper
-     *
-     * @param string $api_key
-     * @param string $hostname
-     * @param string $settings
-     *
-     * @return array|bool|mixed
-     *
-     * @psalm-suppress PossiblyUnusedMethod
-     */
-    public static function methodSendLocalSettings(
-        $api_key,
-        $hostname,
-        $settings
-    ) {
-        $request = array(
-            'method_name' => 'service_update_local_settings',
-            'auth_key' => $api_key,
-            'hostname' => $hostname,
-            'settings' => $settings
-        );
-
-        return static::sendRequest($request);
     }
 }
