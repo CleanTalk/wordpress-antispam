@@ -2212,6 +2212,11 @@ function apbct_settings__validate($settings)
         \Cleantalk\ApbctWP\Variables\AltSessions::wipe();
     }
 
+    /**
+     * Triggered before returning the settings
+     */
+    do_action('apbct_before_returning_settings', $settings);
+
     return $settings;
 }
 
@@ -2724,4 +2729,22 @@ function apbct_debug__set_sfw_update_cron()
            . '<input form="debug__cron_set" type="hidden" name="period"                  value="' . $apbct->stats['sfw']['update_period'] . '" />'
            . '<input form="debug__cron_set" type="hidden" name="first_call"              value="' . (time() + 60) . '" />'
            . '<input form="debug__cron_set" type="submit" value="Set SFW update to 60 seconds from now" />';
+}
+
+/**
+ * Implementation of service_update_local_settings functionality
+ */
+add_action('apbct_before_returning_settings', 'apbct__send_local_settings_to_api');
+
+function apbct__send_local_settings_to_api($settings)
+{
+    global $apbct;
+
+    // Settings to JSON
+    $settings = json_encode($settings);
+
+    // Hostname
+    $hostname = preg_replace('/^(https?:)?(\/\/)?(www\.)?/', '', get_site_url());
+
+    \Cleantalk\Common\API::methodSendLocalSettings($apbct->api_key, $hostname, $settings);
 }
