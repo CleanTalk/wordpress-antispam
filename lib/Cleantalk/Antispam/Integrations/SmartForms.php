@@ -4,7 +4,6 @@ namespace Cleantalk\Antispam\Integrations;
 
 class SmartForms extends IntegrationBase
 {
-
     public function getDataForChecking($argument)
     {
         $data = \Cleantalk\Variables\Post::get('formString');

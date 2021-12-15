@@ -4,7 +4,6 @@ namespace Cleantalk\Antispam\Integrations;
 
 class UltimateFormBuilder extends IntegrationBase
 {
-
     public function getDataForChecking($argument)
     {
         $form_data = array();
