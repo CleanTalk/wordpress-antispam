@@ -205,6 +205,9 @@ if ( $apbct->settings && $apbct->key_is_ok ) {
 //Delete cookie for admin trial notice
 add_action('wp_logout', 'apbct__hook__wp_logout__delete_trial_notice_cookie');
 
+// Formidable Forms Pro Ajax Test Spam
+add_filter('frm_validate_entry', 'apbct_form__formidable__testSpam', 1, 2);
+
 // Set cookie only for public pages and for non-AJAX requests
 if ( ! is_admin() && ! apbct_is_ajax() && ! defined('DOING_CRON')
      && empty($_POST['ct_checkjs_register_form']) // Buddy press registration fix

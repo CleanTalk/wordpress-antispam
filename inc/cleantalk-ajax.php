@@ -651,12 +651,6 @@ function ct_ajax_hook($message_obj = null)
             die();
         }
 
-        if ( isset($_POST['action']) && $_POST['action'] === 'frm_entries_create' ) {
-            $result = array('112' => $ct_result->comment);
-            print json_encode($result);
-            die();
-        }
-
         if ( isset($_POST['cma-action']) && $_POST['cma-action'] === 'add' ) {
             $result = array('success' => 0, 'thread_id' => null, 'messages' => array($ct_result->comment));
             print json_encode($result);
