@@ -596,10 +596,10 @@ If your website has forms that send data to external sources, you can enable opt
 == Changelog ==
 
 = 5.168 Dec 16 2021 =
- #### Two integrations added, some skipped requests will be logged, cookies optimized.
+ #### One integrations added, some skipped requests will be logged, cookies optimized and minor issues fixed.
  * New. Get key. A filter to changing an email to get the key implemented.
  * New. Log exclusions. Option for logging excluded request implemented.
- * New. Integration. Ultimate Form Builder integration added.
+ * New. Integration. Formidable Pro integration added.
  * New. Integration. Smart forms integration added.
  * Upd. Get key. email_filtered parameter added.
  * Upd: Antispam. Prevent skip requests without emails.
