@@ -354,7 +354,8 @@ function apbct_visible_fields_already_collected( formsProcessed, form ) {
 			}
 			// The form with the same ACTION has not processed.
 			if ( formsProcessed[i].action !== formAction ) {
-				return false;
+				// @ToDo actions often are different in the similar forms
+				//return false;
 			}
 			// The form with the same FIELDS COUNT has not processed.
 			if ( formsProcessed[i].fields_count !== formFieldsCount ) {
