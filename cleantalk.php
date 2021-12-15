@@ -314,11 +314,6 @@ $apbct_active_integrations = array(
         'setting' => 'forms__contact_forms_test',
         'ajax'    => true
     ),
-    'UltimateFormBuilder' => array(
-        'hook'    => 'ufb_front_form_action',
-        'setting' => 'forms__contact_forms_test',
-        'ajax'    => true
-    ),
 );
 new  \Cleantalk\Antispam\Integrations($apbct_active_integrations, (array)$apbct->settings);
 
