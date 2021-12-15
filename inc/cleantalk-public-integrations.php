@@ -777,6 +777,18 @@ function apbct_form__formidable__testSpam($errors, $_form)
     $ct_result        = $base_call_result['ct_result'];
 
     if ( $ct_result->allow == 0 ) {
+        if (apbct_is_ajax()) {
+            $result = array (
+                'errors' =>
+                    array (),
+                'content' => '',
+                'pass' => false,
+                'error_message' => '<div class="frm_error_style" role="status"><p>' . $ct_result->comment . '</p></div>',
+            );
+            print json_encode($result);
+            die();
+        }
+
         $errors['ct_error'] = '<br /><b>' . $ct_result->comment . '</b><br /><br />';
     }
 
