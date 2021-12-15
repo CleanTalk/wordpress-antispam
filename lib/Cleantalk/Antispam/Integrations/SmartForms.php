@@ -8,9 +8,8 @@ class SmartForms extends IntegrationBase
     public function getDataForChecking($argument)
     {
         $data = \Cleantalk\Variables\Post::get('formString');
-        if( $data ) {
-
-            $data = json_decode($data,true);
+        if ( $data ) {
+            $data = json_decode($data, true);
 
             /**
              * Filter for POST
@@ -23,10 +22,12 @@ class SmartForms extends IntegrationBase
 
     public function doBlock($message)
     {
-        echo json_encode(array(
-            'message'=> $message,
-            'success'=>'n',
-        ));
+        echo json_encode(
+            array(
+                'message' => $message,
+                'success' => 'n',
+            )
+        );
         die();
     }
 }

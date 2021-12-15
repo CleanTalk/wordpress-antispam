@@ -9,15 +9,14 @@ class UltimateFormBuilder extends IntegrationBase
     {
         $form_data = array();
         foreach ( $_POST[ 'form_data' ] as $val ) {
-            if ( strpos( $val[ 'name' ], '[]' ) !== false ) {
-                $form_data_name = str_replace( '[]', '', $val[ 'name' ] );
-                if ( !isset( $form_data[ $form_data_name ] ) ) {
-                    $form_data[ $form_data_name ] = array();
+            if ( strpos($val[ 'name' ], '[]') !== false ) {
+                $form_data_name = str_replace('[]', '', $val[ 'name' ]);
+                if ( ! isset($form_data[ $form_data_name ]) ) {
+                    $form_data[$form_data_name] = array();
                 }
-                $form_data[ $form_data_name ][] = $val[ 'value' ];
+                $form_data[$form_data_name][] = $val['value'];
             } else {
-
-                $form_data[ $val[ 'name' ] ] = $val[ 'value' ];
+                $form_data[$val['name']] = $val['value'];
             }
         }
 
