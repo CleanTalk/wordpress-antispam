@@ -618,6 +618,7 @@ If your website has forms that send data to external sources, you can enable opt
  * Fix. Log exclusions. Skip checking excepted requests if the "Log excluded requests" option is disabled.
  * Fix. Antispam. Remove unnecessary cookie from requests.
  * Fix. Visible fields. Collecting visible fields only for unique forms on the page.
+ * Fix: excluded some action for Ninja Form from spamtest.
 
 = 5.167 Dec 06 2021 =
  * Fix. Comment scanner. Scanning loop fixed.
@@ -632,8 +633,6 @@ If your website has forms that send data to external sources, you can enable opt
  * Fix: Removed ajax_type from apbct_email_check_before_post
  * Fixed Ajax.php errors with apbct_email_check_before_post  
  * Fix: Add integration for CalculatedFieldsForm and fixed scripts
- * Fix. Visible fields. Cookies visible_fields_* fixed.
- * Fix: excluded some action for Ninja Form from spamtest.
 
 = 5.166 Nov 18 2021 =
  * Fix: skip ult-forgot-password action.
