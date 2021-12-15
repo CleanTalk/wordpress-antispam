@@ -3213,4 +3213,3 @@ function apbct_form__uwp_validate($result, $_type, $data)
 
     return $result;
 }
-

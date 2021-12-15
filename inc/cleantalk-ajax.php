@@ -516,7 +516,7 @@ function ct_ajax_hook($message_obj = null)
     if (Post::hasString('action', 'kaliforms_form_process')) {
         $ct_post_temp = $_POST['data'];
     }
-    
+
     /**
      * Filter for POST
      */
@@ -525,7 +525,7 @@ function ct_ajax_hook($message_obj = null)
     } else {
         $input_array = apply_filters('apbct__filter_post', $_POST);
     }
-    
+
     $ct_temp_msg_data = ct_get_fields_any($input_array);
 
     $sender_email    = $ct_temp_msg_data['email'] ?: '';
