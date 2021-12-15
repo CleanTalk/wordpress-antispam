@@ -631,7 +631,9 @@ If your website has forms that send data to external sources, you can enable opt
  * Fix. Settings. Getting key button fixed.
  * Fix: Removed ajax_type from apbct_email_check_before_post
  * Fixed Ajax.php errors with apbct_email_check_before_post  
- * Fix: Add integration for CalculatedFieldsForm and fixed scripts  
+ * Fix: Add integration for CalculatedFieldsForm and fixed scripts
+ * Fix. Visible fields. Cookies visible_fields_* fixed.
+ * Fix: excluded some action for Ninja Form from spamtest.
 
 = 5.166 Nov 18 2021 =
  * Fix: skip ult-forgot-password action.
