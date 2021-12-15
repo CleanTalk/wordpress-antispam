@@ -470,7 +470,7 @@ function apbct_is_skip_request($ajax = false)
         return 'CleanTalk RemoteCall request.';
     }
 
-    if ( is_admin() ) {
+    if ( is_admin() && ! $ajax ) {
         return 'Admin side request.';
     }
 
