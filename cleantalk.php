@@ -206,7 +206,7 @@ if ( $apbct->settings && $apbct->key_is_ok ) {
 add_action('wp_logout', 'apbct__hook__wp_logout__delete_trial_notice_cookie');
 
 // Formidable Forms Pro Ajax Test Spam
-add_action('wp_loaded', 'apbct__formidable_pro_ajax_test_spam');
+add_filter('frm_validate_entry', 'apbct_form__formidable__testSpam', 1, 2);
 
 // Set cookie only for public pages and for non-AJAX requests
 if ( ! is_admin() && ! apbct_is_ajax() && ! defined('DOING_CRON')

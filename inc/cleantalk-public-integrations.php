@@ -3202,18 +3202,3 @@ function apbct_form__uwp_validate($result, $_type, $data)
     return $result;
 }
 
-/**
- * Formidable Forms Pro Ajax Spam Test
- */
-function apbct__formidable_pro_ajax_test_spam()
-{
-    if (!apbct_is_ajax()) {
-        return;
-    }
-
-    if (!Post::hasString('action', 'frm_entries_create')) {
-        return;
-    }
-
-    ct_ajax_hook();
-}

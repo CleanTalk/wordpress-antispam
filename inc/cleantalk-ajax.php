@@ -516,12 +516,7 @@ function ct_ajax_hook($message_obj = null)
     if (Post::hasString('action', 'kaliforms_form_process')) {
         $ct_post_temp = $_POST['data'];
     }
-
-    // Formidable Pro Ajax integration
-    if (Post::hasString('action', 'frm_entries_create')) {
-        $ct_post_temp = $_POST['item_meta'];
-    }
-
+    
     /**
      * Filter for POST
      */
@@ -530,16 +525,7 @@ function ct_ajax_hook($message_obj = null)
     } else {
         $input_array = apply_filters('apbct__filter_post', $_POST);
     }
-
-    // Formidable: prepare fields
-    if (Post::hasString('action', 'frm_entries_create')) {
-        $form_data = array();
-        foreach ( $input_array as $key => $value ) {
-            $form_data['item_meta[' . $key . ']'] = $value;
-        }
-        $input_array = $form_data;
-    }
-
+    
     $ct_temp_msg_data = ct_get_fields_any($input_array);
 
     $sender_email    = $ct_temp_msg_data['email'] ?: '';
@@ -659,18 +645,6 @@ function ct_ajax_hook($message_obj = null)
 
         if ( isset($_POST['action']) && $_POST['action'] === 'woocommerce_checkout' ) {
             print $ct_result->comment;
-            die();
-        }
-
-        if ( isset($_POST['action']) && $_POST['action'] === 'frm_entries_create' ) {
-            $result = array (
-                'errors' =>
-                    array (),
-                'content' => '',
-                'pass' => false,
-                'error_message' => '<div class="frm_error_style" role="status"><p>' . $ct_result->comment . '</p></div>',
-            );
-            print json_encode($result);
             die();
         }
 
