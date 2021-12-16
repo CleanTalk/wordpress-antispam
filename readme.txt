@@ -596,29 +596,29 @@ If your website has forms that send data to external sources, you can enable opt
 == Changelog ==
 
 = 5.168 Dec 16 2021 =
- #### One integrations added, some skipped requests will be logged, cookies optimized and minor issues fixed.
- * New. Get key. A filter to changing an email to get the key implemented.
- * New. Log exclusions. Option for logging excluded request implemented.
- * New. Integration. Formidable Pro integration added.
- * New. Integration. Smart forms integration added.
- * Upd. Get key. email_filtered parameter added.
- * Upd: Antispam. Prevent skip requests without emails.
- * Upd: Antispam. Prevent skip requests trusted users.
- * Mod: Implementation of sending plugin settings to service_update_local_settings
- * Fix. Antispam. Exception action argument fixed.
- * Fix. Antispam. Preventing catch RC requests.
- * Fix. Antispam. Preventing catch website search requests.
- * Fix. Setting templates. Get templates only after manual getting key.
- * Fix. Admin notices. Notice about getting key removed.
- * Fix. Getting key. Get the right email for gathering the key.
- * Fix. Exception action. Send ajax requests without email to the cloud.
- * Fix. Exception action. Prevent catching admin-side requests.
- * Fix. Exception action. Send ajax requests without email to the cloud.
- * Fix. Exception action. Prevent catching admin-side requests.
- * Fix. Log exclusions. Skip checking excepted requests if the "Log excluded requests" option is disabled.
- * Fix. Antispam. Remove unnecessary cookie from requests.
- * Fix. Visible fields. Collecting visible fields only for unique forms on the page.
- * Fix: excluded some action for Ninja Form from spamtest.
+#### One integrations added, some skipped requests will be logged, cookies optimized and minor issues fixed.
+* New. Get key. A filter to changing an email to get the key implemented.
+* New. Log exclusions. Option for logging excluded request implemented.
+* New. Integration. Formidable Pro integration added.
+* New. Integration. Smart forms integration added.
+* Upd. Get key. email_filtered parameter added.
+* Upd: Antispam. Prevent skip requests without emails.
+* Upd: Antispam. Prevent skip requests trusted users.
+* Mod: Implementation of sending plugin settings to service_update_local_settings
+* Fix. Antispam. Exception action argument fixed.
+* Fix. Antispam. Preventing catch RC requests.
+* Fix. Antispam. Preventing catch website search requests.
+* Fix. Setting templates. Get templates only after manual getting key.
+* Fix. Admin notices. Notice about getting key removed.
+* Fix. Getting key. Get the right email for gathering the key.
+* Fix. Exception action. Send ajax requests without email to the cloud.
+* Fix. Exception action. Prevent catching admin-side requests.
+* Fix. Exception action. Send ajax requests without email to the cloud.
+* Fix. Exception action. Prevent catching admin-side requests.
+* Fix. Log exclusions. Skip checking excepted requests if the "Log excluded requests" option is disabled.
+* Fix. Antispam. Remove unnecessary cookie from requests.
+* Fix. Visible fields. Collecting visible fields only for unique forms on the page.
+* Fix: excluded some action for Ninja Form from spamtest.
 
 = 5.167 Dec 06 2021 =
  * Fix. Comment scanner. Scanning loop fixed.
