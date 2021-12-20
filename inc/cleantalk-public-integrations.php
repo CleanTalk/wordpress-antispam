@@ -2888,7 +2888,7 @@ function apbct_form__the7_contact_form()
     global $cleantalk_executed;
 
     if ( check_ajax_referer('dt_contact_form', 'nonce', false) && ! empty($_POST) ) {
-        $post_info['comment_type'] = 'contact_the7_theme_contact_form';
+        $post_info['comment_type'] = 'contact_form_wordpress_the7_theme_contact_form';
 
         /**
          * Filter for POST
