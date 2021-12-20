@@ -180,7 +180,13 @@ function apbct_base_call($params = array(), $reg_flag = false)
     /**
      * Add exception_action sender email is empty
      */
-    if ( empty($params['sender_email']) && ! isset($params['exception_action']) ) {
+    if (
+        empty($params['sender_email']) &&
+        ! isset($params['exception_action']) &&
+        // No need to log excluded requests on the direct integrations
+        ! empty($params['post_info']['comment_type']) &&
+        strpos($params['post_info']['comment_type'], 'contact_form_wordpress_') === false
+    ) {
         $params['exception_action'] = 1;
     }
 
