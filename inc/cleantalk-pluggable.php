@@ -661,6 +661,13 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'Uncanny Toolkit';
         }
+        if (
+            apbct_is_plugin_active('popup-builder/popup-builder.php') &&
+            Post::get('action') === 'sgpb_send_to_open_counter'
+        ) {
+            return 'Popup builder service actions';
+        }
+
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
