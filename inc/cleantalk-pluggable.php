@@ -667,7 +667,12 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'Popup builder service actions';
         }
-
+        if (
+            apbct_is_plugin_active('security-malware-firewall/security-malware-firewall.php') &&
+            Post::get('action') === 'spbc_get_authorized_users'
+        ) {
+            return 'SPBCT service actions';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
