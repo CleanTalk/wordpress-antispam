@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 3.0
 Tested up to: 5.8
 Requires PHP: 5.6
-Stable tag: 5.168
+Stable tag: 5.168.1
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -594,6 +594,13 @@ If your website has forms that send data to external sources, you can enable opt
 12. SpamFireWall log.
 
 == Changelog ==
+
+= 5.168.1 Dec 22 2021 =
+#### Direct integrations protection fixed.
+* Fix: Prevent logging excluded requests on the direct integrations.
+* Fix: Integration. Comment type The7 integration fixed.
+* Fix. Log excluded. Skip logging PopUp Builder service action.
+* Fix. Log excluded. Skip logging Cleantalk Security service action.
 
 = 5.168 Dec 16 2021 =
 #### One integrations added, some skipped requests will be logged, cookies optimized and minor issues fixed.
