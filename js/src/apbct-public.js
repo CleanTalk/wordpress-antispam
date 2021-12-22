@@ -155,7 +155,7 @@
 			["ct_mouse_moved", 'false'],
 		];
 
-		if( + ctPublic.data__set_cookies !== 1 ) {
+		if( ctPublic.data__cookies_type !== 'native' ) {
 			initCookies.push(['apbct_visible_fields', '0']);
 		} else {
 			// Delete all visible fields cookies on load the page
@@ -218,7 +218,7 @@
 				form.ctFormIndex = i;
 				form.onsubmit = function (event) {
 
-					if ( + ctPublic.data__set_cookies !== 1 && typeof event.target.ctFormIndex !== 'undefined' ) {
+					if ( ctPublic.data__cookies_type !== 'native' && typeof event.target.ctFormIndex !== 'undefined' ) {
 
 						var visible_fields = {};
 						visible_fields[0] = apbct_collect_visible_fields(this);
@@ -321,7 +321,7 @@ function apbct_visible_fields_set_cookie( visible_fields_collection, form_id ) {
 
 	var collection = typeof visible_fields_collection === 'object' && visible_fields_collection !== null ?  visible_fields_collection : {};
 
-	if( + ctPublic.data__set_cookies === 1 ) {
+	if( ctPublic.data__cookies_type === 'native' ) {
 		for ( var i in collection ) {
 			var collectionIndex = form_id !== undefined ? form_id : i;
 			ctSetCookie("apbct_visible_fields_" + collectionIndex, JSON.stringify( collection[i] ) );

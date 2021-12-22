@@ -574,7 +574,7 @@ function ct_add_hidden_fields(
     $field_id_hash  = md5((string)rand(0, 1000));
 
     // Using only cookies
-    if ( $cookie_check && $apbct->settings['data__set_cookies'] ) {
+    if ( $cookie_check && $apbct->data['cookies_type'] !== 'none' ) {
         $html =
             "<script type=\"text/javascript\" "
             . (class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '')
@@ -855,9 +855,9 @@ function apbct_js_test($field_name = 'ct_checkjs', $data = null, $is_cookie = fa
 
     if (
         ($data && isset($data[$field_name])) ||
-        ($is_cookie && $apbct->settings['data__set_cookies'] == 2 && Cookie::get($field_name))
+        ($is_cookie && $apbct->data['cookies_type'] === 'alternative' && Cookie::get($field_name))
     ) {
-        $js_key = $is_cookie && $apbct->settings['data__set_cookies'] == 2
+        $js_key = $is_cookie && $apbct->data['cookies_type'] === 'alternative'
             ? Cookie::get($field_name)
             : trim($data[$field_name]);
 
@@ -1264,7 +1264,7 @@ function apbct_enqueue_and_localize_public_scripts()
         '_ajax_url'                            => admin_url('admin-ajax.php', 'relative'),
         '_rest_url'                            => esc_url(apbct_get_rest_url()),
         '_apbct_ajax_url'                      => APBCT_URL_PATH . '/lib/Cleantalk/ApbctWP/Ajax.php',
-        'data__set_cookies'                    => $apbct->settings['data__set_cookies'],
+        'data__cookies_type'                   => $apbct->data['cookies_type'],
         'data__ajax_type'                      => $apbct->data['ajax_type'],
     ));
 
@@ -1274,7 +1274,7 @@ function apbct_enqueue_and_localize_public_scripts()
                                            ($apbct->settings['data__pixel'] === '3' && apbct_is_cache_plugins_exists()),
         'pixel__url'                    => $apbct->pixel_url,
         'data__email_check_before_post' => $apbct->settings['data__email_check_before_post'],
-        'data__set_cookies'             => $apbct->settings['data__set_cookies'],
+        'data__cookies_type'            => $apbct->data['cookies_type'],
     ));
 }
 

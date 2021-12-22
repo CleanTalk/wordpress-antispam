@@ -25,7 +25,7 @@ class Cookie extends \Cleantalk\Variables\Cookie
             // Get from GLOBAL variable
         } else {
             // Getting by alternative way if enabled
-            if ($apbct->settings['data__set_cookies'] == 2) {
+            if ($apbct->data['cookies_type'] === 'alternative') {
                 $value = AltSessions::get($name);
                 // The old way
             } else {
@@ -80,9 +80,9 @@ class Cookie extends \Cleantalk\Variables\Cookie
     ) {
         global $apbct;
 
-        if ($apbct->settings['data__set_cookies'] == 0 && ! is_admin()) {
+        if ($apbct->data['cookies_type'] === 'none' && ! is_admin()) {
             return;
-        } elseif ($apbct->settings['data__set_cookies'] == 2) {
+        } elseif ($apbct->data['cookies_type'] === 'alternative') {
             AltSessions::set($name, $value);
         } else {
             self::setNativeCookie($name, $value, $expires, $path, $domain, $secure, $httponly, $samesite);
@@ -153,7 +153,7 @@ class Cookie extends \Cleantalk\Variables\Cookie
     {
         global $apbct;
 
-        if ( $apbct->settings['data__set_cookies'] == 1 ) {
+        if ( $apbct->data['cookies_type'] === 'native' ) {
             // Get from separated native cookies and convert it to collection
             $visible_fields_cookies_array = array_filter($_COOKIE, static function ($key) {
                 return strpos($key, 'apbct_visible_fields_') !== false;

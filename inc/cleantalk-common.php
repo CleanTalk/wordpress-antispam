@@ -491,6 +491,7 @@ function apbct_get_sender_info()
         // PHP cookies
         'cookies_enabled'        => $cookie_is_ok,
         'data__set_cookies'      => $apbct->settings['data__set_cookies'],
+        'data__cookies_type'     => $apbct->data['cookies_type'],
         'REFFERRER_PREVIOUS'     => Cookie::get('apbct_prev_referer') && $cookie_is_ok ? Cookie::get(
             'apbct_prev_referer'
         ) : null,

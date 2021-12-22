@@ -6,11 +6,11 @@ function ctSetCookie( cookies, value, expires ){
     }
 
     // Cookies disabled
-    if( +ctPublicFunctions.data__set_cookies === 0 ){
+    if( ctPublicFunctions.data__cookies_type === 'none' ){
         return;
 
         // Using traditional cookies
-    }else if( +ctPublicFunctions.data__set_cookies === 1 ){
+    }else if( ctPublicFunctions.data__cookies_type === 'native' ){
         cookies.forEach( function (item, i, arr	) {
             var expires = typeof item[2] !== 'undefined' ? "expires=" + expires + '; ' : '';
             var ctSecure = location.protocol === 'https:' ? '; secure' : '';
@@ -18,7 +18,7 @@ function ctSetCookie( cookies, value, expires ){
         });
 
         // Using alternative cookies
-    }else if( +ctPublicFunctions.data__set_cookies === 2 && ! skip_alt ){
+    }else if( ctPublicFunctions.data__cookies_type === 'alternative' && ! skip_alt ){
 
         // Using REST API handler
         if( ctPublicFunctions.data__ajax_type === 'rest' ){
@@ -58,17 +58,17 @@ function ctSetCookie( cookies, value, expires ){
 
 function ctDeleteCookie(cookieName) {
     // Cookies disabled
-    if( +ctPublicFunctions.data__set_cookies === 0 ){
+    if( ctPublicFunctions.data__cookies_type === 'none' ){
         return;
 
     // Using traditional cookies
-    }else if( +ctPublicFunctions.data__set_cookies === 1 ){
+    }else if( ctPublicFunctions.data__cookies_type === 'native' ){
 
         var ctSecure = location.protocol === 'https:' ? '; secure' : '';
         document.cookie = cookieName + "=\"\"; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; samesite=lax" + ctSecure;
 
     // Using alternative cookies
-    }else if( +ctPublicFunctions.data__set_cookies === 2 ){
+    }else if( ctPublicFunctions.data__cookies_type === 'alternative' ){
         // @ToDo implement this logic
     }
 }

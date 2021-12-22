@@ -464,7 +464,7 @@ function apbct_settings__set_fileds()
                     'childrens'   => array('data__ajax_type')
                 ),
                 'data__ajax_type' => array(
-                    'display'    => $apbct->settings['data__set_cookies'] == 2,
+                    'display'    => $apbct->data['cookies_type'] === 'alternative',
                     'callback' => 'apbct_settings__check_alt_cookies_types'
                 ),
                 'data__ssl_on'                         => array(
@@ -2168,7 +2168,7 @@ function apbct_settings__validate($settings)
     $apbct->data['ajax_type'] = $available_ajax_type;
 
     if (
-        (isset($settings['data__set_cookies']) && $settings['data__set_cookies'] == 2) ||
+        $apbct->data['cookies_type'] === 'alternative' ||
         (isset($settings['data__use_ajax']) && $settings['data__use_ajax'] == 1)
     ) {
         if ( $available_ajax_type === false ) {

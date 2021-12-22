@@ -350,7 +350,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
     {
         global $apbct;
 
-        if ( $apbct->settings['data__set_cookies'] == 0 && ! is_admin() ) {
+        if ( $apbct->data['cookies_type'] === 'none' && ! is_admin() ) {
             return;
         }
 
@@ -492,7 +492,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
             '_ajax_url'                            => admin_url('admin-ajax.php', 'relative'),
             '_rest_url'                            => esc_url(get_rest_url()),
             '_apbct_ajax_url'                      => APBCT_URL_PATH . '/lib/Cleantalk/ApbctWP/Ajax.php',
-            'data__set_cookies'                    => $apbct->settings['data__set_cookies'],
+            'data__cookies_type'                   => $apbct->data['cookies_type'],
             'data__ajax_type'                      => $apbct->data['ajax_type'],
             'sfw__random_get'                      => $apbct->settings['sfw__random_get'] === '1' ||
                                                       ($apbct->settings['sfw__random_get'] === '-1' && apbct_is_cache_plugins_exists())

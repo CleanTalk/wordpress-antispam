@@ -76,13 +76,13 @@ class Ajax
                 break;
             case 'apbct_alt_session__save__AJAX':
                 // Using alternative sessions with ajax
-                if ( $apbct->settings['data__set_cookies'] == 2 && $apbct->data['ajax_type'] === 'custom_ajax' ) {
+                if ( $apbct->data['cookies_type'] === 'alternative' && $apbct->data['ajax_type'] === 'custom_ajax' ) {
                     apbct_alt_session__save__AJAX();
                 }
                 break;
             case 'apbct_alt_session__get__AJAX':
                 // Using alternative sessions with ajax
-                if ( $apbct->settings['data__set_cookies'] == 2 && $apbct->data['ajax_type'] === 'custom_ajax' ) {
+                if ( $apbct->data['cookies_type'] === 'alternative' && $apbct->data['ajax_type'] === 'custom_ajax' ) {
                     apbct_alt_session__get__AJAX();
                 }
                 break;
