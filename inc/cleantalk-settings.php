@@ -450,7 +450,6 @@ function apbct_settings__set_fileds()
                     'input_type'  => 'radio',
                     'options'     => array(
                         array('val' => 1, 'label' => __('On', 'cleantalk-spam-protect'), 'childrens_enable' => 0,),
-                        array('val' => 0, 'label' => __('Off', 'cleantalk-spam-protect'), 'childrens_enable' => 0,),
                         array(
                             'val'              => 2,
                             'label'            => __(
@@ -459,6 +458,8 @@ function apbct_settings__set_fileds()
                             ),
                             'childrens_enable' => 1,
                         ),
+                        array('val' => 3, 'label' => __('Auto', 'cleantalk-spam-protect'), 'childrens_enable' => 0,),
+                        array('val' => 0, 'label' => __('Off', 'cleantalk-spam-protect'), 'childrens_enable' => 0,),
                     ),
                     'childrens'   => array('data__ajax_type')
                 ),
@@ -2208,7 +2209,7 @@ function apbct_settings__validate($settings)
     }
 
     // Alt sessions table clearing
-    if ( $settings['data__set_cookies'] != 2 ) {
+    if ( $apbct->data['cookies_type'] !== 'alternative' ) {
         \Cleantalk\ApbctWP\Variables\AltSessions::wipe();
     }
 
