@@ -943,7 +943,7 @@ class API
             }
 
             // Make an asynchronous request, don't wait for an answer
-            if( $timeout == 0 ) {
+            if ( $timeout == 0 ) {
                 curl_setopt($ch, CURLOPT_CONNECTTIMEOUT_MS, 2000);
                 curl_setopt($ch, CURLOPT_TIMEOUT_MS, 2000);
             }
@@ -955,7 +955,7 @@ class API
 
             // RETURN if async request
             if ( $timeout == 0 ) {
-                return true;
+                return array('data' => 'Async request was sent.');
             }
         } else {
             $errors = 'CURL_NOT_INSTALLED';
