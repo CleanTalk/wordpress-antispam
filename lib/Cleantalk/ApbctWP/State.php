@@ -87,8 +87,8 @@ class State extends \Cleantalk\Common\State
         'data__use_static_js_key'                  => -1,
         'data__general_postdata_test'              => 0,
         //CAPD
-        'data__set_cookies'                        => 1,
-        // Alternative cookies handler type: REST API - 0 / custom AJAX - 1 / WP AJAX - 2
+        'data__set_cookies'                        => 3,
+        // Cookies type: 0 - Off / 1 - Native cookies / 2 - Alt cookies / 3 - Auto
         'data__ssl_on'                             => 0,
         // Secure connection to servers
         'data__pixel'                              => '3',
