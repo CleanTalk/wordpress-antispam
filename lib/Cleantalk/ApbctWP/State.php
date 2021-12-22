@@ -773,7 +773,7 @@ class State extends \Cleantalk\Common\State
     {
         $headers = Helper::httpGetHeaders();
         return
-            isset($headers['x-varnish']) || //Set alt cookies if varnish is installed
+            isset($headers['X-Varnish']) || //Set alt cookies if varnish is installed
             defined('SiteGround_Optimizer\VERSION'); //Set alt cookies if sg optimizer is installed
     }
 }
