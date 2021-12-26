@@ -689,12 +689,12 @@ function apbct_sfw__check()
                 'api_key'           => $apbct->api_key,
                 'apbct'             => $apbct,
                 'cookie_domain'     => parse_url(get_option('home'), PHP_URL_HOST),
-                'data__set_cookies' => $apbct->settings['data__set_cookies'],
+                'data__cookies_type' => $apbct->data['cookies_type'],
             )
         )
     );
 
-    if ( $apbct->settings['sfw__anti_crawler'] && $apbct->stats['sfw']['entries'] > 50 && $apbct->settings['data__set_cookies'] != 0 ) {
+    if ( $apbct->settings['sfw__anti_crawler'] && $apbct->stats['sfw']['entries'] > 50 && $apbct->data['cookies_type'] !== 'none' ) {
         $firewall->loadFwModule(
             new \Cleantalk\ApbctWP\Firewall\AntiCrawler(
                 APBCT_TBL_FIREWALL_LOG,
@@ -2208,7 +2208,7 @@ function apbct_cookie()
     global $apbct;
 
     if (
-        empty($apbct->settings['data__set_cookies']) || // Do not set cookies if option is disabled (for Varnish cache).
+        $apbct->data['cookies_type'] === 'none' || // Do not set cookies if option is disabled (for Varnish cache).
         ! empty($apbct->flags__cookies_setuped) || // Cookies already set
         ! empty($apbct->headers_sent)              // Headers sent
     ) {
@@ -2271,7 +2271,7 @@ function apbct_cookie()
 
     // Cookies test
     $cookie_test_value['check_value'] = md5($cookie_test_value['check_value']);
-    if ( $apbct->settings['data__set_cookies'] == 1 ) {
+    if ( $apbct->data['cookies_type'] === 'native' ) {
         Cookie::set('apbct_cookies_test', urlencode(json_encode($cookie_test_value)), 0, '/', $domain, null, true);
     }
 
@@ -2290,7 +2290,7 @@ function apbct_cookies_test()
 {
     global $apbct;
 
-    if ( $apbct->settings['data__set_cookies'] == 2 ) {
+    if ( $apbct->data['cookies_type'] === 'alternative' ) {
         return 1;
     }
 
