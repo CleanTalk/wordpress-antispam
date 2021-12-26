@@ -731,12 +731,14 @@ function apbct_sfw__check()
 function apbct_plugin_redirect()
 {
     global $apbct;
+    wp_suspend_cache_addition( true );
     if ( get_option('ct_plugin_do_activation_redirect', false) && ! isset($_GET['activate-multi']) ) {
         delete_option('ct_plugin_do_activation_redirect');
         ct_account_status_check(null, false);
         apbct_sfw_update__init(3); // Updating SFW
         wp_redirect($apbct->settings_link);
     }
+    wp_suspend_cache_addition( false );
 }
 
 /**
