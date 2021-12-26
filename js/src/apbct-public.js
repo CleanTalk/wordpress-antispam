@@ -323,6 +323,10 @@ function apbct_visible_fields_set_cookie( visible_fields_collection, form_id ) {
 
 	if( ctPublic.data__cookies_type === 'native' ) {
 		for ( var i in collection ) {
+			if ( i > 10 ) {
+				// Do not generate more than 10 cookies
+				return;
+			}
 			var collectionIndex = form_id !== undefined ? form_id : i;
 			ctSetCookie("apbct_visible_fields_" + collectionIndex, JSON.stringify( collection[i] ) );
 		}
