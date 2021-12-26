@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 3.0
 Tested up to: 5.8
 Requires PHP: 5.6
-Stable tag: 5.168.1
+Stable tag: 5.169
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -594,6 +594,18 @@ If your website has forms that send data to external sources, you can enable opt
 12. SpamFireWall log.
 
 == Changelog ==
+
+= 5.169 Dec 28 2021 =
+#### Improved compatibility with Varnish cache, visible_fields cookies fixed and some minor issues fixed.
+* New. Options. Set cookie option "Auto" mode added.
+* New. State. New property data[cookies_type] added.
+* Fix. State. Set cookie option set on "Auto" by default.
+* Fix. Activation. Select ajax handler during the plugin activation.
+* Fix. API. Async logic added.
+* Fix. State. Varnish cache detection fixed.
+* Fix. API. Method calling service_update_local_settings is async now.
+* Fix. Visible fields. Prevent generating more than 10 visible fields cookies.
+* Fix: Disabling the cache when activating the plugin
 
 = 5.168.1 Dec 22 2021 =
 #### Direct integrations protection fixed.
