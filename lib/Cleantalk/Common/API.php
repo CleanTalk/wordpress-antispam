@@ -865,8 +865,7 @@ class API
     public static function methodSendLocalSettings(
         $api_key,
         $hostname,
-        $settings,
-        $do_check = true
+        $settings
     ) {
         $request = array(
             'method_name' => 'service_update_local_settings',
@@ -875,10 +874,7 @@ class API
             'settings' => $settings
         );
 
-        $result = static::sendRequest($request);
-        $result = $do_check ? static::checkResponse($result, 'send_local_settings') : $result;
-
-        return $result;
+        return static::sendRequest($request, self::URL, 0);
     }
 
     private static function getProductId($product_name)
@@ -946,10 +942,21 @@ class API
                 curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
             }
 
+            // Make an asynchronous request, don't wait for an answer
+            if ( $timeout == 0 ) {
+                curl_setopt($ch, CURLOPT_CONNECTTIMEOUT_MS, 2000);
+                curl_setopt($ch, CURLOPT_TIMEOUT_MS, 2000);
+            }
+
             // Make a request
             $result = curl_exec($ch);
             $errors = curl_error($ch);
             curl_close($ch);
+
+            // RETURN if async request
+            if ( $timeout == 0 ) {
+                return array('data' => 'Async request was sent.');
+            }
         } else {
             $errors = 'CURL_NOT_INSTALLED';
         }
