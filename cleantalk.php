@@ -169,6 +169,9 @@ if ( $apbct->plugin_version === '1.0.0' ) {
 // Do update actions if version is changed
 apbct_update_actions();
 
+/**
+ * @psalm-suppress TypeDoesNotContainType
+ */
 add_action('init', function () {
     global $apbct;
     // Self cron
