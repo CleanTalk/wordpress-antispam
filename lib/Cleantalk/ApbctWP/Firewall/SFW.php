@@ -156,7 +156,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
                         'ip'          => $current_ip,
                         'network'     => Helper::ipLong2ip($db_result['network'])
                                          . '/'
-                                         . Helper::ipMaskLongToNumber($db_result['mask']),
+                                         . Helper::ipMaskLongToNumber((int)$db_result['mask']),
                         'is_personal' => $db_result['source'],
                     );
 
