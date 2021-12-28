@@ -606,6 +606,8 @@ If your website has forms that send data to external sources, you can enable opt
 * Fix. API. Method calling service_update_local_settings is async now.
 * Fix. Visible fields. Prevent generating more than 10 visible fields cookies.
 * Fix: Disabling the cache when activating the plugin
+* Fix: Setting the parameter of ipMaskLongToNumber to an integer
+* Fix: fixed error in js script
 
 = 5.168.1 Dec 22 2021 =
 #### Direct integrations protection fixed.
