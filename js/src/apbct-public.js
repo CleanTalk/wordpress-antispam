@@ -204,7 +204,7 @@
 					(form.name.classList && form.name.classList.contains('tinkoffPayRow')) || // TinkoffPayForm
 					(form.name.classList && form.name.classList.contains('give-form')) || // GiveWP
 					(form.id && form.id === 'ult-forgot-password-form') || //ult forgot password
-					(form.id && form.id.indexOf('calculatedfields') !== -1) // CalculatedFieldsForm
+					(form.id && form.id.toString().indexOf('calculatedfields') !== -1) // CalculatedFieldsForm
 				)
 					continue;
 
