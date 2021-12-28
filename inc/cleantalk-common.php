@@ -185,11 +185,11 @@ function apbct_base_call($params = array(), $reg_flag = false)
         ! isset($params['exception_action']) &&
         // No need to log excluded requests on the direct integrations
         ! empty($params['post_info']['comment_type']) &&
-        strpos($params['post_info']['comment_type'], 'contact_form_wordpress_') === false
+        strpos($params['post_info']['comment_type'], 'contact_form_wordpress_') === false &&
+        ( $params['post_info']['comment_type'] !== 'general_comment' && $params['post_info']['comment_type'] !== 'comment' )
     ) {
         $params['exception_action'] = 1;
     }
-
     /**
      * Skip checking excepted requests if the "Log excluded requests" option is disabled.
      */

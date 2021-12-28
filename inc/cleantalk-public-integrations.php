@@ -1068,8 +1068,11 @@ function ct_preprocess_comment($comment)
                     )
                 )
         ),
-        'exception_action' => isset($is_max_comments) && $is_max_comments ? 1 : null,
     );
+
+    if( isset($is_max_comments) && $is_max_comments ) {
+        $base_call_data['exception_action'] = 1;
+    }
 
     /**
      * Add honeypot_field to $base_call_data is comments__hide_website_field on
