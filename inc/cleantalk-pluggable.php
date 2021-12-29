@@ -453,6 +453,19 @@ function apbct_is_customize_preview()
     return $uri && isset($uri['query']) && strpos($uri['query'], 'customize_changeset_uuid') !== false;
 }
 
+/**
+ * Check if the request is a direct trackback (like url_to_a_post/trackback/)
+ *
+ * @return bool
+ */
+function apbct_is_direct_trackback()
+{
+    return
+        Server::hasString('REQUEST_URI', '/trackback') &&
+        isset($_POST) &&
+        isset($_POST['url']) && ! empty($_POST['url']) &&
+        isset($_POST['title']) && ! empty($_POST['title']);
+}
 
 /**
  * Checking if the request must be skipped.
