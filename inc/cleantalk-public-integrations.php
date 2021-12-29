@@ -1070,7 +1070,7 @@ function ct_preprocess_comment($comment)
         ),
     );
 
-    if( isset($is_max_comments) && $is_max_comments ) {
+    if ( isset($is_max_comments) && $is_max_comments ) {
         $base_call_data['exception_action'] = 1;
     }
 
