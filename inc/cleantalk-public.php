@@ -126,7 +126,7 @@ function apbct_init()
         add_action('wp', 'ct_contact_form_validate_postdata', 1);
     }
 
-    if ( $apbct->settings['forms__general_contact_forms_test'] == 1 && empty($_POST['ct_checkjs_cf7']) ) {
+    if ( $apbct->settings['forms__general_contact_forms_test'] == 1 && empty($_POST['ct_checkjs_cf7']) && ! apbct_is_direct_trackback() ) {
         add_action('CMA_custom_post_type_nav', 'ct_contact_form_validate_postdata', 1);
         ct_contact_form_validate();
         if ( isset($_POST['reg_redirect_link']) && isset($_POST['tmpl_registration_nonce_field']) ) {
@@ -324,7 +324,7 @@ function apbct_init()
     }
 
     if ( apbct_is_user_enable() ) {
-        if ( $apbct->settings['forms__general_contact_forms_test'] == 1 && ! isset($_POST['comment_post_ID']) && ! isset($_GET['for']) ) {
+        if ( $apbct->settings['forms__general_contact_forms_test'] == 1 && ! isset($_POST['comment_post_ID']) && ! isset($_GET['for']) && ! apbct_is_direct_trackback() ) {
             add_action('init', 'ct_contact_form_validate', 999);
         }
         if ( apbct_is_post() &&
