@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 3.0
 Tested up to: 5.8
 Requires PHP: 5.6
-Stable tag: 5.169
+Stable tag: 5.169.1
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -594,6 +594,13 @@ If your website has forms that send data to external sources, you can enable opt
 12. SpamFireWall log.
 
 == Changelog ==
+
+= 5.169.1 Dec 29 2021 =
+#### Comments protection fixed.
+* Fix. Comments. Comments form without email field protection fixed.
+* Fix. Pluggable. Is trackback checking function added.
+* Fix. Exception arg. Not set the flag to the comments and trackbacks.
+* Fix. Forms protection. Prevent handle the trackback request by contact_form_validate.
 
 = 5.169 Dec 28 2021 =
 #### Improved compatibility with Varnish cache, visible_fields cookies fixed and some minor issues fixed.
