@@ -468,6 +468,22 @@ function apbct_is_direct_trackback()
 }
 
 /**
+ * Determines whether the query is for a trackback endpoint call.
+ * @see is_trackback()
+ *
+ * @return bool
+ */
+function apbct_is_trackback() {
+    global $wp_query;
+
+    if ( ! isset( $wp_query ) ) {
+        return false;
+    }
+
+    return $wp_query->is_trackback();
+}
+
+/**
  * Checking if the request must be skipped.
  *
  * @param $ajax bool The current request is the ajax request?
