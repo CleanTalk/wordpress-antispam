@@ -1,6 +1,5 @@
 <?php
 
-use Cleantalk\ApbctWP\Helper;
 use Cleantalk\Variables\Post;
 use Cleantalk\ApbctWP\Cron;
 use Cleantalk\Variables\Server;
@@ -2602,34 +2601,6 @@ function apbct_settings__check_renew_banner()
             array('close_renew_banner' => ($apbct->data['notice_trial'] == 0 && $apbct->data['notice_renew'] == 0) ? true : false)
         )
     );
-}
-
-/**
- * Checking availability of the handlers and return ajax type
- *
- * @return string|false
- */
-function apbct_settings__get_ajax_type()
-{
-    // Check custom ajax availability - 1
-    $res_custom_ajax = Helper::httpRequestGetResponseCode(esc_url(APBCT_URL_PATH . '/lib/Cleantalk/ApbctWP/Ajax.php'));
-    if ( $res_custom_ajax == 400 ) {
-        return 'custom_ajax';
-    }
-
-    // Check rest availability - 0
-    $res_rest = Helper::httpRequestGetResponseCode(esc_url(apbct_get_rest_url()));
-    if ( $res_rest == 200 ) {
-        return 'rest';
-    }
-
-    // Check WP ajax availability - 2
-    $res_ajax = Helper::httpRequestGetResponseCode(admin_url('admin-ajax.php'));
-    if ( $res_ajax == 400 ) {
-        return 'admin_ajax';
-    }
-
-    return false;
 }
 
 function apbct_settings__check_alt_cookies_types()
