@@ -200,9 +200,9 @@
 					form.classList.contains('slp_search_form') || //StoreLocatorPlus form
 					form.parentElement.classList.contains('mec-booking') ||
 					form.action.toString().indexOf('activehosted.com') !== -1 || // Active Campaign
-					(form.id && form.id == 'caspioform') || //Caspio Form
-					(form.name.classList && form.name.classList.contains('tinkoffPayRow')) || // TinkoffPayForm
-					(form.name.classList && form.name.classList.contains('give-form')) || // GiveWP
+					(form.id && form.id === 'caspioform') || //Caspio Form
+					(form.classList && form.classList.contains('tinkoffPayRow')) || // TinkoffPayForm
+					(form.classList && form.classList.contains('give-form')) || // GiveWP
 					(form.id && form.id === 'ult-forgot-password-form') || //ult forgot password
 					(form.id && form.id.toString().indexOf('calculatedfields') !== -1) // CalculatedFieldsForm
 				)
