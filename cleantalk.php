@@ -1084,7 +1084,7 @@ function apbct_sfw_update__create_tables()
 {
     global $apbct;
     // Preparing database infrastructure
-    // Creating SFW tables to make sure that they are exist
+    // Creating SFW tables to make sure that they are exists
     $db_tables_creator = new DbTablesCreator();
     $table_name = $apbct->db_prefix . Schema::getSchemaTablePrefix() . 'sfw';
     $db_tables_creator->createTable($table_name);
