@@ -354,10 +354,14 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
             return;
         }
 
-        echo '<script>ctSetCookie( "wordpress_apbct_antibot", "' . hash(
-            'sha256',
-            $apbct->api_key . $apbct->data['salt']
-        ) . '", 0 );</script>';
+        $script =
+        "<script>
+            window.addEventListener('DOMContentLoaded', function () {
+                ctSetCookie( 'wordpress_apbct_antibot', '" . hash('sha256', $apbct->api_key . $apbct->data['salt']) . "', 0 );
+            });
+        </script>";
+
+        echo $script;
     }
 
     /**
