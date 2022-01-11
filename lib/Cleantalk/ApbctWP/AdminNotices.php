@@ -209,15 +209,13 @@ class AdminNotices
      */
     public function notice_incompatibility() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
+        global $apbct;
         if ( ! empty($this->apbct->data['notice_incompatibility']) && $this->is_cleantalk_page && $this->apbct->settings['sfw__enabled'] ) {
             foreach ( $this->apbct->data['notice_incompatibility'] as $notice ) {
                 $this->generateNoticeHtml($notice);
             }
         } else {
-            global $apbct;
-
             $apbct->data['notice_incompatibility'] = array();
-
             $apbct->saveData();
         }
     }
