@@ -474,10 +474,11 @@ function apbct_is_direct_trackback()
  *
  * @return bool
  */
-function apbct_is_trackback() {
+function apbct_is_trackback()
+{
     global $wp_query;
 
-    if ( ! isset( $wp_query ) ) {
+    if ( ! isset($wp_query) ) {
         return false;
     }
 
