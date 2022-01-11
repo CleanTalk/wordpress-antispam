@@ -213,6 +213,12 @@ class AdminNotices
             foreach ( $this->apbct->data['notice_incompatibility'] as $notice ) {
                 $this->generateNoticeHtml($notice);
             }
+        } else {
+            global $apbct;
+
+            $apbct->data['notice_incompatibility'] = array();
+
+            $apbct->saveData();
         }
     }
 
