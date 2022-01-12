@@ -620,6 +620,27 @@ function apbct_js_keys__get__ajax()
     die(json_encode(array('js_key' => ct_get_checkjs_value())));
 }
 
+function apbct_get_pixel_url__ajax( $direct_call = false )
+{
+    global $apbct;
+    $pixel_hash = md5(
+        Helper::ipGet()
+        . $apbct->api_key
+        . Helper::timeGetIntervalStart(3600 * 3) // Unique for every 3 hours
+    );
+
+    $server           = get_option('cleantalk_server');
+    $server_url       = isset($server['ct_work_url']) ? $apbct->server['ct_work_url'] : APBCT_MODERATE_URL;
+    $pixel            = '/pixel/' . $pixel_hash . '.gif';
+    $pixel_url = str_replace('http://', 'https://', $server_url) . $pixel;
+
+    if( $direct_call ) {
+        return $pixel_url ;
+    }
+
+    die($pixel_url);
+}
+
 /**
  * Checking email before POST
  */

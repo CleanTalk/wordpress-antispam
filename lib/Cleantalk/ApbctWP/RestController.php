@@ -19,6 +19,14 @@ class RestController extends \WP_REST_Controller
             )
         ));
 
+        register_rest_route($this->namespace, "/apbct_get_pixel_url", array(
+            array(
+                'methods'             => 'POST',
+                'callback'            => 'apbct_get_pixel_url__ajax',
+                'permission_callback' => '__return_true',
+            )
+        ));
+
         register_rest_route($this->namespace, "/alt_sessions", array(
             array(
                 'methods'             => 'POST',

@@ -154,6 +154,10 @@ function apbct_alt_session__save__WP_AJAX()
 add_action('wp_ajax_nopriv_apbct_js_keys__get', 'apbct_js_keys__get__ajax');
 add_action('wp_ajax_apbct_js_keys__get', 'apbct_js_keys__get__ajax');
 
+// Get JS via WP ajax handler
+add_action('wp_ajax_nopriv_apbct_get_pixel_url', 'apbct_get_pixel_url__ajax');
+add_action('wp_ajax_apbct_apbct_get_pixel_url', 'apbct_get_pixel_url__ajax');
+
 // Checking email before POST
 add_action('wp_ajax_nopriv_apbct_email_check_before_post', 'apbct_email_check_before_post');
 

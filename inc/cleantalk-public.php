@@ -16,16 +16,7 @@ function apbct_init()
 
     // Pixel
     if ( $apbct->settings['data__pixel'] ) {
-        $pixel_hash = md5(
-            Helper::ipGet()
-            . $apbct->api_key
-            . Helper::timeGetIntervalStart(3600 * 3) // Unique for every 3 hours
-        );
-
-        $server           = get_option('cleantalk_server');
-        $server_url       = isset($server['ct_work_url']) ? $apbct->server['ct_work_url'] : APBCT_MODERATE_URL;
-        $pixel            = '/pixel/' . $pixel_hash . '.gif';
-        $apbct->pixel_url = str_replace('http://', 'https://', $server_url) . $pixel;
+        $apbct->pixel_url = apbct_get_pixel_url__ajax(true);
     }
 
     //Check internal forms with such "action" http://wordpress.loc/contact-us/some_script.php

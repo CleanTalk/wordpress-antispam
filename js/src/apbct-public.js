@@ -122,6 +122,49 @@
 		}
 	}
 
+	function ctSetPixelImg(pixelUrl) {
+		ctSetCookie('apbct_pixel_url', pixelUrl);
+		if( +ctPublic.pixel__enabled ){
+			if( ! document.getElementById('apbct_pixel') ) {
+				jQuery('body').append( '<img alt="Cleantalk Pixel" id="apbct_pixel" style="display: none; left: 99999px;" src="' + pixelUrl + '">' );
+			}
+		}
+	}
+
+	function ctGetPixelUrl() {
+		// Using REST API handler
+		if( ctPublicFunctions.data__ajax_type === 'rest' ){
+			apbct_public_sendREST(
+				'apbct_get_pixel_url',
+				{
+					method: 'POST',
+					callback: function (result) {
+						if (result) {
+							ctSetPixelImg(result);
+						}
+					},
+				}
+			);
+		// Using AJAX request and handler
+		}else{
+			var ajaxType = ctPublicFunctions.data__ajax_type === 'custom_ajax' ? 1 : 0;
+			apbct_public_sendAJAX(
+				{
+					action: 'apbct_get_pixel_url',
+				},
+				{
+					apbct_ajax: ajaxType,
+					notJson: true,
+					callback: function (result) {
+						if (result) {
+							ctSetPixelImg(result);
+						}
+					},
+				}
+			);
+		}
+	}
+
 	function ctSetHasScrolled() {
 		if( ! ctScrollCollected ) {
 			ctSetCookie("ct_has_scrolled", 'true');
@@ -172,11 +215,10 @@
 		}
 
 		if( +ctPublic.pixel__setting ){
-			initCookies.push(['apbct_pixel_url', ctPublic.pixel__url]);
 			if( +ctPublic.pixel__enabled ){
-				if( ! document.getElementById('apbct_pixel') ) {
-					jQuery('body').append( '<img alt="Cleantalk Pixel" id="apbct_pixel" style="display: none; left: 99999px;" src="' + ctPublic.pixel__url + '">' );
-				}
+				ctGetPixelUrl();
+			} else {
+				initCookies.push(['apbct_pixel_url', ctPublic.pixel__url]);
 			}
 		}
 
