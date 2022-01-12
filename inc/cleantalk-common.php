@@ -620,7 +620,7 @@ function apbct_js_keys__get__ajax()
     die(json_encode(array('js_key' => ct_get_checkjs_value())));
 }
 
-function apbct_get_pixel_url__ajax( $direct_call = false )
+function apbct_get_pixel_url__ajax($direct_call = false)
 {
     global $apbct;
     $pixel_hash = md5(
@@ -634,7 +634,7 @@ function apbct_get_pixel_url__ajax( $direct_call = false )
     $pixel            = '/pixel/' . $pixel_hash . '.gif';
     $pixel_url = str_replace('http://', 'https://', $server_url) . $pixel;
 
-    if( $direct_call ) {
+    if ( $direct_call ) {
         return $pixel_url ;
     }
 
