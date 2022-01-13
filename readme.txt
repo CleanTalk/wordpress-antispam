@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 3.0
 Tested up to: 5.8
 Requires PHP: 5.6
-Stable tag: 5.169.1
+Stable tag: 5.170
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -596,7 +596,7 @@ If your website has forms that send data to external sources, you can enable opt
 == Changelog ==
 
 = 5.170 Jan 13 2022 =
-#### One integrations added and minor issues fixed.
+#### One integrations added, CleanTalk pixel functionality fixed and minor issues fixed.
 * Mod: Added Ova Login Integration. Registrations under protection
 * Fix. Common. is_trackback() notice fixed.
 * Fix: Removed the exeption for Quick Contact Form from ct_contact_form_validate()
@@ -604,5 +604,8 @@ If your website has forms that send data to external sources, you can enable opt
 * Fix: Fixed errors in apbct-public.js
 * Fix: Cleared notice_incompatibility if SFW disabled
 * Fix. AC. Antibot cookie fixed.
+* Fix. Pixel. Auto mode fixed.
+* Fix. JS. Checking JS via ajax fixed.
+* Fix. Pixel. Getting pixel url from backend fixed.
 
 = Early changelogs look in changelog.txt =
