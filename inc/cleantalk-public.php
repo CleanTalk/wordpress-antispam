@@ -16,16 +16,7 @@ function apbct_init()
 
     // Pixel
     if ( $apbct->settings['data__pixel'] ) {
-        $pixel_hash = md5(
-            Helper::ipGet()
-            . $apbct->api_key
-            . Helper::timeGetIntervalStart(3600 * 3) // Unique for every 3 hours
-        );
-
-        $server           = get_option('cleantalk_server');
-        $server_url       = isset($server['ct_work_url']) ? $apbct->server['ct_work_url'] : APBCT_MODERATE_URL;
-        $pixel            = '/pixel/' . $pixel_hash . '.gif';
-        $apbct->pixel_url = str_replace('http://', 'https://', $server_url) . $pixel;
+        $apbct->pixel_url = apbct_get_pixel_url__ajax(true);
     }
 
     //Check internal forms with such "action" http://wordpress.loc/contact-us/some_script.php
@@ -498,7 +489,7 @@ function apbct_hook__wp_footer()
     // Pixel
     if (
         $apbct->settings['data__pixel'] === '1' ||
-        ($apbct->settings['data__pixel'] === '3' && apbct_is_cache_plugins_exists())
+        ($apbct->settings['data__pixel'] === '3' && ! apbct_is_cache_plugins_exists())
     ) {
         echo '<img alt="Cleantalk Pixel" id="apbct_pixel" style="display: none;" src="' . $apbct->pixel_url . '">';
     }
@@ -522,7 +513,7 @@ function apbct_hook__wp_footer()
                     });								
                 </script>";
         } else {
-            $use_cleantalk_ajax = $apbct->data['ajax_type'] == 'custom_ajax' ? 'custom_ajax' : 'rest';
+            $use_cleantalk_ajax = $apbct->data['ajax_type'] == 'custom_ajax' ? 1 : 0;
             $html =
                 "<script type=\"text/javascript\" " . (class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '')
                 . ">				
@@ -531,7 +522,7 @@ function apbct_hook__wp_footer()
                             if( document.querySelectorAll('[name^=ct_checkjs]').length > 0 ) {
                                 apbct_public_sendAJAX(
                                     { action: 'apbct_js_keys__get' },
-                                    { callback: apbct_js_keys__set_input_value, apbct_ajax: '" . $use_cleantalk_ajax . "' }
+                                    { callback: apbct_js_keys__set_input_value, apbct_ajax: " . $use_cleantalk_ajax . " }
                                 )
                             }
                         }," . $timeout . ")					    

@@ -4,7 +4,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 5.169.3-fix
+  Version: 5.170
   Author: СleanTalk <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -153,6 +153,10 @@ function apbct_alt_session__save__WP_AJAX()
 // Get JS via WP ajax handler
 add_action('wp_ajax_nopriv_apbct_js_keys__get', 'apbct_js_keys__get__ajax');
 add_action('wp_ajax_apbct_js_keys__get', 'apbct_js_keys__get__ajax');
+
+// Get Pixel URL via WP ajax handler
+add_action('wp_ajax_nopriv_apbct_get_pixel_url', 'apbct_get_pixel_url__ajax');
+add_action('wp_ajax_apbct_apbct_get_pixel_url', 'apbct_get_pixel_url__ajax');
 
 // Checking email before POST
 add_action('wp_ajax_nopriv_apbct_email_check_before_post', 'apbct_email_check_before_post');
@@ -313,6 +317,11 @@ $apbct_active_integrations = array(
     'CalculatedFieldsForm' => array(
         'hook'    => 'cpcff_process_data',
         'setting' => 'forms__general_contact_forms_test',
+        'ajax'    => false
+    ),
+    'OvaLogin' => array(
+        'hook'    => 'login_form_register',
+        'setting' => 'forms__registrations_test',
         'ajax'    => false
     ),
 );
@@ -1079,7 +1088,7 @@ function apbct_sfw_update__create_tables()
 {
     global $apbct;
     // Preparing database infrastructure
-    // Creating SFW tables to make sure that they are exist
+    // Creating SFW tables to make sure that they are exists
     $db_tables_creator = new DbTablesCreator();
     $table_name = $apbct->db_prefix . Schema::getSchemaTablePrefix() . 'sfw';
     $db_tables_creator->createTable($table_name);

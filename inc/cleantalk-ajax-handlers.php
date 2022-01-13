@@ -37,6 +37,14 @@ function apbct_js_keys__get()
     apbct_js_keys__get__ajax();
 }
 
+function apbct_get_pixel_url()
+{
+    require_once(__DIR__ . '/cleantalk-common.php');
+    require_once(__DIR__ . '/cleantalk-pluggable.php');
+    apbct_get_pixel_url__ajax();
+}
+
+
 function apbct_alt_session__save__AJAX()
 {
     Cleantalk\ApbctWP\Variables\AltSessions::setFromRemote();
