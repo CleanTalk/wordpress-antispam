@@ -596,7 +596,7 @@ If your website has forms that send data to external sources, you can enable opt
 == Changelog ==
 
 = 5.170 Jan 13 2022 =
-#### One integrations added, CleanTalk pixel functionality fixed and minor issues fixed.
+#### One integration added, CleanTalk pixel functionality fixed and minor issues fixed.
 * Mod: Added Ova Login Integration. Registrations under protection
 * Fix. Common. is_trackback() notice fixed.
 * Fix: Removed the exeption for Quick Contact Form from ct_contact_form_validate()
