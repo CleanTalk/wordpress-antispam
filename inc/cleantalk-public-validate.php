@@ -451,6 +451,11 @@ function apbct__filter_form_data($form_data)
 {
     global $apbct;
 
+    // It is a service field. Need to be deleted before the processing.
+    if ( isset($form_data['apbct_visible_fields']) ) {
+        unset($form_data['apbct_visible_fields']);
+    }
+
     if ($apbct->settings['exclusions__fields']) {
         // regular expression exception
         if ($apbct->settings['exclusions__fields__use_regexp']) {
