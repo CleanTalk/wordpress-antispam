@@ -2,7 +2,7 @@
 Contributors: safronik
 Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 3.0
-Tested up to: 5.8
+Tested up to: 5.9
 Requires PHP: 5.6
 Stable tag: 5.170
 License: GPLv2
