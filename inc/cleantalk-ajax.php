@@ -421,7 +421,7 @@ function ct_ajax_hook($message_obj = null)
     if ( apbct_is_skip_request(true) ) {
         do_action(
             'apbct_skipped_request',
-            __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__ . '(' . apbct_is_skip_request() . ')',
+            __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__ . '(' . apbct_is_skip_request(true) . ')',
             $_POST
         );
 
@@ -590,16 +590,21 @@ function ct_ajax_hook($message_obj = null)
         }
     }
 
-    $base_call_result = apbct_base_call(
-        array(
-            'message'         => $message,
-            'sender_email'    => $sender_email,
-            'sender_nickname' => $sender_nickname,
-            'sender_info'     => array('post_checkjs_passed' => $checkjs),
-            'post_info'       => $post_info,
-            'js_on'           => $checkjs,
-        )
+    $base_call_params = array(
+        'message'         => $message,
+        'sender_email'    => $sender_email,
+        'sender_nickname' => $sender_nickname,
+        'sender_info'     => array('post_checkjs_passed' => $checkjs),
+        'post_info'       => $post_info,
+        'js_on'           => $checkjs,
     );
+
+    if ( apbct_is_exception_arg_request() ) {
+        $base_call_params['exception_action'] = 1;
+        $base_call_params['sender_info']['exception_description'] = apbct_is_exception_arg_request();
+    }
+
+    $base_call_result = apbct_base_call($base_call_params);
     $ct_result        = $base_call_result['ct_result'];
 
     if ( $ct_result->allow == 0 ) {

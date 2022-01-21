@@ -773,6 +773,22 @@ function apbct_is_skip_request($ajax = false)
 }
 
 /**
+ * Checking if the request must be skipped but logged by exception flag.
+ *
+ * @return false|string
+ */
+function apbct_is_exception_arg_request()
+{
+    if (
+        apbct_is_plugin_active('wc-dynamic-pricing-and-discounts/wc-dynamic-pricing-and-discounts.php') &&
+        Post::get('action') === 'rp_wcdpd_promotion_countdown_timer_update'
+    ) {
+        return 'WooCommerce Dynamic Pricing & Discounts service actions';
+    }
+    return false;
+}
+
+/**
  * Checking availability of the handlers and return ajax type
  *
  * @return string|false
