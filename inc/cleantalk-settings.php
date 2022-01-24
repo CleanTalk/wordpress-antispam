@@ -2712,7 +2712,7 @@ function apbct__send_local_settings_to_api($settings)
 {
     // Current API key
     $api_key  = $settings['apikey'] ?: '';
-    
+
     // Settings to JSON
     $settings = json_encode($settings);
 
