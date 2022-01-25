@@ -3199,6 +3199,11 @@ function apbct_custom_forms_trappings()
         return true;
     }
 
+    // Registration form of eMember plugin
+    if ( $apbct->settings['forms__registrations_test'] && isset($_REQUEST['emember-form-builder-submit']) && wp_verify_nonce($_REQUEST['_wpnonce'], 'emember-form-builder-nonce') ) {
+        return true;
+    }
+
     return false;
 }
 
