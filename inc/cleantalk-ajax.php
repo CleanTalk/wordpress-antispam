@@ -301,8 +301,6 @@ function ct_ajax_hook($message_obj = null)
         'save_tourmaster_option',
         //Tourmaster admin save
         'validate_register_email',
-        // Service id #313320
-        'elementor_pro_forms_send_form',
         //Elementor Pro
         'phone-orders-for-woocommerce',
         //Phone orders for woocommerce backend
