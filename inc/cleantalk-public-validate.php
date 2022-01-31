@@ -43,6 +43,7 @@ function ct_contact_form_validate()
          apbct_is_in_uri('/wc-api') ||
          (isset($_POST['log']) && isset($_POST['pwd']) && isset($_POST['wp-submit'])) ||
          (isset($_POST[$ct_checkjs_frm]) && $apbct->settings['forms__contact_forms_test'] == 1) || // Formidable forms
+         (isset($_POST['frm_action']) && $_POST['frm_action'] === 'create' && $apbct->settings['forms__contact_forms_test'] == 1) || // Formidable forms
          (isset($_POST['comment_post_ID']) && ! isset($_POST['comment-submit'])) || // The comment form && ! DW Question & Answer
          isset($_GET['for']) ||
          (isset($_POST['log'], $_POST['pwd'])) || //WooCommerce Sensei login form fix
