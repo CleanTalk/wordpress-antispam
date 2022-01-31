@@ -151,7 +151,7 @@ https://s.w.org/plugins/cleantalk-spam-protect/screenshot-5.png?r=1288723
  * Anti-Spam by CleanTalk plugin sends action parameters into the CleanTalk cloud
  * Service analyzes the parameters
  * If this is a visitor, the comment will be published. If it's a spam bot, then CleanTalk blocks this comment or registration.
- * Parameters are written to the spam log which can be viewed in the Control Panel service.
+ * Parameters are written to the spam log which can be viewed in the service Dashboard.
 
 CleanTalk team has been developing a cloud antispam system for five years and has created a truly reliable anti-spam service designed for you to guarantee
 your safety.
@@ -207,7 +207,6 @@ our own CleanTalk Cloud Service. Anti Spam by CleanTalk offers a free trial, you
 
 = Additional features =
 * Daily and weekly detailed anti-spam reports: traffic VS spam.
-* Apps for iPhone, Android to control anti-spam service, comments, signups, contacts, traffic and spam stats for the last 7 days.
 * AntiSpam apps for most popular CMS on cleantalk.org.
 
 = How to protect sites from spam bots without CAPTCHA? =
@@ -347,7 +346,7 @@ Yes, it is. The plugin doesn't block mobile visitors as well as desktop website 
 Spam comments are being moved to SPAM folder by default or you can set the option to ban spam comments silently.
 
 = How can I test the anti-spam protection? =
-Please use the email **stop_email@example.com** for comments, contacts or signups to see how the anti-spam protection works. Also you can see the logs for the last 7 days at the <a href="http://cleantalk.org/my/show_requests">Control panel</a> or look at the folder "Spam" for banned comments.
+Please use the email **stop_email@example.com** for comments, contacts or signups to see how the anti-spam protection works. Also, you can see the logs for the last 7 days in the <a href="http://cleantalk.org/my/show_requests">Dashboard</a> or look at the folder "Spam" for banned comments.
 
 = Is the plugin effective against spam bots? =
 The plugin Anti-Spam by CleanTalk stops up to 99.998% of spam comments, spam signups (registrations), spam contact emails, spam subscriptions, spam bookings or spam orders.
@@ -506,8 +505,8 @@ To close the notice please save the plugin settings again or it will be closed a
 = I'm using PHP 4.2 version and i'm getting errors related with JSON. Why does it happens? =
 СleanTalk is no longer supports PHP lower than 5.2 version because the support code have incompatibility with PHP 7 version. Please, upgrade your PHP. If you couldn't perform that, let us know about it via support ticket here: https://cleantalk.org/my/support.
 
-= Should I change anything in the plugin's settings or in my CleanTalk Control Panel when I switch my website from HTTP to HTTPS or vice versa? =
-No. You don't need to change anything in the plugin's settings or in your CleanTalk Control Panel. The plugin will work regardless of the protocol.
+= Should I change anything in the plugin's settings or in my CleanTalk Dashboard when I switch my website from HTTP to HTTPS or vice versa? =
+No. You don't need to change anything in the plugin's settings or in your CleanTalk Dashboard. The plugin will work regardless of the protocol.
 
 = How to use Anti-Spam Log? =
 The following possibilities are available for you in the Anti-Spam Log:
