@@ -704,6 +704,16 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'SPBCT service actions';
         }
+        // Elementor pro forms has a direct integration
+        if (
+            apbct_is_plugin_active('security-malware-firewall/security-malware-firewall.php') &&
+            Post::get('action') === 'elementor_pro_forms_send_form' &&
+            Post::get('post_id') !== '' &&
+            Post::get('form_id') !== '' &&
+            Post::get('cfajax') === ''
+        ) {
+            return 'Elementor pro forms';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
@@ -769,6 +779,22 @@ function apbct_is_skip_request($ajax = false)
         }
     }
 
+    return false;
+}
+
+/**
+ * Checking if the request must be skipped but logged by exception flag.
+ *
+ * @return false|string
+ */
+function apbct_is_exception_arg_request()
+{
+    if (
+        apbct_is_plugin_active('wc-dynamic-pricing-and-discounts/wc-dynamic-pricing-and-discounts.php') &&
+        Post::get('action') === 'rp_wcdpd_promotion_countdown_timer_update'
+    ) {
+        return 'WooCommerce Dynamic Pricing & Discounts service actions';
+    }
     return false;
 }
 

@@ -187,7 +187,8 @@ function apbct_base_call($params = array(), $reg_flag = false)
         ! empty($params['post_info']['comment_type']) &&
         strpos($params['post_info']['comment_type'], 'contact_form_wordpress_') === false &&
         ! preg_match('/comment$/', $params['post_info']['comment_type']) &&
-        ! apbct_is_trackback()
+        ! apbct_is_trackback() &&
+        ! defined('XMLRPC_REQUEST')
     ) {
         $params['exception_action'] = 1;
     }

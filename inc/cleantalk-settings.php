@@ -2710,7 +2710,8 @@ add_action('apbct_before_returning_settings', 'apbct__send_local_settings_to_api
 
 function apbct__send_local_settings_to_api($settings)
 {
-    global $apbct;
+    // Current API key
+    $api_key  = $settings['apikey'] ?: '';
 
     // Settings to JSON
     $settings = json_encode($settings);
@@ -2718,5 +2719,5 @@ function apbct__send_local_settings_to_api($settings)
     // Hostname
     $hostname = preg_replace('/^(https?:)?(\/\/)?(www\.)?/', '', get_site_url());
 
-    \Cleantalk\Common\API::methodSendLocalSettings($apbct->api_key, $hostname, $settings);
+    \Cleantalk\Common\API::methodSendLocalSettings($api_key, $hostname, $settings);
 }
