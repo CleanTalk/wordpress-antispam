@@ -231,9 +231,6 @@
 
 		setTimeout(function(){
 
-			var visible_fields_collection = {};
-			var processedForms = [];
-
 			for(var i = 0; i < document.forms.length; i++){
 				var form = document.forms[i];
 
