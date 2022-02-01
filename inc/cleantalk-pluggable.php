@@ -497,6 +497,8 @@ function apbct_is_skip_request($ajax = false)
     /* !!! Have to use more than one factor to detect the request - is_plugin active() && $_POST['action'] !!! */
     //@ToDo Implement direct integration checking - if have the direct integration will be returned false
 
+    global $apbct;
+
     if ( RemoteCalls::check() ) {
         return 'CleanTalk RemoteCall request.';
     }
@@ -767,9 +769,14 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'wp_forms';
         }
-        // Formidable skip - this is the durect integration
+        // Formidable skip - this is the direct integration
         if ( apbct_is_plugin_active('formidable/formidable.php') &&
-             Post::get('frm_action') === 'update' ) {
+             (Post::get('frm_action') === 'update' ||
+             (Post::get('frm_action') === 'create') &&
+             $apbct->settings['forms__contact_forms_test'] == 1 &&
+             Post::get('form_id') !== '' &&
+             Post::get('form_key') !== '')
+        ) {
             return 'formidable_skip';
         }
         // WC payment APIs
