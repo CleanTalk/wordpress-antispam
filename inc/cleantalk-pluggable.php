@@ -772,10 +772,10 @@ function apbct_is_skip_request($ajax = false)
         // Formidable skip - this is the direct integration
         if ( apbct_is_plugin_active('formidable/formidable.php') &&
              (Post::get('frm_action') === 'update' ||
-             (Post::get('frm_action') === 'create') &&
+             (Post::get('frm_action') === 'create' &&
              $apbct->settings['forms__contact_forms_test'] == 1 &&
              Post::get('form_id') !== '' &&
-             Post::get('form_key') !== '')
+             Post::get('form_key') !== ''))
         ) {
             return 'formidable_skip';
         }
