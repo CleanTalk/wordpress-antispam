@@ -621,9 +621,14 @@ function apbct_is_skip_request($ajax = false)
              Post::get('action') === 'fusion_options_ajax_save' ) {
             return 'Avada_theme_saving_settings';
         }
-        // Formidable skip - this is the durect integration
+        // Formidable skip - this is the direct integration
         if ( apbct_is_plugin_active('formidable/formidable.php') &&
-             Post::get('action') === 'frm_entries_update' ) {
+            (Post::get('frm_action') === 'update' ||
+            (Post::get('frm_action') === 'create' &&
+            $apbct->settings['forms__contact_forms_test'] == 1 &&
+            Post::get('form_id') !== '' &&
+            Post::get('form_key') !== ''))
+        ) {
             return 'formidable_skip';
         }
         // Artbees Jupiter theme saving settings
