@@ -490,6 +490,8 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
     {
         global $apbct;
 
+        parent::diePage('');
+
         $localize_js = array(
             '_ajax_nonce'                          => wp_create_nonce('ct_secret_stuff'),
             '_rest_nonce'                          => wp_create_nonce('wp_rest'),

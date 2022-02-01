@@ -202,8 +202,6 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule
 
     public function diePage($result)
     {
-        parent::diePage($result);
-
         global $apbct;
 
         // File exists?
@@ -254,6 +252,8 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule
     public function printDiePage()
     {
         global $apbct;
+
+        parent::diePage('');
 
         $localize_js = array(
             '_ajax_nonce'                          => wp_create_nonce('ct_secret_stuff'),

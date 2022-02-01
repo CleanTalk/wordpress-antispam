@@ -269,8 +269,6 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
     {
         global $apbct;
 
-        parent::diePage($result);
-
         // Statistics
         if ( ! empty($this->blocked_ips)) {
             reset($this->blocked_ips);
@@ -402,6 +400,8 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
     public function printDiePage()
     {
         global $apbct;
+
+        parent::diePage('');
 
         $localize_js = array(
             '_ajax_nonce'                          => wp_create_nonce('ct_secret_stuff'),
