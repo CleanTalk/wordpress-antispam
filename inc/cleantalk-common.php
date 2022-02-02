@@ -472,7 +472,12 @@ function apbct_get_sender_info()
         : null;
 
     // Visible fields processing
-    $visible_fields_collection = Cookie::getVisibleFields();
+    $visible_fields_collection = '';
+    if ( Cookie::getVisibleFields() ) {
+        $visible_fields_collection = Cookie::getVisibleFields();
+    } elseif ( isset($_POST['apbct_visible_fields']) ) {
+        $visible_fields_collection = stripslashes($_POST['apbct_visible_fields']);
+    }
 
     $visible_fields = apbct_visible_fields__process($visible_fields_collection);
 

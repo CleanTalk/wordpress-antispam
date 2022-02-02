@@ -231,9 +231,6 @@
 
 		setTimeout(function(){
 
-			var visible_fields_collection = {};
-			var processedForms = [];
-
 			for(var i = 0; i < document.forms.length; i++){
 				var form = document.forms[i];
 
@@ -247,13 +244,18 @@
 					(form.classList && form.classList.contains('give-form')) || // GiveWP
 					(form.id && form.id === 'ult-forgot-password-form') || //ult forgot password
 					(form.id && form.id.toString().indexOf('calculatedfields') !== -1) // CalculatedFieldsForm
-				)
+				) {
 					continue;
-
-				if( ! apbct_visible_fields_already_collected( processedForms, form ) ) {
-					visible_fields_collection[i] = apbct_collect_visible_fields( form );
-					processedForms.push( apbct_get_form_details( form ) );
 				}
+
+				var hiddenInput = document.createElement( 'input' );
+				hiddenInput.setAttribute( 'type', 'hidden' );
+				hiddenInput.setAttribute( 'id', 'apbct_visible_fields_' + i );
+				hiddenInput.setAttribute( 'name', 'apbct_visible_fields');
+				var visibleFieldsToInput = {};
+				visibleFieldsToInput[0] = apbct_collect_visible_fields(form);
+				hiddenInput.value = JSON.stringify(visibleFieldsToInput);
+				form.append( hiddenInput );
 
 				form.onsubmit_prev = form.onsubmit;
 
@@ -275,8 +277,6 @@
 					}
 				};
 			}
-
-			apbct_visible_fields_set_cookie( visible_fields_collection );
 
 		}, 1000);
 	}
@@ -375,87 +375,6 @@ function apbct_visible_fields_set_cookie( visible_fields_collection, form_id ) {
 	} else {
 		ctSetCookie("apbct_visible_fields", JSON.stringify( collection ) );
 	}
-}
-
-function apbct_visible_fields_already_collected( formsProcessed, form ) {
-
-	if ( formsProcessed.length > 0 && form.elements.length > 0 ) {
-
-		var formMethod      = form.method;
-		var formAction      = form.action;
-		var formFieldsCount = form.elements.length;
-		var formInputs      = [];
-
-		// Getting only input elements from HTMLFormControlsCollection and putting these into the simple array.
-		for( var key in form.elements ){
-			if( ! isNaN( +key ) ) {
-				formInputs[key] = form.elements[key];
-			}
-		}
-
-		for ( var i = 0; i < formsProcessed.length; i++ ) {
-			// The form with the same METHOD has not processed.
-			if ( formsProcessed[i].method !== formMethod ) {
-				return false;
-			}
-			// The form with the same ACTION has not processed.
-			if ( formsProcessed[i].action !== formAction ) {
-				// @ToDo actions often are different in the similar forms
-				//return false;
-			}
-			// The form with the same FIELDS COUNT has not processed.
-			if ( formsProcessed[i].fields_count !== formFieldsCount ) {
-				return false;
-			}
-
-			// Compare every form fields by their TYPE and NAME
-			var fieldsNames = formsProcessed[i].fields_names;
-			for ( var field in fieldsNames ) {
-				var res = formInputs.filter(function(item, index, array){
-					var fieldName = item.name;
-					var fieldType = item.type;
-					if( fieldsNames[field].fieldName === fieldName && fieldsNames[field].fieldType === fieldType ) {
-						return true;
-					}
-				});
-				if( res.length > 0  ) {
-					return true;
-				}
-			}
-		}
-
-		return false;
-	}
-
-	return false;
-}
-
-function apbct_get_form_details( form ) {
-
-	if( form.elements.length > 0 ) {
-
-		var fieldsNames = {};
-
-		// Collecting fields and their names
-		var inputs = form.elements;
-		for (i = 0; i < inputs.length; i++) {
-			var fieldName = inputs[i].name;
-			var fieldType = inputs[i].type;
-			fieldsNames[i] = {
-				fieldName : fieldName,
-				fieldType : fieldType,
-			}
-		}
-
-		return {
-			'method' : form.method,
-			'action' : form.action,
-			'fields_count' : form.elements.length,
-			'fields_names' : fieldsNames,
-		};
-	}
-
-	return false;
 }
 
 function apbct_js_keys__set_input_value(result, data, params, obj){
