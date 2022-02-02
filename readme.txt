@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 3.0
 Tested up to: 5.9
 Requires PHP: 5.6
-Stable tag: 5.170
+Stable tag: 5.171
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -593,6 +593,26 @@ If your website has forms that send data to external sources, you can enable opt
 12. SpamFireWall log.
 
 == Changelog ==
+
+= 5.171 Feb 03 2022 =
+#### Visible fields processing modified, many excepted requests are skipped, SFW compatibility with a cache fixed and minor issues fixed.
+* New. Exclusions. Excluded some service requests from checking but log them with exception flag.
+* Upd. Visible fields. Storing visible fields into an input.
+* Upd. Visible fields. Visible fields processing modified.
+* Upd. Visible fields. Replacing redundant service field.
+* Fix: SFW. Caching block page prevented.
+* Fix: Skip. Entry Views plugin service requests.
+* Fix: Antispam. Ajax checking moved to the plugins_loaded hook.
+* Fix: Skip. APBCT plugin service requests.
+* Fix: Skip. Vault Press (JetPack) plugin service requests.
+* Fix: Skip. GridBuilder plugin service requests.
+* Fix: Skip. Woo Gift Wrapper plugin service requests.
+* Fix: Skip. iThemes Security plugin service requests.
+* Fix: Settings. Using new API key when sending local settings to the cloud.
+* Fix. Integration. Registration form of eMember plugin.
+* Fix. Exception action. Xmlrpc requests skipped.
+* Fix. Integration. Elementor pro forms integration fixed.
+* Fix: Excluded from the test the standard check for Formidable Form Plugin in some situations
 
 = 5.170 Jan 13 2022 =
 #### One integration added, CleanTalk pixel functionality fixed and minor issues fixed.
