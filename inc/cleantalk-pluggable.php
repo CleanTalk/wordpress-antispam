@@ -745,6 +745,13 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'iThemes Security service actions';
         }
+        // Microsoft Azure Storage plugin service requests
+        if (
+            apbct_is_plugin_active('windows-azure-storage/windows-azure-storage.php') &&
+            Post::get('action') === 'get-azure-progress'
+        ) {
+            return 'Microsoft Azure Storage service actions';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
