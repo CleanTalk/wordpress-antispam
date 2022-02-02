@@ -752,6 +752,14 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'Microsoft Azure Storage service actions';
         }
+        // AdRotate plugin service requests
+        if (
+            apbct_is_plugin_active('adrotate/adrotate.php') &&
+            Post::get('action') === 'adrotate_impression' &&
+            Post::get('track') !== ''
+        ) {
+            return 'AdRotate service actions';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
