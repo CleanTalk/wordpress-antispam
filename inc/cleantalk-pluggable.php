@@ -792,6 +792,15 @@ function apbct_is_skip_request($ajax = false)
              apbct_is_in_uri('wc-ajax=iwd_opc_update_order_review') ) {
             return 'cartflows_save_cart';
         }
+        // Vault Press (JetPack) plugin service requests
+        if (
+            Post::get('do_backups') !== '' &&
+            Get::get('vaultpress') === 'true' &&
+            Get::get('action') !== '' &&
+            preg_match('%Automattic\/VaultPress\/\d.\d$%', Server::get('HTTP_USER_AGENT'))
+        ) {
+            return 'Vault Press service actions';
+        }
     }
 
     return false;
