@@ -704,6 +704,13 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'SPBCT service actions';
         }
+        // APBCT service actions
+        if (
+            apbct_is_plugin_active('cleantalk-spam-protect/cleantalk.php') &&
+            ( Post::get('action') === 'apbct_get_pixel_url' && wp_verify_nonce(Post::get('_ajax_nonce'), 'ct_secret_stuff') )
+        ) {
+            return 'APBCT service actions';
+        }
         // Elementor pro forms has a direct integration
         if (
             apbct_is_plugin_active('security-malware-firewall/security-malware-firewall.php') &&
