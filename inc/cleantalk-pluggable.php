@@ -801,6 +801,14 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'Vault Press service actions';
         }
+        // GridBuilder plugin service requests
+        if (
+            apbct_is_plugin_active('wp-grid-builder/wp-grid-builder.php') &&
+            Post::get('wpgb') !== '' &&
+            Get::get('wpgb-ajax') !== ''
+        ) {
+            return 'GridBuilder service actions';
+        }
     }
 
     return false;
