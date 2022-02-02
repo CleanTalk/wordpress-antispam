@@ -729,6 +729,13 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'Entry Views service actions';
         }
+        // Woo Gift Wrapper plugin service requests
+        if (
+            apbct_is_plugin_active('woocommerce-gift-wrapper/woocommerce-gift-wrapper.php') &&
+            Post::get('action') === 'wcgwp_remove_from_cart'
+        ) {
+            return 'Woo Gift Wrapper service actions';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
