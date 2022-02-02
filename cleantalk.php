@@ -507,7 +507,7 @@ if ( is_admin() || is_network_admin() ) {
             ) &&
             ! in_array($_POST['action'], array_column($apbct_active_integrations, 'hook'))
         ) {
-            ct_ajax_hook();
+            add_action('plugins_loaded', 'ct_ajax_hook');
         }
 
         //QAEngine Theme answers
