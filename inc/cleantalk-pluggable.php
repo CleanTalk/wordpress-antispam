@@ -736,6 +736,13 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'Woo Gift Wrapper service actions';
         }
+        // iThemes Security plugin service requests
+        if (
+            apbct_is_plugin_active('better-wp-security/better-wp-security.php') &&
+            Post::get('action') === 'itsec-login-interstitial-ajax'
+        ) {
+            return 'iThemes Security service actions';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
