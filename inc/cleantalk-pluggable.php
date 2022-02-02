@@ -714,6 +714,14 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'Elementor pro forms';
         }
+        // Entry Views plugin service requests
+        if (
+            apbct_is_plugin_active('entry-views/entry-views.php') &&
+            Post::get('action') === 'entry_views' &&
+            Post::get('post_id') !== ''
+        ) {
+            return 'Entry Views service actions';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
