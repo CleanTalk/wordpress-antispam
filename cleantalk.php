@@ -2518,9 +2518,7 @@ function apbct_is_user_enable($user = null)
 
     $user = $user !== null ? $user : $current_user;
 
-    return apbct_is_user_role_in(array('administrator', 'editor', 'author'), $user)
-        ? false
-        : true;
+    return ! (apbct_is_user_role_in(array('administrator', 'editor', 'author'), $user) || is_super_admin());
 }
 
 /**
