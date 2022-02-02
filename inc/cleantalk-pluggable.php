@@ -748,7 +748,9 @@ function apbct_is_skip_request($ajax = false)
         // HappyForms skip every requests. HappyForms have the direct integration
         if ( (apbct_is_plugin_active('happyforms-upgrade/happyforms-upgrade.php') ||
               apbct_is_plugin_active('happyforms/happyforms.php')) &&
-             (Post::get('happyforms_message_nonce') !== '') ) {
+             (Post::get('happyforms_message_nonce') !== '') ||
+             (Post::get('action') === 'happyforms_message' && Post::get('happyforms_form_id') !== '')
+        ) {
             return 'happyform_skipped';
         }
         // Essentials addons for elementor - light and pro
