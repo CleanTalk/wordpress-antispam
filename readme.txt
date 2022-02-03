@@ -613,6 +613,11 @@ If your website has forms that send data to external sources, you can enable opt
 * Fix. Exception action. Xmlrpc requests skipped.
 * Fix. Integration. Elementor pro forms integration fixed.
 * Fix: Excluded from the test the standard check for Formidable Form Plugin in some situations
+* Fix: Skip. Microsoft Azure Storage plugin service requests.
+* Fix: Skip. AdRotate plugin service requests.
+* Fix: Skip. Super admin requests.
+* Fix: Fixed the block message for HappyForms
+* Fix: Excluded the form of WP Time Slots Booking Form from apbct_ready()
 
 = 5.170 Jan 13 2022 =
 #### One integration added, CleanTalk pixel functionality fixed and minor issues fixed.
