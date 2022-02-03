@@ -243,7 +243,9 @@
 					(form.classList && form.classList.contains('tinkoffPayRow')) || // TinkoffPayForm
 					(form.classList && form.classList.contains('give-form')) || // GiveWP
 					(form.id && form.id === 'ult-forgot-password-form') || //ult forgot password
-					(form.id && form.id.toString().indexOf('calculatedfields') !== -1) // CalculatedFieldsForm
+					(form.id && form.id.toString().indexOf('calculatedfields') !== -1) || // CalculatedFieldsForm
+					(form.id && form.id.toString().indexOf('cp_tslotsbooking_pform') !== -1) || // WP Time Slots Booking Form
+					(form.name && form.name.toString().indexOf('cp_tslotsbooking_pform') !== -1) // WP Time Slots Booking Form
 				) {
 					continue;
 				}
