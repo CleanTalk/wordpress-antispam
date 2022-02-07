@@ -26,7 +26,6 @@ class CommentsChecker extends Checker
                 $prev_check_from = $prev_check['from'];
                 $prev_check_till = $prev_check['till'];
             }
-
         }
 
         wp_enqueue_script(
