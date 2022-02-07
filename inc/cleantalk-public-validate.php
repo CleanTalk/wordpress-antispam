@@ -9,10 +9,15 @@ function ct_contact_form_validate()
 {
     global $pagenow, $apbct, $ct_checkjs_frm;
 
+    // Exclude the XML-RPC requests
+    if ( defined('XMLRPC_REQUEST') ) {
+        do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
+        return null;
+    }
+
     // Exclusios common function
     if ( apbct_exclusions_check(__FUNCTION__) ) {
         do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
-
         return null;
     }
 
