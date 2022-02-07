@@ -17,6 +17,16 @@ class CommentsChecker extends Checker
         // Preparing data
         if ( ! empty($_COOKIE['ct_paused_comments_check']) ) {
             $prev_check = json_decode(stripslashes($_COOKIE['ct_paused_comments_check']), true);
+            $prev_check_from = $prev_check_till = '';
+            if (
+                ! empty($prev_check['from']) && ! empty($prev_check['till']) &&
+                preg_match('/[a-zA-Z]{3}\s{1}\d{1,2}\s{1}\d{4}/', $prev_check['from']) &&
+                preg_match('/[a-zA-Z]{3}\s{1}\d{1,2}\s{1}\d{4}/', $prev_check['till'])
+            ) {
+                $prev_check_from = $prev_check['from'];
+                $prev_check_till = $prev_check['till'];
+            }
+
         }
 
         wp_enqueue_script(
@@ -28,8 +38,8 @@ class CommentsChecker extends Checker
         wp_localize_script('ct_comments_checkspam', 'ctCommentsCheck', array(
             'ct_ajax_nonce'            => wp_create_nonce('ct_secret_nonce'),
             'ct_prev_accurate'         => ! empty($prev_check['accurate']) ? true : false,
-            'ct_prev_from'             => ! empty($prev_check['from']) ? $prev_check['from'] : false,
-            'ct_prev_till'             => ! empty($prev_check['till']) ? $prev_check['till'] : false,
+            'ct_prev_from'             => ! empty($prev_check_from) ? $prev_check_from : false,
+            'ct_prev_till'             => ! empty($prev_check_till) ? $prev_check_till : false,
             'ct_timeout_confirm'       => __(
                 'Failed from timeout. Going to check comments again.',
                 'cleantalk-spam-protect'
