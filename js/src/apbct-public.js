@@ -236,6 +236,7 @@
 
 				//Exclusion for forms
 				if (
+					form.method.toString().toLowerCase() === 'get' ||
 					form.classList.contains('slp_search_form') || //StoreLocatorPlus form
 					form.parentElement.classList.contains('mec-booking') ||
 					form.action.toString().indexOf('activehosted.com') !== -1 || // Active Campaign
