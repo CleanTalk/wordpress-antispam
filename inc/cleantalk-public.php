@@ -119,10 +119,10 @@ function apbct_init()
 
     if ( $apbct->settings['forms__general_contact_forms_test'] == 1 && empty($_POST['ct_checkjs_cf7']) && ! apbct_is_direct_trackback() ) {
         add_action('CMA_custom_post_type_nav', 'ct_contact_form_validate_postdata', 1);
-        ct_contact_form_validate();
+        add_action('init', 'ct_contact_form_validate', 999);
         if ( isset($_POST['reg_redirect_link']) && isset($_POST['tmpl_registration_nonce_field']) ) {
             unset($_POST['ct_checkjs_register_form']);
-            ct_contact_form_validate();
+            add_action('init', 'ct_contact_form_validate', 999);
         }
     }
 
@@ -311,7 +311,7 @@ function apbct_init()
     }
 
     if ( $apbct->settings['data__protect_logged_in'] != 1 && is_user_logged_in() ) {
-        ct_contact_form_validate();
+        add_action('init', 'ct_contact_form_validate', 999);
     }
 
     if ( apbct_is_user_enable() ) {
@@ -332,7 +332,7 @@ function apbct_init()
      * Integration with custom forms
      */
     if ( ! empty($_POST) && apbct_custom_forms_trappings() ) {
-        ct_contact_form_validate();
+        add_action('init', 'ct_contact_form_validate', 999);
     }
 }
 
