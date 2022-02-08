@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 3.0
 Tested up to: 5.9
 Requires PHP: 5.6
-Stable tag: 5.171
+Stable tag: 5.171.1
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -593,6 +593,14 @@ If your website has forms that send data to external sources, you can enable opt
 12. SpamFireWall log.
 
 == Changelog ==
+
+= 5.171.1 Feb 09 2022 =
+#### XML-RPC requests excluded and minor issues fixed.
+* Fix: Excluded standard WordPress search form from apbct-public.min.js
+* Fix. Common. ct_contact_form_validate moved to the init hook.
+* Fix. Exclusions. XML-RPC request removed from the filtering.
+* Fix. Comments/users checker. Values for dates range validating.
+* Fix. Comments/users checker. Values of dates range for resuming scanner validating.
 
 = 5.171 Feb 03 2022 =
 #### Visible fields processing modified, many excepted requests are skipped, SFW compatibility with a cache fixed and minor issues fixed.
