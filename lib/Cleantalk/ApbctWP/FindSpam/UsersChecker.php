@@ -19,8 +19,8 @@ class UsersChecker extends Checker
             $prev_check_from = $prev_check_till = '';
             if (
                 ! empty($prev_check['from']) && ! empty($prev_check['till']) &&
-                preg_match('/[a-zA-Z]{3}\s{1}\d{1,2}\s{1}\d{4}/', $prev_check['from']) &&
-                preg_match('/[a-zA-Z]{3}\s{1}\d{1,2}\s{1}\d{4}/', $prev_check['till'])
+                preg_match('/^[a-zA-Z]{3}\s{1}\d{1,2}\s{1}\d{4}$/', $prev_check['from']) &&
+                preg_match('/^[a-zA-Z]{3}\s{1}\d{1,2}\s{1}\d{4}$/', $prev_check['till'])
             ) {
                 $prev_check_from = $prev_check['from'];
                 $prev_check_till = $prev_check['till'];
@@ -377,8 +377,8 @@ class UsersChecker extends Checker
 
         if ( isset($_POST['from']) && isset($_POST['till']) ) {
             if (
-                preg_match('/[a-zA-Z]{3}\s{1}\d{1,2}\s{1}\d{4}/', $_POST['from']) &&
-                preg_match('/[a-zA-Z]{3}\s{1}\d{1,2}\s{1}\d{4}/', $_POST['till'])
+                preg_match('/^[a-zA-Z]{3}\s{1}\d{1,2}\s{1}\d{4}$/', $_POST['from']) &&
+                preg_match('/^[a-zA-Z]{3}\s{1}\d{1,2}\s{1}\d{4}$/', $_POST['till'])
             ) {
                 $from = date('Y-m-d', intval(strtotime($_POST['from']))) . ' 00:00:00';
                 $till = date('Y-m-d', intval(strtotime($_POST['till']))) . ' 23:59:59';
