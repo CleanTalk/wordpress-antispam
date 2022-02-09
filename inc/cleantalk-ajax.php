@@ -128,6 +128,10 @@ if ( class_exists('LFB_Core') ) {
     $_cleantalk_hooked_actions[] = 'send_email';
 }
 
+/* Fusion Builder Avada Forms integration */
+add_action('wp_ajax_nopriv_fusion_form_submit_form_to_database_email', 'ct_ajax_hook', 1);
+$_cleantalk_hooked_actions[] = 'fusion_form_submit_form_to_database_email';
+
 /**
  * AjaxLogin plugin handler
  *
@@ -250,6 +254,8 @@ function ct_mc4wp_ajax_hook(array $errors)
  * @return array|bool|string|null
  *
  * @throws Exception
+ *
+ * @psalm-suppress ComplexFunction
  */
 function ct_ajax_hook($message_obj = null)
 {
@@ -516,6 +522,23 @@ function ct_ajax_hook($message_obj = null)
     // Kali form integration
     if (Post::hasString('action', 'kaliforms_form_process')) {
         $ct_post_temp = $_POST['data'];
+    }
+
+    // Fusion Builder Avada Form integration
+    if (Post::hasString('action', 'fusion_form_submit_form_to_database_email')) {
+        if (Post::get('formData')) {
+            $form_data = Post::get('formData');
+            $form_data = explode('&', $form_data);
+
+            for ($index = 0; $index < count($form_data); $index++) {
+                if (stripos($form_data[$index], 'apbct_visible_fields') === 0) {
+                    unset($form_data[$index]);
+                }
+            }
+
+            $form_data = implode('&', $form_data);
+            $_POST['formData'] = $form_data;
+        }
     }
 
     /**
