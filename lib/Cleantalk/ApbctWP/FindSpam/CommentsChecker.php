@@ -20,8 +20,8 @@ class CommentsChecker extends Checker
             $prev_check_from = $prev_check_till = '';
             if (
                 ! empty($prev_check['from']) && ! empty($prev_check['till']) &&
-                preg_match('/[a-zA-Z]{3}\s{1}\d{1,2}\s{1}\d{4}/', $prev_check['from']) &&
-                preg_match('/[a-zA-Z]{3}\s{1}\d{1,2}\s{1}\d{4}/', $prev_check['till'])
+                preg_match('/^[a-zA-Z]{3}\s{1}\d{1,2}\s{1}\d{4}$/', $prev_check['from']) &&
+                preg_match('/^[a-zA-Z]{3}\s{1}\d{1,2}\s{1}\d{4}$/', $prev_check['till'])
             ) {
                 $prev_check_from = $prev_check['from'];
                 $prev_check_till = $prev_check['till'];

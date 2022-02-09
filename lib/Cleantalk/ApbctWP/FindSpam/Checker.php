@@ -102,8 +102,8 @@ abstract class Checker
         $dates_from = $dates_till = '';
 
         if (
-            preg_match('/[a-zA-Z]{3}\s{1}\d{1,2}\s{1}\d{4}/', Cookie::get('ct_' . $this->page_slug . '_dates_from')) &&
-            preg_match('/[a-zA-Z]{3}\s{1}\d{1,2}\s{1}\d{4}/', Cookie::get('ct_' . $this->page_slug . '_dates_till'))
+            preg_match('/^[a-zA-Z]{3}\s{1}\d{1,2}\s{1}\d{4}$/', Cookie::get('ct_' . $this->page_slug . '_dates_from')) &&
+            preg_match('/^[a-zA-Z]{3}\s{1}\d{1,2}\s{1}\d{4}$/', Cookie::get('ct_' . $this->page_slug . '_dates_till'))
         ) {
             $dates_from = Cookie::get('ct_' . $this->page_slug . '_dates_from');
             $dates_till = Cookie::get('ct_' . $this->page_slug . '_dates_till');
