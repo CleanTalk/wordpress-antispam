@@ -353,10 +353,6 @@ add_action('wp_ajax_nopriv_seed_cspv5_contactform_callback', 'apbct_form__seedpr
 add_action('wp_ajax_nopriv_dt_send_mail', 'apbct_form__the7_contact_form', 1);
 add_action('wp_ajax_dt_send_mail', 'apbct_form__the7_contact_form', 1);
 
-// Elementor Pro page builder forms
-add_action('wp_ajax_elementor_pro_forms_send_form', 'apbct_form__elementor_pro__testSpam');
-add_action('wp_ajax_nopriv_elementor_pro_forms_send_form', 'apbct_form__elementor_pro__testSpam');
-
 // Custom register form (ticket_id=13668)
 add_action('website_neotrends_signup_fields_check', function ($username, $fields) {
     $ip        = Helper::ipGet('real', false);
