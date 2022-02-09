@@ -254,6 +254,8 @@ function ct_mc4wp_ajax_hook(array $errors)
  * @return array|bool|string|null
  *
  * @throws Exception
+ *
+ * @psalm-suppress ComplexFunction
  */
 function ct_ajax_hook($message_obj = null)
 {
