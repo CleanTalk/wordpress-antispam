@@ -1885,7 +1885,7 @@ function apbct_rc__update()
     if ( Get::get('download_source') ) {
         switch ( Get::get('download_source') ) {
             case 'cleantalk':
-                $download_url = 'https://download.cleantalk.org/antispam/wordpress/security-malware-firewall._VERSION_.zip';
+                $download_url = 'https://download.cleantalk.org/antispam/wordpress/cleantalk-spam-protect._VERSION_.zip';
                 break;
             case 'wordpress':
                 $download_url = 'https://downloads.wordpress.org/plugin/cleantalk-spam-protect._VERSION_.zip';
