@@ -1864,7 +1864,7 @@ function apbct_form__contactForm7__testSpam($spam, $_submission = null)
     if (
         $apbct->settings['forms__contact_forms_test'] == 0 ||
         ($spam === false && defined('WPCF7_VERSION') && WPCF7_VERSION < '3.0.0') ||
-        ($spam === true && defined('WPCF7_VERSION') && WPCF7_VERSION >= '3.0.0') ||
+        ($spam === true && defined('WPCF7_VERSION') && WPCF7_VERSION >= '3.0.0' && ! Post::get('apbct_visible_fields')) ||
         ($apbct->settings['data__protect_logged_in'] != 1 && apbct_is_user_logged_in()) || // Skip processing for logged in users.
         apbct_exclusions_check__url() ||
         apbct_exclusions_check__ip() ||

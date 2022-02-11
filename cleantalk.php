@@ -353,10 +353,6 @@ add_action('wp_ajax_nopriv_seed_cspv5_contactform_callback', 'apbct_form__seedpr
 add_action('wp_ajax_nopriv_dt_send_mail', 'apbct_form__the7_contact_form', 1);
 add_action('wp_ajax_dt_send_mail', 'apbct_form__the7_contact_form', 1);
 
-// Elementor Pro page builder forms
-add_action('wp_ajax_elementor_pro_forms_send_form', 'apbct_form__elementor_pro__testSpam');
-add_action('wp_ajax_nopriv_elementor_pro_forms_send_form', 'apbct_form__elementor_pro__testSpam');
-
 // Custom register form (ticket_id=13668)
 add_action('website_neotrends_signup_fields_check', function ($username, $fields) {
     $ip        = Helper::ipGet('real', false);
@@ -2160,6 +2156,14 @@ function apbct__hook__wp_logout__delete_trial_notice_cookie()
 function apbct_store__urls()
 {
     global $apbct;
+
+    if (
+        $apbct->data['cookies_type'] === 'none' || // Do not set cookies if option is disabled (for Varnish cache).
+        ! empty($apbct->flags__cookies_setuped) || // Cookies already set
+        ! empty($apbct->headers_sent)              // Headers sent
+    ) {
+        return false;
+    }
 
     if ( $apbct->settings['misc__store_urls'] && empty($apbct->flags__url_stored) && ! headers_sent() ) {
         // URLs HISTORY
