@@ -2019,8 +2019,6 @@ function apbct_rc__update()
             'CHECK_RESPONSE',
             'OK'
         );
-    } else {
-        die('FAIL ' . json_encode(array('error' => $upgrader->apbct_result)));
     }
 
     die('FUNCTION IS COMPLETE. OK.');
