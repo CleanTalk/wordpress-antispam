@@ -361,6 +361,7 @@ function apbct_settings__set_fileds()
                         'This option hides the "Website" field on the comment form.',
                         'cleantalk-spam-protect'
                     ),
+                    'long_description' => true,
                     'display'     => ! $apbct->white_label,
                 ),
             ),
@@ -2596,6 +2597,13 @@ function apbct_settings__get__long_description()
             'desc'  => sprintf(
                 __('It determines what methods of using the HTTP cookies the anti-spam plugin for WordPress should switch to. It is necessary for the plugin to work properly. All CleanTalk cookies contain technical data. Data of the current website visitor is encrypted with the MD5 algorithm and being deleted when the browser session ends. %s', 'cleantalk-spam-protect'),
                 '<a href="https://cleantalk.org/help/set-cookies-option" target="_blank">' . __('Learn more about suboptions', 'cleantalk-spam-protect') . '</a>'
+            )
+        ),
+        'comments__hide_website_field' => array(
+            'title' => __('Hide the "Website" field', 'cleantalk-spam-protect'),
+            'desc'  => sprintf(
+                __('This «Website» field is frequently used by spammers to place spam links in it. CleanTalk helps you protect your WordPress website comments by hiding this field off. %s', 'cleantalk-spam-protect'),
+                '<a href="https://cleantalk.org/help/how-to-hide-website-field-in-wordpress-comments" target="_blank">' . __('Learn more.', 'cleantalk-spam-protect') . '</a>'
             )
         ),
     );
