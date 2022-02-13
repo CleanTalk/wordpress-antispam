@@ -1847,6 +1847,11 @@ function apbct_settings__field__draw($params = array())
     switch ( $params['type'] ) {
         // Checkbox type
         case 'checkbox':
+            // Popup description
+            $popup = '';
+            if ( isset($params['long_description']) ) {
+                $popup = '<i setting="' . $params['name'] . '" class="apbct_settings-long_description---show apbct-icon-help-circled"></i>';
+            }
             echo '<input
 					type="checkbox"
 					name="cleantalk_settings[' . $params['name'] . ']"
@@ -1863,11 +1868,8 @@ function apbct_settings__field__draw($params = array())
                  . '"'
                  . ' />'
                  . '<label for="apbct_setting_' . $params['name'] . '" class="apbct_setting-field_title--' . $params['type'] . '">'
-                 . $params['title']
+                 . $params['title'] . $popup
                  . '</label>';
-            echo isset($params['long_description'])
-                ? '<i setting="' . $params['name'] . '" class="apbct_settings-long_description---show apbct-icon-help-circled"></i>'
-                : '';
             echo '<div class="apbct_settings-field_description">'
                  . $params['description']
                  . '</div>';
@@ -1875,14 +1877,15 @@ function apbct_settings__field__draw($params = array())
 
         // Radio type
         case 'radio':
+            // Popup description
+            $popup = '';
+            if ( isset($params['long_description']) ) {
+                $popup = '<i setting="' . $params['name'] . '" class="apbct_settings-long_description---show apbct-icon-help-circled"></i>';
+            }
+
             // Title
             echo isset($params['title'])
-                ? '<h4 class="apbct_settings-field_title apbct_settings-field_title--' . $params['type'] . '">' . $params['title'] . '</h4>'
-                : '';
-
-            // Popup description
-            echo isset($params['long_description'])
-                ? '<i setting="' . $params['name'] . '" class="apbct_settings-long_description---show apbct-icon-help-circled"></i>'
+                ? '<h4 class="apbct_settings-field_title apbct_settings-field_title--' . $params['type'] . '">' . $params['title'] . $popup . '</h4>'
                 : '';
 
             echo '<div class="apbct_settings-field_content apbct_settings-field_content--' . $params['type'] . '">';
@@ -1917,8 +1920,13 @@ function apbct_settings__field__draw($params = array())
 
         // Dropdown list type
         case 'select':
+            // Popup description
+            $popup = '';
+            if ( isset($params['long_description']) ) {
+                $popup = '<i setting="' . $params['name'] . '" class="apbct_settings-long_description---show apbct-icon-help-circled"></i>';
+            }
             echo isset($params['title'])
-                ? '<h4 class="apbct_settings-field_title apbct_settings-field_title--' . $params['type'] . '">' . $params['title'] . '</h4>'
+                ? '<h4 class="apbct_settings-field_title apbct_settings-field_title--' . $params['type'] . '">' . $params['title'] . $popup . '</h4>'
                 : '';
             echo '<select'
                  . ' id="apbct_setting_' . $params['name'] . '"'
@@ -1948,9 +1956,6 @@ function apbct_settings__field__draw($params = array())
             }
 
             echo '</select>';
-            echo isset($params['long_description'])
-                ? '<i setting="' . $params['name'] . '" class="apbct_settings-long_description---show apbct-icon-help-circled"></i>'
-                : '';
             echo isset($params['description'])
                 ? '<div class="apbct_settings-field_description">' . $params['description'] . '</div>'
                 : '';

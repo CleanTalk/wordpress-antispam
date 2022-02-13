@@ -157,6 +157,9 @@ a.ct_support_link{
     color: white;
     z-index: 10;
 }
+.apbct_long_desc a {
+    color: rgba(120,200,230,1);
+}
 i.animate-spin{
     -moz-animation: spin 2s infinite linear;
     -o-animation: spin 2s infinite linear;
