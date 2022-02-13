@@ -446,6 +446,7 @@ function apbct_settings__set_fileds()
                             'cleantalk-spam-protect'
                         )
                         . '</b>',
+                    'long_description' => true,
                     'input_type'  => 'radio',
                     'options'     => array(
                         array('val' => 1, 'label' => __('On', 'cleantalk-spam-protect'), 'childrens_enable' => 0,),
@@ -2588,6 +2589,13 @@ function apbct_settings__get__long_description()
             'desc'  => __(
                 'You could find it here:<br><a href ="https://cleantalk-screenshots.s3.amazonaws.com/help/hosting-antispam/hapi-ru.png"><img src="https://cleantalk-screenshots.s3.amazonaws.com/help/hosting-antispam/hapi-ru.png"></a><br>Press on the screenshot to zoom.',
                 'cleantalk-spam-protect'
+            )
+        ),
+        'data__set_cookies' => array(
+            'title' => __('Cookies setting', 'cleantalk-spam-protect'),
+            'desc'  => sprintf(
+                __('It determines what methods of using the HTTP cookies the anti-spam plugin for WordPress should switch to. It is necessary for the plugin to work properly. All CleanTalk cookies contain technical data. Data of the current website visitor is encrypted with the MD5 algorithm and being deleted when the browser session ends. %s', 'cleantalk-spam-protect'),
+                '<a href="https://cleantalk.org/help/set-cookies-option" target="_blank">' . __('Learn more about suboptions', 'cleantalk-spam-protect') . '</a>'
             )
         ),
     );
