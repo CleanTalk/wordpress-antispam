@@ -3221,3 +3221,48 @@ function apbct_form__uwp_validate($result, $_type, $data)
 
     return $result;
 }
+
+/**
+ * WS-Forms integration
+ */
+add_filter('wsf_submit_field_validate', function ($error_validation_action_field, $field_id, $field_value, $section_repeatable_index, $_post_mode, $_form_submit_class) {
+
+    global $cleantalk_executed;
+
+    if ( $cleantalk_executed ) {
+        return $error_validation_action_field;
+    }
+
+    /**
+     * Filter for POST
+     */
+    $input_array = apply_filters('apbct__filter_post', $_POST);
+    $data = ct_gfa($input_array);
+
+    $sender_email    = ($data['email'] ?  : '');
+    $sender_nickname = ($data['nickname'] ?  : '');
+    $message         = ($data['message'] ?  : array());
+
+    $base_call_result = apbct_base_call(
+        array(
+            'message'         => $message,
+            'sender_email'    => $sender_email,
+            'sender_nickname' => $sender_nickname,
+            'post_info'       => array( 'comment_type' => 'WS_forms' ),
+            'sender_info'     => array('sender_email' => urlencode($sender_email)),
+        )
+    );
+
+    if ( $base_call_result['ct_result']->allow == 0 ) {
+        return array(
+            'action' 					=> 'field_invalid_feedback',
+            'field_id' 					=> $field_id,
+            'section_repeatable_index' 	=> $section_repeatable_index,
+            'message' 					=> $base_call_result['ct_result']->comment
+        );
+    }
+
+    $cleantalk_executed = true;
+
+    return $error_validation_action_field;
+}, 10, 6);
