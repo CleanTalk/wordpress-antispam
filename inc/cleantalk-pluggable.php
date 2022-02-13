@@ -852,6 +852,14 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'GridBuilder service actions';
         }
+        // WSForms - this is the direct integration and service requests skip
+        if (
+            apbct_is_plugin_active('ws-form-pro/ws-form.php') &&
+            ( ( Post::get('wsf_form_id') !== '' && Post::get('wsf_post_id') !== '' ) ||
+            (int) Post::get('wsffid') > 0 )
+        ) {
+            return 'WSForms skip';
+        }
     }
 
     return false;
