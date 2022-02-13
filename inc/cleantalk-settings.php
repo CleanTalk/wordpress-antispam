@@ -666,6 +666,7 @@ function apbct_settings__set_fileds()
                         'Shows the SpamFireWall page for bots trying to crawl your site. Look at the page limit setting below.',
                         'cleantalk-spam-protect'
                     ),
+                    'long_description' => true,
                 ),
                 'sfw__anti_flood__view_limit' => array(
                     'type'        => 'text',
@@ -2613,6 +2614,13 @@ function apbct_settings__get__long_description()
             'desc'  => sprintf(
                 __('CleanTalk Anti-Crawler — this option is meant to block all types of bots visiting website pages that can search vulnerabilities on a website, attempt to hack a site, collect personal data, price parsing or content and images, generate 404 error pages, or aggressive website scanning bots. %s', 'cleantalk-spam-protect'),
                 '<a href="https://cleantalk.org/help/anti-flood-and-anti-crawler#anticrawl" target="_blank">' . __('Learn more.', 'cleantalk-spam-protect') . '</a>'
+            )
+        ),
+        'sfw__anti_flood' => array(
+            'title' => __('Anti-Flood', 'cleantalk-spam-protect'),
+            'desc'  => sprintf(
+                __('CleanTalk Anti-Flood — this option is meant to block aggressive bots. You can set the maximum number of website pages your visitors can click on within 1 minute. If any IP exceeds the set number it will get the CleanTalk blocking screen for 30 seconds. It\'s impossible for the IP to open any website pages while the 30-second timer takes place. %s', 'cleantalk-spam-protect'),
+                '<a href="https://cleantalk.org/help/anti-flood-and-anti-crawler#antiflood" target="_blank">' . __('Learn more.', 'cleantalk-spam-protect') . '</a>'
             )
         ),
     );
