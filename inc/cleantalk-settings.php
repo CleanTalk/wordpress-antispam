@@ -654,6 +654,7 @@ function apbct_settings__set_fileds()
                             'Anti-Crawler includes blocking bots by the User-Agent. Use Personal lists in the Dashboard to filter specific User-Agents.',
                             'cleantalk-spam-protect'
                         ),
+                    'long_description' => true,
                 ),
                 'sfw__anti_flood'             => array(
                     'type'        => 'checkbox',
@@ -2604,6 +2605,13 @@ function apbct_settings__get__long_description()
             'desc'  => sprintf(
                 __('This «Website» field is frequently used by spammers to place spam links in it. CleanTalk helps you protect your WordPress website comments by hiding this field off. %s', 'cleantalk-spam-protect'),
                 '<a href="https://cleantalk.org/help/how-to-hide-website-field-in-wordpress-comments" target="_blank">' . __('Learn more.', 'cleantalk-spam-protect') . '</a>'
+            )
+        ),
+        'sfw__anti_crawler' => array(
+            'title' => __('Anti-Crawler', 'cleantalk-spam-protect'),
+            'desc'  => sprintf(
+                __('CleanTalk Anti-Crawler — this option is meant to block all types of bots visiting website pages that can search vulnerabilities on a website, attempt to hack a site, collect personal data, price parsing or content and images, generate 404 error pages, or aggressive website scanning bots. %s', 'cleantalk-spam-protect'),
+                '<a href="https://cleantalk.org/help/anti-flood-and-anti-crawler#anticrawl" target="_blank">' . __('Learn more.', 'cleantalk-spam-protect') . '</a>'
             )
         ),
     );
