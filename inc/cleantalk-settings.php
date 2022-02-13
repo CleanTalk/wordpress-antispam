@@ -1871,8 +1871,9 @@ function apbct_settings__field__draw($params = array())
                  . '"'
                  . ' />'
                  . '<label for="apbct_setting_' . $params['name'] . '" class="apbct_setting-field_title--' . $params['type'] . '">'
-                 . $params['title'] . $popup
-                 . '</label>';
+                 . $params['title']
+                 . '</label>'
+                 . $popup;
             echo '<div class="apbct_settings-field_description">'
                  . $params['description']
                  . '</div>';
