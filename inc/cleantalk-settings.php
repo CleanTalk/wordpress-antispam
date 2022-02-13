@@ -505,6 +505,7 @@ function apbct_settings__set_fileds()
                             '"Auto" use JavaScript option if cache solutions are found.',
                             'cleantalk-spam-protect'
                         ),
+                    'long_description' => true,
                     'options'     => array(
                         array('val' => 1, 'label' => __('Via direct output', 'cleantalk-spam-protect'),),
                         array('val' => 2, 'label' => __('Via JavaScript', 'cleantalk-spam-protect'),),
@@ -2620,6 +2621,13 @@ function apbct_settings__get__long_description()
             'title' => __('Anti-Flood', 'cleantalk-spam-protect'),
             'desc'  => sprintf(
                 __('CleanTalk Anti-Flood — this option is meant to block aggressive bots. You can set the maximum number of website pages your visitors can click on within 1 minute. If any IP exceeds the set number it will get the CleanTalk blocking screen for 30 seconds. It\'s impossible for the IP to open any website pages while the 30-second timer takes place. %s', 'cleantalk-spam-protect'),
+                '<a href="https://cleantalk.org/help/anti-flood-and-anti-crawler#antiflood" target="_blank">' . __('Learn more.', 'cleantalk-spam-protect') . '</a>'
+            )
+        ),
+        'data__pixel' => array(
+            'title' => __('CleanTalk Pixel', 'cleantalk-spam-protect'),
+            'desc'  => sprintf(
+                __('It is an «invisible» 1×1px image that the Anti-Spam plugin integrates to your WordPress website. And when someone visits your website the Pixel is triggered and reports this visit and some other data including true IP address. %s', 'cleantalk-spam-protect'),
                 '<a href="https://cleantalk.org/help/anti-flood-and-anti-crawler#antiflood" target="_blank">' . __('Learn more.', 'cleantalk-spam-protect') . '</a>'
             )
         ),
