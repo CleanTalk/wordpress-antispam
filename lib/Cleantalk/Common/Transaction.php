@@ -7,7 +7,7 @@ abstract class Transaction
     /**
      * @var Transaction
      */
-    private static $instance;
+    protected static $instance;
 
     /**
      * Time needed to perform an action
