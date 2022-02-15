@@ -173,7 +173,12 @@ class Ajax
      */
     private function wpNonceTick()
     {
-        $nonce_life = apply_filters('nonce_life', DAY_IN_SECONDS);
+        if( defined('CLEANTALK_NONCE_LIFETIME') && is_int(CLEANTALK_NONCE_LIFETIME) ) {
+            $nonce_lifetime = CLEANTALK_NONCE_LIFETIME;
+        } else {
+            $nonce_lifetime = DAY_IN_SECONDS;
+        }
+        $nonce_life = apply_filters('nonce_life', $nonce_lifetime);
 
         return ceil(time() / ($nonce_life / 2));
     }
