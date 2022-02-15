@@ -720,7 +720,7 @@ function apbct_is_skip_request($ajax = false)
         }
         // Elementor pro forms has a direct integration
         if (
-            apbct_is_plugin_active('security-malware-firewall/security-malware-firewall.php') &&
+            apbct_is_plugin_active('elementor-pro/elementor-pro.php') &&
             Post::get('action') === 'elementor_pro_forms_send_form' &&
             Post::get('post_id') !== '' &&
             Post::get('form_id') !== '' &&
