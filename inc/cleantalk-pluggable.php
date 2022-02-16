@@ -113,6 +113,37 @@ function apbct_wp_validate_auth_cookie($cookie = '', $scheme = '')
 }
 
 /**
+ * Checks if the user is a super admin
+ *
+ * @return boolean
+ */
+function apbct_is_super_admin($user_id = false)
+{
+    if (! $user_id) {
+        $user = apbct_wp_get_current_user();
+    } else {
+        $user = get_userdata($user_id);
+    }
+
+    if (! $user || ! $user->exists()) {
+        return false;
+    }
+
+    if (is_multisite()) {
+        $super_admins = get_super_admins();
+        if (is_array($super_admins) && in_array($user->user_login, $super_admins, true)) {
+            return true;
+        }
+    } else {
+        if ($user->has_cap('delete_users')) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/**
  * Gets REST url
  *
  * @param $blog_id
