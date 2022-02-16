@@ -2,12 +2,11 @@
 
 namespace Cleantalk\Common;
 
+use Cleantalk\Templates\Multiton;
+
 abstract class Transaction
 {
-    /**
-     * @var Transaction
-     */
-    protected static $instance;
+    use Multiton;
 
     /**
      * Time needed to perform an action
@@ -27,20 +26,6 @@ abstract class Transaction
      * @var string Option name with a start time of a transaction
      */
     private $start_time_option_name;
-
-    /**
-     * Constructor
-     *
-     * @return Transaction
-     */
-    public static function getInstance($params)
-    {
-        if ( is_null(static::$instance) ) {
-            static::$instance = new static();
-            static::$instance->init($params);
-        }
-        return static::$instance;
-    }
 
     /**
      * Alternative constructor
@@ -71,7 +56,7 @@ abstract class Transaction
      */
     public static function get($instance_name, $action_time_s = 5)
     {
-        return static::getInstance(array('name' => $instance_name, 'action_time' => $action_time_s));
+        return static::getInstance($instance_name, array('name' => $instance_name, 'action_time' => $action_time_s));
     }
 
     /**
@@ -164,25 +149,4 @@ abstract class Transaction
      * @return int|false
      */
     abstract protected function getOption($option_name, $default);
-
-    /**
-     * Disable this magic method for the singleton instance
-     */
-    public function __construct()
-    {
-    }
-
-    /**
-     * Disable this magic method for the singleton instance
-     */
-    public function __wakeup()
-    {
-    }
-
-    /**
-     * Disable this magic method for the singleton instance
-     */
-    public function __clone()
-    {
-    }
 }
