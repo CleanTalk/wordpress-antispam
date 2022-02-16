@@ -12,7 +12,7 @@ namespace Cleantalk\Variables;
  */
 class Server extends ServerVariables
 {
-    public static $instance;
+    protected static $instance;
 
     /**
      * Gets given $_SERVER variable and save it to memory

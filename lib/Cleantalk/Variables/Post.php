@@ -12,21 +12,7 @@ namespace Cleantalk\Variables;
  */
 class Post extends ServerVariables
 {
-    public static $instance;
-
-    /**
-     * Constructor
-     * @return $this
-     */
-    public static function getInstance()
-    {
-        if (! isset(static::$instance)) {
-            static::$instance = new static();
-            static::$instance->init();
-        }
-
-        return static::$instance;
-    }
+    protected static $instance;
 
     /**
      * Gets given $_POST variable and save it to memory
