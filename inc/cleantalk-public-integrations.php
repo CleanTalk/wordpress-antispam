@@ -789,7 +789,7 @@ function apbct_form__formidable__testSpam($errors, $_form)
             die();
         }
 
-        $errors['ct_error'] = '<br /><b>' . $ct_result->comment . '</b><br /><br />';
+        ct_die(null, null);
     }
 
     return $errors;
