@@ -1191,7 +1191,7 @@ function apbct__styles_if_website_hidden()
         echo $styles;
     }
 
-    if ( $apbct->settings['forms__wc_honeypot'] ) {
+    if ( $apbct->settings['data__honeypot_field'] ) {
         $styles = "
 		<style>
 		.wc_apbct_email_id {
@@ -1211,7 +1211,7 @@ function apbct__wc_add_honeypot_field($fields)
 {
     global $apbct;
 
-    if ( $apbct->settings['forms__wc_honeypot'] ) {
+    if ( $apbct->settings['data__honeypot_field'] ) {
         $fields['billing']['wc_apbct_email_id'] = array(
             'id'            => 'wc_apbct_email_id',
             'type'          => 'text',

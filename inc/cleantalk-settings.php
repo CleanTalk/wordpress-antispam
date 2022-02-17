@@ -269,22 +269,7 @@ function apbct_settings__set_fileds()
                         array('val' => 1, 'label' => __('On')),
                         array('val' => 0, 'label' => __('Off')),
                     ),
-                ),
-                'forms__wc_honeypot'         => array(
-                    'title'           => __(
-                        'Add a honeypot field',
-                        'cleantalk-spam-protect'
-                    ),
-                    'description'     => __(
-                        'This option adds a honeypot to the order form to improve spam protection. Enable this option if you have passed spam on the order form.',
-                        'cleantalk-spam-protect'
-                    ),
-                    'class'           => 'apbct_settings-field_wrapper--sub',
-                    'options'         => array(
-                        array('val' => 1, 'label' => __('On')),
-                        array('val' => 0, 'label' => __('Off')),
-                    ),
-                ),
+                )
             ),
         ),
 
@@ -516,6 +501,20 @@ function apbct_settings__set_fileds()
                 'data__email_check_before_post'        => array(
                     'title'       => __('Check email before POST request', 'cleantalk-spam-protect'),
                     'description' => __('Check email address before sending form data', 'cleantalk-spam-protect'),
+                ),
+                'data__honeypot_field'         => array(
+                    'title'           => __(
+                        'Add a honeypot field',
+                        'cleantalk-spam-protect'
+                    ),
+                    'description'     => __(
+                        'This option adds a honeypot to forms to improve spam protection. Enable this option to improve the spam protection.',
+                        'cleantalk-spam-protect'
+                    ),
+                    'options'         => array(
+                        array('val' => 1, 'label' => __('On')),
+                        array('val' => 0, 'label' => __('Off')),
+                    ),
                 ),
             ),
         ),

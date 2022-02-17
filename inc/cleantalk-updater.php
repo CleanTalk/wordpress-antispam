@@ -1108,3 +1108,16 @@ function apbct_update_to_5_167_1()
     $apbct->settings['exclusions__log_excluded_requests'] = '0';
     $apbct->saveSettings();
 }
+
+/**
+ * 5.172.1
+ */
+function apbct_update_to_5_172_1()
+{
+    global $apbct;
+
+    if ( isset($apbct->settings['forms__wc_honeypot']) ) {
+        $apbct->settings['data__honeypot_field'] = $apbct->settings['forms__wc_honeypot'];
+        $apbct->saveSettings();
+    }
+}
