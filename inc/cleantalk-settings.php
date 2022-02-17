@@ -2600,38 +2600,43 @@ function apbct_settings__get__long_description()
             'title' => __('Cookies setting', 'cleantalk-spam-protect'),
             'desc'  => sprintf(
                 __('It determines what methods of using the HTTP cookies the Anti-Spam plugin for WordPress should switch to. It is necessary for the plugin to work properly. All CleanTalk cookies contain technical data. Data of the current website visitor is encrypted with the MD5 algorithm and being deleted when the browser session ends. %s', 'cleantalk-spam-protect'),
-                '<a href="https://cleantalk.org/help/set-cookies-option" target="_blank">' . __('Learn more about suboptions', 'cleantalk-spam-protect') . '</a>'
+                '<a href="https://cleantalk.org/help/set-cookies-option{utm_mark}" target="_blank">' . __('Learn more about suboptions', 'cleantalk-spam-protect') . '</a>'
             )
         ),
         'comments__hide_website_field' => array(
             'title' => __('Hide the "Website" field', 'cleantalk-spam-protect'),
             'desc'  => sprintf(
                 __('This «Website» field is frequently used by spammers to place spam links in it. CleanTalk helps you protect your WordPress website comments by hiding this field off. %s', 'cleantalk-spam-protect'),
-                '<a href="https://cleantalk.org/help/how-to-hide-website-field-in-wordpress-comments" target="_blank">' . __('Learn more.', 'cleantalk-spam-protect') . '</a>'
+                '<a href="https://cleantalk.org/help/how-to-hide-website-field-in-wordpress-comments{utm_mark}" target="_blank">' . __('Learn more.', 'cleantalk-spam-protect') . '</a>'
             )
         ),
         'sfw__anti_crawler' => array(
             'title' => __('Anti-Crawler', 'cleantalk-spam-protect'),
             'desc'  => sprintf(
                 __('CleanTalk Anti-Crawler — this option is meant to block all types of bots visiting website pages that can search vulnerabilities on a website, attempt to hack a site, collect personal data, price parsing or content and images, generate 404 error pages, or aggressive website scanning bots. %s', 'cleantalk-spam-protect'),
-                '<a href="https://cleantalk.org/help/anti-flood-and-anti-crawler#anticrawl" target="_blank">' . __('Learn more.', 'cleantalk-spam-protect') . '</a>'
+                '<a href="https://cleantalk.org/help/anti-flood-and-anti-crawler{utm_mark}#anticrawl" target="_blank">' . __('Learn more.', 'cleantalk-spam-protect') . '</a>'
             )
         ),
         'sfw__anti_flood' => array(
             'title' => __('Anti-Flood', 'cleantalk-spam-protect'),
             'desc'  => sprintf(
                 __('CleanTalk Anti-Flood — this option is meant to block aggressive bots. You can set the maximum number of website pages your visitors can click on within 1 minute. If any IP exceeds the set number it will get the CleanTalk blocking screen for 30 seconds. It\'s impossible for the IP to open any website pages while the 30-second timer takes place. %s', 'cleantalk-spam-protect'),
-                '<a href="https://cleantalk.org/help/anti-flood-and-anti-crawler#antiflood" target="_blank">' . __('Learn more.', 'cleantalk-spam-protect') . '</a>'
+                '<a href="https://cleantalk.org/help/anti-flood-and-anti-crawler{utm_mark}#antiflood" target="_blank">' . __('Learn more.', 'cleantalk-spam-protect') . '</a>'
             )
         ),
         'data__pixel' => array(
             'title' => __('CleanTalk Pixel', 'cleantalk-spam-protect'),
             'desc'  => sprintf(
                 __('It is an «invisible» 1×1px image that the Anti-Spam plugin integrates to your WordPress website. And when someone visits your website the Pixel is triggered and reports this visit and some other data including true IP address. %s', 'cleantalk-spam-protect'),
-                '<a href="https://blog.cleantalk.org/introducing-cleantalk-pixel" target="_blank">' . __('Learn more.', 'cleantalk-spam-protect') . '</a>'
+                '<a href="https://blog.cleantalk.org/introducing-cleantalk-pixel{utm_mark}" target="_blank">' . __('Learn more.', 'cleantalk-spam-protect') . '</a>'
             )
         ),
     );
+
+    if ( ! empty($setting_id) ) {
+        $utm = '?utm_source=apbct_hint_' . $setting_id . '&utm_medium=WordPress&utm_campaign=ABPCT_Settings';
+        $descriptions[$setting_id]['desc'] = str_replace('{utm_mark}', $utm, $descriptions[$setting_id]['desc']);
+    }
 
     die(json_encode($descriptions[$setting_id]));
 }
