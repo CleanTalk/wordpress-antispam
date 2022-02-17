@@ -96,7 +96,7 @@ class State extends \Cleantalk\Common\State
 
         // Exclusions
         // Send to the cloud some excepted requests
-        'exclusions__log_excluded_requests'        => 1,
+        'exclusions__log_excluded_requests'        => 0,
         'exclusions__urls'                         => '',
         'exclusions__urls__use_regexp'             => 0,
         'exclusions__fields'                       => '',

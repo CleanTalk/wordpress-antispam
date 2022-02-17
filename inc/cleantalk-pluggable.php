@@ -113,6 +113,37 @@ function apbct_wp_validate_auth_cookie($cookie = '', $scheme = '')
 }
 
 /**
+ * Checks if the user is a super admin
+ *
+ * @return boolean
+ */
+function apbct_is_super_admin($user_id = false)
+{
+    if (! $user_id) {
+        $user = apbct_wp_get_current_user();
+    } else {
+        $user = get_userdata($user_id);
+    }
+
+    if (! $user || ! $user->exists()) {
+        return false;
+    }
+
+    if (is_multisite()) {
+        $super_admins = get_super_admins();
+        if (is_array($super_admins) && in_array($user->user_login, $super_admins, true)) {
+            return true;
+        }
+    } else {
+        if ($user->has_cap('delete_users')) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/**
  * Gets REST url
  *
  * @param $blog_id
@@ -720,7 +751,7 @@ function apbct_is_skip_request($ajax = false)
         }
         // Elementor pro forms has a direct integration
         if (
-            apbct_is_plugin_active('security-malware-firewall/security-malware-firewall.php') &&
+            apbct_is_plugin_active('elementor-pro/elementor-pro.php') &&
             Post::get('action') === 'elementor_pro_forms_send_form' &&
             Post::get('post_id') !== '' &&
             Post::get('form_id') !== '' &&
@@ -851,6 +882,14 @@ function apbct_is_skip_request($ajax = false)
             Get::get('wpgb-ajax') !== ''
         ) {
             return 'GridBuilder service actions';
+        }
+        // WSForms - this is the direct integration and service requests skip
+        if (
+            apbct_is_plugin_active('ws-form-pro/ws-form.php') &&
+            ( ( Post::get('wsf_form_id') !== '' && Post::get('wsf_post_id') !== '' ) ||
+            (int) Post::get('wsffid') > 0 )
+        ) {
+            return 'WSForms skip';
         }
     }
 

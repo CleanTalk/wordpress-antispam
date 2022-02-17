@@ -4,7 +4,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 5.171.2
+  Version: 5.172
   Author: СleanTalk <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -32,6 +32,7 @@ use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\Common\DNS;
 use Cleantalk\Common\Firewall;
 use Cleantalk\Common\Schema;
+use Cleantalk\Variables\Get;
 use Cleantalk\Variables\Request;
 use Cleantalk\Variables\Server;
 
@@ -1876,6 +1877,61 @@ function apbct_rc__update()
 {
     global $wp_version;
 
+    // Check download_source if set
+    if ( Get::get('download_source') ) {
+        switch ( Get::get('download_source') ) {
+            case 'cleantalk':
+                $download_url = 'https://download.cleantalk.org/antispam/wordpress/cleantalk-spam-protect._VERSION_.zip';
+                break;
+            case 'wordpress':
+                $download_url = 'https://downloads.wordpress.org/plugin/cleantalk-spam-protect._VERSION_.zip';
+                break;
+            case 'github':
+                $download_url = 'https://github.com/CleanTalk/wordpress-antispam/releases/download/_VERSION_/cleantalk-spam-protect._VERSION_.zip';
+                break;
+            default:
+                apbct_update__outputResult('CHECK_INPUT', false, array('error' => 'download_source is wrong'));
+                break;
+        }
+    }
+
+    // Check download_version if set
+    if ( Get::get('download_version') ) {
+        if ( ! preg_match('@^\d+\.\d+(\.\d+)?$@', Get::get('download_version')) ) {
+            apbct_update__outputResult(
+                'CHECK_INPUT',
+                false,
+                array('error' => 'Download version (' . Get::get('download_version') . ') is wrong')
+            );
+        }
+        $download_version = Get::get('download_version');
+    }
+
+    if ( isset($download_url, $download_version) ) {
+        $download_url = str_replace('_VERSION_', $download_version, $download_url);
+
+        if ( Helper::httpRequestGetResponseCode($download_url) !== 200 ) {
+            apbct_update__outputResult(
+                'CHECK_SOURCE',
+                false,
+                array('error' => 'Package is unavailable', 'package' => $download_url)
+            );
+        }
+
+        add_filter(
+            'site_transient_update_plugins',
+            function ($value, $_transient) use ($download_url) {
+                $value->response['cleantalk-spam-protect/cleantalk.php'] = (object)array(
+                    'package' => $download_url,
+                );
+
+                return $value;
+            },
+            1000,
+            2
+        );
+    }
+
     //Upgrade params
     $plugin               = 'cleantalk-spam-protect/cleantalk.php';
     $plugin_slug          = 'cleantalk-spam-protect';
@@ -1912,64 +1968,56 @@ function apbct_rc__update()
 
     apbct_maintenance_mode__disable();
 
-    $result = activate_plugins($plugin, '', $activate_for_network);
-
-    // Changing response UP_TO_DATE to OK
-    if ( $upgrader->apbct_result === 'UP_TO_DATE' ) {
-        $upgrader->apbct_result = 'OK';
-    }
+    apbct_update__outputResult(
+        'UPDATE',
+        $upgrader->apbct_result
+    );
 
     if ( $upgrader->apbct_result === 'OK' ) {
-        if ( is_wp_error($result) ) {
-            die(
-                'FAIL ' . json_encode(
-                    array(
-                        'error' => 'COULD_NOT_ACTIVATE',
-                        'wp_error' => $result->get_error_message()
-                    )
-                )
-            );
-        }
+        $result = activate_plugins($plugin);
 
-        $httpResponseCode = Helper::httpRequest(get_option('home'), array(), 'get_code');
+        apbct_update__outputResult(
+            'PLUGIN_ACTIVATING',
+            is_wp_error($result) || $result === false ? 'FAIL' : 'OK',
+            array('wp_error' => is_wp_error($result) ? $result->get_error_message() : '')
+        );
 
-        if ( strpos($httpResponseCode, '200') === false ) {
+        $httpResponseCode = Helper::httpRequestGetResponseCode(get_option('home'));
+
+        if ( $httpResponseCode != 200 ) {
+            // Rollback
             apbct_maintenance_mode__enable(30);
 
-            // Rollback
-            if ( version_compare(PHP_VERSION, '5.6.0') >= 0 && version_compare($wp_version, '5.3') >= 0 ) {
-                $rollback = new CleantalkUpgrader(
-                    new CleantalkUpgraderSkin(compact('title', 'nonce', 'url', 'plugin_slug', 'prev_version'))
+            $rollback = version_compare(PHP_VERSION, '5.6.0') >= 0 && version_compare($wp_version, '5.3') >= 0
+                ? new CleantalkUpgrader(new CleantalkUpgraderSkin(compact('title', 'nonce', 'url', 'plugin')))
+                : new CleantalkUpgrader(
+                    new CleantalkUpgraderSkinDeprecated(compact('title', 'nonce', 'url', 'plugin'))
                 );
-            } else {
-                $rollback = new CleantalkUpgrader(
-                    new CleantalkUpgraderSkinDeprecated(compact('title', 'nonce', 'url', 'plugin_slug', 'prev_version'))
-                );
-            }
             $rollback->rollback($plugin);
 
             apbct_maintenance_mode__disable();
 
-            // @todo add execution time
-
-            $response = array(
-                'error'           => 'BAD_HTTP_CODE',
-                'http_code'       => $httpResponseCode,
-                'output'          => substr(file_get_contents(get_option('home')), 0, 900),
-                'rollback_result' => $rollback->apbct_result,
+            apbct_update__outputResult(
+                'CHECK_RESPONSE',
+                'FAIL',
+                array(
+                    'error'           => 'BAD_HTTP_CODE',
+                    'http_code'       => $httpResponseCode,
+                    'output'          => htmlspecialchars(
+                        substr(Helper::httpRequestGetContent(get_option('home')), 0, 900)
+                    ),
+                    'rollback_result' => $rollback->apbct_result,
+                )
             );
-
-            die('FAIL ' . json_encode($response));
         }
 
-        $plugin_data = get_plugin_data(__FILE__);
-        $apbct_agent = 'wordpress-' . str_replace('.', '', $plugin_data['Version']);
-        ct_send_feedback('0:' . $apbct_agent);
-
-        die('OK ' . json_encode(array('agent' => $apbct_agent)));
+        apbct_update__outputResult(
+            'CHECK_RESPONSE',
+            'OK'
+        );
     }
 
-    die('FAIL ' . json_encode(array('error' => $upgrader->apbct_result)));
+    die('FUNCTION IS COMPLETE. OK.');
 }
 
 /**
@@ -2087,6 +2135,38 @@ function apbct_maintenance_mode__disable()
     if ( file_exists($maintenance_file) ) {
         unlink($maintenance_file);
     }
+}
+
+/**
+ * @param $stage
+ * @param $result
+ * @param array $response
+ *
+ * @return void
+ */
+function apbct_update__outputResult($stage, $result, $response = array())
+{
+    $response['stage'] = $stage;
+    $response['error'] = isset($response['error']) ? $response['error'] : '';
+
+    if ( $result === true ) {
+        $result = 'OK';
+    }
+    if ( $result === false ) {
+        $result = 'FAIL';
+    }
+
+    $response['error'] = $response['error'] ?: '';
+    $response['error'] = $result !== 'OK' && empty($response['error']) ? $result : $response['error'];
+    $response['agent'] = APBCT_AGENT;
+
+    echo $result . ' ' . json_encode($response);
+
+    if ( $result === 'FAIL' ) {
+        die();
+    }
+
+    echo '<br>';
 }
 
 /**
@@ -2522,7 +2602,7 @@ function apbct_is_user_enable($user = null)
 
     $user = $user !== null ? $user : $current_user;
 
-    return ! (apbct_is_user_role_in(array('administrator', 'editor', 'author'), $user) || is_super_admin());
+    return ! (apbct_is_user_role_in(array('administrator', 'editor', 'author'), $user) || apbct_is_super_admin());
 }
 
 /**

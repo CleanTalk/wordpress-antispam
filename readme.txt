@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 3.0
 Tested up to: 5.9
 Requires PHP: 5.6
-Stable tag: 5.171.2
+Stable tag: 5.172
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -593,6 +593,29 @@ If your website has forms that send data to external sources, you can enable opt
 12. SpamFireWall log.
 
 == Changelog ==
+
+= 5.172 Feb 17 2022 =
+#### Updating system modified, settings long descriptions added and minor issues fixed.
+* Fix: Fixed Fusion Builder Avada Form integration
+* Fix: Fixed CF7 visible fields
+* New. Updating system modified.
+* Fix: Fixed apbct_store__urls()
+* Fix. Updating system. Source url template fixed.
+* Fix. Updating system. Redundant errors handling removed.
+* New. Integration. WS-Forms integration implemented.
+* Fix. Settings. Long description mark fixed.
+* Upd. Settings. Set cookies setting long description added.
+* Upd. Settings. Hide website field setting long description added.
+* Upd. Settings. Anti-Crawler setting long description added.
+* Fix. Settings. Long description mark for checkboxes fixed.
+* Upd. Settings. Anti-Flood setting long description added.
+* Upd. Settings. CleanTalk Pixel setting long description added.
+* Mod: Replaced the is_super_admin() function with its own apbct_is_super_admin(
+* Fix. Settings. Settings hints fixed.
+* Upd. Ajax. Nonce lifetime constant added.
+* Fix. Integration. Elementor pro forms integration fixed #2.
+* Fix: Formidable Forms - fixed spam protection without JS
+* Fix. Settings. Hints links contain UTM marks.
 
 = 5.171.2 Feb 09 2022 =
 #### Minor issue fixed.
