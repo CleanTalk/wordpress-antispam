@@ -596,6 +596,8 @@ If your website has forms that send data to external sources, you can enable opt
 
 = 5.172 Feb 17 2022 =
 #### Updating system modified, settings long descriptions added and minor issues fixed.
+* Fix: Fixed Fusion Builder Avada Form integration
+* Fix: Fixed CF7 visible fields
 * New. Updating system modified.
 * Fix: Fixed apbct_store__urls()
 * Fix. Updating system. Source url template fixed.
@@ -613,6 +615,7 @@ If your website has forms that send data to external sources, you can enable opt
 * Upd. Ajax. Nonce lifetime constant added.
 * Fix. Integration. Elementor pro forms integration fixed #2.
 * Fix: Formidable Forms - fixed spam protection without JS
+* Fix. Settings. Hints links contain UTM marks.
 
 = 5.171.2 Feb 09 2022 =
 #### Minor issue fixed.
