@@ -778,14 +778,27 @@ function apbct_form__formidable__testSpam($errors, $_form)
 
     if ( $ct_result->allow == 0 ) {
         if (apbct_is_ajax()) {
+            // search for a suitable field
+            $key_field = '113';
+
+            foreach ($_form['item_meta'] as $key => $value) {
+                if ($value) {
+                    $key_field = $key;
+                    break;
+                }
+            }
+
             $result = array (
                 'errors' =>
-                    array (),
+                    array (
+                        $key_field => $ct_result->comment
+                    ),
                 'content' => '',
                 'pass' => false,
                 'error_message' => '<div class="frm_error_style" role="status"><p>' . $ct_result->comment . '</p></div>',
             );
-            print json_encode($result);
+
+            echo json_encode($result, JSON_FORCE_OBJECT);
             die();
         }
 
