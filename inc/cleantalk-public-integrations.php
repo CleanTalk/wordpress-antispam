@@ -484,19 +484,6 @@ function ct_woocommerce_checkout_check()
         'sender_info'     => array('sender_url' => null)
     );
 
-    /**
-     * Add honeypot_field to $base_call_data is forms__wc_honeypot on
-     */
-    if ( $apbct->settings['data__honeypot_field'] ) {
-        $honeypot_field = 1;
-
-        if ( Post::get('wc_apbct_email_id') ) {
-            $honeypot_field = 0;
-        }
-
-        $base_call_data['honeypot_field'] = $honeypot_field;
-    }
-
     //Making a call
     $base_call_result = apbct_base_call($base_call_data);
 
@@ -1207,6 +1194,7 @@ function ct_register_form()
     }
 
     ct_add_hidden_fields($ct_checkjs_register_form, false, false, false, false);
+    echo ct_add_honeypot_field('wp_register');
 
     return null;
 }
