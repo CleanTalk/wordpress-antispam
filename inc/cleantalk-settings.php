@@ -508,13 +508,14 @@ function apbct_settings__set_fileds()
                         'cleantalk-spam-protect'
                     ),
                     'description'     => __(
-                        'This option adds a honeypot to forms to improve spam protection. Enable this option to improve the spam protection.',
+                        'This option adds a honeypot field to the forms.',
                         'cleantalk-spam-protect'
                     ),
                     'options'         => array(
                         array('val' => 1, 'label' => __('On')),
                         array('val' => 0, 'label' => __('Off')),
                     ),
+                    'long_description' => true,
                 ),
             ),
         ),
@@ -2629,6 +2630,10 @@ function apbct_settings__get__long_description()
                 __('It is an «invisible» 1×1px image that the Anti-Spam plugin integrates to your WordPress website. And when someone visits your website the Pixel is triggered and reports this visit and some other data including true IP address. %s', 'cleantalk-spam-protect'),
                 '<a href="https://blog.cleantalk.org/introducing-cleantalk-pixel{utm_mark}" target="_blank">' . __('Learn more.', 'cleantalk-spam-protect') . '</a>'
             )
+        ),
+        'data__honeypot_field' => array(
+            'title' => __('Honeypot field', 'cleantalk-spam-protect'),
+            'desc'  => __('The option helps to block bots on the WC order form and common registration form. Enable this option if you have passed spam on these forms.', 'cleantalk-spam-protect')
         ),
     );
 
