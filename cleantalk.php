@@ -203,6 +203,48 @@ add_action('init', function () {
     }
 });
 
+// Visual Form Builder Integration (NO AJAX)
+add_action('init', 'apbct__visual_form_builder_test', 1);
+function apbct__visual_form_builder_test()
+{
+    # checking ajax
+    if (apbct_is_ajax()) {
+        return null;
+    }
+
+    # checking POST
+    if (empty($_POST)) {
+        return null;
+    }
+
+    # checking Admin
+    if (apbct_is_user_logged_in()) {
+        return null;
+    }
+
+    # checking plugin is active
+    if ( ! apbct_is_plugin_active('visual-form-builder/visual-form-builder.php') ) {
+        return null;
+    }
+
+    # array of features
+    $visual_form_builder_features = array();
+
+    foreach ($_POST as $key => $value) {
+        if ($key === 'vfb-submit') {
+            $visual_form_builder_features[] = $key;
+        }
+
+        if (strpos($key, 'vfb') === 0 && $key !== 'vfb-submit') {
+            $visual_form_builder_features[] = $key;
+        }
+    }
+
+    if (count($visual_form_builder_features) >= 3) {
+        ct_contact_form_validate();
+    }
+}
+
 if ( $apbct->settings && $apbct->key_is_ok ) {
     // Remote calls
     if ( RemoteCalls::check() ) {
