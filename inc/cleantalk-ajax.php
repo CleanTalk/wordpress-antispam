@@ -930,6 +930,17 @@ function ct_ajax_hook($message_obj = null)
             );
         }
 
+        if ( Post::hasString('action', 'fusion_form_submit_form_to_') ) {
+            die(
+                json_encode(
+                    array(
+                        'status' => 'error',
+                        'info' => $ct_result->comment
+                    )
+                )
+            );
+        }
+
         // Regular block output
         die(
             json_encode(
