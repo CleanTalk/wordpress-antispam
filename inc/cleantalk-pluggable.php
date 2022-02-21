@@ -796,6 +796,14 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'AdRotate service actions';
         }
+        // WP Booking System Premium
+        if (
+            (apbct_is_plugin_active('wp-booking-system-premium/index.php') &&
+            Post::get('action') === 'wpbs_calculate_pricing') ||
+            Post::get('action') === 'wpbs_validate_date_selection'
+        ) {
+            return 'WP Booking System Premium';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
