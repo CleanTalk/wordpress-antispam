@@ -2633,7 +2633,7 @@ function apbct_settings__get__long_description()
         ),
         'data__honeypot_field' => array(
             'title' => __('Honeypot field', 'cleantalk-spam-protect'),
-            'desc'  => __('The option helps to block bots on the WC order form and common registration form. Enable this option if you have passed spam on these forms.', 'cleantalk-spam-protect')
+            'desc'  => __('The option helps to block bots on the WC order form and default registration form. Enable this option if you have passed spam on these forms.', 'cleantalk-spam-protect')
         ),
     );
 
