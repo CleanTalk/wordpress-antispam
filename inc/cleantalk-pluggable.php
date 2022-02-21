@@ -891,6 +891,15 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'WSForms skip';
         }
+        // Checkout For WC - service requests skip
+        if (
+            apbct_is_plugin_active('checkout-for-woocommerce/checkout-for-woocommerce.php') &&
+            apbct_is_in_uri('wc-ajax=update_checkout') &&
+            Post::get('security') &&
+            wp_verify_nonce( Post::get('security'), 'update-order-review' )
+        ) {
+            return 'Checkout For WC skip';
+        }
     }
 
     return false;
