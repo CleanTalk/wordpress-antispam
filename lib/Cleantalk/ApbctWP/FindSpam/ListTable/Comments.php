@@ -34,7 +34,7 @@ class Comments extends \Cleantalk\ApbctWP\CleantalkListTable
             'cb'             => '<input type="checkbox" />',
             'ct_author'      => esc_html__('Author', 'cleantalk-spam-protect'),
             'ct_comment'     => esc_html__('Comment', 'cleantalk-spam-protect'),
-            'ct_response_to' => esc_html__(' 	In Response To', 'cleantalk-spam-protect'),
+            'ct_response_to' => esc_html__('In Response To', 'cleantalk-spam-protect'),
         );
     }
 
@@ -294,12 +294,17 @@ class Comments extends \Cleantalk\ApbctWP\CleantalkListTable
     }
 
     /**
-     * @return \WP_Comment_Query
+     * @return int
      * @psalm-suppress PossiblyUnusedMethod
      */
     public function getTotal()
     {
-        return new \WP_Comment_Query();
+        $params_total = array(
+            'count'   => true,
+        );
+
+        return get_comments($params_total);
+
     }
 
     /**
@@ -316,9 +321,11 @@ class Comments extends \Cleantalk\ApbctWP\CleantalkListTable
      *
      * @return \WP_Comment_Query
      */
-    public function getSpamNow()
+    public function getSpamNow($per_page, $current_page)
     {
         $params_spam = array(
+            'number'   => $per_page,
+            'offset'   => ( $current_page - 1 ) * $per_page,
             'meta_key' => 'ct_marked_as_spam',
         );
 
