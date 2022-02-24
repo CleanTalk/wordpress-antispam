@@ -295,7 +295,7 @@ class Comments extends \Cleantalk\ApbctWP\CleantalkListTable
 
     /**
      * @return int
-     * @psalm-suppress PossiblyUnusedMethod, InvalidReturnType
+     * @psalm-suppress PossiblyUnusedMethod, InvalidReturnStatement, InvalidReturnType
      */
     public function getTotal()
     {
