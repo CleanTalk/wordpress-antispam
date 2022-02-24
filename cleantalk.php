@@ -301,11 +301,6 @@ $apbct_active_integrations = array(
         'setting' => 'forms__contact_forms_test',
         'ajax'    => true
     ),
-    'HappyForm'           => array(
-        'hook'    => 'happyforms_validate_submission',
-        'setting' => 'forms__contact_forms_test',
-        'ajax'    => false
-    ),
     'EaelLoginRegister'   => array(
         'hook'    => array(
             'eael/login-register/before-register',
@@ -375,6 +370,9 @@ add_filter('wppb_output_field_errors_filter', 'apbct_form_profile_builder__check
 
 // WP Foro register system integration
 add_filter('wpforo_create_profile', 'wpforo_create_profile__check_register', 1, 1);
+
+// HappyForms integration
+add_filter('happyforms_validate_submission', 'apbct_form_happyforms_test_spam', 1, 3);
 
 // WPForms
 // Adding fields
