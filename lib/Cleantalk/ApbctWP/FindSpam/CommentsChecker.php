@@ -290,7 +290,8 @@ class CommentsChecker extends Checker
         $cnt_checked      = $apbct->data['count_checked_comments'];
 
         // Spam comments
-        $params_spam   = array(
+        $params_spam = array(
+            'count'   => true,
             'meta_query' => array(
                 'relation' => 'AND',
                 array(
@@ -300,8 +301,7 @@ class CommentsChecker extends Checker
                 )
             ),
         );
-        $spam_comments = new \WP_Comment_Query($params_spam);
-        $cnt_spam      = count($spam_comments->get_comments());
+        $cnt_spam = get_comments($params_spam);
 
         // Bad comments (without IP and Email)
         $cnt_bad      = $apbct->data['count_bad_comments'];
