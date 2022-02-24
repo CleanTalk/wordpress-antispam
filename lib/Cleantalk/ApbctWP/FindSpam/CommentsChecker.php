@@ -391,7 +391,7 @@ class CommentsChecker extends Checker
         global $apbct;
 
         $cnt_checked   = $apbct->data['count_checked_comments'];
-    
+
         // Spam comments
         $params_spam = array(
             'count'   => true,
@@ -406,7 +406,7 @@ class CommentsChecker extends Checker
         );
         $cnt_spam = get_comments($params_spam);
 
-        $cnt_bad       = $apbct->data['count_bad_comments'];
+        $cnt_bad = $apbct->data['count_bad_comments'];
 
         return array(
             'spam'    => $cnt_spam,

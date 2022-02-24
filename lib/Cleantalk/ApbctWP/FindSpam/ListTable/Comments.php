@@ -295,7 +295,7 @@ class Comments extends \Cleantalk\ApbctWP\CleantalkListTable
 
     /**
      * @return int
-     * @psalm-suppress PossiblyUnusedMethod
+     * @psalm-suppress PossiblyUnusedMethod, InvalidReturnType
      */
     public function getTotal()
     {
@@ -304,11 +304,10 @@ class Comments extends \Cleantalk\ApbctWP\CleantalkListTable
         );
 
         return get_comments($params_total);
-
     }
 
     /**
-     * @return \WP_Comment_Query
+     * @return int
      * @psalm-suppress PossiblyUnusedMethod
      */
     public function getChecked()
