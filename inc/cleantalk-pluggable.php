@@ -804,6 +804,13 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'WP Booking System Premium';
         }
+        // GiveWP - having the direct integration
+        if (
+            (apbct_is_plugin_active('give/give.php') &&
+            Post::get('action') === 'give_process_donation')
+        ) {
+            return 'GiveWP';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */

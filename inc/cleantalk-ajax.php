@@ -351,8 +351,6 @@ function ct_ajax_hook($message_obj = null)
         // WooCommerce cartflow
         'rcp_process_register_form',
         // WordPress Membership Plugin – Restrict Content
-        'give_process_donation',
-        // GiveWP
         'apus_ajax_login',
         // ???? plugin authorization
         'bookly_save_customer',
