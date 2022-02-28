@@ -206,6 +206,18 @@ function apbct_base_call($params = array(), $reg_flag = false)
     if ( isset($params['honeypot_field']) ) {
         $default_params['honeypot_field'] = $params['honeypot_field'];
     }
+    /**
+     * Add honeypot_field to $base_call_data is forms__wc_honeypot on
+     */
+    if ( $apbct->settings['data__honeypot_field'] ) {
+        $honeypot_field = 1;
+
+        if ( Post::get('wc_apbct_email_id') || Post::get('apbct__email_id__wp_register') ) {
+            $honeypot_field = 0;
+        }
+
+        $params['honeypot_field'] = $honeypot_field;
+    }
 
     // Send $_SERVER if couldn't find IP
     if ( empty($default_params['sender_ip']) ) {
