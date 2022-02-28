@@ -4,7 +4,6 @@ namespace Cleantalk\Antispam\Integrations;
 
 class VisualFormBuilder extends IntegrationBase
 {
-
     public function getDataForChecking($argument)
     {
         /**
