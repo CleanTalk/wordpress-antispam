@@ -27,6 +27,7 @@ use Cleantalk\ApbctWP\Helper;
 use Cleantalk\ApbctWP\RemoteCalls;
 use Cleantalk\ApbctWP\RestController;
 use Cleantalk\ApbctWP\State;
+use Cleantalk\ApbctWP\Transaction;
 use Cleantalk\ApbctWP\UpdatePlugin\DbTablesCreator;
 use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\Common\DNS;
@@ -2687,6 +2688,11 @@ function apbct_update_actions()
 
     // Update logic
     if ( $apbct->plugin_version !== APBCT_VERSION ) {
+        // Perform a transaction and exit transaction ID isn't match
+        if ( ! Transaction::get('updater')->perform() ) {
+            return;
+        }
+
         // Main blog
         if ( is_main_site() ) {
             require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-updater.php');

@@ -5,7 +5,7 @@ namespace Cleantalk\Templates;
 if (! trait_exists('Cleantalk\Templates\Singleton')) {
     trait Singleton
     {
-        public static $instance;
+        protected static $instance;
 
         public function __construct()
         {
@@ -23,13 +23,12 @@ if (! trait_exists('Cleantalk\Templates\Singleton')) {
          * Constructor
          * @return $this
          */
-        public static function getInstance()
+        public static function getInstance($params = array())
         {
-            if (! isset(static::$instance)) {
+            if ( ! isset(static::$instance) ) {
                 static::$instance = new static();
-                static::$instance->init();
+                static::$instance->init($params);
             }
-
             return static::$instance;
         }
 
