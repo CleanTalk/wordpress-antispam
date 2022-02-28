@@ -487,7 +487,7 @@ function ct_woocommerce_checkout_check()
     /**
      * Add honeypot_field to $base_call_data is forms__wc_honeypot on
      */
-    if ( $apbct->settings['forms__wc_honeypot'] ) {
+    if ( $apbct->settings['data__honeypot_field'] ) {
         $honeypot_field = 1;
 
         if ( Post::get('wc_apbct_email_id') ) {
