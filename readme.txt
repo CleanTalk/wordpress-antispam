@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 3.0
 Tested up to: 5.9
 Requires PHP: 5.6
-Stable tag: 5.172
+Stable tag: 5.173
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -593,6 +593,21 @@ If your website has forms that send data to external sources, you can enable opt
 12. SpamFireWall log.
 
 == Changelog ==
+
+= 5.173 Mar 03 2022 =
+#### Honeypot field implemented for improving antispam protection, new integrations added, performance improved and minor issues fixed.
+* New. Honeypot field for the registration form.
+* New. Integration. Added Visual Form Builder Integration without Ajax.
+* New. Integration. GiveWP integration implemented.
+* Upd. Code. Helper::ipGet() improved.
+* Upd. Settings. Honeypot setting modified.
+* Fix: Formidable Integration Refactoring.
+* Fix. Integration. Fusion Avada Form Builder output fixed.
+* Fix. Settings. Honeypot setting descriptions fixed.
+* Fix: Skipped WP Booking System Premius service requests
+* Fix. Exclusion. Checkout For WC - service requests skip.
+* Fix. Comments checker. Found comments displaying optimized.
+* Fix: visible fields was excluded form custom form.
 
 = 5.172 Feb 17 2022 =
 #### Updating system modified, settings long descriptions added and minor issues fixed.
