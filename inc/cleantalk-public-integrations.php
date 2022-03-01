@@ -3267,3 +3267,56 @@ add_filter('wsf_submit_field_validate', function ($error_validation_action_field
 
     return $error_validation_action_field;
 }, 10, 6);
+
+/**
+ * Happyforms integration
+ *
+ * @param $is_valid
+ * @param $request
+ * @param $form
+ *
+ * @return mixed
+ * @psalm-suppress UnusedVariable
+ */
+function apbct_form_happyforms_test_spam($is_valid, $request, $form)
+{
+    global $cleantalk_executed;
+
+    if ( ! $cleantalk_executed && $is_valid ) {
+        /**
+         * Filter for request
+         */
+        $input_array = apply_filters('apbct__filter_post', $request);
+
+        $data = ct_get_fields_any($input_array);
+
+        $base_call_result = apbct_base_call(
+            array(
+                'message'         => ! empty($data['message']) ? json_encode($data['message']) : '',
+                'sender_email'    => ! empty($data['email']) ? $data['email'] : '',
+                'sender_nickname' => ! empty($data['nickname']) ? $data['nickname'] : '',
+                'post_info'       => array(
+                    'comment_type' => 'happyforms_contact_form'
+                ),
+            )
+        );
+
+        $ct_result = $base_call_result['ct_result'];
+
+        $cleantalk_executed = true;
+        
+        if ( $ct_result->allow == 0 ) {
+            wp_send_json_error(array(
+                'html' => '<div class="happyforms-form happyforms-styles">
+							<h3 class="happyforms-form__title">Sample Form</h3>
+							<form action="" method="post" novalidate="true">
+							<div class="happyforms-flex"><div class="happyforms-message-notices">
+							<div class="happyforms-message-notice error">
+							<h2>' . $ct_result->comment . '</h2></div></div>
+							</form></div>'
+            ));
+        }
+    }
+
+    return $is_valid;
+}
