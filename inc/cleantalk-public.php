@@ -625,7 +625,7 @@ function ct_add_honeypot_field($form_type)
 {
     $style = '
     <style>
-		#apbct__email_id__'.$form_type.' {
+		#apbct__email_id__' . $form_type . ' {
             display: none !important;
 		}
 	</style>';
