@@ -3278,7 +3278,7 @@ add_filter('wsf_submit_field_validate', function ($error_validation_action_field
  * @return mixed
  * @psalm-suppress UnusedVariable
  */
-function apbct_form_happyforms_test_spam($is_valid, $request, $form)
+function apbct_form_happyforms_test_spam($is_valid, $request, $_form)
 {
     global $cleantalk_executed;
 
@@ -3304,7 +3304,7 @@ function apbct_form_happyforms_test_spam($is_valid, $request, $form)
         $ct_result = $base_call_result['ct_result'];
 
         $cleantalk_executed = true;
-        
+
         if ( $ct_result->allow == 0 ) {
             wp_send_json_error(array(
                 'html' => '<div class="happyforms-form happyforms-styles">
