@@ -2,6 +2,7 @@
 
 namespace Cleantalk\Common;
 
+use Cleantalk\Templates\Singleton;
 use Cleantalk\Variables\Server;
 
 /**
@@ -18,6 +19,8 @@ use Cleantalk\Variables\Server;
  */
 class Helper
 {
+    use Singleton;
+
     /**
      * Default user agent for HTTP requests
      */
@@ -67,6 +70,20 @@ class Helper
     );
 
     /**
+     * @var array Stored IPs
+     *            [
+     *              [ type ] => IP,
+     *              [ type ] => IP,
+     *            ]
+     */
+    private $ips_stored = array();
+
+    /**
+     * @var array Stored HTTP headers
+     */
+    private $headers     = array();
+
+    /**
      * Getting arrays of IP (REMOTE_ADDR, X-Forwarded-For, X-Real-Ip, Cf_Connecting_Ip)
      *
      * @param string $ip_type_to_get Type of IP you want to receive
@@ -79,6 +96,12 @@ class Helper
      */
     public static function ipGet($ip_type_to_get = 'real', $v4_only = true, $headers = array())
     {
+        // If  return the IP of the current type if it already has been detected
+        $ips_stored = self::getInstance()->ips_stored;
+        if ( ! empty($ips_stored[ $ip_type_to_get ]) ) {
+            return $ips_stored[ $ip_type_to_get ];
+        }
+
         $out = null;
 
         switch ($ip_type_to_get) {
@@ -305,16 +328,20 @@ class Helper
                 $out = self::ipGet('real', $v4_only, $headers);
         }
 
-        // Final validating IP
         $ip_version = self::ipValidate($out);
 
-        if (! $ip_version) {
-            return null;
-        } elseif ($ip_version === 'v6' && $v4_only) {
-            return null;
-        } else {
-            return $out;
+        if ( ! $ip_version ) {
+            $out = null;
         }
+
+        if ( $ip_version === 'v6' && $v4_only ) {
+            $out = null;
+        }
+
+        // Store the IP of the current type to skip the work next time
+        self::getInstance()->ips_stored[ $ip_type_to_get ] = $out;
+
+        return $out;
     }
 
     /**
@@ -1130,7 +1157,11 @@ class Helper
      */
     public static function httpGetHeaders()
     {
-        $headers = array();
+        // If headers already return them
+        $headers = self::getInstance()->headers;
+        if ( ! empty($headers) ) {
+            return $headers;
+        }
         foreach ($_SERVER as $key => $val) {
             if (0 === stripos($key, 'http_')) {
                 $server_key = preg_replace('/^http_/i', '', $key);
@@ -1153,6 +1184,9 @@ class Helper
                 $headers[$server_key] = $val;
             }
         }
+
+        // Store headers to skip the work next time
+        self::getInstance()->headers = $headers;
 
         return $headers;
     }
