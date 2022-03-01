@@ -4,7 +4,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 5.172.1-dev
+  Version: 5.172.2-dev
   Author: СleanTalk <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -27,6 +27,7 @@ use Cleantalk\ApbctWP\Helper;
 use Cleantalk\ApbctWP\RemoteCalls;
 use Cleantalk\ApbctWP\RestController;
 use Cleantalk\ApbctWP\State;
+use Cleantalk\ApbctWP\Transaction;
 use Cleantalk\ApbctWP\UpdatePlugin\DbTablesCreator;
 use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\Common\DNS;
@@ -323,6 +324,11 @@ $apbct_active_integrations = array(
     'OvaLogin' => array(
         'hook'    => 'login_form_register',
         'setting' => 'forms__registrations_test',
+        'ajax'    => false
+    ),
+    'GiveWP' => array(
+        'hook'    => 'give_checkout_error_checks',
+        'setting' => 'forms__contact_forms_test',
         'ajax'    => false
     ),
     'VisualFormBuilder' => array(
@@ -2687,6 +2693,11 @@ function apbct_update_actions()
 
     // Update logic
     if ( $apbct->plugin_version !== APBCT_VERSION ) {
+        // Perform a transaction and exit transaction ID isn't match
+        if ( ! Transaction::get('updater')->perform() ) {
+            return;
+        }
+
         // Main blog
         if ( is_main_site() ) {
             require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-updater.php');

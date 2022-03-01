@@ -621,6 +621,26 @@ function ct_add_hidden_fields(
     }
 }
 
+function ct_add_honeypot_field($form_type)
+{
+    $style = '
+    <style>
+		#apbct__email_id__'.$form_type.' {
+            display: none !important;
+		}
+	</style>';
+    return $style . "\n" . '<input 
+        id="apbct__email_id__' . $form_type . '" 
+        class="apbct__email_id__' . $form_type . '" 
+        autocomplete="off" 
+        name="apbct__email_id__' . $form_type . '"  
+        type="text" 
+        value="" 
+        size="30" 
+        maxlength="200" 
+    />';
+}
+
 /**
  * Changes whether notify admin/athor or not.
  *

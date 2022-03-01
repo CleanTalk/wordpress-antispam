@@ -15,22 +15,16 @@ class CommentsScan extends Comments
             $per_page = 10;
         }
 
-        $scanned_comments = $this->getSpamNow();
+        $current_page = $this->get_pagenum();
+
+        $scanned_comments = $this->getSpamNow($per_page, $current_page);
 
         $this->set_pagination_args(array(
-            'total_items' => count($scanned_comments->get_comments()),
+            'total_items' => $this->getTotal(),
             'per_page'    => $per_page,
         ));
 
-        $current_page = (int)$this->get_pagenum();
-
-        $scanned_comments_to_show = array_slice(
-            $scanned_comments->get_comments(),
-            (($current_page - 1) * $per_page),
-            $per_page
-        );
-
-        foreach ( $scanned_comments_to_show as $comment ) {
+        foreach ( $scanned_comments->get_comments() as $comment ) {
             $this->items[] = array(
                 'ct_id'          => $comment->comment_ID,
                 'ct_author'      => $comment->comment_author,

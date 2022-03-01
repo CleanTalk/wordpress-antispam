@@ -52,8 +52,6 @@ class State extends \Cleantalk\Common\State
         'forms__wc_register_from_order'            => 1,
         // Woocommerce registration during checkout
         'forms__wc_add_to_cart'                    => 0,
-        // Woocommerce honeypot
-        'forms__wc_honeypot'                       => 1,
         // Woocommerce add to cart
         'forms__search_test'                       => 1,
         // Test default Wordpress form
@@ -93,6 +91,7 @@ class State extends \Cleantalk\Common\State
         // Secure connection to servers
         'data__pixel'                              => '3',
         'data__email_check_before_post'            => 1,
+        'data__honeypot_field'                     => 0,
 
         // Exclusions
         // Send to the cloud some excepted requests

@@ -351,8 +351,6 @@ function ct_ajax_hook($message_obj = null)
         // WooCommerce cartflow
         'rcp_process_register_form',
         // WordPress Membership Plugin – Restrict Content
-        'give_process_donation',
-        // GiveWP
         'apus_ajax_login',
         // ???? plugin authorization
         'bookly_save_customer',
@@ -925,6 +923,17 @@ function ct_ajax_hook($message_obj = null)
                     array(
                         'status' => 'ok',
                         'thank_you_message' => $ct_result->comment
+                    )
+                )
+            );
+        }
+
+        if ( Post::hasString('action', 'fusion_form_submit_form_to_') ) {
+            die(
+                json_encode(
+                    array(
+                        'status' => 'error',
+                        'info' => $ct_result->comment
                     )
                 )
             );

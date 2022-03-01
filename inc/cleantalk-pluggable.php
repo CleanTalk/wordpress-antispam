@@ -796,6 +796,21 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'AdRotate service actions';
         }
+        // WP Booking System Premium
+        if (
+            (apbct_is_plugin_active('wp-booking-system-premium/index.php') &&
+            Post::get('action') === 'wpbs_calculate_pricing') ||
+            Post::get('action') === 'wpbs_validate_date_selection'
+        ) {
+            return 'WP Booking System Premium';
+        }
+        // GiveWP - having the direct integration
+        if (
+            (apbct_is_plugin_active('give/give.php') &&
+            Post::get('action') === 'give_process_donation')
+        ) {
+            return 'GiveWP';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
@@ -890,6 +905,15 @@ function apbct_is_skip_request($ajax = false)
             (int) Post::get('wsffid') > 0 )
         ) {
             return 'WSForms skip';
+        }
+        // Checkout For WC - service requests skip
+        if (
+            apbct_is_plugin_active('checkout-for-woocommerce/checkout-for-woocommerce.php') &&
+            ( ( apbct_is_in_uri('wc-ajax=update_checkout') && wp_verify_nonce(Post::get('security'), 'update-order-review') ) ||
+            apbct_is_in_uri('wc-ajax=account_exists') ||
+            apbct_is_in_uri('wc-ajax=complete_order') )
+        ) {
+            return 'Checkout For WC skip';
         }
     }
 

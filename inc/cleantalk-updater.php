@@ -20,13 +20,6 @@ function apbct_run_update_actions($current_version, $new_version)
     global $apbct;
     $need_start_update_sfw = false;
 
-    // Excludes the repeated call of the plugin update if the process is already running.
-    if ( isset($apbct->stats['plugin']['plugin_is_being_updated']) &&
-        (int)$apbct->stats['plugin']['plugin_is_being_updated'] === 1
-    ) {
-        return false;
-    }
-
     $apbct->stats['plugin']['plugin_is_being_updated'] = 1;
     $apbct->save('stats');
 
@@ -93,9 +86,6 @@ function apbct_run_update_actions($current_version, $new_version)
             }
         }
     }
-
-    $apbct->stats['plugin']['plugin_is_being_updated'] = 0;
-    $apbct->save('stats');
 
     // Start SFW update
     if ($need_start_update_sfw) {
@@ -1107,4 +1097,17 @@ function apbct_update_to_5_167_1()
     // For the current installations, after updating the option will turn off
     $apbct->settings['exclusions__log_excluded_requests'] = '0';
     $apbct->saveSettings();
+}
+
+/**
+ * 5.172.1
+ */
+function apbct_update_to_5_172_1()
+{
+    global $apbct;
+
+    if ( isset($apbct->settings['forms__wc_honeypot']) ) {
+        $apbct->settings['data__honeypot_field'] = $apbct->settings['forms__wc_honeypot'];
+        $apbct->saveSettings();
+    }
 }
