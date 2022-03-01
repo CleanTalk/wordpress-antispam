@@ -331,6 +331,11 @@ $apbct_active_integrations = array(
         'setting' => 'forms__contact_forms_test',
         'ajax'    => false
     ),
+    'VisualFormBuilder' => array(
+        'hook'    => 'vfb_isBot',
+        'setting' => 'forms__contact_forms_test',
+        'ajax'    => false
+    ),
 );
 new  \Cleantalk\Antispam\Integrations($apbct_active_integrations, (array)$apbct->settings);
 
