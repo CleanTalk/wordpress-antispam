@@ -2239,7 +2239,6 @@ function apbct__hook__wp_logout__delete_trial_notice_cookie()
 /**
  * Store URLs
  *
- * @throws JsonException
  * @ToDo need to be refactored psalm notices about InvalidArrayOffset
  */
 function apbct_store__urls()
@@ -2248,7 +2247,6 @@ function apbct_store__urls()
 
     if (
         $apbct->data['cookies_type'] === 'none' || // Do not set cookies if option is disabled (for Varnish cache).
-        ! empty($apbct->flags__cookies_setuped) || // Cookies already set
         ! empty($apbct->headers_sent)              // Headers sent
     ) {
         return false;
