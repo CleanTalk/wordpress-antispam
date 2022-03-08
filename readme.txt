@@ -1,5 +1,5 @@
 === Spam protection, AntiSpam, FireWall by CleanTalk ===
-Contributors: safronik
+Contributors: glomberg, safronik
 Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 3.0
 Tested up to: 5.9
@@ -36,6 +36,9 @@ No CAPTCHA, no questions, no animal counting, no puzzles, no math and no spam bo
 20. Spam FireWall: Anti-Crawler
 21. Hide «Website» field for comments
 
+= Free trial then $8 per year =
+CleanTalk is an anti-spam plugin which works with the premium Cloud Anti-Spam service cleantalk.org. This plugin as a service <a href="https://developer.wordpress.org/plugins/wordpress-org/detailed-plugin-guidelines/#6-software-as-a-service-is-permitted">https://developer.wordpress.org/plugins/wordpress-org/detailed-plugin-guidelines/#6-software-as-a-service-is-permitted</a>
+
 = Public reviews =
 > CleanTalk - Cloud-Based Anti-Spam Service to Keep Your Site Bot-Free.
 > <a href="https://newswatchtv.com/2018/07/18/cleantalk-newswatch-review/" target="_blank">NewsWatch Review</a>.
@@ -48,9 +51,6 @@ No CAPTCHA, no questions, no animal counting, no puzzles, no math and no spam bo
 
 > The key selling point of CleanTalk for me is not simply its effectiveness. It's the fact that CleanTalk works in the background. It does not make users jump through hoops in order to submit a comment or complete a form.
 > <a href="https://www.kevinmuldoon.com/cleantalk-anti-spam-service/">www.kevinmuldoon.com</a>
-
-= Free trial then $8 per year =
-CleanTalk is a free anti spam plugin which work with the premium Cloud AntiSpam service cleantalk.org. This plugin as a service https://en.wikipedia.org/wiki/Software_as_a_service.
 
 = AntiSpam protection for comments =
 Native spam protection for WordPress, JetPack comments and any other comment plugins. The plugin moves spam comments to SPAM folder or you can set the option to ban spam comments silently. You can also enable the option in the plugin settings to auto-delete comments from SPAM folder.
@@ -73,6 +73,7 @@ Plugin extends spam protection for Formidable Form Builder. It filters spam subm
 
 = Contact Form 7 spam filter =
 Plugin extends spam protection for Contact Form 7 (CF7). It can be used with any other third-party spam filters.
+<a href="https://blog.cleantalk.org/how-to-protect-your-contactform7-contact-form-using-cleantalk-anti-spam-plugin/">How to protect your Contact Form 7 using CleanTalk Anti-Spam plugin</a>
 
 = Ninja forms contact form spam filter =
 
