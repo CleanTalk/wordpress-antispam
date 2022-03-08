@@ -236,6 +236,7 @@
 
 				//Exclusion for forms
 				if (
+					+ctPublic.data__visible_fields_required === 0 ||
 					form.method.toString().toLowerCase() === 'get' ||
 					form.classList.contains('slp_search_form') || //StoreLocatorPlus form
 					form.parentElement.classList.contains('mec-booking') ||
