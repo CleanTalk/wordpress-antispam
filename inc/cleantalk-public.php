@@ -179,6 +179,12 @@ function apbct_init()
 
     // Contact Form7
     if ( defined('WPCF7_VERSION') ) {
+        add_filter('wpcf7_posted_data',function ($posted_data) {
+            if ( isset($posted_data['apbct_visible_fields']) ) {
+                unset($posted_data['apbct_visible_fields']);
+            }
+            return $posted_data;
+        });
         add_filter('wpcf7_form_elements', 'apbct_form__contactForm7__addField');
         add_filter('wpcf7_validate', 'apbct_form__contactForm7__tesSpam__before_validate', 999, 2);
         $hook    = WPCF7_VERSION >= '3.0.0' ? 'wpcf7_spam' : 'wpcf7_acceptance';
