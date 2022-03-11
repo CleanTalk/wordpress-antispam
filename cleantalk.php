@@ -214,9 +214,6 @@ if ( $apbct->settings && $apbct->key_is_ok ) {
 //Delete cookie for admin trial notice
 add_action('wp_logout', 'apbct__hook__wp_logout__delete_trial_notice_cookie');
 
-// Formidable Forms Pro Ajax Test Spam
-add_filter('frm_validate_entry', 'apbct_form__formidable__testSpam', 1, 2);
-
 // Set cookie only for public pages and for non-AJAX requests
 if ( ! is_admin() && ! apbct_is_ajax() && ! defined('DOING_CRON')
      && empty($_POST['ct_checkjs_register_form']) // Buddy press registration fix
@@ -392,6 +389,10 @@ add_action('wpforms_frontend_output', 'apbct_form__WPForms__addField', 1000, 5);
 add_filter('wpforms_process_before_filter', 'apbct_from__WPForms__gatherData', 100, 2);
 // Do spam check
 add_filter('wpforms_process_initial_errors', 'apbct_form__WPForms__showResponse', 100, 2);
+
+// Formidable
+add_filter('frm_entries_before_create', 'apbct_form__formidable__testSpam', 999999, 2);
+add_action('frm_entries_footer_scripts', 'apbct_form__formidable__footerScripts', 20, 2);
 
 // Public actions
 if ( ! is_admin() && ! apbct_is_ajax() && ! apbct_is_customize_preview() ) {

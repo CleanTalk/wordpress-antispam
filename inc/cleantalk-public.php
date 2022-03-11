@@ -192,9 +192,6 @@ function apbct_init()
         add_filter($hook, 'apbct_form__contactForm7__testSpam', 9999, $num_arg);
     }
 
-    // Formidable
-    add_action('frm_entries_footer_scripts', 'apbct_form__formidable__footerScripts', 20, 2);
-
     // BuddyPress
     if ( class_exists('BuddyPress') ) {
         add_action('bp_before_registration_submit_buttons', 'ct_register_form', 1);
