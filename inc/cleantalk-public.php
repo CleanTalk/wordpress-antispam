@@ -179,7 +179,7 @@ function apbct_init()
 
     // Contact Form7
     if ( defined('WPCF7_VERSION') ) {
-        add_filter('wpcf7_posted_data',function ($posted_data) {
+        add_filter('wpcf7_posted_data', function ($posted_data) {
             if ( isset($posted_data['apbct_visible_fields']) ) {
                 unset($posted_data['apbct_visible_fields']);
             }
