@@ -24,7 +24,7 @@ class UsersScan extends Users
             'per_page'    => $per_page,
         ));
 
-        $current_page = (int)$this->get_pagenum();
+        $current_page = $this->get_pagenum();
 
         $scanned_users_to_show = array_slice(
             $scanned_users->get_results(),

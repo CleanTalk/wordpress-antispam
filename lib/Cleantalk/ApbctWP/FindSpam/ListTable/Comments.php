@@ -128,17 +128,17 @@ class Comments extends \Cleantalk\ApbctWP\CleantalkListTable
         $actions = array(
             'approve' => sprintf(
                 '<span class="approve"><a href="?page=%s&action=%s&spam=%s">Approve</a></span>',
-                $_REQUEST['page'],
+                addslashes($_GET['page']),
                 'approve',
                 $id
             ),
             'spam'    => sprintf(
                 '<span class="spam"><a href="?page=%s&action=%s&spam=%s">Spam</a></span>',
-                $_REQUEST['page'],
+                addslashes($_GET['page']),
                 'spam',
                 $id
             ),
-            'trash'   => sprintf('<a href="?page=%s&action=%s&spam=%s">Trash</a>', $_REQUEST['page'], 'trash', $id),
+            'trash'   => sprintf('<a href="?page=%s&action=%s&spam=%s">Trash</a>', addslashes($_GET['page']), 'trash', $id),
         );
 
         return sprintf('%1$s %2$s', $column_content, $this->row_actions($actions));
