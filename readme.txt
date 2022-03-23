@@ -595,6 +595,15 @@ If your website has forms that send data to external sources, you can enable opt
 
 == Changelog ==
 
+= 5.174 Mar 24 2022 =
+#### Minor issues fixed.
+* Fix. URLs storing fixed.
+* Fix. Visible fields. Do not add hidden field for logged-in users if the protection was deactivated.
+* Fix. Integration. CF7 native spam protection fixed.
+* Fix. Integration. Formidable integration fixed.
+* Fix. Integration. Skipping elementor pro action fixed.
+* Fix. Scanners. Users and comments scanners fixed.
+
 = 5.173 Mar 03 2022 =
 #### Honeypot field implemented for improving antispam protection, new integrations added, performance improved and minor issues fixed.
 * New. Honeypot field for the registration form.
