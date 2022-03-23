@@ -140,13 +140,13 @@ class CommentsChecker extends Checker
 
         $offset = $_COOKIE['apbct_check_comments_offset'] ?: 0;
 
-        $c = $wpdb->get_results(
-            "SELECT comment_ID, comment_date_gmt, comment_author_IP, comment_author_email
+        $query = "SELECT comment_ID, comment_date_gmt, comment_author_IP, comment_author_email
                        FROM $wpdb->comments
                        $sql_where
                        ORDER BY comment_ID
-                       LIMIT 100 OFFSET $offset"
-        );
+                       LIMIT 100 OFFSET " . (int) $offset;
+
+        $c = $wpdb->get_results($query);
 
         $check_result = array(
             'end'     => 0,

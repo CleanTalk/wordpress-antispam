@@ -85,10 +85,10 @@ class BadUsers extends Users
                           . "</a>"
                         : '');
             } else {
-                $column_content .= esc_html__('No IP adress', 'cleantalk-spam-protect');
+                $column_content .= esc_html__('No IP address', 'cleantalk-spam-protect');
             }
         } else {
-            $column_content .= esc_html__('No IP adress', 'cleantalk-spam-protect');
+            $column_content .= esc_html__('No IP address', 'cleantalk-spam-protect');
         }
 
         return $column_content;
