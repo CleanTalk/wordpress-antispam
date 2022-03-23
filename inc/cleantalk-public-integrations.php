@@ -695,7 +695,7 @@ function apbct_form__formidable__footerScripts($_fields, $form)
  */
 function apbct_form__formidable__testSpam($errors, $_form)
 {
-    global $apbct;
+    global $apbct, $ct_comment;
 
     if ( ! $apbct->settings['forms__contact_forms_test'] ) {
         do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
@@ -764,6 +764,7 @@ function apbct_form__formidable__testSpam($errors, $_form)
     $ct_result        = $base_call_result['ct_result'];
 
     if ( $ct_result->allow == 0 ) {
+        $ct_comment = $ct_result->comment;
         if (apbct_is_ajax()) {
             // search for a suitable field
             $key_field = '113';

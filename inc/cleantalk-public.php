@@ -179,15 +179,18 @@ function apbct_init()
 
     // Contact Form7
     if ( defined('WPCF7_VERSION') ) {
+        add_filter('wpcf7_posted_data', function ($posted_data) {
+            if ( isset($posted_data['apbct_visible_fields']) ) {
+                unset($posted_data['apbct_visible_fields']);
+            }
+            return $posted_data;
+        });
         add_filter('wpcf7_form_elements', 'apbct_form__contactForm7__addField');
         add_filter('wpcf7_validate', 'apbct_form__contactForm7__tesSpam__before_validate', 999, 2);
         $hook    = WPCF7_VERSION >= '3.0.0' ? 'wpcf7_spam' : 'wpcf7_acceptance';
         $num_arg = WPCF7_VERSION >= '5.3.0' ? 2 : 1;
         add_filter($hook, 'apbct_form__contactForm7__testSpam', 9999, $num_arg);
     }
-
-    // Formidable
-    add_action('frm_entries_footer_scripts', 'apbct_form__formidable__footerScripts', 20, 2);
 
     // BuddyPress
     if ( class_exists('BuddyPress') ) {
@@ -1286,6 +1289,7 @@ function apbct_enqueue_and_localize_public_scripts()
         'pixel__url'                    => $apbct->pixel_url,
         'data__email_check_before_post' => $apbct->settings['data__email_check_before_post'],
         'data__cookies_type'            => $apbct->data['cookies_type'],
+        'data__visible_fields_required' => ! apbct_is_user_logged_in() || $apbct->settings['data__protect_logged_in'] == 1,
     ));
 }
 

@@ -135,7 +135,6 @@ $_cleantalk_hooked_actions[] = 'fusion_form_submit_form_to_database_email';
 // Elementor Pro page builder forms
 add_action('wp_ajax_elementor_pro_forms_send_form', 'apbct_form__elementor_pro__testSpam');
 add_action('wp_ajax_nopriv_elementor_pro_forms_send_form', 'apbct_form__elementor_pro__testSpam');
-$_cleantalk_hooked_actions[] = 'elementor_pro_forms_send_form';
 
 /**
  * AjaxLogin plugin handler
