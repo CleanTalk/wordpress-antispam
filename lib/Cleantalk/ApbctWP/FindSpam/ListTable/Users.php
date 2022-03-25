@@ -113,7 +113,7 @@ class Users extends \Cleantalk\ApbctWP\CleantalkListTable
         $actions = array(
             'delete' => sprintf(
                 '<a href="?page=%s&action=%s&spam=%s">Delete</a>',
-                addslashes($_GET['page']),
+                htmlspecialchars(addslashes($_GET['page'])),
                 'delete',
                 $user_obj->ID
             ),
