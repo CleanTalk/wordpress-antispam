@@ -595,7 +595,7 @@ If your website has forms that send data to external sources, you can enable opt
 
 == Changelog ==
 
-= 5.174 Mar 24 2022 =
+= 5.174 Mar 25 2022 =
 #### Minor issues fixed.
 * Fix. URLs storing fixed.
 * Fix. Visible fields. Do not add hidden field for logged-in users if the protection was deactivated.
