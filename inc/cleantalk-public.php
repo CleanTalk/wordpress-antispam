@@ -393,7 +393,7 @@ function apbct_buffer_modify_by_string()
             $action = count($group_action) > 0 ? $group_action[1] : $site_url;
 
             $action__host = parse_url($action, PHP_URL_HOST);
-            if ( $site__host != $action__host ) {
+            if ( $action__host !== null && $site__host != $action__host ) {
                 preg_match('/method="(\S*)"/', $match[0], $group_method);
                 $method = count($group_method) > 0 ? $group_method[1] : 'get';
 
@@ -433,7 +433,7 @@ function apbct_buffer_modify_by_dom()
         $action__host = parse_url($action, PHP_URL_HOST);
 
         // Check if the form directed to the third party site
-        if ( $site__host != $action__host ) {
+        if ( $action__host !== null && $site__host != $action__host ) {
             $method = $form->getAttribute('method');
             $method = $method ?: 'get';
             // Directs form to our site
