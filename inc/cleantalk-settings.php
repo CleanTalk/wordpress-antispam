@@ -2428,6 +2428,7 @@ function apbct_settings__get_key_auto($direct_call = false)
         $out = array(
             'success' => true,
             'reload'  => false,
+            'error' => isset($result['error_message']) ? $result['error_message'] : $result['error']
         );
     }
 
