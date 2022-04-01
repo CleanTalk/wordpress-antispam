@@ -18,15 +18,20 @@ class EventsManager extends IntegrationBase
 
     public function doBlock($message)
     {
-        if( Get::get('callback') ) {
+        if ( Get::get('callback') ) {
             $callback = htmlspecialchars(Get::get('callback'));
             $output = array(
                 'result' => false,
                 'message' => '',
                 'errors' => $message,
             );
-            die($callback . '(' . json_encode($output) .')');
+            die($callback . '(' . json_encode($output) . ')');
         }
         return false;
+    }
+
+    public function allow()
+    {
+        return true;
     }
 }
