@@ -112,6 +112,17 @@ function apbct_init()
         add_action('wp', 'ct_ajax_hook', 1);
     }
 
+    /** VFB_Pro integration */
+    if (
+        ! empty($_POST) &&
+        $apbct->settings['data__general_postdata_test'] == 1 &&
+        empty($_POST['ct_checkjs_cf7']) &&
+        apbct_is_plugin_active('vfb-pro/vfb-pro.php') &&
+        ! empty($_POST['_vfb-form-id'])
+    ) {
+        ct_contact_form_validate();
+    }
+
     //hook for Anonymous Post
     if ( $apbct->settings['data__general_postdata_test'] == 1 && empty($_POST['ct_checkjs_cf7']) ) {
         add_action('wp', 'ct_contact_form_validate_postdata', 1);
