@@ -917,6 +917,15 @@ function apbct_is_skip_request($ajax = false)
         }
     }
 
+    // Event Manager - there is the direct integration
+    if (
+        apbct_is_plugin_active('events-manager/events-manager.php') &&
+        Post::get('action') === 'booking_add' &&
+        wp_verify_nonce(Post::get('_wpnonce'), 'booking_add')
+    ) {
+        return 'Event Manager skip';
+    }
+
     return false;
 }
 
