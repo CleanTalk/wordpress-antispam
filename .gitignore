@@ -2,10 +2,9 @@ sync.ffs_db
 upload_new_asset*
 .7zignore
 node_modules
-package*
-gulpfile.js
 .idea
 /vendor/
 composer.lock
+package-lock.json
 checkstyle.xml
 /fw_files*
