@@ -1970,6 +1970,11 @@ function apbct_settings__field__draw($params = array())
 
         // Text type
         case 'text':
+            // Popup description
+            $popup = '';
+            if ( isset($params['long_description']) ) {
+                $popup = '<i setting="' . $params['name'] . '" class="apbct_settings-long_description---show apbct-icon-help-circled"></i>';
+            }
             echo '<input
 					type="text"
 					id="apbct_setting_' . $params['name'] . '"
@@ -1982,7 +1987,7 @@ function apbct_settings__field__draw($params = array())
                  . ' />'
                  . '&nbsp;'
                  . '<label for="apbct_setting_' . $params['name'] . '" class="apbct_setting-field_title--' . $params['type'] . '">'
-                 . $params['title']
+                 . $params['title'] . $popup
                  . '</label>';
             echo '<div class="apbct_settings-field_description">'
                  . $params['description']
