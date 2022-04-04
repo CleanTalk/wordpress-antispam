@@ -330,6 +330,10 @@ function apbct_exclusions_check($func = null)
 {
     global $apbct;
 
+    if ( isset($_POST['apbct_do_not_exclude']) ) {
+        return false;
+    }
+
     // Common exclusions
     if (
         apbct_exclusions_check__ip() ||
