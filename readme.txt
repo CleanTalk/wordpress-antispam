@@ -35,6 +35,7 @@ No CAPTCHA, no questions, no animal counting, no puzzles, no math and no spam bo
 19. Spam FireWall: Anti-Flood
 20. Spam FireWall: Anti-Crawler
 21. Hide «Website» field for comments
+22. Block messages by languages, countries, networks.
 
 = Free trial then $8 per year =
 CleanTalk is an anti-spam plugin which works with the premium Cloud Anti-Spam service cleantalk.org. This plugin as a service <a href="https://developer.wordpress.org/plugins/wordpress-org/detailed-plugin-guidelines/#6-software-as-a-service-is-permitted">https://developer.wordpress.org/plugins/wordpress-org/detailed-plugin-guidelines/#6-software-as-a-service-is-permitted</a>
