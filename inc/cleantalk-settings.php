@@ -2637,7 +2637,7 @@ function apbct_settings__get__long_description()
     );
 
     if ( ! empty($setting_id) ) {
-        $utm = '?utm_source=apbct_hint_' . $setting_id . '&utm_medium=WordPress&utm_campaign=ABPCT_Settings';
+        $utm = '?utm_source=apbct_hint_' . esc_attr($setting_id) . '&utm_medium=WordPress&utm_campaign=ABPCT_Settings';
         $descriptions[$setting_id]['desc'] = str_replace('{utm_mark}', $utm, $descriptions[$setting_id]['desc']);
     }
 
