@@ -2595,13 +2595,6 @@ function apbct_settings__get__long_description()
                 'cleantalk-spam-protect'
             )
         ),
-        'multisite__hoster_api_key' => array(
-            'title' => __('Hoster API key', 'cleantalk-spam-protect'),
-            'desc'  => __(
-                'You could find it here:<br><a href ="https://cleantalk-screenshots.s3.amazonaws.com/help/hosting-antispam/hapi-ru.png"><img src="https://cleantalk-screenshots.s3.amazonaws.com/help/hosting-antispam/hapi-ru.png"></a><br>Press on the screenshot to zoom.',
-                'cleantalk-spam-protect'
-            )
-        ),
         'data__set_cookies' => array(
             'title' => __('Cookies setting', 'cleantalk-spam-protect'),
             'desc'  => sprintf(
