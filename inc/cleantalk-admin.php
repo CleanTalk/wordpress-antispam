@@ -497,21 +497,6 @@ function apbct_admin__enqueue_scripts($hook)
 
     // SETTINGS's page JavaScript and CSS
     if ( $hook == 'settings_page_cleantalk' ) {
-        // jQueryUI
-        wp_enqueue_script(
-            'jqueryui',
-            plugins_url('/cleantalk-spam-protect/js/jquery-ui.min.js'),
-            array('jquery'),
-            '1.12.1'
-        );
-        wp_enqueue_style(
-            'jqueryui_css',
-            plugins_url('/cleantalk-spam-protect/css/jquery-ui.min.css'),
-            array(),
-            '1.21.1',
-            'all'
-        );
-
         wp_enqueue_script(
             'cleantalk_admin_js_settings_page',
             plugins_url('/cleantalk-spam-protect/js/cleantalk-admin-settings-page.min.js'),
