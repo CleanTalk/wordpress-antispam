@@ -52,7 +52,14 @@ function apbct_admin_sendAJAX(data, params, obj){
 			if(!notJson) result = JSON.parse(result);
 			if(result.error){
 				setTimeout(function(){ if(progressbar) progressbar.fadeOut('slow'); }, 1000);
-				alert('Error happens: ' + (result.error || 'Unkown'));
+				if( typeof cleantalkModal !== 'undefined' ) {
+					// Show the result by modal
+					cleantalkModal.loaded = 'Error:<br>' + result.error.toString();
+					cleantalkModal.open();
+				} else {
+					alert('Error happens: ' + (result.error || 'Unkown'));
+				}
+
 			}else{
 				if(callback) {
 					if (callback_params)

@@ -1970,6 +1970,11 @@ function apbct_settings__field__draw($params = array())
 
         // Text type
         case 'text':
+            // Popup description
+            $popup = '';
+            if ( isset($params['long_description']) ) {
+                $popup = '<i setting="' . $params['name'] . '" class="apbct_settings-long_description---show apbct-icon-help-circled"></i>';
+            }
             echo '<input
 					type="text"
 					id="apbct_setting_' . $params['name'] . '"
@@ -1982,7 +1987,7 @@ function apbct_settings__field__draw($params = array())
                  . ' />'
                  . '&nbsp;'
                  . '<label for="apbct_setting_' . $params['name'] . '" class="apbct_setting-field_title--' . $params['type'] . '">'
-                 . $params['title']
+                 . $params['title'] . $popup
                  . '</label>';
             echo '<div class="apbct_settings-field_description">'
                  . $params['description']
@@ -2428,6 +2433,7 @@ function apbct_settings__get_key_auto($direct_call = false)
         $out = array(
             'success' => true,
             'reload'  => false,
+            'error' => isset($result['error_message']) ? esc_html($result['error_message']) : esc_html($result['error'])
         );
     }
 
@@ -2586,13 +2592,6 @@ function apbct_settings__get__long_description()
                 . '<span>All blogs use one mutual key. They also share security logs, settings and personal lists with each other. Network administrator holds the key.</span>'
                 . '<h4>Individual accounts, individual Access keys</h4>'
                 . '<span>Each blog uses its own account and its own key. Separate security logs, settings, personal lists. Blog administrator can change the key on his own.</span>',
-                'cleantalk-spam-protect'
-            )
-        ),
-        'multisite__hoster_api_key' => array(
-            'title' => __('Hoster API key', 'cleantalk-spam-protect'),
-            'desc'  => __(
-                'You could find it here:<br><a href ="https://cleantalk-screenshots.s3.amazonaws.com/help/hosting-antispam/hapi-ru.png"><img src="https://cleantalk-screenshots.s3.amazonaws.com/help/hosting-antispam/hapi-ru.png"></a><br>Press on the screenshot to zoom.',
                 'cleantalk-spam-protect'
             )
         ),
