@@ -333,6 +333,11 @@ $apbct_active_integrations = array(
         'setting' => 'forms__contact_forms_test',
         'ajax'    => false
     ),
+    'PlansoFormBuilder' => array(
+        'hook'    => 'psfb_validate_form_request',
+        'setting' => 'forms__contact_forms_test',
+        'ajax'    => false
+    ),
 );
 new  \Cleantalk\Antispam\Integrations($apbct_active_integrations, (array)$apbct->settings);
 
