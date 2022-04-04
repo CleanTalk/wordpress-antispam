@@ -30,7 +30,7 @@ class UsersChecker extends Checker
         wp_enqueue_script(
             'ct_users_checkspam',
             plugins_url('/cleantalk-spam-protect/js/cleantalk-users-checkspam.min.js'),
-            array('jquery', 'jqueryui'),
+            array('jquery', 'jquery-ui-datepicker'),
             APBCT_VERSION
         );
         wp_localize_script('ct_users_checkspam', 'ctUsersCheck', array(
