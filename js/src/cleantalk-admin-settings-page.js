@@ -16,21 +16,6 @@ jQuery(document).ready(function(){
 
 	var d = new Date();
 	jQuery('#ct_admin_timezone').val(d.getTimezoneOffset()/60*(-1));
-	
-	// GDPR modal window
-	jQuery('#apbct_gdpr_open_modal').on('click', function(){
-		jQuery('#gdpr_dialog').dialog({
-			modal:true, 
-			show: true,
-			position: { my: "center", at: "center", of: window },
-			width: +(jQuery('#wpbody').width() / 100 * 70), // 70% of #wpbody
-			height: 'auto',
-			title: 'GDPR compliance',
-			draggable: false,
-			resizable: false,
-			closeText: "Close",
-		});
-	});
 
 	// Key KEY automatically
 	jQuery('#apbct_button__get_key_auto').on('click', function(){
