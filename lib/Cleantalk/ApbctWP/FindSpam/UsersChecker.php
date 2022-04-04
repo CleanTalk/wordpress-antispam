@@ -2,9 +2,6 @@
 
 namespace Cleantalk\ApbctWP\FindSpam;
 
-use Cleantalk\ApbctWP\Variables\Cookie;
-use Cleantalk\Variables\Post;
-
 class UsersChecker extends Checker
 {
     public function __construct()
@@ -17,8 +14,8 @@ class UsersChecker extends Checker
 
         // Preparing data
         $current_user = wp_get_current_user();
-        if ( ! empty(Cookie::get('ct_paused_users_check')) ) {
-            $prev_check = json_decode(stripslashes(Cookie::get('ct_paused_users_check')), true);
+        if ( ! empty($_COOKIE['ct_paused_users_check']) ) {
+            $prev_check = json_decode(stripslashes($_COOKIE['ct_paused_users_check']), true);
             $prev_check_from = $prev_check_till = '';
             if (
                 ! empty($prev_check['from']) && ! empty($prev_check['till']) &&
@@ -32,8 +29,8 @@ class UsersChecker extends Checker
 
         wp_enqueue_script(
             'ct_users_checkspam',
-            APBCT_JS_ASSETS_PATH . '/cleantalk-users-checkspam.min.js',
-            array('jquery', 'jquery-ui-datepicker'),
+            plugins_url('/cleantalk-spam-protect/js/src/cleantalk-users-checkspam.js'),
+            array('jquery', 'jqueryui'),
             APBCT_VERSION
         );
         wp_localize_script('ct_users_checkspam', 'ctUsersCheck', array(
@@ -67,7 +64,7 @@ class UsersChecker extends Checker
 
         wp_enqueue_style(
             'cleantalk_admin_css_settings_page',
-            APBCT_JS_ASSETS_PATH . '/cleantalk-spam-check.min.css',
+            plugins_url() . '/cleantalk-spam-protect/css/cleantalk-spam-check.min.css',
             array(),
             APBCT_VERSION,
             'all'
@@ -197,8 +194,8 @@ class UsersChecker extends Checker
             $wc_active = true;
         }
 
-        $amount = ! empty(Post::get('amount'))
-            ? (int) Post::get('amount')
+        $amount = ! empty($_POST['amount']) && intval($_POST['amount'])
+            ? (int)$_POST['amount']
             : 100;
 
         $skip_roles = array(
@@ -207,16 +204,16 @@ class UsersChecker extends Checker
 
         $from_till = '';
 
-        if ( Post::get('from') && Post::get('till') ) {
-            $from_date = date('Y-m-d', intval(strtotime(Post::get('from')))) . ' 00:00:00';
-            $till_date = date('Y-m-d', intval(strtotime(Post::get('till')))) . ' 23:59:59';
+        if ( isset($_POST['from'], $_POST['till']) ) {
+            $from_date = date('Y-m-d', intval(strtotime($_POST['from']))) . ' 00:00:00';
+            $till_date = date('Y-m-d', intval(strtotime($_POST['till']))) . ' 23:59:59';
 
             $from_till = " AND $wpdb->users.user_registered >= '$from_date' AND $wpdb->users.user_registered <= '$till_date'";
         }
 
         $wc_orders = '';
 
-        if ( $wc_active && ! empty(Post::get('accurate_check')) ) {
+        if ( $wc_active && ! empty($_POST['accurate_check']) ) {
             $wc_orders = " AND NOT EXISTS (SELECT posts.* FROM {$wpdb->posts} AS posts INNER JOIN {$wpdb->postmeta} AS postmeta WHERE posts.post_type = 'shop_order' AND posts.post_status = 'wc-completed' AND posts.ID = postmeta.post_id AND postmeta.meta_key = '_customer_user' AND postmeta.meta_value = {$wpdb->users}.ID)";
         }
 
@@ -243,7 +240,7 @@ class UsersChecker extends Checker
         );
 
         if ( count($u) > 0 ) {
-            if ( ! empty(Post::get('accurate_check')) ) {
+            if ( ! empty($_POST['accurate_check']) ) {
                 // Leaving users only with first comment's date. Unsetting others.
                 foreach ( $u as $user_index => $user ) {
                     if ( ! isset($curr_date) ) {
@@ -297,7 +294,7 @@ class UsersChecker extends Checker
 
             // Drop if data empty and there's no users to check
             if ( count($data) === 0 ) {
-                if ( (int) Post::get('unchecked') === 0 ) {
+                if ( $_POST['unchecked'] === 0 ) {
                     $check_result['end'] = 1;
                 }
                 print json_encode($check_result);
@@ -307,7 +304,7 @@ class UsersChecker extends Checker
             $result = \Cleantalk\ApbctWP\API::methodSpamCheckCms(
                 $apbct->api_key,
                 $data,
-                ! empty(Post::get('accurate_check')) ? $curr_date : null
+                ! empty($_POST['accurate_check']) ? $curr_date : null
             );
 
             if ( empty($result['error']) ) {
@@ -378,13 +375,13 @@ class UsersChecker extends Checker
         global $wpdb;
         $wpdb->query("DELETE FROM {$wpdb->usermeta} WHERE meta_key IN ('ct_checked_now')");
 
-        if ( Post::get('from') && Post::get('till') ) {
+        if ( isset($_POST['from']) && isset($_POST['till']) ) {
             if (
-                preg_match('/^[a-zA-Z]{3}\s{1}\d{1,2}\s{1}\d{4}$/', Post::get('from')) &&
-                preg_match('/^[a-zA-Z]{3}\s{1}\d{1,2}\s{1}\d{4}$/', Post::get('till'))
+                preg_match('/^[a-zA-Z]{3}\s{1}\d{1,2}\s{1}\d{4}$/', $_POST['from']) &&
+                preg_match('/^[a-zA-Z]{3}\s{1}\d{1,2}\s{1}\d{4}$/', $_POST['till'])
             ) {
-                $from = date('Y-m-d', intval(strtotime(Post::get('from')))) . ' 00:00:00';
-                $till = date('Y-m-d', intval(strtotime(Post::get('till')))) . ' 23:59:59';
+                $from = date('Y-m-d', intval(strtotime($_POST['from']))) . ' 00:00:00';
+                $till = date('Y-m-d', intval(strtotime($_POST['till']))) . ' 23:59:59';
 
                 $wpdb->query(
                     "DELETE FROM {$wpdb->usermeta} WHERE 
@@ -583,7 +580,7 @@ class UsersChecker extends Checker
             $text .= PHP_EOL;
         }
 
-        $filename = ! empty(Post::get('filename')) ? Post::get('filename') : false;
+        $filename = ! empty($_POST['filename']) ? $_POST['filename'] : false;
 
         if ( $filename !== false ) {
             header('Content-Type: text/csv');
@@ -601,7 +598,7 @@ class UsersChecker extends Checker
         global $wpdb;
 
         //* TEST DELETION
-        if ( ! empty(Post::get('delete')) ) {
+        if ( ! empty($_POST['delete']) ) {
             $users            = get_users(array('search' => 'user_*', 'search_columns' => array('login', 'nicename')));
             $deleted          = 0;
             $amount_to_delete = 1000;
