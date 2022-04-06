@@ -54,7 +54,7 @@ class State extends \Cleantalk\Common\State
         'forms__wc_add_to_cart'                    => 0,
         // Woocommerce add to cart
         'forms__search_test'                       => 1,
-        // Test default Wordpress form
+        // Test default WordPress form
         'forms__check_external'                    => 0,
         'forms__check_external__capture_buffer'    => 0,
         'forms__check_internal'                    => 0,
@@ -123,7 +123,7 @@ class State extends \Cleantalk\Common\State
 
         // WordPress
         'wp__use_builtin_http_api'                 => 1,
-        // Using Wordpress HTTP built in API
+        // Using WordPress HTTP built in API
         'wp__comment_notify'                       => 1,
         'wp__comment_notify__roles'                => array('administrator'),
         'wp__dashboard_widget__show'               => 1,

@@ -192,7 +192,7 @@ function apbct_settings__set_fileds()
                     ),
                 ),
                 'forms__search_test'                    => array(
-                    'title'       => __('Test default Wordpress search form for spam', 'cleantalk-spam-protect'),
+                    'title'       => __('Test default WordPress search form for spam', 'cleantalk-spam-protect'),
                     'description' =>
                         __('Spam protection for Search form.', 'cleantalk-spam-protect')
                         . (! $apbct->white_label || is_main_site() ?
@@ -461,7 +461,7 @@ function apbct_settings__set_fileds()
                     ),
                 ),
                 'wp__use_builtin_http_api'             => array(
-                    'title'       => __("Use Wordpress HTTP API", 'cleantalk-spam-protect'),
+                    'title'       => __("Use WordPress HTTP API", 'cleantalk-spam-protect'),
                     'description' => __(
                         'Alternative way to connect the Cloud. Use this if you have connection problems.',
                         'cleantalk-spam-protect'
@@ -739,7 +739,7 @@ function apbct_settings__set_fileds()
                     ),
                     'description' => sprintf(
                         __(
-                            "If enabled, overrides similar Wordpress %sdiscussion settings%s.",
+                            "If enabled, overrides similar WordPress %sdiscussion settings%s.",
                             'cleantalk-spam-protect'
                         ),
                         '<a href="options-discussion.php">',
@@ -813,7 +813,7 @@ function apbct_settings__set_fileds__network($fields)
                             'children_enable' => 0,
                         ),
                     ),
-                    'title'            => __('Wordpress Multisite Work Mode', 'cleantalk-spam-protect'),
+                    'title'            => __('WordPress Multisite Work Mode', 'cleantalk-spam-protect'),
                     'description'      => __(
                         'You can choose the work mode here for the child blogs and how they will operate with the CleanTalk Cloud. Press "?" for the detailed description.',
                         'cleantalk-spam-protect'
@@ -1042,7 +1042,7 @@ function apbct_settings__display()
 
         echo __('CleanTalk\'s tech support:', 'cleantalk-spam-protect')
             . '&nbsp;'
-            . '<a target="_blank" href="https://wordpress.org/support/plugin/cleantalk-spam-protect">Wordpress.org</a>.'
+            . '<a target="_blank" href="https://wordpress.org/support/plugin/cleantalk-spam-protect">WordPress.org</a>.'
             . '<br>';
         echo __('Plugin Homepage at', 'cleantalk-spam-protect') .
              ' <a href="https://cleantalk.org" target="_blank">cleantalk.org</a>.<br/>';
@@ -1813,7 +1813,7 @@ function apbct_get_all_child_domains($except_main_site = false)
 }
 
 /**
- * Get all current Wordpress roles
+ * Get all current WordPress roles
  *
  * @return array
  */

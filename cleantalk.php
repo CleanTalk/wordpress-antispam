@@ -80,7 +80,7 @@ define('APBCT_SETTINGS', 'cleantalk_settings');         //Option name with plugi
 define('APBCT_NETWORK_SETTINGS', 'cleantalk_network_settings'); //Option name with plugin network settings.
 define('APBCT_DEBUG', 'cleantalk_debug');            //Option name with a debug data. Empty by default.
 
-// Multisite
+// WordPress Multisite
 define('APBCT_WPMS', (is_multisite() ? true : false)); // WMPS is enabled
 
 // Different params
@@ -613,7 +613,7 @@ if ( is_admin() || is_network_admin() ) {
     add_filter('registration_errors', 'ct_check_registration_erros', 999999, 3);
     add_action('user_register', 'apbct_user_register');
 
-    // Multisite registrations
+    // WordPress Multisite registrations
     add_action('signup_extra_fields', 'ct_register_form');
     add_filter('wpmu_validate_user_signup', 'ct_registration_errors_wpmu', 10, 3);
 
@@ -1694,7 +1694,7 @@ function apbct_antiflood__clear_table()
 }
 
 /**
- * Install plugin from wordpress catalog
+ * Install plugin from WordPress catalog
  *
  * @param null|WP $_wp
  * @param null|string|array $plugin
@@ -1790,7 +1790,7 @@ function apbct_rc__activate_plugin($plugin)
 }
 
 /**
- * Uninstall plugin from wordpress catalog
+ * Uninstall plugin from WordPress catalog
  *
  * @param null $plugin
  */
@@ -1836,7 +1836,7 @@ function apbct_rc__deactivate_plugin($plugin = null)
 
 
 /**
- * Uninstall plugin from wordpress. Delete files.
+ * Uninstall plugin from WordPress. Delete files.
  *
  * @param null $plugin
  */
@@ -2134,7 +2134,7 @@ function apbct_rc__insert_auth_key($key, $plugin)
 }
 
 /**
- * Putting Wordpress to maintenance mode.
+ * Putting WordPress to maintenance mode.
  * For given duration in seconds
  *
  * @param $duration

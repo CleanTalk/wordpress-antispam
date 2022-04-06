@@ -701,7 +701,7 @@ function apbct_comment__Wordpress__changeMailNotificationRecipients($emails, $_c
 }
 
 /**
- * Changes email notification for spam comment for native Wordpress comment system
+ * Changes email notification for spam comment for native WordPress comment system
  *
  * @param string $notify_message Body of email notification
  * @param $_comment_id
