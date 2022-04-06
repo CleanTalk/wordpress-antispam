@@ -56,7 +56,7 @@ function apbct_add_buttons_to_comments_and_users($_unused_argument)
 
     echo '
     <a href="' . $button_url__check . '" class="button" style="margin:1px 0 0 0; display: inline-block;">
-        <img src="' . $apbct->logo__small__colored . '" alt="Cleantalk Antispam logo"  height="" style="width: 17px; vertical-align: text-bottom;" />
+        <img src="' . $apbct->logo__small__colored . '" alt="CleanTalk Anti-Spam logo"  height="" style="width: 17px; vertical-align: text-bottom;" />
         ' . sprintf(__('Find spam %s', 'cleantalk-spam-protect'), $button_description) . '
     </a>
     ';
@@ -353,7 +353,7 @@ function apbct_admin__plugin_action_links($links, $_file)
 function apbct_admin__register_plugin_links($links, $file, $plugin_data)
 {
     global $apbct;
-    $plugin_name = $plugin_data['Name'] ?: 'Antispam by Cleantalk';
+    $plugin_name = $plugin_data['Name'] ?: 'Anti-Spam by Cleantalk';
 
     //Return if it's not our plugin
     if ( $file != $apbct->base_name ) {
@@ -511,7 +511,7 @@ function apbct_admin__enqueue_scripts($hook)
         );
 
         wp_localize_script('cleantalk_admin_js_settings_page', 'ctSettingsPage', array(
-            'ct_subtitle' => $apbct->ip_license ? __('Hosting AntiSpam', 'cleantalk-spam-protect') : '',
+            'ct_subtitle' => $apbct->ip_license ? __('Hosting Anti-Spam', 'cleantalk-spam-protect') : '',
             'ip_license'  => $apbct->ip_license ? true : false,
             'key_changed' => ! empty($apbct->data['key_changed']) ? true : false,
         ));
@@ -647,7 +647,7 @@ function apbct_admin__admin_bar__add_structure($wp_admin_bar)
                     . '</div>',
     ));
 
-    // Antispam
+    // Anti-Spam
     // Install link
     if ( ! $spbc ) {
         $spbc_title = '<a>' . __('Security', 'security-malware-firewall') . '</a>';

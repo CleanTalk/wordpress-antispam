@@ -150,7 +150,7 @@ class CleantalkResponse
         $this->codes          = isset($obj->codes) ? explode(' ', $obj->codes) : array();
 
         if ( $this->errno !== 0 && $this->errstr !== null && $this->comment === null ) {
-            $this->comment = '*** ' . $this->errstr . ' Antispam service cleantalk.org ***';
+            $this->comment = '*** ' . $this->errstr . ' Anti-Spam service cleantalk.org ***';
         }
     }
 }

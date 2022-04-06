@@ -5,7 +5,7 @@ namespace Cleantalk\Common;
 /**
  * CleanTalk Cron class
  *
- * @package Antispam by CleanTalk
+ * @package Anti-Spam by CleanTalk
  * @Version 2.1.1
  * @author Cleantalk team (welcome@cleantalk.org)
  * @copyright (C) 2014 CleanTalk team (http://cleantalk.org)

@@ -5,7 +5,7 @@ namespace Cleantalk\ApbctWP;
 use ArrayObject;
 
 /**
- * CleanTalk Antispam State class
+ * CleanTalk Anti-Spam State class
  *
  * @package Antiospam Plugin by CleanTalk
  * @subpackage State
@@ -46,7 +46,7 @@ class State extends \Cleantalk\Common\State
         'forms__comments_test'                     => 1,
         'forms__contact_forms_test'                => 1,
         'forms__general_contact_forms_test'        => 1,
-        // Antispam test for unsupported and untested contact forms
+        // Anti-Spam test for unsupported and untested contact forms
         'forms__wc_checkout_test'                  => 1,
         // WooCommerce checkout default test
         'forms__wc_register_from_order'            => 1,
@@ -143,7 +143,7 @@ class State extends \Cleantalk\Common\State
         'ajax_type'                      => false, // Ajax type
         'cookies_type'                   => 'native', // Native / Alternative / None
 
-        // Antispam
+        // Anti-Spam
         'spam_store_days'                => 15, // Days before delete comments from folder Spam
         'relevance_test'                 => 0, // Test comment for relevance
         'notice_api_errors'              => 0, // Send API error notices to WP admin
