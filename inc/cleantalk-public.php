@@ -1186,7 +1186,7 @@ function ct_enqueue_scripts_public($_hook)
     if ( $apbct->settings['forms__check_external'] ) {
         wp_enqueue_script(
             'ct_external',
-            plugins_url('/cleantalk-spam-protect/js/cleantalk_external.min.js'),
+            APBCT_JS_ASSETS_PATH . '/cleantalk_external.min.js',
             array('jquery'),
             APBCT_VERSION,
             false /*in header*/
@@ -1197,7 +1197,7 @@ function ct_enqueue_scripts_public($_hook)
     if ( $apbct->settings['forms__check_internal'] ) {
         wp_enqueue_script(
             'ct_internal',
-            plugins_url('/cleantalk-spam-protect/js/cleantalk_internal.min.js'),
+            APBCT_JS_ASSETS_PATH . '/cleantalk_internal.min.js',
             array('jquery'),
             APBCT_VERSION,
             false /*in header*/
@@ -1211,14 +1211,14 @@ function ct_enqueue_scripts_public($_hook)
 
             wp_enqueue_style(
                 'ct_public_admin_css',
-                plugins_url('/cleantalk-spam-protect/css/cleantalk-public-admin.min.css'),
+                APBCT_CSS_ASSETS_PATH . '/cleantalk-public-admin.min.css',
                 array(),
                 APBCT_VERSION,
                 'all'
             );
             wp_enqueue_script(
                 'ct_public_admin_js',
-                plugins_url('/cleantalk-spam-protect/js/cleantalk-public-admin.min.js'),
+                APBCT_JS_ASSETS_PATH . '/cleantalk-public-admin.min.js',
                 array('jquery'),
                 APBCT_VERSION,
                 false /*in header*/
@@ -1246,7 +1246,7 @@ function ct_enqueue_scripts_public($_hook)
     if ( $apbct->settings['misc__debug_ajax'] ) {
         wp_enqueue_script(
             'ct_debug_js',
-            plugins_url('/cleantalk-spam-protect/js/cleantalk-debug-ajax.min.js'),
+            APBCT_JS_ASSETS_PATH . '/cleantalk-debug-ajax.min.js',
             array('jquery'),
             APBCT_VERSION,
             false /*in header*/
@@ -1278,7 +1278,7 @@ function apbct_enqueue_and_localize_public_scripts()
     );
     wp_enqueue_script(
         'cleantalk-modal',
-        plugins_url('/cleantalk-spam-protect/js/cleantalk-modal.min.js'),
+        APBCT_JS_ASSETS_PATH . '/cleantalk-modal.min.js',
         array(),
         APBCT_VERSION
     );
@@ -1340,16 +1340,14 @@ function ct_comments_output($curr_comment, $_param2, $wp_list_comments_args)
 
     echo "<p class='ct_comment_logo_title'>
 				" . __('by', 'cleantalk-spam-protect')
-         . " <a href='{$settings_link}' target='_blank'><img class='ct_comment_logo_img' src='" . plugins_url(
-         ) . "/cleantalk-spam-protect/inc/images/logo_color.png'></a>"
+         . " <a href='{$settings_link}' target='_blank'><img class='ct_comment_logo_img' src='" . APBCT_IMG_ASSETS_PATH . "/logo_color.png'></a>"
          . " <a href='{$settings_link}' target='_blank'>CleanTalk</a>"
          . "</p></div>";
     // Outputs email if exists
     if ( $email ) {
         echo "<a href='https://cleantalk.org/blacklists/$email' target='_blank' title='https://cleantalk.org/blacklists/$email'>"
              . "$email"
-             . "&nbsp;<img src='" . plugins_url(
-             ) . "/cleantalk-spam-protect/inc/images/new_window.gif' border='0' style='float:none; box-shadow: transparent 0 0 0 !important;'/>"
+             . "&nbsp;<img src='" . APBCT_IMG_ASSETS_PATH . "/new_window.gif' border='0' style='float:none; box-shadow: transparent 0 0 0 !important;'/>"
              . "</a>";
     } else {
         echo __('No email', 'cleantalk-spam-protect');
@@ -1360,8 +1358,7 @@ function ct_comments_output($curr_comment, $_param2, $wp_list_comments_args)
     if ( $ip ) {
         echo "<a href='https://cleantalk.org/blacklists/$ip' target='_blank' title='https://cleantalk.org/blacklists/$ip'>"
              . "$ip"
-             . "&nbsp;<img src='" . plugins_url(
-             ) . "/cleantalk-spam-protect/inc/images/new_window.gif' border='0' style='float:none; box-shadow: transparent 0 0 0 !important;'/>"
+             . "&nbsp;<img src='" . APBCT_IMG_ASSETS_PATH . "/new_window.gif' border='0' style='float:none; box-shadow: transparent 0 0 0 !important;'/>"
              . "</a>";
     } else {
         echo __('No IP', 'cleantalk-spam-protect');
