@@ -458,7 +458,7 @@ function apbct_update_to_5_138_0()
 
             switch_to_blog($blog);
 
-            // Getting key
+            // Getting Access key
             $settings = $net_settings['allow_custom_key']
                 ? get_option('cleantalk_settings')
                 : $main_blog_settings;

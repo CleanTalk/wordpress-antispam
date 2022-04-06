@@ -441,7 +441,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
      *
      * @param $db
      * @param $log_table
-     * @param string $ct_key API key
+     * @param string $ct_key Access key
      * @param bool $_use_delete_command Determs whether use DELETE or TRUNCATE to delete the logs table data
      *
      * @return array|bool array('error' => STRING)

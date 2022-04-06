@@ -189,7 +189,7 @@ class AdminNotices
             $link_html   = sprintf($renew_link, "<b>" . __('next year', 'cleantalk-spam-protect') . "</b>");
 
             $content            = sprintf(
-                __("Please renew your anti-spam license for %s.", 'cleantalk-spam-protect'),
+                __("Please renew your Anti-Spam license for %s.", 'cleantalk-spam-protect'),
                 $link_html
             );
             $additional_content =

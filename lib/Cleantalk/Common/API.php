@@ -49,7 +49,7 @@ class API
 
     /**
      * Wrapper for get_api_key API method.
-     * Gets access key automatically.
+     * Gets Access key automatically.
      *
      * @param string $product_name Type of product
      * @param string $email Website admin email
@@ -154,7 +154,7 @@ class API
      * Wrapper for notice_paid_till API method.
      * Gets information about renew notice.
      *
-     * @param string $api_key API key
+     * @param string $api_key Access key
      * @param string $path_to_cms Website URL
      * @param string $product_name
      * @param bool $do_check
@@ -244,7 +244,7 @@ class API
      * Wrapper for notice_paid_till API method.
      * Gets information about renew notice.
      *
-     * @param string $api_key API key
+     * @param string $api_key Access key
      * @param string $path_to_cms Website URL
      * @param string $product_name
      * @param bool $do_check

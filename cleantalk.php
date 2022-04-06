@@ -866,7 +866,7 @@ function apbct_sfw_update__init($delay = 0)
         return false;
     }
 
-    // Key is empty
+    // The Access key is empty
     if ( ! $apbct->api_key && ! $apbct->ip_license ) {
         return array('error' => 'SFW UPDATE INIT: KEY_IS_EMPTY');
     }
@@ -1493,7 +1493,7 @@ function apbct_sfw_direct_update()
 
     $api_key = $apbct->api_key;
 
-    // Key is empty
+    // The Access key is empty
     if ( empty($api_key) ) {
         return array('error' => 'SFW DIRECT UPDATE: KEY_IS_EMPTY');
     }
@@ -2107,7 +2107,7 @@ function apbct_rc__insert_auth_key($key, $plugin)
                         $data['key_is_ok']        = true;
                         update_option('spbc_data', $data);
 
-                        // Set key
+                        // Set Access key
                         $settings             = get_option('spbc_settings', array());
                         $settings['spbc_key'] = $key;
                         update_option('spbc_settings', $settings);

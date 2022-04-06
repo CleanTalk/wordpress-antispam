@@ -110,7 +110,7 @@ function ct_dashboard_statistics_widget_output($_post, $_callback_args)
         <input type='hidden' name='ct_brief_refresh' value='1'>
     </form>
     <h4 class='ct_widget_block_header' style='margin-left: 12px;'><?php
-        _e('7 days anti-spam stats', 'cleantalk-spam-protect'); ?></h4>
+        _e('7 days Anti-Spam stats', 'cleantalk-spam-protect'); ?></h4>
     <div class='ct_widget_block ct_widget_chart_wrapper'>
         <div id='ct_widget_chart'></div>
     </div>
@@ -276,7 +276,7 @@ function apbct_admin__init()
         cleantalk_get_brief_data($apbct->api_key);
     }
 
-    // Getting key like hoster. Only once!
+    // Getting Access key like a hoster. Only once!
     if (
             ! is_main_site() &&
             $apbct->white_label &&
