@@ -266,6 +266,7 @@ class UsersChecker extends Checker
 
                 if ( empty($curr_ip) && empty($curr_email) ) {
                     $check_result['bad']++;
+	                update_user_meta($iValue->ID, 'ct_bad', '1', true);
                     unset($u[$i]);
                 } else {
                     if ( ! empty($curr_ip) ) {
