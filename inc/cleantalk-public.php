@@ -714,7 +714,7 @@ function apbct_comment__Wordpress__changeMailNotification($notify_message, $_com
 
     return PHP_EOL
            . __('CleanTalk Anti-Spam: This message is possible spam.', 'cleantalk-spam-protect')
-           . "\n" . __('You could check it in CleanTalk\'s anti-spam database:', 'cleantalk-spam-protect')
+           . "\n" . __('You could check it in CleanTalk\'s Anti-Spam database:', 'cleantalk-spam-protect')
            . "\n" . 'IP: https://cleantalk.org/blacklists/' . $apbct->sender_ip
            . "\n" . 'Email: https://cleantalk.org/blacklists/' . $apbct->sender_email
            . "\n" . PHP_EOL . sprintf(
