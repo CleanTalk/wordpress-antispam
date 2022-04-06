@@ -308,7 +308,7 @@ function ct_contact_form_validate()
                 die();
                 // Enfold Theme Contact Form. Using $contact_form
             } elseif ( ! empty($contact_form) && $contact_form == 'contact_form_enfold_theme' ) {
-                echo "<div id='ajaxresponse_1' class='ajaxresponse ajaxresponse_1' style='display: block;'><div id='ajaxresponse_1' class='ajaxresponse ajaxresponse_1'><h3 class='avia-form-success'>Antispam by CleanTalk: " . $ct_result->comment . "</h3><a href='.'><-Back</a></div></div>";
+                echo "<div id='ajaxresponse_1' class='ajaxresponse ajaxresponse_1' style='display: block;'><div id='ajaxresponse_1' class='ajaxresponse ajaxresponse_1'><h3 class='avia-form-success'>Anti-Spam by CleanTalk: " . $ct_result->comment . "</h3><a href='.'><-Back</a></div></div>";
                 die();
             } else {
                 ct_die(null, null);

@@ -3,7 +3,7 @@
 namespace Cleantalk\ApbctWP;
 
 /**
- * Antispam by CleanTalk plugin
+ * Anti-Spam by CleanTalk plugin
  *
  * Class that extends the WP Core Plugin_Upgrader.
  *

@@ -1029,7 +1029,7 @@ function apbct_settings__display()
     // Subtitle for IP license
     if ( $apbct->moderate_ip ) {
         echo '<h4 class="apbct_settings-subtitle apbct_color--gray">' .
-            __('Hosting AntiSpam', 'cleantalk-spam-protect') . '</h4>';
+            __('Hosting Anti-Spam', 'cleantalk-spam-protect') . '</h4>';
     }
 
     echo '<form action="options.php" method="post">';

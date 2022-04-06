@@ -78,7 +78,7 @@ class Page
             if ( 1 == $this->spam_checker->getApbct()->moderate_ip ) {
                 echo '<h3>'
                     . sprintf(
-                        __('Antispam hosting tariff does not allow you to use this feature. To do so, you need to enter an Access Key in the %splugin settings%s.', 'cleantalk-spam-protect'),
+                        __('Anti-Spam hosting tariff does not allow you to use this feature. To do so, you need to enter an Access Key in the %splugin settings%s.', 'cleantalk-spam-protect'),
                         '<a href="' . ( is_network_admin() ? 'settings.php?page=cleantalk' : 'options-general.php?page=cleantalk' ) . '">',
                         '</a>'
                     )

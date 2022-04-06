@@ -5,7 +5,7 @@ namespace Cleantalk\Common;
 /**
  * CleanTalk Compatibility class.
  *
- * @package       PHP Antispam by CleanTalk
+ * @package       PHP Anti-Spam by CleanTalk
  * @subpackage    Compatibility
  * @Version       3.5
  * @author        Cleantalk team (welcome@cleantalk.org)
