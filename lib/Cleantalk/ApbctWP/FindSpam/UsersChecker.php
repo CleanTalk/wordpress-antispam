@@ -140,32 +140,25 @@ class UsersChecker extends Checker
      */
     public static function lastCheckDate()
     {
-        // Checked users
-        $params      = array(
-            'fields'      => 'ID',
-            'meta_key'    => 'ct_checked',
-            'count_total' => true,
-            'orderby'     => 'ct_checked'
-        );
-        $tmp         = new \WP_User_Query($params);
-        $cnt_checked = $tmp->get_total();
+    	global $wpdb;
 
-        if ( $cnt_checked > 0 ) {
-            // If we have checked users return last checking date
-            $users = $tmp->get_results();
+	    /**
+	     * We are trying to get the date of the last scan by actually 
+	     * requesting the start date. But unfortunately, the start date 
+	     * stores the end date. At least for the user scanner.
+	     */
+    	$sql = "SELECT `start_time`
+				FROM " . APBCT_SPAMSCAN_LOGS . "
+				WHERE `scan_type` = 'users'
+				ORDER BY start_time DESC LIMIT 1";
 
-            return date("M j Y", strtotime(get_user_meta(end($users), 'ct_checked', true)));
-        } else {
-            // If we have not any checked users return first user registered date
-            $params = array(
-                'fields'  => 'ID',
-                'number'  => 1,
-                'orderby' => 'user_registered'
-            );
-            $tmp    = new \WP_User_Query($params);
+    	$lastCheckDate = $wpdb->get_col($sql);
 
-            return self::getUserRegister(current($tmp->get_results()));
-        }
+    	if ($lastCheckDate) {
+    		return date('M j Y', strtotime($lastCheckDate[0]));
+	    }
+
+    	return date('M j Y');
     }
 
     /**
@@ -208,27 +201,29 @@ class UsersChecker extends Checker
             $from_date = date('Y-m-d', intval(strtotime($_POST['from']))) . ' 00:00:00';
             $till_date = date('Y-m-d', intval(strtotime($_POST['till']))) . ' 23:59:59';
 
-            $from_till = " AND $wpdb->users.user_registered >= '$from_date' AND $wpdb->users.user_registered <= '$till_date'";
+            $from_till = "WHERE $wpdb->users.user_registered >= '$from_date' AND $wpdb->users.user_registered <= '$till_date'";
         }
 
         $wc_orders = '';
 
         if ( $wc_active && ! empty($_POST['accurate_check']) ) {
-            $wc_orders = " AND NOT EXISTS (SELECT posts.* FROM {$wpdb->posts} AS posts INNER JOIN {$wpdb->postmeta} AS postmeta WHERE posts.post_type = 'shop_order' AND posts.post_status = 'wc-completed' AND posts.ID = postmeta.post_id AND postmeta.meta_key = '_customer_user' AND postmeta.meta_value = {$wpdb->users}.ID)";
+        	$sql_command = 'WHERE ';
+        	if ($from_till) {
+		        $sql_command = ' AND ';
+	        }
+            $wc_orders = $sql_command . "NOT EXISTS (SELECT posts.* FROM {$wpdb->posts} AS posts INNER JOIN {$wpdb->postmeta} AS postmeta WHERE posts.post_type = 'shop_order' AND posts.post_status = 'wc-completed' AND posts.ID = postmeta.post_id AND postmeta.meta_key = '_customer_user' AND postmeta.meta_value = {$wpdb->users}.ID)";
         }
+
+	    $offset = $_COOKIE['apbct_check_users_offset'] ?: 0;
 
         $u = $wpdb->get_results(
             "
 			SELECT {$wpdb->users}.ID, {$wpdb->users}.user_email, {$wpdb->users}.user_registered
 			FROM {$wpdb->users}
-			WHERE
-				NOT EXISTS(SELECT * FROM {$wpdb->usermeta} as meta WHERE {$wpdb->users}.ID = meta.user_id AND meta.meta_key = 'ct_bad') AND
-		        NOT EXISTS(SELECT * FROM {$wpdb->usermeta} as meta WHERE {$wpdb->users}.ID = meta.user_id AND meta.meta_key = 'ct_checked') AND
-		        NOT EXISTS(SELECT * FROM {$wpdb->usermeta} as meta WHERE {$wpdb->users}.ID = meta.user_id AND meta.meta_key = 'ct_checked_now')
 		        $wc_orders
 			    $from_till
-			ORDER BY {$wpdb->users}.user_registered ASC
-			LIMIT $amount;"
+			ORDER BY {$wpdb->users}.ID ASC
+			LIMIT $amount OFFSET $offset;"
         );
 
         $check_result = array(
@@ -271,9 +266,6 @@ class UsersChecker extends Checker
 
                 if ( empty($curr_ip) && empty($curr_email) ) {
                     $check_result['bad']++;
-                    update_user_meta($iValue->ID, 'ct_bad', '1', true);
-                    update_user_meta($iValue->ID, 'ct_checked', date("Y-m-d H:m:s"), true);
-                    update_user_meta($iValue->ID, 'ct_checked_now', '1', true);
                     unset($u[$i]);
                 } else {
                     if ( ! empty($curr_ip) ) {
@@ -288,6 +280,10 @@ class UsersChecker extends Checker
                     $iValue->user_email = empty($curr_email) ? 'none' : $curr_email;
                 }
             }
+
+	        // save count bad comments to State:data
+	        $apbct->data['count_bad_users'] += $check_result['bad'];
+	        $apbct->saveData();
 
             // Recombining after checking and unsetting
             $u = array_values($u);
@@ -310,8 +306,6 @@ class UsersChecker extends Checker
             if ( empty($result['error']) ) {
                 foreach ( $u as $iValue ) {
                     $check_result['checked']++;
-                    update_user_meta($iValue->ID, 'ct_checked', date("Y-m-d H:m:s"), true);
-                    update_user_meta($iValue->ID, 'ct_checked_now', date("Y-m-d H:m:s"), true);
 
                     // Do not display forbidden roles.
                     foreach ( $skip_roles as $role ) {
@@ -342,6 +336,11 @@ class UsersChecker extends Checker
                         update_user_meta($iValue->ID, 'ct_marked_as_spam', '1', true);
                     }
                 }
+
+	            // save count checked comments to State:data
+	            $apbct->data['count_checked_users'] += $check_result['checked'];
+	            $apbct->saveData();
+
             } else {
                 $check_result['error']         = 1;
                 $check_result['error_message'] = $result['error'];
@@ -372,34 +371,15 @@ class UsersChecker extends Checker
     {
         check_ajax_referer('ct_secret_nonce', 'security');
 
-        global $wpdb;
-        $wpdb->query("DELETE FROM {$wpdb->usermeta} WHERE meta_key IN ('ct_checked_now')");
+        global $wpdb, $apbct;
 
-        if ( isset($_POST['from']) && isset($_POST['till']) ) {
-            if (
-                preg_match('/^[a-zA-Z]{3}\s{1}\d{1,2}\s{1}\d{4}$/', $_POST['from']) &&
-                preg_match('/^[a-zA-Z]{3}\s{1}\d{1,2}\s{1}\d{4}$/', $_POST['till'])
-            ) {
-                $from = date('Y-m-d', intval(strtotime($_POST['from']))) . ' 00:00:00';
-                $till = date('Y-m-d', intval(strtotime($_POST['till']))) . ' 23:59:59';
+	    $apbct->data['count_checked_users'] = 0;
+	    $apbct->data['count_bad_users'] = 0;
+	    $apbct->saveData();
 
-                $wpdb->query(
-                    "DELETE FROM {$wpdb->usermeta} WHERE 
-                meta_key IN ('ct_checked','ct_marked_as_spam','ct_bad') 
-                AND meta_value >= '{$from}' 
-                AND meta_value <= '{$till}';"
-                );
-                die();
-            } else {
-                $wpdb->query(
-                    "DELETE FROM {$wpdb->usermeta} WHERE 
-                meta_key IN ('ct_checked','ct_marked_as_spam','ct_bad')"
-                );
-                die();
-            }
-        }
+	    $wpdb->query("DELETE FROM {$wpdb->usermeta} WHERE meta_key IN ('ct_marked_as_spam')");
 
-        die();
+	    die;
     }
 
     public static function ctAjaxInfo($direct_call = false)
@@ -408,39 +388,27 @@ class UsersChecker extends Checker
             check_ajax_referer('ct_secret_nonce', 'security');
         }
 
-        global $wpdb;
+        global $wpdb, $apbct;
 
         // Checked users
-        $cnt_checked = $wpdb->get_results(
-            "
-			SELECT COUNT(*) AS cnt
-			FROM {$wpdb->usermeta}
-			WHERE meta_key='ct_checked_now'"
-        )[0]->cnt;
+	    $cnt_checked = $apbct->data['count_checked_users'];
 
-        // Spam users
-        $cnt_spam = $wpdb->get_results(
-            "
-			SELECT COUNT({$wpdb->users}.ID) AS cnt
-			FROM {$wpdb->users}
-			INNER JOIN {$wpdb->usermeta} AS meta1 ON ( {$wpdb->users}.ID = meta1.user_id )
-			INNER JOIN {$wpdb->usermeta} AS meta2 ON ( {$wpdb->users}.ID = meta2.user_id )
-				WHERE
-					meta1.meta_key = 'ct_marked_as_spam' AND
-					meta2.meta_key = 'ct_checked_now';"
-        )[0]->cnt;
+	    // Spam comments
+	    $params_spam = array(
+		    'count_total'   => true,
+		    'meta_query' => array(
+			    'relation' => 'AND',
+			    array(
+				    'key'     => 'ct_marked_as_spam',
+				    'compare' => '=',
+				    'value'   => 1
+			    )
+		    ),
+	    );
+	    $cnt_spam = count(get_users($params_spam));
 
         // Bad users (without IP and Email)
-        $cnt_bad = $wpdb->get_results(
-            "
-			SELECT COUNT({$wpdb->users}.ID) AS cnt
-			FROM {$wpdb->users}
-			INNER JOIN {$wpdb->usermeta} AS meta1 ON ( {$wpdb->users}.ID = meta1.user_id )
-			INNER JOIN {$wpdb->usermeta} AS meta2 ON ( {$wpdb->users}.ID = meta2.user_id )
-				WHERE
-					meta1.meta_key = 'ct_bad' AND
-					meta2.meta_key = 'ct_checked_now';"
-        )[0]->cnt;
+	    $cnt_bad      = $apbct->data['count_bad_users'];
 
         $return = array(
             'message' => '',
@@ -503,39 +471,27 @@ class UsersChecker extends Checker
 
     private static function getLogData()
     {
-        global $wpdb;
-
         // Checked users
-        $cnt_checked = $wpdb->get_results(
-            "
-			SELECT COUNT(*) AS cnt
-			FROM {$wpdb->usermeta}
-			WHERE meta_key='ct_checked_now'"
-        )[0]->cnt;
+	    global $apbct;
 
-        // Spam users
-        $cnt_spam = $wpdb->get_results(
-            "
-			SELECT COUNT({$wpdb->users}.ID) AS cnt
-			FROM {$wpdb->users}
-			INNER JOIN {$wpdb->usermeta} AS meta1 ON ( {$wpdb->users}.ID = meta1.user_id )
-			INNER JOIN {$wpdb->usermeta} AS meta2 ON ( {$wpdb->users}.ID = meta2.user_id )
-				WHERE
-					meta1.meta_key = 'ct_marked_as_spam' AND
-					meta2.meta_key = 'ct_checked_now';"
-        )[0]->cnt;
+	    $cnt_checked = $apbct->data['count_checked_users'];
 
-        // Bad users (without IP and Email)
-        $cnt_bad = $wpdb->get_results(
-            "
-			SELECT COUNT({$wpdb->users}.ID) AS cnt
-			FROM {$wpdb->users}
-			INNER JOIN {$wpdb->usermeta} AS meta1 ON ( {$wpdb->users}.ID = meta1.user_id )
-			INNER JOIN {$wpdb->usermeta} AS meta2 ON ( {$wpdb->users}.ID = meta2.user_id )
-				WHERE
-					meta1.meta_key = 'ct_bad' AND
-					meta2.meta_key = 'ct_checked_now';"
-        )[0]->cnt;
+	    // Spam comments
+	    $params_spam = array(
+		    'count'   => true,
+		    'meta_query' => array(
+			    'relation' => 'AND',
+			    array(
+				    'key'     => 'ct_marked_as_spam',
+				    'compare' => '=',
+				    'value'   => 1
+			    )
+		    ),
+	    );
+	    $cnt_spam = get_users($params_spam);
+
+	    // Bad users (without IP and Email)
+	    $cnt_bad      = $apbct->data['count_bad_users'];
 
         return array(
             'spam'    => $cnt_spam,
@@ -558,9 +514,6 @@ class UsersChecker extends Checker
                 array(
                     'key'     => 'ct_marked_as_spam',
                     'compare' => '1'
-                ),
-                array(
-                    'key' => 'ct_checked_now'
                 ),
             ),
             'orderby'    => 'registered',
