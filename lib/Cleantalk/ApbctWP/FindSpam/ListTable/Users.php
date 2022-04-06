@@ -277,7 +277,14 @@ class Users extends \Cleantalk\ApbctWP\CleantalkListTable
 
     public function getBad()
     {
-	    return $this->apbct->data['count_bad_users'];
+	    // Without IP and EMAIL
+	    $params_bad = array(
+		    'fields'      => 'ID',
+		    'meta_key'    => 'ct_bad',
+		    'count_total' => true,
+	    );
+
+	    return new \WP_User_Query($params_bad);
     }
 
     public function getScansLogs()
