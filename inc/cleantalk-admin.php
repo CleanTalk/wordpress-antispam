@@ -92,8 +92,7 @@ function ct_dashboard_statistics_widget_output($_post, $_callback_args)
     echo "<div id='ct_widget_wrapper'>";
     ?>
     <div class='ct_widget_top_links'>
-        <img src="<?php
-        echo plugins_url('/cleantalk-spam-protect/inc/images/preloader.gif'); ?>" class='ct_preloader'>
+        <img src="<?php echo APBCT_IMG_ASSETS_PATH . '/preloader.gif'; ?>" class='ct_preloader'>
         <?php
         echo sprintf(
             __("%sRefresh%s", 'cleantalk-spam-protect'),
@@ -416,20 +415,20 @@ function apbct_admin__enqueue_scripts($hook)
     // Scripts to all admin pages
     wp_enqueue_script(
         'ct_admin_js_notices',
-        plugins_url('/cleantalk-spam-protect/js/cleantalk-admin.min.js'),
+        APBCT_JS_ASSETS_PATH . '/cleantalk-admin.min.js',
         array(),
         APBCT_VERSION
     );
     wp_enqueue_style(
         'ct_admin_css',
-        plugins_url('/cleantalk-spam-protect/css/cleantalk-admin.min.css'),
+        APBCT_CSS_ASSETS_PATH . '/cleantalk-admin.min.css',
         array(),
         APBCT_VERSION,
         'all'
     );
     wp_enqueue_style(
         'ct_icons',
-        plugins_url('/cleantalk-spam-protect/css/cleantalk-icons.min.css'),
+        APBCT_CSS_ASSETS_PATH . '/cleantalk-icons.min.css',
         array(),
         APBCT_VERSION,
         'all'
@@ -448,14 +447,14 @@ function apbct_admin__enqueue_scripts($hook)
     if ( $hook == 'index.php' && apbct_is_user_role_in(array('administrator')) ) {
         wp_enqueue_style(
             'ct_admin_css_widget_dashboard',
-            plugins_url('/cleantalk-spam-protect/css/cleantalk-dashboard-widget.min.css'),
+            APBCT_CSS_ASSETS_PATH . '/cleantalk-dashboard-widget.min.css',
             array(),
             APBCT_VERSION,
             'all'
         );
         wp_enqueue_style(
             'ct_icons',
-            plugins_url('/cleantalk-spam-protect/css/cleantalk-icons.min.css'),
+            APBCT_CSS_ASSETS_PATH . '/cleantalk-icons.min.css',
             array(),
             APBCT_VERSION,
             'all'
@@ -463,13 +462,13 @@ function apbct_admin__enqueue_scripts($hook)
 
         wp_enqueue_script(
             'ct_gstatic_charts_loader',
-            plugins_url('/cleantalk-spam-protect/js/cleantalk-dashboard-widget--google-charts.min.js'),
+            APBCT_JS_ASSETS_PATH . '/cleantalk-dashboard-widget--google-charts.min.js',
             array(),
             APBCT_VERSION
         );
         wp_enqueue_script(
             'ct_admin_js_widget_dashboard',
-            plugins_url('/cleantalk-spam-protect/js/cleantalk-dashboard-widget.min.js'),
+            APBCT_JS_ASSETS_PATH . '/cleantalk-dashboard-widget.min.js',
             array('ct_gstatic_charts_loader'),
             APBCT_VERSION
         );
@@ -499,13 +498,13 @@ function apbct_admin__enqueue_scripts($hook)
     if ( $hook == 'settings_page_cleantalk' ) {
         wp_enqueue_script(
             'cleantalk_admin_js_settings_page',
-            plugins_url('/cleantalk-spam-protect/js/cleantalk-admin-settings-page.min.js'),
+            APBCT_JS_ASSETS_PATH . '/cleantalk-admin-settings-page.min.js',
             array(),
             APBCT_VERSION
         );
         wp_enqueue_style(
             'cleantalk_admin_css_settings_page',
-            plugins_url('/cleantalk-spam-protect/css/cleantalk-admin-settings-page.min.css'),
+            APBCT_CSS_ASSETS_PATH . '/cleantalk-admin-settings-page.min.css',
             array(),
             APBCT_VERSION,
             'all'
@@ -519,7 +518,7 @@ function apbct_admin__enqueue_scripts($hook)
 
         wp_enqueue_script(
             'cleantalk-modal',
-            plugins_url('/cleantalk-spam-protect/js/cleantalk-modal.min.js'),
+            APBCT_JS_ASSETS_PATH . '/cleantalk-modal.min.js',
             array(),
             APBCT_VERSION
         );
@@ -529,7 +528,7 @@ function apbct_admin__enqueue_scripts($hook)
     if ( $hook == 'edit-comments.php' ) {
         wp_enqueue_script(
             'ct_comments_editscreen',
-            plugins_url('/cleantalk-spam-protect/js/cleantalk-comments-editscreen.min.js'),
+            APBCT_JS_ASSETS_PATH . '/cleantalk-comments-editscreen.min.js',
             array(),
             APBCT_VERSION
         );
@@ -553,14 +552,14 @@ function apbct_admin__enqueue_scripts($hook)
     if ( $hook == 'users.php' ) {
         wp_enqueue_style(
             'ct_icons',
-            plugins_url('/cleantalk-spam-protect/css/cleantalk-icons.min.css'),
+            APBCT_CSS_ASSETS_PATH . '/cleantalk-icons.min.css',
             array(),
             APBCT_VERSION,
             'all'
         );
         wp_enqueue_script(
             'ct_users_editscreen',
-            plugins_url('/cleantalk-spam-protect/js/cleantalk-users-editscreen.min.js'),
+            APBCT_JS_ASSETS_PATH . '/cleantalk-users-editscreen.min.js',
             array(),
             APBCT_VERSION
         );

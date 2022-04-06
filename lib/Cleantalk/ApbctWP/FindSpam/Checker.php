@@ -25,7 +25,7 @@ abstract class Checker
         wp_enqueue_script('jquery-ui-datepicker');
         wp_enqueue_style(
             'jqueryui_css',
-            plugins_url('/cleantalk-spam-protect/css/jquery-ui.min.css'),
+            APBCT_CSS_ASSETS_PATH . '/jquery-ui.min.css',
             array(),
             '1.21.1'
         );
@@ -33,7 +33,7 @@ abstract class Checker
         // Common CSS
         wp_enqueue_style(
             'cleantalk_admin_css_settings_page',
-            plugins_url('/cleantalk-spam-protect/css/cleantalk-spam-check.min.css'),
+            APBCT_CSS_ASSETS_PATH . '/cleantalk-spam-check.min.css',
             array(),
             APBCT_VERSION
         );

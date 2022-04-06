@@ -30,7 +30,7 @@ class CommentsChecker extends Checker
 
         wp_enqueue_script(
             'ct_comments_checkspam',
-            plugins_url('/cleantalk-spam-protect/js/cleantalk-comments-checkspam.min.js'),
+            APBCT_JS_ASSETS_PATH . '/cleantalk-comments-checkspam.min.js',
             array('jquery', 'jquery-ui-datepicker'),
             APBCT_VERSION
         );
