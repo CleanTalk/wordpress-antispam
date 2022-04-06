@@ -1970,6 +1970,11 @@ function apbct_settings__field__draw($params = array())
 
         // Text type
         case 'text':
+            // Popup description
+            $popup = '';
+            if ( isset($params['long_description']) ) {
+                $popup = '<i setting="' . $params['name'] . '" class="apbct_settings-long_description---show apbct-icon-help-circled"></i>';
+            }
             echo '<input
 					type="text"
 					id="apbct_setting_' . $params['name'] . '"
@@ -1982,7 +1987,7 @@ function apbct_settings__field__draw($params = array())
                  . ' />'
                  . '&nbsp;'
                  . '<label for="apbct_setting_' . $params['name'] . '" class="apbct_setting-field_title--' . $params['type'] . '">'
-                 . $params['title']
+                 . $params['title'] . $popup
                  . '</label>';
             echo '<div class="apbct_settings-field_description">'
                  . $params['description']
@@ -2590,13 +2595,6 @@ function apbct_settings__get__long_description()
                 'cleantalk-spam-protect'
             )
         ),
-        'multisite__hoster_api_key' => array(
-            'title' => __('Hoster API key', 'cleantalk-spam-protect'),
-            'desc'  => __(
-                'You could find it here:<br><a href ="https://cleantalk-screenshots.s3.amazonaws.com/help/hosting-antispam/hapi-ru.png"><img src="https://cleantalk-screenshots.s3.amazonaws.com/help/hosting-antispam/hapi-ru.png"></a><br>Press on the screenshot to zoom.',
-                'cleantalk-spam-protect'
-            )
-        ),
         'data__set_cookies' => array(
             'title' => __('Cookies setting', 'cleantalk-spam-protect'),
             'desc'  => sprintf(
@@ -2639,7 +2637,7 @@ function apbct_settings__get__long_description()
     );
 
     if ( ! empty($setting_id) ) {
-        $utm = '?utm_source=apbct_hint_' . $setting_id . '&utm_medium=WordPress&utm_campaign=ABPCT_Settings';
+        $utm = '?utm_source=apbct_hint_' . esc_attr($setting_id) . '&utm_medium=WordPress&utm_campaign=ABPCT_Settings';
         $descriptions[$setting_id]['desc'] = str_replace('{utm_mark}', $utm, $descriptions[$setting_id]['desc']);
     }
 

@@ -42,10 +42,12 @@ function ct_protect_external() {
                         }
                     } else {
                         document.forms[i].onsubmit = function ( event ){
-
                             event.preventDefault();
 
-                            sendAjaxCheckingFormData(reUseCurrentForm, prev, form_original);
+                            const prev = jQuery(event.currentTarget).prev();
+                            const form_original = jQuery(event.currentTarget).clone();
+
+                            sendAjaxCheckingFormData(event.currentTarget, prev, form_original);
                         };
                     }
 

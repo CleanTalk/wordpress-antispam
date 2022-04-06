@@ -31,7 +31,7 @@ class CommentsChecker extends Checker
         wp_enqueue_script(
             'ct_comments_checkspam',
             plugins_url('/cleantalk-spam-protect/js/cleantalk-comments-checkspam.min.js'),
-            array('jquery', 'jqueryui'),
+            array('jquery', 'jquery-ui-datepicker'),
             APBCT_VERSION
         );
         wp_localize_script('ct_comments_checkspam', 'ctCommentsCheck', array(
@@ -135,7 +135,7 @@ class CommentsChecker extends Checker
             $from_date = date('Y-m-d', intval(strtotime($_POST['from'])));
             $till_date = date('Y-m-d', intval(strtotime($_POST['till'])));
 
-            $sql_where = " AND comment_date_gmt > '$from_date 00:00:00' AND comment_date_gmt < '$till_date 23:59:59'";
+            $sql_where .= " AND comment_date_gmt > '$from_date 00:00:00' AND comment_date_gmt < '$till_date 23:59:59'";
         }
 
         $offset = $_COOKIE['apbct_check_comments_offset'] ?: 0;
