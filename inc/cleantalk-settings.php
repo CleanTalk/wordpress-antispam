@@ -1086,7 +1086,7 @@ function apbct_settings__display()
         if ( $apbct->network_settings['multisite__work_mode'] != 2 || is_main_site() ) {
             // CP button
             echo '<a class="cleantalk_link cleantalk_link-manual" target="__blank" href="https://cleantalk.org/my?user_token=' . $apbct->user_token . '&cp_mode=antispam">'
-                 . __('Click here to get anti-spam statistics', 'cleantalk-spam-protect')
+                 . __('Click here to get Anti-Spam statistics', 'cleantalk-spam-protect')
                  . '</a>';
             echo '&nbsp;&nbsp;';
         }

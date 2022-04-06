@@ -754,7 +754,7 @@ function apbct_admin__admin_bar__add_counter($after)
 
     $counter__sum__layout = ($after ? ' / ' : '<div class="cleantalk_admin_bar__sum_counter">') .
                             '<span title="' . __(
-                                'All anti-spam events',
+                                'All Anti-Spam events',
                                 'cleantalk-spam-protect'
                             ) . '">' . $apbct->counter__sum . '</span>' .
                             '</div>';
