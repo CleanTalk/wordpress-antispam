@@ -2632,7 +2632,10 @@ function apbct_settings__get__long_description()
         ),
         'data__honeypot_field' => array(
             'title' => __('Honeypot field', 'cleantalk-spam-protect'),
-            'desc'  => __('The option helps to block bots on the WC order form and default registration form. Enable this option if you have passed spam on these forms.', 'cleantalk-spam-protect')
+            'desc'  => sprintf(
+                esc_html__('The option helps to block bots . The honeypot field option adds a hidden field to the form. When spambots come to a website form, they can fill out each input field. Enable this option to make the protection stronger on these forms. Learn more about supported forms %s', 'cleantalk-spam-protect'),
+                '<a href="https://cleantalk.org/help/wordpress-plugin-settings{utm_mark}#honeypot" target="_blank">' . __('here.', 'cleantalk-spam-protect') . '</a>'
+            )
         ),
     );
 
