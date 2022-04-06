@@ -209,6 +209,10 @@ class State extends \Cleantalk\Common\State
         // Comment's test
         'count_checked_comments'      => 0,
         'count_bad_comments'          => 0,
+
+	    // User's test
+        'count_checked_users'      => 0,
+        'count_bad_users'          => 0,
     );
 
     public $def_network_settings = array(

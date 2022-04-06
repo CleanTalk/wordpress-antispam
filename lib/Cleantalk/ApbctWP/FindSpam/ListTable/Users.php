@@ -232,13 +232,7 @@ class Users extends \Cleantalk\ApbctWP\CleantalkListTable
      */
     public function getChecked()
     {
-        $params_spam = array(
-            'fields'      => 'ID',
-            'meta_key'    => 'ct_checked',
-            'count_total' => true,
-        );
-
-        return new \WP_User_Query($params_spam);
+	    return $this->apbct->data['count_checked_users'];
     }
 
     /**
@@ -274,19 +268,9 @@ class Users extends \Cleantalk\ApbctWP\CleantalkListTable
     public function getSpamNow()
     {
         $params_spam = array(
-            'fields'      => 'ID',
-            'meta_query'  => array(
-                'relation' => 'AND',
-                array(
-                    'key'     => 'ct_marked_as_spam',
-                    'compare' => 'EXISTS'
-                ),
-                array(
-                    'key'     => 'ct_checked_now',
-                    'compare' => 'EXISTS'
-                ),
-            ),
-            'count_total' => true,
+	        'fields'      => 'ID',
+	        'meta_key' => 'ct_marked_as_spam',
+	        'count_total' => true,
         );
 
         return new \WP_User_Query($params_spam);
@@ -294,14 +278,7 @@ class Users extends \Cleantalk\ApbctWP\CleantalkListTable
 
     public function getBad()
     {
-        // Without IP and EMAIL
-        $params_bad = array(
-            'fields'      => 'ID',
-            'meta_key'    => 'ct_bad',
-            'count_total' => true,
-        );
-
-        return new \WP_User_Query($params_bad);
+	    return $this->apbct->data['count_bad_users'];
     }
 
     public function getScansLogs()
