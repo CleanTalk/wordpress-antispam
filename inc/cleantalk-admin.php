@@ -143,7 +143,7 @@ function ct_dashboard_statistics_widget_output($_post, $_callback_args)
              . '</h2>';
         if ( $apbct->user_token && ! $apbct->white_label ) {
             echo '<h2 class="ct_widget_activate_header">'
-                 . __('Please, visit your dashboard.', 'cleantalk-spam-protect')
+                 . __('Please, visit your Dashboard.', 'cleantalk-spam-protect')
                  . '</h2>'
                  . '<a target="_blank" href="https://cleantalk.org/my?user_token=' . $apbct->user_token . '&cp_mode=antispam">'
                  . '<input class="ct_widget_button ct_widget_activate_button ct_widget_resolve_button" type="button" value="VISIT CONTROL PANEL">'

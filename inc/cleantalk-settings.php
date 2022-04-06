@@ -404,7 +404,7 @@ function apbct_settings__set_fileds()
                             . '&nbsp;'
                             . '<a href="https://cleantalk.org/my/?user_token='
                             . $apbct->user_token . '&utm_source=wp-backend&utm_medium=admin-bar&cp_mode=antispam" target="_blank">'
-                            . __('CleanTalk dashboard', 'cleantalk-spam-protect')
+                            . __('CleanTalk Dashboard', 'cleantalk-spam-protect')
                             . '</a>.' : '')
                         . '<br />'
                         . __('СAUTION! Option can catch POST requests in WordPress backend', 'cleantalk-spam-protect'),
