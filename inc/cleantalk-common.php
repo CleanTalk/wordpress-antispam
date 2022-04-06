@@ -782,7 +782,7 @@ function ct_get_admin_email()
         // WPMS - Main site, common account
         $admin_email = get_site_option('admin_email');
     } else {
-        // WPMS - Individual account, individual key
+        // WPMS - Individual account, individual Access key
         $admin_email = get_blog_option(get_current_blog_id(), 'admin_email');
     }
 

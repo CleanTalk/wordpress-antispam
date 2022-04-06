@@ -213,7 +213,7 @@ class State extends \Cleantalk\Common\State
 
     public $def_network_settings = array(
 
-        // Key
+        // Access key
         'apikey'                                                        => '',
         'multisite__allow_custom_settings'                              => 1,
         'multisite__work_mode'                                          => 1,
@@ -446,7 +446,7 @@ class State extends \Cleantalk\Common\State
             $this->data['cookies_type'] = 'none';
         }
 
-        // Network with Mutual key
+        // Network with Mutual Access key
         if ( ! is_main_site() && $this->network_settings['multisite__work_mode'] == 2 ) {
             // Get stats from main blog
             switch_to_blog(get_main_site_id());

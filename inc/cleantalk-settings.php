@@ -826,9 +826,9 @@ function apbct_settings__set_fileds__network($fields)
                 'multisite__hoster_api_key'                                     => array(
                     'type'             => 'text',
                     'required'         => true,
-                    'title'            => __('Hoster API key', 'cleantalk-spam-protect'),
+                    'title'            => __('Hoster Access key', 'cleantalk-spam-protect'),
                     'description'      => sprintf(
-                        __('Copy the key from your %sCleantalk Profile%s', 'cleantalk-spam-protect'),
+                        __('Copy the Access key from your %sCleantalk Profile%s', 'cleantalk-spam-protect'),
                         '<a href="https://cleantalk.org/my/profile#api_keys" target="_blank">',
                         '</a>'
                     ),
@@ -1121,7 +1121,7 @@ function apbct_settings__display()
     settings_fields('cleantalk_settings');
     do_settings_fields('cleantalk', 'cleantalk_section_settings_main');
 
-    // Disabled save button if key empty
+    // Disabled save button if the Access key empty
     $disabled = '';
     if (! $apbct->key_is_ok) {
         $disabled = 'disabled';
@@ -1204,9 +1204,9 @@ function apbct_settings__error__output($return = false)
 
         $error_texts = array(
             // Misc
-            'key_invalid'       => __('Error occurred while API key validating. Error: ', 'cleantalk-spam-protect'),
+            'key_invalid'       => __('Error occurred while Access key validating. Error: ', 'cleantalk-spam-protect'),
             'key_get'           => __(
-                'Error occurred while automatically gettings access key. Error: ',
+                'Error occurred while automatically get Access key. Error: ',
                 'cleantalk-spam-protect'
             ),
             'sfw_send_logs'     => __(
@@ -1474,9 +1474,9 @@ function apbct_settings__field__state()
         );
     }
     if ( $apbct->moderate_ip ) {
-        print "<br /><br />The anti-spam service is paid by your hosting provider. License #" . $apbct->data['ip_license'] . ".<br />";
+        print "<br /><br />The Anti-Spam service is paid by your hosting provider. License #" . $apbct->data['ip_license'] . ".<br />";
         if ( $apbct->api_key ) {
-            print esc_html__('The access key is not required.', 'cleantalk-spam-protect');
+            print esc_html__('The Access key is not required.', 'cleantalk-spam-protect');
         }
     }
 
@@ -1492,7 +1492,7 @@ function apbct_settings__field__apikey()
 
     echo '<div id="cleantalk_apikey_wrapper" class="apbct_settings-field_wrapper">';
 
-    // Using key from Main site, or from CLEANTALK_ACCESS_KEY constant
+    // Using the Access key from Main site, or from CLEANTALK_ACCESS_KEY constant
     if ( APBCT_WPMS && ! is_main_site() && ( ! $apbct->allow_custom_key || defined('CLEANTALK_ACCESS_KEY')) ) {
         _e('<h3>Access key is provided by network administrator</h3>', 'cleantalk-spam-protect');
 
@@ -1517,10 +1517,10 @@ function apbct_settings__field__apikey()
          . '"
 			key="' . $apbct->api_key . '"
 			size="20"
-			placeholder="' . __('Enter the key', 'cleantalk-spam-protect') . '"'
+			placeholder="' . __('Enter the Access key', 'cleantalk-spam-protect') . '"'
          . ' />';
 
-    // Show account name associated with key
+    // Show account name associated with the Access key
     if ( ! empty($apbct->data['account_name_ob']) ) {
         echo '<div class="apbct_display--none">'
              . sprintf(
@@ -1530,10 +1530,10 @@ function apbct_settings__field__apikey()
              . '</div>';
     };
 
-    // Show key button
+    // Show Access key button
     if ( (apbct_api_key__is_correct($apbct->api_key) && $apbct->key_is_ok) ) {
         echo '<a id="apbct_showApiKey" class="ct_support_link" style="display: block" href="#">'
-             . __('Show the access key', 'cleantalk-spam-protect')
+             . __('Show the Access key', 'cleantalk-spam-protect')
              . '</a>';
     }
 
@@ -1617,7 +1617,7 @@ function apbct_field_service_utilization()
         }
     } else {
         _e(
-            'Enter the Hoster API key and synchronize with cloud to find out your hoster account utilization.',
+            'Enter the Hoster Access key and synchronize with cloud to find out your hoster account utilization.',
             'cleantalk-spam-protect'
         );
     }
@@ -2080,7 +2080,7 @@ function apbct_settings__validate($settings)
     $settings['sfw__anti_flood__view_limit'] = ($settings['sfw__anti_flood__view_limit'] == 0 ? 20 : $settings['sfw__anti_flood__view_limit']); // Default if 0 passed
     $settings['sfw__anti_flood__view_limit'] = ($settings['sfw__anti_flood__view_limit'] < 5 ? 5 : $settings['sfw__anti_flood__view_limit']); //
 
-    // Validating API key
+    // Validating Access key
     $settings['apikey'] = strpos($settings['apikey'], '*') === false ? $settings['apikey'] : $apbct->settings['apikey'];
 
     $apbct->data['key_changed'] = $settings['apikey'] !== $apbct->settings['apikey'];
@@ -2091,7 +2091,7 @@ function apbct_settings__validate($settings)
     $settings['apikey'] = is_main_site() || $apbct->allow_custom_key || $apbct->white_label ? $settings['apikey'] : $apbct->network_settings['apikey'];
     $settings['apikey'] = is_main_site() || ! $settings['multisite__white_label'] ? $settings['apikey'] : $apbct->settings['apikey'];
 
-    // Show notice if the api key is empty
+    // Show notice if the Access key is empty
     if ( ! apbct_api_key__is_correct() ) {
         $apbct->data['key_is_ok']   = false;
         $apbct->data['notice_show'] = 1;
@@ -2376,9 +2376,9 @@ function apbct_settings__get_key_auto($direct_call = false)
     $admin_email    = ct_get_admin_email();
 
     /**
-     * Filters the email to get API key
+     * Filters the email to get Access key
      *
-     * @param string email to get API key
+     * @param string email to get Access key
      */
     $filtered_admin_email = apply_filters('apbct_get_api_key_email', $admin_email);
 
@@ -2767,7 +2767,7 @@ add_action('apbct_before_returning_settings', 'apbct__send_local_settings_to_api
 
 function apbct__send_local_settings_to_api($settings)
 {
-    // Current API key
+    // Current Access key
     $api_key  = $settings['apikey'] ?: '';
 
     // Settings to JSON
