@@ -27,7 +27,7 @@ class DbAnalyzer
     private $table_not_exists;
 
     /**
-     * Multisite is On
+     * WordPress Multisite is On
      */
     private $multisite;
 
@@ -40,7 +40,7 @@ class DbAnalyzer
     }
 
     /**
-     * Cheking multisite
+     * Cheking WordPress Multisite
      */
     private function checkingMultisite()
     {
@@ -60,7 +60,7 @@ class DbAnalyzer
         if ($this->dbSchema) {
             $schema_table_keys = array_keys($this->dbSchema);
 
-            // Multisite
+            // WordPress Multisite
             if ($this->multisite) {
                 $sites = get_sites();
 

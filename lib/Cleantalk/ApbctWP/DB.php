@@ -3,8 +3,8 @@
 namespace Cleantalk\ApbctWP;
 
 /**
- * CleanTalk Wordpress Data Base driver
- * Compatible only with Wordpress.
+ * CleanTalk WordPress Data Base driver
+ * Compatible only with WordPress.
  * Uses singleton pattern.
  *
  * @depends \Cleantalk\Common\DB

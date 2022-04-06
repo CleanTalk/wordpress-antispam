@@ -434,7 +434,7 @@ function apbct_is_in_uri($str)
 
 /**
  * Checking if current request is a cron job
- * Support for wordpress < 4.8.0
+ * Support for WordPress < 4.8.0
  *
  * @return bool
  * @psalm-suppress RedundantCondition
