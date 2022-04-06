@@ -220,13 +220,7 @@ class Users extends \Cleantalk\ApbctWP\CleantalkListTable
      */
     public function getTotal()
     {
-        $params_total = array(
-            'fields'  => 'ID',
-            'count'   => true,
-            'orderby' => 'user_registered'
-        );
-
-        return new \WP_User_Query($params_total);
+        return count_users()['total_users'];
     }
 
     /**
@@ -268,9 +262,11 @@ class Users extends \Cleantalk\ApbctWP\CleantalkListTable
         return new \WP_User_Query($params_spam);
     }
 
-    public function getSpamNow()
+    public function getSpamNow($per_page, $current_page)
     {
         $params_spam = array(
+	        'number'   => $per_page,
+	        'offset'   => ( $current_page - 1 ) * $per_page,
 	        'fields'      => 'ID',
 	        'meta_key' => 'ct_marked_as_spam',
 	        'count_total' => true,
