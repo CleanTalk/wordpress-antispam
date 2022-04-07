@@ -482,7 +482,7 @@ function apbct_settings__set_fileds()
                     'title'       => __('Add a CleanTalk Pixel to improve IP-detection', 'cleantalk-spam-protect'),
                     'description' =>
                         __(
-                            'Upload small graphic file from Cleantalk\'s server to improve IP-detection.',
+                            'Upload small graphic file from CleanTalk\'s server to improve IP-detection.',
                             'cleantalk-spam-protect'
                         )
                         . '<br>'
@@ -864,7 +864,7 @@ function apbct_settings__set_fileds__network($fields)
                     'title'       => __('Plugin name', 'cleantalk-spam-protect'),
                     'description' => sprintf(
                         __(
-                            "Specify plugin name. Leave empty for deafult %sAnti-Spam by Cleantalk%s",
+                            "Specify plugin name. Leave empty for deafult %sAnti-Spam by CleanTalk%s",
                             'cleantalk-spam-protect'
                         ),
                         '<b>',
@@ -1225,7 +1225,7 @@ function apbct_settings__error__output($return = false)
                 'cleantalk-spam-protect'
             ),
             'api'               => __('Error occurred while executing API call. Error: ', 'cleantalk-spam-protect'),
-            'cron'              => __('Error occurred while executing CleantalkCron job. Error: ', 'cleantalk-spam-protect'),
+            'cron'              => __('Error occurred while executing CleanTalk Cron job. Error: ', 'cleantalk-spam-protect'),
             'sfw_outdated'        => __(
                 'Error occurred on last SpamFireWall check. Error: ',
                 'cleantalk-spam-protect'

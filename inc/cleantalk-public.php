@@ -810,11 +810,11 @@ function ct_die($_comment_id, $_comment_status)
     }
 
     http_response_code(200);
-    die("Forbidden. Sender blacklisted. Blocked by Cleantalk");
+    die("Forbidden. Sender blacklisted. Blocked by CleanTalk");
 }
 
 /**
- * Set die page with Cleantalk comment from parameter.
+ * Set die page with CleanTalk comment from parameter.
  *
  * @param $comment_body
  */
@@ -860,7 +860,7 @@ function ct_die_extended($comment_body)
     }
 
     http_response_code(200);
-    die("Forbidden. Sender blacklisted. Blocked by Cleantalk");
+    die("Forbidden. Sender blacklisted. Blocked by CleanTalk");
 }
 
 /**
