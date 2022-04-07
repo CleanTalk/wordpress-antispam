@@ -353,7 +353,7 @@ function apbct_admin__plugin_action_links($links, $_file)
 function apbct_admin__register_plugin_links($links, $file, $plugin_data)
 {
     global $apbct;
-    $plugin_name = $plugin_data['Name'] ?: 'Anti-Spam by Cleantalk';
+    $plugin_name = $plugin_data['Name'] ?: 'Anti-Spam by CleanTalk';
 
     //Return if it's not our plugin
     if ( $file != $apbct->base_name ) {
