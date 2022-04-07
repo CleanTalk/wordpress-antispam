@@ -833,7 +833,6 @@ function apbct_settings__set_fileds__network($fields)
                         '</a>'
                     ),
                     'class'            => 'apbct_settings-field_wrapper--sub',
-                    'long_description' => true,
                     'display'          => APBCT_WPMS && is_main_site(),
                     'disabled'         => ! isset($apbct->network_settings['multisite__work_mode']) || $apbct->network_settings['multisite__work_mode'] != 1,
                     'parent'           => 'multisite__work_mode',
