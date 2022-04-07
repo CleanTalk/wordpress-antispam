@@ -115,7 +115,7 @@ function apbct_init()
     /** VFB_Pro integration */
     if (
         ! empty($_POST) &&
-        $apbct->settings['data__general_postdata_test'] == 1 &&
+        $apbct->settings['forms__contact_forms_test'] == 1 &&
         empty($_POST['ct_checkjs_cf7']) &&
         apbct_is_plugin_active('vfb-pro/vfb-pro.php') &&
         ! empty($_POST['_vfb-form-id'])
