@@ -187,7 +187,7 @@ function apbct_settings__set_fileds()
                 'forms__general_contact_forms_test'     => array(
                     'title'       => __('Custom contact forms', 'cleantalk-spam-protect'),
                     'description' => __(
-                        'Anti spam test for any WordPress themes or contacts forms.',
+                        'Anti-Spam test for any WordPress themes or contacts forms.',
                         'cleantalk-spam-protect'
                     ),
                 ),
@@ -236,7 +236,7 @@ function apbct_settings__set_fileds()
             'fields' => array(
                 'forms__wc_checkout_test'       => array(
                     'title'           => __('WooCommerce checkout form', 'cleantalk-spam-protect'),
-                    'description'     => __('Anti spam test for WooCommerce checkout form.', 'cleantalk-spam-protect'),
+                    'description'     => __('Anti-Spam test for WooCommerce checkout form.', 'cleantalk-spam-protect'),
                     'childrens'       => array('forms__wc_register_from_order'),
                     'reverse_trigger' => true,
                     'options'         => array(
@@ -247,7 +247,7 @@ function apbct_settings__set_fileds()
                 'forms__wc_register_from_order' => array(
                     'title'           => __('Spam test for registration during checkout', 'cleantalk-spam-protect'),
                     'description'     => __(
-                        'Enable anti spam test for registration process which during woocommerce\'s checkout.',
+                        'Enable Anti-Spam test for registration process which during woocommerce\'s checkout.',
                         'cleantalk-spam-protect'
                     ),
                     'parent'          => 'forms__wc_checkout_test',
