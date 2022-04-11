@@ -9,7 +9,7 @@ use Cleantalk\Variables\Server;
  * CleanTalk Helper class.
  * Compatible with any CMS.
  *
- * @package       PHP Antispam by CleanTalk
+ * @package       PHP Anti-Spam by CleanTalk
  * @subpackage    Helper
  * @Version       4.0
  * @author        Cleantalk team (welcome@cleantalk.org)

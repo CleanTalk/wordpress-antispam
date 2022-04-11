@@ -29,7 +29,7 @@ class UsersChecker extends Checker
 
         wp_enqueue_script(
             'ct_users_checkspam',
-            plugins_url('/cleantalk-spam-protect/js/cleantalk-users-checkspam.min.js'),
+            APBCT_JS_ASSETS_PATH . '/cleantalk-users-checkspam.min.js',
             array('jquery', 'jquery-ui-datepicker'),
             APBCT_VERSION
         );
@@ -64,7 +64,7 @@ class UsersChecker extends Checker
 
         wp_enqueue_style(
             'cleantalk_admin_css_settings_page',
-            plugins_url() . '/cleantalk-spam-protect/css/cleantalk-spam-check.min.css',
+            APBCT_JS_ASSETS_PATH . '/cleantalk-spam-check.min.css',
             array(),
             APBCT_VERSION,
             'all'

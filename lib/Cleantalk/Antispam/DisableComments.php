@@ -19,7 +19,7 @@ class DisableComments
     use Singleton;
 
     /**
-     * Determs is Wordpress Multisite is enabled
+     * Determs is WordPress Multisite is enabled
      *
      * @var bool
      */

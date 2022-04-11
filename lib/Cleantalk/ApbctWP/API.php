@@ -4,7 +4,7 @@ namespace Cleantalk\ApbctWP;
 
 /**
  * Class API.
- * Compatible only with Wordpress.
+ * Compatible only with WordPress.
  *
  * @depends       \Cleantalk\Common\API
  *
@@ -46,7 +46,7 @@ class API extends \Cleantalk\Common\API
 
     /**
      * Function sends raw request to API server.
-     * May use built in Wordpress HTTP-API
+     * May use built in WordPress HTTP-API
      *
      * @param array Data to send
      * @param string API server URL

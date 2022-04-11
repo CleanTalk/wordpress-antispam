@@ -4,7 +4,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 5.174.2-dev
+  Version: 5.174.3-dev
   Author: СleanTalk <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -60,6 +60,9 @@ if ( preg_match('@^(\d+)\.(\d+)\.(\d{1,2})-(dev|fix)$@', $plugin_version__agent,
 define('APBCT_NAME', $plugin_info['Name']);
 define('APBCT_VERSION', $plugin_info['Version']);
 define('APBCT_URL_PATH', plugins_url('', __FILE__));  //HTTP path.   Plugin root folder without '/'.
+define('APBCT_CSS_ASSETS_PATH', plugins_url('css', __FILE__));  //CSS assets path.   Plugin root folder without '/'.
+define('APBCT_JS_ASSETS_PATH', plugins_url('js', __FILE__));  //JS assets path.   Plugin root folder without '/'.
+define('APBCT_IMG_ASSETS_PATH', plugins_url('inc/images', __FILE__));  //IMAGES assets path.   Plugin root folder without '/'.
 define('APBCT_DIR_PATH', dirname(__FILE__) . '/');          //System path. Plugin root folder with '/'.
 define('APBCT_PLUGIN_BASE_NAME', plugin_basename(__FILE__));          //Plugin base name.
 define(
@@ -77,7 +80,7 @@ define('APBCT_SETTINGS', 'cleantalk_settings');         //Option name with plugi
 define('APBCT_NETWORK_SETTINGS', 'cleantalk_network_settings'); //Option name with plugin network settings.
 define('APBCT_DEBUG', 'cleantalk_debug');            //Option name with a debug data. Empty by default.
 
-// Multisite
+// WordPress Multisite
 define('APBCT_WPMS', (is_multisite() ? true : false)); // WMPS is enabled
 
 // Different params
@@ -610,7 +613,7 @@ if ( is_admin() || is_network_admin() ) {
     add_filter('registration_errors', 'ct_check_registration_erros', 999999, 3);
     add_action('user_register', 'apbct_user_register');
 
-    // Multisite registrations
+    // WordPress Multisite registrations
     add_action('signup_extra_fields', 'ct_register_form');
     add_filter('wpmu_validate_user_signup', 'ct_registration_errors_wpmu', 10, 3);
 
@@ -758,8 +761,11 @@ function apbct_plugin_redirect()
 {
     global $apbct;
     wp_suspend_cache_addition(true);
-    if ( get_option('ct_plugin_do_activation_redirect', false) && ! isset($_GET['activate-multi']) ) {
-        delete_option('ct_plugin_do_activation_redirect');
+    if (
+        get_option('ct_plugin_do_activation_redirect', false) &&
+        delete_option('ct_plugin_do_activation_redirect') &&
+        ! isset($_GET['activate-multi'])
+    ) {
         ct_account_status_check(null, false);
         apbct_sfw_update__init(3); // Updating SFW
         wp_redirect($apbct->settings_link);
@@ -863,7 +869,7 @@ function apbct_sfw_update__init($delay = 0)
         return false;
     }
 
-    // Key is empty
+    // The Access key is empty
     if ( ! $apbct->api_key && ! $apbct->ip_license ) {
         return array('error' => 'SFW UPDATE INIT: KEY_IS_EMPTY');
     }
@@ -1490,7 +1496,7 @@ function apbct_sfw_direct_update()
 
     $api_key = $apbct->api_key;
 
-    // Key is empty
+    // The Access key is empty
     if ( empty($api_key) ) {
         return array('error' => 'SFW DIRECT UPDATE: KEY_IS_EMPTY');
     }
@@ -1688,7 +1694,7 @@ function apbct_antiflood__clear_table()
 }
 
 /**
- * Install plugin from wordpress catalog
+ * Install plugin from WordPress catalog
  *
  * @param null|WP $_wp
  * @param null|string|array $plugin
@@ -1784,7 +1790,7 @@ function apbct_rc__activate_plugin($plugin)
 }
 
 /**
- * Uninstall plugin from wordpress catalog
+ * Uninstall plugin from WordPress catalog
  *
  * @param null $plugin
  */
@@ -1830,7 +1836,7 @@ function apbct_rc__deactivate_plugin($plugin = null)
 
 
 /**
- * Uninstall plugin from wordpress. Delete files.
+ * Uninstall plugin from WordPress. Delete files.
  *
  * @param null $plugin
  */
@@ -2104,7 +2110,7 @@ function apbct_rc__insert_auth_key($key, $plugin)
                         $data['key_is_ok']        = true;
                         update_option('spbc_data', $data);
 
-                        // Set key
+                        // Set Access key
                         $settings             = get_option('spbc_settings', array());
                         $settings['spbc_key'] = $key;
                         update_option('spbc_settings', $settings);
@@ -2128,7 +2134,7 @@ function apbct_rc__insert_auth_key($key, $plugin)
 }
 
 /**
- * Putting Wordpress to maintenance mode.
+ * Putting WordPress to maintenance mode.
  * For given duration in seconds
  *
  * @param $duration
