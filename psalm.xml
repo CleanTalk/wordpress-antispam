@@ -40,6 +40,9 @@
                 <referencedClass name="cleantalk_widget"/>
                 <directory name="lib/Cleantalk/Antispam/Integrations"/>
                 <referencedClass name="Cleantalk\Common\Escape"/>
+                <referencedClass name="Cleantalk\Common\Sanitize"/>
+                <referencedClass name="Cleantalk\Common\Validate"/>
+                <referencedClass name="Cleantalk\ApbctWP\Escape"/>
             </errorLevel>
         </UnusedClass>
         <InvalidGlobal>
@@ -62,6 +65,9 @@
                 <file name="lib/Cleantalk/Common/Sanitize.php"/>
                 <file name="lib/Cleantalk/Common/Validate.php"/>
                 <file name="lib/Cleantalk/Common/Escape.php"/>
+                <file name="lib/Cleantalk/ApbctWP/Sanitize.php"/>
+                <file name="lib/Cleantalk/ApbctWP/Validate.php"/>
+                <file name="lib/Cleantalk/ApbctWP/Escape.php"/>
             </errorLevel>
         </PossiblyUnusedMethod>
     </issueHandlers>
