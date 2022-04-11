@@ -459,7 +459,7 @@ class UsersChecker extends Checker
         $cnt_checked = $apbct->data['count_checked_users'];
 
         // Spam comments
-        $params_spam = array( 
+        $params_spam = array(
             'count'   => true,
             'meta_query' => array(
                 'relation' => 'AND',
