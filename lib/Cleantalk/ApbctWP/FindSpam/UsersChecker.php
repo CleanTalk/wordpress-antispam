@@ -140,25 +140,25 @@ class UsersChecker extends Checker
      */
     public static function lastCheckDate()
     {
-    	global $wpdb;
+        global $wpdb;
 
-	    /**
-	     * We are trying to get the date of the last scan by actually 
-	     * requesting the start date. But unfortunately, the start date 
-	     * stores the end date. At least for the user scanner.
-	     */
-    	$sql = "SELECT `start_time`
+        /**
+         * We are trying to get the date of the last scan by actually 
+         * requesting the start date. But unfortunately, the start date 
+         * stores the end date. At least for the user scanner.
+         */
+        $sql = "SELECT `start_time`
 				FROM " . APBCT_SPAMSCAN_LOGS . "
 				WHERE `scan_type` = 'users'
 				ORDER BY start_time DESC LIMIT 1";
 
-    	$lastCheckDate = $wpdb->get_col($sql);
+        $lastCheckDate = $wpdb->get_col($sql);
 
-    	if ($lastCheckDate) {
-    		return date('M j Y', strtotime($lastCheckDate[0]));
-	    }
-
-    	return date('M j Y');
+        if ($lastCheckDate) {
+            return date('M j Y', strtotime($lastCheckDate[0]));
+        }
+        
+        return date('M j Y');
     }
 
     /**
@@ -211,7 +211,7 @@ class UsersChecker extends Checker
             $wc_orders = $sql_command . "NOT EXISTS (SELECT posts.* FROM {$wpdb->posts} AS posts INNER JOIN {$wpdb->postmeta} AS postmeta WHERE posts.post_type = 'shop_order' AND posts.post_status = 'wc-completed' AND posts.ID = postmeta.post_id AND postmeta.meta_key = '_customer_user' AND postmeta.meta_value = {$wpdb->users}.ID)";
         }
 
-	    $offset = $_COOKIE['apbct_check_users_offset'] ?: 0; // TODO: implement alternative cookies
+        $offset = $_COOKIE['apbct_check_users_offset'] ?: 0; // TODO: implement alternative cookies
 
         $u = $wpdb->get_results(
             "
@@ -263,7 +263,7 @@ class UsersChecker extends Checker
 
                 if ( empty($curr_ip) && empty($curr_email) ) {
                     $check_result['bad']++;
-	                update_user_meta($iValue->ID, 'ct_bad', '1', true);
+                    update_user_meta($iValue->ID, 'ct_bad', '1', true);
                     unset($u[$i]);
                 } else {
                     if ( ! empty($curr_ip) ) {
@@ -279,9 +279,9 @@ class UsersChecker extends Checker
                 }
             }
 
-	        // save count bad comments to State:data
-	        $apbct->data['count_bad_users'] += $check_result['bad'];
-	        $apbct->saveData();
+            // save count bad comments to State:data
+            $apbct->data['count_bad_users'] += $check_result['bad'];
+            $apbct->saveData();
 
             // Recombining after checking and unsetting
             $u = array_values($u);
@@ -338,7 +338,6 @@ class UsersChecker extends Checker
                 // save count checked comments to State:data
                 $apbct->data['count_checked_users'] = $offset + $check_result['checked'];
                 $apbct->saveData();
-
             } else {
                 $check_result['error']         = 1;
                 $check_result['error_message'] = $result['error'];
@@ -371,13 +370,13 @@ class UsersChecker extends Checker
 
         global $wpdb, $apbct;
 
-	    $apbct->data['count_checked_users'] = 0;
-	    $apbct->data['count_bad_users'] = 0;
-	    $apbct->saveData();
+        $apbct->data['count_checked_users'] = 0;
+        $apbct->data['count_bad_users'] = 0;
+        $apbct->saveData();
 
-	    $wpdb->query("DELETE FROM {$wpdb->usermeta} WHERE meta_key IN ('ct_marked_as_spam')");
+        $wpdb->query("DELETE FROM {$wpdb->usermeta} WHERE meta_key IN ('ct_marked_as_spam')");
 
-	    die;
+        die;
     }
 
     public static function ctAjaxInfo($direct_call = false)

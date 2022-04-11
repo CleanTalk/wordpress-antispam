@@ -17,7 +17,7 @@ class UsersScan extends Users
             $per_page = 10;
         }
 
-	    $current_page = $this->get_pagenum();
+        $current_page = $this->get_pagenum();
 
         $scanned_users = $this->getSpamNow($per_page, $current_page);
 
