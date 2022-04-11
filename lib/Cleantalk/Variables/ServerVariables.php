@@ -2,6 +2,8 @@
 
 namespace Cleantalk\Variables;
 
+use Cleantalk\Common\Sanitize;
+use Cleantalk\Common\Validate;
 use Cleantalk\Templates\Singleton;
 
 /**
@@ -27,11 +29,22 @@ abstract class ServerVariables
      *
      * @param string $name Variable name
      *
-     * @return string|array
+     * @return string|array|false
      */
-    public static function get($name)
+    public static function get($name, $validation_filter = null, $sanitize_filter = null)
     {
-        return static::getInstance()->getVariable($name);
+        $variable = static::getInstance()->getVariable($name);
+
+        // Validate variable
+        if ( $validation_filter && ! Validate::validate($variable, $validation_filter) ) {
+            return false;
+        }
+
+        if ( $sanitize_filter ) {
+            $variable = Sanitize::sanitize($variable, $sanitize_filter);
+        }
+
+        return $variable;
     }
 
     /**
