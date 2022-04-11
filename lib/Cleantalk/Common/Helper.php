@@ -93,6 +93,7 @@ class Helper
      *
      * @psalm-suppress InvalidReturnStatement
      * @psalm-suppress ComplexMethod
+     * @psalm-suppress FalsableReturnStatement
      */
     public static function ipGet($ip_type_to_get = 'real', $v4_only = true, $headers = array())
     {
