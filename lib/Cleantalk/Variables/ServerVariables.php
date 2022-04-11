@@ -2,8 +2,8 @@
 
 namespace Cleantalk\Variables;
 
-use Cleantalk\Common\Sanitize;
-use Cleantalk\Common\Validate;
+use Cleantalk\ApbctWP\Sanitize;
+use Cleantalk\ApbctWP\Validate;
 use Cleantalk\Templates\Singleton;
 
 /**
