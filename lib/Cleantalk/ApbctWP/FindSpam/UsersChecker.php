@@ -143,8 +143,8 @@ class UsersChecker extends Checker
         global $wpdb;
 
         /**
-         * We are trying to get the date of the last scan by actually 
-         * requesting the start date. But unfortunately, the start date 
+         * We are trying to get the date of the last scan by actually
+         * requesting the start date. But unfortunately, the start date
          * stores the end date. At least for the user scanner.
          */
         $sql = "SELECT `start_time`
@@ -157,23 +157,8 @@ class UsersChecker extends Checker
         if ($lastCheckDate) {
             return date('M j Y', strtotime($lastCheckDate[0]));
         }
-        
+
         return date('M j Y');
-    }
-
-    /**
-     * Get date user registered
-     *
-     * @param $user_id
-     *
-     * @return string Date format"M j Y"
-     */
-    private static function getUserRegister($user_id)
-    {
-        $user_data  = get_userdata($user_id);
-        $registered = $user_data->user_registered;
-
-        return date("M j Y", strtotime($registered));
     }
 
     public static function ctAjaxCheckUsers()
@@ -388,24 +373,24 @@ class UsersChecker extends Checker
         global $wpdb, $apbct;
 
         // Checked users
-	    $cnt_checked = $apbct->data['count_checked_users'];
+        $cnt_checked = $apbct->data['count_checked_users'];
 
-	    // Spam comments
-	    $params_spam = array(
-		    'count_total'   => true,
-		    'meta_query' => array(
-			    'relation' => 'AND',
-			    array(
-				    'key'     => 'ct_marked_as_spam',
-				    'compare' => '=',
-				    'value'   => 1
-			    )
-		    ),
-	    );
-	    $cnt_spam = count(get_users($params_spam));
+        // Spam comments
+        $params_spam = array(
+            'count_total'   => true,
+            'meta_query' => array(
+                'relation' => 'AND',
+                array(
+                    'key'     => 'ct_marked_as_spam',
+                    'compare' => '=',
+                    'value'   => 1
+                )
+            ),
+        );
+        $cnt_spam = count(get_users($params_spam));
 
         // Bad users (without IP and Email)
-	    $cnt_bad      = $apbct->data['count_bad_users'];
+        $cnt_bad      = $apbct->data['count_bad_users'];
 
         $return = array(
             'message' => '',
@@ -469,26 +454,26 @@ class UsersChecker extends Checker
     private static function getLogData()
     {
         // Checked users
-	    global $apbct;
+        global $apbct;
 
-	    $cnt_checked = $apbct->data['count_checked_users'];
+        $cnt_checked = $apbct->data['count_checked_users'];
 
-	    // Spam comments
-	    $params_spam = array(
-		    'count'   => true,
-		    'meta_query' => array(
-			    'relation' => 'AND',
-			    array(
-				    'key'     => 'ct_marked_as_spam',
-				    'compare' => '=',
-				    'value'   => 1
-			    )
-		    ),
-	    );
-	    $cnt_spam = get_users($params_spam);
+        // Spam comments
+        $params_spam = array( 
+            'count'   => true,
+            'meta_query' => array(
+                'relation' => 'AND',
+                array(
+                    'key'     => 'ct_marked_as_spam',
+                    'compare' => '=',
+                    'value'   => 1
+                )
+            ),
+        );
+        $cnt_spam = get_users($params_spam);
 
-	    // Bad users (without IP and Email)
-	    $cnt_bad      = $apbct->data['count_bad_users'];
+        // Bad users (without IP and Email)
+        $cnt_bad      = $apbct->data['count_bad_users'];
 
         return array(
             'spam'    => $cnt_spam,

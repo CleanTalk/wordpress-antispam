@@ -215,7 +215,7 @@ class Users extends \Cleantalk\ApbctWP\CleantalkListTable
     }
 
     /**
-     * @return \WP_User_Query
+     * @return integer
      * @psalm-suppress PossiblyUnusedMethod
      */
     public function getTotal()
@@ -224,7 +224,7 @@ class Users extends \Cleantalk\ApbctWP\CleantalkListTable
     }
 
     /**
-     * @return \WP_User_Query
+     * @return integer
      * @psalm-suppress PossiblyUnusedMethod
      */
     public function getChecked()
