@@ -527,7 +527,10 @@ function ct_ajax_hook($message_obj = null)
     }
 
     // Fusion Builder Avada Form integration
-    if (Post::hasString('action', 'fusion_form_submit_form_to_database_email')) {
+    if (
+        Post::hasString('action', 'fusion_form_submit_form_to_database_email') ||
+        Post::hasString('action', 'fusion_form_submit_form_to_email')
+    ) {
         if (Post::get('formData')) {
             $form_data = Post::get('formData');
             $form_data = explode('&', $form_data);
