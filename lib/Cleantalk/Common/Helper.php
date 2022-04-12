@@ -991,6 +991,7 @@ class Helper
      * @param string $string
      *
      * @return bool
+     * @psalm-suppress PossiblyUnusedMethod
      */
     public static function isJson($string)
     {
