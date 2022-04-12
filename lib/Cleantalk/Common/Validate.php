@@ -18,13 +18,13 @@ class Validate
     {
         switch ( $filter_name ) {
             case 'hash':
-                return self::isHash($variable);
+                return static::isHash($variable);
             case 'int':
-                return self::isInt($variable);
+                return static::isInt($variable);
             case 'float':
-                return self::isFloat($variable);
+                return static::isFloat($variable);
             case 'word':
-                return self::isWord($variable);
+                return static::isWord($variable);
         }
 
         return false;

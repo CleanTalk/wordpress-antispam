@@ -3,19 +3,16 @@
 namespace Cleantalk\ApbctWP\Variables;
 
 use Cleantalk\ApbctWP\Helper;
+use Cleantalk\ApbctWP\Sanitize;
+use Cleantalk\ApbctWP\Validate;
 use Cleantalk\Variables\Server;
 
 class Cookie extends \Cleantalk\Variables\Cookie
 {
     /**
-     * @param string $name
-     * @param string|array $default
-     * @param null|string $cast_to
-     * @param false $raw
-     *
-     * @return string|array
+     * @inheritDoc
      */
-    public static function get($name, $default = '', $cast_to = null, $raw = false)
+    public static function get($name, $validation_filter = null, $sanitize_filter = null)
     {
         global $apbct;
 
@@ -38,21 +35,24 @@ class Cookie extends \Cleantalk\Variables\Cookie
                 }
             }
 
+            // Validate variable
+            if ( $validation_filter && ! Validate::validate($value, $validation_filter) ) {
+                return false;
+            }
+
+            if ( $sanitize_filter ) {
+                $value = Sanitize::sanitize($value, $sanitize_filter);
+            }
+
             // Remember for further calls
             static::getInstance()->rememberVariable($name, $value);
         }
 
-        // Decoding by default
-        if ( ! $raw) {
-            $value = urldecode($value); // URL decode
-            $value = Helper::isJson($value) ? json_decode($value, true) : $value; // JSON decode
-            if ( ! is_null($cast_to)) {
-                settype($value, $cast_to);
-                $value = $cast_to === 'array' && $value === array('') ? array() : $value;
-            }
-        }
+        // Decoding
+        $value = urldecode($value); // URL decode
+        $value = Helper::isJson($value) ? json_decode($value, true) : $value; // JSON decode
 
-        return ! $value ? $default : $value;
+        return $value;
     }
 
     /**
@@ -155,7 +155,7 @@ class Cookie extends \Cleantalk\Variables\Cookie
 
         if ( $apbct->data['cookies_type'] === 'native' ) {
             // Get from separated native cookies and convert it to collection
-            $visible_fields_cookies_array = array_filter($_COOKIE, static function ($key) {
+            $visible_fields_cookies_array = array_filter($_COOKIE, function ($key) {
                 return strpos($key, 'apbct_visible_fields_') !== false;
             }, ARRAY_FILTER_USE_KEY);
             $visible_fields_collection = array();
@@ -166,7 +166,7 @@ class Cookie extends \Cleantalk\Variables\Cookie
             }
         } else {
             // Get from alt cookies storage
-            $visible_fields_collection = self::get('apbct_visible_fields', array(), 'array');
+            $visible_fields_collection = (array) self::get('apbct_visible_fields');
         }
 
         return $visible_fields_collection;

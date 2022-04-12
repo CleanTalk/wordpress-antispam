@@ -19,18 +19,21 @@ class Sanitize
         switch ( $filter_name ) {
             // XSS. Recursive.
             case 'xss':
-                return self::cleanXss($variable);
+                return static::cleanXss($variable);
 
             // URL
             case 'url':
-                return self::cleanUrl($variable);
+                return static::cleanUrl($variable);
 
             // Simple string
             case 'word':
-                return self::cleanWord($variable);
+                return static::cleanWord($variable);
 
             case 'int':
-                return self::cleanInt($variable);
+                return static::cleanInt($variable);
+
+            case 'cleanEmail':
+                return static::cleanEmail($variable);
         }
 
         return $variable;
@@ -78,6 +81,7 @@ class Sanitize
     public static function cleanEmail($variable)
     {
         // TODO
+        return $variable;
     }
 
     /**
