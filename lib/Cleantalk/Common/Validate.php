@@ -25,6 +25,8 @@ class Validate
                 return static::isFloat($variable);
             case 'word':
                 return static::isWord($variable);
+            case 'isUrl':
+                return static::isUrl($variable);
         }
 
         return false;
@@ -76,5 +78,11 @@ class Validate
     public static function isValidFilePath($variable)
     {
         // TODO
+    }
+
+    public static function isUrl($variable)
+    {
+        // @ToDo
+        return $variable;
     }
 }

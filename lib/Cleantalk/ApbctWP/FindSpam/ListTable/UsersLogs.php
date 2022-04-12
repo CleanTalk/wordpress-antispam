@@ -2,6 +2,8 @@
 
 namespace Cleantalk\ApbctWP\FindSpam\ListTable;
 
+use Cleantalk\Variables\Post;
+
 class UsersLogs extends Users
 {
     // Set columns
@@ -43,7 +45,7 @@ class UsersLogs extends Users
 
     public function bulk_actions_handler() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
-        if ( empty($_POST['spamids']) || empty($_POST['_wpnonce']) ) {
+        if ( empty(Post::get('spamids')) || empty(Post::get('_wpnonce')) ) {
             return;
         }
 
@@ -51,11 +53,11 @@ class UsersLogs extends Users
             return;
         }
 
-        if ( ! wp_verify_nonce($_POST['_wpnonce'], 'bulk-' . $this->_args['plural']) ) {
+        if ( ! wp_verify_nonce(Post::get('_wpnonce'), 'bulk-' . $this->_args['plural']) ) {
             wp_die('nonce error');
         }
 
-        $this->removeLogs($_POST['spamids']);
+        $this->removeLogs(Post::get('spamids'));
     }
 
     public function no_items() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps

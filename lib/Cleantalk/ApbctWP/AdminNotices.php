@@ -2,6 +2,9 @@
 
 namespace Cleantalk\ApbctWP;
 
+use Cleantalk\Variables\Get;
+use Cleantalk\Variables\Post;
+
 class AdminNotices
 {
     /*
@@ -51,8 +54,8 @@ class AdminNotices
     {
         global $apbct;
         $this->apbct             = $apbct;
-        $this->is_cleantalk_page = isset($_GET['page']) &&
-                                   in_array($_GET['page'], array('cleantalk', 'ct_check_spam', 'ct_check_users'));
+        $this->is_cleantalk_page = Get::get('page') &&
+                                   in_array((array)Get::get('page'), array('cleantalk', 'ct_check_spam', 'ct_check_users'));
         $this->user_token        = $this->apbct->user_token ? '&user_token=' . $this->apbct->user_token : '';
 
         $self_owned_key = $this->apbct->moderate_ip == 0 && ! defined('CLEANTALK_ACCESS_KEY');
@@ -267,11 +270,11 @@ class AdminNotices
     {
         check_ajax_referer('ct_secret_nonce');
 
-        if ( ! isset($_POST['notice_id']) ) {
+        if ( ! Post::get('notice_id') ) {
             wp_send_json_error(esc_html__('Wrong request.', 'cleantalk-spam-protect'));
         }
 
-        $notice       = sanitize_text_field($_POST['notice_id']);
+        $notice       = sanitize_text_field(Post::get('notice_id'));
         $uid          = get_current_user_id();
         $notice_uid   = $notice . '_' . $uid;
         $current_date = current_time('Y-m-d');

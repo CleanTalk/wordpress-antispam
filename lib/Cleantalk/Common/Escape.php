@@ -21,7 +21,7 @@ class Escape
      */
     public static function escHtml($text)
     {
-        // TODO
+        return htmlspecialchars($text);
     }
 
     /**

@@ -2,12 +2,14 @@
 
 namespace Cleantalk\Antispam\Integrations;
 
+use Cleantalk\Variables\Request;
+
 class ContactBank extends IntegrationBase
 {
     public function getDataForChecking($argument)
     {
-        if ( isset($_REQUEST['param']) ) {
-            parse_str(isset($_REQUEST['data']) ? base64_decode($_REQUEST['data']) : '', $form_data);
+        if ( Request::get('param') ) {
+            parse_str(Request::get('data') ? base64_decode(Request::get('data')) : '', $form_data);
 
             /**
              * Filter for POST

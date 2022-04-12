@@ -344,7 +344,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
             /**
              * Message about IP status
              */
-            if (! empty($_GET['sfw_test_ip'])) {
+            if (! empty(Get::get('sfw_test_ip'))) {
                 $message_ip_status = __(
                     'IP in the common blacklist',
                     'cleantalk-spam-protect'

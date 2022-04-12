@@ -2,14 +2,16 @@
 
 namespace Cleantalk\Antispam\Integrations;
 
+use Cleantalk\Variables\Post;
+
 class OvaLogin extends IntegrationBase
 {
     public function getDataForChecking($argument)
     {
         if ( apbct_is_plugin_active('ova-login/ova-login.php')
-             && !empty($_POST)
-             && isset($_POST['email'])
-             && isset($_POST['username'])
+             && ! empty($_POST)
+             && Post::get('email')
+             && Post::get('username')
         ) {
             /**
              * Filter for POST

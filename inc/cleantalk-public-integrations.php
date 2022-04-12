@@ -3,7 +3,9 @@
 use Cleantalk\ApbctWP\Helper;
 use Cleantalk\ApbctWP\State;
 use Cleantalk\ApbctWP\Variables\Cookie;
+use Cleantalk\Variables\Get;
 use Cleantalk\Variables\Post;
+use Cleantalk\Variables\Request;
 use Cleantalk\Variables\Server;
 
 // MailChimp Premium for Wordpress
@@ -1222,8 +1224,8 @@ function ct_login_message($message)
     global $errors, $apbct, $apbct_cookie_register_ok_label;
 
     if ( $apbct->settings['forms__registrations_test'] != 0 ) {
-        if ( isset($_GET['checkemail']) && 'registered' == $_GET['checkemail'] ) {
-            if ( isset($_COOKIE[$apbct_cookie_register_ok_label]) ) {
+        if ( 'registered' === Get::get('checkemail') ) {
+            if ( Cookie::get($apbct_cookie_register_ok_label) ) {
                 if ( is_wp_error($errors) ) {
                     $errors->add(
                         'ct_message',
@@ -2016,7 +2018,7 @@ function apbct_form__ninjaForms__testSpam()
 
     // Choosing between POST and GET
     $params = ct_get_fields_any(
-        isset($_GET['ninja_forms_ajax_submit']) || isset($_GET['nf_ajax_submit']) ? $_GET : $input_array
+        Get::get('ninja_forms_ajax_submit') || Get::get('nf_ajax_submit') ? $_GET : $input_array
     );
 
     $sender_email    = $params['email'] ?: '';
@@ -2180,7 +2182,7 @@ function apbct_form__seedprod_coming_soon__testSpam()
                 . "</h1><h2>" . $ct_result->comment . "</h2>"
         );
 
-        echo sanitize_text_field($_GET['callback']) . '(' . json_encode($response) . ')';
+        echo sanitize_text_field(Get::get('callback')) . '(' . json_encode($response) . ')';
         exit();
     }
 }
@@ -3202,7 +3204,11 @@ function apbct_custom_forms_trappings()
     }
 
     // Registration form of eMember plugin
-    if ( $apbct->settings['forms__registrations_test'] && isset($_REQUEST['emember-form-builder-submit']) && wp_verify_nonce($_REQUEST['_wpnonce'], 'emember-form-builder-nonce') ) {
+    if (
+        $apbct->settings['forms__registrations_test'] &&
+        Request::get('emember-form-builder-submit') &&
+        wp_verify_nonce(Request::get('_wpnonce'), 'emember-form-builder-nonce')
+    ) {
         return true;
     }
 

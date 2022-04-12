@@ -29,7 +29,7 @@ abstract class ServerVariables
      *
      * @param string $name Variable name
      * @param null|string $validation_filter
-     * @psalm-param (null|"hash"|"int"|"float"|"word") $validation_filter
+     * @psalm-param (null|"hash"|"int"|"float"|"word"|"isUrl") $validation_filter
      * @param null|string $sanitize_filter
      * @psalm-param (null|"xss"|"int"|"url"|"word"|"cleanEmail") $sanitize_filter
      *

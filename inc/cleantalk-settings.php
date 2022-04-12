@@ -2453,7 +2453,7 @@ function apbct_settings__update_account_email()
     $account_email = Post::get('accountEmail');
 
     // not valid email
-    if (!$account_email || !filter_var($_POST['accountEmail'], FILTER_VALIDATE_EMAIL)) {
+    if (!$account_email || !filter_var(Post::get('accountEmail'), FILTER_VALIDATE_EMAIL)) {
         die(
             json_encode(
                 array(
@@ -2579,7 +2579,7 @@ function apbct_settings__get__long_description()
 {
     check_ajax_referer('ct_secret_nonce');
 
-    $setting_id = $_POST['setting_id'] ?: '';
+    $setting_id = (string) Post::get('setting_id', null, 'word');
 
     $descriptions = array(
         'multisite__work_mode'      => array(

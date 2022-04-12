@@ -2,15 +2,17 @@
 
 namespace Cleantalk\Antispam\Integrations;
 
+use Cleantalk\Variables\Post;
+
 class EstimationForm extends IntegrationBase
 {
     public function getDataForChecking($argument)
     {
-        if ( isset($_POST['customerInfos']) ) {
+        if ( Post::get('customerInfos') ) {
             /**
              * Filter for POST
              */
-            $input_array = apply_filters('apbct__filter_post', $_POST['customerInfos']);
+            $input_array = apply_filters('apbct__filter_post', Post::get('customerInfos'));
 
             return ct_get_fields_any($input_array);
         }
