@@ -505,7 +505,7 @@ function apbct_get_sender_info()
         'USER_AGENT'             => apbct_get_server_variable('HTTP_USER_AGENT'),
         'page_url'               => apbct_sender_info___get_page_url(),
         'cms_lang'               => substr(get_locale(), 0, 2),
-        'ct_options'             => json_encode($apbct->settings),
+        'ct_options'             => json_encode($apbct->settings, JSON_UNESCAPED_SLASHES),
         'fields_number'          => sizeof($_POST),
         'direct_post'            => $cookie_is_ok === null && apbct_is_post() ? 1 : 0,
         // Raw data to validated JavaScript test in the cloud
