@@ -129,10 +129,10 @@ class CleantalkResponse
     public function __construct($obj = null)
     {
         $this->errno  = isset($obj->errno) ? $obj->errno : 0;
-        $this->errstr = isset($obj->errstr) ? preg_replace("/.+(\*\*\*.+\*\*\*).+/", "$1", $obj->errstr) : null;
+        $this->errstr = isset($obj->errstr) ? preg_replace("/.+(\*\*\*.+\*\*\*).+/", "$1", htmlspecialchars($obj->errstr)) : null;
 
         $this->stop_words     = isset($obj->stop_words) ? utf8_decode($obj->stop_words) : null;
-        $this->comment        = isset($obj->comment) ? utf8_decode($obj->comment) : null;
+        $this->comment        = isset($obj->comment) ? strip_tags(utf8_decode($obj->comment), '<p><a><br>') : null;
         $this->blacklisted    = isset($obj->blacklisted) ? $obj->blacklisted : null;
         $this->allow          = isset($obj->allow) ? $obj->allow : 1;
         $this->id             = isset($obj->id) ? $obj->id : null;
@@ -142,7 +142,7 @@ class CleantalkResponse
         $this->sms_allow      = isset($obj->sms_allow) ? $obj->sms_allow : null;
         $this->sms            = isset($obj->sms) ? $obj->sms : null;
         $this->sms_error_code = isset($obj->sms_error_code) ? $obj->sms_error_code : null;
-        $this->sms_error_text = isset($obj->sms_error_text) ? $obj->sms_error_text : null;
+        $this->sms_error_text = isset($obj->sms_error_text) ? htmlspecialchars($obj->sms_error_text) : null;
         $this->stop_queue     = isset($obj->stop_queue) ? $obj->stop_queue : 0;
         $this->inactive       = isset($obj->inactive) ? $obj->inactive : 0;
         $this->account_status = isset($obj->account_status) ? $obj->account_status : -1;
@@ -150,7 +150,7 @@ class CleantalkResponse
         $this->codes          = isset($obj->codes) ? explode(' ', $obj->codes) : array();
 
         if ( $this->errno !== 0 && $this->errstr !== null && $this->comment === null ) {
-            $this->comment = '*** ' . $this->errstr . ' Antispam service cleantalk.org ***';
+            $this->comment = '*** ' . $this->errstr . ' Anti-Spam service cleantalk.org ***';
         }
     }
 }

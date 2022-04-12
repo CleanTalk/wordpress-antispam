@@ -114,7 +114,7 @@ class Activator
     }
 
     /**
-     * Checking if a third party hook need to get API key automatically
+     * Checking if a third party hook need to get Access key automatically
      *
      * @return void
      */
@@ -128,9 +128,9 @@ class Activator
             return;
         }
         /**
-         * Filters a getting API key flag
+         * Filters a getting Access key flag
          *
-         * @param bool Set true if you want to get key automatically after activation the plugin
+         * @param bool Set true if you want to get the Access key automatically after activation the plugin
          */
         $is_get_api_key = apply_filters('apbct_is_get_api_key', false);
         if ( $is_get_api_key ) {

@@ -19,7 +19,7 @@ use Cleantalk\ApbctWP\Helper;
 class Cleantalk
 {
     /**
-     * Use Wordpress built-in API
+     * Use WordPress built-in API
      * @var bool
      */
     public $use_bultin_api = false;

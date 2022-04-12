@@ -330,7 +330,7 @@ function apbct_exclusions_check($func = null)
 {
     global $apbct;
 
-    if ( isset($_POST['apbct_do_not_exclude']) ) {
+    if ( Post::get('apbct_do_not_exclude') ) {
         return false;
     }
 
@@ -491,8 +491,8 @@ function apbct_get_sender_info()
     $visible_fields_collection = '';
     if ( Cookie::getVisibleFields() ) {
         $visible_fields_collection = Cookie::getVisibleFields();
-    } elseif ( isset($_POST['apbct_visible_fields']) ) {
-        $visible_fields_collection = stripslashes($_POST['apbct_visible_fields']);
+    } elseif ( Post::get('apbct_visible_fields') ) {
+        $visible_fields_collection = stripslashes(Post::get('apbct_visible_fields'));
     }
 
     $visible_fields = apbct_visible_fields__process($visible_fields_collection);
@@ -782,7 +782,7 @@ function ct_get_admin_email()
         // WPMS - Main site, common account
         $admin_email = get_site_option('admin_email');
     } else {
-        // WPMS - Individual account, individual key
+        // WPMS - Individual account, individual Access key
         $admin_email = get_blog_option(get_current_blog_id(), 'admin_email');
     }
 
@@ -797,7 +797,7 @@ function ct_get_admin_email()
 }
 
 /**
- * Inner function - Current Cleantalk working server info
+ * Inner function - Current CleanTalk working server info
  * @return    array Array of server data
  */
 function ct_get_server()
@@ -838,7 +838,7 @@ function ct_hash($new_hash = '')
 /**
  * Inner function - Write manual moderation results to PHP sessions
  *
- * @param string $hash Cleantalk comment hash
+ * @param string $hash CleanTalk comment hash
  * @param string $message comment_content
  * @param int $allow flag good comment (1) or bad (0)
  *
@@ -1029,7 +1029,7 @@ function apbct_is_regexp($regexp)
 
 function cleantalk_debug($key, $value)
 {
-    if ( isset($_COOKIE) && isset($_COOKIE['cleantalk_debug']) ) {
+    if ( Cookie::get('cleantalk_debug')) {
         @header($key . ": " . $value);
     }
 }

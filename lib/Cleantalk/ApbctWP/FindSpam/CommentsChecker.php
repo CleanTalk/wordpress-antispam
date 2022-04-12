@@ -3,6 +3,8 @@
 namespace Cleantalk\ApbctWP\FindSpam;
 
 use Cleantalk\ApbctWP\API;
+use Cleantalk\ApbctWP\Variables\Cookie;
+use Cleantalk\Variables\Post;
 
 class CommentsChecker extends Checker
 {
@@ -15,8 +17,8 @@ class CommentsChecker extends Checker
         $this->page_slug        = 'spam';
 
         // Preparing data
-        if ( ! empty($_COOKIE['ct_paused_comments_check']) ) {
-            $prev_check = json_decode(stripslashes($_COOKIE['ct_paused_comments_check']), true);
+        if ( Cookie::get('ct_paused_comments_check') ) {
+            $prev_check = json_decode(stripslashes(Cookie::get('ct_paused_comments_check')), true);
             $prev_check_from = $prev_check_till = '';
             if (
                 ! empty($prev_check['from']) && ! empty($prev_check['till']) &&
@@ -30,7 +32,7 @@ class CommentsChecker extends Checker
 
         wp_enqueue_script(
             'ct_comments_checkspam',
-            plugins_url('/cleantalk-spam-protect/js/cleantalk-comments-checkspam.min.js'),
+            APBCT_JS_ASSETS_PATH . '/cleantalk-comments-checkspam.min.js',
             array('jquery', 'jquery-ui-datepicker'),
             APBCT_VERSION
         );
@@ -54,7 +56,7 @@ class CommentsChecker extends Checker
                 'Please do backup of WordPress database before delete any accounts!',
                 'cleantalk-spam-protect'
             ) . '</p>',
-            'start'                    => ! empty($_COOKIE['ct_comments_start_check']),
+            'start'                    => ! empty(Cookie::get('ct_comments_start_check')),
         ));
     }
 
@@ -131,20 +133,20 @@ class CommentsChecker extends Checker
 
         $sql_where = "WHERE NOT comment_approved = 'spam'";
         $sql_where .= " AND comment_type = 'comment'";
-        if ( isset($_POST['from'], $_POST['till']) ) {
-            $from_date = date('Y-m-d', intval(strtotime($_POST['from'])));
-            $till_date = date('Y-m-d', intval(strtotime($_POST['till'])));
+        if ( Post::get('from') && Post::get('till') ) {
+            $from_date = date('Y-m-d', intval(strtotime(Post::get('from'))));
+            $till_date = date('Y-m-d', intval(strtotime(Post::get('till'))));
 
             $sql_where .= " AND comment_date_gmt > '$from_date 00:00:00' AND comment_date_gmt < '$till_date 23:59:59'";
         }
 
-        $offset = $_COOKIE['apbct_check_comments_offset'] ?: 0;
+        $offset = Cookie::get('apbct_check_comments_offset') ? (int) Cookie::get('apbct_check_comments_offset') : 0;
 
         $query = "SELECT comment_ID, comment_date_gmt, comment_author_IP, comment_author_email
                        FROM $wpdb->comments
                        $sql_where
                        ORDER BY comment_ID
-                       LIMIT 100 OFFSET " . (int) $offset;
+                       LIMIT 100 OFFSET " . $offset;
 
         $c = $wpdb->get_results($query);
 
@@ -165,7 +167,7 @@ class CommentsChecker extends Checker
                 }
             }
 
-            if ( ! empty($_POST['accurate_check']) ) {
+            if ( ! empty(Post::get('accurate_check')) ) {
                 // Leaving comments only with first comment's date. Unsetting others.
 
                 foreach ( $c as $comment_index => $comment ) {
@@ -214,7 +216,7 @@ class CommentsChecker extends Checker
 
             // Drop if data empty and there's no comments to check
             if ( count($data) === 0 ) {
-                if ( $_POST['unchecked'] === 0 ) {
+                if ( (int) Post::get('unchecked') === 0 ) {
                     $check_result['end'] = 1;
                 }
                 print json_encode($check_result);
@@ -224,7 +226,7 @@ class CommentsChecker extends Checker
             $result = API::methodSpamCheckCms(
                 $apbct->api_key,
                 $data,
-                ! empty($_POST['accurate_check']) ? $curr_date : null
+                ! empty(Post::get('accurate_check')) ? $curr_date : null
             );
 
             if ( empty($result['error']) ) {

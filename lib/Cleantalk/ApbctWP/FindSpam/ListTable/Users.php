@@ -2,6 +2,9 @@
 
 namespace Cleantalk\ApbctWP\FindSpam\ListTable;
 
+use Cleantalk\Variables\Get;
+use Cleantalk\Variables\Post;
+
 class Users extends \Cleantalk\ApbctWP\CleantalkListTable
 {
     protected $apbct;
@@ -113,7 +116,7 @@ class Users extends \Cleantalk\ApbctWP\CleantalkListTable
         $actions = array(
             'delete' => sprintf(
                 '<a href="?page=%s&action=%s&spam=%s">Delete</a>',
-                htmlspecialchars(addslashes($_GET['page'])),
+                htmlspecialchars(addslashes(Get::get('page'))),
                 'delete',
                 $user_obj->ID
             ),
@@ -159,7 +162,7 @@ class Users extends \Cleantalk\ApbctWP\CleantalkListTable
 
     public function bulk_actions_handler() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
-        if ( empty($_POST['spamids']) || empty($_POST['_wpnonce']) ) {
+        if ( empty(Post::get('spamids')) || empty(Post::get('_wpnonce')) ) {
             return;
         }
 
@@ -167,20 +170,20 @@ class Users extends \Cleantalk\ApbctWP\CleantalkListTable
             return;
         }
 
-        if ( ! wp_verify_nonce($_POST['_wpnonce'], 'bulk-' . $this->_args['plural']) ) {
+        if ( ! wp_verify_nonce(Post::get('_wpnonce'), 'bulk-' . $this->_args['plural']) ) {
             wp_die('nonce error');
         }
 
-        $this->removeSpam($_POST['spamids']);
+        $this->removeSpam(Post::get('spamids'));
     }
 
     public function row_actions_handler() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
-        if ( empty($_GET['action']) ) {
+        if ( empty(Get::get('action')) ) {
             return;
         }
 
-        if ( $_GET['action'] === 'delete' ) {
+        if ( Get::get('action') === 'delete' ) {
             $id = filter_input(INPUT_GET, 'spam', FILTER_SANITIZE_NUMBER_INT);
             $this->removeSpam(array($id));
         }

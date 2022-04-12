@@ -4,6 +4,7 @@ namespace Cleantalk\ApbctWP\Firewall;
 
 use Cleantalk\Common\Helper;
 use Cleantalk\ApbctWP\Variables\Cookie;
+use Cleantalk\Variables\Get;
 use Cleantalk\Variables\Server;
 
 /**
@@ -454,7 +455,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
                         3
                     ) . '<br>'
                     . __('Don\'t close this page. Please, wait for 3 seconds to pass to the page.', 'cleantalk-spam-protect'),
-                '{CLEANTALK_TITLE}'                => __('Antispam by CleanTalk', 'cleantalk-spam-protect'),
+                '{CLEANTALK_TITLE}'                => __('Anti-Spam by CleanTalk', 'cleantalk-spam-protect'),
                 '{REMOTE_ADDRESS}'                 => $result['ip'],
                 '{SERVICE_ID}'                     => $this->apbct->data['service_id'] . ', ' . $net_count,
                 '{HOST}'                           => get_home_url() . ', ' . APBCT_VERSION,
@@ -468,7 +469,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
                 $this->sfw_die_page = str_replace($place_holder, $replace, $this->sfw_die_page);
             }
 
-            if ( isset($_GET['debug']) ) {
+            if ( Get::get('debug') ) {
                 $debug = '<h1>Headers</h1>'
                          . str_replace("\n", "<br>", print_r(\apache_request_headers(), true))
                          . '<h1>$_SERVER</h1>'

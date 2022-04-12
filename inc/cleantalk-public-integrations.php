@@ -3,7 +3,9 @@
 use Cleantalk\ApbctWP\Helper;
 use Cleantalk\ApbctWP\State;
 use Cleantalk\ApbctWP\Variables\Cookie;
+use Cleantalk\Variables\Get;
 use Cleantalk\Variables\Post;
+use Cleantalk\Variables\Request;
 use Cleantalk\Variables\Server;
 
 // MailChimp Premium for Wordpress
@@ -443,7 +445,7 @@ function apbct_search_add_noindex()
         return;
     }
 
-    echo '<!-- meta by Cleantalk AntiSpam Protection plugin -->' . "\n";
+    echo '<!-- meta by CleanTalk Anti-Spam Protection plugin -->' . "\n";
     echo '<meta name="robots" content="noindex,nofollow" />' . "\n";
 }
 
@@ -1222,8 +1224,8 @@ function ct_login_message($message)
     global $errors, $apbct, $apbct_cookie_register_ok_label;
 
     if ( $apbct->settings['forms__registrations_test'] != 0 ) {
-        if ( isset($_GET['checkemail']) && 'registered' == $_GET['checkemail'] ) {
-            if ( isset($_COOKIE[$apbct_cookie_register_ok_label]) ) {
+        if ( 'registered' === Get::get('checkemail') ) {
+            if ( Cookie::get($apbct_cookie_register_ok_label) ) {
                 if ( is_wp_error($errors) ) {
                     $errors->add(
                         'ct_message',
@@ -1548,11 +1550,11 @@ function apbct_registration__Wordpress__changeMailNotification(
 
     $wp_new_user_notification_email_admin['message'] = PHP_EOL
                                                        . __(
-                                                           'CleanTalk AntiSpam: This registration is spam.',
+                                                           'CleanTalk Anti-Spam: This registration is spam.',
                                                            'cleantalk-spam-protect'
                                                        )
                                                        . "\n" . __(
-                                                           'CleanTalk\'s anti-spam database:',
+                                                           'CleanTalk\'s Anti-Spam database:',
                                                            'cleantalk-spam-protect'
                                                        )
                                                        . "\n" . 'IP: ' . $apbct->sender_ip
@@ -1967,8 +1969,8 @@ function apbct_form__contactForm7__changeMailNotification($component)
     global $apbct;
 
     $component['body'] =
-        __('CleanTalk AntiSpam: This message is spam.', 'cleantalk-spam-protect')
-        . PHP_EOL . __('CleanTalk\'s anti-spam database:', 'cleantalk-spam-protect')
+        __('CleanTalk Anti-Spam: This message is spam.', 'cleantalk-spam-protect')
+        . PHP_EOL . __('CleanTalk\'s Anti-Spam database:', 'cleantalk-spam-protect')
         . PHP_EOL . 'IP: ' . $apbct->sender_ip
         . PHP_EOL . 'Email: ' . $apbct->sender_email
         . PHP_EOL . sprintf(
@@ -2016,7 +2018,7 @@ function apbct_form__ninjaForms__testSpam()
 
     // Choosing between POST and GET
     $params = ct_get_fields_any(
-        isset($_GET['ninja_forms_ajax_submit']) || isset($_GET['nf_ajax_submit']) ? $_GET : $input_array
+        Get::get('ninja_forms_ajax_submit') || Get::get('nf_ajax_submit') ? $_GET : $input_array
     );
 
     $sender_email    = $params['email'] ?: '';
@@ -2180,7 +2182,7 @@ function apbct_form__seedprod_coming_soon__testSpam()
                 . "</h1><h2>" . $ct_result->comment . "</h2>"
         );
 
-        echo sanitize_text_field($_GET['callback']) . '(' . json_encode($response) . ')';
+        echo sanitize_text_field(Get::get('callback')) . '(' . json_encode($response) . ')';
         exit();
     }
 }
@@ -2200,8 +2202,8 @@ function apbct_form__ninjaForms__changeMailNotification($message, $_data, $actio
         $message .= wpautop(
             PHP_EOL . '---'
             . PHP_EOL
-            . __('CleanTalk AntiSpam: This message is spam.', 'cleantalk-spam-protect')
-            . PHP_EOL . __('CleanTalk\'s anti-spam database:', 'cleantalk-spam-protect')
+            . __('CleanTalk Anti-Spam: This message is spam.', 'cleantalk-spam-protect')
+            . PHP_EOL . __('CleanTalk\'s Anti-Spam database:', 'cleantalk-spam-protect')
             . PHP_EOL . 'IP: ' . $apbct->sender_ip
             . PHP_EOL . 'Email: ' . $apbct->sender_email
             . PHP_EOL .
@@ -2421,8 +2423,8 @@ function apbct_form__WPForms__changeMailNotification($message, $_wpforms_email)
             PHP_EOL
             . '---'
             . PHP_EOL
-            . __('CleanTalk AntiSpam: This message is spam.', 'cleantalk-spam-protect')
-            . PHP_EOL . __('CleanTalk\'s anti-spam database:', 'cleantalk-spam-protect')
+            . __('CleanTalk Anti-Spam: This message is spam.', 'cleantalk-spam-protect')
+            . PHP_EOL . __('CleanTalk\'s Anti-Spam database:', 'cleantalk-spam-protect')
             . PHP_EOL . 'IP: ' . '<a href="https://cleantalk.org/blacklists/' . $apbct->sender_ip . '?utm_source=newsletter&utm_medium=email&utm_campaign=wpforms_spam_passed" target="_blank">' . $apbct->sender_ip . '</a>'
             . PHP_EOL . 'Email: ' . '<a href="https://cleantalk.org/blacklists/' . $apbct->sender_email . '?utm_source=newsletter&utm_medium=email&utm_campaign=wpforms_spam_passed" target="_blank">' . $apbct->sender_email . '</a>'
             . PHP_EOL
@@ -3202,7 +3204,11 @@ function apbct_custom_forms_trappings()
     }
 
     // Registration form of eMember plugin
-    if ( $apbct->settings['forms__registrations_test'] && isset($_REQUEST['emember-form-builder-submit']) && wp_verify_nonce($_REQUEST['_wpnonce'], 'emember-form-builder-nonce') ) {
+    if (
+        $apbct->settings['forms__registrations_test'] &&
+        Request::get('emember-form-builder-submit') &&
+        wp_verify_nonce(Request::get('_wpnonce'), 'emember-form-builder-nonce')
+    ) {
         return true;
     }
 

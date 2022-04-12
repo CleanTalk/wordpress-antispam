@@ -3,12 +3,12 @@
 namespace Cleantalk\ApbctWP;
 
 /**
- * CleanTalk Antispam Helper class.
- * Compatible only with Wordpress.
+ * CleanTalk Anti-Spam Helper class.
+ * Compatible only with WordPress.
  *
  * @depends \Cleantalk\Common\Helper
  *
- * @package Antispam Plugin by CleanTalk
+ * @package Anti-Spam Plugin by CleanTalk
  * @subpackage Helper
  * @Version 1.0
  * @author Cleantalk team (welcome@cleantalk.org)

@@ -2,15 +2,17 @@
 
 namespace Cleantalk\Antispam\Integrations;
 
+use Cleantalk\Variables\Post;
+
 class ElfsightContactForm extends IntegrationBase
 {
     public function getDataForChecking($argument)
     {
-        if ( isset($_POST['fields']) ) {
+        if ( Post::get('fields') ) {
             /**
              * Filter for POST
              */
-            $input_array = apply_filters('apbct__filter_post', $_POST['fields']);
+            $input_array = apply_filters('apbct__filter_post', Post::get('fields'));
 
             return ct_get_fields_any($input_array);
         }
