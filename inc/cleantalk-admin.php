@@ -1,6 +1,8 @@
 <?php
 
 use Cleantalk\ApbctWP\CleantalkSettingsTemplates;
+use Cleantalk\Variables\Get;
+use Cleantalk\Variables\Post;
 use Cleantalk\Variables\Server;
 
 require_once('cleantalk-settings.php');
@@ -272,7 +274,7 @@ function apbct_admin__init()
     }
 
     // Getting dashboard widget statistics
-    if ( ! empty($_POST['ct_brief_refresh']) ) {
+    if ( (int) Post::get('ct_brief_refresh') === 1 ) {
         cleantalk_get_brief_data($apbct->api_key);
     }
 
@@ -683,14 +685,14 @@ function apbct_admin__admin_bar__prepare_counters()
     global $apbct;
 
     //Reset or create user counter
-    if ( ! empty($_GET['ct_reset_user_counter']) ) {
+    if ( ! empty(Get::get('ct_reset_user_counter')) ) {
         $apbct->data['user_counter']['accepted'] = 0;
         $apbct->data['user_counter']['blocked']  = 0;
         $apbct->data['user_counter']['since']    = date('d M');
         $apbct->saveData();
     }
     //Reset or create all counters
-    if ( ! empty($_GET['ct_reset_all_counters']) ) {
+    if ( ! empty(Get::get('ct_reset_all_counters')) ) {
         $apbct->data['admin_bar__sfw_counter']      = array('all' => 0, 'blocked' => 0);
         $apbct->data['admin_bar__all_time_counter'] = array('accepted' => 0, 'blocked' => 0);
         $apbct->data['user_counter']                = array(
@@ -1072,9 +1074,9 @@ function apbct_comment__send_feedback(
         check_ajax_referer('ct_secret_nonce', 'security');
     }
 
-    $comment_id     = ! $comment_id && isset($_POST['comment_id']) ? $_POST['comment_id'] : false;
-    $comment_status = ! $comment_status && isset($_POST['comment_status']) ? $_POST['comment_status'] : false;
-    $change_status  = ! $change_status && isset($_POST['change_status']) ? $_POST['change_status'] : false;
+    $comment_id     = ! $comment_id && Post::get('comment_id') ? (int) Post::get('comment_id') : null;
+    $comment_status = ! $comment_status && Post::get('comment_status') ? (string) Post::get('comment_status') : null;
+    $change_status  = ! $change_status && Post::get('change_status') ? (bool) Post::get('change_status') : false;
 
     // If enter params is empty exit
     if ( ! $comment_id || ! $comment_status ) {
@@ -1127,20 +1129,20 @@ function apbct_user__send_feedback($user_id = null, $status = null, $direct_call
     check_ajax_referer('ct_secret_nonce', 'security');
 
     if ( ! $direct_call ) {
-        $user_id = $_POST['user_id'];
-        $status  = $_POST['status'];
+        $user_id = (int) Post::get('user_id');
+        $status  = Post::get('status', null, 'word');
     }
 
     $hash = get_user_meta($user_id, 'ct_hash', true);
 
     if ( $hash ) {
-        if ( $status == 'approve' || $status == 1 ) {
+        if ( $status === 'approve' || $status === '1' ) {
             $result = ct_send_feedback($hash . ":1");
-            $result === true ? 1 : 0;
+            $result = $result === true ? 1 : 0;
         }
-        if ( $status == 'spam' || $status == 'disapprove' || $status == 0 ) {
+        if ( $status === 'spam' || $status === 'disapprove' || $status === '0' ) {
             $result = ct_send_feedback($hash . ":0");
-            $result === true ? 1 : 0;
+            $result = $result === true ? 1 : 0;
         }
     } else {
         $result = 'no_hash';
@@ -1149,7 +1151,6 @@ function apbct_user__send_feedback($user_id = null, $status = null, $direct_call
     if ( ! $direct_call ) {
         echo ! empty($result) ? $result : 0;
         die();
-    } else {
     }
 }
 

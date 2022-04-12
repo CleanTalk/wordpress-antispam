@@ -330,7 +330,7 @@ function apbct_exclusions_check($func = null)
 {
     global $apbct;
 
-    if ( isset($_POST['apbct_do_not_exclude']) ) {
+    if ( Post::get('apbct_do_not_exclude') ) {
         return false;
     }
 
@@ -491,8 +491,8 @@ function apbct_get_sender_info()
     $visible_fields_collection = '';
     if ( Cookie::getVisibleFields() ) {
         $visible_fields_collection = Cookie::getVisibleFields();
-    } elseif ( isset($_POST['apbct_visible_fields']) ) {
-        $visible_fields_collection = stripslashes($_POST['apbct_visible_fields']);
+    } elseif ( Post::get('apbct_visible_fields') ) {
+        $visible_fields_collection = stripslashes(Post::get('apbct_visible_fields'));
     }
 
     $visible_fields = apbct_visible_fields__process($visible_fields_collection);
@@ -1029,7 +1029,7 @@ function apbct_is_regexp($regexp)
 
 function cleantalk_debug($key, $value)
 {
-    if ( isset($_COOKIE) && isset($_COOKIE['cleantalk_debug']) ) {
+    if ( Cookie::get('cleantalk_debug')) {
         @header($key . ": " . $value);
     }
 }

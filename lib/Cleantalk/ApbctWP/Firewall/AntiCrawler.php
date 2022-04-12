@@ -4,6 +4,7 @@ namespace Cleantalk\ApbctWP\Firewall;
 
 use Cleantalk\Common\Helper;
 use Cleantalk\ApbctWP\Variables\Cookie;
+use Cleantalk\Variables\Get;
 use Cleantalk\Variables\Server;
 
 /**
@@ -468,7 +469,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
                 $this->sfw_die_page = str_replace($place_holder, $replace, $this->sfw_die_page);
             }
 
-            if ( isset($_GET['debug']) ) {
+            if ( Get::get('debug') ) {
                 $debug = '<h1>Headers</h1>'
                          . str_replace("\n", "<br>", print_r(\apache_request_headers(), true))
                          . '<h1>$_SERVER</h1>'

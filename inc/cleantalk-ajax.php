@@ -4,6 +4,7 @@
  * AJAX functions
  */
 
+use Cleantalk\Variables\Get;
 use Cleantalk\Variables\Post;
 
 $_cleantalk_ajax_actions_to_check[] = 'qcf_validate_form';            //Quick Contact Form
@@ -62,7 +63,7 @@ add_action('wp_ajax_zn_do_login', 'ct_ajax_hook', 1);
 $_cleantalk_hooked_actions[] = 'zn_do_login';
 
 /*hooks for zn_do_login */
-if ( isset($_POST['action']) && $_POST['action'] === 'cscf-submitform' ) {
+if ( Post::get('action') === 'cscf-submitform' ) {
     add_filter('preprocess_comment', 'ct_ajax_hook', 1);
     $_cleantalk_hooked_actions[] = 'cscf-submitform';
 }
@@ -143,11 +144,11 @@ add_action('wp_ajax_nopriv_elementor_pro_forms_send_form', 'apbct_form__elemento
  */
 function ct_validate_email_ajaxlogin($email = null)
 {
-    $email   = is_null($email) ? $email : $_POST['email'];
-    $email   = sanitize_email($email);
+    $email   = is_null($email) ? $email : Post::get('email');
+    $email   = \Cleantalk\ApbctWP\Sanitize::cleanEmail($email);
     $is_good = ! ( ! filter_var($email, FILTER_VALIDATE_EMAIL) || email_exists($email));
 
-    if ( class_exists('AjaxLogin') && isset($_POST['action']) && $_POST['action'] === 'validate_email' ) {
+    if ( class_exists('AjaxLogin') && Post::get('action') === 'validate_email' ) {
         $checkjs                            = apbct_js_test('ct_checkjs', $_POST);
         $sender_info['post_checkjs_passed'] = $checkjs;
         if ( $checkjs === null ) {
@@ -201,7 +202,7 @@ function ct_validate_email_ajaxlogin($email = null)
  */
 function ct_user_register_ajaxlogin($user_id)
 {
-    if ( class_exists('AjaxLogin') && isset($_POST['action']) && $_POST['action'] === 'register_submit' ) {
+    if ( class_exists('AjaxLogin') && Post::get('action') === 'register_submit' ) {
         $checkjs                            = apbct_js_test('ct_checkjs', $_POST);
         $sender_info['post_checkjs_passed'] = $checkjs;
         if ( $checkjs === null ) {
@@ -212,8 +213,8 @@ function ct_user_register_ajaxlogin($user_id)
         //Making a call
         $base_call_result = apbct_base_call(
             array(
-                'sender_email'    => sanitize_email($_POST['email']),
-                'sender_nickname' => sanitize_email($_POST['login']),
+                'sender_email'    => Post::get('email', null, 'cleanEmail'),
+                'sender_nickname' => Post::get('login', null, 'cleanEmail'),
                 'sender_info'     => $sender_info,
                 'js_on'           => $checkjs,
             ),
@@ -405,9 +406,9 @@ function ct_ajax_hook($message_obj = null)
          // (function_exists('get_current_user_id') && get_current_user_id() != 0) || // Check with default wp_* function if it's admin
          ( ! $apbct->settings['data__protect_logged_in'] && ($apbct->user instanceof WP_User) && $apbct->user->ID !== 0) || // Logged in user
          apbct_exclusions_check__url() || // url exclusions
-         (isset($_POST['action']) && in_array($_POST['action'], $skip_post)) || // Special params
-         (isset($_GET['action']) && in_array($_GET['action'], $skip_post)) ||  // Special params
-         isset($_POST['quform_submit']) || //QForms multi-paged form skip
+         (Post::get('action') && in_array(Post::get('action'), $skip_post)) || // Special params
+         (Get::get('action') && in_array(Get::get('action'), $skip_post)) ||  // Special params
+         Post::get('quform_submit') || //QForms multi-paged form skip
          // QAEngine Theme fix
          ((string)current_filter() !== 'et_pre_insert_answer' &&
           (
@@ -415,9 +416,9 @@ function ct_ajax_hook($message_obj = null)
               (isset($message_obj['post_author']) && (int)$message_obj['post_author'] === 0)
           )
          ) ||
-         (isset($_POST['action'], $_POST['arm_action']) && $_POST['action'] === 'arm_shortcode_form_ajax_action' && $_POST['arm_action'] === 'please-login') || //arm forms skip login
-         (isset($_POST['action']) && $_POST['action'] === 'erf_login_user' && in_array('easy-registration-forms/erforms.php', apply_filters('active_plugins', get_option('active_plugins')))) || //Easy Registration Forms login form skip
-         (isset($_POST['action'], $_POST['endpoint'], $_POST['method']) && $_POST['action'] === 'mailpoet' && $_POST['endpoint'] === 'ImportExport' && $_POST['method'] === 'processImport') //Mailpoet import
+         (Post::get('action') === 'arm_shortcode_form_ajax_action' && Post::get('arm_action') === 'please-login') || //arm forms skip login
+         (Post::get('action') === 'erf_login_user' && in_array('easy-registration-forms/erforms.php', apply_filters('active_plugins', get_option('active_plugins')))) || //Easy Registration Forms login form skip
+         (Post::get('action') === 'mailpoet' && Post::get('endpoint') === 'ImportExport' && Post::get('method') === 'processImport') //Mailpoet import
     ) {
         do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
 
@@ -457,33 +458,38 @@ function ct_ajax_hook($message_obj = null)
     }
 
     //CSCF fix
-    if ( isset($_POST['action']) && $_POST['action'] === 'cscf-submitform' ) {
+    if ( Post::get('action') === 'cscf-submitform' ) {
         $ct_post_temp[] = $message_obj['comment_author'];
         $ct_post_temp[] = $message_obj['comment_author_email'];
         $ct_post_temp[] = $message_obj['comment_content'];
     }
 
     //??? fix
-    if ( isset($_POST['action'], $_POST['target']) && ($_POST['action'] === 'request_appointment' || $_POST['action'] === 'send_message') ) {
+    if ( Post::get('target') && (Post::get('action') === 'request_appointment' || Post::get('action') === 'send_message') ) {
         $ct_post_temp           = $_POST;
         $ct_post_temp['target'] = 1;
     }
 
     //UserPro fix
-    if ( isset($_POST['action'], $_POST['template']) && $_POST['action'] === 'userpro_process_form' && $_POST['template'] === 'register' ) {
+    if ( Post::get('action') === 'userpro_process_form' && Post::get('template') === 'register' ) {
         $ct_post_temp              = $_POST;
         $ct_post_temp['shortcode'] = '';
     }
     //Pre-filled form 426869223
-    if ( isset($_POST['action'], $_POST['response-email-address'], $_POST['response-email-sender-address']) && $_POST['action'] === 'contact-owner:send' ) {
+    if (
+        Post::get('action') !== '' &&
+        Post::get('response-email-address') !== '' &&
+        Post::get('response-email-sender-address') !== '' &&
+        Post::get('action') === 'contact-owner:send'
+    ) {
         unset($_POST['response-email-address']);
         unset($_POST['response-email-sender-address']);
     }
     //Reviewer fix
-    if ( isset($_POST['action']) && $_POST['action'] === 'rwp_ajax_action_rating' ) {
-        $ct_post_temp['name']    = $_POST['user_name'];
-        $ct_post_temp['email']   = $_POST['user_email'];
-        $ct_post_temp['comment'] = $_POST['comment'];
+    if ( Post::get('action') === 'rwp_ajax_action_rating' ) {
+        $ct_post_temp['name']    = Post::get('user_name');
+        $ct_post_temp['email']   = Post::get('user_email', null, 'cleanEmail');
+        $ct_post_temp['comment'] = Post::get('comment');
     }
     //Woocommerce checkout
     if ( Post::get('action') === 'woocommerce_checkout' || Post::get('action') === 'save_data' ) {
@@ -512,7 +518,7 @@ function ct_ajax_hook($message_obj = null)
             }
         }
     }
-    if ( isset($_POST['action']) && $_POST['action'] === 'ufbl_front_form_action' ) {
+    if ( Post::get('action') === 'ufbl_front_form_action' ) {
         $ct_post_temp = $_POST;
         foreach ( $ct_post_temp as $key => $_value ) {
             if ( preg_match('/form_data_\d_name/', $key) ) {
@@ -523,7 +529,7 @@ function ct_ajax_hook($message_obj = null)
 
     // Kali form integration
     if (Post::hasString('action', 'kaliforms_form_process')) {
-        $ct_post_temp = $_POST['data'];
+        $ct_post_temp = Post::get('data');
     }
 
     // Fusion Builder Avada Form integration
@@ -581,7 +587,7 @@ function ct_ajax_hook($message_obj = null)
     }
 
     // Mailpoet3 admin skip fix
-    if ( isset($_POST['action'], $_POST['method']) && $_POST['action'] === 'mailpoet' && $_POST['method'] === 'save' ) {
+    if ( Post::get('action') === 'mailpoet' && Post::get('method') === 'save' ) {
         do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
 
         return false;
@@ -634,78 +640,78 @@ function ct_ajax_hook($message_obj = null)
     $ct_result        = $base_call_result['ct_result'];
 
     if ( $ct_result->allow == 0 ) {
-        if ( isset($_POST['action']) && $_POST['action'] === 'wpuf_submit_register' ) {
+        if ( Post::get('action') === 'wpuf_submit_register' ) {
             $result = array('success' => false, 'error' => $ct_result->comment);
             @header('Content-Type: application/json; charset=' . get_option('blog_charset'));
             print json_encode($result);
             die();
         }
 
-        if ( isset($_POST['action']) && $_POST['action'] === 'mymail_form_submit' ) {
+        if ( Post::get('action') === 'mymail_form_submit' ) {
             $result = array('success' => false, 'html' => $ct_result->comment);
             @header('Content-Type: application/json; charset=' . get_option('blog_charset'));
             print json_encode($result);
             die();
         }
 
-        if ( isset($_POST['action'], $_POST['task']) && $_POST['action'] === 'wysija_ajax' && $_POST['task'] !== 'send_preview' && $_POST['task'] !== 'send_test_mail' ) {
+        if ( Post::get('action') === 'wysija_ajax' && Post::get('task') !== 'send_preview' && Post::get('task') !== 'send_test_mail' ) {
             $result = array('result' => false, 'msgs' => array('updated' => array($ct_result->comment)));
-            print $_GET['callback'] . '(' . json_encode($result) . ');';
+            print Get::get('callback') . '(' . json_encode($result) . ');';
             die();
         }
 
-        if ( isset($_POST['action']) && $_POST['action'] === 'cs_registration_validation' ) {
+        if ( Post::get('action') === 'cs_registration_validation' ) {
             $result = array("type" => "error", "message" => $ct_result->comment);
             print json_encode($result);
             die();
         }
 
-        if ( isset($_POST['action']) && ($_POST['action'] === 'request_appointment' || $_POST['action'] === 'send_message') ) {
+        if ( Post::get('action') === 'request_appointment' || Post::get('action') === 'send_message' ) {
             print $ct_result->comment;
             die();
         }
 
-        if ( isset($_POST['action']) && $_POST['action'] === 'zn_do_login' ) {
+        if ( Post::get('action') === 'zn_do_login' ) {
             print '<div id="login_error">' . $ct_result->comment . '</div>';
             die();
         }
 
-        if ( isset($_POST['action']) && $_POST['action'] === 'vfb_submit' ) {
+        if ( Post::get('action') === 'vfb_submit' ) {
             $result = array('result' => false, 'message' => $ct_result->comment);
             @header('Content-Type: application/json; charset=' . get_option('blog_charset'));
             print json_encode($result);
             die();
         }
 
-        if ( isset($_POST['action']) && $_POST['action'] === 'woocommerce_checkout' ) {
+        if ( Post::get('action') === 'woocommerce_checkout' ) {
             print $ct_result->comment;
             die();
         }
 
-        if ( isset($_POST['cma-action']) && $_POST['cma-action'] === 'add' ) {
+        if ( Post::get('cma-action') === 'add' ) {
             $result = array('success' => 0, 'thread_id' => null, 'messages' => array($ct_result->comment));
             print json_encode($result);
             die();
         }
 
-        if ( isset($_POST['action']) && $_POST['action'] === 'td_mod_register' ) {
+        if ( Post::get('action') === 'td_mod_register' ) {
             print json_encode(array('register', 0, $ct_result->comment));
             die();
         }
 
-        if ( isset($_POST['action']) && $_POST['action'] === 'tmpl_ajax_check_user_email' ) {
+        if ( Post::get('action') === 'tmpl_ajax_check_user_email' ) {
             print "17,email";
             die();
         }
 
-        if ( isset($_POST['action']) && ($_POST['action'] === 'tevolution_submit_from_preview' || $_POST['action'] === 'submit_form_recaptcha_validation') ) {
+        if ( Post::get('action') === 'tevolution_submit_from_preview' || Post::get('action') === 'submit_form_recaptcha_validation' ) {
             print $ct_result->comment;
             die();
         }
 
         // WooWaitList
         // http://codecanyon.net/item/woowaitlist-woocommerce-back-in-stock-notifier/7103373
-        if ( isset($_POST['action']) && $_POST['action'] === 'wew_save_to_db_callback' ) {
+        if ( Post::get('action') === 'wew_save_to_db_callback' ) {
             $result            = array();
             $result['error']   = 1;
             $result['message'] = $ct_result->comment;
@@ -715,9 +721,9 @@ function ct_ajax_hook($message_obj = null)
         }
 
         // UserPro
-        if ( isset($_POST['action'], $_POST['template']) && $_POST['action'] === 'userpro_process_form' && $_POST['template'] === 'register' ) {
+        if ( Post::get('action') === 'userpro_process_form' && Post::get('template') === 'register' ) {
             foreach ( $_POST as $key => $value ) {
-                $output[$key] = $value;
+                $output[\Cleantalk\ApbctWP\Sanitize::cleanXss($key)] = \Cleantalk\ApbctWP\Sanitize::cleanXss($value);
             }
             $output['template'] = $ct_result->comment;
             $output             = json_encode($output);
@@ -726,7 +732,7 @@ function ct_ajax_hook($message_obj = null)
         }
 
         // Quick event manager
-        if ( isset($_POST['action']) && $_POST['action'] === 'qem_validate_form' ) {
+        if ( Post::get('action') === 'qem_validate_form' ) {
             $errors[] = 'registration_forbidden';
             $result   = array(
                 'success' => 'false',
@@ -738,7 +744,7 @@ function ct_ajax_hook($message_obj = null)
         }
 
         // Quick Contact Form
-        if ( isset($_POST['action']) && $_POST['action'] === 'qcf_validate_form' ) {
+        if ( Post::get('action') === 'qcf_validate_form' ) {
             $result = array(
                 'blurb'   => "<h1>" . $ct_result->comment . "</h1>",
                 'display' => "Oops, got a few problems here",
@@ -755,12 +761,17 @@ function ct_ajax_hook($message_obj = null)
         }
 
         // Usernoise Contact Form
-        if ( isset($_POST['title'], $_POST['email'], $_POST['type'], $_POST['ct_checkjs']) ) {
+        if (
+            Post::get('title') &&
+            Post::get('email') &&
+            Post::get('type') &&
+            Post::get('ct_checkjs')
+        ) {
             return array($ct_result->comment);
         }
 
         // amoForms
-        if ( isset($_POST['action']) && $_POST['action'] === 'amoforms_submit' ) {
+        if ( Post::get('action') === 'amoforms_submit' ) {
             $result = array(
                 'result' => true,
                 'type'   => "html",
@@ -772,7 +783,7 @@ function ct_ajax_hook($message_obj = null)
         }
 
         // MailChimp for Wordpress Premium
-        if ( ! empty($_POST['_mc4wp_form_id']) ) {
+        if ( ! empty(Post::get('_mc4wp_form_id')) ) {
             return 'ct_mc4wp_response';
         }
 
@@ -782,7 +793,7 @@ function ct_ajax_hook($message_obj = null)
         }
 
         //ES Add subscriber
-        if ( isset($_POST['action']) && $_POST['action'] === 'es_add_subscriber' ) {
+        if ( Post::get('action') === 'es_add_subscriber' ) {
             $result = array(
                 'error' => 'unexpected-error',
             );
@@ -791,7 +802,7 @@ function ct_ajax_hook($message_obj = null)
         }
 
         //Convertplug. Strpos because action value dynamically changes and depends on mailing service
-        if ( isset($_POST['action']) && strpos($_POST['action'], '_add_subscriber') !== false ) {
+        if ( strpos(Post::get('action'), '_add_subscriber') !== false ) {
             $result = array(
                 'action'       => "message",
                 'detailed_msg' => "",
@@ -805,7 +816,7 @@ function ct_ajax_hook($message_obj = null)
         }
 
         // Ultimate Form Builder
-        if ( isset($_POST['action']) && $_POST['action'] === 'ufbl_front_form_action' ) {
+        if ( Post::get('action') === 'ufbl_front_form_action' ) {
             $result = array(
                 'error_keys'       => array(),
                 'error_flag'       => 1,
@@ -816,7 +827,7 @@ function ct_ajax_hook($message_obj = null)
         }
 
         // Smart Forms
-        if ( isset($_POST['action']) && $_POST['action'] === 'rednao_smart_forms_save_form_values' ) {
+        if ( Post::get('action') === 'rednao_smart_forms_save_form_values' ) {
             $result = array(
                 'message'        => $ct_result->comment,
                 'refreshCaptcha' => 'n',
@@ -827,10 +838,10 @@ function ct_ajax_hook($message_obj = null)
         }
 
         //cFormsII
-        if ( isset($_POST['action']) && $_POST['action'] === 'submitcform' ) {
+        if ( Post::get('action') === 'submitcform' ) {
             header('Content-Type: application/json');
             $result = array(
-                'no'          => isset($_POST['cforms_id']) ? $_POST['cforms_id'] : '',
+                'no'          => Post::get('cforms_id', null, 'xss'),
                 'result'      => 'failure',
                 'html'        => $ct_result->comment,
                 'hide'        => false,
@@ -841,7 +852,7 @@ function ct_ajax_hook($message_obj = null)
         }
 
         //Contact Form by Web-Settler
-        if ( isset($_POST['smFieldData']) ) {
+        if ( Post::get('smFieldData') ) {
             $result = array(
                 'signal'      => true,
                 'code'        => 0,
@@ -855,7 +866,7 @@ function ct_ajax_hook($message_obj = null)
         }
 
         //Reviewer
-        if ( isset($_POST['action']) && $_POST['action'] == 'rwp_ajax_action_rating' ) {
+        if ( Post::get('action') === 'rwp_ajax_action_rating' ) {
             $result = array(
                 'success' => false,
                 'data'    => array(0 => $ct_result->comment)
@@ -866,9 +877,11 @@ function ct_ajax_hook($message_obj = null)
 
         // CouponXXL Theme
         if (
-            isset($_POST['_wp_http_referer'], $_POST['register_field'], $_POST['action']) &&
-            strpos($_POST['_wp_http_referer'], '/register/account') !== false &&
-            $_POST['action'] === 'register'
+            Post::get('_wp_http_referer') &&
+            Post::get('register_field') &&
+            Post::get('action') &&
+            strpos(Post::get('_wp_http_referer'), '/register/account') !== false &&
+            Post::get('action') === 'register'
         ) {
             $result = array(
                 'message' => '<div class="alert alert-error">' . $ct_result->comment . '</div>',
@@ -877,7 +890,7 @@ function ct_ajax_hook($message_obj = null)
         }
 
         //ConvertPro
-        if ( isset($_POST['action']) && ($_POST['action'] === 'cp_v2_notify_admin' || $_POST['action'] === 'cpro_notify_via_email') ) {
+        if ( Post::get('action') === 'cp_v2_notify_admin' || Post::get('action') === 'cpro_notify_via_email' ) {
             $result = array(
                 'success' => false,
                 'data'    => array('error' => $ct_result->comment, 'style_slug' => 'convertprot-form'),
@@ -887,7 +900,7 @@ function ct_ajax_hook($message_obj = null)
         }
 
         //Easy Forms for Mailchimp
-        if ( isset($_POST['action']) && $_POST['action'] === 'process_form_submission' ) {
+        if ( Post::get('action') === 'process_form_submission' ) {
             wp_send_json_error(
                 array(
                     'error'    => 1,
@@ -897,12 +910,12 @@ function ct_ajax_hook($message_obj = null)
         }
 
         //Optin wheel
-        if ( isset($_POST['action']) && ($_POST['action'] === 'wof-lite-email-optin' || $_POST['action'] === 'wof-email-optin') ) {
+        if ( Post::get('action') === 'wof-lite-email-optin' || Post::get('action') === 'wof-email-optin' ) {
             wp_send_json_error(__($ct_result->comment, 'wp-optin-wheel'));
         }
 
         // Forminator
-        if ( isset($_POST['action']) && strpos($_POST['action'], 'forminator_submit') !== false ) {
+        if ( strpos(Post::get('action'), 'forminator_submit') !== false ) {
             wp_send_json_error(
                 array(
                     'message' => $ct_result->comment,
@@ -914,7 +927,7 @@ function ct_ajax_hook($message_obj = null)
         }
 
         // Easy Registration Form
-        if ( isset($_POST['action']) && strpos($_POST['action'], 'erf_submit_form') !== false ) {
+        if ( strpos(Post::get('action'), 'erf_submit_form') !== false ) {
             wp_send_json_error(array(0 => array('username_error', $ct_result->comment)));
         }
 

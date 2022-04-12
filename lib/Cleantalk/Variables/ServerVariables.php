@@ -2,6 +2,8 @@
 
 namespace Cleantalk\Variables;
 
+use Cleantalk\ApbctWP\Sanitize;
+use Cleantalk\ApbctWP\Validate;
 use Cleantalk\Templates\Singleton;
 
 /**
@@ -26,12 +28,27 @@ abstract class ServerVariables
      * Gets variable from ${_SOMETHING}
      *
      * @param string $name Variable name
+     * @param null|string $validation_filter
+     * @psalm-param (null|"hash"|"int"|"float"|"word"|"isUrl") $validation_filter
+     * @param null|string $sanitize_filter
+     * @psalm-param (null|"xss"|"int"|"url"|"word"|"cleanEmail") $sanitize_filter
      *
-     * @return string|array
+     * @return string|array|false
      */
-    public static function get($name)
+    public static function get($name, $validation_filter = null, $sanitize_filter = null)
     {
-        return static::getInstance()->getVariable($name);
+        $variable = static::getInstance()->getVariable($name);
+
+        // Validate variable
+        if ( $validation_filter && ! Validate::validate($variable, $validation_filter) ) {
+            return false;
+        }
+
+        if ( $sanitize_filter ) {
+            $variable = Sanitize::sanitize($variable, $sanitize_filter);
+        }
+
+        return $variable;
     }
 
     /**
