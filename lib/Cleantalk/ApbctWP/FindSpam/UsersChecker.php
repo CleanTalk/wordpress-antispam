@@ -196,7 +196,7 @@ class UsersChecker extends Checker
             $wc_orders = $sql_command . "NOT EXISTS (SELECT posts.* FROM {$wpdb->posts} AS posts INNER JOIN {$wpdb->postmeta} AS postmeta WHERE posts.post_type = 'shop_order' AND posts.post_status = 'wc-completed' AND posts.ID = postmeta.post_id AND postmeta.meta_key = '_customer_user' AND postmeta.meta_value = {$wpdb->users}.ID)";
         }
 
-        $offset = $_COOKIE['apbct_check_users_offset'] ?: 0; // TODO: implement alternative cookies
+        $offset = (int)$_COOKIE['apbct_check_users_offset'] ?: 0;
 
         $u = $wpdb->get_results(
             "
