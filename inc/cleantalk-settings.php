@@ -145,6 +145,7 @@ function apbct_settings__set_fileds()
                         )
                         . $additional_sfw_description,
                     'childrens'   => array('sfw__anti_flood', 'sfw__anti_crawler', 'sfw__use_delete_to_clear_table'),
+                    'long_description' => true,
                 ),
             ),
         ),
@@ -2634,6 +2635,17 @@ function apbct_settings__get__long_description()
             'desc'  => sprintf(
                 esc_html__('The option helps to block bots . The honeypot field option adds a hidden field to the form. When spambots come to a website form, they can fill out each input field. Enable this option to make the protection stronger on these forms. Learn more about supported forms %s', 'cleantalk-spam-protect'),
                 '<a href="https://cleantalk.org/help/wordpress-plugin-settings{utm_mark}#honeypot" target="_blank">' . __('here.', 'cleantalk-spam-protect') . '</a>'
+            )
+        ),
+        'sfw__enabled' => array(
+            'title' => 'SpamFireWall',
+            'desc'  => sprintf(
+                '<p>' . esc_html__('SpamFireWall is a part of the anti-spam service and blocks the most spam active bots before the site pages load.', 'cleantalk-spam-protect') . '</p>'
+                    . '<p>' . esc_html__('Anti-Crawler is an add-on to SFW and helps to strengthen the protection against spam bots. Disabled by default.', 'cleantalk-spam-protect') . '</p>'
+                    . '<p>' . esc_html__('CleanTalk Anti-Flood is also an add-on to SFW and limits the number of pages visited per minute. Disabled by default.', 'cleantalk-spam-protect') . '</p>'
+                    . '<p>' . esc_html__('You can read more about SFW modes %s', 'cleantalk-spam-protect') . '</p>'
+                    . '<p>' . esc_html__('Read out the article if you are using Varnish on your server.', 'cleantalk-spam-protect'),
+                '<a href="https://cleantalk.org/help/anti-flood-and-anti-crawler{utm_mark}" target="_blank">' . __('here.', 'cleantalk-spam-protect') . '</a>'
             )
         ),
     );
