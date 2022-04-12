@@ -1,7 +1,11 @@
 <?php
 
+use Cleantalk\ApbctWP\Escape;
 use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\Common\Helper;
+use Cleantalk\Variables\Get;
+use Cleantalk\Variables\Post;
+use Cleantalk\Variables\Request;
 
 /**
  * Init functions
@@ -20,7 +24,7 @@ function apbct_init()
     }
 
     //Check internal forms with such "action" http://wordpress.loc/contact-us/some_script.php
-    if ( (isset($_POST['action']) && $_POST['action'] === 'ct_check_internal') &&
+    if ( (Post::get('action') === 'ct_check_internal') &&
          $apbct->settings['forms__check_internal']
     ) {
         $ct_result = ct_contact_form_validate();
@@ -34,11 +38,11 @@ function apbct_init()
     }
 
     //fix for EPM registration form
-    if ( isset($_POST) && isset($_POST['reg_email']) && shortcode_exists('epm_registration_form') ) {
+    if ( Post::get('reg_email') && shortcode_exists('epm_registration_form') ) {
         unset($_POST['ct_checkjs_register_form']);
     }
 
-    if ( isset($_POST['_wpnonce-et-pb-contact-form-submitted']) ) {
+    if ( Post::get('_wpnonce-et-pb-contact-form-submitted') !== '' ) {
         add_shortcode('et_pb_contact_form', 'ct_contact_form_validate');
     }
 
@@ -75,13 +79,13 @@ function apbct_init()
             }
         }
 
-        // Check and redirecct
+        // Check and redirect
         if ( apbct_is_post()
-             && isset($_POST['cleantalk_hidden_method'])
-             && isset($_POST['cleantalk_hidden_action'])
+             && Post::get('cleantalk_hidden_method') !== ''
+             && Post::get('cleantalk_hidden_action') !== ''
         ) {
-            $action = htmlspecialchars($_POST['cleantalk_hidden_action']);
-            $method = htmlspecialchars($_POST['cleantalk_hidden_method']);
+            $action = Escape::escHtml(Post::get('cleantalk_hidden_method'));
+            $method = Escape::escHtml(Post::get('cleantalk_hidden_action'));
             unset($_POST['cleantalk_hidden_action']);
             unset($_POST['cleantalk_hidden_method']);
             ct_contact_form_validate();
@@ -102,7 +106,11 @@ function apbct_init()
         }
     }
 
-    if ( isset($_POST['quform_ajax'], $_POST['quform_csrf_token'], $_POST['quform_form_id']) ) {
+    if (
+        Post::get('quform_ajax') &&
+        Post::get('quform_csrf_token') &&
+        Post::get('quform_form_id')
+    ) {
         require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-ajax.php');
         ct_ajax_hook();
     }
@@ -116,28 +124,31 @@ function apbct_init()
     if (
         ! empty($_POST) &&
         $apbct->settings['forms__contact_forms_test'] == 1 &&
-        empty($_POST['ct_checkjs_cf7']) &&
+        empty(Post::get('ct_checkjs_cf7')) &&
         apbct_is_plugin_active('vfb-pro/vfb-pro.php') &&
-        ! empty($_POST['_vfb-form-id'])
+        ! empty(Post::get('_vfb-form-id'))
     ) {
         ct_contact_form_validate();
     }
 
     //hook for Anonymous Post
-    if ( $apbct->settings['data__general_postdata_test'] == 1 && empty($_POST['ct_checkjs_cf7']) ) {
+    if ( $apbct->settings['data__general_postdata_test'] == 1 && empty(Post::get('ct_checkjs_cf7')) ) {
         add_action('wp', 'ct_contact_form_validate_postdata', 1);
     }
 
-    if ( $apbct->settings['forms__general_contact_forms_test'] == 1 && empty($_POST['ct_checkjs_cf7']) && ! apbct_is_direct_trackback() ) {
+    if ( $apbct->settings['forms__general_contact_forms_test'] == 1 && empty(Post::get('ct_checkjs_cf7')) && ! apbct_is_direct_trackback() ) {
         add_action('CMA_custom_post_type_nav', 'ct_contact_form_validate_postdata', 1);
         add_action('init', 'ct_contact_form_validate', 999);
-        if ( isset($_POST['reg_redirect_link']) && isset($_POST['tmpl_registration_nonce_field']) ) {
+        if (
+            Post::get('reg_redirect_link') !== '' &&
+            Post::get('tmpl_registration_nonce_field') !== ''
+        ) {
             unset($_POST['ct_checkjs_register_form']);
             add_action('init', 'ct_contact_form_validate', 999);
         }
     }
 
-    if ( $apbct->settings['data__general_postdata_test'] == 1 && empty($_POST['ct_checkjs_cf7']) ) {
+    if ( $apbct->settings['data__general_postdata_test'] == 1 && empty(Post::get('ct_checkjs_cf7')) ) {
         add_action('CMA_custom_post_type_nav', 'ct_contact_form_validate_postdata', 1);
     }
 
@@ -153,7 +164,7 @@ function apbct_init()
         if ( $apbct->settings['forms__wc_checkout_test'] == 1 ) {
             add_filter('woocommerce_checkout_process', 'ct_woocommerce_checkout_check', 1, 3);
         }
-        if ( isset($_REQUEST['wc-ajax']) && $_REQUEST['wc-ajax'] === 'checkout' && empty($apbct->settings['forms__wc_register_from_order']) ) {
+        if ( Request::get('wc-ajax') === 'checkout' && empty($apbct->settings['forms__wc_register_from_order']) ) {
             remove_filter('woocommerce_registration_errors', 'ct_registration_errors', 1);
         }
 
@@ -233,7 +244,7 @@ function apbct_init()
 
     // intercept WordPress Landing Pages POST
     if ( defined('LANDINGPAGES_CURRENT_VERSION') && ! empty($_POST) ) {
-        if ( array_key_exists('action', $_POST) && $_POST['action'] === 'inbound_store_lead' ) { // AJAX action(s)
+        if ( Post::get('action') === 'inbound_store_lead' ) { // AJAX action(s)
             ct_check_wplp();
         } elseif (
             array_key_exists('inbound_submitted', $_POST) &&
@@ -278,10 +289,12 @@ function apbct_init()
     }
 
     //Pirate forms
-    if ( defined('PIRATE_FORMS_VERSION') ) {
-        if ( isset($_POST['pirate-forms-contact-name']) && $_POST['pirate-forms-contact-name'] && isset($_POST['pirate-forms-contact-email']) && $_POST['pirate-forms-contact-email'] ) {
-            apbct_form__piratesForm__testSpam();
-        }
+    if (
+        defined('PIRATE_FORMS_VERSION') &&
+        Post::get('pirate-forms-contact-name') &&
+        Post::get('pirate-forms-contact-email')
+    ) {
+        apbct_form__piratesForm__testSpam();
     }
 
     // QForms integration
@@ -329,12 +342,12 @@ function apbct_init()
     }
 
     if ( apbct_is_user_enable() ) {
-        if ( $apbct->settings['forms__general_contact_forms_test'] == 1 && ! isset($_POST['comment_post_ID']) && ! isset($_GET['for']) && ! apbct_is_direct_trackback() ) {
+        if ( $apbct->settings['forms__general_contact_forms_test'] == 1 && ! Post::get('comment_post_ID') && ! Get::get('for') && ! apbct_is_direct_trackback() ) {
             add_action('init', 'ct_contact_form_validate', 999);
         }
         if ( apbct_is_post() &&
              $apbct->settings['data__general_postdata_test'] == 1 &&
-             ! isset($_POST['ct_checkjs_cf7']) &&
+             ! Post::get('ct_checkjs_cf7') &&
              ! is_admin() &&
              ! apbct_is_user_role_in(array('administrator', 'moderator'))
         ) {
@@ -778,7 +791,7 @@ function ct_die($_comment_id, $_comment_status)
     if ( defined('CLEANTALK_DISABLE_BLOCKING_TITLE') && CLEANTALK_DISABLE_BLOCKING_TITLE != true ) {
         $message_title = '<b style="color: #49C73B;">Clean</b><b style="color: #349ebf;">Talk.</b> ' . $message_title;
     }
-    if ( isset($_POST['et_pb_contact_email']) ) {
+    if ( Post::get('et_pb_contact_email') ) {
         $message_title = 'Blacklisted';
     }
 
