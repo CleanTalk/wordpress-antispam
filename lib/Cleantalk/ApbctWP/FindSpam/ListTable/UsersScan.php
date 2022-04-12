@@ -17,22 +17,16 @@ class UsersScan extends Users
             $per_page = 10;
         }
 
-        $scanned_users = $this->getSpamNow();
+        $current_page = $this->get_pagenum();
+
+        $scanned_users = $this->getSpamNow($per_page, $current_page);
 
         $this->set_pagination_args(array(
             'total_items' => $scanned_users->get_total(),
             'per_page'    => $per_page,
         ));
 
-        $current_page = $this->get_pagenum();
-
-        $scanned_users_to_show = array_slice(
-            $scanned_users->get_results(),
-            (($current_page - 1) * $per_page),
-            $per_page
-        );
-
-        foreach ( $scanned_users_to_show as $user_id ) {
+        foreach ( $scanned_users->get_results() as $user_id ) {
             $user_obj = get_userdata($user_id);
 
             $items = array(

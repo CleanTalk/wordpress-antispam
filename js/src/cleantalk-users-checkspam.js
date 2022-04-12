@@ -95,6 +95,10 @@ function ct_clear_users(){
 		from = jQuery('#ct_date_range_from').val();
 		till = jQuery('#ct_date_range_till').val();
 	}
+
+	var ctSecure = location.protocol === 'https:' ? '; secure' : '';
+	document.cookie = 'apbct_check_users_offset' + "=" + 0 + "; path=/; samesite=lax" + ctSecure;
+
 	var data = {
 		'action'   : 'ajax_clear_users',
 		'security' : ct_ajax_nonce,
@@ -145,7 +149,8 @@ function ct_send_users(){
 		new_check: ct_new_check,
 		unchecked: ct_unchecked,
 		amount: check_amount,
-		'no_cache': Math.random()
+		'no_cache': Math.random(),
+		'offset' : Number(getCookie('apbct_check_users_offset'))
 	};
 	
 	if(ct_accurate_check)
@@ -195,6 +200,11 @@ function ct_send_users(){
 						status_string += ctUsersCheck.ct_status_string_warning;
 					jQuery('#ct_checking_status').html(status_string);
 					jQuery('#ct_error_message').hide();
+
+					var offset = Number(getCookie('apbct_check_users_offset')) + 100;
+					var ctSecure = location.protocol === 'https:' ? '; secure' : '';
+					document.cookie = 'apbct_check_users_offset' + "=" + offset + "; samesite=lax" + ctSecure;
+					
 					ct_send_users();
 				}
 			}
@@ -549,3 +559,15 @@ jQuery(document).ready(function(){
 	}
 
 });
+
+/**
+ * Get cookie by name
+ * @param name
+ * @returns {string|undefined}
+ */
+function getCookie(name) {
+	let matches = document.cookie.match(new RegExp(
+		"(?:^|; )" + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + "=([^;]*)"
+	));
+	return matches ? decodeURIComponent(matches[1]) : undefined;
+} 

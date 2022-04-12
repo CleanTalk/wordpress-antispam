@@ -215,33 +215,21 @@ class Users extends \Cleantalk\ApbctWP\CleantalkListTable
     }
 
     /**
-     * @return \WP_User_Query
+     * @return integer
      * @psalm-suppress PossiblyUnusedMethod
      */
     public function getTotal()
     {
-        $params_total = array(
-            'fields'  => 'ID',
-            'count'   => true,
-            'orderby' => 'user_registered'
-        );
-
-        return new \WP_User_Query($params_total);
+        return count_users()['total_users'];
     }
 
     /**
-     * @return \WP_User_Query
+     * @return integer
      * @psalm-suppress PossiblyUnusedMethod
      */
     public function getChecked()
     {
-        $params_spam = array(
-            'fields'      => 'ID',
-            'meta_key'    => 'ct_checked',
-            'count_total' => true,
-        );
-
-        return new \WP_User_Query($params_spam);
+        return $this->apbct->data['count_checked_users'];
     }
 
     /**
@@ -274,21 +262,13 @@ class Users extends \Cleantalk\ApbctWP\CleantalkListTable
         return new \WP_User_Query($params_spam);
     }
 
-    public function getSpamNow()
+    public function getSpamNow($per_page, $current_page)
     {
         $params_spam = array(
+            'number'   => $per_page,
+            'offset'   => ( $current_page - 1 ) * $per_page,
             'fields'      => 'ID',
-            'meta_query'  => array(
-                'relation' => 'AND',
-                array(
-                    'key'     => 'ct_marked_as_spam',
-                    'compare' => 'EXISTS'
-                ),
-                array(
-                    'key'     => 'ct_checked_now',
-                    'compare' => 'EXISTS'
-                ),
-            ),
+            'meta_key' => 'ct_marked_as_spam',
             'count_total' => true,
         );
 
