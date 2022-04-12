@@ -828,7 +828,7 @@ function apbct_settings__set_fileds__network($fields)
                     'required'         => true,
                     'title'            => __('Hoster Access key', 'cleantalk-spam-protect'),
                     'description'      => sprintf(
-                        __('Copy the Access key from your %sCleantalk Profile%s', 'cleantalk-spam-protect'),
+                        __('Copy the Access key from your %sCleanTalk Profile%s', 'cleantalk-spam-protect'),
                         '<a href="https://cleantalk.org/my/profile#api_keys" target="_blank">',
                         '</a>'
                     ),
