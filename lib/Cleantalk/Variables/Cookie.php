@@ -73,7 +73,7 @@ class Cookie extends ServerVariables
         $secure = ! is_null($secure) ? $secure : Server::get('HTTPS') !== 'off' || Server::get('SERVER_PORT') == 443;
 
         // For PHP 7.3+ and above
-        if (version_compare(phpversion(), '7.3.0', '>=')) {
+        if ( version_compare(phpversion(), '7.3.0', '>=') ) {
             $params = array(
                 'expires' => $expires,
                 'path' => $path,
