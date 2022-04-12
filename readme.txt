@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 3.0
 Tested up to: 5.9
 Requires PHP: 5.6
-Stable tag: 5.174.1
+Stable tag: 5.175
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -595,6 +595,34 @@ If your website has forms that send data to external sources, you can enable opt
 12. SpamFireWall log.
 
 == Changelog ==
+
+= 5.175 Apr 14 2022 =
+#### Integration added, typos fixed, user scanner improved and minor issues fixed.
+* New. Integration. Events Manager plugin integration implemented.
+* New. Code. New validate classes.
+* New. Code. New validate sub-classes in ApbctWP.
+* Upd. Readme. One more AntiSpam feature added.
+* Mod: PlansoFormBuilder integration
+* Fix. External forms. Capturing buffer fixed.
+* Fix. Integration. Simple Ajax Chat sending fixed.
+* Fix. Exclusions. Special flag to prevent exclusions implemented.
+* Fix. Getting key errors handle.
+* Fix. Getting key error output fixed.
+* Fix: Added VFB_Pro integration
+* Fix. Settings api. Long description for text fields implemented.
+* Fix. Settings. Long description for hoster api key removed.
+* Fix. Settings. Long descriptions UTM marks fixed.
+* Fix. Comments checker. Dates ranges fixed.
+* Fix. Code. Core based JqueryUI use on users/comments checking page.
+* Fix. Code. Moderate API answer fixed.
+* Fix. Code. Including assets fixed.
+* Fix. Text. Typos on company brand terms fixed.
+* Fix: Glitched redirect after plugin activation.
+* Fix. Settings. Hoster Access Key long description mark removed.
+* Fix: Filter visible fields for AvadaFormBuilder
+* Fix. Code. Using wrappers for calling global variables.
+* Fix. Code. Cookie secure attribute fixed.
+* Fix. Code. Refactoring the user scanning engine.
 
 = 5.174.1 Mar 25 2022 =
 * Fix: Comments/Users scanner fixed.
