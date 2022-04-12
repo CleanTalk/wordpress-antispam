@@ -146,8 +146,6 @@ class Cookie extends \Cleantalk\Variables\Cookie
      * Getting visible fields collection
      *
      * @return array
-     *
-     * @psalm-suppress InvalidReturnType, InvalidReturnStatement
      */
     public static function getVisibleFields()
     {
