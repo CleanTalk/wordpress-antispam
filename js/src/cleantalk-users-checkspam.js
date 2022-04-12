@@ -96,7 +96,8 @@ function ct_clear_users(){
 		till = jQuery('#ct_date_range_till').val();
 	}
 
-	document.cookie = 'apbct_check_users_offset' + "=" + 0 + "; path=/";
+	var ctSecure = location.protocol === 'https:' ? '; secure' : '';
+	document.cookie = 'apbct_check_users_offset' + "=" + 0 + "; path=/; samesite=lax" + ctSecure;
 
 	var data = {
 		'action'   : 'ajax_clear_users',
@@ -201,7 +202,8 @@ function ct_send_users(){
 					jQuery('#ct_error_message').hide();
 
 					var offset = Number(getCookie('apbct_check_users_offset')) + 100;
-					document.cookie = 'apbct_check_users_offset' + "=" + offset + "; path=/";
+					var ctSecure = location.protocol === 'https:' ? '; secure' : '';
+					document.cookie = 'apbct_check_users_offset' + "=" + offset + "; samesite=lax" + ctSecure;
 					
 					ct_send_users();
 				}
