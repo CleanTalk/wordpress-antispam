@@ -1881,8 +1881,7 @@ function apbct_form__contactForm7__testSpam($spam, $_submission = null)
         return $spam;
     }
 
-    $checkjs = apbct_js_test($ct_checkjs_cf7, $_POST) ?: apbct_js_test('ct_checkjs', $_COOKIE, true);
-
+    $checkjs = apbct_js_test('ct_checkjs', $_COOKIE, true) ?: apbct_js_test($ct_checkjs_cf7, $_POST);
     /**
      * Filter for POST
      */
