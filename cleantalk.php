@@ -2259,8 +2259,6 @@ function apbct__hook__wp_logout__delete_trial_notice_cookie()
 
 /**
  * Store URLs
- *
- * @ToDo need to be refactored psalm notices about InvalidArrayOffset
  */
 function apbct_store__urls()
 {
@@ -2281,12 +2279,12 @@ function apbct_store__urls()
         $site_url    = parse_url(get_option('home'), PHP_URL_HOST);
 
         // Get already stored URLs
-        $urls = (array) Cookie::get('apbct_urls');
-        /** @psalm-suppress InvalidArrayOffset */
+        $urls = Cookie::get('apbct_urls');
+        $urls = $urls === '' ? [] : json_decode($urls, true);
+
         $urls[$current_url][] = time();
 
         // Rotating. Saving only latest 10
-        /** @psalm-suppress InvalidArrayOffset */
         $urls[$current_url] = count($urls[$current_url]) > 5 ? array_slice(
             $urls[$current_url],
             1,
@@ -2295,7 +2293,7 @@ function apbct_store__urls()
         $urls               = count($urls) > 5 ? array_slice($urls, 1, 5) : $urls;
 
         // Saving
-        Cookie::set('apbct_urls', json_encode($urls), time() + 86400 * 3, '/', $site_url, null, true, 'Lax');
+        Cookie::set('apbct_urls', json_encode($urls, JSON_UNESCAPED_SLASHES), time() + 86400 * 3, '/', $site_url, null, true, 'Lax');
 
         // REFERER
         // Get current referer
