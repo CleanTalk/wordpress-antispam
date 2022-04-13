@@ -518,6 +518,13 @@ function apbct_settings__set_fileds()
                     ),
                     'long_description' => true,
                 ),
+                'data__ajax_nonce_life'       => array(
+                    'type'                    => 'select',
+                    'title'                   => esc_html__('Custom ajax nonce lifetime', 'cleantalk-spam-protect'),
+                    'multiple'                => false,
+                    'options_callback'        => 'apbct__get_nonce_lifetimes',
+                    'display'                 => $apbct->data['ajax_type'] === 'custom_ajax',
+                ),
             ),
         ),
 
@@ -2182,6 +2189,13 @@ function apbct_settings__validate($settings)
     $available_ajax_type = apbct_settings__get_ajax_type();
     $apbct->data['ajax_type'] = $available_ajax_type;
 
+    if ( $available_ajax_type === 'custom_ajax' && isset($settings['data__ajax_nonce_life']) ) {
+        $settings['data__ajax_nonce_life'] =
+            defined($settings['data__ajax_nonce_life']) && is_int(constant($settings['data__ajax_nonce_life']))
+                ? $settings['data__ajax_nonce_life']
+                : 'DAY_IN_SECONDS';
+    }
+
     if (
         $apbct->data['cookies_type'] === 'alternative' ||
         (isset($settings['data__use_ajax']) && $settings['data__use_ajax'] == 1)
@@ -2769,6 +2783,16 @@ function apbct_debug__set_sfw_update_cron()
            . '<input form="debug__cron_set" type="hidden" name="period"                  value="' . $apbct->stats['sfw']['update_period'] . '" />'
            . '<input form="debug__cron_set" type="hidden" name="first_call"              value="' . (time() + 60) . '" />'
            . '<input form="debug__cron_set" type="submit" value="Set SFW update to 60 seconds from now" />';
+}
+
+function apbct__get_nonce_lifetimes()
+{
+    return array(
+        array('label' => '1 day', 'val' => 'DAY_IN_SECONDS'),
+        array('label' => '1 week', 'val' => 'WEEK_IN_SECONDS'),
+        array('label' => '1 month', 'val' => 'MONTH_IN_SECONDS'),
+        array('label' => '1 year', 'val' => 'YEAR_IN_SECONDS')
+    );
 }
 
 /**
