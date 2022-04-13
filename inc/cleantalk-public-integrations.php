@@ -1759,7 +1759,8 @@ function ct_contact_form_is_spam($form)
             'sender_nickname' => $sender_nickname,
             'post_info'       => array('comment_type' => 'contact_form_wordpress_grunion'),
             'sender_info'     => array('sender_url' => @$form['comment_author_url']),
-            'js_on'           => apbct_js_test($js_field_name, $_POST),
+            'js_on'           => apbct_js_test('ct_checkjs', $_COOKIE, true) ?: apbct_js_test($ct_checkjs_jpcf, $_POST),
+
         )
     );
     $ct_result        = $base_call_result['ct_result'];
@@ -1782,7 +1783,7 @@ function ct_contact_form_is_spam($form)
  */
 function ct_contact_form_is_spam_jetpack($_is_spam, $form)
 {
-    global $apbct, $ct_comment;
+    global $apbct, $ct_comment, $ct_checkjs_jpcf;
 
     if ( $apbct->settings['forms__contact_forms_test'] == 0 ) {
         do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
@@ -1797,6 +1798,7 @@ function ct_contact_form_is_spam_jetpack($_is_spam, $form)
             'sender_nickname' => isset($form['comment_author']) ? $form['comment_author'] : null,
             'post_info'       => array('comment_type' => 'contact_form_wordpress_grunion'),
             'sender_info'     => array('sender_url' => @$form['comment_author_url']),
+            'js_on'           => apbct_js_test('ct_checkjs', $_COOKIE, true) ?: apbct_js_test($ct_checkjs_jpcf, $_POST),
         )
     );
     $ct_result        = $base_call_result['ct_result'];
