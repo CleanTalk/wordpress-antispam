@@ -623,6 +623,12 @@ If your website has forms that send data to external sources, you can enable opt
 * Fix. Code. Using wrappers for calling global variables.
 * Fix. Code. Cookie secure attribute fixed.
 * Fix. Code. Refactoring the user scanning engine.
+* Fix. Cookie. Getting cookies fixed.
+* Upd. Settings. SFW long description added.
+* Upd. Localization. SFW, AC, AF titles is not localized now.
+* Fix. Common. Collecting visited urls fixed.
+* Fix. Integration. JP contact form checking JS fixed.
+* Fix. Integration. CF7 form checking JS fixed.
 
 = 5.174.1 Mar 25 2022 =
 * Fix: Comments/Users scanner fixed.
