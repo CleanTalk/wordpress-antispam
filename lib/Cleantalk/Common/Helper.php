@@ -1029,6 +1029,7 @@ class Helper
             finfo_close($finfo);
         }
 
+        // @ToDo the method must return comparison result: return $type ===  mime_content_type($data)
         return $type;
     }
 
