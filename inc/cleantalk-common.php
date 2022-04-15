@@ -532,7 +532,7 @@ function apbct_get_sender_info()
         'apbct_invisible_fields' => ! empty($visible_fields['invisible_fields']) ? $visible_fields['invisible_fields'] : null,
         // Misc
         'site_referer'           => Cookie::get('apbct_site_referer') ?: null,
-        'source_url'             => Cookie::get('apbct_urls') ? json_encode(Cookie::get('apbct_urls')) : null,
+        'source_url'             => Cookie::get('apbct_urls') ? json_encode(json_decode(Cookie::get('apbct_urls'), true)) : null,
         'pixel_url'              => Cookie::get('apbct_pixel_url'),
         'pixel_setting'          => $apbct->settings['data__pixel'],
         // Debug stuff
