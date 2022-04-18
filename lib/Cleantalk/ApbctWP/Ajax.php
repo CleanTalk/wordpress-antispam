@@ -173,8 +173,11 @@ class Ajax
      */
     private function wpNonceTick()
     {
+        global $apbct;
         if ( defined('CLEANTALK_NONCE_LIFETIME') && is_int(CLEANTALK_NONCE_LIFETIME) ) {
-            $nonce_lifetime = CLEANTALK_NONCE_LIFETIME;
+            $nonce_lifetime = (int) CLEANTALK_NONCE_LIFETIME;
+        } elseif ( defined($apbct->settings['data__ajax_nonce_life']) ) {
+            $nonce_lifetime = (int) constant($apbct->settings['data__ajax_nonce_life']);
         } else {
             $nonce_lifetime = DAY_IN_SECONDS;
         }

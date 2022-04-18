@@ -1111,3 +1111,16 @@ function apbct_update_to_5_172_1()
         $apbct->saveSettings();
     }
 }
+
+/**
+ * 5.172.1
+ */
+function apbct_update_to_5_175_1()
+{
+    global $apbct;
+
+    if ( ! isset($apbct->settings['data__ajax_nonce_life']) ) {
+        $apbct->settings['data__ajax_nonce_life'] = 'DAY_IN_SECONDS';
+        $apbct->saveSettings();
+    }
+}

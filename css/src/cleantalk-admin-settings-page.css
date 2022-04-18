@@ -42,7 +42,8 @@ i.animate-spin {
 
 .apbct_settings-field_title{}
 .apbct_settings-field_title--checkbox{  }
-.apbct_settings-field_title--radio{
+.apbct_settings-field_title--radio,
+.apbct_settings-field_title--select{
     display: inline-block;
     margin: 0;
     width: 210px;
