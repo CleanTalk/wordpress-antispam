@@ -2,11 +2,13 @@
 
 namespace Cleantalk\Antispam\Integrations;
 
-
 class NextendSocialLogin extends IntegrationBase
 {
     public function getDataForChecking($argument)
     {
+        /**
+         * @psalm-suppress UndefinedClass
+         */
         if ( class_exists('\NextendSocialProviderDummy') && $argument instanceof \NextendSocialProviderDummy ) {
             return (
                 array(
@@ -15,7 +17,6 @@ class NextendSocialLogin extends IntegrationBase
                 )
             );
         }
-
     }
 
     public function doBlock($message)
