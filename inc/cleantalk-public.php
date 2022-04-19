@@ -650,6 +650,14 @@ function ct_add_hidden_fields(
 
 function ct_add_honeypot_field($form_type)
 {
+    global $apbct;
+
+    // Honeypot option is OFF
+    if ( ! $apbct->settings['data__honeypot_field'] ) {
+        return '';
+    }
+
+    // Honeypot option is ON
     $style = '
     <style>
 		#apbct__email_id__' . $form_type . ' {
