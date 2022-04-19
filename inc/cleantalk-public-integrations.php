@@ -1832,6 +1832,7 @@ function apbct_form__contactForm7__addField($html)
     }
 
     $html .= ct_add_hidden_fields($ct_checkjs_cf7, true);
+    $html .= ct_add_honeypot_field('wp_contact_form_7');
 
     return $html;
 }
