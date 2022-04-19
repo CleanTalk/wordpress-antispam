@@ -905,6 +905,15 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'Checkout For WC skip';
         }
+        //Restrict Content Pro - Login Form
+        if (
+            apbct_is_plugin_active('restrict-content-pro/restrict-content-pro.php') &&
+            Post::equal('rcp_action', 'login') &&
+            Post::get('rcp_user_login') ||
+            Post::get('rcp_user_pass')
+        ) {
+            return 'Restrict Content Pro Login Form skip';
+        }
     }
 
     // Event Manager - there is the direct integration
