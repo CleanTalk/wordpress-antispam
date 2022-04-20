@@ -119,7 +119,8 @@ function isIntegratedForm(formObj) {
         formAction.indexOf('activehosted.com') !== -1 ||   // ActiveCampaign form
         formAction.indexOf('app.convertkit.com') !== -1 || // ConvertKit form
         ( formObj.firstChild.classList !== undefined && formObj.firstChild.classList.contains('cb-form-group') ) || // Convertbox form
-        formAction.indexOf('mailerlite.com') !== -1 // Mailerlite integration
+        formAction.indexOf('mailerlite.com') !== -1 || // Mailerlite integration
+        formAction.indexOf('colcolmail.co.uk') !== -1 // colcolmail.co.uk integration
     ) {
         return true;
     }
