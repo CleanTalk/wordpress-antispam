@@ -2560,6 +2560,7 @@ function apbct_settings__sanitize__exclusions($exclusions, $regexp = false)
     $result = array();
     $type   = 0;
     if ( ! empty($exclusions) ) {
+
         if ( strpos($exclusions, "\r\n") !== false ) {
             $exclusions = explode("\r\n", $exclusions);
             $type       = 2;
@@ -2569,12 +2570,36 @@ function apbct_settings__sanitize__exclusions($exclusions, $regexp = false)
         } else {
             $exclusions = explode(',', $exclusions);
         }
-        foreach ( $exclusions as $exclusion ) {
-            $sanitized_exclusion = trim($exclusion, " \t\n\r\0\x0B/\/");
+        //Take first 20 exclusions entities
+        if (array_count_values($exclusions) > 20) {
+            $exclusions = array_slice($exclusions, 0, 20);
+        }
+        //Drop duplicates
+        $exclusions = array_unique($exclusions);
+
+        foreach ($exclusions as $exclusion) {
+            //Cut exclusion if more than 128 symbols gained
+            $sanitized_exclusion = substr($exclusion, 0, 128);
+            $sanitized_exclusion = trim($sanitized_exclusion, " \t\n\r\0\x0B/\/");
+
             if ( ! empty($sanitized_exclusion) ) {
-                if ( $regexp && ! apbct_is_regexp($exclusion) ) {
+                if ( $regexp && !apbct_is_regexp($exclusion) ) {
                     return false;
                 }
+                //Validate as URL
+                if (
+                    //If no dots
+                    strpos($sanitized_exclusion, '.') === false
+                    ||
+                    (   filter_var($sanitized_exclusion, FILTER_VALIDATE_URL) === false
+                        &&
+                        //We do allow not to use schema so a schema is also added to check
+                        filter_var('http://' . $sanitized_exclusion, FILTER_VALIDATE_URL) === false)
+                ) {
+                    // If validation failed
+                    return false;
+                }
+
                 $result[] = $sanitized_exclusion;
             }
         }
