@@ -2545,7 +2545,8 @@ function apbct_update_blogs_options($settings)
 /**
  * Sanitize and validate exclusions.
  * Explode given string by commas and trim each string.
- * Skip element if it's empty.
+ * Cut first 20 entities if more than 20 given. Remove duplicates.
+ * Skip element if it's empty. Validate entity as URL. Cut first 128 chars if more than 128 given
  *
  * Return false if exclusion is bad
  * Return sanitized string if all is ok
