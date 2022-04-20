@@ -550,7 +550,7 @@ function apbct_settings__set_fileds()
                     'title' => __('Use Regular Expression in URL Exclusions', 'cleantalk-spam-protect'),
                 ),
                 'exclusions__fields'             => array(
-                    'type'        => 'text',
+                    'type'        => 'textarea',
                     'title'       => __('Field name exclusions', 'cleantalk-spam-protect'),
                     'description' => __(
                         'You could type here fields names you want to exclude. Use comma as separator. Exclusion value will be sliced to 128 chars, exclusions number is restricted by 20 values.',
