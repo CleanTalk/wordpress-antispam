@@ -2585,19 +2585,6 @@ function apbct_settings__sanitize__exclusions($exclusions, $regexp = false)
                 if ( $regexp && !apbct_is_regexp($exclusion) ) {
                     return false;
                 }
-                //Validate as URL
-                if (
-                    //If no dots
-                    strpos($sanitized_exclusion, '.') === false
-                    ||
-                    (   filter_var($sanitized_exclusion, FILTER_VALIDATE_URL) === false
-                        &&
-                        //We do allow not to use schema so a schema is also added to check
-                        filter_var('http://' . $sanitized_exclusion, FILTER_VALIDATE_URL) === false)
-                ) {
-                    // If validation failed
-                    return false;
-                }
 
                 $result[] = $sanitized_exclusion;
             }
