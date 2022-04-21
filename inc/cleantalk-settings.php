@@ -2571,13 +2571,11 @@ function apbct_settings__sanitize__exclusions($exclusions, $regexp = false)
         } else {
             $exclusions = explode(',', $exclusions);
         }
-        //Take first 20 exclusions entities
-        if (array_count_values($exclusions) > 20) {
-            $exclusions = array_slice($exclusions, 0, 20);
-        }
-        //Drop duplicates
+        //Drop duplicates first (before cut)
         $exclusions = array_unique($exclusions);
-
+        //Take first 20 exclusions entities
+        $exclusions = array_slice($exclusions, 0, 20);
+        //Sanitizing
         foreach ($exclusions as $exclusion) {
             //Cut exclusion if more than 128 symbols gained
             $sanitized_exclusion = substr($exclusion, 0, 128);
