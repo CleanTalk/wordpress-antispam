@@ -119,7 +119,9 @@ function isIntegratedForm(formObj) {
         formAction.indexOf('activehosted.com') !== -1 ||   // ActiveCampaign form
         formAction.indexOf('app.convertkit.com') !== -1 || // ConvertKit form
         ( formObj.firstChild.classList !== undefined && formObj.firstChild.classList.contains('cb-form-group') ) || // Convertbox form
-        formAction.indexOf('mailerlite.com') !== -1 // Mailerlite integration
+        formAction.indexOf('mailerlite.com') !== -1 || // Mailerlite integration
+        formAction.indexOf('colcolmail.co.uk') !== -1 || // colcolmail.co.uk integration
+        formAction.indexOf('paypal.com') !== -1
     ) {
         return true;
     }
@@ -170,6 +172,12 @@ function sendAjaxCheckingFormData(form, prev, formOriginal) {
 
                     // ConvertKit direct integration
                     subm_button = jQuery(formOriginal).find('button[data-element="submit"]');
+                    if( subm_button.length !== 0 ) {
+                        subm_button[0].click();
+                    }
+
+                    // Paypal integration
+                    subm_button = jQuery(formOriginal).find('input[type="image"][name="submit"]');
                     if( subm_button.length !== 0 ) {
                         subm_button[0].click();
                     }
