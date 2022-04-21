@@ -20,7 +20,7 @@ class Wpdiscuz extends IntegrationBase
                 'message'=>$input_array['wc_comment'],
                 'email'=>$input_array['wc_email'],
                 'nickname'=>$input_array['wc_name'],
-
+                'sender_url'=> isset( $input_array['wc_website'] ) ? $input_array['wc_website'] : ''
             );
         }
 
