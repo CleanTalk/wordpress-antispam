@@ -176,6 +176,12 @@ function sendAjaxCheckingFormData(form, prev, formOriginal) {
                         subm_button[0].click();
                     }
 
+                    // Paypal integration
+                    subm_button = jQuery(formOriginal).find('input[type="image"][name="submit"]');
+                    if( subm_button.length !== 0 ) {
+                        subm_button[0].click();
+                    }
+
                 }
             },
             callback_context: null,
