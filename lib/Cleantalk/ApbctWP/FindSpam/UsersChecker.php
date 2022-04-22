@@ -642,5 +642,5 @@ class UsersChecker extends Checker
         }
 
         return (int) $count_spammers;
-	}
+    }
 }
