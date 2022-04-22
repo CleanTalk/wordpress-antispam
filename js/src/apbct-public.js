@@ -196,7 +196,7 @@
 			["ct_screen_info", apbctGetScreenInfo()],
 			["ct_has_scrolled", 'false'],
 			["ct_mouse_moved", 'false'],
-			["apbct_headless", navigator.webdriver && ( ! navigator.plugins.length || ! navigator.mimeTypes.length )],
+			["apbct_headless", navigator.webdriver],
 		];
 
 		if( ctPublic.data__cookies_type !== 'native' ) {
