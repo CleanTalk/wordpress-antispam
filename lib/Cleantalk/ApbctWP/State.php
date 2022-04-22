@@ -139,7 +139,7 @@ class State extends \Cleantalk\Common\State
         'last_remote_call'               => 0, //Timestam of last remote call
         'current_settings_template_id'   => null,  // Loaded settings template id
         'current_settings_template_name' => null,  // Loaded settings template name
-        'ajax_type'                      => false, // Ajax type
+        'ajax_type'                      => 'admin_ajax', // Ajax type - admin_ajax|REST
         'cookies_type'                   => 'native', // Native / Alternative / None
 
         // Anti-Spam

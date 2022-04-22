@@ -91,6 +91,12 @@ class AltSessions
         return isset($result['value']) ? $result['value'] : '';
     }
 
+    /**
+     * @param $request
+     *
+     * @return void
+     * @psalm-suppress PossiblyUnusedMethod
+     */
     public static function getFromRemote($request = null)
     {
         $value = Cookie::get(

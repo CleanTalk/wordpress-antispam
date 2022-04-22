@@ -30,18 +30,7 @@ function ctSetCookie( cookies, value, expires ){
                 }
             );
 
-            // Using AJAX request and handler
-        }else if( ctPublicFunctions.data__ajax_type === 'custom_ajax' ) {
-            apbct_public_sendAJAX(
-                {
-                    action: 'apbct_alt_session__save__AJAX',
-                    cookies: cookies,
-                },
-                {
-                    apbct_ajax: 1,
-                    notJson: 1,
-                }
-            );
+        // Using AJAX request and handler
         } else if( ctPublicFunctions.data__ajax_type === 'admin_ajax' ) {
             apbct_public_sendAJAX(
                 {
@@ -88,7 +77,6 @@ function apbct_public_sendAJAX(data, params, obj){
     var progressbar = params.progressbar || null;
     var silent      = params.silent      || null;
     var no_nonce    = params.no_nonce    || null;
-    var apbct_ajax  = params.apbct_ajax  || null;
 
     if(typeof (data) === 'string') {
         if( ! no_nonce )

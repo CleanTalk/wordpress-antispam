@@ -12,7 +12,7 @@ class Activator
         global $wpdb, $apbct;
 
         // Ajax type
-        $apbct->data['ajax_type'] = apbct_settings__get_ajax_type();
+        $apbct->data['ajax_type'] = apbct_settings__get_ajax_type() ?: 'admin_ajax';
         $apbct->save('data');
 
         $db_tables_creator = new DbTablesCreator();
