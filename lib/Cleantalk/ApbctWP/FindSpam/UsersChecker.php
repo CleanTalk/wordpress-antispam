@@ -621,26 +621,26 @@ class UsersChecker extends Checker
         return $columns;
     }
 
-	/**
-	 * Getting count spammers
-	 *
-	 * @return int
-	 */
-	public static function getCountSpammers()
-	{
-		global $wpdb;
+    /**
+     * Getting count spammers
+     *
+     * @return int
+     */
+    public static function getCountSpammers()
+    {
+        global $wpdb;
 
-		$sql = "SELECT
-        		COUNT(`user_id`)
-				FROM $wpdb->usermeta
-				where `meta_key`='ct_marked_as_spam'";
+        $sql = "SELECT
+                COUNT(`user_id`)
+                FROM $wpdb->usermeta
+                where `meta_key`='ct_marked_as_spam'";
 
-		$count_spammers = $wpdb->get_var($sql);
+        $count_spammers = $wpdb->get_var($sql);
 
-		if (is_null($count_spammers)) {
-			return 0;
-		}
+        if (is_null($count_spammers)) {
+            return 0;
+        }
 
-		return (int) $count_spammers;
+        return (int) $count_spammers;
 	}
 }
