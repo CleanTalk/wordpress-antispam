@@ -247,21 +247,6 @@ class Users extends \Cleantalk\ApbctWP\CleantalkListTable
         return new \WP_User_Query($params_spam);
     }
 
-    /**
-     * @return \WP_User_Query
-     * @psalm-suppress PossiblyUnusedMethod
-     */
-    public function getSpam()
-    {
-        $params_spam = array(
-            'fields'      => 'ID',
-            'meta_key'    => 'ct_marked_as_spam',
-            'count_total' => true,
-        );
-
-        return new \WP_User_Query($params_spam);
-    }
-
     public function getSpamNow($per_page, $current_page)
     {
         $params_spam = array(
