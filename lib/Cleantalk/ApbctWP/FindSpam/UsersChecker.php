@@ -2,6 +2,9 @@
 
 namespace Cleantalk\ApbctWP\FindSpam;
 
+use Cleantalk\ApbctWP\FindSpam\ListTable\BadUsers;
+use Cleantalk\ApbctWP\FindSpam\ListTable\UsersLogs;
+use Cleantalk\ApbctWP\FindSpam\ListTable\UsersScan;
 use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\Variables\Post;
 
@@ -33,7 +36,7 @@ class UsersChecker extends Checker
         wp_enqueue_script(
             'ct_users_checkspam',
             APBCT_JS_ASSETS_PATH . '/cleantalk-users-checkspam.min.js',
-            array('jquery', 'jquery-ui-datepicker'),
+            array('jquery', 'jquery-ui-core'),
             APBCT_VERSION
         );
         wp_localize_script('ct_users_checkspam', 'ctUsersCheck', array(
@@ -76,7 +79,7 @@ class UsersChecker extends Checker
 
     public function getCurrentScanPage()
     {
-        $this->list_table = new \Cleantalk\ApbctWP\FindSpam\ListTable\UsersScan();
+        $this->list_table = new UsersScan();
 
         $this->getCurrentScanPanel($this);
         echo '<form action="" method="POST">';
@@ -87,7 +90,7 @@ class UsersChecker extends Checker
 
     public function getSpamLogsPage()
     {
-        $this->list_table = new \Cleantalk\ApbctWP\FindSpam\ListTable\UsersLogs();
+        $this->list_table = new UsersLogs();
 
         echo '<form action="" method="POST">';
         $this->list_table->display();
@@ -99,7 +102,7 @@ class UsersChecker extends Checker
      */
     public function getBadUsersPage()
     {
-        $this->list_table = new \Cleantalk\ApbctWP\FindSpam\ListTable\BadUsers();
+        $this->list_table = new BadUsers();
 
         echo '<h3>' . esc_html__(
             "These users can't be checked because they haven't IP or e-mail",
@@ -330,7 +333,7 @@ class UsersChecker extends Checker
                     }
                 }
 
-                // save count checked comments to State:data
+                // save count checked users to State:data
                 $apbct->data['count_checked_users'] = $offset + $check_result['checked'];
                 $apbct->saveData();
             } else {
@@ -385,19 +388,7 @@ class UsersChecker extends Checker
         // Checked users
         $cnt_checked = $apbct->data['count_checked_users'];
 
-        // Spam comments
-        $params_spam = array(
-            'count_total'   => true,
-            'meta_query' => array(
-                'relation' => 'AND',
-                array(
-                    'key'     => 'ct_marked_as_spam',
-                    'compare' => '=',
-                    'value'   => 1
-                )
-            ),
-        );
-        $cnt_spam = count(get_users($params_spam));
+        $cnt_spam = self::getCountSpammers();
 
         // Bad users (without IP and Email)
         $cnt_bad      = $apbct->data['count_bad_users'];
@@ -468,19 +459,7 @@ class UsersChecker extends Checker
 
         $cnt_checked = $apbct->data['count_checked_users'];
 
-        // Spam comments
-        $params_spam = array(
-            'count'   => true,
-            'meta_query' => array(
-                'relation' => 'AND',
-                array(
-                    'key'     => 'ct_marked_as_spam',
-                    'compare' => '=',
-                    'value'   => 1
-                )
-            ),
-        );
-        $cnt_spam = get_users($params_spam);
+        $cnt_spam = self::getCountSpammers();
 
         // Bad users (without IP and Email)
         $cnt_bad      = $apbct->data['count_bad_users'];
@@ -607,7 +586,7 @@ class UsersChecker extends Checker
 
         global $wpdb;
 
-        $r = $wpdb->get_var("select count(*) as cnt from $wpdb->usermeta where meta_key='ct_marked_as_spam';");
+        $r = self::getCountSpammers();
 
         if ( ! is_null($r) ) {
             $count_all = (int)$r;
@@ -644,5 +623,28 @@ class UsersChecker extends Checker
         $columns['apbct_status hidden'] = '';
 
         return $columns;
+    }
+
+    /**
+     * Getting count spammers
+     *
+     * @return int
+     */
+    public static function getCountSpammers()
+    {
+        global $wpdb;
+
+        $sql = "SELECT
+                COUNT(`user_id`)
+                FROM $wpdb->usermeta
+                where `meta_key`='ct_marked_as_spam'";
+
+        $count_spammers = $wpdb->get_var($sql);
+
+        if (is_null($count_spammers)) {
+            return 0;
+        }
+
+        return (int) $count_spammers;
     }
 }
