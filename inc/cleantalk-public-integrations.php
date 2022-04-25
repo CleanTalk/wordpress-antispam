@@ -2229,6 +2229,7 @@ function apbct_form__WPForms__addField($_form_data, $_some, $_title, $_descripti
 
     if ( $apbct->settings['forms__contact_forms_test'] == 1 ) {
         ct_add_hidden_fields('ct_checkjs_wpforms');
+        echo ct_add_honeypot_field('wp_wpforms');
     }
 }
 

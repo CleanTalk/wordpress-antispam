@@ -215,7 +215,8 @@ function apbct_base_call($params = array(), $reg_flag = false)
         if (
             Post::get('wc_apbct_email_id') ||
             Post::get('apbct__email_id__wp_register') ||
-            Post::get('apbct__email_id__wp_contact_form_7')
+            Post::get('apbct__email_id__wp_contact_form_7') ||
+            Post::get('apbct__email_id__wp_wpforms')
         ) {
             $honeypot_field = 0;
         }
