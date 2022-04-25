@@ -532,6 +532,26 @@ function ct_ajax_hook($message_obj = null)
         $ct_post_temp = Post::get('data');
     }
 
+    // FixTeam Integration - preparation data for post filter
+	if (
+		apbct_is_theme_active('fixteam') &&
+		Post::equal('action', 'send_sc_form') &&
+		Post::get('data') !== ''
+	) {
+		$form_data = Post::get('data');
+		$form_data = explode('&', $form_data);
+
+		for ($index = 0; $index < count($form_data); $index++) {
+			if (stripos($form_data[$index], 'apbct_visible_fields') === 0) {
+				unset($form_data[$index]);
+			}
+		}
+
+		$form_data = implode('&', $form_data);
+		parse_str($form_data, $ct_post_temp);
+		$_POST['data'] = $form_data;
+	}
+
     // Fusion Builder Avada Form integration
     if (
         Post::hasString('action', 'fusion_form_submit_form_to_database_email') ||
