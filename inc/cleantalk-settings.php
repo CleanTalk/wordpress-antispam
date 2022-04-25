@@ -2033,7 +2033,7 @@ function apbct_settings__validate($settings)
     if (
         ! $apbct->network_settings['multisite__allow_custom_settings'] &&
         //  Skip if templates applying for subsites is not set
-        empty ( $settings['multisite__use_settings_template_apply_for_current_list_sites'] ) &&
+        empty($settings['multisite__use_settings_template_apply_for_current_list_sites']) &&
         ! is_main_site() &&
         current_filter() === 'sanitize_option_cleantalk_settings' // Do in only if settings were saved
     ) {
