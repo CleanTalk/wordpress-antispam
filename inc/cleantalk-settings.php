@@ -2558,10 +2558,14 @@ function apbct_update_blogs_options($settings)
  */
 function apbct_settings__sanitize__exclusions($exclusions, $regexp = false)
 {
+    if ( ! is_string($exclusions) || ! is_bool($regexp)) {
+        return false;
+    }
+
     $result = array();
     $type   = 0;
-    if ( ! empty($exclusions) ) {
 
+    if ( ! empty($exclusions) ) {
         if ( strpos($exclusions, "\r\n") !== false ) {
             $exclusions = explode("\r\n", $exclusions);
             $type       = 2;
