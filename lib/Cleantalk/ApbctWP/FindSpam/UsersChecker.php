@@ -2,10 +2,11 @@
 
 namespace Cleantalk\ApbctWP\FindSpam;
 
+use Cleantalk\ApbctWP\FindSpam\ListTable\BadUsers;
+use Cleantalk\ApbctWP\FindSpam\ListTable\UsersLogs;
+use Cleantalk\ApbctWP\FindSpam\ListTable\UsersScan;
 use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\Variables\Post;
-
-use Cleantalk\ApbctWP\FindSpam\ListTable\Users;
 
 class UsersChecker extends Checker
 {
@@ -78,7 +79,7 @@ class UsersChecker extends Checker
 
     public function getCurrentScanPage()
     {
-        $this->list_table = new \Cleantalk\ApbctWP\FindSpam\ListTable\UsersScan();
+        $this->list_table = new UsersScan();
 
         $this->getCurrentScanPanel($this);
         echo '<form action="" method="POST">';
@@ -89,7 +90,7 @@ class UsersChecker extends Checker
 
     public function getSpamLogsPage()
     {
-        $this->list_table = new \Cleantalk\ApbctWP\FindSpam\ListTable\UsersLogs();
+        $this->list_table = new UsersLogs();
 
         echo '<form action="" method="POST">';
         $this->list_table->display();
@@ -101,7 +102,7 @@ class UsersChecker extends Checker
      */
     public function getBadUsersPage()
     {
-        $this->list_table = new \Cleantalk\ApbctWP\FindSpam\ListTable\BadUsers();
+        $this->list_table = new BadUsers();
 
         echo '<h3>' . esc_html__(
             "These users can't be checked because they haven't IP or e-mail",
