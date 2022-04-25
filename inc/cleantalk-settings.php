@@ -534,7 +534,7 @@ function apbct_settings__set_fileds()
                     'type'        => 'textarea',
                     'title'       => __('URL exclusions', 'cleantalk-spam-protect'),
                     'description' => __(
-                        'You could type here a part of the URL you want to exclude. No need to type whole URL with "www" and protocol. Use comma or new lines as separator.',
+                        'You could type here a part of the URL you want to exclude. No need to type whole URL with "www" and protocol. Use comma or new lines as separator. Exclusion value will be sliced to 128 chars, exclusions number is restricted by 20 values.',
                         'cleantalk-spam-protect'
                     ),
                 ),
@@ -543,10 +543,10 @@ function apbct_settings__set_fileds()
                     'title' => __('Use Regular Expression in URL Exclusions', 'cleantalk-spam-protect'),
                 ),
                 'exclusions__fields'             => array(
-                    'type'        => 'text',
+                    'type'        => 'textarea',
                     'title'       => __('Field name exclusions', 'cleantalk-spam-protect'),
                     'description' => __(
-                        'You could type here fields names you want to exclude. Use comma as separator.',
+                        'You could type here fields names you want to exclude. Use comma as separator. Exclusion value will be sliced to 128 chars, exclusions number is restricted by 20 values.',
                         'cleantalk-spam-protect'
                     ),
                 ),
@@ -2531,7 +2531,8 @@ function apbct_update_blogs_options($settings)
 /**
  * Sanitize and validate exclusions.
  * Explode given string by commas and trim each string.
- * Skip element if it's empty.
+ * Cut first 20 entities if more than 20 given. Remove duplicates.
+ * Skip element if it's empty. Validate entity as URL. Cut first 128 chars if more than 128 given
  *
  * Return false if exclusion is bad
  * Return sanitized string if all is ok
@@ -2543,8 +2544,13 @@ function apbct_update_blogs_options($settings)
  */
 function apbct_settings__sanitize__exclusions($exclusions, $regexp = false)
 {
+    if ( ! is_string($exclusions) || ! is_bool($regexp)) {
+        return false;
+    }
+
     $result = array();
     $type   = 0;
+
     if ( ! empty($exclusions) ) {
         if ( strpos($exclusions, "\r\n") !== false ) {
             $exclusions = explode("\r\n", $exclusions);
@@ -2555,12 +2561,21 @@ function apbct_settings__sanitize__exclusions($exclusions, $regexp = false)
         } else {
             $exclusions = explode(',', $exclusions);
         }
-        foreach ( $exclusions as $exclusion ) {
-            $sanitized_exclusion = trim($exclusion, " \t\n\r\0\x0B/\/");
+        //Drop duplicates first (before cut)
+        $exclusions = array_unique($exclusions);
+        //Take first 20 exclusions entities
+        $exclusions = array_slice($exclusions, 0, 20);
+        //Sanitizing
+        foreach ($exclusions as $exclusion) {
+            //Cut exclusion if more than 128 symbols gained
+            $sanitized_exclusion = substr($exclusion, 0, 128);
+            $sanitized_exclusion = trim($sanitized_exclusion, " \t\n\r\0\x0B/\/");
+
             if ( ! empty($sanitized_exclusion) ) {
-                if ( $regexp && ! apbct_is_regexp($exclusion) ) {
+                if ( $regexp && !apbct_is_regexp($exclusion) ) {
                     return false;
                 }
+
                 $result[] = $sanitized_exclusion;
             }
         }
