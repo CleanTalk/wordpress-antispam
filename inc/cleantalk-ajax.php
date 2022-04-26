@@ -132,6 +132,10 @@ if ( class_exists('LFB_Core') ) {
 /* Fusion Builder Avada Forms integration */
 add_action('wp_ajax_nopriv_fusion_form_submit_form_to_database_email', 'ct_ajax_hook', 1);
 $_cleantalk_hooked_actions[] = 'fusion_form_submit_form_to_database_email';
+add_action('wp_ajax_nopriv_fusion_form_submit_form_to_email', 'ct_ajax_hook', 1);
+$_cleantalk_hooked_actions[] = 'fusion_form_submit_form_to_email';
+add_action('wp_ajax_nopriv_fusion_form_submit_ajax', 'ct_ajax_hook', 1);
+$_cleantalk_hooked_actions[] = 'fusion_form_submit_ajax';
 
 // Elementor Pro page builder forms
 add_action('wp_ajax_elementor_pro_forms_send_form', 'apbct_form__elementor_pro__testSpam');
