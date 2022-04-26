@@ -597,23 +597,23 @@ If your website has forms that send data to external sources, you can enable opt
 == Changelog ==
 
 = 5.176 Apr 28 2022 =
-####
+#### New integration added, honeypot fields added and some minor issues fixed.
+* New. Integration. NextendSocialLogin integration implemented.
+* New: Exclusions validation in apbct_settings__sanitize__exclusions().
+* New. WPDiscuz integration. Now sends sender_url. Integrations.php now ready to process sender_url.
+* New. Common. Headless parameter added.
+* Upd. Integration. A honeypot field was added for the CF7 integration.
+* Upd. Integration. A honeypot field was added for the WPForms integration.
 * Fix. Common. Prevent double json encoding for source_url.
 * Fix. SFW. SFW results priority depends by network mask.
 * Fix: Excluded visible fields for AvadaFormBuilder
 * Fix: honeypot fixed
-* New. Integration. NextendSocialLogin integration implemented.
 * Fix. Forms. Prevent generating a honeypot field if such option is disabled.
-* Upd. Integration. A honeypot field was added for the CF7 integration.
-* Upd. Integration. A honeypot field was added for the WPForms integration.
 * Fix: Fixed external forms
-* New: Exclusions validation in apbct_settings__sanitize__exclusions().
 * Exclusion fields descritpions update.
 * Fields exclusion input changed to textarea to keep visual identity with URL exclusion.
 * Fix. After review. Removed condition on exclusions array slicing. Functions order changed.
 * Fix. WPDiscuz integration. Now tries to get email, nick and message directly from POST. If unsuccessful then runs get_fields_any.
-* New. WPDiscuz integration. Now sends sender_url. Integrations.php now ready to process sender_url.
-* New. Common. Headless parameter added.
 * Fix: Optimize and fixed user scanner
 * Fix. JS. Using ajax for getting JS key is disabled by default.
 * Fix. Common. Custom ajax logic removed.
