@@ -2031,8 +2031,10 @@ function apbct_settings__validate($settings)
 
     // If user is not allowed to manage settings. Get settings from the storage
     if (
-        ! is_main_site() &&
         ! $apbct->network_settings['multisite__allow_custom_settings'] &&
+        //  Skip if templates applying for subsites is not set
+        empty($settings['multisite__use_settings_template_apply_for_current_list_sites']) &&
+        ! is_main_site() &&
         current_filter() === 'sanitize_option_cleantalk_settings' // Do in only if settings were saved
     ) {
         foreach ( $apbct->settings as $key => $setting ) {
