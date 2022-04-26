@@ -553,6 +553,7 @@ function apbct_get_sender_info()
         'screen_info'            => Cookie::get('ct_screen_info') ? json_encode(Cookie::get('ct_screen_info')) : null,
         'has_scrolled'           => Cookie::get('ct_has_scrolled') ? json_encode(Cookie::get('ct_has_scrolled')) : null,
         'mouse_moved'            => Cookie::get('ct_mouse_moved') ? json_encode(Cookie::get('ct_mouse_moved')) : null,
+        'emulations_headless_mode' => Cookie::get('apbct_headless') ? json_encode(Cookie::get('apbct_headless')) : null,
     );
 }
 
