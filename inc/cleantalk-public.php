@@ -205,6 +205,9 @@ function apbct_init()
             if ( isset($posted_data['apbct_visible_fields']) ) {
                 unset($posted_data['apbct_visible_fields']);
             }
+            if ( isset($posted_data['apbct__email_id__wp_contact_form_7']) ) {
+                unset($posted_data['apbct__email_id__wp_contact_form_7']);
+            }
             return $posted_data;
         });
         add_filter('wpcf7_form_elements', 'apbct_form__contactForm7__addField');

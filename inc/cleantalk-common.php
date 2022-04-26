@@ -212,7 +212,12 @@ function apbct_base_call($params = array(), $reg_flag = false)
     if ( $apbct->settings['data__honeypot_field'] && ! isset($params['honeypot_field']) ) {
         $honeypot_field = 1;
 
-        if ( Post::get('wc_apbct_email_id') || Post::get('apbct__email_id__wp_register') ) {
+        if (
+            Post::get('wc_apbct_email_id') ||
+            Post::get('apbct__email_id__wp_register') ||
+            Post::get('apbct__email_id__wp_contact_form_7') ||
+            Post::get('apbct__email_id__wp_wpforms')
+        ) {
             $honeypot_field = 0;
         }
 
@@ -548,6 +553,7 @@ function apbct_get_sender_info()
         'screen_info'            => Cookie::get('ct_screen_info') ? json_encode(Cookie::get('ct_screen_info')) : null,
         'has_scrolled'           => Cookie::get('ct_has_scrolled') ? json_encode(Cookie::get('ct_has_scrolled')) : null,
         'mouse_moved'            => Cookie::get('ct_mouse_moved') ? json_encode(Cookie::get('ct_mouse_moved')) : null,
+        'emulations_headless_mode' => Cookie::get('apbct_headless') ? json_encode(Cookie::get('apbct_headless')) : null,
     );
 }
 

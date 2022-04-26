@@ -203,7 +203,7 @@ function ct_send_users(){
 
 					var offset = Number(getCookie('apbct_check_users_offset')) + 100;
 					var ctSecure = location.protocol === 'https:' ? '; secure' : '';
-					document.cookie = 'apbct_check_users_offset' + "=" + offset + "; samesite=lax" + ctSecure;
+					document.cookie = 'apbct_check_users_offset' + "=" + offset + "; path=/; samesite=lax" + ctSecure;
 					
 					ct_send_users();
 				}
