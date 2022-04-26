@@ -2182,7 +2182,7 @@ function apbct_settings__validate($settings)
 
     // Ajax type
     $available_ajax_type = apbct_settings__get_ajax_type();
-    $apbct->data['ajax_type'] = $available_ajax_type;
+    $apbct->data['ajax_type'] = $available_ajax_type ?: 'admin_ajax';
 
     if (
         $apbct->data['cookies_type'] === 'alternative' ||
@@ -2690,27 +2690,10 @@ function apbct_settings__check_renew_banner()
 
 function apbct_settings__check_alt_cookies_types()
 {
-    global $apbct;
-
-    switch ( $apbct->data['ajax_type'] ) {
-        case 'rest':
-            $alt_cookies_type = esc_html__('REST API', 'cleantalk-spam-protect');
-            break;
-        case 'custom_ajax':
-            $alt_cookies_type = esc_html__('CleanTalk AJAX handler', 'cleantalk-spam-protect');
-            break;
-        case 'admin_ajax':
-            $alt_cookies_type = esc_html__('WP AJAX handler', 'cleantalk-spam-protect');
-            break;
-        default:
-            $alt_cookies_type = esc_html__('UNKNOWN', 'cleantalk-spam-protect');
-            break;
-    }
-
     echo '<div class="apbct_settings-field_wrapper apbct_settings-field_wrapper--sub">';
     echo sprintf(
         esc_html__('Alternative cookies type was set on %s', 'cleantalk-spam-protect'),
-        '<strong>' . $alt_cookies_type . '</strong><br>'
+        '<strong>' . apbct_data__get_ajax_type() . '</strong><br>'
     );
 
     echo '</div>';
@@ -2718,30 +2701,27 @@ function apbct_settings__check_alt_cookies_types()
 
 function apbct_settings__ajax_handler_type_notification()
 {
+    echo '<div class="apbct_settings-field_wrapper apbct_settings-field_wrapper--sub">';
+    echo sprintf(
+        esc_html__('JavaScript check was set on %s', 'cleantalk-spam-protect'),
+        '<strong>' . apbct_data__get_ajax_type() . '</strong><br>'
+    );
+
+    echo '</div>';
+}
+
+function apbct_data__get_ajax_type()
+{
     global $apbct;
 
     switch ( $apbct->data['ajax_type'] ) {
         case 'rest':
-            $alt_cookies_type = esc_html__('REST API', 'cleantalk-spam-protect');
-            break;
-        case 'custom_ajax':
-            $alt_cookies_type = esc_html__('CleanTalk AJAX handler', 'cleantalk-spam-protect');
-            break;
+            return esc_html__('REST API', 'cleantalk-spam-protect');
         case 'admin_ajax':
-            $alt_cookies_type = esc_html__('WP AJAX handler', 'cleantalk-spam-protect');
-            break;
+            return esc_html__('WP AJAX handler', 'cleantalk-spam-protect');
         default:
-            $alt_cookies_type = esc_html__('UNKNOWN', 'cleantalk-spam-protect');
-            break;
+            return esc_html__('UNKNOWN', 'cleantalk-spam-protect');
     }
-
-    echo '<div class="apbct_settings-field_wrapper apbct_settings-field_wrapper--sub">';
-    echo sprintf(
-        esc_html__('JavaScript check was set on %s', 'cleantalk-spam-protect'),
-        '<strong>' . $alt_cookies_type . '</strong><br>'
-    );
-
-    echo '</div>';
 }
 
 /**
