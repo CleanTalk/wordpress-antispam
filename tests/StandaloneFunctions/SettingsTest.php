@@ -115,4 +115,10 @@ class SettingsTest extends TestCase
         $this->assertEquals('https://www.cleantalk.org/thereisamorethan128charshoweverthetestshouldwentfinethereisamorethan128charshoweverthetestshouldwentfi,https://www.clessantalk.org/thereisamorethan128charshoweverthetestshouldwentfinethereisamorethan128charshoweverthetestshouldwent',
             apbct_settings__sanitize__exclusions($test_data));
     }
+
+    public function test_apbct_settings__sanitize__exclusions__wrong_params()
+    {
+        $this->assertIsString(apbct_settings__sanitize__exclusions(''));
+        $this->assertIsString(apbct_settings__sanitize__exclusions('', 0));
+    }
 }

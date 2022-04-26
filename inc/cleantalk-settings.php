@@ -2546,7 +2546,7 @@ function apbct_update_blogs_options($settings)
  */
 function apbct_settings__sanitize__exclusions($exclusions, $regexp = false)
 {
-    if ( ! is_string($exclusions) || ! is_bool($regexp)) {
+    if ( ! is_string($exclusions) ) {
         return false;
     }
 
