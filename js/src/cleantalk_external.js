@@ -121,7 +121,8 @@ function isIntegratedForm(formObj) {
         ( formObj.firstChild.classList !== undefined && formObj.firstChild.classList.contains('cb-form-group') ) || // Convertbox form
         formAction.indexOf('mailerlite.com') !== -1 || // Mailerlite integration
         formAction.indexOf('colcolmail.co.uk') !== -1 || // colcolmail.co.uk integration
-        formAction.indexOf('paypal.com') !== -1
+        formAction.indexOf('paypal.com') !== -1 ||
+        formAction.indexOf('infusionsoft.com') !== -1
     ) {
         return true;
     }
