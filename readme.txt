@@ -620,6 +620,9 @@ If your website has forms that send data to external sources, you can enable opt
 * Fix. Settings. Now templated settings applies to sub-sites on the first save.
 * Fix: FixTeam integration - removed visible fields
 * Fix. apbct_settings__sanitize__exclusions(). Checking input params types.
+* Fix. Settings. Url/fields exclusion validating fixed.
+* Fix: Fusion Avada Form Builder Fixed
+* Fix: External form fix for infusionsoft
 
 = 5.175 Apr 14 2022 =
 #### Integration added, typos fixed, user scanner improved and minor issues fixed.
