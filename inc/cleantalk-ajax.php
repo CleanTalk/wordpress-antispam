@@ -647,6 +647,20 @@ function ct_ajax_hook($message_obj = null)
         }
     }
 
+    $base_call_params = array(
+        'message'         => $message,
+        'sender_email'    => $sender_email,
+        'sender_nickname' => $sender_nickname,
+        'sender_info'     => array('post_checkjs_passed' => $checkjs),
+        'post_info'       => $post_info,
+        'js_on'           => $checkjs,
+    );
+
+    if ( apbct_is_exception_arg_request() ) {
+        $base_call_params['exception_action'] = 1;
+        $base_call_params['sender_info']['exception_description'] = apbct_is_exception_arg_request();
+    }
+
     // EZ Form Calculator - clearing the message
     if (
         apbct_is_plugin_active('ez-form-calculator-premium/ezfc.php') &&
@@ -667,20 +681,6 @@ function ct_ajax_hook($message_obj = null)
         }
 
         $base_call_params['message'] = implode('\n', $message);
-    }
-
-    $base_call_params = array(
-        'message'         => $message,
-        'sender_email'    => $sender_email,
-        'sender_nickname' => $sender_nickname,
-        'sender_info'     => array('post_checkjs_passed' => $checkjs),
-        'post_info'       => $post_info,
-        'js_on'           => $checkjs,
-    );
-
-    if ( apbct_is_exception_arg_request() ) {
-        $base_call_params['exception_action'] = 1;
-        $base_call_params['sender_info']['exception_description'] = apbct_is_exception_arg_request();
     }
 
     $base_call_result = apbct_base_call($base_call_params);
