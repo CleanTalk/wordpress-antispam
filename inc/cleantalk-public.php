@@ -133,7 +133,7 @@ function apbct_init()
 
     //hook for Anonymous Post
     if ( $apbct->settings['data__general_postdata_test'] == 1 && empty(Post::get('ct_checkjs_cf7')) ) {
-        add_action('wp', 'ct_contact_form_validate_postdata', 1);
+        add_action('init', 'ct_contact_form_validate_postdata', 1000);
     }
 
     if ( $apbct->settings['forms__general_contact_forms_test'] == 1 && empty(Post::get('ct_checkjs_cf7')) && ! apbct_is_direct_trackback() ) {
@@ -354,7 +354,7 @@ function apbct_init()
              ! is_admin() &&
              ! apbct_is_user_role_in(array('administrator', 'moderator'))
         ) {
-            ct_contact_form_validate_postdata();
+            add_action('init', 'ct_contact_form_validate_postdata', 1000);
         }
     }
 
