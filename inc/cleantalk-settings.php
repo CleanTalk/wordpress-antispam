@@ -147,6 +147,16 @@ function apbct_settings__set_fileds()
                     'childrens'   => array('sfw__anti_flood', 'sfw__anti_crawler', 'sfw__use_delete_to_clear_table'),
                     'long_description' => true,
                 ),
+                'comments__hide_website_field'             => array(
+                    'type'        => 'checkbox',
+                    'title'       => __('Hide the "Website" field', 'cleantalk-spam-protect'),
+                    'description' => __(
+                        'This option hides the "Website" field on the comment form.',
+                        'cleantalk-spam-protect'
+                    ),
+                    'long_description' => true,
+                    'display'     => ! $apbct->white_label,
+                ),
             ),
         ),
 
@@ -339,15 +349,6 @@ function apbct_settings__set_fileds()
                         'Allows administrators to manage comments on public post\'s pages with small interactive menu.',
                         'cleantalk-spam-protect'
                     ),
-                    'display'     => ! $apbct->white_label,
-                ),
-                'comments__hide_website_field'             => array(
-                    'title'       => __('Hide the "Website" field', 'cleantalk-spam-protect'),
-                    'description' => __(
-                        'This option hides the "Website" field on the comment form.',
-                        'cleantalk-spam-protect'
-                    ),
-                    'long_description' => true,
                     'display'     => ! $apbct->white_label,
                 ),
             ),
