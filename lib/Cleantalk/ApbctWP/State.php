@@ -91,6 +91,7 @@ class State extends \Cleantalk\Common\State
         'data__pixel'                              => '3',
         'data__email_check_before_post'            => 1,
         'data__honeypot_field'                     => 0,
+        'data__email_decoder'                      => 0,
 
         // Exclusions
         // Send to the cloud some excepted requests

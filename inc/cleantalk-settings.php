@@ -518,6 +518,10 @@ function apbct_settings__set_fileds()
                     ),
                     'long_description' => true,
                 ),
+                'data__email_decoder'        => array(
+                    'title'       => __('Encode contact data', 'cleantalk-spam-protect'),
+                    'description' => __('Turn on this option to prevent crawlers grab contact data (emails) from website content.', 'cleantalk-spam-protect'),
+                ),
             ),
         ),
 
