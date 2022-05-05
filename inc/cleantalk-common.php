@@ -235,7 +235,7 @@ function apbct_base_call($params = array(), $reg_flag = false)
     if ( empty($default_params['sender_ip']) ) {
         $default_params['sender_info']['server_info'] = $_SERVER;
     }
-    apbct_log($params);
+
     $ct_request = new CleantalkRequest(
         \Cleantalk\ApbctWP\Helper::arrayMergeSaveNumericKeysRecursive($default_params, $params)
     );
