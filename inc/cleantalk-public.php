@@ -1311,7 +1311,6 @@ function apbct_enqueue_and_localize_public_scripts()
         '_rest_nonce'                          => wp_create_nonce('wp_rest'),
         '_ajax_url'                            => admin_url('admin-ajax.php', 'relative'),
         '_rest_url'                            => esc_url(apbct_get_rest_url()),
-        '_apbct_ajax_url'                      => APBCT_URL_PATH . '/lib/Cleantalk/ApbctWP/Ajax.php',
         'data__cookies_type'                   => $apbct->data['cookies_type'],
         'data__ajax_type'                      => $apbct->data['ajax_type'],
     ));

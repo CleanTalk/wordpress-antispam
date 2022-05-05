@@ -93,7 +93,7 @@ function apbct_public_sendAJAX(data, params, obj){
 
     jQuery.ajax({
         type: "POST",
-        url: apbct_ajax ? ctPublicFunctions._apbct_ajax_url : ctPublicFunctions._ajax_url,
+        url: ctPublicFunctions._ajax_url,
         data: data,
         async: async,
         success: function(result){
