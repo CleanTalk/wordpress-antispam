@@ -211,15 +211,15 @@ function apbct_base_call($params = array(), $reg_flag = false)
      */
     if ( $apbct->settings['data__honeypot_field'] && ! isset($params['honeypot_field']) ) {
         $honeypot_field = 1;
-
+        // collect probable sources
         $honeypot_potential_values = array(
             'wc_apbct_email_id'                     => Post::get('wc_apbct_email_id'),
             'apbct__email_id__wp_register'          => Post::get('apbct__email_id__wp_register'),
             'apbct__email_id__wp_contact_form_7'    => Post::get('apbct__email_id__wp_contact_form_7'),
             'apbct__email_id__wp_wpforms'           => Post::get('apbct__email_id__wp_wpforms')
         );
-
-        foreach ($honeypot_potential_values as $source_name => $source_value){
+        // if source is filled then pass them to params as additional fields
+        foreach ($honeypot_potential_values as $source_name => $source_value) {
             if ( $source_value ) {
                 $honeypot_field = 0;
                 $params['sender_info']['honeypot_field_value']  = $source_value;
