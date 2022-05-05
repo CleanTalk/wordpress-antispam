@@ -1085,6 +1085,7 @@ function ct_preprocess_comment($comment)
 
         if ( isset($_POST['url']) && ! empty($_POST['url']) && $post_info['comment_type'] === 'comment' && isset($_POST['comment_post_ID']) ) {
             $honeypot_field = 0;
+            $base_call_data['sender_info']['honeypot_field_value'] = $_POST['url'];
         }
 
         $base_call_data['honeypot_field'] = $honeypot_field;
