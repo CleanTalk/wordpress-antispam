@@ -37,17 +37,18 @@ class Request extends \Cleantalk\Common\HTTP\Request
 
         $type = in_array('get', $this->presets, true) ? 'GET' : 'POST';
 
-        $response = Requests::request(
-            $this->url,
-            $this->options[CURLOPT_HTTPHEADER],
-            $this->data,
-            $type,
-            $this->options
-        );
-
-        if ( $response instanceof \Requests_Exception ) {
-            return new Response(['error' => $response->getMessage()], []);
+        try {
+            $response = Requests::request(
+                $this->url,
+                $this->options[CURLOPT_HTTPHEADER],
+                $this->data,
+                $type,
+                $this->options
+            );
+        } catch ( \Requests_Exception $e ) {
+            return new Response(['error' => $e->getMessage()], []);
         }
+
         if ( $response instanceof \Requests_Response ) {
             return new Response($response->body, ['http_code' => $response->status_code]);
         }
@@ -133,6 +134,12 @@ class Request extends \Cleantalk\Common\HTTP\Request
                         if ( defined('CLEANTALK_CASERT_PATH') && CLEANTALK_CASERT_PATH ) {
                             $this->options['verify'] = CLEANTALK_CASERT_PATH;
                         }
+                        break;
+
+                    // Get headers only
+                    case 'get_code':
+                        $this->options['header'] = true;
+                        $this->options['nobody'] = true;
                         break;
                 }
             }

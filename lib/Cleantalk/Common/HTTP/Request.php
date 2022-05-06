@@ -254,7 +254,7 @@ class Request
         for ( $i = 0; $i < $urls_count; $i++ ) {
             $curl_info     = curl_getinfo($curl_arr[$i]); // Gather HTTP response information
             $received_data = curl_multi_getcontent($curl_arr[$i]);
-            if ( $received_data !== '' ) {
+            if ( $received_data === '' ) {
                 $received_data = array('error' => curl_error($curl_arr[$i]));
             }
 
