@@ -2784,5 +2784,5 @@ function apbct__send_local_settings_to_api($settings)
     // Hostname
     $hostname = preg_replace('/^(https?:)?(\/\/)?(www\.)?/', '', get_site_url());
 
-    \Cleantalk\Common\API::methodSendLocalSettings($api_key, $hostname, $settings);
+    \Cleantalk\ApbctWP\API::methodSendLocalSettings($api_key, $hostname, $settings);
 }
