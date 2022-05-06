@@ -1087,6 +1087,7 @@ function apbct_sfw_update__download_files($urls)
 
     if ( empty($results['error']) && ($count_urls === $count_results) ) {
         $download_again = array();
+        $results        = array_values($results);
         for ( $i = 0; $i < $count_results; $i++ ) {
             if ( $results[$i] === 'error' ) {
                 $download_again[] = $urls[$i];
@@ -2777,7 +2778,7 @@ function apbct_test_connection()
 
     foreach ( $url_to_test as $url ) {
         $start  = microtime(true);
-        $result = \Cleantalk\ApbctWP\Helper::httpRequestGetContent($url);
+        $result = \Cleantalk\ApbctWP\Helper::httpRequestGetResponseCode($url);
 
         $out[$url] = array(
             'result'    => ! empty($result['error']) ? $result['error'] : 'OK',
