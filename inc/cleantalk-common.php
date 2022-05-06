@@ -216,7 +216,8 @@ function apbct_base_call($params = array(), $reg_flag = false)
             'wc_apbct_email_id'                     => Post::get('wc_apbct_email_id'),
             'apbct__email_id__wp_register'          => Post::get('apbct__email_id__wp_register'),
             'apbct__email_id__wp_contact_form_7'    => Post::get('apbct__email_id__wp_contact_form_7'),
-            'apbct__email_id__wp_wpforms'           => Post::get('apbct__email_id__wp_wpforms')
+            'apbct__email_id__wp_wpforms'           => Post::get('apbct__email_id__wp_wpforms'),
+            'apbct__email_id__search_form'          => Post::get('apbct__email_id__search_form')
         );
         // if source is filled then pass them to params as additional fields
         foreach ($honeypot_potential_values as $source_name => $source_value) {
