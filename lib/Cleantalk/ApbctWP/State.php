@@ -90,7 +90,7 @@ class State extends \Cleantalk\Common\State
         // Secure connection to servers
         'data__pixel'                              => '3',
         'data__email_check_before_post'            => 1,
-        'data__honeypot_field'                     => 0,
+        'data__honeypot_field'                     => 1,
 
         // Exclusions
         // Send to the cloud some excepted requests
