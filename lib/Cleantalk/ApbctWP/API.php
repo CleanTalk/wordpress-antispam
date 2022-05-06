@@ -2,6 +2,8 @@
 
 namespace Cleantalk\ApbctWP;
 
+use Cleantalk\ApbctWP\HTTP\Request;
+
 /**
  * Class API.
  * Compatible only with WordPress.
@@ -53,45 +55,25 @@ class API extends \Cleantalk\Common\API
      * @param int $timeout
      * @param bool Do we need to use SSL
      *
-     * @return array|string
+     * @return array|bool
      */
     public static function sendRequest($data, $url = self::URL, $timeout = 10, $ssl = false, $ssl_path = '')
     {
-        global $apbct;
-
         // Possibility to switch API url
         $url = defined('CLEANTALK_API_URL') ? CLEANTALK_API_URL : $url;
 
         // Adding agent version to data
         $data['agent'] = defined('APBCT_AGENT') ? APBCT_AGENT : '';
 
-        if (
-            $apbct->settings['wp__use_builtin_http_api'] &&
-            ( ! defined('SHORTINIT') || (defined('SHORTINIT') && SHORTINIT === false))
-        ) {
-            $args = array(
-                'body'       => $data,
-                'timeout'    => $timeout,
-                'user-agent' => APBCT_AGENT . ' ' . get_bloginfo('url'),
-            );
+        $http = new Request();
 
-            $result = wp_remote_post($url, $args);
-
-            if ( is_wp_error($result) ) {
-                $errors = $result->get_error_message();
-                $result = false;
-            } else {
-                $result = wp_remote_retrieve_body($result);
-            }
-            // Call CURL version if disabled
-        } else {
-            $ssl_path = $ssl_path
-                ?: (defined('APBCT_CASERT_PATH') ? APBCT_CASERT_PATH : '');
-            $result   = parent::sendRequest($data, $url, $timeout, $ssl, $ssl_path);
-        }
-
-        return empty($result) || ! empty($errors)
-            ? array('error' => $errors)
-            : $result;
+        return $http->setUrl($url)
+                    ->setData($data)
+                    ->setPresets(['retry_with_socket'])
+                    ->addCallback(
+                        __CLASS__ . '::checkResponse',
+                        [$data['method_name']]
+                    )
+                    ->request();
     }
 }
