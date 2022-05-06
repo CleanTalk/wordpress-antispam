@@ -1085,8 +1085,8 @@ function ct_preprocess_comment($comment)
 
         if (
             $post_info['comment_type'] === 'comment' &&
-            Post::get('url') !== '' &&
-            Post::get('comment_post_ID') !== ''
+            Post::get('url') &&
+            Post::get('comment_post_ID')
         ) {
             $honeypot_field = 0;
             // if url is filled then pass them to $base_call_data as additional fields
