@@ -21,7 +21,7 @@ function apbct_init()
 
     // Pixel
     if ( $apbct->settings['data__pixel'] ) {
-        if ( empty($apbct->pixel_url ) &&
+        if ( empty($apbct->pixel_url) &&
             (
                 $apbct->settings['data__pixel'] === '1' ||
                 (
