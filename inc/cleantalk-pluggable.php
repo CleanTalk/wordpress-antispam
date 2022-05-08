@@ -156,6 +156,13 @@ function apbct_get_rest_url($blog_id = null, $path = '/', $scheme = 'rest')
 {
     global $wp_rewrite;
 
+	/**
+	 * If exists get_rest_url() - return it
+	 */
+	if (function_exists('get_rest_url')) {
+		return get_rest_url();
+	}
+
     if ( empty($path) ) {
         $path = '/';
     }
