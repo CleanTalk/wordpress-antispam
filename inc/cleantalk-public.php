@@ -17,7 +17,6 @@ use Cleantalk\Variables\Request;
 function apbct_init()
 {
     global $ct_jp_comments, $apbct;
-    $debug = array();
 
     // Pixel
     if ( $apbct->settings['data__pixel'] ) {
