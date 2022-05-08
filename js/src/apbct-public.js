@@ -107,7 +107,6 @@
 	}
 
 	function ctSetPixelImg(pixelUrl) {
-		console.log('ctSetPixelImg call')
 		ctSetCookie('apbct_pixel_url', pixelUrl);
 		if( +ctPublic.pixel__enabled ){
 			if( ! document.getElementById('apbct_pixel') ) {
@@ -129,7 +128,6 @@
 			}
 		}
 		// Using REST API handler
-		console.log('Run AJAX to get pixel_url')
 		if( ctPublicFunctions.data__ajax_type === 'rest' ){
 			apbct_public_sendREST(
 				'apbct_get_pixel_url',
@@ -191,7 +189,6 @@
 
 	// Ready function
 	function apbct_ready(){
-		console.log('apbct_ready call')
 
 		// Collect scrolling info
 		var initCookies = [
