@@ -121,7 +121,7 @@
 		let local_storage_pixel_url = ctGetPixelUrlLocalstorage();
 		if ( local_storage_pixel_url !== false ) {
 			if ( ctIsOutdatedPixelUrlLocalstorage(local_storage_pixel_url) ) {
-				ctCleaPixelUrlLocalstorage()
+				ctCleaPixelUrlLocalstorage(local_storage_pixel_url)
 			} else {
 				//if so - load pixel from localstorage and draw it skipping AJAX
 				ctSetPixelImg(local_storage_pixel_url);
