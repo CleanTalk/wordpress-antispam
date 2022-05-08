@@ -651,6 +651,7 @@ function apbct_js_keys__get__ajax()
 function apbct_get_pixel_url__ajax($direct_call = false)
 {
     global $apbct;
+
     $pixel_hash = md5(
         Helper::ipGet()
         . $apbct->api_key
@@ -663,10 +664,21 @@ function apbct_get_pixel_url__ajax($direct_call = false)
     $pixel_url = str_replace('http://', 'https://', $server_url) . $pixel;
 
     if ( $direct_call ) {
+        apbct_log($pixel_url . ' direct_call', __FUNCTION__);
         return $pixel_url ;
     }
-
+    apbct_log($pixel_url . ' AJAX call', __FUNCTION__);
     die($pixel_url);
+}
+
+function apbct_get_pixel_from_session__ajax($direct_call = false)
+{
+    global $apbct;
+    $msg = \Cleantalk\Variables\Cookie::get('apbct_pixel_url');
+    if ( empty ($msg) ){
+        $msg = '';
+    }
+    die($msg);
 }
 
 /**
