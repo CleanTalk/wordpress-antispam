@@ -19,11 +19,11 @@ function apbct_init()
     global $ct_jp_comments, $apbct;
 
     // Pixel
-    if ($apbct->settings['data__pixel']){
-            if ( empty($apbct->pixel_url) ){
-                apbct_log($apbct->pixel_url . ' - is empty, filling.');
-                $apbct->pixel_url = apbct_get_pixel_url__ajax(true);
-            }
+    if ( $apbct->settings['data__pixel'] ) {
+        if ( empty($apbct->pixel_url) ) {
+            apbct_log($apbct->pixel_url . ' - is empty, filling.');
+            $apbct->pixel_url = apbct_get_pixel_url__ajax(true);
+        }
     }
 
 

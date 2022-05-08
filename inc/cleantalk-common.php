@@ -18,8 +18,8 @@ function apbct_array($array)
     return new \Cleantalk\Common\Arr($array);
 }
 
-$ct_checkjs_frm           = 'ct_checkjs_frm';
-$ct_checkjs_register_form = 'ct_checkjs_register_form';
+$ct_checkjs_frm             = 'ct_checkjs_frm';
+$ct_checkjs_register_form   = 'ct_checkjs_register_form';
 
 $apbct_cookie_request_id_label  = 'request_id';
 $apbct_cookie_register_ok_label = 'register_ok';
@@ -669,16 +669,6 @@ function apbct_get_pixel_url__ajax($direct_call = false)
     }
     apbct_log($pixel_url . ' AJAX call', __FUNCTION__);
     die($pixel_url);
-}
-
-function apbct_get_pixel_from_session__ajax($direct_call = false)
-{
-    global $apbct;
-    $msg = \Cleantalk\Variables\Cookie::get('apbct_pixel_url');
-    if ( empty ($msg) ){
-        $msg = '';
-    }
-    die($msg);
 }
 
 /**
