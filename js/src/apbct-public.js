@@ -107,6 +107,7 @@
 	}
 
 	function ctSetPixelImg(pixelUrl) {
+		console.log('ctSetPixelImg call')
 		ctSetCookie('apbct_pixel_url', pixelUrl);
 		if( +ctPublic.pixel__enabled ){
 			if( ! document.getElementById('apbct_pixel') ) {
@@ -116,7 +117,18 @@
 	}
 
 	function ctGetPixelUrl() {
+		console.log('ctGetPixelUrl call')
+		let local_storage_pixel_url = ctGetPixelUrlLocalstorage();
+		if ( local_storage_pixel_url !== false ) {
+			if ( ctIsOutdatedPixelUrlLocalstorage(local_storage_pixel_url) ){
+				ctCleaPixelUrlLocalstorage()
+			} else {
+				ctSetPixelImg(local_storage_pixel_url);
+				return;
+			}
+		}
 		// Using REST API handler
+		console.log('Run AJAX to get pixel_url')
 		if( ctPublicFunctions.data__ajax_type === 'rest' ){
 			apbct_public_sendREST(
 				'apbct_get_pixel_url',
@@ -124,6 +136,9 @@
 					method: 'POST',
 					callback: function (result) {
 						if (result) {
+							if ( ! ctGetPixelUrlLocalstorage() ){
+								ctSetPixelUrlLocalstorage(result);
+							}
 							ctSetPixelImg(result);
 						}
 					},
@@ -139,6 +154,9 @@
 					notJson: true,
 					callback: function (result) {
 						if (result) {
+							if ( ! ctGetPixelUrlLocalstorage() ){
+								ctSetPixelUrlLocalstorage(result);
+							}
 							ctSetPixelImg(result);
 						}
 					},
@@ -168,6 +186,7 @@
 
 	// Ready function
 	function apbct_ready(){
+		console.log('apbct_ready call')
 
 		// Collect scrolling info
 		var initCookies = [
@@ -199,7 +218,7 @@
 
 		if( +ctPublic.pixel__setting ){
 			if( +ctPublic.pixel__enabled ){
-				ctGetPixelUrl();
+				ctGetPixelUrl()
 			} else {
 				initCookies.push(['apbct_pixel_url', ctPublic.pixel__url]);
 			}
@@ -414,4 +433,45 @@ if(typeof jQuery !== 'undefined') {
 			}
 		}
 	});
+}
+
+function ctSetPixelUrlLocalstorage(pixel_url){
+	console.log('::set_pixel_url_localstorage call...');
+	localStorage.setItem('session_pixel_url',pixel_url)
+	localStorage.setItem(pixel_url, Math.floor(Date.now() / 1000).toString())
+}
+
+function ctGetPixelUrlLocalstorage(){
+	console.log('::get_pixel_url_localstorage call...');
+	let local_storage_pixel = localStorage.getItem('session_pixel_url');
+	if (local_storage_pixel !== null){
+		console.log('Result:' + local_storage_pixel);
+		return local_storage_pixel;
+	} else {
+		console.log('Result: FALSE');
+		return false;
+	}
+}
+
+function ctIsOutdatedPixelUrlLocalstorage(local_storage_pixel_url){
+	console.log('::is_outdated_pixel_url_localstorage call...');
+	let local_storage_pixel_timestamp = Number(localStorage.getItem(local_storage_pixel_url));
+	console.log('-local_storage_pixel_timestamp is ' + local_storage_pixel_timestamp);
+	let current_timestamp = Math.floor(Date.now() / 1000).toString()
+	console.log('-current timestamp is ' + current_timestamp);
+	let timestamp_difference = current_timestamp - local_storage_pixel_timestamp;
+	console.log('-current timestamp_difference is ' + timestamp_difference);
+	if ( timestamp_difference > 3600 * 3 ) {
+		console.log('RESULT: OUTDATED')
+		return true;
+	} else {
+		console.log('RESULT: OK')
+		return false;
+	}
+}
+
+function ctCleaPixelUrlLocalstorage(local_storage_pixel_url){
+	console.log('clear_pixel_url_localstorage call...');
+	localStorage.removeItem(local_storage_pixel_url)
+	localStorage.removeItem('session_pixel_url')
 }
