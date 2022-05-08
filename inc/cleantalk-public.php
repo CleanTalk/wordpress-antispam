@@ -17,11 +17,19 @@ use Cleantalk\Variables\Request;
 function apbct_init()
 {
     global $ct_jp_comments, $apbct;
+    $debug = array();
 
     // Pixel
     if ( $apbct->settings['data__pixel'] ) {
-        if ( empty($apbct->pixel_url) ) {
-            apbct_log($apbct->pixel_url . ' - is empty, filling.');
+        if ( empty($apbct->pixel_url ) &&
+            (
+                $apbct->settings['data__pixel'] === '1' ||
+                (
+                    $apbct->settings['data__pixel'] === '3' &&
+                    ! apbct_is_cache_plugins_exists()
+                )
+            )
+        ) {
             $apbct->pixel_url = apbct_get_pixel_url__ajax(true);
         }
     }

@@ -664,10 +664,9 @@ function apbct_get_pixel_url__ajax($direct_call = false)
     $pixel_url = str_replace('http://', 'https://', $server_url) . $pixel;
 
     if ( $direct_call ) {
-        apbct_log($pixel_url . ' direct_call', __FUNCTION__);
         return $pixel_url ;
     }
-    apbct_log($pixel_url . ' AJAX call', __FUNCTION__);
+
     die($pixel_url);
 }
 
