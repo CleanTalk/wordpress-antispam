@@ -117,12 +117,13 @@
 	}
 
 	function ctGetPixelUrl() {
-		console.log('ctGetPixelUrl call')
+		// Check if pixel is already in localstorage and is not outdated
 		let local_storage_pixel_url = ctGetPixelUrlLocalstorage();
 		if ( local_storage_pixel_url !== false ) {
-			if ( ctIsOutdatedPixelUrlLocalstorage(local_storage_pixel_url) ){
+			if ( ctIsOutdatedPixelUrlLocalstorage(local_storage_pixel_url) ) {
 				ctCleaPixelUrlLocalstorage()
 			} else {
+				//if so - load pixel from localstorage and draw it skipping AJAX
 				ctSetPixelImg(local_storage_pixel_url);
 				return;
 			}
@@ -136,9 +137,11 @@
 					method: 'POST',
 					callback: function (result) {
 						if (result) {
+							//set  pixel url to localstorage
 							if ( ! ctGetPixelUrlLocalstorage() ){
 								ctSetPixelUrlLocalstorage(result);
 							}
+							//then run pixel drawing
 							ctSetPixelImg(result);
 						}
 					},
@@ -154,9 +157,11 @@
 					notJson: true,
 					callback: function (result) {
 						if (result) {
+							//set  pixel url to localstorage
 							if ( ! ctGetPixelUrlLocalstorage() ){
 								ctSetPixelUrlLocalstorage(result);
 							}
+							//then run pixel drawing
 							ctSetPixelImg(result);
 						}
 					},
@@ -435,43 +440,32 @@ if(typeof jQuery !== 'undefined') {
 	});
 }
 
-function ctSetPixelUrlLocalstorage(pixel_url){
-	console.log('::set_pixel_url_localstorage call...');
-	localStorage.setItem('session_pixel_url',pixel_url)
-	localStorage.setItem(pixel_url, Math.floor(Date.now() / 1000).toString())
+function ctSetPixelUrlLocalstorage(ajax_pixel_url) {
+	//set pixel to the storage
+	localStorage.setItem('session_pixel_url', ajax_pixel_url)
+	//set pixel timestamp to the storage
+	localStorage.setItem(ajax_pixel_url, Math.floor(Date.now() / 1000).toString())
 }
 
-function ctGetPixelUrlLocalstorage(){
-	console.log('::get_pixel_url_localstorage call...');
+function ctGetPixelUrlLocalstorage() {
 	let local_storage_pixel = localStorage.getItem('session_pixel_url');
-	if (local_storage_pixel !== null){
-		console.log('Result:' + local_storage_pixel);
+	if ( local_storage_pixel !== null ) {
 		return local_storage_pixel;
 	} else {
-		console.log('Result: FALSE');
 		return false;
 	}
 }
 
-function ctIsOutdatedPixelUrlLocalstorage(local_storage_pixel_url){
-	console.log('::is_outdated_pixel_url_localstorage call...');
+function ctIsOutdatedPixelUrlLocalstorage(local_storage_pixel_url) {
 	let local_storage_pixel_timestamp = Number(localStorage.getItem(local_storage_pixel_url));
-	console.log('-local_storage_pixel_timestamp is ' + local_storage_pixel_timestamp);
 	let current_timestamp = Math.floor(Date.now() / 1000).toString()
-	console.log('-current timestamp is ' + current_timestamp);
 	let timestamp_difference = current_timestamp - local_storage_pixel_timestamp;
-	console.log('-current timestamp_difference is ' + timestamp_difference);
-	if ( timestamp_difference > 3600 * 3 ) {
-		console.log('RESULT: OUTDATED')
-		return true;
-	} else {
-		console.log('RESULT: OK')
-		return false;
-	}
+	return timestamp_difference > 3600 * 3;
 }
 
-function ctCleaPixelUrlLocalstorage(local_storage_pixel_url){
-	console.log('clear_pixel_url_localstorage call...');
+function ctCleaPixelUrlLocalstorage(local_storage_pixel_url) {
+	//remove timestamp
 	localStorage.removeItem(local_storage_pixel_url)
+	//remove pixel itself
 	localStorage.removeItem('session_pixel_url')
 }
