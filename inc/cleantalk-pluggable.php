@@ -156,6 +156,13 @@ function apbct_get_rest_url($blog_id = null, $path = '/', $scheme = 'rest')
 {
     global $wp_rewrite;
 
+	/**
+	 * If exists get_rest_url() - return it
+	 */
+	if (function_exists('get_rest_url')) {
+		return get_rest_url();
+	}
+
     if ( empty($path) ) {
         $path = '/';
     }
@@ -801,6 +808,15 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'GiveWP';
         }
+
+        // MultiStep Checkout for WooCommerce
+        if (
+            apbct_is_plugin_active('woo-multistep-checkout/woo-multistep-checkout.php') &&
+            Post::get('action') === 'thwmsc_step_validation'
+        ) {
+            return 'MultiStep Checkout for WooCommerce - step validation';
+        }
+
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */

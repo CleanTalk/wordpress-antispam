@@ -232,7 +232,8 @@
 					(form.id && form.id.toString().indexOf('sac-form') !== -1) || // Simple Ajax Chat
 					(form.id && form.id.toString().indexOf('cp_tslotsbooking_pform') !== -1) || // WP Time Slots Booking Form
 					(form.name && form.name.toString().indexOf('cp_tslotsbooking_pform') !== -1)  || // WP Time Slots Booking Form
-					form.action.toString() === 'https://epayment.epymtservice.com/epay.jhtml' // Custom form
+					form.action.toString() === 'https://epayment.epymtservice.com/epay.jhtml' || // Custom form
+					(form.name && form.name.toString().indexOf('tribe-bar-form') !== -1)  // The Events Calendar
 				) {
 					continue;
 				}

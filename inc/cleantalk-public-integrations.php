@@ -3330,3 +3330,48 @@ function apbct_form_happyforms_test_spam($is_valid, $request, $_form)
 
     return $is_valid;
 }
+
+/**
+ * Advanced Classifieds & Directory Pro
+ *
+ * @param $response
+ * @param $form_name
+ *
+ * @return mixed
+ * @psalm-suppress UnusedVariable
+ */
+function apbct_advanced_classifieds_directory_pro__check_register($response, $form_name)
+{
+    global $cleantalk_executed;
+
+    if (
+        Post::get('username') &&
+        Post::get('email')
+    ) {
+        $data = ct_get_fields_any($_POST, Post::get('email'));
+
+        $base_call_result = apbct_base_call(
+            array(
+                'message'         => ! empty($data['message']) ? json_encode($data['message']) : '',
+                'sender_email'    => ! empty($data['email']) ? $data['email'] : '',
+                'sender_nickname' => ! empty($data['nickname']) ? $data['nickname'] : '',
+                'post_info'       => array(
+                    'comment_type' => 'register_advanced_classifieds_directory_pro'
+                ),
+            ),
+            true
+        );
+
+        $ct_result = $base_call_result['ct_result'];
+
+        $cleantalk_executed = true;
+
+        if ( $ct_result->allow == 0 ) {
+            global $ct_comment;
+            $ct_comment = $ct_result->comment;
+            ct_die(null, null);
+        }
+    }
+
+    return $response;
+}
