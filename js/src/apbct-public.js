@@ -293,7 +293,7 @@
 
 function apbctAjaxEmailDecode(event){
 	const element = event.target;
-	element.setAttribute('title', 'Wait for decoding...');
+	element.setAttribute('title', ctPublicFunctions.text__wait_for_decoding);
 	element.style.cursor = 'progress';
 	// Using REST API handler
 	if( ctPublicFunctions.data__ajax_type === 'rest' ){
