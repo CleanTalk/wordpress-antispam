@@ -235,11 +235,7 @@ function apbct_base_call($params = array(), $reg_flag = false)
 
     $ct = new Cleantalk();
 
-    $ct->use_bultin_api = $apbct->settings['wp__use_builtin_http_api'] ? true : false;
-    $ct->ssl_on         = $apbct->settings['data__ssl_on'];
-    $ct->ssl_path       = APBCT_CASERT_PATH;
-
-    // Options store url without shceme because of DB error with ''://'
+    // Options store url without scheme because of DB error with ''://'
     $config             = ct_get_server();
     $ct->server_url     = APBCT_MODERATE_URL;
     $ct->work_url       = preg_match('/https:\/\/.+/', $config['ct_work_url']) ? $config['ct_work_url'] : null;
