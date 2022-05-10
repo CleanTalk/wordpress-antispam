@@ -88,7 +88,7 @@ class Request
     public function setData($data)
     {
         // If $data scalar converting it to array
-        $this->data = ! empty($data) && is_scalar($data)
+        $this->data = ! empty($data) && ! self::isJson($data) && is_scalar($data)
             ? array((string)$data => 1)
             : $data;
 
@@ -361,21 +361,26 @@ class Request
             switch ( $option_name ) {
                 case 'timeout':
                     $temp_options[CURLOPT_TIMEOUT] = $option_value; // String
+                    unset($this->options[$option_name]);
                     break;
                 case 'sslverify':
                     if ( $option_value ) {
                         $temp_options[CURLOPT_SSL_VERIFYPEER] = (bool)$option_value;      // Boolean
                         $temp_options[CURLOPT_SSL_VERIFYHOST] = (int)(bool)$option_value; // Int 0|1
+                        unset($this->options[$option_name]);
                     }
                     break;
                 case 'sslcertificates':
                     $temp_options[CURLOPT_CAINFO] = $option_name; // String
+                    unset($this->options[$option_name]);
                     break;
                 case 'headers':
                     $temp_options[CURLOPT_HTTPHEADER] = $option_name; // String[]
+                    unset($this->options[$option_name]);
                     break;
                 case 'user-agent':
                     $temp_options[CURLOPT_USERAGENT] = $option_name; // String
+                    unset($this->options[$option_name]);
                     break;
 
                 // Unset unsupported string names in options
@@ -535,5 +540,17 @@ class Request
             : ('&' . $parameters);
 
         return $url;
+    }
+
+    /**
+     * Checks if the string is JSON type
+     *
+     * @param string $string
+     *
+     * @return bool
+     */
+    public static function isJson($string)
+    {
+        return is_string($string) && is_array(json_decode($string, true));
     }
 }
