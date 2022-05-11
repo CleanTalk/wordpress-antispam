@@ -156,12 +156,12 @@ function apbct_get_rest_url($blog_id = null, $path = '/', $scheme = 'rest')
 {
     global $wp_rewrite;
 
-	/**
-	 * If exists get_rest_url() - return it
-	 */
-	if (function_exists('get_rest_url')) {
-		return get_rest_url();
-	}
+    /**
+     * If exists get_rest_url() - return it
+     */
+    if ( function_exists('get_rest_url') ) {
+        return get_rest_url();
+    }
 
     if ( empty($path) ) {
         $path = '/';
@@ -816,7 +816,6 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'MultiStep Checkout for WooCommerce - step validation';
         }
-
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */

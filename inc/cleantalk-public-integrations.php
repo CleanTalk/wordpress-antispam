@@ -3356,9 +3356,9 @@ function apbct_form_search__add_fields($form_html)
  * @return mixed
  * @psalm-suppress UnusedVariable
  */
-function apbct_advanced_classifieds_directory_pro__check_register($response, $form_name)
+function apbct_advanced_classifieds_directory_pro__check_register($response, $_form_name)
 {
-    global $cleantalk_executed;
+    global $cleantalk_executed, $ct_comment;
 
     if (
         Post::get('username') &&
@@ -3383,7 +3383,6 @@ function apbct_advanced_classifieds_directory_pro__check_register($response, $fo
         $cleantalk_executed = true;
 
         if ( $ct_result->allow == 0 ) {
-            global $ct_comment;
             $ct_comment = $ct_result->comment;
             ct_die(null, null);
         }
