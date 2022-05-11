@@ -18,8 +18,8 @@ function apbct_array($array)
     return new \Cleantalk\Common\Arr($array);
 }
 
-$ct_checkjs_frm           = 'ct_checkjs_frm';
-$ct_checkjs_register_form = 'ct_checkjs_register_form';
+$ct_checkjs_frm             = 'ct_checkjs_frm';
+$ct_checkjs_register_form   = 'ct_checkjs_register_form';
 
 $apbct_cookie_request_id_label  = 'request_id';
 $apbct_cookie_register_ok_label = 'register_ok';
@@ -658,6 +658,7 @@ function apbct_js_keys__get__ajax()
 function apbct_get_pixel_url__ajax($direct_call = false)
 {
     global $apbct;
+
     $pixel_hash = md5(
         Helper::ipGet()
         . $apbct->api_key
