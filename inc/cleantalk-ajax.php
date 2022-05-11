@@ -661,6 +661,28 @@ function ct_ajax_hook($message_obj = null)
         $base_call_params['sender_info']['exception_description'] = apbct_is_exception_arg_request();
     }
 
+    // EZ Form Calculator - clearing the message
+    if (
+        apbct_is_plugin_active('ez-form-calculator-premium/ezfc.php') &&
+        Post::equal('action', 'ezfc_frontend')
+    ) {
+        if (!is_array($message)) {
+            $message = preg_split('/\r\n|\r|\n/', $message);
+        }
+
+        foreach ($message as $key => $string) {
+            if (
+                $string === '__HIDDEN__' ||
+                $string === '0' ||
+                (int)$string !== 0
+            ) {
+                unset($message[$key]);
+            }
+        }
+
+        $base_call_params['message'] = implode('\n', $message);
+    }
+
     $base_call_result = apbct_base_call($base_call_params);
     $ct_result        = $base_call_result['ct_result'];
 

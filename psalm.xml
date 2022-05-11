@@ -67,6 +67,7 @@
                 <file name="lib/Cleantalk/ApbctWP/Sanitize.php"/>
                 <file name="lib/Cleantalk/ApbctWP/Validate.php"/>
                 <file name="lib/Cleantalk/ApbctWP/Escape.php"/>
+                <file name="lib/Cleantalk/Common/HTTP/Response.php"/>
             </errorLevel>
         </PossiblyUnusedMethod>
     </issueHandlers>

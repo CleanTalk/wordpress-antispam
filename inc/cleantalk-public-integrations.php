@@ -1083,8 +1083,15 @@ function ct_preprocess_comment($comment)
     if ( isset($apbct->settings['comments__hide_website_field']) && $apbct->settings['comments__hide_website_field'] ) {
         $honeypot_field = 1;
 
-        if ( isset($_POST['url']) && ! empty($_POST['url']) && $post_info['comment_type'] === 'comment' && isset($_POST['comment_post_ID']) ) {
+        if (
+            $post_info['comment_type'] === 'comment' &&
+            Post::get('url') &&
+            Post::get('comment_post_ID')
+        ) {
             $honeypot_field = 0;
+            // if url is filled then pass them to $base_call_data as additional fields
+            $base_call_data['sender_info']['honeypot_field_value']  = Post::get('url');
+            $base_call_data['sender_info']['honeypot_field_source'] = 'url';
         }
 
         $base_call_data['honeypot_field'] = $honeypot_field;
@@ -3329,4 +3336,58 @@ function apbct_form_happyforms_test_spam($is_valid, $request, $_form)
     }
 
     return $is_valid;
+}
+
+function apbct_form_search__add_fields($form_html)
+{
+    global $apbct;
+    if ( is_string($form_html) && $apbct->settings['forms__search_test'] == 1 ) {
+        return str_replace('</form>', ct_add_honeypot_field('search_form') . '</form>', $form_html);
+    }
+    return $form_html;
+}
+
+/**
+ * Advanced Classifieds & Directory Pro
+ *
+ * @param $response
+ * @param $form_name
+ *
+ * @return mixed
+ * @psalm-suppress UnusedVariable
+ */
+function apbct_advanced_classifieds_directory_pro__check_register($response, $form_name)
+{
+    global $cleantalk_executed;
+
+    if (
+        Post::get('username') &&
+        Post::get('email')
+    ) {
+        $data = ct_get_fields_any($_POST, Post::get('email'));
+
+        $base_call_result = apbct_base_call(
+            array(
+                'message'         => ! empty($data['message']) ? json_encode($data['message']) : '',
+                'sender_email'    => ! empty($data['email']) ? $data['email'] : '',
+                'sender_nickname' => ! empty($data['nickname']) ? $data['nickname'] : '',
+                'post_info'       => array(
+                    'comment_type' => 'register_advanced_classifieds_directory_pro'
+                ),
+            ),
+            true
+        );
+
+        $ct_result = $base_call_result['ct_result'];
+
+        $cleantalk_executed = true;
+
+        if ( $ct_result->allow == 0 ) {
+            global $ct_comment;
+            $ct_comment = $ct_result->comment;
+            ct_die(null, null);
+        }
+    }
+
+    return $response;
 }

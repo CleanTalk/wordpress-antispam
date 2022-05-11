@@ -132,6 +132,7 @@ class Server extends ServerVariables
      * Determines if SSL is used.
      *
      * @return bool True if SSL, otherwise false.
+     * @psalm-suppress PossiblyUnusedMethod
      */
     public static function isSSL()
     {

@@ -19,7 +19,7 @@ function apbct_init()
     global $ct_jp_comments, $apbct;
 
     // Pixel
-    if ( $apbct->settings['data__pixel'] ) {
+    if ( $apbct->settings['data__pixel'] && empty($apbct->pixel_url) ) {
         $apbct->pixel_url = apbct_get_pixel_url__ajax(true);
     }
 
@@ -35,6 +35,11 @@ function apbct_init()
             echo $ct_result;
             die();
         }
+    }
+
+    //Search form hook init
+    if ( $apbct->settings['forms__search_test'] ) {
+        add_filter('get_search_form', 'apbct_form_search__add_fields', 999);
     }
 
     //fix for EPM registration form

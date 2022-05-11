@@ -2,6 +2,8 @@
 
 namespace Cleantalk\ApbctWP;
 
+use Cleantalk\ApbctWP\HTTP\Request;
+
 /**
  * CleanTalk Anti-Spam Helper class.
  * Compatible only with WordPress.
@@ -27,7 +29,7 @@ class Helper extends \Cleantalk\Common\Helper
      * get      - GET-request
      * ssl      - use SSL
      *
-     * @param string $url URL
+     * @param string|array<string> $url URL
      * @param array|string|int $data POST|GET indexed array with data to send
      * @param string|array $presets String or Array with presets: get_code, async, get, ssl, dont_split_to_array
      * @param array $opts Optional option for CURL connection
@@ -46,7 +48,13 @@ class Helper extends \Cleantalk\Common\Helper
             $opts
         );
 
-        return parent::httpRequest($url, $data, $presets, $opts);
+        $http = new Request();
+
+        return $http->setUrl($url)
+                    ->setData($data)
+                    ->setPresets($presets)
+                    ->setOptions($opts)
+                    ->request();
     }
 
     /**
@@ -59,7 +67,7 @@ class Helper extends \Cleantalk\Common\Helper
      */
     public static function httpRequestGetResponseCode($url)
     {
-        return static::httpRequest($url, array(), 'get_code');
+        return static::httpRequest($url, array(), 'get_code get');
     }
 
     /**

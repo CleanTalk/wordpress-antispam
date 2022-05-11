@@ -23,7 +23,7 @@ class HelperTest extends TestCase
     }
 
 	public function test_http__multi_request_success() {
-    	$res = Helper::httpMultiRequest( array('https://google.com') );
+    	$res = Helper::httpMultiRequest( array('https://google.com', 'https://cleantalk.org') );
 		$this->assertIsArray( $res );
 		$this->assertContainsOnly( 'string', $res );
 	}

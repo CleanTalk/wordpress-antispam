@@ -406,6 +406,9 @@ add_filter('avf_form_send', 'apbct_form__enfold_contact_form__test_spam', 4, 10)
 // Profile Builder integration
 add_filter('wppb_output_field_errors_filter', 'apbct_form_profile_builder__check_register', 1, 3);
 
+// Advanced Classifieds & Directory Pro
+add_filter('acadp_is_spam', 'apbct_advanced_classifieds_directory_pro__check_register', 1, 2);
+
 // WP Foro register system integration
 add_filter('wpforo_create_profile', 'wpforo_create_profile__check_register', 1, 1);
 
@@ -1095,6 +1098,7 @@ function apbct_sfw_update__download_files($urls)
 
     if ( empty($results['error']) && ($count_urls === $count_results) ) {
         $download_again = array();
+        $results        = array_values($results);
         for ( $i = 0; $i < $count_results; $i++ ) {
             if ( $results[$i] === 'error' ) {
                 $download_again[] = $urls[$i];
@@ -2785,7 +2789,7 @@ function apbct_test_connection()
 
     foreach ( $url_to_test as $url ) {
         $start  = microtime(true);
-        $result = \Cleantalk\ApbctWP\Helper::httpRequestGetContent($url);
+        $result = \Cleantalk\ApbctWP\Helper::httpRequestGetResponseCode($url);
 
         $out[$url] = array(
             'result'    => ! empty($result['error']) ? $result['error'] : 'OK',

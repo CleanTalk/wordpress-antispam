@@ -18,8 +18,8 @@ function apbct_array($array)
     return new \Cleantalk\Common\Arr($array);
 }
 
-$ct_checkjs_frm           = 'ct_checkjs_frm';
-$ct_checkjs_register_form = 'ct_checkjs_register_form';
+$ct_checkjs_frm             = 'ct_checkjs_frm';
+$ct_checkjs_register_form   = 'ct_checkjs_register_form';
 
 $apbct_cookie_request_id_label  = 'request_id';
 $apbct_cookie_register_ok_label = 'register_ok';
@@ -211,14 +211,22 @@ function apbct_base_call($params = array(), $reg_flag = false)
      */
     if ( $apbct->settings['data__honeypot_field'] && ! isset($params['honeypot_field']) ) {
         $honeypot_field = 1;
-
-        if (
-            Post::get('wc_apbct_email_id') ||
-            Post::get('apbct__email_id__wp_register') ||
-            Post::get('apbct__email_id__wp_contact_form_7') ||
-            Post::get('apbct__email_id__wp_wpforms')
-        ) {
-            $honeypot_field = 0;
+        // collect probable sources
+        $honeypot_potential_values = array(
+            'wc_apbct_email_id'                     => Post::get('wc_apbct_email_id'),
+            'apbct__email_id__wp_register'          => Post::get('apbct__email_id__wp_register'),
+            'apbct__email_id__wp_contact_form_7'    => Post::get('apbct__email_id__wp_contact_form_7'),
+            'apbct__email_id__wp_wpforms'           => Post::get('apbct__email_id__wp_wpforms'),
+            'apbct__email_id__search_form'          => Post::get('apbct__email_id__search_form')
+        );
+        // if source is filled then pass them to params as additional fields
+        foreach ($honeypot_potential_values as $source_name => $source_value) {
+            if ( $source_value ) {
+                $honeypot_field = 0;
+                $params['sender_info']['honeypot_field_value']  = $source_value;
+                $params['sender_info']['honeypot_field_source'] = $source_name;
+                break;
+            }
         }
 
         $params['honeypot_field'] = $honeypot_field;
@@ -235,11 +243,7 @@ function apbct_base_call($params = array(), $reg_flag = false)
 
     $ct = new Cleantalk();
 
-    $ct->use_bultin_api = $apbct->settings['wp__use_builtin_http_api'] ? true : false;
-    $ct->ssl_on         = $apbct->settings['data__ssl_on'];
-    $ct->ssl_path       = APBCT_CASERT_PATH;
-
-    // Options store url without shceme because of DB error with ''://'
+    // Options store url without scheme because of DB error with ''://'
     $config             = ct_get_server();
     $ct->server_url     = APBCT_MODERATE_URL;
     $ct->work_url       = preg_match('/https:\/\/.+/', $config['ct_work_url']) ? $config['ct_work_url'] : null;
@@ -651,6 +655,7 @@ function apbct_js_keys__get__ajax()
 function apbct_get_pixel_url__ajax($direct_call = false)
 {
     global $apbct;
+
     $pixel_hash = md5(
         Helper::ipGet()
         . $apbct->api_key

@@ -116,6 +116,17 @@
 	}
 
 	function ctGetPixelUrl() {
+		// Check if pixel is already in localstorage and is not outdated
+		let local_storage_pixel_url = ctGetPixelUrlLocalstorage();
+		if ( local_storage_pixel_url !== false ) {
+			if ( ctIsOutdatedPixelUrlLocalstorage(local_storage_pixel_url) ) {
+				ctCleaPixelUrlLocalstorage(local_storage_pixel_url)
+			} else {
+				//if so - load pixel from localstorage and draw it skipping AJAX
+				ctSetPixelImg(local_storage_pixel_url);
+				return;
+			}
+		}
 		// Using REST API handler
 		if( ctPublicFunctions.data__ajax_type === 'rest' ){
 			apbct_public_sendREST(
@@ -124,6 +135,11 @@
 					method: 'POST',
 					callback: function (result) {
 						if (result) {
+							//set  pixel url to localstorage
+							if ( ! ctGetPixelUrlLocalstorage() ){
+								ctSetPixelUrlLocalstorage(result);
+							}
+							//then run pixel drawing
 							ctSetPixelImg(result);
 						}
 					},
@@ -139,6 +155,11 @@
 					notJson: true,
 					callback: function (result) {
 						if (result) {
+							//set  pixel url to localstorage
+							if ( ! ctGetPixelUrlLocalstorage() ){
+								ctSetPixelUrlLocalstorage(result);
+							}
+							//then run pixel drawing
 							ctSetPixelImg(result);
 						}
 					},
@@ -199,7 +220,7 @@
 
 		if( +ctPublic.pixel__setting ){
 			if( +ctPublic.pixel__enabled ){
-				ctGetPixelUrl();
+				ctGetPixelUrl()
 			} else {
 				initCookies.push(['apbct_pixel_url', ctPublic.pixel__url]);
 			}
@@ -232,7 +253,8 @@
 					(form.id && form.id.toString().indexOf('sac-form') !== -1) || // Simple Ajax Chat
 					(form.id && form.id.toString().indexOf('cp_tslotsbooking_pform') !== -1) || // WP Time Slots Booking Form
 					(form.name && form.name.toString().indexOf('cp_tslotsbooking_pform') !== -1)  || // WP Time Slots Booking Form
-					form.action.toString() === 'https://epayment.epymtservice.com/epay.jhtml' // Custom form
+					form.action.toString() === 'https://epayment.epymtservice.com/epay.jhtml' || // Custom form
+					(form.name && form.name.toString().indexOf('tribe-bar-form') !== -1)  // The Events Calendar
 				) {
 					continue;
 				}
@@ -477,4 +499,34 @@ if(typeof jQuery !== 'undefined') {
 			}
 		}
 	});
+}
+
+function ctSetPixelUrlLocalstorage(ajax_pixel_url) {
+	//set pixel to the storage
+	localStorage.setItem('session_pixel_url', ajax_pixel_url)
+	//set pixel timestamp to the storage
+	localStorage.setItem(ajax_pixel_url, Math.floor(Date.now() / 1000).toString())
+}
+
+function ctGetPixelUrlLocalstorage() {
+	let local_storage_pixel = localStorage.getItem('session_pixel_url');
+	if ( local_storage_pixel !== null ) {
+		return local_storage_pixel;
+	} else {
+		return false;
+	}
+}
+
+function ctIsOutdatedPixelUrlLocalstorage(local_storage_pixel_url) {
+	let local_storage_pixel_timestamp = Number(localStorage.getItem(local_storage_pixel_url));
+	let current_timestamp = Math.floor(Date.now() / 1000).toString()
+	let timestamp_difference = current_timestamp - local_storage_pixel_timestamp;
+	return timestamp_difference > 3600 * 3;
+}
+
+function ctCleaPixelUrlLocalstorage(local_storage_pixel_url) {
+	//remove timestamp
+	localStorage.removeItem(local_storage_pixel_url)
+	//remove pixel itself
+	localStorage.removeItem('session_pixel_url')
 }

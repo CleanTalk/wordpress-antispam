@@ -3,6 +3,7 @@
 namespace Cleantalk\Antispam;
 
 use Cleantalk\ApbctWP\Helper;
+use Cleantalk\ApbctWP\HTTP\Request;
 
 /**
  * Cleantalk base class
@@ -18,12 +19,6 @@ use Cleantalk\ApbctWP\Helper;
  */
 class Cleantalk
 {
-    /**
-     * Use WordPress built-in API
-     * @var bool
-     */
-    public $use_bultin_api = false;
-
     /**
      * Maximum data size in bytes
      * @var int
@@ -83,18 +78,6 @@ class Cleantalk
      * @var string
      */
     public $api_version = '/api2.0';
-
-    /**
-     * Use https connection to servers
-     * @var bool
-     */
-    public $ssl_on = false;
-
-    /**
-     * Path to SSL certificate
-     * @var string
-     */
-    public $ssl_path = '';
 
     /**
      * Minimal server response in milliseconds to catch the server
@@ -459,10 +442,6 @@ class Cleantalk
      */
     private function sendRequest($data, $url, $server_timeout = 3)
     {
-        $original_args = func_get_args();
-        // Convert to array
-        $data = (array)json_decode(json_encode($data), true);
-
         //Cleaning from 'null' values
         $tmp_data = array();
         foreach ( $data as $key => $value ) {
@@ -480,93 +459,12 @@ class Cleantalk
             $url .= $this->api_version;
         }
 
-        $result     = false;
-        $curl_error = null;
+        $http = new Request();
 
-        // Switching to secure connection
-        if ( $this->ssl_on && ! preg_match("/^https:/", $url) ) {
-            $url = preg_replace("/^(http)/i", "$1s", $url);
-        }
-
-        if ( $this->use_bultin_api ) {
-            $args = array(
-                'body'       => $data,
-                'timeout'    => $server_timeout,
-                'user-agent' => APBCT_AGENT . ' ' . get_bloginfo('url'),
-            );
-
-            $result = wp_remote_post($url, $args);
-
-            if ( is_wp_error($result) ) {
-                $result = false;
-            } else {
-                $result = wp_remote_retrieve_body($result);
-            }
-        } else {
-            if ( function_exists('curl_init') ) {
-                $ch = curl_init();
-
-                curl_setopt($ch, CURLOPT_URL, $url);
-                curl_setopt($ch, CURLOPT_TIMEOUT, $server_timeout);
-                curl_setopt($ch, CURLOPT_POST, 1);
-                curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
-                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); // receive server response ...
-                curl_setopt($ch, CURLOPT_HTTPHEADER, array('Expect:')); // resolve 'Expect: 100-continue' issue
-                curl_setopt(
-                    $ch,
-                    CURLOPT_HTTP_VERSION,
-                    CURL_HTTP_VERSION_1_0
-                ); // see http://stackoverflow.com/a/23322368
-
-                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // Disabling CA cert verification and
-                curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);     // Disabling common name verification
-
-                if ( $this->ssl_on && $this->ssl_path != '' ) {
-                    curl_setopt($ch, CURLOPT_CAINFO, $this->ssl_path);
-                }
-
-                $result = curl_exec($ch);
-                if ( ! $result ) {
-                    $curl_error = curl_error($ch);
-                    // Use SSL next time, if error occurs.
-                    if ( ! $this->ssl_on ) {
-                        $this->ssl_on = true;
-
-                        return $this->sendRequest($original_args[0], $original_args[1], $server_timeout);
-                    }
-                }
-
-                curl_close($ch);
-            }
-        }
-
-        if ( ! $result ) {
-            $allow_url_fopen = ini_get('allow_url_fopen');
-            if ( function_exists('file_get_contents') && $allow_url_fopen ) {
-                $opts = array(
-                    'http' =>
-                        array(
-                            'method'  => 'POST',
-                            'header'  => "Content-Type: text/html\r\n",
-                            'content' => $data,
-                            'timeout' => $server_timeout
-                        )
-                );
-
-                $context = stream_context_create($opts);
-                $result  = @file_get_contents($url, false, $context);
-            }
-        }
-
-        if ( ! $result ) {
-            $response['errno']  = 2;
-            $response['errstr'] = $curl_error
-                ? sprintf("CURL error: '%s'", $curl_error)
-                : 'No CURL support compiled in';
-            $response['errstr'] .= ' or disabled allow_url_fopen in php.ini.';
-
-            return json_decode(json_encode($response));
-        }
+        $result = $http->setUrl($url)
+                       ->setData($data)
+                       ->setOptions(['timeout' => $server_timeout])
+                       ->request();
 
         $errstr   = null;
         $response = is_string($result) ? json_decode($result) : false;

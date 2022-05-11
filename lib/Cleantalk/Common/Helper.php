@@ -2,6 +2,7 @@
 
 namespace Cleantalk\Common;
 
+use Cleantalk\Common\HTTP\Request;
 use Cleantalk\Templates\Singleton;
 use Cleantalk\Variables\Server;
 
@@ -48,25 +49,25 @@ class Helper
      */
     public static $cleantalks_servers = array(
         // MODERATE
-        'moderate1.cleantalk.org' => '162.243.144.175',
-        'moderate2.cleantalk.org' => '159.203.121.181',
-        'moderate3.cleantalk.org' => '88.198.153.60',
-        'moderate4.cleantalk.org' => '159.69.51.30',
-        'moderate5.cleantalk.org' => '95.216.200.119',
-        'moderate6.cleantalk.org' => '138.68.234.8',
-        'moderate8.cleantalk.org' => '188.34.154.26',
-        'moderate9.cleantalk.org' => '51.81.55.251',
+        'https://moderate1.cleantalk.org' => '162.243.144.175',
+        'https://moderate2.cleantalk.org' => '159.203.121.181',
+        'https://moderate3.cleantalk.org' => '88.198.153.60',
+        'https://moderate4.cleantalk.org' => '159.69.51.30',
+        'https://moderate5.cleantalk.org' => '95.216.200.119',
+        'https://moderate6.cleantalk.org' => '138.68.234.8',
+        'https://moderate8.cleantalk.org' => '188.34.154.26',
+        'https://moderate9.cleantalk.org' => '51.81.55.251',
 
         // APIX
-        'apix1.cleantalk.org'     => '35.158.52.161',
-        'apix2.cleantalk.org'     => '18.206.49.217',
-        'apix3.cleantalk.org'     => '3.18.23.246',
-        'apix4.cleantalk.org'     => '44.227.90.42',
-        'apix5.cleantalk.org'     => '15.188.198.212',
-        'apix6.cleantalk.org'     => '54.219.94.72',
+        'https://apix1.cleantalk.org'     => '35.158.52.161',
+        'https://apix2.cleantalk.org'     => '18.206.49.217',
+        'https://apix3.cleantalk.org'     => '3.18.23.246',
+        'https://apix4.cleantalk.org'     => '44.227.90.42',
+        'https://apix5.cleantalk.org'     => '15.188.198.212',
+        'https://apix6.cleantalk.org'     => '54.219.94.72',
         //ns
-        'netserv2.cleantalk.org'  => '178.63.60.214',
-        'netserv3.cleantalk.org'  => '188.40.14.173',
+        'http://netserv2.cleantalk.org'  => '178.63.60.214',
+        'http://netserv3.cleantalk.org'  => '188.40.14.173',
     );
 
     /**
@@ -575,7 +576,8 @@ class Helper
             $url = array_search($ip, self::$cleantalks_servers);
 
             return $url
-                ?: self::ipResolve($ip);
+                ? parse_url($url, PHP_URL_HOST)
+                : self::ipResolve($ip);
         }
 
         return $ip;
@@ -639,7 +641,7 @@ class Helper
      * get      - GET-request
      * ssl      - use SSL
      *
-     * @param string $url URL
+     * @param string|array<string> $url URL
      * @param array|string|int $data POST|GET indexed array with data to send
      * @param string|array $presets String or Array with presets: get_code, async, get, ssl, dont_split_to_array
      * @param array $opts Optional option for CURL connection
@@ -648,146 +650,21 @@ class Helper
      */
     public static function httpRequest($url, $data = array(), $presets = array(), $opts = array())
     {
-        $url .= (parse_url($url, PHP_URL_QUERY) ? '&' : '?') . 'cleantalk_no_cache=' . rand(0, getrandmax());
+        $http = new Request();
 
-        if ( method_exists(Server::class, 'isSSL') && Server::isSSL() ) {
-            $url = str_replace('http:', 'https:', $url);
-        }
-
-        if (function_exists('curl_init')) {
-            $ch = curl_init();
-
-            if ( ! empty($data)) {
-                // If $data scalar converting it to array
-                $data = is_string($data) || is_int($data) ? array($data => 1) : $data;
-                // Build query
-                $opts[CURLOPT_POSTFIELDS] = $data;
-            }
-
-            // Merging OBLIGATORY options with GIVEN options
-            $opts = self::arrayMergeSaveNumericKeys(
-                array(
-                    CURLOPT_URL               => $url,
-                    CURLOPT_TIMEOUT           => 15,
-                    CURLOPT_LOW_SPEED_TIME    => 10,
-                    CURLOPT_RETURNTRANSFER    => true,
-                    CURLOPT_CONNECTTIMEOUT_MS => 10000,
-                    CURLOPT_FORBID_REUSE      => true,
-                    CURLOPT_USERAGENT         => self::AGENT . '; ' . (isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : 'UNKNOWN_HOST'),
-                    CURLOPT_POST              => true,
-                    CURLOPT_SSL_VERIFYPEER    => false,
-                    CURLOPT_SSL_VERIFYHOST    => 0,
-                    CURLOPT_HTTPHEADER        => array(
-                        'Expect:',
-                        // Fix for large data and old servers http://php.net/manual/ru/function.curl-setopt.php#82418
-                        'Expires: ' . date(DATE_RFC822, mktime(0, 0, 0, 1, 1, 1971)),
-                        'Cache-Control: no-store, no-cache, must-revalidate, max-age=0',
-                        'Cache-Control: post-check=0, pre-check=0',
-                        'Pragma: no-cache',
-                    ),
-                    CURLOPT_FOLLOWLOCATION    => true,
-                    CURLOPT_MAXREDIRS         => 5,
-                ),
-                $opts
-            );
-
-            // Use presets
-            $presets = is_array($presets) ? $presets : explode(' ', $presets);
-            foreach ($presets as $preset) {
-                switch ($preset) {
-                    // Do not follow redirects
-                    case 'dont_follow_redirects':
-                        $opts[CURLOPT_FOLLOWLOCATION] = false;
-                        $opts[CURLOPT_MAXREDIRS]      = 0;
-                        break;
-
-                    // Get headers only
-                    case 'get_code':
-                        $opts[CURLOPT_HEADER] = true; // Header is output
-                        $opts[CURLOPT_NOBODY] = true; // No body in output method set to HEAD
-                        $opts[CURLOPT_HTTPGET] = true; // Method set to GET
-                        break;
-
-                    // Make a request, don't wait for an answer
-                    case 'async':
-                        $opts[CURLOPT_CONNECTTIMEOUT_MS] = 2000;
-                        $opts[CURLOPT_TIMEOUT_MS]        = 2000;
-                        break;
-
-                    case 'get':
-                        $opts[CURLOPT_URL] .= $data ? '&' . str_replace("&amp;", "&", http_build_query($data)) : '';
-                        $opts[CURLOPT_CUSTOMREQUEST] = 'GET';
-                        $opts[CURLOPT_POST]          = false;
-                        $opts[CURLOPT_POSTFIELDS]    = null;
-                        break;
-
-                    case 'ssl':
-                        $opts[CURLOPT_SSL_VERIFYPEER] = true;
-                        $opts[CURLOPT_SSL_VERIFYHOST] = 2;
-                        if (defined('CLEANTALK_CASERT_PATH') && CLEANTALK_CASERT_PATH) {
-                            $opts[CURLOPT_CAINFO] = CLEANTALK_CASERT_PATH;
-                        }
-                        break;
-
-                    default:
-                        break;
-                }
-            }
-
-            curl_setopt_array($ch, $opts);
-            $result = curl_exec($ch);
-
-            // RETURN if async request
-            if (in_array('async', $presets, true)) {
-                return true;
-            }
-
-            if ($result !== false) {
-                if (
-                    is_string($result)
-                    && strpos($result, PHP_EOL) !== false
-                    && ! in_array('dont_split_to_array', $presets)
-                ) {
-                    $result = explode(PHP_EOL, $result);
-                }
-
-                // Get code crossPHP method
-                if (in_array('get_code', $presets)) {
-                    $curl_info = curl_getinfo($ch);
-                    $result    = $curl_info['http_code'];
-                }
-                curl_close($ch);
-                $out = $result;
-            } else {
-                $out = array('error' => curl_error($ch));
-            }
-        } else {
-            $out = array('error' => 'CURL_NOT_INSTALLED');
-        }
-
-        /**
-         * Getting HTTP-response code without cURL
-         */
-        if ( in_array('get_code', $presets, true) &&
-             isset($out['error']) && $out['error'] === 'CURL_NOT_INSTALLED'
-        ) {
-            $headers = get_headers($url);
-            $out     = $headers !== false
-                ? (int)preg_replace('/.*(\d{3}).*/', '$1', $headers[0])
-                : array('error' => 'Couldnt get headers');
-        }
-
-        return $out;
+        return $http->setUrl($url)
+                    ->setData($data)
+                    ->setPresets($presets)
+                    ->setOptions($opts)
+                    ->request();
     }
 
     /**
      * Do multi curl requests.
      *
      * @param array $urls Array of URLs to requests
-     * @param string $write_to Path to the writing files dir
      *
-     * @return array
-     * @psalm-suppress PossiblyUnusedMethod
+     * @return array|bool|string
      */
     public static function httpMultiRequest($urls, $write_to = '')
     {
@@ -801,55 +678,26 @@ class Helper
             }
         }
 
-        $urls_count = count($urls);
-        $curl_arr   = array();
-        $master     = curl_multi_init();
+        $http = new Request();
 
-        for ($i = 0; $i < $urls_count; $i++) {
-            $url          = $urls[$i];
-            $curl_arr[$i] = curl_init($url);
-            $opts         = array(
-                CURLOPT_RETURNTRANSFER    => true,
-                CURLOPT_TIMEOUT           => 15,
-                CURLOPT_LOW_SPEED_TIME    => 10,
-                CURLOPT_CONNECTTIMEOUT_MS => 10000,
-                CURLOPT_FORBID_REUSE      => true,
-                CURLOPT_USERAGENT         => self::AGENT . '; ' . (isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : 'UNKNOWN_HOST'),
-                CURLOPT_HTTPHEADER        => array('Expect:'),
-                // Fix for large data and old servers http://php.net/manual/ru/function.curl-setopt.php#82418
-                CURLOPT_FOLLOWLOCATION    => true,
-                CURLOPT_MAXREDIRS         => 5,
-            );
-            curl_setopt_array($curl_arr[$i], $opts);
-            curl_multi_add_handle($master, $curl_arr[$i]);
-        }
+        $http->setUrl($urls)
+             ->setPresets('get');
 
-        do {
-            curl_multi_exec($master, $running);
-            // @ToDo place here sleep(500) to avoid possible CPU overusing
-        } while ($running > 0);
+        if ( $write_to ) {
+            $http->addCallback(
+                static function ($content, $url) use ($write_to) {
+                    if ( is_dir($write_to) && is_writable($write_to) ) {
+                        return file_put_contents($write_to . self::getFilenameFromUrl($url), $content)
+                            ? 'success'
+                            : 'error';
+                    }
 
-        $results = array();
-
-        for ($i = 0; $i < $urls_count; $i++) {
-            $info = curl_getinfo($curl_arr[$i], CURLINFO_HTTP_CODE);
-            if (200 == $info) {
-                if ( ! empty($write_to) && is_dir($write_to) && is_writable($write_to)) {
-                    $results[] = file_put_contents(
-                        $write_to . self::getFilenameFromUrl($urls[$i]),
-                        curl_multi_getcontent($curl_arr[$i])
-                    )
-                        ? 'success'
-                        : 'error';
-                } else {
-                    $results[] = curl_multi_getcontent($curl_arr[$i]);
+                    return $content;
                 }
-            } else {
-                $results[] = 'error';
-            }
+            );
         }
 
-        return $results;
+        return $http->request();
     }
 
     /**

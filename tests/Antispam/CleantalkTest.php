@@ -2,6 +2,7 @@
 
 use Cleantalk\Antispam\Cleantalk;
 use Cleantalk\Antispam\CleantalkRequest;
+use Cleantalk\ApbctWP\State;
 
 class CleantalkTest extends \PHPUnit\Framework\TestCase 
 {
@@ -11,6 +12,9 @@ class CleantalkTest extends \PHPUnit\Framework\TestCase
 
 	public function setUp()
 	{
+        global $apbct;
+        $apbct = new State( 'cleantalk', array('settings', 'data', 'debug', 'errors', 'remote_calls', 'stats', 'fw_stats') );
+
 		$this->ct = new Cleantalk();
 		$this->ct->server_url = 'https://moderate.cleantalk.org';
 		$this->ct_request = new CleantalkRequest();
