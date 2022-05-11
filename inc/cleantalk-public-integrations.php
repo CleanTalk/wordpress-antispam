@@ -1083,8 +1083,15 @@ function ct_preprocess_comment($comment)
     if ( isset($apbct->settings['comments__hide_website_field']) && $apbct->settings['comments__hide_website_field'] ) {
         $honeypot_field = 1;
 
-        if ( isset($_POST['url']) && ! empty($_POST['url']) && $post_info['comment_type'] === 'comment' && isset($_POST['comment_post_ID']) ) {
+        if (
+            $post_info['comment_type'] === 'comment' &&
+            Post::get('url') &&
+            Post::get('comment_post_ID')
+        ) {
             $honeypot_field = 0;
+            // if url is filled then pass them to $base_call_data as additional fields
+            $base_call_data['sender_info']['honeypot_field_value']  = Post::get('url');
+            $base_call_data['sender_info']['honeypot_field_source'] = 'url';
         }
 
         $base_call_data['honeypot_field'] = $honeypot_field;
