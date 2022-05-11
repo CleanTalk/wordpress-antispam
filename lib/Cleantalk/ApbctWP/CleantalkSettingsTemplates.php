@@ -54,7 +54,7 @@ class CleantalkSettingsTemplates
             $template_info = Post::get('data');
             if ( isset($template_info['template_id']) ) {
                 $template_id = sanitize_text_field($template_info['template_id']);
-                $res         = \Cleantalk\Common\API::methodServicesTemplatesUpdate(
+                $res         = \Cleantalk\ApbctWP\API::methodServicesTemplatesUpdate(
                     $this->api_key,
                     (int)$template_id,
                     $this->getPluginOptions()
@@ -71,7 +71,7 @@ class CleantalkSettingsTemplates
             }
             if ( isset($template_info['template_name']) ) {
                 $template_name = sanitize_text_field($template_info['template_name']);
-                $res           = \Cleantalk\Common\API::methodServicesTemplatesAdd(
+                $res           = \Cleantalk\ApbctWP\API::methodServicesTemplatesAdd(
                     $this->api_key,
                     $template_name,
                     $this->getPluginOptions()
@@ -125,7 +125,7 @@ class CleantalkSettingsTemplates
     public static function getOptionsTemplate($api_key)
     {
         if ( ! self::$templates ) {
-            $res = \Cleantalk\Common\API::methodServicesTemplatesGet($api_key);
+            $res = \Cleantalk\ApbctWP\API::methodServicesTemplatesGet($api_key);
             if ( is_array($res) ) {
                 if ( array_key_exists('error', $res) ) {
                     $templates = array();
