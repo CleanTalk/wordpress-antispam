@@ -215,6 +215,12 @@ class Request
 
         $request_result = curl_exec($ch);    // Gather request result
         $curl_info      = curl_getinfo($ch); // Gather HTTP response information
+
+        // Do not catch timeout error for async requests.
+        if( in_array('async', $this->presets, true) ){
+            $request_result = true;
+        }
+
         if ( $request_result === false ) {
             $request_result = array('error' => curl_error($ch));
         }
@@ -254,6 +260,12 @@ class Request
         for ( $i = 0; $i < $urls_count; $i++ ) {
             $curl_info     = curl_getinfo($curl_arr[$i]); // Gather HTTP response information
             $received_data = curl_multi_getcontent($curl_arr[$i]);
+
+            // Do not catch timeout error for async requests.
+            if( in_array('async', $this->presets, true) ){
+                $received_data = true;
+            }
+
             if ( $received_data === '' ) {
                 $received_data = array('error' => curl_error($curl_arr[$i]));
             }
