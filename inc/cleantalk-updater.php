@@ -1107,3 +1107,15 @@ function apbct_update_to_5_176()
     $apbct->data['ajax_type'] = apbct_settings__get_ajax_type() ?: 'admin_ajax';
     $apbct->saveData();
 }
+
+/**
+ * 5.172.1
+ */
+function apbct_update_to_5_176_1()
+{
+    global $apbct;
+    if ( ! isset($apbct->settings['data__email_decoder']) ) {
+        $apbct->settings['data__email_decoder'] = 0;
+        $apbct->saveSettings();
+    }
+}

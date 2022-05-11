@@ -141,6 +141,14 @@ if ( $apbct->settings['comments__disable_comments__all'] || $apbct->settings['co
     \Cleantalk\Antispam\DisableComments::getInstance();
 }
 
+// Email encoder
+if (
+    $apbct->key_is_ok &&
+    ( ! is_admin() || apbct_is_ajax() ) &&
+    $apbct->settings['data__email_decoder'] ) {
+    \Cleantalk\Antispam\EmailEncoder::getInstance();
+}
+
 add_action('rest_api_init', 'apbct_register_my_rest_routes');
 function apbct_register_my_rest_routes()
 {

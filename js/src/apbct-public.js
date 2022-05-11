@@ -290,10 +290,73 @@
 			}
 
 		}, 1000);
+
+		// Listen clicks on encoded emails
+		let decodedEmailNodes = document.querySelectorAll("[data-original-string]");
+		if (decodedEmailNodes.length) {
+			for (let i = 0; i < decodedEmailNodes.length; ++i) {
+				if (
+					decodedEmailNodes[i].parentElement.href ||
+					decodedEmailNodes[i].parentElement.parentElement.href
+				) {
+					// Skip listening click on hyperlinks
+					continue;
+				}
+				decodedEmailNodes[i].addEventListener('click', function ctFillDecodedEmailHandler(event) {
+					this.removeEventListener('click', ctFillDecodedEmailHandler);
+					apbctAjaxEmailDecode(event);
+				});
+			}
+		}
 	}
 	apbct_attach_event_handler(window, "DOMContentLoaded", apbct_ready);
 
 }());
+
+function apbctAjaxEmailDecode(event){
+	const element = event.target;
+	element.setAttribute('title', ctPublicFunctions.text__wait_for_decoding);
+	element.style.cursor = 'progress';
+	// Using REST API handler
+	if( ctPublicFunctions.data__ajax_type === 'rest' ){
+		apbct_public_sendREST(
+			'apbct_decode_email',
+			{
+				data: {encodedEmail: event.target.dataset.originalString},
+				method: 'POST',
+				callback: function (result) {
+					if (result.success) {
+						ctFillDecodedEmail(result.data, event.target);
+						element.setAttribute('title', '');
+						element.removeAttribute('style');
+					}
+				},
+			}
+		);
+		// Using AJAX request and handler
+	}else{
+		apbct_public_sendAJAX(
+			{
+				action: 'apbct_decode_email',
+				encodedEmail: event.target.dataset.originalString
+			},
+			{
+				notJson: true,
+				callback: function (result) {
+					if (result.success) {
+						ctFillDecodedEmail(result.data, event.target);
+						element.setAttribute('title', '');
+						element.removeAttribute('style');
+					}
+				},
+			}
+		);
+	}
+}
+
+function ctFillDecodedEmail(result, targetElement){
+	targetElement.innerText = result;
+}
 
 function apbct_collect_visible_fields( form ) {
 
