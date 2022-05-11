@@ -19,20 +19,9 @@ function apbct_init()
     global $ct_jp_comments, $apbct;
 
     // Pixel
-    if ( $apbct->settings['data__pixel'] ) {
-        if ( empty($apbct->pixel_url) &&
-            (
-                $apbct->settings['data__pixel'] === '1' ||
-                (
-                    $apbct->settings['data__pixel'] === '3' &&
-                    ! apbct_is_cache_plugins_exists()
-                )
-            )
-        ) {
-            $apbct->pixel_url = apbct_get_pixel_url__ajax(true);
-        }
+    if ( $apbct->settings['data__pixel'] && empty($apbct->pixel_url) ) {
+        $apbct->pixel_url = apbct_get_pixel_url__ajax(true);
     }
-
 
     //Check internal forms with such "action" http://wordpress.loc/contact-us/some_script.php
     if ( (Post::get('action') === 'ct_check_internal') &&
