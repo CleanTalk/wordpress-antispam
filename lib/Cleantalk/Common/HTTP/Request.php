@@ -217,7 +217,7 @@ class Request
         $curl_info      = curl_getinfo($ch); // Gather HTTP response information
 
         // Do not catch timeout error for async requests.
-        if( in_array('async', $this->presets, true) ){
+        if ( in_array('async', $this->presets, true) ) {
             $request_result = true;
         }
 
@@ -262,7 +262,7 @@ class Request
             $received_data = curl_multi_getcontent($curl_arr[$i]);
 
             // Do not catch timeout error for async requests.
-            if( in_array('async', $this->presets, true) ){
+            if ( in_array('async', $this->presets, true) ) {
                 $received_data = true;
             }
 
