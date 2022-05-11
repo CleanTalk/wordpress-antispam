@@ -3338,6 +3338,15 @@ function apbct_form_happyforms_test_spam($is_valid, $request, $_form)
     return $is_valid;
 }
 
+function apbct_form_search__add_fields($form_html)
+{
+    global $apbct;
+    if ( is_string($form_html) && $apbct->settings['forms__search_test'] == 1 ) {
+        return str_replace('</form>', ct_add_honeypot_field('search_form') . '</form>', $form_html);
+    }
+    return $form_html;
+}
+
 /**
  * Advanced Classifieds & Directory Pro
  *

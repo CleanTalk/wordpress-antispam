@@ -37,6 +37,11 @@ function apbct_init()
         }
     }
 
+    //Search form hook init
+    if ( $apbct->settings['forms__search_test'] ) {
+        add_filter('get_search_form', 'apbct_form_search__add_fields', 999);
+    }
+
     //fix for EPM registration form
     if ( Post::get('reg_email') && shortcode_exists('epm_registration_form') ) {
         unset($_POST['ct_checkjs_register_form']);
