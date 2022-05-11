@@ -127,6 +127,7 @@ class Request extends \Cleantalk\Common\HTTP\Request
                     case 'async':
                         $this->options['timeout']         = 3;
                         $this->options['connect_timeout'] = 3;
+                        $this->options['blocking']        = false;
                         break;
 
                     case 'ssl':
