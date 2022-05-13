@@ -812,11 +812,12 @@ class API
      * Function checks server response
      *
      * @param array|string $result
+     * @params null|string $_url
      * @param string $method_name
      *
      * @return mixed (array || array('error' => true))
      */
-    public static function checkResponse($result, $method_name = null)
+    public static function checkResponse($result, $_url = null, $method_name = null)
     {
         // Errors handling
         // Bad connection
