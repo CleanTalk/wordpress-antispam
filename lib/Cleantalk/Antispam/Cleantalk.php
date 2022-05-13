@@ -266,7 +266,7 @@ class Cleantalk
                 $this->downServers[] = $this->work_url;
             }
             $this->rotateModerate();
-            $result = $this->sendRequest($msg, $this->work_url);
+            $result = $this->sendRequest($msg, $this->work_url, $this->server_timeout);
             if ( $result !== false && $result->errno === 0 ) {
                 $this->server_change = true;
             }
@@ -472,7 +472,7 @@ class Cleantalk
             $response->errno  = 0;
             $response->errstr = $errstr;
         } else {
-            $errstr = 'Unknown response from ' . $url . '.' . ' ' . $result;
+            $errstr = 'Unknown response from ' . $url . '.' . ' ' . isset($result['error']) ? $result['error'] : $result;
 
             $response           = null;
             $response['errno']  = 1;
