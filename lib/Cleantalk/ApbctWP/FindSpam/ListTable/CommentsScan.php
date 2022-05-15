@@ -20,7 +20,7 @@ class CommentsScan extends Comments
         $scanned_comments = $this->getSpamNow($per_page, $current_page);
 
         $this->set_pagination_args(array(
-            'total_items' => $this->getTotal(),
+            'total_items' => count($this->getScannedTotal()->get_comments()),
             'per_page'    => $per_page,
         ));
 

@@ -335,6 +335,20 @@ class Comments extends \Cleantalk\ApbctWP\CleantalkListTable
     }
 
     /**
+     * Spam comments
+     *
+     * @return \WP_Comment_Query
+     */
+    public function getScannedTotal()
+    {
+        $params_spam = array(
+            'meta_key' => 'ct_marked_as_spam',
+        );
+
+        return new \WP_Comment_Query($params_spam);
+    }
+
+    /**
      * Without IP and EMAIL
      *
      * @return \WP_Comment_Query
