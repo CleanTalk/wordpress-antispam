@@ -929,6 +929,13 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'Restrict Content Pro Login Form skip';
         }
+        // APBCT service actions
+        if (
+            apbct_is_plugin_active('cleantalk-spam-protect/cleantalk.php') &&
+            apbct_is_in_uri('wp-json/cleantalk-antispam/v1/check_email_before_post')
+        ) {
+            return 'APBCT service actions';
+        }
     }
 
     // Event Manager - there is the direct integration
