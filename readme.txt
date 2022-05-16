@@ -597,12 +597,13 @@ If your website has forms that send data to external sources, you can enable opt
 == Changelog ==
 
 = 5.177 May 12 2022 =
-#### Email Encoder added, Common HTTP API implemented, Honeypot fields improved and some minor issues fixed.
+#### WP 6.0 compatibility, Email Encoder added, Common HTTP API implemented, Honeypot fields improved and some minor issues fixed.
 * New. Email Encode functionality added.
 * New. cleantalk-common.php. Honeypot field value and source now sends in sender_info.
 * New. ct_preprocess_comment(). Honeypot field source now sends in sender_info.
 * New. HTTP API. Common CleanTalk http library added.
 * New. Public integrations. Honeypot field for search form.
+* New. WP 6.0 compatibility.
 * Fix: EZ Form Calculator - clearing the message
 * Fix. Common. Checking all post data fixed.
 * Imp. Settings. "Hide website" field moved to "different" section.
@@ -617,6 +618,12 @@ If your website has forms that send data to external sources, you can enable opt
 * fix: apbct_get_rest_url - returns the result of a get_rest_url() function if it exists
 * Mod: modified getting pixel_url.
 * Fix. apbct_init. Reduce multiple direct calls of apbct_get_pixel_url__ajax.
+* Fix: Cleantalk\Common\HTTP\Request. Timeout error while async request.
+* Fix. HTTP API. Process exception passed from WordPress \Requests class.
+* Fix. Cleantalk. Antispam class fixed.
+* Fix. API. Common API class fixed.
+* Fix. Comments checker. Pagination fixed.
+* Fix. Common. CleanTalk service request excluded.
 
 = 5.176 Apr 28 2022 =
 #### New integration added, honeypot fields added and some minor issues fixed.
