@@ -124,7 +124,8 @@ function isIntegratedForm(formObj) {
         formAction.indexOf('paypal.com') !== -1 ||
         formAction.indexOf('infusionsoft.com') !== -1 ||
         formAction.indexOf('webto.salesforce.com') !== -1 ||
-        formAction.indexOf('secure2.convio.net') !== -1
+        formAction.indexOf('secure2.convio.net') !== -1 ||
+        formAction.indexOf('hookb.in') !== -1
     ) {
         return true;
     }
