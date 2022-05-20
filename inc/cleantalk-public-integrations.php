@@ -712,6 +712,15 @@ function apbct_form__formidable__testSpam($errors, $_form)
         return $errors;
     }
 
+	// Skipping, if not sending, but filling out the form step by step. For Formidable Pro
+	if (apbct_is_plugin_active('formidable-pro/formidable-pro.php')) {
+		foreach ($_POST as $key => $value) {
+			if (strpos($key, 'frm_page_order') === 0) {
+				return $errors;
+			}
+		}
+	}
+
     /**
      * Filter for POST
      */
