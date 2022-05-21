@@ -2780,22 +2780,35 @@ function apbct_update__set_version__from_plugin($ver)
 /**
  * Check connection to the API servers
  *
+ * Example:
+ * [
+ *     [server_url_1] => [
+ *         'result' => string
+ *         'exec_time' => float
+ *     ],
+ *     [server_url_2] => [
+ *         'result' => string
+ *         'exec_time' => float
+ *     ],
+ *     ...
+ * ]
+ *
  * @return array
  */
-function apbct_test_connection()
+function apbct_checking_connection_with_api_servers()
 {
-    $out         = array();
-    $url_to_test = array_keys(\Cleantalk\Common\Helper::$cleantalks_servers);
+    $result_connection = array();
+    $server_urls = array_keys(\Cleantalk\Common\Helper::$cleantalks_servers);
 
-    foreach ( $url_to_test as $url ) {
-        $start  = microtime(true);
-        $result = \Cleantalk\ApbctWP\Helper::httpRequestGetResponseCode($url);
+    foreach ( $server_urls as $url ) {
+        $connection_time_start  = microtime(true);
+        $connection_status = \Cleantalk\ApbctWP\Helper::httpRequestGetResponseCode($url);
 
-        $out[$url] = array(
-            'result'    => ! empty($result['error']) ? $result['error'] : 'OK',
-            'exec_time' => microtime(true) - $start,
+	    $result_connection[$url] = array(
+            'result'    => ! empty($connection_status['error']) ? $connection_status['error'] : 'OK',
+            'exec_time' => microtime(true) - $connection_time_start,
         );
     }
 
-    return $out;
+    return $result_connection;
 }

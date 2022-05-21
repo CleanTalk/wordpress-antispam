@@ -2174,7 +2174,7 @@ function apbct_settings__validate($settings)
 
     // Test connections to servers
     if ( Post::get('apbct_debug__check_connection') ) {
-        $result = apbct_test_connection();
+        $result = apbct_checking_connection_with_api_servers();
         apbct_log($result);
     }
 
