@@ -45,32 +45,6 @@ class Helper
     );
 
     /**
-     * @var array Set of CleanTalk servers
-     */
-    public static $cleantalks_servers = array(
-        // MODERATE
-        'https://moderate1.cleantalk.org' => '162.243.144.175',
-        'https://moderate2.cleantalk.org' => '159.203.121.181',
-        'https://moderate3.cleantalk.org' => '88.198.153.60',
-        'https://moderate4.cleantalk.org' => '159.69.51.30',
-        'https://moderate5.cleantalk.org' => '95.216.200.119',
-        'https://moderate6.cleantalk.org' => '138.68.234.8',
-        'https://moderate8.cleantalk.org' => '188.34.154.26',
-        'https://moderate9.cleantalk.org' => '51.81.55.251',
-
-        // APIX
-        'https://apix1.cleantalk.org'     => '35.158.52.161',
-        'https://apix2.cleantalk.org'     => '18.206.49.217',
-        'https://apix3.cleantalk.org'     => '3.18.23.246',
-        'https://apix4.cleantalk.org'     => '44.227.90.42',
-        'https://apix5.cleantalk.org'     => '15.188.198.212',
-        'https://apix6.cleantalk.org'     => '54.219.94.72',
-        //ns
-        'http://netserv2.cleantalk.org'  => '178.63.60.214',
-        'http://netserv3.cleantalk.org'  => '188.40.14.173',
-    );
-
-    /**
      * @var array Stored IPs
      *            [
      *              [ type ] => IP,
@@ -539,45 +513,6 @@ class Helper
             $ip = preg_replace('/:0{1,4}/', ':', $ip);
             $ip = preg_replace('/:{2,}/', '::', $ip);
             $ip = strpos($ip, '0') === 0 && substr($ip, 1) !== false ? substr($ip, 1) : $ip;
-        }
-
-        return $ip;
-    }
-
-    /**
-     * Get URL form IP. Check if it's belong to cleantalk.
-     *
-     * @param string $ip
-     *
-     * @return bool
-     * @psalm-suppress PossiblyUnusedMethod
-     */
-    public static function ipIsCleantalks($ip)
-    {
-        if (self::ipValidate($ip)) {
-            $url = array_search($ip, self::$cleantalks_servers);
-
-            return (bool)$url;
-        }
-
-        return false;
-    }
-
-    /**
-     * Get URL form IP. Check if it's belong to cleantalk.
-     *
-     * @param $ip
-     *
-     * @return false|int|string|bool
-     */
-    public static function ipResolveCleantalks($ip)
-    {
-        if (self::ipValidate($ip)) {
-            $url = array_search($ip, self::$cleantalks_servers);
-
-            return $url
-                ? parse_url($url, PHP_URL_HOST)
-                : self::ipResolve($ip);
         }
 
         return $ip;

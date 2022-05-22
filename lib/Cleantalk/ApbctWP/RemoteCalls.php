@@ -220,7 +220,7 @@ class RemoteCalls
         $out['cron']               = $apbct->cron;
         $out['errors']             = $apbct->errors;
         $out['queue']              = get_option('cleantalk_sfw_update_queue');
-        $out['servers_connection'] = apbct_checking_connection_with_api_servers();
+        $out['servers_connection'] = API::checkingConnectionWithApiServers();
 
         if (APBCT_WPMS) {
             $out['network_settings'] = $apbct->network_settings;

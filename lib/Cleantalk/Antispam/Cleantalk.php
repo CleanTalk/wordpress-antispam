@@ -2,6 +2,7 @@
 
 namespace Cleantalk\Antispam;
 
+use Cleantalk\ApbctWP\API;
 use Cleantalk\ApbctWP\Helper;
 use Cleantalk\ApbctWP\HTTP\Request;
 
@@ -308,7 +309,7 @@ class Cleantalk
 
         // Loop until find work server
         foreach ( $servers as $server ) {
-            $dns = Helper::ipResolveCleantalks($server['ip']);
+            $dns = API::ipResolveCleantalks($server['ip']);
             if ( ! $dns ) {
                 continue;
             }

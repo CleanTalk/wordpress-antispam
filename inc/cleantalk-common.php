@@ -449,7 +449,7 @@ function apbct_exclusions_check__ip()
     global $cleantalk_ip_exclusions;
 
     if ( apbct_get_server_variable('REMOTE_ADDR') ) {
-        if ( \Cleantalk\ApbctWP\Helper::ipIsCleantalks(apbct_get_server_variable('REMOTE_ADDR')) ) {
+        if ( API::ipIsCleantalks(apbct_get_server_variable('REMOTE_ADDR')) ) {
             return true;
         }
 
