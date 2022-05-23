@@ -712,14 +712,14 @@ function apbct_form__formidable__testSpam($errors, $_form)
         return $errors;
     }
 
-	// Skipping, if not sending, but filling out the form step by step. For Formidable Pro
-	if (apbct_is_plugin_active('formidable-pro/formidable-pro.php')) {
-		foreach ($_POST as $key => $value) {
-			if (strpos($key, 'frm_page_order') === 0) {
-				return $errors;
-			}
-		}
-	}
+    // Skipping, if not sending, but filling out the form step by step. For Formidable Pro
+    if (apbct_is_plugin_active('formidable-pro/formidable-pro.php')) {
+        foreach (array_keys($_POST) as $key) {
+            if (strpos($key, 'frm_page_order') === 0) {
+                return $errors;
+            }
+        }
+    }
 
     /**
      * Filter for POST
@@ -805,23 +805,23 @@ function apbct_form__formidable__testSpam($errors, $_form)
  */
 function apbct__formidable_get_key_field_for_ajax_response($_form = array())
 {
-	$key_field = '113';
+    $key_field = '113';
 
-	if (
-		isset($_POST['item_meta']) &&
-		is_array($_POST['item_meta'])
-	) {
-		$key_field = array_keys($_POST['item_meta'])[1];
-	} elseif (is_array($_form) && isset($_form['item_meta'])) {
-		foreach ($_form['item_meta'] as $key => $value) {
-			if ($value) {
-				$key_field = $key;
-				break;
-			}
-		}
-	}
+    if (
+        isset($_POST['item_meta']) &&
+        is_array($_POST['item_meta'])
+    ) {
+        $key_field = array_keys($_POST['item_meta'])[1];
+    } elseif (is_array($_form) && isset($_form['item_meta'])) {
+        foreach ($_form['item_meta'] as $key => $value) {
+            if ($value) {
+                $key_field = $key;
+                break;
+            }
+        }
+    }
 
-	return $key_field;
+    return $key_field;
 }
 
 /**
@@ -2389,10 +2389,10 @@ function apbct_form__WPForms__testSpam()
 
     $email     = $apbct->form_data['email'] ?: null;
 
-	# Fixed if the 'Enable email address confirmation' option is enabled
-	if (is_array($email)) {
-		$email = reset($email);
-	}
+    # Fixed if the 'Enable email address confirmation' option is enabled
+    if (is_array($email)) {
+        $email = reset($email);
+    }
 
     $nickname  = $apbct->form_data['name'] && is_array($apbct->form_data['name']) ? array_shift(
         $apbct->form_data['name']
