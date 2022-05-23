@@ -1117,8 +1117,13 @@ function ct_preprocess_comment($comment)
     }
 
     if ( $ct_result->allow ) { // Pass if allowed
-        if ( get_option('comment_moderation') === '1' ) { // Wordpress moderation flag
+        // If moderation is required
+        if ( get_option('comment_moderation') === '1' ) {
             add_filter('pre_comment_approved', 'ct_set_not_approved', 999, 2);
+        // If new author have to be moderated
+        } elseif ( get_option('comment_previously_approved') === '1' && get_option('cleantalk_allowed_moderation', 1) != 1 ) {
+            add_filter('pre_comment_approved', 'ct_set_not_approved', 999, 2);
+        // Allowed comment will be published
         } else {
             add_filter('pre_comment_approved', 'ct_set_approved', 999, 2);
         }
