@@ -122,7 +122,10 @@ function isIntegratedForm(formObj) {
         formAction.indexOf('mailerlite.com') !== -1 || // Mailerlite integration
         formAction.indexOf('colcolmail.co.uk') !== -1 || // colcolmail.co.uk integration
         formAction.indexOf('paypal.com') !== -1 ||
-        formAction.indexOf('infusionsoft.com') !== -1
+        formAction.indexOf('infusionsoft.com') !== -1 ||
+        formAction.indexOf('webto.salesforce.com') !== -1 ||
+        formAction.indexOf('secure2.convio.net') !== -1 ||
+        formAction.indexOf('hookb.in') !== -1
     ) {
         return true;
     }
