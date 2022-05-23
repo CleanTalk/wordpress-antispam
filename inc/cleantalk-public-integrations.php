@@ -778,14 +778,7 @@ function apbct_form__formidable__testSpam($errors, $_form)
         $ct_comment = $ct_result->comment;
         if (apbct_is_ajax()) {
             // search for a suitable field
-            $key_field = '113';
-
-            foreach ($_form['item_meta'] as $key => $value) {
-                if ($value) {
-                    $key_field = $key;
-                    break;
-                }
-            }
+            $key_field = apbct__formidable_get_key_field_for_ajax_response($_form);
 
             $result = array (
                 'errors' =>
@@ -805,6 +798,30 @@ function apbct_form__formidable__testSpam($errors, $_form)
     }
 
     return $errors;
+}
+
+/**
+ * Get field key for ajax response of formidable form
+ */
+function apbct__formidable_get_key_field_for_ajax_response($_form = array())
+{
+	$key_field = '113';
+
+	if (
+		isset($_POST['item_meta']) &&
+		is_array($_POST['item_meta'])
+	) {
+		$key_field = array_keys($_POST['item_meta'])[1];
+	} elseif (is_array($_form) && isset($_form['item_meta'])) {
+		foreach ($_form['item_meta'] as $key => $value) {
+			if ($value) {
+				$key_field = $key;
+				break;
+			}
+		}
+	}
+
+	return $key_field;
 }
 
 /**
