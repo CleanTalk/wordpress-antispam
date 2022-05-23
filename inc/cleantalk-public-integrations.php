@@ -2361,14 +2361,14 @@ function apbct_form__WPForms__testSpam()
 
     $checkjs = apbct_js_test('ct_checkjs_wpforms', $_POST);
 
-    $email     = $apbct->form_data['email'] ?: null;
+    $email = $apbct->form_data['email'] ?: null;
 
-	# Fixed if the 'Enable email address confirmation' option is enabled
-	if (is_array($email)) {
-		$email = reset($email);
-	}
+    # Fixed if the 'Enable email address confirmation' option is enabled
+    if ( is_array($email) ) {
+        $email = reset($email);
+    }
 
-    $nickname  = $apbct->form_data['name'] && is_array($apbct->form_data['name']) ? array_shift(
+    $nickname = $apbct->form_data['name'] && is_array($apbct->form_data['name']) ? array_shift(
         $apbct->form_data['name']
     ) : null;
     $form_data = $apbct->form_data;
