@@ -31,7 +31,7 @@ function apbct_settings_add_page()
         'apbct_discussion_settings__field__moderation',
         'discussion'
     );
-    add_filter('allowed_options', function($options){
+    add_filter('allowed_options', function ($options) {
         $options['discussion'][] = 'cleantalk_allowed_moderation';
         return $options;
     });
