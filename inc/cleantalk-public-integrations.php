@@ -1122,7 +1122,28 @@ function ct_preprocess_comment($comment)
             add_filter('pre_comment_approved', 'ct_set_not_approved', 999, 2);
         // If new author have to be moderated
         } elseif ( get_option('comment_previously_approved') === '1' && get_option('cleantalk_allowed_moderation', 1) != 1 ) {
-            add_filter('pre_comment_approved', 'ct_set_not_approved', 999, 2);
+            $comment_author = isset($comment['comment_author']) ? $comment['comment_author'] : '';
+            $comment_author_email = isset($comment['comment_author_email']) ? $comment['comment_author_email'] : '';
+            $comment_author_url = isset($comment['comment_author_url']) ? $comment['comment_author_url'] : '';
+            $comment_content = isset($comment['comment_content']) ? $comment['comment_content'] : '';
+            $comment_author_IP = isset($comment['comment_author_IP']) ? $comment['comment_author_IP'] : '';
+            $comment_agent = isset($comment['comment_agent']) ? $comment['comment_agent'] : '';
+            $comment_type = isset($comment['comment_type']) ? $comment['comment_type'] : '';
+            if (
+                check_comment(
+                    $comment_author,
+                    $comment_author_email,
+                    $comment_author_url,
+                    $comment_content,
+                    $comment_author_IP,
+                    $comment_agent,
+                    $comment_type
+                )
+            ) {
+                add_filter('pre_comment_approved', 'ct_set_approved', 999, 2);
+            } else {
+                add_filter('pre_comment_approved', 'ct_set_not_approved', 999, 2);
+            }
         // Allowed comment will be published
         } else {
             add_filter('pre_comment_approved', 'ct_set_approved', 999, 2);
