@@ -441,7 +441,7 @@ function apbct_settings__set_fileds()
                         array(
                             'val'              => 2,
                             'label'            => __(
-                                'Use alternative mechanism for cookies',
+                                'Store data in the website database (alternative mechanism)',
                                 'cleantalk-spam-protect'
                             ),
                             'childrens_enable' => 1,
