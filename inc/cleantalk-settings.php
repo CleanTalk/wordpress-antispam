@@ -522,6 +522,7 @@ function apbct_settings__set_fileds()
                 'data__email_decoder'        => array(
                     'title'       => __('Encode contact data', 'cleantalk-spam-protect'),
                     'description' => __('Turn on this option to prevent crawlers grab contact data (emails) from website content.', 'cleantalk-spam-protect'),
+                    'long_description' => true,
                 ),
             ),
         ),
@@ -2668,6 +2669,13 @@ function apbct_settings__get__long_description()
                     . '<p>' . esc_html__('You can read more about SFW modes %s', 'cleantalk-spam-protect') . '</p>'
                     . '<p>' . esc_html__('Read out the article if you are using Varnish on your server.', 'cleantalk-spam-protect'),
                 '<a href="https://cleantalk.org/help/anti-flood-and-anti-crawler{utm_mark}" target="_blank">' . __('here.', 'cleantalk-spam-protect') . '</a>'
+            )
+        ),
+        'data__email_decoder' => array(
+            'title' => __('Encode contact data', 'cleantalk-spam-protect'),
+            'desc'  => sprintf(
+                __('This option allows you to encode contacts on the public pages of the site. This prevents robots from automatically collecting such data and prevents it from being included in spam lists. %s', 'cleantalk-spam-protect'),
+                '<a href="https://cleantalk.org/help/email-encode{utm_mark}" target="_blank">' . __('Learn more.', 'cleantalk-spam-protect') . '</a>'
             )
         ),
     );
