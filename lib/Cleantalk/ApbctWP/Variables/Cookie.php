@@ -26,6 +26,7 @@ class Cookie extends \Cleantalk\Variables\Cookie
                 $value = AltSessions::get($name);
                 // The old way
             } else {
+                $name = apbct__get_cookie_prefix() . $name;
                 if (function_exists('filter_input')) {
                     $value = filter_input(INPUT_COOKIE, $name);
                 }
@@ -84,7 +85,7 @@ class Cookie extends \Cleantalk\Variables\Cookie
         } elseif ($apbct->data['cookies_type'] === 'alternative') {
             AltSessions::set($name, $value);
         } else {
-            self::setNativeCookie($name, $value, $expires, $path, $domain, $secure, $httponly, $samesite);
+            self::setNativeCookie(apbct__get_cookie_prefix() . $name, $value, $expires, $path, $domain, $secure, $httponly, $samesite);
         }
     }
 
