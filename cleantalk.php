@@ -486,6 +486,14 @@ if ( defined('WP_ALLOW_MULTISITE') && WP_ALLOW_MULTISITE === true ) {
 // After plugin loaded - to load locale as described in manual
 add_action('plugins_loaded', 'apbct_plugin_loaded');
 
+/**
+ * This hook is triggered if the request is from a form
+ * with which we did not integrate.
+ */
+if (apbct_need_to_process_unknown_post_request()) {
+    add_action( 'shutdown', 'ct_contact_form_validate', 999 );
+}
+
 if ( ! empty($apbct->settings['data__use_ajax']) &&
      ! apbct_is_in_uri('.xml') &&
      ! apbct_is_in_uri('.xsl') ) {
@@ -578,14 +586,6 @@ if ( is_admin() || is_network_admin() ) {
     require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-validate.php');
     require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public.php');
     require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-integrations.php');
-    //Bitrix24 contact form
-    if ( $apbct->settings['forms__general_contact_forms_test'] == 1 &&
-         ! empty(Post::get('your-phone')) &&
-         ! empty(Post::get('your-email')) &&
-         ! empty(Post::get('your-message'))
-    ) {
-        ct_contact_form_validate();
-    }
 
     // Sends feedback to the cloud about comments
     // add_action('wp_set_comment_status', 'ct_comment_send_feedback', 10, 2);

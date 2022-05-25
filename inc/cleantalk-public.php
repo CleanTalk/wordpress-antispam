@@ -125,17 +125,6 @@ function apbct_init()
         add_action('wp', 'ct_ajax_hook', 1);
     }
 
-    /** VFB_Pro integration */
-    if (
-        ! empty($_POST) &&
-        $apbct->settings['forms__contact_forms_test'] == 1 &&
-        empty(Post::get('ct_checkjs_cf7')) &&
-        apbct_is_plugin_active('vfb-pro/vfb-pro.php') &&
-        ! empty(Post::get('_vfb-form-id'))
-    ) {
-        ct_contact_form_validate();
-    }
-
     //hook for Anonymous Post
     if ( $apbct->settings['data__general_postdata_test'] == 1 && empty(Post::get('ct_checkjs_cf7')) ) {
         add_action('init', 'ct_contact_form_validate_postdata', 1000);
@@ -345,10 +334,6 @@ function apbct_init()
         add_action('wp_footer', 'apbct_hook__wp_footer', 1);
     }
 
-    if ( $apbct->settings['data__protect_logged_in'] != 1 && is_user_logged_in() ) {
-        add_action('init', 'ct_contact_form_validate', 999);
-    }
-
     if ( apbct_is_user_enable() ) {
         if ( $apbct->settings['forms__general_contact_forms_test'] == 1 && ! Post::get('comment_post_ID') && ! Get::get('for') && ! apbct_is_direct_trackback() ) {
             add_action('init', 'ct_contact_form_validate', 999);
@@ -361,13 +346,6 @@ function apbct_init()
         ) {
             add_action('init', 'ct_contact_form_validate_postdata', 1000);
         }
-    }
-
-    /**
-     * Integration with custom forms
-     */
-    if ( ! empty($_POST) && apbct_custom_forms_trappings() ) {
-        add_action('init', 'ct_contact_form_validate', 999);
     }
 }
 
