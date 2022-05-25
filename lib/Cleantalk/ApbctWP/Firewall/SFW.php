@@ -415,7 +415,8 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
             'data__cookies_type'                   => $apbct->data['cookies_type'],
             'data__ajax_type'                      => $apbct->data['ajax_type'],
             'sfw__random_get'                      => $apbct->settings['sfw__random_get'] === '1' ||
-                                                      ($apbct->settings['sfw__random_get'] === '-1' && apbct_is_cache_plugins_exists())
+                                                      ($apbct->settings['sfw__random_get'] === '-1' && apbct_is_cache_plugins_exists()),
+            'cookiePrefix'                         => apbct__get_cookie_prefix(),
         );
 
         $js_jquery_url = includes_url() . 'js/jquery/jquery.min.js';
