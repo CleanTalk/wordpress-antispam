@@ -172,6 +172,10 @@ add_action('wp_ajax_apbct_js_keys__get', 'apbct_js_keys__get__ajax');
 add_action('wp_ajax_nopriv_apbct_get_pixel_url', 'apbct_get_pixel_url__ajax');
 add_action('wp_ajax_apbct_apbct_get_pixel_url', 'apbct_get_pixel_url__ajax');
 
+// Force ajax checking for external forms
+add_action('wp_ajax_nopriv_cleantalk_force_ajax_check', 'ct_ajax_hook');
+add_action('wp_ajax_cleantalk_force_ajax_check', 'ct_ajax_hook');
+
 // Checking email before POST
 add_action('wp_ajax_nopriv_apbct_email_check_before_post', 'apbct_email_check_before_post');
 
