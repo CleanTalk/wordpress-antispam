@@ -987,3 +987,11 @@ function apbct_settings__get_ajax_type()
 
     return false;
 }
+
+function apbct__get_cookie_prefix()
+{
+    if ( defined('CLEANTALK_COOKIE_PREFIX') ) {
+        return preg_replace('/[^A-Za-z1-9_-]/', '', CLEANTALK_COOKIE_PREFIX);
+    }
+    return '';
+}
