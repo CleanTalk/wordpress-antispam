@@ -2441,7 +2441,7 @@ function apbct_cookies_test()
 
         $check_string = $apbct->api_key;
         foreach ( $cookie_test['cookies_names'] as $cookie_name ) {
-            $check_string .= isset($_COOKIE[$cookie_name]) ? $_COOKIE[$cookie_name] : '';
+            $check_string .= Cookie::get($cookie_name);
         }
 
         if ( $cookie_test['check_value'] == md5($check_string) ) {
