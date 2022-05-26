@@ -344,7 +344,7 @@ $apbct_active_integrations = array(
         'ajax'    => false
     ),
     'VisualFormBuilder' => array(
-        'hook'    => 'vfb_isbot',
+        'hook'    => array('vfb_isbot','vfb_isBot'),
         'setting' => 'forms__contact_forms_test',
         'ajax'    => false
     ),
