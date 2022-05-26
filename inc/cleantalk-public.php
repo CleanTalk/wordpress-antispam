@@ -1210,6 +1210,28 @@ function ct_enqueue_scripts_public($_hook)
         }
     }
 
+    // External forms check
+    if ( $apbct->settings['forms__check_external'] ) {
+        wp_enqueue_script(
+            'ct_external',
+            APBCT_JS_ASSETS_PATH . '/cleantalk_external.min.js',
+            array('jquery'),
+            APBCT_VERSION,
+            false /*in header*/
+        );
+    }
+
+    // Internal forms check
+    if ( $apbct->settings['forms__check_internal'] ) {
+        wp_enqueue_script(
+            'ct_internal',
+            APBCT_JS_ASSETS_PATH . '/cleantalk_internal.min.js',
+            array('jquery'),
+            APBCT_VERSION,
+            false /*in header*/
+        );
+    }
+
     // Show controls for commentaries
     if ( in_array("administrator", $current_user->roles) ) {
         if ( $apbct->settings['comments__manage_comments_on_public_page'] ) {
@@ -1245,29 +1267,6 @@ function ct_enqueue_scripts_public($_hook)
                 ) . ' ' . esc_html__('The service accepts feedback only for requests made no more than 7 or 45 days 
                 (if the Extra package is activated) ago.', 'cleantalk-spam-protect'),
             ));
-        }
-    } else { //if user is not admin enqueue external and internal scripts
-
-        // External forms check
-        if ( $apbct->settings['forms__check_external'] ) {
-            wp_enqueue_script(
-                'ct_external',
-                APBCT_JS_ASSETS_PATH . '/cleantalk_external.min.js',
-                array('jquery'),
-                APBCT_VERSION,
-                false /*in header*/
-            );
-        }
-
-        // Internal forms check
-        if ( $apbct->settings['forms__check_internal'] ) {
-            wp_enqueue_script(
-                'ct_internal',
-                APBCT_JS_ASSETS_PATH . '/cleantalk_internal.min.js',
-                array('jquery'),
-                APBCT_VERSION,
-                false /*in header*/
-            );
         }
     }
 
