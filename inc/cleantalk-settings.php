@@ -24,6 +24,19 @@ function apbct_settings_add_page()
         $callback
     );
 
+    // Add CleanTalk Moderation option to the Discussion page
+    add_settings_field(
+        'cleantalk_allowed_moderation',
+        esc_html__('CleanTalk allowed comments moderation', 'cleantalk-spam-protect'),
+        'apbct_discussion_settings__field__moderation',
+        'discussion'
+    );
+    add_filter('allowed_options', function ($options) {
+        $options['discussion'][] = 'cleantalk_allowed_moderation';
+        return $options;
+    });
+    // End modification Discussion page
+
     if ( ! in_array($pagenow, array('options.php', 'options-general.php', 'settings.php', 'admin.php')) ) {
         return;
     }
@@ -1795,6 +1808,21 @@ function apbct_settings__field__debug_tab()
     echo '<div id="apbct_debug_tab" class="apbct_settings-field_wrapper" style="display: none;">';
     echo apbct_debug__set_sfw_update_cron();
     echo '</div>';
+}
+
+function apbct_discussion_settings__field__moderation()
+{
+    $output  = '<label for="cleantalk_allowed_moderation">';
+    $output .= '<input 
+                type="checkbox" 
+                name="cleantalk_allowed_moderation" 
+                id="cleantalk_allowed_moderation" 
+                value="1" ' .
+                checked('1', get_option('cleantalk_allowed_moderation', 1), false) .
+                '/> ';
+    $output .= esc_html__('Skip manual approving for the very first comment if a comment has been allowed by CleanTalk Anti-Spam protection', 'cleantalk-spam-protect');
+    $output .= '</label>';
+    echo $output;
 }
 
 function apbct_get_all_child_domains($except_main_site = false)
