@@ -132,7 +132,6 @@ function apbct_init()
 
     if ( $apbct->settings['forms__general_contact_forms_test'] == 1 && empty(Post::get('ct_checkjs_cf7')) && ! apbct_is_direct_trackback() ) {
         add_action('CMA_custom_post_type_nav', 'ct_contact_form_validate_postdata', 1);
-        add_action('init', 'ct_contact_form_validate', 999);
         if (
             Post::get('reg_redirect_link') !== '' &&
             Post::get('tmpl_registration_nonce_field') !== ''
@@ -335,9 +334,6 @@ function apbct_init()
     }
 
     if ( apbct_is_user_enable() ) {
-        if ( $apbct->settings['forms__general_contact_forms_test'] == 1 && ! Post::get('comment_post_ID') && ! Get::get('for') && ! apbct_is_direct_trackback() ) {
-            add_action('init', 'ct_contact_form_validate', 999);
-        }
         if ( apbct_is_post() &&
              $apbct->settings['data__general_postdata_test'] == 1 &&
              ! Post::get('ct_checkjs_cf7') &&

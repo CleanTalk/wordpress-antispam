@@ -486,14 +486,6 @@ if ( defined('WP_ALLOW_MULTISITE') && WP_ALLOW_MULTISITE === true ) {
 // After plugin loaded - to load locale as described in manual
 add_action('plugins_loaded', 'apbct_plugin_loaded');
 
-/**
- * This hook is triggered if the request is from a form
- * with which we did not integrate.
- */
-if (apbct_need_to_process_unknown_post_request()) {
-    add_action( 'shutdown', 'ct_contact_form_validate', 999 );
-}
-
 if ( ! empty($apbct->settings['data__use_ajax']) &&
      ! apbct_is_in_uri('.xml') &&
      ! apbct_is_in_uri('.xsl') ) {
@@ -606,6 +598,14 @@ if ( is_admin() || is_network_admin() ) {
 
         add_filter('plugin_row_meta', 'apbct_admin__register_plugin_links', 10, 3);
     }
+
+    /**
+     * This hook is triggered if the request is from a form
+     * with which we did not integrate.
+     */
+    if (apbct_need_to_process_unknown_post_request()) {
+        add_action( 'shutdown', 'ct_contact_form_validate', 999 );
+    }
 // Public pages actions
 } else {
     require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-validate.php');
@@ -649,6 +649,14 @@ if ( is_admin() || is_network_admin() ) {
         unset($_POST['redirect_to']);
         ct_contact_form_validate();
         $_POST['redirect_to'] = $tmp;
+    }
+
+    /**
+     * This hook is triggered if the request is from a form
+     * with which we did not integrate.
+     */
+    if (apbct_need_to_process_unknown_post_request()) {
+        add_action( 'shutdown', 'ct_contact_form_validate', 999 );
     }
 }
 
