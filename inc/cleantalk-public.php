@@ -1319,6 +1319,7 @@ function apbct_enqueue_and_localize_public_scripts()
         'data__cookies_type'                   => $apbct->data['cookies_type'],
         'data__ajax_type'                      => $apbct->data['ajax_type'],
         'text__wait_for_decoding'              => esc_html__('Wait for decoding...', 'cleantalk-spam-protect'),
+        'cookiePrefix'                         => apbct__get_cookie_prefix(),
     ));
 
     wp_localize_script('ct_public', 'ctPublic', array(

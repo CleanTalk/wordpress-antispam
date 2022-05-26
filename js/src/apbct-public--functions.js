@@ -14,7 +14,7 @@ function ctSetCookie( cookies, value, expires ){
         cookies.forEach( function (item, i, arr	) {
             var expires = typeof item[2] !== 'undefined' ? "expires=" + expires + '; ' : '';
             var ctSecure = location.protocol === 'https:' ? '; secure' : '';
-            document.cookie = item[0] + "=" + encodeURIComponent(item[1]) + "; " + expires + "path=/; samesite=lax" + ctSecure;
+            document.cookie = ctPublicFunctions.cookiePrefix + item[0] + "=" + encodeURIComponent(item[1]) + "; " + expires + "path=/; samesite=lax" + ctSecure;
         });
 
         // Using alternative cookies
