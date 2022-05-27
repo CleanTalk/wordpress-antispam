@@ -10,6 +10,7 @@ use Cleantalk\ApbctWP\GetFieldsAny;
 use Cleantalk\ApbctWP\Helper;
 use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\Common\DB;
+use Cleantalk\Variables\Get;
 use Cleantalk\Variables\Post;
 use Cleantalk\Variables\Server;
 
@@ -1295,6 +1296,25 @@ function apbct_need_to_process_unknown_post_request()
         apbct_custom_forms_trappings()
     ) {
         return true;
+    }
+
+    if (
+        $apbct->settings['forms__general_contact_forms_test'] == 1 &&
+        empty(Post::get('ct_checkjs_cf7')) &&
+        ! apbct_is_direct_trackback()
+    ) {
+        return true;
+    }
+
+    if ( apbct_is_user_enable() ) {
+        if (
+            $apbct->settings['forms__general_contact_forms_test'] == 1 &&
+            ! Post::get('comment_post_ID') &&
+            ! Get::get('for') &&
+            ! apbct_is_direct_trackback()
+        ) {
+            return true;
+        }
     }
 
     return false;
