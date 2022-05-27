@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 3.0
 Tested up to: 6.0
 Requires PHP: 5.6
-Stable tag: 5.177.1
+Stable tag: 5.177.2
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -595,6 +595,9 @@ If your website has forms that send data to external sources, you can enable opt
 12. SpamFireWall log.
 
 == Changelog ==
+
+= 5.177.2 May 27 2022 =
+* Fix. EmailEncoder.php. Fix accident encoding.
 
 = 5.177.1 May 19 2022 =
 * Fix. Pluggable. Getting REST url fixed.
