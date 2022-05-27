@@ -1026,18 +1026,6 @@ function ct_get_fields_any_postdata($arr, $message = array())
     return $message;
 }
 
-/**
- * Checks if given string is valid regular expression
- *
- * @param string $regexp
- *
- * @return bool
- */
-function apbct_is_regexp($regexp)
-{
-    return @preg_match('/' . $regexp . '/', '') !== false;
-}
-
 function cleantalk_debug($key, $value)
 {
     if ( Cookie::get('cleantalk_debug')) {

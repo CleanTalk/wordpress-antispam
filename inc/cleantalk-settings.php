@@ -1,5 +1,6 @@
 <?php
 
+use Cleantalk\ApbctWP\Validate;
 use Cleantalk\Variables\Post;
 use Cleantalk\ApbctWP\Cron;
 use Cleantalk\Variables\Server;
@@ -2608,7 +2609,7 @@ function apbct_settings__sanitize__exclusions($exclusions, $regexp = false)
             $sanitized_exclusion = trim($sanitized_exclusion, " \t\n\r\0\x0B/\/");
 
             if ( ! empty($sanitized_exclusion) ) {
-                if ( $regexp && !apbct_is_regexp($exclusion) ) {
+                if ( $regexp && ! Validate::isRegexp($exclusion) ) {
                     return false;
                 }
 
