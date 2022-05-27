@@ -23,6 +23,9 @@ jobs:
     - env: TRAVISCI=phpcs
     - env: TRAVISCI=psalm
 
+before-install:
+  - composer self-update --2
+
 before_script:
   - source tests/wp-test-setup.sh wordpress_test root '' localhost latest
   - |
