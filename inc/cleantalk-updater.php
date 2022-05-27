@@ -1119,3 +1119,12 @@ function apbct_update_to_5_176_1()
         $apbct->saveSettings();
     }
 }
+
+function apbct_update_to_5_177_3()
+{
+    global $apbct;
+    if ( ! empty($apbct->settings['exclusions__urls']) ) {
+        $apbct->data['check_exclusion_as_url'] = false;
+        $apbct->saveData();
+    }
+}
