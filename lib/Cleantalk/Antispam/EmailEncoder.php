@@ -18,6 +18,10 @@ class EmailEncoder
     {
         global $apbct;
 
+        if ( ! $apbct->settings['data__email_decoder'] ) {
+            return;
+        }
+
         $this->secret_key = md5($apbct->api_key);
 
         $this->encription = function_exists('openssl_encrypt') && function_exists('openssl_decrypt');
