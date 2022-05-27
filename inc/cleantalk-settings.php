@@ -2146,6 +2146,10 @@ function apbct_settings__validate($settings)
 
     // Validate Exclusions
     // URLs
+    if ( empty($apbct->settings['exclusions__urls']) ) {
+        // If the field is empty, the new way checking by URL will be activated.
+        $apbct->data['check_exclusion_as_url'] = true;
+    }
     $result = apbct_settings__sanitize__exclusions(
         $settings['exclusions__urls'],
         $settings['exclusions__urls__use_regexp'],
