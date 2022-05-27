@@ -2148,7 +2148,8 @@ function apbct_settings__validate($settings)
     // URLs
     $result = apbct_settings__sanitize__exclusions(
         $settings['exclusions__urls'],
-        $settings['exclusions__urls__use_regexp']
+        $settings['exclusions__urls__use_regexp'],
+        $apbct->data['check_exclusion_as_url']
     );
     $result === false
         ? $apbct->errorAdd(
@@ -2579,7 +2580,7 @@ function apbct_update_blogs_options($settings)
  *
  * @return bool|string
  */
-function apbct_settings__sanitize__exclusions($exclusions, $regexp = false)
+function apbct_settings__sanitize__exclusions($exclusions, $regexp = false, $urls = false)
 {
     if ( ! is_string($exclusions) ) {
         return false;
@@ -2612,7 +2613,9 @@ function apbct_settings__sanitize__exclusions($exclusions, $regexp = false)
                 if ( $regexp && ! Validate::isRegexp($exclusion) ) {
                     return false;
                 }
-
+                if ( $urls && ! Validate::isUrl($exclusion) ) {
+                    return false;
+                }
                 $result[] = $sanitized_exclusion;
             }
         }
