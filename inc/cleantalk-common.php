@@ -419,6 +419,11 @@ function apbct_exclusions_check__url()
             )
             : apbct_get_server_variable('REQUEST_URI');
 
+        if ( $apbct->data['check_exclusion_as_url'] ) {
+            $protocol = ! in_array(Server::get('HTTPS'), ['off', '']) || Server::get('SERVER_PORT') == 443 ? 'https://' : 'http://';
+            $haystack = $protocol . Server::get('SERVER_NAME') . $haystack;
+        }
+
         foreach ( $exclusions as $exclusion ) {
             if (
                 (
