@@ -604,7 +604,7 @@ if ( is_admin() || is_network_admin() ) {
      * with which we did not integrate.
      */
     if (apbct_need_to_process_unknown_post_request()) {
-        add_action( 'shutdown', 'ct_contact_form_validate', 999 );
+        add_action('shutdown', 'ct_contact_form_validate', 999);
     }
 // Public pages actions
 } else {
@@ -656,7 +656,7 @@ if ( is_admin() || is_network_admin() ) {
      * with which we did not integrate.
      */
     if (apbct_need_to_process_unknown_post_request()) {
-        add_action( 'shutdown', 'ct_contact_form_validate', 999 );
+        add_action('shutdown', 'ct_contact_form_validate', 999);
     }
 }
 
