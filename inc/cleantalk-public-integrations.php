@@ -451,11 +451,14 @@ function apbct_search_add_noindex()
 
 /**
  * Test woocommerce checkout form for spam
- * @psalm-suppress UnusedVariable
  */
-function ct_woocommerce_checkout_check()
+function ct_woocommerce_checkout_check($_data, $errors)
 {
     global $apbct, $cleantalk_executed;
+
+    if ( count($errors->errors) ) {
+        return;
+    }
 
     /**
      * Filter for POST
