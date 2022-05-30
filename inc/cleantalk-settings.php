@@ -2614,11 +2614,14 @@ function apbct_settings__sanitize__exclusions($exclusions, $regexp = false, $url
             $sanitized_exclusion = trim($sanitized_exclusion);
 
             if ( ! empty($sanitized_exclusion) ) {
-                if ( $regexp && ! Validate::isRegexp($exclusion) ) {
-                    return false;
-                }
-                if ( $urls && ! Validate::isUrl($exclusion) ) {
-                    return false;
+                if ( $regexp ) {
+                    if ( ! Validate::isRegexp($exclusion) ) {
+                        return false;
+                    }
+                } elseif ( $urls ) {
+                    if ( ! Validate::isUrl($exclusion) ) {
+                        return false;
+                    }
                 }
                 $result[] = $sanitized_exclusion;
             }
