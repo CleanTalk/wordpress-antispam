@@ -7,12 +7,12 @@ class RemoteCallsCounter
     /**
      * Counter reset period in seconds
      */
-    const reset_period = 86400;
+    const RESET_PERIOD = 86400;
 
     /**
      * Number of allowed calls during the reset period
      */
-    const call_limit = 600;
+    const CALL_LIMIT = 600;
 
     /**
      * Current counter state
@@ -58,7 +58,8 @@ class RemoteCallsCounter
     /**
      * Create counter state
      */
-    private function createCounterState() {
+    private function createCounterState()
+    {
         $this->state = array(
             'counter_start_time' => time(),
             'count_calls' => 1
@@ -72,7 +73,8 @@ class RemoteCallsCounter
     /**
      * What happens when the number of calls is exceeded
      */
-    private function actionExceedingLimit() {
+    private function actionExceedingLimit()
+    {
         die;
     }
 
@@ -86,7 +88,7 @@ class RemoteCallsCounter
         $counter_start_time = $this->state['counter_start_time'];
         $time_difference = $current_time - $counter_start_time;
 
-        if ($time_difference > self::reset_period) {
+        if ($time_difference > self::RESET_PERIOD) {
             $this->createCounterState();
             return;
         }
@@ -94,12 +96,12 @@ class RemoteCallsCounter
         // Checking for exceeding the number of calls
         $current_count_calls = $this->state['count_calls'];
 
-        if ($current_count_calls >= self::call_limit) {
+        if ($current_count_calls >= self::CALL_LIMIT) {
             $this->actionExceedingLimit();
         }
 
         // All right, set updated state
-        ++ $this->state['count_calls'];
+        ++$this->state['count_calls'];
         $this->setCounterState($this->state);
     }
 }
