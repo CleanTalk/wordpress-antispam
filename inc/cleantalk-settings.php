@@ -2611,7 +2611,7 @@ function apbct_settings__sanitize__exclusions($exclusions, $regexp = false, $url
         foreach ($exclusions as $exclusion) {
             //Cut exclusion if more than 128 symbols gained
             $sanitized_exclusion = substr($exclusion, 0, 128);
-            $sanitized_exclusion = trim($sanitized_exclusion, " \t\n\r\0\x0B/\/");
+            $sanitized_exclusion = trim($sanitized_exclusion);
 
             if ( ! empty($sanitized_exclusion) ) {
                 if ( $regexp && ! Validate::isRegexp($exclusion) ) {
