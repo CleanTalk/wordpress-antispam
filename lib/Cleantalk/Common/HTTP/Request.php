@@ -506,8 +506,8 @@ class Request
                 case 'ssl':
                     $this->options[CURLOPT_SSL_VERIFYPEER] = true;
                     $this->options[CURLOPT_SSL_VERIFYHOST] = 2;
-                    if ( defined('CLEANTALK_CASERT_PATH') && CLEANTALK_CASERT_PATH ) {
-                        $this->options[CURLOPT_CAINFO] = CLEANTALK_CASERT_PATH;
+                    if ( defined('APBCT_CASERT_PATH') && APBCT_CASERT_PATH ) {
+                        $this->options[CURLOPT_CAINFO] = APBCT_CASERT_PATH;
                     }
                     break;
 
