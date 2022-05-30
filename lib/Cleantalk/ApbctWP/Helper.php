@@ -97,6 +97,10 @@ class Helper extends \Cleantalk\Common\Helper
     {
         global $apbct;
 
+        // RemoteCallsCounter
+        $RCCounter = new RemoteCallsCounter();
+        $RCCounter->execute();
+
         $request_params = array_merge(array(
             'spbc_remote_call_token' => md5($apbct->api_key),
             'spbc_remote_call_action' => $rc_action,
@@ -136,6 +140,10 @@ class Helper extends \Cleantalk\Common\Helper
      */
     public static function httpRequestRcToHostTest($rc_action, $request_params, $patterns = array())
     {
+        // RemoteCallsCounter
+        $RCCounter = new RemoteCallsCounter();
+        $RCCounter->execute();
+
         // Delete async pattern to get the result in this process
         $key = array_search('async', $patterns, true);
         if ($key) {
