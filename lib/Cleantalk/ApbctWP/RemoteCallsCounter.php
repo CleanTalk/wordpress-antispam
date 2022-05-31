@@ -7,12 +7,12 @@ class RemoteCallsCounter
     /**
      * Counter reset period in seconds
      */
-    const RESET_PERIOD = 100;
+    const RESET_PERIOD = 86400;
 
     /**
      * Number of allowed calls during the reset period
      */
-    const CALL_LIMIT = 10;
+    const CALL_LIMIT = 600;
 
     /**
      * Maximum number of blocked calls
