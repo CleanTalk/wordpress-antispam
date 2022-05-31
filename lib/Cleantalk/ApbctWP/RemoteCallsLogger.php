@@ -16,6 +16,8 @@ class RemoteCallsLogger
 
     /**
      * Constructor: fill logging_data
+     *
+     * @param array | string | null $logging_data
      */
     public function __construct($logging_data)
     {
@@ -25,6 +27,8 @@ class RemoteCallsLogger
 
     /**
      * Write log
+     *
+     * @return void
      */
     public function writeLog()
     {

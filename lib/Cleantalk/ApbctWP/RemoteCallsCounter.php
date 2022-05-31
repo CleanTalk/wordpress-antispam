@@ -37,6 +37,8 @@ class RemoteCallsCounter
     /**
      * Constructor:
      * getting or create counter state
+     *
+     * @param array | string | null $logging_data
      */
     public function __construct($logging_data = null)
     {
