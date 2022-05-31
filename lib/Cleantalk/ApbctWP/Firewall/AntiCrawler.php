@@ -2,6 +2,7 @@
 
 namespace Cleantalk\ApbctWP\Firewall;
 
+use Cleantalk\ApbctWP\Validate;
 use Cleantalk\Common\Helper;
 use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\Variables\Get;
@@ -94,7 +95,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
 
                                 // Cast result to int
                                 $ua_id       = preg_replace('/[^\d]*/', '', $entry[0]);
-                                $ua_template = isset($entry[1]) && apbct_is_regexp($entry[1]) ? Helper::dbPrepareParam(
+                                $ua_template = isset($entry[1]) && Validate::isRegexp($entry[1]) ? Helper::dbPrepareParam(
                                     $entry[1]
                                 ) : 0;
                                 $ua_status   = isset($entry[2]) ? $entry[2] : 0;
@@ -153,7 +154,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
                     // Cast result to int
                     // @ToDo check the output $entry
                     $ua_id = preg_replace('/[^\d]*/', '', $entry[0]);
-                    $ua_template = isset($entry[1]) && apbct_is_regexp($entry[1]) ? Helper::dbPrepareParam($entry[1]) : 0;
+                    $ua_template = isset($entry[1]) && Validate::isRegexp($entry[1]) ? Helper::dbPrepareParam($entry[1]) : 0;
                     $ua_status = isset($entry[2]) ? $entry[2] : 0;
 
                     $values[] = '(' . $ua_id . ',' . $ua_template . ',' . $ua_status . ')';

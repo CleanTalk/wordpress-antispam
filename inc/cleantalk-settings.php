@@ -1,5 +1,6 @@
 <?php
 
+use Cleantalk\ApbctWP\Validate;
 use Cleantalk\Variables\Post;
 use Cleantalk\ApbctWP\Cron;
 use Cleantalk\Variables\Server;
@@ -553,7 +554,7 @@ function apbct_settings__set_fileds()
                     'type'        => 'textarea',
                     'title'       => __('URL exclusions', 'cleantalk-spam-protect'),
                     'description' => __(
-                        'You could type here a part of the URL you want to exclude. No need to type whole URL with "www" and protocol. Use comma or new lines as separator. Exclusion value will be sliced to 128 chars, exclusions number is restricted by 20 values.',
+                        'You could type here a part of the URL you want to exclude. Use comma or new lines as separator. Exclusion value will be sliced to 128 chars, exclusions number is restricted by 20 values.',
                         'cleantalk-spam-protect'
                     ),
                 ),
@@ -2145,9 +2146,14 @@ function apbct_settings__validate($settings)
 
     // Validate Exclusions
     // URLs
+    if ( empty($apbct->settings['exclusions__urls']) ) {
+        // If the field is empty, the new way checking by URL will be activated.
+        $apbct->data['check_exclusion_as_url'] = true;
+    }
     $result = apbct_settings__sanitize__exclusions(
         $settings['exclusions__urls'],
-        $settings['exclusions__urls__use_regexp']
+        $settings['exclusions__urls__use_regexp'],
+        $apbct->data['check_exclusion_as_url']
     );
     $result === false
         ? $apbct->errorAdd(
@@ -2578,7 +2584,7 @@ function apbct_update_blogs_options($settings)
  *
  * @return bool|string
  */
-function apbct_settings__sanitize__exclusions($exclusions, $regexp = false)
+function apbct_settings__sanitize__exclusions($exclusions, $regexp = false, $urls = false)
 {
     if ( ! is_string($exclusions) ) {
         return false;
@@ -2605,13 +2611,18 @@ function apbct_settings__sanitize__exclusions($exclusions, $regexp = false)
         foreach ($exclusions as $exclusion) {
             //Cut exclusion if more than 128 symbols gained
             $sanitized_exclusion = substr($exclusion, 0, 128);
-            $sanitized_exclusion = trim($sanitized_exclusion, " \t\n\r\0\x0B/\/");
+            $sanitized_exclusion = trim($sanitized_exclusion);
 
             if ( ! empty($sanitized_exclusion) ) {
-                if ( $regexp && !apbct_is_regexp($exclusion) ) {
-                    return false;
+                if ( $regexp ) {
+                    if ( ! Validate::isRegexp($exclusion) ) {
+                        return false;
+                    }
+                } elseif ( $urls ) {
+                    if ( ! Validate::isUrl($exclusion) ) {
+                        return false;
+                    }
                 }
-
                 $result[] = $sanitized_exclusion;
             }
         }

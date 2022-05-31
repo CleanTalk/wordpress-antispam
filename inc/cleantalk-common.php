@@ -419,6 +419,11 @@ function apbct_exclusions_check__url()
             )
             : apbct_get_server_variable('REQUEST_URI');
 
+        if ( $apbct->data['check_exclusion_as_url'] ) {
+            $protocol = ! in_array(Server::get('HTTPS'), ['off', '']) || Server::get('SERVER_PORT') == 443 ? 'https://' : 'http://';
+            $haystack = $protocol . Server::get('SERVER_NAME') . $haystack;
+        }
+
         foreach ( $exclusions as $exclusion ) {
             if (
                 (
@@ -1024,18 +1029,6 @@ function ct_get_fields_any_postdata($arr, $message = array())
     }
 
     return $message;
-}
-
-/**
- * Checks if given string is valid regular expression
- *
- * @param string $regexp
- *
- * @return bool
- */
-function apbct_is_regexp($regexp)
-{
-    return @preg_match('/' . $regexp . '/', '') !== false;
 }
 
 function cleantalk_debug($key, $value)

@@ -1129,3 +1129,12 @@ function apbct_update_to_5_177_2()
         $apbct->save('remote_calls');
     }
 }
+
+function apbct_update_to_5_177_3()
+{
+    global $apbct;
+    if ( ! empty($apbct->settings['exclusions__urls']) ) {
+        $apbct->data['check_exclusion_as_url'] = false;
+        $apbct->saveData();
+    }
+}
