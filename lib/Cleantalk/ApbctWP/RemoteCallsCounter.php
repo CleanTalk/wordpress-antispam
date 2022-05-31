@@ -41,6 +41,8 @@ class RemoteCallsCounter
 
     /**
      * Get counter state from DB
+     *
+     * @return array
      */
     private function getCounterState()
     {
@@ -49,6 +51,10 @@ class RemoteCallsCounter
 
     /**
      * Set counter state to DB
+     *
+     * @param array $state
+     *
+     * @return boolean
      */
     private function setCounterState($state)
     {
@@ -57,6 +63,8 @@ class RemoteCallsCounter
 
     /**
      * Create counter state
+     *
+     * @return array
      */
     private function createCounterState()
     {
@@ -72,6 +80,8 @@ class RemoteCallsCounter
 
     /**
      * What happens when the number of calls is exceeded
+     *
+     * @return void
      */
     private function actionExceedingLimit()
     {
@@ -80,6 +90,8 @@ class RemoteCallsCounter
 
     /**
      * Full counter launch with script shutdown
+     *
+     * @return void
      */
     public function execute()
     {
