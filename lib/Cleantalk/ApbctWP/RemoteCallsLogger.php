@@ -57,8 +57,8 @@ class RemoteCallsLogger
             if (is_array($data)) {
                 $substring2 = '';
 
-                foreach ($data as $k => $v) {
-                    $substring2 .= "$k: $v; ";
+                foreach ($data as $param => $value) {
+                    $substring2 .= "$param: $value; ";
                 }
 
                 $substring .= "[$key]: $substring2; ";
