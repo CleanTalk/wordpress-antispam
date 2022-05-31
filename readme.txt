@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 3.0
 Tested up to: 6.0
 Requires PHP: 5.6
-Stable tag: 5.177.1
+Stable tag: 5.178
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -595,6 +595,35 @@ If your website has forms that send data to external sources, you can enable opt
 12. SpamFireWall log.
 
 == Changelog ==
+
+= 5.178 Jun 02 2022 =
+#### Comment moderation option added, cookies prefix added, RemoteCalls stability improved and some minor issues fixed.
+* New. Options. Comment moderation option added on discussion page.
+* New. Settings. Encode contact data long description added.
+* New. Cookies. Getting prefix function implemented.
+* New. Cookies. Get and set cookies with prefix.
+* New. Cookies. Using cookie prefix on client code.
+* Mod: Created RemoteCallsCounter::class to limit remote calls
+* Mod: Created RemoteCallsLogger::class for logging last remote calls
+* Upd. Comments. Comment moderation logic modified.
+* Fix: webto.salesforce.com extended form
+* Fix. SFW. Statistics fixed.
+* Fix: secure2.convio.net external
+* Fix: hookb.in external
+* Fix: fixed test for wpforms
+* Fix. Pluggable. Getting REST url fixed.
+* Fix: Formidable Pro Multistep Fixed
+* Fix: Formidable Form Pro ajax response - fixed
+* Fix. Settings. Alternative cookies option renamed.
+* Fix. Common. Cookies test function fixed.
+* Fix. External forms. JS logic fixed.
+* Fix. External forms. Force ajax check action handler added.
+* Fix. cleantalk.php. VisualFormBuilder hook change.
+* Delete RC update plugin
+* Fix. cleantalk.php. Visual Form Builder integration: add legacy support.
+* Fix. Helper. Fatal error (Call to private method) fixed.
+* Fix. WooCommerce. WC checking order hook changed.
+* Fix. Settings. Validate URL exclusions.
 
 = 5.177.1 May 19 2022 =
 * Fix. Pluggable. Getting REST url fixed.
