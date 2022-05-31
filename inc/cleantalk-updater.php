@@ -1120,6 +1120,16 @@ function apbct_update_to_5_176_1()
     }
 }
 
+function apbct_update_to_5_177_2()
+{
+    global $apbct;
+
+    if ( isset($apbct->remote_calls['update_plugin']) ) {
+        unset($apbct->remote_calls['update_plugin']);
+        $apbct->save('remote_calls');
+    }
+}
+
 function apbct_update_to_5_177_3()
 {
     global $apbct;

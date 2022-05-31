@@ -178,6 +178,13 @@ class CleantalkUpgrader extends \Plugin_Upgrader
         return $result;
     }
 
+    /**
+     * @param $plugin
+     * @param $args
+     *
+     * @return array|bool|string|\WP_Error
+     * @psalm-suppress PossiblyUnusedMethod
+     */
     public function rollback($plugin, $args = array())
     {
         $defaults    = array(

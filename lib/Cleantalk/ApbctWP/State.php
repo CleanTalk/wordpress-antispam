@@ -257,7 +257,6 @@ class State extends \Cleantalk\Common\State
         'sfw_send_logs'      => array('last_call' => 0, 'cooldown' => 0),
 
         // Installation
-        'update_plugin'      => array('last_call' => 0, 'cooldown' => 0),
         'install_plugin'     => array('last_call' => 0, 'cooldown' => 0),
         'activate_plugin'    => array('last_call' => 0, 'cooldown' => 0),
         'insert_auth_key'    => array('last_call' => 0, 'cooldown' => 0),
