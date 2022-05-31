@@ -15,6 +15,11 @@ class RemoteCallsCounter
     const CALL_LIMIT = 600;
 
     /**
+     * Maximum number of blocked calls
+     */
+    const LOG_LIMIT = 10;
+
+    /**
      * Current counter state
      */
     private $state;
@@ -25,9 +30,17 @@ class RemoteCallsCounter
     private $option_name = 'cleantalk_rc_counter';
 
     /**
-     * Constructor: getting or create counter state
+     * Data for logger
      */
-    public function __construct()
+    private $logging_data;
+
+    /**
+     * Constructor:
+     * getting or create counter state
+     *
+     * @param array | string | null $logging_data
+     */
+    public function __construct($logging_data = null)
     {
         $current_state = $this->getCounterState();
 
@@ -37,6 +50,11 @@ class RemoteCallsCounter
         }
 
         $this->state = $current_state;
+
+        // Logger
+        if ($logging_data) {
+            $this->logging_data = $logging_data;
+        }
     }
 
     /**
@@ -85,6 +103,12 @@ class RemoteCallsCounter
      */
     private function actionExceedingLimit()
     {
+        // Logger
+        if (($this->state['count_calls'] - self::CALL_LIMIT) <= self::LOG_LIMIT) {
+            $logger = new RemoteCallsLogger($this->logging_data);
+            $logger->writeLog();
+        }
+
         die;
     }
 
@@ -109,6 +133,10 @@ class RemoteCallsCounter
         $current_count_calls = $this->state['count_calls'];
 
         if ($current_count_calls >= self::CALL_LIMIT) {
+            // We save the number of calls to log the last few calls
+            ++$this->state['count_calls'];
+            $this->setCounterState($this->state);
+
             $this->actionExceedingLimit();
         }
 
