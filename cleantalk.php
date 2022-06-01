@@ -1023,7 +1023,13 @@ function apbct_sfw_update__worker($checker_work = false)
         $queue->saveQueue($queue->queue);
         foreach ( $queue->queue['stages'] as $stage ) {
             if ( isset($stage['error']) ) {
-                $apbct->errorAdd('sfw_update', $stage['error']);
+                //there could be an array of errors of files processed
+                if (is_array($stage['error'])){
+                    $error = implode(" ",array_values($stage['error']));
+                } else {
+                    $error = $result['error'];
+                }
+                $apbct->errorAdd('sfw_update', $error);
             }
         }
 
