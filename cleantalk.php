@@ -1009,7 +1009,7 @@ function apbct_sfw_update__worker($checker_work = false)
 
     $result = $queue->executeStage();
 
-    if ( isset($result['error']) ) {
+    if ( isset($result['error']) && $result['status'] === 'FINISHED' ) {
         $apbct->errorAdd('sfw_update', $result['error']);
         $apbct->saveErrors();
 
