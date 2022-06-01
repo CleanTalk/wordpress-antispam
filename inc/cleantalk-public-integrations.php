@@ -1524,19 +1524,34 @@ function ct_registration_errors($errors, $sanitized_user_login = null, $user_ema
     /**
      * Changing the type of check for BuddyPress
      */
-    if (Post::get('signup_username') && Post::get('signup_email')) {
-        $reg_flag = false;
+    if ( Post::get('signup_username') && Post::get('signup_email') ) {
+        // if buddy press set up custom fields
+        $reg_flag = empty(Post::get('signup_profile_field_ids'));
+    }
+
+    $base_call_array = array(
+        'sender_email'    => $user_email,
+        'sender_nickname' => $sanitized_user_login,
+        'sender_info'     => $sender_info,
+        'js_on'           => $checkjs,
+    );
+
+    if ( !$reg_flag ) {
+        $field_values = '';
+        $fields_numbers_to_check = explode(',', Post::get('signup_profile_field_ids'));
+        foreach ( $fields_numbers_to_check as $field_number ) {
+            $field_name = 'field_' . $field_number;
+            $field_value = Post::get($field_name) ? Post::get($field_name) : '';
+            $field_values .= $field_value . "\n";
+        }
+        $base_call_array['message'] = $field_values;
     }
 
     $base_call_result = apbct_base_call(
-        array(
-            'sender_email'    => $user_email,
-            'sender_nickname' => $sanitized_user_login,
-            'sender_info'     => $sender_info,
-            'js_on'           => $checkjs,
-        ),
+        $base_call_array,
         $reg_flag
     );
+
     $ct_result        = $base_call_result['ct_result'];
     ct_hash($ct_result->id);
     // Change mail notification if license is out of date
