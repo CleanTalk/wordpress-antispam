@@ -624,6 +624,9 @@ If your website has forms that send data to external sources, you can enable opt
 * Fix. Helper. Fatal error (Call to private method) fixed.
 * Fix. WooCommerce. WC checking order hook changed.
 * Fix. Settings. Validate URL exclusions.
+* Fix. cleantalk-public-integrations.php->apbct_form__gravityForms__testSpam. Gravity forms multiple email fields fix.
+* Fix. SFW updating. Writing update errors fixed.
+* Fix. cleantalk.php-> apbct_sfw_update__worker() Convert errors array to a string if set in a stage.
 
 = 5.177.1 May 19 2022 =
 * Fix. Pluggable. Getting REST url fixed.
