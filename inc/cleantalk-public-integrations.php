@@ -2845,7 +2845,7 @@ function apbct_form__gravityForms__testSpam($is_spam, $form, $entry)
         }
 
         foreach ( $form_fields_intermediate as $field ) {
-            if ( $field['f_type'] === 'email' ) {
+            if ( $field['f_type'] === 'email' && $field['f_visibility'] === 'visible') {
                 $email = $field['f_data'];
             }
 
