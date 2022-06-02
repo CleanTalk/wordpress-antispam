@@ -153,14 +153,6 @@ class RemoteCalls
     }
 
     /**
-     * Update plugin
-     */
-    public static function action__update_plugin() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
-    {
-        add_action('wp', 'apbct_rc__update', 1);
-    }
-
-    /**
      * Install plugin
      */
     public static function action__install_plugin() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps

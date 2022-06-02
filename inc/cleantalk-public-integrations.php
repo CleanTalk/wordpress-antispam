@@ -451,11 +451,14 @@ function apbct_search_add_noindex()
 
 /**
  * Test woocommerce checkout form for spam
- * @psalm-suppress UnusedVariable
  */
-function ct_woocommerce_checkout_check()
+function ct_woocommerce_checkout_check($_data, $errors)
 {
     global $apbct, $cleantalk_executed;
+
+    if ( count($errors->errors) ) {
+        return;
+    }
 
     /**
      * Filter for POST
@@ -712,6 +715,15 @@ function apbct_form__formidable__testSpam($errors, $_form)
         return $errors;
     }
 
+    // Skipping, if not sending, but filling out the form step by step. For Formidable Pro
+    if (apbct_is_plugin_active('formidable-pro/formidable-pro.php')) {
+        foreach (array_keys($_POST) as $key) {
+            if (strpos($key, 'frm_page_order') === 0) {
+                return $errors;
+            }
+        }
+    }
+
     /**
      * Filter for POST
      */
@@ -769,14 +781,7 @@ function apbct_form__formidable__testSpam($errors, $_form)
         $ct_comment = $ct_result->comment;
         if (apbct_is_ajax()) {
             // search for a suitable field
-            $key_field = '113';
-
-            foreach ($_form['item_meta'] as $key => $value) {
-                if ($value) {
-                    $key_field = $key;
-                    break;
-                }
-            }
+            $key_field = apbct__formidable_get_key_field_for_ajax_response($_form);
 
             $result = array (
                 'errors' =>
@@ -796,6 +801,30 @@ function apbct_form__formidable__testSpam($errors, $_form)
     }
 
     return $errors;
+}
+
+/**
+ * Get field key for ajax response of formidable form
+ */
+function apbct__formidable_get_key_field_for_ajax_response($_form = array())
+{
+    $key_field = '113';
+
+    if (
+        isset($_POST['item_meta']) &&
+        is_array($_POST['item_meta'])
+    ) {
+        $key_field = array_keys($_POST['item_meta'])[1];
+    } elseif (is_array($_form) && isset($_form['item_meta'])) {
+        foreach ($_form['item_meta'] as $key => $value) {
+            if ($value) {
+                $key_field = $key;
+                break;
+            }
+        }
+    }
+
+    return $key_field;
 }
 
 /**
@@ -1117,8 +1146,34 @@ function ct_preprocess_comment($comment)
     }
 
     if ( $ct_result->allow ) { // Pass if allowed
-        if ( get_option('comment_moderation') === '1' ) { // Wordpress moderation flag
+        // If moderation is required
+        if ( get_option('comment_moderation') === '1' ) {
             add_filter('pre_comment_approved', 'ct_set_not_approved', 999, 2);
+        // If new author have to be moderated
+        } elseif ( get_option('comment_previously_approved') === '1' && get_option('cleantalk_allowed_moderation', 1) != 1 ) {
+            $comment_author = isset($comment['comment_author']) ? $comment['comment_author'] : '';
+            $comment_author_email = isset($comment['comment_author_email']) ? $comment['comment_author_email'] : '';
+            $comment_author_url = isset($comment['comment_author_url']) ? $comment['comment_author_url'] : '';
+            $comment_content = isset($comment['comment_content']) ? $comment['comment_content'] : '';
+            $comment_author_IP = isset($comment['comment_author_IP']) ? $comment['comment_author_IP'] : '';
+            $comment_agent = isset($comment['comment_agent']) ? $comment['comment_agent'] : '';
+            $comment_type = isset($comment['comment_type']) ? $comment['comment_type'] : '';
+            if (
+                check_comment(
+                    $comment_author,
+                    $comment_author_email,
+                    $comment_author_url,
+                    $comment_content,
+                    $comment_author_IP,
+                    $comment_agent,
+                    $comment_type
+                )
+            ) {
+                add_filter('pre_comment_approved', 'ct_set_approved', 999, 2);
+            } else {
+                add_filter('pre_comment_approved', 'ct_set_not_approved', 999, 2);
+            }
+        // Allowed comment will be published
         } else {
             add_filter('pre_comment_approved', 'ct_set_approved', 999, 2);
         }
@@ -1469,19 +1524,34 @@ function ct_registration_errors($errors, $sanitized_user_login = null, $user_ema
     /**
      * Changing the type of check for BuddyPress
      */
-    if (Post::get('signup_username') && Post::get('signup_email')) {
-        $reg_flag = false;
+    if ( Post::get('signup_username') && Post::get('signup_email') ) {
+        // if buddy press set up custom fields
+        $reg_flag = empty(Post::get('signup_profile_field_ids'));
+    }
+
+    $base_call_array = array(
+        'sender_email'    => $user_email,
+        'sender_nickname' => $sanitized_user_login,
+        'sender_info'     => $sender_info,
+        'js_on'           => $checkjs,
+    );
+
+    if ( !$reg_flag ) {
+        $field_values = '';
+        $fields_numbers_to_check = explode(',', Post::get('signup_profile_field_ids'));
+        foreach ( $fields_numbers_to_check as $field_number ) {
+            $field_name = 'field_' . $field_number;
+            $field_value = Post::get($field_name) ? Post::get($field_name) : '';
+            $field_values .= $field_value . "\n";
+        }
+        $base_call_array['message'] = $field_values;
     }
 
     $base_call_result = apbct_base_call(
-        array(
-            'sender_email'    => $user_email,
-            'sender_nickname' => $sanitized_user_login,
-            'sender_info'     => $sender_info,
-            'js_on'           => $checkjs,
-        ),
+        $base_call_array,
         $reg_flag
     );
+
     $ct_result        = $base_call_result['ct_result'];
     ct_hash($ct_result->id);
     // Change mail notification if license is out of date
@@ -2361,8 +2431,14 @@ function apbct_form__WPForms__testSpam()
 
     $checkjs = apbct_js_test('ct_checkjs_wpforms', $_POST);
 
-    $email     = $apbct->form_data['email'] ?: null;
-    $nickname  = $apbct->form_data['name'] && is_array($apbct->form_data['name']) ? array_shift(
+    $email = $apbct->form_data['email'] ?: null;
+
+    # Fixed if the 'Enable email address confirmation' option is enabled
+    if ( is_array($email) ) {
+        $email = reset($email);
+    }
+
+    $nickname = $apbct->form_data['name'] && is_array($apbct->form_data['name']) ? array_shift(
         $apbct->form_data['name']
     ) : null;
     $form_data = $apbct->form_data;
@@ -2769,7 +2845,7 @@ function apbct_form__gravityForms__testSpam($is_spam, $form, $entry)
         }
 
         foreach ( $form_fields_intermediate as $field ) {
-            if ( $field['f_type'] === 'email' ) {
+            if ( $field['f_type'] === 'email' && $field['f_visibility'] === 'visible') {
                 $email = $field['f_data'];
             }
 

@@ -4,7 +4,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 5.177.2
+  Version: 5.178
   Author: СleanTalk <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -171,6 +171,10 @@ add_action('wp_ajax_apbct_js_keys__get', 'apbct_js_keys__get__ajax');
 // Get Pixel URL via WP ajax handler
 add_action('wp_ajax_nopriv_apbct_get_pixel_url', 'apbct_get_pixel_url__ajax');
 add_action('wp_ajax_apbct_apbct_get_pixel_url', 'apbct_get_pixel_url__ajax');
+
+// Force ajax checking for external forms
+add_action('wp_ajax_nopriv_cleantalk_force_ajax_check', 'ct_ajax_hook');
+add_action('wp_ajax_cleantalk_force_ajax_check', 'ct_ajax_hook');
 
 // Checking email before POST
 add_action('wp_ajax_nopriv_apbct_email_check_before_post', 'apbct_email_check_before_post');
@@ -340,7 +344,7 @@ $apbct_active_integrations = array(
         'ajax'    => false
     ),
     'VisualFormBuilder' => array(
-        'hook'    => 'vfb_isBot',
+        'hook'    => array('vfb_isbot','vfb_isBot'),
         'setting' => 'forms__contact_forms_test',
         'ajax'    => false
     ),
@@ -1005,7 +1009,7 @@ function apbct_sfw_update__worker($checker_work = false)
 
     $result = $queue->executeStage();
 
-    if ( isset($result['error']) ) {
+    if ( isset($result['error']) && $result['status'] === 'FINISHED' ) {
         $apbct->errorAdd('sfw_update', $result['error']);
         $apbct->saveErrors();
 
@@ -1019,7 +1023,13 @@ function apbct_sfw_update__worker($checker_work = false)
         $queue->saveQueue($queue->queue);
         foreach ( $queue->queue['stages'] as $stage ) {
             if ( isset($stage['error']) ) {
-                $apbct->errorAdd('sfw_update', $stage['error']);
+                //there could be an array of errors of files processed
+                if (is_array($stage['error'])){
+                    $error = implode(" ",array_values($stage['error']));
+                } else {
+                    $error = $result['error'];
+                }
+                $apbct->errorAdd('sfw_update', $error);
             }
         }
 
@@ -1917,157 +1927,6 @@ function apbct_rc__uninstall_plugin__check_deactivate()
 }
 
 /**
- * @throws JsonException
- * @psalm-suppress UndefinedClass
- */
-function apbct_rc__update()
-{
-    global $wp_version;
-
-    // Check download_source if set
-    if ( Get::get('download_source') ) {
-        switch ( Get::get('download_source') ) {
-            case 'cleantalk':
-                $download_url = 'https://download.cleantalk.org/antispam/wordpress/cleantalk-spam-protect._VERSION_.zip';
-                break;
-            case 'wordpress':
-                $download_url = 'https://downloads.wordpress.org/plugin/cleantalk-spam-protect._VERSION_.zip';
-                break;
-            case 'github':
-                $download_url = 'https://github.com/CleanTalk/wordpress-antispam/releases/download/_VERSION_/cleantalk-spam-protect._VERSION_.zip';
-                break;
-            default:
-                apbct_update__outputResult('CHECK_INPUT', false, array('error' => 'download_source is wrong'));
-                break;
-        }
-    }
-
-    // Check download_version if set
-    if ( Get::get('download_version') ) {
-        if ( ! preg_match('@^\d+\.\d+(\.\d+)?$@', Get::get('download_version')) ) {
-            apbct_update__outputResult(
-                'CHECK_INPUT',
-                false,
-                array('error' => 'Download version (' . Get::get('download_version') . ') is wrong')
-            );
-        }
-        $download_version = Get::get('download_version');
-    }
-
-    if ( isset($download_url, $download_version) ) {
-        $download_url = str_replace('_VERSION_', $download_version, $download_url);
-
-        if ( Helper::httpRequestGetResponseCode($download_url) !== 200 ) {
-            apbct_update__outputResult(
-                'CHECK_SOURCE',
-                false,
-                array('error' => 'Package is unavailable', 'package' => $download_url)
-            );
-        }
-
-        add_filter(
-            'site_transient_update_plugins',
-            function ($value, $_transient) use ($download_url) {
-                $value->response['cleantalk-spam-protect/cleantalk.php'] = (object)array(
-                    'package' => $download_url,
-                );
-
-                return $value;
-            },
-            1000,
-            2
-        );
-    }
-
-    //Upgrade params
-    $plugin               = 'cleantalk-spam-protect/cleantalk.php';
-    $plugin_slug          = 'cleantalk-spam-protect';
-    $title                = __('Update Plugin');
-    $nonce                = 'upgrade-plugin_' . $plugin;
-    $url                  = 'update.php?action=upgrade-plugin&plugin=' . urlencode($plugin);
-    $activate_for_network = false;
-    if ( APBCT_WPMS && is_main_site() && array_key_exists($plugin, get_site_option('active_sitewide_plugins')) ) {
-        $activate_for_network = true;
-    }
-
-    $prev_version = APBCT_VERSION;
-
-    require_once(ABSPATH . 'wp-admin/includes/plugin.php');
-    include_once(ABSPATH . 'wp-admin/includes/class-wp-upgrader.php');
-    include_once(ABSPATH . 'wp-admin/includes/file.php');
-    include_once(ABSPATH . 'wp-admin/includes/misc.php');
-
-    apbct_maintenance_mode__enable(30);
-
-    if ( version_compare(PHP_VERSION, '5.6.0') >= 0 && version_compare($wp_version, '5.3') >= 0 ) {
-        $upgrader = new CleantalkUpgrader(new CleantalkUpgraderSkin(compact('title', 'nonce', 'url', 'plugin')));
-    } else {
-        $upgrader = new CleantalkUpgrader(
-            new CleantalkUpgraderSkinDeprecated(compact('title', 'nonce', 'url', 'plugin'))
-        );
-    }
-
-    $upgrader_result = $upgrader->upgrade($plugin);
-    if ( is_wp_error($upgrader_result) ) {
-        error_log('CleanTalk debug message:');
-        error_log(var_export($upgrader_result->get_error_message(), true));
-    }
-
-    apbct_maintenance_mode__disable();
-
-    apbct_update__outputResult(
-        'UPDATE',
-        $upgrader->apbct_result
-    );
-
-    if ( $upgrader->apbct_result === 'OK' ) {
-        $result = activate_plugins($plugin);
-
-        apbct_update__outputResult(
-            'PLUGIN_ACTIVATING',
-            is_wp_error($result) || $result === false ? 'FAIL' : 'OK',
-            array('wp_error' => is_wp_error($result) ? $result->get_error_message() : '')
-        );
-
-        $httpResponseCode = Helper::httpRequestGetResponseCode(get_option('home'));
-
-        if ( $httpResponseCode != 200 ) {
-            // Rollback
-            apbct_maintenance_mode__enable(30);
-
-            $rollback = version_compare(PHP_VERSION, '5.6.0') >= 0 && version_compare($wp_version, '5.3') >= 0
-                ? new CleantalkUpgrader(new CleantalkUpgraderSkin(compact('title', 'nonce', 'url', 'plugin')))
-                : new CleantalkUpgrader(
-                    new CleantalkUpgraderSkinDeprecated(compact('title', 'nonce', 'url', 'plugin'))
-                );
-            $rollback->rollback($plugin);
-
-            apbct_maintenance_mode__disable();
-
-            apbct_update__outputResult(
-                'CHECK_RESPONSE',
-                'FAIL',
-                array(
-                    'error'           => 'BAD_HTTP_CODE',
-                    'http_code'       => $httpResponseCode,
-                    'output'          => htmlspecialchars(
-                        substr(Helper::httpRequestGetContent(get_option('home')), 0, 900)
-                    ),
-                    'rollback_result' => $rollback->apbct_result,
-                )
-            );
-        }
-
-        apbct_update__outputResult(
-            'CHECK_RESPONSE',
-            'OK'
-        );
-    }
-
-    die('FUNCTION IS COMPLETE. OK.');
-}
-
-/**
  * @param $source
  *
  * @return bool
@@ -2441,7 +2300,7 @@ function apbct_cookies_test()
 
         $check_string = $apbct->api_key;
         foreach ( $cookie_test['cookies_names'] as $cookie_name ) {
-            $check_string .= isset($_COOKIE[$cookie_name]) ? $_COOKIE[$cookie_name] : '';
+            $check_string .= Cookie::get($cookie_name);
         }
 
         if ( $cookie_test['check_value'] == md5($check_string) ) {

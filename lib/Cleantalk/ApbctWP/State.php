@@ -213,6 +213,9 @@ class State extends \Cleantalk\Common\State
         // User's test
         'count_checked_users'      => 0,
         'count_bad_users'          => 0,
+
+        // Check URL exclusion by the new way - as URL
+        'check_exclusion_as_url'  => true,
     );
 
     public $def_network_settings = array(
@@ -254,7 +257,6 @@ class State extends \Cleantalk\Common\State
         'sfw_send_logs'      => array('last_call' => 0, 'cooldown' => 0),
 
         // Installation
-        'update_plugin'      => array('last_call' => 0, 'cooldown' => 0),
         'install_plugin'     => array('last_call' => 0, 'cooldown' => 0),
         'activate_plugin'    => array('last_call' => 0, 'cooldown' => 0),
         'insert_auth_key'    => array('last_call' => 0, 'cooldown' => 0),

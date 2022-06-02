@@ -132,8 +132,8 @@ class Request extends \Cleantalk\Common\HTTP\Request
 
                     case 'ssl':
                         $this->options['verifyname'] = true;
-                        if ( defined('CLEANTALK_CASERT_PATH') && CLEANTALK_CASERT_PATH ) {
-                            $this->options['verify'] = CLEANTALK_CASERT_PATH;
+                        if ( defined('APBCT_CASERT_PATH') && APBCT_CASERT_PATH ) {
+                            $this->options['verify'] = APBCT_CASERT_PATH;
                         }
                         break;
 

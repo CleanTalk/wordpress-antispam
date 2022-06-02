@@ -122,7 +122,11 @@ function isIntegratedForm(formObj) {
         formAction.indexOf('mailerlite.com') !== -1 || // Mailerlite integration
         formAction.indexOf('colcolmail.co.uk') !== -1 || // colcolmail.co.uk integration
         formAction.indexOf('paypal.com') !== -1 ||
-        formAction.indexOf('infusionsoft.com') !== -1
+        formAction.indexOf('infusionsoft.com') !== -1 ||
+        formAction.indexOf('webto.salesforce.com') !== -1 ||
+        formAction.indexOf('secure2.convio.net') !== -1 ||
+        formAction.indexOf('hookb.in') !== -1 ||
+        formAction.indexOf('external.url') !== -1
     ) {
         return true;
     }
@@ -157,7 +161,7 @@ function sendAjaxCheckingFormData(form, prev, formOriginal) {
             async: false,
             callback: function( prev, formOriginal, result ){
 
-                if( ! +result.apbct.blocked ) {
+                if( result.apbct === undefined || ! +result.apbct.blocked ) {
 
                     var form_new = jQuery(form).detach();
 
@@ -169,12 +173,20 @@ function sendAjaxCheckingFormData(form, prev, formOriginal) {
                     var subm_button = jQuery(formOriginal).find('button[type=submit]');
                     if( subm_button.length !== 0 ) {
                         subm_button[0].click();
+                        return;
+                    }
+
+                    subm_button = jQuery(formOriginal).find('input[type=submit]');
+                    if( subm_button.length !== 0 ) {
+                        subm_button[0].click();
+                        return;
                     }
 
                     // ConvertKit direct integration
                     subm_button = jQuery(formOriginal).find('button[data-element="submit"]');
                     if( subm_button.length !== 0 ) {
                         subm_button[0].click();
+                        return;
                     }
 
                     // Paypal integration

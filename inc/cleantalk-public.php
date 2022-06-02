@@ -167,7 +167,7 @@ function apbct_init()
     if ( class_exists('WooCommerce') ) {
         add_filter('woocommerce_registration_errors', 'ct_registration_errors', 1, 3);
         if ( $apbct->settings['forms__wc_checkout_test'] == 1 ) {
-            add_filter('woocommerce_checkout_process', 'ct_woocommerce_checkout_check', 1, 3);
+            add_action('woocommerce_after_checkout_validation', 'ct_woocommerce_checkout_check', 1, 2);
         }
         if ( Request::get('wc-ajax') === 'checkout' && empty($apbct->settings['forms__wc_register_from_order']) ) {
             remove_filter('woocommerce_registration_errors', 'ct_registration_errors', 1);
@@ -1319,6 +1319,7 @@ function apbct_enqueue_and_localize_public_scripts()
         'data__cookies_type'                   => $apbct->data['cookies_type'],
         'data__ajax_type'                      => $apbct->data['ajax_type'],
         'text__wait_for_decoding'              => esc_html__('Wait for decoding...', 'cleantalk-spam-protect'),
+        'cookiePrefix'                         => apbct__get_cookie_prefix(),
     ));
 
     wp_localize_script('ct_public', 'ctPublic', array(

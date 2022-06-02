@@ -1,5 +1,6 @@
 <?php
 
+use Cleantalk\ApbctWP\Validate;
 use Cleantalk\Variables\Post;
 use Cleantalk\ApbctWP\Cron;
 use Cleantalk\Variables\Server;
@@ -23,6 +24,19 @@ function apbct_settings_add_page()
         'cleantalk',
         $callback
     );
+
+    // Add CleanTalk Moderation option to the Discussion page
+    add_settings_field(
+        'cleantalk_allowed_moderation',
+        esc_html__('CleanTalk allowed comments moderation', 'cleantalk-spam-protect'),
+        'apbct_discussion_settings__field__moderation',
+        'discussion'
+    );
+    add_filter('allowed_options', function ($options) {
+        $options['discussion'][] = 'cleantalk_allowed_moderation';
+        return $options;
+    });
+    // End modification Discussion page
 
     if ( ! in_array($pagenow, array('options.php', 'options-general.php', 'settings.php', 'admin.php')) ) {
         return;
@@ -441,7 +455,7 @@ function apbct_settings__set_fileds()
                         array(
                             'val'              => 2,
                             'label'            => __(
-                                'Use alternative mechanism for cookies',
+                                'Store data in the website database (alternative mechanism)',
                                 'cleantalk-spam-protect'
                             ),
                             'childrens_enable' => 1,
@@ -522,6 +536,7 @@ function apbct_settings__set_fileds()
                 'data__email_decoder'        => array(
                     'title'       => __('Encode contact data', 'cleantalk-spam-protect'),
                     'description' => __('Turn on this option to prevent crawlers grab contact data (emails) from website content.', 'cleantalk-spam-protect'),
+                    'long_description' => true,
                 ),
             ),
         ),
@@ -539,7 +554,7 @@ function apbct_settings__set_fileds()
                     'type'        => 'textarea',
                     'title'       => __('URL exclusions', 'cleantalk-spam-protect'),
                     'description' => __(
-                        'You could type here a part of the URL you want to exclude. No need to type whole URL with "www" and protocol. Use comma or new lines as separator. Exclusion value will be sliced to 128 chars, exclusions number is restricted by 20 values.',
+                        'You could type here a part of the URL you want to exclude. Use comma or new lines as separator. Exclusion value will be sliced to 128 chars, exclusions number is restricted by 20 values.',
                         'cleantalk-spam-protect'
                     ),
                 ),
@@ -1796,6 +1811,21 @@ function apbct_settings__field__debug_tab()
     echo '</div>';
 }
 
+function apbct_discussion_settings__field__moderation()
+{
+    $output  = '<label for="cleantalk_allowed_moderation">';
+    $output .= '<input 
+                type="checkbox" 
+                name="cleantalk_allowed_moderation" 
+                id="cleantalk_allowed_moderation" 
+                value="1" ' .
+                checked('1', get_option('cleantalk_allowed_moderation', 1), false) .
+                '/> ';
+    $output .= esc_html__('Skip manual approving for the very first comment if a comment has been allowed by CleanTalk Anti-Spam protection', 'cleantalk-spam-protect');
+    $output .= '</label>';
+    echo $output;
+}
+
 function apbct_get_all_child_domains($except_main_site = false)
 {
     global $wpdb;
@@ -2116,9 +2146,14 @@ function apbct_settings__validate($settings)
 
     // Validate Exclusions
     // URLs
+    if ( empty($apbct->settings['exclusions__urls']) ) {
+        // If the field is empty, the new way checking by URL will be activated.
+        $apbct->data['check_exclusion_as_url'] = true;
+    }
     $result = apbct_settings__sanitize__exclusions(
         $settings['exclusions__urls'],
-        $settings['exclusions__urls__use_regexp']
+        $settings['exclusions__urls__use_regexp'],
+        $apbct->data['check_exclusion_as_url']
     );
     $result === false
         ? $apbct->errorAdd(
@@ -2549,7 +2584,7 @@ function apbct_update_blogs_options($settings)
  *
  * @return bool|string
  */
-function apbct_settings__sanitize__exclusions($exclusions, $regexp = false)
+function apbct_settings__sanitize__exclusions($exclusions, $regexp = false, $urls = false)
 {
     if ( ! is_string($exclusions) ) {
         return false;
@@ -2576,13 +2611,18 @@ function apbct_settings__sanitize__exclusions($exclusions, $regexp = false)
         foreach ($exclusions as $exclusion) {
             //Cut exclusion if more than 128 symbols gained
             $sanitized_exclusion = substr($exclusion, 0, 128);
-            $sanitized_exclusion = trim($sanitized_exclusion, " \t\n\r\0\x0B/\/");
+            $sanitized_exclusion = trim($sanitized_exclusion);
 
             if ( ! empty($sanitized_exclusion) ) {
-                if ( $regexp && !apbct_is_regexp($exclusion) ) {
-                    return false;
+                if ( $regexp ) {
+                    if ( ! Validate::isRegexp($exclusion) ) {
+                        return false;
+                    }
+                } elseif ( $urls ) {
+                    if ( ! Validate::isUrl($exclusion) ) {
+                        return false;
+                    }
                 }
-
                 $result[] = $sanitized_exclusion;
             }
         }
@@ -2668,6 +2708,13 @@ function apbct_settings__get__long_description()
                     . '<p>' . esc_html__('You can read more about SFW modes %s', 'cleantalk-spam-protect') . '</p>'
                     . '<p>' . esc_html__('Read out the article if you are using Varnish on your server.', 'cleantalk-spam-protect'),
                 '<a href="https://cleantalk.org/help/anti-flood-and-anti-crawler{utm_mark}" target="_blank">' . __('here.', 'cleantalk-spam-protect') . '</a>'
+            )
+        ),
+        'data__email_decoder' => array(
+            'title' => __('Encode contact data', 'cleantalk-spam-protect'),
+            'desc'  => sprintf(
+                __('This option allows you to encode contacts on the public pages of the site. This prevents robots from automatically collecting such data and prevents it from being included in spam lists. %s', 'cleantalk-spam-protect'),
+                '<a href="https://cleantalk.org/help/email-encode{utm_mark}" target="_blank">' . __('Learn more.', 'cleantalk-spam-protect') . '</a>'
             )
         ),
     );

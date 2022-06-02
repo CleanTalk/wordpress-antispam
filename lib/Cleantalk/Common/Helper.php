@@ -1063,7 +1063,7 @@ class Helper
      *
      * @return string
      */
-    private static function getFilenameFromUrl($url)
+    protected static function getFilenameFromUrl($url)
     {
         $array = explode('/', $url);
 
