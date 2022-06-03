@@ -983,6 +983,10 @@ function apbct_sfw_update__worker($checker_work = false)
         return array('error' => 'Worker: KEY_IS_NOT_VALID');
     }
 
+    if ( ! $apbct->settings['sfw__enabled'] ) {
+        return false;
+    }
+
     if ( ! $checker_work ) {
         if (
             Request::equal('firewall_updating_id', '') ||
