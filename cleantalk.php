@@ -971,8 +971,6 @@ function apbct_sfw_update__worker($checker_work = false)
 {
     global $apbct;
 
-    usleep(10000);
-
     if ( ! $apbct->data['key_is_ok'] ) {
         return array('error' => 'Worker: KEY_IS_NOT_VALID');
     }
@@ -1008,6 +1006,22 @@ function apbct_sfw_update__worker($checker_work = false)
     }
 
     $result = $queue->executeStage();
+
+    if ( $result === null ) {
+        // The stage is in progress, will try to wait up to 5 seconds to its complete
+        for ( $i = 0; $i < 5; $i++ ) {
+            sleep(1);
+            $queue->refreshQueue();
+            if ( ! $queue->isQueueInProgress() ) {
+                // The tage executed, break waiting and continue sfw_update__worker process
+                break;
+            }
+            if ( $i >= 4 ) {
+                // The stage still not executed, exit from sfw_update__worker
+                return true;
+            }
+        }
+    }
 
     if ( isset($result['error']) && $result['status'] === 'FINISHED' ) {
         $apbct->errorAdd('sfw_update', $result['error']);
