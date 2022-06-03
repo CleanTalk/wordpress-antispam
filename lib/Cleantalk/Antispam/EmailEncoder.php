@@ -52,9 +52,7 @@ class EmailEncoder
 
     public function modifyContent($content)
     {
-        global $apbct;
-
-        if ( apbct_is_user_role_in(['administrator']) || (!$apbct->settings['data__protect_logged_in'] && is_user_logged_in()) ) {
+        if ( apbct_is_user_logged_in() ) {
             return $content;
         }
 
