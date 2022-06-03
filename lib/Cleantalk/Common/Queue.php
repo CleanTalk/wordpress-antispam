@@ -148,6 +148,8 @@ abstract class Queue
 
             return array('error' => $stage_to_execute['name'] . ' is not a callable function.');
         }
+
+        return null;
     }
 
     public function isQueueInProgress()
