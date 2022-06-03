@@ -1013,7 +1013,7 @@ function apbct_sfw_update__worker($checker_work = false)
             sleep(1);
             $queue->refreshQueue();
             if ( ! $queue->isQueueInProgress() ) {
-                // The tage executed, break waiting and continue sfw_update__worker process
+                // The stage executed, break waiting and continue sfw_update__worker process
                 break;
             }
             if ( $i >= 4 ) {
