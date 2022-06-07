@@ -2,7 +2,6 @@
 
 namespace Cleantalk\Antispam;
 
-use Cleantalk\ApbctWP\Escape;
 use Cleantalk\Templates\Singleton;
 use Cleantalk\Variables\Post;
 
@@ -56,21 +55,17 @@ class EmailEncoder
             return $content;
         }
 
-        return preg_replace_callback('/([_A-Za-z0-9-]+(\.[_A-Za-z0-9-]+)*@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)*(\.[A-Za-z]{2,}))/', function ($matches) {
-            if ( in_array(strtolower($matches[4]), ['.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp']) ) {
+        return preg_replace_callback('/(<a.*?mailto\:.*?<\/a>?)|(\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+(\.[A-Za-z]{2,}))/', function ($matches) {
+
+            if ( isset($matches[3]) && in_array(strtolower($matches[3]), ['.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp']) ) {
                 return $matches[0];
             }
 
-            $obfuscated = $this->obfuscateEmail($matches[0]);
+            if ( $this->isMailto($matches[0]) ) {
+                return $this->encodeMailtoLink($matches[0]);
+            }
 
-            $encoded = $this->encodeEmail($matches[0], $this->secret_key);
-
-            $tooltip = esc_html__('This contact was encoded by CleanTalk. Click to decode.', 'cleantalk-spam-protect');
-
-            return '<span 
-                data-original-string="' . $encoded . '" 
-                class="apbct-email-encoder"
-                title="' . esc_attr($tooltip) . '">' . $obfuscated . '</span>';
+            return $this->encodePlainEmail($matches[0]);
         }, $content);
     }
 
@@ -85,16 +80,16 @@ class EmailEncoder
         // @ToDo implement bot checking via API. the method not implemented yet.
 
         $encoded_email = trim(Post::get('encodedEmail'));
-        $email = $this->decodeEmail($encoded_email, $this->secret_key);
-        wp_send_json_success(Escape::escHtml($email));
+        $email = $this->decodeString($encoded_email, $this->secret_key);
+        wp_send_json_success(strip_tags($email, 'a'));
     }
 
     private function encodeEmail($plain_email, $key)
     {
         if ( $this->encription ) {
-            $encoded_email = htmlspecialchars(@openssl_encrypt($plain_email, 'aes-128-cbc', $key));
+            $encoded_email = htmlspecialchars(@openssl_encrypt($plain_string, 'aes-128-cbc', $key));
         } else {
-            $encoded_email = htmlspecialchars(base64_encode(str_rot13($plain_email)));
+            $encoded_email = htmlspecialchars(base64_encode(str_rot13($plain_string)));
         }
         return $encoded_email;
     }
@@ -102,9 +97,9 @@ class EmailEncoder
     private function decodeEmail($encoded_email, $key)
     {
         if ( $this->encription  ) {
-            $decoded_email = htmlspecialchars_decode(@openssl_decrypt($encoded_email, 'aes-128-cbc', $key));
+            $decoded_email = htmlspecialchars_decode(@openssl_decrypt($encoded_string, 'aes-128-cbc', $key));
         } else {
-            $decoded_email = htmlspecialchars_decode(base64_decode($encoded_email));
+            $decoded_email = htmlspecialchars_decode(base64_decode($encoded_string));
             $decoded_email = str_rot13($decoded_email);
         }
         return $decoded_email;
@@ -119,5 +114,46 @@ class EmailEncoder
                        . str_pad('', strpos($email, '.', strpos($email, '@')) - 3 - strpos($email, '@'), '*');
         $last_part = substr($email, (int) strrpos($email, '.', -1) - strlen($email));
         return $first_part . '@' . $second_part . $last_part;
+    }
+
+    private function encodePlainEmail($email_str)
+    {
+        $obfuscated = $this->obfuscateEmail($email_str);
+
+        $encoded = $this->encodeString($email_str, $this->secret_key);
+
+        return '<span 
+                data-original-string="' . $encoded . '" 
+                class="apbct-email-encoder"
+                title="' . esc_attr($this->getTooltip()) . '">' . $obfuscated . '</span>';
+    }
+
+    private function isMailto($string)
+    {
+        return strpos($string, 'mailto:') !== false;
+    }
+
+    private function encodeMailtoLink($mailto_link_str)
+    {
+        // Get inner tag text and place it in $matches[1]
+        preg_match('/<a.*?mailto\:.*?>(.*?)<\/a>?/', $mailto_link_str, $matches);
+        if ( isset($matches[1]) ) {
+            $mailto_inner_text = preg_replace_callback('/\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,}/', function ($matches) {
+                return $this->obfuscateEmail($matches[0]);
+            }, $matches[1]);
+        }
+        $encoded = $this->encodeString($mailto_link_str, $this->secret_key);
+
+        $text = isset($mailto_inner_text) ? $mailto_inner_text : $mailto_link_str;
+
+        return '<span 
+                data-original-string="' . $encoded . '" 
+                class="apbct-email-encoder"
+                title="' . esc_attr($this->getTooltip()) . '">' . $text . '</span>';
+    }
+
+    private function getTooltip()
+    {
+        return esc_html__('This contact was encoded by CleanTalk. Click to decode.', 'cleantalk-spam-protect');
     }
 }
