@@ -14,6 +14,10 @@ function ct_protect_external() {
                 if(isIntegratedForm(currentForm)) {
                     jQuery( currentForm ).before('<i class="cleantalk_placeholder" style="display: none;"></i>');
 
+                    // if (currentForm.action.indexOf('tp.media') !== -1){
+                    //     return
+                    // }
+
                     // Deleting form to prevent submit event
                     var prev = jQuery(currentForm).prev(),
                         form_html = currentForm.outerHTML,
@@ -126,7 +130,10 @@ function isIntegratedForm(formObj) {
         formAction.indexOf('webto.salesforce.com') !== -1 ||
         formAction.indexOf('secure2.convio.net') !== -1 ||
         formAction.indexOf('hookb.in') !== -1 ||
-        formAction.indexOf('external.url') !== -1
+        formAction.indexOf('external.url') !== -1 ||
+        formAction.indexOf('tp.media') !== -1 ||
+        formAction.indexOf('flodesk.com') !== -1
+
     ) {
         return true;
     }
