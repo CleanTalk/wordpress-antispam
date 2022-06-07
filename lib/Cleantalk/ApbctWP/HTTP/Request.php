@@ -142,6 +142,20 @@ class Request extends \Cleantalk\Common\HTTP\Request
                         $this->options['header'] = true;
                         $this->options['nobody'] = true;
                         break;
+
+                    case 'no_cache':
+                        // Append parameter in a different way for single and multiple requests
+                        if ( is_array($this->url) ) {
+                            $this->url = array_map(static function ($elem) {
+                                return self::appendParametersToURL($elem, ['apbct_no_cache' => mt_rand()]);
+                            }, $this->url);
+                        } else {
+                            $this->url = self::appendParametersToURL(
+                                $this->url,
+                                ['apbct_no_cache' => mt_rand()]
+                            );
+                        }
+                        break;
                 }
             }
         }
