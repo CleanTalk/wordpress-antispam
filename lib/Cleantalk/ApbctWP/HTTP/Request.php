@@ -106,6 +106,20 @@ class Request extends \Cleantalk\Common\HTTP\Request
     }
 
     /**
+     * Set default options to make a request
+     */
+    protected function appendOptionsObligatory()
+    {
+        parent::appendOptionsObligatory();
+
+        global $apbct;
+
+        if ( $apbct->settings['wp__use_builtin_http_api'] ) {
+            $this->options['useragent'] = self::AGENT;
+        }
+    }
+
+    /**
      * Append options considering passed presets
      */
     protected function processPresets()
