@@ -9,10 +9,19 @@ class EmailEncoder
 {
     use Singleton;
 
+    /**
+     * @var string
+     */
     private $secret_key;
 
+    /**
+     * @var bool
+     */
     private $encription;
 
+    /**
+     * @inheritDoc
+     */
     protected function init()
     {
         global $apbct;
@@ -49,6 +58,12 @@ class EmailEncoder
         add_action('wp_ajax_apbct_decode_email', array($this, 'ajaxDecodeEmailHandler'));
     }
 
+    /**
+     * @param $content string
+     *
+     * @return string
+     * @psalm-suppress PossiblyUnusedReturnValue
+     */
     public function modifyContent($content)
     {
         if ( apbct_is_user_logged_in() ) {
@@ -69,6 +84,11 @@ class EmailEncoder
         }, $content);
     }
 
+    /**
+     * Ajax handler for the apbct_decode_email action
+     *
+     * @return void
+     */
     public function ajaxDecodeEmailHandler()
     {
         check_ajax_referer('ct_secret_stuff');
@@ -84,7 +104,15 @@ class EmailEncoder
         wp_send_json_success(strip_tags($email, 'a'));
     }
 
-    private function encodeEmail($plain_email, $key)
+    /**
+     * Encoding any string
+     *
+     * @param $plain_string string
+     * @param $key string
+     *
+     * @return string
+     */
+    private function encodeString($plain_string, $key)
     {
         if ( $this->encription ) {
             $encoded_email = htmlspecialchars(@openssl_encrypt($plain_string, 'aes-128-cbc', $key));
@@ -94,7 +122,15 @@ class EmailEncoder
         return $encoded_email;
     }
 
-    private function decodeEmail($encoded_email, $key)
+    /**
+     * Decoding previously encoded string
+     *
+     * @param $encoded_string string
+     * @param $key string
+     *
+     * @return string
+     */
+    private function decodeString($encoded_string, $key)
     {
         if ( $this->encription  ) {
             $decoded_email = htmlspecialchars_decode(@openssl_decrypt($encoded_string, 'aes-128-cbc', $key));
@@ -105,6 +141,13 @@ class EmailEncoder
         return $decoded_email;
     }
 
+    /**
+     * Obfuscate an email to the s****@**.com view
+     *
+     * @param $email string
+     *
+     * @return string
+     */
     private function obfuscateEmail($email)
     {
         $first_part = strpos($email, '@') > 2
@@ -116,6 +159,13 @@ class EmailEncoder
         return $first_part . '@' . $second_part . $last_part;
     }
 
+    /**
+     * Method to process plain email
+     *
+     * @param $email_str string
+     *
+     * @return string
+     */
     private function encodePlainEmail($email_str)
     {
         $obfuscated = $this->obfuscateEmail($email_str);
@@ -128,11 +178,25 @@ class EmailEncoder
                 title="' . esc_attr($this->getTooltip()) . '">' . $obfuscated . '</span>';
     }
 
+    /**
+     * Checking if the string contains mailto: link
+     *
+     * @param $string string
+     *
+     * @return bool
+     */
     private function isMailto($string)
     {
         return strpos($string, 'mailto:') !== false;
     }
 
+    /**
+     * Method to process mailto: links
+     *
+     * @param $mailto_link_str string
+     *
+     * @return string
+     */
     private function encodeMailtoLink($mailto_link_str)
     {
         // Get inner tag text and place it in $matches[1]
