@@ -112,7 +112,8 @@ class Helper extends \Cleantalk\Common\Helper
         ), $request_params);
         $patterns       = array_merge(
             array(
-                'dont_split_to_array'
+                'dont_split_to_array',
+                'no_cache'
             ),
             $patterns
         );
