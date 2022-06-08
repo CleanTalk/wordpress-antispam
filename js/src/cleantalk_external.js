@@ -12,11 +12,8 @@ function ct_protect_external() {
             if(typeof(currentForm.action) == 'string') {
 
                 if(isIntegratedForm(currentForm)) {
-                    jQuery( currentForm ).before('<i class="cleantalk_placeholder" style="display: none;"></i>');
 
-                    // if (currentForm.action.indexOf('tp.media') !== -1){
-                    //     return
-                    // }
+                    jQuery( currentForm ).before('<i class="cleantalk_placeholder" style="display: none;"></i>');
 
                     // Deleting form to prevent submit event
                     var prev = jQuery(currentForm).prev(),
@@ -75,7 +72,8 @@ function ct_protect_external() {
                         ct_method.value = currentForm.method;
                         ct_method.type = 'hidden';
 
-                        currentForm.method = 'POST';
+                        currentForm.method = 'POST'
+
                         currentForm.appendChild(ct_method);
 
                         currentForm.action = document.location;
