@@ -1048,7 +1048,7 @@ function apbct_sfw_update__worker($checker_work = false)
         $queue->queue['finished'] = time();
         $queue->saveQueue($queue->queue);
         foreach ( $queue->queue['stages'] as $stage ) {
-            if ( isset($stage['error'], $stage['status']) && $stage['status'] !=='FINISHED') {
+            if ( isset($stage['error'], $stage['status']) && $stage['status'] !== 'FINISHED' ) {
                 //there could be an array of errors of files processed
                 if ( is_array($stage['error']) ) {
                     $error = implode(" ", array_values($stage['error']));
