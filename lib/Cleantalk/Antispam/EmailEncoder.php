@@ -101,7 +101,7 @@ class EmailEncoder
 
         $encoded_email = trim(Post::get('encodedEmail'));
         $email = $this->decodeString($encoded_email, $this->secret_key);
-        wp_send_json_success(strip_tags($email, 'a'));
+        wp_send_json_success(strip_tags($email, '<a>'));
     }
 
     /**
