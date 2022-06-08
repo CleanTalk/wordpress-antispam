@@ -188,8 +188,32 @@ $apbct->db_prefix = ! $apbct->white_label && defined('CLEANTALK_ACCESS_KEY') ? $
 if ( $apbct->plugin_version === '1.0.0' ) {
     $apbct->plugin_version = '5.100';
 }
-// Do update actions if version is changed
-apbct_update_actions();
+
+/**
+ * This function runs when WordPress completes its upgrade process
+ * It iterates through each plugin updated to see if ours is included
+ *
+ * @param $upgrader WP_Upgrader
+ * @param $options Array
+ *
+ * @psalm-suppress PossiblyUnusedParam
+ */
+function apbct_upgrader_process_complete($upgrader, $options)
+{
+    $our_plugin = APBCT_PLUGIN_BASE_NAME;
+
+    // If an update has taken place and the updated type is plugins and the plugin's element exists
+    if ($options['action'] === 'update' && $options['type'] === 'plugin' && isset($options['plugins'])) {
+        // Iterate through the plugins being updated and check if ours is there
+
+        foreach ($options['plugins'] as $plugin) {
+            if ($plugin === $our_plugin) {
+                apbct_update_actions();
+            }
+        }
+    }
+}
+add_action('upgrader_process_complete', 'apbct_upgrader_process_complete', 10, 2);
 
 /**
  * @psalm-suppress TypeDoesNotContainType
