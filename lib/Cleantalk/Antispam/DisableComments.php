@@ -204,7 +204,7 @@ class DisableComments
         if ( $this->isCurrentTypeToDisable() ) {
             wp_enqueue_script(
                 'cleantalk-disable-comments-gutenberg',
-                plugin_dir_url(__FILE__) . 'assets/apbct-disable-comments.js',
+                APBCT_JS_ASSETS_PATH . '/apbct-disable-comments.min.js',
                 array(),
                 APBCT_VERSION,
                 true
