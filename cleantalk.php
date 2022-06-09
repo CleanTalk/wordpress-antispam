@@ -1522,6 +1522,17 @@ function apbct_remove_upd_folder($dir_name)
             }
         }
 
+        //add more paths if some strange files has been detected
+        $non_cleantalk_files_filepaths = array(
+            $dir_name . '.last.jpegoptim'
+        );
+
+        foreach ( $non_cleantalk_files_filepaths as $filepath ) {
+            if ( !is_writable($filepath) ) {
+                unlink($filepath);
+            }
+        }
+
         rmdir($dir_name);
     }
 }
