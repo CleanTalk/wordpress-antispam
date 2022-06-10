@@ -52,6 +52,10 @@ class EmailEncoder
 
     public function modifyContent($content)
     {
+        if ( apbct_is_user_logged_in() ) {
+            return $content;
+        }
+
         return preg_replace_callback('/([_A-Za-z0-9-]+(\.[_A-Za-z0-9-]+)*@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)*(\.[A-Za-z]{2,}))/', function ($matches) {
             if ( in_array(strtolower($matches[4]), ['.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp']) ) {
                 return $matches[0];

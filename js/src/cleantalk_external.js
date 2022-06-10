@@ -15,6 +15,10 @@ function ct_protect_external() {
 
                     jQuery( currentForm ).before('<i class="cleantalk_placeholder" style="display: none;"></i>');
 
+                    // if (currentForm.action.indexOf('tp.media') !== -1){
+                    //     return
+                    // }
+
                     // Deleting form to prevent submit event
                     var prev = jQuery(currentForm).prev(),
                         form_html = currentForm.outerHTML,

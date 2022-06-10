@@ -582,14 +582,6 @@ if ( is_admin() || is_network_admin() ) {
     require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-validate.php');
     require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public.php');
     require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-integrations.php');
-    //Bitrix24 contact form
-    if ( $apbct->settings['forms__general_contact_forms_test'] == 1 &&
-         ! empty(Post::get('your-phone')) &&
-         ! empty(Post::get('your-email')) &&
-         ! empty(Post::get('your-message'))
-    ) {
-        ct_contact_form_validate();
-    }
 
     // Sends feedback to the cloud about comments
     // add_action('wp_set_comment_status', 'ct_comment_send_feedback', 10, 2);
@@ -609,6 +601,14 @@ if ( is_admin() || is_network_admin() ) {
         );
 
         add_filter('plugin_row_meta', 'apbct_admin__register_plugin_links', 10, 3);
+    }
+
+    /**
+     * This hook is triggered if the request is from a form
+     * with which we did not integrate.
+     */
+    if (apbct_need_to_process_unknown_post_request()) {
+        add_action('shutdown', 'ct_contact_form_validate', 999);
     }
 // Public pages actions
 } else {
@@ -653,6 +653,14 @@ if ( is_admin() || is_network_admin() ) {
         unset($_POST['redirect_to']);
         ct_contact_form_validate();
         $_POST['redirect_to'] = $tmp;
+    }
+
+    /**
+     * This hook is triggered if the request is from a form
+     * with which we did not integrate.
+     */
+    if (apbct_need_to_process_unknown_post_request()) {
+        add_action('shutdown', 'ct_contact_form_validate', 999);
     }
 }
 
@@ -1040,7 +1048,7 @@ function apbct_sfw_update__worker($checker_work = false)
         $queue->queue['finished'] = time();
         $queue->saveQueue($queue->queue);
         foreach ( $queue->queue['stages'] as $stage ) {
-            if ( isset($stage['error'], $stage['status']) && $stage['status'] !=='FINISHED') {
+            if ( isset($stage['error'], $stage['status']) && $stage['status'] !== 'FINISHED' ) {
                 //there could be an array of errors of files processed
                 if ( is_array($stage['error']) ) {
                     $error = implode(" ", array_values($stage['error']));

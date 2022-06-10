@@ -36,6 +36,7 @@ No CAPTCHA, no questions, no animal counting, no puzzles, no math and no spam bo
 20. Spam FireWall: Anti-Crawler
 21. Hide «Website» field for comments
 22. Block messages by languages, countries, networks.
+23. Email Address Encoder
 
 = Free trial then $8 per year =
 CleanTalk is an anti-spam plugin which works with the premium Cloud Anti-Spam service cleantalk.org. This plugin as a service <a href="https://developer.wordpress.org/plugins/wordpress-org/detailed-plugin-guidelines/#6-software-as-a-service-is-permitted">https://developer.wordpress.org/plugins/wordpress-org/detailed-plugin-guidelines/#6-software-as-a-service-is-permitted</a>
@@ -292,6 +293,11 @@ This option disables comments on your site. You can choose one or several option
 * Disable comments for media
 
 When using Disables comments, existing comments will not be deleted and will remain on the pages.
+
+= Email Address Encoder =
+
+CleanTalk Anti-Spam offers a feature called "Encode contact data" that is designed to encode all email addresses on the website pages. Encoding the email addresses increases the level of protection of contact data from being abused, parsed, getting spammed and used in spam mailing lists by bots and online criminals.
+To reveal the encoded email address simply click on it and it will be decoded instantly.
 
 = Translations =
 * Albanian (sq_AL) - thanks to fjalaime https://wordpress.org/support/users/fjalaime/

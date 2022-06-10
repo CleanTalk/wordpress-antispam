@@ -10,6 +10,7 @@ use Cleantalk\ApbctWP\GetFieldsAny;
 use Cleantalk\ApbctWP\Helper;
 use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\Common\DB;
+use Cleantalk\Variables\Get;
 use Cleantalk\Variables\Post;
 use Cleantalk\Variables\Server;
 
@@ -1245,4 +1246,69 @@ function apbct__wc_add_honeypot_field($fields)
     }
 
     return $fields;
+}
+
+/**
+ * The function determines whether it is necessary
+ * to conduct a general check of the post request
+ *
+ * @return boolean
+ */
+function apbct_need_to_process_unknown_post_request()
+{
+    global $apbct;
+
+    /** Exclude Ajax requests */
+    if ( apbct_is_ajax() ) {
+        return false;
+    }
+
+    /** Bitrix24 contact form */
+    if ( $apbct->settings['forms__general_contact_forms_test'] == 1 &&
+         ! empty(Post::get('your-phone')) &&
+         ! empty(Post::get('your-email')) &&
+         ! empty(Post::get('your-message'))
+    ) {
+        return true;
+    }
+
+    /** VFB_Pro integration */
+    if (
+        ! empty($_POST) &&
+        $apbct->settings['forms__contact_forms_test'] == 1 &&
+        empty(Post::get('ct_checkjs_cf7')) &&
+        apbct_is_plugin_active('vfb-pro/vfb-pro.php') &&
+        ! empty(Post::get('_vfb-form-id'))
+    ) {
+        return true;
+    }
+
+    /** Integration with custom forms */
+    if (
+        ! empty($_POST) &&
+        apbct_custom_forms_trappings()
+    ) {
+        return true;
+    }
+
+    if (
+        $apbct->settings['forms__general_contact_forms_test'] == 1 &&
+        empty(Post::get('ct_checkjs_cf7')) &&
+        ! apbct_is_direct_trackback()
+    ) {
+        return true;
+    }
+
+    if ( apbct_is_user_enable() ) {
+        if (
+            $apbct->settings['forms__general_contact_forms_test'] == 1 &&
+            ! Post::get('comment_post_ID') &&
+            ! Get::get('for') &&
+            ! apbct_is_direct_trackback()
+        ) {
+            return true;
+        }
+    }
+
+    return false;
 }

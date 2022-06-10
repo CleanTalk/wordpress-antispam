@@ -7,7 +7,7 @@ use Cleantalk\Variables\Server;
  */
 function ct_contact_form_validate()
 {
-    global $pagenow, $apbct, $ct_checkjs_frm;
+    global $pagenow, $apbct, $ct_checkjs_frm, $cleantalk_executed;
 
     // Exclude the XML-RPC requests
     if ( defined('XMLRPC_REQUEST') ) {
@@ -17,6 +17,12 @@ function ct_contact_form_validate()
 
     // Exclusios common function
     if ( apbct_exclusions_check(__FUNCTION__) ) {
+        do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
+        return null;
+    }
+
+    // Verification completed
+    if ( $cleantalk_executed ) {
         do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
         return null;
     }
