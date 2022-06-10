@@ -1536,7 +1536,7 @@ function apbct_remove_upd_folder($dir_name)
         );
 
         foreach ( $non_cleantalk_files_filepaths as $filepath ) {
-            if ( !is_writable($filepath) ) {
+            if ( file_exists($filepath) && is_file($filepath) && !is_writable($filepath) ) {
                 unlink($filepath);
             }
         }
