@@ -192,7 +192,7 @@ function ct_send_users(){
 				}else if(parseInt(msg.end) == 0){
 					ct_users_checked = parseInt( ct_users_checked ) + parseInt( msg.checked );
 					ct_users_spam    = parseInt( ct_users_spam ) + parseInt (msg.spam );
-					ct_users_bad     = parseInt( ct_users_bad ) + parseInt( msg.bad );
+					ct_users_bad     = parseInt( msg.bad );
 					ct_unchecked     = ct_users_total - ct_users_checked - ct_users_bad;
 					var status_string = String(ctUsersCheck.ct_status_string);
 					var status_string = status_string.printf(ct_users_checked, ct_users_spam, ct_users_bad);
@@ -308,6 +308,15 @@ function ct_start_check( continue_check ){
 		ct_accurate_check = true;
 	}
 
+	//
+	if (
+		jQuery('#ct_accurate_check').is(':checked') &&
+		! jQuery('#ct_allow_date_range').is(':checked')
+	) {
+		alert('Please, select a date range.');
+		return;
+	}
+
 	jQuery('.ct_to_hide').hide();
 	jQuery('#ct_working_message').show();
 	jQuery('#ct_preloader').show();
@@ -409,6 +418,10 @@ jQuery(document).ready(function(){
 	// Check users
 	jQuery("#ct_check_spam_button").click(function(){
 		document.cookie = 'ct_paused_users_check=0; path=/; samesite=lax';
+
+		//
+
+
 		ct_start_check(false);
 	});
 	jQuery("#ct_proceed_check_button").click(function(){
@@ -558,6 +571,16 @@ jQuery(document).ready(function(){
 		});
 	}
 
+
+	/**
+	 * Checked ct_accurate_check
+	 */
+	jQuery('#ct_accurate_check').change(function () {
+		if(this.checked) {
+			jQuery('#ct_allow_date_range').prop('checked', true);
+			jQuery('.ct_date').prop('checked', true).attr('disabled',false);
+		}
+	});
 });
 
 /**
@@ -570,4 +593,4 @@ function getCookie(name) {
 		"(?:^|; )" + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + "=([^;]*)"
 	));
 	return matches ? decodeURIComponent(matches[1]) : undefined;
-} 
+}
