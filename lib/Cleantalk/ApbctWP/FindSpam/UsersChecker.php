@@ -35,7 +35,7 @@ class UsersChecker extends Checker
 
         wp_enqueue_script(
             'ct_users_checkspam',
-            APBCT_JS_ASSETS_PATH . '/src/cleantalk-users-checkspam.js',
+            APBCT_JS_ASSETS_PATH . '/cleantalk-users-checkspam.min.js',
             array('jquery', 'jquery-ui-core'),
             APBCT_VERSION
         );
