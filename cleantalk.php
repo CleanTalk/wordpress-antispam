@@ -213,6 +213,10 @@ function apbct_upgrader_process_complete($upgrader, $options)
         }
     }
 }
+// compatibility with old version
+if (version_compare($apbct->plugin_version, '5.179') === -1) {
+    apbct_update_actions();
+}
 add_action('upgrader_process_complete', 'apbct_upgrader_process_complete', 10, 2);
 
 /**
