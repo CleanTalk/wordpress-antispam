@@ -629,7 +629,13 @@ function ct_add_hidden_fields(
     }
 }
 
-function ct_add_honeypot_field($form_type)
+/**
+ * Returns HTML of a honeypot hidden field to the form. If $form_method is GET, adds a hidden submit button.
+ * @param $form_type
+ * @param string $form_method
+ * @return string
+ */
+function ct_add_honeypot_field($form_type, $form_method = 'post')
 {
     global $apbct;
 
@@ -639,13 +645,15 @@ function ct_add_honeypot_field($form_type)
     }
 
     // Honeypot option is ON
+    // Declare the style. todo Needs to move this to public.js scripts
     $style = '
     <style>
-		#apbct__email_id__' . $form_type . ' {
+		.apbct__email_id__' . $form_type . ' {
             display: none !important;
 		}
 	</style>';
-    return $style . "\n" . '<input 
+    // Generate the hidden field
+    $honeypot = $style . "\n" . '<input 
         id="apbct__email_id__' . $form_type . '" 
         class="apbct__email_id__' . $form_type . '" 
         autocomplete="off" 
@@ -655,6 +663,19 @@ function ct_add_honeypot_field($form_type)
         size="30" 
         maxlength="200" 
     />';
+    //add a submit button if method is get to prevent keyboard send misfunction
+    if ( $form_method === 'get' ) {
+        $honeypot .= '<input 
+        id="apbct_submit_id__' . $form_type . '" 
+        class="apbct__email_id__' . $form_type . '" 
+        name="apbct_submit_id__' . $form_type . '"  
+        type="submit" 
+        size="30" 
+        maxlength="200" 
+    />';
+    }
+
+    return $honeypot;
 }
 
 /**

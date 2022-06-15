@@ -220,6 +220,11 @@ function apbct_base_call($params = array(), $reg_flag = false)
             'apbct__email_id__wp_wpforms'           => Post::get('apbct__email_id__wp_wpforms'),
             'apbct__email_id__search_form'          => Post::get('apbct__email_id__search_form')
         );
+
+        if (!empty(Get::get('apbct_submit_id__search_form'))){
+            $honeypot_potential_values['apbct__email_id__search_form'] = Get::get('apbct__email_id__search_form');
+        }
+
         // if source is filled then pass them to params as additional fields
         foreach ($honeypot_potential_values as $source_name => $source_value) {
             if ( $source_value ) {
