@@ -3,9 +3,11 @@
 // Singleton
 namespace Cleantalk\ApbctWP\FindSpam;
 
+use Cleantalk\Templates\Singleton;
+
 class UsersScanResponse
 {
-    private static $instance;
+    use Singleton;
 
     private $end;
     private $checked;
@@ -13,28 +15,6 @@ class UsersScanResponse
     private $bad;
     private $error;
     private $error_message;
-
-    private function __construct()
-    {
-    }
-
-    private function __clone()
-    {
-    }
-
-    public function __wakeup()
-    {
-    }
-
-    public static function getInstance()
-    {
-        if ( ! isset(static::$instance) ) {
-            static::$instance = new static();
-            static::$instance->init();
-        }
-
-        return static::$instance;
-    }
 
     private function init()
     {
