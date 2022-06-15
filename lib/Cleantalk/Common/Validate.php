@@ -97,4 +97,16 @@ class Validate
     {
         return @preg_match('/' . $regexp . '/', '') !== false;
     }
+
+    /**
+     * Check if the string is encoded by urlencode()
+     *
+     * @param $value
+     *
+     * @return bool
+     */
+    public static function isUrlencoded($value)
+    {
+        return urlencode(urldecode($value)) === $value;
+    }
 }

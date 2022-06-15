@@ -280,7 +280,8 @@ class GetFieldsAny
                 $value = urldecode(trim($this->stripShortcodes($value))); // Fully cleaned message
 
                 // Email
-                $value_for_email = urldecode($value_for_email);
+                $value_for_email = Validate::isUrlencoded($value_for_email) ? urldecode($value_for_email) : $value_for_email;
+
                 if (preg_match("/^\S+@\S+\.\S+$/", $value_for_email) &&
                     (empty($this->visible_fields_arr) ||
                      in_array($key, $this->visible_fields_arr, true))) {
