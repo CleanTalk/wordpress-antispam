@@ -4,7 +4,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 5.178.1-dev
+  Version: 5.178.2-dev
   Author: СleanTalk <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -979,10 +979,12 @@ function apbct_sfw_update__worker($checker_work = false)
 {
     global $apbct;
 
-    usleep(10000);
-
     if ( ! $apbct->data['key_is_ok'] ) {
         return array('error' => 'Worker: KEY_IS_NOT_VALID');
+    }
+
+    if ( ! $apbct->settings['sfw__enabled'] ) {
+        return false;
     }
 
     if ( ! $checker_work ) {
@@ -1017,6 +1019,22 @@ function apbct_sfw_update__worker($checker_work = false)
 
     $result = $queue->executeStage();
 
+    if ( $result === null ) {
+        // The stage is in progress, will try to wait up to 5 seconds to its complete
+        for ( $i = 0; $i < 5; $i++ ) {
+            sleep(1);
+            $queue->refreshQueue();
+            if ( ! $queue->isQueueInProgress() ) {
+                // The stage executed, break waiting and continue sfw_update__worker process
+                break;
+            }
+            if ( $i >= 4 ) {
+                // The stage still not executed, exit from sfw_update__worker
+                return true;
+            }
+        }
+    }
+
     if ( isset($result['error']) && $result['status'] === 'FINISHED' ) {
         $apbct->errorAdd('sfw_update', $result['error']);
         $apbct->saveErrors();
@@ -1030,7 +1048,7 @@ function apbct_sfw_update__worker($checker_work = false)
         $queue->queue['finished'] = time();
         $queue->saveQueue($queue->queue);
         foreach ( $queue->queue['stages'] as $stage ) {
-            if ( isset($stage['error']) ) {
+            if ( isset($stage['error'], $stage['status']) && $stage['status'] !== 'FINISHED' ) {
                 //there could be an array of errors of files processed
                 if ( is_array($stage['error']) ) {
                     $error = implode(" ", array_values($stage['error']));
@@ -1100,6 +1118,7 @@ function apbct_sfw_update__get_multifiles()
     } else {
         return $result;
     }
+    return null;
 }
 
 function apbct_sfw_update__download_files($urls)
@@ -1508,6 +1527,17 @@ function apbct_remove_upd_folder($dir_name)
                 if ( is_dir($file) ) {
                     apbct_remove_upd_folder($file);
                 }
+            }
+        }
+
+        //add more paths if some strange files has been detected
+        $non_cleantalk_files_filepaths = array(
+            $dir_name . '.last.jpegoptim'
+        );
+
+        foreach ( $non_cleantalk_files_filepaths as $filepath ) {
+            if ( file_exists($filepath) && is_file($filepath) && !is_writable($filepath) ) {
+                unlink($filepath);
             }
         }
 
@@ -2277,7 +2307,7 @@ function apbct_cookie()
     // Cookies test
     $cookie_test_value['check_value'] = md5($cookie_test_value['check_value']);
     if ( $apbct->data['cookies_type'] === 'native' ) {
-        Cookie::set('apbct_cookies_test', urlencode(json_encode($cookie_test_value)), 0, '/', $domain, null, true);
+        Cookie::set('apbct_cookies_test', json_encode($cookie_test_value), 0, '/', $domain, null, true);
     }
 
     $apbct->flags__cookies_setuped = true;
