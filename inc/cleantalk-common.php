@@ -208,34 +208,18 @@ function apbct_base_call($params = array(), $reg_flag = false)
         $default_params['honeypot_field'] = $params['honeypot_field'];
     }
     /**
-     * Add honeypot_field to $base_call_data is forms__wc_honeypot on
+     * Add honeypot_field to $base_call_data if forms__wc_honeypot on
      */
     if ( $apbct->settings['data__honeypot_field'] && ! isset($params['honeypot_field']) ) {
-        $honeypot_field = 1;
-        // collect probable sources
-        $honeypot_potential_values = array(
-            'wc_apbct_email_id'                     => Post::get('wc_apbct_email_id'),
-            'apbct__email_id__wp_register'          => Post::get('apbct__email_id__wp_register'),
-            'apbct__email_id__wp_contact_form_7'    => Post::get('apbct__email_id__wp_contact_form_7'),
-            'apbct__email_id__wp_wpforms'           => Post::get('apbct__email_id__wp_wpforms'),
-            'apbct__email_id__search_form'          => Post::get('apbct__email_id__search_form')
-        );
 
-        if ( !empty(Get::get('apbct_submit_id__search_form')) ) {
-            $honeypot_potential_values['apbct__email_id__search_form'] = Get::get('apbct__email_id__search_form');
+        $honeypot_filled_fields = apbct_get_honeypot_filled_fields();
+
+        if (!empty($honeypot_filled_fields)){
+            $params['sender_info']['honeypot_field_value'] = $honeypot_filled_fields['field_value'];
+            $params['sender_info']['honeypot_field_source'] = $honeypot_filled_fields['field_source'];
+            $params['honeypot_field'] = 0;
         }
 
-        // if source is filled then pass them to params as additional fields
-        foreach ($honeypot_potential_values as $source_name => $source_value) {
-            if ( $source_value ) {
-                $honeypot_field = 0;
-                $params['sender_info']['honeypot_field_value']  = $source_value;
-                $params['sender_info']['honeypot_field_source'] = $source_name;
-                break;
-            }
-        }
-
-        $params['honeypot_field'] = $honeypot_field;
     }
 
     // Send $_SERVER if couldn't find IP
@@ -1316,4 +1300,63 @@ function apbct_need_to_process_unknown_post_request()
     }
 
     return false;
+}
+
+/**
+ * Handles gained POST and GET data to find filled honeypot fields.
+ * @return array array [honeypot_field_value, honeypot_field_source] or empty array
+ */
+function apbct_get_honeypot_filled_fields(){
+
+    /**
+     * POST forms
+     */
+    if ( isset($_POST) ) {
+        //get field suffix for POST forms
+        $apbct_event_id = Post::get('apbct_event_id');
+
+        // collect probable sources
+        $honeypot_potential_values = array(
+            'wc_apbct_email_id' =>                  Post::get('wc_apbct_email_id_' . $apbct_event_id),
+            'apbct__email_id__wp_register' =>       Post::get('apbct__email_id__wp_register_' . $apbct_event_id),
+            'apbct__email_id__wp_contact_form_7' => Post::get('apbct__email_id__wp_contact_form_7_' . $apbct_event_id),
+            'apbct__email_id__wp_wpforms' =>        Post::get('apbct__email_id__wp_wpforms_' . $apbct_event_id),
+            'apbct__email_id__search_form' =>       Post::get('apbct__email_id__search_form_' . $apbct_event_id)
+        );
+    } elseif ( isset($_GET) ) {
+        /**
+         * GET forms
+         */
+        //get field suffix for GET search forms
+        $apbct_event_id = false;
+        foreach ( $_GET as $key => $value ) {
+            if ( strpos($key, 'apbct_submit_id__search_form_') !== false ) {
+                $apbct_event_id = str_replace('apbct_submit_id__search_form_', '', $key);
+            }
+        }
+
+        // collect probable sources
+        if ( $apbct_event_id ) {
+            $honeypot_potential_values['apbct__email_id__search_form'] = Get::get('apbct__email_id__search_form_' . $apbct_event_id);
+        }
+    } else {
+        $honeypot_potential_values = false;
+    }
+
+    /**
+     * Handle potential values
+     */
+    $result = array();
+    // if source is filled then pass them to params as additional fields
+    if ( !empty($honeypot_potential_values) ) {
+        foreach ( $honeypot_potential_values as $source_name => $source_value ) {
+            if ( $source_value ) {
+                $result['field_value'] = $source_value;
+                $result['field_source'] = $source_name;
+                break;
+            }
+        }
+    }
+
+    return $result;
 }
