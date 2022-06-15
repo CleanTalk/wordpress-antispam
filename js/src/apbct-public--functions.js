@@ -158,7 +158,6 @@ function apbct_public_sendREST( route, params ) {
             }
         },
     });
-
 }
 
 apbctLocalStorage = {
