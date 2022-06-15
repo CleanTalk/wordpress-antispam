@@ -1272,6 +1272,18 @@ function apbct_enqueue_and_localize_public_scripts()
         array('jquery'),
         APBCT_VERSION
     );
+    wp_enqueue_script(
+        'ct_public',
+        APBCT_URL_PATH . '/js/apbct-public.min.js',
+        array('jquery', 'ct_public_functions'),
+        APBCT_VERSION
+    );
+    wp_enqueue_script(
+        'cleantalk-modal',
+        APBCT_JS_ASSETS_PATH . '/cleantalk-modal.min.js',
+        array(),
+        APBCT_VERSION
+    );
 
     wp_localize_script('ct_public_functions', 'ctPublicFunctions', array(
         '_ajax_nonce'                          => wp_create_nonce('ct_secret_stuff'),
@@ -1284,7 +1296,7 @@ function apbct_enqueue_and_localize_public_scripts()
         'cookiePrefix'                         => apbct__get_cookie_prefix(),
     ));
 
-    wp_localize_script('ct_public_functions', 'ctPublic', array(
+    wp_localize_script('ct_public', 'ctPublic', array(
         'pixel__setting'                => $apbct->settings['data__pixel'],
         'pixel__enabled'                => $apbct->settings['data__pixel'] === '2' ||
                                            ($apbct->settings['data__pixel'] === '3' && apbct_is_cache_plugins_exists()),
