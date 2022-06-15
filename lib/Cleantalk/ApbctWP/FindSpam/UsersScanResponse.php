@@ -79,7 +79,7 @@ class UsersScanResponse
     }
 
     /**
-     * @param string $end
+     * @param int 1|0 $end
      * @psalm-suppress PossiblyUnusedMethod
      */
     public function setEnd($end)
@@ -169,7 +169,7 @@ class UsersScanResponse
     }
 
     /**
-     * @param string $error
+     * @param int 1|0 $error
      * @psalm-suppress PossiblyUnusedMethod
      */
     public function setError($error)
