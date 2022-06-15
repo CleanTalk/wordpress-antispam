@@ -161,6 +161,38 @@ function apbct_public_sendREST( route, params ) {
 
 }
 
+apbctLocalStorage = {
+    get : function(key, property) {
+        if ( typeof property === 'undefined' ) {
+            property = 'value';
+        }
+        const storageValue = localStorage.getItem(key);
+        if ( storageValue !== null ) {
+            try {
+                const json = JSON.parse(storageValue);
+                return json.hasOwnProperty(property) ? JSON.parse(json[property]) : json;
+            } catch (e) {
+                return new Error(e);
+            }
+        }
+        return false;
+    },
+    set : function(key, value) {
+        let objToSave = {'value': JSON.stringify(value), 'timestamp': Math.floor(new Date().getTime() / 1000)};
+        localStorage.setItem(key, JSON.stringify(objToSave));
+    },
+    isAlive : function(key, maxLifetime) {
+        if ( typeof maxLifetime === 'undefined' ) {
+            maxLifetime = 86400;
+        }
+        const keyTimestamp = this.get(key, 'timestamp');
+        return keyTimestamp + maxLifetime > Math.floor(new Date().getTime() / 1000);
+    },
+    isSet : function(key) {
+        return localStorage.getItem(key) !== null;
+    }
+}
+
 (function() {
 
     var ct_date = new Date(),
@@ -168,9 +200,7 @@ function apbct_public_sendREST( route, params ) {
         ctMouseEventTimerFlag = true, //Reading interval flag
         ctMouseData = [],
         ctMouseDataCounter = 0,
-        ctCheckedEmails = {},
-        ctScrollCollected = false,
-        ctMouseMovedCollected = false;
+        ctCheckedEmails = {};
 
     function apbct_attach_event_handler(elem, event, callback){
         if(typeof window.addEventListener === "function") elem.addEventListener(event, callback);
@@ -332,16 +362,16 @@ function apbct_public_sendREST( route, params ) {
     }
 
     function ctSetHasScrolled() {
-        if( ! ctScrollCollected ) {
+        if( ! apbctLocalStorage.isSet('ct_has_scrolled') || ! apbctLocalStorage.get('ct_has_scrolled') ) {
             ctSetCookie("ct_has_scrolled", 'true');
-            ctScrollCollected = true;
+            apbctLocalStorage.set('ct_has_scrolled', true);
         }
     }
 
     function ctSetMouseMoved() {
-        if( ! ctMouseMovedCollected ) {
+        if( ! apbctLocalStorage.isSet('ct_mouse_moved') || ! apbctLocalStorage.get('ct_mouse_moved') ) {
             ctSetCookie("ct_mouse_moved", 'true');
-            ctMouseMovedCollected = true;
+            apbctLocalStorage.set('ct_mouse_moved', true);
         }
     }
 
@@ -360,8 +390,6 @@ function apbct_public_sendREST( route, params ) {
             ["ct_pointer_data", "0"],
             ["ct_timezone", ct_date.getTimezoneOffset()/60*(-1) ],
             ["ct_screen_info", apbctGetScreenInfo()],
-            ["ct_has_scrolled", 'false'],
-            ["ct_mouse_moved", 'false'],
             ["apbct_headless", navigator.webdriver],
         ];
 
