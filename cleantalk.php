@@ -188,12 +188,36 @@ $apbct->db_prefix = ! $apbct->white_label && defined('CLEANTALK_ACCESS_KEY') ? $
 if ( $apbct->plugin_version === '1.0.0' ) {
     $apbct->plugin_version = '5.100';
 }
-// Do update actions if version is changed
-apbct_update_actions();
 
 /**
- * @psalm-suppress TypeDoesNotContainType
+ * This function runs when WordPress completes its upgrade process
+ * It iterates through each plugin updated to see if ours is included
+ *
+ * @param $upgrader WP_Upgrader
+ * @param $options Array
+ *
  */
+function apbct_upgrader_process_complete($_upgrader, $options)
+{
+    $our_plugin = APBCT_PLUGIN_BASE_NAME;
+
+    // If an update has taken place and the updated type is plugins and the plugin's element exists
+    if ($options['action'] === 'update' && $options['type'] === 'plugin' && isset($options['plugins'])) {
+        // Iterate through the plugins being updated and check if ours is there
+
+        foreach ($options['plugins'] as $plugin) {
+            if ($plugin === $our_plugin) {
+                apbct_update_actions();
+            }
+        }
+    }
+}
+// compatibility with old version
+if (version_compare($apbct->plugin_version, '5.179') === -1) {
+    apbct_update_actions();
+}
+add_action('upgrader_process_complete', 'apbct_upgrader_process_complete', 10, 2);
+
 add_action('init', function () {
     global $apbct;
     // Self cron
@@ -211,7 +235,7 @@ add_action('init', function () {
         if ( is_array($cron_res) ) {
             foreach ( $cron_res as $_task => $res ) {
                 if ( $res === true ) {
-                    $apbct->errorDelete('cron', 'save_data');
+                    $apbct->errorDelete('cron', true);
                 } else {
                     $apbct->errorAdd('cron', $res);
                 }

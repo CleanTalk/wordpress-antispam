@@ -2287,7 +2287,7 @@ function apbct_settings__sync($direct_call = false)
     global $apbct;
 
     //Clearing all errors
-    $apbct->errorDeleteAll('and_save_data');
+    $apbct->errorDeleteAll(true);
 
     // Feedback with app_agent
     ct_send_feedback('0:' . APBCT_AGENT); // 0 - request_id, agent version.
