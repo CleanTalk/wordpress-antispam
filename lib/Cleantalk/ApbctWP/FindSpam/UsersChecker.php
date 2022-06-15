@@ -65,7 +65,9 @@ class UsersChecker extends Checker
             'ct_status_string_warning' => "<p>" . __(
                 "Please do backup of WordPress database before delete any accounts!",
                 'cleantalk-spam-protect'
-            ) . "</p>"
+            ) . "</p>",
+            'ct_specify_date_range' => esc_html__('Please, specify a date range.', 'cleantalk-spam-protect'),
+            'ct_select_date_range' => esc_html__('Please, select a date range.', 'cleantalk-spam-protect'),
         ));
 
         wp_enqueue_style(

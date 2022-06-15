@@ -299,7 +299,7 @@ function ct_start_check( continue_check ){
 		ct_date_till = jQuery('#ct_date_range_till').val();
 
 		if(!(ct_date_from !== '' && ct_date_till !== '')){
-			alert('Please, specify a date range.');
+			alert(ctUsersCheck.ct_specify_date_range);
 			return;
 		}
 	}
@@ -313,7 +313,7 @@ function ct_start_check( continue_check ){
 		jQuery('#ct_accurate_check').is(':checked') &&
 		! jQuery('#ct_allow_date_range').is(':checked')
 	) {
-		alert('Please, select a date range.');
+		alert(ctUsersCheck.ct_select_date_range);
 		return;
 	}
 
