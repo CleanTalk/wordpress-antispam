@@ -351,7 +351,7 @@ function apbctAjaxEmailDecode(event){
 }
 
 function ctFillDecodedEmail(result, targetElement){
-	targetElement.innerText = result;
+	targetElement.innerHTML = result;
 }
 
 function apbct_collect_visible_fields( form ) {
