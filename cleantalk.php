@@ -196,9 +196,8 @@ if ( $apbct->plugin_version === '1.0.0' ) {
  * @param $upgrader WP_Upgrader
  * @param $options Array
  *
- * @psalm-suppress PossiblyUnusedParam
  */
-function apbct_upgrader_process_complete($upgrader, $options)
+function apbct_upgrader_process_complete($_upgrader, $options)
 {
     $our_plugin = APBCT_PLUGIN_BASE_NAME;
 
@@ -219,9 +218,6 @@ if (version_compare($apbct->plugin_version, '5.179') === -1) {
 }
 add_action('upgrader_process_complete', 'apbct_upgrader_process_complete', 10, 2);
 
-/**
- * @psalm-suppress TypeDoesNotContainType
- */
 add_action('init', function () {
     global $apbct;
     // Self cron
@@ -239,7 +235,7 @@ add_action('init', function () {
         if ( is_array($cron_res) ) {
             foreach ( $cron_res as $_task => $res ) {
                 if ( $res === true ) {
-                    $apbct->errorDelete('cron', 'save_data');
+                    $apbct->errorDelete('cron', true);
                 } else {
                     $apbct->errorAdd('cron', $res);
                 }
