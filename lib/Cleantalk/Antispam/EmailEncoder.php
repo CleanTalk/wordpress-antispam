@@ -95,6 +95,11 @@ class EmailEncoder
         $this->ajaxDecodeEmail();
     }
 
+    /**
+     * Main logic of the decoding the encoded data.
+     *
+     * @return void returns json string to the JS
+     */
     public function ajaxDecodeEmail()
     {
         // @ToDo implement bot checking via API. the method not implemented yet.
@@ -216,6 +221,11 @@ class EmailEncoder
                 title="' . esc_attr($this->getTooltip()) . '">' . $text . '</span>';
     }
 
+    /**
+     * Get text for the title attribute
+     *
+     * @return string
+     */
     private function getTooltip()
     {
         return esc_html__('This contact was encoded by CleanTalk. Click to decode.', 'cleantalk-spam-protect');
