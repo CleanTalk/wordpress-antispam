@@ -4,7 +4,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 5.178.2-fix
+  Version: 5.179
   Author: СleanTalk <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -188,12 +188,36 @@ $apbct->db_prefix = ! $apbct->white_label && defined('CLEANTALK_ACCESS_KEY') ? $
 if ( $apbct->plugin_version === '1.0.0' ) {
     $apbct->plugin_version = '5.100';
 }
-// Do update actions if version is changed
-apbct_update_actions();
 
 /**
- * @psalm-suppress TypeDoesNotContainType
+ * This function runs when WordPress completes its upgrade process
+ * It iterates through each plugin updated to see if ours is included
+ *
+ * @param $upgrader WP_Upgrader
+ * @param $options Array
+ *
  */
+function apbct_upgrader_process_complete($_upgrader, $options)
+{
+    $our_plugin = APBCT_PLUGIN_BASE_NAME;
+
+    // If an update has taken place and the updated type is plugins and the plugin's element exists
+    if ($options['action'] === 'update' && $options['type'] === 'plugin' && isset($options['plugins'])) {
+        // Iterate through the plugins being updated and check if ours is there
+
+        foreach ($options['plugins'] as $plugin) {
+            if ($plugin === $our_plugin) {
+                apbct_update_actions();
+            }
+        }
+    }
+}
+// compatibility with old version
+if (version_compare($apbct->plugin_version, '5.179') === -1) {
+    apbct_update_actions();
+}
+add_action('upgrader_process_complete', 'apbct_upgrader_process_complete', 10, 2);
+
 add_action('init', function () {
     global $apbct;
     // Self cron
@@ -211,7 +235,7 @@ add_action('init', function () {
         if ( is_array($cron_res) ) {
             foreach ( $cron_res as $_task => $res ) {
                 if ( $res === true ) {
-                    $apbct->errorDelete('cron', 'save_data');
+                    $apbct->errorDelete('cron', true);
                 } else {
                     $apbct->errorAdd('cron', $res);
                 }
@@ -2307,7 +2331,7 @@ function apbct_cookie()
     // Cookies test
     $cookie_test_value['check_value'] = md5($cookie_test_value['check_value']);
     if ( $apbct->data['cookies_type'] === 'native' ) {
-        Cookie::set('apbct_cookies_test', urlencode(json_encode($cookie_test_value)), 0, '/', $domain, null, true);
+        Cookie::set('apbct_cookies_test', json_encode($cookie_test_value), 0, '/', $domain, null, true);
     }
 
     $apbct->flags__cookies_setuped = true;
