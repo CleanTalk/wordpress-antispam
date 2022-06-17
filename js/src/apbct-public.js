@@ -474,24 +474,28 @@ if(typeof jQuery !== 'undefined') {
 	// Capturing responses and output block message for unknown AJAX forms
 	jQuery(document).ajaxComplete(function (event, xhr, settings) {
 		if (xhr.responseText && xhr.responseText.indexOf('"apbct') !== -1) {
-			var response = JSON.parse(xhr.responseText);
-			if (typeof response.apbct !== 'undefined') {
-				response = response.apbct;
-				if (response.blocked) {
-					document.dispatchEvent(
-						new CustomEvent( "apbctAjaxBockAlert", {
-							bubbles: true,
-							detail: { message: response.comment }
-						} )
-					);
+			try {
+				var response = JSON.parse(xhr.responseText);
+				if (typeof response.apbct !== 'undefined') {
+					response = response.apbct;
+					if (response.blocked) {
+						document.dispatchEvent(
+							new CustomEvent( "apbctAjaxBockAlert", {
+								bubbles: true,
+								detail: { message: response.comment }
+							} )
+						);
 
-					// Show the result by modal
-					cleantalkModal.loaded = response.comment;
-					cleantalkModal.open();
+						// Show the result by modal
+						cleantalkModal.loaded = response.comment;
+						cleantalkModal.open();
 
-					if(+response.stop_script == 1)
-						window.stop();
+						if(+response.stop_script == 1)
+							window.stop();
+					}
 				}
+			} catch(e) {
+				// This is not APBCT response, nothing to do here.
 			}
 		}
 	});
