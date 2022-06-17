@@ -5,7 +5,8 @@ var gulp       = require('gulp'),
     uglify     = require('gulp-uglify'),
     rename     = require('gulp-rename'),
     cssmin     = require('gulp-cssmin'),
-    concat     = require('gulp-concat');
+    concat     = require('gulp-concat'),
+    wait       = require('gulp-wait');
 
 // CSS COMPRESS
 gulp.task('compress-css', function () {
@@ -18,6 +19,7 @@ gulp.task('compress-css', function () {
 // JS COMPRESS
 gulp.task('compress-all-js', function (cb) {
     gulp.src('js/src/*.js')
+        .pipe(wait(2000))
         .pipe(sourcemaps.init())
         .pipe(uglify())
         .pipe(rename({suffix: '.min'}))
@@ -39,7 +41,6 @@ gulp.task('bundle-js', function (cb) {
         .pipe(gulp.dest('js/src'))
         .pipe(uglify())
         .pipe(rename({suffix: '.min'}))
-        .pipe(sourcemaps.write('.'))
         .pipe(gulp.dest('js'));
     cb();
 });
