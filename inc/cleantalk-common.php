@@ -1263,6 +1263,11 @@ function apbct_need_to_process_unknown_post_request()
 {
     global $apbct;
 
+    //fix for divi forms
+    if ( apbct_is_divi_theme_active() ) {
+        return true;
+    }
+
     /** Exclude Ajax requests */
     if ( apbct_is_ajax() ) {
         return false;
@@ -1316,4 +1321,35 @@ function apbct_need_to_process_unknown_post_request()
     }
 
     return false;
+}
+
+function apbct_is_divi_theme_active()
+{
+    //try to find DIVI active forms
+    if (
+        apbct_is_ajax() && (apbct_is_theme_active('Divi') || apbct_is_theme_active('Divi Child Form'))
+    ) {
+        return true;
+    } else {
+        //check if similar divi POST keys exists
+        $post_signs = array(
+            'et_pb_contactform_submit' => false, '_wpnonce-et-pb-contact-form-submitted' => false
+        );
+
+        foreach ( $post_signs as $post_sign => $value ) {
+            foreach ( array_keys($_POST) as $post_key ) {
+                if ( strpos($post_key, $post_sign) !== false ) {
+                    $post_signs[$post_sign] = true;
+                }
+            }
+        }
+
+        foreach ( array_values($post_signs) as $value ) {
+            if ( $value === 0 ) {
+                return false;
+            }
+        }
+
+        return true;
+    }
 }
