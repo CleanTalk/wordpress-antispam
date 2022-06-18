@@ -1263,16 +1263,6 @@ function apbct_need_to_process_unknown_post_request()
 {
     global $apbct;
 
-    //fix for divi forms
-    if ( apbct_is_divi_theme_active() ) {
-        return true;
-    }
-
-    /** Exclude Ajax requests */
-    if ( apbct_is_ajax() ) {
-        return false;
-    }
-
     /** Bitrix24 contact form */
     if ( $apbct->settings['forms__general_contact_forms_test'] == 1 &&
          ! empty(Post::get('your-phone')) &&
