@@ -1465,7 +1465,7 @@ function apbct_sfw_update__end_of_update($is_first_updating = false)
     global $apbct;
 
     // Delete update errors
-    $apbct->errorDelete('sfw_update', 'save_settings');
+    $apbct->errorDelete('sfw_update', true);
 
     // Running sfw update once again in 12 min if entries is < 4000
     if ( $is_first_updating &&
@@ -1753,7 +1753,7 @@ function ct_sfw_send_logs($api_key = '')
     if ( empty($result['error']) ) {
         $apbct->stats['sfw']['last_send_time']   = time();
         $apbct->stats['sfw']['last_send_amount'] = $result['rows'];
-        $apbct->errorDelete('sfw_send_logs', 'save_settings');
+        $apbct->errorDelete('sfw_send_logs', true);
         $apbct->save('stats');
     }
 
@@ -2418,7 +2418,7 @@ function ct_account_status_check($api_key = null, $process_errors = true)
         $cron = new Cron();
         $cron->updateTask('check_account_status', 'ct_account_status_check', 86400);
 
-        $apbct->errorDelete('account_check', 'save');
+        $apbct->errorDelete('account_check', true);
 
         $apbct->saveData();
     } elseif ( $process_errors ) {
