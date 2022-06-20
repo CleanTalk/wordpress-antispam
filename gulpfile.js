@@ -18,7 +18,7 @@ gulp.task('compress-css', function () {
 
 // JS COMPRESS
 async function compress_all_js() {
-    await gulp.src('js/src/*.js')
+    await gulp.src(['js/src/*.js', '!js/src/apbct-public--*.js'])
         .pipe(wait(2000))
         .pipe(sourcemaps.init())
         .pipe(uglify())
@@ -29,15 +29,8 @@ async function compress_all_js() {
 
 // Bundle Create
 async function bundle_js() {
-    await gulp.src(
-        [
-            'js/bundle/apbct-public--functions.js',
-            'js/bundle/apbct-public.js',
-            'js/bundle/cleantalk-modal.js',
-        ]
-    )
-        .pipe(concat('apbct-public--functions.js'))
-        .pipe(gulp.dest('js/src'))
+    await gulp.src('js/src/apbct-public*.js')
+        .pipe(concat('apbct-public-bundle.js'))
         .pipe(uglify())
         .pipe(rename({suffix: '.min'}))
         .pipe(gulp.dest('js'));
