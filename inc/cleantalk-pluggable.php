@@ -939,7 +939,7 @@ function apbct_is_skip_request($ajax = false)
 
         // JQueryMigrate plugin
         if (
-            apbct_is_plugin_active('enable-jquery-migrate-helper.php') &&
+            apbct_is_plugin_active('enable-jquery-migrate-helper/enable-jquery-migrate-helper.php') &&
             Post::get('action') === 'jquery-migrate-log-notice'
         ) {
             return 'JQueryMigrate plugin service actions';
