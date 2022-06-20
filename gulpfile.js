@@ -17,20 +17,19 @@ gulp.task('compress-css', function () {
 });
 
 // JS COMPRESS
-gulp.task('compress-all-js', function (cb) {
-    gulp.src('js/src/*.js')
+async function compress_all_js() {
+    await gulp.src('js/src/*.js')
         .pipe(wait(2000))
         .pipe(sourcemaps.init())
         .pipe(uglify())
         .pipe(rename({suffix: '.min'}))
         .pipe(sourcemaps.write('.'))
         .pipe(gulp.dest('js'));
-    cb();
-});
+}
 
 // Bundle Create
-gulp.task('bundle-js', function (cb) {
-    gulp.src(
+async function bundle_js() {
+    await gulp.src(
         [
             'js/bundle/apbct-public--functions.js',
             'js/bundle/apbct-public.js',
@@ -42,10 +41,9 @@ gulp.task('bundle-js', function (cb) {
         .pipe(uglify())
         .pipe(rename({suffix: '.min'}))
         .pipe(gulp.dest('js'));
-    cb();
-});
+}
 
-gulp.task('compress-js', gulp.series('bundle-js', 'compress-all-js'));
+gulp.task('compress-js', gulp.series(bundle_js, compress_all_js));
 
 gulp.task('compress-css:watch', function () {
     gulp.watch('./css/src/*.css', gulp.parallel('compress-css'));
