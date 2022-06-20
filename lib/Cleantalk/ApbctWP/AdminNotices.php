@@ -24,7 +24,8 @@ class AdminNotices
         'notice_key_is_incorrect',
         'notice_trial',
         'notice_renew',
-        'notice_incompatibility'
+        'notice_incompatibility',
+        'notice_review'
     );
 
     /**
@@ -208,6 +209,25 @@ class AdminNotices
 
     /**
      * Callback for the notice hook
+     * @deprecated
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public function notice_review() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+    {
+        if ( $this->apbct->notice_review == 1 ) {
+            $review_link = "<a class='button' style='margin-bottom: 24px;' href='https://wordpress.org/support/plugin/cleantalk-spam-protect/reviews/?filter=5' target='_blank'>"
+                                . __('SHARE', 'cleantalk-spam-protect') . 
+                            "</a>";
+            $this->generateNoticeHtml(
+                __('Share your positive energy with us – give us a 5-star rating on WordPress.', 'cleantalk-spam-protect'),
+                'notice_review',
+                $review_link
+            );
+        }
+    }
+
+    /**
+     * Callback for the notice hook
      * @psalm-suppress PossiblyUnusedMethod
      */
     public function notice_incompatibility() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
@@ -250,11 +270,17 @@ class AdminNotices
      */
     private function isDismissedNotice($notice_uid)
     {
-        $notice_date_option = get_option('cleantalk_' . $notice_uid . '_dismissed');
+        $option_name = 'cleantalk_' . $notice_uid . '_dismissed';
+        $notice_date_option = get_option($option_name);
+
+        // Infinity for notice_review
+        if ($notice_date_option !== false && strpos($option_name, 'notice_review')) {
+            return true;
+        }
 
         if ( $notice_date_option !== false && \Cleantalk\Common\Helper::dateValidate($notice_date_option) ) {
             $current_date = date_create();
-            $notice_date  = date_create(get_option('cleantalk_' . $notice_uid . '_dismissed'));
+            $notice_date  = date_create($notice_date_option);
 
             $diff = date_diff($current_date, $notice_date);
 
@@ -280,7 +306,7 @@ class AdminNotices
         $current_date = current_time('Y-m-d');
 
         if ( in_array(str_replace('cleantalk_', '', $notice), self::NOTICES, true) ) {
-            if ( update_option($notice_uid . '_dismissed', $current_date) ) {
+            if ( update_option('cleantalk_' . $notice_uid . '_dismissed', $current_date) ) {
                 wp_send_json_success();
             } else {
                 wp_send_json_error(esc_html__('Notice status not updated.', 'cleantalk-spam-protect'));
