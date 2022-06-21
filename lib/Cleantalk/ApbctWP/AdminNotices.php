@@ -215,14 +215,22 @@ class AdminNotices
     public function notice_review() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         if ( $this->apbct->notice_review == 1 ) {
-            $review_link = "<a class='button' style='margin-bottom: 24px;' href='https://wordpress.org/support/plugin/cleantalk-spam-protect/reviews/?filter=5' target='_blank'>"
+            $review_link = "<a class='button' href='https://wordpress.org/support/plugin/cleantalk-spam-protect/reviews/?filter=5' target='_blank'>"
                                 . __('SHARE', 'cleantalk-spam-protect') . 
                             "</a>";
-            $this->generateNoticeHtml(
-                __('Share your positive energy with us – give us a 5-star rating on WordPress.', 'cleantalk-spam-protect'),
-                'notice_review',
-                $review_link
-            );
+            $content = '<div class="apbct-notice notice notice-error is-dismissible" id="notice_review">
+                            <div class="flex-row">
+                                <h3>'
+                                    . __('Share your positive energy with us – give us a 5-star rating on WordPress.', 'cleantalk-spam-protect') .
+                                '</h3>'
+                                . $review_link .
+                            '</div>
+                            <p class="caption">'
+                            . __('Anti-Spam by CleanTalk.', 'cleantalk-spam-protect') .
+                            '</p>
+                        </div>';
+            
+            echo $content;
         }
     }
 
