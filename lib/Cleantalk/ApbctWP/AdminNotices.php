@@ -218,7 +218,7 @@ class AdminNotices
             $review_link = "<a class='button' href='https://wordpress.org/support/plugin/cleantalk-spam-protect/reviews/?filter=5' target='_blank'>"
                                 . __('SHARE', 'cleantalk-spam-protect') . 
                             "</a>";
-            $content = '<div class="apbct-notice notice notice-error is-dismissible" id="notice_review">
+            $content = '<div class="apbct-notice notice notice-error is-dismissible" id="cleantalk_notice_review">
                             <div class="flex-row">
                                 <h3>'
                                     . __('Share your positive energy with us – give us a 5-star rating on WordPress.', 'cleantalk-spam-protect') .
@@ -314,7 +314,7 @@ class AdminNotices
         $current_date = current_time('Y-m-d');
 
         if ( in_array(str_replace('cleantalk_', '', $notice), self::NOTICES, true) ) {
-            if ( update_option('cleantalk_' . $notice_uid . '_dismissed', $current_date) ) {
+            if ( update_option($notice_uid . '_dismissed', $current_date) ) {
                 wp_send_json_success();
             } else {
                 wp_send_json_error(esc_html__('Notice status not updated.', 'cleantalk-spam-protect'));
