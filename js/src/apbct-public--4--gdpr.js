@@ -1,5 +1,7 @@
 jQuery(document).ready(function(){
-	
+
+	if (typeof ctPublicGDPR === 'undefined') return;
+
 	if(!ctPublicGDPR.gdpr_forms) return;
 	
 	ctPublicGDPR.gdpr_forms.forEach(function(item, i, arr){
