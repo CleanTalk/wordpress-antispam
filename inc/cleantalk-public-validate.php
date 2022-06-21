@@ -1,5 +1,6 @@
 <?php
 
+use Cleantalk\ApbctWP\Sanitize;
 use Cleantalk\Variables\Server;
 
 /**
@@ -262,56 +263,56 @@ function ct_contact_form_validate()
             $ajax_call = true;
         }
         if ( $ajax_call ) {
-            echo $ct_result->comment;
+            echo Sanitize::stripTags($ct_result->comment);
         } else {
             global $ct_comment;
-            $ct_comment = $ct_result->comment;
+            $ct_comment = Sanitize::stripTags($ct_result->comment);
             if ( isset($_POST['cma-action']) && $_POST['cma-action'] == 'add' ) {
-                $result = array('success' => 0, 'thread_id' => null, 'messages' => array($ct_result->comment));
+                $result = array('success' => 0, 'thread_id' => null, 'messages' => array(Sanitize::stripTags($ct_result->comment)));
                 header("Content-Type: application/json");
                 print json_encode($result);
                 die();
             } elseif ( isset($_POST['TellAFriend_email']) ) {
-                echo $ct_result->comment;
+                echo Sanitize::stripTags($ct_result->comment);
                 die();
             } elseif ( isset($_POST['gform_submit']) ) { // Gravity forms submission
                 $response = sprintf(
                     "<!DOCTYPE html><html><head><meta charset='UTF-8' /></head><body class='GF_AJAX_POSTBACK'><div id='gform_confirmation_wrapper_1' class='gform_confirmation_wrapper '><div id='gform_confirmation_message_1' class='gform_confirmation_message_1
  gform_confirmation_message'>%s</div></div></body></html>",
-                    $ct_result->comment
+                    Sanitize::stripTags($ct_result->comment)
                 );
                 echo $response;
                 die();
             } elseif ( isset($_POST['action']) && $_POST['action'] == 'ct_check_internal' ) {
-                return $ct_result->comment;
+                return Sanitize::stripTags($ct_result->comment);
             } elseif ( isset($_POST['vfb-submit']) && defined('VFB_VERSION') ) {
                 wp_die(
                     "<h1>" . __(
                         'Spam protection by CleanTalk',
                         'cleantalk-spam-protect'
-                    ) . "</h1><h2>" . $ct_result->comment . "</h2>",
+                    ) . "</h1><h2>" . Sanitize::stripTags($ct_result->comment) . "</h2>",
                     '',
                     array('response' => 403, "back_link" => true, "text_direction" => 'ltr')
                 );
                 // Caldera Contact Forms
             } elseif ( isset($_POST['action']) && $_POST['action'] == 'cf_process_ajax_submit' ) {
-                print "<h3 style='color: red;'><red>" . $ct_result->comment . "</red></h3>";
+                print "<h3 style='color: red;'><red>" . Sanitize::stripTags($ct_result->comment) . "</red></h3>";
                 die();
                 // Mailster
             } elseif ( isset($_POST['_referer'], $_POST['formid'], $_POST['email']) ) {
                 $return = array(
                     'success' => false,
-                    'html'    => '<p>' . $ct_result->comment . '</p>',
+                    'html'    => '<p>' . Sanitize::stripTags($ct_result->comment) . '</p>',
                 );
                 print json_encode($return);
                 die();
                 // Divi Theme Contact Form. Using $contact_form
             } elseif ( ! empty($contact_form) && $contact_form == 'contact_form_divi_theme' ) {
-                echo "<div id='et_pb_contact_form{$contact_form_additional}'><h1>Your request looks like spam.</h1><div><p>{$ct_result->comment}</p></div></div>";
+                echo "<div id='et_pb_contact_form{$contact_form_additional}'><h1>Your request looks like spam.</h1><div><p>{Sanitize::stripTags($ct_result->comment)}</p></div></div>";
                 die();
                 // Enfold Theme Contact Form. Using $contact_form
             } elseif ( ! empty($contact_form) && $contact_form == 'contact_form_enfold_theme' ) {
-                echo "<div id='ajaxresponse_1' class='ajaxresponse ajaxresponse_1' style='display: block;'><div id='ajaxresponse_1' class='ajaxresponse ajaxresponse_1'><h3 class='avia-form-success'>Anti-Spam by CleanTalk: " . $ct_result->comment . "</h3><a href='.'><-Back</a></div></div>";
+                echo "<div id='ajaxresponse_1' class='ajaxresponse ajaxresponse_1' style='display: block;'><div id='ajaxresponse_1' class='ajaxresponse ajaxresponse_1'><h3 class='avia-form-success'>Anti-Spam by CleanTalk: " . Sanitize::stripTags($ct_result->comment) . "</h3><a href='.'><-Back</a></div></div>";
                 die();
             } else {
                 ct_die(null, null);
@@ -436,9 +437,9 @@ function ct_contact_form_validate_postdata()
     if ( $ct_result->allow == 0 ) {
         if ( ! (defined('DOING_AJAX') && DOING_AJAX) ) {
             global $ct_comment;
-            $ct_comment = $ct_result->comment;
+            $ct_comment = Sanitize::stripTags($ct_result->comment);
             if ( isset($_POST['cma-action']) && $_POST['cma-action'] == 'add' ) {
-                $result = array('success' => 0, 'thread_id' => null, 'messages' => array($ct_result->comment));
+                $result = array('success' => 0, 'thread_id' => null, 'messages' => array(Sanitize::stripTags($ct_result->comment)));
                 header("Content-Type: application/json");
                 print json_encode($result);
                 die();
@@ -446,7 +447,7 @@ function ct_contact_form_validate_postdata()
                 ct_die(null, null);
             }
         } else {
-            echo $ct_result->comment;
+            echo Sanitize::stripTags($ct_result->comment);
         }
         exit;
     }

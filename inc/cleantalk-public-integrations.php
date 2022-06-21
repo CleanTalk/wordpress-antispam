@@ -1,6 +1,7 @@
 <?php
 
 use Cleantalk\ApbctWP\Helper;
+use Cleantalk\ApbctWP\Sanitize;
 use Cleantalk\ApbctWP\State;
 use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\Variables\Get;
@@ -114,7 +115,7 @@ function ct_validate_ccf_submission($value, $_field_id, $_required)
 
     $ct_result = $base_call_result['ct_result'];
 
-    return $ct_result->allow == 0 ? $ct_result->comment : true;
+    return $ct_result->allow == 0 ? Sanitize::stripTags($ct_result->comment) : true;
 }
 
 function ct_woocommerce_wishlist_check($args)
@@ -171,7 +172,7 @@ function ct_woocommerce_wishlist_check($args)
         wp_die(
             "<h1>"
             . __('Spam protection by CleanTalk', 'cleantalk-spam-protect')
-            . "</h1><h2>" . $ct_result->comment . "</h2>",
+            . "</h1><h2>" . Sanitize::stripTags($ct_result->comment) . "</h2>",
             '',
             array(
                 'response'       => 403,
@@ -245,7 +246,7 @@ function apbct_integration__buddyPres__activityWall($is_spam, $activity_obj = nu
 
     if ( $ct_result->allow == 0 ) {
         add_action('bp_activity_after_save', 'apbct_integration__buddyPres__activityWall_showResponse', 1, 1);
-        $apbct->spam_notification = $ct_result->comment;
+        $apbct->spam_notification = Sanitize::stripTags($ct_result->comment);
 
         return true;
     } else {
@@ -360,7 +361,7 @@ function apbct_integration__buddyPres__private_msg_check($bp_message_obj)
         wp_die(
             "<h1>"
             . __('Spam protection by CleanTalk', 'cleantalk-spam-protect')
-            . "</h1><h2>" . $ct_result->comment . "</h2>",
+            . "</h1><h2>" . Sanitize::stripTags($ct_result->comment) . "</h2>",
             '',
             array(
                 'response'       => 403,
@@ -427,7 +428,7 @@ function apbct_forms__search__testSpam($search)
     $cleantalk_executed = true;
 
     if ( $ct_result->allow == 0 ) {
-        die($ct_result->comment);
+        die(Sanitize::stripTags($ct_result->comment));
     }
 
     return $search;
@@ -501,7 +502,7 @@ function ct_woocommerce_checkout_check($_data, $errors)
     if ( $ct_result->allow == 0 ) {
         wp_send_json(array(
             'result'   => 'failure',
-            'messages' => "<ul class=\"woocommerce-error\"><li>" . $ct_result->comment . "</li></ul>",
+            'messages' => "<ul class=\"woocommerce-error\"><li>" . Sanitize::stripTags($ct_result->comment) . "</li></ul>",
             'refresh'  => 'false',
             'reload'   => 'false'
         ));
@@ -563,7 +564,7 @@ function apbct_wc__add_to_cart_unlogged_user(
         if ( $ct_result->allow == 0 ) {
             wp_send_json(array(
                 'result'        => 'failure',
-                'messages'      => "<ul class=\"woocommerce-error\"><li>" . $ct_result->comment . "</li></ul>",
+                'messages'      => "<ul class=\"woocommerce-error\"><li>" . Sanitize::stripTags($ct_result->comment) . "</li></ul>",
                 'refresh'       => 'false',
                 'reload'        => 'false',
                 'response_type' => 'wc_add_to_cart_block'
@@ -625,7 +626,7 @@ function apbct_form__piratesForm__testSpam()
         wp_die(
             "<h1>"
             . __('Spam protection by CleanTalk', 'cleantalk-spam-protect')
-            . "</h1><h2>" . $ct_result->comment . "</h2>",
+            . "</h1><h2>" . Sanitize::stripTags($ct_result->comment) . "</h2>",
             '',
             array(
                 'response'       => 403,
@@ -778,7 +779,7 @@ function apbct_form__formidable__testSpam($errors, $_form)
     $ct_result        = $base_call_result['ct_result'];
 
     if ( $ct_result->allow == 0 ) {
-        $ct_comment = $ct_result->comment;
+        $ct_comment = Sanitize::stripTags($ct_result->comment);
         if (apbct_is_ajax()) {
             // search for a suitable field
             $key_field = apbct__formidable_get_key_field_for_ajax_response($_form);
@@ -786,11 +787,11 @@ function apbct_form__formidable__testSpam($errors, $_form)
             $result = array (
                 'errors' =>
                     array (
-                        $key_field => $ct_result->comment
+                        $key_field => Sanitize::stripTags($ct_result->comment)
                     ),
                 'content' => '',
                 'pass' => false,
-                'error_message' => '<div class="frm_error_style" role="status"><p>' . $ct_result->comment . '</p></div>',
+                'error_message' => '<div class="frm_error_style" role="status"><p>' . Sanitize::stripTags($ct_result->comment) . '</p></div>',
             );
 
             echo json_encode($result, JSON_FORCE_OBJECT);
@@ -895,7 +896,7 @@ function ct_bbp_new_pre_content($comment)
     $ct_result        = $base_call_result['ct_result'];
 
     if ( $ct_result->allow == 0 ) {
-        bbp_add_error('bbp_reply_content', $ct_result->comment);
+        bbp_add_error('bbp_reply_content', Sanitize::stripTags($ct_result->comment));
     }
 
     return $comment;
@@ -1185,7 +1186,7 @@ function ct_preprocess_comment($comment)
             2
         ); // Add two blacklist links: by email and IP
     } else {
-        $ct_comment    = $ct_result->comment;
+        $ct_comment    = Sanitize::stripTags($ct_result->comment);
         $ct_stop_words = $ct_result->stop_words;
 
         $err_text =
@@ -1195,7 +1196,7 @@ function ct_preprocess_comment($comment)
                 : '<b style="color: #49C73B;">Clean</b><b style="color: #349ebf;">Talk.</b> ')
                 . __('Spam protection', 'cleantalk-spam-protect')
             . "</center><br><br>\n"
-            . $ct_result->comment;
+            . Sanitize::stripTags($ct_result->comment);
         if ( ! $ct_jp_comments ) {
             $err_text .= '<script>setTimeout("history.back()", 5000);</script>';
         }
@@ -1388,7 +1389,7 @@ function ct_test_message($nickname, $email, $_ip, $text)
 
     return array(
         'allow'   => $ct_result->allow,
-        'comment' => $ct_result->comment,
+        'comment' => Sanitize::stripTags($ct_result->comment),
     );
 }
 
@@ -1423,7 +1424,7 @@ function ct_test_registration($nickname, $email, $ip = null)
     ct_hash($ct_result->id);
     $result = array(
         'allow'   => $ct_result->allow,
-        'comment' => $ct_result->comment,
+        'comment' => Sanitize::stripTags($ct_result->comment),
     );
 
     return $result;
@@ -1575,29 +1576,29 @@ function ct_registration_errors($errors, $sanitized_user_login = null, $user_ema
     $cleantalk_executed = true;
 
     if ( $ct_result->inactive != 0 ) {
-        ct_send_error_notice($ct_result->comment);
+        ct_send_error_notice(Sanitize::stripTags($ct_result->comment));
 
         return $errors;
     }
 
     if ( $ct_result->allow == 0 ) {
         if ( $buddypress === true ) {
-            $bp->signup->errors['signup_username'] = $ct_result->comment;
+            $bp->signup->errors['signup_username'] = Sanitize::stripTags($ct_result->comment);
         } elseif ( $facebook ) {
             $_POST['FB_userdata']['email'] = '';
             $_POST['FB_userdata']['name']  = '';
 
             return;
         } elseif ( defined('MGM_PLUGIN_NAME') ) {
-            ct_die_extended($ct_result->comment);
+            ct_die_extended(Sanitize::stripTags($ct_result->comment));
         } else {
             if ( is_wp_error($errors) ) {
-                $errors->add('ct_error', $ct_result->comment);
+                $errors->add('ct_error', Sanitize::stripTags($ct_result->comment));
             }
-            $ct_negative_comment = $ct_result->comment;
+            $ct_negative_comment = Sanitize::stripTags($ct_result->comment);
         }
 
-        $ct_registration_error_comment = $ct_result->comment;
+        $ct_registration_error_comment = Sanitize::stripTags($ct_result->comment);
     } else {
         if ( $ct_result->id !== null ) {
             $apbct_cookie_request_id = $ct_result->id;
@@ -1700,13 +1701,13 @@ function apbct_registration__UltimateMembers__check($args)
     $cleantalk_executed = true;
 
     if ( $ct_result->inactive != 0 ) {
-        ct_send_error_notice($ct_result->comment);
+        ct_send_error_notice(Sanitize::stripTags($ct_result->comment));
 
         return $args;
     }
 
     if ( $ct_result->allow == 0 ) {
-        UM()->form()->add_error('user_password', $ct_result->comment);
+        UM()->form()->add_error('user_password', Sanitize::stripTags($ct_result->comment));
     }
 
     return $args;
@@ -1843,7 +1844,7 @@ function ct_contact_form_is_spam($form)
     $ct_result        = $base_call_result['ct_result'];
 
     if ( $ct_result->allow == 0 ) {
-        $ct_comment = $ct_result->comment;
+        $ct_comment = Sanitize::stripTags($ct_result->comment);
         ct_die(null, null);
         exit;
     }
@@ -1881,7 +1882,7 @@ function ct_contact_form_is_spam_jetpack($_is_spam, $form)
     $ct_result        = $base_call_result['ct_result'];
 
     if ( $ct_result->allow == 0 ) {
-        $ct_comment = $ct_result->comment;
+        $ct_comment = Sanitize::stripTags($ct_result->comment);
         ct_die(null, null);
         exit;
     }
@@ -2005,7 +2006,7 @@ function apbct_form__contactForm7__testSpam($spam, $_submission = null)
     }
 
     if ( $ct_result->allow == 0 ) {
-        $ct_cf7_comment = $ct_result->comment;
+        $ct_cf7_comment = Sanitize::stripTags($ct_result->comment);
 
         add_filter('wpcf7_display_message', 'apbct_form__contactForm7__showResponse', 10, 2);
 
@@ -2137,7 +2138,7 @@ function apbct_form__ninjaForms__testSpam()
 
     if ( $ct_result->allow == 0 ) {
         // We have to use GLOBAL variable to transfer the comment to apbct_form__ninjaForms__changeResponse() function :(
-        $apbct->response = $ct_result->comment;
+        $apbct->response = Sanitize::stripTags($ct_result->comment);
         add_action('ninja_forms_before_response', 'apbct_form__ninjaForms__changeResponse', 10, 1);
         add_action(
             'ninja_forms_action_email_send',
@@ -2251,14 +2252,14 @@ function apbct_form__seedprod_coming_soon__testSpam()
 
     $ct_result = $base_call_result['ct_result'];
     if ( $ct_result->allow == 0 ) {
-        $ct_comment = $ct_result->comment;
+        $ct_comment = Sanitize::stripTags($ct_result->comment);
 
         $response = array(
             'status' => 200,
             'html'   =>
                 "<h1>"
                 . __('Spam protection by CleanTalk', 'cleantalk-spam-protect')
-                . "</h1><h2>" . $ct_result->comment . "</h2>"
+                . "</h1><h2>" . Sanitize::stripTags($ct_result->comment) . "</h2>"
         );
 
         echo sanitize_text_field(Get::get('callback')) . '(' . json_encode($response) . ')';
@@ -2485,7 +2486,7 @@ function apbct_form__WPForms__testSpam()
     }
 
     if ( $ct_result->allow == 0 ) {
-        return $ct_result->comment;
+        return Sanitize::stripTags($ct_result->comment);
     }
 
     return null;
@@ -2567,7 +2568,7 @@ function ct_quform_post_validate($result, $form)
     if ( $ct_result->allow == 0 ) {
         die(
             json_encode(
-                array('type' => 'error', 'apbct' => array('blocked' => true, 'comment' => $ct_result->comment)),
+                array('type' => 'error', 'apbct' => array('blocked' => true, 'comment' => Sanitize::stripTags($ct_result->comment))),
                 JSON_HEX_QUOT | JSON_HEX_TAG
             )
         );
@@ -2643,7 +2644,7 @@ function ct_si_contact_form_validate($form_errors = array(), $_form_id_num = 0)
     $cleantalk_executed = true;
 
     if ( $ct_result->allow == 0 ) {
-        $ct_comment = $ct_result->comment;
+        $ct_comment = Sanitize::stripTags($ct_result->comment);
         ct_die(null, null);
         exit;
     }
@@ -2722,7 +2723,7 @@ function ct_check_wplp()
         $ct_result = $base_call_result['ct_result'];
 
         if ( $ct_result->allow == 0 ) {
-            $cleantalk_comment = $ct_result->comment;
+            $cleantalk_comment = Sanitize::stripTags($ct_result->comment);
         } else {
             $cleantalk_comment = 'OK';
         }
@@ -2896,7 +2897,7 @@ function apbct_form__gravityForms__testSpam($is_spam, $form, $entry)
     if ( $ct_result->allow == 0 ) {
         $is_spam           = true;
         $ct_gform_is_spam  = true;
-        $ct_gform_response = $ct_result->comment;
+        $ct_gform_response = Sanitize::stripTags($ct_result->comment);
         add_action('gform_entry_created', 'apbct_form__gravityForms__add_entry_note');
     }
 
@@ -2966,7 +2967,7 @@ function ct_s2member_registration_test($post_key)
     $ct_result        = $base_call_result['ct_result'];
 
     if ( $ct_result->allow == 0 ) {
-        ct_die_extended($ct_result->comment);
+        ct_die_extended(Sanitize::stripTags($ct_result->comment));
     }
 
     return true;
@@ -3021,7 +3022,7 @@ function apbct_form__the7_contact_form()
             $response = json_encode(
                 array(
                     'success' => false,
-                    'errors'  => $ct_result->comment,
+                    'errors'  => Sanitize::stripTags($ct_result->comment),
                     'nonce'   => wp_create_nonce('dt_contact_form')
                 )
             );
@@ -3082,7 +3083,7 @@ function apbct_form__elementor_pro__testSpam()
 
     if ( $ct_result->allow == 0 ) {
         wp_send_json_error(array(
-            'message' => $ct_result->comment,
+            'message' => Sanitize::stripTags($ct_result->comment),
             'data'    => array()
         ));
     }
@@ -3127,7 +3128,7 @@ function apbct_form__inevio__testSpam()
     if ( $ct_result->allow == 0 ) {
         die(
             json_encode(
-                array('apbct' => array('blocked' => true, 'comment' => $ct_result->comment,)),
+                array('apbct' => array('blocked' => true, 'comment' => Sanitize::stripTags($ct_result->comment),)),
                 JSON_HEX_QUOT | JSON_HEX_TAG
             )
         );
@@ -3194,7 +3195,7 @@ function apbct_form__enfold_contact_form__test_spam($send, $new_post, $_form_par
     $cleantalk_executed = true;
 
     if ( $ct_result->allow == 0 ) {
-        $obj->submit_error = $ct_result->comment;
+        $obj->submit_error = Sanitize::stripTags($ct_result->comment);
 
         return null;
     }
@@ -3236,8 +3237,8 @@ function apbct_form_profile_builder__check_register($errors, $_fields, $global_r
         $cleantalk_executed = true;
 
         if ( $ct_result->allow == 0 ) {
-            $errors['error']                         = $ct_result->comment;
-            $GLOBALS['global_profile_builder_error'] = $ct_result->comment;
+            $errors['error']                         = Sanitize::stripTags($ct_result->comment);
+            $GLOBALS['global_profile_builder_error'] = Sanitize::stripTags($ct_result->comment);
 
             add_filter('wppb_general_top_error_message', 'apbct_form_profile_builder__error_message', 1);
         }
@@ -3405,7 +3406,7 @@ function apbct_form_happyforms_test_spam($is_valid, $request, $_form)
 							<form action="" method="post" novalidate="true">
 							<div class="happyforms-flex"><div class="happyforms-message-notices">
 							<div class="happyforms-message-notice error">
-							<h2>' . $ct_result->comment . '</h2></div></div>
+							<h2>' . Sanitize::stripTags($ct_result->comment) . '</h2></div></div>
 							</form></div>'
             ));
         }
@@ -3495,7 +3496,7 @@ function apbct_advanced_classifieds_directory_pro__check_register($response, $_f
         $cleantalk_executed = true;
 
         if ( $ct_result->allow == 0 ) {
-            $ct_comment = $ct_result->comment;
+            $ct_comment = Sanitize::stripTags($ct_result->comment);
             ct_die(null, null);
         }
     }

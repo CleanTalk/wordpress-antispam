@@ -4,6 +4,7 @@
  * AJAX functions
  */
 
+use Cleantalk\ApbctWP\Sanitize;
 use Cleantalk\Variables\Get;
 use Cleantalk\Variables\Post;
 
@@ -688,61 +689,61 @@ function ct_ajax_hook($message_obj = null)
 
     if ( $ct_result->allow == 0 ) {
         if ( Post::get('action') === 'wpuf_submit_register' ) {
-            $result = array('success' => false, 'error' => $ct_result->comment);
+            $result = array('success' => false, 'error' => Sanitize::stripTags($ct_result->comment));
             @header('Content-Type: application/json; charset=' . get_option('blog_charset'));
             print json_encode($result);
             die();
         }
 
         if ( Post::get('action') === 'mymail_form_submit' ) {
-            $result = array('success' => false, 'html' => $ct_result->comment);
+            $result = array('success' => false, 'html' => Sanitize::stripTags($ct_result->comment));
             @header('Content-Type: application/json; charset=' . get_option('blog_charset'));
             print json_encode($result);
             die();
         }
 
         if ( Post::get('action') === 'wysija_ajax' && Post::get('task') !== 'send_preview' && Post::get('task') !== 'send_test_mail' ) {
-            $result = array('result' => false, 'msgs' => array('updated' => array($ct_result->comment)));
+            $result = array('result' => false, 'msgs' => array('updated' => array(Sanitize::stripTags($ct_result->comment))));
             print Get::get('callback') . '(' . json_encode($result) . ');';
             die();
         }
 
         if ( Post::get('action') === 'cs_registration_validation' ) {
-            $result = array("type" => "error", "message" => $ct_result->comment);
+            $result = array("type" => "error", "message" => Sanitize::stripTags($ct_result->comment));
             print json_encode($result);
             die();
         }
 
         if ( Post::get('action') === 'request_appointment' || Post::get('action') === 'send_message' ) {
-            print $ct_result->comment;
+            print Sanitize::stripTags($ct_result->comment);
             die();
         }
 
         if ( Post::get('action') === 'zn_do_login' ) {
-            print '<div id="login_error">' . $ct_result->comment . '</div>';
+            print '<div id="login_error">' . Sanitize::stripTags($ct_result->comment) . '</div>';
             die();
         }
 
         if ( Post::get('action') === 'vfb_submit' ) {
-            $result = array('result' => false, 'message' => $ct_result->comment);
+            $result = array('result' => false, 'message' => Sanitize::stripTags($ct_result->comment));
             @header('Content-Type: application/json; charset=' . get_option('blog_charset'));
             print json_encode($result);
             die();
         }
 
         if ( Post::get('action') === 'woocommerce_checkout' ) {
-            print $ct_result->comment;
+            print Sanitize::stripTags($ct_result->comment);
             die();
         }
 
         if ( Post::get('cma-action') === 'add' ) {
-            $result = array('success' => 0, 'thread_id' => null, 'messages' => array($ct_result->comment));
+            $result = array('success' => 0, 'thread_id' => null, 'messages' => array(Sanitize::stripTags($ct_result->comment)));
             print json_encode($result);
             die();
         }
 
         if ( Post::get('action') === 'td_mod_register' ) {
-            print json_encode(array('register', 0, $ct_result->comment));
+            print json_encode(array('register', 0, Sanitize::stripTags($ct_result->comment)));
             die();
         }
 
@@ -752,7 +753,7 @@ function ct_ajax_hook($message_obj = null)
         }
 
         if ( Post::get('action') === 'tevolution_submit_from_preview' || Post::get('action') === 'submit_form_recaptcha_validation' ) {
-            print $ct_result->comment;
+            print Sanitize::stripTags($ct_result->comment);
             die();
         }
 
@@ -761,7 +762,7 @@ function ct_ajax_hook($message_obj = null)
         if ( Post::get('action') === 'wew_save_to_db_callback' ) {
             $result            = array();
             $result['error']   = 1;
-            $result['message'] = $ct_result->comment;
+            $result['message'] = Sanitize::stripTags($ct_result->comment);
             $result['code']    = 5; // Unused code number in WooWaitlist
             print json_encode($result);
             die();
@@ -772,7 +773,7 @@ function ct_ajax_hook($message_obj = null)
             foreach ( $_POST as $key => $value ) {
                 $output[\Cleantalk\ApbctWP\Sanitize::cleanXss($key)] = \Cleantalk\ApbctWP\Sanitize::cleanXss($value);
             }
-            $output['template'] = $ct_result->comment;
+            $output['template'] = Sanitize::stripTags($ct_result->comment);
             $output             = json_encode($output);
             print_r($output);
             die;
@@ -784,7 +785,7 @@ function ct_ajax_hook($message_obj = null)
             $result   = array(
                 'success' => 'false',
                 'errors'  => $errors,
-                'title'   => $ct_result->comment
+                'title'   => Sanitize::stripTags($ct_result->comment)
             );
             print json_encode($result);
             die();
@@ -793,7 +794,7 @@ function ct_ajax_hook($message_obj = null)
         // Quick Contact Form
         if ( Post::get('action') === 'qcf_validate_form' ) {
             $result = array(
-                'blurb'   => "<h1>" . $ct_result->comment . "</h1>",
+                'blurb'   => "<h1>" . Sanitize::stripTags($ct_result->comment) . "</h1>",
                 'display' => "Oops, got a few problems here",
                 'errors'  => array(
                     0 => array(
@@ -814,7 +815,7 @@ function ct_ajax_hook($message_obj = null)
             Post::get('type') &&
             Post::get('ct_checkjs')
         ) {
-            return array($ct_result->comment);
+            return array(Sanitize::stripTags($ct_result->comment));
         }
 
         // amoForms
@@ -822,7 +823,7 @@ function ct_ajax_hook($message_obj = null)
             $result = array(
                 'result' => true,
                 'type'   => "html",
-                'value'  => "<h1 style='font-size: 25px; color: red;'>" . $ct_result->comment . "</h1>",
+                'value'  => "<h1 style='font-size: 25px; color: red;'>" . Sanitize::stripTags($ct_result->comment) . "</h1>",
                 'fast'   => false
             );
             print json_encode($result);
@@ -836,7 +837,7 @@ function ct_ajax_hook($message_obj = null)
 
         // QAEngine Theme answers
         if ( ! empty($message_obj) && isset($message_obj['post_type'], $message_obj['post_content']) ) {
-            throw new Exception($ct_result->comment);
+            throw new Exception(Sanitize::stripTags($ct_result->comment));
         }
 
         //ES Add subscriber
@@ -854,7 +855,7 @@ function ct_ajax_hook($message_obj = null)
                 'action'       => "message",
                 'detailed_msg' => "",
                 'email_status' => false,
-                'message'      => "<h1 style='font-size: 25px; color: red;'>" . $ct_result->comment . "</h1>",
+                'message'      => "<h1 style='font-size: 25px; color: red;'>" . Sanitize::stripTags($ct_result->comment) . "</h1>",
                 'status'       => "error",
                 'url'          => "none"
             );
@@ -867,7 +868,7 @@ function ct_ajax_hook($message_obj = null)
             $result = array(
                 'error_keys'       => array(),
                 'error_flag'       => 1,
-                'response_message' => $ct_result->comment
+                'response_message' => Sanitize::stripTags($ct_result->comment)
             );
             print json_encode($result);
             die();
@@ -876,7 +877,7 @@ function ct_ajax_hook($message_obj = null)
         // Smart Forms
         if ( Post::get('action') === 'rednao_smart_forms_save_form_values' ) {
             $result = array(
-                'message'        => $ct_result->comment,
+                'message'        => Sanitize::stripTags($ct_result->comment),
                 'refreshCaptcha' => 'n',
                 'success'        => 'n'
             );
@@ -890,7 +891,7 @@ function ct_ajax_hook($message_obj = null)
             $result = array(
                 'no'          => Post::get('cforms_id', null, 'xss'),
                 'result'      => 'failure',
-                'html'        => $ct_result->comment,
+                'html'        => Sanitize::stripTags($ct_result->comment),
                 'hide'        => false,
                 'redirection' => null
             );
@@ -903,7 +904,7 @@ function ct_ajax_hook($message_obj = null)
             $result = array(
                 'signal'      => true,
                 'code'        => 0,
-                'thanksMsg'   => $ct_result->comment,
+                'thanksMsg'   => Sanitize::stripTags($ct_result->comment),
                 'errors'      => array(),
                 'isMsg'       => true,
                 'redirectUrl' => null
@@ -916,7 +917,7 @@ function ct_ajax_hook($message_obj = null)
         if ( Post::get('action') === 'rwp_ajax_action_rating' ) {
             $result = array(
                 'success' => false,
-                'data'    => array(0 => $ct_result->comment)
+                'data'    => array(0 => Sanitize::stripTags($ct_result->comment))
             );
             print json_encode($result);
             die();
@@ -931,7 +932,7 @@ function ct_ajax_hook($message_obj = null)
             Post::get('action') === 'register'
         ) {
             $result = array(
-                'message' => '<div class="alert alert-error">' . $ct_result->comment . '</div>',
+                'message' => '<div class="alert alert-error">' . Sanitize::stripTags($ct_result->comment) . '</div>',
             );
             die(json_encode($result));
         }
@@ -940,7 +941,7 @@ function ct_ajax_hook($message_obj = null)
         if ( Post::get('action') === 'cp_v2_notify_admin' || Post::get('action') === 'cpro_notify_via_email' ) {
             $result = array(
                 'success' => false,
-                'data'    => array('error' => $ct_result->comment, 'style_slug' => 'convertprot-form'),
+                'data'    => array('error' => Sanitize::stripTags($ct_result->comment), 'style_slug' => 'convertprot-form'),
             );
             print json_encode($result);
             die();
@@ -951,21 +952,21 @@ function ct_ajax_hook($message_obj = null)
             wp_send_json_error(
                 array(
                     'error'    => 1,
-                    'response' => $ct_result->comment
+                    'response' => Sanitize::stripTags($ct_result->comment)
                 )
             );
         }
 
         //Optin wheel
         if ( Post::get('action') === 'wof-lite-email-optin' || Post::get('action') === 'wof-email-optin' ) {
-            wp_send_json_error(__($ct_result->comment, 'wp-optin-wheel'));
+            wp_send_json_error(__(Sanitize::stripTags($ct_result->comment), 'wp-optin-wheel'));
         }
 
         // Forminator
         if ( strpos(Post::get('action'), 'forminator_submit') !== false ) {
             wp_send_json_error(
                 array(
-                    'message' => $ct_result->comment,
+                    'message' => Sanitize::stripTags($ct_result->comment),
                     'success' => false,
                     'errors'  => array(),
                     'behav'   => 'behaviour-thankyou',
@@ -975,7 +976,7 @@ function ct_ajax_hook($message_obj = null)
 
         // Easy Registration Form
         if ( strpos(Post::get('action'), 'erf_submit_form') !== false ) {
-            wp_send_json_error(array(0 => array('username_error', $ct_result->comment)));
+            wp_send_json_error(array(0 => array('username_error', Sanitize::stripTags($ct_result->comment))));
         }
 
         // Kali Form Integration
@@ -984,7 +985,7 @@ function ct_ajax_hook($message_obj = null)
                 json_encode(
                     array(
                         'status' => 'ok',
-                        'thank_you_message' => $ct_result->comment
+                        'thank_you_message' => Sanitize::stripTags($ct_result->comment)
                     )
                 )
             );
@@ -995,7 +996,7 @@ function ct_ajax_hook($message_obj = null)
                 json_encode(
                     array(
                         'status' => 'error',
-                        'info' => $ct_result->comment
+                        'info' => Sanitize::stripTags($ct_result->comment)
                     )
                 )
             );
@@ -1007,7 +1008,7 @@ function ct_ajax_hook($message_obj = null)
                 array(
                     'apbct' => array(
                         'blocked'     => true,
-                        'comment'     => $ct_result->comment,
+                        'comment'     => Sanitize::stripTags($ct_result->comment),
                         'stop_script' => Post::hasString('action', 'tve_leads_ajax_')
                             ? 1
                             : 0

@@ -8,6 +8,7 @@ use Cleantalk\ApbctWP\Cron;
 use Cleantalk\ApbctWP\Firewall\SFW;
 use Cleantalk\ApbctWP\GetFieldsAny;
 use Cleantalk\ApbctWP\Helper;
+use Cleantalk\ApbctWP\Sanitize;
 use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\Common\DB;
 use Cleantalk\Variables\Get;
@@ -315,7 +316,7 @@ function apbct_base_call($params = array(), $reg_flag = false)
     }
 
     //Strip tags from comment
-    $ct_result->comment = strip_tags($ct_result->comment, '<p><a><br>');
+    $ct_result->comment = Sanitize::stripTags($ct_result->comment);
 
     // Set cookies if it's not.
     if ( empty($apbct->flags__cookies_setuped) ) {
@@ -1062,7 +1063,7 @@ function ct_change_plugin_resonse($ct_result = null, $checkjs = null)
             $ct_result->spam    = 1;
             $ct_result->comment = sprintf(
                 'We\'ve got an issue: %s. Forbidden. Please, enable Javascript. %s.',
-                $ct_result->comment,
+                Sanitize::stripTags($ct_result->comment),
                 $apbct->plugin_name
             );
         } else {

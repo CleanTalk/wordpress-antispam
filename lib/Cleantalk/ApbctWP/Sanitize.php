@@ -139,4 +139,12 @@ class Sanitize extends \Cleantalk\Common\Sanitize
     {
         return sanitize_user($variable);
     }
+
+    /**
+     * Removed html tags from string
+     */
+    public static function stripTags($string, $allowed_tags = array('<a>', '<p>', '<br>'))
+    {
+        return strip_tags($string, $allowed_tags);
+    }
 }

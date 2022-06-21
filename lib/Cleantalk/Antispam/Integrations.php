@@ -2,6 +2,8 @@
 
 namespace Cleantalk\Antispam;
 
+use Cleantalk\ApbctWP\Sanitize;
+
 class Integrations
 {
     private $integrations;
@@ -94,7 +96,7 @@ class Integrations
 
                     if ( $ct_result->allow == 0 ) {
                         // Do blocking if it is a spam
-                        return $integration->doBlock($ct_result->comment);
+                        return $integration->doBlock(Sanitize::stripTags($ct_result->comment));
                     }
 
                     if ( $ct_result->allow != 0 && method_exists($integration, 'allow') ) {
