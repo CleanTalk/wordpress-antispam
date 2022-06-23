@@ -1,5 +1,5 @@
 === Spam protection, AntiSpam, FireWall by CleanTalk ===
-Contributors: glomberg, safronik
+Contributors: safronik, glomberg, artemacleantalk
 Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 3.0
 Tested up to: 6.0
