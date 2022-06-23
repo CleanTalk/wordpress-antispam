@@ -526,7 +526,7 @@ function apbct_hook__wp_footer()
         $apbct->settings['data__pixel'] === '1' ||
         ($apbct->settings['data__pixel'] === '3' && ! apbct_is_cache_plugins_exists())
     ) {
-        echo '<img alt="Cleantalk Pixel" id="apbct_pixel" style="display: none;" src="' . $apbct->pixel_url . '">';
+        echo '<img alt="Cleantalk Pixel" id="apbct_pixel" style="display: none;" src="' . esc_url($apbct->pixel_url) . '">';
     }
 
     if ( $apbct->settings['data__use_ajax'] ) {
@@ -1390,14 +1390,14 @@ function ct_comments_output($curr_comment, $_param2, $wp_list_comments_args)
 
     echo "<p class='ct_comment_logo_title'>
 				" . __('by', 'cleantalk-spam-protect')
-         . " <a href='{$settings_link}' target='_blank'><img class='ct_comment_logo_img' src='" . APBCT_IMG_ASSETS_PATH . "/logo_color.png'></a>"
+         . " <a href='{$settings_link}' target='_blank'><img class='ct_comment_logo_img' src='" . esc_url(APBCT_IMG_ASSETS_PATH . "/logo_color.png") . "'></a>"
          . " <a href='{$settings_link}' target='_blank'>CleanTalk</a>"
          . "</p></div>";
     // Outputs email if exists
     if ( $email ) {
         echo "<a href='https://cleantalk.org/blacklists/$email' target='_blank' title='https://cleantalk.org/blacklists/$email'>"
              . "$email"
-             . "&nbsp;<img src='" . APBCT_IMG_ASSETS_PATH . "/new_window.gif' border='0' style='float:none; box-shadow: transparent 0 0 0 !important;'/>"
+             . "&nbsp;<img src='" . esc_url(APBCT_IMG_ASSETS_PATH . "/new_window.gif") . "' border='0' style='float:none; box-shadow: transparent 0 0 0 !important;'/>"
              . "</a>";
     } else {
         echo __('No email', 'cleantalk-spam-protect');
@@ -1408,7 +1408,7 @@ function ct_comments_output($curr_comment, $_param2, $wp_list_comments_args)
     if ( $ip ) {
         echo "<a href='https://cleantalk.org/blacklists/$ip' target='_blank' title='https://cleantalk.org/blacklists/$ip'>"
              . "$ip"
-             . "&nbsp;<img src='" . APBCT_IMG_ASSETS_PATH . "/new_window.gif' border='0' style='float:none; box-shadow: transparent 0 0 0 !important;'/>"
+             . "&nbsp;<img src='" . esc_url(APBCT_IMG_ASSETS_PATH . "/new_window.gif") . "' border='0' style='float:none; box-shadow: transparent 0 0 0 !important;'/>"
              . "</a>";
     } else {
         echo __('No IP', 'cleantalk-spam-protect');
