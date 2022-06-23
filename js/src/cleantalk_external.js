@@ -9,15 +9,15 @@ function ct_protect_external() {
             // current form
             var currentForm = document.forms[i];
 
+            if (currentForm.parentElement && currentForm.parentElement.classList[0].indexOf('mewtwo') !== -1){
+                return
+            }
+
             if(typeof(currentForm.action) == 'string') {
 
                 if(isIntegratedForm(currentForm)) {
 
                     jQuery( currentForm ).before('<i class="cleantalk_placeholder" style="display: none;"></i>');
-
-                    // if (currentForm.action.indexOf('tp.media') !== -1){
-                    //     return
-                    // }
 
                     // Deleting form to prevent submit event
                     var prev = jQuery(currentForm).prev(),
