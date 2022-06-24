@@ -1,10 +1,10 @@
 === Spam protection, AntiSpam, FireWall by CleanTalk ===
-Contributors: glomberg, safronik
+Contributors: safronik, glomberg, artemacleantalk
 Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 3.0
 Tested up to: 6.0
 Requires PHP: 5.6
-Stable tag: 5.179
+Stable tag: 5.179.1
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -601,6 +601,10 @@ If your website has forms that send data to external sources, you can enable opt
 12. SpamFireWall log.
 
 == Changelog ==
+
+= 5.179.1 Jun 21 2022 =
+#### General contact form catching fixed
+* Revert "Integration before common aa (#129)"
 
 = 5.179 Jun 16 2022 =
 #### Email Encoder functionality improved, SFW updating process improved and some minor issues fixed.

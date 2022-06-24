@@ -125,6 +125,17 @@ function apbct_init()
         add_action('wp', 'ct_ajax_hook', 1);
     }
 
+    /** VFB_Pro integration */
+    if (
+        ! empty($_POST) &&
+        $apbct->settings['forms__contact_forms_test'] == 1 &&
+        empty(Post::get('ct_checkjs_cf7')) &&
+        apbct_is_plugin_active('vfb-pro/vfb-pro.php') &&
+        ! empty(Post::get('_vfb-form-id'))
+    ) {
+        ct_contact_form_validate();
+    }
+
     //hook for Anonymous Post
     if ( $apbct->settings['data__general_postdata_test'] == 1 && empty(Post::get('ct_checkjs_cf7')) ) {
         add_action('init', 'ct_contact_form_validate_postdata', 1000);
@@ -132,6 +143,7 @@ function apbct_init()
 
     if ( $apbct->settings['forms__general_contact_forms_test'] == 1 && empty(Post::get('ct_checkjs_cf7')) && ! apbct_is_direct_trackback() ) {
         add_action('CMA_custom_post_type_nav', 'ct_contact_form_validate_postdata', 1);
+        add_action('init', 'ct_contact_form_validate', 999);
         if (
             Post::get('reg_redirect_link') !== '' &&
             Post::get('tmpl_registration_nonce_field') !== ''
@@ -333,7 +345,14 @@ function apbct_init()
         add_action('wp_footer', 'apbct_hook__wp_footer', 1);
     }
 
+    if ( $apbct->settings['data__protect_logged_in'] != 1 && is_user_logged_in() ) {
+        add_action('init', 'ct_contact_form_validate', 999);
+    }
+
     if ( apbct_is_user_enable() ) {
+        if ( $apbct->settings['forms__general_contact_forms_test'] == 1 && ! Post::get('comment_post_ID') && ! Get::get('for') && ! apbct_is_direct_trackback() ) {
+            add_action('init', 'ct_contact_form_validate', 999);
+        }
         if ( apbct_is_post() &&
              $apbct->settings['data__general_postdata_test'] == 1 &&
              ! Post::get('ct_checkjs_cf7') &&
@@ -342,6 +361,13 @@ function apbct_init()
         ) {
             add_action('init', 'ct_contact_form_validate_postdata', 1000);
         }
+    }
+
+    /**
+     * Integration with custom forms
+     */
+    if ( ! empty($_POST) && apbct_custom_forms_trappings() ) {
+        add_action('init', 'ct_contact_form_validate', 999);
     }
 }
 
@@ -629,7 +655,13 @@ function ct_add_hidden_fields(
     }
 }
 
-function ct_add_honeypot_field($form_type)
+/**
+ * Returns HTML of a honeypot hidden field to the form. If $form_method is GET, adds a hidden submit button.
+ * @param $form_type
+ * @param string $form_method
+ * @return string
+ */
+function ct_add_honeypot_field($form_type, $form_method = 'post')
 {
     global $apbct;
 
@@ -639,13 +671,15 @@ function ct_add_honeypot_field($form_type)
     }
 
     // Honeypot option is ON
+    // Declare the style. todo Needs to move this to public.js scripts
     $style = '
     <style>
-		#apbct__email_id__' . $form_type . ' {
+		.apbct__email_id__' . $form_type . ' {
             display: none !important;
 		}
 	</style>';
-    return $style . "\n" . '<input 
+    // Generate the hidden field
+    $honeypot = $style . "\n" . '<input 
         id="apbct__email_id__' . $form_type . '" 
         class="apbct__email_id__' . $form_type . '" 
         autocomplete="off" 
@@ -655,6 +689,19 @@ function ct_add_honeypot_field($form_type)
         size="30" 
         maxlength="200" 
     />';
+    //add a submit button if method is get to prevent keyboard send misfunction
+    if ( $form_method === 'get' ) {
+        $honeypot .= '<input 
+        id="apbct_submit_id__' . $form_type . '" 
+        class="apbct__email_id__' . $form_type . '" 
+        name="apbct_submit_id__' . $form_type . '"  
+        type="submit" 
+        size="30" 
+        maxlength="200" 
+    />';
+    }
+
+    return $honeypot;
 }
 
 /**

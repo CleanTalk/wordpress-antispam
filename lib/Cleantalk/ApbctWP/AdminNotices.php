@@ -24,7 +24,8 @@ class AdminNotices
         'notice_key_is_incorrect',
         'notice_trial',
         'notice_renew',
-        'notice_incompatibility'
+        'notice_incompatibility',
+        'notice_review'
     );
 
     /**
@@ -208,6 +209,33 @@ class AdminNotices
 
     /**
      * Callback for the notice hook
+     * @deprecated
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public function notice_review() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+    {
+        if ($this->apbct->notice_review == 1) {
+            $review_link = "<a class='button' href='https://wordpress.org/support/plugin/cleantalk-spam-protect/reviews/?filter=5' target='_blank'>"
+                                . __('SHARE', 'cleantalk-spam-protect') .
+                            "</a>";
+            $content = '<div class="apbct-notice notice notice-success is-dismissible" id="cleantalk_notice_review">
+                            <div class="flex-row">
+                                <h3>'
+                                    . __('Share your positive energy with us – give us a 5-star rating on WordPress.', 'cleantalk-spam-protect') .
+                                '</h3>
+                                <p class="caption">'
+                                    . __('Anti-Spam by CleanTalk.', 'cleantalk-spam-protect') .
+                                '</p>
+                            </div>'
+                            . $review_link .
+                        '</div>';
+
+            echo $content;
+        }
+    }
+
+    /**
+     * Callback for the notice hook
      * @psalm-suppress PossiblyUnusedMethod
      */
     public function notice_incompatibility() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
@@ -250,11 +278,17 @@ class AdminNotices
      */
     private function isDismissedNotice($notice_uid)
     {
-        $notice_date_option = get_option('cleantalk_' . $notice_uid . '_dismissed');
+        $option_name = 'cleantalk_' . $notice_uid . '_dismissed';
+        $notice_date_option = get_option($option_name);
+
+        // Infinity for notice_review
+        if ($notice_date_option !== false && strpos($option_name, 'notice_review')) {
+            return true;
+        }
 
         if ( $notice_date_option !== false && \Cleantalk\Common\Helper::dateValidate($notice_date_option) ) {
             $current_date = date_create();
-            $notice_date  = date_create(get_option('cleantalk_' . $notice_uid . '_dismissed'));
+            $notice_date  = date_create($notice_date_option);
 
             $diff = date_diff($current_date, $notice_date);
 

@@ -4,7 +4,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 5.179-dev
+  Version: 5.179.1
   Author: СleanTalk <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -606,6 +606,14 @@ if ( is_admin() || is_network_admin() ) {
     require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-validate.php');
     require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public.php');
     require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-integrations.php');
+    //Bitrix24 contact form
+    if ( $apbct->settings['forms__general_contact_forms_test'] == 1 &&
+         ! empty(Post::get('your-phone')) &&
+         ! empty(Post::get('your-email')) &&
+         ! empty(Post::get('your-message'))
+    ) {
+        ct_contact_form_validate();
+    }
 
     // Sends feedback to the cloud about comments
     // add_action('wp_set_comment_status', 'ct_comment_send_feedback', 10, 2);
@@ -625,14 +633,6 @@ if ( is_admin() || is_network_admin() ) {
         );
 
         add_filter('plugin_row_meta', 'apbct_admin__register_plugin_links', 10, 3);
-    }
-
-    /**
-     * This hook is triggered if the request is from a form
-     * with which we did not integrate.
-     */
-    if (apbct_need_to_process_unknown_post_request()) {
-        add_action('shutdown', 'ct_contact_form_validate', 999);
     }
 // Public pages actions
 } else {
@@ -677,14 +677,6 @@ if ( is_admin() || is_network_admin() ) {
         unset($_POST['redirect_to']);
         ct_contact_form_validate();
         $_POST['redirect_to'] = $tmp;
-    }
-
-    /**
-     * This hook is triggered if the request is from a form
-     * with which we did not integrate.
-     */
-    if (apbct_need_to_process_unknown_post_request()) {
-        add_action('shutdown', 'ct_contact_form_validate', 999);
     }
 }
 
@@ -1473,7 +1465,7 @@ function apbct_sfw_update__end_of_update($is_first_updating = false)
     global $apbct;
 
     // Delete update errors
-    $apbct->errorDelete('sfw_update', 'save_settings');
+    $apbct->errorDelete('sfw_update', true);
 
     // Running sfw update once again in 12 min if entries is < 4000
     if ( $is_first_updating &&
@@ -1761,7 +1753,7 @@ function ct_sfw_send_logs($api_key = '')
     if ( empty($result['error']) ) {
         $apbct->stats['sfw']['last_send_time']   = time();
         $apbct->stats['sfw']['last_send_amount'] = $result['rows'];
-        $apbct->errorDelete('sfw_send_logs', 'save_settings');
+        $apbct->errorDelete('sfw_send_logs', true);
         $apbct->save('stats');
     }
 
@@ -2426,7 +2418,7 @@ function ct_account_status_check($api_key = null, $process_errors = true)
         $cron = new Cron();
         $cron->updateTask('check_account_status', 'ct_account_status_check', 86400);
 
-        $apbct->errorDelete('account_check', 'save');
+        $apbct->errorDelete('account_check', true);
 
         $apbct->saveData();
     } elseif ( $process_errors ) {
