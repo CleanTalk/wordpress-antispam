@@ -1213,15 +1213,7 @@ function ct_enqueue_scripts_public($_hook)
 
         // GDPR script
         if ( $apbct->settings['gdpr__enabled'] ) {
-            wp_enqueue_script(
-                'ct_public_gdpr',
-                APBCT_URL_PATH . '/js/apbct-public--gdpr.min.js',
-                array('jquery', 'ct_public'),
-                APBCT_VERSION,
-                false /*in header*/
-            );
-
-            wp_localize_script('ct_public_gdpr', 'ctPublicGDPR', array(
+            wp_localize_script('ct_public_functions', 'ctPublicGDPR', array(
                 'gdpr_forms' => array(),
                 'gdpr_text'  => $apbct->settings['gdpr__text'] ?: __(
                     'By using this form you agree with the storage and processing of your data by using the Privacy Policy on this website.',
@@ -1229,28 +1221,6 @@ function ct_enqueue_scripts_public($_hook)
                 ),
             ));
         }
-    }
-
-    // External forms check
-    if ( $apbct->settings['forms__check_external'] ) {
-        wp_enqueue_script(
-            'ct_external',
-            APBCT_JS_ASSETS_PATH . '/cleantalk_external.min.js',
-            array('jquery'),
-            APBCT_VERSION,
-            false /*in header*/
-        );
-    }
-
-    // Internal forms check
-    if ( $apbct->settings['forms__check_internal'] ) {
-        wp_enqueue_script(
-            'ct_internal',
-            APBCT_JS_ASSETS_PATH . '/cleantalk_internal.min.js',
-            array('jquery'),
-            APBCT_VERSION,
-            false /*in header*/
-        );
     }
 
     // Show controls for commentaries
@@ -1315,20 +1285,8 @@ function apbct_enqueue_and_localize_public_scripts()
     // Different JS params
     wp_enqueue_script(
         'ct_public_functions',
-        APBCT_URL_PATH . '/js/apbct-public--functions.min.js',
+        APBCT_URL_PATH . '/js/apbct-public-bundle.min.js',
         array('jquery'),
-        APBCT_VERSION
-    );
-    wp_enqueue_script(
-        'ct_public',
-        APBCT_URL_PATH . '/js/apbct-public.min.js',
-        array('jquery', 'ct_public_functions'),
-        APBCT_VERSION
-    );
-    wp_enqueue_script(
-        'cleantalk-modal',
-        APBCT_JS_ASSETS_PATH . '/cleantalk-modal.min.js',
-        array(),
         APBCT_VERSION
     );
 
@@ -1343,7 +1301,7 @@ function apbct_enqueue_and_localize_public_scripts()
         'cookiePrefix'                         => apbct__get_cookie_prefix(),
     ));
 
-    wp_localize_script('ct_public', 'ctPublic', array(
+    wp_localize_script('ct_public_functions', 'ctPublic', array(
         'pixel__setting'                => $apbct->settings['data__pixel'],
         'pixel__enabled'                => $apbct->settings['data__pixel'] === '2' ||
                                            ($apbct->settings['data__pixel'] === '3' && apbct_is_cache_plugins_exists()),
