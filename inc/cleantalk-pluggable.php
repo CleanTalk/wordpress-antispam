@@ -936,6 +936,14 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'APBCT service actions';
         }
+
+        // JQueryMigrate plugin
+        if (
+            apbct_is_plugin_active('enable-jquery-migrate-helper/enable-jquery-migrate-helper.php') &&
+            Post::get('action') === 'jquery-migrate-log-notice'
+        ) {
+            return 'JQueryMigrate plugin service actions';
+        }
     }
 
     // Event Manager - there is the direct integration

@@ -142,7 +142,7 @@ function ct_contact_form_validate()
     }
 
     // Do not execute anti-spam test for logged in users.
-    if ( isset($_COOKIE[LOGGED_IN_COOKIE]) && $apbct->settings['data__protect_logged_in'] != 1 ) {
+    if ( defined('LOGGED_IN_COOKIE') && isset($_COOKIE[LOGGED_IN_COOKIE]) && $apbct->settings['data__protect_logged_in'] != 1 ) {
         do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
 
         return null;
@@ -221,12 +221,15 @@ function ct_contact_form_validate()
         unset($_POST['TellAFriend_Link']);
     }
 
+    $checkjs = apbct_js_test('ct_checkjs', $_COOKIE, true) ?: apbct_js_test('ct_checkjs', $_POST);
+
     $base_call_result = apbct_base_call(
         array(
             'message'         => $message,
             'sender_email'    => $sender_email,
             'sender_nickname' => $sender_nickname,
             'post_info'       => $post_info,
+            'js_on'           => $checkjs,
             'sender_info'     => array('sender_email' => urlencode($sender_email)),
         )
     );

@@ -506,8 +506,8 @@ class Request
                 case 'ssl':
                     $this->options[CURLOPT_SSL_VERIFYPEER] = true;
                     $this->options[CURLOPT_SSL_VERIFYHOST] = 2;
-                    if ( defined('CLEANTALK_CASERT_PATH') && CLEANTALK_CASERT_PATH ) {
-                        $this->options[CURLOPT_CAINFO] = CLEANTALK_CASERT_PATH;
+                    if ( defined('APBCT_CASERT_PATH') && APBCT_CASERT_PATH ) {
+                        $this->options[CURLOPT_CAINFO] = APBCT_CASERT_PATH;
                     }
                     break;
 
@@ -515,12 +515,12 @@ class Request
                     // Append parameter in a different way for single and multiple requests
                     if ( is_array($this->url) ) {
                         $this->url = array_map(static function ($elem) {
-                            return self::appendParametersToURL($elem, ['no_cache' => mt_rand()]);
+                            return self::appendParametersToURL($elem, ['apbct_no_cache' => mt_rand()]);
                         }, $this->url);
                     } else {
                         $this->options[CURLOPT_URL] = self::appendParametersToURL(
                             $this->options[CURLOPT_URL],
-                            ['no_cache' => mt_rand()]
+                            ['apbct_no_cache' => mt_rand()]
                         );
                     }
                     break;

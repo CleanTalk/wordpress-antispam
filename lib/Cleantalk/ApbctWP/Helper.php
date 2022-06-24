@@ -97,6 +97,14 @@ class Helper extends \Cleantalk\Common\Helper
     {
         global $apbct;
 
+        // RemoteCallsCounter
+        $logging_data = array(
+            'rc_action' => $rc_action,
+            'request_params' => $request_params
+        );
+        $RCCounter = new RemoteCallsCounter($logging_data);
+        $RCCounter->execute();
+
         $request_params = array_merge(array(
             'spbc_remote_call_token' => md5($apbct->api_key),
             'spbc_remote_call_action' => $rc_action,
@@ -104,7 +112,8 @@ class Helper extends \Cleantalk\Common\Helper
         ), $request_params);
         $patterns       = array_merge(
             array(
-                'dont_split_to_array'
+                'dont_split_to_array',
+                'no_cache'
             ),
             $patterns
         );
@@ -136,6 +145,14 @@ class Helper extends \Cleantalk\Common\Helper
      */
     public static function httpRequestRcToHostTest($rc_action, $request_params, $patterns = array())
     {
+        // RemoteCallsCounter
+        $logging_data = array(
+            'rc_action' => $rc_action,
+            'request_params' => $request_params
+        );
+        $RCCounter = new RemoteCallsCounter($logging_data);
+        $RCCounter->execute();
+
         // Delete async pattern to get the result in this process
         $key = array_search('async', $patterns, true);
         if ($key) {

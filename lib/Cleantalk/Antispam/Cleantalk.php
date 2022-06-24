@@ -207,7 +207,6 @@ class Cleantalk
                         '/\s?apbct_site_landing_ts=\d*[^;]*;?/',
                         '/\s?apbct_cookies_test=%7B.*%7D[^;]*;?/',
                         '/\s?apbct_prev_referer=http.*?[^;]*;?/',
-                        '/\s?ct_cookies_test=.*?[^;]*;?/',
                         '/\s?ct_ps_timestamp=.*?[^;]*;?/',
                         '/\s?ct_fkp_timestamp=\d*?[^;]*;?/',
                         '/\s?wordpress_ct_sfw_pass_key=\d*?[^;]*;?/',

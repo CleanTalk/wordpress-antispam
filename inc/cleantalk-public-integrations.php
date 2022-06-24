@@ -451,11 +451,14 @@ function apbct_search_add_noindex()
 
 /**
  * Test woocommerce checkout form for spam
- * @psalm-suppress UnusedVariable
  */
-function ct_woocommerce_checkout_check()
+function ct_woocommerce_checkout_check($_data, $errors)
 {
     global $apbct, $cleantalk_executed;
+
+    if ( count($errors->errors) ) {
+        return;
+    }
 
     /**
      * Filter for POST
@@ -1521,19 +1524,34 @@ function ct_registration_errors($errors, $sanitized_user_login = null, $user_ema
     /**
      * Changing the type of check for BuddyPress
      */
-    if (Post::get('signup_username') && Post::get('signup_email')) {
-        $reg_flag = false;
+    if ( Post::get('signup_username') && Post::get('signup_email') ) {
+        // if buddy press set up custom fields
+        $reg_flag = empty(Post::get('signup_profile_field_ids'));
+    }
+
+    $base_call_array = array(
+        'sender_email'    => $user_email,
+        'sender_nickname' => $sanitized_user_login,
+        'sender_info'     => $sender_info,
+        'js_on'           => $checkjs,
+    );
+
+    if ( !$reg_flag ) {
+        $field_values = '';
+        $fields_numbers_to_check = explode(',', Post::get('signup_profile_field_ids'));
+        foreach ( $fields_numbers_to_check as $field_number ) {
+            $field_name = 'field_' . $field_number;
+            $field_value = Post::get($field_name) ? Post::get($field_name) : '';
+            $field_values .= $field_value . "\n";
+        }
+        $base_call_array['message'] = $field_values;
     }
 
     $base_call_result = apbct_base_call(
-        array(
-            'sender_email'    => $user_email,
-            'sender_nickname' => $sanitized_user_login,
-            'sender_info'     => $sender_info,
-            'js_on'           => $checkjs,
-        ),
+        $base_call_array,
         $reg_flag
     );
+
     $ct_result        = $base_call_result['ct_result'];
     ct_hash($ct_result->id);
     // Change mail notification if license is out of date
@@ -2827,7 +2845,7 @@ function apbct_form__gravityForms__testSpam($is_spam, $form, $entry)
         }
 
         foreach ( $form_fields_intermediate as $field ) {
-            if ( $field['f_type'] === 'email' ) {
+            if ( $field['f_type'] === 'email' && $field['f_visibility'] === 'visible') {
                 $email = $field['f_data'];
             }
 
@@ -3396,12 +3414,48 @@ function apbct_form_happyforms_test_spam($is_valid, $request, $_form)
     return $is_valid;
 }
 
+/**
+ * Prepare data to add honeypot to the WordPress default search form.
+ * Fires ct_add_honeypot_field() on hook get_search_form when:
+ * - method of the form is post
+ * - spam test of search form is enabled
+ *
+ * @param string $form_html
+ * @return string
+ */
 function apbct_form_search__add_fields($form_html)
 {
     global $apbct;
-    if ( is_string($form_html) && $apbct->settings['forms__search_test'] == 1 ) {
-        return str_replace('</form>', ct_add_honeypot_field('search_form') . '</form>', $form_html);
+    if ( ! empty($form_html) && is_string($form_html) && $apbct->settings['forms__search_test'] == 1 ) {
+
+        /**
+         * extract method of the form
+         */
+        if ( class_exists('DOMDocument') ) {
+            $dom = new DOMDocument();
+            $dom->loadHTML($form_html);
+            $search_form_dom = $dom->getElementById('searchform');
+            if ( !empty($search_form_dom) ) {
+                $method = empty($search_form_dom->getAttribute('method'))
+                    //default method is get for any form if no method specified
+                    ? 'get'
+                    : $search_form_dom->getAttribute('method');
+            }
+            unset($dom);
+        } else {
+            preg_match('/form.*method="(.*?)"/', $form_html, $matches);
+            $method = empty($matches[1])
+                ? 'get'
+                : trim($matches[1]);
+        }
+
+        /**
+         * add honeypot html
+         */
+        $form_method = strtolower($method);
+        return str_replace('</form>', ct_add_honeypot_field('search_form', $form_method) . '</form>', $form_html);
     }
+
     return $form_html;
 }
 

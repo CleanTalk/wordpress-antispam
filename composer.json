@@ -11,11 +11,12 @@
     "require": {
         "vimeo/psalm": "^4.8",
         "humanmade/psalm-plugin-wordpress": "^2.0",
-        "php-stubs/wordpress-stubs": "^5.7",
+        "php-stubs/wordpress-stubs": "5.*",
         "phpunit/phpunit": "^7.5",
         "squizlabs/php_codesniffer": "3.*",
         "phpcompatibility/php-compatibility": "^9.3",
-        "yoast/phpunit-polyfills": "^1.0"
+        "yoast/phpunit-polyfills": "^1.0",
+        "ext-dom": "*"
     },
     "scripts": {
         "test": [

@@ -9,9 +9,14 @@ function ct_protect_external() {
             // current form
             var currentForm = document.forms[i];
 
+            if (currentForm.parentElement && currentForm.parentElement.classList[0].indexOf('mewtwo') !== -1){
+                return
+            }
+
             if(typeof(currentForm.action) == 'string') {
 
                 if(isIntegratedForm(currentForm)) {
+
                     jQuery( currentForm ).before('<i class="cleantalk_placeholder" style="display: none;"></i>');
 
                     // Deleting form to prevent submit event
@@ -71,7 +76,8 @@ function ct_protect_external() {
                         ct_method.value = currentForm.method;
                         ct_method.type = 'hidden';
 
-                        currentForm.method = 'POST';
+                        currentForm.method = 'POST'
+
                         currentForm.appendChild(ct_method);
 
                         currentForm.action = document.location;
@@ -126,7 +132,10 @@ function isIntegratedForm(formObj) {
         formAction.indexOf('webto.salesforce.com') !== -1 ||
         formAction.indexOf('secure2.convio.net') !== -1 ||
         formAction.indexOf('hookb.in') !== -1 ||
-        formAction.indexOf('external.url') !== -1
+        formAction.indexOf('external.url') !== -1 ||
+        formAction.indexOf('tp.media') !== -1 ||
+        formAction.indexOf('flodesk.com') !== -1
+
     ) {
         return true;
     }

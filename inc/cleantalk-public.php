@@ -167,7 +167,7 @@ function apbct_init()
     if ( class_exists('WooCommerce') ) {
         add_filter('woocommerce_registration_errors', 'ct_registration_errors', 1, 3);
         if ( $apbct->settings['forms__wc_checkout_test'] == 1 ) {
-            add_filter('woocommerce_checkout_process', 'ct_woocommerce_checkout_check', 1, 3);
+            add_action('woocommerce_after_checkout_validation', 'ct_woocommerce_checkout_check', 1, 2);
         }
         if ( Request::get('wc-ajax') === 'checkout' && empty($apbct->settings['forms__wc_register_from_order']) ) {
             remove_filter('woocommerce_registration_errors', 'ct_registration_errors', 1);
@@ -655,7 +655,13 @@ function ct_add_hidden_fields(
     }
 }
 
-function ct_add_honeypot_field($form_type)
+/**
+ * Returns HTML of a honeypot hidden field to the form. If $form_method is GET, adds a hidden submit button.
+ * @param $form_type
+ * @param string $form_method
+ * @return string
+ */
+function ct_add_honeypot_field($form_type, $form_method = 'post')
 {
     global $apbct;
 
@@ -665,22 +671,53 @@ function ct_add_honeypot_field($form_type)
     }
 
     // Honeypot option is ON
+    // Declare the style. todo Needs to move this to public.js scripts
     $style = '
     <style>
-		#apbct__email_id__' . $form_type . ' {
+		.apbct__email_id__' . $form_type . ' {
             display: none !important;
 		}
 	</style>';
-    return $style . "\n" . '<input 
-        id="apbct__email_id__' . $form_type . '" 
+    //Generate random suffix to prevent ids duplicate
+    $random = mt_rand(0,100000);
+
+    // Generate the hidden field
+    $honeypot = $style . "\n" . '<input 
+        id="apbct__email_id__' . $form_type .'_'. $random .'" 
         class="apbct__email_id__' . $form_type . '" 
         autocomplete="off" 
-        name="apbct__email_id__' . $form_type . '"  
+        name="apbct__email_id__' . $form_type .'_'. $random .'"  
         type="text" 
         value="" 
         size="30" 
         maxlength="200" 
     />';
+
+    if ( $form_method === 'post' ) {
+        //add hidden field to set random suffix for the field
+        $honeypot .= '<input 
+        id="apbct_event_id"
+        name="apbct_event_id"
+        type="hidden" 
+        value="' . $random . '" 
+            />';
+    }
+
+    //add a submit button if method is get to prevent keyboard send misfunction
+    if ( $form_method === 'get' ) {
+        $honeypot .= '<input 
+        id="apbct_submit_id__' . $form_type .'_'. $random .'" 
+        class="apbct__email_id__' . $form_type .'" 
+        name="apbct_submit_id__' . $form_type .'_'. $random .'"  
+        type="submit" 
+        apbct_event_id="' . $random .'"
+        size="30" 
+        maxlength="200" 
+        value=""
+    />';
+    }
+
+    return $honeypot;
 }
 
 /**
@@ -1192,15 +1229,7 @@ function ct_enqueue_scripts_public($_hook)
 
         // GDPR script
         if ( $apbct->settings['gdpr__enabled'] ) {
-            wp_enqueue_script(
-                'ct_public_gdpr',
-                APBCT_URL_PATH . '/js/apbct-public--gdpr.min.js',
-                array('jquery', 'ct_public'),
-                APBCT_VERSION,
-                false /*in header*/
-            );
-
-            wp_localize_script('ct_public_gdpr', 'ctPublicGDPR', array(
+            wp_localize_script('ct_public_functions', 'ctPublicGDPR', array(
                 'gdpr_forms' => array(),
                 'gdpr_text'  => $apbct->settings['gdpr__text'] ?: __(
                     'By using this form you agree with the storage and processing of your data by using the Privacy Policy on this website.',
@@ -1208,28 +1237,6 @@ function ct_enqueue_scripts_public($_hook)
                 ),
             ));
         }
-    }
-
-    // External forms check
-    if ( $apbct->settings['forms__check_external'] ) {
-        wp_enqueue_script(
-            'ct_external',
-            APBCT_JS_ASSETS_PATH . '/cleantalk_external.min.js',
-            array('jquery'),
-            APBCT_VERSION,
-            false /*in header*/
-        );
-    }
-
-    // Internal forms check
-    if ( $apbct->settings['forms__check_internal'] ) {
-        wp_enqueue_script(
-            'ct_internal',
-            APBCT_JS_ASSETS_PATH . '/cleantalk_internal.min.js',
-            array('jquery'),
-            APBCT_VERSION,
-            false /*in header*/
-        );
     }
 
     // Show controls for commentaries
@@ -1294,20 +1301,8 @@ function apbct_enqueue_and_localize_public_scripts()
     // Different JS params
     wp_enqueue_script(
         'ct_public_functions',
-        APBCT_URL_PATH . '/js/apbct-public--functions.min.js',
+        APBCT_URL_PATH . '/js/apbct-public-bundle.min.js',
         array('jquery'),
-        APBCT_VERSION
-    );
-    wp_enqueue_script(
-        'ct_public',
-        APBCT_URL_PATH . '/js/apbct-public.min.js',
-        array('jquery', 'ct_public_functions'),
-        APBCT_VERSION
-    );
-    wp_enqueue_script(
-        'cleantalk-modal',
-        APBCT_JS_ASSETS_PATH . '/cleantalk-modal.min.js',
-        array(),
         APBCT_VERSION
     );
 
@@ -1322,7 +1317,7 @@ function apbct_enqueue_and_localize_public_scripts()
         'cookiePrefix'                         => apbct__get_cookie_prefix(),
     ));
 
-    wp_localize_script('ct_public', 'ctPublic', array(
+    wp_localize_script('ct_public_functions', 'ctPublic', array(
         'pixel__setting'                => $apbct->settings['data__pixel'],
         'pixel__enabled'                => $apbct->settings['data__pixel'] === '2' ||
                                            ($apbct->settings['data__pixel'] === '3' && apbct_is_cache_plugins_exists()),

@@ -4,7 +4,9 @@ var gulp       = require('gulp'),
     sourcemaps = require('gulp-sourcemaps'),
     uglify     = require('gulp-uglify'),
     rename     = require('gulp-rename'),
-    cssmin     = require('gulp-cssmin');
+    cssmin     = require('gulp-cssmin'),
+    concat     = require('gulp-concat'),
+    wait       = require('gulp-wait');
 
 // CSS COMPRESS
 gulp.task('compress-css', function () {
@@ -15,14 +17,26 @@ gulp.task('compress-css', function () {
 });
 
 // JS COMPRESS
-gulp.task('compress-js', function () {
-    return gulp.src('js/src/*.js')
+async function compress_all_js() {
+    await gulp.src(['js/src/*.js', '!js/src/apbct-public--*.js'])
+        .pipe(wait(2000))
         .pipe(sourcemaps.init())
         .pipe(uglify())
         .pipe(rename({suffix: '.min'}))
         .pipe(sourcemaps.write('.'))
         .pipe(gulp.dest('js'));
-});
+}
+
+// Bundle Create
+async function bundle_js() {
+    await gulp.src('js/src/apbct-public--*.js')
+        .pipe(concat('apbct-public-bundle.js'))
+        .pipe(uglify())
+        .pipe(rename({suffix: '.min'}))
+        .pipe(gulp.dest('js'));
+}
+
+gulp.task('compress-js', gulp.series(bundle_js, compress_all_js));
 
 gulp.task('compress-css:watch', function () {
     gulp.watch('./css/src/*.css', gulp.parallel('compress-css'));

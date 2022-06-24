@@ -80,9 +80,33 @@ class Validate
         // TODO
     }
 
-    public static function isUrl($variable)
+    public static function isUrl($url)
     {
-        // @ToDo
-        return $variable;
+        return ( strpos($url, 'http://') !== false || strpos($url, 'https://') !== false ) &&
+               filter_var($url, FILTER_VALIDATE_URL);
+    }
+
+    /**
+     * Checks if given string is valid regular expression
+     *
+     * @param string $regexp
+     *
+     * @return bool
+     */
+    public static function isRegexp($regexp)
+    {
+        return @preg_match('/' . $regexp . '/', '') !== false;
+    }
+
+    /**
+     * Check if the string is encoded by urlencode()
+     *
+     * @param $value
+     *
+     * @return bool
+     */
+    public static function isUrlencoded($value)
+    {
+        return urlencode(urldecode($value)) === $value;
     }
 }

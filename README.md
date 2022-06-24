@@ -240,7 +240,9 @@ WordPress 3.0 at least. PHP 5 with CURL or file_get_contents() function and enab
 = How can setup plugin in WPMU version? =
 In WordPress multisite version you can switch the plugin to use Global Access key. In this way the plugin doesn't show any options to enter Access key in plugin settings and doesn't show Trial banner in WordPress backend. To setup global CleanTalk access key for all websites in WPMU, define constant in your wp-config.php file before defining database constants:
 
-    define('CLEANTALK_ACCESS_KEY', 'place your key here');
+```php
+define('CLEANTALK_ACCESS_KEY', 'place your key here');
+```
 
 Now, all subsites will have this access key.
 
@@ -341,15 +343,19 @@ Yes, it is. CleanTalk works with any CDN system, i.e. CloudFlare, MaxCDN, Akamai
 = Can I use CleanTalk functionality in my plugins? =
 Yes, you can. Just use following snippet:
 
-    <?php 
-    if(!function_exists('ct_test_message')){
-    	include_once( ABSPATH . '/wp-content/plugins/cleantalk-spam-protect/cleantalk.php' );
-    }	
-    //for registration test:
-    $res=ct_test_registration("nickname", "stop_email@example.com", "127.0.0.1");
-    //or for some other messages (contact forms, comments etc.)
-    $res=ct_test_message("nickname", "stop_email@example.com", "127.0.0.1", "test message");
+```php
+<?php 
 
+if( ! function_exists('ct_test_message') ) {
+    include_once( ABSPATH . '/wp-content/plugins/cleantalk-spam-protect/cleantalk.php' );
+}	
+
+//for registration test:
+$res = ct_test_registration("nickname", "stop_email@example.com", "127.0.0.1");
+
+//or for some other messages (contact forms, comments etc.)
+$res = ct_test_message("nickname", "stop_email@example.com", "127.0.0.1", "test message");
+```
 
 $res now contents array with two parameters:
   * $res['allow'] - is request allowed (1) or not (0)
@@ -358,16 +364,22 @@ $res now contents array with two parameters:
 = I see two loads of script cleantalk_nocache.js. Why do you use it twice? =
 This script is used for AJAX JavaScript checking. Different themes use different mechanisms of loading, so we use two methods for loading our script. If you absolutely know what you are doing, you can switch one of the methods off by defining constants in your wp-config.php file:
 
-    define('CLEANTALK_AJAX_USE_BUFFER', false); //false - don't use output buffering to include AJAX script, true - use it
+```php
+define('CLEANTALK_AJAX_USE_BUFFER', false); //false - don't use output buffering to include AJAX script, true - use it
+```
 
 or
 
-	define('CLEANTALK_AJAX_USE_FOOTER_HEADER', false); //false - don't use wp_footer() and wp_header() for including AJAX script, true - use it
+```php
+define('CLEANTALK_AJAX_USE_FOOTER_HEADER', false); //false - don't use wp_footer() and wp_header() for including AJAX script, true - use it
+```
 
 = Can I add exclusions for some pages of my site? =
 Yes, you can. Add this string in your wp-config.php file before defining database constants:
 
-	$cleantalk_url_exclusions = array('url1', 'url2', 'url3');
+```php
+$cleantalk_url_exclusions = array('url1', 'url2', 'url3');
+```
 
 Now, all pages containing strings 'url1', 'url2', or 'url3' will be excluded from anti-spam checking. Remember, that this option will not be applied in registration and comment checking - they are always protected from spam. This is similar to regular expression /.*url1.*/ or wildcard like *url1*.
 
@@ -377,31 +389,41 @@ example.com/some/one
 example.com/some/body
 You should type this in wp-config.php:
 
-	$cleantalk_url_exclusions = array('some');
-	
+```php
+$cleantalk_url_exclusions = array('some');
+```
+
 = Can I add exclusions for some IP addresses? =
 Yes, you can. Add this string in your wp-config.php file before defining database constants:
 
-	$cleantalk_ip_exclusions = array('127.0.0.1', '8.8.8.8');
+```php
+$cleantalk_ip_exclusions = array('127.0.0.1', '8.8.8.8');
+```
 
 Now, all requests from IP 127.0.0.1 and 8.8.8.8 will be excluded from anti-spam checking. Remember, that this option will not be applied in registration and comment checking - they are always protected from spam.
 
 = Can I not send my personal data to CleanTalk servers? =
 Yes, you can exclude your data. Add this string in your wp-config.php file before defining database constants:
 
-	$cleantalk_key_exclusions = Array('key1', 'key2', 'key3'); 
+```php
+$cleantalk_key_exclusions = array('key1', 'key2', 'key3'); 
+```
 
 Now all fields in your submissions with the keys named 'key1', 'key2' or 'key3' will be excluded from spam checking.
 
 = How to test Spam FireWall? =
 Use special IP 10.10.10.10 in URL to test Spam FireWall. For example,
 
-    https://cleantalk.org/blog/?sfw_test_ip=10.10.10.10
+```
+https://cleantalk.org/blog/?sfw_test_ip=10.10.10.10
+```
 
 = How can I enter access key in WPMU version? =
 To set up global CleanTalk access key for all websites in WPMU, define constant in your wp-config.php file before defining database constants:
 
-    define('CLEANTALK_ACCESS_KEY', 'place your key here');
+```php
+define('CLEANTALK_ACCESS_KEY', 'place your key here');
+```
 
 Now, all subsites will have this access key.
 
@@ -418,7 +440,9 @@ If you think that there is something wrong in the messages blocking, let us know
 = Does the plugin work with Varnish? =
 CleanTalk works with Varnish, it protects WordPress against spam, but by default the plugin generates a few cookies for the protection from spam bots and it also disables Varnish cache on pages where CleanTalk's cookies have been stored. To get rid of the issue with cache turn off the option 'Set cookies' in the plugin settings.
 
-    WordPress console -> Settings -> CleanTalk -> Advanced settings
+```
+WordPress console -> Settings -> CleanTalk -> Advanced settings
+```
 
 Now the plugin will protect WordPress comments, registrations and most of popular contact forms, but will not protect some of rarely used contact forms. 
 

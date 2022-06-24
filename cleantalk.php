@@ -4,7 +4,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 5.177.3-dev
+  Version: 5.179.2-dev
   Author: СleanTalk <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -188,12 +188,36 @@ $apbct->db_prefix = ! $apbct->white_label && defined('CLEANTALK_ACCESS_KEY') ? $
 if ( $apbct->plugin_version === '1.0.0' ) {
     $apbct->plugin_version = '5.100';
 }
-// Do update actions if version is changed
-apbct_update_actions();
 
 /**
- * @psalm-suppress TypeDoesNotContainType
+ * This function runs when WordPress completes its upgrade process
+ * It iterates through each plugin updated to see if ours is included
+ *
+ * @param $upgrader WP_Upgrader
+ * @param $options Array
+ *
  */
+function apbct_upgrader_process_complete($_upgrader, $options)
+{
+    $our_plugin = APBCT_PLUGIN_BASE_NAME;
+
+    // If an update has taken place and the updated type is plugins and the plugin's element exists
+    if ($options['action'] === 'update' && $options['type'] === 'plugin' && isset($options['plugins'])) {
+        // Iterate through the plugins being updated and check if ours is there
+
+        foreach ($options['plugins'] as $plugin) {
+            if ($plugin === $our_plugin) {
+                apbct_update_actions();
+            }
+        }
+    }
+}
+// compatibility with old version
+if (version_compare($apbct->plugin_version, '5.179') === -1) {
+    apbct_update_actions();
+}
+add_action('upgrader_process_complete', 'apbct_upgrader_process_complete', 10, 2);
+
 add_action('init', function () {
     global $apbct;
     // Self cron
@@ -211,7 +235,7 @@ add_action('init', function () {
         if ( is_array($cron_res) ) {
             foreach ( $cron_res as $_task => $res ) {
                 if ( $res === true ) {
-                    $apbct->errorDelete('cron', 'save_data');
+                    $apbct->errorDelete('cron', true);
                 } else {
                     $apbct->errorAdd('cron', $res);
                 }
@@ -971,10 +995,12 @@ function apbct_sfw_update__worker($checker_work = false)
 {
     global $apbct;
 
-    usleep(10000);
-
     if ( ! $apbct->data['key_is_ok'] ) {
         return array('error' => 'Worker: KEY_IS_NOT_VALID');
+    }
+
+    if ( ! $apbct->settings['sfw__enabled'] ) {
+        return false;
     }
 
     if ( ! $checker_work ) {
@@ -1009,7 +1035,23 @@ function apbct_sfw_update__worker($checker_work = false)
 
     $result = $queue->executeStage();
 
-    if ( isset($result['error']) ) {
+    if ( $result === null ) {
+        // The stage is in progress, will try to wait up to 5 seconds to its complete
+        for ( $i = 0; $i < 5; $i++ ) {
+            sleep(1);
+            $queue->refreshQueue();
+            if ( ! $queue->isQueueInProgress() ) {
+                // The stage executed, break waiting and continue sfw_update__worker process
+                break;
+            }
+            if ( $i >= 4 ) {
+                // The stage still not executed, exit from sfw_update__worker
+                return true;
+            }
+        }
+    }
+
+    if ( isset($result['error']) && $result['status'] === 'FINISHED' ) {
         $apbct->errorAdd('sfw_update', $result['error']);
         $apbct->saveErrors();
 
@@ -1022,8 +1064,14 @@ function apbct_sfw_update__worker($checker_work = false)
         $queue->queue['finished'] = time();
         $queue->saveQueue($queue->queue);
         foreach ( $queue->queue['stages'] as $stage ) {
-            if ( isset($stage['error']) ) {
-                $apbct->errorAdd('sfw_update', $stage['error']);
+            if ( isset($stage['error'], $stage['status']) && $stage['status'] !== 'FINISHED' ) {
+                //there could be an array of errors of files processed
+                if ( is_array($stage['error']) ) {
+                    $error = implode(" ", array_values($stage['error']));
+                } else {
+                    $error = $result['error'];
+                }
+                $apbct->errorAdd('sfw_update', $error);
             }
         }
 
@@ -1086,6 +1134,7 @@ function apbct_sfw_update__get_multifiles()
     } else {
         return $result;
     }
+    return null;
 }
 
 function apbct_sfw_update__download_files($urls)
@@ -1416,7 +1465,7 @@ function apbct_sfw_update__end_of_update($is_first_updating = false)
     global $apbct;
 
     // Delete update errors
-    $apbct->errorDelete('sfw_update', 'save_settings');
+    $apbct->errorDelete('sfw_update', true);
 
     // Running sfw update once again in 12 min if entries is < 4000
     if ( $is_first_updating &&
@@ -1494,6 +1543,17 @@ function apbct_remove_upd_folder($dir_name)
                 if ( is_dir($file) ) {
                     apbct_remove_upd_folder($file);
                 }
+            }
+        }
+
+        //add more paths if some strange files has been detected
+        $non_cleantalk_files_filepaths = array(
+            $dir_name . '.last.jpegoptim'
+        );
+
+        foreach ( $non_cleantalk_files_filepaths as $filepath ) {
+            if ( file_exists($filepath) && is_file($filepath) && !is_writable($filepath) ) {
+                unlink($filepath);
             }
         }
 
@@ -1693,7 +1753,7 @@ function ct_sfw_send_logs($api_key = '')
     if ( empty($result['error']) ) {
         $apbct->stats['sfw']['last_send_time']   = time();
         $apbct->stats['sfw']['last_send_amount'] = $result['rows'];
-        $apbct->errorDelete('sfw_send_logs', 'save_settings');
+        $apbct->errorDelete('sfw_send_logs', true);
         $apbct->save('stats');
     }
 
@@ -2263,7 +2323,7 @@ function apbct_cookie()
     // Cookies test
     $cookie_test_value['check_value'] = md5($cookie_test_value['check_value']);
     if ( $apbct->data['cookies_type'] === 'native' ) {
-        Cookie::set('apbct_cookies_test', urlencode(json_encode($cookie_test_value)), 0, '/', $domain, null, true);
+        Cookie::set('apbct_cookies_test', json_encode($cookie_test_value), 0, '/', $domain, null, true);
     }
 
     $apbct->flags__cookies_setuped = true;
@@ -2358,7 +2418,7 @@ function ct_account_status_check($api_key = null, $process_errors = true)
         $cron = new Cron();
         $cron->updateTask('check_account_status', 'ct_account_status_check', 86400);
 
-        $apbct->errorDelete('account_check', 'save');
+        $apbct->errorDelete('account_check', true);
 
         $apbct->saveData();
     } elseif ( $process_errors ) {
