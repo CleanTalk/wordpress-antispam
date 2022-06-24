@@ -158,5 +158,36 @@ function apbct_public_sendREST( route, params ) {
             }
         },
     });
+}
 
+apbctLocalStorage = {
+    get : function(key, property) {
+        if ( typeof property === 'undefined' ) {
+            property = 'value';
+        }
+        const storageValue = localStorage.getItem(key);
+        if ( storageValue !== null ) {
+            try {
+                const json = JSON.parse(storageValue);
+                return json.hasOwnProperty(property) ? JSON.parse(json[property]) : json;
+            } catch (e) {
+                return new Error(e);
+            }
+        }
+        return false;
+    },
+    set : function(key, value) {
+        let objToSave = {'value': JSON.stringify(value), 'timestamp': Math.floor(new Date().getTime() / 1000)};
+        localStorage.setItem(key, JSON.stringify(objToSave));
+    },
+    isAlive : function(key, maxLifetime) {
+        if ( typeof maxLifetime === 'undefined' ) {
+            maxLifetime = 86400;
+        }
+        const keyTimestamp = this.get(key, 'timestamp');
+        return keyTimestamp + maxLifetime > Math.floor(new Date().getTime() / 1000);
+    },
+    isSet : function(key) {
+        return localStorage.getItem(key) !== null;
+    }
 }

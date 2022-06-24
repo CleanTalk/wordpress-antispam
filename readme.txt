@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 3.0
 Tested up to: 6.0
 Requires PHP: 5.6
-Stable tag: 5.178
+Stable tag: 5.179.1
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -601,6 +601,34 @@ If your website has forms that send data to external sources, you can enable opt
 12. SpamFireWall log.
 
 == Changelog ==
+
+= 5.179.1 Jun 21 2022 =
+#### General contact form catching fixed
+* Revert "Integration before common aa (#129)"
+
+= 5.179 Jun 16 2022 =
+#### Email Encoder functionality improved, SFW updating process improved and some minor issues fixed.
+* New. EmailEncoder.php->modifyContent. Admins and logged in exclusions.
+* Fix. Email encoder. Prevent encoding data for logged in users.
+* Fix. Queue. Return statement from executeStage() method added.
+* Fix. SFW. Updating process fixed.
+* Fix. SFW. SFW update worker fixed.
+* Mod: Using the shutdown hook to call a function ct_contact_form_validate().
+* Fix. apbct_sfw_update__worker. Clear errors if stage is finished.
+* Fix. HTTP lib. Useragent for WP HTTP API requests fixed.
+* Fix. cleantalk_external. Exclusion for tp.media booking forms.
+* Fix. cleantalk_external. Exclusion for flodesk forms.
+* Mod: Replace apbct_update_actions() to upgrader_process_complete hook
+* Fix. cleantalk_external.js->ct_protect_external(). Exclusion for tp.media booking forms.
+* Fix. RemoteCalls. No cache parameter added.
+* Fix. apbct_remove_upd_folder(). Force unknown file deletion ('.last.jpegoptim')
+* Fix. apbct_remove_upd_folder(). Add chek if a strange file is a file and exists.
+* Fix. GetFieldsAny.php. Decode email if it is urlencoded.
+* Fix. cleantalk-public-validate.php. Add JS check to public forms.
+* Mod: Refactoring User Scanner
+* Fixed apbct_cookies_test cookie
+* Upd. JS. Cookies has_scrolling and mouse_moved optimized.
+* Upd. Email encoder. Links mailto: processed.
 
 = 5.178 Jun 02 2022 =
 #### Comment moderation option added, cookies prefix added, RemoteCalls stability improved and some minor issues fixed.

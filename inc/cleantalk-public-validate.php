@@ -7,7 +7,7 @@ use Cleantalk\Variables\Server;
  */
 function ct_contact_form_validate()
 {
-    global $pagenow, $apbct, $ct_checkjs_frm, $cleantalk_executed;
+    global $pagenow, $apbct, $ct_checkjs_frm;
 
     // Exclude the XML-RPC requests
     if ( defined('XMLRPC_REQUEST') ) {
@@ -17,12 +17,6 @@ function ct_contact_form_validate()
 
     // Exclusios common function
     if ( apbct_exclusions_check(__FUNCTION__) ) {
-        do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
-        return null;
-    }
-
-    // Verification completed
-    if ( $cleantalk_executed ) {
         do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
         return null;
     }
@@ -148,7 +142,7 @@ function ct_contact_form_validate()
     }
 
     // Do not execute anti-spam test for logged in users.
-    if ( isset($_COOKIE[LOGGED_IN_COOKIE]) && $apbct->settings['data__protect_logged_in'] != 1 ) {
+    if ( defined('LOGGED_IN_COOKIE') && isset($_COOKIE[LOGGED_IN_COOKIE]) && $apbct->settings['data__protect_logged_in'] != 1 ) {
         do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
 
         return null;

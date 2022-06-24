@@ -5,9 +5,7 @@
 		ctMouseEventTimerFlag = true, //Reading interval flag
 		ctMouseData = [],
 		ctMouseDataCounter = 0,
-		ctCheckedEmails = {},
-		ctScrollCollected = false,
-		ctMouseMovedCollected = false;
+		ctCheckedEmails = {};
 
 	function apbct_attach_event_handler(elem, event, callback){
 		if(typeof window.addEventListener === "function") elem.addEventListener(event, callback);
@@ -169,16 +167,16 @@
 	}
 
 	function ctSetHasScrolled() {
-		if( ! ctScrollCollected ) {
+		if( ! apbctLocalStorage.isSet('ct_has_scrolled') || ! apbctLocalStorage.get('ct_has_scrolled') ) {
 			ctSetCookie("ct_has_scrolled", 'true');
-			ctScrollCollected = true;
+			apbctLocalStorage.set('ct_has_scrolled', true);
 		}
 	}
 
 	function ctSetMouseMoved() {
-		if( ! ctMouseMovedCollected ) {
+		if( ! apbctLocalStorage.isSet('ct_mouse_moved') || ! apbctLocalStorage.get('ct_mouse_moved') ) {
 			ctSetCookie("ct_mouse_moved", 'true');
-			ctMouseMovedCollected = true;
+			apbctLocalStorage.set('ct_mouse_moved', true);
 		}
 	}
 
@@ -197,8 +195,6 @@
 			["ct_pointer_data", "0"],
 			["ct_timezone", ct_date.getTimezoneOffset()/60*(-1) ],
 			["ct_screen_info", apbctGetScreenInfo()],
-			["ct_has_scrolled", 'false'],
-			["ct_mouse_moved", 'false'],
 			["apbct_headless", navigator.webdriver],
 		];
 
@@ -355,7 +351,7 @@ function apbctAjaxEmailDecode(event){
 }
 
 function ctFillDecodedEmail(result, targetElement){
-	targetElement.innerText = result;
+	targetElement.innerHTML = result;
 }
 
 function apbct_collect_visible_fields( form ) {
@@ -478,24 +474,28 @@ if(typeof jQuery !== 'undefined') {
 	// Capturing responses and output block message for unknown AJAX forms
 	jQuery(document).ajaxComplete(function (event, xhr, settings) {
 		if (xhr.responseText && xhr.responseText.indexOf('"apbct') !== -1) {
-			var response = JSON.parse(xhr.responseText);
-			if (typeof response.apbct !== 'undefined') {
-				response = response.apbct;
-				if (response.blocked) {
-					document.dispatchEvent(
-						new CustomEvent( "apbctAjaxBockAlert", {
-							bubbles: true,
-							detail: { message: response.comment }
-						} )
-					);
+			try {
+				var response = JSON.parse(xhr.responseText);
+				if (typeof response.apbct !== 'undefined') {
+					response = response.apbct;
+					if (response.blocked) {
+						document.dispatchEvent(
+							new CustomEvent( "apbctAjaxBockAlert", {
+								bubbles: true,
+								detail: { message: response.comment }
+							} )
+						);
 
-					// Show the result by modal
-					cleantalkModal.loaded = response.comment;
-					cleantalkModal.open();
+						// Show the result by modal
+						cleantalkModal.loaded = response.comment;
+						cleantalkModal.open();
 
-					if(+response.stop_script == 1)
-						window.stop();
+						if(+response.stop_script == 1)
+							window.stop();
+					}
 				}
+			} catch(e) {
+				// This is not APBCT response, nothing to do here.
 			}
 		}
 	});
