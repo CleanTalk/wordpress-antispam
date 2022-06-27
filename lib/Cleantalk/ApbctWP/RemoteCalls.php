@@ -284,4 +284,52 @@ class RemoteCalls
 
         die($update_result ? 'OK' : 'FAIL');
     }
+
+    public static function action__post_api_key() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+    {
+        global $apbct;
+
+        if ( ! headers_sent() ) {
+            header("Content-Type: application/json");
+        }
+
+        $key = trim(Request::get('api_key'));
+        if ( ! apbct_api_key__is_correct($key) ) {
+            die(json_encode(['FAIL' => ['error' => 'Api key is incorrect']]));
+        }
+
+        require_once APBCT_DIR_PATH . 'inc/cleantalk-settings.php';
+
+        $template_id = Request::get('apply_template_id');
+        if ( ! empty($template_id) ) {
+            $templates = CleantalkSettingsTemplates::getOptionsTemplate($key);
+            if ( ! empty($templates) ) {
+                foreach ( $templates as $template ) {
+                    if ( $template['template_id'] == $template_id && ! empty($template['options_site']) ) {
+                        $template_name = $template['template_id'];
+                        $settings      = $template['options_site'];
+                        $settings      = array_replace((array)$apbct->settings, json_decode($settings, true));
+
+                        $settings = \apbct_settings__validate($settings);
+
+                        $apbct->settings = $settings;
+                        $apbct->save('settings');
+                        $apbct->data['current_settings_template_id']   = $template_id;
+                        $apbct->data['current_settings_template_name'] = $template_name;
+                        $apbct->save('data');
+                        break;
+                    }
+                }
+            }
+        }
+
+        $apbct->storage['settings']['apikey'] = $key;
+        $apbct->api_key                       = $key;
+        $apbct->key_is_ok                     = true;
+        $apbct->save('settings');
+
+        \apbct_settings__sync(true);
+
+        die(json_encode(['OK' => ['template_id' => $template_id]]));
+    }
 }
