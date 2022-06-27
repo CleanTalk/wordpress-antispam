@@ -4,6 +4,7 @@
  * AJAX functions
  */
 
+use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\Variables\Get;
 use Cleantalk\Variables\Post;
 
@@ -153,10 +154,10 @@ function ct_validate_email_ajaxlogin($email = null)
     $is_good = ! ( ! filter_var($email, FILTER_VALIDATE_EMAIL) || email_exists($email));
 
     if ( class_exists('AjaxLogin') && Post::get('action') === 'validate_email' ) {
-        $checkjs                            = apbct_js_test('ct_checkjs', $_POST);
+        $checkjs                            = apbct_js_test(Post::get('ct_checkjs'));
         $sender_info['post_checkjs_passed'] = $checkjs;
         if ( $checkjs === null ) {
-            $checkjs                              = apbct_js_test('ct_checkjs', $_COOKIE, true);
+            $checkjs                              = apbct_js_test(Cookie::get('ct_checkjs'), true);
             $sender_info['cookie_checkjs_passed'] = $checkjs;
         }
 
@@ -207,10 +208,10 @@ function ct_validate_email_ajaxlogin($email = null)
 function ct_user_register_ajaxlogin($user_id)
 {
     if ( class_exists('AjaxLogin') && Post::get('action') === 'register_submit' ) {
-        $checkjs                            = apbct_js_test('ct_checkjs', $_POST);
+        $checkjs                            = apbct_js_test(Post::get('ct_checkjs'));
         $sender_info['post_checkjs_passed'] = $checkjs;
         if ( $checkjs === null ) {
-            $checkjs                              = apbct_js_test('ct_checkjs', $_COOKIE, true);
+            $checkjs                              = apbct_js_test(Cookie::get('ct_checkjs'), true);
             $sender_info['cookie_checkjs_passed'] = $checkjs;
         }
 
@@ -448,7 +449,7 @@ function ct_ajax_hook($message_obj = null)
         $post_info['comment_type'] = 'feedback_ajax_external_form';
     }
 
-    $checkjs = apbct_js_test('ct_checkjs', $_COOKIE, true);
+    $checkjs = apbct_js_test(Cookie::get('ct_checkjs'), true);
 
     //QAEngine Theme answers
     if ( ! empty($message_obj) && isset($message_obj['post_type'], $message_obj['post_content']) ) {
