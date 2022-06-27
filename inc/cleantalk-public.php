@@ -679,14 +679,14 @@ function ct_add_honeypot_field($form_type, $form_method = 'post')
 		}
 	</style>';
     //Generate random suffix to prevent ids duplicate
-    $random = mt_rand(0,100000);
+    $random = mt_rand(0, 100000);
 
     // Generate the hidden field
     $honeypot = $style . "\n" . '<input 
-        id="apbct__email_id__' . $form_type .'_'. $random .'" 
+        id="apbct__email_id__' . $form_type . '_' . $random . '" 
         class="apbct__email_id__' . $form_type . '" 
         autocomplete="off" 
-        name="apbct__email_id__' . $form_type .'_'. $random .'"  
+        name="apbct__email_id__' . $form_type . '_' . $random . '"  
         type="text" 
         value="" 
         size="30" 
@@ -706,11 +706,11 @@ function ct_add_honeypot_field($form_type, $form_method = 'post')
     //add a submit button if method is get to prevent keyboard send misfunction
     if ( $form_method === 'get' ) {
         $honeypot .= '<input 
-        id="apbct_submit_id__' . $form_type .'_'. $random .'" 
-        class="apbct__email_id__' . $form_type .'" 
-        name="apbct_submit_id__' . $form_type .'_'. $random .'"  
+        id="apbct_submit_id__' . $form_type . '_' . $random . '" 
+        class="apbct__email_id__' . $form_type . '" 
+        name="apbct_submit_id__' . $form_type . '_' . $random . '"  
         type="submit" 
-        apbct_event_id="' . $random .'"
+        apbct_event_id="' . $random . '"
         size="30" 
         maxlength="200" 
         value=""
