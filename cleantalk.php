@@ -260,8 +260,10 @@ if ( ! is_admin() && ! apbct_is_ajax() && ! defined('DOING_CRON')
      && empty(Get::get('ct_checkjs_search_default')) // Search form fix
      && empty(Post::get('action')) //bbPress
 ) {
-    add_action('template_redirect', 'apbct_cookie', 2);
-    add_action('template_redirect', 'apbct_store__urls', 2);
+    if ( $apbct->data['cookies_type'] !== 'alternative' ) {
+        add_action('template_redirect', 'apbct_cookie', 2);
+        add_action('template_redirect', 'apbct_store__urls', 2);
+    }
     if ( empty($_POST) && empty($_GET) ) {
         apbct_cookie();
         apbct_store__urls();
