@@ -15,10 +15,26 @@ class RemoteCalls
      */
     public static function check()
     {
-        return
-            Request::get('spbc_remote_call_token') &&
-            Request::get('spbc_remote_call_action') &&
-            in_array(Request::get('plugin_name'), array('antispam', 'anti-spam', 'apbct'));
+        return Request::get('spbc_remote_call_token')
+            ? self::checkWithToken()
+            : self::checkWithoutToken();
+    }
+
+    public static function checkWithToken()
+    {
+        return Request::get('spbc_remote_call_token') &&
+               Request::get('spbc_remote_call_action') &&
+               in_array(Request::get('plugin_name'), array('antispam', 'anti-spam', 'apbct'));
+    }
+
+    public static function checkWithoutToken()
+    {
+        global $apbct;
+
+        return ! $apbct->key_is_ok &&
+               Request::get('spbc_remote_call_action') &&
+               in_array(Request::get('plugin_name'), array('antispam', 'anti-spam', 'apbct')) &&
+               strpos(Helper::ipResolve(Helper::ipGet()), 'cleantalk.org') !== false;
     }
 
     /**
@@ -34,31 +50,35 @@ class RemoteCalls
         $action = strtolower(Request::get('spbc_remote_call_action'));
         $token  = strtolower(Request::get('spbc_remote_call_token'));
 
-        if (isset($apbct->remote_calls[$action])) {
+        if ( isset($apbct->remote_calls[$action]) ) {
             $cooldown = isset($apbct->remote_calls[$action]['cooldown']) ? $apbct->remote_calls[$action]['cooldown'] : self::COOLDOWN;
 
             // Return OK for test remote calls
-            if (Request::get('test')) {
+            if ( Request::get('test') ) {
                 die('OK');
             }
 
             if (
                 time() - $apbct->remote_calls[$action]['last_call'] >= $cooldown ||
-                ( $action === 'sfw_update' && Request::get('file_urls') )
+                ($action === 'sfw_update' && Request::get('file_urls'))
             ) {
                 $apbct->remote_calls[$action]['last_call'] = time();
                 $apbct->save('remote_calls');
 
                 // Check Access key
-                if ($token == strtolower(md5($apbct->api_key))) {
+                if (
+                    ($token === strtolower(md5($apbct->api_key)) ||
+                     $token === strtolower(hash('sha256', $apbct->api_key))) ||
+                    self::checkWithoutToken()
+                ) {
                     // Flag to let plugin know that Remote Call is running.
                     $apbct->rc_running = true;
 
                     $action = 'action__' . $action;
 
-                    if (method_exists(__CLASS__, $action)) {
+                    if ( method_exists(__CLASS__, $action) ) {
                         // Delay before perform action;
-                        if (Request::get('delay')) {
+                        if ( Request::get('delay') ) {
                             sleep((int)Request::get('delay'));
                             $params = $_REQUEST;
                             unset($params['delay']);
@@ -84,7 +104,7 @@ class RemoteCalls
             $out = 'FAIL ' . json_encode(array('error' => 'UNKNOWN_ACTION'));
         }
 
-        if ($out) {
+        if ( $out ) {
             die($out);
         }
     }
@@ -133,7 +153,7 @@ class RemoteCalls
     {
         $result = apbct_sfw_update__worker();
 
-        if ( ! empty($result['error'])) {
+        if ( ! empty($result['error']) ) {
             apbct_sfw_update__cleanData();
 
             die('FAIL ' . json_encode(array('error' => $result['error'])));
@@ -214,12 +234,12 @@ class RemoteCalls
         $out['queue']              = get_option('cleantalk_sfw_update_queue');
         $out['servers_connection'] = apbct_test_connection();
 
-        if (APBCT_WPMS) {
+        if ( APBCT_WPMS ) {
             $out['network_settings'] = $apbct->network_settings;
             $out['network_data']     = $apbct->network_data;
         }
 
-        if (Request::equal('out', 'json')) {
+        if ( Request::equal('out', 'json') ) {
             die(json_encode($out));
         }
         array_walk($out, function (&$val, $_key) {
@@ -227,7 +247,7 @@ class RemoteCalls
         });
 
         array_walk_recursive($out, function (&$val, $_key) {
-            if (is_int($val) && preg_match('@^\d{9,11}$@', (string)$val)) {
+            if ( is_int($val) && preg_match('@^\d{9,11}$@', (string)$val) ) {
                 $val = date('Y-m-d H:i:s', $val);
             }
         });
@@ -253,7 +273,7 @@ class RemoteCalls
             Request::get('period') &&
             Request::get('first_call')
         ) {
-            $cron = new Cron();
+            $cron          = new Cron();
             $update_result = $cron->updateTask(
                 Request::get('task'),
                 Request::get('handler'),
