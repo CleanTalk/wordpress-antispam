@@ -269,6 +269,9 @@ class State extends \Cleantalk\Common\State
 
         // cron update
         'cron_update_task'   => array('last_call' => 0),
+
+        // Insert api key (RC without token)
+        'post_api_key'       => array('last_call' => 0,),
     );
 
     public $def_stats = array(

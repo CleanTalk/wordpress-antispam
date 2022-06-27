@@ -1138,3 +1138,11 @@ function apbct_update_to_5_177_3()
         $apbct->saveData();
     }
 }
+
+function apbct_update_to_5_179_2()
+{
+    global $apbct;
+
+    $apbct->remote_calls['post_api_key'] = array('last_call' => 0);
+    $apbct->save('remote_calls');
+}
