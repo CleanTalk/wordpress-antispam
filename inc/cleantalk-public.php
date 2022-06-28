@@ -32,7 +32,17 @@ function apbct_init()
             echo 'true';
             die();
         } else {
-            echo $ct_result;
+            echo wp_kses(
+                $ct_result,
+                array(
+                    'a' => array(
+                        'href'  => true,
+                        'title' => true,
+                    ),
+                    'br'     => array(),
+                    'p'     => array()
+                )
+            );
             die();
         }
     }
@@ -406,8 +416,7 @@ function apbct_buffer__output()
         $output = apbct_buffer_modify_by_dom();
     }
 
-    echo $output;
-    die();
+    die($output);
 }
 
 function apbct_buffer_modify_by_string()
