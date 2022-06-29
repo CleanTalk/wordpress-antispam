@@ -3426,23 +3426,26 @@ function apbct_form_happyforms_test_spam($is_valid, $request, $_form)
 function apbct_form_search__add_fields($form_html)
 {
     global $apbct;
-    if ( ! empty($form_html) && is_string($form_html) && $apbct->settings['forms__search_test'] == 1 ) {
+    if ( !empty($form_html) && is_string($form_html) && $apbct->settings['forms__search_test'] == 1 ) {
 
         /**
          * extract method of the form
          */
         if ( class_exists('DOMDocument') ) {
             $dom = new DOMDocument();
-            $dom->loadHTML($form_html);
-            $search_form_dom = $dom->getElementById('searchform');
-            if ( !empty($search_form_dom) ) {
-                $method = empty($search_form_dom->getAttribute('method'))
-                    //default method is get for any form if no method specified
-                    ? 'get'
-                    : $search_form_dom->getAttribute('method');
+            if ( @$dom->loadHTML($form_html) ) {
+                $search_form_dom = $dom->getElementById('searchform');
+                if ( !empty($search_form_dom) ) {
+                    $method = empty($search_form_dom->getAttribute('method'))
+                        //default method is get for any form if no method specified
+                        ? 'get'
+                        : $search_form_dom->getAttribute('method');
+                }
             }
             unset($dom);
-        } else {
+        }
+
+        if ( empty($method) ) {
             preg_match('/form.*method="(.*?)"/', $form_html, $matches);
             $method = empty($matches[1])
                 ? 'get'

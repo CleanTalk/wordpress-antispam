@@ -2450,18 +2450,18 @@ function apbct_log($message = 'empty', $func = null, $params = array())
     }
 
     if ( $message ) {
-        $debug[date("H:i:s") . (int)microtime() . "_ACTION_" . current_filter() . "_FUNCTION_" . $function] = $message;
+        $debug[date("Y-m-d H:i:s") . microtime(true) . "_ACTION_" . current_filter() . "_FUNCTION_" . $function] = $message;
     }
     if ( $cron ) {
-        $debug[date("H:i:s") . (int)microtime() . "_ACTION_" . current_filter(
+        $debug[date("Y-m-d H:i:s") . microtime(true) . "_ACTION_" . current_filter(
         ) . "_FUNCTION_" . $function . '_cron'] = $apbct->cron;
     }
     if ( $data ) {
-        $debug[date("H:i:s") . (int)microtime() . "_ACTION_" . current_filter(
+        $debug[date("Y-m-d H:i:s") . microtime(true) . "_ACTION_" . current_filter(
         ) . "_FUNCTION_" . $function . '_data'] = $apbct->data;
     }
     if ( $settings ) {
-        $debug[date("H:i:s") . (int)microtime() . "_ACTION_" . current_filter(
+        $debug[date("Y-m-d H:i:s") . microtime(true) . "_ACTION_" . current_filter(
         ) . "_FUNCTION_" . $function . '_settings'] = $apbct->settings;
     }
 

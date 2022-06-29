@@ -1169,49 +1169,6 @@ function apbct__change_type_website_field($fields)
 }
 
 /**
- * Add styles if website field hidden
- */
-add_action('wp_print_styles', 'apbct__styles_if_website_hidden');
-function apbct__styles_if_website_hidden()
-{
-    global $apbct;
-
-    if ( $apbct->settings['comments__hide_website_field'] ) {
-        $styles = "
-		<style>
-		#honeypot-field-url {
-			display: none !important;
-		}
-		.comment-form-cookies-consent {
-			width:100%;
-			overflow: hidden;
-		}
-		@media (min-width: 768px) {
-			#respond .comment-form-email {
-				margin-right: 0 !important;
-			}
-			#respond .comment-form-author, #respond .comment-form-email {
-    			width: 47.058% !important;
-			}
-		}
-		</style>";
-
-        echo $styles;
-    }
-
-    if ( $apbct->settings['data__honeypot_field'] ) {
-        $styles = "
-		<style>
-		.wc_apbct_email_id {
-			display: none !important;
-		}
-		</style>";
-
-        echo $styles;
-    }
-}
-
-/**
  * Woocommerce honeypot
  */
 add_filter('woocommerce_checkout_fields', 'apbct__wc_add_honeypot_field');

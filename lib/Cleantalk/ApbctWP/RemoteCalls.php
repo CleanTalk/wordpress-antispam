@@ -223,6 +223,7 @@ class RemoteCalls
         $out['data']               = $apbct->data;
         $out['cron']               = $apbct->cron;
         $out['errors']             = $apbct->errors;
+        $out['debug']              = $apbct->debug;
         $out['queue']              = get_option('cleantalk_sfw_update_queue');
         $out['servers_connection'] = apbct_test_connection();
 
