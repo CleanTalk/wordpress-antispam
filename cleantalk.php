@@ -2022,7 +2022,7 @@ function apbct_rc__insert_auth_key($key, $plugin)
         if ( is_plugin_active($plugin) ) {
             $key = trim($key);
 
-            if ( $key && preg_match('/^[a-z\d]{3,15}$/', $key) ) {
+            if ( $key && preg_match('/^[a-z\d]{3,30}$/', $key) ) {
                 $result = API::methodNoticePaidTill(
                     $key,
                     preg_replace('/http[s]?:\/\//', '', get_option('home'), 1), // Site URL
