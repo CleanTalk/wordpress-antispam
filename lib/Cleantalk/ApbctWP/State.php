@@ -259,7 +259,6 @@ class State extends \Cleantalk\Common\State
         // Installation
         'install_plugin'     => array('last_call' => 0, 'cooldown' => 0),
         'activate_plugin'    => array('last_call' => 0, 'cooldown' => 0),
-        'insert_auth_key'    => array('last_call' => 0, 'cooldown' => 0),
         'deactivate_plugin'  => array('last_call' => 0, 'cooldown' => 0),
         'uninstall_plugin'   => array('last_call' => 0, 'cooldown' => 0),
 
@@ -269,6 +268,9 @@ class State extends \Cleantalk\Common\State
 
         // cron update
         'cron_update_task'   => array('last_call' => 0),
+
+        // Insert api key (RC without token)
+        'post_api_key'       => array('last_call' => 0,),
     );
 
     public $def_stats = array(

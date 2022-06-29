@@ -2390,6 +2390,10 @@ function apbct_settings__sync($direct_call = false)
 
     $apbct->saveData();
 
+    if ( $direct_call ) {
+        return $out;
+    }
+
     die(json_encode($out));
 }
 

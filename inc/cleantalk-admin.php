@@ -520,7 +520,7 @@ function apbct_admin__enqueue_scripts($hook)
 
         wp_enqueue_script(
             'cleantalk-modal',
-            APBCT_JS_ASSETS_PATH . '/cleantalk-modal.min.js',
+            APBCT_JS_ASSETS_PATH . '/apbct-public--3--cleantalk-modal.min.js',
             array(),
             APBCT_VERSION
         );
