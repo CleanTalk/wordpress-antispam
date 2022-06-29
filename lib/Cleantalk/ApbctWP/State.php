@@ -259,7 +259,6 @@ class State extends \Cleantalk\Common\State
         // Installation
         'install_plugin'     => array('last_call' => 0, 'cooldown' => 0),
         'activate_plugin'    => array('last_call' => 0, 'cooldown' => 0),
-        'insert_auth_key'    => array('last_call' => 0, 'cooldown' => 0),
         'deactivate_plugin'  => array('last_call' => 0, 'cooldown' => 0),
         'uninstall_plugin'   => array('last_call' => 0, 'cooldown' => 0),
 

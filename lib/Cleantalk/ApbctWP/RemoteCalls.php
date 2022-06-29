@@ -189,14 +189,6 @@ class RemoteCalls
     }
 
     /**
-     * Insert Access key
-     */
-    public static function action__insert_auth_key() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
-    {
-        return apbct_rc__insert_auth_key(Request::get('auth_key'), Request::get('plugin'));
-    }
-
-    /**
      * Update settins
      */
     public static function action__update_settings() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps

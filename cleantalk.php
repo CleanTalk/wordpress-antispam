@@ -2006,67 +2006,6 @@ function apbct_rc__update_settings($source)
 }
 
 /**
- * @param string $key
- * @param string $plugin
- *
- * @return array|string
- */
-function apbct_rc__insert_auth_key($key, $plugin)
-{
-    if ( $plugin === 'security-malware-firewall/security-malware-firewall.php' ) {
-        require_once(ABSPATH . '/wp-admin/includes/plugin.php');
-
-        if ( is_plugin_active($plugin) ) {
-            $key = trim($key);
-
-            if ( $key && preg_match('/^[a-z\d]{3,15}$/', $key) ) {
-                $result = API::methodNoticePaidTill(
-                    $key,
-                    preg_replace('/http[s]?:\/\//', '', get_option('home'), 1), // Site URL
-                    'security'
-                );
-
-                if ( empty($result['error']) ) {
-                    if ( $result['valid'] ) {
-                        // Set account params
-                        $data                     = get_option('spbc_data', array());
-                        $data['user_token']       = $result['user_token'];
-                        $data['notice_show']      = $result['show_notice'];
-                        $data['notice_renew']     = $result['renew'];
-                        $data['notice_trial']     = $result['trial'];
-                        $data['auto_update_app']  = isset($result['show_auto_update_notice']) ? $result['show_auto_update_notice'] : 0;
-                        $data['service_id']       = $result['service_id'];
-                        $data['moderate']         = $result['moderate'];
-                        $data['auto_update_app '] = isset($result['auto_update_app']) ? $result['auto_update_app'] : 0;
-                        $data['license_trial']    = isset($result['license_trial']) ? $result['license_trial'] : 0;
-                        $data['account_name_ob']  = isset($result['account_name_ob']) ? $result['account_name_ob'] : '';
-                        $data['key_is_ok']        = true;
-                        update_option('spbc_data', $data);
-
-                        // Set Access key
-                        $settings             = get_option('spbc_settings', array());
-                        $settings['spbc_key'] = $key;
-                        update_option('spbc_settings', $settings);
-
-                        return 'OK';
-                    } else {
-                        return array('error' => 'KEY_IS_NOT_VALID');
-                    }
-                } else {
-                    return array('error' => $result);
-                }
-            } else {
-                return array('error' => 'KEY_IS_NOT_CORRECT');
-            }
-        } else {
-            return array('error' => 'PLUGIN_IS_NOT_ACTIVE_OR_NOT_INSTALLED');
-        }
-    } else {
-        return array('error' => 'PLUGIN_SLUG_INCORRECT');
-    }
-}
-
-/**
  * Putting WordPress to maintenance mode.
  * For given duration in seconds
  *
