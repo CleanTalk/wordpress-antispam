@@ -9,7 +9,7 @@ function ct_protect_external() {
             // current form
             var currentForm = document.forms[i];
 
-            if (currentForm.parentElement && currentForm.parentElement.classList[0].indexOf('mewtwo') !== -1){
+            if (currentForm.parentElement && currentForm.parentElement.classList.length > 0 && currentForm.parentElement.classList[0].indexOf('mewtwo') !== -1){
                 return
             }
 

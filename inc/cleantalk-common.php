@@ -211,15 +211,13 @@ function apbct_base_call($params = array(), $reg_flag = false)
      * Add honeypot_field to $base_call_data if forms__wc_honeypot on
      */
     if ( $apbct->settings['data__honeypot_field'] && ! isset($params['honeypot_field']) ) {
-
         $honeypot_filled_fields = apbct_get_honeypot_filled_fields();
 
-        if (!empty($honeypot_filled_fields)){
+        if ( ! empty($honeypot_filled_fields) ) {
             $params['sender_info']['honeypot_field_value'] = $honeypot_filled_fields['field_value'];
             $params['sender_info']['honeypot_field_source'] = $honeypot_filled_fields['field_source'];
             $params['honeypot_field'] = 0;
         }
-
     }
 
     // Send $_SERVER if couldn't find IP
@@ -1059,7 +1057,7 @@ function ct_change_plugin_resonse($ct_result = null, $checkjs = null)
 }
 
 /**
- * Does ey has correct symbols? Checks against regexp ^[a-z\d]{3,15}$
+ * Does ey has correct symbols? Checks against regexp ^[a-z\d]{3,30}$
  *
  * @param string api_key
  *
@@ -1070,7 +1068,7 @@ function apbct_api_key__is_correct($api_key = null)
     global $apbct;
     $api_key = $api_key !== null ? $api_key : $apbct->api_key;
 
-    return $api_key && preg_match('/^[a-z\d]{3,15}$/', $api_key) ? true : false;
+    return $api_key && preg_match('/^[a-z\d]{3,30}$/', $api_key) ? true : false;
 }
 
 function apbct__is_hosting_license()
@@ -1171,49 +1169,6 @@ function apbct__change_type_website_field($fields)
 }
 
 /**
- * Add styles if website field hidden
- */
-add_action('wp_print_styles', 'apbct__styles_if_website_hidden');
-function apbct__styles_if_website_hidden()
-{
-    global $apbct;
-
-    if ( $apbct->settings['comments__hide_website_field'] ) {
-        $styles = "
-		<style>
-		#honeypot-field-url {
-			display: none !important;
-		}
-		.comment-form-cookies-consent {
-			width:100%;
-			overflow: hidden;
-		}
-		@media (min-width: 768px) {
-			#respond .comment-form-email {
-				margin-right: 0 !important;
-			}
-			#respond .comment-form-author, #respond .comment-form-email {
-    			width: 47.058% !important;
-			}
-		}
-		</style>";
-
-        echo $styles;
-    }
-
-    if ( $apbct->settings['data__honeypot_field'] ) {
-        $styles = "
-		<style>
-		.wc_apbct_email_id {
-			display: none !important;
-		}
-		</style>";
-
-        echo $styles;
-    }
-}
-
-/**
  * Woocommerce honeypot
  */
 add_filter('woocommerce_checkout_fields', 'apbct__wc_add_honeypot_field');
@@ -1306,12 +1261,12 @@ function apbct_need_to_process_unknown_post_request()
  * Handles gained POST and GET data to find filled honeypot fields.
  * @return array array [honeypot_field_value, honeypot_field_source] or empty array
  */
-function apbct_get_honeypot_filled_fields(){
-
+function apbct_get_honeypot_filled_fields()
+{
     /**
      * POST forms
      */
-    if ( isset($_POST) ) {
+    if ( ! empty($_POST) ) {
         //get field suffix for POST forms
         $apbct_event_id = Post::get('apbct_event_id');
 
@@ -1323,7 +1278,7 @@ function apbct_get_honeypot_filled_fields(){
             'apbct__email_id__wp_wpforms' =>        Post::get('apbct__email_id__wp_wpforms_' . $apbct_event_id),
             'apbct__email_id__search_form' =>       Post::get('apbct__email_id__search_form_' . $apbct_event_id)
         );
-    } elseif ( isset($_GET) ) {
+    } elseif ( ! empty($_GET) ) {
         /**
          * GET forms
          */

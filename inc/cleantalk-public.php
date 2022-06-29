@@ -32,7 +32,17 @@ function apbct_init()
             echo 'true';
             die();
         } else {
-            echo $ct_result;
+            echo wp_kses(
+                $ct_result,
+                array(
+                    'a' => array(
+                        'href'  => true,
+                        'title' => true,
+                    ),
+                    'br'     => array(),
+                    'p'     => array()
+                )
+            );
             die();
         }
     }
@@ -406,8 +416,7 @@ function apbct_buffer__output()
         $output = apbct_buffer_modify_by_dom();
     }
 
-    echo $output;
-    die();
+    die($output);
 }
 
 function apbct_buffer_modify_by_string()
@@ -669,24 +678,15 @@ function ct_add_honeypot_field($form_type, $form_method = 'post')
     if ( ! $apbct->settings['data__honeypot_field'] ) {
         return '';
     }
-
-    // Honeypot option is ON
-    // Declare the style. todo Needs to move this to public.js scripts
-    $style = '
-    <style>
-		.apbct__email_id__' . $form_type . ' {
-            display: none !important;
-		}
-	</style>';
     //Generate random suffix to prevent ids duplicate
-    $random = mt_rand(0,100000);
+    $random = mt_rand(0, 100000);
 
     // Generate the hidden field
-    $honeypot = $style . "\n" . '<input 
-        id="apbct__email_id__' . $form_type .'_'. $random .'" 
+    $honeypot = '<input 
+        id="apbct__email_id__' . $form_type . '_' . $random . '" 
         class="apbct__email_id__' . $form_type . '" 
         autocomplete="off" 
-        name="apbct__email_id__' . $form_type .'_'. $random .'"  
+        name="apbct__email_id__' . $form_type . '_' . $random . '"  
         type="text" 
         value="" 
         size="30" 
@@ -706,11 +706,11 @@ function ct_add_honeypot_field($form_type, $form_method = 'post')
     //add a submit button if method is get to prevent keyboard send misfunction
     if ( $form_method === 'get' ) {
         $honeypot .= '<input 
-        id="apbct_submit_id__' . $form_type .'_'. $random .'" 
-        class="apbct__email_id__' . $form_type .'" 
-        name="apbct_submit_id__' . $form_type .'_'. $random .'"  
+        id="apbct_submit_id__' . $form_type . '_' . $random . '" 
+        class="apbct__email_id__' . $form_type . '" 
+        name="apbct_submit_id__' . $form_type . '_' . $random . '"  
         type="submit" 
-        apbct_event_id="' . $random .'"
+        apbct_event_id="' . $random . '"
         size="30" 
         maxlength="200" 
         value=""
@@ -1225,6 +1225,13 @@ function ct_enqueue_scripts_public($_hook)
         if ( ! $apbct->public_script_loaded ) {
             apbct_enqueue_and_localize_public_scripts();
         }
+
+        wp_enqueue_style(
+            'ct_public_css',
+            APBCT_CSS_ASSETS_PATH . '/clentalak-public.min.css',
+            array(),
+            APBCT_VERSION
+        );
 
         // GDPR script
         if ( $apbct->settings['gdpr__enabled'] ) {

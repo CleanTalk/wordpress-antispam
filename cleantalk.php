@@ -260,8 +260,10 @@ if ( ! is_admin() && ! apbct_is_ajax() && ! defined('DOING_CRON')
      && empty(Get::get('ct_checkjs_search_default')) // Search form fix
      && empty(Post::get('action')) //bbPress
 ) {
-    add_action('template_redirect', 'apbct_cookie', 2);
-    add_action('template_redirect', 'apbct_store__urls', 2);
+    if ( $apbct->data['cookies_type'] !== 'alternative' ) {
+        add_action('template_redirect', 'apbct_cookie', 2);
+        add_action('template_redirect', 'apbct_store__urls', 2);
+    }
     if ( empty($_POST) && empty($_GET) ) {
         apbct_cookie();
         apbct_store__urls();
@@ -2020,7 +2022,7 @@ function apbct_rc__insert_auth_key($key, $plugin)
         if ( is_plugin_active($plugin) ) {
             $key = trim($key);
 
-            if ( $key && preg_match('/^[a-z\d]{3,15}$/', $key) ) {
+            if ( $key && preg_match('/^[a-z\d]{3,30}$/', $key) ) {
                 $result = API::methodNoticePaidTill(
                     $key,
                     preg_replace('/http[s]?:\/\//', '', get_option('home'), 1), // Site URL
@@ -2512,18 +2514,18 @@ function apbct_log($message = 'empty', $func = null, $params = array())
     }
 
     if ( $message ) {
-        $debug[date("H:i:s") . (int)microtime() . "_ACTION_" . current_filter() . "_FUNCTION_" . $function] = $message;
+        $debug[date("Y-m-d H:i:s") . microtime(true) . "_ACTION_" . current_filter() . "_FUNCTION_" . $function] = $message;
     }
     if ( $cron ) {
-        $debug[date("H:i:s") . (int)microtime() . "_ACTION_" . current_filter(
+        $debug[date("Y-m-d H:i:s") . microtime(true) . "_ACTION_" . current_filter(
         ) . "_FUNCTION_" . $function . '_cron'] = $apbct->cron;
     }
     if ( $data ) {
-        $debug[date("H:i:s") . (int)microtime() . "_ACTION_" . current_filter(
+        $debug[date("Y-m-d H:i:s") . microtime(true) . "_ACTION_" . current_filter(
         ) . "_FUNCTION_" . $function . '_data'] = $apbct->data;
     }
     if ( $settings ) {
-        $debug[date("H:i:s") . (int)microtime() . "_ACTION_" . current_filter(
+        $debug[date("Y-m-d H:i:s") . microtime(true) . "_ACTION_" . current_filter(
         ) . "_FUNCTION_" . $function . '_settings'] = $apbct->settings;
     }
 
