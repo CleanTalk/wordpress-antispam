@@ -1054,7 +1054,6 @@ function apbct_sfw_update__worker($checker_work = false)
     }
 
     if ( isset($result['error']) && $result['status'] === 'FINISHED' ) {
-
         apbct_sfw_update__fallback();
 
         $direct_upd_res = apbct_sfw_direct_update();
