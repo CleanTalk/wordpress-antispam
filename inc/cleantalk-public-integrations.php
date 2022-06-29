@@ -1677,7 +1677,7 @@ function apbct_registration__UltimateMembers__check($args)
         return $args;
     }
 
-    $checkjs                            = apbct_js_test('ct_checkjs_register_form', $args);
+    $checkjs                            = apbct_js_test('ct_checkjs_register_form', (bool)$args);
     $sender_info['post_checkjs_passed'] = $checkjs;
 
     // This hack can be helpfull when plugin uses with untested themes&signups plugins.
