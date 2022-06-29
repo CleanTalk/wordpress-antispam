@@ -1051,12 +1051,19 @@ function apbct_sfw_update__worker($checker_work = false)
     }
 
     if ( isset($result['error']) && $result['status'] === 'FINISHED' ) {
-        $apbct->errorAdd('sfw_update', $result['error']);
-        $apbct->saveErrors();
-
         apbct_sfw_update__fallback();
 
-        return $result['error'];
+        $direct_upd_res = apbct_sfw_direct_update();
+
+        if ( $direct_upd_res['error'] ) {
+            $apbct->errorAdd('queue', $result['error'], 'sfw_update');
+            $apbct->errorAdd('direct', $direct_upd_res['error'], 'sfw_update');
+            $apbct->saveErrors();
+
+            return $direct_upd_res['error'];
+        }
+
+        return true;
     }
 
     if ( $queue->isQueueFinished() ) {
