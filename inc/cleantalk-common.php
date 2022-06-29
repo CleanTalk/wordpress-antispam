@@ -1057,7 +1057,7 @@ function ct_change_plugin_resonse($ct_result = null, $checkjs = null)
 }
 
 /**
- * Does ey has correct symbols? Checks against regexp ^[a-z\d]{3,15}$
+ * Does ey has correct symbols? Checks against regexp ^[a-z\d]{3,30}$
  *
  * @param string api_key
  *
@@ -1068,7 +1068,7 @@ function apbct_api_key__is_correct($api_key = null)
     global $apbct;
     $api_key = $api_key !== null ? $api_key : $apbct->api_key;
 
-    return $api_key && preg_match('/^[a-z\d]{3,15}$/', $api_key) ? true : false;
+    return $api_key && preg_match('/^[a-z\d]{3,30}$/', $api_key) ? true : false;
 }
 
 function apbct__is_hosting_license()
