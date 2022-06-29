@@ -189,5 +189,8 @@ apbctLocalStorage = {
     },
     isSet : function(key) {
         return localStorage.getItem(key) !== null;
+    },
+    delete : function (key) {
+        localStorage.removeItem(key);
     }
 }
