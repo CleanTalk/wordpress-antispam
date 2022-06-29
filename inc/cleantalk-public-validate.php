@@ -1,5 +1,6 @@
 <?php
 
+use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\Variables\Server;
 
 /**
@@ -221,7 +222,7 @@ function ct_contact_form_validate()
         unset($_POST['TellAFriend_Link']);
     }
 
-    $checkjs = apbct_js_test('ct_checkjs', $_COOKIE, true) ?: apbct_js_test('ct_checkjs', $_POST);
+    $checkjs = apbct_js_test(Cookie::get('ct_checkjs'), true) ?: apbct_js_test(Post::get('ct_checkjs'));
 
     $base_call_result = apbct_base_call(
         array(

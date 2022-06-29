@@ -171,7 +171,7 @@ function apbct_base_call($params = array(), $reg_flag = false)
 
         // Misc
         'auth_key'        => $apbct->api_key,
-        'js_on'           => apbct_js_test('ct_checkjs', $_COOKIE, true) ? 1 : apbct_js_test('ct_checkjs', $_POST),
+        'js_on'           => apbct_js_test(Cookie::get('ct_checkjs'), true) ? 1 : apbct_js_test(Post::get('ct_checkjs')),
 
         'agent'       => APBCT_AGENT,
         'sender_info' => $sender_info,

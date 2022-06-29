@@ -931,25 +931,24 @@ function ct_die_extended($comment_body)
 /**
  * Validates JavaScript anti-spam test
  *
- * @param string $field_name filed to serach in data
- * @param array|null $data Data to search in
+ * @param string $check_js_value String to checking
  * @param bool $is_cookie
  *
  * @return int|null
  */
-function apbct_js_test($field_name = 'ct_checkjs', $data = null, $is_cookie = false)
+function apbct_js_test($check_js_value = '', $is_cookie = false)
 {
     global $apbct;
 
     $out = null;
 
     if (
-        ($data && isset($data[$field_name])) ||
-        ($is_cookie && $apbct->data['cookies_type'] === 'alternative' && Cookie::get($field_name))
+        ( ! empty($check_js_value) ) ||
+        ( $is_cookie && $apbct->data['cookies_type'] === 'alternative' && Cookie::get('ct_checkjs') )
     ) {
         $js_key = $is_cookie && $apbct->data['cookies_type'] === 'alternative'
-            ? Cookie::get($field_name)
-            : trim($data[$field_name]);
+            ? Cookie::get('ct_checkjs')
+            : trim($check_js_value);
 
         // Check static key
         if (
