@@ -1231,7 +1231,7 @@ function ct_enqueue_scripts_public($_hook)
             'ct_public_css',
             APBCT_CSS_ASSETS_PATH . '/clentalak-public.min.css',
             array(),
-            APBCT_VERSION,
+            APBCT_VERSION
         );
 
         // GDPR script
