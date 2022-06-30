@@ -1226,13 +1226,6 @@ function ct_enqueue_scripts_public($_hook)
             apbct_enqueue_and_localize_public_scripts();
         }
 
-        wp_enqueue_style(
-            'ct_public_css',
-            APBCT_CSS_ASSETS_PATH . '/clentalak-public.min.css',
-            array(),
-            APBCT_VERSION
-        );
-
         // GDPR script
         if ( $apbct->settings['gdpr__enabled'] ) {
             wp_localize_script('ct_public_functions', 'ctPublicGDPR', array(
@@ -1298,6 +1291,34 @@ function ct_enqueue_scripts_public($_hook)
             'reload'      => false,
             'reload_time' => 10000,
         ));
+    }
+}
+
+function ct_enqueue_styles_public()
+{
+    global $apbct;
+
+    if ( apbct_exclusions_check__url() ) {
+        return;
+    }
+
+    if (
+        $apbct->settings['forms__registrations_test'] ||
+        $apbct->settings['forms__comments_test'] ||
+        $apbct->settings['forms__contact_forms_test'] ||
+        $apbct->settings['forms__general_contact_forms_test'] ||
+        $apbct->settings['forms__wc_checkout_test'] ||
+        $apbct->settings['forms__check_external'] ||
+        $apbct->settings['forms__check_internal'] ||
+        $apbct->settings['comments__bp_private_messages'] ||
+        $apbct->settings['data__general_postdata_test']
+    ) {
+        wp_enqueue_style(
+            'ct_public_css',
+            APBCT_CSS_ASSETS_PATH . '/clentalak-public.min.css',
+            array(),
+            APBCT_VERSION
+        );
     }
 }
 

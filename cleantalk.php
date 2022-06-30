@@ -640,6 +640,8 @@ if ( is_admin() || is_network_admin() ) {
     require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-integrations.php');
 
     add_action('wp_enqueue_scripts', 'ct_enqueue_scripts_public');
+    add_action('wp_enqueue_scripts', 'ct_enqueue_styles_public');
+    add_action('login_enqueue_scripts', 'ct_enqueue_styles_public');
 
     // Init action.
     add_action('plugins_loaded', 'apbct_init', 1);

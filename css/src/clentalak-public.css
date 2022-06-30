@@ -16,6 +16,6 @@
 .wc_apbct_email_id {
     display: none !important;
 }
-.apbct__email_id__* {
+input[class*="apbct__email_id"]{
     display: none !important;
 }
