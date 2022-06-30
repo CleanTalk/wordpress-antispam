@@ -1,6 +1,7 @@
 <?php
 
 use Cleantalk\ApbctWP\Variables\Cookie;
+use Cleantalk\Variables\Post;
 use Cleantalk\Variables\Server;
 
 /**
