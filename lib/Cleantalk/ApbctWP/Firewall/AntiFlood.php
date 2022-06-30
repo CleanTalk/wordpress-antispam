@@ -210,7 +210,7 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule
                 CLEANTALK_PLUGIN_DIR . 'lib/Cleantalk/ApbctWP/Firewall/die_page_antiflood.html'
             );
 
-            $js_url = APBCT_URL_PATH . '/js/apbct-public--functions.min.js?' . APBCT_VERSION;
+            $js_url = APBCT_URL_PATH . '/js/apbct-public-bundle.min.js?' . APBCT_VERSION;
 
             $net_count = $apbct->stats['sfw']['entries'];
 
