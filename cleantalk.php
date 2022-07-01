@@ -333,7 +333,7 @@ $apbct_active_integrations = array(
         'ajax'    => false
     ),
     'Wpdiscuz'            => array(
-        'hook'    => array('wpdAddComment', 'wpdAddInlineComment'),
+        'hook'    => array('wpdAddComment', 'wpdAddInlineComment', 'wpdSaveEditedComment'),
         'setting' => 'forms__comments_test',
         'ajax'    => true
     ),
