@@ -602,6 +602,9 @@ If your website has forms that send data to external sources, you can enable opt
 
 == Changelog ==
 
+= 5.180.1 Jul 01 2022 =
+* Fix. Common. Undefined class fixed.
+
 = 5.180 Jun 30 2022 =
 #### Getting api key from the CleanTalk Dashboard implemented, SFW updating improved, code quality improved and some minor issues fixed.
 * New. API key length extended to 30 symbols.
