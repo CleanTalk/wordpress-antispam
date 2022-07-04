@@ -241,7 +241,7 @@
 		document.getElementById('js_passed').style.display = 'block';
 		document.getElementById('curr_date').innerHTML = ct_date.toGMTString();
 		set_spamFireWallCookie('{COOKIE_PREFIX}ct_sfw_pass_key','{COOKIE_SFW}');
-		set_spamFireWallCookie('{COOKIE_PREFIX}apbct_antibot','{COOKIE_ANTICRAWLER}');
+		set_spamFireWallCookie('{COOKIE_PREFIX}wordpress_apbct_antibot','{COOKIE_ANTICRAWLER}');
 		set_spamFireWallCookie('{COOKIE_PREFIX}ct_sfw_passed','1');
 
 		if(location.search.search('debug=1') === -1) {
