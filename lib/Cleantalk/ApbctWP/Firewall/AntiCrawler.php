@@ -506,11 +506,22 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
             'cookiePrefix'                         => apbct__get_cookie_prefix(),
         );
 
+        $localize_js_public = array(
+            'pixel__setting'                => $apbct->settings['data__pixel'],
+            'pixel__enabled'                => $apbct->settings['data__pixel'] === '2' ||
+                                               ($apbct->settings['data__pixel'] === '3' && apbct_is_cache_plugins_exists()),
+            'pixel__url'                    => $apbct->pixel_url,
+            'data__email_check_before_post' => $apbct->settings['data__email_check_before_post'],
+            'data__cookies_type'            => $apbct->data['cookies_type'],
+            'data__visible_fields_required' => ! apbct_is_user_logged_in() || $apbct->settings['data__protect_logged_in'] == 1,
+        );
+
         $js_jquery_url = includes_url() . 'js/jquery/jquery.min.js';
 
         $replaces = array(
             '{JQUERY_SCRIPT_URL}' => $js_jquery_url,
-            '{LOCALIZE_SCRIPT}'   => 'var ctPublicFunctions = ' . json_encode($localize_js),
+            '{LOCALIZE_SCRIPT}'   => 'var ctPublicFunctions = ' . json_encode($localize_js) . ';' .
+                                     'var ctPublic = ' . json_encode($localize_js_public) . ';',
         );
 
         foreach ( $replaces as $place_holder => $replace ) {
