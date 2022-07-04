@@ -661,6 +661,9 @@ function apbct_admin__admin_bar__add_structure($wp_admin_bar)
                 'security-malware-firewall'
             ) . '</a></span>'
             : '<a>' . __('Security', 'security-malware-firewall') . '</a>';
+
+        $spbc_attention_mark = $spbc->notice_show ? '<i class="spbc-icon-attention-alt ctlk---red"></i>' : '';
+        $spbc_title         .= $spbc_attention_mark;
     }
 
     if ( isset($spbc_title) &&
