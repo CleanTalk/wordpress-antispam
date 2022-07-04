@@ -190,33 +190,10 @@ if ( $apbct->plugin_version === '1.0.0' ) {
 }
 
 /**
- * This function runs when WordPress completes its upgrade process
- * It iterates through each plugin updated to see if ours is included
- *
- * @param $upgrader WP_Upgrader
- * @param $options Array
- *
+ * Do update actions if version is changed
+ * ! we can`t place this function to the hook "upgrader_process_complete" !
  */
-function apbct_upgrader_process_complete($_upgrader, $options)
-{
-    $our_plugin = APBCT_PLUGIN_BASE_NAME;
-
-    // If an update has taken place and the updated type is plugins and the plugin's element exists
-    if ($options['action'] === 'update' && $options['type'] === 'plugin' && isset($options['plugins'])) {
-        // Iterate through the plugins being updated and check if ours is there
-
-        foreach ($options['plugins'] as $plugin) {
-            if ($plugin === $our_plugin) {
-                apbct_update_actions();
-            }
-        }
-    }
-}
-// compatibility with old version
-if (version_compare($apbct->plugin_version, '5.179') === -1) {
-    apbct_update_actions();
-}
-add_action('upgrader_process_complete', 'apbct_upgrader_process_complete', 10, 2);
+apbct_update_actions();
 
 add_action('init', function () {
     global $apbct;
@@ -462,8 +439,7 @@ if ( ! is_admin() && ! apbct_is_ajax() && ! apbct_is_customize_preview() ) {
     add_action('wp_head', 'apbct_search_add_noindex', 1);
 
     // SpamFireWall check
-    if ( $apbct->plugin_version == APBCT_VERSION && // Do not call with first start
-         $apbct->settings['sfw__enabled'] == 1 &&
+    if ( $apbct->settings['sfw__enabled'] == 1 &&
          $apbct->stats['sfw']['last_update_time'] &&
          apbct_is_get() &&
          ! apbct_wp_doing_cron() &&
