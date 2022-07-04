@@ -330,7 +330,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
                 // Cookie
                 '{COOKIE_PREFIX}'                  => '',
                 '{COOKIE_DOMAIN}'                  => $this->cookie_domain,
-                '{COOKIE_SFW}'                     => $this->test ? $this->test_ip : $cookie_val,
+                '{COOKIE_SFW}'                     => $cookie_val,
                 '{COOKIE_ANTICRAWLER}'             => hash('sha256', $apbct->api_key . $apbct->data['salt']),
 
                 // Test
