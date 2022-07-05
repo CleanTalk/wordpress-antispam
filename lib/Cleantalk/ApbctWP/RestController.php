@@ -73,7 +73,9 @@ class RestController extends \WP_REST_Controller
         register_rest_route($this->namespace, "/apbct_decode_email", array(
             array(
                 'methods'             => 'POST',
-                'callback'            => array(\Cleantalk\Antispam\EmailEncoder::getInstance(), 'ajaxDecodeEmail'),
+                'callback'            => array(\Cleantalk\ApbctWP\Antispam\EmailEncoder::getInstance(),
+                    'ajaxDecodeEmailHandler'
+                ),
                 'permission_callback' => function (WP_REST_Request $request) {
                     return wp_verify_nonce($request->get_header('x_wp_nonce'), 'wp_rest');
                 },
