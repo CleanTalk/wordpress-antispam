@@ -44,7 +44,7 @@ class Comments extends \Cleantalk\ApbctWP\CleantalkListTable
     /**
      * CheckBox column
      *
-     * @param object $item
+     * @param object|array $item
      *
      * @psalm-suppress InvalidArrayAccess
      */
@@ -180,7 +180,7 @@ class Comments extends \Cleantalk\ApbctWP\CleantalkListTable
     /**
      * Rest of columns
      *
-     * @param object $item
+     * @param object|array $item
      * @param string $column_name
      *
      * @return bool|string|void
