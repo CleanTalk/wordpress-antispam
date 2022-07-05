@@ -15,10 +15,10 @@ class EmailEncoder
     private $secret_key;
 
     /**
-     * @var bool
+     * @var bool Show if the encryption functions are avaliable in current surroundings
      */
-    private $encription;
-
+    private $encryption_is_available;
+    
     /**
      * @inheritDoc
      */
@@ -32,7 +32,7 @@ class EmailEncoder
 
         $this->secret_key = md5($apbct->api_key);
 
-        $this->encription = function_exists('openssl_encrypt') && function_exists('openssl_decrypt');
+        $this->encryption_is_available = function_exists( 'openssl_encrypt') && function_exists( 'openssl_decrypt');
 
         $hooks_to_encode = array(
             'the_title',
@@ -119,7 +119,7 @@ class EmailEncoder
      */
     private function encodeString($plain_string, $key)
     {
-        if ( $this->encription ) {
+        if ( $this->encryption_is_available ) {
             $encoded_email = htmlspecialchars(@openssl_encrypt($plain_string, 'aes-128-cbc', $key));
         } else {
             $encoded_email = htmlspecialchars(base64_encode(str_rot13($plain_string)));
@@ -137,7 +137,7 @@ class EmailEncoder
      */
     private function decodeString($encoded_string, $key)
     {
-        if ( $this->encription  ) {
+        if ( $this->encryption_is_available  ) {
             $decoded_email = htmlspecialchars_decode(@openssl_decrypt($encoded_string, 'aes-128-cbc', $key));
         } else {
             $decoded_email = htmlspecialchars_decode(base64_decode($encoded_string));
