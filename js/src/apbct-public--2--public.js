@@ -309,19 +309,36 @@ function apbctAjaxEmailDecode(event){
 	const element = event.target;
 	element.setAttribute('title', ctPublicFunctions.text__wait_for_decoding);
 	element.style.cursor = 'progress';
+
+	// Adding a tooltip
+	jQuery(element).append(
+		'<div class="apbct-tooltip">\n' +
+			'<div class="apbct-tooltip--text"></div>\n' +
+			'<div class="apbct-tooltip--arrow"></div>\n' +
+		'</div>'
+	);
+	ctShowDecodeComment(element, ctPublicFunctions.text__wait_for_decoding);
+
 	// Using REST API handler
 	if( ctPublicFunctions.data__ajax_type === 'rest' ){
 		apbct_public_sendREST(
 			'apbct_decode_email',
 			{
-				data: {encodedEmail: event.target.dataset.originalString},
+				data: {
+					encodedEmail:             event.target.dataset.originalString,
+					event_javascript_data:    JSON.stringify(apbctLocalStorage.getByPrefix(ctPublicFunctions.cookiePrefix)),
+					browser_signature_params: apbctBrowserSignature.getString(),
+				},
 				method: 'POST',
 				callback: function (result) {
 					if (result.success) {
-						ctFillDecodedEmail(result.data, event.target);
-						element.setAttribute('title', '');
-						element.removeAttribute('style');
+						ctProcessDecodedDataResult(result.data, event.target);
 					}
+					setTimeout(function () {
+						jQuery(element)
+							.children('.apbct-tooltip')
+							.fadeOut(700);
+					}, 4000);
 				},
 			}
 		);
@@ -330,24 +347,51 @@ function apbctAjaxEmailDecode(event){
 		apbct_public_sendAJAX(
 			{
 				action: 'apbct_decode_email',
-				encodedEmail: event.target.dataset.originalString
+				encodedEmail: event.target.dataset.originalString,
+				event_javascript_data:    JSON.stringify(apbctLocalStorage.getByPrefix(ctPublicFunctions.cookiePrefix)),
+				browser_signature_params: apbctBrowserSignature.getString(),
 			},
 			{
 				notJson: true,
 				callback: function (result) {
 					if (result.success) {
-						ctFillDecodedEmail(result.data, event.target);
-						element.setAttribute('title', '');
-						element.removeAttribute('style');
+						ctProcessDecodedDataResult(result.data, event.target);
 					}
+					setTimeout(function () {
+						jQuery(element)
+							.children('.apbct-tooltip')
+							.fadeOut(700);
+					}, 4000);
 				},
 			}
 		);
 	}
 }
 
-function ctFillDecodedEmail(result, targetElement){
-	targetElement.innerHTML = result;
+function ctProcessDecodedDataResult(response, targetElement) {
+
+	targetElement.setAttribute('title', '');
+	targetElement.removeAttribute('style');
+
+	if( !! response.is_allowed) {
+		ctFillDecodedEmail(targetElement, response.decoded_email);
+	}
+
+	if( !! response.show_comment ){
+		ctShowDecodeComment(targetElement, response.comment);
+	}
+}
+
+function ctFillDecodedEmail(target, email){
+	let tooltip = jQuery(target).children('.apbct-tooltip');
+    jQuery(target).html(email)
+				  .append(tooltip);
+}
+
+function ctShowDecodeComment(target, comment){
+	jQuery(target).find('.apbct-tooltip')
+		.show()
+		.find('.apbct-tooltip--text').html(comment);
 }
 
 function apbct_collect_visible_fields( form ) {
