@@ -2720,7 +2720,7 @@ function ct_check_wplp()
         Cookie::set($ct_wplp_result_label, $cleantalk_comment, strtotime("+5 seconds"), '/');
     } else {
         // Next POST/AJAX submit(s) of same WPLP form
-        $cleantalk_comment = $_COOKIE[$ct_wplp_result_label];
+        $cleantalk_comment = Sanitize::cleanTextField(Cookie::get($ct_wplp_result_label));
     }
     if ( $cleantalk_comment !== 'OK' ) {
         ct_die_extended($cleantalk_comment);
