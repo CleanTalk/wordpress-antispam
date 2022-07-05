@@ -87,26 +87,54 @@ class EmailEncoder
     /**
      * Ajax handler for the apbct_decode_email action
      *
-     * @return void
+     * @return void returns json string to the JS
      */
     public function ajaxDecodeEmailHandler()
     {
-        check_ajax_referer('ct_secret_stuff');
-        $this->ajaxDecodeEmail();
+        if( ! defined('REST_REQUEST') ){
+            check_ajax_referer('ct_secret_stuff');
+        }
+    
+        $this->response = $this->processDecodeRequest();
+        
+        wp_send_json_success($this->response);
     }
 
+    public function processDecodeRequest()
+    {
+        $this->decoded_email = $this->decodeEmailFromPost();
+        $this->allow_request = $this->checkRequest();
+        $this->response      = $this->compileResponse($this->decoded_email, $this->allow_request);
+        
+        return $this->response;
+    }
+    
     /**
      * Main logic of the decoding the encoded data.
      *
-     * @return void returns json string to the JS
+     * @return string encoded email
      */
-    public function ajaxDecodeEmail()
+    public function decodeEmailFromPost()
     {
-        // @ToDo implement bot checking via API. the method not implemented yet.
-
-        $encoded_email = trim(Post::get('encodedEmail'));
-        $email = $this->decodeString($encoded_email, $this->secret_key);
-        wp_send_json_success(strip_tags($email, '<a>'));
+        $this->encoded_email = trim(Post::get('encodedEmail'));
+        $this->decoded_email = $this->decodeString($this->encoded_email, $this->secret_key);
+        
+        return $this->decoded_email;
+    }
+    
+    /**
+     * Ajax handler for the apbct_decode_email action
+     *
+     * @return bool returns json string to the JS
+     */
+    protected function checkRequest()
+    {
+        return true;
+    }
+    
+    protected function compileResponse( $decoded_email, $is_allowed )
+    {
+        return strip_tags( $decoded_email, '<a>' );
     }
 
     /**
@@ -178,7 +206,7 @@ class EmailEncoder
         $encoded = $this->encodeString($email_str, $this->secret_key);
 
         return '<span 
-                data-original-string="' . $encoded . '" 
+                data-original-string="' . $encoded . '"
                 class="apbct-email-encoder"
                 title="' . esc_attr($this->getTooltip()) . '">' . $obfuscated . '</span>';
     }
