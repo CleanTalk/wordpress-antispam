@@ -5,6 +5,11 @@ function ctSetCookie( cookies, value, expires ){
         cookies = [ [ cookies, value, expires ] ];
     }
 
+    // Save all cookies to sessionStorage to use them for JS later
+    cookies.forEach(function (item, i, arr) {
+        apbctLocalStorage.set(ctPublicFunctions.cookiePrefix + item[0], item[1]);
+    })
+
     // Cookies disabled
     if( ctPublicFunctions.data__cookies_type === 'none' ){
         return;
@@ -46,6 +51,10 @@ function ctSetCookie( cookies, value, expires ){
 }
 
 function ctDeleteCookie(cookieName) {
+
+    // Remove form localStorage when deleting cookie
+    apbctLocalStorage.delete(cookieName);
+
     // Cookies disabled
     if( ctPublicFunctions.data__cookies_type === 'none' ){
         return;
