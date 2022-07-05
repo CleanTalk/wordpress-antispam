@@ -214,3 +214,34 @@ apbctLocalStorage = {
         return localStorage.removeItem(key);
     }
 }
+
+// @todo make a class from it
+apbctBrowserSignature = {
+
+    // @todo Make class BrowserSignature
+
+    getString: function(){
+
+        let browser_signature_params = [],
+            signature_string = '';
+
+        browser_signature_params.push(navigator.userAgent);
+        browser_signature_params.push(navigator.language);
+        browser_signature_params.push(window.screen.height);
+        browser_signature_params.push(window.screen.width);
+        browser_signature_params.push(new Date().getTimezoneOffset());
+
+        // @todo add following params to signature supercookies, cookies settings, system fonts, browser plugins...
+
+        signature_string = browser_signature_params.join('; ');
+
+        return signature_string;
+
+        // return this.hash(signature_string);
+    },
+    hash: function (message){
+
+       // @todo implement this, implement that.
+
+    }
+}
