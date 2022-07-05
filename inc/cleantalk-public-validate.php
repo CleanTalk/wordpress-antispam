@@ -1,5 +1,6 @@
 <?php
 
+use Cleantalk\ApbctWP\Sanitize;
 use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\Variables\Post;
 use Cleantalk\Variables\Server;
@@ -97,7 +98,7 @@ function ct_contact_form_validate()
          isset($_POST['wpforms_id'], $_POST['wpforms_author']) || //Skip wpforms
          (isset($_POST['somfrp_action'], $_POST['submitted']) && $_POST['somfrp_action'] == 'somfrp_lost_pass') || // Frontend Reset Password exclusion
          (isset($_POST['action']) && $_POST['action'] == 'dokan_save_account_details') ||
-         \Cleantalk\Variables\Post::get('action') === 'frm_get_lookup_text_value' || // Exception for Formidable multilevel form
+         Post::get('action') === 'frm_get_lookup_text_value' || // Exception for Formidable multilevel form
          (isset($_POST['ihcaction']) && $_POST['ihcaction'] == 'reset_pass') || //Reset pass exclusion
          (isset($_POST['action'], $_POST['register_unspecified_nonce_field']) && $_POST['action'] == 'register') || // Profile Builder have a direct integration
          (isset($_POST['_wpmem_register_nonce']) && wp_verify_nonce($_POST['_wpmem_register_nonce'], 'wpmem_longform_nonce')) || // WP Members have a direct integration
@@ -161,7 +162,7 @@ function ct_contact_form_validate()
         }
     }
     //Skip system fields for divi
-    if ( strpos(\Cleantalk\Variables\Post::get('action'), 'et_pb_contactform_submit') === 0 ) {
+    if ( strpos(Post::get('action'), 'et_pb_contactform_submit') === 0 ) {
         foreach ( $_POST as $key => $value ) {
             if ( strpos($key, 'et_pb_contact_email_fields') === 0 ) {
                 unset($_POST[$key]);
@@ -219,11 +220,11 @@ function ct_contact_form_validate()
     }
 
     if ( isset($_POST['TellAFriend_Link']) ) {
-        $tmp = $_POST['TellAFriend_Link'];
+        $tmp = Sanitize::cleanTextField(Post::get('TellAFriend_Link'));
         unset($_POST['TellAFriend_Link']);
     }
 
-    $checkjs = apbct_js_test(Cookie::get('ct_checkjs'), true) ?: apbct_js_test(Post::get('ct_checkjs'));
+    $checkjs = apbct_js_test(Sanitize::cleanTextField(Cookie::get('ct_checkjs')), true) ?: apbct_js_test(Sanitize::cleanTextField(Post::get('ct_checkjs')));
 
     $base_call_result = apbct_base_call(
         array(
