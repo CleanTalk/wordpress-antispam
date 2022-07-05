@@ -185,6 +185,17 @@ apbctLocalStorage = {
         }
         return false;
     },
+    getByPrefix: function (key_prefix){
+        let items = {};
+        for (let key in localStorage) {
+            if ( ! localStorage.hasOwnProperty(key) && key.search('/'+ctPublicFunctions.cookiePrefix+'/') !== 0) {
+                continue;
+            }
+            items[key] = apbctLocalStorage.get(key);
+        }
+
+        return items;
+    },
     set : function(key, value) {
         let objToSave = {'value': JSON.stringify(value), 'timestamp': Math.floor(new Date().getTime() / 1000)};
         localStorage.setItem(key, JSON.stringify(objToSave));
@@ -198,5 +209,8 @@ apbctLocalStorage = {
     },
     isSet : function(key) {
         return localStorage.getItem(key) !== null;
+    },
+    delete: function(key){
+        return localStorage.removeItem(key);
     }
 }
