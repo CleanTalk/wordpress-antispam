@@ -49,5 +49,4 @@ class WPUserMeta extends IntegrationBase
     {
         return $this->return_argument;
     }
-
 }
