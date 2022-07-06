@@ -189,12 +189,6 @@ class State extends \Cleantalk\Common\State
             'blocked'  => 0,
             // 'since' => date('d M'),
         ),
-        'connection_reports'          => array(
-            'success'         => 0,
-            'negative'        => 0,
-            'negative_report' => array(),
-            // 'since'        => date('d M'),
-        ),
 
         // A-B tests
         'ab_test'                     => array(
@@ -320,6 +314,13 @@ class State extends \Cleantalk\Common\State
         'update_mode'                  => 0,
     );
 
+    private $default_connection_reports = array(
+        'success'         => 0,
+        'negative'        => 0,
+        'negative_report' => array(),
+        'since'           => '',
+    );
+    
     public $errors;
 
     protected function setDefinitions()
