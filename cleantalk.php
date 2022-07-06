@@ -2472,9 +2472,7 @@ function ct_mail_send_connection_report()
         mail($to, $subject, $message, $headers);
     }
 
-    $apbct->data['connection_reports']          = $apbct->def_data['connection_reports'];
-    $apbct->data['connection_reports']['since'] = date('d M');
-    $apbct->saveData();
+    $apbct->drop('connection_reports');
 }
 
 /**
