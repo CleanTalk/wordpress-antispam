@@ -401,7 +401,9 @@ function ct_ajax_hook($message_obj = null)
         'alhbrmeu',
         // Ninja Forms
         'nf_preview_update',
-        'nf_save_form'
+        'nf_save_form',
+        // WPUserMeta registration plugin exclusion
+        'pf_ajax_request'
     );
 
     global $apbct;
