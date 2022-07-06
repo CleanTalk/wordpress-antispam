@@ -557,7 +557,35 @@ class State extends \Cleantalk\Common\State
             delete_option(($use_prefix ? $this->option_prefix . '_' : '') . $option_name);
         }
     }
-
+    
+    /**
+     * Drop option to default value
+     *
+     * @param $option_name
+     *
+     * @return bool
+     */
+    public function drop($option_name)
+    {
+        $default_option_name = 'def_' . $option_name;
+        if( isset($this->$default_option_name) ){
+            $this->$option_name = $this->$default_option_name;
+            
+            // Additional initialization for special cases
+            switch($option_name){
+                case 'connection_reports':
+                    $this->$option_name['since'] = date('d M');
+                    break;
+            }
+            
+            // Save dropped option
+            $this->save($option_name);
+            
+            return true;
+        }
+        
+        return false;
+    }
     /**
      * Prepares an adds an error to the plugin's data
      *
