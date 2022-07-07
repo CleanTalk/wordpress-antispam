@@ -575,6 +575,9 @@ class State extends \Cleantalk\Common\State
             switch($option_name){
                 case 'connection_reports':
                     $this->$option_name['since'] = date('d M');
+                    $this->save($option_name, true, false);
+                    
+                    return true;
                     break;
             }
             

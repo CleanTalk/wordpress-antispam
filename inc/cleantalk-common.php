@@ -335,7 +335,7 @@ function apbct_add_connection_report(
         }
     }
     
-    $apbct->save('connection_reports');
+    $apbct->save('connection_reports', true, false);
 }
 
 function apbct_rotate_moderate()
