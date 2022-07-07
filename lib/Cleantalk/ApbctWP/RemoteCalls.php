@@ -3,6 +3,7 @@
 namespace Cleantalk\ApbctWP;
 
 use Cleantalk\Variables\Request;
+use Cleantalk\Variables\Get;
 
 class RemoteCalls
 {
@@ -232,7 +233,13 @@ class RemoteCalls
             $out['network_settings'] = $apbct->network_settings;
             $out['network_data']     = $apbct->network_data;
         }
-
+        
+        // Output only one option
+        $show_only = Get::get('show_only');
+        if( $show_only && isset($out[ $show_only ]) ){
+            $out = [ $show_only => $out[ $show_only ] ];
+        }
+        
         if ( Request::equal('out', 'json') ) {
             die(json_encode($out));
         }
