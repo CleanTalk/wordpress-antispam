@@ -57,6 +57,12 @@ class Request extends \Cleantalk\Common\HTTP\Request
         return new Response($response, []);
     }
 
+    /**
+     * @inheritDoc
+     *
+     * @psalm-suppress InvalidReturnType
+     * @psalm-suppress InvalidReturnStatement
+     */
     protected function requestMulti()
     {
         global $apbct;
@@ -87,10 +93,7 @@ class Request extends \Cleantalk\Common\HTTP\Request
 
         foreach ( $responses_raw as $response ) {
             if ( $response instanceof \Requests_Exception ) {
-                /**
-                * @psalm-suppress UndefinedPropertyFetch
-                */
-                $responses[$response->url] = new Response(['error' => $response->getMessage()], []);
+                $responses[$this->url] = new Response(['error' => $response->getMessage()], []);
                 continue;
             }
             if ( $response instanceof \Requests_Response ) {
