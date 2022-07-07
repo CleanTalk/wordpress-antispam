@@ -45,16 +45,11 @@ class State extends \Cleantalk\Common\State
         'forms__registrations_test'                => 1,
         'forms__comments_test'                     => 1,
         'forms__contact_forms_test'                => 1,
-        'forms__general_contact_forms_test'        => 1,
-        // Anti-Spam test for unsupported and untested contact forms
-        'forms__wc_checkout_test'                  => 1,
-        // WooCommerce checkout default test
-        'forms__wc_register_from_order'            => 1,
-        // Woocommerce registration during checkout
-        'forms__wc_add_to_cart'                    => 0,
-        // Woocommerce add to cart
-        'forms__search_test'                       => 1,
-        // Test default WordPress form
+        'forms__general_contact_forms_test'        => 1, // Anti-Spam test for unsupported and untested contact forms
+        'forms__wc_checkout_test'                  => 1, // WooCommerce checkout default test
+        'forms__wc_register_from_order'            => 1, // Woocommerce registration during checkout
+        'forms__wc_add_to_cart'                    => 0, // Woocommerce add to cart
+        'forms__search_test'                       => 1, // Test default WordPress form
         'forms__check_external'                    => 0,
         'forms__check_external__capture_buffer'    => 0,
         'forms__check_internal'                    => 0,
@@ -64,30 +59,21 @@ class State extends \Cleantalk\Common\State
         'comments__disable_comments__posts'        => 0,
         'comments__disable_comments__pages'        => 0,
         'comments__disable_comments__media'        => 0,
-        'comments__bp_private_messages'            => 1,
-        //buddyPress private messages test => ON
+        'comments__bp_private_messages'            => 1, // BuddyPress private messages test => ON
         'comments__check_comments_number'          => 1,
         'comments__remove_old_spam'                => 0,
-        'comments__remove_comments_links'          => 0,
-        // Removes links from approved comments
-        'comments__show_check_links'               => 1,
-        // Shows check link to Cleantalk's DB.
-        'comments__manage_comments_on_public_page' => 0,
-        // Allows to control comments on public page.
-        'comments__hide_website_field'             => 0,
-        // Hide website field from comment form
+        'comments__remove_comments_links'          => 0, // Remove links from approved comments
+        'comments__show_check_links'               => 1, // Shows check link to Cleantalk's DB.
+        'comments__manage_comments_on_public_page' => 0, // Allows to control comments on public page.
+        'comments__hide_website_field'             => 0, // Hide website field from comment form
 
         // Data processing
-        'data__protect_logged_in'                  => 1,
-        // Do anti-spam tests to for logged in users.
+        'data__protect_logged_in'                  => 1, // Do anti-spam tests to for logged-in users.
         'data__use_ajax'                           => 0,
         'data__use_static_js_key'                  => -1,
-        'data__general_postdata_test'              => 0,
-        //CAPD
-        'data__set_cookies'                        => 3,
-        // Cookies type: 0 - Off / 1 - Native cookies / 2 - Alt cookies / 3 - Auto
-        'data__ssl_on'                             => 0,
-        // Secure connection to servers
+        'data__general_postdata_test'              => 0, //CAPD
+        'data__set_cookies'                        => 3, // Cookies type: 0 - Off / 1 - Native cookies / 2 - Alt cookies / 3 - Auto
+        'data__ssl_on'                             => 0, // Secure connection to servers
         'data__pixel'                              => '3',
         'data__email_check_before_post'            => 1,
         'data__honeypot_field'                     => 1,
@@ -103,8 +89,7 @@ class State extends \Cleantalk\Common\State
         'exclusions__roles'                        => array('Administrator'),
 
         // Administrator Panel
-        'admin_bar__show'                          => 1,
-        // Show the admin bar.
+        'admin_bar__show'                          => 1, // Show the admin bar.
         'admin_bar__all_time_counter'              => 0,
         'admin_bar__daily_counter'                 => 0,
         'admin_bar__sfw_counter'                   => 0,
@@ -114,16 +99,12 @@ class State extends \Cleantalk\Common\State
         'gdpr__text'                               => 'By using this form you agree with the storage and processing of your data by using the Privacy Policy on this website.',
 
         // Misc
-        'misc__send_connection_reports'            => 0,
-        // Send connection reports to Cleantalk servers
+        'misc__send_connection_reports'            => 0, // Send connection reports to Cleantalk servers
         'misc__async_js'                           => 0,
         'misc__store_urls'                         => 1,
         'misc__complete_deactivation'              => 0,
-        'misc__debug_ajax'                         => 0,
-
-        // WordPress
-        'wp__use_builtin_http_api'                 => 1,
-        // Using WordPress HTTP built in API
+        'misc__debug_ajax'                         => 0, // WordPress
+        'wp__use_builtin_http_api'                 => 1, // Using WordPress HTTP built in API
         'wp__comment_notify'                       => 1,
         'wp__comment_notify__roles'                => array('administrator'),
         'wp__dashboard_widget__show'               => 1,
@@ -134,14 +115,14 @@ class State extends \Cleantalk\Common\State
 
         // Plugin data
         'plugin_version'                 => APBCT_VERSION,
-        'js_keys'                        => array(), // Keys to do JavaScript antispam test
-        'js_keys_store_days'             => 14, // JavaScript keys store days - 8 days now
-        'js_key_lifetime'                => 86400, // JavaScript key life time in seconds - 1 day now
-        'last_remote_call'               => 0, //Timestam of last remote call
-        'current_settings_template_id'   => null,  // Loaded settings template id
-        'current_settings_template_name' => null,  // Loaded settings template name
+        'js_keys'                        => array(),      // Keys to do JavaScript antispam test
+        'js_keys_store_days'             => 14,           // JavaScript keys store days - 8 days now
+        'js_key_lifetime'                => 86400,        // JavaScript key lifetime in seconds - 1 day now
+        'last_remote_call'               => 0,            // Timestamp of last remote call
+        'current_settings_template_id'   => null,         // Loaded settings template id
+        'current_settings_template_name' => null,         // Loaded settings template name
         'ajax_type'                      => 'admin_ajax', // Ajax type - admin_ajax|REST
-        'cookies_type'                   => 'native', // Native / Alternative / None
+        'cookies_type'                   => 'native',     // Native / Alternative / None
 
         // Anti-Spam
         'spam_store_days'                => 15, // Days before delete comments from folder Spam
@@ -573,12 +554,16 @@ class State extends \Cleantalk\Common\State
             
             // Additional initialization for special cases
             switch($option_name){
+                
+                // Connection report
                 case 'connection_reports':
                     $this->$option_name['since'] = date('d M');
                     $this->save($option_name, true, false);
                     
                     return true;
                     break;
+                    
+                // Special treat for other options here
             }
             
             // Save dropped option
@@ -782,15 +767,16 @@ class State extends \Cleantalk\Common\State
             $option = $this->storage[$name];
 
             return $option;
-            // Then in data
+            
+        // Then in data
         } elseif (isset($this->storage['data'][$name])) {
             $this->$name = $this->storage['data'][$name];
             $option      = $this->storage['data'][$name];
 
             return $option;
 
-            // Otherwise, try to get it from db settings table
-            // it will be arrayObject || scalar || null
+        // Otherwise, try to get it from db settings table
+        // it will be arrayObject || scalar || null
         } else {
             $option = $this->getOption($name);
 
