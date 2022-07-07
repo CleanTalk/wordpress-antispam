@@ -1146,3 +1146,18 @@ function apbct_update_to_5_179_2()
     $apbct->remote_calls['post_api_key'] = array('last_call' => 0);
     $apbct->save('remote_calls');
 }
+
+function apbct_update_to_5_181_0()
+{
+    global $apbct;
+
+    // Move connection report from cleantalk_data to separate option cleantalk_connection_reports
+    $connection_reports = [];
+    if( isset($apbct->data['connection_reports']) ){
+        $connection_reports = $apbct->data['connection_reports'];
+        unset($apbct->data['connection_reports']);
+        $apbct->save('data');
+    }
+    
+    update_option('cleantalk_connection_reports', $connection_reports, false);
+}
