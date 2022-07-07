@@ -121,12 +121,7 @@ $apbct->api_key          = ! APBCT_WPMS || $apbct->allow_custom_key || $apbct->w
 $apbct->key_is_ok        = ! APBCT_WPMS || $apbct->allow_custom_key || $apbct->white_label ? $apbct->data['key_is_ok'] : $apbct->network_data['key_is_ok'];
 $apbct->moderate         = ! APBCT_WPMS || $apbct->allow_custom_key || $apbct->white_label ? $apbct->data['moderate'] : $apbct->network_data['moderate'];
 
-$apbct->data['user_counter']['since']       = isset($apbct->data['user_counter']['since']) ? $apbct->data['user_counter']['since'] : date(
-    'd M'
-);
-$apbct->data['connection_reports']['since'] = isset($apbct->data['connection_reports']['since']) ? $apbct->data['user_counter']['since'] : date(
-    'd M'
-);
+$apbct->data['user_counter']['since']       = isset($apbct->data['user_counter']['since'])       ? $apbct->data['user_counter']['since'] : date('d M');
 
 $apbct->firewall_updating = (bool)$apbct->fw_stats['firewall_updating_id'];
 
