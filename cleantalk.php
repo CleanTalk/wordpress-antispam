@@ -2459,7 +2459,21 @@ function ct_mail_send_connection_report()
                         . '<td>' . $report['work_url'] . '</td>'
                         . '</tr>';
         }
-        $message .= '</table></body></html>';
+        $message .= '</table>';
+        
+        $message .= '<br>';
+        $show_connection_reports_link =
+            substr(get_option('home'), -1) === '/' ? get_option('home') : get_option('home') . '/'
+            . http_build_query([
+                    'plugin_name' => 'apbct',
+                    'spbc_remote_call_token' => md5($apbct->api_key),
+                    'spbc_remote_call_action' => 'debug',
+                    'show_only' => 'connection_reports',
+            ]);
+        $message .= '<a href="' . $show_connection_reports_link . '" target="_blank">Show connection reports with remote call</a>';
+        $message .= '<br>';
+        
+        $message .= '</body></html>';
 
         $headers = "Content-type: text/html; charset=windows-1251 \r\n";
         $headers .= 'From: ' . ct_get_admin_email();
