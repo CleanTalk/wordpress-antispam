@@ -139,7 +139,7 @@ function apbct_base_call($params = array(), $reg_flag = false)
 
     // Skip duplicate requests
     if (
-        key_exists($apbct->plugin_request_id, $apbct->plugin_request_ids) &&
+        isset($apbct->plugin_request_ids[ $apbct->plugin_request_id ]) &&
         current_filter() !== 'woocommerce_registration_errors' && // Prevent skip checking woocommerce registration during checkout
         current_filter() !== 'um_submit_form_register' // Prevent skip checking UltimateMember register
     ) {
@@ -148,7 +148,7 @@ function apbct_base_call($params = array(), $reg_flag = false)
         return array('ct_result' => new CleantalkResponse());
     }
 
-    $apbct->plugin_request_ids = array_merge($apbct->plugin_request_ids, array($apbct->plugin_request_id => time()));
+    $apbct->plugin_request_ids[ $apbct->plugin_request_id ] = time();
     $apbct->save('plugin_request_ids');
     /* End of Request ID rotation */
 

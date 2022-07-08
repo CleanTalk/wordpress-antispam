@@ -958,7 +958,7 @@ function apbct_js_test($check_js_value = '', $is_cookie = false)
             $out = ct_get_checkjs_value() === $js_key ? 1 : 0;
             // Random key check
         } else {
-            $out = array_key_exists($js_key, $apbct->js_keys) ? 1 : 0;
+            $out = isset($apbct->js_keys[ $js_key ]) ? 1 : 0;
         }
     }
 
