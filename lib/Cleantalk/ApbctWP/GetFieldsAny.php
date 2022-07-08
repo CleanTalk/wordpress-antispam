@@ -3,7 +3,6 @@
 namespace Cleantalk\ApbctWP;
 
 use Cleantalk\ApbctWP\Variables\Cookie;
-use Cleantalk\Variables\Post;
 
 class GetFieldsAny
 {
@@ -361,14 +360,6 @@ class GetFieldsAny
     private function getVisibleFields()
     {
         $visible_fields_collection = Cookie::getVisibleFields();
-
-        //if cookie is broken or missing, get visible fields from POST
-        if ( empty($visible_fields_collection) ) {
-            if ( Post::get('apbct_visible_fields') ) {
-                $visible_fields_collection = Post::get('apbct_visible_fields');
-                $visible_fields_collection = json_decode($visible_fields_collection, true);
-            }
-        }
 
         // Visible fields processing
         $visible_fields = apbct_visible_fields__process($visible_fields_collection);
