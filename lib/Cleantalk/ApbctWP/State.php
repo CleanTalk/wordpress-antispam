@@ -548,16 +548,18 @@ class State extends \Cleantalk\Common\State
      */
     public function drop($option_name)
     {
-        $default_option_name = 'def_' . $option_name;
+        $default_option_name = 'default_' . $option_name;
+        
         if( isset($this->$default_option_name) ){
-            $this->$option_name = $this->$default_option_name;
+            
+            $this->$option_name = new ArrayObject($this->$default_option_name);
             
             // Additional initialization for special cases
             switch($option_name){
                 
                 // Connection report
                 case 'connection_reports':
-                    $this->$option_name['since'] = date('d M');
+                    $this->connection_reports['since'] = date('d M');
                     $this->save($option_name, true, false);
                     
                     return true;
