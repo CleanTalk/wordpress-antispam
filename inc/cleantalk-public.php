@@ -1311,7 +1311,7 @@ function ct_enqueue_styles_public()
     ) {
         wp_enqueue_style(
             'ct_public_css',
-            APBCT_CSS_ASSETS_PATH . '/clentalak-public.min.css',
+            APBCT_CSS_ASSETS_PATH . '/cleantalk-public.min.css',
             array(),
             APBCT_VERSION
         );

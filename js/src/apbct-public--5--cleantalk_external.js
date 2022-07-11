@@ -36,10 +36,19 @@ function ct_protect_external() {
                     reUseCurrentForm.appendChild(force_action);
 
                     // mailerlite integration - disable click on submit button
-                    if(reUseCurrentForm.classList !== undefined && reUseCurrentForm.classList.contains('ml-block-form')) {
-                        var mailerliteSubmitButton = jQuery('form.ml-block-form').find('button[type="submit"]');
-
-                        if(mailerliteSubmitButton !== undefined) {
+                    let mailerlite_detected_class = false
+                    if (reUseCurrentForm.classList !== undefined) {
+                        //list there all the mailerlite classes
+                        let mailerlite_classes = ['newsletterform', 'ml-block-form']
+                        mailerlite_classes.forEach(function(mailerlite_class) {
+                            if (reUseCurrentForm.classList.contains(mailerlite_class)){
+                                mailerlite_detected_class = mailerlite_class
+                            }
+                        });
+                    }
+                    if ( mailerlite_detected_class ) {
+                        let mailerliteSubmitButton = jQuery('form.' + mailerlite_detected_class).find('button[type="submit"]');
+                        if ( mailerliteSubmitButton !== undefined ) {
                             mailerliteSubmitButton.click(function (event) {
                                 event.preventDefault();
                                 sendAjaxCheckingFormData(reUseCurrentForm, prev, form_original);
