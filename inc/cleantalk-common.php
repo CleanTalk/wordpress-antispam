@@ -953,7 +953,7 @@ function ct_delete_spam_comments()
 /**
  * Get data from an ARRAY recursively
  *
- * @param $arr
+ * @param array $arr
  * @param array $message
  * @param null|string $email
  * @param array $nickname

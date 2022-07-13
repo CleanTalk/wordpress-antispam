@@ -2441,7 +2441,7 @@ function apbct_form__WPForms__testSpam()
         unset($form_data['name']);
     }
 
-    $params = ct_get_fields_any($apbct->form_data, $email, $nickname);
+    $params = ct_get_fields_any((array)$apbct->form_data, $email, $nickname);
 
     if ( is_array($params['nickname']) ) {
         $params['nickname'] = implode(' ', $params['nickname']);
