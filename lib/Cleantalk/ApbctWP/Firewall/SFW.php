@@ -160,7 +160,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
 				WHERE network IN (" . implode(',', $needles) . ")
 				AND	network = " . $current_ip_v4 . " & mask 
 				AND " . rand(1, 100000) . "  
-				ORDER BY mask DESC LIMIT 1"
+				ORDER BY status DESC LIMIT 1"
             );
 
             $test_status = 1;
