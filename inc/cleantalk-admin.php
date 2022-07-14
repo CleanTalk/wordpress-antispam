@@ -58,7 +58,7 @@ function apbct_add_buttons_to_comments_and_users($_unused_argument)
     }
 
     echo '
-    <a href="' . $button_url__check . '" class="button" style="margin:1px 0 0 0; display: inline-block;">
+    <a href="' . Escape::escAttr($button_url__check) . '" class="button" style="margin:1px 0 0 0; display: inline-block;">
         <img src="' . Escape::escUrl($apbct->logo__small__colored) . '" alt="CleanTalk Anti-Spam logo"  height="" style="width: 17px; vertical-align: text-bottom;" />
         ' . sprintf(__('Find spam %s', 'cleantalk-spam-protect'), $button_description) . '
     </a>
@@ -171,19 +171,19 @@ function ct_dashboard_statistics_widget_output($_post, $_callback_args)
                 foreach ( $apbct->brief_data['top5_spam_ip'] as $val ) { ?>
                     <tr>
                         <td><?php
-                            echo $val[0]; ?></td>
+                            echo Escape::escHtml($val[0]); ?></td>
 
                         <td class="ct_widget_block__country_cell">
                             <?php
-                            echo $val[1] ? "<img src='" . APBCT_URL_PATH . "/inc/images/flags/" . strtolower(
-                                isset($val[1]['country_code']) ? $val[1]['country_code'] : 'a1'
+                            echo $val[1] ? "<img src='" . Escape::escHtml(APBCT_URL_PATH) . "/inc/images/flags/" . strtolower(
+                                isset($val[1]['country_code']) ? Escape::escHtml($val[1]['country_code']) : 'a1'
                             ) . ".png'>" : ''; ?>
                             <?php
-                            echo isset($val[1]['country_name']) ? $val[1]['country_name'] : 'Unknown'; ?>
+                            echo isset($val[1]['country_name']) ? Escape::escHtml($val[1]['country_name']) : 'Unknown'; ?>
                         </td>
 
                         <td style='text-align: center;'><?php
-                            echo $val[2]; ?></td>
+                            echo Escape::escHtml($val[2]); ?></td>
                     </tr>
                     <?php
                 } ?>
@@ -191,7 +191,7 @@ function ct_dashboard_statistics_widget_output($_post, $_callback_args)
             <?php
             if ( $apbct->user_token ) { ?>
                 <a target='_blank' href='https://cleantalk.org/my?user_token=<?php
-                echo $apbct->user_token; ?>&cp_mode=antispam'>
+                echo Escape::escHtml($apbct->user_token); ?>&cp_mode=antispam'>
                     <input class='ct_widget_button' id='ct_widget_button_view_all' type='button' value='View all'>
                 </a>
                 <?php
@@ -591,14 +591,28 @@ function apbct_admin__badge__get_premium($print = true, $out = '')
                 . ($print ? __('Make it right!', 'cleantalk-spam-protect') . ' ' : '')
                 . sprintf(
                     __('%sGet premium%s', 'cleantalk-spam-protect'),
-                    '<a href="https://cleantalk.org/my/bill/recharge?user_token=' . $apbct->user_token . '" target="_blank">',
+                    '<a href="https://cleantalk.org/my/bill/recharge?user_token=' . Escape::escHtml($apbct->user_token) . '" target="_blank">',
                     '</a>'
                 )
                 . '</b>';
     }
 
     if ( $print ) {
-        echo $out;
+        echo wp_kses(
+            $out,
+            array(
+                'a' => array(
+                    'href'  => true,
+                    'title' => true,
+                    '_target' => true,
+                ),
+                'br' => array(),
+                'p' => array(),
+                'b' => array(
+                    'style' => true,
+                ),
+            )
+        );
     } else {
         return $out;
     }
@@ -661,6 +675,9 @@ function apbct_admin__admin_bar__add_structure($wp_admin_bar)
                 'security-malware-firewall'
             ) . '</a></span>'
             : '<a>' . __('Security', 'security-malware-firewall') . '</a>';
+
+        $spbc_attention_mark = $spbc->notice_show ? '<i class="spbc-icon-attention-alt ctlk---red"></i>' : '';
+        $spbc_title         .= $spbc_attention_mark;
     }
 
     if ( isset($spbc_title) &&
@@ -1112,9 +1129,7 @@ function apbct_comment__send_feedback(
     }
 
     if ( ! $direct_call ) {
-        echo ! empty($result) ? $result : 0;
-        die();
-    } else {
+        ! empty($result) ? die($result) : die(0);
     }
 }
 
@@ -1150,8 +1165,7 @@ function apbct_user__send_feedback($user_id = null, $status = null, $direct_call
     }
 
     if ( ! $direct_call ) {
-        echo ! empty($result) ? $result : 0;
-        die();
+        ! empty($result) ? die($result) : die(0);
     }
 }
 

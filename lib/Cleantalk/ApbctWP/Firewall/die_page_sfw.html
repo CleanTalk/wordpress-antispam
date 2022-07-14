@@ -192,7 +192,11 @@
 		}
 
 		function get_current_url() {
-			document.write(window.location.href);
+			var apbctSfwRandomGet = '';
+			if( +ctPublicFunctions.sfw__random_get ) {
+				apbctSfwRandomGet = '?sfw=pass' + Math.round(ct_date.getTime()/1000);
+			}
+			document.write(window.location.origin + window.location.pathname + apbctSfwRandomGet);
 			return null;
 		}
 	</script>

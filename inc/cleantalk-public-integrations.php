@@ -1,6 +1,7 @@
 <?php
 
 use Cleantalk\ApbctWP\Helper;
+use Cleantalk\ApbctWP\Sanitize;
 use Cleantalk\ApbctWP\State;
 use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\Variables\Get;
@@ -67,7 +68,7 @@ function ct_validate_ccf_submission($value, $_field_id, $_required)
 
     //If it's the last field of the form
     (! isset($ct_global_temporary_data['count']) ? $ct_global_temporary_data['count'] = 1 : $ct_global_temporary_data['count']++);
-    $form_id = $_POST['form_id'];
+    $form_id = Sanitize::cleanInt(Post::get('form_id'));
     if ( $ct_global_temporary_data['count'] != count(get_post_meta($form_id, 'ccf_attached_fields', true)) ) {
         do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
 
@@ -98,7 +99,7 @@ function ct_validate_ccf_submission($value, $_field_id, $_required)
     $post_info['comment_type'] = 'feedback_custom_contact_forms';
     $post_info['post_url']     = apbct_get_server_variable('HTTP_REFERER');
 
-    $checkjs = apbct_js_test(Cookie::get('ct_checkjs'), true) ?: apbct_js_test(Post::get('ct_checkjs'));
+    $checkjs = apbct_js_test(Sanitize::cleanTextField(Cookie::get('ct_checkjs')), true) ?: apbct_js_test(Sanitize::cleanTextField(Post::get('ct_checkjs')));
 
     //Making a call
     $base_call_result = apbct_base_call(
@@ -151,7 +152,7 @@ function ct_woocommerce_wishlist_check($args)
     $post_info['comment_type'] = 'feedback';
     $post_info['post_url']     = apbct_get_server_variable('HTTP_REFERER');
 
-    $checkjs = apbct_js_test(Cookie::get('ct_checkjs'), true) ?: apbct_js_test(Post::get('ct_checkjs'));
+    $checkjs = apbct_js_test(Sanitize::cleanTextField(Cookie::get('ct_checkjs')), true) ?: apbct_js_test(Sanitize::cleanTextField(Post::get('ct_checkjs')));
 
     //Making a call
     $base_call_result = apbct_base_call(
@@ -348,7 +349,7 @@ function apbct_integration__buddyPres__private_msg_check($bp_message_obj)
                 'comment_type' => 'buddypress_comment',
                 'post_url'     => apbct_get_server_variable('HTTP_REFERER'),
             ),
-            'js_on'           => apbct_js_test(Cookie::get('ct_checkjs'), true) ?: apbct_js_test(Post::get('ct_checkjs')),
+            'js_on'           => apbct_js_test(Sanitize::cleanTextField(Cookie::get('ct_checkjs')), true) ?: apbct_js_test(Sanitize::cleanTextField(Post::get('ct_checkjs'))),
             'sender_info'     => array('sender_url' => null),
             'exception_action' => $exception_action === true ? 1 : null
         )
@@ -485,7 +486,7 @@ function ct_woocommerce_checkout_check($_data, $errors)
         'sender_email'    => $sender_email,
         'sender_nickname' => $sender_nickname,
         'post_info'       => $post_info,
-        'js_on'           => apbct_js_test(Cookie::get('ct_checkjs'), true),
+        'js_on'           => apbct_js_test(Sanitize::cleanTextField(Cookie::get('ct_checkjs')), true),
         'sender_info'     => array('sender_url' => null)
     );
 
@@ -543,17 +544,17 @@ function apbct_wc__add_to_cart_unlogged_user(
          *    [quantity] => 1
          *)
          */
-        $message = $_POST ?: array();
+        $message = apply_filters('apbct__filter_post', $_POST);
 
         $post_info['comment_type'] = 'order__add_to_cart';
-        $post_info['post_url']     = Server::get('HTTP_REFERER');
+        $post_info['post_url']     = Sanitize::cleanUrl(Server::get('HTTP_REFERER'));
 
         //Making a call
         $base_call_result = apbct_base_call(
             array(
                 'message'     => $message,
                 'post_info'   => $post_info,
-                'js_on'       => apbct_js_test(Cookie::get('ct_checkjs'), true),
+                'js_on'       => apbct_js_test(Sanitize::cleanTextField(Cookie::get('ct_checkjs')), true),
                 'sender_info' => array('sender_url' => null),
             )
         );
@@ -614,7 +615,7 @@ function apbct_form__piratesForm__testSpam()
             'sender_email'    => $sender_email,
             'sender_nickname' => $sender_nickname,
             'post_info'       => $post_info,
-            'js_on'           => apbct_js_test(Cookie::get('ct_checkjs'), true),
+            'js_on'           => apbct_js_test(Sanitize::cleanTextField(Cookie::get('ct_checkjs')), true),
             'sender_info'     => array('sender_url' => null),
         )
     );
@@ -727,7 +728,7 @@ function apbct_form__formidable__testSpam($errors, $_form)
     /**
      * Filter for POST
      */
-    $input_array = apply_filters('apbct__filter_post', $_POST['item_meta']);
+    $input_array = apply_filters('apbct__filter_post', Post::get('item_meta'));
 
     $form_data = array();
     foreach ( $input_array as $key => $value ) {
@@ -764,7 +765,7 @@ function apbct_form__formidable__testSpam($errors, $_form)
     // Combine it with non-scalar values
     $message = array_merge($tmp_message, $tmp_message2);
 
-    $checkjs = apbct_js_test(Cookie::get('ct_checkjs'), true) ?: apbct_js_test(Post::get('ct_checkjs'));
+    $checkjs = apbct_js_test(Sanitize::cleanTextField(Cookie::get('ct_checkjs')), true) ?: apbct_js_test(Sanitize::cleanTextField(Post::get('ct_checkjs')));
 
     $base_call_result = apbct_base_call(
         array(
@@ -810,11 +811,8 @@ function apbct__formidable_get_key_field_for_ajax_response($_form = array())
 {
     $key_field = '113';
 
-    if (
-        isset($_POST['item_meta']) &&
-        is_array($_POST['item_meta'])
-    ) {
-        $key_field = array_keys($_POST['item_meta'])[1];
+    if ( is_array(Post::get('item_meta')) ) {
+        $key_field = array_keys(Post::get('item_meta'))[1];
     } elseif (is_array($_form) && isset($_form['item_meta'])) {
         foreach ($_form['item_meta'] as $key => $value) {
             if ($value) {
@@ -869,7 +867,7 @@ function ct_bbp_new_pre_content($comment)
         return $comment;
     }
 
-    $checkjs = apbct_js_test(Cookie::get('ct_checkjs'), true) ?: apbct_js_test(Post::get('ct_checkjs'));
+    $checkjs = apbct_js_test(Sanitize::cleanTextField(Cookie::get('ct_checkjs')), true) ?: apbct_js_test(Sanitize::cleanTextField(Post::get('ct_checkjs')));
 
     $post_info['comment_type'] = 'bbpress_comment';
     $post_info['post_url']     = bbp_get_topic_permalink();
@@ -878,8 +876,8 @@ function ct_bbp_new_pre_content($comment)
         $sender_email    = $current_user->user_email;
         $sender_nickname = $current_user->display_name;
     } else {
-        $sender_email    = isset($_POST['bbp_anonymous_email']) ? $_POST['bbp_anonymous_email'] : null;
-        $sender_nickname = isset($_POST['bbp_anonymous_name']) ? $_POST['bbp_anonymous_name'] : null;
+        $sender_email    = Sanitize::cleanEmail(Post::get('bbp_anonymous_email'));
+        $sender_nickname = Sanitize::cleanUser(Post::get('bbp_anonymous_name'));
     }
 
     $base_call_result = apbct_base_call(
@@ -889,7 +887,7 @@ function ct_bbp_new_pre_content($comment)
             'sender_nickname' => $sender_nickname,
             'post_info'       => $post_info,
             'js_on'           => $checkjs,
-            'sender_info'     => array('sender_url' => isset($_POST['bbp_anonymous_website']) ? $_POST['bbp_anonymous_website'] : null),
+            'sender_info'     => array('sender_url' => Sanitize::cleanUrl(Post::get('bbp_anonymous_website'))),
         )
     );
     $ct_result        = $base_call_result['ct_result'];
@@ -1057,7 +1055,7 @@ function ct_preprocess_comment($comment)
     // Comment type
     $post_info['comment_type'] = empty($post_info['comment_type']) ? 'general_comment' : $post_info['comment_type'];
 
-    $checkjs = apbct_js_test(Cookie::get('ct_checkjs'), true) ?: apbct_js_test(Post::get('ct_checkjs'));
+    $checkjs = apbct_js_test(Sanitize::cleanTextField(Cookie::get('ct_checkjs')), true) ?: apbct_js_test(Sanitize::cleanTextField(Post::get('ct_checkjs')));
 
     $example = null;
     if ( $apbct->data['relevance_test'] ) {
@@ -1119,7 +1117,7 @@ function ct_preprocess_comment($comment)
         ) {
             $honeypot_field = 0;
             // if url is filled then pass them to $base_call_data as additional fields
-            $base_call_data['sender_info']['honeypot_field_value']  = Post::get('url');
+            $base_call_data['sender_info']['honeypot_field_value']  = Sanitize::cleanTextField(Post::get('url'));
             $base_call_data['sender_info']['honeypot_field_source'] = 'url';
         }
 
@@ -1312,8 +1310,8 @@ function ct_login_message($message)
  */
 function ct_registration_errors_ppress($reg_errors, $_form_id)
 {
-    $email = $_POST['reg_email'];
-    $login = $_POST['reg_username'];
+    $email = Sanitize::cleanEmail(Post::get('reg_email'));
+    $login = Sanitize::cleanUser(Post::get('reg_username'));
 
     $reg_errors = ct_registration_errors($reg_errors, $login, $email);
 
@@ -1380,7 +1378,7 @@ function ct_test_message($nickname, $email, $_ip, $text)
             'sender_email'    => $email,
             'sender_nickname' => $nickname,
             'post_info'       => array('comment_type' => 'feedback_plugin_check'),
-            'js_on'           => apbct_js_test(Cookie::get('ct_checkjs'), true),
+            'js_on'           => apbct_js_test(Sanitize::cleanTextField(Cookie::get('ct_checkjs')), true),
         )
     );
 
@@ -1401,10 +1399,10 @@ function ct_test_registration($nickname, $email, $ip = null)
     global $ct_checkjs_register_form;
 
     if ( apbct_js_test(Post::get($ct_checkjs_register_form)) ) {
-        $checkjs                            = apbct_js_test(Post::get($ct_checkjs_register_form));
+        $checkjs                            = apbct_js_test(Sanitize::cleanTextField(Post::get($ct_checkjs_register_form)));
         $sender_info['post_checkjs_passed'] = $checkjs;
     } else {
-        $checkjs                              = apbct_js_test(Cookie::get('ct_checkjs'), true);
+        $checkjs                              = apbct_js_test(Sanitize::cleanTextField(Cookie::get('ct_checkjs')), true);
         $sender_info['cookie_checkjs_passed'] = $checkjs;
     }
 
@@ -1467,23 +1465,23 @@ function ct_registration_errors($errors, $sanitized_user_login = null, $user_ema
 
     $facebook = false;
     // Facebook registration
-    if ( $sanitized_user_login === null && isset($_POST['FB_userdata']) ) {
-        $sanitized_user_login = $_POST['FB_userdata']['name'];
+    if ( $sanitized_user_login === null && Post::get('FB_userdata') ) {
+        $sanitized_user_login = Sanitize::cleanUser(Post::get('FB_userdata')['name']);
         $facebook             = true;
     }
-    if ( $user_email === null && isset($_POST['FB_userdata']) ) {
-        $user_email = $_POST['FB_userdata']['email'];
+    if ( $user_email === null && Post::get('FB_userdata') ) {
+        $user_email = Sanitize::cleanEmail(Post::get('FB_userdata')['email']);
         $facebook   = true;
     }
 
     // BuddyPress actions
     $buddypress = false;
-    if ( $sanitized_user_login === null && isset($_POST['signup_username']) ) {
-        $sanitized_user_login = $_POST['signup_username'];
+    if ( $sanitized_user_login === null && Post::get('signup_username') ) {
+        $sanitized_user_login = Sanitize::cleanUser(Post::get('signup_username'));
         $buddypress           = true;
     }
-    if ( $user_email === null && isset($_POST['signup_email']) ) {
-        $user_email = $_POST['signup_email'];
+    if ( $user_email === null && Post::get('signup_email') ) {
+        $user_email = Sanitize::cleanEmail(Post::get('signup_email'));
         $buddypress = true;
     }
 
@@ -1503,8 +1501,8 @@ function ct_registration_errors($errors, $sanitized_user_login = null, $user_ema
         $checkjs_cookie = $checkjs;
     } else {
         // This hack can be helpful when plugin uses with untested themes&signups plugins.
-        $checkjs_post   = apbct_js_test(Post::get($ct_checkjs_register_form));
-        $checkjs_cookie = apbct_js_test(Cookie::get('ct_checkjs'), true);
+        $checkjs_post   = apbct_js_test(Sanitize::cleanTextField(Post::get($ct_checkjs_register_form)));
+        $checkjs_cookie = apbct_js_test(Sanitize::cleanTextField(Cookie::get('ct_checkjs')), true);
         $checkjs        = $checkjs_cookie ?: $checkjs_post;
     }
 
@@ -1541,7 +1539,7 @@ function ct_registration_errors($errors, $sanitized_user_login = null, $user_ema
         $fields_numbers_to_check = explode(',', Post::get('signup_profile_field_ids'));
         foreach ( $fields_numbers_to_check as $field_number ) {
             $field_name = 'field_' . $field_number;
-            $field_value = Post::get($field_name) ? Post::get($field_name) : '';
+            $field_value = Post::get($field_name) ? Sanitize::cleanTextareaField(Post::get($field_name)) : '';
             $field_values .= $field_value . "\n";
         }
         $base_call_array['message'] = $field_values;
@@ -1682,7 +1680,7 @@ function apbct_registration__UltimateMembers__check($args)
 
     // This hack can be helpfull when plugin uses with untested themes&signups plugins.
     if ( $checkjs == 0 ) {
-        $checkjs                              = apbct_js_test(Cookie::get('ct_checkjs'), true);
+        $checkjs                              = apbct_js_test(Sanitize::cleanTextField(Cookie::get('ct_checkjs')), true);
         $sender_info['cookie_checkjs_passed'] = $checkjs;
     }
 
@@ -1807,13 +1805,6 @@ function ct_contact_form_is_spam($form)
         return null;
     }
 
-    $js_field_name = $ct_checkjs_jpcf;
-    foreach ( $_POST as $k => $_v ) {
-        if ( preg_match("/^.+$ct_checkjs_jpcf$/", $k) ) {
-            $js_field_name = $k;
-        }
-    }
-
     $sender_email    = null;
     $sender_nickname = null;
     $message         = '';
@@ -1836,7 +1827,7 @@ function ct_contact_form_is_spam($form)
             'sender_nickname' => $sender_nickname,
             'post_info'       => array('comment_type' => 'contact_form_wordpress_grunion'),
             'sender_info'     => array('sender_url' => @$form['comment_author_url']),
-            'js_on'           => apbct_js_test(Cookie::get('ct_checkjs'), true) ?: apbct_js_test(Post::get($ct_checkjs_jpcf)),
+            'js_on'           => apbct_js_test(Sanitize::cleanTextField(Cookie::get('ct_checkjs')), true) ?: apbct_js_test(Sanitize::cleanTextField(Post::get($ct_checkjs_jpcf))),
 
         )
     );
@@ -1875,7 +1866,7 @@ function ct_contact_form_is_spam_jetpack($_is_spam, $form)
             'sender_nickname' => isset($form['comment_author']) ? $form['comment_author'] : null,
             'post_info'       => array('comment_type' => 'contact_form_wordpress_grunion'),
             'sender_info'     => array('sender_url' => @$form['comment_author_url']),
-            'js_on'           => apbct_js_test(Cookie::get('ct_checkjs'), true) ?: apbct_js_test(Post::get($ct_checkjs_jpcf)),
+            'js_on'           => apbct_js_test(Sanitize::cleanTextField(Cookie::get('ct_checkjs')), true) ?: apbct_js_test(Sanitize::cleanTextField(Post::get($ct_checkjs_jpcf))),
         )
     );
     $ct_result        = $base_call_result['ct_result'];
@@ -1959,7 +1950,7 @@ function apbct_form__contactForm7__testSpam($spam, $_submission = null)
         return $spam;
     }
 
-    $checkjs = apbct_js_test(Cookie::get('ct_checkjs'), true) ?: apbct_js_test(Post::get($ct_checkjs_cf7));
+    $checkjs = apbct_js_test(Sanitize::cleanTextField(Cookie::get('ct_checkjs')), true) ?: apbct_js_test(Sanitize::cleanTextField(Post::get($ct_checkjs_cf7)));
     /**
      * Filter for POST
      */
@@ -2429,7 +2420,7 @@ function apbct_form__WPForms__testSpam()
         return;
     }
 
-    $checkjs = apbct_js_test(Post::get('ct_checkjs_wpforms'));
+    $checkjs = apbct_js_test(Sanitize::cleanTextField(Post::get('ct_checkjs_wpforms')));
 
     $email = $apbct->form_data['email'] ?: null;
 
@@ -2450,7 +2441,7 @@ function apbct_form__WPForms__testSpam()
         unset($form_data['name']);
     }
 
-    $params = ct_get_fields_any($apbct->form_data, $email, $nickname);
+    $params = ct_get_fields_any((array)$apbct->form_data, $email, $nickname);
 
     if ( is_array($params['nickname']) ) {
         $params['nickname'] = implode(' ', $params['nickname']);
@@ -2550,10 +2541,9 @@ function ct_quform_post_validate($result, $form)
     $input_array = apply_filters('apbct__filter_post', $form->getValues());
 
     $ct_temp_msg_data = ct_get_fields_any($input_array);
-    // @ToDo If we have several emails at the form - will be used only the first detected!
     $sender_email = $ct_temp_msg_data['email'] ?: '';
 
-    $checkjs          = apbct_js_test(Cookie::get('ct_checkjs'), true);
+    $checkjs          = apbct_js_test(Sanitize::cleanTextField(Cookie::get('ct_checkjs')), true);
     $base_call_result = apbct_base_call(
         array(
             'message'      => $form->getValues(),
@@ -2634,7 +2624,7 @@ function ct_si_contact_form_validate($form_errors = array(), $_form_id_num = 0)
             'sender_email'    => $sender_email,
             'sender_nickname' => $sender_nickname,
             'post_info'       => array('comment_type' => 'contact_form_wordpress_fscf'),
-            'js_on'           => apbct_js_test(Post::get('ct_checkjs')),
+            'js_on'           => apbct_js_test(Sanitize::cleanTextField(Post::get('ct_checkjs'))),
         )
     );
 
@@ -2705,10 +2695,10 @@ function ct_check_wplp()
         if ( array_key_exists('form_input_values', $_POST) ) {
             $form_input_values = json_decode(stripslashes($_POST['form_input_values']), true);
             if ( is_array($form_input_values) && array_key_exists('null', $form_input_values) ) {
-                $message = $form_input_values['null'];
+                $message = Sanitize::cleanTextareaField($form_input_values['null']);
             }
-        } elseif ( array_key_exists('null', $_POST) ) {
-            $message = $_POST['null'];
+        } elseif ( Post::get('null') ) {
+            $message = Sanitize::cleanTextareaField(Post::get('null'));
         }
 
         $base_call_result = apbct_base_call(
@@ -2730,7 +2720,7 @@ function ct_check_wplp()
         Cookie::set($ct_wplp_result_label, $cleantalk_comment, strtotime("+5 seconds"), '/');
     } else {
         // Next POST/AJAX submit(s) of same WPLP form
-        $cleantalk_comment = $_COOKIE[$ct_wplp_result_label];
+        $cleantalk_comment = Sanitize::cleanTextField(Cookie::get($ct_wplp_result_label));
     }
     if ( $cleantalk_comment !== 'OK' ) {
         ct_die_extended($cleantalk_comment);
@@ -2880,7 +2870,7 @@ function apbct_form__gravityForms__testSpam($is_spam, $form, $entry)
         $message['subject'] = $subject;
     }
 
-    $checkjs = apbct_js_test(Post::get('ct_checkjs')) ?: apbct_js_test(Cookie::get('ct_checkjs'), true);
+    $checkjs = apbct_js_test(Sanitize::cleanTextField(Post::get('ct_checkjs'))) ?: apbct_js_test(Sanitize::cleanTextField(Cookie::get('ct_checkjs')), true);
 
     $base_call_result = apbct_base_call(
         array(
@@ -2952,8 +2942,8 @@ function ct_s2member_registration_test($post_key)
         return null;
     }
 
-    $sender_email    = isset($_POST[$post_key]['email']) ? sanitize_email($_POST[$post_key]['email']) : null;
-    $sender_nickname = isset($_POST[$post_key]['username']) ? sanitize_email($_POST[$post_key]['username']) : null;
+    $sender_email    = Sanitize::cleanEmail(Post::get($post_key)['email']);
+    $sender_nickname = Sanitize::cleanUser(Post::get($post_key)['username']);
 
     //Making a call
     $base_call_result = apbct_base_call(
@@ -3105,7 +3095,7 @@ function apbct_form__inevio__testSpam()
         return false;
     }
     $form_data = array();
-    parse_str($_POST['data'], $form_data);
+    parse_str(Post::get('data'), $form_data);
 
     $name    = isset($form_data['name']) ? $form_data['name'] : '';
     $email   = isset($form_data['email']) ? $form_data['email'] : '';
@@ -3285,7 +3275,7 @@ function apbct_custom_forms_trappings()
     global $apbct;
 
     // Registration form of Wishlist Members plugin
-    if ( $apbct->settings['forms__registrations_test'] && isset($_POST['action']) && $_POST['action'] === 'wpm_register' ) {
+    if ( $apbct->settings['forms__registrations_test'] && Post::get('action') === 'wpm_register' ) {
         return true;
     }
 
@@ -3479,7 +3469,7 @@ function apbct_advanced_classifieds_directory_pro__check_register($response, $_f
         Post::get('username') &&
         Post::get('email')
     ) {
-        $data = ct_get_fields_any($_POST, Post::get('email'));
+        $data = ct_get_fields_any($_POST, Sanitize::cleanEmail(Post::get('email')));
 
         $base_call_result = apbct_base_call(
             array(

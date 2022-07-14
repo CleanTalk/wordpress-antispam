@@ -1,11 +1,12 @@
 <?php
 
 use Cleantalk\ApbctWP\Escape;
+use Cleantalk\ApbctWP\Sanitize;
 use Cleantalk\ApbctWP\Variables\Cookie;
-use Cleantalk\Common\Helper;
 use Cleantalk\Variables\Get;
 use Cleantalk\Variables\Post;
 use Cleantalk\Variables\Request;
+use Cleantalk\Variables\Server;
 
 /**
  * Init functions
@@ -264,10 +265,7 @@ function apbct_init()
     if ( defined('LANDINGPAGES_CURRENT_VERSION') && ! empty($_POST) ) {
         if ( Post::get('action') === 'inbound_store_lead' ) { // AJAX action(s)
             ct_check_wplp();
-        } elseif (
-            array_key_exists('inbound_submitted', $_POST) &&
-            $_POST['inbound_submitted'] == '1'
-        ) {
+        } elseif ( Post::get('inbound_submitted') === '1' ) {
             // Final submit
             ct_check_wplp();
         }
@@ -500,9 +498,7 @@ function apbct_buffer_modify_by_dom()
 
     $html = $dom->getElementsByTagName('html');
 
-    return is_object($html) && isset($html[0], $html[0]->childNodes[0]) && $dom->getElementsByTagName(
-        'rss'
-    )->length == 0
+    return is_object($html) && isset($html[0], $html[0]->childNodes[0]) && $dom->getElementsByTagName('rss')->length == 0
         ? $dom->saveHTML()
         : $apbct->buffer;
 }
@@ -852,7 +848,7 @@ function ct_die($_comment_id, $_comment_status)
     if ( ! $ct_jp_comments ) {
         $back_script = '<script>setTimeout("history.back()", 5000);</script>';
     } elseif ( isset($_SERVER['HTTP_REFERER']) ) {
-        $back_link = '<a href="' . $_SERVER['HTTP_REFERER'] . '">' . __('Back') . '</a>';
+        $back_link = '<a href="' . Sanitize::cleanUrl(Server::get('HTTP_REFERER')) . '">' . __('Back') . '</a>';
     }
 
     if ( file_exists(CLEANTALK_PLUGIN_DIR . "templates/lock-pages/lock-page-ct-die.html") ) {
@@ -902,7 +898,7 @@ function ct_die_extended($comment_body)
     if ( ! $ct_jp_comments ) {
         $back_script = '<script>setTimeout("history.back()", 5000);</script>';
     } else {
-        $back_link = '<a href="' . $_SERVER['HTTP_REFERER'] . '">' . __('Back') . '</a>';
+        $back_link = '<a href="' . Sanitize::cleanUrl(Server::get('HTTP_REFERER')) . '">' . __('Back') . '</a>';
     }
 
     if ( file_exists(CLEANTALK_PLUGIN_DIR . "templates/lock-pages/lock-page-ct-die.html") ) {
@@ -962,7 +958,7 @@ function apbct_js_test($check_js_value = '', $is_cookie = false)
             $out = ct_get_checkjs_value() === $js_key ? 1 : 0;
             // Random key check
         } else {
-            $out = array_key_exists($js_key, $apbct->js_keys) ? 1 : 0;
+            $out = isset($apbct->js_keys[ $js_key ]) ? 1 : 0;
         }
     }
 
@@ -1315,7 +1311,7 @@ function ct_enqueue_styles_public()
     ) {
         wp_enqueue_style(
             'ct_public_css',
-            APBCT_CSS_ASSETS_PATH . '/clentalak-public.min.css',
+            APBCT_CSS_ASSETS_PATH . '/cleantalk-public.min.css',
             array(),
             APBCT_VERSION
         );

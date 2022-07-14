@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 3.0
 Tested up to: 6.0
 Requires PHP: 5.6
-Stable tag: 5.180.2
+Stable tag: 5.181
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -601,6 +601,22 @@ If your website has forms that send data to external sources, you can enable opt
 12. SpamFireWall log.
 
 == Changelog ==
+
+= 5.181 Jul 14 2022 =
+#### One integration added, SFW testing page updated, code quality improved and some minor issues fixed.
+* New. Integrations. WP User Meta integration.
+* Upd. SFW. Testing page updated.
+* Fix. WP discuzz integration. Check for spam if comment is edited.
+* Fix. WP discuzz integration. Remove unnecessary data when check on comment edition.
+* Fix. Admin banner. Security attention mark fixed.
+* Fix. Code. Sanitizing incoming data.
+* Fix. CSS. Fix stylesheet source name and minifed name.
+* Fix. apcbt-public-bundle. New detection method for mailerlite classes to prevent default submit clicks.
+* Fix. HTTP lib. Multi request error handling fixed.
+* Fix: setting page JS key validating.
+* Fix: Replace array_* function implemented on State properties.
+* Mod: ApbctWP/State to use the direct equation on properties.
+* Fix. Integrations. WPUserMeta. Added case of user-meta-pro
 
 = 5.180.2 Jul 04 2022 =
 #### SpamFireWall working fixed.

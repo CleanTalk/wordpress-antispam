@@ -11,12 +11,16 @@ class Wpdiscuz extends IntegrationBase
          */
         $input_array = apply_filters('apbct__filter_post', $_POST);
 
-        if ( isset($input_array['wc_name'], $input_array['wc_email'], $input_array['wc_comment']) ) {
+        if (
+            isset($input_array['wc_name']) ||
+            isset($input_array['wc_email']) ||
+            isset($input_array['wc_comment'])
+        ) {
             return array(
-                'message' => $input_array['wc_comment'],
-                'email' => $input_array['wc_email'],
-                'nickname' => $input_array['wc_name'],
-                'sender_url' => isset($input_array['wc_website']) ? $input_array['wc_website'] : ''
+                'message' =>    isset($input_array['wc_comment'])  ? $input_array['wc_comment'] : '',
+                'email' =>      isset($input_array['wc_email'])    ? $input_array['wc_email']   : '',
+                'nickname' =>   isset($input_array['wc_name'])     ? $input_array['wc_name']    : '',
+                'sender_url' => isset($input_array['wc_website'])  ? $input_array['wc_website'] : ''
             );
         }
 

@@ -48,7 +48,6 @@ class Firewall
         'DENY_ANTICRAWLER',
         'DENY_SFW',
         'PASS_SFW__BY_WHITELIST',
-        'PASS_SFW__BY_STATUS',
         // Highest
     );
 
@@ -137,7 +136,6 @@ class Firewall
                             $result['status'],
                             array(
                                 'PASS_SFW__BY_WHITELIST',
-                                'PASS_SFW__BY_STATUS',
                                 'PASS_SFW',
                                 'PASS_ANTIFLOOD',
                                 'PASS_ANTICRAWLER',
@@ -168,11 +166,11 @@ class Firewall
                 if (strpos($result['status'], 'DENY') !== false) {
                     $this->fw_modules[$module_name]->actionsForDenied($result);
                     $this->fw_modules[$module_name]->diePage($result);
-                    // Allowed
-                } elseif ($result['status'] === 'PASS_SFW__BY_STATUS') {
-                    $this->fw_modules[$module_name]->actionsForPassed($result);
-                    $this->fw_modules[$module_name]->diePage($result);
+                // Allowed
                 } else {
+                    if ( Get::get('sfw_test_ip') ) {
+                        $this->fw_modules[$module_name]->diePage($result);
+                    }
                     $this->fw_modules[$module_name]->actionsForPassed($result);
                 }
             }
