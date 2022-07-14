@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 3.0
 Tested up to: 6.0
 Requires PHP: 5.6
-Stable tag: 5.180.2
+Stable tag: 5.181
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -616,6 +616,7 @@ If your website has forms that send data to external sources, you can enable opt
 * Fix: setting page JS key validating.
 * Fix: Replace array_* function implemented on State properties.
 * Mod: ApbctWP/State to use the direct equation on properties.
+* Fix. Integrations. WPUserMeta. Added case of user-meta-pro
 
 = 5.180.2 Jul 04 2022 =
 #### SpamFireWall working fixed.
