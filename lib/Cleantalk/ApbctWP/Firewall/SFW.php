@@ -16,6 +16,11 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
      */
     private $test;
 
+    /**
+     * @var int
+     */
+    private $test_status;
+
     // Additional params
     private $sfw_counter = false;
     private $api_key = false;
@@ -84,9 +89,16 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
         $results = array();
         $status  = 0;
 
+        if ( $this->test ) {
+            unset($_COOKIE['ct_sfw_pass_key']);
+        }
+
         // Skip by cookie
         foreach ($this->ip_array as $current_ip) {
-            if (strpos(Cookie::get('ct_sfw_pass_key'), md5($current_ip . $this->api_key)) === 0) {
+            if (
+                isset($_COOKIE['ct_sfw_pass_key'])
+                && strpos($_COOKIE['ct_sfw_pass_key'], md5($current_ip . $this->api_key)) === 0
+            ) {
                 if (Cookie::get('ct_sfw_passed')) {
                     if ( ! headers_sent()) {
                         Cookie::set(
@@ -148,10 +160,10 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
 				WHERE network IN (" . implode(',', $needles) . ")
 				AND	network = " . $current_ip_v4 . " & mask 
 				AND " . rand(1, 100000) . "  
-				ORDER BY mask DESC LIMIT 1"
+				ORDER BY status DESC LIMIT 1"
             );
 
-
+            $test_status = 1;
             if ( ! empty($db_results)) {
                 foreach ($db_results as $db_result) {
                     $result_entry = array(
@@ -164,15 +176,14 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
 
                     if ((int)$db_result['status'] === 1) {
                         $result_entry['status'] = 'PASS_SFW__BY_WHITELIST';
-                        if ( $_origin === 'sfw_test' ) {
-                            $result_entry['status'] = 'PASS_SFW__BY_STATUS';
-                        }
                         break;
                     }
                     if ((int)$db_result['status'] === 0) {
                         $this->blocked_ips[] = Helper::ipLong2ip($db_result['network']);
                         $result_entry['status'] = 'DENY_SFW';
                     }
+
+                    $test_status = (int)$db_result['status'];
                 }
             } else {
                 $result_entry = array(
@@ -183,6 +194,10 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
             }
 
             $results[] = $result_entry;
+
+            if ( $this->test && $_origin === 'sfw_test' ) {
+                $this->test_status = $test_status;
+            }
         }
 
         return $results;
@@ -299,6 +314,12 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
                 '<a href="' . $result['ip'] . '" target="_blank">' . $result['ip'] . '</a>'
             );
 
+            $request_uri = Server::get('REQUEST_URI');
+            if ( $this->test ) {
+                // Remove "sfw_test_ip" get parameter from the uri
+                $request_uri = preg_replace('%sfw_test_ip=\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}&?%', '', $request_uri);
+            }
+
             // Translation
             $replaces = array(
                 '{SFW_DIE_NOTICE_IP}'              => $block_message,
@@ -325,7 +346,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
                 '{SERVICE_ID}'                     => $apbct->data['service_id'] . ', ' . $net_count,
                 '{HOST}'                           => get_home_url() . ', ' . APBCT_VERSION,
                 '{GENERATED}'                      => '<p>The page was generated at&nbsp;' . date('D, d M Y H:i:s') . '</p>',
-                '{REQUEST_URI}'                    => Server::get('REQUEST_URI'),
+                '{REQUEST_URI}'                    => $request_uri,
 
                 // Cookie
                 '{COOKIE_PREFIX}'                  => '',
@@ -348,18 +369,12 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
             /**
              * Message about IP status
              */
-            if (! empty(Get::get('sfw_test_ip'))) {
-                $message_ip_status = __(
-                    'IP in the common blacklist',
-                    'cleantalk-spam-protect'
-                );
+            if ( $this->test ) {
+                $message_ip_status = __('IP in the common blacklist', 'cleantalk-spam-protect');
                 $message_ip_status_color = 'red';
 
-                if ($result['status'] === 'PASS_SFW__BY_STATUS') {
-                    $message_ip_status = __(
-                        'IP in the common whitelist',
-                        'cleantalk-spam-protect'
-                    );
+                if ($this->test_status === 1) {
+                    $message_ip_status = __('IP in the whitelist', 'cleantalk-spam-protect');
                     $message_ip_status_color = 'green';
                 }
 

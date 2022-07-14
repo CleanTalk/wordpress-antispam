@@ -727,8 +727,10 @@ class State extends \Cleantalk\Common\State
      */
     public function __set($name, $value)
     {
+        $value = is_array($value) ? new ArrayObject($value) : $value;
+
         $this->storage[$name] = $value;
-        if (isset($this->storage['data'][$name])) {
+        if ( isset($this->storage['data'][$name]) ) {
             $this->storage['data'][$name] = $value;
         }
     }
@@ -746,29 +748,25 @@ class State extends \Cleantalk\Common\State
     public function &__get($name)
     {
         // First check in storage
-        if (isset($this->storage[$name])) {
+        if ( isset($this->storage[$name]) ) {
             $option = $this->storage[$name];
-
-            return $option;
             // Then in data
-        } elseif (isset($this->storage['data'][$name])) {
+        } elseif ( isset($this->storage['data'][$name]) ) {
             $this->$name = $this->storage['data'][$name];
             $option      = $this->storage['data'][$name];
-
-            return $option;
 
             // Otherwise, try to get it from db settings table
             // it will be arrayObject || scalar || null
         } else {
             $option = $this->getOption($name);
-
-            return $option;
         }
+
+        return $option;
     }
 
     public function __isset($name)
     {
-        return isset($this->storage[$name]);
+        return (bool) $this->$name;
     }
 
     public function __unset($name)
