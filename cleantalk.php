@@ -4,7 +4,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 5.179.2-dev
+  Version: 5.181
   Author: СleanTalk <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -190,33 +190,10 @@ if ( $apbct->plugin_version === '1.0.0' ) {
 }
 
 /**
- * This function runs when WordPress completes its upgrade process
- * It iterates through each plugin updated to see if ours is included
- *
- * @param $upgrader WP_Upgrader
- * @param $options Array
- *
+ * Do update actions if version is changed
+ * ! we can`t place this function to the hook "upgrader_process_complete" !
  */
-function apbct_upgrader_process_complete($_upgrader, $options)
-{
-    $our_plugin = APBCT_PLUGIN_BASE_NAME;
-
-    // If an update has taken place and the updated type is plugins and the plugin's element exists
-    if ($options['action'] === 'update' && $options['type'] === 'plugin' && isset($options['plugins'])) {
-        // Iterate through the plugins being updated and check if ours is there
-
-        foreach ($options['plugins'] as $plugin) {
-            if ($plugin === $our_plugin) {
-                apbct_update_actions();
-            }
-        }
-    }
-}
-// compatibility with old version
-if (version_compare($apbct->plugin_version, '5.179') === -1) {
-    apbct_update_actions();
-}
-add_action('upgrader_process_complete', 'apbct_upgrader_process_complete', 10, 2);
+apbct_update_actions();
 
 add_action('init', function () {
     global $apbct;
@@ -242,14 +219,11 @@ add_action('init', function () {
             }
         }
     }
-});
-
-if ( $apbct->settings && $apbct->key_is_ok ) {
     // Remote calls
     if ( RemoteCalls::check() ) {
         RemoteCalls::perform();
     }
-}
+});
 
 //Delete cookie for admin trial notice
 add_action('wp_logout', 'apbct__hook__wp_logout__delete_trial_notice_cookie');
@@ -336,7 +310,7 @@ $apbct_active_integrations = array(
         'ajax'    => false
     ),
     'Wpdiscuz'            => array(
-        'hook'    => array('wpdAddComment', 'wpdAddInlineComment'),
+        'hook'    => array('wpdAddComment', 'wpdAddInlineComment', 'wpdSaveEditedComment'),
         'setting' => 'forms__comments_test',
         'ajax'    => true
     ),
@@ -386,6 +360,11 @@ $apbct_active_integrations = array(
     ),
     'NextendSocialLogin' => array(
         'hook'    => 'nsl_before_register',
+        'setting' => 'forms__registrations_test',
+        'ajax'    => false
+    ),
+    'WPUserMeta' => array(
+        'hook'    => 'user_meta_pre_user_register',
         'setting' => 'forms__registrations_test',
         'ajax'    => false
     ),
@@ -643,6 +622,8 @@ if ( is_admin() || is_network_admin() ) {
     require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-integrations.php');
 
     add_action('wp_enqueue_scripts', 'ct_enqueue_scripts_public');
+    add_action('wp_enqueue_scripts', 'ct_enqueue_styles_public');
+    add_action('login_enqueue_scripts', 'ct_enqueue_styles_public');
 
     // Init action.
     add_action('plugins_loaded', 'apbct_init', 1);
@@ -1054,12 +1035,19 @@ function apbct_sfw_update__worker($checker_work = false)
     }
 
     if ( isset($result['error']) && $result['status'] === 'FINISHED' ) {
-        $apbct->errorAdd('sfw_update', $result['error']);
-        $apbct->saveErrors();
-
         apbct_sfw_update__fallback();
 
-        return $result['error'];
+        $direct_upd_res = apbct_sfw_direct_update();
+
+        if ( $direct_upd_res['error'] ) {
+            $apbct->errorAdd('queue', $result['error'], 'sfw_update');
+            $apbct->errorAdd('direct', $direct_upd_res['error'], 'sfw_update');
+            $apbct->saveErrors();
+
+            return $direct_upd_res['error'];
+        }
+
+        return true;
     }
 
     if ( $queue->isQueueFinished() ) {
@@ -2022,7 +2010,7 @@ function apbct_rc__insert_auth_key($key, $plugin)
         if ( is_plugin_active($plugin) ) {
             $key = trim($key);
 
-            if ( $key && preg_match('/^[a-z\d]{3,15}$/', $key) ) {
+            if ( $key && preg_match('/^[a-z\d]{3,30}$/', $key) ) {
                 $result = API::methodNoticePaidTill(
                     $key,
                     preg_replace('/http[s]?:\/\//', '', get_option('home'), 1), // Site URL

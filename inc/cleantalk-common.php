@@ -139,7 +139,7 @@ function apbct_base_call($params = array(), $reg_flag = false)
 
     // Skip duplicate requests
     if (
-        key_exists($apbct->plugin_request_id, $apbct->plugin_request_ids) &&
+        isset($apbct->plugin_request_ids[ $apbct->plugin_request_id ]) &&
         current_filter() !== 'woocommerce_registration_errors' && // Prevent skip checking woocommerce registration during checkout
         current_filter() !== 'um_submit_form_register' // Prevent skip checking UltimateMember register
     ) {
@@ -148,7 +148,7 @@ function apbct_base_call($params = array(), $reg_flag = false)
         return array('ct_result' => new CleantalkResponse());
     }
 
-    $apbct->plugin_request_ids = array_merge($apbct->plugin_request_ids, array($apbct->plugin_request_id => time()));
+    $apbct->plugin_request_ids[ $apbct->plugin_request_id ] = time();
     $apbct->save('plugin_request_ids');
     /* End of Request ID rotation */
 
@@ -171,7 +171,7 @@ function apbct_base_call($params = array(), $reg_flag = false)
 
         // Misc
         'auth_key'        => $apbct->api_key,
-        'js_on'           => apbct_js_test('ct_checkjs', $_COOKIE, true) ? 1 : apbct_js_test('ct_checkjs', $_POST),
+        'js_on'           => apbct_js_test(Cookie::get('ct_checkjs'), true) ? 1 : apbct_js_test(Post::get('ct_checkjs')),
 
         'agent'       => APBCT_AGENT,
         'sender_info' => $sender_info,
@@ -953,7 +953,7 @@ function ct_delete_spam_comments()
 /**
  * Get data from an ARRAY recursively
  *
- * @param $arr
+ * @param array $arr
  * @param array $message
  * @param null|string $email
  * @param array $nickname
@@ -1057,7 +1057,7 @@ function ct_change_plugin_resonse($ct_result = null, $checkjs = null)
 }
 
 /**
- * Does ey has correct symbols? Checks against regexp ^[a-z\d]{3,15}$
+ * Does ey has correct symbols? Checks against regexp ^[a-z\d]{3,30}$
  *
  * @param string api_key
  *
@@ -1068,7 +1068,7 @@ function apbct_api_key__is_correct($api_key = null)
     global $apbct;
     $api_key = $api_key !== null ? $api_key : $apbct->api_key;
 
-    return $api_key && preg_match('/^[a-z\d]{3,15}$/', $api_key) ? true : false;
+    return $api_key && preg_match('/^[a-z\d]{3,30}$/', $api_key) ? true : false;
 }
 
 function apbct__is_hosting_license()
@@ -1166,49 +1166,6 @@ function apbct__change_type_website_field($fields)
     }
 
     return $fields;
-}
-
-/**
- * Add styles if website field hidden
- */
-add_action('wp_print_styles', 'apbct__styles_if_website_hidden');
-function apbct__styles_if_website_hidden()
-{
-    global $apbct;
-
-    if ( $apbct->settings['comments__hide_website_field'] ) {
-        $styles = "
-		<style>
-		#honeypot-field-url {
-			display: none !important;
-		}
-		.comment-form-cookies-consent {
-			width:100%;
-			overflow: hidden;
-		}
-		@media (min-width: 768px) {
-			#respond .comment-form-email {
-				margin-right: 0 !important;
-			}
-			#respond .comment-form-author, #respond .comment-form-email {
-    			width: 47.058% !important;
-			}
-		}
-		</style>";
-
-        echo $styles;
-    }
-
-    if ( $apbct->settings['data__honeypot_field'] ) {
-        $styles = "
-		<style>
-		.wc_apbct_email_id {
-			display: none !important;
-		}
-		</style>";
-
-        echo $styles;
-    }
 }
 
 /**

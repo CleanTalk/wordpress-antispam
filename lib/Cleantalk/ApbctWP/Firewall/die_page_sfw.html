@@ -192,7 +192,11 @@
 		}
 
 		function get_current_url() {
-			document.write(window.location.href);
+			var apbctSfwRandomGet = '';
+			if( +ctPublicFunctions.sfw__random_get ) {
+				apbctSfwRandomGet = '?sfw=pass' + Math.round(ct_date.getTime()/1000);
+			}
+			document.write(window.location.origin + window.location.pathname + apbctSfwRandomGet);
 			return null;
 		}
 	</script>
@@ -241,7 +245,7 @@
 		document.getElementById('js_passed').style.display = 'block';
 		document.getElementById('curr_date').innerHTML = ct_date.toGMTString();
 		set_spamFireWallCookie('{COOKIE_PREFIX}ct_sfw_pass_key','{COOKIE_SFW}');
-		set_spamFireWallCookie('{COOKIE_PREFIX}apbct_antibot','{COOKIE_ANTICRAWLER}');
+		set_spamFireWallCookie('{COOKIE_PREFIX}wordpress_apbct_antibot','{COOKIE_ANTICRAWLER}');
 		set_spamFireWallCookie('{COOKIE_PREFIX}ct_sfw_passed','1');
 
 		if(location.search.search('debug=1') === -1) {

@@ -1,5 +1,6 @@
 <?php
 
+use Cleantalk\ApbctWP\Escape;
 use Cleantalk\ApbctWP\Validate;
 use Cleantalk\Variables\Post;
 use Cleantalk\ApbctWP\Cron;
@@ -1120,8 +1121,8 @@ function apbct_settings__display()
         echo '<button type="button" class="cleantalk_link cleantalk_link-auto" id="apbct_button__sync" title="Synchronizing account status, SpamFireWall database, all kind of journals.">'
              . '<i class="apbct-icon-upload-cloud"></i>&nbsp;&nbsp;'
              . __('Synchronize with Cloud', 'cleantalk-spam-protect')
-             . '<img style="margin-left: 10px;" class="apbct_preloader_button" src="' . APBCT_URL_PATH . '/inc/images/preloader2.gif" />'
-             . '<img style="margin-left: 10px;" class="apbct_success --hide" src="' . APBCT_URL_PATH . '/inc/images/yes.png" />'
+             . '<img style="margin-left: 10px;" class="apbct_preloader_button" src="' . Escape::escUrl(APBCT_URL_PATH . '/inc/images/preloader2.gif') . '" />'
+             . '<img style="margin-left: 10px;" class="apbct_success --hide" src="' . Escape::escUrl(APBCT_URL_PATH . '/inc/images/yes.png') . '" />'
              . '</button>';
         echo '&nbsp;&nbsp;';
     }
@@ -1454,24 +1455,24 @@ function apbct_settings__field__state()
 
     print '<h2>' . __('Protection is active', 'cleantalk-spam-protect') . '</h2>';
 
-    echo '<img class="apbct_status_icon" src="' . ($apbct->settings['forms__registrations_test'] == 1 ? $img : $img_no) . '"/>' . __(
+    echo '<img class="apbct_status_icon" src="' . ($apbct->settings['forms__registrations_test'] == 1 ? Escape::escUrl($img) : Escape::escUrl($img_no)) . '"/>' . __(
         'Registration forms',
         'cleantalk-spam-protect'
     );
-    echo '<img class="apbct_status_icon" src="' . ($apbct->settings['forms__comments_test'] == 1 ? $img : $img_no) . '"/>' . __(
+    echo '<img class="apbct_status_icon" src="' . ($apbct->settings['forms__comments_test'] == 1 ? Escape::escUrl($img) : Escape::escUrl($img_no)) . '"/>' . __(
         'Comments forms',
         'cleantalk-spam-protect'
     );
-    echo '<img class="apbct_status_icon" src="' . ($apbct->settings['forms__contact_forms_test'] == 1 ? $img : $img_no) . '"/>' . __(
+    echo '<img class="apbct_status_icon" src="' . ($apbct->settings['forms__contact_forms_test'] == 1 ? Escape::escUrl($img) : Escape::escUrl($img_no)) . '"/>' . __(
         'Contact forms',
         'cleantalk-spam-protect'
     );
-    echo '<img class="apbct_status_icon" src="' . ($apbct->settings['forms__general_contact_forms_test'] == 1 ? $img : $img_no) . '"/>' . __(
+    echo '<img class="apbct_status_icon" src="' . ($apbct->settings['forms__general_contact_forms_test'] == 1 ? Escape::escUrl($img) : Escape::escUrl($img_no)) . '"/>' . __(
         'Custom contact forms',
         'cleantalk-spam-protect'
     );
     if ( ! $apbct->white_label || is_main_site() ) {
-        echo '<img class="apbct_status_icon" src="' . ($apbct->data['moderate'] == 1 ? $img : $img_no) . '"/>'
+        echo '<img class="apbct_status_icon" src="' . ($apbct->data['moderate'] == 1 ? Escape::escUrl($img) : Escape::escUrl($img_no)) . '"/>'
              . '<a style="color: black" href="https://blog.cleantalk.org/real-time-email-address-existence-validation/">' . __(
                  'Validate email for existence',
                  'cleantalk-spam-protect'
@@ -1479,7 +1480,7 @@ function apbct_settings__field__state()
     }
     // Autoupdate status
     if ( $apbct->notice_auto_update && ( ! $apbct->white_label || is_main_site()) ) {
-        echo '<img class="apbct_status_icon" src="' . ($apbct->auto_update == 1 ? $img : ($apbct->auto_update == -1 ? $img_no : $img_no_gray)) . '"/>' . __(
+        echo '<img class="apbct_status_icon" src="' . ($apbct->auto_update == 1 ? Escape::escUrl($img) : ($apbct->auto_update == -1 ? Escape::escUrl($img_no) : Escape::escUrl($img_no_gray))) . '"/>' . __(
             'Auto update',
             'cleantalk-spam-protect'
         )
@@ -1488,7 +1489,7 @@ function apbct_settings__field__state()
 
     // WooCommerce
     if ( class_exists('WooCommerce') ) {
-        echo '<img class="apbct_status_icon" src="' . ($apbct->settings['forms__wc_checkout_test'] == 1 ? $img : $img_no) . '"/>' . __(
+        echo '<img class="apbct_status_icon" src="' . ($apbct->settings['forms__wc_checkout_test'] == 1 ? Escape::escUrl($img) : Escape::escUrl($img_no)) . '"/>' . __(
             'WooCommerce checkout form',
             'cleantalk-spam-protect'
         );
@@ -1566,8 +1567,8 @@ function apbct_settings__field__apikey()
     if ( ! $apbct->ip_license ) {
         echo '<button class="cleantalk_link cleantalk_link-manual apbct_setting---get_key_auto" id="apbct_button__get_key_auto" name="submit" type="button"  value="get_key_auto">'
              . __('Get Access Key Automatically', 'cleantalk-spam-protect')
-             . '<img style="margin-left: 10px;" class="apbct_preloader_button" src="' . APBCT_URL_PATH . '/inc/images/preloader2.gif" />'
-             . '<img style="margin-left: 10px;" class="apbct_success --hide" src="' . APBCT_URL_PATH . '/inc/images/yes.png" />'
+             . '<img style="margin-left: 10px;" class="apbct_preloader_button" src="' . Escape::escUrl(APBCT_URL_PATH . '/inc/images/preloader2.gif') . '" />'
+             . '<img style="margin-left: 10px;" class="apbct_success --hide" src="' . Escape::escUrl(APBCT_URL_PATH . '/inc/images/yes.png') . '" />'
              . '</button>';
         echo '<input type="hidden" id="ct_admin_timezone" name="ct_admin_timezone" value="null" />';
         echo '<br />';
@@ -2389,6 +2390,10 @@ function apbct_settings__sync($direct_call = false)
     $apbct->data['key_changed'] = false;
 
     $apbct->saveData();
+
+    if ( $direct_call ) {
+        return $out;
+    }
 
     die(json_encode($out));
 }

@@ -1,5 +1,8 @@
 <?php
 
+use Cleantalk\ApbctWP\Sanitize;
+use Cleantalk\ApbctWP\Variables\Cookie;
+use Cleantalk\Variables\Post;
 use Cleantalk\Variables\Server;
 
 /**
@@ -95,7 +98,7 @@ function ct_contact_form_validate()
          isset($_POST['wpforms_id'], $_POST['wpforms_author']) || //Skip wpforms
          (isset($_POST['somfrp_action'], $_POST['submitted']) && $_POST['somfrp_action'] == 'somfrp_lost_pass') || // Frontend Reset Password exclusion
          (isset($_POST['action']) && $_POST['action'] == 'dokan_save_account_details') ||
-         \Cleantalk\Variables\Post::get('action') === 'frm_get_lookup_text_value' || // Exception for Formidable multilevel form
+         Post::get('action') === 'frm_get_lookup_text_value' || // Exception for Formidable multilevel form
          (isset($_POST['ihcaction']) && $_POST['ihcaction'] == 'reset_pass') || //Reset pass exclusion
          (isset($_POST['action'], $_POST['register_unspecified_nonce_field']) && $_POST['action'] == 'register') || // Profile Builder have a direct integration
          (isset($_POST['_wpmem_register_nonce']) && wp_verify_nonce($_POST['_wpmem_register_nonce'], 'wpmem_longform_nonce')) || // WP Members have a direct integration
@@ -159,7 +162,7 @@ function ct_contact_form_validate()
         }
     }
     //Skip system fields for divi
-    if ( strpos(\Cleantalk\Variables\Post::get('action'), 'et_pb_contactform_submit') === 0 ) {
+    if ( strpos(Post::get('action'), 'et_pb_contactform_submit') === 0 ) {
         foreach ( $_POST as $key => $value ) {
             if ( strpos($key, 'et_pb_contact_email_fields') === 0 ) {
                 unset($_POST[$key]);
@@ -217,11 +220,11 @@ function ct_contact_form_validate()
     }
 
     if ( isset($_POST['TellAFriend_Link']) ) {
-        $tmp = $_POST['TellAFriend_Link'];
+        $tmp = Sanitize::cleanTextField(Post::get('TellAFriend_Link'));
         unset($_POST['TellAFriend_Link']);
     }
 
-    $checkjs = apbct_js_test('ct_checkjs', $_COOKIE, true) ?: apbct_js_test('ct_checkjs', $_POST);
+    $checkjs = apbct_js_test(Sanitize::cleanTextField(Cookie::get('ct_checkjs')), true) ?: apbct_js_test(Sanitize::cleanTextField(Post::get('ct_checkjs')));
 
     $base_call_result = apbct_base_call(
         array(
@@ -262,7 +265,17 @@ function ct_contact_form_validate()
             $ajax_call = true;
         }
         if ( $ajax_call ) {
-            echo $ct_result->comment;
+            echo wp_kses(
+                $ct_result->comment,
+                array(
+                    'a' => array(
+                        'href'  => true,
+                        'title' => true,
+                    ),
+                    'br'     => array(),
+                    'p'     => array()
+                )
+            );
         } else {
             global $ct_comment;
             $ct_comment = $ct_result->comment;
@@ -272,15 +285,17 @@ function ct_contact_form_validate()
                 print json_encode($result);
                 die();
             } elseif ( isset($_POST['TellAFriend_email']) ) {
-                echo $ct_result->comment;
-                die();
-            } elseif ( isset($_POST['gform_submit']) ) { // Gravity forms submission
-                $response = sprintf(
-                    "<!DOCTYPE html><html><head><meta charset='UTF-8' /></head><body class='GF_AJAX_POSTBACK'><div id='gform_confirmation_wrapper_1' class='gform_confirmation_wrapper '><div id='gform_confirmation_message_1' class='gform_confirmation_message_1
- gform_confirmation_message'>%s</div></div></body></html>",
-                    $ct_result->comment
+                echo wp_kses(
+                    $ct_result->comment,
+                    array(
+                        'a' => array(
+                            'href'  => true,
+                            'title' => true,
+                        ),
+                        'br'     => array(),
+                        'p'     => array()
+                    )
                 );
-                echo $response;
                 die();
             } elseif ( isset($_POST['action']) && $_POST['action'] == 'ct_check_internal' ) {
                 return $ct_result->comment;
@@ -307,11 +322,42 @@ function ct_contact_form_validate()
                 die();
                 // Divi Theme Contact Form. Using $contact_form
             } elseif ( ! empty($contact_form) && $contact_form == 'contact_form_divi_theme' ) {
-                echo "<div id='et_pb_contact_form{$contact_form_additional}'><h1>Your request looks like spam.</h1><div><p>{$ct_result->comment}</p></div></div>";
+                echo wp_kses(
+                    "<div id='et_pb_contact_form{$contact_form_additional}'><h1>Your request looks like spam.</h1><div><p>{$ct_result->comment}</p></div></div>",
+                    array(
+                        'a' => array(
+                            'href'  => true,
+                            'title' => true,
+                        ),
+                        'br'     => array(),
+                        'p'     => array(),
+                        'div' => array(
+                            'id' => true,
+                        ),
+                        'h1' => array(),
+                    )
+                );
                 die();
                 // Enfold Theme Contact Form. Using $contact_form
             } elseif ( ! empty($contact_form) && $contact_form == 'contact_form_enfold_theme' ) {
-                echo "<div id='ajaxresponse_1' class='ajaxresponse ajaxresponse_1' style='display: block;'><div id='ajaxresponse_1' class='ajaxresponse ajaxresponse_1'><h3 class='avia-form-success'>Anti-Spam by CleanTalk: " . $ct_result->comment . "</h3><a href='.'><-Back</a></div></div>";
+                $echo_string = "<div id='ajaxresponse_1' class='ajaxresponse ajaxresponse_1' style='display: block;'><div id='ajaxresponse_1' class='ajaxresponse ajaxresponse_1'><h3 class='avia-form-success'>Anti-Spam by CleanTalk: " . $ct_result->comment . "</h3><a href='.'><-Back</a></div></div>";
+                echo wp_kses(
+                    $echo_string,
+                    array(
+                        'a' => array(
+                            'href'  => true,
+                            'title' => true,
+                        ),
+                        'br'     => array(),
+                        'p'     => array(),
+                        'div' => array(
+                            'id' => true,
+                            'class' => true,
+                            'style' => true
+                        ),
+                        'h3' => array(),
+                    )
+                );
                 die();
             } else {
                 ct_die(null, null);
@@ -446,7 +492,17 @@ function ct_contact_form_validate_postdata()
                 ct_die(null, null);
             }
         } else {
-            echo $ct_result->comment;
+            echo wp_kses(
+                $ct_result->comment,
+                array(
+                    'a' => array(
+                        'href'  => true,
+                        'title' => true,
+                    ),
+                    'br'     => array(),
+                    'p'     => array()
+                )
+            );
         }
         exit;
     }

@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 3.0
 Tested up to: 6.0
 Requires PHP: 5.6
-Stable tag: 5.179.1
+Stable tag: 5.181
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -601,6 +601,52 @@ If your website has forms that send data to external sources, you can enable opt
 12. SpamFireWall log.
 
 == Changelog ==
+
+= 5.181 Jul 14 2022 =
+#### One integration added, SFW testing page updated, code quality improved and some minor issues fixed.
+* New. Integrations. WP User Meta integration.
+* Upd. SFW. Testing page updated.
+* Fix. WP discuzz integration. Check for spam if comment is edited.
+* Fix. WP discuzz integration. Remove unnecessary data when check on comment edition.
+* Fix. Admin banner. Security attention mark fixed.
+* Fix. Code. Sanitizing incoming data.
+* Fix. CSS. Fix stylesheet source name and minifed name.
+* Fix. apcbt-public-bundle. New detection method for mailerlite classes to prevent default submit clicks.
+* Fix. HTTP lib. Multi request error handling fixed.
+* Fix: setting page JS key validating.
+* Fix: Replace array_* function implemented on State properties.
+* Mod: ApbctWP/State to use the direct equation on properties.
+* Fix. Integrations. WPUserMeta. Added case of user-meta-pro
+
+= 5.180.2 Jul 04 2022 =
+#### SpamFireWall working fixed.
+* Fix. Updater. Updater actions moved from the hook "upgrader_process_complete"
+* Fix. SFW. JS errors on the block pages fixed.
+* Fix. SFW. Skiping block hyperlink fixed.
+* Fix. SFW. Additional redundant blocking by AC fixed.
+
+= 5.180.1 Jul 01 2022 =
+* Fix. Common. Undefined class fixed.
+
+= 5.180 Jun 30 2022 =
+#### Getting api key from the CleanTalk Dashboard implemented, SFW updating improved, code quality improved and some minor issues fixed.
+* New. API key length extended to 30 symbols.
+* New. Remote call. RC post_api_key implemented.
+* New: Option 'cleantalk_debug' now outputs in 'debug' remote call.
+* Upd. SFW. Direct update during fallback.
+* Fix. Honeypot fields for search. Search forms with GET method now handles correct.
+* Fix. Ajax. Prevent JS errors on ajax general contact forms.
+* Fix. apbct_need_to_process_unknown_post_request() Add Divi themes exclusion to proceed them to contact_form_validate().
+* Fix. General contact form catching fixed.
+* Fix. cleantalk-pluggable.php. Skip service requests of enable-jquery-migrate-helper
+* Added notice_review banner
+* Fix. cleantalk_external.js. Exclude mewtwo flight forms.
+* Fix. Code. Compressing JS gulp task updated.
+* Fix. Request.php. Extend CURL timeout and low-speed detection limit.
+* Fix. Cleantalk.php. Exclude timestamp refreshing via template_rediret hook for alternative cookies mode.
+* Fix. External forms JS error fixed.
+* Fix. cleantalk-public-integrations.php-> apbct_form_search__add_fields(). Force to run pregmatch search if DOM content is broken.
+* Fix. Honeypot. Styles moved to the separated file.
 
 = 5.179.1 Jun 21 2022 =
 #### General contact form catching fixed

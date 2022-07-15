@@ -1,11 +1,12 @@
 <?php
 
 use Cleantalk\ApbctWP\Escape;
+use Cleantalk\ApbctWP\Sanitize;
 use Cleantalk\ApbctWP\Variables\Cookie;
-use Cleantalk\Common\Helper;
 use Cleantalk\Variables\Get;
 use Cleantalk\Variables\Post;
 use Cleantalk\Variables\Request;
+use Cleantalk\Variables\Server;
 
 /**
  * Init functions
@@ -32,7 +33,17 @@ function apbct_init()
             echo 'true';
             die();
         } else {
-            echo $ct_result;
+            echo wp_kses(
+                $ct_result,
+                array(
+                    'a' => array(
+                        'href'  => true,
+                        'title' => true,
+                    ),
+                    'br'     => array(),
+                    'p'     => array()
+                )
+            );
             die();
         }
     }
@@ -254,10 +265,7 @@ function apbct_init()
     if ( defined('LANDINGPAGES_CURRENT_VERSION') && ! empty($_POST) ) {
         if ( Post::get('action') === 'inbound_store_lead' ) { // AJAX action(s)
             ct_check_wplp();
-        } elseif (
-            array_key_exists('inbound_submitted', $_POST) &&
-            $_POST['inbound_submitted'] == '1'
-        ) {
+        } elseif ( Post::get('inbound_submitted') === '1' ) {
             // Final submit
             ct_check_wplp();
         }
@@ -406,8 +414,7 @@ function apbct_buffer__output()
         $output = apbct_buffer_modify_by_dom();
     }
 
-    echo $output;
-    die();
+    die($output);
 }
 
 function apbct_buffer_modify_by_string()
@@ -491,9 +498,7 @@ function apbct_buffer_modify_by_dom()
 
     $html = $dom->getElementsByTagName('html');
 
-    return is_object($html) && isset($html[0], $html[0]->childNodes[0]) && $dom->getElementsByTagName(
-        'rss'
-    )->length == 0
+    return is_object($html) && isset($html[0], $html[0]->childNodes[0]) && $dom->getElementsByTagName('rss')->length == 0
         ? $dom->saveHTML()
         : $apbct->buffer;
 }
@@ -526,7 +531,7 @@ function apbct_hook__wp_footer()
         $apbct->settings['data__pixel'] === '1' ||
         ($apbct->settings['data__pixel'] === '3' && ! apbct_is_cache_plugins_exists())
     ) {
-        echo '<img alt="Cleantalk Pixel" id="apbct_pixel" style="display: none;" src="' . $apbct->pixel_url . '">';
+        echo '<img alt="Cleantalk Pixel" id="apbct_pixel" style="display: none;" src="' . Escape::escUrl($apbct->pixel_url) . '">';
     }
 
     if ( $apbct->settings['data__use_ajax'] ) {
@@ -669,20 +674,11 @@ function ct_add_honeypot_field($form_type, $form_method = 'post')
     if ( ! $apbct->settings['data__honeypot_field'] ) {
         return '';
     }
-
-    // Honeypot option is ON
-    // Declare the style. todo Needs to move this to public.js scripts
-    $style = '
-    <style>
-		.apbct__email_id__' . $form_type . ' {
-            display: none !important;
-		}
-	</style>';
     //Generate random suffix to prevent ids duplicate
     $random = mt_rand(0, 100000);
 
     // Generate the hidden field
-    $honeypot = $style . "\n" . '<input 
+    $honeypot = '<input 
         id="apbct__email_id__' . $form_type . '_' . $random . '" 
         class="apbct__email_id__' . $form_type . '" 
         autocomplete="off" 
@@ -852,7 +848,7 @@ function ct_die($_comment_id, $_comment_status)
     if ( ! $ct_jp_comments ) {
         $back_script = '<script>setTimeout("history.back()", 5000);</script>';
     } elseif ( isset($_SERVER['HTTP_REFERER']) ) {
-        $back_link = '<a href="' . $_SERVER['HTTP_REFERER'] . '">' . __('Back') . '</a>';
+        $back_link = '<a href="' . Sanitize::cleanUrl(Server::get('HTTP_REFERER')) . '">' . __('Back') . '</a>';
     }
 
     if ( file_exists(CLEANTALK_PLUGIN_DIR . "templates/lock-pages/lock-page-ct-die.html") ) {
@@ -902,7 +898,7 @@ function ct_die_extended($comment_body)
     if ( ! $ct_jp_comments ) {
         $back_script = '<script>setTimeout("history.back()", 5000);</script>';
     } else {
-        $back_link = '<a href="' . $_SERVER['HTTP_REFERER'] . '">' . __('Back') . '</a>';
+        $back_link = '<a href="' . Sanitize::cleanUrl(Server::get('HTTP_REFERER')) . '">' . __('Back') . '</a>';
     }
 
     if ( file_exists(CLEANTALK_PLUGIN_DIR . "templates/lock-pages/lock-page-ct-die.html") ) {
@@ -931,25 +927,24 @@ function ct_die_extended($comment_body)
 /**
  * Validates JavaScript anti-spam test
  *
- * @param string $field_name filed to serach in data
- * @param array|null $data Data to search in
+ * @param string $check_js_value String to checking
  * @param bool $is_cookie
  *
  * @return int|null
  */
-function apbct_js_test($field_name = 'ct_checkjs', $data = null, $is_cookie = false)
+function apbct_js_test($check_js_value = '', $is_cookie = false)
 {
     global $apbct;
 
     $out = null;
 
     if (
-        ($data && isset($data[$field_name])) ||
-        ($is_cookie && $apbct->data['cookies_type'] === 'alternative' && Cookie::get($field_name))
+        ( ! empty($check_js_value) ) ||
+        ( $is_cookie && $apbct->data['cookies_type'] === 'alternative' && Cookie::get('ct_checkjs') )
     ) {
         $js_key = $is_cookie && $apbct->data['cookies_type'] === 'alternative'
-            ? Cookie::get($field_name)
-            : trim($data[$field_name]);
+            ? Cookie::get('ct_checkjs')
+            : trim($check_js_value);
 
         // Check static key
         if (
@@ -963,7 +958,7 @@ function apbct_js_test($field_name = 'ct_checkjs', $data = null, $is_cookie = fa
             $out = ct_get_checkjs_value() === $js_key ? 1 : 0;
             // Random key check
         } else {
-            $out = array_key_exists($js_key, $apbct->js_keys) ? 1 : 0;
+            $out = isset($apbct->js_keys[ $js_key ]) ? 1 : 0;
         }
     }
 
@@ -1231,10 +1226,11 @@ function ct_enqueue_scripts_public($_hook)
         if ( $apbct->settings['gdpr__enabled'] ) {
             wp_localize_script('ct_public_functions', 'ctPublicGDPR', array(
                 'gdpr_forms' => array(),
-                'gdpr_text'  => $apbct->settings['gdpr__text'] ?: __(
-                    'By using this form you agree with the storage and processing of your data by using the Privacy Policy on this website.',
-                    'cleantalk-spam-protect'
-                ),
+                'gdpr_text'  => $apbct->settings['gdpr__text']
+                    ?: __(
+                        'By using this form you agree with the storage and processing of your data by using the Privacy Policy on this website.',
+                        'cleantalk-spam-protect'
+                    ),
             ));
         }
     }
@@ -1294,6 +1290,34 @@ function ct_enqueue_scripts_public($_hook)
     }
 }
 
+function ct_enqueue_styles_public()
+{
+    global $apbct;
+
+    if ( apbct_exclusions_check__url() ) {
+        return;
+    }
+
+    if (
+        $apbct->settings['forms__registrations_test'] ||
+        $apbct->settings['forms__comments_test'] ||
+        $apbct->settings['forms__contact_forms_test'] ||
+        $apbct->settings['forms__general_contact_forms_test'] ||
+        $apbct->settings['forms__wc_checkout_test'] ||
+        $apbct->settings['forms__check_external'] ||
+        $apbct->settings['forms__check_internal'] ||
+        $apbct->settings['comments__bp_private_messages'] ||
+        $apbct->settings['data__general_postdata_test']
+    ) {
+        wp_enqueue_style(
+            'ct_public_css',
+            APBCT_CSS_ASSETS_PATH . '/cleantalk-public.min.css',
+            array(),
+            APBCT_VERSION
+        );
+    }
+}
+
 function apbct_enqueue_and_localize_public_scripts()
 {
     global $apbct;
@@ -1310,7 +1334,7 @@ function apbct_enqueue_and_localize_public_scripts()
         '_ajax_nonce'                          => wp_create_nonce('ct_secret_stuff'),
         '_rest_nonce'                          => wp_create_nonce('wp_rest'),
         '_ajax_url'                            => admin_url('admin-ajax.php', 'relative'),
-        '_rest_url'                            => esc_url(apbct_get_rest_url()),
+        '_rest_url'                            => Escape::escUrl(apbct_get_rest_url()),
         'data__cookies_type'                   => $apbct->data['cookies_type'],
         'data__ajax_type'                      => $apbct->data['ajax_type'],
         'text__wait_for_decoding'              => esc_html__('Anti-spam by CleanTalk: Decoding contact data...', 'cleantalk-spam-protect'),
@@ -1372,14 +1396,14 @@ function ct_comments_output($curr_comment, $_param2, $wp_list_comments_args)
 
     echo "<p class='ct_comment_logo_title'>
 				" . __('by', 'cleantalk-spam-protect')
-         . " <a href='{$settings_link}' target='_blank'><img class='ct_comment_logo_img' src='" . APBCT_IMG_ASSETS_PATH . "/logo_color.png'></a>"
+         . " <a href='{$settings_link}' target='_blank'><img class='ct_comment_logo_img' src='" . Escape::escUrl(APBCT_IMG_ASSETS_PATH . "/logo_color.png") . "'></a>"
          . " <a href='{$settings_link}' target='_blank'>CleanTalk</a>"
          . "</p></div>";
     // Outputs email if exists
     if ( $email ) {
         echo "<a href='https://cleantalk.org/blacklists/$email' target='_blank' title='https://cleantalk.org/blacklists/$email'>"
              . "$email"
-             . "&nbsp;<img src='" . APBCT_IMG_ASSETS_PATH . "/new_window.gif' border='0' style='float:none; box-shadow: transparent 0 0 0 !important;'/>"
+             . "&nbsp;<img src='" . Escape::escUrl(APBCT_IMG_ASSETS_PATH . "/new_window.gif") . "' border='0' style='float:none; box-shadow: transparent 0 0 0 !important;'/>"
              . "</a>";
     } else {
         echo __('No email', 'cleantalk-spam-protect');
@@ -1390,7 +1414,7 @@ function ct_comments_output($curr_comment, $_param2, $wp_list_comments_args)
     if ( $ip ) {
         echo "<a href='https://cleantalk.org/blacklists/$ip' target='_blank' title='https://cleantalk.org/blacklists/$ip'>"
              . "$ip"
-             . "&nbsp;<img src='" . APBCT_IMG_ASSETS_PATH . "/new_window.gif' border='0' style='float:none; box-shadow: transparent 0 0 0 !important;'/>"
+             . "&nbsp;<img src='" . Escape::escUrl(APBCT_IMG_ASSETS_PATH . "/new_window.gif") . "' border='0' style='float:none; box-shadow: transparent 0 0 0 !important;'/>"
              . "</a>";
     } else {
         echo __('No IP', 'cleantalk-spam-protect');

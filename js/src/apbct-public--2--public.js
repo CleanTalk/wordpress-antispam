@@ -186,6 +186,13 @@ apbct_attach_event_handler(window, "scroll", ctSetHasScrolled);
 // Ready function
 function apbct_ready(){
 
+	let cookiesType = apbctLocalStorage.get('ct_cookies_type');
+	if ( ! cookiesType || cookiesType !== ctPublic.data__cookies_type ) {
+		apbctLocalStorage.set('ct_cookies_type', ctPublic.data__cookies_type);
+		apbctLocalStorage.delete('ct_mouse_moved');
+		apbctLocalStorage.delete('ct_has_scrolled');
+	}
+
 	// Collect scrolling info
 	var initCookies = [
 		["ct_ps_timestamp", Math.floor(new Date().getTime() / 1000)],

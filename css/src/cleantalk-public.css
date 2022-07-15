@@ -1,28 +1,21 @@
-.apbct-email-encoder{
-    position: relative;
+#honeypot-field-url {
+    display: none !important;
 }
-.apbct-tooltip{
-    display: none;
-    position: absolute;
-    top: 35px;
-    left: 15px;
-    background: lightgray;
-    border-radius: 5px;
-    opacity: .9;
+.comment-form-cookies-consent {
+    width:100%;
+    overflow: hidden;
 }
-    .apbct-tooltip--text{
-        position: absolute;
-        background: lightgray;
-        padding: 10px;
-        border-radius: 5px;
-        width: max-content;
+@media (min-width: 768px) {
+    #respond .comment-form-email {
+        margin-right: 0 !important;
     }
-    .apbct-tooltip--arrow{
-        position: absolute;
-        background: lightgray;
-        width: 10px;
-        height: 10px;
-        top: -5px;
-        left: 10px;
-        transform: rotate(135deg);
+    #respond .comment-form-author, #respond .comment-form-email {
+        width: 47.058% !important;
     }
+}
+.wc_apbct_email_id {
+    display: none !important;
+}
+input[class*="apbct__email_id"]{
+    display: none !important;
+}

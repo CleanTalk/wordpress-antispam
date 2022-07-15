@@ -5,11 +5,6 @@ function ctSetCookie( cookies, value, expires ){
         cookies = [ [ cookies, value, expires ] ];
     }
 
-    // Save all cookies to sessionStorage to use them for JS later
-    cookies.forEach(function (item, i, arr) {
-        apbctLocalStorage.set(ctPublicFunctions.cookiePrefix + item[0], item[1]);
-    })
-
     // Cookies disabled
     if( ctPublicFunctions.data__cookies_type === 'none' ){
         return;
@@ -51,10 +46,6 @@ function ctSetCookie( cookies, value, expires ){
 }
 
 function ctDeleteCookie(cookieName) {
-
-    // Remove form localStorage when deleting cookie
-    apbctLocalStorage.delete(cookieName);
-
     // Cookies disabled
     if( ctPublicFunctions.data__cookies_type === 'none' ){
         return;
@@ -185,17 +176,6 @@ apbctLocalStorage = {
         }
         return false;
     },
-    getByPrefix: function (key_prefix){
-        let items = {};
-        for (let key in localStorage) {
-            if ( ! localStorage.hasOwnProperty(key) && key.search('/'+ctPublicFunctions.cookiePrefix+'/') !== 0) {
-                continue;
-            }
-            items[key] = apbctLocalStorage.get(key);
-        }
-
-        return items;
-    },
     set : function(key, value) {
         let objToSave = {'value': JSON.stringify(value), 'timestamp': Math.floor(new Date().getTime() / 1000)};
         localStorage.setItem(key, JSON.stringify(objToSave));
@@ -210,38 +190,7 @@ apbctLocalStorage = {
     isSet : function(key) {
         return localStorage.getItem(key) !== null;
     },
-    delete: function(key){
-        return localStorage.removeItem(key);
-    }
-}
-
-// @todo make a class from it
-apbctBrowserSignature = {
-
-    // @todo Make class BrowserSignature
-
-    getString: function(){
-
-        let browser_signature_params = [],
-            signature_string = '';
-
-        browser_signature_params.push(navigator.userAgent);
-        browser_signature_params.push(navigator.language);
-        browser_signature_params.push(window.screen.height);
-        browser_signature_params.push(window.screen.width);
-        browser_signature_params.push(new Date().getTimezoneOffset());
-
-        // @todo add following params to signature supercookies, cookies settings, system fonts, browser plugins...
-
-        signature_string = browser_signature_params.join('; ');
-
-        return signature_string;
-
-        // return this.hash(signature_string);
-    },
-    hash: function (message){
-
-       // @todo implement this, implement that.
-
+    delete : function (key) {
+        localStorage.removeItem(key);
     }
 }
