@@ -20,15 +20,28 @@ class EmailEncoder
     private $encription;
 
     /**
+     * Keep arrays of exclusion signs in the array
+     * @var array
+     */
+    private $encoding_exclusions_signs;
+
+    /**
      * @inheritDoc
      */
     protected function init()
     {
+
         global $apbct;
 
         if ( ! $apbct->settings['data__email_decoder'] ) {
             return;
         }
+
+        //list of encoding exclusions signs
+        $this->encoding_exclusions_signs = array(
+            //divi contact forms additional emails
+            array('_unique_id', 'et_pb_contact_form')
+        );
 
         $this->secret_key = md5($apbct->api_key);
 
@@ -70,8 +83,14 @@ class EmailEncoder
             return $content;
         }
 
-        return preg_replace_callback('/(<a.*?mailto\:.*?<\/a>?)|(\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+(\.[A-Za-z]{2,}))/', function ($matches) {
+        if ($this->contentHasExclusions($content)){
+            return $content;
+        }
 
+        error_log('CTDEBUG: CONTENT  ' . var_export($content,true));
+
+        return preg_replace_callback('/(<a.*?mailto\:.*?<\/a>?)|(\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+(\.[A-Za-z]{2,}))/', function ($matches) {
+            error_log('CTDEBUG: ENCODER VALUES ' . var_export($matches[0],true));
             if ( isset($matches[3]) && in_array(strtolower($matches[3]), ['.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp']) ) {
                 return $matches[0];
             }
@@ -229,5 +248,38 @@ class EmailEncoder
     private function getTooltip()
     {
         return esc_html__('This contact was encoded by CleanTalk. Click to decode.', 'cleantalk-spam-protect');
+    }
+
+    /**
+     * Check content if it contains exclusions from exclusion list
+     * @param $content - content to check
+     * @return bool - true if exclusions found, else - false
+     */
+    private function contentHasExclusions($content)
+    {
+        if ( isset($this->encoding_exclusions_signs) && is_array($this->encoding_exclusions_signs) ) {
+            foreach ( array_values($this->encoding_exclusions_signs) as $signs_array => $signs ) {
+                //process each of subarrays of signs
+                $signs_found_count = 0;
+                if ( isset($signs) && is_array($signs) ) {
+                    //chek all the signs in the sub-array
+                    foreach ( $signs as $sign ) {
+                        if ( is_string($sign) ) {
+                            if ( strpos($content, $sign) === false ) {
+                                continue;
+                            } else {
+                                $signs_found_count++;
+                            }
+                        }
+                    }
+                    //if each of signs in the sub-array are found return true
+                    if ( $signs_found_count === count($signs) ) {
+                        return true;
+                    }
+                }
+            }
+        }
+        //no signs found
+        return false;
     }
 }
