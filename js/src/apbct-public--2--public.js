@@ -480,7 +480,7 @@ if(typeof jQuery !== 'undefined') {
 			try {
 				var response = JSON.parse(xhr.responseText);
 			} catch (e) {
-				return;
+				console.log(e.toString())
 			}
 			if (typeof response.apbct !== 'undefined') {
 				response = response.apbct;
