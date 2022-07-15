@@ -87,10 +87,8 @@ class EmailEncoder
             return $content;
         }
 
-        error_log('CTDEBUG: CONTENT  ' . var_export($content,true));
-
         return preg_replace_callback('/(<a.*?mailto\:.*?<\/a>?)|(\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+(\.[A-Za-z]{2,}))/', function ($matches) {
-            error_log('CTDEBUG: ENCODER VALUES ' . var_export($matches[0],true));
+
             if ( isset($matches[3]) && in_array(strtolower($matches[3]), ['.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp']) ) {
                 return $matches[0];
             }
