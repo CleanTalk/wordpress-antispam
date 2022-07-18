@@ -252,6 +252,7 @@ if (
     Post::get('iphorm_id') !== '' &&
     Post::get('iphorm_uid') !== ''
 ) {
+    require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-validate-skip-functions.php');
     require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-validate.php');
     require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public.php');
     require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-integrations.php');
@@ -264,6 +265,7 @@ if ( $apbct->settings['forms__general_contact_forms_test'] == 1
      && ( Post::get('action') === 'fb_intialize')
      && ! empty(Post::get('FB_userdata'))
 ) {
+    require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-validate-skip-functions.php');
     require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-validate.php');
     require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public.php');
     require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-integrations.php');
@@ -529,6 +531,7 @@ if ( is_admin() || is_network_admin() ) {
         $_cleantalk_hooked_actions        = array();
         $_cleantalk_ajax_actions_to_check = array();
 
+        require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-validate-skip-functions.php');
         require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-validate.php');
         require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public.php');
         require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-integrations.php');
@@ -571,6 +574,7 @@ if ( is_admin() || is_network_admin() ) {
         add_action('user_register', 'apbct_user_register');
 
         if ( class_exists('BuddyPress') ) {
+            require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-validate-skip-functions.php');
             require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-validate.php');
             require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public.php');
             require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-integrations.php');
@@ -584,6 +588,7 @@ if ( is_admin() || is_network_admin() ) {
         }
     }
 
+    require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-validate-skip-functions.php');
     require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-validate.php');
     require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public.php');
     require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-integrations.php');
@@ -617,6 +622,7 @@ if ( is_admin() || is_network_admin() ) {
     }
 // Public pages actions
 } else {
+    require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-validate-skip-functions.php');
     require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-validate.php');
     require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public.php');
     require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-integrations.php');
