@@ -188,6 +188,7 @@ function apbct_get_rest_url($blog_id = null, $path = '/', $scheme = 'rest')
         $url = add_query_arg('rest_route', $path, $url);
     }
 
+    //this code part is copied from wp-includes/rest-api.php
     if ( is_ssl() && isset($_SERVER['SERVER_NAME']) ) {
         // If the current host is the same as the REST URL host, force the REST URL scheme to HTTPS.
         if ( parse_url(get_home_url($blog_id), PHP_URL_HOST) === $_SERVER['SERVER_NAME'] ) {
@@ -391,32 +392,76 @@ function apbct_is_user_logged_in()
     return count($_COOKIE) && isset($_COOKIE['wordpress_logged_in_' . $cookiehash]);
 }
 
-/*
- * GETTING SERVER VARIABLES BY VARIOUS WAYS
+
+/**
+ * Get filtered server variable.
+ * Process the next list of variables: 'REMOTE_ADDR','HTTP_REFERER','REQUEST_URI','HTTP_USER_AGENT','REQUEST_METHOD','HTTP_X_REQUESTED_WITH','HTTP_HOST','HTTP_ACCEPT_LANGUAGE',
+ * Add new variable and sanitize it if you need.
+ * @param $server_variable_name
+ * @return mixed|string|null
  */
 function apbct_get_server_variable($server_variable_name)
 {
-    $var_name = strtoupper($server_variable_name);
 
-    if ( function_exists('filter_input') ) {
-        $value = filter_input(INPUT_SERVER, $var_name);
+    $uppercase_variable_name = strtoupper($server_variable_name);
+
+    $possible_used_server_variables = [
+        'REMOTE_ADDR',
+        'HTTP_REFERER',
+        'REQUEST_URI',
+        'HTTP_USER_AGENT',
+        'REQUEST_METHOD',
+        'HTTP_X_REQUESTED_WITH',
+        'HTTP_HOST',
+        'HTTP_ACCEPT_LANGUAGE',
+    ];
+
+    $sanitized_input = null;
+
+    if ( !in_array($uppercase_variable_name, $possible_used_server_variables, true) ) {
+        return null;
     }
 
-    if ( empty($value) ) {
-        $value = isset($_SERVER[$var_name]) ? $_SERVER[$var_name] : '';
+    if ( function_exists('filter_var') ) {
+        $usanitized_input = isset($_SERVER[$uppercase_variable_name]) ? $_SERVER[$uppercase_variable_name] : null;
+        if ( empty($usanitized_input) ) {
+            return null;
+        }
+        switch ( $uppercase_variable_name ) {
+            case 'REMOTE_ADDR':
+            {
+                $sanitized_input = filter_var($usanitized_input, FILTER_VALIDATE_IP);
+                break;
+            }
+            case 'HTTP_REFERER':
+            case 'REQUEST_URI':
+            {
+                $sanitized_input = filter_var($usanitized_input, FILTER_VALIDATE_URL);
+                break;
+            }
+            case 'HTTP_USER_AGENT':
+            case 'HTTP_ACCEPT_LANGUAGE':
+            case 'HTTP_HOST':
+            {
+                $sanitized_input = htmlspecialchars($usanitized_input);
+                break;
+            }
+            case 'REQUEST_METHOD':
+            {
+                $sanitized_input = strtoupper($usanitized_input);
+                break;
+            }
+            case 'HTTP_X_REQUESTED_WITH':
+            {
+                $sanitized_input = filter_var($usanitized_input, FILTER_SANITIZE_STRING);
+                break;
+            }
+        }
+    } else {
+        return null;
     }
 
-    // Convert to upper case for REQUEST_METHOD
-    if ( in_array($server_variable_name, array('REQUEST_METHOD')) ) {
-        $value = strtoupper($value);
-    }
-
-    // Convert HTML chars for HTTP_USER_AGENT, HTTP_USER_AGENT, SERVER_NAME
-    if ( in_array($server_variable_name, array('HTTP_USER_AGENT', 'HTTP_USER_AGENT', 'SERVER_NAME')) ) {
-        $value = htmlspecialchars($value);
-    }
-
-    return $value;
+    return $sanitized_input;
 }
 
 function apbct_is_post()
