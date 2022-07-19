@@ -692,14 +692,14 @@ function apbct_sfw__check()
         if ( Get::get('access') === $apbct->api_key || ($spbc_key !== false && Get::get('access') === $spbc_key) ) {
             \Cleantalk\Variables\Cookie::set(
                 'spbc_firewall_pass_key',
-                md5(apbct_get_server_variable('REMOTE_ADDR') . $spbc_key),
+                md5(Server::get('REMOTE_ADDR') . $spbc_key),
                 time() + 1200,
                 '/',
                 ''
             );
             \Cleantalk\Variables\Cookie::set(
                 'ct_sfw_pass_key',
-                md5(apbct_get_server_variable('REMOTE_ADDR') . $apbct->api_key),
+                md5(Server::get('REMOTE_ADDR') . $apbct->api_key),
                 time() + 1200,
                 '/',
                 ''
@@ -2217,7 +2217,7 @@ function apbct_store__urls()
 
         // REFERER
         // Get current referer
-        $new_site_referer = apbct_get_server_variable('HTTP_REFERER');
+        $new_site_referer = Server::get('HTTP_REFERER');
         $new_site_referer = $new_site_referer ?: 'UNKNOWN';
 
         // Get already stored referer
@@ -2228,7 +2228,7 @@ function apbct_store__urls()
             $site_url &&
             (
                 ! $site_referer ||
-                parse_url($new_site_referer, PHP_URL_HOST) !== apbct_get_server_variable('HTTP_HOST')
+                parse_url($new_site_referer, PHP_URL_HOST) !== Server::get('HTTP_HOST')
             )
         ) {
             Cookie::set('apbct_site_referer', $new_site_referer, time() + 86400 * 3, '/', $site_url, null, true, 'Lax');
@@ -2287,7 +2287,7 @@ function apbct_cookie()
     if ( Server::get('HTTP_REFERER') ) {
         Cookie::set('apbct_prev_referer', Server::get('HTTP_REFERER'), 0, '/', $domain, null, true);
         $cookie_test_value['cookies_names'][] = 'apbct_prev_referer';
-        $cookie_test_value['check_value']     .= apbct_get_server_variable('HTTP_REFERER');
+        $cookie_test_value['check_value']     .= Server::get('HTTP_REFERER');
     }
 
     // Landing time
@@ -2432,7 +2432,7 @@ function ct_mail_send_connection_report()
 
     if ( ($apbct->settings['misc__send_connection_reports'] == 1 && $apbct->connection_reports['negative'] > 0) || ! empty(Get::get('ct_send_connection_report')) ) {
         $to      = "welcome@cleantalk.org";
-        $subject = "Connection report for " . apbct_get_server_variable('HTTP_HOST');
+        $subject = "Connection report for " . Server::get('HTTP_HOST');
         $message = '
 				<html lang="en">
 				    <head>
