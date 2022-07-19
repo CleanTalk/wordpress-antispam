@@ -1,6 +1,7 @@
 <?php
 
 namespace Cleantalk\Antispam;
+use Cleantalk\Variables\Server;
 
 class Integrations
 {
@@ -81,7 +82,7 @@ class Integrations
                             'sender_info'     => ! empty($data['sender_url']) ? array('sender_url' => $data['sender_url']) : '',
                             'post_info'       => array(
                                 'comment_type' => 'contact_form_wordpress_' . strtolower($current_integration),
-                                'post_url'     => apbct_get_server_variable('HTTP_REFERER'),
+                                'post_url'     => Server::get('HTTP_REFERER'),
                                 // Page URL must be an previous page
                             ),
                         ),
