@@ -100,8 +100,8 @@ function apbct_init()
              && Post::get('cleantalk_hidden_method') !== ''
              && Post::get('cleantalk_hidden_action') !== ''
         ) {
-            $action = Escape::escHtml(Post::get('cleantalk_hidden_method'));
-            $method = Escape::escHtml(Post::get('cleantalk_hidden_action'));
+            $action = Escape::escHtml(Post::get('cleantalk_hidden_action'));
+            $method = Escape::escHtml(Post::get('cleantalk_hidden_method'));
             unset($_POST['cleantalk_hidden_action']);
             unset($_POST['cleantalk_hidden_method']);
             ct_contact_form_validate();
