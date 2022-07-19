@@ -188,10 +188,10 @@ function apbct_get_rest_url($blog_id = null, $path = '/', $scheme = 'rest')
         $url = add_query_arg('rest_route', $path, $url);
     }
 
-    //this code part is copied from wp-includes/rest-api.php
-    if ( is_ssl() && isset($_SERVER['SERVER_NAME']) ) {
+    //this code part is partially copied from wp-includes/rest-api.php
+    if ( is_ssl() && !empty(Server::get('SERVER_NAME')) ) {
         // If the current host is the same as the REST URL host, force the REST URL scheme to HTTPS.
-        if ( parse_url(get_home_url($blog_id), PHP_URL_HOST) === $_SERVER['SERVER_NAME'] ) {
+        if ( parse_url(get_home_url($blog_id), PHP_URL_HOST) === Server::get('SERVER_NAME')) {
             $url = set_url_scheme($url, 'https');
         }
     }
