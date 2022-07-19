@@ -351,8 +351,8 @@ function apbct_is_ajax()
     return
         (defined('DOING_AJAX') && DOING_AJAX) || // by standart WP functions
         (
-            apbct_get_server_variable('HTTP_X_REQUESTED_WITH') &&
-            strtolower(apbct_get_server_variable('HTTP_X_REQUESTED_WITH')) === 'xmlhttprequest'
+            Server::get('HTTP_X_REQUESTED_WITH') &&
+            strtolower(Server::get('HTTP_X_REQUESTED_WITH')) === 'xmlhttprequest'
         ) || // by Request type
         ! empty(Post::get('quform_ajax')) || // special. QForms
         ! empty(Post::get('iphorm_ajax')); // special. IPHorm
@@ -466,22 +466,22 @@ function apbct_get_server_variable($server_variable_name)
 
 function apbct_is_post()
 {
-    return apbct_get_server_variable('REQUEST_METHOD') === 'POST';
+    return Server::get('REQUEST_METHOD') === 'POST';
 }
 
 function apbct_is_get()
 {
-    return apbct_get_server_variable('REQUEST_METHOD') === 'GET';
+    return Server::get('REQUEST_METHOD') === 'GET';
 }
 
 function apbct_is_in_referer($str)
 {
-    return stripos(apbct_get_server_variable('HTTP_REFERER'), $str) !== false;
+    return stripos(Server::get('HTTP_REFERER'), $str) !== false;
 }
 
 function apbct_is_in_uri($str)
 {
-    return stripos(apbct_get_server_variable('REQUEST_URI'), $str) !== false;
+    return stripos(Server::get('REQUEST_URI'), $str) !== false;
 }
 
 /**
