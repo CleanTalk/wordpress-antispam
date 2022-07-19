@@ -538,38 +538,31 @@ function apbct_hook__wp_footer()
         $timeout = $apbct->settings['misc__async_js'] ? 1000 : 0;
 
         if ( $apbct->data['ajax_type'] == 'rest' ) {
-            $html =
-                "<script type=\"text/javascript\" " . (class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '')
-                . ">				
-                    window.addEventListener('DOMContentLoaded', function () {
-                        setTimeout(function(){
-                            if( document.querySelectorAll('[name^=ct_checkjs]').length > 0 ) {
-                                apbct_public_sendREST(
+            $send_way_asset = "apbct_public_sendREST(
                                     'js_keys__get',
-                                    { callback: apbct_js_keys__set_input_value }
-                                )
-                            } 
-                        }," . $timeout . ")					   
-                    });								
-                </script>";
+                                    { callback: apbct_js_keys__set_input_value }";
         } else {
-            $html =
-                "<script type=\"text/javascript\" " . (class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '')
-                . ">				
+            $send_way_asset = "apbct_public_sendAJAX(	
+                                    { action: 'apbct_js_keys__get' },	
+                                    { callback: apbct_js_keys__set_input_value }";
+        }
+
+        $cookie_bot_asset = (class_exists('Cookiebot_WP')) ? 'data-cookieconsent="ignore"' : '';
+
+        $script =
+            '<script type="text/javascript" ' . $cookie_bot_asset
+            . ">				
                     window.addEventListener('DOMContentLoaded', function () {
                         setTimeout(function(){
                             if( document.querySelectorAll('[name^=ct_checkjs]').length > 0 ) {
-                                apbct_public_sendAJAX(
-                                    { action: 'apbct_js_keys__get' },
-                                    { callback: apbct_js_keys__set_input_value }
+                                " . $send_way_asset . "
                                 )
                             }
                         }," . $timeout . ")					    
-                    });				
+                    })				
                 </script>";
-        }
 
-        echo $html;
+        echo $script;
     }
 }
 
