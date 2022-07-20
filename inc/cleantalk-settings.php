@@ -51,12 +51,12 @@ function apbct_settings_add_page()
         $callback_format
     );
 
-    $fields = apbct_settings__set_fileds();
+    $fields = apbct_settings__set_fields();
     $fields = APBCT_WPMS && is_main_site() ? apbct_settings__set_fileds__network($fields) : $fields;
     apbct_settings__add_groups_and_fields($fields);
 }
 
-function apbct_settings__set_fileds()
+function apbct_settings__set_fields()
 {
     global $apbct;
 
