@@ -1091,7 +1091,7 @@ function apbct_settings__display()
                  . '<span>'
                  . sprintf(
                      __('%s  has blocked <b>%s</b> spam.', 'cleantalk-spam-protect'),
-                     $apbct->plugin_name,
+                     Escape::escHtml($apbct->plugin_name),
                      number_format($apbct->spam_count, 0, ',', ' ')
                  )
                  . '</span>'
@@ -1106,7 +1106,7 @@ function apbct_settings__display()
     if ( $apbct->key_is_ok && apbct_api_key__is_correct() ) {
         if ( $apbct->network_settings['multisite__work_mode'] != 2 || is_main_site() ) {
             // CP button
-            echo '<a class="cleantalk_link cleantalk_link-manual" target="__blank" href="https://cleantalk.org/my?user_token=' . $apbct->user_token . '&cp_mode=antispam">'
+            echo '<a class="cleantalk_link cleantalk_link-manual" target="__blank" href="https://cleantalk.org/my?user_token=' . Escape::escHtml($apbct->user_token) . '&cp_mode=antispam">'
                  . __('Click here to get Anti-Spam statistics', 'cleantalk-spam-protect')
                  . '</a>';
             echo '&nbsp;&nbsp;';
@@ -1160,21 +1160,34 @@ function apbct_settings__display()
                            . '</button></div>';
 
     foreach ( $apbct->settings_fields_in_groups as $group_name => $group ) {
-        echo ! empty($group['html_before']) ? $group['html_before'] : '';
-        echo ! empty($group['title']) ? '<h3 style="margin-left: 220px;" id="apbct_setting_group__' . $group_name . '">' . $group['title'] . '</h3>' : '';
+        //html_before
+        $out = ! empty($group['html_before']) ? $group['html_before'] : '';
+        echo Escape::escKsesPreset(
+            $out,'apbct_settings__display__groups'
+        );
+
+        //title
+        $out = ! empty($group['title']) ? '<h3 style="margin-left: 220px;" id="apbct_setting_group__' . $group_name . '">' . $group['title'] . '</h3>' : '';
+        echo Escape::escKsesPreset(
+            $out,'apbct_settings__display__groups'
+        );
 
         do_settings_fields('cleantalk', 'apbct_section__' . $group_name);
 
+        //html_after
         if ( ! empty($group['html_after']) && strpos($group['html_after'], '{HIDDEN_SECTION_NAV}') !== false ) {
             $group['html_after'] = str_replace('{HIDDEN_SECTION_NAV}', $hidden_groups, $group['html_after']);
         }
 
-        echo ! empty($group['html_after']) ? $group['html_after'] : '';
+        $out = ! empty($group['html_after']) ? $group['html_after'] : '';
+        echo Escape::escKsesPreset(
+            $out,'apbct_settings__display__groups'
+        );
     }
 
     echo '<div id="apbct_settings__after_advanced_settings"></div>';
 
-    echo '<button id="apbct_settings__main_save_button" name="submit" class="cleantalk_link cleantalk_link-manual" value="save_changes" ' . $disabled . '>'
+    echo '<button id="apbct_settings__main_save_button" name="submit" class="cleantalk_link cleantalk_link-manual" value="save_changes" ' . Escape::escHtml($disabled) . '>'
          . __('Save Changes')
          . '</button>';
     echo '<br>';
@@ -1187,7 +1200,11 @@ function apbct_settings__display()
         // Translate banner for non EN locale
         if ( substr(get_locale(), 0, 2) != 'en' ) {
             require_once(CLEANTALK_PLUGIN_DIR . 'templates/translate_banner.php');
-            printf($ct_translate_banner_template, substr(get_locale(), 0, 2));
+            //ESC NEED
+            $out = sprintf($ct_translate_banner_template, substr(get_locale(), 0, 2));
+            echo Escape::escKsesPreset(
+                $out,'apbct_settings__display__banner_template'
+            );
         }
     }
 }
@@ -1328,7 +1345,6 @@ function apbct_settings__error__output($return = false)
     if ( $return ) {
         return $out;
     } else {
-        //ESC NEED
         echo Escape::escKses(
             $out,
             array(
@@ -1552,7 +1568,7 @@ function apbct_settings__field__apikey()
         'Access key',
         'cleantalk-spam-protect'
     ) . '</label>';
-
+    //ESC NEED
     echo '<input
 			id="apbct_setting_apikey"
 			class="apbct_setting_text apbct_setting---apikey"
@@ -1571,6 +1587,7 @@ function apbct_settings__field__apikey()
 
     // Show account name associated with the Access key
     if ( ! empty($apbct->data['account_name_ob']) ) {
+        //ESC NEED
         echo '<div class="apbct_display--none">'
              . sprintf(
                  __('Account at cleantalk.org is %s.', 'cleantalk-spam-protect'),
@@ -1648,6 +1665,7 @@ function apbct_field_service_utilization()
     echo '<div class="apbct_wrapper_field">';
 
     if ( $apbct->services_count && $apbct->services_max && $apbct->services_utilization ) {
+        //ESC NEED
         echo sprintf(
             __('Hoster account utilization: %s%% ( %s of %s websites ).', 'cleantalk-spam-protect'),
             $apbct->services_utilization * 100,
@@ -1658,6 +1676,7 @@ function apbct_field_service_utilization()
         // Link to the dashboard, so user could extend your subscription for more sites
         if ( $apbct->services_utilization * 100 >= 90 ) {
             echo '&nbsp';
+            //ESC NEED
             echo sprintf(
                 __('You could extend your subscription %shere%s.', 'cleantalk-spam-protect'),
                 '<a href="' . $apbct->dashboard_link . '" target="_blank">',
@@ -1701,6 +1720,7 @@ function apbct_settings__field__action_buttons()
     if ( apbct_api_key__is_correct($apbct->api_key) && $apbct->key_is_ok ) {
         echo '<div>';
         foreach ( $links as $link ) {
+            //ESC NEED
             echo $link . '&nbsp;&nbsp;&nbsp;&nbsp;';
         }
         echo '</div>';
@@ -1720,6 +1740,7 @@ function apbct_settings__field__statistics()
     echo '<div id="apbct_statistics" class="apbct_settings-field_wrapper" style="display: none;">';
 
     // Last request
+    //ESC NEED
     printf(
         __('Last spam check request to %s server was at %s.', 'cleantalk-spam-protect'),
         $apbct->stats['last_request']['server'] ? $apbct->stats['last_request']['server'] : __(
@@ -1734,6 +1755,7 @@ function apbct_settings__field__statistics()
     echo '<br>';
 
     // Avarage time request
+    //ESC NEED
     printf(
         __('Average request time for past 7 days: %s seconds.', 'cleantalk-spam-protect'),
         $apbct->stats['requests'][min(array_keys($apbct->stats['requests']))]['average_time']
@@ -1743,6 +1765,7 @@ function apbct_settings__field__statistics()
     echo '<br>';
 
     // SFW last die
+    //ESC NEED
     printf(
         __('Last time SpamFireWall was triggered for %s IP at %s', 'cleantalk-spam-protect'),
         $apbct->stats['last_sfw_block']['ip'] ? $apbct->stats['last_sfw_block']['ip'] : __(
@@ -1757,6 +1780,7 @@ function apbct_settings__field__statistics()
     echo '<br>';
 
     // SFW last update
+    //ESC NEED
     printf(
         __('SpamFireWall was updated %s. Now contains %s entries.', 'cleantalk-spam-protect'),
         $apbct->stats['sfw']['last_update_time'] ? date('M d Y H:i:s', $apbct->stats['sfw']['last_update_time']) : __(
@@ -1772,6 +1796,7 @@ function apbct_settings__field__statistics()
     echo '<br>';
 
     // SFW last sent logs
+    //ESC NEED
     printf(
         __('SpamFireWall sent %s events at %s.', 'cleantalk-spam-protect'),
         $apbct->stats['sfw']['last_send_amount'] ? $apbct->stats['sfw']['last_send_amount'] : __(
@@ -1799,6 +1824,7 @@ function apbct_settings__field__statistics()
 						<td><b>Server IP</b></td>
 					</tr>";
             foreach ( $apbct->connection_reports['negative_report'] as $key => $report ) {
+                //ESC NEED
                 echo '<tr>'
                      . '<td>' . ($key + 1) . '.</td>'
                      . '<td>' . $report['date'] . '</td>'
@@ -1828,6 +1854,7 @@ function apbct_settings__field__statistics()
     }
 
     echo '<br/>';
+    //ESC NEED
     echo 'Plugin version: ' . APBCT_VERSION;
 
     echo '</div>';
@@ -1910,7 +1937,7 @@ function apbct_settings__field__draw($params = array())
 
     $childrens = $params['childrens'] ? 'apbct_setting---' . implode(",apbct_setting---", $params['childrens']) : '';
     $hide      = $params['hide'] ? implode(",", $params['hide']) : '';
-
+    //ESC NEED
     echo '<div class="' . $params['def_class'] . (isset($params['class']) ? ' ' . $params['class'] : '') . '">';
 
     switch ( $params['type'] ) {
@@ -1921,6 +1948,7 @@ function apbct_settings__field__draw($params = array())
             if ( isset($params['long_description']) ) {
                 $popup = '<i setting="' . $params['name'] . '" class="apbct_settings-long_description---show apbct-icon-help-circled"></i>';
             }
+            //ESC NEED
             echo '<input
 					type="checkbox"
 					name="cleantalk_settings[' . $params['name'] . ']"
@@ -1954,14 +1982,16 @@ function apbct_settings__field__draw($params = array())
             }
 
             // Title
+            //ESC NEED
             echo isset($params['title'])
                 ? '<h4 class="apbct_settings-field_title apbct_settings-field_title--' . $params['type'] . '">' . $params['title'] . $popup . '</h4>'
                 : '';
-
+            //ESC NEED
             echo '<div class="apbct_settings-field_content apbct_settings-field_content--' . $params['type'] . '">';
 
             echo '<div class="apbct_switchers" style="direction: ltr">';
             foreach ( $params['options'] as $option ) {
+                //ESC NEED
                 echo '<input'
                      . ' type="radio"'
                      . " class='apbct_setting_{$params['type']} apbct_setting---{$params['name']}'"
@@ -1976,11 +2006,12 @@ function apbct_settings__field__draw($params = array())
                      . ($value == $option['val'] ? ' checked' : '')
                      . ($params['required'] ? ' required="required"' : '')
                      . ' />';
+                //ESC NEED
                 echo '<label for="apbct_setting_' . $params['name'] . '__' . $option['label'] . '"> ' . $option['label'] . '</label>';
                 echo '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
             }
             echo '</div>';
-
+            //ESC NEED
             echo isset($params['description'])
                 ? '<div class="apbct_settings-field_description">' . $params['description'] . '</div>'
                 : '';
@@ -1995,9 +2026,11 @@ function apbct_settings__field__draw($params = array())
             if ( isset($params['long_description']) ) {
                 $popup = '<i setting="' . $params['name'] . '" class="apbct_settings-long_description---show apbct-icon-help-circled"></i>';
             }
+            //ESC NEED
             echo isset($params['title'])
                 ? '<h4 class="apbct_settings-field_title apbct_settings-field_title--' . $params['type'] . '">' . $params['title'] . $popup . '</h4>'
                 : '';
+            //ESC NEED
             echo '<select'
                  . ' id="apbct_setting_' . $params['name'] . '"'
                  . " class='apbct_setting_{$params['type']} apbct_setting---{$params['name']}'"
@@ -2013,6 +2046,7 @@ function apbct_settings__field__draw($params = array())
                  . ' >';
 
             foreach ( $params['options'] as $option ) {
+                //ESC NEED
                 echo '<option'
                      . ' value="' . $option['val'] . '"'
                      . (isset($option['children_enable']) ? ' data-children_enable=' . $option['children_enable'] . ' ' : ' ')
@@ -2026,6 +2060,7 @@ function apbct_settings__field__draw($params = array())
             }
 
             echo '</select>';
+            //ESC NEED
             echo isset($params['description'])
                 ? '<div class="apbct_settings-field_description">' . $params['description'] . '</div>'
                 : '';
@@ -2039,6 +2074,7 @@ function apbct_settings__field__draw($params = array())
             if ( isset($params['long_description']) ) {
                 $popup = '<i setting="' . $params['name'] . '" class="apbct_settings-long_description---show apbct-icon-help-circled"></i>';
             }
+            //ESC NEED
             echo '<input
 					type="text"
 					id="apbct_setting_' . $params['name'] . '"
@@ -2060,9 +2096,11 @@ function apbct_settings__field__draw($params = array())
 
         // Textarea type
         case 'textarea':
+            //ESC NEED
             echo '<label for="apbct_setting_' . $params['name'] . '" class="apbct_setting-field_title--' . $params['type'] . '">'
                  . $params['title']
                  . '</label></br>';
+            //ESC NEED
             echo '<textarea
 					id="apbct_setting_' . $params['name'] . '"
 					name="cleantalk_settings[' . $params['name'] . ']"'
@@ -2072,6 +2110,7 @@ function apbct_settings__field__draw($params = array())
                  . ($params['childrens'] ? ' onchange="apbctSettingsDependencies(\'' . $childrens . '\')"' : '')
                  . '>' . $value . '</textarea>'
                  . '&nbsp;';
+            //ESC NEED
             echo '<div class="apbct_settings-field_description">'
                  . $params['description']
                  . '</div>';
@@ -2776,6 +2815,7 @@ function apbct_settings__check_renew_banner()
 function apbct_settings__check_alt_cookies_types()
 {
     echo '<div class="apbct_settings-field_wrapper apbct_settings-field_wrapper--sub">';
+    //ESC NEED
     echo sprintf(
         esc_html__('Alternative cookies type was set on %s', 'cleantalk-spam-protect'),
         '<strong>' . apbct_data__get_ajax_type() . '</strong><br>'
@@ -2787,6 +2827,7 @@ function apbct_settings__check_alt_cookies_types()
 function apbct_settings__ajax_handler_type_notification()
 {
     echo '<div class="apbct_settings-field_wrapper apbct_settings-field_wrapper--sub">';
+    //ESC NEED
     echo sprintf(
         esc_html__('JavaScript check was set on %s', 'cleantalk-spam-protect'),
         '<strong>' . apbct_data__get_ajax_type() . '</strong><br>'

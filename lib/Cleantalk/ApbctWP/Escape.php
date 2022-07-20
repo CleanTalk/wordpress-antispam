@@ -113,6 +113,7 @@ class Escape extends \Cleantalk\Common\Escape
     {
 
         $kses_presets = array(
+
             'apbct_settings__display__groups' => array(
                 'div' => array(
                     'class' => true,
@@ -148,6 +149,18 @@ class Escape extends \Cleantalk\Common\Escape
                     'class' => true,
                     'value' => true,
                 ),
+            ),
+
+            'apbct_settings__display__banner_template' => array(
+                'div' => array(
+                    'class' => true,
+                    'id' => true,
+                ),
+                'a' => array(
+                    'target' => true,
+                    'href' => true,
+                ),
+                'p' => array(),
             )
         );
 
