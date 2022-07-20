@@ -372,23 +372,6 @@ function apbct_integration__buddyPres__private_msg_check($bp_message_obj)
     }
 }
 
-/**
- * Adds hidden filed to default search form
- *
- * @param $form string
- *
- * @return string
- */
-function apbct_forms__search__addField($form)
-{
-    global $apbct;
-    if ( $apbct->settings['forms__search_test'] == 1 ) {
-        $js_filed = ct_add_hidden_fields('ct_checkjs_search_default', true, false, false, false);
-        $form     = str_replace('</form>', $js_filed, $form);
-    }
-
-    return $form;
-}
 
 /**
  * Test default search string for spam

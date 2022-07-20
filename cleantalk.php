@@ -439,7 +439,6 @@ add_action('frm_entries_footer_scripts', 'apbct_form__formidable__footerScripts'
 // Public actions
 if ( ! is_admin() && ! apbct_is_ajax() && ! apbct_is_customize_preview() ) {
     // Default search
-    //add_filter( 'get_search_form',  'apbct_forms__search__addField' );
     add_filter('get_search_query', 'apbct_forms__search__testSpam');
     add_action('wp_head', 'apbct_search_add_noindex', 1);
 
