@@ -1342,6 +1342,7 @@ function apbct_enqueue_and_localize_public_scripts()
     ));
 
     wp_localize_script('ct_public_functions', 'ctPublic', array(
+        'blog_home'                     => get_home_url().'/',
         'pixel__setting'                => $apbct->settings['data__pixel'],
         'pixel__enabled'                => $apbct->settings['data__pixel'] === '2' ||
                                            ($apbct->settings['data__pixel'] === '3' && apbct_is_cache_plugins_exists()),
