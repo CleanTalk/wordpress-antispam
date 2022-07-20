@@ -562,7 +562,14 @@ function apbct_hook__wp_footer()
                     })				
                 </script>";
 
-        echo $script;
+        echo Escape::escKses($script,
+            array(
+                'script' => array(
+                    'type' => true,
+                    'data-cookieconsent'=> true
+                )
+            )
+        );
     }
 }
 
