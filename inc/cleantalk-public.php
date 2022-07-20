@@ -568,7 +568,7 @@ function apbct_hook__wp_footer()
                     'type' => true,
                     'data-cookieconsent'=> true
                 )
-            )
+            ), array(),true
         );
     }
 }
@@ -668,7 +668,7 @@ function ct_add_hidden_fields(
                     'name' => true,
                     'value' => true
                 )
-            )
+            ), array(), true
         );
     }
 }

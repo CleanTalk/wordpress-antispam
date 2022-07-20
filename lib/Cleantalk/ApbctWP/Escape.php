@@ -85,9 +85,13 @@ class Escape extends \Cleantalk\Common\Escape
      *
      * @return string
      */
-    public static function escKses($string, $allowed_html, $allowed_protocols = array())
+    public static function escKses($string, $allowed_html, $allowed_protocols = array(), $contains_js=false)
     {
-        return wp_kses($string, $allowed_html, $allowed_protocols = array());
+        $result = wp_kses($string, $allowed_html, $allowed_protocols = array());
+        if ($contains_js) {
+            $result = str_replace(array('&gt;', '&lt;'), array('>', '<'), $result);
+        }
+        return $result;
     }
 
     /**
