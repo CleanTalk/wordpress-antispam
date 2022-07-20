@@ -1200,7 +1200,6 @@ function apbct_settings__display()
         // Translate banner for non EN locale
         if ( substr(get_locale(), 0, 2) != 'en' ) {
             require_once(CLEANTALK_PLUGIN_DIR . 'templates/translate_banner.php');
-            //ESC NEED
             $out = sprintf($ct_translate_banner_template, substr(get_locale(), 0, 2));
             echo Escape::escKsesPreset(
                 $out,'apbct_settings__display__banner_template'
@@ -1568,7 +1567,6 @@ function apbct_settings__field__apikey()
         'Access key',
         'cleantalk-spam-protect'
     ) . '</label>';
-    //ESC NEED
     echo '<input
 			id="apbct_setting_apikey"
 			class="apbct_setting_text apbct_setting---apikey"
@@ -1577,7 +1575,7 @@ function apbct_settings__field__apikey()
 			value="'
          . ($apbct->key_is_ok
             ? str_repeat('*', strlen($apbct->api_key))
-            : $apbct->api_key
+            : Escape::escHtml($apbct->api_key)
          )
          . '"
 			key="' . $apbct->api_key . '"
@@ -1587,11 +1585,10 @@ function apbct_settings__field__apikey()
 
     // Show account name associated with the Access key
     if ( ! empty($apbct->data['account_name_ob']) ) {
-        //ESC NEED
         echo '<div class="apbct_display--none">'
              . sprintf(
                  __('Account at cleantalk.org is %s.', 'cleantalk-spam-protect'),
-                 '<b>' . $apbct->data['account_name_ob'] . '</b>'
+                 '<b>' . Escape::escHtml($apbct->data['account_name_ob']) . '</b>'
              )
              . '</div>';
     };
@@ -1665,21 +1662,19 @@ function apbct_field_service_utilization()
     echo '<div class="apbct_wrapper_field">';
 
     if ( $apbct->services_count && $apbct->services_max && $apbct->services_utilization ) {
-        //ESC NEED
         echo sprintf(
             __('Hoster account utilization: %s%% ( %s of %s websites ).', 'cleantalk-spam-protect'),
             $apbct->services_utilization * 100,
-            $apbct->services_count,
-            $apbct->services_max
+            Escape::escHtml($apbct->services_count),
+            Escape::escHtml($apbct->services_max)
         );
 
         // Link to the dashboard, so user could extend your subscription for more sites
         if ( $apbct->services_utilization * 100 >= 90 ) {
             echo '&nbsp';
-            //ESC NEED
             echo sprintf(
                 __('You could extend your subscription %shere%s.', 'cleantalk-spam-protect'),
-                '<a href="' . $apbct->dashboard_link . '" target="_blank">',
+                '<a href="' . Escape::escUrl($apbct->dashboard_link) . '" target="_blank">',
                 '</a>'
             );
         }
