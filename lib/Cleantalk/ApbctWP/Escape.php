@@ -87,11 +87,77 @@ class Escape extends \Cleantalk\Common\Escape
      */
     public static function escKses($string, $allowed_html, $allowed_protocols = array())
     {
+        add_filter('safe_style_css', function ($styles) {
+            $styles[] = 'display';
+            return $styles;
+        });
+
         $result = wp_kses($string, $allowed_html, $allowed_protocols = array());
-        if ( isset($allowed_html) && is_array($allowed_html) && array_key_exists('script', $allowed_html) ) {
+        if ( isset($allowed_html)
+            && is_array($allowed_html)
+            && (
+                array_key_exists('script', $allowed_html)
+                ||
+                (
+                    array_key_exists('a', $allowed_html)
+                    && array_key_exists('onclick', $allowed_html['a'])
+                )
+            )
+        ) {
             $result = str_replace(array('&gt;', '&lt;'), array('>', '<'), $result);
         }
         return $result;
+    }
+
+    public static function escKsesPreset($string, $preset = null, $allowed_protocols = array())
+    {
+
+        $kses_presets = array(
+            'apbct_settings__display__groups' => array(
+                'div' => array(
+                    'class' => true,
+                    'style' => true,
+                    'id' => true,
+                ),
+                'h3' => array(
+                    'class' => true,
+                    'style' => true,
+                    'id' => true,
+                ),
+                'h4' => array(
+                    'class' => true,
+                ),
+                'a' => array(
+                    'target' => true,
+                    'href' => true,
+                    'class' => true,
+                    'onclick' => true,
+                    'style' => true,
+                ),
+                'hr' => array(
+                    'style' => true,
+                ),
+                'br' => array(),
+                'li' => array(),
+                'ul' => array(),
+                'span' => array(
+                    'id' => true,
+                ),
+                'button' => array(
+                    'name' => true,
+                    'class' => true,
+                    'value' => true,
+                ),
+            )
+        );
+
+        if ( !empty($kses_presets[$preset]) ) {
+            $allowed_html = $kses_presets[$preset];
+            return self::escKses($string, $allowed_html, $allowed_protocols = array());
+        }
+
+        return self::escKses($string, $allowed_html = array(), $allowed_protocols = array());
+
     }
 
     /**
