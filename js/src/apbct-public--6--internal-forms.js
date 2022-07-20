@@ -14,7 +14,7 @@ function ct_check_internal(currForm){
 //AJAX Request
     jQuery.ajax({
         type: 'POST',
-        url: ctNocache.blog_home,
+        url: ctPublic.blog_home,
         datatype : 'text',
         data: ct_data,
         success: function(data){
@@ -39,7 +39,7 @@ jQuery(document).ready( function(){
             ct_currForm = document.forms[i];
 			ct_currAction = ct_currForm.action;
 			if(ct_currAction.indexOf('http://')!=-1||ct_currAction.indexOf('https://')!=-1){
-                if(ct_currAction.search(/\/wp-content\/themes.*\.php$/) != (-1) && ct_currAction.indexOf(ctNocache.blog_home) != (-1)){
+                if(ct_currAction.search(/\/wp-content\/themes.*\.php$/) != (-1) && ct_currAction.indexOf(ctPublic.blog_home) != (-1)){
                     ctPrevHandler = ct_currForm.click;
                     jQuery(ct_currForm).off('**');
                     jQuery(ct_currForm).off();
