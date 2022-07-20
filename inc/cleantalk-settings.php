@@ -1388,37 +1388,37 @@ function apbct_settings__field__debug()
         echo '<h4>Constants:</h4>';
         echo 'CLEANTALK_AJAX_USE_BUFFER ' .
              (defined('CLEANTALK_AJAX_USE_BUFFER') ?
-                 var_export(CLEANTALK_AJAX_USE_BUFFER, true) :
+                 Escape::escHtml(var_export(CLEANTALK_AJAX_USE_BUFFER, true)) :
                  'NOT_DEFINED') .
              "<br>";
         echo 'CLEANTALK_AJAX_USE_FOOTER_HEADER ' .
              (defined('CLEANTALK_AJAX_USE_FOOTER_HEADER') ?
-                 var_export(CLEANTALK_AJAX_USE_FOOTER_HEADER, true) :
+                 Escape::escHtml(var_export(CLEANTALK_AJAX_USE_FOOTER_HEADER, true)) :
                  'NOT_DEFINED') .
              "<br>";
         echo 'CLEANTALK_ACCESS_KEY ' .
              (defined('CLEANTALK_ACCESS_KEY') ?
-                 var_export(CLEANTALK_ACCESS_KEY, true) :
+                 Escape::escHtml(var_export(CLEANTALK_ACCESS_KEY, true)) :
                  'NOT_DEFINED') .
              "<br>";
         echo 'CLEANTALK_CHECK_COMMENTS_NUMBER ' .
              (defined('CLEANTALK_CHECK_COMMENTS_NUMBER') ?
-                 var_export(CLEANTALK_CHECK_COMMENTS_NUMBER, true) :
+                 Escape::escHtml(var_export(CLEANTALK_CHECK_COMMENTS_NUMBER, true)) :
                  'NOT_DEFINED') .
              "<br>";
         echo 'CLEANTALK_CHECK_MESSAGES_NUMBER ' .
              (defined('CLEANTALK_CHECK_MESSAGES_NUMBER') ?
-                 var_export(CLEANTALK_CHECK_MESSAGES_NUMBER, true) :
+                 Escape::escHtml(var_export(CLEANTALK_CHECK_MESSAGES_NUMBER, true)) :
                  'NOT_DEFINED') .
              "<br>";
         echo 'CLEANTALK_PLUGIN_DIR ' .
              (defined('CLEANTALK_PLUGIN_DIR') ?
-                 var_export(CLEANTALK_PLUGIN_DIR, true) :
+                 Escape::escHtml(var_export(CLEANTALK_PLUGIN_DIR, true)) :
                  'NOT_DEFINED') .
              "<br>";
         echo 'WP_ALLOW_MULTISITE ' .
              (defined('WP_ALLOW_MULTISITE') ?
-                 var_export(WP_ALLOW_MULTISITE, true) :
+                 Escape::escHtml(var_export(WP_ALLOW_MULTISITE, true)) :
                  'NOT_DEFINED') .
              "<br>";
 
@@ -1429,7 +1429,16 @@ function apbct_settings__field__debug()
         $output = print_r($apbct->debug, true);
         $output = str_replace("\n", "<br>", $output);
         $output = preg_replace("/[^\S]{4}/", "&nbsp;&nbsp;&nbsp;&nbsp;", $output);
-        echo "$output";
+
+        echo Escape::escKses(
+            $output,
+            array(
+                'div' => array(
+                    'style' => true,
+                ),
+                'br'     => array(),
+            )
+        );
 
         echo "</div>";
     }
