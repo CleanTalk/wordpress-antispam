@@ -1204,7 +1204,7 @@ function apbct_settings__display__network()
                 "Please, enter the %splugin settings%s in main site dashboard.",
                 'cleantalk-spam-protect'
             ) . "</h2>",
-            "<a href='$link'>",
+            '<a href="' . Escape::escUrl($link) . '">',
             "</a>"
         );
 
