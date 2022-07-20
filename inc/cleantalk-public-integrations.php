@@ -2991,19 +2991,16 @@ function apbct_form__the7_contact_form()
 
         $ct_result = $base_call_result['ct_result'];
         if ( $ct_result->allow == 0 ) {
-            $response = json_encode(
-                array(
-                    'success' => false,
-                    'errors'  => $ct_result->comment,
-                    'nonce'   => wp_create_nonce('dt_contact_form')
-                )
+
+            $response = array(
+                'success' => false,
+                'errors'  => $ct_result->comment,
+                'nonce'   => wp_create_nonce('dt_contact_form')
             );
 
-            // response output
-            header("Content-Type: application/json");
-            echo $response;
+            wp_send_json($response);
 
-            // IMPORTANT: don't forget to "exit"
+            // IMPORTANT: don't forget to "exit" @todo AG: Why? Exit does not terminate connection, but I can't see how it is applicable
             exit;
         }
     }
