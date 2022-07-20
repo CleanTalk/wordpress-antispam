@@ -38,16 +38,17 @@ jQuery(document).ready( function(){
 		if(typeof(document.forms[i].action)=='string'){
             ct_currForm = document.forms[i];
 			ct_currAction = ct_currForm.action;
-			if(ct_currAction.indexOf('http://')!=-1||ct_currAction.indexOf('https://')!=-1){
-                if(ct_currAction.search(/\/wp-content\/themes.*\.php$/) != (-1) && ct_currAction.indexOf(ctPublic.blog_home) != (-1)){
-                    ctPrevHandler = ct_currForm.click;
-                    jQuery(ct_currForm).off('**');
-                    jQuery(ct_currForm).off();
-                    jQuery(ct_currForm).on('submit', function(){
-                        ct_check_internal(ct_currForm);
-                        return false;
-                    });
-                }
+            if(
+                ct_currAction.indexOf('https?://') !== null &&
+                ct_currAction.match(ctPublic.blog_home) !== -1
+            ){
+                ctPrevHandler = ct_currForm.click;
+                jQuery(ct_currForm).off('**');
+                jQuery(ct_currForm).off();
+                jQuery(ct_currForm).on('submit', function(){
+                    ct_check_internal(ct_currForm);
+                    return false;
+                });
             }
 		}
 	}
