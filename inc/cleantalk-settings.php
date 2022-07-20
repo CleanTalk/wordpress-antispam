@@ -1,6 +1,7 @@
 <?php
 
 use Cleantalk\ApbctWP\Escape;
+use Cleantalk\ApbctWP\Helper;
 use Cleantalk\ApbctWP\Validate;
 use Cleantalk\Variables\Post;
 use Cleantalk\ApbctWP\Cron;
@@ -1715,8 +1716,7 @@ function apbct_settings__field__action_buttons()
     if ( apbct_api_key__is_correct($apbct->api_key) && $apbct->key_is_ok ) {
         echo '<div>';
         foreach ( $links as $link ) {
-            //ESC NEED
-            echo $link . '&nbsp;&nbsp;&nbsp;&nbsp;';
+            echo Escape::escKsesPreset($link,'apbct_settings__display__groups') . '&nbsp;&nbsp;&nbsp;&nbsp;';
         }
         echo '</div>';
     } elseif ( apbct__is_hosting_license() ) {
@@ -1735,14 +1735,17 @@ function apbct_settings__field__statistics()
     echo '<div id="apbct_statistics" class="apbct_settings-field_wrapper" style="display: none;">';
 
     // Last request
-    //ESC NEED
     printf(
         __('Last spam check request to %s server was at %s.', 'cleantalk-spam-protect'),
-        $apbct->stats['last_request']['server'] ? $apbct->stats['last_request']['server'] : __(
+        $apbct->stats['last_request']['server']
+            ? Escape::escUrl($apbct->stats['last_request']['server'])
+            : __(
             'unknown',
             'cleantalk-spam-protect'
         ),
-        $apbct->stats['last_request']['time'] ? date('M d Y H:i:s', $apbct->stats['last_request']['time']) : __(
+        $apbct->stats['last_request']['time']
+            ? date('M d Y H:i:s', $apbct->stats['last_request']['time'])
+            : __(
             'unknown',
             'cleantalk-spam-protect'
         )
@@ -1750,7 +1753,6 @@ function apbct_settings__field__statistics()
     echo '<br>';
 
     // Avarage time request
-    //ESC NEED
     printf(
         __('Average request time for past 7 days: %s seconds.', 'cleantalk-spam-protect'),
         $apbct->stats['requests'][min(array_keys($apbct->stats['requests']))]['average_time']
@@ -1760,10 +1762,9 @@ function apbct_settings__field__statistics()
     echo '<br>';
 
     // SFW last die
-    //ESC NEED
     printf(
         __('Last time SpamFireWall was triggered for %s IP at %s', 'cleantalk-spam-protect'),
-        $apbct->stats['last_sfw_block']['ip'] ? $apbct->stats['last_sfw_block']['ip'] : __(
+        $apbct->stats['last_sfw_block']['ip'] ? Helper::ipValidate($apbct->stats['last_sfw_block']['ip']) : __(
             'unknown',
             'cleantalk-spam-protect'
         ),
@@ -1775,26 +1776,24 @@ function apbct_settings__field__statistics()
     echo '<br>';
 
     // SFW last update
-    //ESC NEED
     printf(
         __('SpamFireWall was updated %s. Now contains %s entries.', 'cleantalk-spam-protect'),
         $apbct->stats['sfw']['last_update_time'] ? date('M d Y H:i:s', $apbct->stats['sfw']['last_update_time']) : __(
             'unknown',
             'cleantalk-spam-protect'
         ),
-        $apbct->stats['sfw']['entries']
+        (int)$apbct->stats['sfw']['entries']
     );
     echo $apbct->fw_stats['firewall_updating_id'] ? ' ' . __(
-        'Under updating now:',
-        'cleantalk-spam-protect'
-    ) . ' ' . $apbct->fw_stats['firewall_update_percent'] . '%' : '';
+            'Under updating now:',
+            'cleantalk-spam-protect'
+        ) . ' ' . (int)$apbct->fw_stats['firewall_update_percent'] . '%' : '';
     echo '<br>';
 
     // SFW last sent logs
-    //ESC NEED
     printf(
         __('SpamFireWall sent %s events at %s.', 'cleantalk-spam-protect'),
-        $apbct->stats['sfw']['last_send_amount'] ? $apbct->stats['sfw']['last_send_amount'] : __(
+        $apbct->stats['sfw']['last_send_amount'] ? (int)$apbct->stats['sfw']['last_send_amount'] : __(
             'unknown',
             'cleantalk-spam-protect'
         ),
@@ -1819,13 +1818,12 @@ function apbct_settings__field__statistics()
 						<td><b>Server IP</b></td>
 					</tr>";
             foreach ( $apbct->connection_reports['negative_report'] as $key => $report ) {
-                //ESC NEED
                 echo '<tr>'
-                     . '<td>' . ($key + 1) . '.</td>'
-                     . '<td>' . $report['date'] . '</td>'
-                     . '<td>' . $report['page_url'] . '</td>'
-                     . '<td>' . $report['lib_report'] . '</td>'
-                     . '<td>' . $report['work_url'] . '</td>'
+                     . '<td>' . Escape::escHtml($key + 1) . '.</td>'
+                     . '<td>' . Escape::escHtml($report['date']) . '</td>'
+                     . '<td>' . Escape::escUrl($report['page_url'] ). '</td>'
+                     . '<td>' . Escape::escHtml($report['lib_report']) . '</td>'
+                     . '<td>' . Escape::escUrl($report['work_url'] ). '</td>'
                      . '</tr>';
             }
             echo "</table>";
@@ -1849,8 +1847,8 @@ function apbct_settings__field__statistics()
     }
 
     echo '<br/>';
-    //ESC NEED
-    echo 'Plugin version: ' . APBCT_VERSION;
+
+    echo 'Plugin version: ' . Escape::escHtml(APBCT_VERSION);
 
     echo '</div>';
 }
@@ -2476,7 +2474,7 @@ function apbct_settings__get_key_auto($direct_call = false)
 
     $website        = parse_url(get_option('home'), PHP_URL_HOST) . parse_url(get_option('home'), PHP_URL_PATH);
     $platform       = 'wordpress';
-    $user_ip        = \Cleantalk\ApbctWP\Helper::ipGet('real', false);
+    $user_ip        = Helper::ipGet('real', false);
     $timezone       = filter_input(INPUT_POST, 'ct_admin_timezone');
     $language       = Server::get('HTTP_ACCEPT_LANGUAGE');
     $wpms           = APBCT_WPMS && defined('SUBDOMAIN_INSTALL') && ! SUBDOMAIN_INSTALL ? true : false;
@@ -2810,10 +2808,10 @@ function apbct_settings__check_renew_banner()
 function apbct_settings__check_alt_cookies_types()
 {
     echo '<div class="apbct_settings-field_wrapper apbct_settings-field_wrapper--sub">';
-    //ESC NEED
+
     echo sprintf(
         esc_html__('Alternative cookies type was set on %s', 'cleantalk-spam-protect'),
-        '<strong>' . apbct_data__get_ajax_type() . '</strong><br>'
+        '<strong>' . Escape::escHtml(apbct_data__get_ajax_type()) . '</strong><br>'
     );
 
     echo '</div>';
@@ -2822,10 +2820,10 @@ function apbct_settings__check_alt_cookies_types()
 function apbct_settings__ajax_handler_type_notification()
 {
     echo '<div class="apbct_settings-field_wrapper apbct_settings-field_wrapper--sub">';
-    //ESC NEED
+
     echo sprintf(
         esc_html__('JavaScript check was set on %s', 'cleantalk-spam-protect'),
-        '<strong>' . apbct_data__get_ajax_type() . '</strong><br>'
+        '<strong>' . Escape::escHtml(apbct_data__get_ajax_type()) . '</strong><br>'
     );
 
     echo '</div>';
