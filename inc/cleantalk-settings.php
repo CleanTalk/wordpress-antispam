@@ -1313,7 +1313,7 @@ function apbct_settings__error__output($return = false)
             $out .= '<div id="apbctTopWarning" class="error" style="position: relative;">'
                     . '<h3 style="display: inline-block;">' . __('Errors:', 'cleantalk-spam-protect') . '</h3>';
             foreach ( $errors_out as $value ) {
-                $out .= '<h4>' . $value . '</h4>';
+                $out .= '<h4>' . Escape::escHtml($value) . '</h4>';
             }
             $out .= ! $apbct->white_label
                 ? '<h4 style="text-align: unset;">' . sprintf(
@@ -1328,7 +1328,26 @@ function apbct_settings__error__output($return = false)
     if ( $return ) {
         return $out;
     } else {
-        echo $out;
+        //ESC NEED
+        echo Escape::escKses(
+            $out,
+            array(
+                'div' => array(
+                    'class'  => true,
+                    'style' => true,
+                ),
+                'h3'     => array(
+                    'class'  => true,
+                ),
+                'h4'     => array(
+                    'class'  => true,
+                ),
+                'a'     => array(
+                    'target'  => true,
+                    'href'  => true,
+                )
+            )
+        );
     }
 }
 
