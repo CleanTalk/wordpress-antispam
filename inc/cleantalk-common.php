@@ -304,7 +304,7 @@ function apbct_add_connection_report(
 ){
     global $apbct;
     
-    // if not defined, set the gathering connection report start date
+    // if not defined, reset the connection reports
     if( ! isset($apbct->connection_reports) ){
         $apbct->drop('connection_reports');
     }
