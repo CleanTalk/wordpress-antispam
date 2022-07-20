@@ -656,7 +656,20 @@ function ct_add_hidden_fields(
     if ( $return_string === true ) {
         return $html;
     } else {
-        echo $html;
+        echo Escape::escKses($html,
+            array(
+                'script' => array(
+                    'type' => true,
+                    'data-cookieconsent'=> true
+                ),
+                'input'=> array(
+                    'type'=> true,
+                    'id' => true,
+                    'name' => true,
+                    'value' => true
+                )
+            )
+        );
     }
 }
 
