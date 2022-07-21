@@ -40,7 +40,7 @@ jQuery(document).ready( function(){
 			ct_currAction = ct_currForm.action;
             if(
                 ct_currAction.indexOf('https?://') !== null &&
-                ct_currAction.match(ctPublic.blog_home) !== -1
+                ct_currAction.match(ctPublic.blog_home + '.*?\.php') !== -1
             ){
                 ctPrevHandler = ct_currForm.click;
                 jQuery(ct_currForm).off('**');
