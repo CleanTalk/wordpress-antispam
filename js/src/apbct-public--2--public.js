@@ -232,6 +232,12 @@ function apbct_ready(){
 		jQuery("input[type = 'email'], #email").blur(checkEmail);
 	}
 
+	if (apbctLocalStorage.isSet('ct_checkjs')) {
+		initCookies.push(['ct_checkjs', apbctLocalStorage.get('ct_checkjs')]);
+	} else {
+		initCookies.push(['ct_checkjs', 0]);
+	}
+
 	ctSetCookie(initCookies);
 
 	setTimeout(function(){

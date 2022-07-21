@@ -614,8 +614,8 @@ function ct_add_hidden_fields(
                     else                                              elem.attachEvent(event, callback);
                 }
                 apbct_attach_event_handler__backend(window, 'load', function(){
-                    if (typeof ctSetCookie === \"function\")
-                        ctSetCookie('{$field_name}', '{$ct_checkjs_key}' );
+                    if (typeof apbctLocalStorage === \"object\")
+                        apbctLocalStorage.set('{$field_name}', '{$ct_checkjs_key}', false );
                     else 
                         console.log('APBCT ERROR: apbct-public--functions is not loaded.');
                 });
