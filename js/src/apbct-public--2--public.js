@@ -326,6 +326,8 @@ function apbctAjaxEmailDecode(event){
 	);
 	ctShowDecodeComment(element, ctPublicFunctions.text__wait_for_decoding);
 
+	const javascriptClientData = getJavascriptClientData();
+
 	// Using REST API handler
 	if( ctPublicFunctions.data__ajax_type === 'rest' ){
 		apbct_public_sendREST(
@@ -333,8 +335,7 @@ function apbctAjaxEmailDecode(event){
 			{
 				data: {
 					encodedEmail:             event.target.dataset.originalString,
-					event_javascript_data:    JSON.stringify(apbctLocalStorage.getByPrefix(ctPublicFunctions.cookiePrefix)),
-					browser_signature_params: apbctBrowserSignature.getString(),
+					event_javascript_data:    javascriptClientData,
 				},
 				method: 'POST',
 				callback: function (result) {
@@ -355,8 +356,7 @@ function apbctAjaxEmailDecode(event){
 			{
 				action: 'apbct_decode_email',
 				encodedEmail: event.target.dataset.originalString,
-				event_javascript_data:    JSON.stringify(apbctLocalStorage.getByPrefix(ctPublicFunctions.cookiePrefix)),
-				browser_signature_params: apbctBrowserSignature.getString(),
+				event_javascript_data:    javascriptClientData,
 			},
 			{
 				notJson: true,
@@ -373,6 +373,36 @@ function apbctAjaxEmailDecode(event){
 			}
 		);
 	}
+}
+
+function getJavascriptClientData() {
+	let resultDataJson = {};
+
+	resultDataJson.apbct_headless = ctGetCookie(ctPublicFunctions.cookiePrefix + 'apbct_headless');
+	resultDataJson.apbct_pixel_url = ctGetCookie(ctPublicFunctions.cookiePrefix + 'apbct_pixel_url');
+	resultDataJson.ct_checked_emails = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_checked_emails');
+	resultDataJson.ct_checkjs = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_checkjs');
+	resultDataJson.ct_fkp_timestamp = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_fkp_timestamp');
+	resultDataJson.ct_pointer_data = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_pointer_data');
+	resultDataJson.ct_ps_timestamp = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_ps_timestamp');
+	resultDataJson.ct_screen_info = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_screen_info');
+	resultDataJson.ct_timezone = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_timezone');
+
+	// collecting data from localstorage
+	const ctMouseMovedLocalStorage = apbctLocalStorage.get(ctPublicFunctions.cookiePrefix + 'ct_mouse_moved');
+	const ctHasScrolledLocalStorage = apbctLocalStorage.get(ctPublicFunctions.cookiePrefix + 'ct_has_scrolled');
+	const ctCookiesTypeLocalStorage = apbctLocalStorage.get(ctPublicFunctions.cookiePrefix + 'ct_cookies_type');
+
+	// collecting data from cookies
+	const ctMouseMovedCookie = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_mouse_moved');
+	const ctHasScrolledCookie = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_has_scrolled');
+	const ctCookiesTypeCookie = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_cookies_type');
+
+	resultDataJson.ct_mouse_moved = ctMouseMovedLocalStorage !== undefined ? ctMouseMovedLocalStorage : ctMouseMovedCookie;
+	resultDataJson.ct_has_scrolled = ctHasScrolledLocalStorage !== undefined ? ctHasScrolledLocalStorage : ctHasScrolledCookie;
+	resultDataJson.ct_cookies_type = ctCookiesTypeLocalStorage !== undefined ? ctCookiesTypeLocalStorage : ctCookiesTypeCookie;
+
+	return JSON.stringify(resultDataJson);
 }
 
 function ctProcessDecodedDataResult(response, targetElement) {
