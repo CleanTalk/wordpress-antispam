@@ -119,6 +119,11 @@ function apbct_replace_inputs_values_from_other_form( form_source, form_target )
 
 }
 window.onload = function () {
+
+    if( ! +ctPublic.settings__forms__check_external ) {
+        return;
+    }
+
     setTimeout(function () {
         ct_protect_external()
     }, 1500);
