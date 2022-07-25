@@ -767,7 +767,7 @@ class API
 
         return static::sendRequest($request, self::URL, 0);
     }
-    
+
     /**
      * Call check_bot API method
      *
@@ -791,7 +791,8 @@ class API
         $sender_ip,
         $event_type,
         $message_to_log = ''
-    ){
+    )
+    {
         $params = array(
             'auth_key'              => $api_key,
             'event_token'           => $event_token,
@@ -815,7 +816,7 @@ class API
 
         return $ct->isBot($ct_request);
     }
-    
+
     private static function getProductId($product_name)
     {
         $product_id = null;

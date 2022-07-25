@@ -1350,8 +1350,8 @@ function apbct_enqueue_and_localize_public_scripts()
         'data__cookies_type'            => $apbct->data['cookies_type'],
         'data__visible_fields_required' => ! apbct_is_user_logged_in() || $apbct->settings['data__protect_logged_in'] == 1,
     ));
-    
-     wp_enqueue_style(
+
+    wp_enqueue_style(
         'ct_public_css',
         APBCT_CSS_ASSETS_PATH . '/cleantalk-public.min.css',
         array(),

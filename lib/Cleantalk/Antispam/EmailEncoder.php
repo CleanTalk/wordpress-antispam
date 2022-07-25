@@ -18,7 +18,7 @@ class EmailEncoder
      * @var bool Show if the encryption functions are avaliable in current surroundings
      */
     private $encryption_is_available;
-    
+
     /**
      * @inheritDoc
      */
@@ -32,7 +32,7 @@ class EmailEncoder
 
         $this->secret_key = md5($apbct->api_key);
 
-        $this->encryption_is_available = function_exists( 'openssl_encrypt') && function_exists( 'openssl_decrypt');
+        $this->encryption_is_available = function_exists('openssl_encrypt') && function_exists('openssl_decrypt');
 
         $hooks_to_encode = array(
             'the_title',
@@ -91,12 +91,12 @@ class EmailEncoder
      */
     public function ajaxDecodeEmailHandler()
     {
-        if( ! defined('REST_REQUEST') ){
+        if(! defined('REST_REQUEST')) {
             check_ajax_referer('ct_secret_stuff');
         }
-    
+
         $this->response = $this->processDecodeRequest();
-        
+
         wp_send_json_success($this->response);
     }
 
@@ -105,10 +105,10 @@ class EmailEncoder
         $this->decoded_email = $this->decodeEmailFromPost();
         $this->allow_request = $this->checkRequest();
         $this->response      = $this->compileResponse($this->decoded_email, $this->allow_request);
-        
+
         return $this->response;
     }
-    
+
     /**
      * Main logic of the decoding the encoded data.
      *
@@ -118,10 +118,10 @@ class EmailEncoder
     {
         $this->encoded_email = trim(Post::get('encodedEmail'));
         $this->decoded_email = $this->decodeString($this->encoded_email, $this->secret_key);
-        
+
         return $this->decoded_email;
     }
-    
+
     /**
      * Ajax handler for the apbct_decode_email action
      *
@@ -131,10 +131,10 @@ class EmailEncoder
     {
         return true;
     }
-    
-    protected function compileResponse( $decoded_email, $is_allowed )
+
+    protected function compileResponse($decoded_email, $is_allowed)
     {
-        return strip_tags( $decoded_email, '<a>' );
+        return strip_tags($decoded_email, '<a>');
     }
 
     /**
