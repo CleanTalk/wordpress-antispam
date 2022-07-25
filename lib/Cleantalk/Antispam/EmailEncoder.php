@@ -83,7 +83,7 @@ class EmailEncoder
             return $content;
         }
 
-        if ($this->contentHasExclusions($content)){
+        if ( $this->contentHasExclusions($content) ) {
             return $content;
         }
 
@@ -255,8 +255,8 @@ class EmailEncoder
      */
     private function contentHasExclusions($content)
     {
-        if ( isset($this->encoding_exclusions_signs) && is_array($this->encoding_exclusions_signs) ) {
-            foreach ( array_values($this->encoding_exclusions_signs) as $signs_array => $signs ) {
+        if ( is_array($this->encoding_exclusions_signs) ) {
+            foreach ( array_values($this->encoding_exclusions_signs) as $_signs_array => $signs ) {
                 //process each of subarrays of signs
                 $signs_found_count = 0;
                 if ( isset($signs) && is_array($signs) ) {
