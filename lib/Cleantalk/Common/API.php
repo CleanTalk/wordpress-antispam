@@ -2,6 +2,8 @@
 
 namespace Cleantalk\Common;
 
+use Cleantalk\Antispam\Cleantalk;
+use Cleantalk\Antispam\CleantalkRequest;
 use Cleantalk\Common\HTTP\Request;
 
 /**
@@ -790,8 +792,7 @@ class API
         $event_type,
         $message_to_log = ''
     ){
-        $request = array(
-            'method_name'           => 'check_bot',
+        $params = array(
             'auth_key'              => $api_key,
             'event_token'           => $event_token,
             'event_javascript_data' => $event_javascript_data,
@@ -800,8 +801,19 @@ class API
             'event_type'            => $event_type,
             'message_to_log'        => $message_to_log,
         );
-        
-        return static::sendRequest( $request, self::URL, 0 );
+
+        $ct_request = new CleantalkRequest($params);
+
+        $ct = new Cleantalk();
+
+        // Options store url without scheme because of DB error with ''://'
+        $config             = ct_get_server();
+        $ct->server_url     = APBCT_MODERATE_URL;
+        $ct->work_url       = preg_match('/https:\/\/.+/', $config['ct_work_url']) ? $config['ct_work_url'] : null;
+        $ct->server_ttl     = $config['ct_server_ttl'];
+        $ct->server_changed = $config['ct_server_changed'];
+
+        return $ct->isBot($ct_request);
     }
     
     private static function getProductId($product_name)

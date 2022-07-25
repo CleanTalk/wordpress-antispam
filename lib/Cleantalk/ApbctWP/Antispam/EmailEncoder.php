@@ -9,7 +9,7 @@ use Cleantalk\Variables\Post;
 class EmailEncoder extends \Cleantalk\Antispam\EmailEncoder
 {
     /**
-     * @var array|bool API response
+     * @var object|bool API response
      */
     private $api_response;
     
@@ -40,18 +40,18 @@ class EmailEncoder extends \Cleantalk\Antispam\EmailEncoder
             'CONTACT_DECODING',
             $this->decoded_email
         );
-        
+
         // Allow to see to the decoded contact if error occurred
         // Send error as comment in this case
-        if( ! empty($this->api_response['error']) ){
-            $this->comment = $this->api_response['error'];
+        if( ! empty($this->api_response->error) ){
+            $this->comment = $this->api_response->error;
             
             return true;
         }
         
         // Deny
-        if( $this->api_response['allow'] === 0 ){
-            $this->comment = $this->api_response['comment'];
+        if( $this->api_response->allow === 0 ){
+            $this->comment = $this->api_response->comment;
             
             return false;
         }

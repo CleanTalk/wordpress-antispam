@@ -481,4 +481,18 @@ class Cleantalk
 
         return $response;
     }
+
+    /**
+     * Function checks user
+     *
+     * @param CleantalkRequest $request
+     *
+     * @return bool|CleantalkResponse
+     */
+    public function isBot(CleantalkRequest $request)
+    {
+        $msg = $this->createMsg('check_bot', $request);
+
+        return $this->httpRequest($msg);
+    }
 }
