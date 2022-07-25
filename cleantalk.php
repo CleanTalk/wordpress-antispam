@@ -2481,8 +2481,6 @@ function ct_mail_send_connection_report()
         /** @psalm-suppress UnusedFunctionCall */
         mail($to, $subject, $message, $headers);
     }
-
-    $apbct->drop('connection_reports');
 }
 
 /**
