@@ -2464,6 +2464,7 @@ function ct_mail_send_connection_report()
         $message .= '<br>';
         $show_connection_reports_link =
             substr(get_option('home'), -1) === '/' ? get_option('home') : get_option('home') . '/'
+            . '?'
             . http_build_query([
                     'plugin_name' => 'apbct',
                     'spbc_remote_call_token' => md5($apbct->api_key),
