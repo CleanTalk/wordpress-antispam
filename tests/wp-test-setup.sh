@@ -21,9 +21,9 @@ tar --strip-components=1 -zxmf /tmp/wordpress.tar.gz -C $WP_CORE_DIR
 
 # Grab testing framework and config file
 mkdir -p $WP_TESTS_DIR
-svn co --quiet https://develop.svn.wordpress.org/trunk/tests/phpunit/includes/ $WP_TESTS_DIR/includes
-svn co --quiet https://develop.svn.wordpress.org/trunk/tests/phpunit/data/ $WP_TESTS_DIR/data
-wget -nv -O $WP_TESTS_DIR/wp-tests-config.php https://develop.svn.wordpress.org/trunk/wp-tests-config-sample.php
+svn co --quiet https://develop.svn.wordpress.org/tags/6.0.1/tests/phpunit/includes/ $WP_TESTS_DIR/includes
+svn co --quiet https://develop.svn.wordpress.org/tags/6.0.1/tests/phpunit/data/ $WP_TESTS_DIR/data
+wget -nv -O $WP_TESTS_DIR/wp-tests-config.php https://develop.svn.wordpress.org/tags/6.0.1/wp-tests-config-sample.php
 # remove all forward slashes in the end
 WP_CORE_DIR=$(echo $WP_CORE_DIR | sed "s:/\+$::")
 sed -i "s:dirname( __FILE__ ) . '/src/':'$WP_CORE_DIR/':" "$WP_TESTS_DIR"/wp-tests-config.php
