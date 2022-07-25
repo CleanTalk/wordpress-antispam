@@ -91,7 +91,7 @@ class EmailEncoder
      */
     public function ajaxDecodeEmailHandler()
     {
-        if(! defined('REST_REQUEST')) {
+        if (! defined('REST_REQUEST')) {
             check_ajax_referer('ct_secret_stuff');
         }
 
