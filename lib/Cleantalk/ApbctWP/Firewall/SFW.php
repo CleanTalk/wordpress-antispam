@@ -632,7 +632,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
         $file_content = file_get_contents($file_url);
 
         if (function_exists('gzdecode')) {
-            $unzipped_content = gzdecode($file_content);
+            $unzipped_content = @gzdecode($file_content);
 
             if ($unzipped_content !== false) {
                 $data = Helper::bufferParseCsv($unzipped_content);

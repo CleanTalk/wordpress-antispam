@@ -37,6 +37,11 @@ jQuery(document).ready( function(){
         ct_internal_script_exclusions = [
             ctPublic.blog_home + 'wp-login.php', // WordPress login page
         ];
+
+    if( ! +ctPublic.settings__forms__check_internal ) {
+        return;
+    }
+
 	for(i=0;i<document.forms.length;i++){
 		if(typeof(document.forms[i].action)=='string'){
             ct_currForm = document.forms[i];
