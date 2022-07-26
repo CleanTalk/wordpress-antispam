@@ -20,15 +20,28 @@ class EmailEncoder
     private $encription;
 
     /**
+     * Keep arrays of exclusion signs in the array
+     * @var array
+     */
+    private $encoding_exclusions_signs;
+
+    /**
      * @inheritDoc
      */
     protected function init()
     {
+
         global $apbct;
 
         if ( ! $apbct->settings['data__email_decoder'] ) {
             return;
         }
+
+        //list of encoding exclusions signs
+        $this->encoding_exclusions_signs = array(
+            //divi contact forms additional emails
+            array('_unique_id', 'et_pb_contact_form')
+        );
 
         $this->secret_key = md5($apbct->api_key);
 
@@ -67,6 +80,10 @@ class EmailEncoder
     public function modifyContent($content)
     {
         if ( apbct_is_user_logged_in() ) {
+            return $content;
+        }
+
+        if ( $this->contentHasExclusions($content) ) {
             return $content;
         }
 
@@ -229,5 +246,38 @@ class EmailEncoder
     private function getTooltip()
     {
         return esc_html__('This contact was encoded by CleanTalk. Click to decode.', 'cleantalk-spam-protect');
+    }
+
+    /**
+     * Check content if it contains exclusions from exclusion list
+     * @param $content - content to check
+     * @return bool - true if exclusions found, else - false
+     */
+    private function contentHasExclusions($content)
+    {
+        if ( is_array($this->encoding_exclusions_signs) ) {
+            foreach ( array_values($this->encoding_exclusions_signs) as $_signs_array => $signs ) {
+                //process each of subarrays of signs
+                $signs_found_count = 0;
+                if ( isset($signs) && is_array($signs) ) {
+                    //chek all the signs in the sub-array
+                    foreach ( $signs as $sign ) {
+                        if ( is_string($sign) ) {
+                            if ( strpos($content, $sign) === false ) {
+                                continue;
+                            } else {
+                                $signs_found_count++;
+                            }
+                        }
+                    }
+                    //if each of signs in the sub-array are found return true
+                    if ( $signs_found_count === count($signs) ) {
+                        return true;
+                    }
+                }
+            }
+        }
+        //no signs found
+        return false;
     }
 }
