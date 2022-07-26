@@ -1100,6 +1100,8 @@ function apbct_add_async_attribute($tag, $handle)
             $tag = str_replace(' src', ' async="async" src', $tag);
         }
 
+        $tag = str_replace(' src', ' data-cfasync="false" src', $tag);
+
         if ( class_exists('Cookiebot_WP') ) {
             $tag = str_replace(' src', ' data-cookieconsent="ignore" src', $tag);
         }

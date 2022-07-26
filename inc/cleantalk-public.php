@@ -100,8 +100,8 @@ function apbct_init()
              && Post::get('cleantalk_hidden_method') !== ''
              && Post::get('cleantalk_hidden_action') !== ''
         ) {
-            $action = Escape::escHtml(Post::get('cleantalk_hidden_method'));
-            $method = Escape::escHtml(Post::get('cleantalk_hidden_action'));
+            $action = Escape::escHtml(Post::get('cleantalk_hidden_action'));
+            $method = Escape::escHtml(Post::get('cleantalk_hidden_method'));
             unset($_POST['cleantalk_hidden_action']);
             unset($_POST['cleantalk_hidden_method']);
             ct_contact_form_validate();
@@ -1342,6 +1342,9 @@ function apbct_enqueue_and_localize_public_scripts()
     ));
 
     wp_localize_script('ct_public_functions', 'ctPublic', array(
+        'settings__forms__check_internal' => $apbct->settings['forms__check_internal'],
+        'settings__forms__check_external' => $apbct->settings['forms__check_external'],
+        'blog_home'                     => get_home_url() . '/',
         'pixel__setting'                => $apbct->settings['data__pixel'],
         'pixel__enabled'                => $apbct->settings['data__pixel'] === '2' ||
                                            ($apbct->settings['data__pixel'] === '3' && apbct_is_cache_plugins_exists()),

@@ -119,6 +119,11 @@ function apbct_replace_inputs_values_from_other_form( form_source, form_target )
 
 }
 window.onload = function () {
+
+    if( ! +ctPublic.settings__forms__check_external ) {
+        return;
+    }
+
     setTimeout(function () {
         ct_protect_external()
     }, 1500);
@@ -143,7 +148,8 @@ function isIntegratedForm(formObj) {
         formAction.indexOf('hookb.in') !== -1 ||
         formAction.indexOf('external.url') !== -1 ||
         formAction.indexOf('tp.media') !== -1 ||
-        formAction.indexOf('flodesk.com') !== -1
+        formAction.indexOf('flodesk.com') !== -1 ||
+        formAction.indexOf('sendfox.com') !== -1
 
     ) {
         return true;
@@ -177,7 +183,7 @@ function sendAjaxCheckingFormData(form, prev, formOriginal) {
         data,
         {
             async: false,
-            callback: function( prev, formOriginal, result ){
+            callback: function( result, data, params, obj, prev, formOriginal ){
 
                 if( result.apbct === undefined || ! +result.apbct.blocked ) {
 
