@@ -2991,7 +2991,6 @@ function apbct_form__the7_contact_form()
 
         $ct_result = $base_call_result['ct_result'];
         if ( $ct_result->allow == 0 ) {
-
             $response = array(
                 'success' => false,
                 'errors'  => $ct_result->comment,

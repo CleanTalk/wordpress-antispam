@@ -109,7 +109,7 @@ class Escape extends \Cleantalk\Common\Escape
         return $result;
     }
 
-    public static function escKsesPreset($string, $preset = null, $allowed_protocols = array())
+    public static function escKsesPreset($string, $preset = null, $_allowed_protocols = array())
     {
 
         $kses_presets = array(
@@ -170,7 +170,6 @@ class Escape extends \Cleantalk\Common\Escape
         }
 
         return self::escKses($string, $allowed_html = array(), $allowed_protocols = array());
-
     }
 
     /**

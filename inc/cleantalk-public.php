@@ -562,11 +562,12 @@ function apbct_hook__wp_footer()
                     })				
                 </script>";
 
-        echo Escape::escKses($script,
+        echo Escape::escKses(
+            $script,
             array(
                 'script' => array(
                     'type' => true,
-                    'data-cookieconsent'=> true
+                    'data-cookieconsent' => true
                 )
             )
         );
@@ -656,14 +657,15 @@ function ct_add_hidden_fields(
     if ( $return_string === true ) {
         return $html;
     } else {
-        echo Escape::escKses($html,
+        echo Escape::escKses(
+            $html,
             array(
                 'script' => array(
                     'type' => true,
-                    'data-cookieconsent'=> true
+                    'data-cookieconsent' => true
                 ),
-                'input'=> array(
-                    'type'=> true,
+                'input' => array(
+                    'type' => true,
                     'id' => true,
                     'name' => true,
                     'value' => true
@@ -1465,7 +1467,8 @@ function ct_comments_output($curr_comment, $_param2, $wp_list_comments_args)
 
     // Ending comment output
     $html .= "</{$ending_tag}>";
-    echo Escape::escKses($html,
+    echo Escape::escKses(
+        $html,
         array(
             'div' => array(
                 'class' => true

@@ -1163,15 +1163,11 @@ function apbct_settings__display()
     foreach ( $apbct->settings_fields_in_groups as $group_name => $group ) {
         //html_before
         $out = ! empty($group['html_before']) ? $group['html_before'] : '';
-        echo Escape::escKsesPreset(
-            $out,'apbct_settings__display__groups'
-        );
+        echo Escape::escKsesPreset($out, 'apbct_settings__display__groups');
 
         //title
         $out = ! empty($group['title']) ? '<h3 style="margin-left: 220px;" id="apbct_setting_group__' . $group_name . '">' . $group['title'] . '</h3>' : '';
-        echo Escape::escKsesPreset(
-            $out,'apbct_settings__display__groups'
-        );
+        echo Escape::escKsesPreset($out, 'apbct_settings__display__groups');
 
         do_settings_fields('cleantalk', 'apbct_section__' . $group_name);
 
@@ -1181,9 +1177,7 @@ function apbct_settings__display()
         }
 
         $out = ! empty($group['html_after']) ? $group['html_after'] : '';
-        echo Escape::escKsesPreset(
-            $out,'apbct_settings__display__groups'
-        );
+        echo Escape::escKsesPreset($out, 'apbct_settings__display__groups');
     }
 
     echo '<div id="apbct_settings__after_advanced_settings"></div>';
@@ -1202,9 +1196,7 @@ function apbct_settings__display()
         if ( substr(get_locale(), 0, 2) != 'en' ) {
             require_once(CLEANTALK_PLUGIN_DIR . 'templates/translate_banner.php');
             $out = sprintf($ct_translate_banner_template, substr(get_locale(), 0, 2));
-            echo Escape::escKsesPreset(
-                $out,'apbct_settings__display__banner_template'
-            );
+            echo Escape::escKsesPreset($out, 'apbct_settings__display__banner_template');
         }
     }
 }
@@ -1716,7 +1708,7 @@ function apbct_settings__field__action_buttons()
     if ( apbct_api_key__is_correct($apbct->api_key) && $apbct->key_is_ok ) {
         echo '<div>';
         foreach ( $links as $link ) {
-            echo Escape::escKsesPreset($link,'apbct_settings__display__groups') . '&nbsp;&nbsp;&nbsp;&nbsp;';
+            echo Escape::escKsesPreset($link, 'apbct_settings__display__groups') . '&nbsp;&nbsp;&nbsp;&nbsp;';
         }
         echo '</div>';
     } elseif ( apbct__is_hosting_license() ) {
@@ -1739,20 +1731,14 @@ function apbct_settings__field__statistics()
         __('Last spam check request to %s server was at %s.', 'cleantalk-spam-protect'),
         $apbct->stats['last_request']['server']
             ? Escape::escUrl($apbct->stats['last_request']['server'])
-            : __(
-            'unknown',
-            'cleantalk-spam-protect'
-        ),
+            : __('unknown', 'cleantalk-spam-protect'),
         $apbct->stats['last_request']['time']
             ? date('M d Y H:i:s', $apbct->stats['last_request']['time'])
-            : __(
-            'unknown',
-            'cleantalk-spam-protect'
-        )
+            : __('unknown', 'cleantalk-spam-protect')
     );
     echo '<br>';
 
-    // Avarage time request
+    // Average time request
     printf(
         __('Average request time for past 7 days: %s seconds.', 'cleantalk-spam-protect'),
         $apbct->stats['requests'][min(array_keys($apbct->stats['requests']))]['average_time']
@@ -1764,14 +1750,10 @@ function apbct_settings__field__statistics()
     // SFW last die
     printf(
         __('Last time SpamFireWall was triggered for %s IP at %s', 'cleantalk-spam-protect'),
-        $apbct->stats['last_sfw_block']['ip'] ? Helper::ipValidate($apbct->stats['last_sfw_block']['ip']) : __(
-            'unknown',
-            'cleantalk-spam-protect'
-        ),
-        $apbct->stats['last_sfw_block']['time'] ? date('M d Y H:i:s', $apbct->stats['last_sfw_block']['time']) : __(
-            'unknown',
-            'cleantalk-spam-protect'
-        )
+        $apbct->stats['last_sfw_block']['ip'] ?: __('unknown', 'cleantalk-spam-protect'),
+        $apbct->stats['last_sfw_block']['time']
+            ? date('M d Y H:i:s', $apbct->stats['last_sfw_block']['time'])
+            : __('unknown', 'cleantalk-spam-protect')
     );
     echo '<br>';
 
@@ -1784,10 +1766,9 @@ function apbct_settings__field__statistics()
         ),
         (int)$apbct->stats['sfw']['entries']
     );
-    echo $apbct->fw_stats['firewall_updating_id'] ? ' ' . __(
-            'Under updating now:',
-            'cleantalk-spam-protect'
-        ) . ' ' . (int)$apbct->fw_stats['firewall_update_percent'] . '%' : '';
+    echo $apbct->fw_stats['firewall_updating_id']
+        ? ' ' . __('Under updating now:', 'cleantalk-spam-protect') . ' ' . (int)$apbct->fw_stats['firewall_update_percent'] . '%'
+        : '';
     echo '<br>';
 
     // SFW last sent logs
@@ -1821,9 +1802,9 @@ function apbct_settings__field__statistics()
                 echo '<tr>'
                      . '<td>' . Escape::escHtml($key + 1) . '.</td>'
                      . '<td>' . Escape::escHtml($report['date']) . '</td>'
-                     . '<td>' . Escape::escUrl($report['page_url'] ). '</td>'
+                     . '<td>' . Escape::escUrl($report['page_url']) . '</td>'
                      . '<td>' . Escape::escHtml($report['lib_report']) . '</td>'
-                     . '<td>' . Escape::escUrl($report['work_url'] ). '</td>'
+                     . '<td>' . Escape::escUrl($report['work_url']) . '</td>'
                      . '</tr>';
             }
             echo "</table>";

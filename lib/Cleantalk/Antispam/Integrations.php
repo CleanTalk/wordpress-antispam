@@ -1,6 +1,7 @@
 <?php
 
 namespace Cleantalk\Antispam;
+
 use Cleantalk\Variables\Server;
 
 class Integrations
