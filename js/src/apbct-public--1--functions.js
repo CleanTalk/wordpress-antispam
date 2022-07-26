@@ -176,9 +176,13 @@ apbctLocalStorage = {
         }
         return false;
     },
-    set : function(key, value) {
-        let objToSave = {'value': JSON.stringify(value), 'timestamp': Math.floor(new Date().getTime() / 1000)};
-        localStorage.setItem(key, JSON.stringify(objToSave));
+    set : function(key, value, is_json = true) {
+        if (is_json){
+            let objToSave = {'value': JSON.stringify(value), 'timestamp': Math.floor(new Date().getTime() / 1000)};
+            localStorage.setItem(key, JSON.stringify(objToSave));
+        } else {
+            localStorage.setItem(key, value);
+        }
     },
     isAlive : function(key, maxLifetime) {
         if ( typeof maxLifetime === 'undefined' ) {
