@@ -25,13 +25,7 @@ class Post extends ServerVariables
     {
         // Return from memory. From $this->variables
         if (! isset(static::$instance->variables[$name])) {
-            if (function_exists('filter_input')) {
-                $value = filter_input(INPUT_POST, $name);
-            }
-
-            if (empty($value)) {
-                $value = isset($_POST[$name]) ? $_POST[$name] : '';
-            }
+            $value = filter_input(INPUT_POST, $name);
 
             // Remember for further calls
             static::getInstance()->rememberVariable($name, $value);

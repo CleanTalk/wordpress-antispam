@@ -538,38 +538,39 @@ function apbct_hook__wp_footer()
         $timeout = $apbct->settings['misc__async_js'] ? 1000 : 0;
 
         if ( $apbct->data['ajax_type'] == 'rest' ) {
-            $html =
-                "<script type=\"text/javascript\" " . (class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '')
-                . ">				
-                    window.addEventListener('DOMContentLoaded', function () {
-                        setTimeout(function(){
-                            if( document.querySelectorAll('[name^=ct_checkjs]').length > 0 ) {
-                                apbct_public_sendREST(
+            $send_way_asset = "apbct_public_sendREST(
                                     'js_keys__get',
-                                    { callback: apbct_js_keys__set_input_value }
-                                )
-                            } 
-                        }," . $timeout . ")					   
-                    });								
-                </script>";
+                                    { callback: apbct_js_keys__set_input_value }";
         } else {
-            $html =
-                "<script type=\"text/javascript\" " . (class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '')
-                . ">				
+            $send_way_asset = "apbct_public_sendAJAX(	
+                                    { action: 'apbct_js_keys__get' },	
+                                    { callback: apbct_js_keys__set_input_value }";
+        }
+
+        $cookie_bot_asset = (class_exists('Cookiebot_WP')) ? 'data-cookieconsent="ignore"' : '';
+
+        $script =
+            '<script type="text/javascript" ' . $cookie_bot_asset
+            . ">				
                     window.addEventListener('DOMContentLoaded', function () {
                         setTimeout(function(){
                             if( document.querySelectorAll('[name^=ct_checkjs]').length > 0 ) {
-                                apbct_public_sendAJAX(
-                                    { action: 'apbct_js_keys__get' },
-                                    { callback: apbct_js_keys__set_input_value }
+                                " . $send_way_asset . "
                                 )
                             }
                         }," . $timeout . ")					    
-                    });				
+                    })				
                 </script>";
-        }
 
-        echo $html;
+        echo Escape::escKses(
+            $script,
+            array(
+                'script' => array(
+                    'type' => true,
+                    'data-cookieconsent' => true
+                )
+            )
+        );
     }
 }
 
@@ -656,7 +657,21 @@ function ct_add_hidden_fields(
     if ( $return_string === true ) {
         return $html;
     } else {
-        echo $html;
+        echo Escape::escKses(
+            $html,
+            array(
+                'script' => array(
+                    'type' => true,
+                    'data-cookieconsent' => true
+                ),
+                'input' => array(
+                    'type' => true,
+                    'id' => true,
+                    'name' => true,
+                    'value' => true
+                )
+            )
+        );
     }
 }
 
@@ -1386,65 +1401,65 @@ function ct_comments_output($curr_comment, $_param2, $wp_list_comments_args)
 
     $settings_link = '/wp-admin/' . (is_network_admin() ? "settings.php?page=cleantalk" : "options-general.php?page=cleantalk");
 
-    echo "<div class='ct_comment_info'><div class ='ct_comment_titles'>";
-    echo "<p class='ct_comment_info_title'>" . __('Sender info', 'cleantalk-spam-protect') . "</p>";
+    $html = "<div class='ct_comment_info'><div class ='ct_comment_titles'>";
+    $html .= "<p class='ct_comment_info_title'>" . __('Sender info', 'cleantalk-spam-protect') . "</p>";
 
-    echo "<p class='ct_comment_logo_title'>
+    $html .= "<p class='ct_comment_logo_title'>
 				" . __('by', 'cleantalk-spam-protect')
          . " <a href='{$settings_link}' target='_blank'><img class='ct_comment_logo_img' src='" . Escape::escUrl(APBCT_IMG_ASSETS_PATH . "/logo_color.png") . "'></a>"
          . " <a href='{$settings_link}' target='_blank'>CleanTalk</a>"
          . "</p></div>";
     // Outputs email if exists
     if ( $email ) {
-        echo "<a href='https://cleantalk.org/blacklists/$email' target='_blank' title='https://cleantalk.org/blacklists/$email'>"
+        $html .= "<a href='https://cleantalk.org/blacklists/$email' target='_blank' title='https://cleantalk.org/blacklists/$email'>"
              . "$email"
              . "&nbsp;<img src='" . Escape::escUrl(APBCT_IMG_ASSETS_PATH . "/new_window.gif") . "' border='0' style='float:none; box-shadow: transparent 0 0 0 !important;'/>"
              . "</a>";
     } else {
-        echo __('No email', 'cleantalk-spam-protect');
+        $html .= __('No email', 'cleantalk-spam-protect');
     }
-    echo "&nbsp;|&nbsp;";
+    $html .= "&nbsp;|&nbsp;";
 
     // Outputs IP if exists
     if ( $ip ) {
-        echo "<a href='https://cleantalk.org/blacklists/$ip' target='_blank' title='https://cleantalk.org/blacklists/$ip'>"
+        $html .= "<a href='https://cleantalk.org/blacklists/$ip' target='_blank' title='https://cleantalk.org/blacklists/$ip'>"
              . "$ip"
              . "&nbsp;<img src='" . Escape::escUrl(APBCT_IMG_ASSETS_PATH . "/new_window.gif") . "' border='0' style='float:none; box-shadow: transparent 0 0 0 !important;'/>"
              . "</a>";
     } else {
-        echo __('No IP', 'cleantalk-spam-protect');
+        $html .= __('No IP', 'cleantalk-spam-protect');
     }
-    echo '&nbsp;|&nbsp;';
+    $html .= '&nbsp;|&nbsp;';
 
-    echo "<span commentid='$id' class='ct_this_is ct_this_is_spam' href='#'>"
+    $html .= "<span commentid='$id' class='ct_this_is ct_this_is_spam' href='#'>"
          . __(
              'Mark as spam',
              'cleantalk-spam-protect'
          )
          . "</span>";
-    echo "<span commentid='$id' class='ct_this_is ct_this_is_not_spam ct_hidden' href='#'>"
+    $html .= "<span commentid='$id' class='ct_this_is ct_this_is_not_spam ct_hidden' href='#'>"
          . __(
              'Unspam',
              'cleantalk-spam-protect'
          )
          . "</span>";
-    echo "<p class='ct_feedback_wrap'>";
-    echo "<span class='ct_feedback_result ct_feedback_result_spam'>"
+    $html .= "<p class='ct_feedback_wrap'>";
+    $html .= "<span class='ct_feedback_result ct_feedback_result_spam'>"
          . __(
              'Marked as spam.',
              'cleantalk-spam-protect'
          )
          . "</span>";
-    echo "<span class='ct_feedback_result ct_feedback_result_not_spam'>"
+    $html .= "<span class='ct_feedback_result ct_feedback_result_not_spam'>"
          . __(
              'Marked as not spam.',
              'cleantalk-spam-protect'
          )
          . "</span>";
-    echo "&nbsp;<span class='ct_feedback_msg'><span>";
-    echo "</p>";
+    $html .= "&nbsp;<span class='ct_feedback_msg'><span>";
+    $html .= "</p>";
 
-    echo "</div>";
+    $html .= "</div>";
 
     // @todo research what such themes and make exception for them
     $ending_tag = isset($wp_list_comments_args['style']) ? $wp_list_comments_args['style'] : null;
@@ -1453,7 +1468,34 @@ function ct_comments_output($curr_comment, $_param2, $wp_list_comments_args)
     };
 
     // Ending comment output
-    echo "</{$ending_tag}>";
+    $html .= "</{$ending_tag}>";
+    echo Escape::escKses(
+        $html,
+        array(
+            'div' => array(
+                'class' => true
+            ),
+            'p' => array(
+                'class' => true
+            ),
+            'span' => array(
+                'class' => true,
+                'commentid' => true,
+                'href' => true,
+            ),
+            'img' => array(
+                'style' => true,
+                'src' => true,
+                'border' => true,
+            ),
+            'style' => true,
+            'a' => array(
+                'href' => true,
+                'target' => true,
+                'title' => true,
+            ),
+        )
+    );
 }
 
 /**
