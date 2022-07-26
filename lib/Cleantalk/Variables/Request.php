@@ -28,7 +28,15 @@ class Request extends ServerVariables
             return static::$instance->variables[$name];
         }
 
-        $value = isset($_REQUEST[$name]) ? $_REQUEST[$name] : '';
+        $value = '';
+
+        if ( Post::get($name) ) {
+            $value = Post::get($name);
+        } elseif ( Get::get($name) ) {
+            $value = Get::get($name);
+        } elseif ( Cookie::get($name) ) {
+            $value = Cookie::get($name);
+        }
 
         // Remember for further calls
         static::getInstance()->rememberVariable($name, $value);

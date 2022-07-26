@@ -27,13 +27,8 @@ class Cookie extends \Cleantalk\Variables\Cookie
                 // The old way
             } else {
                 $name = apbct__get_cookie_prefix() . $name;
-                if (function_exists('filter_input')) {
-                    $value = filter_input(INPUT_COOKIE, $name);
-                }
 
-                if (empty($value)) {
-                    $value = isset($_COOKIE[$name]) ? $_COOKIE[$name] : '';
-                }
+                $value = filter_input(INPUT_COOKIE, $name);
             }
 
             // Validate variable

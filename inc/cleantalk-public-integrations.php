@@ -97,7 +97,7 @@ function ct_validate_ccf_submission($value, $_field_id, $_required)
     }
 
     $post_info['comment_type'] = 'feedback_custom_contact_forms';
-    $post_info['post_url']     = apbct_get_server_variable('HTTP_REFERER');
+    $post_info['post_url']     = Server::get('HTTP_REFERER');
 
     $checkjs = apbct_js_test(Sanitize::cleanTextField(Cookie::get('ct_checkjs')), true) ?: apbct_js_test(Sanitize::cleanTextField(Post::get('ct_checkjs')));
 
@@ -132,7 +132,7 @@ function ct_woocommerce_wishlist_check($args)
     }
 
     //If the IP is a Google bot
-    $hostname = gethostbyaddr(apbct_get_server_variable('REMOTE_ADDR'));
+    $hostname = gethostbyaddr(Server::get('REMOTE_ADDR'));
     if ( ! strpos($hostname, 'googlebot.com') ) {
         do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
 
@@ -150,7 +150,7 @@ function ct_woocommerce_wishlist_check($args)
     }
 
     $post_info['comment_type'] = 'feedback';
-    $post_info['post_url']     = apbct_get_server_variable('HTTP_REFERER');
+    $post_info['post_url']     = Server::get('HTTP_REFERER');
 
     $checkjs = apbct_js_test(Sanitize::cleanTextField(Cookie::get('ct_checkjs')), true) ?: apbct_js_test(Sanitize::cleanTextField(Post::get('ct_checkjs')));
 
@@ -234,7 +234,7 @@ function apbct_integration__buddyPres__activityWall($is_spam, $activity_obj = nu
             'sender_email'    => $curr_user->data->user_email,
             'sender_nickname' => $curr_user->data->user_login,
             'post_info'       => array(
-                'post_url'     => apbct_get_server_variable('HTTP_REFERER'),
+                'post_url'     => Server::get('HTTP_REFERER'),
                 'comment_type' => 'buddypress_activitywall',
             ),
             'js_on'           => apbct_js_test(Cookie::get('ct_checkjs'), true),
@@ -347,7 +347,7 @@ function apbct_integration__buddyPres__private_msg_check($bp_message_obj)
             'sender_nickname' => $sender_user_obj->data->user_login,
             'post_info'       => array(
                 'comment_type' => 'buddypress_comment',
-                'post_url'     => apbct_get_server_variable('HTTP_REFERER'),
+                'post_url'     => Server::get('HTTP_REFERER'),
             ),
             'js_on'           => apbct_js_test(Sanitize::cleanTextField(Cookie::get('ct_checkjs')), true) ?: apbct_js_test(Sanitize::cleanTextField(Post::get('ct_checkjs'))),
             'sender_info'     => array('sender_url' => null),
@@ -372,23 +372,6 @@ function apbct_integration__buddyPres__private_msg_check($bp_message_obj)
     }
 }
 
-/**
- * Adds hidden filed to default search form
- *
- * @param $form string
- *
- * @return string
- */
-function apbct_forms__search__addField($form)
-{
-    global $apbct;
-    if ( $apbct->settings['forms__search_test'] == 1 ) {
-        $js_filed = ct_add_hidden_fields('ct_checkjs_search_default', true, false, false, false);
-        $form     = str_replace('</form>', $js_filed, $form);
-    }
-
-    return $form;
-}
 
 /**
  * Test default search string for spam
@@ -479,7 +462,7 @@ function ct_woocommerce_checkout_check($_data, $errors)
     }
 
     $post_info['comment_type'] = 'order';
-    $post_info['post_url']     = apbct_get_server_variable('HTTP_REFERER');
+    $post_info['post_url']     = Server::get('HTTP_REFERER');
 
     $base_call_data = array(
         'message'         => $message,
@@ -606,7 +589,7 @@ function apbct_form__piratesForm__testSpam()
     }
 
     $post_info['comment_type'] = 'contact_form_wordpress_feedback_pirate';
-    $post_info['post_url']     = apbct_get_server_variable('HTTP_REFERER');
+    $post_info['post_url']     = Server::get('HTTP_REFERER');
 
     //Making a call
     $base_call_result = apbct_base_call(
@@ -1033,8 +1016,8 @@ function ct_preprocess_comment($comment)
         $comment['comment_author_email'],
         $comment['comment_author_url'],
         $comment['comment_content'],
-        apbct_get_server_variable('REMOTE_ADDR'),
-        apbct_get_server_variable('HTTP_USER_AGENT')
+        Server::get('REMOTE_ADDR'),
+        Server::get('HTTP_USER_AGENT')
     );
 
     // Go out if author in local blacklists
@@ -1094,7 +1077,7 @@ function ct_preprocess_comment($comment)
                 : json_encode(
                     array(
                         'validation_notice' => $apbct->validation_error,
-                        'page_url'          => apbct_get_server_variable('HTTP_HOST') . apbct_get_server_variable('REQUEST_URI'),
+                        'page_url'          => Server::get('HTTP_HOST') . Server::get('REQUEST_URI'),
                     )
                 )
         ),
@@ -1513,7 +1496,7 @@ function ct_registration_errors($errors, $sanitized_user_login = null, $user_ema
             ? json_encode(
                 array(
                     'validation_notice' => $errors->get_error_message(),
-                    'page_url'          => apbct_get_server_variable('HTTP_HOST') . apbct_get_server_variable('REQUEST_URI'),
+                    'page_url'          => Server::get('HTTP_HOST') . Server::get('REQUEST_URI'),
                 )
             )
             : null,
@@ -1978,7 +1961,7 @@ function apbct_form__contactForm7__testSpam($spam, $_submission = null)
                     ? null
                     : json_encode(array(
                         'validation_notice' => $apbct->validation_error,
-                        'page_url'          => apbct_get_server_variable('HTTP_HOST') . apbct_get_server_variable('REQUEST_URI'),
+                        'page_url'          => Server::get('HTTP_HOST') . Server::get('REQUEST_URI'),
                     ))
             ),
         )
@@ -3008,19 +2991,15 @@ function apbct_form__the7_contact_form()
 
         $ct_result = $base_call_result['ct_result'];
         if ( $ct_result->allow == 0 ) {
-            $response = json_encode(
-                array(
-                    'success' => false,
-                    'errors'  => $ct_result->comment,
-                    'nonce'   => wp_create_nonce('dt_contact_form')
-                )
+            $response = array(
+                'success' => false,
+                'errors'  => $ct_result->comment,
+                'nonce'   => wp_create_nonce('dt_contact_form')
             );
 
-            // response output
-            header("Content-Type: application/json");
-            echo $response;
+            wp_send_json($response);
 
-            // IMPORTANT: don't forget to "exit"
+            // IMPORTANT: don't forget to "exit" @todo AG: Why? Exit does not terminate connection, but I can't see how it is applicable
             exit;
         }
     }

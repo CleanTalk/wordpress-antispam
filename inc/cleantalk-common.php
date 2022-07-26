@@ -259,7 +259,7 @@ function apbct_base_call($params = array(), $reg_flag = false)
         $apbct->data['connection_reports']['negative']++;
         $apbct->data['connection_reports']['negative_report'][] = array(
             'date'       => date("Y-m-d H:i:s"),
-            'page_url'   => apbct_get_server_variable('REQUEST_URI'),
+            'page_url'   => Server::get('REQUEST_URI'),
             'lib_report' => $ct_result->errstr,
             'work_url'   => $ct->work_url,
         );
@@ -396,16 +396,16 @@ function apbct_exclusions_check__url()
         // Fix for AJAX and WP REST API forms
         $haystack =
             (
-                apbct_get_server_variable('REQUEST_URI') === '/wp-admin/admin-ajax.php' ||
-                stripos(apbct_get_server_variable('REQUEST_URI'), '/wp-json/') === 0
+                Server::get('REQUEST_URI') === '/wp-admin/admin-ajax.php' ||
+                stripos(Server::get('REQUEST_URI'), '/wp-json/') === 0
             ) &&
-            apbct_get_server_variable('HTTP_REFERER')
+            Server::get('HTTP_REFERER')
             ? str_ireplace(
                 array('http://', 'https://', strval(Server::get('HTTP_HOST'))),
                 '',
-                apbct_get_server_variable('HTTP_REFERER')
+                Server::get('HTTP_REFERER')
             )
-            : apbct_get_server_variable('REQUEST_URI');
+            : Server::get('REQUEST_URI');
 
         if ( $apbct->data['check_exclusion_as_url'] ) {
             $protocol = ! in_array(Server::get('HTTPS'), ['off', '']) || Server::get('SERVER_PORT') == 443 ? 'https://' : 'http://';
@@ -441,14 +441,14 @@ function apbct_exclusions_check__ip()
 {
     global $cleantalk_ip_exclusions;
 
-    if ( apbct_get_server_variable('REMOTE_ADDR') ) {
-        if ( \Cleantalk\ApbctWP\Helper::ipIsCleantalks(apbct_get_server_variable('REMOTE_ADDR')) ) {
+    if ( Server::get('REMOTE_ADDR') ) {
+        if ( \Cleantalk\ApbctWP\Helper::ipIsCleantalks(Server::get('REMOTE_ADDR')) ) {
             return true;
         }
 
         if ( ! empty($cleantalk_ip_exclusions) && is_array($cleantalk_ip_exclusions) ) {
             foreach ( $cleantalk_ip_exclusions as $exclusion ) {
-                if ( stripos(apbct_get_server_variable('REMOTE_ADDR'), $exclusion) !== false ) {
+                if ( stripos(Server::get('REMOTE_ADDR'), $exclusion) !== false ) {
                     return true;
                 }
             }
@@ -479,11 +479,11 @@ function apbct_get_sender_info()
 
     // AMP check
     $amp_detected =
-        apbct_get_server_variable('HTTP_REFERER')
+        Server::get('HTTP_REFERER')
         ? (
-            strpos(apbct_get_server_variable('HTTP_REFERER'), '/amp/') !== false ||
-            strpos(apbct_get_server_variable('HTTP_REFERER'), '?amp=1') !== false ||
-            strpos(apbct_get_server_variable('HTTP_REFERER'), '&amp=1') !== false
+            strpos(Server::get('HTTP_REFERER'), '/amp/') !== false ||
+            strpos(Server::get('HTTP_REFERER'), '?amp=1') !== false ||
+            strpos(Server::get('HTTP_REFERER'), '&amp=1') !== false
             ? 1
             : 0
         )
@@ -503,8 +503,8 @@ function apbct_get_sender_info()
         'plugin_request_id'      => $apbct->plugin_request_id,
         'wpms'                   => is_multisite() ? 'yes' : 'no',
         'remote_addr'            => \Cleantalk\ApbctWP\Helper::ipGet('remote_addr', false),
-        'REFFERRER'              => apbct_get_server_variable('HTTP_REFERER'),
-        'USER_AGENT'             => apbct_get_server_variable('HTTP_USER_AGENT'),
+        'REFFERRER'              => Server::get('HTTP_REFERER'),
+        'USER_AGENT'             => Server::get('HTTP_USER_AGENT'),
         'page_url'               => apbct_sender_info___get_page_url(),
         'cms_lang'               => substr(get_locale(), 0, 2),
         'ct_options'             => json_encode($apbct->settings, JSON_UNESCAPED_SLASHES),
@@ -543,7 +543,7 @@ function apbct_get_sender_info()
         'headers_sent'           => ! empty($apbct->headers_sent) ? $apbct->headers_sent : false,
         'headers_sent__hook'     => ! empty($apbct->headers_sent__hook) ? $apbct->headers_sent__hook : 'no_hook',
         'headers_sent__where'    => ! empty($apbct->headers_sent__where) ? $apbct->headers_sent__where : false,
-        'request_type'           => apbct_get_server_variable('REQUEST_METHOD') ?: 'UNKNOWN',
+        'request_type'           => Server::get('REQUEST_METHOD') ?: 'UNKNOWN',
         'email_check'            => Cookie::get('ct_checked_emails') ? json_encode(
             Cookie::get('ct_checked_emails')
         ) : null,
@@ -1099,6 +1099,8 @@ function apbct_add_async_attribute($tag, $handle)
         if ( $apbct->settings['misc__async_js'] ) {
             $tag = str_replace(' src', ' async="async" src', $tag);
         }
+
+        $tag = str_replace(' src', ' data-cfasync="false" src', $tag);
 
         if ( class_exists('Cookiebot_WP') ) {
             $tag = str_replace(' src', ' data-cookieconsent="ignore" src', $tag);

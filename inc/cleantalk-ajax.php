@@ -7,6 +7,7 @@
 use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\Variables\Get;
 use Cleantalk\Variables\Post;
+use Cleantalk\Variables\Server;
 
 $_cleantalk_ajax_actions_to_check[] = 'qcf_validate_form';            //Quick Contact Form
 $_cleantalk_ajax_actions_to_check[] = 'amoforms_submit';            //amoForms
@@ -445,7 +446,7 @@ function ct_ajax_hook($message_obj = null)
     //General post_info for all ajax calls
     $post_info = array(
         'comment_type' => 'feedback_ajax',
-        'post_url'     => apbct_get_server_variable('HTTP_REFERER'), // Page URL must be an previous page
+        'post_url'     => Server::get('HTTP_REFERER'), // Page URL must be an previous page
     );
     if ( Post::get('action') === 'cleantalk_force_ajax_check' ) {
         $post_info['comment_type'] = 'feedback_ajax_external_form';
