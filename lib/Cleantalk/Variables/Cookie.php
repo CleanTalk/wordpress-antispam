@@ -25,13 +25,7 @@ class Cookie extends ServerVariables
     {
         // Return from memory. From $this->variables
         if (! isset(static::$instance->variables[$name])) {
-            if (function_exists('filter_input')) {
-                $value = filter_input(INPUT_COOKIE, $name);
-            }
-
-            if (empty($value)) {
-                $value = isset($_COOKIE[$name]) ? $_COOKIE[$name] : '';
-            }
+            $value = filter_input(INPUT_COOKIE, $name);
 
             // Remember for further calls
             static::getInstance()->rememberVariable($name, $value);
