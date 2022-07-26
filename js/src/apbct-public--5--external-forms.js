@@ -183,7 +183,7 @@ function sendAjaxCheckingFormData(form, prev, formOriginal) {
         data,
         {
             async: false,
-            callback: function( prev, formOriginal, result ){
+            callback: function( result, data, params, obj, prev, formOriginal ){
 
                 if( result.apbct === undefined || ! +result.apbct.blocked ) {
 

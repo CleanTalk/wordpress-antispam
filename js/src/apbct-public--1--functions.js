@@ -106,7 +106,7 @@ function apbct_public_sendAJAX(data, params, obj){
             }else{
                 if(callback) {
                     if (callback_params)
-                        callback.apply( callback_context, callback_params.concat( result, data, params, obj ) );
+                        callback.apply( callback_context, [ result, data, params, obj ].concat(callback_params) );
                     else
                         callback(result, data, params, obj);
                 }
