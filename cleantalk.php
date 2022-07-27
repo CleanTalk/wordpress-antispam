@@ -275,6 +275,11 @@ if ( $apbct->settings['forms__general_contact_forms_test'] == 1
 }
 
 $apbct_active_integrations = array(
+    'CleantalkInternalForms'         => array(
+        'hook'    => 'ct_check_internal',
+        'setting' => 'forms__check_internal',
+        'ajax'    => true
+    ),
     'ContactBank'         => array(
         'hook'    => 'contact_bank_frontend_ajax_call',
         'setting' => 'forms__contact_forms_test',

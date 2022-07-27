@@ -14,7 +14,7 @@ function ct_check_internal(currForm){
 //AJAX Request
     jQuery.ajax({
         type: 'POST',
-        url: ctPublic.blog_home,
+        url: ctPublicFunctions._ajax_url,
         datatype : 'text',
         data: ct_data,
         success: function(data){
@@ -33,24 +33,21 @@ function ct_check_internal(currForm){
     
 jQuery(document).ready( function(){
     let ct_currAction = '',
-        ct_currForm = '',
-        ct_internal_script_exclusions = [
-            ctPublic.blog_home + 'wp-login.php', // WordPress login page
-        ];
+        ct_currForm = '';
 
     if( ! +ctPublic.settings__forms__check_internal ) {
         return;
     }
 
-	for(i=0;i<document.forms.length;i++){
-		if(typeof(document.forms[i].action)=='string'){
+	for( let i=0; i<document.forms.length; i++ ){
+		if ( typeof(document.forms[i].action) == 'string' ){
             ct_currForm = document.forms[i];
 			ct_currAction = ct_currForm.action;
-            if(
+            if (
                 ct_currAction.indexOf('https?://') !== null &&                        // The protocol is obligatory
-                ct_currAction.match(ctPublic.blog_home + '.*?\.php') !== -1 && // Main check
-                ! ct_internal_script_exclusions.indexOf(ct_currAction)                // Exclude WordPress native scripts from processing
-            ){
+                ct_currAction.match(ctPublic.blog_home + '.*?\.php') !== null && // Main check
+                ! ct_check_internal__is_exclude_form(ct_currAction)                  // Exclude WordPress native scripts from processing
+            ) {
                 ctPrevHandler = ct_currForm.click;
                 jQuery(ct_currForm).off('**');
                 jQuery(ct_currForm).off();
@@ -62,3 +59,19 @@ jQuery(document).ready( function(){
 		}
 	}
 });
+
+/**
+ * Check by action to exclude the form checking
+ * @param action string
+ * @return boolean
+ */
+function ct_check_internal__is_exclude_form(action) {
+    // An array contains forms action need to be excluded.
+    let ct_internal_script_exclusions = [
+        ctPublic.blog_home + 'wp-login.php', // WordPress login page
+    ];
+
+    return ct_internal_script_exclusions.some((item) => {
+        return action.match(new RegExp('^' + item)) !== null;
+    });
+}

@@ -24,30 +24,6 @@ function apbct_init()
         $apbct->pixel_url = apbct_get_pixel_url__ajax(true);
     }
 
-    //Check internal forms with such "action" http://wordpress.loc/contact-us/some_script.php
-    if ( (Post::get('action') === 'ct_check_internal') &&
-         $apbct->settings['forms__check_internal']
-    ) {
-        $ct_result = ct_contact_form_validate();
-        if ( $ct_result == null ) {
-            echo 'true';
-            die();
-        } else {
-            echo wp_kses(
-                $ct_result,
-                array(
-                    'a' => array(
-                        'href'  => true,
-                        'title' => true,
-                    ),
-                    'br'     => array(),
-                    'p'     => array()
-                )
-            );
-            die();
-        }
-    }
-
     //Search form hook init
     if ( $apbct->settings['forms__search_test'] ) {
         add_filter('get_search_form', 'apbct_form_search__add_fields', 999);
