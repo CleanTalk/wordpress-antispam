@@ -27,6 +27,8 @@ class Post extends ServerVariables
         if (! isset(static::$instance->variables[$name])) {
             $value = filter_input(INPUT_POST, $name);
 
+            $value = $value === false ? filter_input(INPUT_POST, $name, FILTER_DEFAULT, FILTER_REQUIRE_ARRAY) : $value;
+
             $value = is_null($value) ? '' : $value;
 
             // Remember for further calls
