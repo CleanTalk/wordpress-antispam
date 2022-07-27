@@ -128,7 +128,7 @@ function skip_for_ct_contact_form_validate()
          (isset($_POST['call_function']) && $_POST['call_function'] === 'push_notification_settings') || // Skip mobile requests (push settings)
          apbct_is_in_uri('membership-login') || // Skip login form
          (isset($_GET['cookie-state-change'])) || //skip GDPR plugin
-         (apbct_get_server_variable('HTTP_USER_AGENT') === 'MailChimp' && apbct_is_in_uri('mc4wp-sync-api/webhook-listener')) || // Mailchimp webhook skip
+         (Server::get('HTTP_USER_AGENT') === 'MailChimp' && apbct_is_in_uri('mc4wp-sync-api/webhook-listener')) || // Mailchimp webhook skip
          apbct_is_in_uri('researcher-log-in') || // Skip login form
          apbct_is_in_uri('admin_aspcms/_system/AspCms_SiteSetting.asp?action=saves') || // Skip admin save callback
          apbct_is_in_uri('?profile_tab=postjobs') || // Skip post vacancies
