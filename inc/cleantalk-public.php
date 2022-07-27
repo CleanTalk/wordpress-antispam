@@ -671,7 +671,7 @@ function ct_add_honeypot_field($form_type, $form_method = 'post')
     // Generate the hidden field
     $honeypot = '<input 
         id="apbct__email_id__' . $form_type . '_' . $random . '" 
-        class="apbct__email_id__' . $form_type . '" 
+        class="apbct_special_field apbct__email_id__' . $form_type . '"
         autocomplete="off" 
         name="apbct__email_id__' . $form_type . '_' . $random . '"  
         type="text" 
@@ -684,6 +684,7 @@ function ct_add_honeypot_field($form_type, $form_method = 'post')
         //add hidden field to set random suffix for the field
         $honeypot .= '<input 
         id="apbct_event_id"
+        class="apbct_special_field"
         name="apbct_event_id"
         type="hidden" 
         value="' . $random . '" 
@@ -694,7 +695,7 @@ function ct_add_honeypot_field($form_type, $form_method = 'post')
     if ( $form_method === 'get' ) {
         $honeypot .= '<input 
         id="apbct_submit_id__' . $form_type . '_' . $random . '" 
-        class="apbct__email_id__' . $form_type . '" 
+        class="apbct_special_field apbct__email_id__' . $form_type . '"
         name="apbct_submit_id__' . $form_type . '_' . $random . '"  
         type="submit" 
         apbct_event_id="' . $random . '"

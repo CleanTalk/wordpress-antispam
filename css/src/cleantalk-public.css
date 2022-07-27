@@ -8,6 +8,6 @@
 .wc_apbct_email_id {
     display: none !important;
 }
-input[class*="apbct__email_id"]{
+.apbct_special_filed input[class*="apbct__email_id"]{
     display: none !important;
 }
