@@ -96,7 +96,7 @@ function skip_for_ct_contact_form_validate()
          (isset($_GET['ptype']) && $_GET['ptype'] === 'login') ||
          isset($_POST['ct_checkjs_register_form']) ||
          (isset($_POST['signup_username'], $_POST['signup_password_confirm'], $_POST['signup_submit'])) ||
-         $apbct->settings['forms__general_contact_forms_test'] == 0 ||
+         ( $apbct->settings['forms__general_contact_forms_test'] == 0 && $apbct->settings['forms__check_external'] == 0 && $apbct->settings['forms__check_internal'] == 0 ) ||
          isset($_POST['bbp_topic_content']) ||
          isset($_POST['bbp_reply_content']) ||
          isset($_POST['fscf_submitted']) ||
