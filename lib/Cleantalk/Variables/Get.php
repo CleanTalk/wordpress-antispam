@@ -25,7 +25,7 @@ class Get extends ServerVariables
     {
         // Return from memory. From $this->variables
         if (! isset(static::$instance->variables[$name])) {
-            $value = filter_input(INPUT_GET, $name);
+            $value = filter_input(INPUT_GET, $name, FILTER_DEFAULT, FILTER_REQUIRE_ARRAY);
 
             // Remember for further calls
             static::getInstance()->rememberVariable($name, $value);
