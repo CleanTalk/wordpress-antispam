@@ -41,9 +41,9 @@ class PublicIntegrationsTest extends TestCase
 
         //fails if signature not found in changed form
         $success = strpos(apbct_form_search__add_fields($sample_form), 'id="apbct__email_id__search_form') &&
-                   strpos(apbct_form_search__add_fields($sample_form), 'class="apbct__email_id__search_form');
+                   strpos(apbct_form_search__add_fields($sample_form), 'class="apbct_special_field apbct__email_id__search_form');
         $this->assertNotFalse($success);
-        //form wont be changed if search form checking is not set in settings
+        //form won`t be changed if search form checking is not set in settings
         $apbct->settings['forms__search_test'] = 0;
         $this->assertEquals(apbct_form_search__add_fields($sample_form),$sample_form);
     }
