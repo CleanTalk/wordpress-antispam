@@ -51,8 +51,8 @@ jQuery(document).ready( function(){
                 ctPrevHandler = ct_currForm.click;
                 jQuery(ct_currForm).off('**');
                 jQuery(ct_currForm).off();
-                jQuery(ct_currForm).on('submit', function(){
-                    ct_check_internal(ct_currForm);
+                jQuery(ct_currForm).on('submit', function(event){
+                    ct_check_internal(event.target);
                     return false;
                 });
             }
