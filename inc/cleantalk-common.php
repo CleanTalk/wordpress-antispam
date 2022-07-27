@@ -303,9 +303,9 @@ function apbct_add_connection_report(
     CleantalkResponse $request_response
 ){
     global $apbct;
-    
+
     // if not defined, reset the connection reports
-    if( ! isset($apbct->connection_reports) ){
+    if( empty(Helper::arrayObjectToArray($apbct->connection_reports)) ){
         $apbct->drop('connection_reports');
     }
     

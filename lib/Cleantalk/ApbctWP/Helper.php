@@ -246,4 +246,17 @@ class Helper extends \Cleantalk\Common\Helper
             ? static::bufferParseCsv($result)
             : $result;
     }
+
+    /**
+     * Cast arrayObject to array.
+     * @param $object - An ArrayObject
+     * @return array
+     */
+    public static function arrayObjectToArray($object)
+    {
+        if ( !is_object($object) && !is_array($object) )
+            return $object;
+
+        return array_map('static::arrayObjectToArray', (array)$object);
+    }
 }
