@@ -2450,14 +2450,17 @@ function ct_mail_send_connection_report()
 				    <td><b>Server IP</b></td>
 				  </tr>
 				  ';
+        $counter = 0;
         foreach ( $apbct->connection_reports['negative_report'] as $key => $report ) {
-            $message .= '<tr>'
-                        . '<td>' . ($key + 1) . '.</td>'
-                        . '<td>' . $report['date'] . '</td>'
-                        . '<td>' . $report['page_url'] . '</td>'
-                        . '<td>' . $report['lib_report'] . '</td>'
-                        . '<td>' . $report['work_url'] . '</td>'
-                        . '</tr>';
+            if (!$report['is_sent']){
+                $message .= '<tr>'
+                    . '<td>' . (++$counter) . '.</td>'
+                    . '<td>' . $report['date'] . '</td>'
+                    . '<td>' . $report['page_url'] . '</td>'
+                    . '<td>' . $report['lib_report'] . '</td>'
+                    . '<td>' . $report['work_url'] . '</td>'
+                    . '</tr>';
+            }
         }
         $message .= '</table>';
         
