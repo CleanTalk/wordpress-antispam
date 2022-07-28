@@ -311,12 +311,12 @@ function apbct_add_connection_report(
     
     // if not defined, set the gathering connection report start date
     if( empty($apbct->connection_reports['since']) ){
-        $apbct->connection_reports['since'] = date('d M');
+        $apbct->storage['connection_reports']['since'] = date('d M');
     }
     
     // Succeeded connection
     if( $request_response->errno === 0 && empty( $request_response->errstr ) ){
-        $apbct->connection_reports['success']++;
+        $apbct->storage['connection_reports']['success']++;
         
     // Failed to connect. Add a negative report
     }else{
@@ -331,14 +331,14 @@ function apbct_add_connection_report(
         
         // Rotate negative reports. Save only last 20
         if( count( $apbct->connection_reports['negative_report'] ) > 20 ){
-            $apbct->connection_reports['negative_report'] = array_slice(
+            $apbct->storage['connection_reports']['negative_report'] = array_slice(
                 $apbct->connection_reports['negative_report'],
                 -20,
                 20
             );
         }
     }
-    
+
     $apbct->save('connection_reports', true, false);
 }
 
