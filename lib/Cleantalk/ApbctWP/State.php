@@ -299,6 +299,7 @@ class State extends \Cleantalk\Common\State
         'negative'        => 0,
         'negative_report' => array(),
         'since'           => '',
+        'is_sent'         => false
     );
     
     public $errors;
@@ -481,7 +482,9 @@ class State extends \Cleantalk\Common\State
         foreach ($this->$option_name as $key => $value) {
             $arr[$key] = $value;
         }
-        update_option($option_name_to_save, $arr, $autoload);
+        error_log( "SAVE $option_name // $option_name_to_save " . var_export($arr, 1));
+        $uo = update_option($option_name_to_save, $arr, $autoload);
+        error_log( "updated? " . var_export($uo, 1));
     }
 
     /**

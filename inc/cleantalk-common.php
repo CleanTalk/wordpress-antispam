@@ -327,6 +327,7 @@ function apbct_add_connection_report(
             'lib_report' => $request_response->errstr,
             'work_url'   => $cleantalk->work_url,
             'content'    => $request,
+            'is_sent' => false
         );
         
         // Rotate negative reports. Save only last 20
@@ -338,8 +339,7 @@ function apbct_add_connection_report(
             );
         }
     }
-    $apbct->reports_status['sent'] = false;
-    $apbct->save('reports_status', true, false);
+
     $apbct->save('connection_reports', true, false);
 }
 

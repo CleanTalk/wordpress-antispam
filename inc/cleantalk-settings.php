@@ -1748,33 +1748,71 @@ function apbct_settings__field__statistics()
         )
     );
     echo '<br>';
+    echo 'Plugin version: ' . APBCT_VERSION;
 
     // Connection reports
     if ( $apbct->connection_reports ) {
         if ( $apbct->connection_reports['negative'] == 0 ) {
             _e('There are no failed connections to server.', 'cleantalk-spam-protect');
         } else {
-            echo "<table id='negative_reports_table''>
+            $unsent_reports_count = 0;
+            $reports_html = '';
+            foreach ($apbct->connection_reports['negative_report'] as $key => $report){
+                if (isset($report['is_sent']) && ! $report['is_sent']){
+                    $unsent_reports_count++;
+                }
+
+                if (isset($report['is_sent']) && $report['is_sent']){
+                    $status ='Sent';
+                    $color = 'gray';
+                } else {
+                    $status ='New';
+                    $color = 'black';
+                }
+
+                $reports_html .= '<tr style="color:' . $color . '">'
+                    . '<td>' . ($key + 1) . '.</td>'
+                    . '<td>' . $report['date'] . '</td>'
+                    . '<td>' . $report['page_url'] . '</td>'
+                    . '<td>' . $report['lib_report'] . '</td>'
+                    . '<td>' . $report['work_url'] . '</td>'
+                    . '<td>' . $status . '</td>'
+                    . '</tr>';
+            }
+
+            $reports_html =  "<table id='negative_reports_table''>
+                    <th colspan='6'>Failed connection reports</th>
 					<tr>
 						<td>#</td>
 						<td><b>Date</b></td>
 						<td><b>Page URL</b></td>
 						<td><b>Report</b></td>
 						<td><b>Server IP</b></td>
-					</tr>";
-            foreach ( $apbct->connection_reports['negative_report'] as $key => $report ) {
-                echo '<tr>'
-                     . '<td>' . ($key + 1) . '.</td>'
-                     . '<td>' . $report['date'] . '</td>'
-                     . '<td>' . $report['page_url'] . '</td>'
-                     . '<td>' . $report['lib_report'] . '</td>'
-                     . '<td>' . $report['work_url'] . '</td>'
-                     . '</tr>';
-            }
-            echo "</table>";
-            echo '<br/>';
+						<td><b>Status</b></td>
+					</tr>"
+                . $reports_html
+                . "</table>"
+                . "<br/>";
 
-            if ($apbct->reports_status['sent']){
+            echo Escape::escKses(
+                $reports_html,
+                array(
+                    'tr'     => array(
+                        'style' => true
+                    ),
+                    'td'     => array(),
+                    'th'     => array(
+                        'colspan' => true
+                    ),
+                    'b'     => array(),
+                    'br'     => array(),
+                    'table'     => array(
+                        'id' => true
+                    ),
+                )
+            );
+
+            if ($unsent_reports_count === 0 ){
                 _e('All the reports already have been sent.', 'cleantalk-spam-protect');
             } else {
                 echo '<button'
@@ -1789,8 +1827,6 @@ function apbct_settings__field__statistics()
     }
 
     echo '<br/>';
-    echo 'Plugin version: ' . APBCT_VERSION;
-
     echo '</div>';
 }
 
