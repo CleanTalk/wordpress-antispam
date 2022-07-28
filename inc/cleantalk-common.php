@@ -229,7 +229,7 @@ function apbct_base_call($params = array(), $reg_flag = false)
     $ct_request = new CleantalkRequest(
         \Cleantalk\ApbctWP\Helper::arrayMergeSaveNumericKeysRecursive($default_params, $params)
     );
-    
+
     // Options store url without scheme because of DB error with ''://'
     $config             = ct_get_server();
     $ct->server_url     = APBCT_MODERATE_URL;
@@ -301,8 +301,7 @@ function apbct_add_connection_report(
     Cleantalk $cleantalk,
     CleantalkRequest $request,
     CleantalkResponse $request_response
-)
-{
+) {
     global $apbct;
 
     // if not defined, reset the connection reports

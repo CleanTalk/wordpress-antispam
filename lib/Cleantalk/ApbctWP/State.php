@@ -301,7 +301,7 @@ class State extends \Cleantalk\Common\State
         'since'           => '',
         'is_sent'         => false
     );
-    
+
     public $errors;
 
     protected function setDefinitions()
@@ -478,13 +478,11 @@ class State extends \Cleantalk\Common\State
     public function save($option_name, $use_prefix = true, $autoload = true)
     {
         $option_name_to_save = $use_prefix ? $this->option_prefix . '_' . $option_name : $option_name;
-        $arr                 = array();
-        foreach ($this->$option_name as $key => $value) {
+        $arr = array();
+        foreach ( $this->$option_name as $key => $value ) {
             $arr[$key] = $value;
         }
-        error_log( "SAVE $option_name // $option_name_to_save " . var_export($arr, 1));
-        $uo = update_option($option_name_to_save, $arr, $autoload);
-        error_log( "updated? " . var_export($uo, 1));
+        update_option($option_name_to_save, $arr, $autoload);
     }
 
     /**
@@ -540,7 +538,7 @@ class State extends \Cleantalk\Common\State
             delete_option(($use_prefix ? $this->option_prefix . '_' : '') . $option_name);
         }
     }
-    
+
     /**
      * Drop option to default value
      *
@@ -551,31 +549,29 @@ class State extends \Cleantalk\Common\State
     public function drop($option_name)
     {
         $default_option_name = 'default_' . $option_name;
-        
-        if( isset($this->$default_option_name) ){
-            
+
+        if ( isset($this->$default_option_name) ) {
             $this->$option_name = new ArrayObject($this->$default_option_name);
-            
+
             // Additional initialization for special cases
-            switch($option_name){
-                
+            switch ($option_name) {
                 // Connection report
                 case 'connection_reports':
                     $this->connection_reports['since'] = date('d M');
                     $this->save($option_name, true, false);
-                    
+
                     return true;
                     break;
-                    
+
                 // Special treat for other options here
             }
-            
+
             // Save dropped option
             $this->save($option_name);
-            
+
             return true;
         }
-        
+
         return false;
     }
     /**
@@ -771,7 +767,7 @@ class State extends \Cleantalk\Common\State
             $option = $this->storage[$name];
 
             return $option;
-            
+
         // Then in data
         } elseif (isset($this->storage['data'][$name])) {
             $this->$name = $this->storage['data'][$name];
