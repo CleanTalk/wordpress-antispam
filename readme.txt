@@ -607,6 +607,7 @@ If your website has forms that send data to external sources, you can enable opt
 * New. Email encoder. Encoding exclusions implemented.
 * New. Alternative cookies AJAX calls reduce. Use browser localStorage to keep check_js value instead of CTSetCookie()
 * Upd. External forms. Sendfox.com integration added.
+* Upd. Internal forms. Internal forms protection logic updated.
 * Fix. GetFieldsAny.php Take visible fields from POST if apbct_visible_fields cookie is not detected.
 * Fix. Integrations. WPUserMeta. Added case of user-meta-pro
 * Fix. Email encoder. Divi contact forms exclusions added.
@@ -623,6 +624,12 @@ If your website has forms that send data to external sources, you can enable opt
 * Fix. Common. Prevent JS async loaded by CF.
 * Fix: Protect external. Sort callback params.
 * Fix. Code. Code quality improved.
+* Fix. Variables. Filter variables contains arrays fixed.
+* Fix: Honeypot field. Make filed invisible.
+* Fix: GiveWP integration.
+* Fix: ApbctWP/Variables/Cookie::setNativeCookie(). Adjust the detection of the default 'secure' flag logic.
+* Fix. Variables. Getting empty variables fixed.
+* Fix. External/Internal. General contact form option dependence fixed.
 
 = 5.181 Jul 14 2022 =
 #### One integration added, SFW testing page updated, code quality improved and some minor issues fixed.
