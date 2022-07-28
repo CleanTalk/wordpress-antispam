@@ -644,7 +644,6 @@ function apbct_update_to_5_154_0()
         'gdpr_enabled'                   => 'gdpr__enabled',
         'gdpr_text'                      => 'gdpr__text',
         'collect_details'                => 'misc__collect_details',
-        'send_connection_reports'        => 'misc__send_connection_reports',
         'async_js'                       => 'misc__async_js',
         'debug_ajax'                     => 'misc__debug_ajax',
         'store_urls'                     => 'misc__store_urls',

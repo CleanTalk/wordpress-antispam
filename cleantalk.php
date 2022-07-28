@@ -2425,7 +2425,7 @@ function ct_mail_send_connection_report()
 {
     global $apbct;
 
-    if ( ($apbct->settings['misc__send_connection_reports'] == 1 && $apbct->connection_reports['negative'] > 0) || ! empty(Get::get('ct_send_connection_report')) ) {
+    if ( ( $apbct->connection_reports['negative'] > 0) || ! empty(Get::get('ct_send_connection_report')) ) {
         $to      = "welcome@cleantalk.org";
         $subject = "Connection report for " . apbct_get_server_variable('HTTP_HOST');
         $message = '

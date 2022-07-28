@@ -99,7 +99,6 @@ class State extends \Cleantalk\Common\State
         'gdpr__text'                               => 'By using this form you agree with the storage and processing of your data by using the Privacy Policy on this website.',
 
         // Misc
-        'misc__send_connection_reports'            => 0, // Send connection reports to Cleantalk servers
         'misc__async_js'                           => 0,
         'misc__store_urls'                         => 1,
         'misc__complete_deactivation'              => 0,

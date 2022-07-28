@@ -710,14 +710,6 @@ function apbct_settings__set_fileds()
             'section'    => 'hidden_section',
             'html_after' => '</div><div id="apbct_hidden_section_nav">{HIDDEN_SECTION_NAV}</div></div>',
             'fields'     => array(
-                'misc__send_connection_reports' => array(
-                    'type'        => 'checkbox',
-                    'title'       => __('Send connection reports', 'cleantalk-spam-protect'),
-                    'description' => __(
-                        "Checking this box you allow plugin to send the information about your connection. The option in a beta state.",
-                        'cleantalk-spam-protect'
-                    ),
-                ),
                 'misc__async_js'                => array(
                     'type'        => 'checkbox',
                     'title'       => __('Async JavaScript loading', 'cleantalk-spam-protect'),
@@ -1785,17 +1777,9 @@ function apbct_settings__field__statistics()
                  . ' name="submit"'
                  . ' class="cleantalk_link cleantalk_link-manual"'
                  . ' value="ct_send_connection_report"'
-                 . (! $apbct->settings['misc__send_connection_reports'] ? ' disabled="disabled"' : '')
                  . '>'
                  . __('Send report', 'cleantalk-spam-protect')
                  . '</button>';
-            if ( ! $apbct->settings['misc__send_connection_reports'] ) {
-                echo '<br><br>';
-                _e(
-                    'Please, enable "Send connection reports" setting to be able to send reports',
-                    'cleantalk-spam-protect'
-                );
-            }
         }
     }
 
