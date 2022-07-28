@@ -15,7 +15,18 @@ jQuery(document).ready(function(){
 			apbct_admin_sendAJAX( { 'action' : 'cleantalk_dismiss_notice', 'notice_id' : apbct_notice_name }, { 'callback' : null } );
 		}
 	});
-	
+
+	// Notice when deleting user
+	jQuery('.ct_username .row-actions .delete a').on('click', function (e) {
+		e.preventDefault();
+
+		let result = confirm('Warning! Users are deleted without the possibility of restoring them, you can only restore them from a site backup.');
+
+		if (result) {
+			window.location = this.href
+		}
+	});
+
 });
 function apbct_admin_sendAJAX(data, params, obj){
 
