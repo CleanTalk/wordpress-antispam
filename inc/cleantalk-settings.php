@@ -1752,26 +1752,28 @@ function apbct_settings__field__statistics()
 
     // Connection reports
     if ( $apbct->connection_reports ) {
+        // if no negative show nothing
         if ( $apbct->connection_reports['negative'] == 0 ) {
             _e('There are no failed connections to server.', 'cleantalk-spam-protect');
         } else {
             $unsent_reports_count = 0;
             $reports_html = '';
-            foreach ($apbct->connection_reports['negative_report'] as $key => $report){
-                if (isset($report['is_sent']) && ! $report['is_sent']){
+            foreach ( $apbct->connection_reports['negative_report'] as $key => $report ) {
+                //count unsent
+                if ( isset($report['is_sent']) && !$report['is_sent'] ) {
                     $unsent_reports_count++;
                 }
-
-                if (isset($report['is_sent']) && $report['is_sent']){
-                    $status ='Sent';
+                //colorize
+                if ( isset($report['is_sent']) && $report['is_sent'] ) {
+                    $status = 'Sent';
                     $color = 'gray';
                 } else {
-                    $status ='New';
+                    $status = 'New';
                     $color = 'black';
                 }
-
+                //draw reports rows
                 $reports_html .= '<tr style="color:' . $color . '">'
-                    . '<td>' . ($key + 1) . '.</td>'
+                    . '<td>' . ( $key + 1 ) . '.</td>'
                     . '<td>' . $report['date'] . '</td>'
                     . '<td>' . $report['page_url'] . '</td>'
                     . '<td>' . $report['lib_report'] . '</td>'
@@ -1779,8 +1781,8 @@ function apbct_settings__field__statistics()
                     . '<td>' . $status . '</td>'
                     . '</tr>';
             }
-
-            $reports_html =  "<table id='negative_reports_table''>
+            //draw main report table
+            $reports_html = "<table id='negative_reports_table''>
                     <th colspan='6'>Failed connection reports</th>
 					<tr>
 						<td>#</td>
@@ -1790,29 +1792,30 @@ function apbct_settings__field__statistics()
 						<td><b>Server IP</b></td>
 						<td><b>Status</b></td>
 					</tr>"
+                //attach reports rows
                 . $reports_html
                 . "</table>"
                 . "<br/>";
-
+            //escaping html
             echo Escape::escKses(
                 $reports_html,
                 array(
-                    'tr'     => array(
+                    'tr' => array(
                         'style' => true
                     ),
-                    'td'     => array(),
-                    'th'     => array(
+                    'td' => array(),
+                    'th' => array(
                         'colspan' => true
                     ),
-                    'b'     => array(),
-                    'br'     => array(),
-                    'table'     => array(
+                    'b' => array(),
+                    'br' => array(),
+                    'table' => array(
                         'id' => true
                     ),
                 )
             );
-
-            if ($unsent_reports_count === 0 ){
+            //if no unsent reports show caption, in another case show the button
+            if ( $unsent_reports_count === 0 ) {
                 _e('All the reports already have been sent.', 'cleantalk-spam-protect');
             } else {
                 echo '<button'

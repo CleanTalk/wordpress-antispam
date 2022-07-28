@@ -301,37 +301,38 @@ function apbct_add_connection_report(
     Cleantalk $cleantalk,
     CleantalkRequest $request,
     CleantalkResponse $request_response
-){
+)
+{
     global $apbct;
 
     // if not defined, reset the connection reports
-    if( empty(Helper::arrayObjectToArray($apbct->connection_reports)) ){
+    if ( empty(Helper::arrayObjectToArray($apbct->connection_reports)) ) {
         $apbct->drop('connection_reports');
     }
-    
+
     // if not defined, set the gathering connection report start date
-    if( empty($apbct->connection_reports['since']) ){
+    if ( empty($apbct->connection_reports['since']) ) {
         $apbct->storage['connection_reports']['since'] = date('d M');
     }
-    
+
     // Succeeded connection
-    if( $request_response->errno === 0 && empty( $request_response->errstr ) ){
+    if ( $request_response->errno === 0 && empty($request_response->errstr) ) {
         $apbct->storage['connection_reports']['success']++;
-        
-    // Failed to connect. Add a negative report
-    }else{
+
+        // Failed to connect. Add a negative report
+    } else {
         $apbct->storage['connection_reports']['negative']++;
         $apbct->storage['connection_reports']['negative_report'][] = array(
-            'date'       => date( "Y-m-d H:i:s" ),
-            'page_url'   => apbct_get_server_variable( 'REQUEST_URI' ),
+            'date' => date("Y-m-d H:i:s"),
+            'page_url' => apbct_get_server_variable('REQUEST_URI'),
             'lib_report' => $request_response->errstr,
-            'work_url'   => $cleantalk->work_url,
-            'content'    => $request,
+            'work_url' => $cleantalk->work_url,
+            'content' => $request,
             'is_sent' => false
         );
-        
+
         // Rotate negative reports. Save only last 20
-        if( count( $apbct->connection_reports['negative_report'] ) > 20 ){
+        if ( count($apbct->connection_reports['negative_report']) > 20 ) {
             $apbct->storage['connection_reports']['negative_report'] = array_slice(
                 $apbct->connection_reports['negative_report'],
                 -20,
