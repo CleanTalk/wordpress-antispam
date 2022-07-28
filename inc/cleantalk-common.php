@@ -1100,7 +1100,8 @@ function apbct_add_async_attribute($tag, $handle)
             $tag = str_replace(' src', ' async="async" src', $tag);
         }
 
-        $tag = str_replace(' src', ' data-cfasync="false" src', $tag);
+        // Prevent script deferred loading by various CDN
+        $tag = str_replace(' src', ' data-cfasync="false" data-pagespeed-no-defer src', $tag);
 
         if ( class_exists('Cookiebot_WP') ) {
             $tag = str_replace(' src', ' data-cookieconsent="ignore" src', $tag);
