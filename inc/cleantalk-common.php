@@ -338,7 +338,8 @@ function apbct_add_connection_report(
             );
         }
     }
-
+    $apbct->reports_status['sent'] = false;
+    $apbct->save('reports_status', true, false);
     $apbct->save('connection_reports', true, false);
 }
 

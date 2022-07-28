@@ -1773,13 +1773,18 @@ function apbct_settings__field__statistics()
             }
             echo "</table>";
             echo '<br/>';
-            echo '<button'
-                 . ' name="submit"'
-                 . ' class="cleantalk_link cleantalk_link-manual"'
-                 . ' value="ct_send_connection_report"'
-                 . '>'
-                 . __('Send report', 'cleantalk-spam-protect')
-                 . '</button>';
+
+            if ($apbct->reports_status['sent']){
+                _e('All the reports already have been sent.', 'cleantalk-spam-protect');
+            } else {
+                echo '<button'
+                    . ' name="submit"'
+                    . ' class="cleantalk_link cleantalk_link-manual"'
+                    . ' value="ct_send_connection_report"'
+                    . '>'
+                    . __('Send new report', 'cleantalk-spam-protect')
+                    . '</button>';
+            }
         }
     }
 
