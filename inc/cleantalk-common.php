@@ -320,8 +320,8 @@ function apbct_add_connection_report(
         
     // Failed to connect. Add a negative report
     }else{
-        $apbct->connection_reports['negative']++;
-        $apbct->connection_reports['negative_report'][] = array(
+        $apbct->storage['connection_reports']['negative']++;
+        $apbct->storage['connection_reports']['negative_report'][] = array(
             'date'       => date( "Y-m-d H:i:s" ),
             'page_url'   => apbct_get_server_variable( 'REQUEST_URI' ),
             'lib_report' => $request_response->errstr,
