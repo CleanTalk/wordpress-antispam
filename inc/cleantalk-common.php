@@ -499,6 +499,61 @@ function apbct_get_sender_info()
 
     $visible_fields = apbct_visible_fields__process($visible_fields_collection);
 
+    $sender_data_array = array(
+        'plugin_request_id'      => $apbct->plugin_request_id,
+            'wpms'                   => is_multisite() ? 'yes' : 'no',
+            'remote_addr'            => \Cleantalk\ApbctWP\Helper::ipGet('remote_addr', false),
+            'REFFERRER'              => Server::get('HTTP_REFERER'),
+            'USER_AGENT'             => Server::get('HTTP_USER_AGENT'),
+            'page_url'               => apbct_sender_info___get_page_url(),
+            'cms_lang'               => substr(get_locale(), 0, 2),
+            'ct_options'             => json_encode($apbct->settings, JSON_UNESCAPED_SLASHES),
+            'fields_number'          => sizeof($_POST),
+            'direct_post'            => $cookie_is_ok === null && apbct_is_post() ? 1 : 0,
+            // Raw data to validated JavaScript test in the cloud
+            'checkjs_data_cookies'   => Cookie::get('ct_checkjs') ?: null,
+            'checkjs_data_post'      => ! empty($checkjs_data_post) ? $checkjs_data_post : null,
+            // PHP cookies
+            'cookies_enabled'        => $cookie_is_ok,
+            'data__set_cookies'      => $apbct->settings['data__set_cookies'],
+            'data__cookies_type'     => $apbct->data['cookies_type'],
+            'REFFERRER_PREVIOUS'     => Cookie::get('apbct_prev_referer') && $cookie_is_ok ? Cookie::get(
+            'apbct_prev_referer'
+        ) : null,
+            'site_landing_ts'        => Cookie::get('apbct_site_landing_ts') && $cookie_is_ok ? Cookie::get(
+            'apbct_site_landing_ts'
+        ) : null,
+            'page_hits'              => Cookie::get('apbct_page_hits') ?: null,
+            'mouse_cursor_positions' => Cookie::get('ct_pointer_data'),
+            'js_timezone'            => Cookie::get('ct_timezone') ?: null,
+            'key_press_timestamp'    => Cookie::get('ct_fkp_timestamp') ?: null,
+            'page_set_timestamp'     => Cookie::get('ct_ps_timestamp') ?: null,
+            'form_visible_inputs'    => ! empty($visible_fields['visible_fields_count']) ? $visible_fields['visible_fields_count'] : null,
+            'apbct_visible_fields'   => ! empty($visible_fields['visible_fields']) ? $visible_fields['visible_fields'] : null,
+            'form_invisible_inputs'  => ! empty($visible_fields['invisible_fields_count']) ? $visible_fields['invisible_fields_count'] : null,
+            'apbct_invisible_fields' => ! empty($visible_fields['invisible_fields']) ? $visible_fields['invisible_fields'] : null,
+            // Misc
+            'site_referer'           => Cookie::get('apbct_site_referer') ?: null,
+            'source_url'             => Cookie::get('apbct_urls') ? json_encode(json_decode(Cookie::get('apbct_urls'), true)) : null,
+            'pixel_url'              => Cookie::get('apbct_pixel_url'),
+            'pixel_setting'          => $apbct->settings['data__pixel'],
+            // Debug stuff
+            'amp_detected'           => $amp_detected,
+            'hook'                   => current_filter() ? current_filter() : 'no_hook',
+            'headers_sent'           => ! empty($apbct->headers_sent) ? $apbct->headers_sent : false,
+            'headers_sent__hook'     => ! empty($apbct->headers_sent__hook) ? $apbct->headers_sent__hook : 'no_hook',
+            'headers_sent__where'    => ! empty($apbct->headers_sent__where) ? $apbct->headers_sent__where : false,
+            'request_type'           => Server::get('REQUEST_METHOD') ?: 'UNKNOWN',
+            'email_check'            => Cookie::get('ct_checked_emails') ? json_encode(
+            Cookie::get('ct_checked_emails')
+        ) : null,
+            'screen_info'            => Cookie::get('ct_screen_info') ? json_encode(Cookie::get('ct_screen_info')) : null,
+            'has_scrolled'           => Cookie::get('ct_has_scrolled') ? json_encode(Cookie::get('ct_has_scrolled')) : null,
+            'mouse_moved'            => Cookie::get('ct_mouse_moved') ? json_encode(Cookie::get('ct_mouse_moved')) : null,
+            'emulations_headless_mode' => Cookie::get('apbct_headless') ? json_encode(Cookie::get('apbct_headless')) : null,
+
+    );
+
     return array(
         'plugin_request_id'      => $apbct->plugin_request_id,
         'wpms'                   => is_multisite() ? 'yes' : 'no',

@@ -19,6 +19,7 @@ function apbct_remove_event_handler(elem, event, callback){
 var ctFunctionFirstKey = function output(event){
 	var KeyTimestamp = Math.floor(new Date().getTime()/1000);
 	ctSetCookie("ct_fkp_timestamp", KeyTimestamp);
+	apbctLocalStorage.set('ct_fkp_timestamp', KeyTimestamp);
 	ctKeyStopStopListening();
 };
 
@@ -30,6 +31,7 @@ var ctMouseReadInterval = setInterval(function(){
 //Writting interval
 var ctMouseWriteDataInterval = setInterval(function(){
 	ctSetCookie("ct_pointer_data", JSON.stringify(ctMouseData));
+	apbctLocalStorage.set('ct_pointer_data', JSON.stringify(ctMouseData));
 }, 1200);
 
 //Logging mouse position each 150 ms
@@ -78,6 +80,7 @@ function checkEmail(e) {
 						if (result.result) {
 							ctCheckedEmails[current_email] = {'result' : result.result, 'timestamp': Date.now() / 1000 |0};
 							ctSetCookie('ct_checked_emails', JSON.stringify(ctCheckedEmails));
+							apbctLocalStorage.set('ct_checked_emails', JSON.stringify(ctCheckedEmails));
 						}
 					},
 				}
@@ -94,6 +97,7 @@ function checkEmail(e) {
 						if (result.result) {
 							ctCheckedEmails[current_email] = {'result' : result.result, 'timestamp': Date.now() / 1000 |0};
 							ctSetCookie('ct_checked_emails', JSON.stringify(ctCheckedEmails));
+							apbctLocalStorage.set('ct_checked_emails', JSON.stringify(ctCheckedEmails));
 						}
 					},
 				}
@@ -104,6 +108,7 @@ function checkEmail(e) {
 
 function ctSetPixelImg(pixelUrl) {
 	ctSetCookie('apbct_pixel_url', pixelUrl);
+	apbctLocalStorage.set('apbct_pixel_url', pixelUrl);
 	if( +ctPublic.pixel__enabled ){
 		if( ! document.getElementById('apbct_pixel') ) {
 			jQuery('body').append( '<img alt="Cleantalk Pixel" id="apbct_pixel" style="display: none; left: 99999px;" src="' + pixelUrl + '">' );
@@ -203,6 +208,13 @@ function apbct_ready(){
 		["apbct_headless", navigator.webdriver],
 	];
 
+	apbctLocalStorage.set('ct_ps_timestamp', Math.floor(new Date().getTime() / 1000));
+	apbctLocalStorage.set('ct_fkp_timestamp', "0");
+	apbctLocalStorage.set('ct_pointer_data', "0");
+	apbctLocalStorage.set('ct_timezone', ct_date.getTimezoneOffset()/60*(-1) );
+	apbctLocalStorage.set('ct_screen_info', apbctGetScreenInfo());
+	apbctLocalStorage.set('apbct_headless', navigator.webdriver);
+
 	if( ctPublic.data__cookies_type !== 'native' ) {
 		initCookies.push(['apbct_visible_fields', '0']);
 	} else {
@@ -241,6 +253,8 @@ function apbct_ready(){
 	ctSetCookie(initCookies);
 
 	setTimeout(function(){
+
+		ctNoCookieAttachHiddenFieldsToForms()
 
 		for(var i = 0; i < document.forms.length; i++){
 			var form = document.forms[i];
@@ -538,4 +552,46 @@ function ctCleaPixelUrlLocalstorage(local_storage_pixel_url) {
 	localStorage.removeItem(local_storage_pixel_url)
 	//remove pixel itself
 	localStorage.removeItem('session_pixel_url')
+}
+
+
+function ctSetNoCookieData(){
+
+}
+
+function ctGetNoCookieData(){
+	let data = apbctLocalStorage.getCleanTalkData()
+	// data.ct_mouse_moved = apbctLocalStorage.get('ct_mouse_moved')
+	// data.ct_has_scrolled = apbctLocalStorage.get('ct_has_scrolled')
+	return JSON.stringify(data)
+}
+
+function ctNoCookieConstructHiddenField(){
+	let field = ''
+	let no_cookie_data = ctGetNoCookieData()
+	no_cookie_data = btoa(no_cookie_data)
+	field = document.createElement('input')
+	field.setAttribute('id','ct_no_cookie_hidden_field')
+	field.setAttribute('value', no_cookie_data)
+	field.setAttribute('type', 'hidden')
+	return field
+}
+
+function ctNoCookieGetForms(){
+	let forms = document.forms
+	if (forms) {
+		return forms
+	}
+	return false
+}
+
+function ctNoCookieAttachHiddenFieldsToForms(){
+	let forms = ctNoCookieGetForms()
+
+	if (forms){
+		for ( let i = 0; i < forms.length; i++ ){
+			document.forms[i].append(ctNoCookieConstructHiddenField())
+		}
+	}
+
 }

@@ -171,7 +171,7 @@ apbctLocalStorage = {
                 const json = JSON.parse(storageValue);
                 return json.hasOwnProperty(property) ? JSON.parse(json[property]) : json;
             } catch (e) {
-                return new Error(e);
+                return storageValue;
             }
         }
         return false;
@@ -196,5 +196,19 @@ apbctLocalStorage = {
     },
     delete : function (key) {
         localStorage.removeItem(key);
-    }
+    },
+    getCleanTalkData : function () {
+        let data = {}
+        for(let i=0; i<localStorage.length; i++) {
+            let key = localStorage.key(i);
+
+            if (key.indexOf('ct_') !==-1 || key.indexOf('apbct_') !==-1){
+                console.log(key)
+                console.log(apbctLocalStorage.get(key))
+                data[key.toString()] = apbctLocalStorage.get(key)
+            }
+        }
+        return data
+    },
+
 }
