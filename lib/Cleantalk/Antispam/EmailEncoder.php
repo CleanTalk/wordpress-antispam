@@ -52,6 +52,7 @@ class EmailEncoder
             'the_content',
             'the_excerpt',
             'get_footer',
+            'get_header',
             'get_the_excerpt',
             'comment_text',
             'comment_excerpt',
