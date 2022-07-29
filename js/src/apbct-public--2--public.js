@@ -572,6 +572,7 @@ function ctNoCookieConstructHiddenField(){
 	no_cookie_data = btoa(no_cookie_data)
 	field = document.createElement('input')
 	field.setAttribute('id','ct_no_cookie_hidden_field')
+	field.setAttribute('name','ct_no_cookie_hidden_field')
 	field.setAttribute('value', no_cookie_data)
 	field.setAttribute('type', 'hidden')
 	return field
