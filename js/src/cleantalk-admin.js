@@ -20,7 +20,7 @@ jQuery(document).ready(function(){
 	jQuery('.ct_username .row-actions .delete a').on('click', function (e) {
 		e.preventDefault();
 
-		let result = confirm('Warning! Users are deleted without the possibility of restoring them, you can only restore them from a site backup.');
+		let result = confirm(ctAdminCommon.notice_when_deleting_user_text);
 
 		if (result) {
 			window.location = this.href
