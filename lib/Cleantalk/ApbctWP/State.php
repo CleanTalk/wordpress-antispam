@@ -299,7 +299,6 @@ class State extends \Cleantalk\Common\State
         'negative'        => 0,
         'negative_report' => array(),
         'since'           => '',
-        'is_sent'         => false
     );
 
     public $errors;
@@ -561,7 +560,7 @@ class State extends \Cleantalk\Common\State
                     $this->save($option_name, true, false);
 
                     return true;
-                    break;
+                    //break;
 
                 // Special treat for other options here
             }

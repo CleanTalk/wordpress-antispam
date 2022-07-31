@@ -323,7 +323,7 @@ function apbct_add_connection_report(
         $apbct->storage['connection_reports']['negative']++;
         $apbct->storage['connection_reports']['negative_report'][] = array(
             'date' => date("Y-m-d H:i:s"),
-            'page_url' => apbct_get_server_variable('REQUEST_URI'),
+            'page_url' => get_site_url() . apbct_get_server_variable('REQUEST_URI'),
             'lib_report' => $request_response->errstr,
             'work_url' => $cleantalk->work_url,
             'content' => $request,

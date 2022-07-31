@@ -237,6 +237,9 @@ class RemoteCalls
         // Output only one option
         $show_only = Get::get('show_only');
         if ( $show_only && isset($out[$show_only]) ) {
+            /**
+             * @psalm-suppress InvalidArrayOffset
+             */
             $out = [$show_only => $out[$show_only]];
         }
 

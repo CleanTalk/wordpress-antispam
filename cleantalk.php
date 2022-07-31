@@ -2485,12 +2485,13 @@ function ct_mail_send_connection_report()
         $headers = "Content-type: text/html; charset=windows-1251 \r\n";
         $headers .= 'From: ' . ct_get_admin_email();
         /** @psalm-suppress UnusedFunctionCall */
-        mail($to, $subject, $message, $headers);
-        foreach ( $apbct->connection_reports['negative_report'] as $key => &$report ) {
-            $report['is_sent'] = true;
+        if ( mail($to, $subject, $message, $headers) ) {
+            foreach ( $apbct->connection_reports['negative_report'] as $key => &$report ) {
+                $report['is_sent'] = true;
+            }
+            unset($report);
+            $apbct->save('connection_reports', true, false);
         }
-        unset($report);
-        $apbct->saveData();
     }
 }
 
