@@ -115,11 +115,11 @@ function ctGetPixelUrl() {
 	// Check if pixel is already in localstorage and is not outdated
 	let local_storage_pixel_url = ctGetPixelUrlLocalstorage();
 	if ( local_storage_pixel_url !== false ) {
-		if ( ctIsOutdatedPixelUrlLocalstorage(local_storage_pixel_url) ) {
-			ctCleaPixelUrlLocalstorage(local_storage_pixel_url)
+		if ( ctIsOutdatedPixelUrlLocalstorage() ) {
+			ctCleaPixelUrlLocalstorage()
 		} else {
 			//if so - load pixel from localstorage and draw it skipping AJAX
-			ctSetPixelImg(local_storage_pixel_url);
+			ctSetPixelImg();
 			return;
 		}
 	}
@@ -531,13 +531,13 @@ if(typeof jQuery !== 'undefined') {
 
 function ctSetPixelUrlLocalstorage(ajax_pixel_url) {
 	//set pixel to the storage
-	localStorage.setItem('session_pixel_url', ajax_pixel_url)
-	//set pixel timestamp to the storage
-	localStorage.setItem(ajax_pixel_url, Math.floor(Date.now() / 1000).toString())
+	apbctLocalStorage.set('apbct_pixel_url', ajax_pixel_url)
+	// //set pixel timestamp to the storage
+	// localStorage.setItem(ajax_pixel_url, Math.floor(Date.now() / 1000).toString())
 }
 
 function ctGetPixelUrlLocalstorage() {
-	let local_storage_pixel = localStorage.getItem('session_pixel_url');
+	let local_storage_pixel = apbctLocalStorage.get('apbct_pixel_url');
 	if ( local_storage_pixel !== null ) {
 		return local_storage_pixel;
 	} else {
@@ -545,23 +545,15 @@ function ctGetPixelUrlLocalstorage() {
 	}
 }
 
-function ctIsOutdatedPixelUrlLocalstorage(local_storage_pixel_url) {
-	let local_storage_pixel_timestamp = Number(localStorage.getItem(local_storage_pixel_url));
-	let current_timestamp = Math.floor(Date.now() / 1000).toString()
-	let timestamp_difference = current_timestamp - local_storage_pixel_timestamp;
-	return timestamp_difference > 3600 * 3;
+function ctIsOutdatedPixelUrlLocalstorage() {
+	return apbctLocalStorage.isAlive('apbct_pixel_url', 3600 * 3);
 }
 
-function ctCleaPixelUrlLocalstorage(local_storage_pixel_url) {
+function ctCleaPixelUrlLocalstorage() {
 	//remove timestamp
-	localStorage.removeItem(local_storage_pixel_url)
-	//remove pixel itself
-	localStorage.removeItem('session_pixel_url')
-}
-
-
-function ctSetNoCookieData(){
-
+	apbctLocalStorage.delete('apbct_pixel_url')
+	// //remove pixel itself
+	// localStorage.removeItem('session_pixel_url')
 }
 
 function ctGetNoCookieData(){
