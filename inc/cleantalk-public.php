@@ -1229,6 +1229,8 @@ function ct_enqueue_scripts_public($_hook)
 
     // Show controls for commentaries
     if ( in_array("administrator", $current_user->roles) ) {
+        
+        // Admin javascript for managing comments on public pages
         if ( $apbct->settings['comments__manage_comments_on_public_page'] ) {
             $ajax_nonce = wp_create_nonce("ct_secret_nonce");
             
@@ -1252,8 +1254,12 @@ function ct_enqueue_scripts_public($_hook)
                     __("Feedback has been sent to %sCleanTalk Dashboard%s.", 'cleantalk-spam-protect'),
                     $apbct->user_token ? "<a target='_blank' href=https://cleantalk.org/my/show_requests?user_token={$apbct->user_token}&cp_mode=antispam>" : '',
                     $apbct->user_token ? "</a>" : ''
-                ) . ' ' . esc_html__('The service accepts feedback only for requests made no more than 7 or 45 days 
-                (if the Extra package is activated) ago.', 'cleantalk-spam-protect'),
+                )
+                    . ' '
+                    . esc_html__(
+                        'The service accepts feedback only for requests made less than 7 (or 45 if the Extra Package is activated) days ago.',
+                        'cleantalk-spam-protect'
+                    ),
             ));
         }
     }
