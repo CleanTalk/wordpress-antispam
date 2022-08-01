@@ -74,7 +74,6 @@ class NoCookie
             $data = base64_decode($data);
             //need to handle errors
             $data = json_decode($data, true);
-            error_log('CTDEBUG: before setDataFromHiddenField ' . var_export(self::$no_cookies_data,true));
             self::$no_cookies_data = array_merge(self::$no_cookies_data,$data);
             return true;
         }

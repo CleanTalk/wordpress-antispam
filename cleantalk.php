@@ -2195,7 +2195,7 @@ function apbct_store__urls()
     global $apbct;
 
     if (
-        $apbct->data['cookies_type'] === 'none' || // Do not set cookies if option is disabled (for Varnish cache).
+        //$apbct->data['cookies_type'] === 'none' || // Do not set cookies if option is disabled (for Varnish cache).
         ! empty($apbct->headers_sent)              // Headers sent
     ) {
         return false;
@@ -2301,6 +2301,7 @@ function apbct_cookie()
     }
 
     // Landing time
+    // todo if cookies disabled there is no way to keep this data without DB:( always will be overwriteen
     $site_landing_timestamp = Cookie::get('apbct_site_landing_ts');
     if ( ! $site_landing_timestamp ) {
         $site_landing_timestamp = time();
@@ -2312,7 +2313,9 @@ function apbct_cookie()
     // Page hits
     // Get
     $page_hits = Cookie::get('apbct_page_hits');
+
     // Set / Increase
+    // todo if cookies disabled there is no way to keep this data without DB:( always will be 1
     $page_hits = (int)$page_hits ? (int)$page_hits + 1 : 1;
 
     Cookie::set('apbct_page_hits', (string)$page_hits, 0, '/', $domain, null, true);
@@ -2322,7 +2325,7 @@ function apbct_cookie()
 
     // Cookies test
     $cookie_test_value['check_value'] = md5($cookie_test_value['check_value']);
-    if ( $apbct->data['cookies_type'] === 'native' ) {
+    if ( $apbct->data['cookies_type'] !== 'alternative' ) {
         Cookie::set('apbct_cookies_test', json_encode($cookie_test_value), 0, '/', $domain, null, true);
     }
 
@@ -2341,7 +2344,7 @@ function apbct_cookies_test()
 {
     global $apbct;
 
-    if ( $apbct->data['cookies_type'] === 'alternative' ) {
+    if ( $apbct->data['cookies_type'] !== 'native' ) {
         return 1;
     }
 

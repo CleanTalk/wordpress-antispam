@@ -507,7 +507,6 @@ function apbct_get_sender_info()
         'plugin_request_id' => $apbct->plugin_request_id,
         'wpms' => is_multisite() ? 'yes' : 'no',
         'remote_addr' => \Cleantalk\ApbctWP\Helper::ipGet('remote_addr', false),
-        'REFFERRER' => Server::get('HTTP_REFERER'),
         'USER_AGENT' => Server::get('HTTP_USER_AGENT'),
         'page_url' => apbct_sender_info___get_page_url(),
         'cms_lang' => substr(get_locale(), 0, 2),
@@ -521,20 +520,17 @@ function apbct_get_sender_info()
         'cookies_enabled' => $cookie_is_ok,
         'data__set_cookies' => $apbct->settings['data__set_cookies'],
         'data__cookies_type' => $apbct->data['cookies_type'],
-        'REFFERRER_PREVIOUS' => Cookie::get('apbct_prev_referer') && $cookie_is_ok ? Cookie::get(
-            'apbct_prev_referer'
-        ) : null,
-        'site_landing_ts' => Cookie::get('apbct_site_landing_ts') && $cookie_is_ok ? Cookie::get(
-            'apbct_site_landing_ts'
-        ) : null,
+        'REFFERRER' => Server::get('HTTP_REFERER'),
+        'REFFERRER_PREVIOUS' => Cookie::get('apbct_prev_referer') && $cookie_is_ok
+            ? Cookie::get('apbct_prev_referer')
+            : null,
+        'site_landing_ts' => Cookie::get('apbct_site_landing_ts') && $cookie_is_ok
+            ? Cookie::get('apbct_site_landing_ts')
+            : null,
         'page_hits' => Cookie::get('apbct_page_hits') ?: null,
-        //
         'mouse_cursor_positions' => Cookie::get('ct_pointer_data'),
-        //
         'js_timezone' => Cookie::get('ct_timezone') ?: null,
-        //
         'key_press_timestamp' => Cookie::get('ct_fkp_timestamp') ?: null,
-        //
         'page_set_timestamp' => Cookie::get('ct_ps_timestamp') ?: null,
         'form_visible_inputs' => !empty($visible_fields['visible_fields_count']) ? $visible_fields['visible_fields_count'] : null,
         'apbct_visible_fields' => !empty($visible_fields['visible_fields']) ? $visible_fields['visible_fields'] : null,
@@ -543,7 +539,7 @@ function apbct_get_sender_info()
         // Misc
         'site_referer' => Cookie::get('apbct_site_referer') ?: null,
         'source_url' => Cookie::get('apbct_urls') ? json_encode(json_decode(Cookie::get('apbct_urls'), true)) : null,
-        //'pixel_url' => Cookie::get('apbct_pixel_url'),
+        'pixel_url' => Cookie::get('apbct_pixel_url'),
         'pixel_setting' => $apbct->settings['data__pixel'],
         // Debug stuff
         'amp_detected' => $amp_detected,
