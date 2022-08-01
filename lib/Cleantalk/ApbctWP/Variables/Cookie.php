@@ -24,7 +24,10 @@ class Cookie extends \Cleantalk\Variables\Cookie
             // Getting by alternative way if enabled
             if ($apbct->data['cookies_type'] === 'alternative') {
                 $value = AltSessions::get($name);
-                // The old way
+            //NoCookies
+            } else if ($apbct->data['cookies_type'] === 'none') {
+                $value = NoCookie::get($name);
+            // The old way
             } else {
                 $name = apbct__get_cookie_prefix() . $name;
 
@@ -76,7 +79,7 @@ class Cookie extends \Cleantalk\Variables\Cookie
         global $apbct;
 
         if ($apbct->data['cookies_type'] === 'none' && ! is_admin()) {
-            return;
+            NoCookie::set($name, $value);
         } elseif ($apbct->data['cookies_type'] === 'alternative') {
             AltSessions::set($name, $value);
         } else {
@@ -156,9 +159,12 @@ class Cookie extends \Cleantalk\Variables\Cookie
                 $prepared_value = json_decode(str_replace('\\', '', $visible_fields_value), true);
                 $visible_fields_collection[$prepared_key] = $prepared_value;
             }
-        } else {
+        } else if ($apbct->data['cookies_type'] === 'alternative') {
             // Get from alt cookies storage
             $visible_fields_collection = (array) self::get('apbct_visible_fields');
+        } else {
+            //NoCookie
+            $visible_fields_collection = (array) NoCookie::get('apbct_visible_fields');
         }
 
         return $visible_fields_collection;

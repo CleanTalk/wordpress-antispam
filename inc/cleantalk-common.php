@@ -466,6 +466,10 @@ function apbct_get_sender_info()
 {
     global $apbct;
 
+    if ($apbct->data['cookies_type'] === 'none'){
+        \Cleantalk\ApbctWP\Variables\NoCookie::setDataFromHiddenField();
+    }
+
     // Validate cookie from the backend
     $cookie_is_ok = apbct_cookies_test();
 
@@ -563,36 +567,7 @@ function apbct_get_sender_info()
 
     );
 
-    if ( $apbct->data['cookies_type'] === 'none' ) {
-        $no_cookie_data = apbct_sender_info_get_no_cookie_data();
-    }
-
-    if ( !empty($no_cookie_data) ) {
-        //implement other keys below
-        $dictionary = array(
-            'mouse_cursor_positions' => 'ct_pointer_data',
-            'mouse_moved' => 'ct_mouse_moved',
-            'email_check' => 'ct_checked_emails',
-            'has_scrolled' => 'ct_has_scrolled',
-            'pixel_url' => 'apbct_pixel_url',
-            'page_set_timestamp' => 'ct_ps_timestamp',
-            // 'pixel_url' => 'ct_cookies_type',
-            'emulations_headless_mode' => 'apbct_headless',
-            'js_timezone' => 'ct_timezone',
-            'screen_info' => 'ct_screen_info',
-            'key_press_timestamp' => 'ct_fkp_timestamp',
-            'checkjs_data_cookies' => 'ct_checkjs',
-
-        );
-
-        foreach ( $dictionary as $data_key => $nc_key ) {
-            if (isset($no_cookie_data[$nc_key]) && $data_array[$data_key] === null){
-                $data_array[$data_key] = $no_cookie_data[$nc_key];
-            }
-
-        }
-
-    }
+    error_log('CTDEBUG: ON SUBMMIT ' . var_export($data_array,true));
 
     return $data_array;
 }

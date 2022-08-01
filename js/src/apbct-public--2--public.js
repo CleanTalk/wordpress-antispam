@@ -19,7 +19,6 @@ function apbct_remove_event_handler(elem, event, callback){
 var ctFunctionFirstKey = function output(event){
 	var KeyTimestamp = Math.floor(new Date().getTime()/1000);
 	ctSetCookie("ct_fkp_timestamp", KeyTimestamp);
-	apbctLocalStorage.set('ct_fkp_timestamp', KeyTimestamp);
 	ctKeyStopStopListening();
 };
 
@@ -31,7 +30,6 @@ var ctMouseReadInterval = setInterval(function(){
 //Writting interval
 var ctMouseWriteDataInterval = setInterval(function(){
 	ctSetCookie("ct_pointer_data", JSON.stringify(ctMouseData));
-	apbctLocalStorage.set('ct_pointer_data', JSON.stringify(ctMouseData));
 }, 1200);
 
 //Logging mouse position each 150 ms
@@ -80,7 +78,6 @@ function checkEmail(e) {
 						if (result.result) {
 							ctCheckedEmails[current_email] = {'result' : result.result, 'timestamp': Date.now() / 1000 |0};
 							ctSetCookie('ct_checked_emails', JSON.stringify(ctCheckedEmails));
-							apbctLocalStorage.set('ct_checked_emails', JSON.stringify(ctCheckedEmails));
 						}
 					},
 				}
@@ -97,7 +94,6 @@ function checkEmail(e) {
 						if (result.result) {
 							ctCheckedEmails[current_email] = {'result' : result.result, 'timestamp': Date.now() / 1000 |0};
 							ctSetCookie('ct_checked_emails', JSON.stringify(ctCheckedEmails));
-							apbctLocalStorage.set('ct_checked_emails', JSON.stringify(ctCheckedEmails));
 						}
 					},
 				}
@@ -108,7 +104,6 @@ function checkEmail(e) {
 
 function ctSetPixelImg(pixelUrl) {
 	ctSetCookie('apbct_pixel_url', pixelUrl);
-	apbctLocalStorage.set('apbct_pixel_url', pixelUrl);
 	if( +ctPublic.pixel__enabled ){
 		if( ! document.getElementById('apbct_pixel') ) {
 			jQuery('body').append( '<img alt="Cleantalk Pixel" id="apbct_pixel" style="display: none; left: 99999px;" src="' + pixelUrl + '">' );
@@ -172,14 +167,21 @@ function ctGetPixelUrl() {
 function ctSetHasScrolled() {
 	if( ! apbctLocalStorage.isSet('ct_has_scrolled') || ! apbctLocalStorage.get('ct_has_scrolled') ) {
 		ctSetCookie("ct_has_scrolled", 'true');
-		apbctLocalStorage.set('ct_has_scrolled', true);
 	}
 }
 
 function ctSetMouseMoved() {
 	if( ! apbctLocalStorage.isSet('ct_mouse_moved') || ! apbctLocalStorage.get('ct_mouse_moved') ) {
 		ctSetCookie("ct_mouse_moved", 'true');
-		apbctLocalStorage.set('ct_mouse_moved', true);
+	}
+}
+
+function ctPreloadLocalStorage(){
+	if (ctPublic.data__to_local_storage){
+		let data = Object.entries(ctPublic.data__to_local_storage)
+		data.forEach(([key, value]) => {
+			apbctLocalStorage.set(key,value)
+		});
 	}
 }
 
@@ -190,6 +192,8 @@ apbct_attach_event_handler(window, "scroll", ctSetHasScrolled);
 
 // Ready function
 function apbct_ready(){
+
+	ctPreloadLocalStorage()
 
 	let cookiesType = apbctLocalStorage.get('ct_cookies_type');
 	if ( ! cookiesType || cookiesType !== ctPublic.data__cookies_type ) {
@@ -467,6 +471,7 @@ function apbct_visible_fields_set_cookie( visible_fields_collection, form_id ) {
 		}
 	} else {
 		ctSetCookie("apbct_visible_fields", JSON.stringify( collection ) );
+		apbctLocalStorage.set('apbct_visible_fields', JSON.stringify( collection ));
 	}
 }
 

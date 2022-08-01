@@ -7,7 +7,9 @@ function ctSetCookie( cookies, value, expires ){
 
     // Cookies disabled
     if( ctPublicFunctions.data__cookies_type === 'none' ){
-        return;
+        cookies.forEach( function (item, i, arr	) {
+           apbctLocalStorage.set(item[0], encodeURIComponent(item[1]))
+        });
 
         // Using traditional cookies
     }else if( ctPublicFunctions.data__cookies_type === 'native' ){
@@ -203,8 +205,8 @@ apbctLocalStorage = {
             let key = localStorage.key(i);
 
             if (key.indexOf('ct_') !==-1 || key.indexOf('apbct_') !==-1){
-                console.log(key)
-                console.log(apbctLocalStorage.get(key))
+                // console.log(key)
+                // console.log(apbctLocalStorage.get(key))
                 data[key.toString()] = apbctLocalStorage.get(key)
             }
         }
