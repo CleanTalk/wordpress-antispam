@@ -596,7 +596,10 @@ function ctNoCookieAttachHiddenFieldsToForms(){
 
 	if (forms){
 		for ( let i = 0; i < forms.length; i++ ){
-			document.forms[i].append(ctNoCookieConstructHiddenField())
+			//ignore forms with get method @todo We need to think about this
+			if (document.forms[i].method.toLowerCase() !== 'get'){
+				document.forms[i].append(ctNoCookieConstructHiddenField())
+			}
 		}
 	}
 
