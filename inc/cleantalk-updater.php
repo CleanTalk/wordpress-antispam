@@ -1146,12 +1146,17 @@ function apbct_update_to_5_179_2()
     $apbct->save('remote_calls');
 }
 
-function apbct_update_to_5_181_0()
+function apbct_update_to_5_182_0()
 {
     global $apbct;
 
     // Move connection report from cleantalk_data to separate option cleantalk_connection_reports
-    $connection_reports = [];
+    $connection_reports = array(
+        'success'         => 0,
+        'negative'        => 0,
+        'negative_report' => array(),
+        'since'           => '',
+    );
     if ( isset($apbct->data['connection_reports']) ) {
         $connection_reports = $apbct->data['connection_reports'];
         unset($apbct->data['connection_reports']);
