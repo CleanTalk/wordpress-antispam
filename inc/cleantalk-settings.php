@@ -1749,8 +1749,11 @@ function apbct_settings__field__statistics()
     );
     echo '<br>';
     echo 'Plugin version: ' . APBCT_VERSION;
+    echo '<br>';
 
     // Connection reports
+
+    error_log('CTDEBUG: connection_reports ' . var_export($apbct->connection_reports,true));
     if ( $apbct->connection_reports ) {
         // if no negative show nothing
         if ( $apbct->connection_reports['negative'] == 0 ) {

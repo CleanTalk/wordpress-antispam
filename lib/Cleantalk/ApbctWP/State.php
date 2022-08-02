@@ -761,8 +761,14 @@ class State extends \Cleantalk\Common\State
      */
     public function &__get($name)
     {
+        if ($name === 'connection_reports'){
+            error_log('CTDEBUG: connection_reports getting start ' . var_export($name,true));
+        }
         // First check in storage
         if (isset($this->storage[$name])) {
+            if ($name === 'connection_reports'){
+                error_log('CTDEBUG: storage ' . var_export($this->storage['data'][$name],true));
+            }
             $option = $this->storage[$name];
 
             return $option;
@@ -770,6 +776,9 @@ class State extends \Cleantalk\Common\State
         // Then in data
         } elseif (isset($this->storage['data'][$name])) {
             $this->$name = $this->storage['data'][$name];
+            if ($name === 'connection_reports'){
+                error_log('CTDEBUG: storagedata ' . var_export($this->storage['data'][$name],true));
+            }
             $option      = $this->storage['data'][$name];
 
             return $option;
@@ -778,7 +787,9 @@ class State extends \Cleantalk\Common\State
         // it will be arrayObject || scalar || null
         } else {
             $option = $this->getOption($name);
-
+            if ($name === 'connection_reports'){
+                error_log('CTDEBUG: DB ' . var_export($this->storage['data'][$name],true));
+            }
             return $option;
         }
     }
