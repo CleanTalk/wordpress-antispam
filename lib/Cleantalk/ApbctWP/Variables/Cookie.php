@@ -111,6 +111,10 @@ class Cookie extends \Cleantalk\Variables\Cookie
         $httponly = false,
         $samesite = 'Lax'
     ) {
+        if (headers_sent()) {
+            return;
+        }
+
         $secure = ! is_null($secure) ? $secure : Server::get('HTTPS') || Server::get('SERVER_PORT') == 443;
         // For PHP 7.3+ and above
         if ( version_compare(phpversion(), '7.3.0', '>=') ) {
