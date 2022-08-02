@@ -8,6 +8,7 @@
 .wc_apbct_email_id {
     display: none !important;
 }
+.um-form input[type=text].apbct_special_field,
 input[class*='apbct'].apbct_special_field{
     display: none !important;
 }
