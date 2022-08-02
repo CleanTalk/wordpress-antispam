@@ -1306,7 +1306,7 @@ function ct_enqueue_styles_public()
             APBCT_VERSION
         );
         // Public admin styles
-        if ( in_array( "administrator", $current_user->roles ) ) {
+        if ( in_array("administrator", $current_user->roles) ) {
             // Admin style for managing comments on public pages
             if ( $apbct->settings['comments__manage_comments_on_public_page'] ) {
                  wp_enqueue_style(
