@@ -1178,11 +1178,11 @@ function ct_print_form($arr, $k)
     foreach ( $arr as $key => $value ) {
         if ( ! is_array($value) ) {
             print '<textarea
-				name="' . ($k == '' ? $key : $k . '[' . $key . ']') . '"
-				style="display:none;">' . htmlspecialchars($value)
+				name="' . esc_attr($k === '' ? $key : $k . '[' . $key . ']') . '"
+				style="display:none;">' . esc_textarea(htmlspecialchars($value))
                   . '</textarea>';
         } else {
-            ct_print_form($value, $k == '' ? $key : $k . '[' . $key . ']');
+            ct_print_form($value, $k === '' ? $key : $k . '[' . $key . ']');
         }
     }
 }
