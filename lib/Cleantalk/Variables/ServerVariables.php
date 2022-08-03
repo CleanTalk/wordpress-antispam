@@ -110,7 +110,7 @@ abstract class ServerVariables
         if ( is_array($value) ) {
             foreach ( $value as $_key => & $val ) {
                 if ( is_array($val) ) {
-                    if ( $nesting > 5 ) {
+                    if ( $nesting > 20 ) {
                         return $value;
                     }
                     $this->getAndSanitize($val, ++$nesting);
