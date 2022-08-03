@@ -586,15 +586,16 @@ function ct_add_hidden_fields(
             "<script type=\"text/javascript\" "
             . (class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '')
             . ">
-                function apbct_attach_event_handler__backend(elem, event, callback){
+                function apbct_attach_event_handler__backend(elem, event, callback) {
                     if(typeof window.addEventListener === \"function\") elem.addEventListener(event, callback);
-                    else                                              elem.attachEvent(event, callback);
+                    else                                                elem.attachEvent(event, callback);
                 }
-                apbct_attach_event_handler__backend(window, 'load', function(){
-                    if (typeof apbctLocalStorage === \"object\")
+                apbct_attach_event_handler__backend(window, 'DOMContentLoaded', function(){
+                    if (typeof apbctLocalStorage === \"object\") {
                         apbctLocalStorage.set('{$field_name}', '{$ct_checkjs_key}', false );
-                    else 
-                        console.log('APBCT ERROR: apbct-public--functions is not loaded.');
+                    } else {
+                        console.log('APBCT ERROR: apbctLocalStorage object is not loaded.');
+                    }  
                 });
 		    </script>";
         // Using AJAX to get key
