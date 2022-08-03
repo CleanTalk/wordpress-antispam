@@ -33,10 +33,10 @@ use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\Common\DNS;
 use Cleantalk\Common\Firewall;
 use Cleantalk\Common\Schema;
-use Cleantalk\Variables\Get;
-use Cleantalk\Variables\Post;
+use Cleantalk\ApbctWP\Variables\Get;
+use Cleantalk\ApbctWP\Variables\Post;
 use Cleantalk\Variables\Request;
-use Cleantalk\Variables\Server;
+use Cleantalk\ApbctWP\Variables\Server;
 
 global $apbct, $wpdb, $pagenow;
 
@@ -455,7 +455,7 @@ if ( ! is_admin() && ! apbct_is_ajax() && ! apbct_is_customize_preview() ) {
          $apbct->stats['sfw']['last_update_time'] &&
          apbct_is_get() &&
          ! apbct_wp_doing_cron() &&
-         ! \Cleantalk\Variables\Server::inUri('/favicon.ico') &&
+         ! Server::inUri('/favicon.ico') &&
          ! apbct_is_cli()
     ) {
         wp_suspend_cache_addition(true);
@@ -700,14 +700,14 @@ function apbct_sfw__check()
         $spbc_settings = get_option('spbc_settings');
         $spbc_key      = ! empty($spbc_settings['spbc_key']) ? $spbc_settings['spbc_key'] : false;
         if ( Get::get('access') === $apbct->api_key || ($spbc_key !== false && Get::get('access') === $spbc_key) ) {
-            \Cleantalk\Variables\Cookie::set(
+            Cookie::set(
                 'spbc_firewall_pass_key',
                 md5(Server::get('REMOTE_ADDR') . $spbc_key),
                 time() + 1200,
                 '/',
                 ''
             );
-            \Cleantalk\Variables\Cookie::set(
+            Cookie::set(
                 'ct_sfw_pass_key',
                 md5(Server::get('REMOTE_ADDR') . $apbct->api_key),
                 time() + 1200,

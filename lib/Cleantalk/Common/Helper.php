@@ -4,7 +4,7 @@ namespace Cleantalk\Common;
 
 use Cleantalk\Common\HTTP\Request;
 use Cleantalk\Templates\Singleton;
-use Cleantalk\Variables\Server;
+use Cleantalk\ApbctWP\Variables\Server;
 
 /**
  * CleanTalk Helper class.

@@ -2,10 +2,8 @@
 
 namespace Cleantalk\ApbctWP\Variables;
 
-use Cleantalk\ApbctWP\Helper;
 use Cleantalk\ApbctWP\Sanitize;
 use Cleantalk\ApbctWP\Validate;
-use Cleantalk\Variables\Server;
 
 class Cookie extends \Cleantalk\Variables\Cookie
 {

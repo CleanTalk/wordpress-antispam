@@ -3,7 +3,7 @@
 namespace Cleantalk\Antispam;
 
 use Cleantalk\Templates\Singleton;
-use Cleantalk\Variables\Post;
+use Cleantalk\ApbctWP\Variables\Post;
 
 class EmailEncoder
 {

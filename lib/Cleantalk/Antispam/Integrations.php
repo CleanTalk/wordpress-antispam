@@ -2,7 +2,7 @@
 
 namespace Cleantalk\Antispam;
 
-use Cleantalk\Variables\Server;
+use Cleantalk\ApbctWP\Variables\Server;
 
 class Integrations
 {
