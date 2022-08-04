@@ -121,6 +121,8 @@ class CleantalkResponse
      */
     public $codes = array();
 
+    public $error = null;
+    
     /**
      * Create server response
      *
