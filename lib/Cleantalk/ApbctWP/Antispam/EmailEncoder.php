@@ -33,14 +33,19 @@ class EmailEncoder extends \Cleantalk\Antispam\EmailEncoder
     {
         global $apbct;
 
+        $browser_sign          = hash('sha256', Post::get('browser_signature_params'));
+        $event_javascript_data = Helper::isJson(Post::get('event_javascript_data'))
+            ? Post::get('event_javascript_data')
+            : stripslashes(Post::get('event_javascript_data'));
+        
         $params = array(
-            'auth_key'              => $apbct->api_key,                          // Access key
-            'event_token'           => null,                                     // Unique event ID
-            'event_javascript_data' => Post::get('event_javascript_data'), // JSON-string params to analysis
-            'browser_sign'          => hash('sha256', Post::get('browser_signature_params')), // Browser ID
-            'sender_ip'             => Helper::ipGet(),                          // IP address
-            'event_type'            => 'CONTACT_DECODING',                       // 'GENERAL_BOT_CHECK' || 'CONTACT_DECODING'
-            'message_to_log'        => $this->decoded_email,                     // Custom message
+            'auth_key'              => $apbct->api_key,        // Access key
+            'event_token'           => null,                   // Unique event ID
+            'event_javascript_data' => $event_javascript_data, // JSON-string params to analysis
+            'browser_sign'          => $browser_sign,          // Browser ID
+            'sender_ip'             => Helper::ipGet(),        // IP address
+            'event_type'            => 'CONTACT_DECODING',     // 'GENERAL_BOT_CHECK' || 'CONTACT_DECODING'
+            'message_to_log'        => $this->decoded_email,   // Custom message
         );
 
         $ct_request = new CleantalkRequest($params);
