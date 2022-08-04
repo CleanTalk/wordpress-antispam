@@ -15,7 +15,18 @@ jQuery(document).ready(function(){
 			apbct_admin_sendAJAX( { 'action' : 'cleantalk_dismiss_notice', 'notice_id' : apbct_notice_name }, { 'callback' : null } );
 		}
 	});
-	
+
+	// Notice when deleting user
+	jQuery('.ct_username .row-actions .delete a').on('click', function (e) {
+		e.preventDefault();
+
+		let result = confirm(ctAdminCommon.notice_when_deleting_user_text);
+
+		if (result) {
+			window.location = this.href
+		}
+	});
+
 });
 function apbct_admin_sendAJAX(data, params, obj){
 

@@ -4,10 +4,10 @@ use Cleantalk\ApbctWP\Helper;
 use Cleantalk\ApbctWP\Sanitize;
 use Cleantalk\ApbctWP\State;
 use Cleantalk\ApbctWP\Variables\Cookie;
-use Cleantalk\Variables\Get;
-use Cleantalk\Variables\Post;
+use Cleantalk\ApbctWP\Variables\Get;
+use Cleantalk\ApbctWP\Variables\Post;
 use Cleantalk\Variables\Request;
-use Cleantalk\Variables\Server;
+use Cleantalk\ApbctWP\Variables\Server;
 
 // MailChimp Premium for Wordpress
 function ct_add_mc4wp_error_message($messages)

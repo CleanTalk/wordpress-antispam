@@ -4,7 +4,7 @@ namespace Cleantalk\ApbctWP\FindSpam;
 
 use Cleantalk\ApbctWP\API;
 use Cleantalk\ApbctWP\Variables\Cookie;
-use Cleantalk\Variables\Post;
+use Cleantalk\ApbctWP\Variables\Post;
 
 class CommentsChecker extends Checker
 {

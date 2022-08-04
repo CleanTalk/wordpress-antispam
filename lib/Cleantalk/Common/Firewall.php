@@ -4,8 +4,7 @@ namespace Cleantalk\Common;
 
 use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\Common\Firewall\FirewallModule;
-use Cleantalk\Common\Helper as Helper;
-use Cleantalk\Variables\Get;
+use Cleantalk\ApbctWP\Variables\Get;
 
 /**
  * CleanTalk SpamFireWall base class.

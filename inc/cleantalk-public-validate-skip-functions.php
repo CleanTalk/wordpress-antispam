@@ -1,7 +1,7 @@
 <?php
 
-use Cleantalk\Variables\Server;
-use Cleantalk\Variables\Post;
+use Cleantalk\ApbctWP\Variables\Server;
+use Cleantalk\ApbctWP\Variables\Post;
 
 /**
  * Function for skip in ct_contact_form_validate_postdata()

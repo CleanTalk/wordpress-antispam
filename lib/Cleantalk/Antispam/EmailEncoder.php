@@ -3,7 +3,7 @@
 namespace Cleantalk\Antispam;
 
 use Cleantalk\Templates\Singleton;
-use Cleantalk\Variables\Post;
+use Cleantalk\ApbctWP\Variables\Post;
 
 class EmailEncoder
 {
@@ -52,6 +52,7 @@ class EmailEncoder
             'the_content',
             'the_excerpt',
             'get_footer',
+            'get_header',
             'get_the_excerpt',
             'comment_text',
             'comment_excerpt',

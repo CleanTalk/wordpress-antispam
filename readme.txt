@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 3.0
 Tested up to: 6.0
 Requires PHP: 5.6
-Stable tag: 5.182
+Stable tag: 5.182.1
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -601,6 +601,18 @@ If your website has forms that send data to external sources, you can enable opt
 12. SpamFireWall log.
 
 == Changelog ==
+
+= 5.182.1 Aug 04 2022 =
+#### Server variables getting fixed.
+* New. Server variables. Sanitizing logic added.
+* Upd. Server variables. Getting variables logic updated.
+* Upd. Server variables. Default sanitize added for ApbctWP\Variables\* classes.
+* Upd. Server variables. Client code updated - using ApbctWP\Variables\* classes.
+* Upd. Server variables. Sanitizing array nesting increased.
+* Fix. External forms. Form draw fixed.
+* Fix. Common. Set check JS value fixed.
+* Fix. Common. Custom ajax forms catching logic fixed.
+* Fix: added styles to hide the honeypot field in the plugin Ultimate Member
 
 = 5.182 Jul 28 2022 =
 #### Email encoder improved, internal and external forms protection fixed, code quality improved and some minor issues fixed.

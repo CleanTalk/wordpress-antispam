@@ -3,9 +3,9 @@
 use Cleantalk\ApbctWP\Escape;
 use Cleantalk\ApbctWP\Helper;
 use Cleantalk\ApbctWP\Validate;
-use Cleantalk\Variables\Post;
+use Cleantalk\ApbctWP\Variables\Post;
 use Cleantalk\ApbctWP\Cron;
-use Cleantalk\Variables\Server;
+use Cleantalk\ApbctWP\Variables\Server;
 
 /**
  * Admin action 'admin_menu' - Add the admin options page

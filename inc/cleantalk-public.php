@@ -3,10 +3,10 @@
 use Cleantalk\ApbctWP\Escape;
 use Cleantalk\ApbctWP\Sanitize;
 use Cleantalk\ApbctWP\Variables\Cookie;
-use Cleantalk\Variables\Get;
-use Cleantalk\Variables\Post;
+use Cleantalk\ApbctWP\Variables\Get;
+use Cleantalk\ApbctWP\Variables\Post;
 use Cleantalk\Variables\Request;
-use Cleantalk\Variables\Server;
+use Cleantalk\ApbctWP\Variables\Server;
 
 /**
  * Init functions
@@ -586,15 +586,16 @@ function ct_add_hidden_fields(
             "<script type=\"text/javascript\" "
             . (class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '')
             . ">
-                function apbct_attach_event_handler__backend(elem, event, callback){
+                function apbct_attach_event_handler__backend(elem, event, callback) {
                     if(typeof window.addEventListener === \"function\") elem.addEventListener(event, callback);
-                    else                                              elem.attachEvent(event, callback);
+                    else                                                elem.attachEvent(event, callback);
                 }
-                apbct_attach_event_handler__backend(window, 'load', function(){
-                    if (typeof apbctLocalStorage === \"object\")
+                apbct_attach_event_handler__backend(window, 'DOMContentLoaded', function(){
+                    if (typeof apbctLocalStorage === \"object\") {
                         apbctLocalStorage.set('{$field_name}', '{$ct_checkjs_key}', false );
-                    else 
-                        console.log('APBCT ERROR: apbct-public--functions is not loaded.');
+                    } else {
+                        console.log('APBCT ERROR: apbctLocalStorage object is not loaded.');
+                    }  
                 });
 		    </script>";
         // Using AJAX to get key
@@ -1178,11 +1179,11 @@ function ct_print_form($arr, $k)
     foreach ( $arr as $key => $value ) {
         if ( ! is_array($value) ) {
             print '<textarea
-				name="' . ($k == '' ? $key : $k . '[' . $key . ']') . '"
-				style="display:none;">' . htmlspecialchars($value)
+				name="' . esc_attr($k === '' ? $key : $k . '[' . $key . ']') . '"
+				style="display:none;">' . esc_textarea(htmlspecialchars($value))
                   . '</textarea>';
         } else {
-            ct_print_form($value, $k == '' ? $key : $k . '[' . $key . ']');
+            ct_print_form($value, $k === '' ? $key : $k . '[' . $key . ']');
         }
     }
 }

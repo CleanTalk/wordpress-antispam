@@ -2,10 +2,8 @@
 
 namespace Cleantalk\ApbctWP\Variables;
 
-use Cleantalk\ApbctWP\Helper;
 use Cleantalk\ApbctWP\Sanitize;
 use Cleantalk\ApbctWP\Validate;
-use Cleantalk\Variables\Server;
 
 class Cookie extends \Cleantalk\Variables\Cookie
 {
@@ -162,5 +160,13 @@ class Cookie extends \Cleantalk\Variables\Cookie
         }
 
         return $visible_fields_collection;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function sanitizeDefault($value)
+    {
+        return sanitize_textarea_field($value);
     }
 }

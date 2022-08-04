@@ -10,9 +10,9 @@ use Cleantalk\ApbctWP\GetFieldsAny;
 use Cleantalk\ApbctWP\Helper;
 use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\Common\DB;
-use Cleantalk\Variables\Get;
-use Cleantalk\Variables\Post;
-use Cleantalk\Variables\Server;
+use Cleantalk\ApbctWP\Variables\Get;
+use Cleantalk\ApbctWP\Variables\Post;
+use Cleantalk\ApbctWP\Variables\Server;
 
 function apbct_array($array)
 {
@@ -1128,7 +1128,7 @@ function apbct_add_admin_ip_to_swf_whitelist($user)
         apbct_private_list_add($ip) &&
         ! headers_sent()
     ) {
-        \Cleantalk\ApbctWP\Variables\Cookie::set(
+        Cookie::set(
             'ct_sfw_ip_wl',
             md5($ip . $apbct->api_key),
             time() + 86400 * 30,
