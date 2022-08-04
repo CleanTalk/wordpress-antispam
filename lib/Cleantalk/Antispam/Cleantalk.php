@@ -482,12 +482,14 @@ class Cleantalk
         return $response;
     }
 
-    /**
-     * Function checks user
+     /**
+     * Call check_bot API method
+     *
+     * Make a decision if it's bot or not based on limited input JavaScript data
      *
      * @param CleantalkRequest $request
      *
-     * @return bool|CleantalkResponse
+     * @return CleantalkResponse
      */
     public function isBot(CleantalkRequest $request)
     {
