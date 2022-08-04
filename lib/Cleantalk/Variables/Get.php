@@ -25,12 +25,10 @@ class Get extends ServerVariables
     {
         // Return from memory. From $this->variables
         if (! isset(static::$instance->variables[$name])) {
-            if (function_exists('filter_input')) {
-                $value = filter_input(INPUT_GET, $name);
-            }
-
-            if (empty($value)) {
-                $value = isset($_GET[$name]) ? $_GET[$name] : '';
+            if ( isset($_GET[$name]) ) {
+                $value = $this->getAndSanitize($_GET[$name]);
+            } else {
+                $value = '';
             }
 
             // Remember for further calls

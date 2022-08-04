@@ -232,6 +232,12 @@ function apbct_ready(){
 		jQuery("input[type = 'email'], #email").blur(checkEmail);
 	}
 
+	if (apbctLocalStorage.isSet('ct_checkjs')) {
+		initCookies.push(['ct_checkjs', apbctLocalStorage.get('ct_checkjs')]);
+	} else {
+		initCookies.push(['ct_checkjs', 0]);
+	}
+
 	ctSetCookie(initCookies);
 
 	setTimeout(function(){
@@ -551,7 +557,11 @@ if(typeof jQuery !== 'undefined') {
 	// Capturing responses and output block message for unknown AJAX forms
 	jQuery(document).ajaxComplete(function (event, xhr, settings) {
 		if (xhr.responseText && xhr.responseText.indexOf('"apbct') !== -1) {
-			var response = JSON.parse(xhr.responseText);
+			try {
+				var response = JSON.parse(xhr.responseText);
+			} catch (e) {
+				console.log(e.toString())
+			}
 			if (typeof response.apbct !== 'undefined') {
 				response = response.apbct;
 				if (response.blocked) {

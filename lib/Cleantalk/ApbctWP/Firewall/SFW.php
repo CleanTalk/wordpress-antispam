@@ -6,8 +6,8 @@ use Cleantalk\ApbctWP\API;
 use Cleantalk\ApbctWP\DB;
 use Cleantalk\ApbctWP\Helper;
 use Cleantalk\ApbctWP\Variables\Cookie;
-use Cleantalk\Variables\Get;
-use Cleantalk\Variables\Server;
+use Cleantalk\ApbctWP\Variables\Get;
+use Cleantalk\ApbctWP\Variables\Server;
 
 class SFW extends \Cleantalk\Common\Firewall\FirewallModule
 {
@@ -632,7 +632,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
         $file_content = file_get_contents($file_url);
 
         if (function_exists('gzdecode')) {
-            $unzipped_content = gzdecode($file_content);
+            $unzipped_content = @gzdecode($file_content);
 
             if ($unzipped_content !== false) {
                 $data = Helper::bufferParseCsv($unzipped_content);

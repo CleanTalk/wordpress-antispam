@@ -2,7 +2,7 @@
 
 namespace Cleantalk\Antispam\Integrations;
 
-use Cleantalk\Variables\Post;
+use Cleantalk\ApbctWP\Variables\Post;
 
 class EstimationForm extends IntegrationBase
 {

@@ -4,7 +4,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 5.181
+  Version: 5.182.2-dev
   Author: СleanTalk <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -33,10 +33,10 @@ use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\Common\DNS;
 use Cleantalk\Common\Firewall;
 use Cleantalk\Common\Schema;
-use Cleantalk\Variables\Get;
-use Cleantalk\Variables\Post;
+use Cleantalk\ApbctWP\Variables\Get;
+use Cleantalk\ApbctWP\Variables\Post;
 use Cleantalk\Variables\Request;
-use Cleantalk\Variables\Server;
+use Cleantalk\ApbctWP\Variables\Server;
 
 global $apbct, $wpdb, $pagenow;
 
@@ -252,6 +252,7 @@ if (
     Post::get('iphorm_id') !== '' &&
     Post::get('iphorm_uid') !== ''
 ) {
+    require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-validate-skip-functions.php');
     require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-validate.php');
     require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public.php');
     require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-integrations.php');
@@ -264,6 +265,7 @@ if ( $apbct->settings['forms__general_contact_forms_test'] == 1
      && ( Post::get('action') === 'fb_intialize')
      && ! empty(Post::get('FB_userdata'))
 ) {
+    require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-validate-skip-functions.php');
     require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-validate.php');
     require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public.php');
     require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-integrations.php');
@@ -273,6 +275,11 @@ if ( $apbct->settings['forms__general_contact_forms_test'] == 1
 }
 
 $apbct_active_integrations = array(
+    'CleantalkInternalForms'         => array(
+        'hook'    => 'ct_check_internal',
+        'setting' => 'forms__check_internal',
+        'ajax'    => true
+    ),
     'ContactBank'         => array(
         'hook'    => 'contact_bank_frontend_ajax_call',
         'setting' => 'forms__contact_forms_test',
@@ -439,7 +446,6 @@ add_action('frm_entries_footer_scripts', 'apbct_form__formidable__footerScripts'
 // Public actions
 if ( ! is_admin() && ! apbct_is_ajax() && ! apbct_is_customize_preview() ) {
     // Default search
-    //add_filter( 'get_search_form',  'apbct_forms__search__addField' );
     add_filter('get_search_query', 'apbct_forms__search__testSpam');
     add_action('wp_head', 'apbct_search_add_noindex', 1);
 
@@ -449,7 +455,7 @@ if ( ! is_admin() && ! apbct_is_ajax() && ! apbct_is_customize_preview() ) {
          $apbct->stats['sfw']['last_update_time'] &&
          apbct_is_get() &&
          ! apbct_wp_doing_cron() &&
-         ! \Cleantalk\Variables\Server::inUri('/favicon.ico') &&
+         ! Server::inUri('/favicon.ico') &&
          ! apbct_is_cli()
     ) {
         wp_suspend_cache_addition(true);
@@ -529,6 +535,7 @@ if ( is_admin() || is_network_admin() ) {
         $_cleantalk_hooked_actions        = array();
         $_cleantalk_ajax_actions_to_check = array();
 
+        require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-validate-skip-functions.php');
         require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-validate.php');
         require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public.php');
         require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-integrations.php');
@@ -571,6 +578,7 @@ if ( is_admin() || is_network_admin() ) {
         add_action('user_register', 'apbct_user_register');
 
         if ( class_exists('BuddyPress') ) {
+            require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-validate-skip-functions.php');
             require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-validate.php');
             require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public.php');
             require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-integrations.php');
@@ -584,6 +592,7 @@ if ( is_admin() || is_network_admin() ) {
         }
     }
 
+    require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-validate-skip-functions.php');
     require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-validate.php');
     require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public.php');
     require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-integrations.php');
@@ -617,6 +626,7 @@ if ( is_admin() || is_network_admin() ) {
     }
 // Public pages actions
 } else {
+    require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-validate-skip-functions.php');
     require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-validate.php');
     require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public.php');
     require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-integrations.php');
@@ -690,16 +700,16 @@ function apbct_sfw__check()
         $spbc_settings = get_option('spbc_settings');
         $spbc_key      = ! empty($spbc_settings['spbc_key']) ? $spbc_settings['spbc_key'] : false;
         if ( Get::get('access') === $apbct->api_key || ($spbc_key !== false && Get::get('access') === $spbc_key) ) {
-            \Cleantalk\Variables\Cookie::set(
+            Cookie::set(
                 'spbc_firewall_pass_key',
-                md5(apbct_get_server_variable('REMOTE_ADDR') . $spbc_key),
+                md5(Server::get('REMOTE_ADDR') . $spbc_key),
                 time() + 1200,
                 '/',
                 ''
             );
-            \Cleantalk\Variables\Cookie::set(
+            Cookie::set(
                 'ct_sfw_pass_key',
-                md5(apbct_get_server_variable('REMOTE_ADDR') . $apbct->api_key),
+                md5(Server::get('REMOTE_ADDR') . $apbct->api_key),
                 time() + 1200,
                 '/',
                 ''
@@ -2217,7 +2227,7 @@ function apbct_store__urls()
 
         // REFERER
         // Get current referer
-        $new_site_referer = apbct_get_server_variable('HTTP_REFERER');
+        $new_site_referer = Server::get('HTTP_REFERER');
         $new_site_referer = $new_site_referer ?: 'UNKNOWN';
 
         // Get already stored referer
@@ -2228,7 +2238,7 @@ function apbct_store__urls()
             $site_url &&
             (
                 ! $site_referer ||
-                parse_url($new_site_referer, PHP_URL_HOST) !== apbct_get_server_variable('HTTP_HOST')
+                parse_url($new_site_referer, PHP_URL_HOST) !== Server::get('HTTP_HOST')
             )
         ) {
             Cookie::set('apbct_site_referer', $new_site_referer, time() + 86400 * 3, '/', $site_url, null, true, 'Lax');
@@ -2287,7 +2297,7 @@ function apbct_cookie()
     if ( Server::get('HTTP_REFERER') ) {
         Cookie::set('apbct_prev_referer', Server::get('HTTP_REFERER'), 0, '/', $domain, null, true);
         $cookie_test_value['cookies_names'][] = 'apbct_prev_referer';
-        $cookie_test_value['check_value']     .= apbct_get_server_variable('HTTP_REFERER');
+        $cookie_test_value['check_value']     .= Server::get('HTTP_REFERER');
     }
 
     // Landing time
@@ -2432,7 +2442,7 @@ function ct_mail_send_connection_report()
 
     if ( ($apbct->settings['misc__send_connection_reports'] == 1 && $apbct->connection_reports['negative'] > 0) || ! empty(Get::get('ct_send_connection_report')) ) {
         $to      = "welcome@cleantalk.org";
-        $subject = "Connection report for " . apbct_get_server_variable('HTTP_HOST');
+        $subject = "Connection report for " . Server::get('HTTP_HOST');
         $message = '
 				<html lang="en">
 				    <head>

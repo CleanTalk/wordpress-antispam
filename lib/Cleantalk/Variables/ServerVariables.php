@@ -98,4 +98,44 @@ abstract class ServerVariables
     {
         return self::get($var) === $param;
     }
+
+    /**
+     * @param $value
+     * @param $nesting
+     *
+     * @return string|array
+     */
+    public function getAndSanitize(&$value, $nesting = 0)
+    {
+        if ( is_array($value) ) {
+            foreach ( $value as $_key => & $val ) {
+                if ( is_array($val) ) {
+                    if ( $nesting > 20 ) {
+                        return $value;
+                    }
+                    $this->getAndSanitize($val, ++$nesting);
+                } else {
+                    $val = $this->sanitizeDefault($val);
+                }
+            }
+        } else {
+            $value = $this->sanitizeDefault($value);
+        }
+        return $value;
+    }
+
+    /**
+     * Sanitize gathering data.
+     * No sanitizing by default.
+     * Override this method in the internal class!
+     *
+     * @param string $value
+     *
+     * @return string
+     */
+    protected function sanitizeDefault($value)
+    {
+        // @ToDo Override this method in the internal class!
+        return $value;
+    }
 }

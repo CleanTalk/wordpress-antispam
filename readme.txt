@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 3.0
 Tested up to: 6.0
 Requires PHP: 5.6
-Stable tag: 5.181
+Stable tag: 5.182.1
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -601,6 +601,47 @@ If your website has forms that send data to external sources, you can enable opt
 12. SpamFireWall log.
 
 == Changelog ==
+
+= 5.182.1 Aug 04 2022 =
+#### Server variables getting fixed.
+* New. Server variables. Sanitizing logic added.
+* Upd. Server variables. Getting variables logic updated.
+* Upd. Server variables. Default sanitize added for ApbctWP\Variables\* classes.
+* Upd. Server variables. Client code updated - using ApbctWP\Variables\* classes.
+* Upd. Server variables. Sanitizing array nesting increased.
+* Fix. External forms. Form draw fixed.
+* Fix. Common. Set check JS value fixed.
+* Fix. Common. Custom ajax forms catching logic fixed.
+* Fix: added styles to hide the honeypot field in the plugin Ultimate Member
+
+= 5.182 Jul 28 2022 =
+#### Email encoder improved, internal and external forms protection fixed, code quality improved and some minor issues fixed.
+* New. Email encoder. Encoding exclusions implemented.
+* New. Alternative cookies AJAX calls reduce. Use browser localStorage to keep check_js value instead of CTSetCookie()
+* Upd. External forms. Sendfox.com integration added.
+* Upd. Internal forms. Internal forms protection logic updated.
+* Fix. GetFieldsAny.php Take visible fields from POST if apbct_visible_fields cookie is not detected.
+* Fix. Integrations. WPUserMeta. Added case of user-meta-pro
+* Fix. Email encoder. Divi contact forms exclusions added.
+* Fix. public.js. Handle exception if backend returns invalid JSON.
+* Fix: External Forms. Match action with action, method with method.
+* Fix: Restore JS for internal form protection.
+* Fix: JS localize. Add blog_home to ctPublic object.
+* Fix: Honeypot. Delete redundant style.
+* Code: Internal forms. Fix action detection.
+* Code: Internal forms. Added exclusion for native WordPress action scripts.
+* Fix: SpamFirewall. Ignore warning from gzdecode() in ApbctWP/Firewall/SFW::updateWriteToDb().
+* Fix: Internal forms protection. Now is controlled by settings.
+* Fix: External forms protection. Now is controlled by settings.
+* Fix. Common. Prevent JS async loaded by CF.
+* Fix: Protect external. Sort callback params.
+* Fix. Code. Code quality improved.
+* Fix. Variables. Filter variables contains arrays fixed.
+* Fix: Honeypot field. Make filed invisible.
+* Fix: GiveWP integration.
+* Fix: ApbctWP/Variables/Cookie::setNativeCookie(). Adjust the detection of the default 'secure' flag logic.
+* Fix. Variables. Getting empty variables fixed.
+* Fix. External/Internal. General contact form option dependence fixed.
 
 = 5.181 Jul 14 2022 =
 #### One integration added, SFW testing page updated, code quality improved and some minor issues fixed.

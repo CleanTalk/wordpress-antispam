@@ -2,8 +2,8 @@
 
 namespace Cleantalk\ApbctWP\FindSpam\ListTable;
 
-use Cleantalk\Variables\Get;
-use Cleantalk\Variables\Post;
+use Cleantalk\ApbctWP\Variables\Get;
+use Cleantalk\ApbctWP\Variables\Post;
 
 class Comments extends \Cleantalk\ApbctWP\CleantalkListTable
 {
