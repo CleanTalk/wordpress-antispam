@@ -409,14 +409,44 @@ function getJavascriptClientData() {
 	resultDataJson.ct_cookies_type = ctCookiesTypeLocalStorage !== undefined ? ctCookiesTypeLocalStorage : ctCookiesTypeCookie;
 
 	// Parse JSON properties to prevent double JSON encoding
-	for (const resultDataJsonKey in resultDataJson) {
-		let parsedValue = JSON.parse(resultDataJson[resultDataJsonKey]);
-		if( parsedValue === 'object' ){
-			resultDataJson[resultDataJsonKey] = parsedValue;
+	resultDataJson = decodeJSONEncodedProperties(resultDataJson);
+
+	return JSON.stringify(resultDataJson);
+}
+
+/**
+ * Recursive
+ *
+ * Recursively decode JSON-encoded properties
+ *
+ * @param object
+ * @returns {*}
+ */
+function decodeJSONEncodedProperties(object){
+
+	if( typeof object === 'object'){
+
+		for (let objectKey in object) {
+
+			// Recursion
+			if( typeof object[objectKey] === 'object'){
+				object[objectKey] = decodeJSONEncodedProperties(object[objectKey]);
+			}
+
+			// Common case (out)
+			if(
+				typeof object[objectKey] === 'string' &&
+				object[objectKey].match(/^[\[{].*?[\]}]$/) !== null // is like JSON
+			){
+				let parsedValue = JSON.parse(object[objectKey]);
+				if( typeof parsedValue === 'object' ){
+					object[objectKey] = parsedValue;
+				}
+			}
 		}
 	}
 
-	return JSON.stringify(resultDataJson);
+	return object;
 }
 
 function ctProcessDecodedDataResult(response, targetElement) {
