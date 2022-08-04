@@ -149,7 +149,8 @@ function isIntegratedForm(formObj) {
         formAction.indexOf('external.url') !== -1 ||
         formAction.indexOf('tp.media') !== -1 ||
         formAction.indexOf('flodesk.com') !== -1 ||
-        formAction.indexOf('sendfox.com') !== -1
+        formAction.indexOf('sendfox.com') !== -1 ||
+        formAction.indexOf('aweber.com') !== -1
 
     ) {
         return true;
