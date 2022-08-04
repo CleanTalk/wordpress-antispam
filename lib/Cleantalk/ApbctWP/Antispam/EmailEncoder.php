@@ -42,7 +42,7 @@ class EmailEncoder extends \Cleantalk\Antispam\EmailEncoder
             'event_type'            => 'CONTACT_DECODING',                       // 'GENERAL_BOT_CHECK' || 'CONTACT_DECODING'
             'message_to_log'        => $this->decoded_email,                     // Custom message
         );
-        
+
         $ct_request = new CleantalkRequest($params);
 
         $ct = new Cleantalk();
@@ -53,7 +53,7 @@ class EmailEncoder extends \Cleantalk\Antispam\EmailEncoder
         $ct->work_url       = preg_match('/https:\/\/.+/', $config['ct_work_url']) ? $config['ct_work_url'] : null;
         $ct->server_ttl     = $config['ct_server_ttl'];
         $ct->server_changed = $config['ct_server_changed'];
-        $this->api_response = $ct->checkBot( $ct_request);
+        $this->api_response = $ct->checkBot($ct_request);
 
         // Allow to see to the decoded contact if error occurred
         // Send error as comment in this case

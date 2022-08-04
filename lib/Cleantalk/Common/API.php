@@ -767,7 +767,7 @@ class API
 
         return static::sendRequest($request, self::URL, 0);
     }
-    
+
     private static function getProductId($product_name)
     {
         $product_id = null;
