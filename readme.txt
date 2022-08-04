@@ -608,6 +608,11 @@ If your website has forms that send data to external sources, you can enable opt
 * Upd. Server variables. Getting variables logic updated.
 * Upd. Server variables. Default sanitize added for ApbctWP\Variables\* classes.
 * Upd. Server variables. Client code updated - using ApbctWP\Variables\* classes.
+* Upd. Server variables. Sanitizing array nesting increased.
+* Fix. External forms. Form draw fixed.
+* Fix. Common. Set check JS value fixed.
+* Fix. Common. Custom ajax forms catching logic fixed.
+* Fix: added styles to hide the honeypot field in the plugin Ultimate Member
 
 = 5.182 Jul 28 2022 =
 #### Email encoder improved, internal and external forms protection fixed, code quality improved and some minor issues fixed.
