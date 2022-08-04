@@ -767,55 +767,7 @@ class API
 
         return static::sendRequest($request, self::URL, 0);
     }
-
-    /**
-     * Call check_bot API method
-     *
-     * Make a decision if it's bot or not based on limited input JavaScript data
-     *
-     * @param $api_key               string      Access key
-     * @param $event_token           string|null Unique event ID
-     * @param $event_javascript_data string      JSON-string params to analysis
-     * @param $browser_sign          string      Browser ID
-     * @param $sender_ip             string      IP address
-     * @param $event_type            string      'GENERAL_BOT_CHECK' || 'CONTACT_DECODING'
-     * @param $message_to_log        string      Custom message
-     *
-     * @return array|bool
-     */
-    public static function methodCheckBot(
-        $api_key,
-        $event_token,
-        $event_javascript_data,
-        $browser_sign,
-        $sender_ip,
-        $event_type,
-        $message_to_log = ''
-    ) {
-        $params = array(
-            'auth_key'              => $api_key,
-            'event_token'           => $event_token,
-            'event_javascript_data' => $event_javascript_data,
-            'browser_sign'          => $browser_sign,
-            'sender_ip'             => $sender_ip,
-            'event_type'            => $event_type,
-            'message_to_log'        => $message_to_log,
-        );
-
-        $ct_request = new CleantalkRequest($params);
-
-        $ct = new Cleantalk();
-
-        // Options store url without scheme because of DB error with ''://'
-        $config             = ct_get_server();
-        $ct->server_url     = APBCT_MODERATE_URL;
-        $ct->work_url       = preg_match('/https:\/\/.+/', $config['ct_work_url']) ? $config['ct_work_url'] : null;
-        $ct->server_ttl     = $config['ct_server_ttl'];
-        $ct->server_changed = $config['ct_server_changed'];
-
-        return $ct->isBot($ct_request);
-    }
-
+    
     private static function getProductId($product_name)
     {
         $product_id = null;
