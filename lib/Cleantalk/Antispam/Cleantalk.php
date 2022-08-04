@@ -491,7 +491,7 @@ class Cleantalk
      *
      * @return CleantalkResponse
      */
-    public function isBot(CleantalkRequest $request)
+    public function checkBot(CleantalkRequest $request)
     {
         $msg = $this->createMsg('check_bot', $request);
 
