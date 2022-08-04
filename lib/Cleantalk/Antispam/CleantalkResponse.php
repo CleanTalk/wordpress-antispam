@@ -120,7 +120,7 @@ class CleantalkResponse
      * @var array Contains codes returned from server
      */
     public $codes = array();
-    
+
     /**
      * @var null|array Contains a error
      */

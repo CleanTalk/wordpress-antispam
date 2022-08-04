@@ -37,7 +37,7 @@ class EmailEncoder extends \Cleantalk\Antispam\EmailEncoder
         $event_javascript_data = Helper::isJson(Post::get('event_javascript_data'))
             ? Post::get('event_javascript_data')
             : stripslashes(Post::get('event_javascript_data'));
-        
+
         $params = array(
             'auth_key'              => $apbct->api_key,        // Access key
             'event_token'           => null,                   // Unique event ID
