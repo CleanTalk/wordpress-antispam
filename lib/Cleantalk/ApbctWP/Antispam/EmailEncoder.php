@@ -5,6 +5,8 @@ namespace Cleantalk\ApbctWP\Antispam;
 use Cleantalk\ApbctWP\API;
 use Cleantalk\ApbctWP\Helper;
 use Cleantalk\Variables\Post;
+use Cleantalk\Antispam\CleantalkRequest;
+use Cleantalk\Antispam\Cleantalk;
 
 class EmailEncoder extends \Cleantalk\Antispam\EmailEncoder
 {
@@ -31,19 +33,31 @@ class EmailEncoder extends \Cleantalk\Antispam\EmailEncoder
     {
         global $apbct;
 
-        $this->api_response = API::methodCheckBot(
-            $apbct->api_key,
-            null,
-            Post::get('event_javascript_data'),
-            hash('sha256', Post::get('browser_signature_params')),
-            Helper::ipGet(),
-            'CONTACT_DECODING',
-            $this->decoded_email
+        $params = array(
+            'auth_key'              => $apbct->api_key,                          // Access key
+            'event_token'           => null,                                     // Unique event ID
+            'event_javascript_data' => Post::get('event_javascript_data'), // JSON-string params to analysis
+            'browser_sign'          => hash('sha256', Post::get('browser_signature_params')), // Browser ID
+            'sender_ip'             => Helper::ipGet(),                          // IP address
+            'event_type'            => 'CONTACT_DECODING',                       // 'GENERAL_BOT_CHECK' || 'CONTACT_DECODING'
+            'message_to_log'        => $this->decoded_email,                     // Custom message
         );
+        
+        $ct_request = new CleantalkRequest($params);
+
+        $ct = new Cleantalk();
+
+        // Options store url without scheme because of DB error with ''://'
+        $config             = ct_get_server();
+        $ct->server_url     = APBCT_MODERATE_URL;
+        $ct->work_url       = preg_match('/https:\/\/.+/', $config['ct_work_url']) ? $config['ct_work_url'] : null;
+        $ct->server_ttl     = $config['ct_server_ttl'];
+        $ct->server_changed = $config['ct_server_changed'];
+        $this->api_response = $ct->isBot($ct_request);
 
         // Allow to see to the decoded contact if error occurred
         // Send error as comment in this case
-        if (! empty($this->api_response->error)) {
+        if ( ! empty($this->api_response->error)) {
             $this->comment = $this->api_response->error;
 
             return true;
