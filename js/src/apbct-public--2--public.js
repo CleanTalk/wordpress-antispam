@@ -408,6 +408,14 @@ function getJavascriptClientData() {
 	resultDataJson.ct_has_scrolled = ctHasScrolledLocalStorage !== undefined ? ctHasScrolledLocalStorage : ctHasScrolledCookie;
 	resultDataJson.ct_cookies_type = ctCookiesTypeLocalStorage !== undefined ? ctCookiesTypeLocalStorage : ctCookiesTypeCookie;
 
+	// Parse JSON properties to prevent double JSON encoding
+	for (const resultDataJsonKey in resultDataJson) {
+		let parsedValue = JSON.parse(resultDataJson[resultDataJsonKey]);
+		if( parsedValue === 'object' ){
+			resultDataJson[resultDataJsonKey] = parsedValue;
+		}
+	}
+
 	return JSON.stringify(resultDataJson);
 }
 
