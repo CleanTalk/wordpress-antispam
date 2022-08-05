@@ -322,19 +322,37 @@ function apbctAjaxEmailDecode(event){
 	const element = event.target;
 	element.setAttribute('title', ctPublicFunctions.text__wait_for_decoding);
 	element.style.cursor = 'progress';
+
+	// Adding a tooltip
+	jQuery(element).append(
+		'<div class="apbct-tooltip">\n' +
+			'<div class="apbct-tooltip--text"></div>\n' +
+			'<div class="apbct-tooltip--arrow"></div>\n' +
+		'</div>'
+	);
+	ctShowDecodeComment(element, ctPublicFunctions.text__wait_for_decoding);
+
+	const javascriptClientData = getJavascriptClientData();
+
 	// Using REST API handler
 	if( ctPublicFunctions.data__ajax_type === 'rest' ){
 		apbct_public_sendREST(
 			'apbct_decode_email',
 			{
-				data: {encodedEmail: event.target.dataset.originalString},
+				data: {
+					encodedEmail:             event.target.dataset.originalString,
+					event_javascript_data:    javascriptClientData,
+				},
 				method: 'POST',
 				callback: function (result) {
 					if (result.success) {
-						ctFillDecodedEmail(result.data, event.target);
-						element.setAttribute('title', '');
-						element.removeAttribute('style');
+						ctProcessDecodedDataResult(result.data, event.target);
 					}
+					setTimeout(function () {
+						jQuery(element)
+							.children('.apbct-tooltip')
+							.fadeOut(700);
+					}, 4000);
 				},
 			}
 		);
@@ -343,24 +361,118 @@ function apbctAjaxEmailDecode(event){
 		apbct_public_sendAJAX(
 			{
 				action: 'apbct_decode_email',
-				encodedEmail: event.target.dataset.originalString
+				encodedEmail: event.target.dataset.originalString,
+				event_javascript_data:    javascriptClientData,
 			},
 			{
 				notJson: true,
 				callback: function (result) {
 					if (result.success) {
-						ctFillDecodedEmail(result.data, event.target);
-						element.setAttribute('title', '');
-						element.removeAttribute('style');
+						ctProcessDecodedDataResult(result.data, event.target);
 					}
+					setTimeout(function () {
+						jQuery(element)
+							.children('.apbct-tooltip')
+							.fadeOut(700);
+					}, 4000);
 				},
 			}
 		);
 	}
 }
 
-function ctFillDecodedEmail(result, targetElement){
-	targetElement.innerHTML = result;
+function getJavascriptClientData() {
+	let resultDataJson = {};
+
+	resultDataJson.apbct_headless = ctGetCookie(ctPublicFunctions.cookiePrefix + 'apbct_headless');
+	resultDataJson.apbct_pixel_url = ctGetCookie(ctPublicFunctions.cookiePrefix + 'apbct_pixel_url');
+	resultDataJson.ct_checked_emails = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_checked_emails');
+	resultDataJson.ct_checkjs = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_checkjs');
+	resultDataJson.ct_fkp_timestamp = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_fkp_timestamp');
+	resultDataJson.ct_pointer_data = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_pointer_data');
+	resultDataJson.ct_ps_timestamp = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_ps_timestamp');
+	resultDataJson.ct_screen_info = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_screen_info');
+	resultDataJson.ct_timezone = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_timezone');
+
+	// collecting data from localstorage
+	const ctMouseMovedLocalStorage = apbctLocalStorage.get(ctPublicFunctions.cookiePrefix + 'ct_mouse_moved');
+	const ctHasScrolledLocalStorage = apbctLocalStorage.get(ctPublicFunctions.cookiePrefix + 'ct_has_scrolled');
+	const ctCookiesTypeLocalStorage = apbctLocalStorage.get(ctPublicFunctions.cookiePrefix + 'ct_cookies_type');
+
+	// collecting data from cookies
+	const ctMouseMovedCookie = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_mouse_moved');
+	const ctHasScrolledCookie = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_has_scrolled');
+	const ctCookiesTypeCookie = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_cookies_type');
+
+	resultDataJson.ct_mouse_moved = ctMouseMovedLocalStorage !== undefined ? ctMouseMovedLocalStorage : ctMouseMovedCookie;
+	resultDataJson.ct_has_scrolled = ctHasScrolledLocalStorage !== undefined ? ctHasScrolledLocalStorage : ctHasScrolledCookie;
+	resultDataJson.ct_cookies_type = ctCookiesTypeLocalStorage !== undefined ? ctCookiesTypeLocalStorage : ctCookiesTypeCookie;
+
+	// Parse JSON properties to prevent double JSON encoding
+	resultDataJson = decodeJSONEncodedProperties(resultDataJson);
+
+	return JSON.stringify(resultDataJson);
+}
+
+/**
+ * Recursive
+ *
+ * Recursively decode JSON-encoded properties
+ *
+ * @param object
+ * @returns {*}
+ */
+function decodeJSONEncodedProperties(object){
+
+	if( typeof object === 'object'){
+
+		for (let objectKey in object) {
+
+			// Recursion
+			if( typeof object[objectKey] === 'object'){
+				object[objectKey] = decodeJSONEncodedProperties(object[objectKey]);
+			}
+
+			// Common case (out)
+			if(
+				typeof object[objectKey] === 'string' &&
+				object[objectKey].match(/^[\[{].*?[\]}]$/) !== null // is like JSON
+			){
+				let parsedValue = JSON.parse(object[objectKey]);
+				if( typeof parsedValue === 'object' ){
+					object[objectKey] = parsedValue;
+				}
+			}
+		}
+	}
+
+	return object;
+}
+
+function ctProcessDecodedDataResult(response, targetElement) {
+
+	targetElement.setAttribute('title', '');
+	targetElement.removeAttribute('style');
+
+	if( !! response.is_allowed) {
+		ctFillDecodedEmail(targetElement, response.decoded_email);
+	}
+
+	if( !! response.show_comment ){
+		ctShowDecodeComment(targetElement, response.comment);
+	}
+}
+
+function ctFillDecodedEmail(target, email){
+	let tooltip = jQuery(target).children('.apbct-tooltip');
+    jQuery(target).html(email)
+				  .append(tooltip);
+}
+
+function ctShowDecodeComment(target, comment){
+	jQuery(target).find('.apbct-tooltip')
+		.show()
+		.find('.apbct-tooltip--text').html(comment);
 }
 
 function apbct_collect_visible_fields( form ) {
