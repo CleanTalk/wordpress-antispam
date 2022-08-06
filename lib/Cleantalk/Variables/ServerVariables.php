@@ -105,7 +105,7 @@ abstract class ServerVariables
      *
      * @return string|array
      */
-    public function getAndSanitize(&$value, $nesting = 0)
+    public function getAndSanitize($value, $nesting = 0)
     {
         if ( is_array($value) ) {
             foreach ( $value as $_key => & $val ) {
