@@ -2429,6 +2429,16 @@ function ct_mail_send_connection_report()
     global $apbct;
 
     if ( ( $apbct->connection_reports['negative'] > 0 ) || !empty(Get::get('ct_send_connection_report')) ) {
+        //skip empty reports for cron job
+        $unsent_exist = false;
+        foreach ( $apbct->connection_reports['negative_report'] as $key => $report ) {
+            if ( $report['is_sent'] = false ) {
+                $unsent_exist = true;
+            };
+        }
+        if ( !$unsent_exist ) {
+            return;
+        }
         $to = "welcome@cleantalk.org";
         $subject = "Connection report for " . apbct_get_server_variable('HTTP_HOST');
         $message = '
