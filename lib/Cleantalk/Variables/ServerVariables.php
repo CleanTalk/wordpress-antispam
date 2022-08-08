@@ -133,9 +133,5 @@ abstract class ServerVariables
      *
      * @return string
      */
-    protected function sanitizeDefault($value)
-    {
-        // @ToDo Override this method in the internal class!
-        return $value;
-    }
+    abstract protected function sanitizeDefault($value);
 }
