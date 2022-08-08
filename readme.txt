@@ -611,6 +611,8 @@ If your website has forms that send data to external sources, you can enable opt
 * Fix. Server variables. Common\Variables\* classes are abstract now.
 * Fix. Server variables. Default sanitizing method implementation added to ApbctWP\Variables\* classes.
 * Fix. Server variables. Client code fixed.
+* Fix: FluentForm integration fixed
+* Fix. Server variables. Url decoding removed.
 
 = 5.182.1 Aug 04 2022 =
 #### Server variables getting fixed.
