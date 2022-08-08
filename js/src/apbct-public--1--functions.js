@@ -10,7 +10,7 @@ function ctSetCookie( cookies, value, expires ){
         cookies.forEach( function (item, i, arr	) {
            apbctLocalStorage.set(item[0], encodeURIComponent(item[1]))
         });
-
+        ctNoCookieAttachHiddenFieldsToForms()
         // Using traditional cookies
     }else if( ctPublicFunctions.data__cookies_type === 'native' ){
         cookies.forEach( function (item, i, arr	) {

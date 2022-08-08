@@ -113,10 +113,10 @@ function ctSetPixelImg(pixelUrl) {
 
 function ctGetPixelUrl() {
 	// Check if pixel is already in localstorage and is not outdated
-	let local_storage_pixel_url = ctGetPixelUrlLocalstorage();
+	let local_storage_pixel_url = apbctLocalStorage.get('apbct_pixel_url');
 	if ( local_storage_pixel_url !== false ) {
-		if ( ctIsOutdatedPixelUrlLocalstorage() ) {
-			ctCleaPixelUrlLocalstorage()
+		if ( apbctLocalStorage.isAlive('apbct_pixel_url', 3600 * 3) ) {
+			apbctLocalStorage.delete('apbct_pixel_url')
 		} else {
 			//if so - load pixel from localstorage and draw it skipping AJAX
 			ctSetPixelImg();
@@ -132,8 +132,11 @@ function ctGetPixelUrl() {
 				callback: function (result) {
 					if (result) {
 						//set  pixel url to localstorage
-						if ( ! ctGetPixelUrlLocalstorage() ){
-							ctSetPixelUrlLocalstorage(result);
+						if ( ! apbctLocalStorage.get('apbct_pixel_url') ){
+							//set pixel to the storage
+							apbctLocalStorage.set('apbct_pixel_url', result)
+							//update pixel data in the hidden fields
+							ctNoCookieAttachHiddenFieldsToForms()
 						}
 						//then run pixel drawing
 						ctSetPixelImg(result);
@@ -152,8 +155,11 @@ function ctGetPixelUrl() {
 				callback: function (result) {
 					if (result) {
 						//set  pixel url to localstorage
-						if ( ! ctGetPixelUrlLocalstorage() ){
-							ctSetPixelUrlLocalstorage(result);
+						if ( ! apbctLocalStorage.get('apbct_pixel_url') ){
+							//set pixel to the storage
+							apbctLocalStorage.set('apbct_pixel_url', result)
+							//update pixel data in the hidden fields
+							ctNoCookieAttachHiddenFieldsToForms()
 						}
 						//then run pixel drawing
 						ctSetPixelImg(result);
@@ -302,6 +308,7 @@ function apbct_ready(){
 
 					var visible_fields = {};
 					visible_fields[0] = apbct_collect_visible_fields(this);
+					console.log("visible_fields[0]" + visible_fields[0])
 					apbct_visible_fields_set_cookie( visible_fields, event.target.ctFormIndex );
 				}
 
@@ -460,7 +467,7 @@ function apbct_visible_fields_set_cookie( visible_fields_collection, form_id ) {
 
 	var collection = typeof visible_fields_collection === 'object' && visible_fields_collection !== null ?  visible_fields_collection : {};
 
-	if( ctPublic.data__cookies_type === 'native' ) {
+	if( ctPublic.data__cookies_type === 'native' || ctPublic.data__cookies_type === 'none') {
 		for ( var i in collection ) {
 			if ( i > 10 ) {
 				// Do not generate more than 10 cookies
@@ -471,7 +478,6 @@ function apbct_visible_fields_set_cookie( visible_fields_collection, form_id ) {
 		}
 	} else {
 		ctSetCookie("apbct_visible_fields", JSON.stringify( collection ) );
-		apbctLocalStorage.set('apbct_visible_fields', JSON.stringify( collection ));
 	}
 }
 
@@ -531,41 +537,13 @@ if(typeof jQuery !== 'undefined') {
 
 function ctSetPixelUrlLocalstorage(ajax_pixel_url) {
 	//set pixel to the storage
-	apbctLocalStorage.set('apbct_pixel_url', ajax_pixel_url)
-	// //set pixel timestamp to the storage
-	// localStorage.setItem(ajax_pixel_url, Math.floor(Date.now() / 1000).toString())
-}
-
-function ctGetPixelUrlLocalstorage() {
-	let local_storage_pixel = apbctLocalStorage.get('apbct_pixel_url');
-	if ( local_storage_pixel !== null ) {
-		return local_storage_pixel;
-	} else {
-		return false;
-	}
-}
-
-function ctIsOutdatedPixelUrlLocalstorage() {
-	return apbctLocalStorage.isAlive('apbct_pixel_url', 3600 * 3);
-}
-
-function ctCleaPixelUrlLocalstorage() {
-	//remove timestamp
-	apbctLocalStorage.delete('apbct_pixel_url')
-	// //remove pixel itself
-	// localStorage.removeItem('session_pixel_url')
-}
-
-function ctGetNoCookieData(){
-	let data = apbctLocalStorage.getCleanTalkData()
-	// data.ct_mouse_moved = apbctLocalStorage.get('ct_mouse_moved')
-	// data.ct_has_scrolled = apbctLocalStorage.get('ct_has_scrolled')
-	return JSON.stringify(data)
+	ctSetCookie('apbct_pixel_url', ajax_pixel_url)
 }
 
 function ctNoCookieConstructHiddenField(){
 	let field = ''
-	let no_cookie_data = ctGetNoCookieData()
+	let no_cookie_data = apbctLocalStorage.getCleanTalkData()
+	no_cookie_data = JSON.stringify(no_cookie_data)
 	no_cookie_data = btoa(no_cookie_data)
 	field = document.createElement('input')
 	field.setAttribute('id','ct_no_cookie_hidden_field')
@@ -584,12 +562,25 @@ function ctNoCookieGetForms(){
 }
 
 function ctNoCookieAttachHiddenFieldsToForms(){
+
+	if (ctPublic.data__cookies_type !== 'none'){
+		return
+	}
+
 	let forms = ctNoCookieGetForms()
 
 	if (forms){
 		for ( let i = 0; i < forms.length; i++ ){
 			//ignore forms with get method @todo We need to think about this
 			if (document.forms[i].method.toLowerCase() !== 'get'){
+				let elements = document.getElementsByName('ct_no_cookie_hidden_field')
+				//clear previous hidden set
+				if (elements){
+					for (let j = 0; j < elements.length; j++) {
+						elements[j].parentNode.removeChild(elements[j])
+					}
+				}
+				// add new set
 				document.forms[i].append(ctNoCookieConstructHiddenField())
 			}
 		}
