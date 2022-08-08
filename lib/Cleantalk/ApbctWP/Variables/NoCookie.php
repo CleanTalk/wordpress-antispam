@@ -21,7 +21,7 @@ class NoCookie
         return hash('sha256', $id);
     }
 
-    public static function set($name, $value)
+    public static function set($name, $value, $save_to_db = false)
     {
         //self::cleanFromOld();
 
@@ -30,40 +30,71 @@ class NoCookie
             return;
         }
 
-//        global $wpdb;
-//
-//        $session_id = self::getID();
-//
-//        $wpdb->query(
-//            $wpdb->prepare(
-//                'INSERT INTO ' . APBCT_TBL_SESSIONS . '
-//				(id, name, value, last_update)
-//				VALUES (%s, %s, %s, %s)
-//			ON DUPLICATE KEY UPDATE
-//				value = %s,
-//				last_update = %s',
-//                $session_id,
-//                $name,
-//                $value,
-//                date('Y-m-d H:i:s'),
-//                $value,
-//                date('Y-m-d H:i:s')
-//            )
-//        );
+        if (!$save_to_db) {
+            self::$no_cookies_data[$name] = $value;
+            return;
+        }
 
-        self::$no_cookies_data[$name] = $value;
+        self::cleanFromOld();
+
+        global $wpdb;
+
+        $session_id = self::getID();
+
+        $previous_value = self::get($name);
+
+        $wpdb->query(
+            $wpdb->prepare(
+                'INSERT INTO ' . APBCT_TBL_NO_COOKIE . '
+				(id, name, value, last_update, prev_value)
+				VALUES (%s, %s, %s, %s, %s)
+			ON DUPLICATE KEY UPDATE
+				value = %s,
+				last_update = %s,
+				prev_value =%s',
+                $session_id,
+                $name,
+                $value,
+                date('Y-m-d H:i:s'),
+                $previous_value,
+                $value,
+                date('Y-m-d H:i:s'),
+                $previous_value
+            )
+        );
+
+
     }
 
     public static function get($name)
     {
-        //self::cleanFromOld();
 
         // Bad incoming data
         if ( ! $name) {
             return false;
         }
 
-        return isset(self::$no_cookies_data[$name]) ? self::$no_cookies_data[$name] : '';
+        if (isset(self::$no_cookies_data[$name])){
+            return self::$no_cookies_data[$name];
+        }
+
+        self::cleanFromOld();
+
+        global $wpdb;
+
+        $session_id = self::getID();
+        $result     = $wpdb->get_row(
+            $wpdb->prepare(
+                'SELECT value 
+				FROM `' . APBCT_TBL_NO_COOKIE . '`
+				WHERE id = %s AND name = %s;',
+                $session_id,
+                $name
+            ),
+            ARRAY_A
+        );
+
+        return isset($result['value']) ? $result['value'] : '';
     }
 
 
@@ -75,33 +106,9 @@ class NoCookie
             //need to handle errors
             $data = json_decode($data, true);
             self::$no_cookies_data = array_merge(self::$no_cookies_data,$data);
+            error_log('CTDEBUG: setDataFromHiddenField ' . var_export(self::$no_cookies_data,true));
             return true;
         }
-
-//        if ( !empty($data) ) {
-//            //implement other keys below
-//            $dictionary = array(
-//                'mouse_cursor_positions' => 'ct_pointer_data',
-//                'mouse_moved' => 'ct_mouse_moved',
-//                'email_check' => 'ct_checked_emails',
-//                'has_scrolled' => 'ct_has_scrolled',
-//                'pixel_url' => 'apbct_pixel_url',
-//                'page_set_timestamp' => 'ct_ps_timestamp',
-//                // 'pixel_url' => 'ct_cookies_type',
-//                'emulations_headless_mode' => 'apbct_headless',
-//                'js_timezone' => 'ct_timezone',
-//                'screen_info' => 'ct_screen_info',
-//                'key_press_timestamp' => 'ct_fkp_timestamp',
-//                'checkjs_data_cookies' => 'ct_checkjs',
-//
-//            );
-//
-//            foreach ( $dictionary as $data_key => $nc_key ) {
-//                    $data[$data_key] = $data[$nc_key];
-//                    unset ($data[$nc_key]);
-//            }
-//            self::$no_cookies_data = $data;
-//        }
 
         return false;
     }
@@ -115,7 +122,7 @@ class NoCookie
 
             $wpdb->query(
                 'DELETE
-				FROM `' . APBCT_TBL_SESSIONS . '`
+				FROM `' . APBCT_TBL_NO_COOKIE . '`
 				WHERE last_update < NOW() - INTERVAL ' . APBCT_SEESION__LIVE_TIME . ' SECOND
 				LIMIT 100000;'
             );
@@ -127,7 +134,25 @@ class NoCookie
         self::$no_cookies_data = array();
     }
 
-    public static function prepareToLoad(){
+    public static function preloadForScripts(){
+
+        global $wpdb;
+
+        $session_id = self::getID();
+        $result     = $wpdb->get_results(
+            $wpdb->prepare(
+                'SELECT * 
+				FROM `' . APBCT_TBL_NO_COOKIE . '`
+				WHERE id = %s;',
+                $session_id
+            ),
+            ARRAY_A
+        );
+
+        foreach ($result as $row=>$data){
+            self::set($data['name'],$data['prev_value']);
+        }
+
         return self::$no_cookies_data;
     }
 }

@@ -74,12 +74,13 @@ class Cookie extends \Cleantalk\Variables\Cookie
         $domain = '',
         $secure = null,
         $httponly = false,
-        $samesite = 'Lax'
+        $samesite = 'Lax',
+        $no_cookie_to_db = false
     ) {
         global $apbct;
 
         if ($apbct->data['cookies_type'] === 'none' && ! is_admin()) {
-            NoCookie::set($name, $value);
+            NoCookie::set($name, $value, $no_cookie_to_db);
         } elseif ($apbct->data['cookies_type'] === 'alternative') {
             AltSessions::set($name, $value);
         } else {

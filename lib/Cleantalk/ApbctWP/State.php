@@ -361,6 +361,10 @@ class State extends \Cleantalk\Common\State
             // Table with session data.
             define('APBCT_TBL_SESSIONS', $db_prefix . 'cleantalk_sessions');
         }
+        if ( ! defined('APBCT_TBL_NO_COOKIE')) {
+            // Table with session data.
+            define('APBCT_TBL_NO_COOKIE', $db_prefix . 'cleantalk_no_cookie_data');
+        }
         if ( ! defined('APBCT_SPAMSCAN_LOGS')) {
             // Table with session data.
             define('APBCT_SPAMSCAN_LOGS', $db_prefix . 'cleantalk_spamscan_logs');
