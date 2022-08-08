@@ -10,7 +10,7 @@ namespace Cleantalk\Variables;
  *
  * @package Cleantalk\Variables
  */
-class Cookie extends ServerVariables
+abstract class Cookie extends ServerVariables
 {
     protected static $instance;
 
