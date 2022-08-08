@@ -167,6 +167,9 @@ class Cookie extends \Cleantalk\Variables\Cookie
      */
     protected function sanitizeDefault($value)
     {
+        if ( Validate::isUrlencoded($value) ) {
+            $value = urldecode($value);
+        }
         return sanitize_textarea_field($value);
     }
 }
