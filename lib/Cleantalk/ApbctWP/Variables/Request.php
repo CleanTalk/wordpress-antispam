@@ -4,7 +4,7 @@ namespace Cleantalk\ApbctWP\Variables;
 
 use Cleantalk\ApbctWP\Validate;
 
-class Get extends \Cleantalk\Variables\Get
+class Request extends \Cleantalk\Variables\Request
 {
     /**
      * @inheritDoc

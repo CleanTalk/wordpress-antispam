@@ -10,7 +10,7 @@ namespace Cleantalk\Variables;
  *
  * @package Cleantalk\Variables
  */
-class Post extends ServerVariables
+abstract class Post extends ServerVariables
 {
     protected static $instance;
 

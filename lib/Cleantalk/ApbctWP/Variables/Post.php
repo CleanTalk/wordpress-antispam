@@ -2,6 +2,8 @@
 
 namespace Cleantalk\ApbctWP\Variables;
 
+use Cleantalk\ApbctWP\Validate;
+
 class Post extends \Cleantalk\Variables\Post
 {
     /**

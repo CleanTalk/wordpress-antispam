@@ -35,7 +35,7 @@ use Cleantalk\Common\Firewall;
 use Cleantalk\Common\Schema;
 use Cleantalk\ApbctWP\Variables\Get;
 use Cleantalk\ApbctWP\Variables\Post;
-use Cleantalk\Variables\Request;
+use Cleantalk\ApbctWP\Variables\Request;
 use Cleantalk\ApbctWP\Variables\Server;
 
 global $apbct, $wpdb, $pagenow;

@@ -5,7 +5,7 @@ use Cleantalk\ApbctWP\Sanitize;
 use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\ApbctWP\Variables\Get;
 use Cleantalk\ApbctWP\Variables\Post;
-use Cleantalk\Variables\Request;
+use Cleantalk\ApbctWP\Variables\Request;
 use Cleantalk\ApbctWP\Variables\Server;
 
 /**
@@ -592,7 +592,7 @@ function ct_add_hidden_fields(
                 }
                 apbct_attach_event_handler__backend(window, 'DOMContentLoaded', function(){
                     if (typeof apbctLocalStorage === \"object\") {
-                        apbctLocalStorage.set('{$field_name}', '{$ct_checkjs_key}', false );
+                        apbctLocalStorage.set('{$field_name}', '{$ct_checkjs_key}', true );
                     } else {
                         console.log('APBCT ERROR: apbctLocalStorage object is not loaded.');
                     }  
