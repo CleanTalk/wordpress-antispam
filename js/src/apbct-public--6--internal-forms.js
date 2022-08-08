@@ -69,6 +69,7 @@ function ct_check_internal__is_exclude_form(action) {
     // An array contains forms action need to be excluded.
     let ct_internal_script_exclusions = [
         ctPublic.blog_home + 'wp-login.php', // WordPress login page
+        ctPublic.blog_home + 'wp-comments-post.php', // WordPress Comments Form
     ];
 
     return ct_internal_script_exclusions.some((item) => {
