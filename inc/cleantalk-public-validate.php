@@ -156,7 +156,7 @@ function ct_contact_form_validate()
     $ct_result = $base_call_result['ct_result'];
 
     // Remove visible fields from POST
-    foreach ($_POST as $key => $value) {
+    foreach ($_POST as $key => $_value) {
         if (stripos($key, 'apbct_visible_fields') === 0) {
             unset($_POST[$key]);
         }

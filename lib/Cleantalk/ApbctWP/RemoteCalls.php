@@ -2,7 +2,7 @@
 
 namespace Cleantalk\ApbctWP;
 
-use Cleantalk\Variables\Request;
+use Cleantalk\ApbctWP\Variables\Request;
 
 class RemoteCalls
 {
