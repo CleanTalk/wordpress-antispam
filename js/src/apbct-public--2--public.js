@@ -409,7 +409,7 @@ function getJavascriptClientData() {
 	resultDataJson.ct_cookies_type = ctCookiesTypeLocalStorage !== undefined ? ctCookiesTypeLocalStorage : ctCookiesTypeCookie;
 
 	// Parse JSON properties to prevent double JSON encoding
-	resultDataJson = decodeJSONEncodedProperties(resultDataJson);
+	resultDataJson = removeDoubleJsonEncoding(resultDataJson);
 
 	return JSON.stringify(resultDataJson);
 }
@@ -422,7 +422,7 @@ function getJavascriptClientData() {
  * @param object
  * @returns {*}
  */
-function decodeJSONEncodedProperties(object){
+function removeDoubleJsonEncoding(object){
 
 	if( typeof object === 'object'){
 
@@ -430,7 +430,7 @@ function decodeJSONEncodedProperties(object){
 
 			// Recursion
 			if( typeof object[objectKey] === 'object'){
-				object[objectKey] = decodeJSONEncodedProperties(object[objectKey]);
+				object[objectKey] = removeDoubleJsonEncoding(object[objectKey]);
 			}
 
 			// Common case (out)
