@@ -566,8 +566,8 @@ function ct_ajax_hook($message_obj = null)
         Post::hasString('action', 'fusion_form_submit_form_to_email') ||
         Post::hasString('action', 'fusion_form_submit_ajax')
     ) {
-        if (Post::get('formData')) {
-            $form_data = Post::get('formData');
+        if (isset($_POST['formData'])) {
+            $form_data = $_POST['formData'];
             $form_data = explode('&', $form_data);
 
             for ($index = 0; $index < count($form_data); $index++) {
