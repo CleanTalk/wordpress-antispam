@@ -413,6 +413,11 @@ class State extends \Cleantalk\Common\State
                 $option = is_array($option) ? array_merge($this->default_fw_stats, $option) : $this->default_fw_stats;
             }
 
+            // Default connection reports
+            if ($this->option_prefix . '_' . $option_name === 'cleantalk_connection_reports') {
+                $option = is_array($option) ? array_merge($this->default_connection_reports, $option) : $this->default_connection_reports;
+            }
+
             $this->$option_name = is_array($option) ? new ArrayObject($option) : $option;
         }
     }
