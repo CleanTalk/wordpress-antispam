@@ -2,7 +2,7 @@
 
 use Cleantalk\ApbctWP\Cron;
 use Cleantalk\ApbctWP\Helper;
-use Cleantalk\Variables\Server;
+use Cleantalk\ApbctWP\Variables\Server;
 
 /**
  * Main function to compare versions and run necessary update functions.

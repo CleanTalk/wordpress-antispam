@@ -4,7 +4,7 @@ namespace Cleantalk\ApbctWP\Firewall;
 
 use Cleantalk\Common\Helper;
 use Cleantalk\ApbctWP\Variables\Cookie;
-use Cleantalk\Variables\Server;
+use Cleantalk\ApbctWP\Variables\Server;
 
 /**
  * Class AntiFlood

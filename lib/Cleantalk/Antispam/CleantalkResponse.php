@@ -122,6 +122,11 @@ class CleantalkResponse
     public $codes = array();
 
     /**
+     * @var null|array Contains a error
+     */
+    public $error = null;
+
+    /**
      * Create server response
      *
      * @param object $obj
@@ -148,6 +153,11 @@ class CleantalkResponse
         $this->account_status = isset($obj->account_status) ? $obj->account_status : -1;
         $this->received       = isset($obj->received) ? $obj->received : -1;
         $this->codes          = isset($obj->codes) ? explode(' ', $obj->codes) : array();
+
+        $this->ip_frequency_24hour  = isset($params['ip_frequency_24hour']) ? (string)$params['ip_frequency_24hour'] : null;
+        $this->bot_expectation  = isset($params['bot_expectation']) ? (string)$params['bot_expectation'] : null;
+        $this->ip_frequency_1hour  = isset($params['ip_frequency_1hour']) ? (string)$params['ip_frequency_1hour'] : null;
+        $this->ip_frequency_10min  = isset($params['ip_frequency_10min']) ? (string)$params['ip_frequency_10min'] : null;
 
         if ( $this->errno !== 0 && $this->errstr !== null && $this->comment === null ) {
             $this->comment = '*** ' . $this->errstr . ' Anti-Spam service cleantalk.org ***';

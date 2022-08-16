@@ -10,9 +10,9 @@ use Cleantalk\ApbctWP\GetFieldsAny;
 use Cleantalk\ApbctWP\Helper;
 use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\Common\DB;
-use Cleantalk\Variables\Get;
-use Cleantalk\Variables\Post;
-use Cleantalk\Variables\Server;
+use Cleantalk\ApbctWP\Variables\Get;
+use Cleantalk\ApbctWP\Variables\Post;
+use Cleantalk\ApbctWP\Variables\Server;
 
 function apbct_array($array)
 {
@@ -139,7 +139,7 @@ function apbct_base_call($params = array(), $reg_flag = false)
 
     // Skip duplicate requests
     if (
-        key_exists($apbct->plugin_request_id, $apbct->plugin_request_ids) &&
+        isset($apbct->plugin_request_ids[ $apbct->plugin_request_id ]) &&
         current_filter() !== 'woocommerce_registration_errors' && // Prevent skip checking woocommerce registration during checkout
         current_filter() !== 'um_submit_form_register' // Prevent skip checking UltimateMember register
     ) {
@@ -148,7 +148,7 @@ function apbct_base_call($params = array(), $reg_flag = false)
         return array('ct_result' => new CleantalkResponse());
     }
 
-    $apbct->plugin_request_ids = array_merge($apbct->plugin_request_ids, array($apbct->plugin_request_id => time()));
+    $apbct->plugin_request_ids[ $apbct->plugin_request_id ] = time();
     $apbct->save('plugin_request_ids');
     /* End of Request ID rotation */
 
@@ -432,16 +432,16 @@ function apbct_exclusions_check__url()
         // Fix for AJAX and WP REST API forms
         $haystack =
             (
-                apbct_get_server_variable('REQUEST_URI') === '/wp-admin/admin-ajax.php' ||
-                stripos(apbct_get_server_variable('REQUEST_URI'), '/wp-json/') === 0
+                Server::get('REQUEST_URI') === '/wp-admin/admin-ajax.php' ||
+                stripos(Server::get('REQUEST_URI'), '/wp-json/') === 0
             ) &&
-            apbct_get_server_variable('HTTP_REFERER')
+            Server::get('HTTP_REFERER')
             ? str_ireplace(
                 array('http://', 'https://', strval(Server::get('HTTP_HOST'))),
                 '',
-                apbct_get_server_variable('HTTP_REFERER')
+                Server::get('HTTP_REFERER')
             )
-            : apbct_get_server_variable('REQUEST_URI');
+            : Server::get('REQUEST_URI');
 
         if ( $apbct->data['check_exclusion_as_url'] ) {
             $protocol = ! in_array(Server::get('HTTPS'), ['off', '']) || Server::get('SERVER_PORT') == 443 ? 'https://' : 'http://';
@@ -477,14 +477,14 @@ function apbct_exclusions_check__ip()
 {
     global $cleantalk_ip_exclusions;
 
-    if ( apbct_get_server_variable('REMOTE_ADDR') ) {
-        if ( \Cleantalk\ApbctWP\Helper::ipIsCleantalks(apbct_get_server_variable('REMOTE_ADDR')) ) {
+    if ( Server::get('REMOTE_ADDR') ) {
+        if ( \Cleantalk\ApbctWP\Helper::ipIsCleantalks(Server::get('REMOTE_ADDR')) ) {
             return true;
         }
 
         if ( ! empty($cleantalk_ip_exclusions) && is_array($cleantalk_ip_exclusions) ) {
             foreach ( $cleantalk_ip_exclusions as $exclusion ) {
-                if ( stripos(apbct_get_server_variable('REMOTE_ADDR'), $exclusion) !== false ) {
+                if ( stripos(Server::get('REMOTE_ADDR'), $exclusion) !== false ) {
                     return true;
                 }
             }
@@ -515,11 +515,11 @@ function apbct_get_sender_info()
 
     // AMP check
     $amp_detected =
-        apbct_get_server_variable('HTTP_REFERER')
+        Server::get('HTTP_REFERER')
         ? (
-            strpos(apbct_get_server_variable('HTTP_REFERER'), '/amp/') !== false ||
-            strpos(apbct_get_server_variable('HTTP_REFERER'), '?amp=1') !== false ||
-            strpos(apbct_get_server_variable('HTTP_REFERER'), '&amp=1') !== false
+            strpos(Server::get('HTTP_REFERER'), '/amp/') !== false ||
+            strpos(Server::get('HTTP_REFERER'), '?amp=1') !== false ||
+            strpos(Server::get('HTTP_REFERER'), '&amp=1') !== false
             ? 1
             : 0
         )
@@ -539,8 +539,8 @@ function apbct_get_sender_info()
         'plugin_request_id'      => $apbct->plugin_request_id,
         'wpms'                   => is_multisite() ? 'yes' : 'no',
         'remote_addr'            => \Cleantalk\ApbctWP\Helper::ipGet('remote_addr', false),
-        'REFFERRER'              => apbct_get_server_variable('HTTP_REFERER'),
-        'USER_AGENT'             => apbct_get_server_variable('HTTP_USER_AGENT'),
+        'REFFERRER'              => Server::get('HTTP_REFERER'),
+        'USER_AGENT'             => Server::get('HTTP_USER_AGENT'),
         'page_url'               => apbct_sender_info___get_page_url(),
         'cms_lang'               => substr(get_locale(), 0, 2),
         'ct_options'             => json_encode($apbct->settings, JSON_UNESCAPED_SLASHES),
@@ -579,7 +579,7 @@ function apbct_get_sender_info()
         'headers_sent'           => ! empty($apbct->headers_sent) ? $apbct->headers_sent : false,
         'headers_sent__hook'     => ! empty($apbct->headers_sent__hook) ? $apbct->headers_sent__hook : 'no_hook',
         'headers_sent__where'    => ! empty($apbct->headers_sent__where) ? $apbct->headers_sent__where : false,
-        'request_type'           => apbct_get_server_variable('REQUEST_METHOD') ?: 'UNKNOWN',
+        'request_type'           => Server::get('REQUEST_METHOD') ?: 'UNKNOWN',
         'email_check'            => Cookie::get('ct_checked_emails') ? json_encode(
             Cookie::get('ct_checked_emails')
         ) : null,
@@ -989,7 +989,7 @@ function ct_delete_spam_comments()
 /**
  * Get data from an ARRAY recursively
  *
- * @param $arr
+ * @param array $arr
  * @param array $message
  * @param null|string $email
  * @param array $nickname
@@ -1136,6 +1136,9 @@ function apbct_add_async_attribute($tag, $handle)
             $tag = str_replace(' src', ' async="async" src', $tag);
         }
 
+        // Prevent script deferred loading by various CDN
+        $tag = str_replace(' src', ' data-cfasync="false" data-pagespeed-no-defer src', $tag);
+
         if ( class_exists('Cookiebot_WP') ) {
             $tag = str_replace(' src', ' data-cookieconsent="ignore" src', $tag);
         }
@@ -1161,7 +1164,7 @@ function apbct_add_admin_ip_to_swf_whitelist($user)
         apbct_private_list_add($ip) &&
         ! headers_sent()
     ) {
-        \Cleantalk\ApbctWP\Variables\Cookie::set(
+        Cookie::set(
             'ct_sfw_ip_wl',
             md5($ip . $apbct->api_key),
             time() + 86400 * 30,

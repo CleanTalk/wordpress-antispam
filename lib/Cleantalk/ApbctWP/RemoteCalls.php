@@ -2,8 +2,8 @@
 
 namespace Cleantalk\ApbctWP;
 
-use Cleantalk\Variables\Request;
-use Cleantalk\Variables\Get;
+use Cleantalk\ApbctWP\Variables\Request;
+use Cleantalk\ApbctWP\Variables\Get;
 
 class RemoteCalls
 {

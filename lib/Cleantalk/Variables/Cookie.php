@@ -10,7 +10,7 @@ namespace Cleantalk\Variables;
  *
  * @package Cleantalk\Variables
  */
-class Cookie extends ServerVariables
+abstract class Cookie extends ServerVariables
 {
     protected static $instance;
 
@@ -25,12 +25,10 @@ class Cookie extends ServerVariables
     {
         // Return from memory. From $this->variables
         if (! isset(static::$instance->variables[$name])) {
-            if (function_exists('filter_input')) {
-                $value = filter_input(INPUT_COOKIE, $name);
-            }
-
-            if (empty($value)) {
-                $value = isset($_COOKIE[$name]) ? $_COOKIE[$name] : '';
+            if ( isset($_COOKIE[$name]) ) {
+                $value = $this->getAndSanitize($_COOKIE[$name]);
+            } else {
+                $value = '';
             }
 
             // Remember for further calls

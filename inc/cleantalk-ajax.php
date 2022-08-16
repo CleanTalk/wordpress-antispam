@@ -5,8 +5,9 @@
  */
 
 use Cleantalk\ApbctWP\Variables\Cookie;
-use Cleantalk\Variables\Get;
-use Cleantalk\Variables\Post;
+use Cleantalk\ApbctWP\Variables\Get;
+use Cleantalk\ApbctWP\Variables\Post;
+use Cleantalk\ApbctWP\Variables\Server;
 
 $_cleantalk_ajax_actions_to_check[] = 'qcf_validate_form';            //Quick Contact Form
 $_cleantalk_ajax_actions_to_check[] = 'amoforms_submit';            //amoForms
@@ -408,7 +409,7 @@ function ct_ajax_hook($message_obj = null)
 
     global $apbct;
     // Skip test if
-    if ( ! $apbct->settings['forms__general_contact_forms_test'] || // Test disabled
+    if ( ( ! $apbct->settings['forms__general_contact_forms_test'] && ! $apbct->settings['forms__check_external'] ) || // Test disabled
          ! apbct_is_user_enable($apbct->user) || // User is admin, editor, author
          // (function_exists('get_current_user_id') && get_current_user_id() != 0) || // Check with default wp_* function if it's admin
          ( ! $apbct->settings['data__protect_logged_in'] && ($apbct->user instanceof WP_User) && $apbct->user->ID !== 0) || // Logged in user
@@ -445,7 +446,7 @@ function ct_ajax_hook($message_obj = null)
     //General post_info for all ajax calls
     $post_info = array(
         'comment_type' => 'feedback_ajax',
-        'post_url'     => apbct_get_server_variable('HTTP_REFERER'), // Page URL must be an previous page
+        'post_url'     => Server::get('HTTP_REFERER'), // Page URL must be an previous page
     );
     if ( Post::get('action') === 'cleantalk_force_ajax_check' ) {
         $post_info['comment_type'] = 'feedback_ajax_external_form';

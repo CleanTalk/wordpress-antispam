@@ -2,7 +2,8 @@
 
 namespace Cleantalk\Antispam\Integrations;
 
-use Cleantalk\Variables\Post;
+use Cleantalk\ApbctWP\Sanitize;
+use Cleantalk\ApbctWP\Variables\Post;
 
 class FluentForm extends IntegrationBase
 {
@@ -11,12 +12,15 @@ class FluentForm extends IntegrationBase
         if ( Post::get('data') ) {
             parse_str(Post::get('data'), $form_data);
 
+            parse_str($_POST['data'], $form_data_dirty);
+            $email = $form_data_dirty['email'] ? Sanitize::cleanEmail($form_data_dirty['email']) : null;
+
             /**
              * Filter for POST
              */
             $input_array = apply_filters('apbct__filter_post', $form_data);
 
-            return ct_get_fields_any($input_array);
+            return ct_get_fields_any($input_array, $email);
         }
 
         return null;

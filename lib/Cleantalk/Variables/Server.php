@@ -10,7 +10,7 @@ namespace Cleantalk\Variables;
  *
  * @package \CleantalkSP\Variables
  */
-class Server extends ServerVariables
+abstract class Server extends ServerVariables
 {
     protected static $instance;
 
@@ -30,12 +30,10 @@ class Server extends ServerVariables
 
         $name = strtoupper($name);
 
-        if (function_exists('filter_input')) {
-            $value = filter_input(INPUT_SERVER, $name);
-        }
-
-        if (empty($value) || ($name === 'REMOTE_ADDR' && $value === '127.0.0.1')) {
-            $value = isset($_SERVER[$name]) ? $_SERVER[$name] : '';
+        if ( isset($_SERVER[$name]) ) {
+            $value = $this->getAndSanitize($_SERVER[$name]);
+        } else {
+            $value = '';
         }
 
         // Convert to upper case for REQUEST_METHOD

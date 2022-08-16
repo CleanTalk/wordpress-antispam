@@ -2,7 +2,7 @@
 
 namespace Cleantalk\Antispam\Integrations;
 
-use Cleantalk\Variables\Post;
+use Cleantalk\ApbctWP\Variables\Post;
 use WP_Error;
 
 class WPUserMeta extends IntegrationBase
@@ -12,7 +12,12 @@ class WPUserMeta extends IntegrationBase
     public function getDataForChecking($argument)
     {
         $this->return_argument = $argument;
-        if ( apbct_is_plugin_active('user-meta/user-meta.php')
+        if (
+            (
+                apbct_is_plugin_active('user-meta/user-meta.php')
+                ||
+                apbct_is_plugin_active('user-meta-pro/user-meta.php')
+            )
             && !empty($_POST)
             && Post::get('user_email')
             && Post::get('user_login')

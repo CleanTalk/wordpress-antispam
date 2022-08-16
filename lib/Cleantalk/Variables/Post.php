@@ -10,7 +10,7 @@ namespace Cleantalk\Variables;
  *
  * @package Cleantalk\Variables
  */
-class Post extends ServerVariables
+abstract class Post extends ServerVariables
 {
     protected static $instance;
 
@@ -25,12 +25,10 @@ class Post extends ServerVariables
     {
         // Return from memory. From $this->variables
         if (! isset(static::$instance->variables[$name])) {
-            if (function_exists('filter_input')) {
-                $value = filter_input(INPUT_POST, $name);
-            }
-
-            if (empty($value)) {
-                $value = isset($_POST[$name]) ? $_POST[$name] : '';
+            if ( isset($_POST[$name]) ) {
+                $value = $this->getAndSanitize($_POST[$name]);
+            } else {
+                $value = '';
             }
 
             // Remember for further calls

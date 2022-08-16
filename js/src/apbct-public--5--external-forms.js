@@ -36,10 +36,19 @@ function ct_protect_external() {
                     reUseCurrentForm.appendChild(force_action);
 
                     // mailerlite integration - disable click on submit button
-                    if(reUseCurrentForm.classList !== undefined && reUseCurrentForm.classList.contains('ml-block-form')) {
-                        var mailerliteSubmitButton = jQuery('form.ml-block-form').find('button[type="submit"]');
-
-                        if(mailerliteSubmitButton !== undefined) {
+                    let mailerlite_detected_class = false
+                    if (reUseCurrentForm.classList !== undefined) {
+                        //list there all the mailerlite classes
+                        let mailerlite_classes = ['newsletterform', 'ml-block-form']
+                        mailerlite_classes.forEach(function(mailerlite_class) {
+                            if (reUseCurrentForm.classList.contains(mailerlite_class)){
+                                mailerlite_detected_class = mailerlite_class
+                            }
+                        });
+                    }
+                    if ( mailerlite_detected_class ) {
+                        let mailerliteSubmitButton = jQuery('form.' + mailerlite_detected_class).find('button[type="submit"]');
+                        if ( mailerliteSubmitButton !== undefined ) {
                             mailerliteSubmitButton.click(function (event) {
                                 event.preventDefault();
                                 sendAjaxCheckingFormData(reUseCurrentForm, prev, form_original);
@@ -110,6 +119,11 @@ function apbct_replace_inputs_values_from_other_form( form_source, form_target )
 
 }
 window.onload = function () {
+
+    if( ! +ctPublic.settings__forms__check_external ) {
+        return;
+    }
+
     setTimeout(function () {
         ct_protect_external()
     }, 1500);
@@ -134,7 +148,8 @@ function isIntegratedForm(formObj) {
         formAction.indexOf('hookb.in') !== -1 ||
         formAction.indexOf('external.url') !== -1 ||
         formAction.indexOf('tp.media') !== -1 ||
-        formAction.indexOf('flodesk.com') !== -1
+        formAction.indexOf('flodesk.com') !== -1 ||
+        formAction.indexOf('sendfox.com') !== -1
 
     ) {
         return true;
@@ -168,7 +183,7 @@ function sendAjaxCheckingFormData(form, prev, formOriginal) {
         data,
         {
             async: false,
-            callback: function( prev, formOriginal, result ){
+            callback: function( result, data, params, obj, prev, formOriginal ){
 
                 if( result.apbct === undefined || ! +result.apbct.blocked ) {
 

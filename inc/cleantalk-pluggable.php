@@ -2,9 +2,9 @@
 
 use Cleantalk\ApbctWP\Helper;
 use Cleantalk\ApbctWP\RemoteCalls;
-use Cleantalk\Variables\Get;
-use Cleantalk\Variables\Post;
-use Cleantalk\Variables\Server;
+use Cleantalk\ApbctWP\Variables\Get;
+use Cleantalk\ApbctWP\Variables\Post;
+use Cleantalk\ApbctWP\Variables\Server;
 
 /**
  * Getting current user by cookie
@@ -188,9 +188,10 @@ function apbct_get_rest_url($blog_id = null, $path = '/', $scheme = 'rest')
         $url = add_query_arg('rest_route', $path, $url);
     }
 
-    if ( is_ssl() && isset($_SERVER['SERVER_NAME']) ) {
+    //this code part is partially copied from wp-includes/rest-api.php
+    if ( is_ssl() && !empty(Server::get('SERVER_NAME')) ) {
         // If the current host is the same as the REST URL host, force the REST URL scheme to HTTPS.
-        if ( parse_url(get_home_url($blog_id), PHP_URL_HOST) === $_SERVER['SERVER_NAME'] ) {
+        if ( parse_url(get_home_url($blog_id), PHP_URL_HOST) === Server::get('SERVER_NAME')) {
             $url = set_url_scheme($url, 'https');
         }
     }
@@ -350,8 +351,8 @@ function apbct_is_ajax()
     return
         (defined('DOING_AJAX') && DOING_AJAX) || // by standart WP functions
         (
-            apbct_get_server_variable('HTTP_X_REQUESTED_WITH') &&
-            strtolower(apbct_get_server_variable('HTTP_X_REQUESTED_WITH')) === 'xmlhttprequest'
+            Server::get('HTTP_X_REQUESTED_WITH') &&
+            strtolower(Server::get('HTTP_X_REQUESTED_WITH')) === 'xmlhttprequest'
         ) || // by Request type
         ! empty(Post::get('quform_ajax')) || // special. QForms
         ! empty(Post::get('iphorm_ajax')); // special. IPHorm
@@ -391,52 +392,24 @@ function apbct_is_user_logged_in()
     return count($_COOKIE) && isset($_COOKIE['wordpress_logged_in_' . $cookiehash]);
 }
 
-/*
- * GETTING SERVER VARIABLES BY VARIOUS WAYS
- */
-function apbct_get_server_variable($server_variable_name)
-{
-    $var_name = strtoupper($server_variable_name);
-
-    if ( function_exists('filter_input') ) {
-        $value = filter_input(INPUT_SERVER, $var_name);
-    }
-
-    if ( empty($value) ) {
-        $value = isset($_SERVER[$var_name]) ? $_SERVER[$var_name] : '';
-    }
-
-    // Convert to upper case for REQUEST_METHOD
-    if ( in_array($server_variable_name, array('REQUEST_METHOD')) ) {
-        $value = strtoupper($value);
-    }
-
-    // Convert HTML chars for HTTP_USER_AGENT, HTTP_USER_AGENT, SERVER_NAME
-    if ( in_array($server_variable_name, array('HTTP_USER_AGENT', 'HTTP_USER_AGENT', 'SERVER_NAME')) ) {
-        $value = htmlspecialchars($value);
-    }
-
-    return $value;
-}
-
 function apbct_is_post()
 {
-    return apbct_get_server_variable('REQUEST_METHOD') === 'POST';
+    return Server::get('REQUEST_METHOD') === 'POST';
 }
 
 function apbct_is_get()
 {
-    return apbct_get_server_variable('REQUEST_METHOD') === 'GET';
+    return Server::get('REQUEST_METHOD') === 'GET';
 }
 
 function apbct_is_in_referer($str)
 {
-    return stripos(apbct_get_server_variable('HTTP_REFERER'), $str) !== false;
+    return stripos(Server::get('HTTP_REFERER'), $str) !== false;
 }
 
 function apbct_is_in_uri($str)
 {
-    return stripos(apbct_get_server_variable('REQUEST_URI'), $str) !== false;
+    return stripos(Server::get('REQUEST_URI'), $str) !== false;
 }
 
 /**

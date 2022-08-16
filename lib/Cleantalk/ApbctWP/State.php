@@ -743,8 +743,10 @@ class State extends \Cleantalk\Common\State
      */
     public function __set($name, $value)
     {
+        $value = is_array($value) ? new ArrayObject($value) : $value;
+
         $this->storage[$name] = $value;
-        if (isset($this->storage['data'][$name])) {
+        if ( isset($this->storage['data'][$name]) ) {
             $this->storage['data'][$name] = $value;
         }
     }
@@ -762,7 +764,7 @@ class State extends \Cleantalk\Common\State
     public function &__get($name)
     {
         // First check in storage
-        if (isset($this->storage[$name])) {
+        if ( isset($this->storage[$name]) ) {
             $option = $this->storage[$name];
 
             return $option;
@@ -785,7 +787,7 @@ class State extends \Cleantalk\Common\State
 
     public function __isset($name)
     {
-        return isset($this->storage[$name]);
+        return (bool) $this->$name;
     }
 
     public function __unset($name)

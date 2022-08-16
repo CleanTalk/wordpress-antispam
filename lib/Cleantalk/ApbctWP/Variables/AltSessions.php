@@ -3,8 +3,6 @@
 namespace Cleantalk\ApbctWP\Variables;
 
 use Cleantalk\ApbctWP\Helper;
-use Cleantalk\Variables\Post;
-use Cleantalk\Variables\Server;
 
 class AltSessions
 {

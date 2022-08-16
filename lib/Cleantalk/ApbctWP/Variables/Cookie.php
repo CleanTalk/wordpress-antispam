@@ -2,10 +2,8 @@
 
 namespace Cleantalk\ApbctWP\Variables;
 
-use Cleantalk\ApbctWP\Helper;
 use Cleantalk\ApbctWP\Sanitize;
 use Cleantalk\ApbctWP\Validate;
-use Cleantalk\Variables\Server;
 
 class Cookie extends \Cleantalk\Variables\Cookie
 {
@@ -27,13 +25,8 @@ class Cookie extends \Cleantalk\Variables\Cookie
                 // The old way
             } else {
                 $name = apbct__get_cookie_prefix() . $name;
-                if (function_exists('filter_input')) {
-                    $value = filter_input(INPUT_COOKIE, $name);
-                }
 
-                if (empty($value)) {
-                    $value = isset($_COOKIE[$name]) ? $_COOKIE[$name] : '';
-                }
+                $value = filter_input(INPUT_COOKIE, $name);
             }
 
             // Validate variable
@@ -116,7 +109,7 @@ class Cookie extends \Cleantalk\Variables\Cookie
         $httponly = false,
         $samesite = 'Lax'
     ) {
-        $secure = ! is_null($secure) ? $secure : ! in_array(Server::get('HTTPS'), ['off', '']) || Server::get('SERVER_PORT') == 443;
+        $secure = ! is_null($secure) ? $secure : Server::get('HTTPS') || Server::get('SERVER_PORT') == 443;
         // For PHP 7.3+ and above
         if ( version_compare(phpversion(), '7.3.0', '>=') ) {
             $params = array(
@@ -167,5 +160,13 @@ class Cookie extends \Cleantalk\Variables\Cookie
         }
 
         return $visible_fields_collection;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function sanitizeDefault($value)
+    {
+        return sanitize_textarea_field($value);
     }
 }
