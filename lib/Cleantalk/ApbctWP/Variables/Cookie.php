@@ -10,7 +10,7 @@ class Cookie extends \Cleantalk\Variables\Cookie
     /**
      * @inheritDoc
      */
-    public static function get($name, $validation_filter = null, $sanitize_filter = null)
+    public function getVariable($name)
     {
         global $apbct;
 
@@ -22,20 +22,15 @@ class Cookie extends \Cleantalk\Variables\Cookie
             // Getting by alternative way if enabled
             if ($apbct->data['cookies_type'] === 'alternative') {
                 $value = AltSessions::get($name);
+                // Try to get it from native cookies ^_^
+                if ( empty($value) && isset($_COOKIE[$name]) ) {
+                    $value = $this->getAndSanitize($_COOKIE[$name]);
+                }
                 // The old way
+            } elseif ( isset($_COOKIE[$name]) ) {
+                $value = $this->getAndSanitize($_COOKIE[$name]);
             } else {
-                $name = apbct__get_cookie_prefix() . $name;
-
-                $value = filter_input(INPUT_COOKIE, $name);
-            }
-
-            // Validate variable
-            if ( $validation_filter && ! Validate::validate($value, $validation_filter) ) {
-                return false;
-            }
-
-            if ( $sanitize_filter ) {
-                $value = Sanitize::sanitize($value, $sanitize_filter);
+                $value = '';
             }
 
             // Remember for further calls
