@@ -789,6 +789,14 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'MultiStep Checkout for WooCommerce - step validation';
         }
+
+        // Skip Login Form for Wishlist Member
+        if (
+            apbct_is_plugin_active('wishlist-member/wpm.php') &&
+            Post::get('action') === 'wishlistmember_ajax_login'
+        ) {
+            return 'Wishlist Member - skip login';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
