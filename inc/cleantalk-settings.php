@@ -1807,6 +1807,7 @@ function apbct_settings__field__statistics()
                                  . '<td>' . Escape::escUrl($report['page_url']) . '</td>'
                                  . '<td>' . Escape::escHtml($report['lib_report']) . '</td>'
                                  . '<td>' . Escape::escUrl($report['work_url']) . '</td>'
+                                 . '<td>' . Escape::escHtml($status) . '</td>'
                                  . '</tr>';
             }
             //draw main report table
