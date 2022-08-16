@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 3.0
 Tested up to: 6.0
 Requires PHP: 5.6
-Stable tag: 5.182.2
+Stable tag: 5.183
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -601,6 +601,20 @@ If your website has forms that send data to external sources, you can enable opt
 12. SpamFireWall log.
 
 == Changelog ==
+
+= 5.183 Aug 18 2022 =
+##### Checking for bot while email encoder decode, negative reports improved, some integrations fixed and some minor issues fixed.
+* New: Email Encoder. Check bot before decode.
+* New. Storing big connection reports.
+* Fix. Kses <a> tag fixed.
+* Fix: Skipped login form for Wishlist Member
+* Mod: Added headers_sent in Cookie::set
+* Mod: Added aweber external form integration
+* Fix. Server variables. Getting Request variable fixed.
+* Fix. Connection reports. Getting data from options fixed.
+* Fix. Connection reports. Saving data fixed.
+* Fix. Connection reports. Displaying data fixed.
+* Fix. Cookies. Getting cookies from alternative way fixed.
 
 = 5.182.2 Aug 08 2022 =
 #### Server variables sanitizing fixed, js key getting fixed, internal forms catching fixed.
