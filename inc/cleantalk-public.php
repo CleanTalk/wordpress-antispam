@@ -1230,16 +1230,9 @@ function ct_enqueue_scripts_public($_hook)
 
     // Show controls for commentaries
     if ( in_array("administrator", $current_user->roles) ) {
+        // Admin javascript for managing comments on public pages
         if ( $apbct->settings['comments__manage_comments_on_public_page'] ) {
             $ajax_nonce = wp_create_nonce("ct_secret_nonce");
-
-            wp_enqueue_style(
-                'ct_public_admin_css',
-                APBCT_CSS_ASSETS_PATH . '/cleantalk-public-admin.min.css',
-                array(),
-                APBCT_VERSION,
-                'all'
-            );
             wp_enqueue_script(
                 'ct_public_admin_js',
                 APBCT_JS_ASSETS_PATH . '/cleantalk-public-admin.min.js',
@@ -1260,8 +1253,12 @@ function ct_enqueue_scripts_public($_hook)
                     __("Feedback has been sent to %sCleanTalk Dashboard%s.", 'cleantalk-spam-protect'),
                     $apbct->user_token ? "<a target='_blank' href=https://cleantalk.org/my/show_requests?user_token={$apbct->user_token}&cp_mode=antispam>" : '',
                     $apbct->user_token ? "</a>" : ''
-                ) . ' ' . esc_html__('The service accepts feedback only for requests made no more than 7 or 45 days 
-                (if the Extra package is activated) ago.', 'cleantalk-spam-protect'),
+                )
+                    . ' '
+                    . esc_html__(
+                        'The service accepts feedback only for requests made less than 7 (or 45 if the Extra Package is activated) days ago.',
+                        'cleantalk-spam-protect'
+                    ),
             ));
         }
     }
@@ -1285,7 +1282,7 @@ function ct_enqueue_scripts_public($_hook)
 
 function ct_enqueue_styles_public()
 {
-    global $apbct;
+    global $apbct, $current_user;
 
     if ( apbct_exclusions_check__url() ) {
         return;
@@ -1302,12 +1299,26 @@ function ct_enqueue_styles_public()
         $apbct->settings['comments__bp_private_messages'] ||
         $apbct->settings['data__general_postdata_test']
     ) {
+        // Common public styles
         wp_enqueue_style(
             'ct_public_css',
             APBCT_CSS_ASSETS_PATH . '/cleantalk-public.min.css',
             array(),
             APBCT_VERSION
         );
+        // Public admin styles
+        if ( in_array("administrator", $current_user->roles) ) {
+            // Admin style for managing comments on public pages
+            if ( $apbct->settings['comments__manage_comments_on_public_page'] ) {
+                 wp_enqueue_style(
+                     'ct_public_admin_css',
+                     APBCT_CSS_ASSETS_PATH . '/cleantalk-public-admin.min.css',
+                     array(),
+                     APBCT_VERSION,
+                     'all'
+                 );
+            }
+        }
     }
 }
 
