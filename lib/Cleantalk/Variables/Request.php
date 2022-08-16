@@ -35,12 +35,16 @@ abstract class Request extends ServerVariables
         $reflection_class = new \ReflectionClass($class_name);
         $namespace = $reflection_class->getNamespaceName();
 
-        if ( $namespace . '\\' . Post::get($name) ) {
-            $value = $namespace . '\\' . Post::get($name);
-        } elseif ( $namespace . '\\' . Get::get($name) ) {
-            $value = $namespace . '\\' . Get::get($name);
-        } elseif ( $namespace . '\\' . Cookie::get($name) ) {
-            $value = $namespace . '\\' . Cookie::get($name);
+        $post_class = $namespace . '\\Post';
+        $get_class = $namespace . '\\Get';
+        $cookie_class = $namespace . '\\Cookie';
+
+        if ( $post_class::get($name) ) {
+            $value = $post_class::get($name);
+        } elseif ( $get_class::get($name) ) {
+            $value = $get_class::get($name);
+        } elseif ( $cookie_class::get($name) ) {
+            $value = $cookie_class::get($name);
         }
 
         // Remember for further calls
