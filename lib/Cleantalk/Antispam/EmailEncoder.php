@@ -26,6 +26,21 @@ class EmailEncoder
     private $encoding_exclusions_signs;
 
     /**
+     * @var string
+     */
+    protected $decoded_email;
+
+    /**
+     * @var string
+     */
+    protected $encoded_email;
+
+    /**
+     * @var string
+     */
+    private $response;
+
+    /**
      * @inheritDoc
      */
     protected function init()
@@ -121,8 +136,8 @@ class EmailEncoder
     public function processDecodeRequest()
     {
         $this->decoded_email = $this->decodeEmailFromPost();
-        $this->allow_request = $this->checkRequest();
-        $this->response      = $this->compileResponse($this->decoded_email, $this->allow_request);
+        $allow_request       = $this->checkRequest();
+        $this->response      = $this->compileResponse($this->decoded_email, $allow_request);
 
         return $this->response;
     }
