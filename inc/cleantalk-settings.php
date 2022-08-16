@@ -711,14 +711,6 @@ function apbct_settings__set_fields()
             'section'    => 'hidden_section',
             'html_after' => '</div><div id="apbct_hidden_section_nav">{HIDDEN_SECTION_NAV}</div></div>',
             'fields'     => array(
-                'misc__send_connection_reports' => array(
-                    'type'        => 'checkbox',
-                    'title'       => __('Send connection reports', 'cleantalk-spam-protect'),
-                    'description' => __(
-                        "Checking this box you allow plugin to send the information about your connection. The option in a beta state.",
-                        'cleantalk-spam-protect'
-                    ),
-                ),
                 'misc__async_js'                => array(
                     'type'        => 'checkbox',
                     'title'       => __('Async JavaScript loading', 'cleantalk-spam-protect'),
@@ -1784,53 +1776,88 @@ function apbct_settings__field__statistics()
         )
     );
     echo '<br>';
+    echo 'Plugin version: ' . APBCT_VERSION;
+    echo '<br>';
 
     // Connection reports
     if ( $apbct->connection_reports ) {
+        // if no negative show nothing
         if ( $apbct->connection_reports['negative'] == 0 ) {
             _e('There are no failed connections to server.', 'cleantalk-spam-protect');
         } else {
-            echo "<table id='negative_reports_table''>
+            $unsent_reports_count = 0;
+            $reports_html = '';
+            foreach ( $apbct->connection_reports['negative_report'] as $key => $report ) {
+                //count unsent
+                if ( isset($report['is_sent']) && !$report['is_sent'] ) {
+                    $unsent_reports_count++;
+                }
+                //colorize
+                if ( isset($report['is_sent']) && $report['is_sent'] ) {
+                    $status = 'Sent';
+                    $color = 'gray';
+                } else {
+                    $status = 'New';
+                    $color = 'black';
+                }
+                //draw reports rows
+                $reports_html .= '<tr style="color:' . $color . '">'
+                                 . '<td>' . Escape::escHtml($key + 1) . '.</td>'
+                                 . '<td>' . Escape::escHtml($report['date']) . '</td>'
+                                 . '<td>' . Escape::escUrl($report['page_url']) . '</td>'
+                                 . '<td>' . Escape::escHtml($report['lib_report']) . '</td>'
+                                 . '<td>' . Escape::escUrl($report['work_url']) . '</td>'
+                                 . '</tr>';
+            }
+            //draw main report table
+            $reports_html = "<table id='negative_reports_table''>
+                    <th colspan='6'>Failed connection reports</th>
 					<tr>
 						<td>#</td>
 						<td><b>Date</b></td>
 						<td><b>Page URL</b></td>
 						<td><b>Report</b></td>
 						<td><b>Server IP</b></td>
-					</tr>";
-            foreach ( $apbct->connection_reports['negative_report'] as $key => $report ) {
-                echo '<tr>'
-                     . '<td>' . Escape::escHtml($key + 1) . '.</td>'
-                     . '<td>' . Escape::escHtml($report['date']) . '</td>'
-                     . '<td>' . Escape::escUrl($report['page_url']) . '</td>'
-                     . '<td>' . Escape::escHtml($report['lib_report']) . '</td>'
-                     . '<td>' . Escape::escUrl($report['work_url']) . '</td>'
-                     . '</tr>';
-            }
-            echo "</table>";
-            echo '<br/>';
-            echo '<button'
-                 . ' name="submit"'
-                 . ' class="cleantalk_link cleantalk_link-manual"'
-                 . ' value="ct_send_connection_report"'
-                 . (! $apbct->settings['misc__send_connection_reports'] ? ' disabled="disabled"' : '')
-                 . '>'
-                 . __('Send report', 'cleantalk-spam-protect')
-                 . '</button>';
-            if ( ! $apbct->settings['misc__send_connection_reports'] ) {
-                echo '<br><br>';
-                _e(
-                    'Please, enable "Send connection reports" setting to be able to send reports',
-                    'cleantalk-spam-protect'
-                );
+						<td><b>Status</b></td>
+					</tr>"
+                //attach reports rows
+                . $reports_html
+                . "</table>"
+                . "<br/>";
+            //escaping html
+            echo Escape::escKses(
+                $reports_html,
+                array(
+                    'tr' => array(
+                        'style' => true
+                    ),
+                    'td' => array(),
+                    'th' => array(
+                        'colspan' => true
+                    ),
+                    'b' => array(),
+                    'br' => array(),
+                    'table' => array(
+                        'id' => true
+                    ),
+                )
+            );
+            //if no unsent reports show caption, in another case show the button
+            if ( $unsent_reports_count === 0 ) {
+                _e('All the reports already have been sent.', 'cleantalk-spam-protect');
+            } else {
+                echo '<button'
+                    . ' name="submit"'
+                    . ' class="cleantalk_link cleantalk_link-manual"'
+                    . ' value="ct_send_connection_report"'
+                    . '>'
+                    . __('Send new report', 'cleantalk-spam-protect')
+                    . '</button>';
             }
         }
     }
 
     echo '<br/>';
-
-    echo 'Plugin version: ' . Escape::escHtml(APBCT_VERSION);
-
     echo '</div>';
 }
 

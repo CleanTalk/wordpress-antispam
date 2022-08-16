@@ -3,6 +3,7 @@
 namespace Cleantalk\ApbctWP;
 
 use Cleantalk\ApbctWP\Variables\Request;
+use Cleantalk\ApbctWP\Variables\Get;
 
 class RemoteCalls
 {
@@ -225,11 +226,21 @@ class RemoteCalls
         $out['errors']             = $apbct->errors;
         $out['debug']              = $apbct->debug;
         $out['queue']              = get_option('cleantalk_sfw_update_queue');
+        $out['connection_reports'] = get_option('cleantalk_connection_reports');
         $out['servers_connection'] = apbct_test_connection();
 
         if ( APBCT_WPMS ) {
             $out['network_settings'] = $apbct->network_settings;
             $out['network_data']     = $apbct->network_data;
+        }
+
+        // Output only one option
+        $show_only = Get::get('show_only');
+        if ( $show_only && isset($out[$show_only]) ) {
+            /**
+             * @psalm-suppress InvalidArrayOffset
+             */
+            $out = [$show_only => $out[$show_only]];
         }
 
         if ( Request::equal('out', 'json') ) {
