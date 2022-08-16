@@ -30,6 +30,12 @@ async function compress_all_js() {
 // Bundle Create
 async function bundle_js() {
     await gulp.src('js/src/apbct-public--*.js')
+
+        // Unminified bundle
+        .pipe(concat('apbct-public-bundle.js'))
+        .pipe(gulp.dest('js/src/'))
+
+        // Minifying
         .pipe(concat('apbct-public-bundle.js'))
         .pipe(uglify())
         .pipe(rename({suffix: '.min'}))

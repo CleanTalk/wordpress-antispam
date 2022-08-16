@@ -5,7 +5,7 @@ use Cleantalk\ApbctWP\Sanitize;
 use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\ApbctWP\Variables\Get;
 use Cleantalk\ApbctWP\Variables\Post;
-use Cleantalk\Variables\Request;
+use Cleantalk\ApbctWP\Variables\Request;
 use Cleantalk\ApbctWP\Variables\Server;
 
 /**
@@ -592,7 +592,7 @@ function ct_add_hidden_fields(
                 }
                 apbct_attach_event_handler__backend(window, 'DOMContentLoaded', function(){
                     if (typeof apbctLocalStorage === \"object\") {
-                        apbctLocalStorage.set('{$field_name}', '{$ct_checkjs_key}', false );
+                        apbctLocalStorage.set('{$field_name}', '{$ct_checkjs_key}', true );
                     } else {
                         console.log('APBCT ERROR: apbctLocalStorage object is not loaded.');
                     }  
@@ -1330,7 +1330,7 @@ function apbct_enqueue_and_localize_public_scripts()
         '_rest_url'                            => Escape::escUrl(apbct_get_rest_url()),
         'data__cookies_type'                   => $apbct->data['cookies_type'],
         'data__ajax_type'                      => $apbct->data['ajax_type'],
-        'text__wait_for_decoding'              => esc_html__('Wait for decoding...', 'cleantalk-spam-protect'),
+        'text__wait_for_decoding'              => esc_html__('Anti-spam by CleanTalk: Decoding contact data...', 'cleantalk-spam-protect'),
         'cookiePrefix'                         => apbct__get_cookie_prefix(),
     ));
 
@@ -1346,6 +1346,14 @@ function apbct_enqueue_and_localize_public_scripts()
         'data__cookies_type'            => $apbct->data['cookies_type'],
         'data__visible_fields_required' => ! apbct_is_user_logged_in() || $apbct->settings['data__protect_logged_in'] == 1,
     ));
+
+    wp_enqueue_style(
+        'ct_public_css',
+        APBCT_CSS_ASSETS_PATH . '/cleantalk-public.min.css',
+        array(),
+        APBCT_VERSION,
+        'all'
+    );
 }
 
 /**

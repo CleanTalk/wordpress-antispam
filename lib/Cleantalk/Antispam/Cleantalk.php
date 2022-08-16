@@ -481,4 +481,20 @@ class Cleantalk
 
         return $response;
     }
+
+     /**
+     * Call check_bot API method
+     *
+     * Make a decision if it's bot or not based on limited input JavaScript data
+     *
+     * @param CleantalkRequest $request
+     *
+     * @return CleantalkResponse
+     */
+    public function checkBot(CleantalkRequest $request)
+    {
+        $msg = $this->createMsg('check_bot', $request);
+
+        return $this->httpRequest($msg);
+    }
 }

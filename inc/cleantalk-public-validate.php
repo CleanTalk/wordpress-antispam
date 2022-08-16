@@ -154,6 +154,14 @@ function ct_contact_form_validate()
     }
 
     $ct_result = $base_call_result['ct_result'];
+
+    // Remove visible fields from POST
+    foreach ($_POST as $key => $_value) {
+        if (stripos($key, 'apbct_visible_fields') === 0) {
+            unset($_POST[$key]);
+        }
+    }
+
     if ( $ct_result->allow == 0 ) {
         // Recognize contact form an set it's name to $contact_form to use later
         $contact_form = null;

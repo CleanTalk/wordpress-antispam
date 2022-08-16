@@ -35,7 +35,7 @@ use Cleantalk\Common\Firewall;
 use Cleantalk\Common\Schema;
 use Cleantalk\ApbctWP\Variables\Get;
 use Cleantalk\ApbctWP\Variables\Post;
-use Cleantalk\Variables\Request;
+use Cleantalk\ApbctWP\Variables\Request;
 use Cleantalk\ApbctWP\Variables\Server;
 
 global $apbct, $wpdb, $pagenow;
@@ -121,12 +121,7 @@ $apbct->api_key          = ! APBCT_WPMS || $apbct->allow_custom_key || $apbct->w
 $apbct->key_is_ok        = ! APBCT_WPMS || $apbct->allow_custom_key || $apbct->white_label ? $apbct->data['key_is_ok'] : $apbct->network_data['key_is_ok'];
 $apbct->moderate         = ! APBCT_WPMS || $apbct->allow_custom_key || $apbct->white_label ? $apbct->data['moderate'] : $apbct->network_data['moderate'];
 
-$apbct->data['user_counter']['since']       = isset($apbct->data['user_counter']['since']) ? $apbct->data['user_counter']['since'] : date(
-    'd M'
-);
-$apbct->data['connection_reports']['since'] = isset($apbct->data['connection_reports']['since']) ? $apbct->data['user_counter']['since'] : date(
-    'd M'
-);
+$apbct->data['user_counter']['since']       = isset($apbct->data['user_counter']['since'])       ? $apbct->data['user_counter']['since'] : date('d M');
 
 $apbct->firewall_updating = (bool)$apbct->fw_stats['firewall_updating_id'];
 
@@ -146,7 +141,7 @@ if (
     $apbct->key_is_ok &&
     ( ! is_admin() || apbct_is_ajax() ) &&
     $apbct->settings['data__email_decoder'] ) {
-    \Cleantalk\Antispam\EmailEncoder::getInstance();
+    \Cleantalk\ApbctWP\Antispam\EmailEncoder::getInstance();
 }
 
 add_action('rest_api_init', 'apbct_register_my_rest_routes');
@@ -2436,13 +2431,26 @@ function ct_account_status_check($api_key = null, $process_errors = true)
     return $result;
 }
 
+/**
+ * Send failed connection reports if exist and still unsent.
+ */
 function ct_mail_send_connection_report()
 {
     global $apbct;
 
-    if ( ($apbct->settings['misc__send_connection_reports'] == 1 && $apbct->connection_reports['negative'] > 0) || ! empty(Get::get('ct_send_connection_report')) ) {
-        $to      = "welcome@cleantalk.org";
-        $subject = "Connection report for " . Server::get('HTTP_HOST');
+    if ( ( $apbct->connection_reports['negative'] > 0 ) || !empty(Get::get('ct_send_connection_report')) ) {
+        //skip empty reports for cron job
+        $unsent_exist = false;
+        foreach ( $apbct->connection_reports['negative_report'] as $key => $report ) {
+            if ( $report['is_sent'] = false ) {
+                $unsent_exist = true;
+            };
+        }
+        if ( !$unsent_exist ) {
+            return;
+        }
+        $to = "welcome@cleantalk.org";
+        $subject = "Connection report for " . apbct_get_server_variable('HTTP_HOST');
         $message = '
 				<html lang="en">
 				    <head>
@@ -2450,11 +2458,11 @@ function ct_mail_send_connection_report()
 				    </head>
 				    <body>
 				        <p>From '
-                            . $apbct->connection_reports['since']
-                            . ' to ' . date('d M') . ' has been made '
-                            . ($apbct->connection_reports['success'] + $apbct->connection_reports['negative'])
-                            . ' calls, where ' . $apbct->connection_reports['success'] . ' were success and '
-                            . $apbct->connection_reports['negative'] . ' were negative
+            . $apbct->connection_reports['since']
+            . ' to ' . date('d M') . ' has been made '
+            . ( $apbct->connection_reports['success'] + $apbct->connection_reports['negative'] )
+            . ' calls, where ' . $apbct->connection_reports['success'] . ' were success and '
+            . $apbct->connection_reports['negative'] . ' were negative
 				        </p>
 				        <p>Negative report:</p>
 				        <table>  <tr>
@@ -2465,26 +2473,46 @@ function ct_mail_send_connection_report()
 				    <td><b>Server IP</b></td>
 				  </tr>
 				  ';
+        $counter = 0;
         foreach ( $apbct->connection_reports['negative_report'] as $key => $report ) {
-            $message .= '<tr>'
-                        . '<td>' . ($key + 1) . '.</td>'
-                        . '<td>' . $report['date'] . '</td>'
-                        . '<td>' . $report['page_url'] . '</td>'
-                        . '<td>' . $report['lib_report'] . '</td>'
-                        . '<td>' . $report['work_url'] . '</td>'
-                        . '</tr>';
+            if ( !$report['is_sent'] ) {
+                $message .= '<tr>'
+                    . '<td>' . ( ++$counter ) . '.</td>'
+                    . '<td>' . $report['date'] . '</td>'
+                    . '<td>' . $report['page_url'] . '</td>'
+                    . '<td>' . $report['lib_report'] . '</td>'
+                    . '<td>' . $report['work_url'] . '</td>'
+                    . '</tr>';
+            }
         }
-        $message .= '</table></body></html>';
+        $message .= '</table>';
+
+        $message .= '<br>';
+        $show_connection_reports_link =
+            substr(get_option('home'), -1) === '/' ? get_option('home') : get_option('home') . '/'
+                . '?'
+                . http_build_query([
+                    'plugin_name' => 'apbct',
+                    'spbc_remote_call_token' => md5($apbct->api_key),
+                    'spbc_remote_call_action' => 'debug',
+                    'show_only' => 'connection_reports',
+                ]);
+        $message .= '<a href="' . $show_connection_reports_link . '" target="_blank">Show connection reports with remote call</a>';
+        $message .= '<br>';
+
+        $message .= '</body></html>';
 
         $headers = "Content-type: text/html; charset=windows-1251 \r\n";
         $headers .= 'From: ' . ct_get_admin_email();
         /** @psalm-suppress UnusedFunctionCall */
-        mail($to, $subject, $message, $headers);
+        if ( wp_mail($to, $subject, $message, $headers) ) {
+            foreach ( $apbct->storage['connection_reports']['negative_report'] as $key => &$report ) {
+                $report['is_sent'] = true;
+            }
+            unset($report);
+            $apbct->save('connection_reports', true, false);
+        }
     }
-
-    $apbct->data['connection_reports']          = $apbct->def_data['connection_reports'];
-    $apbct->data['connection_reports']['since'] = date('d M');
-    $apbct->saveData();
 }
 
 /**

@@ -2,6 +2,8 @@
 
 namespace Cleantalk\Common;
 
+use Cleantalk\Antispam\Cleantalk;
+use Cleantalk\Antispam\CleantalkRequest;
 use Cleantalk\Common\HTTP\Request;
 
 /**

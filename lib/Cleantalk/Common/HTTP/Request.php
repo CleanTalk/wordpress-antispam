@@ -308,7 +308,7 @@ class Request
     {
         $return_value = [];
 
-        // Cast to array to precess result from $this->requestSingle as $this->requestMulti results
+        // Cast to array to process result from $this->requestSingle as $this->requestMulti results
         $responses = is_object($this->response)
             ? [$this->response]
             : $this->response;

@@ -122,6 +122,11 @@ class CleantalkResponse
     public $codes = array();
 
     /**
+     * @var null|array Contains a error
+     */
+    public $error = null;
+
+    /**
      * Create server response
      *
      * @param object $obj

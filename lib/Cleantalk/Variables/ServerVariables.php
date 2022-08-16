@@ -105,7 +105,7 @@ abstract class ServerVariables
      *
      * @return string|array
      */
-    public function getAndSanitize(&$value, $nesting = 0)
+    public function getAndSanitize($value, $nesting = 0)
     {
         if ( is_array($value) ) {
             foreach ( $value as $_key => & $val ) {
@@ -133,9 +133,5 @@ abstract class ServerVariables
      *
      * @return string
      */
-    protected function sanitizeDefault($value)
-    {
-        // @ToDo Override this method in the internal class!
-        return $value;
-    }
+    abstract protected function sanitizeDefault($value);
 }

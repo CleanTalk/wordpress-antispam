@@ -175,6 +175,31 @@ class CleantalkRequest
     public $exception_action;
 
     /**
+     * @var string|null
+     */
+    public $event_token;
+
+    /**
+     * @var string|null
+     */
+    public $event_javascript_data;
+
+    /**
+     * @var string|null
+     */
+    public $browser_sign;
+
+    /**
+     * @var string|null
+     */
+    public $event_type;
+
+    /**
+     * @var string|null
+     */
+    public $message_to_log;
+
+    /**
      * Fill params with constructor
      *
      * @param array $params
@@ -208,6 +233,12 @@ class CleantalkRequest
         $this->sender_info     = isset($params['sender_info']) ? (string)json_encode($params['sender_info']) : null;
         $this->honeypot_field  = isset($params['honeypot_field']) ? (int)$params['honeypot_field'] : null;
         $this->exception_action  = isset($params['exception_action']) ? (int)$params['exception_action'] : null;
+
+        $this->event_token  = isset($params['event_token']) ? (string)$params['event_token'] : null;
+        $this->event_javascript_data  = isset($params['event_javascript_data']) ? (string)$params['event_javascript_data'] : null;
+        $this->browser_sign  = isset($params['browser_sign']) ? (string)$params['browser_sign'] : null;
+        $this->event_type  = isset($params['event_type']) ? (string)$params['event_type'] : null;
+        $this->message_to_log  = isset($params['message_to_log']) ? (string)$params['message_to_log'] : null;
 
         $this->message = ! empty($params['message'])
             ? (! is_scalar($params['message'])

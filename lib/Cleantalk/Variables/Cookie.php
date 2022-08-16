@@ -10,7 +10,7 @@ namespace Cleantalk\Variables;
  *
  * @package Cleantalk\Variables
  */
-class Cookie extends ServerVariables
+abstract class Cookie extends ServerVariables
 {
     protected static $instance;
 
@@ -68,6 +68,10 @@ class Cookie extends ServerVariables
         $httponly = false,
         $samesite = 'Lax'
     ) {
+        if (headers_sent()) {
+            return;
+        }
+
         $secure = ! is_null($secure) ? $secure : ! in_array(Server::get('HTTPS'), ['off', '']) || Server::get('SERVER_PORT') == 443;
 
         // For PHP 7.3+ and above
