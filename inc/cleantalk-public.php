@@ -526,7 +526,7 @@ function apbct_hook__wp_footer()
         $cookie_bot_asset = (class_exists('Cookiebot_WP')) ? 'data-cookieconsent="ignore"' : '';
 
         $script =
-            '<script type="text/javascript" ' . $cookie_bot_asset
+            '<script ' . $cookie_bot_asset
             . ">				
                     window.addEventListener('DOMContentLoaded', function () {
                         setTimeout(function(){
@@ -583,7 +583,7 @@ function ct_add_hidden_fields(
     // Using only cookies
     if ( $cookie_check && $apbct->data['cookies_type'] !== 'none' ) {
         $html =
-            "<script type=\"text/javascript\" "
+            "<script "
             . (class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '')
             . ">
                 function apbct_attach_event_handler__backend(elem, event, callback) {
@@ -617,7 +617,7 @@ function ct_add_hidden_fields(
         $ct_input_challenge = sprintf("'%s'", $ct_checkjs_key);
         $field_id           = $field_name . '_' . $field_id_hash;
         $html               = "<input type=\"hidden\" id=\"{$field_id}\" name=\"{$field_name}\" value=\"{$ct_checkjs_def}\" />
-		<script type=\"text/javascript\" " . (class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '') . ">
+		<script " . (class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '') . ">
 			setTimeout(function(){
 				var ct_input_name = \"{$field_id}\";
 				if (document.getElementById(ct_input_name) !== null) {
