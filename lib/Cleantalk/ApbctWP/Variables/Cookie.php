@@ -2,11 +2,10 @@
 
 namespace Cleantalk\ApbctWP\Variables;
 
-use Cleantalk\ApbctWP\Sanitize;
-use Cleantalk\ApbctWP\Validate;
-
 class Cookie extends \Cleantalk\Variables\Cookie
 {
+    protected static $instance;
+
     /**
      * @inheritDoc
      */
@@ -14,33 +13,31 @@ class Cookie extends \Cleantalk\Variables\Cookie
     {
         global $apbct;
 
+        $name = apbct__get_cookie_prefix() . $name;
+
         // Return from memory. From $this->variables
-        if (isset(static::$instance->variables[$name])) {
-            $value = static::$instance->variables[$name];
-            // Get from GLOBAL variable
-        } else {
+        if (! isset(static::$instance->variables[$name])) {
             // Getting by alternative way if enabled
             if ($apbct->data['cookies_type'] === 'alternative') {
                 $value = AltSessions::get($name);
                 // Try to get it from native cookies ^_^
                 if ( empty($value) && isset($_COOKIE[$name]) ) {
-                    $value = $this->getAndSanitize($_COOKIE[$name]);
+                    $value = $this->getAndSanitize(urldecode($_COOKIE[$name]));
                 }
                 // The old way
-            } elseif ( isset($_COOKIE[$name]) ) {
-                $value = $this->getAndSanitize($_COOKIE[$name]);
+            }elseif ( isset($_COOKIE[$name]) ) {
+                $value = $this->getAndSanitize(urldecode($_COOKIE[$name]));
             } else {
                 $value = '';
             }
 
             // Remember for further calls
             static::getInstance()->rememberVariable($name, $value);
+
+            return $value;
         }
 
-        // Decoding
-        $value = urldecode($value); // URL decode
-
-        return $value;
+        return static::$instance->variables[$name];
     }
 
     /**
