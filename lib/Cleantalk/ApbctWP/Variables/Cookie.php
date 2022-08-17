@@ -16,16 +16,16 @@ class Cookie extends \Cleantalk\Variables\Cookie
         $name = apbct__get_cookie_prefix() . $name;
 
         // Return from memory. From $this->variables
-        if (! isset(static::$instance->variables[$name])) {
+        if ( ! isset(static::$instance->variables[$name]) ) {
             // Getting by alternative way if enabled
-            if ($apbct->data['cookies_type'] === 'alternative') {
+            if ( $apbct->data['cookies_type'] === 'alternative' ) {
                 $value = AltSessions::get($name);
                 // Try to get it from native cookies ^_^
                 if ( empty($value) && isset($_COOKIE[$name]) ) {
                     $value = $this->getAndSanitize(urldecode($_COOKIE[$name]));
                 }
                 // The old way
-            }elseif ( isset($_COOKIE[$name]) ) {
+            } elseif ( isset($_COOKIE[$name]) ) {
                 $value = $this->getAndSanitize(urldecode($_COOKIE[$name]));
             } else {
                 $value = '';
