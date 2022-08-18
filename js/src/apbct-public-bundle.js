@@ -810,8 +810,10 @@ if(typeof jQuery !== 'undefined') {
 			try {
 				var response = JSON.parse(xhr.responseText);
 			} catch (e) {
-				console.log(e.toString())
+				console.log(e.toString());
+				return;
 			}
+
 			if (typeof response.apbct !== 'undefined') {
 				response = response.apbct;
 				if (response.blocked) {
@@ -1045,9 +1047,12 @@ document.addEventListener("cleantalkModalContentLoaded", function( e ) {
 });
 jQuery(document).ready(function(){
 
-	if (typeof ctPublicGDPR === 'undefined') return;
-
-	if(!ctPublicGDPR.gdpr_forms) return;
+	if(
+		typeof ctPublicGDPR === 'undefined' ||
+		! ctPublicGDPR.gdpr_forms.length
+	) {
+		return;
+	}
 	
 	ctPublicGDPR.gdpr_forms.forEach(function(item, i, arr){
 		
