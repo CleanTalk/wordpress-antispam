@@ -598,8 +598,10 @@ if(typeof jQuery !== 'undefined') {
 			try {
 				var response = JSON.parse(xhr.responseText);
 			} catch (e) {
-				console.log(e.toString())
+				console.log(e.toString());
+				return;
 			}
+
 			if (typeof response.apbct !== 'undefined') {
 				response = response.apbct;
 				if (response.blocked) {
