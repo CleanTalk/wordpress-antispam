@@ -615,6 +615,9 @@ If your website has forms that send data to external sources, you can enable opt
 * Fix. Connection reports. Saving data fixed.
 * Fix. Connection reports. Displaying data fixed.
 * Fix. Cookies. Getting cookies from alternative way fixed.
+* Fix. Cookies. ApbctWP\Variables\Cookie getting fixed.
+* Fix. Cookies. Cookie check parameter fixed.
+* Fix: Fixed error with response from custom ajax requests
 
 = 5.182.2 Aug 08 2022 =
 #### Server variables sanitizing fixed, js key getting fixed, internal forms catching fixed.
