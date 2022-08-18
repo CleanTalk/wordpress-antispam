@@ -1211,32 +1211,3 @@ function apbct__add_debug_tab($links)
 
     return $links;
 }
-
-/**
- * Triggered when adding a new site in multisite mode
- */
-add_action('wp_initialize_site', 'apbct__initialize_site_action', 10, 2);
-
-/**
- * Function for `wp_initialize_site` action-hook.
- *
- * @param WP_Site $new_site New site object.
- * @param $_args
- * @return void
- */
-function apbct__initialize_site_action($new_site, $_args)
-{
-    global $apbct;
-
-    $settings = $apbct->settings;
-
-    if (isset($settings['apikey'])) {
-        unset($settings['apikey']);
-    }
-
-    // Update multisite__use_settings_template_apply_for_current_list_sites
-    $apbct->network_settings['multisite__use_settings_template_apply_for_current_list_sites'][] = $new_site->blog_id;
-    $apbct->saveNetworkSettings();
-
-    update_blog_option($new_site->blog_id, 'cleantalk_settings', $settings);
-}
