@@ -485,10 +485,9 @@ if(typeof jQuery !== 'undefined') {
 		if (xhr.responseText && xhr.responseText.indexOf('"apbct') !== -1) {
 			try {
 				var response = JSON.parse(xhr.responseText);
-			} catch (e) {
-				console.log(e.toString())
-			}
-			if (typeof response.apbct !== 'undefined') {
+			} catch (e) {}
+
+			if (typeof response === 'object' && typeof response.apbct !== 'undefined') {
 				response = response.apbct;
 				if (response.blocked) {
 					document.dispatchEvent(
