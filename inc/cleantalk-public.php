@@ -1327,9 +1327,22 @@ function apbct_enqueue_and_localize_public_scripts()
     global $apbct;
 
     // Different JS params
+//    wp_enqueue_script(
+//        'ct_public_functions',
+//        APBCT_URL_PATH . '/js/apbct-public-bundle.min.js',
+//        array('jquery'),
+//        APBCT_VERSION
+//    );
+
     wp_enqueue_script(
         'ct_public_functions',
-        APBCT_URL_PATH . '/js/apbct-public-bundle.min.js',
+        APBCT_URL_PATH . '/js/src/apbct-public--1--functions.js',
+        array('jquery'),
+        APBCT_VERSION
+    );
+    wp_enqueue_script(
+        'ct_public_functions2',
+        APBCT_URL_PATH . '/js/src/apbct-public--2--public.js',
         array('jquery'),
         APBCT_VERSION
     );
