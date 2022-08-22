@@ -523,28 +523,38 @@ function apbct_ready(){
 			}
 			decodedEmailNodes[i].addEventListener('click', function ctFillDecodedEmailHandler(event) {
 				this.removeEventListener('click', ctFillDecodedEmailHandler);
-				apbctAjaxEmailDecode(event);
+				apbctAjaxEmailDecode(event, this);
 			});
 		}
 	}
 }
 apbct_attach_event_handler(window, "DOMContentLoaded", apbct_ready);
 
-function apbctAjaxEmailDecode(event){
+function apbctAjaxEmailDecode(event, baseElement){
 	const element = event.target;
-	element.setAttribute('title', ctPublicFunctions.text__wait_for_decoding);
-	element.style.cursor = 'progress';
 
-	// Adding a tooltip
-	jQuery(element).append(
-		'<div class="apbct-tooltip">\n' +
+	if (typeof baseElement.href !== 'undefined' && baseElement.href.indexOf('mailto:') === 0) {
+		event.preventDefault();
+	} else {
+		element.setAttribute('title', ctPublicFunctions.text__wait_for_decoding);
+		element.style.cursor = 'progress';
+
+		// Adding a tooltip
+		jQuery(element).append(
+			'<div class="apbct-tooltip">\n' +
 			'<div class="apbct-tooltip--text"></div>\n' +
 			'<div class="apbct-tooltip--arrow"></div>\n' +
-		'</div>'
-	);
-	ctShowDecodeComment(element, ctPublicFunctions.text__wait_for_decoding);
+			'</div>'
+		);
+		ctShowDecodeComment(element, ctPublicFunctions.text__wait_for_decoding);
+	}
 
 	const javascriptClientData = getJavascriptClientData();
+	let encodedEmail = event.target.dataset.originalString;
+	
+	if (typeof baseElement.href !== 'undefined' && baseElement.href.indexOf('mailto:') === 0) {
+		encodedEmail = baseElement.dataset.originalString;
+	}
 
 	// Using REST API handler
 	if( ctPublicFunctions.data__ajax_type === 'rest' ){
@@ -552,13 +562,18 @@ function apbctAjaxEmailDecode(event){
 			'apbct_decode_email',
 			{
 				data: {
-					encodedEmail:             event.target.dataset.originalString,
+					encodedEmail,
 					event_javascript_data:    javascriptClientData,
 				},
 				method: 'POST',
 				callback: function (result) {
 					if (result.success) {
-						ctProcessDecodedDataResult(result.data, event.target);
+						if (typeof baseElement.href !== 'undefined' && baseElement.href.indexOf('mailto:') === 0) {
+							baseElement.href = 'mailto:' + result.data.decoded_email;
+							baseElement.click();
+						} else {
+							ctProcessDecodedDataResult(result.data, event.target);
+						}
 					}
 					setTimeout(function () {
 						jQuery(element)
@@ -573,14 +588,19 @@ function apbctAjaxEmailDecode(event){
 		apbct_public_sendAJAX(
 			{
 				action: 'apbct_decode_email',
-				encodedEmail: event.target.dataset.originalString,
+				encodedEmail,
 				event_javascript_data:    javascriptClientData,
 			},
 			{
 				notJson: true,
 				callback: function (result) {
 					if (result.success) {
-						ctProcessDecodedDataResult(result.data, event.target);
+						if (typeof baseElement.href !== 'undefined' && baseElement.href.indexOf('mailto:') === 0) {
+							baseElement.href = 'mailto:' + result.data.decoded_email;
+							baseElement.click();
+						} else {
+							ctProcessDecodedDataResult(result.data, event.target);
+						}
 					}
 					setTimeout(function () {
 						jQuery(element)
