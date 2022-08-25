@@ -272,6 +272,7 @@ class EmailEncoder
                 return $this->obfuscateEmail($matches[0]);
             }, $matches[1]);
         }
+        $mailto_link_str = str_replace('mailto:', '', $mailto_link_str);
         $encoded = $this->encodeString($mailto_link_str, $this->secret_key);
 
         $text = isset($mailto_inner_text) ? $mailto_inner_text : $mailto_link_str;
