@@ -265,3 +265,10 @@ button[value="save_changes"]:disabled {
 #cleantalk_notice_review .button {
     margin-bottom: 20px;
 }
+
+.apbct_highlighted{
+    outline-offset: 5px;
+    outline-color: red;
+    outline-width: 3px !important;
+    outline-style: solid !important;
+}
