@@ -357,6 +357,9 @@ function apbctAjaxEmailDecode(event, baseElement){
 				callback: function (result) {
 					if (result.success) {
 						if (typeof baseElement.href !== 'undefined' && baseElement.href.indexOf('mailto:') === 0) {
+							let encodedEmail = baseElement.href.replace('mailto:', '');
+							let baseElementContent = baseElement.innerHTML;
+							baseElement.innerHTML = baseElementContent.replace(encodedEmail, result.data.decoded_email);
 							baseElement.href = 'mailto:' + result.data.decoded_email;
 							baseElement.click();
 						} else {
@@ -384,6 +387,9 @@ function apbctAjaxEmailDecode(event, baseElement){
 				callback: function (result) {
 					if (result.success) {
 						if (typeof baseElement.href !== 'undefined' && baseElement.href.indexOf('mailto:') === 0) {
+							let encodedEmail = baseElement.href.replace('mailto:', '');
+							let baseElementContent = baseElement.innerHTML;
+							baseElement.innerHTML = baseElementContent.replace(encodedEmail, result.data.decoded_email);
 							baseElement.href = 'mailto:' + result.data.decoded_email;
 							baseElement.click();
 						} else {
