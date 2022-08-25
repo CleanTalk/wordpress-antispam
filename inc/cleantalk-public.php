@@ -152,12 +152,13 @@ function apbct_init()
 
     // WooCommerce registration
     if ( class_exists('WooCommerce') ) {
-        add_filter('woocommerce_registration_errors', 'ct_registration_errors', 1, 3);
+        if ( !$apbct->settings['forms__wc_register_from_order'] && Request::get('wc-ajax') === 'checkout' ) {
+            remove_filter('woocommerce_registration_errors', 'ct_registration_errors', 1);
+        } else {
+            add_filter('woocommerce_registration_errors', 'ct_registration_errors', 1, 3);
+        }
         if ( $apbct->settings['forms__wc_checkout_test'] == 1 ) {
             add_action('woocommerce_after_checkout_validation', 'ct_woocommerce_checkout_check', 1, 2);
-        }
-        if ( Request::get('wc-ajax') === 'checkout' && empty($apbct->settings['forms__wc_register_from_order']) ) {
-            remove_filter('woocommerce_registration_errors', 'ct_registration_errors', 1);
         }
 
         //Woocommerce add_to_cart action
