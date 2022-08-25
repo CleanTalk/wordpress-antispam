@@ -52,6 +52,10 @@ class EmailEncoder
             return;
         }
 
+        if (strtoupper($_SERVER['REQUEST_METHOD']) === 'POST' && empty(Post::get('encodedEmail'))) {
+            return;
+        }
+
         //list of encoding exclusions signs
         $this->encoding_exclusions_signs = array(
             //divi contact forms additional emails
