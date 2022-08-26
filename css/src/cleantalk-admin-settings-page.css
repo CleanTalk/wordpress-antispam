@@ -67,7 +67,7 @@ i.animate-spin {
     text-decoration: none;
     font-size: 13px;
     line-height: 26px;
-    margin: 0;
+    margin: 10px 0 0 0;
     padding: 0 10px 1px;
     cursor: pointer;
     border-width: 1px;
@@ -271,4 +271,9 @@ button[value="save_changes"]:disabled {
     outline-color: red;
     outline-width: 3px !important;
     outline-style: solid !important;
+}
+
+.apbct_notice_inner{
+    display: flex;
+    margin-top: 10px !important;
 }
