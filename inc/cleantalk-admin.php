@@ -500,6 +500,7 @@ function apbct_admin__enqueue_scripts($hook)
 
     // SETTINGS's page JavaScript and CSS
     if ( $hook == 'settings_page_cleantalk' ) {
+        wp_enqueue_script("jquery-ui-core", array('jquery'));
         wp_enqueue_script(
             'cleantalk_admin_js_settings_page',
             APBCT_JS_ASSETS_PATH . '/cleantalk-admin-settings-page.min.js',
@@ -517,7 +518,8 @@ function apbct_admin__enqueue_scripts($hook)
         wp_localize_script('cleantalk_admin_js_settings_page', 'ctSettingsPage', array(
             'ct_subtitle' => $apbct->ip_license ? __('Hosting Anti-Spam', 'cleantalk-spam-protect') : '',
             'ip_license'  => $apbct->ip_license ? true : false,
-            'key_changed' => ! empty($apbct->data['key_changed']) ? true : false,
+            'key_changed' => ! empty($apbct->data['key_changed']),
+            'key_is_ok'=> ! empty($apbct->key_is_ok)
         ));
 
         wp_enqueue_script(
