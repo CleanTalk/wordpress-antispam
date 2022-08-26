@@ -2329,6 +2329,14 @@ function apbct_settings__validate($settings)
             if ( isset($settings['multisite__use_settings_template_apply_for_current_list_sites']) && ! empty($settings['multisite__use_settings_template_apply_for_current_list_sites']) ) {
                 apbct_update_blogs_options($settings);
             }
+        } else {
+            // compare non-main site blog key with the validating key
+            $key_from_blog_settings = get_option('cleantalk_settings')['apikey'];
+            if ( trim($settings['apikey']) !== trim($key_from_blog_settings) ) {
+                $blog_key_changed = true;
+            }
+            $apbct->data['key_changed'] = empty($blog_key_changed) ? false : $blog_key_changed;
+            $apbct->save('data');
         }
         if ( ! $apbct->white_label && ! is_main_site() && ! $apbct->allow_custom_key ) {
             $settings['apikey'] = '';
