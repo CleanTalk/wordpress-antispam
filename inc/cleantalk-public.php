@@ -1,11 +1,12 @@
 <?php
 
 use Cleantalk\ApbctWP\Escape;
+use Cleantalk\ApbctWP\Sanitize;
 use Cleantalk\ApbctWP\Variables\Cookie;
-use Cleantalk\Common\Helper;
-use Cleantalk\Variables\Get;
-use Cleantalk\Variables\Post;
-use Cleantalk\Variables\Request;
+use Cleantalk\ApbctWP\Variables\Get;
+use Cleantalk\ApbctWP\Variables\Post;
+use Cleantalk\ApbctWP\Variables\Request;
+use Cleantalk\ApbctWP\Variables\Server;
 
 /**
  * Init functions
@@ -21,20 +22,6 @@ function apbct_init()
     // Pixel
     if ( $apbct->settings['data__pixel'] && empty($apbct->pixel_url) ) {
         $apbct->pixel_url = apbct_get_pixel_url__ajax(true);
-    }
-
-    //Check internal forms with such "action" http://wordpress.loc/contact-us/some_script.php
-    if ( (Post::get('action') === 'ct_check_internal') &&
-         $apbct->settings['forms__check_internal']
-    ) {
-        $ct_result = ct_contact_form_validate();
-        if ( $ct_result == null ) {
-            echo 'true';
-            die();
-        } else {
-            echo $ct_result;
-            die();
-        }
     }
 
     //Search form hook init
@@ -89,8 +76,8 @@ function apbct_init()
              && Post::get('cleantalk_hidden_method') !== ''
              && Post::get('cleantalk_hidden_action') !== ''
         ) {
-            $action = Escape::escHtml(Post::get('cleantalk_hidden_method'));
-            $method = Escape::escHtml(Post::get('cleantalk_hidden_action'));
+            $action = Escape::escHtml(Post::get('cleantalk_hidden_action'));
+            $method = Escape::escHtml(Post::get('cleantalk_hidden_method'));
             unset($_POST['cleantalk_hidden_action']);
             unset($_POST['cleantalk_hidden_method']);
             ct_contact_form_validate();
@@ -254,10 +241,7 @@ function apbct_init()
     if ( defined('LANDINGPAGES_CURRENT_VERSION') && ! empty($_POST) ) {
         if ( Post::get('action') === 'inbound_store_lead' ) { // AJAX action(s)
             ct_check_wplp();
-        } elseif (
-            array_key_exists('inbound_submitted', $_POST) &&
-            $_POST['inbound_submitted'] == '1'
-        ) {
+        } elseif ( Post::get('inbound_submitted') === '1' ) {
             // Final submit
             ct_check_wplp();
         }
@@ -406,8 +390,7 @@ function apbct_buffer__output()
         $output = apbct_buffer_modify_by_dom();
     }
 
-    echo $output;
-    die();
+    die($output);
 }
 
 function apbct_buffer_modify_by_string()
@@ -491,9 +474,7 @@ function apbct_buffer_modify_by_dom()
 
     $html = $dom->getElementsByTagName('html');
 
-    return is_object($html) && isset($html[0], $html[0]->childNodes[0]) && $dom->getElementsByTagName(
-        'rss'
-    )->length == 0
+    return is_object($html) && isset($html[0], $html[0]->childNodes[0]) && $dom->getElementsByTagName('rss')->length == 0
         ? $dom->saveHTML()
         : $apbct->buffer;
 }
@@ -526,45 +507,46 @@ function apbct_hook__wp_footer()
         $apbct->settings['data__pixel'] === '1' ||
         ($apbct->settings['data__pixel'] === '3' && ! apbct_is_cache_plugins_exists())
     ) {
-        echo '<img alt="Cleantalk Pixel" id="apbct_pixel" style="display: none;" src="' . $apbct->pixel_url . '">';
+        echo '<img alt="Cleantalk Pixel" id="apbct_pixel" style="display: none;" src="' . Escape::escUrl($apbct->pixel_url) . '">';
     }
 
     if ( $apbct->settings['data__use_ajax'] ) {
         $timeout = $apbct->settings['misc__async_js'] ? 1000 : 0;
 
         if ( $apbct->data['ajax_type'] == 'rest' ) {
-            $html =
-                "<script type=\"text/javascript\" " . (class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '')
-                . ">				
-                    window.addEventListener('DOMContentLoaded', function () {
-                        setTimeout(function(){
-                            if( document.querySelectorAll('[name^=ct_checkjs]').length > 0 ) {
-                                apbct_public_sendREST(
+            $send_way_asset = "apbct_public_sendREST(
                                     'js_keys__get',
-                                    { callback: apbct_js_keys__set_input_value }
-                                )
-                            } 
-                        }," . $timeout . ")					   
-                    });								
-                </script>";
+                                    { callback: apbct_js_keys__set_input_value }";
         } else {
-            $html =
-                "<script type=\"text/javascript\" " . (class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '')
-                . ">				
+            $send_way_asset = "apbct_public_sendAJAX(	
+                                    { action: 'apbct_js_keys__get' },	
+                                    { callback: apbct_js_keys__set_input_value }";
+        }
+
+        $cookie_bot_asset = (class_exists('Cookiebot_WP')) ? 'data-cookieconsent="ignore"' : '';
+
+        $script =
+            '<script type="text/javascript" ' . $cookie_bot_asset
+            . ">				
                     window.addEventListener('DOMContentLoaded', function () {
                         setTimeout(function(){
                             if( document.querySelectorAll('[name^=ct_checkjs]').length > 0 ) {
-                                apbct_public_sendAJAX(
-                                    { action: 'apbct_js_keys__get' },
-                                    { callback: apbct_js_keys__set_input_value }
+                                " . $send_way_asset . "
                                 )
                             }
                         }," . $timeout . ")					    
-                    });				
+                    })				
                 </script>";
-        }
 
-        echo $html;
+        echo Escape::escKses(
+            $script,
+            array(
+                'script' => array(
+                    'type' => true,
+                    'data-cookieconsent' => true
+                )
+            )
+        );
     }
 }
 
@@ -604,15 +586,16 @@ function ct_add_hidden_fields(
             "<script type=\"text/javascript\" "
             . (class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '')
             . ">
-                function apbct_attach_event_handler__backend(elem, event, callback){
+                function apbct_attach_event_handler__backend(elem, event, callback) {
                     if(typeof window.addEventListener === \"function\") elem.addEventListener(event, callback);
-                    else                                              elem.attachEvent(event, callback);
+                    else                                                elem.attachEvent(event, callback);
                 }
-                apbct_attach_event_handler__backend(window, 'load', function(){
-                    if (typeof ctSetCookie === \"function\")
-                        ctSetCookie('{$field_name}', '{$ct_checkjs_key}' );
-                    else 
-                        console.log('APBCT ERROR: apbct-public--functions is not loaded.');
+                apbct_attach_event_handler__backend(window, 'DOMContentLoaded', function(){
+                    if (typeof apbctLocalStorage === \"object\") {
+                        apbctLocalStorage.set('{$field_name}', '{$ct_checkjs_key}', true );
+                    } else {
+                        console.log('APBCT ERROR: apbctLocalStorage object is not loaded.');
+                    }  
                 });
 		    </script>";
         // Using AJAX to get key
@@ -651,7 +634,21 @@ function ct_add_hidden_fields(
     if ( $return_string === true ) {
         return $html;
     } else {
-        echo $html;
+        echo Escape::escKses(
+            $html,
+            array(
+                'script' => array(
+                    'type' => true,
+                    'data-cookieconsent' => true
+                ),
+                'input' => array(
+                    'type' => true,
+                    'id' => true,
+                    'name' => true,
+                    'value' => true
+                )
+            )
+        );
     }
 }
 
@@ -669,24 +666,15 @@ function ct_add_honeypot_field($form_type, $form_method = 'post')
     if ( ! $apbct->settings['data__honeypot_field'] ) {
         return '';
     }
-
-    // Honeypot option is ON
-    // Declare the style. todo Needs to move this to public.js scripts
-    $style = '
-    <style>
-		.apbct__email_id__' . $form_type . ' {
-            display: none !important;
-		}
-	</style>';
     //Generate random suffix to prevent ids duplicate
-    $random = mt_rand(0,100000);
+    $random = mt_rand(0, 100000);
 
     // Generate the hidden field
-    $honeypot = $style . "\n" . '<input 
-        id="apbct__email_id__' . $form_type .'_'. $random .'" 
-        class="apbct__email_id__' . $form_type . '" 
+    $honeypot = '<input 
+        id="apbct__email_id__' . $form_type . '_' . $random . '" 
+        class="apbct_special_field apbct__email_id__' . $form_type . '"
         autocomplete="off" 
-        name="apbct__email_id__' . $form_type .'_'. $random .'"  
+        name="apbct__email_id__' . $form_type . '_' . $random . '"  
         type="text" 
         value="" 
         size="30" 
@@ -697,6 +685,7 @@ function ct_add_honeypot_field($form_type, $form_method = 'post')
         //add hidden field to set random suffix for the field
         $honeypot .= '<input 
         id="apbct_event_id"
+        class="apbct_special_field"
         name="apbct_event_id"
         type="hidden" 
         value="' . $random . '" 
@@ -706,11 +695,11 @@ function ct_add_honeypot_field($form_type, $form_method = 'post')
     //add a submit button if method is get to prevent keyboard send misfunction
     if ( $form_method === 'get' ) {
         $honeypot .= '<input 
-        id="apbct_submit_id__' . $form_type .'_'. $random .'" 
-        class="apbct__email_id__' . $form_type .'" 
-        name="apbct_submit_id__' . $form_type .'_'. $random .'"  
+        id="apbct_submit_id__' . $form_type . '_' . $random . '" 
+        class="apbct_special_field apbct__email_id__' . $form_type . '"
+        name="apbct_submit_id__' . $form_type . '_' . $random . '"  
         type="submit" 
-        apbct_event_id="' . $random .'"
+        apbct_event_id="' . $random . '"
         size="30" 
         maxlength="200" 
         value=""
@@ -852,7 +841,7 @@ function ct_die($_comment_id, $_comment_status)
     if ( ! $ct_jp_comments ) {
         $back_script = '<script>setTimeout("history.back()", 5000);</script>';
     } elseif ( isset($_SERVER['HTTP_REFERER']) ) {
-        $back_link = '<a href="' . $_SERVER['HTTP_REFERER'] . '">' . __('Back') . '</a>';
+        $back_link = '<a href="' . Sanitize::cleanUrl(Server::get('HTTP_REFERER')) . '">' . __('Back') . '</a>';
     }
 
     if ( file_exists(CLEANTALK_PLUGIN_DIR . "templates/lock-pages/lock-page-ct-die.html") ) {
@@ -902,7 +891,7 @@ function ct_die_extended($comment_body)
     if ( ! $ct_jp_comments ) {
         $back_script = '<script>setTimeout("history.back()", 5000);</script>';
     } else {
-        $back_link = '<a href="' . $_SERVER['HTTP_REFERER'] . '">' . __('Back') . '</a>';
+        $back_link = '<a href="' . Sanitize::cleanUrl(Server::get('HTTP_REFERER')) . '">' . __('Back') . '</a>';
     }
 
     if ( file_exists(CLEANTALK_PLUGIN_DIR . "templates/lock-pages/lock-page-ct-die.html") ) {
@@ -931,25 +920,24 @@ function ct_die_extended($comment_body)
 /**
  * Validates JavaScript anti-spam test
  *
- * @param string $field_name filed to serach in data
- * @param array|null $data Data to search in
+ * @param string $check_js_value String to checking
  * @param bool $is_cookie
  *
  * @return int|null
  */
-function apbct_js_test($field_name = 'ct_checkjs', $data = null, $is_cookie = false)
+function apbct_js_test($check_js_value = '', $is_cookie = false)
 {
     global $apbct;
 
     $out = null;
 
     if (
-        ($data && isset($data[$field_name])) ||
-        ($is_cookie && $apbct->data['cookies_type'] === 'alternative' && Cookie::get($field_name))
+        ( ! empty($check_js_value) ) ||
+        ( $is_cookie && $apbct->data['cookies_type'] === 'alternative' && Cookie::get('ct_checkjs') )
     ) {
         $js_key = $is_cookie && $apbct->data['cookies_type'] === 'alternative'
-            ? Cookie::get($field_name)
-            : trim($data[$field_name]);
+            ? Cookie::get('ct_checkjs')
+            : trim($check_js_value);
 
         // Check static key
         if (
@@ -963,7 +951,7 @@ function apbct_js_test($field_name = 'ct_checkjs', $data = null, $is_cookie = fa
             $out = ct_get_checkjs_value() === $js_key ? 1 : 0;
             // Random key check
         } else {
-            $out = array_key_exists($js_key, $apbct->js_keys) ? 1 : 0;
+            $out = isset($apbct->js_keys[ $js_key ]) ? 1 : 0;
         }
     }
 
@@ -1191,11 +1179,11 @@ function ct_print_form($arr, $k)
     foreach ( $arr as $key => $value ) {
         if ( ! is_array($value) ) {
             print '<textarea
-				name="' . ($k == '' ? $key : $k . '[' . $key . ']') . '"
-				style="display:none;">' . htmlspecialchars($value)
+				name="' . esc_attr($k === '' ? $key : $k . '[' . $key . ']') . '"
+				style="display:none;">' . esc_textarea(htmlspecialchars($value))
                   . '</textarea>';
         } else {
-            ct_print_form($value, $k == '' ? $key : $k . '[' . $key . ']');
+            ct_print_form($value, $k === '' ? $key : $k . '[' . $key . ']');
         }
     }
 }
@@ -1231,26 +1219,20 @@ function ct_enqueue_scripts_public($_hook)
         if ( $apbct->settings['gdpr__enabled'] ) {
             wp_localize_script('ct_public_functions', 'ctPublicGDPR', array(
                 'gdpr_forms' => array(),
-                'gdpr_text'  => $apbct->settings['gdpr__text'] ?: __(
-                    'By using this form you agree with the storage and processing of your data by using the Privacy Policy on this website.',
-                    'cleantalk-spam-protect'
-                ),
+                'gdpr_text'  => $apbct->settings['gdpr__text']
+                    ?: __(
+                        'By using this form you agree with the storage and processing of your data by using the Privacy Policy on this website.',
+                        'cleantalk-spam-protect'
+                    ),
             ));
         }
     }
 
     // Show controls for commentaries
     if ( in_array("administrator", $current_user->roles) ) {
+        // Admin javascript for managing comments on public pages
         if ( $apbct->settings['comments__manage_comments_on_public_page'] ) {
             $ajax_nonce = wp_create_nonce("ct_secret_nonce");
-
-            wp_enqueue_style(
-                'ct_public_admin_css',
-                APBCT_CSS_ASSETS_PATH . '/cleantalk-public-admin.min.css',
-                array(),
-                APBCT_VERSION,
-                'all'
-            );
             wp_enqueue_script(
                 'ct_public_admin_js',
                 APBCT_JS_ASSETS_PATH . '/cleantalk-public-admin.min.js',
@@ -1271,8 +1253,12 @@ function ct_enqueue_scripts_public($_hook)
                     __("Feedback has been sent to %sCleanTalk Dashboard%s.", 'cleantalk-spam-protect'),
                     $apbct->user_token ? "<a target='_blank' href=https://cleantalk.org/my/show_requests?user_token={$apbct->user_token}&cp_mode=antispam>" : '',
                     $apbct->user_token ? "</a>" : ''
-                ) . ' ' . esc_html__('The service accepts feedback only for requests made no more than 7 or 45 days 
-                (if the Extra package is activated) ago.', 'cleantalk-spam-protect'),
+                )
+                    . ' '
+                    . esc_html__(
+                        'The service accepts feedback only for requests made less than 7 (or 45 if the Extra Package is activated) days ago.',
+                        'cleantalk-spam-protect'
+                    ),
             ));
         }
     }
@@ -1294,6 +1280,48 @@ function ct_enqueue_scripts_public($_hook)
     }
 }
 
+function ct_enqueue_styles_public()
+{
+    global $apbct, $current_user;
+
+    if ( apbct_exclusions_check__url() ) {
+        return;
+    }
+
+    if (
+        $apbct->settings['forms__registrations_test'] ||
+        $apbct->settings['forms__comments_test'] ||
+        $apbct->settings['forms__contact_forms_test'] ||
+        $apbct->settings['forms__general_contact_forms_test'] ||
+        $apbct->settings['forms__wc_checkout_test'] ||
+        $apbct->settings['forms__check_external'] ||
+        $apbct->settings['forms__check_internal'] ||
+        $apbct->settings['comments__bp_private_messages'] ||
+        $apbct->settings['data__general_postdata_test']
+    ) {
+        // Common public styles
+        wp_enqueue_style(
+            'ct_public_css',
+            APBCT_CSS_ASSETS_PATH . '/cleantalk-public.min.css',
+            array(),
+            APBCT_VERSION
+        );
+        // Public admin styles
+        if ( in_array("administrator", $current_user->roles) ) {
+            // Admin style for managing comments on public pages
+            if ( $apbct->settings['comments__manage_comments_on_public_page'] ) {
+                 wp_enqueue_style(
+                     'ct_public_admin_css',
+                     APBCT_CSS_ASSETS_PATH . '/cleantalk-public-admin.min.css',
+                     array(),
+                     APBCT_VERSION,
+                     'all'
+                 );
+            }
+        }
+    }
+}
+
 function apbct_enqueue_and_localize_public_scripts()
 {
     global $apbct;
@@ -1310,14 +1338,17 @@ function apbct_enqueue_and_localize_public_scripts()
         '_ajax_nonce'                          => wp_create_nonce('ct_secret_stuff'),
         '_rest_nonce'                          => wp_create_nonce('wp_rest'),
         '_ajax_url'                            => admin_url('admin-ajax.php', 'relative'),
-        '_rest_url'                            => esc_url(apbct_get_rest_url()),
+        '_rest_url'                            => Escape::escUrl(apbct_get_rest_url()),
         'data__cookies_type'                   => $apbct->data['cookies_type'],
         'data__ajax_type'                      => $apbct->data['ajax_type'],
-        'text__wait_for_decoding'              => esc_html__('Wait for decoding...', 'cleantalk-spam-protect'),
+        'text__wait_for_decoding'              => esc_html__('Anti-spam by CleanTalk: Decoding contact data...', 'cleantalk-spam-protect'),
         'cookiePrefix'                         => apbct__get_cookie_prefix(),
     ));
 
     wp_localize_script('ct_public_functions', 'ctPublic', array(
+        'settings__forms__check_internal' => $apbct->settings['forms__check_internal'],
+        'settings__forms__check_external' => $apbct->settings['forms__check_external'],
+        'blog_home'                     => get_home_url() . '/',
         'pixel__setting'                => $apbct->settings['data__pixel'],
         'pixel__enabled'                => $apbct->settings['data__pixel'] === '2' ||
                                            ($apbct->settings['data__pixel'] === '3' && apbct_is_cache_plugins_exists()),
@@ -1326,6 +1357,14 @@ function apbct_enqueue_and_localize_public_scripts()
         'data__cookies_type'            => $apbct->data['cookies_type'],
         'data__visible_fields_required' => ! apbct_is_user_logged_in() || $apbct->settings['data__protect_logged_in'] == 1,
     ));
+
+    wp_enqueue_style(
+        'ct_public_css',
+        APBCT_CSS_ASSETS_PATH . '/cleantalk-public.min.css',
+        array(),
+        APBCT_VERSION,
+        'all'
+    );
 }
 
 /**
@@ -1359,65 +1398,65 @@ function ct_comments_output($curr_comment, $_param2, $wp_list_comments_args)
 
     $settings_link = '/wp-admin/' . (is_network_admin() ? "settings.php?page=cleantalk" : "options-general.php?page=cleantalk");
 
-    echo "<div class='ct_comment_info'><div class ='ct_comment_titles'>";
-    echo "<p class='ct_comment_info_title'>" . __('Sender info', 'cleantalk-spam-protect') . "</p>";
+    $html = "<div class='ct_comment_info'><div class ='ct_comment_titles'>";
+    $html .= "<p class='ct_comment_info_title'>" . __('Sender info', 'cleantalk-spam-protect') . "</p>";
 
-    echo "<p class='ct_comment_logo_title'>
+    $html .= "<p class='ct_comment_logo_title'>
 				" . __('by', 'cleantalk-spam-protect')
-         . " <a href='{$settings_link}' target='_blank'><img class='ct_comment_logo_img' src='" . APBCT_IMG_ASSETS_PATH . "/logo_color.png'></a>"
+         . " <a href='{$settings_link}' target='_blank'><img class='ct_comment_logo_img' src='" . Escape::escUrl(APBCT_IMG_ASSETS_PATH . "/logo_color.png") . "'></a>"
          . " <a href='{$settings_link}' target='_blank'>CleanTalk</a>"
          . "</p></div>";
     // Outputs email if exists
     if ( $email ) {
-        echo "<a href='https://cleantalk.org/blacklists/$email' target='_blank' title='https://cleantalk.org/blacklists/$email'>"
+        $html .= "<a href='https://cleantalk.org/blacklists/$email' target='_blank' title='https://cleantalk.org/blacklists/$email'>"
              . "$email"
-             . "&nbsp;<img src='" . APBCT_IMG_ASSETS_PATH . "/new_window.gif' border='0' style='float:none; box-shadow: transparent 0 0 0 !important;'/>"
+             . "&nbsp;<img src='" . Escape::escUrl(APBCT_IMG_ASSETS_PATH . "/new_window.gif") . "' border='0' style='float:none; box-shadow: transparent 0 0 0 !important;'/>"
              . "</a>";
     } else {
-        echo __('No email', 'cleantalk-spam-protect');
+        $html .= __('No email', 'cleantalk-spam-protect');
     }
-    echo "&nbsp;|&nbsp;";
+    $html .= "&nbsp;|&nbsp;";
 
     // Outputs IP if exists
     if ( $ip ) {
-        echo "<a href='https://cleantalk.org/blacklists/$ip' target='_blank' title='https://cleantalk.org/blacklists/$ip'>"
+        $html .= "<a href='https://cleantalk.org/blacklists/$ip' target='_blank' title='https://cleantalk.org/blacklists/$ip'>"
              . "$ip"
-             . "&nbsp;<img src='" . APBCT_IMG_ASSETS_PATH . "/new_window.gif' border='0' style='float:none; box-shadow: transparent 0 0 0 !important;'/>"
+             . "&nbsp;<img src='" . Escape::escUrl(APBCT_IMG_ASSETS_PATH . "/new_window.gif") . "' border='0' style='float:none; box-shadow: transparent 0 0 0 !important;'/>"
              . "</a>";
     } else {
-        echo __('No IP', 'cleantalk-spam-protect');
+        $html .= __('No IP', 'cleantalk-spam-protect');
     }
-    echo '&nbsp;|&nbsp;';
+    $html .= '&nbsp;|&nbsp;';
 
-    echo "<span commentid='$id' class='ct_this_is ct_this_is_spam' href='#'>"
+    $html .= "<span commentid='$id' class='ct_this_is ct_this_is_spam' href='#'>"
          . __(
              'Mark as spam',
              'cleantalk-spam-protect'
          )
          . "</span>";
-    echo "<span commentid='$id' class='ct_this_is ct_this_is_not_spam ct_hidden' href='#'>"
+    $html .= "<span commentid='$id' class='ct_this_is ct_this_is_not_spam ct_hidden' href='#'>"
          . __(
              'Unspam',
              'cleantalk-spam-protect'
          )
          . "</span>";
-    echo "<p class='ct_feedback_wrap'>";
-    echo "<span class='ct_feedback_result ct_feedback_result_spam'>"
+    $html .= "<p class='ct_feedback_wrap'>";
+    $html .= "<span class='ct_feedback_result ct_feedback_result_spam'>"
          . __(
              'Marked as spam.',
              'cleantalk-spam-protect'
          )
          . "</span>";
-    echo "<span class='ct_feedback_result ct_feedback_result_not_spam'>"
+    $html .= "<span class='ct_feedback_result ct_feedback_result_not_spam'>"
          . __(
              'Marked as not spam.',
              'cleantalk-spam-protect'
          )
          . "</span>";
-    echo "&nbsp;<span class='ct_feedback_msg'><span>";
-    echo "</p>";
+    $html .= "&nbsp;<span class='ct_feedback_msg'><span>";
+    $html .= "</p>";
 
-    echo "</div>";
+    $html .= "</div>";
 
     // @todo research what such themes and make exception for them
     $ending_tag = isset($wp_list_comments_args['style']) ? $wp_list_comments_args['style'] : null;
@@ -1426,7 +1465,34 @@ function ct_comments_output($curr_comment, $_param2, $wp_list_comments_args)
     };
 
     // Ending comment output
-    echo "</{$ending_tag}>";
+    $html .= "</{$ending_tag}>";
+    echo Escape::escKses(
+        $html,
+        array(
+            'div' => array(
+                'class' => true
+            ),
+            'p' => array(
+                'class' => true
+            ),
+            'span' => array(
+                'class' => true,
+                'commentid' => true,
+                'href' => true,
+            ),
+            'img' => array(
+                'style' => true,
+                'src' => true,
+                'border' => true,
+            ),
+            'style' => true,
+            'a' => array(
+                'href' => true,
+                'target' => true,
+                'title' => true,
+            ),
+        )
+    );
 }
 
 /**

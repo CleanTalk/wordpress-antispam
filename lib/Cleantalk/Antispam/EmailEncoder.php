@@ -3,7 +3,7 @@
 namespace Cleantalk\Antispam;
 
 use Cleantalk\Templates\Singleton;
-use Cleantalk\Variables\Post;
+use Cleantalk\ApbctWP\Variables\Post;
 
 class EmailEncoder
 {
@@ -15,30 +15,59 @@ class EmailEncoder
     private $secret_key;
 
     /**
-     * @var bool
+     * @var bool Show if the encryption functions are avaliable in current surroundings
      */
-    private $encription;
+    private $encryption_is_available;
+
+    /**
+     * Keep arrays of exclusion signs in the array
+     * @var array
+     */
+    private $encoding_exclusions_signs;
+
+    /**
+     * @var string
+     */
+    protected $decoded_email;
+
+    /**
+     * @var string
+     */
+    protected $encoded_email;
+
+    /**
+     * @var string
+     */
+    private $response;
 
     /**
      * @inheritDoc
      */
     protected function init()
     {
+
         global $apbct;
 
         if ( ! $apbct->settings['data__email_decoder'] ) {
             return;
         }
 
+        //list of encoding exclusions signs
+        $this->encoding_exclusions_signs = array(
+            //divi contact forms additional emails
+            array('_unique_id', 'et_pb_contact_form')
+        );
+
         $this->secret_key = md5($apbct->api_key);
 
-        $this->encription = function_exists('openssl_encrypt') && function_exists('openssl_decrypt');
+        $this->encryption_is_available = function_exists('openssl_encrypt') && function_exists('openssl_decrypt');
 
         $hooks_to_encode = array(
             'the_title',
             'the_content',
             'the_excerpt',
             'get_footer',
+            'get_header',
             'get_the_excerpt',
             'comment_text',
             'comment_excerpt',
@@ -70,6 +99,10 @@ class EmailEncoder
             return $content;
         }
 
+        if ( $this->contentHasExclusions($content) ) {
+            return $content;
+        }
+
         return preg_replace_callback('/(<a.*?mailto\:.*?<\/a>?)|(\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+(\.[A-Za-z]{2,}))/', function ($matches) {
 
             if ( isset($matches[3]) && in_array(strtolower($matches[3]), ['.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp']) ) {
@@ -87,26 +120,54 @@ class EmailEncoder
     /**
      * Ajax handler for the apbct_decode_email action
      *
-     * @return void
+     * @return void returns json string to the JS
      */
     public function ajaxDecodeEmailHandler()
     {
-        check_ajax_referer('ct_secret_stuff');
-        $this->ajaxDecodeEmail();
+        if (! defined('REST_REQUEST')) {
+            check_ajax_referer('ct_secret_stuff');
+        }
+
+        $this->response = $this->processDecodeRequest();
+
+        wp_send_json_success($this->response);
+    }
+
+    public function processDecodeRequest()
+    {
+        $this->decoded_email = $this->decodeEmailFromPost();
+        $allow_request       = $this->checkRequest();
+        $this->response      = $this->compileResponse($this->decoded_email, $allow_request);
+
+        return $this->response;
     }
 
     /**
      * Main logic of the decoding the encoded data.
      *
-     * @return void returns json string to the JS
+     * @return string encoded email
      */
-    public function ajaxDecodeEmail()
+    public function decodeEmailFromPost()
     {
-        // @ToDo implement bot checking via API. the method not implemented yet.
+        $this->encoded_email = trim(Post::get('encodedEmail'));
+        $this->decoded_email = $this->decodeString($this->encoded_email, $this->secret_key);
 
-        $encoded_email = trim(Post::get('encodedEmail'));
-        $email = $this->decodeString($encoded_email, $this->secret_key);
-        wp_send_json_success(strip_tags($email, '<a>'));
+        return $this->decoded_email;
+    }
+
+    /**
+     * Ajax handler for the apbct_decode_email action
+     *
+     * @return bool returns json string to the JS
+     */
+    protected function checkRequest()
+    {
+        return true;
+    }
+
+    protected function compileResponse($decoded_email, $is_allowed)
+    {
+        return strip_tags($decoded_email, '<a>');
     }
 
     /**
@@ -119,7 +180,7 @@ class EmailEncoder
      */
     private function encodeString($plain_string, $key)
     {
-        if ( $this->encription ) {
+        if ( $this->encryption_is_available ) {
             $encoded_email = htmlspecialchars(@openssl_encrypt($plain_string, 'aes-128-cbc', $key));
         } else {
             $encoded_email = htmlspecialchars(base64_encode(str_rot13($plain_string)));
@@ -137,7 +198,7 @@ class EmailEncoder
      */
     private function decodeString($encoded_string, $key)
     {
-        if ( $this->encription  ) {
+        if ( $this->encryption_is_available  ) {
             $decoded_email = htmlspecialchars_decode(@openssl_decrypt($encoded_string, 'aes-128-cbc', $key));
         } else {
             $decoded_email = htmlspecialchars_decode(base64_decode($encoded_string));
@@ -178,7 +239,7 @@ class EmailEncoder
         $encoded = $this->encodeString($email_str, $this->secret_key);
 
         return '<span 
-                data-original-string="' . $encoded . '" 
+                data-original-string="' . $encoded . '"
                 class="apbct-email-encoder"
                 title="' . esc_attr($this->getTooltip()) . '">' . $obfuscated . '</span>';
     }
@@ -229,5 +290,38 @@ class EmailEncoder
     private function getTooltip()
     {
         return esc_html__('This contact was encoded by CleanTalk. Click to decode.', 'cleantalk-spam-protect');
+    }
+
+    /**
+     * Check content if it contains exclusions from exclusion list
+     * @param $content - content to check
+     * @return bool - true if exclusions found, else - false
+     */
+    private function contentHasExclusions($content)
+    {
+        if ( is_array($this->encoding_exclusions_signs) ) {
+            foreach ( array_values($this->encoding_exclusions_signs) as $_signs_array => $signs ) {
+                //process each of subarrays of signs
+                $signs_found_count = 0;
+                if ( isset($signs) && is_array($signs) ) {
+                    //chek all the signs in the sub-array
+                    foreach ( $signs as $sign ) {
+                        if ( is_string($sign) ) {
+                            if ( strpos($content, $sign) === false ) {
+                                continue;
+                            } else {
+                                $signs_found_count++;
+                            }
+                        }
+                    }
+                    //if each of signs in the sub-array are found return true
+                    if ( $signs_found_count === count($signs) ) {
+                        return true;
+                    }
+                }
+            }
+        }
+        //no signs found
+        return false;
     }
 }

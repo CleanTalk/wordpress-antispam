@@ -10,7 +10,7 @@ namespace Cleantalk\Variables;
  *
  * @package Cleantalk\Variables
  */
-class Request extends ServerVariables
+abstract class Request extends ServerVariables
 {
     protected static $instance;
 
@@ -20,6 +20,7 @@ class Request extends ServerVariables
      * @param $name
      *
      * @return mixed|string
+     * @throws \ReflectionException
      */
     protected function getVariable($name)
     {
@@ -28,7 +29,23 @@ class Request extends ServerVariables
             return static::$instance->variables[$name];
         }
 
-        $value = isset($_REQUEST[$name]) ? $_REQUEST[$name] : '';
+        $value = '';
+
+        $class_name = get_class(self::getInstance());
+        $reflection_class = new \ReflectionClass($class_name);
+        $namespace = $reflection_class->getNamespaceName();
+
+        $post_class = $namespace . '\\Post';
+        $get_class = $namespace . '\\Get';
+        $cookie_class = $namespace . '\\Cookie';
+
+        if ( $post_class::get($name) ) {
+            $value = $post_class::get($name);
+        } elseif ( $get_class::get($name) ) {
+            $value = $get_class::get($name);
+        } elseif ( $cookie_class::get($name) ) {
+            $value = $cookie_class::get($name);
+        }
 
         // Remember for further calls
         static::getInstance()->rememberVariable($name, $value);

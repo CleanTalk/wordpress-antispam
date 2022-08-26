@@ -23,7 +23,7 @@
             <directory name="vendor"/>
             <file name="lib/Cleantalk/Templates/Singleton.php"/>
             <file name="lib/Cleantalk/ApbctWP/CleantalkListTable.php"/>
-            <file name="inc/cleantalk-public-validate.php"/>
+            <file name="inc/cleantalk-public-validate-skip-functions.php"/>
         </ignoreFiles>
     </projectFiles>
 

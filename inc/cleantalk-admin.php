@@ -1,9 +1,10 @@
 <?php
 
 use Cleantalk\ApbctWP\CleantalkSettingsTemplates;
-use Cleantalk\Variables\Get;
-use Cleantalk\Variables\Post;
-use Cleantalk\Variables\Server;
+use Cleantalk\ApbctWP\Escape;
+use Cleantalk\ApbctWP\Variables\Get;
+use Cleantalk\ApbctWP\Variables\Post;
+use Cleantalk\ApbctWP\Variables\Server;
 
 require_once('cleantalk-settings.php');
 
@@ -57,8 +58,8 @@ function apbct_add_buttons_to_comments_and_users($_unused_argument)
     }
 
     echo '
-    <a href="' . $button_url__check . '" class="button" style="margin:1px 0 0 0; display: inline-block;">
-        <img src="' . $apbct->logo__small__colored . '" alt="CleanTalk Anti-Spam logo"  height="" style="width: 17px; vertical-align: text-bottom;" />
+    <a href="' . Escape::escAttr($button_url__check) . '" class="button" style="margin:1px 0 0 0; display: inline-block;">
+        <img src="' . Escape::escUrl($apbct->logo__small__colored) . '" alt="CleanTalk Anti-Spam logo"  height="" style="width: 17px; vertical-align: text-bottom;" />
         ' . sprintf(__('Find spam %s', 'cleantalk-spam-protect'), $button_description) . '
     </a>
     ';
@@ -94,7 +95,7 @@ function ct_dashboard_statistics_widget_output($_post, $_callback_args)
     echo "<div id='ct_widget_wrapper'>";
     ?>
     <div class='ct_widget_top_links'>
-        <img src="<?php echo APBCT_IMG_ASSETS_PATH . '/preloader.gif'; ?>" class='ct_preloader'>
+        <img src="<?php echo Escape::escUrl(APBCT_IMG_ASSETS_PATH . '/preloader.gif'); ?>" class='ct_preloader'>
         <?php
         echo sprintf(
             __("%sRefresh%s", 'cleantalk-spam-protect'),
@@ -170,19 +171,19 @@ function ct_dashboard_statistics_widget_output($_post, $_callback_args)
                 foreach ( $apbct->brief_data['top5_spam_ip'] as $val ) { ?>
                     <tr>
                         <td><?php
-                            echo $val[0]; ?></td>
+                            echo Escape::escHtml($val[0]); ?></td>
 
                         <td class="ct_widget_block__country_cell">
                             <?php
-                            echo $val[1] ? "<img src='" . APBCT_URL_PATH . "/inc/images/flags/" . strtolower(
-                                isset($val[1]['country_code']) ? $val[1]['country_code'] : 'a1'
+                            echo $val[1] ? "<img src='" . Escape::escHtml(APBCT_URL_PATH) . "/inc/images/flags/" . strtolower(
+                                isset($val[1]['country_code']) ? Escape::escHtml($val[1]['country_code']) : 'a1'
                             ) . ".png'>" : ''; ?>
                             <?php
-                            echo isset($val[1]['country_name']) ? $val[1]['country_name'] : 'Unknown'; ?>
+                            echo isset($val[1]['country_name']) ? Escape::escHtml($val[1]['country_name']) : 'Unknown'; ?>
                         </td>
 
                         <td style='text-align: center;'><?php
-                            echo $val[2]; ?></td>
+                            echo Escape::escHtml($val[2]); ?></td>
                     </tr>
                     <?php
                 } ?>
@@ -190,7 +191,7 @@ function ct_dashboard_statistics_widget_output($_post, $_callback_args)
             <?php
             if ( $apbct->user_token ) { ?>
                 <a target='_blank' href='https://cleantalk.org/my?user_token=<?php
-                echo $apbct->user_token; ?>&cp_mode=antispam'>
+                echo Escape::escHtml($apbct->user_token); ?>&cp_mode=antispam'>
                     <input class='ct_widget_button' id='ct_widget_button_view_all' type='button' value='View all'>
                 </a>
                 <?php
@@ -203,7 +204,7 @@ function ct_dashboard_statistics_widget_output($_post, $_callback_args)
     if ( isset($current_user) && in_array('administrator', $current_user->roles) ) {
         if ( $apbct->spam_count && $apbct->spam_count > 0 ) {
             echo '<div class="ct_widget_wprapper_total_blocked">'
-                 . '<img src="' . $apbct->logo__small__colored . '" class="ct_widget_small_logo"/>'
+                 . '<img src="' . Escape::escUrl($apbct->logo__small__colored) . '" class="ct_widget_small_logo"/>'
                  . '<span title="' . sprintf(
                      __(
                          'This is the count from the %s\'s cloud and could be different to admin bar counters',
@@ -440,9 +441,10 @@ function apbct_admin__enqueue_scripts($hook)
         '_ajax_nonce'        => wp_create_nonce('ct_secret_nonce'),
         '_ajax_url'          => admin_url('admin-ajax.php', 'relative'),
         'plugin_name'        => $apbct->plugin_name,
-        'logo'               => '<img src="' . $apbct->logo . '" alt=""  height="" style="width: 17px; vertical-align: text-bottom;" />',
-        'logo_small'         => '<img src="' . $apbct->logo__small . '" alt=""  height="" style="width: 17px; vertical-align: text-bottom;" />',
-        'logo_small_colored' => '<img src="' . $apbct->logo__small__colored . '" alt=""  height="" style="width: 17px; vertical-align: text-bottom;" />',
+        'logo'               => '<img src="' . Escape::escUrl($apbct->logo) . '" alt=""  height="" style="width: 17px; vertical-align: text-bottom;" />',
+        'logo_small'         => '<img src="' . Escape::escUrl($apbct->logo__small) . '" alt=""  height="" style="width: 17px; vertical-align: text-bottom;" />',
+        'logo_small_colored' => '<img src="' . Escape::escUrl($apbct->logo__small__colored) . '" alt=""  height="" style="width: 17px; vertical-align: text-bottom;" />',
+        'notice_when_deleting_user_text' => __(Escape::escHtml('Warning! Users are deleted without the possibility of restoring them, you can only restore them from a site backup.'), 'cleantalk-spam-protect'),
     ));
 
     // DASHBOARD page JavaScript and CSS
@@ -520,7 +522,7 @@ function apbct_admin__enqueue_scripts($hook)
 
         wp_enqueue_script(
             'cleantalk-modal',
-            APBCT_JS_ASSETS_PATH . '/cleantalk-modal.min.js',
+            APBCT_JS_ASSETS_PATH . '/apbct-public--3--cleantalk-modal.min.js',
             array(),
             APBCT_VERSION
         );
@@ -590,14 +592,28 @@ function apbct_admin__badge__get_premium($print = true, $out = '')
                 . ($print ? __('Make it right!', 'cleantalk-spam-protect') . ' ' : '')
                 . sprintf(
                     __('%sGet premium%s', 'cleantalk-spam-protect'),
-                    '<a href="https://cleantalk.org/my/bill/recharge?user_token=' . $apbct->user_token . '" target="_blank">',
+                    '<a href="https://cleantalk.org/my/bill/recharge?user_token=' . Escape::escHtml($apbct->user_token) . '" target="_blank">',
                     '</a>'
                 )
                 . '</b>';
     }
 
     if ( $print ) {
-        echo $out;
+        echo wp_kses(
+            $out,
+            array(
+                'a' => array(
+                    'href'  => true,
+                    'title' => true,
+                    '_target' => true,
+                ),
+                'br' => array(),
+                'p' => array(),
+                'b' => array(
+                    'style' => true,
+                ),
+            )
+        );
     } else {
         return $out;
     }
@@ -660,6 +676,9 @@ function apbct_admin__admin_bar__add_structure($wp_admin_bar)
                 'security-malware-firewall'
             ) . '</a></span>'
             : '<a>' . __('Security', 'security-malware-firewall') . '</a>';
+
+        $spbc_attention_mark = $spbc->notice_show ? '<i class="spbc-icon-attention-alt ctlk---red"></i>' : '';
+        $spbc_title         .= $spbc_attention_mark;
     }
 
     if ( isset($spbc_title) &&
@@ -747,7 +766,7 @@ function apbct_admin__admin_bar__prepare_counters()
 function apbct_admin__admin_bar__add_parent_icon($icon)
 {
     return $icon
-           . '<img class="cleantalk_admin_bar__apbct_icon" src="' . APBCT_URL_PATH . '/inc/images/logo.png" alt="">&nbsp;';
+           . '<img class="cleantalk_admin_bar__apbct_icon" src="' . Escape::escUrl(APBCT_URL_PATH . '/inc/images/logo.png') . '" alt="">&nbsp;';
 }
 
 function apbct_admin__admin_bar__add_counter($after)
@@ -1111,9 +1130,7 @@ function apbct_comment__send_feedback(
     }
 
     if ( ! $direct_call ) {
-        echo ! empty($result) ? $result : 0;
-        die();
-    } else {
+        ! empty($result) ? die($result) : die(0);
     }
 }
 
@@ -1149,8 +1166,7 @@ function apbct_user__send_feedback($user_id = null, $status = null, $direct_call
     }
 
     if ( ! $direct_call ) {
-        echo ! empty($result) ? $result : 0;
-        die();
+        ! empty($result) ? die($result) : die(0);
     }
 }
 

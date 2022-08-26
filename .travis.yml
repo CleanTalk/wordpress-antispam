@@ -58,4 +58,5 @@ script:
   - |
     if [[ "$TRAVISCI" == "psalm" ]] ; then
       vendor/bin/psalm --no-cache --config=psalm.xml
+      vendor/bin/psalm --no-cache --config=psalm.xml --taint-analysis
     fi

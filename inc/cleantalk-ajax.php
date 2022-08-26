@@ -4,8 +4,10 @@
  * AJAX functions
  */
 
-use Cleantalk\Variables\Get;
-use Cleantalk\Variables\Post;
+use Cleantalk\ApbctWP\Variables\Cookie;
+use Cleantalk\ApbctWP\Variables\Get;
+use Cleantalk\ApbctWP\Variables\Post;
+use Cleantalk\ApbctWP\Variables\Server;
 
 $_cleantalk_ajax_actions_to_check[] = 'qcf_validate_form';            //Quick Contact Form
 $_cleantalk_ajax_actions_to_check[] = 'amoforms_submit';            //amoForms
@@ -153,10 +155,10 @@ function ct_validate_email_ajaxlogin($email = null)
     $is_good = ! ( ! filter_var($email, FILTER_VALIDATE_EMAIL) || email_exists($email));
 
     if ( class_exists('AjaxLogin') && Post::get('action') === 'validate_email' ) {
-        $checkjs                            = apbct_js_test('ct_checkjs', $_POST);
+        $checkjs                            = apbct_js_test(Post::get('ct_checkjs'));
         $sender_info['post_checkjs_passed'] = $checkjs;
         if ( $checkjs === null ) {
-            $checkjs                              = apbct_js_test('ct_checkjs', $_COOKIE, true);
+            $checkjs                              = apbct_js_test(Cookie::get('ct_checkjs'), true);
             $sender_info['cookie_checkjs_passed'] = $checkjs;
         }
 
@@ -207,10 +209,10 @@ function ct_validate_email_ajaxlogin($email = null)
 function ct_user_register_ajaxlogin($user_id)
 {
     if ( class_exists('AjaxLogin') && Post::get('action') === 'register_submit' ) {
-        $checkjs                            = apbct_js_test('ct_checkjs', $_POST);
+        $checkjs                            = apbct_js_test(Post::get('ct_checkjs'));
         $sender_info['post_checkjs_passed'] = $checkjs;
         if ( $checkjs === null ) {
-            $checkjs                              = apbct_js_test('ct_checkjs', $_COOKIE, true);
+            $checkjs                              = apbct_js_test(Cookie::get('ct_checkjs'), true);
             $sender_info['cookie_checkjs_passed'] = $checkjs;
         }
 
@@ -400,12 +402,14 @@ function ct_ajax_hook($message_obj = null)
         'alhbrmeu',
         // Ninja Forms
         'nf_preview_update',
-        'nf_save_form'
+        'nf_save_form',
+        // WPUserMeta registration plugin exclusion
+        'pf_ajax_request'
     );
 
     global $apbct;
     // Skip test if
-    if ( ! $apbct->settings['forms__general_contact_forms_test'] || // Test disabled
+    if ( ( ! $apbct->settings['forms__general_contact_forms_test'] && ! $apbct->settings['forms__check_external'] ) || // Test disabled
          ! apbct_is_user_enable($apbct->user) || // User is admin, editor, author
          // (function_exists('get_current_user_id') && get_current_user_id() != 0) || // Check with default wp_* function if it's admin
          ( ! $apbct->settings['data__protect_logged_in'] && ($apbct->user instanceof WP_User) && $apbct->user->ID !== 0) || // Logged in user
@@ -442,13 +446,13 @@ function ct_ajax_hook($message_obj = null)
     //General post_info for all ajax calls
     $post_info = array(
         'comment_type' => 'feedback_ajax',
-        'post_url'     => apbct_get_server_variable('HTTP_REFERER'), // Page URL must be an previous page
+        'post_url'     => Server::get('HTTP_REFERER'), // Page URL must be an previous page
     );
     if ( Post::get('action') === 'cleantalk_force_ajax_check' ) {
         $post_info['comment_type'] = 'feedback_ajax_external_form';
     }
 
-    $checkjs = apbct_js_test('ct_checkjs', $_COOKIE, true);
+    $checkjs = apbct_js_test(Cookie::get('ct_checkjs'), true);
 
     //QAEngine Theme answers
     if ( ! empty($message_obj) && isset($message_obj['post_type'], $message_obj['post_content']) ) {
@@ -562,8 +566,8 @@ function ct_ajax_hook($message_obj = null)
         Post::hasString('action', 'fusion_form_submit_form_to_email') ||
         Post::hasString('action', 'fusion_form_submit_ajax')
     ) {
-        if (Post::get('formData')) {
-            $form_data = Post::get('formData');
+        if (isset($_POST['formData'])) {
+            $form_data = $_POST['formData'];
             $form_data = explode('&', $form_data);
 
             for ($index = 0; $index < count($form_data); $index++) {

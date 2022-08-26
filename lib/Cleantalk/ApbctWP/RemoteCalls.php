@@ -2,7 +2,8 @@
 
 namespace Cleantalk\ApbctWP;
 
-use Cleantalk\Variables\Request;
+use Cleantalk\ApbctWP\Variables\Request;
+use Cleantalk\ApbctWP\Variables\Get;
 
 class RemoteCalls
 {
@@ -15,10 +16,26 @@ class RemoteCalls
      */
     public static function check()
     {
-        return
-            Request::get('spbc_remote_call_token') &&
-            Request::get('spbc_remote_call_action') &&
-            in_array(Request::get('plugin_name'), array('antispam', 'anti-spam', 'apbct'));
+        return Request::get('spbc_remote_call_token')
+            ? self::checkWithToken()
+            : self::checkWithoutToken();
+    }
+
+    public static function checkWithToken()
+    {
+        return Request::get('spbc_remote_call_token') &&
+               Request::get('spbc_remote_call_action') &&
+               in_array(Request::get('plugin_name'), array('antispam', 'anti-spam', 'apbct'));
+    }
+
+    public static function checkWithoutToken()
+    {
+        global $apbct;
+
+        return ! $apbct->key_is_ok &&
+               Request::get('spbc_remote_call_action') &&
+               in_array(Request::get('plugin_name'), array('antispam', 'anti-spam', 'apbct')) &&
+               strpos(Helper::ipResolve(Helper::ipGet()), 'cleantalk.org') !== false;
     }
 
     /**
@@ -34,31 +51,35 @@ class RemoteCalls
         $action = strtolower(Request::get('spbc_remote_call_action'));
         $token  = strtolower(Request::get('spbc_remote_call_token'));
 
-        if (isset($apbct->remote_calls[$action])) {
+        if ( isset($apbct->remote_calls[$action]) ) {
             $cooldown = isset($apbct->remote_calls[$action]['cooldown']) ? $apbct->remote_calls[$action]['cooldown'] : self::COOLDOWN;
 
             // Return OK for test remote calls
-            if (Request::get('test')) {
+            if ( Request::get('test') ) {
                 die('OK');
             }
 
             if (
                 time() - $apbct->remote_calls[$action]['last_call'] >= $cooldown ||
-                ( $action === 'sfw_update' && Request::get('file_urls') )
+                ($action === 'sfw_update' && Request::get('file_urls'))
             ) {
                 $apbct->remote_calls[$action]['last_call'] = time();
                 $apbct->save('remote_calls');
 
                 // Check Access key
-                if ($token == strtolower(md5($apbct->api_key))) {
+                if (
+                    ($token === strtolower(md5($apbct->api_key)) ||
+                     $token === strtolower(hash('sha256', $apbct->api_key))) ||
+                    self::checkWithoutToken()
+                ) {
                     // Flag to let plugin know that Remote Call is running.
                     $apbct->rc_running = true;
 
                     $action = 'action__' . $action;
 
-                    if (method_exists(__CLASS__, $action)) {
+                    if ( method_exists(__CLASS__, $action) ) {
                         // Delay before perform action;
-                        if (Request::get('delay')) {
+                        if ( Request::get('delay') ) {
                             sleep((int)Request::get('delay'));
                             $params = $_REQUEST;
                             unset($params['delay']);
@@ -84,7 +105,7 @@ class RemoteCalls
             $out = 'FAIL ' . json_encode(array('error' => 'UNKNOWN_ACTION'));
         }
 
-        if ($out) {
+        if ( $out ) {
             die($out);
         }
     }
@@ -133,7 +154,7 @@ class RemoteCalls
     {
         $result = apbct_sfw_update__worker();
 
-        if ( ! empty($result['error'])) {
+        if ( ! empty($result['error']) ) {
             apbct_sfw_update__cleanData();
 
             die('FAIL ' . json_encode(array('error' => $result['error'])));
@@ -166,14 +187,6 @@ class RemoteCalls
     public static function action__activate_plugin() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         return apbct_rc__activate_plugin(Request::get('plugin'));
-    }
-
-    /**
-     * Insert Access key
-     */
-    public static function action__insert_auth_key() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
-    {
-        return apbct_rc__insert_auth_key(Request::get('auth_key'), Request::get('plugin'));
     }
 
     /**
@@ -211,15 +224,26 @@ class RemoteCalls
         $out['data']               = $apbct->data;
         $out['cron']               = $apbct->cron;
         $out['errors']             = $apbct->errors;
+        $out['debug']              = $apbct->debug;
         $out['queue']              = get_option('cleantalk_sfw_update_queue');
+        $out['connection_reports'] = get_option('cleantalk_connection_reports');
         $out['servers_connection'] = apbct_test_connection();
 
-        if (APBCT_WPMS) {
+        if ( APBCT_WPMS ) {
             $out['network_settings'] = $apbct->network_settings;
             $out['network_data']     = $apbct->network_data;
         }
 
-        if (Request::equal('out', 'json')) {
+        // Output only one option
+        $show_only = Get::get('show_only');
+        if ( $show_only && isset($out[$show_only]) ) {
+            /**
+             * @psalm-suppress InvalidArrayOffset
+             */
+            $out = [$show_only => $out[$show_only]];
+        }
+
+        if ( Request::equal('out', 'json') ) {
             die(json_encode($out));
         }
         array_walk($out, function (&$val, $_key) {
@@ -227,7 +251,7 @@ class RemoteCalls
         });
 
         array_walk_recursive($out, function (&$val, $_key) {
-            if (is_int($val) && preg_match('@^\d{9,11}$@', (string)$val)) {
+            if ( is_int($val) && preg_match('@^\d{9,11}$@', (string)$val) ) {
                 $val = date('Y-m-d H:i:s', $val);
             }
         });
@@ -253,7 +277,7 @@ class RemoteCalls
             Request::get('period') &&
             Request::get('first_call')
         ) {
-            $cron = new Cron();
+            $cron          = new Cron();
             $update_result = $cron->updateTask(
                 Request::get('task'),
                 Request::get('handler'),
@@ -263,5 +287,53 @@ class RemoteCalls
         }
 
         die($update_result ? 'OK' : 'FAIL');
+    }
+
+    public static function action__post_api_key() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+    {
+        global $apbct;
+
+        if ( ! headers_sent() ) {
+            header("Content-Type: application/json");
+        }
+
+        $key = trim(Request::get('api_key'));
+        if ( ! apbct_api_key__is_correct($key) ) {
+            die(json_encode(['FAIL' => ['error' => 'Api key is incorrect']]));
+        }
+
+        require_once APBCT_DIR_PATH . 'inc/cleantalk-settings.php';
+
+        $template_id = Request::get('apply_template_id');
+        if ( ! empty($template_id) ) {
+            $templates = CleantalkSettingsTemplates::getOptionsTemplate($key);
+            if ( ! empty($templates) ) {
+                foreach ( $templates as $template ) {
+                    if ( $template['template_id'] == $template_id && ! empty($template['options_site']) ) {
+                        $template_name = $template['template_id'];
+                        $settings      = $template['options_site'];
+                        $settings      = array_replace((array)$apbct->settings, json_decode($settings, true));
+
+                        $settings = \apbct_settings__validate($settings);
+
+                        $apbct->settings = $settings;
+                        $apbct->save('settings');
+                        $apbct->data['current_settings_template_id']   = $template_id;
+                        $apbct->data['current_settings_template_name'] = $template_name;
+                        $apbct->save('data');
+                        break;
+                    }
+                }
+            }
+        }
+
+        $apbct->storage['settings']['apikey'] = $key;
+        $apbct->api_key                       = $key;
+        $apbct->key_is_ok                     = true;
+        $apbct->save('settings');
+
+        \apbct_settings__sync(true);
+
+        die(json_encode(['OK' => ['template_id' => $template_id]]));
     }
 }

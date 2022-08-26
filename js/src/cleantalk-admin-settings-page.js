@@ -259,7 +259,7 @@ jQuery(document).ready(function(){
 	jQuery('#apbct_setting_apikey').on('input', function () {
 		var enteredValue = jQuery(this).val();
 
-		if (enteredValue === '' || enteredValue.match(/^[a-z\d]{3,15}$/) === null) {
+		if (enteredValue === '' || enteredValue.match(/^[a-z\d]{3,30}\s*$/) === null) {
 			jQuery('#apbct_button__get_key_auto__wrapper').show();
 			jQuery('button.cleantalk_link[value="save_changes"]').prop('disabled', true);
 			return;

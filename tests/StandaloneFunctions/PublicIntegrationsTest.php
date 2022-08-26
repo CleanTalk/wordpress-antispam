@@ -38,21 +38,13 @@ class PublicIntegrationsTest extends TestCase
         foreach ($test_data_invalid as $test){
             $this->assertEquals(apbct_form_search__add_fields($test),$test);
         }
-        //define signature of honeypot field
-        $signature = '<input 
-        id="apbct__email_id__search_form" 
-        class="apbct__email_id__search_form" 
-        autocomplete="off" 
-        name="apbct__email_id__search_form"  
-        type="text" 
-        value="" 
-        size="30" 
-        maxlength="200" 
-    />';
+
         //fails if signature not found in changed form
-        $success = strpos(apbct_form_search__add_fields($sample_form),$signature);
+        $success = strpos(apbct_form_search__add_fields($sample_form), 'id="apbct__email_id__search_form') &&
+                   preg_match('/class=".*?apbct__email_id__search_form/', apbct_form_search__add_fields($sample_form)) &&
+                   preg_match('/class=".*?apbct_special_field/',          apbct_form_search__add_fields($sample_form));
         $this->assertNotFalse($success);
-        //form wont be changed if search form checking is not set in settings
+        //form won`t be changed if search form checking is not set in settings
         $apbct->settings['forms__search_test'] = 0;
         $this->assertEquals(apbct_form_search__add_fields($sample_form),$sample_form);
     }

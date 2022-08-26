@@ -308,7 +308,7 @@ class Request
     {
         $return_value = [];
 
-        // Cast to array to precess result from $this->requestSingle as $this->requestMulti results
+        // Cast to array to process result from $this->requestSingle as $this->requestMulti results
         $responses = is_object($this->response)
             ? [$this->response]
             : $this->response;
@@ -417,8 +417,8 @@ class Request
         $this->options = array_replace(
             array(
                 CURLOPT_URL            => ! is_array($this->url) ? $this->url : null,
-                CURLOPT_TIMEOUT        => 10,
-                CURLOPT_LOW_SPEED_TIME => 7,
+                CURLOPT_TIMEOUT        => 50,
+                CURLOPT_LOW_SPEED_TIME => 25,
                 CURLOPT_RETURNTRANSFER => true,
                 CURLOPT_CONNECTTIMEOUT => 5000,
                 CURLOPT_FORBID_REUSE   => true,

@@ -45,6 +45,18 @@ function ctSetCookie( cookies, value, expires ){
     }
 }
 
+/**
+ * Get cookie by name
+ * @param name
+ * @returns {string|undefined}
+ */
+function ctGetCookie(name) {
+    var matches = document.cookie.match(new RegExp(
+        "(?:^|; )" + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + "=([^;]*)"
+    ));
+    return matches ? decodeURIComponent(matches[1]) : undefined;
+}
+
 function ctDeleteCookie(cookieName) {
     // Cookies disabled
     if( ctPublicFunctions.data__cookies_type === 'none' ){
@@ -106,7 +118,7 @@ function apbct_public_sendAJAX(data, params, obj){
             }else{
                 if(callback) {
                     if (callback_params)
-                        callback.apply( callback_context, callback_params.concat( result, data, params, obj ) );
+                        callback.apply( callback_context, [ result, data, params, obj ].concat(callback_params) );
                     else
                         callback(result, data, params, obj);
                 }
@@ -176,9 +188,13 @@ apbctLocalStorage = {
         }
         return false;
     },
-    set : function(key, value) {
-        let objToSave = {'value': JSON.stringify(value), 'timestamp': Math.floor(new Date().getTime() / 1000)};
-        localStorage.setItem(key, JSON.stringify(objToSave));
+    set : function(key, value, is_json = true) {
+        if (is_json){
+            let objToSave = {'value': JSON.stringify(value), 'timestamp': Math.floor(new Date().getTime() / 1000)};
+            localStorage.setItem(key, JSON.stringify(objToSave));
+        } else {
+            localStorage.setItem(key, value);
+        }
     },
     isAlive : function(key, maxLifetime) {
         if ( typeof maxLifetime === 'undefined' ) {
@@ -189,5 +205,8 @@ apbctLocalStorage = {
     },
     isSet : function(key) {
         return localStorage.getItem(key) !== null;
+    },
+    delete : function (key) {
+        localStorage.removeItem(key);
     }
 }

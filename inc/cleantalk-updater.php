@@ -2,7 +2,7 @@
 
 use Cleantalk\ApbctWP\Cron;
 use Cleantalk\ApbctWP\Helper;
-use Cleantalk\Variables\Server;
+use Cleantalk\ApbctWP\Variables\Server;
 
 /**
  * Main function to compare versions and run necessary update functions.
@@ -644,7 +644,6 @@ function apbct_update_to_5_154_0()
         'gdpr_enabled'                   => 'gdpr__enabled',
         'gdpr_text'                      => 'gdpr__text',
         'collect_details'                => 'misc__collect_details',
-        'send_connection_reports'        => 'misc__send_connection_reports',
         'async_js'                       => 'misc__async_js',
         'debug_ajax'                     => 'misc__debug_ajax',
         'store_urls'                     => 'misc__store_urls',
@@ -1137,4 +1136,32 @@ function apbct_update_to_5_177_3()
         $apbct->data['check_exclusion_as_url'] = false;
         $apbct->saveData();
     }
+}
+
+function apbct_update_to_5_179_2()
+{
+    global $apbct;
+
+    $apbct->remote_calls['post_api_key'] = array('last_call' => 0);
+    $apbct->save('remote_calls');
+}
+
+function apbct_update_to_5_182_0()
+{
+    global $apbct;
+
+    // Move connection report from cleantalk_data to separate option cleantalk_connection_reports
+    $connection_reports = array(
+        'success'         => 0,
+        'negative'        => 0,
+        'negative_report' => array(),
+        'since'           => '',
+    );
+    if ( isset($apbct->data['connection_reports']) ) {
+        $connection_reports = $apbct->data['connection_reports'];
+        unset($apbct->data['connection_reports']);
+        $apbct->save('data');
+    }
+
+    update_option('cleantalk_connection_reports', $connection_reports, false);
 }

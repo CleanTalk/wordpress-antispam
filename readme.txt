@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 3.0
 Tested up to: 6.0
 Requires PHP: 5.6
-Stable tag: 5.179.1
+Stable tag: 5.183
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -601,6 +601,122 @@ If your website has forms that send data to external sources, you can enable opt
 12. SpamFireWall log.
 
 == Changelog ==
+
+= 5.183 Aug 18 2022 =
+##### Checking for bot while email encoder decode, negative reports improved, some integrations fixed and some minor issues fixed.
+* New: Email Encoder. Check bot before decode.
+* New. Storing big connection reports.
+* Fix. Kses <a> tag fixed.
+* Fix: Skipped login form for Wishlist Member
+* Mod: Added headers_sent in Cookie::set
+* Mod: Added aweber external form integration
+* Fix. Server variables. Getting Request variable fixed.
+* Fix. Connection reports. Getting data from options fixed.
+* Fix. Connection reports. Saving data fixed.
+* Fix. Connection reports. Displaying data fixed.
+* Fix. Cookies. Getting cookies from alternative way fixed.
+* Fix. Cookies. ApbctWP\Variables\Cookie getting fixed.
+* Fix. Cookies. Cookie check parameter fixed.
+* Fix: Fixed error with response from custom ajax requests
+
+= 5.182.2 Aug 08 2022 =
+#### Server variables sanitizing fixed, js key getting fixed, internal forms catching fixed.
+* Fix: removed & in getAndSanitize()
+* Fix: ct_add_hidden_fields() - the data in the locale storage is added in json format
+* Fix: Excluded wp-comments-post.php form from internal scripts
+* Fix. Server variables. ServerVariables::sanitizeDefault() method is abstract now.
+* Fix. Server variables. Common\Variables\* classes are abstract now.
+* Fix. Server variables. Default sanitizing method implementation added to ApbctWP\Variables\* classes.
+* Fix. Server variables. Client code fixed.
+* Fix: FluentForm integration fixed
+* Fix. Server variables. Url decoding removed.
+
+= 5.182.1 Aug 04 2022 =
+#### Server variables getting fixed.
+* New. Server variables. Sanitizing logic added.
+* Upd. Server variables. Getting variables logic updated.
+* Upd. Server variables. Default sanitize added for ApbctWP\Variables\* classes.
+* Upd. Server variables. Client code updated - using ApbctWP\Variables\* classes.
+* Upd. Server variables. Sanitizing array nesting increased.
+* Fix. External forms. Form draw fixed.
+* Fix. Common. Set check JS value fixed.
+* Fix. Common. Custom ajax forms catching logic fixed.
+* Fix: added styles to hide the honeypot field in the plugin Ultimate Member
+
+= 5.182 Jul 28 2022 =
+#### Email encoder improved, internal and external forms protection fixed, code quality improved and some minor issues fixed.
+* New. Email encoder. Encoding exclusions implemented.
+* New. Alternative cookies AJAX calls reduce. Use browser localStorage to keep check_js value instead of CTSetCookie()
+* Upd. External forms. Sendfox.com integration added.
+* Upd. Internal forms. Internal forms protection logic updated.
+* Fix. GetFieldsAny.php Take visible fields from POST if apbct_visible_fields cookie is not detected.
+* Fix. Integrations. WPUserMeta. Added case of user-meta-pro
+* Fix. Email encoder. Divi contact forms exclusions added.
+* Fix. public.js. Handle exception if backend returns invalid JSON.
+* Fix: External Forms. Match action with action, method with method.
+* Fix: Restore JS for internal form protection.
+* Fix: JS localize. Add blog_home to ctPublic object.
+* Fix: Honeypot. Delete redundant style.
+* Code: Internal forms. Fix action detection.
+* Code: Internal forms. Added exclusion for native WordPress action scripts.
+* Fix: SpamFirewall. Ignore warning from gzdecode() in ApbctWP/Firewall/SFW::updateWriteToDb().
+* Fix: Internal forms protection. Now is controlled by settings.
+* Fix: External forms protection. Now is controlled by settings.
+* Fix. Common. Prevent JS async loaded by CF.
+* Fix: Protect external. Sort callback params.
+* Fix. Code. Code quality improved.
+* Fix. Variables. Filter variables contains arrays fixed.
+* Fix: Honeypot field. Make filed invisible.
+* Fix: GiveWP integration.
+* Fix: ApbctWP/Variables/Cookie::setNativeCookie(). Adjust the detection of the default 'secure' flag logic.
+* Fix. Variables. Getting empty variables fixed.
+* Fix. External/Internal. General contact form option dependence fixed.
+
+= 5.181 Jul 14 2022 =
+#### One integration added, SFW testing page updated, code quality improved and some minor issues fixed.
+* New. Integrations. WP User Meta integration.
+* Upd. SFW. Testing page updated.
+* Fix. WP discuzz integration. Check for spam if comment is edited.
+* Fix. WP discuzz integration. Remove unnecessary data when check on comment edition.
+* Fix. Admin banner. Security attention mark fixed.
+* Fix. Code. Sanitizing incoming data.
+* Fix. CSS. Fix stylesheet source name and minifed name.
+* Fix. apcbt-public-bundle. New detection method for mailerlite classes to prevent default submit clicks.
+* Fix. HTTP lib. Multi request error handling fixed.
+* Fix: setting page JS key validating.
+* Fix: Replace array_* function implemented on State properties.
+* Mod: ApbctWP/State to use the direct equation on properties.
+* Fix. Integrations. WPUserMeta. Added case of user-meta-pro
+
+= 5.180.2 Jul 04 2022 =
+#### SpamFireWall working fixed.
+* Fix. Updater. Updater actions moved from the hook "upgrader_process_complete"
+* Fix. SFW. JS errors on the block pages fixed.
+* Fix. SFW. Skiping block hyperlink fixed.
+* Fix. SFW. Additional redundant blocking by AC fixed.
+
+= 5.180.1 Jul 01 2022 =
+* Fix. Common. Undefined class fixed.
+
+= 5.180 Jun 30 2022 =
+#### Getting api key from the CleanTalk Dashboard implemented, SFW updating improved, code quality improved and some minor issues fixed.
+* New. API key length extended to 30 symbols.
+* New. Remote call. RC post_api_key implemented.
+* New: Option 'cleantalk_debug' now outputs in 'debug' remote call.
+* Upd. SFW. Direct update during fallback.
+* Fix. Honeypot fields for search. Search forms with GET method now handles correct.
+* Fix. Ajax. Prevent JS errors on ajax general contact forms.
+* Fix. apbct_need_to_process_unknown_post_request() Add Divi themes exclusion to proceed them to contact_form_validate().
+* Fix. General contact form catching fixed.
+* Fix. cleantalk-pluggable.php. Skip service requests of enable-jquery-migrate-helper
+* Added notice_review banner
+* Fix. cleantalk_external.js. Exclude mewtwo flight forms.
+* Fix. Code. Compressing JS gulp task updated.
+* Fix. Request.php. Extend CURL timeout and low-speed detection limit.
+* Fix. Cleantalk.php. Exclude timestamp refreshing via template_rediret hook for alternative cookies mode.
+* Fix. External forms JS error fixed.
+* Fix. cleantalk-public-integrations.php-> apbct_form_search__add_fields(). Force to run pregmatch search if DOM content is broken.
+* Fix. Honeypot. Styles moved to the separated file.
 
 = 5.179.1 Jun 21 2022 =
 #### General contact form catching fixed
