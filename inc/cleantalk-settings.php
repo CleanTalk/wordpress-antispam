@@ -1135,12 +1135,6 @@ function apbct_settings__display()
     settings_fields('cleantalk_settings');
     do_settings_fields('cleantalk', 'cleantalk_section_settings_main');
 
-    // Disabled save button if the Access key empty
-    $disabled = '';
-    if (! $apbct->key_is_ok) {
-        $disabled = 'disabled';
-    }
-
     $hidden_groups = '<ul>';
     foreach ( $apbct->settings_fields_in_groups as $group_name => $group ) {
         if ( isset($group['section']) && $group['section'] === 'hidden_section' ) {
@@ -1148,7 +1142,7 @@ function apbct_settings__display()
         }
     }
     $hidden_groups .= '</ul>';
-    $hidden_groups .= '<div id="apbct_settings__button_section"><button name="submit" class="cleantalk_link cleantalk_link-manual" value="save_changes" ' . $disabled . '>'
+    $hidden_groups .= '<div id="apbct_settings__button_section"><button name="submit" class="cleantalk_link cleantalk_link-manual" value="save_changes">'
                            . __('Save Changes')
                            . '</button></div>';
 
@@ -1174,7 +1168,7 @@ function apbct_settings__display()
 
     echo '<div id="apbct_settings__after_advanced_settings"></div>';
 
-    echo '<button id="apbct_settings__main_save_button" name="submit" class="cleantalk_link cleantalk_link-manual" value="save_changes" ' . Escape::escHtml($disabled) . '>'
+    echo '<button id="apbct_settings__main_save_button" name="submit" class="cleantalk_link cleantalk_link-manual" value="save_changes">'
          . __('Save Changes')
          . '</button>';
     echo '<br>';
