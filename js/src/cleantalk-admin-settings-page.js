@@ -265,9 +265,9 @@ jQuery(document).ready(function(){
 					function (e) {
 						e.preventDefault()
 						if (!jQuery('#apbct_bad_key_notice').length){
-							jQuery( "<p id='apbct_bad_key_notice' style='color:red'><b>" +
-								"Insert the access key before saving changes!" +
-								"</b></p>" ).insertAfter( jQuery('#apbct_setting_apikey') );
+							jQuery( "<div class='apbct_notice_inner error'><h4 id='apbct_bad_key_notice'>" +
+								"Please, insert a correct access key before saving changes!" +
+								"</h4></div>" ).insertAfter( jQuery('#apbct_setting_apikey') );
 						}
 						apbct_highlight_element('apbct_setting_apikey',3)
 
@@ -276,12 +276,29 @@ jQuery(document).ready(function(){
 			return;
 		}
 
-		jQuery('#apbct_button__get_key_auto__wrapper').hide();
-		jQuery('button.cleantalk_link[value="save_changes"]').prop('disabled', false);
 	});
 
-	if ( jQuery('#apbct_setting_apikey').val() ) {
+	if ( jQuery('#apbct_setting_apikey').val() && ctSettingsPage.key_is_ok) {
 		jQuery('#apbct_button__get_key_auto__wrapper').hide();
+	}
+
+	/**
+	 * Handle synchronization errors when key is no ok to force user check the key and restart the sync
+	 */
+	if( !ctSettingsPage.key_is_ok ){
+		jQuery('button.cleantalk_link[value="save_changes"]').on('click',
+			function (e) {
+				e.preventDefault()
+				if (!jQuery('#sync_required_notice').length){
+					jQuery( "<div class='apbct_notice_inner error'><h4 id='sync_required_notice'>" +
+						"Synchronization process failed. Please, check the acces key and restart the synch." +
+						"<h4></div>" ).insertAfter( jQuery('#apbct_button__sync') );
+				}
+				apbct_highlight_element('apbct_setting_apikey',3)
+				apbct_highlight_element('apbct_button__sync',3)
+				jQuery('#apbct_button__get_key_auto__wrapper').show();
+			}
+		)
 	}
 
 });
