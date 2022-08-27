@@ -2331,7 +2331,8 @@ function apbct_settings__validate($settings)
             }
         } else {
             // compare non-main site blog key with the validating key
-            $key_from_blog_settings = get_option('cleantalk_settings')['apikey'];
+            $blog_settings = get_option('cleantalk_settings');
+            $key_from_blog_settings = !empty($blog_settings['apikey']) ? $blog_settings['apikey'] : '';
             if ( trim($settings['apikey']) !== trim($key_from_blog_settings) ) {
                 $blog_key_changed = true;
             }
