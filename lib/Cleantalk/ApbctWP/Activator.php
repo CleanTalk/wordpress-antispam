@@ -48,6 +48,9 @@ class Activator
             // Do actions for the new blog created
             if ( apbct_is_plugin_active_for_network('cleantalk-spam-protect/cleantalk.php') ) {
                 $settings = get_option('cleantalk_settings');
+                if ( !empty($apbct->allow_custom_key) ) {
+                    unset($settings['apikey']);
+                }
 
                 switch_to_blog($concrete_blog_id);
 
