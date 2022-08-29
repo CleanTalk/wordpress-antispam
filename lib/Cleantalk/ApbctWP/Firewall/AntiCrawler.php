@@ -2,6 +2,7 @@
 
 namespace Cleantalk\ApbctWP\Firewall;
 
+use Cleantalk\ApbctWP\Sanitize;
 use Cleantalk\ApbctWP\Validate;
 use Cleantalk\Common\Helper;
 use Cleantalk\ApbctWP\Variables\Cookie;
@@ -435,6 +436,11 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
 
             $net_count = $apbct->stats['sfw']['entries'];
 
+            $custom_logo = Sanitize::cleanUrl(apply_filters('apbct_block_page_custom_logo', ''));
+            if( $custom_logo ) {
+                $custom_logo = '<img width="250px" height="auto" src="' . $custom_logo . '" />';
+            }
+
             $block_message = sprintf(
                 esc_html__(
                     'Anti-Crawler Protection is checking your browser and IP %s for spam bots',
@@ -445,6 +451,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
 
             // Translation
             $replaces = array(
+                '{SFW_DIE_CUSTOM_LOGO}'            => $custom_logo,
                 '{SFW_DIE_NOTICE_IP}'              => $block_message,
                 '{SFW_DIE_MAKE_SURE_JS_ENABLED}'   => __(
                     'To continue working with the web site, please make sure that you have enabled JavaScript.',
