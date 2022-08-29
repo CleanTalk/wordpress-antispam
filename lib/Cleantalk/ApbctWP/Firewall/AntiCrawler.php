@@ -437,7 +437,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
             $net_count = $apbct->stats['sfw']['entries'];
 
             $custom_logo = Sanitize::cleanUrl(apply_filters('apbct_block_page_custom_logo', ''));
-            if( $custom_logo ) {
+            if ( $custom_logo ) {
                 $custom_logo = '<img width="250px" height="auto" src="' . $custom_logo . '" />';
             }
 
