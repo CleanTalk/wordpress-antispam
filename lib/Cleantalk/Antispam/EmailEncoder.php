@@ -274,7 +274,7 @@ class EmailEncoder
      */
     private function getTooltip()
     {
-        return esc_html__('This contact was encoded by CleanTalk. Click to decode.', 'cleantalk-spam-protect');
+        return esc_html__('This contact has been encoded by CleanTalk. Click to decode. To finish the decoding make sure that JavaScript is enabled in your browser.', 'cleantalk-spam-protect');
     }
 
     /**
