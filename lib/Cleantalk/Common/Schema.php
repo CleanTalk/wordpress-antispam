@@ -77,6 +77,15 @@ class Schema
             '__indexes' => 'PRIMARY KEY (`id`)',
             '__createkey' => 'INT unsigned primary KEY AUTO_INCREMENT FIRST'
         ),
+        'no_cookie_data' => array(
+            'id' => 'VARCHAR(64) NOT NULL',
+            'name' => 'VARCHAR(40) NOT NULL',
+            'value' => 'TEXT NULL DEFAULT NULL',
+            'last_update' => 'DATETIME NULL DEFAULT NULL',
+            'prev_value' => 'TEXT NULL DEFAULT NULL',
+            '__indexes' => 'PRIMARY KEY (`name`(40), `id`(64))',
+            '__createkey' => 'VARCHAR(64) NOT NULL primary KEY FIRST'
+        ),
     );
 
     /**
