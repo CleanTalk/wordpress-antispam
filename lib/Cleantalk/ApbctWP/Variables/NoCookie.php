@@ -24,9 +24,12 @@ class NoCookie
     public static function set($name, $value, $save_to_db = false)
     {
         //self::cleanFromOld();
+        if (is_int($value)){
+            $value = (string) $value;
+        }
 
         // Bad incoming data
-        if ( ! $name || ! $value) {
+        if ( ! $name || (empty($value) && $value !== "0") ) {
             return;
         }
 
@@ -112,7 +115,6 @@ class NoCookie
             //need to handle errors
             $data = json_decode($data, true);
             self::$no_cookies_data = array_merge(self::$no_cookies_data,$data);
-            error_log('CTDEBUG: setDataFromHiddenField ' . var_export(self::$no_cookies_data,true));
             return true;
         }
 
