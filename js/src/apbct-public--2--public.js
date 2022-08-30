@@ -119,7 +119,7 @@ function ctGetPixelUrl() {
 			apbctLocalStorage.delete('apbct_pixel_url')
 		} else {
 			//if so - load pixel from localstorage and draw it skipping AJAX
-			ctSetPixelImg();
+			ctSetPixelImg(local_storage_pixel_url);
 			return;
 		}
 	}
@@ -467,7 +467,7 @@ function apbct_visible_fields_set_cookie( visible_fields_collection, form_id ) {
 
 	var collection = typeof visible_fields_collection === 'object' && visible_fields_collection !== null ?  visible_fields_collection : {};
 
-	if( ctPublic.data__cookies_type === 'native' || ctPublic.data__cookies_type === 'none') {
+	if( ctPublic.data__cookies_type === 'native' ) {
 		for ( var i in collection ) {
 			if ( i > 10 ) {
 				// Do not generate more than 10 cookies
@@ -477,7 +477,12 @@ function apbct_visible_fields_set_cookie( visible_fields_collection, form_id ) {
 			ctSetCookie("apbct_visible_fields_" + collectionIndex, JSON.stringify( collection[i] ) );
 		}
 	} else {
-		ctSetCookie("apbct_visible_fields", JSON.stringify( collection ) );
+		if (ctPublic.data__cookies_type === 'none'){
+			ctSetCookie("apbct_visible_fields", JSON.stringify( collection[0] ) );
+		} else {
+			ctSetCookie("apbct_visible_fields", JSON.stringify( collection ) );
+		}
+
 	}
 }
 

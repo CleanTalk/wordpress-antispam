@@ -30,7 +30,6 @@ class Cookie extends \Cleantalk\Variables\Cookie
             // The old way
             } else {
                 $name = apbct__get_cookie_prefix() . $name;
-
                 $value = filter_input(INPUT_COOKIE, $name);
             }
 
@@ -160,14 +159,11 @@ class Cookie extends \Cleantalk\Variables\Cookie
                 $prepared_value = json_decode(str_replace('\\', '', $visible_fields_value), true);
                 $visible_fields_collection[$prepared_key] = $prepared_value;
             }
-        } else if ($apbct->data['cookies_type'] === 'alternative') {
+        } else  {
             // Get from alt cookies storage
             $visible_fields_collection = (array) self::get('apbct_visible_fields');
-        } else {
-            //NoCookie
-            $visible_fields_collection = (array) NoCookie::get('apbct_visible_fields');
+            error_log('CTDEBUG: $visible_fields_collection ' . var_export($visible_fields_collection,true));
         }
-
         return $visible_fields_collection;
     }
 }

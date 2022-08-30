@@ -74,7 +74,13 @@ class NoCookie
             return false;
         }
 
+        if ($name === 'apbct_visible_fields'){
+            error_log('CTDEBUG: $no_cookies_data WHILE REQUESTING  apbct_visible_fields ' . var_export($no_cookies_data,true));
+        }
+
         if (isset(self::$no_cookies_data[$name])){
+            error_log('CTDEBUG: $name ' . var_export($name,true));
+            error_log('CTDEBUG: $no_cookies_data[$name] ' . var_export(self::$no_cookies_data[$name],true));
             return self::$no_cookies_data[$name];
         }
 

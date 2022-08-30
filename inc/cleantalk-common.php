@@ -466,10 +466,6 @@ function apbct_get_sender_info()
 {
     global $apbct;
 
-    if ($apbct->data['cookies_type'] === 'none'){
-        \Cleantalk\ApbctWP\Variables\NoCookie::setDataFromHiddenField();
-    }
-
     // Validate cookie from the backend
     $cookie_is_ok = apbct_cookies_test();
 
