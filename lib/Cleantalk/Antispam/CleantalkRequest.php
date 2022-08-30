@@ -200,6 +200,16 @@ class CleantalkRequest
     public $message_to_log;
 
     /**
+     * @var string|null
+     */
+    public $post_url;
+    
+    /**
+     * @var string|null
+     */
+    public $referrer;
+    
+    /**
      * Fill params with constructor
      *
      * @param array $params
@@ -225,6 +235,8 @@ class CleantalkRequest
             $params['sender_nickname'] = current($params['sender_nickname']);
         }
 
+        $this->post_url        = ! empty($params['post_url']) ? (string)$params['post_url'] : null;
+        $this->referrer        = ! empty($params['referrer']) ? (string)$params['referrer'] : null;
         $this->sender_nickname = ! empty($params['sender_nickname']) ? (string)$params['sender_nickname'] : null;
         $this->phone           = ! empty($params['phone']) ? (string)$params['phone'] : null;
         $this->js_on           = isset($params['js_on']) ? (int)$params['js_on'] : null;
