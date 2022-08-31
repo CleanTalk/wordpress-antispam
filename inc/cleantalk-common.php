@@ -570,6 +570,7 @@ function apbct_get_sender_info()
         'emulations_headless_mode'  => Cookie::get('apbct_headless')
             ? json_encode(Cookie::get('apbct_headless'))
             : null,
+        'no_cookie_data_taken'      => $apbct->stats['no_cookie_data_taken'],
     );
 
     return $data_array;
