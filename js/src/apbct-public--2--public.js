@@ -577,7 +577,9 @@ function ctNoCookieAttachHiddenFieldsToForms(){
 	if (forms){
 		for ( let i = 0; i < forms.length; i++ ){
 			//ignore forms with get method @todo We need to think about this
-			if (document.forms[i].method.toLowerCase() !== 'get'){
+			if (document.forms[i].getAttribute('method') === null ||
+				document.forms[i].getAttribute('method').toLowerCase() === 'post'){
+
 				let elements = document.getElementsByName('ct_no_cookie_hidden_field')
 				//clear previous hidden set
 				if (elements){

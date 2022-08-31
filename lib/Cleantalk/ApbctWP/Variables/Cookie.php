@@ -54,7 +54,7 @@ class Cookie extends \Cleantalk\Variables\Cookie
 
     /**
      * Universal method to adding cookies
-     * Using Alternative Sessions or native cookies depends on settings
+     * Using Alternative Sessions or native cookies or NoCookie handler depends on settings
      *
      * @param string $name
      * @param string $value
@@ -64,6 +64,7 @@ class Cookie extends \Cleantalk\Variables\Cookie
      * @param bool|null $secure
      * @param bool $httponly
      * @param string $samesite
+     * @param bool $no_cookie_to_db
      */
     public static function set(
         $name,
@@ -77,7 +78,7 @@ class Cookie extends \Cleantalk\Variables\Cookie
         $no_cookie_to_db = false
     ) {
         global $apbct;
-
+        //select handling way to set cookie data in dependence of cookie type in the settings
         if ($apbct->data['cookies_type'] === 'none' && ! is_admin()) {
             NoCookie::set($name, $value, $no_cookie_to_db);
         } elseif ($apbct->data['cookies_type'] === 'alternative') {
@@ -159,10 +160,9 @@ class Cookie extends \Cleantalk\Variables\Cookie
                 $prepared_value = json_decode(str_replace('\\', '', $visible_fields_value), true);
                 $visible_fields_collection[$prepared_key] = $prepared_value;
             }
-        } else  {
-            // Get from alt cookies storage
+        } else {
+            // Get from alt cookies storage or NoCookie storage
             $visible_fields_collection = (array) self::get('apbct_visible_fields');
-            error_log('CTDEBUG: $visible_fields_collection ' . var_export($visible_fields_collection,true));
         }
         return $visible_fields_collection;
     }

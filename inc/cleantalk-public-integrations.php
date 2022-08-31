@@ -3474,3 +3474,12 @@ function apbct_advanced_classifieds_directory_pro__check_register($response, $_f
 
     return $response;
 }
+
+function apbct_form__get_noCookie_data()
+{
+    global $apbct;
+    if ( $apbct->data['cookies_type'] === 'none' ) {
+        $apbct->stats['no_cookie_data_taken'] = \Cleantalk\ApbctWP\Variables\NoCookie::setDataFromHiddenField();
+        $apbct->save('stats');
+    }
+}
