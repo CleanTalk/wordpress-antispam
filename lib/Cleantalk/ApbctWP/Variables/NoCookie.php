@@ -27,10 +27,11 @@ class NoCookie
 
     /**
      * Set value of NoCookie data. If $save_to_db flag is set then save it to NoCookie database,
-     * else just save to the static prop $no_cookies_data.
+     * else just save to the static prop $no_cookies_data. Returns result of operation.
      * @param $name
      * @param $value
      * @param bool $save_to_db
+     * @return bool
      */
     public static function set($name, $value, $save_to_db = false)
     {
@@ -40,13 +41,17 @@ class NoCookie
         }
 
         // Bad incoming data
-        if ( !$name || (empty($value) && $value !== "0") ) {
-            return;
+        if ( !$name
+            || ( empty($value) && $value !== "0" )
+            || is_array($value)
+            || is_array($name)
+        ) {
+            return false;
         }
 
         if ( !$save_to_db ) {
             self::$no_cookies_data[$name] = $value;
-            return;
+            return true;
         }
 
         self::cleanFromOld();
@@ -57,7 +62,7 @@ class NoCookie
 
         $previous_value = self::get($name);
 
-        $wpdb->query(
+        return $wpdb->query(
             $wpdb->prepare(
                 'INSERT INTO ' . APBCT_TBL_NO_COOKIE . '
 				(id, name, value, last_update, prev_value)
@@ -81,14 +86,17 @@ class NoCookie
     /**
      * Get NoCookie data from static prop $no_cookies_data,
      * if there is no such $name found try to search this in the DB.
-     * @param $name
+     * @param $name string
      * @return false|mixed|string
      */
     public static function get($name)
     {
 
         // Bad incoming data
-        if ( !$name ) {
+        if ( !$name
+            ||
+            !is_string($name)
+        ) {
             return false;
         }
 

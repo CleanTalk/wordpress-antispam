@@ -65,6 +65,9 @@ class Cookie extends \Cleantalk\Variables\Cookie
      * @param bool $httponly
      * @param string $samesite
      * @param bool $no_cookie_to_db
+     * @psalm-suppress PossiblyUnusedReturnValue
+     * @psalm-suppress ImplementedReturnTypeMismatch
+     * @return bool
      */
     public static function set(
         $name,
@@ -80,12 +83,13 @@ class Cookie extends \Cleantalk\Variables\Cookie
         global $apbct;
         //select handling way to set cookie data in dependence of cookie type in the settings
         if ($apbct->data['cookies_type'] === 'none' && ! is_admin()) {
-            NoCookie::set($name, $value, $no_cookie_to_db);
+            return NoCookie::set($name, $value, $no_cookie_to_db);
         } elseif ($apbct->data['cookies_type'] === 'alternative') {
             AltSessions::set($name, $value);
         } else {
             self::setNativeCookie(apbct__get_cookie_prefix() . $name, $value, $expires, $path, $domain, $secure, $httponly, $samesite);
         }
+        return true;
     }
 
     /**
