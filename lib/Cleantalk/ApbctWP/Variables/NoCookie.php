@@ -125,10 +125,13 @@ class NoCookie
         if ( Post::get('ct_no_cookie_hidden_field') ) {
             $data = Post::get('ct_no_cookie_hidden_field');
             $data = base64_decode($data);
-            //need to handle errors
-            $data = json_decode($data, true);
-            self::$no_cookies_data = array_merge(self::$no_cookies_data,$data);
-            return true;
+            if ( $data ) {
+                $data = json_decode($data, true);
+                if ( !empty($data) && is_array($data) ){
+                    self::$no_cookies_data = array_merge(self::$no_cookies_data, $data);
+                    return true;
+                }
+            }
         }
 
         return false;
