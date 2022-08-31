@@ -5,6 +5,8 @@ use Cleantalk\ApbctWP\State;
 use Cleantalk\ApbctWP\Variables\Cookie;
 use PHPUnit\Framework\TestCase;
 
+require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-updater.php');
+
 class VariablesTest extends TestCase
 {
     private $db;
@@ -14,6 +16,7 @@ class VariablesTest extends TestCase
         global $apbct;
         $apbct->data['cookies_type'] = 'none';
         $apbct->saveData();
+        apbct_run_update_actions('5.182','5.182');
 
     }
 
