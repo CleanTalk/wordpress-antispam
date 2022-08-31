@@ -47,8 +47,10 @@ class EmailEncoder extends \Cleantalk\Antispam\EmailEncoder
             'sender_ip'             => Helper::ipGet(),        // IP address
             'event_type'            => 'CONTACT_DECODING',     // 'GENERAL_BOT_CHECK' || 'CONTACT_DECODING'
             'message_to_log'        => $this->decoded_email,   // Custom message
-            'post_url'              => Post::get('post_url'),
-            'referrer'              => Post::get('referrer'),
+            'page_url'              => Post::get('post_url'),
+            'sender_info'           => array(
+                'site_referrer'         => Post::get('referrer'),
+            ),
         );
 
         $ct_request = new CleantalkRequest($params);

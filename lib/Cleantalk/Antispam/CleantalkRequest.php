@@ -202,7 +202,7 @@ class CleantalkRequest
     /**
      * @var string|null
      */
-    public $post_url;
+    public $page_url;
     
     /**
      * @var string|null
@@ -235,7 +235,7 @@ class CleantalkRequest
             $params['sender_nickname'] = current($params['sender_nickname']);
         }
 
-        $this->post_url        = ! empty($params['post_url']) ? (string)$params['post_url'] : null;
+        $this->page_url        = ! empty($params['page_url']) ? (string)$params['page_url'] : null;
         $this->referrer        = ! empty($params['referrer']) ? (string)$params['referrer'] : null;
         $this->sender_nickname = ! empty($params['sender_nickname']) ? (string)$params['sender_nickname'] : null;
         $this->phone           = ! empty($params['phone']) ? (string)$params['phone'] : null;

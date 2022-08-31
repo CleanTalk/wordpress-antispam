@@ -102,7 +102,7 @@ function checkEmail(e) {
 	}
 }
 
-function ctSetPixelImg(pixelUrl) {
+function tSetPixelImg(pixelUrl) {
 	ctSetCookie('apbct_pixel_url', pixelUrl);
 	if( +ctPublic.pixel__enabled ){
 		if( ! document.getElementById('apbct_pixel') ) {
@@ -349,7 +349,9 @@ function apbctAjaxEmailDecode(event){
 				method: 'POST',
 				callback: function (result) {
 					if (result.success) {
-						ctProcessDecodedDataResult(result.data, event.target);
+						setTimeout(function(){
+							ctProcessDecodedDataResult(result.data, event.target);
+						}, 3000);
 					}
 				},
 			}
@@ -364,7 +366,9 @@ function apbctAjaxEmailDecode(event){
 				notJson: true,
 				callback: function (result) {
 					if (result.success) {
-						ctProcessDecodedDataResult(result.data, event.target);
+						setTimeout(function(){
+							ctProcessDecodedDataResult(result.data, event.target);
+						}, 3000);
 					}
 				},
 			}
@@ -401,6 +405,8 @@ function getJavascriptClientData() {
 
 	// Parse JSON properties to prevent double JSON encoding
 	resultDataJson = decodeJSONEncodedProperties(resultDataJson);
+
+	console.log(resultDataJson);
 
 	return JSON.stringify(resultDataJson);
 }
@@ -477,7 +483,7 @@ function ctShowDecodeComment(target, comment){
 		jQuery(target)
 			.find('.apbct-tooltip')
 			.fadeOut(700);
-	}, 4000);
+	}, 5000);
 }
 
 function apbct_collect_visible_fields( form ) {
