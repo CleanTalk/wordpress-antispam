@@ -30,7 +30,7 @@ class NoCookie
      * else just save to the static prop $no_cookies_data.
      * @param $name
      * @param $value
-     * @param false $save_to_db
+     * @param bool $save_to_db
      */
     public static function set($name, $value, $save_to_db = false)
     {
@@ -128,7 +128,7 @@ class NoCookie
             $data = base64_decode($data);
             if ( $data ) {
                 $data = json_decode($data, true);
-                if ( !empty($data) && is_array($data) ){
+                if ( !empty($data) && is_array($data) ) {
                     self::$no_cookies_data = array_merge(self::$no_cookies_data, $data);
                     return true;
                 }
@@ -159,7 +159,6 @@ class NoCookie
 
     /**
      * Wipe NoCookie data
-     * @return bool|int|\mysqli_result|resource|null
      */
     public static function wipe()
     {
@@ -168,7 +167,7 @@ class NoCookie
 
         global $wpdb;
         //clear table
-        return $wpdb->query(
+        $wpdb->query(
             'TRUNCATE TABLE ' . APBCT_TBL_NO_COOKIE . ';'
         );
     }
