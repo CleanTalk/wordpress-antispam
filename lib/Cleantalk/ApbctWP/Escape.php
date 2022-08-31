@@ -134,6 +134,7 @@ class Escape extends \Cleantalk\Common\Escape
                     'class' => true,
                     'onclick' => true,
                     'style' => true,
+                    'id' => true,
                 ),
                 'hr' => array(
                     'style' => true,

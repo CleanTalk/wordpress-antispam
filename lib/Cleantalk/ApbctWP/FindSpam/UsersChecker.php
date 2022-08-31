@@ -6,7 +6,7 @@ use Cleantalk\ApbctWP\FindSpam\ListTable\BadUsers;
 use Cleantalk\ApbctWP\FindSpam\ListTable\UsersLogs;
 use Cleantalk\ApbctWP\FindSpam\ListTable\UsersScan;
 use Cleantalk\ApbctWP\Variables\Cookie;
-use Cleantalk\Variables\Post;
+use Cleantalk\ApbctWP\Variables\Post;
 
 class UsersChecker extends Checker
 {

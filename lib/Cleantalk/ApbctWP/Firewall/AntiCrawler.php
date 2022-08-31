@@ -5,8 +5,8 @@ namespace Cleantalk\ApbctWP\Firewall;
 use Cleantalk\ApbctWP\Validate;
 use Cleantalk\Common\Helper;
 use Cleantalk\ApbctWP\Variables\Cookie;
-use Cleantalk\Variables\Get;
-use Cleantalk\Variables\Server;
+use Cleantalk\ApbctWP\Variables\Get;
+use Cleantalk\ApbctWP\Variables\Server;
 
 /**
  * Class AntiCrawler

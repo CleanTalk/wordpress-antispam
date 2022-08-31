@@ -10,7 +10,7 @@ namespace Cleantalk\Variables;
  *
  * @package Cleantalk\Variables
  */
-class Get extends ServerVariables
+abstract class Get extends ServerVariables
 {
     protected static $instance;
 
@@ -25,11 +25,11 @@ class Get extends ServerVariables
     {
         // Return from memory. From $this->variables
         if (! isset(static::$instance->variables[$name])) {
-            $value = filter_input(INPUT_GET, $name);
-
-            $value = $value === false ? filter_input(INPUT_GET, $name, FILTER_DEFAULT, FILTER_REQUIRE_ARRAY) : $value;
-
-            $value = is_null($value) ? '' : $value;
+            if ( isset($_GET[$name]) ) {
+                $value = $this->getAndSanitize($_GET[$name]);
+            } else {
+                $value = '';
+            }
 
             // Remember for further calls
             static::getInstance()->rememberVariable($name, $value);

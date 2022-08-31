@@ -2,9 +2,9 @@
 
 use Cleantalk\ApbctWP\Helper;
 use Cleantalk\ApbctWP\RemoteCalls;
-use Cleantalk\Variables\Get;
-use Cleantalk\Variables\Post;
-use Cleantalk\Variables\Server;
+use Cleantalk\ApbctWP\Variables\Get;
+use Cleantalk\ApbctWP\Variables\Post;
+use Cleantalk\ApbctWP\Variables\Server;
 
 /**
  * Getting current user by cookie
@@ -788,6 +788,14 @@ function apbct_is_skip_request($ajax = false)
             Post::get('action') === 'thwmsc_step_validation'
         ) {
             return 'MultiStep Checkout for WooCommerce - step validation';
+        }
+
+        // Skip Login Form for Wishlist Member
+        if (
+            apbct_is_plugin_active('wishlist-member/wpm.php') &&
+            Post::get('action') === 'wishlistmember_ajax_login'
+        ) {
+            return 'Wishlist Member - skip login';
         }
     } else {
         /*****************************************/

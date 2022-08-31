@@ -2,6 +2,7 @@
 
 namespace Cleantalk\ApbctWP;
 
+use Cleantalk\ApbctWP\Variables\AltSessions;
 use WP_REST_Request;
 
 class RestController extends \WP_REST_Controller
@@ -32,7 +33,7 @@ class RestController extends \WP_REST_Controller
         register_rest_route($this->namespace, "/alt_sessions", array(
             array(
                 'methods'             => 'POST',
-                'callback'            => array(\Cleantalk\ApbctWP\Variables\AltSessions::class, 'setFromRemote'),
+                'callback'            => array(AltSessions::class, 'setFromRemote'),
                 'args'                => array(
                     'cookies' => array(
                         'type'     => 'array',
@@ -43,7 +44,7 @@ class RestController extends \WP_REST_Controller
             ),
             array(
                 'methods'             => 'GET',
-                'callback'            => array(\Cleantalk\ApbctWP\Variables\AltSessions::class, 'getFromRemote'),
+                'callback'            => array(AltSessions::class, 'getFromRemote'),
                 'args'                => array(
                     'name' => array(
                         'type'     => 'string',
@@ -73,7 +74,9 @@ class RestController extends \WP_REST_Controller
         register_rest_route($this->namespace, "/apbct_decode_email", array(
             array(
                 'methods'             => 'POST',
-                'callback'            => array(\Cleantalk\Antispam\EmailEncoder::getInstance(), 'ajaxDecodeEmail'),
+                'callback'            => array(\Cleantalk\ApbctWP\Antispam\EmailEncoder::getInstance(),
+                    'ajaxDecodeEmailHandler'
+                ),
                 'permission_callback' => function (WP_REST_Request $request) {
                     return wp_verify_nonce($request->get_header('x_wp_nonce'), 'wp_rest');
                 },

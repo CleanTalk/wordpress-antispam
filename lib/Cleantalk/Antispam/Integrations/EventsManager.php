@@ -2,7 +2,7 @@
 
 namespace Cleantalk\Antispam\Integrations;
 
-use Cleantalk\Variables\Get;
+use Cleantalk\ApbctWP\Variables\Get;
 
 class EventsManager extends IntegrationBase
 {

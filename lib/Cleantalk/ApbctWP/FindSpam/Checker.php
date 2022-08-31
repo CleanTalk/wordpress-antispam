@@ -2,7 +2,7 @@
 
 namespace Cleantalk\ApbctWP\FindSpam;
 
-use Cleantalk\Variables\Cookie;
+use Cleantalk\ApbctWP\Variables\Cookie;
 
 abstract class Checker
 {

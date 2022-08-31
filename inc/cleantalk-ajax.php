@@ -5,9 +5,9 @@
  */
 
 use Cleantalk\ApbctWP\Variables\Cookie;
-use Cleantalk\Variables\Get;
-use Cleantalk\Variables\Post;
-use Cleantalk\Variables\Server;
+use Cleantalk\ApbctWP\Variables\Get;
+use Cleantalk\ApbctWP\Variables\Post;
+use Cleantalk\ApbctWP\Variables\Server;
 
 $_cleantalk_ajax_actions_to_check[] = 'qcf_validate_form';            //Quick Contact Form
 $_cleantalk_ajax_actions_to_check[] = 'amoforms_submit';            //amoForms
@@ -409,7 +409,7 @@ function ct_ajax_hook($message_obj = null)
 
     global $apbct;
     // Skip test if
-    if ( ( ! $apbct->settings['forms__general_contact_forms_test'] || $apbct->settings['forms__check_external'] ) || // Test disabled
+    if ( ( ! $apbct->settings['forms__general_contact_forms_test'] && ! $apbct->settings['forms__check_external'] ) || // Test disabled
          ! apbct_is_user_enable($apbct->user) || // User is admin, editor, author
          // (function_exists('get_current_user_id') && get_current_user_id() != 0) || // Check with default wp_* function if it's admin
          ( ! $apbct->settings['data__protect_logged_in'] && ($apbct->user instanceof WP_User) && $apbct->user->ID !== 0) || // Logged in user
@@ -566,8 +566,8 @@ function ct_ajax_hook($message_obj = null)
         Post::hasString('action', 'fusion_form_submit_form_to_email') ||
         Post::hasString('action', 'fusion_form_submit_ajax')
     ) {
-        if (Post::get('formData')) {
-            $form_data = Post::get('formData');
+        if (isset($_POST['formData'])) {
+            $form_data = $_POST['formData'];
             $form_data = explode('&', $form_data);
 
             for ($index = 0; $index < count($form_data); $index++) {
