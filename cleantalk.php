@@ -449,10 +449,7 @@ if ( ! is_admin() && ! apbct_is_ajax() && ! apbct_is_customize_preview() ) {
     add_filter('get_search_query', 'apbct_forms__search__testSpam');
     add_action('wp_head', 'apbct_search_add_noindex', 1);
 
-    if ( $apbct->data['cookies_type'] === 'none' ) {
-        $apbct->stats['no_cookie_data_taken'] = \Cleantalk\ApbctWP\Variables\NoCookie::setDataFromHiddenField();
-        $apbct->save('stats');
-    }
+    apbct_form__get_noCookie_data();
 
     // SpamFireWall check
     if ( $apbct->plugin_version == APBCT_VERSION && // Do not call with first start
