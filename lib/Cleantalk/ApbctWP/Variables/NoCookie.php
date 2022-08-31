@@ -124,6 +124,7 @@ class NoCookie
     {
         if ( Post::get('ct_no_cookie_hidden_field') ) {
             $data = Post::get('ct_no_cookie_hidden_field');
+            unset($_POST['ct_no_cookie_hidden_field']);
             $data = base64_decode($data);
             if ( $data ) {
                 $data = json_decode($data, true);
