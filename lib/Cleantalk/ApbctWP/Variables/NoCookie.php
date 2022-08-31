@@ -12,6 +12,10 @@ class NoCookie
 
     public static $no_cookies_data = array();
 
+    /**
+     * Get the session ID for saving data to the DB.
+     * @return false|string
+     */
     public static function getID()
     {
         $id = Helper::ipGet()
@@ -21,19 +25,26 @@ class NoCookie
         return hash('sha256', $id);
     }
 
+    /**
+     * Set value of NoCookie data. If $save_to_db flag is set then save it to NoCookie database,
+     * else just save to the static prop $no_cookies_data.
+     * @param $name
+     * @param $value
+     * @param false $save_to_db
+     */
     public static function set($name, $value, $save_to_db = false)
     {
-        //self::cleanFromOld();
-        if (is_int($value)){
-            $value = (string) $value;
+
+        if ( is_int($value) ) {
+            $value = (string)$value;
         }
 
         // Bad incoming data
-        if ( ! $name || (empty($value) && $value !== "0") ) {
+        if ( !$name || (empty($value) && $value !== "0") ) {
             return;
         }
 
-        if (!$save_to_db) {
+        if ( !$save_to_db ) {
             self::$no_cookies_data[$name] = $value;
             return;
         }
@@ -65,25 +76,23 @@ class NoCookie
                 $previous_value
             )
         );
-
-
     }
 
+    /**
+     * Get NoCookie data from static prop $no_cookies_data,
+     * if there is no such $name found try to search this in the DB.
+     * @param $name
+     * @return false|mixed|string
+     */
     public static function get($name)
     {
 
         // Bad incoming data
-        if ( ! $name) {
+        if ( !$name ) {
             return false;
         }
 
-        if ($name === 'apbct_visible_fields'){
-            error_log('CTDEBUG: $no_cookies_data WHILE REQUESTING  apbct_visible_fields ' . var_export($no_cookies_data,true));
-        }
-
-        if (isset(self::$no_cookies_data[$name])){
-            error_log('CTDEBUG: $name ' . var_export($name,true));
-            error_log('CTDEBUG: $no_cookies_data[$name] ' . var_export(self::$no_cookies_data[$name],true));
+        if ( isset(self::$no_cookies_data[$name]) ) {
             return self::$no_cookies_data[$name];
         }
 
@@ -92,7 +101,7 @@ class NoCookie
         global $wpdb;
 
         $session_id = self::getID();
-        $result     = $wpdb->get_row(
+        $result = $wpdb->get_row(
             $wpdb->prepare(
                 'SELECT value 
 				FROM `' . APBCT_TBL_NO_COOKIE . '`
@@ -107,6 +116,10 @@ class NoCookie
     }
 
 
+    /**
+     * Check POST for data transferred via ct_no_cookie_hidden_field, handle them then
+     * @return bool
+     */
     public static function setDataFromHiddenField()
     {
         if ( Post::get('ct_no_cookie_hidden_field') ) {
@@ -121,11 +134,14 @@ class NoCookie
         return false;
     }
 
+    /**
+     * Clean NoCookie table if random of APBCT_SEESION__CHANCE_TO_CLEAN fired
+     */
     public static function cleanFromOld()
     {
         global $wpdb;
 
-        if ( ! self::$sessions_already_cleaned && rand(0, 1000) < APBCT_SEESION__CHANCE_TO_CLEAN) {
+        if ( !self::$sessions_already_cleaned && rand(0, 1000) < APBCT_SEESION__CHANCE_TO_CLEAN ) {
             self::$sessions_already_cleaned = true;
 
             $wpdb->query(
@@ -137,17 +153,33 @@ class NoCookie
         }
     }
 
+    /**
+     * Wipe NoCookie data
+     * @return bool|int|\mysqli_result|resource|null
+     */
     public static function wipe()
     {
+        //clear nodb data
         self::$no_cookies_data = array();
+
+        global $wpdb;
+        //clear table
+        return $wpdb->query(
+            'TRUNCATE TABLE ' . APBCT_TBL_NO_COOKIE . ';'
+        );
     }
 
-    public static function preloadForScripts(){
+    /**
+     * Get NoCookie data from table to localize it in JS scripts
+     * @return array
+     */
+    public static function preloadForScripts()
+    {
 
         global $wpdb;
 
         $session_id = self::getID();
-        $result     = $wpdb->get_results(
+        $result = $wpdb->get_results(
             $wpdb->prepare(
                 'SELECT * 
 				FROM `' . APBCT_TBL_NO_COOKIE . '`
@@ -157,8 +189,9 @@ class NoCookie
             ARRAY_A
         );
 
-        foreach ($result as $row=>$data){
-            self::set($data['name'],$data['prev_value']);
+        //keep previous value to use them before NoCookies handler loaded
+        foreach ( array_values($result) as $no_cookie_db_value ) {
+            self::set($no_cookie_db_value['name'], $no_cookie_db_value['prev_value']);
         }
 
         return self::$no_cookies_data;
