@@ -150,7 +150,8 @@ function isIntegratedForm(formObj) {
         formAction.indexOf('tp.media') !== -1 ||
         formAction.indexOf('flodesk.com') !== -1 ||
         formAction.indexOf('sendfox.com') !== -1 ||
-        formAction.indexOf('aweber.com') !== -1
+        formAction.indexOf('aweber.com') !== -1 ||
+        formAction.indexOf('secure.payu.com') !== -1
 
     ) {
         return true;
@@ -193,6 +194,10 @@ function sendAjaxCheckingFormData(form, prev, formOriginal) {
                     apbct_replace_inputs_values_from_other_form(form_new, formOriginal);
 
                     prev.after( formOriginal );
+
+                    // Clear visible_fields input
+                    formOriginal.find('input[name="apbct_visible_fields"]').remove();
+                    formOriginal.find('input[value="cleantalk_force_ajax_check"]').remove();
 
                     // Common click event
                     var subm_button = jQuery(formOriginal).find('button[type=submit]');

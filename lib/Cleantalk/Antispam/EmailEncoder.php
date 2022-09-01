@@ -103,7 +103,7 @@ class EmailEncoder
             return $content;
         }
 
-        return preg_replace_callback('/(<a.*?mailto\:.*?<\/a>?)|(\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+(\.[A-Za-z]{2,}))/', function ($matches) {
+        return preg_replace_callback('/(mailto\:\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,})|(\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+(\.[A-Za-z]{2,}))/', function ($matches) {
 
             if ( isset($matches[3]) && in_array(strtolower($matches[3]), ['.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp']) ) {
                 return $matches[0];
@@ -266,20 +266,18 @@ class EmailEncoder
     private function encodeMailtoLink($mailto_link_str)
     {
         // Get inner tag text and place it in $matches[1]
-        preg_match('/<a.*?mailto\:.*?>(.*?)<\/a>?/', $mailto_link_str, $matches);
+        preg_match('/mailto\:(\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,})/', $mailto_link_str, $matches);
         if ( isset($matches[1]) ) {
             $mailto_inner_text = preg_replace_callback('/\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,}/', function ($matches) {
                 return $this->obfuscateEmail($matches[0]);
             }, $matches[1]);
         }
+        $mailto_link_str = str_replace('mailto:', '', $mailto_link_str);
         $encoded = $this->encodeString($mailto_link_str, $this->secret_key);
 
         $text = isset($mailto_inner_text) ? $mailto_inner_text : $mailto_link_str;
 
-        return '<span 
-                data-original-string="' . $encoded . '" 
-                class="apbct-email-encoder"
-                title="' . esc_attr($this->getTooltip()) . '">' . $text . '</span>';
+        return 'mailto:' . $text . '" data-original-string="' . $encoded . '" title="' . esc_attr($this->getTooltip());
     }
 
     /**
