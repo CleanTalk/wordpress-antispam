@@ -2,50 +2,42 @@
 
 namespace Cleantalk\ApbctWP\Variables;
 
-use Cleantalk\ApbctWP\Sanitize;
-use Cleantalk\ApbctWP\Validate;
-
 class Cookie extends \Cleantalk\Variables\Cookie
 {
+    protected static $instance;
+
     /**
      * @inheritDoc
      */
-    public static function get($name, $validation_filter = null, $sanitize_filter = null)
+    public function getVariable($name)
     {
         global $apbct;
 
+        $name = apbct__get_cookie_prefix() . $name;
+
         // Return from memory. From $this->variables
-        if (isset(static::$instance->variables[$name])) {
-            $value = static::$instance->variables[$name];
-            // Get from GLOBAL variable
-        } else {
+        if ( ! isset(static::$instance->variables[$name]) ) {
             // Getting by alternative way if enabled
-            if ($apbct->data['cookies_type'] === 'alternative') {
+            if ( $apbct->data['cookies_type'] === 'alternative' ) {
                 $value = AltSessions::get($name);
+                // Try to get it from native cookies ^_^
+                if ( empty($value) && isset($_COOKIE[$name]) ) {
+                    $value = $this->getAndSanitize(urldecode($_COOKIE[$name]));
+                }
                 // The old way
+            } elseif ( isset($_COOKIE[$name]) ) {
+                $value = $this->getAndSanitize(urldecode($_COOKIE[$name]));
             } else {
-                $name = apbct__get_cookie_prefix() . $name;
-
-                $value = filter_input(INPUT_COOKIE, $name);
-            }
-
-            // Validate variable
-            if ( $validation_filter && ! Validate::validate($value, $validation_filter) ) {
-                return false;
-            }
-
-            if ( $sanitize_filter ) {
-                $value = Sanitize::sanitize($value, $sanitize_filter);
+                $value = '';
             }
 
             // Remember for further calls
             static::getInstance()->rememberVariable($name, $value);
+
+            return $value;
         }
 
-        // Decoding
-        $value = urldecode($value); // URL decode
-
-        return $value;
+        return static::$instance->variables[$name];
     }
 
     /**
@@ -109,6 +101,10 @@ class Cookie extends \Cleantalk\Variables\Cookie
         $httponly = false,
         $samesite = 'Lax'
     ) {
+        if (headers_sent()) {
+            return;
+        }
+
         $secure = ! is_null($secure) ? $secure : Server::get('HTTPS') || Server::get('SERVER_PORT') == 443;
         // For PHP 7.3+ and above
         if ( version_compare(phpversion(), '7.3.0', '>=') ) {

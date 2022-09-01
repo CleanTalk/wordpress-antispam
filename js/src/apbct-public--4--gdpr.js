@@ -1,8 +1,11 @@
 jQuery(document).ready(function(){
 
-	if (typeof ctPublicGDPR === 'undefined') return;
-
-	if(!ctPublicGDPR.gdpr_forms) return;
+	if(
+		typeof ctPublicGDPR === 'undefined' ||
+		! ctPublicGDPR.gdpr_forms.length
+	) {
+		return;
+	}
 	
 	ctPublicGDPR.gdpr_forms.forEach(function(item, i, arr){
 		

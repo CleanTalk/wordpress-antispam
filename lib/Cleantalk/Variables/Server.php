@@ -10,7 +10,7 @@ namespace Cleantalk\Variables;
  *
  * @package \CleantalkSP\Variables
  */
-class Server extends ServerVariables
+abstract class Server extends ServerVariables
 {
     protected static $instance;
 

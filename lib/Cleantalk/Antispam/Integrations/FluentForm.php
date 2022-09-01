@@ -2,14 +2,15 @@
 
 namespace Cleantalk\Antispam\Integrations;
 
+use Cleantalk\ApbctWP\Sanitize;
 use Cleantalk\ApbctWP\Variables\Post;
 
 class FluentForm extends IntegrationBase
 {
     public function getDataForChecking($argument)
     {
-        if ( Post::get('data') ) {
-            parse_str(Post::get('data'), $form_data);
+        if ( isset($_POST['data']) ) {
+            parse_str($_POST['data'], $form_data);
 
             /**
              * Filter for POST

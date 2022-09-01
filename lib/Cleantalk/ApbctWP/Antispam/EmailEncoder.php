@@ -11,12 +11,7 @@ use Cleantalk\Antispam\Cleantalk;
 class EmailEncoder extends \Cleantalk\Antispam\EmailEncoder
 {
     /**
-     * @var object|bool API response
-     */
-    private $api_response;
-
-    /**
-     * @var array|bool Comment from API response
+     * @var null|string Comment from API response
      */
     private $comment;
 
@@ -63,19 +58,19 @@ class EmailEncoder extends \Cleantalk\Antispam\EmailEncoder
         $ct->work_url       = preg_match('/https:\/\/.+/', $config['ct_work_url']) ? $config['ct_work_url'] : null;
         $ct->server_ttl     = $config['ct_server_ttl'];
         $ct->server_changed = $config['ct_server_changed'];
-        $this->api_response = $ct->checkBot($ct_request);
+        $api_response = $ct->checkBot($ct_request);
 
         // Allow to see to the decoded contact if error occurred
         // Send error as comment in this case
-        if ( ! empty($this->api_response->error)) {
-            $this->comment = $this->api_response->error;
+        if ( ! empty($api_response->errstr)) {
+            $this->comment = $api_response->errstr;
 
             return true;
         }
 
         // Deny
-        if ($this->api_response->allow === 0) {
-            $this->comment = $this->api_response->comment;
+        if ( $api_response->allow === 0) {
+            $this->comment = $api_response->comment;
 
             return false;
         }
