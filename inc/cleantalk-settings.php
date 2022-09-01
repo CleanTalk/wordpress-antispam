@@ -2326,7 +2326,10 @@ function apbct_settings__validate($settings)
                 'service_id'  => $apbct->data['service_id'],
             );
             $apbct->saveNetworkData();
-            if ( isset($settings['multisite__use_settings_template_apply_for_current_list_sites']) && ! empty($settings['multisite__use_settings_template_apply_for_current_list_sites']) ) {
+            if ( isset($settings['multisite__use_settings_template_apply_for_current_list_sites'])
+                && !empty($settings['multisite__use_settings_template_apply_for_current_list_sites']) ) {
+                //remove filter to avoid multiple validation
+                remove_filter('sanitize_option_cleantalk_settings', 'apbct_settings__validate');
                 apbct_update_blogs_options($settings);
             }
         } else {
