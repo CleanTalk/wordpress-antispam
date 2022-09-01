@@ -102,7 +102,7 @@ function checkEmail(e) {
 	}
 }
 
-function tSetPixelImg(pixelUrl) {
+function ctSetPixelImg(pixelUrl) {
 	ctSetCookie('apbct_pixel_url', pixelUrl);
 	if( +ctPublic.pixel__enabled ){
 		if( ! document.getElementById('apbct_pixel') ) {
@@ -405,8 +405,6 @@ function getJavascriptClientData() {
 
 	// Parse JSON properties to prevent double JSON encoding
 	resultDataJson = removeDoubleJsonEncoding(resultDataJson);
-
-	console.log(resultDataJson);
 
 	return JSON.stringify(resultDataJson);
 }
