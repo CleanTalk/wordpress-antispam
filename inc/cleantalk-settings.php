@@ -2320,9 +2320,21 @@ function apbct_settings__validate($settings)
                 'service_id'  => $apbct->data['service_id'],
             );
             $apbct->saveNetworkData();
-            if ( isset($settings['multisite__use_settings_template_apply_for_current_list_sites']) && ! empty($settings['multisite__use_settings_template_apply_for_current_list_sites']) ) {
+            if ( isset($settings['multisite__use_settings_template_apply_for_current_list_sites'])
+                && !empty($settings['multisite__use_settings_template_apply_for_current_list_sites']) ) {
+                //remove filter to avoid multiple validation
+                remove_filter('sanitize_option_cleantalk_settings', 'apbct_settings__validate');
                 apbct_update_blogs_options($settings);
             }
+        } else {
+            // compare non-main site blog key with the validating key
+            $blog_settings = get_option('cleantalk_settings');
+            $key_from_blog_settings = !empty($blog_settings['apikey']) ? $blog_settings['apikey'] : '';
+            if ( trim($settings['apikey']) !== trim($key_from_blog_settings) ) {
+                $blog_key_changed = true;
+            }
+            $apbct->data['key_changed'] = empty($blog_key_changed) ? false : $blog_key_changed;
+            $apbct->save('data');
         }
         if ( ! $apbct->white_label && ! is_main_site() && ! $apbct->allow_custom_key ) {
             $settings['apikey'] = '';
