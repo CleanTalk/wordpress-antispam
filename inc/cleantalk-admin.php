@@ -2,9 +2,9 @@
 
 use Cleantalk\ApbctWP\CleantalkSettingsTemplates;
 use Cleantalk\ApbctWP\Escape;
-use Cleantalk\Variables\Get;
-use Cleantalk\Variables\Post;
-use Cleantalk\Variables\Server;
+use Cleantalk\ApbctWP\Variables\Get;
+use Cleantalk\ApbctWP\Variables\Post;
+use Cleantalk\ApbctWP\Variables\Server;
 
 require_once('cleantalk-settings.php');
 
@@ -444,6 +444,7 @@ function apbct_admin__enqueue_scripts($hook)
         'logo'               => '<img src="' . Escape::escUrl($apbct->logo) . '" alt=""  height="" style="width: 17px; vertical-align: text-bottom;" />',
         'logo_small'         => '<img src="' . Escape::escUrl($apbct->logo__small) . '" alt=""  height="" style="width: 17px; vertical-align: text-bottom;" />',
         'logo_small_colored' => '<img src="' . Escape::escUrl($apbct->logo__small__colored) . '" alt=""  height="" style="width: 17px; vertical-align: text-bottom;" />',
+        'notice_when_deleting_user_text' => __(Escape::escHtml('Warning! Users are deleted without the possibility of restoring them, you can only restore them from a site backup.'), 'cleantalk-spam-protect'),
     ));
 
     // DASHBOARD page JavaScript and CSS

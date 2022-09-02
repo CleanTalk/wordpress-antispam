@@ -2,6 +2,16 @@
 
 namespace Cleantalk\Common;
 
+/**
+ * @property mixed data
+ * @property mixed settings
+ * @property mixed network_settings
+ * @property mixed network_data
+ * @property mixed errors
+ * @property mixed fw_stats
+ * @property mixed connection_reports
+ */
+
 abstract class State
 {
     /**

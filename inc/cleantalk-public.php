@@ -3,10 +3,10 @@
 use Cleantalk\ApbctWP\Escape;
 use Cleantalk\ApbctWP\Sanitize;
 use Cleantalk\ApbctWP\Variables\Cookie;
-use Cleantalk\Variables\Get;
-use Cleantalk\Variables\Post;
-use Cleantalk\Variables\Request;
-use Cleantalk\Variables\Server;
+use Cleantalk\ApbctWP\Variables\Get;
+use Cleantalk\ApbctWP\Variables\Post;
+use Cleantalk\ApbctWP\Variables\Request;
+use Cleantalk\ApbctWP\Variables\Server;
 
 /**
  * Init functions
@@ -586,15 +586,16 @@ function ct_add_hidden_fields(
             "<script type=\"text/javascript\" "
             . (class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '')
             . ">
-                function apbct_attach_event_handler__backend(elem, event, callback){
+                function apbct_attach_event_handler__backend(elem, event, callback) {
                     if(typeof window.addEventListener === \"function\") elem.addEventListener(event, callback);
-                    else                                              elem.attachEvent(event, callback);
+                    else                                                elem.attachEvent(event, callback);
                 }
-                apbct_attach_event_handler__backend(window, 'load', function(){
-                    if (typeof apbctLocalStorage === \"object\")
-                        apbctLocalStorage.set('{$field_name}', '{$ct_checkjs_key}', false );
-                    else 
-                        console.log('APBCT ERROR: apbct-public--functions is not loaded.');
+                apbct_attach_event_handler__backend(window, 'DOMContentLoaded', function(){
+                    if (typeof apbctLocalStorage === \"object\") {
+                        apbctLocalStorage.set('{$field_name}', '{$ct_checkjs_key}', true );
+                    } else {
+                        console.log('APBCT ERROR: apbctLocalStorage object is not loaded.');
+                    }  
                 });
 		    </script>";
         // Using AJAX to get key
@@ -1178,11 +1179,11 @@ function ct_print_form($arr, $k)
     foreach ( $arr as $key => $value ) {
         if ( ! is_array($value) ) {
             print '<textarea
-				name="' . ($k == '' ? $key : $k . '[' . $key . ']') . '"
-				style="display:none;">' . htmlspecialchars($value)
+				name="' . esc_attr($k === '' ? $key : $k . '[' . $key . ']') . '"
+				style="display:none;">' . esc_textarea(htmlspecialchars($value))
                   . '</textarea>';
         } else {
-            ct_print_form($value, $k == '' ? $key : $k . '[' . $key . ']');
+            ct_print_form($value, $k === '' ? $key : $k . '[' . $key . ']');
         }
     }
 }
@@ -1229,16 +1230,9 @@ function ct_enqueue_scripts_public($_hook)
 
     // Show controls for commentaries
     if ( in_array("administrator", $current_user->roles) ) {
+        // Admin javascript for managing comments on public pages
         if ( $apbct->settings['comments__manage_comments_on_public_page'] ) {
             $ajax_nonce = wp_create_nonce("ct_secret_nonce");
-
-            wp_enqueue_style(
-                'ct_public_admin_css',
-                APBCT_CSS_ASSETS_PATH . '/cleantalk-public-admin.min.css',
-                array(),
-                APBCT_VERSION,
-                'all'
-            );
             wp_enqueue_script(
                 'ct_public_admin_js',
                 APBCT_JS_ASSETS_PATH . '/cleantalk-public-admin.min.js',
@@ -1259,8 +1253,12 @@ function ct_enqueue_scripts_public($_hook)
                     __("Feedback has been sent to %sCleanTalk Dashboard%s.", 'cleantalk-spam-protect'),
                     $apbct->user_token ? "<a target='_blank' href=https://cleantalk.org/my/show_requests?user_token={$apbct->user_token}&cp_mode=antispam>" : '',
                     $apbct->user_token ? "</a>" : ''
-                ) . ' ' . esc_html__('The service accepts feedback only for requests made no more than 7 or 45 days 
-                (if the Extra package is activated) ago.', 'cleantalk-spam-protect'),
+                )
+                    . ' '
+                    . esc_html__(
+                        'The service accepts feedback only for requests made less than 7 (or 45 if the Extra Package is activated) days ago.',
+                        'cleantalk-spam-protect'
+                    ),
             ));
         }
     }
@@ -1284,7 +1282,7 @@ function ct_enqueue_scripts_public($_hook)
 
 function ct_enqueue_styles_public()
 {
-    global $apbct;
+    global $apbct, $current_user;
 
     if ( apbct_exclusions_check__url() ) {
         return;
@@ -1301,12 +1299,26 @@ function ct_enqueue_styles_public()
         $apbct->settings['comments__bp_private_messages'] ||
         $apbct->settings['data__general_postdata_test']
     ) {
+        // Common public styles
         wp_enqueue_style(
             'ct_public_css',
             APBCT_CSS_ASSETS_PATH . '/cleantalk-public.min.css',
             array(),
             APBCT_VERSION
         );
+        // Public admin styles
+        if ( in_array("administrator", $current_user->roles) ) {
+            // Admin style for managing comments on public pages
+            if ( $apbct->settings['comments__manage_comments_on_public_page'] ) {
+                 wp_enqueue_style(
+                     'ct_public_admin_css',
+                     APBCT_CSS_ASSETS_PATH . '/cleantalk-public-admin.min.css',
+                     array(),
+                     APBCT_VERSION,
+                     'all'
+                 );
+            }
+        }
     }
 }
 
@@ -1329,7 +1341,7 @@ function apbct_enqueue_and_localize_public_scripts()
         '_rest_url'                            => Escape::escUrl(apbct_get_rest_url()),
         'data__cookies_type'                   => $apbct->data['cookies_type'],
         'data__ajax_type'                      => $apbct->data['ajax_type'],
-        'text__wait_for_decoding'              => esc_html__('Wait for decoding...', 'cleantalk-spam-protect'),
+        'text__wait_for_decoding'              => esc_html__('Anti-spam by CleanTalk: Decoding contact data...', 'cleantalk-spam-protect'),
         'cookiePrefix'                         => apbct__get_cookie_prefix(),
     ));
 
@@ -1346,6 +1358,14 @@ function apbct_enqueue_and_localize_public_scripts()
         'data__visible_fields_required' => ! apbct_is_user_logged_in() || $apbct->settings['data__protect_logged_in'] == 1,
         'data__to_local_storage' => \Cleantalk\ApbctWP\Variables\NoCookie::preloadForScripts()
     ));
+
+    wp_enqueue_style(
+        'ct_public_css',
+        APBCT_CSS_ASSETS_PATH . '/cleantalk-public.min.css',
+        array(),
+        APBCT_VERSION,
+        'all'
+    );
 }
 
 /**

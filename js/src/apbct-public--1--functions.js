@@ -47,6 +47,18 @@ function ctSetCookie( cookies, value, expires ){
     }
 }
 
+/**
+ * Get cookie by name
+ * @param name
+ * @returns {string|undefined}
+ */
+function ctGetCookie(name) {
+    var matches = document.cookie.match(new RegExp(
+        "(?:^|; )" + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + "=([^;]*)"
+    ));
+    return matches ? decodeURIComponent(matches[1]) : undefined;
+}
+
 function ctDeleteCookie(cookieName) {
     // Cookies disabled
     if( ctPublicFunctions.data__cookies_type === 'none' ){

@@ -2,7 +2,7 @@
 
 namespace Cleantalk\Antispam\Integrations;
 
-use Cleantalk\Variables\Request;
+use Cleantalk\ApbctWP\Variables\Request;
 
 class ContactBank extends IntegrationBase
 {

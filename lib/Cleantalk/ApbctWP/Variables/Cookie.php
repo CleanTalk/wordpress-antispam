@@ -2,54 +2,45 @@
 
 namespace Cleantalk\ApbctWP\Variables;
 
-use Cleantalk\ApbctWP\Helper;
-use Cleantalk\ApbctWP\Sanitize;
-use Cleantalk\ApbctWP\Validate;
-use Cleantalk\Variables\Server;
-
 class Cookie extends \Cleantalk\Variables\Cookie
 {
+    protected static $instance;
+
     /**
      * @inheritDoc
      */
-    public static function get($name, $validation_filter = null, $sanitize_filter = null)
+    public function getVariable($name)
     {
         global $apbct;
 
+        $name = apbct__get_cookie_prefix() . $name;
+
         // Return from memory. From $this->variables
-        if (isset(static::$instance->variables[$name])) {
-            $value = static::$instance->variables[$name];
-            // Get from GLOBAL variable
-        } else {
+        if ( ! isset(static::$instance->variables[$name]) ) {
             // Getting by alternative way if enabled
-            if ($apbct->data['cookies_type'] === 'alternative') {
+            if ( $apbct->data['cookies_type'] === 'alternative' ) {
                 $value = AltSessions::get($name);
-            //NoCookies
-            } else if ($apbct->data['cookies_type'] === 'none') {
+                // Try to get it from native cookies ^_^
+                if ( empty($value) && isset($_COOKIE[$name]) ) {
+                    $value = $this->getAndSanitize(urldecode($_COOKIE[$name]));
+                }
+                // The old way
+            } else if ( isset($_COOKIE[$name]) ) {
+                $value = $this->getAndSanitize(urldecode($_COOKIE[$name]));
+                //NoCookies
+            } else if ( $apbct->data['cookies_type'] === 'none' ) {
                 $value = NoCookie::get($name);
-            // The old way
             } else {
-                $name = apbct__get_cookie_prefix() . $name;
-                $value = filter_input(INPUT_COOKIE, $name);
-            }
-
-            // Validate variable
-            if ( $validation_filter && ! Validate::validate($value, $validation_filter) ) {
-                return false;
-            }
-
-            if ( $sanitize_filter ) {
-                $value = Sanitize::sanitize($value, $sanitize_filter);
+                $value = '';
             }
 
             // Remember for further calls
             static::getInstance()->rememberVariable($name, $value);
+
+            return $value;
         }
 
-        // Decoding
-        $value = urldecode($value); // URL decode
-
-        return $value;
+        return static::$instance->variables[$name];
     }
 
     /**
@@ -65,6 +56,9 @@ class Cookie extends \Cleantalk\Variables\Cookie
      * @param bool $httponly
      * @param string $samesite
      * @param bool $no_cookie_to_db
+     * @psalm-suppress PossiblyUnusedReturnValue
+     * @psalm-suppress ImplementedReturnTypeMismatch
+     * @return bool
      */
     public static function set(
         $name,
@@ -80,12 +74,13 @@ class Cookie extends \Cleantalk\Variables\Cookie
         global $apbct;
         //select handling way to set cookie data in dependence of cookie type in the settings
         if ($apbct->data['cookies_type'] === 'none' && ! is_admin()) {
-            NoCookie::set($name, $value, $no_cookie_to_db);
+            return NoCookie::set($name, $value, $no_cookie_to_db);
         } elseif ($apbct->data['cookies_type'] === 'alternative') {
             AltSessions::set($name, $value);
         } else {
             self::setNativeCookie(apbct__get_cookie_prefix() . $name, $value, $expires, $path, $domain, $secure, $httponly, $samesite);
         }
+        return true;
     }
 
     /**
@@ -115,6 +110,10 @@ class Cookie extends \Cleantalk\Variables\Cookie
         $httponly = false,
         $samesite = 'Lax'
     ) {
+        if (headers_sent()) {
+            return;
+        }
+
         $secure = ! is_null($secure) ? $secure : Server::get('HTTPS') || Server::get('SERVER_PORT') == 443;
         // For PHP 7.3+ and above
         if ( version_compare(phpversion(), '7.3.0', '>=') ) {
@@ -164,6 +163,15 @@ class Cookie extends \Cleantalk\Variables\Cookie
             // Get from alt cookies storage or NoCookie storage
             $visible_fields_collection = (array) self::get('apbct_visible_fields');
         }
+
         return $visible_fields_collection;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function sanitizeDefault($value)
+    {
+        return sanitize_textarea_field($value);
     }
 }

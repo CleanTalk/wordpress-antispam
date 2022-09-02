@@ -2,7 +2,7 @@
 
 namespace Cleantalk\ApbctWP;
 
-use Cleantalk\Variables\Post;
+use Cleantalk\ApbctWP\Variables\Post;
 
 class CleantalkSettingsTemplates
 {
