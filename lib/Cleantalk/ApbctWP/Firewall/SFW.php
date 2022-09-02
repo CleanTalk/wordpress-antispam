@@ -91,13 +91,14 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
 
         if ( $this->test ) {
             unset($_COOKIE['ct_sfw_pass_key']);
+            Cookie::set('ct_sfw_pass_key', 0);
         }
 
         // Skip by cookie
         foreach ($this->ip_array as $current_ip) {
             if (
-                isset($_COOKIE['ct_sfw_pass_key'])
-                && strpos($_COOKIE['ct_sfw_pass_key'], md5($current_ip . $this->api_key)) === 0
+                Cookie::get('ct_sfw_pass_key')
+                && strpos(Cookie::get('ct_sfw_pass_key'), md5($current_ip . $this->api_key)) === 0
             ) {
                 if (Cookie::get('ct_sfw_passed')) {
                     if ( ! headers_sent()) {
