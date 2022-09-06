@@ -109,36 +109,13 @@ function apbct_public_sendAJAX(data, params, obj){
 
 function apbct_public_sendREST( route, params ) {
 
-    var callback = params.callback || null;
-    var data     = params.data || [];
-    var method   = params.method || 'POST';
+    let _params         = [];
+    _params["route"]    = route;
+    _params["callback"] = params.callback || null;
+    _params["data"]     = params.data     || [];
+    _params["method"]   = params.method   || 'POST';
 
-    jQuery.ajax({
-        type: method,
-        url: ctPublicFunctions._rest_url + 'cleantalk-antispam/v1/' + route,
-        data: data,
-        beforeSend : function ( xhr ) {
-            xhr.setRequestHeader( 'X-WP-Nonce', ctPublicFunctions._rest_nonce );
-        },
-        success: function(result){
-            if(result.error){
-                console.log('Error happens: ' + (result.error || 'Unknown'));
-            }else{
-                if(callback) {
-                    var obj = null;
-                    callback(result, route, params, obj);
-                }
-            }
-        },
-        error: function(jqXHR, textStatus, errorThrown){
-            if( errorThrown ) {
-                console.log('APBCT_REST_ERROR');
-                console.log(jqXHR);
-                console.log(textStatus);
-                console.log('Anti-spam by Cleantalk plugin REST API error: ' + errorThrown + ' Please, contact Cleantalk tech support https://wordpress.org/support/plugin/cleantalk-spam-protect/');
-            }
-        },
-    });
+    new ApbctCore().rest(_params);
 }
 
 apbctLocalStorage = {
