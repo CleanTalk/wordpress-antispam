@@ -106,6 +106,8 @@ function apbct_base_call($params = array(), $reg_flag = false)
         return array('ct_result' => new CleantalkResponse());
     }
 
+    apbct_form__get_no_cookie_data();
+
     // URL, IP, Role exclusions
     if ( apbct_exclusions_check() ) {
         do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
@@ -1375,4 +1377,13 @@ function apbct_get_honeypot_filled_fields()
     }
 
     return $result;
+}
+
+function apbct_form__get_no_cookie_data()
+{
+    global $apbct;
+    if ( $apbct->data['cookies_type'] === 'none' ) {
+        $apbct->stats['no_cookie_data_taken'] = \Cleantalk\ApbctWP\Variables\NoCookie::setDataFromHiddenField();
+        $apbct->save('stats');
+    }
 }
