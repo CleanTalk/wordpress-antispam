@@ -2192,7 +2192,6 @@ function apbct_store__urls()
     global $apbct;
 
     if (
-        //$apbct->data['cookies_type'] === 'none' || // Do not set cookies if option is disabled (for Varnish cache).
         ! empty($apbct->headers_sent)              // Headers sent
     ) {
         return false;
@@ -2256,7 +2255,6 @@ function apbct_cookie()
     global $apbct;
 
     if (
-        //$apbct->data['cookies_type'] === 'none' || // Do not set cookies if option is disabled (for Varnish cache).
         ! empty($apbct->flags__cookies_setuped) || // Cookies already set
         ! empty($apbct->headers_sent)              // Headers sent
     ) {
