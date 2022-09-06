@@ -3475,7 +3475,7 @@ function apbct_advanced_classifieds_directory_pro__check_register($response, $_f
     return $response;
 }
 
-function apbct_form__get_noCookie_data()
+function apbct_form__get_no_cookie_data()
 {
     global $apbct;
     if ( $apbct->data['cookies_type'] === 'none' ) {
