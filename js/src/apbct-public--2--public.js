@@ -320,6 +320,12 @@ apbct_attach_event_handler(window, "DOMContentLoaded", apbct_ready);
 
 function apbctAjaxEmailDecode(event, baseElement){
 	const element = event.target;
+	const javascriptClientData = getJavascriptClientData();
+	let data = {
+		event_javascript_data: javascriptClientData,
+		post_url: document.location.href,
+		referrer: document.referrer,
+	};
 
 	if (typeof baseElement.href !== 'undefined' && baseElement.href.indexOf('mailto:') === 0) {
 		event.preventDefault();
@@ -329,30 +335,28 @@ function apbctAjaxEmailDecode(event, baseElement){
 
 		// Adding a tooltip
 		jQuery(element).append(
-			'<div class="apbct-tooltip">\n' +
-			'<div class="apbct-tooltip--text"></div>\n' +
-			'<div class="apbct-tooltip--arrow"></div>\n' +
+			'<div class="apbct-tooltip">' +
+			'<div class="apbct-tooltip--text"></div>' +
+			'<div class="apbct-tooltip--arrow"></div>' +
 			'</div>'
 		);
 		ctShowDecodeComment(element, ctPublicFunctions.text__wait_for_decoding);
 	}
 
-	const javascriptClientData = getJavascriptClientData();
 	let encodedEmail = event.target.dataset.originalString;
-	
+
 	if (typeof baseElement.href !== 'undefined' && baseElement.href.indexOf('mailto:') === 0) {
 		encodedEmail = baseElement.dataset.originalString;
 	}
+
+	data.encodedEmail = encodedEmail;
 
 	// Using REST API handler
 	if( ctPublicFunctions.data__ajax_type === 'rest' ){
 		apbct_public_sendREST(
 			'apbct_decode_email',
 			{
-				data: {
-					encodedEmail,
-					event_javascript_data:    javascriptClientData,
-				},
+				data: data,
 				method: 'POST',
 				callback: function (result) {
 					if (result.success) {
@@ -363,7 +367,9 @@ function apbctAjaxEmailDecode(event, baseElement){
 							baseElement.href = 'mailto:' + result.data.decoded_email;
 							baseElement.click();
 						} else {
-							ctProcessDecodedDataResult(result.data, event.target);
+							setTimeout(function(){
+								ctProcessDecodedDataResult(result.data, event.target);
+							}, 3000);
 						}
 					}
 					setTimeout(function () {
@@ -374,14 +380,12 @@ function apbctAjaxEmailDecode(event, baseElement){
 				},
 			}
 		);
-		// Using AJAX request and handler
+
+	// Using AJAX request and handler
 	}else{
+		data.action = 'apbct_decode_email';
 		apbct_public_sendAJAX(
-			{
-				action: 'apbct_decode_email',
-				encodedEmail,
-				event_javascript_data:    javascriptClientData,
-			},
+			data,
 			{
 				notJson: true,
 				callback: function (result) {
@@ -393,7 +397,9 @@ function apbctAjaxEmailDecode(event, baseElement){
 							baseElement.href = 'mailto:' + result.data.decoded_email;
 							baseElement.click();
 						} else {
-							ctProcessDecodedDataResult(result.data, event.target);
+							setTimeout(function(){
+								ctProcessDecodedDataResult(result.data, event.target);
+							}, 3000);
 						}
 					}
 					setTimeout(function () {
@@ -490,15 +496,29 @@ function ctProcessDecodedDataResult(response, targetElement) {
 }
 
 function ctFillDecodedEmail(target, email){
-	let tooltip = jQuery(target).children('.apbct-tooltip');
-    jQuery(target).html(email)
-				  .append(tooltip);
+    jQuery(target).html(
+		jQuery(target)
+			.html()
+			.replace(/.+?(<div class=["']apbct-tooltip["'].+?<\/div>)/, email + "$1")
+	);
 }
 
 function ctShowDecodeComment(target, comment){
-	jQuery(target).find('.apbct-tooltip')
-		.show()
-		.find('.apbct-tooltip--text').html(comment);
+
+	if( ! comment ){
+		return;
+	}
+
+	jQuery(target)
+		.find('.apbct-tooltip')
+		.fadeIn(300)
+		.find('.apbct-tooltip--text')
+		.html(comment)
+	setTimeout(function(){
+		jQuery(target)
+			.find('.apbct-tooltip')
+			.fadeOut(700);
+	}, 5000);
 }
 
 function apbct_collect_visible_fields( form ) {

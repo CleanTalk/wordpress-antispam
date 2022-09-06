@@ -1342,7 +1342,7 @@ function apbct_enqueue_and_localize_public_scripts()
         '_rest_url'                            => Escape::escUrl(apbct_get_rest_url()),
         'data__cookies_type'                   => $apbct->data['cookies_type'],
         'data__ajax_type'                      => $apbct->data['ajax_type'],
-        'text__wait_for_decoding'              => esc_html__('Anti-spam by CleanTalk: Decoding contact data...', 'cleantalk-spam-protect'),
+        'text__wait_for_decoding'              => esc_html__('Decoding the contact data, let us a few seconds to finish. Anti-Spam by CleanTalk.', 'cleantalk-spam-protect'),
         'cookiePrefix'                         => apbct__get_cookie_prefix(),
     ));
 
