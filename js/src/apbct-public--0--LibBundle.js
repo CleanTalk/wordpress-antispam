@@ -447,12 +447,51 @@ class ApbctCore{
         }
     }
 
-    append(){
+    append(content){
         for(let elem of this.elements){
             elem.append(content);
         }
     }
 
+    /**  ANIMATION  **/
+    fadeIn(time) {
+        for(let elem of this.elements){
+            elem.style.opacity = 0;
+            elem.style.display = 'block';
+
+            let last = +new Date();
+            const tick = function () {
+                elem.style.opacity = +elem.style.opacity + (new Date() - last) / time;
+                last = +new Date();
+
+                if (+elem.style.opacity < 1) {
+                    (window.requestAnimationFrame && requestAnimationFrame(tick)) || setTimeout(tick, 16);
+                }
+            };
+
+            tick();
+        }
+    }
+
+    fadeOut(time) {
+        for(let elem of this.elements){
+            elem.style.opacity = 1;
+
+            let last = +new Date();
+            const tick = function () {
+                elem.style.opacity = +elem.style.opacity - (new Date() - last) / time;
+                last = +new Date();
+
+                if (+elem.style.opacity > 0) {
+                    (window.requestAnimationFrame && requestAnimationFrame(tick)) || setTimeout(tick, 16);
+                } else {
+                    elem.style.display = 'none';
+                }
+            };
+
+            tick();
+        }
+    }
 
 }
 
