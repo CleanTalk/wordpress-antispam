@@ -52,6 +52,11 @@ class EmailEncoder
             return;
         }
 
+        // Excluded request
+        if ($this->isExcludedRequest()) {
+            return;
+        }
+
         //list of encoding exclusions signs
         $this->encoding_exclusions_signs = array(
             //divi contact forms additional emails
@@ -320,6 +325,23 @@ class EmailEncoder
             }
         }
         //no signs found
+        return false;
+    }
+
+    /**
+     * Excluded requests
+     */
+    private function isExcludedRequest()
+    {
+        if (
+            apbct_is_plugin_active('ultimate-member/ultimate-member.php') &&
+            isset($_POST['um_request']) &&
+            strtoupper($_SERVER['REQUEST_METHOD']) === 'POST' &&
+            empty(Post::get('encodedEmail'))
+        ) {
+            return true;
+        }
+
         return false;
     }
 }
