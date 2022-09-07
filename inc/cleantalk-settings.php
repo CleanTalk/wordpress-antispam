@@ -1226,31 +1226,31 @@ function apbct_settings__error__output($return = false)
 
         $error_texts = array(
             // Misc
-            'key_invalid'       => __('Error occurred while Access key validating. Error: ', 'cleantalk-spam-protect'),
+            'key_invalid'       => __('Error occurred while Access key validating. ', 'cleantalk-spam-protect'),
             'key_get'           => __(
-                'Error occurred while automatically get Access key. Error: ',
+                'Error occurred while automatically get Access key. ',
                 'cleantalk-spam-protect'
             ),
             'sfw_send_logs'     => __(
-                'Error occurred while sending SpamFireWall logs. Error: ',
+                'Error occurred while sending SpamFireWall logs. ',
                 'cleantalk-spam-protect'
             ),
             'sfw_update'        => __(
-                'Error occurred while updating SpamFireWall local base. Error: ',
+                'Error occurred while updating SpamFireWall local base. ',
                 'cleantalk-spam-protect'
             ),
             'ua_update'         => __(
-                'Error occurred while updating User-Agents local base. Error: ',
+                'Error occurred while updating User-Agents local base. ',
                 'cleantalk-spam-protect'
             ),
             'account_check'     => __(
-                'Error occurred while checking account status. Error: ',
+                'Error occurred while checking account status. ',
                 'cleantalk-spam-protect'
             ),
-            'api'               => __('Error occurred while executing API call. Error: ', 'cleantalk-spam-protect'),
-            'cron'              => __('Error occurred while executing CleanTalk Cron job. Error: ', 'cleantalk-spam-protect'),
+            'api'               => __('Error occurred while executing API call. ', 'cleantalk-spam-protect'),
+            'cron'              => __('Error occurred while executing CleanTalk Cron job. ', 'cleantalk-spam-protect'),
             'sfw_outdated'        => __(
-                'Error occurred on last SpamFireWall check. Error: ',
+                'Error occurred on last SpamFireWall check. ',
                 'cleantalk-spam-protect'
             ),
 
@@ -1280,10 +1280,10 @@ function apbct_settings__error__output($return = false)
 
                         $errors_out[$sub_type] = '';
                         if ( isset($sub_error['error_time']) ) {
-                            $errors_out[$sub_type] .= date('Y-m-d H:i:s', $sub_error['error_time']) . ': ';
+                            $errors_out[$sub_type] .= date('M d Y H:i:s', $sub_error['error_time']) . ': ';
                         }
                         $errors_out[$sub_type] .= (isset($error_texts[$type]) ? $error_texts[$type] : ucfirst($type)) . ': ';
-                        $errors_out[$sub_type] .= (isset($error_texts[$sub_type]) ? $error_texts[$sub_type] : ( $error_texts['unknown'] . $sub_type . ' ' . __('Error: ', 'cleantalk-spam-protect') ) . ' ' . $sub_error['error'] );
+                        $errors_out[$sub_type] .= (isset($error_texts[$sub_type]) ? $error_texts[$sub_type] : ( $error_texts['unknown'] . $sub_type . ' ' ) . ' ' . $sub_error['error'] );
                     }
                 }
 
@@ -1303,7 +1303,7 @@ function apbct_settings__error__output($return = false)
                 $errors_out[$type] = '';
 
                 if ( isset($error['error_time']) ) {
-                    $errors_out[$type] .= date('Y-m-d H:i:s', $error['error_time']) . ': ';
+                    $errors_out[$type] .= date('M d Y H:i:s', $error['error_time']) . ': ';
                 }
 
                 $errors_out[$type] .= (isset($error_texts[$type]) ? $error_texts[$type] : $error_texts['unknown']) . ' ' . (isset($error['error']) ? $error['error'] : '');
@@ -1312,7 +1312,7 @@ function apbct_settings__error__output($return = false)
 
         if ( ! empty($errors_out) ) {
             $out .= '<div id="apbctTopWarning" class="notice" style="position: relative;">'
-                    . '<h3 style="display: inline-block;">' . __('Notifications.', 'cleantalk-spam-protect') . '</h3>';
+                    . '<h3 style="display: inline-block;">' . __('Notifications', 'cleantalk-spam-protect') . '</h3>';
             foreach ( $errors_out as $key => $value ) {
                 switch ($key) {
                     case 'sfw_outdated': $icon = '<span class="dashicons dashicons-update" style="color: steelblue;"></span>'; break;
