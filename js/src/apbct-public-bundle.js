@@ -2190,27 +2190,24 @@ function ct_check_internal(currForm){
     }
     ct_data['action'] = 'ct_check_internal';
 
-//AJAX Request
-    jQuery.ajax({
-        type: 'POST',
-        url: ctPublicFunctions._ajax_url,
-        datatype : 'text',
-        data: ct_data,
-        success: function(data){
-            if(data == 'true'){
-                currForm.submit();
-            }else{
-                alert(data);
-                return false;
+    //AJAX Request
+    apbct_public_sendAJAX(
+        ct_data,
+        {
+            url: ctPublicFunctions._ajax_url,
+            callback: function (data) {
+                if(data == 'true'){
+                    currForm.submit();
+                }else{
+                    alert(data);
+                    return false;
+                }
             }
-        },
-        error: function(){
-            currForm.submit();
         }
-    });        
+    );
 }
-    
-jQuery(document).ready( function(){
+
+document.addEventListener('DOMContentLoaded',function(){
     let ct_currAction = '',
         ct_currForm = '';
 
@@ -2228,10 +2225,12 @@ jQuery(document).ready( function(){
                 ! ct_check_internal__is_exclude_form(ct_currAction)                  // Exclude WordPress native scripts from processing
             ) {
                 ctPrevHandler = ct_currForm.click;
-                jQuery(ct_currForm).off('**');
-                jQuery(ct_currForm).off();
-                jQuery(ct_currForm).on('submit', function(event){
-                    ct_check_internal(event.target);
+                if ( typeof jQuery !== 'undefined' ) {
+                    jQuery(ct_currForm).off('**');
+                    jQuery(ct_currForm).off();
+                }
+                apbct(ct_currForm).on('submit', function(event){
+                    ct_check_internal('submit changed');
                     return false;
                 });
             }
