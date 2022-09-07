@@ -106,7 +106,12 @@ function ctSetPixelImg(pixelUrl) {
 	ctSetCookie('apbct_pixel_url', pixelUrl);
 	if( +ctPublic.pixel__enabled ){
 		if( ! document.getElementById('apbct_pixel') ) {
-			jQuery('body').append( '<img alt="Cleantalk Pixel" id="apbct_pixel" style="display: none; left: 99999px;" src="' + pixelUrl + '">' );
+			let insertedImg = document.createElement('img');
+			insertedImg.setAttribute('alt', 'CleanTalk Pixel');
+			insertedImg.setAttribute('id', 'apbct_pixel');
+			insertedImg.setAttribute('style', 'display: none; left: 99999px;');
+			insertedImg.setAttribute('src', pixelUrl);
+			apbct('body').append(insertedImg);
 		}
 	}
 }
@@ -229,7 +234,7 @@ function apbct_ready(){
 
 	if ( +ctPublic.data__email_check_before_post) {
 		initCookies.push(['ct_checked_emails', '0']);
-		jQuery("input[type = 'email'], #email").blur(checkEmail);
+		apbct("input[type = 'email'], #email").on('blur', checkEmail);
 	}
 
 	if (apbctLocalStorage.isSet('ct_checkjs')) {
@@ -334,12 +339,15 @@ function apbctAjaxEmailDecode(event, baseElement){
 		element.style.cursor = 'progress';
 
 		// Adding a tooltip
-		jQuery(element).append(
-			'<div class="apbct-tooltip">' +
-			'<div class="apbct-tooltip--text"></div>' +
-			'<div class="apbct-tooltip--arrow"></div>' +
-			'</div>'
-		);
+		let apbctTooltip = document.createElement('div');
+		apbctTooltip.setAttribute('class', 'apbct-tooltip');
+		let apbctTooltipText = document.createElement('div');
+		apbctTooltipText.setAttribute('class', 'apbct-tooltip--text');
+		let apbctTooltipArrow = document.createElement('div');
+		apbctTooltipArrow.setAttribute('class', 'apbct-tooltip--arrow');
+		apbct(element).append(apbctTooltip);
+		apbct(apbctTooltip).append(apbctTooltipText);
+		apbct(apbctTooltip).append(apbctTooltipArrow);
 		ctShowDecodeComment(element, ctPublicFunctions.text__wait_for_decoding);
 	}
 
@@ -373,9 +381,7 @@ function apbctAjaxEmailDecode(event, baseElement){
 						}
 					}
 					setTimeout(function () {
-						jQuery(element)
-							.children('.apbct-tooltip')
-							.fadeOut(700);
+						apbct(element.getElementsByClassName('apbct-tooltip')).fadeOut(700);
 					}, 4000);
 				},
 			}
@@ -403,9 +409,7 @@ function apbctAjaxEmailDecode(event, baseElement){
 						}
 					}
 					setTimeout(function () {
-						jQuery(element)
-							.children('.apbct-tooltip')
-							.fadeOut(700);
+						apbct(element.getElementsByClassName('apbct-tooltip')).fadeOut(700);
 					}, 4000);
 				},
 			}
@@ -496,8 +500,8 @@ function ctProcessDecodedDataResult(response, targetElement) {
 }
 
 function ctFillDecodedEmail(target, email){
-    jQuery(target).html(
-		jQuery(target)
+	apbct(target).html(
+		apbct(target)
 			.html()
 			.replace(/.+?(<div class=["']apbct-tooltip["'].+?<\/div>)/, email + "$1")
 	);
@@ -509,15 +513,10 @@ function ctShowDecodeComment(target, comment){
 		return;
 	}
 
-	jQuery(target)
-		.find('.apbct-tooltip')
-		.fadeIn(300)
-		.find('.apbct-tooltip--text')
-		.html(comment)
+	apbct(target.getElementsByClassName('apbct-tooltip')).fadeIn(300);
+	apbct(target.getElementsByClassName('apbct-tooltip--text')).html(comment);
 	setTimeout(function(){
-		jQuery(target)
-			.find('.apbct-tooltip')
-			.fadeOut(700);
+		apbct(target.getElementsByClassName('apbct-tooltip')).fadeOut(700);
 	}, 5000);
 }
 
