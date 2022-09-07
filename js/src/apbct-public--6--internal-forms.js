@@ -17,10 +17,10 @@ function ct_check_internal(currForm){
         {
             url: ctPublicFunctions._ajax_url,
             callback: function (data) {
-                if(data == 'true'){
+                if(data.success === true){
                     currForm.submit();
                 }else{
-                    alert(data);
+                    alert(data.data);
                     return false;
                 }
             }
@@ -49,11 +49,11 @@ document.addEventListener('DOMContentLoaded',function(){
                 if ( typeof jQuery !== 'undefined' ) {
                     jQuery(ct_currForm).off('**');
                     jQuery(ct_currForm).off();
+                    jQuery(ct_currForm).on('submit', function(event){
+                        ct_check_internal(event.target);
+                        return false;
+                    });
                 }
-                apbct(ct_currForm).on('submit', function(event){
-                    ct_check_internal('submit changed');
-                    return false;
-                });
             }
 		}
 	}

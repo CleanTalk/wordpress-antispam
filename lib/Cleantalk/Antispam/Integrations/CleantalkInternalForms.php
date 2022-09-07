@@ -20,7 +20,7 @@ class CleantalkInternalForms extends IntegrationBase
 
     public function doBlock($message)
     {
-        echo wp_kses(
+        wp_send_json_error( wp_kses(
             $message,
             array(
                 'a' => array(
@@ -30,13 +30,11 @@ class CleantalkInternalForms extends IntegrationBase
                 'br'     => array(),
                 'p'     => array()
             )
-        );
-        die();
+        ) );
     }
 
     public function allow()
     {
-        echo 'true';
-        die();
+        wp_send_json_success();
     }
 }
