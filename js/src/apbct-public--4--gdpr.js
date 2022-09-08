@@ -1,4 +1,4 @@
-jQuery(document).ready(function(){
+document.addEventListener('DOMContentLoaded', function(){
 
 	if(
 		typeof ctPublicGDPR === 'undefined' ||
@@ -6,11 +6,15 @@ jQuery(document).ready(function(){
 	) {
 		return;
 	}
-	
+
+	if ( typeof jQuery === 'undefined' ) {
+		return;
+	}
+
 	ctPublicGDPR.gdpr_forms.forEach(function(item, i, arr){
-		
+
 		var elem = jQuery('#'+item+', .'+item);
-		
+
 		// Filter forms
 		if(!elem.is('form')){
 			// Caldera
@@ -26,12 +30,12 @@ jQuery(document).ready(function(){
 			else if(jQuery('.wpforms-form')[0] && jQuery('.wpforms-form').first().attr('id').indexOf('wpforms-form-'+item) !== -1)
 				elem = jQuery('.wpforms-form');
 		}
-		
+
 		// Adding notice
 		if(elem.is('form') || elem.attr('role') === 'form'){
 			elem.append('<input id="apbct_gdpr_'+i+'" type="checkbox" required="required " style="display: inline; margin-right: 10px;">')
 				.append('<label style="display: inline;" for="apbct_gdpr_'+i+'">'+ctPublicGDPR.gdpr_text+'</label>');
 		}
 	});
-	
+
 });

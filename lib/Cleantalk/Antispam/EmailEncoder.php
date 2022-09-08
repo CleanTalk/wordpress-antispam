@@ -52,6 +52,11 @@ class EmailEncoder
             return;
         }
 
+        // Excluded request
+        if ($this->isExcludedRequest()) {
+            return;
+        }
+
         //list of encoding exclusions signs
         $this->encoding_exclusions_signs = array(
             //divi contact forms additional emails
@@ -287,7 +292,7 @@ class EmailEncoder
      */
     private function getTooltip()
     {
-        return esc_html__('This contact was encoded by CleanTalk. Click to decode.', 'cleantalk-spam-protect');
+        return esc_html__('This contact has been encoded by CleanTalk. Click to decode. To finish the decoding make sure that JavaScript is enabled in your browser.', 'cleantalk-spam-protect');
     }
 
     /**
@@ -320,6 +325,23 @@ class EmailEncoder
             }
         }
         //no signs found
+        return false;
+    }
+
+    /**
+     * Excluded requests
+     */
+    private function isExcludedRequest()
+    {
+        if (
+            apbct_is_plugin_active('ultimate-member/ultimate-member.php') &&
+            isset($_POST['um_request']) &&
+            strtoupper($_SERVER['REQUEST_METHOD']) === 'POST' &&
+            empty(Post::get('encodedEmail'))
+        ) {
+            return true;
+        }
+
         return false;
     }
 }

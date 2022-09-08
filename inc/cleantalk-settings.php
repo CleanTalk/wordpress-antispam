@@ -1135,12 +1135,6 @@ function apbct_settings__display()
     settings_fields('cleantalk_settings');
     do_settings_fields('cleantalk', 'cleantalk_section_settings_main');
 
-    // Disabled save button if the Access key empty
-    $disabled = '';
-    if (! $apbct->key_is_ok) {
-        $disabled = 'disabled';
-    }
-
     $hidden_groups = '<ul>';
     foreach ( $apbct->settings_fields_in_groups as $group_name => $group ) {
         if ( isset($group['section']) && $group['section'] === 'hidden_section' ) {
@@ -1148,7 +1142,7 @@ function apbct_settings__display()
         }
     }
     $hidden_groups .= '</ul>';
-    $hidden_groups .= '<div id="apbct_settings__button_section"><button name="submit" class="cleantalk_link cleantalk_link-manual" value="save_changes" ' . $disabled . '>'
+    $hidden_groups .= '<div id="apbct_settings__button_section"><button name="submit" class="cleantalk_link cleantalk_link-manual" value="save_changes">'
                            . __('Save Changes')
                            . '</button></div>';
 
@@ -1174,7 +1168,7 @@ function apbct_settings__display()
 
     echo '<div id="apbct_settings__after_advanced_settings"></div>';
 
-    echo '<button id="apbct_settings__main_save_button" name="submit" class="cleantalk_link cleantalk_link-manual" value="save_changes" ' . Escape::escHtml($disabled) . '>'
+    echo '<button id="apbct_settings__main_save_button" name="submit" class="cleantalk_link cleantalk_link-manual" value="save_changes">'
          . __('Save Changes')
          . '</button>';
     echo '<br>';
@@ -2326,9 +2320,21 @@ function apbct_settings__validate($settings)
                 'service_id'  => $apbct->data['service_id'],
             );
             $apbct->saveNetworkData();
-            if ( isset($settings['multisite__use_settings_template_apply_for_current_list_sites']) && ! empty($settings['multisite__use_settings_template_apply_for_current_list_sites']) ) {
+            if ( isset($settings['multisite__use_settings_template_apply_for_current_list_sites'])
+                && !empty($settings['multisite__use_settings_template_apply_for_current_list_sites']) ) {
+                //remove filter to avoid multiple validation
+                remove_filter('sanitize_option_cleantalk_settings', 'apbct_settings__validate');
                 apbct_update_blogs_options($settings);
             }
+        } else {
+            // compare non-main site blog key with the validating key
+            $blog_settings = get_option('cleantalk_settings');
+            $key_from_blog_settings = !empty($blog_settings['apikey']) ? $blog_settings['apikey'] : '';
+            if ( trim($settings['apikey']) !== trim($key_from_blog_settings) ) {
+                $blog_key_changed = true;
+            }
+            $apbct->data['key_changed'] = empty($blog_key_changed) ? false : $blog_key_changed;
+            $apbct->save('data');
         }
         if ( ! $apbct->white_label && ! is_main_site() && ! $apbct->allow_custom_key ) {
             $settings['apikey'] = '';
