@@ -91,7 +91,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
 
         if ( $this->test ) {
             unset($_COOKIE['ct_sfw_pass_key']);
-            Cookie::set('ct_sfw_pass_key', 0);
+            Cookie::set('ct_sfw_pass_key', '0');
         }
 
         // Skip by cookie

@@ -20,17 +20,19 @@ class CleantalkInternalForms extends IntegrationBase
 
     public function doBlock($message)
     {
-        wp_send_json_error( wp_kses(
-            $message,
-            array(
-                'a' => array(
-                    'href'  => true,
-                    'title' => true,
-                ),
-                'br'     => array(),
-                'p'     => array()
+        wp_send_json_error(
+            wp_kses(
+                $message,
+                array(
+                    'a' => array(
+                        'href'  => true,
+                        'title' => true,
+                    ),
+                    'br'     => array(),
+                    'p'     => array()
+                )
             )
-        ) );
+        );
     }
 
     public function allow()
