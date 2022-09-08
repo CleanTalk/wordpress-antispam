@@ -82,7 +82,7 @@ jQuery('.ct_comment_info').parents().each(function() {
 				console.log(textStatus);
 				console.log(errorThrown);
 			},
-			timeout: 5000
+			timeout: 15000
 		});
 	});
 	
