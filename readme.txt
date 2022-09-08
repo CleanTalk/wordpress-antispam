@@ -621,6 +621,9 @@ If your website has forms that send data to external sources, you can enable opt
 * Fix. HTML5. Remove "text/javascript" in tag script.
 * Fix: Excluded email encoding on UltimateMember validation request
 * Fix. Code. JS refactored to be free of jquery
+* Fix. Internal forms. Some logic fixed.
+* Fix. External forms. Some logic fixed.
+* Fix. Admin. FeedBack sending timeout increased up to 15 sec.
 
 = 5.183 Aug 18 2022 =
 ##### Checking for bot while email encoder decode, negative reports improved, some integrations fixed and some minor issues fixed.
