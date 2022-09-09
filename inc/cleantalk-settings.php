@@ -240,7 +240,7 @@ function apbct_settings__set_fields()
                 'forms__check_external__capture_buffer' => array(
                     'title'       => __('Capture buffer', 'cleantalk-spam-protect'),
                     'description' => __(
-                        'This setting gives you more sophisticated and strengthened protection for external forms. But it could break plugins which use a buffer like Ninja Forms.',
+                        'This option provides more sophisticated and enhanced protection for external forms. However, it can break other plugins that use the webserver buffer like Ninja Forms, and moreover, it can also cause issues with cache plugins.',
                         'cleantalk-spam-protect'
                     ),
                     'class'       => 'apbct_settings-field_wrapper--sub',
