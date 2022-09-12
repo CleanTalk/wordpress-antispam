@@ -56,7 +56,7 @@ class AdminNotices
         global $apbct;
         $this->apbct             = $apbct;
         $this->is_cleantalk_page = Get::get('page') &&
-                                   in_array((array)Get::get('page'), array('cleantalk', 'ct_check_spam', 'ct_check_users'));
+                                   in_array(Get::get('page'), array('cleantalk', 'ct_check_spam', 'ct_check_users'));
         $this->user_token        = $this->apbct->user_token ? '&user_token=' . $this->apbct->user_token : '';
 
         $self_owned_key = $this->apbct->moderate_ip == 0 && ! defined('CLEANTALK_ACCESS_KEY');
