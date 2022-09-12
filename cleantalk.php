@@ -228,6 +228,7 @@ if ( ! is_admin() && ! apbct_is_ajax() && ! defined('DOING_CRON')
      && empty(Post::get('ct_checkjs_register_form')) // Buddy press registration fix
      && empty(Get::get('ct_checkjs_search_default')) // Search form fix
      && empty(Post::get('action')) //bbPress
+     && \Cleantalk\Variables\Server::inUri('/favicon.ico') // /favicon request rewritten cookies fix
 ) {
     if ( $apbct->data['cookies_type'] !== 'alternative' ) {
         add_action('template_redirect', 'apbct_cookie', 2);
