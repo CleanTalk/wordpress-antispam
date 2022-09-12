@@ -559,6 +559,7 @@ class ApbctXhr{
     progressbar = null; // Progress bar for the current request
     context     = this; // Context
     callback    = null;
+    onErrorCallback = null;
 
     responseType = 'json'; // Expected data type from server
     headers      = {};
@@ -691,8 +692,8 @@ class ApbctXhr{
             this.#status_text
         );
 
-        if (this.on_error !== null && typeof this.on_error === 'function'){
-            this.on_error();
+        if (this.onErrorCallback !== null && typeof this.onErrorCallback === 'function'){
+            this.onErrorCallback(this.#status_text);
         }
     }
 
@@ -703,8 +704,8 @@ class ApbctXhr{
             'timeout'
         );
 
-        if (this.on_error !== null && typeof this.on_error === 'function'){
-            this.on_error();
+        if (this.onErrorCallback !== null && typeof this.onErrorCallback === 'function'){
+            this.onErrorCallback('Timeout');
         }
     }
 
@@ -944,6 +945,7 @@ function apbct_public_sendAJAX(data, params, obj){
     // Default params
     let _params            = [];
     _params["callback"]    = params.callback    || null;
+    _params["onErrorCallback"] = params.onErrorCallback    || null;
     _params["callback_context"] = params.callback_context || null;
     _params["callback_params"] = params.callback_params || null;
     _params["async"]        = params.async || true;
@@ -977,6 +979,7 @@ function apbct_public_sendREST( route, params ) {
     let _params         = [];
     _params["route"]    = route;
     _params["callback"] = params.callback || null;
+    _params["onErrorCallback"] = params.onErrorCallback    || null;
     _params["data"]     = params.data     || [];
     _params["method"]   = params.method   || 'POST';
 
@@ -1337,14 +1340,16 @@ function apbct_ready(){
 				// Skip listening click on hyperlinks
 				continue;
 			}
-			decodedEmailNodes[i].addEventListener('click', function ctFillDecodedEmailHandler(event) {
-				this.removeEventListener('click', ctFillDecodedEmailHandler);
-				apbctAjaxEmailDecode(event, this);
-			});
+			decodedEmailNodes[i].addEventListener('click', ctFillDecodedEmailHandler);
 		}
 	}
 }
 apbct_attach_event_handler(window, "DOMContentLoaded", apbct_ready);
+
+function ctFillDecodedEmailHandler(event) {
+	this.removeEventListener('click', ctFillDecodedEmailHandler);
+	apbctAjaxEmailDecode(event, this);
+}
 
 function apbctAjaxEmailDecode(event, baseElement){
 	const element = event.target;
@@ -1407,6 +1412,11 @@ function apbctAjaxEmailDecode(event, baseElement){
 						apbct(element.getElementsByClassName('apbct-tooltip')).fadeOut(700);
 					}, 4000);
 				},
+				onErrorCallback: function (res) {
+					element.addEventListener('click', ctFillDecodedEmailHandler);
+					element.removeAttribute('style');
+					ctShowDecodeComment(element, 'Error occurred: ' + res);
+				},
 			}
 		);
 
@@ -1434,6 +1444,11 @@ function apbctAjaxEmailDecode(event, baseElement){
 					setTimeout(function () {
 						apbct(element.getElementsByClassName('apbct-tooltip')).fadeOut(700);
 					}, 4000);
+				},
+				onErrorCallback: function (res) {
+					element.addEventListener('click', ctFillDecodedEmailHandler);
+					element.removeAttribute('style');
+					ctShowDecodeComment(element, 'Error occurred: ' + res);
 				},
 			}
 		);

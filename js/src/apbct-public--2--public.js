@@ -314,14 +314,16 @@ function apbct_ready(){
 				// Skip listening click on hyperlinks
 				continue;
 			}
-			decodedEmailNodes[i].addEventListener('click', function ctFillDecodedEmailHandler(event) {
-				this.removeEventListener('click', ctFillDecodedEmailHandler);
-				apbctAjaxEmailDecode(event, this);
-			});
+			decodedEmailNodes[i].addEventListener('click', ctFillDecodedEmailHandler);
 		}
 	}
 }
 apbct_attach_event_handler(window, "DOMContentLoaded", apbct_ready);
+
+function ctFillDecodedEmailHandler(event) {
+	this.removeEventListener('click', ctFillDecodedEmailHandler);
+	apbctAjaxEmailDecode(event, this);
+}
 
 function apbctAjaxEmailDecode(event, baseElement){
 	const element = event.target;
@@ -384,6 +386,11 @@ function apbctAjaxEmailDecode(event, baseElement){
 						apbct(element.getElementsByClassName('apbct-tooltip')).fadeOut(700);
 					}, 4000);
 				},
+				onErrorCallback: function (res) {
+					element.addEventListener('click', ctFillDecodedEmailHandler);
+					element.removeAttribute('style');
+					ctShowDecodeComment(element, 'Error occurred: ' + res);
+				},
 			}
 		);
 
@@ -411,6 +418,11 @@ function apbctAjaxEmailDecode(event, baseElement){
 					setTimeout(function () {
 						apbct(element.getElementsByClassName('apbct-tooltip')).fadeOut(700);
 					}, 4000);
+				},
+				onErrorCallback: function (res) {
+					element.addEventListener('click', ctFillDecodedEmailHandler);
+					element.removeAttribute('style');
+					ctShowDecodeComment(element, 'Error occurred: ' + res);
 				},
 			}
 		);
