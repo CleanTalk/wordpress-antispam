@@ -1315,9 +1315,14 @@ function apbct_settings__error__output($return = false)
                     . '<h3 style="display: inline-block;">' . __('Notifications', 'cleantalk-spam-protect') . '</h3>';
             foreach ( $errors_out as $key => $value ) {
                 switch ($key) {
-                    case 'sfw_outdated': $icon = '<span class="dashicons dashicons-update" style="color: steelblue;"></span>'; break;
-                    case 'key_invalid' : $icon = '<span class="dashicons dashicons-post-status" style="color: orange;"></span>'; break;
-                    default: $icon = '<span class="dashicons dashicons-hammer" style="color: red;"></span>';
+                    case 'sfw_outdated':
+                        $icon = '<span class="dashicons dashicons-update" style="color: steelblue;"></span>';
+                        break;
+                    case 'key_invalid':
+                        $icon = '<span class="dashicons dashicons-post-status" style="color: orange;"></span>';
+                        break;
+                    default:
+                        $icon = '<span class="dashicons dashicons-hammer" style="color: red;"></span>';
                 }
                 $out .= '<h4>' . $icon . ' ' . Escape::escHtml($value) . '</h4>';
             }
