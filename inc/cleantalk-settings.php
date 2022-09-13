@@ -1311,7 +1311,7 @@ function apbct_settings__error__output($return = false)
         }
 
         if ( ! empty($errors_out) ) {
-            $out .= '<div id="apbctTopWarning" class="notice" style="position: relative;">'
+            $out .= '<div id="apbctTopWarning" class="notice apbct-plugin-errors" style="position: relative;">'
                     . '<h3 style="display: inline-block;">' . __('Notifications', 'cleantalk-spam-protect') . '</h3>';
             foreach ( $errors_out as $key => $value ) {
                 switch ($key) {

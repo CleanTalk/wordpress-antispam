@@ -79,3 +79,8 @@
 .cleantalk-admin_bar--list_wrapper .ab-sub-wrapper ul:last-child{
 	margin-bottom: 5px !important;
 }
+
+.apbct-plugin-errors {
+	margin-left: 0;
+	margin-bottom: 20px;
+}
