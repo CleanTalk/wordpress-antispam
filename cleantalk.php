@@ -1771,6 +1771,15 @@ function apbct_antiflood__clear_table()
         $anti_flood->setDb(DB::getInstance());
         $anti_flood->clearTable();
         unset($anti_flood);
+
+        // Clear table APBCT_TBL_AC_LOG once a day
+        $anticrawler = new AntiCrawler(
+            APBCT_TBL_FIREWALL_LOG,
+            APBCT_TBL_AC_LOG
+        );
+        $anticrawler->setDb(DB::getInstance());
+        $anticrawler->clearTable();
+        unset($anticrawler);
     }
 }
 

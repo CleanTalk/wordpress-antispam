@@ -23,7 +23,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
     private $db__table__ac_ua_bl;
     private $api_key = '';
     private $apbct;
-    private $store_interval = 60;
+    private $store_interval = 86400;
     private $sign; //Signature - User-Agent + Protocol
     private $ua_id = 'null'; //User-Agent
 
@@ -579,5 +579,22 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
     private function isCloudflare()
     {
         return Server::get('HTTP_CF_RAY') && Server::get('HTTP_CF_CONNECTING_IP') && Server::get('HTTP_CF_REQUEST_ID');
+    }
+
+    /**
+     * Clear table APBCT_TBL_AC_LOG
+     * once a day
+     */
+    public function clearTable()
+    {
+        $interval_start = \Cleantalk\ApbctWP\Helper::timeGetIntervalStart($this->store_interval);
+
+        $this->db->execute(
+            'DELETE
+				FROM ' . $this->db__table__ac_logs . '
+				WHERE interval_start < ' . $interval_start . ' 
+				AND ua <> ""
+				LIMIT 100000;'
+        );
     }
 }
