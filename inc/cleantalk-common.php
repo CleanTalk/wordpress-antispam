@@ -537,6 +537,21 @@ function apbct_get_sender_info()
 
     $visible_fields = apbct_visible_fields__process($visible_fields_collection);
 
+    // preparation of some parameters when cookies are disabled and data is received from localStorage
+    $param_email_check = Cookie::get('ct_checked_emails') ? json_encode(
+        Cookie::get('ct_checked_emails')
+    ) : null;
+    $param_mouse_cursor_positions = Cookie::get('ct_pointer_data');
+    $param_pixel_url = Cookie::get('apbct_pixel_url');
+
+    if ($apbct->data['cookies_type'] === 'none') {
+        $param_email_check = Cookie::get('ct_checked_emails') ? urldecode(
+            Cookie::get('ct_checked_emails')
+        ) : null;
+        $param_mouse_cursor_positions = urldecode(Cookie::get('ct_pointer_data'));
+        $param_pixel_url = urldecode(Cookie::get('apbct_pixel_url'));
+    }
+
     //Let's keep $data_array for debugging
     $data_array = array(
         'plugin_request_id'         => $apbct->plugin_request_id,
@@ -563,7 +578,7 @@ function apbct_get_sender_info()
             ? Cookie::get('apbct_site_landing_ts')
             : null,
         'page_hits'                 => Cookie::get('apbct_page_hits') ?: null,
-        'mouse_cursor_positions'    => urldecode(Cookie::get('ct_pointer_data')),
+        'mouse_cursor_positions'    => $param_mouse_cursor_positions,
         'js_timezone'               => Cookie::get('ct_timezone') ?: null,
         'key_press_timestamp'       => Cookie::get('ct_fkp_timestamp') ?: null,
         'page_set_timestamp'        => Cookie::get('ct_ps_timestamp') ?: null,
@@ -584,7 +599,7 @@ function apbct_get_sender_info()
         'source_url'                => Cookie::get('apbct_urls')
             ? json_encode(json_decode(Cookie::get('apbct_urls'), true))
             : null,
-        'pixel_url'                 => Cookie::get('apbct_pixel_url'),
+        'pixel_url'                 => $param_pixel_url,
         'pixel_setting'             => $apbct->settings['data__pixel'],
         // Debug stuff
         'amp_detected'              => $amp_detected,
@@ -593,9 +608,7 @@ function apbct_get_sender_info()
         'headers_sent__hook'        => !empty($apbct->headers_sent__hook) ? $apbct->headers_sent__hook : 'no_hook',
         'headers_sent__where'       => !empty($apbct->headers_sent__where) ? $apbct->headers_sent__where : false,
         'request_type'              => Server::get('REQUEST_METHOD') ?: 'UNKNOWN',
-        'email_check'               => Cookie::get('ct_checked_emails') ? urldecode(
-            Cookie::get('ct_checked_emails')
-        ) : null,
+        'email_check'               => $param_email_check,
         'screen_info'               => Cookie::get('ct_screen_info')
             ? json_encode(Cookie::get('ct_screen_info'))
             : null,
