@@ -563,7 +563,7 @@ function apbct_get_sender_info()
             ? Cookie::get('apbct_site_landing_ts')
             : null,
         'page_hits'                 => Cookie::get('apbct_page_hits') ?: null,
-        'mouse_cursor_positions'    => Cookie::get('ct_pointer_data'),
+        'mouse_cursor_positions'    => urldecode(Cookie::get('ct_pointer_data')),
         'js_timezone'               => Cookie::get('ct_timezone') ?: null,
         'key_press_timestamp'       => Cookie::get('ct_fkp_timestamp') ?: null,
         'page_set_timestamp'        => Cookie::get('ct_ps_timestamp') ?: null,
