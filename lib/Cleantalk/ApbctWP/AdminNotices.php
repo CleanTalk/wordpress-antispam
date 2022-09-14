@@ -166,7 +166,7 @@ class AdminNotices
             );
             $additional_content =
                 '<h4 style = "color: gray">' .
-                esc_html__('Account status updates every 24 hours.', 'cleantalk-spam-protect') .
+                esc_html__('Account status updates every 24 hours or click Settings -> Anti-Spam by CleanTalk -> Synchronize with Cloud.', 'cleantalk-spam-protect') .
                 '</h4>';
             $id                 = 'cleantalk_' . __FUNCTION__;
             $this->generateNoticeHtml($content, $id, $additional_content);
