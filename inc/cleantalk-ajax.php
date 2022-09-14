@@ -404,7 +404,9 @@ function ct_ajax_hook($message_obj = null)
         'nf_preview_update',
         'nf_save_form',
         // WPUserMeta registration plugin exclusion
-        'pf_ajax_request'
+        'pf_ajax_request',
+        //profilegrid addon
+        'pm_check_user_exist'
     );
 
     global $apbct;
