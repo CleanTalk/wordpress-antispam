@@ -185,7 +185,7 @@ class AdminNotices
             $renew_link  = "<a href=\"https://cleantalk.org/my/bill/recharge?utm_source=wp-backend&utm_medium=cpc&utm_campaign=WP%%20backend%%20renew$this->user_token&cp_mode=antispam\" target=\"_blank\">%s</a>";
             $button_html = sprintf(
                 $renew_link,
-                '<input type="button" class="button button-primary" value="' . __(
+                '<input type="button" class="button button-primary" style="margin-bottom:20px" value="' . __(
                     'RENEW ANTI-SPAM',
                     'cleantalk-spam-protect'
                 ) . '"  />'
@@ -198,7 +198,7 @@ class AdminNotices
             );
             $additional_content =
                 '<h4 style = "color: gray">' .
-                esc_html__('Account status updates every 24 hours.', 'cleantalk-spam-protect') .
+                esc_html__('Account status updates every 24 hours or click Settings -> Anti-Spam by CleanTalk -> Synchronize with Cloud.', 'cleantalk-spam-protect') .
                 '</h4>' .
                 $button_html;
             $id                 = 'cleantalk_' . __FUNCTION__;
