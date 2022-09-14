@@ -593,7 +593,7 @@ function apbct_get_sender_info()
         'headers_sent__hook'        => !empty($apbct->headers_sent__hook) ? $apbct->headers_sent__hook : 'no_hook',
         'headers_sent__where'       => !empty($apbct->headers_sent__where) ? $apbct->headers_sent__where : false,
         'request_type'              => Server::get('REQUEST_METHOD') ?: 'UNKNOWN',
-        'email_check'               => Cookie::get('ct_checked_emails') ? json_encode(
+        'email_check'               => Cookie::get('ct_checked_emails') ? urldecode(
             Cookie::get('ct_checked_emails')
         ) : null,
         'screen_info'               => Cookie::get('ct_screen_info')
