@@ -543,6 +543,9 @@ function apbct_get_sender_info()
     ) : null;
     $param_mouse_cursor_positions = Cookie::get('ct_pointer_data');
     $param_pixel_url = Cookie::get('apbct_pixel_url');
+    $param_screen_info = Cookie::get('ct_screen_info')
+    ? json_encode(Cookie::get('ct_screen_info'))
+    : null;
 
     if ($apbct->data['cookies_type'] === 'none') {
         $param_email_check = Cookie::get('ct_checked_emails') ? urldecode(
@@ -550,6 +553,9 @@ function apbct_get_sender_info()
         ) : null;
         $param_mouse_cursor_positions = urldecode(Cookie::get('ct_pointer_data'));
         $param_pixel_url = urldecode(Cookie::get('apbct_pixel_url'));
+        $param_screen_info = Cookie::get('ct_screen_info')
+            ? urldecode(Cookie::get('ct_screen_info'))
+            : null;
     }
 
     //Let's keep $data_array for debugging
@@ -609,9 +615,7 @@ function apbct_get_sender_info()
         'headers_sent__where'       => !empty($apbct->headers_sent__where) ? $apbct->headers_sent__where : false,
         'request_type'              => Server::get('REQUEST_METHOD') ?: 'UNKNOWN',
         'email_check'               => $param_email_check,
-        'screen_info'               => Cookie::get('ct_screen_info')
-            ? json_encode(Cookie::get('ct_screen_info'))
-            : null,
+        'screen_info'               => $param_screen_info,
         'has_scrolled'              => Cookie::get('ct_has_scrolled')
             ? json_encode(Cookie::get('ct_has_scrolled'))
             : null,
