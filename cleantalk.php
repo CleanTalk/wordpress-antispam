@@ -2439,7 +2439,7 @@ function ct_mail_send_connection_report()
 {
     global $apbct;
 
-    if ( ( isset($apbct->connection_reports['negative']) && $apbct->connection_reports['negative'] > 0 ) || !empty(Get::get('ct_send_connection_report')) ) {
+    if ( ( $apbct->settings['misc__send_connection_reports'] == 1 && isset($apbct->connection_reports['negative']) && $apbct->connection_reports['negative'] > 0 ) || !empty(Get::get('ct_send_connection_report')) ) {
         //skip empty reports for cron job
         $unsent_exist = false;
         foreach ( $apbct->connection_reports['negative_report'] as $_key => $report ) {
