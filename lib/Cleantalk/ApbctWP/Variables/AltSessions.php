@@ -50,22 +50,32 @@ class AltSessions
 
     public static function setFromRemote($request = null)
     {
-        if ( ! $request) {
+        if ( !$request ) {
             $cookies_to_set = (array)Post::get('cookies');
         } else {
             $cookies_to_set = $request->get_param('cookies');
         }
 
+        //hanlde php8+ JSON throws
         try {
-            $cookies_array = json_decode($cookies_to_set,true);
-        } catch (Exception $e){
+            $cookies_array = json_decode($cookies_to_set, true);
+        } catch ( \Exception $e ) {
+            $cookies_array = array();
+            unset($e);
+            wp_send_json(array(
+                'success' => false,
+                'error' => 'AltSessions: Internal JSON error:' . json_last_error_msg()));
+        }
+
+        //other versions json errors if json_decode returns null
+        if ( is_null($cookies_array) ) {
             $cookies_array = array();
             wp_send_json(array(
                 'success' => false,
-                'error' => 'AltSessions: Internal JSON error:' . json_last_error_msg() ));
+                'error' => 'AltSessions: Internal JSON error:' . json_last_error_msg()));
         }
 
-        foreach ($cookies_array as $cookie_to_set=>$value) {
+        foreach ( $cookies_array as $cookie_to_set => $value ) {
             Cookie::set($cookie_to_set, $value);
         }
 
