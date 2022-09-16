@@ -36,7 +36,7 @@ class RestController extends \WP_REST_Controller
                 'callback'            => array(AltSessions::class, 'setFromRemote'),
                 'args'                => array(
                     'cookies' => array(
-                        'type'     => 'array',
+                        'type'     => 'string',
                         'required' => true,
                     ),
                 ),
