@@ -417,7 +417,7 @@ function apbctAjaxEmailDecode(event, baseElement){
 	}
 }
 
-function getJavascriptClientData() {
+function getJavascriptClientData(common_cookies = []) {
 	let resultDataJson = {};
 
 	resultDataJson.apbct_headless = ctGetCookie(ctPublicFunctions.cookiePrefix + 'apbct_headless');
@@ -443,6 +443,17 @@ function getJavascriptClientData() {
 	resultDataJson.ct_mouse_moved = ctMouseMovedLocalStorage !== undefined ? ctMouseMovedLocalStorage : ctMouseMovedCookie;
 	resultDataJson.ct_has_scrolled = ctHasScrolledLocalStorage !== undefined ? ctHasScrolledLocalStorage : ctHasScrolledCookie;
 	resultDataJson.ct_cookies_type = ctCookiesTypeLocalStorage !== undefined ? ctCookiesTypeLocalStorage : ctCookiesTypeCookie;
+
+	if (
+		typeof (common_cookies) === "object"
+		&& common_cookies !== []
+	){
+		for (let i = 0; i < common_cookies.length; ++i){
+			resultDataJson[common_cookies[i][0]] = common_cookies[i][1]
+		}
+	} else {
+		console.log('APBCT JS ERROR: Collecting data type mismatch')
+	}
 
 	// Parse JSON properties to prevent double JSON encoding
 	resultDataJson = removeDoubleJsonEncoding(resultDataJson);

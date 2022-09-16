@@ -56,8 +56,17 @@ class AltSessions
             $cookies_to_set = $request->get_param('cookies');
         }
 
-        foreach ($cookies_to_set as $cookie_to_set) {
-            Cookie::set($cookie_to_set[0], $cookie_to_set[1]);
+        try {
+            $cookies_array = json_decode($cookies_to_set,true);
+        } catch (Exception $e){
+            $cookies_array = array();
+            wp_send_json(array(
+                'success' => false,
+                'error' => 'AltSessions: Internal JSON error:' . json_last_error_msg() ));
+        }
+
+        foreach ($cookies_array as $cookie_to_set=>$value) {
+            Cookie::set($cookie_to_set, $value);
         }
 
         wp_send_json(array('success' => true));
