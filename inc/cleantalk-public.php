@@ -152,12 +152,13 @@ function apbct_init()
 
     // WooCommerce registration
     if ( class_exists('WooCommerce') ) {
-        add_filter('woocommerce_registration_errors', 'ct_registration_errors', 1, 3);
+        if ( !$apbct->settings['forms__wc_register_from_order'] && Request::get('wc-ajax') === 'checkout' ) {
+            remove_filter('woocommerce_registration_errors', 'ct_registration_errors', 1);
+        } else {
+            add_filter('woocommerce_registration_errors', 'ct_registration_errors', 1, 3);
+        }
         if ( $apbct->settings['forms__wc_checkout_test'] == 1 ) {
             add_action('woocommerce_after_checkout_validation', 'ct_woocommerce_checkout_check', 1, 2);
-        }
-        if ( Request::get('wc-ajax') === 'checkout' && empty($apbct->settings['forms__wc_register_from_order']) ) {
-            remove_filter('woocommerce_registration_errors', 'ct_registration_errors', 1);
         }
 
         //Woocommerce add_to_cart action
@@ -526,7 +527,7 @@ function apbct_hook__wp_footer()
         $cookie_bot_asset = (class_exists('Cookiebot_WP')) ? 'data-cookieconsent="ignore"' : '';
 
         $script =
-            '<script type="text/javascript" ' . $cookie_bot_asset
+            '<script ' . $cookie_bot_asset
             . ">				
                     window.addEventListener('DOMContentLoaded', function () {
                         setTimeout(function(){
@@ -583,7 +584,7 @@ function ct_add_hidden_fields(
     // Using only cookies
     if ( $cookie_check && $apbct->data['cookies_type'] !== 'none' ) {
         $html =
-            "<script type=\"text/javascript\" "
+            "<script "
             . (class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '')
             . ">
                 function apbct_attach_event_handler__backend(elem, event, callback) {
@@ -617,7 +618,7 @@ function ct_add_hidden_fields(
         $ct_input_challenge = sprintf("'%s'", $ct_checkjs_key);
         $field_id           = $field_name . '_' . $field_id_hash;
         $html               = "<input type=\"hidden\" id=\"{$field_id}\" name=\"{$field_name}\" value=\"{$ct_checkjs_def}\" />
-		<script type=\"text/javascript\" " . (class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '') . ">
+		<script " . (class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '') . ">
 			setTimeout(function(){
 				var ct_input_name = \"{$field_id}\";
 				if (document.getElementById(ct_input_name) !== null) {
@@ -1341,7 +1342,7 @@ function apbct_enqueue_and_localize_public_scripts()
         '_rest_url'                            => Escape::escUrl(apbct_get_rest_url()),
         'data__cookies_type'                   => $apbct->data['cookies_type'],
         'data__ajax_type'                      => $apbct->data['ajax_type'],
-        'text__wait_for_decoding'              => esc_html__('Anti-spam by CleanTalk: Decoding contact data...', 'cleantalk-spam-protect'),
+        'text__wait_for_decoding'              => esc_html__('Decoding the contact data, let us a few seconds to finish. Anti-Spam by CleanTalk.', 'cleantalk-spam-protect'),
         'cookiePrefix'                         => apbct__get_cookie_prefix(),
     ));
 

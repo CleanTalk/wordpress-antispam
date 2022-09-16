@@ -348,6 +348,7 @@ function apbct_add_connection_report(
 function apbct_rotate_moderate()
 {
     $ct = new Cleantalk();
+    $ct->server_url = APBCT_MODERATE_URL;
     $ct->rotateModerate();
     if ( $ct->server_change ) {
         update_option(
@@ -1252,6 +1253,10 @@ function apbct__change_type_website_field($fields)
 add_filter('woocommerce_checkout_fields', 'apbct__wc_add_honeypot_field');
 function apbct__wc_add_honeypot_field($fields)
 {
+    if (apbct_exclusions_check__url()) {
+        return $fields;
+    }
+
     global $apbct;
 
     if ( $apbct->settings['data__honeypot_field'] ) {

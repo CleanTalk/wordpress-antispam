@@ -5,8 +5,7 @@ var gulp       = require('gulp'),
     uglify     = require('gulp-uglify'),
     rename     = require('gulp-rename'),
     cssmin     = require('gulp-cssmin'),
-    concat     = require('gulp-concat'),
-    wait       = require('gulp-wait');
+    concat     = require('gulp-concat');
 
 // CSS COMPRESS
 gulp.task('compress-css', function () {
@@ -19,7 +18,6 @@ gulp.task('compress-css', function () {
 // JS COMPRESS
 async function compress_all_js() {
     await gulp.src(['js/src/*.js', '!js/src/apbct-public--*.js', 'js/src/apbct-public--3--cleantalk-modal.js'])
-        .pipe(wait(2000))
         .pipe(sourcemaps.init())
         .pipe(uglify())
         .pipe(rename({suffix: '.min'}))

@@ -17,21 +17,25 @@ function ct_protect_external() {
 
                 if(isIntegratedForm(currentForm)) {
 
-                    jQuery( currentForm ).before('<i class="cleantalk_placeholder" style="display: none;"></i>');
-
                     // Deleting form to prevent submit event
-                    var prev = jQuery(currentForm).prev(),
+                    var prev = currentForm.previousSibling,
                         form_html = currentForm.outerHTML,
-                        form_original = jQuery(currentForm).detach();
+                        form_original = currentForm;
 
-                    prev.after( form_html );
+                    // Remove the original form
+                    currentForm.parentElement.removeChild(currentForm);
+
+                    // Insert a clone
+                    const placeholder = document.createElement("div");
+                    placeholder.innerHTML = form_html;
+                    prev.after(placeholder.firstElementChild);
 
                     var force_action = document.createElement("input");
                     force_action.name = 'action';
                     force_action.value = 'cleantalk_force_ajax_check';
                     force_action.type = 'hidden';
 
-                    var reUseCurrentForm = document.forms[i];
+                    let reUseCurrentForm = document.forms[i];
 
                     reUseCurrentForm.appendChild(force_action);
 
@@ -124,6 +128,10 @@ window.onload = function () {
         return;
     }
 
+    if ( typeof jQuery === 'undefined' ) {
+        return;
+    }
+
     setTimeout(function () {
         ct_protect_external()
     }, 1500);
@@ -150,7 +158,8 @@ function isIntegratedForm(formObj) {
         formAction.indexOf('tp.media') !== -1 ||
         formAction.indexOf('flodesk.com') !== -1 ||
         formAction.indexOf('sendfox.com') !== -1 ||
-        formAction.indexOf('aweber.com') !== -1
+        formAction.indexOf('aweber.com') !== -1 ||
+        formAction.indexOf('secure.payu.com') !== -1
 
     ) {
         return true;
@@ -193,6 +202,10 @@ function sendAjaxCheckingFormData(form, prev, formOriginal) {
                     apbct_replace_inputs_values_from_other_form(form_new, formOriginal);
 
                     prev.after( formOriginal );
+
+                    // Clear visible_fields input
+                    formOriginal.find('input[name="apbct_visible_fields"]').remove();
+                    formOriginal.find('input[value="cleantalk_force_ajax_check"]').remove();
 
                     // Common click event
                     var subm_button = jQuery(formOriginal).find('button[type=submit]');

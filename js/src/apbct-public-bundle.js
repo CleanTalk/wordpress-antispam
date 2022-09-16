@@ -1,3 +1,869 @@
+class ApbctCore{
+
+    ajax_parameters = {};
+    rest_parameters = {};
+
+    #selector = null;
+    elements = [];
+
+    // Event properties
+    #eventCallback;
+    #eventSelector;
+    #event;
+
+    /**
+     * Default constructor
+     */
+    constructor(selector){
+        this.select(selector);
+    }
+
+    /**
+     * Get elements by CSS selector
+     *
+     * @param selector
+     * @returns {*}
+     */
+    select(selector) {
+
+        if(selector instanceof HTMLCollection){
+            this.#selector    = null;
+            this.elements    = [];
+            this.elements = Array.prototype.slice.call(selector);
+        }else if( typeof selector === 'object' ){
+            this.#selector    = null;
+            this.elements    = [];
+            this.elements[0] = selector;
+        }else if( typeof selector === 'string' ){
+            this.#selector = selector;
+            this.elements = Array.prototype.slice.call(document.querySelectorAll(selector));
+            // this.elements = document.querySelectorAll(selector)[0];
+        }else{
+            this.#deselect();
+        }
+
+        return this;
+    }
+
+    #addElement(elemToAdd){
+        if( typeof elemToAdd === 'object' ){
+            this.elements.push(elemToAdd);
+        }else if( typeof elemToAdd === 'string' ){
+            this.#selector = elemToAdd;
+            this.elements = Array.prototype.slice.call(document.querySelectorAll(elemToAdd));
+        }else{
+            this.#deselect();
+        }
+    }
+
+    #push(elem){
+        this.elements.push(elem);
+    }
+
+    #reduce(){
+        this.elements = this.elements.slice(0,-1);
+    }
+
+    #deselect(){
+        this.elements = [];
+    }
+
+    /**
+     * Set or get CSS for/of currently selected element
+     *
+     * @param style
+     * @param getRaw
+     *
+     * @returns {boolean|*}
+     */
+    css(style, getRaw){
+
+        getRaw = getRaw | false;
+
+        // Set style
+        if(typeof style === "object"){
+
+            const stringToCamelCase = str =>
+                str.replace(/([-_][a-z])/g, group =>
+                    group
+                        .toUpperCase()
+                        .replace('-', '')
+                        .replace('_', '')
+                );
+
+            // Apply multiple styles
+            for(let style_name in style){
+                let DOM_style_name = stringToCamelCase(style_name);
+
+                // Apply to multiple elements (currently selected)
+                for(let i=0; i<this.elements.length; i++){
+                    this.elements[i].style[DOM_style_name] = style[style_name];
+                }
+            }
+
+            return this;
+        }
+
+        // Get style of first currently selected element
+        if(typeof style === 'string'){
+
+            let computedStyle = getComputedStyle(this.elements[0])[style];
+
+            console.log(computedStyle);
+
+            // Process
+            if( typeof computedStyle !== 'undefined' && ! getRaw){
+                computedStyle = computedStyle.replace(/(\d)(em|pt|%|px){1,2}$/, '$1');                           // Cut of units
+                computedStyle = Number(computedStyle) == computedStyle ? Number(computedStyle) : computedStyle; // Cast to INT
+                return computedStyle;
+            }
+
+            // Return unprocessed
+            return computedStyle;
+        }
+    }
+
+    hide(){
+        this.prop('prev-display', this.css('display'));
+        this.css({'display': 'none'});
+    }
+
+    show(){
+        this.css({'display': this.prop('prev-display')});
+    }
+
+    addClass(){
+        for(let i=0; i<this.elements.length; i++){
+            this.elements[i].classList.add(className);
+        }
+    }
+
+    removeClass(){
+        for(let i=0; i<this.elements.length; i++){
+            this.elements[i].classList.remove(className);
+        }
+    }
+
+    toggleClass(className){
+        for(let i=0; i<this.elements.length; i++){
+            this.elements[i].classList.toggle(className);
+        }
+    }
+
+    /**
+     * Wrapper for apbctAJAX class
+     *
+     * @param ajax_parameters
+     * @returns {ApbctAjax}
+     */
+    ajax(ajax_parameters){
+        this.ajax_parameters = ajax_parameters;
+        return new ApbctAjax(ajax_parameters);
+    }
+
+    /**
+     * Wrapper for apbctREST class
+     *
+     * @param rest_parameters
+     * @returns {ApbctRest}
+     */
+    rest(rest_parameters){
+        this.rest_parameters = rest_parameters;
+        return new ApbctRest(rest_parameters);
+    }
+
+    /************** EVENTS **************/
+
+    /**
+     *
+     * Why the mess with arguments?
+     *
+     * Because we need to support the following function signatures:
+     *      on('click',                   function(){ alert('some'); });
+     *      on('click', 'inner_selector', function(){ alert('some'); });
+     *
+     * @param args
+     */
+    on(...args){
+
+        this.#event         = args[0];
+        this.#eventCallback = args[2] || args[1];
+        this.#eventSelector = typeof args[1] === "string" ? args[1] : null;
+
+        for(let i=0; i<this.elements.length; i++){
+            this.elements[i].addEventListener(
+                this.#event,
+                this.#eventSelector !== null
+                    ? this.#onChecker.bind(this)
+                    : this.#eventCallback
+            );
+        }
+    }
+
+    /**
+     * Check if a selector of an event matches current target
+     *
+     * @param event
+     * @returns {*}
+     */
+    #onChecker(event){
+        if(event.target === document.querySelector(this.#eventSelector)){
+            event.stopPropagation();
+            return this.#eventCallback(event);
+        }
+    }
+
+    ready(callback){
+        document.addEventListener('DOMContentLoaded', callback);
+    }
+
+    change(callback){
+        this.on('change', callback);
+    }
+
+    /************** ATTRIBUTES **************/
+
+    /**
+     * Get an attribute or property of an element
+     *
+     * @param attrName
+     * @returns {*|*[]}
+     */
+    attr(attrName){
+
+        let outputValue = [];
+
+        for(let i=0; i<this.elements.length; i++){
+
+            // Use property instead of attribute if possible
+            if(typeof this.elements[i][attrName] !== undefined){
+                outputValue.push(this.elements[i][attrName]);
+            }else{
+                outputValue.push(this.elements[i].getAttribute(attrName));
+            }
+        }
+
+        // Return a single value instead of array if only one value is present
+        return outputValue.length === 1 ? outputValue[0] : outputValue;
+    }
+
+    prop(propName, value){
+
+        // Setting values
+        if(typeof value !== "undefined"){
+            for(let i=0; i<this.elements.length; i++){
+                this.elements[i][propName] = value;
+            }
+
+            return this;
+
+            // Getting values
+        }else{
+
+            let outputValue = [];
+
+            for(let i=0; i<this.elements.length; i++){
+                outputValue.push(this.elements[i][propName]);
+            }
+
+            // Return a single value instead of array if only one value is present
+            return outputValue.length === 1 ? outputValue[0] : outputValue;
+        }
+    }
+
+    /**
+     * Set or get inner HTML
+     *
+     * @param value
+     * @returns {*|*[]}
+     */
+    html(value){
+        return typeof value !== 'undefined'
+            ? this.prop('innerHTML', value)
+            : this.prop('innerHTML');
+    }
+
+    /**
+     * Set or get value of input tags
+     *
+     * @param value
+     * @returns {*|*[]|undefined}
+     */
+    val(value){
+        return typeof value !== 'undefined'
+            ? this.prop('value', value)
+            : this.prop('value');
+    }
+
+    data(name, value){
+        return typeof value !== 'undefined'
+            ? this.prop('apbct-data', name, value)
+            : this.prop('apbct-data');
+    }
+
+    /************** END OF ATTRIBUTES **************/
+
+    /************** FILTERS **************/
+
+    /**
+     * Check if the current elements are corresponding to filter
+     *
+     * @param filter
+     * @returns {boolean}
+     */
+    is(filter){
+
+        let outputValue = false;
+
+        for(let elem of this.elements){
+            outputValue ||= this.#isElem(elem, filter);
+        }
+
+        return outputValue;
+    }
+
+    #isElem(elemToCheck, filter){
+
+        let is = false;
+        let isRegisteredTagName = function(name){
+            let newlyCreatedElement = document.createElement(name).constructor;
+            return ! Boolean( ~[HTMLElement, HTMLUnknownElement].indexOf(newlyCreatedElement) );
+        };
+
+        // Check for filter function
+        if(typeof filter === 'function') {
+            is ||= filter.call(this, elemToCheck);
+        }
+
+        // Check for filter function
+        if(typeof filter === 'string') {
+
+            // Filter is tag name
+            if( filter.match(/^[a-z]/) && isRegisteredTagName(filter) ){
+                is ||= elemToCheck.tagName.toLowerCase() === filter.toLowerCase();
+
+                // Filter is property
+            }else if( filter.match(/^[a-z]/) ){
+                is ||= Boolean(elemToCheck[filter]);
+
+                // Filter is CSS selector
+            }else {
+                is ||= this.#selector !== null
+                    ? document.querySelector(this.#selector + filter) !== null // If possible
+                    : this.#isWithoutSelector(elemToCheck, filter);                    // Search through all elems with such selector
+            }
+        }
+
+        return is;
+    }
+
+    #isWithoutSelector(elemToCheck, filter){
+
+        let elems       = document.querySelectorAll(filter);
+        let outputValue = false;
+
+        for(let elem of elems){
+            outputValue ||= elemToCheck === elem;
+        }
+
+        return outputValue;
+    }
+
+    filter(filter){
+
+        this.#selector = null;
+
+        for( let i = this.elements.length - 1; i >= 0; i-- ){
+            if( ! this.#isElem(this.elements[i], filter) ){
+                this.elements.splice(Number(i), 1);
+            }
+        }
+
+        return this;
+    }
+
+    /************** NODES **************/
+
+    parent(filter){
+
+        this.select(this.elements[0].parentElement);
+
+        if( typeof filter !== 'undefined' && ! this.is(filter) ){
+            this.#deselect();
+        }
+
+        return this;
+    }
+
+    parents(filter){
+
+        this.select(this.elements[0]);
+
+        for ( ; this.elements[ this.elements.length - 1].parentElement !== null ; ) {
+            this.#push(this.elements[ this.elements.length - 1].parentElement);
+        }
+
+        this.elements.splice(0,1); // Deleting initial element from the set
+
+        if( typeof filter !== 'undefined' ){
+            this.filter(filter);
+        }
+
+        return this;
+    }
+
+    children(filter){
+
+        this.select(this.elements[0].children);
+
+        if( typeof filter !== 'undefined' ){
+            this.filter(filter);
+        }
+
+        return this;
+    }
+
+    siblings(filter){
+
+        let current = this.elements[0]; // Remember current to delete it later
+
+        this.parent();
+        this.children(filter);
+        this.elements.splice(this.elements.indexOf(current), 1); // Remove current element
+
+        return this;
+    }
+
+    /************** DOM MANIPULATIONS **************/
+    remove(){
+        for(let elem of this.elements){
+            elem.remove();
+        }
+    }
+
+    after(content){
+        for(let elem of this.elements){
+            elem.after(content);
+        }
+    }
+
+    append(content){
+        for(let elem of this.elements){
+            elem.append(content);
+        }
+    }
+
+    /**  ANIMATION  **/
+    fadeIn(time) {
+        for(let elem of this.elements){
+            elem.style.opacity = 0;
+            elem.style.display = 'block';
+
+            let last = +new Date();
+            const tick = function () {
+                elem.style.opacity = +elem.style.opacity + (new Date() - last) / time;
+                last = +new Date();
+
+                if (+elem.style.opacity < 1) {
+                    (window.requestAnimationFrame && requestAnimationFrame(tick)) || setTimeout(tick, 16);
+                }
+            };
+
+            tick();
+        }
+    }
+
+    fadeOut(time) {
+        for(let elem of this.elements){
+            elem.style.opacity = 1;
+
+            let last = +new Date();
+            const tick = function () {
+                elem.style.opacity = +elem.style.opacity - (new Date() - last) / time;
+                last = +new Date();
+
+                if (+elem.style.opacity > 0) {
+                    (window.requestAnimationFrame && requestAnimationFrame(tick)) || setTimeout(tick, 16);
+                } else {
+                    elem.style.display = 'none';
+                }
+            };
+
+            tick();
+        }
+    }
+
+}
+
+/**
+ * Hack
+ *
+ * Make a proxy to keep both properties and methods from:
+ *  - the native object and
+ *  - the new one from ApbctCore for selected element.
+ *
+ * For example:
+ * apbct('#id).innerHTML = 'some';
+ * apbct('#id).css({'backgorund-color': 'black'});
+ */
+// apbct = new Proxy(
+//         apbct,
+//         {
+//             get(target, prop) {
+//                 if (target.elements.length) {
+//                     return target.elements[0][prop];
+//                 } else {
+//                     return null;
+//                 }
+//             },
+//             set(target, prop, value){
+//                 if (target.elements.length) {
+//                     target.elements[0][prop] = value;
+//                     return true;
+//                 } else {
+//                     return false;
+//                 }
+//             },
+//             apply(target, thisArg, argArray) {
+//
+//             }
+//         }
+//     );
+
+/**
+ * Enter point to ApbctCore class
+ *
+ * @param params
+ * @returns {*}
+ */
+function apbct(params){
+    return new ApbctCore()
+        .select(params);
+}
+class ApbctXhr{
+
+    #xhr = new XMLHttpRequest();
+
+    // Base parameters
+    method   = 'POST'; // HTTP-request type
+    url      = ''; // URL to send the request
+    async    = true;
+    user     = null; // HTTP-authorization username
+    password = null; // HTTP-authorization password
+    data     = {};   // Data to send
+
+
+    // Optional params
+    button      = null; // Button that should be disabled when request is performing
+    spinner     = null; // Spinner that should appear when request is in process
+    progressbar = null; // Progress bar for the current request
+    context     = this; // Context
+    callback    = null;
+    onErrorCallback = null;
+
+    responseType = 'json'; // Expected data type from server
+    headers      = {};
+    timeout      = 15000; // Request timeout in milliseconds
+
+    #methods_to_convert_data_to_URL = [
+        'GET',
+        'HEAD',
+    ];
+
+    #body        = null;
+    #http_code   = 0;
+    #status_text = '';
+
+    constructor(parameters){
+
+        console.log('%cXHR%c started', 'color: red; font-weight: bold;', 'color: grey; font-weight: normal;');
+
+        // Set class properties
+        for( let key in parameters ){
+            if( typeof this[key] !== 'undefined' ){
+                this[key] = parameters[key];
+            }
+        }
+
+        // Modifying DOM-elements
+        this.#prepare();
+
+        // Modify URL with data for GET and HEAD requests
+        if ( Object.keys(this.data).length ) {
+            this.deleteDoubleJSONEncoding(this.data);
+            this.convertData();
+        }
+
+        if( ! this.url ){
+            console.log('%cXHR%c not URL provided', 'color: red; font-weight: bold;', 'color: grey; font-weight: normal;')
+            return false;
+        }
+
+        // Configure the request
+        this.#xhr.open(this.method, this.url, this.async, this.user, this.password);
+        this.setHeaders();
+
+        this.#xhr.responseType = this.responseType;
+        this.#xhr.timeout      = this.timeout;
+
+        /* EVENTS */
+        // Monitoring status
+        this.#xhr.onreadystatechange = function(){
+            this.onReadyStateChange();
+        }.bind(this);
+
+        // Run callback
+        this.#xhr.onload = function(){
+            this.onLoad();
+        }.bind(this);
+
+        // On progress
+        this.#xhr.onprogress = function(event){
+            this.onProgress(event);
+        }.bind(this);
+
+        // On error
+        this.#xhr.onerror = function(){
+            this.onError();
+        }.bind(this);
+
+        this.#xhr.ontimeout = function(){
+            this.onTimeout();
+        }.bind(this);
+
+        // Send the request
+        this.#xhr.send(this.#body);
+    }
+
+    #prepare(){
+
+        // Disable button
+        if(this.button){
+            this.button.setAttribute('disabled', 'disabled');
+            this.button.style.cursor = 'not-allowed';
+        }
+
+        // Enable spinner
+        if(this.spinner) {
+            this.spinner.style.display = 'inline';
+        }
+    }
+
+    #complete(){
+
+        this.#http_code   = this.#xhr.status;
+        this.#status_text = this.#xhr.statusText;
+
+        // Disable button
+        if(this.button){
+            this.button.removeAttribute('disabled');
+            this.button.style.cursor = 'auto';
+        }
+
+        // Enable spinner
+        if(this.spinner) {
+            this.spinner.style.display = 'none';
+        }
+
+        if( this.progressbar ) {
+            this.progressbar.fadeOut('slow');
+        }
+    }
+
+    onReadyStateChange(){
+        if (this.on_ready_state_change !== null && typeof this.on_ready_state_change === 'function'){
+            this.on_ready_state_change();
+        }
+    }
+
+    onProgress(event) {
+        if (this.on_progress !== null && typeof this.on_progress === 'function'){
+            this.on_progress();
+        }
+    }
+
+    onError(){
+
+        console.log('error');
+
+        this.#complete();
+        this.#error(
+            this.#http_code,
+            this.#status_text
+        );
+
+        if (this.onErrorCallback !== null && typeof this.onErrorCallback === 'function'){
+            this.onErrorCallback(this.#status_text);
+        }
+    }
+
+    onTimeout(){
+        this.#complete();
+        this.#error(
+            0,
+            'timeout'
+        );
+
+        if (this.onErrorCallback !== null && typeof this.onErrorCallback === 'function'){
+            this.onErrorCallback('Timeout');
+        }
+    }
+
+    onLoad(){
+
+        this.#complete();
+
+        if (this.responseType === 'json' ){
+            if(this.#xhr.response === null){
+                this.#error(this.#http_code, this.#status_text, 'No response');
+                return false;
+            }else if( typeof this.#xhr.response.error !== 'undefined') {
+                this.#error(this.#http_code, this.#status_text, this.#xhr.response.error);
+                return false;
+            }
+        }
+
+        if (this.callback !== null && typeof this.callback === 'function') {
+            this.callback.call(this.context, this.#xhr.response, this.data);
+        }
+    }
+
+    #error(http_code, status_text, additional_msg){
+
+        let error_string = '';
+
+        if( status_text === 'timeout' ){
+            error_string += 'Server response timeout'
+
+        }else if( http_code === 200 ){
+
+            if( status_text === 'parsererror' ){
+                error_string += 'Unexpected response from server. See console for details.';
+            }else {
+                error_string += 'Unexpected error. Status: ' + status_text + '.';
+                if( typeof additional_msg !== 'undefined' )
+                    error_string += ' Additional error info: ' + additional_msg;
+            }
+
+        }else if(http_code === 500){
+            error_string += 'Internal server error.';
+
+        }else {
+            error_string += 'Unexpected response code:' + http_code;
+        }
+
+        this.errorOutput( error_string );
+    }
+
+    errorOutput(error_msg){
+        console.log( '%c ctXHR error: %c' + error_msg, 'color: red;', 'color: grey;' );
+    }
+
+    setHeaders(){
+        // Set headers if passed
+        for( let header_name in this.headers ){
+            if( typeof this.headers[header_name] !== 'undefined' ){
+                this.#xhr.setRequestHeader(header_name, this.headers[header_name]);
+            }
+        }
+    }
+
+    convertData()
+    {
+        // GET, HEAD request-type
+        if( ~this.#methods_to_convert_data_to_URL.indexOf( this.method ) ){
+            return this.convertDataToURL();
+
+            // POST request-type
+        }else{
+            return this.convertDataToBody()
+        }
+    }
+
+    convertDataToURL(){
+        let params_appendix = new URLSearchParams(this.data).toString();
+        let params_prefix   = this.url.match(/^(https?:\/{2})?[a-z0-9.]+\?/) ? '&' : '?';
+        this.url += params_prefix + params_appendix;
+
+        return this.url;
+    }
+
+    /**
+     *
+     * @returns {null}
+     */
+    convertDataToBody()
+    {
+        this.#body = new FormData();
+
+        for (let dataKey in this.data) {
+            this.#body.append(
+                dataKey,
+                typeof this.data[dataKey] === 'object'
+                    ? JSON.stringify(this.data[dataKey])
+                    : this.data[dataKey]
+            );
+        }
+
+        return this.#body;
+    }
+
+    /**
+     * Recursive
+     *
+     * Recursively decode JSON-encoded properties
+     *
+     * @param object
+     * @returns {*}
+     */
+    deleteDoubleJSONEncoding(object){
+
+        if( typeof object === 'object'){
+
+            for (let objectKey in object) {
+
+                // Recursion
+                if( typeof object[objectKey] === 'object'){
+                    object[objectKey] = this.deleteDoubleJSONEncoding(object[objectKey]);
+                }
+
+                // Common case (out)
+                if(
+                    typeof object[objectKey] === 'string' &&
+                    object[objectKey].match(/^[\[{].*?[\]}]$/) !== null // is like JSON
+                ){
+                    let parsedValue = JSON.parse(object[objectKey]);
+                    if( typeof parsedValue === 'object' ){
+                        object[objectKey] = parsedValue;
+                    }
+                }
+            }
+        }
+
+        return object;
+    }
+}
+class ApbctAjax extends ApbctXhr{
+
+    constructor(...args) {
+        super(args[0]);
+    }
+}
+class ApbctRest extends ApbctXhr{
+
+    static default_route = ctPublicFunctions._rest_url + 'cleantalk-antispam/v1/';
+    route         = '';
+
+    constructor(...args) {
+        args = args[0];
+        args.url = ApbctRest.default_route + args.route;
+        args.headers = {
+            "X-WP-Nonce": ctPublicFunctions._rest_nonce
+        };
+        super(args);
+    }
+}
+
 function ctSetCookie( cookies, value, expires ){
 
     if( typeof cookies === 'string' && typeof value === 'string' || typeof value === 'number'){
@@ -79,99 +945,47 @@ function ctDeleteCookie(cookieName) {
 function apbct_public_sendAJAX(data, params, obj){
 
     // Default params
-    var callback    = params.callback    || null;
-    var callback_context = params.callback_context || null;
-    var callback_params = params.callback_params || null;
-    var async = params.async || true;
-    var notJson     = params.notJson     || null;
-    var timeout     = params.timeout     || 15000;
-    var obj         = obj                || null;
-    var button      = params.button      || null;
-    var spinner     = params.spinner     || null;
-    var progressbar = params.progressbar || null;
-    var silent      = params.silent      || null;
-    var no_nonce    = params.no_nonce    || null;
+    let _params            = [];
+    _params["callback"]    = params.callback    || null;
+    _params["onErrorCallback"] = params.onErrorCallback    || null;
+    _params["callback_context"] = params.callback_context || null;
+    _params["callback_params"] = params.callback_params || null;
+    _params["async"]        = params.async || true;
+    _params["notJson"]     = params.notJson     || null;
+    _params["timeout"]     = params.timeout     || 15000;
+    _params["obj"]         = obj                || null;
+    _params["button"]      = params.button      || null;
+    _params["progressbar"] = params.progressbar || null;
+    _params["silent"]      = params.silent      || null;
+    _params["no_nonce"]    = params.no_nonce    || null;
+    _params["data"]        = data;
+    _params["url"]         = ctPublicFunctions._ajax_url;
 
     if(typeof (data) === 'string') {
-        if( ! no_nonce )
-            data = data + '&_ajax_nonce=' + ctPublicFunctions._ajax_nonce;
-        data = data + '&no_cache=' + Math.random()
+        if( ! _params["no_nonce"] ) {
+            _params["data"] = _params["data"] + '&_ajax_nonce=' + ctPublicFunctions._ajax_nonce;
+        }
+        _params["data"] = _params["data"] + '&no_cache=' + Math.random()
     } else {
-        if( ! no_nonce )
-            data._ajax_nonce = ctPublicFunctions._ajax_nonce;
-        data.no_cache = Math.random();
+        if( ! _params["no_nonce"] ) {
+            _params["data"]._ajax_nonce = ctPublicFunctions._ajax_nonce;
+        }
+        _params["data"].no_cache = Math.random();
     }
-    // Button and spinner
-    if(button)  {button.setAttribute('disabled', 'disabled'); button.style.cursor = 'not-allowed'; }
-    if(spinner) jQuery(spinner).css('display', 'inline');
 
-    jQuery.ajax({
-        type: "POST",
-        url: ctPublicFunctions._ajax_url,
-        data: data,
-        async: async,
-        success: function(result){
-            if(button){  button.removeAttribute('disabled'); button.style.cursor = 'pointer'; }
-            if(spinner)  jQuery(spinner).css('display', 'none');
-            if(!notJson) result = JSON.parse(result);
-            if(result.error){
-                setTimeout(function(){ if(progressbar) progressbar.fadeOut('slow'); }, 1000);
-                console.log('Error happens: ' + (result.error || 'Unkown'));
-            }else{
-                if(callback) {
-                    if (callback_params)
-                        callback.apply( callback_context, [ result, data, params, obj ].concat(callback_params) );
-                    else
-                        callback(result, data, params, obj);
-                }
-            }
-        },
-        error: function(jqXHR, textStatus, errorThrown){
-            if(button){  button.removeAttribute('disabled'); button.style.cursor = 'pointer'; }
-            if(spinner) jQuery(spinner).css('display', 'none');
-            if( errorThrown && ! silent ) {
-                console.log('APBCT_AJAX_ERROR');
-                console.log(jqXHR);
-                console.log(textStatus);
-                console.log('Anti-spam by Cleantalk plugin error: ' + errorThrown + 'Please, contact Cleantalk tech support https://wordpress.org/support/plugin/cleantalk-spam-protect/');
-            }
-        },
-        timeout: timeout,
-    });
+    new ApbctCore().ajax(_params);
 }
 
 function apbct_public_sendREST( route, params ) {
 
-    var callback = params.callback || null;
-    var data     = params.data || [];
-    var method   = params.method || 'POST';
+    let _params         = [];
+    _params["route"]    = route;
+    _params["callback"] = params.callback || null;
+    _params["onErrorCallback"] = params.onErrorCallback    || null;
+    _params["data"]     = params.data     || [];
+    _params["method"]   = params.method   || 'POST';
 
-    jQuery.ajax({
-        type: method,
-        url: ctPublicFunctions._rest_url + 'cleantalk-antispam/v1/' + route,
-        data: data,
-        beforeSend : function ( xhr ) {
-            xhr.setRequestHeader( 'X-WP-Nonce', ctPublicFunctions._rest_nonce );
-        },
-        success: function(result){
-            if(result.error){
-                console.log('Error happens: ' + (result.error || 'Unknown'));
-            }else{
-                if(callback) {
-                    var obj = null;
-                    callback(result, route, params, obj);
-                }
-            }
-        },
-        error: function(jqXHR, textStatus, errorThrown){
-            if( errorThrown ) {
-                console.log('APBCT_REST_ERROR');
-                console.log(jqXHR);
-                console.log(textStatus);
-                console.log('Anti-spam by Cleantalk plugin REST API error: ' + errorThrown + ' Please, contact Cleantalk tech support https://wordpress.org/support/plugin/cleantalk-spam-protect/');
-            }
-        },
-    });
+    new ApbctCore().rest(_params);
 }
 
 apbctLocalStorage = {
@@ -331,7 +1145,12 @@ function ctSetPixelImg(pixelUrl) {
 	ctSetCookie('apbct_pixel_url', pixelUrl);
 	if( +ctPublic.pixel__enabled ){
 		if( ! document.getElementById('apbct_pixel') ) {
-			jQuery('body').append( '<img alt="Cleantalk Pixel" id="apbct_pixel" style="display: none; left: 99999px;" src="' + pixelUrl + '">' );
+			let insertedImg = document.createElement('img');
+			insertedImg.setAttribute('alt', 'CleanTalk Pixel');
+			insertedImg.setAttribute('id', 'apbct_pixel');
+			insertedImg.setAttribute('style', 'display: none; left: 99999px;');
+			insertedImg.setAttribute('src', pixelUrl);
+			apbct('body').append(insertedImg);
 		}
 	}
 }
@@ -476,7 +1295,7 @@ function apbct_ready(){
 
 	if ( +ctPublic.data__email_check_before_post) {
 		initCookies.push(['ct_checked_emails', '0']);
-		jQuery("input[type = 'email'], #email").blur(checkEmail);
+		apbct("input[type = 'email'], #email").on('blur', checkEmail);
 	}
 
 	if (apbctLocalStorage.isSet('ct_checkjs')) {
@@ -559,72 +1378,115 @@ function apbct_ready(){
 				// Skip listening click on hyperlinks
 				continue;
 			}
-			decodedEmailNodes[i].addEventListener('click', function ctFillDecodedEmailHandler(event) {
-				this.removeEventListener('click', ctFillDecodedEmailHandler);
-				apbctAjaxEmailDecode(event);
-			});
+			decodedEmailNodes[i].addEventListener('click', ctFillDecodedEmailHandler);
 		}
 	}
 }
 apbct_attach_event_handler(window, "DOMContentLoaded", apbct_ready);
 
-function apbctAjaxEmailDecode(event){
+function ctFillDecodedEmailHandler(event) {
+	this.removeEventListener('click', ctFillDecodedEmailHandler);
+	apbctAjaxEmailDecode(event, this);
+}
+
+function apbctAjaxEmailDecode(event, baseElement){
 	const element = event.target;
-	element.setAttribute('title', ctPublicFunctions.text__wait_for_decoding);
-	element.style.cursor = 'progress';
-
-	// Adding a tooltip
-	jQuery(element).append(
-		'<div class="apbct-tooltip">\n' +
-			'<div class="apbct-tooltip--text"></div>\n' +
-			'<div class="apbct-tooltip--arrow"></div>\n' +
-		'</div>'
-	);
-	ctShowDecodeComment(element, ctPublicFunctions.text__wait_for_decoding);
-
 	const javascriptClientData = getJavascriptClientData();
+	let data = {
+		event_javascript_data: javascriptClientData,
+		post_url: document.location.href,
+		referrer: document.referrer,
+	};
+
+	if (typeof baseElement.href !== 'undefined' && baseElement.href.indexOf('mailto:') === 0) {
+		event.preventDefault();
+	} else {
+		element.setAttribute('title', ctPublicFunctions.text__wait_for_decoding);
+		element.style.cursor = 'progress';
+
+		// Adding a tooltip
+		let apbctTooltip = document.createElement('div');
+		apbctTooltip.setAttribute('class', 'apbct-tooltip');
+		let apbctTooltipText = document.createElement('div');
+		apbctTooltipText.setAttribute('class', 'apbct-tooltip--text');
+		let apbctTooltipArrow = document.createElement('div');
+		apbctTooltipArrow.setAttribute('class', 'apbct-tooltip--arrow');
+		apbct(element).append(apbctTooltip);
+		apbct(apbctTooltip).append(apbctTooltipText);
+		apbct(apbctTooltip).append(apbctTooltipArrow);
+		ctShowDecodeComment(element, ctPublicFunctions.text__wait_for_decoding);
+	}
+
+	let encodedEmail = event.target.dataset.originalString;
+
+	if (typeof baseElement.href !== 'undefined' && baseElement.href.indexOf('mailto:') === 0) {
+		encodedEmail = baseElement.dataset.originalString;
+	}
+
+	data.encodedEmail = encodedEmail;
 
 	// Using REST API handler
 	if( ctPublicFunctions.data__ajax_type === 'rest' ){
 		apbct_public_sendREST(
 			'apbct_decode_email',
 			{
-				data: {
-					encodedEmail:             event.target.dataset.originalString,
-					event_javascript_data:    javascriptClientData,
-				},
+				data: data,
 				method: 'POST',
 				callback: function (result) {
 					if (result.success) {
-						ctProcessDecodedDataResult(result.data, event.target);
+						if (typeof baseElement.href !== 'undefined' && baseElement.href.indexOf('mailto:') === 0) {
+							let encodedEmail = baseElement.href.replace('mailto:', '');
+							let baseElementContent = baseElement.innerHTML;
+							baseElement.innerHTML = baseElementContent.replace(encodedEmail, result.data.decoded_email);
+							baseElement.href = 'mailto:' + result.data.decoded_email;
+							baseElement.click();
+						} else {
+							setTimeout(function(){
+								ctProcessDecodedDataResult(result.data, event.target);
+							}, 3000);
+						}
 					}
 					setTimeout(function () {
-						jQuery(element)
-							.children('.apbct-tooltip')
-							.fadeOut(700);
+						apbct(element.getElementsByClassName('apbct-tooltip')).fadeOut(700);
 					}, 4000);
+				},
+				onErrorCallback: function (res) {
+					element.addEventListener('click', ctFillDecodedEmailHandler);
+					element.removeAttribute('style');
+					ctShowDecodeComment(element, 'Error occurred: ' + res);
 				},
 			}
 		);
-		// Using AJAX request and handler
+
+	// Using AJAX request and handler
 	}else{
+		data.action = 'apbct_decode_email';
 		apbct_public_sendAJAX(
-			{
-				action: 'apbct_decode_email',
-				encodedEmail: event.target.dataset.originalString,
-				event_javascript_data:    javascriptClientData,
-			},
+			data,
 			{
 				notJson: true,
 				callback: function (result) {
 					if (result.success) {
-						ctProcessDecodedDataResult(result.data, event.target);
+						if (typeof baseElement.href !== 'undefined' && baseElement.href.indexOf('mailto:') === 0) {
+							let encodedEmail = baseElement.href.replace('mailto:', '');
+							let baseElementContent = baseElement.innerHTML;
+							baseElement.innerHTML = baseElementContent.replace(encodedEmail, result.data.decoded_email);
+							baseElement.href = 'mailto:' + result.data.decoded_email;
+							baseElement.click();
+						} else {
+							setTimeout(function(){
+								ctProcessDecodedDataResult(result.data, event.target);
+							}, 3000);
+						}
 					}
 					setTimeout(function () {
-						jQuery(element)
-							.children('.apbct-tooltip')
-							.fadeOut(700);
+						apbct(element.getElementsByClassName('apbct-tooltip')).fadeOut(700);
 					}, 4000);
+				},
+				onErrorCallback: function (res) {
+					element.addEventListener('click', ctFillDecodedEmailHandler);
+					element.removeAttribute('style');
+					ctShowDecodeComment(element, 'Error occurred: ' + res);
 				},
 			}
 		);
@@ -714,15 +1576,24 @@ function ctProcessDecodedDataResult(response, targetElement) {
 }
 
 function ctFillDecodedEmail(target, email){
-	let tooltip = jQuery(target).children('.apbct-tooltip');
-    jQuery(target).html(email)
-				  .append(tooltip);
+	apbct(target).html(
+		apbct(target)
+			.html()
+			.replace(/.+?(<div class=["']apbct-tooltip["'].+?<\/div>)/, email + "$1")
+	);
 }
 
 function ctShowDecodeComment(target, comment){
-	jQuery(target).find('.apbct-tooltip')
-		.show()
-		.find('.apbct-tooltip--text').html(comment);
+
+	if( ! comment ){
+		return;
+	}
+
+	apbct(target.getElementsByClassName('apbct-tooltip')).fadeIn(300);
+	apbct(target.getElementsByClassName('apbct-tooltip--text')).html(comment);
+	setTimeout(function(){
+		apbct(target.getElementsByClassName('apbct-tooltip')).fadeOut(700);
+	}, 5000);
 }
 
 function apbct_collect_visible_fields( form ) {
@@ -1113,7 +1984,7 @@ document.addEventListener("cleantalkModalContentLoaded", function( e ) {
         document.getElementById( 'cleantalk-modal-content' ).innerHTML = cleantalkModal.loaded;
     }
 });
-jQuery(document).ready(function(){
+document.addEventListener('DOMContentLoaded', function(){
 
 	if(
 		typeof ctPublicGDPR === 'undefined' ||
@@ -1121,11 +1992,15 @@ jQuery(document).ready(function(){
 	) {
 		return;
 	}
-	
+
+	if ( typeof jQuery === 'undefined' ) {
+		return;
+	}
+
 	ctPublicGDPR.gdpr_forms.forEach(function(item, i, arr){
-		
+
 		var elem = jQuery('#'+item+', .'+item);
-		
+
 		// Filter forms
 		if(!elem.is('form')){
 			// Caldera
@@ -1141,14 +2016,14 @@ jQuery(document).ready(function(){
 			else if(jQuery('.wpforms-form')[0] && jQuery('.wpforms-form').first().attr('id').indexOf('wpforms-form-'+item) !== -1)
 				elem = jQuery('.wpforms-form');
 		}
-		
+
 		// Adding notice
 		if(elem.is('form') || elem.attr('role') === 'form'){
 			elem.append('<input id="apbct_gdpr_'+i+'" type="checkbox" required="required " style="display: inline; margin-right: 10px;">')
 				.append('<label style="display: inline;" for="apbct_gdpr_'+i+'">'+ctPublicGDPR.gdpr_text+'</label>');
 		}
 	});
-	
+
 });
 /**
  * Handle external forms
@@ -1169,21 +2044,25 @@ function ct_protect_external() {
 
                 if(isIntegratedForm(currentForm)) {
 
-                    jQuery( currentForm ).before('<i class="cleantalk_placeholder" style="display: none;"></i>');
-
                     // Deleting form to prevent submit event
-                    var prev = jQuery(currentForm).prev(),
+                    var prev = currentForm.previousSibling,
                         form_html = currentForm.outerHTML,
-                        form_original = jQuery(currentForm).detach();
+                        form_original = currentForm;
 
-                    prev.after( form_html );
+                    // Remove the original form
+                    currentForm.parentElement.removeChild(currentForm);
+
+                    // Insert a clone
+                    const placeholder = document.createElement("div");
+                    placeholder.innerHTML = form_html;
+                    prev.after(placeholder.firstElementChild);
 
                     var force_action = document.createElement("input");
                     force_action.name = 'action';
                     force_action.value = 'cleantalk_force_ajax_check';
                     force_action.type = 'hidden';
 
-                    var reUseCurrentForm = document.forms[i];
+                    let reUseCurrentForm = document.forms[i];
 
                     reUseCurrentForm.appendChild(force_action);
 
@@ -1276,6 +2155,10 @@ window.onload = function () {
         return;
     }
 
+    if ( typeof jQuery === 'undefined' ) {
+        return;
+    }
+
     setTimeout(function () {
         ct_protect_external()
     }, 1500);
@@ -1302,7 +2185,8 @@ function isIntegratedForm(formObj) {
         formAction.indexOf('tp.media') !== -1 ||
         formAction.indexOf('flodesk.com') !== -1 ||
         formAction.indexOf('sendfox.com') !== -1 ||
-        formAction.indexOf('aweber.com') !== -1
+        formAction.indexOf('aweber.com') !== -1 ||
+        formAction.indexOf('secure.payu.com') !== -1
 
     ) {
         return true;
@@ -1345,6 +2229,10 @@ function sendAjaxCheckingFormData(form, prev, formOriginal) {
                     apbct_replace_inputs_values_from_other_form(form_new, formOriginal);
 
                     prev.after( formOriginal );
+
+                    // Clear visible_fields input
+                    formOriginal.find('input[name="apbct_visible_fields"]').remove();
+                    formOriginal.find('input[value="cleantalk_force_ajax_check"]').remove();
 
                     // Common click event
                     var subm_button = jQuery(formOriginal).find('button[type=submit]');
@@ -1393,27 +2281,24 @@ function ct_check_internal(currForm){
     }
     ct_data['action'] = 'ct_check_internal';
 
-//AJAX Request
-    jQuery.ajax({
-        type: 'POST',
-        url: ctPublicFunctions._ajax_url,
-        datatype : 'text',
-        data: ct_data,
-        success: function(data){
-            if(data == 'true'){
-                currForm.submit();
-            }else{
-                alert(data);
-                return false;
+    //AJAX Request
+    apbct_public_sendAJAX(
+        ct_data,
+        {
+            url: ctPublicFunctions._ajax_url,
+            callback: function (data) {
+                if(data.success === true){
+                    currForm.submit();
+                }else{
+                    alert(data.data);
+                    return false;
+                }
             }
-        },
-        error: function(){
-            currForm.submit();
         }
-    });        
+    );
 }
-    
-jQuery(document).ready( function(){
+
+document.addEventListener('DOMContentLoaded',function(){
     let ct_currAction = '',
         ct_currForm = '';
 
@@ -1431,12 +2316,14 @@ jQuery(document).ready( function(){
                 ! ct_check_internal__is_exclude_form(ct_currAction)                  // Exclude WordPress native scripts from processing
             ) {
                 ctPrevHandler = ct_currForm.click;
-                jQuery(ct_currForm).off('**');
-                jQuery(ct_currForm).off();
-                jQuery(ct_currForm).on('submit', function(event){
-                    ct_check_internal(event.target);
-                    return false;
-                });
+                if ( typeof jQuery !== 'undefined' ) {
+                    jQuery(ct_currForm).off('**');
+                    jQuery(ct_currForm).off();
+                    jQuery(ct_currForm).on('submit', function(event){
+                        ct_check_internal(event.target);
+                        return false;
+                    });
+                }
             }
 		}
 	}

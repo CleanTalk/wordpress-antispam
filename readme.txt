@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 3.0
 Tested up to: 6.0
 Requires PHP: 5.6
-Stable tag: 5.183
+Stable tag: 5.184
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -38,7 +38,7 @@ No CAPTCHA, no questions, no animal counting, no puzzles, no math and no spam bo
 22. Block messages by languages, countries, networks.
 23. Email Address Encoder
 
-= Free trial then $8 per year =
+= Free trial then $12 per year =
 CleanTalk is an anti-spam plugin which works with the premium Cloud Anti-Spam service cleantalk.org. This plugin as a service <a href="https://developer.wordpress.org/plugins/wordpress-org/detailed-plugin-guidelines/#6-software-as-a-service-is-permitted">https://developer.wordpress.org/plugins/wordpress-org/detailed-plugin-guidelines/#6-software-as-a-service-is-permitted</a>
 
 = Public reviews =
@@ -601,6 +601,29 @@ If your website has forms that send data to external sources, you can enable opt
 12. SpamFireWall log.
 
 == Changelog ==
+
+= 5.184 Sep 08 2022 =
+#### Settings interface fixed, Email Encoder improved, jQuery dependency removed and some minor issues fixed.
+* New. cleantalk-admin-settings-page.js. Higlight access key field on key typos and do warn user.
+* New. Class for inline notices.
+* New. cleantalk-admin-settings-page.js. Notice user if key is bad to force retry synchronization.
+* New. cleantalk-admin.php. Localize key_is_ok to js script.
+* New. cleantalk-settings.php. Remove 'save settings' button disabling.
+* New. SFW. Adding custom logo to the block page ability implemented.
+* New: Email Decode. 'check_bot' method sending implemented
+* Fix. Email encoder. Handle mailto: links.
+* Fix: Added exception checking when adding a hidden field to WC Checkout
+* Fix: Fixed sending the email when the order was received
+* Imp. cleantalk-admin-settings-page.css. Notices CSS changed.
+* Imp. cleantalk-admin-settings-page.js. New notice view.
+* Fix: Fixed JS emailencoder
+* Fix: Fixed Upay integration
+* Fix. HTML5. Remove "text/javascript" in tag script.
+* Fix: Excluded email encoding on UltimateMember validation request
+* Fix. Code. JS refactored to be free of jquery
+* Fix. Internal forms. Some logic fixed.
+* Fix. External forms. Some logic fixed.
+* Fix. Admin. FeedBack sending timeout increased up to 15 sec.
 
 = 5.183 Aug 18 2022 =
 ##### Checking for bot while email encoder decode, negative reports improved, some integrations fixed and some minor issues fixed.

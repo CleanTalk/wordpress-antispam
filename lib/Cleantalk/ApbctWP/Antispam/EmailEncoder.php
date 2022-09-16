@@ -35,12 +35,17 @@ class EmailEncoder extends \Cleantalk\Antispam\EmailEncoder
 
         $params = array(
             'auth_key'              => $apbct->api_key,        // Access key
+            'agent'                 => APBCT_AGENT,
             'event_token'           => null,                   // Unique event ID
             'event_javascript_data' => $event_javascript_data, // JSON-string params to analysis
             'browser_sign'          => $browser_sign,          // Browser ID
             'sender_ip'             => Helper::ipGet(),        // IP address
             'event_type'            => 'CONTACT_DECODING',     // 'GENERAL_BOT_CHECK' || 'CONTACT_DECODING'
             'message_to_log'        => $this->decoded_email,   // Custom message
+            'page_url'              => Post::get('post_url'),
+            'sender_info'           => array(
+                'site_referrer'         => Post::get('referrer'),
+            ),
         );
 
         $ct_request = new CleantalkRequest($params);

@@ -1165,3 +1165,12 @@ function apbct_update_to_5_182_0()
 
     update_option('cleantalk_connection_reports', $connection_reports, false);
 }
+
+function apbct_update_to_5_184_2()
+{
+    global $apbct;
+    if ( ! isset($apbct->settings['misc__send_connection_reports']) ) {
+        $apbct->settings['misc__send_connection_reports'] = 1;
+        $apbct->saveSettings();
+    }
+}

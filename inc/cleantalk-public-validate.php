@@ -216,8 +216,6 @@ function ct_contact_form_validate()
                     )
                 );
                 die();
-            } elseif ( isset($_POST['action']) && $_POST['action'] == 'ct_check_internal' ) {
-                return $ct_result->comment;
             } elseif ( isset($_POST['vfb-submit']) && defined('VFB_VERSION') ) {
                 wp_die(
                     "<h1>" . __(

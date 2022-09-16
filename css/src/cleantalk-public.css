@@ -1,3 +1,27 @@
+/*.apbct-email-encoder{*/
+/*    position: relative;*/
+/*}*/
+/*.apbct-tooltip{*/
+/*    position: relative;*/
+/*}*/
+/*    .apbct-tooltip--text{*/
+/*        position: absolute;*/
+/*        background: lightgray;*/
+/*        border-radius: 10px;*/
+/*        padding: 5px;*/
+/*        color: white;*/
+/*        top: 4px;*/
+/*    }*/
+/*    .apbct-tooltip--arrow{*/
+/*        position: absolute;*/
+/*        top: 0px;*/
+/*        left: 15px;*/
+/*        width: 10px;*/
+/*        height: 10px;*/
+/*        background: #5a5a5a;*/
+/*        transform: rotate(135deg);*/
+/*    }*/
+
 #honeypot-field-url {
     display: none !important;
 }
@@ -12,3 +36,32 @@
 input[class*='apbct'].apbct_special_field{
     display: none !important;
 }
+
+.apbct-email-encoder{
+    position: relative;
+}
+.apbct-tooltip{
+    display: none;
+    position: absolute;
+    top: 35px;
+    left: 15px;
+    background: lightgray;
+    border-radius: 5px;
+    opacity: .9;
+}
+    .apbct-tooltip--text{
+        position: absolute;
+        background: lightgray;
+        padding: 10px;
+        border-radius: 5px;
+        width: max-content;
+    }
+    .apbct-tooltip--arrow{
+        position: absolute;
+        background: lightgray;
+        width: 10px;
+        height: 10px;
+        top: -5px;
+        left: 10px;
+        transform: rotate(135deg);
+    }

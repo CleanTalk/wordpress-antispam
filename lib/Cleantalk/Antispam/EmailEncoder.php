@@ -52,6 +52,11 @@ class EmailEncoder
             return;
         }
 
+        // Excluded request
+        if ($this->isExcludedRequest()) {
+            return;
+        }
+
         //list of encoding exclusions signs
         $this->encoding_exclusions_signs = array(
             //divi contact forms additional emails
@@ -103,7 +108,7 @@ class EmailEncoder
             return $content;
         }
 
-        return preg_replace_callback('/(<a.*?mailto\:.*?<\/a>?)|(\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+(\.[A-Za-z]{2,}))/', function ($matches) {
+        return preg_replace_callback('/(mailto\:\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,})|(\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+(\.[A-Za-z]{2,}))/', function ($matches) {
 
             if ( isset($matches[3]) && in_array(strtolower($matches[3]), ['.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp']) ) {
                 return $matches[0];
@@ -266,20 +271,18 @@ class EmailEncoder
     private function encodeMailtoLink($mailto_link_str)
     {
         // Get inner tag text and place it in $matches[1]
-        preg_match('/<a.*?mailto\:.*?>(.*?)<\/a>?/', $mailto_link_str, $matches);
+        preg_match('/mailto\:(\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,})/', $mailto_link_str, $matches);
         if ( isset($matches[1]) ) {
             $mailto_inner_text = preg_replace_callback('/\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,}/', function ($matches) {
                 return $this->obfuscateEmail($matches[0]);
             }, $matches[1]);
         }
+        $mailto_link_str = str_replace('mailto:', '', $mailto_link_str);
         $encoded = $this->encodeString($mailto_link_str, $this->secret_key);
 
         $text = isset($mailto_inner_text) ? $mailto_inner_text : $mailto_link_str;
 
-        return '<span 
-                data-original-string="' . $encoded . '" 
-                class="apbct-email-encoder"
-                title="' . esc_attr($this->getTooltip()) . '">' . $text . '</span>';
+        return 'mailto:' . $text . '" data-original-string="' . $encoded . '" title="' . esc_attr($this->getTooltip());
     }
 
     /**
@@ -289,7 +292,7 @@ class EmailEncoder
      */
     private function getTooltip()
     {
-        return esc_html__('This contact was encoded by CleanTalk. Click to decode.', 'cleantalk-spam-protect');
+        return esc_html__('This contact has been encoded by CleanTalk. Click to decode. To finish the decoding make sure that JavaScript is enabled in your browser.', 'cleantalk-spam-protect');
     }
 
     /**
@@ -322,6 +325,23 @@ class EmailEncoder
             }
         }
         //no signs found
+        return false;
+    }
+
+    /**
+     * Excluded requests
+     */
+    private function isExcludedRequest()
+    {
+        if (
+            apbct_is_plugin_active('ultimate-member/ultimate-member.php') &&
+            isset($_POST['um_request']) &&
+            strtoupper($_SERVER['REQUEST_METHOD']) === 'POST' &&
+            empty(Post::get('encodedEmail'))
+        ) {
+            return true;
+        }
+
         return false;
     }
 }
