@@ -449,7 +449,12 @@ function getJavascriptClientData(common_cookies = []) {
 		&& common_cookies !== []
 	){
 		for (let i = 0; i < common_cookies.length; ++i){
-			resultDataJson[common_cookies[i][0]] = common_cookies[i][1]
+			if ( typeof (common_cookies[i][1]) === "object" ){
+				//this is for handle SFW cookies
+				resultDataJson[common_cookies[i][1][0]] = common_cookies[i][1][1]
+			} else {
+				resultDataJson[common_cookies[i][0]] = common_cookies[i][1]
+			}
 		}
 	} else {
 		console.log('APBCT JS ERROR: Collecting data type mismatch')
