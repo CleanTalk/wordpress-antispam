@@ -346,6 +346,7 @@ function apbct_add_connection_report(
 function apbct_rotate_moderate()
 {
     $ct = new Cleantalk();
+    $ct->server_url = APBCT_MODERATE_URL;
     $ct->rotateModerate();
     if ( $ct->server_change ) {
         update_option(

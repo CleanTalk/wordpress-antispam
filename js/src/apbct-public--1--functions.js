@@ -79,6 +79,7 @@ function apbct_public_sendAJAX(data, params, obj){
     // Default params
     let _params            = [];
     _params["callback"]    = params.callback    || null;
+    _params["onErrorCallback"] = params.onErrorCallback    || null;
     _params["callback_context"] = params.callback_context || null;
     _params["callback_params"] = params.callback_params || null;
     _params["async"]        = params.async || true;
@@ -112,6 +113,7 @@ function apbct_public_sendREST( route, params ) {
     let _params         = [];
     _params["route"]    = route;
     _params["callback"] = params.callback || null;
+    _params["onErrorCallback"] = params.onErrorCallback    || null;
     _params["data"]     = params.data     || [];
     _params["method"]   = params.method   || 'POST';
 

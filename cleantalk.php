@@ -228,6 +228,7 @@ if ( ! is_admin() && ! apbct_is_ajax() && ! defined('DOING_CRON')
      && empty(Post::get('ct_checkjs_register_form')) // Buddy press registration fix
      && empty(Get::get('ct_checkjs_search_default')) // Search form fix
      && empty(Post::get('action')) //bbPress
+     && \Cleantalk\Variables\Server::inUri('/favicon.ico') // /favicon request rewritten cookies fix
 ) {
     if ( $apbct->data['cookies_type'] !== 'alternative' ) {
         add_action('template_redirect', 'apbct_cookie', 2);
@@ -2438,7 +2439,7 @@ function ct_mail_send_connection_report()
 {
     global $apbct;
 
-    if ( ( isset($apbct->connection_reports['negative']) && $apbct->connection_reports['negative'] > 0 ) || !empty(Get::get('ct_send_connection_report')) ) {
+    if ( ( $apbct->settings['misc__send_connection_reports'] == 1 && isset($apbct->connection_reports['negative']) && $apbct->connection_reports['negative'] > 0 ) || !empty(Get::get('ct_send_connection_report')) ) {
         //skip empty reports for cron job
         $unsent_exist = false;
         foreach ( $apbct->connection_reports['negative_report'] as $_key => $report ) {
