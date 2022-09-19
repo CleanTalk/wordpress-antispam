@@ -1679,32 +1679,36 @@ if(typeof jQuery !== 'undefined') {
 	jQuery(document).ajaxComplete(function (event, xhr, settings) {
 		if (xhr.responseText && xhr.responseText.indexOf('"apbct') !== -1) {
 			try {
-				var response = JSON.parse(xhr.responseText);
+				var response = JSON.parse(responseText);
 			} catch (e) {
 				console.log(e.toString());
 				return;
 			}
-
-			if (typeof response.apbct !== 'undefined') {
-				response = response.apbct;
-				if (response.blocked) {
-					document.dispatchEvent(
-						new CustomEvent( "apbctAjaxBockAlert", {
-							bubbles: true,
-							detail: { message: response.comment }
-						} )
-					);
-
-					// Show the result by modal
-					cleantalkModal.loaded = response.comment;
-					cleantalkModal.open();
-
-					if(+response.stop_script == 1)
-						window.stop();
-				}
-			}
+			ctParseBlockMessage(response);
 		}
 	});
+}
+
+function ctParseBlockMessage(response) {
+
+	if (typeof response.apbct !== 'undefined') {
+		response = response.apbct;
+		if (response.blocked) {
+			document.dispatchEvent(
+				new CustomEvent( "apbctAjaxBockAlert", {
+					bubbles: true,
+					detail: { message: response.comment }
+				} )
+			);
+
+			// Show the result by modal
+			cleantalkModal.loaded = response.comment;
+			cleantalkModal.open();
+
+			if(+response.stop_script == 1)
+				window.stop();
+		}
+	}
 }
 
 function ctSetPixelUrlLocalstorage(ajax_pixel_url) {
@@ -1974,7 +1978,13 @@ function ct_protect_external() {
 
             if(typeof(currentForm.action) == 'string') {
 
+                // Ajax checking for the integrated forms
                 if(isIntegratedForm(currentForm)) {
+
+                    var cleantalk_placeholder = document.createElement("i");
+                    cleantalk_placeholder.className = 'cleantalk_placeholder';
+                    cleantalk_placeholder.style = 'display: none';
+                    currentForm.parentElement.insertBefore(cleantalk_placeholder, currentForm);
 
                     // Deleting form to prevent submit event
                     var prev = currentForm.previousSibling,
@@ -1997,6 +2007,8 @@ function ct_protect_external() {
                     let reUseCurrentForm = document.forms[i];
 
                     reUseCurrentForm.appendChild(force_action);
+                    reUseCurrentForm.apbctPrev = prev;
+                    reUseCurrentForm.apbctFormOriginal = form_original;
 
                     // mailerlite integration - disable click on submit button
                     let mailerlite_detected_class = false
@@ -2014,7 +2026,7 @@ function ct_protect_external() {
                         if ( mailerliteSubmitButton !== undefined ) {
                             mailerliteSubmitButton.click(function (event) {
                                 event.preventDefault();
-                                sendAjaxCheckingFormData(reUseCurrentForm, prev, form_original);
+                                sendAjaxCheckingFormData(event.currentTarget);
                             });
                         }
                     } else {
@@ -2024,11 +2036,11 @@ function ct_protect_external() {
                             const prev = jQuery(event.currentTarget).prev();
                             const form_original = jQuery(event.currentTarget).clone();
 
-                            sendAjaxCheckingFormData(event.currentTarget, prev, form_original);
+                            sendAjaxCheckingFormData(event.currentTarget);
                         };
                     }
 
-                    // Common flow
+                // Common flow - modify form's action
                 }else if(currentForm.action.indexOf('http://') !== -1 || currentForm.action.indexOf('https://') !== -1) {
 
                     var tmp = currentForm.action.split('//');
@@ -2152,19 +2164,21 @@ function sendAjaxCheckingFormData(form, prev, formOriginal) {
         data,
         {
             async: false,
-            callback: function( result, data, params, obj, prev, formOriginal ){
+            callback: function( result, data, params, obj ){
 
                 if( result.apbct === undefined || ! +result.apbct.blocked ) {
 
-                    var form_new = jQuery(form).detach();
+                    let form_new = jQuery(form).detach();
+                    let prev = form.apbctPrev;
+                    let formOriginal = form.apbctFormOriginal;
 
                     apbct_replace_inputs_values_from_other_form(form_new, formOriginal);
 
                     prev.after( formOriginal );
 
                     // Clear visible_fields input
-                    formOriginal.find('input[name="apbct_visible_fields"]').remove();
-                    formOriginal.find('input[value="cleantalk_force_ajax_check"]').remove();
+                    jQuery(formOriginal).find('input[name="apbct_visible_fields"]').remove();
+                    jQuery(formOriginal).find('input[value="cleantalk_force_ajax_check"]').remove();
 
                     // Common click event
                     var subm_button = jQuery(formOriginal).find('button[type=submit]');
@@ -2193,9 +2207,10 @@ function sendAjaxCheckingFormData(form, prev, formOriginal) {
                     }
 
                 }
-            },
-            callback_context: null,
-            callback_params: [prev, formOriginal],
+                if (result.apbct !== undefined && +result.apbct.blocked) {
+                    ctParseBlockMessage(result);
+                }
+            }
         }
     );
 }

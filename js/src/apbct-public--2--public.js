@@ -653,32 +653,36 @@ if(typeof jQuery !== 'undefined') {
 	jQuery(document).ajaxComplete(function (event, xhr, settings) {
 		if (xhr.responseText && xhr.responseText.indexOf('"apbct') !== -1) {
 			try {
-				var response = JSON.parse(xhr.responseText);
+				var response = JSON.parse(responseText);
 			} catch (e) {
 				console.log(e.toString());
 				return;
 			}
-
-			if (typeof response.apbct !== 'undefined') {
-				response = response.apbct;
-				if (response.blocked) {
-					document.dispatchEvent(
-						new CustomEvent( "apbctAjaxBockAlert", {
-							bubbles: true,
-							detail: { message: response.comment }
-						} )
-					);
-
-					// Show the result by modal
-					cleantalkModal.loaded = response.comment;
-					cleantalkModal.open();
-
-					if(+response.stop_script == 1)
-						window.stop();
-				}
-			}
+			ctParseBlockMessage(response);
 		}
 	});
+}
+
+function ctParseBlockMessage(response) {
+
+	if (typeof response.apbct !== 'undefined') {
+		response = response.apbct;
+		if (response.blocked) {
+			document.dispatchEvent(
+				new CustomEvent( "apbctAjaxBockAlert", {
+					bubbles: true,
+					detail: { message: response.comment }
+				} )
+			);
+
+			// Show the result by modal
+			cleantalkModal.loaded = response.comment;
+			cleantalkModal.open();
+
+			if(+response.stop_script == 1)
+				window.stop();
+		}
+	}
 }
 
 function ctSetPixelUrlLocalstorage(ajax_pixel_url) {
