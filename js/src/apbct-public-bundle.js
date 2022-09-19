@@ -2149,7 +2149,7 @@ function sendAjaxCheckingFormData(form, prev, formOriginal) {
         data,
         {
             async: false,
-            callback: function( result, data, params, obj, prev, formOriginal ){
+            callback: function( result, data, params, obj ){
 
                 if( result.apbct === undefined || ! +result.apbct.blocked ) {
 
@@ -2195,9 +2195,7 @@ function sendAjaxCheckingFormData(form, prev, formOriginal) {
                 if (result.apbct !== undefined && +result.apbct.blocked) {
                     ctParseBlockMessage(result);
                 }
-            },
-            callback_context: null,
-            callback_params: [prev, formOriginal],
+            }
         }
     );
 }
