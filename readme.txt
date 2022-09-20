@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 3.0
 Tested up to: 6.0
 Requires PHP: 5.6
-Stable tag: 5.184
+Stable tag: 5.185
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -601,6 +601,29 @@ If your website has forms that send data to external sources, you can enable opt
 12. SpamFireWall log.
 
 == Changelog ==
+
+= 5.185 Sep 22 2022 =
+#### NoCookie data collection, new admin notices style, external forms logic improved and many minor issues fixed.
+* New. NoCookie data collection.
+* New style admin notices
+* Upd. Settings. Email encoder setting duplicated on the top level place.
+* Fix: Fixed SFW looping with alternative cookies
+* Fix: Changed hook for EventsManager
+* Fix: Changed option description
+* Fix. External forms. JS logic fixed.
+* Fix. Cookies. Skip cookies setup on favicon loading.
+* Fix. HttpRequest. Error string offset fix due request error handling.
+* Fix: Fixed AdminNotices->is_cleantalk_page
+* Fix. Common. Rotating moderate-server via cron job fixed.
+* Fix. Common. Moderate servers details updated.
+* Fix. Email encoder. An ability to decode again implemented if an error was occurred.
+* Fix. GDPR. Contact form 7 integration fixed and upgraded.
+* Fix. ct_ajax_hook(). ProfileGrid AJAX actions skipped.
+* Fix. Connection report. Option implemented.
+* Fix. Integrations. Formidable forms item_meta handling.
+* Mod: Added clearing AC table from AC logs once a day
+* Fix. Debugging logic. Now drops debug data correct.
+* Mod. AltSessions. Now sends and parse cookies data as JSON.
 
 = 5.184 Sep 08 2022 =
 #### Settings interface fixed, Email Encoder improved, jQuery dependency removed and some minor issues fixed.
