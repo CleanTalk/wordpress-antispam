@@ -2382,6 +2382,11 @@ function apbct_settings__validate($settings)
         \Cleantalk\ApbctWP\Variables\AltSessions::wipe();
     }
 
+    // NoCookie table clearing
+    if ( $apbct->data['cookies_type'] !== 'none' ) {
+        \Cleantalk\ApbctWP\Variables\NoCookie::wipe();
+    }
+
     /**
      * Triggered before returning the settings
      */

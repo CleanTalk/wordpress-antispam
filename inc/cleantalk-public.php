@@ -1357,6 +1357,7 @@ function apbct_enqueue_and_localize_public_scripts()
         'data__email_check_before_post' => $apbct->settings['data__email_check_before_post'],
         'data__cookies_type'            => $apbct->data['cookies_type'],
         'data__visible_fields_required' => ! apbct_is_user_logged_in() || $apbct->settings['data__protect_logged_in'] == 1,
+        'data__to_local_storage' => \Cleantalk\ApbctWP\Variables\NoCookie::preloadForScripts()
     ));
 
     wp_enqueue_style(

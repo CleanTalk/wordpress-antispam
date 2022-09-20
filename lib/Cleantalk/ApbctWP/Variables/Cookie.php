@@ -25,8 +25,11 @@ class Cookie extends \Cleantalk\Variables\Cookie
                     $value = $this->getAndSanitize(urldecode($_COOKIE[$name]));
                 }
                 // The old way
-            } elseif ( isset($_COOKIE[$name]) ) {
+            } else if ( isset($_COOKIE[$name]) ) {
                 $value = $this->getAndSanitize(urldecode($_COOKIE[$name]));
+                //NoCookies
+            } else if ( $apbct->data['cookies_type'] === 'none' ) {
+                $value = NoCookie::get($name);
             } else {
                 $value = '';
             }
@@ -42,7 +45,7 @@ class Cookie extends \Cleantalk\Variables\Cookie
 
     /**
      * Universal method to adding cookies
-     * Using Alternative Sessions or native cookies depends on settings
+     * Using Alternative Sessions or native cookies or NoCookie handler depends on settings
      *
      * @param string $name
      * @param string $value
@@ -52,6 +55,10 @@ class Cookie extends \Cleantalk\Variables\Cookie
      * @param bool|null $secure
      * @param bool $httponly
      * @param string $samesite
+     * @param bool $no_cookie_to_db
+     * @psalm-suppress PossiblyUnusedReturnValue
+     * @psalm-suppress ImplementedReturnTypeMismatch
+     * @return bool
      */
     public static function set(
         $name,
@@ -61,17 +68,19 @@ class Cookie extends \Cleantalk\Variables\Cookie
         $domain = '',
         $secure = null,
         $httponly = false,
-        $samesite = 'Lax'
+        $samesite = 'Lax',
+        $no_cookie_to_db = false
     ) {
         global $apbct;
-
+        //select handling way to set cookie data in dependence of cookie type in the settings
         if ($apbct->data['cookies_type'] === 'none' && ! is_admin()) {
-            return;
+            return NoCookie::set($name, $value, $no_cookie_to_db);
         } elseif ($apbct->data['cookies_type'] === 'alternative') {
             AltSessions::set($name, $value);
         } else {
             self::setNativeCookie(apbct__get_cookie_prefix() . $name, $value, $expires, $path, $domain, $secure, $httponly, $samesite);
         }
+        return true;
     }
 
     /**
@@ -151,7 +160,7 @@ class Cookie extends \Cleantalk\Variables\Cookie
                 $visible_fields_collection[$prepared_key] = $prepared_value;
             }
         } else {
-            // Get from alt cookies storage
+            // Get from alt cookies storage or NoCookie storage
             $visible_fields_collection = (array) self::get('apbct_visible_fields');
         }
 

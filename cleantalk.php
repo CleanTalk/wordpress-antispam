@@ -2200,7 +2200,6 @@ function apbct_store__urls()
     global $apbct;
 
     if (
-        $apbct->data['cookies_type'] === 'none' || // Do not set cookies if option is disabled (for Varnish cache).
         ! empty($apbct->headers_sent)              // Headers sent
     ) {
         return false;
@@ -2228,7 +2227,7 @@ function apbct_store__urls()
         $urls               = count($urls) > 5 ? array_slice($urls, 1, 5) : $urls;
 
         // Saving
-        Cookie::set('apbct_urls', json_encode($urls, JSON_UNESCAPED_SLASHES), time() + 86400 * 3, '/', $site_url, null, true, 'Lax');
+        Cookie::set('apbct_urls', json_encode($urls, JSON_UNESCAPED_SLASHES), time() + 86400 * 3, '/', $site_url, null, true, 'Lax', true);
 
         // REFERER
         // Get current referer
@@ -2246,7 +2245,7 @@ function apbct_store__urls()
                 parse_url($new_site_referer, PHP_URL_HOST) !== Server::get('HTTP_HOST')
             )
         ) {
-            Cookie::set('apbct_site_referer', $new_site_referer, time() + 86400 * 3, '/', $site_url, null, true, 'Lax');
+            Cookie::set('apbct_site_referer', $new_site_referer, time() + 86400 * 3, '/', $site_url, null, true, 'Lax', true);
         }
 
         $apbct->flags__url_stored = true;
@@ -2264,7 +2263,6 @@ function apbct_cookie()
     global $apbct;
 
     if (
-        $apbct->data['cookies_type'] === 'none' || // Do not set cookies if option is disabled (for Varnish cache).
         ! empty($apbct->flags__cookies_setuped) || // Cookies already set
         ! empty($apbct->headers_sent)              // Headers sent
     ) {
@@ -2293,23 +2291,24 @@ function apbct_cookie()
     // Submit time
     if ( empty(Post::get('ct_multipage_form')) ) { // Do not start/reset page timer if it is multi page form (Gravity forms))
         $apbct_timestamp = time();
-        Cookie::set('apbct_timestamp', (string)$apbct_timestamp, 0, '/', $domain, null, true);
+        Cookie::set('apbct_timestamp', (string)$apbct_timestamp, 0, '/', $domain, null, false, 'Lax', true);
         $cookie_test_value['cookies_names'][] = 'apbct_timestamp';
         $cookie_test_value['check_value']     .= $apbct_timestamp;
     }
 
     // Previous referer
     if ( Server::get('HTTP_REFERER') ) {
-        Cookie::set('apbct_prev_referer', Server::get('HTTP_REFERER'), 0, '/', $domain, null, true);
+        Cookie::set('apbct_prev_referer', Server::get('HTTP_REFERER'), 0, '/', $domain, null, true, 'Lax', true);
         $cookie_test_value['cookies_names'][] = 'apbct_prev_referer';
         $cookie_test_value['check_value']     .= Server::get('HTTP_REFERER');
     }
 
     // Landing time
+    // todo if cookies disabled there is no way to keep this data without DB:( always will be overwriteen
     $site_landing_timestamp = Cookie::get('apbct_site_landing_ts');
     if ( ! $site_landing_timestamp ) {
         $site_landing_timestamp = time();
-        Cookie::set('apbct_site_landing_ts', (string)$site_landing_timestamp, 0, '/', $domain, null, true);
+        Cookie::set('apbct_site_landing_ts', (string)$site_landing_timestamp, 0, '/', $domain, null, true, 'Lax', true);
     }
     $cookie_test_value['cookies_names'][] = 'apbct_site_landing_ts';
     $cookie_test_value['check_value']     .= $site_landing_timestamp;
@@ -2317,17 +2316,19 @@ function apbct_cookie()
     // Page hits
     // Get
     $page_hits = Cookie::get('apbct_page_hits');
+
     // Set / Increase
+    // todo if cookies disabled there is no way to keep this data without DB:( always will be 1
     $page_hits = (int)$page_hits ? (int)$page_hits + 1 : 1;
 
-    Cookie::set('apbct_page_hits', (string)$page_hits, 0, '/', $domain, null, true);
+    Cookie::set('apbct_page_hits', (string)$page_hits, 0, '/', $domain, null, true, 'Lax', true);
 
     $cookie_test_value['cookies_names'][] = 'apbct_page_hits';
     $cookie_test_value['check_value']     .= $page_hits;
 
     // Cookies test
     $cookie_test_value['check_value'] = md5($cookie_test_value['check_value']);
-    if ( $apbct->data['cookies_type'] === 'native' ) {
+    if ( $apbct->data['cookies_type'] !== 'alternative' ) {
         Cookie::set('apbct_cookies_test', urlencode(json_encode($cookie_test_value)), 0, '/', $domain, null, true);
     }
 
@@ -2346,7 +2347,7 @@ function apbct_cookies_test()
 {
     global $apbct;
 
-    if ( $apbct->data['cookies_type'] === 'alternative' ) {
+    if ( $apbct->data['cookies_type'] !== 'native' ) {
         return 1;
     }
 

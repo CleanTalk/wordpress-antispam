@@ -25,6 +25,9 @@
             "vendor/bin/phpcs --standard=tests/.phpcs.xml",
             "vendor/bin/psalm --no-cache --config=psalm.xml",
             "vendor/bin/psalm --no-cache --config=psalm.xml --taint-analysis"
+        ],
+        "just_psalm": [
+            "vendor/bin/psalm --no-cache --config=psalm.xml"
         ]
     }
 }

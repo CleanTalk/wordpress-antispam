@@ -7,8 +7,10 @@ function ctSetCookie( cookies, value, expires ){
 
     // Cookies disabled
     if( ctPublicFunctions.data__cookies_type === 'none' ){
-        return;
-
+        cookies.forEach( function (item, i, arr	) {
+           apbctLocalStorage.set(item[0], encodeURIComponent(item[1]))
+        });
+        ctNoCookieAttachHiddenFieldsToForms()
         // Using traditional cookies
     }else if( ctPublicFunctions.data__cookies_type === 'native' ){
         cookies.forEach( function (item, i, arr	) {
@@ -145,7 +147,7 @@ apbctLocalStorage = {
                 const json = JSON.parse(storageValue);
                 return json.hasOwnProperty(property) ? JSON.parse(json[property]) : json;
             } catch (e) {
-                return new Error(e);
+                return storageValue;
             }
         }
         return false;
@@ -170,5 +172,16 @@ apbctLocalStorage = {
     },
     delete : function (key) {
         localStorage.removeItem(key);
-    }
+    },
+    getCleanTalkData : function () {
+        let data = {}
+        for(let i=0; i<localStorage.length; i++) {
+            let key = localStorage.key(i);
+            if (key.indexOf('ct_') !==-1 || key.indexOf('apbct_') !==-1){
+                data[key.toString()] = apbctLocalStorage.get(key)
+            }
+        }
+        return data
+    },
+
 }
