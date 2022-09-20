@@ -471,7 +471,6 @@ class Cleantalk
             $response->errno  = 0;
             $response->errstr = $errstr;
         } else {
-
             if ( isset($result['error']) ) {
                 $error = $result['error'];
             } else if ( is_string($result) ) {
