@@ -22,6 +22,20 @@ function ctSetCookie( cookies, value, expires ){
         // Using alternative cookies
     }else if( ctPublicFunctions.data__cookies_type === 'alternative' && ! skip_alt ){
 
+        if (typeof (getJavascriptClientData) === "function"){
+            //reprocess already gained cookies data
+            cookies = getJavascriptClientData(cookies);
+        } else {
+            console.log('APBCT ERROR: getJavascriptClientData() is not loaded')
+        }
+
+        try {
+            JSON.parse(cookies)
+        } catch (e){
+            console.log('APBCT ERROR: JSON parse error:' + e)
+            return
+        }
+
         // Using REST API handler
         if( ctPublicFunctions.data__ajax_type === 'rest' ){
             apbct_public_sendREST(

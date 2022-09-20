@@ -740,7 +740,9 @@ function apbct_form__formidable__testSpam($errors, $_form)
     // Replacing key to input_meta[NUM] for scalar values
     $tmp_message = array_flip($tmp_message);
     foreach ( $tmp_message as &$value ) {
-        $value = 'item_meta[' . $value . ']';
+        if ( strpos($value, 'item_meta[') === false ) {
+            $value = 'item_meta[' . $value . ']';
+        }
     }
     unset($value);
     // @ToDO Need to be solved psalm notice about InvalidScalarArgument

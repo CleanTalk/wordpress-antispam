@@ -888,6 +888,20 @@ function ctSetCookie( cookies, value, expires ){
         // Using alternative cookies
     }else if( ctPublicFunctions.data__cookies_type === 'alternative' && ! skip_alt ){
 
+        if (typeof (getJavascriptClientData) === "function"){
+            //reprocess already gained cookies data
+            cookies = getJavascriptClientData(cookies);
+        } else {
+            console.log('APBCT ERROR: getJavascriptClientData() is not loaded')
+        }
+
+        try {
+            JSON.parse(cookies)
+        } catch (e){
+            console.log('APBCT ERROR: JSON parse error:' + e)
+            return
+        }
+
         // Using REST API handler
         if( ctPublicFunctions.data__ajax_type === 'rest' ){
             apbct_public_sendREST(
@@ -1493,7 +1507,7 @@ function apbctAjaxEmailDecode(event, baseElement){
 	}
 }
 
-function getJavascriptClientData() {
+function getJavascriptClientData(common_cookies = []) {
 	let resultDataJson = {};
 
 	resultDataJson.apbct_headless = ctGetCookie(ctPublicFunctions.cookiePrefix + 'apbct_headless');
@@ -1519,6 +1533,22 @@ function getJavascriptClientData() {
 	resultDataJson.ct_mouse_moved = ctMouseMovedLocalStorage !== undefined ? ctMouseMovedLocalStorage : ctMouseMovedCookie;
 	resultDataJson.ct_has_scrolled = ctHasScrolledLocalStorage !== undefined ? ctHasScrolledLocalStorage : ctHasScrolledCookie;
 	resultDataJson.ct_cookies_type = ctCookiesTypeLocalStorage !== undefined ? ctCookiesTypeLocalStorage : ctCookiesTypeCookie;
+
+	if (
+		typeof (common_cookies) === "object"
+		&& common_cookies !== []
+	){
+		for (let i = 0; i < common_cookies.length; ++i){
+			if ( typeof (common_cookies[i][1]) === "object" ){
+				//this is for handle SFW cookies
+				resultDataJson[common_cookies[i][1][0]] = common_cookies[i][1][1]
+			} else {
+				resultDataJson[common_cookies[i][0]] = common_cookies[i][1]
+			}
+		}
+	} else {
+		console.log('APBCT JS ERROR: Collecting data type mismatch')
+	}
 
 	// Parse JSON properties to prevent double JSON encoding
 	resultDataJson = removeDoubleJsonEncoding(resultDataJson);
@@ -1722,32 +1752,36 @@ if(typeof jQuery !== 'undefined') {
 	jQuery(document).ajaxComplete(function (event, xhr, settings) {
 		if (xhr.responseText && xhr.responseText.indexOf('"apbct') !== -1) {
 			try {
-				var response = JSON.parse(xhr.responseText);
+				var response = JSON.parse(responseText);
 			} catch (e) {
 				console.log(e.toString());
 				return;
 			}
-
-			if (typeof response.apbct !== 'undefined') {
-				response = response.apbct;
-				if (response.blocked) {
-					document.dispatchEvent(
-						new CustomEvent( "apbctAjaxBockAlert", {
-							bubbles: true,
-							detail: { message: response.comment }
-						} )
-					);
-
-					// Show the result by modal
-					cleantalkModal.loaded = response.comment;
-					cleantalkModal.open();
-
-					if(+response.stop_script == 1)
-						window.stop();
-				}
-			}
+			ctParseBlockMessage(response);
 		}
 	});
+}
+
+function ctParseBlockMessage(response) {
+
+	if (typeof response.apbct !== 'undefined') {
+		response = response.apbct;
+		if (response.blocked) {
+			document.dispatchEvent(
+				new CustomEvent( "apbctAjaxBockAlert", {
+					bubbles: true,
+					detail: { message: response.comment }
+				} )
+			);
+
+			// Show the result by modal
+			cleantalkModal.loaded = response.comment;
+			cleantalkModal.open();
+
+			if(+response.stop_script == 1)
+				window.stop();
+		}
+	}
 }
 
 function ctSetPixelUrlLocalstorage(ajax_pixel_url) {
@@ -1984,8 +2018,11 @@ document.addEventListener("cleantalkModalContentLoaded", function( e ) {
         document.getElementById( 'cleantalk-modal-content' ).innerHTML = cleantalkModal.loaded;
     }
 });
-document.addEventListener('DOMContentLoaded', function(){
+let buttons_to_handle = []
+let gdpr_notice_for_button = 'Please, apply the GDPR agreement.'
 
+document.addEventListener('DOMContentLoaded', function(){
+	buttons_to_handle = []
 	if(
 		typeof ctPublicGDPR === 'undefined' ||
 		! ctPublicGDPR.gdpr_forms.length
@@ -1996,35 +2033,86 @@ document.addEventListener('DOMContentLoaded', function(){
 	if ( typeof jQuery === 'undefined' ) {
 		return;
 	}
+	try {
+		ctPublicGDPR.gdpr_forms.forEach(function(item, i){
 
-	ctPublicGDPR.gdpr_forms.forEach(function(item, i, arr){
+			let elem = jQuery('#'+item+', .'+item);
 
-		var elem = jQuery('#'+item+', .'+item);
+			// Filter forms
+			if (!elem.is('form')){
+				// Caldera
+				if (elem.find('form')[0])
+					elem = elem.children('form').first();
+				// Contact Form 7
+				else if(
+					jQuery('.wpcf7[role=form]')[0] && jQuery('.wpcf7[role=form]')
+						.attr('id')
+						.indexOf('wpcf7-f'+item) !== -1
+				) {
+					elem = jQuery('.wpcf7[role=form]').children('form');
+				}
 
-		// Filter forms
-		if(!elem.is('form')){
-			// Caldera
-			if(elem.find('form')[0])
-				elem = elem.children('form').first();
-			// Contact Form 7
-			else if(jQuery('.wpcf7[role=form]')[0] && jQuery('.wpcf7[role=form]').attr('id').indexOf('wpcf7-f'+item) !== -1)
-				elem = jQuery('.wpcf7[role=form]');
-			// Formidable
-			else if(jQuery('.frm_forms')[0] && jQuery('.frm_forms').first().attr('id').indexOf('frm_form_'+item) !== -1)
-				elem = jQuery('.frm_forms').first().children('form');
-			// WPForms
-			else if(jQuery('.wpforms-form')[0] && jQuery('.wpforms-form').first().attr('id').indexOf('wpforms-form-'+item) !== -1)
-				elem = jQuery('.wpforms-form');
-		}
+				// Formidable
+				else if(jQuery('.frm_forms')[0] && jQuery('.frm_forms').first().attr('id').indexOf('frm_form_'+item) !== -1)
+					elem = jQuery('.frm_forms').first().children('form');
+				// WPForms
+				else if(jQuery('.wpforms-form')[0] && jQuery('.wpforms-form').first().attr('id').indexOf('wpforms-form-'+item) !== -1)
+					elem = jQuery('.wpforms-form');
+			}
 
-		// Adding notice
-		if(elem.is('form') || elem.attr('role') === 'form'){
-			elem.append('<input id="apbct_gdpr_'+i+'" type="checkbox" required="required " style="display: inline; margin-right: 10px;">')
-				.append('<label style="display: inline;" for="apbct_gdpr_'+i+'">'+ctPublicGDPR.gdpr_text+'</label>');
-		}
-	});
+			//disable forms buttons
+			let button = false
+			let buttons_collection= elem.find('input[type|="submit"]')
 
+			if (!buttons_collection.length) {
+				return
+			} else {
+				button = buttons_collection[0]
+			}
+
+			if (button !== false){
+				console.log(buttons_collection)
+				button.disabled = true
+				let old_notice = jQuery(button).prop('title') ? jQuery(button).prop('title') : ''
+				buttons_to_handle.push({index:i,button:button,old_notice:old_notice})
+				jQuery(button).prop('title', gdpr_notice_for_button)
+			}
+
+			// Adding notice and checkbox
+			if(elem.is('form') || elem.attr('role') === 'form'){
+				elem.append('<input id="apbct_gdpr_'+i+'" type="checkbox" required="required" style=" margin-right: 10px;" onchange="apbct_gdpr_handle_buttons()">')
+					.append('<label style="display: inline;" for="apbct_gdpr_'+i+'">'+ctPublicGDPR.gdpr_text+'</label>');
+			}
+		});
+	} catch (e) {
+		console.info('APBCT GDPR JS ERROR: Can not add GDPR notice' + e)
+	}
 });
+
+function apbct_gdpr_handle_buttons(){
+
+	try {
+
+		if (buttons_to_handle === []){
+			return
+		}
+
+		buttons_to_handle.forEach((button) => {
+			let selector = '[id="apbct_gdpr_' + button.index + '"]'
+			let apbct_gdpr_item = jQuery(selector)
+			//chek if apbct_gdpr checkbox is set
+			if (jQuery(apbct_gdpr_item).prop("checked")){
+				button.button.disabled = false
+				jQuery(button.button).prop('title', button.old_notice)
+			} else {
+				button.button.disabled = true
+				jQuery(button.button).prop('title', gdpr_notice_for_button)
+			}
+		})
+	} catch (e) {
+		console.info('APBCT GDPR JS ERROR: Can not handle form buttons ' + e)
+	}
+}
 /**
  * Handle external forms
  */
@@ -2042,7 +2130,13 @@ function ct_protect_external() {
 
             if(typeof(currentForm.action) == 'string') {
 
+                // Ajax checking for the integrated forms
                 if(isIntegratedForm(currentForm)) {
+
+                    var cleantalk_placeholder = document.createElement("i");
+                    cleantalk_placeholder.className = 'cleantalk_placeholder';
+                    cleantalk_placeholder.style = 'display: none';
+                    currentForm.parentElement.insertBefore(cleantalk_placeholder, currentForm);
 
                     // Deleting form to prevent submit event
                     var prev = currentForm.previousSibling,
@@ -2065,6 +2159,8 @@ function ct_protect_external() {
                     let reUseCurrentForm = document.forms[i];
 
                     reUseCurrentForm.appendChild(force_action);
+                    reUseCurrentForm.apbctPrev = prev;
+                    reUseCurrentForm.apbctFormOriginal = form_original;
 
                     // mailerlite integration - disable click on submit button
                     let mailerlite_detected_class = false
@@ -2082,7 +2178,7 @@ function ct_protect_external() {
                         if ( mailerliteSubmitButton !== undefined ) {
                             mailerliteSubmitButton.click(function (event) {
                                 event.preventDefault();
-                                sendAjaxCheckingFormData(reUseCurrentForm, prev, form_original);
+                                sendAjaxCheckingFormData(event.currentTarget);
                             });
                         }
                     } else {
@@ -2092,11 +2188,11 @@ function ct_protect_external() {
                             const prev = jQuery(event.currentTarget).prev();
                             const form_original = jQuery(event.currentTarget).clone();
 
-                            sendAjaxCheckingFormData(event.currentTarget, prev, form_original);
+                            sendAjaxCheckingFormData(event.currentTarget);
                         };
                     }
 
-                    // Common flow
+                // Common flow - modify form's action
                 }else if(currentForm.action.indexOf('http://') !== -1 || currentForm.action.indexOf('https://') !== -1) {
 
                     var tmp = currentForm.action.split('//');
@@ -2220,19 +2316,21 @@ function sendAjaxCheckingFormData(form, prev, formOriginal) {
         data,
         {
             async: false,
-            callback: function( result, data, params, obj, prev, formOriginal ){
+            callback: function( result, data, params, obj ){
 
                 if( result.apbct === undefined || ! +result.apbct.blocked ) {
 
-                    var form_new = jQuery(form).detach();
+                    let form_new = jQuery(form).detach();
+                    let prev = form.apbctPrev;
+                    let formOriginal = form.apbctFormOriginal;
 
                     apbct_replace_inputs_values_from_other_form(form_new, formOriginal);
 
                     prev.after( formOriginal );
 
                     // Clear visible_fields input
-                    formOriginal.find('input[name="apbct_visible_fields"]').remove();
-                    formOriginal.find('input[value="cleantalk_force_ajax_check"]').remove();
+                    jQuery(formOriginal).find('input[name="apbct_visible_fields"]').remove();
+                    jQuery(formOriginal).find('input[value="cleantalk_force_ajax_check"]').remove();
 
                     // Common click event
                     var subm_button = jQuery(formOriginal).find('button[type=submit]');
@@ -2261,9 +2359,10 @@ function sendAjaxCheckingFormData(form, prev, formOriginal) {
                     }
 
                 }
-            },
-            callback_context: null,
-            callback_params: [prev, formOriginal],
+                if (result.apbct !== undefined && +result.apbct.blocked) {
+                    ctParseBlockMessage(result);
+                }
+            }
         }
     );
 }

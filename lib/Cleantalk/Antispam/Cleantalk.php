@@ -471,7 +471,15 @@ class Cleantalk
             $response->errno  = 0;
             $response->errstr = $errstr;
         } else {
-            $errstr = 'Unknown response from ' . $url . '.' . ' ' . isset($result['error']) ? $result['error'] : $result;
+            if ( isset($result['error']) ) {
+                $error = $result['error'];
+            } else if ( is_string($result) ) {
+                $error = $result;
+            } else {
+                $error = '';
+            }
+
+            $errstr = 'Unknown response from ' . $url . ': ' . $error;
 
             $response           = null;
             $response['errno']  = 1;
