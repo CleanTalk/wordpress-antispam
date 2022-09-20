@@ -173,6 +173,12 @@ function apbct_settings__set_fields()
                     'long_description' => true,
                     'display'     => ! $apbct->white_label,
                 ),
+                'data__email_decoder'        => array(
+                    'type'        => 'checkbox',
+                    'title'       => __('Encode contact data', 'cleantalk-spam-protect'),
+                    'description' => __('Turn on this option to prevent crawlers grab contact data (emails) from website content.', 'cleantalk-spam-protect'),
+                    'long_description' => true,
+                ),
             ),
         ),
 
