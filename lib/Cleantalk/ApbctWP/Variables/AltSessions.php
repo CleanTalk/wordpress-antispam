@@ -22,9 +22,12 @@ class AltSessions
         self::cleanFromOld();
 
         // Bad incoming data
-        if ( ! $name || ! $value) {
+        if ( ! $name || (empty($value) && $value !== false) ) {
             return;
         }
+
+        //fix if value is strictly false
+        $value = $value === false ? 0 : $value;
 
         global $wpdb;
 
