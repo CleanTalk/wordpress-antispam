@@ -60,7 +60,7 @@ class AltSessions
         }
 
         //clear from double slashes
-        $cookies_to_set = str_replace('\\','',$cookies_to_set);
+        $cookies_to_set = str_replace('\\', '', $cookies_to_set);
 
         //hanlde php8+ JSON throws
         try {

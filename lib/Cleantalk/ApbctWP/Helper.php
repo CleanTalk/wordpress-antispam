@@ -269,6 +269,7 @@ class Helper extends \Cleantalk\Common\Helper
      * @param string $string
      *
      * @return bool
+     * @psalm-suppress UnusedFunctionCall
      */
     public static function isJson($string)
     {
@@ -281,4 +282,3 @@ class Helper extends \Cleantalk\Common\Helper
         }
     }
 }
-
