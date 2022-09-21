@@ -964,7 +964,9 @@ function apbct_settings__get_ajax_type()
 {
     // Check rest availability
     $res_rest = Helper::httpRequestGetResponseCode(esc_url(apbct_get_rest_url()));
-    if ( $res_rest == 200 ) {
+    $res_body = Helper::httpRequestGetContent(esc_url(apbct_get_rest_url()));
+
+    if ( $res_rest == 200 && Helper::isJson($res_body) ) {
         return 'rest';
     }
 
