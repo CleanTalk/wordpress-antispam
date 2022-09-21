@@ -3,6 +3,7 @@
 namespace Cleantalk\ApbctWP;
 
 use Cleantalk\ApbctWP\HTTP\Request;
+use PHPUnit\Exception;
 
 /**
  * CleanTalk Anti-Spam Helper class.
@@ -261,4 +262,23 @@ class Helper extends \Cleantalk\Common\Helper
 
         return array_map('static::arrayObjectToArray', (array)$object);
     }
+
+    /**
+     * Validate if arg is valid JSON string
+     *
+     * @param string $string
+     *
+     * @return bool
+     */
+    public static function isJson($string)
+    {
+        try {
+            json_decode($string);
+
+            return (json_last_error() === JSON_ERROR_NONE);
+        } catch (\Exception $e) {
+            return false;
+        }
+    }
 }
+
