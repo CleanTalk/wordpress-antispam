@@ -178,12 +178,14 @@ function ctGetPixelUrl() {
 function ctSetHasScrolled() {
 	if( ! apbctLocalStorage.isSet('ct_has_scrolled') || ! apbctLocalStorage.get('ct_has_scrolled') ) {
 		ctSetCookie("ct_has_scrolled", 'true');
+		apbctLocalStorage.set('ct_has_scrolled', true);
 	}
 }
 
 function ctSetMouseMoved() {
 	if( ! apbctLocalStorage.isSet('ct_mouse_moved') || ! apbctLocalStorage.get('ct_mouse_moved') ) {
 		ctSetCookie("ct_mouse_moved", 'true');
+		apbctLocalStorage.set('ct_mouse_moved', true);
 	}
 }
 
