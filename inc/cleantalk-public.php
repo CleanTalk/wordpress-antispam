@@ -108,7 +108,7 @@ function apbct_init()
     }
 
     // MemberPress integration
-    if ($apbct->settings['forms__contact_forms_test'] == 1 && Post::get('mepr_process_signup_form') ){
+    if ( $apbct->settings['forms__contact_forms_test'] == 1 && Post::get('mepr_process_signup_form') ) {
         add_action('mepr-signup', 'ct_contact_form_validate');
     }
 
