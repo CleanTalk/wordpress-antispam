@@ -624,6 +624,13 @@ If your website has forms that send data to external sources, you can enable opt
 * Mod: Added clearing AC table from AC logs once a day
 * Fix. Debugging logic. Now drops debug data correct.
 * Mod. AltSessions. Now sends and parse cookies data as JSON.
+* Fix. AltCookies. Getting some parameters fixed.
+* New. MemberPress integration.
+* Fix. Cookie. Mouse/scrolling cookie storing fixed.
+* Fix. AltCookies. Correct handle types before save to DB when value is false.
+* Mod. Ajax/Rest selection. Now check if REST route provide a JSON string.
+* Fix. AltCookies. AltSession JSON handling fix.
+* Fix. Common. 'no_cookie_data_taken' notice fixed.
 
 = 5.184 Sep 08 2022 =
 #### Settings interface fixed, Email Encoder improved, jQuery dependency removed and some minor issues fixed.
