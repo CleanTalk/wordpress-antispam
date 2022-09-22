@@ -3,7 +3,6 @@
 namespace Cleantalk\ApbctWP;
 
 use Cleantalk\ApbctWP\HTTP\Request;
-use PHPUnit\Exception;
 
 /**
  * CleanTalk Anti-Spam Helper class.
