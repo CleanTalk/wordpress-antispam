@@ -107,6 +107,11 @@ function apbct_init()
         ct_ajax_hook();
     }
 
+    // MemberPress integration
+    if ( $apbct->settings['forms__contact_forms_test'] == 1 && Post::get('mepr_process_signup_form') ) {
+        add_action('mepr-signup', 'ct_contact_form_validate');
+    }
+
     /**hooks for cm answers pro */
     if ( defined('CMA_PLUGIN_FILE') ) {
         add_action('wp', 'ct_ajax_hook', 1);
