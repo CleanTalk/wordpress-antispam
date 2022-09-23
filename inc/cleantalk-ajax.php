@@ -428,7 +428,8 @@ function ct_ajax_hook($message_obj = null)
          ) ||
          (Post::get('action') === 'arm_shortcode_form_ajax_action' && Post::get('arm_action') === 'please-login') || //arm forms skip login
          (Post::get('action') === 'erf_login_user' && in_array('easy-registration-forms/erforms.php', apply_filters('active_plugins', get_option('active_plugins')))) || //Easy Registration Forms login form skip
-         (Post::get('action') === 'mailpoet' && Post::get('endpoint') === 'ImportExport' && Post::get('method') === 'processImport') //Mailpoet import
+         (Post::get('action') === 'mailpoet' && Post::get('endpoint') === 'ImportExport' && Post::get('method') === 'processImport') || //Mailpoet import
+         (Post::get('action') === 'latepoint_route_call' && Post::get('route_name') === 'steps__reload_booking_summary') //LatePoint service calls
     ) {
         do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
 
