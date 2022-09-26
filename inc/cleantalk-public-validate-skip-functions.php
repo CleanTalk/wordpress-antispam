@@ -240,6 +240,8 @@ function skip_for_ct_contact_form_validate()
         '86' => (isset($_POST['action']) && $_POST['action'] === 'check_email_exists'),
         // Handling an unknown action check_email_exists
         '87' => Server::inUri('cleantalk-antispam/v1/alt_sessions'),
+        // has direct integration lib/Cleantalk/Antispam/Integrations/MemberPress.php
+        '88' => apbct_is_plugin_active('memberpress/memberpress.php') && Post::get('mepr_process_signup_form'),
     );
 
     foreach ( $exclusions as $exclusion_key => $state ) {

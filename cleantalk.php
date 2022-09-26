@@ -371,6 +371,11 @@ $apbct_active_integrations = array(
         'setting' => 'forms__registrations_test',
         'ajax'    => false
     ),
+    'MemberPress' => array(
+        'hook'    => 'mepr-validate-signup',
+        'setting' => 'forms__registrations_test',
+        'ajax'    => false
+    ),
 );
 new  \Cleantalk\Antispam\Integrations($apbct_active_integrations, (array)$apbct->settings);
 
