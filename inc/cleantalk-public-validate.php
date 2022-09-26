@@ -24,9 +24,9 @@ function ct_contact_form_validate()
         return null;
     }
 
-    if (skip_for_ct_contact_form_validate()) {
-        do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
-
+    $do_skip = skip_for_ct_contact_form_validate();
+    if ( $do_skip ) {
+        do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__ . ', ON KEY ' . $do_skip, $_POST);
         return null;
     }
 
