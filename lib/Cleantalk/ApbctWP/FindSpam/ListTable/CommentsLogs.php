@@ -57,7 +57,8 @@ class CommentsLogs extends Comments
             wp_die('nonce error');
         }
 
-        $this->removeLogs(Post::get('spamids'));
+        $spam_ids = wp_parse_id_list(Post::get('spamids'));
+        $this->removeLogs($spam_ids);
     }
 
     public function no_items() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
