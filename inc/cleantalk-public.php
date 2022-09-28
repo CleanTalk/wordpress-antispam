@@ -695,7 +695,7 @@ function ct_add_honeypot_field($form_type, $form_method = 'post')
 
     //add a submit button if method is get to prevent keyboard send misfunction
     if ( $form_method === 'get' ) {
-        $honeypot .= '<input 
+        $honeypot = '<input 
         id="apbct_submit_id__' . $form_type . '_' . $random . '" 
         class="apbct_special_field apbct__email_id__' . $form_type . '"
         name="apbct_submit_id__' . $form_type . '_' . $random . '"  
