@@ -1389,7 +1389,7 @@ function apbct_settings__prepare_errors($errors)
             if ( is_array($error) ) {
                 foreach ( $error as $key => $error_info ) {
                     if ( is_string($key) ) {
-                        $prepared_errors[$type][$key] =  end($error_info);
+                        $prepared_errors[$type][$key] =  is_array($error_info) ? end($error_info) : $error_info;
                     } else {
                         $prepared_errors[$type] =  $error_info;
                     }

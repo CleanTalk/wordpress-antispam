@@ -107,11 +107,6 @@ function apbct_init()
         ct_ajax_hook();
     }
 
-    // MemberPress integration
-    if ( $apbct->settings['forms__contact_forms_test'] == 1 && Post::get('mepr_process_signup_form') ) {
-        add_action('mepr-signup', 'ct_contact_form_validate');
-    }
-
     /**hooks for cm answers pro */
     if ( defined('CMA_PLUGIN_FILE') ) {
         add_action('wp', 'ct_ajax_hook', 1);
@@ -700,7 +695,7 @@ function ct_add_honeypot_field($form_type, $form_method = 'post')
 
     //add a submit button if method is get to prevent keyboard send misfunction
     if ( $form_method === 'get' ) {
-        $honeypot .= '<input 
+        $honeypot = '<input 
         id="apbct_submit_id__' . $form_type . '_' . $random . '" 
         class="apbct_special_field apbct__email_id__' . $form_type . '"
         name="apbct_submit_id__' . $form_type . '_' . $random . '"  

@@ -370,7 +370,8 @@ class Comments extends \Cleantalk\ApbctWP\CleantalkListTable
 
     protected function removeLogs($ids)
     {
-        $ids_string = implode(', ', $ids);
+        $spam_ids = wp_parse_id_list($ids);
+        $ids_string = implode(', ', $spam_ids);
         global $wpdb;
 
         $wpdb->query(
