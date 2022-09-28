@@ -311,6 +311,44 @@ jQuery(document).ready(function(){
 		)
 	}
 
+	/**
+	 * Open WP gallery for adding custom logo
+	 */
+	jQuery('#apbct-custom-logo-open-gallery').click(function (e) {
+		e.preventDefault();
+
+		const button = jQuery(this);
+
+		const customUploader = wp.media({
+			library : {
+				type : 'image'
+			},
+			multiple: false
+		});
+
+		customUploader.on('select', function() {
+			const image = customUploader.state().get('selection').first().toJSON();
+
+			button.parent().prev().attr( 'src', image.url );
+			jQuery('#cleantalk_custom_logo').val( image.id );
+		});
+
+		customUploader.open();
+	});
+
+	/**
+	 * Remove selected logo
+	 */
+	jQuery('#apbct-custom-logo-remove-image').click(function (e) {
+		e.preventDefault();
+
+		if ( true === confirm( "Sure?" ) ) {
+			const src = jQuery(this).parent().prev().data('src');
+			jQuery(this).parent().prev().attr('src', src);
+			jQuery(this).prev().prev().val('');
+		}
+	});
+
 });
 
 /**
