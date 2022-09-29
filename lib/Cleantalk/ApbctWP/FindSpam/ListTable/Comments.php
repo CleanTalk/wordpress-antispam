@@ -224,12 +224,13 @@ class Comments extends \Cleantalk\ApbctWP\CleantalkListTable
             wp_die('nonce error');
         }
 
+        $spam_ids = wp_parse_id_list(Post::get('spamids'));
         if ( 'trash' === $action ) {
-            $this->moveToTrash(Post::get('spamids'));
+            $this->moveToTrash($spam_ids);
         }
 
         if ( 'spam' === $action ) {
-            $this->moveToSpam(Post::get('spamids'));
+            $this->moveToSpam($spam_ids);
         }
     }
 
@@ -369,7 +370,8 @@ class Comments extends \Cleantalk\ApbctWP\CleantalkListTable
 
     protected function removeLogs($ids)
     {
-        $ids_string = implode(', ', $ids);
+        $spam_ids = wp_parse_id_list($ids);
+        $ids_string = implode(', ', $spam_ids);
         global $wpdb;
 
         $wpdb->query(
