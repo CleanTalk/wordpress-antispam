@@ -363,22 +363,22 @@ function apbctAjaxEmailDecode(event, baseElement){
 
 	if (typeof baseElement.href !== 'undefined' && baseElement.href.indexOf('mailto:') === 0) {
 		event.preventDefault();
-	} else {
-		element.setAttribute('title', ctPublicFunctions.text__wait_for_decoding);
-		element.style.cursor = 'progress';
-
-		// Adding a tooltip
-		let apbctTooltip = document.createElement('div');
-		apbctTooltip.setAttribute('class', 'apbct-tooltip');
-		let apbctTooltipText = document.createElement('div');
-		apbctTooltipText.setAttribute('class', 'apbct-tooltip--text');
-		let apbctTooltipArrow = document.createElement('div');
-		apbctTooltipArrow.setAttribute('class', 'apbct-tooltip--arrow');
-		apbct(element).append(apbctTooltip);
-		apbct(apbctTooltip).append(apbctTooltipText);
-		apbct(apbctTooltip).append(apbctTooltipArrow);
-		ctShowDecodeComment(element, ctPublicFunctions.text__wait_for_decoding);
 	}
+
+	element.setAttribute('title', ctPublicFunctions.text__wait_for_decoding);
+	element.style.cursor = 'progress';
+
+	// Adding a tooltip
+	let apbctTooltip = document.createElement('div');
+	apbctTooltip.setAttribute('class', 'apbct-tooltip');
+	let apbctTooltipText = document.createElement('div');
+	apbctTooltipText.setAttribute('class', 'apbct-tooltip--text');
+	let apbctTooltipArrow = document.createElement('div');
+	apbctTooltipArrow.setAttribute('class', 'apbct-tooltip--arrow');
+	apbct(element).append(apbctTooltip);
+	apbct(apbctTooltip).append(apbctTooltipText);
+	apbct(apbctTooltip).append(apbctTooltipArrow);
+	ctShowDecodeComment(element, ctPublicFunctions.text__wait_for_decoding);
 
 	let encodedEmail = event.target.dataset.originalString;
 
@@ -398,6 +398,8 @@ function apbctAjaxEmailDecode(event, baseElement){
 				callback: function (result) {
 					if (result.success) {
 						if (typeof baseElement.href !== 'undefined' && baseElement.href.indexOf('mailto:') === 0) {
+							element.style.cursor = 'default';
+							element.getElementsByClassName('apbct-tooltip')[0].style.display='none';
 							let encodedEmail = baseElement.href.replace('mailto:', '');
 							let baseElementContent = baseElement.innerHTML;
 							baseElement.innerHTML = baseElementContent.replace(encodedEmail, result.data.decoded_email);
