@@ -2989,14 +2989,14 @@ function apbct_settings__custom_logo()
     ?>
     <div class="apbct_settings-field_wrapper apbct_settings-field_wrapper">
         <h4 class="apbct_settings-field_title apbct_settings-field_title--radio">
-            <?php echo __('Custom Logo for Die Pages', 'cleantalk-spam-protect'); ?>
+            <?php echo esc_html__('Custom Logo for Die Pages', 'cleantalk-spam-protect'); ?>
         </h4>
         <div class="apbct_settings-field_content apbct_settings-field_content--radio">
-            <img data-src="<?php echo $default; ?>" src="<?php echo $src; ?>" width="150" />
+            <img data-src="<?php echo esc_url($default); ?>" src="<?php echo esc_url($src); ?>" width="150" alt="" />
             <div>
-                <input type="hidden" name="cleantalk_settings[cleantalk_custom_logo]" id="cleantalk_custom_logo" value="<?php echo $value; ?>" />
+                <input type="hidden" name="cleantalk_settings[cleantalk_custom_logo]" id="cleantalk_custom_logo" value="<?php echo esc_url($value); ?>" />
                 <button type="button" id="apbct-custom-logo-open-gallery" class="button">
-                    <?php echo __('Image', 'cleantalk-spam-protect'); ?>
+                    <?php echo esc_html__('Image', 'cleantalk-spam-protect'); ?>
                 </button>
                 <button type="button" id="apbct-custom-logo-remove-image" class="button">×</button>
             </div>
