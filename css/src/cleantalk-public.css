@@ -42,15 +42,15 @@ input[class*='apbct'].apbct_special_field{
 }
 .apbct-tooltip{
     display: none;
-    position: absolute;
-    top: 35px;
-    left: 15px;
+    position: inherit;
+    margin-top: 5px;
+    left: 5px;
     background: lightgray;
     border-radius: 5px;
     opacity: .9;
 }
     .apbct-tooltip--text{
-        position: absolute;
+        position: sticky;
         background: lightgray;
         padding: 10px;
         border-radius: 5px;
