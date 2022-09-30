@@ -77,7 +77,7 @@ function ct_protect_external() {
                         };
                     }
 
-                // Common flow - modify form's action
+                    // Common flow - modify form's action
                 }else if(currentForm.action.indexOf('http://') !== -1 || currentForm.action.indexOf('https://') !== -1) {
 
                     var tmp = currentForm.action.split('//');
@@ -150,6 +150,7 @@ window.onload = function () {
  */
 function isIntegratedForm(formObj) {
     var formAction = formObj.action;
+    let formId = formObj.id;
 
     if(
         formAction.indexOf('activehosted.com') !== -1 ||   // ActiveCampaign form
@@ -167,8 +168,8 @@ function isIntegratedForm(formObj) {
         formAction.indexOf('flodesk.com') !== -1 ||
         formAction.indexOf('sendfox.com') !== -1 ||
         formAction.indexOf('aweber.com') !== -1 ||
-        formAction.indexOf('secure.payu.com') !== -1
-
+        formAction.indexOf('secure.payu.com') !== -1 ||
+        formAction.indexOf('mautic') !== -1 || formId.indexOf('mauticform_') !== -1
     ) {
         return true;
     }
