@@ -13,9 +13,9 @@ class EasyDigitalDownloads extends IntegrationBase
              * Filter for POST
              */
             $input_array = apply_filters('apbct__filter_post', $_POST);
-            $input_array['register'] = true;
-
-            return ct_get_fields_any($input_array);
+            $data = ct_get_fields_any($input_array);
+            $data['register'] = true;
+            return $data;
         }
         return null;
     }
