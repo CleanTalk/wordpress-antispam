@@ -5,7 +5,8 @@ var gulp       = require('gulp'),
     uglify     = require('gulp-uglify'),
     rename     = require('gulp-rename'),
     cssmin     = require('gulp-cssmin'),
-    concat     = require('gulp-concat');
+    concat     = require('gulp-concat'),
+    babel      = require('gulp-babel');
 
 // CSS COMPRESS
 gulp.task('compress-css', function () {
@@ -32,6 +33,10 @@ async function bundle_js() {
         // Unminified bundle
         .pipe(concat('apbct-public-bundle.js'))
         .pipe(gulp.dest('js/src/'))
+
+        .pipe(babel({
+            presets: ["@babel/preset-env"]
+        }))
 
         // Minifying
         .pipe(concat('apbct-public-bundle.js'))
