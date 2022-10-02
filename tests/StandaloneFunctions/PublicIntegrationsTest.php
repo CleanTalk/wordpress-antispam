@@ -40,7 +40,7 @@ class PublicIntegrationsTest extends TestCase
         }
 
         //fails if signature not found in changed form
-        $success = strpos(apbct_form_search__add_fields($sample_form), 'id="apbct__email_id__search_form') &&
+        $success = strpos(apbct_form_search__add_fields($sample_form), 'id="apbct_submit_id__search_form') &&
                    preg_match('/class=".*?apbct__email_id__search_form/', apbct_form_search__add_fields($sample_form)) &&
                    preg_match('/class=".*?apbct_special_field/',          apbct_form_search__add_fields($sample_form));
         $this->assertNotFalse($success);
