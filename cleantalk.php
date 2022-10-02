@@ -2574,6 +2574,13 @@ function apbct_log($message = 'empty', $func = null, $params = array())
     update_option(APBCT_DEBUG, $debug);
 }
 
+/**
+ * @param $blog_id
+ * @param $_drop
+ *
+ * @return void
+ * @psalm-suppress UnusedParam
+ */
 function apbct_sfw__delete_tables($blog_id, $_drop)
 {
     global $wpdb;

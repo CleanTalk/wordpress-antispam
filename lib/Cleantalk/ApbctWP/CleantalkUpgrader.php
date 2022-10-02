@@ -80,6 +80,8 @@ class CleantalkUpgrader extends \Plugin_Upgrader
      * @param array|object $options
      *
      * @return array|bool|string|\WP_Error
+     *
+     * @psalm-suppress ImplementedReturnTypeMismatch
      */
     public function run($options)
     {

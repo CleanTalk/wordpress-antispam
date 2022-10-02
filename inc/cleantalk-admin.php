@@ -68,6 +68,8 @@ function apbct_add_buttons_to_comments_and_users($_unused_argument)
 /**
  * Adding widget
  * Hooked by 'wp_dashboard_setup'
+ *
+ * @psalm-suppress UndefinedFunction
  */
 function ct_dashboard_statistics_widget()
 {

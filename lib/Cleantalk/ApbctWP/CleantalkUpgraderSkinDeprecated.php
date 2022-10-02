@@ -28,11 +28,11 @@ class CleantalkUpgraderSkinDeprecated extends \WP_Upgrader_Skin
 
     /**
      *
-     * @param string $string
+     * @param string $feedback
      *
      * @psalm-suppress MethodSignatureMismatch
      */
-    public function feedback($string)
+    public function feedback($feedback)
     {
     }
 
