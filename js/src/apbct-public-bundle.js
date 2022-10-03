@@ -1002,7 +1002,7 @@ function apbct_public_sendREST( route, params ) {
     new ApbctCore().rest(_params);
 }
 
-apbctLocalStorage = {
+let apbctLocalStorage = {
     get : function(key, property) {
         if ( typeof property === 'undefined' ) {
             property = 'value';
@@ -1841,7 +1841,7 @@ function ctNoCookieAttachHiddenFieldsToForms(){
 
 }
 /* Cleantalk Modal object */
-cleantalkModal = {
+let cleantalkModal = {
 
     // Flags
     loaded: false,
