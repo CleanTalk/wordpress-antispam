@@ -2137,64 +2137,7 @@ function ct_protect_external() {
                 // Ajax checking for the integrated forms
                 if(isIntegratedForm(currentForm)) {
 
-                    var cleantalk_placeholder = document.createElement("i");
-                    cleantalk_placeholder.className = 'cleantalk_placeholder';
-                    cleantalk_placeholder.style = 'display: none';
-                    currentForm.parentElement.insertBefore(cleantalk_placeholder, currentForm);
-
-                    // Deleting form to prevent submit event
-                    var prev = currentForm.previousSibling,
-                        form_html = currentForm.outerHTML,
-                        form_original = currentForm;
-
-                    // Remove the original form
-                    currentForm.parentElement.removeChild(currentForm);
-
-                    // Insert a clone
-                    const placeholder = document.createElement("div");
-                    placeholder.innerHTML = form_html;
-                    prev.after(placeholder.firstElementChild);
-
-                    var force_action = document.createElement("input");
-                    force_action.name = 'action';
-                    force_action.value = 'cleantalk_force_ajax_check';
-                    force_action.type = 'hidden';
-
-                    let reUseCurrentForm = document.forms[i];
-
-                    reUseCurrentForm.appendChild(force_action);
-                    reUseCurrentForm.apbctPrev = prev;
-                    reUseCurrentForm.apbctFormOriginal = form_original;
-
-                    // mailerlite integration - disable click on submit button
-                    let mailerlite_detected_class = false
-                    if (reUseCurrentForm.classList !== undefined) {
-                        //list there all the mailerlite classes
-                        let mailerlite_classes = ['newsletterform', 'ml-block-form']
-                        mailerlite_classes.forEach(function(mailerlite_class) {
-                            if (reUseCurrentForm.classList.contains(mailerlite_class)){
-                                mailerlite_detected_class = mailerlite_class
-                            }
-                        });
-                    }
-                    if ( mailerlite_detected_class ) {
-                        let mailerliteSubmitButton = jQuery('form.' + mailerlite_detected_class).find('button[type="submit"]');
-                        if ( mailerliteSubmitButton !== undefined ) {
-                            mailerliteSubmitButton.click(function (event) {
-                                event.preventDefault();
-                                sendAjaxCheckingFormData(event.currentTarget);
-                            });
-                        }
-                    } else {
-                        document.forms[i].onsubmit = function ( event ){
-                            event.preventDefault();
-
-                            const prev = jQuery(event.currentTarget).prev();
-                            const form_original = jQuery(event.currentTarget).clone();
-
-                            sendAjaxCheckingFormData(event.currentTarget);
-                        };
-                    }
+                    apbctProcessExternalForm(currentForm, i, document);
 
                     // Common flow - modify form's action
                 }else if(currentForm.action.indexOf('http://') !== -1 || currentForm.action.indexOf('https://') !== -1) {
@@ -2227,7 +2170,86 @@ function ct_protect_external() {
         }
 
     }
+
+    // Trying to process external form into an iframe
+    const frames = document.getElementsByTagName('iframe');
+    if ( frames.length > 0 ) {
+        for ( let j = 0; j < frames.length; j++ ) {
+            if ( frames[j].contentDocument == null ) { continue; }
+
+            const iframeForms = frames[j].contentDocument.forms;
+            if ( iframeForms.length === 0 ) { return; }
+
+            for ( let y = 0; y < iframeForms.length; y++ ) {
+                let currentForm = iframeForms[y];
+                apbctProcessExternalForm(currentForm, y, frames[j].contentDocument);
+            }
+        }
+    }
 }
+
+function apbctProcessExternalForm(currentForm, iterator, documentObject) {
+
+    const cleantalk_placeholder = document.createElement("i");
+    cleantalk_placeholder.className = 'cleantalk_placeholder';
+    cleantalk_placeholder.style = 'display: none';
+    currentForm.parentElement.insertBefore(cleantalk_placeholder, currentForm);
+
+    // Deleting form to prevent submit event
+    let prev = currentForm.previousSibling,
+        form_html = currentForm.outerHTML,
+        form_original = currentForm;
+
+    // Remove the original form
+    currentForm.parentElement.removeChild(currentForm);
+
+    // Insert a clone
+    const placeholder = document.createElement("div");
+    placeholder.innerHTML = form_html;
+    prev.after(placeholder.firstElementChild);
+
+    var force_action = document.createElement("input");
+    force_action.name = 'action';
+    force_action.value = 'cleantalk_force_ajax_check';
+    force_action.type = 'hidden';
+
+    let reUseCurrentForm = documentObject.forms[iterator];
+
+    reUseCurrentForm.appendChild(force_action);
+    reUseCurrentForm.apbctPrev = prev;
+    reUseCurrentForm.apbctFormOriginal = form_original;
+
+    // mailerlite integration - disable click on submit button
+    let mailerlite_detected_class = false
+    if (reUseCurrentForm.classList !== undefined) {
+        //list there all the mailerlite classes
+        let mailerlite_classes = ['newsletterform', 'ml-block-form']
+        mailerlite_classes.forEach(function(mailerlite_class) {
+            if (reUseCurrentForm.classList.contains(mailerlite_class)){
+                mailerlite_detected_class = mailerlite_class
+            }
+        });
+    }
+    if ( mailerlite_detected_class ) {
+        let mailerliteSubmitButton = jQuery('form.' + mailerlite_detected_class).find('button[type="submit"]');
+        if ( mailerliteSubmitButton !== undefined ) {
+            mailerliteSubmitButton.click(function (event) {
+                event.preventDefault();
+                sendAjaxCheckingFormData(event.currentTarget);
+            });
+        }
+    } else {
+        documentObject.forms[iterator].onsubmit = function ( event ){
+            event.preventDefault();
+
+            const prev = jQuery(event.currentTarget).prev();
+            const form_original = jQuery(event.currentTarget).clone();
+
+            sendAjaxCheckingFormData(event.currentTarget);
+        };
+    }
+}
+
 function apbct_replace_inputs_values_from_other_form( form_source, form_target ){
 
     var	inputs_source = jQuery( form_source ).find( 'button, input, textarea, select' ),
