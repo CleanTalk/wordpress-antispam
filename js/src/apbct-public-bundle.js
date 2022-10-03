@@ -1416,22 +1416,22 @@ function apbctAjaxEmailDecode(event, baseElement){
 
 	if (typeof baseElement.href !== 'undefined' && baseElement.href.indexOf('mailto:') === 0) {
 		event.preventDefault();
-	} else {
-		element.setAttribute('title', ctPublicFunctions.text__wait_for_decoding);
-		element.style.cursor = 'progress';
-
-		// Adding a tooltip
-		let apbctTooltip = document.createElement('div');
-		apbctTooltip.setAttribute('class', 'apbct-tooltip');
-		let apbctTooltipText = document.createElement('div');
-		apbctTooltipText.setAttribute('class', 'apbct-tooltip--text');
-		let apbctTooltipArrow = document.createElement('div');
-		apbctTooltipArrow.setAttribute('class', 'apbct-tooltip--arrow');
-		apbct(element).append(apbctTooltip);
-		apbct(apbctTooltip).append(apbctTooltipText);
-		apbct(apbctTooltip).append(apbctTooltipArrow);
-		ctShowDecodeComment(element, ctPublicFunctions.text__wait_for_decoding);
 	}
+
+	element.setAttribute('title', ctPublicFunctions.text__wait_for_decoding);
+	element.style.cursor = 'progress';
+
+	// Adding a tooltip
+	let apbctTooltip = document.createElement('div');
+	apbctTooltip.setAttribute('class', 'apbct-tooltip');
+	let apbctTooltipText = document.createElement('div');
+	apbctTooltipText.setAttribute('class', 'apbct-tooltip--text');
+	let apbctTooltipArrow = document.createElement('div');
+	apbctTooltipArrow.setAttribute('class', 'apbct-tooltip--arrow');
+	apbct(element).append(apbctTooltip);
+	apbct(apbctTooltip).append(apbctTooltipText);
+	apbct(apbctTooltip).append(apbctTooltipArrow);
+	ctShowDecodeComment(element, ctPublicFunctions.text__wait_for_decoding);
 
 	let encodedEmail = event.target.dataset.originalString;
 
@@ -1451,6 +1451,8 @@ function apbctAjaxEmailDecode(event, baseElement){
 				callback: function (result) {
 					if (result.success) {
 						if (typeof baseElement.href !== 'undefined' && baseElement.href.indexOf('mailto:') === 0) {
+							element.style.cursor = 'default';
+							element.getElementsByClassName('apbct-tooltip')[0].style.display='none';
 							let encodedEmail = baseElement.href.replace('mailto:', '');
 							let baseElementContent = baseElement.innerHTML;
 							baseElement.innerHTML = baseElementContent.replace(encodedEmail, result.data.decoded_email);
@@ -2135,66 +2137,9 @@ function ct_protect_external() {
                 // Ajax checking for the integrated forms
                 if(isIntegratedForm(currentForm)) {
 
-                    var cleantalk_placeholder = document.createElement("i");
-                    cleantalk_placeholder.className = 'cleantalk_placeholder';
-                    cleantalk_placeholder.style = 'display: none';
-                    currentForm.parentElement.insertBefore(cleantalk_placeholder, currentForm);
+                    apbctProcessExternalForm(currentForm, i, document);
 
-                    // Deleting form to prevent submit event
-                    var prev = currentForm.previousSibling,
-                        form_html = currentForm.outerHTML,
-                        form_original = currentForm;
-
-                    // Remove the original form
-                    currentForm.parentElement.removeChild(currentForm);
-
-                    // Insert a clone
-                    const placeholder = document.createElement("div");
-                    placeholder.innerHTML = form_html;
-                    prev.after(placeholder.firstElementChild);
-
-                    var force_action = document.createElement("input");
-                    force_action.name = 'action';
-                    force_action.value = 'cleantalk_force_ajax_check';
-                    force_action.type = 'hidden';
-
-                    let reUseCurrentForm = document.forms[i];
-
-                    reUseCurrentForm.appendChild(force_action);
-                    reUseCurrentForm.apbctPrev = prev;
-                    reUseCurrentForm.apbctFormOriginal = form_original;
-
-                    // mailerlite integration - disable click on submit button
-                    let mailerlite_detected_class = false
-                    if (reUseCurrentForm.classList !== undefined) {
-                        //list there all the mailerlite classes
-                        let mailerlite_classes = ['newsletterform', 'ml-block-form']
-                        mailerlite_classes.forEach(function(mailerlite_class) {
-                            if (reUseCurrentForm.classList.contains(mailerlite_class)){
-                                mailerlite_detected_class = mailerlite_class
-                            }
-                        });
-                    }
-                    if ( mailerlite_detected_class ) {
-                        let mailerliteSubmitButton = jQuery('form.' + mailerlite_detected_class).find('button[type="submit"]');
-                        if ( mailerliteSubmitButton !== undefined ) {
-                            mailerliteSubmitButton.click(function (event) {
-                                event.preventDefault();
-                                sendAjaxCheckingFormData(event.currentTarget);
-                            });
-                        }
-                    } else {
-                        document.forms[i].onsubmit = function ( event ){
-                            event.preventDefault();
-
-                            const prev = jQuery(event.currentTarget).prev();
-                            const form_original = jQuery(event.currentTarget).clone();
-
-                            sendAjaxCheckingFormData(event.currentTarget);
-                        };
-                    }
-
-                // Common flow - modify form's action
+                    // Common flow - modify form's action
                 }else if(currentForm.action.indexOf('http://') !== -1 || currentForm.action.indexOf('https://') !== -1) {
 
                     var tmp = currentForm.action.split('//');
@@ -2225,7 +2170,86 @@ function ct_protect_external() {
         }
 
     }
+
+    // Trying to process external form into an iframe
+    const frames = document.getElementsByTagName('iframe');
+    if ( frames.length > 0 ) {
+        for ( let j = 0; j < frames.length; j++ ) {
+            if ( frames[j].contentDocument == null ) { continue; }
+
+            const iframeForms = frames[j].contentDocument.forms;
+            if ( iframeForms.length === 0 ) { return; }
+
+            for ( let y = 0; y < iframeForms.length; y++ ) {
+                let currentForm = iframeForms[y];
+                apbctProcessExternalForm(currentForm, y, frames[j].contentDocument);
+            }
+        }
+    }
 }
+
+function apbctProcessExternalForm(currentForm, iterator, documentObject) {
+
+    const cleantalk_placeholder = document.createElement("i");
+    cleantalk_placeholder.className = 'cleantalk_placeholder';
+    cleantalk_placeholder.style = 'display: none';
+    currentForm.parentElement.insertBefore(cleantalk_placeholder, currentForm);
+
+    // Deleting form to prevent submit event
+    let prev = currentForm.previousSibling,
+        form_html = currentForm.outerHTML,
+        form_original = currentForm;
+
+    // Remove the original form
+    currentForm.parentElement.removeChild(currentForm);
+
+    // Insert a clone
+    const placeholder = document.createElement("div");
+    placeholder.innerHTML = form_html;
+    prev.after(placeholder.firstElementChild);
+
+    var force_action = document.createElement("input");
+    force_action.name = 'action';
+    force_action.value = 'cleantalk_force_ajax_check';
+    force_action.type = 'hidden';
+
+    let reUseCurrentForm = documentObject.forms[iterator];
+
+    reUseCurrentForm.appendChild(force_action);
+    reUseCurrentForm.apbctPrev = prev;
+    reUseCurrentForm.apbctFormOriginal = form_original;
+
+    // mailerlite integration - disable click on submit button
+    let mailerlite_detected_class = false
+    if (reUseCurrentForm.classList !== undefined) {
+        //list there all the mailerlite classes
+        let mailerlite_classes = ['newsletterform', 'ml-block-form']
+        mailerlite_classes.forEach(function(mailerlite_class) {
+            if (reUseCurrentForm.classList.contains(mailerlite_class)){
+                mailerlite_detected_class = mailerlite_class
+            }
+        });
+    }
+    if ( mailerlite_detected_class ) {
+        let mailerliteSubmitButton = jQuery('form.' + mailerlite_detected_class).find('button[type="submit"]');
+        if ( mailerliteSubmitButton !== undefined ) {
+            mailerliteSubmitButton.click(function (event) {
+                event.preventDefault();
+                sendAjaxCheckingFormData(event.currentTarget);
+            });
+        }
+    } else {
+        documentObject.forms[iterator].onsubmit = function ( event ){
+            event.preventDefault();
+
+            const prev = jQuery(event.currentTarget).prev();
+            const form_original = jQuery(event.currentTarget).clone();
+
+            sendAjaxCheckingFormData(event.currentTarget);
+        };
+    }
+}
+
 function apbct_replace_inputs_values_from_other_form( form_source, form_target ){
 
     var	inputs_source = jQuery( form_source ).find( 'button, input, textarea, select' ),
@@ -2267,6 +2291,7 @@ window.onload = function () {
  */
 function isIntegratedForm(formObj) {
     var formAction = formObj.action;
+    let formId = formObj.id;
 
     if(
         formAction.indexOf('activehosted.com') !== -1 ||   // ActiveCampaign form
@@ -2284,8 +2309,8 @@ function isIntegratedForm(formObj) {
         formAction.indexOf('flodesk.com') !== -1 ||
         formAction.indexOf('sendfox.com') !== -1 ||
         formAction.indexOf('aweber.com') !== -1 ||
-        formAction.indexOf('secure.payu.com') !== -1
-
+        formAction.indexOf('secure.payu.com') !== -1 ||
+        formAction.indexOf('mautic') !== -1 || formId.indexOf('mauticform_') !== -1
     ) {
         return true;
     }
@@ -2438,11 +2463,11 @@ document.addEventListener('DOMContentLoaded',function(){
 function ct_check_internal__is_exclude_form(action) {
     // An array contains forms action need to be excluded.
     let ct_internal_script_exclusions = [
-        ctPublic.blog_home + 'wp-login.php', // WordPress login page
-        ctPublic.blog_home + 'wp-comments-post.php', // WordPress Comments Form
+        'wp-login.php', // WordPress login page
+        'wp-comments-post.php', // WordPress Comments Form
     ];
 
     return ct_internal_script_exclusions.some((item) => {
-        return action.match(new RegExp('^' + item)) !== null;
+        return action.match(new RegExp(ctPublic.blog_home + '.*' + item)) !== null;
     });
 }
