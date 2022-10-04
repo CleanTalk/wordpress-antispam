@@ -702,7 +702,7 @@ if(typeof jQuery !== 'undefined') {
 	jQuery(document).ajaxComplete(function (event, xhr, settings) {
 		if (xhr.responseText && xhr.responseText.indexOf('"apbct') !== -1) {
 			try {
-				var response = JSON.parse(responseText);
+				var response = JSON.parse(xhr.responseText);
 			} catch (e) {
 				console.log(e.toString());
 				return;
