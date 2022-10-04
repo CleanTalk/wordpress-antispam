@@ -315,7 +315,6 @@ function apbct_ready(){
 
 					var visible_fields = {};
 					visible_fields[0] = apbct_collect_visible_fields(this);
-					console.log("visible_fields[0]" + visible_fields[0])
 					apbct_visible_fields_set_cookie( visible_fields, event.target.ctFormIndex );
 				}
 
