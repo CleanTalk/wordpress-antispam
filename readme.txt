@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 3.0
 Tested up to: 6.0
 Requires PHP: 5.6
-Stable tag: 5.185.1
+Stable tag: 5.186
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -601,6 +601,26 @@ If your website has forms that send data to external sources, you can enable opt
 12. SpamFireWall log.
 
 == Changelog ==
+
+= 5.186 Oct 06 2022 =
+#### Several integrations added 🔥, custom logo for SFW blocking pages added 🎯, external forms into iframe protected 🎉 and some minor issues fixed 💪🏼
+* New. MemberPress direct integration.
+* New. SFW. Added custom logo on sfw die page.
+* New. Integrations. Handle EasyDigitalDownloads plugin registration hook.
+* New. External forms. External forms into an iframe has been protected.
+* Fix. ct_ajax_hook. Latepoint serice AJAX requests ignored.
+* Fix. apbct_settings__prepare_errors() Mismatching types fix.
+* Fix. Integrations. Ignore service requests in GiveWP integration.
+* Fix: Removed duplication of the hidden field in the search form
+* Fix. EmailEncoding. Styles fix.
+* Mod. EmailEncoding. Add a tooltip while decoding mailto: links.
+* Fix. External forms. Mautic external forms integration.
+* Fix. Internal forms. Modify regexp for exclusion urls of wordpress native internal forms.
+* Fix. Intergrations. Correct registration flag translation to basecall due EasyDigitalDownloads handling.
+* Fix. Common. Rotating m-servers fixed.
+* Fix. JS. Custom ajax forms blocking answer fixed.
+* Fix. JS. Headless parameter cast to boolean type.
+* Fix. NoCookie.php. Remove namespace redundant declaration to keep compat with <php5.6
 
 = 5.185.1 Sep 28 2022 =
 #### Fixed a security issues.
