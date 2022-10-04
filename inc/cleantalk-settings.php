@@ -671,12 +671,8 @@ function apbct_settings__set_fields()
                 ),
                 'sfw__custom_logo' => array(
                     'callback'    => 'apbct_settings__custom_logo',
-                    'title'       => __('Custom logo for die pages', 'cleantalk-spam-protect'),
+                    'title'       => __('Custom logo on SpamFireWall blocking pages', 'cleantalk-spam-protect'),
                     'parent'      => 'sfw__enabled',
-                    'description' => __(
-                        'Custom logo for die pages',
-                        'cleantalk-spam-protect'
-                    ),
                 ),
                 'sfw__anti_crawler'           => array(
                     'type'        => 'checkbox',
@@ -2989,7 +2985,7 @@ function apbct_settings__custom_logo()
     ?>
     <div class="apbct_settings-field_wrapper apbct_settings-field_wrapper">
         <h4 class="apbct_settings-field_title apbct_settings-field_title--radio">
-            <?php echo esc_html__('Custom Logo for Die Pages', 'cleantalk-spam-protect'); ?>
+            <?php echo esc_html__('Custom logo on SpamFireWall blocking pages', 'cleantalk-spam-protect'); ?>
         </h4>
         <div class="apbct_settings-field_content apbct_settings-field_content--radio">
             <img data-src="<?php echo esc_url($default); ?>" src="<?php echo esc_url($src); ?>" width="150" alt="" />

@@ -325,7 +325,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
             $custom_logo_img = '';
             $custom_logo_id = isset($apbct->settings['cleantalk_custom_logo']) ? $apbct->settings['cleantalk_custom_logo'] : false;
 
-            if ($custom_logo_id && ($image_attributes = wp_get_attachment_image_src($custom_logo_id, array(150, 110)))) {
+            if ($custom_logo_id && ($image_attributes = wp_get_attachment_image_src($custom_logo_id, array(150, 150)))) {
                 $custom_logo_img = '<img src="' . esc_url($image_attributes[0]) . '" width="150" alt="" />';
             }
 
