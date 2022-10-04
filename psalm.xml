@@ -27,10 +27,6 @@
         </ignoreFiles>
     </projectFiles>
 
-    <stubs>
-        <file name="vendor/php-stubs/wordpress-stubs/wordpress-stubs.php"/>
-    </stubs>
-
     <issueHandlers>
         <MissingPropertyType errorLevel="suppress"/>
         <UnusedClass>
