@@ -315,7 +315,6 @@ function apbct_ready(){
 
 					var visible_fields = {};
 					visible_fields[0] = apbct_collect_visible_fields(this);
-					console.log("visible_fields[0]" + visible_fields[0])
 					apbct_visible_fields_set_cookie( visible_fields, event.target.ctFormIndex );
 				}
 
@@ -703,7 +702,7 @@ if(typeof jQuery !== 'undefined') {
 	jQuery(document).ajaxComplete(function (event, xhr, settings) {
 		if (xhr.responseText && xhr.responseText.indexOf('"apbct') !== -1) {
 			try {
-				var response = JSON.parse(responseText);
+				var response = JSON.parse(xhr.responseText);
 			} catch (e) {
 				console.log(e.toString());
 				return;

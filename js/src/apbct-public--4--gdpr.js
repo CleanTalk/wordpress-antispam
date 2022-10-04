@@ -51,7 +51,6 @@ document.addEventListener('DOMContentLoaded', function(){
 			}
 
 			if (button !== false){
-				console.log(buttons_collection)
 				button.disabled = true
 				let old_notice = jQuery(button).prop('title') ? jQuery(button).prop('title') : ''
 				buttons_to_handle.push({index:i,button:button,old_notice:old_notice})

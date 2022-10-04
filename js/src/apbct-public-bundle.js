@@ -109,8 +109,6 @@ class ApbctCore{
 
             let computedStyle = getComputedStyle(this.elements[0])[style];
 
-            console.log(computedStyle);
-
             // Process
             if( typeof computedStyle !== 'undefined' && ! getRaw){
                 computedStyle = computedStyle.replace(/(\d)(em|pt|%|px){1,2}$/, '$1');                           // Cut of units
@@ -1368,7 +1366,6 @@ function apbct_ready(){
 
 					var visible_fields = {};
 					visible_fields[0] = apbct_collect_visible_fields(this);
-					console.log("visible_fields[0]" + visible_fields[0])
 					apbct_visible_fields_set_cookie( visible_fields, event.target.ctFormIndex );
 				}
 
@@ -1756,7 +1753,7 @@ if(typeof jQuery !== 'undefined') {
 	jQuery(document).ajaxComplete(function (event, xhr, settings) {
 		if (xhr.responseText && xhr.responseText.indexOf('"apbct') !== -1) {
 			try {
-				var response = JSON.parse(responseText);
+				var response = JSON.parse(xhr.responseText);
 			} catch (e) {
 				console.log(e.toString());
 				return;
@@ -2075,7 +2072,6 @@ document.addEventListener('DOMContentLoaded', function(){
 			}
 
 			if (button !== false){
-				console.log(buttons_collection)
 				button.disabled = true
 				let old_notice = jQuery(button).prop('title') ? jQuery(button).prop('title') : ''
 				buttons_to_handle.push({index:i,button:button,old_notice:old_notice})

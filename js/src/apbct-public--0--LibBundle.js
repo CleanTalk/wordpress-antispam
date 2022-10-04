@@ -109,8 +109,6 @@ class ApbctCore{
 
             let computedStyle = getComputedStyle(this.elements[0])[style];
 
-            console.log(computedStyle);
-
             // Process
             if( typeof computedStyle !== 'undefined' && ! getRaw){
                 computedStyle = computedStyle.replace(/(\d)(em|pt|%|px){1,2}$/, '$1');                           // Cut of units
