@@ -214,6 +214,14 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule
 
             $net_count = $apbct->stats['sfw']['entries'];
 
+            // Custom Logo
+            $custom_logo_img = '';
+            $custom_logo_id = isset($apbct->settings['cleantalk_custom_logo']) ? $apbct->settings['cleantalk_custom_logo'] : false;
+
+            if ($custom_logo_id && ($image_attributes = wp_get_attachment_image_src($custom_logo_id, array(150, 150)))) {
+                $custom_logo_img = '<img src="' . esc_url($image_attributes[0]) . '" width="150" alt="" />';
+            }
+
             // Translation
             $replaces = array(
                 '{SFW_DIE_NOTICE_IP}'              => __(
@@ -238,7 +246,10 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule
                 '{HOST}'                           => get_home_url() . ', ' . APBCT_VERSION,
                 '{GENERATED}'                      => '<p>The page was generated at&nbsp;' . date('D, d M Y H:i:s') . "</p>",
                 '{COOKIE_ANTIFLOOD_PASSED}'        => md5($this->api_key . $result['ip']),
-                '{SCRIPT_URL}'                     => $js_url
+                '{SCRIPT_URL}'                     => $js_url,
+
+                // Custom Logo
+                '{CUSTOM_LOGO}'                    => $custom_logo_img
             );
 
             foreach ($replaces as $place_holder => $replace) {

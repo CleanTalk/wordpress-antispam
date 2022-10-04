@@ -502,6 +502,8 @@ function apbct_admin__enqueue_scripts($hook)
 
     // SETTINGS's page JavaScript and CSS
     if ( $hook == 'settings_page_cleantalk' ) {
+        wp_enqueue_media();
+
         wp_enqueue_script(
             'cleantalk_admin_js_settings_page',
             APBCT_JS_ASSETS_PATH . '/cleantalk-admin-settings-page.min.js',

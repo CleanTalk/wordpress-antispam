@@ -669,6 +669,11 @@ function apbct_settings__set_fields()
                         'cleantalk-spam-protect'
                     ),
                 ),
+                'sfw__custom_logo' => array(
+                    'callback'    => 'apbct_settings__custom_logo',
+                    'title'       => __('Custom logo on SpamFireWall blocking pages', 'cleantalk-spam-protect'),
+                    'parent'      => 'sfw__enabled',
+                ),
                 'sfw__anti_crawler'           => array(
                     'type'        => 'checkbox',
                     'title'       => 'Anti-Crawler' . $additional_ac_title, // Do not to localize this phrase
@@ -2960,4 +2965,39 @@ function apbct__send_local_settings_to_api($settings)
     $hostname = preg_replace('/^(https?:)?(\/\/)?(www\.)?/', '', get_site_url());
 
     \Cleantalk\ApbctWP\API::methodSendLocalSettings($api_key, $hostname, $settings);
+}
+
+/**
+ * Custom logo for die pages setting
+ */
+function apbct_settings__custom_logo()
+{
+    global $apbct;
+
+    $value = isset($apbct->settings['cleantalk_custom_logo']) ? $apbct->settings['cleantalk_custom_logo'] : false;
+    $default = APBCT_IMG_ASSETS_PATH . '/placeholder.png';
+
+    if ($value && ($image_attributes = wp_get_attachment_image_src($value, array(150, 110)))) {
+        $src = $image_attributes[0];
+    } else {
+        $src = $default;
+    }
+    ?>
+    <div class="apbct_settings-field_wrapper apbct_settings-field_wrapper">
+        <h4 class="apbct_settings-field_title apbct_settings-field_title--radio">
+            <?php echo esc_html__('Custom logo on SpamFireWall blocking pages', 'cleantalk-spam-protect'); ?>
+        </h4>
+        <div class="apbct_settings-field_content apbct_settings-field_content--radio">
+            <img data-src="<?php echo esc_url($default); ?>" src="<?php echo esc_url($src); ?>" width="150" alt="" />
+            <div>
+                <input type="hidden" name="cleantalk_settings[cleantalk_custom_logo]" id="cleantalk_custom_logo" value="<?php echo esc_url($value); ?>" />
+                <button type="button" id="apbct-custom-logo-open-gallery" class="button">
+                    <?php echo esc_html__('Image', 'cleantalk-spam-protect'); ?>
+                </button>
+                <button type="button" id="apbct-custom-logo-remove-image" class="button">×</button>
+            </div>
+            
+        </div>
+    </div>
+    <?php
 }

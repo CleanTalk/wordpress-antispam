@@ -321,6 +321,14 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
                 $request_uri = preg_replace('%sfw_test_ip=\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}&?%', '', $request_uri);
             }
 
+            // Custom Logo
+            $custom_logo_img = '';
+            $custom_logo_id = isset($apbct->settings['cleantalk_custom_logo']) ? $apbct->settings['cleantalk_custom_logo'] : false;
+
+            if ($custom_logo_id && ($image_attributes = wp_get_attachment_image_src($custom_logo_id, array(150, 150)))) {
+                $custom_logo_img = '<img src="' . esc_url($image_attributes[0]) . '" width="150" alt="" />';
+            }
+
             // Translation
             $replaces = array(
                 '{SFW_DIE_NOTICE_IP}'              => $block_message,
@@ -365,6 +373,9 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
 
                 // Message about IP status
                 '{MESSAGE_IP_STATUS}'              => '',
+
+                // Custom Logo
+                '{CUSTOM_LOGO}'                    => $custom_logo_img
             );
 
             /**

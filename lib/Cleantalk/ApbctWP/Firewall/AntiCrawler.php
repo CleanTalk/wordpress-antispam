@@ -436,9 +436,12 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
 
             $net_count = $apbct->stats['sfw']['entries'];
 
-            $custom_logo = Sanitize::cleanUrl(apply_filters('apbct_block_page_custom_logo', ''));
-            if ( $custom_logo ) {
-                $custom_logo = '<img width="250px" height="auto" src="' . $custom_logo . '" />';
+            // Custom Logo
+            $custom_logo_img = '';
+            $custom_logo_id = isset($apbct->settings['cleantalk_custom_logo']) ? $apbct->settings['cleantalk_custom_logo'] : false;
+
+            if ($custom_logo_id && ($image_attributes = wp_get_attachment_image_src($custom_logo_id, array(150, 150)))) {
+                $custom_logo_img = '<img src="' . esc_url($image_attributes[0]) . '" width="150" alt="" />';
             }
 
             $block_message = sprintf(
@@ -451,7 +454,6 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
 
             // Translation
             $replaces = array(
-                '{SFW_DIE_CUSTOM_LOGO}'            => $custom_logo,
                 '{SFW_DIE_NOTICE_IP}'              => $block_message,
                 '{SFW_DIE_MAKE_SURE_JS_ENABLED}'   => __(
                     'To continue working with the web site, please make sure that you have enabled JavaScript.',
@@ -470,7 +472,10 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
                 '{COOKIE_ANTICRAWLER}'             => hash('sha256', $apbct->api_key . $apbct->data['salt']),
                 '{COOKIE_ANTICRAWLER_PASSED}'      => '1',
                 '{GENERATED}'                      => '<p>The page was generated at&nbsp;' . date('D, d M Y H:i:s') . "</p>",
-                '{SCRIPT_URL}'                     => $js_url
+                '{SCRIPT_URL}'                     => $js_url,
+
+                // Custom Logo
+                '{CUSTOM_LOGO}'                    => $custom_logo_img
             );
 
             foreach ( $replaces as $place_holder => $replace ) {
