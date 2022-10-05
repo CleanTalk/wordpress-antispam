@@ -2428,6 +2428,7 @@ document.addEventListener('DOMContentLoaded',function(){
         return;
     }
 
+    let ctPrevHandler;
 	for( let i=0; i<document.forms.length; i++ ){
 		if ( typeof(document.forms[i].action) == 'string' ){
             ct_currForm = document.forms[i];
