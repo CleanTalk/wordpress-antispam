@@ -53,15 +53,15 @@ var ctFunctionMouseMove = function output(event){
 
 //Stop mouse observing function
 function ctMouseStopData(){
-	apbct_remove_event_handler(window, "mousemove", ctFunctionMouseMove);
+	apbct_remove_event_handler(document, "mousemove", ctFunctionMouseMove);
 	clearInterval(ctMouseReadInterval);
 	clearInterval(ctMouseWriteDataInterval);
 }
 
 //Stop key listening function
 function ctKeyStopStopListening(){
-	apbct_remove_event_handler(window, "mousedown", ctFunctionFirstKey);
-	apbct_remove_event_handler(window, "keydown", ctFunctionFirstKey);
+	apbct_remove_event_handler(document, "mousedown", ctFunctionFirstKey);
+	apbct_remove_event_handler(document, "keydown", ctFunctionFirstKey);
 }
 
 function checkEmail(e) {
@@ -198,10 +198,10 @@ function ctPreloadLocalStorage(){
 	}
 }
 
-apbct_attach_event_handler(window, "mousemove", ctFunctionMouseMove);
-apbct_attach_event_handler(window, "mousedown", ctFunctionFirstKey);
-apbct_attach_event_handler(window, "keydown", ctFunctionFirstKey);
-apbct_attach_event_handler(window, "scroll", ctSetHasScrolled);
+apbct_attach_event_handler(document, "mousemove", ctFunctionMouseMove);
+apbct_attach_event_handler(document, "mousedown", ctFunctionFirstKey);
+apbct_attach_event_handler(document, "keydown", ctFunctionFirstKey);
+apbct_attach_event_handler(document, "scroll", ctSetHasScrolled);
 
 // Ready function
 function apbct_ready(){
@@ -344,7 +344,11 @@ function apbct_ready(){
 		}
 	}
 }
-apbct_attach_event_handler(window, "DOMContentLoaded", apbct_ready);
+if (document.readyState !== 'loading') {
+	apbct_ready();
+} else {
+	apbct_attach_event_handler(document, "DOMContentLoaded", apbct_ready);
+}
 
 function ctFillDecodedEmailHandler(event) {
 	this.removeEventListener('click', ctFillDecodedEmailHandler);
