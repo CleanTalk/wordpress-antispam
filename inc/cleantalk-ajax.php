@@ -997,6 +997,16 @@ function ct_ajax_hook($message_obj = null)
             );
         }
 
+        // Site Reviews Integration
+        if ( Post::hasString('action', 'glsr_action') ) {
+            wp_send_json_error([
+                'code' => 'CODE',
+                'error' => 'ERROR',
+                'message' => $ct_result->comment,
+                'notices' => 'NOTICES',
+            ]);
+        }
+
         if ( Post::hasString('action', 'fusion_form_submit_form_to_') ) {
             die(
                 json_encode(
