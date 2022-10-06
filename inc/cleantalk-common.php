@@ -1177,7 +1177,7 @@ function apbct_add_async_attribute($tag, $handle)
         }
 
         // Prevent script deferred loading by various CDN
-        $tag = str_replace(' src', ' data-cfasync="false" data-pagespeed-no-defer src', $tag);
+        $tag = str_replace(' src', ' data-pagespeed-no-defer src', $tag);
 
         if ( class_exists('Cookiebot_WP') ) {
             $tag = str_replace(' src', ' data-cookieconsent="ignore" src', $tag);
