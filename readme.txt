@@ -621,6 +621,7 @@ If your website has forms that send data to external sources, you can enable opt
 * Fix. JS. Custom ajax forms blocking answer fixed.
 * Fix. JS. Headless parameter cast to boolean type.
 * Fix. NoCookie.php. Remove namespace redundant declaration to keep compat with <php5.6
+* Fix. Internal forms. Internal forms protection fixed.
 
 = 5.185.1 Sep 28 2022 =
 #### Fixed a security issues.
