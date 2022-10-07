@@ -354,6 +354,19 @@ function apbct_init()
     if ( ! empty($_POST) && apbct_custom_forms_trappings() ) {
         add_action('init', 'ct_contact_form_validate', 999);
     }
+
+    /**
+     * Internal Forms - Sendinblue Integration https://wordpress.org/plugins/mailin/
+     */
+    if (
+        (int)$apbct->settings['forms__check_internal'] === 1
+        && !empty($_POST)
+        && apbct_is_ajax()
+        && isset($_POST['sib_form_action'])
+        && 'subscribe_form_submit' === sanitize_text_field($_POST['sib_form_action'])
+    ) {
+        ct_contact_form_validate();
+    }
 }
 
 function apbct_buffer__start()
