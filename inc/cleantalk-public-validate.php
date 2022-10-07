@@ -280,8 +280,8 @@ function ct_contact_form_validate()
                 (int)$apbct->settings['forms__check_internal'] === 1
                 && !empty($_POST)
                 && apbct_is_ajax()
-                && isset($_POST['sib_form_action'])
-                && 'subscribe_form_submit' === sanitize_text_field($_POST['sib_form_action'])
+                && Post::equal('sib_form_action', 'subscribe_form_submit')
+                && apbct_is_plugin_active('mailin/sendinblue.php')
             )
             {
                 wp_send_json(
