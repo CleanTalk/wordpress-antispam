@@ -282,8 +282,7 @@ function ct_contact_form_validate()
                 && apbct_is_ajax()
                 && Post::equal('sib_form_action', 'subscribe_form_submit')
                 && apbct_is_plugin_active('mailin/sendinblue.php')
-            )
-            {
+            ) {
                 wp_send_json(
                     array(
                         'status' => 'failure',
