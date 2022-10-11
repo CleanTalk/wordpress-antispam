@@ -2366,7 +2366,7 @@ function sendAjaxCheckingFormData(form, prev, formOriginal) {
                     let form_new = jQuery(form).detach();
                     let prev = form.apbctPrev;
                     let formOriginal = form.apbctFormOriginal;
-                    let mautic_integration;
+                    let mautic_integration = false;
 
                     apbct_replace_inputs_values_from_other_form(form_new, formOriginal);
 
@@ -2403,6 +2403,12 @@ function sendAjaxCheckingFormData(form, prev, formOriginal) {
                                 ct_protect_external()
                             }, 1500);
                         }
+                        return;
+                    }
+
+                    subm_button = jQuery(formOriginal).find('input[type=submit]');
+                    if( subm_button.length !== 0 ) {
+                        subm_button[0].click();
                         return;
                     }
 
