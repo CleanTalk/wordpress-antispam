@@ -261,21 +261,50 @@ function ct_contact_form_validate()
                 echo wp_kses(
                     $echo_string,
                     array(
-                        'a' => array(
+                        'a'   => array(
                             'href'  => true,
                             'title' => true,
                         ),
-                        'br'     => array(),
-                        'p'     => array(),
+                        'br'  => array(),
+                        'p'   => array(),
                         'div' => array(
-                            'id' => true,
+                            'id'    => true,
                             'class' => true,
                             'style' => true
                         ),
-                        'h3' => array(),
+                        'h3'  => array(),
                     )
                 );
                 die();
+            } elseif (
+                (int)$apbct->settings['forms__check_internal'] === 1
+                && !empty($_POST)
+                && apbct_is_ajax()
+                && Post::equal('sib_form_action', 'subscribe_form_submit')
+                && apbct_is_plugin_active('mailin/sendinblue.php')
+            ) {
+                wp_send_json(
+                    array(
+                        'status' => 'failure',
+                        'msg' => array(
+                            "errorMsg" => wp_kses(
+                                $ct_result->comment,
+                                array(
+                                    'a' => array(
+                                        'href'  => true,
+                                        'title' => true,
+                                    ),
+                                    'br'     => array(),
+                                    'p'     => array(),
+                                    'div' => array(
+                                        'id' => true,
+                                    ),
+                                    'h1' => array(),
+                                )
+                            )
+                        ),
+                    )
+                );
             } else {
                 ct_die(null, null);
             }
