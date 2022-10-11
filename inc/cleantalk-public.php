@@ -361,7 +361,6 @@ function apbct_init()
     if (
         (int)$apbct->settings['forms__check_internal'] === 1
         && !empty($_POST)
-        && apbct_is_ajax()
         && Post::equal('sib_form_action', 'subscribe_form_submit')
         && apbct_is_plugin_active('mailin/sendinblue.php')
     ) {
