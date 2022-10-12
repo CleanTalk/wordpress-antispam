@@ -406,7 +406,9 @@ function ct_ajax_hook($message_obj = null)
         // WPUserMeta registration plugin exclusion
         'pf_ajax_request',
         //profilegrid addon
-        'pm_check_user_exist'
+        'pm_check_user_exist',
+        //Cartbounty plugin (saves every action on the page to keep abandoned carts)
+        'cartbounty_pro_save', 'cartbounty_save'
     );
 
     global $apbct;
