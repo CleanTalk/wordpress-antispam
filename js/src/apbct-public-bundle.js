@@ -2438,7 +2438,7 @@ function sendAjaxCheckingFormData(form, prev, formOriginal) {
     );
 }
 
-function ct_check_internal(currForm, prev_action){
+function ct_check_internal(currForm){
     
 //Gathering data
     var ct_data = {},
@@ -2458,7 +2458,6 @@ function ct_check_internal(currForm, prev_action){
             url: ctPublicFunctions._ajax_url,
             callback: function (data) {
                 if(data.success === true){
-                    currForm.action = prev_action;
                     currForm.submit();
                 }else{
                     alert(data.data);
@@ -2481,8 +2480,7 @@ document.addEventListener('DOMContentLoaded',function(){
 	for( let i=0; i<document.forms.length; i++ ){
 		if ( typeof(document.forms[i].action) == 'string' ){
             ct_currForm = document.forms[i];
-			let ct_currAction = ct_currForm.action;
-            ct_currForm.action = document.location.href;
+			ct_currAction = ct_currForm.action;
             if (
                 ct_currAction.indexOf('https?://') !== null &&                        // The protocol is obligatory
                 ct_currAction.match(ctPublic.blog_home + '.*?\.php') !== null && // Main check
@@ -2493,7 +2491,7 @@ document.addEventListener('DOMContentLoaded',function(){
                     jQuery(ct_currForm).off('**');
                     jQuery(ct_currForm).off();
                     jQuery(ct_currForm).on('submit', function(event){
-                        ct_check_internal(event.target, ct_currAction);
+                        ct_check_internal(event.target);
                         return false;
                     });
                 }
