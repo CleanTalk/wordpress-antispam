@@ -23,20 +23,20 @@ No CAPTCHA, no questions, no animal counting, no puzzles, no math and no spam bo
 7. Stops spam surveys, polls.
 8. Stops spam in widgets.
 9. Stops spam in WooCommerce.
-10. Checks and removes the existing spam comments and spam users.
-11. Compatible with mobile users and devices.
-12. Compatible with General Data Protection Regulation (GDPR) (EU).
-13. Real-time email validation. Is email real or Not.
+10. Real-time email validation. Is email real or Not.
+11. Checks and removes the existing spam comments and spam users.
+12. Compatible with mobile users and devices.
+13. Compatible with General Data Protection Regulation (GDPR) (EU).
 14. Blocking  disposable & temporary emails.
 15. No Spam - No Google Penalties. Give your SEO boost.
 16. Mobile friendly Anti Spam & FireWall.
 17. Stops spam in Search Form.
 18. Disable comments.
-19. Spam FireWall: Anti-Flood
-20. Spam FireWall: Anti-Crawler
-21. Hide «Website» field for comments
+19. Spam FireWall: Anti-Flood.
+20. Spam FireWall: Anti-Crawler.
+21. Hide «Website» field for comments.
 22. Block messages by languages, countries, networks.
-23. Email Address Encoder
+23. Email Address Encoder.
 
 = Free trial then $12 per year =
 CleanTalk is an anti-spam plugin which works with the premium Cloud Anti-Spam service cleantalk.org. This plugin as a service <a href="https://developer.wordpress.org/plugins/wordpress-org/detailed-plugin-guidelines/#6-software-as-a-service-is-permitted">https://developer.wordpress.org/plugins/wordpress-org/detailed-plugin-guidelines/#6-software-as-a-service-is-permitted</a>
@@ -45,8 +45,11 @@ CleanTalk is an anti-spam plugin which works with the premium Cloud Anti-Spam se
 > CleanTalk - Cloud-Based Anti-Spam Service to Keep Your Site Bot-Free.
 > <a href="https://newswatchtv.com/2018/07/18/cleantalk-newswatch-review/" target="_blank">NewsWatch Review</a>.
 
-> Using CleanTalk on WPLift was a great test as we receive huge amounts of spam.
-> *Oliver Dale, <a href="http://wplift.com/wordpress-anti-spam-plugin" target="_blank">WPLift.com</a>.*
+> Compare reCAPTCHA VS CleanTalk
+> <a href="https://www.saashub.com/compare-recaptcha-vs-cleantalk">https://www.saashub.com/compare-recaptcha-vs-cleantalk</a>
+
+> Compare Akismet VS CleanTalk
+> <a href="https://www.saashub.com/compare-akismet-vs-cleantalk">https://www.saashub.com/compare-akismet-vs-cleantalk</a>
 
 >I know you have heard of a number of anti-spam plugins. But you must know, the cloud-based ones are the best regarding detection rate. They compare all the content in forms with their own algorithm to find out the legibility.
 >*<a href="https://www.techwibe.com/cleantalk-wordpress-plugin-review/" target="_blank">www.techwibe.com</a>*
@@ -156,8 +159,7 @@ https://s.w.org/plugins/cleantalk-spam-protect/screenshot-5.png?r=1288723
  * If this is a visitor, the comment will be published. If it's a spam bot, then CleanTalk blocks this comment or registration.
  * Parameters are written to the spam log which can be viewed in the service Dashboard.
 
-CleanTalk team has been developing a cloud antispam system for five years and has created a truly reliable anti-spam service designed for you to guarantee
-your safety.
+CleanTalk team has been developing a cloud antispam system for ten years and has created a truly reliable anti-spam service designed for you to guarantee your safety. Unlike stand-alone plugins (WP Armour, Antispam Bee, WP Cerber) Anti-Spam by CleanTalk uses less CPU that improves site response, visitors experience and SEO results.
 
 = Spam attacks log =
 Service CleanTalk (this plugin is a client application for CleanTalk anti-spam service) records all filtered comments, registration and other spam attacks in the "Log of spam attacks" and stores the data in the log for up to 45 days. Using the log, you can ensure reliable protection of your website from spam and no false/positive filtering.
