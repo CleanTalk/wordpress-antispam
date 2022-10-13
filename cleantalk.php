@@ -501,10 +501,12 @@ function apbct_activation__new_blog(WP_Site $new_site, $_args)
 {
     Activator::activation(false, $new_site->blog_id);
 }
-function apbct_wpms__delete_blog__deprecated($blog_id, $_drop) {
+function apbct_wpms__delete_blog__deprecated($blog_id, $_drop)
+{
     apbct_sfw__delete_tables($blog_id);
 }
-function apbct_wpms__delete_blog(WP_Site $old_site) {
+function apbct_wpms__delete_blog(WP_Site $old_site)
+{
     apbct_sfw__delete_tables($old_site->blog_id);
 }
 
