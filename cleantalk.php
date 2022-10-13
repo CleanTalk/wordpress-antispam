@@ -175,7 +175,7 @@ add_action('wp_ajax_cleantalk_force_ajax_check', 'ct_ajax_hook');
 add_action('wp_ajax_nopriv_apbct_email_check_before_post', 'apbct_email_check_before_post');
 
 // Database prefix
-global $wpdb;
+global $wpdb, $wp_version;
 $apbct->db_prefix = ! APBCT_WPMS || $apbct->allow_custom_key || $apbct->white_label ? $wpdb->prefix : $wpdb->base_prefix;
 $apbct->db_prefix = ! $apbct->white_label && defined('CLEANTALK_ACCESS_KEY') ? $wpdb->base_prefix : $wpdb->prefix;
 
@@ -485,10 +485,27 @@ function apbct_deactivation($network_wide)
 }
 
 // Hook for newly added blog
-add_action('wpmu_new_blog', 'apbct_activation__new_blog', 10, 6);
-function apbct_activation__new_blog($blog_id, $_user_id, $_domain, $_path, $_site_id, $_meta)
+if ( version_compare($wp_version, '5.1') >= 0  ) {
+    add_action('wp_initialize_site', 'apbct_activation__new_blog', 10, 2);
+    add_action('wp_uninitialize_site', 'apbct_wpms__delete_blog', 10, 1);
+} else {
+    add_action('wpmu_new_blog', 'apbct_activation__new_blog__deprecated', 10, 6);
+    add_action('delete_blog', 'apbct_wpms__delete_blog__deprecated', 10, 2);
+}
+
+function apbct_activation__new_blog__deprecated($blog_id, $_user_id, $_domain, $_path, $_site_id, $_meta)
 {
     Activator::activation(false, $blog_id);
+}
+function apbct_activation__new_blog(WP_Site $new_site, $_args)
+{
+    Activator::activation(false, $new_site->blog_id);
+}
+function apbct_wpms__delete_blog__deprecated($blog_id, $_drop) {
+    apbct_sfw__delete_tables($blog_id);
+}
+function apbct_wpms__delete_blog(WP_Site $old_site) {
+    apbct_sfw__delete_tables($old_site->blog_id);
 }
 
 // Async loading for JavaScript
@@ -497,11 +514,6 @@ add_filter('script_loader_tag', 'apbct_add_async_attribute', 10, 3);
 // Redirect admin to plugin settings.
 if ( ! defined('WP_ALLOW_MULTISITE') || (defined('WP_ALLOW_MULTISITE') && WP_ALLOW_MULTISITE == false) ) {
     add_action('admin_init', 'apbct_plugin_redirect');
-}
-
-// Deleting SFW tables when deleting websites
-if ( defined('WP_ALLOW_MULTISITE') && WP_ALLOW_MULTISITE === true ) {
-    add_action('delete_blog', 'apbct_sfw__delete_tables', 10, 2);
 }
 
 // After plugin loaded - to load locale as described in manual
@@ -2586,7 +2598,7 @@ function apbct_log($message = 'empty', $func = null, $params = array())
  * @return void
  * @psalm-suppress UnusedParam
  */
-function apbct_sfw__delete_tables($blog_id, $_drop)
+function apbct_sfw__delete_tables($blog_id)
 {
     global $wpdb;
 
