@@ -74,6 +74,26 @@ function apbctProcessExternalForm(currentForm, iterator, documentObject) {
     const cleantalk_placeholder = document.createElement("i");
     cleantalk_placeholder.className = 'cleantalk_placeholder';
     cleantalk_placeholder.style = 'display: none';
+
+    //mautic forms integration
+    if (currentForm.id.indexOf('mauticform') !== -1) {
+        let radio = jQuery('input[id*="radio_rgpd"]')
+        let label = jQuery('label[id*="label_rgpd"]')
+        let placeholder = jQuery('.cleantalk_placeholder')[0]
+        if (typeof(placeholder) !== 'undefined') {
+            if ( typeof(label) !== 'undefined' ) {
+                label.click(function (event) {
+                    placeholder.setAttribute('mautic_hidden_gdpr_id', radio.prop("id"))
+                })
+            }
+            if ( typeof(radio) !== 'undefined' ) {
+                radio.click(function (event) {
+                    placeholder.setAttribute('mautic_hidden_gdpr_id', radio.prop("id"))
+                })
+            }
+        }
+    }
+
     currentForm.parentElement.insertBefore(cleantalk_placeholder, currentForm);
 
     // Deleting form to prevent submit event
@@ -231,8 +251,26 @@ function sendAjaxCheckingFormData(form, prev, formOriginal) {
                     let form_new = jQuery(form).detach();
                     let prev = form.apbctPrev;
                     let formOriginal = form.apbctFormOriginal;
+                    let mautic_integration = false;
 
                     apbct_replace_inputs_values_from_other_form(form_new, formOriginal);
+
+                    //mautic forms integration
+                    if (formOriginal.id.indexOf('mautic') !== -1) {
+                        mautic_integration = true
+                    }
+                    let placeholders = document.getElementsByClassName('cleantalk_placeholder')
+                    if (placeholders) {
+                        for (let i = 0; i < placeholders.length; i++) {
+                            let mautic_hidden_gdpr_id = placeholders[i].getAttribute("mautic_hidden_gdpr_id")
+                            if (typeof(mautic_hidden_gdpr_id) !== 'undefined') {
+                                let mautic_gdpr_radio = jQuery(formOriginal).find('#' + mautic_hidden_gdpr_id)
+                                if (typeof(mautic_gdpr_radio) !== 'undefined') {
+                                    mautic_gdpr_radio.prop("checked", true);
+                                }
+                            }
+                        }
+                    }
 
                     prev.after( formOriginal );
 
@@ -240,10 +278,16 @@ function sendAjaxCheckingFormData(form, prev, formOriginal) {
                     jQuery(formOriginal).find('input[name="apbct_visible_fields"]').remove();
                     jQuery(formOriginal).find('input[value="cleantalk_force_ajax_check"]').remove();
 
-                    // Common click event
+
+                    //Common click event
                     var subm_button = jQuery(formOriginal).find('button[type=submit]');
                     if( subm_button.length !== 0 ) {
                         subm_button[0].click();
+                        if (mautic_integration) {
+                            setTimeout(function () {
+                                ct_protect_external()
+                            }, 1500);
+                        }
                         return;
                     }
 

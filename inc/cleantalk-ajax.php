@@ -406,7 +406,9 @@ function ct_ajax_hook($message_obj = null)
         // WPUserMeta registration plugin exclusion
         'pf_ajax_request',
         //profilegrid addon
-        'pm_check_user_exist'
+        'pm_check_user_exist',
+        //Cartbounty plugin (saves every action on the page to keep abandoned carts)
+        'cartbounty_pro_save', 'cartbounty_save'
     );
 
     global $apbct;
@@ -993,6 +995,18 @@ function ct_ajax_hook($message_obj = null)
                         'status' => 'ok',
                         'thank_you_message' => $ct_result->comment
                     )
+                )
+            );
+        }
+
+        // Site Reviews Integration
+        if ( Post::hasString('action', 'glsr_action') ) {
+            wp_send_json_error(
+                array(
+                    'code' => 'CODE',
+                    'error' => 'ERROR',
+                    'message' => $ct_result->comment,
+                    'notices' => 'NOTICES',
                 )
             );
         }
