@@ -594,7 +594,7 @@ function ct_add_hidden_fields(
     $field_id_hash  = md5((string)rand(0, 1000));
 
     // Using only cookies
-    if ( $cookie_check && $apbct->data['cookies_type'] !== 'none' ) {
+    if ( $cookie_check ) {
         $html =
             "<script "
             . (class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '')
