@@ -301,6 +301,12 @@ When using Disables comments, existing comments will not be deleted and will rem
 CleanTalk Anti-Spam offers a feature called "Encode contact data" that is designed to encode all email addresses on the website pages. Encoding the email addresses increases the level of protection of contact data from being abused, parsed, getting spammed and used in spam mailing lists by bots and online criminals.
 To reveal the encoded email address simply click on it and it will be decoded instantly.
 
+= Can I use CleanTalk with Akismet? =
+Sure, you can use CleanTalk with Akismet. In this case you will probably have higher false/positive rate (when legitimate comments/signups are being denied), but you will have stronger anti-spam protection on your website.
+
+= Is CleanTalk better than Akismet? =
+Please look at this features comparison here https://cleantalk.org/cleantalk-vs-akismet
+
 = Translations =
 * Albanian (sq_AL) - thanks to fjalaime https://wordpress.org/support/users/fjalaime/
 * French (fr_FR) - thanks to Gilles Santacreu http://net-ik.net
@@ -379,11 +385,6 @@ Yes, it will. The Anti-spam by CleanTalk is compatible with any WordPress theme.
 = What about pingback, trackback spam? =
 The plugin passes pingbacks without any checks by default. All trackbacks will be blocked if the sender had spam activity.
 
-= Can I use CleanTalk with Akismet? =
-Sure, you can use CleanTalk with Akismet. In this case you will probably have higher false/positive rate (when legitimate comments/signups are being denied), but you will have stronger anti-spam protection on your website.
-
-= Is CleanTalk better than Akismet? =
-Please look at this features comparison here https://cleantalk.org/cleantalk-vs-akismet
 
 = Can I use CleanTalk to remove pending spam comments? =
 Yes, you can. The plugin has the option to test all pending comments via database of <a href="https://cleantalk.org/blacklists">spam active IP/Email</a>, found spam comments will be moved to Trash folder.
