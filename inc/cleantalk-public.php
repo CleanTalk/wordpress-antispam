@@ -541,7 +541,7 @@ function apbct_hook__wp_footer()
         $script =
             '<script ' . $cookie_bot_asset
             . ">				
-                    window.addEventListener('DOMContentLoaded', function () {
+                    document.addEventListener('DOMContentLoaded', function () {
                         setTimeout(function(){
                             if( document.querySelectorAll('[name^=ct_checkjs]').length > 0 ) {
                                 " . $send_way_asset . "
