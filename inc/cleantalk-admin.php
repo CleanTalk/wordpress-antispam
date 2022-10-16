@@ -1216,3 +1216,47 @@ function apbct__add_debug_tab($links)
 
     return $links;
 }
+
+/**
+ * Function for `wpmu_blogs_columns` filter-hook.
+ *
+ * @param string[] $sites_columns An array of displayed site columns.
+ *
+ * @return string[]
+ */
+function apbct__wpmu_blogs_columns_filter($sites_columns)
+{
+    $sites_columns[] = esc_html__('Cleantalk Status', 'cleantalk-spam-protect');
+
+    return $sites_columns;
+}
+
+add_filter( 'wpmu_blogs_columns', 'apbct__wpmu_blogs_columns_filter' );
+
+/**
+ * Function for `manage_posts_custom_column` action-hook.
+ *
+ * @param string $_column_name The name of the column to display.
+ * @param int    $site_id     The current post ID.
+ *
+ * @return void
+ */
+function apbct__manage_sites_custom_column_action( $_column_name, $site_id )
+{
+    $cleantalk_data = get_blog_option($site_id, 'cleantalk_data');
+    $key_icon_status = '<span class="dashicons dashicons-no-alt" style="color: red"></span>';
+
+    if (!$cleantalk_data) {
+        return;
+    }
+
+    $key_is_ok = isset($cleantalk_data['key_is_ok']) ? $cleantalk_data['key_is_ok'] : false;
+
+    if ($key_is_ok) {
+        $key_icon_status = '<span class="dashicons dashicons-yes" style="color: green"></span>';
+    }
+
+    echo $key_icon_status;
+}
+
+add_action( 'manage_sites_custom_column', 'apbct__manage_sites_custom_column_action', 10, 2 );
