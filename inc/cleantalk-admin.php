@@ -1226,12 +1226,12 @@ function apbct__add_debug_tab($links)
  */
 function apbct__wpmu_blogs_columns_filter($sites_columns)
 {
-    $sites_columns[] = esc_html__('Cleantalk Status', 'cleantalk-spam-protect');
+    $sites_columns[] = esc_html__('CleanTalk Status', 'cleantalk-spam-protect');
 
     return $sites_columns;
 }
 
-add_filter( 'wpmu_blogs_columns', 'apbct__wpmu_blogs_columns_filter' );
+add_filter('wpmu_blogs_columns', 'apbct__wpmu_blogs_columns_filter');
 
 /**
  * Function for `manage_posts_custom_column` action-hook.
@@ -1241,7 +1241,7 @@ add_filter( 'wpmu_blogs_columns', 'apbct__wpmu_blogs_columns_filter' );
  *
  * @return void
  */
-function apbct__manage_sites_custom_column_action( $_column_name, $site_id )
+function apbct__manage_sites_custom_column_action($_column_name, $site_id)
 {
     $cleantalk_data = get_blog_option($site_id, 'cleantalk_data');
     $key_is_ok_caption = esc_html__('The Access key filled out and correct.', 'cleantalk-spam-protect');
@@ -1261,4 +1261,4 @@ function apbct__manage_sites_custom_column_action( $_column_name, $site_id )
     echo $key_icon_status;
 }
 
-add_action( 'manage_sites_custom_column', 'apbct__manage_sites_custom_column_action', 10, 2 );
+add_action('manage_sites_custom_column', 'apbct__manage_sites_custom_column_action', 10, 2);
