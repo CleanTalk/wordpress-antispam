@@ -510,7 +510,7 @@ function apbct_get_sender_info()
 
     if ( count($_POST) > 0 ) {
         foreach ( $_POST as $k => $v ) {
-            if ( preg_match("/^(ct_check|checkjs).+/", $k) ) {
+            if ( preg_match("/^(ct_check|checkjs).+/", (string)$k) ) {
                 $checkjs_data_post = $v;
             }
         }
@@ -1368,8 +1368,8 @@ function apbct_get_honeypot_filled_fields()
         //get field suffix for GET search forms
         $apbct_event_id = false;
         foreach ( $_GET as $key => $value ) {
-            if ( strpos($key, 'apbct_submit_id__search_form_') !== false ) {
-                $apbct_event_id = str_replace('apbct_submit_id__search_form_', '', $key);
+            if ( strpos((string)$key, 'apbct_submit_id__search_form_') !== false ) {
+                $apbct_event_id = str_replace('apbct_submit_id__search_form_', '', (string)$key);
             }
         }
 

@@ -534,7 +534,7 @@ function ct_ajax_hook($message_obj = null)
     if ( Post::get('action') === 'ufbl_front_form_action' ) {
         $ct_post_temp = $_POST;
         foreach ( $ct_post_temp as $key => $_value ) {
-            if ( preg_match('/form_data_\d_name/', $key) ) {
+            if ( preg_match('/form_data_\d_name/', (string)$key) ) {
                 unset($ct_post_temp[$key]);
             }
         }
@@ -645,10 +645,10 @@ function ct_ajax_hook($message_obj = null)
     // Detect contact form an set it's name to $contact_form to use later
     $contact_form = null;
     foreach ( $_POST as $param => $_value ) {
-        if ( strpos($param, 'et_pb_contactform_submit') === 0 ) {
+        if ( strpos((string)$param, 'et_pb_contactform_submit') === 0 ) {
             $contact_form = 'contact_form_divi_theme';
         }
-        if ( strpos($param, 'avia_generated_form') === 0 ) {
+        if ( strpos((string)$param, 'avia_generated_form') === 0 ) {
             $contact_form = 'contact_form_enfold_theme';
         }
         if ( ! empty($contact_form) ) {

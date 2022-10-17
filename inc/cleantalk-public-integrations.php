@@ -1567,7 +1567,9 @@ function ct_registration_errors($errors, $sanitized_user_login = null, $user_ema
         if ( $buddypress === true ) {
             $bp->signup->errors['signup_username'] = $ct_result->comment;
         } elseif ( $facebook ) {
+            /** @psalm-suppress InvalidArrayOffset */
             $_POST['FB_userdata']['email'] = '';
+            /** @psalm-suppress InvalidArrayOffset */
             $_POST['FB_userdata']['name']  = '';
 
             return;

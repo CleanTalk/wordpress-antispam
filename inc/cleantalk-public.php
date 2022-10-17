@@ -253,7 +253,7 @@ function apbct_init()
         $post_keys = array_keys($_POST);
         foreach ( $post_keys as $post_key ) {
             // Detect POST keys like /s2member_pro.*registration/
-            if ( strpos($post_key, 's2member') !== false && strpos($post_key, 'registration') !== false ) {
+            if ( strpos((string)$post_key, 's2member') !== false && strpos((string)$post_key, 'registration') !== false ) {
                 ct_s2member_registration_test($post_key);
                 break;
             }
