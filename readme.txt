@@ -1,5 +1,5 @@
 === Spam protection, AntiSpam, FireWall by CleanTalk ===
-Contributors: safronik, glomberg, artemacleantalk
+Contributors: glomberg, artemacleantalk, alexandergull
 Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 3.0
 Tested up to: 6.0
@@ -13,7 +13,7 @@ Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, 
 
 No CAPTCHA, no questions, no animal counting, no puzzles, no math and no spam bots. Universal AntiSpam plugin.
 
-= AntiSpam features =
+= Anti-Spam features =
 1. Stops spam comments.
 2. Stops spam registrations.
 3. Stops spam contact emails.
@@ -35,8 +35,8 @@ No CAPTCHA, no questions, no animal counting, no puzzles, no math and no spam bo
 19. Spam FireWall: Anti-Flood.
 20. Spam FireWall: Anti-Crawler.
 21. Hide «Website» field for comments.
-22. Block messages by languages, countries, networks.
-23. Email Address Encoder.
+22. Block messages by languages, countries, networks and stop words.
+23. Email Address Encoder - protection for email addresses published on your site.
 
 = Free trial then $12 per year =
 CleanTalk is an anti-spam plugin which works with the premium Cloud Anti-Spam service cleantalk.org. This plugin as a service <a href="https://developer.wordpress.org/plugins/wordpress-org/detailed-plugin-guidelines/#6-software-as-a-service-is-permitted">https://developer.wordpress.org/plugins/wordpress-org/detailed-plugin-guidelines/#6-software-as-a-service-is-permitted</a>
@@ -45,10 +45,8 @@ CleanTalk is an anti-spam plugin which works with the premium Cloud Anti-Spam se
 > CleanTalk - Cloud-Based Anti-Spam Service to Keep Your Site Bot-Free.
 > <a href="https://newswatchtv.com/2018/07/18/cleantalk-newswatch-review/" target="_blank">NewsWatch Review</a>.
 
-> Compare reCAPTCHA VS CleanTalk
+> Compare reCAPTCHA & Akismet VS CleanTalk
 > <a href="https://www.saashub.com/compare-recaptcha-vs-cleantalk">https://www.saashub.com/compare-recaptcha-vs-cleantalk</a>
-
-> Compare Akismet VS CleanTalk
 > <a href="https://www.saashub.com/compare-akismet-vs-cleantalk">https://www.saashub.com/compare-akismet-vs-cleantalk</a>
 
 >I know you have heard of a number of anti-spam plugins. But you must know, the cloud-based ones are the best regarding detection rate. They compare all the content in forms with their own algorithm to find out the legibility.
@@ -59,10 +57,6 @@ CleanTalk is an anti-spam plugin which works with the premium Cloud Anti-Spam se
 
 = AntiSpam protection for comments =
 Native spam protection for WordPress, JetPack comments and any other comment plugins. The plugin moves spam comments to SPAM folder or you can set the option to ban spam comments silently. You can also enable the option in the plugin settings to auto-delete comments from SPAM folder.
-
-= Spam bots registrations filter =
-
-= Spam filter for contact forms =
 
 = Contact Form by WPForms spam filter =
 Plugin extends Contact Form by WPForms to provide spam protection. It filters spam submissions for each type of forms - simple contact form, marketing form, request a quote and etc.
@@ -80,12 +74,8 @@ Plugin extends spam protection for Formidable Form Builder. It filters spam subm
 Plugin extends spam protection for Contact Form 7 (CF7). It can be used with any other third-party spam filters.
 <a href="https://blog.cleantalk.org/how-to-protect-your-contactform7-contact-form-using-cleantalk-anti-spam-plugin/">How to protect your Contact Form 7 using CleanTalk Anti-Spam plugin</a>
 
-= Ninja forms contact form spam filter =
-
 = WooCommerce spam filter =
 Anti-spam by CleanTalk filters spam registrations and spam reviews for WooCommerce. The plugin is fully compatible with WooCommerce 2.1 and higher.
-
-= Newsletters antispam filter =
 
 = Spam filter for theme contact forms =
 The plugin blocks spam emails via any theme (built-in ones included) contact forms. The plugin filters spam emails silently (without any error notices on WordPress frontend) in AJAX forms as well.
@@ -96,10 +86,11 @@ Spam protection for everything about bbPress: logins, registrations, forums, top
 = Other spam filters =
 * WordPress Landing Pages.
 * WP User Frontend, UserPro.
+* Ninja forms <a href="https://ninjaforms.com/">https://ninjaforms.com</a>.
+* Contact Form Plugin by Fluent Forms Ninja forms <a href="https://fluentforms.com/">https://fluentforms.com</a>.
+* Newsletters - MC4WP: Mailchimp for WordPress (<a href="https://www.mc4wp.com/">mc4wp.com</a>), MailPoet – emails and newsletters in WordPress (https://www.mailpoet.com/).
 * Any WordPress form (checkbox 'Custom contact forms').
-* Any submission to the site (checkbox 'Check all POST data')
-
-= Compatible with WordPress cache plugins =
+* Any submission to the site (checkbox 'Check all POST data').
 
 = Check existing comments for spam. Bulk spam comments removal. Spam comment Cleaner =
 With the help of anti-spam by CleanTalk you can inspect through existing comments to find and quickly delete spam comments at once. To use this function, go to WP Console -> Comments -> Find spam comments.
@@ -107,96 +98,48 @@ With the help of anti-spam by CleanTalk you can inspect through existing comment
 = Check existing users for spam. Bulk spam accounts removal. Spam users cleaner =
 With the help of anti-spam by CleanTalk you can inspect through existing accounts to find and quickly delete spam users at once. For use this function, go to WP Console -> Users -> Check for spam. Also, you can export a list of spam users to the CSV.
 
-= Blocking users by country =
-Automatically block comments and registrations from the countries you have set a ban for. This option is useful in cases of manual spam protection and for protection enhancement. If your site is not intended for international audience and you do not expect comments/users from other countries.
-
-= Blocking comments by "stop words" =
-You can block comments which contain "stop words" to enhance spam protection and messages with obscene words blocking. You can add particular words or phrases.
-
 = Private black lists for anti-spam service =
-Automatically block comments and registrations from your private black
-IP/email address list. This option helps to strengthen the spam protection from a manual spam or block unwanted comments from users. You can add not only the certain IP addresses, but also a separate subnet to your personal black list.
-
-= Private black list for Spam FireWall =
-It allows you to add individual IP addresses and subnets to Spam FireWall. It
-blocks the spam attacks from IP addresses which are not included in the SFW base yet. This option can help to block HTTP/HTTPS DDoS, SQL, brute force attacks and any others that made it through the HTTP/HTTPS. You can add not only the certain IP addresses, but also a separate subnet to your personal black list.
+Automatically block comments and registrations from your private black IP/email address list.
 
 = Hide «Website» field for comments =
 This option hides the «Website» field from standard WordPress comments forms. After that spammers won't be able to send spam links using «Website» field in the bottom of the comments form.
-This option is disabled by default and can be enabled in plugin Settings in your WordPress dashboard.
 
 = Low false/positive rate =
-This plugin uses multiple anti-spam tests to filter spam bots having as low false/positive rate as possible. Multiple anti-spam tests help to avoid false/positive blocks of the real website visitors even if one of the tests failed.
+This plugin uses multiple anti-spam tests to filter spam bots having as low false/positive rate as possible.
 
-= How effective is CleanTalk? =
-Accurately blocking spam is not an easy thing to do, but CleanTalk has a very low proven False/Positive rate. Here is actual statistics on false positives for all customers.
-
-* Registrations - 0.004%
-* Comments - 0.004%
-* Contact forms - 0.006%
-* Orders (WooCommerce) - 0.016%
-* Site search - 0.001%
-
-The statistic was calculated on August 28 2020 for 2.5 million requests.
-
-= How CleanTalk improves SEO for your website? =
+= How does CleanTalk improve SEO for your website? =
 So, you already know that the speed of the site has a direct impact on SEO.
 
 *CleanTalk works faster than most of the other anti-spam plugins.* It is common knowledge that the faster your site loads, the better your customer experience is, the better your SEO will be, and the better your site will convert. Speed is becoming increasingly important in SEO, conversion and user experience. Today, site speed is one of the most important ranking factors on Google. A site that loads slowly will lose visitors and potential revenue.
 
-There are different ways of improving your site's loading performance. One important parameter for site performance is to install well-developed plugins from a reputable source.
-
-Among anti-spam plugins CleanTalk AntiSpam is one of the fastest. Despite the
-large plugin functionality, the developers have optimized the performance of
+Among anti-spam plugins CleanTalk AntiSpam is one of the fastest. Despite the large plugin functionality, the developers have optimized the performance of
 the plugin so that AntiSpam by CleanTalk is faster than most analogs. This contributes to the cloud service architecture, as all calculations take place in the cloud, not on the server, the server receives the finished result for further action.
 
 https://s.w.org/plugins/cleantalk-spam-protect/screenshot-5.png?r=1288723
 
-= How CleanTalk works? =
- * A visitor writes a comment or registers
- * Anti-Spam by CleanTalk plugin sends action parameters into the CleanTalk cloud
- * Service analyzes the parameters
- * If this is a visitor, the comment will be published. If it's a spam bot, then CleanTalk blocks this comment or registration.
- * Parameters are written to the spam log which can be viewed in the service Dashboard.
-
-CleanTalk team has been developing a cloud antispam system for ten years and has created a truly reliable anti-spam service designed for you to guarantee your safety. Unlike stand-alone plugins (WP Armour, Antispam Bee, WP Cerber) Anti-Spam by CleanTalk uses less CPU that improves site response, visitors experience and SEO results.
-
-= Spam attacks log =
-Service CleanTalk (this plugin is a client application for CleanTalk anti-spam service) records all filtered comments, registration and other spam attacks in the "Log of spam attacks" and stores the data in the log for up to 45 days. Using the log, you can ensure reliable protection of your website from spam and no false/positive filtering.
+Unlike stand-alone plugins (WP Armour, Antispam Bee, WP Cerber) Anti-Spam by CleanTalk uses less CPU that improves site response, visitors experience and SEO results.
 
 = Spam FireWall =
-CleanTalk has an advanced option "Spam FireWall". Spam FireWall allows blocking the most active spam bots before they get access to your website. It prevents spam bots from loading website pages so your web server doesn't have to perform all scripts on these pages. Also it prevents scanning of pages of the website by spam bots. Therefore Spam FireWall significantly reduces the load on your web server. Spam FireWall also makes CleanTalk the two-step protection from spam bots. Spam FireWall is the first step and it blocks the most active spam bots.  CleanTalk Anti-Spam is the second step and checks all other requests on the website in the moment of submitting comments/registers etc.
+Spam FireWall allows blocking the most active spam bots before they get access to your website. It prevents spam bots from loading website pages so your web server doesn't have to perform all scripts on these pages. Also it prevents scanning of pages of the website by spam bots. Therefore Spam FireWall significantly reduces the load on your web server. Spam FireWall also makes CleanTalk the two-step protection from spam bots. Spam FireWall is the first step and it blocks the most active spam bots.  CleanTalk Anti-Spam is the second step and checks all other requests on the website in the moment of submitting comments/registers etc.
 
-Spam FireWall is fully compatible with the most popular VPN services.
-Also, Spam FireWall supports all search engines Google, Bing, Yahoo, Baidu, MSN, Yandex and etc.
-
-= How Spam FireWall works? =
+= How does Spam FireWall work? =
  * The visitor enters to your web site.
  * HTTP request data are being checked in the nearly 5.8 million of the identified spam bot IPs.
  * If it is an active spam bot, the bot gets a blank page, if it is a visitor then he receives a normal page. This process is completely transparent for the visitors.
 
 All the CleanTalk Spam FireWall activity is being logged in the process of filtering.
 
-= Spam FireWall DDoS Protection =
-Spam FireWall can mitigate HTTP/HTTPS DDoS attacks. When an intruder makes GET requests to attack your website, Spam FireWall blocks all requests from bad IP addresses. Your website gives the intruder a special page with the description of DDoS rejection instead of the website pages. Therefore Spam FireWall helps to reduce CPU usage of your server.
-[youtube https://www.youtube.com/watch?v=Eu5Zqryvj4k]
-
 = Spam FireWall: Anti-Flood & Anti-Crawler =
 Spam FireWall: Anti-Flood and Anti-Crawler options are intended for blocking unwanted bots, content parsing, shop goods prices parsing or aggressive website scanning bots. Learn more https://cleantalk.org/help/anti-flood-and-anti-crawler
 
-= No spam comments, no spam registrations, no spam contact emails, no spam trackbacks. CAPTCHA-free anti-spam for WordPress =
-Spam is one of the most irritating things. Spam rates are increasing every year and conventional anti-spam can no longer handle all spam bots. CleanTalk prevents and automatically blocks spam. You'll be surprised how effective CleanTalk is in protecting from spam.
-
-= AntiSpam plugin info =
-CleanTalk is an all-in-one antispam solution for WordPress that protects login, comment, contact and WooCommerce forms at once. You don't need to install separate antispam plugins for each form. It allows your blog to work faster and save resources. After installation you will forget about spam; your CleanTalk plugin will do all the work. You won't have to deal with spam as CleanTalk does this for you automatically.
+= Anti-Spam plugin info =
+CleanTalk is an all-in-one anti-spam solution for WordPress that protects login, comment, contact and WooCommerce forms at once. You don't need to install separate antispam plugins for each form. It allows your blog to work faster and save resources. 
 
 CleanTalk is a transparent antispam tool, we provide detailed stats of all incoming comments and logins. You can always be sure that **there are no errors**. We have developed a mobile app for you to see antispam stats wherever you want.
 
-We have developed the antispam for WordPress that protects you from spam bots at the maximum level allowing you to provide your visitors a simple and convenient form of comments/registrations without annoying CAPTCHAs and puzzles. CleanTalk detects spam in multistage tests allowing us to block up to 99.998% of spam bots.
-The anti-spam method offered by CleanTalk avoids inconvenient for communication methods (CAPTCHA, question-answer etc.), and offers to your site visitors a more comfortable one.
+We have developed the antispam for WordPress that protects you from spam bots at the maximum level allowing you to provide your visitors a simple and convenient form of comments/registrations without annoying CAPTCHAs and puzzles. CleanTalk detects spam in multistage tests allowing us to block up to 99.998% of spam bots. The anti-spam method offered by CleanTalk avoids inconvenient for communication methods (CAPTCHA, question-answer etc.), and offers to your site visitors a more comfortable one.
 
-CleanTalk is a premium anti-spam service for WordPress, the plugin works with
-our own CleanTalk Cloud Service. Anti Spam by CleanTalk offers a free trial, you can look at the <a href="https://cleantalk.org/price">pricing</a> here. We provide anti-spam services at the highest level. To maintain this level we cannot afford to offer a free version of our service, as this will immediately affect the quality of the providing anti-spam protection. Paying for a year of anti-spam service, you save a lot more and receive:
+CleanTalk is a premium anti-spam service for WordPress, the plugin works with our own CleanTalk Cloud Service. Anti Spam by CleanTalk offers a free trial, you can look at the <a href="https://cleantalk.org/price">pricing</a> here. We provide anti-spam services at the highest level. To maintain this level we cannot afford to offer a free version of our service, as this will immediately affect the quality of the providing anti-spam protection. Paying for a year of anti-spam service, you save a lot more and receive:
 
  * Up to 99.998% protection from spam bots.
  * Time and resources saving.
@@ -208,35 +151,13 @@ our own CleanTalk Cloud Service. Anti Spam by CleanTalk offers a free trial, you
  * Clear stats.
  * Spam FireWall.
  * No captcha (reCaptcha), puzzles, etc.
- * Free mobile app to control anti-spam protection on your website.
-
-= Additional features =
-* Daily and weekly detailed anti-spam reports: traffic VS spam.
-* AntiSpam apps for most popular CMS on cleantalk.org.
 
 = How to protect sites from spam bots without CAPTCHA? =
-The most popular anti spam method is CAPTCHA - the annoying picture with curved and sloping symbols, which are presented to the visitor to decipher and fill in. In is supposed that spam bots won't discern these CAPTCHA, but a visitor will. CAPTCHA provokes great irritation, but if the visitor wants to comment, he has to fill in these symbols time after time, making mistakes and starting once again. Sometimes CAPTCHA reminds us of the doodles of a two year old child. For users with vision problems CAPTCHA is an insurmountable obstacle. Users hate captcha. Captcha for users means "hate". Unreadable CAPTCHA stops about 80% of site visitors. After 2 failed attempts to decipher CAPTCHA 95% of visitors reject further attempts. At the sight of CAPTCHA and after input errors, many visitors leave the resource. Thus, CAPTCHA helps to protect the resource spam both from bots and visitors. CAPTCHA is not a panacea from spam. Doubts concerning the Need for CAPTCHA?
+The most popular anti-spam method is CAPTCHA - the annoying picture with curved and sloping symbols, which are presented to the visitor to decipher and fill in. In is supposed that spam bots won't discern these CAPTCHA, but a visitor will. CAPTCHA provokes great irritation, but if the visitor wants to comment, he has to fill in these symbols time after time, making mistakes and starting once again. Sometimes CAPTCHA reminds us of the doodles of a two year old child. For users with vision problems CAPTCHA is an insurmountable obstacle. Users hate captcha. Captcha for users means "hate". Unreadable CAPTCHA stops about 80% of site visitors. After 2 failed attempts to decipher CAPTCHA 95% of visitors reject further attempts. At the sight of CAPTCHA and after input errors, many visitors leave the resource. Thus, CAPTCHA helps to protect the resource spam both from bots and visitors. CAPTCHA is not a panacea from spam. Doubts concerning the Need for CAPTCHA?
 
 *"Ultimately, CAPTCHAs are useless for spam because they're designed to tell you if someone is 'human' or not, but not whether something is spam or not." Matt Mullenweg*
 
 You do not have to work in IT to know what spam is. Besides piles of unwanted email, there are spam bots, or special software programs designed to act as human website visitors that post unwelcome messages over the Internet to advertise dubious services. More often than not spam messages do not even make sense. Similar to bacteria and virus mutations developing antibiotic resistance, spam bots are becoming more resilient in penetrating Internet firewalls and security layers.
-
-= CleanTalk's features =
-Anti-Spam by CleanTalk with Spam FireWall is one of the fastest plugins that allows you to lower the server load. One of the important parameters for each webmaster is the speed of the site, so we make sure that our plugin consumes as few server resources as possible. The Cloud Service provides the advantage: all data processing takes place in the Cloud.
-
-CleanTalk team has developed unique anti spam algorithms to assess visitors behavior. CleanTalk analyzes user behavior and the parameters of the filled forms. Our anti-spam module, being installed in your website, sends the behavior parameters of either a visitor or a spam bot. When these parameters are estimated, the anti spam service makes a decision - to post a message or to define it as spam and reject it. Based on these checks, the service forms its own list of email addresses used by spam bots.
-
-The registrations of visitors are being checked in a similar manner. The service adds to the blacklist not just email addresses, but also IP addresses and domains of websites that promote themselves through spam mailing. All of this happens automatically and requires no action from the administration of the website. In 2.5 million queries the service makes a mistake in 40-45 cases, i.e. CleanTalk detects spam with 99.9982% accuracy. We constantly monitor these errors and make adjustments to our algorithms. Even with this exceptional accuracy our team is aiming to improve the figures over time.
-
-All-in-one. CleanTalk protects form spam all forms instantaneously - comments, registrations, feedback, contacts. No need to install additional plugins for each form. You save resources and increase performance of your website.
-
-Spam attacks log. Anti-Spam by CleanTalk records all filtered comments, registrations and other spam attacks in the "Log of spam attacks" and stores the data in the log for up to 45 days. Using the log, you can ensure reliable protection of your website from spam and experience no false/positive filtering.
-
-With the help of anti-spam by CleanTalk you can check existing comments and users, to find and quickly delete spam comments at once. This allows administrators of websites to automatically check and identify spam bots, comments and users, which were not detected by conventional anti-spam tools. The existing comments and users checking process is performed in a database of the nearly 2 million identified spam bots. Detailed spam stats allows CleanTalk customers to fully control it.
-
-CleanTalk has an advanced option "Spam FireWall". This option allows you to block the most active spam bots before they get access to your website. It unloads you website pages when an attempt attack was made, so your web server won't run unnecessary scripts on these pages. Also it prevents any scanning of website pages by spam bots. Subsequently Spam FireWall significantly reduces your webserver load. Spam FireWall can mitigate HTTP/HTTPS DDoS attacks. When an intruder makes GET requests to attack your website, Spam FireWall will block requests from bad IP addresses. Your website gives the intruder a special page with a description of DDoS rejection instead of the website pages. Spam FireWall can help to reduce the CPU usage of your server because of this reason.
-
-"CleanTalk team has been developing a cloud spam protection system for five years and has created a truly reliable anti-spam service designed for you to guarantee your safety".
 
 = White Label Mode =
 
@@ -248,14 +169,6 @@ To switch the plugin work in the white-label mode you should set up a few settin
 4. Save settings.
 
 The plugin will do everything rest.
-
-= Auto-Update CleanTalk AntiSpam =
-
-CleanTalk Dashboard allows you to set auto-update plugin and select several websites and update the plugin at once on all sites by one click or you can setup auto-update for all websites or separate websites.
-
-Note: there is 24 hours delay before auto-update will do. This delay allows needing to avoid any issues. All updates that made through CleanTalk Dashboard manually will do immediately.
-
-Auto-updating system will work from CleanTalk AntiSpam version 5.88
 
 = Real-time email validation. Is email real or Not. =
 It is very important to be sure that the user used his real email address. Spambots very often use fake email addresses, i.e. which addresses do not exist.
@@ -276,8 +189,7 @@ Block fake and suspicious users with disposable & temporary emails to improve em
 
 = Stops Spam in Search Form =
 
-Spam bots can use your search form to make a GET request with spam text.
-CleanTalk Anti-Spam has the option to protect your website search form from spam bots. Each time, the search generates a new page and if there are many requests, this can create additional load. So, under some conditions, spam searches can be indexed, which affects SEO,
+Spam bots can use your search form to make a GET request with spam text. CleanTalk Anti-Spam has the option to protect your website search form from spam bots. Each time, the search generates a new page and if there are many requests, this can create additional load. So, under some conditions, spam searches can be indexed, which affects SEO,
 
 * Spam FireWall blocks access to all website pages for the most active spambots. It lowers your web server load and traffic just by doing this.
 * Anti-Spam protection for website search forms repels spambots.
@@ -287,7 +199,6 @@ CleanTalk Anti-Spam has the option to protect your website search form from spam
 You will always know what users were looking for on your site.
 
 = Disable comments =
-
 This option disables comments on your site. You can choose one or several options:
 
 * Disable comments for posts
@@ -298,8 +209,13 @@ When using Disables comments, existing comments will not be deleted and will rem
 
 = Email Address Encoder =
 
-CleanTalk Anti-Spam offers a feature called "Encode contact data" that is designed to encode all email addresses on the website pages. Encoding the email addresses increases the level of protection of contact data from being abused, parsed, getting spammed and used in spam mailing lists by bots and online criminals.
-To reveal the encoded email address simply click on it and it will be decoded instantly.
+CleanTalk Anti-Spam offers a feature called "Encode contact data" that is designed to encode all email addresses on the website pages. Encoding the email addresses increases the level of protection of contact data from being abused, parsed, getting spammed and used in spam mailing lists by bots and online criminals. To reveal the encoded email address simply click on it and it will be decoded instantly.
+
+= Will the anti-spam plugin protect my theme? =
+Yes, it will. The Anti-spam by CleanTalk is compatible with any WordPress theme.
+
+= Should I use other anti-spam tools (Captcha, reCaptcha and etc.)? =
+CleanTalk stops up to 99.998% of spam bots, so you can disable other anti-spam plugins (especially CAPTCHA-type anti-spam plugins). In some cases several anti-spam plugins could conflict with each other, so it would be better to use just one plugin.
 
 = Can I use CleanTalk with Akismet? =
 Sure, you can use CleanTalk with Akismet. In this case you will probably have higher false/positive rate (when legitimate comments/signups are being denied), but you will have stronger anti-spam protection on your website.
@@ -311,9 +227,6 @@ Please look at this features comparison here https://cleantalk.org/cleantalk-vs-
 * Albanian (sq_AL) - thanks to fjalaime https://wordpress.org/support/users/fjalaime/
 * French (fr_FR) - thanks to Gilles Santacreu http://net-ik.net
 * Spanish (es_ES) - thanks to Andrew Kurtis and WebHostingHub
-
-= Requirements =
-WordPress 3.0 at least. PHP 5 with CURL or file_get_contents() function and enabled 'allow_url_fopen' setting. The plugin is fully compatible with PHP 7.
 
 > Max power, all-in-one, premium anti-spam WordPress plugin. No comments & registrations spam, no contact spam, protects any forms. Just install and forget spam.
 
@@ -364,12 +277,6 @@ Spam comments are being moved to SPAM folder by default or you can set the optio
 = How can I test the anti-spam protection? =
 Please use the email **stop_email@example.com** for comments, contacts or signups to see how the anti-spam protection works. Also, you can see the logs for the last 7 days in the <a href="http://cleantalk.org/my/show_requests">Dashboard</a> or look at the folder "Spam" for banned comments.
 
-= Is the plugin effective against spam bots? =
-The plugin Anti-Spam by CleanTalk stops up to 99.998% of spam comments, spam signups (registrations), spam contact emails, spam subscriptions, spam bookings or spam orders.
-
-= Does the plugin protect from brute force, DoS attacks and spam attacks? =
-Yes, it does. Please turn the option 'Spam FireWall' on in the plugin settings to protect your website from DoS/DDoS, XML-RPC attacks.
-
 = How does the plugin stop spam? =
 Please, note - administrator's actions are NOT being checked.
 
@@ -379,12 +286,8 @@ The plugin uses several simple tests to stop spammers:
 1. **Email, IP, domain spam activity list entries check.** The plugin uses spam activity database online at cleantalk.org, consisting of more than 20 billion spam activity records of IPs, Emails, Domains and ASN. If the sender's IP or Email is in the database, the sender gets some spam scores. To reduce false/positive rate the plugin not only uses the blacklist test to ban spammers, the sender will be banned when and only when multiple spam tests have been failed.
 1. **Comment submit time.** Spam bots usually submit the info immediately after the page has been loaded, this happens because spam bots don't actually fill the web form, they just send $_POST data to the blog. The normal visitor sends the data after several seconds or minutes.
 
-= Will the anti-spam plugin protect my theme? =
-Yes, it will. The Anti-spam by CleanTalk is compatible with any WordPress theme.
-
 = What about pingback, trackback spam? =
 The plugin passes pingbacks without any checks by default. All trackbacks will be blocked if the sender had spam activity.
-
 
 = Can I use CleanTalk to remove pending spam comments? =
 Yes, you can. The plugin has the option to test all pending comments via database of <a href="https://cleantalk.org/blacklists">spam active IP/Email</a>, found spam comments will be moved to Trash folder.
@@ -398,9 +301,6 @@ To check comments please go here:
 
 To check users please go here:
 > WordPress console -> Users -> Find spam users
-
-= Should I use other anti-spam tools (Captcha, reCaptcha and etc.)? =
-CleanTalk stops up to 99.998% of spam bots, so you can disable other anti-spam plugins (especially CAPTCHA-type anti-spam plugins). In some cases several anti-spam plugins could conflict with each other, so it would be better to use just one plugin.
 
 = Is the plugin compatible with WordPress MultiUser (WPMU or WordPress network)? =
 Yes, the plugin is compatible with WordPress MultiUser. Each blog in multisite environment has individual anti-spam options for the protection from spam bots.
@@ -490,16 +390,6 @@ To set up global CleanTalk access key for all websites in WPMU, define constant 
 
 Now, all subsites will have this access key.
 
-= Why is CleanTalk faster and more reliable than stand-alone solutions? =
-All anti-spam checks are held in the cloud and don't overload the web server. The cloud solutions have a huge advantage since the parameters are being compared with information from more than 100,000 websites.
-
-= I see a lot of blocked messages with the reason "Forbidden. Please enable JavaScript. Spam sender name." in my logs =
-A lot of spam bots can't perform JavaScript code, so it is one of the important checks and most of the spam bots will be blocked with the reason **"Forbidden. Please enable JavaScript. Spam sender name."** All browsers can perform JS code, so real visitors won't be blocked.
-
-If you or some of your visitors have the error **"Forbidden. Enable JavaScript."** please check JavaScript support in your browser and do this JavaScript test at this page: https://cleantalk.org/checkout-javascript-support.
-
-If you think that there is something wrong in the messages blocking, let us know about it. Please submit a support request here: https://cleantalk.org/my/support.
-
 = Does the plugin work with Varnish? =
 CleanTalk works with Varnish, it protects WordPress against spam, but by default the plugin generates a few cookies for the protection from spam bots and it also disables Varnish cache on pages where CleanTalk's cookies have been stored. To get rid of the issue with cache turn off the option 'Set cookies' in the plugin settings.
 
@@ -510,35 +400,8 @@ Now the plugin will protect WordPress comments, registrations and most of popula
 = Does the anti-spam plugin work with Accelerated Mobile Pages (AMP)? =
 Yes, it does. But you have to turn off the SpamFireWall and the option 'Use AJAX for JavaScript check' in Advanced settigns of the plugin to be fully compatible with Accelerated Mobile Pages.
 
-= How to close renewal or trial notice in the WordPress backend? =
-To close the notice please save the plugin settings again or it will be closed automatically within 60 minutes after the renewal.
-
-= I'm using PHP 4.2 version and i'm getting errors related with JSON. Why does it happens? =
-СleanTalk is no longer supports PHP lower than 5.2 version because the support code have incompatibility with PHP 7 version. Please, upgrade your PHP. If you couldn't perform that, let us know about it via support ticket here: https://cleantalk.org/my/support.
-
 = Should I change anything in the plugin's settings or in my CleanTalk Dashboard when I switch my website from HTTP to HTTPS or vice versa? =
 No. You don't need to change anything in the plugin's settings or in your CleanTalk Dashboard. The plugin will work regardless of the protocol.
-
-= How to use Anti-Spam Log? =
-The following possibilities are available for you in the Anti-Spam Log:
-
-- Time period for all spam records you want to see.
-
-- Filter spam records by their status: Any status, Denied, Approved.
-
-- Filter spam records by your websites.
-
-- Filter spam records by country they came from.
-
-- Filter spam records by IP address, e-mail address or username.
-
-- Available options for a specific record:
-
-  * Details - see item 4 below.
-  * Spam/Not Spam - press this string if our system made wrong decision and blocked or approved a registration, a comment ot a contact form submission. More about it here: https://cleantalk.org/faq#feedback_spam
-  * Delete - delete a record permanently.
-  * Personal blacklists - go to your website Black&White Lists page.
-  * Record details: block reason, body of the message, additional caught data.
 
 = Spam FireWall and AntiSpam - Networks Blocking =
 
@@ -568,29 +431,12 @@ To manage the actions with spam comments, go to the Control Panel, select the we
 Please, read more here:
 https://cleantalk.org/help/spam-comment-management
 
-= How do I report a missed spam bot or incorrect filter? =
-
-If you think the service has missed a spam bot or improperly filtered visitor to the website, you may notify us via the Anti-spam control panel. To do this,
-Log in to Control panel https://cleantalk.org/my.
-Click the line "Log" under the name of your website.
-When you mark a record as "SPAM", its e-mail and IP-address will be added to your personal blacklist for your website.
-When you mark a record as "Not SPAM", its e-mail and IP-address will be added to your personal white list for your website.
-
-Please, read more here
-https://cleantalk.org/faq#feedback_spam
-
-= Is the plugin fast? =
-We develop plugin to do it as optimized as possible, CleanTalk doesn't downgrade response time in backend or frontend. The plugin proccess only POST requests to WordPress core, it tackes less than 1 second to return results.
-
 = Is the plugin EU GDPR compatible? =
 Yes, it is. Please read this article,
 <a href="https://cleantalk.org/publicoffer#cleantalk_gdpr_compliance">https://cleantalk.org/publicoffer#cleantalk_gdpr_compliance</a>
 
-= Check external forms =
-If your website has forms that send data to external sources, you can enable option to "Protect external forms". In this case, if plugin determinates that the current message is spam, your form action will be temporary replaced to your current hostname to prevent sending false data to an external source.
-
 == Screenshots ==
-1. AntiSpam settings are easy to use.
+1. AntiSpam settings are easy to use to protect any contact forms. For example - Ninja forms, Fluent forms and etc.
 2. AntiSpam plugin rejected a spam bot at the CAPTCHA less registration form. The plugin provides explanation to visitor and websites about each rejected comment/registration or contact message.
 3. Use AntiSpam analytics tool for each website in service Dashboard to have information about spam/legitimate stats.
 4. Use AntiSpam log to control anti-spam plugin.
@@ -598,7 +444,6 @@ If your website has forms that send data to external sources, you can enable opt
 6. The Dashboard with a map of most spam active countries per your account.
 7. The plugin deletes/removes the existing spam comments and users accounts.
 8. CleanTalk's dashboard update link.
-9. Auto update confirmation.
 10. Website's options.
 11. CleanTalk's dashboard.
 12. SpamFireWall log.
