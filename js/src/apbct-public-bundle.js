@@ -1878,6 +1878,7 @@ let cleantalkModal = {
         /* Cleantalk Modal CSS start */
         var renderCss = function () {
             var cssStr = '';
+            let key;
             for ( key in this.styles ) {
                 cssStr += key + ':' + this.styles[key] + ';';
             }
