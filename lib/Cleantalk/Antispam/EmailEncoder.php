@@ -60,7 +60,8 @@ class EmailEncoder
         //list of encoding exclusions signs
         $this->encoding_exclusions_signs = array(
             //divi contact forms additional emails
-            array('_unique_id', 'et_pb_contact_form')
+            array('_unique_id', 'et_pb_contact_form'),
+            array('placeholder') //keep safe placeholders to prevent field breach
         );
 
         $this->secret_key = md5($apbct->api_key);
