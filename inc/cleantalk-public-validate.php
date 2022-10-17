@@ -76,7 +76,7 @@ function ct_contact_form_validate()
     //Skip system fields for divi
     if ( strpos(Post::get('action'), 'et_pb_contactform_submit') === 0 ) {
         foreach ( array_keys($_POST) as $key ) {
-            if ( strpos($key, 'et_pb_contact_email_fields') === 0 ) {
+            if ( strpos((string)$key, 'et_pb_contact_email_fields') === 0 ) {
                 unset($_POST[$key]);
             }
         }
@@ -98,7 +98,7 @@ function ct_contact_form_validate()
         apbct_is_plugin_active('calculated-fields-form/cp_calculatedfieldsf_free.php')
     ) {
         foreach ( array_keys($_POST) as $key ) {
-            if ( strpos($key, 'calculatedfields') !== false ) {
+            if ( strpos((string)$key, 'calculatedfields') !== false ) {
                 do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
 
                 return null;
@@ -157,7 +157,7 @@ function ct_contact_form_validate()
 
     // Remove visible fields from POST
     foreach ($_POST as $key => $_value) {
-        if (stripos($key, 'apbct_visible_fields') === 0) {
+        if (stripos((string)$key, 'apbct_visible_fields') === 0) {
             unset($_POST[$key]);
         }
     }
@@ -166,13 +166,13 @@ function ct_contact_form_validate()
         // Recognize contact form an set it's name to $contact_form to use later
         $contact_form = null;
         foreach ( array_keys($_POST) as $param ) {
-            if ( strpos($param, 'et_pb_contactform_submit') === 0 ) {
+            if ( strpos((string)$param, 'et_pb_contactform_submit') === 0 ) {
                 $contact_form            = 'contact_form_divi_theme';
-                $contact_form_additional = str_replace('et_pb_contactform_submit', '', $param);
+                $contact_form_additional = str_replace('et_pb_contactform_submit', '', (string)$param);
             }
-            if ( strpos($param, 'avia_generated_form') === 0 ) {
+            if ( strpos((string)$param, 'avia_generated_form') === 0 ) {
                 $contact_form            = 'contact_form_enfold_theme';
-                $contact_form_additional = str_replace('avia_generated_form', '', $param);
+                $contact_form_additional = str_replace('avia_generated_form', '', (string)$param);
             }
             if ( ! empty($contact_form) ) {
                 break;
