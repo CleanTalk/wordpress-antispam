@@ -179,3 +179,13 @@ install_db() {
 install_wp
 install_test_suite
 install_db
+
+if [[ "$TRAVISCI" == "psalm" ]] ; then
+  # Put various components in proper folders
+  plugin_slug=$(basename $(pwd))
+  plugin_dir=$WP_CORE_DIR/wp-content/plugins/cleantalk-spam-protect
+  cd ..
+  mv $plugin_slug $plugin_dir
+  cd $plugin_dir
+fi
+
