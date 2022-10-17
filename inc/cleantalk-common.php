@@ -106,8 +106,6 @@ function apbct_base_call($params = array(), $reg_flag = false)
         return array('ct_result' => new CleantalkResponse());
     }
 
-    apbct_form__get_no_cookie_data();
-
     // URL, IP, Role exclusions
     if ( apbct_exclusions_check() ) {
         do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
