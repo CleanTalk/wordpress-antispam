@@ -1244,7 +1244,9 @@ add_filter( 'wpmu_blogs_columns', 'apbct__wpmu_blogs_columns_filter' );
 function apbct__manage_sites_custom_column_action( $_column_name, $site_id )
 {
     $cleantalk_data = get_blog_option($site_id, 'cleantalk_data');
-    $key_icon_status = '<span class="dashicons dashicons-no-alt" style="color: red"></span>';
+    $key_is_ok_caption = esc_html__('The Access key filled out and correct.', 'cleantalk-spam-protect');
+    $key_is_bad_caption = esc_html__('The Access has not been filed or incorrect.', 'cleantalk-spam-protect');
+    $key_icon_status = '<span class="dashicons dashicons-no-alt" style="color: red" title="' . $key_is_bad_caption . '"></span>';
 
     if (!$cleantalk_data) {
         return;
@@ -1253,7 +1255,7 @@ function apbct__manage_sites_custom_column_action( $_column_name, $site_id )
     $key_is_ok = isset($cleantalk_data['key_is_ok']) ? $cleantalk_data['key_is_ok'] : false;
 
     if ($key_is_ok) {
-        $key_icon_status = '<span class="dashicons dashicons-yes" style="color: green"></span>';
+        $key_icon_status = '<span class="dashicons dashicons-yes" style="color: green" title="' . $key_is_ok_caption . '"></span>';
     }
 
     echo $key_icon_status;
