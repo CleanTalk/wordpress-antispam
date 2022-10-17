@@ -88,6 +88,7 @@ Spam protection for everything about bbPress: logins, registrations, forums, top
 * WP User Frontend, UserPro.
 * Ninja forms <a href="https://ninjaforms.com/">https://ninjaforms.com</a>.
 * Contact Form Plugin by Fluent Forms Ninja forms <a href="https://fluentforms.com/">https://fluentforms.com</a>.
+* Forminator contact from <a href="https://wpmudev.com/project/forminator-pro/">https://wpmudev.com/project/forminator-pro/</a>.
 * Newsletters - MC4WP: Mailchimp for WordPress (<a href="https://www.mc4wp.com/">mc4wp.com</a>), MailPoet – emails and newsletters in WordPress (https://www.mailpoet.com/).
 * Any WordPress form (checkbox 'Custom contact forms').
 * Any submission to the site (checkbox 'Check all POST data').
