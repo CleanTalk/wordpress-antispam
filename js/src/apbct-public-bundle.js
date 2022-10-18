@@ -1464,10 +1464,14 @@ function apbctAjaxEmailDecode(event, baseElement){
 								ctProcessDecodedDataResult(result.data, event.target);
 							}, 3000);
 						}
+
+						// Handling of comment
+						if (result.data.comment === null) {
+							setTimeout(function () {
+								apbct(element.getElementsByClassName('apbct-tooltip')).fadeOut(700);
+							}, 4000);
+						}
 					}
-					setTimeout(function () {
-						apbct(element.getElementsByClassName('apbct-tooltip')).fadeOut(700);
-					}, 4000);
 				},
 				onErrorCallback: function (res) {
 					element.addEventListener('click', ctFillDecodedEmailHandler);
@@ -1497,10 +1501,14 @@ function apbctAjaxEmailDecode(event, baseElement){
 								ctProcessDecodedDataResult(result.data, event.target);
 							}, 3000);
 						}
+
+						// Handling of comment
+						if (result.data.comment === null) {
+							setTimeout(function () {
+								apbct(element.getElementsByClassName('apbct-tooltip')).fadeOut(700);
+							}, 4000);
+						}
 					}
-					setTimeout(function () {
-						apbct(element.getElementsByClassName('apbct-tooltip')).fadeOut(700);
-					}, 4000);
 				},
 				onErrorCallback: function (res) {
 					element.addEventListener('click', ctFillDecodedEmailHandler);
@@ -1628,7 +1636,7 @@ function ctShowDecodeComment(target, comment){
 	apbct(target.getElementsByClassName('apbct-tooltip--text')).html(comment);
 	setTimeout(function(){
 		apbct(target.getElementsByClassName('apbct-tooltip')).fadeOut(700);
-	}, 5000);
+	}, 8000);
 }
 
 function apbct_collect_visible_fields( form ) {
