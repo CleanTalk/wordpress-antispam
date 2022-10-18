@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 3.0
 Tested up to: 6.0
 Requires PHP: 5.6
-Stable tag: 5.186
+Stable tag: 5.187
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -450,6 +450,25 @@ Yes, it is. Please read this article,
 12. SpamFireWall log.
 
 == Changelog ==
+
+= 5.187 Oct 20 2022 =
+#### New integrations added 🔥, CleanTalk status on the sites list implemented 💣, parameters without cookies improved 🎈 and some minor issues fixed 💪🏼
+* New. Integration. Site Reviews Integration.
+* New. Integration. Sendinblue Integration
+* Mod: Cleantalk Status in list of sites
+* Fix. JS. CF async loading scripts fixed.
+* Fix. JS. Listening events on document object instead of window object.
+* Fix. Fixed spam protection if JS disabled.
+* Fix. Mautic integration. Force third-side validation pre-intreception.
+* Fix. WooCommerce. CartBounty plugin requests skipped.
+* Fix. Code. Deprecated hooks wpmu_new_blog, delete_blog fixed.
+* Fix. WPMS. Getting setting fixed for apply this on the new added blog.
+* Fix. Code. JS events listening on the document object.
+* Fix. Code. JS parameter without cookies fixed.
+* Fix. EmailEncoder. Exclude placeholders from encoding to prevent field breach.
+* Fix. No cookie. Collecting data moved to the more early stage.
+* Fix. Common. Custom ajax forms block message fixed.
+* Fix. EmailDecoder. Email decoding block message fixed
 
 = 5.186 Oct 06 2022 =
 #### Several integrations added 🔥, custom logo for SFW blocking pages added 🎯, external forms into iframe protected 🎉 and some minor issues fixed 💪🏼
