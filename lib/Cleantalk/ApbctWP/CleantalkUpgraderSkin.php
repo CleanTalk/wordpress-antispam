@@ -26,8 +26,9 @@ class CleantalkUpgraderSkin extends \WP_Upgrader_Skin
     }
 
     /**
-     *
      * @param string $feedback
+     * @param mixed  ...$args  Optional text replacements.
+     * @psalm-suppress ParamNameMismatch
      */
     public function feedback($feedback, ...$args)
     {

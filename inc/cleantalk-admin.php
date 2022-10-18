@@ -1241,7 +1241,7 @@ add_filter('wpmu_blogs_columns', 'apbct__wpmu_blogs_columns_filter');
  *
  * @return void
  */
-function apbct__manage_sites_custom_column_action( $_column_name, $site_id )
+function apbct__manage_sites_custom_column_action($_column_name, $site_id)
 {
     $cleantalk_data = get_blog_option($site_id, 'cleantalk_data');
     $key_is_ok_text = esc_html__('The Access key is filled out and correct', 'cleantalk-spam-protect');
