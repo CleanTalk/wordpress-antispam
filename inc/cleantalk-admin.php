@@ -1216,3 +1216,49 @@ function apbct__add_debug_tab($links)
 
     return $links;
 }
+
+/**
+ * Function for `wpmu_blogs_columns` filter-hook.
+ *
+ * @param string[] $sites_columns An array of displayed site columns.
+ *
+ * @return string[]
+ */
+function apbct__wpmu_blogs_columns_filter($sites_columns)
+{
+    $sites_columns[] = esc_html__('CleanTalk Status', 'cleantalk-spam-protect');
+
+    return $sites_columns;
+}
+
+add_filter('wpmu_blogs_columns', 'apbct__wpmu_blogs_columns_filter');
+
+/**
+ * Function for `manage_posts_custom_column` action-hook.
+ *
+ * @param string $_column_name The name of the column to display.
+ * @param int    $site_id     The current post ID.
+ *
+ * @return void
+ */
+function apbct__manage_sites_custom_column_action($_column_name, $site_id)
+{
+    $cleantalk_data = get_blog_option($site_id, 'cleantalk_data');
+    $key_is_ok_text = esc_html__('The Access key is set and correct', 'cleantalk-spam-protect');
+    $key_is_bad_text = esc_html__('The Access key is not set or is incorrect', 'cleantalk-spam-protect');
+    $key_status_caption = '<span style="color: red"">' . $key_is_bad_text . '</span>';
+
+    if (!$cleantalk_data) {
+        return;
+    }
+
+    $key_is_ok = isset($cleantalk_data['key_is_ok']) ? $cleantalk_data['key_is_ok'] : false;
+
+    if ($key_is_ok) {
+        $key_status_caption = '<span style="color: green"">' . $key_is_ok_text . '</span>';
+    }
+
+    echo $key_status_caption;
+}
+
+add_action('manage_sites_custom_column', 'apbct__manage_sites_custom_column_action', 10, 2);
