@@ -2190,25 +2190,6 @@ function apbctProcessExternalForm(currentForm, iterator, documentObject) {
     cleantalk_placeholder.className = 'cleantalk_placeholder';
     cleantalk_placeholder.style = 'display: none';
 
-    //mautic forms integration
-    if (currentForm.id.indexOf('mauticform') !== -1) {
-        let radio = jQuery('input[id*="radio_rgpd"]')
-        let label = jQuery('label[id*="label_rgpd"]')
-        let placeholder = jQuery('.cleantalk_placeholder')[0]
-        if (typeof(placeholder) !== 'undefined') {
-            if ( typeof(label) !== 'undefined' ) {
-                label.click(function (event) {
-                    placeholder.setAttribute('mautic_hidden_gdpr_id', radio.prop("id"))
-                })
-            }
-            if ( typeof(radio) !== 'undefined' ) {
-                radio.click(function (event) {
-                    placeholder.setAttribute('mautic_hidden_gdpr_id', radio.prop("id"))
-                })
-            }
-        }
-    }
-
     currentForm.parentElement.insertBefore(cleantalk_placeholder, currentForm);
 
     // Deleting form to prevent submit event
@@ -2257,6 +2238,19 @@ function apbctProcessExternalForm(currentForm, iterator, documentObject) {
     } else {
         documentObject.forms[iterator].onsubmit = function ( event ){
             event.preventDefault();
+
+            //mautic integration
+            if (documentObject.forms[iterator].id.indexOf('mauticform') !== -1) {
+                let checkbox = jQuery(documentObject.forms[iterator]).find('input[id*="checkbox_rgpd"]')
+                if (checkbox.length > 0){
+                    if (checkbox.prop("checked") === true){
+                        let placeholder = jQuery('.cleantalk_placeholder')[0]
+                        if (placeholder.length > 0){
+                            placeholder.setAttribute('mautic_hidden_gdpr_id', checkbox.prop("id"))
+                        }
+                    }
+                }
+            }
 
             const prev = jQuery(event.currentTarget).prev();
             const form_original = jQuery(event.currentTarget).clone();
@@ -2434,7 +2428,7 @@ function sendAjaxCheckingFormData(form, prev, formOriginal) {
     );
 }
 
-function ct_check_internal(currForm, prev_action){
+function ct_check_internal(currForm){
     
 //Gathering data
     var ct_data = {},
@@ -2454,7 +2448,6 @@ function ct_check_internal(currForm, prev_action){
             url: ctPublicFunctions._ajax_url,
             callback: function (data) {
                 if(data.success === true){
-                    currForm.action = prev_action;
                     currForm.submit();
                 }else{
                     alert(data.data);
@@ -2477,8 +2470,7 @@ document.addEventListener('DOMContentLoaded',function(){
 	for( let i=0; i<document.forms.length; i++ ){
 		if ( typeof(document.forms[i].action) == 'string' ){
             ct_currForm = document.forms[i];
-			let ct_currAction = ct_currForm.action;
-            ct_currForm.action = document.location.href;
+			ct_currAction = ct_currForm.action;
             if (
                 ct_currAction.indexOf('https?://') !== null &&                        // The protocol is obligatory
                 ct_currAction.match(ctPublic.blog_home + '.*?\.php') !== null && // Main check
@@ -2489,7 +2481,7 @@ document.addEventListener('DOMContentLoaded',function(){
                     jQuery(ct_currForm).off('**');
                     jQuery(ct_currForm).off();
                     jQuery(ct_currForm).on('submit', function(event){
-                        ct_check_internal(event.target, ct_currAction);
+                        ct_check_internal(event.target);
                         return false;
                     });
                 }

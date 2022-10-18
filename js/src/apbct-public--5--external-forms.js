@@ -75,25 +75,6 @@ function apbctProcessExternalForm(currentForm, iterator, documentObject) {
     cleantalk_placeholder.className = 'cleantalk_placeholder';
     cleantalk_placeholder.style = 'display: none';
 
-    //mautic forms integration
-    if (currentForm.id.indexOf('mauticform') !== -1) {
-        let radio = jQuery('input[id*="radio_rgpd"]')
-        let label = jQuery('label[id*="label_rgpd"]')
-        let placeholder = jQuery('.cleantalk_placeholder')[0]
-        if (typeof(placeholder) !== 'undefined') {
-            if ( typeof(label) !== 'undefined' ) {
-                label.click(function (event) {
-                    placeholder.setAttribute('mautic_hidden_gdpr_id', radio.prop("id"))
-                })
-            }
-            if ( typeof(radio) !== 'undefined' ) {
-                radio.click(function (event) {
-                    placeholder.setAttribute('mautic_hidden_gdpr_id', radio.prop("id"))
-                })
-            }
-        }
-    }
-
     currentForm.parentElement.insertBefore(cleantalk_placeholder, currentForm);
 
     // Deleting form to prevent submit event
@@ -142,6 +123,19 @@ function apbctProcessExternalForm(currentForm, iterator, documentObject) {
     } else {
         documentObject.forms[iterator].onsubmit = function ( event ){
             event.preventDefault();
+
+            //mautic integration
+            if (documentObject.forms[iterator].id.indexOf('mauticform') !== -1) {
+                let checkbox = jQuery(documentObject.forms[iterator]).find('input[id*="checkbox_rgpd"]')
+                if (checkbox.length > 0){
+                    if (checkbox.prop("checked") === true){
+                        let placeholder = jQuery('.cleantalk_placeholder')[0]
+                        if (placeholder.length > 0){
+                            placeholder.setAttribute('mautic_hidden_gdpr_id', checkbox.prop("id"))
+                        }
+                    }
+                }
+            }
 
             const prev = jQuery(event.currentTarget).prev();
             const form_original = jQuery(event.currentTarget).clone();
