@@ -658,6 +658,10 @@ if ( is_admin() || is_network_admin() ) {
     // Init action.
     add_action('plugins_loaded', 'apbct_init', 1);
 
+    if ( Post::get('ct_no_cookie_hidden_field') ) {
+        apbct_form__get_no_cookie_data();
+    }
+
     // Comments
     add_filter('preprocess_comment', 'ct_preprocess_comment', 1, 1);     // param - comment data array
     add_filter('comment_text', 'ct_comment_text');

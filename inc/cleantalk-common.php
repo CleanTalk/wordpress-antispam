@@ -106,8 +106,6 @@ function apbct_base_call($params = array(), $reg_flag = false)
         return array('ct_result' => new CleantalkResponse());
     }
 
-    apbct_form__get_no_cookie_data();
-
     // URL, IP, Role exclusions
     if ( apbct_exclusions_check() ) {
         do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
@@ -510,7 +508,7 @@ function apbct_get_sender_info()
 
     if ( count($_POST) > 0 ) {
         foreach ( $_POST as $k => $v ) {
-            if ( preg_match("/^(ct_check|checkjs).+/", $k) ) {
+            if ( preg_match("/^(ct_check|checkjs).+/", (string)$k) ) {
                 $checkjs_data_post = $v;
             }
         }
@@ -1368,8 +1366,8 @@ function apbct_get_honeypot_filled_fields()
         //get field suffix for GET search forms
         $apbct_event_id = false;
         foreach ( $_GET as $key => $value ) {
-            if ( strpos($key, 'apbct_submit_id__search_form_') !== false ) {
-                $apbct_event_id = str_replace('apbct_submit_id__search_form_', '', $key);
+            if ( strpos((string)$key, 'apbct_submit_id__search_form_') !== false ) {
+                $apbct_event_id = str_replace('apbct_submit_id__search_form_', '', (string)$key);
             }
         }
 
