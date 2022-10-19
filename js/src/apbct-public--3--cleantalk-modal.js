@@ -33,7 +33,7 @@ let cleantalkModal = {
         /* Cleantalk Modal CSS start */
         var renderCss = function () {
             var cssStr = '';
-            for ( key in this.styles ) {
+            for ( let key in this.styles ) {
                 cssStr += key + ':' + this.styles[key] + ';';
             }
             return cssStr;

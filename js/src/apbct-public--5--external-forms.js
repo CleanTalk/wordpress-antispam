@@ -129,9 +129,9 @@ function apbctProcessExternalForm(currentForm, iterator, documentObject) {
                 let checkbox = jQuery(documentObject.forms[iterator]).find('input[id*="checkbox_rgpd"]')
                 if (checkbox.length > 0){
                     if (checkbox.prop("checked") === true){
-                        let placeholder = jQuery('.cleantalk_placeholder')[0]
-                        if (placeholder.length > 0){
-                            placeholder.setAttribute('mautic_hidden_gdpr_id', checkbox.prop("id"))
+                        let placeholder = jQuery('.cleantalk_placeholder')
+                        if (placeholder.length > 0) {
+                            placeholder[0].setAttribute('mautic_hidden_gdpr_id', checkbox.prop("id"))
                         }
                     }
                 }
