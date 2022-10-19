@@ -25,7 +25,8 @@ class AdminNotices
         'notice_trial',
         'notice_renew',
         'notice_incompatibility',
-        'notice_review'
+        'notice_review',
+        'notice_cnct_reprt'
     );
 
     /**
@@ -248,6 +249,94 @@ class AdminNotices
         } else {
             $apbct->data['notice_incompatibility'] = array();
             $apbct->saveData();
+        }
+    }
+
+    /**
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public function notice_cnct_reprt()
+    {
+        global $apbct;
+
+        if ($apbct->connection_reports && $apbct->connection_reports['negative'] != 0) {
+            $unsent_reports_count = 0;
+            $reports_html = '';
+
+            $test[] = 
+            array(
+                'date' => date("Y-m-d H:i:s"),
+                'page_url' => get_site_url(),
+                'lib_report' => '$request_response->errstr',
+                'work_url' => '$cleantalk->work_url',
+                'content' => '$request',
+                'is_sent' => false
+            );
+
+            foreach ( $test as $key => $report ) {
+                //count unsent
+                if ( isset($report['is_sent']) && !$report['is_sent'] ) {
+                    $unsent_reports_count++;
+                }
+                //colorize
+                if ( isset($report['is_sent']) && $report['is_sent'] ) {
+                    $status = 'Sent';
+                    $color = 'gray';
+                } else {
+                    $status = 'New';
+                    $color = 'black';
+                }
+                //draw reports rows
+                $reports_html .= '<tr style="color:' . $color . '">'
+                                 . '<td>' . Escape::escHtml($key + 1) . '.</td>'
+                                 . '<td>' . Escape::escHtml($report['date']) . '</td>'
+                                 . '<td>' . Escape::escUrl($report['page_url']) . '</td>'
+                                 . '<td>' . Escape::escHtml($report['lib_report']) . '</td>'
+                                 . '<td>' . Escape::escUrl($report['work_url']) . '</td>'
+                                 . '<td>' . Escape::escHtml($status) . '</td>'
+                                 . '</tr>';
+                //draw main report table
+                $reports_html = "<table id='negative_reports_table' style='max-width: 1200px;width: 100%'>
+					<tr>
+						<td>#</td>
+						<td><b>Date</b></td>
+						<td><b>Page URL</b></td>
+						<td><b>Report</b></td>
+						<td><b>Server IP</b></td>
+						<td><b>Status</b></td>
+					</tr>"
+                                //attach reports rows
+                                . $reports_html
+                                . "</table>"
+                                . "<br/>";
+            }
+            ?>
+                <div class="apbct-notice notice notice-info is-dismissible" id="cleantalk_notice_cnct_reprt" style="padding-bottom: 20px;">
+                    <div class="flex-row">
+                        <h3><?php echo __('Failed connection reports.', 'cleantalk-spam-protect'); ?></h3>
+                        <?php
+                            echo Escape::escKses(
+                                $reports_html,
+                                array(
+                                    'tr' => array(
+                                        'style' => true
+                                    ),
+                                    'td' => array(),
+                                    'th' => array(
+                                        'colspan' => true
+                                    ),
+                                    'b' => array(),
+                                    'br' => array(),
+                                    'table' => array(
+                                        'id' => true,
+                                        'style' => true
+                                    ),
+                                )
+                            );
+                        ?>
+                    </div>
+                </div>
+            <?php
         }
     }
 
