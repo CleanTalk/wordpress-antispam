@@ -68,14 +68,13 @@ class EmailEncoder extends \Cleantalk\Antispam\EmailEncoder
             return true;
         }
 
-        // Deny
-        if ( $api_response->allow === 0) {
-            $this->comment = $api_response->comment;
+        $stub_comment = $api_response->allow
+            ? esc_html__('Allowed', 'cleantalk-spam-protect')
+            : esc_html__('Blocked', 'cleantalk-spam-protect');
 
-            return false;
-        }
+        $this->comment = ! empty($api_response->comment) ? $api_response->comment : $stub_comment;
 
-        return true;
+        return $api_response->allow === 1;
     }
 
     /**
