@@ -89,7 +89,7 @@ class EmailEncoder extends \Cleantalk\Antispam\EmailEncoder
     {
         return [
             'is_allowed'    => $is_allowed,
-            'show_comment'  => true,
+            'show_comment'  => ! $is_allowed,
             'comment'       => $this->comment,
             'decoded_email' => strip_tags($decoded_email, '<a>'),
         ];
