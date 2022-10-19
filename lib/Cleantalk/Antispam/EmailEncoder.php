@@ -134,18 +134,13 @@ class EmailEncoder
             check_ajax_referer('ct_secret_stuff');
         }
 
-        $this->response = $this->processDecodeRequest();
-
-        wp_send_json_success($this->response);
-    }
-
-    public function processDecodeRequest()
-    {
-        $this->decoded_email = $this->decodeEmailFromPost();
-        $allow_request       = $this->checkRequest();
-        $this->response      = $this->compileResponse($this->decoded_email, $allow_request);
-
-        return $this->response;
+        if ( $this->checkRequest() ) {
+            $this->decoded_email = $this->decodeEmailFromPost();
+            $this->response = $this->compileResponse($this->decoded_email, true);
+            wp_send_json_success($this->response);
+        }
+        $this->response = $this->compileResponse('', false);
+        wp_send_json_error($this->response);
     }
 
     /**
