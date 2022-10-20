@@ -2,7 +2,7 @@
 
 namespace Cleantalk\Antispam\Integrations;
 
-class wpForoAddPost extends IntegrationBase
+class WpForoAddPost extends IntegrationBase
 {
     public function getDataForChecking($argument)
     {
