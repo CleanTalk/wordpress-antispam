@@ -2730,8 +2730,9 @@ function apbct_form__gravityForms__addField($form_string, $form)
     $search = "</form>";
 
     // Adding JS code
-    $js_code     = ct_add_hidden_fields($ct_hidden_field, true, false);
-    $form_string = str_replace($search, $js_code . $search, $form_string);
+    $js_code  = ct_add_hidden_fields($ct_hidden_field, true, false);
+    $honeypot = ct_add_honeypot_field('gravity_form');
+    $form_string = str_replace($search, $js_code . $honeypot . $search, $form_string);
 
     // Adding field for multipage form. Look for cleantalk.php -> apbct_cookie();
     $append_string = isset($form['lastPageButton']) ? "<input type='hidden' name='ct_multipage_form' value='yes'>" : '';
