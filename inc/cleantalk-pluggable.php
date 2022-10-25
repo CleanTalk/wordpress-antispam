@@ -797,6 +797,17 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'Wishlist Member - skip login';
         }
+
+        // Skip some Smart Quiz Builder requests
+        if (
+            apbct_is_plugin_active('smartquizbuilder/smartquizbuilder.php') &&
+            (
+                Post::get('action') === 'sqb_lead_save' ||
+                Post::get('action') === 'SQBSendNotificationAjax'
+            )
+        ) {
+            return 'Smart Quiz Builder - skip some requests';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
