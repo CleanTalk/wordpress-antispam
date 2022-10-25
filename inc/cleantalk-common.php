@@ -528,8 +528,8 @@ function apbct_get_sender_info()
 
     // Visible fields processing
     $visible_fields_collection = Cookie::getVisibleFields();
-    if ( !$visible_fields_collection || is_array($visible_fields_collection) && !$visible_fields_collection[0] ) {
-        $visible_fields_collection = stripslashes(Post::get('apbct_visible_fields'));
+    if ( !$visible_fields_collection || (is_array($visible_fields_collection) && !$visible_fields_collection[0]) ) {
+        $visible_fields_collection = base64_decode(Post::get('apbct_visible_fields'));
     }
 
     $visible_fields = apbct_visible_fields__process($visible_fields_collection);
