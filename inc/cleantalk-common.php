@@ -534,6 +534,11 @@ function apbct_get_sender_info()
 
     $visible_fields = apbct_visible_fields__process($visible_fields_collection);
 
+    // It is a service field. Need to be deleted before the processing.
+    if ( isset($_POST['apbct_visible_fields']) ) {
+        unset($_POST['apbct_visible_fields']);
+    }
+
     // preparation of some parameters when cookies are disabled and data is received from localStorage
     $param_email_check = Cookie::get('ct_checked_emails') ? json_encode(
         Cookie::get('ct_checked_emails')
