@@ -381,13 +381,8 @@ $apbct_active_integrations = array(
         'setting' => 'forms__registrations_test',
         'ajax'    => false
     ),
-    'wpForoAddTopic' => array(
-        'hook'    => 'wpforo_action_topic_add',
-        'setting' => 'data__protect_logged_in',
-        'ajax'    => false
-    ),
-    'wpForoAddPost' => array(
-        'hook'    => 'wpforo_action_post_add',
+    'WpForo' => array(
+        'hook'    => array('wpforo_action_topic_add', 'wpforo_action_post_add'),
         'setting' => 'data__protect_logged_in',
         'ajax'    => false
     ),
