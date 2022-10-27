@@ -26,8 +26,8 @@ class EmailEncoder
     private $content_exclusions_signs;
 
     /**
-     * Attribute names to skip content encoding contains them
-     * @var array
+     * Attribute names to skip content encoding contains them. Keep arrays of tag=>[attributes].
+     * @var array[]
      */
     private $attribute_exclusions_signs;
 
@@ -77,8 +77,7 @@ class EmailEncoder
 
         //list of encoding exclusions signs
         $this->attribute_exclusions_signs = array(
-            'placeholder',
-            'value'
+            'input' => array('placeholder', 'value'),
         );
 
         $this->secret_key = md5($apbct->api_key);
@@ -373,11 +372,13 @@ class EmailEncoder
      */
     private function hasAttributeExclusions($email_match)
     {
-        foreach ( $this->attribute_exclusions_signs as $attribute ) {
-            $pattern = '/' . $attribute . '="' . $email_match . '"/';
-            preg_match($pattern, $this->temp_content, $attr_match);
-            if ( !empty($attr_match) ) {
-                return true;
+        foreach ( $this->attribute_exclusions_signs as $tag => $array_of_attributes ) {
+            foreach ( $array_of_attributes as $attribute ) {
+                $pattern = '/<' . $tag . '.*' . $attribute . '="' . $email_match . '"/';
+                preg_match($pattern, $this->temp_content, $attr_match);
+                if ( !empty($attr_match) ) {
+                    return true;
+                }
             }
         }
         return false;
