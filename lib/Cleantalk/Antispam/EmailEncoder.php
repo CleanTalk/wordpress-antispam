@@ -23,7 +23,13 @@ class EmailEncoder
      * Keep arrays of exclusion signs in the array
      * @var array
      */
-    private $encoding_exclusions_signs;
+    private $content_exclusions_signs;
+
+    /**
+     * Attribute names to skip content encoding contains them
+     * @var array
+     */
+    private $attribute_exclusions_signs;
 
     /**
      * @var string
@@ -39,6 +45,12 @@ class EmailEncoder
      * @var string
      */
     private $response;
+
+    /**
+     * Temporary content to use in regexp callback
+     * @var string
+     */
+    private $temp_content;
 
     /**
      * @inheritDoc
@@ -58,10 +70,15 @@ class EmailEncoder
         }
 
         //list of encoding exclusions signs
-        $this->encoding_exclusions_signs = array(
+        $this->content_exclusions_signs = array(
             //divi contact forms additional emails
             array('_unique_id', 'et_pb_contact_form'),
-            array('placeholder') //keep safe placeholders to prevent field breach
+        );
+
+        //list of encoding exclusions signs
+        $this->attribute_exclusions_signs = array(
+            'placeholder',
+            'value'
         );
 
         $this->secret_key = md5($apbct->api_key);
@@ -105,13 +122,21 @@ class EmailEncoder
             return $content;
         }
 
-        if ( $this->contentHasExclusions($content) ) {
+        if ( $this->hasContentExclusions($content) ) {
             return $content;
         }
+
+        //will use this in regexp callback
+        $this->temp_content = $content;
 
         return preg_replace_callback('/(mailto\:\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,})|(\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+(\.[A-Za-z]{2,}))/', function ($matches) {
 
             if ( isset($matches[3]) && in_array(strtolower($matches[3]), ['.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp']) ) {
+                return $matches[0];
+            }
+
+            //chek if email is placed in excluded attributes and return unchanged if so
+            if ( $this->hasAttributeExclusions($matches[0]) ) {
                 return $matches[0];
             }
 
@@ -296,10 +321,10 @@ class EmailEncoder
      * @param $content - content to check
      * @return bool - true if exclusions found, else - false
      */
-    private function contentHasExclusions($content)
+    private function hasContentExclusions($content)
     {
-        if ( is_array($this->encoding_exclusions_signs) ) {
-            foreach ( array_values($this->encoding_exclusions_signs) as $_signs_array => $signs ) {
+        if ( is_array($this->content_exclusions_signs) ) {
+            foreach ( array_values($this->content_exclusions_signs) as $_signs_array => $signs ) {
                 //process each of subarrays of signs
                 $signs_found_count = 0;
                 if ( isset($signs) && is_array($signs) ) {
@@ -338,6 +363,23 @@ class EmailEncoder
             return true;
         }
 
+        return false;
+    }
+
+    /**
+     * Check if email is placed in the tag that has attributes of exclusions.
+     * @param $email_match - email
+     * @return bool
+     */
+    private function hasAttributeExclusions($email_match)
+    {
+        foreach ( $this->attribute_exclusions_signs as $attribute ) {
+            $pattern = '/' . $attribute . '="' . $email_match . '"/';
+            preg_match($pattern, $this->temp_content, $attr_match);
+            if ( !empty($attr_match) ) {
+                return true;
+            }
+        }
         return false;
     }
 }
