@@ -215,7 +215,7 @@ function apbct_init()
         add_action('bp_before_registration_submit_buttons', 'ct_register_form', 1);
         add_action('messages_message_before_save', 'apbct_integration__buddyPres__private_msg_check', 1);
         add_filter('bp_signup_validate', 'ct_registration_errors', 1);
-        add_filter('bp_signup_validate', 'ct_check_registration_erros', 999999);
+        add_filter('bp_signup_validate', 'ct_check_registration_errors', 999999);
     }
 
     if ( defined('PROFILEPRESS_SYSTEM_FILE_PATH') ) {

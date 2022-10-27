@@ -1706,7 +1706,7 @@ function apbct_registration__UltimateMembers__check($args)
  *
  * @return mixed
  */
-function ct_check_registration_erros($errors, $_sanitized_user_login = null, $_user_email = null)
+function ct_check_registration_errors($errors, $_sanitized_user_login = null, $_user_email = null)
 {
     global $bp, $ct_registration_error_comment;
 
