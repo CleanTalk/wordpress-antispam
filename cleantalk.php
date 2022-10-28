@@ -381,6 +381,11 @@ $apbct_active_integrations = array(
         'setting' => 'forms__registrations_test',
         'ajax'    => false
     ),
+    'WpForo' => array(
+        'hook'    => array('wpforo_action_topic_add', 'wpforo_action_post_add'),
+        'setting' => 'data__protect_logged_in',
+        'ajax'    => false
+    ),
 );
 new  \Cleantalk\Antispam\Integrations($apbct_active_integrations, (array)$apbct->settings);
 

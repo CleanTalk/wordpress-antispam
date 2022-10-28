@@ -390,6 +390,14 @@ function apbct_exclusions_check($func = null)
         case 'ct_contact_form_validate':
             if (
                 apbct_array($_POST)->getKeys('members_search_submit')->result()
+                || (
+                    (int)$apbct->settings['data__protect_logged_in'] === 1
+                    && (
+                        Post::equal('wpfaction', 'topic_add')
+                        || Post::equal('wpfaction', 'post_add')
+                        )
+                    && apbct_is_plugin_active('wpforo/wpforo.php')
+                )
             ) {
                 return true;
             }
