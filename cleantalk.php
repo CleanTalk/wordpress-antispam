@@ -240,6 +240,11 @@ if ( ! is_admin() && ! apbct_is_ajax() && ! defined('DOING_CRON')
     }
 }
 
+require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-validate-skip-functions.php');
+require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-validate.php');
+require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public.php');
+require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-integrations.php');
+
 // Early checks
 
 // Iphorm
@@ -248,10 +253,6 @@ if (
     Post::get('iphorm_id') !== '' &&
     Post::get('iphorm_uid') !== ''
 ) {
-    require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-validate-skip-functions.php');
-    require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-validate.php');
-    require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public.php');
-    require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-integrations.php');
     require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-ajax.php');
     ct_ajax_hook();
 }
@@ -261,10 +262,6 @@ if ( $apbct->settings['forms__general_contact_forms_test'] == 1
      && ( Post::get('action') === 'fb_intialize')
      && ! empty(Post::get('FB_userdata'))
 ) {
-    require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-validate-skip-functions.php');
-    require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-validate.php');
-    require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public.php');
-    require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-integrations.php');
     if ( apbct_is_user_enable() ) {
         ct_registration_errors(null);
     }
@@ -555,10 +552,6 @@ if ( is_admin() || is_network_admin() ) {
         $_cleantalk_hooked_actions        = array();
         $_cleantalk_ajax_actions_to_check = array();
 
-        require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-validate-skip-functions.php');
-        require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-validate.php');
-        require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public.php');
-        require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-integrations.php');
         require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-ajax.php');
 
         // Feedback for comments
@@ -598,10 +591,6 @@ if ( is_admin() || is_network_admin() ) {
         add_action('user_register', 'apbct_user_register');
 
         if ( class_exists('BuddyPress') ) {
-            require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-validate-skip-functions.php');
-            require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-validate.php');
-            require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public.php');
-            require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-integrations.php');
             add_filter(
                 'bp_activity_is_spam_before_save',
                 'apbct_integration__buddyPres__activityWall',
@@ -612,10 +601,6 @@ if ( is_admin() || is_network_admin() ) {
         }
     }
 
-    require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-validate-skip-functions.php');
-    require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-validate.php');
-    require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public.php');
-    require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-integrations.php');
     //Bitrix24 contact form
     if ( $apbct->settings['forms__general_contact_forms_test'] == 1 &&
          ! empty(Post::get('your-phone')) &&
@@ -646,11 +631,6 @@ if ( is_admin() || is_network_admin() ) {
     }
 // Public pages actions
 } else {
-    require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-validate-skip-functions.php');
-    require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-validate.php');
-    require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public.php');
-    require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-integrations.php');
-
     add_action('wp_enqueue_scripts', 'ct_enqueue_scripts_public');
     add_action('wp_enqueue_scripts', 'ct_enqueue_styles_public');
     add_action('login_enqueue_scripts', 'ct_enqueue_styles_public');
