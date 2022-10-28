@@ -23,13 +23,18 @@ class EmailEncoder
      * Keep arrays of exclusion signs in the array
      * @var array
      */
-    private $content_exclusions_signs;
+    private $content_exclusions_signs = array(
+        //divi contact forms additional emails
+        array('_unique_id', 'et_pb_contact_form'),
+    );
 
     /**
      * Attribute names to skip content encoding contains them. Keep arrays of tag=>[attributes].
      * @var array[]
      */
-    private $attribute_exclusions_signs;
+    private $attribute_exclusions_signs = array(
+        'input' => array('placeholder', 'value'),
+    );
 
     /**
      * @var string
@@ -68,17 +73,6 @@ class EmailEncoder
         if ($this->isExcludedRequest()) {
             return;
         }
-
-        //list of encoding exclusions signs
-        $this->content_exclusions_signs = array(
-            //divi contact forms additional emails
-            array('_unique_id', 'et_pb_contact_form'),
-        );
-
-        //list of encoding exclusions signs
-        $this->attribute_exclusions_signs = array(
-            'input' => array('placeholder', 'value'),
-        );
 
         $this->secret_key = md5($apbct->api_key);
 
