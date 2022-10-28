@@ -1573,7 +1573,13 @@ function ct_registration_errors($errors, $sanitized_user_login = null, $user_ema
             $_POST['FB_userdata']['name']  = '';
 
             return;
-        } elseif ( defined('MGM_PLUGIN_NAME') ) {
+        } elseif (
+            /**
+             * present conditions there if we need to set a custom registration break for a plugin
+             **/
+            defined('MGM_PLUGIN_NAME')
+            || apbct_is_plugin_active('bbpress/bbpress.php')
+        ) {
             ct_die_extended($ct_result->comment);
         } else {
             if ( is_wp_error($errors) ) {
