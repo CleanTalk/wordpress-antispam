@@ -2513,7 +2513,7 @@ function ct_mail_send_connection_report()
 				  </tr>
 				  ';
         $counter = 0;
-        foreach ( $apbct->connection_reports['negative_report'] as $key => $report ) {
+        foreach ( $apbct->connection_reports['negative_report'] as $_key => $report ) {
             if ( !$report['is_sent'] ) {
                 $message .= '<tr>'
                     . '<td>' . ( ++$counter ) . '.</td>'
@@ -2545,7 +2545,7 @@ function ct_mail_send_connection_report()
         $headers .= 'From: ' . ct_get_admin_email();
         /** @psalm-suppress UnusedFunctionCall */
         if ( wp_mail($to, $subject, $message, $headers) ) {
-            foreach ( $apbct->storage['connection_reports']['negative_report'] as $key => &$report ) {
+            foreach ( $apbct->storage['connection_reports']['negative_report'] as $_key => &$report ) {
                 $report['is_sent'] = true;
             }
             unset($report);
