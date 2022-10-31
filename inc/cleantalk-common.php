@@ -1409,8 +1409,11 @@ function apbct_get_honeypot_filled_fields()
 function apbct_form__get_no_cookie_data()
 {
     global $apbct;
-    if ( $apbct->data['cookies_type'] === 'none' ) {
-        $apbct->stats['no_cookie_data_taken'] = \Cleantalk\ApbctWP\Variables\NoCookie::setDataFromHiddenField();
-        $apbct->save('stats');
+    $flag = null;
+
+    if ( Post::get('ct_no_cookie_hidden_field') && $apbct->data['cookies_type'] === 'none' ) {
+        $flag = \Cleantalk\ApbctWP\Variables\NoCookie::setDataFromHiddenField();
     }
+    $apbct->stats['no_cookie_data_taken'] = $flag;
+    $apbct->save('stats');
 }

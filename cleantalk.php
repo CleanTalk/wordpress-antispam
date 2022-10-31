@@ -533,6 +533,8 @@ if ( ! empty($apbct->settings['data__use_ajax']) &&
     add_action('wp_ajax_ct_get_cookie', 'ct_get_cookie', 1);
 }
 
+apbct_form__get_no_cookie_data();
+
 // Admin panel actions
 if ( is_admin() || is_network_admin() ) {
     require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-find-spam.php');
@@ -662,10 +664,6 @@ if ( is_admin() || is_network_admin() ) {
 
     // Init action.
     add_action('plugins_loaded', 'apbct_init', 1);
-
-    if ( Post::get('ct_no_cookie_hidden_field') ) {
-        apbct_form__get_no_cookie_data();
-    }
 
     // Comments
     add_filter('preprocess_comment', 'ct_preprocess_comment', 1, 1);     // param - comment data array
