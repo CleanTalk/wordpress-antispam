@@ -533,6 +533,8 @@ if ( ! empty($apbct->settings['data__use_ajax']) &&
     add_action('wp_ajax_ct_get_cookie', 'ct_get_cookie', 1);
 }
 
+apbct_form__get_no_cookie_data();
+
 // Admin panel actions
 if ( is_admin() || is_network_admin() ) {
     require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-find-spam.php');
@@ -599,7 +601,7 @@ if ( is_admin() || is_network_admin() ) {
 
         // Some of plugins to register a users use AJAX context.
         add_filter('registration_errors', 'ct_registration_errors', 1, 3);
-        add_filter('registration_errors', 'ct_check_registration_erros', 999999, 3);
+        add_filter('registration_errors', 'ct_check_registration_errors', 999999, 3);
         add_action('user_register', 'apbct_user_register');
 
         if ( class_exists('BuddyPress') ) {
@@ -663,10 +665,6 @@ if ( is_admin() || is_network_admin() ) {
     // Init action.
     add_action('plugins_loaded', 'apbct_init', 1);
 
-    if ( Post::get('ct_no_cookie_hidden_field') ) {
-        apbct_form__get_no_cookie_data();
-    }
-
     // Comments
     add_filter('preprocess_comment', 'ct_preprocess_comment', 1, 1);     // param - comment data array
     add_filter('comment_text', 'ct_comment_text');
@@ -680,7 +678,7 @@ if ( is_admin() || is_network_admin() ) {
     add_action('login_enqueue_scripts', 'apbct_login__scripts');
     add_action('register_form', 'ct_register_form');
     add_filter('registration_errors', 'ct_registration_errors', 1, 3);
-    add_filter('registration_errors', 'ct_check_registration_erros', 999999, 3);
+    add_filter('registration_errors', 'ct_check_registration_errors', 999999, 3);
     add_action('user_register', 'apbct_user_register');
 
     // WordPress Multisite registrations
