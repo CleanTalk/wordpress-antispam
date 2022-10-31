@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 4.7
 Tested up to: 6.1
 Requires PHP: 5.6
-Stable tag: 5.187
+Stable tag: 5.188
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -450,6 +450,29 @@ Yes, it is. Please read this article,
 12. SpamFireWall log.
 
 == Changelog ==
+
+= 5.188 Nov 2 2022 =
+#### Lot of improvements of the EmailEncoder 🔥, wpForo topics and posts protection 💣, a honeypot for Gravity forms, parameters without cookies improved 🎈 and some minor issues fixed 💪🏼
+* New. wpForo - add topic and post under protection
+* New. GravityForms - added honeypot
+* New. Readme. Compatibility tested up to WP 6.1
+* New. EmailEncoder. Exclude content from encoding by tag attributes (at least placeholders and values).
+* Mod. Cloud. Remove all_cookies header before send requests to the cloud.
+* Fix. NoCookie mod. Data collection improvements.
+* Fix. bbPress registration now redirect back to the form on bad submissions.
+* Fix. EmailEncoder. Minor improvements.
+* Fix. EmailEncoder. Decoding process logic fixed.
+* Fix. EmailEncoder. Do not show the comment for the allowed requests.
+* Fix. EmailEncoder. Comment about decoding process fixed.
+* Fix. Common. GDPR checkbox fixed.
+* Fix. WPMS. Custom column on sites list page fixed.
+* Fix. Common. Deleting visible fields hidden input after its processed.
+* Fix. Readme. Requires WP 4.7+.
+* Fix. Integration. Skip some Smart Quiz Builder requests.
+* Fix. Common. Visible fields hidden input value is on base64 now.
+* Fix. JS. ApbctJsLib updated.
+* Fix. Comments. Calling hook 'comment_post' priority fixed.
+* Fix. Mautic integration fixes.
 
 = 5.187 Oct 20 2022 =
 #### New integrations added 🔥, CleanTalk status on the sites list implemented 💣, parameters without cookies improved 🎈 and some minor issues fixed 💪🏼
