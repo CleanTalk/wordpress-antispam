@@ -1,5 +1,5 @@
-let buttons_to_handle = []
-let gdpr_notice_for_button = 'Please, apply the GDPR agreement.'
+let buttons_to_handle = [];
+let gdpr_notice_for_button = ctPublicGDPR.gdpr_title;
 
 document.addEventListener('DOMContentLoaded', function(){
 	buttons_to_handle = []
@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', function(){
 
 			//disable forms buttons
 			let button = false
-			let buttons_collection= elem.find('input[type|="submit"]')
+			let buttons_collection= elem.find('input[type|="submit"],button[type|="submit"]')
 
 			if (!buttons_collection.length) {
 				return

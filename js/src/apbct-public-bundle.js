@@ -3,13 +3,13 @@ class ApbctCore{
     ajax_parameters = {};
     rest_parameters = {};
 
-    #selector = null;
+    selector = null;
     elements = [];
 
     // Event properties
-    #eventCallback;
-    #eventSelector;
-    #event;
+    eventCallback;
+    eventSelector;
+    event;
 
     /**
      * Default constructor
@@ -27,44 +27,44 @@ class ApbctCore{
     select(selector) {
 
         if(selector instanceof HTMLCollection){
-            this.#selector    = null;
+            this.selector    = null;
             this.elements    = [];
             this.elements = Array.prototype.slice.call(selector);
         }else if( typeof selector === 'object' ){
-            this.#selector    = null;
+            this.selector    = null;
             this.elements    = [];
             this.elements[0] = selector;
         }else if( typeof selector === 'string' ){
-            this.#selector = selector;
+            this.selector = selector;
             this.elements = Array.prototype.slice.call(document.querySelectorAll(selector));
             // this.elements = document.querySelectorAll(selector)[0];
         }else{
-            this.#deselect();
+            this.deselect();
         }
 
         return this;
     }
 
-    #addElement(elemToAdd){
+    addElement(elemToAdd){
         if( typeof elemToAdd === 'object' ){
             this.elements.push(elemToAdd);
         }else if( typeof elemToAdd === 'string' ){
-            this.#selector = elemToAdd;
+            this.selector = elemToAdd;
             this.elements = Array.prototype.slice.call(document.querySelectorAll(elemToAdd));
         }else{
-            this.#deselect();
+            this.deselect();
         }
     }
 
-    #push(elem){
+    push(elem){
         this.elements.push(elem);
     }
 
-    #reduce(){
+    reduce(){
         this.elements = this.elements.slice(0,-1);
     }
 
-    #deselect(){
+    deselect(){
         this.elements = [];
     }
 
@@ -184,16 +184,16 @@ class ApbctCore{
      */
     on(...args){
 
-        this.#event         = args[0];
-        this.#eventCallback = args[2] || args[1];
-        this.#eventSelector = typeof args[1] === "string" ? args[1] : null;
+        this.event         = args[0];
+        this.eventCallback = args[2] || args[1];
+        this.eventSelector = typeof args[1] === "string" ? args[1] : null;
 
         for(let i=0; i<this.elements.length; i++){
             this.elements[i].addEventListener(
-                this.#event,
-                this.#eventSelector !== null
-                    ? this.#onChecker.bind(this)
-                    : this.#eventCallback
+                this.event,
+                this.eventSelector !== null
+                    ? this.onChecker.bind(this)
+                    : this.eventCallback
             );
         }
     }
@@ -204,10 +204,10 @@ class ApbctCore{
      * @param event
      * @returns {*}
      */
-    #onChecker(event){
-        if(event.target === document.querySelector(this.#eventSelector)){
+    onChecker(event){
+        if(event.target === document.querySelector(this.eventSelector)){
             event.stopPropagation();
-            return this.#eventCallback(event);
+            return this.eventCallback(event);
         }
     }
 
@@ -314,13 +314,13 @@ class ApbctCore{
         let outputValue = false;
 
         for(let elem of this.elements){
-            outputValue ||= this.#isElem(elem, filter);
+            outputValue ||= this.isElem(elem, filter);
         }
 
         return outputValue;
     }
 
-    #isElem(elemToCheck, filter){
+    isElem(elemToCheck, filter){
 
         let is = false;
         let isRegisteredTagName = function(name){
@@ -346,16 +346,16 @@ class ApbctCore{
 
                 // Filter is CSS selector
             }else {
-                is ||= this.#selector !== null
-                    ? document.querySelector(this.#selector + filter) !== null // If possible
-                    : this.#isWithoutSelector(elemToCheck, filter);                    // Search through all elems with such selector
+                is ||= this.selector !== null
+                    ? document.querySelector(this.selector + filter) !== null // If possible
+                    : this.isWithoutSelector(elemToCheck, filter);                    // Search through all elems with such selector
             }
         }
 
         return is;
     }
 
-    #isWithoutSelector(elemToCheck, filter){
+    isWithoutSelector(elemToCheck, filter){
 
         let elems       = document.querySelectorAll(filter);
         let outputValue = false;
@@ -369,10 +369,10 @@ class ApbctCore{
 
     filter(filter){
 
-        this.#selector = null;
+        this.selector = null;
 
         for( let i = this.elements.length - 1; i >= 0; i-- ){
-            if( ! this.#isElem(this.elements[i], filter) ){
+            if( ! this.isElem(this.elements[i], filter) ){
                 this.elements.splice(Number(i), 1);
             }
         }
@@ -387,7 +387,7 @@ class ApbctCore{
         this.select(this.elements[0].parentElement);
 
         if( typeof filter !== 'undefined' && ! this.is(filter) ){
-            this.#deselect();
+            this.deselect();
         }
 
         return this;
@@ -398,7 +398,7 @@ class ApbctCore{
         this.select(this.elements[0]);
 
         for ( ; this.elements[ this.elements.length - 1].parentElement !== null ; ) {
-            this.#push(this.elements[ this.elements.length - 1].parentElement);
+            this.push(this.elements[ this.elements.length - 1].parentElement);
         }
 
         this.elements.splice(0,1); // Deleting initial element from the set
@@ -451,7 +451,7 @@ class ApbctCore{
         }
     }
 
-    /**  ANIMATION  **/
+    /**************  ANIMATION  **************/
     fadeIn(time) {
         for(let elem of this.elements){
             elem.style.opacity = 0;
@@ -490,7 +490,6 @@ class ApbctCore{
             tick();
         }
     }
-
 }
 
 /**
@@ -540,7 +539,7 @@ function apbct(params){
 }
 class ApbctXhr{
 
-    #xhr = new XMLHttpRequest();
+    xhr = new XMLHttpRequest();
 
     // Base parameters
     method   = 'POST'; // HTTP-request type
@@ -563,14 +562,14 @@ class ApbctXhr{
     headers      = {};
     timeout      = 15000; // Request timeout in milliseconds
 
-    #methods_to_convert_data_to_URL = [
+    methods_to_convert_data_to_URL = [
         'GET',
         'HEAD',
     ];
 
-    #body        = null;
-    #http_code   = 0;
-    #status_text = '';
+    body        = null;
+    http_code   = 0;
+    status_text = '';
 
     constructor(parameters){
 
@@ -584,7 +583,7 @@ class ApbctXhr{
         }
 
         // Modifying DOM-elements
-        this.#prepare();
+        this.prepare();
 
         // Modify URL with data for GET and HEAD requests
         if ( Object.keys(this.data).length ) {
@@ -598,42 +597,42 @@ class ApbctXhr{
         }
 
         // Configure the request
-        this.#xhr.open(this.method, this.url, this.async, this.user, this.password);
+        this.xhr.open(this.method, this.url, this.async, this.user, this.password);
         this.setHeaders();
 
-        this.#xhr.responseType = this.responseType;
-        this.#xhr.timeout      = this.timeout;
+        this.xhr.responseType = this.responseType;
+        this.xhr.timeout      = this.timeout;
 
         /* EVENTS */
         // Monitoring status
-        this.#xhr.onreadystatechange = function(){
+        this.xhr.onreadystatechange = function(){
             this.onReadyStateChange();
         }.bind(this);
 
         // Run callback
-        this.#xhr.onload = function(){
+        this.xhr.onload = function(){
             this.onLoad();
         }.bind(this);
 
         // On progress
-        this.#xhr.onprogress = function(event){
+        this.xhr.onprogress = function(event){
             this.onProgress(event);
         }.bind(this);
 
         // On error
-        this.#xhr.onerror = function(){
+        this.xhr.onerror = function(){
             this.onError();
         }.bind(this);
 
-        this.#xhr.ontimeout = function(){
+        this.xhr.ontimeout = function(){
             this.onTimeout();
         }.bind(this);
 
         // Send the request
-        this.#xhr.send(this.#body);
+        this.xhr.send(this.body);
     }
 
-    #prepare(){
+    prepare(){
 
         // Disable button
         if(this.button){
@@ -647,10 +646,10 @@ class ApbctXhr{
         }
     }
 
-    #complete(){
+    complete(){
 
-        this.#http_code   = this.#xhr.status;
-        this.#status_text = this.#xhr.statusText;
+        this.http_code   = this.xhr.status;
+        this.status_text = this.xhr.statusText;
 
         // Disable button
         if(this.button){
@@ -684,20 +683,20 @@ class ApbctXhr{
 
         console.log('error');
 
-        this.#complete();
-        this.#error(
-            this.#http_code,
-            this.#status_text
+        this.complete();
+        this.error(
+            this.http_code,
+            this.status_text
         );
 
         if (this.onErrorCallback !== null && typeof this.onErrorCallback === 'function'){
-            this.onErrorCallback(this.#status_text);
+            this.onErrorCallback(this.status_text);
         }
     }
 
     onTimeout(){
-        this.#complete();
-        this.#error(
+        this.complete();
+        this.error(
             0,
             'timeout'
         );
@@ -709,24 +708,24 @@ class ApbctXhr{
 
     onLoad(){
 
-        this.#complete();
+        this.complete();
 
         if (this.responseType === 'json' ){
-            if(this.#xhr.response === null){
-                this.#error(this.#http_code, this.#status_text, 'No response');
+            if(this.xhr.response === null){
+                this.error(this.http_code, this.status_text, 'No response');
                 return false;
-            }else if( typeof this.#xhr.response.error !== 'undefined') {
-                this.#error(this.#http_code, this.#status_text, this.#xhr.response.error);
+            }else if( typeof this.xhr.response.error !== 'undefined') {
+                this.error(this.http_code, this.status_text, this.xhr.response.error);
                 return false;
             }
         }
 
         if (this.callback !== null && typeof this.callback === 'function') {
-            this.callback.call(this.context, this.#xhr.response, this.data);
+            this.callback.call(this.context, this.xhr.response, this.data);
         }
     }
 
-    #error(http_code, status_text, additional_msg){
+    error(http_code, status_text, additional_msg){
 
         let error_string = '';
 
@@ -761,7 +760,7 @@ class ApbctXhr{
         // Set headers if passed
         for( let header_name in this.headers ){
             if( typeof this.headers[header_name] !== 'undefined' ){
-                this.#xhr.setRequestHeader(header_name, this.headers[header_name]);
+                this.xhr.setRequestHeader(header_name, this.headers[header_name]);
             }
         }
     }
@@ -769,7 +768,7 @@ class ApbctXhr{
     convertData()
     {
         // GET, HEAD request-type
-        if( ~this.#methods_to_convert_data_to_URL.indexOf( this.method ) ){
+        if( ~this.methods_to_convert_data_to_URL.indexOf( this.method ) ){
             return this.convertDataToURL();
 
             // POST request-type
@@ -792,10 +791,10 @@ class ApbctXhr{
      */
     convertDataToBody()
     {
-        this.#body = new FormData();
+        this.body = new FormData();
 
         for (let dataKey in this.data) {
-            this.#body.append(
+            this.body.append(
                 dataKey,
                 typeof this.data[dataKey] === 'object'
                     ? JSON.stringify(this.data[dataKey])
@@ -803,7 +802,7 @@ class ApbctXhr{
             );
         }
 
-        return this.#body;
+        return this.body;
     }
 
     /**
@@ -1354,7 +1353,7 @@ function apbct_ready(){
 			hiddenInput.setAttribute( 'name', 'apbct_visible_fields');
 			var visibleFieldsToInput = {};
 			visibleFieldsToInput[0] = apbct_collect_visible_fields(form);
-			hiddenInput.value = JSON.stringify(visibleFieldsToInput);
+			hiddenInput.value = btoa(JSON.stringify(visibleFieldsToInput));
 			form.append( hiddenInput );
 
 			form.onsubmit_prev = form.onsubmit;
@@ -2010,8 +2009,8 @@ document.addEventListener("cleantalkModalContentLoaded", function( e ) {
         document.getElementById( 'cleantalk-modal-content' ).innerHTML = cleantalkModal.loaded;
     }
 });
-let buttons_to_handle = []
-let gdpr_notice_for_button = 'Please, apply the GDPR agreement.'
+let buttons_to_handle = [];
+let gdpr_notice_for_button = ctPublicGDPR.gdpr_title;
 
 document.addEventListener('DOMContentLoaded', function(){
 	buttons_to_handle = []
@@ -2054,7 +2053,7 @@ document.addEventListener('DOMContentLoaded', function(){
 
 			//disable forms buttons
 			let button = false
-			let buttons_collection= elem.find('input[type|="submit"]')
+			let buttons_collection= elem.find('input[type|="submit"],button[type|="submit"]')
 
 			if (!buttons_collection.length) {
 				return

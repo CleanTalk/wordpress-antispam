@@ -536,11 +536,16 @@ function apbct_get_sender_info()
 
     // Visible fields processing
     $visible_fields_collection = Cookie::getVisibleFields();
-    if ( !$visible_fields_collection || is_array($visible_fields_collection) && !$visible_fields_collection[0] ) {
-        $visible_fields_collection = stripslashes(Post::get('apbct_visible_fields'));
+    if ( !$visible_fields_collection || (is_array($visible_fields_collection) && !$visible_fields_collection[0]) ) {
+        $visible_fields_collection = base64_decode(Post::get('apbct_visible_fields'));
     }
 
     $visible_fields = apbct_visible_fields__process($visible_fields_collection);
+
+    // It is a service field. Need to be deleted before the processing.
+    if ( isset($_POST['apbct_visible_fields']) ) {
+        unset($_POST['apbct_visible_fields']);
+    }
 
     // preparation of some parameters when cookies are disabled and data is received from localStorage
     $param_email_check = Cookie::get('ct_checked_emails') ? json_encode(

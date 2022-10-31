@@ -303,7 +303,7 @@ function apbct_ready(){
 			hiddenInput.setAttribute( 'name', 'apbct_visible_fields');
 			var visibleFieldsToInput = {};
 			visibleFieldsToInput[0] = apbct_collect_visible_fields(form);
-			hiddenInput.value = JSON.stringify(visibleFieldsToInput);
+			hiddenInput.value = btoa(JSON.stringify(visibleFieldsToInput));
 			form.append( hiddenInput );
 
 			form.onsubmit_prev = form.onsubmit;

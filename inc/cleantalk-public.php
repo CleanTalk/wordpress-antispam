@@ -1237,6 +1237,7 @@ function ct_enqueue_scripts_public($_hook)
                         'By using this form you agree with the storage and processing of your data by using the Privacy Policy on this website.',
                         'cleantalk-spam-protect'
                     ),
+                'gdpr_title' => esc_html__('Please, apply the GDPR agreement.', 'cleantalk-spam-protect'),
             ));
         }
     }

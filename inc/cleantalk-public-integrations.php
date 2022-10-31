@@ -1125,7 +1125,7 @@ function ct_preprocess_comment($comment)
 
     // Change comment flow only for new authors
     if ( ! empty($new_user) || empty($base_call_data['post_info']['post_url']) ) {
-        add_action('comment_post', 'ct_set_meta', 10, 2);
+        add_action('comment_post', 'ct_set_meta', 6, 2);
     }
 
     if ( $ct_result->allow ) { // Pass if allowed
@@ -1196,21 +1196,21 @@ function ct_preprocess_comment($comment)
         // Trash comment.
         if ( $ct_result->spam == 2 ) {
             add_filter('pre_comment_approved', 'ct_set_comment_spam', 997, 2);
-            add_action('comment_post', 'ct_wp_trash_comment', 997, 2);
+            add_action('comment_post', 'ct_wp_trash_comment', 7, 2);
         }
 
         // Spam comment
         if ( $ct_result->spam == 1 ) {
-            add_filter('pre_comment_approved', 'ct_set_comment_spam', 997, 2);
+            add_filter('pre_comment_approved', 'ct_set_comment_spam', 7, 2);
         }
 
         // Move to pending folder. Contains stop_words.
         if ( $ct_result->stop_words ) {
             add_filter('pre_comment_approved', 'ct_set_not_approved', 998, 2);
-            add_action('comment_post', 'ct_mark_red', 998, 2);
+            add_action('comment_post', 'ct_mark_red', 8, 2);
         }
 
-        add_action('comment_post', 'ct_die', 999, 2);
+        add_action('comment_post', 'ct_die', 9, 2);
     }
 
     if ( $apbct->settings['comments__remove_comments_links'] == 1 ) {
