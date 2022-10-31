@@ -1,14 +1,15 @@
 let buttons_to_handle = [];
-let gdpr_notice_for_button = ctPublicGDPR.gdpr_title;
 
 document.addEventListener('DOMContentLoaded', function(){
-	buttons_to_handle = []
+
 	if(
 		typeof ctPublicGDPR === 'undefined' ||
 		! ctPublicGDPR.gdpr_forms.length
 	) {
 		return;
 	}
+
+	let gdpr_notice_for_button = ctPublicGDPR.gdpr_title;
 
 	if ( typeof jQuery === 'undefined' ) {
 		return;
