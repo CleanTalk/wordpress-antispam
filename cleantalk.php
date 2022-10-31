@@ -599,7 +599,7 @@ if ( is_admin() || is_network_admin() ) {
 
         // Some of plugins to register a users use AJAX context.
         add_filter('registration_errors', 'ct_registration_errors', 1, 3);
-        add_filter('registration_errors', 'ct_check_registration_erros', 999999, 3);
+        add_filter('registration_errors', 'ct_check_registration_errors', 999999, 3);
         add_action('user_register', 'apbct_user_register');
 
         if ( class_exists('BuddyPress') ) {
@@ -680,7 +680,7 @@ if ( is_admin() || is_network_admin() ) {
     add_action('login_enqueue_scripts', 'apbct_login__scripts');
     add_action('register_form', 'ct_register_form');
     add_filter('registration_errors', 'ct_registration_errors', 1, 3);
-    add_filter('registration_errors', 'ct_check_registration_erros', 999999, 3);
+    add_filter('registration_errors', 'ct_check_registration_errors', 999999, 3);
     add_action('user_register', 'apbct_user_register');
 
     // WordPress Multisite registrations
