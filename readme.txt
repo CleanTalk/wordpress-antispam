@@ -473,6 +473,7 @@ Yes, it is. Please read this article,
 * Fix. JS. ApbctJsLib updated.
 * Fix. Comments. Calling hook 'comment_post' priority fixed.
 * Fix. Mautic integration fixes.
+* Fix. Honeypot flag fixes.
 
 = 5.187 Oct 20 2022 =
 #### New integrations added 🔥, CleanTalk status on the sites list implemented 💣, parameters without cookies improved 🎈 and some minor issues fixed 💪🏼
