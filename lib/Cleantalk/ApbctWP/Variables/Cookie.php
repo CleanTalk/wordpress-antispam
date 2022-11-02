@@ -73,7 +73,7 @@ class Cookie extends \Cleantalk\Variables\Cookie
     ) {
         global $apbct;
         //select handling way to set cookie data in dependence of cookie type in the settings
-        if ($apbct->data['cookies_type'] === 'none' && ! is_admin()) {
+        if ( $apbct->data['cookies_type'] === 'none' ) {
             return NoCookie::set($name, $value, $no_cookie_to_db);
         } elseif ($apbct->data['cookies_type'] === 'alternative') {
             AltSessions::set($name, $value);

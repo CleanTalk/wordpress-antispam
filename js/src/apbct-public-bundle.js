@@ -1810,18 +1810,17 @@ function ctNoCookieAttachHiddenFieldsToForms(){
 	let forms = ctNoCookieGetForms()
 
 	if (forms){
+		//clear previous hidden set
+		let elements = document.getElementsByName('ct_no_cookie_hidden_field')
+		if (elements){
+			for (let j = 0; j < elements.length; j++) {
+				elements[j].parentNode.removeChild(elements[j])
+			}
+		}
 		for ( let i = 0; i < forms.length; i++ ){
 			//ignore forms with get method @todo We need to think about this
 			if (document.forms[i].getAttribute('method') === null ||
 				document.forms[i].getAttribute('method').toLowerCase() === 'post'){
-
-				let elements = document.getElementsByName('ct_no_cookie_hidden_field')
-				//clear previous hidden set
-				if (elements){
-					for (let j = 0; j < elements.length; j++) {
-						elements[j].parentNode.removeChild(elements[j])
-					}
-				}
 				// add new set
 				document.forms[i].append(ctNoCookieConstructHiddenField())
 			}
@@ -2010,16 +2009,17 @@ document.addEventListener("cleantalkModalContentLoaded", function( e ) {
     }
 });
 let buttons_to_handle = [];
-let gdpr_notice_for_button = ctPublicGDPR.gdpr_title;
 
 document.addEventListener('DOMContentLoaded', function(){
-	buttons_to_handle = []
+
 	if(
 		typeof ctPublicGDPR === 'undefined' ||
 		! ctPublicGDPR.gdpr_forms.length
 	) {
 		return;
 	}
+
+	let gdpr_notice_for_button = ctPublicGDPR.gdpr_title;
 
 	if ( typeof jQuery === 'undefined' ) {
 		return;
