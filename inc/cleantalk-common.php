@@ -1290,7 +1290,7 @@ function apbct__wc_add_honeypot_field($fields)
 /**
  * Woocommerce able add orders to spam
  */
-add_filter('manage_edit-shop_order_columns', 'apbct__wc_add_orders_to_spam');
+add_filter('manage_edit-shop_order_columns', 'apbct__wc_add_orders_to_spam'); // add column
 function apbct__wc_add_orders_to_spam($columns)
 {
     $reordered_columns = array();
@@ -1299,14 +1299,14 @@ function apbct__wc_add_orders_to_spam($columns)
         $reordered_columns[$key] = $column;
 
         if ($key === 'order_status') {
-            $reordered_columns['spam_order'] = __('Spam', 'cleantalk-spam-protect');
+            $reordered_columns['spam_order'] = __('Mark as spam', 'cleantalk-spam-protect');
         }
     }
 
     return $reordered_columns;
 }
 
-add_action('manage_shop_order_posts_custom_column', 'apbct__wc_add_orders_to_spam_button');
+add_action('manage_shop_order_posts_custom_column', 'apbct__wc_add_orders_to_spam_button'); // add button
 function apbct__wc_add_orders_to_spam_button($column)
 {
     global $the_order;
@@ -1314,9 +1314,53 @@ function apbct__wc_add_orders_to_spam_button($column)
     $order_id = $the_order->id;
 
     if ($column === 'spam_order') {
-        echo "<a href='post.php?post=$order_id&action=mark-as-spam'>Mark as spam</a>";
+        echo "<a href='edit.php?post_type=shop_order&post=$order_id&action=spamorder'>" . __('spam', 'cleantalk-spam-protect') . "</a>";
     }
 }
+
+add_filter('woocommerce_register_shop_order_post_statuses', 'apbct__wc_add_orders_spam_status'); // add order spam status
+function apbct__wc_add_orders_spam_status($order_statuses) {
+    $order_statuses['wc-spamorder'] = array(
+        'label' => 'Spam',
+        'public' => false,
+        'exclude_from_search' => false,
+        'show_in_admin_all_list' => true,
+        'show_in_admin_status_list' => true,
+        'label_count' => _n_noop( 'Spam <span class="count">(%s)</span>', 'Spam <span class="count">(%s)</span>', 'cleantalk-spam-protect'),
+    );
+    return $order_statuses;
+}
+
+add_filter('wc_order_statuses', 'apbct__wc_add_orders_spam_status_select'); // make spam selectable
+function apbct__wc_add_orders_spam_status_select( $order_statuses ) {
+    $order_statuses['wc-spamorder'] = 'Spam';
+    return $order_statuses;
+}
+
+add_filter('bulk_actions-edit-shop_order', 'apbct__wc_add_spam_action_to_bulk'); // add spam action to bulk
+function apbct__wc_add_spam_action_to_bulk( $actions ) {
+    $actions['spamorder'] = __('Mark as spam', 'cleantalk-spam-protect');
+    return $actions;
+}
+
+add_action('parse_query', 'action_parse_query'); // hide spam orders from total list
+function action_parse_query( $query ) {
+    global $pagenow;
+
+    $query_vars = &$query->query_vars;
+
+    if ( $pagenow == 'edit.php' && $query_vars['post_type'] == 'shop_order' &&
+         is_array( $query_vars['post_status'] ) &&
+        ( $key = array_search('wc-spamorder', $query_vars['post_status']) ) !== false
+    ) {
+        unset( $query_vars['post_status'][$key] );
+    }
+}
+
+
+//-------
+// Experiment off
+//-------
 
 /**
  * The function determines whether it is necessary
