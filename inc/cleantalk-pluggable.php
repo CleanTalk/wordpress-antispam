@@ -814,9 +814,9 @@ function apbct_is_skip_request($ajax = false)
             apbct_is_plugin_active('woo-abandoned-cart-recovery/woo-abandoned-cart-recovery.php') &&
             Post::hasString('action', 'wacv_') &&
             (
-                wp_verify_nonce( Post::get('nonce'), 'wacv_nonce' ) ||
-                wp_verify_nonce( Get::get('nonce'), 'wacv_nonce' ) ||
-                wp_verify_nonce( Post::get('security'), 'wacv_nonce' )
+                wp_verify_nonce(Post::get('nonce'), 'wacv_nonce') ||
+                wp_verify_nonce(Get::get('nonce'), 'wacv_nonce') ||
+                wp_verify_nonce(Post::get('security'), 'wacv_nonce')
             )
         ) {
             return 'Abandoned Cart Recovery for WooCommerce: skipped ' . Post::get('action');
