@@ -1288,6 +1288,37 @@ function apbct__wc_add_honeypot_field($fields)
 }
 
 /**
+ * Woocommerce able add orders to spam
+ */
+add_filter('manage_edit-shop_order_columns', 'apbct__wc_add_orders_to_spam');
+function apbct__wc_add_orders_to_spam($columns)
+{
+    $reordered_columns = array();
+
+    foreach( $columns as $key => $column){
+        $reordered_columns[$key] = $column;
+
+        if ($key === 'order_status') {
+            $reordered_columns['spam_order'] = __('Spam', 'cleantalk-spam-protect');
+        }
+    }
+
+    return $reordered_columns;
+}
+
+add_action('manage_shop_order_posts_custom_column', 'apbct__wc_add_orders_to_spam_button');
+function apbct__wc_add_orders_to_spam_button($column)
+{
+    global $the_order;
+
+    $order_id = $the_order->id;
+
+    if ($column === 'spam_order') {
+        echo "<a href='post.php?post=$order_id&action=mark-as-spam'>Mark as spam</a>";
+    }
+}
+
+/**
  * The function determines whether it is necessary
  * to conduct a general check of the post request
  *
