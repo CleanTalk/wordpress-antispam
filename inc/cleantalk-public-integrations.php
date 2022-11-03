@@ -2072,6 +2072,13 @@ function apbct_form__ninjaForms__testSpam()
         return;
     }
 
+    //skip ninja PRO service requests
+    if ( Post::get('nonce_ts') ) {
+        do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
+
+        return;
+    }
+
     $checkjs = apbct_js_test(Cookie::get('ct_checkjs'), true);
 
     /**
