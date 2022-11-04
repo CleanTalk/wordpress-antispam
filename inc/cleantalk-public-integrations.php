@@ -3547,8 +3547,8 @@ function apbct__wc_add_orders_spam_status_select($order_statuses)
     return $order_statuses;
 }
 
-add_action('parse_query', 'action_parse_query'); // hide spam orders from total list
-function action_parse_query($query)
+add_action('parse_query', 'apbct__wc_add_orders_spam_status_hide_from_list'); // hide spam orders from total list
+function apbct__wc_add_orders_spam_status_hide_from_list($query)
 {
     global $pagenow;
 
@@ -3569,8 +3569,8 @@ function apbct__wc_add_spam_action_to_bulk($actions)
     return $actions;
 }
 
-add_filter('handle_bulk_actions-edit-shop_order', 'downloads_handle_bulk_action_edit_shop_order', 10, 3); // handle bulk action
-function downloads_handle_bulk_action_edit_shop_order($redirect, $action, $ids)
+add_filter('handle_bulk_actions-edit-shop_order', 'apbct__wc_add_spam_action_to_bulk_handle', 10, 3); // handle bulk action
+function apbct__wc_add_spam_action_to_bulk_handle($redirect, $action, $ids)
 {
     if ($action !== 'spamorder') {
         return $redirect;
