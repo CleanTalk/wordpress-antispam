@@ -3490,7 +3490,8 @@ function apbct_advanced_classifieds_directory_pro__check_register($response, $_f
  * Woocommerce able add orders to spam
  */
 add_filter('manage_edit-shop_order_columns', 'apbct__wc_add_orders_to_spam'); // add column
-function apbct__wc_add_orders_to_spam_get_column() {
+function apbct__wc_add_orders_to_spam_get_column()
+{
     if (get_post_status() === 'wc-spamorder') {
         return [
             'k' => 'not_spam_order',
@@ -3503,11 +3504,12 @@ function apbct__wc_add_orders_to_spam_get_column() {
         'v' => __('Mark as spam', 'cleantalk-spam-protect')
     ];
 }
+
 function apbct__wc_add_orders_to_spam($columns)
 {
     $reordered_columns = array();
 
-    foreach( $columns as $key => $column){
+    foreach ($columns as $key => $column) {
         $reordered_columns[$key] = $column;
 
         if ($key === 'order_status') {
@@ -3520,7 +3522,9 @@ function apbct__wc_add_orders_to_spam($columns)
 }
 
 add_filter('woocommerce_register_shop_order_post_statuses', 'apbct__wc_add_orders_spam_status'); // add order spam status
-function apbct__wc_add_orders_spam_status($order_statuses) {
+
+function apbct__wc_add_orders_spam_status($order_statuses)
+{
     $order_statuses['wc-spamorder'] = array(
         'label' => 'Spam',
         'public' => false,
@@ -3537,13 +3541,15 @@ function apbct__wc_add_orders_spam_status($order_statuses) {
 }
 
 add_filter('wc_order_statuses', 'apbct__wc_add_orders_spam_status_select'); // make spam selectable
-function apbct__wc_add_orders_spam_status_select($order_statuses) {
+function apbct__wc_add_orders_spam_status_select($order_statuses)
+{
     $order_statuses['wc-spamorder'] = 'Spam';
     return $order_statuses;
 }
 
 add_action('parse_query', 'action_parse_query'); // hide spam orders from total list
-function action_parse_query($query) {
+function action_parse_query($query)
+{
     global $pagenow;
 
     $query_vars = &$query->query_vars;
@@ -3557,19 +3563,21 @@ function action_parse_query($query) {
 }
 
 add_filter('bulk_actions-edit-shop_order', 'apbct__wc_add_spam_action_to_bulk'); // add spam action to bulk
-function apbct__wc_add_spam_action_to_bulk($actions) {
+function apbct__wc_add_spam_action_to_bulk($actions)
+{
     $actions['spamorder'] = __('Mark as spam', 'cleantalk-spam-protect');
     return $actions;
 }
 
 add_filter('handle_bulk_actions-edit-shop_order', 'downloads_handle_bulk_action_edit_shop_order', 10, 3); // handle bulk action
-function downloads_handle_bulk_action_edit_shop_order($redirect, $action, $ids) {
+function downloads_handle_bulk_action_edit_shop_order($redirect, $action, $ids)
+{
     if ($action !== 'spamorder') {
         return $redirect;
     }
 
     foreach ($ids as $order_id) {
-        $order = wc_get_order($order_id);
+        $order = new WC_Order($order_id);
         $order->update_status('wc-spamorder');
     }
 
@@ -3583,7 +3591,9 @@ function downloads_handle_bulk_action_edit_shop_order($redirect, $action, $ids) 
 }
 
 add_action('manage_shop_order_posts_custom_column', 'apbct__wc_add_orders_to_spam_button'); // add button
-function apbct__wc_add_orders_to_spam_button_render($id, $action, $name) {
+
+function apbct__wc_add_orders_to_spam_button_render($id, $action, $name)
+{
     $uurl = [
         'url'  => wp_nonce_url( add_query_arg( ['post' => $id, 'action' => $action] ), $action),
         'name' => __($name, 'cleantalk-spam-protect')
@@ -3591,7 +3601,9 @@ function apbct__wc_add_orders_to_spam_button_render($id, $action, $name) {
 
     echo "<a href=" . $uurl['url'] . ">" . $uurl['name'] . "</a>";
 }
-function apbct__wc_add_orders_to_spam_button($column) {
+
+function apbct__wc_add_orders_to_spam_button($column)
+{
     global $the_order;
 
     if (isset($the_order) && $column === 'spam_order') {
@@ -3604,7 +3616,9 @@ function apbct__wc_add_orders_to_spam_button($column) {
 }
 
 add_action('wp_loaded', 'apbct__wc_add_orders_to_spam_button_handle'); // handle spam button
-function apbct__wc_add_orders_to_spam_button_handle_check($action, $status) {
+
+function apbct__wc_add_orders_to_spam_button_handle_check($action, $status)
+{
     if (isset($_GET['action'])
         && $_GET['action'] === $action
         && isset($_GET['_wpnonce'])
@@ -3612,14 +3626,16 @@ function apbct__wc_add_orders_to_spam_button_handle_check($action, $status) {
         && isset($_GET['post'])
     ) {
         $order_id = $_GET['post'];
-        $order = wc_get_order($order_id);
+        $order = new WC_Order($order_id);
         $order->update_status($status);
 
         wp_redirect( esc_url_raw( remove_query_arg( array( 'post', 'action', '_wpnonce' ) ) ) );
         exit();
     }
 }
-function apbct__wc_add_orders_to_spam_button_handle() {
+
+function apbct__wc_add_orders_to_spam_button_handle()
+{
     apbct__wc_add_orders_to_spam_button_handle_check('spamorder', "wc-spamorder");
     apbct__wc_add_orders_to_spam_button_handle_check('unspamorder', "wc-processing");
 }
