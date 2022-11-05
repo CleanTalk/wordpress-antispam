@@ -3585,7 +3585,7 @@ function apbct__wc_add_spam_action_to_bulk_handle($redirect, $action, $ids)
     }
 
     foreach ($ids as $order_id) {
-        $order = new WC_Order($order_id);
+        $order = new WC_Order((int)$order_id);
         $order->update_status('wc-spamorder');
     }
 
@@ -3639,8 +3639,7 @@ function apbct__wc_add_orders_to_spam_button_handle_check($action, $status)
         && wp_verify_nonce($_GET['_wpnonce'], $action)
         && isset($_GET['post'])
     ) {
-        $order_id = $_GET['post'];
-        $order = new WC_Order($order_id);
+        $order = new WC_Order((int)$_GET['post']);
         $order->update_status($status);
 
         wp_redirect(esc_url_raw(remove_query_arg(array('post', 'action', '_wpnonce'))));
