@@ -2275,7 +2275,8 @@ function apbct_cookie()
 
     if (
         ! empty($apbct->flags__cookies_setuped) || // Cookies already set
-        ! empty($apbct->headers_sent)              // Headers sent
+        ! empty($apbct->headers_sent) ||             // Headers sent
+        Post::get('fusion_login_box') // Avada Fusion registration form exclusion
     ) {
         return false;
     }
