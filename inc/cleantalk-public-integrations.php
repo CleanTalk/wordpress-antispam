@@ -1512,6 +1512,13 @@ function ct_registration_errors($errors, $sanitized_user_login = null, $user_ema
         $reg_flag = empty(Post::get('signup_profile_field_ids'));
     }
 
+    /**
+     * Changing the type of check for Avada Fusion
+     */
+    if ( Post::get('fusion_login_box') ) {
+        $reg_flag = true;
+    }
+
     $base_call_array = array(
         'sender_email'    => $user_email,
         'sender_nickname' => $sanitized_user_login,
