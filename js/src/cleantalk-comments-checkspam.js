@@ -146,7 +146,7 @@ function ct_send_comments(){
 				}else if(parseInt(msg.end) == 0){
 					ct_comments_checked += msg.checked;
 					ct_comments_spam += msg.spam;
-					ct_comments_bad += msg.bad;
+					ct_comments_bad = msg.bad;
 					ct_comments_total += msg.total;
 					ct_unchecked = ct_comments_total - ct_comments_checked - ct_comments_bad;
 					var status_string = String(ctCommentsCheck.ct_status_string);
@@ -377,6 +377,14 @@ jQuery(document).ready(function(){
 		if(jQuery('#ct_accurate_check').is(':checked')){
 			ct_accurate_check = true;
 		}
+
+		if (
+			jQuery('#ct_accurate_check').is(':checked') &&
+			! jQuery('#ct_allow_date_range').is(':checked')
+		) {
+			alert('Please, select a date range.');
+			return;
+		}
 		
 		jQuery('.ct_to_hide').hide();
 		jQuery('#ct_working_message').show();
@@ -439,6 +447,15 @@ jQuery(document).ready(function(){
 
 	});
 
+	/**
+	 * Checked ct_accurate_check
+	 */
+	jQuery('#ct_accurate_check').change(function () {
+		if(this.checked) {
+			jQuery('#ct_allow_date_range').prop('checked', true);
+			jQuery('.ct_date').prop('checked', true).attr('disabled',false);
+		}
+	});
 });
 
 
