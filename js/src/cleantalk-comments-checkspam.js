@@ -162,7 +162,7 @@ function ct_send_comments(){
 					}
 
 					var offset = Number(ctGetCookie('apbct_check_comments_offset')) + 100;
-					document.cookie = 'apbct_check_comments_offset' + "=" + offset + "; path=/";
+					document.cookie = 'apbct_check_comments_offset' + "=" + offset + "; path=/; samesite=lax" + ctSecure;
 					
 					ct_send_comments();
 				}

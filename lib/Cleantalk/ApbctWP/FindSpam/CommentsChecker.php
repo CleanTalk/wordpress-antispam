@@ -60,6 +60,99 @@ class CommentsChecker extends Checker
         ));
     }
 
+    /**
+     * Get all comments from DB
+     *
+     * @return array|false
+     */
+    private static function getAllComments(CommentsScanParameters $commentsScanParameters)
+    {
+        global $wpdb;
+
+        $amount = $commentsScanParameters->getAmount();
+        $skip_roles = $commentsScanParameters->getSkipRoles();
+        $offset = $commentsScanParameters->getOffset();
+        $between_dates_sql = '';
+        $date_from = $commentsScanParameters->getFrom();
+        $date_till = $commentsScanParameters->getTill();
+        if ($date_from && $date_till) {
+            $date_from = date('Y-m-d', (int) strtotime($date_from)) . ' 00:00:00';
+            $date_till = date('Y-m-d', (int) strtotime($date_till)) . ' 23:59:59';
+
+            $between_dates_sql = "WHERE $wpdb->comments.comment_date_gmt >= '$date_from' AND $wpdb->comments.comment_date_gmt <= '$date_till'";
+        }
+
+        $comments = $wpdb->get_results(
+            "
+			SELECT {$wpdb->comments}.comment_ID, {$wpdb->comments}.comment_date_gmt, {$wpdb->comments}.comment_author_IP, {$wpdb->comments}.comment_author_email, {$wpdb->comments}.user_id
+			FROM {$wpdb->comments}
+			{$between_dates_sql}
+			ORDER BY {$wpdb->comments}.comment_ID ASC
+			LIMIT $amount OFFSET $offset;"
+        );
+
+        if (!$comments) {
+            $comments = array();
+        }
+
+        // removed skip_roles and return $comments
+        $comments =  self::removeSkipRoles($comments, $skip_roles);
+        
+        // removed comments without comment_author_IP and comment_author_email
+        $comments =  self::removeCommentsWithoutIPEmail($comments);
+        
+        return $comments;
+    }
+
+    /**
+     * @param array $comments
+     * @param array $skip_roles
+     *
+     * @return array|false
+     */
+    private static function removeSkipRoles(array $comments, array $skip_roles)
+    {
+        foreach ($comments as $index => $comment) {
+            if (!$comment->user_id) {
+                continue;
+            }
+            $user_meta  = get_userdata($comment->user_id);
+            $user_roles = $user_meta->roles;
+            foreach ($user_roles as $user_role) {
+                if (in_array($user_role, $skip_roles, true)) {
+                    unset($comments[$index]);
+                    break;
+                }
+            }
+        }
+
+        return $comments;
+    }
+
+    /**
+     * @param array $comments
+     *
+     * @return array|false
+     */
+    private static function removeCommentsWithoutIPEmail(array $comments)
+    {
+        foreach ($comments as $index => $comment) {
+            $comment_ip = ! empty($comment->comment_author_IP) ? trim($comment->comment_author_IP) : false;
+            $comment_email = ! empty($comment->comment_author_email) ? trim($comment->comment_author_email) : false;
+
+            // Validate IP and Email
+            $comment_ip = filter_var($comment_ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4);
+            $comment_email = filter_var($comment_email, FILTER_VALIDATE_EMAIL);
+
+            if (!$comment_ip && !$comment_email) {
+                update_comment_meta($comment->comment_ID, 'ct_bad', '1', true);
+                unset($comments[$index]);
+            }
+        }
+
+        return $comments;
+    }
+
     public function getCurrentScanPage()
     {
         $this->list_table = new \Cleantalk\ApbctWP\FindSpam\ListTable\CommentsScan();
@@ -129,156 +222,16 @@ class CommentsChecker extends Checker
     {
         check_ajax_referer('ct_secret_nonce', 'security');
 
-        global $wpdb, $apbct;
+        $commentScanParameters = new CommentsScanParameters($_POST);
 
-        $sql_where = "WHERE NOT comment_approved = 'spam'";
-        $sql_where .= " AND comment_type = 'comment'";
-        if ( Post::get('from') && Post::get('till') ) {
-            $from_date = date('Y-m-d', intval(strtotime(Post::get('from'))));
-            $till_date = date('Y-m-d', intval(strtotime(Post::get('till'))));
-
-            $sql_where .= " AND comment_date_gmt > '$from_date 00:00:00' AND comment_date_gmt < '$till_date 23:59:59'";
-        }
-
-        $offset = Cookie::get('apbct_check_comments_offset') ? (int) Cookie::get('apbct_check_comments_offset') : 0;
-
-        $query = "SELECT comment_ID, comment_date_gmt, comment_author_IP, comment_author_email
-                       FROM $wpdb->comments
-                       $sql_where
-                       ORDER BY comment_ID
-                       LIMIT 100 OFFSET " . $offset;
-
-        $c = $wpdb->get_results($query);
-
-        $check_result = array(
-            'end'     => 0,
-            'checked' => 0,
-            'spam'    => 0,
-            'bad'     => 0,
-            'error'   => 0,
-            'total'   => wp_count_comments()->total_comments,
-        );
-
-        if ( count($c) > 0 ) {
-            // Converting $c to objects
-            if ( is_array($c[0]) ) {
-                foreach ( $c as $key => $value ) {
-                    $c[$key] = (object)$value;
-                }
-            }
-
-            if ( ! empty(Post::get('accurate_check')) ) {
-                // Leaving comments only with first comment's date. Unsetting others.
-
-                foreach ( $c as $comment_index => $comment ) {
-                    if ( ! isset($curr_date) ) {
-                        $curr_date = (substr($comment->comment_date_gmt, 0, 10) ?: '');
-                    }
-
-                    if ( substr($comment->comment_date_gmt, 0, 10) != $curr_date ) {
-                        unset($c[$comment_index]);
-                    }
-                }
-            }
-
-            // Checking comments IP/Email. Gathering $data for check.
-            $data = array();
-            foreach ( $c as $i => $iValue ) {
-                $curr_ip    = $iValue->comment_author_IP;
-                $curr_email = $iValue->comment_author_email;
-
-                // Check for identity
-                $curr_ip    = preg_match('/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/', $curr_ip) === 1 ? $curr_ip : null;
-                $curr_email = preg_match('/^\S+@\S+\.\S+$/', $curr_email) === 1 ? $curr_email : null;
-
-                if ( empty($curr_ip) && empty($curr_email) ) {
-                    $check_result['bad']++;
-                    unset($c[$i]);
-                } else {
-                    if ( ! empty($curr_ip) ) {
-                        $data[] = $curr_ip;
-                    }
-                    if ( ! empty($curr_email) ) {
-                        $data[] = $curr_email;
-                    }
-                    // Patch for empty IP/Email
-                    $iValue->comment_author_IP    = empty($curr_ip) ? 'none' : $curr_ip;
-                    $iValue->comment_author_email = empty($curr_email) ? 'none' : $curr_email;
-                }
-            }
-
-            // save count bad comments to State:data
-            $apbct->data['count_bad_comments'] += $check_result['bad'];
-            $apbct->saveData();
-
-            // Recombining after checking and unsetting
-            $c = array_values($c);
-
-            // Drop if data empty and there's no comments to check
-            if ( count($data) === 0 ) {
-                if ( (int) Post::get('unchecked') === 0 ) {
-                    $check_result['end'] = 1;
-                }
-                print json_encode($check_result);
-                die();
-            }
-
-            $result = API::methodSpamCheckCms(
-                $apbct->api_key,
-                $data,
-                ! empty(Post::get('accurate_check')) ? $curr_date : null
-            );
-
-            if ( empty($result['error']) ) {
-                foreach ( $c as $iValue ) {
-                    $mark_spam_ip    = false;
-                    $mark_spam_email = false;
-
-                    $check_result['checked']++;
-
-                    $uip = $iValue->comment_author_IP;
-                    $uim = $iValue->comment_author_email;
-
-                    if ( isset($result[$uip]) && isset($result[$uim]['appears']) && $result[$uip]['appears'] == 1 ) {
-                        $mark_spam_ip = true;
-                    }
-
-                    if ( isset($result[$uim]) && isset($result[$uim]['appears']) && $result[$uim]['appears'] == 1 ) {
-                        $mark_spam_email = true;
-                    }
-
-                    if ( $mark_spam_ip || $mark_spam_email ) {
-                        $check_result['spam']++;
-                        update_comment_meta($iValue->comment_ID, 'ct_marked_as_spam', '1');
-                    }
-                }
-
-                // save count checked comments to State:data
-                $apbct->data['count_checked_comments'] += $check_result['checked'];
-                $apbct->saveData();
-
-                print json_encode($check_result);
-            } else {
-                $check_result['error']         = 1;
-                $check_result['error_message'] = $result['error'];
-                echo json_encode($check_result);
-            }
+        // Set type checking
+        if ($commentScanParameters->getAccurateCheck() && ($commentScanParameters->getFrom() && $commentScanParameters->getTill())) {
+            self::startAccurateChecking($commentScanParameters);
+        } elseif (!$commentScanParameters->getAccurateCheck() && ($commentScanParameters->getFrom() && $commentScanParameters->getTill())) {
+            self::startCommonChecking($commentScanParameters);
         } else {
-            $check_result['end'] = 1;
-
-            $log_data = static::getLogData();
-            static::writeSpamLog(
-                'comments',
-                date("Y-m-d H:i:s"),
-                $log_data['checked'],
-                $log_data['spam'],
-                $log_data['bad']
-            );
-
-            print json_encode($check_result);
+            self::startCommonChecking($commentScanParameters);
         }
-
-        die;
     }
 
     public static function ctAjaxInfo($direct_call = false)
@@ -306,7 +259,7 @@ class CommentsChecker extends Checker
         $cnt_spam = get_comments($params_spam);
 
         // Bad comments (without IP and Email)
-        $cnt_bad      = $apbct->data['count_bad_comments'];
+        $cnt_bad = self::getCountBadComments();
 
         /**
          * Total comments
@@ -381,11 +334,10 @@ class CommentsChecker extends Checker
         check_ajax_referer('ct_secret_nonce', 'security');
 
         $apbct->data['count_checked_comments'] = 0;
-        $apbct->data['count_bad_comments'] = 0;
         $apbct->saveData();
 
         $wpdb->query("DELETE FROM {$wpdb->commentmeta} WHERE meta_key IN ('ct_marked_as_spam')");
-        die;
+        die('OK');
     }
 
     private static function getLogData()
@@ -407,8 +359,8 @@ class CommentsChecker extends Checker
             ),
         );
         $cnt_spam = get_comments($params_spam);
-
-        $cnt_bad = $apbct->data['count_bad_comments'];
+    
+        $cnt_bad = self::getCountBadComments();
 
         return array(
             'spam'    => $cnt_spam,
@@ -489,5 +441,221 @@ class CommentsChecker extends Checker
         /** @psalm-suppress InvalidArgument */
         print $cnt_all;
         die();
+    }
+
+    /**
+     * Getting count bas comments without IP and Email
+     *
+     * @return int
+     */
+    public static function getCountBadComments()
+    {
+        global $wpdb;
+
+        $sql = "SELECT
+                COUNT(`comment_id`)
+                FROM $wpdb->commentmeta
+                where `meta_key`='ct_bad'";
+
+        $count_bad = $wpdb->get_var($sql);
+
+        if (is_null($count_bad)) {
+            return 0;
+        }
+
+        return (int) $count_bad;
+    }
+
+    /**
+     * All comments checking
+     *
+     * @param CommentsScanParameters $commentScanParameters
+     *
+     * @return void
+     */
+    public static function startCommonChecking(CommentsScanParameters $commentScanParameters)
+    {
+        global $apbct;
+        $comments = self::getAllComments($commentScanParameters);
+        
+        if (!$comments) {
+            CommentsScanResponse::getInstance()->setEnd(1);
+
+            $log_data = static::getLogData();
+            static::writeSpamLog(
+                'comments',
+                date("Y-m-d H:i:s"),
+                $log_data['checked'],
+                $log_data['spam'],
+                $log_data['bad']
+            );
+
+            echo CommentsScanResponse::getInstance()->toJson();
+            die;
+        }
+
+        $ips_emails_data = self::getIPEmailsData($comments);
+
+        $result = \Cleantalk\ApbctWP\API::methodSpamCheckCms(
+            $apbct->api_key,
+            $ips_emails_data,
+            null
+        );
+
+        if (!empty($result['error'])) {
+            CommentsScanResponse::getInstance()->setError(1);
+            CommentsScanResponse::getInstance()->setErrorMessage($result['error']);
+        } else {
+            $onlySpammers = self::getSpammersFromResultAPI($result);
+            $marked_comment_ids = [];
+            
+            foreach ($comments as $comment) {
+                if (
+                    ! in_array($comment->comment_ID, $marked_comment_ids, true) &&
+                    (in_array($comment->user_ip, $onlySpammers, true) ||
+                     in_array($comment->comment_author_email, $onlySpammers, true))
+                ) {
+                    $marked_comment_ids[] = $comment->comment_ID;
+                    update_comment_meta($comment->comment_ID, 'ct_marked_as_spam', '1', true);
+                }
+            }
+
+            // Count spam
+            CommentsScanResponse::getInstance()->setSpam(count($marked_comment_ids));
+        }
+
+        // Count bad comments
+        CommentsScanResponse::getInstance()->setBad((int)self::getCountBadComments());
+        // Count checked comments
+        CommentsScanResponse::getInstance()->setChecked(count($comments));
+        // save count checked comments to State:data
+        $apbct->data['count_checked_comments'] += count($comments);
+        $apbct->saveData();
+        
+        echo CommentsScanResponse::getInstance()->toJson();
+        die;
+    }
+
+    /**
+     * Accurate comment checking
+     *
+     * @param CommentsScanParameters $commentScanParameters
+     *
+     * @return void
+     */
+    private static function startAccurateChecking(CommentsScanParameters $commentScanParameters)
+    {
+        global $apbct;
+        $comments = self::getAllComments($commentScanParameters);
+
+        if (!$comments) {
+            CommentsScanResponse::getInstance()->setEnd(1);
+            
+            $log_data = static::getLogData();
+            static::writeSpamLog(
+                'comments',
+                date("Y-m-d H:i:s"),
+                $log_data['checked'],
+                $log_data['spam'],
+                $log_data['bad']
+            );
+
+            echo CommentsScanResponse::getInstance()->toJson();
+            die;
+        }
+
+        $comments_grouped_by_date = array();
+
+        foreach ($comments as $index => $comment) {
+            if (!empty($comment->comment_date_gmt)) {
+                $comment_date = date('Y-m-d', strtotime($comment->comment_date_gmt));
+                $comments_grouped_by_date[$comment_date][] = $comment;
+            } else {
+                unset($comments[$index]);
+            }
+        }
+
+        foreach ($comments_grouped_by_date as $date => $comments) {
+            $ips_emails_data = self::getIPEmailsData($comments);
+
+            $result = \Cleantalk\ApbctWP\API::methodSpamCheckCms(
+                $apbct->api_key,
+                $ips_emails_data,
+                $date
+            );
+
+            if (!empty($result['error'])) {
+                CommentsScanResponse::getInstance()->setError(1);
+                CommentsScanResponse::getInstance()->setErrorMessage($result['error']);
+            } else {
+                $onlySpammers = self::getSpammersFromResultAPI($result);
+                $marked_comment_ids = [];
+
+                foreach ($comments as $comment) {
+                    if (
+                        ! in_array($comment->comment_ID, $marked_comment_ids, true) &&
+                        (in_array($comment->user_ip, $onlySpammers, true) ||
+                         in_array($comment->comment_author_email, $onlySpammers, true))
+                    ) {
+                        $marked_comment_ids[] = $comment->comment_ID;
+                        update_comment_meta($comment->comment_ID, 'ct_marked_as_spam', '1', true);
+                    }
+                }
+
+                // Count spam
+                CommentsScanResponse::getInstance()->updateSpam(count($marked_comment_ids));
+            }
+
+            // Count checked comments
+            CommentsScanResponse::getInstance()->updateChecked(count($comments));
+            // save count checked comments to State:data
+            $apbct->data['count_checked_comments'] += count($comments);
+            $apbct->saveData();
+        }
+
+        // Count bad comments
+        CommentsScanResponse::getInstance()->setBad((int)self::getCountBadUsers());
+
+        echo CommentsScanResponse::getInstance()->toJson();
+        die;
+    }
+
+    /**
+     * @param array $comments
+     *
+     * @return array
+     */
+    private static function getIPEmailsData(array $comments)
+    {
+        $data = array();
+        
+        foreach ($comments as $comment) {
+            if ($comment->comment_author_IP) {
+                $data[] = $comment->comment_author_IP;
+            }
+            if ($comment->comment_author_email) {
+                $data[] = $comment->comment_author_email;
+            }
+        }
+
+        return $data;
+    }
+    
+    /**
+     * @param array $result
+     *
+     * @return array
+     */
+    private static function getSpammersFromResultAPI(array $result)
+    {
+        $spammers = array();
+
+        foreach ($result as $param => $status) {
+            if ((int) $status['appears'] === 1) {
+                $spammers[] = $param;
+            }
+        }
+
+        return $spammers;
     }
 }
