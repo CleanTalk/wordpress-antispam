@@ -614,7 +614,7 @@ class CommentsChecker extends Checker
         }
 
         // Count bad comments
-        CommentsScanResponse::getInstance()->setBad((int)self::getCountBadUsers());
+        CommentsScanResponse::getInstance()->setBad((int)self::getCountBadComments());
 
         echo CommentsScanResponse::getInstance()->toJson();
         die;
