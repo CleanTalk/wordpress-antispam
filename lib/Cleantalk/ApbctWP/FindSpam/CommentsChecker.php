@@ -97,10 +97,10 @@ class CommentsChecker extends Checker
 
         // removed skip_roles and return $comments
         $comments =  self::removeSkipRoles($comments, $skip_roles);
-        
+
         // removed comments without comment_author_IP and comment_author_email
         $comments =  self::removeCommentsWithoutIPEmail($comments);
-        
+
         return $comments;
     }
 
@@ -359,7 +359,7 @@ class CommentsChecker extends Checker
             ),
         );
         $cnt_spam = get_comments($params_spam);
-    
+
         $cnt_bad = self::getCountBadComments();
 
         return array(
@@ -477,7 +477,7 @@ class CommentsChecker extends Checker
     {
         global $apbct;
         $comments = self::getAllComments($commentScanParameters);
-        
+
         if (!$comments) {
             CommentsScanResponse::getInstance()->setEnd(1);
 
@@ -508,7 +508,7 @@ class CommentsChecker extends Checker
         } else {
             $onlySpammers = self::getSpammersFromResultAPI($result);
             $marked_comment_ids = [];
-            
+
             foreach ($comments as $comment) {
                 if (
                     ! in_array($comment->comment_ID, $marked_comment_ids, true) &&
@@ -531,7 +531,7 @@ class CommentsChecker extends Checker
         // save count checked comments to State:data
         $apbct->data['count_checked_comments'] += count($comments);
         $apbct->saveData();
-        
+
         echo CommentsScanResponse::getInstance()->toJson();
         die;
     }
@@ -550,7 +550,7 @@ class CommentsChecker extends Checker
 
         if (!$comments) {
             CommentsScanResponse::getInstance()->setEnd(1);
-            
+
             $log_data = static::getLogData();
             static::writeSpamLog(
                 'comments',
@@ -628,7 +628,7 @@ class CommentsChecker extends Checker
     private static function getIPEmailsData(array $comments)
     {
         $data = array();
-        
+
         foreach ($comments as $comment) {
             if ($comment->comment_author_IP) {
                 $data[] = $comment->comment_author_IP;
@@ -640,7 +640,7 @@ class CommentsChecker extends Checker
 
         return $data;
     }
-    
+
     /**
      * @param array $result
      *
