@@ -398,13 +398,23 @@ class Cleantalk
         }
 
         $starttime = microtime(true);
-        $file      = @fsockopen($host, 443, $errno, $errstr, $this->max_server_timeout / 1000);
-        $stoptime  = microtime(true);
+        if ( function_exists('fsockopen') ) {
+            $file = @fsockopen($host, 443, $errno, $errstr, $this->max_server_timeout / 1000);
+        } else {
+            $http = new Request();
+            $file = $http->setUrl($host)
+                ->setOptions(['timeout' => $this->max_server_timeout / 1000])
+                ->setPresets('ssl')
+                ->request();
+        }
+        $stoptime = microtime(true);
 
-        if ( ! $file ) {
+        if ( !$file ) {
             $status = $this->max_server_timeout / 1000;  // Site is down
         } else {
-            fclose($file);
+            if ( function_exists('fsockopen') ) {
+                fclose($file);
+            }
             $status = ($stoptime - $starttime);
             $status = round($status, 4);
         }

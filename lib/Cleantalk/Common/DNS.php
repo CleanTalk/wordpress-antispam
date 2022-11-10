@@ -2,6 +2,8 @@
 
 namespace Cleantalk\Common;
 
+use Cleantalk\ApbctWP\HTTP\Request;
+
 class DNS
 {
     private static $min_server_timeout = 500;
@@ -108,13 +110,22 @@ class DNS
         }
 
         $starttime = microtime(true);
-        $file      = @fsockopen($host, 80, $errno, $errstr, static::$max_server_timeout / 1000);
-        $stoptime  = microtime(true);
+        if ( function_exists('fsockopen') ) {
+            $file = @fsockopen($host, 80, $errno, $errstr, static::$max_server_timeout / 1000);
+        } else {
+            $http = new Request();
+            $file = $http->setUrl($host)
+                ->setOptions(['timeout' => static::$max_server_timeout / 1000])
+                ->request();
+        }
+        $stoptime = microtime(true);
 
-        if ( ! $file) {
+        if ( !$file ) {
             $status = static::$max_server_timeout / 1000;  // Site is down
         } else {
-            fclose($file);
+            if ( function_exists('fsockopen') ) {
+                fclose($file);
+            }
             $status = ($stoptime - $starttime);
             $status = round($status, 4);
         }
