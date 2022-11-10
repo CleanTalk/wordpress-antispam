@@ -111,12 +111,17 @@ class DNS
 
         $starttime = microtime(true);
         if ( function_exists('fsockopen') ) {
-            $file = @fsockopen($host, 80, $errno, $errstr, static::$max_server_timeout / 1000);
+            $file = @fsockopen($host, 443, $errno, $errstr, static::$max_server_timeout / 1000);
         } else {
             $http = new Request();
+            $host = 'https://' . gethostbyaddr($host);
             $file = $http->setUrl($host)
                 ->setOptions(['timeout' => static::$max_server_timeout / 1000])
+                ->setPresets('get_code get')
                 ->request();
+            if ( !empty($file['error']) || $file !== '200' ) {
+                $file = false;
+            }
         }
         $stoptime = microtime(true);
 
