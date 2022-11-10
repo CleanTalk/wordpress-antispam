@@ -383,6 +383,11 @@ $apbct_active_integrations = array(
         'setting' => 'data__protect_logged_in',
         'ajax'    => false
     ),
+    'StrongTestimonials' => array(
+        'hook'    => array('wpmtst_form_submission'),
+        'setting' => 'forms__contact_forms_test',
+        'ajax'    => false
+    ),
 );
 new  \Cleantalk\Antispam\Integrations($apbct_active_integrations, (array)$apbct->settings);
 
