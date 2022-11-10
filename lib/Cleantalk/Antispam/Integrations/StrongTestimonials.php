@@ -8,13 +8,15 @@ class StrongTestimonials extends IntegrationBase
 {
     public function getDataForChecking($argument)
     {
-        if ( Post::get('action') === 'wpmtst_form' ) {
+        if ( Post::get('action') === 'wpmtst_form' || Post::get('action') === 'wpmtst_form2' ) {
             /**
              * Filter for POST
              */
             $input_array = apply_filters('apbct__filter_post', $_POST);
 
-            return ct_get_fields_any($input_array);
+            $nickname = Post::get('client_name');
+
+            return ct_get_fields_any($input_array, null, $nickname);
         }
 
         return null;
@@ -27,6 +29,16 @@ class StrongTestimonials extends IntegrationBase
      */
     public function doBlock($message)
     {
-        wp_die($message);
+        if ( apbct_is_ajax() ) {
+            $return = array(
+                'success' => false,
+                'errors' => array(
+                    'email' => $message)
+            );
+            echo json_encode($return);
+            wp_die();
+        } else {
+            wp_die($message);
+        }
     }
 }

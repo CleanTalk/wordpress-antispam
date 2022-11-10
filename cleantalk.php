@@ -384,9 +384,10 @@ $apbct_active_integrations = array(
         'ajax'    => false
     ),
     'StrongTestimonials' => array(
-        'hook'    => array('wpmtst_form_submission'),
+        'hook'    => array('wpmtst_form_submission','wpmtst_form2'),
         'setting' => 'forms__contact_forms_test',
-        'ajax'    => false
+        'ajax'    => true,
+        'ajax_and_post' => true
     ),
 );
 new  \Cleantalk\Antispam\Integrations($apbct_active_integrations, (array)$apbct->settings);
