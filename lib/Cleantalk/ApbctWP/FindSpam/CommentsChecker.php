@@ -512,7 +512,7 @@ class CommentsChecker extends Checker
             foreach ($comments as $comment) {
                 if (
                     ! in_array($comment->comment_ID, $marked_comment_ids, true) &&
-                    (in_array($comment->user_ip, $onlySpammers, true) ||
+                    (in_array($comment->comment_author_IP, $onlySpammers, true) ||
                      in_array($comment->comment_author_email, $onlySpammers, true))
                 ) {
                     $marked_comment_ids[] = $comment->comment_ID;
@@ -594,7 +594,7 @@ class CommentsChecker extends Checker
                 foreach ($comments as $comment) {
                     if (
                         ! in_array($comment->comment_ID, $marked_comment_ids, true) &&
-                        (in_array($comment->user_ip, $onlySpammers, true) ||
+                        (in_array($comment->comment_author_IP, $onlySpammers, true) ||
                          in_array($comment->comment_author_email, $onlySpammers, true))
                     ) {
                         $marked_comment_ids[] = $comment->comment_ID;
