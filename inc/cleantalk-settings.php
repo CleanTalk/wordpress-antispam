@@ -1148,7 +1148,8 @@ function apbct_settings__display()
                 . '<p class="key_changed_success --hide">'
                 . sprintf(
                     __('Done! Ready to protect %s.', 'cleantalk-spam-protect'),
-                    '<span class="--upper-case">' . Server::get('HTTP_HOST') . '</span>')
+                    '<span class="--upper-case">' . Server::get('HTTP_HOST') . '</span>'
+                )
                 . '</p>'
                 . '</div>';
         }
@@ -1592,9 +1593,9 @@ function apbct_settings__field__apikey()
 
     if ( ! (apbct_api_key__is_correct($apbct->api_key) && $apbct->data["key_changed"]) ) {
         echo '<label class="apbct_settings__label" for="cleantalk_apkey">' . __(
-                'Access key',
-                'cleantalk-spam-protect'
-            ) . '</label>';
+            'Access key',
+            'cleantalk-spam-protect'
+        ) . '</label>';
     }
 
     echo '<input
