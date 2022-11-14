@@ -1,5 +1,13 @@
 function ctSetCookie( cookies, value, expires ){
 
+    let force_alternative_method_for_cookies = [
+        'ct_sfw_pass_key',
+        'ct_sfw_passed',
+        'wordpress_apbct_antibot',
+        'apbct_anticrawler_passed',
+        'apbct_antiflood_passed'
+    ]
+
     if( typeof cookies === 'string' && typeof value === 'string' || typeof value === 'number'){
         var skip_alt = cookies === 'ct_pointer_data';
         cookies = [ [ cookies, value, expires ] ];
@@ -8,7 +16,13 @@ function ctSetCookie( cookies, value, expires ){
     // Cookies disabled
     if( ctPublicFunctions.data__cookies_type === 'none' ){
         cookies.forEach( function (item, i, arr	) {
-           apbctLocalStorage.set(item[0], encodeURIComponent(item[1]))
+            if ( typeof force_alternative_method_for_cookies !== 'undefined' ) {
+                if (force_alternative_method_for_cookies.indexOf(item[0]) !== -1) {
+                    ctSetAlternativeCookie(cookies)
+                } else {
+                    apbctLocalStorage.set(item[0], encodeURIComponent(item[1]))
+                }
+            }
         });
         ctNoCookieAttachHiddenFieldsToForms()
         // Using traditional cookies
@@ -20,44 +34,47 @@ function ctSetCookie( cookies, value, expires ){
         });
 
         // Using alternative cookies
-    }else if( ctPublicFunctions.data__cookies_type === 'alternative' && ! skip_alt ){
+    }else if( ctPublicFunctions.data__cookies_type === 'alternative' && ! skip_alt ) {
+        ctSetAlternativeCookie(cookies)
+    }
+}
 
-        if (typeof (getJavascriptClientData) === "function"){
-            //reprocess already gained cookies data
-            cookies = getJavascriptClientData(cookies);
-        } else {
-            console.log('APBCT ERROR: getJavascriptClientData() is not loaded')
-        }
+function ctSetAlternativeCookie(cookies){
+    if (typeof (getJavascriptClientData) === "function"){
+        //reprocess already gained cookies data
+        cookies = getJavascriptClientData(cookies);
+    } else {
+        console.log('APBCT ERROR: getJavascriptClientData() is not loaded')
+    }
 
-        try {
-            JSON.parse(cookies)
-        } catch (e){
-            console.log('APBCT ERROR: JSON parse error:' + e)
-            return
-        }
+    try {
+        JSON.parse(cookies)
+    } catch (e){
+        console.log('APBCT ERROR: JSON parse error:' + e)
+        return
+    }
 
-        // Using REST API handler
-        if( ctPublicFunctions.data__ajax_type === 'rest' ){
-            apbct_public_sendREST(
-                'alt_sessions',
-                {
-                    method: 'POST',
-                    data: { cookies: cookies }
-                }
-            );
+    // Using REST API handler
+    if( ctPublicFunctions.data__ajax_type === 'rest' ){
+        apbct_public_sendREST(
+            'alt_sessions',
+            {
+                method: 'POST',
+                data: { cookies: cookies }
+            }
+        );
 
         // Using AJAX request and handler
-        } else if( ctPublicFunctions.data__ajax_type === 'admin_ajax' ) {
-            apbct_public_sendAJAX(
-                {
-                    action: 'apbct_alt_session__save__AJAX',
-                    cookies: cookies,
-                },
-                {
-                    notJson: 1,
-                }
-            );
-        }
+    } else if( ctPublicFunctions.data__ajax_type === 'admin_ajax' ) {
+        apbct_public_sendAJAX(
+            {
+                action: 'apbct_alt_session__save__AJAX',
+                cookies: cookies,
+            },
+            {
+                notJson: 1,
+            }
+        );
     }
 }
 
