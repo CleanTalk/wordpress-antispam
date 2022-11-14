@@ -198,10 +198,12 @@ function ctPreloadLocalStorage(){
 	}
 }
 
-apbct_attach_event_handler(document, "mousemove", ctFunctionMouseMove);
-apbct_attach_event_handler(document, "mousedown", ctFunctionFirstKey);
-apbct_attach_event_handler(document, "keydown", ctFunctionFirstKey);
-apbct_attach_event_handler(document, "scroll", ctSetHasScrolled);
+if (ctPublic.data__key_is_ok) {
+	apbct_attach_event_handler(document, "mousemove", ctFunctionMouseMove);
+	apbct_attach_event_handler(document, "mousedown", ctFunctionFirstKey);
+	apbct_attach_event_handler(document, "keydown", ctFunctionFirstKey);
+	apbct_attach_event_handler(document, "scroll", ctSetHasScrolled);
+}
 
 // Ready function
 function apbct_ready(){
@@ -344,10 +346,12 @@ function apbct_ready(){
 		}
 	}
 }
-if (document.readyState !== 'loading') {
-	apbct_ready();
-} else {
-	apbct_attach_event_handler(document, "DOMContentLoaded", apbct_ready);
+if (ctPublic.data__key_is_ok) {
+	if (document.readyState !== 'loading') {
+		apbct_ready();
+	} else {
+		apbct_attach_event_handler(document, "DOMContentLoaded", apbct_ready);
+	}
 }
 
 function ctFillDecodedEmailHandler(event) {
