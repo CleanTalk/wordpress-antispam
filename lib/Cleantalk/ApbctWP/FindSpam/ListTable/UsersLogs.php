@@ -39,6 +39,7 @@ class UsersLogs extends Users
     public function get_bulk_actions() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         return array(
+            'approve' => 'Approve',
             'delete' => 'Delete'
         );
     }

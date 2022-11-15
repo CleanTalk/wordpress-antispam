@@ -171,6 +171,12 @@ class UsersChecker extends Checker
     private static function removeUsersWithoutIPEmail(array $users)
     {
         foreach ($users as $index => $user) {
+            if ( (bool)get_user_meta($user->ID, 'ct_bad') === true ) {
+                delete_user_meta($user->ID, 'ct_marked_as_spam');
+                unset($users[$index]);
+                continue;
+            }
+
             $user_meta = self::getUserMeta($user->ID);
 
             $user_ip    = ! empty($user_meta[0]['ip']) ? trim($user_meta[0]['ip']) : false;

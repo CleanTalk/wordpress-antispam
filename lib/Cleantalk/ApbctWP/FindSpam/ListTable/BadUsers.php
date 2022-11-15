@@ -2,6 +2,8 @@
 
 namespace Cleantalk\ApbctWP\FindSpam\ListTable;
 
+use Cleantalk\ApbctWP\Variables\Get;
+
 class BadUsers extends Users
 {
     public function prepare_items()  // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
@@ -91,7 +93,16 @@ class BadUsers extends Users
             $column_content .= esc_html__('No IP address', 'cleantalk-spam-protect');
         }
 
-        return $column_content;
+        $actions = array(
+            'unapprove' => sprintf(
+                '<a href="?page=%s&action=%s&spam=%s">Unapprove</a>',
+                htmlspecialchars(addslashes(Get::get('page'))),
+                'unapprove',
+                $user_obj->ID
+            )
+        );
+
+        return sprintf('%1$s %2$s', $column_content, $this->row_actions($actions));
     }
 
     public function getBadUsers()
