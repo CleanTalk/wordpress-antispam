@@ -203,6 +203,27 @@ i.animate-spin{
 .--hide{ display: none; }
 .apbct_preloader_button{ height: 15px; margin-left: 5px; vertical-align: text-top; display: none; }
 
+.--invisible{ visibility: hidden; }
+.apbct_preloader{
+    height: 1em;
+    width: 1em;
+    margin-left: 0.5em;
+    display: inline-block;
+}
+.key_changed_sync {
+    font-size: 1.5em;
+    line-height: 2em;
+    vertical-align: middle;
+}
+.key_changed_success {
+    font-size: 1.5em;
+    line-height: 2em;
+    vertical-align: middle;
+}
+.--upper-case {
+    text-transform: uppercase;
+}
+
 /* Modal Window Stiles */
 #cleantalk-modal-content {
     text-align: center;
