@@ -41,6 +41,10 @@ class VariablesTest extends TestCase
 
     public function test_NoCookie_set()
     {
+        global $apbct;
+        $apbct->data['key_is_ok'] = true;
+        $apbct->saveData();
+
         //on prop
         foreach($this->tests['no_cookie']['set']['good'] as $key=>$value){
             //on prop

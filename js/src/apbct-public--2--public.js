@@ -22,17 +22,18 @@ var ctFunctionFirstKey = function output(event){
 	ctKeyStopStopListening();
 };
 
-//Reading interval
-var ctMouseReadInterval = setInterval(function(){
-	ctMouseEventTimerFlag = true;
-}, 150);
+if (ctPublic.data__key_is_ok) {
+	//Reading interval
+	var ctMouseReadInterval = setInterval(function(){
+		ctMouseEventTimerFlag = true;
+	}, 150);
 
-//Writting interval
-var ctMouseWriteDataInterval = setInterval(function(){
-	if (ctPublic.data__key_is_ok) {
+	//Writting interval
+	var ctMouseWriteDataInterval = setInterval(function(){
 		ctSetCookie("ct_pointer_data", JSON.stringify(ctMouseData));
-	}
-}, 1200);
+	}, 1200);
+}
+
 
 //Logging mouse position each 150 ms
 var ctFunctionMouseMove = function output(event){
