@@ -1079,7 +1079,9 @@ var ctMouseReadInterval = setInterval(function(){
 
 //Writting interval
 var ctMouseWriteDataInterval = setInterval(function(){
-	ctSetCookie("ct_pointer_data", JSON.stringify(ctMouseData));
+	if (ctPublic.data__key_is_ok) {
+		ctSetCookie("ct_pointer_data", JSON.stringify(ctMouseData));
+	}
 }, 1200);
 
 //Logging mouse position each 150 ms

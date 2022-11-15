@@ -604,7 +604,7 @@ function ct_add_hidden_fields(
                     else                                                elem.attachEvent(event, callback);
                 }
                 apbct_attach_event_handler__backend(document, 'DOMContentLoaded', function(){
-                    if (typeof apbctLocalStorage === \"object\") {
+                    if (typeof apbctLocalStorage === \"object\" && ctPublic.data__key_is_ok) {
                         apbctLocalStorage.set('{$field_name}', '{$ct_checkjs_key}', true );
                     } else {
                         console.log('APBCT ERROR: apbctLocalStorage object is not loaded.');

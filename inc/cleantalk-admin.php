@@ -25,11 +25,14 @@ add_action('admin_head', 'apbct_admin_set_cookie_for_anti_bot');
 function apbct_admin_set_cookie_for_anti_bot()
 {
     global $apbct;
-    echo
-        '<script ' . (class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '') . '>
-            var ctSecure = location.protocol === "https:" ? "; secure" : "";
-            document.cookie = "wordpress_apbct_antibot=' . hash('sha256', $apbct->api_key . $apbct->data['salt']) . '; path=/; expires=0; samesite=lax" + ctSecure;
-        </script>';
+
+    if ( $apbct->data['key_is_ok'] ) {
+        echo
+            '<script ' . (class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '') . '>
+                var ctSecure = location.protocol === "https:" ? "; secure" : "";
+                document.cookie = "wordpress_apbct_antibot=' . hash('sha256', $apbct->api_key . $apbct->data['salt']) . '; path=/; expires=0; samesite=lax" + ctSecure;
+            </script>';
+    }
 }
 
 
