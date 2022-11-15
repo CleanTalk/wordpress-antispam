@@ -108,7 +108,7 @@ class DNS
         }
 
         $starttime = microtime(true);
-        $file      = @fsockopen($host, 80, $errno, $errstr, static::$max_server_timeout / 1000);
+        $file      = @fsockopen($host, 443, $errno, $errstr, static::$max_server_timeout / 1000);
         $stoptime  = microtime(true);
 
         if ( ! $file) {
