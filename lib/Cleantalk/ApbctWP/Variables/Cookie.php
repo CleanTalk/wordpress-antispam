@@ -87,18 +87,22 @@ class Cookie extends \Cleantalk\Variables\Cookie
         $no_cookie_to_db = false
     ) {
         global $apbct;
-        //select handling way to set cookie data in dependence of cookie type in the settings
-        if ( $apbct->data['cookies_type'] === 'none' ) {
-            if ( in_array($name, static::$firewall_force_alternative_cookies, true) ) {
+
+        if ( $apbct->data['key_is_ok'] ) {
+            //select handling way to set cookie data in dependence of cookie type in the settings
+            if ( $apbct->data['cookies_type'] === 'none' ) {
+                if ( in_array($name, static::$firewall_force_alternative_cookies, true) ) {
                 AltSessions::set($name, $value);
             } else {
                 return NoCookie::set($name, $value, $no_cookie_to_db);
             }
-        } elseif ($apbct->data['cookies_type'] === 'alternative') {
-            AltSessions::set($name, $value);
-        } else {
-            self::setNativeCookie(apbct__get_cookie_prefix() . $name, $value, $expires, $path, $domain, $secure, $httponly, $samesite);
+            } elseif ($apbct->data['cookies_type'] === 'alternative') {
+                AltSessions::set($name, $value);
+            } else {
+                self::setNativeCookie(apbct__get_cookie_prefix() . $name, $value, $expires, $path, $domain, $secure, $httponly, $samesite);
+            }
         }
+
         return true;
     }
 

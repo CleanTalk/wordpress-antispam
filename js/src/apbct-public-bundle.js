@@ -1091,15 +1091,18 @@ var ctFunctionFirstKey = function output(event){
 	ctKeyStopStopListening();
 };
 
-//Reading interval
-var ctMouseReadInterval = setInterval(function(){
-	ctMouseEventTimerFlag = true;
-}, 150);
+if (ctPublic.data__key_is_ok) {
+	//Reading interval
+	var ctMouseReadInterval = setInterval(function(){
+		ctMouseEventTimerFlag = true;
+	}, 150);
 
-//Writting interval
-var ctMouseWriteDataInterval = setInterval(function(){
-	ctSetCookie("ct_pointer_data", JSON.stringify(ctMouseData));
-}, 1200);
+	//Writting interval
+	var ctMouseWriteDataInterval = setInterval(function(){
+		ctSetCookie("ct_pointer_data", JSON.stringify(ctMouseData));
+	}, 1200);
+}
+
 
 //Logging mouse position each 150 ms
 var ctFunctionMouseMove = function output(event){
@@ -1267,10 +1270,12 @@ function ctPreloadLocalStorage(){
 	}
 }
 
-apbct_attach_event_handler(document, "mousemove", ctFunctionMouseMove);
-apbct_attach_event_handler(document, "mousedown", ctFunctionFirstKey);
-apbct_attach_event_handler(document, "keydown", ctFunctionFirstKey);
-apbct_attach_event_handler(document, "scroll", ctSetHasScrolled);
+if (ctPublic.data__key_is_ok) {
+	apbct_attach_event_handler(document, "mousemove", ctFunctionMouseMove);
+	apbct_attach_event_handler(document, "mousedown", ctFunctionFirstKey);
+	apbct_attach_event_handler(document, "keydown", ctFunctionFirstKey);
+	apbct_attach_event_handler(document, "scroll", ctSetHasScrolled);
+}
 
 // Ready function
 function apbct_ready(){
@@ -1413,10 +1418,12 @@ function apbct_ready(){
 		}
 	}
 }
-if (document.readyState !== 'loading') {
-	apbct_ready();
-} else {
-	apbct_attach_event_handler(document, "DOMContentLoaded", apbct_ready);
+if (ctPublic.data__key_is_ok) {
+	if (document.readyState !== 'loading') {
+		apbct_ready();
+	} else {
+		apbct_attach_event_handler(document, "DOMContentLoaded", apbct_ready);
+	}
 }
 
 function ctFillDecodedEmailHandler(event) {
@@ -2135,10 +2142,6 @@ function ct_protect_external() {
             // current form
             var currentForm = document.forms[i];
 
-            if (currentForm.parentElement && currentForm.parentElement.classList.length > 0 && currentForm.parentElement.classList[0].indexOf('mewtwo') !== -1){
-                return
-            }
-
             if(typeof(currentForm.action) == 'string') {
 
                 // Ajax checking for the integrated forms
@@ -2177,18 +2180,53 @@ function ct_protect_external() {
         }
 
     }
-
     // Trying to process external form into an iframe
+    apbctProcessIframes()
+}
+
+function formIsExclusion(currentForm)
+{
+    let exclusions_by_id = [
+        'give-form' //give form exclusion because of direct integration
+    ]
+
+    let result = false
+
+    //mewto forms exclusion
+    if (currentForm.parentElement
+        && currentForm.parentElement.classList.length > 0
+        && currentForm.parentElement.classList[0].indexOf('mewtwo') !== -1) {
+        result = true
+    }
+
+    exclusions_by_id.forEach(function (id) {
+        if ( typeof (currentForm.id) !== 'undefined' && currentForm.id.indexOf(id) !== -1 ) {
+            result = true
+        }
+    })
+
+    return result
+}
+
+function apbctProcessIframes()
+{
     const frames = document.getElementsByTagName('iframe');
+
     if ( frames.length > 0 ) {
         for ( let j = 0; j < frames.length; j++ ) {
-            if ( frames[j].contentDocument == null ) { continue; }
+            if ( frames[j].contentDocument == null ) {
+                continue;
+            }
 
             const iframeForms = frames[j].contentDocument.forms;
-            if ( iframeForms.length === 0 ) { return; }
+
+            if ( iframeForms.length === 0 ) {
+                return;
+            }
 
             for ( let y = 0; y < iframeForms.length; y++ ) {
                 let currentForm = iframeForms[y];
+
                 apbctProcessExternalForm(currentForm, y, frames[j].contentDocument);
             }
         }
@@ -2196,6 +2234,11 @@ function ct_protect_external() {
 }
 
 function apbctProcessExternalForm(currentForm, iterator, documentObject) {
+
+    //process forms exclusions
+    if ( formIsExclusion(currentForm)) {
+        return
+    }
 
     const cleantalk_placeholder = document.createElement("i");
     cleantalk_placeholder.className = 'cleantalk_placeholder';

@@ -48,7 +48,6 @@
         </InvalidGlobal>
         <UnusedVariable>
             <errorLevel type="suppress">
-                <file name="cleantalk.php"/>
                 <file name="inc/cleantalk-common.php"/>
                 <directory name="templates"/>
             </errorLevel>
