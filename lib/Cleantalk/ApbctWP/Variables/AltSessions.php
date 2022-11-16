@@ -21,8 +21,12 @@ class AltSessions
     {
         self::cleanFromOld();
 
+        if ( is_int($value) ) {
+            $value = (string)$value;
+        }
+
         // Bad incoming data
-        if ( ! $name || (empty($value) && $value !== false) ) {
+        if ( ! $name || (empty($value) && $value !== false && $value !== "0") ) {
             return;
         }
 
