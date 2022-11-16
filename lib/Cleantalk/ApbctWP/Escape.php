@@ -104,7 +104,7 @@ class Escape extends \Cleantalk\Common\Escape
                 )
             )
         ) {
-            $result = str_replace(array('&gt;', '&lt;', '&amp;'), array('>', '<', '&'), $result);
+            $result = str_replace(array('&gt;', '&lt;', '&amp;&amp;'), array('>', '<', '&&'), $result);
         }
         return $result;
     }
