@@ -483,6 +483,8 @@ function getJavascriptClientData(common_cookies = []) {
 			if ( typeof (common_cookies[i][1]) === "object" ){
 				//this is for handle SFW cookies
 				resultDataJson[common_cookies[i][1][0]] = common_cookies[i][1][1]
+			} else if ( typeof (common_cookies[i][1]) === "undefined" ) {
+				resultDataJson[common_cookies[i][0][0]] = common_cookies[i][0][1]
 			} else {
 				resultDataJson[common_cookies[i][0]] = common_cookies[i][1]
 			}

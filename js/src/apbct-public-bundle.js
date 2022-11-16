@@ -878,15 +878,17 @@ function ctSetCookie( cookies, value, expires ){
 
     // Cookies disabled
     if( ctPublicFunctions.data__cookies_type === 'none' ){
+        let forced_alt_cookies_set = []
         cookies.forEach( function (item, i, arr	) {
-            if ( typeof force_alternative_method_for_cookies !== 'undefined' ) {
-                if (force_alternative_method_for_cookies.indexOf(item[0]) !== -1) {
-                    ctSetAlternativeCookie(cookies)
-                } else {
-                    apbctLocalStorage.set(item[0], encodeURIComponent(item[1]))
-                }
+            if (force_alternative_method_for_cookies.indexOf(item[0]) !== -1) {
+                forced_alt_cookies_set.push(cookies)
+            } else {
+                apbctLocalStorage.set(item[0], encodeURIComponent(item[1]))
             }
         });
+        if ( forced_alt_cookies_set.length > 0 ){
+            ctSetAlternativeCookie(forced_alt_cookies_set)
+        }
         ctNoCookieAttachHiddenFieldsToForms()
         // Using traditional cookies
     }else if( ctPublicFunctions.data__cookies_type === 'native' ){
@@ -903,8 +905,6 @@ function ctSetCookie( cookies, value, expires ){
 }
 
 function ctSetAlternativeCookie(cookies){
-    console.log('ctSetAlternativeCookie')
-    console.log(cookies)
     if (typeof (getJavascriptClientData) === "function"){
         //reprocess already gained cookies data
         cookies = getJavascriptClientData(cookies);
@@ -1552,6 +1552,8 @@ function getJavascriptClientData(common_cookies = []) {
 			if ( typeof (common_cookies[i][1]) === "object" ){
 				//this is for handle SFW cookies
 				resultDataJson[common_cookies[i][1][0]] = common_cookies[i][1][1]
+			} else if ( typeof (common_cookies[i][1]) === "undefined" ) {
+				resultDataJson[common_cookies[i][0][0]] = common_cookies[i][0][1]
 			} else {
 				resultDataJson[common_cookies[i][0]] = common_cookies[i][1]
 			}
