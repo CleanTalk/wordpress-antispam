@@ -92,10 +92,10 @@ class Cookie extends \Cleantalk\Variables\Cookie
             //select handling way to set cookie data in dependence of cookie type in the settings
             if ( $apbct->data['cookies_type'] === 'none' ) {
                 if ( in_array($name, static::$firewall_force_alternative_cookies, true) ) {
-                AltSessions::set($name, $value);
-            } else {
-                return NoCookie::set($name, $value, $no_cookie_to_db);
-            }
+                    AltSessions::set($name, $value);
+                } else {
+                    return NoCookie::set($name, $value, $no_cookie_to_db);
+                }
             } elseif ($apbct->data['cookies_type'] === 'alternative') {
                 AltSessions::set($name, $value);
             } else {
