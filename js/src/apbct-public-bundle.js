@@ -881,7 +881,7 @@ function ctSetCookie( cookies, value, expires ){
         let forced_alt_cookies_set = []
         cookies.forEach( function (item, i, arr	) {
             if (force_alternative_method_for_cookies.indexOf(item[0]) !== -1) {
-                forced_alt_cookies_set.push(cookies)
+                forced_alt_cookies_set.push(item)
             } else {
                 apbctLocalStorage.set(item[0], encodeURIComponent(item[1]))
             }
@@ -1559,8 +1559,6 @@ function getJavascriptClientData(common_cookies = []) {
 			if ( typeof (common_cookies[i][1]) === "object" ){
 				//this is for handle SFW cookies
 				resultDataJson[common_cookies[i][1][0]] = common_cookies[i][1][1]
-			} else if ( typeof (common_cookies[i][1]) === "undefined" ) {
-				resultDataJson[common_cookies[i][0][0]] = common_cookies[i][0][1]
 			} else {
 				resultDataJson[common_cookies[i][0]] = common_cookies[i][1]
 			}
