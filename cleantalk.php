@@ -383,6 +383,12 @@ $apbct_active_integrations = array(
         'setting' => 'data__protect_logged_in',
         'ajax'    => false
     ),
+    'StrongTestimonials' => array(
+        'hook'    => array('wpmtst_form_submission','wpmtst_form2'),
+        'setting' => 'forms__contact_forms_test',
+        'ajax'    => true,
+        'ajax_and_post' => true
+    ),
 );
 new  \Cleantalk\Antispam\Integrations($apbct_active_integrations, (array)$apbct->settings);
 
@@ -2275,7 +2281,8 @@ function apbct_cookie()
 
     if (
         ! empty($apbct->flags__cookies_setuped) || // Cookies already set
-        ! empty($apbct->headers_sent)              // Headers sent
+        ! empty($apbct->headers_sent) ||             // Headers sent
+        Post::get('fusion_login_box') // Avada Fusion registration form exclusion
     ) {
         return false;
     }
@@ -2496,7 +2503,7 @@ function ct_mail_send_connection_report()
 				  </tr>
 				  ';
         $counter = 0;
-        foreach ( $apbct->connection_reports['negative_report'] as $key => $report ) {
+        foreach ( $apbct->connection_reports['negative_report'] as $_key => $report ) {
             if ( !$report['is_sent'] ) {
                 $message .= '<tr>'
                     . '<td>' . ( ++$counter ) . '.</td>'
@@ -2528,7 +2535,7 @@ function ct_mail_send_connection_report()
         $headers .= 'From: ' . ct_get_admin_email();
         /** @psalm-suppress UnusedFunctionCall */
         if ( wp_mail($to, $subject, $message, $headers) ) {
-            foreach ( $apbct->storage['connection_reports']['negative_report'] as $key => &$report ) {
+            foreach ( $apbct->storage['connection_reports']['negative_report'] as $_key => &$report ) {
                 $report['is_sent'] = true;
             }
             unset($report);

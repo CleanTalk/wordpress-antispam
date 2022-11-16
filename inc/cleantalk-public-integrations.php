@@ -1512,6 +1512,13 @@ function ct_registration_errors($errors, $sanitized_user_login = null, $user_ema
         $reg_flag = empty(Post::get('signup_profile_field_ids'));
     }
 
+    /**
+     * Changing the type of check for Avada Fusion
+     */
+    if ( Post::get('fusion_login_box') ) {
+        $reg_flag = true;
+    }
+
     $base_call_array = array(
         'sender_email'    => $user_email,
         'sender_nickname' => $sanitized_user_login,
@@ -2067,6 +2074,13 @@ function apbct_form__ninjaForms__testSpam()
         ($apbct->settings['data__protect_logged_in'] != 1 && is_user_logged_in()) || // Skip processing for logged in users.
         apbct_exclusions_check__url()
     ) {
+        do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
+
+        return;
+    }
+
+    //skip ninja PRO service requests
+    if ( Post::get('nonce_ts') ) {
         do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
 
         return;
