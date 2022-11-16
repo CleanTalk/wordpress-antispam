@@ -1142,7 +1142,7 @@ function apbct_settings__display()
             echo '<button type="button" class="--invisible" id="apbct_button__sync"></button><br>';
             echo '<div class="key_changed_wrapper">'
                 . '<p class="key_changed_sync">'
-                . __('Syncing data with the cloud. It takes few seconds.', 'cleantalk-spam-protect')
+                . __('Syncing data with the cloud. Usually, it takes a few seconds.', 'cleantalk-spam-protect')
                 . '<img class="apbct_preloader" src="' . Escape::escUrl(APBCT_URL_PATH . '/inc/images/preloader2.gif') . '" />'
                 . '</p>'
                 . '<p class="key_changed_success --hide">'
