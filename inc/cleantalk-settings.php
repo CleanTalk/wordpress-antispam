@@ -108,7 +108,6 @@ function apbct_settings__set_fields()
                 ),
                 'api_key'            => array(
                     'callback' => 'apbct_settings__field__apikey',
-                    'display'  =>  empty($apbct->data['key_changed'])
                 ),
             ),
         ),
@@ -1097,7 +1096,7 @@ function apbct_settings__display()
     }
 
     // Output spam count
-    if ( $apbct->key_is_ok && apbct_api_key__is_correct() && empty($apbct->data['key_changed']) ) {
+    if ( $apbct->key_is_ok && apbct_api_key__is_correct() ) {
         if ( $apbct->spam_count > 0 ) {
             echo '<div class="apbct_settings-subtitle" style="top: 0; margin-bottom: 10px; width: 200px;">'
                  . '<br>'
@@ -1116,7 +1115,7 @@ function apbct_settings__display()
 
 
     // Output spam count
-    if ( $apbct->key_is_ok && apbct_api_key__is_correct()  && empty($apbct->data['key_changed']) ) {
+    if ( $apbct->key_is_ok && apbct_api_key__is_correct() ) {
         if ( $apbct->network_settings['multisite__work_mode'] != 2 || is_main_site() ) {
             // CP button
             echo '<a class="cleantalk_link cleantalk_link-manual" target="__blank" href="https://cleantalk.org/my?user_token=' . Escape::escHtml($apbct->user_token) . '&cp_mode=antispam">'
@@ -1131,7 +1130,7 @@ function apbct_settings__display()
         ($apbct->network_settings['multisite__work_mode'] != 2 || is_main_site())
     ) {
         // Sync button
-        if ( apbct_api_key__is_correct($apbct->api_key) && $apbct->key_is_ok && empty($apbct->data['key_changed']) ) {
+        if ( apbct_api_key__is_correct($apbct->api_key) && $apbct->key_is_ok ) {
             echo '<button type="button" class="cleantalk_link cleantalk_link-auto" id="apbct_button__sync" title="Synchronizing account status, SpamFireWall database, all kind of journals.">'
                 . '<i class="apbct-icon-upload-cloud"></i>&nbsp;&nbsp;'
                 . __('Synchronize with Cloud', 'cleantalk-spam-protect')
@@ -1157,7 +1156,7 @@ function apbct_settings__display()
     }
 
     // Output spam count
-    if ( $apbct->key_is_ok && apbct_api_key__is_correct() && empty($apbct->data['key_changed']) ) {
+    if ( $apbct->key_is_ok && apbct_api_key__is_correct() ) {
         if ( $apbct->network_settings['multisite__work_mode'] != 2 || is_main_site() ) {
             // Support button
             echo '<a class="cleantalk_link cleantalk_link-auto" target="__blank" href="https://wordpress.org/support/plugin/cleantalk-spam-protect">' .
