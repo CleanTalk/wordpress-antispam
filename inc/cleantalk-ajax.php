@@ -408,7 +408,8 @@ function ct_ajax_hook($message_obj = null)
         //profilegrid addon
         'pm_check_user_exist',
         //Cartbounty plugin (saves every action on the page to keep abandoned carts)
-        'cartbounty_pro_save', 'cartbounty_save'
+        'cartbounty_pro_save', 'cartbounty_save',
+        'wpmtst_form2' //has direct integration StrongTestimonials
     );
 
     global $apbct;

@@ -9,10 +9,6 @@ function ct_protect_external() {
             // current form
             var currentForm = document.forms[i];
 
-            if (currentForm.parentElement && currentForm.parentElement.classList.length > 0 && currentForm.parentElement.classList[0].indexOf('mewtwo') !== -1){
-                return
-            }
-
             if(typeof(currentForm.action) == 'string') {
 
                 // Ajax checking for the integrated forms
@@ -51,18 +47,53 @@ function ct_protect_external() {
         }
 
     }
-
     // Trying to process external form into an iframe
+    apbctProcessIframes()
+}
+
+function formIsExclusion(currentForm)
+{
+    let exclusions_by_id = [
+        'give-form' //give form exclusion because of direct integration
+    ]
+
+    let result = false
+
+    //mewto forms exclusion
+    if (currentForm.parentElement
+        && currentForm.parentElement.classList.length > 0
+        && currentForm.parentElement.classList[0].indexOf('mewtwo') !== -1) {
+        result = true
+    }
+
+    exclusions_by_id.forEach(function (id) {
+        if ( typeof (currentForm.id) !== 'undefined' && currentForm.id.indexOf(id) !== -1 ) {
+            result = true
+        }
+    })
+
+    return result
+}
+
+function apbctProcessIframes()
+{
     const frames = document.getElementsByTagName('iframe');
+
     if ( frames.length > 0 ) {
         for ( let j = 0; j < frames.length; j++ ) {
-            if ( frames[j].contentDocument == null ) { continue; }
+            if ( frames[j].contentDocument == null ) {
+                continue;
+            }
 
             const iframeForms = frames[j].contentDocument.forms;
-            if ( iframeForms.length === 0 ) { return; }
+
+            if ( iframeForms.length === 0 ) {
+                return;
+            }
 
             for ( let y = 0; y < iframeForms.length; y++ ) {
                 let currentForm = iframeForms[y];
+
                 apbctProcessExternalForm(currentForm, y, frames[j].contentDocument);
             }
         }
@@ -70,6 +101,11 @@ function ct_protect_external() {
 }
 
 function apbctProcessExternalForm(currentForm, iterator, documentObject) {
+
+    //process forms exclusions
+    if ( formIsExclusion(currentForm)) {
+        return
+    }
 
     const cleantalk_placeholder = document.createElement("i");
     cleantalk_placeholder.className = 'cleantalk_placeholder';

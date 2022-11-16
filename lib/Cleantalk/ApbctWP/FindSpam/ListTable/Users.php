@@ -114,6 +114,12 @@ class Users extends \Cleantalk\ApbctWP\CleantalkListTable
         }
 
         $actions = array(
+            'approve' => sprintf(
+                '<a href="?page=%s&action=%s&spam=%s">Approve</a>',
+                htmlspecialchars(addslashes(Get::get('page'))),
+                'approve',
+                $user_obj->ID
+            ),
             'delete' => sprintf(
                 '<a href="?page=%s&action=%s&spam=%s">Delete</a>',
                 htmlspecialchars(addslashes(Get::get('page'))),
@@ -156,6 +162,7 @@ class Users extends \Cleantalk\ApbctWP\CleantalkListTable
     public function get_bulk_actions() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         return array(
+            'approve' => 'Approve',
             'delete' => 'Delete'
         );
     }
@@ -174,13 +181,29 @@ class Users extends \Cleantalk\ApbctWP\CleantalkListTable
             wp_die('nonce error');
         }
 
-        $this->removeSpam(Post::get('spamids'));
+        if ( $this->current_action() === 'approve' ) {
+            $this->approveSpam(Post::get('spamids'));
+        }
+
+        if ( $this->current_action() === 'delete' ) {
+            $this->removeSpam(Post::get('spamids'));
+        }
     }
 
     public function row_actions_handler() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         if ( empty(Get::get('action')) ) {
             return;
+        }
+
+        if ( Get::get('action') === 'approve' ) {
+            $id = filter_input(INPUT_GET, 'spam', FILTER_SANITIZE_NUMBER_INT);
+            $this->approveSpam(array($id));
+        }
+
+        if ( Get::get('action') === 'unapprove' ) {
+            $id = filter_input(INPUT_GET, 'spam', FILTER_SANITIZE_NUMBER_INT);
+            $this->unapproveSpam(array($id));
         }
 
         if ( Get::get('action') === 'delete' ) {
@@ -197,6 +220,28 @@ class Users extends \Cleantalk\ApbctWP\CleantalkListTable
     //********************************************//
     //                  LOGIC                     //
     //********************************************//
+
+    public function approveSpam($ids)
+    {
+        foreach ( $ids as $id ) {
+            $user_id = (int)sanitize_key($id);
+            $user_meta = delete_user_meta((int)$id, 'ct_marked_as_spam');
+
+            if ( $user_meta ) {
+                update_user_meta($user_id, 'ct_bad', true);
+            }
+        }
+    }
+
+    public function unapproveSpam($ids)
+    {
+        foreach ($ids as $id) {
+            $user_id = (int)sanitize_key($id);
+
+            update_user_meta($user_id, 'ct_marked_as_spam', true);
+            delete_user_meta($user_id, 'ct_bad');
+        }
+    }
 
     public function removeSpam($ids)
     {
