@@ -1627,7 +1627,7 @@ function apbct_settings__field__apikey()
     };
 
     // Show Access key button
-    if ( (apbct_api_key__is_correct($apbct->api_key) && $apbct->key_is_ok) ) {
+    if ( apbct_api_key__is_correct($apbct->api_key) && $apbct->key_is_ok && ! $apbct->data["key_changed"] ) {
         echo '<a id="apbct_showApiKey" class="ct_support_link" style="display: block" href="#">'
              . __('Show the Access key', 'cleantalk-spam-protect')
              . '</a>';
