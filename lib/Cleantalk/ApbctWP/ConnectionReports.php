@@ -221,11 +221,15 @@ class ConnectionReports
         } else {
             $this->rotateReports();
             $this->reports_count['bad']++;
-            $this->addReport(
-                $request_response->errstr,
-                $cleantalk->work_url,
-                Helper::arrayObjectToArray($request)
-            );
+            if ( !empty($request_response->failed_connections) ) {
+                foreach ( $request_response->failed_connections as $failed_work_url ) {
+                    $this->addReport(
+                        $request_response->errstr,
+                        $failed_work_url,
+                        Helper::arrayObjectToArray($request)
+                    );
+                }
+            }
         }
         $this->updateStats();
     }
