@@ -1553,8 +1553,6 @@ function ct_registration_errors($errors, $sanitized_user_login = null, $user_ema
 
     $ct_signup_done = true;
 
-    $ct_result = ct_change_plugin_resonse($ct_result, $checkjs);
-
     $cleantalk_executed = true;
 
     if ( $ct_result->inactive != 0 ) {

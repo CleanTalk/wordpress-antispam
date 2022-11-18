@@ -94,6 +94,7 @@ class Schema
             'work_url' => 'VARCHAR(255) NULL DEFAULT NULL',
             'request_content' => 'TEXT NULL DEFAULT NULL',
             'sent_on' => 'INT NULL DEFAULT NULL', //timestamp
+            'js_block' => 'VARCHAR(1) NULL DEFAULT NULL',
             '__indexes' => 'PRIMARY KEY (`id`)',
             '__createkey' => 'INT unsigned primary KEY AUTO_INCREMENT FIRST'
         ),

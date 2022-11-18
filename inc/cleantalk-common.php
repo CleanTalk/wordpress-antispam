@@ -252,9 +252,6 @@ function apbct_base_call($params = array(), $reg_flag = false)
     $apbct->stats['last_request']['server'] = $ct->work_url;
     $apbct->save('stats');
 
-    // Add a connection report
-    $apbct->connection_reports->handleRequest($ct, $ct_request, $ct_result);
-
     if ( $ct->server_change ) {
         update_option(
             'cleantalk_server',
@@ -268,7 +265,8 @@ function apbct_base_call($params = array(), $reg_flag = false)
         $cron->updateTask('rotate_moderate', 'apbct_rotate_moderate', 86400); // Rotate moderate server
     }
 
-    $ct_result = ct_change_plugin_resonse($ct_result, $ct_request->js_on);
+    //alternative checks and connection report handler
+    $ct_result = ct_checks_on_cleantalk_errors($ct_request, $ct_result);
 
     // Restart submit form counter for failed requests
     if ( $ct_result->allow == 0 ) {
@@ -1063,7 +1061,7 @@ function cleantalk_debug($key, $value)
  * Function changes CleanTalk result object if an error occurred.
  * @return object
  */
-function ct_change_plugin_resonse($ct_result = null, $checkjs = null)
+function ct_checks_on_cleantalk_errors(CleantalkRequest $ct_request, CleantalkResponse $ct_result)
 {
     global $apbct;
 
@@ -1071,8 +1069,10 @@ function ct_change_plugin_resonse($ct_result = null, $checkjs = null)
         return $ct_result;
     }
 
-    if ( @intval($ct_result->errno) != 0 ) {
-        if ( $checkjs === null || $checkjs != 1 ) {
+    $post_blocked_via_js_check = false;
+
+    if ( (int)($ct_result->errno) != 0 ) {
+        if ( $ct_request->js_on === null || $ct_request->js_on != 1 ) {
             $ct_result->allow   = 0;
             $ct_result->spam    = 1;
             $ct_result->comment = sprintf(
@@ -1080,11 +1080,15 @@ function ct_change_plugin_resonse($ct_result = null, $checkjs = null)
                 $ct_result->comment,
                 $apbct->plugin_name
             );
+            $post_blocked_via_js_check = true;
         } else {
             $ct_result->allow   = 1;
             $ct_result->comment = 'Allow';
         }
     }
+
+    // Add a connection report
+    $apbct->connection_reports->handleRequest($ct_request, $ct_result, $post_blocked_via_js_check);
 
     return $ct_result;
 }

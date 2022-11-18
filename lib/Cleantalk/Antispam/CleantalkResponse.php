@@ -135,9 +135,9 @@ class CleantalkResponse
      * Create server response
      *
      * @param object $obj
-     * @param array $failed_connections
+     * @param null|string $failed_urls
      */
-    public function __construct($obj = null, $failed_connections = array())
+    public function __construct($obj = null, $failed_urls = null)
     {
         $this->errno  = isset($obj->errno) ? $obj->errno : 0;
         $this->errstr = isset($obj->errstr) ? preg_replace("/.+(\*\*\*.+\*\*\*).+/", "$1", htmlspecialchars($obj->errstr)) : null;
@@ -164,6 +164,6 @@ class CleantalkResponse
             $this->comment = '*** ' . $this->errstr . ' Anti-Spam service cleantalk.org ***';
         }
 
-        $this->failed_connections = !empty($failed_connections) ? $failed_connections : null;
+        $this->failed_connections = !empty($failed_urls) ? $failed_urls : null;
     }
 }

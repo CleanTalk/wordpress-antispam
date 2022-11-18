@@ -2,7 +2,6 @@
 
 namespace Cleantalk\ApbctWP;
 
-use Cleantalk\Antispam\Cleantalk;
 use Cleantalk\Antispam\CleantalkRequest;
 use Cleantalk\Antispam\CleantalkResponse;
 use Cleantalk\ApbctWP\Variables\Server;
@@ -127,7 +126,8 @@ class ConnectionReports
     private function addReport(
         $lib_report = '',
         $work_url = '',
-        $request_content = ''
+        $request_content = '',
+        $post_blocked_via_js_check = ''
     ) {
         $cr_data = array(
             'date' => time(),
@@ -135,6 +135,7 @@ class ConnectionReports
             'lib_report' => $lib_report,
             'work_url' => $work_url,
             'request_content' => json_encode(esc_sql($request_content)),
+            'js_block' => $post_blocked_via_js_check ? '1' : '0'
         );
 
         $this->db->prepare(
@@ -144,13 +145,15 @@ class ConnectionReports
                 page_url = %s,
                 lib_report = %s,
                 work_url = %s,
-                request_content = %s",
+                request_content = %s,
+                js_block = %s",
             array(
                 $cr_data['date'],
                 $cr_data['page_url'],
                 $cr_data['lib_report'],
                 $cr_data['work_url'],
                 $cr_data['request_content'],
+                $cr_data['js_block'],
             )
         );
 
@@ -176,27 +179,27 @@ class ConnectionReports
                 . '<td>' . Escape::escHtml(date('m-d-y H:i:s', $report['date'])) . '</td>'
                 . '<td>' . Escape::escUrl($report['page_url']) . '</td>'
                 . '<td>' . Escape::escHtml($report['lib_report']) . '</td>'
-                . '<td>' . Escape::escUrl($report['work_url']) . '</td>'
+                . '<td>' . Escape::escHtml($report['work_url']) . '</td>'
+                . '<td>' . Escape::escHtml($report['js_block'] === '1' ? 'Yes' : 'No') . '</td>'
                 . '<td>' . Escape::escHtml($status) . '</td>'
                 . '</tr>';
         }
         //draw main report table
         $reports_html = "
-                <div id='negative_reports_div'>
                 <table id='negative_reports_table'>
-                <th colspan='6'>Failed connection reports</th>
+                <th colspan='7'>Failed connection reports</th>
                 <tr>
                     <td>#</td>
                     <td><b>Date</b></td>
                     <td><b>Page URL</b></td>
                     <td><b>Report</b></td>
                     <td><b>Server IP</b></td>
+                    <td><b>Blocked via JS</b></td>
                     <td><b>Status</b></td>
                 </tr>"
             //attach reports rows
             . $rows
             . "</table>"
-            . "</div>"
             . "<br/>";
 
         return $reports_html;
@@ -204,13 +207,13 @@ class ConnectionReports
 
     public function hasNegativeReports()
     {
-        return $this->reports_count['bad'] > 0;
+        return count($this->reports_data) > 0;
     }
 
     public function handleRequest(
-        Cleantalk $cleantalk,
         CleantalkRequest $request,
-        CleantalkResponse $request_response
+        CleantalkResponse $request_response,
+        $post_blocked_via_js_check = false
     ) {
 
         // Succeeded connection
@@ -221,15 +224,12 @@ class ConnectionReports
         } else {
             $this->rotateReports();
             $this->reports_count['bad']++;
-            if ( !empty($request_response->failed_connections) ) {
-                foreach ( $request_response->failed_connections as $failed_work_url ) {
-                    $this->addReport(
-                        $request_response->errstr,
-                        $failed_work_url,
-                        Helper::arrayObjectToArray($request)
-                    );
-                }
-            }
+            $this->addReport(
+                $request_response->errstr,
+                $request_response->failed_connections,
+                Helper::arrayObjectToArray($request),
+                $post_blocked_via_js_check
+            );
         }
         $this->updateStats();
     }
