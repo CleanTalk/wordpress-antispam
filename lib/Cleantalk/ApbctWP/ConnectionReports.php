@@ -322,8 +322,10 @@ class ConnectionReports
                 foreach ( $unsent_reports_ids as $report_id ) {
                     $this->setReportAsSent($report_id);
                 }
+                return count($unsent_reports_ids) . ' reports were sent.';
             }
         }
+        return 'Nothing to sent.';
     }
 
     public function hasUnsentReports()

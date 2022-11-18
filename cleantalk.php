@@ -145,9 +145,6 @@ if (
     \Cleantalk\ApbctWP\Antispam\EmailEncoder::getInstance();
 }
 
-// Connection reports
-$apbct->connection_reports = new ConnectionReports(DB::getInstance(), APBCT_TBL_CONNECTION_REPORTS);
-
 add_action('rest_api_init', 'apbct_register_my_rest_routes');
 function apbct_register_my_rest_routes()
 {
@@ -197,6 +194,8 @@ apbct_update_actions();
 add_action('init', function () {
     global $apbct;
     // Self cron
+    // Connection reports
+    $apbct->connection_reports = new ConnectionReports(DB::getInstance(), APBCT_TBL_CONNECTION_REPORTS);
     $ct_cron = new Cron();
     $tasks_to_run = $ct_cron->checkTasks(); // Check for current tasks. Drop tasks inner counters.
     if (
@@ -2455,6 +2454,12 @@ function ct_account_status_check($api_key = null, $process_errors = true)
     }
 
     return $result;
+}
+
+function ct_cron_send_connection_report_email()
+{
+    global $apbct;
+    $apbct->connection_reports->sendUnsentReports();
 }
 
 /**

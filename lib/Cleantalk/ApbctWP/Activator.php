@@ -103,7 +103,7 @@ class Activator
         ); // Get data for dashboard widget
         $ct_cron->addTask(
             'send_connection_report',
-            'ct_mail_send_connection_report',
+            'ct_cron_send_connection_report_email',
             86400,
             time() + 3500
         ); // Send connection report to welcome@cleantalk.org
