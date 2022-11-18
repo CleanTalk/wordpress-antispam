@@ -1810,7 +1810,7 @@ function apbct_settings__field__statistics()
     if ( ! $apbct->connection_reports->hasNegativeReports() ) {
         _e('There are no failed connections to server.', 'cleantalk-spam-protect');
     } else {
-        $reports_html = $apbct->connection_reports->prepareReportsHtmlForSettings();
+        $reports_html = $apbct->connection_reports->prepareNegativeReportsHtmlForSettingsPage();
         //escaping and echoing html
         echo Escape::escKses(
             $reports_html,
