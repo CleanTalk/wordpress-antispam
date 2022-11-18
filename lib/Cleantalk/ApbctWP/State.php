@@ -422,11 +422,6 @@ class State extends \Cleantalk\Common\State
                 $option = is_array($option) ? array_merge($this->default_fw_stats, $option) : $this->default_fw_stats;
             }
 
-            // Default connection reports
-            if ($this->option_prefix . '_' . $option_name === 'cleantalk_connection_reports') {
-                $option = is_array($option) ? array_merge($this->default_connection_reports, $option) : $this->default_connection_reports;
-            }
-
             $this->$option_name = is_array($option) ? new ArrayObject($option) : $option;
         }
     }
@@ -552,41 +547,6 @@ class State extends \Cleantalk\Common\State
         }
     }
 
-    /**
-     * Drop option to default value
-     *
-     * @param $option_name
-     *
-     * @return bool
-     */
-    public function drop($option_name)
-    {
-        $default_option_name = 'default_' . $option_name;
-
-        if ( isset($this->$default_option_name) ) {
-            $this->$option_name = new ArrayObject($this->$default_option_name);
-
-            // Additional initialization for special cases
-            switch ($option_name) {
-                // Connection report
-                case 'connection_reports':
-                    $this->connection_reports['since'] = date('d M');
-                    $this->save($option_name, true, false);
-
-                    return true;
-                    //break;
-
-                // Special treat for other options here
-            }
-
-            // Save dropped option
-            $this->save($option_name);
-
-            return true;
-        }
-
-        return false;
-    }
     /**
      * Prepares an adds an error to the plugin's data
      *
