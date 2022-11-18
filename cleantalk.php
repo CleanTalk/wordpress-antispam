@@ -145,6 +145,9 @@ if (
     \Cleantalk\ApbctWP\Antispam\EmailEncoder::getInstance();
 }
 
+// Connection reports
+$apbct->connection_reports = new ConnectionReports(DB::getInstance(), APBCT_TBL_CONNECTION_REPORTS);
+
 add_action('rest_api_init', 'apbct_register_my_rest_routes');
 function apbct_register_my_rest_routes()
 {

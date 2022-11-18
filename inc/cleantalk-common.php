@@ -253,9 +253,7 @@ function apbct_base_call($params = array(), $reg_flag = false)
     $apbct->save('stats');
 
     // Add a connection report
-    //apbct_add_connection_report($ct, $ct_request, $ct_result);
-    $cr = new \Cleantalk\ApbctWP\ConnectionReports(\Cleantalk\ApbctWP\DB::getInstance(), APBCT_TBL_CONNECTION_REPORTS);
-    $cr->handleRequest($ct, $ct_request, $ct_result);
+    $apbct->connection_reports->handleRequest($ct, $ct_request, $ct_result);
 
     if ( $ct->server_change ) {
         update_option(

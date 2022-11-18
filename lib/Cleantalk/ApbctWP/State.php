@@ -295,12 +295,7 @@ class State extends \Cleantalk\Common\State
         'update_mode'                  => 0,
     );
 
-    private $default_connection_reports = array(
-        'success'         => 0,
-        'negative'        => 0,
-        'negative_report' => array(),
-        'since'           => '',
-    );
+    public $connection_reports;
 
     public $errors;
 

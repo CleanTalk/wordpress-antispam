@@ -12,12 +12,14 @@ class ConnectionReports
     public $reports_count = array(
         'good' => 0,
         'bad' => 0,
-        'total' => 0
+        'total' => 0,
+        'stat_since' => 0
     );
-    public $stat_since = null;
+
     private $db;
     private $cr_table_name;
     private $reports_limit = 20;
+    private $reports_data;
 
     public function __construct(DB $db, $cr_table_name)
     {
@@ -33,21 +35,96 @@ class ConnectionReports
         $this->reports_count['total'] = isset($apbct->data['reports_count']['total'])
             ? $apbct->data['reports_count']['total']
             : $this->reports_count['good'];
-        $this->stat_since = isset($apbct->data['reports_count']['stat_since'])
+        $this->reports_count['stat_since']  = isset($apbct->data['reports_count']['stat_since'])
             ? $apbct->data['reports_count']['stat_since']
             : date('d M');
+        $this->getReportsData();
     }
 
-    public function hasNegativeReports()
+    private function getReportsData()
     {
-        $result = $this->db->fetchAll(
-            "SELECT COUNT(id) FROM "  . $this->cr_table_name
-        );
+        $sql =
+            "SELECT * FROM " . $this->cr_table_name .
+            " ORDER BY date;";
 
-        return !empty($result);
+        $this->reports_data = $this->db->fetchAll($sql);
     }
 
-    public function addReport(
+    private function updateStats()
+    {
+        global $apbct;
+        $this->reports_count['total'] = (int)$this->reports_count['good'] + (int)$this->reports_count['bad'];
+        $apbct->data['reports_count'] = $this->reports_count;
+        $apbct->saveData();
+    }
+
+    private function getUnsentReportsIds()
+    {
+        $result = array();
+
+        if ( !empty($this->reports_data) ) {
+            foreach ( $this->reports_data as $row ) {
+                if ( empty($row['sent_on']) || $row['sent_on'] === 'NULL' ) {
+                    $result[] = $row['id'];
+                }
+            }
+        }
+
+        return $result;
+    }
+
+    private function setReportAsSent($id)
+    {
+        return $this->db->execute(
+            "INSERT INTO " . $this->cr_table_name . " SET
+                id = " . $id . ",
+                date = date,
+                page_url = page_url,
+                lib_report = lib_report,
+                work_url = work_url,
+                request_content = request_content
+				ON DUPLICATE KEY UPDATE
+                sent_on = " . time() . ";"
+        );
+    }
+
+    private function rotateReports()
+    {
+        /**
+         * keep 20 newest records
+         */
+
+        $deletion = 0;
+
+        if ( count($this->reports_data) >= $this->reports_limit ) {
+            $overlimit =  count($this->reports_data) - $this->reports_limit;
+            $reports_to_del = array_slice($this->reports_data, 0, $overlimit);
+
+            $ids = array_column($reports_to_del, 'id');
+
+            $ids = '(' . implode(',', $ids) . ')';
+
+            $deletion = $this->db->execute(
+                "DELETE FROM "  . $this->cr_table_name . " WHERE id IN " . $ids . ";"
+            );
+        }
+    }
+
+    private function getReportsDataByIds($ids)
+    {
+
+        $reports = array();
+
+        foreach ( $this->reports_data as $report ) {
+            if ( in_array($report['id'], $ids, false) ) {
+                $reports[] = $report;
+            }
+        }
+
+        return $reports;
+    }
+
+    private function addReport(
         $lib_report = '',
         $work_url = '',
         $request_content = ''
@@ -80,6 +157,56 @@ class ConnectionReports
         return $this->db->execute($this->db->getQuery());
     }
 
+    public function prepareReportsHtmlForSettings()
+    {
+        $rows = '';
+
+        foreach ( $this->reports_data as $key => $report ) {
+            //colorize
+            if ( isset($report['sent_on']) && $report['sent_on'] ) {
+                $status = 'Sent';
+                $color = 'gray';
+            } else {
+                $status = 'New';
+                $color = 'black';
+            }
+            //draw reports rows
+            $rows .= '<tr style="color:' . $color . '">'
+                . '<td>' . Escape::escHtml($key + 1) . '.</td>'
+                . '<td>' . Escape::escHtml(date('m-d-y H:i:s', $report['date'])) . '</td>'
+                . '<td>' . Escape::escUrl($report['page_url']) . '</td>'
+                . '<td>' . Escape::escHtml($report['lib_report']) . '</td>'
+                . '<td>' . Escape::escUrl($report['work_url']) . '</td>'
+                . '<td>' . Escape::escHtml($status) . '</td>'
+                . '</tr>';
+        }
+        //draw main report table
+        $reports_html = "
+                <div id='negative_reports_div'>
+                <table id='negative_reports_table'>
+                <th colspan='6'>Failed connection reports</th>
+                <tr>
+                    <td>#</td>
+                    <td><b>Date</b></td>
+                    <td><b>Page URL</b></td>
+                    <td><b>Report</b></td>
+                    <td><b>Server IP</b></td>
+                    <td><b>Status</b></td>
+                </tr>"
+            //attach reports rows
+            . $rows
+            . "</table>"
+            . "</div>"
+            . "<br/>";
+
+        return $reports_html;
+    }
+
+    public function hasNegativeReports()
+    {
+        return $this->reports_count['bad'] > 0;
+    }
+
     public function handleRequest(
         Cleantalk $cleantalk,
         CleantalkRequest $request,
@@ -92,14 +219,14 @@ class ConnectionReports
 
             // Failed to connect. Add a negative report
         } else {
+            $this->rotateReports();
             $this->reports_count['bad']++;
-            $result = $this->addReport(
+            $this->addReport(
                 $request_response->errstr,
                 $cleantalk->work_url,
                 Helper::arrayObjectToArray($request)
             );
         }
-        $this->rotateReports();
         $this->updateStats();
     }
 
@@ -108,8 +235,6 @@ class ConnectionReports
         global $apbct;
 
         $selection = $this->getReportsDataByIds($unsent_reports_ids);
-
-        error_log('CTDEBUG: $selection * ' . var_export($selection,true));
 
         if ( empty($selection) ) {
             return false;
@@ -124,7 +249,7 @@ class ConnectionReports
                 </head>
                 <body>
                     <p>From '
-            . $this->stat_since
+            . $this->reports_count['stat_since']
             . ' to ' . date('d M') . ' has been made '
             . $this->reports_count['total']
             . ' calls, where ' . $this->reports_count['good'] . ' were success and '
@@ -178,7 +303,6 @@ class ConnectionReports
             'message' => $message,
             'headers' => $headers
         );
-        error_log('CTDEBUG: mailtest ' . var_export($test,true));
 
         /** @psalm-suppress UnusedFunctionCall */
         if ( wp_mail($to, $subject, $message, $headers) ) {
@@ -189,47 +313,17 @@ class ConnectionReports
 
     public function sendUnsentReports()
     {
-        error_log('CTDEBUG: sendUnsentReports * ' . var_export(1,true));
         $unsent_reports_ids = $this->getUnsentReportsIds();
-        error_log('CTDEBUG: $unsent_reports_ids * ' . var_export($unsent_reports_ids,true));
         if ( !empty($unsent_reports_ids) ) {
             /**
              * collect email data by IDs here
              **/
             if ( $this->sendEmail($unsent_reports_ids) ) {
                 foreach ( $unsent_reports_ids as $report_id ) {
-                    $result = $this->setReportAsSent($report_id);
+                    $this->setReportAsSent($report_id);
                 }
             }
-
         }
-    }
-
-    private function updateStats()
-    {
-        global $apbct;
-        $this->reports_count['total'] = (int)$this->reports_count['good'] + (int)$this->reports_count['bad'];
-        $apbct->data['reports_count'] = $this->reports_count;
-        $apbct->data['reports_count']['stat_since'] = $this->stat_since;
-        $apbct->saveData();
-    }
-
-    private function getUnsentReportsIds()
-    {
-        $result = array();
-        $sql_result = $this->db->fetchAll(
-            "SELECT id FROM " . $this->cr_table_name . "
-            WHERE sent_on IS NULL
-            "
-        );
-
-        if ( !empty($sql_result) ) {
-            foreach ( $sql_result as $row ) {
-                $result[] = $row['id'];
-            }
-        }
-
-        return $result;
     }
 
     public function hasUnsentReports()
@@ -237,123 +331,18 @@ class ConnectionReports
         return (bool)$this->getUnsentReportsIds();
     }
 
-    private function setReportAsSent($id)
+    public function wipeData()
     {
-        return $this->db->execute(
-            "INSERT INTO " . $this->cr_table_name . " SET
-                id = " . $id . ",
-                date = date,
-                page_url = page_url,
-                lib_report = lib_report,
-                work_url = work_url,
-                request_content = request_content
-				ON DUPLICATE KEY UPDATE
-                sent_on = " . time() . ";"
-        );
+        global $apbct;
+        $apbct->data['reports_count'] = array();
+        $apbct->saveData();
     }
 
-    private function rotateReports()
+    public function remoteCallOutput()
     {
-        /**
-         * keep 20 newest records
+        /*
+         * We can beatyfy it there if needed
          */
-
-        $deletion = 0;
-
-        $current_reports = $this->getReportsDataByIds();
-
-        if ( count($current_reports) >= $this->reports_limit ) {
-            $overlimit =  count($current_reports) - $this->reports_limit;
-            $reports_to_del = array_slice($current_reports, 0, $overlimit);
-
-            error_log('CTDEBUG: * $reports_to_del' . var_export($reports_to_del,true));
-
-            $ids = array_column($reports_to_del, 'id');
-
-            error_log('CTDEBUG: * $ids' . var_export($ids, true));
-
-            $ids = '(' . implode(',', $ids) .')';
-
-            error_log('CTDEBUG: * $ids string' . var_export($ids, true));
-
-            $deletion = $this->db->execute(
-                "DELETE FROM "  . $this->cr_table_name . " WHERE id IN " . $ids . ";"
-            );
-        }
-
-        error_log('CTDEBUG: Rotation success: rows deleted: ' . var_export($deletion,true));
-
-    }
-
-    private function getReportsDataByIds($ids = [])
-    {
-        $ids_string = '(' . implode(',', $ids) . ')';
-        if ( empty($ids) ) {
-            $selection_string = '';
-        } else {
-            $selection_string = " WHERE id IN " . $ids_string;
-        }
-        $sql =
-            "SELECT * FROM " . $this->cr_table_name .
-            $selection_string .
-            " ORDER BY date;";
-
-        error_log('CTDEBUG: $sql * ' . var_export($sql,true));
-
-        return $this->db->fetchAll($sql);
-    }
-
-    public function prepareReportsHtmlForSettings()
-    {
-        if ( !$this->hasNegativeReports() ) { //todo:move this out to settings php
-            // if no negative show nothing
-            return false;
-        }
-
-        $reports_data = $this->getReportsDataByIds();
-        $rows = '';
-        $reports_html = '';
-
-        foreach ( $reports_data as $key => $report ) {
-            //colorize
-            if ( isset($report['sent_on']) && $report['sent_on'] ) {
-                $status = 'Sent';
-                $color = 'gray';
-            } else {
-                $status = 'New';
-                $color = 'black';
-            }
-            //draw reports rows
-            $rows .= '<tr style="color:' . $color . '">'
-                . '<td>' . Escape::escHtml($key + 1) . '.</td>'
-                . '<td>' . Escape::escHtml(date('Y-m-d H:i:s', $report['date'])) . '</td>'
-                . '<td>' . Escape::escUrl($report['page_url']) . '</td>'
-                . '<td>' . Escape::escHtml($report['lib_report']) . '</td>'
-                . '<td>' . Escape::escUrl($report['work_url']) . '</td>'
-                . '<td>' . Escape::escHtml($status) . '</td>'
-                . '</tr>';
-        }
-        //draw main report table
-        $reports_html = "
-                <div id='negative_reports_div'>
-                <table id='negative_reports_table'>
-                <th colspan='6'>Failed connection reports</th>
-                <tr>
-                    <td>#</td>
-                    <td><b>Date</b></td>
-                    <td><b>Page URL</b></td>
-                    <td><b>Report</b></td>
-                    <td><b>Server IP</b></td>
-                    <td><b>Status</b></td>
-                </tr>"
-            //attach reports rows
-            . $rows
-            . "</table>"
-            . "</div>"
-            . "<br/>";
-
-        error_log('CTDEBUG: $reports_html * ' . var_export($reports_html,true));
-
-        return $reports_html;
+        return $this->reports_data;
     }
 }
