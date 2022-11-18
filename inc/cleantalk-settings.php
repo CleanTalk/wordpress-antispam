@@ -1131,7 +1131,7 @@ function apbct_settings__display()
     ) {
         // Sync button
         if ( apbct_api_key__is_correct($apbct->api_key) && $apbct->key_is_ok ) {
-            echo '<button type="button" class="cleantalk_link cleantalk_link-auto" id="apbct_button__sync" title="'. esc_html__('Synchronizing account status, SpamFireWall database, all kind of journals', 'cleantalk-spam-protect') . '">'
+            echo '<button type="button" class="cleantalk_link cleantalk_link-auto" id="apbct_button__sync" title="' . esc_html__('Synchronizing account status, SpamFireWall database, all kind of journals', 'cleantalk-spam-protect') . '">'
                 . '<i class="apbct-icon-upload-cloud"></i>&nbsp;&nbsp;'
                 . __('Synchronize with Cloud', 'cleantalk-spam-protect')
                 . '<img style="margin-left: 10px;" class="apbct_preloader_button" src="' . Escape::escUrl(APBCT_URL_PATH . '/inc/images/preloader2.gif') . '" />'
