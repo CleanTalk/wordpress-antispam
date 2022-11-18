@@ -4,7 +4,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 5.188.1-dev
+  Version: 5.189.1-dev
   Author: СleanTalk <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -385,6 +385,12 @@ $apbct_active_integrations = array(
         'hook'    => array('wpforo_action_topic_add', 'wpforo_action_post_add'),
         'setting' => 'data__protect_logged_in',
         'ajax'    => false
+    ),
+    'StrongTestimonials' => array(
+        'hook'    => array('wpmtst_form_submission','wpmtst_form2'),
+        'setting' => 'forms__contact_forms_test',
+        'ajax'    => true,
+        'ajax_and_post' => true
     ),
 );
 new  \Cleantalk\Antispam\Integrations($apbct_active_integrations, (array)$apbct->settings);
@@ -774,7 +780,7 @@ function apbct_sfw__check()
         )
     );
 
-    if ( $apbct->settings['sfw__anti_crawler'] && $apbct->stats['sfw']['entries'] > 50 && $apbct->data['cookies_type'] !== 'none' ) {
+    if ( $apbct->settings['sfw__anti_crawler'] && $apbct->stats['sfw']['entries'] > 50 ) {
         $firewall->loadFwModule(
             new \Cleantalk\ApbctWP\Firewall\AntiCrawler(
                 APBCT_TBL_FIREWALL_LOG,
@@ -2278,7 +2284,8 @@ function apbct_cookie()
 
     if (
         ! empty($apbct->flags__cookies_setuped) || // Cookies already set
-        ! empty($apbct->headers_sent)              // Headers sent
+        ! empty($apbct->headers_sent) ||             // Headers sent
+        Post::get('fusion_login_box') // Avada Fusion registration form exclusion
     ) {
         return false;
     }

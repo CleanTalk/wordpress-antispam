@@ -4,6 +4,7 @@ namespace Cleantalk\Antispam;
 
 use Cleantalk\ApbctWP\Helper;
 use Cleantalk\ApbctWP\HTTP\Request;
+use Cleantalk\Common\DNS;
 
 /**
  * Cleantalk base class
@@ -403,13 +404,27 @@ class Cleantalk
         }
 
         $starttime = microtime(true);
-        $file      = @fsockopen($host, 443, $errno, $errstr, $this->max_server_timeout / 1000);
-        $stoptime  = microtime(true);
+        if ( function_exists('fsockopen') ) {
+            $file = @fsockopen($host, 443, $errno, $errstr, $this->max_server_timeout / 1000);
+        } else {
+            $http = new Request();
+            $host = 'https://' . gethostbyaddr($host);
+            $file = $http->setUrl($host)
+                ->setOptions(['timeout' => $this->max_server_timeout / 1000])
+                ->setPresets('get_code get')
+                ->request();
+            if ( !empty($file['error']) || $file !== '200' ) {
+                $file = false;
+            }
+        }
+        $stoptime = microtime(true);
 
-        if ( ! $file ) {
+        if ( !$file ) {
             $status = $this->max_server_timeout / 1000;  // Site is down
         } else {
-            fclose($file);
+            if ( function_exists('fsockopen') ) {
+                fclose($file);
+            }
             $status = ($stoptime - $starttime);
             $status = round($status, 4);
         }

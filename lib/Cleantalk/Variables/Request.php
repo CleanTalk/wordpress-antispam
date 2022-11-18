@@ -37,14 +37,11 @@ abstract class Request extends ServerVariables
 
         $post_class = $namespace . '\\Post';
         $get_class = $namespace . '\\Get';
-        $cookie_class = $namespace . '\\Cookie';
 
         if ( $post_class::get($name) ) {
             $value = $post_class::get($name);
         } elseif ( $get_class::get($name) ) {
             $value = $get_class::get($name);
-        } elseif ( $cookie_class::get($name) ) {
-            $value = $cookie_class::get($name);
         }
 
         // Remember for further calls

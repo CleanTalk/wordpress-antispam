@@ -604,7 +604,7 @@ function ct_add_hidden_fields(
                     else                                                elem.attachEvent(event, callback);
                 }
                 apbct_attach_event_handler__backend(document, 'DOMContentLoaded', function(){
-                    if (typeof apbctLocalStorage === \"object\") {
+                    if (typeof apbctLocalStorage === \"object\" && ctPublic.data__key_is_ok) {
                         apbctLocalStorage.set('{$field_name}', '{$ct_checkjs_key}', true );
                     } else {
                         console.log('APBCT ERROR: apbctLocalStorage object is not loaded.');
@@ -1369,6 +1369,7 @@ function apbct_enqueue_and_localize_public_scripts()
         'pixel__url'                    => $apbct->pixel_url,
         'data__email_check_before_post' => $apbct->settings['data__email_check_before_post'],
         'data__cookies_type'            => $apbct->data['cookies_type'],
+        'data__key_is_ok'               => $apbct->data['key_is_ok'],
         'data__visible_fields_required' => ! apbct_is_user_logged_in() || $apbct->settings['data__protect_logged_in'] == 1,
         'data__to_local_storage' => \Cleantalk\ApbctWP\Variables\NoCookie::preloadForScripts()
     ));

@@ -863,6 +863,14 @@ class ApbctRest extends ApbctXhr{
 
 function ctSetCookie( cookies, value, expires ){
 
+    let force_alternative_method_for_cookies = [
+        'ct_sfw_pass_key',
+        'ct_sfw_passed',
+        'wordpress_apbct_antibot',
+        'apbct_anticrawler_passed',
+        'apbct_antiflood_passed'
+    ]
+
     if( typeof cookies === 'string' && typeof value === 'string' || typeof value === 'number'){
         var skip_alt = cookies === 'ct_pointer_data';
         cookies = [ [ cookies, value, expires ] ];
@@ -870,9 +878,17 @@ function ctSetCookie( cookies, value, expires ){
 
     // Cookies disabled
     if( ctPublicFunctions.data__cookies_type === 'none' ){
+        let forced_alt_cookies_set = []
         cookies.forEach( function (item, i, arr	) {
-           apbctLocalStorage.set(item[0], encodeURIComponent(item[1]))
+            if (force_alternative_method_for_cookies.indexOf(item[0]) !== -1) {
+                forced_alt_cookies_set.push(item)
+            } else {
+                apbctLocalStorage.set(item[0], encodeURIComponent(item[1]))
+            }
         });
+        if ( forced_alt_cookies_set.length > 0 ){
+            ctSetAlternativeCookie(forced_alt_cookies_set)
+        }
         ctNoCookieAttachHiddenFieldsToForms()
         // Using traditional cookies
     }else if( ctPublicFunctions.data__cookies_type === 'native' ){
@@ -883,44 +899,47 @@ function ctSetCookie( cookies, value, expires ){
         });
 
         // Using alternative cookies
-    }else if( ctPublicFunctions.data__cookies_type === 'alternative' && ! skip_alt ){
+    }else if( ctPublicFunctions.data__cookies_type === 'alternative' && ! skip_alt ) {
+        ctSetAlternativeCookie(cookies)
+    }
+}
 
-        if (typeof (getJavascriptClientData) === "function"){
-            //reprocess already gained cookies data
-            cookies = getJavascriptClientData(cookies);
-        } else {
-            console.log('APBCT ERROR: getJavascriptClientData() is not loaded')
-        }
+function ctSetAlternativeCookie(cookies){
+    if (typeof (getJavascriptClientData) === "function"){
+        //reprocess already gained cookies data
+        cookies = getJavascriptClientData(cookies);
+    } else {
+        console.log('APBCT ERROR: getJavascriptClientData() is not loaded')
+    }
 
-        try {
-            JSON.parse(cookies)
-        } catch (e){
-            console.log('APBCT ERROR: JSON parse error:' + e)
-            return
-        }
+    try {
+        JSON.parse(cookies)
+    } catch (e){
+        console.log('APBCT ERROR: JSON parse error:' + e)
+        return
+    }
 
-        // Using REST API handler
-        if( ctPublicFunctions.data__ajax_type === 'rest' ){
-            apbct_public_sendREST(
-                'alt_sessions',
-                {
-                    method: 'POST',
-                    data: { cookies: cookies }
-                }
-            );
+    // Using REST API handler
+    if( ctPublicFunctions.data__ajax_type === 'rest' ){
+        apbct_public_sendREST(
+            'alt_sessions',
+            {
+                method: 'POST',
+                data: { cookies: cookies }
+            }
+        );
 
         // Using AJAX request and handler
-        } else if( ctPublicFunctions.data__ajax_type === 'admin_ajax' ) {
-            apbct_public_sendAJAX(
-                {
-                    action: 'apbct_alt_session__save__AJAX',
-                    cookies: cookies,
-                },
-                {
-                    notJson: 1,
-                }
-            );
-        }
+    } else if( ctPublicFunctions.data__ajax_type === 'admin_ajax' ) {
+        apbct_public_sendAJAX(
+            {
+                action: 'apbct_alt_session__save__AJAX',
+                cookies: cookies,
+            },
+            {
+                notJson: 1,
+            }
+        );
     }
 }
 
@@ -1072,15 +1091,18 @@ var ctFunctionFirstKey = function output(event){
 	ctKeyStopStopListening();
 };
 
-//Reading interval
-var ctMouseReadInterval = setInterval(function(){
-	ctMouseEventTimerFlag = true;
-}, 150);
+if (ctPublic.data__key_is_ok) {
+	//Reading interval
+	var ctMouseReadInterval = setInterval(function(){
+		ctMouseEventTimerFlag = true;
+	}, 150);
 
-//Writting interval
-var ctMouseWriteDataInterval = setInterval(function(){
-	ctSetCookie("ct_pointer_data", JSON.stringify(ctMouseData));
-}, 1200);
+	//Writting interval
+	var ctMouseWriteDataInterval = setInterval(function(){
+		ctSetCookie("ct_pointer_data", JSON.stringify(ctMouseData));
+	}, 1200);
+}
+
 
 //Logging mouse position each 150 ms
 var ctFunctionMouseMove = function output(event){
@@ -1248,10 +1270,12 @@ function ctPreloadLocalStorage(){
 	}
 }
 
-apbct_attach_event_handler(document, "mousemove", ctFunctionMouseMove);
-apbct_attach_event_handler(document, "mousedown", ctFunctionFirstKey);
-apbct_attach_event_handler(document, "keydown", ctFunctionFirstKey);
-apbct_attach_event_handler(document, "scroll", ctSetHasScrolled);
+if (ctPublic.data__key_is_ok) {
+	apbct_attach_event_handler(document, "mousemove", ctFunctionMouseMove);
+	apbct_attach_event_handler(document, "mousedown", ctFunctionFirstKey);
+	apbct_attach_event_handler(document, "keydown", ctFunctionFirstKey);
+	apbct_attach_event_handler(document, "scroll", ctSetHasScrolled);
+}
 
 // Ready function
 function apbct_ready(){
@@ -1394,10 +1418,12 @@ function apbct_ready(){
 		}
 	}
 }
-if (document.readyState !== 'loading') {
-	apbct_ready();
-} else {
-	apbct_attach_event_handler(document, "DOMContentLoaded", apbct_ready);
+if (ctPublic.data__key_is_ok) {
+	if (document.readyState !== 'loading') {
+		apbct_ready();
+	} else {
+		apbct_attach_event_handler(document, "DOMContentLoaded", apbct_ready);
+	}
 }
 
 function ctFillDecodedEmailHandler(event) {
@@ -2114,10 +2140,6 @@ function ct_protect_external() {
             // current form
             var currentForm = document.forms[i];
 
-            if (currentForm.parentElement && currentForm.parentElement.classList.length > 0 && currentForm.parentElement.classList[0].indexOf('mewtwo') !== -1){
-                return
-            }
-
             if(typeof(currentForm.action) == 'string') {
 
                 // Ajax checking for the integrated forms
@@ -2156,18 +2178,53 @@ function ct_protect_external() {
         }
 
     }
-
     // Trying to process external form into an iframe
+    apbctProcessIframes()
+}
+
+function formIsExclusion(currentForm)
+{
+    let exclusions_by_id = [
+        'give-form' //give form exclusion because of direct integration
+    ]
+
+    let result = false
+
+    //mewto forms exclusion
+    if (currentForm.parentElement
+        && currentForm.parentElement.classList.length > 0
+        && currentForm.parentElement.classList[0].indexOf('mewtwo') !== -1) {
+        result = true
+    }
+
+    exclusions_by_id.forEach(function (id) {
+        if ( typeof (currentForm.id) !== 'undefined' && currentForm.id.indexOf(id) !== -1 ) {
+            result = true
+        }
+    })
+
+    return result
+}
+
+function apbctProcessIframes()
+{
     const frames = document.getElementsByTagName('iframe');
+
     if ( frames.length > 0 ) {
         for ( let j = 0; j < frames.length; j++ ) {
-            if ( frames[j].contentDocument == null ) { continue; }
+            if ( frames[j].contentDocument == null ) {
+                continue;
+            }
 
             const iframeForms = frames[j].contentDocument.forms;
-            if ( iframeForms.length === 0 ) { return; }
+
+            if ( iframeForms.length === 0 ) {
+                return;
+            }
 
             for ( let y = 0; y < iframeForms.length; y++ ) {
                 let currentForm = iframeForms[y];
+
                 apbctProcessExternalForm(currentForm, y, frames[j].contentDocument);
             }
         }
@@ -2175,6 +2232,11 @@ function ct_protect_external() {
 }
 
 function apbctProcessExternalForm(currentForm, iterator, documentObject) {
+
+    //process forms exclusions
+    if ( formIsExclusion(currentForm)) {
+        return
+    }
 
     const cleantalk_placeholder = document.createElement("i");
     cleantalk_placeholder.className = 'cleantalk_placeholder';

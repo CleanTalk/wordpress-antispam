@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 4.7
 Tested up to: 6.1
 Requires PHP: 5.6
-Stable tag: 5.188
+Stable tag: 5.189
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -450,6 +450,27 @@ Yes, it is. Please read this article,
 12. SpamFireWall log.
 
 == Changelog ==
+
+= 5.189 Nov 17 2022 =
+#### Cookies enhancements 🔥, StrongTestimonials plugin integration 💣, let Woocommerce orders interface to report spam, checking existing users and comments improvements🎈 and some minor issues fixed 💪🏼
+* New. Cookies. Do not run cookies setting process if no access key provided.
+* New. Cookies. NoCookie mode now support SFW, Anti-Crawler and AntiFlood modes.
+* New. Integrations. StrongTestimonials for POST and AJAX requests.
+* New. Woocommerce. Orders interface now can manage spam.
+* New. UserChecker. User can be approved and unapproved from spam list
+* Mod. Checking comments. Lot of improvements.
+* Mod. Synchronization process frontend improvements.
+* Mod. httpPing. Ping now uses curl if fsockopen is disabled.
+* Mod. Removed Google Fonts from die pages
+* Mod. Public JS. Iframes check refactoring.
+* Fix. Common. Rotating m-servers fixed.
+* Fix. AltCookies enhancements. Now can place zero values correct.
+* Fix. Registration check. Fix request type and submittime graylisting on Avada Fusion register forms.
+* Fix. Public JS. Skip GiveWP iframe generated forms because of direct integration.
+* Fix. Integration. GiveWP protection improved.
+* Fix. Skip ninja form PRO service requests with nonce.
+* Fix. Integration. Abandoned Cart Recovery for WooCommerce requests excluded.
+* Fix. Code style enhancements.
 
 = 5.188 Nov 2 2022 =
 #### Lot of improvements of the EmailEncoder 🔥, wpForo topics and posts protection 💣, a honeypot for Gravity forms, parameters without cookies improved 🎈 and some minor issues fixed 💪🏼
