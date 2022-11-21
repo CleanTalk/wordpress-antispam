@@ -91,7 +91,7 @@ class Schema
             'date' => 'INT NOT NULL', //timestamp
             'page_url' => 'VARCHAR(255) NULL DEFAULT NULL',
             'lib_report' => 'TEXT NULL DEFAULT NULL',
-            'work_url' => 'VARCHAR(255) NULL DEFAULT NULL',
+            'failed_work_urls' => 'VARCHAR(255) NULL DEFAULT NULL',
             'request_content' => 'TEXT NULL DEFAULT NULL',
             'sent_on' => 'INT NULL DEFAULT NULL', //timestamp
             'js_block' => 'VARCHAR(1) NULL DEFAULT NULL',

@@ -66,8 +66,10 @@ class ConnectionReports
 
     /**
      * Initialize once all the reports data from Db to class
+     * @return array of reports data. Used in testcases only.
+     * @psalm-suppress PossiblyUnusedMethod
      */
-    private function getReportsDataFromDb()
+    public function getReportsDataFromDb()
     {
         $table_exist = $this->db->fetchAll(
             'SHOW TABLES LIKE "' . $this->cr_table_name . '";'
@@ -83,6 +85,8 @@ class ConnectionReports
             " ORDER BY date;";
 
         $this->reports_data = $this->db->fetchAll($sql);
+
+        return $this->reports_data;
     }
 
     /**
@@ -128,7 +132,7 @@ class ConnectionReports
                 date = date,
                 page_url = page_url,
                 lib_report = lib_report,
-                work_url = work_url,
+                failed_work_urls = failed_work_urls,
                 request_content = request_content
 				ON DUPLICATE KEY UPDATE
                 sent_on = " . time() . ";"
@@ -181,13 +185,13 @@ class ConnectionReports
     /**
      * Add report data to DB
      * @param string $lib_report HTTP lib report text
-     * @param string $work_url Current work URLs of CT server that failed
+     * @param string $failed_work_urls Current work URLs of CT server that failed
      * @param array $request_content CleanTalk request content
      * @param bool $post_blocked_via_js_check Flag if JS check passed request or not
      */
     private function addReportToDb(
         $lib_report = '',
-        $work_url = '',
+        $failed_work_urls = '',
         $request_content = array(),
         $post_blocked_via_js_check = false
     ) {
@@ -195,7 +199,7 @@ class ConnectionReports
             'date' => time(),
             'page_url' => get_site_url() . Server::get('REQUEST_URI'),
             'lib_report' => $lib_report,
-            'work_url' => $work_url,
+            'failed_work_urls' => $failed_work_urls,
             'request_content' => json_encode(esc_sql($request_content)),
             'js_block' => $post_blocked_via_js_check ? '1' : '0'
         );
@@ -206,14 +210,14 @@ class ConnectionReports
                 date = %s,
                 page_url = %s,
                 lib_report = %s,
-                work_url = %s,
+                failed_work_urls = %s,
                 request_content = %s,
                 js_block = %s",
             array(
                 $cr_data['date'],
                 $cr_data['page_url'],
                 $cr_data['lib_report'],
-                $cr_data['work_url'],
+                $cr_data['failed_work_urls'],
                 $cr_data['request_content'],
                 $cr_data['js_block'],
             )
@@ -229,6 +233,10 @@ class ConnectionReports
      */
     public function prepareNegativeReportsHtmlForSettingsPage()
     {
+        if ( empty($this->reports_data) ) {
+            return '';
+        }
+
         $rows = '';
 
         foreach ( $this->reports_data as $key => $report ) {
@@ -246,7 +254,7 @@ class ConnectionReports
                 . '<td>' . Escape::escHtml(date('m-d-y H:i:s', $report['date'])) . '</td>'
                 . '<td>' . Escape::escUrl($report['page_url']) . '</td>'
                 . '<td>' . Escape::escHtml($report['lib_report']) . '</td>'
-                . '<td>' . Escape::escHtml($report['work_url']) . '</td>'
+                . '<td>' . Escape::escHtml($report['failed_work_urls']) . '</td>'
                 . '<td>' . Escape::escHtml($report['js_block'] === '1' ? 'Yes' : 'No') . '</td>'
                 . '<td>' . Escape::escHtml($status) . '</td>'
                 . '</tr>';
@@ -309,6 +317,7 @@ class ConnectionReports
                 Helper::arrayObjectToArray($request),
                 $post_blocked_via_js_check
             );
+            $this->getReportsDataFromDb();
         }
         $this->updateStats();
     }
@@ -361,7 +370,7 @@ class ConnectionReports
                 . '<td>' . $report['date'] . '</td>'
                 . '<td>' . $report['page_url'] . '</td>'
                 . '<td>' . $report['lib_report'] . '</td>'
-                . '<td>' . $report['work_url'] . '</td>'
+                . '<td>' . $report['failed_work_urls'] . '</td>'
                 . '</tr>';
         }
 
@@ -436,5 +445,10 @@ class ConnectionReports
          * We can beatyfy it there if needed
          */
         return $this->reports_data;
+    }
+
+    public function wipeReportsData()
+    {
+        $this->db->execute("TRUNCATE TABLE " . $this->cr_table_name);
     }
 }
