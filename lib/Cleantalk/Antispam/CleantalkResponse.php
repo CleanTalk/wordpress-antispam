@@ -127,9 +127,9 @@ class CleantalkResponse
     public $error = null;
 
     /**
-     * @var null|array Failed connections array data
+     * @var string Failed connections array data
      */
-    public $failed_connections = null;
+    public $failed_connections_urls_string = '';
 
     /**
      * Create server response
@@ -164,6 +164,6 @@ class CleantalkResponse
             $this->comment = '*** ' . $this->errstr . ' Anti-Spam service cleantalk.org ***';
         }
 
-        $this->failed_connections = !empty($failed_urls) ? $failed_urls : null;
+        $this->failed_connections_urls_string = !empty($failed_urls) ? $failed_urls : '';
     }
 }

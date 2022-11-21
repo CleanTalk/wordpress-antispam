@@ -1065,16 +1065,12 @@ function ct_checks_on_cleantalk_errors(CleantalkRequest $ct_request, CleantalkRe
 {
     global $apbct;
 
-    if ( ! $ct_result ) {
-        return $ct_result;
-    }
-
     $post_blocked_via_js_check = false;
 
     if ( (int)($ct_result->errno) != 0 ) {
         if ( $ct_request->js_on === null || $ct_request->js_on != 1 ) {
             $ct_result->allow   = 0;
-            $ct_result->spam    = 1;
+            $ct_result->spam    = '1';
             $ct_result->comment = sprintf(
                 'We\'ve got an issue: %s. Forbidden. Please, enable Javascript. %s.',
                 $ct_result->comment,

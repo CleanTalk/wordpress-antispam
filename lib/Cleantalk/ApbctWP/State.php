@@ -295,6 +295,9 @@ class State extends \Cleantalk\Common\State
         'update_mode'                  => 0,
     );
 
+    /**
+     * @var ConnectionReports
+     */
     public $connection_reports;
 
     public $errors;

@@ -49,17 +49,17 @@ class ConnectionReports
         global $apbct;
         $this->db = $db;
         $this->cr_table_name = $cr_table_name;
-        $this->reports_count['positive'] = isset($apbct->data['reports_count']['positive'])
-            ? $apbct->data['reports_count']['positive']
+        $this->reports_count['positive'] = isset($apbct->data['connection_reports_count']['positive'])
+            ? $apbct->data['connection_reports_count']['positive']
             : $this->reports_count['positive'];
-        $this->reports_count['negative'] = isset($apbct->data['reports_count']['negative'])
-            ? $apbct->data['reports_count']['negative']
+        $this->reports_count['negative'] = isset($apbct->data['connection_reports_count']['negative'])
+            ? $apbct->data['connection_reports_count']['negative']
             : $this->reports_count['positive'];
-        $this->reports_count['total'] = isset($apbct->data['reports_count']['total'])
-            ? $apbct->data['reports_count']['total']
+        $this->reports_count['total'] = isset($apbct->data['connection_reports_count']['total'])
+            ? $apbct->data['connection_reports_count']['total']
             : $this->reports_count['positive'];
-        $this->reports_count['stat_since'] = isset($apbct->data['reports_count']['stat_since'])
-            ? $apbct->data['reports_count']['stat_since']
+        $this->reports_count['stat_since'] = isset($apbct->data['connection_reports_count']['stat_since'])
+            ? $apbct->data['connection_reports_count']['stat_since']
             : date('d M');
         $this->getReportsDataFromDb();
     }
@@ -69,6 +69,15 @@ class ConnectionReports
      */
     private function getReportsDataFromDb()
     {
+        $table_exist = $this->db->fetchAll(
+            'SHOW TABLES LIKE "' . $this->cr_table_name . '";'
+        );
+
+        if ( empty($table_exist) ) {
+            $this->reports_data = array();
+            return;
+        }
+
         $sql =
             "SELECT * FROM " . $this->cr_table_name .
             " ORDER BY date;";
@@ -83,7 +92,7 @@ class ConnectionReports
     {
         global $apbct;
         $this->reports_count['total'] = (int)$this->reports_count['positive'] + (int)$this->reports_count['negative'];
-        $apbct->data['reports_count'] = $this->reports_count;
+        $apbct->data['connection_reports_count'] = $this->reports_count;
         $apbct->saveData();
     }
 
@@ -136,8 +145,6 @@ class ConnectionReports
          * keep 20 newest records
          */
 
-        $deletion = 0;
-
         if ( count($this->reports_data) >= $this->reports_limit ) {
             $overlimit = count($this->reports_data) - $this->reports_limit;
             $reports_to_del = array_slice($this->reports_data, 0, $overlimit);
@@ -146,7 +153,7 @@ class ConnectionReports
 
             $ids = '(' . implode(',', $ids) . ')';
 
-            $deletion = $this->db->execute(
+            $this->db->execute(
                 "DELETE FROM " . $this->cr_table_name . " WHERE id IN " . $ids . ";"
             );
         }
@@ -175,14 +182,14 @@ class ConnectionReports
      * Add report data to DB
      * @param string $lib_report HTTP lib report text
      * @param string $work_url Current work URLs of CT server that failed
-     * @param string $request_content CleanTalk request JSON content
-     * @param string $post_blocked_via_js_check Flag if JS check passed request or not
+     * @param array $request_content CleanTalk request content
+     * @param bool $post_blocked_via_js_check Flag if JS check passed request or not
      */
     private function addReportToDb(
         $lib_report = '',
         $work_url = '',
-        $request_content = '',
-        $post_blocked_via_js_check = ''
+        $request_content = array(),
+        $post_blocked_via_js_check = false
     ) {
         $cr_data = array(
             'date' => time(),
@@ -218,6 +225,7 @@ class ConnectionReports
     /**
      * Return HTML of negative reports table
      * @return string
+     * @psalm-suppress PossiblyUnusedMethod
      */
     public function prepareNegativeReportsHtmlForSettingsPage()
     {
@@ -234,7 +242,7 @@ class ConnectionReports
             }
             //draw reports rows
             $rows .= '<tr style="color:' . $color . '">'
-                . '<td>' . Escape::escHtml($key + 1) . '.</td>'
+                . '<td>' . Escape::escHtml((int)$key + 1) . '.</td>'
                 . '<td>' . Escape::escHtml(date('m-d-y H:i:s', $report['date'])) . '</td>'
                 . '<td>' . Escape::escUrl($report['page_url']) . '</td>'
                 . '<td>' . Escape::escHtml($report['lib_report']) . '</td>'
@@ -267,6 +275,7 @@ class ConnectionReports
     /**
      * Check if there are reports kept
      * @return bool
+     * @psalm-suppress PossiblyUnusedMethod
      */
     public function hasNegativeReports()
     {
@@ -278,6 +287,7 @@ class ConnectionReports
      * @param CleantalkRequest $request
      * @param CleantalkResponse $request_response
      * @param bool $post_blocked_via_js_check
+     * @psalm-suppress PossiblyUnusedMethod
      */
     public function handleRequest(
         CleantalkRequest $request,
@@ -295,7 +305,7 @@ class ConnectionReports
             $this->reports_count['negative']++;
             $this->addReportToDb(
                 $request_response->errstr,
-                $request_response->failed_connections,
+                $request_response->failed_connections_urls_string,
                 Helper::arrayObjectToArray($request),
                 $post_blocked_via_js_check
             );
@@ -307,6 +317,7 @@ class ConnectionReports
      * Send email to welcome@cleantlk.org about failed connection reports
      * @param array $unsent_reports_ids IDs of reports that still not sent
      * @return bool
+     * @psalm-suppress PossiblyUnusedMethod
      */
     private function sendEmail(array $unsent_reports_ids)
     {
@@ -344,7 +355,7 @@ class ConnectionReports
               ';
         $counter = 0;
 
-        foreach ( $selection as $key => $report ) {
+        foreach ( $selection as $_key => $report ) {
             $message .= '<tr>'
                 . '<td>' . (++$counter) . '.</td>'
                 . '<td>' . $report['date'] . '</td>'
@@ -375,13 +386,6 @@ class ConnectionReports
         $headers = "Content-type: text/html; charset=windows-1251 \r\n";
         $headers .= 'From: ' . ct_get_admin_email();
 
-        $test = array(
-            'to' => $to,
-            'subject' => $subject,
-            'message' => $message,
-            'headers' => $headers
-        );
-
         /** @psalm-suppress UnusedFunctionCall */
         if ( wp_mail($to, $subject, $message, $headers) ) {
             return true;
@@ -392,6 +396,7 @@ class ConnectionReports
     /**
      * Init reports sending
      * @return string Used just to debug CRON task
+     * @psalm-suppress PossiblyUnusedMethod
      */
     public function sendUnsentReports()
     {
@@ -413,22 +418,17 @@ class ConnectionReports
     /**
      * Check if there are unsent reports
      * @return bool
+     * @psalm-suppress PossiblyUnusedMethod
      */
     public function hasUnsentReports()
     {
         return (bool)$this->getUnsentReportsIds();
     }
 
-    public function wipeData()
-    {
-        global $apbct;
-        $apbct->data['reports_count'] = array();
-        $apbct->saveData();
-    }
-
     /**
      * Prepare data for remote call answer
      * @return array
+     * @psalm-suppress PossiblyUnusedMethod
      */
     public function remoteCallOutput()
     {

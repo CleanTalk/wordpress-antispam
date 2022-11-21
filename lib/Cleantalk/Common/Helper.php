@@ -49,15 +49,15 @@ class Helper
      */
     public static $cleantalks_servers = array(
         // moderatewrong
-        'https://moderatewrong1.cleantalk.org' => '143.198.237.245',
-        'https://moderatewrong2.cleantalk.org' => '167.71.167.197',
-        'https://moderatewrong3.cleantalk.org' => '88.198.153.60',
-        'https://moderatewrong4.cleantalk.org' => '159.69.51.30',
-        'https://moderatewrong5.cleantalk.org' => '95.216.200.119',
-        'https://moderatewrong6.cleantalk.org' => '143.244.187.11',
-        'https://moderatewrong7.cleantalk.org' => '168.119.82.149',
-        'https://moderatewrong9.cleantalk.org' => '51.81.55.251',
-        'https://moderatewrong10.cleantalk.org' => '5.9.221.162',
+        'https://moderate1.cleantalk.org' => '143.198.237.245',
+        'https://moderate2.cleantalk.org' => '167.71.167.197',
+        'https://moderate3.cleantalk.org' => '88.198.153.60',
+        'https://moderate4.cleantalk.org' => '159.69.51.30',
+        'https://moderate5.cleantalk.org' => '95.216.200.119',
+        'https://moderate6.cleantalk.org' => '143.244.187.11',
+        'https://moderate7.cleantalk.org' => '168.119.82.149',
+        'https://moderate9.cleantalk.org' => '51.81.55.251',
+        'https://moderate10.cleantalk.org' => '5.9.221.162',
 
         // APIX
         'https://apix1.cleantalk.org'     => '35.158.52.161',
