@@ -173,6 +173,16 @@ class RemoteCalls
         return ct_sfw_send_logs();
     }
 
+    public static function action__private_record_add() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+    {
+        return apbct_sfw_private_records_handler('add');
+    }
+
+    public static function action__private_record_delete() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+    {
+        return apbct_sfw_private_records_handler('delete');
+    }
+
     /**
      * Install plugin
      */

@@ -832,4 +832,41 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
 
         return true;
     }
+
+    public static function privateRecordsAdd(DB $db, $db__table__data, $metadata)
+    {
+        $success_count = 0;
+
+        foreach ( $metadata as $_key => $row ) {
+            $query = "INSERT INTO " . $db__table__data . " SET 
+            network='" . $row['network'] . "',
+            mask='" . $row['mask'] . "',
+            status='" . $row['status'] . "',
+            source='" . $row['source'] . "'
+            ON DUPLICATE KEY UPDATE 
+            network=network, 
+            mask=mask, 
+            status='" . $row['status'] . "',
+            source='" . $row['source'] . "';";
+            $db_result = $db->execute($query);
+            $success_count = $db_result ? ++$success_count : $success_count;
+        }
+
+        return $success_count;
+    }
+
+    public static function privateRecordsDelete(DB $db, $db__table__data, $metadata)
+    {
+        $success_count = 0;
+
+        foreach ( $metadata as $_key => $row ) {
+            $query = "DELETE FROM " . $db__table__data . " WHERE 
+            network='" . $row['network'] . "' AND
+            mask='" . $row['mask'] . "';";
+            $db_result = $db->execute($query);
+            $success_count = $db_result ? ++$success_count : $success_count;
+        }
+
+        return $success_count;
+    }
 }

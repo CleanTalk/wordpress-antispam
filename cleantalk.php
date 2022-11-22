@@ -216,7 +216,11 @@ add_action('init', function () {
     }
     // Remote calls
     if ( RemoteCalls::check() ) {
-        RemoteCalls::perform();
+        try {
+            RemoteCalls::perform();
+        } catch ( Exception $e ) {
+            die($e->getMessage());
+        }
     }
 });
 
@@ -1771,6 +1775,88 @@ function ct_sfw_send_logs($api_key = '')
     }
 
     return $result;
+}
+
+
+/**
+ * Handle SFW private_records remote call.
+ * @param $action
+ * @return mixed|string
+ */
+function apbct_sfw_private_records_handler($action)
+{
+
+    $error = 'SFW records handler error: ';
+
+    if ( !empty($action) && (in_array($action, array('add', 'delete'))) ) {
+        $metadata = Post::get('metadata');
+
+        if ( !empty($metadata) ) {
+            try {
+                $metadata = json_decode(stripslashes($metadata), true);
+            } catch ( Exception $e ) {
+                throw new InvalidArgumentException($error . 'metadata JSON decoding failed');
+            }
+        } else {
+            throw new InvalidArgumentException($error . 'metadata is invalid');
+        }
+
+        foreach ( $metadata as $_key => &$row ) {
+            $row = explode(',', $row);
+            $metadata_assoc_array = array(
+                'network' => (int)$row[0],
+                'mask' => (int)$row[1],
+                'status' => (int)$row[2],
+                'source' => (int)$row[3],
+            );
+            //validate
+            if (
+                $metadata_assoc_array['network'] === 0
+                || $metadata_assoc_array['network'] > 4294967295
+                || $metadata_assoc_array['mask'] === 0
+                || $metadata_assoc_array['mask'] > 4294967295
+                || !in_array($metadata_assoc_array['status'], array(0, 1))
+                || !in_array($metadata_assoc_array['source'], array(0, 1))
+            ) {
+                throw new InvalidArgumentException($error . 'metadata validate failed');
+            }
+            $row = $metadata_assoc_array;
+        }
+        unset($row);
+
+        if ( $action === 'add' ) {
+            /*
+            * handler
+            */
+            $handler_output = SFW::privateRecordsAdd(
+                DB::getInstance(),
+                APBCT_TBL_FIREWALL_DATA,
+                $metadata
+            );
+            $result = array('result' => 'OK', 'items_processed' => $handler_output);
+        } elseif ( $action === 'delete' ) {
+            /*
+            * handler
+            */
+            $handler_output = SFW::privateRecordsDelete(
+                DB::getInstance(),
+                APBCT_TBL_FIREWALL_DATA,
+                $metadata
+            );
+
+            $result = array('result' => 'OK', 'items_processed' => $handler_output);
+
+        } else {
+            $error .= 'unknown action name: ' . $action;
+            throw new InvalidArgumentException($error);
+        }
+    } else {
+        throw new InvalidArgumentException($error . 'empty action name');
+    }
+
+    $result_json = json_encode($result);
+
+    return is_string($result_json) ? $result_json : $result['result'];
 }
 
 function apbct_antiflood__clear_table()
