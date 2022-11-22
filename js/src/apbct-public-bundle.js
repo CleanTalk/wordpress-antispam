@@ -1998,7 +1998,9 @@ let cleantalkModal = {
 
         var content = document.createElement( 'div' );
         if ( this.loaded ) {
-            content.innerHTML = this.loaded;
+            var urlRegex = /(https?:\/\/[^\s]+)/g;
+            var renderedMsg = this.loaded.replace(urlRegex, '<a href="$1" target="_blank">$1</a>');
+            content.innerHTML = renderedMsg;
         } else {
             content.innerHTML = 'Loading...';
             // @ToDo Here is hardcoded parameter. Have to get this from a 'data-' attribute.

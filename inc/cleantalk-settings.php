@@ -1353,7 +1353,7 @@ function apbct_settings__error__output($return = false)
                     default:
                         $icon = '<span class="dashicons dashicons-hammer" style="color: red;"></span>';
                 }
-                $out .= '<h4>' . $icon . ' ' . Escape::escHtml($value) . '</h4>';
+                $out .= '<h4>' . $icon . ' ' . renderLinksToTag(Escape::escHtml($value)) . '</h4>';
             }
             $out .= ! $apbct->white_label
                 ? '<h4 style="text-align: unset;">' . sprintf(
@@ -3024,4 +3024,11 @@ function apbct_settings__custom_logo()
         </div>
     </div>
     <?php
+}
+
+function renderLinksToTag($value)
+{
+    $pattern = "/(https?:\/\/[^\s]+)/";
+
+    return preg_replace($pattern, '<a target="_blank" href="$1">$1</a>', $value);
 }
