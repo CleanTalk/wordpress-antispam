@@ -48,7 +48,7 @@ class Helper
      * @var array Set of CleanTalk servers
      */
     public static $cleantalks_servers = array(
-        // moderatewrong
+        // MODERATE
         'https://moderate1.cleantalk.org' => '143.198.237.245',
         'https://moderate2.cleantalk.org' => '167.71.167.197',
         'https://moderate3.cleantalk.org' => '88.198.153.60',
