@@ -240,6 +240,14 @@ class ConnectionReports
 
         $rows = '';
 
+        $reports_html = '<div><p>From '
+            . $this->reports_count['stat_since']
+            . ' to ' . date('d M') . ' has been made '
+            . $this->reports_count['total']
+            . ' calls, where ' . $this->reports_count['positive'] . ' were success and '
+            . $this->reports_count['negative'] . ' were negative
+                    </p></div>';
+
         foreach ( $this->reports_data as $key => $report ) {
             //colorize
             if ( isset($report['sent_on']) && $report['sent_on'] ) {
@@ -261,7 +269,7 @@ class ConnectionReports
                 . '</tr>';
         }
         //draw main report table
-        $reports_html = "
+        $reports_html .= "
                 <table id='negative_reports_table'>
                 <th colspan='7'>Failed connection reports</th>
                 <tr>

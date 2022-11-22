@@ -255,7 +255,7 @@ class Cleantalk
                 $this->server_change = true;
             }
             if ( $result === false || (is_object($result) && $result->errno != 0) ) {
-                $failed_urls .= '<br/>' . $this->work_url;
+                $failed_urls .= ', ' . $this->work_url;
             }
         }
         $response = new CleantalkResponse($result, $failed_urls);
