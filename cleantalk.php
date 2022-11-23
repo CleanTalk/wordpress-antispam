@@ -1784,13 +1784,13 @@ function ct_sfw_send_logs($api_key = '')
  * @return string JSON string of results
  * @throws Exception
  */
-function apbct_sfw_private_records_handler($action)
+function apbct_sfw_private_records_handler($action, $test_data = null)
 {
 
     $error = 'ERROR: ';
 
     if ( !empty($action) && (in_array($action, array('add', 'delete'))) ) {
-        $metadata = Post::get('metadata');
+        $metadata = !empty($test_data) ? $test_data : Post::get('metadata');
 
         if ( !empty($metadata) ) {
             try {
