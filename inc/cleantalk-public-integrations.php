@@ -3598,13 +3598,22 @@ function apbct__wc_add_spam_action_to_bulk_handle($redirect, $action, $ids)
         return $redirect;
     }
 
+    // spam orders
+    $spam_ids = array();
+
     foreach ($ids as $order_id) {
         $order = new WC_Order((int)$order_id);
         if ( $action === 'unspamorder' ) {
             $order->update_status('wc-on-hold');
         } else {
+            $spam_ids[] = $order_id;
             $order->update_status('wc-spamorder');
         }
+    }
+
+    // Send feedback to API
+    if (!empty($spam_ids)) {
+        apbct_woocommerce__orders_send_feedback($spam_ids);
     }
 
     return add_query_arg(

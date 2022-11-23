@@ -1,5 +1,7 @@
 <?php
 
+use Cleantalk\Antispam\Cleantalk;
+use Cleantalk\Antispam\CleantalkRequest;
 use Cleantalk\ApbctWP\CleantalkSettingsTemplates;
 use Cleantalk\ApbctWP\Escape;
 use Cleantalk\ApbctWP\Variables\Get;
@@ -1139,6 +1141,49 @@ function apbct_comment__send_feedback(
 
     if ( ! $direct_call ) {
         ! empty($result) ? die($result) : die(0);
+    }
+}
+
+/**
+ * @param array $spam_ids
+ * @param string $orders_status
+ */
+function apbct_woocommerce__orders_send_feedback(array $spam_ids, $orders_status = '0') {
+    if (empty($spam_ids)) {
+        return;
+    }
+
+    global $apbct;
+    $request_ids = array();
+    foreach ($spam_ids as $spam_id) {
+        $request_id = get_post_meta($spam_id, 'cleantalk_order_request_id', true);
+        if ($request_id) {
+            $request_ids[] = $request_id . ':' . $orders_status;
+        }
+    }
+
+    if (!empty($request_ids)) {
+        $feedback = implode(';', $request_ids);
+
+        try {
+            $ct_request = new CleantalkRequest(array(
+                // General
+                'auth_key' => $apbct->api_key,
+                // Additional
+                'feedback' => $feedback,
+            ));
+
+            $ct = new Cleantalk();
+
+            // Server URL handling
+            $config             = ct_get_server();
+            $ct->server_url     = APBCT_MODERATE_URL;
+            $ct->work_url       = preg_match('/http:\/\/.+/', $config['ct_work_url']) ? $config['ct_work_url'] : null;
+            $ct->server_ttl     = $config['ct_server_ttl'];
+            $ct->server_changed = $config['ct_server_changed'];
+    
+            $ct->sendFeedback($ct_request);
+        } catch (\Exception $e) {}
     }
 }
 
