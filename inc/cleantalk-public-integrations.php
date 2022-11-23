@@ -503,7 +503,7 @@ function apbct_woocommerce__add_request_id_to_order_meta($order_id) {
     $request_id = ct_hash();
 
     if (!empty($request_id)) {
-        update_post_meta($order_id, 'cleantalk_order_request_id', $request_id);
+        update_post_meta($order_id, 'cleantalk_order_request_id', sanitize_key($request_id));
     }
 }
 
