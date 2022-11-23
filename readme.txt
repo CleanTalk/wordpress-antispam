@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 4.7
 Tested up to: 6.1
 Requires PHP: 5.6
-Stable tag: 5.189
+Stable tag: 5.189.1
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -450,6 +450,10 @@ Yes, it is. Please read this article,
 12. SpamFireWall log.
 
 == Changelog ==
+
+= 5.189.1 Nov 23 2022 =
+* Fix. Woocommerce. Marking orders as spam fixed.
+* Fix. Settings. Some text has been localized-ready.
 
 = 5.189 Nov 17 2022 =
 #### Cookies enhancements 🔥, StrongTestimonials plugin integration 💣, let Woocommerce orders interface to report spam, checking existing users and comments improvements🎈 and some minor issues fixed 💪🏼
