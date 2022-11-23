@@ -3030,5 +3030,5 @@ function apbct_render_links_to_tag($value)
 {
     $pattern = "/(https?:\/\/[^\s]+)/";
     $value = preg_replace($pattern, '<a target="_blank" href="$1">$1</a>', $value);
-    return Escape::escHtml($value);
+    return Escape::escKsesPreset($value, 'apbct_settings__display__notifications');
 }
