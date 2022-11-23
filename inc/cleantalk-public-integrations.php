@@ -499,7 +499,8 @@ function ct_woocommerce_checkout_check($_data, $errors)
  * Save request_id for WC order
  * @param $order_id
  */
-function apbct_woocommerce__add_request_id_to_order_meta($order_id) {
+function apbct_woocommerce__add_request_id_to_order_meta($order_id)
+{
     $request_id = ct_hash();
 
     if (!empty($request_id)) {

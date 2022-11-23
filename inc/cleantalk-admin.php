@@ -1148,7 +1148,8 @@ function apbct_comment__send_feedback(
  * @param array $spam_ids
  * @param string $orders_status
  */
-function apbct_woocommerce__orders_send_feedback(array $spam_ids, $orders_status = '0') {
+function apbct_woocommerce__orders_send_feedback(array $spam_ids, $orders_status = '0')
+{
     if (empty($spam_ids)) {
         return;
     }
@@ -1181,9 +1182,10 @@ function apbct_woocommerce__orders_send_feedback(array $spam_ids, $orders_status
             $ct->work_url       = preg_match('/http:\/\/.+/', $config['ct_work_url']) ? $config['ct_work_url'] : null;
             $ct->server_ttl     = $config['ct_server_ttl'];
             $ct->server_changed = $config['ct_server_changed'];
-    
+
             $ct->sendFeedback($ct_request);
-        } catch (\Exception $e) {}
+        } catch (\Exception $e) {
+        }
     }
 }
 
