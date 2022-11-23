@@ -284,7 +284,7 @@ function apbct_ready(){
 			//Exclusion for forms
 			if (
 				+ctPublic.data__visible_fields_required === 0 ||
-				form.method.toString().toLowerCase() === 'get' ||
+				(form.method.toString().toLowerCase() === 'get' && !form.querySelectorAll('.nf-form-content')) ||
 				form.classList.contains('slp_search_form') || //StoreLocatorPlus form
 				form.parentElement.classList.contains('mec-booking') ||
 				form.action.toString().indexOf('activehosted.com') !== -1 || // Active Campaign
