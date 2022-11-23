@@ -17,7 +17,6 @@ use Cleantalk\ApbctWP\API;
 use Cleantalk\ApbctWP\CleantalkUpgrader;
 use Cleantalk\ApbctWP\CleantalkUpgraderSkin;
 use Cleantalk\ApbctWP\CleantalkUpgraderSkinDeprecated;
-use Cleantalk\ApbctWP\ConnectionReports;
 use Cleantalk\ApbctWP\Cron;
 use Cleantalk\ApbctWP\DB;
 use Cleantalk\ApbctWP\Deactivator;
@@ -195,7 +194,7 @@ add_action('init', function () {
     global $apbct;
     // Self cron
     // Connection reports
-    $apbct->connection_reports = new ConnectionReports(DB::getInstance(), APBCT_TBL_CONNECTION_REPORTS);
+    $apbct->setConnectionReports();
     $ct_cron = new Cron();
     $tasks_to_run = $ct_cron->checkTasks(); // Check for current tasks. Drop tasks inner counters.
     if (
@@ -2466,7 +2465,7 @@ function ct_account_status_check($api_key = null, $process_errors = true)
 function ct_cron_send_connection_report_email()
 {
     global $apbct;
-    $apbct->connection_reports->sendUnsentReports();
+    $apbct->getConnectionReports()->sendUnsentReports();
 }
 
 /**

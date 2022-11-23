@@ -1084,7 +1084,7 @@ function ct_checks_on_cleantalk_errors(CleantalkRequest $ct_request, CleantalkRe
     }
 
     // Add a connection report
-    $apbct->connection_reports->handleRequest($ct_request, $ct_result, $post_blocked_via_js_check);
+    $apbct->getConnectionReports()->handleRequest($ct_request, $ct_result, $post_blocked_via_js_check);
 
     return $ct_result;
 }

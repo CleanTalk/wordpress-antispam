@@ -1831,10 +1831,11 @@ function apbct_settings__field__statistics()
     echo '<br>';
 
     // Connection reports
-    if ( ! $apbct->connection_reports->hasNegativeReports() ) {
+    $connection_reports = $apbct->getConnectionReports();
+    if ( ! $connection_reports->hasNegativeReports() ) {
         _e('There are no failed connections to server.', 'cleantalk-spam-protect');
     } else {
-        $reports_html = $apbct->connection_reports->prepareNegativeReportsHtmlForSettingsPage();
+        $reports_html = $connection_reports->prepareNegativeReportsHtmlForSettingsPage();
         //escaping and echoing html
         echo Escape::escKses(
             $reports_html,
@@ -1857,7 +1858,7 @@ function apbct_settings__field__statistics()
             )
         );
         //if no unsent reports show caption, in another case show the button
-        if ( ! $apbct->connection_reports->hasUnsentReports() ) {
+        if ( ! $connection_reports->hasUnsentReports() ) {
             _e('All the reports already have been sent.', 'cleantalk-spam-protect');
         } else {
             echo '<button'
@@ -2305,7 +2306,7 @@ function apbct_settings__validate($settings)
 
     // Send connection reports
     if ( Post::get('submit') === 'ct_send_connection_report' ) {
-        $apbct->connection_reports->sendUnsentReports();
+        $apbct->getConnectionReports()->sendUnsentReports();
         return $settings;
     }
 

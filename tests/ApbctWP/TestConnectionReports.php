@@ -20,8 +20,8 @@ class TestConnectionReports extends TestCase
         $this->db = DB::getInstance();
         $apbct = new State('cleantalk', array('settings', 'data', 'debug', 'errors', 'remote_calls', 'stats', 'fw_stats'));
         apbct_run_update_actions('5.188', '5,189');
-        $apbct->connection_reports = new ConnectionReports($this->db, APBCT_TBL_CONNECTION_REPORTS);
-        $this->connection_reports = $apbct->connection_reports;
+        $apbct->setConnectionReports();
+        $this->connection_reports = $apbct->getConnectionReports();
         $this->ct_response = new \Cleantalk\Antispam\CleantalkResponse();
         $this->default_params = array(
             'sender_ip' => defined('CT_TEST_IP')

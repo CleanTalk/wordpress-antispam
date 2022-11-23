@@ -298,7 +298,7 @@ class State extends \Cleantalk\Common\State
     /**
      * @var ConnectionReports
      */
-    public $connection_reports;
+    private $connection_reports;
 
     public $errors;
 
@@ -773,5 +773,26 @@ class State extends \Cleantalk\Common\State
         return
             isset($headers['X-Varnish']) || //Set alt cookies if varnish is installed
             defined('SiteGround_Optimizer\VERSION'); //Set alt cookies if sg optimizer is installed
+    }
+
+    /**
+     * Init ConnectionReports object to the connection_reports attribute
+     */
+    public function setConnectionReports()
+    {
+        $this->connection_reports = new ConnectionReports(DB::getInstance(), APBCT_TBL_CONNECTION_REPORTS);
+    }
+
+    /**
+     * Get connection reports object. Init one if the connection_reports attribute
+     * is empty or not an object of ConnectionReports
+     * @return ConnectionReports
+     */
+    public function getConnectionReports()
+    {
+        if ( empty($this->connection_reports) || !$this->connection_reports instanceof ConnectionReports ) {
+            $this->setConnectionReports();
+        }
+        return $this->connection_reports;
     }
 }
