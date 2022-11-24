@@ -406,6 +406,7 @@ function apbctAjaxEmailDecode(event, baseElement){
 				data: data,
 				method: 'POST',
 				callback: function(result) {
+					ctSetCookie('apbct_email_encoder_passed','1')
 					apbctEmailEncoderCallback(result, baseElement, element);
 				},
 				onErrorCallback: function (res) {
@@ -424,6 +425,7 @@ function apbctAjaxEmailDecode(event, baseElement){
 			{
 				notJson: true,
 				callback: function(result) {
+					ctSetCookie('apbct_email_encoder_passed','1')
 					apbctEmailEncoderCallback(result, baseElement, element);
 				},
 				onErrorCallback: function (res) {

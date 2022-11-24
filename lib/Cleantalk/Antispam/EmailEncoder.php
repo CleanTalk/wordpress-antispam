@@ -2,6 +2,7 @@
 
 namespace Cleantalk\Antispam;
 
+use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\Templates\Singleton;
 use Cleantalk\ApbctWP\Variables\Post;
 
@@ -347,6 +348,14 @@ class EmailEncoder
      */
     private function isExcludedRequest()
     {
+
+        // Excluded request by alt cookie
+        $apbct_email_encoder_passed = Cookie::get('apbct_email_encoder_passed');
+        if ( $apbct_email_encoder_passed === '1' ) {
+            error_log('CTDEBUG: ENCODER PASSED BY ALTCOOKIE * ' . var_export($apbct_email_encoder_passed,true));
+            return true;
+        }
+
         if (
             apbct_is_plugin_active('ultimate-member/ultimate-member.php') &&
             isset($_POST['um_request']) &&
