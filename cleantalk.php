@@ -219,7 +219,7 @@ add_action('init', function () {
         try {
             RemoteCalls::perform();
         } catch ( Exception $e ) {
-            die($e->getMessage());
+            die(json_encode(array('ERROR:' => $e->getMessage())));
         }
     }
 });
@@ -1787,7 +1787,7 @@ function ct_sfw_send_logs($api_key = '')
 function apbct_sfw_private_records_handler($action, $test_data = null)
 {
 
-    $error = 'ERROR: ';
+    $error = 'sfw_private_records_handler: ';
 
     if ( !empty($action) && (in_array($action, array('add', 'delete'))) ) {
         $metadata = !empty($test_data) ? $test_data : Post::get('metadata');
@@ -1865,7 +1865,7 @@ function apbct_sfw_private_records_handler($action, $test_data = null)
         throw new InvalidArgumentException($error . 'empty action name');
     }
 
-    return json_encode($handler_output);
+    return json_encode(array('OK' => $handler_output));
 }
 
 function apbct_antiflood__clear_table()
