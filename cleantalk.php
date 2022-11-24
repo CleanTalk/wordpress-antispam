@@ -1811,8 +1811,8 @@ function apbct_sfw_private_records_handler($action, $test_data = null)
             $metadata_assoc_array = array(
                 'network' => (int)$row[0],
                 'mask' => (int)$row[1],
-                'status' => (int)$row[2],
-                'source' => (int)$row[3],
+                'status' => isset($row[2]) ? (int)$row[2] : null,
+                'source' => isset($row[3]) ? (int)$row[3] : null
             );
             //validate
             $validation_error = '';
