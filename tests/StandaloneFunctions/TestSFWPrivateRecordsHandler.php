@@ -41,17 +41,17 @@ class TestSFWPrivateRecordsHandler extends PHPUnit\Framework\TestCase
         apbct_sfw_private_records_handler('delete','{"0":"424242424,323232323,1,1","1":"434343434,33333333,1,1"}');
 
         $this->assertEquals(
-            '{"total":2,"added":2,"updated":0,"ignored":0}',
+            '{"OK":{"total":2,"added":2,"updated":0,"ignored":0}}',
             apbct_sfw_private_records_handler('add','{"0":"424242424,323232323,1,1","1":"434343434,33333333,1,1"}')
         );
         //next iteration returns ignorance
         $this->assertEquals(
-            '{"total":2,"added":0,"updated":0,"ignored":2}',
+            '{"OK":{"total":2,"added":0,"updated":0,"ignored":2}}',
             apbct_sfw_private_records_handler('add','{"0":"424242424,323232323,1,1","1":"434343434,33333333,1,1"}')
         );
         //next iteration returns updating
         $this->assertEquals(
-            '{"total":2,"added":0,"updated":2,"ignored":0}',
+            '{"OK":{"total":2,"added":0,"updated":2,"ignored":0}}',
             apbct_sfw_private_records_handler('add','{"0":"424242424,323232323,0,1","1":"434343434,33333333,0,1"}')
         );
 
@@ -60,17 +60,17 @@ class TestSFWPrivateRecordsHandler extends PHPUnit\Framework\TestCase
         apbct_sfw_private_records_handler('delete','{"0":"424242424,323232323,1,1","1":"434343434,33333333,1,1"}');
 
         $this->assertEquals(
-            '{"total":1,"added":1,"updated":0,"ignored":0}',
+            '{"OK":{"total":1,"added":1,"updated":0,"ignored":0}}',
             apbct_sfw_private_records_handler('add','{"0":"424242424,323232323,1,1"}')
         );
         //next iteration returns ignorance
         $this->assertEquals(
-            '{"total":1,"added":0,"updated":0,"ignored":1}',
+            '{"OK":{"total":1,"added":0,"updated":0,"ignored":1}}',
             apbct_sfw_private_records_handler('add','{"0":"424242424,323232323,1,1"}')
         );
         //next iteration returns updating
         $this->assertEquals(
-            '{"total":1,"added":0,"updated":1,"ignored":0}',
+            '{"OK":{"total":1,"added":0,"updated":1,"ignored":0}}',
             apbct_sfw_private_records_handler('add','{"0":"424242424,323232323,0,1"}')
         );
     }
@@ -111,12 +111,12 @@ class TestSFWPrivateRecordsHandler extends PHPUnit\Framework\TestCase
         apbct_sfw_private_records_handler('add','{"0":"424242424,323232323,1,1","1":"434343434,33333333,1,1"}');
 
         $this->assertEquals(
-            '{"total":2,"deleted":2,"ignored":0}',
+            '{"OK":{"total":2,"deleted":2,"ignored":0}}',
             apbct_sfw_private_records_handler('delete','{"0":"424242424,323232323,1,1","1":"434343434,33333333,1,1"}')
         );
         //next iteration returns ignorance
         $this->assertEquals(
-            '{"total":2,"deleted":0,"ignored":2}',
+            '{"OK":{"total":2,"deleted":0,"ignored":2}}',
             apbct_sfw_private_records_handler('delete','{"0":"424242424,323232323,1,1","1":"434343434,33333333,1,1"}')
         );
 
@@ -124,7 +124,7 @@ class TestSFWPrivateRecordsHandler extends PHPUnit\Framework\TestCase
 
         //ignore one of them
         $this->assertEquals(
-            '{"total":2,"deleted":1,"ignored":1}',
+            '{"OK":{"total":2,"deleted":1,"ignored":1}}',
             apbct_sfw_private_records_handler('delete','{"0":"424242424,323232323,0,1","1":"434343434,33333333,0,1"}')
         );
 
@@ -133,12 +133,12 @@ class TestSFWPrivateRecordsHandler extends PHPUnit\Framework\TestCase
         apbct_sfw_private_records_handler('add','{"0":"424242424,323232323,1,1"}');
 
         $this->assertEquals(
-            '{"total":1,"deleted":1,"ignored":0}',
+            '{"OK":{"total":1,"deleted":1,"ignored":0}}',
             apbct_sfw_private_records_handler('delete','{"0":"424242424,323232323,1,1"}')
         );
         //next iteration returns ignorance
         $this->assertEquals(
-            '{"total":1,"deleted":0,"ignored":1}',
+            '{"OK":{"total":1,"deleted":0,"ignored":1}}',
             apbct_sfw_private_records_handler('delete','{"0":"424242424,323232323,1,1"}')
         );
     }
