@@ -174,6 +174,10 @@ class Cleantalk
                     $request->feedback = implode(';', $request->feedback);
                 }
                 break;
+
+            case 'check_bot':
+                $request->message_to_log   = $this->compressData($request->message_to_log);
+                break;
         }
 
         // Removing non UTF8 characters from request, because non UTF8 or malformed characters break json_encode().

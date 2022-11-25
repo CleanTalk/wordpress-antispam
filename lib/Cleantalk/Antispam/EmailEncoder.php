@@ -36,16 +36,14 @@ class EmailEncoder
     private $attribute_exclusions_signs = array(
         'input' => array('placeholder', 'value'),
     );
-
     /**
-     * @var string
+     * @var string[]
      */
-    protected $decoded_email;
-
+    protected $decoded_emails_array;
     /**
-     * @var string
+     * @var string[]
      */
-    protected $encoded_email;
+    protected $encoded_emails_array;
 
     /**
      * @var string
@@ -152,27 +150,31 @@ class EmailEncoder
         if (! defined('REST_REQUEST')) {
             check_ajax_referer('ct_secret_stuff');
         }
-
+        $this->decoded_emails_array = $this->decodeEmailFromPost();
         if ( $this->checkRequest() ) {
-            $this->decoded_email = $this->decodeEmailFromPost();
-            $this->response = $this->compileResponse($this->decoded_email, true);
+            $this->response = $this->compileResponse($this->decoded_emails_array, true);
             wp_send_json_success($this->response);
         }
-        $this->response = $this->compileResponse('', false);
+        $this->response = $this->compileResponse(array(), false);
         wp_send_json_error($this->response);
     }
 
     /**
      * Main logic of the decoding the encoded data.
      *
-     * @return string encoded email
+     * @return string[] array of decoded email
      */
     public function decodeEmailFromPost()
     {
-        $this->encoded_email = trim(Post::get('encodedEmail'));
-        $this->decoded_email = $this->decodeString($this->encoded_email, $this->secret_key);
+        $this->encoded_emails_array = Post::get('encodedEmails');
+        $this->encoded_emails_array = str_replace('\\', '', $this->encoded_emails_array);
+        $this->encoded_emails_array = json_decode($this->encoded_emails_array, true);
 
-        return $this->decoded_email;
+        foreach ( $this->encoded_emails_array as $_key => $encoded_email) {
+            $this->decoded_emails_array[$encoded_email] = $this->decodeString($encoded_email, $this->secret_key);
+        }
+
+        return $this->decoded_emails_array;
     }
 
     /**
@@ -185,9 +187,18 @@ class EmailEncoder
         return true;
     }
 
-    protected function compileResponse($decoded_email, $is_allowed)
+    protected function compileResponse($decoded_emails_array, $is_allowed)
     {
-        return strip_tags($decoded_email, '<a>');
+        $result = array();
+
+        if ( empty($decoded_emails_array) ) {
+            return false;
+        }
+
+        foreach ( $decoded_emails_array as $encoded_email => $decoded_email ) {
+            $result[] = strip_tags($decoded_email, '<a>');
+        }
+        return $result;
     }
 
     /**
@@ -352,7 +363,6 @@ class EmailEncoder
         // Excluded request by alt cookie
         $apbct_email_encoder_passed = Cookie::get('apbct_email_encoder_passed');
         if ( $apbct_email_encoder_passed === '1' ) {
-            error_log('CTDEBUG: ENCODER PASSED BY ALTCOOKIE * ' . var_export($apbct_email_encoder_passed,true));
             return true;
         }
 
