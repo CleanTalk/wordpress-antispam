@@ -449,8 +449,7 @@ function apbct_settings__set_fields()
                         . __(
                             'Alternative mechanism will store data in database and will not set cookies in browser, so the cache solutions will work just fine.',
                             'cleantalk-spam-protect'
-                        )
-                        . '</b>',
+                        ),
                     'long_description' => true,
                     'input_type'  => 'radio',
                     'options'     => array(
