@@ -188,9 +188,19 @@ function apbct_settings__set_fields()
             'default_params' => array(),
             'description'    => '',
             'html_before'    => '<hr><br>'
-                                . '<span id="ct_adv_showhide">'
+                                . '<span id="ct_adv_showhide" class="apbct_bottom_links--left">'
                                 . '<a href="#" class="apbct_color--gray" onclick="event.preventDefault(); apbct_show_hide_elem(\'apbct_settings__advanced_settings\');">'
                                 . __('Advanced settings', 'cleantalk-spam-protect')
+                                . '</a>'
+                                . '</span>'
+                                . '<span class="apbct_bottom_links--other">'
+                                . '<a href="#" class="apbct_color--gray" onclick="cleantalkModal.open()">'
+                                . __('Import/Export settings', 'cleantalk-spam-protect')
+                                . '</a>'
+                                . '</span>'
+                                . '<span id="ct_trusted_text_showhide" class="apbct_bottom_links--other">'
+                                . '<a href="#" class="apbct_color--gray" onclick="event.preventDefault(); apbct_show_hide_elem(\'trusted_and_affiliate__special_span\');">'
+                                . __('Trust text, affiliate settings', 'cleantalk-spam-protect')
                                 . '</a>'
                                 . '</span>'
                                 . '<div id="apbct_settings__before_advanced_settings"></div>'
@@ -800,6 +810,64 @@ function apbct_settings__set_fields()
 
             ),
         ),
+
+        // Trust text, affiliate settings
+        'trusted_and_affiliate'                    => array(
+            'title'  => __('Trust text, affiliate settings', 'cleantalk-spam-protect'),
+            //'section' => 'hidden_section',
+            'fields' => array(
+                'trusted_and_affiliate__shortcode'       => array(
+                    'title'           => __('Shortcode', 'cleantalk-spam-protect'),
+                    'description' => __(
+                        'You can place this shortcode anywhere on your website. Adds trust text stating that the website is protected from spam by CleanTalk Anti-Spam protection',
+                        'cleantalk-spam-protect'
+                    ),
+                    'reverse_trigger' => true,
+                    'options'         => array(
+                        array('val' => 1, 'label' => __('On'), 'childrens_enable' => 0,),
+                        array('val' => 0, 'label' => __('Off'), 'childrens_enable' => 1,),
+                    ),
+                ),
+                'trusted_and_affiliate__footer' => array(
+                    'title'           => __('Add to the footer', 'cleantalk-spam-protect'),
+                    'description'     => __(
+                        'Adds trust text stating that the website is protected from spam by CleanTalk Anti-Spam protection to the footer of your website.',
+                        'cleantalk-spam-protect'
+                    ),
+                    'parent'          => '',
+                    //'class'           => 'apbct_settings-field_wrapper--sub',
+                    'reverse_trigger' => true,
+                ),
+                'trusted_and_affiliate__under_forms' => array(
+                    'title'           => __(
+                        'Add under forms.',
+                        'cleantalk-spam-protect'
+                    ),
+                    'description'     => __(
+                        'Adds trust text stating that the website is protected from spam by CleanTalk Anti-Spam protection under web form on your website.',
+                        'cleantalk-spam-protect'
+                    ),
+                    'reverse_trigger' => true,
+                    'options'         => array(
+                        array('val' => 1, 'label' => __('On')),
+                        array('val' => 0, 'label' => __('Off')),
+                    ),
+                ),
+                'trusted_and_affiliate__add_id'         => array(
+                    'title'           => __(
+                        'Add your affiliate ID to the link placed in the trust text. Terms of the affiliate program here',
+                        'cleantalk-spam-protect'
+                    ),
+                    'description'     => __(
+                        'If you check this option or checkbox, then your affiliate ID will be added to the referral link.',
+                        'cleantalk-spam-protect'
+                    ),
+                    'reverse_trigger' => false,
+                    'type' => 'checkbox'
+                )
+            ),
+        ),
+
     );
 
     return $fields;
@@ -1188,6 +1256,9 @@ function apbct_settings__display()
 
         //title
         $out = ! empty($group['title']) ? '<h3 style="margin-left: 220px;" id="apbct_setting_group__' . $group_name . '">' . $group['title'] . '</h3>' : '';
+        if ( $group_name === 'trusted_and_affiliate' ) {
+            $out = '<span id="trusted_and_affiliate__special_span" style="display: none">' . $out;
+        }
         echo Escape::escKsesPreset($out, 'apbct_settings__display__groups');
 
         do_settings_fields('cleantalk', 'apbct_section__' . $group_name);
@@ -1198,6 +1269,9 @@ function apbct_settings__display()
         }
 
         $out = ! empty($group['html_after']) ? $group['html_after'] : '';
+        if ( $group_name === 'trusted_and_affiliate' ) {
+            $out .= '</span>';
+        }
         echo Escape::escKsesPreset($out, 'apbct_settings__display__groups');
     }
 

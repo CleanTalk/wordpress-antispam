@@ -144,6 +144,8 @@ class Escape extends \Cleantalk\Common\Escape
                 'ul' => array(),
                 'span' => array(
                     'id' => true,
+                    'class' => true,
+                    'style' => true
                 ),
                 'button' => array(
                     'name' => true,
