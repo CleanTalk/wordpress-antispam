@@ -330,6 +330,10 @@ function apbct_init()
         add_action('wp_footer', 'apbct_hook__wp_footer', 1);
     }
 
+    if ( $apbct->settings['trusted_and_affiliate__footer'] === '1' ) {
+        add_action('wp_footer', 'apbct_hook__wp_footer_trusted_text', 999);
+    }
+
     if ( $apbct->settings['data__protect_logged_in'] != 1 && is_user_logged_in() ) {
         add_action('init', 'ct_contact_form_validate', 999);
     }
@@ -1529,4 +1533,22 @@ function apbct_shrotcode_handler__GDPR_public_notice__form($attrs)
     }
 
     return '<script ' . (class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '') . '>' . $out . '</script>';
+}
+
+function apbct_hook__wp_footer_trusted_text()
+{
+    //Protected by CleanTalk Anti-Spam
+    $style = 'font-size: small;
+                    display: inline-block;
+                    text-align: center;
+                    width: 100%;
+                    margin-bottom: 2pc';
+    $trusted_text = '<div style="' . $style . '">'
+        . '<p>'
+        . 'Protected by '
+        . '<a href="https://cleantalk.org/register?product_name=anti-spam">' . 'CleanTalk Anti-Spam'
+        . '</a>'
+        . '</p>'
+        . '</div>';
+    echo Escape::escKsesPreset($trusted_text, 'apbct_settings__display__groups');
 }

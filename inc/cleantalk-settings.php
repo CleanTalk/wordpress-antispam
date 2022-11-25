@@ -823,10 +823,7 @@ function apbct_settings__set_fields()
                         'cleantalk-spam-protect'
                     ),
                     'reverse_trigger' => true,
-                    'options'         => array(
-                        array('val' => 1, 'label' => __('On'), 'childrens_enable' => 0,),
-                        array('val' => 0, 'label' => __('Off'), 'childrens_enable' => 1,),
-                    ),
+                    'type' => 'checkbox'
                 ),
                 'trusted_and_affiliate__footer' => array(
                     'title'           => __('Add to the footer', 'cleantalk-spam-protect'),
@@ -837,6 +834,7 @@ function apbct_settings__set_fields()
                     'parent'          => '',
                     //'class'           => 'apbct_settings-field_wrapper--sub',
                     'reverse_trigger' => true,
+                    'type' => 'checkbox'
                 ),
                 'trusted_and_affiliate__under_forms' => array(
                     'title'           => __(
@@ -848,10 +846,7 @@ function apbct_settings__set_fields()
                         'cleantalk-spam-protect'
                     ),
                     'reverse_trigger' => true,
-                    'options'         => array(
-                        array('val' => 1, 'label' => __('On')),
-                        array('val' => 0, 'label' => __('Off')),
-                    ),
+                    'type' => 'checkbox'
                 ),
                 'trusted_and_affiliate__add_id'         => array(
                     'title'           => __(
