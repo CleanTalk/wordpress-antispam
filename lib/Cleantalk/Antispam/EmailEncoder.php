@@ -166,9 +166,9 @@ class EmailEncoder
      */
     public function decodeEmailFromPost()
     {
-        $this->encoded_emails_array = Post::get('encodedEmails');
-        $this->encoded_emails_array = str_replace('\\', '', $this->encoded_emails_array);
-        $this->encoded_emails_array = json_decode($this->encoded_emails_array, true);
+        $encoded_emails_array = Post::get('encodedEmails');
+        $encoded_emails_array = str_replace('\\', '', $encoded_emails_array);
+        $this->encoded_emails_array = json_decode($encoded_emails_array, true);
 
         foreach ( $this->encoded_emails_array as $_key => $encoded_email) {
             $this->decoded_emails_array[$encoded_email] = $this->decodeString($encoded_email, $this->secret_key);
@@ -195,7 +195,7 @@ class EmailEncoder
             return false;
         }
 
-        foreach ( $decoded_emails_array as $encoded_email => $decoded_email ) {
+        foreach ( $decoded_emails_array as $_encoded_email => $decoded_email ) {
             $result[] = strip_tags($decoded_email, '<a>');
         }
         return $result;
