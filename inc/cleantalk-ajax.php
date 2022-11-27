@@ -16,9 +16,6 @@ $_cleantalk_hooked_actions[] = 'rwp_ajax_action_rating'; //Don't check Reviewer 
 
 $_cleantalk_hooked_actions[] = 'ct_feedback_comment';
 
-/* MailChimp Premium*/
-add_filter('mc4wp_form_errors', 'ct_mc4wp_ajax_hook');
-
 /*hooks for Usernoise Form*/
 add_action('un_feedback_form_body', 'ct_add_hidden_fields', 1);
 add_filter('un_validate_feedback', 'ct_ajax_hook', 1, 2);

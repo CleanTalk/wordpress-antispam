@@ -457,6 +457,9 @@ add_filter('wpforms_process_initial_errors', 'apbct_form__WPForms__showResponse'
 add_filter('frm_entries_before_create', 'apbct_form__formidable__testSpam', 999999, 2);
 add_action('frm_entries_footer_scripts', 'apbct_form__formidable__footerScripts', 20, 2);
 
+/* MailChimp Premium */
+add_filter('mc4wp_form_errors', 'ct_mc4wp_hook');
+
 // Public actions
 if ( ! is_admin() && ! apbct_is_ajax() && ! apbct_is_customize_preview() ) {
     // Default search

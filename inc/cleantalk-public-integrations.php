@@ -3600,3 +3600,14 @@ function apbct__wc_add_spam_action_to_bulk_handle($redirect, $action, $ids)
         $redirect
     );
 }
+
+function ct_mc4wp_hook() {
+    $result = apbct_is_ajax() ? ct_ajax_hook() : ct_contact_form_validate();
+
+    // only return modified errors array when function returned a string value (the message key)
+    if ( is_string($result) ) {
+        $errors[] = $result;
+    }
+
+    return $errors;
+}
