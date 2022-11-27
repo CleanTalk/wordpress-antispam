@@ -3601,7 +3601,8 @@ function apbct__wc_add_spam_action_to_bulk_handle($redirect, $action, $ids)
     );
 }
 
-function ct_mc4wp_hook() {
+function ct_mc4wp_hook($errors)
+{
     $result = apbct_is_ajax() ? ct_ajax_hook() : ct_contact_form_validate();
 
     // only return modified errors array when function returned a string value (the message key)

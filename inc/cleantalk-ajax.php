@@ -235,26 +235,6 @@ function ct_user_register_ajaxlogin($user_id)
 }
 
 /**
- * Hook into MailChimp for WordPress `mc4wp_form_errors` filter.
- *
- * @param array $errors
- *
- * @return array
- * @throws Exception
- */
-function ct_mc4wp_ajax_hook(array $errors)
-{
-    $result = ct_ajax_hook();
-
-    // only return modified errors array when function returned a string value (the message key)
-    if ( is_string($result) ) {
-        $errors[] = $result;
-    }
-
-    return $errors;
-}
-
-/**
  * Main handler of ajax forms checking
  *
  * @param array|object $message_obj
