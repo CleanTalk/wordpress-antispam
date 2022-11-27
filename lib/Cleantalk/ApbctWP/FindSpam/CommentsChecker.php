@@ -74,7 +74,7 @@ class CommentsChecker extends Checker
         $offset = $commentsScanParameters->getOffset();
         $date_from = $commentsScanParameters->getFrom();
         $date_till = $commentsScanParameters->getTill();
-        $sql_where = "WHERE NOT comment_approved = 'spam'";
+        $sql_where = "WHERE NOT comment_approved = 'spam' AND NOT comment_approved = 'trash'";
         $sql_where .= " AND ( comment_type = 'comment' OR comment_type = 'trackback' OR comment_type = 'pings' )";
         if ($date_from && $date_till) {
             $date_from = date('Y-m-d', (int) strtotime($date_from)) . ' 00:00:00';
@@ -265,7 +265,7 @@ class CommentsChecker extends Checker
         /**
          * Total comments
          */
-        $total_comments = wp_count_comments()->total_comments;
+        $total_comments = wp_count_comments()->all;
 
         $return = array(
             'message' => '',
@@ -522,7 +522,7 @@ class CommentsChecker extends Checker
             }
 
             // Count spam
-            CommentsScanResponse::getInstance()->setSpam(count($marked_comment_ids));
+            CommentsScanResponse::getInstance()->updateSpam(count($marked_comment_ids));
         }
 
         // Count bad comments
