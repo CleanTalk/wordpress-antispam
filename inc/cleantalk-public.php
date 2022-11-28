@@ -1546,34 +1546,36 @@ function apbct_generate_trusted_text_html($type = 'div')
 
     $trusted_text = '';
 
+    $query_data = array(
+        'product_name'  => 'anti-spam',
+    );
+
     if ( $apbct->settings['trusted_and_affiliate__add_id'] === '1'
         && !empty($apbct->data['service_id']) ) {
-        $pid = '&pid=' . $apbct->data['service_id'];
-    } else {
-        $pid = '';
+        $query_data['pid'] = $apbct->data['service_id'];
     }
 
-    $cleantalk_refferal_link = 'https://cleantalk.org/register?product_name=anti-spam' . $pid;
+    $css_class = 'apbct-trusted-text--' . $type;
+    $cleantalk_tag_with_ref_link = '<a href="https://cleantalk.org/register?'
+        . http_build_query($query_data)
+        . '" target="_blank">'
+        . 'CleanTalk Anti-Spam'
+        . '</a>';
 
     if ( $type === 'div' ) {
-        $trusted_text = '<div class="apbct-trusted-text--div">'
+        $trusted_text = '<div class="' . $css_class . '">'
             . '<p>'
             . 'Protected by '
-            . '<a href="' . $cleantalk_refferal_link . '" target="_blank">' . 'CleanTalk Anti-Spam'
-            . '</a>'
+            . $cleantalk_tag_with_ref_link
             . '</p>'
             . '</div>';
     }
-    if ( $type === 'label' ) {
-        $trusted_text = '<label for="hidden_trusted_text" type="hidden" class="apbct-trusted-text--label">'
-            //. '<p>'
+    if ( strpos($type, 'label') !== false ) {
+        $trusted_text = '<label for="hidden_trusted_text" type="hidden" class="' . $css_class . '">'
             . 'Protected by '
-            . '<a href="' . $cleantalk_refferal_link . '" target="_blank">' . 'CleanTalk Anti-Spam'
-            . '</a>'
-            //. '</p>'
+            . $cleantalk_tag_with_ref_link
             . '</label>'
-            . '<input type="hidden" name="hidden_trusted_text" id="hidden_trusted_text">'
-        ;
+            . '<input type="hidden" name="hidden_trusted_text" id="hidden_trusted_text">';
     }
     return $trusted_text;
 }

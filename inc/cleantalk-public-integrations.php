@@ -1914,7 +1914,12 @@ function apbct_form__contactForm7__addField($html)
 
     $html .= ct_add_hidden_fields($ct_checkjs_cf7, true);
     $html .= ct_add_honeypot_field('wp_contact_form_7');
-
+    if ( $apbct->settings['trusted_and_affiliate__under_forms'] === '1' ) {
+        $html .= Escape::escKsesPreset(
+            apbct_generate_trusted_text_html('label_left'),
+            'apbct_public__trusted_text'
+        );
+    }
     return $html;
 }
 
