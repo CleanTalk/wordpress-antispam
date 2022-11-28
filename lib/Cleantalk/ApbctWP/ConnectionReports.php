@@ -370,6 +370,7 @@ class ConnectionReports
                 <td><b>Page URL</b></td>
                 <td><b>Library report</b></td>
                 <td><b>Server IP</b></td>
+                <td><b>Blocked via JS</b></td>
               </tr>
               ';
         $counter = 0;
@@ -377,10 +378,11 @@ class ConnectionReports
         foreach ( $selection as $_key => $report ) {
             $message .= '<tr>'
                 . '<td>' . (++$counter) . '.</td>'
-                . '<td>' . $report['date'] . '</td>'
+                . '<td>' . date('m-d-y H:i:s', $report['date']) . '</td>'
                 . '<td>' . $report['page_url'] . '</td>'
                 . '<td>' . $report['lib_report'] . '</td>'
                 . '<td>' . $report['failed_work_urls'] . '</td>'
+                . '<td>' . ($report['js_block'] === '1' ? 'Yes' : 'No') . '</td>'
                 . '</tr>';
         }
 
@@ -402,7 +404,7 @@ class ConnectionReports
 
         $message .= '</body></html>';
 
-        $headers = "Content-type: text/html; charset=windows-1251 \r\n";
+        $headers = "Content-type: text/html; charset=utf-8 \r\n";
         $headers .= 'From: ' . ct_get_admin_email();
 
         /** @psalm-suppress UnusedFunctionCall */
