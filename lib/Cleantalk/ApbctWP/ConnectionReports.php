@@ -149,6 +149,7 @@ class ConnectionReports
         /**
          * keep 20 newest records
          */
+        $this->getReportsDataFromDb();
 
         if ( count($this->reports_data) >= $this->reports_limit ) {
             $overlimit = count($this->reports_data) - $this->reports_limit;
@@ -418,6 +419,7 @@ class ConnectionReports
      */
     public function sendUnsentReports()
     {
+        $this->getReportsDataFromDb();
         $unsent_reports_ids = $this->getUnsentReportsIds();
         if ( !empty($unsent_reports_ids) ) {
             /**
