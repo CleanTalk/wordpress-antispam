@@ -1,5 +1,6 @@
 <?php
 
+use Cleantalk\ApbctWP\Escape;
 use Cleantalk\ApbctWP\Helper;
 use Cleantalk\ApbctWP\Sanitize;
 use Cleantalk\ApbctWP\State;
@@ -1256,7 +1257,12 @@ function ct_register_form()
 
     ct_add_hidden_fields($ct_checkjs_register_form, false, false, false, false);
     echo ct_add_honeypot_field('wp_register');
-
+    if ( $apbct->settings['trusted_and_affiliate__under_forms'] === '1' ) {
+        echo Escape::escKsesPreset(
+            apbct_generate_trusted_text_html('label'),
+            'apbct_public__trusted_text'
+        );
+    }
     return null;
 }
 

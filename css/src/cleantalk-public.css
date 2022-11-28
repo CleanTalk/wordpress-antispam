@@ -65,3 +65,19 @@ input[class*='apbct'].apbct_special_field{
         left: 10px;
         transform: rotate(135deg);
     }
+
+.apbct-trusted-text--div{
+    font-size: small !important;
+    display: inline-block;
+    text-align: center;
+    width: 100%;
+    margin-bottom: 2pc;
+}
+
+.apbct-trusted-text--label{
+    font-size: small !important;
+    display: inline-block;
+    text-align: center;
+    width: 100%;
+    padding: 5px 0 5px 0;
+}

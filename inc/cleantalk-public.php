@@ -1537,18 +1537,43 @@ function apbct_shrotcode_handler__GDPR_public_notice__form($attrs)
 
 function apbct_hook__wp_footer_trusted_text()
 {
-    //Protected by CleanTalk Anti-Spam
-    $style = 'font-size: small;
-                    display: inline-block;
-                    text-align: center;
-                    width: 100%;
-                    margin-bottom: 2pc';
-    $trusted_text = '<div style="' . $style . '">'
-        . '<p>'
-        . 'Protected by '
-        . '<a href="https://cleantalk.org/register?product_name=anti-spam">' . 'CleanTalk Anti-Spam'
-        . '</a>'
-        . '</p>'
-        . '</div>';
-    echo Escape::escKsesPreset($trusted_text, 'apbct_settings__display__groups');
+    echo Escape::escKsesPreset(apbct_generate_trusted_text_html(), 'apbct_public__trusted_text');
+}
+
+function apbct_generate_trusted_text_html($type = 'div')
+{
+    global $apbct;
+
+    $trusted_text = '';
+
+    if ( $apbct->settings['trusted_and_affiliate__add_id'] === '1'
+        && !empty($apbct->data['service_id']) ) {
+        $pid = '&pid=' . $apbct->data['service_id'];
+    } else {
+        $pid = '';
+    }
+
+    $cleantalk_refferal_link = 'https://cleantalk.org/register?product_name=anti-spam' . $pid;
+
+    if ( $type === 'div' ) {
+        $trusted_text = '<div class="apbct-trusted-text--div">'
+            . '<p>'
+            . 'Protected by '
+            . '<a href="' . $cleantalk_refferal_link . '" target="_blank">' . 'CleanTalk Anti-Spam'
+            . '</a>'
+            . '</p>'
+            . '</div>';
+    }
+    if ( $type === 'label' ) {
+        $trusted_text = '<label for="hidden_trusted_text" type="hidden" class="apbct-trusted-text--label">'
+            //. '<p>'
+            . 'Protected by '
+            . '<a href="' . $cleantalk_refferal_link . '" target="_blank">' . 'CleanTalk Anti-Spam'
+            . '</a>'
+            //. '</p>'
+            . '</label>'
+            . '<input type="hidden" name="hidden_trusted_text" id="hidden_trusted_text">'
+        ;
+    }
+    return $trusted_text;
 }
