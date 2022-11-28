@@ -822,8 +822,16 @@ function apbct_settings__set_fields()
                         'You can place this shortcode anywhere on your website. Adds trust text stating that the website is protected from spam by CleanTalk Anti-Spam protection',
                         'cleantalk-spam-protect'
                     ),
+                    'childrens' => 'trusted_and_affiliate__shortcode_tag',
                     'reverse_trigger' => true,
                     'type' => 'checkbox'
+                ),
+                'trusted_and_affiliate__shortcode_tag'                    => array(
+                    'type'        => 'affiliate_shortcode',
+                    'title'       => __('<- Copy this to the shortcode handler.', 'cleantalk-spam-protect'),
+                    'parent'      => 'trusted_and_affiliate__shortcode',
+                    'class'       => 'apbct_settings-field_wrapper--sub',
+                    'disabled' => 'test'
                 ),
                 'trusted_and_affiliate__footer' => array(
                     'title'           => __('Add to the footer', 'cleantalk-spam-protect'),
@@ -2222,6 +2230,33 @@ function apbct_settings__field__draw($params = array())
             echo '<div class="apbct_settings-field_description">'
                  . $params['description']
                  . '</div>';
+            break;
+
+        // Text type
+        case 'affiliate_shortcode':
+            // Popup description
+            $popup = '';
+            if ( isset($params['long_description']) ) {
+                $popup = '<i setting="' . $params['name'] . '" class="apbct_settings-long_description---show apbct-icon-help-circled"></i>';
+            }
+            //ESC NEED
+            echo '<input
+					type="text"
+					id="apbct_setting_' . $params['name'] . '"
+					name="cleantalk_settings[' . $params['name'] . ']"'
+                . " class='apbct_setting_{$params['type']} apbct_setting---{$params['name']}'"
+                . ' value="[cleantalk_affiliate_link]" '
+                . "readonly"
+                . ($params['required'] ? ' required="required"' : '')
+                . ($params['childrens'] ? ' onchange="apbctSettingsDependencies(\'' . $childrens . '\')"' : '')
+                . ' />'
+                . '&nbsp;'
+                . '<label for="apbct_setting_' . $params['name'] . '" class="apbct_setting-field_title--' . $params['type'] . '">'
+                . $params['title'] . $popup
+                . '</label>';
+            echo '<div class="apbct_settings-field_description">'
+                . $params['description']
+                . '</div>';
             break;
 
         // Textarea type

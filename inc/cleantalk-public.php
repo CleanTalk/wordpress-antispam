@@ -370,6 +370,10 @@ function apbct_init()
     ) {
         ct_contact_form_validate();
     }
+
+    if ( $apbct->settings['trusted_and_affiliate__shortcode'] === '1' ) {
+        add_shortcode('cleantalk_affiliate_link', 'apbct_trusted_text_shortcode_handler');
+    }
 }
 
 function apbct_buffer__start()
@@ -1535,9 +1539,18 @@ function apbct_shrotcode_handler__GDPR_public_notice__form($attrs)
     return '<script ' . (class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '') . '>' . $out . '</script>';
 }
 
+/**
+ * Trusted and affiliate text handlers
+ */
+
 function apbct_hook__wp_footer_trusted_text()
 {
     echo Escape::escKsesPreset(apbct_generate_trusted_text_html(), 'apbct_public__trusted_text');
+}
+
+function apbct_trusted_text_shortcode_handler()
+{
+    return apbct_generate_trusted_text_html('span');
 }
 
 function apbct_generate_trusted_text_html($type = 'div')
@@ -1576,6 +1589,12 @@ function apbct_generate_trusted_text_html($type = 'div')
             . $cleantalk_tag_with_ref_link
             . '</label>'
             . '<input type="hidden" name="hidden_trusted_text" id="hidden_trusted_text">';
+    }
+    if ( $type === 'span' ) {
+        $trusted_text = '<span class="' . $css_class . '">'
+            . 'Protected by '
+            . $cleantalk_tag_with_ref_link
+            . '</span>';
     }
     return $trusted_text;
 }

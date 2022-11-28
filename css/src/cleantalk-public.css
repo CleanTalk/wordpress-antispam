@@ -88,3 +88,9 @@ input[class*='apbct'].apbct_special_field{
     text-align: left;
     padding: 5px 0 5px 0;
 }
+
+.apbct-trusted-text--span{
+    font-size: small !important;
+    display: inline-block;
+    text-align: center;
+}
