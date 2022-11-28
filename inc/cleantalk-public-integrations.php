@@ -2602,8 +2602,14 @@ function ct_quform_post_validate($result, $form)
  */
 function ct_si_contact_display_after_fields($string = '', $_style = '', $_form_errors = array(), $_form_id_num = 0)
 {
+    global $apbct;
     $string .= ct_add_hidden_fields('ct_checkjs', true);
-
+    if ( $apbct->settings['trusted_and_affiliate__under_forms'] === '1' ) {
+        $string .= Escape::escKsesPreset(
+            apbct_generate_trusted_text_html('label_left'),
+            'apbct_public__trusted_text'
+        );
+    }
     return $string;
 }
 
