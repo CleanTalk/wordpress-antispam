@@ -638,6 +638,13 @@ function ct_comment_form($_post_id)
 
     ct_add_hidden_fields();
 
+    if ( $apbct->settings['trusted_and_affiliate__under_forms'] === '1' ) {
+        echo Escape::escKsesPreset(
+            apbct_generate_trusted_text_html('label'),
+            'apbct_public__trusted_text'
+        );
+    }
+
     return null;
 }
 
