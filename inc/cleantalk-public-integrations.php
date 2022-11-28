@@ -2770,6 +2770,7 @@ function ct_check_wplp()
  */
 function apbct_form__gravityForms__addField($form_string, $form)
 {
+    global $apbct;
     $ct_hidden_field = 'ct_checkjs';
 
     // Do not add a hidden field twice.
@@ -2786,6 +2787,12 @@ function apbct_form__gravityForms__addField($form_string, $form)
 
     // Adding field for multipage form. Look for cleantalk.php -> apbct_cookie();
     $append_string = isset($form['lastPageButton']) ? "<input type='hidden' name='ct_multipage_form' value='yes'>" : '';
+    if ( $apbct->settings['trusted_and_affiliate__under_forms'] === '1' ) {
+        $append_string .= Escape::escKsesPreset(
+            apbct_generate_trusted_text_html('label_left'),
+            'apbct_public__trusted_text'
+        );
+    }
     $form_string   = str_replace($search, $append_string . $search, $form_string);
 
     return $form_string;
