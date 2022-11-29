@@ -335,6 +335,7 @@ class ConnectionReports
     /**
      * Send email to welcome@cleantlk.org about failed connection reports
      * @param array $unsent_reports_ids IDs of reports that still not sent
+     * @param bool $is_cron_task Set if this is a cron task
      * @return bool
      * @psalm-suppress PossiblyUnusedMethod
      */
@@ -419,6 +420,7 @@ class ConnectionReports
 
     /**
      * Init reports sending
+     * @param bool $is_cron_task Set if this is a cron task
      * @return string Used just to debug CRON task
      * @psalm-suppress PossiblyUnusedMethod
      */
