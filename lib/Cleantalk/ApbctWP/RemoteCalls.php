@@ -226,7 +226,7 @@ class RemoteCalls
         $out['errors']             = $apbct->errors;
         $out['debug']              = $apbct->debug;
         $out['queue']              = get_option('cleantalk_sfw_update_queue');
-        $out['connection_reports'] = get_option('cleantalk_connection_reports');
+        $out['connection_reports'] = $apbct->getConnectionReports()->remoteCallOutput();
         $out['servers_connection'] = apbct_test_connection();
 
         if ( APBCT_WPMS ) {

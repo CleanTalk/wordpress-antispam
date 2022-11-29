@@ -185,12 +185,6 @@
 	<script>
 		var ct_date = new Date;
 
-		function set_spamFireWallCookie(cookie_name, cookie_value) {
-			var date = new Date;
-			date.setDate(date.getDate() + 30);
-			ctSetCookie( cookie_name, escape(cookie_value), date.toUTCString() );
-		}
-
 		function get_current_url() {
 			var apbctSfwRandomGet = '';
 			if( +ctPublicFunctions.sfw__random_get ) {
@@ -246,9 +240,16 @@
 		document.getElementById('js_info').style.display = 'none';
 		document.getElementById('js_passed').style.display = 'block';
 		document.getElementById('curr_date').innerHTML = ct_date.toGMTString();
-		set_spamFireWallCookie('{COOKIE_PREFIX}ct_sfw_pass_key','{COOKIE_SFW}');
-		set_spamFireWallCookie('{COOKIE_PREFIX}wordpress_apbct_antibot','{COOKIE_ANTICRAWLER}');
-		set_spamFireWallCookie('{COOKIE_PREFIX}ct_sfw_passed','1');
+
+		var date = new Date;
+		date.setDate(date.getDate() + 30);
+		ctSetCookie(
+			[
+				['{COOKIE_PREFIX}ct_sfw_pass_key', escape('{COOKIE_SFW}'), date.toUTCString()],
+				['{COOKIE_PREFIX}wordpress_apbct_antibot', escape('{COOKIE_ANTICRAWLER}'), date.toUTCString()],
+				['{COOKIE_PREFIX}ct_sfw_passed', '1', date.toUTCString()]
+			]
+		);
 
 		if(location.search.search('debug=1') === -1) {
 			var apbctSfwRandomGet = '';
