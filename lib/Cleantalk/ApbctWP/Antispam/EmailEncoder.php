@@ -51,6 +51,7 @@ class EmailEncoder extends \Cleantalk\Antispam\EmailEncoder
         $ct_request = new CleantalkRequest($params);
 
         $ct = new Cleantalk();
+        $this->has_connection_error = false;
 
         // Options store url without scheme because of DB error with ''://'
         $config             = ct_get_server();
@@ -64,7 +65,7 @@ class EmailEncoder extends \Cleantalk\Antispam\EmailEncoder
         // Send error as comment in this case
         if ( ! empty($api_response->errstr)) {
             $this->comment = $api_response->errstr;
-
+            $this->has_connection_error = true;
             return true;
         }
 
@@ -94,7 +95,7 @@ class EmailEncoder extends \Cleantalk\Antispam\EmailEncoder
                 'show_comment' => !$is_allowed,
                 'comment' => $this->comment,
                 'encoded_email' => strip_tags($encoded_email, '<a>'),
-                'decoded_email' => strip_tags($decoded_email, '<a>'),
+                'decoded_email' => $is_allowed ? strip_tags($decoded_email, '<a>') : '',
             );
         }
         return $result;

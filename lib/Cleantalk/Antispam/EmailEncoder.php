@@ -55,6 +55,7 @@ class EmailEncoder
      * @var string
      */
     private $temp_content;
+    protected $has_connection_error;
 
     /**
      * @inheritDoc
@@ -152,11 +153,19 @@ class EmailEncoder
         }
         $this->decoded_emails_array = $this->decodeEmailFromPost();
         if ( $this->checkRequest() ) {
+            //has error response from cloud
+            if ( $this->has_connection_error ) {
+                $this->response = $this->compileResponse($this->decoded_emails_array, false);
+                wp_send_json_error($this->response);
+            }
+            //decoding is allowed by cloud
             $this->response = $this->compileResponse($this->decoded_emails_array, true);
             wp_send_json_success($this->response);
         }
-        $this->response = $this->compileResponse(array(), false);
-        wp_send_json_error($this->response);
+        //decoding is not allowed by cloud
+        $this->response = $this->compileResponse($this->decoded_emails_array, false);
+        //important - frontend waits success true to handle response
+        wp_send_json_success($this->response);
     }
 
     /**

@@ -500,7 +500,7 @@ function apbctEmailEncoderCallbackBulk(result, encodedEmailNodes, click_source){
 			ctShowDecodeComment('Blocked: ' + result.data[0].comment)
 		} else {
 			resetEncodedNodes()
-			ctShowDecodeComment('Cannot connect with CleanTalk server.')
+			ctShowDecodeComment('Cannot connect with CleanTalk server: ' + result.data[0].comment)
 		}
 	}
 }
