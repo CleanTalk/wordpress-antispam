@@ -1793,9 +1793,6 @@ function apbct_sfw_private_records_handler($action, $test_data = null)
         $metadata = !empty($test_data) ? $test_data : Post::get('metadata');
 
         if ( !empty($metadata) ) {
-            if ( !is_array($metadata) ) {
-                throw new InvalidArgumentException($error . 'metadata is not array');
-            }
             $metadata = json_decode(stripslashes($metadata), true);
             if ( $metadata === 'NULL' || $metadata === null ) {
                 throw new InvalidArgumentException($error . 'metadata JSON decoding failed');
