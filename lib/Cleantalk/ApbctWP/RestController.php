@@ -81,8 +81,8 @@ class RestController extends \WP_REST_Controller
                     return wp_verify_nonce($request->get_header('x_wp_nonce'), 'wp_rest');
                 },
                 'args'                => array(
-                    'encodedEmail' => array(
-                        'type'     => 'string',
+                    'encodedEmails' => array(
+                        'type'     => 'array',
                         'required' => true,
                     ),
                 ),

@@ -4,7 +4,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 5.189.1-dev
+  Version: 6.0
   Author: СleanTalk <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -193,6 +193,8 @@ apbct_update_actions();
 add_action('init', function () {
     global $apbct;
     // Self cron
+    // Connection reports
+    $apbct->setConnectionReports();
     $ct_cron = new Cron();
     $tasks_to_run = $ct_cron->checkTasks(); // Check for current tasks. Drop tasks inner counters.
     if (
@@ -2460,88 +2462,10 @@ function ct_account_status_check($api_key = null, $process_errors = true)
     return $result;
 }
 
-/**
- * Send failed connection reports if exist and still unsent.
- */
-function ct_mail_send_connection_report()
+function ct_cron_send_connection_report_email()
 {
     global $apbct;
-
-    if ( ( $apbct->settings['misc__send_connection_reports'] == 1 && isset($apbct->connection_reports['negative']) && $apbct->connection_reports['negative'] > 0 ) || !empty(Get::get('ct_send_connection_report')) ) {
-        //skip empty reports for cron job
-        $unsent_exist = false;
-        foreach ( $apbct->connection_reports['negative_report'] as $_key => $report ) {
-            if ( $report['is_sent'] == false ) {
-                $unsent_exist = true;
-            }
-        }
-        if ( ! $unsent_exist ) {
-            return;
-        }
-        $to = "welcome@cleantalk.org";
-        $subject = "Connection report for " . Server::get('HTTP_HOST');
-        $message = '
-				<html lang="en">
-				    <head>
-				        <title></title>
-				    </head>
-				    <body>
-				        <p>From '
-            . $apbct->connection_reports['since']
-            . ' to ' . date('d M') . ' has been made '
-            . ( $apbct->connection_reports['success'] + $apbct->connection_reports['negative'] )
-            . ' calls, where ' . $apbct->connection_reports['success'] . ' were success and '
-            . $apbct->connection_reports['negative'] . ' were negative
-				        </p>
-				        <p>Negative report:</p>
-				        <table>  <tr>
-				    <td>&nbsp;</td>
-				    <td><b>Date</b></td>
-				    <td><b>Page URL</b></td>
-				    <td><b>Library report</b></td>
-				    <td><b>Server IP</b></td>
-				  </tr>
-				  ';
-        $counter = 0;
-        foreach ( $apbct->connection_reports['negative_report'] as $_key => $report ) {
-            if ( !$report['is_sent'] ) {
-                $message .= '<tr>'
-                    . '<td>' . ( ++$counter ) . '.</td>'
-                    . '<td>' . $report['date'] . '</td>'
-                    . '<td>' . $report['page_url'] . '</td>'
-                    . '<td>' . $report['lib_report'] . '</td>'
-                    . '<td>' . $report['work_url'] . '</td>'
-                    . '</tr>';
-            }
-        }
-        $message .= '</table>';
-
-        $message .= '<br>';
-        $show_connection_reports_link =
-            substr(get_option('home'), -1) === '/' ? get_option('home') : get_option('home') . '/'
-                . '?'
-                . http_build_query([
-                    'plugin_name' => 'apbct',
-                    'spbc_remote_call_token' => md5($apbct->api_key),
-                    'spbc_remote_call_action' => 'debug',
-                    'show_only' => 'connection_reports',
-                ]);
-        $message .= '<a href="' . $show_connection_reports_link . '" target="_blank">Show connection reports with remote call</a>';
-        $message .= '<br>';
-
-        $message .= '</body></html>';
-
-        $headers = "Content-type: text/html; charset=windows-1251 \r\n";
-        $headers .= 'From: ' . ct_get_admin_email();
-        /** @psalm-suppress UnusedFunctionCall */
-        if ( wp_mail($to, $subject, $message, $headers) ) {
-            foreach ( $apbct->storage['connection_reports']['negative_report'] as $_key => &$report ) {
-                $report['is_sent'] = true;
-            }
-            unset($report);
-            $apbct->save('connection_reports', true, false);
-        }
-    }
+    $apbct->getConnectionReports()->sendUnsentReports(true);
 }
 
 /**

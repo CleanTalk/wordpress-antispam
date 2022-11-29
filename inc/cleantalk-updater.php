@@ -1174,3 +1174,23 @@ function apbct_update_to_5_184_2()
         $apbct->saveSettings();
     }
 }
+
+function apbct_update_to_5_190_0()
+{
+    global $apbct;
+    if ( isset($apbct->data['connection_reports']) ) {
+        unset($apbct->data['connection_reports']);
+        $apbct->save('data');
+    }
+
+    delete_option('cleantalk_connection_reports');
+
+    $cron = new Cron();
+    $cron->removeTask('send_connection_report');
+    $cron->addTask(
+        'send_connection_report',
+        'ct_cron_send_connection_report_email',
+        86400,
+        time() + 3500
+    );
+}
