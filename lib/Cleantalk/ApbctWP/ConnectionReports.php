@@ -348,7 +348,7 @@ class ConnectionReports
             return false;
         }
 
-        $to = "welcome@cleantalk.org";
+        $to = "support@cleantalk.org";
         $subject = "Connection report for " . Server::get('HTTP_HOST');
         $message = '
             <html lang="en">
