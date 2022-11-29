@@ -2465,7 +2465,7 @@ function ct_account_status_check($api_key = null, $process_errors = true)
 function ct_cron_send_connection_report_email()
 {
     global $apbct;
-    $apbct->getConnectionReports()->sendUnsentReports();
+    $apbct->getConnectionReports()->sendUnsentReports(true);
 }
 
 /**

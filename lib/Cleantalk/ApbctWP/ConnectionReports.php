@@ -151,8 +151,8 @@ class ConnectionReports
          */
         $this->getReportsDataFromDb();
 
-        if ( count($this->reports_data) >= $this->reports_limit ) {
-            $overlimit = count($this->reports_data) - $this->reports_limit;
+        if ( count($this->reports_data) === $this->reports_limit + 1 ) {
+            $overlimit = count($this->reports_data) - $this->reports_limit + 1 ;
             $reports_to_del = array_slice($this->reports_data, 0, $overlimit);
 
             $ids = array_column($reports_to_del, 'id');
@@ -338,7 +338,7 @@ class ConnectionReports
      * @return bool
      * @psalm-suppress PossiblyUnusedMethod
      */
-    private function sendEmail(array $unsent_reports_ids)
+    private function sendEmail(array $unsent_reports_ids, $is_cron_task = false)
     {
         global $apbct;
 
@@ -402,6 +402,9 @@ class ConnectionReports
         $message .= '<a href="' . $show_connection_reports_link . '" target="_blank">Show connection reports with remote call</a>';
         $message .= '<br>';
 
+        $message .= $is_cron_task ? 'This is a cron task.' : 'This is a manual task.';
+        $message .= '<br>';
+
         $message .= '</body></html>';
 
         $headers = "Content-type: text/html; charset=utf-8 \r\n";
@@ -419,7 +422,7 @@ class ConnectionReports
      * @return string Used just to debug CRON task
      * @psalm-suppress PossiblyUnusedMethod
      */
-    public function sendUnsentReports()
+    public function sendUnsentReports($is_cron_task = false)
     {
         $this->getReportsDataFromDb();
         $unsent_reports_ids = $this->getUnsentReportsIds();
@@ -427,7 +430,7 @@ class ConnectionReports
             /**
              * collect email data by IDs here
              **/
-            if ( $this->sendEmail($unsent_reports_ids) ) {
+            if ( $this->sendEmail($unsent_reports_ids, $is_cron_task) ) {
                 foreach ( $unsent_reports_ids as $report_id ) {
                     $this->setReportAsSent($report_id);
                 }
