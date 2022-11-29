@@ -189,7 +189,12 @@ function apbct_settings__set_fields()
             'description'    => '',
             'html_before'    => '<hr><br>'
                                 . '<span id="ct_adv_showhide" class="apbct_bottom_links--left">'
-                                . '<a href="#" class="apbct_color--gray" onclick="event.preventDefault(); apbct_show_hide_elem(\'apbct_settings__advanced_settings\');">'
+                                . '<a href="#" class="apbct_color--gray" onclick="'
+                                    . 'event.preventDefault();'
+                                    . 'apbct_show_hide_elem(\'apbct_settings__advanced_settings\');'
+                                    . 'if (document.getElementById(\'trusted_and_affiliate__special_span\').style.display !== \'none\'){'
+                                    . 'apbct_show_hide_elem(\'trusted_and_affiliate__special_span\')}'
+                                . '">'
                                 . __('Advanced settings', 'cleantalk-spam-protect')
                                 . '</a>'
                                 . '</span>'
@@ -199,7 +204,12 @@ function apbct_settings__set_fields()
                                 . '</a>'
                                 . '</span>'
                                 . '<span id="ct_trusted_text_showhide" class="apbct_bottom_links--other">'
-                                . '<a href="#" class="apbct_color--gray" onclick="event.preventDefault(); apbct_show_hide_elem(\'trusted_and_affiliate__special_span\');">'
+                                . '<a href="#" class="apbct_color--gray" onclick="'
+                                . 'event.preventDefault();'
+                                . 'apbct_show_hide_elem(\'trusted_and_affiliate__special_span\');'
+                                . 'if (document.getElementById(\'apbct_settings__advanced_settings\').style.display !== \'none\'){'
+                                . 'apbct_show_hide_elem(\'apbct_settings__advanced_settings\')}'
+                                . '">'
                                 . __('Trust text, affiliate settings', 'cleantalk-spam-protect')
                                 . '</a>'
                                 . '</span>'
@@ -828,7 +838,7 @@ function apbct_settings__set_fields()
                 ),
                 'trusted_and_affiliate__shortcode_tag'                    => array(
                     'type'        => 'affiliate_shortcode',
-                    'title'       => __('<- Copy this to the shortcode handler.', 'cleantalk-spam-protect'),
+                    'title'       => __('<- Copy this text and place shortcode wherever you need.', 'cleantalk-spam-protect'),
                     'parent'      => 'trusted_and_affiliate__shortcode',
                     'class'       => 'apbct_settings-field_wrapper--sub',
                     'disabled' => 'test'
@@ -858,11 +868,11 @@ function apbct_settings__set_fields()
                 ),
                 'trusted_and_affiliate__add_id'         => array(
                     'title'           => __(
-                        'Add your affiliate ID to the link placed in the trust text. Terms of the affiliate program here',
+                        'Add your affiliate ID to the link placed in the trust text.',
                         'cleantalk-spam-protect'
                     ),
                     'description'     => __(
-                        'If you check this option or checkbox, then your affiliate ID will be added to the referral link.',
+                        'If you check this option or checkbox, then your affiliate ID will be added to the referral link. Terms of the {CT_AFFILIATE_TERMS}.',
                         'cleantalk-spam-protect'
                     ),
                     'reverse_trigger' => false,
@@ -1253,15 +1263,15 @@ function apbct_settings__display()
                            . '</button></div>';
 
     foreach ( $apbct->settings_fields_in_groups as $group_name => $group ) {
+        if ( $group_name === 'trusted_and_affiliate' ) {
+            continue;
+        }
         //html_before
         $out = ! empty($group['html_before']) ? $group['html_before'] : '';
         echo Escape::escKsesPreset($out, 'apbct_settings__display__groups');
 
         //title
         $out = ! empty($group['title']) ? '<h3 style="margin-left: 220px;" id="apbct_setting_group__' . $group_name . '">' . $group['title'] . '</h3>' : '';
-        if ( $group_name === 'trusted_and_affiliate' ) {
-            $out = '<span id="trusted_and_affiliate__special_span" style="display: none">' . $out;
-        }
         echo Escape::escKsesPreset($out, 'apbct_settings__display__groups');
 
         do_settings_fields('cleantalk', 'apbct_section__' . $group_name);
@@ -1272,13 +1282,38 @@ function apbct_settings__display()
         }
 
         $out = ! empty($group['html_after']) ? $group['html_after'] : '';
-        if ( $group_name === 'trusted_and_affiliate' ) {
-            $out .= '</span>';
-        }
+
         echo Escape::escKsesPreset($out, 'apbct_settings__display__groups');
     }
 
-    echo '<div id="apbct_settings__after_advanced_settings"></div>';
+    echo '<div id="apbct_settings__after_advanced_settings">';
+    /**
+     * Affiliate section start
+     */
+    $group = $apbct->settings_fields_in_groups['trusted_and_affiliate'];
+    //html_before
+    $out = ! empty($group['html_before']) ? $group['html_before'] : '';
+    echo Escape::escKsesPreset($out, 'apbct_settings__display__groups');
+
+    //title
+    $out = ! empty($group['title']) ? '<h3 style="margin-left: 220px;" id="apbct_setting_group__' . $group_name . '">' . $group['title'] . '</h3>' : '';
+    $out = '<span id="trusted_and_affiliate__special_span" style="display: none">' . $out;
+    echo Escape::escKsesPreset($out, 'apbct_settings__display__groups');
+
+    do_settings_fields('cleantalk', 'apbct_section__trusted_and_affiliate');
+
+    //html_after
+    if ( ! empty($group['html_after']) && strpos($group['html_after'], '{HIDDEN_SECTION_NAV}') !== false ) {
+        $group['html_after'] = str_replace('{HIDDEN_SECTION_NAV}', $hidden_groups, $group['html_after']);
+    }
+
+    $out = ! empty($group['html_after']) ? $group['html_after'] : '';
+    $out .= '</span>';
+    echo Escape::escKsesPreset($out, 'apbct_settings__display__groups');
+    /**
+     * Affiliate end
+     */
+    echo '</div>';
 
     echo '<button id="apbct_settings__main_save_button" name="submit" class="cleantalk_link cleantalk_link-manual" value="save_changes">'
          . __('Save Changes')
@@ -2106,6 +2141,8 @@ function apbct_settings__field__draw($params = array())
                  . $params['title']
                  . '</label>'
                  . $popup;
+            $href = '<a href="https://cleantalk.org/my/partners" target="_blank">affiliate program are here</a>';
+            $params['description'] = str_replace('{CT_AFFILIATE_TERMS}', $href, $params['description']);
             echo '<div class="apbct_settings-field_description">'
                  . $params['description']
                  . '</div>';
