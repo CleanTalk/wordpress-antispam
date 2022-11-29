@@ -252,9 +252,6 @@ function apbct_base_call($params = array(), $reg_flag = false)
     $apbct->stats['last_request']['server'] = $ct->work_url;
     $apbct->save('stats');
 
-    // Add a connection report
-    apbct_add_connection_report($ct, $ct_request, $ct_result);
-
     if ( $ct->server_change ) {
         update_option(
             'cleantalk_server',
@@ -268,7 +265,8 @@ function apbct_base_call($params = array(), $reg_flag = false)
         $cron->updateTask('rotate_moderate', 'apbct_rotate_moderate', 86400); // Rotate moderate server
     }
 
-    $ct_result = ct_change_plugin_resonse($ct_result, $ct_request->js_on);
+    //alternative checks and connection report handler
+    $ct_result = ct_checks_on_cleantalk_errors($ct_request, $ct_result);
 
     // Restart submit form counter for failed requests
     if ( $ct_result->allow == 0 ) {
@@ -287,61 +285,6 @@ function apbct_base_call($params = array(), $reg_flag = false)
     }
 
     return array('ct' => $ct, 'ct_result' => $ct_result);
-}
-
-/**
- * Save and rotate connection reports
- *
- * @param Cleantalk         $cleantalk
- * @param CleantalkRequest  $request
- * @param CleantalkResponse $request_response
- *
- * @return void
- */
-function apbct_add_connection_report(
-    Cleantalk $cleantalk,
-    CleantalkRequest $request,
-    CleantalkResponse $request_response
-) {
-    global $apbct;
-
-    // if not defined, reset the connection reports
-    if ( empty(Helper::arrayObjectToArray($apbct->connection_reports)) ) {
-        $apbct->drop('connection_reports');
-    }
-
-    // if not defined, set the gathering connection report start date
-    if ( empty($apbct->connection_reports['since']) ) {
-        $apbct->connection_reports['since'] = date('d M');
-    }
-
-    // Succeeded connection
-    if ( $request_response->errno === 0 && empty($request_response->errstr) ) {
-        $apbct->connection_reports['success']++;
-
-        // Failed to connect. Add a negative report
-    } else {
-        $apbct->connection_reports['negative']++;
-        $apbct->connection_reports['negative_report'][] = array(
-            'date' => date("Y-m-d H:i:s"),
-            'page_url' => get_site_url() . Server::get('REQUEST_URI'),
-            'lib_report' => $request_response->errstr,
-            'work_url' => $cleantalk->work_url,
-            'content' => $request,
-            'is_sent' => false
-        );
-
-        // Rotate negative reports. Save only last 20
-        if ( count($apbct->connection_reports['negative_report']) > 20 ) {
-            $apbct->connection_reports['negative_report'] = array_slice(
-                $apbct->connection_reports['negative_report'],
-                -20,
-                20
-            );
-        }
-    }
-
-    $apbct->save('connection_reports', true, false);
 }
 
 function apbct_rotate_moderate()
@@ -1118,28 +1061,30 @@ function cleantalk_debug($key, $value)
  * Function changes CleanTalk result object if an error occurred.
  * @return object
  */
-function ct_change_plugin_resonse($ct_result = null, $checkjs = null)
+function ct_checks_on_cleantalk_errors(CleantalkRequest $ct_request, CleantalkResponse $ct_result)
 {
     global $apbct;
 
-    if ( ! $ct_result ) {
-        return $ct_result;
-    }
+    $post_blocked_via_js_check = false;
 
-    if ( @intval($ct_result->errno) != 0 ) {
-        if ( $checkjs === null || $checkjs != 1 ) {
+    if ( (int)($ct_result->errno) != 0 ) {
+        if ( $ct_request->js_on === null || $ct_request->js_on != 1 ) {
             $ct_result->allow   = 0;
-            $ct_result->spam    = 1;
+            $ct_result->spam    = '1';
             $ct_result->comment = sprintf(
                 'We\'ve got an issue: %s. Forbidden. Please, enable Javascript. %s.',
                 $ct_result->comment,
                 $apbct->plugin_name
             );
+            $post_blocked_via_js_check = true;
         } else {
             $ct_result->allow   = 1;
             $ct_result->comment = 'Allow';
         }
     }
+
+    // Add a connection report
+    $apbct->getConnectionReports()->handleRequest($ct_request, $ct_result, $post_blocked_via_js_check);
 
     return $ct_result;
 }
