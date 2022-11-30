@@ -174,6 +174,10 @@ class Cleantalk
                     $request->feedback = implode(';', $request->feedback);
                 }
                 break;
+
+            case 'check_bot':
+                $request->message_to_log   = $this->compressData($request->message_to_log);
+                break;
         }
 
         // Removing non UTF8 characters from request, because non UTF8 or malformed characters break json_encode().
@@ -237,6 +241,7 @@ class Cleantalk
      */
     private function httpRequest($msg)
     {
+        $failed_urls = null;
         // Using current server without changing it
         $result = ! empty($this->work_url) && $this->server_changed + 86400 > time()
             ? $this->sendRequest($msg, $this->work_url, $this->server_timeout)
@@ -244,6 +249,7 @@ class Cleantalk
 
         // Changing server if no work_url or request has an error
         if ( $result === false || (is_object($result) && $result->errno != 0) ) {
+            $failed_urls = $this->work_url;
             if ( ! empty($this->work_url) ) {
                 $this->downServers[] = $this->work_url;
             }
@@ -252,8 +258,11 @@ class Cleantalk
             if ( $result !== false && $result->errno === 0 ) {
                 $this->server_change = true;
             }
+            if ( $result === false || (is_object($result) && $result->errno != 0) ) {
+                $failed_urls .= ', ' . $this->work_url;
+            }
         }
-        $response = new CleantalkResponse($result);
+        $response = new CleantalkResponse($result, $failed_urls);
 
         if ( ! empty($this->data_codepage) && $this->data_codepage !== 'UTF-8' ) {
             if ( ! empty($response->comment) ) {

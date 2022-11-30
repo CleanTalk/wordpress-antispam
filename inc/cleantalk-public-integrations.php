@@ -483,6 +483,9 @@ function ct_woocommerce_checkout_check($_data, $errors)
 
     $ct_result = $base_call_result['ct_result'];
 
+    // Get request_id and save to static $hash
+    ct_hash($ct_result->id);
+
     if ( $ct_result->allow == 0 ) {
         wp_send_json(array(
             'result'   => 'failure',
@@ -490,6 +493,19 @@ function ct_woocommerce_checkout_check($_data, $errors)
             'refresh'  => 'false',
             'reload'   => 'false'
         ));
+    }
+}
+
+/**
+ * Save request_id for WC order
+ * @param $order_id
+ */
+function apbct_woocommerce__add_request_id_to_order_meta($order_id)
+{
+    $request_id = ct_hash();
+
+    if (!empty($request_id)) {
+        update_post_meta($order_id, 'cleantalk_order_request_id', sanitize_key($request_id));
     }
 }
 
@@ -1572,8 +1588,6 @@ function ct_registration_errors($errors, $sanitized_user_login = null, $user_ema
     }
 
     $ct_signup_done = true;
-
-    $ct_result = ct_change_plugin_resonse($ct_result, $checkjs);
 
     $cleantalk_executed = true;
 
@@ -3620,13 +3634,22 @@ function apbct__wc_add_spam_action_to_bulk_handle($redirect, $action, $ids)
         return $redirect;
     }
 
+    // spam orders
+    $spam_ids = array();
+
     foreach ($ids as $order_id) {
         $order = new WC_Order((int)$order_id);
         if ( $action === 'unspamorder' ) {
             $order->update_status('wc-on-hold');
         } else {
+            $spam_ids[] = $order_id;
             $order->update_status('wc-spamorder');
         }
+    }
+
+    // Send feedback to API
+    if (!empty($spam_ids)) {
+        apbct_woocommerce__orders_send_feedback($spam_ids);
     }
 
     return add_query_arg(
