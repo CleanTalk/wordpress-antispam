@@ -451,6 +451,22 @@ Yes, it is. Please read this article,
 
 == Changelog ==
 
+= 6.0 Dec 1 2022 =
+#### No cookie mode by default🔥, EmailEncoder user-friendly enhancements 💣, trusted text and affiliate settings 🎈, prepare SpamFireWall for incremental updating, and some minor issues fixed 💪🏼
+* New. Major version updated.
+* New. Cookies. The plugin does not use browser cookies by default.
+* New. Settings. Trusted text and affiliate links management added.
+* New. SpamFireWall. Now can handle incremental update.
+* New. WooCommerce integration. Spam\no spam feedback now sends to CleanTalk cloud.
+* New. Settings. Some URLs became active links.
+* Mod. Ninja forms integration. Improvements.
+* Mod. Email encoder. Decode all the emails on the page if cloud allowed and remember the state for session.
+* Mod. Connection reports. Totally refactored.
+* Mod. SpamFireWall, Anti-Crawler, Anti-Flood die pages. Settings cookie data via single AJAX.
+* Fix. Comments scanner. Comments counting fixed.
+* Fix. MailChimp for WordPress integration. Fixed.
+* Fix. MC4WP integration. Request catching without JS fixed.
+
 = 5.189.1 Nov 23 2022 =
 * Fix. Woocommerce. Marking orders as spam fixed.
 * Fix. Settings. Some text has been localized-ready.
