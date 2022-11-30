@@ -826,7 +826,7 @@ function apbct_settings__set_fields()
                         'You can place this shortcode anywhere on your website. Adds trust text stating that the website is protected from spam by CleanTalk Anti-Spam protection',
                         'cleantalk-spam-protect'
                     ),
-                    'childrens' => 'trusted_and_affiliate__shortcode_tag',
+                    'childrens' => array('trusted_and_affiliate__shortcode_tag'),
                     'reverse_trigger' => true,
                     'type' => 'checkbox'
                 ),
@@ -2063,7 +2063,6 @@ function apbct_settings__field__draw($params = array())
         ( ! $apbct->network_settings['multisite__allow_custom_settings'] || $apbct->network_settings['multisite__work_mode'] == 2 )
             ? ' disabled="disabled"'
             : $disabled; // Disabled by super admin on sub-sites
-
     $childrens = $params['childrens'] ? 'apbct_setting---' . implode(",apbct_setting---", $params['childrens']) : '';
     $hide      = $params['hide'] ? implode(",", $params['hide']) : '';
     //ESC NEED
