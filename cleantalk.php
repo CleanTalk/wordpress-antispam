@@ -240,9 +240,9 @@ if ( ! is_admin() && ! apbct_is_ajax() && ! defined('DOING_CRON')
         add_action('template_redirect', 'apbct_cookie', 2);
         add_action('template_redirect', 'apbct_store__urls', 2);
     }
-    if ( empty($_POST) && empty($_GET) ) {
-        apbct_cookie();
-        apbct_store__urls();
+    if ( empty($_POST) && empty($_GET) && $apbct->data['key_is_ok']) {
+            apbct_cookie();
+            apbct_store__urls();
     }
 }
 
