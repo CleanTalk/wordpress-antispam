@@ -1175,7 +1175,7 @@ function apbct_update_to_5_184_2()
     }
 }
 
-function apbct_update_to_5_190_0()
+function apbct_update_to_6_0_0()
 {
     global $apbct;
     if ( isset($apbct->data['connection_reports']) ) {
