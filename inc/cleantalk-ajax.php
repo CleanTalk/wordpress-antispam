@@ -16,9 +16,6 @@ $_cleantalk_hooked_actions[] = 'rwp_ajax_action_rating'; //Don't check Reviewer 
 
 $_cleantalk_hooked_actions[] = 'ct_feedback_comment';
 
-/* MailChimp Premium*/
-add_filter('mc4wp_form_errors', 'ct_mc4wp_ajax_hook');
-
 /*hooks for Usernoise Form*/
 add_action('un_feedback_form_body', 'ct_add_hidden_fields', 1);
 add_filter('un_validate_feedback', 'ct_ajax_hook', 1, 2);
@@ -235,26 +232,6 @@ function ct_user_register_ajaxlogin($user_id)
     }
 
     return $user_id;
-}
-
-/**
- * Hook into MailChimp for WordPress `mc4wp_form_errors` filter.
- *
- * @param array $errors
- *
- * @return array
- * @throws Exception
- */
-function ct_mc4wp_ajax_hook(array $errors)
-{
-    $result = ct_ajax_hook();
-
-    // only return modified errors array when function returned a string value (the message key)
-    if ( is_string($result) ) {
-        $errors[] = $result;
-    }
-
-    return $errors;
 }
 
 /**
