@@ -161,7 +161,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
 				WHERE network IN (" . implode(',', $needles) . ")
 				AND	network = " . $current_ip_v4 . " & mask 
 				AND " . rand(1, 100000) . "  
-				ORDER BY status DESC LIMIT 1"
+				ORDER BY source DESC, status LIMIT 1"
             );
 
             $test_status = 1;
@@ -831,5 +831,112 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
         }
 
         return true;
+    }
+
+    /**
+     * Add a new records to the SFW table. Duplicates will be updated on "status" field.
+     * @param DB $db
+     * @param $db__table__data
+     * @param $metadata
+     * @return array
+     * @throws \Exception
+     */
+    public static function privateRecordsAdd(DB $db, $db__table__data, $metadata)
+    {
+        $added_count = 0;
+        $updated_count = 0;
+        $ignored_count = 0;
+
+
+        foreach ( $metadata as $_key => $row ) {
+            //find duplicate to use it on updating
+            $has_duplicate = false;
+            $query = "SELECT id,status FROM " . $db__table__data . " WHERE 
+            network = '" . $row['network'] . "' AND 
+            mask = '" . $row['mask'] . "' AND
+            source = '1';";
+
+            $db_result = $db->fetch($query);
+            if ( $db_result === false ) {
+                throw new \RuntimeException($db->getLastError());
+            }
+
+            //if the record is same - pass
+            if ( isset($db_result['status']) && $db_result['status'] == $row['status'] ) {
+                $ignored_count++;
+                continue;
+            }
+
+            //if duplicate found create a chunk
+            if ( isset($db_result['id']) ) {
+                $id_chunk = "id ='" . $db_result['id'] . "',";
+                $has_duplicate = true;
+            } else {
+                $id_chunk = '';
+            }
+
+            //insertion
+            $query = "INSERT INTO " . $db__table__data . " SET 
+            " . $id_chunk . "
+            network = '" . $row['network'] . "',
+            mask = '" . $row['mask'] . "',
+            status = '" . $row['status'] . "',
+            source = '1'
+            ON DUPLICATE KEY UPDATE 
+            id = id,
+            network = network, 
+            mask = mask, 
+            status = '" . $row['status'] . "',
+            source = source;";
+
+            $db_result = $db->execute($query);
+            if ( $db_result === false ) {
+                throw new \RuntimeException($db->getLastError());
+            }
+
+            $added_count = $has_duplicate ? $added_count : $added_count + 1;
+            $updated_count = $has_duplicate ? $updated_count + 1 : $updated_count;
+        }
+
+        return array(
+            'total' => $added_count + $updated_count + $ignored_count,
+            'added' => $added_count,
+            'updated' => $updated_count,
+            'ignored' => $ignored_count
+        );
+    }
+
+    /**
+     * Delete private records from SFW table.
+     * @param DB $db
+     * @param $db__table__data
+     * @param $metadata
+     * @return array|int[]
+     * @throws \Exception
+     */
+    public static function privateRecordsDelete(DB $db, $db__table__data, $metadata)
+    {
+        $success_count = 0;
+        $ignored_count = 0;
+
+        foreach ( $metadata as $_key => $row ) {
+            $query = "DELETE FROM " . $db__table__data . " WHERE 
+            network = '" . $row['network'] . "' AND
+            mask = '" . $row['mask'] . "' AND
+            source = '1';";
+            $db_result = $db->execute($query);
+            if ( $db_result === false ) {
+                throw new \Exception($db->getLastError());
+            }
+
+            $success_count = $db_result === 1 ? $success_count + 1 : $success_count;
+            $ignored_count = $db_result === 0 ? $ignored_count + 1 : $ignored_count;
+        }
+
+        return array(
+            'total' => $success_count + $ignored_count,
+            'deleted' => $success_count,
+            'ignored' => $ignored_count
+        );
     }
 }

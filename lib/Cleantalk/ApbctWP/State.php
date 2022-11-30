@@ -234,9 +234,11 @@ class State extends \Cleantalk\Common\State
         'update_settings'    => array('last_call' => 0, 'cooldown' => 0),
 
         // Firewall
-        'sfw_update'         => array('last_call' => 0, 'cooldown' => 0),
-        'sfw_update__worker' => array('last_call' => 0, 'cooldown' => 0),
-        'sfw_send_logs'      => array('last_call' => 0, 'cooldown' => 0),
+        'sfw_update'                => array('last_call' => 0, 'cooldown' => 0),
+        'sfw_update__worker'        => array('last_call' => 0, 'cooldown' => 0),
+        'sfw_send_logs'             => array('last_call' => 0, 'cooldown' => 0),
+        'private_record_add'        => array('last_call' => 0, 'cooldown' => 0),
+        'private_record_delete'     => array('last_call' => 0, 'cooldown' => 0),
 
         // Installation
         'install_plugin'     => array('last_call' => 0, 'cooldown' => 0),
