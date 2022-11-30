@@ -184,6 +184,11 @@ class Escape extends \Cleantalk\Common\Escape
                     'name' => true,
                     'type' => true,
                 ),
+                'a' => array(
+                    'target' => true,
+                    'href' => true,
+                    'rel' => true,
+                ),
             ),
             'apbct_settings__display__notifications' => array(
                 'a' => array(

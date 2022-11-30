@@ -1572,7 +1572,7 @@ function apbct_generate_trusted_text_html($type = 'div')
     $css_class = 'apbct-trusted-text--' . $type;
     $cleantalk_tag_with_ref_link = '<a href="https://cleantalk.org/register?'
         . http_build_query($query_data)
-        . '" target="_blank">'
+        . '" target="_blank" rel="nofollow">'
         . 'CleanTalk Anti-Spam'
         . '</a>';
 
