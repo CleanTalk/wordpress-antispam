@@ -2155,6 +2155,7 @@ function apbct_rc__insert_auth_key($key, $plugin)
                         $data['notice_trial']     = $result['trial'];
                         $data['auto_update_app']  = isset($result['show_auto_update_notice']) ? $result['show_auto_update_notice'] : 0;
                         $data['service_id']       = $result['service_id'];
+                        $data['user_id']       = $result['user_id'];
                         $data['moderate']         = $result['moderate'];
                         $data['auto_update_app '] = isset($result['auto_update_app']) ? $result['auto_update_app'] : 0;
                         $data['license_trial']    = isset($result['license_trial']) ? $result['license_trial'] : 0;
@@ -2525,6 +2526,7 @@ function ct_account_status_check($api_key = null, $process_errors = true)
 
         // Other
         $apbct->data['service_id']      = isset($result['service_id']) ? (int)$result['service_id'] : 0;
+        $apbct->data['user_id']      = isset($result['user_id']) ? (int)$result['user_id'] : 0;
         $apbct->data['valid']           = isset($result['valid']) ? (int)$result['valid'] : 0;
         $apbct->data['moderate']        = isset($result['moderate']) ? (int)$result['moderate'] : 0;
         $apbct->data['ip_license']      = isset($result['ip_license']) ? (int)$result['ip_license'] : 0;

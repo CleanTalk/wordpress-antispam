@@ -1565,8 +1565,8 @@ function apbct_generate_trusted_text_html($type = 'div')
     );
 
     if ( $apbct->settings['trusted_and_affiliate__add_id'] === '1'
-        && !empty($apbct->data['service_id']) ) {
-        $query_data['pid'] = $apbct->data['service_id'];
+        && !empty($apbct->data['user_id']) ) {
+        $query_data['pid'] = $apbct->data['user_id'];
     }
 
     $css_class = 'apbct-trusted-text--' . $type;

@@ -2478,6 +2478,7 @@ function apbct_settings__validate($settings)
                 'auto_update' => $apbct->data['auto_update'],
                 'user_token'  => $apbct->data['user_token'],
                 'service_id'  => $apbct->data['service_id'],
+                'user_id'  => $apbct->data['user_id'],
             );
             $apbct->saveNetworkData();
             if ( isset($settings['multisite__use_settings_template_apply_for_current_list_sites'])
@@ -2583,6 +2584,7 @@ function apbct_settings__sync($direct_call = false)
                 'auto_update' => $apbct->data['auto_update'],
                 'user_token'  => $apbct->data['user_token'],
                 'service_id'  => $apbct->data['service_id'],
+                'user_id'  => $apbct->data['user_id'],
             );
 
             if ( $apbct->network_settings['multisite__work_mode'] == 1 ) {
@@ -2611,6 +2613,7 @@ function apbct_settings__sync($direct_call = false)
 
         // Other
         $apbct->data['service_id']      = 0;
+        $apbct->data['user_id']      = 0;
         $apbct->data['valid']           = 0;
         $apbct->data['moderate']        = 0;
         $apbct->data['ip_license']      = 0;

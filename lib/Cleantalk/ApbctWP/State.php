@@ -139,6 +139,7 @@ class State extends \Cleantalk\Common\State
         // Account data
         'account_email'                  => '',
         'service_id'                     => 0,
+        'user_id'                        => 0,
         'moderate'                       => 0,
         'moderate_ip'                    => 0,
         'ip_license'                     => 0,
@@ -223,6 +224,7 @@ class State extends \Cleantalk\Common\State
         'valid'       => 0,
         'user_token'  => '',
         'service_id'  => 0,
+        'user_id'  => 0,
         'auto_update' => 0,
     );
 
