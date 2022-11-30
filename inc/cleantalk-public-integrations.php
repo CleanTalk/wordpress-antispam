@@ -1,5 +1,6 @@
 <?php
 
+use Cleantalk\ApbctWP\Escape;
 use Cleantalk\ApbctWP\Helper;
 use Cleantalk\ApbctWP\Sanitize;
 use Cleantalk\ApbctWP\State;
@@ -653,6 +654,13 @@ function ct_comment_form($_post_id)
 
     ct_add_hidden_fields();
 
+    if ( $apbct->settings['trusted_and_affiliate__under_forms'] === '1' ) {
+        echo Escape::escKsesPreset(
+            apbct_generate_trusted_text_html('label'),
+            'apbct_public__trusted_text'
+        );
+    }
+
     return null;
 }
 
@@ -1272,7 +1280,12 @@ function ct_register_form()
 
     ct_add_hidden_fields($ct_checkjs_register_form, false, false, false, false);
     echo ct_add_honeypot_field('wp_register');
-
+    if ( $apbct->settings['trusted_and_affiliate__under_forms'] === '1' ) {
+        echo Escape::escKsesPreset(
+            apbct_generate_trusted_text_html('label'),
+            'apbct_public__trusted_text'
+        );
+    }
     return null;
 }
 
@@ -1915,7 +1928,12 @@ function apbct_form__contactForm7__addField($html)
 
     $html .= ct_add_hidden_fields($ct_checkjs_cf7, true);
     $html .= ct_add_honeypot_field('wp_contact_form_7');
-
+    if ( $apbct->settings['trusted_and_affiliate__under_forms'] === '1' ) {
+        $html .= Escape::escKsesPreset(
+            apbct_generate_trusted_text_html('label_left'),
+            'apbct_public__trusted_text'
+        );
+    }
     return $html;
 }
 
@@ -2319,6 +2337,12 @@ function apbct_form__WPForms__addField($_form_data, $_some, $_title, $_descripti
     if ( $apbct->settings['forms__contact_forms_test'] == 1 ) {
         ct_add_hidden_fields('ct_checkjs_wpforms');
         echo ct_add_honeypot_field('wp_wpforms');
+        if ( $apbct->settings['trusted_and_affiliate__under_forms'] === '1' ) {
+            echo Escape::escKsesPreset(
+                apbct_generate_trusted_text_html('label_left'),
+                'apbct_public__trusted_text'
+            );
+        }
     }
 }
 
@@ -2592,8 +2616,14 @@ function ct_quform_post_validate($result, $form)
  */
 function ct_si_contact_display_after_fields($string = '', $_style = '', $_form_errors = array(), $_form_id_num = 0)
 {
+    global $apbct;
     $string .= ct_add_hidden_fields('ct_checkjs', true);
-
+    if ( $apbct->settings['trusted_and_affiliate__under_forms'] === '1' ) {
+        $string .= Escape::escKsesPreset(
+            apbct_generate_trusted_text_html('label_left'),
+            'apbct_public__trusted_text'
+        );
+    }
     return $string;
 }
 
@@ -2754,6 +2784,7 @@ function ct_check_wplp()
  */
 function apbct_form__gravityForms__addField($form_string, $form)
 {
+    global $apbct;
     $ct_hidden_field = 'ct_checkjs';
 
     // Do not add a hidden field twice.
@@ -2770,6 +2801,12 @@ function apbct_form__gravityForms__addField($form_string, $form)
 
     // Adding field for multipage form. Look for cleantalk.php -> apbct_cookie();
     $append_string = isset($form['lastPageButton']) ? "<input type='hidden' name='ct_multipage_form' value='yes'>" : '';
+    if ( $apbct->settings['trusted_and_affiliate__under_forms'] === '1' ) {
+        $append_string .= Escape::escKsesPreset(
+            apbct_generate_trusted_text_html('label_left'),
+            'apbct_public__trusted_text'
+        );
+    }
     $form_string   = str_replace($search, $append_string . $search, $form_string);
 
     return $form_string;

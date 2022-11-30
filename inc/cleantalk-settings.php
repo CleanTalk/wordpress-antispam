@@ -188,9 +188,29 @@ function apbct_settings__set_fields()
             'default_params' => array(),
             'description'    => '',
             'html_before'    => '<hr><br>'
-                                . '<span id="ct_adv_showhide">'
-                                . '<a href="#" class="apbct_color--gray" onclick="event.preventDefault(); apbct_show_hide_elem(\'apbct_settings__advanced_settings\');">'
+                                . '<span id="ct_adv_showhide" class="apbct_bottom_links--left">'
+                                . '<a href="#" class="apbct_color--gray" onclick="'
+                                    . 'event.preventDefault();'
+                                    . 'apbct_show_hide_elem(\'apbct_settings__advanced_settings\');'
+                                    . 'if (document.getElementById(\'trusted_and_affiliate__special_span\').style.display !== \'none\'){'
+                                    . 'apbct_show_hide_elem(\'trusted_and_affiliate__special_span\')}'
+                                . '">'
                                 . __('Advanced settings', 'cleantalk-spam-protect')
+                                . '</a>'
+                                . '</span>'
+                                . '<span class="apbct_bottom_links--other">'
+                                . '<a href="#" class="apbct_color--gray" onclick="cleantalkModal.open()">'
+                                . __('Import/Export settings', 'cleantalk-spam-protect')
+                                . '</a>'
+                                . '</span>'
+                                . '<span id="ct_trusted_text_showhide" class="apbct_bottom_links--other">'
+                                . '<a href="#" class="apbct_color--gray" onclick="'
+                                . 'event.preventDefault();'
+                                . 'apbct_show_hide_elem(\'trusted_and_affiliate__special_span\');'
+                                . 'if (document.getElementById(\'apbct_settings__advanced_settings\').style.display !== \'none\'){'
+                                . 'apbct_show_hide_elem(\'apbct_settings__advanced_settings\')}'
+                                . '">'
+                                . __('Trust text, affiliate settings', 'cleantalk-spam-protect')
                                 . '</a>'
                                 . '</span>'
                                 . '<div id="apbct_settings__before_advanced_settings"></div>'
@@ -794,6 +814,67 @@ function apbct_settings__set_fields()
 
             ),
         ),
+
+        // Trust text, affiliate settings
+        'trusted_and_affiliate'                    => array(
+            'title'  => __('Trust text, affiliate settings', 'cleantalk-spam-protect'),
+            //'section' => 'hidden_section',
+            'fields' => array(
+                'trusted_and_affiliate__shortcode'       => array(
+                    'title'           => __('Shortcode', 'cleantalk-spam-protect'),
+                    'description' => __(
+                        'You can place this shortcode anywhere on your website. Adds trust text stating that the website is protected from spam by CleanTalk Anti-Spam protection',
+                        'cleantalk-spam-protect'
+                    ),
+                    'childrens' => 'trusted_and_affiliate__shortcode_tag',
+                    'reverse_trigger' => true,
+                    'type' => 'checkbox'
+                ),
+                'trusted_and_affiliate__shortcode_tag'                    => array(
+                    'type'        => 'affiliate_shortcode',
+                    'title'       => __('<- Copy this text and place shortcode wherever you need.', 'cleantalk-spam-protect'),
+                    'parent'      => 'trusted_and_affiliate__shortcode',
+                    'class'       => 'apbct_settings-field_wrapper--sub',
+                    'disabled' => 'test'
+                ),
+                'trusted_and_affiliate__footer' => array(
+                    'title'           => __('Add to the footer', 'cleantalk-spam-protect'),
+                    'description'     => __(
+                        'Adds trust text stating that the website is protected from spam by CleanTalk Anti-Spam protection to the footer of your website.',
+                        'cleantalk-spam-protect'
+                    ),
+                    'parent'          => '',
+                    //'class'           => 'apbct_settings-field_wrapper--sub',
+                    'reverse_trigger' => true,
+                    'type' => 'checkbox'
+                ),
+                'trusted_and_affiliate__under_forms' => array(
+                    'title'           => __(
+                        'Add under forms.',
+                        'cleantalk-spam-protect'
+                    ),
+                    'description'     => __(
+                        'Adds trust text stating that the website is protected from spam by CleanTalk Anti-Spam protection under web form on your website.',
+                        'cleantalk-spam-protect'
+                    ),
+                    'reverse_trigger' => true,
+                    'type' => 'checkbox'
+                ),
+                'trusted_and_affiliate__add_id'         => array(
+                    'title'           => __(
+                        'Add your affiliate ID to the link placed in the trust text.',
+                        'cleantalk-spam-protect'
+                    ),
+                    'description'     => __(
+                        'If you check this option or checkbox, then your affiliate ID will be added to the referral link. Terms of the {CT_AFFILIATE_TERMS}.',
+                        'cleantalk-spam-protect'
+                    ),
+                    'reverse_trigger' => false,
+                    'type' => 'checkbox'
+                )
+            ),
+        ),
+
     );
 
     return $fields;
@@ -1176,6 +1257,9 @@ function apbct_settings__display()
                            . '</button></div>';
 
     foreach ( $apbct->settings_fields_in_groups as $group_name => $group ) {
+        if ( $group_name === 'trusted_and_affiliate' ) {
+            continue;
+        }
         //html_before
         $out = ! empty($group['html_before']) ? $group['html_before'] : '';
         echo Escape::escKsesPreset($out, 'apbct_settings__display__groups');
@@ -1192,10 +1276,38 @@ function apbct_settings__display()
         }
 
         $out = ! empty($group['html_after']) ? $group['html_after'] : '';
+
         echo Escape::escKsesPreset($out, 'apbct_settings__display__groups');
     }
 
-    echo '<div id="apbct_settings__after_advanced_settings"></div>';
+    echo '<div id="apbct_settings__after_advanced_settings">';
+    /**
+     * Affiliate section start
+     */
+    $group = $apbct->settings_fields_in_groups['trusted_and_affiliate'];
+    //html_before
+    $out = ! empty($group['html_before']) ? $group['html_before'] : '';
+    echo Escape::escKsesPreset($out, 'apbct_settings__display__groups');
+
+    //title
+    $out = ! empty($group['title']) ? '<h3 style="margin-left: 220px;" id="apbct_setting_group__' . $group_name . '">' . $group['title'] . '</h3>' : '';
+    $out = '<span id="trusted_and_affiliate__special_span" style="display: none">' . $out;
+    echo Escape::escKsesPreset($out, 'apbct_settings__display__groups');
+
+    do_settings_fields('cleantalk', 'apbct_section__trusted_and_affiliate');
+
+    //html_after
+    if ( ! empty($group['html_after']) && strpos($group['html_after'], '{HIDDEN_SECTION_NAV}') !== false ) {
+        $group['html_after'] = str_replace('{HIDDEN_SECTION_NAV}', $hidden_groups, $group['html_after']);
+    }
+
+    $out = ! empty($group['html_after']) ? $group['html_after'] : '';
+    $out .= '</span>';
+    echo Escape::escKsesPreset($out, 'apbct_settings__display__groups');
+    /**
+     * Affiliate end
+     */
+    echo '</div>';
 
     echo '<button id="apbct_settings__main_save_button" name="submit" class="cleantalk_link cleantalk_link-manual" value="save_changes">'
          . __('Save Changes')
@@ -1985,6 +2097,8 @@ function apbct_settings__field__draw($params = array())
                  . $params['title']
                  . '</label>'
                  . $popup;
+            $href = '<a href="https://cleantalk.org/my/partners" target="_blank">affiliate program are here</a>';
+            $params['description'] = str_replace('{CT_AFFILIATE_TERMS}', $href, $params['description']);
             echo '<div class="apbct_settings-field_description">'
                  . $params['description']
                  . '</div>';
@@ -2109,6 +2223,33 @@ function apbct_settings__field__draw($params = array())
             echo '<div class="apbct_settings-field_description">'
                  . $params['description']
                  . '</div>';
+            break;
+
+        // Text type
+        case 'affiliate_shortcode':
+            // Popup description
+            $popup = '';
+            if ( isset($params['long_description']) ) {
+                $popup = '<i setting="' . $params['name'] . '" class="apbct_settings-long_description---show apbct-icon-help-circled"></i>';
+            }
+            //ESC NEED
+            echo '<input
+					type="text"
+					id="apbct_setting_' . $params['name'] . '"
+					name="cleantalk_settings[' . $params['name'] . ']"'
+                . " class='apbct_setting_{$params['type']} apbct_setting---{$params['name']}'"
+                . ' value="[cleantalk_affiliate_link]" '
+                . "readonly"
+                . ($params['required'] ? ' required="required"' : '')
+                . ($params['childrens'] ? ' onchange="apbctSettingsDependencies(\'' . $childrens . '\')"' : '')
+                . ' />'
+                . '&nbsp;'
+                . '<label for="apbct_setting_' . $params['name'] . '" class="apbct_setting-field_title--' . $params['type'] . '">'
+                . $params['title'] . $popup
+                . '</label>';
+            echo '<div class="apbct_settings-field_description">'
+                . $params['description']
+                . '</div>';
             break;
 
         // Textarea type

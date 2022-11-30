@@ -18,25 +18,10 @@ class CleantalkSettingsTemplates
     public function __construct($api_key)
     {
         $this->api_key = $api_key;
-        add_filter('apbct_settings_action_buttons', array($this, 'addActionButton'), 10, 1);
         add_action('wp_ajax_get_options_template', array($this, 'getOptionsTemplateAjax'));
         add_action('wp_ajax_settings_templates_export', array($this, 'settingsTemplatesExportAjax'));
         add_action('wp_ajax_settings_templates_import', array($this, 'settingsTemplatesImportAjax'));
         add_action('wp_ajax_settings_templates_reset', array($this, 'settingsTemplatesResetAjax'));
-    }
-
-    public function addActionButton($links)
-    {
-        if ( is_array($links) ) {
-            $last_link = array_slice($links, -1, 1);
-            unset($links[count($links) - 1]);
-            $link    = '<a href="#" class="ct_support_link" onclick="cleantalkModal.open()">' .
-                       __('Import/Export settings', 'cleantalk-spam-protect') . '</a>';
-            $links[] = $link;
-            $links[] = $last_link[0];
-        }
-
-        return $links;
     }
 
     public function getOptionsTemplateAjax()
