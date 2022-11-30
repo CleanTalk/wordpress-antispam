@@ -331,6 +331,10 @@ function apbct_init()
         add_action('wp_footer', 'apbct_hook__wp_footer', 1);
     }
 
+    if ( $apbct->settings['trusted_and_affiliate__footer'] === '1' ) {
+        add_action('wp_footer', 'apbct_hook__wp_footer_trusted_text', 999);
+    }
+
     if ( $apbct->settings['data__protect_logged_in'] != 1 && is_user_logged_in() ) {
         add_action('init', 'ct_contact_form_validate', 999);
     }
@@ -366,6 +370,10 @@ function apbct_init()
         && apbct_is_plugin_active('mailin/sendinblue.php')
     ) {
         ct_contact_form_validate();
+    }
+
+    if ( $apbct->settings['trusted_and_affiliate__shortcode'] === '1' ) {
+        add_shortcode('cleantalk_affiliate_link', 'apbct_trusted_text_shortcode_handler');
     }
 }
 
@@ -1530,4 +1538,64 @@ function apbct_shrotcode_handler__GDPR_public_notice__form($attrs)
     }
 
     return '<script ' . (class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '') . '>' . $out . '</script>';
+}
+
+/**
+ * Trusted and affiliate text handlers
+ */
+
+function apbct_hook__wp_footer_trusted_text()
+{
+    echo Escape::escKsesPreset(apbct_generate_trusted_text_html(), 'apbct_public__trusted_text');
+}
+
+function apbct_trusted_text_shortcode_handler()
+{
+    return apbct_generate_trusted_text_html('span');
+}
+
+function apbct_generate_trusted_text_html($type = 'div')
+{
+    global $apbct;
+
+    $trusted_text = '';
+
+    $query_data = array(
+        'product_name'  => 'anti-spam',
+    );
+
+    if ( $apbct->settings['trusted_and_affiliate__add_id'] === '1'
+        && !empty($apbct->data['service_id']) ) {
+        $query_data['pid'] = $apbct->data['service_id'];
+    }
+
+    $css_class = 'apbct-trusted-text--' . $type;
+    $cleantalk_tag_with_ref_link = '<a href="https://cleantalk.org/register?'
+        . http_build_query($query_data)
+        . '" target="_blank">'
+        . 'CleanTalk Anti-Spam'
+        . '</a>';
+
+    if ( $type === 'div' ) {
+        $trusted_text = '<div class="' . $css_class . '">'
+            . '<p>'
+            . 'Protected by '
+            . $cleantalk_tag_with_ref_link
+            . '</p>'
+            . '</div>';
+    }
+    if ( strpos($type, 'label') !== false ) {
+        $trusted_text = '<label for="hidden_trusted_text" type="hidden" class="' . $css_class . '">'
+            . 'Protected by '
+            . $cleantalk_tag_with_ref_link
+            . '</label>'
+            . '<input type="hidden" name="hidden_trusted_text" id="hidden_trusted_text">';
+    }
+    if ( $type === 'span' ) {
+        $trusted_text = '<span class="' . $css_class . '">'
+            . 'Protected by '
+            . $cleantalk_tag_with_ref_link
+            . '</span>';
+    }
+    return $trusted_text;
 }

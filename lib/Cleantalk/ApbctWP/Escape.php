@@ -144,6 +144,8 @@ class Escape extends \Cleantalk\Common\Escape
                 'ul' => array(),
                 'span' => array(
                     'id' => true,
+                    'class' => true,
+                    'style' => true
                 ),
                 'button' => array(
                     'name' => true,
@@ -164,11 +166,31 @@ class Escape extends \Cleantalk\Common\Escape
                 'p' => array(),
             ),
 
+            'apbct_public__trusted_text' => array(
+                'div' => array(
+                    'class' => true,
+                    'id' => true,
+                ),
+                'label' => array(
+                    'class' => true,
+                    'id' => true,
+                    'for' => true,
+                    'name' => true,
+                ),
+                'input' => array(
+                    'class' => true,
+                    'id' => true,
+                    'for' => true,
+                    'name' => true,
+                    'type' => true,
+                ),
+            ),
             'apbct_settings__display__notifications' => array(
                 'a' => array(
                     'target' => true,
                     'href' => true,
                 ),
+                'p' => array(),
             )
         );
 

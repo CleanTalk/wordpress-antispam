@@ -109,6 +109,13 @@ class State extends \Cleantalk\Common\State
         'wp__comment_notify__roles'                => array('administrator'),
         'wp__dashboard_widget__show'               => 1,
 
+        // Trusted and affiliate settings
+        'trusted_and_affiliate__shortcode'         => 0,
+        'trusted_and_affiliate__shortcode_tag'     => '',
+        'trusted_and_affiliate__footer'            => 0,
+        'trusted_and_affiliate__under_forms'       => 0,
+        'trusted_and_affiliate__add_id'            => 0,
+
     );
 
     public $def_data = array(
