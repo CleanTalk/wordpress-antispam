@@ -1248,7 +1248,7 @@ function apbct_settings__display()
         }
     }
     $hidden_groups .= '</ul>';
-    $hidden_groups .= '<div id="apbct_settings__button_section"><button name="submit" class="cleantalk_link cleantalk_link-manual" value="save_changes">'
+    $hidden_groups .= '<div id="apbct_settings__button_section"><button name="submit" class="cleantalk_link cleantalk_link-manual" value="save_changes" onclick="apbct_show_required_groups(event,\'apbct_settings__button_section\')">'
                            . __('Save Changes')
                            . '</button></div>';
 
@@ -1305,7 +1305,7 @@ function apbct_settings__display()
      */
     echo '</div>';
 
-    echo '<button id="apbct_settings__main_save_button" name="submit" class="cleantalk_link cleantalk_link-manual" value="save_changes">'
+    echo '<button id="apbct_settings__main_save_button" name="submit" class="cleantalk_link cleantalk_link-manual" value="save_changes" onclick="apbct_show_required_groups(event,\'apbct_settings__main_save_button\')">'
          . __('Save Changes')
          . '</button>';
     echo '<br>';
