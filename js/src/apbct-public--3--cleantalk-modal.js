@@ -11,7 +11,7 @@ let cleantalkModal = {
     load: function( action ) {
         if( ! this.loaded ) {
             this.loading = true;
-            callback = function( result, data, params, obj ) {
+            let callback = function( result, data, params, obj ) {
                 cleantalkModal.loading = false;
                 cleantalkModal.loaded = result;
                 document.dispatchEvent(
@@ -142,7 +142,15 @@ let cleantalkModal = {
 
         var content = document.createElement( 'div' );
         if ( this.loaded ) {
-            content.innerHTML = this.loaded;
+            var urlRegex = /(https?:\/\/[^\s]+)/g;
+            var service_content_regex = /.*\/inc/g;
+            if (service_content_regex.test(this.loaded)){
+                content.innerHTML = this.loaded
+            } else {
+                var renderedMsg = this.loaded.replace(urlRegex, '<a href="$1" target="_blank">$1</a>');
+                content.innerHTML = renderedMsg;
+            }
+
         } else {
             content.innerHTML = 'Loading...';
             // @ToDo Here is hardcoded parameter. Have to get this from a 'data-' attribute.
@@ -169,7 +177,7 @@ let cleantalkModal = {
 
 /* Cleantalk Modal helpers */
 document.addEventListener('click',function( e ){
-    if( e.target && e.target.id === 'cleantalk-modal-overlay' || e.target.id === 'cleantalk-modal-close' ){
+    if( e.target && (e.target.id === 'cleantalk-modal-overlay' || e.target.id === 'cleantalk-modal-close') ){
         cleantalkModal.close();
     }
 });

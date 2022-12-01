@@ -2,6 +2,7 @@
 
 namespace Cleantalk\Antispam;
 
+use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\Templates\Singleton;
 use Cleantalk\ApbctWP\Variables\Post;
 
@@ -35,16 +36,14 @@ class EmailEncoder
     private $attribute_exclusions_signs = array(
         'input' => array('placeholder', 'value'),
     );
-
     /**
-     * @var string
+     * @var string[]
      */
-    protected $decoded_email;
-
+    protected $decoded_emails_array;
     /**
-     * @var string
+     * @var string[]
      */
-    protected $encoded_email;
+    protected $encoded_emails_array;
 
     /**
      * @var string
@@ -56,6 +55,7 @@ class EmailEncoder
      * @var string
      */
     private $temp_content;
+    protected $has_connection_error;
 
     /**
      * @inheritDoc
@@ -152,27 +152,39 @@ class EmailEncoder
         if (! defined('REST_REQUEST')) {
             check_ajax_referer('ct_secret_stuff');
         }
-
+        $this->decoded_emails_array = $this->decodeEmailFromPost();
         if ( $this->checkRequest() ) {
-            $this->decoded_email = $this->decodeEmailFromPost();
-            $this->response = $this->compileResponse($this->decoded_email, true);
+            //has error response from cloud
+            if ( $this->has_connection_error ) {
+                $this->response = $this->compileResponse($this->decoded_emails_array, false);
+                wp_send_json_error($this->response);
+            }
+            //decoding is allowed by cloud
+            $this->response = $this->compileResponse($this->decoded_emails_array, true);
             wp_send_json_success($this->response);
         }
-        $this->response = $this->compileResponse('', false);
-        wp_send_json_error($this->response);
+        //decoding is not allowed by cloud
+        $this->response = $this->compileResponse($this->decoded_emails_array, false);
+        //important - frontend waits success true to handle response
+        wp_send_json_success($this->response);
     }
 
     /**
      * Main logic of the decoding the encoded data.
      *
-     * @return string encoded email
+     * @return string[] array of decoded email
      */
     public function decodeEmailFromPost()
     {
-        $this->encoded_email = trim(Post::get('encodedEmail'));
-        $this->decoded_email = $this->decodeString($this->encoded_email, $this->secret_key);
+        $encoded_emails_array = Post::get('encodedEmails');
+        $encoded_emails_array = str_replace('\\', '', $encoded_emails_array);
+        $this->encoded_emails_array = json_decode($encoded_emails_array, true);
 
-        return $this->decoded_email;
+        foreach ( $this->encoded_emails_array as $_key => $encoded_email) {
+            $this->decoded_emails_array[$encoded_email] = $this->decodeString($encoded_email, $this->secret_key);
+        }
+
+        return $this->decoded_emails_array;
     }
 
     /**
@@ -185,9 +197,18 @@ class EmailEncoder
         return true;
     }
 
-    protected function compileResponse($decoded_email, $is_allowed)
+    protected function compileResponse($decoded_emails_array, $is_allowed)
     {
-        return strip_tags($decoded_email, '<a>');
+        $result = array();
+
+        if ( empty($decoded_emails_array) ) {
+            return false;
+        }
+
+        foreach ( $decoded_emails_array as $_encoded_email => $decoded_email ) {
+            $result[] = strip_tags($decoded_email, '<a>');
+        }
+        return $result;
     }
 
     /**
@@ -348,6 +369,13 @@ class EmailEncoder
      */
     private function isExcludedRequest()
     {
+
+        // Excluded request by alt cookie
+        $apbct_email_encoder_passed = Cookie::get('apbct_email_encoder_passed');
+        if ( $apbct_email_encoder_passed === '1' ) {
+            return true;
+        }
+
         if (
             apbct_is_plugin_active('ultimate-member/ultimate-member.php') &&
             isset($_POST['um_request']) &&

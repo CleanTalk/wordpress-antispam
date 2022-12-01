@@ -53,7 +53,7 @@ function apbct_settings_add_page()
     );
 
     $fields = apbct_settings__set_fields();
-    $fields = APBCT_WPMS && is_main_site() ? apbct_settings__set_fileds__network($fields) : $fields;
+    $fields = APBCT_WPMS && is_main_site() ? apbct_settings__set_fields__network($fields) : $fields;
     apbct_settings__add_groups_and_fields($fields);
 }
 
@@ -188,9 +188,25 @@ function apbct_settings__set_fields()
             'default_params' => array(),
             'description'    => '',
             'html_before'    => '<hr><br>'
-                                . '<span id="ct_adv_showhide">'
-                                . '<a href="#" class="apbct_color--gray" onclick="event.preventDefault(); apbct_show_hide_elem(\'apbct_settings__advanced_settings\');">'
+                                . '<span id="ct_adv_showhide" class="apbct_bottom_links--left">'
+                                . '<a href="#" class="apbct_color--gray" onclick="'
+                                . 'event.preventDefault();'
+                                . 'apbct_excepted_show_hide(\'apbct_settings__advanced_settings\');'
+                                . '">'
                                 . __('Advanced settings', 'cleantalk-spam-protect')
+                                . '</a>'
+                                . '</span>'
+                                . '<span class="apbct_bottom_links--other">'
+                                . '<a href="#" class="apbct_color--gray" onclick="cleantalkModal.open()">'
+                                . __('Import/Export settings', 'cleantalk-spam-protect')
+                                . '</a>'
+                                . '</span>'
+                                . '<span id="ct_trusted_text_showhide" class="apbct_bottom_links--other">'
+                                . '<a href="#" class="apbct_color--gray" onclick="'
+                                . 'event.preventDefault();'
+                                . 'apbct_excepted_show_hide(\'trusted_and_affiliate__special_span\');'
+                                . '">'
+                                . __('Trust text, affiliate settings', 'cleantalk-spam-protect')
                                 . '</a>'
                                 . '</span>'
                                 . '<div id="apbct_settings__before_advanced_settings"></div>'
@@ -449,13 +465,7 @@ function apbct_settings__set_fields()
                         . __(
                             'Alternative mechanism will store data in database and will not set cookies in browser, so the cache solutions will work just fine.',
                             'cleantalk-spam-protect'
-                        )
-                        . '<br><b>'
-                        . __(
-                            'Warning: We strongly recommend you keep the setting on, otherwise it could cause false positives spam detection.',
-                            'cleantalk-spam-protect'
-                        )
-                        . '</b>',
+                        ),
                     'long_description' => true,
                     'input_type'  => 'radio',
                     'options'     => array(
@@ -800,12 +810,73 @@ function apbct_settings__set_fields()
 
             ),
         ),
+
+        // Trust text, affiliate settings
+        'trusted_and_affiliate'                    => array(
+            'title'  => __('Trust text, affiliate settings', 'cleantalk-spam-protect'),
+            //'section' => 'hidden_section',
+            'fields' => array(
+                'trusted_and_affiliate__shortcode'       => array(
+                    'title'           => __('Shortcode', 'cleantalk-spam-protect'),
+                    'description' => __(
+                        'You can place this shortcode anywhere on your website. Adds trust text stating that the website is protected from spam by CleanTalk Anti-Spam protection',
+                        'cleantalk-spam-protect'
+                    ),
+                    'childrens' => array('trusted_and_affiliate__shortcode_tag'),
+                    'reverse_trigger' => true,
+                    'type' => 'checkbox'
+                ),
+                'trusted_and_affiliate__shortcode_tag'                    => array(
+                    'type'        => 'affiliate_shortcode',
+                    'title'       => __('<- Copy this text and place shortcode wherever you need.', 'cleantalk-spam-protect'),
+                    'parent'      => 'trusted_and_affiliate__shortcode',
+                    'class'       => 'apbct_settings-field_wrapper--sub',
+                    'disabled' => 'test'
+                ),
+                'trusted_and_affiliate__footer' => array(
+                    'title'           => __('Add to the footer', 'cleantalk-spam-protect'),
+                    'description'     => __(
+                        'Adds trust text stating that the website is protected from spam by CleanTalk Anti-Spam protection to the footer of your website.',
+                        'cleantalk-spam-protect'
+                    ),
+                    'parent'          => '',
+                    //'class'           => 'apbct_settings-field_wrapper--sub',
+                    'reverse_trigger' => true,
+                    'type' => 'checkbox'
+                ),
+                'trusted_and_affiliate__under_forms' => array(
+                    'title'           => __(
+                        'Add under forms.',
+                        'cleantalk-spam-protect'
+                    ),
+                    'description'     => __(
+                        'Adds trust text stating that the website is protected from spam by CleanTalk Anti-Spam protection under web form on your website.',
+                        'cleantalk-spam-protect'
+                    ),
+                    'reverse_trigger' => true,
+                    'type' => 'checkbox'
+                ),
+                'trusted_and_affiliate__add_id'         => array(
+                    'title'           => __(
+                        'Add your affiliate ID to the link placed in the trust text.',
+                        'cleantalk-spam-protect'
+                    ),
+                    'description'     => __(
+                        'If you check this option or checkbox, then your affiliate ID will be added to the referral link. Terms of the {CT_AFFILIATE_TERMS}.',
+                        'cleantalk-spam-protect'
+                    ),
+                    'reverse_trigger' => false,
+                    'type' => 'checkbox'
+                )
+            ),
+        ),
+
     );
 
     return $fields;
 }
 
-function apbct_settings__set_fileds__network($fields)
+function apbct_settings__set_fields__network($fields)
 {
     global $apbct;
 
@@ -813,9 +884,9 @@ function apbct_settings__set_fileds__network($fields)
         'wpms_settings' => array(
             'default_params' => array(),
             'description'    => '',
-            'html_before'    => '<br>'
+            'html_before'    => '<br><hr><br>'
                                 . '<span id="ct_adv_showhide">'
-                                . '<a href="#" class="apbct_color--gray" onclick="event.preventDefault(); apbct_show_hide_elem(\'apbct_settings__dwpms_settings\');">'
+                                . '<a href="#" class="apbct_color--gray" onclick="event.preventDefault(); apbct_excepted_show_hide(\'apbct_settings__dwpms_settings\');">'
                                 . __('WordPress Multisite (WPMS) settings', 'cleantalk-spam-protect')
                                 . '</a>'
                                 . '</span>'
@@ -1177,11 +1248,14 @@ function apbct_settings__display()
         }
     }
     $hidden_groups .= '</ul>';
-    $hidden_groups .= '<div id="apbct_settings__button_section"><button name="submit" class="cleantalk_link cleantalk_link-manual" value="save_changes">'
+    $hidden_groups .= '<div id="apbct_settings__button_section"><button name="submit" class="cleantalk_link cleantalk_link-manual" value="save_changes" onclick="apbct_show_required_groups(event,\'apbct_settings__button_section\')">'
                            . __('Save Changes')
                            . '</button></div>';
 
     foreach ( $apbct->settings_fields_in_groups as $group_name => $group ) {
+        if ( $group_name === 'trusted_and_affiliate' ) {
+            continue;
+        }
         //html_before
         $out = ! empty($group['html_before']) ? $group['html_before'] : '';
         echo Escape::escKsesPreset($out, 'apbct_settings__display__groups');
@@ -1198,12 +1272,40 @@ function apbct_settings__display()
         }
 
         $out = ! empty($group['html_after']) ? $group['html_after'] : '';
+
         echo Escape::escKsesPreset($out, 'apbct_settings__display__groups');
     }
 
-    echo '<div id="apbct_settings__after_advanced_settings"></div>';
+    echo '<div id="apbct_settings__after_advanced_settings">';
+    /**
+     * Affiliate section start
+     */
+    $group = $apbct->settings_fields_in_groups['trusted_and_affiliate'];
+    //html_before
+    $out = ! empty($group['html_before']) ? $group['html_before'] : '';
+    echo Escape::escKsesPreset($out, 'apbct_settings__display__groups');
 
-    echo '<button id="apbct_settings__main_save_button" name="submit" class="cleantalk_link cleantalk_link-manual" value="save_changes">'
+    //title
+    $out = ! empty($group['title']) ? '<h3 style="margin-left: 220px;" id="apbct_setting_group__' . $group_name . '">' . $group['title'] . '</h3>' : '';
+    $out = '<span id="trusted_and_affiliate__special_span" style="display: none">' . $out;
+    echo Escape::escKsesPreset($out, 'apbct_settings__display__groups');
+
+    do_settings_fields('cleantalk', 'apbct_section__trusted_and_affiliate');
+
+    //html_after
+    if ( ! empty($group['html_after']) && strpos($group['html_after'], '{HIDDEN_SECTION_NAV}') !== false ) {
+        $group['html_after'] = str_replace('{HIDDEN_SECTION_NAV}', $hidden_groups, $group['html_after']);
+    }
+
+    $out = ! empty($group['html_after']) ? $group['html_after'] : '';
+    $out .= '</span>';
+    echo Escape::escKsesPreset($out, 'apbct_settings__display__groups');
+    /**
+     * Affiliate end
+     */
+    echo '</div>';
+
+    echo '<button id="apbct_settings__main_save_button" name="submit" class="cleantalk_link cleantalk_link-manual" value="save_changes" onclick="apbct_show_required_groups(event,\'apbct_settings__main_save_button\')">'
          . __('Save Changes')
          . '</button>';
     echo '<br>';
@@ -1353,7 +1455,7 @@ function apbct_settings__error__output($return = false)
                     default:
                         $icon = '<span class="dashicons dashicons-hammer" style="color: red;"></span>';
                 }
-                $out .= '<h4>' . $icon . ' ' . Escape::escHtml($value) . '</h4>';
+                $out .= '<h4>' . $icon . ' ' . apbct_render_links_to_tag($value) . '</h4>';
             }
             $out .= ! $apbct->white_label
                 ? '<h4 style="text-align: unset;">' . sprintf(
@@ -1831,88 +1933,50 @@ function apbct_settings__field__statistics()
     echo '<br>';
 
     // Connection reports
-    if ( $apbct->connection_reports ) {
-        // if no negative show nothing
-        if ( $apbct->connection_reports['negative'] == 0 ) {
-            _e('There are no failed connections to server.', 'cleantalk-spam-protect');
+    $connection_reports = $apbct->getConnectionReports();
+    if ( ! $connection_reports->hasNegativeReports() ) {
+        _e('There are no failed connections to server.', 'cleantalk-spam-protect');
+    } else {
+        $reports_html = $connection_reports->prepareNegativeReportsHtmlForSettingsPage();
+        //escaping and echoing html
+        echo Escape::escKses(
+            $reports_html,
+            array(
+                'tr' => array(
+                    'style' => true
+                ),
+                'td' => array(),
+                'th' => array(
+                    'colspan' => true
+                ),
+                'b' => array(),
+                'br' => array(),
+                'div' => array(
+                    'id' => true
+                ),
+                'table' => array(
+                    'id' => true
+                ),
+            )
+        );
+        //if no unsent reports show caption, in another case show the button
+        if ( ! $connection_reports->hasUnsentReports() ) {
+            _e('All the reports already have been sent.', 'cleantalk-spam-protect');
         } else {
-            $unsent_reports_count = 0;
-            $reports_html = '';
-            foreach ( $apbct->connection_reports['negative_report'] as $key => $report ) {
-                //count unsent
-                if ( isset($report['is_sent']) && !$report['is_sent'] ) {
-                    $unsent_reports_count++;
-                }
-                //colorize
-                if ( isset($report['is_sent']) && $report['is_sent'] ) {
-                    $status = 'Sent';
-                    $color = 'gray';
-                } else {
-                    $status = 'New';
-                    $color = 'black';
-                }
-                //draw reports rows
-                $reports_html .= '<tr style="color:' . $color . '">'
-                                 . '<td>' . Escape::escHtml($key + 1) . '.</td>'
-                                 . '<td>' . Escape::escHtml($report['date']) . '</td>'
-                                 . '<td>' . Escape::escUrl($report['page_url']) . '</td>'
-                                 . '<td>' . Escape::escHtml($report['lib_report']) . '</td>'
-                                 . '<td>' . Escape::escUrl($report['work_url']) . '</td>'
-                                 . '<td>' . Escape::escHtml($status) . '</td>'
-                                 . '</tr>';
-            }
-            //draw main report table
-            $reports_html = "<table id='negative_reports_table''>
-                    <th colspan='6'>Failed connection reports</th>
-					<tr>
-						<td>#</td>
-						<td><b>Date</b></td>
-						<td><b>Page URL</b></td>
-						<td><b>Report</b></td>
-						<td><b>Server IP</b></td>
-						<td><b>Status</b></td>
-					</tr>"
-                //attach reports rows
-                . $reports_html
-                . "</table>"
-                . "<br/>";
-            //escaping html
-            echo Escape::escKses(
-                $reports_html,
-                array(
-                    'tr' => array(
-                        'style' => true
-                    ),
-                    'td' => array(),
-                    'th' => array(
-                        'colspan' => true
-                    ),
-                    'b' => array(),
-                    'br' => array(),
-                    'table' => array(
-                        'id' => true
-                    ),
-                )
-            );
-            //if no unsent reports show caption, in another case show the button
-            if ( $unsent_reports_count === 0 ) {
-                _e('All the reports already have been sent.', 'cleantalk-spam-protect');
-            } else {
-                echo '<button'
-                    . ' name="submit"'
-                    . ' class="cleantalk_link cleantalk_link-manual"'
-                    . ' value="ct_send_connection_report"'
-                    . (! $apbct->settings['misc__send_connection_reports'] ? ' disabled="disabled"' : '')
-                    . '>'
-                    . __('Send new report', 'cleantalk-spam-protect')
-                    . '</button>';
-                if ( ! $apbct->settings['misc__send_connection_reports'] ) {
-                    echo '<br><br>';
-                    _e(
-                        'Please, enable "Send connection reports" setting to be able to send reports',
-                        'cleantalk-spam-protect'
-                    );
-                }
+            echo '<button'
+                . ' name="submit"'
+                . ' class="cleantalk_link cleantalk_link-manual"'
+                . ' value="ct_send_connection_report"'
+                . (! $apbct->settings['misc__send_connection_reports'] ? ' disabled="disabled"' : '')
+                . '>'
+                . __('Send new report', 'cleantalk-spam-protect')
+                . '</button>';
+            if ( ! $apbct->settings['misc__send_connection_reports'] ) {
+                echo '<br><br>';
+                _e(
+                    'Please, enable "Send connection reports" setting to be able to send reports',
+                    'cleantalk-spam-protect'
+                );
             }
         }
     }
@@ -1995,7 +2059,6 @@ function apbct_settings__field__draw($params = array())
         ( ! $apbct->network_settings['multisite__allow_custom_settings'] || $apbct->network_settings['multisite__work_mode'] == 2 )
             ? ' disabled="disabled"'
             : $disabled; // Disabled by super admin on sub-sites
-
     $childrens = $params['childrens'] ? 'apbct_setting---' . implode(",apbct_setting---", $params['childrens']) : '';
     $hide      = $params['hide'] ? implode(",", $params['hide']) : '';
     //ESC NEED
@@ -2029,6 +2092,8 @@ function apbct_settings__field__draw($params = array())
                  . $params['title']
                  . '</label>'
                  . $popup;
+            $href = '<a href="https://cleantalk.org/my/partners" target="_blank">affiliate program are here</a>';
+            $params['description'] = str_replace('{CT_AFFILIATE_TERMS}', $href, $params['description']);
             echo '<div class="apbct_settings-field_description">'
                  . $params['description']
                  . '</div>';
@@ -2153,6 +2218,33 @@ function apbct_settings__field__draw($params = array())
             echo '<div class="apbct_settings-field_description">'
                  . $params['description']
                  . '</div>';
+            break;
+
+        // Text type
+        case 'affiliate_shortcode':
+            // Popup description
+            $popup = '';
+            if ( isset($params['long_description']) ) {
+                $popup = '<i setting="' . $params['name'] . '" class="apbct_settings-long_description---show apbct-icon-help-circled"></i>';
+            }
+            //ESC NEED
+            echo '<input
+					type="text"
+					id="apbct_setting_' . $params['name'] . '"
+					name="cleantalk_settings[' . $params['name'] . ']"'
+                . " class='apbct_setting_{$params['type']} apbct_setting---{$params['name']}'"
+                . ' value="[cleantalk_affiliate_link]" '
+                . "readonly"
+                . ($params['required'] ? ' required="required"' : '')
+                . ($params['childrens'] ? ' onchange="apbctSettingsDependencies(\'' . $childrens . '\')"' : '')
+                . ' />'
+                . '&nbsp;'
+                . '<label for="apbct_setting_' . $params['name'] . '" class="apbct_setting-field_title--' . $params['type'] . '">'
+                . $params['title'] . $popup
+                . '</label>';
+            echo '<div class="apbct_settings-field_description">'
+                . $params['description']
+                . '</div>';
             break;
 
         // Textarea type
@@ -2344,8 +2436,7 @@ function apbct_settings__validate($settings)
 
     // Send connection reports
     if ( Post::get('submit') === 'ct_send_connection_report' ) {
-        ct_mail_send_connection_report();
-
+        $apbct->getConnectionReports()->sendUnsentReports();
         return $settings;
     }
 
@@ -2383,6 +2474,7 @@ function apbct_settings__validate($settings)
                 'auto_update' => $apbct->data['auto_update'],
                 'user_token'  => $apbct->data['user_token'],
                 'service_id'  => $apbct->data['service_id'],
+                'user_id'  => $apbct->data['user_id'],
             );
             $apbct->saveNetworkData();
             if ( isset($settings['multisite__use_settings_template_apply_for_current_list_sites'])
@@ -2488,6 +2580,7 @@ function apbct_settings__sync($direct_call = false)
                 'auto_update' => $apbct->data['auto_update'],
                 'user_token'  => $apbct->data['user_token'],
                 'service_id'  => $apbct->data['service_id'],
+                'user_id'  => $apbct->data['user_id'],
             );
 
             if ( $apbct->network_settings['multisite__work_mode'] == 1 ) {
@@ -2516,6 +2609,7 @@ function apbct_settings__sync($direct_call = false)
 
         // Other
         $apbct->data['service_id']      = 0;
+        $apbct->data['user_id']      = 0;
         $apbct->data['valid']           = 0;
         $apbct->data['moderate']        = 0;
         $apbct->data['ip_license']      = 0;
@@ -3024,4 +3118,11 @@ function apbct_settings__custom_logo()
         </div>
     </div>
     <?php
+}
+
+function apbct_render_links_to_tag($value)
+{
+    $pattern = "/(https?:\/\/[^\s]+)/";
+    $value = preg_replace($pattern, '<a target="_blank" href="$1">$1</a>', $value);
+    return Escape::escKsesPreset($value, 'apbct_settings__display__notifications');
 }

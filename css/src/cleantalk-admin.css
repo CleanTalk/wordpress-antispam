@@ -2,7 +2,13 @@
 :disabled{cursor: not-allowed !important;}
 .apbct_color--gray{color: gray;}
 .apbct_display--none{display: none;}
-
+.apbct_bottom_links--left{
+	margin-right: 2pc;
+}
+.apbct_bottom_links--other{
+	margin-right: 2pc;
+	margin-left: 2pc;
+}
 /* Additional styles for admin pages */
 .ct_meta_links{
 	

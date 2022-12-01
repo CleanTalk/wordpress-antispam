@@ -127,11 +127,17 @@ class CleantalkResponse
     public $error = null;
 
     /**
+     * @var string Failed connections array data
+     */
+    public $failed_connections_urls_string = '';
+
+    /**
      * Create server response
      *
      * @param object $obj
+     * @param null|string $failed_urls
      */
-    public function __construct($obj = null)
+    public function __construct($obj = null, $failed_urls = null)
     {
         $this->errno  = isset($obj->errno) ? $obj->errno : 0;
         $this->errstr = isset($obj->errstr) ? preg_replace("/.+(\*\*\*.+\*\*\*).+/", "$1", htmlspecialchars($obj->errstr)) : null;
@@ -157,5 +163,7 @@ class CleantalkResponse
         if ( $this->errno !== 0 && $this->errstr !== null && $this->comment === null ) {
             $this->comment = '*** ' . $this->errstr . ' Anti-Spam service cleantalk.org ***';
         }
+
+        $this->failed_connections_urls_string = !empty($failed_urls) ? $failed_urls : '';
     }
 }

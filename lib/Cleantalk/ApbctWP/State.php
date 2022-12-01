@@ -72,7 +72,7 @@ class State extends \Cleantalk\Common\State
         'data__use_ajax'                           => 0,
         'data__use_static_js_key'                  => -1,
         'data__general_postdata_test'              => 0, //CAPD
-        'data__set_cookies'                        => 3, // Cookies type: 0 - Off / 1 - Native cookies / 2 - Alt cookies / 3 - Auto
+        'data__set_cookies'                        => 0, // Cookies type: 0 - Off / 1 - Native cookies / 2 - Alt cookies / 3 - Auto
         'data__ssl_on'                             => 0, // Secure connection to servers
         'data__pixel'                              => '3',
         'data__email_check_before_post'            => 1,
@@ -109,6 +109,13 @@ class State extends \Cleantalk\Common\State
         'wp__comment_notify__roles'                => array('administrator'),
         'wp__dashboard_widget__show'               => 1,
 
+        // Trusted and affiliate settings
+        'trusted_and_affiliate__shortcode'         => 0,
+        'trusted_and_affiliate__shortcode_tag'     => '',
+        'trusted_and_affiliate__footer'            => 0,
+        'trusted_and_affiliate__under_forms'       => 0,
+        'trusted_and_affiliate__add_id'            => 0,
+
     );
 
     public $def_data = array(
@@ -132,6 +139,7 @@ class State extends \Cleantalk\Common\State
         // Account data
         'account_email'                  => '',
         'service_id'                     => 0,
+        'user_id'                        => 0,
         'moderate'                       => 0,
         'moderate_ip'                    => 0,
         'ip_license'                     => 0,
@@ -216,6 +224,7 @@ class State extends \Cleantalk\Common\State
         'valid'       => 0,
         'user_token'  => '',
         'service_id'  => 0,
+        'user_id'  => 0,
         'auto_update' => 0,
     );
 
@@ -227,9 +236,11 @@ class State extends \Cleantalk\Common\State
         'update_settings'    => array('last_call' => 0, 'cooldown' => 0),
 
         // Firewall
-        'sfw_update'         => array('last_call' => 0, 'cooldown' => 0),
-        'sfw_update__worker' => array('last_call' => 0, 'cooldown' => 0),
-        'sfw_send_logs'      => array('last_call' => 0, 'cooldown' => 0),
+        'sfw_update'                => array('last_call' => 0, 'cooldown' => 0),
+        'sfw_update__worker'        => array('last_call' => 0, 'cooldown' => 0),
+        'sfw_send_logs'             => array('last_call' => 0, 'cooldown' => 0),
+        'private_record_add'        => array('last_call' => 0, 'cooldown' => 0),
+        'private_record_delete'     => array('last_call' => 0, 'cooldown' => 0),
 
         // Installation
         'install_plugin'     => array('last_call' => 0, 'cooldown' => 0),
@@ -295,12 +306,10 @@ class State extends \Cleantalk\Common\State
         'update_mode'                  => 0,
     );
 
-    private $default_connection_reports = array(
-        'success'         => 0,
-        'negative'        => 0,
-        'negative_report' => array(),
-        'since'           => '',
-    );
+    /**
+     * @var ConnectionReports
+     */
+    private $connection_reports;
 
     public $errors;
 
@@ -346,6 +355,10 @@ class State extends \Cleantalk\Common\State
         if ( ! defined('APBCT_TBL_NO_COOKIE')) {
             // Table with session data.
             define('APBCT_TBL_NO_COOKIE', $db_prefix . 'cleantalk_no_cookie_data');
+        }
+        if ( ! defined('APBCT_TBL_CONNECTION_REPORTS')) {
+            // Table with connection reports data.
+            define('APBCT_TBL_CONNECTION_REPORTS', $db_prefix . 'cleantalk_connection_reports');
         }
         if ( ! defined('APBCT_SPAMSCAN_LOGS')) {
             // Table with session data.
@@ -416,11 +429,6 @@ class State extends \Cleantalk\Common\State
             // Default statistics
             if ($this->option_prefix . '_' . $option_name === 'cleantalk_fw_stats') {
                 $option = is_array($option) ? array_merge($this->default_fw_stats, $option) : $this->default_fw_stats;
-            }
-
-            // Default connection reports
-            if ($this->option_prefix . '_' . $option_name === 'cleantalk_connection_reports') {
-                $option = is_array($option) ? array_merge($this->default_connection_reports, $option) : $this->default_connection_reports;
             }
 
             $this->$option_name = is_array($option) ? new ArrayObject($option) : $option;
@@ -548,41 +556,6 @@ class State extends \Cleantalk\Common\State
         }
     }
 
-    /**
-     * Drop option to default value
-     *
-     * @param $option_name
-     *
-     * @return bool
-     */
-    public function drop($option_name)
-    {
-        $default_option_name = 'default_' . $option_name;
-
-        if ( isset($this->$default_option_name) ) {
-            $this->$option_name = new ArrayObject($this->$default_option_name);
-
-            // Additional initialization for special cases
-            switch ($option_name) {
-                // Connection report
-                case 'connection_reports':
-                    $this->connection_reports['since'] = date('d M');
-                    $this->save($option_name, true, false);
-
-                    return true;
-                    //break;
-
-                // Special treat for other options here
-            }
-
-            // Save dropped option
-            $this->save($option_name);
-
-            return true;
-        }
-
-        return false;
-    }
     /**
      * Prepares an adds an error to the plugin's data
      *
@@ -811,5 +784,26 @@ class State extends \Cleantalk\Common\State
         return
             isset($headers['X-Varnish']) || //Set alt cookies if varnish is installed
             defined('SiteGround_Optimizer\VERSION'); //Set alt cookies if sg optimizer is installed
+    }
+
+    /**
+     * Init ConnectionReports object to the connection_reports attribute
+     */
+    public function setConnectionReports()
+    {
+        $this->connection_reports = new ConnectionReports(DB::getInstance(), APBCT_TBL_CONNECTION_REPORTS);
+    }
+
+    /**
+     * Get connection reports object. Init one if the connection_reports attribute
+     * is empty or not an object of ConnectionReports
+     * @return ConnectionReports
+     */
+    public function getConnectionReports()
+    {
+        if ( empty($this->connection_reports) || !$this->connection_reports instanceof ConnectionReports ) {
+            $this->setConnectionReports();
+        }
+        return $this->connection_reports;
     }
 }

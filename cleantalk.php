@@ -4,7 +4,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 5.189.2-fix
+  Version: 6.0
   Author: СleanTalk <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -193,6 +193,8 @@ apbct_update_actions();
 add_action('init', function () {
     global $apbct;
     // Self cron
+    // Connection reports
+    $apbct->setConnectionReports();
     $ct_cron = new Cron();
     $tasks_to_run = $ct_cron->checkTasks(); // Check for current tasks. Drop tasks inner counters.
     if (
@@ -216,7 +218,11 @@ add_action('init', function () {
     }
     // Remote calls
     if ( RemoteCalls::check() ) {
-        RemoteCalls::perform();
+        try {
+            RemoteCalls::perform();
+        } catch ( Exception $e ) {
+            die(json_encode(array('ERROR:' => $e->getMessage())));
+        }
     }
 });
 
@@ -234,9 +240,9 @@ if ( ! is_admin() && ! apbct_is_ajax() && ! defined('DOING_CRON')
         add_action('template_redirect', 'apbct_cookie', 2);
         add_action('template_redirect', 'apbct_store__urls', 2);
     }
-    if ( empty($_POST) && empty($_GET) ) {
-        apbct_cookie();
-        apbct_store__urls();
+    if ( empty($_POST) && empty($_GET) && $apbct->data['key_is_ok']) {
+            apbct_cookie();
+            apbct_store__urls();
     }
 }
 
@@ -1776,6 +1782,93 @@ function ct_sfw_send_logs($api_key = '')
     return $result;
 }
 
+
+/**
+ * Handle SFW private_records remote call.
+ * @param $action
+ * @return string JSON string of results
+ * @throws Exception
+ */
+function apbct_sfw_private_records_handler($action, $test_data = null)
+{
+
+    $error = 'sfw_private_records_handler: ';
+
+    if ( !empty($action) && (in_array($action, array('add', 'delete'))) ) {
+        $metadata = !empty($test_data) ? $test_data : Post::get('metadata');
+
+        if ( !empty($metadata) ) {
+            $metadata = json_decode(stripslashes($metadata), true);
+            if ( $metadata === 'NULL' || $metadata === null ) {
+                throw new InvalidArgumentException($error . 'metadata JSON decoding failed');
+            }
+        } else {
+            throw new InvalidArgumentException($error . 'metadata is empty');
+        }
+
+        foreach ( $metadata as $_key => &$row ) {
+            $row = explode(',', $row);
+            //do this to get info more obvious
+            $metadata_assoc_array = array(
+                'network' => (int)$row[0],
+                'mask' => (int)$row[1],
+                'status' => isset($row[2]) ? (int)$row[2] : null,
+                'source' => isset($row[3]) ? (int)$row[3] : null
+            );
+            //validate
+            $validation_error = '';
+            if ( $metadata_assoc_array['network'] === 0
+                || $metadata_assoc_array['network'] > 4294967295
+            ) {
+                $validation_error = 'metadata validate failed on "network" value';
+            }
+            if ( $metadata_assoc_array['mask'] === 0
+                || $metadata_assoc_array['mask'] > 4294967295
+            ) {
+                $validation_error = 'metadata validate failed on "mask" value';
+            }
+            //only for adding
+            if ( $action === 'add' ) {
+                if ( $metadata_assoc_array['source'] !== 1
+                ) {
+                    $validation_error = 'metadata validate failed on "source" value';
+                }
+                if ( $metadata_assoc_array['status'] !== 1 && $metadata_assoc_array['status'] !== 0 ) {
+                    $validation_error = 'metadata validate failed on "status" value';
+                }
+            }
+
+            if ( !empty($validation_error) ) {
+                throw new InvalidArgumentException($error . $validation_error);
+            }
+            $row = $metadata_assoc_array;
+        }
+        unset($row);
+
+        //method selection
+        if ( $action === 'add' ) {
+            $handler_output = SFW::privateRecordsAdd(
+                DB::getInstance(),
+                APBCT_TBL_FIREWALL_DATA,
+                $metadata
+            );
+        } elseif ( $action === 'delete' ) {
+            $handler_output = SFW::privateRecordsDelete(
+                DB::getInstance(),
+                APBCT_TBL_FIREWALL_DATA,
+                $metadata
+            );
+        } else {
+            $error .= 'unknown action name: ' . $action;
+            throw new InvalidArgumentException($error);
+        }
+    } else {
+        throw new InvalidArgumentException($error . 'empty action name');
+    }
+
+    return json_encode(array('OK' => $handler_output));
+}
+
 function apbct_antiflood__clear_table()
 {
     global $apbct;
@@ -2062,6 +2155,7 @@ function apbct_rc__insert_auth_key($key, $plugin)
                         $data['notice_trial']     = $result['trial'];
                         $data['auto_update_app']  = isset($result['show_auto_update_notice']) ? $result['show_auto_update_notice'] : 0;
                         $data['service_id']       = $result['service_id'];
+                        $data['user_id']       = $result['user_id'];
                         $data['moderate']         = $result['moderate'];
                         $data['auto_update_app '] = isset($result['auto_update_app']) ? $result['auto_update_app'] : 0;
                         $data['license_trial']    = isset($result['license_trial']) ? $result['license_trial'] : 0;
@@ -2432,6 +2526,7 @@ function ct_account_status_check($api_key = null, $process_errors = true)
 
         // Other
         $apbct->data['service_id']      = isset($result['service_id']) ? (int)$result['service_id'] : 0;
+        $apbct->data['user_id']      = isset($result['user_id']) ? (int)$result['user_id'] : 0;
         $apbct->data['valid']           = isset($result['valid']) ? (int)$result['valid'] : 0;
         $apbct->data['moderate']        = isset($result['moderate']) ? (int)$result['moderate'] : 0;
         $apbct->data['ip_license']      = isset($result['ip_license']) ? (int)$result['ip_license'] : 0;
@@ -2463,88 +2558,10 @@ function ct_account_status_check($api_key = null, $process_errors = true)
     return $result;
 }
 
-/**
- * Send failed connection reports if exist and still unsent.
- */
-function ct_mail_send_connection_report()
+function ct_cron_send_connection_report_email()
 {
     global $apbct;
-
-    if ( ( $apbct->settings['misc__send_connection_reports'] == 1 && isset($apbct->connection_reports['negative']) && $apbct->connection_reports['negative'] > 0 ) || !empty(Get::get('ct_send_connection_report')) ) {
-        //skip empty reports for cron job
-        $unsent_exist = false;
-        foreach ( $apbct->connection_reports['negative_report'] as $_key => $report ) {
-            if ( $report['is_sent'] == false ) {
-                $unsent_exist = true;
-            }
-        }
-        if ( ! $unsent_exist ) {
-            return;
-        }
-        $to = "welcome@cleantalk.org";
-        $subject = "Connection report for " . Server::get('HTTP_HOST');
-        $message = '
-				<html lang="en">
-				    <head>
-				        <title></title>
-				    </head>
-				    <body>
-				        <p>From '
-            . $apbct->connection_reports['since']
-            . ' to ' . date('d M') . ' has been made '
-            . ( $apbct->connection_reports['success'] + $apbct->connection_reports['negative'] )
-            . ' calls, where ' . $apbct->connection_reports['success'] . ' were success and '
-            . $apbct->connection_reports['negative'] . ' were negative
-				        </p>
-				        <p>Negative report:</p>
-				        <table>  <tr>
-				    <td>&nbsp;</td>
-				    <td><b>Date</b></td>
-				    <td><b>Page URL</b></td>
-				    <td><b>Library report</b></td>
-				    <td><b>Server IP</b></td>
-				  </tr>
-				  ';
-        $counter = 0;
-        foreach ( $apbct->connection_reports['negative_report'] as $_key => $report ) {
-            if ( !$report['is_sent'] ) {
-                $message .= '<tr>'
-                    . '<td>' . ( ++$counter ) . '.</td>'
-                    . '<td>' . $report['date'] . '</td>'
-                    . '<td>' . $report['page_url'] . '</td>'
-                    . '<td>' . $report['lib_report'] . '</td>'
-                    . '<td>' . $report['work_url'] . '</td>'
-                    . '</tr>';
-            }
-        }
-        $message .= '</table>';
-
-        $message .= '<br>';
-        $show_connection_reports_link =
-            substr(get_option('home'), -1) === '/' ? get_option('home') : get_option('home') . '/'
-                . '?'
-                . http_build_query([
-                    'plugin_name' => 'apbct',
-                    'spbc_remote_call_token' => md5($apbct->api_key),
-                    'spbc_remote_call_action' => 'debug',
-                    'show_only' => 'connection_reports',
-                ]);
-        $message .= '<a href="' . $show_connection_reports_link . '" target="_blank">Show connection reports with remote call</a>';
-        $message .= '<br>';
-
-        $message .= '</body></html>';
-
-        $headers = "Content-type: text/html; charset=windows-1251 \r\n";
-        $headers .= 'From: ' . ct_get_admin_email();
-        /** @psalm-suppress UnusedFunctionCall */
-        if ( wp_mail($to, $subject, $message, $headers) ) {
-            foreach ( $apbct->storage['connection_reports']['negative_report'] as $_key => &$report ) {
-                $report['is_sent'] = true;
-            }
-            unset($report);
-            $apbct->save('connection_reports', true, false);
-        }
-    }
+    $apbct->getConnectionReports()->sendUnsentReports(true);
 }
 
 /**

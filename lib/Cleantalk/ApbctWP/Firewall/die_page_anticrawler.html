@@ -185,12 +185,6 @@
 	<script>
 		var ct_date = new Date;
 
-		function set_spamFireWallCookie(cookie_name, cookie_value) {
-			var date = new Date;
-			date.setDate(date.getDate() + 30);
-			ctSetCookie( cookie_name, escape(cookie_value), date.toUTCString() );
-		}
-
 		function get_current_url() {
 			document.write(window.location.href);
 			return null;
@@ -237,8 +231,14 @@
 		document.getElementById('curr_date').innerHTML = ct_date.toGMTString();
 
 		setTimeout( function(){
-			set_spamFireWallCookie('wordpress_apbct_antibot',           '{COOKIE_ANTICRAWLER}');
-			set_spamFireWallCookie('apbct_anticrawler_passed','{COOKIE_ANTICRAWLER_PASSED}');
+			var date = new Date;
+			date.setDate(date.getDate() + 30);
+			ctSetCookie(
+				[
+					['wordpress_apbct_antibot', escape('{COOKIE_ANTICRAWLER}'), date.toUTCString()],
+					['apbct_anticrawler_passed', escape('{COOKIE_ANTICRAWLER_PASSED}'), date.toUTCString()]
+				]
+			);
 		}, 1000 );
 
 		if(location.search.search('debug=1') === -1) {
