@@ -53,7 +53,7 @@ function apbct_settings_add_page()
     );
 
     $fields = apbct_settings__set_fields();
-    $fields = APBCT_WPMS && is_main_site() ? apbct_settings__set_fileds__network($fields) : $fields;
+    $fields = APBCT_WPMS && is_main_site() ? apbct_settings__set_fields__network($fields) : $fields;
     apbct_settings__add_groups_and_fields($fields);
 }
 
