@@ -190,10 +190,8 @@ function apbct_settings__set_fields()
             'html_before'    => '<hr><br>'
                                 . '<span id="ct_adv_showhide" class="apbct_bottom_links--left">'
                                 . '<a href="#" class="apbct_color--gray" onclick="'
-                                    . 'event.preventDefault();'
-                                    . 'apbct_show_hide_elem(\'apbct_settings__advanced_settings\');'
-                                    . 'if (document.getElementById(\'trusted_and_affiliate__special_span\').style.display !== \'none\'){'
-                                    . 'apbct_show_hide_elem(\'trusted_and_affiliate__special_span\')}'
+                                . 'event.preventDefault();'
+                                . 'apbct_excepted_show_hide(\'apbct_settings__advanced_settings\');'
                                 . '">'
                                 . __('Advanced settings', 'cleantalk-spam-protect')
                                 . '</a>'
@@ -206,9 +204,7 @@ function apbct_settings__set_fields()
                                 . '<span id="ct_trusted_text_showhide" class="apbct_bottom_links--other">'
                                 . '<a href="#" class="apbct_color--gray" onclick="'
                                 . 'event.preventDefault();'
-                                . 'apbct_show_hide_elem(\'trusted_and_affiliate__special_span\');'
-                                . 'if (document.getElementById(\'apbct_settings__advanced_settings\').style.display !== \'none\'){'
-                                . 'apbct_show_hide_elem(\'apbct_settings__advanced_settings\')}'
+                                . 'apbct_excepted_show_hide(\'trusted_and_affiliate__special_span\');'
                                 . '">'
                                 . __('Trust text, affiliate settings', 'cleantalk-spam-protect')
                                 . '</a>'
@@ -880,7 +876,7 @@ function apbct_settings__set_fields()
     return $fields;
 }
 
-function apbct_settings__set_fileds__network($fields)
+function apbct_settings__set_fields__network($fields)
 {
     global $apbct;
 
@@ -888,9 +884,9 @@ function apbct_settings__set_fileds__network($fields)
         'wpms_settings' => array(
             'default_params' => array(),
             'description'    => '',
-            'html_before'    => '<br>'
+            'html_before'    => '<br><hr><br>'
                                 . '<span id="ct_adv_showhide">'
-                                . '<a href="#" class="apbct_color--gray" onclick="event.preventDefault(); apbct_show_hide_elem(\'apbct_settings__dwpms_settings\');">'
+                                . '<a href="#" class="apbct_color--gray" onclick="event.preventDefault(); apbct_excepted_show_hide(\'apbct_settings__dwpms_settings\');">'
                                 . __('WordPress Multisite (WPMS) settings', 'cleantalk-spam-protect')
                                 . '</a>'
                                 . '</span>'

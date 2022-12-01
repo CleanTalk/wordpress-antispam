@@ -453,6 +453,34 @@ function apbct_show_hide_elem(elems){
     }
 }
 
+function apbct_excepted_show_hide(element){
+	var to_hide = [
+		'apbct_settings__dwpms_settings',
+		'apbct_settings__advanced_settings',
+		'trusted_and_affiliate__special_span'
+	]
+	var index = to_hide.indexOf(element)
+	if (index !== -1){
+		to_hide.splice(index,1)
+	}
+	apbct_show_hide_elem(element)
+	to_hide.forEach((to_hide_elem) => {
+		if (document.getElementById(to_hide_elem) && document.getElementById(to_hide_elem).style.display !== 'none'){
+			apbct_show_hide_elem(to_hide_elem)
+		}
+	})
+}
+
+function apbct_show_required_groups(event,id){
+	var required = document.getElementById('apbct_settings__dwpms_settings')
+	if (required && required.style.display === 'none'){
+		var origin_event = event
+		event.preventDefault()
+		apbct_show_hide_elem('apbct_settings__dwpms_settings')
+		document.getElementById(id).dispatchEvent(new origin_event.constructor(origin_event.type, origin_event))
+	}
+}
+
 /**
  * Settings dependences. Switch|toggle depended elements state (disabled|enabled)
  * Recieve list of selectors ( without class mark (.) or id mark (#) )

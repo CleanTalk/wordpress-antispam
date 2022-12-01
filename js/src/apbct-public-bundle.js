@@ -2055,7 +2055,6 @@ let cleantalkModal = {
 
         var content = document.createElement( 'div' );
         if ( this.loaded ) {
-            console.table('this.loaded',this.loaded)
             var urlRegex = /(https?:\/\/[^\s]+)/g;
             var service_content_regex = /.*\/inc/g;
             if (service_content_regex.test(this.loaded)){
