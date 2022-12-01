@@ -177,7 +177,7 @@ let cleantalkModal = {
 
 /* Cleantalk Modal helpers */
 document.addEventListener('click',function( e ){
-    if( e.target && e.target.id === 'cleantalk-modal-overlay' || e.target.id === 'cleantalk-modal-close' ){
+    if( e.target && (e.target.id === 'cleantalk-modal-overlay' || e.target.id === 'cleantalk-modal-close') ){
         cleantalkModal.close();
     }
 });
