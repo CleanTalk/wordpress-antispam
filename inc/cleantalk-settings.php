@@ -823,7 +823,6 @@ function apbct_settings__set_fields()
                         'cleantalk-spam-protect'
                     ),
                     'childrens' => array('trusted_and_affiliate__shortcode_tag'),
-                    'reverse_trigger' => true,
                     'type' => 'checkbox'
                 ),
                 'trusted_and_affiliate__shortcode_tag'                    => array(
@@ -831,7 +830,7 @@ function apbct_settings__set_fields()
                     'title'       => __('<- Copy this text and place shortcode wherever you need.', 'cleantalk-spam-protect'),
                     'parent'      => 'trusted_and_affiliate__shortcode',
                     'class'       => 'apbct_settings-field_wrapper--sub',
-                    'disabled' => 'test'
+                    'disabled' => true
                 ),
                 'trusted_and_affiliate__footer' => array(
                     'title'           => __('Add to the footer', 'cleantalk-spam-protect'),
@@ -2234,7 +2233,8 @@ function apbct_settings__field__draw($params = array())
 					name="cleantalk_settings[' . $params['name'] . ']"'
                 . " class='apbct_setting_{$params['type']} apbct_setting---{$params['name']}'"
                 . ' value="[cleantalk_affiliate_link]" '
-                . "readonly"
+                . "readonly" //hardcode for this shortcode
+                . $disabled
                 . ($params['required'] ? ' required="required"' : '')
                 . ($params['childrens'] ? ' onchange="apbctSettingsDependencies(\'' . $childrens . '\')"' : '')
                 . ' />'
