@@ -237,7 +237,9 @@ if ( ! is_admin() && ! apbct_is_ajax() && ! defined('DOING_CRON')
      && ! \Cleantalk\Variables\Server::inUri('/favicon.ico') // /favicon request rewritten cookies fix
 ) {
     if ( $apbct->data['cookies_type'] !== 'alternative' ) {
-        add_action('template_redirect', 'apbct_cookie', 2);
+        if ( !$apbct->settings['forms__search_test'] && !Get::get('s') ) { //skip cookie set for search form redirect
+            add_action('template_redirect', 'apbct_cookie', 2);
+        }
         add_action('template_redirect', 'apbct_store__urls', 2);
     }
     if ( empty($_POST) && empty($_GET) && $apbct->data['key_is_ok']) {

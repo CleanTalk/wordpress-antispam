@@ -15,6 +15,8 @@ class Cookie extends \Cleantalk\Variables\Cookie
         'apbct_email_encoder_passed'
     );
 
+    public static $force_alt_cookies_global = false;
+
     /**
      * @inheritDoc
      */
@@ -38,10 +40,16 @@ class Cookie extends \Cleantalk\Variables\Cookie
                 $value = $this->getAndSanitize(urldecode($_COOKIE[$name]));
                 //NoCookies
             } else if ( $apbct->data['cookies_type'] === 'none' ) {
-                if ( in_array($name, static::$force_to_use_alternative_cookies, true) ) {
+                if ( static::$force_alt_cookies_global || in_array($name, static::$force_to_use_alternative_cookies, true)) {
+                    //force use altcookies
                     $value = AltSessions::get($name);
+                    //search in $_COOKIE
                     if ( empty($value) && isset($_COOKIE[$name]) ) {
                         $value = $this->getAndSanitize(urldecode($_COOKIE[$name]));
+                    }
+                    //last chance - search in NoCookie
+                    if ( empty($value) && isset($_COOKIE[$name]) ) {
+                        $value = NoCookie::get($name);
                     }
                 } else {
                     $value = NoCookie::get($name);

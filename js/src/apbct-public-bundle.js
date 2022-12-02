@@ -881,13 +881,17 @@ function ctSetCookie( cookies, value, expires ){
     if( ctPublicFunctions.data__cookies_type === 'none' ){
         let forced_alt_cookies_set = []
         cookies.forEach( function (item, i, arr	) {
-            if (force_alternative_method_for_cookies.indexOf(item[0]) !== -1) {
+            if (
+                force_alternative_method_for_cookies.indexOf(item[0]) !== -1
+                ||
+                ctSendCookiesDuplicateToAltSession === true
+            ) {
                 forced_alt_cookies_set.push(item)
             } else {
                 apbctLocalStorage.set(item[0], encodeURIComponent(item[1]))
             }
         });
-        if ( forced_alt_cookies_set.length > 0 ){
+        if ( forced_alt_cookies_set.length > 0 && !skip_alt){
             ctSetAlternativeCookie(forced_alt_cookies_set)
         }
         ctNoCookieAttachHiddenFieldsToForms()
@@ -1073,7 +1077,20 @@ var ct_date = new Date(),
 	ctMouseEventTimerFlag = true, //Reading interval flag
 	ctMouseData = [],
 	ctMouseDataCounter = 0,
-	ctCheckedEmails = {};
+	ctCheckedEmails = {},
+	ctSendCookiesDuplicateToAltSession = false;
+
+function apbct_page_has_search_get_form(){
+	var collection  = document.querySelectorAll('.search-form')
+	if (collection.length > 0){
+		for (let i = 0; i < collection.length; i++) {
+			if (collection[i].method.toLowerCase() === 'get'){
+				return true
+			}
+		}
+	}
+	return false
+}
 
 function apbct_attach_event_handler(elem, event, callback){
 	if(typeof window.addEventListener === "function") elem.addEventListener(event, callback);
@@ -1282,6 +1299,10 @@ if (ctPublic.data__key_is_ok) {
 function apbct_ready(){
 
 	ctPreloadLocalStorage()
+
+	if (apbct_page_has_search_get_form) {
+		ctSendCookiesDuplicateToAltSession = true
+	}
 
 	let cookiesType = apbctLocalStorage.get('ct_cookies_type');
 	if ( ! cookiesType || cookiesType !== ctPublic.data__cookies_type ) {

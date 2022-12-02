@@ -86,7 +86,7 @@ class AltSessions
         }
 
         foreach ( $cookies_array as $cookie_to_set => $value ) {
-            Cookie::set($cookie_to_set, $value);
+            self::set($cookie_to_set, $value);
         }
 
         wp_send_json(array('success' => true));
