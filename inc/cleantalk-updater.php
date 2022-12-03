@@ -1193,4 +1193,6 @@ function apbct_update_to_6_0_1()
         86400,
         time() + 3500
     );
+
+    $apbct->errorDelete('cron', true);
 }
