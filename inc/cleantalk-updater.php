@@ -59,7 +59,7 @@ function apbct_run_update_actions($current_version, $new_version)
         }
     }
 
-    for ($ver_major = $current_version_arr[0]; $ver_major <= $current_version_arr[0]; $ver_major++) {
+    for ($ver_major = $current_version_arr[0]; $ver_major <= $new_version_arr[0]; $ver_major++) {
         for ($ver_minor = 0; $ver_minor <= 300; $ver_minor++) {
             for ($ver_fix = 0; $ver_fix <= 10; $ver_fix++) {
                 if (version_compare("{$ver_major}.{$ver_minor}.{$ver_fix}", $current_version_str, '<=')) {
@@ -1175,7 +1175,7 @@ function apbct_update_to_5_184_2()
     }
 }
 
-function apbct_update_to_6_0_0()
+function apbct_update_to_6_0_1()
 {
     global $apbct;
     if ( isset($apbct->data['connection_reports']) ) {
@@ -1193,4 +1193,6 @@ function apbct_update_to_6_0_0()
         86400,
         time() + 3500
     );
+
+    $apbct->errorDelete('cron', true);
 }
