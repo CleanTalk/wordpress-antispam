@@ -949,6 +949,15 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'JQueryMigrate plugin service actions';
         }
+
+        /** Skip Optima Express login */
+        if (
+            apbct_is_plugin_active('optima-express/iHomefinder.php') &&
+            Post::get('actionType') === 'login' &&
+            !empty(Post::get('username'))
+        ) {
+            return 'Skip Optima Express login';
+        }
     }
 
     // Event Manager - there is the direct integration
