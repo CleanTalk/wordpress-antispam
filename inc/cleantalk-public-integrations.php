@@ -3596,9 +3596,11 @@ function apbct__wc_add_orders_spam_status_hide_from_list($query)
 
     $query_vars = &$query->query_vars;
 
-    if ( $pagenow == 'edit.php' && $query_vars['post_type'] == 'shop_order' &&
-        is_array($query_vars['post_status']) &&
-        ( $key = array_search('wc-spamorder', $query_vars['post_status']) ) !== false
+    if ( $pagenow == 'edit.php'
+        && isset($query_vars['post_type']) 
+        && $query_vars['post_type'] == 'shop_order' 
+        && is_array($query_vars['post_status']) 
+        && ( $key = array_search('wc-spamorder', $query_vars['post_status']) ) !== false
     ) {
         unset($query_vars['post_status'][$key]);
     }
