@@ -156,6 +156,15 @@ function apbct_public_sendREST( route, params ) {
     new ApbctCore().rest(_params);
 }
 
+/**
+ * Generate unique ID
+ * @returns {string}
+ */
+function apbctGenerateUniqueID()
+{
+    return Math.random().toString(36).replace(/[^a-z]+/g, '').substr(2, 10);
+}
+
 let apbctLocalStorage = {
     get : function(key, property) {
         if ( typeof property === 'undefined' ) {
