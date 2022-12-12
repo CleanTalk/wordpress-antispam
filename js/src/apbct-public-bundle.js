@@ -1019,6 +1019,15 @@ function apbct_public_sendREST( route, params ) {
     new ApbctCore().rest(_params);
 }
 
+/**
+ * Generate unique ID
+ * @returns {string}
+ */
+function apbctGenerateUniqueID()
+{
+    return Math.random().toString(36).replace(/[^a-z]+/g, '').substr(2, 10);
+}
+
 let apbctLocalStorage = {
     get : function(key, property) {
         if ( typeof property === 'undefined' ) {
@@ -1067,6 +1076,48 @@ let apbctLocalStorage = {
         return data
     },
 
+}
+
+let apbctSessionStorage = {
+    get : function(key, property) {
+        if ( typeof property === 'undefined' ) {
+            property = 'value';
+        }
+        const storageValue = sessionStorage.getItem(key);
+        if ( storageValue !== null ) {
+            try {
+                const json = JSON.parse(storageValue);
+                return json.hasOwnProperty(property) ? JSON.parse(json[property]) : json;
+            } catch (e) {
+                return storageValue;
+            }
+        }
+        return false;
+    },
+    set : function(key, value, is_json = true) {
+        if (is_json){
+            let objToSave = {'value': JSON.stringify(value), 'timestamp': Math.floor(new Date().getTime() / 1000)};
+            sessionStorage.setItem(key, JSON.stringify(objToSave));
+        } else {
+            sessionStorage.setItem(key, value);
+        }
+    },
+    isSet : function(key) {
+        return sessionStorage.getItem(key) !== null;
+    },
+    delete : function (key) {
+        sessionStorage.removeItem(key);
+    },
+    getCleanTalkData : function () {
+        let data = {}
+        for(let i=0; i<sessionStorage.length; i++) {
+            let key = sessionStorage.key(i);
+            if (key.indexOf('ct_') !==-1 || key.indexOf('apbct_') !==-1){
+                data[key.toString()] = apbctSessionStorage.get(key)
+            }
+        }
+        return data
+    },
 }
 var ct_date = new Date(),
 	ctTimeMs = new Date().getTime(),
@@ -1282,6 +1333,15 @@ if (ctPublic.data__key_is_ok) {
 function apbct_ready(){
 
 	ctPreloadLocalStorage()
+
+	// set session ID
+	if (!apbctSessionStorage.isSet('apbct_session_id')) {
+		const sessionID = apbctGenerateUniqueID();
+		apbctSessionStorage.set('apbct_session_id', sessionID, false);
+		apbctLocalStorage.set('apbct_page_hits', 1);
+	} else {
+		apbctLocalStorage.set('apbct_page_hits', Number(apbctLocalStorage.get('apbct_page_hits')) + 1);
+	}
 
 	let cookiesType = apbctLocalStorage.get('ct_cookies_type');
 	if ( ! cookiesType || cookiesType !== ctPublic.data__cookies_type ) {
@@ -1600,6 +1660,7 @@ function getJavascriptClientData(common_cookies = []) {
 	const ctMouseMovedLocalStorage = apbctLocalStorage.get(ctPublicFunctions.cookiePrefix + 'ct_mouse_moved');
 	const ctHasScrolledLocalStorage = apbctLocalStorage.get(ctPublicFunctions.cookiePrefix + 'ct_has_scrolled');
 	const ctCookiesTypeLocalStorage = apbctLocalStorage.get(ctPublicFunctions.cookiePrefix + 'ct_cookies_type');
+	const apbctPageHits = apbctLocalStorage.get('apbct_page_hits');
 
 	// collecting data from cookies
 	const ctMouseMovedCookie = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_mouse_moved');
@@ -1609,6 +1670,7 @@ function getJavascriptClientData(common_cookies = []) {
 	resultDataJson.ct_mouse_moved = ctMouseMovedLocalStorage !== undefined ? ctMouseMovedLocalStorage : ctMouseMovedCookie;
 	resultDataJson.ct_has_scrolled = ctHasScrolledLocalStorage !== undefined ? ctHasScrolledLocalStorage : ctHasScrolledCookie;
 	resultDataJson.ct_cookies_type = ctCookiesTypeLocalStorage !== undefined ? ctCookiesTypeLocalStorage : ctCookiesTypeCookie;
+	resultDataJson.apbct_page_hits = apbctPageHits;
 
 	if (
 		typeof (common_cookies) === "object"
