@@ -905,19 +905,29 @@ function ctSetCookie( cookies, value, expires ){
     }
 }
 
-function ctSetAlternativeCookie(cookies){
-    if (typeof (getJavascriptClientData) === "function"){
+function ctSetAlternativeCookie(cookies, params) {
+
+    if (typeof (getJavascriptClientData) === "function" ){
         //reprocess already gained cookies data
-        cookies = getJavascriptClientData(cookies);
+        if (Array.isArray(cookies)) {
+            cookies = getJavascriptClientData(cookies);
+        }
     } else {
         console.log('APBCT ERROR: getJavascriptClientData() is not loaded')
     }
 
     try {
-        JSON.parse(cookies)
+        cookies = JSON.parse(cookies)
     } catch (e){
         console.log('APBCT ERROR: JSON parse error:' + e)
         return
+    }
+
+    const callback = params.callback || null;
+    const onErrorCallback = params.onErrorCallback || null;
+
+    if( params.searchForm ) {
+        cookies.apbct_search_forms_params = true;
     }
 
     // Using REST API handler
@@ -926,7 +936,9 @@ function ctSetAlternativeCookie(cookies){
             'alt_sessions',
             {
                 method: 'POST',
-                data: { cookies: cookies }
+                data: { cookies: cookies },
+                callback: callback,
+                onErrorCallback: onErrorCallback
             }
         );
 
@@ -939,6 +951,8 @@ function ctSetAlternativeCookie(cookies){
             },
             {
                 notJson: 1,
+                callback: callback,
+                onErrorCallback: onErrorCallback
             }
         );
     }
@@ -1419,6 +1433,39 @@ function apbct_ready(){
 			encodedEmailNodes[i].addEventListener('click', ctFillDecodedEmailHandler);
 		}
 	}
+
+	/**
+	 * WordPress Search form processing
+	 */
+	for (const _form of document.forms) {
+		if ( _form.id.toLowerCase() === 'searchform' && ctPublic.data__cookies_type === 'none' ) {
+			_form.apbctSearchPrevOnsubmit = _form.onsubmit;
+			_form.onsubmit = (e) => {
+				const noCookie = _form.querySelector('[name="ct_no_cookie_hidden_field"]');
+				if ( noCookie !== null ) {
+					e.preventDefault();
+					const callBack = () => {
+						if (_form.apbctSearchPrevOnsubmit instanceof Function) {
+							_form.apbctSearchPrevOnsubmit();
+						} else {
+							HTMLFormElement.prototype.submit.call(_form);
+						}
+					}
+
+					let parsedCookies = atob(noCookie.value);
+
+					if ( parsedCookies.length !== 0 ) {
+						ctSetAlternativeCookie(
+							parsedCookies,
+							{callback: callBack, onErrorCallback: callBack, searchForm: true}
+						);
+					} else {
+						callBack();
+					}
+				}
+			}
+		}
+	}
 }
 if (ctPublic.data__key_is_ok) {
 	if (document.readyState !== 'loading') {
@@ -1863,7 +1910,11 @@ function ctSetPixelUrlLocalstorage(ajax_pixel_url) {
 	ctSetCookie('apbct_pixel_url', ajax_pixel_url)
 }
 
-function ctNoCookieConstructHiddenField(){
+function ctNoCookieConstructHiddenField(type){
+	let inputType = 'hidden';
+	if (type === 'submit') {
+		inputType = 'submit';
+	}
 	let field = ''
 	let no_cookie_data = apbctLocalStorage.getCleanTalkData()
 	no_cookie_data = JSON.stringify(no_cookie_data)
@@ -1872,7 +1923,8 @@ function ctNoCookieConstructHiddenField(){
 	field.setAttribute('id','ct_no_cookie_hidden_field')
 	field.setAttribute('name','ct_no_cookie_hidden_field')
 	field.setAttribute('value', no_cookie_data)
-	field.setAttribute('type', 'hidden')
+	field.setAttribute('type', inputType)
+	field.classList.add('apbct_special_field');
 	return field
 }
 
@@ -1905,7 +1957,10 @@ function ctNoCookieAttachHiddenFieldsToForms(){
 			if (document.forms[i].getAttribute('method') === null ||
 				document.forms[i].getAttribute('method').toLowerCase() === 'post'){
 				// add new set
-				document.forms[i].append(ctNoCookieConstructHiddenField())
+				document.forms[i].append(ctNoCookieConstructHiddenField());
+			}
+			if ( document.forms[i].id.toLowerCase() === 'searchform' ) {
+				document.forms[i].append(ctNoCookieConstructHiddenField('submit'));
 			}
 		}
 	}
