@@ -46,13 +46,15 @@ function ctSetAlternativeCookie(cookies, params) {
 
     if (typeof (getJavascriptClientData) === "function" ){
         //reprocess already gained cookies data
-        cookies = getJavascriptClientData(cookies);
+        if (Array.isArray(cookies)) {
+            cookies = getJavascriptClientData(cookies);
+        }
     } else {
         console.log('APBCT ERROR: getJavascriptClientData() is not loaded')
     }
 
     try {
-        JSON.parse(cookies)
+        cookies = JSON.parse(cookies)
     } catch (e){
         console.log('APBCT ERROR: JSON parse error:' + e)
         return
