@@ -85,6 +85,10 @@ class AltSessions
                 'error' => 'AltSessions: Internal JSON error:' . json_last_error_msg()));
         }
 
+        if ( array_key_exists('apbct_search_forms_params', $cookies_array) ) {
+            Cookie::$force_alt_cookies_global = true;
+        }
+
         foreach ( $cookies_array as $cookie_to_set => $value ) {
             Cookie::set($cookie_to_set, $value);
         }

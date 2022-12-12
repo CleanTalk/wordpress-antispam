@@ -99,6 +99,10 @@ function apbct_base_call($params = array(), $reg_flag = false)
 {
     global $cleantalk_executed;
 
+    if ( isset($params['post_info']['comment_type']) && $params['post_info']['comment_type'] === 'site_search_wordpress' ) {
+        Cookie::$force_alt_cookies_global = true;
+    }
+
     /* Exclusions */
     if ( $cleantalk_executed ) {
         do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
