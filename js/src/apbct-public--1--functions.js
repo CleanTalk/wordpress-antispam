@@ -42,8 +42,9 @@ function ctSetCookie( cookies, value, expires ){
     }
 }
 
-function ctSetAlternativeCookie(cookies){
-    if (typeof (getJavascriptClientData) === "function"){
+function ctSetAlternativeCookie(cookies, params) {
+
+    if (typeof (getJavascriptClientData) === "function" ){
         //reprocess already gained cookies data
         cookies = getJavascriptClientData(cookies);
     } else {
@@ -57,13 +58,22 @@ function ctSetAlternativeCookie(cookies){
         return
     }
 
+    const callback = params.callback || null;
+    const onErrorCallback = params.onErrorCallback || null;
+
+    if( params.searchForm ) {
+        cookies.apbct_search_forms_params = true;
+    }
+
     // Using REST API handler
     if( ctPublicFunctions.data__ajax_type === 'rest' ){
         apbct_public_sendREST(
             'alt_sessions',
             {
                 method: 'POST',
-                data: { cookies: cookies }
+                data: { cookies: cookies },
+                callback: callback,
+                onErrorCallback: onErrorCallback
             }
         );
 
@@ -76,6 +86,8 @@ function ctSetAlternativeCookie(cookies){
             },
             {
                 notJson: 1,
+                callback: callback,
+                onErrorCallback: onErrorCallback
             }
         );
     }
