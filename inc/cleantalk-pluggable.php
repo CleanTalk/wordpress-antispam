@@ -958,6 +958,15 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'Skip Optima Express login';
         }
+
+        /** Skip Optima Express update */
+        if (
+            apbct_is_plugin_active('optima-express/iHomefinder.php') &&
+            Post::get('actionType') === 'update' &&
+            !empty(Post::get('firstName'))
+        ) {
+            return 'Skip Optima Express update';
+        }
     }
 
     // Event Manager - there is the direct integration
