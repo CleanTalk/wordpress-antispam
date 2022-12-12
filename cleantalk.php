@@ -395,6 +395,11 @@ $apbct_active_integrations = array(
         'ajax'    => true,
         'ajax_and_post' => true
     ),
+    'NewUserApprove' => array(
+        'hook'    => 'nua_pass_create_new_user',
+        'setting' => 'forms__registrations_test',
+        'ajax'    => false
+    ),
 );
 new  \Cleantalk\Antispam\Integrations($apbct_active_integrations, (array)$apbct->settings);
 
