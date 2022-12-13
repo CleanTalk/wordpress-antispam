@@ -18,17 +18,13 @@ function ctSetCookie( cookies, value, expires ){
     if( ctPublicFunctions.data__cookies_type === 'none' ){
         let forced_alt_cookies_set = []
         cookies.forEach( function (item, i, arr	) {
-            if (
-                force_alternative_method_for_cookies.indexOf(item[0]) !== -1
-                ||
-                ctSendCookiesDuplicateToAltSession === true
-            ) {
+            if (force_alternative_method_for_cookies.indexOf(item[0]) !== -1) {
                 forced_alt_cookies_set.push(item)
             } else {
                 apbctLocalStorage.set(item[0], encodeURIComponent(item[1]))
             }
         });
-        if ( forced_alt_cookies_set.length > 0 && !skip_alt){
+        if ( forced_alt_cookies_set.length > 0 ){
             ctSetAlternativeCookie(forced_alt_cookies_set)
         }
         ctNoCookieAttachHiddenFieldsToForms()

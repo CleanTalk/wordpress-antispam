@@ -3,20 +3,7 @@ var ct_date = new Date(),
 	ctMouseEventTimerFlag = true, //Reading interval flag
 	ctMouseData = [],
 	ctMouseDataCounter = 0,
-	ctCheckedEmails = {},
-	ctSendCookiesDuplicateToAltSession = false;
-
-function apbct_page_has_search_get_form(){
-	var collection  = document.querySelectorAll('.search-form')
-	if (collection.length > 0){
-		for (let i = 0; i < collection.length; i++) {
-			if (collection[i].method.toLowerCase() === 'get'){
-				return true
-			}
-		}
-	}
-	return false
-}
+	ctCheckedEmails = {};
 
 function apbct_attach_event_handler(elem, event, callback){
 	if(typeof window.addEventListener === "function") elem.addEventListener(event, callback);
@@ -225,10 +212,6 @@ if (ctPublic.data__key_is_ok) {
 function apbct_ready(){
 
 	ctPreloadLocalStorage()
-
-	if (apbct_page_has_search_get_form) {
-		ctSendCookiesDuplicateToAltSession = true
-	}
 
 	let cookiesType = apbctLocalStorage.get('ct_cookies_type');
 	if ( ! cookiesType || cookiesType !== ctPublic.data__cookies_type ) {
