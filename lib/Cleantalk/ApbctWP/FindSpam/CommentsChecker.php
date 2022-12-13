@@ -72,21 +72,22 @@ class CommentsChecker extends Checker
         $amount = $commentsScanParameters->getAmount();
         $skip_roles = $commentsScanParameters->getSkipRoles();
         $offset = $commentsScanParameters->getOffset();
-        $between_dates_sql = '';
         $date_from = $commentsScanParameters->getFrom();
         $date_till = $commentsScanParameters->getTill();
+        $sql_where = "WHERE NOT comment_approved = 'spam' AND NOT comment_approved = 'trash'";
+        $sql_where .= " AND ( comment_type = 'comment' OR comment_type = 'trackback' OR comment_type = 'pings' )";
         if ($date_from && $date_till) {
             $date_from = date('Y-m-d', (int) strtotime($date_from)) . ' 00:00:00';
             $date_till = date('Y-m-d', (int) strtotime($date_till)) . ' 23:59:59';
 
-            $between_dates_sql = "WHERE $wpdb->comments.comment_date_gmt >= '$date_from' AND $wpdb->comments.comment_date_gmt <= '$date_till'";
+            $sql_where .= " AND $wpdb->comments.comment_date_gmt >= '$date_from' AND $wpdb->comments.comment_date_gmt <= '$date_till'";
         }
 
         $comments = $wpdb->get_results(
             "
 			SELECT {$wpdb->comments}.comment_ID, {$wpdb->comments}.comment_date_gmt, {$wpdb->comments}.comment_author_IP, {$wpdb->comments}.comment_author_email, {$wpdb->comments}.user_id
 			FROM {$wpdb->comments}
-			{$between_dates_sql}
+			{$sql_where}
 			ORDER BY {$wpdb->comments}.comment_ID ASC
 			LIMIT $amount OFFSET $offset;"
         );
@@ -264,7 +265,7 @@ class CommentsChecker extends Checker
         /**
          * Total comments
          */
-        $total_comments = wp_count_comments()->total_comments;
+        $total_comments = wp_count_comments()->all;
 
         $return = array(
             'message' => '',
@@ -521,7 +522,7 @@ class CommentsChecker extends Checker
             }
 
             // Count spam
-            CommentsScanResponse::getInstance()->setSpam(count($marked_comment_ids));
+            CommentsScanResponse::getInstance()->updateSpam(count($marked_comment_ids));
         }
 
         // Count bad comments

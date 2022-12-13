@@ -109,6 +109,13 @@ class State extends \Cleantalk\Common\State
         'wp__comment_notify__roles'                => array('administrator'),
         'wp__dashboard_widget__show'               => 1,
 
+        // Trusted and affiliate settings
+        'trusted_and_affiliate__shortcode'         => 0,
+        'trusted_and_affiliate__shortcode_tag'     => '',
+        'trusted_and_affiliate__footer'            => 0,
+        'trusted_and_affiliate__under_forms'       => 0,
+        'trusted_and_affiliate__add_id'            => 0,
+
     );
 
     public $def_data = array(
@@ -132,6 +139,7 @@ class State extends \Cleantalk\Common\State
         // Account data
         'account_email'                  => '',
         'service_id'                     => 0,
+        'user_id'                        => 0,
         'moderate'                       => 0,
         'moderate_ip'                    => 0,
         'ip_license'                     => 0,
@@ -216,6 +224,7 @@ class State extends \Cleantalk\Common\State
         'valid'       => 0,
         'user_token'  => '',
         'service_id'  => 0,
+        'user_id'  => 0,
         'auto_update' => 0,
     );
 
@@ -227,9 +236,11 @@ class State extends \Cleantalk\Common\State
         'update_settings'    => array('last_call' => 0, 'cooldown' => 0),
 
         // Firewall
-        'sfw_update'         => array('last_call' => 0, 'cooldown' => 0),
-        'sfw_update__worker' => array('last_call' => 0, 'cooldown' => 0),
-        'sfw_send_logs'      => array('last_call' => 0, 'cooldown' => 0),
+        'sfw_update'                => array('last_call' => 0, 'cooldown' => 0),
+        'sfw_update__worker'        => array('last_call' => 0, 'cooldown' => 0),
+        'sfw_send_logs'             => array('last_call' => 0, 'cooldown' => 0),
+        'private_record_add'        => array('last_call' => 0, 'cooldown' => 0),
+        'private_record_delete'     => array('last_call' => 0, 'cooldown' => 0),
 
         // Installation
         'install_plugin'     => array('last_call' => 0, 'cooldown' => 0),

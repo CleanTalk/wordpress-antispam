@@ -66,6 +66,33 @@ input[class*='apbct'].apbct_special_field{
         transform: rotate(135deg);
     }
 
+.apbct-trusted-text--div{
+    font-size: small !important;
+    display: inline-block;
+    text-align: center;
+    width: 100%;
+    margin-bottom: 2pc;
+}
+
+.apbct-trusted-text--label{
+    font-size: small !important;
+    display: inline-block;
+    text-align: center;
+    width: 100%;
+    padding: 5px 0 5px 0;
+}
+
+.apbct-trusted-text--label_left{
+    font-size: small !important;
+    display: inline-block;
+    text-align: left;
+    padding: 5px 0 5px 0;
+}
+
+.apbct-trusted-text--span{
+    display: inline-block;
+}
+
 .apbct-popup-fade:before {
     content: '';
     background: #000;

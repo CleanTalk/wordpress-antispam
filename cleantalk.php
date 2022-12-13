@@ -4,7 +4,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 6.0
+  Version: 6.0.2-dev
   Author: СleanTalk <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -218,7 +218,11 @@ add_action('init', function () {
     }
     // Remote calls
     if ( RemoteCalls::check() ) {
-        RemoteCalls::perform();
+        try {
+            RemoteCalls::perform();
+        } catch ( Exception $e ) {
+            die(json_encode(array('ERROR:' => $e->getMessage())));
+        }
     }
 });
 
@@ -236,9 +240,9 @@ if ( ! is_admin() && ! apbct_is_ajax() && ! defined('DOING_CRON')
         add_action('template_redirect', 'apbct_cookie', 2);
         add_action('template_redirect', 'apbct_store__urls', 2);
     }
-    if ( empty($_POST) && empty($_GET) ) {
-        apbct_cookie();
-        apbct_store__urls();
+    if ( empty($_POST) && empty($_GET) && $apbct->data['key_is_ok']) {
+            apbct_cookie();
+            apbct_store__urls();
     }
 }
 
@@ -458,6 +462,9 @@ add_filter('wpforms_process_initial_errors', 'apbct_form__WPForms__showResponse'
 // Formidable
 add_filter('frm_entries_before_create', 'apbct_form__formidable__testSpam', 999999, 2);
 add_action('frm_entries_footer_scripts', 'apbct_form__formidable__footerScripts', 20, 2);
+
+/* MailChimp Premium */
+add_filter('mc4wp_form_errors', 'ct_mc4wp_hook');
 
 // Public actions
 if ( ! is_admin() && ! apbct_is_ajax() && ! apbct_is_customize_preview() ) {
@@ -1775,6 +1782,93 @@ function ct_sfw_send_logs($api_key = '')
     return $result;
 }
 
+
+/**
+ * Handle SFW private_records remote call.
+ * @param $action
+ * @return string JSON string of results
+ * @throws Exception
+ */
+function apbct_sfw_private_records_handler($action, $test_data = null)
+{
+
+    $error = 'sfw_private_records_handler: ';
+
+    if ( !empty($action) && (in_array($action, array('add', 'delete'))) ) {
+        $metadata = !empty($test_data) ? $test_data : Post::get('metadata');
+
+        if ( !empty($metadata) ) {
+            $metadata = json_decode(stripslashes($metadata), true);
+            if ( $metadata === 'NULL' || $metadata === null ) {
+                throw new InvalidArgumentException($error . 'metadata JSON decoding failed');
+            }
+        } else {
+            throw new InvalidArgumentException($error . 'metadata is empty');
+        }
+
+        foreach ( $metadata as $_key => &$row ) {
+            $row = explode(',', $row);
+            //do this to get info more obvious
+            $metadata_assoc_array = array(
+                'network' => (int)$row[0],
+                'mask' => (int)$row[1],
+                'status' => isset($row[2]) ? (int)$row[2] : null,
+                'source' => isset($row[3]) ? (int)$row[3] : null
+            );
+            //validate
+            $validation_error = '';
+            if ( $metadata_assoc_array['network'] === 0
+                || $metadata_assoc_array['network'] > 4294967295
+            ) {
+                $validation_error = 'metadata validate failed on "network" value';
+            }
+            if ( $metadata_assoc_array['mask'] === 0
+                || $metadata_assoc_array['mask'] > 4294967295
+            ) {
+                $validation_error = 'metadata validate failed on "mask" value';
+            }
+            //only for adding
+            if ( $action === 'add' ) {
+                if ( $metadata_assoc_array['source'] !== 1
+                ) {
+                    $validation_error = 'metadata validate failed on "source" value';
+                }
+                if ( $metadata_assoc_array['status'] !== 1 && $metadata_assoc_array['status'] !== 0 ) {
+                    $validation_error = 'metadata validate failed on "status" value';
+                }
+            }
+
+            if ( !empty($validation_error) ) {
+                throw new InvalidArgumentException($error . $validation_error);
+            }
+            $row = $metadata_assoc_array;
+        }
+        unset($row);
+
+        //method selection
+        if ( $action === 'add' ) {
+            $handler_output = SFW::privateRecordsAdd(
+                DB::getInstance(),
+                APBCT_TBL_FIREWALL_DATA,
+                $metadata
+            );
+        } elseif ( $action === 'delete' ) {
+            $handler_output = SFW::privateRecordsDelete(
+                DB::getInstance(),
+                APBCT_TBL_FIREWALL_DATA,
+                $metadata
+            );
+        } else {
+            $error .= 'unknown action name: ' . $action;
+            throw new InvalidArgumentException($error);
+        }
+    } else {
+        throw new InvalidArgumentException($error . 'empty action name');
+    }
+
+    return json_encode(array('OK' => $handler_output));
+}
+
 function apbct_antiflood__clear_table()
 {
     global $apbct;
@@ -2061,6 +2155,7 @@ function apbct_rc__insert_auth_key($key, $plugin)
                         $data['notice_trial']     = $result['trial'];
                         $data['auto_update_app']  = isset($result['show_auto_update_notice']) ? $result['show_auto_update_notice'] : 0;
                         $data['service_id']       = $result['service_id'];
+                        $data['user_id']       = $result['user_id'];
                         $data['moderate']         = $result['moderate'];
                         $data['auto_update_app '] = isset($result['auto_update_app']) ? $result['auto_update_app'] : 0;
                         $data['license_trial']    = isset($result['license_trial']) ? $result['license_trial'] : 0;
@@ -2431,6 +2526,7 @@ function ct_account_status_check($api_key = null, $process_errors = true)
 
         // Other
         $apbct->data['service_id']      = isset($result['service_id']) ? (int)$result['service_id'] : 0;
+        $apbct->data['user_id']      = isset($result['user_id']) ? (int)$result['user_id'] : 0;
         $apbct->data['valid']           = isset($result['valid']) ? (int)$result['valid'] : 0;
         $apbct->data['moderate']        = isset($result['moderate']) ? (int)$result['moderate'] : 0;
         $apbct->data['ip_license']      = isset($result['ip_license']) ? (int)$result['ip_license'] : 0;
