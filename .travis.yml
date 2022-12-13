@@ -42,8 +42,6 @@ before_script:
     if [[ "$TRAVISCI" == "psalm" ]] ; then
       composer require phpunit/phpunit 7.*
       composer require vimeo/psalm
-      composer require humanmade/psalm-plugin-wordpress
-      composer require php-stubs/wordpress-stubs 5.*
     fi
 
 script:

@@ -2071,12 +2071,12 @@ function apbct_form__contactForm7__changeMailNotification($component)
     global $apbct;
 
     $component['body'] =
-        __('CleanTalk Anti-Spam: This message is spam.', 'cleantalk-spam-protect')
+        __('CleanTalk Anti-Spam: This message could be spam.', 'cleantalk-spam-protect')
         . PHP_EOL . __('CleanTalk\'s Anti-Spam database:', 'cleantalk-spam-protect')
         . PHP_EOL . 'IP: ' . $apbct->sender_ip
         . PHP_EOL . 'Email: ' . $apbct->sender_email
         . PHP_EOL . sprintf(
-            __('Activate protection in your Anti-Spam Dashboard: %s.', 'clentalk'),
+            __('If you want to be sure activate protection in your Anti-Spam Dashboard: %s.', 'clentalk'),
             'https://cleantalk.org/my/?cp_mode=antispam&utm_source=newsletter&utm_medium=email&utm_campaign=cf7_activate_antispam&user_token=' . $apbct->user_token
         )
         . PHP_EOL . '---' . PHP_EOL . PHP_EOL
@@ -2312,12 +2312,12 @@ function apbct_form__ninjaForms__changeMailNotification($message, $_data, $actio
         $message .= wpautop(
             PHP_EOL . '---'
             . PHP_EOL
-            . __('CleanTalk Anti-Spam: This message is spam.', 'cleantalk-spam-protect')
+            . __('CleanTalk Anti-Spam: This message could be spam.', 'cleantalk-spam-protect')
             . PHP_EOL . __('CleanTalk\'s Anti-Spam database:', 'cleantalk-spam-protect')
             . PHP_EOL . 'IP: ' . $apbct->sender_ip
             . PHP_EOL . 'Email: ' . $apbct->sender_email
             . PHP_EOL .
-            __('Activate protection in your Anti-Spam Dashboard: ', 'clentalk') .
+            __('If you want to be sure activate protection in your Anti-Spam Dashboard: ', 'clentalk') .
             'https://cleantalk.org/my/?cp_mode=antispam&utm_source=newsletter&utm_medium=email&utm_campaign=ninjaform_activate_antispam' . $apbct->user_token
         );
     }
@@ -2546,13 +2546,13 @@ function apbct_form__WPForms__changeMailNotification($message, $_wpforms_email)
             PHP_EOL
             . '---'
             . PHP_EOL
-            . __('CleanTalk Anti-Spam: This message is spam.', 'cleantalk-spam-protect')
+            . __('CleanTalk Anti-Spam: This message could be spam.', 'cleantalk-spam-protect')
             . PHP_EOL . __('CleanTalk\'s Anti-Spam database:', 'cleantalk-spam-protect')
             . PHP_EOL . 'IP: ' . '<a href="https://cleantalk.org/blacklists/' . $apbct->sender_ip . '?utm_source=newsletter&utm_medium=email&utm_campaign=wpforms_spam_passed" target="_blank">' . $apbct->sender_ip . '</a>'
             . PHP_EOL . 'Email: ' . '<a href="https://cleantalk.org/blacklists/' . $apbct->sender_email . '?utm_source=newsletter&utm_medium=email&utm_campaign=wpforms_spam_passed" target="_blank">' . $apbct->sender_email . '</a>'
             . PHP_EOL
             . sprintf(
-                __('Activate protection in your %sAnti-Spam Dashboard%s.', 'clentalk'),
+                __('If you want to be sure activate protection in your %sAnti-Spam Dashboard%s.', 'clentalk'),
                 '<a href="https://cleantalk.org/my/?cp_mode=antispam&utm_source=newsletter&utm_medium=email&utm_campaign=wpforms_activate_antispam" target="_blank">',
                 '</a>'
             )
