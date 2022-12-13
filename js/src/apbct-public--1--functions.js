@@ -42,19 +42,29 @@ function ctSetCookie( cookies, value, expires ){
     }
 }
 
-function ctSetAlternativeCookie(cookies){
-    if (typeof (getJavascriptClientData) === "function"){
+function ctSetAlternativeCookie(cookies, params) {
+
+    if (typeof (getJavascriptClientData) === "function" ){
         //reprocess already gained cookies data
-        cookies = getJavascriptClientData(cookies);
+        if (Array.isArray(cookies)) {
+            cookies = getJavascriptClientData(cookies);
+        }
     } else {
         console.log('APBCT ERROR: getJavascriptClientData() is not loaded')
     }
 
     try {
-        JSON.parse(cookies)
+        cookies = JSON.parse(cookies)
     } catch (e){
         console.log('APBCT ERROR: JSON parse error:' + e)
         return
+    }
+
+    const callback = params.callback || null;
+    const onErrorCallback = params.onErrorCallback || null;
+
+    if( params.searchForm ) {
+        cookies.apbct_search_forms_params = true;
     }
 
     // Using REST API handler
@@ -63,7 +73,9 @@ function ctSetAlternativeCookie(cookies){
             'alt_sessions',
             {
                 method: 'POST',
-                data: { cookies: cookies }
+                data: { cookies: cookies },
+                callback: callback,
+                onErrorCallback: onErrorCallback
             }
         );
 
@@ -76,6 +88,8 @@ function ctSetAlternativeCookie(cookies){
             },
             {
                 notJson: 1,
+                callback: callback,
+                onErrorCallback: onErrorCallback
             }
         );
     }
