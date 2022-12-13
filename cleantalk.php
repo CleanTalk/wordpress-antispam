@@ -2411,13 +2411,6 @@ function apbct_cookie()
         $cookie_test_value['check_value']     .= $apbct_timestamp;
     }
 
-    // Previous referer
-    if ( Server::get('HTTP_REFERER') ) {
-        Cookie::set('apbct_prev_referer', Server::get('HTTP_REFERER'), 0, '/', $domain, null, true, 'Lax', true);
-        $cookie_test_value['cookies_names'][] = 'apbct_prev_referer';
-        $cookie_test_value['check_value']     .= Server::get('HTTP_REFERER');
-    }
-
     // Landing time
     // todo if cookies disabled there is no way to keep this data without DB:( always will be overwriteen
     $site_landing_timestamp = Cookie::get('apbct_site_landing_ts');
@@ -2429,6 +2422,13 @@ function apbct_cookie()
     $cookie_test_value['check_value']     .= $site_landing_timestamp;
 
     if ($apbct->data['cookies_type'] === 'native') {
+        // Previous referer
+        if ( Server::get('HTTP_REFERER') ) {
+            Cookie::set('apbct_prev_referer', Server::get('HTTP_REFERER'), 0, '/', $domain, null, true, 'Lax', true);
+            $cookie_test_value['cookies_names'][] = 'apbct_prev_referer';
+            $cookie_test_value['check_value']     .= Server::get('HTTP_REFERER');
+        }
+
         // Page hits
         // Get
         $page_hits = Cookie::get('apbct_page_hits');

@@ -222,6 +222,9 @@ function apbct_ready(){
 		apbctLocalStorage.set('apbct_page_hits', Number(apbctLocalStorage.get('apbct_page_hits')) + 1);
 	}
 
+	// set apbct_prev_referer
+	apbctSessionStorage.set('apbct_prev_referer', document.referrer, false);
+
 	let cookiesType = apbctLocalStorage.get('ct_cookies_type');
 	if ( ! cookiesType || cookiesType !== ctPublic.data__cookies_type ) {
 		apbctLocalStorage.set('ct_cookies_type', ctPublic.data__cookies_type);
@@ -540,6 +543,7 @@ function getJavascriptClientData(common_cookies = []) {
 	const ctHasScrolledLocalStorage = apbctLocalStorage.get(ctPublicFunctions.cookiePrefix + 'ct_has_scrolled');
 	const ctCookiesTypeLocalStorage = apbctLocalStorage.get(ctPublicFunctions.cookiePrefix + 'ct_cookies_type');
 	const apbctPageHits = apbctLocalStorage.get('apbct_page_hits');
+	const apbctPrevReferer = apbctSessionStorage.get('apbct_prev_referer');
 
 	// collecting data from cookies
 	const ctMouseMovedCookie = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_mouse_moved');
@@ -550,6 +554,7 @@ function getJavascriptClientData(common_cookies = []) {
 	resultDataJson.ct_has_scrolled = ctHasScrolledLocalStorage !== undefined ? ctHasScrolledLocalStorage : ctHasScrolledCookie;
 	resultDataJson.ct_cookies_type = ctCookiesTypeLocalStorage !== undefined ? ctCookiesTypeLocalStorage : ctCookiesTypeCookie;
 	resultDataJson.apbct_page_hits = apbctPageHits;
+	resultDataJson.apbct_prev_referer = apbctPrevReferer;
 
 	if (
 		typeof (common_cookies) === "object"
@@ -806,7 +811,9 @@ function ctSetPixelUrlLocalstorage(ajax_pixel_url) {
 
 function ctNoCookieConstructHiddenField(){
 	let field = ''
-	let no_cookie_data = apbctLocalStorage.getCleanTalkData()
+	let no_cookie_data_local = apbctLocalStorage.getCleanTalkData()
+	let no_cookie_data_session = apbctSessionStorage.getCleanTalkData()
+	let no_cookie_data = {...no_cookie_data_local, ...no_cookie_data_session};
 	no_cookie_data = JSON.stringify(no_cookie_data)
 	no_cookie_data = btoa(no_cookie_data)
 	field = document.createElement('input')
