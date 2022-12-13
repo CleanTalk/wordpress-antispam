@@ -3091,6 +3091,8 @@ function apbct_form__elementor_pro__testSpam()
     if (
         $apbct->settings['forms__contact_forms_test'] == 0 ||
         ($apbct->settings['data__protect_logged_in'] != 1 && is_user_logged_in()) || // Skip processing for logged in users.
+        Post::get('form_fields_password') ||
+        Post::get('form-field-password') || // Skip processing for login form.
         apbct_exclusions_check__url()
     ) {
         do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
@@ -3595,9 +3597,11 @@ function apbct__wc_add_orders_spam_status_hide_from_list($query)
 
     $query_vars = &$query->query_vars;
 
-    if ( $pagenow == 'edit.php' && $query_vars['post_type'] == 'shop_order' &&
-        is_array($query_vars['post_status']) &&
-        ( $key = array_search('wc-spamorder', $query_vars['post_status']) ) !== false
+    if ( $pagenow == 'edit.php'
+        && isset($query_vars['post_type'])
+        && $query_vars['post_type'] == 'shop_order'
+        && is_array($query_vars['post_status'])
+        && ( $key = array_search('wc-spamorder', $query_vars['post_status']) ) !== false
     ) {
         unset($query_vars['post_status'][$key]);
     }
