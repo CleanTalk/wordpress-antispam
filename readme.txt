@@ -451,7 +451,7 @@ Yes, it is. Please read this article,
 
 == Changelog ==
 
-= 6.1 Dec 16 2022 =
+= 6.1 Dec 15 2022 =
 #### Some integrations fixed 🐞, Search forms 🎯 protection improved and some minor issues fixed 💪🏼
 * New. Integrations. Add NewUserApprove plugin.
 * Update. EmailEncoder. Add hook for encode email in default wp widget.
