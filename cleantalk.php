@@ -2357,7 +2357,7 @@ function apbct_store__urls()
             (
                 ! $site_referer ||
                 parse_url($new_site_referer, PHP_URL_HOST) !== Server::get('HTTP_HOST')
-            )
+            ) && $apbct->data['cookies_type'] === 'native'
         ) {
             Cookie::set('apbct_site_referer', $new_site_referer, time() + 86400 * 3, '/', $site_url, null, true, 'Lax', true);
         }

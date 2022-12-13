@@ -1339,6 +1339,12 @@ function apbct_ready(){
 		const sessionID = apbctGenerateUniqueID();
 		apbctSessionStorage.set('apbct_session_id', sessionID, false);
 		apbctLocalStorage.set('apbct_page_hits', 1);
+		if (document.referrer) {
+			let urlReferer = new URL(document.referrer);
+			if (urlReferer.host !== location.host) {
+				apbctSessionStorage.set('apbct_site_referer', document.referrer, false);
+			}
+		}
 	} else {
 		apbctLocalStorage.set('apbct_page_hits', Number(apbctLocalStorage.get('apbct_page_hits')) + 1);
 	}
@@ -1665,6 +1671,7 @@ function getJavascriptClientData(common_cookies = []) {
 	const ctCookiesTypeLocalStorage = apbctLocalStorage.get(ctPublicFunctions.cookiePrefix + 'ct_cookies_type');
 	const apbctPageHits = apbctLocalStorage.get('apbct_page_hits');
 	const apbctPrevReferer = apbctSessionStorage.get('apbct_prev_referer');
+	const apbctSiteReferer = apbctSessionStorage.get('apbct_site_referer');
 
 	// collecting data from cookies
 	const ctMouseMovedCookie = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_mouse_moved');
@@ -1676,6 +1683,7 @@ function getJavascriptClientData(common_cookies = []) {
 	resultDataJson.ct_cookies_type = ctCookiesTypeLocalStorage !== undefined ? ctCookiesTypeLocalStorage : ctCookiesTypeCookie;
 	resultDataJson.apbct_page_hits = apbctPageHits;
 	resultDataJson.apbct_prev_referer = apbctPrevReferer;
+	resultDataJson.apbct_site_referer = apbctSiteReferer;
 
 	if (
 		typeof (common_cookies) === "object"
