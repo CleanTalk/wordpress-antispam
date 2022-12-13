@@ -2432,13 +2432,13 @@ function apbct_cookie()
         // Page hits
         // Get
         $page_hits = Cookie::get('apbct_page_hits');
-    
+
         // Set / Increase
         // todo if cookies disabled there is no way to keep this data without DB:( always will be 1
         $page_hits = (int)$page_hits ? (int)$page_hits + 1 : 1;
-    
+
         Cookie::set('apbct_page_hits', (string)$page_hits, 0, '/', $domain, null, true, 'Lax', true);
-    
+
         $cookie_test_value['cookies_names'][] = 'apbct_page_hits';
         $cookie_test_value['check_value']     .= $page_hits;
     }
