@@ -2123,8 +2123,7 @@ function apbct_form__ninjaForms__testSpam()
     /**
      * Filter for POST
      */
-    $formData = isset($_POST['formData']) ? json_decode(stripslashes($_POST['formData']), true) : $_POST;
-    $input_array = apply_filters('apbct__filter_post', $formData);
+    $input_array = apply_filters('apbct__filter_post', $_POST);
 
     // Choosing between POST and GET
     $params = ct_get_fields_any(
