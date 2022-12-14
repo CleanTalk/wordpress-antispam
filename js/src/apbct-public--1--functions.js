@@ -60,10 +60,10 @@ function ctSetAlternativeCookie(cookies, params) {
         return
     }
 
-    const callback = params.callback || null;
-    const onErrorCallback = params.onErrorCallback || null;
+    const callback = params && params.callback || null;
+    const onErrorCallback = params && params.onErrorCallback || null;
 
-    if( params.searchForm ) {
+    if( params && params.searchForm ) {
         cookies.apbct_search_forms_params = true;
     }
 
