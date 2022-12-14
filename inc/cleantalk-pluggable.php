@@ -869,13 +869,6 @@ function apbct_is_skip_request($ajax = false)
         if ( apbct_is_rest() && Post::get('automation_id') !== '' && Post::get('unique_key') !== '' ) {
             return 'autonami-rest';
         }
-        //Skip wforms because of direct integration
-        if (
-            apbct_is_plugin_active('wpforms/wpforms.php') &&
-            (Post::get('wpforms') || Post::get('actions') === 'wpforms_submit')
-        ) {
-            return 'wp_forms';
-        }
         // Formidable skip - this is the direct integration
         if ( apbct_is_plugin_active('formidable/formidable.php') &&
              (Post::get('frm_action') === 'update' ||
@@ -967,6 +960,14 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'Skip Optima Express update';
         }
+    }
+
+    //Skip wforms because of direct integration
+    if (
+        (apbct_is_plugin_active('wpforms/wpforms.php') || apbct_is_plugin_active('wpforms-lite/wpforms.php')) &&
+        (Post::get('wpforms') || Post::get('actions') === 'wpforms_submit')
+    ) {
+        return 'wp_forms';
     }
 
     // Event Manager - there is the direct integration
