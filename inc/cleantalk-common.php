@@ -586,6 +586,11 @@ function apbct_get_sender_info()
         'no_cookie_data_taken'      => isset($apbct->stats['no_cookie_data_taken']) ? $apbct->stats['no_cookie_data_taken'] : null,
     );
 
+    // Unset cookies_enabled from sender_info if cookies_type === none
+    if ($apbct->data['cookies_type'] === 'none') {
+        unset($data_array['cookies_enabled']);
+    }
+
     return $data_array;
 }
 
