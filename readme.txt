@@ -463,6 +463,9 @@ Yes, it is. Please read this article,
 * Fix. Integrations. Probably spam notification updated.
 * Fix. Integration. Ninja refactoring.
 * Fix. Cookies. No-cookies parameters gathering on search forms improved.
+* Fix. Integrations. Do not draw hidden fields on excluded pages.
+* Fix. Integration. WP Forms integration fixed.
+* Fix. Integration. Ninja Forms integration fixed.
 
 = 6.0.1 Dec 4 2022 =
 * Fix. Updater. Updating checking fixed.
