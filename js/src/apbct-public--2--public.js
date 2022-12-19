@@ -272,11 +272,17 @@ function apbct_ready(){
 		initCookies.push(['ct_checkjs', 0]);
 	}
 
+	//detect integrated forms that need to be handled via alternative cookies
+	ctDetectForcedAltCookiesForms()
+
 	ctSetCookie(initCookies);
 
 	setTimeout(function(){
 
-		ctNoCookieAttachHiddenFieldsToForms()
+		if (typeof ctPublic.force_alt_cookies == 'undefined' || (ctPublic.force_alt_cookies !== 'undefined' && !ctPublic.force_alt_cookies)) {
+			ctNoCookieAttachHiddenFieldsToForms()
+		}
+
 
 		for(var i = 0; i < document.forms.length; i++){
 			var form = document.forms[i];
@@ -375,7 +381,7 @@ function apbct_ready(){
 					if ( parsedCookies.length !== 0 ) {
 						ctSetAlternativeCookie(
 							parsedCookies,
-							{callback: callBack, onErrorCallback: callBack, searchForm: true}
+							{callback: callBack, onErrorCallback: callBack, forceAltCookies: true}
 						);
 					} else {
 						callBack();
