@@ -89,9 +89,6 @@ class AltSessions
             Cookie::$force_alt_cookies_global = true;
         }
 
-        error_log('CTDEBUG: *Cookie::$force_alt_cookies_global ' . var_export(Cookie::$force_alt_cookies_global,true));
-        error_log('CTDEBUG: $cookies_array ' . var_export($cookies_array,true));
-
         foreach ( $cookies_array as $cookie_to_set => $value ) {
             Cookie::set($cookie_to_set, $value);
         }

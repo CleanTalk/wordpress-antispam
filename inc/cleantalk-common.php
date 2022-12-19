@@ -1373,13 +1373,18 @@ function apbct_get_honeypot_filled_fields()
     return $post_has_a_honeypot_key ? $result : false;
 }
 
-function apbct_form__get_no_cookie_data()
+/**
+ * Collect NoCookie data from hidden field or direct input.
+ * @param string $direct_no_cookie_string
+ */
+function apbct_form__get_no_cookie_data($direct_no_cookie_string = '')
 {
     global $apbct;
     $flag = null;
 
-    if ( Post::get('ct_no_cookie_hidden_field') && $apbct->data['cookies_type'] === 'none' ) {
-        $flag = \Cleantalk\ApbctWP\Variables\NoCookie::setDataFromHiddenField();
+    if ( (Post::get('ct_no_cookie_hidden_field') || !empty($direct_no_cookie_string))
+        && $apbct->data['cookies_type'] === 'none' ) {
+        $flag = \Cleantalk\ApbctWP\Variables\NoCookie::setDataFromHiddenField($direct_no_cookie_string);
     }
     $apbct->stats['no_cookie_data_taken'] = $flag;
     $apbct->save('stats');

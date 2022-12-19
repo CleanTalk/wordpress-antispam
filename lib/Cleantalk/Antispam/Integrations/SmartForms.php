@@ -15,7 +15,7 @@ class SmartForms extends IntegrationBase
              */
             $input_array = apply_filters('apbct__filter_post', $_POST);
             Cookie::$force_alt_cookies_global = true;
-            return ct_get_fields_any($input_array);
+            return ct_gfa($input_array);
         }
 
         return null;
