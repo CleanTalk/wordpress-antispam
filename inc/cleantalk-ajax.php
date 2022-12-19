@@ -386,7 +386,8 @@ function ct_ajax_hook($message_obj = null)
         'pm_check_user_exist',
         //Cartbounty plugin (saves every action on the page to keep abandoned carts)
         'cartbounty_pro_save', 'cartbounty_save',
-        'wpmtst_form2' //has direct integration StrongTestimonials
+        'wpmtst_form2', //has direct integration StrongTestimonials
+        'rednao_smart_forms_save_form_values' //has direct integration
     );
 
     global $apbct;
@@ -855,17 +856,6 @@ function ct_ajax_hook($message_obj = null)
                 'error_keys'       => array(),
                 'error_flag'       => 1,
                 'response_message' => $ct_result->comment
-            );
-            print json_encode($result);
-            die();
-        }
-
-        // Smart Forms
-        if ( Post::get('action') === 'rednao_smart_forms_save_form_values' ) {
-            $result = array(
-                'message'        => $ct_result->comment,
-                'refreshCaptcha' => 'n',
-                'success'        => 'n'
             );
             print json_encode($result);
             die();
