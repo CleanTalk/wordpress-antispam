@@ -8,7 +8,7 @@ class GiveWP extends IntegrationBase
 {
     public function getDataForChecking($argument)
     {
-        if ( Post::get('action') === 'give_process_donation' 
+        if ( Post::get('action') === 'give_process_donation'
             || (in_array(Post::get('give_action'), ['donation', 'purchase']) && Post::get('give_ajax')) ) {
             /**
              * Filter for POST
