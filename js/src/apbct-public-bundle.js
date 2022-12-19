@@ -893,12 +893,10 @@ function ctSetCookie( cookies, value, expires ){
         }
 
         // If problem integration forms detected use alt cookies for whole cookies set
-        console.table('ctPublic.force_alt_cookies',ctPublic.force_alt_cookies)
         if( ctPublic.force_alt_cookies ) {
             //do it just once
 
             if ( !skip_alt ){
-                console.table('!skip_alt',skip_alt)
                 ctSetAlternativeCookie(cookies, {forceAltCookies:true})
             }
         } else {
