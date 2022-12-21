@@ -2,6 +2,7 @@
 
 namespace Cleantalk\ApbctWP;
 
+use Cleantalk\ApbctWP\Variables\Post;
 use Cleantalk\ApbctWP\Variables\Request;
 use Cleantalk\ApbctWP\Variables\Get;
 
@@ -181,6 +182,11 @@ class RemoteCalls
     public static function action__private_record_delete() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         return apbct_sfw_private_records_handler('delete');
+    }
+
+    public static function action__run_service_template_get() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+    {
+        return apbct_run_service_template_get(Post::get('template_id'));
     }
 
     /**

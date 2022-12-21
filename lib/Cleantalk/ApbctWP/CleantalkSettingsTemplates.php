@@ -258,7 +258,7 @@ class CleantalkSettingsTemplates
         return json_encode($settings, JSON_FORCE_OBJECT);
     }
 
-    private function setPluginOptions($template_id, $template_name, $settings)
+    public function setPluginOptions($template_id, $template_name, $settings)
     {
         global $apbct, $wpdb;
 
@@ -296,6 +296,11 @@ class CleantalkSettingsTemplates
         } else {
             $settings = array_replace((array)$apbct->settings, $settings);
             $settings = apbct_settings__validate($settings);
+
+            if ( (array)$apbct->settings == $settings ) {
+                return true;
+            }
+
             $apbct->settings = $settings;
             $apbct->data['current_settings_template_id'] = $template_id;
             $apbct->data['current_settings_template_name'] = $template_name;
@@ -303,6 +308,7 @@ class CleantalkSettingsTemplates
 
             return $apbct->saveSettings() && $apbct->saveData();
         }
+        return false;
     }
 
     private function resetPluginOptions()

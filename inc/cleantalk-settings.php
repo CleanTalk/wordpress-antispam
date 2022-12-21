@@ -1,5 +1,7 @@
 <?php
 
+use Cleantalk\ApbctWP\API;
+use Cleantalk\ApbctWP\CleantalkSettingsTemplates;
 use Cleantalk\ApbctWP\Escape;
 use Cleantalk\ApbctWP\Helper;
 use Cleantalk\ApbctWP\Validate;
@@ -3125,4 +3127,81 @@ function apbct_render_links_to_tag($value)
     $pattern = "/(https?:\/\/[^\s]+)/";
     $value = preg_replace($pattern, '<a target="_blank" href="$1">$1</a>', $value);
     return Escape::escKsesPreset($value, 'apbct_settings__display__notifications');
+}
+
+/**
+ * Handler for service_template_get remote call.
+ * @param $template_id
+ * @return string
+ */
+function apbct_run_service_template_get($template_id)
+{
+    /**
+     * $template_id validation
+     */
+    $error_hat = 'apbct_run_service_template_get: ';
+
+    if ( empty($template_id) ) {
+        throw new InvalidArgumentException($error_hat . 'template_id param is missing');
+    }
+
+    global $apbct;
+
+    $template_get_result = API::methodServicesTemplatesGet($apbct->api_key);
+
+    /**
+     * Result of methodServicesTemplatesGet validation
+     */
+    $services_templates_get_error = '';
+    $options_template = array();
+    $template_name = '';
+
+    if ( empty($template_get_result) || !is_array($template_get_result) ) {
+        throw new InvalidArgumentException($error_hat . 'unexpected services_templates_get response, array awaited, got ' . gettype($template_get_result));
+    }
+
+    if ( array_key_exists('error', $template_get_result) ) {
+        throw new InvalidArgumentException($error_hat . 'error in services_templates_get response ' . $template_get_result['error']);
+    }
+
+    foreach ( $template_get_result as $_key => $template ) {
+        if ( empty($template['template_id']) ) {
+            $services_templates_get_error = 'services_templates_get: template_id is empty';
+            break;
+        }
+        if ( $template['template_id'] === (int)$template_id ) {
+            if ( empty($template['options_site']) ) {
+                $services_templates_get_error = 'services_templates_get: options_site is empty';
+                break;
+            }
+            if ( !is_string($template['options_site']) ) {
+                $services_templates_get_error = 'services_templates_get: options_site is not a string';
+                break;
+            }
+            $options_template = json_decode($template['options_site'], true);
+            $template_name = !empty($template['name']) ? htmlspecialchars($template['name']) : '';
+            if ( $options_template === false || !is_array($options_template)) {
+                $services_templates_get_error = 'services_templates_get: options_site JSON decode error';
+                unset($options_template);
+                break;
+            }
+        }
+    }
+
+    if ( !empty($services_templates_get_error) ) {
+        throw new InvalidArgumentException($error_hat . $services_templates_get_error);
+    }
+
+    if ( empty($options_template) ) {
+        throw new InvalidArgumentException($error_hat . 'no such template_id found ' . $template_id);
+    }
+
+    $templates_object = new CleantalkSettingsTemplates($apbct->api_key);
+    $settings_set_result = $templates_object->setPluginOptions($template_id, $template_name, $options_template);
+
+    $result = $settings_set_result
+        ? json_encode(array('OK' => 'Settings updated'))
+        : json_encode(array('ERROR' => 'Internal settings updating error'));
+
+    return $result !== false ? $result : '{"ERROR":"Internal JSON encoding error"}';
 }
