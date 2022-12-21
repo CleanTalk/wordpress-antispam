@@ -471,18 +471,21 @@ function apbct_admin__enqueue_scripts($hook)
             'all'
         );
 
-        wp_enqueue_script(
-            'ct_gstatic_charts_loader',
-            APBCT_JS_ASSETS_PATH . '/cleantalk-dashboard-widget--google-charts.min.js',
-            array(),
-            APBCT_VERSION
-        );
-        wp_enqueue_script(
-            'ct_admin_js_widget_dashboard',
-            APBCT_JS_ASSETS_PATH . '/cleantalk-dashboard-widget.min.js',
-            array('ct_gstatic_charts_loader'),
-            APBCT_VERSION
-        );
+        // Enqueue widget scripts if the dashboard widget enabled and not IP license
+        if ( $apbct->settings['wp__dashboard_widget__show'] && ! $apbct->moderate_ip ) {
+            wp_enqueue_script(
+                'ct_gstatic_charts_loader',
+                APBCT_JS_ASSETS_PATH . '/cleantalk-dashboard-widget--google-charts.min.js',
+                array(),
+                APBCT_VERSION
+            );
+            wp_enqueue_script(
+                'ct_admin_js_widget_dashboard',
+                APBCT_JS_ASSETS_PATH . '/cleantalk-dashboard-widget.min.js',
+                array('ct_gstatic_charts_loader'),
+                APBCT_VERSION
+            );
+        }
 
         // Preparing widget data
         // Parsing brief data 'spam_stat' {"yyyy-mm-dd": spam_count, "yyyy-mm-dd": spam_count} to [["yyyy-mm-dd", "spam_count"], ["yyyy-mm-dd", "spam_count"]]
