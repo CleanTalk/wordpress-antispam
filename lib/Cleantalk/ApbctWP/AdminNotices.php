@@ -12,6 +12,11 @@ class AdminNotices
      */
     const DAYS_INTERVAL_HIDING_NOTICE = 14;
 
+    /*
+     * The time interval in which the review notification will be hidden for user
+     */
+    const DAYS_INTERVAL_HIDING_REVIEW_NOTICE = 90;
+
     /**
      * @var null|AdminNotices
      */
@@ -214,7 +219,10 @@ class AdminNotices
      */
     public function notice_review() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
-        if ($this->apbct->notice_review == 1) {
+        $option_name = 'cleantalk_notice_review_' . get_current_user_id() . '_dismissed';
+
+        if ($this->apbct->notice_review == 1
+            && $this->checkOptionExpired($option_name, self::DAYS_INTERVAL_HIDING_REVIEW_NOTICE)) {
             $review_link = "<a class='button' href='https://wordpress.org/support/plugin/cleantalk-spam-protect/reviews/?filter=5' target='_blank'>"
                                 . __('SHARE', 'cleantalk-spam-protect') .
                             "</a>";
@@ -279,12 +287,25 @@ class AdminNotices
     private function isDismissedNotice($notice_uid)
     {
         $option_name = 'cleantalk_' . $notice_uid . '_dismissed';
-        $notice_date_option = get_option($option_name);
 
-        // Infinity for notice_review
-        if ($notice_date_option !== false && strpos($option_name, 'notice_review')) {
-            return true;
+        // Special for notice_review
+        if (is_string($notice_uid) && strpos($notice_uid, 'notice_review')) {
+            return $this->checkOptionExpired($option_name, self::DAYS_INTERVAL_HIDING_REVIEW_NOTICE);
         }
+
+        return $this->checkOptionExpired($option_name, self::DAYS_INTERVAL_HIDING_NOTICE);
+    }
+
+    /**
+     * Check option expired
+     *
+     * @param string $notice_uid
+     *
+     * @return bool
+     */
+    private function checkOptionExpired($option_name, $expired_date)
+    {
+        $notice_date_option = get_option($option_name);
 
         if ( $notice_date_option !== false && \Cleantalk\Common\Helper::dateValidate($notice_date_option) ) {
             $current_date = date_create();
@@ -292,7 +313,7 @@ class AdminNotices
 
             $diff = date_diff($current_date, $notice_date);
 
-            if ( $diff->days <= self::DAYS_INTERVAL_HIDING_NOTICE ) {
+            if ( $diff->days <= $expired_date ) {
                 return true;
             }
         }
