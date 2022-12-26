@@ -285,6 +285,7 @@ function apbct_base_call($params = array(), $reg_flag = false)
 
     // Set cookies if it's not.
     if ( empty($apbct->flags__cookies_setuped) ) {
+        Cookie::$force_alt_cookies_global = false;
         apbct_cookie();
     }
 

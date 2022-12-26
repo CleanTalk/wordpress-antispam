@@ -387,8 +387,6 @@ function ct_ajax_hook($message_obj = null)
         //Cartbounty plugin (saves every action on the page to keep abandoned carts)
         'cartbounty_pro_save', 'cartbounty_save',
         'wpmtst_form2', //has direct integration StrongTestimonials
-        'rednao_smart_forms_save_form_values', //has direct integration
-        'ufbl_front_form_action', //has direct integration
     );
 
     global $apbct;
