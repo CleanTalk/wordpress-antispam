@@ -857,11 +857,11 @@ function apbct_settings__set_fields()
                 ),
                 'trusted_and_affiliate__add_id'         => array(
                     'title'           => __(
-                        'Add your affiliate ID to the link placed in the trust text.',
+                        'Append your affiliate ID',
                         'cleantalk-spam-protect'
                     ),
                     'description'     => __(
-                        'If you check this option or checkbox, then your affiliate ID will be added to the referral link. Terms of the {CT_AFFILIATE_TERMS}.',
+                        'Enable this option to append your specific affiliate ID to the trust text created by the options above ("Shortcode" or "Add to the footer"). Terms and your affiliate ID of the {CT_AFFILIATE_TERMS}.',
                         'cleantalk-spam-protect'
                     ),
                     'reverse_trigger' => false,
@@ -2091,7 +2091,7 @@ function apbct_settings__field__draw($params = array())
                  . $params['title']
                  . '</label>'
                  . $popup;
-            $href = '<a href="https://cleantalk.org/my/partners" target="_blank">affiliate program are here</a>';
+            $href = '<a href="https://cleantalk.org/my/partners" target="_blank">' . __('CleanTalk Affiliate Program are here', 'cleantalk-spam-protect') . '</a>';
             $params['description'] = str_replace('{CT_AFFILIATE_TERMS}', $href, $params['description']);
             echo '<div class="apbct_settings-field_description">'
                  . $params['description']
