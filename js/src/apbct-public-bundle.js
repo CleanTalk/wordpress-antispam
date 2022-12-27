@@ -1529,7 +1529,6 @@ function apbct_ready(){
 		}
 	}
 }
-
 if (ctPublic.data__key_is_ok) {
 	if (document.readyState !== 'loading') {
 		apbct_ready();
