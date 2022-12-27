@@ -311,11 +311,8 @@ class Helper
                     (
                         is_string($ip_version) && (
                             self::ipIsPrivateNetwork($out, $ip_version) ||
-                            self::ipMaskMatch(
-                                $out,
-                                Server::get('SERVER_ADDR') . '/24',
-                                $ip_version
-                            ))
+                            ($ip_version === self::ipValidate(Server::get('SERVER_ADDR')) && self::ipMaskMatch($out, Server::get('SERVER_ADDR') . '/24', $ip_version))
+                        )
                     )
                 ) {
                     //@todo Remove local IP from x-forwarded-for and x-real-ip
