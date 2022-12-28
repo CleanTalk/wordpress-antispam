@@ -231,9 +231,11 @@ class State extends \Cleantalk\Common\State
     public $def_remote_calls = array(
 
         //Common
-        'close_renew_banner' => array('last_call' => 0, 'cooldown' => 0),
-        'check_website'      => array('last_call' => 0, 'cooldown' => 0),
-        'update_settings'    => array('last_call' => 0, 'cooldown' => 0),
+        'close_renew_banner'            => array('last_call' => 0, 'cooldown' => 0),
+        'check_website'                 => array('last_call' => 0, 'cooldown' => 0),
+        'update_settings'               => array('last_call' => 0, 'cooldown' => 0),
+        'run_service_template_get'      => array('last_call' => 0, 'cooldown' => 3600),
+
 
         // Firewall
         'sfw_update'                => array('last_call' => 0, 'cooldown' => 0),
@@ -515,7 +517,7 @@ class State extends \Cleantalk\Common\State
      */
     public function saveData()
     {
-        update_option($this->option_prefix . '_data', (array)$this->data);
+        return update_option($this->option_prefix . '_data', (array)$this->data);
     }
 
     /**

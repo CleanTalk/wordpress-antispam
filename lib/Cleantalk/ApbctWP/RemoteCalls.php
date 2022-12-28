@@ -2,6 +2,7 @@
 
 namespace Cleantalk\ApbctWP;
 
+use Cleantalk\ApbctWP\Variables\Post;
 use Cleantalk\ApbctWP\Variables\Request;
 use Cleantalk\ApbctWP\Variables\Get;
 
@@ -181,6 +182,40 @@ class RemoteCalls
     public static function action__private_record_delete() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         return apbct_sfw_private_records_handler('delete');
+    }
+
+    /**
+     * Handle remote call action "run_service_template_get".
+     * @return string
+     * @throws \InvalidArgumentException
+     */
+    public static function action__run_service_template_get() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+    {
+
+        global $apbct;
+        $error_hat = 'apbct_run_service_template_get: ';
+
+        if ( empty($apbct->api_key) ) {
+            throw new \InvalidArgumentException($error_hat . 'api key not found');
+        }
+        /**
+         * $template_id validation
+         */
+        $template_id = Post::get('template_id');
+
+        if ( empty($template_id) || !is_string($template_id) ) {
+            throw new \InvalidArgumentException($error_hat . 'bad param template_id');
+        }
+
+        /**
+         * Run and validate API method service_template_get
+         */
+        $options_template_data = apbct_validate_api_response__service_template_get(
+            $template_id,
+            API::methodServicesTemplatesGet($apbct->api_key)
+        );
+
+        return apbct_rc__service_template_set($template_id, $options_template_data, $apbct->api_key);
     }
 
     /**

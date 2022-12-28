@@ -219,9 +219,16 @@ add_action('init', function () {
     // Remote calls
     if ( RemoteCalls::check() ) {
         try {
+            /**
+             * Needs to include apbct_settings__validate() for run_service_template_get remote call.
+             * TODO:Probably we should refactor apbct_settings__validate() to a class feature to use it within autoloader
+             */
+            if ( Get::get('spbc_remote_call_action') === 'run_service_template_get' ) {
+                require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-settings.php');
+            }
             RemoteCalls::perform();
         } catch ( Exception $e ) {
-            die(json_encode(array('ERROR:' => $e->getMessage())));
+            die(json_encode(array('ERROR' => $e->getMessage())));
         }
     }
 });
