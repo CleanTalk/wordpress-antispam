@@ -386,7 +386,7 @@ function ct_ajax_hook($message_obj = null)
         'pm_check_user_exist',
         //Cartbounty plugin (saves every action on the page to keep abandoned carts)
         'cartbounty_pro_save', 'cartbounty_save',
-        'wpmtst_form2' //has direct integration StrongTestimonials
+        'wpmtst_form2', //has direct integration StrongTestimonials
     );
 
     global $apbct;
@@ -506,14 +506,6 @@ function ct_ajax_hook($message_obj = null)
             }
             if ( isset($form_data_arr['FNAME']) ) {
                 $ct_post_temp['nickname'] = $form_data_arr['FNAME'];
-            }
-        }
-    }
-    if ( Post::get('action') === 'ufbl_front_form_action' ) {
-        $ct_post_temp = $_POST;
-        foreach ( $ct_post_temp as $key => $_value ) {
-            if ( preg_match('/form_data_\d_name/', (string)$key) ) {
-                unset($ct_post_temp[$key]);
             }
         }
     }
@@ -844,28 +836,6 @@ function ct_ajax_hook($message_obj = null)
                 'message'      => "<h1 style='font-size: 25px; color: red;'>" . $ct_result->comment . "</h1>",
                 'status'       => "error",
                 'url'          => "none"
-            );
-            print json_encode($result);
-            die();
-        }
-
-        // Ultimate Form Builder
-        if ( Post::get('action') === 'ufbl_front_form_action' ) {
-            $result = array(
-                'error_keys'       => array(),
-                'error_flag'       => 1,
-                'response_message' => $ct_result->comment
-            );
-            print json_encode($result);
-            die();
-        }
-
-        // Smart Forms
-        if ( Post::get('action') === 'rednao_smart_forms_save_form_values' ) {
-            $result = array(
-                'message'        => $ct_result->comment,
-                'refreshCaptcha' => 'n',
-                'success'        => 'n'
             );
             print json_encode($result);
             die();

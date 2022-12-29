@@ -244,7 +244,9 @@ if ( ! is_admin() && ! apbct_is_ajax() && ! defined('DOING_CRON')
      && ! \Cleantalk\Variables\Server::inUri('/favicon.ico') // /favicon request rewritten cookies fix
 ) {
     if ( $apbct->data['cookies_type'] !== 'alternative' ) {
-        add_action('template_redirect', 'apbct_cookie', 2);
+        if ( !$apbct->settings['forms__search_test'] && !Get::get('s') ) { //skip cookie set for search form redirect page
+            add_action('template_redirect', 'apbct_cookie', 2);
+        }
         add_action('template_redirect', 'apbct_store__urls', 2);
     }
     if ( empty($_POST) && empty($_GET) && $apbct->data['key_is_ok']) {
@@ -406,6 +408,16 @@ $apbct_active_integrations = array(
         'hook'    => 'nua_pass_create_new_user',
         'setting' => 'forms__registrations_test',
         'ajax'    => false
+    ),
+    'SmartForms' => array(
+        'hook'    => array('rednao_smart_forms_save_form_values'),
+        'setting' => 'forms__contact_forms_test',
+        'ajax'    => true
+    ),
+    'UlitmateFormBuilder' => array(
+        'hook'    => array('ufbl_front_form_action'),
+        'setting' => 'forms__contact_forms_test',
+        'ajax'    => true
     ),
 );
 new  \Cleantalk\Antispam\Integrations($apbct_active_integrations, (array)$apbct->settings);

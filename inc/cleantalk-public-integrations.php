@@ -2095,6 +2095,8 @@ function apbct_form__ninjaForms__testSpam()
 {
     global $apbct, $cleantalk_executed;
 
+    Cookie::$force_alt_cookies_global = true;
+
     if ( $cleantalk_executed ) {
         do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
 
@@ -2154,6 +2156,9 @@ function apbct_form__ninjaForms__testSpam()
             'js_on'           => $checkjs,
         )
     );
+
+    Cookie::$force_alt_cookies_global = false;
+
     $ct_result        = $base_call_result['ct_result'];
 
     // Change mail notification if license is out of date
