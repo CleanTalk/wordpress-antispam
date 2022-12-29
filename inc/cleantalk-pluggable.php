@@ -821,6 +821,23 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'Abandoned Cart Recovery for WooCommerce: skipped ' . Post::get('action');
         }
+
+        //Skip smart_forms because of direct integration
+        if (
+            apbct_is_plugin_active('smart-forms/smartforms.php') &&
+            Post::get('action') === 'rednao_smart_forms_save_form_values'
+        ) {
+            return 'Smart Forms skip';
+        }
+
+        //Skip Universal form builder because of direct integration
+        if (
+            apbct_is_plugin_active('ultimate-form-builder-lite/ultimate-form-builder-lite.php') &&
+            Post::get('action') === 'ufbl_front_form_action'
+        ) {
+            return 'Universal form builder skip';
+        }
+
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
@@ -977,22 +994,6 @@ function apbct_is_skip_request($ajax = false)
         wp_verify_nonce(Post::get('_wpnonce'), 'booking_add')
     ) {
         return 'Event Manager skip';
-    }
-
-    //Skip smart_forms because of direct integration
-    if (
-        apbct_is_plugin_active('smart-forms/smartforms.php') &&
-        Post::get('action') === 'rednao_smart_forms_save_form_values'
-    ) {
-        return 'Smart Forms skip';
-    }
-
-    //Skip Universal form builder because of direct integration
-    if (
-        apbct_is_plugin_active('ultimate-form-builder-lite/ultimate-form-builder-lite.php') &&
-        Post::get('action') === 'ufbl_front_form_action'
-    ) {
-        return 'Universal form builder skip';
     }
 
     return false;
