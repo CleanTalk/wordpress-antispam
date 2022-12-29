@@ -2264,8 +2264,13 @@ function ct_protect_external() {
 
             if(typeof(currentForm.action) == 'string') {
 
+                //skip excluded forms
+                if ( formIsExclusion(currentForm)) {
+                    return
+                }
+
                 // Ajax checking for the integrated forms
-                if(isIntegratedForm(currentForm)) {
+                if ( isIntegratedForm(currentForm) ) {
 
                     apbctProcessExternalForm(currentForm, i, document);
 
@@ -2354,11 +2359,6 @@ function apbctProcessIframes()
 }
 
 function apbctProcessExternalForm(currentForm, iterator, documentObject) {
-
-    //process forms exclusions
-    if ( formIsExclusion(currentForm)) {
-        return
-    }
 
     const cleantalk_placeholder = document.createElement("i");
     cleantalk_placeholder.className = 'cleantalk_placeholder';
