@@ -585,6 +585,12 @@ function apbct_get_sender_info()
             ? json_encode(Cookie::get('apbct_headless'))
             : null,
         'no_cookie_data_taken'      => isset($apbct->stats['no_cookie_data_taken']) ? $apbct->stats['no_cookie_data_taken'] : null,
+        'has_key_up' => Cookie::get('ct_has_key_up') !== ''
+            ? json_encode(Cookie::get('ct_has_key_up'))
+            : null,
+        'has_input_focused' => Cookie::get('ct_has_input_focused') !== ''
+            ? json_encode(Cookie::get('ct_has_input_focused'))
+            : null,
     );
 
     // Unset cookies_enabled from sender_info if cookies_type === none

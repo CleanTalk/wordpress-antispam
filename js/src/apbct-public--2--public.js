@@ -179,16 +179,84 @@ function ctGetPixelUrl() {
 }
 
 function ctSetHasScrolled() {
-	if( ! apbctLocalStorage.isSet('ct_has_scrolled') || ! apbctLocalStorage.get('ct_has_scrolled') ) {
+	if ( ! apbctLocalStorage.isSet('ct_has_scrolled') || ! apbctLocalStorage.get('ct_has_scrolled') ) {
 		ctSetCookie("ct_has_scrolled", 'true');
 		apbctLocalStorage.set('ct_has_scrolled', true);
 	}
 }
 
 function ctSetMouseMoved() {
-	if( ! apbctLocalStorage.isSet('ct_mouse_moved') || ! apbctLocalStorage.get('ct_mouse_moved') ) {
+	if ( ! apbctLocalStorage.isSet('ct_mouse_moved') || ! apbctLocalStorage.get('ct_mouse_moved') ) {
 		ctSetCookie("ct_mouse_moved", 'true');
 		apbctLocalStorage.set('ct_mouse_moved', true);
+	}
+}
+
+//init listeners for keyup and focus events
+function ctStartFieldsListening() {
+
+	if (
+		(apbctLocalStorage.isSet('ct_has_key_up') || apbctLocalStorage.get('ct_has_key_up'))
+		&&
+		(apbctLocalStorage.isSet('ct_has_input_focused') || apbctLocalStorage.get('ct_has_input_focused'))
+	) {
+		//already set
+		return
+	}
+
+	let forms = ctGetPageForms();
+	ctPublic.handled_fields = []
+
+	if (forms.length > 0) {
+		for (let i = 0; i < forms.length; i++) {
+			//handle only inputs and textareas
+			let handled_form_fields = forms[i].querySelectorAll('input,textarea')
+			for (let i = 0; i < handled_form_fields.length; i++) {
+				if (handled_form_fields[i].type !== 'hidden') {
+					//collect handled fields to remove handler in the future
+					ctPublic.handled_fields.push(handled_form_fields[i])
+					//do attach handlers
+					apbct_attach_event_handler(handled_form_fields[i], "focus", ctFunctionHasInputFocused)
+					apbct_attach_event_handler(handled_form_fields[i], "keyup", ctFunctionHasKeyUp)
+				}
+			}
+		}
+	}
+}
+
+//stop listening keyup and focus
+function ctStopFieldsListening(event_name, function_name) {
+	if (typeof ctPublic.handled_fields !== 'undefined' && ctPublic.handled_fields.length > 0) {
+		for (let i = 0; i < ctPublic.handled_fields.length; i++) {
+			apbct_remove_event_handler(ctPublic.handled_fields[i], event_name, function_name)
+		}
+	}
+}
+
+
+let ctFunctionHasInputFocused = function output(event){
+	ctSetHasInputFocused()
+	ctStopFieldsListening("focus",ctFunctionHasInputFocused)
+}
+
+
+let ctFunctionHasKeyUp = function output(event){
+	ctSetHasKeyUp()
+	ctStopFieldsListening("keyup",ctFunctionHasKeyUp)
+}
+
+//set ct_has_input_focused ct_has_key_up cookies on session period
+function ctSetHasInputFocused() {
+	if( ! apbctLocalStorage.isSet('ct_has_input_focused') || ! apbctLocalStorage.get('ct_has_input_focused') ) {
+		ctSetCookie("ct_has_input_focused", 'true');
+		apbctLocalStorage.set('ct_has_input_focused', true);
+	}
+}
+
+function ctSetHasKeyUp() {
+	if( ! apbctLocalStorage.isSet('ct_has_key_up') || ! apbctLocalStorage.get('ct_has_key_up') ) {
+		ctSetCookie("ct_has_key_up", 'true');
+		apbctLocalStorage.set('ct_has_key_up', true);
 	}
 }
 
@@ -219,6 +287,8 @@ function apbct_ready(){
 		apbctLocalStorage.delete('ct_mouse_moved');
 		apbctLocalStorage.delete('ct_has_scrolled');
 	}
+
+	ctStartFieldsListening()
 
 	// Collect scrolling info
 	var initCookies = [
@@ -852,7 +922,7 @@ function ctNoCookieConstructHiddenField(type){
 	return field
 }
 
-function ctNoCookieGetForms(){
+function ctGetPageForms(){
 	let forms = document.forms
 	if (forms) {
 		return forms
@@ -866,7 +936,7 @@ function ctNoCookieAttachHiddenFieldsToForms(){
 		return
 	}
 
-	let forms = ctNoCookieGetForms()
+	let forms = ctGetPageForms()
 
 	if (forms){
 		//clear previous hidden set
