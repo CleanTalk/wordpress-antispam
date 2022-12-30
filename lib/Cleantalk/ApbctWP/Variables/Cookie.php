@@ -45,6 +45,15 @@ class Cookie extends \Cleantalk\Variables\Cookie
                     if ( empty($value) && isset($_COOKIE[$name]) ) {
                         $value = $this->getAndSanitize(urldecode($_COOKIE[$name]));
                     }
+                    if ( in_array($name, array(
+                        'apbct_page_hits',
+                        'apbct_prev_referer',
+                        'apbct_site_landing_ts',
+                        'apbct_urls',
+                        'apbct_timestamp',
+                        'apbct_site_referer')) ) {
+                        $value = NoCookie::get($name);
+                    }
                 } else {
                     $value = NoCookie::get($name);
                 }

@@ -28,7 +28,7 @@
             "vendor/bin/psalm --no-cache --config=psalm.xml"
         ],
         "just_phpunit": [
-            "vendor/bin/phpunit --configuration tests/phpunit.xml"
+            "vendor/bin/phpunit --configuration tests/phpunit.xml --debug"
         ]
     }
 }
