@@ -1312,7 +1312,7 @@ function ctStartFieldsListening() {
 function ctStopFieldsListening(event_name, function_name) {
 	if (typeof ctPublic.handled_fields !== 'undefined' && ctPublic.handled_fields.length > 0) {
 		for (let i = 0; i < ctPublic.handled_fields.length; i++) {
-			apbct_remove_event_handler(ctPublic.handled_fields[i], "focus", function_name)
+			apbct_remove_event_handler(ctPublic.handled_fields[i], event_name, function_name)
 		}
 	}
 }
