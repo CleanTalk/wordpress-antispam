@@ -688,7 +688,7 @@ class State extends \Cleantalk\Common\State
     {
         if ( $add_error && ! $this->errorExists($type) ) {
             $this->errorAdd($type, $error, $major_type, $set_time);
-        } elseif ( $this->errorExists($type) ) {
+        } elseif ( !$add_error && $this->errorExists($type) ) {
             $this->errorDelete($type, $save_flag, $major_type);
         }
     }
