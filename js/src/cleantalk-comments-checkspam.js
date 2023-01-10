@@ -122,7 +122,7 @@ function ct_send_comments(){
 		success: function(msg){
 			
 			msg = jQuery.parseJSON(msg);
-			
+
 			if(parseInt(msg.error)){
 				ct_working=false;
 				if(!confirm(msg.error_message+". Do you want to proceed?")){
@@ -134,6 +134,8 @@ function ct_send_comments(){
 					ct_send_comments();
 			}else{
 				ct_new_check = false;
+				var offset = Number(ctGetCookie('apbct_check_comments_offset')) + 100;
+
 				if(parseInt(msg.end) == 1 || ct_pause === true){
 					if(parseInt(msg.end) == 1)
 						document.cookie = 'ct_paused_spam_check=0; path=/; samesite=lax';
@@ -142,6 +144,9 @@ function ct_send_comments(){
 					var new_href = 'edit-comments.php?page=ct_check_spam';
 					if(ct_date_from != 0 && ct_date_till != 0)
 						new_href+='&from='+ct_date_from+'&till='+ct_date_till;
+
+					document.cookie = 'apbct_check_comments_offset' + "=" + offset + "; path=/; samesite=lax" + ctSecure;
+
 					location.href = new_href;
 				}else if(parseInt(msg.end) == 0){
 					ct_comments_checked += msg.checked;
@@ -161,9 +166,8 @@ function ct_send_comments(){
 						location.href = 'edit-comments.php?page=ct_check_spam';
 					}
 
-					var offset = Number(ctGetCookie('apbct_check_comments_offset')) + 100;
 					document.cookie = 'apbct_check_comments_offset' + "=" + offset + "; path=/; samesite=lax" + ctSecure;
-					
+
 					ct_send_comments();
 				}
 			}
