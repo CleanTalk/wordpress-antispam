@@ -41,7 +41,7 @@ class EmailEncoder extends \Cleantalk\Antispam\EmailEncoder
             'browser_sign'          => $browser_sign,          // Browser ID
             'sender_ip'             => Helper::ipGet(),        // IP address
             'event_type'            => 'CONTACT_DECODING',     // 'GENERAL_BOT_CHECK' || 'CONTACT_DECODING'
-            'message_to_log'        => json_encode($this->decoded_emails_array),   // Custom message
+            'message_to_log'        => json_encode(array_values($this->decoded_emails_array), JSON_FORCE_OBJECT),   // Custom message
             'page_url'              => Post::get('post_url'),
             'sender_info'           => array(
                 'site_referrer'         => Post::get('referrer'),
