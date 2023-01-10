@@ -1146,7 +1146,7 @@ function apbct_sfw_update__get_multifiles()
     }
 
     // Getting remote file name
-    $result = API::methodGet2sBlacklistsDb($apbct->api_key, 'multifiles', '3_1');
+    $result = API::methodGet2sBlacklistsDb($apbct->api_key, 'multifiles', '3_2');
 
     if ( empty($result['error']) ) {
         if ( ! empty($result['file_url']) ) {

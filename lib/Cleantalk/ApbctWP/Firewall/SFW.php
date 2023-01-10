@@ -183,6 +183,10 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
                         $this->blocked_ips[] = Helper::ipLong2ip($db_result['network']);
                         $result_entry['status'] = 'DENY_SFW';
                     }
+                    if ((int)$db_result['status'] === 99) {
+                        $this->blocked_ips[] = Helper::ipLong2ip($db_result['network']);
+                        $result_entry['status'] = 'PASS_SFW';
+                    }
 
                     $test_status = (int)$db_result['status'];
                 }
@@ -577,7 +581,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
     public static function directUpdateGetBlackLists($api_key)
     {
         // Getting remote file name
-        $result = API::methodGet2sBlacklistsDb($api_key, null, '3_1');
+        $result = API::methodGet2sBlacklistsDb($api_key, null, '3_2');
 
         if ( empty($result['error']) ) {
             return array(
