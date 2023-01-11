@@ -2563,10 +2563,16 @@ function ct_account_status_check($api_key = null, $process_errors = true)
     return $result;
 }
 
+/**
+ * Send connection reports cron wrapper.
+ * If setting misc__send_connection_reports is disabled there will no reports sen on cron.
+ */
 function ct_cron_send_connection_report_email()
 {
     global $apbct;
-    $apbct->getConnectionReports()->sendUnsentReports(true);
+    if (isset($apbct->settings['misc__send_connection_reports']) && $apbct->settings['misc__send_connection_reports'] == 1){
+        $apbct->getConnectionReports()->sendUnsentReports(true);
+    }
 }
 
 /**
