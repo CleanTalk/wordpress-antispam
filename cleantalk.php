@@ -2570,7 +2570,7 @@ function ct_account_status_check($api_key = null, $process_errors = true)
 function ct_cron_send_connection_report_email()
 {
     global $apbct;
-    if (isset($apbct->settings['misc__send_connection_reports']) && $apbct->settings['misc__send_connection_reports'] == 1){
+    if (isset($apbct->settings['misc__send_connection_reports']) && $apbct->settings['misc__send_connection_reports'] == 1) {
         $apbct->getConnectionReports()->sendUnsentReports(true);
     }
 }
