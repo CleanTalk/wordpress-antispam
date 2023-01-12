@@ -259,7 +259,7 @@ class AdminNotices
     public function notice_email_decoder_changed() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         global $apbct;
-        if ($apbct->data['notice_email_decoder_changed'] && $this->is_cleantalk_page /*&& apbct_is_cache_plugins_exists()*/) { ?>
+        if ($apbct->data['notice_email_decoder_changed'] && $this->is_cleantalk_page && apbct_is_cache_plugins_exists()) { ?>
             <div class="apbct-notice um-admin-notice notice notice-info apbct-plugin-errors is-dismissible"
                  id="cleantalk_notice_email_decoder_changed" style="position: relative;">
             <h3>
