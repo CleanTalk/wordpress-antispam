@@ -145,7 +145,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
         }
 
         // Common check
-        foreach ($this->ip_array as $_origin => $current_ip) {
+        foreach ($this->ip_array as $origin => $current_ip) {
             $current_ip_v4 = sprintf("%u", ip2long($current_ip));
             for ($needles = array(), $m = 6; $m <= 32; $m++) {
                 $mask      = str_repeat('1', $m);
@@ -164,29 +164,30 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
 				ORDER BY source DESC, status"
             );
 
-            $test_status = 1;
+            $test_status = 99;
+
             if ( ! empty($db_results)) {
                 foreach ($db_results as $db_result) {
+                    switch ( $db_result['status'] ) {
+                        case 1:
+                            $text_status = 'PASS_SFW__BY_WHITELIST';
+                            break;
+                        case 0:
+                            $text_status = 'DENY_SFW';
+                            break;
+                        default:
+                            $text_status = 'PASS_SFW';
+                            break;
+                    }
+
                     $result_entry = array(
                         'ip'          => $current_ip,
                         'network'     => Helper::ipLong2ip($db_result['network'])
                                          . '/'
                                          . Helper::ipMaskLongToNumber((int)$db_result['mask']),
                         'is_personal' => $db_result['source'],
+                        'status'      => $text_status
                     );
-
-                    if ((int)$db_result['status'] === 1) {
-                        $result_entry['status'] = 'PASS_SFW__BY_WHITELIST';
-                        break;
-                    }
-                    if ((int)$db_result['status'] === 0) {
-                        $this->blocked_ips[] = Helper::ipLong2ip($db_result['network']);
-                        $result_entry['status'] = 'DENY_SFW';
-                    }
-                    if ((int)$db_result['status'] === 99) {
-                        $this->blocked_ips[] = Helper::ipLong2ip($db_result['network']);
-                        $result_entry['status'] = 'PASS_SFW';
-                    }
 
                     $test_status = (int)$db_result['status'];
                 }
@@ -200,7 +201,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
 
             $results[] = $result_entry;
 
-            if ( $this->test && $_origin === 'sfw_test' ) {
+            if ( $this->test && $origin === 'sfw_test' ) {
                 $this->test_status = $test_status;
             }
         }
@@ -386,12 +387,20 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
              * Message about IP status
              */
             if ( $this->test ) {
-                $message_ip_status = __('IP in the common blacklist', 'cleantalk-spam-protect');
-                $message_ip_status_color = 'red';
 
-                if ($this->test_status === 1) {
-                    $message_ip_status = __('IP in the whitelist', 'cleantalk-spam-protect');
-                    $message_ip_status_color = 'green';
+                switch ( $this->test_status ) {
+                    case 1:
+                        $message_ip_status = __('IP in the whitelist', 'cleantalk-spam-protect');
+                        $message_ip_status_color = 'green';
+                        break;
+                    case 0:
+                        $message_ip_status = __('IP in the common blacklist', 'cleantalk-spam-protect');
+                        $message_ip_status_color = 'red';
+                        break;
+                    default:
+                        $message_ip_status = __('IP will be passed', 'cleantalk-spam-protect');
+                        $message_ip_status_color = 'green';
+                        break;
                 }
 
                 $replaces['{MESSAGE_IP_STATUS}'] = "<h3 style='color:$message_ip_status_color;'>$message_ip_status</h3>";
