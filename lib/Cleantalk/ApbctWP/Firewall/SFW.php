@@ -387,7 +387,6 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
              * Message about IP status
              */
             if ( $this->test ) {
-
                 switch ( $this->test_status ) {
                     case 1:
                         $message_ip_status = __('IP in the whitelist', 'cleantalk-spam-protect');
