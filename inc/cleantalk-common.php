@@ -510,7 +510,8 @@ function apbct_get_sender_info()
             Cookie::get('ct_checked_emails')
         ) : null;
         $param_mouse_cursor_positions = urldecode(Cookie::get('ct_pointer_data'));
-        $param_pixel_url = urldecode(Cookie::get('apbct_pixel_url'));
+        $param_pixel_url = Cookie::get('apbct_pixel_url');
+        $param_pixel_url = urldecode(is_string($param_pixel_url) ? $param_pixel_url : null);
         $param_screen_info = Cookie::get('ct_screen_info')
             ? urldecode(Cookie::get('ct_screen_info'))
             : null;
