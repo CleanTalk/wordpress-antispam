@@ -2458,6 +2458,11 @@ function apbct_settings__validate($settings)
         }
     }
 
+    // Banner notice_email_decoder_changed
+    if ((int)$apbct->settings['data__email_decoder'] !== (int)$settings['data__email_decoder']) {
+        $apbct->data['notice_email_decoder_changed'] = 1;
+    }
+
     $apbct->save('data');
 
     // WPMS Logic.

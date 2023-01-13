@@ -155,6 +155,7 @@ class State extends \Cleantalk\Common\State
         'notice_review'                  => 0,
         'notice_auto_update'             => 0,
         'notice_incompatibility'         => array(),
+        'notice_email_decoder_changed'   => 0,
 
         // Brief data
         'brief_data'                     => array(

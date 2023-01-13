@@ -25,7 +25,8 @@ class AdminNotices
         'notice_trial',
         'notice_renew',
         'notice_incompatibility',
-        'notice_review'
+        'notice_review',
+        'notice_email_decoder_changed'
     );
 
     /**
@@ -252,6 +253,26 @@ class AdminNotices
     }
 
     /**
+     * Callback for the notice hook
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public function notice_email_decoder_changed() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+    {
+        global $apbct;
+        if ($apbct->data['notice_email_decoder_changed'] && $this->is_cleantalk_page && apbct_is_cache_plugins_exists()) { ?>
+            <div class="apbct-notice um-admin-notice notice notice-info apbct-plugin-errors is-dismissible"
+                 id="cleantalk_notice_email_decoder_changed" style="position: relative;">
+            <h3>
+                <?php echo esc_html__('Need to clear the cache', 'cleantalk-spam-protect'); ?>
+            </h3>
+            <h4 style="color: gray;">
+                <?php echo esc_html__('You have changed the "Encode contact data" setting. If you use caching plugins, then you need to clear the cache.', 'cleantalk-spam-protect'); ?>
+            </h4>
+            </div>
+        <?php }
+    }
+
+    /**
      * Generate and output the notice HTML
      *
      * @param string $content Any HTML allowed
@@ -308,13 +329,18 @@ class AdminNotices
             wp_send_json_error(esc_html__('Wrong request.', 'cleantalk-spam-protect'));
         }
 
+        global $apbct;
         $notice       = sanitize_text_field(Post::get('notice_id'));
         $uid          = get_current_user_id();
         $notice_uid   = $notice . '_' . $uid;
-        $current_date = current_time('Y-m-d');
+        $current_date = current_time('Y-m-d H:i:s');
 
         if ( in_array(str_replace('cleantalk_', '', $notice), self::NOTICES, true) ) {
             if ( update_option($notice_uid . '_dismissed', $current_date) ) {
+                if ($notice === 'cleantalk_notice_email_decoder_changed') {
+                    $apbct->data['notice_email_decoder_changed'] = 0;
+                    $apbct->save('data');
+                }
                 wp_send_json_success();
             } else {
                 wp_send_json_error(esc_html__('Notice status not updated.', 'cleantalk-spam-protect'));
