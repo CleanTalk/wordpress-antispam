@@ -836,7 +836,7 @@ function ctNoCookieConstructHiddenField(type){
 	let field = ''
 	let no_cookie_data = apbctLocalStorage.getCleanTalkData()
 	no_cookie_data = JSON.stringify(no_cookie_data)
-	no_cookie_data = btoa(no_cookie_data)
+	no_cookie_data = '_ct_no_cookie_data_' + btoa(no_cookie_data)
 	field = document.createElement('input')
 	field.setAttribute('id','ct_no_cookie_hidden_field')
 	field.setAttribute('name','ct_no_cookie_hidden_field')
