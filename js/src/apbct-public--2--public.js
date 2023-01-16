@@ -359,6 +359,7 @@ function apbct_ready(){
 		if ( (
 			_form.getAttribute('id') === 'searchform'
 			|| _form.getAttribute('class') === 'elementor-search-form'
+			|| _form.getAttribute('class') === 'search-form'
 		) && ctPublic.data__cookies_type === 'none' ) {
 			_form.apbctSearchPrevOnsubmit = _form.onsubmit;
 			_form.onsubmit = (e) => {
@@ -883,6 +884,7 @@ function ctNoCookieAttachHiddenFieldsToForms(){
 			if ( (
 				document.forms[i].getAttribute('id') === 'searchform'
 				|| document.forms[i].getAttribute('class') === 'elementor-search-form'
+				|| document.forms[i].getAttribute('class') === 'search-form'
 			)){
 				document.forms[i].append(ctNoCookieConstructHiddenField('submit'));
 			}
