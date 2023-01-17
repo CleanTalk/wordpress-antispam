@@ -450,7 +450,11 @@ function apbct_ready(){
 	 * WordPress Search form processing
 	 */
 	for (const _form of document.forms) {
-		if ( _form.getAttribute('id') === 'searchform' && ctPublic.data__cookies_type === 'none' ) {
+		if ( (
+			_form.getAttribute('id') === 'searchform'
+			|| _form.getAttribute('class') === 'elementor-search-form'
+			|| _form.getAttribute('class') === 'search-form'
+		) && ctPublic.data__cookies_type === 'none' ) {
 			_form.apbctSearchPrevOnsubmit = _form.onsubmit;
 			_form.onsubmit = (e) => {
 				const noCookie = _form.querySelector('[name="ct_no_cookie_hidden_field"]');
@@ -938,7 +942,7 @@ function ctNoCookieConstructHiddenField(type){
 	let no_cookie_data_session = apbctSessionStorage.getCleanTalkData()
 	let no_cookie_data = {...no_cookie_data_local, ...no_cookie_data_session};
 	no_cookie_data = JSON.stringify(no_cookie_data)
-	no_cookie_data = btoa(no_cookie_data)
+	no_cookie_data = '_ct_no_cookie_data_' + btoa(no_cookie_data)
 	field = document.createElement('input')
 	field.setAttribute('id','ct_no_cookie_hidden_field')
 	field.setAttribute('name','ct_no_cookie_hidden_field')
@@ -979,7 +983,11 @@ function ctNoCookieAttachHiddenFieldsToForms(){
 				// add new set
 				document.forms[i].append(ctNoCookieConstructHiddenField());
 			}
-			if ( document.forms[i].getAttribute('id') === 'searchform' ) {
+			if ( (
+				document.forms[i].getAttribute('id') === 'searchform'
+				|| document.forms[i].getAttribute('class') === 'elementor-search-form'
+				|| document.forms[i].getAttribute('class') === 'search-form'
+			)){
 				document.forms[i].append(ctNoCookieConstructHiddenField('submit'));
 			}
 		}
