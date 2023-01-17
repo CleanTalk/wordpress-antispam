@@ -1440,7 +1440,11 @@ function apbct_ready(){
 	 * WordPress Search form processing
 	 */
 	for (const _form of document.forms) {
-		if ( _form.getAttribute('id') === 'searchform' && ctPublic.data__cookies_type === 'none' ) {
+		if ( (
+			_form.getAttribute('id') === 'searchform'
+			|| _form.getAttribute('class') === 'elementor-search-form'
+			|| _form.getAttribute('class') === 'search-form'
+		) && ctPublic.data__cookies_type === 'none' ) {
 			_form.apbctSearchPrevOnsubmit = _form.onsubmit;
 			_form.onsubmit = (e) => {
 				const noCookie = _form.querySelector('[name="ct_no_cookie_hidden_field"]');
@@ -1961,7 +1965,11 @@ function ctNoCookieAttachHiddenFieldsToForms(){
 				// add new set
 				document.forms[i].append(ctNoCookieConstructHiddenField());
 			}
-			if ( document.forms[i].getAttribute('id') === 'searchform' ) {
+			if ( (
+				document.forms[i].getAttribute('id') === 'searchform'
+				|| document.forms[i].getAttribute('class') === 'elementor-search-form'
+				|| document.forms[i].getAttribute('class') === 'search-form'
+			)){
 				document.forms[i].append(ctNoCookieConstructHiddenField('submit'));
 			}
 		}
