@@ -281,6 +281,24 @@ function apbct_ready(){
 
 	ctPreloadLocalStorage()
 
+	// set session ID
+	if (!apbctSessionStorage.isSet('apbct_session_id')) {
+		const sessionID = apbctGenerateUniqueID();
+		apbctSessionStorage.set('apbct_session_id', sessionID, false);
+		apbctLocalStorage.set('apbct_page_hits', 1);
+		if (document.referrer) {
+			let urlReferer = new URL(document.referrer);
+			if (urlReferer.host !== location.host) {
+				apbctSessionStorage.set('apbct_site_referer', document.referrer, false);
+			}
+		}
+	} else {
+		apbctLocalStorage.set('apbct_page_hits', Number(apbctLocalStorage.get('apbct_page_hits')) + 1);
+	}
+
+	// set apbct_prev_referer
+	apbctSessionStorage.set('apbct_prev_referer', document.referrer, false);
+
 	let cookiesType = apbctLocalStorage.get('ct_cookies_type');
 	if ( ! cookiesType || cookiesType !== ctPublic.data__cookies_type ) {
 		apbctLocalStorage.set('ct_cookies_type', ctPublic.data__cookies_type);
@@ -641,6 +659,9 @@ function getJavascriptClientData(common_cookies = []) {
 	const ctMouseMovedLocalStorage = apbctLocalStorage.get(ctPublicFunctions.cookiePrefix + 'ct_mouse_moved');
 	const ctHasScrolledLocalStorage = apbctLocalStorage.get(ctPublicFunctions.cookiePrefix + 'ct_has_scrolled');
 	const ctCookiesTypeLocalStorage = apbctLocalStorage.get(ctPublicFunctions.cookiePrefix + 'ct_cookies_type');
+	const apbctPageHits = apbctLocalStorage.get('apbct_page_hits');
+	const apbctPrevReferer = apbctSessionStorage.get('apbct_prev_referer');
+	const apbctSiteReferer = apbctSessionStorage.get('apbct_site_referer');
 
 	// collecting data from cookies
 	const ctMouseMovedCookie = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_mouse_moved');
@@ -650,6 +671,9 @@ function getJavascriptClientData(common_cookies = []) {
 	resultDataJson.ct_mouse_moved = ctMouseMovedLocalStorage !== undefined ? ctMouseMovedLocalStorage : ctMouseMovedCookie;
 	resultDataJson.ct_has_scrolled = ctHasScrolledLocalStorage !== undefined ? ctHasScrolledLocalStorage : ctHasScrolledCookie;
 	resultDataJson.ct_cookies_type = ctCookiesTypeLocalStorage !== undefined ? ctCookiesTypeLocalStorage : ctCookiesTypeCookie;
+	resultDataJson.apbct_page_hits = apbctPageHits;
+	resultDataJson.apbct_prev_referer = apbctPrevReferer;
+	resultDataJson.apbct_site_referer = apbctSiteReferer;
 
 	if (
 		typeof (common_cookies) === "object"
@@ -910,7 +934,9 @@ function ctNoCookieConstructHiddenField(type){
 		inputType = 'submit';
 	}
 	let field = ''
-	let no_cookie_data = apbctLocalStorage.getCleanTalkData()
+	let no_cookie_data_local = apbctLocalStorage.getCleanTalkData()
+	let no_cookie_data_session = apbctSessionStorage.getCleanTalkData()
+	let no_cookie_data = {...no_cookie_data_local, ...no_cookie_data_session};
 	no_cookie_data = JSON.stringify(no_cookie_data)
 	no_cookie_data = btoa(no_cookie_data)
 	field = document.createElement('input')

@@ -1052,6 +1052,15 @@ function apbct_public_sendREST( route, params ) {
     new ApbctCore().rest(_params);
 }
 
+/**
+ * Generate unique ID
+ * @returns {string}
+ */
+function apbctGenerateUniqueID()
+{
+    return Math.random().toString(36).replace(/[^a-z]+/g, '').substr(2, 10);
+}
+
 let apbctLocalStorage = {
     get : function(key, property) {
         if ( typeof property === 'undefined' ) {
@@ -1100,6 +1109,48 @@ let apbctLocalStorage = {
         return data
     },
 
+}
+
+let apbctSessionStorage = {
+    get : function(key, property) {
+        if ( typeof property === 'undefined' ) {
+            property = 'value';
+        }
+        const storageValue = sessionStorage.getItem(key);
+        if ( storageValue !== null ) {
+            try {
+                const json = JSON.parse(storageValue);
+                return json.hasOwnProperty(property) ? JSON.parse(json[property]) : json;
+            } catch (e) {
+                return storageValue;
+            }
+        }
+        return false;
+    },
+    set : function(key, value, is_json = true) {
+        if (is_json){
+            let objToSave = {'value': JSON.stringify(value), 'timestamp': Math.floor(new Date().getTime() / 1000)};
+            sessionStorage.setItem(key, JSON.stringify(objToSave));
+        } else {
+            sessionStorage.setItem(key, value);
+        }
+    },
+    isSet : function(key) {
+        return sessionStorage.getItem(key) !== null;
+    },
+    delete : function (key) {
+        sessionStorage.removeItem(key);
+    },
+    getCleanTalkData : function () {
+        let data = {}
+        for(let i=0; i<sessionStorage.length; i++) {
+            let key = sessionStorage.key(i);
+            if (key.indexOf('ct_') !==-1 || key.indexOf('apbct_') !==-1){
+                data[key.toString()] = apbctSessionStorage.get(key)
+            }
+        }
+        return data
+    },
 }
 var ct_date = new Date(),
 	ctTimeMs = new Date().getTime(),
@@ -1383,6 +1434,24 @@ if (ctPublic.data__key_is_ok) {
 function apbct_ready(){
 
 	ctPreloadLocalStorage()
+
+	// set session ID
+	if (!apbctSessionStorage.isSet('apbct_session_id')) {
+		const sessionID = apbctGenerateUniqueID();
+		apbctSessionStorage.set('apbct_session_id', sessionID, false);
+		apbctLocalStorage.set('apbct_page_hits', 1);
+		if (document.referrer) {
+			let urlReferer = new URL(document.referrer);
+			if (urlReferer.host !== location.host) {
+				apbctSessionStorage.set('apbct_site_referer', document.referrer, false);
+			}
+		}
+	} else {
+		apbctLocalStorage.set('apbct_page_hits', Number(apbctLocalStorage.get('apbct_page_hits')) + 1);
+	}
+
+	// set apbct_prev_referer
+	apbctSessionStorage.set('apbct_prev_referer', document.referrer, false);
 
 	let cookiesType = apbctLocalStorage.get('ct_cookies_type');
 	if ( ! cookiesType || cookiesType !== ctPublic.data__cookies_type ) {
@@ -1744,6 +1813,9 @@ function getJavascriptClientData(common_cookies = []) {
 	const ctMouseMovedLocalStorage = apbctLocalStorage.get(ctPublicFunctions.cookiePrefix + 'ct_mouse_moved');
 	const ctHasScrolledLocalStorage = apbctLocalStorage.get(ctPublicFunctions.cookiePrefix + 'ct_has_scrolled');
 	const ctCookiesTypeLocalStorage = apbctLocalStorage.get(ctPublicFunctions.cookiePrefix + 'ct_cookies_type');
+	const apbctPageHits = apbctLocalStorage.get('apbct_page_hits');
+	const apbctPrevReferer = apbctSessionStorage.get('apbct_prev_referer');
+	const apbctSiteReferer = apbctSessionStorage.get('apbct_site_referer');
 
 	// collecting data from cookies
 	const ctMouseMovedCookie = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_mouse_moved');
@@ -1753,6 +1825,9 @@ function getJavascriptClientData(common_cookies = []) {
 	resultDataJson.ct_mouse_moved = ctMouseMovedLocalStorage !== undefined ? ctMouseMovedLocalStorage : ctMouseMovedCookie;
 	resultDataJson.ct_has_scrolled = ctHasScrolledLocalStorage !== undefined ? ctHasScrolledLocalStorage : ctHasScrolledCookie;
 	resultDataJson.ct_cookies_type = ctCookiesTypeLocalStorage !== undefined ? ctCookiesTypeLocalStorage : ctCookiesTypeCookie;
+	resultDataJson.apbct_page_hits = apbctPageHits;
+	resultDataJson.apbct_prev_referer = apbctPrevReferer;
+	resultDataJson.apbct_site_referer = apbctSiteReferer;
 
 	if (
 		typeof (common_cookies) === "object"
@@ -2013,7 +2088,9 @@ function ctNoCookieConstructHiddenField(type){
 		inputType = 'submit';
 	}
 	let field = ''
-	let no_cookie_data = apbctLocalStorage.getCleanTalkData()
+	let no_cookie_data_local = apbctLocalStorage.getCleanTalkData()
+	let no_cookie_data_session = apbctSessionStorage.getCleanTalkData()
+	let no_cookie_data = {...no_cookie_data_local, ...no_cookie_data_session};
 	no_cookie_data = JSON.stringify(no_cookie_data)
 	no_cookie_data = btoa(no_cookie_data)
 	field = document.createElement('input')
