@@ -585,6 +585,9 @@ function apbct_get_sender_info()
             ? json_encode(Cookie::get('apbct_headless'))
             : null,
         'no_cookie_data_taken'      => isset($apbct->stats['no_cookie_data_taken']) ? $apbct->stats['no_cookie_data_taken'] : null,
+        'no_cookie_data_post_source' => isset($apbct->stats['no_cookie_data_post_source'])
+            ? $apbct->stats['no_cookie_data_post_source']
+            : null,
     );
 
     return $data_array;
@@ -1369,14 +1372,94 @@ function apbct_get_honeypot_filled_fields()
     return $post_has_a_honeypot_key ? $result : false;
 }
 
+
+/**
+ * Recursive. Check all post data for ct_no_cookie_hidden_field data.
+ * @param array $value Next value for parse
+ * @param int $level Current recursion level
+ * @param int $recursion_limit Recursion limit
+ * @return array|false|string
+ */
+function apbct_check_post_for_no_cookie_data($value = array(), $level = 0, $array_mapping = array())
+{
+    //top level check
+    if ( Post::get('ct_no_cookie_hidden_field') ) {
+        return array('data' => Post::get('ct_no_cookie_hidden_field'), 'mapping' => array('ct_no_cookie_hidden_field'));
+    }
+
+    $array = empty($value) ? $_POST : $value;
+    //recursion limit
+    if ( $level > 5 ) {
+        return false;
+    }
+    foreach ( $array as $key => $value ) {
+        if ( is_array($value) ) {
+            $array_mapping[] = $key;
+            $level++;
+            return apbct_check_post_for_no_cookie_data($value, $level, $array_mapping);
+        } else {
+            if ( strpos((string)$key, 'ct_no_cookie_hidden_field') !== false || strpos($value, '_ct_no_cookie_data_') !== false ) {
+                $array_mapping[] = $key;
+                return array('data' => $value, 'mapping' => $array_mapping);
+            }
+        }
+    }
+    return array('data' => false, 'mapping' => null);
+}
+
+/**
+ * Filter POST for no_cookie_data for cases if POST mapping detected in apbct_check_post_for_no_cookie_data
+ * @param array $mapping a POST mapping where no cookie data has been found, mapping level limit is 5 (important)
+ */
+function apbct_filter_post_no_cookie_data($mapping)
+{
+
+    //todo if we need to increase recursion limit , there is no other way except of eval constructor usage
+    $cleared_post = $_POST;
+    if ( !is_array($mapping) || empty($mapping) || count($mapping) > 5 ) {
+        return;
+    }
+    try {
+        switch ( count($mapping) ) {
+            case 1:
+                unset($cleared_post [$mapping[0]]);
+                break;
+            case 2:
+                unset($cleared_post [$mapping[0]] [$mapping[1]]);
+                break;
+            case 3:
+                unset($cleared_post [$mapping[0]] [$mapping[1]] [$mapping[2]]);
+                break;
+            case 4:
+                unset($cleared_post [$mapping[0]] [$mapping[1]] [$mapping[2]] [$mapping[3]]);
+                break;
+            case 5:
+                unset($cleared_post [$mapping[0]] [$mapping[1]] [$mapping[2]] [$mapping[3]] [$mapping[4]]);
+                break;
+        }
+        $_POST = $cleared_post;
+    } catch ( Exception $e ) {
+        return;
+    }
+}
+
+/**
+ * Main entry function to collect no cookie data.
+ */
 function apbct_form__get_no_cookie_data()
 {
     global $apbct;
     $flag = null;
-
-    if ( Post::get('ct_no_cookie_hidden_field') && $apbct->data['cookies_type'] === 'none' ) {
-        $flag = \Cleantalk\ApbctWP\Variables\NoCookie::setDataFromHiddenField();
+    $no_cookie_data = apbct_check_post_for_no_cookie_data();
+    apbct_filter_post_no_cookie_data($no_cookie_data['mapping']);
+    if ( !empty($no_cookie_data['data']) && $apbct->data['cookies_type'] === 'none' ) {
+        $flag = \Cleantalk\ApbctWP\Variables\NoCookie::setDataFromHiddenField($no_cookie_data['data']);
     }
+    //set a flag of success
     $apbct->stats['no_cookie_data_taken'] = $flag;
+    //set a source if available
+    if ( !empty($no_cookie_data['mapping']) && is_array($no_cookie_data['mapping']) ) {
+        $apbct->stats['no_cookie_data_post_source'] = '[' . implode('][', $no_cookie_data['mapping']) . ']';
+    }
     $apbct->save('stats');
 }

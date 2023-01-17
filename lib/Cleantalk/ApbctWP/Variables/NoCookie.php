@@ -123,16 +123,19 @@ class NoCookie
 
 
     /**
-     * Check POST for data transferred via ct_no_cookie_hidden_field, handle them then
+     * Check data transferred via ct_no_cookie_hidden_field, handle them then
+     * @param string $data
      * @return bool
      */
-    public static function setDataFromHiddenField()
+    public static function setDataFromHiddenField($data)
     {
-        if ( Post::get('ct_no_cookie_hidden_field') ) {
-            $data = Post::get('ct_no_cookie_hidden_field');
-            unset($_POST['ct_no_cookie_hidden_field']);
+        if ( !empty($data) ) {
+            //delete sign of no cookie raw data
+            $data = str_replace('_ct_no_cookie_data_', '', $data);
+            //decode raw data
             $data = base64_decode($data);
             if ( $data ) {
+                //decode json
                 $data = json_decode($data, true);
                 if ( !empty($data) && is_array($data) ) {
                     self::$no_cookies_data = array_merge(self::$no_cookies_data, $data);
