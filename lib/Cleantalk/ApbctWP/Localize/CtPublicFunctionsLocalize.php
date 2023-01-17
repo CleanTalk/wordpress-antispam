@@ -1,0 +1,27 @@
+<?php
+
+namespace Cleantalk\ApbctWP\Localize;
+
+use Cleantalk\ApbctWP\Escape;
+
+class CtPublicFunctionsLocalize implements GetDataInterface
+{
+    const name = 'ctPublicFunctions';
+    const handle = 'ct_public_functions';
+
+    public static function getData()
+    {
+        global $apbct;
+
+        return array(
+            '_ajax_nonce'                          => wp_create_nonce('ct_secret_stuff'),
+            '_rest_nonce'                          => wp_create_nonce('wp_rest'),
+            '_ajax_url'                            => admin_url('admin-ajax.php', 'relative'),
+            '_rest_url'                            => Escape::escUrl(apbct_get_rest_url()),
+            'data__cookies_type'                   => $apbct->data['cookies_type'],
+            'data__ajax_type'                      => $apbct->data['ajax_type'],
+            'text__wait_for_decoding'              => esc_html__('Decoding the contact data, let us a few seconds to finish. Anti-Spam by CleanTalk.', 'cleantalk-spam-protect'),
+            'cookiePrefix'                         => apbct__get_cookie_prefix(),
+        );
+    }
+}
