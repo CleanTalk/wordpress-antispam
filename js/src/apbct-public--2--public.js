@@ -179,16 +179,84 @@ function ctGetPixelUrl() {
 }
 
 function ctSetHasScrolled() {
-	if( ! apbctLocalStorage.isSet('ct_has_scrolled') || ! apbctLocalStorage.get('ct_has_scrolled') ) {
+	if ( ! apbctLocalStorage.isSet('ct_has_scrolled') || ! apbctLocalStorage.get('ct_has_scrolled') ) {
 		ctSetCookie("ct_has_scrolled", 'true');
 		apbctLocalStorage.set('ct_has_scrolled', true);
 	}
 }
 
 function ctSetMouseMoved() {
-	if( ! apbctLocalStorage.isSet('ct_mouse_moved') || ! apbctLocalStorage.get('ct_mouse_moved') ) {
+	if ( ! apbctLocalStorage.isSet('ct_mouse_moved') || ! apbctLocalStorage.get('ct_mouse_moved') ) {
 		ctSetCookie("ct_mouse_moved", 'true');
 		apbctLocalStorage.set('ct_mouse_moved', true);
+	}
+}
+
+//init listeners for keyup and focus events
+function ctStartFieldsListening() {
+
+	if (
+		(apbctLocalStorage.isSet('ct_has_key_up') || apbctLocalStorage.get('ct_has_key_up'))
+		&&
+		(apbctLocalStorage.isSet('ct_has_input_focused') || apbctLocalStorage.get('ct_has_input_focused'))
+	) {
+		//already set
+		return
+	}
+
+	let forms = ctGetPageForms();
+	ctPublic.handled_fields = []
+
+	if (forms.length > 0) {
+		for (let i = 0; i < forms.length; i++) {
+			//handle only inputs and textareas
+			let handled_form_fields = forms[i].querySelectorAll('input,textarea')
+			for (let i = 0; i < handled_form_fields.length; i++) {
+				if (handled_form_fields[i].type !== 'hidden') {
+					//collect handled fields to remove handler in the future
+					ctPublic.handled_fields.push(handled_form_fields[i])
+					//do attach handlers
+					apbct_attach_event_handler(handled_form_fields[i], "focus", ctFunctionHasInputFocused)
+					apbct_attach_event_handler(handled_form_fields[i], "keyup", ctFunctionHasKeyUp)
+				}
+			}
+		}
+	}
+}
+
+//stop listening keyup and focus
+function ctStopFieldsListening(event_name, function_name) {
+	if (typeof ctPublic.handled_fields !== 'undefined' && ctPublic.handled_fields.length > 0) {
+		for (let i = 0; i < ctPublic.handled_fields.length; i++) {
+			apbct_remove_event_handler(ctPublic.handled_fields[i], event_name, function_name)
+		}
+	}
+}
+
+
+let ctFunctionHasInputFocused = function output(event){
+	ctSetHasInputFocused()
+	ctStopFieldsListening("focus",ctFunctionHasInputFocused)
+}
+
+
+let ctFunctionHasKeyUp = function output(event){
+	ctSetHasKeyUp()
+	ctStopFieldsListening("keyup",ctFunctionHasKeyUp)
+}
+
+//set ct_has_input_focused ct_has_key_up cookies on session period
+function ctSetHasInputFocused() {
+	if( ! apbctLocalStorage.isSet('ct_has_input_focused') || ! apbctLocalStorage.get('ct_has_input_focused') ) {
+		ctSetCookie("ct_has_input_focused", 'true');
+		apbctLocalStorage.set('ct_has_input_focused', true);
+	}
+}
+
+function ctSetHasKeyUp() {
+	if( ! apbctLocalStorage.isSet('ct_has_key_up') || ! apbctLocalStorage.get('ct_has_key_up') ) {
+		ctSetCookie("ct_has_key_up", 'true');
+		apbctLocalStorage.set('ct_has_key_up', true);
 	}
 }
 
@@ -237,6 +305,8 @@ function apbct_ready(){
 		apbctLocalStorage.delete('ct_mouse_moved');
 		apbctLocalStorage.delete('ct_has_scrolled');
 	}
+
+	ctStartFieldsListening()
 
 	// Collect scrolling info
 	var initCookies = [
@@ -290,11 +360,17 @@ function apbct_ready(){
 		initCookies.push(['ct_checkjs', 0]);
 	}
 
+	//detect integrated forms that need to be handled via alternative cookies
+	ctDetectForcedAltCookiesForms()
+
 	ctSetCookie(initCookies);
 
 	setTimeout(function(){
 
-		ctNoCookieAttachHiddenFieldsToForms()
+		if (typeof ctPublic.force_alt_cookies == 'undefined' || (ctPublic.force_alt_cookies !== 'undefined' && !ctPublic.force_alt_cookies)) {
+			ctNoCookieAttachHiddenFieldsToForms()
+		}
+
 
 		for(var i = 0; i < document.forms.length; i++){
 			var form = document.forms[i];
@@ -315,7 +391,9 @@ function apbct_ready(){
 				(form.id && form.id.toString().indexOf('cp_tslotsbooking_pform') !== -1) || // WP Time Slots Booking Form
 				(form.name && form.name.toString().indexOf('cp_tslotsbooking_pform') !== -1)  || // WP Time Slots Booking Form
 				form.action.toString() === 'https://epayment.epymtservice.com/epay.jhtml' || // Custom form
-				(form.name && form.name.toString().indexOf('tribe-bar-form') !== -1)  // The Events Calendar
+				(form.name && form.name.toString().indexOf('tribe-bar-form') !== -1) ||  // The Events Calendar
+				(form.id && form.id === 'ihf-login-form') || //Optima Express login
+				(form.id && form.id === 'subscriberForm' && form.action.toString().indexOf('actionType=update') !== -1) //Optima Express update
 			) {
 				continue;
 			}
@@ -365,6 +443,39 @@ function apbct_ready(){
 				continue;
 			}
 			encodedEmailNodes[i].addEventListener('click', ctFillDecodedEmailHandler);
+		}
+	}
+
+	/**
+	 * WordPress Search form processing
+	 */
+	for (const _form of document.forms) {
+		if ( _form.getAttribute('id') === 'searchform' && ctPublic.data__cookies_type === 'none' ) {
+			_form.apbctSearchPrevOnsubmit = _form.onsubmit;
+			_form.onsubmit = (e) => {
+				const noCookie = _form.querySelector('[name="ct_no_cookie_hidden_field"]');
+				if ( noCookie !== null ) {
+					e.preventDefault();
+					const callBack = () => {
+						if (_form.apbctSearchPrevOnsubmit instanceof Function) {
+							_form.apbctSearchPrevOnsubmit();
+						} else {
+							HTMLFormElement.prototype.submit.call(_form);
+						}
+					}
+
+					let parsedCookies = atob(noCookie.value);
+
+					if ( parsedCookies.length !== 0 ) {
+						ctSetAlternativeCookie(
+							parsedCookies,
+							{callback: callBack, onErrorCallback: callBack, forceAltCookies: true}
+						);
+					} else {
+						callBack();
+					}
+				}
+			}
 		}
 	}
 }
@@ -817,7 +928,11 @@ function ctSetPixelUrlLocalstorage(ajax_pixel_url) {
 	ctSetCookie('apbct_pixel_url', ajax_pixel_url)
 }
 
-function ctNoCookieConstructHiddenField(){
+function ctNoCookieConstructHiddenField(type){
+	let inputType = 'hidden';
+	if (type === 'submit') {
+		inputType = 'submit';
+	}
 	let field = ''
 	let no_cookie_data_local = apbctLocalStorage.getCleanTalkData()
 	let no_cookie_data_session = apbctSessionStorage.getCleanTalkData()
@@ -828,11 +943,12 @@ function ctNoCookieConstructHiddenField(){
 	field.setAttribute('id','ct_no_cookie_hidden_field')
 	field.setAttribute('name','ct_no_cookie_hidden_field')
 	field.setAttribute('value', no_cookie_data)
-	field.setAttribute('type', 'hidden')
+	field.setAttribute('type', inputType)
+	field.classList.add('apbct_special_field');
 	return field
 }
 
-function ctNoCookieGetForms(){
+function ctGetPageForms(){
 	let forms = document.forms
 	if (forms) {
 		return forms
@@ -846,7 +962,7 @@ function ctNoCookieAttachHiddenFieldsToForms(){
 		return
 	}
 
-	let forms = ctNoCookieGetForms()
+	let forms = ctGetPageForms()
 
 	if (forms){
 		//clear previous hidden set
@@ -861,7 +977,10 @@ function ctNoCookieAttachHiddenFieldsToForms(){
 			if (document.forms[i].getAttribute('method') === null ||
 				document.forms[i].getAttribute('method').toLowerCase() === 'post'){
 				// add new set
-				document.forms[i].append(ctNoCookieConstructHiddenField())
+				document.forms[i].append(ctNoCookieConstructHiddenField());
+			}
+			if ( document.forms[i].getAttribute('id') === 'searchform' ) {
+				document.forms[i].append(ctNoCookieConstructHiddenField('submit'));
 			}
 		}
 	}

@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 4.7
 Tested up to: 6.1
 Requires PHP: 5.6
-Stable tag: 6.0.1
+Stable tag: 6.1
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -450,6 +450,22 @@ Yes, it is. Please read this article,
 12. SpamFireWall log.
 
 == Changelog ==
+
+= 6.1 Dec 15 2022 =
+#### Some integrations fixed 🐞, Search forms 🎯 protection improved and some minor issues fixed 💪🏼
+* New. Integrations. Add NewUserApprove plugin.
+* Update. EmailEncoder. Add hook for encode email in default wp widget.
+* Fix. Settings. Affiliate shortcode disabled state.
+* Fix. Elementor forms. Elementor login form skipping.
+* Mod: Optima Express Integration for Login Form
+* Fix. Integrations. Optima Express - Update form fixed.
+* Fix. Modified Header. Undefined post_type.
+* Fix. Integrations. Probably spam notification updated.
+* Fix. Integration. Ninja refactoring.
+* Fix. Cookies. No-cookies parameters gathering on search forms improved.
+* Fix. Integrations. Do not draw hidden fields on excluded pages.
+* Fix. Integration. WP Forms integration fixed.
+* Fix. Integration. Ninja Forms integration fixed.
 
 = 6.0.1 Dec 4 2022 =
 * Fix. Updater. Updating checking fixed.

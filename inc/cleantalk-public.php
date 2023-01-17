@@ -123,6 +123,18 @@ function apbct_init()
         ct_contact_form_validate();
     }
 
+    /** Optima Express integration */
+    if (
+        ! empty($_POST) &&
+        $apbct->settings['forms__contact_forms_test'] == 1 &&
+        empty(Post::get('ct_checkjs_cf7')) &&
+        apbct_is_plugin_active('optima-express/iHomefinder.php') &&
+        Post::get('actionType') === 'create' &&
+        !empty(Post::get('newEmail'))
+    ) {
+        ct_contact_form_validate();
+    }
+
     //hook for Anonymous Post
     if ( $apbct->settings['data__general_postdata_test'] == 1 && empty(Post::get('ct_checkjs_cf7')) ) {
         add_action('init', 'ct_contact_form_validate_postdata', 1000);
@@ -685,7 +697,7 @@ function ct_add_honeypot_field($form_type, $form_method = 'post')
     global $apbct;
 
     // Honeypot option is OFF
-    if ( ! $apbct->settings['data__honeypot_field'] ) {
+    if ( ! $apbct->settings['data__honeypot_field'] || apbct_exclusions_check__url() ) {
         return '';
     }
     //Generate random suffix to prevent ids duplicate

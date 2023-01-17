@@ -99,6 +99,10 @@ function apbct_base_call($params = array(), $reg_flag = false)
 {
     global $cleantalk_executed;
 
+    if ( isset($params['post_info']['comment_type']) && $params['post_info']['comment_type'] === 'site_search_wordpress' ) {
+        Cookie::$force_alt_cookies_global = true;
+    }
+
     /* Exclusions */
     if ( $cleantalk_executed ) {
         do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
@@ -281,6 +285,7 @@ function apbct_base_call($params = array(), $reg_flag = false)
 
     // Set cookies if it's not.
     if ( empty($apbct->flags__cookies_setuped) ) {
+        Cookie::$force_alt_cookies_global = false;
         apbct_cookie();
     }
 
@@ -580,7 +585,18 @@ function apbct_get_sender_info()
             ? json_encode(Cookie::get('apbct_headless'))
             : null,
         'no_cookie_data_taken'      => isset($apbct->stats['no_cookie_data_taken']) ? $apbct->stats['no_cookie_data_taken'] : null,
+        'has_key_up' => Cookie::get('ct_has_key_up') !== ''
+            ? json_encode(Cookie::get('ct_has_key_up'))
+            : null,
+        'has_input_focused' => Cookie::get('ct_has_input_focused') !== ''
+            ? json_encode(Cookie::get('ct_has_input_focused'))
+            : null,
     );
+
+    // Unset cookies_enabled from sender_info if cookies_type === none
+    if ($apbct->data['cookies_type'] === 'none') {
+        unset($data_array['cookies_enabled']);
+    }
 
     return $data_array;
 }
@@ -1364,13 +1380,18 @@ function apbct_get_honeypot_filled_fields()
     return $post_has_a_honeypot_key ? $result : false;
 }
 
-function apbct_form__get_no_cookie_data()
+/**
+ * Collect NoCookie data from hidden field or direct input.
+ * @param string $direct_no_cookie_string
+ */
+function apbct_form__get_no_cookie_data($direct_no_cookie_string = '')
 {
     global $apbct;
     $flag = null;
 
-    if ( Post::get('ct_no_cookie_hidden_field') && $apbct->data['cookies_type'] === 'none' ) {
-        $flag = \Cleantalk\ApbctWP\Variables\NoCookie::setDataFromHiddenField();
+    if ( (Post::get('ct_no_cookie_hidden_field') || !empty($direct_no_cookie_string))
+        && $apbct->data['cookies_type'] === 'none' ) {
+        $flag = \Cleantalk\ApbctWP\Variables\NoCookie::setDataFromHiddenField($direct_no_cookie_string);
     }
     $apbct->stats['no_cookie_data_taken'] = $flag;
     $apbct->save('stats');

@@ -821,6 +821,22 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'Abandoned Cart Recovery for WooCommerce: skipped ' . Post::get('action');
         }
+
+        //Skip smart_forms because of direct integration
+        if (
+            apbct_is_plugin_active('smart-forms/smartforms.php') &&
+            Post::get('action') === 'rednao_smart_forms_save_form_values'
+        ) {
+            return 'Smart Forms skip';
+        }
+
+        //Skip Universal form builder because of direct integration
+        if (
+            apbct_is_plugin_active('ultimate-form-builder-lite/ultimate-form-builder-lite.php') &&
+            Post::get('action') === 'ufbl_front_form_action'
+        ) {
+            return 'Universal form builder skip';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
@@ -868,13 +884,6 @@ function apbct_is_skip_request($ajax = false)
         // Autonami Marketing Automations service request
         if ( apbct_is_rest() && Post::get('automation_id') !== '' && Post::get('unique_key') !== '' ) {
             return 'autonami-rest';
-        }
-        //Skip wforms because of direct integration
-        if (
-            apbct_is_plugin_active('wpforms/wpforms.php') &&
-            (Post::get('wpforms') || Post::get('actions') === 'wpforms_submit')
-        ) {
-            return 'wp_forms';
         }
         // Formidable skip - this is the direct integration
         if ( apbct_is_plugin_active('formidable/formidable.php') &&
@@ -949,6 +958,32 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'JQueryMigrate plugin service actions';
         }
+
+        /** Skip Optima Express login */
+        if (
+            apbct_is_plugin_active('optima-express/iHomefinder.php') &&
+            Post::get('actionType') === 'login' &&
+            !empty(Post::get('username'))
+        ) {
+            return 'Skip Optima Express login';
+        }
+
+        /** Skip Optima Express update */
+        if (
+            apbct_is_plugin_active('optima-express/iHomefinder.php') &&
+            Post::get('actionType') === 'update' &&
+            !empty(Post::get('firstName'))
+        ) {
+            return 'Skip Optima Express update';
+        }
+    }
+
+    //Skip wforms because of direct integration
+    if (
+        (apbct_is_plugin_active('wpforms/wpforms.php') || apbct_is_plugin_active('wpforms-lite/wpforms.php')) &&
+        (Post::get('wpforms') || Post::get('actions') === 'wpforms_submit')
+    ) {
+        return 'wp_forms';
     }
 
     // Event Manager - there is the direct integration

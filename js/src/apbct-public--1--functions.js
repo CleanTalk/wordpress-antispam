@@ -1,6 +1,6 @@
 function ctSetCookie( cookies, value, expires ){
 
-    let force_alternative_method_for_cookies = [
+    let list_of_cookie_names_to_force_alt = [
         'ct_sfw_pass_key',
         'ct_sfw_passed',
         'wordpress_apbct_antibot',
@@ -18,16 +18,28 @@ function ctSetCookie( cookies, value, expires ){
     if( ctPublicFunctions.data__cookies_type === 'none' ){
         let forced_alt_cookies_set = []
         cookies.forEach( function (item, i, arr	) {
-            if (force_alternative_method_for_cookies.indexOf(item[0]) !== -1) {
+            if (list_of_cookie_names_to_force_alt.indexOf(item[0]) !== -1) {
                 forced_alt_cookies_set.push(item)
             } else {
                 apbctLocalStorage.set(item[0], encodeURIComponent(item[1]))
             }
         });
+        // if cookies from list found use alt cookies for this selection set
         if ( forced_alt_cookies_set.length > 0 ){
             ctSetAlternativeCookie(forced_alt_cookies_set)
         }
-        ctNoCookieAttachHiddenFieldsToForms()
+
+        // If problem integration forms detected use alt cookies for whole cookies set
+        if( ctPublic.force_alt_cookies ) {
+            //do it just once
+
+            if ( !skip_alt ){
+                ctSetAlternativeCookie(cookies, {forceAltCookies:true})
+            }
+        } else {
+            ctNoCookieAttachHiddenFieldsToForms()
+        }
+
         // Using traditional cookies
     }else if( ctPublicFunctions.data__cookies_type === 'native' ){
         cookies.forEach( function (item, i, arr	) {
@@ -42,19 +54,36 @@ function ctSetCookie( cookies, value, expires ){
     }
 }
 
-function ctSetAlternativeCookie(cookies){
-    if (typeof (getJavascriptClientData) === "function"){
+function ctDetectForcedAltCookiesForms(){
+    let ninja_forms_sign = document.querySelectorAll('#tmpl-nf-layout').length > 0
+    let smart_forms_sign = document.querySelectorAll('script[id*="smart-forms"]').length > 0
+
+    ctPublic.force_alt_cookies = smart_forms_sign || ninja_forms_sign
+}
+
+function ctSetAlternativeCookie(cookies, params) {
+
+    if (typeof (getJavascriptClientData) === "function" ){
         //reprocess already gained cookies data
-        cookies = getJavascriptClientData(cookies);
+        if (Array.isArray(cookies)) {
+            cookies = getJavascriptClientData(cookies);
+        }
     } else {
         console.log('APBCT ERROR: getJavascriptClientData() is not loaded')
     }
 
     try {
-        JSON.parse(cookies)
+        cookies = JSON.parse(cookies)
     } catch (e){
         console.log('APBCT ERROR: JSON parse error:' + e)
         return
+    }
+
+    const callback = params && params.callback || null;
+    const onErrorCallback = params && params.onErrorCallback || null;
+
+    if( params && params.forceAltCookies ) {
+        cookies.apbct_force_alt_cookies = true;
     }
 
     // Using REST API handler
@@ -63,7 +92,9 @@ function ctSetAlternativeCookie(cookies){
             'alt_sessions',
             {
                 method: 'POST',
-                data: { cookies: cookies }
+                data: { cookies: cookies },
+                callback: callback,
+                onErrorCallback: onErrorCallback
             }
         );
 
@@ -76,6 +107,8 @@ function ctSetAlternativeCookie(cookies){
             },
             {
                 notJson: 1,
+                callback: callback,
+                onErrorCallback: onErrorCallback
             }
         );
     }

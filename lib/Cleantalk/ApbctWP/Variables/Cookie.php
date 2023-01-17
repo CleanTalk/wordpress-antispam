@@ -6,6 +6,8 @@ class Cookie extends \Cleantalk\Variables\Cookie
 {
     protected static $instance;
 
+    public static $force_alt_cookies_global = false;
+
     public static $force_to_use_alternative_cookies = array(
         'ct_sfw_pass_key',
         'ct_sfw_passed',
@@ -38,10 +40,19 @@ class Cookie extends \Cleantalk\Variables\Cookie
                 $value = $this->getAndSanitize(urldecode($_COOKIE[$name]));
                 //NoCookies
             } else if ( $apbct->data['cookies_type'] === 'none' ) {
-                if ( in_array($name, static::$force_to_use_alternative_cookies, true) ) {
+                if ( static::$force_alt_cookies_global || in_array($name, static::$force_to_use_alternative_cookies, true) ) {
                     $value = AltSessions::get($name);
                     if ( empty($value) && isset($_COOKIE[$name]) ) {
                         $value = $this->getAndSanitize(urldecode($_COOKIE[$name]));
+                    }
+                    if ( in_array($name, array(
+                        'apbct_page_hits',
+                        'apbct_prev_referer',
+                        'apbct_site_landing_ts',
+                        'apbct_urls',
+                        'apbct_timestamp',
+                        'apbct_site_referer')) ) {
+                        $value = NoCookie::get($name);
                     }
                 } else {
                     $value = NoCookie::get($name);
@@ -92,7 +103,7 @@ class Cookie extends \Cleantalk\Variables\Cookie
         if ( $apbct->data['key_is_ok'] ) {
             //select handling way to set cookie data in dependence of cookie type in the settings
             if ( $apbct->data['cookies_type'] === 'none' ) {
-                if ( in_array($name, static::$force_to_use_alternative_cookies, true) ) {
+                if ( static::$force_alt_cookies_global || in_array($name, static::$force_to_use_alternative_cookies, true) ) {
                     AltSessions::set($name, $value);
                 } else {
                     return NoCookie::set($name, $value, $no_cookie_to_db);

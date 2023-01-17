@@ -123,13 +123,16 @@ class NoCookie
 
 
     /**
-     * Check POST for data transferred via ct_no_cookie_hidden_field, handle them then
+     * Check POST for data transferred via ct_no_cookie_hidden_field, handle them then.
+     * If direct data string is provided in $direct_no_cookie_data, use this data.
+     * @param string $direct_no_cookie_string
      * @return bool
      */
-    public static function setDataFromHiddenField()
+    public static function setDataFromHiddenField($direct_no_cookie_string = '')
     {
-        if ( Post::get('ct_no_cookie_hidden_field') ) {
-            $data = Post::get('ct_no_cookie_hidden_field');
+        $data = !empty($direct_no_cookie_string) ? $direct_no_cookie_string : Post::get('ct_no_cookie_hidden_field');
+
+        if ( $data ) {
             unset($_POST['ct_no_cookie_hidden_field']);
             $data = base64_decode($data);
             if ( $data ) {

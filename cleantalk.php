@@ -4,7 +4,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 6.0.2-dev
+  Version: 6.1.1-dev
   Author: СleanTalk <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -219,9 +219,16 @@ add_action('init', function () {
     // Remote calls
     if ( RemoteCalls::check() ) {
         try {
+            /**
+             * Needs to include apbct_settings__validate() for run_service_template_get remote call.
+             * TODO:Probably we should refactor apbct_settings__validate() to a class feature to use it within autoloader
+             */
+            if ( Get::get('spbc_remote_call_action') === 'run_service_template_get' ) {
+                require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-settings.php');
+            }
             RemoteCalls::perform();
         } catch ( Exception $e ) {
-            die(json_encode(array('ERROR:' => $e->getMessage())));
+            die(json_encode(array('ERROR' => $e->getMessage())));
         }
     }
 });
@@ -237,7 +244,9 @@ if ( ! is_admin() && ! apbct_is_ajax() && ! defined('DOING_CRON')
      && ! \Cleantalk\Variables\Server::inUri('/favicon.ico') // /favicon request rewritten cookies fix
 ) {
     if ( $apbct->data['cookies_type'] !== 'alternative' ) {
-        add_action('template_redirect', 'apbct_cookie', 2);
+        if ( !$apbct->settings['forms__search_test'] && !Get::get('s') ) { //skip cookie set for search form redirect page
+            add_action('template_redirect', 'apbct_cookie', 2);
+        }
         add_action('template_redirect', 'apbct_store__urls', 2);
     }
     if ( empty($_POST) && empty($_GET) && $apbct->data['key_is_ok']) {
@@ -394,6 +403,21 @@ $apbct_active_integrations = array(
         'setting' => 'forms__contact_forms_test',
         'ajax'    => true,
         'ajax_and_post' => true
+    ),
+    'NewUserApprove' => array(
+        'hook'    => 'nua_pass_create_new_user',
+        'setting' => 'forms__registrations_test',
+        'ajax'    => false
+    ),
+    'SmartForms' => array(
+        'hook'    => array('rednao_smart_forms_save_form_values'),
+        'setting' => 'forms__contact_forms_test',
+        'ajax'    => true
+    ),
+    'UlitmateFormBuilder' => array(
+        'hook'    => array('ufbl_front_form_action'),
+        'setting' => 'forms__contact_forms_test',
+        'ajax'    => true
     ),
 );
 new  \Cleantalk\Antispam\Integrations($apbct_active_integrations, (array)$apbct->settings);
@@ -1122,7 +1146,7 @@ function apbct_sfw_update__get_multifiles()
     }
 
     // Getting remote file name
-    $result = API::methodGet2sBlacklistsDb($apbct->api_key, 'multifiles', '3_1');
+    $result = API::methodGet2sBlacklistsDb($apbct->api_key, 'multifiles', '3_2');
 
     if ( empty($result['error']) ) {
         if ( ! empty($result['file_url']) ) {
