@@ -4,7 +4,7 @@ namespace Cleantalk\ApbctWP\Localize;
 
 use Cleantalk\ApbctWP\Escape;
 
-class CtPublicFunctionsLocalize implements GetDataInterface
+class CtPublicFunctionsLocalize implements GetDataInterface, GetCodeInterface
 {
     const name = 'ctPublicFunctions';
     const handle = 'ct_public_functions';
@@ -23,5 +23,14 @@ class CtPublicFunctionsLocalize implements GetDataInterface
             'text__wait_for_decoding'              => esc_html__('Decoding the contact data, let us a few seconds to finish. Anti-Spam by CleanTalk.', 'cleantalk-spam-protect'),
             'cookiePrefix'                         => apbct__get_cookie_prefix(),
         );
+    }
+
+    public static function getCode()
+    {
+        return '
+            <script>
+                ' . self::name . ' = ' . json_encode(self::getData()) . '
+            </script>
+        ';
     }
 }

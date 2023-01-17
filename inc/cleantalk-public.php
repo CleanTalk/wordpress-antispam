@@ -3,6 +3,7 @@
 use Cleantalk\ApbctWP\Escape;
 use Cleantalk\ApbctWP\Localize\CtPublicFunctionsLocalize;
 use Cleantalk\ApbctWP\Localize\CtPublicLocalize;
+use Cleantalk\ApbctWP\Localize\LocalizeHandler;
 use Cleantalk\ApbctWP\Sanitize;
 use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\ApbctWP\Variables\Get;
@@ -20,6 +21,9 @@ use Cleantalk\ApbctWP\Variables\Server;
 function apbct_init()
 {
     global $ct_jp_comments, $apbct;
+
+    // Localize data
+    add_action('wp_head', array(LocalizeHandler::class, 'handle'), 1);
 
     // Pixel
     if ( $apbct->settings['data__pixel'] && empty($apbct->pixel_url) ) {
@@ -1369,17 +1373,17 @@ function apbct_enqueue_and_localize_public_scripts()
         APBCT_VERSION
     );
 
-    wp_localize_script(
-        CtPublicFunctionsLocalize::handle,
-        CtPublicFunctionsLocalize::name,
-        CtPublicFunctionsLocalize::getData()
-    );
-
-    wp_localize_script(
-        CtPublicLocalize::handle,
-        CtPublicLocalize::name,
-        CtPublicLocalize::getData()
-    );
+//    wp_localize_script(
+//        CtPublicFunctionsLocalize::handle,
+//        CtPublicFunctionsLocalize::name,
+//        CtPublicFunctionsLocalize::getData()
+//    );
+//
+//    wp_localize_script(
+//        CtPublicLocalize::handle,
+//        CtPublicLocalize::name,
+//        CtPublicLocalize::getData()
+//    );
 
     wp_enqueue_style(
         'ct_public_css',

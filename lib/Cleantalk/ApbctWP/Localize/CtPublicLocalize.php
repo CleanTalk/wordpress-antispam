@@ -2,7 +2,7 @@
 
 namespace Cleantalk\ApbctWP\Localize;
 
-class CtPublicLocalize implements GetDataInterface
+class CtPublicLocalize implements GetDataInterface, GetCodeInterface
 {
     const name = 'ctPublic';
     const handle = 'ct_public_functions';
@@ -25,5 +25,14 @@ class CtPublicLocalize implements GetDataInterface
             'data__visible_fields_required'   => ! apbct_is_user_logged_in() || $apbct->settings['data__protect_logged_in'] == 1,
             'data__to_local_storage' => \Cleantalk\ApbctWP\Variables\NoCookie::preloadForScripts()
         );
+    }
+
+    public static function getCode()
+    {
+        return '
+            <script>
+                ' . self::name . ' = ' . json_encode(self::getData()) . '
+            </script>
+        ';
     }
 }
