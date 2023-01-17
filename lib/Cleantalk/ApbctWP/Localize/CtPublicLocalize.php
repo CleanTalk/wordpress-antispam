@@ -4,8 +4,8 @@ namespace Cleantalk\ApbctWP\Localize;
 
 class CtPublicLocalize implements GetDataInterface, GetCodeInterface
 {
-    const name = 'ctPublic';
-    const handle = 'ct_public_functions';
+    const NAME = 'ctPublic';
+    const HANDLE = 'ct_public_functions';
 
     public static function getData()
     {
@@ -31,7 +31,7 @@ class CtPublicLocalize implements GetDataInterface, GetCodeInterface
     {
         return '
             <script>
-                ' . self::name . ' = ' . json_encode(self::getData()) . '
+                ' . self::NAME . ' = ' . json_encode(self::getData()) . '
             </script>
         ';
     }

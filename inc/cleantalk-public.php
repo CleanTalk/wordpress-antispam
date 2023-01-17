@@ -1374,14 +1374,14 @@ function apbct_enqueue_and_localize_public_scripts()
     );
 
 //    wp_localize_script(
-//        CtPublicFunctionsLocalize::handle,
-//        CtPublicFunctionsLocalize::name,
+//        CtPublicFunctionsLocalize::HANDLE,
+//        CtPublicFunctionsLocalize::NAME,
 //        CtPublicFunctionsLocalize::getData()
 //    );
 //
 //    wp_localize_script(
-//        CtPublicLocalize::handle,
-//        CtPublicLocalize::name,
+//        CtPublicLocalize::HANDLE,
+//        CtPublicLocalize::NAME,
 //        CtPublicLocalize::getData()
 //    );
 

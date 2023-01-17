@@ -6,8 +6,8 @@ use Cleantalk\ApbctWP\Escape;
 
 class CtPublicFunctionsLocalize implements GetDataInterface, GetCodeInterface
 {
-    const name = 'ctPublicFunctions';
-    const handle = 'ct_public_functions';
+    const NAME = 'ctPublicFunctions';
+    const HANDLE = 'ct_public_functions';
 
     public static function getData()
     {
@@ -29,7 +29,7 @@ class CtPublicFunctionsLocalize implements GetDataInterface, GetCodeInterface
     {
         return '
             <script>
-                ' . self::name . ' = ' . json_encode(self::getData()) . '
+                ' . self::NAME . ' = ' . json_encode(self::getData()) . '
             </script>
         ';
     }
