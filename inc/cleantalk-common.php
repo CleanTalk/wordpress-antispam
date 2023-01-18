@@ -156,6 +156,7 @@ function apbct_base_call($params = array(), $reg_flag = false)
     $apbct->save('plugin_request_ids');
     /* End of Request ID rotation */
 
+    apbct_form__get_no_cookie_data();
 
     $sender_info = ! empty($params['sender_info'])
         ? \Cleantalk\ApbctWP\Helper::arrayMergeSaveNumericKeysRecursive(

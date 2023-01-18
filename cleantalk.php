@@ -569,8 +569,6 @@ if ( ! empty($apbct->settings['data__use_ajax']) &&
     add_action('wp_ajax_ct_get_cookie', 'ct_get_cookie', 1);
 }
 
-apbct_form__get_no_cookie_data();
-
 // Admin panel actions
 if ( is_admin() || is_network_admin() ) {
     require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-find-spam.php');
