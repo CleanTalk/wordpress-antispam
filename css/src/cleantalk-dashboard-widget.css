@@ -20,7 +20,6 @@
 
 	.ct_widget_hr{
 		width: 100%;
-		padding-top: 10%;
 	}
 	
 	.ct_widget_block_header{
@@ -33,18 +32,9 @@
 		padding: 12px;
 	}
 	.ct_widget_chart_wrapper{
-		height: 300px;
 		margin-right: 10px;
+		height: 300px;
 	}
-		#ct_widget_chart{}
-			
-			.bar {fill: steelblue;}
-			.bar:nth-child(odd){fill: rgba(50,50,250,0.9);}
-			.bar:hover {fill: brown;}
-
-			.axis--x path {
-			display: none;
-			}
 			
 		.ct_widget_block table{
 			width: 100%;

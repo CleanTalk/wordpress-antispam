@@ -1,7 +1,5 @@
 jQuery(document).ready(function(){
 
-	console.table('apbctDashboardWidget',apbctDashboardWidget)
-
 	// Set "refresh" link handler
 	jQuery(".ct_widget_refresh_link").on('click', function(){
 		jQuery('.ct_preloader').show();
@@ -22,33 +20,61 @@ jQuery(document).ready(function(){
 		day: "numeric"
 	});
 
-		function reformatWidgetData(apbctDashboardWidget){
-		apbctDashboardWidget.forEach(function(row){
-			row['label'] = date_formatter.format(new Date(row['0']))
-			row['y'] = row['1']
-			row['color'] = 'steelblue'
-		})
-		console.table('apbctDashboardWidget',apbctDashboardWidget)
+	function reformatWidgetData(apbctDashboardWidget){
+		let widgetData = {'labels':[],'counts':[]}
+		for (let i = 0; i < apbctDashboardWidget.length; i++) {
+			widgetData.labels.push(date_formatter.format(new Date(apbctDashboardWidget[i]['0'])))
+			widgetData.counts.push(apbctDashboardWidget[i]['1'])
+		}
+		return widgetData
 	}
-	//cnvas start
-	reformatWidgetData(apbctDashboardWidget.data)
 
-	var chart = new CanvasJS.Chart("ct_widget_chart", {
-		animationEnabled: true,
-		theme: "light1", // "light1", "light2", "dark1", "dark2"
-		dataPointMaxWidth:30,
-		title:{
-			text: "Spam Attacks"
+	const ctx = document.getElementById('ct_widget_chart')
+	Chart.defaults.plugins.legend.display = false
+	widgetData = reformatWidgetData(apbctDashboardWidget['data'])
+
+	new Chart(ctx, {
+		type: 'bar',
+		data: {
+			labels: widgetData.labels,
+			datasets: [{
+				label: 'Spam blocked',
+				data: widgetData.counts,
+				borderWidth: 1
+			}]
 		},
-		axisY: {
-			title: "Spam count"
-		},
-		data: [{
-			type: "column",
-			showInLegend: false,
-			dataPoints: apbctDashboardWidget.data
-		}]
+		options: {
+			maintainAspectRatio: false,
+			responsive: true,
+			scales: {
+				y: {
+					beginAtZero: true
+				}
+			},
+			plugins: {
+				title: {
+					display: true,
+					text: 'Spam attacks',
+					font: {
+						size: 18,
+					}
+				},
+			},
+			elements: {
+				bar:{
+					backgroundColor: 'steelblue'
+				}
+			},
+			animations: {
+				tension: {
+					duration: 1000,
+					easing: 'linear',
+					from: 1,
+					to: 0,
+					loop: true
+				}
+			},
+		}
 	});
-	chart.render();
 
 });

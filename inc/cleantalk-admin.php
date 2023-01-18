@@ -122,7 +122,7 @@ function ct_dashboard_statistics_widget_output($_post, $_callback_args)
     <h4 class='ct_widget_block_header' style='margin-left: 12px;'><?php
         _e('7 days Anti-Spam stats', 'cleantalk-spam-protect'); ?></h4>
     <div class='ct_widget_block ct_widget_chart_wrapper'>
-        <div id='ct_widget_chart'></div>
+        <canvas id='ct_widget_chart' ></canvas>
     </div>
     <h4 class='ct_widget_block_header'><?php
         _e('Top 5 spam IPs blocked', 'cleantalk-spam-protect'); ?></h4>
@@ -475,7 +475,7 @@ function apbct_admin__enqueue_scripts($hook)
         if ( $apbct->settings['wp__dashboard_widget__show'] && ! $apbct->moderate_ip ) {
             wp_enqueue_script(
                 'ct_canvas_charts_loader',
-                APBCT_JS_ASSETS_PATH . '/cleantalk-dashboard-widget-canvasjs.min.js',
+                APBCT_JS_ASSETS_PATH . '/cleantalk-dashboard-widget--chartjs.min.js',
                 array(),
                 APBCT_VERSION
             );
