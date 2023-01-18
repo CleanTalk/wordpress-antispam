@@ -474,6 +474,12 @@ function apbct_admin__enqueue_scripts($hook)
         // Enqueue widget scripts if the dashboard widget enabled and not IP license
         if ( $apbct->settings['wp__dashboard_widget__show'] && ! $apbct->moderate_ip ) {
             wp_enqueue_script(
+                'ct_canvas_charts_loader',
+                APBCT_JS_ASSETS_PATH . '/cleantalk-dashboard-widget-canvasjs.min.js',
+                array(),
+                APBCT_VERSION
+            );
+            wp_enqueue_script(
                 'ct_gstatic_charts_loader',
                 APBCT_JS_ASSETS_PATH . '/cleantalk-dashboard-widget--google-charts.min.js',
                 array(),
@@ -500,6 +506,7 @@ function apbct_admin__enqueue_scripts($hook)
             foreach ( $apbct->data['brief_data']['spam_stat'] as $key => $value ) {
                 $to_chart[] = array($key, $value);
             }
+            error_log('CTDEBUG: [' . __FUNCTION__ . '] [$to_chart]: ' . var_export($to_chart,true));
             unset($key, $value);
         }
 
