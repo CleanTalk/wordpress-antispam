@@ -17,7 +17,6 @@ class UlitmateFormBuilder extends IntegrationBase
                 foreach ( $ct_post_temp['form_data'] as $_key => $value ) {
                     //parse nocookie data
                     if ( isset($value['name']) && $value['name'] === 'ct_no_cookie_hidden_field' ) {
-                        $direct_no_cookie_data = $value['value'];
                         unset($ct_post_temp['form_data'][$_key]);
                     }
                     //unset apbct_visible_fields
@@ -32,8 +31,8 @@ class UlitmateFormBuilder extends IntegrationBase
                 unset($ct_post_temp['action']);
             }
 
-            if ( !$apbct->stats['no_cookie_data_taken'] && !empty($direct_no_cookie_data) ) {
-                apbct_form__get_no_cookie_data($direct_no_cookie_data);
+            if ( ! $apbct->stats['no_cookie_data_taken'] ) {
+                apbct_form__get_no_cookie_data();
             }
 
             foreach ( $ct_post_temp as $key => $_value ) {
