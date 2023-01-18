@@ -455,17 +455,22 @@ function apbct_settings__set_fields()
                     'title'       => __("Set cookies", 'cleantalk-spam-protect'),
                     'description' =>
                         __(
-                            'Turn this option off or use alternative mechanism for cookies to forbid the plugin generate any cookies on website\'s front-end.',
-                            'cleantalk-spam-protect'
-                        )
-                        . '<br>'
-                        . __(
-                            'This option is helpful if you are using Varnish. Most contact forms will have poor protection if the option is turned off!',
+                            'The "On" option means ordinary cookies in the visitor\'s browser. If you use cache plugins, some user parameters will be transmitted inaccurately and this may lead to incorrect filtering.',
                             'cleantalk-spam-protect'
                         )
                         . '<br>'
                         . __(
                             'Alternative mechanism will store data in database and will not set cookies in browser, so the cache solutions will work just fine.',
+                            'cleantalk-spam-protect'
+                        )
+                        . '<br>'
+                        . __(
+                            'The "Auto" option is designed to automatically detect the presence of caching plugins on the site, but now it does not always work, so we advise you not to use this option. The option is reserved for long-time customers who are fine with filtering.',
+                            'cleantalk-spam-protect'
+                        )
+                        . '<br>'
+                        . __(
+                            'The "Off" option uses local storage instead of cookies. Caching plugins have no negative effect. We recommend using this option.',
                             'cleantalk-spam-protect'
                         ),
                     'long_description' => true,
@@ -2456,6 +2461,11 @@ function apbct_settings__validate($settings)
             $settings['data__set_cookies'] = 0;
             $settings['data__use_ajax'] = 0;
         }
+    }
+
+    // Banner notice_email_decoder_changed
+    if ((int)$apbct->settings['data__email_decoder'] !== (int)$settings['data__email_decoder']) {
+        $apbct->data['notice_email_decoder_changed'] = 1;
     }
 
     $apbct->save('data');

@@ -4,7 +4,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 6.1.1-dev
+  Version: 6.2
   Author: СleanTalk <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -568,8 +568,6 @@ if ( ! empty($apbct->settings['data__use_ajax']) &&
     add_action('wp_ajax_nopriv_ct_get_cookie', 'ct_get_cookie', 1);
     add_action('wp_ajax_ct_get_cookie', 'ct_get_cookie', 1);
 }
-
-apbct_form__get_no_cookie_data();
 
 // Admin panel actions
 if ( is_admin() || is_network_admin() ) {
@@ -2381,7 +2379,7 @@ function apbct_store__urls()
             (
                 ! $site_referer ||
                 parse_url($new_site_referer, PHP_URL_HOST) !== Server::get('HTTP_HOST')
-            )
+            ) && $apbct->data['cookies_type'] === 'native'
         ) {
             Cookie::set('apbct_site_referer', $new_site_referer, time() + 86400 * 3, '/', $site_url, null, true, 'Lax', true);
         }
@@ -2435,13 +2433,6 @@ function apbct_cookie()
         $cookie_test_value['check_value']     .= $apbct_timestamp;
     }
 
-    // Previous referer
-    if ( Server::get('HTTP_REFERER') ) {
-        Cookie::set('apbct_prev_referer', Server::get('HTTP_REFERER'), 0, '/', $domain, null, true, 'Lax', true);
-        $cookie_test_value['cookies_names'][] = 'apbct_prev_referer';
-        $cookie_test_value['check_value']     .= Server::get('HTTP_REFERER');
-    }
-
     // Landing time
     // todo if cookies disabled there is no way to keep this data without DB:( always will be overwriteen
     $site_landing_timestamp = Cookie::get('apbct_site_landing_ts');
@@ -2452,18 +2443,27 @@ function apbct_cookie()
     $cookie_test_value['cookies_names'][] = 'apbct_site_landing_ts';
     $cookie_test_value['check_value']     .= $site_landing_timestamp;
 
-    // Page hits
-    // Get
-    $page_hits = Cookie::get('apbct_page_hits');
+    if ($apbct->data['cookies_type'] === 'native') {
+        // Previous referer
+        if ( Server::get('HTTP_REFERER') ) {
+            Cookie::set('apbct_prev_referer', Server::get('HTTP_REFERER'), 0, '/', $domain, null, true, 'Lax', true);
+            $cookie_test_value['cookies_names'][] = 'apbct_prev_referer';
+            $cookie_test_value['check_value']     .= Server::get('HTTP_REFERER');
+        }
 
-    // Set / Increase
-    // todo if cookies disabled there is no way to keep this data without DB:( always will be 1
-    $page_hits = (int)$page_hits ? (int)$page_hits + 1 : 1;
+        // Page hits
+        // Get
+        $page_hits = Cookie::get('apbct_page_hits');
 
-    Cookie::set('apbct_page_hits', (string)$page_hits, 0, '/', $domain, null, true, 'Lax', true);
+        // Set / Increase
+        // todo if cookies disabled there is no way to keep this data without DB:( always will be 1
+        $page_hits = (int)$page_hits ? (int)$page_hits + 1 : 1;
 
-    $cookie_test_value['cookies_names'][] = 'apbct_page_hits';
-    $cookie_test_value['check_value']     .= $page_hits;
+        Cookie::set('apbct_page_hits', (string)$page_hits, 0, '/', $domain, null, true, 'Lax', true);
+
+        $cookie_test_value['cookies_names'][] = 'apbct_page_hits';
+        $cookie_test_value['check_value']     .= $page_hits;
+    }
 
     // Cookies test
     $cookie_test_value['check_value'] = md5($cookie_test_value['check_value']);
@@ -2582,10 +2582,16 @@ function ct_account_status_check($api_key = null, $process_errors = true)
     return $result;
 }
 
+/**
+ * Send connection reports cron wrapper.
+ * If setting misc__send_connection_reports is disabled there will no reports sen on cron.
+ */
 function ct_cron_send_connection_report_email()
 {
     global $apbct;
-    $apbct->getConnectionReports()->sendUnsentReports(true);
+    if (isset($apbct->settings['misc__send_connection_reports']) && $apbct->settings['misc__send_connection_reports'] == 1) {
+        $apbct->getConnectionReports()->sendUnsentReports(true);
+    }
 }
 
 /**

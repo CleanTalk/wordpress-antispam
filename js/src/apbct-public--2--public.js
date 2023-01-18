@@ -281,6 +281,24 @@ function apbct_ready(){
 
 	ctPreloadLocalStorage()
 
+	// set session ID
+	if (!apbctSessionStorage.isSet('apbct_session_id')) {
+		const sessionID = apbctGenerateUniqueID();
+		apbctSessionStorage.set('apbct_session_id', sessionID, false);
+		apbctLocalStorage.set('apbct_page_hits', 1);
+		if (document.referrer) {
+			let urlReferer = new URL(document.referrer);
+			if (urlReferer.host !== location.host) {
+				apbctSessionStorage.set('apbct_site_referer', document.referrer, false);
+			}
+		}
+	} else {
+		apbctLocalStorage.set('apbct_page_hits', Number(apbctLocalStorage.get('apbct_page_hits')) + 1);
+	}
+
+	// set apbct_prev_referer
+	apbctSessionStorage.set('apbct_prev_referer', document.referrer, false);
+
 	let cookiesType = apbctLocalStorage.get('ct_cookies_type');
 	if ( ! cookiesType || cookiesType !== ctPublic.data__cookies_type ) {
 		apbctLocalStorage.set('ct_cookies_type', ctPublic.data__cookies_type);
@@ -432,7 +450,11 @@ function apbct_ready(){
 	 * WordPress Search form processing
 	 */
 	for (const _form of document.forms) {
-		if ( _form.getAttribute('id') === 'searchform' && ctPublic.data__cookies_type === 'none' ) {
+		if ( (
+			_form.getAttribute('id') === 'searchform'
+			|| _form.getAttribute('class') === 'elementor-search-form'
+			|| _form.getAttribute('class') === 'search-form'
+		) && ctPublic.data__cookies_type === 'none' ) {
 			_form.apbctSearchPrevOnsubmit = _form.onsubmit;
 			_form.onsubmit = (e) => {
 				const noCookie = _form.querySelector('[name="ct_no_cookie_hidden_field"]');
@@ -641,6 +663,9 @@ function getJavascriptClientData(common_cookies = []) {
 	const ctMouseMovedLocalStorage = apbctLocalStorage.get(ctPublicFunctions.cookiePrefix + 'ct_mouse_moved');
 	const ctHasScrolledLocalStorage = apbctLocalStorage.get(ctPublicFunctions.cookiePrefix + 'ct_has_scrolled');
 	const ctCookiesTypeLocalStorage = apbctLocalStorage.get(ctPublicFunctions.cookiePrefix + 'ct_cookies_type');
+	const apbctPageHits = apbctLocalStorage.get('apbct_page_hits');
+	const apbctPrevReferer = apbctSessionStorage.get('apbct_prev_referer');
+	const apbctSiteReferer = apbctSessionStorage.get('apbct_site_referer');
 
 	// collecting data from cookies
 	const ctMouseMovedCookie = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_mouse_moved');
@@ -650,6 +675,9 @@ function getJavascriptClientData(common_cookies = []) {
 	resultDataJson.ct_mouse_moved = ctMouseMovedLocalStorage !== undefined ? ctMouseMovedLocalStorage : ctMouseMovedCookie;
 	resultDataJson.ct_has_scrolled = ctHasScrolledLocalStorage !== undefined ? ctHasScrolledLocalStorage : ctHasScrolledCookie;
 	resultDataJson.ct_cookies_type = ctCookiesTypeLocalStorage !== undefined ? ctCookiesTypeLocalStorage : ctCookiesTypeCookie;
+	resultDataJson.apbct_page_hits = apbctPageHits;
+	resultDataJson.apbct_prev_referer = apbctPrevReferer;
+	resultDataJson.apbct_site_referer = apbctSiteReferer;
 
 	if (
 		typeof (common_cookies) === "object"
@@ -910,9 +938,11 @@ function ctNoCookieConstructHiddenField(type){
 		inputType = 'submit';
 	}
 	let field = ''
-	let no_cookie_data = apbctLocalStorage.getCleanTalkData()
+	let no_cookie_data_local = apbctLocalStorage.getCleanTalkData()
+	let no_cookie_data_session = apbctSessionStorage.getCleanTalkData()
+	let no_cookie_data = {...no_cookie_data_local, ...no_cookie_data_session};
 	no_cookie_data = JSON.stringify(no_cookie_data)
-	no_cookie_data = btoa(no_cookie_data)
+	no_cookie_data = '_ct_no_cookie_data_' + btoa(no_cookie_data)
 	field = document.createElement('input')
 	field.setAttribute('id','ct_no_cookie_hidden_field')
 	field.setAttribute('name','ct_no_cookie_hidden_field')
@@ -953,7 +983,11 @@ function ctNoCookieAttachHiddenFieldsToForms(){
 				// add new set
 				document.forms[i].append(ctNoCookieConstructHiddenField());
 			}
-			if ( document.forms[i].getAttribute('id') === 'searchform' ) {
+			if ( (
+				document.forms[i].getAttribute('id') === 'searchform'
+				|| document.forms[i].getAttribute('class') === 'elementor-search-form'
+				|| document.forms[i].getAttribute('class') === 'search-form'
+			)){
 				document.forms[i].append(ctNoCookieConstructHiddenField('submit'));
 			}
 		}

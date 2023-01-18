@@ -480,15 +480,9 @@ function apbct_admin__enqueue_scripts($hook)
                 APBCT_VERSION
             );
             wp_enqueue_script(
-                'ct_gstatic_charts_loader',
-                APBCT_JS_ASSETS_PATH . '/cleantalk-dashboard-widget--google-charts.min.js',
-                array(),
-                APBCT_VERSION
-            );
-            wp_enqueue_script(
                 'ct_admin_js_widget_dashboard',
                 APBCT_JS_ASSETS_PATH . '/cleantalk-dashboard-widget.min.js',
-                array('ct_gstatic_charts_loader'),
+                array('ct_canvas_charts_loader'),
                 APBCT_VERSION
             );
         }

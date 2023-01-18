@@ -12,6 +12,11 @@ class AdminNotices
      */
     const DAYS_INTERVAL_HIDING_NOTICE = 14;
 
+    /*
+     * The time interval in which the review notification will be hidden for user
+     */
+    const DAYS_INTERVAL_HIDING_REVIEW_NOTICE = 90;
+
     /**
      * @var null|AdminNotices
      */
@@ -25,7 +30,8 @@ class AdminNotices
         'notice_trial',
         'notice_renew',
         'notice_incompatibility',
-        'notice_review'
+        'notice_review',
+        'notice_email_decoder_changed'
     );
 
     /**
@@ -214,7 +220,10 @@ class AdminNotices
      */
     public function notice_review() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
-        if ($this->apbct->notice_review == 1) {
+        $option_name = 'cleantalk_notice_review_' . get_current_user_id() . '_dismissed';
+
+        if ($this->apbct->notice_review == 1
+            && $this->checkOptionNotExpired($option_name, self::DAYS_INTERVAL_HIDING_REVIEW_NOTICE)) {
             $review_link = "<a class='button' href='https://wordpress.org/support/plugin/cleantalk-spam-protect/reviews/?filter=5' target='_blank'>"
                                 . __('SHARE', 'cleantalk-spam-protect') .
                             "</a>";
@@ -252,6 +261,26 @@ class AdminNotices
     }
 
     /**
+     * Callback for the notice hook
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public function notice_email_decoder_changed() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+    {
+        global $apbct;
+        if ($apbct->data['notice_email_decoder_changed'] && $this->is_cleantalk_page && apbct_is_cache_plugins_exists()) { ?>
+            <div class="apbct-notice um-admin-notice notice notice-info apbct-plugin-errors is-dismissible"
+                 id="cleantalk_notice_email_decoder_changed" style="position: relative;">
+            <h3>
+                <?php echo esc_html__('Need to clear the cache', 'cleantalk-spam-protect'); ?>
+            </h3>
+            <h4 style="color: gray;">
+                <?php echo esc_html__('You have changed the "Encode contact data" setting. If you use caching plugins, then you need to clear the cache.', 'cleantalk-spam-protect'); ?>
+            </h4>
+            </div>
+        <?php }
+    }
+
+    /**
      * Generate and output the notice HTML
      *
      * @param string $content Any HTML allowed
@@ -279,12 +308,25 @@ class AdminNotices
     private function isDismissedNotice($notice_uid)
     {
         $option_name = 'cleantalk_' . $notice_uid . '_dismissed';
-        $notice_date_option = get_option($option_name);
 
-        // Infinity for notice_review
-        if ($notice_date_option !== false && strpos($option_name, 'notice_review')) {
-            return true;
+        // Special for notice_review
+        if (is_string($notice_uid) && strpos($notice_uid, 'notice_review')) {
+            return $this->checkOptionNotExpired($option_name, self::DAYS_INTERVAL_HIDING_REVIEW_NOTICE);
         }
+
+        return $this->checkOptionNotExpired($option_name, self::DAYS_INTERVAL_HIDING_NOTICE);
+    }
+
+    /**
+     * Check option not expired
+     *
+     * @param string $notice_uid
+     *
+     * @return bool
+     */
+    private function checkOptionNotExpired($option_name, $expired_date)
+    {
+        $notice_date_option = get_option($option_name);
 
         if ( $notice_date_option !== false && \Cleantalk\Common\Helper::dateValidate($notice_date_option) ) {
             $current_date = date_create();
@@ -292,12 +334,12 @@ class AdminNotices
 
             $diff = date_diff($current_date, $notice_date);
 
-            if ( $diff->days <= self::DAYS_INTERVAL_HIDING_NOTICE ) {
-                return true;
+            if ( $diff->days <= $expired_date ) {
+                return false;
             }
         }
 
-        return false;
+        return true;
     }
 
     public function setNoticeDismissed()
@@ -308,13 +350,18 @@ class AdminNotices
             wp_send_json_error(esc_html__('Wrong request.', 'cleantalk-spam-protect'));
         }
 
+        global $apbct;
         $notice       = sanitize_text_field(Post::get('notice_id'));
         $uid          = get_current_user_id();
         $notice_uid   = $notice . '_' . $uid;
-        $current_date = current_time('Y-m-d');
+        $current_date = current_time('Y-m-d H:i:s');
 
         if ( in_array(str_replace('cleantalk_', '', $notice), self::NOTICES, true) ) {
             if ( update_option($notice_uid . '_dismissed', $current_date) ) {
+                if ($notice === 'cleantalk_notice_email_decoder_changed') {
+                    $apbct->data['notice_email_decoder_changed'] = 0;
+                    $apbct->save('data');
+                }
                 wp_send_json_success();
             } else {
                 wp_send_json_error(esc_html__('Notice status not updated.', 'cleantalk-spam-protect'));

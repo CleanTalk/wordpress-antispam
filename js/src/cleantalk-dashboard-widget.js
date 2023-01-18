@@ -15,11 +15,18 @@ jQuery(document).ready(function(){
 	// Fixing default wrapper style
 	jQuery("#ct_widget_wrapper").parent().css('padding', 0);
 
-	function reformatWidgetData(apbctDashboardWidget){
+	locale = navigator.language || navigator.userLanguage;
+
+	var date_formatter = new Intl.DateTimeFormat(locale, {
+		month: "short",
+		day: "numeric"
+	});
+
+		function reformatWidgetData(apbctDashboardWidget){
 		apbctDashboardWidget.forEach(function(row){
-			row['x'] = new Date(row['0'])
+			row['label'] = date_formatter.format(new Date(row['0']))
 			row['y'] = row['1']
-			row['color'] = '#0085ba'
+			row['color'] = 'steelblue'
 		})
 		console.table('apbctDashboardWidget',apbctDashboardWidget)
 	}
@@ -29,7 +36,7 @@ jQuery(document).ready(function(){
 	var chart = new CanvasJS.Chart("ct_widget_chart", {
 		animationEnabled: true,
 		theme: "light1", // "light1", "light2", "dark1", "dark2"
-		dataPointMaxWidth:20,
+		dataPointMaxWidth:30,
 		title:{
 			text: "Spam Attacks"
 		},

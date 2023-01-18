@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 4.7
 Tested up to: 6.1
 Requires PHP: 5.6
-Stable tag: 6.1
+Stable tag: 6.2
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -450,6 +450,28 @@ Yes, it is. Please read this article,
 12. SpamFireWall log.
 
 == Changelog ==
+
+= 6.2 Jan 19 2023 =
+#### New remote call handled added, common parameters implemented, some integrations fixed and some minor issues fixed 💪🏼
+* New. RC. Remote call service_template_get implemented.
+* New. Common. New params from JS has_focused and has_keyup.
+* Fix: If cookies_type===none - unset cookies_enabled
+* Mod. Integrations. Force AltCookies usage for Ninja Forms on NoCookies mode.
+* Mod. Integrations. Force AltCookies usage for Smart Forms on NoCookies mode.
+* Mod. Integrations. Force NoCookie data setting via direct integration for UltimateFormBuilder.
+* Fix. Admin widget. Do not enqueue scripts if the widget is disabled.
+* Fix. Helper. Php notice fixed.
+* Fix. New AJAX integrations skip rules moved AJAX part.
+* Fix. ErrorToggle logic.
+* Fix. SFW. SFW outdated notice fixed.
+* Fix. Email encoder. Do not send encoded email to the cloud.
+* Fix: Fixed counter of checked comments when press pause
+* Fix. SFW. New statuses 99 implemented.
+* Fix. Added notice_email_decoder_changed banner
+* Fix. Fixed notice_email_decoder_changed()
+* Fix. SFW. Blocking pages for the testing purpose fixed.
+* Fix: Fixed counter of checked comments when press pause
+* Fix. Common. page_hits, prev_referer, site_referer parameters collecting fixed.
 
 = 6.1 Dec 15 2022 =
 #### Some integrations fixed 🐞, Search forms 🎯 protection improved and some minor issues fixed 💪🏼
