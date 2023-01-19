@@ -596,6 +596,17 @@ if ( is_admin() || is_network_admin() ) {
         $_cleantalk_hooked_actions        = array();
         $_cleantalk_ajax_actions_to_check = array();
 
+        $integrated_hooks = array_column($apbct_active_integrations, 'hook');
+        foreach ( $integrated_hooks as $hook ) {
+            if ( is_array($hook) ) {
+                foreach ( $hook as $item ) {
+                    $_cleantalk_hooked_actions[] = $item;
+                }
+            } else {
+                $_cleantalk_hooked_actions[] = $hook;
+            }
+        }
+
         require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-ajax.php');
 
         // Feedback for comments
@@ -617,8 +628,7 @@ if ( is_admin() || is_network_admin() ) {
             (
                 ! in_array(Post::get('action'), $_cleantalk_hooked_actions) ||
                 in_array(Post::get('action'), $_cleantalk_ajax_actions_to_check)
-            ) &&
-            ! in_array(Post::get('action'), array_column($apbct_active_integrations, 'hook'))
+            )
         ) {
             add_action('plugins_loaded', 'ct_ajax_hook');
         }
