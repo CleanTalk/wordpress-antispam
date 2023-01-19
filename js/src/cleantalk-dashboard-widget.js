@@ -30,8 +30,7 @@ jQuery(document).ready(function(){
 	}
 
 	const ctx = document.getElementById('ct_widget_chart')
-	Chart.defaults.plugins.legend.display = false
-	widgetData = reformatWidgetData(apbctDashboardWidget['data'])
+	let widgetData = reformatWidgetData(apbctDashboardWidget['data'])
 
 	new Chart(ctx, {
 		type: 'bar',
