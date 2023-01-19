@@ -774,15 +774,12 @@ function apbct_form__formidable__testSpam($errors, $_form)
     // Combine it with non-scalar values
     $message = array_merge($tmp_message, $tmp_message2);
 
-    $checkjs = apbct_js_test(Sanitize::cleanTextField(Cookie::get('ct_checkjs')), true) ?: apbct_js_test(Sanitize::cleanTextField(Post::get('ct_checkjs')));
-
     $base_call_result = apbct_base_call(
         array(
             'message'         => $message,
             'sender_email'    => $sender_email,
             'sender_nickname' => $sender_nickname,
-            'post_info'       => array('comment_type' => 'contact_form_wordpress_formidable'),
-            'js_on'           => $checkjs
+            'post_info'       => array('comment_type' => 'contact_form_wordpress_formidable')
         )
     );
     $ct_result        = $base_call_result['ct_result'];
