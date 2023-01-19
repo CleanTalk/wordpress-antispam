@@ -500,7 +500,6 @@ function apbct_admin__enqueue_scripts($hook)
             foreach ( $apbct->data['brief_data']['spam_stat'] as $key => $value ) {
                 $to_chart[] = array($key, $value);
             }
-            error_log('CTDEBUG: [' . __FUNCTION__ . '] [$to_chart]: ' . var_export($to_chart,true));
             unset($key, $value);
         }
 
