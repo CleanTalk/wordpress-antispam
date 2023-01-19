@@ -599,8 +599,8 @@ if ( is_admin() || is_network_admin() ) {
         $integrated_hooks = array_column($apbct_active_integrations, 'hook');
         foreach ( $integrated_hooks as $hook ) {
             if ( is_array($hook) ) {
-                foreach ( $hook as $item ) {
-                    $_cleantalk_hooked_actions[] = $item;
+                foreach ( $hook as $_item ) {
+                    $_cleantalk_hooked_actions[] = $_item;
                 }
             } else {
                 $_cleantalk_hooked_actions[] = $hook;
