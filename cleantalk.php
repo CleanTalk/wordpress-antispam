@@ -415,7 +415,7 @@ $apbct_active_integrations = array(
         'ajax'    => true
     ),
     'UlitmateFormBuilder' => array(
-        'hook'    => array('ufbl_front_form_action'),
+        'hook'    => array('ufbl_front_form_action', 'ufb_front_form_action'),
         'setting' => 'forms__contact_forms_test',
         'ajax'    => true
     ),
