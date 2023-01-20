@@ -4,7 +4,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 6.2
+  Version: 6.2.1-fix
   Author: СleanTalk <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -415,7 +415,7 @@ $apbct_active_integrations = array(
         'ajax'    => true
     ),
     'UlitmateFormBuilder' => array(
-        'hook'    => array('ufbl_front_form_action'),
+        'hook'    => array('ufbl_front_form_action', 'ufb_front_form_action'),
         'setting' => 'forms__contact_forms_test',
         'ajax'    => true
     ),
@@ -596,6 +596,17 @@ if ( is_admin() || is_network_admin() ) {
         $_cleantalk_hooked_actions        = array();
         $_cleantalk_ajax_actions_to_check = array();
 
+        $integrated_hooks = array_column($apbct_active_integrations, 'hook');
+        foreach ( $integrated_hooks as $hook ) {
+            if ( is_array($hook) ) {
+                foreach ( $hook as $_item ) {
+                    $_cleantalk_hooked_actions[] = $_item;
+                }
+            } else {
+                $_cleantalk_hooked_actions[] = $hook;
+            }
+        }
+
         require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-ajax.php');
 
         // Feedback for comments
@@ -617,8 +628,7 @@ if ( is_admin() || is_network_admin() ) {
             (
                 ! in_array(Post::get('action'), $_cleantalk_hooked_actions) ||
                 in_array(Post::get('action'), $_cleantalk_ajax_actions_to_check)
-            ) &&
-            ! in_array(Post::get('action'), array_column($apbct_active_integrations, 'hook'))
+            )
         ) {
             add_action('plugins_loaded', 'ct_ajax_hook');
         }

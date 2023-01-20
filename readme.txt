@@ -459,6 +459,7 @@ Yes, it is. Please read this article,
 * Mod. Integrations. Force AltCookies usage for Ninja Forms on NoCookies mode.
 * Mod. Integrations. Force AltCookies usage for Smart Forms on NoCookies mode.
 * Mod. Integrations. Force NoCookie data setting via direct integration for UltimateFormBuilder.
+* Mod. Chart source changed to opensource ChartJS.
 * Fix. Admin widget. Do not enqueue scripts if the widget is disabled.
 * Fix. Helper. Php notice fixed.
 * Fix. New AJAX integrations skip rules moved AJAX part.
@@ -472,6 +473,12 @@ Yes, it is. Please read this article,
 * Fix. SFW. Blocking pages for the testing purpose fixed.
 * Fix: Fixed counter of checked comments when press pause
 * Fix. Common. page_hits, prev_referer, site_referer parameters collecting fixed.
+* Fix. Common. Parameters collecting fixed.
+* Fix. Settings. Cookies option description fixed.
+* Fix. Admin. Dashboard widget fixed.
+* Fix. Integration. Formidable integration fixed.
+* Fix. Integration. Ultimate Form Builder integration fixed.
+* Fix. Ajax. Skipping direct integrations requests fixed.
 
 = 6.1 Dec 15 2022 =
 #### Some integrations fixed 🐞, Search forms 🎯 protection improved and some minor issues fixed 💪🏼
