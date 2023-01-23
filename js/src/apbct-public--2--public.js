@@ -452,7 +452,8 @@ function apbct_ready(){
 	for (const _form of document.forms) {
 		if ( (
 			_form.getAttribute('id') === 'searchform'
-			|| _form.getAttribute('class').indexOf('search-form') !== -1
+			|| (_form.getAttribute('class') !== null && _form.getAttribute('class').indexOf('search-form') !== -1)
+			|| (_form.getAttribute('role') !== null && _form.getAttribute('role').indexOf('search') !== -1)
 		) && ctPublic.data__cookies_type === 'none' ) {
 			_form.apbctSearchPrevOnsubmit = _form.onsubmit;
 			_form.onsubmit = (e) => {
@@ -983,7 +984,8 @@ function ctNoCookieAttachHiddenFieldsToForms(){
 			}
 			if ( (
 				document.forms[i].getAttribute('id') === 'searchform'
-				|| document.forms[i].getAttribute('class').indexOf('search-form') !== -1
+				|| (document.forms[i].getAttribute('class') !== null && document.forms[i].getAttribute('class').indexOf('search-form') !== -1)
+				|| (document.forms[i].getAttribute('role') !== null && document.forms[i].getAttribute('role').indexOf('search') !== -1)
 			)){
 				document.forms[i].append(ctNoCookieConstructHiddenField('submit'));
 			}
