@@ -165,7 +165,9 @@ function apbct_update_to_5_97_0()
 {
     global $apbct;
 
-    if ( count($apbct->data['connection_reports']['negative_report']) >= 20 ) {
+    if ( isset($apbct->data['connection_reports']['negative_report'])
+        && is_array($apbct->data['connection_reports']['negative_report'])
+        && count($apbct->data['connection_reports']['negative_report']) >= 20 ) {
         $apbct->data['connection_reports']['negative_report'] = array_slice(
             $apbct->data['connection_reports']['negative_report'],
             -20,
