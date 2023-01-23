@@ -452,17 +452,7 @@ function apbct_ready(){
 	for (const _form of document.forms) {
 		if ( (
 			_form.getAttribute('id') === 'searchform'
-			|| _form.getAttribute('class') === 'elementor-search-form'
-			|| (
-				_form.getAttribute('class').indexOf('search-form') !== -1
-				&& (
-					_form.getAttribute('method').toLowerCase() === 'get'
-					||
-					_form.getAttribute('method').toLowerCase() === ''
-					||
-					_form.getAttribute('method') === null
-				)
-			)
+			|| _form.getAttribute('class').indexOf('search-form') !== -1
 		) && ctPublic.data__cookies_type === 'none' ) {
 			_form.apbctSearchPrevOnsubmit = _form.onsubmit;
 			_form.onsubmit = (e) => {
@@ -985,23 +975,15 @@ function ctNoCookieAttachHiddenFieldsToForms(){
 				fields[j].outerHTML = ""
 			}
 			//ignore forms with get method @todo We need to think about this
-			if (document.forms[i].getAttribute('method').toLowerCase() === 'post'){
+			if (document.forms[i].getAttribute('method') === null
+				||
+				document.forms[i].getAttribute('method').toLowerCase() === 'post'){
 				// add new set
 				document.forms[i].append(ctNoCookieConstructHiddenField());
 			}
 			if ( (
 				document.forms[i].getAttribute('id') === 'searchform'
-				|| document.forms[i].getAttribute('class') === 'elementor-search-form'
-				|| (
-					document.forms[i].getAttribute('class').indexOf('search-form') !== -1
-					&& (
-						document.forms[i].getAttribute('method').toLowerCase() === 'get'
-						||
-						document.forms[i].getAttribute('method').toLowerCase() === ''
-						||
-						document.forms[i].getAttribute('method') === null
-					)
-				)
+				|| document.forms[i].getAttribute('class').indexOf('search-form') !== -1
 			)){
 				document.forms[i].append(ctNoCookieConstructHiddenField('submit'));
 			}
