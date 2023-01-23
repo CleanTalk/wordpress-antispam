@@ -158,10 +158,6 @@ function ct_validate_email_ajaxlogin($email = null)
     if ( class_exists('AjaxLogin') && Post::get('action') === 'validate_email' ) {
         $checkjs                            = apbct_js_test(Post::get('ct_checkjs'));
         $sender_info['post_checkjs_passed'] = $checkjs;
-        if ( $checkjs === null ) {
-            $checkjs                              = apbct_js_test(Cookie::get('ct_checkjs'), true);
-            $sender_info['cookie_checkjs_passed'] = $checkjs;
-        }
 
         //Making a call
         $base_call_result = apbct_base_call(
@@ -209,13 +205,10 @@ function ct_validate_email_ajaxlogin($email = null)
  */
 function ct_user_register_ajaxlogin($user_id)
 {
+    //TODO probably dead code there, there is no such plugins with such hook found on wp.org
     if ( class_exists('AjaxLogin') && Post::get('action') === 'register_submit' ) {
         $checkjs                            = apbct_js_test(Post::get('ct_checkjs'));
         $sender_info['post_checkjs_passed'] = $checkjs;
-        if ( $checkjs === null ) {
-            $checkjs                              = apbct_js_test(Cookie::get('ct_checkjs'), true);
-            $sender_info['cookie_checkjs_passed'] = $checkjs;
-        }
 
         //Making a call
         $base_call_result = apbct_base_call(
@@ -439,8 +432,6 @@ function ct_ajax_hook($message_obj = null)
         $post_info['comment_type'] = 'feedback_ajax_external_form';
     }
 
-    $checkjs = apbct_js_test(Cookie::get('ct_checkjs'), true);
-
     //QAEngine Theme answers
     if ( ! empty($message_obj) && isset($message_obj['post_type'], $message_obj['post_content']) ) {
         $curr_user = get_user_by('id', $message_obj['author']);
@@ -634,9 +625,7 @@ function ct_ajax_hook($message_obj = null)
         'message'         => $message,
         'sender_email'    => $sender_email,
         'sender_nickname' => $sender_nickname,
-        'sender_info'     => array('post_checkjs_passed' => $checkjs),
         'post_info'       => $post_info,
-        'js_on'           => $checkjs,
     );
 
     if ( apbct_is_exception_arg_request() ) {
