@@ -901,7 +901,7 @@ function ct_ajax_hook($message_obj = null)
         if ( Post::get('action') === 'cp_v2_notify_admin' || Post::get('action') === 'cpro_notify_via_email' ) {
             $result = array(
                 'success' => false,
-                'data'    => array('error' => $ct_result->comment, 'style_slug' => 'convertprot-form'),
+                'data'    => array('error' => 'Invalid email address.', 'style_slug' => 'convertprot-form'), //cannot use custom message because of ConvertPro JS error message forcing
             );
             print json_encode($result);
             die();
