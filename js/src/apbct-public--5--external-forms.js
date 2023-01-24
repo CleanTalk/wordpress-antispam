@@ -62,20 +62,47 @@ function formIsExclusion(currentForm)
         'give-form' //give form exclusion because of direct integration
     ]
 
+    let exclusions_by_role = [
+        'search' //search forms
+    ]
+
+    let exclusions_by_class = [
+        'search-form' //search forms
+    ]
+
     let result = false
 
-    //mewto forms exclusion
-    if (currentForm.parentElement
-        && currentForm.parentElement.classList.length > 0
-        && currentForm.parentElement.classList[0].indexOf('mewtwo') !== -1) {
-        result = true
-    }
-
-    exclusions_by_id.forEach(function (id) {
-        if ( typeof (currentForm.id) !== 'undefined' && currentForm.id.indexOf(id) !== -1 ) {
+    try {
+        //mewto forms exclusion
+        if (currentForm.parentElement
+            && currentForm.parentElement.classList.length > 0
+            && currentForm.parentElement.classList[0].indexOf('mewtwo') !== -1) {
             result = true
         }
-    })
+
+        exclusions_by_id.forEach(function (exclusion_id) {
+            const form_id = currentForm.getAttribute('id')
+            if ( form_id !== null && typeof (form_id) !== 'undefined' && form_id.indexOf(exclusion_id) !== -1 ) {
+                result = true
+            }
+        })
+
+        exclusions_by_class.forEach(function (exclusion_class) {
+            const form_class = currentForm.getAttribute('class')
+            if ( form_class !== null && typeof form_class !== 'undefined' && form_class.indexOf(exclusion_class) !== -1 ) {
+                result = true
+            }
+        })
+
+        exclusions_by_role.forEach(function (exclusion_role) {
+            const form_role = currentForm.getAttribute('id')
+            if ( form_role !== null && typeof form_role !== 'undefined'&& form_role.indexOf(exclusion_role) !== -1 ) {
+                result = true
+            }
+        })
+    } catch (e) {
+        console.table('APBCT ERROR: formIsExclusion() - ',e)
+    }
 
     return result
 }
@@ -222,7 +249,7 @@ window.onload = function () {
  */
 function isIntegratedForm(formObj) {
     var formAction = formObj.action;
-    let formId = formObj.id;
+    var formId = formObj.getAttribute('id') !== null ? formObj.getAttribute('id') : '';
 
     if(
         formAction.indexOf('activehosted.com') !== -1 ||   // ActiveCampaign form

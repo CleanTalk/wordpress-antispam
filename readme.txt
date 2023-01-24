@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 4.7
 Tested up to: 6.1
 Requires PHP: 5.6
-Stable tag: 6.2
+Stable tag: 6.2.1
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -450,6 +450,14 @@ Yes, it is. Please read this article,
 12. SpamFireWall log.
 
 == Changelog ==
+
+= 6.2.1 Jan 24 2023 =
+* Fix. Integration. Convert Pro form integration fixed.
+* Fix. Integration. AJAX forms JS detection fix.
+* Fix. NoCookie. Message field clearance from service data.
+* Fix. Updater. PHP 8.0 compatibility.
+* Fix. Search forms. New sign of search forms to handle via NoCookie mode.
+* Fix. Search forms. Fix JS error while parsing NoCookie data.
 
 = 6.2 Jan 19 2023 =
 #### New remote call handled added, common parameters implemented, some integrations fixed and some minor issues fixed 💪🏼
