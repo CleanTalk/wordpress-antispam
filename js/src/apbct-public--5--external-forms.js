@@ -249,7 +249,7 @@ window.onload = function () {
  */
 function isIntegratedForm(formObj) {
     var formAction = formObj.action;
-    let formId = formObj.id;
+    var formId = formObj.getAttribute('id') !== null ? formObj.getAttribute('id') : '';
 
     if(
         formAction.indexOf('activehosted.com') !== -1 ||   // ActiveCampaign form
