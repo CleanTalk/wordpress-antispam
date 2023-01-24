@@ -422,6 +422,14 @@ $apbct_active_integrations = array(
 );
 new  \Cleantalk\Antispam\Integrations($apbct_active_integrations, (array)$apbct->settings);
 
+// Mailoptin. Pass without action because url for ajax request is domain.com/any-page/?mailoptin-ajax=subscribe_to_email_list
+if (
+    sizeof($_POST) > 0 &&
+    Get::get('mailoptin-ajax') === 'subscribe_to_email_list'
+) {
+    apbct_form__mo_subscribe_to_email_list__testSpam();
+}
+
 // Ninja Forms. Making GET action to POST action
 if (
     apbct_is_in_uri('admin-ajax.php') &&
