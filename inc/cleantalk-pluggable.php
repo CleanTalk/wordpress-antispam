@@ -837,6 +837,14 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'Universal form builder skip';
         }
+
+        //Skip ActiveCampaign for WooCommerce service request
+        if (
+            apbct_is_plugin_active('activecampaign-for-woocommerce/activecampaign-for-woocommerce.php') &&
+            Post::get('action') === 'activecampaign_for_woocommerce_cart_sync_guest'
+        ) {
+            return 'ActiveCampaign for WooCommerce skip';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
