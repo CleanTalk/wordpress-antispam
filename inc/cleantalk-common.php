@@ -636,6 +636,7 @@ function apbct_visible_fields__process($visible_fields)
     if ( ! empty($fields_collection) ) {
         // These fields belong this request
         $fields_to_check = apbct_get_fields_to_check();
+        $fields_to_check = apply_filters('apbct_preprocess_post_to_vf_check', $fields_to_check);
 
         foreach ( $fields_collection as $current_fields ) {
             if ( isset($current_fields['visible_fields'], $current_fields['visible_fields_count']) ) {
