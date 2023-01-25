@@ -2090,7 +2090,6 @@ function apbct_form__contactForm7__changeMailNotification($component)
  */
 function apbct_form__mo_subscribe_to_email_list__testSpam()
 {
-    $checkjs = apbct_js_test(Cookie::get('ct_checkjs'));
     $input_array = apply_filters('apbct__filter_post', $_POST);
     $params = ct_get_fields_any($input_array);
 
@@ -2099,7 +2098,6 @@ function apbct_form__mo_subscribe_to_email_list__testSpam()
             'sender_email'    => $params['email'],
             'sender_nickname' => $input_array['mo-name'] ?: '',
             'post_info'       => array('comment_type' => 'subscribe_form_wordpress_mailoptin'),
-            'js_on'           => $checkjs,
         )
     );
 
