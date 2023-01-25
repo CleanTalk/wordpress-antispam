@@ -984,6 +984,14 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'Skip Optima Express update';
         }
+
+        //Skip AutomateWoo service request
+        if (
+            apbct_is_plugin_active('automatewoo/automatewoo.php') &&
+            Get::get('aw-ajax') === 'capture_email'
+        ) {
+            return 'AutomateWoo skip';
+        }
     }
 
     //Skip wforms because of direct integration
