@@ -2158,7 +2158,6 @@ window.fetch = function() {
 		no_cookie_data = '_ct_no_cookie_data_' + btoa(no_cookie_data)
 	
 		if (arguments && arguments[1] && arguments[1].body) {
-			console.log('ya')
 			arguments[1].body.append('ct_no_cookie_hidden_field', no_cookie_data)
 		}
 	}

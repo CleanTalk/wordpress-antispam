@@ -424,6 +424,7 @@ new  \Cleantalk\Antispam\Integrations($apbct_active_integrations, (array)$apbct-
 
 // Metform
 if (
+    apbct_is_plugin_active('metform/metform.php') &&
     apbct_is_in_uri('/wp-json/metform/') &&
     sizeof($_POST) > 0
 ) {
