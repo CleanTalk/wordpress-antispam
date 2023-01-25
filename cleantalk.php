@@ -422,6 +422,14 @@ $apbct_active_integrations = array(
 );
 new  \Cleantalk\Antispam\Integrations($apbct_active_integrations, (array)$apbct->settings);
 
+// Metform
+if (
+    apbct_is_in_uri('/wp-json/metform/') &&
+    sizeof($_POST) > 0
+) {
+    apbct_form__metform_subscribe__testSpam();
+}
+
 // Ninja Forms. Making GET action to POST action
 if (
     apbct_is_in_uri('admin-ajax.php') &&
