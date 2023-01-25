@@ -156,7 +156,9 @@ function apbct_base_call($params = array(), $reg_flag = false)
     $apbct->save('plugin_request_ids');
     /* End of Request ID rotation */
 
-    apbct_form__get_no_cookie_data();
+    if ( ! $apbct->stats['no_cookie_data_taken'] ) {
+        apbct_form__get_no_cookie_data();
+    }
 
     $sender_info = ! empty($params['sender_info'])
         ? \Cleantalk\ApbctWP\Helper::arrayMergeSaveNumericKeysRecursive(
@@ -1389,19 +1391,22 @@ function apbct_get_honeypot_filled_fields()
 
 /**
  * Recursive. Check all post data for ct_no_cookie_hidden_field data.
- * @param array $value Next value for parse
+ *
+ * @param array $data
  * @param int $level Current recursion level
- * @param int $recursion_limit Recursion limit
- * @return array|false|string
+ * @param array $array_mapping
+ *
+ * @return array|false
  */
-function apbct_check_post_for_no_cookie_data($value = array(), $level = 0, $array_mapping = array())
+function apbct_check_post_for_no_cookie_data($data = array(), $level = 0, $array_mapping = array())
 {
     //top level check
     if ( Post::get('ct_no_cookie_hidden_field') ) {
         return array('data' => Post::get('ct_no_cookie_hidden_field'), 'mapping' => array('ct_no_cookie_hidden_field'));
     }
 
-    $array = empty($value) ? $_POST : $value;
+    $array = empty($data) ? $_POST : $data;
+
     //recursion limit
     if ( $level > 5 ) {
         return false;
@@ -1411,11 +1416,11 @@ function apbct_check_post_for_no_cookie_data($value = array(), $level = 0, $arra
             $array_mapping[] = $key;
             $level++;
             return apbct_check_post_for_no_cookie_data($value, $level, $array_mapping);
-        } else {
-            if ( strpos((string)$key, 'ct_no_cookie_hidden_field') !== false || strpos($value, '_ct_no_cookie_data_') !== false ) {
-                $array_mapping[] = $key;
-                return array('data' => $value, 'mapping' => $array_mapping);
-            }
+        }
+
+        if ( strpos((string)$key, 'ct_no_cookie_hidden_field') !== false || strpos($value, '_ct_no_cookie_data_') !== false ) {
+            $array_mapping[] = $key;
+            return array('data' => $value, 'mapping' => $array_mapping);
         }
     }
     return array('data' => false, 'mapping' => null);
@@ -1460,11 +1465,11 @@ function apbct_filter_post_no_cookie_data($mapping)
 /**
  * Main entry function to collect no cookie data.
  */
-function apbct_form__get_no_cookie_data()
+function apbct_form__get_no_cookie_data($preprocessed_data = null)
 {
     global $apbct;
     $flag = null;
-    $no_cookie_data = apbct_check_post_for_no_cookie_data();
+    $no_cookie_data = apbct_check_post_for_no_cookie_data($preprocessed_data);
     apbct_filter_post_no_cookie_data($no_cookie_data['mapping']);
     if ( !empty($no_cookie_data['data']) && $apbct->data['cookies_type'] === 'none' ) {
         $flag = \Cleantalk\ApbctWP\Variables\NoCookie::setDataFromHiddenField($no_cookie_data['data']);
