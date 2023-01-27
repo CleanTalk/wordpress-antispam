@@ -2576,7 +2576,6 @@ function ct_account_status_check($api_key = null, $process_errors = true)
 
         $apbct->errorDelete('account_check', true);
 
-        $apbct->saveData();
     } elseif ( $process_errors ) {
         $apbct->errorAdd('account_check', $result);
     }
@@ -2588,6 +2587,8 @@ function ct_account_status_check($api_key = null, $process_errors = true)
         $apbct->data['key_is_ok'] = false;
         $result                   = false;
     }
+
+    $apbct->saveData();
 
     return $result;
 }
