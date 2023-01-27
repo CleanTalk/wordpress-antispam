@@ -2575,7 +2575,6 @@ function ct_account_status_check($api_key = null, $process_errors = true)
         $cron->updateTask('check_account_status', 'ct_account_status_check', 86400);
 
         $apbct->errorDelete('account_check', true);
-
     } elseif ( $process_errors ) {
         $apbct->errorAdd('account_check', $result);
     }
