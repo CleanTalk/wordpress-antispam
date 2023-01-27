@@ -454,6 +454,8 @@ class State extends \Cleantalk\Common\State
                     : 'native';
         } else {
             $this->data['cookies_type'] = 'none';
+            //clear no_cookie_data_taken
+            $this->stats['no_cookie_data_taken'] = null;
         }
 
         // Network with Mutual Access key
