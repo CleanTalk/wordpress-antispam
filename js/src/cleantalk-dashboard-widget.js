@@ -39,7 +39,8 @@ jQuery(document).ready(function(){
 			datasets: [{
 				label: 'Spam blocked',
 				data: widgetData.counts,
-				borderWidth: 1
+				borderWidth: 1,
+				backgroundColor: 'steelblue'
 			}]
 		},
 		options: {
@@ -49,6 +50,11 @@ jQuery(document).ready(function(){
 				y: {
 					beginAtZero: true
 				}
+			},
+			title: {
+				display: true,
+				text: 'Spam attacks',
+				fontSize: 18
 			},
 			plugins: {
 				title: {
