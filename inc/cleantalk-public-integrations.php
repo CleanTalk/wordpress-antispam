@@ -1197,7 +1197,7 @@ function ct_preprocess_comment($comment)
          * management after akismet fires
          **/
         $increased_priority = 0;
-        if (is_plugin_active('akismet/akismet.php')){
+        if (is_plugin_active('akismet/akismet.php')) {
             $increased_priority = 5;
         }
 
