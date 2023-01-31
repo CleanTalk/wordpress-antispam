@@ -44,6 +44,9 @@ jQuery(document).ready(function(){
 			}]
 		},
 		options: {
+			legend: {
+				display: false
+			},
 			maintainAspectRatio: false,
 			responsive: true,
 			scales: {
@@ -57,6 +60,9 @@ jQuery(document).ready(function(){
 				fontSize: 18
 			},
 			plugins: {
+				legend: {
+					display: false
+				},
 				title: {
 					display: true,
 					text: 'Spam attacks',
