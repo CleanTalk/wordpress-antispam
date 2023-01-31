@@ -1548,6 +1548,7 @@ function apbct_ready(){
 				(form.name && form.name.toString().indexOf('tribe-bar-form') !== -1) ||  // The Events Calendar
 				(form.id && form.id === 'ihf-login-form') || //Optima Express login
 				(form.id && form.id === 'subscriberForm' && form.action.toString().indexOf('actionType=update') !== -1) //Optima Express update
+				(form.id && form.id === 'frmCalc' !== -1) //nobletitle-calc
 			) {
 				continue;
 			}
@@ -2508,7 +2509,8 @@ function ct_protect_external() {
 function formIsExclusion(currentForm)
 {
     let exclusions_by_id = [
-        'give-form' //give form exclusion because of direct integration
+        'give-form', //give form exclusion because of direct integration
+        'frmCalc' //nobletitle-calc
     ]
 
     let exclusions_by_role = [
