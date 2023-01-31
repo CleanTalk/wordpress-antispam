@@ -248,20 +248,68 @@ class Cleantalk
             : false;
 
         // Changing server if no work_url or request has an error
-        if ( $result === false || (is_object($result) && $result->errno != 0) ) {
+        $number_of_connection_attempts = 2;
+        $attempt = 1;
+
+        while (($result === false || (is_object($result) && $result->errno != 0)) && $attempt <= $number_of_connection_attempts) {
+            // Getting type of error
+            $type_error = $this->getTypeError($result);
+
             $failed_urls = $this->work_url;
             if ( ! empty($this->work_url) ) {
                 $this->downServers[] = $this->work_url;
             }
-            $this->rotateModerate();
+
+            if (($type_error === 'getaddrinfo_error' || $type_error === 'connection_timeout') && $attempt === 1) {
+                $this->rotateModerateAndUseIP();
+            } elseif (($type_error === 'getaddrinfo_error' || $type_error === 'connection_timeout') && $attempt === 2) {
+                // TODO: file_get_contents
+                //
+                //        $msg->method_name = 'check_message';
+                //        $postdata = json_encode($msg);
+                //
+                //        $opts = array('http' =>
+                //                          array(
+                //                              'method'  => 'POST',
+                //                              'header'  => 'Content-Type: application/json',
+                //                              'content' => $postdata
+                //                          )
+                //        );
+                //
+                //        $context = stream_context_create($opts);
+                //        $headers = json_decode($msg->all_headers);
+                //        $headers_to_context = array();
+                //        foreach ($headers as $header => $content) {
+                //            $headers_to_context[] = $header . ': ' . $content;
+                //        }
+                //        $context = stream_context_create(
+                //            [
+                //                'http' => [
+                //                    'method'  => 'GET',
+                ////                    'header'=> implode('/r/n', $headers_to_context),
+                //                    'content' => $data,
+                //                ],
+                //            ]
+                //        );
+                //
+                //        $result = file_get_contents('http://moderate10.cleantalk.org/api2.0/', false, $context);
+                //        var_dump($result);
+                //        die;
+            } else {
+                $this->rotateModerate();
+            }
+
             $result = $this->sendRequest($msg, $this->work_url, $this->server_timeout);
             if ( $result !== false && $result->errno === 0 ) {
                 $this->server_change = true;
+                break;
             }
-            if ( $result === false || (is_object($result) && $result->errno != 0) ) {
-                $failed_urls .= ', ' . $this->work_url;
-            }
+
+            $failed_urls .= ', ' . $this->work_url;
+
+            $attempt++;
         }
+
         $response = new CleantalkResponse($result, $failed_urls);
 
         if ( ! empty($this->data_codepage) && $this->data_codepage !== 'UTF-8' ) {
@@ -305,6 +353,44 @@ class Cleantalk
             }
 
             $this->work_url = $url_protocol . $dns . $url_suffix;
+
+            // Do not checking previous down server
+            if ( ! empty($this->downServers) && in_array($this->work_url, $this->downServers) ) {
+                continue;
+            }
+
+            $this->server_ttl    = $server['ttl'];
+            $this->server_change = true;
+            break;
+        }
+    }
+
+    /**
+     * * @todo Refactor / fix logic errors
+     */
+    public function rotateModerateAndUseIP()
+    {
+        // Split server url to parts
+        preg_match("/^(https?:\/\/)([^\/:]+)(.*)/i", $this->server_url, $matches);
+
+        $url_protocol = isset($matches[1]) ? $matches[1] : '';
+        $url_host     = isset($matches[2]) ? $matches[2] : '';
+        $url_suffix   = isset($matches[3]) ? $matches[3] : '';
+
+        $servers = $this->getServersIp($url_host);
+
+        if ( ! $servers ) {
+            return;
+        }
+
+        // Loop until find work server
+        foreach ( $servers as $server ) {
+            $dns = Helper::ipResolveCleantalks($server['ip']);
+            if ( ! $dns ) {
+                continue;
+            }
+
+            $this->work_url = $url_protocol . $server['ip'] . $url_suffix;
 
             // Do not checking previous down server
             if ( ! empty($this->downServers) && in_array($this->work_url, $this->downServers) ) {
@@ -510,5 +596,21 @@ class Cleantalk
         $msg = $this->createMsg('check_bot', $request);
 
         return $this->httpRequest($msg);
+    }
+
+    private function getTypeError($result)
+    {
+        if (isset($result->errstr)) {
+            switch ($result->errstr) {
+                case strpos($result->errstr, 'cURL error 28: Operation timed out after') !== false:
+                    return 'connection_timeout';
+                case strpos($result->errstr, 'getaddrinfo() thread failed to start') !== false:
+                    return 'getaddrinfo_error';
+                default:
+                    return 'unknown';
+            }
+        }
+
+        return 'unknown';
     }
 }
