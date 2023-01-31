@@ -1197,7 +1197,7 @@ function ct_preprocess_comment($comment)
          * management after akismet fires
          **/
         $increased_priority = 0;
-        if (is_plugin_active('akismet/akismet.php')){
+        if (is_plugin_active('akismet/akismet.php')) {
             $increased_priority = 5;
         }
 
@@ -2089,6 +2089,35 @@ function apbct_form__contactForm7__changeMailNotification($component)
         . $component['body'];
 
     return (array)$component;
+}
+
+/**
+ * Test Mailoptin subscribe form for spam
+ *
+ * @return void
+ * @global State $apbct
+ */
+function apbct_form__mo_subscribe_to_email_list__testSpam()
+{
+    $input_array = apply_filters('apbct__filter_post', $_POST);
+    $params = ct_get_fields_any($input_array);
+
+    $base_call_result = apbct_base_call(
+        array(
+            'sender_email'    => $params['email'],
+            'sender_nickname' => $input_array['mo-name'] ?: '',
+            'post_info'       => array('comment_type' => 'subscribe_form_wordpress_mailoptin'),
+        )
+    );
+
+    $ct_result = $base_call_result['ct_result'];
+
+    if ( $ct_result->allow == 0 ) {
+        wp_send_json([
+            'success' => false,
+            'message' => $ct_result->comment
+        ]);
+    }
 }
 
 /**
