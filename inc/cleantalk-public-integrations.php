@@ -2100,7 +2100,7 @@ function apbct_form__mo_subscribe_to_email_list__testSpam()
             'post_info'       => array('comment_type' => 'subscribe_form_wordpress_mailoptin'),
         )
     );
-    
+
     $ct_result = $base_call_result['ct_result'];
 
     if ( $ct_result->allow == 0 ) {
