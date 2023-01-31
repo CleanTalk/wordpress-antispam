@@ -563,6 +563,10 @@ function apbct_settings__set_fields()
                     'description' => __('Turn on this option to prevent crawlers grab contact data (emails) from website content.', 'cleantalk-spam-protect'),
                     'long_description' => true,
                 ),
+                'data__email_decoder_buffer'        => array(
+                    'title'       => __('Use the output buffer', 'cleantalk-spam-protect'),
+                    'description' => __('Description of option.', 'cleantalk-spam-protect'),
+                ),
             ),
         ),
 

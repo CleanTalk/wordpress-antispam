@@ -70,9 +70,9 @@ class EmailEncoder
         }
 
         // Excluded request
-        if ($this->isExcludedRequest()) {
-            return;
-        }
+//        if ($this->isExcludedRequest()) {
+//            return;
+//        }
 
         $this->secret_key = md5($apbct->api_key);
 
