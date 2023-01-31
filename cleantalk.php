@@ -419,6 +419,11 @@ $apbct_active_integrations = array(
         'setting' => 'forms__contact_forms_test',
         'ajax'    => true
     ),
+    'Hustle' => array(
+        'hook'    => 'hustle_module_form_submit',
+        'setting' => 'forms__contact_forms_test',
+        'ajax'    => true
+    )
 );
 new  \Cleantalk\Antispam\Integrations($apbct_active_integrations, (array)$apbct->settings);
 
