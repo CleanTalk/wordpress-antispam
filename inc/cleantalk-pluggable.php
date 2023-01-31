@@ -1012,6 +1012,23 @@ function apbct_is_skip_request($ajax = false)
         return 'Event Manager skip';
     }
 
+    // Kali service action skip
+    if (
+        apbct_is_plugin_active('kali-forms/kali-forms.php') &&
+        Post::get('action') === 'kaliforms_preflight'
+    ) {
+        return 'Kali service action skip';
+    }
+
+    //nobletitle-calc
+    if (
+        apbct_is_plugin_active('nobletitlecalc/nobletitle-calc.php') &&
+        Post::get('Calculate')
+        && Post::get('coverageType')
+    ) {
+        return 'nobletitle-calc';
+    }
+
     return false;
 }
 

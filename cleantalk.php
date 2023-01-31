@@ -91,6 +91,8 @@ if ( ! defined('CLEANTALK_PLUGIN_DIR') ) {
     define('CLEANTALK_PLUGIN_DIR', dirname(__FILE__) . '/');
 }
 
+define('APBCT_LANG_REL_PATH', 'cleantalk-spam-protect/i18n');
+
 // PHP functions patches
 require_once(CLEANTALK_PLUGIN_DIR . 'lib/cleantalk-php-patch.php');  // Pathces fpr different functions which not exists
 

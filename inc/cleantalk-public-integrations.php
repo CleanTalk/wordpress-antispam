@@ -1192,6 +1192,15 @@ function ct_preprocess_comment($comment)
         $ct_comment    = $ct_result->comment;
         $ct_stop_words = $ct_result->stop_words;
 
+        /**
+         * We have to increase priority to apply filters for comments
+         * management after akismet fires
+         **/
+        $increased_priority = 0;
+        if (is_plugin_active('akismet/akismet.php')){
+            $increased_priority = 5;
+        }
+
         $err_text =
             '<center>'
             . ((defined('CLEANTALK_DISABLE_BLOCKING_TITLE') && CLEANTALK_DISABLE_BLOCKING_TITLE == true)
@@ -1217,7 +1226,7 @@ function ct_preprocess_comment($comment)
         // Trash comment.
         if ( $ct_result->spam == 2 ) {
             add_filter('pre_comment_approved', 'ct_set_comment_spam', 997, 2);
-            add_action('comment_post', 'ct_wp_trash_comment', 7, 2);
+            add_action('comment_post', 'ct_wp_trash_comment', 7 + $increased_priority, 2);
         }
 
         // Spam comment
@@ -1228,10 +1237,10 @@ function ct_preprocess_comment($comment)
         // Move to pending folder. Contains stop_words.
         if ( $ct_result->stop_words ) {
             add_filter('pre_comment_approved', 'ct_set_not_approved', 998, 2);
-            add_action('comment_post', 'ct_mark_red', 8, 2);
+            add_action('comment_post', 'ct_mark_red', 8 + $increased_priority, 2);
         }
 
-        add_action('comment_post', 'ct_die', 9, 2);
+        add_action('comment_post', 'ct_die', 9 + $increased_priority, 2);
     }
 
     if ( $apbct->settings['comments__remove_comments_links'] == 1 ) {

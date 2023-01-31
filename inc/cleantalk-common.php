@@ -77,8 +77,7 @@ add_action('wp_login', 'apbct_add_admin_ip_to_swf_whitelist', 10, 2);
  */
 function apbct_plugin_loaded()
 {
-    $dir = plugin_basename(dirname(__FILE__)) . '/../i18n';
-    load_plugin_textdomain('cleantalk-spam-protect', false, $dir);
+    load_plugin_textdomain('cleantalk-spam-protect', false, APBCT_LANG_REL_PATH);
 }
 
 /**
