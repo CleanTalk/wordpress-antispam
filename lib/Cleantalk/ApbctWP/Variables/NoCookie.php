@@ -129,7 +129,7 @@ class NoCookie
      */
     public static function setDataFromHiddenField($data)
     {
-        if ( !empty($data) ) {
+        if ( !empty($data) && is_string($data)) {
             //delete sign of no cookie raw data
             $data = str_replace('_ct_no_cookie_data_', '', $data);
             //decode raw data

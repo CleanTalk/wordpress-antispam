@@ -4,7 +4,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 6.2.1-dev
+  Version: 6.2.2-dev
   Author: СleanTalk <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -419,6 +419,11 @@ $apbct_active_integrations = array(
         'setting' => 'forms__contact_forms_test',
         'ajax'    => true
     ),
+    'Hustle' => array(
+        'hook'    => 'hustle_module_form_submit',
+        'setting' => 'forms__contact_forms_test',
+        'ajax'    => true
+    )
 );
 new  \Cleantalk\Antispam\Integrations($apbct_active_integrations, (array)$apbct->settings);
 
@@ -429,6 +434,15 @@ if (
     Get::get('mailoptin-ajax') === 'subscribe_to_email_list'
 ) {
     apbct_form__mo_subscribe_to_email_list__testSpam();
+}
+
+// Metform
+if (
+    apbct_is_plugin_active('metform/metform.php') &&
+    apbct_is_in_uri('/wp-json/metform/') &&
+    sizeof($_POST) > 0
+) {
+    apbct_form__metform_subscribe__testSpam();
 }
 
 // Ninja Forms. Making GET action to POST action
@@ -2584,8 +2598,6 @@ function ct_account_status_check($api_key = null, $process_errors = true)
         $cron->updateTask('check_account_status', 'ct_account_status_check', 86400);
 
         $apbct->errorDelete('account_check', true);
-
-        $apbct->saveData();
     } elseif ( $process_errors ) {
         $apbct->errorAdd('account_check', $result);
     }
@@ -2597,6 +2609,8 @@ function ct_account_status_check($api_key = null, $process_errors = true)
         $apbct->data['key_is_ok'] = false;
         $result                   = false;
     }
+
+    $apbct->saveData();
 
     return $result;
 }

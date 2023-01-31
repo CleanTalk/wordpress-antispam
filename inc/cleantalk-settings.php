@@ -1207,7 +1207,7 @@ function apbct_settings__display()
         ($apbct->network_settings['multisite__work_mode'] != 2 || is_main_site())
     ) {
         // Sync button
-        if ( apbct_api_key__is_correct($apbct->api_key) && $apbct->key_is_ok ) {
+        if ( (apbct_api_key__is_correct($apbct->api_key) && $apbct->key_is_ok) || apbct__is_hosting_license() ) {
             echo '<button type="button" class="cleantalk_link cleantalk_link-auto" id="apbct_button__sync" title="' . esc_html__('Synchronizing account status, SpamFireWall database, all kind of journals', 'cleantalk-spam-protect') . '">'
                 . '<i class="apbct-icon-upload-cloud"></i>&nbsp;&nbsp;'
                 . __('Synchronize with Cloud', 'cleantalk-spam-protect')
@@ -2357,7 +2357,7 @@ function apbct_settings__validate($settings)
     $settings['apikey'] = is_main_site() || ! $settings['multisite__white_label'] ? $settings['apikey'] : $apbct->settings['apikey'];
 
     // Show notice if the Access key is empty
-    if ( ! apbct_api_key__is_correct() ) {
+    if ( ! apbct_api_key__is_correct() && ! apbct__is_hosting_license() ) {
         $apbct->data['key_is_ok']   = false;
         $apbct->data['notice_show'] = 1;
     } else {

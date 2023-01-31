@@ -12,9 +12,7 @@ class UlitmateFormBuilder extends IntegrationBase
 
         $ct_post_temp = $_POST;
 
-        if ( ! $apbct->stats['no_cookie_data_taken'] ) {
-            apbct_form__get_no_cookie_data();
-        }
+        $direct_no_cookie_data = null;
 
         //message clearance
         if ( isset($ct_post_temp['form_data']) && is_array($ct_post_temp['form_data']) && !empty($ct_post_temp['form_data']) ) {
@@ -23,11 +21,19 @@ class UlitmateFormBuilder extends IntegrationBase
                 if ( isset($value['name']) && $value['name'] === 'ct_no_cookie_hidden_field' ) {
                     unset($ct_post_temp['form_data'][$_key]);
                 }
-                //unset apbct_visible_fields
-                if ( isset($value['name']) && $value['name'] === 'apbct_visible_fields' ) {
-                    unset($ct_post_temp['form_data'][$_key]);
-                }
+                // prepare POST data to get parameters
+                $direct_no_cookie_data[$value['name']] = $value['value'];
             }
+        }
+
+        if ( ! $apbct->stats['no_cookie_data_taken'] ) {
+            apbct_form__get_no_cookie_data($direct_no_cookie_data);
+        }
+
+        if ( $direct_no_cookie_data ) {
+            add_filter('apbct_preprocess_post_to_vf_check', function () use ($direct_no_cookie_data) {
+                return $direct_no_cookie_data;
+            });
         }
 
         //unset action

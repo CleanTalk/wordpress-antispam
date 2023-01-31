@@ -235,7 +235,7 @@ class State extends \Cleantalk\Common\State
         'close_renew_banner'            => array('last_call' => 0, 'cooldown' => 0),
         'check_website'                 => array('last_call' => 0, 'cooldown' => 0),
         'update_settings'               => array('last_call' => 0, 'cooldown' => 0),
-        'run_service_template_get'      => array('last_call' => 0, 'cooldown' => 3600),
+        'run_service_template_get'      => array('last_call' => 0, 'cooldown' => 60),
 
 
         // Firewall
@@ -454,6 +454,8 @@ class State extends \Cleantalk\Common\State
                     : 'native';
         } else {
             $this->data['cookies_type'] = 'none';
+            //clear no_cookie_data_taken
+            $this->stats['no_cookie_data_taken'] = null;
         }
 
         // Network with Mutual Access key

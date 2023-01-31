@@ -2100,13 +2100,44 @@ function apbct_form__mo_subscribe_to_email_list__testSpam()
             'post_info'       => array('comment_type' => 'subscribe_form_wordpress_mailoptin'),
         )
     );
-
+    
     $ct_result = $base_call_result['ct_result'];
 
     if ( $ct_result->allow == 0 ) {
         wp_send_json([
             'success' => false,
             'message' => $ct_result->comment
+        ]);
+    }
+}
+
+/**
+ * Test Metform subscribe form for spam
+ *
+ * @return void
+ */
+function apbct_form__metform_subscribe__testSpam()
+{
+    $input_array = apply_filters('apbct__filter_post', $_POST);
+    $params = ct_get_fields_any($input_array);
+
+    $base_call_result = apbct_base_call(
+        array(
+            'sender_email'    => $params['email'],
+            'sender_nickname' => $params['nickname'] ?: '',
+            'post_info'       => array('comment_type' => 'subscribe_form_wordpress_metform'),
+        )
+    );
+
+    $ct_result = $base_call_result['ct_result'];
+
+    if ( $ct_result->allow == 0 ) {
+        wp_send_json([
+            'status' => 0,
+            'error' => $ct_result->comment,
+            'data' => [
+                'message' => '',
+            ]
         ]);
     }
 }

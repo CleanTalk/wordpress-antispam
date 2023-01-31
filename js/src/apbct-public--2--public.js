@@ -452,8 +452,8 @@ function apbct_ready(){
 	for (const _form of document.forms) {
 		if ( (
 			_form.getAttribute('id') === 'searchform'
-			|| _form.getAttribute('class') === 'elementor-search-form'
-			|| _form.getAttribute('class') === 'search-form'
+			|| (_form.getAttribute('class') !== null && _form.getAttribute('class').indexOf('search-form') !== -1)
+			|| (_form.getAttribute('role') !== null && _form.getAttribute('role').indexOf('search') !== -1)
 		) && ctPublic.data__cookies_type === 'none' ) {
 			_form.apbctSearchPrevOnsubmit = _form.onsubmit;
 			_form.onsubmit = (e) => {
@@ -468,7 +468,7 @@ function apbct_ready(){
 						}
 					}
 
-					let parsedCookies = atob(noCookie.value);
+					let parsedCookies = atob(noCookie.value.replace('_ct_no_cookie_data_',''));
 
 					if ( parsedCookies.length !== 0 ) {
 						ctSetAlternativeCookie(
@@ -969,28 +969,44 @@ function ctNoCookieAttachHiddenFieldsToForms(){
 	let forms = ctGetPageForms()
 
 	if (forms){
-		//clear previous hidden set
-		let elements = document.getElementsByName('ct_no_cookie_hidden_field')
-		if (elements){
-			for (let j = 0; j < elements.length; j++) {
-				elements[j].parentNode.removeChild(elements[j])
-			}
-		}
 		for ( let i = 0; i < forms.length; i++ ){
+			//remove old sets
+			let fields = forms[i].querySelectorAll('#ct_no_cookie_hidden_field')
+			for ( let j = 0; j < fields.length; j++ ){
+				fields[j].outerHTML = ""
+			}
 			//ignore forms with get method @todo We need to think about this
-			if (document.forms[i].getAttribute('method') === null ||
+			if (document.forms[i].getAttribute('method') === null
+				||
 				document.forms[i].getAttribute('method').toLowerCase() === 'post'){
 				// add new set
 				document.forms[i].append(ctNoCookieConstructHiddenField());
 			}
 			if ( (
 				document.forms[i].getAttribute('id') === 'searchform'
-				|| document.forms[i].getAttribute('class') === 'elementor-search-form'
-				|| document.forms[i].getAttribute('class') === 'search-form'
+				|| (document.forms[i].getAttribute('class') !== null && document.forms[i].getAttribute('class').indexOf('search-form') !== -1)
+				|| (document.forms[i].getAttribute('role') !== null && document.forms[i].getAttribute('role').indexOf('search') !== -1)
 			)){
 				document.forms[i].append(ctNoCookieConstructHiddenField('submit'));
 			}
 		}
 	}
 
+}
+
+const defaultFetch = window.fetch;
+window.fetch = function() {
+	if (arguments && arguments[0] && arguments[0].includes('/wp-json/metform/')) {
+		let no_cookie_data_local = apbctLocalStorage.getCleanTalkData()
+		let no_cookie_data_session = apbctSessionStorage.getCleanTalkData()
+		let no_cookie_data = {...no_cookie_data_local, ...no_cookie_data_session};
+		no_cookie_data = JSON.stringify(no_cookie_data)
+		no_cookie_data = '_ct_no_cookie_data_' + btoa(no_cookie_data)
+	
+		if (arguments && arguments[1] && arguments[1].body) {
+			arguments[1].body.append('ct_no_cookie_hidden_field', no_cookie_data)
+		}
+	}
+	
+	return defaultFetch.apply(window, arguments);
 }

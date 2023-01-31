@@ -1606,8 +1606,8 @@ function apbct_ready(){
 	for (const _form of document.forms) {
 		if ( (
 			_form.getAttribute('id') === 'searchform'
-			|| _form.getAttribute('class') === 'elementor-search-form'
-			|| _form.getAttribute('class') === 'search-form'
+			|| (_form.getAttribute('class') !== null && _form.getAttribute('class').indexOf('search-form') !== -1)
+			|| (_form.getAttribute('role') !== null && _form.getAttribute('role').indexOf('search') !== -1)
 		) && ctPublic.data__cookies_type === 'none' ) {
 			_form.apbctSearchPrevOnsubmit = _form.onsubmit;
 			_form.onsubmit = (e) => {
@@ -1622,7 +1622,7 @@ function apbct_ready(){
 						}
 					}
 
-					let parsedCookies = atob(noCookie.value);
+					let parsedCookies = atob(noCookie.value.replace('_ct_no_cookie_data_',''));
 
 					if ( parsedCookies.length !== 0 ) {
 						ctSetAlternativeCookie(
@@ -2123,30 +2123,46 @@ function ctNoCookieAttachHiddenFieldsToForms(){
 	let forms = ctGetPageForms()
 
 	if (forms){
-		//clear previous hidden set
-		let elements = document.getElementsByName('ct_no_cookie_hidden_field')
-		if (elements){
-			for (let j = 0; j < elements.length; j++) {
-				elements[j].parentNode.removeChild(elements[j])
-			}
-		}
 		for ( let i = 0; i < forms.length; i++ ){
+			//remove old sets
+			let fields = forms[i].querySelectorAll('#ct_no_cookie_hidden_field')
+			for ( let j = 0; j < fields.length; j++ ){
+				fields[j].outerHTML = ""
+			}
 			//ignore forms with get method @todo We need to think about this
-			if (document.forms[i].getAttribute('method') === null ||
+			if (document.forms[i].getAttribute('method') === null
+				||
 				document.forms[i].getAttribute('method').toLowerCase() === 'post'){
 				// add new set
 				document.forms[i].append(ctNoCookieConstructHiddenField());
 			}
 			if ( (
 				document.forms[i].getAttribute('id') === 'searchform'
-				|| document.forms[i].getAttribute('class') === 'elementor-search-form'
-				|| document.forms[i].getAttribute('class') === 'search-form'
+				|| (document.forms[i].getAttribute('class') !== null && document.forms[i].getAttribute('class').indexOf('search-form') !== -1)
+				|| (document.forms[i].getAttribute('role') !== null && document.forms[i].getAttribute('role').indexOf('search') !== -1)
 			)){
 				document.forms[i].append(ctNoCookieConstructHiddenField('submit'));
 			}
 		}
 	}
 
+}
+
+const defaultFetch = window.fetch;
+window.fetch = function() {
+	if (arguments && arguments[0] && arguments[0].includes('/wp-json/metform/')) {
+		let no_cookie_data_local = apbctLocalStorage.getCleanTalkData()
+		let no_cookie_data_session = apbctSessionStorage.getCleanTalkData()
+		let no_cookie_data = {...no_cookie_data_local, ...no_cookie_data_session};
+		no_cookie_data = JSON.stringify(no_cookie_data)
+		no_cookie_data = '_ct_no_cookie_data_' + btoa(no_cookie_data)
+	
+		if (arguments && arguments[1] && arguments[1].body) {
+			arguments[1].body.append('ct_no_cookie_hidden_field', no_cookie_data)
+		}
+	}
+	
+	return defaultFetch.apply(window, arguments);
 }
 /* Cleantalk Modal object */
 let cleantalkModal = {
@@ -2495,20 +2511,47 @@ function formIsExclusion(currentForm)
         'give-form' //give form exclusion because of direct integration
     ]
 
+    let exclusions_by_role = [
+        'search' //search forms
+    ]
+
+    let exclusions_by_class = [
+        'search-form' //search forms
+    ]
+
     let result = false
 
-    //mewto forms exclusion
-    if (currentForm.parentElement
-        && currentForm.parentElement.classList.length > 0
-        && currentForm.parentElement.classList[0].indexOf('mewtwo') !== -1) {
-        result = true
-    }
-
-    exclusions_by_id.forEach(function (id) {
-        if ( typeof (currentForm.id) !== 'undefined' && currentForm.id.indexOf(id) !== -1 ) {
+    try {
+        //mewto forms exclusion
+        if (currentForm.parentElement
+            && currentForm.parentElement.classList.length > 0
+            && currentForm.parentElement.classList[0].indexOf('mewtwo') !== -1) {
             result = true
         }
-    })
+
+        exclusions_by_id.forEach(function (exclusion_id) {
+            const form_id = currentForm.getAttribute('id')
+            if ( form_id !== null && typeof (form_id) !== 'undefined' && form_id.indexOf(exclusion_id) !== -1 ) {
+                result = true
+            }
+        })
+
+        exclusions_by_class.forEach(function (exclusion_class) {
+            const form_class = currentForm.getAttribute('class')
+            if ( form_class !== null && typeof form_class !== 'undefined' && form_class.indexOf(exclusion_class) !== -1 ) {
+                result = true
+            }
+        })
+
+        exclusions_by_role.forEach(function (exclusion_role) {
+            const form_role = currentForm.getAttribute('id')
+            if ( form_role !== null && typeof form_role !== 'undefined'&& form_role.indexOf(exclusion_role) !== -1 ) {
+                result = true
+            }
+        })
+    } catch (e) {
+        console.table('APBCT ERROR: formIsExclusion() - ',e)
+    }
 
     return result
 }
@@ -2655,7 +2698,7 @@ window.onload = function () {
  */
 function isIntegratedForm(formObj) {
     var formAction = formObj.action;
-    let formId = formObj.id;
+    var formId = formObj.getAttribute('id') !== null ? formObj.getAttribute('id') : '';
 
     if(
         formAction.indexOf('activehosted.com') !== -1 ||   // ActiveCampaign form

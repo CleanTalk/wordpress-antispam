@@ -355,7 +355,8 @@ function apbct_is_ajax()
             strtolower(Server::get('HTTP_X_REQUESTED_WITH')) === 'xmlhttprequest'
         ) || // by Request type
         ! empty(Post::get('quform_ajax')) || // special. QForms
-        ! empty(Post::get('iphorm_ajax')); // special. IPHorm
+        ! empty(Post::get('iphorm_ajax')) || // special. IPHorm
+        ! empty(Post::get('mf-email')); // special. Metform
 }
 
 /**
@@ -837,6 +838,14 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'Universal form builder skip';
         }
+
+        //Skip ActiveCampaign for WooCommerce service request
+        if (
+            apbct_is_plugin_active('activecampaign-for-woocommerce/activecampaign-for-woocommerce.php') &&
+            Post::get('action') === 'activecampaign_for_woocommerce_cart_sync_guest'
+        ) {
+            return 'ActiveCampaign for WooCommerce skip';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
@@ -975,6 +984,14 @@ function apbct_is_skip_request($ajax = false)
             !empty(Post::get('firstName'))
         ) {
             return 'Skip Optima Express update';
+        }
+
+        //Skip AutomateWoo service request
+        if (
+            apbct_is_plugin_active('automatewoo/automatewoo.php') &&
+            Get::get('aw-ajax') === 'capture_email'
+        ) {
+            return 'AutomateWoo skip';
         }
     }
 
