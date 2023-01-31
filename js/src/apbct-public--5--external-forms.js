@@ -59,7 +59,8 @@ function ct_protect_external() {
 function formIsExclusion(currentForm)
 {
     let exclusions_by_id = [
-        'give-form' //give form exclusion because of direct integration
+        'give-form', //give form exclusion because of direct integration
+        'frmCalc' //nobletitle-calc
     ]
 
     let exclusions_by_role = [
