@@ -355,7 +355,8 @@ function apbct_is_ajax()
             strtolower(Server::get('HTTP_X_REQUESTED_WITH')) === 'xmlhttprequest'
         ) || // by Request type
         ! empty(Post::get('quform_ajax')) || // special. QForms
-        ! empty(Post::get('iphorm_ajax')); // special. IPHorm
+        ! empty(Post::get('iphorm_ajax')) || // special. IPHorm
+        ! empty(Post::get('mf-email')); // special. Metform
 }
 
 /**
