@@ -470,7 +470,6 @@ function ct_woocommerce_checkout_check($_data, $errors)
         'sender_email'    => $sender_email,
         'sender_nickname' => $sender_nickname,
         'post_info'       => $post_info,
-        'js_on'           => apbct_js_test(Sanitize::cleanTextField(Cookie::get('ct_checkjs')), true),
         'sender_info'     => array('sender_url' => null)
     );
 
