@@ -562,10 +562,14 @@ function apbct_settings__set_fields()
                     'title'       => __('Encode contact data', 'cleantalk-spam-protect'),
                     'description' => __('Turn on this option to prevent crawlers grab contact data (emails) from website content.', 'cleantalk-spam-protect'),
                     'long_description' => true,
+                    'childrens'   => array('data__email_decoder_buffer')
                 ),
                 'data__email_decoder_buffer'        => array(
                     'title'       => __('Use the output buffer', 'cleantalk-spam-protect'),
-                    'description' => __('Description of option.', 'cleantalk-spam-protect'),
+                    'description' => __('Use this option only if no encoding occurs when the "Encode contact data" option is enabled.', 'cleantalk-spam-protect'),
+                    'parent'          => 'data__email_decoder',
+                    'class'           => 'apbct_settings-field_wrapper--sub',
+                    'reverse_trigger' => true,
                 ),
             ),
         ),
