@@ -1547,7 +1547,7 @@ function apbct_ready(){
 				form.action.toString() === 'https://epayment.epymtservice.com/epay.jhtml' || // Custom form
 				(form.name && form.name.toString().indexOf('tribe-bar-form') !== -1) ||  // The Events Calendar
 				(form.id && form.id === 'ihf-login-form') || //Optima Express login
-				(form.id && form.id === 'subscriberForm' && form.action.toString().indexOf('actionType=update') !== -1) //Optima Express update
+				(form.id && form.id === 'subscriberForm' && form.action.toString().indexOf('actionType=update') !== -1) || //Optima Express update
 				(form.id && form.id === 'frmCalc' !== -1) //nobletitle-calc
 			) {
 				continue;
