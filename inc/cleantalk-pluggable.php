@@ -989,7 +989,8 @@ function apbct_is_skip_request($ajax = false)
         //Skip AutomateWoo service request
         if (
             apbct_is_plugin_active('automatewoo/automatewoo.php') &&
-            Get::get('aw-ajax') === 'capture_email'
+            ( Get::get('aw-ajax') === 'capture_email' ||
+            Get::get('aw-ajax') === 'capture_checkout_field' )
         ) {
             return 'AutomateWoo skip';
         }
