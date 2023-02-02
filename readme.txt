@@ -451,6 +451,30 @@ Yes, it is. Please read this article,
 
 == Changelog ==
 
+= 6.3 Feb 02 2023 =
+#### Several form builders integrated 🎯, many integrations fixed 🐞 and some minor issues fixed 💪🏼
+* Add. Integrations. Added Mailoptin.
+* Add. Integrations. Added Metform.
+* Fix. Integration. Ultimate Form Builder collecting parameters fixed.
+* New. Common. Added new filter to preprocessed data for the visible fields comparing.
+* Fix. Integration. UFB visible fields processing filter implemented.
+* Fix. Common. No cookie data gathering fixed.
+* Fix. Integration. Skip ActiveCampaign for WooCommerce service request.
+* Fix. Integration. Skip AutomateWoo service request
+* Mod. RemoteCalls. RC run_service_template_get cooldown changed from 3600 to 60 seconds.
+* Fix. Hosting license. Checking license status fixed.
+* Fix. Hosting license. Settings saving fixed.
+* Fix. Clear no_cookie_data_taken stat on State init.
+* Fix. Kali forms precheck skipped.
+* Fix. Clear no_cookie_data_taken stat on State init.
+* Fix. Common. Akismet compatibility in comments management part.
+* Fix. Translations. Now plugin can use local .mo files.
+* Fix. Dashboard chartjs. Added options for support an outdated chartjs version 2.9.
+* Fix. Integrations. Nobletitlecalc custom plugin exclusion.
+* Fix. SFW. Queue is in progress logic fixed.
+* Fix. Integration. AutomateWoo services requests excluded.
+* Fix. Integration. WooCommerce checking JS fixed.
+
 = 6.2.1 Jan 24 2023 =
 * Fix. Integration. Convert Pro form integration fixed.
 * Fix. Integration. AJAX forms JS detection fix.
