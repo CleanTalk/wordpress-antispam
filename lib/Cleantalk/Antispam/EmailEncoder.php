@@ -100,6 +100,13 @@ class EmailEncoder
             add_filter($hook, array($this, 'modifyContent'));
         }
 
+        // Search data to buffer
+        if ($apbct->settings['data__email_decoder_buffer'] && !apbct_is_ajax() && !apbct_is_rest() && !apbct_is_post()) {
+            add_action('wp', 'apbct_buffer__start');
+            add_action('shutdown', 'apbct_buffer__end', 0);
+            add_action('shutdown', array($this, 'bufferOutput'), 2);
+        }
+
         add_action('wp_ajax_nopriv_apbct_decode_email', array($this, 'ajaxDecodeEmailHandler'));
         add_action('wp_ajax_apbct_decode_email', array($this, 'ajaxDecodeEmailHandler'));
     }
@@ -405,5 +412,11 @@ class EmailEncoder
             }
         }
         return false;
+    }
+
+    public function bufferOutput()
+    {
+        global $apbct;
+        echo $this->modifyContent($apbct->buffer);
     }
 }
