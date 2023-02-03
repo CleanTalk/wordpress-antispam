@@ -2149,22 +2149,6 @@ function ctNoCookieAttachHiddenFieldsToForms(){
 
 }
 
-const defaultFetch = window.fetch;
-window.fetch = function() {
-	if (arguments && arguments[0] && arguments[0].includes('/wp-json/metform/')) {
-		let no_cookie_data_local = apbctLocalStorage.getCleanTalkData()
-		let no_cookie_data_session = apbctSessionStorage.getCleanTalkData()
-		let no_cookie_data = {...no_cookie_data_local, ...no_cookie_data_session};
-		no_cookie_data = JSON.stringify(no_cookie_data)
-		no_cookie_data = '_ct_no_cookie_data_' + btoa(no_cookie_data)
-	
-		if (arguments && arguments[1] && arguments[1].body) {
-			arguments[1].body.append('ct_no_cookie_hidden_field', no_cookie_data)
-		}
-	}
-	
-	return defaultFetch.apply(window, arguments);
-}
 /* Cleantalk Modal object */
 let cleantalkModal = {
 
