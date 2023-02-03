@@ -1,6 +1,7 @@
 <?php
 
 use Cleantalk\ApbctWP\Escape;
+use Cleantalk\ApbctWP\Localize\LocalizeHandler;
 use Cleantalk\ApbctWP\Sanitize;
 use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\ApbctWP\Variables\Get;
@@ -23,6 +24,9 @@ function apbct_init()
     if ( $apbct->settings['data__pixel'] && empty($apbct->pixel_url) ) {
         $apbct->pixel_url = apbct_get_pixel_url__ajax(true);
     }
+
+    // Localize data
+    add_action('wp_head', array(LocalizeHandler::class, 'handle'), 1);
 
     //Search form hook init
     if ( $apbct->settings['forms__search_test'] ) {
@@ -1368,32 +1372,6 @@ function apbct_enqueue_and_localize_public_scripts()
         array('jquery'),
         APBCT_VERSION
     );
-
-    wp_localize_script('ct_public_functions', 'ctPublicFunctions', array(
-        '_ajax_nonce'                          => wp_create_nonce('ct_secret_stuff'),
-        '_rest_nonce'                          => wp_create_nonce('wp_rest'),
-        '_ajax_url'                            => admin_url('admin-ajax.php', 'relative'),
-        '_rest_url'                            => Escape::escUrl(apbct_get_rest_url()),
-        'data__cookies_type'                   => $apbct->data['cookies_type'],
-        'data__ajax_type'                      => $apbct->data['ajax_type'],
-        'text__wait_for_decoding'              => esc_html__('Decoding the contact data, let us a few seconds to finish. Anti-Spam by CleanTalk.', 'cleantalk-spam-protect'),
-        'cookiePrefix'                         => apbct__get_cookie_prefix(),
-    ));
-
-    wp_localize_script('ct_public_functions', 'ctPublic', array(
-        'settings__forms__check_internal' => $apbct->settings['forms__check_internal'],
-        'settings__forms__check_external' => $apbct->settings['forms__check_external'],
-        'blog_home'                     => get_home_url() . '/',
-        'pixel__setting'                => $apbct->settings['data__pixel'],
-        'pixel__enabled'                => $apbct->settings['data__pixel'] === '2' ||
-                                           ($apbct->settings['data__pixel'] === '3' && apbct_is_cache_plugins_exists()),
-        'pixel__url'                    => $apbct->pixel_url,
-        'data__email_check_before_post' => $apbct->settings['data__email_check_before_post'],
-        'data__cookies_type'            => $apbct->data['cookies_type'],
-        'data__key_is_ok'               => $apbct->data['key_is_ok'],
-        'data__visible_fields_required' => ! apbct_is_user_logged_in() || $apbct->settings['data__protect_logged_in'] == 1,
-        'data__to_local_storage' => \Cleantalk\ApbctWP\Variables\NoCookie::preloadForScripts()
-    ));
 
     wp_enqueue_style(
         'ct_public_css',
