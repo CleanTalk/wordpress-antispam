@@ -28,7 +28,7 @@ class CtPublicFunctionsLocalize
     public static function getCode()
     {
         return '
-            <script data-no-defer="1">
+            <script data-no-defer="1" data-ezscrex="false">
                 ' . self::NAME . ' = ' . json_encode(self::getData()) . '
             </script>
         ';
