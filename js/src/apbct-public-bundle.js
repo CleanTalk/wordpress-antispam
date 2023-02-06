@@ -1605,16 +1605,11 @@ function apbct_ready(){
 	 * WordPress Search form processing
 	 */
 	for (const _form of document.forms) {
-		if (
-			typeof ctPublic !== 'undefined'
-			&& ctPublic.settings__forms__search_test === '1'
-			&& ctPublic.data__cookies_type === 'none'
-			&& (
-				_form.getAttribute('id') === 'searchform'
-				|| (_form.getAttribute('class') !== null && _form.getAttribute('class').indexOf('search-form') !== -1)
-				|| (_form.getAttribute('role') !== null && _form.getAttribute('role').indexOf('search') !== -1)
-				)
-		) {
+		if ( (
+			_form.getAttribute('id') === 'searchform'
+			|| (_form.getAttribute('class') !== null && _form.getAttribute('class').indexOf('search-form') !== -1)
+			|| (_form.getAttribute('role') !== null && _form.getAttribute('role').indexOf('search') !== -1)
+		) && ctPublic.data__cookies_type === 'none' ) {
 			_form.apbctSearchPrevOnsubmit = _form.onsubmit;
 			_form.onsubmit = (e) => {
 				const noCookie = _form.querySelector('[name="ct_no_cookie_hidden_field"]');
@@ -2120,17 +2115,6 @@ function ctGetPageForms(){
 	return false
 }
 
-function ctNoCookieFormIsExcludedFromNcField(form){
-
-	//ajax search pro exclusion
-	let nc_field_exclusions_sign = form.parentNode
-	if (nc_field_exclusions_sign && nc_field_exclusions_sign.classList.contains('proinput')){
-		return 'ajax search pro exclusion'
-	}
-
-	return false
-}
-
 function ctNoCookieAttachHiddenFieldsToForms(){
 
 	if (ctPublic.data__cookies_type !== 'none'){
@@ -2146,25 +2130,18 @@ function ctNoCookieAttachHiddenFieldsToForms(){
 			for ( let j = 0; j < fields.length; j++ ){
 				fields[j].outerHTML = ""
 			}
-
-			if ( ctNoCookieFormIsExcludedFromNcField(document.forms[i]) ) {
-				return
-			}
-
 			//ignore forms with get method @todo We need to think about this
 			if (document.forms[i].getAttribute('method') === null
 				||
 				document.forms[i].getAttribute('method').toLowerCase() === 'post'){
 				// add new set
 				document.forms[i].append(ctNoCookieConstructHiddenField());
-			} else if (typeof ctPublic !== 'undefined'
-				&& ctPublic.settings__forms__search_test === '1'
-				&& (
-					document.forms[i].getAttribute('id') === 'searchform'
-					|| (document.forms[i].getAttribute('class') !== null && document.forms[i].getAttribute('class').indexOf('search-form') !== -1)
-					|| (document.forms[i].getAttribute('role') !== null && document.forms[i].getAttribute('role').indexOf('search') !== -1)
-				)
-			) {
+			}
+			if ( (
+				document.forms[i].getAttribute('id') === 'searchform'
+				|| (document.forms[i].getAttribute('class') !== null && document.forms[i].getAttribute('class').indexOf('search-form') !== -1)
+				|| (document.forms[i].getAttribute('role') !== null && document.forms[i].getAttribute('role').indexOf('search') !== -1)
+			)){
 				document.forms[i].append(ctNoCookieConstructHiddenField('submit'));
 			}
 		}
@@ -2172,6 +2149,47 @@ function ctNoCookieAttachHiddenFieldsToForms(){
 
 }
 
+const defaultFetch = window.fetch;
+
+if (document.readyState !== 'loading') {
+	checkFormsExistForCatching();
+} else {
+	apbct_attach_event_handler(document, "DOMContentLoaded", checkFormsExistForCatching);
+}
+
+function checkFormsExistForCatching() {
+	setTimeout(function() {
+		if (isFormThatNeedCatch()) {
+			window.fetch = function() {
+				if (arguments
+					&& arguments[0]
+					&& typeof arguments[0].includes === 'function'
+					&& arguments[0].includes('/wp-json/metform/')
+				) {
+					let no_cookie_data_local = apbctLocalStorage.getCleanTalkData()
+					let no_cookie_data_session = apbctSessionStorage.getCleanTalkData()
+					let no_cookie_data = {...no_cookie_data_local, ...no_cookie_data_session};
+					no_cookie_data = JSON.stringify(no_cookie_data)
+					no_cookie_data = '_ct_no_cookie_data_' + btoa(no_cookie_data)
+
+					if (arguments && arguments[1] && arguments[1].body) {
+						arguments[1].body.append('ct_no_cookie_hidden_field', no_cookie_data)
+					}
+				}
+
+				return defaultFetch.apply(window, arguments);
+			}
+		}
+	}, 1000);
+}
+
+function isFormThatNeedCatch() {
+	if (jQuery('form').hasClass('metform-form-content')) {
+		return true;
+	}
+
+	return false;
+}
 /* Cleantalk Modal object */
 let cleantalkModal = {
 
