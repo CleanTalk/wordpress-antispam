@@ -2149,6 +2149,47 @@ function ctNoCookieAttachHiddenFieldsToForms(){
 
 }
 
+const defaultFetch = window.fetch;
+
+if (document.readyState !== 'loading') {
+	checkFormsExistForCatching();
+} else {
+	apbct_attach_event_handler(document, "DOMContentLoaded", checkFormsExistForCatching);
+}
+
+function checkFormsExistForCatching() {
+	setTimeout(function() {
+		if (isFormThatNeedCatch()) {
+			window.fetch = function() {
+				if (arguments
+					&& arguments[0]
+					&& typeof arguments[0].includes === 'function'
+					&& arguments[0].includes('/wp-json/metform/')
+				) {
+					let no_cookie_data_local = apbctLocalStorage.getCleanTalkData()
+					let no_cookie_data_session = apbctSessionStorage.getCleanTalkData()
+					let no_cookie_data = {...no_cookie_data_local, ...no_cookie_data_session};
+					no_cookie_data = JSON.stringify(no_cookie_data)
+					no_cookie_data = '_ct_no_cookie_data_' + btoa(no_cookie_data)
+
+					if (arguments && arguments[1] && arguments[1].body) {
+						arguments[1].body.append('ct_no_cookie_hidden_field', no_cookie_data)
+					}
+				}
+
+				return defaultFetch.apply(window, arguments);
+			}
+		}
+	}, 1000);
+}
+
+function isFormThatNeedCatch() {
+	if (jQuery('form').hasClass('metform-form-content')) {
+		return true;
+	}
+
+	return false;
+}
 /* Cleantalk Modal object */
 let cleantalkModal = {
 
