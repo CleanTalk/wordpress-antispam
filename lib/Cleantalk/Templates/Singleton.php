@@ -25,17 +25,20 @@ if (! trait_exists('Cleantalk\Templates\Singleton')) {
          */
         public static function getInstance($params = array())
         {
-            if ( ! isset(static::$instance) ) {
-                static::$instance = new static();
-                static::$instance->init($params);
+            if ( ! isset(static::$instance[static::class]) ) {
+                static::$instance[static::class] = new static();
+                $params                          = array_values($params);
+                static::$instance[static::class]->init(...$params);
             }
-            return static::$instance;
+
+            return static::$instance[static::class];
         }
 
         /**
          * Alternative constructor
+         * @param array $_params Parameters to initialize the instance
          */
-        protected function init()
+        protected function init(...$_params)
         {
         }
     }

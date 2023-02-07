@@ -10,10 +10,8 @@ namespace Cleantalk\Variables;
  *
  * @package Cleantalk\Variables
  */
-abstract class Get extends ServerVariables
+class Get extends ServerVariables
 {
-    protected static $instance;
-
     /**
      * Gets given $_GET variable and save it to memory
      *
@@ -24,7 +22,7 @@ abstract class Get extends ServerVariables
     protected function getVariable($name)
     {
         // Return from memory. From $this->variables
-        if (! isset(static::$instance->variables[$name])) {
+        if (! isset(static::getInstance()->variables[$name])) {
             if ( isset($_GET[$name]) ) {
                 $value = $this->getAndSanitize($_GET[$name]);
             } else {
@@ -37,6 +35,10 @@ abstract class Get extends ServerVariables
             return $value;
         }
 
-        return static::$instance->variables[$name];
+        return static::getInstance()->variables[$name];
+    }
+
+    protected function sanitizeDefault($value) {
+        // TODO: Implement sanitizeDefault() method.
     }
 }
