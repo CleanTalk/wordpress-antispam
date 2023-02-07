@@ -137,7 +137,8 @@ class Server extends ServerVariables
                self::get('SERVER_PORT') == '443';
     }
 
-    protected function sanitizeDefault($value) {
-        // TODO: Implement sanitizeDefault() method.
+    protected function sanitizeDefault($value)
+    {
+        return sanitize_textarea_field($value);
     }
 }

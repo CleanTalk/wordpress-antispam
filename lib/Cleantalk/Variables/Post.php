@@ -38,7 +38,8 @@ class Post extends ServerVariables
         return static::getInstance()->variables[$name];
     }
 
-    protected function sanitizeDefault($value) {
-        // TODO: Implement sanitizeDefault() method.
+    protected function sanitizeDefault($value)
+    {
+        return sanitize_textarea_field($value);
     }
 }
