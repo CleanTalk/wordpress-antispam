@@ -417,7 +417,8 @@ function catchDinamicRenderedFormHandler(forms, documentObject = document) {
 
     for (let formId of neededFormIds) {
         let form = documentObject.getElementById(formId);
-        form.onsubmit = sendAjaxCheckingDinamicFormData
+        form.onsubmit_prev = form.onsubmit;
+        form.onsubmit = sendAjaxCheckingDinamicFormData;
     }
 }
 
@@ -425,8 +426,9 @@ function catchDinamicRenderedFormHandler(forms, documentObject = document) {
  * Sending Ajax for checking form data on dinamic rendered form
  */
 function sendAjaxCheckingDinamicFormData(form) {
-    form.preventDefault()
-    form = form.target
+    form.preventDefault();
+    var formEvent = form;
+    form = form.target;
 
     var force_action = document.createElement("input");
     force_action.name = 'action';
@@ -457,7 +459,14 @@ function sendAjaxCheckingDinamicFormData(form) {
             async: false,
             callback: function(result) {
                 if( result.apbct === undefined || ! +result.apbct.blocked ) {
-                    form.onsubmit = null
+                    form.onsubmit = null;
+
+                    // Call previous submit action
+                    if (form.onsubmit_prev instanceof Function) {
+                        setTimeout(function () {
+                            form.onsubmit_prev.call(form, formEvent);
+                        }, 500);
+                    }
 
                     let subm_button = jQuery(form).find('input[type=submit]');
                     if(subm_button.length !== 0) {
