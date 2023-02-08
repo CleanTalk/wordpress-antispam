@@ -1199,7 +1199,7 @@ function apbct_update_to_6_0_1()
     $apbct->errorDelete('cron', true);
 }
 
-function apbct_update_to_6_2_0()
+function apbct_update_to_6_3_3()
 {
     global $apbct;
     if ( ! isset($apbct->settings['data__email_decoder_buffer']) ) {
