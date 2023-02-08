@@ -136,15 +136,12 @@ function ct_contact_form_validate()
         unset($_POST['TellAFriend_Link']);
     }
 
-    $checkjs = apbct_js_test(Sanitize::cleanTextField(Cookie::get('ct_checkjs')), true) ?: apbct_js_test(Sanitize::cleanTextField(Post::get('ct_checkjs')));
-
     $base_call_result = apbct_base_call(
         array(
             'message'         => $message,
             'sender_email'    => $sender_email,
             'sender_nickname' => $sender_nickname,
             'post_info'       => $post_info,
-            'js_on'           => $checkjs,
             'sender_info'     => array('sender_email' => urlencode($sender_email)),
         )
     );
