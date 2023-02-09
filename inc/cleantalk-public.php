@@ -27,6 +27,7 @@ function apbct_init()
 
     // Localize data
     add_action('wp_head', array(LocalizeHandler::class, 'handle'), 1);
+    add_action('login_head', array(LocalizeHandler::class, 'handle'), 1);
 
     //Search form hook init
     if ( $apbct->settings['forms__search_test'] ) {
