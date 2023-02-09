@@ -4,7 +4,6 @@ namespace Cleantalk\Antispam\Integrations;
 
 class WpBookingSystem extends IntegrationBase
 {
-
     public function getDataForChecking($argument)
     {
         if ( ! isset($_POST['form_data']) ) {
