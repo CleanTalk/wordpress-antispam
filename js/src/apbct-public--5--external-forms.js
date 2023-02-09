@@ -243,6 +243,7 @@ window.onload = function () {
 
     setTimeout(function () {
         ct_protect_external()
+        catchDinamicRenderedForm()
     }, 1500);
 };
 
@@ -376,12 +377,6 @@ function sendAjaxCheckingFormData(form, prev, formOriginal) {
             }
         }
     );
-}
-
-window.onload = function() {
-    setTimeout(function () {
-        catchDinamicRenderedForm()
-    }, 1500);
 }
 
 function catchDinamicRenderedForm() {
