@@ -854,6 +854,14 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'RegistrationMagic service request';
         }
+
+        //Wp Booking System request - having the direct integration
+        if (
+            apbct_is_plugin_active('wp-booking-system/wp-booking-system.php') &&
+            Post::get('action') === 'wpbs_submit_form'
+        ) {
+            return 'Wp Booking System request';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
