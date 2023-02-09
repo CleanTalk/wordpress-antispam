@@ -846,6 +846,14 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'ActiveCampaign for WooCommerce skip';
         }
+
+        //Skip WooCommerce add to cart trigger
+        if (
+            apbct_is_plugin_active('woocommerce/woocommerce.php') &&
+            Post::get('action') === 'wdm_trigger_add_to_enq_cart'
+        ) {
+            return 'WooCommerce add to cart trigger skip';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
