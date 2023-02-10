@@ -262,39 +262,6 @@ class Cleantalk
 
             if (($type_error === 'getaddrinfo_error' || $type_error === 'connection_timeout') && $attempt === 1) {
                 $this->rotateModerateAndUseIP();
-            } elseif (($type_error === 'getaddrinfo_error' || $type_error === 'connection_timeout') && $attempt === 2) {
-                // TODO: file_get_contents
-                //
-                //        $msg->method_name = 'check_message';
-                //        $postdata = json_encode($msg);
-                //
-                //        $opts = array('http' =>
-                //                          array(
-                //                              'method'  => 'POST',
-                //                              'header'  => 'Content-Type: application/json',
-                //                              'content' => $postdata
-                //                          )
-                //        );
-                //
-                //        $context = stream_context_create($opts);
-                //        $headers = json_decode($msg->all_headers);
-                //        $headers_to_context = array();
-                //        foreach ($headers as $header => $content) {
-                //            $headers_to_context[] = $header . ': ' . $content;
-                //        }
-                //        $context = stream_context_create(
-                //            [
-                //                'http' => [
-                //                    'method'  => 'GET',
-                ////                    'header'=> implode('/r/n', $headers_to_context),
-                //                    'content' => $data,
-                //                ],
-                //            ]
-                //        );
-                //
-                //        $result = file_get_contents('http://moderate10.cleantalk.org/api2.0/', false, $context);
-                //        var_dump($result);
-                //        die;
             } else {
                 $this->rotateModerate();
             }
