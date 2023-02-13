@@ -846,6 +846,14 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'ActiveCampaign for WooCommerce skip';
         }
+
+        //Skip RegistrationMagic service request
+        if (
+            apbct_is_plugin_active('custom-registration-form-builder-with-submission-manager/registration_magic.php') &&
+            Post::get('action') === 'rm_user_exists'
+        ) {
+            return 'RegistrationMagic service request';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */

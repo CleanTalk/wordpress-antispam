@@ -1548,7 +1548,7 @@ function apbct_ready(){
 				(form.name && form.name.toString().indexOf('tribe-bar-form') !== -1) ||  // The Events Calendar
 				(form.id && form.id === 'ihf-login-form') || //Optima Express login
 				(form.id && form.id === 'subscriberForm' && form.action.toString().indexOf('actionType=update') !== -1) || //Optima Express update
-				(form.id && form.id === 'frmCalc' !== -1) //nobletitle-calc
+				(form.id && form.id === 'frmCalc') //nobletitle-calc
 			) {
 				continue;
 			}
@@ -1605,11 +1605,16 @@ function apbct_ready(){
 	 * WordPress Search form processing
 	 */
 	for (const _form of document.forms) {
-		if ( (
-			_form.getAttribute('id') === 'searchform'
-			|| (_form.getAttribute('class') !== null && _form.getAttribute('class').indexOf('search-form') !== -1)
-			|| (_form.getAttribute('role') !== null && _form.getAttribute('role').indexOf('search') !== -1)
-		) && ctPublic.data__cookies_type === 'none' ) {
+		if (
+			typeof ctPublic !== 'undefined'
+			&& ctPublic.settings__forms__search_test === '1'
+			&& ctPublic.data__cookies_type === 'none'
+			&& (
+				_form.getAttribute('id') === 'searchform'
+				|| (_form.getAttribute('class') !== null && _form.getAttribute('class').indexOf('search-form') !== -1)
+				|| (_form.getAttribute('role') !== null && _form.getAttribute('role').indexOf('search') !== -1)
+				)
+		) {
 			_form.apbctSearchPrevOnsubmit = _form.onsubmit;
 			_form.onsubmit = (e) => {
 				const noCookie = _form.querySelector('[name="ct_no_cookie_hidden_field"]');
@@ -2115,6 +2120,17 @@ function ctGetPageForms(){
 	return false
 }
 
+function ctNoCookieFormIsExcludedFromNcField(form){
+
+	//ajax search pro exclusion
+	let nc_field_exclusions_sign = form.parentNode
+	if (nc_field_exclusions_sign && nc_field_exclusions_sign.classList.contains('proinput')){
+		return 'ajax search pro exclusion'
+	}
+
+	return false
+}
+
 function ctNoCookieAttachHiddenFieldsToForms(){
 
 	if (ctPublic.data__cookies_type !== 'none'){
@@ -2130,18 +2146,25 @@ function ctNoCookieAttachHiddenFieldsToForms(){
 			for ( let j = 0; j < fields.length; j++ ){
 				fields[j].outerHTML = ""
 			}
+
+			if ( ctNoCookieFormIsExcludedFromNcField(document.forms[i]) ) {
+				return
+			}
+
 			//ignore forms with get method @todo We need to think about this
 			if (document.forms[i].getAttribute('method') === null
 				||
 				document.forms[i].getAttribute('method').toLowerCase() === 'post'){
 				// add new set
 				document.forms[i].append(ctNoCookieConstructHiddenField());
-			}
-			if ( (
-				document.forms[i].getAttribute('id') === 'searchform'
-				|| (document.forms[i].getAttribute('class') !== null && document.forms[i].getAttribute('class').indexOf('search-form') !== -1)
-				|| (document.forms[i].getAttribute('role') !== null && document.forms[i].getAttribute('role').indexOf('search') !== -1)
-			)){
+			} else if (typeof ctPublic !== 'undefined'
+				&& ctPublic.settings__forms__search_test === '1'
+				&& (
+					document.forms[i].getAttribute('id') === 'searchform'
+					|| (document.forms[i].getAttribute('class') !== null && document.forms[i].getAttribute('class').indexOf('search-form') !== -1)
+					|| (document.forms[i].getAttribute('role') !== null && document.forms[i].getAttribute('role').indexOf('search') !== -1)
+				)
+			) {
 				document.forms[i].append(ctNoCookieConstructHiddenField('submit'));
 			}
 		}
@@ -2150,20 +2173,45 @@ function ctNoCookieAttachHiddenFieldsToForms(){
 }
 
 const defaultFetch = window.fetch;
-window.fetch = function() {
-	if (arguments && arguments[0] && arguments[0].includes('/wp-json/metform/')) {
-		let no_cookie_data_local = apbctLocalStorage.getCleanTalkData()
-		let no_cookie_data_session = apbctSessionStorage.getCleanTalkData()
-		let no_cookie_data = {...no_cookie_data_local, ...no_cookie_data_session};
-		no_cookie_data = JSON.stringify(no_cookie_data)
-		no_cookie_data = '_ct_no_cookie_data_' + btoa(no_cookie_data)
-	
-		if (arguments && arguments[1] && arguments[1].body) {
-			arguments[1].body.append('ct_no_cookie_hidden_field', no_cookie_data)
+
+if (document.readyState !== 'loading') {
+	checkFormsExistForCatching();
+} else {
+	apbct_attach_event_handler(document, "DOMContentLoaded", checkFormsExistForCatching);
+}
+
+function checkFormsExistForCatching() {
+	setTimeout(function() {
+		if (isFormThatNeedCatch()) {
+			window.fetch = function() {
+				if (arguments
+					&& arguments[0]
+					&& typeof arguments[0].includes === 'function'
+					&& arguments[0].includes('/wp-json/metform/')
+				) {
+					let no_cookie_data_local = apbctLocalStorage.getCleanTalkData()
+					let no_cookie_data_session = apbctSessionStorage.getCleanTalkData()
+					let no_cookie_data = {...no_cookie_data_local, ...no_cookie_data_session};
+					no_cookie_data = JSON.stringify(no_cookie_data)
+					no_cookie_data = '_ct_no_cookie_data_' + btoa(no_cookie_data)
+
+					if (arguments && arguments[1] && arguments[1].body) {
+						arguments[1].body.append('ct_no_cookie_hidden_field', no_cookie_data)
+					}
+				}
+
+				return defaultFetch.apply(window, arguments);
+			}
 		}
+	}, 1000);
+}
+
+function isFormThatNeedCatch() {
+	if (jQuery('form').hasClass('metform-form-content')) {
+		return true;
 	}
-	
-	return defaultFetch.apply(window, arguments);
+
+	return false;
 }
 /* Cleantalk Modal object */
 let cleantalkModal = {
@@ -2518,7 +2566,8 @@ function formIsExclusion(currentForm)
     ]
 
     let exclusions_by_class = [
-        'search-form' //search forms
+        'search-form', //search forms
+        'hs-form' // integrated hubspot plugin through dinamicRenderedForms logic
     ]
 
     let result = false
@@ -2692,6 +2741,7 @@ window.onload = function () {
 
     setTimeout(function () {
         ct_protect_external()
+        catchDinamicRenderedForm()
     }, 1500);
 };
 
@@ -2827,6 +2877,104 @@ function sendAjaxCheckingFormData(form, prev, formOriginal) {
     );
 }
 
+function catchDinamicRenderedForm() {
+    let forms = document.getElementsByTagName('form')
+
+    catchDinamicRenderedFormHandler(forms)
+
+    const frames = document.getElementsByTagName('iframe');
+    if ( frames.length > 0 ) {
+        for ( let j = 0; j < frames.length; j++ ) {
+            if ( frames[j].contentDocument == null ) {
+                continue;
+            }
+
+            const iframeForms = frames[j].contentDocument.forms;
+
+            if ( iframeForms.length === 0 ) {
+                return;
+            }
+
+            catchDinamicRenderedFormHandler(iframeForms, frames[j].contentDocument)
+        }
+    }
+}
+
+function catchDinamicRenderedFormHandler(forms, documentObject = document) {
+    let neededFormIds = [];
+    for (let form of forms) {
+        if (form.id.indexOf('hsForm') !== -1) {
+            neededFormIds.push(form.id)
+        }
+    }
+
+    for (let formId of neededFormIds) {
+        let form = documentObject.getElementById(formId);
+        form.onsubmit_prev = form.onsubmit;
+        form.onsubmit = sendAjaxCheckingDinamicFormData;
+    }
+}
+
+/**
+ * Sending Ajax for checking form data on dinamic rendered form
+ */
+function sendAjaxCheckingDinamicFormData(form) {
+    form.preventDefault();
+    var formEvent = form;
+    form = form.target;
+
+    var force_action = document.createElement("input");
+    force_action.name = 'action';
+    force_action.value = 'cleantalk_force_ajax_check';
+    force_action.type = 'hidden';
+    form.appendChild(force_action);
+
+    // Get visible fields and set cookie
+    var visible_fields = {};
+    visible_fields[0] = apbct_collect_visible_fields(form);
+    apbct_visible_fields_set_cookie( visible_fields );
+
+    var data = {};
+    var elems = form.elements;
+    elems = Array.prototype.slice.call(elems);
+
+    elems.forEach( function( elem, y ) {
+        if( elem.name === '' ) {
+            data['input_' + y] = elem.value;
+        } else {
+            data[elem.name] = elem.value;
+        }
+    });
+
+    apbct_public_sendAJAX(
+        data,
+        {
+            async: false,
+            callback: function(result) {
+                if( result.apbct === undefined || ! +result.apbct.blocked ) {
+                    form.onsubmit = null;
+
+                    // Call previous submit action
+                    if (form.onsubmit_prev instanceof Function) {
+                        setTimeout(function () {
+                            form.onsubmit_prev.call(form, formEvent);
+                        }, 500);
+                    }
+
+                    let subm_button = jQuery(form).find('input[type=submit]');
+                    if(subm_button.length !== 0) {
+                        subm_button[0].click();
+                        return;
+                    }
+                }
+
+                if (result.apbct !== undefined && +result.apbct.blocked) {
+                    ctParseBlockMessage(result);
+                }
+            }
+        }
+    );
+}
 function ct_check_internal(currForm){
     
 //Gathering data

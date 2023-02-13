@@ -10,10 +10,8 @@ namespace Cleantalk\Variables;
  *
  * @package \CleantalkSP\Variables
  */
-abstract class Server extends ServerVariables
+class Server extends ServerVariables
 {
-    protected static $instance;
-
     /**
      * Gets given $_SERVER variable and save it to memory
      *
@@ -24,8 +22,8 @@ abstract class Server extends ServerVariables
     protected function getVariable($name)
     {
         // Return from memory. From $this->server
-        if (isset(static::$instance->variables[$name])) {
-            return static::$instance->variables[$name];
+        if (isset(static::getInstance()->variables[$name])) {
+            return static::getInstance()->variables[$name];
         }
 
         $name = strtoupper($name);
@@ -137,5 +135,10 @@ abstract class Server extends ServerVariables
         return self::get('HTTPS') === 'on' ||
                self::get('HTTPS') === '1' ||
                self::get('SERVER_PORT') == '443';
+    }
+
+    protected function sanitizeDefault($value)
+    {
+        return sanitize_textarea_field($value);
     }
 }

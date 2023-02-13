@@ -69,7 +69,7 @@ abstract class ServerVariables
      */
     protected function rememberVariable($name, $value)
     {
-        static::$instance->variables[$name] = $value;
+        static::getInstance()->variables[$name] = $value;
     }
 
     /**
