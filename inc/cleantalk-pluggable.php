@@ -862,6 +862,14 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'Wp Booking System request';
         }
+
+        // Contact Form by Supsystic - having the direct integration
+        if (
+            apbct_is_plugin_active('contact-form-by-supsystic/cfs.php') &&
+            Post::get('action') === 'contact'
+        ) {
+            return 'Contact Form by Supsystic request';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
