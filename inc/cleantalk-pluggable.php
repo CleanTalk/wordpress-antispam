@@ -854,6 +854,14 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'WooCommerce add to cart trigger skip';
         }
+
+        //Skip WooCommerce addon - Wati - action for customers who came from Whatsapp
+        if (
+            apbct_is_plugin_active('woocommerce/woocommerce.php') &&
+            Post::get('action') === 'wati_cartflows_save_cart_abandonment_data'
+        ) {
+            return 'WooCommerce addon Wati add to cart trigger skip';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
