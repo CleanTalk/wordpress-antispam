@@ -847,6 +847,22 @@ function apbct_is_skip_request($ajax = false)
             return 'ActiveCampaign for WooCommerce skip';
         }
 
+        //Skip WooCommerce add to cart trigger
+        if (
+            apbct_is_plugin_active('woocommerce/woocommerce.php') &&
+            Post::get('action') === 'wdm_trigger_add_to_enq_cart'
+        ) {
+            return 'WooCommerce add to cart trigger skip';
+        }
+
+        //Skip WooCommerce addon - Wati - action for customers who came from Whatsapp
+        if (
+            apbct_is_plugin_active('woocommerce/woocommerce.php') &&
+            Post::get('action') === 'wati_cartflows_save_cart_abandonment_data'
+        ) {
+            return 'WooCommerce addon Wati add to cart trigger skip';
+        }
+
         //Skip RegistrationMagic service request
         if (
             apbct_is_plugin_active('custom-registration-form-builder-with-submission-manager/registration_magic.php') &&
