@@ -1667,6 +1667,7 @@ function ctFillDecodedEmailHandler(event) {
 		waiting_popup.setAttribute('id', 'apbct_popup')
 		let popup_text = document.createElement('p')
 		popup_text.setAttribute('id', 'apbct_popup_text')
+		popup_text.style.color = "black"
 		popup_text.innerText = "Please wait while CleanTalk decoding email addresses.."
 		waiting_popup.append(popup_text)
 		document.body.append(waiting_popup)
