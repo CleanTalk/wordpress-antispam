@@ -29,7 +29,7 @@ class State extends \Cleantalk\Common\State
      */
     public $storage = array();
 
-    public $def_settings = array(
+    public $default_settings = array(
 
         'apikey'                                   => '',
 
@@ -118,7 +118,7 @@ class State extends \Cleantalk\Common\State
 
     );
 
-    public $def_data = array(
+    public $default_data = array(
 
         // Plugin data
         'plugin_version'                 => APBCT_VERSION,
@@ -202,7 +202,7 @@ class State extends \Cleantalk\Common\State
         'check_exclusion_as_url'  => true,
     );
 
-    public $def_network_settings = array(
+    public $default_network_settings = array(
 
         // Access key
         'apikey'                                                        => '',
@@ -219,7 +219,7 @@ class State extends \Cleantalk\Common\State
         'multisite__use_settings_template_apply_for_current_list_sites' => '',
     );
 
-    public $def_network_data = array(
+    public $default_network_data = array(
         'key_is_ok'   => 0,
         'moderate'    => 0,
         'valid'       => 0,
@@ -229,7 +229,7 @@ class State extends \Cleantalk\Common\State
         'auto_update' => 0,
     );
 
-    public $def_remote_calls = array(
+    public $default_remote_calls = array(
 
         //Common
         'close_renew_banner'            => array('last_call' => 0, 'cooldown' => 0),
@@ -260,9 +260,12 @@ class State extends \Cleantalk\Common\State
 
         // Insert api key (RC without token)
         'post_api_key'       => array('last_call' => 0,),
+
+        //test
+        'test_rc' => array('last_call' => 0,),
     );
 
-    public $def_stats = array(
+    public $default_stats = array(
         'sfw'            => array(
             'sending_logs__timestamp' => 0,
             'last_send_time'          => 0,
@@ -314,7 +317,52 @@ class State extends \Cleantalk\Common\State
      */
     private $connection_reports;
 
+    private $updating_list = array();
+
     public $errors;
+
+    private function setAutoUpdatingList(){
+        $default_vars = get_class_vars(__CLASS__);
+        $output = array();
+        foreach ($default_vars as $var => $value ){
+            if (strpos($var,'default_') !== false){
+                $var = str_replace('default_','',$var);
+                $output[$var] = $value;
+            }
+        }
+        if (!empty($output)){
+            $this->updating_list = $output;
+            return true;
+        }
+        return false;
+    }
+
+    private function stateAutoUpdateDB()
+    {
+        if ( $this->setAutoUpdatingList() ) {
+            foreach ( $this->updating_list as $def_option_name => $def_value ) {
+                $value_from_db = $this->getOption($def_option_name);
+                if ( $value_from_db instanceof ArrayObject ) {
+                    $value_from_db = Helper::arrayObjectToArray($value_from_db);
+                }
+                //error_log('CTDEBUG: [' . __FUNCTION__ . '] [$option_from_db]: ' . var_export($value_from_db,true));
+                if ( !is_array($value_from_db) ) {
+                    $value_from_db = array($value_from_db);
+                }
+                if ( is_array($value_from_db) && is_array($def_value) ) {
+                    $new_set = array_merge($value_from_db, $def_value);
+                    //error_log('CTDEBUG: [' . __FUNCTION__ . '] [$def_option]: ' . var_export($def_option_name, true));
+                    $diff = array_diff_key($def_value, $value_from_db);
+                    //error_log('CTDEBUG: [' . __FUNCTION__ . '] [$diff]: ' . var_export($diff, true));
+                    if ( !empty($diff) ) {
+                        $new_set = new ArrayObject($new_set);
+                        $this->$def_option_name = $new_set;
+                        $this->save($def_option_name);
+                    }
+                }
+            }
+        }
+    }
 
     protected function setDefinitions()
     {
@@ -386,15 +434,15 @@ class State extends \Cleantalk\Common\State
         // Network settings
         $net_option                 = get_site_option($this->option_prefix . '_network_settings');
         $net_option                 = is_array($net_option)
-            ? array_merge($this->def_network_settings, $net_option)
-            : $this->def_network_settings;
+            ? array_merge($this->default_network_settings, $net_option)
+            : $this->default_network_settings;
         $this->network_settings     = new ArrayObject($net_option);
 
         // Network data
         $net_data             = get_site_option($this->option_prefix . '_network_data');
         $net_data             = is_array($net_data)
-            ? array_merge($this->def_network_data, $net_data)
-            : $this->def_network_data;
+            ? array_merge($this->default_network_data, $net_data)
+            : $this->default_network_data;
         $this->network_data   = new ArrayObject($net_data);
 
         foreach ($this->options as $option_name) {
@@ -402,12 +450,12 @@ class State extends \Cleantalk\Common\State
 
             // Setting default options
             if ($this->option_prefix . '_' . $option_name === 'cleantalk_settings') {
-                $option = is_array($option) ? array_merge($this->def_settings, $option) : $this->def_settings;
+                $option = is_array($option) ? array_merge($this->default_settings, $option) : $this->default_settings;
             }
 
             // Setting default data
             if ($this->option_prefix . '_' . $option_name === 'cleantalk_data') {
-                $option = is_array($option) ? array_merge($this->def_data, $option) : $this->def_data;
+                $option = is_array($option) ? array_merge($this->default_data, $option) : $this->default_data;
                 // Generate salt
                 $option['salt'] = empty($option['salt'])
                     ? str_pad((string)rand(0, getrandmax()), 6, '0') . str_pad((string)rand(0, getrandmax()), 6, '0')
@@ -421,12 +469,12 @@ class State extends \Cleantalk\Common\State
 
             // Default remote calls
             if ($this->option_prefix . '_' . $option_name === 'cleantalk_remote_calls') {
-                $option = is_array($option) ? array_merge($this->def_remote_calls, $option) : $this->def_remote_calls;
+                $option = is_array($option) ? array_merge($this->default_remote_calls, $option) : $this->default_remote_calls;
             }
 
             // Default statistics
             if ($this->option_prefix . '_' . $option_name === 'cleantalk_stats') {
-                $option = is_array($option) ? array_merge($this->def_stats, $option) : $this->def_stats;
+                $option = is_array($option) ? array_merge($this->default_stats, $option) : $this->default_stats;
             }
 
             // Default statistics
@@ -472,6 +520,8 @@ class State extends \Cleantalk\Common\State
             $this->moderate    = $this->network_data['moderate'];
             $this->notice_show = false;
         }
+
+        $this->stateAutoUpdateDB();
     }
 
     /**

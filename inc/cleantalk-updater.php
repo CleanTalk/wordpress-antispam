@@ -263,7 +263,7 @@ function apbct_update_to_5_118_0()
 function apbct_update_to_5_118_2()
 {
     global $apbct;
-    $apbct->data['connection_reports']          = $apbct->def_data['connection_reports'];
+    $apbct->data['connection_reports']          = $apbct->default_data['connection_reports'];
     $apbct->data['connection_reports']['since'] = date('d M');
     $apbct->saveData();
 }

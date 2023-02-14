@@ -2318,7 +2318,7 @@ function apbct_settings__validate($settings)
     }
 
     // Set missing settings.
-    foreach ( $apbct->def_settings as $setting => $value ) {
+    foreach ( $apbct->default_settings as $setting => $value ) {
         if ( ! isset($settings[$setting]) ) {
             $settings[$setting] = null;
             settype($settings[$setting], gettype($value));
@@ -2328,7 +2328,7 @@ function apbct_settings__validate($settings)
 
     // Set missing network settings.
     $stored_network_options = get_site_option($apbct->option_prefix . '_network_settings', array());
-    foreach ( $apbct->def_network_settings as $setting => $value ) {
+    foreach ( $apbct->default_network_settings as $setting => $value ) {
         if ( ! isset($settings[$setting]) ) {
             if ( ! array_key_exists($setting, $stored_network_options) ) {
                 $settings[$setting] = $value;

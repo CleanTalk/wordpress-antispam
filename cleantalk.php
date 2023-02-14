@@ -2164,7 +2164,7 @@ function apbct_rc__update_settings($source)
 {
     global $apbct;
 
-    foreach ( $apbct->def_settings as $setting => $def_value ) {
+    foreach ( $apbct->default_settings as $setting => $def_value ) {
         if ( array_key_exists($setting, $source) ) {
             $var  = $source[$setting];
             $type = gettype($def_value);
