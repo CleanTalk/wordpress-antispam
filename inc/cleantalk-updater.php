@@ -87,6 +87,8 @@ function apbct_run_update_actions($current_version, $new_version)
         }
     }
 
+    $apbct->runAutoUpdateVars();
+
     // Start SFW update
     if ($need_start_update_sfw) {
         apbct_sfw_update__init();

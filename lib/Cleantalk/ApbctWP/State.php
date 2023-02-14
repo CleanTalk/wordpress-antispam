@@ -260,9 +260,6 @@ class State extends \Cleantalk\Common\State
 
         // Insert api key (RC without token)
         'post_api_key'       => array('last_call' => 0,),
-
-        //test
-        'test_rc' => array('last_call' => 0,),
     );
 
     public $default_stats = array(
@@ -321,46 +318,51 @@ class State extends \Cleantalk\Common\State
 
     public $errors;
 
-    private function setAutoUpdatingList(){
+    private function setAutoUpdateVarsList()
+    {
         $default_vars = get_class_vars(__CLASS__);
         $output = array();
-        foreach ($default_vars as $var => $value ){
-            if (strpos($var,'default_') !== false){
-                $var = str_replace('default_','',$var);
+        foreach ( $default_vars as $var => $value ) {
+            if ( strpos($var, 'default_') !== false ) {
+                $var = str_replace('default_', '', $var);
                 $output[$var] = $value;
             }
         }
-        if (!empty($output)){
+        if ( !empty($output) ) {
             $this->updating_list = $output;
             return true;
         }
         return false;
     }
 
-    private function stateAutoUpdateDB()
+    public function runAutoUpdateVars()
     {
-        if ( $this->setAutoUpdatingList() ) {
+        $save_differs = array();
+        if ( $this->setAutoUpdateVarsList() ) {
             foreach ( $this->updating_list as $def_option_name => $def_value ) {
                 $value_from_db = $this->getOption($def_option_name);
                 if ( $value_from_db instanceof ArrayObject ) {
                     $value_from_db = Helper::arrayObjectToArray($value_from_db);
                 }
-                //error_log('CTDEBUG: [' . __FUNCTION__ . '] [$option_from_db]: ' . var_export($value_from_db,true));
                 if ( !is_array($value_from_db) ) {
                     $value_from_db = array($value_from_db);
                 }
                 if ( is_array($value_from_db) && is_array($def_value) ) {
-                    $new_set = array_merge($value_from_db, $def_value);
-                    //error_log('CTDEBUG: [' . __FUNCTION__ . '] [$def_option]: ' . var_export($def_option_name, true));
-                    $diff = array_diff_key($def_value, $value_from_db);
-                    //error_log('CTDEBUG: [' . __FUNCTION__ . '] [$diff]: ' . var_export($diff, true));
-                    if ( !empty($diff) ) {
-                        $new_set = new ArrayObject($new_set);
+                    $difference = array_diff_key($def_value, $value_from_db);
+                    $has_key_difference = !empty($difference);
+                    if ( !empty($has_key_difference) ) {
+                        $save_differs[$def_option_name] = array(date('Y-m-d H:i:s') => $difference);
+                        $merged_arrays = array_merge($value_from_db, $def_value);
+                        $new_set = new ArrayObject($merged_arrays);
                         $this->$def_option_name = $new_set;
                         $this->save($def_option_name);
                     }
                 }
             }
+        }
+        if ( !empty($save_differs) ) {
+            $this->storage['data']['auto_update_vars__call'] = $save_differs;
+            $this->saveData();
         }
     }
 
@@ -520,8 +522,6 @@ class State extends \Cleantalk\Common\State
             $this->moderate    = $this->network_data['moderate'];
             $this->notice_show = false;
         }
-
-        $this->stateAutoUpdateDB();
     }
 
     /**
