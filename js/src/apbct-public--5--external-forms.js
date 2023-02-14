@@ -13,7 +13,7 @@ function ct_protect_external() {
 
                 //skip excluded forms
                 if ( formIsExclusion(currentForm)) {
-                    return
+                    continue;
                 }
 
                 // Ajax checking for the integrated forms

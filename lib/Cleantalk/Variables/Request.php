@@ -10,10 +10,8 @@ namespace Cleantalk\Variables;
  *
  * @package Cleantalk\Variables
  */
-abstract class Request extends ServerVariables
+class Request extends ServerVariables
 {
-    protected static $instance;
-
     /**
      * Gets given $_REQUEST variable and save it to memory
      *
@@ -25,8 +23,8 @@ abstract class Request extends ServerVariables
     protected function getVariable($name)
     {
         // Return from memory. From $this->variables
-        if (isset(static::$instance->variables[$name])) {
-            return static::$instance->variables[$name];
+        if (isset(static::getInstance()->variables[$name])) {
+            return static::getInstance()->variables[$name];
         }
 
         $value = '';
@@ -48,5 +46,10 @@ abstract class Request extends ServerVariables
         static::getInstance()->rememberVariable($name, $value);
 
         return $value;
+    }
+
+    protected function sanitizeDefault($value)
+    {
+        return sanitize_textarea_field($value);
     }
 }
