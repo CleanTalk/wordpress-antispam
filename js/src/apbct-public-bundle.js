@@ -2910,7 +2910,7 @@ function catchDinamicRenderedFormHandler(forms, documentObject = document) {
 
     for (let formId of neededFormIds) {
         let form = documentObject.getElementById(formId);
-        form.onsubmit_prev = form.onsubmit;
+        form.apbct_external_onsubmit_prev = form.onsubmit;
         form.onsubmit = sendAjaxCheckingDinamicFormData;
     }
 }
@@ -2955,9 +2955,9 @@ function sendAjaxCheckingDinamicFormData(form) {
                     form.onsubmit = null;
 
                     // Call previous submit action
-                    if (form.onsubmit_prev instanceof Function) {
+                    if (form.apbct_external_onsubmit_prev instanceof Function) {
                         setTimeout(function () {
-                            form.onsubmit_prev.call(form, formEvent);
+                            form.apbct_external_onsubmit_prev.call(form, formEvent);
                         }, 500);
                     }
 
