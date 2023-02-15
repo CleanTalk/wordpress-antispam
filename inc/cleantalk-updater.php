@@ -87,7 +87,8 @@ function apbct_run_update_actions($current_version, $new_version)
         }
     }
 
-    $apbct->runAutoUpdateVars();
+    //run automatic default stats filling
+    $apbct->runAutoSaveStateVars();
 
     // Start SFW update
     if ($need_start_update_sfw) {

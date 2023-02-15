@@ -29,6 +29,9 @@ class State extends \Cleantalk\Common\State
      */
     public $storage = array();
 
+    /**
+     * @var array
+     */
     public $default_settings = array(
 
         'apikey'                                   => '',
@@ -118,6 +121,9 @@ class State extends \Cleantalk\Common\State
 
     );
 
+    /**
+     * @var array
+     */
     public $default_data = array(
 
         // Plugin data
@@ -202,6 +208,9 @@ class State extends \Cleantalk\Common\State
         'check_exclusion_as_url'  => true,
     );
 
+    /**
+     * @var array
+     */
     public $default_network_settings = array(
 
         // Access key
@@ -219,6 +228,9 @@ class State extends \Cleantalk\Common\State
         'multisite__use_settings_template_apply_for_current_list_sites' => '',
     );
 
+    /**
+     * @var array
+     */
     public $default_network_data = array(
         'key_is_ok'   => 0,
         'moderate'    => 0,
@@ -229,6 +241,9 @@ class State extends \Cleantalk\Common\State
         'auto_update' => 0,
     );
 
+    /**
+     * @var \int[][]
+     */
     public $default_remote_calls = array(
 
         //Common
@@ -262,6 +277,9 @@ class State extends \Cleantalk\Common\State
         'post_api_key'       => array('last_call' => 0,),
     );
 
+    /**
+     * @var array
+     */
     public $default_stats = array(
         'sfw'            => array(
             'sending_logs__timestamp' => 0,
@@ -298,6 +316,9 @@ class State extends \Cleantalk\Common\State
         ),
     );
 
+    /**
+     * @var array
+     */
     private $default_fw_stats = array(
         'firewall_updating'            => false,
         'updating_folder'              => '',
@@ -318,6 +339,10 @@ class State extends \Cleantalk\Common\State
 
     public $errors;
 
+    /**
+     * Create vars list. Use all the vars that has 'default_' in theirs name.
+     * @return bool
+     */
     private function setAutoUpdateVarsList()
     {
         $default_vars = get_class_vars(__CLASS__);
@@ -335,25 +360,40 @@ class State extends \Cleantalk\Common\State
         return false;
     }
 
-    public function runAutoUpdateVars()
+    /**
+     * Automatic saving of default State vars to DB options if is not persist in DB.
+     */
+    public function runAutoSaveStateVars()
     {
+        //further debug data collection
         $save_differs = array();
+        //collect list of default vars
         if ( $this->setAutoUpdateVarsList() ) {
-            foreach ( $this->updating_list as $def_option_name => $def_value ) {
+            //check every var with persists in DB
+            foreach ( $this->updating_list as $def_option_name => $default_value ) {
                 $value_from_db = $this->getOption($def_option_name);
+                //Array object conversion to array
                 if ( $value_from_db instanceof ArrayObject ) {
                     $value_from_db = Helper::arrayObjectToArray($value_from_db);
                 }
-                if ( !is_array($value_from_db) ) {
-                    $value_from_db = array($value_from_db);
-                }
-                if ( is_array($value_from_db) && is_array($def_value) ) {
-                    $difference = array_diff_key($def_value, $value_from_db);
-                    $has_key_difference = !empty($difference);
-                    if ( !empty($has_key_difference) ) {
-                        $save_differs[$def_option_name] = array(date('Y-m-d H:i:s') => $difference);
-                        $merged_arrays = array_merge($value_from_db, $def_value);
+                if ( is_array($default_value) ) {
+                    //if value is not array - convert it to prevent further types mismatch
+                    if ( !is_array($value_from_db) ) {
+                        $value_from_db = array($value_from_db);
+                    }
+                    //use arrays difference check to improve execution time (this is more than 20 times faster neither than
+                    //execute array merge recursive directly without check)
+                    $has_keys_difference = Helper::arraysHasKeysDifferenceRecursive($default_value, $value_from_db);
+                    if ( !empty($has_keys_difference) ) {
+                        //merge arrays recursively
+                        $merged_arrays = Helper::arrayMergeSaveNumericKeysRecursive($default_value, $value_from_db);
                         $new_set = new ArrayObject($merged_arrays);
+                        //collect facts of merging
+                        $save_differs[$def_option_name] = array(
+                            'default_value_merged_on' => date('Y-m-d H:i:s'),
+                            'merged_var_array' => $new_set,
+                        );
+                        //save to db
                         $this->$def_option_name = $new_set;
                         $this->save($def_option_name);
                     }
@@ -361,6 +401,7 @@ class State extends \Cleantalk\Common\State
             }
         }
         if ( !empty($save_differs) ) {
+            //save this method calls if set default values to storage
             $this->storage['data']['auto_update_vars__call'] = $save_differs;
             $this->saveData();
         }
