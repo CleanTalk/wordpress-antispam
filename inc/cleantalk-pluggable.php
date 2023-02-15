@@ -847,12 +847,44 @@ function apbct_is_skip_request($ajax = false)
             return 'ActiveCampaign for WooCommerce skip';
         }
 
+        //Skip WooCommerce add to cart trigger
+        if (
+            apbct_is_plugin_active('woocommerce/woocommerce.php') &&
+            Post::get('action') === 'wdm_trigger_add_to_enq_cart'
+        ) {
+            return 'WooCommerce add to cart trigger skip';
+        }
+
+        //Skip WooCommerce addon - Wati - action for customers who came from Whatsapp
+        if (
+            apbct_is_plugin_active('woocommerce/woocommerce.php') &&
+            Post::get('action') === 'wati_cartflows_save_cart_abandonment_data'
+        ) {
+            return 'WooCommerce addon Wati add to cart trigger skip';
+        }
+
         //Skip RegistrationMagic service request
         if (
             apbct_is_plugin_active('custom-registration-form-builder-with-submission-manager/registration_magic.php') &&
             Post::get('action') === 'rm_user_exists'
         ) {
             return 'RegistrationMagic service request';
+        }
+
+        //Wp Booking System request - having the direct integration
+        if (
+            apbct_is_plugin_active('wp-booking-system/wp-booking-system.php') &&
+            Post::get('action') === 'wpbs_submit_form'
+        ) {
+            return 'Wp Booking System request';
+        }
+
+        // Contact Form by Supsystic - having the direct integration
+        if (
+            apbct_is_plugin_active('contact-form-by-supsystic/cfs.php') &&
+            Post::get('action') === 'contact'
+        ) {
+            return 'Contact Form by Supsystic request';
         }
     } else {
         /*****************************************/

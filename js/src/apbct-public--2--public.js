@@ -394,7 +394,7 @@ function apbct_ready(){
 				(form.name && form.name.toString().indexOf('tribe-bar-form') !== -1) ||  // The Events Calendar
 				(form.id && form.id === 'ihf-login-form') || //Optima Express login
 				(form.id && form.id === 'subscriberForm' && form.action.toString().indexOf('actionType=update') !== -1) || //Optima Express update
-				(form.id && form.id === 'frmCalc' !== -1) //nobletitle-calc
+				(form.id && form.id === 'frmCalc') //nobletitle-calc
 			) {
 				continue;
 			}
@@ -451,11 +451,16 @@ function apbct_ready(){
 	 * WordPress Search form processing
 	 */
 	for (const _form of document.forms) {
-		if ( (
-			_form.getAttribute('id') === 'searchform'
-			|| (_form.getAttribute('class') !== null && _form.getAttribute('class').indexOf('search-form') !== -1)
-			|| (_form.getAttribute('role') !== null && _form.getAttribute('role').indexOf('search') !== -1)
-		) && ctPublic.data__cookies_type === 'none' ) {
+		if (
+			typeof ctPublic !== 'undefined'
+			&& ctPublic.settings__forms__search_test === '1'
+			&& ctPublic.data__cookies_type === 'none'
+			&& (
+				_form.getAttribute('id') === 'searchform'
+				|| (_form.getAttribute('class') !== null && _form.getAttribute('class').indexOf('search-form') !== -1)
+				|| (_form.getAttribute('role') !== null && _form.getAttribute('role').indexOf('search') !== -1)
+				)
+		) {
 			_form.apbctSearchPrevOnsubmit = _form.onsubmit;
 			_form.onsubmit = (e) => {
 				const noCookie = _form.querySelector('[name="ct_no_cookie_hidden_field"]');
@@ -508,6 +513,7 @@ function ctFillDecodedEmailHandler(event) {
 		waiting_popup.setAttribute('id', 'apbct_popup')
 		let popup_text = document.createElement('p')
 		popup_text.setAttribute('id', 'apbct_popup_text')
+		popup_text.style.color = "black"
 		popup_text.innerText = "Please wait while CleanTalk decoding email addresses.."
 		waiting_popup.append(popup_text)
 		document.body.append(waiting_popup)
@@ -961,6 +967,17 @@ function ctGetPageForms(){
 	return false
 }
 
+function ctNoCookieFormIsExcludedFromNcField(form){
+
+	//ajax search pro exclusion
+	let nc_field_exclusions_sign = form.parentNode
+	if (nc_field_exclusions_sign && nc_field_exclusions_sign.classList.contains('proinput')){
+		return 'ajax search pro exclusion'
+	}
+
+	return false
+}
+
 function ctNoCookieAttachHiddenFieldsToForms(){
 
 	if (ctPublic.data__cookies_type !== 'none'){
@@ -976,18 +993,25 @@ function ctNoCookieAttachHiddenFieldsToForms(){
 			for ( let j = 0; j < fields.length; j++ ){
 				fields[j].outerHTML = ""
 			}
+
+			if ( ctNoCookieFormIsExcludedFromNcField(document.forms[i]) ) {
+				return
+			}
+
 			//ignore forms with get method @todo We need to think about this
 			if (document.forms[i].getAttribute('method') === null
 				||
 				document.forms[i].getAttribute('method').toLowerCase() === 'post'){
 				// add new set
 				document.forms[i].append(ctNoCookieConstructHiddenField());
-			}
-			if ( (
-				document.forms[i].getAttribute('id') === 'searchform'
-				|| (document.forms[i].getAttribute('class') !== null && document.forms[i].getAttribute('class').indexOf('search-form') !== -1)
-				|| (document.forms[i].getAttribute('role') !== null && document.forms[i].getAttribute('role').indexOf('search') !== -1)
-			)){
+			} else if (typeof ctPublic !== 'undefined'
+				&& ctPublic.settings__forms__search_test === '1'
+				&& (
+					document.forms[i].getAttribute('id') === 'searchform'
+					|| (document.forms[i].getAttribute('class') !== null && document.forms[i].getAttribute('class').indexOf('search-form') !== -1)
+					|| (document.forms[i].getAttribute('role') !== null && document.forms[i].getAttribute('role').indexOf('search') !== -1)
+				)
+			) {
 				document.forms[i].append(ctNoCookieConstructHiddenField('submit'));
 			}
 		}

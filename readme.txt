@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 4.7
 Tested up to: 6.1
 Requires PHP: 5.6
-Stable tag: 6.3.1
+Stable tag: 6.4
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -450,6 +450,26 @@ Yes, it is. Please read this article,
 12. SpamFireWall log.
 
 == Changelog ==
+
+= 6.4 Feb 16 2023 =
+#### New integrations added ⚙, Email Encoder functionality improved 😎, CDN support improved 🐸, many integrations fixed 🐞 and some minor issues fixed 💪🏼
+* New. Added mail encoding via buffer.
+* New. Localize data with wp_head (support Ezoic, CF, LS cache etc).
+* New. Integration. WP Booking System plugin integration implemented.
+* Fix. Skip Ajax Search Pro forms from hidden field adding.
+* Fix. Cookie apbct_timestamp is set as HttpOnly.
+* Add. Integrations. Add HubSpot integration, extend logic for external forms handler.
+* Fix. Common. CAPD catching fixed.
+* Update. Integrations. Add handler for run previous onsubmit action in dinamic rendered external forms.
+* Fix. Integration. RegistrationMagic service requests excluded.
+* Fix. Common. Collecting JS on custom forms fixed.
+* Fix. Integrations. Fix onload event handler overwrited.
+* Fix. JS. Gathering visible fields fixed.
+* Fix. Integrations. Check each external forms on page, instead of return with first exclusion.
+* Fix. Integrations. Skip woocommerce add to cart trigger.
+* Fix. Integrations. Woocommerce add excluded condition for password recovery form.
+* Fix. Integrations. Skip WooCommerce addon - Wati - action for customers who came from Whatsapp.
+* Fix. EmailEncoder. Add style color setting to popup text element.
 
 = 6.3.1 Feb 02 2023 =
 * Fix. Integrations. Add rules for catching metform fetch.

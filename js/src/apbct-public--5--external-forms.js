@@ -13,7 +13,7 @@ function ct_protect_external() {
 
                 //skip excluded forms
                 if ( formIsExclusion(currentForm)) {
-                    return
+                    continue;
                 }
 
                 // Ajax checking for the integrated forms
@@ -68,7 +68,8 @@ function formIsExclusion(currentForm)
     ]
 
     let exclusions_by_class = [
-        'search-form' //search forms
+        'search-form', //search forms
+        'hs-form' // integrated hubspot plugin through dinamicRenderedForms logic
     ]
 
     let result = false
@@ -242,6 +243,7 @@ window.onload = function () {
 
     setTimeout(function () {
         ct_protect_external()
+        catchDinamicRenderedForm()
     }, 1500);
 };
 
@@ -369,6 +371,105 @@ function sendAjaxCheckingFormData(form, prev, formOriginal) {
                     }
 
                 }
+                if (result.apbct !== undefined && +result.apbct.blocked) {
+                    ctParseBlockMessage(result);
+                }
+            }
+        }
+    );
+}
+
+function catchDinamicRenderedForm() {
+    let forms = document.getElementsByTagName('form')
+
+    catchDinamicRenderedFormHandler(forms)
+
+    const frames = document.getElementsByTagName('iframe');
+    if ( frames.length > 0 ) {
+        for ( let j = 0; j < frames.length; j++ ) {
+            if ( frames[j].contentDocument == null ) {
+                continue;
+            }
+
+            const iframeForms = frames[j].contentDocument.forms;
+
+            if ( iframeForms.length === 0 ) {
+                return;
+            }
+
+            catchDinamicRenderedFormHandler(iframeForms, frames[j].contentDocument)
+        }
+    }
+}
+
+function catchDinamicRenderedFormHandler(forms, documentObject = document) {
+    let neededFormIds = [];
+    for (let form of forms) {
+        if (form.id.indexOf('hsForm') !== -1) {
+            neededFormIds.push(form.id)
+        }
+    }
+
+    for (let formId of neededFormIds) {
+        let form = documentObject.getElementById(formId);
+        form.apbct_external_onsubmit_prev = form.onsubmit;
+        form.onsubmit = sendAjaxCheckingDinamicFormData;
+    }
+}
+
+/**
+ * Sending Ajax for checking form data on dinamic rendered form
+ */
+function sendAjaxCheckingDinamicFormData(form) {
+    form.preventDefault();
+    var formEvent = form;
+    form = form.target;
+
+    var force_action = document.createElement("input");
+    force_action.name = 'action';
+    force_action.value = 'cleantalk_force_ajax_check';
+    force_action.type = 'hidden';
+    form.appendChild(force_action);
+
+    // Get visible fields and set cookie
+    var visible_fields = {};
+    visible_fields[0] = apbct_collect_visible_fields(form);
+    apbct_visible_fields_set_cookie( visible_fields );
+
+    var data = {};
+    var elems = form.elements;
+    elems = Array.prototype.slice.call(elems);
+
+    elems.forEach( function( elem, y ) {
+        if( elem.name === '' ) {
+            data['input_' + y] = elem.value;
+        } else {
+            data[elem.name] = elem.value;
+        }
+    });
+
+    apbct_public_sendAJAX(
+        data,
+        {
+            async: false,
+            callback: function(result) {
+                if( result.apbct === undefined || ! +result.apbct.blocked ) {
+                    form.onsubmit = null;
+
+                    // Call previous submit action
+                    if (form.apbct_external_onsubmit_prev instanceof Function) {
+                        setTimeout(function () {
+                            form.apbct_external_onsubmit_prev.call(form, formEvent);
+                        }, 500);
+                    }
+
+                    let subm_button = jQuery(form).find('input[type=submit]');
+                    if(subm_button.length !== 0) {
+                        subm_button[0].click();
+                        return;
+                    }
+                }
+
                 if (result.apbct !== undefined && +result.apbct.blocked) {
                     ctParseBlockMessage(result);
                 }
