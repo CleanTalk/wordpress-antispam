@@ -335,7 +335,7 @@ class State extends \Cleantalk\Common\State
      */
     private $connection_reports;
 
-    private $updating_list = array();
+    private $auto_save_defaults_list = array();
 
     public $errors;
 
@@ -343,7 +343,7 @@ class State extends \Cleantalk\Common\State
      * Create vars list. Use all the vars that has 'default_' in theirs name.
      * @return bool
      */
-    private function setAutoUpdateVarsList()
+    private function setAutoSaveVarsList()
     {
         $default_vars = get_class_vars(__CLASS__);
         $output = array();
@@ -354,7 +354,7 @@ class State extends \Cleantalk\Common\State
             }
         }
         if ( !empty($output) ) {
-            $this->updating_list = $output;
+            $this->auto_save_defaults_list = $output;
             return true;
         }
         return false;
@@ -368,9 +368,9 @@ class State extends \Cleantalk\Common\State
         //further debug data collection
         $save_differs = array();
         //collect list of default vars
-        if ( $this->setAutoUpdateVarsList() ) {
+        if ( $this->setAutoSaveVarsList() ) {
             //check every var with persists in DB
-            foreach ( $this->updating_list as $def_option_name => $default_value ) {
+            foreach ( $this->auto_save_defaults_list as $def_option_name => $default_value ) {
                 $value_from_db = $this->getOption($def_option_name);
                 //Array object conversion to array
                 if ( $value_from_db instanceof ArrayObject ) {
