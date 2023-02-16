@@ -2928,7 +2928,9 @@ function apbct_form__gravityForms__testSpam($is_spam, $form, $entry)
                             'f_type'       => $field_type,
                             'f_data'       => $entry[$input_id]
                         );
-                        $form_fields_for_ct['input_' . $input_id] = $entry[$input_id];
+                        if ($field_type !== 'checkbox' && $field_type !== 'radio') {
+                            $form_fields_for_ct['input_' . $input_id] = $entry[$input_id];
+                        }
                     }
                 }
             } else {
@@ -2939,7 +2941,9 @@ function apbct_form__gravityForms__testSpam($is_spam, $form, $entry)
                         'f_type'       => $field_type,
                         'f_data'       => $entry[$field_id]
                     );
-                    $form_fields_for_ct['input_' . $field_id] = $entry[$field_id];
+                    if ($field_type !== 'checkbox' && $field_type !== 'radio') {
+                        $form_fields_for_ct['input_' . $field_id] = $entry[$field_id];
+                    }
                 }
             }
         }
