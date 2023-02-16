@@ -29,10 +29,6 @@ class WPUserMeta extends IntegrationBase
             $data = ct_get_fields_any($input_array);
             $data['register'] = true;
 
-            if ( Post::get('is_ajax') === 'true' ) {
-                return null;
-            }
-
             return $data;
         }
 
