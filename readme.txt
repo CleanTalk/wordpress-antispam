@@ -470,6 +470,7 @@ Yes, it is. Please read this article,
 * Fix. Integrations. Woocommerce add excluded condition for password recovery form.
 * Fix. Integrations. Skip WooCommerce addon - Wati - action for customers who came from Whatsapp.
 * Fix. EmailEncoder. Add style color setting to popup text element.
+* Fix. Integrations. User meta through is_ajax param.
 
 = 6.3.1 Feb 02 2023 =
 * Fix. Integrations. Add rules for catching metform fetch.
