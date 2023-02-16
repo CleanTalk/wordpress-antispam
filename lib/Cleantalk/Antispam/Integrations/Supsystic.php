@@ -27,7 +27,7 @@ class Supsystic extends IntegrationBase
             $nickname .= sanitize_text_field($_POST['fields']['last_name']);
         }
 
-        return ct_get_fields_any($input_array, '', $nickname);
+        return ct_gfa($input_array, '', $nickname);
     }
 
     public function doBlock($message)
