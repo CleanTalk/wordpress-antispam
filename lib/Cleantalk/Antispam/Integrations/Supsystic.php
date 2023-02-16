@@ -14,7 +14,20 @@ class Supsystic extends IntegrationBase
          */
         $input_array = apply_filters('apbct__filter_post', $_POST);
 
-        return ct_get_fields_any($input_array);
+        $nickname = '';
+        if ( isset($_POST['fields']) && isset($_POST['fields']['name']) ) {
+            $nickname .= sanitize_text_field($_POST['fields']['name']);
+        }
+        if ( isset($_POST['fields']) && isset($_POST['fields']['first_name']) ) {
+            $nickname .= ! empty($nickname) ? ' ' : '';
+            $nickname .= sanitize_text_field($_POST['fields']['first_name']);
+        }
+        if ( isset($_POST['fields']) && isset($_POST['fields']['last_name']) ) {
+            $nickname .= ! empty($nickname) ? ' ' : '';
+            $nickname .= sanitize_text_field($_POST['fields']['last_name']);
+        }
+
+        return ct_get_fields_any($input_array, '', $nickname);
     }
 
     public function doBlock($message)
