@@ -493,7 +493,7 @@ function apbct_admin__enqueue_scripts($hook)
 
         // Crunch. Response contains error.
         if ( ! empty($apbct->data['brief_data']['error']) ) {
-            $apbct->data['brief_data'] = array_merge($apbct->data['brief_data'], $apbct->def_data['brief_data']);
+            $apbct->data['brief_data'] = array_merge($apbct->data['brief_data'], $apbct->default_data['brief_data']);
         }
 
         if ( isset($apbct->data['brief_data']['spam_stat']) && is_array($apbct->data['brief_data']['spam_stat']) ) {
