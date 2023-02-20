@@ -40,7 +40,7 @@ let cleantalkModal = {
         };
         var overlayCss = {
             styles: {
-                "z-index": "9999",
+                "z-index": "9999999999",
                 "position": "fixed",
                 "top": "0",
                 "left": "0",
