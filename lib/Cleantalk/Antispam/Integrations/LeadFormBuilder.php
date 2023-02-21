@@ -24,7 +24,7 @@ class LeadFormBuilder extends IntegrationBase
                     unset($query_array[$param]);
                 }
             }
-            $_POST['fdata'] = http_build_query($query_array, null, null, PHP_QUERY_RFC3986);
+            $_POST['fdata'] = http_build_query($query_array, '', '&', PHP_QUERY_RFC3986);
         }
 
         return ct_gfa($_POST);
