@@ -2568,7 +2568,8 @@ function formIsExclusion(currentForm)
 
     let exclusions_by_class = [
         'search-form', //search forms
-        'hs-form' // integrated hubspot plugin through dinamicRenderedForms logic
+        'hs-form', // integrated hubspot plugin through dinamicRenderedForms logic
+        'ihc-form-create-edit' // integrated Ultimate Membership Pro plugin through dinamicRenderedForms logic
     ]
 
     let result = false
@@ -2907,6 +2908,11 @@ function catchDinamicRenderedFormHandler(forms, documentObject = document) {
         if (form.id.indexOf('hsForm') !== -1) {
             neededFormIds.push(form.id)
         }
+        if (form.id.indexOf('createuser') !== -1 
+            && (form.classList !== undefined && form.classList.contains('ihc-form-create-edit'))
+        ) {
+            neededFormIds.push(form.id)
+        }
     }
 
     for (let formId of neededFormIds) {
@@ -2921,6 +2927,7 @@ function catchDinamicRenderedFormHandler(forms, documentObject = document) {
  */
 function sendAjaxCheckingDinamicFormData(form) {
     form.preventDefault();
+    form.stopImmediatePropagation();
     var formEvent = form;
     form = form.target;
 
