@@ -18,9 +18,12 @@ class LeadFormBuilder extends IntegrationBase
             parse_str($fdata, $query_array);
             foreach ($query_array as $param => $param_value) {
                 if (strpos((string)$param, 'ct_no_cookie_hidden_field') !== false || strpos($param_value, '_ct_no_cookie_data_') !== false) {
-                    \Cleantalk\ApbctWP\Variables\NoCookie::setDataFromHiddenField($query_array[$param]);
-                    $apbct->stats['no_cookie_data_taken'] = true;
-                    $apbct->save('stats');
+                    if ($apbct->data['cookies_type'] === 'none') {
+                        \Cleantalk\ApbctWP\Variables\NoCookie::setDataFromHiddenField($query_array[$param]);
+                        $apbct->stats['no_cookie_data_taken'] = true;
+                        $apbct->save('stats');
+                    }
+
                     unset($query_array[$param]);
                 }
             }
