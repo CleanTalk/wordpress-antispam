@@ -970,9 +970,7 @@ function ct_ajax_hook($message_obj = null)
                     'apbct' => array(
                         'blocked'     => true,
                         'comment'     => $ct_result->comment,
-                        'stop_script' => Post::hasString('action', 'tve_leads_ajax_')
-                            ? 1
-                            : 0
+                        'stop_script' => apbct__stop_script_after_ajax_checking()
                     )
                 )
             )
@@ -999,4 +997,16 @@ function ct_ajax_hook($message_obj = null)
     }
 
     return null;
+}
+
+function apbct__stop_script_after_ajax_checking()
+{
+    if (
+        Post::hasString('action', 'tve_leads_ajax_') ||
+        (Post::hasString('action', 'xoo_el_form_action') && Post::hasString('_xoo_el_form', 'register'))
+    ) {
+        return 1;
+    }
+
+    return 0;
 }
