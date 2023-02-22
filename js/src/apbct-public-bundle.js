@@ -1016,6 +1016,7 @@ function apbct_public_sendAJAX(data, params, obj){
     _params["callback_params"] = params.callback_params || null;
     _params["async"]        = params.async || true;
     _params["notJson"]     = params.notJson     || null;
+    _params["responseType"]= params.notJson ? 'text' : 'json';
     _params["timeout"]     = params.timeout     || 15000;
     _params["obj"]         = obj                || null;
     _params["button"]      = params.button      || null;
