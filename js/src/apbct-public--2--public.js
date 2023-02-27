@@ -951,11 +951,11 @@ function ctNoCookieConstructHiddenField(type){
 	no_cookie_data = JSON.stringify(no_cookie_data)
 	no_cookie_data = '_ct_no_cookie_data_' + btoa(no_cookie_data)
 	field = document.createElement('input')
-	field.setAttribute('id','ct_no_cookie_hidden_field')
 	field.setAttribute('name','ct_no_cookie_hidden_field')
 	field.setAttribute('value', no_cookie_data)
 	field.setAttribute('type', inputType)
 	field.classList.add('apbct_special_field');
+	field.classList.add('ct_no_cookie_hidden_field');
 	return field
 }
 
@@ -989,7 +989,7 @@ function ctNoCookieAttachHiddenFieldsToForms(){
 	if (forms){
 		for ( let i = 0; i < forms.length; i++ ){
 			//remove old sets
-			let fields = forms[i].querySelectorAll('#ct_no_cookie_hidden_field')
+			let fields = forms[i].querySelectorAll('.ct_no_cookie_hidden_field')
 			for ( let j = 0; j < fields.length; j++ ){
 				fields[j].outerHTML = ""
 			}
