@@ -12,6 +12,7 @@ class LeadFormBuilder extends IntegrationBase
             return null;
         }
 
+        $data_for_test = array();
         // The string was created by the http_build_query function
         if (!empty($_POST['fdata'])) {
             $fdata = $_POST['fdata'];
@@ -25,12 +26,18 @@ class LeadFormBuilder extends IntegrationBase
                     }
 
                     unset($query_array[$param]);
+                } else {
+                    $data_for_test[$param] = $param_value;
                 }
+            }
+            // remove visible fields
+            if (isset($query_array['apbct_visible_fields'])) {
+                unset($query_array['apbct_visible_fields']);
             }
             $_POST['fdata'] = http_build_query($query_array, '', '&', PHP_QUERY_RFC3986);
         }
 
-        return ct_gfa($_POST);
+        return ct_gfa($data_for_test);
     }
 
     public function doBlock($message)
