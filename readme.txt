@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 4.7
 Tested up to: 6.1
 Requires PHP: 5.6
-Stable tag: 6.4.1
+Stable tag: 6.5
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -450,6 +450,19 @@ Yes, it is. Please read this article,
 12. SpamFireWall log.
 
 == Changelog ==
+
+= 6.5 Mar 02 2023 =
+* New. State autoupdating. Set new settings values during plugin update.
+* New. Integrations. Integration with LeadFormBuilder.
+* New. Integrations. Added Ultimate Membership Pro.
+* Fix. Integrations. Exclude checkbox and radio inputs from message data.
+* Fix: Fixed z-index overlay
+* Fix: Added stopping script for easylogin
+* Fix. Code. Ajax request initialization fixed.
+* Fix. JS localizing. JS object defining fixed.
+* Fix. Code. WP-Rocket JS minification preventing.
+* Fix. Code. No cookie fields ID attribute removed.
+* Fix. Remote calls. Getting template RC fixed.
 
 = 6.4.1 Feb 20 2023 =
 * Fix. Search fields. Add unreachable option.
