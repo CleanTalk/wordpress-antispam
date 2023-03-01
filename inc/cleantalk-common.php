@@ -1538,3 +1538,26 @@ function apbct_validate_api_response__service_template_get($template_id, $templa
         'options_site' => $options_site
     );
 }
+
+/**
+ * Set new settings template called by remote call.
+ * @param string $template_id - template id that setting up
+ * @param array $options_template_data - validated plugin options from cloud
+ * @param string $api_key - current site api key
+ * @return string - JSON string of result
+ */
+function apbct_rc__service_template_set($template_id, array $options_template_data, $api_key)
+{
+    $templates_object = new CleantalkSettingsTemplates($api_key);
+    $settings_set_result = $templates_object->setPluginOptions(
+        $template_id,
+        $options_template_data['template_name'],
+        $options_template_data['options_site']
+    );
+
+    $result = $settings_set_result
+        ? json_encode(array('OK' => 'Settings updated'))
+        : json_encode(array('ERROR' => 'Internal settings updating error'));
+
+    return $result !== false ? $result : '{"ERROR":"Internal JSON encoding error"}';
+}
