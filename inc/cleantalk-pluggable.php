@@ -889,10 +889,10 @@ function apbct_is_skip_request($ajax = false)
 
         // Quiz And Survey Master
         if (
-            apbct_is_plugin_active('quiz-master-next/mlw_quizmaster2.php') &&
+            apbct_is_plugin_active('qsm-save-resume/qsm-save-resume.php') &&
             Post::get('action') === 'qsm_save_resume_auto_save_data'
         ) {
-            return 'Quiz And Survey Master';
+            return 'Quiz And Survey Master - QSM - Save & Resume Addon';
         }
     } else {
         /*****************************************/
