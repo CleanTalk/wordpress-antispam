@@ -963,6 +963,24 @@ function ct_ajax_hook($message_obj = null)
             );
         }
 
+        if (
+            apbct_is_plugin_active('qsm-save-resume/qsm-save-resume.php') &&
+            Post::hasString('action', 'qmn_process_quiz')
+        ) {
+            die(
+                json_encode(
+                    array(
+                        'quizExpired' => false,
+                        'display' => $ct_result->comment,
+                        'redirect' => '',
+                        'result_status' => array(
+                            'save_response' => 0
+                        )
+                    )
+                )
+            );
+        }
+
         // Regular block output
         die(
             json_encode(
