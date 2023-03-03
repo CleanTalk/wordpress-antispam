@@ -886,6 +886,14 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'Contact Form by Supsystic request';
         }
+
+        // Quiz And Survey Master
+        if (
+            apbct_is_plugin_active('qsm-save-resume/qsm-save-resume.php') &&
+            Post::get('action') === 'qsm_save_resume_auto_save_data'
+        ) {
+            return 'Quiz And Survey Master - QSM - Save & Resume Addon';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
