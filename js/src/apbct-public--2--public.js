@@ -1020,11 +1020,14 @@ function ctNoCookieAttachHiddenFieldsToForms(){
 }
 
 const defaultFetch = window.fetch;
+const defaultSend = XMLHttpRequest.prototype.send;
 
 if (document.readyState !== 'loading') {
 	checkFormsExistForCatching();
+	checkFormsExistForCatchingXhr();
 } else {
 	apbct_attach_event_handler(document, "DOMContentLoaded", checkFormsExistForCatching);
+	apbct_attach_event_handler(document, "DOMContentLoaded", checkFormsExistForCatchingXhr);
 }
 
 function checkFormsExistForCatching() {
@@ -1036,11 +1039,7 @@ function checkFormsExistForCatching() {
 					&& typeof arguments[0].includes === 'function'
 					&& arguments[0].includes('/wp-json/metform/')
 				) {
-					let no_cookie_data_local = apbctLocalStorage.getCleanTalkData()
-					let no_cookie_data_session = apbctSessionStorage.getCleanTalkData()
-					let no_cookie_data = {...no_cookie_data_local, ...no_cookie_data_session};
-					no_cookie_data = JSON.stringify(no_cookie_data)
-					no_cookie_data = '_ct_no_cookie_data_' + btoa(no_cookie_data)
+					let no_cookie_data = getNoCookieData();
 
 					if (arguments && arguments[1] && arguments[1].body) {
 						arguments[1].body.append('ct_no_cookie_hidden_field', no_cookie_data)
@@ -1069,4 +1068,34 @@ function isFormThatNeedCatch() {
 	}
 
 	return classExists;
+}
+
+function checkFormsExistForCatchingXhr() {
+	setTimeout(function() {
+		if (isFormThatNeedCatchXhr()) {
+			window.XMLHttpRequest.prototype.send = function(data) {
+				let no_cookie_data = getNoCookieData();
+				no_cookie_data = 'data%5Bct_no_cookie_hidden_field%5D=' + no_cookie_data + '&'
+
+				defaultSend.call(this, no_cookie_data + data);
+			}
+		}
+	}, 1000);
+}
+
+function isFormThatNeedCatchXhr() {
+	if (document.querySelector("div.elementor-widget[title='Login/Signup']") != null) {
+		return true;
+	}
+
+	return false;
+}
+
+function getNoCookieData() {
+	let no_cookie_data_local = apbctLocalStorage.getCleanTalkData();
+	let no_cookie_data_session = apbctSessionStorage.getCleanTalkData();
+	let no_cookie_data = {...no_cookie_data_local, ...no_cookie_data_session};
+	no_cookie_data = JSON.stringify(no_cookie_data);
+
+	return '_ct_no_cookie_data_' + btoa(no_cookie_data);
 }
