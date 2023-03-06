@@ -201,11 +201,6 @@ class Users extends \Cleantalk\ApbctWP\CleantalkListTable
             $this->approveSpam(array($id));
         }
 
-        if ( Get::get('action') === 'unapprove' ) {
-            $id = filter_input(INPUT_GET, 'spam', FILTER_SANITIZE_NUMBER_INT);
-            $this->unapproveSpam(array($id));
-        }
-
         if ( Get::get('action') === 'delete' ) {
             $id = filter_input(INPUT_GET, 'spam', FILTER_SANITIZE_NUMBER_INT);
             $this->removeSpam(array($id));
@@ -230,16 +225,6 @@ class Users extends \Cleantalk\ApbctWP\CleantalkListTable
             if ( $user_meta ) {
                 update_user_meta($user_id, 'ct_bad', true);
             }
-        }
-    }
-
-    public function unapproveSpam($ids)
-    {
-        foreach ($ids as $id) {
-            $user_id = (int)sanitize_key($id);
-
-            update_user_meta($user_id, 'ct_marked_as_spam', true);
-            delete_user_meta($user_id, 'ct_bad');
         }
     }
 

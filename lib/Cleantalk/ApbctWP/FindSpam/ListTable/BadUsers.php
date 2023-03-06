@@ -94,10 +94,10 @@ class BadUsers extends Users
         }
 
         $actions = array(
-            'unapprove' => sprintf(
-                '<a href="?page=%s&action=%s&spam=%s">Unapprove</a>',
+            'delete' => sprintf(
+                '<a href="?page=%s&action=%s&spam=%s">Delete</a>',
                 htmlspecialchars(addslashes(Get::get('page'))),
-                'unapprove',
+                'delete',
                 $user_obj->ID
             )
         );
@@ -112,7 +112,9 @@ class BadUsers extends Users
 
     public function get_bulk_actions()  // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
-        return array();
+        return array(
+            'delete' => 'Delete'
+        );
     }
 
     public function no_items() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
