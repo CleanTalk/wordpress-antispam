@@ -159,6 +159,9 @@ class Users extends \Cleantalk\ApbctWP\CleantalkListTable
         }
     }
 
+    /**
+     * @inheritDoc
+     */
     public function get_bulk_actions() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         return array(
@@ -167,6 +170,9 @@ class Users extends \Cleantalk\ApbctWP\CleantalkListTable
         );
     }
 
+    /**
+     * @inheritDoc
+     */
     public function bulk_actions_handler() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         if ( empty(Post::get('spamids')) || empty(Post::get('_wpnonce')) ) {
@@ -190,6 +196,9 @@ class Users extends \Cleantalk\ApbctWP\CleantalkListTable
         }
     }
 
+    /**
+     * @return void
+     */
     public function row_actions_handler() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         if ( empty(Get::get('action')) ) {
@@ -207,6 +216,9 @@ class Users extends \Cleantalk\ApbctWP\CleantalkListTable
         }
     }
 
+    /**
+     * @inheritDoc
+     */
     public function no_items() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         esc_html_e('No spam found.', 'cleantalk-spam-protect');
@@ -216,6 +228,11 @@ class Users extends \Cleantalk\ApbctWP\CleantalkListTable
     //                  LOGIC                     //
     //********************************************//
 
+    /**
+     * @param array $ids
+     *
+     * @return void
+     */
     public function approveSpam($ids)
     {
         foreach ( $ids as $id ) {
@@ -228,6 +245,11 @@ class Users extends \Cleantalk\ApbctWP\CleantalkListTable
         }
     }
 
+    /**
+     * @param array $ids
+     *
+     * @return void
+     */
     public function removeSpam($ids)
     {
         foreach ( $ids as $id ) {
@@ -277,6 +299,9 @@ class Users extends \Cleantalk\ApbctWP\CleantalkListTable
         return new \WP_User_Query($params_spam);
     }
 
+    /**
+     * @return \WP_User_Query
+     */
     public function getSpamNow($per_page, $current_page)
     {
         $params_spam = array(
@@ -290,6 +315,9 @@ class Users extends \Cleantalk\ApbctWP\CleantalkListTable
         return new \WP_User_Query($params_spam);
     }
 
+    /**
+     * @return \WP_User_Query
+     */
     public function getBad()
     {
         // Without IP and EMAIL
@@ -302,6 +330,9 @@ class Users extends \Cleantalk\ApbctWP\CleantalkListTable
         return new \WP_User_Query($params_bad);
     }
 
+    /**
+     * @return array
+     */
     public function getScansLogs()
     {
         global $wpdb;
@@ -310,6 +341,11 @@ class Users extends \Cleantalk\ApbctWP\CleantalkListTable
         return $wpdb->get_results($query, ARRAY_A);
     }
 
+    /**
+     * @param array $ids
+     *
+     * @return void
+     */
     protected function removeLogs($ids)
     {
         $sanitized_ids = array();
@@ -325,6 +361,11 @@ class Users extends \Cleantalk\ApbctWP\CleantalkListTable
         );
     }
 
+    /**
+     * @param int $user_id
+     *
+     * @return string
+     */
     protected function getWcOrdersCount($user_id)
     {
         $args = array(
