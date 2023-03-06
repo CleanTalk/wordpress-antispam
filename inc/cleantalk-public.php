@@ -1449,12 +1449,14 @@ function ct_comments_output($curr_comment, $_param2, $wp_list_comments_args)
              'Mark as spam',
              'cleantalk-spam-protect'
          )
+         . '<img style="margin-left: 10px;" class="apbct_preloader_button" src="' . Escape::escUrl(APBCT_URL_PATH . '/inc/images/preloader2.gif') . '" />'
          . "</span>";
     $html .= "<span commentid='$id' class='ct_this_is ct_this_is_not_spam ct_hidden' href='#'>"
          . __(
              'Unspam',
              'cleantalk-spam-protect'
          )
+         . '<img style="margin-left: 10px;" class="apbct_preloader_button" src="' . Escape::escUrl(APBCT_URL_PATH . '/inc/images/preloader2.gif') . '" />'
          . "</span>";
     $html .= "<p class='ct_feedback_wrap'>";
     $html .= "<span class='ct_feedback_result ct_feedback_result_spam'>"
@@ -1498,6 +1500,7 @@ function ct_comments_output($curr_comment, $_param2, $wp_list_comments_args)
             ),
             'img' => array(
                 'style' => true,
+                'class' => true,
                 'src' => true,
                 'border' => true,
             ),
