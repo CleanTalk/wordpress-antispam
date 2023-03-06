@@ -775,15 +775,19 @@ function ct_get_checkjs_value()
         $latest_key_time = 0;
 
         foreach ( $keys as $k => $t ) {
-            // Removing key if it's to old
-            if ( time() - $t > $apbct->data['js_keys_store_days'] * 86400 * 7 ) {
-                unset($keys[$k]);
-                continue;
-            }
+            if (!is_object($t)) {
+                // Removing key if it's to old
+                if ( time() - $t > $apbct->data['js_keys_store_days'] * 86400 * 7 ) {
+                    unset($keys[$k]);
+                    continue;
+                }
 
-            if ( $t > $latest_key_time ) {
-                $latest_key_time = $t;
-                $key             = $k;
+                if ( $t > $latest_key_time ) {
+                    $latest_key_time = $t;
+                    $key             = $k;
+                }
+            } else {
+                $keys = array();
             }
         }
 
