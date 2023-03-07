@@ -338,6 +338,7 @@ class Cleantalk
     public function rotateModerateAndUseIP()
     {
         // Split server url to parts
+        global $apbct;
         preg_match("/^(https?:\/\/)([^\/:]+)(.*)/i", $this->server_url, $matches);
 
         $url_protocol = isset($matches[1]) ? $matches[1] : '';
@@ -349,6 +350,8 @@ class Cleantalk
         if ( ! $servers ) {
             return;
         }
+
+        $apbct->settings['wp__use_builtin_http_api'] = false;
 
         // Loop until find work server
         foreach ( $servers as $server ) {
