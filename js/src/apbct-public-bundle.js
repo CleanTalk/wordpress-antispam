@@ -1550,7 +1550,8 @@ function apbct_ready(){
 				(form.id && form.id === 'ihf-login-form') || //Optima Express login
 				(form.id && form.id === 'subscriberForm' && form.action.toString().indexOf('actionType=update') !== -1) || //Optima Express update
 				(form.id && form.id === 'ihf-main-search-form') || // Optima Express search
-				(form.id && form.id === 'frmCalc') //nobletitle-calc
+				(form.id && form.id === 'frmCalc') || //nobletitle-calc
+				form.action.toString().indexOf('property-organizer-delete-saved-search-submit') !== -1
 			) {
 				continue;
 			}
