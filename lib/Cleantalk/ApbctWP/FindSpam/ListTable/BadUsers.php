@@ -6,6 +6,9 @@ use Cleantalk\ApbctWP\Variables\Get;
 
 class BadUsers extends Users
 {
+    /**
+     * @inheritDoc
+     */
     public function prepare_items()  // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         $columns               = $this->get_columns();
@@ -50,7 +53,13 @@ class BadUsers extends Users
         }
     }
 
-    // Username (first) column
+    /**
+     * Username (first) column
+     *
+     * @param array $item
+     *
+     * @return string
+     */
     public function column_ct_username($item) // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         $user_obj       = $item['ct_username'];
@@ -94,10 +103,10 @@ class BadUsers extends Users
         }
 
         $actions = array(
-            'unapprove' => sprintf(
-                '<a href="?page=%s&action=%s&spam=%s">Unapprove</a>',
+            'delete' => sprintf(
+                '<a href="?page=%s&action=%s&spam=%s">Delete</a>',
                 htmlspecialchars(addslashes(Get::get('page'))),
-                'unapprove',
+                'delete',
                 $user_obj->ID
             )
         );
@@ -105,16 +114,27 @@ class BadUsers extends Users
         return sprintf('%1$s %2$s', $column_content, $this->row_actions($actions));
     }
 
+    /**
+     * @return \WP_User_Query
+     */
     public function getBadUsers()
     {
         return $this->getBad();
     }
 
-    public function get_bulk_actions()  // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+    /**
+     * @inheritDoc
+     */
+    public function get_bulk_actions() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
-        return array();
+        return array(
+            'delete' => 'Delete'
+        );
     }
 
+    /**
+     * @inheritDoc
+     */
     public function no_items() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         esc_html_e('No non-checkable users found.', 'cleantalk-spam-protect');
