@@ -3,6 +3,7 @@
 namespace Cleantalk\ApbctWP;
 
 use ArrayObject;
+use Cleantalk\ApbctWP\Firewall\SFWUpdateSentinel;
 
 /**
  * CleanTalk Anti-Spam State class
@@ -206,6 +207,9 @@ class State extends \Cleantalk\Common\State
 
         // Check URL exclusion by the new way - as URL
         'check_exclusion_as_url'  => true,
+
+        //SFW update sentinel data
+        'sentinel_data' => array(),
     );
 
     /**
@@ -334,6 +338,11 @@ class State extends \Cleantalk\Common\State
      * @var ConnectionReports
      */
     private $connection_reports;
+
+    /**
+     * @var SFWUpdateSentinel
+     */
+    public $sfw_update_sentinel;
 
     private $auto_save_defaults_list = array();
 
@@ -888,6 +897,11 @@ class State extends \Cleantalk\Common\State
     public function setConnectionReports()
     {
         $this->connection_reports = new ConnectionReports(DB::getInstance(), APBCT_TBL_CONNECTION_REPORTS);
+    }
+
+    public function setSFWUpdateSentinel()
+    {
+        $this->sfw_update_sentinel = new SFWUpdateSentinel();
     }
 
     /**

@@ -194,9 +194,12 @@ apbct_update_actions();
 
 add_action('init', function () {
     global $apbct;
-    // Self cron
+
     // Connection reports
     $apbct->setConnectionReports();
+    // SFW update sentinel
+    $apbct->setSFWUpdateSentinel();
+    // Self cron
     $ct_cron = new Cron();
     $tasks_to_run = $ct_cron->checkTasks(); // Check for current tasks. Drop tasks inner counters.
     if (
@@ -1044,6 +1047,8 @@ function apbct_sfw_update__init($delay = 0)
     $apbct->fw_stats['firewall_updating_last_start'] = time();
     $apbct->save('fw_stats');
 
+    $apbct->sfw_update_sentinel->seekUpdatingID($apbct->fw_stats['firewall_updating_id']);
+
     // Delete update errors
     $apbct->errorDelete('sfw_update', 'save_data');
     $apbct->errorDelete('sfw_update', 'save_data', 'cron');
@@ -1054,6 +1059,7 @@ function apbct_sfw_update__init($delay = 0)
     $queue->addStage('apbct_sfw_update__get_multifiles');
 
     $cron = new Cron();
+    $cron->addTask('sfw_update_sentinel__run_watchdog', 'apbct_sfw_update_sentinel__run_watchdog', 36200, time() + 36200);
     $cron->addTask('sfw_update_checker', 'apbct_sfw_update__checker', 15);
 
     return Helper::httpRequestRcToHost(
@@ -1150,6 +1156,9 @@ function apbct_sfw_update__worker($checker_work = false)
 
             return $direct_upd_res['error'];
         }
+
+        //stop seeking update on success direct update
+        $apbct->sfw_update_sentinel->setUpdatingIDFinished($apbct->fw_stats['firewall_updating_id']);
 
         return true;
     }
@@ -1575,6 +1584,7 @@ function apbct_sfw_update__end_of_update($is_first_updating = false)
     apbct_remove_upd_folder($apbct->fw_stats['updating_folder']);
 
     // Reset all FW stats
+    $apbct->sfw_update_sentinel->setUpdatingIDFinished($apbct->fw_stats['firewall_updating_id']);
     $apbct->fw_stats['firewall_update_percent'] = 0;
     $apbct->fw_stats['firewall_updating_id']    = null;
     $apbct->fw_stats['expected_networks_count'] = false;
@@ -2875,4 +2885,9 @@ function apbct_test_connection()
     }
 
     return $out;
+}
+
+function apbct_sfw_update_sentinel__run_watchdog(){
+    global $apbct;
+    $apbct->sfw_update_sentinel->watchDog();
 }
