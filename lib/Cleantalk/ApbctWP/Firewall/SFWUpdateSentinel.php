@@ -6,61 +6,69 @@ use Cleantalk\ApbctWP\Variables\Server;
 
 class SFWUpdateSentinel
 {
+    /**
+     * @var array
+     */
     private $sentinel_ids = array();
+    /**
+     * @var array
+     */
     private $last_fw_stats = array();
 
-    public function __construct()
-    {
-    }
-
     /**
-     * @param $id
-     * @return bool
+     * Add a firewall updating ID to the sentinel. The process set as started on current date.
+     * @param string $id firewall_updating_id
+     * @return bool True if added, false if id already exists.
      * @psalm-suppress PossiblyUnusedMethod
      */
-    public function seekUpdatingID($id)
+    public function seekId($id)
     {
-        $this->getData();
-        if ( $this->getUpdatingIDData($id) ) {
+        $this->getSentinelData();
+        if ( $this->hasIdAdded($id) ) {
             return false;
         }
         $this->sentinel_ids[$id] = array(
             'started' => current_time('timestamp'),
             'finished' => false
         );
-        $this->saveData();
+        $this->saveSentinelData();
         return true;
     }
 
 
-    private function getUpdatingIDData($id)
+    /**
+     * Check if a firewall_updating_id is already seeking.
+     * @param string $id firewall_updating_id
+     * @return bool
+     */
+    private function hasIdAdded($id)
     {
-        return isset($this->sentinel_ids[$id]) ? $this->sentinel_ids[$id] : false;
+        return isset($this->sentinel_ids[$id]);
     }
 
     /**
-     *
+     * Save firewall_updating_id as finished.
      * @param $id
      * @psalm-suppress PossiblyUnusedMethod
      */
-    public function setUpdatingIDFinished($id)
+    public function setIdAsFinished($id)
     {
-        $this->getData();
+        $this->getSentinelData();
         $this->sentinel_ids[$id]['finished'] = current_time('timestamp');
-        $this->saveData();
+        $this->saveSentinelData();
     }
 
-    private function getSeekingUpdatingIDList()
+    private function getSeekingIdsList()
     {
-        $this->getData();
+        $this->getSentinelData();
         return $this->sentinel_ids;
     }
 
-    private function sendEmail()
+    private function sendSentinelEmail()
     {
         global $apbct;
 
-        $ids_list = $this->getSeekingUpdatingIDList();
+        $ids_list = $this->getSeekingIdsList();
 
         if ( empty($ids_list) ) {
             return false;
@@ -141,11 +149,17 @@ class SFWUpdateSentinel
         return false;
     }
 
-    private function hasFailedUpdates()
+    /**
+     * Check if there are three or more unfinished firewall_updating_id on seek.
+     * @return bool
+     */
+    private function hasTripleFailedUpdate()
     {
         $counter = 0;
         foreach ( $this->sentinel_ids as $id ) {
-            if ( $id['started'] && !$id['finished'] ) {
+            if ( isset($id['started'], $id['finished'])
+                &&
+                ($id['started'] && !$id['finished']) ) {
                 $counter++;
             }
         }
@@ -155,55 +169,65 @@ class SFWUpdateSentinel
         return false;
     }
 
-    private function unseekSucessUpdatingIDs()
+    /**
+     * Remove firewall_updating_id`s that are started and finished.
+     */
+    private function unseekFinishedIds()
     {
         foreach ( $this->sentinel_ids as $id => $data ) {
             if ( isset($data['started'], $data['finished']) && $data['started'] && $data['finished'] ) {
                 unset($this->sentinel_ids[$id]);
             }
         }
-        $this->saveData();
+        $this->saveSentinelData();
     }
 
     /**
      *
      * @psalm-suppress PossiblyUnusedMethod
      */
-    public function watchDog()
+    public function runWatchDog()
     {
         global $apbct;
-        $this->getData();
-        $this->unseekSucessUpdatingIDs();
-        if ( $this->hasFailedUpdates() ) {
+        $this->getSentinelData();
+        $this->unseekFinishedIds();
+        if ( $this->hasTripleFailedUpdate() ) {
             if ( isset($apbct->settings['misc__send_connection_reports'])
                 && $apbct->settings['misc__send_connection_reports'] == 1 ) {
-                $this->sendEmail();
+                $this->sendSentinelEmail();
             }
-            //waiting for next 3 unsucces FW updates
-            $this->clearData();
+            //Clear and waiting for next 3 unsucces FW updates
+            $this->clearSentinelData();
         }
     }
 
-    private function saveData()
+    /**
+     * Save data to global State object.
+     */
+    private function saveSentinelData()
     {
         global $apbct;
         $apbct->data['sentinel_data'] = $this->sentinel_ids;
         $apbct->saveData();
     }
 
-    private function getData()
+    /**
+     * Get data from global State object.
+     */
+    private function getSentinelData()
     {
         global $apbct;
         $this->sentinel_ids = $apbct->data['sentinel_data'];
         $this->last_fw_stats = $apbct->fw_stats;
     }
 
-    private function clearData()
+    /**
+     * Clear data in the State object and class vars.
+     */
+    private function clearSentinelData()
     {
-        global $apbct;
-        $apbct->data['sentinel_data'] = array();
         $this->sentinel_ids = array();
         $this->last_fw_stats = array();
-        $apbct->saveData();
+        $this->saveSentinelData();
     }
 }
