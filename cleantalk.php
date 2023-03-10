@@ -2887,7 +2887,8 @@ function apbct_test_connection()
     return $out;
 }
 
-function apbct_sfw_update_sentinel__run_watchdog(){
+function apbct_sfw_update_sentinel__run_watchdog()
+{
     global $apbct;
     $apbct->sfw_update_sentinel->watchDog();
 }

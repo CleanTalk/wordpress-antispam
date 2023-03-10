@@ -1,6 +1,5 @@
 <?php
 
-
 namespace Cleantalk\ApbctWP\Firewall;
 
 use Cleantalk\ApbctWP\Variables\Server;
@@ -14,6 +13,11 @@ class SFWUpdateSentinel
     {
     }
 
+    /**
+     * @param $id
+     * @return bool
+     * @psalm-suppress PossiblyUnusedMethod
+     */
     public function seekUpdatingID($id)
     {
         $this->getData();
@@ -34,6 +38,11 @@ class SFWUpdateSentinel
         return isset($this->sentinel_ids[$id]) ? $this->sentinel_ids[$id] : false;
     }
 
+    /**
+     *
+     * @param $id
+     * @psalm-suppress PossiblyUnusedMethod
+     */
     public function setUpdatingIDFinished($id)
     {
         $this->getData();
@@ -156,12 +165,16 @@ class SFWUpdateSentinel
         $this->saveData();
     }
 
+    /**
+     *
+     * @psalm-suppress PossiblyUnusedMethod
+     */
     public function watchDog()
     {
+        global $apbct;
         $this->getData();
         $this->unseekSucessUpdatingIDs();
         if ( $this->hasFailedUpdates() ) {
-            global $apbct;
             if ( isset($apbct->settings['misc__send_connection_reports'])
                 && $apbct->settings['misc__send_connection_reports'] == 1 ) {
                 $this->sendEmail();
@@ -181,7 +194,6 @@ class SFWUpdateSentinel
     private function getData()
     {
         global $apbct;
-        error_log('CTDEBUG: [' . __FUNCTION__ . '] []: ' . var_export(1,true));
         $this->sentinel_ids = $apbct->data['sentinel_data'];
         $this->last_fw_stats = $apbct->fw_stats;
     }
