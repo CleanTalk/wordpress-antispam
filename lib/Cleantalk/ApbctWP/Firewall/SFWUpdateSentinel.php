@@ -86,22 +86,32 @@ class SFWUpdateSentinel
             <html lang="en">
                 <head>
                     <title></title>
+                    <style type="text/css">
+                    table {
+                        background: #eee; 
+                        border: 1px solid #000; 
+                    }
+                    td, th {
+                        background: #eee; 
+                        border: 1px solid #000; 
+                    }
+                    </style>
                 </head>
                 <body>
                     <p>
-                    There were 3 unsuccesful SFW updates in a row: 
+                    There were ' . count($ids_list) . ' unsuccesful SFW updates in a row: 
                     </p>
                     <p>Negative report:</p>
-                    <table style="border: 1px solid grey">  <tr style="border: 1px solid grey">
-                    <td>&nbsp;</td>
-                    <td><b>FW update ID</b></td>
-                    <td><b>Started date</b></td>
+                    <table><tr>
+                    <th>&nbsp;</th>
+                    <th><b>FW update ID</b></th>
+                    <th><b>Started date</b></th>
               </tr>
               ';
         $counter = 0;
 
         foreach ( $ids_list as $_id => $data ) {
-            $message .= '<tr style="border: 1px solid grey">'
+            $message .= '<tr>'
                 . '<td>' . (++$counter) . '.</td>'
                 . '<td>' . $_id . '</td>'
                 . '<td>' . date('m-d-y H:i:s', $data['started']) . '</td>'
@@ -114,7 +124,7 @@ class SFWUpdateSentinel
         $last_fw_stats_html = '<table>';
 
         foreach ( $this->last_fw_stats as $row_key => $value ) {
-            $last_fw_stats_html .= '<tr style="border: 1px solid grey"><td> ' . esc_html($row_key) . ': </td>';
+            $last_fw_stats_html .= '<tr><td> ' . esc_html($row_key) . ': </td>';
             if ( !is_array($value) && !empty($value) ) {
                 $last_fw_stats_html .= '<td>' . esc_html($value) . '</td>';
             } else {
@@ -140,16 +150,14 @@ class SFWUpdateSentinel
         $message .= '<a href="' . $show_connection_reports_link . '" target="_blank">Show connection reports with remote call</a>';
         $message .= '<br>';
 
-        $message .= '<p>This report is sent by cron task on:</p>';
-        $message .= '<p>' . date('m-d-y H:i:s') . '(UTC00)</p>';
+        $message .= '<p>This report is sent by cron task on: ' . current_time('m-d-y H:i:s') . '</p>';
 
         $prev_date = !empty($apbct->data['sentinel_data']['prev_sent_try']['date'])
             ? date('m-d-y H:i:s', $apbct->data['sentinel_data']['prev_sent_try']['date'])
             : '';
 
         if ( !empty($prev_date) ) {
-            $message .= '<p>Previous SFW failed update report were sent on:</p>';
-            $message .= '<p>' . $prev_date . '(UTC00)</p>';
+            $message .= '<p>Previous SFW failed update report were sent on '  . $prev_date . '</p>';
         } else {
             $message .= '<p>There is no previous SFW failed update report.</p>';
         }
