@@ -1059,7 +1059,8 @@ function apbct_sfw_update__init($delay = 0)
     $queue->addStage('apbct_sfw_update__get_multifiles');
 
     $cron = new Cron();
-    $cron->addTask('sfw_update_sentinel__run_watchdog', 'apbct_sfw_update_sentinel__run_watchdog', 36200, time() + 36200);
+    $watch_dog_period = $apbct->sfw_update_sentinel->getWatchDogCronPeriod();
+    $cron->addTask('sfw_update_sentinel_watchdog', 'apbct_sfw_update_sentinel__run_watchdog', $watch_dog_period, time() + $watch_dog_period);
     $cron->addTask('sfw_update_checker', 'apbct_sfw_update__checker', 15);
 
     return Helper::httpRequestRcToHost(

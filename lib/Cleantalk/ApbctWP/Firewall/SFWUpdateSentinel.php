@@ -19,12 +19,18 @@ class SFWUpdateSentinel
     private $number_of_failed_updates_to_check;
 
     /**
+     * @var int
+     */
+    private $watchdog_cron_period;
+
+    /**
      * SFWUpdateSentinel constructor.
      * @param int $number_of_failed_updates_to_check Default is 3
      */
     public function __construct($number_of_failed_updates_to_check = 3)
     {
         $this->number_of_failed_updates_to_check = $number_of_failed_updates_to_check;
+        $this->watchdog_cron_period = 43200;
     }
 
     /**
@@ -213,6 +219,15 @@ class SFWUpdateSentinel
             //Clear and waiting for next unsucces FW updates
             $this->clearSentinelData();
         }
+    }
+
+    /**
+     * Get cron period in seconds.
+     * @return int
+     */
+    public function getWatchDogCronPeriod()
+    {
+        return !empty($this->watchdog_cron_period) ? $this->watchdog_cron_period : 43200;
     }
 
     /**
