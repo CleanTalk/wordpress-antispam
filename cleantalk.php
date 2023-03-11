@@ -1157,8 +1157,8 @@ function apbct_sfw_update__worker($checker_work = false)
             return $direct_upd_res['error'];
         }
 
-        //stop seeking update on success direct update
-        $apbct->sfw_update_sentinel->setIdAsFinished($apbct->fw_stats['firewall_updating_id']);
+        //stop seeking updates on success direct update
+        $apbct->sfw_update_sentinel->clearSentinelData();
 
         return true;
     }
@@ -1584,7 +1584,7 @@ function apbct_sfw_update__end_of_update($is_first_updating = false)
     apbct_remove_upd_folder($apbct->fw_stats['updating_folder']);
 
     // Reset all FW stats
-    $apbct->sfw_update_sentinel->setIdAsFinished($apbct->fw_stats['firewall_updating_id']);
+    $apbct->sfw_update_sentinel->clearSentinelData();
     $apbct->fw_stats['firewall_update_percent'] = 0;
     $apbct->fw_stats['firewall_updating_id']    = null;
     $apbct->fw_stats['expected_networks_count'] = false;

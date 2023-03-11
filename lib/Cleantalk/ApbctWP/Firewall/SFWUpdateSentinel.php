@@ -13,10 +13,22 @@ class SFWUpdateSentinel
     /**
      * @var array
      */
-    private $last_fw_stats = array();
+    private $last_fw_stats = array();    /**
+     * @var int
+     */
+    private $number_of_failed_updates_to_check;
 
     /**
-     * Add a firewall updating ID to the sentinel. The process set as started on current date.
+     * SFWUpdateSentinel constructor.
+     * @param int $number_of_failed_updates_to_check Default is 3
+     */
+    public function __construct($number_of_failed_updates_to_check = 3)
+    {
+        $this->number_of_failed_updates_to_check = $number_of_failed_updates_to_check;
+    }
+
+    /**
+     * Add a firewall updating ID to the sentinel.
      * @param string $id firewall_updating_id
      * @return bool True if added, false if id already exists.
      * @psalm-suppress PossiblyUnusedMethod
@@ -28,8 +40,7 @@ class SFWUpdateSentinel
             return false;
         }
         $this->sentinel_ids[$id] = array(
-            'started' => current_time('timestamp'),
-            'finished' => false
+            'started' => current_time('timestamp')
         );
         $this->saveSentinelData();
         return true;
@@ -47,23 +58,18 @@ class SFWUpdateSentinel
     }
 
     /**
-     * Save firewall_updating_id as finished.
-     * @param $id
-     * @psalm-suppress PossiblyUnusedMethod
+     * Return list of seeking ids.
+     * @return array
      */
-    public function setIdAsFinished($id)
-    {
-        $this->getSentinelData();
-        $this->sentinel_ids[$id]['finished'] = current_time('timestamp');
-        $this->saveSentinelData();
-    }
-
     private function getSeekingIdsList()
     {
         $this->getSentinelData();
         return $this->sentinel_ids;
     }
 
+    /**
+     * Send email with seeking id failed and last fw_stats
+     */
     private function sendSentinelEmail()
     {
         global $apbct;
@@ -83,25 +89,22 @@ class SFWUpdateSentinel
                 </head>
                 <body>
                     <p>
-                    There were 3 unsuccesful SFW updates: 
+                    There were 3 unsuccesful SFW updates in a row: 
                     </p>
                     <p>Negative report:</p>
                     <table style="border: 1px solid grey">  <tr style="border: 1px solid grey">
                     <td>&nbsp;</td>
                     <td><b>FW update ID</b></td>
                     <td><b>Started date</b></td>
-                    <td><b>Finished date</b></td>
               </tr>
               ';
         $counter = 0;
 
         foreach ( $ids_list as $_id => $data ) {
-            $finished = $data['finished'] ? date('m-d-y H:i:s', $data['finished']) : 'NO';
             $message .= '<tr style="border: 1px solid grey">'
                 . '<td>' . (++$counter) . '.</td>'
                 . '<td>' . $_id . '</td>'
                 . '<td>' . date('m-d-y H:i:s', $data['started']) . '</td>'
-                . '<td>' . $finished . '</td>'
                 . '</tr>';
         }
 
@@ -137,49 +140,53 @@ class SFWUpdateSentinel
         $message .= '<a href="' . $show_connection_reports_link . '" target="_blank">Show connection reports with remote call</a>';
         $message .= '<br>';
 
+        $message .= '<p>This report is sent by cron task on:</p>';
+        $message .= '<p>' . date('m-d-y H:i:s') . '(UTC00)</p>';
+
+        $prev_date = !empty($apbct->data['sentinel_data']['prev_sent_try']['date'])
+            ? date('m-d-y H:i:s', $apbct->data['sentinel_data']['prev_sent_try']['date'])
+            : '';
+
+        if ( !empty($prev_date) ) {
+            $message .= '<p>Previous SFW failed update report were sent on:</p>';
+            $message .= '<p>' . $prev_date . '(UTC00)</p>';
+        } else {
+            $message .= '<p>There is no previous SFW failed update report.</p>';
+        }
+
         $message .= '</body></html>';
 
         $headers = "Content-type: text/html; charset=utf-8 \r\n";
         $headers .= 'From: ' . ct_get_admin_email();
 
+        $sent = false;
+
         /** @psalm-suppress UnusedFunctionCall */
         if ( wp_mail($to, $subject, $message, $headers) ) {
-            return true;
+            $sent = true;
         }
-        return false;
+
+        $apbct->data['sentinel_data']['prev_sent_try'] = !empty($apbct->data['sentinel_data']['last_sent_try'])
+            ? $apbct->data['sentinel_data']['last_sent_try']
+            : false;
+
+        $apbct->data['sentinel_data']['last_sent_try'] = array(
+            'date' => current_time('timestamp'),
+            'success' => $sent
+        );
+        $apbct->saveData();
     }
 
     /**
-     * Check if there are three or more unfinished firewall_updating_id on seek.
+     * Check if there are a number of unfinished firewall_updating_id on seek.
      * @return bool
      */
-    private function hasTripleFailedUpdate()
+    private function hasNumberOfFailedUpdates($number)
     {
-        $counter = 0;
-        foreach ( $this->sentinel_ids as $id ) {
-            if ( isset($id['started'], $id['finished'])
-                &&
-                ($id['started'] && !$id['finished']) ) {
-                $counter++;
-            }
-        }
-        if ( $counter >= 3 ) {
+        if ( count($this->sentinel_ids) >= $number ) {
             return true;
         }
         return false;
-    }
-
-    /**
-     * Remove firewall_updating_id`s that are started and finished.
-     */
-    private function unseekFinishedIds()
-    {
-        foreach ( $this->sentinel_ids as $id => $data ) {
-            if ( isset($data['started'], $data['finished']) && $data['started'] && $data['finished'] ) {
-                unset($this->sentinel_ids[$id]);
-            }
-        }
-        $this->saveSentinelData();
     }
 
     /**
@@ -190,13 +197,12 @@ class SFWUpdateSentinel
     {
         global $apbct;
         $this->getSentinelData();
-        $this->unseekFinishedIds();
-        if ( $this->hasTripleFailedUpdate() ) {
+        if ( $this->hasNumberOfFailedUpdates($this->number_of_failed_updates_to_check) ) {
             if ( isset($apbct->settings['misc__send_connection_reports'])
                 && $apbct->settings['misc__send_connection_reports'] == 1 ) {
                 $this->sendSentinelEmail();
             }
-            //Clear and waiting for next 3 unsucces FW updates
+            //Clear and waiting for next unsucces FW updates
             $this->clearSentinelData();
         }
     }
@@ -207,7 +213,7 @@ class SFWUpdateSentinel
     private function saveSentinelData()
     {
         global $apbct;
-        $apbct->data['sentinel_data'] = $this->sentinel_ids;
+        $apbct->data['sentinel_data']['ids'] = $this->sentinel_ids;
         $apbct->saveData();
     }
 
@@ -217,14 +223,14 @@ class SFWUpdateSentinel
     private function getSentinelData()
     {
         global $apbct;
-        $this->sentinel_ids = $apbct->data['sentinel_data'];
+        $this->sentinel_ids = $apbct->data['sentinel_data']['ids'];
         $this->last_fw_stats = $apbct->fw_stats;
     }
 
     /**
      * Clear data in the State object and class vars.
      */
-    private function clearSentinelData()
+    public function clearSentinelData()
     {
         $this->sentinel_ids = array();
         $this->last_fw_stats = array();

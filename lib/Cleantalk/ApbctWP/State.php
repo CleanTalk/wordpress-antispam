@@ -209,7 +209,14 @@ class State extends \Cleantalk\Common\State
         'check_exclusion_as_url'  => true,
 
         //SFW update sentinel data
-        'sentinel_data' => array(),
+        'sentinel_data' => array(
+            'ids' => array(),
+            'last_sent_try' => array(
+                'date' => 0,
+                'success' => false
+            ),
+            'prev_sent_try' => array(),
+        ),
     );
 
     /**
