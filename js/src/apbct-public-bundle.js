@@ -2658,7 +2658,9 @@ function apbctProcessIframes()
 
             for ( let y = 0; y < iframeForms.length; y++ ) {
                 let currentForm = iframeForms[y];
-
+                if ( formIsExclusion(currentForm)) {
+                    continue;
+                }
                 apbctProcessExternalForm(currentForm, y, frames[j].contentDocument);
             }
         }
