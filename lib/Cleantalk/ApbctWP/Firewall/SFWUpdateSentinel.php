@@ -131,6 +131,10 @@ class SFWUpdateSentinel
 
         foreach ( $this->last_fw_stats as $row_key => $value ) {
             $last_fw_stats_html .= '<tr><td> ' . esc_html($row_key) . ': </td>';
+            if ( $row_key === 'updating_folder' ) {
+                preg_match('/^(.*?)[\/\\\]wp-content.*$/', $value, $to_delete);
+                $value = str_replace($to_delete[1], "", $value);
+            }
             if ( !is_array($value) && !empty($value) ) {
                 $last_fw_stats_html .= '<td>' . esc_html($value) . '</td>';
             } else {
