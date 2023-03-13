@@ -1020,6 +1020,7 @@ function apbct_public_sendAJAX(data, params, obj){
     _params["timeout"]     = params.timeout     || 15000;
     _params["obj"]         = obj                || null;
     _params["button"]      = params.button      || null;
+    _params["spinner"]     = params.spinner     || null;
     _params["progressbar"] = params.progressbar || null;
     _params["silent"]      = params.silent      || null;
     _params["no_nonce"]    = params.no_nonce    || null;
