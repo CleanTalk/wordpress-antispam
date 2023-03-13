@@ -2210,11 +2210,21 @@ function checkFormsExistForCatching() {
 }
 
 function isFormThatNeedCatch() {
-	if (jQuery('form').hasClass('metform-form-content')) {
-		return true;
+	const formClasses = [
+		'metform-form-content'
+	];
+	let classExists = false;
+
+	const forms = document.forms;
+	for (let form of forms) {
+		formClasses.forEach(function (classForm) {
+			if (form.classList.contains(classForm)) {
+				classExists = true;
+			}
+		})
 	}
 
-	return false;
+	return classExists;
 }
 /* Cleantalk Modal object */
 let cleantalkModal = {
