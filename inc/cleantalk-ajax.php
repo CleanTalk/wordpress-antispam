@@ -954,12 +954,17 @@ function ct_ajax_hook($message_obj = null)
             );
         }
 
-        if ( Post::hasString('action', 'fusion_form_submit_form_to_') ) {
+        if (
+            Post::hasString('action', 'fusion_form_submit_form_to_') ||
+            Post::hasString('action', 'fusion_form_submit_form_to_email') ||
+            Post::hasString('action', 'fusion_form_submit_ajax')
+        ) {
             die(
                 json_encode(
                     array(
                         'status' => 'error',
-                        'info' => $ct_result->comment
+                        'info' => 'form_failed',
+                        'message' => $ct_result->comment,
                     )
                 )
             );
