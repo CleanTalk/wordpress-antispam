@@ -406,7 +406,9 @@ function ct_ajax_hook($message_obj = null)
          (Post::get('action') === 'arm_shortcode_form_ajax_action' && Post::get('arm_action') === 'please-login') || //arm forms skip login
          (Post::get('action') === 'erf_login_user' && in_array('easy-registration-forms/erforms.php', apply_filters('active_plugins', get_option('active_plugins')))) || //Easy Registration Forms login form skip
          (Post::get('action') === 'mailpoet' && Post::get('endpoint') === 'ImportExport' && Post::get('method') === 'processImport') || //Mailpoet import
-         (Post::get('action') === 'latepoint_route_call' && Post::get('route_name') === 'steps__reload_booking_summary') //LatePoint service calls
+         (Post::get('action') === 'latepoint_route_call' && Post::get('route_name') === 'steps__reload_booking_summary') || //LatePoint service calls
+         (Post::get('action') === 'uael_login_form_submit') || // skip Ultimate Addons for Elementor login
+         (Post::get('action') === 'my_custom_login_validate') // skip Ultimate Addons for Elementor login validate
     ) {
         do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
 
@@ -952,12 +954,17 @@ function ct_ajax_hook($message_obj = null)
             );
         }
 
-        if ( Post::hasString('action', 'fusion_form_submit_form_to_') ) {
+        if (
+            Post::hasString('action', 'fusion_form_submit_form_to_') ||
+            Post::hasString('action', 'fusion_form_submit_form_to_email') ||
+            Post::hasString('action', 'fusion_form_submit_ajax')
+        ) {
             die(
                 json_encode(
                     array(
                         'status' => 'error',
-                        'info' => $ct_result->comment
+                        'info' => 'form_failed',
+                        'message' => $ct_result->comment,
                     )
                 )
             );
