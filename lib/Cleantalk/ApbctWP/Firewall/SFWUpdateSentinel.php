@@ -131,9 +131,12 @@ class SFWUpdateSentinel
 
         foreach ( $this->last_fw_stats as $row_key => $value ) {
             $last_fw_stats_html .= '<tr><td> ' . esc_html($row_key) . ': </td>';
-            if ( $row_key === 'updating_folder' ) {
+            //clear root path
+            if ( $row_key === 'updating_folder' && !empty($value) ) {
                 preg_match('/^(.*?)[\/\\\]wp-content.*$/', $value, $to_delete);
-                $value = str_replace($to_delete[1], "", $value);
+                if ( !empty($to_delete[1] ) ){
+                    $value = str_replace($to_delete[1], "", $value);
+                }
             }
             if ( !is_array($value) && !empty($value) ) {
                 $last_fw_stats_html .= '<td>' . esc_html($value) . '</td>';
@@ -228,6 +231,7 @@ class SFWUpdateSentinel
     /**
      * Get cron period in seconds.
      * @return int
+     * @psalm-suppress PossiblyUnusedMethod
      */
     public function getWatchDogCronPeriod()
     {
