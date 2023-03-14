@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 4.7
 Tested up to: 6.1
 Requires PHP: 5.6
-Stable tag: 6.5
+Stable tag: 6.6
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -450,6 +450,28 @@ Yes, it is. Please read this article,
 12. SpamFireWall log.
 
 == Changelog ==
+
+= 6.6 Mar 16 2023 =
+* Excluded qsm_save_resume_auto_save_data action
+* Exclude request from QSM - Save & Resume Addon
+* Added correct block message
+* removed jquery from scripts
+* Fix. Integrations. Added exclusion for Optima Express search.
+* Fix. Integrations. Added no_cookie_data for popup dynamic form.
+* Fix. Settings. Ajax JS setting description fixed.
+* Fixed ct_get_checkjs_value()
+* Fix: excluded the form from javascript processing
+* Fix. Users scanner. Delete action added for the non-checkable users found.
+* fix: fixed apbct_is_plugin_active function name
+* Fix. Comments managing. Public side managing comments fixed
+* Fix: Fixed apbctProcessIframes()
+* fix: fixed fusion block message
+* Fix. Admin notices. Layout styles fixed.
+* Fix. Admin notices. Dismissing notices logic fixed.
+* Fix. Admin notices. "Review" notices logic fixed.
+* Fix. Admin notices. JS errors during notice dismissing fixed.
+* Update. JS. Rewrote logic without jquery in external file.
+* New. SFW update sentinel (reporting about failing updates).
 
 = 6.5 Mar 02 2023 =
 * New. State autoupdating. Set new settings values during plugin update.
