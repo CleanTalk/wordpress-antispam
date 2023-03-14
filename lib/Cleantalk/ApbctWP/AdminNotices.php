@@ -77,6 +77,11 @@ class AdminNotices
                 foreach ( self::NOTICES as $notice ) {
                     $notice_uid = $notice . '_' . $uid;
 
+                    // Notice "review" not need to show everytime in the plugin settings page
+                    if ( $notice === 'notice_review' && $this->isDismissedNotice($notice_uid) ) {
+                        continue;
+                    }
+
                     if ( $this->is_cleantalk_page || ! $this->isDismissedNotice($notice_uid) ) {
                         add_action('admin_notices', array($this, $notice));
                         add_action('network_admin_notices', array($this, $notice));
