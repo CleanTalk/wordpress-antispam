@@ -220,10 +220,7 @@ class AdminNotices
      */
     public function notice_review() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
-        $option_name = 'cleantalk_notice_review_' . get_current_user_id() . '_dismissed';
-
-        if ($this->apbct->notice_review == 1
-            && $this->checkOptionNotExpired($option_name, self::DAYS_INTERVAL_HIDING_REVIEW_NOTICE)) {
+        if ( $this->apbct->notice_review == 1 ) {
             $review_link = "<a class='button' href='https://wordpress.org/support/plugin/cleantalk-spam-protect/reviews/?filter=5' target='_blank'>"
                                 . __('SHARE', 'cleantalk-spam-protect') .
                             "</a>";
@@ -311,20 +308,21 @@ class AdminNotices
 
         // Special for notice_review
         if (is_string($notice_uid) && strpos($notice_uid, 'notice_review')) {
-            return $this->checkOptionNotExpired($option_name, self::DAYS_INTERVAL_HIDING_REVIEW_NOTICE);
+            return $this->checkOptionExpired($option_name, self::DAYS_INTERVAL_HIDING_REVIEW_NOTICE);
         }
 
-        return $this->checkOptionNotExpired($option_name, self::DAYS_INTERVAL_HIDING_NOTICE);
+        return $this->checkOptionExpired($option_name, self::DAYS_INTERVAL_HIDING_NOTICE);
     }
 
     /**
      * Check option not expired
      *
-     * @param string $notice_uid
+     * @param string $option_name
+     * @param int $expired_date
      *
      * @return bool
      */
-    private function checkOptionNotExpired($option_name, $expired_date)
+    private function checkOptionExpired($option_name, $expired_date)
     {
         $notice_date_option = get_option($option_name);
 
@@ -335,11 +333,11 @@ class AdminNotices
             $diff = date_diff($current_date, $notice_date);
 
             if ( $diff->days <= $expired_date ) {
-                return false;
+                return true;
             }
         }
 
-        return true;
+        return false;
     }
 
     public function setNoticeDismissed()
