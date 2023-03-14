@@ -12,7 +12,7 @@ jQuery(document).ready(function(){
 	jQuery('body').on('click', '.apbct-notice .notice-dismiss', function(e){
 		var apbct_notice_name = jQuery(e.target).parent().attr('id');
 		if( apbct_notice_name ) {
-			apbct_admin_sendAJAX( { 'action' : 'cleantalk_dismiss_notice', 'notice_id' : apbct_notice_name }, { 'callback' : null } );
+			apbct_admin_sendAJAX( { 'action' : 'cleantalk_dismiss_notice', 'notice_id' : apbct_notice_name }, { 'callback' : null, 'notJson': true } );
 		}
 	});
 

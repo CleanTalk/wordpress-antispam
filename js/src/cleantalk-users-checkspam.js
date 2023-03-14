@@ -594,3 +594,19 @@ function getCookie(name) {
 	));
 	return matches ? decodeURIComponent(matches[1]) : undefined;
 }
+
+// Binds the bulk action events to the submit buttons.
+// This code has been copied from wordpress core js file wp-admin/js/media.js:184
+jQuery( '#doaction' ).on( 'click', function( event ) {
+	/*
+     * Handle the bulk action based on its value.
+     */
+	jQuery( 'select[name="action"]' ).each( function() {
+		var optionValue = jQuery( this ).val();
+		if ( 'delete' === optionValue ) {
+			if ( ! showNotice.warn() ) {
+				event.preventDefault();
+			}
+		}
+	});
+});
