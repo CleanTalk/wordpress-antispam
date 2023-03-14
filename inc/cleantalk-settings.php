@@ -754,9 +754,7 @@ function apbct_settings__set_fields()
                 'misc__send_connection_reports' => array(
                     'type'        => 'checkbox',
                     'title'       => __('Send connection reports', 'cleantalk-spam-protect'),
-                    'description' => __(
-                        "Checking this box you allow plugin to send the information about your connection.
-                         These reports could contain next info:", 'cleantalk-spam-protect')
+                    'description' => __("Checking this box you allow plugin to send the information about your connection. These reports could contain next info:", 'cleantalk-spam-protect')
                         . '<br>'
                         . __(' - connection status to CleanTalk cloud during Anti-Spam request', 'cleantalk-spam-protect')
                         . $send_connection_reports__sfw_text

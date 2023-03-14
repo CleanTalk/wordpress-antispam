@@ -134,7 +134,7 @@ class SFWUpdateSentinel
             //clear root path
             if ( $row_key === 'updating_folder' && !empty($value) ) {
                 preg_match('/^(.*?)[\/\\\]wp-content.*$/', $value, $to_delete);
-                if ( !empty($to_delete[1] ) ){
+                if ( !empty($to_delete[1]) ) {
                     $value = str_replace($to_delete[1], "", $value);
                 }
             }
