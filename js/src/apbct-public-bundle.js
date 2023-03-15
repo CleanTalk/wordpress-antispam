@@ -2631,10 +2631,9 @@ function apbctProcessIframes()
                 continue;
             }
 
-            const iframeForms = frames[j].contentDocument.forms;
-
+            let iframeForms = frames[j].contentDocument.forms;
             if ( iframeForms.length === 0 ) {
-                return;
+                continue;
             }
 
             for ( let y = 0; y < iframeForms.length; y++ ) {
@@ -2647,6 +2646,11 @@ function apbctProcessIframes()
 }
 
 function apbctProcessExternalForm(currentForm, iterator, documentObject) {
+
+    //skip excluded forms
+    if ( formIsExclusion(currentForm)) {
+        return;
+    }
 
     const cleantalk_placeholder = document.createElement("i");
     cleantalk_placeholder.className = 'cleantalk_placeholder';
@@ -2950,6 +2954,7 @@ function sendAjaxCheckingDinamicFormData(form) {
     var visible_fields = {};
     visible_fields[0] = apbct_collect_visible_fields(form);
     apbct_visible_fields_set_cookie( visible_fields );
+    form.append(ctNoCookieConstructHiddenField('hidden'));
 
     var data = {};
     var elems = form.elements;
