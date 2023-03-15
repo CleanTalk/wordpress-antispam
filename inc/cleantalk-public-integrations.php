@@ -1504,6 +1504,15 @@ function ct_registration_errors($errors, $sanitized_user_login = null, $user_ema
         $buddypress = true;
     }
 
+    // Get BuddyPress core instance if available
+    $bp = function_exists('buddypress') ? buddypress() : null;
+
+    // Skip BuddyPress request already contained validation errors
+    if ( ! empty( $bp->signup->errors ) ) {
+        do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
+        return $errors;
+    }
+
     // Break tests because we already have servers response
     if ( $buddypress && $ct_signup_done ) {
         if ( $ct_negative_comment ) {
@@ -1543,7 +1552,7 @@ function ct_registration_errors($errors, $sanitized_user_login = null, $user_ema
      */
     if ( Post::get('signup_username') && Post::get('signup_email') ) {
         // if buddy press set up custom fields
-        $reg_flag = empty(Post::get('signup_profile_field_ids'));
+        $reg_flag = ! empty(Post::get('signup_profile_field_ids'));
     }
 
     /**
