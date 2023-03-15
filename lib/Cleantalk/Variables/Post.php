@@ -10,10 +10,8 @@ namespace Cleantalk\Variables;
  *
  * @package Cleantalk\Variables
  */
-abstract class Post extends ServerVariables
+class Post extends ServerVariables
 {
-    protected static $instance;
-
     /**
      * Gets given $_POST variable and save it to memory
      *
@@ -24,7 +22,7 @@ abstract class Post extends ServerVariables
     protected function getVariable($name)
     {
         // Return from memory. From $this->variables
-        if (! isset(static::$instance->variables[$name])) {
+        if (! isset(static::getInstance()->variables[$name])) {
             if ( isset($_POST[$name]) ) {
                 $value = $this->getAndSanitize($_POST[$name]);
             } else {
@@ -37,6 +35,11 @@ abstract class Post extends ServerVariables
             return $value;
         }
 
-        return static::$instance->variables[$name];
+        return static::getInstance()->variables[$name];
+    }
+
+    protected function sanitizeDefault($value)
+    {
+        return sanitize_textarea_field($value);
     }
 }

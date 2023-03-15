@@ -355,7 +355,8 @@ function apbct_is_ajax()
             strtolower(Server::get('HTTP_X_REQUESTED_WITH')) === 'xmlhttprequest'
         ) || // by Request type
         ! empty(Post::get('quform_ajax')) || // special. QForms
-        ! empty(Post::get('iphorm_ajax')); // special. IPHorm
+        ! empty(Post::get('iphorm_ajax')) || // special. IPHorm
+        ! empty(Post::get('mf-email')); // special. Metform
 }
 
 /**
@@ -845,6 +846,54 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'ActiveCampaign for WooCommerce skip';
         }
+
+        //Skip WooCommerce add to cart trigger
+        if (
+            apbct_is_plugin_active('woocommerce/woocommerce.php') &&
+            Post::get('action') === 'wdm_trigger_add_to_enq_cart'
+        ) {
+            return 'WooCommerce add to cart trigger skip';
+        }
+
+        //Skip WooCommerce addon - Wati - action for customers who came from Whatsapp
+        if (
+            apbct_is_plugin_active('woocommerce/woocommerce.php') &&
+            Post::get('action') === 'wati_cartflows_save_cart_abandonment_data'
+        ) {
+            return 'WooCommerce addon Wati add to cart trigger skip';
+        }
+
+        //Skip RegistrationMagic service request
+        if (
+            apbct_is_plugin_active('custom-registration-form-builder-with-submission-manager/registration_magic.php') &&
+            Post::get('action') === 'rm_user_exists'
+        ) {
+            return 'RegistrationMagic service request';
+        }
+
+        //Wp Booking System request - having the direct integration
+        if (
+            apbct_is_plugin_active('wp-booking-system/wp-booking-system.php') &&
+            Post::get('action') === 'wpbs_submit_form'
+        ) {
+            return 'Wp Booking System request';
+        }
+
+        // Contact Form by Supsystic - having the direct integration
+        if (
+            apbct_is_plugin_active('contact-form-by-supsystic/cfs.php') &&
+            Post::get('action') === 'contact'
+        ) {
+            return 'Contact Form by Supsystic request';
+        }
+
+        // Quiz And Survey Master
+        if (
+            apbct_is_plugin_active('qsm-save-resume/qsm-save-resume.php') &&
+            Post::get('action') === 'qsm_save_resume_auto_save_data'
+        ) {
+            return 'Quiz And Survey Master - QSM - Save & Resume Addon';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
@@ -988,7 +1037,8 @@ function apbct_is_skip_request($ajax = false)
         //Skip AutomateWoo service request
         if (
             apbct_is_plugin_active('automatewoo/automatewoo.php') &&
-            Get::get('aw-ajax') === 'capture_email'
+            ( Get::get('aw-ajax') === 'capture_email' ||
+            Get::get('aw-ajax') === 'capture_checkout_field' )
         ) {
             return 'AutomateWoo skip';
         }
@@ -1009,6 +1059,23 @@ function apbct_is_skip_request($ajax = false)
         wp_verify_nonce(Post::get('_wpnonce'), 'booking_add')
     ) {
         return 'Event Manager skip';
+    }
+
+    // Kali service action skip
+    if (
+        apbct_is_plugin_active('kali-forms/kali-forms.php') &&
+        Post::get('action') === 'kaliforms_preflight'
+    ) {
+        return 'Kali service action skip';
+    }
+
+    //nobletitle-calc
+    if (
+        apbct_is_plugin_active('nobletitlecalc/nobletitle-calc.php')
+        && Post::get('Calculate')
+        && Post::get('coverageType')
+    ) {
+        return 'nobletitle-calc';
     }
 
     return false;

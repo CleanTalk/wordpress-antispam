@@ -13,7 +13,7 @@ function ct_protect_external() {
 
                 //skip excluded forms
                 if ( formIsExclusion(currentForm)) {
-                    return
+                    continue;
                 }
 
                 // Ajax checking for the integrated forms
@@ -59,7 +59,8 @@ function ct_protect_external() {
 function formIsExclusion(currentForm)
 {
     let exclusions_by_id = [
-        'give-form' //give form exclusion because of direct integration
+        'give-form', //give form exclusion because of direct integration
+        'frmCalc' //nobletitle-calc
     ]
 
     let exclusions_by_role = [
@@ -67,7 +68,9 @@ function formIsExclusion(currentForm)
     ]
 
     let exclusions_by_class = [
-        'search-form' //search forms
+        'search-form', //search forms
+        'hs-form', // integrated hubspot plugin through dinamicRenderedForms logic
+        'ihc-form-create-edit' // integrated Ultimate Membership Pro plugin through dinamicRenderedForms logic
     ]
 
     let result = false
@@ -125,7 +128,9 @@ function apbctProcessIframes()
 
             for ( let y = 0; y < iframeForms.length; y++ ) {
                 let currentForm = iframeForms[y];
-
+                if ( formIsExclusion(currentForm)) {
+                    continue;
+                }
                 apbctProcessExternalForm(currentForm, y, frames[j].contentDocument);
             }
         }
@@ -176,7 +181,7 @@ function apbctProcessExternalForm(currentForm, iterator, documentObject) {
         });
     }
     if ( mailerlite_detected_class ) {
-        let mailerliteSubmitButton = jQuery('form.' + mailerlite_detected_class).find('button[type="submit"]');
+        let mailerliteSubmitButton = documentObject.querySelector('form.' + mailerlite_detected_class).querySelector('button[type="submit"]');
         if ( mailerliteSubmitButton !== undefined ) {
             mailerliteSubmitButton.click(function (event) {
                 event.preventDefault();
@@ -189,10 +194,10 @@ function apbctProcessExternalForm(currentForm, iterator, documentObject) {
 
             //mautic integration
             if (documentObject.forms[iterator].id.indexOf('mauticform') !== -1) {
-                let checkbox = jQuery(documentObject.forms[iterator]).find('input[id*="checkbox_rgpd"]')
+                let checkbox = documentObject.forms[iterator].querySelectorAll('input[id*="checkbox_rgpd"]')
                 if (checkbox.length > 0){
                     if (checkbox.prop("checked") === true){
-                        let placeholder = jQuery('.cleantalk_placeholder')
+                        let placeholder = documentObject.querySelectorAll('.cleantalk_placeholder')
                         if (placeholder.length > 0) {
                             placeholder[0].setAttribute('mautic_hidden_gdpr_id', checkbox.prop("id"))
                         }
@@ -200,8 +205,8 @@ function apbctProcessExternalForm(currentForm, iterator, documentObject) {
                 }
             }
 
-            const prev = jQuery(event.currentTarget).prev();
-            const form_original = jQuery(event.currentTarget).clone();
+            const prev = apbct_prev(event.currentTarget);
+            const form_original = event.currentTarget.cloneNode(true);
 
             sendAjaxCheckingFormData(event.currentTarget);
         };
@@ -210,20 +215,16 @@ function apbctProcessExternalForm(currentForm, iterator, documentObject) {
 
 function apbct_replace_inputs_values_from_other_form( form_source, form_target ){
 
-    var	inputs_source = jQuery( form_source ).find( 'button, input, textarea, select' ),
-        inputs_target = jQuery( form_target ).find( 'button, input, textarea, select' );
+    var	inputs_source = form_source.querySelectorAll('button, input, textarea, select'),
+        inputs_target = form_target.querySelectorAll('button, input, textarea, select');
 
-    inputs_source.each( function( index, elem_source ){
+    inputs_source.forEach((index, elem_source) => {
 
-        var source = jQuery( elem_source );
-
-        inputs_target.each( function( index2, elem_target ){
-
-            var target = jQuery( elem_target );
+        inputs_target.forEach((index2, elem_target) => {
 
             if( elem_source.outerHTML === elem_target.outerHTML ){
 
-                target.val( source.val() );
+                elem_target.apbct_val(elem_source.apbct_val());
             }
         });
     });
@@ -235,12 +236,9 @@ window.onload = function () {
         return;
     }
 
-    if ( typeof jQuery === 'undefined' ) {
-        return;
-    }
-
     setTimeout(function () {
         ct_protect_external()
+        catchDinamicRenderedForm()
     }, 1500);
 };
 
@@ -305,7 +303,8 @@ function sendAjaxCheckingFormData(form, prev, formOriginal) {
 
                 if( result.apbct === undefined || ! +result.apbct.blocked ) {
 
-                    let form_new = jQuery(form).detach();
+                    let form_new = form;
+                    form.parentElement.removeChild(form);
                     let prev = form.apbctPrev;
                     let formOriginal = form.apbctFormOriginal;
                     let mautic_integration = false;
@@ -321,7 +320,7 @@ function sendAjaxCheckingFormData(form, prev, formOriginal) {
                         for (let i = 0; i < placeholders.length; i++) {
                             let mautic_hidden_gdpr_id = placeholders[i].getAttribute("mautic_hidden_gdpr_id")
                             if (typeof(mautic_hidden_gdpr_id) !== 'undefined') {
-                                let mautic_gdpr_radio = jQuery(formOriginal).find('#' + mautic_hidden_gdpr_id)
+                                let mautic_gdpr_radio = formOriginal.querySelector('#' + mautic_hidden_gdpr_id)
                                 if (typeof(mautic_gdpr_radio) !== 'undefined') {
                                     mautic_gdpr_radio.prop("checked", true);
                                 }
@@ -332,12 +331,16 @@ function sendAjaxCheckingFormData(form, prev, formOriginal) {
                     prev.after( formOriginal );
 
                     // Clear visible_fields input
-                    jQuery(formOriginal).find('input[name="apbct_visible_fields"]').remove();
-                    jQuery(formOriginal).find('input[value="cleantalk_force_ajax_check"]').remove();
+                    for (const el of formOriginal.querySelectorAll('input[name="apbct_visible_fields"]')) {
+                        el.remove();
+                    }
 
+                    for (const el of formOriginal.querySelectorAll('input[value="cleantalk_force_ajax_check"]')) {
+                        el.remove();
+                    }
 
                     //Common click event
-                    var subm_button = jQuery(formOriginal).find('button[type=submit]');
+                    var subm_button = formOriginal.querySelectorAll('button[type=submit]');
                     if( subm_button.length !== 0 ) {
                         subm_button[0].click();
                         if (mautic_integration) {
@@ -348,21 +351,21 @@ function sendAjaxCheckingFormData(form, prev, formOriginal) {
                         return;
                     }
 
-                    subm_button = jQuery(formOriginal).find('input[type=submit]');
+                    subm_button = formOriginal.querySelectorAll('input[type=submit]');
                     if( subm_button.length !== 0 ) {
                         subm_button[0].click();
                         return;
                     }
 
                     // ConvertKit direct integration
-                    subm_button = jQuery(formOriginal).find('button[data-element="submit"]');
+                    subm_button = formOriginal.querySelectorAll('button[data-element="submit"]');
                     if( subm_button.length !== 0 ) {
                         subm_button[0].click();
                         return;
                     }
 
                     // Paypal integration
-                    subm_button = jQuery(formOriginal).find('input[type="image"][name="submit"]');
+                    subm_button = formOriginal.querySelectorAll('input[type="image"][name="submit"]');
                     if( subm_button.length !== 0 ) {
                         subm_button[0].click();
                     }
@@ -374,4 +377,131 @@ function sendAjaxCheckingFormData(form, prev, formOriginal) {
             }
         }
     );
+}
+
+function catchDinamicRenderedForm() {
+    let forms = document.getElementsByTagName('form')
+
+    catchDinamicRenderedFormHandler(forms)
+
+    const frames = document.getElementsByTagName('iframe');
+    if ( frames.length > 0 ) {
+        for ( let j = 0; j < frames.length; j++ ) {
+            if ( frames[j].contentDocument == null ) {
+                continue;
+            }
+
+            const iframeForms = frames[j].contentDocument.forms;
+
+            if ( iframeForms.length === 0 ) {
+                return;
+            }
+
+            catchDinamicRenderedFormHandler(iframeForms, frames[j].contentDocument)
+        }
+    }
+}
+
+function catchDinamicRenderedFormHandler(forms, documentObject = document) {
+    let neededFormIds = [];
+    for (let form of forms) {
+        if (form.id.indexOf('hsForm') !== -1) {
+            neededFormIds.push(form.id)
+        }
+        if (form.id.indexOf('createuser') !== -1 
+            && (form.classList !== undefined && form.classList.contains('ihc-form-create-edit'))
+        ) {
+            neededFormIds.push(form.id)
+        }
+    }
+
+    for (let formId of neededFormIds) {
+        let form = documentObject.getElementById(formId);
+        form.apbct_external_onsubmit_prev = form.onsubmit;
+        form.onsubmit = sendAjaxCheckingDinamicFormData;
+    }
+}
+
+/**
+ * Sending Ajax for checking form data on dinamic rendered form
+ */
+function sendAjaxCheckingDinamicFormData(form) {
+    form.preventDefault();
+    form.stopImmediatePropagation();
+    var formEvent = form;
+    form = form.target;
+
+    var force_action = document.createElement("input");
+    force_action.name = 'action';
+    force_action.value = 'cleantalk_force_ajax_check';
+    force_action.type = 'hidden';
+    form.appendChild(force_action);
+
+    // Get visible fields and set cookie
+    var visible_fields = {};
+    visible_fields[0] = apbct_collect_visible_fields(form);
+    apbct_visible_fields_set_cookie( visible_fields );
+
+    var data = {};
+    var elems = form.elements;
+    elems = Array.prototype.slice.call(elems);
+
+    elems.forEach( function( elem, y ) {
+        if( elem.name === '' ) {
+            data['input_' + y] = elem.value;
+        } else {
+            data[elem.name] = elem.value;
+        }
+    });
+
+    apbct_public_sendAJAX(
+        data,
+        {
+            async: false,
+            callback: function(result) {
+                if( result.apbct === undefined || ! +result.apbct.blocked ) {
+                    form.onsubmit = null;
+
+                    // Call previous submit action
+                    if (form.apbct_external_onsubmit_prev instanceof Function) {
+                        setTimeout(function () {
+                            form.apbct_external_onsubmit_prev.call(form, formEvent);
+                        }, 500);
+                    }
+
+                    let subm_button = form.querySelector('input[type="submit"]');
+                    if(subm_button) {
+                        subm_button.click();
+                        return;
+                    }
+                }
+
+                if (result.apbct !== undefined && +result.apbct.blocked) {
+                    ctParseBlockMessage(result);
+                }
+            }
+        }
+    );
+}
+
+function apbct_prev(el, selector) {
+    if (selector) {
+        const prev = el.previousElementSibling;
+        if (prev && prev.matches(selector)) {
+        return prev;
+    }
+        return undefined;
+    } else {
+        return el.previousElementSibling;
+    }
+}
+
+function apbct_val(el) {
+    if (el.options && el.multiple) {
+        return el.options
+        .filter((option) => option.selected)
+        .map((option) => option.value);
+    } else {
+        return el.value;
+    }
 }

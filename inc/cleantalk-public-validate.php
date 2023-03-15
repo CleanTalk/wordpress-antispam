@@ -136,15 +136,12 @@ function ct_contact_form_validate()
         unset($_POST['TellAFriend_Link']);
     }
 
-    $checkjs = apbct_js_test(Sanitize::cleanTextField(Cookie::get('ct_checkjs')), true) ?: apbct_js_test(Sanitize::cleanTextField(Post::get('ct_checkjs')));
-
     $base_call_result = apbct_base_call(
         array(
             'message'         => $message,
             'sender_email'    => $sender_email,
             'sender_nickname' => $sender_nickname,
             'post_info'       => $post_info,
-            'js_on'           => $checkjs,
             'sender_info'     => array('sender_email' => urlencode($sender_email)),
         )
     );
@@ -345,7 +342,15 @@ function ct_contact_form_validate_postdata()
      */
     $input_array = apply_filters('apbct__filter_post', $_POST);
 
-    $message = ct_get_fields_any_postdata($input_array);
+    $ct_temp_msg_data = ct_get_fields_any($input_array);
+
+    $sender_email    = $ct_temp_msg_data['email'] ?: '';
+    $sender_nickname = $ct_temp_msg_data['nickname'] ?: '';
+    $subject         = $ct_temp_msg_data['subject'] ?: '';
+    $message         = $ct_temp_msg_data['message'] ?: array();
+    if ( $subject !== '' ) {
+        $message = array_merge(array('subject' => $subject), $message);
+    }
 
     // ???
     if ( strlen(json_encode($message)) < 10 ) {
@@ -371,8 +376,10 @@ function ct_contact_form_validate_postdata()
 
     $base_call_result = apbct_base_call(
         array(
-            'message'   => $message,
-            'post_info' => array('comment_type' => 'feedback_general_postdata'),
+            'message'         => $message,
+            'sender_email'    => $sender_email,
+            'sender_nickname' => $sender_nickname,
+            'post_info'       => array('comment_type' => 'feedback_general_postdata'),
         )
     );
 

@@ -39,10 +39,14 @@ jQuery(document).ready(function(){
 			datasets: [{
 				label: 'Spam blocked',
 				data: widgetData.counts,
-				borderWidth: 1
+				borderWidth: 1,
+				backgroundColor: 'steelblue'
 			}]
 		},
 		options: {
+			legend: {
+				display: false
+			},
 			maintainAspectRatio: false,
 			responsive: true,
 			scales: {
@@ -50,7 +54,15 @@ jQuery(document).ready(function(){
 					beginAtZero: true
 				}
 			},
+			title: {
+				display: true,
+				text: 'Spam attacks',
+				fontSize: 18
+			},
 			plugins: {
+				legend: {
+					display: false
+				},
 				title: {
 					display: true,
 					text: 'Spam attacks',

@@ -90,3 +90,11 @@
 	margin-left: 0;
 	margin-bottom: 20px;
 }
+
+#cleantalk_notice_review .caption {
+	margin: 0 0 15px;
+	color: gray;
+}
+#cleantalk_notice_review .button {
+	margin-bottom: 20px;
+}

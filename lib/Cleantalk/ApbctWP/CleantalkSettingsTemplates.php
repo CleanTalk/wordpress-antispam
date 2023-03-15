@@ -314,7 +314,7 @@ class CleantalkSettingsTemplates
     private function resetPluginOptions()
     {
         global $apbct;
-        $def_settings = $apbct->def_settings;
+        $def_settings = $apbct->default_settings;
         if ( isset($def_settings['apikey']) ) {
             unset($def_settings['apikey']);
         }

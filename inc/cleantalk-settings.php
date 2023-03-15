@@ -89,6 +89,10 @@ function apbct_settings__set_fields()
         }
     }
 
+    $send_connection_reports__sfw_text = $apbct->settings['sfw__enabled']
+        ? '<br>' . __(' - status of SpamFireWall database updating process', 'cleantalk-spam-protect')
+        : '';
+
     $fields = array(
 
         'main' => array(
@@ -416,7 +420,7 @@ function apbct_settings__set_fields()
                 'data__use_ajax'                       => array(
                     'title'       => __('Use AJAX for JavaScript check', 'cleantalk-spam-protect'),
                     'description' => __(
-                        'Options helps protect WordPress against spam with any caching plugins. Turn this option on to avoid issues with caching plugins. Turn off this option and SpamFireWall to be compatible with Accelerated mobile pages (AMP).',
+                        'Options helps protect WordPress against spam with any caching plugins. Turn this option on to avoid issues with caching plugins.',
                         'cleantalk-spam-protect'
                     ),
                     'childrens'   => array('data__ajax_type_checking_js')
@@ -562,6 +566,14 @@ function apbct_settings__set_fields()
                     'title'       => __('Encode contact data', 'cleantalk-spam-protect'),
                     'description' => __('Turn on this option to prevent crawlers grab contact data (emails) from website content.', 'cleantalk-spam-protect'),
                     'long_description' => true,
+                    'childrens'   => array('data__email_decoder_buffer')
+                ),
+                'data__email_decoder_buffer'        => array(
+                    'title'       => __('Use the output buffer', 'cleantalk-spam-protect'),
+                    'description' => __('Use this option only if no encoding occurs when the "Encode contact data" option is enabled.', 'cleantalk-spam-protect'),
+                    'parent'          => 'data__email_decoder',
+                    'class'           => 'apbct_settings-field_wrapper--sub',
+                    'reverse_trigger' => true,
                 ),
             ),
         ),
@@ -742,11 +754,11 @@ function apbct_settings__set_fields()
                 'misc__send_connection_reports' => array(
                     'type'        => 'checkbox',
                     'title'       => __('Send connection reports', 'cleantalk-spam-protect'),
-                    'description' => __(
-                        "Checking this box you allow plugin to send the information about your connection.",
-                        'cleantalk-spam-protect'
+                    'description' => __("Checking this box you allow plugin to send the information about your connection. These reports could contain next info:", 'cleantalk-spam-protect')
+                        . '<br>'
+                        . __(' - connection status to CleanTalk cloud during Anti-Spam request', 'cleantalk-spam-protect')
+                        . $send_connection_reports__sfw_text
                     ),
-                ),
                 'misc__async_js'                => array(
                     'type'        => 'checkbox',
                     'title'       => __('Async JavaScript loading', 'cleantalk-spam-protect'),
@@ -2310,7 +2322,7 @@ function apbct_settings__validate($settings)
     }
 
     // Set missing settings.
-    foreach ( $apbct->def_settings as $setting => $value ) {
+    foreach ( $apbct->default_settings as $setting => $value ) {
         if ( ! isset($settings[$setting]) ) {
             $settings[$setting] = null;
             settype($settings[$setting], gettype($value));
@@ -2320,7 +2332,7 @@ function apbct_settings__validate($settings)
 
     // Set missing network settings.
     $stored_network_options = get_site_option($apbct->option_prefix . '_network_settings', array());
-    foreach ( $apbct->def_network_settings as $setting => $value ) {
+    foreach ( $apbct->default_network_settings as $setting => $value ) {
         if ( ! isset($settings[$setting]) ) {
             if ( ! array_key_exists($setting, $stored_network_options) ) {
                 $settings[$setting] = $value;
@@ -3137,84 +3149,4 @@ function apbct_render_links_to_tag($value)
     $pattern = "/(https?:\/\/[^\s]+)/";
     $value = preg_replace($pattern, '<a target="_blank" href="$1">$1</a>', $value);
     return Escape::escKsesPreset($value, 'apbct_settings__display__notifications');
-}
-
-/**
- * Set new settings template called by remote call.
- * @param string $template_id - template id that setting up
- * @param array $options_template_data - validated plugin options from cloud
- * @param string $api_key - current site api key
- * @return string - JSON string of result
- */
-function apbct_rc__service_template_set($template_id, array $options_template_data, $api_key)
-{
-    $templates_object = new CleantalkSettingsTemplates($api_key);
-    $settings_set_result = $templates_object->setPluginOptions(
-        $template_id,
-        $options_template_data['template_name'],
-        $options_template_data['options_site']
-    );
-
-    $result = $settings_set_result
-        ? json_encode(array('OK' => 'Settings updated'))
-        : json_encode(array('ERROR' => 'Internal settings updating error'));
-
-    return $result !== false ? $result : '{"ERROR":"Internal JSON encoding error"}';
-}
-
-/**
- * API method "service_template_get" response validator.
- * @param string $template_id
- * @param array $template_get_result
- * @return array template_name - name from response, options_site - site options from response
- */
-function apbct_validate_api_response__service_template_get($template_id, $template_get_result)
-{
-    $services_templates_get_error = '';
-    $options_site = null;
-    $template_name = '';
-
-    if ( empty($template_get_result) || !is_array($template_get_result) ) {
-        throw new InvalidArgumentException('Parse services_templates_get API error: wrong services_templates_get response');
-    }
-
-    if ( array_key_exists('error', $template_get_result) ) {
-        throw new InvalidArgumentException('Parse services_templates_get API error: ' . $template_get_result['error']);
-    }
-
-    foreach ( $template_get_result as $_key => $template ) {
-        if ( empty($template['template_id']) ) {
-            $services_templates_get_error = 'Parse services_templates_get API error: template_id is empty';
-            break;
-        }
-        if ( $template['template_id'] === (int)$template_id ) {
-            if ( empty($template['options_site']) ) {
-                $services_templates_get_error = 'Parse services_templates_get API error: options_site is empty';
-                break;
-            }
-            if ( !is_string($template['options_site']) ) {
-                $services_templates_get_error = 'Parse services_templates_get API error: options_site is not a string';
-                break;
-            }
-            $options_site = json_decode($template['options_site'], true);
-            $template_name = !empty($template['name']) ? htmlspecialchars($template['name']) : 'N\A';
-            if ( $options_site === false || !is_array($options_site)) {
-                $services_templates_get_error = 'Parse services_templates_get API error: options_site JSON decode error';
-                break;
-            }
-        }
-    }
-
-    if ( !empty($services_templates_get_error) ) {
-        throw new InvalidArgumentException($services_templates_get_error);
-    }
-
-    if ( empty($options_site) ) {
-        throw new InvalidArgumentException('Parse services_templates_get API error: no such template_id found in APi response ' . $template_id);
-    }
-
-    return array(
-        'template_name' => $template_name,
-        'options_site' => $options_site
-    );
 }

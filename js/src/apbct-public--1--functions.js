@@ -153,9 +153,11 @@ function apbct_public_sendAJAX(data, params, obj){
     _params["callback_params"] = params.callback_params || null;
     _params["async"]        = params.async || true;
     _params["notJson"]     = params.notJson     || null;
+    _params["responseType"]= params.notJson ? 'text' : 'json';
     _params["timeout"]     = params.timeout     || 15000;
     _params["obj"]         = obj                || null;
     _params["button"]      = params.button      || null;
+    _params["spinner"]     = params.spinner     || null;
     _params["progressbar"] = params.progressbar || null;
     _params["silent"]      = params.silent      || null;
     _params["no_nonce"]    = params.no_nonce    || null;

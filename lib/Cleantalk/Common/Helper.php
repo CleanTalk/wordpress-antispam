@@ -748,6 +748,29 @@ class Helper
     }
 
     /**
+     * Compare two arrays keys to find if there are difference. Recursive.
+     * @param array $f_array First array
+     * @param array $s_array Second array
+     * @return bool True if arrays keys has difference, false otherwise.
+     */
+    public static function arraysHasKeysDifferenceRecursive($f_array, $s_array)
+    {
+        $difference = array_diff_key($f_array, $s_array);
+        if ( !empty($difference) ) {
+            return true;
+        }
+        foreach ( $f_array as $f_key => $f_value ) {
+            if ( is_array($f_value) && is_array($s_array[$f_key]) ) {
+                $new_difference = self::arraysHasKeysDifferenceRecursive($f_value, $s_array[$f_key]);
+                if ( !empty($new_difference) ) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
      * Function removing non UTF8 characters from array|string|object
      *
      * @param array|object|string $data

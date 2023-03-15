@@ -62,3 +62,6 @@ p.ct_feedback_wrap{
 	.ct_feedback_success{color: green;}
 	.ct_feedback_error{color: red;}
 	.ct_feedback_no_hash{color: blue;}
+
+.ct_comment_info .ct_this_is img.--hide{ display: none; }
+.ct_comment_info .ct_this_is img.apbct_preloader_button{ height: 15px; margin-left: 5px; vertical-align: text-top; display: none; }

@@ -4,7 +4,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 6.2.2-dev
+  Version: 6.6
   Author: СleanTalk <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -90,6 +90,8 @@ define('APBCT_REMOTE_CALL_SLEEP', 5); // Minimum time between remote call
 if ( ! defined('CLEANTALK_PLUGIN_DIR') ) {
     define('CLEANTALK_PLUGIN_DIR', dirname(__FILE__) . '/');
 }
+
+define('APBCT_LANG_REL_PATH', 'cleantalk-spam-protect/i18n');
 
 // PHP functions patches
 require_once(CLEANTALK_PLUGIN_DIR . 'lib/cleantalk-php-patch.php');  // Pathces fpr different functions which not exists
@@ -192,9 +194,12 @@ apbct_update_actions();
 
 add_action('init', function () {
     global $apbct;
-    // Self cron
+
     // Connection reports
     $apbct->setConnectionReports();
+    // SFW update sentinel
+    $apbct->setSFWUpdateSentinel();
+    // Self cron
     $ct_cron = new Cron();
     $tasks_to_run = $ct_cron->checkTasks(); // Check for current tasks. Drop tasks inner counters.
     if (
@@ -419,8 +424,46 @@ $apbct_active_integrations = array(
         'setting' => 'forms__contact_forms_test',
         'ajax'    => true
     ),
+    'Hustle' => array(
+        'hook'    => 'hustle_module_form_submit',
+        'setting' => 'forms__contact_forms_test',
+        'ajax'    => true
+    ),
+    'WpBookingSystem' => array(
+        'hook'    => 'wpbs_submit_form',
+        'setting' => 'forms__contact_forms_test',
+        'ajax'    => true
+    ),
+    'Supsystic' => array(
+        'hook'    => 'contact',
+        'setting' => 'forms__contact_forms_test',
+        'ajax'    => true
+    ),
+    'LeadFormBuilder' => array(
+        'hook'    => 'Save_Form_Data',
+        'setting' => 'forms__contact_forms_test',
+        'ajax'    => true
+    ),
 );
 new  \Cleantalk\Antispam\Integrations($apbct_active_integrations, (array)$apbct->settings);
+
+// Mailoptin. Pass without action because url for ajax request is domain.com/any-page/?mailoptin-ajax=subscribe_to_email_list
+if (
+    apbct_is_plugin_active('mailoptin/mailoptin.php') &&
+    sizeof($_POST) > 0 &&
+    Get::get('mailoptin-ajax') === 'subscribe_to_email_list'
+) {
+    apbct_form__mo_subscribe_to_email_list__testSpam();
+}
+
+// Metform
+if (
+    apbct_is_plugin_active('metform/metform.php') &&
+    apbct_is_in_uri('/wp-json/metform/') &&
+    sizeof($_POST) > 0
+) {
+    apbct_form__metform_subscribe__testSpam();
+}
 
 // Ninja Forms. Making GET action to POST action
 if (
@@ -1004,6 +1047,8 @@ function apbct_sfw_update__init($delay = 0)
     $apbct->fw_stats['firewall_updating_last_start'] = time();
     $apbct->save('fw_stats');
 
+    $apbct->sfw_update_sentinel->seekId($apbct->fw_stats['firewall_updating_id']);
+
     // Delete update errors
     $apbct->errorDelete('sfw_update', 'save_data');
     $apbct->errorDelete('sfw_update', 'save_data', 'cron');
@@ -1014,6 +1059,8 @@ function apbct_sfw_update__init($delay = 0)
     $queue->addStage('apbct_sfw_update__get_multifiles');
 
     $cron = new Cron();
+    $watch_dog_period = $apbct->sfw_update_sentinel->getWatchDogCronPeriod();
+    $cron->addTask('sfw_update_sentinel_watchdog', 'apbct_sfw_update_sentinel__run_watchdog', $watch_dog_period, time() + $watch_dog_period);
     $cron->addTask('sfw_update_checker', 'apbct_sfw_update__checker', 15);
 
     return Helper::httpRequestRcToHost(
@@ -1110,6 +1157,9 @@ function apbct_sfw_update__worker($checker_work = false)
 
             return $direct_upd_res['error'];
         }
+
+        //stop seeking updates on success direct update
+        $apbct->sfw_update_sentinel->clearSentinelData();
 
         return true;
     }
@@ -1535,6 +1585,7 @@ function apbct_sfw_update__end_of_update($is_first_updating = false)
     apbct_remove_upd_folder($apbct->fw_stats['updating_folder']);
 
     // Reset all FW stats
+    $apbct->sfw_update_sentinel->clearSentinelData();
     $apbct->fw_stats['firewall_update_percent'] = 0;
     $apbct->fw_stats['firewall_updating_id']    = null;
     $apbct->fw_stats['expected_networks_count'] = false;
@@ -2139,7 +2190,7 @@ function apbct_rc__update_settings($source)
 {
     global $apbct;
 
-    foreach ( $apbct->def_settings as $setting => $def_value ) {
+    foreach ( $apbct->default_settings as $setting => $def_value ) {
         if ( array_key_exists($setting, $source) ) {
             $var  = $source[$setting];
             $type = gettype($def_value);
@@ -2438,7 +2489,7 @@ function apbct_cookie()
     // Submit time
     if ( empty(Post::get('ct_multipage_form')) ) { // Do not start/reset page timer if it is multi page form (Gravity forms))
         $apbct_timestamp = time();
-        Cookie::set('apbct_timestamp', (string)$apbct_timestamp, 0, '/', $domain, null, false, 'Lax', true);
+        Cookie::set('apbct_timestamp', (string)$apbct_timestamp, 0, '/', $domain, null, true, 'Lax', true);
         $cookie_test_value['cookies_names'][] = 'apbct_timestamp';
         $cookie_test_value['check_value']     .= $apbct_timestamp;
     }
@@ -2835,4 +2886,10 @@ function apbct_test_connection()
     }
 
     return $out;
+}
+
+function apbct_sfw_update_sentinel__run_watchdog()
+{
+    global $apbct;
+    $apbct->sfw_update_sentinel->runWatchDog();
 }

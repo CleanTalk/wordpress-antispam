@@ -470,7 +470,6 @@ function ct_woocommerce_checkout_check($_data, $errors)
         'sender_email'    => $sender_email,
         'sender_nickname' => $sender_nickname,
         'post_info'       => $post_info,
-        'js_on'           => apbct_js_test(Sanitize::cleanTextField(Cookie::get('ct_checkjs')), true),
         'sender_info'     => array('sender_url' => null)
     );
 
@@ -1192,6 +1191,15 @@ function ct_preprocess_comment($comment)
         $ct_comment    = $ct_result->comment;
         $ct_stop_words = $ct_result->stop_words;
 
+        /**
+         * We have to increase priority to apply filters for comments
+         * management after akismet fires
+         **/
+        $increased_priority = 0;
+        if (apbct_is_plugin_active('akismet/akismet.php')) {
+            $increased_priority = 5;
+        }
+
         $err_text =
             '<center>'
             . ((defined('CLEANTALK_DISABLE_BLOCKING_TITLE') && CLEANTALK_DISABLE_BLOCKING_TITLE == true)
@@ -1217,7 +1225,7 @@ function ct_preprocess_comment($comment)
         // Trash comment.
         if ( $ct_result->spam == 2 ) {
             add_filter('pre_comment_approved', 'ct_set_comment_spam', 997, 2);
-            add_action('comment_post', 'ct_wp_trash_comment', 7, 2);
+            add_action('comment_post', 'ct_wp_trash_comment', 7 + $increased_priority, 2);
         }
 
         // Spam comment
@@ -1228,10 +1236,10 @@ function ct_preprocess_comment($comment)
         // Move to pending folder. Contains stop_words.
         if ( $ct_result->stop_words ) {
             add_filter('pre_comment_approved', 'ct_set_not_approved', 998, 2);
-            add_action('comment_post', 'ct_mark_red', 8, 2);
+            add_action('comment_post', 'ct_mark_red', 8 + $increased_priority, 2);
         }
 
-        add_action('comment_post', 'ct_die', 9, 2);
+        add_action('comment_post', 'ct_die', 9 + $increased_priority, 2);
     }
 
     if ( $apbct->settings['comments__remove_comments_links'] == 1 ) {
@@ -2083,6 +2091,66 @@ function apbct_form__contactForm7__changeMailNotification($component)
 }
 
 /**
+ * Test Mailoptin subscribe form for spam
+ *
+ * @return void
+ * @global State $apbct
+ */
+function apbct_form__mo_subscribe_to_email_list__testSpam()
+{
+    $input_array = apply_filters('apbct__filter_post', $_POST);
+    $params = ct_get_fields_any($input_array);
+
+    $base_call_result = apbct_base_call(
+        array(
+            'sender_email'    => $params['email'],
+            'sender_nickname' => $input_array['mo-name'] ?: '',
+            'post_info'       => array('comment_type' => 'subscribe_form_wordpress_mailoptin'),
+        )
+    );
+
+    $ct_result = $base_call_result['ct_result'];
+
+    if ( $ct_result->allow == 0 ) {
+        wp_send_json([
+            'success' => false,
+            'message' => $ct_result->comment
+        ]);
+    }
+}
+
+/**
+ * Test Metform subscribe form for spam
+ *
+ * @return void
+ */
+function apbct_form__metform_subscribe__testSpam()
+{
+    $input_array = apply_filters('apbct__filter_post', $_POST);
+    $params = ct_get_fields_any($input_array);
+
+    $base_call_result = apbct_base_call(
+        array(
+            'sender_email'    => $params['email'],
+            'sender_nickname' => $params['nickname'] ?: '',
+            'post_info'       => array('comment_type' => 'subscribe_form_wordpress_metform'),
+        )
+    );
+
+    $ct_result = $base_call_result['ct_result'];
+
+    if ( $ct_result->allow == 0 ) {
+        wp_send_json([
+            'status' => 0,
+            'error' => $ct_result->comment,
+            'data' => [
+                'message' => '',
+            ]
+        ]);
+    }
+}
+
+/**
  * Test Ninja Forms message for spam
  *
  * @return void
@@ -2860,7 +2928,9 @@ function apbct_form__gravityForms__testSpam($is_spam, $form, $entry)
                             'f_type'       => $field_type,
                             'f_data'       => $entry[$input_id]
                         );
-                        $form_fields_for_ct['input_' . $input_id] = $entry[$input_id];
+                        if ($field_type !== 'checkbox' && $field_type !== 'radio') {
+                            $form_fields_for_ct['input_' . $input_id] = $entry[$input_id];
+                        }
                     }
                 }
             } else {
@@ -2871,7 +2941,9 @@ function apbct_form__gravityForms__testSpam($is_spam, $form, $entry)
                         'f_type'       => $field_type,
                         'f_data'       => $entry[$field_id]
                     );
-                    $form_fields_for_ct['input_' . $field_id] = $entry[$field_id];
+                    if ($field_type !== 'checkbox' && $field_type !== 'radio') {
+                        $form_fields_for_ct['input_' . $field_id] = $entry[$field_id];
+                    }
                 }
             }
         }

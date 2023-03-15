@@ -201,7 +201,7 @@ class RemoteCalls
         /**
          * $template_id validation
          */
-        $template_id = Post::get('template_id');
+        $template_id = Request::get('template_id');
 
         if ( empty($template_id) || !is_string($template_id) ) {
             throw new \InvalidArgumentException($error_hat . 'bad param template_id');

@@ -1,6 +1,7 @@
 <?php
 
 use Cleantalk\ApbctWP\Escape;
+use Cleantalk\ApbctWP\Localize\LocalizeHandler;
 use Cleantalk\ApbctWP\Sanitize;
 use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\ApbctWP\Variables\Get;
@@ -23,6 +24,10 @@ function apbct_init()
     if ( $apbct->settings['data__pixel'] && empty($apbct->pixel_url) ) {
         $apbct->pixel_url = apbct_get_pixel_url__ajax(true);
     }
+
+    // Localize data
+    add_action('wp_head', array(LocalizeHandler::class, 'handle'), 1);
+    add_action('login_head', array(LocalizeHandler::class, 'handle'), 1);
 
     //Search form hook init
     if ( $apbct->settings['forms__search_test'] ) {
@@ -1369,32 +1374,6 @@ function apbct_enqueue_and_localize_public_scripts()
         APBCT_VERSION
     );
 
-    wp_localize_script('ct_public_functions', 'ctPublicFunctions', array(
-        '_ajax_nonce'                          => wp_create_nonce('ct_secret_stuff'),
-        '_rest_nonce'                          => wp_create_nonce('wp_rest'),
-        '_ajax_url'                            => admin_url('admin-ajax.php', 'relative'),
-        '_rest_url'                            => Escape::escUrl(apbct_get_rest_url()),
-        'data__cookies_type'                   => $apbct->data['cookies_type'],
-        'data__ajax_type'                      => $apbct->data['ajax_type'],
-        'text__wait_for_decoding'              => esc_html__('Decoding the contact data, let us a few seconds to finish. Anti-Spam by CleanTalk.', 'cleantalk-spam-protect'),
-        'cookiePrefix'                         => apbct__get_cookie_prefix(),
-    ));
-
-    wp_localize_script('ct_public_functions', 'ctPublic', array(
-        'settings__forms__check_internal' => $apbct->settings['forms__check_internal'],
-        'settings__forms__check_external' => $apbct->settings['forms__check_external'],
-        'blog_home'                     => get_home_url() . '/',
-        'pixel__setting'                => $apbct->settings['data__pixel'],
-        'pixel__enabled'                => $apbct->settings['data__pixel'] === '2' ||
-                                           ($apbct->settings['data__pixel'] === '3' && apbct_is_cache_plugins_exists()),
-        'pixel__url'                    => $apbct->pixel_url,
-        'data__email_check_before_post' => $apbct->settings['data__email_check_before_post'],
-        'data__cookies_type'            => $apbct->data['cookies_type'],
-        'data__key_is_ok'               => $apbct->data['key_is_ok'],
-        'data__visible_fields_required' => ! apbct_is_user_logged_in() || $apbct->settings['data__protect_logged_in'] == 1,
-        'data__to_local_storage' => \Cleantalk\ApbctWP\Variables\NoCookie::preloadForScripts()
-    ));
-
     wp_enqueue_style(
         'ct_public_css',
         APBCT_CSS_ASSETS_PATH . '/cleantalk-public.min.css',
@@ -1470,12 +1449,14 @@ function ct_comments_output($curr_comment, $_param2, $wp_list_comments_args)
              'Mark as spam',
              'cleantalk-spam-protect'
          )
+         . '<img style="margin-left: 10px;" class="apbct_preloader_button" src="' . Escape::escUrl(APBCT_URL_PATH . '/inc/images/preloader2.gif') . '" />'
          . "</span>";
     $html .= "<span commentid='$id' class='ct_this_is ct_this_is_not_spam ct_hidden' href='#'>"
          . __(
              'Unspam',
              'cleantalk-spam-protect'
          )
+         . '<img style="margin-left: 10px;" class="apbct_preloader_button" src="' . Escape::escUrl(APBCT_URL_PATH . '/inc/images/preloader2.gif') . '" />'
          . "</span>";
     $html .= "<p class='ct_feedback_wrap'>";
     $html .= "<span class='ct_feedback_result ct_feedback_result_spam'>"
@@ -1519,6 +1500,7 @@ function ct_comments_output($curr_comment, $_param2, $wp_list_comments_args)
             ),
             'img' => array(
                 'style' => true,
+                'class' => true,
                 'src' => true,
                 'border' => true,
             ),

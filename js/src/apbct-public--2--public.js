@@ -393,7 +393,10 @@ function apbct_ready(){
 				form.action.toString() === 'https://epayment.epymtservice.com/epay.jhtml' || // Custom form
 				(form.name && form.name.toString().indexOf('tribe-bar-form') !== -1) ||  // The Events Calendar
 				(form.id && form.id === 'ihf-login-form') || //Optima Express login
-				(form.id && form.id === 'subscriberForm' && form.action.toString().indexOf('actionType=update') !== -1) //Optima Express update
+				(form.id && form.id === 'subscriberForm' && form.action.toString().indexOf('actionType=update') !== -1) || //Optima Express update
+				(form.id && form.id === 'ihf-main-search-form') || // Optima Express search
+				(form.id && form.id === 'frmCalc') || //nobletitle-calc
+				form.action.toString().indexOf('property-organizer-delete-saved-search-submit') !== -1
 			) {
 				continue;
 			}
@@ -450,11 +453,16 @@ function apbct_ready(){
 	 * WordPress Search form processing
 	 */
 	for (const _form of document.forms) {
-		if ( (
-			_form.getAttribute('id') === 'searchform'
-			|| (_form.getAttribute('class') !== null && _form.getAttribute('class').indexOf('search-form') !== -1)
-			|| (_form.getAttribute('role') !== null && _form.getAttribute('role').indexOf('search') !== -1)
-		) && ctPublic.data__cookies_type === 'none' ) {
+		if (
+			typeof ctPublic !== 'undefined'
+			&& ctPublic.settings__forms__search_test === '1'
+			&& ctPublic.data__cookies_type === 'none'
+			&& (
+				_form.getAttribute('id') === 'searchform'
+				|| (_form.getAttribute('class') !== null && _form.getAttribute('class').indexOf('search-form') !== -1)
+				|| (_form.getAttribute('role') !== null && _form.getAttribute('role').indexOf('search') !== -1)
+				)
+		) {
 			_form.apbctSearchPrevOnsubmit = _form.onsubmit;
 			_form.onsubmit = (e) => {
 				const noCookie = _form.querySelector('[name="ct_no_cookie_hidden_field"]');
@@ -507,6 +515,7 @@ function ctFillDecodedEmailHandler(event) {
 		waiting_popup.setAttribute('id', 'apbct_popup')
 		let popup_text = document.createElement('p')
 		popup_text.setAttribute('id', 'apbct_popup_text')
+		popup_text.style.color = "black"
 		popup_text.innerText = "Please wait while CleanTalk decoding email addresses.."
 		waiting_popup.append(popup_text)
 		document.body.append(waiting_popup)
@@ -944,11 +953,11 @@ function ctNoCookieConstructHiddenField(type){
 	no_cookie_data = JSON.stringify(no_cookie_data)
 	no_cookie_data = '_ct_no_cookie_data_' + btoa(no_cookie_data)
 	field = document.createElement('input')
-	field.setAttribute('id','ct_no_cookie_hidden_field')
 	field.setAttribute('name','ct_no_cookie_hidden_field')
 	field.setAttribute('value', no_cookie_data)
 	field.setAttribute('type', inputType)
 	field.classList.add('apbct_special_field');
+	field.classList.add('ct_no_cookie_hidden_field');
 	return field
 }
 
@@ -957,6 +966,17 @@ function ctGetPageForms(){
 	if (forms) {
 		return forms
 	}
+	return false
+}
+
+function ctNoCookieFormIsExcludedFromNcField(form){
+
+	//ajax search pro exclusion
+	let nc_field_exclusions_sign = form.parentNode
+	if (nc_field_exclusions_sign && nc_field_exclusions_sign.classList.contains('proinput')){
+		return 'ajax search pro exclusion'
+	}
+
 	return false
 }
 
@@ -971,25 +991,113 @@ function ctNoCookieAttachHiddenFieldsToForms(){
 	if (forms){
 		for ( let i = 0; i < forms.length; i++ ){
 			//remove old sets
-			let fields = forms[i].querySelectorAll('#ct_no_cookie_hidden_field')
+			let fields = forms[i].querySelectorAll('.ct_no_cookie_hidden_field')
 			for ( let j = 0; j < fields.length; j++ ){
 				fields[j].outerHTML = ""
 			}
+
+			if ( ctNoCookieFormIsExcludedFromNcField(document.forms[i]) ) {
+				return
+			}
+
 			//ignore forms with get method @todo We need to think about this
 			if (document.forms[i].getAttribute('method') === null
 				||
 				document.forms[i].getAttribute('method').toLowerCase() === 'post'){
 				// add new set
 				document.forms[i].append(ctNoCookieConstructHiddenField());
-			}
-			if ( (
-				document.forms[i].getAttribute('id') === 'searchform'
-				|| (document.forms[i].getAttribute('class') !== null && document.forms[i].getAttribute('class').indexOf('search-form') !== -1)
-				|| (document.forms[i].getAttribute('role') !== null && document.forms[i].getAttribute('role').indexOf('search') !== -1)
-			)){
+			} else if (typeof ctPublic !== 'undefined'
+				&& ctPublic.settings__forms__search_test === '1'
+				&& (
+					document.forms[i].getAttribute('id') === 'searchform'
+					|| (document.forms[i].getAttribute('class') !== null && document.forms[i].getAttribute('class').indexOf('search-form') !== -1)
+					|| (document.forms[i].getAttribute('role') !== null && document.forms[i].getAttribute('role').indexOf('search') !== -1)
+				)
+			) {
 				document.forms[i].append(ctNoCookieConstructHiddenField('submit'));
 			}
 		}
 	}
 
+}
+
+const defaultFetch = window.fetch;
+const defaultSend = XMLHttpRequest.prototype.send;
+
+if (document.readyState !== 'loading') {
+	checkFormsExistForCatching();
+	checkFormsExistForCatchingXhr();
+} else {
+	apbct_attach_event_handler(document, "DOMContentLoaded", checkFormsExistForCatching);
+	apbct_attach_event_handler(document, "DOMContentLoaded", checkFormsExistForCatchingXhr);
+}
+
+function checkFormsExistForCatching() {
+	setTimeout(function() {
+		if (isFormThatNeedCatch()) {
+			window.fetch = function() {
+				if (arguments
+					&& arguments[0]
+					&& typeof arguments[0].includes === 'function'
+					&& arguments[0].includes('/wp-json/metform/')
+				) {
+					let no_cookie_data = getNoCookieData();
+
+					if (arguments && arguments[1] && arguments[1].body) {
+						arguments[1].body.append('ct_no_cookie_hidden_field', no_cookie_data)
+					}
+				}
+
+				return defaultFetch.apply(window, arguments);
+			}
+		}
+	}, 1000);
+}
+
+function isFormThatNeedCatch() {
+	const formClasses = [
+		'metform-form-content'
+	];
+	let classExists = false;
+
+	const forms = document.forms;
+	for (let form of forms) {
+		formClasses.forEach(function (classForm) {
+			if (form.classList.contains(classForm)) {
+				classExists = true;
+			}
+		})
+	}
+
+	return classExists;
+}
+
+function checkFormsExistForCatchingXhr() {
+	setTimeout(function() {
+		if (isFormThatNeedCatchXhr()) {
+			window.XMLHttpRequest.prototype.send = function(data) {
+				let no_cookie_data = getNoCookieData();
+				no_cookie_data = 'data%5Bct_no_cookie_hidden_field%5D=' + no_cookie_data + '&'
+
+				defaultSend.call(this, no_cookie_data + data);
+			}
+		}
+	}, 1000);
+}
+
+function isFormThatNeedCatchXhr() {
+	if (document.querySelector("div.elementor-widget[title='Login/Signup']") != null) {
+		return true;
+	}
+
+	return false;
+}
+
+function getNoCookieData() {
+	let no_cookie_data_local = apbctLocalStorage.getCleanTalkData();
+	let no_cookie_data_session = apbctSessionStorage.getCleanTalkData();
+	let no_cookie_data = {...no_cookie_data_local, ...no_cookie_data_session};
+	no_cookie_data = JSON.stringify(no_cookie_data);
+
+	return '_ct_no_cookie_data_' + btoa(no_cookie_data);
 }
