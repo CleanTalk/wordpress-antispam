@@ -850,10 +850,7 @@ function ct_bbp_get_topic($topic)
 /**
  * Public filter 'bbp_*' - Checks topics, replies by cleantalk
  *
- * @param mixed[] $comment Comment string
- *
- * @return  mixed[] $comment Comment string
- * @psalm-suppress UndefinedFunction
+ * @param string $comment Comment string
  */
 function ct_bbp_new_pre_content($comment)
 {
@@ -872,34 +869,35 @@ function ct_bbp_new_pre_content($comment)
         return $comment;
     }
 
-    $checkjs = apbct_js_test(Sanitize::cleanTextField(Cookie::get('ct_checkjs')), true) ?: apbct_js_test(Sanitize::cleanTextField(Post::get('ct_checkjs')));
+    add_action('bbp_new_topic_pre_extras', function() use ($current_user, $comment)
+    {
+        $post_info['comment_type'] = 'bbpress_comment';
+        $post_info['post_url']     = bbp_get_topic_permalink();
 
-    $post_info['comment_type'] = 'bbpress_comment';
-    $post_info['post_url']     = bbp_get_topic_permalink();
+        if ( is_user_logged_in() ) {
+            $sender_email    = $current_user->user_email;
+            $sender_nickname = $current_user->display_name;
+        } else {
+            $sender_email    = Sanitize::cleanEmail(Post::get('bbp_anonymous_email'));
+            $sender_nickname = Sanitize::cleanUser(Post::get('bbp_anonymous_name'));
+        }
 
-    if ( is_user_logged_in() ) {
-        $sender_email    = $current_user->user_email;
-        $sender_nickname = $current_user->display_name;
-    } else {
-        $sender_email    = Sanitize::cleanEmail(Post::get('bbp_anonymous_email'));
-        $sender_nickname = Sanitize::cleanUser(Post::get('bbp_anonymous_name'));
-    }
+        $base_call_result = apbct_base_call(
+            array(
+                'message'         => $comment,
+                'sender_email'    => $sender_email,
+                'sender_nickname' => $sender_nickname,
+                'post_info'       => $post_info,
+                'sender_info'     => array('sender_url' => Sanitize::cleanUrl(Post::get('bbp_anonymous_website'))),
+            )
+        );
+        $ct_result        = $base_call_result['ct_result'];
 
-    $base_call_result = apbct_base_call(
-        array(
-            'message'         => $comment,
-            'sender_email'    => $sender_email,
-            'sender_nickname' => $sender_nickname,
-            'post_info'       => $post_info,
-            'js_on'           => $checkjs,
-            'sender_info'     => array('sender_url' => Sanitize::cleanUrl(Post::get('bbp_anonymous_website'))),
-        )
-    );
-    $ct_result        = $base_call_result['ct_result'];
+        if ( $ct_result->allow == 0 ) {
+            bbp_add_error('bbp_reply_content', $ct_result->comment);
+        }
 
-    if ( $ct_result->allow == 0 ) {
-        bbp_add_error('bbp_reply_content', $ct_result->comment);
-    }
+    }, 1);
 
     return $comment;
 }
