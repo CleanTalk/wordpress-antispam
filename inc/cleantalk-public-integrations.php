@@ -1868,8 +1868,6 @@ function ct_contact_form_is_spam($form)
             'sender_nickname' => $sender_nickname,
             'post_info'       => array('comment_type' => 'contact_form_wordpress_grunion'),
             'sender_info'     => array('sender_url' => @$form['comment_author_url']),
-            'js_on'           => apbct_js_test(Sanitize::cleanTextField(Cookie::get('ct_checkjs')), true) ?: apbct_js_test(Sanitize::cleanTextField(Post::get($ct_checkjs_jpcf))),
-
         )
     );
     $ct_result        = $base_call_result['ct_result'];
@@ -1907,7 +1905,6 @@ function ct_contact_form_is_spam_jetpack($_is_spam, $form)
             'sender_nickname' => isset($form['comment_author']) ? $form['comment_author'] : null,
             'post_info'       => array('comment_type' => 'contact_form_wordpress_grunion'),
             'sender_info'     => array('sender_url' => @$form['comment_author_url']),
-            'js_on'           => apbct_js_test(Sanitize::cleanTextField(Cookie::get('ct_checkjs')), true) ?: apbct_js_test(Sanitize::cleanTextField(Post::get($ct_checkjs_jpcf))),
         )
     );
     $ct_result        = $base_call_result['ct_result'];
