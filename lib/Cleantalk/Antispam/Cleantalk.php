@@ -260,10 +260,14 @@ class Cleantalk
                 $this->downServers[] = $this->work_url;
             }
 
-            if (($type_error === 'getaddrinfo_error' || $type_error === 'connection_timeout') && $attempt === 1) {
+            if ( ($type_error === 'getaddrinfo_error' || $type_error === 'connection_timeout') && $attempt === 1 ) {
                 $this->rotateModerateAndUseIP();
+                //exit if next sendRequest failed, because change dns->ip is only way to fix errors above
+                $attempt = $attempt + 2;
             } else {
                 $this->rotateModerate();
+                //try change server again if next sendRequest failed
+                $attempt = $attempt + 1;
             }
 
             $result = $this->sendRequest($msg, $this->work_url, $this->server_timeout);
@@ -273,8 +277,6 @@ class Cleantalk
             }
 
             $failed_urls .= ', ' . $this->work_url;
-
-            $attempt++;
         }
 
         $response = new CleantalkResponse($result, $failed_urls);
