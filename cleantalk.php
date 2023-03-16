@@ -80,6 +80,7 @@ define('APBCT_DATA', 'cleantalk_data');             //Option name with different
 define('APBCT_SETTINGS', 'cleantalk_settings');         //Option name with plugin settings.
 define('APBCT_NETWORK_SETTINGS', 'cleantalk_network_settings'); //Option name with plugin network settings.
 define('APBCT_DEBUG', 'cleantalk_debug');            //Option name with a debug data. Empty by default.
+define('APBCT_JS_ERRORS', 'cleantalk_js_errors');            //Option name with js errors. Empty by default.
 
 // WordPress Multisite
 define('APBCT_WPMS', (is_multisite() ? true : false)); // WMPS is enabled
@@ -443,6 +444,35 @@ $apbct_active_integrations = array(
     ),
 );
 new  \Cleantalk\Antispam\Integrations($apbct_active_integrations, (array)$apbct->settings);
+
+$jsErrorsArr = apbct_check_post_for_no_cookie_data();
+if ($jsErrorsArr && $jsErrorsArr['data']) {
+    apbct_write_js_errors($jsErrorsArr['data']);
+}
+
+function apbct_write_js_errors($data)
+{
+    $tmp = substr($data, strlen('_ct_no_cookie_data_'));
+    $errors = json_decode(base64_decode($tmp), true)['ct_js_errors'];
+    $existErrors = get_option(APBCT_JS_ERRORS);
+
+    if (!$existErrors) {
+        return update_option(APBCT_JS_ERRORS, $errors);
+    }
+
+    $errorsCollectionMsgs = [];
+    foreach ($existErrors as $errIndex => $errValue) {
+        array_push($errorsCollectionMsgs, $errValue['err']['msg']);
+    }
+
+    foreach ($errors as $errIndex => $errValue) {
+        if (!in_array($errValue['err']['msg'], $errorsCollectionMsgs)) {
+            array_push($existErrors, $errValue);
+        }
+    }
+
+    return update_option(APBCT_JS_ERRORS, $existErrors);
+}
 
 // Mailoptin. Pass without action because url for ajax request is domain.com/any-page/?mailoptin-ajax=subscribe_to_email_list
 if (
