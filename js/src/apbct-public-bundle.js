@@ -1463,6 +1463,7 @@ function apbct_ready(){
 	}
 
 	ctStartFieldsListening()
+	// 2nd try to add listeners for delayed appears forms
 	setTimeout(ctStartFieldsListening, 1000);
 
 	// Collect scrolling info
