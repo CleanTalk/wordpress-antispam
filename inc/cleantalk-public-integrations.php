@@ -869,9 +869,9 @@ function ct_bbp_new_pre_content($comment)
         return $comment;
     }
 
-    add_action('bbp_new_topic_pre_extras', function() use ($current_user, $comment)
-    {
+    add_action('bbp_new_topic_pre_extras', function () use ($current_user, $comment) {
         $post_info['comment_type'] = 'bbpress_comment';
+        /** @psalm-suppress UndefinedFunction */
         $post_info['post_url']     = bbp_get_topic_permalink();
 
         if ( is_user_logged_in() ) {
@@ -894,9 +894,9 @@ function ct_bbp_new_pre_content($comment)
         $ct_result        = $base_call_result['ct_result'];
 
         if ( $ct_result->allow == 0 ) {
+            /** @psalm-suppress UndefinedFunction */
             bbp_add_error('bbp_reply_content', $ct_result->comment);
         }
-
     }, 1);
 
     return $comment;
@@ -1506,7 +1506,7 @@ function ct_registration_errors($errors, $sanitized_user_login = null, $user_ema
     $bp = function_exists('buddypress') ? buddypress() : null;
 
     // Skip BuddyPress request already contained validation errors
-    if ( ! empty( $bp->signup->errors ) ) {
+    if ( ! empty($bp->signup->errors) ) {
         do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
         return $errors;
     }
