@@ -472,6 +472,12 @@ Yes, it is. Please read this article,
 * Fix. Admin notices. JS errors during notice dismissing fixed.
 * Update. JS. Rewrote logic without jquery in external file.
 * New. SFW update sentinel (reporting about failing updates).
+* Fix. Readme. Old changelogs moved to 'changelog.php'.
+* Fix. Integration. BuddyPress integration - register protection fixed.
+* Fix. Integration. JetPack contact form - js checking fixed.
+* Fix. Integration. bbPress integration - topic creation protection fixed.
+* Fix. Common. JS - added delayed listeners for delayed forms.
+* Update. JS. Handle external forms in frames.
 
 = 6.5 Mar 02 2023 =
 * New. State autoupdating. Set new settings values during plugin update.
