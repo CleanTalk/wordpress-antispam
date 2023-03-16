@@ -1463,6 +1463,8 @@ function apbct_ready(){
 	}
 
 	ctStartFieldsListening()
+	// 2nd try to add listeners for delayed appears forms
+	setTimeout(ctStartFieldsListening, 1000);
 
 	// Collect scrolling info
 	var initCookies = [
@@ -1672,12 +1674,12 @@ function ctFillDecodedEmailHandler(event) {
 		let popup_text = document.createElement('p')
 		popup_text.setAttribute('id', 'apbct_popup_text')
 		popup_text.style.color = "black"
-		popup_text.innerText = "Please wait while CleanTalk decoding email addresses.."
+		popup_text.innerText = "Please wait while CleanTalk is decoding the email addresses."
 		waiting_popup.append(popup_text)
 		document.body.append(waiting_popup)
 	} else {
 		encoder_popup.setAttribute('style','display: inherit')
-		document.getElementById('apbct_popup_text').innerHTML = "Please wait while CleanTalk decoding email addresses.."
+		document.getElementById('apbct_popup_text').innerHTML = "Please wait while CleanTalk is decoding the email addresses."
 	}
 
 	apbctAjaxEmailDecodeBulk(event,ctPublic.encodedEmailNodes,click_source)
@@ -2662,10 +2664,9 @@ function apbctProcessIframes()
                 continue;
             }
 
-            const iframeForms = frames[j].contentDocument.forms;
-
+            let iframeForms = frames[j].contentDocument.forms;
             if ( iframeForms.length === 0 ) {
-                return;
+                continue;
             }
 
             for ( let y = 0; y < iframeForms.length; y++ ) {
@@ -2680,6 +2681,11 @@ function apbctProcessIframes()
 }
 
 function apbctProcessExternalForm(currentForm, iterator, documentObject) {
+
+    //skip excluded forms
+    if ( formIsExclusion(currentForm)) {
+        return;
+    }
 
     const cleantalk_placeholder = document.createElement("i");
     cleantalk_placeholder.className = 'cleantalk_placeholder';
@@ -2983,6 +2989,7 @@ function sendAjaxCheckingDinamicFormData(form) {
     var visible_fields = {};
     visible_fields[0] = apbct_collect_visible_fields(form);
     apbct_visible_fields_set_cookie( visible_fields );
+    form.append(ctNoCookieConstructHiddenField('hidden'));
 
     var data = {};
     var elems = form.elements;
