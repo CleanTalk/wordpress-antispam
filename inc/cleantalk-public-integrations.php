@@ -3754,3 +3754,42 @@ function ct_mc4wp_hook($errors)
 
     return $errors;
 }
+
+/***************************************************
+ * MemberPress Integration
+ *
+ * Another integration, because the hook
+ * "mepr-validate-signup" does not work, and
+ * the standard function "ct_contact_form_validate"
+ * contains an exception.
+ * ************************************************/
+function apbct_memberpress_signup_request_test()
+{
+    global $cleantalk_executed;
+
+    /* Exclusions */
+    if ($cleantalk_executed) {
+        return;
+    }
+
+    $input_array = apply_filters('apbct__filter_post', $_POST);
+    $params = ct_get_fields_any($input_array);
+
+    $base_call_result = apbct_base_call(
+        array(
+            'sender_email'    => $params['email'],
+            'sender_nickname' => $params['nickname'] ?: '',
+            'post_info'       => array('comment_type' => 'memberpress_signup_form'),
+        )
+    );
+
+    $ct_result = $base_call_result['ct_result'];
+
+    if ((int)$ct_result->allow === 0) {
+        global $ct_comment;
+        $ct_comment = $ct_result->comment;
+        ct_die(null, null);
+    }
+
+    $cleantalk_executed = true;
+}
