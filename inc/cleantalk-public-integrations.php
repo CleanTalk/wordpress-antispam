@@ -3765,7 +3765,7 @@ function ct_mc4wp_hook($errors)
  * ************************************************/
 function apbct_memberpress_signup_request_test()
 {
-    global $cleantalk_executed;
+    global $cleantalk_executed, $ct_comment;
 
     /* Exclusions */
     if ($cleantalk_executed) {
@@ -3786,7 +3786,6 @@ function apbct_memberpress_signup_request_test()
     $ct_result = $base_call_result['ct_result'];
 
     if ((int)$ct_result->allow === 0) {
-        global $ct_comment;
         $ct_comment = $ct_result->comment;
         ct_die(null, null);
     }
