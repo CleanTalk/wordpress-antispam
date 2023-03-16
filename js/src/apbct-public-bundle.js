@@ -1463,6 +1463,7 @@ function apbct_ready(){
 	}
 
 	ctStartFieldsListening()
+	setTimeout(ctStartFieldsListening, 1000);
 
 	// Collect scrolling info
 	var initCookies = [
