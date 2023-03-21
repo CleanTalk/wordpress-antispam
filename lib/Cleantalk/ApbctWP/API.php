@@ -57,7 +57,7 @@ class API extends \Cleantalk\Common\API
      *
      * @return array|bool
      */
-    public static function sendRequest($data, $url = self::URL, $timeout = 10, $ssl = false, $ssl_path = '')
+    public static function sendRequest($data, $url = self::URL, $timeout = 10)
     {
         // Possibility to switch API url
         $url = defined('CLEANTALK_API_URL') ? CLEANTALK_API_URL : $url;
@@ -70,6 +70,7 @@ class API extends \Cleantalk\Common\API
         return $http->setUrl($url)
                     ->setData($data)
                     ->setPresets(['retry_with_socket'])
+                    ->setOptions(['timeout' => $timeout])
                     ->addCallback(
                         __CLASS__ . '::checkResponse',
                         [$data['method_name']]
