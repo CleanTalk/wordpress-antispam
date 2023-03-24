@@ -529,7 +529,6 @@ class ApbctCore{
 
 function ctProcessError(msg, url) {
     var log = {};
-
     if (msg && msg.message) {
         log.err = {
             'msg': msg.message,
@@ -557,7 +556,6 @@ function ctProcessError(msg, url) {
     let errArray = localStorage.getItem(ct_js_errors);
     if(errArray === null) errArray = "[]";
     errArray = JSON.parse(errArray);
-    
     for (let i = 0; i < errArray.length; i++) {
       if (errArray[i].err.msg == log.err.msg) {
         return;
@@ -571,7 +569,6 @@ function ctProcessError(msg, url) {
 if (Math.floor(Math.random() * 100) === 1) {
     window.onerror = function (exception, url) {
         let filterWords = ['apbct', 'ctPublic'];
-      
         let length = filterWords.length;
         while(length--) {
           if (exception.indexOf(filterWords[length]) != -1) {

@@ -2304,8 +2304,6 @@ function apbct_settings__validate($settings)
 {
     global $apbct;
 
-    $apbct->getJsErrorsReport()->sendEmail();
-
     // If user is not allowed to manage settings. Get settings from the storage
     if (
         ! $apbct->network_settings['multisite__allow_custom_settings'] &&

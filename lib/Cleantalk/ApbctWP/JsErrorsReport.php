@@ -7,30 +7,6 @@ use Cleantalk\ApbctWP\Variables\Server;
 class JsErrorsReport
 {
     /**
-     * Instance of DB object
-     * @var DB
-     */
-    private $db;
-
-    /**
-     * DB table name
-     * @var
-     */
-    private $js_table_name;
-
-    /**
-     * JsErrorsReport constructor.
-     * @param DB $db
-     * @param $js_table_name
-     */
-    public function __construct(DB $db, $js_table_name)
-    {
-        global $apbct;
-        $this->db = $db;
-        $this->js_table_name = $js_table_name;
-    }
-
-    /**
      * Send email to support@cleantlk.org about js errors
      * @param bool $is_cron_task Set if this is a cron task
      * @return bool
@@ -38,8 +14,6 @@ class JsErrorsReport
      */
     public function sendEmail($is_cron_task = false)
     {
-        global $apbct;
-
         $data = $this->getData();
 
         if (empty($data)) {
@@ -84,6 +58,10 @@ class JsErrorsReport
     private function getData()
     {
         $errors = get_option(APBCT_JS_ERRORS);
+        
+        if (!$errors) {
+            return false;
+        }
 
         $result = '';
         foreach ($errors as $errIndex => $errValue) {

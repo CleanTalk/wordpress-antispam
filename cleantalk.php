@@ -453,6 +453,9 @@ if ($jsErrorsArr && $jsErrorsArr['data']) {
     apbct_write_js_errors($jsErrorsArr['data']);
 }
 
+/**
+ * @psalm-suppress UnusedVariable
+ */
 function apbct_write_js_errors($data)
 {
     $tmp = substr($data, strlen('_ct_no_cookie_data_'));

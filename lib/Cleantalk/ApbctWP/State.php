@@ -348,6 +348,11 @@ class State extends \Cleantalk\Common\State
     private $connection_reports;
 
     /**
+     * @var ConnectionReports
+     */
+    private $js_errors_report;
+
+    /**
      * @var SFWUpdateSentinel
      */
     public $sfw_update_sentinel;
@@ -923,5 +928,17 @@ class State extends \Cleantalk\Common\State
             $this->setConnectionReports();
         }
         return $this->connection_reports;
+    }
+
+    /**
+     * Get JsErrorsReport object to the js_errors_report attribute
+     */
+    public function getJsErrorsReport()
+    {
+        if (empty($this->js_errors_report) || !$this->js_errors_report instanceof JsErrorsReport) {
+            $this->js_errors_report = new JsErrorsReport();
+        }
+
+        return $this->js_errors_report;
     }
 }

@@ -529,7 +529,6 @@ class ApbctCore{
 
 function ctProcessError(msg, url) {
     var log = {};
-
     if (msg && msg.message) {
         log.err = {
             'msg': msg.message,
@@ -557,7 +556,6 @@ function ctProcessError(msg, url) {
     let errArray = localStorage.getItem(ct_js_errors);
     if(errArray === null) errArray = "[]";
     errArray = JSON.parse(errArray);
-    
     for (let i = 0; i < errArray.length; i++) {
       if (errArray[i].err.msg == log.err.msg) {
         return;
@@ -571,7 +569,6 @@ function ctProcessError(msg, url) {
 if (Math.floor(Math.random() * 100) === 1) {
     window.onerror = function (exception, url) {
         let filterWords = ['apbct', 'ctPublic'];
-      
         let length = filterWords.length;
         while(length--) {
           if (exception.indexOf(filterWords[length]) != -1) {
@@ -1889,6 +1886,7 @@ function getJavascriptClientData(common_cookies = []) {
 	const apbctPageHits = apbctLocalStorage.get('apbct_page_hits');
 	const apbctPrevReferer = apbctSessionStorage.get('apbct_prev_referer');
 	const apbctSiteReferer = apbctSessionStorage.get('apbct_site_referer');
+	const ctJsErrorsLocalStorage = apbctLocalStorage.get(ctPublicFunctions.cookiePrefix + 'ct_js_errors');
 
 	// collecting data from cookies
 	const ctMouseMovedCookie = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_mouse_moved');
@@ -1901,6 +1899,7 @@ function getJavascriptClientData(common_cookies = []) {
 	resultDataJson.apbct_page_hits = apbctPageHits;
 	resultDataJson.apbct_prev_referer = apbctPrevReferer;
 	resultDataJson.apbct_site_referer = apbctSiteReferer;
+	resultDataJson.apbct_ct_js_errors = ctJsErrorsLocalStorage;
 
 	if (
 		typeof (common_cookies) === "object"
