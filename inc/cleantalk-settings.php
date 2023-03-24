@@ -324,7 +324,16 @@ function apbct_settings__set_fields()
                         array('val' => 1, 'label' => __('On')),
                         array('val' => 0, 'label' => __('Off')),
                     ),
-                )
+                ),
+                'data__wc_store_blocked_orders' => array(
+                    'title' => __('Store blocked orders', 'cleantalk-spam-protect'),
+                    'description' => __('The orders which was blocked by the Anti-Spam will be stored and could be restored manually later if its needed.', 'cleantalk-spam-protect'),
+                    'class' => 'apbct_settings-field_wrapper--sub',
+                    'options' => array(
+                        array('val' => 1, 'label' => __('On')),
+                        array('val' => 0, 'label' => __('Off')),
+                    ),
+                ),
             ),
         ),
 
