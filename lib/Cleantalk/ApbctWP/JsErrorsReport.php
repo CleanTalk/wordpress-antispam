@@ -55,10 +55,13 @@ class JsErrorsReport
         return false;
     }
 
+    /**
+     * @psalm-suppress UnusedVariable
+     */
     private function getData()
     {
         $errors = get_option(APBCT_JS_ERRORS);
-        
+
         if (!$errors) {
             return false;
         }

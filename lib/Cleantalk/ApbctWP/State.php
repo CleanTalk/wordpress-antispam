@@ -932,6 +932,7 @@ class State extends \Cleantalk\Common\State
 
     /**
      * Get JsErrorsReport object to the js_errors_report attribute
+     * @psalm-suppress InvalidPropertyAssignmentValue
      */
     public function getJsErrorsReport()
     {
