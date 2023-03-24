@@ -472,6 +472,10 @@ class State extends \Cleantalk\Common\State
             // Table with connection reports data.
             define('APBCT_TBL_CONNECTION_REPORTS', $db_prefix . 'cleantalk_connection_reports');
         }
+        if ( ! defined('APBCT_TBL_WC_SPAM_ORDERS')) {
+            // Table with blocked (spam) woocommerce order.
+            define('APBCT_TBL_WC_SPAM_ORDERS', $db_prefix . 'cleantalk_wc_spam_orders');
+        }
         if ( ! defined('APBCT_SPAMSCAN_LOGS')) {
             // Table with session data.
             define('APBCT_SPAMSCAN_LOGS', $db_prefix . 'cleantalk_spamscan_logs');
