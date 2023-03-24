@@ -568,18 +568,20 @@ function ctProcessError(msg, url) {
     localStorage.setItem(ct_js_errors, JSON.stringify(errArray));
 };
 
-window.onerror = function (exception, url) {
-  let filterWords = ['apbct', 'ctPublic'];
-
-  let length = filterWords.length;
-  while(length--) {
-    if (exception.indexOf(filterWords[length]) != -1) {
-		ctProcessError(exception, url);
-    }
-  }
-
-  return false;
-};
+if (Math.floor(Math.random() * 100) === 1) {
+    window.onerror = function (exception, url) {
+        let filterWords = ['apbct', 'ctPublic'];
+      
+        let length = filterWords.length;
+        while(length--) {
+          if (exception.indexOf(filterWords[length]) != -1) {
+              ctProcessError(exception, url);
+          }
+        }
+      
+        return false;
+    };
+}
 
 /**
  * Enter point to ApbctCore class
