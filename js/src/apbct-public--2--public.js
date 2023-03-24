@@ -307,6 +307,8 @@ function apbct_ready(){
 	}
 
 	ctStartFieldsListening()
+	// 2nd try to add listeners for delayed appears forms
+	setTimeout(ctStartFieldsListening, 1000);
 
 	// Collect scrolling info
 	var initCookies = [
@@ -394,7 +396,9 @@ function apbct_ready(){
 				(form.name && form.name.toString().indexOf('tribe-bar-form') !== -1) ||  // The Events Calendar
 				(form.id && form.id === 'ihf-login-form') || //Optima Express login
 				(form.id && form.id === 'subscriberForm' && form.action.toString().indexOf('actionType=update') !== -1) || //Optima Express update
-				(form.id && form.id === 'frmCalc') //nobletitle-calc
+				(form.id && form.id === 'ihf-main-search-form') || // Optima Express search
+				(form.id && form.id === 'frmCalc') || //nobletitle-calc
+				form.action.toString().indexOf('property-organizer-delete-saved-search-submit') !== -1
 			) {
 				continue;
 			}
@@ -514,12 +518,12 @@ function ctFillDecodedEmailHandler(event) {
 		let popup_text = document.createElement('p')
 		popup_text.setAttribute('id', 'apbct_popup_text')
 		popup_text.style.color = "black"
-		popup_text.innerText = "Please wait while CleanTalk decoding email addresses.."
+		popup_text.innerText = "Please wait while CleanTalk is decoding the email addresses."
 		waiting_popup.append(popup_text)
 		document.body.append(waiting_popup)
 	} else {
 		encoder_popup.setAttribute('style','display: inherit')
-		document.getElementById('apbct_popup_text').innerHTML = "Please wait while CleanTalk decoding email addresses.."
+		document.getElementById('apbct_popup_text').innerHTML = "Please wait while CleanTalk is decoding the email addresses."
 	}
 
 	apbctAjaxEmailDecodeBulk(event,ctPublic.encodedEmailNodes,click_source)
@@ -673,7 +677,6 @@ function getJavascriptClientData(common_cookies = []) {
 	const apbctPageHits = apbctLocalStorage.get('apbct_page_hits');
 	const apbctPrevReferer = apbctSessionStorage.get('apbct_prev_referer');
 	const apbctSiteReferer = apbctSessionStorage.get('apbct_site_referer');
-	const ctJsErrorsLocalStorage = apbctLocalStorage.get(ctPublicFunctions.cookiePrefix + 'ct_js_errors');
 
 	// collecting data from cookies
 	const ctMouseMovedCookie = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_mouse_moved');
@@ -686,7 +689,6 @@ function getJavascriptClientData(common_cookies = []) {
 	resultDataJson.apbct_page_hits = apbctPageHits;
 	resultDataJson.apbct_prev_referer = apbctPrevReferer;
 	resultDataJson.apbct_site_referer = apbctSiteReferer;
-	resultDataJson.apbct_ct_js_errors = ctJsErrorsLocalStorage;
 
 	if (
 		typeof (common_cookies) === "object"
@@ -1022,11 +1024,14 @@ function ctNoCookieAttachHiddenFieldsToForms(){
 }
 
 const defaultFetch = window.fetch;
+const defaultSend = XMLHttpRequest.prototype.send;
 
 if (document.readyState !== 'loading') {
 	checkFormsExistForCatching();
+	checkFormsExistForCatchingXhr();
 } else {
 	apbct_attach_event_handler(document, "DOMContentLoaded", checkFormsExistForCatching);
+	apbct_attach_event_handler(document, "DOMContentLoaded", checkFormsExistForCatchingXhr);
 }
 
 function checkFormsExistForCatching() {
@@ -1038,11 +1043,7 @@ function checkFormsExistForCatching() {
 					&& typeof arguments[0].includes === 'function'
 					&& arguments[0].includes('/wp-json/metform/')
 				) {
-					let no_cookie_data_local = apbctLocalStorage.getCleanTalkData()
-					let no_cookie_data_session = apbctSessionStorage.getCleanTalkData()
-					let no_cookie_data = {...no_cookie_data_local, ...no_cookie_data_session};
-					no_cookie_data = JSON.stringify(no_cookie_data)
-					no_cookie_data = '_ct_no_cookie_data_' + btoa(no_cookie_data)
+					let no_cookie_data = getNoCookieData();
 
 					if (arguments && arguments[1] && arguments[1].body) {
 						arguments[1].body.append('ct_no_cookie_hidden_field', no_cookie_data)
@@ -1071,4 +1072,34 @@ function isFormThatNeedCatch() {
 	}
 
 	return classExists;
+}
+
+function checkFormsExistForCatchingXhr() {
+	setTimeout(function() {
+		if (isFormThatNeedCatchXhr()) {
+			window.XMLHttpRequest.prototype.send = function(data) {
+				let no_cookie_data = getNoCookieData();
+				no_cookie_data = 'data%5Bct_no_cookie_hidden_field%5D=' + no_cookie_data + '&'
+
+				defaultSend.call(this, no_cookie_data + data);
+			}
+		}
+	}, 1000);
+}
+
+function isFormThatNeedCatchXhr() {
+	if (document.querySelector("div.elementor-widget[title='Login/Signup']") != null) {
+		return true;
+	}
+
+	return false;
+}
+
+function getNoCookieData() {
+	let no_cookie_data_local = apbctLocalStorage.getCleanTalkData();
+	let no_cookie_data_session = apbctSessionStorage.getCleanTalkData();
+	let no_cookie_data = {...no_cookie_data_local, ...no_cookie_data_session};
+	no_cookie_data = JSON.stringify(no_cookie_data);
+
+	return '_ct_no_cookie_data_' + btoa(no_cookie_data);
 }

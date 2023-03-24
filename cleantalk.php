@@ -4,7 +4,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 6.5.1-dev
+  Version: 6.6.1-dev
   Author: СleanTalk <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -195,9 +195,12 @@ apbct_update_actions();
 
 add_action('init', function () {
     global $apbct;
-    // Self cron
+
     // Connection reports
     $apbct->setConnectionReports();
+    // SFW update sentinel
+    $apbct->setSFWUpdateSentinel();
+    // Self cron
     $ct_cron = new Cron();
     $tasks_to_run = $ct_cron->checkTasks(); // Check for current tasks. Drop tasks inner counters.
     if (
@@ -1074,6 +1077,8 @@ function apbct_sfw_update__init($delay = 0)
     $apbct->fw_stats['firewall_updating_last_start'] = time();
     $apbct->save('fw_stats');
 
+    $apbct->sfw_update_sentinel->seekId($apbct->fw_stats['firewall_updating_id']);
+
     // Delete update errors
     $apbct->errorDelete('sfw_update', 'save_data');
     $apbct->errorDelete('sfw_update', 'save_data', 'cron');
@@ -1084,6 +1089,8 @@ function apbct_sfw_update__init($delay = 0)
     $queue->addStage('apbct_sfw_update__get_multifiles');
 
     $cron = new Cron();
+    $watch_dog_period = $apbct->sfw_update_sentinel->getWatchDogCronPeriod();
+    $cron->addTask('sfw_update_sentinel_watchdog', 'apbct_sfw_update_sentinel__run_watchdog', $watch_dog_period, time() + $watch_dog_period);
     $cron->addTask('sfw_update_checker', 'apbct_sfw_update__checker', 15);
 
     return Helper::httpRequestRcToHost(
@@ -1180,6 +1187,9 @@ function apbct_sfw_update__worker($checker_work = false)
 
             return $direct_upd_res['error'];
         }
+
+        //stop seeking updates on success direct update
+        $apbct->sfw_update_sentinel->clearSentinelData();
 
         return true;
     }
@@ -1605,6 +1615,7 @@ function apbct_sfw_update__end_of_update($is_first_updating = false)
     apbct_remove_upd_folder($apbct->fw_stats['updating_folder']);
 
     // Reset all FW stats
+    $apbct->sfw_update_sentinel->clearSentinelData();
     $apbct->fw_stats['firewall_update_percent'] = 0;
     $apbct->fw_stats['firewall_updating_id']    = null;
     $apbct->fw_stats['expected_networks_count'] = false;
@@ -2917,4 +2928,10 @@ function apbct_test_connection()
     }
 
     return $out;
+}
+
+function apbct_sfw_update_sentinel__run_watchdog()
+{
+    global $apbct;
+    $apbct->sfw_update_sentinel->runWatchDog();
 }

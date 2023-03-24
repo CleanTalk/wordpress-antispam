@@ -3,6 +3,7 @@
 namespace Cleantalk\ApbctWP;
 
 use ArrayObject;
+use Cleantalk\ApbctWP\Firewall\SFWUpdateSentinel;
 
 /**
  * CleanTalk Anti-Spam State class
@@ -81,6 +82,7 @@ class State extends \Cleantalk\Common\State
         'data__email_check_before_post'            => 1,
         'data__honeypot_field'                     => 1,
         'data__email_decoder'                      => 0,
+        'data__email_decoder_buffer'               => 0,
 
         // Exclusions
         // Send to the cloud some excepted requests
@@ -206,6 +208,16 @@ class State extends \Cleantalk\Common\State
 
         // Check URL exclusion by the new way - as URL
         'check_exclusion_as_url'  => true,
+
+        //SFW update sentinel data
+        'sentinel_data' => array(
+            'ids' => array(),
+            'last_sent_try' => array(
+                'date' => 0,
+                'success' => false
+            ),
+            'prev_sent_try' => array(),
+        ),
     );
 
     /**
@@ -336,9 +348,9 @@ class State extends \Cleantalk\Common\State
     private $connection_reports;
 
     /**
-     * @var ConnectionReports
+     * @var SFWUpdateSentinel
      */
-    private $js_errors_report;
+    public $sfw_update_sentinel;
 
     private $auto_save_defaults_list = array();
 
@@ -895,6 +907,11 @@ class State extends \Cleantalk\Common\State
         $this->connection_reports = new ConnectionReports(DB::getInstance(), APBCT_TBL_CONNECTION_REPORTS);
     }
 
+    public function setSFWUpdateSentinel()
+    {
+        $this->sfw_update_sentinel = new SFWUpdateSentinel();
+    }
+
     /**
      * Get connection reports object. Init one if the connection_reports attribute
      * is empty or not an object of ConnectionReports
@@ -906,17 +923,5 @@ class State extends \Cleantalk\Common\State
             $this->setConnectionReports();
         }
         return $this->connection_reports;
-    }
-
-    /**
-     * Get JsErrorsReport object to the js_errors_report attribute
-     */
-    public function getJsErrorsReport()
-    {
-        if (empty($this->js_errors_report) || !$this->js_errors_report instanceof JsErrorsReport) {
-            $this->js_errors_report = new JsErrorsReport(DB::getInstance(), APBCT_TBL_CONNECTION_REPORTS);
-        }
-
-        return $this->js_errors_report;
     }
 }

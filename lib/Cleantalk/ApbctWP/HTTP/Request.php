@@ -3,7 +3,6 @@
 namespace Cleantalk\ApbctWP\HTTP;
 
 use Cleantalk\Common\HTTP\Response;
-use Requests;
 
 class Request extends \Cleantalk\Common\HTTP\Request
 {
@@ -27,6 +26,12 @@ class Request extends \Cleantalk\Common\HTTP\Request
         return parent::request();
     }
 
+    /**
+     * @inheritDoc
+     *
+     * @psalm-suppress UndefinedDocblockClass
+     * @psalm-suppress UndefinedClass
+     */
     protected function requestSingle()
     {
         global $apbct;
@@ -37,19 +42,32 @@ class Request extends \Cleantalk\Common\HTTP\Request
 
         $type = in_array('get', $this->presets, true) ? 'GET' : 'POST';
 
+        // WP 6.2 support: Requests/Response classes has been replaced into the another namespace in the core
+        if ( class_exists('\WpOrg\Requests\Requests') ) {
+            /** @var \WpOrg\Requests\Requests $requests_class */
+            $requests_class = '\WpOrg\Requests\Requests';
+            /** @var \WpOrg\Requests\Response $response_class */
+            $response_class = '\WpOrg\Requests\Response';
+        } else {
+            /** @var \Requests $requests_class */
+            $requests_class = '\Requests';
+            /** @var \Requests_Response $response_class */
+            $response_class = '\Requests_Response';
+        }
+
         try {
-            $response = Requests::request(
+            $response = $requests_class::request(
                 $this->url,
                 $this->options[CURLOPT_HTTPHEADER],
                 $this->data,
                 $type,
                 $this->options
             );
-        } catch ( \Requests_Exception $e ) {
+        } catch ( \Exception $e ) {
             return new Response(['error' => $e->getMessage()], []);
         }
 
-        if ( $response instanceof \Requests_Response ) {
+        if ( $response instanceof $response_class ) {
             return new Response($response->body, ['http_code' => $response->status_code]);
         }
 
@@ -62,6 +80,8 @@ class Request extends \Cleantalk\Common\HTTP\Request
      *
      * @psalm-suppress InvalidReturnType
      * @psalm-suppress InvalidReturnStatement
+     * @psalm-suppress UndefinedDocblockClass
+     * @psalm-suppress UndefinedClass
      */
     protected function requestMulti()
     {
@@ -89,14 +109,27 @@ class Request extends \Cleantalk\Common\HTTP\Request
             ];
         }
 
-        $responses_raw = \Requests::request_multiple($requests, $options);
+        // WP 6.2 support: Requests/Response classes has been replaced into the another namespace in the core
+        if ( class_exists('\WpOrg\Requests\Requests') ) {
+            /** @var \WpOrg\Requests\Requests $requests_class */
+            $requests_class = '\WpOrg\Requests\Requests';
+            /** @var \WpOrg\Requests\Response $response_class */
+            $response_class = '\WpOrg\Requests\Response';
+        } else {
+            /** @var \Requests $requests_class */
+            $requests_class = '\Requests';
+            /** @var \Requests_Response $response_class */
+            $response_class = '\Requests_Response';
+        }
+
+        $responses_raw = $requests_class::request_multiple($requests, $options);
 
         foreach ( $responses_raw as $response ) {
-            if ( $response instanceof \Requests_Exception ) {
+            if ( $response instanceof \Exception ) {
                 $responses[$this->url] = new Response(['error' => $response->getMessage()], []);
                 continue;
             }
-            if ( $response instanceof \Requests_Response ) {
+            if ( $response instanceof $response_class ) {
                 $responses[$response->url] = new Response($response->body, ['http_code' => $response->status_code]);
                 continue;
             }
