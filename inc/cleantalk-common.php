@@ -832,13 +832,13 @@ function apbct_is_cache_plugins_exists()
         '\WP_Rest_Cache_Plugin\Includes\Plugin' => 'Rest Cache'
     );
 
-    foreach ($constants_of_cache_plugins as $const){
+    foreach ($constants_of_cache_plugins as $const => $_text){
         if (defined($const)){
             $out[] = $const;
         }
     }
 
-    foreach ($classes_of_cache_plugins as $class){
+    foreach ($classes_of_cache_plugins as $class => $_text){
         if (class_exists($class)){
             $out[] = $class;
         }
