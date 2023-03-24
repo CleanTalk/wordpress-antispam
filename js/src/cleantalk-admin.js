@@ -17,7 +17,6 @@ jQuery(document).ready(function(){
 	});
 
 	jQuery('body').on('click', '.apbct-notice .notice-dismiss-link', function(e){
-		console.log(e)
 		var apbct_notice_name = jQuery(e.target).parent().attr('id');
 		if( apbct_notice_name ) {
 			apbct_admin_sendAJAX( { 'action' : 'cleantalk_dismiss_notice', 'notice_id' : apbct_notice_name }, { 'callback' : null, 'notJson': true } );
