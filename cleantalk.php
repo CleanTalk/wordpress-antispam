@@ -465,6 +465,16 @@ if (
     apbct_form__metform_subscribe__testSpam();
 }
 
+// Memberpress integration
+if (
+    !empty($_POST) &&
+    apbct_is_plugin_active('memberpress/memberpress.php') &&
+    Post::hasString('mepr_process_signup_form', '1') &&
+    (int)$apbct->settings['forms__registrations_test'] === 1
+) {
+    apbct_memberpress_signup_request_test();
+}
+
 // Ninja Forms. Making GET action to POST action
 if (
     apbct_is_in_uri('admin-ajax.php') &&
