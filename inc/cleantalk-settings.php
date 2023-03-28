@@ -498,13 +498,6 @@ function apbct_settings__set_fields()
                     'display'    => $apbct->data['cookies_type'] === 'alternative',
                     'callback' => 'apbct_settings__check_alt_cookies_types'
                 ),
-                'data__ssl_on'                         => array(
-                    'title'       => __("Use SSL", 'cleantalk-spam-protect'),
-                    'description' => __(
-                        'Turn this option on to use encrypted (SSL) connection with servers.',
-                        'cleantalk-spam-protect'
-                    ),
-                ),
                 'wp__use_builtin_http_api'             => array(
                     'title'       => __("Use WordPress HTTP API", 'cleantalk-spam-protect'),
                     'description' => __(
