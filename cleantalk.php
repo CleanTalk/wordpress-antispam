@@ -448,9 +448,9 @@ $apbct_active_integrations = array(
 );
 new  \Cleantalk\Antispam\Integrations($apbct_active_integrations, (array)$apbct->settings);
 
-$jsErrorsArr = apbct_check_post_for_no_cookie_data();
-if ($jsErrorsArr && $jsErrorsArr['data']) {
-    apbct_write_js_errors($jsErrorsArr['data']);
+$js_errors_arr = apbct_check_post_for_no_cookie_data();
+if ($js_errors_arr && $js_errors_arr['data']) {
+    apbct_write_js_errors($js_errors_arr['data']);
 }
 
 /**
@@ -464,24 +464,24 @@ function apbct_write_js_errors($data)
         return;
     }
     $errors = $errors['ct_js_errors'];
-    $existErrors = get_option(APBCT_JS_ERRORS);
+    $exist_errors = get_option(APBCT_JS_ERRORS);
 
-    if (!$existErrors) {
+    if (!$exist_errors) {
         return update_option(APBCT_JS_ERRORS, $errors);
     }
 
-    $errorsCollectionMsgs = [];
-    foreach ($existErrors as $errIndex => $errValue) {
-        array_push($errorsCollectionMsgs, $errValue['err']['msg']);
+    $errors_collection_msgs = [];
+    foreach ($exist_errors as $err_index => $err_value) {
+        array_push($errors_collection_msgs, $err_value['err']['msg']);
     }
 
-    foreach ($errors as $errIndex => $errValue) {
-        if (!in_array($errValue['err']['msg'], $errorsCollectionMsgs)) {
-            array_push($existErrors, $errValue);
+    foreach ($errors as $err_index => $err_value) {
+        if (!in_array($err_value['err']['msg'], $errors_collection_msgs)) {
+            array_push($exist_errors, $err_value);
         }
     }
 
-    return update_option(APBCT_JS_ERRORS, $existErrors);
+    return update_option(APBCT_JS_ERRORS, $exist_errors);
 }
 
 // Mailoptin. Pass without action because url for ajax request is domain.com/any-page/?mailoptin-ajax=subscribe_to_email_list
