@@ -3754,3 +3754,39 @@ function ct_mc4wp_hook($errors)
 
     return $errors;
 }
+
+/***************************************************
+ * GiveWP Integration
+ *
+ * If javascript is disabled, the request
+ * from the form will be processed here.
+ * ************************************************/
+function apbct_givewp_donate_request_test()
+{
+    global $cleantalk_executed, $ct_comment;
+
+    /* Exclusions */
+    if ($cleantalk_executed) {
+        return;
+    }
+
+    $input_array = apply_filters('apbct__filter_post', $_POST);
+    $params = ct_get_fields_any($input_array);
+
+    $base_call_result = apbct_base_call(
+        array(
+            'sender_email'    => $params['email'],
+            'sender_nickname' => $params['nickname'] ?: '',
+            'post_info'       => array('comment_type' => 'givewp_donate_form'),
+        )
+    );
+
+    $ct_result = $base_call_result['ct_result'];
+
+    if ((int)$ct_result->allow === 0) {
+        $ct_comment = $ct_result->comment;
+        ct_die(null, null);
+    }
+
+    $cleantalk_executed = true;
+}
