@@ -811,9 +811,10 @@ function ct_get_checkjs_value()
     return $key;
 }
 
-function apbct_is_cache_plugins_exists()
+function apbct_is_cache_plugins_exists($is_call_on_debug = false)
 {
-    global $apbct;
+    $out = array();
+
     $constants_of_cache_plugins = array(
         'WP_ROCKET_VERSION'                          => 'WPRocket',
         'LSCWP_DIR'                                   => 'LiteSpeed Cache',
@@ -832,25 +833,23 @@ function apbct_is_cache_plugins_exists()
         '\WP_Rest_Cache_Plugin\Includes\Plugin' => 'Rest Cache'
     );
 
-    foreach ($constants_of_cache_plugins as $const => $_text){
-        if (defined($const)){
+    foreach ($constants_of_cache_plugins as $const => $_text) {
+        if ( defined($const) ) {
             $out[] = $const;
         }
     }
 
-    foreach ($classes_of_cache_plugins as $class => $_text){
-        if (class_exists($class)){
+    foreach ($classes_of_cache_plugins as $class => $_text) {
+        /**
+         * @psalm-suppress DocblockTypeContradiction
+         * @psalm-suppress TypeDoesNotContainType
+         */
+        if ( class_exists($class) ) {
             $out[] = $class;
         }
     }
 
-    if (!empty($out)){
-        $apbct->data['cache_plugins_detected_list'] = $out;
-        $apbct->saveData();
-        return true;
-    }
-
-    return false;
+    return $is_call_on_debug ? $out : !empty($out);
 }
 
 /**
