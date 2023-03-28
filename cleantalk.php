@@ -461,7 +461,7 @@ function apbct_write_js_errors($data)
     $tmp = substr($data, strlen('_ct_no_cookie_data_'));
     $errors = json_decode(base64_decode($tmp), true);
     if (!isset($errors['ct_js_errors'])) {
-        return;    
+        return;
     }
     $errors = $errors['ct_js_errors'];
     $existErrors = get_option(APBCT_JS_ERRORS);
