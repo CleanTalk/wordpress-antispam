@@ -484,6 +484,17 @@ if (
     $_POST['action'] = 'ninja_forms_ajax_submit';
 }
 
+// GiveWP without ajax
+if (
+    !empty($_POST) &&
+    (int)$apbct->settings['forms__contact_forms_test'] === 1 &&
+    apbct_is_plugin_active('give/give.php') &&
+    !empty($_POST['give-form-hash']) &&
+    !empty($_POST['give-form-id'])
+) {
+    apbct_givewp_donate_request_test();
+}
+
 add_action('wp_ajax_nopriv_ninja_forms_ajax_submit', 'apbct_form__ninjaForms__testSpam', 1);
 add_action('wp_ajax_ninja_forms_ajax_submit', 'apbct_form__ninjaForms__testSpam', 1);
 add_action('wp_ajax_nopriv_nf_ajax_submit', 'apbct_form__ninjaForms__testSpam', 1);
