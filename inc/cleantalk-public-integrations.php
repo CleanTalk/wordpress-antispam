@@ -982,7 +982,6 @@ function ct_preprocess_comment($comment)
         ));
 
         if ( $users ) {
-            add_filter('comment_notification_text', 'apbct_comment__Wordpress__changeMailNotificationGroups', 100, 2);
             add_filter(
                 'comment_notification_recipients',
                 'apbct_comment__Wordpress__changeMailNotificationRecipients',
