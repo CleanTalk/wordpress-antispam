@@ -1,95 +1,107 @@
-let buttons_to_handle = [];
+const buttonsToHandle = [];
 
-document.addEventListener('DOMContentLoaded', function(){
+document.addEventListener('DOMContentLoaded', function() {
+    if (
+        typeof ctPublicGDPR === 'undefined' ||
+        !ctPublicGDPR.gdpr_forms.length
+    ) {
+        return;
+    }
 
-	if(
-		typeof ctPublicGDPR === 'undefined' ||
-		! ctPublicGDPR.gdpr_forms.length
-	) {
-		return;
-	}
+    const gdprNoticeForButton = ctPublicGDPR.gdpr_title;
 
-	let gdpr_notice_for_button = ctPublicGDPR.gdpr_title;
+    if (typeof jQuery === 'undefined') {
+        return;
+    }
+    try {
+        ctPublicGDPR.gdpr_forms.forEach( function(item, i) {
+            let elem = jQuery('#' + item + ', .' + item);
 
-	if ( typeof jQuery === 'undefined' ) {
-		return;
-	}
-	try {
-		ctPublicGDPR.gdpr_forms.forEach(function(item, i){
+            // Filter forms
+            if (!elem.is('form')) {
+                // Caldera
+                if (elem.find('form')[0]) {
+                    elem = elem.children('form').first();
+                } else if ( // Contact Form 7
+                    jQuery('.wpcf7[role=form]')[0] && jQuery('.wpcf7[role=form]')
+                        .attr('id')
+                        .indexOf('wpcf7-f' + item) !== -1
+                ) {
+                    elem = jQuery('.wpcf7[role=form]').children('form');
+                } else if ( // Formidable
+                    jQuery('.frm_forms')[0] &&
+                    jQuery('.frm_forms').first().attr('id').indexOf('frm_form_' + item) !== -1
+                ) {
+                    elem = jQuery('.frm_forms').first().children('form');
+                } else if ( // WPForms
+                    jQuery('.wpforms-form')[0] &&
+                    jQuery('.wpforms-form').first().attr('id').indexOf('wpforms-form-' + item) !== -1
+                ) {
+                    elem = jQuery('.wpforms-form');
+                }
+            }
 
-			let elem = jQuery('#'+item+', .'+item);
+            // disable forms buttons
+            let button = false;
+            const buttonsCollection = elem.find('input[type|="submit"],button[type|="submit"]');
 
-			// Filter forms
-			if (!elem.is('form')){
-				// Caldera
-				if (elem.find('form')[0])
-					elem = elem.children('form').first();
-				// Contact Form 7
-				else if(
-					jQuery('.wpcf7[role=form]')[0] && jQuery('.wpcf7[role=form]')
-						.attr('id')
-						.indexOf('wpcf7-f'+item) !== -1
-				) {
-					elem = jQuery('.wpcf7[role=form]').children('form');
-				}
+            if (!buttonsCollection.length) {
+                return;
+            } else {
+                button = buttonsCollection[0];
+            }
 
-				// Formidable
-				else if(jQuery('.frm_forms')[0] && jQuery('.frm_forms').first().attr('id').indexOf('frm_form_'+item) !== -1)
-					elem = jQuery('.frm_forms').first().children('form');
-				// WPForms
-				else if(jQuery('.wpforms-form')[0] && jQuery('.wpforms-form').first().attr('id').indexOf('wpforms-form-'+item) !== -1)
-					elem = jQuery('.wpforms-form');
-			}
+            if (button !== false) {
+                button.disabled = true;
+                const oldNotice = jQuery(button).prop('title') ? jQuery(button).prop('title') : '';
+                buttonsToHandle.push({index: i, button: button, old_notice: oldNotice});
+                jQuery(button).prop('title', gdprNoticeForButton);
+            }
 
-			//disable forms buttons
-			let button = false
-			let buttons_collection= elem.find('input[type|="submit"],button[type|="submit"]')
-
-			if (!buttons_collection.length) {
-				return
-			} else {
-				button = buttons_collection[0]
-			}
-
-			if (button !== false){
-				button.disabled = true
-				let old_notice = jQuery(button).prop('title') ? jQuery(button).prop('title') : ''
-				buttons_to_handle.push({index:i,button:button,old_notice:old_notice})
-				jQuery(button).prop('title', gdpr_notice_for_button)
-			}
-
-			// Adding notice and checkbox
-			if(elem.is('form') || elem.attr('role') === 'form'){
-				elem.append('<input id="apbct_gdpr_'+i+'" type="checkbox" required="required" style=" margin-right: 10px;" onchange="apbct_gdpr_handle_buttons()">')
-					.append('<label style="display: inline;" for="apbct_gdpr_'+i+'">'+ctPublicGDPR.gdpr_text+'</label>');
-			}
-		});
-	} catch (e) {
-		console.info('APBCT GDPR JS ERROR: Can not add GDPR notice' + e)
-	}
+            // Adding notice and checkbox
+            if (elem.is('form') || elem.attr('role') === 'form') {
+                const selectorId = 'apbct_gdpr_' + i;
+                elem.append(
+                    '<input id="' + selectorId + '" type="checkbox" required="required" ' +
+                    'style="margin-right: 10px;">',
+                ).append(
+                    '<label style=\'display: inline;\' for=\'apbct_gdpr_' +
+                    i +
+                    '\'>' +
+                    ctPublicGDPR.gdpr_text +
+                    '</label>',
+                );
+                jQuery(selectorId).prop('onchange', apbctGDPRHandleButtons);
+            }
+        });
+    } catch (e) {
+        console.info('APBCT GDPR JS ERROR: Can not add GDPR notice' + e);
+    }
 });
 
-function apbct_gdpr_handle_buttons(){
+/**
+ * Disable/enable form buttons if GDPR checkbox disabled/enabled.
+ * @return {void}
+ */
+function apbctGDPRHandleButtons() {
+    try {
+        if (buttonsToHandle === []) {
+            return;
+        }
 
-	try {
-
-		if (buttons_to_handle === []){
-			return
-		}
-
-		buttons_to_handle.forEach((button) => {
-			let selector = '[id="apbct_gdpr_' + button.index + '"]'
-			let apbct_gdpr_item = jQuery(selector)
-			//chek if apbct_gdpr checkbox is set
-			if (jQuery(apbct_gdpr_item).prop("checked")){
-				button.button.disabled = false
-				jQuery(button.button).prop('title', button.old_notice)
-			} else {
-				button.button.disabled = true
-				jQuery(button.button).prop('title', gdpr_notice_for_button)
-			}
-		})
-	} catch (e) {
-		console.info('APBCT GDPR JS ERROR: Can not handle form buttons ' + e)
-	}
+        buttonsToHandle.forEach((button) => {
+            const selector = '[id=\'apbct_gdpr_' + button.index + '\']';
+            const apbctGDPRItem = jQuery(selector);
+            // chek if apbct_gdpr checkbox is set
+            if (jQuery(apbctGDPRItem).prop('checked')) {
+                button.button.disabled = false;
+                jQuery(button.button).prop('title', button.old_notice);
+            } else {
+                button.button.disabled = true;
+                jQuery(button.button).prop('title', gdpr_notice_for_button);
+            }
+        });
+    } catch (e) {
+        console.info('APBCT GDPR JS ERROR: Can not handle form buttons ' + e);
+    }
 }
