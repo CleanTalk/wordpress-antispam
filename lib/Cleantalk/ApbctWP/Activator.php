@@ -114,6 +114,7 @@ class Activator
             time() + 300
         );  // Clear Anti-Flood table
         $ct_cron->addTask('rotate_moderate', 'apbct_rotate_moderate', 86400, time() + 3500); // Rotate moderate server
+        $ct_cron->addTask('send_js_error_report', 'ct_cron_send_js_error_report_email', 86400); // Send js_error report to support@cleantalk.org
     }
 
     /**

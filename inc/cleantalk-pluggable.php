@@ -894,6 +894,14 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'Quiz And Survey Master - QSM - Save & Resume Addon';
         }
+
+        // Plugin Name: CartFlows; ajax action wcf_check_email_exists
+        if (
+            apbct_is_plugin_active('cartflows/cartflows.php') &&
+            Post::get('action') === 'wcf_check_email_exists'
+        ) {
+            return 'Plugin Name: CartFlows; ajax action wcf_check_email_exists';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
