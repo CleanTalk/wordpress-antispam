@@ -8,7 +8,7 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "eslint": "./node_modules/.bin/eslint js/src/apbct-public--6--internal-forms.js js/src/apbct-public--4--gdpr.js --format html > result.html"
+    "eslint": "./node_modules/.bin/eslint js/src/*.js"
   },
   "author": "",
   "license": "ISC",
