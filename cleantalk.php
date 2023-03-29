@@ -80,6 +80,7 @@ define('APBCT_DATA', 'cleantalk_data');             //Option name with different
 define('APBCT_SETTINGS', 'cleantalk_settings');         //Option name with plugin settings.
 define('APBCT_NETWORK_SETTINGS', 'cleantalk_network_settings'); //Option name with plugin network settings.
 define('APBCT_DEBUG', 'cleantalk_debug');            //Option name with a debug data. Empty by default.
+define('APBCT_JS_ERRORS', 'cleantalk_js_errors');            //Option name with js errors. Empty by default.
 
 // WordPress Multisite
 define('APBCT_WPMS', (is_multisite() ? true : false)); // WMPS is enabled
@@ -446,6 +447,42 @@ $apbct_active_integrations = array(
     ),
 );
 new  \Cleantalk\Antispam\Integrations($apbct_active_integrations, (array)$apbct->settings);
+
+$js_errors_arr = apbct_check_post_for_no_cookie_data();
+if ($js_errors_arr && $js_errors_arr['data']) {
+    apbct_write_js_errors($js_errors_arr['data']);
+}
+
+/**
+ * @psalm-suppress UnusedVariable
+ */
+function apbct_write_js_errors($data)
+{
+    $tmp = substr($data, strlen('_ct_no_cookie_data_'));
+    $errors = json_decode(base64_decode($tmp), true);
+    if (!isset($errors['ct_js_errors'])) {
+        return;
+    }
+    $errors = $errors['ct_js_errors'];
+    $exist_errors = get_option(APBCT_JS_ERRORS);
+
+    if (!$exist_errors) {
+        return update_option(APBCT_JS_ERRORS, $errors);
+    }
+
+    $errors_collection_msgs = [];
+    foreach ($exist_errors as $err_index => $err_value) {
+        array_push($errors_collection_msgs, $err_value['err']['msg']);
+    }
+
+    foreach ($errors as $err_index => $err_value) {
+        if (!in_array($err_value['err']['msg'], $errors_collection_msgs)) {
+            array_push($exist_errors, $err_value);
+        }
+    }
+
+    return update_option(APBCT_JS_ERRORS, $exist_errors);
+}
 
 // Mailoptin. Pass without action because url for ajax request is domain.com/any-page/?mailoptin-ajax=subscribe_to_email_list
 if (
@@ -2673,6 +2710,18 @@ function ct_cron_send_connection_report_email()
     global $apbct;
     if (isset($apbct->settings['misc__send_connection_reports']) && $apbct->settings['misc__send_connection_reports'] == 1) {
         $apbct->getConnectionReports()->sendUnsentReports(true);
+    }
+}
+
+/**
+ * Send js errors reports cron wrapper.
+ * If setting misc__send_connection_reports is disabled there will no reports sen on cron.
+ */
+function ct_cron_send_js_error_report_email()
+{
+    global $apbct;
+    if (isset($apbct->settings['misc__send_connection_reports']) && $apbct->settings['misc__send_connection_reports'] == 1) {
+        $apbct->getJsErrorsReport()->sendEmail(true);
     }
 }
 
