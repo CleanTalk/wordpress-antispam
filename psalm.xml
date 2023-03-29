@@ -20,7 +20,6 @@
         <directory name="./"/>
         <ignoreFiles>
             <directory name="tests"/>
-            <directory name="node_modules"/>
             <directory name="vendor"/>
             <file name="lib/Cleantalk/Templates/Singleton.php"/>
             <file name="lib/Cleantalk/ApbctWP/CleantalkListTable.php"/>
