@@ -227,7 +227,7 @@ function ct_dashboard_statistics_widget_output($_post, $_callback_args)
                          'This is the count from the %s\'s cloud and could be different to admin bar counters',
                          'cleantalk-spam-protect'
                      ) . '">',
-                    $actual_plugin_name 
+                     $actual_plugin_name
                  )
                  . sprintf(
                  /* translators: %s: Number of spam messages */

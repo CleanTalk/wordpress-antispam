@@ -1178,7 +1178,7 @@ function apbct_settings__display()
         echo $apbct->data['wl_brandname_short'] . __(' is registered Trademark. All rights reserved.', 'cleantalk-spam-protect') . '<br/>';
         if ( $apbct->key_is_ok ) {
             echo '<b style="display: inline-block; margin-top: 10px;">' . sprintf(
-                __('Do you like '. $apbct->data['wl_brandname_short']. '? %sPost your feedback here%s.', 'cleantalk-spam-protect'),
+                __('Do you like ' . $apbct->data['wl_brandname_short'] . '? %sPost your feedback here%s.', 'cleantalk-spam-protect'),
                 '<a href="https://wordpress.org/support/plugin/cleantalk-spam-protect/reviews/#new-post" target="_blank">',
                 '</a>'
             ) . '</b><br />';
