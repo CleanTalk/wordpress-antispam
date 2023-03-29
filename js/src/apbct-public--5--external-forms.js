@@ -467,6 +467,17 @@ function sendAjaxCheckingDinamicFormData(form) {
                 if( result.apbct === undefined || ! +result.apbct.blocked ) {
                     form.onsubmit = null;
 
+                    // Clear service fields
+                    for (const el of form.querySelectorAll('input[name="apbct_visible_fields"]')) {
+                        el.remove();
+                    }
+                    for (const el of form.querySelectorAll('input[value="cleantalk_force_ajax_check"]')) {
+                        el.remove();
+                    }
+                    for (const el of form.querySelectorAll('input[name="ct_no_cookie_hidden_field"]')) {
+                        el.remove();
+                    }
+
                     // Call previous submit action
                     if (form.apbct_external_onsubmit_prev instanceof Function) {
                         setTimeout(function () {

@@ -69,6 +69,10 @@ function apbct_wp_validate_auth_cookie($cookie = '', $scheme = '')
 {
     $cookie_elements = apbct_wp_parse_auth_cookie($cookie, $scheme);
 
+    if (!is_array($cookie_elements) || empty($cookie_elements)) {
+        return false;
+    }
+
     $scheme     = $cookie_elements['scheme'];
     $username   = $cookie_elements['username'];
     $hmac       = $cookie_elements['hmac'];
