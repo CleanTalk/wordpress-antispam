@@ -3129,7 +3129,7 @@ function ct_check_internal(currForm){
             url: ctPublicFunctions._ajax_url,
             callback: function (data) {
                 if(data.success === true){
-                    currForm.submit();
+                    currForm.origSubmit();
                 }else{
                     alert(data.data);
                     return false;
@@ -3148,27 +3148,35 @@ document.addEventListener('DOMContentLoaded',function(){
     }
 
     let ctPrevHandler;
-	for( let i=0; i<document.forms.length; i++ ){
-		if ( typeof(document.forms[i].action) == 'string' ){
-            ct_currForm = document.forms[i];
-			ct_currAction = ct_currForm.action;
-            if (
-                ct_currAction.indexOf('https?://') !== null &&                        // The protocol is obligatory
-                ct_currAction.match(ctPublic.blog_home + '.*?\.php') !== null && // Main check
-                ! ct_check_internal__is_exclude_form(ct_currAction)                  // Exclude WordPress native scripts from processing
-            ) {
-                ctPrevHandler = ct_currForm.click;
-                if ( typeof jQuery !== 'undefined' ) {
-                    jQuery(ct_currForm).off('**');
-                    jQuery(ct_currForm).off();
-                    jQuery(ct_currForm).on('submit', function(event){
+    setTimeout(() => {
+	    for( let i=0; i<document.forms.length; i++ ){
+		    if ( typeof(document.forms[i].action) == 'string' ){
+                ct_currForm = document.forms[i];
+			    ct_currAction = ct_currForm.action;
+                if (
+                    ct_currAction.indexOf('https?://') !== null &&                        // The protocol is obligatory
+                    ct_currAction.match(ctPublic.blog_home + '.*?\.php') !== null && // Main check
+                    ! ct_check_internal__is_exclude_form(ct_currAction)                  // Exclude WordPress native scripts from processing
+                ) {
+                    ctPrevHandler = ct_currForm.click;
+
+                    let formClone = ct_currForm.cloneNode(true);
+                    ct_currForm.parentNode.replaceChild(formClone, ct_currForm);
+
+                    formClone.origSubmit = ct_currForm.submit;
+                    formClone.submit = null;
+
+                    formClone.addEventListener('submit', function(event) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        event.stopImmediatePropagation();
                         ct_check_internal(event.target);
                         return false;
                     });
                 }
-            }
-		}
-	}
+		    }
+	    }
+	}, 500);
 });
 
 /**
