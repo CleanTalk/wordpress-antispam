@@ -1727,12 +1727,12 @@ function ctFillDecodedEmailHandler(event) {
 		let popup_text = document.createElement('p')
 		popup_text.setAttribute('id', 'apbct_popup_text')
 		popup_text.style.color = "black"
-		popup_text.innerText = "Please wait while CleanTalk is decoding the email addresses."
+		popup_text.innerText = "Please wait while " + ctPublic.wl_brandname_short + " is decoding the email addresses."
 		waiting_popup.append(popup_text)
 		document.body.append(waiting_popup)
 	} else {
 		encoder_popup.setAttribute('style','display: inherit')
-		document.getElementById('apbct_popup_text').innerHTML = "Please wait while CleanTalk is decoding the email addresses."
+		document.getElementById('apbct_popup_text').innerHTML = "Please wait while " + ctPublic.wl_brandname_short + " is decoding the email addresses."
 	}
 
 	apbctAjaxEmailDecodeBulk(event,ctPublic.encodedEmailNodes,click_source)

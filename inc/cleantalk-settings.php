@@ -19,11 +19,16 @@ function apbct_settings_add_page()
     $parent_slug = is_network_admin() ? 'settings.php' : 'options-general.php';
     $callback    = is_network_admin() ? 'apbct_settings__display__network' : 'apbct_settings__display';
 
+    $actual_plugin_name = $apbct->plugin_name;
+    if (isset($apbct->data['wl_brandname']) && $apbct->data['wl_brandname'] !== APBCT_NAME) {
+        $actual_plugin_name = $apbct->data['wl_brandname'];
+    }
+
     // Adding settings page
     add_submenu_page(
         $parent_slug,
         $apbct->plugin_name . ' ' . __('settings'),
-        $apbct->plugin_name,
+        $actual_plugin_name,
         'manage_options',
         'cleantalk',
         $callback
@@ -1138,8 +1143,13 @@ function apbct_settings__display()
 {
     global $apbct;
 
+    $actual_plugin_name = $apbct->plugin_name;
+    if (isset($apbct->data['wl_brandname']) && $apbct->data['wl_brandname'] !== APBCT_NAME) {
+        $actual_plugin_name = $apbct->data['wl_brandname'];
+    }
+
     // Title
-    echo '<h2 class="apbct_settings-title">' . __($apbct->plugin_name, 'cleantalk-spam-protect') . '</h2>';
+    echo '<h2 class="apbct_settings-title">' . __($actual_plugin_name, 'cleantalk-spam-protect') . '</h2>';
 
     // Subtitle for IP license
     if ( $apbct->moderate_ip ) {
@@ -1155,20 +1165,20 @@ function apbct_settings__display()
     if ( ! $apbct->white_label ) {
         echo '<div style="float: right; padding: 15px 15px 5px 15px; font-size: 13px; position: relative; background: #f1f1f1;">';
 
-        echo __('CleanTalk\'s tech support:', 'cleantalk-spam-protect')
+        echo $apbct->data['wl_brandname_short'] . __('\'s tech support:', 'cleantalk-spam-protect')
             . '&nbsp;'
-            . '<a target="_blank" href="https://wordpress.org/support/plugin/cleantalk-spam-protect">WordPress.org</a>.'
+            . '<a target="_blank" href="' . $apbct->data['wl_support_url'] . '">WordPress.org</a>.'
             . '<br>';
         echo __('Plugin Homepage at', 'cleantalk-spam-protect') .
-             ' <a href="https://cleantalk.org" target="_blank">cleantalk.org</a>.<br/>';
+             ' <a href="' . $apbct->data['wl_url'] . '" target="_blank">' . $apbct->data['wl_url'] . '</a>.<br/>';
         echo '<a href="https://cleantalk.org/publicoffer#cleantalk_gdpr_compliance" target="_blank">'
              . __('GDPR compliance', 'cleantalk-spam-protect')
              . '</a><br/>';
-        echo __('Use s@cleantalk.org to test plugin in any WordPress form.', 'cleantalk-spam-protect') . '<br>';
-        echo __('CleanTalk is registered Trademark. All rights reserved.', 'cleantalk-spam-protect') . '<br/>';
+        echo __('Use stop_email@example.com to test plugin in any WordPress form.', 'cleantalk-spam-protect') . '<br>';
+        echo $apbct->data['wl_brandname_short'] . __(' is registered Trademark. All rights reserved.', 'cleantalk-spam-protect') . '<br/>';
         if ( $apbct->key_is_ok ) {
             echo '<b style="display: inline-block; margin-top: 10px;">' . sprintf(
-                __('Do you like CleanTalk? %sPost your feedback here%s.', 'cleantalk-spam-protect'),
+                __('Do you like '. $apbct->data['wl_brandname_short']. '? %sPost your feedback here%s.', 'cleantalk-spam-protect'),
                 '<a href="https://wordpress.org/support/plugin/cleantalk-spam-protect/reviews/#new-post" target="_blank">',
                 '</a>'
             ) . '</b><br />';
@@ -1185,7 +1195,7 @@ function apbct_settings__display()
                  . '<span>'
                  . sprintf(
                      __('%s  has blocked <b>%s</b> spam.', 'cleantalk-spam-protect'),
-                     Escape::escHtml($apbct->plugin_name),
+                     Escape::escHtml($actual_plugin_name),
                      number_format($apbct->spam_count, 0, ',', ' ')
                  )
                  . '</span>'
@@ -1241,7 +1251,7 @@ function apbct_settings__display()
     if ( $apbct->key_is_ok && apbct_api_key__is_correct() ) {
         if ( $apbct->network_settings['multisite__work_mode'] != 2 || is_main_site() ) {
             // Support button
-            echo '<a class="cleantalk_link cleantalk_link-auto" target="__blank" href="https://wordpress.org/support/plugin/cleantalk-spam-protect">' .
+            echo '<a class="cleantalk_link cleantalk_link-auto" target="__blank" href="' . $apbct->data['wl_support_url'] . '">' .
                  __('Support', 'cleantalk-spam-protect') . '</a>';
             echo '&nbsp;&nbsp;';
             echo '<br>'

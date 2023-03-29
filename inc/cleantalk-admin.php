@@ -80,10 +80,15 @@ function ct_dashboard_statistics_widget()
 {
     global $apbct;
 
+    $actual_plugin_name = $apbct->plugin_name;
+    if (isset($apbct->data['wl_brandname']) && $apbct->data['wl_brandname'] !== APBCT_NAME) {
+        $actual_plugin_name = $apbct->data['wl_brandname'];
+    }
+
     if ( apbct_is_user_role_in(array('administrator')) ) {
         wp_add_dashboard_widget(
             'ct_dashboard_statistics_widget',
-            $apbct->plugin_name,
+            $actual_plugin_name,
             'ct_dashboard_statistics_widget_output'
         );
     }
@@ -98,6 +103,11 @@ function ct_dashboard_statistics_widget()
 function ct_dashboard_statistics_widget_output($_post, $_callback_args)
 {
     global $apbct, $current_user;
+
+    $actual_plugin_name = $apbct->plugin_name;
+    if (isset($apbct->data['wl_brandname']) && $apbct->data['wl_brandname'] !== APBCT_NAME) {
+        $actual_plugin_name = $apbct->data['wl_brandname'];
+    }
 
     echo "<div id='ct_widget_wrapper'>";
     ?>
@@ -217,7 +227,7 @@ function ct_dashboard_statistics_widget_output($_post, $_callback_args)
                          'This is the count from the %s\'s cloud and could be different to admin bar counters',
                          'cleantalk-spam-protect'
                      ) . '">',
-                     $apbct->plugin_name
+                    $actual_plugin_name 
                  )
                  . sprintf(
                  /* translators: %s: Number of spam messages */
@@ -226,7 +236,7 @@ function ct_dashboard_statistics_widget_output($_post, $_callback_args)
                          'cleantalk-spam-protect'
                      ),
                      ! $apbct->white_label ? '<a href="https://cleantalk.org/my/?user_token=' . $apbct->user_token . '&utm_source=wp-backend&utm_medium=dashboard_widget&cp_mode=antispam" target="_blank">' : '',
-                     $apbct->plugin_name,
+                     $actual_plugin_name,
                      ! $apbct->white_label ? '</a>' : '',
                      number_format($apbct->data['spam_count'], 0, ',', ' ')
                  )
@@ -363,11 +373,16 @@ function apbct_admin__plugin_action_links($links, $_file)
 function apbct_admin__register_plugin_links($links, $file, $plugin_data)
 {
     global $apbct;
-    $plugin_name = $plugin_data['Name'] ?: 'Anti-Spam by CleanTalk';
+    $plugin_name = $plugin_data['Name'] ?: APBCT_NAME;
 
     //Return if it's not our plugin
     if ( $file != $apbct->base_name ) {
         return $links;
+    }
+
+    $actual_plugin_name = $apbct->plugin_name;
+    if (isset($apbct->data['wl_brandname']) && $apbct->data['wl_brandname'] !== APBCT_NAME) {
+        $actual_plugin_name = $apbct->data['wl_brandname'];
     }
 
     if ( $apbct->white_label ) {
@@ -376,7 +391,7 @@ function apbct_admin__register_plugin_links($links, $file, $plugin_data)
         function changedPluginName(){
             jQuery('.plugin-title strong').each(function(i, item){
             if(jQuery(item).html() == '{$plugin_name}')
-                jQuery(item).html('{$apbct->plugin_name}');
+                jQuery(item).html('{$actual_plugin_name}');
             });
         }
         changedPluginName();
@@ -401,9 +416,9 @@ function apbct_admin__register_plugin_links($links, $file, $plugin_data)
 
     $links[] = '<a class="ct_meta_links" href="' . $apbct->settings_link . '" target="_blank">'
                . __('Start here', 'cleantalk-spam-protect') . '</a>';
-    $links[] = '<a class="ct_meta_links ct_faq_links" href="https://wordpress.org/plugins/cleantalk-spam-protect/faq/" target="_blank">'
+    $links[] = '<a class="ct_meta_links ct_faq_links" href="' . $apbct->data['wl_support_faq'] . '" target="_blank">'
                . __('FAQ', 'cleantalk-spam-protect') . '</a>';
-    $links[] = '<a class="ct_meta_links ct_support_links" href="https://wordpress.org/support/plugin/cleantalk-spam-protect" target="_blank">'
+    $links[] = '<a class="ct_meta_links ct_support_links" href="' . $apbct->data['wl_support_url'] . '" target="_blank">'
                . __('Support', 'cleantalk-spam-protect') . '</a>';
     $trial   = apbct_admin__badge__get_premium(false);
     if ( ! empty($trial) ) {

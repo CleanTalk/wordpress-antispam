@@ -217,6 +217,14 @@ class State extends \Cleantalk\Common\State
             ),
             'prev_sent_try' => array(),
         ),
+
+        // White label data
+        'wl_brandname'       => 'Anti-Spam by CleanTalk',
+        'wl_brandname_short' => 'CleanTalk',
+        'wl_url'             => 'https://cleantalk.org/',
+        'wl_support_faq'     => 'https://wordpress.org/plugins/cleantalk-spam-protect/faq/',
+        'wl_support_url'     => 'https://wordpress.org/support/plugin/cleantalk-spam-protect',
+        'wl_support_email'   => 'support@cleantalk.org',
     );
 
     /**
