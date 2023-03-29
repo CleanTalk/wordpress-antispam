@@ -527,6 +527,59 @@ class ApbctCore{
 //         }
 //     );
 
+function ctProcessError(msg, url) {
+    var log = {};
+    if (msg && msg.message) {
+        log.err = {
+            'msg': msg.message,
+            'file': !!msg.fileName ? msg.fileName : false,
+            'ln': !!msg.lineNumber ? msg.lineNumber : !!lineNo ? lineNo : false,
+            'col': !!msg.columnNumber ? msg.columnNumber : !!columnNo ? columnNo : false,
+            'stacktrace': !!msg.stack ? msg.stack : false,
+            'cause': !!url ? JSON.stringify(url) : false,
+            'errorObj': !!error ? error : false
+        };
+    } else {
+        log.err = {
+            'msg': msg
+        };
+
+        if (!!url) {
+            log.err.file = url;
+        }
+    }
+
+    log.url = window.location.href;
+    log.userAgent = window.navigator.userAgent;
+
+    let ct_js_errors = "ct_js_errors";
+    let errArray = localStorage.getItem(ct_js_errors);
+    if(errArray === null) errArray = "[]";
+    errArray = JSON.parse(errArray);
+    for (let i = 0; i < errArray.length; i++) {
+      if (errArray[i].err.msg == log.err.msg) {
+        return;
+      }
+    }
+
+    errArray.push(log)
+    localStorage.setItem(ct_js_errors, JSON.stringify(errArray));
+};
+
+if (Math.floor(Math.random() * 100) === 1) {
+    window.onerror = function (exception, url) {
+        let filterWords = ['apbct', 'ctPublic'];
+        let length = filterWords.length;
+        while(length--) {
+          if (exception.indexOf(filterWords[length]) != -1) {
+              ctProcessError(exception, url);
+          }
+        }
+      
+        return false;
+    };
+}
+
 /**
  * Enter point to ApbctCore class
  *
@@ -1833,6 +1886,7 @@ function getJavascriptClientData(common_cookies = []) {
 	const apbctPageHits = apbctLocalStorage.get('apbct_page_hits');
 	const apbctPrevReferer = apbctSessionStorage.get('apbct_prev_referer');
 	const apbctSiteReferer = apbctSessionStorage.get('apbct_site_referer');
+	const ctJsErrorsLocalStorage = apbctLocalStorage.get(ctPublicFunctions.cookiePrefix + 'ct_js_errors');
 
 	// collecting data from cookies
 	const ctMouseMovedCookie = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_mouse_moved');
@@ -1845,6 +1899,7 @@ function getJavascriptClientData(common_cookies = []) {
 	resultDataJson.apbct_page_hits = apbctPageHits;
 	resultDataJson.apbct_prev_referer = apbctPrevReferer;
 	resultDataJson.apbct_site_referer = apbctSiteReferer;
+	resultDataJson.apbct_ct_js_errors = ctJsErrorsLocalStorage;
 
 	if (
 		typeof (common_cookies) === "object"
@@ -3074,7 +3129,7 @@ function ct_check_internal(currForm){
             url: ctPublicFunctions._ajax_url,
             callback: function (data) {
                 if(data.success === true){
-                    currForm.submit();
+                    currForm.origSubmit();
                 }else{
                     alert(data.data);
                     return false;
@@ -3093,27 +3148,35 @@ document.addEventListener('DOMContentLoaded',function(){
     }
 
     let ctPrevHandler;
-	for( let i=0; i<document.forms.length; i++ ){
-		if ( typeof(document.forms[i].action) == 'string' ){
-            ct_currForm = document.forms[i];
-			ct_currAction = ct_currForm.action;
-            if (
-                ct_currAction.indexOf('https?://') !== null &&                        // The protocol is obligatory
-                ct_currAction.match(ctPublic.blog_home + '.*?\.php') !== null && // Main check
-                ! ct_check_internal__is_exclude_form(ct_currAction)                  // Exclude WordPress native scripts from processing
-            ) {
-                ctPrevHandler = ct_currForm.click;
-                if ( typeof jQuery !== 'undefined' ) {
-                    jQuery(ct_currForm).off('**');
-                    jQuery(ct_currForm).off();
-                    jQuery(ct_currForm).on('submit', function(event){
+    setTimeout(() => {
+	    for( let i=0; i<document.forms.length; i++ ){
+		    if ( typeof(document.forms[i].action) == 'string' ){
+                ct_currForm = document.forms[i];
+			    ct_currAction = ct_currForm.action;
+                if (
+                    ct_currAction.indexOf('https?://') !== null &&                        // The protocol is obligatory
+                    ct_currAction.match(ctPublic.blog_home + '.*?\.php') !== null && // Main check
+                    ! ct_check_internal__is_exclude_form(ct_currAction)                  // Exclude WordPress native scripts from processing
+                ) {
+                    ctPrevHandler = ct_currForm.click;
+
+                    let formClone = ct_currForm.cloneNode(true);
+                    ct_currForm.parentNode.replaceChild(formClone, ct_currForm);
+
+                    formClone.origSubmit = ct_currForm.submit;
+                    formClone.submit = null;
+
+                    formClone.addEventListener('submit', function(event) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        event.stopImmediatePropagation();
                         ct_check_internal(event.target);
                         return false;
                     });
                 }
-            }
-		}
-	}
+		    }
+	    }
+	}, 500);
 });
 
 /**

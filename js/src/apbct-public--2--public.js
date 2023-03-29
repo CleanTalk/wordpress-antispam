@@ -677,6 +677,7 @@ function getJavascriptClientData(common_cookies = []) {
 	const apbctPageHits = apbctLocalStorage.get('apbct_page_hits');
 	const apbctPrevReferer = apbctSessionStorage.get('apbct_prev_referer');
 	const apbctSiteReferer = apbctSessionStorage.get('apbct_site_referer');
+	const ctJsErrorsLocalStorage = apbctLocalStorage.get(ctPublicFunctions.cookiePrefix + 'ct_js_errors');
 
 	// collecting data from cookies
 	const ctMouseMovedCookie = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_mouse_moved');
@@ -689,6 +690,7 @@ function getJavascriptClientData(common_cookies = []) {
 	resultDataJson.apbct_page_hits = apbctPageHits;
 	resultDataJson.apbct_prev_referer = apbctPrevReferer;
 	resultDataJson.apbct_site_referer = apbctSiteReferer;
+	resultDataJson.apbct_ct_js_errors = ctJsErrorsLocalStorage;
 
 	if (
 		typeof (common_cookies) === "object"
