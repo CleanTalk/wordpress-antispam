@@ -762,22 +762,6 @@ function apbct_comment__Wordpress__doNotify($_maybe_notify, $_comment_ID)
 }
 
 /**
- * Add notification setting link
- *
- * @param string $notify_message
- * @param integer $comment_id
- *
- * @return string
- */
-function apbct_comment__Wordpress__changeMailNotificationGroups($notify_message, $_comment_id)
-{
-    return $notify_message
-           . PHP_EOL
-           . '---' . PHP_EOL
-           . 'Manage notifications settings: ' . get_site_url() . '/wp-admin/options-general.php?page=cleantalk';
-}
-
-/**
  * Change email notification recipients
  *
  * @param array $emails
