@@ -869,7 +869,13 @@ function ct_bbp_new_pre_content($comment)
         return $comment;
     }
 
-    add_action('bbp_new_topic_pre_extras', function () use ($current_user, $comment) {
+    $current_filter = current_filter();
+    if( 'bbp_new_reply_pre_content' === $current_filter ) {
+        $hooked_action = 'bbp_new_reply_pre_extras';
+    } else {
+        $hooked_action = 'bbp_new_topic_pre_extras';
+    }
+    add_action($hooked_action, function () use ($current_user, $comment) {
         $post_info['comment_type'] = 'bbpress_comment';
         /** @psalm-suppress UndefinedFunction */
         $post_info['post_url']     = bbp_get_topic_permalink();
