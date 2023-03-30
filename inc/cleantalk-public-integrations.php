@@ -869,7 +869,13 @@ function ct_bbp_new_pre_content($comment)
         return $comment;
     }
 
-    add_action('bbp_new_topic_pre_extras', function () use ($current_user, $comment) {
+    $current_filter = current_filter();
+    if ( 'bbp_new_reply_pre_content' === $current_filter ) {
+        $hooked_action = 'bbp_new_reply_pre_extras';
+    } else {
+        $hooked_action = 'bbp_new_topic_pre_extras';
+    }
+    add_action($hooked_action, function () use ($current_user, $comment) {
         $post_info['comment_type'] = 'bbpress_comment';
         /** @psalm-suppress UndefinedFunction */
         $post_info['post_url']     = bbp_get_topic_permalink();
@@ -982,7 +988,6 @@ function ct_preprocess_comment($comment)
         ));
 
         if ( $users ) {
-            add_filter('comment_notification_text', 'apbct_comment__Wordpress__changeMailNotificationGroups', 100, 2);
             add_filter(
                 'comment_notification_recipients',
                 'apbct_comment__Wordpress__changeMailNotificationRecipients',
@@ -3753,4 +3758,78 @@ function ct_mc4wp_hook($errors)
     }
 
     return $errors;
+}
+
+/***************************************************
+ * GiveWP Integration
+ *
+ * If javascript is disabled, the request
+ * from the form will be processed here.
+ * ************************************************/
+function apbct_givewp_donate_request_test()
+{
+    global $cleantalk_executed, $ct_comment;
+
+    /* Exclusions */
+    if ($cleantalk_executed) {
+        return;
+    }
+
+    $input_array = apply_filters('apbct__filter_post', $_POST);
+    $params = ct_get_fields_any($input_array);
+
+    $base_call_result = apbct_base_call(
+        array(
+            'sender_email'    => $params['email'],
+            'sender_nickname' => $params['nickname'] ?: '',
+            'post_info'       => array('comment_type' => 'givewp_donate_form'),
+        )
+    );
+
+    $ct_result = $base_call_result['ct_result'];
+
+    if ((int)$ct_result->allow === 0) {
+        $ct_comment = $ct_result->comment;
+        ct_die(null, null);
+    }
+
+    $cleantalk_executed = true;
+}
+
+/***************************************************
+ * MemberPress Integration
+ *
+ * Another integration, because the hook
+ * "mepr-validate-signup" does not work, and
+ * the standard function "ct_contact_form_validate"
+ * contains an exception.
+ * ************************************************/
+function apbct_memberpress_signup_request_test()
+{
+    global $cleantalk_executed, $ct_comment;
+
+    /* Exclusions */
+    if ($cleantalk_executed) {
+        return;
+    }
+
+    $input_array = apply_filters('apbct__filter_post', $_POST);
+    $params = ct_get_fields_any($input_array);
+
+    $base_call_result = apbct_base_call(
+        array(
+            'sender_email'    => $params['email'],
+            'sender_nickname' => $params['nickname'] ?: '',
+            'post_info'       => array('comment_type' => 'memberpress_signup_form'),
+        )
+    );
+
+    $ct_result = $base_call_result['ct_result'];
+
+    if ((int)$ct_result->allow === 0) {
+        $ct_comment = $ct_result->comment;
+        ct_die(null, null);
+    }
+
+    $cleantalk_executed = true;
 }

@@ -9,8 +9,21 @@ class FluentForm extends IntegrationBase
 {
     public function getDataForChecking($argument)
     {
+        global $apbct;
+
         if ( isset($_POST['data']) ) {
             parse_str($_POST['data'], $form_data);
+            foreach ($form_data as $param => $param_value) {
+                if (strpos((string)$param, 'ct_no_cookie_hidden_field') !== false || strpos($param_value, '_ct_no_cookie_data_') !== false) {
+                    if ($apbct->data['cookies_type'] === 'none') {
+                        \Cleantalk\ApbctWP\Variables\NoCookie::setDataFromHiddenField($form_data[$param]);
+                        $apbct->stats['no_cookie_data_taken'] = true;
+                        $apbct->save('stats');
+                    }
+
+                    unset($form_data[$param]);
+                }
+            }
 
             /**
              * Filter for POST
