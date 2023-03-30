@@ -42,20 +42,17 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
     }
 
-    let ctPrevHandler;
     setTimeout(() => {
-	    for( let i=0; i<document.forms.length; i++ ){
-		    if ( typeof(document.forms[i].action) == 'string' ){
+        for ( let i = 0; i < document.forms.length; i++ ) {
+            if ( typeof(document.forms[i].action) == 'string' ) {
                 ctCurrForm = document.forms[i];
                 ctCurrAction = ctCurrForm.action;
                 if (
-                    ctCurrAction.indexOf('https?://') !== null &&                        // The protocol is obligatory
+                    ctCurrAction.indexOf('https?://') !== null && // The protocol is obligatory
                     ctCurrAction.match(ctPublic.blog_home + '.*?\.php') !== null && // Main check
-                    ! ctCheckInternalIsExcludedForm(ctCurrAction)                  // Exclude WordPress native scripts from processing
+                    ! ctCheckInternalIsExcludedForm(ctCurrAction) // Exclude WordPress native scripts from processing
                 ) {
-                    ctPrevHandler = ctCurrForm.click;
-
-                    let formClone = ctCurrForm.cloneNode(true);
+                    const formClone = ctCurrForm.cloneNode(true);
                     ctCurrForm.parentNode.replaceChild(formClone, ct_currForm);
 
                     formClone.origSubmit = ctCurrForm.submit;
@@ -69,9 +66,9 @@ document.addEventListener('DOMContentLoaded', function() {
                         return false;
                     });
                 }
-		    }
-	    }
-	}, 500);
+            }
+        }
+    }, 500);
 });
 
 /**
