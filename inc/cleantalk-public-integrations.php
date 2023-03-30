@@ -870,7 +870,7 @@ function ct_bbp_new_pre_content($comment)
     }
 
     $current_filter = current_filter();
-    if( 'bbp_new_reply_pre_content' === $current_filter ) {
+    if ( 'bbp_new_reply_pre_content' === $current_filter ) {
         $hooked_action = 'bbp_new_reply_pre_extras';
     } else {
         $hooked_action = 'bbp_new_topic_pre_extras';
