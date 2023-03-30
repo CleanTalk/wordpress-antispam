@@ -130,6 +130,11 @@ $apbct->firewall_updating = (bool)$apbct->fw_stats['firewall_updating_id'];
 
 $apbct->settings_link = is_network_admin() ? 'settings.php?page=cleantalk' : 'options-general.php?page=cleantalk';
 
+// Connection reports
+$apbct->setConnectionReports();
+// SFW update sentinel
+$apbct->setSFWUpdateSentinel();
+
 if ( ! $apbct->white_label ) {
     require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalkWidget.php');
 }
@@ -196,10 +201,6 @@ apbct_update_actions();
 add_action('init', function () {
     global $apbct;
 
-    // Connection reports
-    $apbct->setConnectionReports();
-    // SFW update sentinel
-    $apbct->setSFWUpdateSentinel();
     // Self cron
     $ct_cron = new Cron();
     $tasks_to_run = $ct_cron->checkTasks(); // Check for current tasks. Drop tasks inner counters.
