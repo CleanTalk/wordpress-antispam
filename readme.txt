@@ -471,6 +471,8 @@ Yes, it is. Please read this article,
 * Add. Js. Added mail view, cron task, and improve js execute.
 * Update. Mail view. Removed Manage notifications settings link from mail footer.
 * Fix: Fixed apbct_wp_validate_auth_cookie()
+* Fix. Integration. bbPress: replies protection fixed.
+* Fix. Common. Connection reports and Update sentinel objects fixed.
 
 = 6.6 Mar 16 2023 =
 * Excluded qsm_save_resume_auto_save_data action
