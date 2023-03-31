@@ -906,6 +906,15 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'Plugin Name: CartFlows; ajax action wcf_check_email_exists';
         }
+
+        // Plugin Name: Profile Builder; ajax action wppb_conditional_logic
+        if (
+            apbct_is_plugin_active('profile-builder/index.php') &&
+            Post::get('action') === 'wppb_conditional_logic' &&
+            Post::get('formType') === 'register'
+        ) {
+            return 'Plugin Name: Profile Builder; ajax action wppb_conditional_logic';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
