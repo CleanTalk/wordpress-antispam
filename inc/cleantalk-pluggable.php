@@ -69,6 +69,10 @@ function apbct_wp_validate_auth_cookie($cookie = '', $scheme = '')
 {
     $cookie_elements = apbct_wp_parse_auth_cookie($cookie, $scheme);
 
+    if (!is_array($cookie_elements) || empty($cookie_elements)) {
+        return false;
+    }
+
     $scheme     = $cookie_elements['scheme'];
     $username   = $cookie_elements['username'];
     $hmac       = $cookie_elements['hmac'];
@@ -893,6 +897,14 @@ function apbct_is_skip_request($ajax = false)
             Post::get('action') === 'qsm_save_resume_auto_save_data'
         ) {
             return 'Quiz And Survey Master - QSM - Save & Resume Addon';
+        }
+
+        // Plugin Name: CartFlows; ajax action wcf_check_email_exists
+        if (
+            apbct_is_plugin_active('cartflows/cartflows.php') &&
+            Post::get('action') === 'wcf_check_email_exists'
+        ) {
+            return 'Plugin Name: CartFlows; ajax action wcf_check_email_exists';
         }
     } else {
         /*****************************************/

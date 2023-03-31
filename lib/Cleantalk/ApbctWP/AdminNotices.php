@@ -225,21 +225,35 @@ class AdminNotices
      */
     public function notice_review() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
+        global $apbct;
+
         if ( $this->apbct->notice_review == 1 ) {
             $review_link = "<a class='button' href='https://wordpress.org/support/plugin/cleantalk-spam-protect/reviews/?filter=5' target='_blank'>"
                                 . __('SHARE', 'cleantalk-spam-protect') .
                             "</a>";
+            $support_link = '<a href="https://wordpress.org/support/plugin/cleantalk-spam-protect/" 
+                            style="display:inline-block; margin-top: 10px;"  target="_blank">'
+                            . __('Still have spam?', 'cleantalk-spam-protect')
+                            . '</a>';
+            $close_link = '<a href="#" class="notice-dismiss-link" onclick="return false;">'
+                            . __('Already posted the review', 'cleantalk-spam-protect')
+                            . '</a>';
+            $notice_text = sprintf(
+                __('Anti-Spam by CleanTalk has blocked %s spam so far. Share your positive energy &ndash; rate us on WordPress!', 'cleantalk-spam-protect'),
+                number_format($apbct->data['spam_count'], 0, ',', ' ')
+            );
             $content = '<div class="apbct-notice notice notice-success is-dismissible" id="cleantalk_notice_review">
                             <div class="flex-row">
                                 <h3>'
-                                    . __('Share your positive energy with us – give us a 5-star rating on WordPress.', 'cleantalk-spam-protect') .
+                                    . $notice_text .
                                 '</h3>
-                                <p class="caption">'
-                                    . __('Anti-Spam by CleanTalk.', 'cleantalk-spam-protect') .
-                                '</p>
                             </div>'
-                            . $review_link .
-                        '</div>';
+                            . '<div id="cleantalk_notice_review">'
+                            . $review_link . '&nbsp;&nbsp;'
+                            . $support_link . '&nbsp;&nbsp;'
+                            . $close_link . '&nbsp;'
+                            . '</div>'
+                        . '</div>';
 
             echo $content;
         }

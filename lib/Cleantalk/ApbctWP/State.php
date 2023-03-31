@@ -77,7 +77,6 @@ class State extends \Cleantalk\Common\State
         'data__use_static_js_key'                  => -1,
         'data__general_postdata_test'              => 0, //CAPD
         'data__set_cookies'                        => 0, // Cookies type: 0 - Off / 1 - Native cookies / 2 - Alt cookies / 3 - Auto
-        'data__ssl_on'                             => 0, // Secure connection to servers
         'data__pixel'                              => '3',
         'data__email_check_before_post'            => 1,
         'data__honeypot_field'                     => 1,
@@ -347,6 +346,11 @@ class State extends \Cleantalk\Common\State
      * @var ConnectionReports
      */
     private $connection_reports;
+
+    /**
+     * @var ConnectionReports
+     */
+    private $js_errors_report;
 
     /**
      * @var SFWUpdateSentinel
@@ -928,5 +932,18 @@ class State extends \Cleantalk\Common\State
             $this->setConnectionReports();
         }
         return $this->connection_reports;
+    }
+
+    /**
+     * Get JsErrorsReport object to the js_errors_report attribute
+     * @psalm-suppress InvalidPropertyAssignmentValue
+     */
+    public function getJsErrorsReport()
+    {
+        if (empty($this->js_errors_report) || !$this->js_errors_report instanceof JsErrorsReport) {
+            $this->js_errors_report = new JsErrorsReport();
+        }
+
+        return $this->js_errors_report;
     }
 }

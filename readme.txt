@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 4.7
 Tested up to: 6.2
 Requires PHP: 5.6
-Stable tag: 6.6
+Stable tag: 6.7
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -450,6 +450,29 @@ Yes, it is. Please read this article,
 12. SpamFireWall log.
 
 == Changelog ==
+
+= 6.7 Mar 30 2023 =
+* Added rotateModerateAndUseIP() if attempt is failed
+* Mod. Force use CleanTalk http request instead of WP HTTP API.
+* Add. Js. Gathering errors.
+* Mod. Skip third retry if rotateModerateAndUseIP() does not help.
+* Mod: Added another MemberPress Integration Signup Form
+* Add. Js. Gather errors in db.
+* FluentForms fixed
+* Fix: fixed sendAjaxCheckingDinamicFormData()
+* Fix. HTTP lib. WP 6.2+ supporting implemented.
+* Fix. Settings. Default value for data__email_decoder_buffer added.
+* Mod: Another integration with GiveWP
+* Mod. Remove redundant option "Use SSL".
+* Mod. Remove redundant code in API.
+* Fix: Excluded request with wcf_check_email_exists - CartFlows
+* Update. Notice review. Refactoring notice.
+* Update. Internal forms. Removed jquery dependencies.
+* Add. Js. Added mail view, cron task, and improve js execute.
+* Update. Mail view. Removed Manage notifications settings link from mail footer.
+* Fix: Fixed apbct_wp_validate_auth_cookie()
+* Fix. Integration. bbPress: replies protection fixed.
+* Fix. Common. Connection reports and Update sentinel objects fixed.
 
 = 6.6 Mar 16 2023 =
 * Excluded qsm_save_resume_auto_save_data action

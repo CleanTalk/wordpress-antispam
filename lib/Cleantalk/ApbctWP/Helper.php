@@ -27,7 +27,6 @@ class Helper extends \Cleantalk\Common\Helper
      * get_code - getting only HTTP response code
      * async    - async requests
      * get      - GET-request
-     * ssl      - use SSL
      *
      * @param string|array<string> $url URL
      * @param array|string|int $data POST|GET indexed array with data to send

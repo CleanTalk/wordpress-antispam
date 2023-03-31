@@ -765,7 +765,7 @@ class API
             'settings' => $settings
         );
 
-        return static::sendRequest($request, self::URL, 0);
+        return static::sendRequest($request);
     }
 
     private static function getProductId($product_name)
@@ -788,7 +788,7 @@ class API
      *
      * @return array|bool
      */
-    public static function sendRequest($data, $_url = self::URL, $timeout = 10, $ssl = false, $ssl_path = '')
+    public static function sendRequest($data, $_url = self::URL, $timeout = 10)
     {
         // Possibility to switch agent version
         $data['agent'] = ! empty($data['agent'])
@@ -803,6 +803,7 @@ class API
         return $http->setUrl($url)
                     ->setData($data)
                     ->setPresets(['retry_with_socket'])
+                    ->setOptions(['timeout' => $timeout])
                     ->addCallback(
                         __CLASS__ . '::checkResponse',
                         [$data['method_name']]

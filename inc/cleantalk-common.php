@@ -811,23 +811,45 @@ function ct_get_checkjs_value()
     return $key;
 }
 
-function apbct_is_cache_plugins_exists()
+function apbct_is_cache_plugins_exists($is_call_on_debug = false)
 {
-    return
-        defined('WP_ROCKET_VERSION') ||                           // WPRocket
-        defined('LSCWP_DIR') ||                                   // LiteSpeed Cache
-        defined('WPFC_WP_CONTENT_BASENAME') ||                    // WP Fastest Cache
-        defined('W3TC') ||                                        // W3 Total Cache
-        defined('WPO_VERSION') ||                                 // WP-Optimize – Clean, Compress, Cache
-        defined('AUTOPTIMIZE_PLUGIN_VERSION') ||                  // Autoptimize
-        defined('WPCACHEHOME') ||                                 // WP Super Cache
-        defined(
-            'WPHB_VERSION'
-        ) ||                                // Hummingbird – Speed up, Cache, Optimize Your CSS and JS
-        defined('CE_FILE') ||                                     // Cache Enabler – WordPress Cache
-        class_exists('\RedisObjectCache') ||                   // Redis Object Cache
-        defined('SiteGround_Optimizer\VERSION') ||                // SG Optimizer
-        class_exists('\WP_Rest_Cache_Plugin\Includes\Plugin'); // WP REST Cache
+    $out = array();
+
+    $constants_of_cache_plugins = array(
+        'WP_ROCKET_VERSION'                          => 'WPRocket',
+        'LSCWP_DIR'                                   => 'LiteSpeed Cache',
+        'WPFC_WP_CONTENT_BASENAME'                    => 'WP Fastest Cache',
+        'W3TC'                                        => 'W3 Total Cache',
+        'WPO_VERSION'                                 => 'WP-Optimize – Clean, Compress, Cache',
+        'AUTOPTIMIZE_PLUGIN_VERSION'                  => 'Autoptimize',
+        'WPCACHEHOME'                                 => 'WP Super Cache',
+        'WPHB_VERSION'                                => 'Hummingbird – Speed up, Cache, Optimize Your CSS and JS',
+        'CE_FILE'                                     => 'Cache Enabler – WordPress Cache',
+        'SiteGround_Optimizer\VERSION'                => 'SG Optimizer',
+    );
+
+    $classes_of_cache_plugins = array (
+        '\RedisObjectCache' => 'Redis',
+        '\WP_Rest_Cache_Plugin\Includes\Plugin' => 'Rest Cache'
+    );
+
+    foreach ($constants_of_cache_plugins as $const => $_text) {
+        if ( defined($const) ) {
+            $out[] = $const;
+        }
+    }
+
+    foreach ($classes_of_cache_plugins as $class => $_text) {
+        /**
+         * @psalm-suppress DocblockTypeContradiction
+         * @psalm-suppress TypeDoesNotContainType
+         */
+        if ( class_exists($class) ) {
+            $out[] = $class;
+        }
+    }
+
+    return $is_call_on_debug ? $out : !empty($out);
 }
 
 /**

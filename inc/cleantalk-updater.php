@@ -1210,3 +1210,10 @@ function apbct_update_to_6_3_3()
         $apbct->saveSettings();
     }
 }
+
+function apbct_update_to_6_6_0()
+{
+    $cron = new Cron();
+    $cron->removeTask('send_js_error_report');
+    $cron->addTask('send_js_error_report', 'ct_cron_send_js_error_report_email', 86400);
+}

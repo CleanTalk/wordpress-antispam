@@ -527,6 +527,59 @@ class ApbctCore{
 //         }
 //     );
 
+function ctProcessError(msg, url) {
+    var log = {};
+    if (msg && msg.message) {
+        log.err = {
+            'msg': msg.message,
+            'file': !!msg.fileName ? msg.fileName : false,
+            'ln': !!msg.lineNumber ? msg.lineNumber : !!lineNo ? lineNo : false,
+            'col': !!msg.columnNumber ? msg.columnNumber : !!columnNo ? columnNo : false,
+            'stacktrace': !!msg.stack ? msg.stack : false,
+            'cause': !!url ? JSON.stringify(url) : false,
+            'errorObj': !!error ? error : false
+        };
+    } else {
+        log.err = {
+            'msg': msg
+        };
+
+        if (!!url) {
+            log.err.file = url;
+        }
+    }
+
+    log.url = window.location.href;
+    log.userAgent = window.navigator.userAgent;
+
+    let ct_js_errors = "ct_js_errors";
+    let errArray = localStorage.getItem(ct_js_errors);
+    if(errArray === null) errArray = "[]";
+    errArray = JSON.parse(errArray);
+    for (let i = 0; i < errArray.length; i++) {
+      if (errArray[i].err.msg == log.err.msg) {
+        return;
+      }
+    }
+
+    errArray.push(log)
+    localStorage.setItem(ct_js_errors, JSON.stringify(errArray));
+};
+
+if (Math.floor(Math.random() * 100) === 1) {
+    window.onerror = function (exception, url) {
+        let filterWords = ['apbct', 'ctPublic'];
+        let length = filterWords.length;
+        while(length--) {
+          if (exception.indexOf(filterWords[length]) != -1) {
+              ctProcessError(exception, url);
+          }
+        }
+      
+        return false;
+    };
+}
+
 /**
  * Enter point to ApbctCore class
  *
@@ -1833,6 +1886,7 @@ function getJavascriptClientData(common_cookies = []) {
 	const apbctPageHits = apbctLocalStorage.get('apbct_page_hits');
 	const apbctPrevReferer = apbctSessionStorage.get('apbct_prev_referer');
 	const apbctSiteReferer = apbctSessionStorage.get('apbct_site_referer');
+	const ctJsErrorsLocalStorage = apbctLocalStorage.get(ctPublicFunctions.cookiePrefix + 'ct_js_errors');
 
 	// collecting data from cookies
 	const ctMouseMovedCookie = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_mouse_moved');
@@ -1845,6 +1899,7 @@ function getJavascriptClientData(common_cookies = []) {
 	resultDataJson.apbct_page_hits = apbctPageHits;
 	resultDataJson.apbct_prev_referer = apbctPrevReferer;
 	resultDataJson.apbct_site_referer = apbctSiteReferer;
+	resultDataJson.apbct_ct_js_errors = ctJsErrorsLocalStorage;
 
 	if (
 		typeof (common_cookies) === "object"
@@ -2447,101 +2502,114 @@ document.addEventListener("cleantalkModalContentLoaded", function( e ) {
         document.getElementById( 'cleantalk-modal-content' ).innerHTML = cleantalkModal.loaded;
     }
 });
-let buttons_to_handle = [];
+const buttonsToHandle = [];
 
-document.addEventListener('DOMContentLoaded', function(){
+document.addEventListener('DOMContentLoaded', function() {
+    if (
+        typeof ctPublicGDPR === 'undefined' ||
+        !ctPublicGDPR.gdpr_forms.length
+    ) {
+        return;
+    }
 
-	if(
-		typeof ctPublicGDPR === 'undefined' ||
-		! ctPublicGDPR.gdpr_forms.length
-	) {
-		return;
-	}
+    const gdprNoticeForButton = ctPublicGDPR.gdpr_title;
 
-	let gdpr_notice_for_button = ctPublicGDPR.gdpr_title;
+    if (typeof jQuery === 'undefined') {
+        return;
+    }
+    try {
+        ctPublicGDPR.gdpr_forms.forEach( function(item, i) {
+            let elem = jQuery('#' + item + ', .' + item);
 
-	if ( typeof jQuery === 'undefined' ) {
-		return;
-	}
-	try {
-		ctPublicGDPR.gdpr_forms.forEach(function(item, i){
+            // Filter forms
+            if (!elem.is('form')) {
+                // Caldera
+                if (elem.find('form')[0]) {
+                    elem = elem.children('form').first();
+                } else if ( // Contact Form 7
+                    jQuery('.wpcf7[role=form]')[0] && jQuery('.wpcf7[role=form]')
+                        .attr('id')
+                        .indexOf('wpcf7-f' + item) !== -1
+                ) {
+                    elem = jQuery('.wpcf7[role=form]').children('form');
+                } else if ( // Formidable
+                    jQuery('.frm_forms')[0] &&
+                    jQuery('.frm_forms').first().attr('id').indexOf('frm_form_' + item) !== -1
+                ) {
+                    elem = jQuery('.frm_forms').first().children('form');
+                } else if ( // WPForms
+                    jQuery('.wpforms-form')[0] &&
+                    jQuery('.wpforms-form').first().attr('id').indexOf('wpforms-form-' + item) !== -1
+                ) {
+                    elem = jQuery('.wpforms-form');
+                }
+            }
 
-			let elem = jQuery('#'+item+', .'+item);
+            // disable forms buttons
+            let button = false;
+            const buttonsCollection = elem.find('input[type|="submit"],button[type|="submit"]');
 
-			// Filter forms
-			if (!elem.is('form')){
-				// Caldera
-				if (elem.find('form')[0])
-					elem = elem.children('form').first();
-				// Contact Form 7
-				else if(
-					jQuery('.wpcf7[role=form]')[0] && jQuery('.wpcf7[role=form]')
-						.attr('id')
-						.indexOf('wpcf7-f'+item) !== -1
-				) {
-					elem = jQuery('.wpcf7[role=form]').children('form');
-				}
+            if (!buttonsCollection.length) {
+                return;
+            } else {
+                button = buttonsCollection[0];
+            }
 
-				// Formidable
-				else if(jQuery('.frm_forms')[0] && jQuery('.frm_forms').first().attr('id').indexOf('frm_form_'+item) !== -1)
-					elem = jQuery('.frm_forms').first().children('form');
-				// WPForms
-				else if(jQuery('.wpforms-form')[0] && jQuery('.wpforms-form').first().attr('id').indexOf('wpforms-form-'+item) !== -1)
-					elem = jQuery('.wpforms-form');
-			}
+            if (button !== false) {
+                button.disabled = true;
+                const oldNotice = jQuery(button).prop('title') ? jQuery(button).prop('title') : '';
+                buttonsToHandle.push({index: i, button: button, old_notice: oldNotice});
+                jQuery(button).prop('title', gdprNoticeForButton);
+            }
 
-			//disable forms buttons
-			let button = false
-			let buttons_collection= elem.find('input[type|="submit"],button[type|="submit"]')
-
-			if (!buttons_collection.length) {
-				return
-			} else {
-				button = buttons_collection[0]
-			}
-
-			if (button !== false){
-				button.disabled = true
-				let old_notice = jQuery(button).prop('title') ? jQuery(button).prop('title') : ''
-				buttons_to_handle.push({index:i,button:button,old_notice:old_notice})
-				jQuery(button).prop('title', gdpr_notice_for_button)
-			}
-
-			// Adding notice and checkbox
-			if(elem.is('form') || elem.attr('role') === 'form'){
-				elem.append('<input id="apbct_gdpr_'+i+'" type="checkbox" required="required" style=" margin-right: 10px;" onchange="apbct_gdpr_handle_buttons()">')
-					.append('<label style="display: inline;" for="apbct_gdpr_'+i+'">'+ctPublicGDPR.gdpr_text+'</label>');
-			}
-		});
-	} catch (e) {
-		console.info('APBCT GDPR JS ERROR: Can not add GDPR notice' + e)
-	}
+            // Adding notice and checkbox
+            if (elem.is('form') || elem.attr('role') === 'form') {
+                const selectorId = 'apbct_gdpr_' + i;
+                elem.append(
+                    '<input id="' + selectorId + '" type="checkbox" required="required" ' +
+                    'style="margin-right: 10px;">',
+                ).append(
+                    '<label style=\'display: inline;\' for=\'apbct_gdpr_' +
+                    i +
+                    '\'>' +
+                    ctPublicGDPR.gdpr_text +
+                    '</label>',
+                );
+                jQuery(selectorId).prop('onchange', apbctGDPRHandleButtons);
+            }
+        });
+    } catch (e) {
+        console.info('APBCT GDPR JS ERROR: Can not add GDPR notice' + e);
+    }
 });
 
-function apbct_gdpr_handle_buttons(){
+/**
+ * Disable/enable form buttons if GDPR checkbox disabled/enabled.
+ * @return {void}
+ */
+function apbctGDPRHandleButtons() {
+    try {
+        if (buttonsToHandle === []) {
+            return;
+        }
 
-	try {
-
-		if (buttons_to_handle === []){
-			return
-		}
-
-		buttons_to_handle.forEach((button) => {
-			let selector = '[id="apbct_gdpr_' + button.index + '"]'
-			let apbct_gdpr_item = jQuery(selector)
-			//chek if apbct_gdpr checkbox is set
-			if (jQuery(apbct_gdpr_item).prop("checked")){
-				button.button.disabled = false
-				jQuery(button.button).prop('title', button.old_notice)
-			} else {
-				button.button.disabled = true
-				jQuery(button.button).prop('title', gdpr_notice_for_button)
-			}
-		})
-	} catch (e) {
-		console.info('APBCT GDPR JS ERROR: Can not handle form buttons ' + e)
-	}
+        buttonsToHandle.forEach((button) => {
+            const selector = '[id=\'apbct_gdpr_' + button.index + '\']';
+            const apbctGDPRItem = jQuery(selector);
+            // chek if apbct_gdpr checkbox is set
+            if (jQuery(apbctGDPRItem).prop('checked')) {
+                button.button.disabled = false;
+                jQuery(button.button).prop('title', button.old_notice);
+            } else {
+                button.button.disabled = true;
+                jQuery(button.button).prop('title', gdpr_notice_for_button);
+            }
+        });
+    } catch (e) {
+        console.info('APBCT GDPR JS ERROR: Can not handle form buttons ' + e);
+    }
 }
+
 /**
  * Handle external forms
  */
@@ -3011,6 +3079,17 @@ function sendAjaxCheckingDinamicFormData(form) {
                 if( result.apbct === undefined || ! +result.apbct.blocked ) {
                     form.onsubmit = null;
 
+                    // Clear service fields
+                    for (const el of form.querySelectorAll('input[name="apbct_visible_fields"]')) {
+                        el.remove();
+                    }
+                    for (const el of form.querySelectorAll('input[value="cleantalk_force_ajax_check"]')) {
+                        el.remove();
+                    }
+                    for (const el of form.querySelectorAll('input[name="ct_no_cookie_hidden_field"]')) {
+                        el.remove();
+                    }
+
                     // Call previous submit action
                     if (form.apbct_external_onsubmit_prev instanceof Function) {
                         setTimeout(function () {
@@ -3054,81 +3133,92 @@ function apbct_val(el) {
         return el.value;
     }
 }
-function ct_check_internal(currForm){
-    
-//Gathering data
-    var ct_data = {},
-        elems = currForm.elements;
+/**
+ * Check form as internal.
+ * @param {int} currForm Current form.
+ */
+function ctCheckInternal(currForm) {
+    //  Gathering data
+    const ctData = {};
+    const elems = currForm.elements;
+    let key;
 
-    for (var key in elems) {
-        if(elems[key].type == 'submit' || elems[key].value == undefined || elems[key].value == '')
-            continue;
-        ct_data[elems[key].name] = currForm.elements[key].value;
+    for (key in elems) {
+        if (elems[key].type !== 'submit' &&
+            elems[key].value !== undefined &&
+            elems[key].value !== '') {
+            ctData[elems[key].name] = currForm.elements[key].value;
+        }
     }
-    ct_data['action'] = 'ct_check_internal';
+    ctData.action = 'ct_check_internal';
 
-    //AJAX Request
+    //  AJAX Request
     apbct_public_sendAJAX(
-        ct_data,
+        ctData,
         {
             url: ctPublicFunctions._ajax_url,
-            callback: function (data) {
-                if(data.success === true){
-                    currForm.submit();
-                }else{
+            callback: function(data) {
+                if (data.success === true) {
+                    currForm.origSubmit();
+                } else {
                     alert(data.data);
                     return false;
                 }
-            }
-        }
+            },
+        },
     );
 }
 
-document.addEventListener('DOMContentLoaded',function(){
-    let ct_currAction = '',
-        ct_currForm = '';
+document.addEventListener('DOMContentLoaded', function() {
+    let ctCurrAction = '';
+    let ctCurrForm = '';
 
-    if( ! +ctPublic.settings__forms__check_internal ) {
+    if ( ! +ctPublic.settings__forms__check_internal ) {
         return;
     }
 
-    let ctPrevHandler;
-	for( let i=0; i<document.forms.length; i++ ){
-		if ( typeof(document.forms[i].action) == 'string' ){
-            ct_currForm = document.forms[i];
-			ct_currAction = ct_currForm.action;
-            if (
-                ct_currAction.indexOf('https?://') !== null &&                        // The protocol is obligatory
-                ct_currAction.match(ctPublic.blog_home + '.*?\.php') !== null && // Main check
-                ! ct_check_internal__is_exclude_form(ct_currAction)                  // Exclude WordPress native scripts from processing
-            ) {
-                ctPrevHandler = ct_currForm.click;
-                if ( typeof jQuery !== 'undefined' ) {
-                    jQuery(ct_currForm).off('**');
-                    jQuery(ct_currForm).off();
-                    jQuery(ct_currForm).on('submit', function(event){
-                        ct_check_internal(event.target);
+    setTimeout(() => {
+        for ( let i = 0; i < document.forms.length; i++ ) {
+            if ( typeof(document.forms[i].action) == 'string' ) {
+                ctCurrForm = document.forms[i];
+                ctCurrAction = ctCurrForm.action;
+                if (
+                    ctCurrAction.indexOf('https?://') !== null && // The protocol is obligatory
+                    ctCurrAction.match(ctPublic.blog_home + '.*?\.php') !== null && // Main check
+                    ! ctCheckInternalIsExcludedForm(ctCurrAction) // Exclude WordPress native scripts from processing
+                ) {
+                    const formClone = ctCurrForm.cloneNode(true);
+                    ctCurrForm.parentNode.replaceChild(formClone, ct_currForm);
+
+                    formClone.origSubmit = ctCurrForm.submit;
+                    formClone.submit = null;
+
+                    formClone.addEventListener('submit', function(event) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        event.stopImmediatePropagation();
+                        ctCheckInternal(event.target);
                         return false;
                     });
                 }
             }
-		}
-	}
+        }
+    }, 500);
 });
 
 /**
  * Check by action to exclude the form checking
- * @param action string
- * @return boolean
+ * @param {string} action
+ * @return {boolean}
  */
-function ct_check_internal__is_exclude_form(action) {
+function ctCheckInternalIsExcludedForm(action) {
     // An array contains forms action need to be excluded.
-    let ct_internal_script_exclusions = [
+    const ctInternalScriptExclusions = [
         'wp-login.php', // WordPress login page
         'wp-comments-post.php', // WordPress Comments Form
     ];
 
-    return ct_internal_script_exclusions.some((item) => {
+    return ctInternalScriptExclusions.some((item) => {
         return action.match(new RegExp(ctPublic.blog_home + '.*' + item)) !== null;
     });
 }
