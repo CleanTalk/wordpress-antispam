@@ -644,7 +644,6 @@ class UsersChecker extends Checker
             );
 
             $count_spammers = count(get_users($params));
-
         } else {
             $sql = "SELECT
                     COUNT(`user_id`)
@@ -686,7 +685,6 @@ class UsersChecker extends Checker
             );
 
             $count_bad = count(get_users($params));
-
         } else {
             $sql = "SELECT
                     COUNT(`user_id`)
