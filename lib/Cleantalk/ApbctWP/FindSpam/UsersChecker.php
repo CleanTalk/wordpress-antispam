@@ -291,6 +291,10 @@ class UsersChecker extends Checker
 			FROM {$wpdb->users}"
         );
 
+        if (is_multisite()) {
+            $res = count(get_users());
+        }
+
         if ( $res ) {
             $text = sprintf(esc_html__('Total count of users: %s.', 'cleantalk-spam-protect'), $res);
         } else {
@@ -374,6 +378,9 @@ class UsersChecker extends Checker
 
         // Checked users
         $cnt_checked = $apbct->data['count_checked_users'];
+        if (is_multisite()) {
+            $cnt_checked = count(get_users());
+        }
 
         $cnt_spam = self::getCountSpammers();
 
@@ -621,12 +628,31 @@ class UsersChecker extends Checker
     {
         global $wpdb;
 
-        $sql = "SELECT
-                COUNT(`user_id`)
-                FROM $wpdb->usermeta
-                where `meta_key`='ct_marked_as_spam'";
+        if (is_multisite()) {
+            $params = array(
+                'meta_query' => array(
+                    'relation' => 'AND',
+                    array(
+                        'key'     => 'ct_marked_as_spam',
+                        'compare' => '1'
+                    ),
+                    array(
+                        'key'     => $wpdb->get_blog_prefix() . 'user_level',
+                        'compare' => '1'
+                    ),
+                ),
+            );
 
-        $count_spammers = $wpdb->get_var($sql);
+            $count_spammers = count(get_users($params));
+
+        } else {
+            $sql = "SELECT
+                    COUNT(`user_id`)
+                    FROM $wpdb->usermeta
+                    where `meta_key`='ct_marked_as_spam'";
+
+            $count_spammers = $wpdb->get_var($sql);
+        }
 
         if (is_null($count_spammers)) {
             return 0;
@@ -644,12 +670,31 @@ class UsersChecker extends Checker
     {
         global $wpdb;
 
-        $sql = "SELECT
-                COUNT(`user_id`)
-                FROM $wpdb->usermeta
-                where `meta_key`='ct_bad'";
+        if (is_multisite()) {
+            $params = array(
+                'meta_query' => array(
+                    'relation' => 'AND',
+                    array(
+                        'key'     => 'ct_bad',
+                        'compare' => '1'
+                    ),
+                    array(
+                        'key'     => $wpdb->get_blog_prefix() . 'user_level',
+                        'compare' => '1'
+                    ),
+                ),
+            );
 
-        $count_bad = $wpdb->get_var($sql);
+            $count_bad = count(get_users($params));
+
+        } else {
+            $sql = "SELECT
+                    COUNT(`user_id`)
+                    FROM $wpdb->usermeta
+                    where `meta_key`='ct_bad'";
+
+            $count_bad = $wpdb->get_var($sql);
+        }
 
         if (is_null($count_bad)) {
             return 0;
