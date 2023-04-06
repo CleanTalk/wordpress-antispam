@@ -196,6 +196,28 @@ class Escape extends \Cleantalk\Common\Escape
                     'href' => true,
                 ),
                 'p' => array(),
+            ),
+            'apbct_response_custom_message' => array(
+                'a' => array(
+                    'target' => true,
+                    'href' => true,
+                    'class' => true,
+                    'style' => true,
+                ),
+                'p' => array(
+                    'class' => true,
+                    'style' => true,
+                ),
+                'br' => array(),
+                'div' => array(
+                    'class' => true,
+                    'style' => true,
+                ),
+                'font' => array(
+                    'style' => true,
+                    'color' => true,
+                    'size' => true,
+                ),
             )
         );
 
