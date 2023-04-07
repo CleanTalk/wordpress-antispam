@@ -76,6 +76,8 @@ class CommentsChecker extends Checker
         $date_till = $commentsScanParameters->getTill();
         $sql_where = "WHERE NOT comment_approved = 'spam' AND NOT comment_approved = 'trash'";
         $sql_where .= " AND ( comment_type = 'comment' OR comment_type = 'trackback' OR comment_type = 'pings' )";
+        $sql_where .= " AND {$wpdb->comments}.comment_ID NOT IN (
+            SELECT {$wpdb->commentmeta}.comment_id FROM {$wpdb->commentmeta} WHERE meta_key = 'ct_marked_as_approved')";
         if ($date_from && $date_till) {
             $date_from = date('Y-m-d', (int) strtotime($date_from)) . ' 00:00:00';
             $date_till = date('Y-m-d', (int) strtotime($date_till)) . ' 23:59:59';
