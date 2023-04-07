@@ -1161,7 +1161,7 @@ function apbct_comment__send_feedback(
  */
 function apbct_comment__status_change($comment)
 {
-    delete_comment_meta($comment->comment_ID, 'ct_marked_as_approved');
+    delete_comment_meta((int)$comment->comment_ID, 'ct_marked_as_approved');
 }
 
 /**
