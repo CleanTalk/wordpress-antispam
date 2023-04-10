@@ -2834,13 +2834,10 @@ function apbct_replace_inputs_values_from_other_form( form_source, form_target )
     var	inputs_source = form_source.querySelectorAll('button, input, textarea, select'),
         inputs_target = form_target.querySelectorAll('button, input, textarea, select');
 
-    inputs_source.forEach((index, elem_source) => {
-
-        inputs_target.forEach((index2, elem_target) => {
-
-            if( elem_source.outerHTML === elem_target.outerHTML ){
-
-                elem_target.apbct_val(elem_source.apbct_val());
+    inputs_source.forEach((elem_source) => {
+        inputs_target.forEach((elem_target) => {
+            if(elem_source.outerHTML === elem_target.outerHTML) {
+                elem_target.value = apbct_val(elem_source);
             }
         });
     });
@@ -2935,7 +2932,7 @@ function sendAjaxCheckingFormData(form, prev, formOriginal) {
                     if (placeholders) {
                         for (let i = 0; i < placeholders.length; i++) {
                             let mautic_hidden_gdpr_id = placeholders[i].getAttribute("mautic_hidden_gdpr_id")
-                            if (typeof(mautic_hidden_gdpr_id) !== 'undefined') {
+                            if (mautic_hidden_gdpr_id !== null && typeof(mautic_hidden_gdpr_id) !== 'undefined') {
                                 let mautic_gdpr_radio = formOriginal.querySelector('#' + mautic_hidden_gdpr_id)
                                 if (typeof(mautic_gdpr_radio) !== 'undefined') {
                                     mautic_gdpr_radio.prop("checked", true);
