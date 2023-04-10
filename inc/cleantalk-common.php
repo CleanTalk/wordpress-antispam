@@ -492,10 +492,7 @@ function apbct_get_sender_info()
 
     $visible_fields = apbct_visible_fields__process($visible_fields_collection);
 
-    // It is a service field. Need to be deleted before the processing.
-    if ( isset($_POST['apbct_visible_fields']) ) {
-        unset($_POST['apbct_visible_fields']);
-    }
+    apbct_remove_superglobal_service_data();
 
     // preparation of some parameters when cookies are disabled and data is received from localStorage
     $param_email_check = Cookie::get('ct_checked_emails') ? json_encode(
@@ -1585,4 +1582,29 @@ function apbct_rc__service_template_set($template_id, array $options_template_da
         : json_encode(array('ERROR' => 'Internal settings updating error'));
 
     return $result !== false ? $result : '{"ERROR":"Internal JSON encoding error"}';
+}
+
+/**
+ * Remove CleanTalk service data from super global variables
+ * @return void
+ */
+function apbct_remove_superglobal_service_data()
+{
+
+    // It is a service field. Need to be deleted before the processing.
+    if ( isset($_POST['apbct_visible_fields']) ) {
+        unset($_POST['apbct_visible_fields']);
+    }
+
+    //Optima Express special $_request clearance
+    if (
+        apbct_is_plugin_active('optima-express/iHomefinder.php') &&
+        (
+            isset($_REQUEST['ct_no_cookie_hidden_field']) ||
+            isset($_REQUEST['apbct_visible_fields'])
+        )
+    ) {
+        unset($_REQUEST['ct_no_cookie_hidden_field']);
+        unset($_REQUEST['apbct_visible_fields']);
+    }
 }
