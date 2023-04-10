@@ -995,9 +995,9 @@ function ct_ajax_hook($message_obj = null)
         ) {
             die(
                 json_encode(
-                    array (
+                    array(
                         'success' => false,
-                        'data' => array (
+                        'data' => array(
                             'type' => 'error',
                             'message' => $ct_result->comment,
                         )
