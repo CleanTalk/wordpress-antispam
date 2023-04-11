@@ -21,9 +21,9 @@ add_action('wp_ajax_apbct_settings__check_renew_banner', 'apbct_settings__check_
 add_action('admin_head', 'apbct_admin_set_cookie_for_anti_bot');
 
 // Catch comment status change
-add_action('comment_approved_to_unapproved', 'apbct_comment__status_change', 10, 1);
-add_action('comment_spam_to_unapproved', 'apbct_comment__status_change', 10, 1);
-add_action('comment_trash_to_unapproved', 'apbct_comment__status_change', 10, 1);
+add_action('comment_approved_to_unapproved', 'apbct_comment__remove_meta_approved', 10, 1);
+add_action('comment_spam_to_unapproved', 'apbct_comment__remove_meta_approved', 10, 1);
+add_action('comment_trash_to_unapproved', 'apbct_comment__remove_meta_approved', 10, 1);
 
 /**
  * Crunch for Anti-Bot
@@ -1159,7 +1159,7 @@ function apbct_comment__send_feedback(
  *
  * @return void
  */
-function apbct_comment__status_change($comment)
+function apbct_comment__remove_meta_approved($comment)
 {
     delete_comment_meta((int)$comment->comment_ID, 'ct_marked_as_approved');
 }
