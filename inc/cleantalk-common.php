@@ -290,6 +290,10 @@ function apbct_base_call($params = array(), $reg_flag = false)
         apbct_cookie();
     }
 
+    //clear POST and REQUEST superglobal from service data
+    $_POST = apbct_clear_superglobal_service_data($_POST, 'post');
+    $_REQUEST = apbct_clear_superglobal_service_data($_REQUEST, 'request');
+
     return array('ct' => $ct, 'ct_result' => $ct_result);
 }
 
@@ -491,11 +495,6 @@ function apbct_get_sender_info()
     }
 
     $visible_fields = apbct_visible_fields__process($visible_fields_collection);
-
-    // It is a service field. Need to be deleted before the processing.
-    if ( isset($_POST['apbct_visible_fields']) ) {
-        unset($_POST['apbct_visible_fields']);
-    }
 
     // preparation of some parameters when cookies are disabled and data is received from localStorage
     $param_email_check = Cookie::get('ct_checked_emails') ? json_encode(
@@ -1585,4 +1584,35 @@ function apbct_rc__service_template_set($template_id, array $options_template_da
         : json_encode(array('ERROR' => 'Internal settings updating error'));
 
     return $result !== false ? $result : '{"ERROR":"Internal JSON encoding error"}';
+}
+
+/**
+ * Remove CleanTalk service data from super global variables
+ * @param array $superglobal $_POST | $_REQUEST
+ * @param string $type post|request
+ * @return array cleared array of superglobal
+ */
+function apbct_clear_superglobal_service_data($superglobal, $type)
+{
+    switch ($type) {
+        case 'post':
+            // It is a service field. Need to be deleted before the processing.
+            if ( isset($superglobal['apbct_visible_fields']) ) {
+                unset($superglobal['apbct_visible_fields']);
+            }
+            // no break when fall-through is intentional
+        case 'request':
+            //Optima Express special $_request clearance
+            if (
+                apbct_is_plugin_active('optima-express/iHomefinder.php') &&
+                (
+                    isset($superglobal['ct_no_cookie_hidden_field']) ||
+                    isset($superglobal['apbct_visible_fields'])
+                )
+            ) {
+                unset($superglobal['ct_no_cookie_hidden_field']);
+                unset($superglobal['apbct_visible_fields']);
+            }
+    }
+    return $superglobal;
 }

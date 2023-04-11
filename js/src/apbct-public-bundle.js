@@ -2666,13 +2666,16 @@ function ct_protect_external() {
     }
     // Trying to process external form into an iframe
     apbctProcessIframes()
+    // if form is still not processed by fields listening, do it here
+    ctStartFieldsListening()
 }
 
 function formIsExclusion(currentForm)
 {
     let exclusions_by_id = [
         'give-form', //give form exclusion because of direct integration
-        'frmCalc' //nobletitle-calc
+        'frmCalc', //nobletitle-calc
+        'ihf-contact-request-form'
     ]
 
     let exclusions_by_role = [
@@ -2681,8 +2684,8 @@ function formIsExclusion(currentForm)
 
     let exclusions_by_class = [
         'search-form', //search forms
-        'hs-form', // integrated hubspot plugin through dinamicRenderedForms logic
-        'ihc-form-create-edit' // integrated Ultimate Membership Pro plugin through dinamicRenderedForms logic
+        'hs-form', // integrated hubspot plugin through dynamicRenderedForms logic
+        'ihc-form-create-edit' // integrated Ultimate Membership Pro plugin through dynamicRenderedForms logic
     ]
 
     let result = false
@@ -2834,13 +2837,10 @@ function apbct_replace_inputs_values_from_other_form( form_source, form_target )
     var	inputs_source = form_source.querySelectorAll('button, input, textarea, select'),
         inputs_target = form_target.querySelectorAll('button, input, textarea, select');
 
-    inputs_source.forEach((index, elem_source) => {
-
-        inputs_target.forEach((index2, elem_target) => {
-
-            if( elem_source.outerHTML === elem_target.outerHTML ){
-
-                elem_target.apbct_val(elem_source.apbct_val());
+    inputs_source.forEach((elem_source) => {
+        inputs_target.forEach((elem_target) => {
+            if(elem_source.outerHTML === elem_target.outerHTML) {
+                elem_target.value = apbct_val(elem_source);
             }
         });
     });
@@ -2854,7 +2854,7 @@ window.onload = function () {
 
     setTimeout(function () {
         ct_protect_external()
-        catchDinamicRenderedForm()
+        catchDynamicRenderedForm()
     }, 1500);
 };
 
@@ -2882,8 +2882,9 @@ function isIntegratedForm(formObj) {
         formAction.indexOf('sendfox.com') !== -1 ||
         formAction.indexOf('aweber.com') !== -1 ||
         formAction.indexOf('secure.payu.com') !== -1 ||
-        formAction.indexOf('mautic') !== -1 || formId.indexOf('mauticform_') !== -1
-    ) {
+        formAction.indexOf('mautic') !== -1 || formId.indexOf('mauticform_') !== -1 ||
+        formId.indexOf('ihf-contact-request-form') !== -1
+) {
         return true;
     }
 
@@ -2935,7 +2936,7 @@ function sendAjaxCheckingFormData(form, prev, formOriginal) {
                     if (placeholders) {
                         for (let i = 0; i < placeholders.length; i++) {
                             let mautic_hidden_gdpr_id = placeholders[i].getAttribute("mautic_hidden_gdpr_id")
-                            if (typeof(mautic_hidden_gdpr_id) !== 'undefined') {
+                            if (mautic_hidden_gdpr_id !== null && typeof(mautic_hidden_gdpr_id) !== 'undefined') {
                                 let mautic_gdpr_radio = formOriginal.querySelector('#' + mautic_hidden_gdpr_id)
                                 if (typeof(mautic_gdpr_radio) !== 'undefined') {
                                     mautic_gdpr_radio.prop("checked", true);
@@ -2995,10 +2996,10 @@ function sendAjaxCheckingFormData(form, prev, formOriginal) {
     );
 }
 
-function catchDinamicRenderedForm() {
-    let forms = document.getElementsByTagName('form')
+function catchDynamicRenderedForm() {
+    const forms = document.getElementsByTagName('form')
 
-    catchDinamicRenderedFormHandler(forms)
+    catchDynamicRenderedFormHandler(forms)
 
     const frames = document.getElementsByTagName('iframe');
     if ( frames.length > 0 ) {
@@ -3013,12 +3014,12 @@ function catchDinamicRenderedForm() {
                 return;
             }
 
-            catchDinamicRenderedFormHandler(iframeForms, frames[j].contentDocument)
+            catchDynamicRenderedFormHandler(iframeForms, frames[j].contentDocument)
         }
     }
 }
 
-function catchDinamicRenderedFormHandler(forms, documentObject = document) {
+function catchDynamicRenderedFormHandler(forms, documentObject = document) {
     let neededFormIds = [];
     for (let form of forms) {
         if (form.id.indexOf('hsForm') !== -1) {
@@ -3034,14 +3035,14 @@ function catchDinamicRenderedFormHandler(forms, documentObject = document) {
     for (let formId of neededFormIds) {
         let form = documentObject.getElementById(formId);
         form.apbct_external_onsubmit_prev = form.onsubmit;
-        form.onsubmit = sendAjaxCheckingDinamicFormData;
+        form.onsubmit = sendAjaxCheckingDynamicFormData;
     }
 }
 
 /**
- * Sending Ajax for checking form data on dinamic rendered form
+ * Sending Ajax for checking form data on dynamic rendered form
  */
-function sendAjaxCheckingDinamicFormData(form) {
+function sendAjaxCheckingDynamicFormData(form) {
     form.preventDefault();
     form.stopImmediatePropagation();
     var formEvent = form;
