@@ -244,6 +244,7 @@ function skip_for_ct_contact_form_validate()
         '88' => apbct_is_plugin_active('memberpress/memberpress.php') && Post::get('mepr_process_signup_form'),
         // WooCommerce recovery password form
         '89' => (isset($_POST['wc_reset_password'], $_POST['woocommerce-lost-password-nonce'])),
+        '90' => apbct_is_plugin_active('envira-gallery/envira-gallery.php') && Server::inUri('wp-json/envira-background/v1/resize-image'),
     );
 
     foreach ( $exclusions as $exclusion_key => $state ) {

@@ -988,6 +988,24 @@ function ct_ajax_hook($message_obj = null)
             );
         }
 
+        // bricksextras/bricksextras.php
+        if (
+            apbct_is_plugin_active('bricksextras/bricksextras.php') &&
+            Post::hasString('action', 'bricks_form_submit')
+        ) {
+            die(
+                json_encode(
+                    array(
+                        'success' => false,
+                        'data' => array(
+                            'type' => 'error',
+                            'message' => $ct_result->comment,
+                        )
+                    )
+                )
+            );
+        }
+
         // Regular block output
         die(
             json_encode(
