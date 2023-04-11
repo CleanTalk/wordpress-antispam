@@ -291,8 +291,8 @@ function apbct_base_call($params = array(), $reg_flag = false)
     }
 
     //clear POST and REQUEST superglobal from service data
-    $_POST = apbct_clear_superglobal_service_data($_POST,'post');
-    $_REQUEST = apbct_clear_superglobal_service_data($_REQUEST,'request');
+    $_POST = apbct_clear_superglobal_service_data($_POST, 'post');
+    $_REQUEST = apbct_clear_superglobal_service_data($_REQUEST, 'request');
 
     return array('ct' => $ct, 'ct_result' => $ct_result);
 }
@@ -1594,16 +1594,14 @@ function apbct_rc__service_template_set($template_id, array $options_template_da
  */
 function apbct_clear_superglobal_service_data($superglobal, $type)
 {
-    switch ($type){
+    switch ($type) {
         case 'post':
-        {
             // It is a service field. Need to be deleted before the processing.
             if ( isset($superglobal['apbct_visible_fields']) ) {
                 unset($superglobal['apbct_visible_fields']);
             }
-        }
+            // no break when fall-through is intentional
         case 'request':
-        {
             //Optima Express special $_request clearance
             if (
                 apbct_is_plugin_active('optima-express/iHomefinder.php') &&
@@ -1615,7 +1613,6 @@ function apbct_clear_superglobal_service_data($superglobal, $type)
                 unset($superglobal['ct_no_cookie_hidden_field']);
                 unset($superglobal['apbct_visible_fields']);
             }
-        }
     }
     return $superglobal;
 }
