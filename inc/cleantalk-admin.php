@@ -20,6 +20,11 @@ add_action('wp_ajax_apbct_settings__check_renew_banner', 'apbct_settings__check_
 // Crunch for Anti-Bot
 add_action('admin_head', 'apbct_admin_set_cookie_for_anti_bot');
 
+// Catch comment status change
+add_action('comment_approved_to_unapproved', 'apbct_comment__remove_meta_approved', 10, 1);
+add_action('comment_spam_to_unapproved', 'apbct_comment__remove_meta_approved', 10, 1);
+add_action('comment_trash_to_unapproved', 'apbct_comment__remove_meta_approved', 10, 1);
+
 /**
  * Crunch for Anti-Bot
  * Hooked by 'admin_head'
@@ -1106,9 +1111,9 @@ function apbct_comment__send_feedback(
         check_ajax_referer('ct_secret_nonce', 'security');
     }
 
-    $comment_id     = ! $comment_id && Post::get('comment_id') ? (int) Post::get('comment_id') : null;
-    $comment_status = ! $comment_status && Post::get('comment_status') ? (string) Post::get('comment_status') : null;
-    $change_status  = ! $change_status && Post::get('change_status') ? (bool) Post::get('change_status') : false;
+    $comment_id     = Post::get('comment_id') ? (int) Post::get('comment_id') : $comment_id;
+    $comment_status = Post::get('comment_status') ? (string) Post::get('comment_status') : $comment_status;
+    $change_status  = Post::get('change_status') ? (bool) Post::get('change_status') : $change_status;
 
     // If enter params is empty exit
     if ( ! $comment_id || ! $comment_status ) {
@@ -1145,6 +1150,18 @@ function apbct_comment__send_feedback(
     if ( ! $direct_call ) {
         ! empty($result) ? die($result) : die(0);
     }
+}
+
+/**
+ * Catch comment status change
+ *
+ * @param WP_Comment $comment Comment object
+ *
+ * @return void
+ */
+function apbct_comment__remove_meta_approved($comment)
+{
+    delete_comment_meta((int)$comment->comment_ID, 'ct_marked_as_approved');
 }
 
 /**
