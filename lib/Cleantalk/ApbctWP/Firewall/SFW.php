@@ -395,6 +395,9 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
                     case 0:
                         $message_ip_status = __('IP in the common blacklist', 'cleantalk-spam-protect');
                         $message_ip_status_color = 'red';
+                        if (isset($this->db->result[0]["source"]) && (int)$this->db->result[0]["source"] === 1) {
+                            $message_ip_status = __('IP in the personal blacklist', 'cleantalk-spam-protect');
+                        }
                         break;
                     default:
                         $message_ip_status = __('IP will be passed', 'cleantalk-spam-protect');
