@@ -3189,7 +3189,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     ! ctCheckInternalIsExcludedForm(ctCurrAction) // Exclude WordPress native scripts from processing
                 ) {
                     const formClone = ctCurrForm.cloneNode(true);
-                    ctCurrForm.parentNode.replaceChild(formClone, ct_currForm);
+                    ctCurrForm.parentNode.replaceChild(formClone, ctCurrForm);
 
                     formClone.origSubmit = ctCurrForm.submit;
                     formClone.submit = null;
