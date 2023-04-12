@@ -1006,6 +1006,20 @@ function ct_ajax_hook($message_obj = null)
             );
         }
 
+        // Plugin Name: DIGITS: WordPress Mobile Number Signup and Login; ajax register action digits_forms_ajax
+        if (
+            apbct_is_plugin_active('digits/digit.php') &&
+            Post::get('action') === 'digits_forms_ajax' &&
+            Post::get('type') === 'register'
+        ) {
+            wp_send_json_error(
+                array(
+                    'message' => $ct_result->comment
+                )
+            );
+            die();
+        }
+
         // Regular block output
         die(
             json_encode(
