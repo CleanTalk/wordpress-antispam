@@ -5,7 +5,6 @@ module.exports = {
     },
     extends: 'google',
     ignorePatterns: [
-        'js/src/apbct-disable-comments.js',
         'js/src/apbct-public--0--LibBundle.js',
         'js/src/apbct-public--1--functions.js',
         'js/src/apbct-public--2--public.js',
