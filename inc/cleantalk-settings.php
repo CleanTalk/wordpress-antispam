@@ -193,7 +193,7 @@ function apbct_settings__set_fields()
             'title'          => __('Forms to protect', 'cleantalk-spam-protect'),
             'default_params' => array(),
             'description'    => '',
-            'html_before'    => '<hr><br>'
+            'html_before'    => '<br>'
                                 . '<span id="ct_adv_showhide" class="apbct_bottom_links--left">'
                                 . '<a href="#" class="apbct_color--gray" onclick="'
                                 . 'event.preventDefault();'
@@ -594,7 +594,7 @@ function apbct_settings__set_fields()
                 ),
                 'exclusions__fields'             => array(
                     'type'        => 'textarea',
-                    'title'       => __('Field name exclusions', 'cleantalk-spam-protect'),
+                    'title'       => __('Field Name Exclusions', 'cleantalk-spam-protect'),
                     'description' => __(
                         'You could type here fields names you want to exclude. Use comma as separator. Exclusion value will be sliced to 128 chars, exclusions number is restricted by 20 values.',
                         'cleantalk-spam-protect'
@@ -604,8 +604,24 @@ function apbct_settings__set_fields()
                     'type'  => 'checkbox',
                     'title' => __('Use Regular Expression in Field Exclusions', 'cleantalk-spam-protect'),
                 ),
+                'exclusions__form_signs'             => array(
+                    'type'        => 'textarea',
+                    'title'       => __('Form Signs Exclusions', 'cleantalk-spam-protect'),
+                    'description' => __(
+                        'If the form contains any of these sign in the POST array, the form submit is excluded from
+                        spam checking. The plugin validates action attribute of the form and name attribute of the
+                        fields it contains. Use comma or new lines as separator. Exclusion value will be sliced
+                        to 128 chars, exclusions number is restricted by 20 values.',
+                        'cleantalk-spam-protect'
+                    ),
+                ),
+                'exclusions__form_signs__use_regexp' => array(
+                    'type'  => 'checkbox',
+                    'title' => __('Use Regular Expression in Form Signs Exclusions', 'cleantalk-spam-protect'),
+                ),
                 'exclusions__roles'              => array(
                     'type'                    => 'select',
+                    'title' => __('Roles Exclusions', 'cleantalk-spam-protect'),
                     'multiple'                => true,
                     'options_callback'        => 'apbct_get_all_roles',
                     'description'             => __(
@@ -1272,7 +1288,7 @@ function apbct_settings__display()
         echo Escape::escKsesPreset($out, 'apbct_settings__display__groups');
 
         //title
-        $out = ! empty($group['title']) ? '<h3 style="margin-left: 220px;" id="apbct_setting_group__' . $group_name . '">' . $group['title'] . '</h3>' : '';
+        $out = ! empty($group['title']) ? '<hr><h3 style="text-align: center" id="apbct_setting_group__' . $group_name . '">' . $group['title'] . '</h3><hr>' : '';
         echo Escape::escKsesPreset($out, 'apbct_settings__display__groups');
 
         do_settings_fields('cleantalk', 'apbct_section__' . $group_name);
@@ -2168,6 +2184,9 @@ function apbct_settings__field__draw($params = array())
                 ? '<h4 class="apbct_settings-field_title apbct_settings-field_title--' . $params['type'] . '">' . $params['title'] . $popup . '</h4>'
                 : '';
             //ESC NEED
+            echo isset($params['description'])
+                ? '<div class="apbct_settings-field_description">' . $params['description'] . '</div>'
+                : '';
             echo '<select'
                  . ' id="apbct_setting_' . $params['name'] . '"'
                  . " class='apbct_setting_{$params['type']} apbct_setting---{$params['name']}'"
@@ -2197,10 +2216,6 @@ function apbct_settings__field__draw($params = array())
             }
 
             echo '</select>';
-            //ESC NEED
-            echo isset($params['description'])
-                ? '<div class="apbct_settings-field_description">' . $params['description'] . '</div>'
-                : '';
 
             break;
 
@@ -2262,9 +2277,17 @@ function apbct_settings__field__draw($params = array())
         // Textarea type
         case 'textarea':
             //ESC NEED
-            echo '<label for="apbct_setting_' . $params['name'] . '" class="apbct_setting-field_title--' . $params['type'] . '">'
-                 . $params['title']
-                 . '</label></br>';
+            $popup = '';
+            if ( isset($params['long_description']) ) {
+                $popup = '<i setting="' . $params['name'] . '" class="apbct_settings-long_description---show apbct-icon-help-circled"></i>';
+            }
+            echo isset($params['title'])
+                ? '<h4 class="apbct_settings-field_title apbct_settings-field_title--' . $params['type'] . '">' . $params['title'] . $popup . '</h4>'
+                : '';
+            //ESC NEED
+            echo '<div class="apbct_settings-field_description">'
+                . $params['description']
+                . '</div>';
             //ESC NEED
             echo '<textarea
 					id="apbct_setting_' . $params['name'] . '"
@@ -2275,10 +2298,6 @@ function apbct_settings__field__draw($params = array())
                  . ($params['childrens'] ? ' onchange="apbctSettingsDependencies(\'' . $childrens . '\')"' : '')
                  . '>' . $value . '</textarea>'
                  . '&nbsp;';
-            //ESC NEED
-            echo '<div class="apbct_settings-field_description">'
-                 . $params['description']
-                 . '</div>';
             break;
     }
 
