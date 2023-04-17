@@ -1,5 +1,7 @@
-class ApbctCore{
-
+/**
+ * Base class
+ */
+class ApbctCore {
     ajax_parameters = {};
     rest_parameters = {};
 
@@ -13,91 +15,103 @@ class ApbctCore{
 
     /**
      * Default constructor
+     * @param {string} selector
      */
-    constructor(selector){
+    constructor(selector) {
         this.select(selector);
     }
 
     /**
      * Get elements by CSS selector
      *
-     * @param selector
-     * @returns {*}
+     * @param {string} selector
+     * @return {*}
      */
     select(selector) {
-
-        if(selector instanceof HTMLCollection){
-            this.selector    = null;
-            this.elements    = [];
+        if (selector instanceof HTMLCollection) {
+            this.selector = null;
+            this.elements = [];
             this.elements = Array.prototype.slice.call(selector);
-        }else if( typeof selector === 'object' ){
-            this.selector    = null;
-            this.elements    = [];
+        } else if ( typeof selector === 'object' ) {
+            this.selector = null;
+            this.elements = [];
             this.elements[0] = selector;
-        }else if( typeof selector === 'string' ){
+        } else if ( typeof selector === 'string' ) {
             this.selector = selector;
             this.elements = Array.prototype.slice.call(document.querySelectorAll(selector));
             // this.elements = document.querySelectorAll(selector)[0];
-        }else{
+        } else {
             this.deselect();
         }
 
         return this;
     }
 
-    addElement(elemToAdd){
-        if( typeof elemToAdd === 'object' ){
+    /**
+     * @param {object|string} elemToAdd
+     */
+    addElement(elemToAdd) {
+        if ( typeof elemToAdd === 'object' ) {
             this.elements.push(elemToAdd);
-        }else if( typeof elemToAdd === 'string' ){
+        } else if ( typeof elemToAdd === 'string' ) {
             this.selector = elemToAdd;
             this.elements = Array.prototype.slice.call(document.querySelectorAll(elemToAdd));
-        }else{
+        } else {
             this.deselect();
         }
     }
 
-    push(elem){
+    /**
+     * @param {object} elem
+     */
+    push(elem) {
         this.elements.push(elem);
     }
 
-    reduce(){
-        this.elements = this.elements.slice(0,-1);
+    /**
+     * reduce
+     */
+    reduce() {
+        this.elements = this.elements.slice(0, -1);
     }
 
-    deselect(){
+    /**
+     * deselect
+     */
+    deselect() {
         this.elements = [];
     }
 
     /**
      * Set or get CSS for/of currently selected element
      *
-     * @param style
-     * @param getRaw
+     * @param {object|string} style
+     * @param {boolean} getRaw
      *
-     * @returns {boolean|*}
+     * @return {boolean|*}
      */
-    css(style, getRaw){
-
-        getRaw = getRaw | false;
+    css(style, getRaw) {
+        getRaw = getRaw || false;
 
         // Set style
-        if(typeof style === "object"){
-
-            const stringToCamelCase = str =>
-                str.replace(/([-_][a-z])/g, group =>
+        if (typeof style === 'object') {
+            const stringToCamelCase = (str) =>
+                str.replace(/([-_][a-z])/g, (group) =>
                     group
                         .toUpperCase()
                         .replace('-', '')
-                        .replace('_', '')
+                        .replace('_', ''),
                 );
 
             // Apply multiple styles
-            for(let style_name in style){
-                let DOM_style_name = stringToCamelCase(style_name);
+            for (const styleName in style) {
+                if (Object.hasOwn(style, styleName)) {
+                    const DomStyleName = stringToCamelCase(styleName);
 
-                // Apply to multiple elements (currently selected)
-                for(let i=0; i<this.elements.length; i++){
-                    this.elements[i].style[DOM_style_name] = style[style_name];
+                    // Apply to multiple elements (currently selected)
+                    for (let i=0; i<this.elements.length; i++) {
+                        this.elements[i].style[DomStyleName] = style[styleName];
+                    }
                 }
             }
 
@@ -105,14 +119,15 @@ class ApbctCore{
         }
 
         // Get style of first currently selected element
-        if(typeof style === 'string'){
-
+        if (typeof style === 'string') {
             let computedStyle = getComputedStyle(this.elements[0])[style];
 
             // Process
-            if( typeof computedStyle !== 'undefined' && ! getRaw){
-                computedStyle = computedStyle.replace(/(\d)(em|pt|%|px){1,2}$/, '$1');                           // Cut of units
-                computedStyle = Number(computedStyle) == computedStyle ? Number(computedStyle) : computedStyle; // Cast to INT
+            if ( typeof computedStyle !== 'undefined' && ! getRaw) {
+                // Cut of units
+                computedStyle = computedStyle.replace(/(\d)(em|pt|%|px){1,2}$/, '$1');
+                // Cast to INT
+                computedStyle = Number(computedStyle) == computedStyle ? Number(computedStyle) : computedStyle;
                 return computedStyle;
             }
 
@@ -121,29 +136,44 @@ class ApbctCore{
         }
     }
 
-    hide(){
+    /**
+     * hide
+     */
+    hide() {
         this.prop('prev-display', this.css('display'));
         this.css({'display': 'none'});
     }
 
-    show(){
+    /**
+     * show
+     */
+    show() {
         this.css({'display': this.prop('prev-display')});
     }
 
-    addClass(){
-        for(let i=0; i<this.elements.length; i++){
+    /**
+     * addClass
+     */
+    addClass() {
+        for (let i=0; i<this.elements.length; i++) {
             this.elements[i].classList.add(className);
         }
     }
 
-    removeClass(){
-        for(let i=0; i<this.elements.length; i++){
+    /**
+     * removeClass
+     */
+    removeClass() {
+        for (let i=0; i<this.elements.length; i++) {
             this.elements[i].classList.remove(className);
         }
     }
 
-    toggleClass(className){
-        for(let i=0; i<this.elements.length; i++){
+    /**
+     * @param {string} className
+     */
+    toggleClass(className) {
+        for (let i=0; i<this.elements.length; i++) {
             this.elements[i].classList.toggle(className);
         }
     }
@@ -151,26 +181,28 @@ class ApbctCore{
     /**
      * Wrapper for apbctAJAX class
      *
-     * @param ajax_parameters
-     * @returns {ApbctAjax}
+     * @param {object|array} ajaxParameters
+     * @return {ApbctAjax}
      */
-    ajax(ajax_parameters){
-        this.ajax_parameters = ajax_parameters;
+    ajax(ajaxParameters) {
+        this.ajax_parameters = ajaxParameters;
         return new ApbctAjax(ajax_parameters);
     }
 
     /**
      * Wrapper for apbctREST class
      *
-     * @param rest_parameters
-     * @returns {ApbctRest}
+     * @param {object|array} restParameters
+     * @return {ApbctRest}
      */
-    rest(rest_parameters){
-        this.rest_parameters = rest_parameters;
+    rest(restParameters) {
+        this.rest_parameters = restParameters;
         return new ApbctRest(rest_parameters);
     }
 
-    /************** EVENTS **************/
+    /**
+     * ************ EVENTS *************
+     */
 
     /**
      *
@@ -180,20 +212,19 @@ class ApbctCore{
      *      on('click',                   function(){ alert('some'); });
      *      on('click', 'inner_selector', function(){ alert('some'); });
      *
-     * @param args
+     * @param {object|array} args
      */
-    on(...args){
-
-        this.event         = args[0];
+    on(...args) {
+        this.event = args[0];
         this.eventCallback = args[2] || args[1];
-        this.eventSelector = typeof args[1] === "string" ? args[1] : null;
+        this.eventSelector = typeof args[1] === 'string' ? args[1] : null;
 
-        for(let i=0; i<this.elements.length; i++){
+        for (let i=0; i<this.elements.length; i++) {
             this.elements[i].addEventListener(
                 this.event,
-                this.eventSelector !== null
-                    ? this.onChecker.bind(this)
-                    : this.eventCallback
+                this.eventSelector !== null ?
+                    this.onChecker.bind(this) :
+                    this.eventCallback,
             );
         }
     }
@@ -201,42 +232,48 @@ class ApbctCore{
     /**
      * Check if a selector of an event matches current target
      *
-     * @param event
-     * @returns {*}
+     * @param {object} event
+     * @return {*}
      */
-    onChecker(event){
-        if(event.target === document.querySelector(this.eventSelector)){
+    onChecker(event) {
+        if (event.target === document.querySelector(this.eventSelector)) {
             event.stopPropagation();
             return this.eventCallback(event);
         }
     }
 
-    ready(callback){
+    /**
+     * @param {object|function|string} callback
+     */
+    ready(callback) {
         document.addEventListener('DOMContentLoaded', callback);
     }
 
-    change(callback){
+    /**
+     * @param {object|function|string} callback
+     */
+    change(callback) {
         this.on('change', callback);
     }
 
-    /************** ATTRIBUTES **************/
+    /**
+     * ATTRIBUTES
+     */
 
     /**
      * Get an attribute or property of an element
      *
-     * @param attrName
-     * @returns {*|*[]}
+     * @param {string} attrName
+     * @return {*|*[]}
      */
-    attr(attrName){
+    attr(attrName) {
+        const outputValue = [];
 
-        let outputValue = [];
-
-        for(let i=0; i<this.elements.length; i++){
-
+        for (let i=0; i<this.elements.length; i++) {
             // Use property instead of attribute if possible
-            if(typeof this.elements[i][attrName] !== undefined){
+            if (typeof this.elements[i][attrName] !== undefined) {
                 outputValue.push(this.elements[i][attrName]);
-            }else{
+            } else {
                 outputValue.push(this.elements[i].getAttribute(attrName));
             }
         }
@@ -245,22 +282,25 @@ class ApbctCore{
         return outputValue.length === 1 ? outputValue[0] : outputValue;
     }
 
-    prop(propName, value){
-
+    /**
+     * @param {string} propName
+     * @param {mixed} value
+     * @return {*|*[]|ApbctCore}
+     */
+    prop(propName, value) {
         // Setting values
-        if(typeof value !== "undefined"){
-            for(let i=0; i<this.elements.length; i++){
+        if (typeof value !== 'undefined') {
+            for (let i=0; i<this.elements.length; i++) {
                 this.elements[i][propName] = value;
             }
 
             return this;
 
             // Getting values
-        }else{
+        } else {
+            const outputValue = [];
 
-            let outputValue = [];
-
-            for(let i=0; i<this.elements.length; i++){
+            for (let i=0; i<this.elements.length; i++) {
                 outputValue.push(this.elements[i][propName]);
             }
 
@@ -272,107 +312,125 @@ class ApbctCore{
     /**
      * Set or get inner HTML
      *
-     * @param value
-     * @returns {*|*[]}
+     * @param {string} value
+     * @return {*|*[]}
      */
-    html(value){
-        return typeof value !== 'undefined'
-            ? this.prop('innerHTML', value)
-            : this.prop('innerHTML');
+    html(value) {
+        return typeof value !== 'undefined' ?
+            this.prop('innerHTML', value) :
+            this.prop('innerHTML');
     }
 
     /**
      * Set or get value of input tags
      *
-     * @param value
-     * @returns {*|*[]|undefined}
+     * @param {mixed} value
+     * @return {*|*[]|undefined}
      */
-    val(value){
-        return typeof value !== 'undefined'
-            ? this.prop('value', value)
-            : this.prop('value');
+    val(value) {
+        return typeof value !== 'undefined' ?
+            this.prop('value', value) :
+            this.prop('value');
     }
 
-    data(name, value){
-        return typeof value !== 'undefined'
-            ? this.prop('apbct-data', name, value)
-            : this.prop('apbct-data');
+    /**
+     * @param {string} name
+     * @param {mixed} value
+     * @return {*|*[]|ApbctCore}
+     */
+    data(name, value) {
+        return typeof value !== 'undefined' ?
+            this.prop('apbct-data', name, value) :
+            this.prop('apbct-data');
     }
 
-    /************** END OF ATTRIBUTES **************/
+    /**
+     * END OF ATTRIBUTES
+     */
 
-    /************** FILTERS **************/
+    /**
+     * FILTERS
+     */
 
     /**
      * Check if the current elements are corresponding to filter
      *
-     * @param filter
-     * @returns {boolean}
+     * @param {mixed} filter
+     * @return {boolean}
      */
-    is(filter){
-
+    is(filter) {
         let outputValue = false;
 
-        for(let elem of this.elements){
+        for (const elem of this.elements) {
             outputValue ||= this.isElem(elem, filter);
         }
 
         return outputValue;
     }
 
-    isElem(elemToCheck, filter){
-
+    /**
+     * @param {string|object} elemToCheck
+     * @param {mixed} filter
+     * @return {boolean}
+     */
+    isElem(elemToCheck, filter) {
         let is = false;
-        let isRegisteredTagName = function(name){
-            let newlyCreatedElement = document.createElement(name).constructor;
+        const isRegisteredTagName = function(name) {
+            const newlyCreatedElement = document.createElement(name).constructor;
             return ! Boolean( ~[HTMLElement, HTMLUnknownElement].indexOf(newlyCreatedElement) );
         };
 
         // Check for filter function
-        if(typeof filter === 'function') {
+        if (typeof filter === 'function') {
             is ||= filter.call(this, elemToCheck);
         }
 
         // Check for filter function
-        if(typeof filter === 'string') {
-
+        if (typeof filter === 'string') {
             // Filter is tag name
-            if( filter.match(/^[a-z]/) && isRegisteredTagName(filter) ){
+            if ( filter.match(/^[a-z]/) && isRegisteredTagName(filter) ) {
                 is ||= elemToCheck.tagName.toLowerCase() === filter.toLowerCase();
 
                 // Filter is property
-            }else if( filter.match(/^[a-z]/) ){
+            } else if ( filter.match(/^[a-z]/) ) {
                 is ||= Boolean(elemToCheck[filter]);
 
                 // Filter is CSS selector
-            }else {
-                is ||= this.selector !== null
-                    ? document.querySelector(this.selector + filter) !== null // If possible
-                    : this.isWithoutSelector(elemToCheck, filter);                    // Search through all elems with such selector
+            } else {
+                is ||= this.selector !== null ?
+                    document.querySelector(this.selector + filter) !== null : // If possible
+                    this.isWithoutSelector(elemToCheck, filter); // Search through all elems with such selector
             }
         }
 
         return is;
     }
 
-    isWithoutSelector(elemToCheck, filter){
-
-        let elems       = document.querySelectorAll(filter);
+    /**
+     * @param {object|string} elemToCheck
+     * @param {mixed} filter
+     * @return {boolean}
+     */
+    isWithoutSelector(elemToCheck, filter) {
+        const elems = document.querySelectorAll(filter);
         let outputValue = false;
 
-        for(let elem of elems){
+        for (const elem of elems) {
             outputValue ||= elemToCheck === elem;
         }
 
         return outputValue;
     }
 
-    filter(filter){
-
+    /**
+     * @param {mixed} filter
+     * @return {ApbctCore}
+     */
+    filter(filter) {
         this.selector = null;
 
-        for( let i = this.elements.length - 1; i >= 0; i-- ){
-            if( ! this.isElem(this.elements[i], filter) ){
+        for ( let i = this.elements.length - 1; i >= 0; i-- ) {
+            if ( ! this.isElem(this.elements[i], filter) ) {
                 this.elements.splice(Number(i), 1);
             }
         }
@@ -380,50 +438,64 @@ class ApbctCore{
         return this;
     }
 
-    /************** NODES **************/
+    /**
+     * NODES
+     */
 
-    parent(filter){
-
+    /**
+     * @param {mixed} filter
+     * @return {ApbctCore}
+     */
+    parent(filter) {
         this.select(this.elements[0].parentElement);
 
-        if( typeof filter !== 'undefined' && ! this.is(filter) ){
+        if ( typeof filter !== 'undefined' && ! this.is(filter) ) {
             this.deselect();
         }
 
         return this;
     }
 
-    parents(filter){
-
+    /**
+     * @param {mixed} filter
+     * @return {ApbctCore}
+     */
+    parents(filter) {
         this.select(this.elements[0]);
 
-        for ( ; this.elements[ this.elements.length - 1].parentElement !== null ; ) {
-            this.push(this.elements[ this.elements.length - 1].parentElement);
+        for ( ; this.elements[this.elements.length - 1].parentElement !== null; ) {
+            this.push(this.elements[this.elements.length - 1].parentElement);
         }
 
-        this.elements.splice(0,1); // Deleting initial element from the set
+        this.elements.splice(0, 1); // Deleting initial element from the set
 
-        if( typeof filter !== 'undefined' ){
+        if ( typeof filter !== 'undefined' ) {
             this.filter(filter);
         }
 
         return this;
     }
 
-    children(filter){
-
+    /**
+     * @param {mixed} filter
+     * @return {ApbctCore}
+     */
+    children(filter) {
         this.select(this.elements[0].children);
 
-        if( typeof filter !== 'undefined' ){
+        if ( typeof filter !== 'undefined' ) {
             this.filter(filter);
         }
 
         return this;
     }
 
-    siblings(filter){
-
-        let current = this.elements[0]; // Remember current to delete it later
+    /**
+     * @param {mixed} filter
+     * @return {ApbctCore}
+     */
+    siblings(filter) {
+        const current = this.elements[0]; // Remember current to delete it later
 
         this.parent();
         this.children(filter);
@@ -432,33 +504,42 @@ class ApbctCore{
         return this;
     }
 
-    /************** DOM MANIPULATIONS **************/
-    remove(){
-        for(let elem of this.elements){
+    /** ************ DOM MANIPULATIONS **************/
+    remove() {
+        for (const elem of this.elements) {
             elem.remove();
         }
     }
 
-    after(content){
-        for(let elem of this.elements){
+    /**
+     * @param {string} content
+     */
+    after(content) {
+        for (const elem of this.elements) {
             elem.after(content);
         }
     }
 
-    append(content){
-        for(let elem of this.elements){
+    /**
+     * @param {string} content
+     */
+    append(content) {
+        for (const elem of this.elements) {
             elem.append(content);
         }
     }
 
-    /**************  ANIMATION  **************/
+    /** ************  ANIMATION  **************/
+    /**
+     * @param {number} time
+     */
     fadeIn(time) {
-        for(let elem of this.elements){
+        for (const elem of this.elements) {
             elem.style.opacity = 0;
             elem.style.display = 'block';
 
             let last = +new Date();
-            const tick = function () {
+            const tick = function() {
                 elem.style.opacity = +elem.style.opacity + (new Date() - last) / time;
                 last = +new Date();
 
@@ -471,12 +552,15 @@ class ApbctCore{
         }
     }
 
+    /**
+     * @param {number} time
+     */
     fadeOut(time) {
-        for(let elem of this.elements){
+        for (const elem of this.elements) {
             elem.style.opacity = 1;
 
             let last = +new Date();
-            const tick = function () {
+            const tick = function() {
                 elem.style.opacity = +elem.style.opacity - (new Date() - last) / time;
                 last = +new Date();
 
@@ -527,8 +611,12 @@ class ApbctCore{
 //         }
 //     );
 
+/**
+ * @param {mixed} msg
+ * @param {string} url
+ */
 function ctProcessError(msg, url) {
-    var log = {};
+    const log = {};
     if (msg && msg.message) {
         log.err = {
             'msg': msg.message,
@@ -537,11 +625,11 @@ function ctProcessError(msg, url) {
             'col': !!msg.columnNumber ? msg.columnNumber : !!columnNo ? columnNo : false,
             'stacktrace': !!msg.stack ? msg.stack : false,
             'cause': !!url ? JSON.stringify(url) : false,
-            'errorObj': !!error ? error : false
+            'errorObj': !!error ? error : false,
         };
     } else {
         log.err = {
-            'msg': msg
+            'msg': msg,
         };
 
         if (!!url) {
@@ -552,30 +640,30 @@ function ctProcessError(msg, url) {
     log.url = window.location.href;
     log.userAgent = window.navigator.userAgent;
 
-    let ct_js_errors = "ct_js_errors";
-    let errArray = localStorage.getItem(ct_js_errors);
-    if(errArray === null) errArray = "[]";
+    const ctJsErrors = 'ct_js_errors';
+    let errArray = localStorage.getItem(ctJsErrors);
+    if (errArray === null) errArray = '[]';
     errArray = JSON.parse(errArray);
     for (let i = 0; i < errArray.length; i++) {
-      if (errArray[i].err.msg == log.err.msg) {
-        return;
-      }
+        if (errArray[i].err.msg === log.err.msg) {
+            return;
+        }
     }
 
-    errArray.push(log)
+    errArray.push(log);
     localStorage.setItem(ct_js_errors, JSON.stringify(errArray));
-};
+}
 
 if (Math.floor(Math.random() * 100) === 1) {
-    window.onerror = function (exception, url) {
-        let filterWords = ['apbct', 'ctPublic'];
+    window.onerror = function(exception, url) {
+        const filterWords = ['apbct', 'ctPublic'];
         let length = filterWords.length;
-        while(length--) {
-          if (exception.indexOf(filterWords[length]) != -1) {
-              ctProcessError(exception, url);
-          }
+        while (length--) {
+            if (exception.indexOf(filterWords[length]) !== -1) {
+                ctProcessError(exception, url);
+            }
         }
-      
+
         return false;
     };
 }
@@ -583,54 +671,57 @@ if (Math.floor(Math.random() * 100) === 1) {
 /**
  * Enter point to ApbctCore class
  *
- * @param params
- * @returns {*}
+ * @param {array|object} params
+ * @return {*}
  */
-function apbct(params){
+// eslint-disable-next-line no-unused-vars, require-jsdoc
+function apbct(params) {
     return new ApbctCore()
         .select(params);
 }
-class ApbctXhr{
 
+/**
+ * ApbctXhr
+ */
+class ApbctXhr {
     xhr = new XMLHttpRequest();
 
     // Base parameters
-    method   = 'POST'; // HTTP-request type
-    url      = ''; // URL to send the request
-    async    = true;
-    user     = null; // HTTP-authorization username
+    method = 'POST'; // HTTP-request type
+    url = ''; // URL to send the request
+    async = true;
+    user = null; // HTTP-authorization username
     password = null; // HTTP-authorization password
-    data     = {};   // Data to send
-
+    data = {}; // Data to send
 
     // Optional params
-    button      = null; // Button that should be disabled when request is performing
-    spinner     = null; // Spinner that should appear when request is in process
+    button = null; // Button that should be disabled when request is performing
+    spinner = null; // Spinner that should appear when request is in process
     progressbar = null; // Progress bar for the current request
-    context     = this; // Context
-    callback    = null;
+    context = this; // Context
+    callback = null;
     onErrorCallback = null;
 
     responseType = 'json'; // Expected data type from server
-    headers      = {};
-    timeout      = 15000; // Request timeout in milliseconds
+    headers = {};
+    timeout = 15000; // Request timeout in milliseconds
 
     methods_to_convert_data_to_URL = [
         'GET',
         'HEAD',
     ];
 
-    body        = null;
-    http_code   = 0;
+    body = null;
+    http_code = 0;
     status_text = '';
 
-    constructor(parameters){
-
+    // eslint-disable-next-line require-jsdoc
+    constructor(parameters) {
         console.log('%cXHR%c started', 'color: red; font-weight: bold;', 'color: grey; font-weight: normal;');
 
         // Set class properties
-        for( let key in parameters ){
-            if( typeof this[key] !== 'undefined' ){
+        for ( const key in parameters ) {
+            if ( typeof this[key] !== 'undefined' ) {
                 this[key] = parameters[key];
             }
         }
@@ -644,8 +735,9 @@ class ApbctXhr{
             this.convertData();
         }
 
-        if( ! this.url ){
-            console.log('%cXHR%c not URL provided', 'color: red; font-weight: bold;', 'color: grey; font-weight: normal;')
+        if ( ! this.url ) {
+            console.log('%cXHR%c not URL provided',
+                'color: red; font-weight: bold;', 'color: grey; font-weight: normal;');
             return false;
         }
 
@@ -654,30 +746,30 @@ class ApbctXhr{
         this.setHeaders();
 
         this.xhr.responseType = this.responseType;
-        this.xhr.timeout      = this.timeout;
+        this.xhr.timeout = this.timeout;
 
         /* EVENTS */
         // Monitoring status
-        this.xhr.onreadystatechange = function(){
+        this.xhr.onreadystatechange = function() {
             this.onReadyStateChange();
         }.bind(this);
 
         // Run callback
-        this.xhr.onload = function(){
+        this.xhr.onload = function() {
             this.onLoad();
         }.bind(this);
 
         // On progress
-        this.xhr.onprogress = function(event){
+        this.xhr.onprogress = function(event) {
             this.onProgress(event);
         }.bind(this);
 
         // On error
-        this.xhr.onerror = function(){
+        this.xhr.onerror = function() {
             this.onError();
         }.bind(this);
 
-        this.xhr.ontimeout = function(){
+        this.xhr.ontimeout = function() {
             this.onTimeout();
         }.bind(this);
 
@@ -685,89 +777,106 @@ class ApbctXhr{
         this.xhr.send(this.body);
     }
 
-    prepare(){
-
+    /**
+     * prepare
+     */
+    prepare() {
         // Disable button
-        if(this.button){
+        if (this.button) {
             this.button.setAttribute('disabled', 'disabled');
             this.button.style.cursor = 'not-allowed';
         }
 
         // Enable spinner
-        if(this.spinner) {
+        if (this.spinner) {
             this.spinner.style.display = 'inline';
         }
     }
 
-    complete(){
-
-        this.http_code   = this.xhr.status;
+    /**
+     * complete
+     */
+    complete() {
+        this.http_code = this.xhr.status;
         this.status_text = this.xhr.statusText;
 
         // Disable button
-        if(this.button){
+        if (this.button) {
             this.button.removeAttribute('disabled');
             this.button.style.cursor = 'auto';
         }
 
         // Enable spinner
-        if(this.spinner) {
+        if (this.spinner) {
             this.spinner.style.display = 'none';
         }
 
-        if( this.progressbar ) {
+        if ( this.progressbar ) {
             this.progressbar.fadeOut('slow');
         }
     }
 
-    onReadyStateChange(){
-        if (this.on_ready_state_change !== null && typeof this.on_ready_state_change === 'function'){
+    /**
+     * onReadyStateChange
+     */
+    onReadyStateChange() {
+        if (this.on_ready_state_change !== null && typeof this.on_ready_state_change === 'function') {
             this.on_ready_state_change();
         }
     }
 
+    /**
+     * @param {object} event
+     */
     onProgress(event) {
-        if (this.on_progress !== null && typeof this.on_progress === 'function'){
+        if (this.on_progress !== null && typeof this.on_progress === 'function') {
             this.on_progress();
         }
     }
 
-    onError(){
-
+    /**
+     * onError
+     */
+    onError() {
         console.log('error');
 
         this.complete();
         this.error(
             this.http_code,
-            this.status_text
+            this.status_text,
         );
 
-        if (this.onErrorCallback !== null && typeof this.onErrorCallback === 'function'){
+        if (this.onErrorCallback !== null && typeof this.onErrorCallback === 'function') {
             this.onErrorCallback(this.status_text);
         }
     }
 
-    onTimeout(){
+    /**
+     * onTimeout
+     */
+    onTimeout() {
         this.complete();
         this.error(
             0,
-            'timeout'
+            'timeout',
         );
 
-        if (this.onErrorCallback !== null && typeof this.onErrorCallback === 'function'){
+        if (this.onErrorCallback !== null && typeof this.onErrorCallback === 'function') {
             this.onErrorCallback('Timeout');
         }
     }
 
-    onLoad(){
-
+    /**
+     * @return {boolean}
+     */
+    onLoad() {
         this.complete();
 
-        if (this.responseType === 'json' ){
-            if(this.xhr.response === null){
+        if (this.responseType === 'json' ) {
+            if (this.xhr.response === null) {
                 this.error(this.http_code, this.status_text, 'No response');
                 return false;
-            }else if( typeof this.xhr.response.error !== 'undefined') {
+            } else if ( typeof this.xhr.response.error !== 'undefined') {
                 this.error(this.http_code, this.status_text, this.xhr.response.error);
                 return false;
             }
@@ -778,81 +887,93 @@ class ApbctXhr{
         }
     }
 
-    error(http_code, status_text, additional_msg){
+    /**
+     * @param {number} httpCode
+     * @param {string} statusText
+     * @param {string} additionalMsg
+     */
+    error(httpCode, statusText, additionalMsg) {
+        let errorString = '';
 
-        let error_string = '';
-
-        if( status_text === 'timeout' ){
-            error_string += 'Server response timeout'
-
-        }else if( http_code === 200 ){
-
-            if( status_text === 'parsererror' ){
-                error_string += 'Unexpected response from server. See console for details.';
-            }else {
-                error_string += 'Unexpected error. Status: ' + status_text + '.';
-                if( typeof additional_msg !== 'undefined' )
-                    error_string += ' Additional error info: ' + additional_msg;
+        if ( statusText === 'timeout' ) {
+            errorString += 'Server response timeout';
+        } else if ( httpCode === 200 ) {
+            if ( statusText === 'parsererror' ) {
+                errorString += 'Unexpected response from server. See console for details.';
+            } else {
+                errorString += 'Unexpected error. Status: ' + statusText + '.';
+                if ( typeof additionalMsg !== 'undefined' ) {
+                    errorString += ' Additional error info: ' + additionalMsg;
+                }
             }
-
-        }else if(http_code === 500){
-            error_string += 'Internal server error.';
-
-        }else {
-            error_string += 'Unexpected response code:' + http_code;
+        } else if (httpCode === 500) {
+            errorString += 'Internal server error.';
+        } else {
+            errorString += 'Unexpected response code:' + httpCode;
         }
 
-        this.errorOutput( error_string );
+        this.errorOutput( errorString );
     }
 
-    errorOutput(error_msg){
-        console.log( '%c ctXHR error: %c' + error_msg, 'color: red;', 'color: grey;' );
+    /**
+     * @param {string} errorMsg
+     */
+    errorOutput(errorMsg) {
+        console.log( '%c ctXHR error: %c' + errorMsg, 'color: red;', 'color: grey;' );
     }
 
-    setHeaders(){
+    /**
+     * setHeaders
+     */
+    setHeaders() {
         // Set headers if passed
-        for( let header_name in this.headers ){
-            if( typeof this.headers[header_name] !== 'undefined' ){
-                this.xhr.setRequestHeader(header_name, this.headers[header_name]);
+        for ( const headerName in this.headers ) {
+            if ( typeof this.headers[headerName] !== 'undefined' ) {
+                this.xhr.setRequestHeader(header_name, this.headers[headerName]);
             }
         }
     }
 
-    convertData()
-    {
+    /**
+     * @return {string|*}
+     */
+    convertData() {
         // GET, HEAD request-type
-        if( ~this.methods_to_convert_data_to_URL.indexOf( this.method ) ){
+        if ( ~this.methods_to_convert_data_to_URL.indexOf( this.method ) ) {
             return this.convertDataToURL();
 
             // POST request-type
-        }else{
-            return this.convertDataToBody()
+        } else {
+            return this.convertDataToBody();
         }
     }
 
-    convertDataToURL(){
-        let params_appendix = new URLSearchParams(this.data).toString();
-        let params_prefix   = this.url.match(/^(https?:\/{2})?[a-z0-9.]+\?/) ? '&' : '?';
-        this.url += params_prefix + params_appendix;
+    /**
+     * @return {string}
+     */
+    convertDataToURL() {
+        const paramsAppendix = new URLSearchParams(this.data).toString();
+        const paramsPrefix = this.url.match(/^(https?:\/{2})?[a-z0-9.]+\?/) ? '&' : '?';
+        this.url += paramsPrefix + paramsAppendix;
 
         return this.url;
     }
 
     /**
-     *
-     * @returns {null}
+     * @return {null}
      */
-    convertDataToBody()
-    {
+    convertDataToBody() {
         this.body = new FormData();
 
-        for (let dataKey in this.data) {
-            this.body.append(
-                dataKey,
-                typeof this.data[dataKey] === 'object'
-                    ? JSON.stringify(this.data[dataKey])
-                    : this.data[dataKey]
-            );
+        for (const dataKey in this.data) {
+            if (Object.hasOwn(data, dataKey)) {
+                this.body.append(
+                    dataKey,
+                    typeof this.data[dataKey] === 'object' ?
+                        JSON.stringify(this.data[dataKey]) :
+                        this.data[dataKey],
+                );
+            }
         }
 
         return this.body;
@@ -863,28 +984,27 @@ class ApbctXhr{
      *
      * Recursively decode JSON-encoded properties
      *
-     * @param object
-     * @returns {*}
+     * @param {object} object
+     * @return {*}
      */
-    deleteDoubleJSONEncoding(object){
+    deleteDoubleJSONEncoding(object) {
+        if ( typeof object === 'object') {
+            for (const objectKey in object) {
+                if (Object.hasOwn(object, objectKey)) {
+                    // Recursion
+                    if ( typeof object[objectKey] === 'object') {
+                        object[objectKey] = this.deleteDoubleJSONEncoding(object[objectKey]);
+                    }
 
-        if( typeof object === 'object'){
-
-            for (let objectKey in object) {
-
-                // Recursion
-                if( typeof object[objectKey] === 'object'){
-                    object[objectKey] = this.deleteDoubleJSONEncoding(object[objectKey]);
-                }
-
-                // Common case (out)
-                if(
-                    typeof object[objectKey] === 'string' &&
-                    object[objectKey].match(/^[\[{].*?[\]}]$/) !== null // is like JSON
-                ){
-                    let parsedValue = JSON.parse(object[objectKey]);
-                    if( typeof parsedValue === 'object' ){
-                        object[objectKey] = parsedValue;
+                    // Common case (out)
+                    if (
+                        typeof object[objectKey] === 'string' &&
+                        object[objectKey].match(/^[\[{].*?[\]}]$/) !== null // is like JSON
+                    ) {
+                        const parsedValue = JSON.parse(object[objectKey]);
+                        if ( typeof parsedValue === 'object' ) {
+                            object[objectKey] = parsedValue;
+                        }
                     }
                 }
             }
@@ -893,129 +1013,145 @@ class ApbctXhr{
         return object;
     }
 }
-class ApbctAjax extends ApbctXhr{
-
+// eslint-disable-next-line require-jsdoc
+class ApbctAjax extends ApbctXhr {
+    // eslint-disable-next-line require-jsdoc
     constructor(...args) {
         super(args[0]);
     }
 }
-class ApbctRest extends ApbctXhr{
-
+// eslint-disable-next-line require-jsdoc
+class ApbctRest extends ApbctXhr {
     static default_route = ctPublicFunctions._rest_url + 'cleantalk-antispam/v1/';
-    route         = '';
+    route = '';
 
+    // eslint-disable-next-line require-jsdoc
     constructor(...args) {
         args = args[0];
         args.url = ApbctRest.default_route + args.route;
         args.headers = {
-            "X-WP-Nonce": ctPublicFunctions._rest_nonce
+            'X-WP-Nonce': ctPublicFunctions._rest_nonce,
         };
         super(args);
     }
 }
 
-function ctSetCookie( cookies, value, expires ){
-
-    let list_of_cookie_names_to_force_alt = [
+/**
+ * @param {object|array|string} cookies
+ * @param {object|array|string} value
+ * @param {string|number} expires
+ */
+// eslint-disable-next-line no-unused-vars,require-jsdoc
+function ctSetCookie( cookies, value, expires ) {
+    const listOfCookieNamesToForceAlt = [
         'ct_sfw_pass_key',
         'ct_sfw_passed',
         'wordpress_apbct_antibot',
         'apbct_anticrawler_passed',
         'apbct_antiflood_passed',
-        'apbct_email_encoder_passed'
-    ]
+        'apbct_email_encoder_passed',
+    ];
 
-    if( typeof cookies === 'string' && typeof value === 'string' || typeof value === 'number'){
-        var skip_alt = cookies === 'ct_pointer_data';
-        cookies = [ [ cookies, value, expires ] ];
+    if ( typeof cookies === 'string' && typeof value === 'string' || typeof value === 'number') {
+        // eslint-disable-next-line no-unused-vars
+        const skipAlt = cookies === 'ct_pointer_data';
+        cookies = [[cookies, value, expires]];
     }
 
     // Cookies disabled
-    if( ctPublicFunctions.data__cookies_type === 'none' ){
-        let forced_alt_cookies_set = []
-        cookies.forEach( function (item, i, arr	) {
-            if (list_of_cookie_names_to_force_alt.indexOf(item[0]) !== -1) {
-                forced_alt_cookies_set.push(item)
+    if ( ctPublicFunctions.data__cookies_type === 'none' ) {
+        const forcedAltCookiesSet = [];
+        cookies.forEach( function(item) {
+            if (listOfCookieNamesToForceAlt.indexOf(item[0]) !== -1) {
+                forcedAltCookiesSet.push(item);
             } else {
-                apbctLocalStorage.set(item[0], encodeURIComponent(item[1]))
+                apbctLocalStorage.set(item[0], encodeURIComponent(item[1]));
             }
         });
         // if cookies from list found use alt cookies for this selection set
-        if ( forced_alt_cookies_set.length > 0 ){
-            ctSetAlternativeCookie(forced_alt_cookies_set)
+        if ( forcedAltCookiesSet.length > 0 ) {
+            ctSetAlternativeCookie(forcedAltCookiesSet);
         }
 
         // If problem integration forms detected use alt cookies for whole cookies set
-        if( ctPublic.force_alt_cookies ) {
-            //do it just once
+        if ( ctPublic.force_alt_cookies ) {
+            // do it just once
 
-            if ( !skip_alt ){
-                ctSetAlternativeCookie(cookies, {forceAltCookies:true})
+            if ( !skipAlt ) {
+                ctSetAlternativeCookie(cookies, {forceAltCookies: true});
             }
         } else {
-            ctNoCookieAttachHiddenFieldsToForms()
+            ctNoCookieAttachHiddenFieldsToForms();
         }
 
         // Using traditional cookies
-    }else if( ctPublicFunctions.data__cookies_type === 'native' ){
-        cookies.forEach( function (item, i, arr	) {
-            var expires = typeof item[2] !== 'undefined' ? "expires=" + expires + '; ' : '';
-            var ctSecure = location.protocol === 'https:' ? '; secure' : '';
-            document.cookie = ctPublicFunctions.cookiePrefix + item[0] + "=" + encodeURIComponent(item[1]) + "; " + expires + "path=/; samesite=lax" + ctSecure;
+    } else if ( ctPublicFunctions.data__cookies_type === 'native' ) {
+        cookies.forEach( function(item) {
+            const expires = typeof item[2] !== 'undefined' ? 'expires=' + expires + '; ' : '';
+            const ctSecure = location.protocol === 'https:' ? '; secure' : '';
+            document.cookie = ctPublicFunctions.cookiePrefix +
+                item[0] +
+                '=' +
+                encodeURIComponent(item[1]) +
+                '; ' +
+                expires +
+                'path=/; samesite=lax' +
+                ctSecure;
         });
 
         // Using alternative cookies
-    }else if( ctPublicFunctions.data__cookies_type === 'alternative' && ! skip_alt ) {
-        ctSetAlternativeCookie(cookies)
+    } else if ( ctPublicFunctions.data__cookies_type === 'alternative' && ! skipAlt ) {
+        ctSetAlternativeCookie(cookies);
     }
 }
 
-function ctDetectForcedAltCookiesForms(){
-    let ninja_forms_sign = document.querySelectorAll('#tmpl-nf-layout').length > 0
-    let smart_forms_sign = document.querySelectorAll('script[id*="smart-forms"]').length > 0
+// eslint-disable-next-line no-unused-vars,require-jsdoc
+function ctDetectForcedAltCookiesForms() {
+    const ninjaFormsSign = document.querySelectorAll('#tmpl-nf-layout').length > 0;
+    const smartFormsSign = document.querySelectorAll('script[id*="smart-forms"]').length > 0;
 
-    ctPublic.force_alt_cookies = smart_forms_sign || ninja_forms_sign
+    ctPublic.force_alt_cookies = smartFormsSign || ninjaFormsSign;
 }
 
+// eslint-disable-next-line require-jsdoc
 function ctSetAlternativeCookie(cookies, params) {
-
-    if (typeof (getJavascriptClientData) === "function" ){
-        //reprocess already gained cookies data
+    if (typeof (getJavascriptClientData) === 'function' ) {
+        // reprocess already gained cookies data
         if (Array.isArray(cookies)) {
             cookies = getJavascriptClientData(cookies);
         }
     } else {
-        console.log('APBCT ERROR: getJavascriptClientData() is not loaded')
+        console.log('APBCT ERROR: getJavascriptClientData() is not loaded');
     }
 
     try {
-        cookies = JSON.parse(cookies)
-    } catch (e){
-        console.log('APBCT ERROR: JSON parse error:' + e)
-        return
+        cookies = JSON.parse(cookies);
+    } catch (e) {
+        console.log('APBCT ERROR: JSON parse error:' + e);
+        return;
     }
 
     const callback = params && params.callback || null;
     const onErrorCallback = params && params.onErrorCallback || null;
 
-    if( params && params.forceAltCookies ) {
+    if ( params && params.forceAltCookies ) {
         cookies.apbct_force_alt_cookies = true;
     }
 
     // Using REST API handler
-    if( ctPublicFunctions.data__ajax_type === 'rest' ){
+    if ( ctPublicFunctions.data__ajax_type === 'rest' ) {
         apbct_public_sendREST(
             'alt_sessions',
             {
                 method: 'POST',
-                data: { cookies: cookies },
+                data: {cookies: cookies},
                 callback: callback,
-                onErrorCallback: onErrorCallback
-            }
+                onErrorCallback: onErrorCallback,
+            },
         );
 
         // Using AJAX request and handler
-    } else if( ctPublicFunctions.data__ajax_type === 'admin_ajax' ) {
+    } else if ( ctPublicFunctions.data__ajax_type === 'admin_ajax' ) {
         apbct_public_sendAJAX(
             {
                 action: 'apbct_alt_session__save__AJAX',
@@ -1024,8 +1160,8 @@ function ctSetAlternativeCookie(cookies, params) {
             {
                 notJson: 1,
                 callback: callback,
-                onErrorCallback: onErrorCallback
-            }
+                onErrorCallback: onErrorCallback,
+            },
         );
     }
 }
@@ -1033,91 +1169,92 @@ function ctSetAlternativeCookie(cookies, params) {
 /**
  * Get cookie by name
  * @param name
- * @returns {string|undefined}
+ * @return {string|undefined}
  */
+// eslint-disable-next-line require-jsdoc,no-unused-vars
 function ctGetCookie(name) {
-    var matches = document.cookie.match(new RegExp(
-        "(?:^|; )" + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + "=([^;]*)"
+    const matches = document.cookie.match(new RegExp(
+        '(?:^|; )' + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + '=([^;]*)',
     ));
     return matches ? decodeURIComponent(matches[1]) : undefined;
 }
 
+// eslint-disable-next-line require-jsdoc,no-unused-vars
 function ctDeleteCookie(cookieName) {
     // Cookies disabled
-    if( ctPublicFunctions.data__cookies_type === 'none' ){
+    if ( ctPublicFunctions.data__cookies_type === 'none' ) {
         return;
 
     // Using traditional cookies
-    }else if( ctPublicFunctions.data__cookies_type === 'native' ){
-
-        var ctSecure = location.protocol === 'https:' ? '; secure' : '';
-        document.cookie = cookieName + "=\"\"; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; samesite=lax" + ctSecure;
+    } else if ( ctPublicFunctions.data__cookies_type === 'native' ) {
+        const ctSecure = location.protocol === 'https:' ? '; secure' : '';
+        document.cookie = cookieName + '=""; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; samesite=lax' + ctSecure;
 
     // Using alternative cookies
-    }else if( ctPublicFunctions.data__cookies_type === 'alternative' ){
+    } else if ( ctPublicFunctions.data__cookies_type === 'alternative' ) {
         // @ToDo implement this logic
     }
 }
 
-function apbct_public_sendAJAX(data, params, obj){
-
+// eslint-disable-next-line require-jsdoc,camelcase
+function apbct_public_sendAJAX(data, params, obj) {
     // Default params
-    let _params            = [];
-    _params["callback"]    = params.callback    || null;
-    _params["onErrorCallback"] = params.onErrorCallback    || null;
-    _params["callback_context"] = params.callback_context || null;
-    _params["callback_params"] = params.callback_params || null;
-    _params["async"]        = params.async || true;
-    _params["notJson"]     = params.notJson     || null;
-    _params["responseType"]= params.notJson ? 'text' : 'json';
-    _params["timeout"]     = params.timeout     || 15000;
-    _params["obj"]         = obj                || null;
-    _params["button"]      = params.button      || null;
-    _params["spinner"]     = params.spinner     || null;
-    _params["progressbar"] = params.progressbar || null;
-    _params["silent"]      = params.silent      || null;
-    _params["no_nonce"]    = params.no_nonce    || null;
-    _params["data"]        = data;
-    _params["url"]         = ctPublicFunctions._ajax_url;
+    const _params = [];
+    _params['callback'] = params.callback || null;
+    _params['onErrorCallback'] = params.onErrorCallback || null;
+    _params['callback_context'] = params.callback_context || null;
+    _params['callback_params'] = params.callback_params || null;
+    _params['async'] = params.async || true;
+    _params['notJson'] = params.notJson || null;
+    _params['responseType']= params.notJson ? 'text' : 'json';
+    _params['timeout'] = params.timeout || 15000;
+    _params['obj'] = obj || null;
+    _params['button'] = params.button || null;
+    _params['spinner'] = params.spinner || null;
+    _params['progressbar'] = params.progressbar || null;
+    _params['silent'] = params.silent || null;
+    _params['no_nonce'] = params.no_nonce || null;
+    _params['data'] = data;
+    _params['url'] = ctPublicFunctions._ajax_url;
 
-    if(typeof (data) === 'string') {
-        if( ! _params["no_nonce"] ) {
-            _params["data"] = _params["data"] + '&_ajax_nonce=' + ctPublicFunctions._ajax_nonce;
+    if (typeof (data) === 'string') {
+        if ( ! _params['no_nonce'] ) {
+            _params['data'] = _params['data'] + '&_ajax_nonce=' + ctPublicFunctions._ajax_nonce;
         }
-        _params["data"] = _params["data"] + '&no_cache=' + Math.random()
+        _params['data'] = _params['data'] + '&no_cache=' + Math.random();
     } else {
-        if( ! _params["no_nonce"] ) {
-            _params["data"]._ajax_nonce = ctPublicFunctions._ajax_nonce;
+        if ( ! _params['no_nonce'] ) {
+            _params['data']._ajax_nonce = ctPublicFunctions._ajax_nonce;
         }
-        _params["data"].no_cache = Math.random();
+        _params['data'].no_cache = Math.random();
     }
 
     new ApbctCore().ajax(_params);
 }
 
+// eslint-disable-next-line require-jsdoc,camelcase
 function apbct_public_sendREST( route, params ) {
-
-    let _params         = [];
-    _params["route"]    = route;
-    _params["callback"] = params.callback || null;
-    _params["onErrorCallback"] = params.onErrorCallback    || null;
-    _params["data"]     = params.data     || [];
-    _params["method"]   = params.method   || 'POST';
+    const _params = [];
+    _params['route'] = route;
+    _params['callback'] = params.callback || null;
+    _params['onErrorCallback'] = params.onErrorCallback || null;
+    _params['data'] = params.data || [];
+    _params['method'] = params.method || 'POST';
 
     new ApbctCore().rest(_params);
 }
 
 /**
  * Generate unique ID
- * @returns {string}
+ * @return {string}
  */
-function apbctGenerateUniqueID()
-{
+// eslint-disable-next-line no-unused-vars,require-jsdoc
+function apbctGenerateUniqueID() {
     return Math.random().toString(36).replace(/[^a-z]+/g, '').substr(2, 10);
 }
 
-let apbctLocalStorage = {
-    get : function(key, property) {
+const apbctLocalStorage = {
+    get: function(key, property) {
         if ( typeof property === 'undefined' ) {
             property = 'value';
         }
@@ -1132,42 +1269,42 @@ let apbctLocalStorage = {
         }
         return false;
     },
-    set : function(key, value, is_json = true) {
-        if (is_json){
-            let objToSave = {'value': JSON.stringify(value), 'timestamp': Math.floor(new Date().getTime() / 1000)};
+    set: function(key, value, isJson = true) {
+        if (isJson) {
+            const objToSave = {'value': JSON.stringify(value), 'timestamp': Math.floor(new Date().getTime() / 1000)};
             localStorage.setItem(key, JSON.stringify(objToSave));
         } else {
             localStorage.setItem(key, value);
         }
     },
-    isAlive : function(key, maxLifetime) {
+    isAlive: function(key, maxLifetime) {
         if ( typeof maxLifetime === 'undefined' ) {
             maxLifetime = 86400;
         }
         const keyTimestamp = this.get(key, 'timestamp');
         return keyTimestamp + maxLifetime > Math.floor(new Date().getTime() / 1000);
     },
-    isSet : function(key) {
+    isSet: function(key) {
         return localStorage.getItem(key) !== null;
     },
-    delete : function (key) {
+    delete: function(key) {
         localStorage.removeItem(key);
     },
-    getCleanTalkData : function () {
-        let data = {}
-        for(let i=0; i<localStorage.length; i++) {
-            let key = localStorage.key(i);
-            if (key.indexOf('ct_') !==-1 || key.indexOf('apbct_') !==-1){
-                data[key.toString()] = apbctLocalStorage.get(key)
+    getCleanTalkData: function() {
+        const data = {};
+        for (let i=0; i<localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key.indexOf('ct_') !==-1 || key.indexOf('apbct_') !==-1) {
+                data[key.toString()] = apbctLocalStorage.get(key);
             }
         }
-        return data
+        return data;
     },
 
-}
+};
 
-let apbctSessionStorage = {
-    get : function(key, property) {
+const apbctSessionStorage = {
+    get: function(key, property) {
         if ( typeof property === 'undefined' ) {
             property = 'value';
         }
@@ -1182,31 +1319,32 @@ let apbctSessionStorage = {
         }
         return false;
     },
-    set : function(key, value, is_json = true) {
-        if (is_json){
-            let objToSave = {'value': JSON.stringify(value), 'timestamp': Math.floor(new Date().getTime() / 1000)};
+    set: function(key, value, isJson = true) {
+        if (isJson) {
+            const objToSave = {'value': JSON.stringify(value), 'timestamp': Math.floor(new Date().getTime() / 1000)};
             sessionStorage.setItem(key, JSON.stringify(objToSave));
         } else {
             sessionStorage.setItem(key, value);
         }
     },
-    isSet : function(key) {
+    isSet: function(key) {
         return sessionStorage.getItem(key) !== null;
     },
-    delete : function (key) {
+    delete: function(key) {
         sessionStorage.removeItem(key);
     },
-    getCleanTalkData : function () {
-        let data = {}
-        for(let i=0; i<sessionStorage.length; i++) {
-            let key = sessionStorage.key(i);
-            if (key.indexOf('ct_') !==-1 || key.indexOf('apbct_') !==-1){
-                data[key.toString()] = apbctSessionStorage.get(key)
+    getCleanTalkData: function() {
+        const data = {};
+        for (let i=0; i<sessionStorage.length; i++) {
+            const key = sessionStorage.key(i);
+            if (key.indexOf('ct_') !==-1 || key.indexOf('apbct_') !==-1) {
+                data[key.toString()] = apbctSessionStorage.get(key);
             }
         }
-        return data
+        return data;
     },
-}
+};
+
 var ct_date = new Date(),
 	ctTimeMs = new Date().getTime(),
 	ctMouseEventTimerFlag = true, //Reading interval flag
