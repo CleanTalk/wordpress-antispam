@@ -596,7 +596,9 @@ function apbct_settings__set_fields()
                     'type'        => 'textarea',
                     'title'       => __('Field Name Exclusions', 'cleantalk-spam-protect'),
                     'description' => __(
-                        'You could type here fields names you want to exclude. Use comma as separator. Exclusion value will be sliced to 128 chars, exclusions number is restricted by 20 values.',
+                        'You could type here fields names you want to exclude. These fields will be excluded, other 
+                        fields will be passed to the Anti-Spam check. Use comma as separator. Exclusion value will be 
+                        sliced to 128 chars, exclusions number is restricted by 20 values.',
                         'cleantalk-spam-protect'
                     ),
                 ),
