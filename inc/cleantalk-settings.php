@@ -2430,6 +2430,20 @@ function apbct_settings__validate($settings)
         : $apbct->errorDelete('exclusions_fields', true, 'settings_validate');
     $settings['exclusions__fields'] = $result ? $result : '';
 
+    // Form signs exclusions
+    $result = apbct_settings__sanitize__exclusions(
+        $settings['exclusions__form_signs'],
+        $settings['exclusions__form_signs__use_regexp']
+    );
+    $result === false
+        ? $apbct->errorAdd(
+        'exclusions_fields',
+        'is not valid: "' . $settings['exclusions__form_signs'] . '"',
+        'settings_validate'
+    )
+        : $apbct->errorDelete('exclusions_fields', true, 'settings_validate');
+    $settings['exclusions__form_signs'] = $result ? $result : '';
+
     // WPMS Logic.
     if ( APBCT_WPMS && is_main_site() ) {
         $network_settings = array(
