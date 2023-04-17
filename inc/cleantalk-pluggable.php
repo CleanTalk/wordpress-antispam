@@ -4,6 +4,7 @@ use Cleantalk\ApbctWP\Helper;
 use Cleantalk\ApbctWP\RemoteCalls;
 use Cleantalk\ApbctWP\Variables\Get;
 use Cleantalk\ApbctWP\Variables\Post;
+use Cleantalk\ApbctWP\Variables\Request;
 use Cleantalk\ApbctWP\Variables\Server;
 
 /**
@@ -914,6 +915,15 @@ function apbct_is_skip_request($ajax = false)
             Post::get('formType') === 'register'
         ) {
             return 'Plugin Name: Profile Builder; ajax action wppb_conditional_logic';
+        }
+
+        // Plugin Name: ModernEventsCalendar have the direct integration.
+        if (
+            apbct_is_plugin_active('modern-events-calendar/mec.php') &&
+            Post::get('action') === 'mec_book_form' &&
+            Request::get('book')
+        ) {
+            return 'ModernEventsCalendar skip (direct integration)';
         }
     } else {
         /*****************************************/
