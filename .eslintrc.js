@@ -5,7 +5,6 @@ module.exports = {
     },
     extends: 'google',
     ignorePatterns: [
-        'js/src/apbct-public--1--functions.js',
         'js/src/apbct-public--2--public.js',
         'js/src/apbct-public--3--cleantalk-modal.js',
         'js/src/apbct-public--5--external-forms.js',
