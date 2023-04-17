@@ -584,7 +584,7 @@ function apbct_settings__set_fields()
                     'type'        => 'textarea',
                     'title'       => __('URL exclusions', 'cleantalk-spam-protect'),
                     'description' => __(
-                        'You could type here a part of the URL you want to exclude. Use comma or new lines as separator. Exclusion value will be sliced to 128 chars, exclusions number is restricted by 20 values.',
+                        'You could type here a part of the URL you want to exclude. Use commas or new lines as separator. Exclusion value will be sliced to 128 chars, number of exclusions is restricted by 20 values.',
                         'cleantalk-spam-protect'
                     ),
                 ),
@@ -596,9 +596,9 @@ function apbct_settings__set_fields()
                     'type'        => 'textarea',
                     'title'       => __('Field Name Exclusions', 'cleantalk-spam-protect'),
                     'description' => __(
-                        'You could type here fields names you want to exclude. These fields will be excluded, other 
-                        fields will be passed to the Anti-Spam check. Use comma as separator. Exclusion value will be 
-                        sliced to 128 chars, exclusions number is restricted by 20 values.',
+                        'You could type here field names you want to exclude. These fields will be excluded, other 
+                        fields will be passed to the Anti-Spam check. Use commas as separator. Exclusion value will be 
+                        sliced to 128 chars, number of exclusions is restricted by 20 values.',
                         'cleantalk-spam-protect'
                     ),
                 ),
@@ -610,12 +610,12 @@ function apbct_settings__set_fields()
                     'type'        => 'textarea',
                     'title'       => __('Form Signs Exclusions', 'cleantalk-spam-protect'),
                     'description' => __(
-                        'If the form contains any of these sign in the POST array, the form submit is excluded from
-                        spam checking. The plugin validates action attribute of the form and name attribute of the
-                        fields it contains. Use comma or new lines as separator. Exclusion value will be sliced
-                        to 128 chars, exclusions number is restricted by 20 values.',
+                        'Regular expression. If the form contains any of these signs in POST array keys or in value of "action" key, the 
+                        whole form submission is excluded from spam checking. See more details in long description, 
+                        just click question mark near the option header.',
                         'cleantalk-spam-protect'
                     ),
+                    'long_description' => true
                 ),
                 'exclusions__roles'              => array(
                     'type'                    => 'select',
@@ -2435,10 +2435,10 @@ function apbct_settings__validate($settings)
     );
     $result === false
         ? $apbct->errorAdd(
-        'exclusions_fields',
-        'is not valid: "' . $settings['exclusions__form_signs'] . '"',
-        'settings_validate'
-    )
+            'exclusions_fields',
+            'is not valid: "' . $settings['exclusions__form_signs'] . '"',
+            'settings_validate'
+        )
         : $apbct->errorDelete('exclusions_fields', true, 'settings_validate');
     $settings['exclusions__form_signs'] = $result ? $result : '';
 
@@ -3008,6 +3008,29 @@ function apbct_settings__get__long_description()
                 __('This option allows you to encode contacts on the public pages of the site. This prevents robots from automatically collecting such data and prevents it from being included in spam lists. %s', 'cleantalk-spam-protect'),
                 '<a href="https://cleantalk.org/help/email-encode{utm_mark}" target="_blank">' . __('Learn more.', 'cleantalk-spam-protect') . '</a>'
             )
+        ),
+        'exclusions__form_signs' => array(
+            'title' => __('Form Signs Exclusions', 'cleantalk-spam-protect'),
+            'desc'  => __('The plugin will check the POST array to find regular expressions matches. Usually, field\'s 
+            "name" attribute passed to the POST array as array keys. To skip any of 
+            these signs add name or action to the textarea. Example of an exclusion record:', 'cleantalk-spam-protect') .
+                '<p><code>.*name_of_your_field+</code></p>' .
+                '<p>' .
+                __('Also, the plugin check POST array for key action and it\'s value. This could be useful for AJAX 
+                forms if you want to skip the form by action. Value will be checked for regexp match:', 'cleantalk-spam-protect') .
+                '</p><p><code>.*value_of_action_key_in_post+</code></p>' .
+                '<p>' .
+                __('Please, note, you can exclude the form by adding a special hidden input or another HTML tag. 
+                Then you need to add the exclusion string. Example:', 'cleantalk-spam-protect') .
+                '</p>' .
+                '<p>Tag:</p>' .
+                '<p><code>' . htmlspecialchars('<div style="display: none"><input type="text" name="apbct_skip_this_form"></div>') . '</code></p>' .
+                '<p>Exclusion:</p>' .
+                '<p><code>.*apbct_skip_this_form+</code></p>' .
+                sprintf(
+                    __('See details on the page linked below. %s', 'cleantalk-spam-protect'),
+                    '</p><a href="https://cleantalk.org/help/exclusion-from-anti-spam-checking{utm_mark}#wordpress" target="_blank">' . __('Learn more.', 'cleantalk-spam-protect') . '</a>'
+                )
         ),
     );
 
