@@ -617,10 +617,6 @@ function apbct_settings__set_fields()
                         'cleantalk-spam-protect'
                     ),
                 ),
-                'exclusions__form_signs__use_regexp' => array(
-                    'type'  => 'checkbox',
-                    'title' => __('Use Regular Expression in Form Signs Exclusions', 'cleantalk-spam-protect'),
-                ),
                 'exclusions__roles'              => array(
                     'type'                    => 'select',
                     'title' => __('Roles Exclusions', 'cleantalk-spam-protect'),
@@ -2435,7 +2431,7 @@ function apbct_settings__validate($settings)
     // Form signs exclusions
     $result = apbct_settings__sanitize__exclusions(
         $settings['exclusions__form_signs'],
-        $settings['exclusions__form_signs__use_regexp']
+        true
     );
     $result === false
         ? $apbct->errorAdd(

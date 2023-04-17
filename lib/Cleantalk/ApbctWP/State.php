@@ -91,7 +91,6 @@ class State extends \Cleantalk\Common\State
         'exclusions__fields'                       => '',
         'exclusions__fields__use_regexp'           => 0,
         'exclusions__form_signs'                   => '',
-        'exclusions__form_signs__use_regexp'       => 1,
         'exclusions__roles'                        => array('Administrator'),
 
         // Administrator Panel
