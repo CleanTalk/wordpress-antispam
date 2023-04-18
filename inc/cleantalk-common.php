@@ -613,7 +613,8 @@ function apbct_sender_info___get_page_url()
     ) {
         return Server::get('HTTP_REFERER');
     }
-    return  Server::get('SERVER_NAME') . Server::get('REQUEST_URI');
+    $protocol = ! empty($_SERVER['HTTPS']) && 'off' !== strtolower($_SERVER['HTTPS']) ? "https://" : "http://";
+    return  $protocol . Server::get('SERVER_NAME') . Server::get('REQUEST_URI');
 }
 
 /**
