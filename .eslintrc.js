@@ -5,7 +5,6 @@ module.exports = {
     },
     extends: 'google',
     ignorePatterns: [
-        'js/src/apbct-public--3--cleantalk-modal.js',
         'js/src/apbct-public--5--external-forms.js',
         'js/src/apbct-public-bundle.js',
         'js/src/cleantalk-admin-settings-page.js',
