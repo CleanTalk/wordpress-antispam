@@ -946,6 +946,18 @@ function apbct_admin__admin_bar__add_child_nodes($wp_admin_bar)
         );
     }
 
+    // Add a child item to our parent item. Bulk checks.
+    if ( ! is_network_admin() ) {
+        $wp_admin_bar->add_node(
+            array(
+                'parent' => 'apbct__parent_node',
+                'id'     => 'ct_settings_bulk_orders',
+                'title'  => '<a href="admin.php?page=options-general.php%3Fpage%3Dapbct_wc_spam_orders" title="Bulk spam orders removal tool.">'
+                            . __('Check spam orders', 'cleantalk-spam-protect') . '</a>',
+            )
+        );
+    }
+
     // Support link
     if ( ! $apbct->white_label ) {
         $wp_admin_bar->add_node(

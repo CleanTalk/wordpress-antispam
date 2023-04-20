@@ -2,11 +2,15 @@
 
 namespace Cleantalk\ApbctWP;
 
+use Cleantalk\ApbctWP\Variables\Get;
+
 class WcSpamOrdersListTable extends CleantalkListTable
 {
     protected $apbct;
 
     protected $wc_active = false;
+    protected $page_title = '';
+    protected $wc_spam_orders_count = 0;
 
     public function __construct()
     {
@@ -17,7 +21,7 @@ class WcSpamOrdersListTable extends CleantalkListTable
 
         //$this->bulk_actions_handler();
 
-        //$this->row_actions_handler();
+        $this->row_actions_handler();
 
         if ( in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_option('active_plugins'))) ) {
             $this->wc_active = true;
@@ -27,6 +31,9 @@ class WcSpamOrdersListTable extends CleantalkListTable
 
         global $apbct;
         $this->apbct = $apbct;
+        $this->page_title = 'WooCommerce spam orders';
+
+        $this->generatePageHeader();
     }
 
     /**
@@ -50,9 +57,10 @@ class WcSpamOrdersListTable extends CleantalkListTable
         $per_page = 10;
 
         $wc_spam_orders = $this->getWcSpamOrders();
+        $this->wc_spam_orders_count = count($wc_spam_orders);
 
         $this->set_pagination_args(array(
-            'total_items' => count($wc_spam_orders),
+            'total_items' => $this->wc_spam_orders_count,
             'per_page'    => $per_page,
         ));
 
@@ -65,8 +73,19 @@ class WcSpamOrdersListTable extends CleantalkListTable
         );
 
         foreach ( $wc_spam_orders_to_show as $wc_spam_order) {
+            $actions = array(
+                'delete' => sprintf(
+                    '<a href="?page=%s&action=%s&spam=%s">Delete</a>',
+                    htmlspecialchars(addslashes(Get::get('page'))),
+                    'delete',
+                    $wc_spam_order->order_id
+                )
+            );
+
+            $order_id_column = sprintf('%1$s %2$s', $wc_spam_order->order_id, $this->row_actions($actions));
+
             $this->items[] = array(
-                'ct_order_id'          => $wc_spam_order->order_id,
+                'ct_order_id'          => $order_id_column,
                 'ct_order_details'     => $wc_spam_order->order_details,
                 'ct_currency'          => $wc_spam_order->currency,
                 'ct_customer_details'  => $wc_spam_order->customer_details,
@@ -92,10 +111,69 @@ class WcSpamOrdersListTable extends CleantalkListTable
         return print_r($item[$column_name], true);
     }
 
+    public function row_actions_handler() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+    {
+        if ( empty(Get::get('action')) ) {
+            return;
+        }
+
+        if ( Get::get('action') === 'delete' ) {
+            $id = filter_input(INPUT_GET, 'spam', FILTER_SANITIZE_ENCODED, FILTER_FLAG_STRIP_HIGH);
+            $this->removeSpam(array($id));
+        }
+    }
+
     /********************************************************/
     private function getWcSpamOrders()
     {
         global $wpdb;
         return $wpdb->get_results('SELECT * FROM ' . APBCT_TBL_WC_SPAM_ORDERS, OBJECT);
+    }
+
+    private function removeSpam($ids)
+    {
+        global $wpdb;
+
+        $ids_sql_prepare = [];
+
+        foreach ( $ids as $id ) {
+            $id = sanitize_key($id);
+            $ids_sql_prepare[] = "'$id'";
+        }
+        
+        $ids_sql_prepare = implode(',', $ids_sql_prepare);
+
+        $wpdb->query(
+            "DELETE FROM " .  APBCT_TBL_WC_SPAM_ORDERS . " WHERE `order_id` IN (" . $ids_sql_prepare . ");"
+        );
+    }
+
+    private function generatePageHeader()
+    {
+        // If access key is unset in
+        if ( ! apbct_api_key__is_correct() ) {
+            if ( 1 == $this->spam_checker->getApbct()->moderate_ip ) {
+                echo '<h3>'
+                    . sprintf(
+                        __('Anti-Spam hosting tariff does not allow you to use this feature. To do so, you need to enter an Access Key in the %splugin settings%s.', 'cleantalk-spam-protect'),
+                        '<a href="' . ( is_network_admin() ? 'settings.php?page=cleantalk' : 'options-general.php?page=cleantalk' ) . '">',
+                        '</a>'
+                    )
+                    . '</h3>';
+            }
+            return;
+        }
+
+        ?>
+        <div class="wrap">
+        <h2><img src="<?php echo $this->apbct->logo__small__colored ?>" alt="CleanTalk logo" /> <?php echo $this->apbct->plugin_name; ?></h2>
+        <a style="color: gray; margin-left: 23px;" href="<?php echo $this->apbct->settings_link; ?>"><?php _e('Plugin Settings', 'cleantalk-spam-protect'); ?></a>
+        <br />
+        <h3><?php echo $this->page_title; ?></h3>
+        <p>Total count of spam orders: <?php echo $this->wc_spam_orders_count ?></p>
+        <p>Please do backup of WordPress database before delete any orders!</p>
+        <p>Results are based on the decision of our spam checking system and do not give a complete guarantee that these orders are spam.</p>
+        </div>
+        <?php
     }
 }
