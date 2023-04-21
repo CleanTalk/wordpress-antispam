@@ -1073,6 +1073,16 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'AutomateWoo skip';
         }
+
+        //Skip Billige-teste theme 1st step checkout request
+        if (
+            apbct_is_theme_active('bilige-teste') &&
+            Post::get('bt_checkout_data') == true &&
+            Post::get('email') &&
+            Post::get('unkey')
+        ) {
+            return 'Billige-teste theme 1st step checkout request';
+        }
     }
 
     //Skip wforms because of direct integration
