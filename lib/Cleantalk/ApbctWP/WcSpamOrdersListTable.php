@@ -79,16 +79,25 @@ class WcSpamOrdersListTable extends CleantalkListTable
                     htmlspecialchars(addslashes(Get::get('page'))),
                     'delete',
                     $wc_spam_order->order_id
+                ),
+                'approve' => sprintf(
+                    '<a href="?page=%s&action=%s&spam=%s">Approve</a>',
+                    htmlspecialchars(addslashes(Get::get('page'))),
+                    'approve',
+                    $wc_spam_order->order_id
                 )
             );
 
             $order_id_column = sprintf('%1$s %2$s', $wc_spam_order->order_id, $this->row_actions($actions));
 
+            $order_details_column = $this->renderOrderDetailsColumn($wc_spam_order->order_details);
+            $customer_details_column = $this->renderCustomerDetailsColumn($wc_spam_order->customer_details);
+            
             $this->items[] = array(
                 'ct_order_id'          => $order_id_column,
-                'ct_order_details'     => $wc_spam_order->order_details,
+                'ct_order_details'     => $order_details_column,
                 'ct_currency'          => $wc_spam_order->currency,
-                'ct_customer_details'  => $wc_spam_order->customer_details,
+                'ct_customer_details'  => $customer_details_column,
             );
         }
     }
@@ -121,13 +130,83 @@ class WcSpamOrdersListTable extends CleantalkListTable
             $id = filter_input(INPUT_GET, 'spam', FILTER_SANITIZE_ENCODED, FILTER_FLAG_STRIP_HIGH);
             $this->removeSpam(array($id));
         }
+
+        if ( Get::get('action') === 'approve' ) {
+            $id = filter_input(INPUT_GET, 'spam', FILTER_SANITIZE_ENCODED, FILTER_FLAG_STRIP_HIGH);
+            $order = $this->getWcSpamOrder($id);
+
+            $result = $this->sendWcSpamOrderAsApproved($order);
+        }
     }
 
     /********************************************************/
+    private function renderOrderDetailsColumn($order_details)
+    {
+        $order_details = array_values(json_decode($order_details, true));
+        $result = '';
+
+        foreach ($order_details as $order_detail) {
+            $result .= "<b>" . wc_get_product($order_detail['product_id'])->get_title() . "</b>";
+            $result .= " - ";
+            $result .= $order_detail['quantity'];
+            $result .= "<br>";
+        }
+
+        return $result;
+    }
+
+    private function renderCustomerDetailsColumn($customer_details)
+    {
+        $customer_details = json_decode($customer_details, true);
+        $result = '';
+
+        $result .= "<b>" . $customer_details["billing_first_name"] . "</b>";
+        $result .= "<br>";
+        $result .= "<b>" . $customer_details["billing_last_name"] . "</b>";
+        $result .= "<br>";
+        $result .= "<b>" . $customer_details["billing_email"] . "</b>";
+
+        return $result;
+    }
+
+    private function sendWcSpamOrderAsApproved($order)
+    {
+        $response = wp_remote_post(site_url('/?wc-ajax=checkout'), array(
+            'method' => 'POST',
+            'timeout' => 45,
+            // 'redirection' => 5,
+            // 'httpversion' => '1.0',
+            // 'blocking' => true,
+            'headers' => array(),
+            'body' => $order->customer_details,
+            'cookies' => array()
+            )
+        );
+
+        $result = '';
+        
+        if (is_wp_error($response)) {
+           $error_message = $response->get_error_message();
+           echo "Something went wrong: $error_message";
+        } else {
+           echo 'Response:<pre>';
+           print_r( $response );
+           echo '</pre>';
+        }
+
+        return $result;
+    }
+
     private function getWcSpamOrders()
     {
         global $wpdb;
         return $wpdb->get_results('SELECT * FROM ' . APBCT_TBL_WC_SPAM_ORDERS, OBJECT);
+    }
+
+    private function getWcSpamOrder($id)
+    {
+        global $wpdb;
+        return $wpdb->get_results("SELECT * FROM " . APBCT_TBL_WC_SPAM_ORDERS . " WHERE order_id = '$id' LIMIT 1", OBJECT);
     }
 
     private function removeSpam($ids)
@@ -150,7 +229,6 @@ class WcSpamOrdersListTable extends CleantalkListTable
 
     private function generatePageHeader()
     {
-        // If access key is unset in
         if ( ! apbct_api_key__is_correct() ) {
             if ( 1 == $this->spam_checker->getApbct()->moderate_ip ) {
                 echo '<h3>'
