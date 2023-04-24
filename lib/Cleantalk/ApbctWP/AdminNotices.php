@@ -231,7 +231,7 @@ class AdminNotices
     {
         global $apbct;
 
-        if ( $this->apbct->notice_review == 1 ) {
+        if ( $this->apbct->notice_review == 1 && ! $this->apbct->white_label ) {
             $review_link = "<a class='button' href='https://wordpress.org/support/plugin/cleantalk-spam-protect/reviews/?filter=5' target='_blank'>"
                                 . __('SHARE', 'cleantalk-spam-protect') .
                             "</a>";
