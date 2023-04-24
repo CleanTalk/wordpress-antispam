@@ -774,25 +774,6 @@ function apbct_settings__set_fields()
                         'cleantalk-spam-protect'
                     ),
                 ),
-                'gdpr__enabled'                 => array(
-                    'type'        => 'checkbox',
-                    'title'       => __('Allow to add GDPR notice via shortcode', 'cleantalk-spam-protect'),
-                    'description' => __(
-                        ' Adds small checkbox under your website form. To add it you should use the shortcode on the form\'s page: [cleantalk_gdpr_form id="FORM_ID"]',
-                        'cleantalk-spam-protect'
-                    ),
-                    'childrens'   => array('gdpr__text'),
-                ),
-                'gdpr__text'                    => array(
-                    'type'        => 'text',
-                    'title'       => __('GDPR text notice', 'cleantalk-spam-protect'),
-                    'description' => __(
-                        'This text will be added as a description to the GDPR checkbox.',
-                        'cleantalk-spam-protect'
-                    ),
-                    'parent'      => 'gdpr__enabled',
-                    'class'       => 'apbct_settings-field_wrapper--sub',
-                ),
                 'misc__store_urls'              => array(
                     'type'        => 'checkbox',
                     'title'       => __('Store visited URLs', 'cleantalk-spam-protect'),
@@ -1175,9 +1156,6 @@ function apbct_settings__display()
             . '<br>';
         echo __('Plugin Homepage at', 'cleantalk-spam-protect') .
              ' <a href="https://cleantalk.org" target="_blank">cleantalk.org</a>.<br/>';
-        echo '<a href="https://cleantalk.org/publicoffer#cleantalk_gdpr_compliance" target="_blank">'
-             . __('GDPR compliance', 'cleantalk-spam-protect')
-             . '</a><br/>';
         echo __('Use s@cleantalk.org to test plugin in any WordPress form.', 'cleantalk-spam-protect') . '<br>';
         echo __('CleanTalk is registered Trademark. All rights reserved.', 'cleantalk-spam-protect') . '<br/>';
         if ( $apbct->key_is_ok ) {
@@ -1778,7 +1756,7 @@ function apbct_settings__field__apikey()
             echo '<br />';
         }
 
-        // Warnings and GDPR
+        // Warnings
         printf(
             __(
                 'Admin e-mail %s %s will be used for registration оr click here to %sGet Access Key Manually%s.',

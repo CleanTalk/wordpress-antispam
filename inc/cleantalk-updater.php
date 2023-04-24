@@ -1217,3 +1217,19 @@ function apbct_update_to_6_6_0()
     $cron->removeTask('send_js_error_report');
     $cron->addTask('send_js_error_report', 'ct_cron_send_js_error_report_email', 86400);
 }
+
+function apbct_update_to_6_9_0()
+{
+    global $apbct;
+
+    if (isset($apbct->settings['gdpr__enabled']) || isset($apbct->settings['gdpr__text'])) {
+        if (isset($apbct->settings['gdpr__enabled'])) {
+            unset($apbct->settings['gdpr__enabled']);
+        }
+        if (isset($apbct->settings['gdpr__text'])) {
+            unset($apbct->settings['gdpr__text']);
+        }
+
+        $apbct->saveSettings();
+    }
+}
