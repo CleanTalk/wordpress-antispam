@@ -86,6 +86,8 @@ class TestRCServiceTemplateGet extends PHPUnit\Framework\TestCase
                     'admin_bar__all_time_counter' => '0',
                     'admin_bar__daily_counter' => '0',
                     'admin_bar__sfw_counter' => '0',
+                    'gdpr__enabled' => 0,
+                    'gdpr__text' => '',
                     'misc__send_connection_reports' => 0,
                     'misc__async_js' => 0,
                     'misc__store_urls' => '1',
