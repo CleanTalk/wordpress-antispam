@@ -3040,7 +3040,7 @@ function apbct_form__gravityForms__showResponse($confirmation, $form, $_entry, $
     global $ct_gform_is_spam, $ct_gform_response;
 
     if ( ! empty($ct_gform_is_spam) ) {
-        $confirmation = '<a id="gf_' . $form['id'] . '" class="gform_anchor" ></a><div id="gform_confirmation_wrapper_' . $form['id'] . '" class="gform_confirmation_wrapper "><div id="gform_confirmation_message_' . $form['id'] . '" class="gform_confirmation_message_' . $form['id'] . ' gform_confirmation_message"><font style="color: red">' . $ct_gform_response . '</font></div></div>';
+        $confirmation = '<a id="gf_' . $form['id'] . '" class="gform_anchor" ></a><div id="gform_confirmation_wrapper_' . $form['id'] . '" class="gform_confirmation_wrapper "><div id="gform_confirmation_message_' . $form['id'] . '" class="gform_confirmation_message_' . $form['id'] . ' gform_confirmation_message"><div class="gform_cleantalk_error" style="color: red">' . $ct_gform_response . '</div></div></div>';
     }
 
     return $confirmation;
