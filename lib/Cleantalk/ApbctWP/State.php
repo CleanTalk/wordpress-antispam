@@ -564,7 +564,7 @@ class State extends \Cleantalk\Common\State
                 ( $this->settings['data__set_cookies'] == 3 && $this->isServerCacheDetected() ) ||
                 $this->settings['data__set_cookies'] == 2
                     ? 'alternative'
-                    : 'native';
+                    : 'none';
         } else {
             $this->data['cookies_type'] = 'none';
             //clear no_cookie_data_taken
