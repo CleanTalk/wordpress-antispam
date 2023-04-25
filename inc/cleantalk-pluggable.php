@@ -915,6 +915,15 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'Plugin Name: Profile Builder; ajax action wppb_conditional_logic';
         }
+
+        // Plugin Name: DIGITS: WordPress Mobile Number Signup and Login; ajax login action digits_forms_ajax
+        if (
+            apbct_is_plugin_active('digits/digit.php') &&
+            Post::get('action') === 'digits_forms_ajax' &&
+            Post::get('type') === 'login'
+        ) {
+            return 'Plugin Name: DIGITS: WordPress Mobile Number Signup and Login; ajax login action digits_forms_ajax';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
