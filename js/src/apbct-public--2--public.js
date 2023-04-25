@@ -681,7 +681,7 @@ function apbctEmailEncoderCallbackBulk(result, encodedEmailNodes, clickSource) {
                     encodedEmailNodes[i].href = 'mailto:' + currentResultData.decoded_email;
                 }
                 // fill the nodes
-                ctProcessDecodedDataResult(current_result_data, encodedEmailNodes[i]);
+                ctProcessDecodedDataResult(currentResultData, encodedEmailNodes[i]);
                 // remove listeners
                 encodedEmailNodes[i].removeEventListener('click', ctFillDecodedEmailHandler);
             }
