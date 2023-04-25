@@ -1083,6 +1083,15 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'Billige-teste theme 1st step checkout request';
         }
+
+        // Skip WS Forms Pro request - have the direct integration
+        if (
+            apbct_is_plugin_active('ws-form-pro/ws-form.php') &&
+            Post::get('wsf_form_id') &&
+            Post::get('wsf_post_mode') === 'submit'
+        ) {
+            return 'WS Forms Pro request';
+        }
     }
 
     //Skip wforms because of direct integration
