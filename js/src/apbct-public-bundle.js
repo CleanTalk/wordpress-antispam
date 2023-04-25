@@ -3,7 +3,7 @@
  */
 class ApbctCore {
     ajax_parameters = {};
-    rest_parameters = {};
+    restParameters = {};
 
     selector = null;
     elements = [];
@@ -196,8 +196,8 @@ class ApbctCore {
      * @return {ApbctRest}
      */
     rest(restParameters) {
-        this.rest_parameters = restParameters;
-        return new ApbctRest(rest_parameters);
+        this.restParameters = restParameters;
+        return new ApbctRest(restParameters);
     }
 
     /**
@@ -929,7 +929,7 @@ class ApbctXhr {
         // Set headers if passed
         for ( const headerName in this.headers ) {
             if ( typeof this.headers[headerName] !== 'undefined' ) {
-                this.xhr.setRequestHeader(header_name, this.headers[headerName]);
+                this.xhr.setRequestHeader(headerName, this.headers[headerName]);
             }
         }
     }
@@ -964,9 +964,8 @@ class ApbctXhr {
      */
     convertDataToBody() {
         this.body = new FormData();
-
         for (const dataKey in this.data) {
-            if (Object.hasOwn(data, dataKey)) {
+            if (Object.hasOwn(this.data, dataKey)) {
                 this.body.append(
                     dataKey,
                     typeof this.data[dataKey] === 'object' ?
@@ -2028,7 +2027,7 @@ function apbctEmailEncoderCallbackBulk(result, encodedEmailNodes, clickSource) {
                     encodedEmailNodes[i].href = 'mailto:' + currentResultData.decoded_email;
                 }
                 // fill the nodes
-                ctProcessDecodedDataResult(current_result_data, encodedEmailNodes[i]);
+                ctProcessDecodedDataResult(currentResultData, encodedEmailNodes[i]);
                 // remove listeners
                 encodedEmailNodes[i].removeEventListener('click', ctFillDecodedEmailHandler);
             }
