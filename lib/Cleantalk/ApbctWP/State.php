@@ -116,6 +116,7 @@ class State extends \Cleantalk\Common\State
         'trusted_and_affiliate__footer'            => 0,
         'trusted_and_affiliate__under_forms'       => 0,
         'trusted_and_affiliate__add_id'            => 0,
+        'trusted_and_affiliate__add_logo'          => 0,
 
     );
 
