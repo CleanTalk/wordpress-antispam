@@ -874,18 +874,6 @@ function apbct_settings__set_fields()
                     'reverse_trigger' => false,
                     'type' => 'checkbox'
                 ),
-                'trusted_and_affiliate__add_logo' => array(
-                    'title' => __(
-                        'Add a Trust Logo',
-                        'cleantalk-spam-protect'
-                    ),
-                    'description' => __(
-                        'Cleantalk logo will appear under the trust text',
-                        'cleantalk-spam-protect'
-                    ),
-                    'reverse_trigger' => false,
-                    'type' => 'checkbox'
-                )
             ),
         ),
 

@@ -189,13 +189,6 @@ class Escape extends \Cleantalk\Common\Escape
                     'href' => true,
                     'rel' => true,
                 ),
-                'img' => array(
-                    'src' => true,
-                    'alt' => true,
-                ),
-                'span' => array(
-                    'class' => true,
-                ),
             ),
             'apbct_settings__display__notifications' => array(
                 'a' => array(

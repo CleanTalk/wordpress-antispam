@@ -1514,13 +1514,6 @@ function apbct_generate_trusted_text_html($type = 'div')
         $query_data['pid'] = $apbct->data['user_id'];
     }
 
-    // Trust logo under trust text
-    $trust_logo = '';
-    $trust_logo_src = APBCT_IMG_ASSETS_PATH . '/trust-logo.png';
-    if ($apbct->settings['trusted_and_affiliate__add_logo'] === '1') {
-        $trust_logo = '<span class="apbct_trust_logo"><img src="' . $trust_logo_src . '" alt="CleanTalk Anti-Spam"></span>';
-    }
-
     $css_class = 'apbct-trusted-text--' . $type;
     $cleantalk_tag_with_ref_link = '<a href="https://cleantalk.org/register?'
         . http_build_query($query_data)
@@ -1540,7 +1533,6 @@ function apbct_generate_trusted_text_html($type = 'div')
         $trusted_text = '<label for="hidden_trusted_text" type="hidden" class="' . $css_class . '">'
             . 'Protected by '
             . $cleantalk_tag_with_ref_link
-            . $trust_logo
             . '</label>'
             . '<input type="hidden" name="hidden_trusted_text" id="hidden_trusted_text">';
     }
