@@ -1237,19 +1237,6 @@ function ct_enqueue_scripts_public($_hook)
         if ( ! $apbct->public_script_loaded ) {
             apbct_enqueue_and_localize_public_scripts();
         }
-
-        // GDPR script
-        if ( $apbct->settings['gdpr__enabled'] ) {
-            wp_localize_script('ct_public_functions', 'ctPublicGDPR', array(
-                'gdpr_forms' => array(),
-                'gdpr_text'  => $apbct->settings['gdpr__text']
-                    ?: __(
-                        'By using this form you agree with the storage and processing of your data by using the Privacy Policy on this website.',
-                        'cleantalk-spam-protect'
-                    ),
-                'gdpr_title' => esc_html__('Please, apply the GDPR agreement.', 'cleantalk-spam-protect'),
-            ));
-        }
     }
 
     // Show controls for commentaries
@@ -1496,26 +1483,6 @@ function ct_comments_output($curr_comment, $_param2, $wp_list_comments_args)
             ),
         )
     );
-}
-
-/**
- * Callback function for the bottom comment output.
- *
- * attrs = array()
- */
-function apbct_shrotcode_handler__GDPR_public_notice__form($attrs)
-{
-    $out = '';
-
-    if ( isset($attrs['id']) ) {
-        $out .= 'ctPublicGDPR.gdpr_forms.push("' . $attrs['id'] . '");';
-    }
-
-    if ( isset($attrs['text']) ) {
-        $out .= 'ctPublicGDPR.gdpr_text = "' . $attrs['text'] . '";';
-    }
-
-    return '<script ' . (class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '') . '>' . $out . '</script>';
 }
 
 /**

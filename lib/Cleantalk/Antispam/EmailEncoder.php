@@ -35,6 +35,7 @@ class EmailEncoder
      */
     private $attribute_exclusions_signs = array(
         'input' => array('placeholder', 'value'),
+        'img' => array('alt', 'title'),
     );
     /**
      * @var string[]
@@ -404,7 +405,7 @@ class EmailEncoder
     {
         foreach ( $this->attribute_exclusions_signs as $tag => $array_of_attributes ) {
             foreach ( $array_of_attributes as $attribute ) {
-                $pattern = '/<' . $tag . '.*' . $attribute . '="' . $email_match . '"/';
+                $pattern = '/<' . $tag . '.*' . $attribute . '=".*' . $email_match . '.*"/';
                 preg_match($pattern, $this->temp_content, $attr_match);
                 if ( !empty($attr_match) ) {
                     return true;

@@ -110,7 +110,7 @@ function apbct_base_call($params = array(), $reg_flag = false)
         return array('ct_result' => new CleantalkResponse());
     }
 
-    // URL, IP, Role exclusions
+    // URL, IP, Role, Form signs exclusions
     if ( apbct_exclusions_check() ) {
         do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
 
@@ -325,6 +325,7 @@ function apbct_exclusions_check($func = null)
     // Common exclusions
     if (
         apbct_exclusions_check__ip() ||
+        apbct_exclusions_check__form_signs($_POST) ||
         apbct_exclusions_check__url() ||
         apbct_is_user_role_in($apbct->settings['exclusions__roles'])
     ) {
@@ -426,6 +427,41 @@ function apbct_exclusions_check__url()
         return false;
     }
 
+    return false;
+}
+
+/**
+ * Check POST array for the exclusion form signs. Listen for array keys or for value in case if key is "action".
+ * @param array $form_data The POST array or another filtered array of form data.
+ * @return bool True if exclusion found in the keys of array, false otherwise.
+ */
+function apbct_exclusions_check__form_signs($form_data)
+{
+    global $apbct;
+
+    if ( ! empty($apbct->settings['exclusions__form_signs']) ) {
+        if ( strpos($apbct->settings['exclusions__form_signs'], "\r\n") !== false ) {
+            $exclusions = explode("\r\n", $apbct->settings['exclusions__form_signs']);
+        } elseif ( strpos($apbct->settings['exclusions__form_signs'], "\n") !== false ) {
+            $exclusions = explode("\n", $apbct->settings['exclusions__form_signs']);
+        } else {
+            $exclusions = explode(',', $apbct->settings['exclusions__form_signs']);
+        }
+
+        foreach ( $exclusions as $exclusion ) {
+            foreach ($form_data as $key => $value) {
+                $haystack = ($key === 'action') ? $value : $key;
+                if (
+                    $haystack === $exclusion ||
+                    stripos($haystack, $exclusion) !== false ||
+                    preg_match('@' . $exclusion . '@', $haystack) === 1
+                ) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
     return false;
 }
 
@@ -1166,7 +1202,6 @@ function apbct_add_async_attribute($tag, $handle)
     $scripts_handles_names = array(
         'ct_public',
         'ct_public_functions',
-        'ct_public_gdpr',
         'ct_debug_js',
         'ct_public_admin_js',
         'ct_internal',
