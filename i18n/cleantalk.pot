@@ -772,24 +772,6 @@ msgid ""
 "Use async loading for scripts. Warning: This could reduce filtration quality."
 msgstr ""
 
-#: inc/cleantalk-settings.php:383
-msgid "Allow to add GDPR notice via shortcode"
-msgstr ""
-
-#: inc/cleantalk-settings.php:384
-msgid ""
-" Adds small checkbox under your website form. To add it you should use the "
-"shortcode on the form's page: [cleantalk_gdpr_form id=\"FORM_ID\"]"
-msgstr ""
-
-#: inc/cleantalk-settings.php:389
-msgid "GDPR text notice"
-msgstr ""
-
-#: inc/cleantalk-settings.php:390
-msgid "This text will be added as a description to the GDPR checkbox."
-msgstr ""
-
 #: inc/cleantalk-settings.php:396
 msgid "Store visited URLs"
 msgstr ""

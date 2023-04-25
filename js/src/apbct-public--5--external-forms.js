@@ -199,19 +199,6 @@ function apbctProcessExternalForm(currentForm, iterator, documentObject) {
         documentObject.forms[iterator].onsubmit = function ( event ){
             event.preventDefault();
 
-            //mautic integration
-            if (documentObject.forms[iterator].id.indexOf('mauticform') !== -1) {
-                let checkbox = documentObject.forms[iterator].querySelectorAll('input[id*="checkbox_rgpd"]')
-                if (checkbox.length > 0){
-                    if (checkbox.prop("checked") === true){
-                        let placeholder = documentObject.querySelectorAll('.cleantalk_placeholder')
-                        if (placeholder.length > 0) {
-                            placeholder[0].setAttribute('mautic_hidden_gdpr_id', checkbox.prop("id"))
-                        }
-                    }
-                }
-            }
-
             const prev = apbct_prev(event.currentTarget);
             const form_original = event.currentTarget.cloneNode(true);
 
@@ -319,18 +306,6 @@ function sendAjaxCheckingFormData(form, prev, formOriginal) {
                     //mautic forms integration
                     if (formOriginal.id.indexOf('mautic') !== -1) {
                         mautic_integration = true
-                    }
-                    let placeholders = document.getElementsByClassName('cleantalk_placeholder')
-                    if (placeholders) {
-                        for (let i = 0; i < placeholders.length; i++) {
-                            let mautic_hidden_gdpr_id = placeholders[i].getAttribute("mautic_hidden_gdpr_id")
-                            if (mautic_hidden_gdpr_id !== null && typeof(mautic_hidden_gdpr_id) !== 'undefined') {
-                                let mautic_gdpr_radio = formOriginal.querySelector('#' + mautic_hidden_gdpr_id)
-                                if (typeof(mautic_gdpr_radio) !== 'undefined') {
-                                    mautic_gdpr_radio.prop("checked", true);
-                                }
-                            }
-                        }
                     }
 
                     prev.after( formOriginal );
