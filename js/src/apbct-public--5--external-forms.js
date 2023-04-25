@@ -206,18 +206,8 @@ function apbctProcessExternalForm(currentForm, iterator, documentObject) {
         documentObject.forms[iterator].onsubmit = function( event ) {
             event.preventDefault();
 
-            // mautic integration
-            if (documentObject.forms[iterator].id.indexOf('mauticform') !== -1) {
-                const checkbox = documentObject.forms[iterator].querySelectorAll('input[id*="checkbox_rgpd"]');
-                if (checkbox.length > 0) {
-                    if (checkbox.prop('checked') === true) {
-                        const placeholder = documentObject.querySelectorAll('.cleantalk_placeholder');
-                        if (placeholder.length > 0) {
-                            placeholder[0].setAttribute('mautic_hidden_gdpr_id', checkbox.prop('id'));
-                        }
-                    }
-                }
-            }
+            const prev = apbct_prev(event.currentTarget);
+            const form_original = event.currentTarget.cloneNode(true);
 
             sendAjaxCheckingFormData(event.currentTarget);
         };
@@ -330,18 +320,6 @@ function sendAjaxCheckingFormData(form, prev, formOriginal) {
                     // mautic forms integration
                     if (formOriginal.id.indexOf('mautic') !== -1) {
                         mauticIntegration = true;
-                    }
-                    const placeholders = document.getElementsByClassName('cleantalk_placeholder');
-                    if (placeholders) {
-                        for (let i = 0; i < placeholders.length; i++) {
-                            const mauticHiddenGdprId = placeholders[i].getAttribute('mautic_hidden_gdpr_id');
-                            if (mauticHiddenGdprId !== null && typeof(mauticHiddenGdprId) !== 'undefined') {
-                                const mauticGdprRadio = formOriginal.querySelector('#' + mauticHiddenGdprId);
-                                if (typeof(mauticGdprRadio) !== 'undefined') {
-                                    mauticGdprRadio.prop('checked', true);
-                                }
-                            }
-                        }
                     }
 
                     prev.after( formOriginal );

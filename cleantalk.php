@@ -829,11 +829,6 @@ if ( is_admin() || is_network_admin() ) {
     }
 }
 
-// Short code for GDPR
-if ( $apbct->settings['gdpr__enabled'] ) {
-    add_shortcode('cleantalk_gdpr_form', 'apbct_shrotcode_handler__GDPR_public_notice__form');
-}
-
 /**
  * Function for SpamFireWall check
  */

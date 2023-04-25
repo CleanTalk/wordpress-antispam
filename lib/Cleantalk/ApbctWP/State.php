@@ -90,6 +90,7 @@ class State extends \Cleantalk\Common\State
         'exclusions__urls__use_regexp'             => 0,
         'exclusions__fields'                       => '',
         'exclusions__fields__use_regexp'           => 0,
+        'exclusions__form_signs'                   => '',
         'exclusions__roles'                        => array('Administrator'),
 
         // Administrator Panel
@@ -97,10 +98,6 @@ class State extends \Cleantalk\Common\State
         'admin_bar__all_time_counter'              => 0,
         'admin_bar__daily_counter'                 => 0,
         'admin_bar__sfw_counter'                   => 0,
-
-        // GDPR
-        'gdpr__enabled'                            => 0,
-        'gdpr__text'                               => 'By using this form you agree with the storage and processing of your data by using the Privacy Policy on this website.',
 
         // Misc
         'misc__send_connection_reports'            => 0, // Send connection reports to Cleantalk servers
@@ -563,7 +560,7 @@ class State extends \Cleantalk\Common\State
                 ( $this->settings['data__set_cookies'] == 3 && $this->isServerCacheDetected() ) ||
                 $this->settings['data__set_cookies'] == 2
                     ? 'alternative'
-                    : 'native';
+                    : 'none';
         } else {
             $this->data['cookies_type'] = 'none';
             //clear no_cookie_data_taken

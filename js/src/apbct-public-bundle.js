@@ -1,5 +1,7 @@
-class ApbctCore{
-
+/**
+ * Base class
+ */
+class ApbctCore {
     ajax_parameters = {};
     rest_parameters = {};
 
@@ -13,91 +15,103 @@ class ApbctCore{
 
     /**
      * Default constructor
+     * @param {string} selector
      */
-    constructor(selector){
+    constructor(selector) {
         this.select(selector);
     }
 
     /**
      * Get elements by CSS selector
      *
-     * @param selector
-     * @returns {*}
+     * @param {string} selector
+     * @return {*}
      */
     select(selector) {
-
-        if(selector instanceof HTMLCollection){
-            this.selector    = null;
-            this.elements    = [];
+        if (selector instanceof HTMLCollection) {
+            this.selector = null;
+            this.elements = [];
             this.elements = Array.prototype.slice.call(selector);
-        }else if( typeof selector === 'object' ){
-            this.selector    = null;
-            this.elements    = [];
+        } else if ( typeof selector === 'object' ) {
+            this.selector = null;
+            this.elements = [];
             this.elements[0] = selector;
-        }else if( typeof selector === 'string' ){
+        } else if ( typeof selector === 'string' ) {
             this.selector = selector;
             this.elements = Array.prototype.slice.call(document.querySelectorAll(selector));
             // this.elements = document.querySelectorAll(selector)[0];
-        }else{
+        } else {
             this.deselect();
         }
 
         return this;
     }
 
-    addElement(elemToAdd){
-        if( typeof elemToAdd === 'object' ){
+    /**
+     * @param {object|string} elemToAdd
+     */
+    addElement(elemToAdd) {
+        if ( typeof elemToAdd === 'object' ) {
             this.elements.push(elemToAdd);
-        }else if( typeof elemToAdd === 'string' ){
+        } else if ( typeof elemToAdd === 'string' ) {
             this.selector = elemToAdd;
             this.elements = Array.prototype.slice.call(document.querySelectorAll(elemToAdd));
-        }else{
+        } else {
             this.deselect();
         }
     }
 
-    push(elem){
+    /**
+     * @param {object} elem
+     */
+    push(elem) {
         this.elements.push(elem);
     }
 
-    reduce(){
-        this.elements = this.elements.slice(0,-1);
+    /**
+     * reduce
+     */
+    reduce() {
+        this.elements = this.elements.slice(0, -1);
     }
 
-    deselect(){
+    /**
+     * deselect
+     */
+    deselect() {
         this.elements = [];
     }
 
     /**
      * Set or get CSS for/of currently selected element
      *
-     * @param style
-     * @param getRaw
+     * @param {object|string} style
+     * @param {boolean} getRaw
      *
-     * @returns {boolean|*}
+     * @return {boolean|*}
      */
-    css(style, getRaw){
-
-        getRaw = getRaw | false;
+    css(style, getRaw) {
+        getRaw = getRaw || false;
 
         // Set style
-        if(typeof style === "object"){
-
-            const stringToCamelCase = str =>
-                str.replace(/([-_][a-z])/g, group =>
+        if (typeof style === 'object') {
+            const stringToCamelCase = (str) =>
+                str.replace(/([-_][a-z])/g, (group) =>
                     group
                         .toUpperCase()
                         .replace('-', '')
-                        .replace('_', '')
+                        .replace('_', ''),
                 );
 
             // Apply multiple styles
-            for(let style_name in style){
-                let DOM_style_name = stringToCamelCase(style_name);
+            for (const styleName in style) {
+                if (Object.hasOwn(style, styleName)) {
+                    const DomStyleName = stringToCamelCase(styleName);
 
-                // Apply to multiple elements (currently selected)
-                for(let i=0; i<this.elements.length; i++){
-                    this.elements[i].style[DOM_style_name] = style[style_name];
+                    // Apply to multiple elements (currently selected)
+                    for (let i=0; i<this.elements.length; i++) {
+                        this.elements[i].style[DomStyleName] = style[styleName];
+                    }
                 }
             }
 
@@ -105,14 +119,15 @@ class ApbctCore{
         }
 
         // Get style of first currently selected element
-        if(typeof style === 'string'){
-
+        if (typeof style === 'string') {
             let computedStyle = getComputedStyle(this.elements[0])[style];
 
             // Process
-            if( typeof computedStyle !== 'undefined' && ! getRaw){
-                computedStyle = computedStyle.replace(/(\d)(em|pt|%|px){1,2}$/, '$1');                           // Cut of units
-                computedStyle = Number(computedStyle) == computedStyle ? Number(computedStyle) : computedStyle; // Cast to INT
+            if ( typeof computedStyle !== 'undefined' && ! getRaw) {
+                // Cut of units
+                computedStyle = computedStyle.replace(/(\d)(em|pt|%|px){1,2}$/, '$1');
+                // Cast to INT
+                computedStyle = Number(computedStyle) == computedStyle ? Number(computedStyle) : computedStyle;
                 return computedStyle;
             }
 
@@ -121,29 +136,44 @@ class ApbctCore{
         }
     }
 
-    hide(){
+    /**
+     * hide
+     */
+    hide() {
         this.prop('prev-display', this.css('display'));
         this.css({'display': 'none'});
     }
 
-    show(){
+    /**
+     * show
+     */
+    show() {
         this.css({'display': this.prop('prev-display')});
     }
 
-    addClass(){
-        for(let i=0; i<this.elements.length; i++){
+    /**
+     * addClass
+     */
+    addClass() {
+        for (let i=0; i<this.elements.length; i++) {
             this.elements[i].classList.add(className);
         }
     }
 
-    removeClass(){
-        for(let i=0; i<this.elements.length; i++){
+    /**
+     * removeClass
+     */
+    removeClass() {
+        for (let i=0; i<this.elements.length; i++) {
             this.elements[i].classList.remove(className);
         }
     }
 
-    toggleClass(className){
-        for(let i=0; i<this.elements.length; i++){
+    /**
+     * @param {string} className
+     */
+    toggleClass(className) {
+        for (let i=0; i<this.elements.length; i++) {
             this.elements[i].classList.toggle(className);
         }
     }
@@ -151,26 +181,28 @@ class ApbctCore{
     /**
      * Wrapper for apbctAJAX class
      *
-     * @param ajax_parameters
-     * @returns {ApbctAjax}
+     * @param {object|array} ajaxParameters
+     * @return {ApbctAjax}
      */
-    ajax(ajax_parameters){
-        this.ajax_parameters = ajax_parameters;
+    ajax(ajaxParameters) {
+        this.ajax_parameters = ajaxParameters;
         return new ApbctAjax(ajax_parameters);
     }
 
     /**
      * Wrapper for apbctREST class
      *
-     * @param rest_parameters
-     * @returns {ApbctRest}
+     * @param {object|array} restParameters
+     * @return {ApbctRest}
      */
-    rest(rest_parameters){
-        this.rest_parameters = rest_parameters;
+    rest(restParameters) {
+        this.rest_parameters = restParameters;
         return new ApbctRest(rest_parameters);
     }
 
-    /************** EVENTS **************/
+    /**
+     * ************ EVENTS *************
+     */
 
     /**
      *
@@ -180,20 +212,19 @@ class ApbctCore{
      *      on('click',                   function(){ alert('some'); });
      *      on('click', 'inner_selector', function(){ alert('some'); });
      *
-     * @param args
+     * @param {object|array} args
      */
-    on(...args){
-
-        this.event         = args[0];
+    on(...args) {
+        this.event = args[0];
         this.eventCallback = args[2] || args[1];
-        this.eventSelector = typeof args[1] === "string" ? args[1] : null;
+        this.eventSelector = typeof args[1] === 'string' ? args[1] : null;
 
-        for(let i=0; i<this.elements.length; i++){
+        for (let i=0; i<this.elements.length; i++) {
             this.elements[i].addEventListener(
                 this.event,
-                this.eventSelector !== null
-                    ? this.onChecker.bind(this)
-                    : this.eventCallback
+                this.eventSelector !== null ?
+                    this.onChecker.bind(this) :
+                    this.eventCallback,
             );
         }
     }
@@ -201,42 +232,48 @@ class ApbctCore{
     /**
      * Check if a selector of an event matches current target
      *
-     * @param event
-     * @returns {*}
+     * @param {object} event
+     * @return {*}
      */
-    onChecker(event){
-        if(event.target === document.querySelector(this.eventSelector)){
+    onChecker(event) {
+        if (event.target === document.querySelector(this.eventSelector)) {
             event.stopPropagation();
             return this.eventCallback(event);
         }
     }
 
-    ready(callback){
+    /**
+     * @param {object|function|string} callback
+     */
+    ready(callback) {
         document.addEventListener('DOMContentLoaded', callback);
     }
 
-    change(callback){
+    /**
+     * @param {object|function|string} callback
+     */
+    change(callback) {
         this.on('change', callback);
     }
 
-    /************** ATTRIBUTES **************/
+    /**
+     * ATTRIBUTES
+     */
 
     /**
      * Get an attribute or property of an element
      *
-     * @param attrName
-     * @returns {*|*[]}
+     * @param {string} attrName
+     * @return {*|*[]}
      */
-    attr(attrName){
+    attr(attrName) {
+        const outputValue = [];
 
-        let outputValue = [];
-
-        for(let i=0; i<this.elements.length; i++){
-
+        for (let i=0; i<this.elements.length; i++) {
             // Use property instead of attribute if possible
-            if(typeof this.elements[i][attrName] !== undefined){
+            if (typeof this.elements[i][attrName] !== undefined) {
                 outputValue.push(this.elements[i][attrName]);
-            }else{
+            } else {
                 outputValue.push(this.elements[i].getAttribute(attrName));
             }
         }
@@ -245,22 +282,25 @@ class ApbctCore{
         return outputValue.length === 1 ? outputValue[0] : outputValue;
     }
 
-    prop(propName, value){
-
+    /**
+     * @param {string} propName
+     * @param {mixed} value
+     * @return {*|*[]|ApbctCore}
+     */
+    prop(propName, value) {
         // Setting values
-        if(typeof value !== "undefined"){
-            for(let i=0; i<this.elements.length; i++){
+        if (typeof value !== 'undefined') {
+            for (let i=0; i<this.elements.length; i++) {
                 this.elements[i][propName] = value;
             }
 
             return this;
 
             // Getting values
-        }else{
+        } else {
+            const outputValue = [];
 
-            let outputValue = [];
-
-            for(let i=0; i<this.elements.length; i++){
+            for (let i=0; i<this.elements.length; i++) {
                 outputValue.push(this.elements[i][propName]);
             }
 
@@ -272,107 +312,125 @@ class ApbctCore{
     /**
      * Set or get inner HTML
      *
-     * @param value
-     * @returns {*|*[]}
+     * @param {string} value
+     * @return {*|*[]}
      */
-    html(value){
-        return typeof value !== 'undefined'
-            ? this.prop('innerHTML', value)
-            : this.prop('innerHTML');
+    html(value) {
+        return typeof value !== 'undefined' ?
+            this.prop('innerHTML', value) :
+            this.prop('innerHTML');
     }
 
     /**
      * Set or get value of input tags
      *
-     * @param value
-     * @returns {*|*[]|undefined}
+     * @param {mixed} value
+     * @return {*|*[]|undefined}
      */
-    val(value){
-        return typeof value !== 'undefined'
-            ? this.prop('value', value)
-            : this.prop('value');
+    val(value) {
+        return typeof value !== 'undefined' ?
+            this.prop('value', value) :
+            this.prop('value');
     }
 
-    data(name, value){
-        return typeof value !== 'undefined'
-            ? this.prop('apbct-data', name, value)
-            : this.prop('apbct-data');
+    /**
+     * @param {string} name
+     * @param {mixed} value
+     * @return {*|*[]|ApbctCore}
+     */
+    data(name, value) {
+        return typeof value !== 'undefined' ?
+            this.prop('apbct-data', name, value) :
+            this.prop('apbct-data');
     }
 
-    /************** END OF ATTRIBUTES **************/
+    /**
+     * END OF ATTRIBUTES
+     */
 
-    /************** FILTERS **************/
+    /**
+     * FILTERS
+     */
 
     /**
      * Check if the current elements are corresponding to filter
      *
-     * @param filter
-     * @returns {boolean}
+     * @param {mixed} filter
+     * @return {boolean}
      */
-    is(filter){
-
+    is(filter) {
         let outputValue = false;
 
-        for(let elem of this.elements){
+        for (const elem of this.elements) {
             outputValue ||= this.isElem(elem, filter);
         }
 
         return outputValue;
     }
 
-    isElem(elemToCheck, filter){
-
+    /**
+     * @param {string|object} elemToCheck
+     * @param {mixed} filter
+     * @return {boolean}
+     */
+    isElem(elemToCheck, filter) {
         let is = false;
-        let isRegisteredTagName = function(name){
-            let newlyCreatedElement = document.createElement(name).constructor;
+        const isRegisteredTagName = function(name) {
+            const newlyCreatedElement = document.createElement(name).constructor;
             return ! Boolean( ~[HTMLElement, HTMLUnknownElement].indexOf(newlyCreatedElement) );
         };
 
         // Check for filter function
-        if(typeof filter === 'function') {
+        if (typeof filter === 'function') {
             is ||= filter.call(this, elemToCheck);
         }
 
         // Check for filter function
-        if(typeof filter === 'string') {
-
+        if (typeof filter === 'string') {
             // Filter is tag name
-            if( filter.match(/^[a-z]/) && isRegisteredTagName(filter) ){
+            if ( filter.match(/^[a-z]/) && isRegisteredTagName(filter) ) {
                 is ||= elemToCheck.tagName.toLowerCase() === filter.toLowerCase();
 
                 // Filter is property
-            }else if( filter.match(/^[a-z]/) ){
+            } else if ( filter.match(/^[a-z]/) ) {
                 is ||= Boolean(elemToCheck[filter]);
 
                 // Filter is CSS selector
-            }else {
-                is ||= this.selector !== null
-                    ? document.querySelector(this.selector + filter) !== null // If possible
-                    : this.isWithoutSelector(elemToCheck, filter);                    // Search through all elems with such selector
+            } else {
+                is ||= this.selector !== null ?
+                    document.querySelector(this.selector + filter) !== null : // If possible
+                    this.isWithoutSelector(elemToCheck, filter); // Search through all elems with such selector
             }
         }
 
         return is;
     }
 
-    isWithoutSelector(elemToCheck, filter){
-
-        let elems       = document.querySelectorAll(filter);
+    /**
+     * @param {object|string} elemToCheck
+     * @param {mixed} filter
+     * @return {boolean}
+     */
+    isWithoutSelector(elemToCheck, filter) {
+        const elems = document.querySelectorAll(filter);
         let outputValue = false;
 
-        for(let elem of elems){
+        for (const elem of elems) {
             outputValue ||= elemToCheck === elem;
         }
 
         return outputValue;
     }
 
-    filter(filter){
-
+    /**
+     * @param {mixed} filter
+     * @return {ApbctCore}
+     */
+    filter(filter) {
         this.selector = null;
 
-        for( let i = this.elements.length - 1; i >= 0; i-- ){
-            if( ! this.isElem(this.elements[i], filter) ){
+        for ( let i = this.elements.length - 1; i >= 0; i-- ) {
+            if ( ! this.isElem(this.elements[i], filter) ) {
                 this.elements.splice(Number(i), 1);
             }
         }
@@ -380,50 +438,64 @@ class ApbctCore{
         return this;
     }
 
-    /************** NODES **************/
+    /**
+     * NODES
+     */
 
-    parent(filter){
-
+    /**
+     * @param {mixed} filter
+     * @return {ApbctCore}
+     */
+    parent(filter) {
         this.select(this.elements[0].parentElement);
 
-        if( typeof filter !== 'undefined' && ! this.is(filter) ){
+        if ( typeof filter !== 'undefined' && ! this.is(filter) ) {
             this.deselect();
         }
 
         return this;
     }
 
-    parents(filter){
-
+    /**
+     * @param {mixed} filter
+     * @return {ApbctCore}
+     */
+    parents(filter) {
         this.select(this.elements[0]);
 
-        for ( ; this.elements[ this.elements.length - 1].parentElement !== null ; ) {
-            this.push(this.elements[ this.elements.length - 1].parentElement);
+        for ( ; this.elements[this.elements.length - 1].parentElement !== null; ) {
+            this.push(this.elements[this.elements.length - 1].parentElement);
         }
 
-        this.elements.splice(0,1); // Deleting initial element from the set
+        this.elements.splice(0, 1); // Deleting initial element from the set
 
-        if( typeof filter !== 'undefined' ){
+        if ( typeof filter !== 'undefined' ) {
             this.filter(filter);
         }
 
         return this;
     }
 
-    children(filter){
-
+    /**
+     * @param {mixed} filter
+     * @return {ApbctCore}
+     */
+    children(filter) {
         this.select(this.elements[0].children);
 
-        if( typeof filter !== 'undefined' ){
+        if ( typeof filter !== 'undefined' ) {
             this.filter(filter);
         }
 
         return this;
     }
 
-    siblings(filter){
-
-        let current = this.elements[0]; // Remember current to delete it later
+    /**
+     * @param {mixed} filter
+     * @return {ApbctCore}
+     */
+    siblings(filter) {
+        const current = this.elements[0]; // Remember current to delete it later
 
         this.parent();
         this.children(filter);
@@ -432,33 +504,42 @@ class ApbctCore{
         return this;
     }
 
-    /************** DOM MANIPULATIONS **************/
-    remove(){
-        for(let elem of this.elements){
+    /** ************ DOM MANIPULATIONS **************/
+    remove() {
+        for (const elem of this.elements) {
             elem.remove();
         }
     }
 
-    after(content){
-        for(let elem of this.elements){
+    /**
+     * @param {string} content
+     */
+    after(content) {
+        for (const elem of this.elements) {
             elem.after(content);
         }
     }
 
-    append(content){
-        for(let elem of this.elements){
+    /**
+     * @param {string} content
+     */
+    append(content) {
+        for (const elem of this.elements) {
             elem.append(content);
         }
     }
 
-    /**************  ANIMATION  **************/
+    /** ************  ANIMATION  **************/
+    /**
+     * @param {number} time
+     */
     fadeIn(time) {
-        for(let elem of this.elements){
+        for (const elem of this.elements) {
             elem.style.opacity = 0;
             elem.style.display = 'block';
 
             let last = +new Date();
-            const tick = function () {
+            const tick = function() {
                 elem.style.opacity = +elem.style.opacity + (new Date() - last) / time;
                 last = +new Date();
 
@@ -471,12 +552,15 @@ class ApbctCore{
         }
     }
 
+    /**
+     * @param {number} time
+     */
     fadeOut(time) {
-        for(let elem of this.elements){
+        for (const elem of this.elements) {
             elem.style.opacity = 1;
 
             let last = +new Date();
-            const tick = function () {
+            const tick = function() {
                 elem.style.opacity = +elem.style.opacity - (new Date() - last) / time;
                 last = +new Date();
 
@@ -527,8 +611,12 @@ class ApbctCore{
 //         }
 //     );
 
+/**
+ * @param {mixed} msg
+ * @param {string} url
+ */
 function ctProcessError(msg, url) {
-    var log = {};
+    const log = {};
     if (msg && msg.message) {
         log.err = {
             'msg': msg.message,
@@ -537,11 +625,11 @@ function ctProcessError(msg, url) {
             'col': !!msg.columnNumber ? msg.columnNumber : !!columnNo ? columnNo : false,
             'stacktrace': !!msg.stack ? msg.stack : false,
             'cause': !!url ? JSON.stringify(url) : false,
-            'errorObj': !!error ? error : false
+            'errorObj': !!error ? error : false,
         };
     } else {
         log.err = {
-            'msg': msg
+            'msg': msg,
         };
 
         if (!!url) {
@@ -552,30 +640,30 @@ function ctProcessError(msg, url) {
     log.url = window.location.href;
     log.userAgent = window.navigator.userAgent;
 
-    let ct_js_errors = "ct_js_errors";
-    let errArray = localStorage.getItem(ct_js_errors);
-    if(errArray === null) errArray = "[]";
+    const ctJsErrors = 'ct_js_errors';
+    let errArray = localStorage.getItem(ctJsErrors);
+    if (errArray === null) errArray = '[]';
     errArray = JSON.parse(errArray);
     for (let i = 0; i < errArray.length; i++) {
-      if (errArray[i].err.msg == log.err.msg) {
-        return;
-      }
+        if (errArray[i].err.msg === log.err.msg) {
+            return;
+        }
     }
 
-    errArray.push(log)
+    errArray.push(log);
     localStorage.setItem(ct_js_errors, JSON.stringify(errArray));
-};
+}
 
 if (Math.floor(Math.random() * 100) === 1) {
-    window.onerror = function (exception, url) {
-        let filterWords = ['apbct', 'ctPublic'];
+    window.onerror = function(exception, url) {
+        const filterWords = ['apbct', 'ctPublic'];
         let length = filterWords.length;
-        while(length--) {
-          if (exception.indexOf(filterWords[length]) != -1) {
-              ctProcessError(exception, url);
-          }
+        while (length--) {
+            if (exception.indexOf(filterWords[length]) !== -1) {
+                ctProcessError(exception, url);
+            }
         }
-      
+
         return false;
     };
 }
@@ -583,54 +671,57 @@ if (Math.floor(Math.random() * 100) === 1) {
 /**
  * Enter point to ApbctCore class
  *
- * @param params
- * @returns {*}
+ * @param {array|object} params
+ * @return {*}
  */
-function apbct(params){
+// eslint-disable-next-line no-unused-vars, require-jsdoc
+function apbct(params) {
     return new ApbctCore()
         .select(params);
 }
-class ApbctXhr{
 
+/**
+ * ApbctXhr
+ */
+class ApbctXhr {
     xhr = new XMLHttpRequest();
 
     // Base parameters
-    method   = 'POST'; // HTTP-request type
-    url      = ''; // URL to send the request
-    async    = true;
-    user     = null; // HTTP-authorization username
+    method = 'POST'; // HTTP-request type
+    url = ''; // URL to send the request
+    async = true;
+    user = null; // HTTP-authorization username
     password = null; // HTTP-authorization password
-    data     = {};   // Data to send
-
+    data = {}; // Data to send
 
     // Optional params
-    button      = null; // Button that should be disabled when request is performing
-    spinner     = null; // Spinner that should appear when request is in process
+    button = null; // Button that should be disabled when request is performing
+    spinner = null; // Spinner that should appear when request is in process
     progressbar = null; // Progress bar for the current request
-    context     = this; // Context
-    callback    = null;
+    context = this; // Context
+    callback = null;
     onErrorCallback = null;
 
     responseType = 'json'; // Expected data type from server
-    headers      = {};
-    timeout      = 15000; // Request timeout in milliseconds
+    headers = {};
+    timeout = 15000; // Request timeout in milliseconds
 
     methods_to_convert_data_to_URL = [
         'GET',
         'HEAD',
     ];
 
-    body        = null;
-    http_code   = 0;
+    body = null;
+    http_code = 0;
     status_text = '';
 
-    constructor(parameters){
-
+    // eslint-disable-next-line require-jsdoc
+    constructor(parameters) {
         console.log('%cXHR%c started', 'color: red; font-weight: bold;', 'color: grey; font-weight: normal;');
 
         // Set class properties
-        for( let key in parameters ){
-            if( typeof this[key] !== 'undefined' ){
+        for ( const key in parameters ) {
+            if ( typeof this[key] !== 'undefined' ) {
                 this[key] = parameters[key];
             }
         }
@@ -644,8 +735,9 @@ class ApbctXhr{
             this.convertData();
         }
 
-        if( ! this.url ){
-            console.log('%cXHR%c not URL provided', 'color: red; font-weight: bold;', 'color: grey; font-weight: normal;')
+        if ( ! this.url ) {
+            console.log('%cXHR%c not URL provided',
+                'color: red; font-weight: bold;', 'color: grey; font-weight: normal;');
             return false;
         }
 
@@ -654,30 +746,30 @@ class ApbctXhr{
         this.setHeaders();
 
         this.xhr.responseType = this.responseType;
-        this.xhr.timeout      = this.timeout;
+        this.xhr.timeout = this.timeout;
 
         /* EVENTS */
         // Monitoring status
-        this.xhr.onreadystatechange = function(){
+        this.xhr.onreadystatechange = function() {
             this.onReadyStateChange();
         }.bind(this);
 
         // Run callback
-        this.xhr.onload = function(){
+        this.xhr.onload = function() {
             this.onLoad();
         }.bind(this);
 
         // On progress
-        this.xhr.onprogress = function(event){
+        this.xhr.onprogress = function(event) {
             this.onProgress(event);
         }.bind(this);
 
         // On error
-        this.xhr.onerror = function(){
+        this.xhr.onerror = function() {
             this.onError();
         }.bind(this);
 
-        this.xhr.ontimeout = function(){
+        this.xhr.ontimeout = function() {
             this.onTimeout();
         }.bind(this);
 
@@ -685,89 +777,106 @@ class ApbctXhr{
         this.xhr.send(this.body);
     }
 
-    prepare(){
-
+    /**
+     * prepare
+     */
+    prepare() {
         // Disable button
-        if(this.button){
+        if (this.button) {
             this.button.setAttribute('disabled', 'disabled');
             this.button.style.cursor = 'not-allowed';
         }
 
         // Enable spinner
-        if(this.spinner) {
+        if (this.spinner) {
             this.spinner.style.display = 'inline';
         }
     }
 
-    complete(){
-
-        this.http_code   = this.xhr.status;
+    /**
+     * complete
+     */
+    complete() {
+        this.http_code = this.xhr.status;
         this.status_text = this.xhr.statusText;
 
         // Disable button
-        if(this.button){
+        if (this.button) {
             this.button.removeAttribute('disabled');
             this.button.style.cursor = 'auto';
         }
 
         // Enable spinner
-        if(this.spinner) {
+        if (this.spinner) {
             this.spinner.style.display = 'none';
         }
 
-        if( this.progressbar ) {
+        if ( this.progressbar ) {
             this.progressbar.fadeOut('slow');
         }
     }
 
-    onReadyStateChange(){
-        if (this.on_ready_state_change !== null && typeof this.on_ready_state_change === 'function'){
+    /**
+     * onReadyStateChange
+     */
+    onReadyStateChange() {
+        if (this.on_ready_state_change !== null && typeof this.on_ready_state_change === 'function') {
             this.on_ready_state_change();
         }
     }
 
+    /**
+     * @param {object} event
+     */
     onProgress(event) {
-        if (this.on_progress !== null && typeof this.on_progress === 'function'){
+        if (this.on_progress !== null && typeof this.on_progress === 'function') {
             this.on_progress();
         }
     }
 
-    onError(){
-
+    /**
+     * onError
+     */
+    onError() {
         console.log('error');
 
         this.complete();
         this.error(
             this.http_code,
-            this.status_text
+            this.status_text,
         );
 
-        if (this.onErrorCallback !== null && typeof this.onErrorCallback === 'function'){
+        if (this.onErrorCallback !== null && typeof this.onErrorCallback === 'function') {
             this.onErrorCallback(this.status_text);
         }
     }
 
-    onTimeout(){
+    /**
+     * onTimeout
+     */
+    onTimeout() {
         this.complete();
         this.error(
             0,
-            'timeout'
+            'timeout',
         );
 
-        if (this.onErrorCallback !== null && typeof this.onErrorCallback === 'function'){
+        if (this.onErrorCallback !== null && typeof this.onErrorCallback === 'function') {
             this.onErrorCallback('Timeout');
         }
     }
 
-    onLoad(){
-
+    /**
+     * @return {boolean}
+     */
+    onLoad() {
         this.complete();
 
-        if (this.responseType === 'json' ){
-            if(this.xhr.response === null){
+        if (this.responseType === 'json' ) {
+            if (this.xhr.response === null) {
                 this.error(this.http_code, this.status_text, 'No response');
                 return false;
-            }else if( typeof this.xhr.response.error !== 'undefined') {
+            } else if ( typeof this.xhr.response.error !== 'undefined') {
                 this.error(this.http_code, this.status_text, this.xhr.response.error);
                 return false;
             }
@@ -778,81 +887,93 @@ class ApbctXhr{
         }
     }
 
-    error(http_code, status_text, additional_msg){
+    /**
+     * @param {number} httpCode
+     * @param {string} statusText
+     * @param {string} additionalMsg
+     */
+    error(httpCode, statusText, additionalMsg) {
+        let errorString = '';
 
-        let error_string = '';
-
-        if( status_text === 'timeout' ){
-            error_string += 'Server response timeout'
-
-        }else if( http_code === 200 ){
-
-            if( status_text === 'parsererror' ){
-                error_string += 'Unexpected response from server. See console for details.';
-            }else {
-                error_string += 'Unexpected error. Status: ' + status_text + '.';
-                if( typeof additional_msg !== 'undefined' )
-                    error_string += ' Additional error info: ' + additional_msg;
+        if ( statusText === 'timeout' ) {
+            errorString += 'Server response timeout';
+        } else if ( httpCode === 200 ) {
+            if ( statusText === 'parsererror' ) {
+                errorString += 'Unexpected response from server. See console for details.';
+            } else {
+                errorString += 'Unexpected error. Status: ' + statusText + '.';
+                if ( typeof additionalMsg !== 'undefined' ) {
+                    errorString += ' Additional error info: ' + additionalMsg;
+                }
             }
-
-        }else if(http_code === 500){
-            error_string += 'Internal server error.';
-
-        }else {
-            error_string += 'Unexpected response code:' + http_code;
+        } else if (httpCode === 500) {
+            errorString += 'Internal server error.';
+        } else {
+            errorString += 'Unexpected response code:' + httpCode;
         }
 
-        this.errorOutput( error_string );
+        this.errorOutput( errorString );
     }
 
-    errorOutput(error_msg){
-        console.log( '%c ctXHR error: %c' + error_msg, 'color: red;', 'color: grey;' );
+    /**
+     * @param {string} errorMsg
+     */
+    errorOutput(errorMsg) {
+        console.log( '%c ctXHR error: %c' + errorMsg, 'color: red;', 'color: grey;' );
     }
 
-    setHeaders(){
+    /**
+     * setHeaders
+     */
+    setHeaders() {
         // Set headers if passed
-        for( let header_name in this.headers ){
-            if( typeof this.headers[header_name] !== 'undefined' ){
-                this.xhr.setRequestHeader(header_name, this.headers[header_name]);
+        for ( const headerName in this.headers ) {
+            if ( typeof this.headers[headerName] !== 'undefined' ) {
+                this.xhr.setRequestHeader(header_name, this.headers[headerName]);
             }
         }
     }
 
-    convertData()
-    {
+    /**
+     * @return {string|*}
+     */
+    convertData() {
         // GET, HEAD request-type
-        if( ~this.methods_to_convert_data_to_URL.indexOf( this.method ) ){
+        if ( ~this.methods_to_convert_data_to_URL.indexOf( this.method ) ) {
             return this.convertDataToURL();
 
             // POST request-type
-        }else{
-            return this.convertDataToBody()
+        } else {
+            return this.convertDataToBody();
         }
     }
 
-    convertDataToURL(){
-        let params_appendix = new URLSearchParams(this.data).toString();
-        let params_prefix   = this.url.match(/^(https?:\/{2})?[a-z0-9.]+\?/) ? '&' : '?';
-        this.url += params_prefix + params_appendix;
+    /**
+     * @return {string}
+     */
+    convertDataToURL() {
+        const paramsAppendix = new URLSearchParams(this.data).toString();
+        const paramsPrefix = this.url.match(/^(https?:\/{2})?[a-z0-9.]+\?/) ? '&' : '?';
+        this.url += paramsPrefix + paramsAppendix;
 
         return this.url;
     }
 
     /**
-     *
-     * @returns {null}
+     * @return {null}
      */
-    convertDataToBody()
-    {
+    convertDataToBody() {
         this.body = new FormData();
 
-        for (let dataKey in this.data) {
-            this.body.append(
-                dataKey,
-                typeof this.data[dataKey] === 'object'
-                    ? JSON.stringify(this.data[dataKey])
-                    : this.data[dataKey]
-            );
+        for (const dataKey in this.data) {
+            if (Object.hasOwn(data, dataKey)) {
+                this.body.append(
+                    dataKey,
+                    typeof this.data[dataKey] === 'object' ?
+                        JSON.stringify(this.data[dataKey]) :
+                        this.data[dataKey],
+                );
+            }
         }
 
         return this.body;
@@ -863,28 +984,27 @@ class ApbctXhr{
      *
      * Recursively decode JSON-encoded properties
      *
-     * @param object
-     * @returns {*}
+     * @param {object} object
+     * @return {*}
      */
-    deleteDoubleJSONEncoding(object){
+    deleteDoubleJSONEncoding(object) {
+        if ( typeof object === 'object') {
+            for (const objectKey in object) {
+                if (Object.hasOwn(object, objectKey)) {
+                    // Recursion
+                    if ( typeof object[objectKey] === 'object') {
+                        object[objectKey] = this.deleteDoubleJSONEncoding(object[objectKey]);
+                    }
 
-        if( typeof object === 'object'){
-
-            for (let objectKey in object) {
-
-                // Recursion
-                if( typeof object[objectKey] === 'object'){
-                    object[objectKey] = this.deleteDoubleJSONEncoding(object[objectKey]);
-                }
-
-                // Common case (out)
-                if(
-                    typeof object[objectKey] === 'string' &&
-                    object[objectKey].match(/^[\[{].*?[\]}]$/) !== null // is like JSON
-                ){
-                    let parsedValue = JSON.parse(object[objectKey]);
-                    if( typeof parsedValue === 'object' ){
-                        object[objectKey] = parsedValue;
+                    // Common case (out)
+                    if (
+                        typeof object[objectKey] === 'string' &&
+                        object[objectKey].match(/^[\[{].*?[\]}]$/) !== null // is like JSON
+                    ) {
+                        const parsedValue = JSON.parse(object[objectKey]);
+                        if ( typeof parsedValue === 'object' ) {
+                            object[objectKey] = parsedValue;
+                        }
                     }
                 }
             }
@@ -893,129 +1013,145 @@ class ApbctXhr{
         return object;
     }
 }
-class ApbctAjax extends ApbctXhr{
-
+// eslint-disable-next-line require-jsdoc
+class ApbctAjax extends ApbctXhr {
+    // eslint-disable-next-line require-jsdoc
     constructor(...args) {
         super(args[0]);
     }
 }
-class ApbctRest extends ApbctXhr{
-
+// eslint-disable-next-line require-jsdoc
+class ApbctRest extends ApbctXhr {
     static default_route = ctPublicFunctions._rest_url + 'cleantalk-antispam/v1/';
-    route         = '';
+    route = '';
 
+    // eslint-disable-next-line require-jsdoc
     constructor(...args) {
         args = args[0];
         args.url = ApbctRest.default_route + args.route;
         args.headers = {
-            "X-WP-Nonce": ctPublicFunctions._rest_nonce
+            'X-WP-Nonce': ctPublicFunctions._rest_nonce,
         };
         super(args);
     }
 }
 
-function ctSetCookie( cookies, value, expires ){
-
-    let list_of_cookie_names_to_force_alt = [
+/**
+ * @param {object|array|string} cookies
+ * @param {object|array|string} value
+ * @param {string|number} expires
+ */
+// eslint-disable-next-line no-unused-vars,require-jsdoc
+function ctSetCookie( cookies, value, expires ) {
+    const listOfCookieNamesToForceAlt = [
         'ct_sfw_pass_key',
         'ct_sfw_passed',
         'wordpress_apbct_antibot',
         'apbct_anticrawler_passed',
         'apbct_antiflood_passed',
-        'apbct_email_encoder_passed'
-    ]
+        'apbct_email_encoder_passed',
+    ];
 
-    if( typeof cookies === 'string' && typeof value === 'string' || typeof value === 'number'){
-        var skip_alt = cookies === 'ct_pointer_data';
-        cookies = [ [ cookies, value, expires ] ];
+    if ( typeof cookies === 'string' && typeof value === 'string' || typeof value === 'number') {
+        // eslint-disable-next-line no-unused-vars
+        const skipAlt = cookies === 'ct_pointer_data';
+        cookies = [[cookies, value, expires]];
     }
 
     // Cookies disabled
-    if( ctPublicFunctions.data__cookies_type === 'none' ){
-        let forced_alt_cookies_set = []
-        cookies.forEach( function (item, i, arr	) {
-            if (list_of_cookie_names_to_force_alt.indexOf(item[0]) !== -1) {
-                forced_alt_cookies_set.push(item)
+    if ( ctPublicFunctions.data__cookies_type === 'none' ) {
+        const forcedAltCookiesSet = [];
+        cookies.forEach( function(item) {
+            if (listOfCookieNamesToForceAlt.indexOf(item[0]) !== -1) {
+                forcedAltCookiesSet.push(item);
             } else {
-                apbctLocalStorage.set(item[0], encodeURIComponent(item[1]))
+                apbctLocalStorage.set(item[0], encodeURIComponent(item[1]));
             }
         });
         // if cookies from list found use alt cookies for this selection set
-        if ( forced_alt_cookies_set.length > 0 ){
-            ctSetAlternativeCookie(forced_alt_cookies_set)
+        if ( forcedAltCookiesSet.length > 0 ) {
+            ctSetAlternativeCookie(forcedAltCookiesSet);
         }
 
         // If problem integration forms detected use alt cookies for whole cookies set
-        if( ctPublic.force_alt_cookies ) {
-            //do it just once
+        if ( ctPublic.force_alt_cookies ) {
+            // do it just once
 
-            if ( !skip_alt ){
-                ctSetAlternativeCookie(cookies, {forceAltCookies:true})
+            if ( !skipAlt ) {
+                ctSetAlternativeCookie(cookies, {forceAltCookies: true});
             }
         } else {
-            ctNoCookieAttachHiddenFieldsToForms()
+            ctNoCookieAttachHiddenFieldsToForms();
         }
 
         // Using traditional cookies
-    }else if( ctPublicFunctions.data__cookies_type === 'native' ){
-        cookies.forEach( function (item, i, arr	) {
-            var expires = typeof item[2] !== 'undefined' ? "expires=" + expires + '; ' : '';
-            var ctSecure = location.protocol === 'https:' ? '; secure' : '';
-            document.cookie = ctPublicFunctions.cookiePrefix + item[0] + "=" + encodeURIComponent(item[1]) + "; " + expires + "path=/; samesite=lax" + ctSecure;
+    } else if ( ctPublicFunctions.data__cookies_type === 'native' ) {
+        cookies.forEach( function(item) {
+            const expires = typeof item[2] !== 'undefined' ? 'expires=' + expires + '; ' : '';
+            const ctSecure = location.protocol === 'https:' ? '; secure' : '';
+            document.cookie = ctPublicFunctions.cookiePrefix +
+                item[0] +
+                '=' +
+                encodeURIComponent(item[1]) +
+                '; ' +
+                expires +
+                'path=/; samesite=lax' +
+                ctSecure;
         });
 
         // Using alternative cookies
-    }else if( ctPublicFunctions.data__cookies_type === 'alternative' && ! skip_alt ) {
-        ctSetAlternativeCookie(cookies)
+    } else if ( ctPublicFunctions.data__cookies_type === 'alternative' && ! skipAlt ) {
+        ctSetAlternativeCookie(cookies);
     }
 }
 
-function ctDetectForcedAltCookiesForms(){
-    let ninja_forms_sign = document.querySelectorAll('#tmpl-nf-layout').length > 0
-    let smart_forms_sign = document.querySelectorAll('script[id*="smart-forms"]').length > 0
+// eslint-disable-next-line no-unused-vars,require-jsdoc
+function ctDetectForcedAltCookiesForms() {
+    const ninjaFormsSign = document.querySelectorAll('#tmpl-nf-layout').length > 0;
+    const smartFormsSign = document.querySelectorAll('script[id*="smart-forms"]').length > 0;
 
-    ctPublic.force_alt_cookies = smart_forms_sign || ninja_forms_sign
+    ctPublic.force_alt_cookies = smartFormsSign || ninjaFormsSign;
 }
 
+// eslint-disable-next-line require-jsdoc
 function ctSetAlternativeCookie(cookies, params) {
-
-    if (typeof (getJavascriptClientData) === "function" ){
-        //reprocess already gained cookies data
+    if (typeof (getJavascriptClientData) === 'function' ) {
+        // reprocess already gained cookies data
         if (Array.isArray(cookies)) {
             cookies = getJavascriptClientData(cookies);
         }
     } else {
-        console.log('APBCT ERROR: getJavascriptClientData() is not loaded')
+        console.log('APBCT ERROR: getJavascriptClientData() is not loaded');
     }
 
     try {
-        cookies = JSON.parse(cookies)
-    } catch (e){
-        console.log('APBCT ERROR: JSON parse error:' + e)
-        return
+        cookies = JSON.parse(cookies);
+    } catch (e) {
+        console.log('APBCT ERROR: JSON parse error:' + e);
+        return;
     }
 
     const callback = params && params.callback || null;
     const onErrorCallback = params && params.onErrorCallback || null;
 
-    if( params && params.forceAltCookies ) {
+    if ( params && params.forceAltCookies ) {
         cookies.apbct_force_alt_cookies = true;
     }
 
     // Using REST API handler
-    if( ctPublicFunctions.data__ajax_type === 'rest' ){
+    if ( ctPublicFunctions.data__ajax_type === 'rest' ) {
         apbct_public_sendREST(
             'alt_sessions',
             {
                 method: 'POST',
-                data: { cookies: cookies },
+                data: {cookies: cookies},
                 callback: callback,
-                onErrorCallback: onErrorCallback
-            }
+                onErrorCallback: onErrorCallback,
+            },
         );
 
         // Using AJAX request and handler
-    } else if( ctPublicFunctions.data__ajax_type === 'admin_ajax' ) {
+    } else if ( ctPublicFunctions.data__ajax_type === 'admin_ajax' ) {
         apbct_public_sendAJAX(
             {
                 action: 'apbct_alt_session__save__AJAX',
@@ -1024,8 +1160,8 @@ function ctSetAlternativeCookie(cookies, params) {
             {
                 notJson: 1,
                 callback: callback,
-                onErrorCallback: onErrorCallback
-            }
+                onErrorCallback: onErrorCallback,
+            },
         );
     }
 }
@@ -1033,91 +1169,92 @@ function ctSetAlternativeCookie(cookies, params) {
 /**
  * Get cookie by name
  * @param name
- * @returns {string|undefined}
+ * @return {string|undefined}
  */
+// eslint-disable-next-line require-jsdoc,no-unused-vars
 function ctGetCookie(name) {
-    var matches = document.cookie.match(new RegExp(
-        "(?:^|; )" + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + "=([^;]*)"
+    const matches = document.cookie.match(new RegExp(
+        '(?:^|; )' + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + '=([^;]*)',
     ));
     return matches ? decodeURIComponent(matches[1]) : undefined;
 }
 
+// eslint-disable-next-line require-jsdoc,no-unused-vars
 function ctDeleteCookie(cookieName) {
     // Cookies disabled
-    if( ctPublicFunctions.data__cookies_type === 'none' ){
+    if ( ctPublicFunctions.data__cookies_type === 'none' ) {
         return;
 
     // Using traditional cookies
-    }else if( ctPublicFunctions.data__cookies_type === 'native' ){
-
-        var ctSecure = location.protocol === 'https:' ? '; secure' : '';
-        document.cookie = cookieName + "=\"\"; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; samesite=lax" + ctSecure;
+    } else if ( ctPublicFunctions.data__cookies_type === 'native' ) {
+        const ctSecure = location.protocol === 'https:' ? '; secure' : '';
+        document.cookie = cookieName + '=""; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; samesite=lax' + ctSecure;
 
     // Using alternative cookies
-    }else if( ctPublicFunctions.data__cookies_type === 'alternative' ){
+    } else if ( ctPublicFunctions.data__cookies_type === 'alternative' ) {
         // @ToDo implement this logic
     }
 }
 
-function apbct_public_sendAJAX(data, params, obj){
-
+// eslint-disable-next-line require-jsdoc,camelcase
+function apbct_public_sendAJAX(data, params, obj) {
     // Default params
-    let _params            = [];
-    _params["callback"]    = params.callback    || null;
-    _params["onErrorCallback"] = params.onErrorCallback    || null;
-    _params["callback_context"] = params.callback_context || null;
-    _params["callback_params"] = params.callback_params || null;
-    _params["async"]        = params.async || true;
-    _params["notJson"]     = params.notJson     || null;
-    _params["responseType"]= params.notJson ? 'text' : 'json';
-    _params["timeout"]     = params.timeout     || 15000;
-    _params["obj"]         = obj                || null;
-    _params["button"]      = params.button      || null;
-    _params["spinner"]     = params.spinner     || null;
-    _params["progressbar"] = params.progressbar || null;
-    _params["silent"]      = params.silent      || null;
-    _params["no_nonce"]    = params.no_nonce    || null;
-    _params["data"]        = data;
-    _params["url"]         = ctPublicFunctions._ajax_url;
+    const _params = [];
+    _params['callback'] = params.callback || null;
+    _params['onErrorCallback'] = params.onErrorCallback || null;
+    _params['callback_context'] = params.callback_context || null;
+    _params['callback_params'] = params.callback_params || null;
+    _params['async'] = params.async || true;
+    _params['notJson'] = params.notJson || null;
+    _params['responseType']= params.notJson ? 'text' : 'json';
+    _params['timeout'] = params.timeout || 15000;
+    _params['obj'] = obj || null;
+    _params['button'] = params.button || null;
+    _params['spinner'] = params.spinner || null;
+    _params['progressbar'] = params.progressbar || null;
+    _params['silent'] = params.silent || null;
+    _params['no_nonce'] = params.no_nonce || null;
+    _params['data'] = data;
+    _params['url'] = ctPublicFunctions._ajax_url;
 
-    if(typeof (data) === 'string') {
-        if( ! _params["no_nonce"] ) {
-            _params["data"] = _params["data"] + '&_ajax_nonce=' + ctPublicFunctions._ajax_nonce;
+    if (typeof (data) === 'string') {
+        if ( ! _params['no_nonce'] ) {
+            _params['data'] = _params['data'] + '&_ajax_nonce=' + ctPublicFunctions._ajax_nonce;
         }
-        _params["data"] = _params["data"] + '&no_cache=' + Math.random()
+        _params['data'] = _params['data'] + '&no_cache=' + Math.random();
     } else {
-        if( ! _params["no_nonce"] ) {
-            _params["data"]._ajax_nonce = ctPublicFunctions._ajax_nonce;
+        if ( ! _params['no_nonce'] ) {
+            _params['data']._ajax_nonce = ctPublicFunctions._ajax_nonce;
         }
-        _params["data"].no_cache = Math.random();
+        _params['data'].no_cache = Math.random();
     }
 
     new ApbctCore().ajax(_params);
 }
 
+// eslint-disable-next-line require-jsdoc,camelcase
 function apbct_public_sendREST( route, params ) {
-
-    let _params         = [];
-    _params["route"]    = route;
-    _params["callback"] = params.callback || null;
-    _params["onErrorCallback"] = params.onErrorCallback    || null;
-    _params["data"]     = params.data     || [];
-    _params["method"]   = params.method   || 'POST';
+    const _params = [];
+    _params['route'] = route;
+    _params['callback'] = params.callback || null;
+    _params['onErrorCallback'] = params.onErrorCallback || null;
+    _params['data'] = params.data || [];
+    _params['method'] = params.method || 'POST';
 
     new ApbctCore().rest(_params);
 }
 
 /**
  * Generate unique ID
- * @returns {string}
+ * @return {string}
  */
-function apbctGenerateUniqueID()
-{
+// eslint-disable-next-line no-unused-vars,require-jsdoc
+function apbctGenerateUniqueID() {
     return Math.random().toString(36).replace(/[^a-z]+/g, '').substr(2, 10);
 }
 
-let apbctLocalStorage = {
-    get : function(key, property) {
+const apbctLocalStorage = {
+    get: function(key, property) {
         if ( typeof property === 'undefined' ) {
             property = 'value';
         }
@@ -1132,42 +1269,42 @@ let apbctLocalStorage = {
         }
         return false;
     },
-    set : function(key, value, is_json = true) {
-        if (is_json){
-            let objToSave = {'value': JSON.stringify(value), 'timestamp': Math.floor(new Date().getTime() / 1000)};
+    set: function(key, value, isJson = true) {
+        if (isJson) {
+            const objToSave = {'value': JSON.stringify(value), 'timestamp': Math.floor(new Date().getTime() / 1000)};
             localStorage.setItem(key, JSON.stringify(objToSave));
         } else {
             localStorage.setItem(key, value);
         }
     },
-    isAlive : function(key, maxLifetime) {
+    isAlive: function(key, maxLifetime) {
         if ( typeof maxLifetime === 'undefined' ) {
             maxLifetime = 86400;
         }
         const keyTimestamp = this.get(key, 'timestamp');
         return keyTimestamp + maxLifetime > Math.floor(new Date().getTime() / 1000);
     },
-    isSet : function(key) {
+    isSet: function(key) {
         return localStorage.getItem(key) !== null;
     },
-    delete : function (key) {
+    delete: function(key) {
         localStorage.removeItem(key);
     },
-    getCleanTalkData : function () {
-        let data = {}
-        for(let i=0; i<localStorage.length; i++) {
-            let key = localStorage.key(i);
-            if (key.indexOf('ct_') !==-1 || key.indexOf('apbct_') !==-1){
-                data[key.toString()] = apbctLocalStorage.get(key)
+    getCleanTalkData: function() {
+        const data = {};
+        for (let i=0; i<localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key.indexOf('ct_') !==-1 || key.indexOf('apbct_') !==-1) {
+                data[key.toString()] = apbctLocalStorage.get(key);
             }
         }
-        return data
+        return data;
     },
 
-}
+};
 
-let apbctSessionStorage = {
-    get : function(key, property) {
+const apbctSessionStorage = {
+    get: function(key, property) {
         if ( typeof property === 'undefined' ) {
             property = 'value';
         }
@@ -1182,745 +1319,814 @@ let apbctSessionStorage = {
         }
         return false;
     },
-    set : function(key, value, is_json = true) {
-        if (is_json){
-            let objToSave = {'value': JSON.stringify(value), 'timestamp': Math.floor(new Date().getTime() / 1000)};
+    set: function(key, value, isJson = true) {
+        if (isJson) {
+            const objToSave = {'value': JSON.stringify(value), 'timestamp': Math.floor(new Date().getTime() / 1000)};
             sessionStorage.setItem(key, JSON.stringify(objToSave));
         } else {
             sessionStorage.setItem(key, value);
         }
     },
-    isSet : function(key) {
+    isSet: function(key) {
         return sessionStorage.getItem(key) !== null;
     },
-    delete : function (key) {
+    delete: function(key) {
         sessionStorage.removeItem(key);
     },
-    getCleanTalkData : function () {
-        let data = {}
-        for(let i=0; i<sessionStorage.length; i++) {
-            let key = sessionStorage.key(i);
-            if (key.indexOf('ct_') !==-1 || key.indexOf('apbct_') !==-1){
-                data[key.toString()] = apbctSessionStorage.get(key)
+    getCleanTalkData: function() {
+        const data = {};
+        for (let i=0; i<sessionStorage.length; i++) {
+            const key = sessionStorage.key(i);
+            if (key.indexOf('ct_') !==-1 || key.indexOf('apbct_') !==-1) {
+                data[key.toString()] = apbctSessionStorage.get(key);
             }
         }
-        return data
+        return data;
     },
-}
-var ct_date = new Date(),
-	ctTimeMs = new Date().getTime(),
-	ctMouseEventTimerFlag = true, //Reading interval flag
-	ctMouseData = [],
-	ctMouseDataCounter = 0,
-	ctCheckedEmails = {};
+};
 
-function apbct_attach_event_handler(elem, event, callback){
-	if(typeof window.addEventListener === "function") elem.addEventListener(event, callback);
-	else                                              elem.attachEvent(event, callback);
+// eslint-disable-next-line camelcase
+const ct_date = new Date();
+const ctTimeMs = new Date().getTime();
+let ctMouseEventTimerFlag = true; // Reading interval flag
+const ctMouseData = [];
+let ctMouseDataCounter = 0;
+const ctCheckedEmails = {};
+
+// eslint-disable-next-line require-jsdoc,camelcase
+function apbct_attach_event_handler(elem, event, callback) {
+    if (typeof window.addEventListener === 'function') elem.addEventListener(event, callback);
+    else elem.attachEvent(event, callback);
+}
+// eslint-disable-next-line require-jsdoc,camelcase
+function apbct_remove_event_handler(elem, event, callback) {
+    if (typeof window.removeEventListener === 'function') elem.removeEventListener(event, callback);
+    else elem.detachEvent(event, callback);
 }
 
-function apbct_remove_event_handler(elem, event, callback){
-	if(typeof window.removeEventListener === "function") elem.removeEventListener(event, callback);
-	else                                                 elem.detachEvent(event, callback);
-}
-
-//Writing first key press timestamp
-var ctFunctionFirstKey = function output(event){
-	var KeyTimestamp = Math.floor(new Date().getTime()/1000);
-	ctSetCookie("ct_fkp_timestamp", KeyTimestamp);
-	ctKeyStopStopListening();
+// Writing first key press timestamp
+const ctFunctionFirstKey = function output(event) {
+    const KeyTimestamp = Math.floor(new Date().getTime()/1000);
+    ctSetCookie('ct_fkp_timestamp', KeyTimestamp);
+    ctKeyStopStopListening();
 };
 
 if (ctPublic.data__key_is_ok) {
-	//Reading interval
-	var ctMouseReadInterval = setInterval(function(){
-		ctMouseEventTimerFlag = true;
-	}, 150);
+    // Reading interval
+    // eslint-disable-next-line no-unused-vars
+    const ctMouseReadInterval = setInterval(function() {
+        ctMouseEventTimerFlag = true;
+    }, 150);
 
-	//Writting interval
-	var ctMouseWriteDataInterval = setInterval(function(){
-		ctSetCookie("ct_pointer_data", JSON.stringify(ctMouseData));
-	}, 1200);
+    // Writting interval
+    // eslint-disable-next-line no-unused-vars
+    const ctMouseWriteDataInterval = setInterval(function() {
+        ctSetCookie('ct_pointer_data', JSON.stringify(ctMouseData));
+    }, 1200);
 }
 
+// Logging mouse position each 150 ms
+const ctFunctionMouseMove = function output(event) {
+    ctSetMouseMoved();
+    if (ctMouseEventTimerFlag === true) {
+        ctMouseData.push([
+            Math.round(event.clientY),
+            Math.round(event.clientX),
+            Math.round(new Date().getTime() - ctTimeMs),
+        ]);
 
-//Logging mouse position each 150 ms
-var ctFunctionMouseMove = function output(event){
-	ctSetMouseMoved();
-	if(ctMouseEventTimerFlag === true){
-
-		ctMouseData.push([
-			Math.round(event.clientY),
-			Math.round(event.clientX),
-			Math.round(new Date().getTime() - ctTimeMs)
-		]);
-
-		ctMouseDataCounter++;
-		ctMouseEventTimerFlag = false;
-		if(ctMouseDataCounter >= 50){
-			ctMouseStopData();
-		}
-	}
+        ctMouseDataCounter++;
+        ctMouseEventTimerFlag = false;
+        if (ctMouseDataCounter >= 50) {
+            ctMouseStopData();
+        }
+    }
 };
 
-//Stop mouse observing function
-function ctMouseStopData(){
-	apbct_remove_event_handler(document, "mousemove", ctFunctionMouseMove);
-	clearInterval(ctMouseReadInterval);
-	clearInterval(ctMouseWriteDataInterval);
+/**
+ * Stop mouse observing function
+ */
+function ctMouseStopData() {
+    apbct_remove_event_handler(document, 'mousemove', ctFunctionMouseMove);
+    clearInterval(ctMouseReadInterval);
+    clearInterval(ctMouseWriteDataInterval);
 }
 
-//Stop key listening function
-function ctKeyStopStopListening(){
-	apbct_remove_event_handler(document, "mousedown", ctFunctionFirstKey);
-	apbct_remove_event_handler(document, "keydown", ctFunctionFirstKey);
+/**
+ * Stop key listening function
+ */
+function ctKeyStopStopListening() {
+    apbct_remove_event_handler(document, 'mousedown', ctFunctionFirstKey);
+    apbct_remove_event_handler(document, 'keydown', ctFunctionFirstKey);
 }
 
+/**
+ * @param {mixed} e
+ */
 function checkEmail(e) {
-	var current_email = e.target.value;
-	if (current_email && !(current_email in ctCheckedEmails)) {
-		// Using REST API handler
-		if( ctPublicFunctions.data__ajax_type === 'rest' ){
-			apbct_public_sendREST(
-				'check_email_before_post',
-				{
-					method: 'POST',
-					data: {'email' : current_email},
-					callback: function (result) {
-						if (result.result) {
-							ctCheckedEmails[current_email] = {'result' : result.result, 'timestamp': Date.now() / 1000 |0};
-							ctSetCookie('ct_checked_emails', JSON.stringify(ctCheckedEmails));
-						}
-					},
-				}
-			);
-			// Using AJAX request and handler
-		} else if( ctPublicFunctions.data__ajax_type === 'admin_ajax' ) {
-			apbct_public_sendAJAX(
-				{
-					action: 'apbct_email_check_before_post',
-					email : current_email,
-				},
-				{
-					callback: function (result) {
-						if (result.result) {
-							ctCheckedEmails[current_email] = {'result' : result.result, 'timestamp': Date.now() / 1000 |0};
-							ctSetCookie('ct_checked_emails', JSON.stringify(ctCheckedEmails));
-						}
-					},
-				}
-			);
-		}
-	}
+    const currentEmail = e.target.value;
+    if (currentEmail && !(currentEmail in ctCheckedEmails)) {
+        // Using REST API handler
+        if ( ctPublicFunctions.data__ajax_type === 'rest' ) {
+            apbct_public_sendREST(
+                'check_email_before_post',
+                {
+                    method: 'POST',
+                    data: {'email': currentEmail},
+                    callback: function(result) {
+                        if (result.result) {
+                            ctCheckedEmails[currentEmail] = {
+                                'result': result.result,
+                                'timestamp': Date.now() / 1000 |0,
+                            };
+                            ctSetCookie('ct_checked_emails', JSON.stringify(ctCheckedEmails));
+                        }
+                    },
+                },
+            );
+            // Using AJAX request and handler
+        } else if ( ctPublicFunctions.data__ajax_type === 'admin_ajax' ) {
+            apbct_public_sendAJAX(
+                {
+                    action: 'apbct_email_check_before_post',
+                    email: currentEmail,
+                },
+                {
+                    callback: function(result) {
+                        if (result.result) {
+                            ctCheckedEmails[currentEmail] = {
+                                'result': result.result,
+                                'timestamp': Date.now() / 1000 |0,
+                            };
+                            ctSetCookie('ct_checked_emails', JSON.stringify(ctCheckedEmails));
+                        }
+                    },
+                },
+            );
+        }
+    }
 }
 
+/**
+ * @param {string} pixelUrl
+ */
 function ctSetPixelImg(pixelUrl) {
-	ctSetCookie('apbct_pixel_url', pixelUrl);
-	if( +ctPublic.pixel__enabled ){
-		if( ! document.getElementById('apbct_pixel') ) {
-			let insertedImg = document.createElement('img');
-			insertedImg.setAttribute('alt', 'CleanTalk Pixel');
-			insertedImg.setAttribute('id', 'apbct_pixel');
-			insertedImg.setAttribute('style', 'display: none; left: 99999px;');
-			insertedImg.setAttribute('src', pixelUrl);
-			apbct('body').append(insertedImg);
-		}
-	}
+    ctSetCookie('apbct_pixel_url', pixelUrl);
+    if ( +ctPublic.pixel__enabled ) {
+        if ( ! document.getElementById('apbct_pixel') ) {
+            const insertedImg = document.createElement('img');
+            insertedImg.setAttribute('alt', 'CleanTalk Pixel');
+            insertedImg.setAttribute('id', 'apbct_pixel');
+            insertedImg.setAttribute('style', 'display: none; left: 99999px;');
+            insertedImg.setAttribute('src', pixelUrl);
+            apbct('body').append(insertedImg);
+        }
+    }
 }
 
+/**
+ * ctGetPixelUrl
+ */
 function ctGetPixelUrl() {
-	// Check if pixel is already in localstorage and is not outdated
-	let local_storage_pixel_url = apbctLocalStorage.get('apbct_pixel_url');
-	if ( local_storage_pixel_url !== false ) {
-		if ( apbctLocalStorage.isAlive('apbct_pixel_url', 3600 * 3) ) {
-			apbctLocalStorage.delete('apbct_pixel_url')
-		} else {
-			//if so - load pixel from localstorage and draw it skipping AJAX
-			ctSetPixelImg(local_storage_pixel_url);
-			return;
-		}
-	}
-	// Using REST API handler
-	if( ctPublicFunctions.data__ajax_type === 'rest' ){
-		apbct_public_sendREST(
-			'apbct_get_pixel_url',
-			{
-				method: 'POST',
-				callback: function (result) {
-					if (result) {
-						//set  pixel url to localstorage
-						if ( ! apbctLocalStorage.get('apbct_pixel_url') ){
-							//set pixel to the storage
-							apbctLocalStorage.set('apbct_pixel_url', result)
-							//update pixel data in the hidden fields
-							ctNoCookieAttachHiddenFieldsToForms()
-						}
-						//then run pixel drawing
-						ctSetPixelImg(result);
-					}
-				},
-			}
-		);
-		// Using AJAX request and handler
-	}else{
-		apbct_public_sendAJAX(
-			{
-				action: 'apbct_get_pixel_url',
-			},
-			{
-				notJson: true,
-				callback: function (result) {
-					if (result) {
-						//set  pixel url to localstorage
-						if ( ! apbctLocalStorage.get('apbct_pixel_url') ){
-							//set pixel to the storage
-							apbctLocalStorage.set('apbct_pixel_url', result)
-							//update pixel data in the hidden fields
-							ctNoCookieAttachHiddenFieldsToForms()
-						}
-						//then run pixel drawing
-						ctSetPixelImg(result);
-					}
-				},
-			}
-		);
-	}
+    // Check if pixel is already in localstorage and is not outdated
+    const localStoragePixelUrl = apbctLocalStorage.get('apbct_pixel_url');
+    if ( localStoragePixelUrl !== false ) {
+        if ( apbctLocalStorage.isAlive('apbct_pixel_url', 3600 * 3) ) {
+            apbctLocalStorage.delete('apbct_pixel_url');
+        } else {
+            // if so - load pixel from localstorage and draw it skipping AJAX
+            ctSetPixelImg(local_storage_pixel_url);
+            return;
+        }
+    }
+    // Using REST API handler
+    if ( ctPublicFunctions.data__ajax_type === 'rest' ) {
+        apbct_public_sendREST(
+            'apbct_get_pixel_url',
+            {
+                method: 'POST',
+                callback: function(result) {
+                    if (result) {
+                        // set  pixel url to localstorage
+                        if ( ! apbctLocalStorage.get('apbct_pixel_url') ) {
+                            // set pixel to the storage
+                            apbctLocalStorage.set('apbct_pixel_url', result);
+                            // update pixel data in the hidden fields
+                            ctNoCookieAttachHiddenFieldsToForms();
+                        }
+                        // then run pixel drawing
+                        ctSetPixelImg(result);
+                    }
+                },
+            },
+        );
+        // Using AJAX request and handler
+    } else {
+        apbct_public_sendAJAX(
+            {
+                action: 'apbct_get_pixel_url',
+            },
+            {
+                notJson: true,
+                callback: function(result) {
+                    if (result) {
+                        // set  pixel url to localstorage
+                        if ( ! apbctLocalStorage.get('apbct_pixel_url') ) {
+                            // set pixel to the storage
+                            apbctLocalStorage.set('apbct_pixel_url', result);
+                            // update pixel data in the hidden fields
+                            ctNoCookieAttachHiddenFieldsToForms();
+                        }
+                        // then run pixel drawing
+                        ctSetPixelImg(result);
+                    }
+                },
+            },
+        );
+    }
 }
 
+/**
+ * ctSetHasScrolled
+ */
 function ctSetHasScrolled() {
-	if ( ! apbctLocalStorage.isSet('ct_has_scrolled') || ! apbctLocalStorage.get('ct_has_scrolled') ) {
-		ctSetCookie("ct_has_scrolled", 'true');
-		apbctLocalStorage.set('ct_has_scrolled', true);
-	}
+    if ( ! apbctLocalStorage.isSet('ct_has_scrolled') || ! apbctLocalStorage.get('ct_has_scrolled') ) {
+        ctSetCookie('ct_has_scrolled', 'true');
+        apbctLocalStorage.set('ct_has_scrolled', true);
+    }
 }
 
+/**
+ * ctSetMouseMoved
+ */
 function ctSetMouseMoved() {
-	if ( ! apbctLocalStorage.isSet('ct_mouse_moved') || ! apbctLocalStorage.get('ct_mouse_moved') ) {
-		ctSetCookie("ct_mouse_moved", 'true');
-		apbctLocalStorage.set('ct_mouse_moved', true);
-	}
+    if ( ! apbctLocalStorage.isSet('ct_mouse_moved') || ! apbctLocalStorage.get('ct_mouse_moved') ) {
+        ctSetCookie('ct_mouse_moved', 'true');
+        apbctLocalStorage.set('ct_mouse_moved', true);
+    }
 }
 
-//init listeners for keyup and focus events
+/**
+ * init listeners for keyup and focus events
+ */
 function ctStartFieldsListening() {
+    if (
+        (apbctLocalStorage.isSet('ct_has_key_up') || apbctLocalStorage.get('ct_has_key_up')) &&
+        (apbctLocalStorage.isSet('ct_has_input_focused') || apbctLocalStorage.get('ct_has_input_focused'))
+    ) {
+        // already set
+        return;
+    }
 
-	if (
-		(apbctLocalStorage.isSet('ct_has_key_up') || apbctLocalStorage.get('ct_has_key_up'))
-		&&
-		(apbctLocalStorage.isSet('ct_has_input_focused') || apbctLocalStorage.get('ct_has_input_focused'))
-	) {
-		//already set
-		return
-	}
+    const forms = ctGetPageForms();
+    ctPublic.handled_fields = [];
 
-	let forms = ctGetPageForms();
-	ctPublic.handled_fields = []
-
-	if (forms.length > 0) {
-		for (let i = 0; i < forms.length; i++) {
-			//handle only inputs and textareas
-			let handled_form_fields = forms[i].querySelectorAll('input,textarea')
-			for (let i = 0; i < handled_form_fields.length; i++) {
-				if (handled_form_fields[i].type !== 'hidden') {
-					//collect handled fields to remove handler in the future
-					ctPublic.handled_fields.push(handled_form_fields[i])
-					//do attach handlers
-					apbct_attach_event_handler(handled_form_fields[i], "focus", ctFunctionHasInputFocused)
-					apbct_attach_event_handler(handled_form_fields[i], "keyup", ctFunctionHasKeyUp)
-				}
-			}
-		}
-	}
+    if (forms.length > 0) {
+        for (let i = 0; i < forms.length; i++) {
+            // handle only inputs and textareas
+            const handledFormFields = forms[i].querySelectorAll('input,textarea');
+            for (let i = 0; i < handledFormFields.length; i++) {
+                if (handledFormFields[i].type !== 'hidden') {
+                    // collect handled fields to remove handler in the future
+                    ctPublic.handled_fields.push(handledFormFields[i]);
+                    // do attach handlers
+                    apbct_attach_event_handler(handledFormFields[i], 'focus', ctFunctionHasInputFocused);
+                    apbct_attach_event_handler(handledFormFields[i], 'keyup', ctFunctionHasKeyUp);
+                }
+            }
+        }
+    }
 }
 
-//stop listening keyup and focus
-function ctStopFieldsListening(event_name, function_name) {
-	if (typeof ctPublic.handled_fields !== 'undefined' && ctPublic.handled_fields.length > 0) {
-		for (let i = 0; i < ctPublic.handled_fields.length; i++) {
-			apbct_remove_event_handler(ctPublic.handled_fields[i], event_name, function_name)
-		}
-	}
+/**
+ * stop listening keyup and focus
+ * @param {string} eventName
+ * @param {string} functionName
+ */
+function ctStopFieldsListening(eventName, functionName) {
+    if (typeof ctPublic.handled_fields !== 'undefined' && ctPublic.handled_fields.length > 0) {
+        for (let i = 0; i < ctPublic.handled_fields.length; i++) {
+            apbct_remove_event_handler(ctPublic.handled_fields[i], eventName, functionName);
+        }
+    }
 }
 
+const ctFunctionHasInputFocused = function output(event) {
+    ctSetHasInputFocused();
+    ctStopFieldsListening('focus', ctFunctionHasInputFocused);
+};
 
-let ctFunctionHasInputFocused = function output(event){
-	ctSetHasInputFocused()
-	ctStopFieldsListening("focus",ctFunctionHasInputFocused)
-}
+const ctFunctionHasKeyUp = function output(event) {
+    ctSetHasKeyUp();
+    ctStopFieldsListening('keyup', ctFunctionHasKeyUp);
+};
 
-
-let ctFunctionHasKeyUp = function output(event){
-	ctSetHasKeyUp()
-	ctStopFieldsListening("keyup",ctFunctionHasKeyUp)
-}
-
-//set ct_has_input_focused ct_has_key_up cookies on session period
+/**
+ * set ct_has_input_focused ct_has_key_up cookies on session period
+ */
 function ctSetHasInputFocused() {
-	if( ! apbctLocalStorage.isSet('ct_has_input_focused') || ! apbctLocalStorage.get('ct_has_input_focused') ) {
-		ctSetCookie("ct_has_input_focused", 'true');
-		apbctLocalStorage.set('ct_has_input_focused', true);
-	}
+    if ( ! apbctLocalStorage.isSet('ct_has_input_focused') || ! apbctLocalStorage.get('ct_has_input_focused') ) {
+        ctSetCookie('ct_has_input_focused', 'true');
+        apbctLocalStorage.set('ct_has_input_focused', true);
+    }
 }
 
+/**
+ * ctSetHasKeyUp
+ */
 function ctSetHasKeyUp() {
-	if( ! apbctLocalStorage.isSet('ct_has_key_up') || ! apbctLocalStorage.get('ct_has_key_up') ) {
-		ctSetCookie("ct_has_key_up", 'true');
-		apbctLocalStorage.set('ct_has_key_up', true);
-	}
+    if ( ! apbctLocalStorage.isSet('ct_has_key_up') || ! apbctLocalStorage.get('ct_has_key_up') ) {
+        ctSetCookie('ct_has_key_up', 'true');
+        apbctLocalStorage.set('ct_has_key_up', true);
+    }
 }
 
-function ctPreloadLocalStorage(){
-	if (ctPublic.data__to_local_storage){
-		let data = Object.entries(ctPublic.data__to_local_storage)
-		data.forEach(([key, value]) => {
-			apbctLocalStorage.set(key,value)
-		});
-	}
+/**
+ * ctPreloadLocalStorage
+ */
+function ctPreloadLocalStorage() {
+    if (ctPublic.data__to_local_storage) {
+        const data = Object.entries(ctPublic.data__to_local_storage);
+        data.forEach(([key, value]) => {
+            apbctLocalStorage.set(key, value);
+        });
+    }
 }
 
 if (ctPublic.data__key_is_ok) {
-	apbct_attach_event_handler(document, "mousemove", ctFunctionMouseMove);
-	apbct_attach_event_handler(document, "mousedown", ctFunctionFirstKey);
-	apbct_attach_event_handler(document, "keydown", ctFunctionFirstKey);
-	apbct_attach_event_handler(document, "scroll", ctSetHasScrolled);
+    apbct_attach_event_handler(document, 'mousemove', ctFunctionMouseMove);
+    apbct_attach_event_handler(document, 'mousedown', ctFunctionFirstKey);
+    apbct_attach_event_handler(document, 'keydown', ctFunctionFirstKey);
+    apbct_attach_event_handler(document, 'scroll', ctSetHasScrolled);
 }
 
-// Ready function
-function apbct_ready(){
+/**
+ * Ready function
+ */
+// eslint-disable-next-line camelcase,require-jsdoc
+function apbct_ready() {
+    ctPreloadLocalStorage();
 
-	ctPreloadLocalStorage()
+    // set session ID
+    if (!apbctSessionStorage.isSet('apbct_session_id')) {
+        const sessionID = apbctGenerateUniqueID();
+        apbctSessionStorage.set('apbct_session_id', sessionID, false);
+        apbctLocalStorage.set('apbct_page_hits', 1);
+        if (document.referrer) {
+            const urlReferer = new URL(document.referrer);
+            if (urlReferer.host !== location.host) {
+                apbctSessionStorage.set('apbct_site_referer', document.referrer, false);
+            }
+        }
+    } else {
+        apbctLocalStorage.set('apbct_page_hits', Number(apbctLocalStorage.get('apbct_page_hits')) + 1);
+    }
 
-	// set session ID
-	if (!apbctSessionStorage.isSet('apbct_session_id')) {
-		const sessionID = apbctGenerateUniqueID();
-		apbctSessionStorage.set('apbct_session_id', sessionID, false);
-		apbctLocalStorage.set('apbct_page_hits', 1);
-		if (document.referrer) {
-			let urlReferer = new URL(document.referrer);
-			if (urlReferer.host !== location.host) {
-				apbctSessionStorage.set('apbct_site_referer', document.referrer, false);
-			}
-		}
-	} else {
-		apbctLocalStorage.set('apbct_page_hits', Number(apbctLocalStorage.get('apbct_page_hits')) + 1);
-	}
+    // set apbct_prev_referer
+    apbctSessionStorage.set('apbct_prev_referer', document.referrer, false);
 
-	// set apbct_prev_referer
-	apbctSessionStorage.set('apbct_prev_referer', document.referrer, false);
+    const cookiesType = apbctLocalStorage.get('ct_cookies_type');
+    if ( ! cookiesType || cookiesType !== ctPublic.data__cookies_type ) {
+        apbctLocalStorage.set('ct_cookies_type', ctPublic.data__cookies_type);
+        apbctLocalStorage.delete('ct_mouse_moved');
+        apbctLocalStorage.delete('ct_has_scrolled');
+    }
 
-	let cookiesType = apbctLocalStorage.get('ct_cookies_type');
-	if ( ! cookiesType || cookiesType !== ctPublic.data__cookies_type ) {
-		apbctLocalStorage.set('ct_cookies_type', ctPublic.data__cookies_type);
-		apbctLocalStorage.delete('ct_mouse_moved');
-		apbctLocalStorage.delete('ct_has_scrolled');
-	}
+    ctStartFieldsListening();
+    // 2nd try to add listeners for delayed appears forms
+    setTimeout(ctStartFieldsListening, 1000);
 
-	ctStartFieldsListening()
-	// 2nd try to add listeners for delayed appears forms
-	setTimeout(ctStartFieldsListening, 1000);
+    // Collect scrolling info
+    const initCookies = [
+        ['ct_ps_timestamp', Math.floor(new Date().getTime() / 1000)],
+        ['ct_fkp_timestamp', '0'],
+        ['ct_pointer_data', '0'],
+        // eslint-disable-next-line camelcase
+        ['ct_timezone', ct_date.getTimezoneOffset()/60*(-1)],
+        ['ct_screen_info', apbctGetScreenInfo()],
+        ['apbct_headless', navigator.webdriver],
+    ];
 
-	// Collect scrolling info
-	var initCookies = [
-		["ct_ps_timestamp", Math.floor(new Date().getTime() / 1000)],
-		["ct_fkp_timestamp", "0"],
-		["ct_pointer_data", "0"],
-		["ct_timezone", ct_date.getTimezoneOffset()/60*(-1) ],
-		["ct_screen_info", apbctGetScreenInfo()],
-		["apbct_headless", navigator.webdriver],
-	];
+    apbctLocalStorage.set('ct_ps_timestamp', Math.floor(new Date().getTime() / 1000));
+    apbctLocalStorage.set('ct_fkp_timestamp', '0');
+    apbctLocalStorage.set('ct_pointer_data', '0');
+    // eslint-disable-next-line camelcase
+    apbctLocalStorage.set('ct_timezone', ct_date.getTimezoneOffset()/60*(-1) );
+    apbctLocalStorage.set('ct_screen_info', apbctGetScreenInfo());
+    apbctLocalStorage.set('apbct_headless', navigator.webdriver);
 
-	apbctLocalStorage.set('ct_ps_timestamp', Math.floor(new Date().getTime() / 1000));
-	apbctLocalStorage.set('ct_fkp_timestamp', "0");
-	apbctLocalStorage.set('ct_pointer_data', "0");
-	apbctLocalStorage.set('ct_timezone', ct_date.getTimezoneOffset()/60*(-1) );
-	apbctLocalStorage.set('ct_screen_info', apbctGetScreenInfo());
-	apbctLocalStorage.set('apbct_headless', navigator.webdriver);
+    if ( ctPublic.data__cookies_type !== 'native' ) {
+        initCookies.push(['apbct_visible_fields', '0']);
+    } else {
+        // Delete all visible fields cookies on load the page
+        const cookiesArray = document.cookie.split(';');
+        if ( cookiesArray.length !== 0 ) {
+            for ( let i = 0; i < cookiesArray.length; i++ ) {
+                const currentCookie = cookiesArray[i].trim();
+                const cookieName = currentCookie.split('=')[0];
+                if ( cookieName.indexOf('apbct_visible_fields_') === 0 ) {
+                    ctDeleteCookie(cookieName);
+                }
+            }
+        }
+    }
 
-	if( ctPublic.data__cookies_type !== 'native' ) {
-		initCookies.push(['apbct_visible_fields', '0']);
-	} else {
-		// Delete all visible fields cookies on load the page
-		var cookiesArray = document.cookie.split(";");
-		if( cookiesArray.length !== 0 ) {
-			for ( var i = 0; i < cookiesArray.length; i++ ) {
-				var currentCookie = cookiesArray[i].trim();
-				var cookieName = currentCookie.split("=")[0];
-				if( cookieName.indexOf("apbct_visible_fields_") === 0 ) {
-					ctDeleteCookie(cookieName);
-				}
-			}
-		}
-	}
+    if ( +ctPublic.pixel__setting ) {
+        if ( +ctPublic.pixel__enabled ) {
+            ctGetPixelUrl();
+        } else {
+            initCookies.push(['apbct_pixel_url', ctPublic.pixel__url]);
+        }
+    }
 
-	if( +ctPublic.pixel__setting ){
-		if( +ctPublic.pixel__enabled ){
-			ctGetPixelUrl()
-		} else {
-			initCookies.push(['apbct_pixel_url', ctPublic.pixel__url]);
-		}
-	}
+    if ( +ctPublic.data__email_check_before_post) {
+        initCookies.push(['ct_checked_emails', '0']);
+        apbct('input[type = \'email\'], #email').on('blur', checkEmail);
+    }
 
-	if ( +ctPublic.data__email_check_before_post) {
-		initCookies.push(['ct_checked_emails', '0']);
-		apbct("input[type = 'email'], #email").on('blur', checkEmail);
-	}
+    if (apbctLocalStorage.isSet('ct_checkjs')) {
+        initCookies.push(['ct_checkjs', apbctLocalStorage.get('ct_checkjs')]);
+    } else {
+        initCookies.push(['ct_checkjs', 0]);
+    }
 
-	if (apbctLocalStorage.isSet('ct_checkjs')) {
-		initCookies.push(['ct_checkjs', apbctLocalStorage.get('ct_checkjs')]);
-	} else {
-		initCookies.push(['ct_checkjs', 0]);
-	}
+    // detect integrated forms that need to be handled via alternative cookies
+    ctDetectForcedAltCookiesForms();
 
-	//detect integrated forms that need to be handled via alternative cookies
-	ctDetectForcedAltCookiesForms()
+    ctSetCookie(initCookies);
 
-	ctSetCookie(initCookies);
+    setTimeout(function() {
+        if (
+            typeof ctPublic.force_alt_cookies == 'undefined' ||
+            (ctPublic.force_alt_cookies !== 'undefined' && !ctPublic.force_alt_cookies)
+        ) {
+            ctNoCookieAttachHiddenFieldsToForms();
+        }
 
-	setTimeout(function(){
+        for (let i = 0; i < document.forms.length; i++) {
+            const form = document.forms[i];
 
-		if (typeof ctPublic.force_alt_cookies == 'undefined' || (ctPublic.force_alt_cookies !== 'undefined' && !ctPublic.force_alt_cookies)) {
-			ctNoCookieAttachHiddenFieldsToForms()
-		}
+            // Exclusion for forms
+            if (
+                +ctPublic.data__visible_fields_required === 0 ||
+                (form.method.toString().toLowerCase() === 'get' &&
+                    form.querySelectorAll('.nf-form-content').length === 0) ||
+                form.classList.contains('slp_search_form') || // StoreLocatorPlus form
+                form.parentElement.classList.contains('mec-booking') ||
+                form.action.toString().indexOf('activehosted.com') !== -1 || // Active Campaign
+                (form.id && form.id === 'caspioform') || // Caspio Form
+                (form.classList && form.classList.contains('tinkoffPayRow')) || // TinkoffPayForm
+                (form.classList && form.classList.contains('give-form')) || // GiveWP
+                (form.id && form.id === 'ult-forgot-password-form') || // ult forgot password
+                (form.id && form.id.toString().indexOf('calculatedfields') !== -1) || // CalculatedFieldsForm
+                (form.id && form.id.toString().indexOf('sac-form') !== -1) || // Simple Ajax Chat
+                (form.id &&
+                    form.id.toString().indexOf('cp_tslotsbooking_pform') !== -1) || // WP Time Slots Booking Form
+                (form.name &&
+                    form.name.toString().indexOf('cp_tslotsbooking_pform') !== -1) || // WP Time Slots Booking Form
+                form.action.toString() === 'https://epayment.epymtservice.com/epay.jhtml' || // Custom form
+                (form.name && form.name.toString().indexOf('tribe-bar-form') !== -1) || // The Events Calendar
+                (form.id && form.id === 'ihf-login-form') || // Optima Express login
+                (form.id &&
+                    form.id === 'subscriberForm' &&
+                    form.action.toString().indexOf('actionType=update') !== -1) || // Optima Express update
+                (form.id && form.id === 'ihf-main-search-form') || // Optima Express search
+                (form.id && form.id === 'frmCalc') || // nobletitle-calc
+                form.action.toString().indexOf('property-organizer-delete-saved-search-submit') !== -1
+            ) {
+                continue;
+            }
 
+            const hiddenInput = document.createElement( 'input' );
+            hiddenInput.setAttribute( 'type', 'hidden' );
+            hiddenInput.setAttribute( 'id', 'apbct_visible_fields_' + i );
+            hiddenInput.setAttribute( 'name', 'apbct_visible_fields');
+            const visibleFieldsToInput = {};
+            visibleFieldsToInput[0] = apbct_collect_visible_fields(form);
+            hiddenInput.value = btoa(JSON.stringify(visibleFieldsToInput));
+            form.append( hiddenInput );
 
-		for(var i = 0; i < document.forms.length; i++){
-			var form = document.forms[i];
+            form.onsubmit_prev = form.onsubmit;
 
-			//Exclusion for forms
-			if (
-				+ctPublic.data__visible_fields_required === 0 ||
-				(form.method.toString().toLowerCase() === 'get' && form.querySelectorAll('.nf-form-content').length === 0) ||
-				form.classList.contains('slp_search_form') || //StoreLocatorPlus form
-				form.parentElement.classList.contains('mec-booking') ||
-				form.action.toString().indexOf('activehosted.com') !== -1 || // Active Campaign
-				(form.id && form.id === 'caspioform') || //Caspio Form
-				(form.classList && form.classList.contains('tinkoffPayRow')) || // TinkoffPayForm
-				(form.classList && form.classList.contains('give-form')) || // GiveWP
-				(form.id && form.id === 'ult-forgot-password-form') || //ult forgot password
-				(form.id && form.id.toString().indexOf('calculatedfields') !== -1) || // CalculatedFieldsForm
-				(form.id && form.id.toString().indexOf('sac-form') !== -1) || // Simple Ajax Chat
-				(form.id && form.id.toString().indexOf('cp_tslotsbooking_pform') !== -1) || // WP Time Slots Booking Form
-				(form.name && form.name.toString().indexOf('cp_tslotsbooking_pform') !== -1)  || // WP Time Slots Booking Form
-				form.action.toString() === 'https://epayment.epymtservice.com/epay.jhtml' || // Custom form
-				(form.name && form.name.toString().indexOf('tribe-bar-form') !== -1) ||  // The Events Calendar
-				(form.id && form.id === 'ihf-login-form') || //Optima Express login
-				(form.id && form.id === 'subscriberForm' && form.action.toString().indexOf('actionType=update') !== -1) || //Optima Express update
-				(form.id && form.id === 'ihf-main-search-form') || // Optima Express search
-				(form.id && form.id === 'frmCalc') || //nobletitle-calc
-				form.action.toString().indexOf('property-organizer-delete-saved-search-submit') !== -1
-			) {
-				continue;
-			}
+            form.ctFormIndex = i;
+            form.onsubmit = function(event) {
+                if ( ctPublic.data__cookies_type !== 'native' && typeof event.target.ctFormIndex !== 'undefined' ) {
+                    const visibleFields = {};
+                    visibleFields[0] = apbct_collect_visible_fields(this);
+                    apbct_visible_fields_set_cookie( visibleFields, event.target.ctFormIndex );
+                }
 
-			var hiddenInput = document.createElement( 'input' );
-			hiddenInput.setAttribute( 'type', 'hidden' );
-			hiddenInput.setAttribute( 'id', 'apbct_visible_fields_' + i );
-			hiddenInput.setAttribute( 'name', 'apbct_visible_fields');
-			var visibleFieldsToInput = {};
-			visibleFieldsToInput[0] = apbct_collect_visible_fields(form);
-			hiddenInput.value = btoa(JSON.stringify(visibleFieldsToInput));
-			form.append( hiddenInput );
+                // Call previous submit action
+                if (event.target.onsubmit_prev instanceof Function) {
+                    setTimeout(function() {
+                        event.target.onsubmit_prev.call(event.target, event);
+                    }, 500);
+                }
+            };
+        }
+    }, 1000);
 
-			form.onsubmit_prev = form.onsubmit;
+    // Listen clicks on encoded emails
+    const encodedEmailNodes = document.querySelectorAll('[data-original-string]');
+    ctPublic.encodedEmailNodes = encodedEmailNodes;
+    if (encodedEmailNodes.length) {
+        for (let i = 0; i < encodedEmailNodes.length; ++i) {
+            if (
+                encodedEmailNodes[i].parentElement.href ||
+                encodedEmailNodes[i].parentElement.parentElement.href
+            ) {
+                // Skip listening click on hyperlinks
+                continue;
+            }
+            encodedEmailNodes[i].addEventListener('click', ctFillDecodedEmailHandler);
+        }
+    }
 
-			form.ctFormIndex = i;
-			form.onsubmit = function (event) {
+    // WordPress Search form processing
+    for (const _form of document.forms) {
+        if (
+            typeof ctPublic !== 'undefined' &&
+            ctPublic.settings__forms__search_test === '1' &&
+            ctPublic.data__cookies_type === 'none' &&
+            (
+                _form.getAttribute('id') === 'searchform' ||
+                (_form.getAttribute('class') !== null && _form.getAttribute('class').indexOf('search-form') !== -1) ||
+                (_form.getAttribute('role') !== null && _form.getAttribute('role').indexOf('search') !== -1)
+            )
+        ) {
+            _form.apbctSearchPrevOnsubmit = _form.onsubmit;
+            _form.onsubmit = (e) => {
+                const noCookie = _form.querySelector('[name="ct_no_cookie_hidden_field"]');
+                if ( noCookie !== null ) {
+                    e.preventDefault();
+                    const callBack = () => {
+                        if (_form.apbctSearchPrevOnsubmit instanceof Function) {
+                            _form.apbctSearchPrevOnsubmit();
+                        } else {
+                            HTMLFormElement.prototype.submit.call(_form);
+                        }
+                    };
 
-				if ( ctPublic.data__cookies_type !== 'native' && typeof event.target.ctFormIndex !== 'undefined' ) {
+                    const parsedCookies = atob(noCookie.value.replace('_ct_no_cookie_data_', ''));
 
-					var visible_fields = {};
-					visible_fields[0] = apbct_collect_visible_fields(this);
-					apbct_visible_fields_set_cookie( visible_fields, event.target.ctFormIndex );
-				}
-
-				// Call previous submit action
-				if (event.target.onsubmit_prev instanceof Function) {
-					setTimeout(function () {
-						event.target.onsubmit_prev.call(event.target, event);
-					}, 500);
-				}
-			};
-		}
-
-	}, 1000);
-
-	// Listen clicks on encoded emails
-	let encodedEmailNodes = document.querySelectorAll("[data-original-string]");
-	ctPublic.encodedEmailNodes = encodedEmailNodes
-	if (encodedEmailNodes.length) {
-		for (let i = 0; i < encodedEmailNodes.length; ++i) {
-			if (
-				encodedEmailNodes[i].parentElement.href ||
-				encodedEmailNodes[i].parentElement.parentElement.href
-			) {
-				// Skip listening click on hyperlinks
-				continue;
-			}
-			encodedEmailNodes[i].addEventListener('click', ctFillDecodedEmailHandler);
-		}
-	}
-
-	/**
-	 * WordPress Search form processing
-	 */
-	for (const _form of document.forms) {
-		if (
-			typeof ctPublic !== 'undefined'
-			&& ctPublic.settings__forms__search_test === '1'
-			&& ctPublic.data__cookies_type === 'none'
-			&& (
-				_form.getAttribute('id') === 'searchform'
-				|| (_form.getAttribute('class') !== null && _form.getAttribute('class').indexOf('search-form') !== -1)
-				|| (_form.getAttribute('role') !== null && _form.getAttribute('role').indexOf('search') !== -1)
-				)
-		) {
-			_form.apbctSearchPrevOnsubmit = _form.onsubmit;
-			_form.onsubmit = (e) => {
-				const noCookie = _form.querySelector('[name="ct_no_cookie_hidden_field"]');
-				if ( noCookie !== null ) {
-					e.preventDefault();
-					const callBack = () => {
-						if (_form.apbctSearchPrevOnsubmit instanceof Function) {
-							_form.apbctSearchPrevOnsubmit();
-						} else {
-							HTMLFormElement.prototype.submit.call(_form);
-						}
-					}
-
-					let parsedCookies = atob(noCookie.value.replace('_ct_no_cookie_data_',''));
-
-					if ( parsedCookies.length !== 0 ) {
-						ctSetAlternativeCookie(
-							parsedCookies,
-							{callback: callBack, onErrorCallback: callBack, forceAltCookies: true}
-						);
-					} else {
-						callBack();
-					}
-				}
-			}
-		}
-	}
+                    if ( parsedCookies.length !== 0 ) {
+                        ctSetAlternativeCookie(
+                            parsedCookies,
+                            {callback: callBack, onErrorCallback: callBack, forceAltCookies: true},
+                        );
+                    } else {
+                        callBack();
+                    }
+                }
+            };
+        }
+    }
 }
 if (ctPublic.data__key_is_ok) {
-	if (document.readyState !== 'loading') {
-		apbct_ready();
-	} else {
-		apbct_attach_event_handler(document, "DOMContentLoaded", apbct_ready);
-	}
+    if (document.readyState !== 'loading') {
+        apbct_ready();
+    } else {
+        apbct_attach_event_handler(document, 'DOMContentLoaded', apbct_ready);
+    }
 }
 
+/**
+ * @param {mixed} event
+ */
 function ctFillDecodedEmailHandler(event) {
-	this.removeEventListener('click', ctFillDecodedEmailHandler);
-	//remember click_source
-	let click_source = this
-	//globally remember if emails is mixed with mailto
-	ctPublic.encodedEmailNodesIsMixed = false
-	//get fade
-	document.body.classList.add('apbct-popup-fade')
-	//popup show
-	let encoder_popup = document.getElementById('apbct_popup')
-	if (!encoder_popup){
-		let waiting_popup = document.createElement('div')
-		waiting_popup.setAttribute('class', 'apbct-popup')
-		waiting_popup.setAttribute('id', 'apbct_popup')
-		let popup_text = document.createElement('p')
-		popup_text.setAttribute('id', 'apbct_popup_text')
-		popup_text.style.color = "black"
-		popup_text.innerText = "Please wait while CleanTalk is decoding the email addresses."
-		waiting_popup.append(popup_text)
-		document.body.append(waiting_popup)
-	} else {
-		encoder_popup.setAttribute('style','display: inherit')
-		document.getElementById('apbct_popup_text').innerHTML = "Please wait while CleanTalk is decoding the email addresses."
-	}
+    this.removeEventListener('click', ctFillDecodedEmailHandler);
+    // remember clickSource
+    const clickSource = this;
+    // globally remember if emails is mixed with mailto
+    ctPublic.encodedEmailNodesIsMixed = false;
+    // get fade
+    document.body.classList.add('apbct-popup-fade');
+    // popup show
+    const encoderPopup = document.getElementById('apbct_popup');
+    if (!encoderPopup) {
+        const waitingPopup = document.createElement('div');
+        waitingPopup.setAttribute('class', 'apbct-popup');
+        waitingPopup.setAttribute('id', 'apbct_popup');
+        const popupText = document.createElement('p');
+        popupText.setAttribute('id', 'apbct_popup_text');
+        popupText.style.color = 'black';
+        popupText.innerText = 'Please wait while CleanTalk is decoding the email addresses.';
+        waitingPopup.append(popupText);
+        document.body.append(waitingPopup);
+    } else {
+        encoderPopup.setAttribute('style', 'display: inherit');
+        document.getElementById('apbct_popup_text').innerHTML =
+            'Please wait while CleanTalk is decoding the email addresses.';
+    }
 
-	apbctAjaxEmailDecodeBulk(event,ctPublic.encodedEmailNodes,click_source)
+    apbctAjaxEmailDecodeBulk(event, ctPublic.encodedEmailNodes, clickSource);
 }
 
-function apbctAjaxEmailDecodeBulk(event, encodedEmailNodes, click_source){
-	//collect data
-	const javascriptClientData = getJavascriptClientData();
-	let data = {
-		event_javascript_data: javascriptClientData,
-		post_url: document.location.href,
-		referrer: document.referrer,
-		encodedEmails: ''
-	};
-	let encoded_emails_collection = {}
-	for (let i = 0; i < encodedEmailNodes.length; i++){
-		//disable click for mailto
-		if (typeof encodedEmailNodes[i].href !== 'undefined' && encodedEmailNodes[i].href.indexOf('mailto:') === 0) {
-			event.preventDefault()
-			ctPublic.encodedEmailNodesIsMixed = true;
-		}
+/**
+ * @param {mixed} event
+ * @param {mixed} encodedEmailNodes
+ * @param {mixed} clickSource
+ */
+function apbctAjaxEmailDecodeBulk(event, encodedEmailNodes, clickSource) {
+    // collect data
+    const javascriptClientData = getJavascriptClientData();
+    const data = {
+        event_javascript_data: javascriptClientData,
+        post_url: document.location.href,
+        referrer: document.referrer,
+        encodedEmails: '',
+    };
+    const encodedEmailsCollection = {};
+    for (let i = 0; i < encodedEmailNodes.length; i++) {
+        // disable click for mailto
+        if (typeof encodedEmailNodes[i].href !== 'undefined' && encodedEmailNodes[i].href.indexOf('mailto:') === 0) {
+            event.preventDefault();
+            ctPublic.encodedEmailNodesIsMixed = true;
+        }
 
-		// Adding a tooltip
-		let apbctTooltip = document.createElement('div');
-		apbctTooltip.setAttribute('class', 'apbct-tooltip');
-		apbct(encodedEmailNodes[i]).append(apbctTooltip);
+        // Adding a tooltip
+        const apbctTooltip = document.createElement('div');
+        apbctTooltip.setAttribute('class', 'apbct-tooltip');
+        apbct(encodedEmailNodes[i]).append(apbctTooltip);
 
-		//collect encoded email strings
-		encoded_emails_collection[i] = encodedEmailNodes[i].dataset.originalString;
-	}
+        // collect encoded email strings
+        encodedEmailsCollection[i] = encodedEmailNodes[i].dataset.originalString;
+    }
 
-	//JSONify encoded email strings
-	data.encodedEmails = JSON.stringify(encoded_emails_collection)
+    // JSONify encoded email strings
+    data.encodedEmails = JSON.stringify(encodedEmailsCollection);
 
-	// Using REST API handler
-	if( ctPublicFunctions.data__ajax_type === 'rest' ){
-		apbct_public_sendREST(
-			'apbct_decode_email',
-			{
-				data: data,
-				method: 'POST',
-				callback: function(result) {
-					//set alternative cookie to skip next pages encoding
-					ctSetCookie('apbct_email_encoder_passed','1')
-					apbctEmailEncoderCallbackBulk(result, encodedEmailNodes, click_source);
-				},
-				onErrorCallback: function (res) {
-					resetEncodedNodes()
-					ctShowDecodeComment(res);
-				},
-			}
-		);
+    // Using REST API handler
+    if ( ctPublicFunctions.data__ajax_type === 'rest' ) {
+        apbct_public_sendREST(
+            'apbct_decode_email',
+            {
+                data: data,
+                method: 'POST',
+                callback: function(result) {
+                    // set alternative cookie to skip next pages encoding
+                    ctSetCookie('apbct_email_encoder_passed', '1');
+                    apbctEmailEncoderCallbackBulk(result, encodedEmailNodes, clickSource);
+                },
+                onErrorCallback: function(res) {
+                    resetEncodedNodes();
+                    ctShowDecodeComment(res);
+                },
+            },
+        );
 
-		// Using AJAX request and handler
-	}else{
-		data.action = 'apbct_decode_email';
-		apbct_public_sendAJAX(
-			data,
-			{
-				notJson: false,
-				callback: function(result) {
-					//set alternative cookie to skip next pages encoding
-					ctSetCookie('apbct_email_encoder_passed','1')
-					apbctEmailEncoderCallbackBulk(result, encodedEmailNodes, click_source);
-				},
-				onErrorCallback: function (res) {
-					resetEncodedNodes()
-					ctShowDecodeComment(res);
-				},
-			}
-		);
-	}
+        // Using AJAX request and handler
+    } else {
+        data.action = 'apbct_decode_email';
+        apbct_public_sendAJAX(
+            data,
+            {
+                notJson: false,
+                callback: function(result) {
+                    // set alternative cookie to skip next pages encoding
+                    ctSetCookie('apbct_email_encoder_passed', '1');
+                    apbctEmailEncoderCallbackBulk(result, encodedEmailNodes, clickSource);
+                },
+                onErrorCallback: function(res) {
+                    resetEncodedNodes();
+                    ctShowDecodeComment(res);
+                },
+            },
+        );
+    }
 }
 
-function apbctEmailEncoderCallbackBulk(result, encodedEmailNodes, click_source){
-
-	if (result.success && result.data[0].is_allowed === true){
-		//start process of visual decoding
-		setTimeout(function(){
-			for (let i = 0; i < encodedEmailNodes.length; i++) {
-				//chek what is what
-				let current_result_data
-				result.data.forEach((row) => {
-					if (row.encoded_email === encodedEmailNodes[i].dataset.originalString){
-						current_result_data = row
-					}
-				})
-				//quit case on cloud block
-				if (current_result_data.is_allowed === false){
-					break;
-				}
-				//handler for mailto
-				if (typeof encodedEmailNodes[i].href !== 'undefined' && encodedEmailNodes[i].href.indexOf('mailto:') === 0) {
-					let encodedEmail = encodedEmailNodes[i].href.replace('mailto:', '');
-					let baseElementContent = encodedEmailNodes[i].innerHTML;
-					encodedEmailNodes[i].innerHTML = baseElementContent.replace(encodedEmail, current_result_data.decoded_email);
-					encodedEmailNodes[i].href = 'mailto:' + current_result_data.decoded_email;
-				}
-				// fill the nodes
-				ctProcessDecodedDataResult(current_result_data, encodedEmailNodes[i]);
-				//remove listeners
-				encodedEmailNodes[i].removeEventListener('click', ctFillDecodedEmailHandler)
-			}
-			//popup remove
-			let popup = document.getElementById('apbct_popup')
-			if (popup !== null){
-				document.body.classList.remove('apbct-popup-fade')
-				popup.setAttribute('style','display:none')
-				//click on mailto if so
-				if (ctPublic.encodedEmailNodesIsMixed){
-					click_source.click();
-				}
-			}
-		}, 3000);
-	} else {
-		if (result.success){
-			resetEncodedNodes()
-			ctShowDecodeComment('Blocked: ' + result.data[0].comment)
-		} else {
-			resetEncodedNodes()
-			ctShowDecodeComment('Cannot connect with CleanTalk server: ' + result.data[0].comment)
-		}
-	}
+/**
+ * @param {mixed} result
+ * @param {mixed} encodedEmailNodes
+ * @param {mixed} clickSource
+ */
+function apbctEmailEncoderCallbackBulk(result, encodedEmailNodes, clickSource) {
+    if (result.success && result.data[0].is_allowed === true) {
+        // start process of visual decoding
+        setTimeout(function() {
+            for (let i = 0; i < encodedEmailNodes.length; i++) {
+                // chek what is what
+                let currentResultData;
+                result.data.forEach((row) => {
+                    if (row.encoded_email === encodedEmailNodes[i].dataset.originalString) {
+                        currentResultData = row;
+                    }
+                });
+                // quit case on cloud block
+                if (currentResultData.is_allowed === false) {
+                    break;
+                }
+                // handler for mailto
+                if (
+                    typeof encodedEmailNodes[i].href !== 'undefined' &&
+                    encodedEmailNodes[i].href.indexOf('mailto:') === 0) {
+                    const encodedEmail = encodedEmailNodes[i].href.replace('mailto:', '');
+                    const baseElementContent = encodedEmailNodes[i].innerHTML;
+                    encodedEmailNodes[i].innerHTML =
+                        baseElementContent.replace(encodedEmail, currentResultData.decoded_email);
+                    encodedEmailNodes[i].href = 'mailto:' + currentResultData.decoded_email;
+                }
+                // fill the nodes
+                ctProcessDecodedDataResult(current_result_data, encodedEmailNodes[i]);
+                // remove listeners
+                encodedEmailNodes[i].removeEventListener('click', ctFillDecodedEmailHandler);
+            }
+            // popup remove
+            const popup = document.getElementById('apbct_popup');
+            if (popup !== null) {
+                document.body.classList.remove('apbct-popup-fade');
+                popup.setAttribute('style', 'display:none');
+                // click on mailto if so
+                if (ctPublic.encodedEmailNodesIsMixed) {
+                    clickSource.click();
+                }
+            }
+        }, 3000);
+    } else {
+        if (result.success) {
+            resetEncodedNodes();
+            ctShowDecodeComment('Blocked: ' + result.data[0].comment);
+        } else {
+            resetEncodedNodes();
+            ctShowDecodeComment('Cannot connect with CleanTalk server: ' + result.data[0].comment);
+        }
+    }
 }
 
-function resetEncodedNodes(){
-	if (typeof ctPublic.encodedEmailNodes !== 'undefined'){
-		ctPublic.encodedEmailNodes.forEach(function (element){
-			element.addEventListener('click', ctFillDecodedEmailHandler);
-		})
-	}
+/**
+ * resetEncodedNodes
+ */
+function resetEncodedNodes() {
+    if (typeof ctPublic.encodedEmailNodes !== 'undefined') {
+        ctPublic.encodedEmailNodes.forEach(function(element) {
+            element.addEventListener('click', ctFillDecodedEmailHandler);
+        });
+    }
 }
 
-function getJavascriptClientData(common_cookies = []) {
-	let resultDataJson = {};
+/**
+ * @param {mixed} commonCookies
+ * @return {string}
+ */
+function getJavascriptClientData(commonCookies = []) {
+    let resultDataJson = {};
 
-	resultDataJson.apbct_headless = !!ctGetCookie(ctPublicFunctions.cookiePrefix + 'apbct_headless');
-	resultDataJson.apbct_pixel_url = ctGetCookie(ctPublicFunctions.cookiePrefix + 'apbct_pixel_url');
-	resultDataJson.ct_checked_emails = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_checked_emails');
-	resultDataJson.ct_checkjs = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_checkjs');
-	resultDataJson.ct_fkp_timestamp = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_fkp_timestamp');
-	resultDataJson.ct_pointer_data = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_pointer_data');
-	resultDataJson.ct_ps_timestamp = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_ps_timestamp');
-	resultDataJson.ct_screen_info = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_screen_info');
-	resultDataJson.ct_timezone = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_timezone');
+    resultDataJson.apbct_headless = !!ctGetCookie(ctPublicFunctions.cookiePrefix + 'apbct_headless');
+    resultDataJson.apbct_pixel_url = ctGetCookie(ctPublicFunctions.cookiePrefix + 'apbct_pixel_url');
+    resultDataJson.ct_checked_emails = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_checked_emails');
+    resultDataJson.ct_checkjs = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_checkjs');
+    resultDataJson.ct_fkp_timestamp = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_fkp_timestamp');
+    resultDataJson.ct_pointer_data = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_pointer_data');
+    resultDataJson.ct_ps_timestamp = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_ps_timestamp');
+    resultDataJson.ct_screen_info = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_screen_info');
+    resultDataJson.ct_timezone = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_timezone');
 
-	// collecting data from localstorage
-	const ctMouseMovedLocalStorage = apbctLocalStorage.get(ctPublicFunctions.cookiePrefix + 'ct_mouse_moved');
-	const ctHasScrolledLocalStorage = apbctLocalStorage.get(ctPublicFunctions.cookiePrefix + 'ct_has_scrolled');
-	const ctCookiesTypeLocalStorage = apbctLocalStorage.get(ctPublicFunctions.cookiePrefix + 'ct_cookies_type');
-	const apbctPageHits = apbctLocalStorage.get('apbct_page_hits');
-	const apbctPrevReferer = apbctSessionStorage.get('apbct_prev_referer');
-	const apbctSiteReferer = apbctSessionStorage.get('apbct_site_referer');
-	const ctJsErrorsLocalStorage = apbctLocalStorage.get(ctPublicFunctions.cookiePrefix + 'ct_js_errors');
+    // collecting data from localstorage
+    const ctMouseMovedLocalStorage = apbctLocalStorage.get(ctPublicFunctions.cookiePrefix + 'ct_mouse_moved');
+    const ctHasScrolledLocalStorage = apbctLocalStorage.get(ctPublicFunctions.cookiePrefix + 'ct_has_scrolled');
+    const ctCookiesTypeLocalStorage = apbctLocalStorage.get(ctPublicFunctions.cookiePrefix + 'ct_cookies_type');
+    const apbctPageHits = apbctLocalStorage.get('apbct_page_hits');
+    const apbctPrevReferer = apbctSessionStorage.get('apbct_prev_referer');
+    const apbctSiteReferer = apbctSessionStorage.get('apbct_site_referer');
+    const ctJsErrorsLocalStorage = apbctLocalStorage.get(ctPublicFunctions.cookiePrefix + 'ct_js_errors');
 
-	// collecting data from cookies
-	const ctMouseMovedCookie = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_mouse_moved');
-	const ctHasScrolledCookie = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_has_scrolled');
-	const ctCookiesTypeCookie = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_cookies_type');
+    // collecting data from cookies
+    const ctMouseMovedCookie = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_mouse_moved');
+    const ctHasScrolledCookie = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_has_scrolled');
+    const ctCookiesTypeCookie = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_cookies_type');
 
-	resultDataJson.ct_mouse_moved = ctMouseMovedLocalStorage !== undefined ? ctMouseMovedLocalStorage : ctMouseMovedCookie;
-	resultDataJson.ct_has_scrolled = ctHasScrolledLocalStorage !== undefined ? ctHasScrolledLocalStorage : ctHasScrolledCookie;
-	resultDataJson.ct_cookies_type = ctCookiesTypeLocalStorage !== undefined ? ctCookiesTypeLocalStorage : ctCookiesTypeCookie;
-	resultDataJson.apbct_page_hits = apbctPageHits;
-	resultDataJson.apbct_prev_referer = apbctPrevReferer;
-	resultDataJson.apbct_site_referer = apbctSiteReferer;
-	resultDataJson.apbct_ct_js_errors = ctJsErrorsLocalStorage;
+    resultDataJson.ct_mouse_moved = ctMouseMovedLocalStorage !== undefined ?
+        ctMouseMovedLocalStorage : ctMouseMovedCookie;
+    resultDataJson.ct_has_scrolled = ctHasScrolledLocalStorage !== undefined ?
+        ctHasScrolledLocalStorage : ctHasScrolledCookie;
+    resultDataJson.ct_cookies_type = ctCookiesTypeLocalStorage !== undefined ?
+        ctCookiesTypeLocalStorage : ctCookiesTypeCookie;
+    resultDataJson.apbct_page_hits = apbctPageHits;
+    resultDataJson.apbct_prev_referer = apbctPrevReferer;
+    resultDataJson.apbct_site_referer = apbctSiteReferer;
+    resultDataJson.apbct_ct_js_errors = ctJsErrorsLocalStorage;
 
-	if (
-		typeof (common_cookies) === "object"
-		&& common_cookies !== []
-	){
-		for (let i = 0; i < common_cookies.length; ++i){
-			if ( typeof (common_cookies[i][1]) === "object" ){
-				//this is for handle SFW cookies
-				resultDataJson[common_cookies[i][1][0]] = common_cookies[i][1][1]
-			} else {
-				resultDataJson[common_cookies[i][0]] = common_cookies[i][1]
-			}
-		}
-	} else {
-		console.log('APBCT JS ERROR: Collecting data type mismatch')
-	}
+    if (
+        typeof (commonCookies) === 'object' &&
+        commonCookies !== []
+    ) {
+        for (let i = 0; i < commonCookies.length; ++i) {
+            if ( typeof (commonCookies[i][1]) === 'object' ) {
+                // this is for handle SFW cookies
+                resultDataJson[commonCookies[i][1][0]] = commonCookies[i][1][1];
+            } else {
+                resultDataJson[commonCookies[i][0]] = commonCookies[i][1];
+            }
+        }
+    } else {
+        console.log('APBCT JS ERROR: Collecting data type mismatch');
+    }
 
-	// Parse JSON properties to prevent double JSON encoding
-	resultDataJson = removeDoubleJsonEncoding(resultDataJson);
+    // Parse JSON properties to prevent double JSON encoding
+    resultDataJson = removeDoubleJsonEncoding(resultDataJson);
 
-	return JSON.stringify(resultDataJson);
+    return JSON.stringify(resultDataJson);
 }
 
 /**
@@ -1928,394 +2134,431 @@ function getJavascriptClientData(common_cookies = []) {
  *
  * Recursively decode JSON-encoded properties
  *
- * @param object
- * @returns {*}
+ * @param {mixed} object
+ * @return {*}
  */
-function removeDoubleJsonEncoding(object){
+function removeDoubleJsonEncoding(object) {
+    if ( typeof object === 'object') {
+        // eslint-disable-next-line guard-for-in
+        for (const objectKey in object) {
+            // Recursion
+            if ( typeof object[objectKey] === 'object') {
+                object[objectKey] = removeDoubleJsonEncoding(object[objectKey]);
+            }
 
-	if( typeof object === 'object'){
+            // Common case (out)
+            if (
+                typeof object[objectKey] === 'string' &&
+                object[objectKey].match(/^[\[{].*?[\]}]$/) !== null // is like JSON
+            ) {
+                const parsedValue = JSON.parse(object[objectKey]);
+                if ( typeof parsedValue === 'object' ) {
+                    object[objectKey] = parsedValue;
+                }
+            }
+        }
+    }
 
-		for (let objectKey in object) {
-
-			// Recursion
-			if( typeof object[objectKey] === 'object'){
-				object[objectKey] = removeDoubleJsonEncoding(object[objectKey]);
-			}
-
-			// Common case (out)
-			if(
-				typeof object[objectKey] === 'string' &&
-				object[objectKey].match(/^[\[{].*?[\]}]$/) !== null // is like JSON
-			){
-				let parsedValue = JSON.parse(object[objectKey]);
-				if( typeof parsedValue === 'object' ){
-					object[objectKey] = parsedValue;
-				}
-			}
-		}
-	}
-
-	return object;
+    return object;
 }
 
+/**
+ * @param {mixed} response
+ * @param {mixed} targetElement
+ */
 function ctProcessDecodedDataResult(response, targetElement) {
-
-	targetElement.setAttribute('title', '');
-	targetElement.removeAttribute('style');
-	ctFillDecodedEmail(targetElement, response.decoded_email);
+    targetElement.setAttribute('title', '');
+    targetElement.removeAttribute('style');
+    ctFillDecodedEmail(targetElement, response.decoded_email);
 }
 
-function ctFillDecodedEmail(target, email){
-
-	apbct(target).html(
-		apbct(target)
-			.html()
-			.replace(/.+?(<div class=["']apbct-tooltip["'].+?<\/div>)/, email + "$1")
-	);
+/**
+ * @param {mixed} target
+ * @param {string} email
+ */
+function ctFillDecodedEmail(target, email) {
+    apbct(target).html(
+        apbct(target)
+            .html()
+            .replace(/.+?(<div class=["']apbct-tooltip["'].+?<\/div>)/, email + '$1'),
+    );
 }
 
-function ctShowDecodeComment(comment){
+/**
+ * @param {string} comment
+ */
+function ctShowDecodeComment(comment) {
+    if ( ! comment ) {
+        comment = 'Can not decode email. Unknown reason';
+    }
 
-	if( ! comment ){
-		comment = 'Can not decode email. Unknown reason'
-	}
-
-	let popup = document.getElementById('apbct_popup')
-	let popup_text = document.getElementById('apbct_popup_text')
-	if (popup !== null){
-		document.body.classList.remove('apbct-popup-fade')
-		popup_text.innerText = "CleanTalk email decoder: " + comment
-		setTimeout(function(){
-			popup.setAttribute('style','display:none')
-		},3000)
-	}
+    const popup = document.getElementById('apbct_popup');
+    const popupText = document.getElementById('apbct_popup_text');
+    if (popup !== null) {
+        document.body.classList.remove('apbct-popup-fade');
+        popupText.innerText = 'CleanTalk email decoder: ' + comment;
+        setTimeout(function() {
+            popup.setAttribute('style', 'display:none');
+        }, 3000);
+    }
 }
 
+// eslint-disable-next-line camelcase,require-jsdoc
 function apbct_collect_visible_fields( form ) {
+    // Get only fields
+    let inputs = [];
+    let inputsVisible = '';
+    let inputsVisibleCount = 0;
+    let inputsInvisible = '';
+    let inputsInvisibleCount = 0;
+    const inputsWithDuplicateNames = [];
 
-	// Get only fields
-	var inputs = [],
-		inputs_visible = '',
-		inputs_visible_count = 0,
-		inputs_invisible = '',
-		inputs_invisible_count = 0,
-		inputs_with_duplicate_names = [];
+    for (const key in form.elements) {
+        if (!isNaN(+key)) {
+            inputs[key] = form.elements[key];
+        }
+    }
 
-	for(var key in form.elements){
-		if(!isNaN(+key))
-			inputs[key] = form.elements[key];
-	}
+    // Filter fields
+    inputs = inputs.filter(function(elem) {
+        // Filter already added fields
+        if ( inputsWithDuplicateNames.indexOf( elem.getAttribute('name') ) !== -1 ) {
+            return false;
+        }
+        // Filter inputs with same names for type == radio
+        if ( -1 !== ['radio', 'checkbox'].indexOf( elem.getAttribute('type') )) {
+            inputsWithDuplicateNames.push( elem.getAttribute('name') );
+            return false;
+        }
+        return true;
+    });
 
-	// Filter fields
-	inputs = inputs.filter(function(elem){
+    // Visible fields
+    inputs.forEach(function(elem, i, elements) {
+        // Unnecessary fields
+        if (
+            elem.getAttribute('type') === 'submit' || // type == submit
+            elem.getAttribute('name') === null ||
+            elem.getAttribute('name') === 'ct_checkjs'
+        ) {
+            return;
+        }
+        // Invisible fields
+        if (
+            getComputedStyle(elem).display === 'none' || // hidden
+            getComputedStyle(elem).visibility === 'hidden' || // hidden
+            getComputedStyle(elem).opacity === '0' || // hidden
+            elem.getAttribute('type') === 'hidden' // type == hidden
+        ) {
+            if ( elem.classList.contains('wp-editor-area') ) {
+                inputsVisible += ' ' + elem.getAttribute('name');
+                inputsVisibleCount++;
+            } else {
+                inputsInvisible += ' ' + elem.getAttribute('name');
+                inputsInvisibleCount++;
+            }
+            // eslint-disable-next-line brace-style
+        }
+        // Visible fields
+        else {
+            inputsVisible += ' ' + elem.getAttribute('name');
+            inputsVisibleCount++;
+        }
+    });
 
-		// Filter already added fields
-		if( inputs_with_duplicate_names.indexOf( elem.getAttribute('name') ) !== -1 ){
-			return false;
-		}
-		// Filter inputs with same names for type == radio
-		if( -1 !== ['radio', 'checkbox'].indexOf( elem.getAttribute("type") )){
-			inputs_with_duplicate_names.push( elem.getAttribute('name') );
-			return false;
-		}
-		return true;
-	});
+    inputsInvisible = inputsInvisible.trim();
+    inputsVisible = inputsVisible.trim();
 
-	// Visible fields
-	inputs.forEach(function(elem, i, elements){
-		// Unnecessary fields
-		if(
-			elem.getAttribute("type")         === "submit" || // type == submit
-			elem.getAttribute('name')         === null     ||
-			elem.getAttribute('name')         === 'ct_checkjs'
-		) {
-			return;
-		}
-		// Invisible fields
-		if(
-			getComputedStyle(elem).display    === "none" ||   // hidden
-			getComputedStyle(elem).visibility === "hidden" || // hidden
-			getComputedStyle(elem).opacity    === "0" ||      // hidden
-			elem.getAttribute("type")         === "hidden" // type == hidden
-		) {
-			if( elem.classList.contains("wp-editor-area") ) {
-				inputs_visible += " " + elem.getAttribute("name");
-				inputs_visible_count++;
-			} else {
-				inputs_invisible += " " + elem.getAttribute("name");
-				inputs_invisible_count++;
-			}
-		}
-		// Visible fields
-		else {
-			inputs_visible += " " + elem.getAttribute("name");
-			inputs_visible_count++;
-		}
-
-	});
-
-	inputs_invisible = inputs_invisible.trim();
-	inputs_visible = inputs_visible.trim();
-
-	return {
-		visible_fields : inputs_visible,
-		visible_fields_count : inputs_visible_count,
-		invisible_fields : inputs_invisible,
-		invisible_fields_count : inputs_invisible_count,
-	}
-
+    return {
+        visible_fields: inputsVisible,
+        visible_fields_count: inputsVisibleCount,
+        invisible_fields: inputsInvisible,
+        invisible_fields_count: inputsInvisibleCount,
+    };
 }
 
-function apbct_visible_fields_set_cookie( visible_fields_collection, form_id ) {
+// eslint-disable-next-line camelcase,require-jsdoc
+function apbct_visible_fields_set_cookie( visibleFieldsCollection, formId ) {
+    const collection = typeof visibleFieldsCollection === 'object' && visibleFieldsCollection !== null ?
+        visibleFieldsCollection : {};
 
-	var collection = typeof visible_fields_collection === 'object' && visible_fields_collection !== null ?  visible_fields_collection : {};
-
-	if( ctPublic.data__cookies_type === 'native' ) {
-		for ( var i in collection ) {
-			if ( i > 10 ) {
-				// Do not generate more than 10 cookies
-				return;
-			}
-			var collectionIndex = form_id !== undefined ? form_id : i;
-			ctSetCookie("apbct_visible_fields_" + collectionIndex, JSON.stringify( collection[i] ) );
-		}
-	} else {
-		if (ctPublic.data__cookies_type === 'none'){
-			ctSetCookie("apbct_visible_fields", JSON.stringify( collection[0] ) );
-		} else {
-			ctSetCookie("apbct_visible_fields", JSON.stringify( collection ) );
-		}
-
-	}
+    if ( ctPublic.data__cookies_type === 'native' ) {
+        // eslint-disable-next-line guard-for-in
+        for ( const i in collection ) {
+            if ( i > 10 ) {
+                // Do not generate more than 10 cookies
+                return;
+            }
+            const collectionIndex = formId !== undefined ? formId : i;
+            ctSetCookie('apbct_visible_fields_' + collectionIndex, JSON.stringify( collection[i] ) );
+        }
+    } else {
+        if (ctPublic.data__cookies_type === 'none') {
+            ctSetCookie('apbct_visible_fields', JSON.stringify( collection[0] ) );
+        } else {
+            ctSetCookie('apbct_visible_fields', JSON.stringify( collection ) );
+        }
+    }
 }
 
-function apbct_js_keys__set_input_value(result, data, params, obj){
-	if( document.querySelectorAll('[name^=ct_checkjs]').length > 0 ) {
-		var elements = document.querySelectorAll('[name^=ct_checkjs]');
-		for ( var i = 0; i < elements.length; i++ ) {
-			elements[i].value = result.js_key;
-		}
-	}
+// eslint-disable-next-line camelcase,require-jsdoc,no-unused-vars
+function apbct_js_keys__set_input_value(result, data, params, obj) {
+    if ( document.querySelectorAll('[name^=ct_checkjs]').length > 0 ) {
+        const elements = document.querySelectorAll('[name^=ct_checkjs]');
+        for ( let i = 0; i < elements.length; i++ ) {
+            elements[i].value = result.js_key;
+        }
+    }
 }
 
+/**
+ * @return {string}
+ */
 function apbctGetScreenInfo() {
-	return JSON.stringify({
-		fullWidth : document.documentElement.scrollWidth,
-		fullHeight : Math.max(
-			document.body.scrollHeight, document.documentElement.scrollHeight,
-			document.body.offsetHeight, document.documentElement.offsetHeight,
-			document.body.clientHeight, document.documentElement.clientHeight
-		),
-		visibleWidth : document.documentElement.clientWidth,
-		visibleHeight : document.documentElement.clientHeight,
-	});
+    return JSON.stringify({
+        fullWidth: document.documentElement.scrollWidth,
+        fullHeight: Math.max(
+            document.body.scrollHeight, document.documentElement.scrollHeight,
+            document.body.offsetHeight, document.documentElement.offsetHeight,
+            document.body.clientHeight, document.documentElement.clientHeight,
+        ),
+        visibleWidth: document.documentElement.clientWidth,
+        visibleHeight: document.documentElement.clientHeight,
+    });
 }
 
-if(typeof jQuery !== 'undefined') {
-
-	// Capturing responses and output block message for unknown AJAX forms
-	jQuery(document).ajaxComplete(function (event, xhr, settings) {
-		if (xhr.responseText && xhr.responseText.indexOf('"apbct') !== -1) {
-			try {
-				var response = JSON.parse(xhr.responseText);
-			} catch (e) {
-				console.log(e.toString());
-				return;
-			}
-			ctParseBlockMessage(response);
-		}
-	});
+if (typeof jQuery !== 'undefined') {
+    // Capturing responses and output block message for unknown AJAX forms
+    jQuery(document).ajaxComplete(function(event, xhr, settings) {
+        if (xhr.responseText && xhr.responseText.indexOf('"apbct') !== -1) {
+            try {
+                // eslint-disable-next-line no-unused-vars
+                const response = JSON.parse(xhr.responseText);
+            } catch (e) {
+                console.log(e.toString());
+                return;
+            }
+            ctParseBlockMessage(response);
+        }
+    });
 }
 
+// eslint-disable-next-line require-jsdoc
 function ctParseBlockMessage(response) {
+    if (typeof response.apbct !== 'undefined') {
+        response = response.apbct;
+        if (response.blocked) {
+            document.dispatchEvent(
+                new CustomEvent( 'apbctAjaxBockAlert', {
+                    bubbles: true,
+                    detail: {message: response.comment},
+                } ),
+            );
 
-	if (typeof response.apbct !== 'undefined') {
-		response = response.apbct;
-		if (response.blocked) {
-			document.dispatchEvent(
-				new CustomEvent( "apbctAjaxBockAlert", {
-					bubbles: true,
-					detail: { message: response.comment }
-				} )
-			);
+            // Show the result by modal
+            cleantalkModal.loaded = response.comment;
+            cleantalkModal.open();
 
-			// Show the result by modal
-			cleantalkModal.loaded = response.comment;
-			cleantalkModal.open();
-
-			if(+response.stop_script == 1)
-				window.stop();
-		}
-	}
+            if (+response.stop_script === 1) {
+                window.stop();
+            }
+        }
+    }
 }
 
-function ctSetPixelUrlLocalstorage(ajax_pixel_url) {
-	//set pixel to the storage
-	ctSetCookie('apbct_pixel_url', ajax_pixel_url)
+// eslint-disable-next-line no-unused-vars,require-jsdoc
+function ctSetPixelUrlLocalstorage(ajaxPixelUrl) {
+    // set pixel to the storage
+    ctSetCookie('apbct_pixel_url', ajaxPixelUrl);
 }
 
-function ctNoCookieConstructHiddenField(type){
-	let inputType = 'hidden';
-	if (type === 'submit') {
-		inputType = 'submit';
-	}
-	let field = ''
-	let no_cookie_data_local = apbctLocalStorage.getCleanTalkData()
-	let no_cookie_data_session = apbctSessionStorage.getCleanTalkData()
-	let no_cookie_data = {...no_cookie_data_local, ...no_cookie_data_session};
-	no_cookie_data = JSON.stringify(no_cookie_data)
-	no_cookie_data = '_ct_no_cookie_data_' + btoa(no_cookie_data)
-	field = document.createElement('input')
-	field.setAttribute('name','ct_no_cookie_hidden_field')
-	field.setAttribute('value', no_cookie_data)
-	field.setAttribute('type', inputType)
-	field.classList.add('apbct_special_field');
-	field.classList.add('ct_no_cookie_hidden_field');
-	return field
+// eslint-disable-next-line require-jsdoc
+function ctNoCookieConstructHiddenField(type) {
+    let inputType = 'hidden';
+    if (type === 'submit') {
+        inputType = 'submit';
+    }
+    let field = '';
+    const noCookieDataLocal = apbctLocalStorage.getCleanTalkData();
+    const noCookieDataSession = apbctSessionStorage.getCleanTalkData();
+    let noCookieData = {...noCookieDataLocal, ...noCookieDataSession};
+    noCookieData = JSON.stringify(noCookieData);
+    noCookieData = '_ct_no_cookie_data_' + btoa(noCookieData);
+    field = document.createElement('input');
+    field.setAttribute('name', 'ct_no_cookie_hidden_field');
+    field.setAttribute('value', noCookieData);
+    field.setAttribute('type', inputType);
+    field.classList.add('apbct_special_field');
+    field.classList.add('ct_no_cookie_hidden_field');
+    return field;
 }
 
-function ctGetPageForms(){
-	let forms = document.forms
-	if (forms) {
-		return forms
-	}
-	return false
+/**
+ * @return {boolean|*}
+ */
+function ctGetPageForms() {
+    const forms = document.forms;
+    if (forms) {
+        return forms;
+    }
+    return false;
 }
 
-function ctNoCookieFormIsExcludedFromNcField(form){
+// eslint-disable-next-line require-jsdoc
+function ctNoCookieFormIsExcludedFromNcField(form) {
+    // ajax search pro exclusion
+    const ncFieldExclusionsSign = form.parentNode;
+    if (ncFieldExclusionsSign && ncFieldExclusionsSign.classList.contains('proinput')) {
+        return 'ajax search pro exclusion';
+    }
 
-	//ajax search pro exclusion
-	let nc_field_exclusions_sign = form.parentNode
-	if (nc_field_exclusions_sign && nc_field_exclusions_sign.classList.contains('proinput')){
-		return 'ajax search pro exclusion'
-	}
-
-	return false
+    return false;
 }
 
-function ctNoCookieAttachHiddenFieldsToForms(){
+/**
+ * ctNoCookieAttachHiddenFieldsToForms
+ */
+function ctNoCookieAttachHiddenFieldsToForms() {
+    if (ctPublic.data__cookies_type !== 'none') {
+        return;
+    }
 
-	if (ctPublic.data__cookies_type !== 'none'){
-		return
-	}
+    const forms = ctGetPageForms();
 
-	let forms = ctGetPageForms()
+    if (forms) {
+        for ( let i = 0; i < forms.length; i++ ) {
+            // remove old sets
+            const fields = forms[i].querySelectorAll('.ct_no_cookie_hidden_field');
+            for ( let j = 0; j < fields.length; j++ ) {
+                fields[j].outerHTML = '';
+            }
 
-	if (forms){
-		for ( let i = 0; i < forms.length; i++ ){
-			//remove old sets
-			let fields = forms[i].querySelectorAll('.ct_no_cookie_hidden_field')
-			for ( let j = 0; j < fields.length; j++ ){
-				fields[j].outerHTML = ""
-			}
+            if ( ctNoCookieFormIsExcludedFromNcField(document.forms[i]) ) {
+                return;
+            }
 
-			if ( ctNoCookieFormIsExcludedFromNcField(document.forms[i]) ) {
-				return
-			}
-
-			//ignore forms with get method @todo We need to think about this
-			if (document.forms[i].getAttribute('method') === null
-				||
-				document.forms[i].getAttribute('method').toLowerCase() === 'post'){
-				// add new set
-				document.forms[i].append(ctNoCookieConstructHiddenField());
-			} else if (typeof ctPublic !== 'undefined'
-				&& ctPublic.settings__forms__search_test === '1'
-				&& (
-					document.forms[i].getAttribute('id') === 'searchform'
-					|| (document.forms[i].getAttribute('class') !== null && document.forms[i].getAttribute('class').indexOf('search-form') !== -1)
-					|| (document.forms[i].getAttribute('role') !== null && document.forms[i].getAttribute('role').indexOf('search') !== -1)
-				)
-			) {
-				document.forms[i].append(ctNoCookieConstructHiddenField('submit'));
-			}
-		}
-	}
-
+            // ignore forms with get method @todo We need to think about this
+            if (document.forms[i].getAttribute('method') === null ||
+                document.forms[i].getAttribute('method').toLowerCase() === 'post') {
+                // add new set
+                document.forms[i].append(ctNoCookieConstructHiddenField());
+            } else if (typeof ctPublic !== 'undefined' &&
+                ctPublic.settings__forms__search_test === '1' &&
+                (
+                    document.forms[i].getAttribute('id') === 'searchform' ||
+                    (
+                        document.forms[i].getAttribute('class') !== null &&
+                        document.forms[i].getAttribute('class').indexOf('search-form') !== -1) ||
+                    (
+                        document.forms[i].getAttribute('role') !== null &&
+                        document.forms[i].getAttribute('role').indexOf('search') !== -1
+                    )
+                )
+            ) {
+                document.forms[i].append(ctNoCookieConstructHiddenField('submit'));
+            }
+        }
+    }
 }
 
 const defaultFetch = window.fetch;
 const defaultSend = XMLHttpRequest.prototype.send;
 
 if (document.readyState !== 'loading') {
-	checkFormsExistForCatching();
-	checkFormsExistForCatchingXhr();
+    checkFormsExistForCatching();
+    checkFormsExistForCatchingXhr();
 } else {
-	apbct_attach_event_handler(document, "DOMContentLoaded", checkFormsExistForCatching);
-	apbct_attach_event_handler(document, "DOMContentLoaded", checkFormsExistForCatchingXhr);
+    apbct_attach_event_handler(document, 'DOMContentLoaded', checkFormsExistForCatching);
+    apbct_attach_event_handler(document, 'DOMContentLoaded', checkFormsExistForCatchingXhr);
 }
 
+/**
+ * checkFormsExistForCatching
+ */
 function checkFormsExistForCatching() {
-	setTimeout(function() {
-		if (isFormThatNeedCatch()) {
-			window.fetch = function() {
-				if (arguments
-					&& arguments[0]
-					&& typeof arguments[0].includes === 'function'
-					&& arguments[0].includes('/wp-json/metform/')
-				) {
-					let no_cookie_data = getNoCookieData();
+    setTimeout(function() {
+        if (isFormThatNeedCatch()) {
+            window.fetch = function(arguments) {
+                if (arguments &&
+                    arguments[0] &&
+                    typeof arguments[0].includes === 'function' &&
+                    arguments[0].includes('/wp-json/metform/')
+                ) {
+                    const noCookieData = getNoCookieData();
 
-					if (arguments && arguments[1] && arguments[1].body) {
-						arguments[1].body.append('ct_no_cookie_hidden_field', no_cookie_data)
-					}
-				}
+                    if (arguments && arguments[1] && arguments[1].body) {
+                        arguments[1].body.append('ct_no_cookie_hidden_field', noCookieData);
+                    }
+                }
 
-				return defaultFetch.apply(window, arguments);
-			}
-		}
-	}, 1000);
+                return defaultFetch.apply(window, arguments);
+            };
+        }
+    }, 1000);
 }
 
+/**
+ * @return {boolean}
+ */
 function isFormThatNeedCatch() {
-	const formClasses = [
-		'metform-form-content'
-	];
-	let classExists = false;
+    const formClasses = [
+        'metform-form-content',
+    ];
+    let classExists = false;
 
-	const forms = document.forms;
-	for (let form of forms) {
-		formClasses.forEach(function (classForm) {
-			if (form.classList.contains(classForm)) {
-				classExists = true;
-			}
-		})
-	}
+    const forms = document.forms;
+    for (const form of forms) {
+        formClasses.forEach(function(classForm) {
+            if (form.classList.contains(classForm)) {
+                classExists = true;
+            }
+        });
+    }
 
-	return classExists;
+    return classExists;
 }
 
+/**
+ * checkFormsExistForCatchingXhr
+ */
 function checkFormsExistForCatchingXhr() {
-	setTimeout(function() {
-		if (isFormThatNeedCatchXhr()) {
-			window.XMLHttpRequest.prototype.send = function(data) {
-				let no_cookie_data = getNoCookieData();
-				no_cookie_data = 'data%5Bct_no_cookie_hidden_field%5D=' + no_cookie_data + '&'
+    setTimeout(function() {
+        if (isFormThatNeedCatchXhr()) {
+            window.XMLHttpRequest.prototype.send = function(data) {
+                let noCookieData = getNoCookieData();
+                noCookieData = 'data%5Bct_no_cookie_hidden_field%5D=' + noCookieData + '&';
 
-				defaultSend.call(this, no_cookie_data + data);
-			}
-		}
-	}, 1000);
+                defaultSend.call(this, noCookieData + data);
+            };
+        }
+    }, 1000);
 }
 
+/**
+ * @return {boolean}
+ */
 function isFormThatNeedCatchXhr() {
-	if (document.querySelector("div.elementor-widget[title='Login/Signup']") != null) {
-		return true;
-	}
+    if (document.querySelector('div.elementor-widget[title=\'Login/Signup\']') != null) {
+        return true;
+    }
 
-	return false;
+    return false;
 }
 
+/**
+ * @return {string}
+ */
 function getNoCookieData() {
-	let no_cookie_data_local = apbctLocalStorage.getCleanTalkData();
-	let no_cookie_data_session = apbctSessionStorage.getCleanTalkData();
-	let no_cookie_data = {...no_cookie_data_local, ...no_cookie_data_session};
-	no_cookie_data = JSON.stringify(no_cookie_data);
+    const noCookieDataLocal = apbctLocalStorage.getCleanTalkData();
+    const noCookieDataSession = apbctSessionStorage.getCleanTalkData();
+    let noCookieData = {...noCookieDataLocal, ...noCookieDataSession};
+    noCookieData = JSON.stringify(noCookieData);
 
-	return '_ct_no_cookie_data_' + btoa(no_cookie_data);
+    return '_ct_no_cookie_data_' + btoa(noCookieData);
 }
+
 /* Cleantalk Modal object */
-let cleantalkModal = {
+const cleantalkModal = {
 
     // Flags
     loaded: false,
@@ -2325,113 +2568,114 @@ let cleantalkModal = {
 
     // Methods
     load: function( action ) {
-        if( ! this.loaded ) {
+        if ( ! this.loaded ) {
             this.loading = true;
-            let callback = function( result, data, params, obj ) {
+            const callback = function( result, data, params, obj ) {
                 cleantalkModal.loading = false;
                 cleantalkModal.loaded = result;
                 document.dispatchEvent(
-                    new CustomEvent( "cleantalkModalContentLoaded", {
+                    new CustomEvent( 'cleantalkModalContentLoaded', {
                         bubbles: true,
-                    } )
+                    } ),
                 );
             };
-            if( typeof apbct_admin_sendAJAX === "function" ) {
-                apbct_admin_sendAJAX( { 'action' : action }, { 'callback': callback, 'notJson': true } );
+            // eslint-disable-next-line camelcase
+            if ( typeof apbct_admin_sendAJAX === 'function' ) {
+                apbct_admin_sendAJAX( {'action': action}, {'callback': callback, 'notJson': true} );
             } else {
-                apbct_public_sendAJAX( { 'action' : action }, { 'callback': callback, 'notJson': true } );
+                apbct_public_sendAJAX( {'action': action}, {'callback': callback, 'notJson': true} );
             }
-
         }
     },
 
-    open: function () {
+    open: function() {
         /* Cleantalk Modal CSS start */
-        var renderCss = function () {
-            var cssStr = '';
-            for ( let key in this.styles ) {
+        const renderCss = function() {
+            let cssStr = '';
+            // eslint-disable-next-line guard-for-in
+            for ( const key in this.styles ) {
                 cssStr += key + ':' + this.styles[key] + ';';
             }
             return cssStr;
         };
-        var overlayCss = {
+        const overlayCss = {
             styles: {
-                "z-index": "9999999999",
-                "position": "fixed",
-                "top": "0",
-                "left": "0",
-                "width": "100%",
-                "height": "100%",
-                "background": "rgba(0,0,0,0.5)",
-                "display": "flex",
-                "justify-content" : "center",
-                "align-items" : "center",
+                'z-index': '9999999999',
+                'position': 'fixed',
+                'top': '0',
+                'left': '0',
+                'width': '100%',
+                'height': '100%',
+                'background': 'rgba(0,0,0,0.5)',
+                'display': 'flex',
+                'justify-content': 'center',
+                'align-items': 'center',
             },
-            toString: renderCss
+            toString: renderCss,
         };
-        var innerCss = {
+        const innerCss = {
             styles: {
-                "position" : "relative",
-                "padding" : "30px",
-                "background" : "#FFF",
-                "border" : "1px solid rgba(0,0,0,0.75)",
-                "border-radius" : "4px",
-                "box-shadow" : "7px 7px 5px 0px rgba(50,50,50,0.75)",
+                'position': 'relative',
+                'padding': '30px',
+                'background': '#FFF',
+                'border': '1px solid rgba(0,0,0,0.75)',
+                'border-radius': '4px',
+                'box-shadow': '7px 7px 5px 0px rgba(50,50,50,0.75)',
             },
-            toString: renderCss
+            toString: renderCss,
         };
-        var closeCss = {
+        const closeCss = {
             styles: {
-                "position" : "absolute",
-                "background" : "#FFF",
-                "width" : "20px",
-                "height" : "20px",
-                "border" : "2px solid rgba(0,0,0,0.75)",
-                "border-radius" : "15px",
-                "cursor" : "pointer",
-                "top" : "-8px",
-                "right" : "-8px",
-                "box-sizing" : "content-box",
+                'position': 'absolute',
+                'background': '#FFF',
+                'width': '20px',
+                'height': '20px',
+                'border': '2px solid rgba(0,0,0,0.75)',
+                'border-radius': '15px',
+                'cursor': 'pointer',
+                'top': '-8px',
+                'right': '-8px',
+                'box-sizing': 'content-box',
             },
-            toString: renderCss
+            toString: renderCss,
         };
-        var closeCssBefore = {
+        const closeCssBefore = {
             styles: {
-                "content" : "\"\"",
-                "display" : "block",
-                "position" : "absolute",
-                "background" : "#000",
-                "border-radius" : "1px",
-                "width" : "2px",
-                "height" : "16px",
-                "top" : "2px",
-                "left" : "9px",
-                "transform" : "rotate(45deg)",
+                'content': '""',
+                'display': 'block',
+                'position': 'absolute',
+                'background': '#000',
+                'border-radius': '1px',
+                'width': '2px',
+                'height': '16px',
+                'top': '2px',
+                'left': '9px',
+                'transform': 'rotate(45deg)',
             },
-            toString: renderCss
+            toString: renderCss,
         };
-        var closeCssAfter = {
+        const closeCssAfter = {
             styles: {
-                "content" : "\"\"",
-                "display" : "block",
-                "position" : "absolute",
-                "background" : "#000",
-                "border-radius" : "1px",
-                "width" : "2px",
-                "height" : "16px",
-                "top" : "2px",
-                "left" : "9px",
-                "transform" : "rotate(-45deg)",
+                'content': '""',
+                'display': 'block',
+                'position': 'absolute',
+                'background': '#000',
+                'border-radius': '1px',
+                'width': '2px',
+                'height': '16px',
+                'top': '2px',
+                'left': '9px',
+                'transform': 'rotate(-45deg)',
             },
-            toString: renderCss
+            toString: renderCss,
         };
-        var bodyCss = {
+        const bodyCss = {
             styles: {
-                "overflow" : "hidden",
+                'overflow': 'hidden',
             },
-            toString: renderCss
+            toString: renderCss,
         };
-        var cleantalkModalStyle = document.createElement( 'style' );
+        const cleantalkModalStyle = document.createElement( 'style' );
         cleantalkModalStyle.setAttribute( 'id', 'cleantalk-modal-styles' );
         cleantalkModalStyle.innerHTML = 'body.cleantalk-modal-opened{' + bodyCss + '}';
         cleantalkModalStyle.innerHTML += '#cleantalk-modal-overlay{' + overlayCss + '}';
@@ -2441,32 +2685,30 @@ let cleantalkModal = {
         document.body.append( cleantalkModalStyle );
         /* Cleantalk Modal CSS end */
 
-        var overlay = document.createElement( 'div' );
+        const overlay = document.createElement( 'div' );
         overlay.setAttribute( 'id', 'cleantalk-modal-overlay' );
         document.body.append( overlay );
 
         document.body.classList.add( 'cleantalk-modal-opened' );
 
-        var inner = document.createElement( 'div' );
+        const inner = document.createElement( 'div' );
         inner.setAttribute( 'id', 'cleantalk-modal-inner' );
         inner.setAttribute( 'style', innerCss );
         overlay.append( inner );
 
-        var close = document.createElement( 'div' );
+        const close = document.createElement( 'div' );
         close.setAttribute( 'id', 'cleantalk-modal-close' );
         inner.append( close );
 
-        var content = document.createElement( 'div' );
+        const content = document.createElement( 'div' );
         if ( this.loaded ) {
-            var urlRegex = /(https?:\/\/[^\s]+)/g;
-            var service_content_regex = /.*\/inc/g;
-            if (service_content_regex.test(this.loaded)){
-                content.innerHTML = this.loaded
+            const urlRegex = /(https?:\/\/[^\s]+)/g;
+            const serviceContentRegex = /.*\/inc/g;
+            if (serviceContentRegex.test(this.loaded)) {
+                content.innerHTML = this.loaded;
             } else {
-                var renderedMsg = this.loaded.replace(urlRegex, '<a href="$1" target="_blank">$1</a>');
-                content.innerHTML = renderedMsg;
+                content.innerHTML = this.loaded.replace(urlRegex, '<a href="$1" target="_blank">$1</a>');
             }
-
         } else {
             content.innerHTML = 'Loading...';
             // @ToDo Here is hardcoded parameter. Have to get this from a 'data-' attribute.
@@ -2478,137 +2720,30 @@ let cleantalkModal = {
         this.opened = true;
     },
 
-    close: function () {
+    close: function() {
         document.body.classList.remove( 'cleantalk-modal-opened' );
         document.getElementById( 'cleantalk-modal-overlay' ).remove();
         document.getElementById( 'cleantalk-modal-styles' ).remove();
         document.dispatchEvent(
-            new CustomEvent( "cleantalkModalClosed", {
+            new CustomEvent( 'cleantalkModalClosed', {
                 bubbles: true,
-            } )
+            } ),
         );
-    }
+    },
 
 };
 
 /* Cleantalk Modal helpers */
-document.addEventListener('click',function( e ){
-    if( e.target && (e.target.id === 'cleantalk-modal-overlay' || e.target.id === 'cleantalk-modal-close') ){
+document.addEventListener('click', function( e ) {
+    if ( e.target && (e.target.id === 'cleantalk-modal-overlay' || e.target.id === 'cleantalk-modal-close') ) {
         cleantalkModal.close();
     }
 });
-document.addEventListener("cleantalkModalContentLoaded", function( e ) {
-    if( cleantalkModal.opened && cleantalkModal.loaded ) {
+document.addEventListener('cleantalkModalContentLoaded', function( e ) {
+    if ( cleantalkModal.opened && cleantalkModal.loaded ) {
         document.getElementById( 'cleantalk-modal-content' ).innerHTML = cleantalkModal.loaded;
     }
 });
-const buttonsToHandle = [];
-
-document.addEventListener('DOMContentLoaded', function() {
-    if (
-        typeof ctPublicGDPR === 'undefined' ||
-        !ctPublicGDPR.gdpr_forms.length
-    ) {
-        return;
-    }
-
-    const gdprNoticeForButton = ctPublicGDPR.gdpr_title;
-
-    if (typeof jQuery === 'undefined') {
-        return;
-    }
-    try {
-        ctPublicGDPR.gdpr_forms.forEach( function(item, i) {
-            let elem = jQuery('#' + item + ', .' + item);
-
-            // Filter forms
-            if (!elem.is('form')) {
-                // Caldera
-                if (elem.find('form')[0]) {
-                    elem = elem.children('form').first();
-                } else if ( // Contact Form 7
-                    jQuery('.wpcf7[role=form]')[0] && jQuery('.wpcf7[role=form]')
-                        .attr('id')
-                        .indexOf('wpcf7-f' + item) !== -1
-                ) {
-                    elem = jQuery('.wpcf7[role=form]').children('form');
-                } else if ( // Formidable
-                    jQuery('.frm_forms')[0] &&
-                    jQuery('.frm_forms').first().attr('id').indexOf('frm_form_' + item) !== -1
-                ) {
-                    elem = jQuery('.frm_forms').first().children('form');
-                } else if ( // WPForms
-                    jQuery('.wpforms-form')[0] &&
-                    jQuery('.wpforms-form').first().attr('id').indexOf('wpforms-form-' + item) !== -1
-                ) {
-                    elem = jQuery('.wpforms-form');
-                }
-            }
-
-            // disable forms buttons
-            let button = false;
-            const buttonsCollection = elem.find('input[type|="submit"],button[type|="submit"]');
-
-            if (!buttonsCollection.length) {
-                return;
-            } else {
-                button = buttonsCollection[0];
-            }
-
-            if (button !== false) {
-                button.disabled = true;
-                const oldNotice = jQuery(button).prop('title') ? jQuery(button).prop('title') : '';
-                buttonsToHandle.push({index: i, button: button, old_notice: oldNotice});
-                jQuery(button).prop('title', gdprNoticeForButton);
-            }
-
-            // Adding notice and checkbox
-            if (elem.is('form') || elem.attr('role') === 'form') {
-                const selectorId = 'apbct_gdpr_' + i;
-                elem.append(
-                    '<input id="' + selectorId + '" type="checkbox" required="required" ' +
-                    'style="margin-right: 10px;">',
-                ).append(
-                    '<label style=\'display: inline;\' for=\'apbct_gdpr_' +
-                    i +
-                    '\'>' +
-                    ctPublicGDPR.gdpr_text +
-                    '</label>',
-                );
-                jQuery(selectorId).prop('onchange', apbctGDPRHandleButtons);
-            }
-        });
-    } catch (e) {
-        console.info('APBCT GDPR JS ERROR: Can not add GDPR notice' + e);
-    }
-});
-
-/**
- * Disable/enable form buttons if GDPR checkbox disabled/enabled.
- * @return {void}
- */
-function apbctGDPRHandleButtons() {
-    try {
-        if (buttonsToHandle === []) {
-            return;
-        }
-
-        buttonsToHandle.forEach((button) => {
-            const selector = '[id=\'apbct_gdpr_' + button.index + '\']';
-            const apbctGDPRItem = jQuery(selector);
-            // chek if apbct_gdpr checkbox is set
-            if (jQuery(apbctGDPRItem).prop('checked')) {
-                button.button.disabled = false;
-                jQuery(button.button).prop('title', button.old_notice);
-            } else {
-                button.button.disabled = true;
-                jQuery(button.button).prop('title', gdpr_notice_for_button);
-            }
-        });
-    } catch (e) {
-        console.info('APBCT GDPR JS ERROR: Can not handle form buttons ' + e);
-    }
-}
 
 /**
  * Handle external forms
@@ -2818,18 +2953,8 @@ function apbctProcessExternalForm(currentForm, iterator, documentObject) {
         documentObject.forms[iterator].onsubmit = function( event ) {
             event.preventDefault();
 
-            // mautic integration
-            if (documentObject.forms[iterator].id.indexOf('mauticform') !== -1) {
-                const checkbox = documentObject.forms[iterator].querySelectorAll('input[id*="checkbox_rgpd"]');
-                if (checkbox.length > 0) {
-                    if (checkbox.prop('checked') === true) {
-                        const placeholder = documentObject.querySelectorAll('.cleantalk_placeholder');
-                        if (placeholder.length > 0) {
-                            placeholder[0].setAttribute('mautic_hidden_gdpr_id', checkbox.prop('id'));
-                        }
-                    }
-                }
-            }
+            const prev = apbct_prev(event.currentTarget);
+            const form_original = event.currentTarget.cloneNode(true);
 
             sendAjaxCheckingFormData(event.currentTarget);
         };
@@ -2942,18 +3067,6 @@ function sendAjaxCheckingFormData(form, prev, formOriginal) {
                     // mautic forms integration
                     if (formOriginal.id.indexOf('mautic') !== -1) {
                         mauticIntegration = true;
-                    }
-                    const placeholders = document.getElementsByClassName('cleantalk_placeholder');
-                    if (placeholders) {
-                        for (let i = 0; i < placeholders.length; i++) {
-                            const mauticHiddenGdprId = placeholders[i].getAttribute('mautic_hidden_gdpr_id');
-                            if (mauticHiddenGdprId !== null && typeof(mauticHiddenGdprId) !== 'undefined') {
-                                const mauticGdprRadio = formOriginal.querySelector('#' + mauticHiddenGdprId);
-                                if (typeof(mauticGdprRadio) !== 'undefined') {
-                                    mauticGdprRadio.prop('checked', true);
-                                }
-                            }
-                        }
                     }
 
                     prev.after( formOriginal );
