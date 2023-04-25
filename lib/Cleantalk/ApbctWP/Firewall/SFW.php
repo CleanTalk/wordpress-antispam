@@ -190,6 +190,10 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
                     );
 
                     $test_status = (int)$db_result['status'];
+
+                    if ($text_status === 'PASS_SFW__BY_WHITELIST') {
+                        break;
+                    }
                 }
             } else {
                 $result_entry = array(
