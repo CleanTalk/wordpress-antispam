@@ -1053,7 +1053,7 @@ function ctSetCookie( cookies, value, expires ) {
 
     if ( typeof cookies === 'string' && typeof value === 'string' || typeof value === 'number') {
         // eslint-disable-next-line no-unused-vars
-        const skipAlt = cookies === 'ct_pointer_data';
+        var skipAlt = cookies === 'ct_pointer_data';
         cookies = [[cookies, value, expires]];
     }
 
