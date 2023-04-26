@@ -39,7 +39,7 @@ function ctSetCookie( cookies, value, expires ) {
         if ( ctPublic.force_alt_cookies ) {
             // do it just once
 
-            if ( !skipAlt ) {
+            if ( typeof skipAlt === 'undefined' || !skipAlt ) {
                 ctSetAlternativeCookie(cookies, {forceAltCookies: true});
             }
         } else {
