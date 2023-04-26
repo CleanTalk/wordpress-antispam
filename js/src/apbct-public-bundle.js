@@ -186,7 +186,7 @@ class ApbctCore {
      */
     ajax(ajaxParameters) {
         this.ajax_parameters = ajaxParameters;
-        return new ApbctAjax(ajax_parameters);
+        return new ApbctAjax(ajaxParameters);
     }
 
     /**
