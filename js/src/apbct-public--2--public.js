@@ -1,10 +1,10 @@
 // eslint-disable-next-line camelcase
-let ct_date = new Date();
-let ctTimeMs = new Date().getTime();
-let ctMouseEventTimerFlag = true; // Reading interval flag
-let ctMouseData = [];
-let ctMouseDataCounter = 0;
-let ctCheckedEmails = {};
+var ct_date = new Date();
+var ctTimeMs = new Date().getTime();
+var ctMouseEventTimerFlag = true; // Reading interval flag
+var ctMouseData = [];
+var ctMouseDataCounter = 0;
+var ctCheckedEmails = {};
 
 // eslint-disable-next-line require-jsdoc,camelcase
 function apbct_attach_event_handler(elem, event, callback) {
