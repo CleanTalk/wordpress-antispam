@@ -1099,7 +1099,7 @@ function ctSetCookie( cookies, value, expires ) {
         });
 
         // Using alternative cookies
-    } else if ( ctPublicFunctions.data__cookies_type === 'alternative' && ! skipAlt ) {
+    } else if ( ctPublicFunctions.data__cookies_type === 'alternative' && typeof skipAlt === 'undefined' || ! skipAlt ) {
         ctSetAlternativeCookie(cookies);
     }
 }
