@@ -934,6 +934,15 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'Plugin Name: DIGITS: WordPress Mobile Number Signup and Login; ajax login action digits_forms_ajax';
         }
+
+        // Plugin Name: Ultimate Addons for Beaver Builder: Exclude login form request
+        if (
+            apbct_is_plugin_active('bb-ultimate-addon/bb-ultimate-addon.php') &&
+            Post::get('action') === 'uabb-lf-form-submit' &&
+            check_ajax_referer('uabb-lf-nonce', 'nonce')
+        ) {
+            return 'Plugin Name: Ultimate Addons for Beaver Builder: Exclude login form request';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
