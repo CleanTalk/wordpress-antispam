@@ -27,13 +27,13 @@ const ctFunctionFirstKey = function output(event) {
 if (ctPublic.data__key_is_ok) {
     // Reading interval
     // eslint-disable-next-line no-unused-vars
-    const ctMouseReadInterval = setInterval(function() {
+    var ctMouseReadInterval = setInterval(function() {
         ctMouseEventTimerFlag = true;
     }, 150);
 
     // Writting interval
     // eslint-disable-next-line no-unused-vars
-    const ctMouseWriteDataInterval = setInterval(function() {
+    var ctMouseWriteDataInterval = setInterval(function() {
         ctSetCookie('ct_pointer_data', JSON.stringify(ctMouseData));
     }, 1200);
 }
