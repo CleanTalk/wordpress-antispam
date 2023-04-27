@@ -16,7 +16,7 @@ function ctSetCookie( cookies, value, expires ) {
 
     if ( typeof cookies === 'string' && typeof value === 'string' || typeof value === 'number') {
         // eslint-disable-next-line no-unused-vars
-        const skipAlt = cookies === 'ct_pointer_data';
+        var skipAlt = cookies === 'ct_pointer_data';
         cookies = [[cookies, value, expires]];
     }
 
@@ -39,7 +39,7 @@ function ctSetCookie( cookies, value, expires ) {
         if ( ctPublic.force_alt_cookies ) {
             // do it just once
 
-            if ( !skipAlt ) {
+            if ( typeof skipAlt === 'undefined' || !skipAlt ) {
                 ctSetAlternativeCookie(cookies, {forceAltCookies: true});
             }
         } else {
@@ -62,7 +62,7 @@ function ctSetCookie( cookies, value, expires ) {
         });
 
         // Using alternative cookies
-    } else if ( ctPublicFunctions.data__cookies_type === 'alternative' && ! skipAlt ) {
+    } else if ( ctPublicFunctions.data__cookies_type === 'alternative' && typeof skipAlt === 'undefined' || ! skipAlt ) {
         ctSetAlternativeCookie(cookies);
     }
 }

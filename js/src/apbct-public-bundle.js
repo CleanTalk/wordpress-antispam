@@ -186,7 +186,7 @@ class ApbctCore {
      */
     ajax(ajaxParameters) {
         this.ajax_parameters = ajaxParameters;
-        return new ApbctAjax(ajax_parameters);
+        return new ApbctAjax(ajaxParameters);
     }
 
     /**
@@ -1053,7 +1053,7 @@ function ctSetCookie( cookies, value, expires ) {
 
     if ( typeof cookies === 'string' && typeof value === 'string' || typeof value === 'number') {
         // eslint-disable-next-line no-unused-vars
-        const skipAlt = cookies === 'ct_pointer_data';
+        var skipAlt = cookies === 'ct_pointer_data';
         cookies = [[cookies, value, expires]];
     }
 
@@ -1076,7 +1076,7 @@ function ctSetCookie( cookies, value, expires ) {
         if ( ctPublic.force_alt_cookies ) {
             // do it just once
 
-            if ( !skipAlt ) {
+            if ( typeof skipAlt === 'undefined' || !skipAlt ) {
                 ctSetAlternativeCookie(cookies, {forceAltCookies: true});
             }
         } else {
@@ -1099,7 +1099,7 @@ function ctSetCookie( cookies, value, expires ) {
         });
 
         // Using alternative cookies
-    } else if ( ctPublicFunctions.data__cookies_type === 'alternative' && ! skipAlt ) {
+    } else if ( ctPublicFunctions.data__cookies_type === 'alternative' && typeof skipAlt === 'undefined' || ! skipAlt ) {
         ctSetAlternativeCookie(cookies);
     }
 }
@@ -1345,12 +1345,12 @@ const apbctSessionStorage = {
 };
 
 // eslint-disable-next-line camelcase
-const ct_date = new Date();
-const ctTimeMs = new Date().getTime();
-let ctMouseEventTimerFlag = true; // Reading interval flag
-const ctMouseData = [];
-let ctMouseDataCounter = 0;
-const ctCheckedEmails = {};
+var ct_date = new Date();
+var ctTimeMs = new Date().getTime();
+var ctMouseEventTimerFlag = true; // Reading interval flag
+var ctMouseData = [];
+var ctMouseDataCounter = 0;
+var ctCheckedEmails = {};
 
 // eslint-disable-next-line require-jsdoc,camelcase
 function apbct_attach_event_handler(elem, event, callback) {
@@ -1373,13 +1373,13 @@ const ctFunctionFirstKey = function output(event) {
 if (ctPublic.data__key_is_ok) {
     // Reading interval
     // eslint-disable-next-line no-unused-vars
-    const ctMouseReadInterval = setInterval(function() {
+    var ctMouseReadInterval = setInterval(function() {
         ctMouseEventTimerFlag = true;
     }, 150);
 
     // Writting interval
     // eslint-disable-next-line no-unused-vars
-    const ctMouseWriteDataInterval = setInterval(function() {
+    var ctMouseWriteDataInterval = setInterval(function() {
         ctSetCookie('ct_pointer_data', JSON.stringify(ctMouseData));
     }, 1200);
 }
