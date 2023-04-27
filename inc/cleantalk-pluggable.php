@@ -1110,6 +1110,14 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'WS Forms Pro request';
         }
+
+        // Skip Indeed Ultimate Membership Pro - have the direct integration
+        if (
+            apbct_is_plugin_active('indeed-membership-pro/indeed-membership-pro.php') &&
+            wp_verify_nonce(Post::get('ihc_user_add_edit_nonce'), 'ihc_user_add_edit_nonce')
+        ) {
+            return 'Indeed Ultimate Membership Pro - have the direct integration';
+        }
     }
 
     //Skip wforms because of direct integration
