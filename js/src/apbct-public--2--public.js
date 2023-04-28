@@ -18,8 +18,8 @@ function apbct_remove_event_handler(elem, event, callback) {
 }
 
 // Writing first key press timestamp
-const ctFunctionFirstKey = function output(event) {
-    const KeyTimestamp = Math.floor(new Date().getTime()/1000);
+var ctFunctionFirstKey = function output(event) {
+    var KeyTimestamp = Math.floor(new Date().getTime()/1000);
     ctSetCookie('ct_fkp_timestamp', KeyTimestamp);
     ctKeyStopStopListening();
 };
@@ -39,7 +39,7 @@ if (ctPublic.data__key_is_ok) {
 }
 
 // Logging mouse position each 150 ms
-const ctFunctionMouseMove = function output(event) {
+var ctFunctionMouseMove = function output(event) {
     ctSetMouseMoved();
     if (ctMouseEventTimerFlag === true) {
         ctMouseData.push([
@@ -77,7 +77,7 @@ function ctKeyStopStopListening() {
  * @param {mixed} e
  */
 function checkEmail(e) {
-    const currentEmail = e.target.value;
+    var currentEmail = e.target.value;
     if (currentEmail && !(currentEmail in ctCheckedEmails)) {
         // Using REST API handler
         if ( ctPublicFunctions.data__ajax_type === 'rest' ) {
@@ -127,7 +127,7 @@ function ctSetPixelImg(pixelUrl) {
     ctSetCookie('apbct_pixel_url', pixelUrl);
     if ( +ctPublic.pixel__enabled ) {
         if ( ! document.getElementById('apbct_pixel') ) {
-            const insertedImg = document.createElement('img');
+            let insertedImg = document.createElement('img');
             insertedImg.setAttribute('alt', 'CleanTalk Pixel');
             insertedImg.setAttribute('id', 'apbct_pixel');
             insertedImg.setAttribute('style', 'display: none; left: 99999px;');
@@ -142,7 +142,7 @@ function ctSetPixelImg(pixelUrl) {
  */
 function ctGetPixelUrl() {
     // Check if pixel is already in localstorage and is not outdated
-    const localStoragePixelUrl = apbctLocalStorage.get('apbct_pixel_url');
+    let localStoragePixelUrl = apbctLocalStorage.get('apbct_pixel_url');
     if ( localStoragePixelUrl !== false ) {
         if ( apbctLocalStorage.isAlive('apbct_pixel_url', 3600 * 3) ) {
             apbctLocalStorage.delete('apbct_pixel_url');
@@ -231,7 +231,7 @@ function ctStartFieldsListening() {
         return;
     }
 
-    const forms = ctGetPageForms();
+    let forms = ctGetPageForms();
     ctPublic.handled_fields = [];
 
     if (forms.length > 0) {
@@ -264,12 +264,12 @@ function ctStopFieldsListening(eventName, functionName) {
     }
 }
 
-const ctFunctionHasInputFocused = function output(event) {
+let ctFunctionHasInputFocused = function output(event) {
     ctSetHasInputFocused();
     ctStopFieldsListening('focus', ctFunctionHasInputFocused);
 };
 
-const ctFunctionHasKeyUp = function output(event) {
+let ctFunctionHasKeyUp = function output(event) {
     ctSetHasKeyUp();
     ctStopFieldsListening('keyup', ctFunctionHasKeyUp);
 };
@@ -299,7 +299,7 @@ function ctSetHasKeyUp() {
  */
 function ctPreloadLocalStorage() {
     if (ctPublic.data__to_local_storage) {
-        const data = Object.entries(ctPublic.data__to_local_storage);
+        let data = Object.entries(ctPublic.data__to_local_storage);
         data.forEach(([key, value]) => {
             apbctLocalStorage.set(key, value);
         });
@@ -326,7 +326,7 @@ function apbct_ready() {
         apbctSessionStorage.set('apbct_session_id', sessionID, false);
         apbctLocalStorage.set('apbct_page_hits', 1);
         if (document.referrer) {
-            const urlReferer = new URL(document.referrer);
+            let urlReferer = new URL(document.referrer);
             if (urlReferer.host !== location.host) {
                 apbctSessionStorage.set('apbct_site_referer', document.referrer, false);
             }
@@ -372,11 +372,11 @@ function apbct_ready() {
         initCookies.push(['apbct_visible_fields', '0']);
     } else {
         // Delete all visible fields cookies on load the page
-        const cookiesArray = document.cookie.split(';');
+        var cookiesArray = document.cookie.split(';');
         if ( cookiesArray.length !== 0 ) {
             for ( let i = 0; i < cookiesArray.length; i++ ) {
-                const currentCookie = cookiesArray[i].trim();
-                const cookieName = currentCookie.split('=')[0];
+                var currentCookie = cookiesArray[i].trim();
+                var cookieName = currentCookie.split('=')[0];
                 if ( cookieName.indexOf('apbct_visible_fields_') === 0 ) {
                     ctDeleteCookie(cookieName);
                 }
@@ -417,7 +417,7 @@ function apbct_ready() {
         }
 
         for (let i = 0; i < document.forms.length; i++) {
-            const form = document.forms[i];
+            var form = document.forms[i];
 
             // Exclusion for forms
             if (
@@ -450,11 +450,11 @@ function apbct_ready() {
                 continue;
             }
 
-            const hiddenInput = document.createElement( 'input' );
+            var hiddenInput = document.createElement( 'input' );
             hiddenInput.setAttribute( 'type', 'hidden' );
             hiddenInput.setAttribute( 'id', 'apbct_visible_fields_' + i );
             hiddenInput.setAttribute( 'name', 'apbct_visible_fields');
-            const visibleFieldsToInput = {};
+            var visibleFieldsToInput = {};
             visibleFieldsToInput[0] = apbct_collect_visible_fields(form);
             hiddenInput.value = btoa(JSON.stringify(visibleFieldsToInput));
             form.append( hiddenInput );
@@ -480,7 +480,7 @@ function apbct_ready() {
     }, 1000);
 
     // Listen clicks on encoded emails
-    const encodedEmailNodes = document.querySelectorAll('[data-original-string]');
+    let encodedEmailNodes = document.querySelectorAll('[data-original-string]');
     ctPublic.encodedEmailNodes = encodedEmailNodes;
     if (encodedEmailNodes.length) {
         for (let i = 0; i < encodedEmailNodes.length; ++i) {
@@ -549,18 +549,18 @@ if (ctPublic.data__key_is_ok) {
 function ctFillDecodedEmailHandler(event) {
     this.removeEventListener('click', ctFillDecodedEmailHandler);
     // remember clickSource
-    const clickSource = this;
+    let clickSource = this;
     // globally remember if emails is mixed with mailto
     ctPublic.encodedEmailNodesIsMixed = false;
     // get fade
     document.body.classList.add('apbct-popup-fade');
     // popup show
-    const encoderPopup = document.getElementById('apbct_popup');
+    let encoderPopup = document.getElementById('apbct_popup');
     if (!encoderPopup) {
-        const waitingPopup = document.createElement('div');
+        let waitingPopup = document.createElement('div');
         waitingPopup.setAttribute('class', 'apbct-popup');
         waitingPopup.setAttribute('id', 'apbct_popup');
-        const popupText = document.createElement('p');
+        let popupText = document.createElement('p');
         popupText.setAttribute('id', 'apbct_popup_text');
         popupText.style.color = 'black';
         popupText.innerText = 'Please wait while CleanTalk is decoding the email addresses.';
@@ -583,13 +583,13 @@ function ctFillDecodedEmailHandler(event) {
 function apbctAjaxEmailDecodeBulk(event, encodedEmailNodes, clickSource) {
     // collect data
     const javascriptClientData = getJavascriptClientData();
-    const data = {
+    let data = {
         event_javascript_data: javascriptClientData,
         post_url: document.location.href,
         referrer: document.referrer,
         encodedEmails: '',
     };
-    const encodedEmailsCollection = {};
+    let encodedEmailsCollection = {};
     for (let i = 0; i < encodedEmailNodes.length; i++) {
         // disable click for mailto
         if (typeof encodedEmailNodes[i].href !== 'undefined' && encodedEmailNodes[i].href.indexOf('mailto:') === 0) {
@@ -598,7 +598,7 @@ function apbctAjaxEmailDecodeBulk(event, encodedEmailNodes, clickSource) {
         }
 
         // Adding a tooltip
-        const apbctTooltip = document.createElement('div');
+        let apbctTooltip = document.createElement('div');
         apbctTooltip.setAttribute('class', 'apbct-tooltip');
         apbct(encodedEmailNodes[i]).append(apbctTooltip);
 
@@ -674,8 +674,8 @@ function apbctEmailEncoderCallbackBulk(result, encodedEmailNodes, clickSource) {
                 if (
                     typeof encodedEmailNodes[i].href !== 'undefined' &&
                     encodedEmailNodes[i].href.indexOf('mailto:') === 0) {
-                    const encodedEmail = encodedEmailNodes[i].href.replace('mailto:', '');
-                    const baseElementContent = encodedEmailNodes[i].innerHTML;
+                    let encodedEmail = encodedEmailNodes[i].href.replace('mailto:', '');
+                    let baseElementContent = encodedEmailNodes[i].innerHTML;
                     encodedEmailNodes[i].innerHTML =
                         baseElementContent.replace(encodedEmail, currentResultData.decoded_email);
                     encodedEmailNodes[i].href = 'mailto:' + currentResultData.decoded_email;
@@ -686,7 +686,7 @@ function apbctEmailEncoderCallbackBulk(result, encodedEmailNodes, clickSource) {
                 encodedEmailNodes[i].removeEventListener('click', ctFillDecodedEmailHandler);
             }
             // popup remove
-            const popup = document.getElementById('apbct_popup');
+            let popup = document.getElementById('apbct_popup');
             if (popup !== null) {
                 document.body.classList.remove('apbct-popup-fade');
                 popup.setAttribute('style', 'display:none');
@@ -793,7 +793,7 @@ function getJavascriptClientData(commonCookies = []) {
 function removeDoubleJsonEncoding(object) {
     if ( typeof object === 'object') {
         // eslint-disable-next-line guard-for-in
-        for (const objectKey in object) {
+        for (let objectKey in object) {
             // Recursion
             if ( typeof object[objectKey] === 'object') {
                 object[objectKey] = removeDoubleJsonEncoding(object[objectKey]);
@@ -845,8 +845,8 @@ function ctShowDecodeComment(comment) {
         comment = 'Can not decode email. Unknown reason';
     }
 
-    const popup = document.getElementById('apbct_popup');
-    const popupText = document.getElementById('apbct_popup_text');
+    let popup = document.getElementById('apbct_popup');
+    let popupText = document.getElementById('apbct_popup_text');
     if (popup !== null) {
         document.body.classList.remove('apbct-popup-fade');
         popupText.innerText = 'CleanTalk email decoder: ' + comment;
@@ -864,9 +864,9 @@ function apbct_collect_visible_fields( form ) {
     let inputsVisibleCount = 0;
     let inputsInvisible = '';
     let inputsInvisibleCount = 0;
-    const inputsWithDuplicateNames = [];
+    let inputsWithDuplicateNames = [];
 
-    for (const key in form.elements) {
+    for (let key in form.elements) {
         if (!isNaN(+key)) {
             inputs[key] = form.elements[key];
         }
@@ -932,17 +932,17 @@ function apbct_collect_visible_fields( form ) {
 
 // eslint-disable-next-line camelcase,require-jsdoc
 function apbct_visible_fields_set_cookie( visibleFieldsCollection, formId ) {
-    const collection = typeof visibleFieldsCollection === 'object' && visibleFieldsCollection !== null ?
+    let collection = typeof visibleFieldsCollection === 'object' && visibleFieldsCollection !== null ?
         visibleFieldsCollection : {};
 
     if ( ctPublic.data__cookies_type === 'native' ) {
         // eslint-disable-next-line guard-for-in
-        for ( const i in collection ) {
+        for ( let i in collection ) {
             if ( i > 10 ) {
                 // Do not generate more than 10 cookies
                 return;
             }
-            const collectionIndex = formId !== undefined ? formId : i;
+            let collectionIndex = formId !== undefined ? formId : i;
             ctSetCookie('apbct_visible_fields_' + collectionIndex, JSON.stringify( collection[i] ) );
         }
     } else {
@@ -957,7 +957,7 @@ function apbct_visible_fields_set_cookie( visibleFieldsCollection, formId ) {
 // eslint-disable-next-line camelcase,require-jsdoc,no-unused-vars
 function apbct_js_keys__set_input_value(result, data, params, obj) {
     if ( document.querySelectorAll('[name^=ct_checkjs]').length > 0 ) {
-        const elements = document.querySelectorAll('[name^=ct_checkjs]');
+        let elements = document.querySelectorAll('[name^=ct_checkjs]');
         for ( let i = 0; i < elements.length; i++ ) {
             elements[i].value = result.js_key;
         }
@@ -986,7 +986,7 @@ if (typeof jQuery !== 'undefined') {
         if (xhr.responseText && xhr.responseText.indexOf('"apbct') !== -1) {
             try {
                 // eslint-disable-next-line no-unused-vars
-                const response = JSON.parse(xhr.responseText);
+                let response = JSON.parse(xhr.responseText);
             } catch (e) {
                 console.log(e.toString());
                 return;
@@ -1032,8 +1032,8 @@ function ctNoCookieConstructHiddenField(type) {
         inputType = 'submit';
     }
     let field = '';
-    const noCookieDataLocal = apbctLocalStorage.getCleanTalkData();
-    const noCookieDataSession = apbctSessionStorage.getCleanTalkData();
+    let noCookieDataLocal = apbctLocalStorage.getCleanTalkData();
+    let noCookieDataSession = apbctSessionStorage.getCleanTalkData();
     let noCookieData = {...noCookieDataLocal, ...noCookieDataSession};
     noCookieData = JSON.stringify(noCookieData);
     noCookieData = '_ct_no_cookie_data_' + btoa(noCookieData);
@@ -1050,7 +1050,7 @@ function ctNoCookieConstructHiddenField(type) {
  * @return {boolean|*}
  */
 function ctGetPageForms() {
-    const forms = document.forms;
+    let forms = document.forms;
     if (forms) {
         return forms;
     }
@@ -1060,7 +1060,7 @@ function ctGetPageForms() {
 // eslint-disable-next-line require-jsdoc
 function ctNoCookieFormIsExcludedFromNcField(form) {
     // ajax search pro exclusion
-    const ncFieldExclusionsSign = form.parentNode;
+    let ncFieldExclusionsSign = form.parentNode;
     if (ncFieldExclusionsSign && ncFieldExclusionsSign.classList.contains('proinput')) {
         return 'ajax search pro exclusion';
     }
@@ -1076,12 +1076,12 @@ function ctNoCookieAttachHiddenFieldsToForms() {
         return;
     }
 
-    const forms = ctGetPageForms();
+    let forms = ctGetPageForms();
 
     if (forms) {
         for ( let i = 0; i < forms.length; i++ ) {
             // remove old sets
-            const fields = forms[i].querySelectorAll('.ct_no_cookie_hidden_field');
+            let fields = forms[i].querySelectorAll('.ct_no_cookie_hidden_field');
             for ( let j = 0; j < fields.length; j++ ) {
                 fields[j].outerHTML = '';
             }
@@ -1137,7 +1137,7 @@ function checkFormsExistForCatching() {
                     typeof arguments[0].includes === 'function' &&
                     arguments[0].includes('/wp-json/metform/')
                 ) {
-                    const noCookieData = getNoCookieData();
+                    let noCookieData = getNoCookieData();
 
                     if (arguments && arguments[1] && arguments[1].body) {
                         arguments[1].body.append('ct_no_cookie_hidden_field', noCookieData);
@@ -1160,7 +1160,7 @@ function isFormThatNeedCatch() {
     let classExists = false;
 
     const forms = document.forms;
-    for (const form of forms) {
+    for (let form of forms) {
         formClasses.forEach(function(classForm) {
             if (form.classList.contains(classForm)) {
                 classExists = true;
@@ -1202,8 +1202,8 @@ function isFormThatNeedCatchXhr() {
  * @return {string}
  */
 function getNoCookieData() {
-    const noCookieDataLocal = apbctLocalStorage.getCleanTalkData();
-    const noCookieDataSession = apbctSessionStorage.getCleanTalkData();
+    let noCookieDataLocal = apbctLocalStorage.getCleanTalkData();
+    let noCookieDataSession = apbctSessionStorage.getCleanTalkData();
     let noCookieData = {...noCookieDataLocal, ...noCookieDataSession};
     noCookieData = JSON.stringify(noCookieData);
 

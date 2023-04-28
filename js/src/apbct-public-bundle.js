@@ -267,7 +267,7 @@ class ApbctCore {
      * @return {*|*[]}
      */
     attr(attrName) {
-        const outputValue = [];
+        let outputValue = [];
 
         for (let i=0; i<this.elements.length; i++) {
             // Use property instead of attribute if possible
@@ -361,7 +361,7 @@ class ApbctCore {
     is(filter) {
         let outputValue = false;
 
-        for (const elem of this.elements) {
+        for (let elem of this.elements) {
             outputValue ||= this.isElem(elem, filter);
         }
 
@@ -375,8 +375,8 @@ class ApbctCore {
      */
     isElem(elemToCheck, filter) {
         let is = false;
-        const isRegisteredTagName = function(name) {
-            const newlyCreatedElement = document.createElement(name).constructor;
+        let isRegisteredTagName = function(name) {
+            let newlyCreatedElement = document.createElement(name).constructor;
             return ! Boolean( ~[HTMLElement, HTMLUnknownElement].indexOf(newlyCreatedElement) );
         };
 
@@ -415,7 +415,7 @@ class ApbctCore {
         const elems = document.querySelectorAll(filter);
         let outputValue = false;
 
-        for (const elem of elems) {
+        for (let elem of elems) {
             outputValue ||= elemToCheck === elem;
         }
 
@@ -495,7 +495,7 @@ class ApbctCore {
      * @return {ApbctCore}
      */
     siblings(filter) {
-        const current = this.elements[0]; // Remember current to delete it later
+        let current = this.elements[0]; // Remember current to delete it later
 
         this.parent();
         this.children(filter);
@@ -506,7 +506,7 @@ class ApbctCore {
 
     /** ************ DOM MANIPULATIONS **************/
     remove() {
-        for (const elem of this.elements) {
+        for (let elem of this.elements) {
             elem.remove();
         }
     }
@@ -515,7 +515,7 @@ class ApbctCore {
      * @param {string} content
      */
     after(content) {
-        for (const elem of this.elements) {
+        for (let elem of this.elements) {
             elem.after(content);
         }
     }
@@ -524,7 +524,7 @@ class ApbctCore {
      * @param {string} content
      */
     append(content) {
-        for (const elem of this.elements) {
+        for (let elem of this.elements) {
             elem.append(content);
         }
     }
@@ -534,7 +534,7 @@ class ApbctCore {
      * @param {number} time
      */
     fadeIn(time) {
-        for (const elem of this.elements) {
+        for (let elem of this.elements) {
             elem.style.opacity = 0;
             elem.style.display = 'block';
 
@@ -556,7 +556,7 @@ class ApbctCore {
      * @param {number} time
      */
     fadeOut(time) {
-        for (const elem of this.elements) {
+        for (let elem of this.elements) {
             elem.style.opacity = 1;
 
             let last = +new Date();
@@ -616,7 +616,7 @@ class ApbctCore {
  * @param {string} url
  */
 function ctProcessError(msg, url) {
-    const log = {};
+    var log = {};
     if (msg && msg.message) {
         log.err = {
             'msg': msg.message,
@@ -640,7 +640,7 @@ function ctProcessError(msg, url) {
     log.url = window.location.href;
     log.userAgent = window.navigator.userAgent;
 
-    const ctJsErrors = 'ct_js_errors';
+    let ctJsErrors = 'ct_js_errors';
     let errArray = localStorage.getItem(ctJsErrors);
     if (errArray === null) errArray = '[]';
     errArray = JSON.parse(errArray);
@@ -656,7 +656,7 @@ function ctProcessError(msg, url) {
 
 if (Math.floor(Math.random() * 100) === 1) {
     window.onerror = function(exception, url) {
-        const filterWords = ['apbct', 'ctPublic'];
+        let filterWords = ['apbct', 'ctPublic'];
         let length = filterWords.length;
         while (length--) {
             if (exception.indexOf(filterWords[length]) !== -1) {
@@ -720,7 +720,7 @@ class ApbctXhr {
         console.log('%cXHR%c started', 'color: red; font-weight: bold;', 'color: grey; font-weight: normal;');
 
         // Set class properties
-        for ( const key in parameters ) {
+        for ( let key in parameters ) {
             if ( typeof this[key] !== 'undefined' ) {
                 this[key] = parameters[key];
             }
@@ -927,7 +927,7 @@ class ApbctXhr {
      */
     setHeaders() {
         // Set headers if passed
-        for ( const headerName in this.headers ) {
+        for ( let headerName in this.headers ) {
             if ( typeof this.headers[headerName] !== 'undefined' ) {
                 this.xhr.setRequestHeader(headerName, this.headers[headerName]);
             }
@@ -952,8 +952,8 @@ class ApbctXhr {
      * @return {string}
      */
     convertDataToURL() {
-        const paramsAppendix = new URLSearchParams(this.data).toString();
-        const paramsPrefix = this.url.match(/^(https?:\/{2})?[a-z0-9.]+\?/) ? '&' : '?';
+        let paramsAppendix = new URLSearchParams(this.data).toString();
+        let paramsPrefix = this.url.match(/^(https?:\/{2})?[a-z0-9.]+\?/) ? '&' : '?';
         this.url += paramsPrefix + paramsAppendix;
 
         return this.url;
@@ -964,7 +964,7 @@ class ApbctXhr {
      */
     convertDataToBody() {
         this.body = new FormData();
-        for (const dataKey in this.data) {
+        for (let dataKey in this.data) {
             if (Object.hasOwn(this.data, dataKey)) {
                 this.body.append(
                     dataKey,
@@ -988,7 +988,7 @@ class ApbctXhr {
      */
     deleteDoubleJSONEncoding(object) {
         if ( typeof object === 'object') {
-            for (const objectKey in object) {
+            for (let objectKey in object) {
                 if (Object.hasOwn(object, objectKey)) {
                     // Recursion
                     if ( typeof object[objectKey] === 'object') {
@@ -1000,7 +1000,7 @@ class ApbctXhr {
                         typeof object[objectKey] === 'string' &&
                         object[objectKey].match(/^[\[{].*?[\]}]$/) !== null // is like JSON
                     ) {
-                        const parsedValue = JSON.parse(object[objectKey]);
+                        let parsedValue = JSON.parse(object[objectKey]);
                         if ( typeof parsedValue === 'object' ) {
                             object[objectKey] = parsedValue;
                         }
@@ -1042,7 +1042,7 @@ class ApbctRest extends ApbctXhr {
  */
 // eslint-disable-next-line no-unused-vars,require-jsdoc
 function ctSetCookie( cookies, value, expires ) {
-    const listOfCookieNamesToForceAlt = [
+    let listOfCookieNamesToForceAlt = [
         'ct_sfw_pass_key',
         'ct_sfw_passed',
         'wordpress_apbct_antibot',
@@ -1059,7 +1059,7 @@ function ctSetCookie( cookies, value, expires ) {
 
     // Cookies disabled
     if ( ctPublicFunctions.data__cookies_type === 'none' ) {
-        const forcedAltCookiesSet = [];
+        let forcedAltCookiesSet = [];
         cookies.forEach( function(item) {
             if (listOfCookieNamesToForceAlt.indexOf(item[0]) !== -1) {
                 forcedAltCookiesSet.push(item);
@@ -1086,8 +1086,8 @@ function ctSetCookie( cookies, value, expires ) {
         // Using traditional cookies
     } else if ( ctPublicFunctions.data__cookies_type === 'native' ) {
         cookies.forEach( function(item) {
-            const expires = typeof item[2] !== 'undefined' ? 'expires=' + expires + '; ' : '';
-            const ctSecure = location.protocol === 'https:' ? '; secure' : '';
+            var expires = typeof item[2] !== 'undefined' ? 'expires=' + expires + '; ' : '';
+            var ctSecure = location.protocol === 'https:' ? '; secure' : '';
             document.cookie = ctPublicFunctions.cookiePrefix +
                 item[0] +
                 '=' +
@@ -1106,8 +1106,8 @@ function ctSetCookie( cookies, value, expires ) {
 
 // eslint-disable-next-line no-unused-vars,require-jsdoc
 function ctDetectForcedAltCookiesForms() {
-    const ninjaFormsSign = document.querySelectorAll('#tmpl-nf-layout').length > 0;
-    const smartFormsSign = document.querySelectorAll('script[id*="smart-forms"]').length > 0;
+    let ninjaFormsSign = document.querySelectorAll('#tmpl-nf-layout').length > 0;
+    let smartFormsSign = document.querySelectorAll('script[id*="smart-forms"]').length > 0;
 
     ctPublic.force_alt_cookies = smartFormsSign || ninjaFormsSign;
 }
@@ -1172,7 +1172,7 @@ function ctSetAlternativeCookie(cookies, params) {
  */
 // eslint-disable-next-line require-jsdoc,no-unused-vars
 function ctGetCookie(name) {
-    const matches = document.cookie.match(new RegExp(
+    var matches = document.cookie.match(new RegExp(
         '(?:^|; )' + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + '=([^;]*)',
     ));
     return matches ? decodeURIComponent(matches[1]) : undefined;
@@ -1186,7 +1186,7 @@ function ctDeleteCookie(cookieName) {
 
     // Using traditional cookies
     } else if ( ctPublicFunctions.data__cookies_type === 'native' ) {
-        const ctSecure = location.protocol === 'https:' ? '; secure' : '';
+        var ctSecure = location.protocol === 'https:' ? '; secure' : '';
         document.cookie = cookieName + '=""; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; samesite=lax' + ctSecure;
 
     // Using alternative cookies
@@ -1198,7 +1198,7 @@ function ctDeleteCookie(cookieName) {
 // eslint-disable-next-line require-jsdoc,camelcase
 function apbct_public_sendAJAX(data, params, obj) {
     // Default params
-    const _params = [];
+    let _params = [];
     _params['callback'] = params.callback || null;
     _params['onErrorCallback'] = params.onErrorCallback || null;
     _params['callback_context'] = params.callback_context || null;
@@ -1233,7 +1233,7 @@ function apbct_public_sendAJAX(data, params, obj) {
 
 // eslint-disable-next-line require-jsdoc,camelcase
 function apbct_public_sendREST( route, params ) {
-    const _params = [];
+    let _params = [];
     _params['route'] = route;
     _params['callback'] = params.callback || null;
     _params['onErrorCallback'] = params.onErrorCallback || null;
@@ -1252,7 +1252,7 @@ function apbctGenerateUniqueID() {
     return Math.random().toString(36).replace(/[^a-z]+/g, '').substr(2, 10);
 }
 
-const apbctLocalStorage = {
+let apbctLocalStorage = {
     get: function(key, property) {
         if ( typeof property === 'undefined' ) {
             property = 'value';
@@ -1270,7 +1270,7 @@ const apbctLocalStorage = {
     },
     set: function(key, value, isJson = true) {
         if (isJson) {
-            const objToSave = {'value': JSON.stringify(value), 'timestamp': Math.floor(new Date().getTime() / 1000)};
+            let objToSave = {'value': JSON.stringify(value), 'timestamp': Math.floor(new Date().getTime() / 1000)};
             localStorage.setItem(key, JSON.stringify(objToSave));
         } else {
             localStorage.setItem(key, value);
@@ -1290,9 +1290,9 @@ const apbctLocalStorage = {
         localStorage.removeItem(key);
     },
     getCleanTalkData: function() {
-        const data = {};
+        let data = {};
         for (let i=0; i<localStorage.length; i++) {
-            const key = localStorage.key(i);
+            let key = localStorage.key(i);
             if (key.indexOf('ct_') !==-1 || key.indexOf('apbct_') !==-1) {
                 data[key.toString()] = apbctLocalStorage.get(key);
             }
@@ -1302,7 +1302,7 @@ const apbctLocalStorage = {
 
 };
 
-const apbctSessionStorage = {
+let apbctSessionStorage = {
     get: function(key, property) {
         if ( typeof property === 'undefined' ) {
             property = 'value';
@@ -1320,7 +1320,7 @@ const apbctSessionStorage = {
     },
     set: function(key, value, isJson = true) {
         if (isJson) {
-            const objToSave = {'value': JSON.stringify(value), 'timestamp': Math.floor(new Date().getTime() / 1000)};
+            let objToSave = {'value': JSON.stringify(value), 'timestamp': Math.floor(new Date().getTime() / 1000)};
             sessionStorage.setItem(key, JSON.stringify(objToSave));
         } else {
             sessionStorage.setItem(key, value);
@@ -1333,9 +1333,9 @@ const apbctSessionStorage = {
         sessionStorage.removeItem(key);
     },
     getCleanTalkData: function() {
-        const data = {};
+        let data = {};
         for (let i=0; i<sessionStorage.length; i++) {
-            const key = sessionStorage.key(i);
+            let key = sessionStorage.key(i);
             if (key.indexOf('ct_') !==-1 || key.indexOf('apbct_') !==-1) {
                 data[key.toString()] = apbctSessionStorage.get(key);
             }
@@ -1364,8 +1364,8 @@ function apbct_remove_event_handler(elem, event, callback) {
 }
 
 // Writing first key press timestamp
-const ctFunctionFirstKey = function output(event) {
-    const KeyTimestamp = Math.floor(new Date().getTime()/1000);
+var ctFunctionFirstKey = function output(event) {
+    var KeyTimestamp = Math.floor(new Date().getTime()/1000);
     ctSetCookie('ct_fkp_timestamp', KeyTimestamp);
     ctKeyStopStopListening();
 };
@@ -1385,7 +1385,7 @@ if (ctPublic.data__key_is_ok) {
 }
 
 // Logging mouse position each 150 ms
-const ctFunctionMouseMove = function output(event) {
+var ctFunctionMouseMove = function output(event) {
     ctSetMouseMoved();
     if (ctMouseEventTimerFlag === true) {
         ctMouseData.push([
@@ -1423,7 +1423,7 @@ function ctKeyStopStopListening() {
  * @param {mixed} e
  */
 function checkEmail(e) {
-    const currentEmail = e.target.value;
+    var currentEmail = e.target.value;
     if (currentEmail && !(currentEmail in ctCheckedEmails)) {
         // Using REST API handler
         if ( ctPublicFunctions.data__ajax_type === 'rest' ) {
@@ -1473,7 +1473,7 @@ function ctSetPixelImg(pixelUrl) {
     ctSetCookie('apbct_pixel_url', pixelUrl);
     if ( +ctPublic.pixel__enabled ) {
         if ( ! document.getElementById('apbct_pixel') ) {
-            const insertedImg = document.createElement('img');
+            let insertedImg = document.createElement('img');
             insertedImg.setAttribute('alt', 'CleanTalk Pixel');
             insertedImg.setAttribute('id', 'apbct_pixel');
             insertedImg.setAttribute('style', 'display: none; left: 99999px;');
@@ -1488,7 +1488,7 @@ function ctSetPixelImg(pixelUrl) {
  */
 function ctGetPixelUrl() {
     // Check if pixel is already in localstorage and is not outdated
-    const localStoragePixelUrl = apbctLocalStorage.get('apbct_pixel_url');
+    let localStoragePixelUrl = apbctLocalStorage.get('apbct_pixel_url');
     if ( localStoragePixelUrl !== false ) {
         if ( apbctLocalStorage.isAlive('apbct_pixel_url', 3600 * 3) ) {
             apbctLocalStorage.delete('apbct_pixel_url');
@@ -1577,7 +1577,7 @@ function ctStartFieldsListening() {
         return;
     }
 
-    const forms = ctGetPageForms();
+    let forms = ctGetPageForms();
     ctPublic.handled_fields = [];
 
     if (forms.length > 0) {
@@ -1610,12 +1610,12 @@ function ctStopFieldsListening(eventName, functionName) {
     }
 }
 
-const ctFunctionHasInputFocused = function output(event) {
+let ctFunctionHasInputFocused = function output(event) {
     ctSetHasInputFocused();
     ctStopFieldsListening('focus', ctFunctionHasInputFocused);
 };
 
-const ctFunctionHasKeyUp = function output(event) {
+let ctFunctionHasKeyUp = function output(event) {
     ctSetHasKeyUp();
     ctStopFieldsListening('keyup', ctFunctionHasKeyUp);
 };
@@ -1645,7 +1645,7 @@ function ctSetHasKeyUp() {
  */
 function ctPreloadLocalStorage() {
     if (ctPublic.data__to_local_storage) {
-        const data = Object.entries(ctPublic.data__to_local_storage);
+        let data = Object.entries(ctPublic.data__to_local_storage);
         data.forEach(([key, value]) => {
             apbctLocalStorage.set(key, value);
         });
@@ -1672,7 +1672,7 @@ function apbct_ready() {
         apbctSessionStorage.set('apbct_session_id', sessionID, false);
         apbctLocalStorage.set('apbct_page_hits', 1);
         if (document.referrer) {
-            const urlReferer = new URL(document.referrer);
+            let urlReferer = new URL(document.referrer);
             if (urlReferer.host !== location.host) {
                 apbctSessionStorage.set('apbct_site_referer', document.referrer, false);
             }
@@ -1718,11 +1718,11 @@ function apbct_ready() {
         initCookies.push(['apbct_visible_fields', '0']);
     } else {
         // Delete all visible fields cookies on load the page
-        const cookiesArray = document.cookie.split(';');
+        var cookiesArray = document.cookie.split(';');
         if ( cookiesArray.length !== 0 ) {
             for ( let i = 0; i < cookiesArray.length; i++ ) {
-                const currentCookie = cookiesArray[i].trim();
-                const cookieName = currentCookie.split('=')[0];
+                var currentCookie = cookiesArray[i].trim();
+                var cookieName = currentCookie.split('=')[0];
                 if ( cookieName.indexOf('apbct_visible_fields_') === 0 ) {
                     ctDeleteCookie(cookieName);
                 }
@@ -1763,7 +1763,7 @@ function apbct_ready() {
         }
 
         for (let i = 0; i < document.forms.length; i++) {
-            const form = document.forms[i];
+            var form = document.forms[i];
 
             // Exclusion for forms
             if (
@@ -1796,11 +1796,11 @@ function apbct_ready() {
                 continue;
             }
 
-            const hiddenInput = document.createElement( 'input' );
+            var hiddenInput = document.createElement( 'input' );
             hiddenInput.setAttribute( 'type', 'hidden' );
             hiddenInput.setAttribute( 'id', 'apbct_visible_fields_' + i );
             hiddenInput.setAttribute( 'name', 'apbct_visible_fields');
-            const visibleFieldsToInput = {};
+            var visibleFieldsToInput = {};
             visibleFieldsToInput[0] = apbct_collect_visible_fields(form);
             hiddenInput.value = btoa(JSON.stringify(visibleFieldsToInput));
             form.append( hiddenInput );
@@ -1826,7 +1826,7 @@ function apbct_ready() {
     }, 1000);
 
     // Listen clicks on encoded emails
-    const encodedEmailNodes = document.querySelectorAll('[data-original-string]');
+    let encodedEmailNodes = document.querySelectorAll('[data-original-string]');
     ctPublic.encodedEmailNodes = encodedEmailNodes;
     if (encodedEmailNodes.length) {
         for (let i = 0; i < encodedEmailNodes.length; ++i) {
@@ -1895,18 +1895,18 @@ if (ctPublic.data__key_is_ok) {
 function ctFillDecodedEmailHandler(event) {
     this.removeEventListener('click', ctFillDecodedEmailHandler);
     // remember clickSource
-    const clickSource = this;
+    let clickSource = this;
     // globally remember if emails is mixed with mailto
     ctPublic.encodedEmailNodesIsMixed = false;
     // get fade
     document.body.classList.add('apbct-popup-fade');
     // popup show
-    const encoderPopup = document.getElementById('apbct_popup');
+    let encoderPopup = document.getElementById('apbct_popup');
     if (!encoderPopup) {
-        const waitingPopup = document.createElement('div');
+        let waitingPopup = document.createElement('div');
         waitingPopup.setAttribute('class', 'apbct-popup');
         waitingPopup.setAttribute('id', 'apbct_popup');
-        const popupText = document.createElement('p');
+        let popupText = document.createElement('p');
         popupText.setAttribute('id', 'apbct_popup_text');
         popupText.style.color = 'black';
         popupText.innerText = 'Please wait while CleanTalk is decoding the email addresses.';
@@ -1929,13 +1929,13 @@ function ctFillDecodedEmailHandler(event) {
 function apbctAjaxEmailDecodeBulk(event, encodedEmailNodes, clickSource) {
     // collect data
     const javascriptClientData = getJavascriptClientData();
-    const data = {
+    let data = {
         event_javascript_data: javascriptClientData,
         post_url: document.location.href,
         referrer: document.referrer,
         encodedEmails: '',
     };
-    const encodedEmailsCollection = {};
+    let encodedEmailsCollection = {};
     for (let i = 0; i < encodedEmailNodes.length; i++) {
         // disable click for mailto
         if (typeof encodedEmailNodes[i].href !== 'undefined' && encodedEmailNodes[i].href.indexOf('mailto:') === 0) {
@@ -1944,7 +1944,7 @@ function apbctAjaxEmailDecodeBulk(event, encodedEmailNodes, clickSource) {
         }
 
         // Adding a tooltip
-        const apbctTooltip = document.createElement('div');
+        let apbctTooltip = document.createElement('div');
         apbctTooltip.setAttribute('class', 'apbct-tooltip');
         apbct(encodedEmailNodes[i]).append(apbctTooltip);
 
@@ -2020,8 +2020,8 @@ function apbctEmailEncoderCallbackBulk(result, encodedEmailNodes, clickSource) {
                 if (
                     typeof encodedEmailNodes[i].href !== 'undefined' &&
                     encodedEmailNodes[i].href.indexOf('mailto:') === 0) {
-                    const encodedEmail = encodedEmailNodes[i].href.replace('mailto:', '');
-                    const baseElementContent = encodedEmailNodes[i].innerHTML;
+                    let encodedEmail = encodedEmailNodes[i].href.replace('mailto:', '');
+                    let baseElementContent = encodedEmailNodes[i].innerHTML;
                     encodedEmailNodes[i].innerHTML =
                         baseElementContent.replace(encodedEmail, currentResultData.decoded_email);
                     encodedEmailNodes[i].href = 'mailto:' + currentResultData.decoded_email;
@@ -2032,7 +2032,7 @@ function apbctEmailEncoderCallbackBulk(result, encodedEmailNodes, clickSource) {
                 encodedEmailNodes[i].removeEventListener('click', ctFillDecodedEmailHandler);
             }
             // popup remove
-            const popup = document.getElementById('apbct_popup');
+            let popup = document.getElementById('apbct_popup');
             if (popup !== null) {
                 document.body.classList.remove('apbct-popup-fade');
                 popup.setAttribute('style', 'display:none');
@@ -2139,7 +2139,7 @@ function getJavascriptClientData(commonCookies = []) {
 function removeDoubleJsonEncoding(object) {
     if ( typeof object === 'object') {
         // eslint-disable-next-line guard-for-in
-        for (const objectKey in object) {
+        for (let objectKey in object) {
             // Recursion
             if ( typeof object[objectKey] === 'object') {
                 object[objectKey] = removeDoubleJsonEncoding(object[objectKey]);
@@ -2191,8 +2191,8 @@ function ctShowDecodeComment(comment) {
         comment = 'Can not decode email. Unknown reason';
     }
 
-    const popup = document.getElementById('apbct_popup');
-    const popupText = document.getElementById('apbct_popup_text');
+    let popup = document.getElementById('apbct_popup');
+    let popupText = document.getElementById('apbct_popup_text');
     if (popup !== null) {
         document.body.classList.remove('apbct-popup-fade');
         popupText.innerText = 'CleanTalk email decoder: ' + comment;
@@ -2210,9 +2210,9 @@ function apbct_collect_visible_fields( form ) {
     let inputsVisibleCount = 0;
     let inputsInvisible = '';
     let inputsInvisibleCount = 0;
-    const inputsWithDuplicateNames = [];
+    let inputsWithDuplicateNames = [];
 
-    for (const key in form.elements) {
+    for (let key in form.elements) {
         if (!isNaN(+key)) {
             inputs[key] = form.elements[key];
         }
@@ -2278,17 +2278,17 @@ function apbct_collect_visible_fields( form ) {
 
 // eslint-disable-next-line camelcase,require-jsdoc
 function apbct_visible_fields_set_cookie( visibleFieldsCollection, formId ) {
-    const collection = typeof visibleFieldsCollection === 'object' && visibleFieldsCollection !== null ?
+    let collection = typeof visibleFieldsCollection === 'object' && visibleFieldsCollection !== null ?
         visibleFieldsCollection : {};
 
     if ( ctPublic.data__cookies_type === 'native' ) {
         // eslint-disable-next-line guard-for-in
-        for ( const i in collection ) {
+        for ( let i in collection ) {
             if ( i > 10 ) {
                 // Do not generate more than 10 cookies
                 return;
             }
-            const collectionIndex = formId !== undefined ? formId : i;
+            let collectionIndex = formId !== undefined ? formId : i;
             ctSetCookie('apbct_visible_fields_' + collectionIndex, JSON.stringify( collection[i] ) );
         }
     } else {
@@ -2303,7 +2303,7 @@ function apbct_visible_fields_set_cookie( visibleFieldsCollection, formId ) {
 // eslint-disable-next-line camelcase,require-jsdoc,no-unused-vars
 function apbct_js_keys__set_input_value(result, data, params, obj) {
     if ( document.querySelectorAll('[name^=ct_checkjs]').length > 0 ) {
-        const elements = document.querySelectorAll('[name^=ct_checkjs]');
+        let elements = document.querySelectorAll('[name^=ct_checkjs]');
         for ( let i = 0; i < elements.length; i++ ) {
             elements[i].value = result.js_key;
         }
@@ -2332,7 +2332,7 @@ if (typeof jQuery !== 'undefined') {
         if (xhr.responseText && xhr.responseText.indexOf('"apbct') !== -1) {
             try {
                 // eslint-disable-next-line no-unused-vars
-                const response = JSON.parse(xhr.responseText);
+                let response = JSON.parse(xhr.responseText);
             } catch (e) {
                 console.log(e.toString());
                 return;
@@ -2378,8 +2378,8 @@ function ctNoCookieConstructHiddenField(type) {
         inputType = 'submit';
     }
     let field = '';
-    const noCookieDataLocal = apbctLocalStorage.getCleanTalkData();
-    const noCookieDataSession = apbctSessionStorage.getCleanTalkData();
+    let noCookieDataLocal = apbctLocalStorage.getCleanTalkData();
+    let noCookieDataSession = apbctSessionStorage.getCleanTalkData();
     let noCookieData = {...noCookieDataLocal, ...noCookieDataSession};
     noCookieData = JSON.stringify(noCookieData);
     noCookieData = '_ct_no_cookie_data_' + btoa(noCookieData);
@@ -2396,7 +2396,7 @@ function ctNoCookieConstructHiddenField(type) {
  * @return {boolean|*}
  */
 function ctGetPageForms() {
-    const forms = document.forms;
+    let forms = document.forms;
     if (forms) {
         return forms;
     }
@@ -2406,7 +2406,7 @@ function ctGetPageForms() {
 // eslint-disable-next-line require-jsdoc
 function ctNoCookieFormIsExcludedFromNcField(form) {
     // ajax search pro exclusion
-    const ncFieldExclusionsSign = form.parentNode;
+    let ncFieldExclusionsSign = form.parentNode;
     if (ncFieldExclusionsSign && ncFieldExclusionsSign.classList.contains('proinput')) {
         return 'ajax search pro exclusion';
     }
@@ -2422,12 +2422,12 @@ function ctNoCookieAttachHiddenFieldsToForms() {
         return;
     }
 
-    const forms = ctGetPageForms();
+    let forms = ctGetPageForms();
 
     if (forms) {
         for ( let i = 0; i < forms.length; i++ ) {
             // remove old sets
-            const fields = forms[i].querySelectorAll('.ct_no_cookie_hidden_field');
+            let fields = forms[i].querySelectorAll('.ct_no_cookie_hidden_field');
             for ( let j = 0; j < fields.length; j++ ) {
                 fields[j].outerHTML = '';
             }
@@ -2483,7 +2483,7 @@ function checkFormsExistForCatching() {
                     typeof arguments[0].includes === 'function' &&
                     arguments[0].includes('/wp-json/metform/')
                 ) {
-                    const noCookieData = getNoCookieData();
+                    let noCookieData = getNoCookieData();
 
                     if (arguments && arguments[1] && arguments[1].body) {
                         arguments[1].body.append('ct_no_cookie_hidden_field', noCookieData);
@@ -2506,7 +2506,7 @@ function isFormThatNeedCatch() {
     let classExists = false;
 
     const forms = document.forms;
-    for (const form of forms) {
+    for (let form of forms) {
         formClasses.forEach(function(classForm) {
             if (form.classList.contains(classForm)) {
                 classExists = true;
@@ -2548,8 +2548,8 @@ function isFormThatNeedCatchXhr() {
  * @return {string}
  */
 function getNoCookieData() {
-    const noCookieDataLocal = apbctLocalStorage.getCleanTalkData();
-    const noCookieDataSession = apbctSessionStorage.getCleanTalkData();
+    let noCookieDataLocal = apbctLocalStorage.getCleanTalkData();
+    let noCookieDataSession = apbctSessionStorage.getCleanTalkData();
     let noCookieData = {...noCookieDataLocal, ...noCookieDataSession};
     noCookieData = JSON.stringify(noCookieData);
 
@@ -2557,7 +2557,7 @@ function getNoCookieData() {
 }
 
 /* Cleantalk Modal object */
-const cleantalkModal = {
+let cleantalkModal = {
 
     // Flags
     loaded: false,
@@ -2569,7 +2569,7 @@ const cleantalkModal = {
     load: function( action ) {
         if ( ! this.loaded ) {
             this.loading = true;
-            const callback = function( result, data, params, obj ) {
+            let callback = function( result, data, params, obj ) {
                 cleantalkModal.loading = false;
                 cleantalkModal.loaded = result;
                 document.dispatchEvent(
@@ -2589,7 +2589,7 @@ const cleantalkModal = {
 
     open: function() {
         /* Cleantalk Modal CSS start */
-        const renderCss = function() {
+        let renderCss = function() {
             let cssStr = '';
             // eslint-disable-next-line guard-for-in
             for ( const key in this.styles ) {
@@ -2597,7 +2597,7 @@ const cleantalkModal = {
             }
             return cssStr;
         };
-        const overlayCss = {
+        let overlayCss = {
             styles: {
                 'z-index': '9999999999',
                 'position': 'fixed',
@@ -2612,7 +2612,7 @@ const cleantalkModal = {
             },
             toString: renderCss,
         };
-        const innerCss = {
+        let innerCss = {
             styles: {
                 'position': 'relative',
                 'padding': '30px',
@@ -2623,7 +2623,7 @@ const cleantalkModal = {
             },
             toString: renderCss,
         };
-        const closeCss = {
+        let closeCss = {
             styles: {
                 'position': 'absolute',
                 'background': '#FFF',
@@ -2638,7 +2638,7 @@ const cleantalkModal = {
             },
             toString: renderCss,
         };
-        const closeCssBefore = {
+        let closeCssBefore = {
             styles: {
                 'content': '""',
                 'display': 'block',
@@ -2653,7 +2653,7 @@ const cleantalkModal = {
             },
             toString: renderCss,
         };
-        const closeCssAfter = {
+        let closeCssAfter = {
             styles: {
                 'content': '""',
                 'display': 'block',
@@ -2668,13 +2668,13 @@ const cleantalkModal = {
             },
             toString: renderCss,
         };
-        const bodyCss = {
+        let bodyCss = {
             styles: {
                 'overflow': 'hidden',
             },
             toString: renderCss,
         };
-        const cleantalkModalStyle = document.createElement( 'style' );
+        let cleantalkModalStyle = document.createElement( 'style' );
         cleantalkModalStyle.setAttribute( 'id', 'cleantalk-modal-styles' );
         cleantalkModalStyle.innerHTML = 'body.cleantalk-modal-opened{' + bodyCss + '}';
         cleantalkModalStyle.innerHTML += '#cleantalk-modal-overlay{' + overlayCss + '}';
@@ -2684,25 +2684,25 @@ const cleantalkModal = {
         document.body.append( cleantalkModalStyle );
         /* Cleantalk Modal CSS end */
 
-        const overlay = document.createElement( 'div' );
+        let overlay = document.createElement( 'div' );
         overlay.setAttribute( 'id', 'cleantalk-modal-overlay' );
         document.body.append( overlay );
 
         document.body.classList.add( 'cleantalk-modal-opened' );
 
-        const inner = document.createElement( 'div' );
+        let inner = document.createElement( 'div' );
         inner.setAttribute( 'id', 'cleantalk-modal-inner' );
         inner.setAttribute( 'style', innerCss );
         overlay.append( inner );
 
-        const close = document.createElement( 'div' );
+        let close = document.createElement( 'div' );
         close.setAttribute( 'id', 'cleantalk-modal-close' );
         inner.append( close );
 
-        const content = document.createElement( 'div' );
+        var content = document.createElement( 'div' );
         if ( this.loaded ) {
-            const urlRegex = /(https?:\/\/[^\s]+)/g;
-            const serviceContentRegex = /.*\/inc/g;
+            var urlRegex = /(https?:\/\/[^\s]+)/g;
+            var serviceContentRegex = /.*\/inc/g;
             if (serviceContentRegex.test(this.loaded)) {
                 content.innerHTML = this.loaded;
             } else {

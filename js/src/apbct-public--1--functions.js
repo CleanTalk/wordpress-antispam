@@ -5,7 +5,7 @@
  */
 // eslint-disable-next-line no-unused-vars,require-jsdoc
 function ctSetCookie( cookies, value, expires ) {
-    const listOfCookieNamesToForceAlt = [
+    let listOfCookieNamesToForceAlt = [
         'ct_sfw_pass_key',
         'ct_sfw_passed',
         'wordpress_apbct_antibot',
@@ -22,7 +22,7 @@ function ctSetCookie( cookies, value, expires ) {
 
     // Cookies disabled
     if ( ctPublicFunctions.data__cookies_type === 'none' ) {
-        const forcedAltCookiesSet = [];
+        let forcedAltCookiesSet = [];
         cookies.forEach( function(item) {
             if (listOfCookieNamesToForceAlt.indexOf(item[0]) !== -1) {
                 forcedAltCookiesSet.push(item);
@@ -49,8 +49,8 @@ function ctSetCookie( cookies, value, expires ) {
         // Using traditional cookies
     } else if ( ctPublicFunctions.data__cookies_type === 'native' ) {
         cookies.forEach( function(item) {
-            const expires = typeof item[2] !== 'undefined' ? 'expires=' + expires + '; ' : '';
-            const ctSecure = location.protocol === 'https:' ? '; secure' : '';
+            var expires = typeof item[2] !== 'undefined' ? 'expires=' + expires + '; ' : '';
+            var ctSecure = location.protocol === 'https:' ? '; secure' : '';
             document.cookie = ctPublicFunctions.cookiePrefix +
                 item[0] +
                 '=' +
@@ -69,8 +69,8 @@ function ctSetCookie( cookies, value, expires ) {
 
 // eslint-disable-next-line no-unused-vars,require-jsdoc
 function ctDetectForcedAltCookiesForms() {
-    const ninjaFormsSign = document.querySelectorAll('#tmpl-nf-layout').length > 0;
-    const smartFormsSign = document.querySelectorAll('script[id*="smart-forms"]').length > 0;
+    let ninjaFormsSign = document.querySelectorAll('#tmpl-nf-layout').length > 0;
+    let smartFormsSign = document.querySelectorAll('script[id*="smart-forms"]').length > 0;
 
     ctPublic.force_alt_cookies = smartFormsSign || ninjaFormsSign;
 }
@@ -135,7 +135,7 @@ function ctSetAlternativeCookie(cookies, params) {
  */
 // eslint-disable-next-line require-jsdoc,no-unused-vars
 function ctGetCookie(name) {
-    const matches = document.cookie.match(new RegExp(
+    var matches = document.cookie.match(new RegExp(
         '(?:^|; )' + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + '=([^;]*)',
     ));
     return matches ? decodeURIComponent(matches[1]) : undefined;
@@ -149,7 +149,7 @@ function ctDeleteCookie(cookieName) {
 
     // Using traditional cookies
     } else if ( ctPublicFunctions.data__cookies_type === 'native' ) {
-        const ctSecure = location.protocol === 'https:' ? '; secure' : '';
+        var ctSecure = location.protocol === 'https:' ? '; secure' : '';
         document.cookie = cookieName + '=""; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; samesite=lax' + ctSecure;
 
     // Using alternative cookies
@@ -161,7 +161,7 @@ function ctDeleteCookie(cookieName) {
 // eslint-disable-next-line require-jsdoc,camelcase
 function apbct_public_sendAJAX(data, params, obj) {
     // Default params
-    const _params = [];
+    let _params = [];
     _params['callback'] = params.callback || null;
     _params['onErrorCallback'] = params.onErrorCallback || null;
     _params['callback_context'] = params.callback_context || null;
@@ -196,7 +196,7 @@ function apbct_public_sendAJAX(data, params, obj) {
 
 // eslint-disable-next-line require-jsdoc,camelcase
 function apbct_public_sendREST( route, params ) {
-    const _params = [];
+    let _params = [];
     _params['route'] = route;
     _params['callback'] = params.callback || null;
     _params['onErrorCallback'] = params.onErrorCallback || null;
@@ -215,7 +215,7 @@ function apbctGenerateUniqueID() {
     return Math.random().toString(36).replace(/[^a-z]+/g, '').substr(2, 10);
 }
 
-const apbctLocalStorage = {
+let apbctLocalStorage = {
     get: function(key, property) {
         if ( typeof property === 'undefined' ) {
             property = 'value';
@@ -233,7 +233,7 @@ const apbctLocalStorage = {
     },
     set: function(key, value, isJson = true) {
         if (isJson) {
-            const objToSave = {'value': JSON.stringify(value), 'timestamp': Math.floor(new Date().getTime() / 1000)};
+            let objToSave = {'value': JSON.stringify(value), 'timestamp': Math.floor(new Date().getTime() / 1000)};
             localStorage.setItem(key, JSON.stringify(objToSave));
         } else {
             localStorage.setItem(key, value);
@@ -253,9 +253,9 @@ const apbctLocalStorage = {
         localStorage.removeItem(key);
     },
     getCleanTalkData: function() {
-        const data = {};
+        let data = {};
         for (let i=0; i<localStorage.length; i++) {
-            const key = localStorage.key(i);
+            let key = localStorage.key(i);
             if (key.indexOf('ct_') !==-1 || key.indexOf('apbct_') !==-1) {
                 data[key.toString()] = apbctLocalStorage.get(key);
             }
@@ -265,7 +265,7 @@ const apbctLocalStorage = {
 
 };
 
-const apbctSessionStorage = {
+let apbctSessionStorage = {
     get: function(key, property) {
         if ( typeof property === 'undefined' ) {
             property = 'value';
@@ -283,7 +283,7 @@ const apbctSessionStorage = {
     },
     set: function(key, value, isJson = true) {
         if (isJson) {
-            const objToSave = {'value': JSON.stringify(value), 'timestamp': Math.floor(new Date().getTime() / 1000)};
+            let objToSave = {'value': JSON.stringify(value), 'timestamp': Math.floor(new Date().getTime() / 1000)};
             sessionStorage.setItem(key, JSON.stringify(objToSave));
         } else {
             sessionStorage.setItem(key, value);
@@ -296,9 +296,9 @@ const apbctSessionStorage = {
         sessionStorage.removeItem(key);
     },
     getCleanTalkData: function() {
-        const data = {};
+        let data = {};
         for (let i=0; i<sessionStorage.length; i++) {
-            const key = sessionStorage.key(i);
+            let key = sessionStorage.key(i);
             if (key.indexOf('ct_') !==-1 || key.indexOf('apbct_') !==-1) {
                 data[key.toString()] = apbctSessionStorage.get(key);
             }
