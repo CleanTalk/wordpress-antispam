@@ -267,7 +267,7 @@ class ApbctCore {
      * @return {*|*[]}
      */
     attr(attrName) {
-        const outputValue = [];
+        let outputValue = [];
 
         for (let i=0; i<this.elements.length; i++) {
             // Use property instead of attribute if possible
@@ -361,7 +361,7 @@ class ApbctCore {
     is(filter) {
         let outputValue = false;
 
-        for (const elem of this.elements) {
+        for (let elem of this.elements) {
             outputValue ||= this.isElem(elem, filter);
         }
 
@@ -375,8 +375,8 @@ class ApbctCore {
      */
     isElem(elemToCheck, filter) {
         let is = false;
-        const isRegisteredTagName = function(name) {
-            const newlyCreatedElement = document.createElement(name).constructor;
+        let isRegisteredTagName = function(name) {
+            let newlyCreatedElement = document.createElement(name).constructor;
             return ! Boolean( ~[HTMLElement, HTMLUnknownElement].indexOf(newlyCreatedElement) );
         };
 
@@ -415,7 +415,7 @@ class ApbctCore {
         const elems = document.querySelectorAll(filter);
         let outputValue = false;
 
-        for (const elem of elems) {
+        for (let elem of elems) {
             outputValue ||= elemToCheck === elem;
         }
 
@@ -495,7 +495,7 @@ class ApbctCore {
      * @return {ApbctCore}
      */
     siblings(filter) {
-        const current = this.elements[0]; // Remember current to delete it later
+        let current = this.elements[0]; // Remember current to delete it later
 
         this.parent();
         this.children(filter);
@@ -506,7 +506,7 @@ class ApbctCore {
 
     /** ************ DOM MANIPULATIONS **************/
     remove() {
-        for (const elem of this.elements) {
+        for (let elem of this.elements) {
             elem.remove();
         }
     }
@@ -515,7 +515,7 @@ class ApbctCore {
      * @param {string} content
      */
     after(content) {
-        for (const elem of this.elements) {
+        for (let elem of this.elements) {
             elem.after(content);
         }
     }
@@ -524,7 +524,7 @@ class ApbctCore {
      * @param {string} content
      */
     append(content) {
-        for (const elem of this.elements) {
+        for (let elem of this.elements) {
             elem.append(content);
         }
     }
@@ -534,7 +534,7 @@ class ApbctCore {
      * @param {number} time
      */
     fadeIn(time) {
-        for (const elem of this.elements) {
+        for (let elem of this.elements) {
             elem.style.opacity = 0;
             elem.style.display = 'block';
 
@@ -556,7 +556,7 @@ class ApbctCore {
      * @param {number} time
      */
     fadeOut(time) {
-        for (const elem of this.elements) {
+        for (let elem of this.elements) {
             elem.style.opacity = 1;
 
             let last = +new Date();
@@ -616,7 +616,7 @@ class ApbctCore {
  * @param {string} url
  */
 function ctProcessError(msg, url) {
-    const log = {};
+    var log = {};
     if (msg && msg.message) {
         log.err = {
             'msg': msg.message,
@@ -640,7 +640,7 @@ function ctProcessError(msg, url) {
     log.url = window.location.href;
     log.userAgent = window.navigator.userAgent;
 
-    const ctJsErrors = 'ct_js_errors';
+    let ctJsErrors = 'ct_js_errors';
     let errArray = localStorage.getItem(ctJsErrors);
     if (errArray === null) errArray = '[]';
     errArray = JSON.parse(errArray);
@@ -656,7 +656,7 @@ function ctProcessError(msg, url) {
 
 if (Math.floor(Math.random() * 100) === 1) {
     window.onerror = function(exception, url) {
-        const filterWords = ['apbct', 'ctPublic'];
+        let filterWords = ['apbct', 'ctPublic'];
         let length = filterWords.length;
         while (length--) {
             if (exception.indexOf(filterWords[length]) !== -1) {
@@ -720,7 +720,7 @@ class ApbctXhr {
         console.log('%cXHR%c started', 'color: red; font-weight: bold;', 'color: grey; font-weight: normal;');
 
         // Set class properties
-        for ( const key in parameters ) {
+        for ( let key in parameters ) {
             if ( typeof this[key] !== 'undefined' ) {
                 this[key] = parameters[key];
             }
@@ -927,7 +927,7 @@ class ApbctXhr {
      */
     setHeaders() {
         // Set headers if passed
-        for ( const headerName in this.headers ) {
+        for ( let headerName in this.headers ) {
             if ( typeof this.headers[headerName] !== 'undefined' ) {
                 this.xhr.setRequestHeader(headerName, this.headers[headerName]);
             }
@@ -952,8 +952,8 @@ class ApbctXhr {
      * @return {string}
      */
     convertDataToURL() {
-        const paramsAppendix = new URLSearchParams(this.data).toString();
-        const paramsPrefix = this.url.match(/^(https?:\/{2})?[a-z0-9.]+\?/) ? '&' : '?';
+        let paramsAppendix = new URLSearchParams(this.data).toString();
+        let paramsPrefix = this.url.match(/^(https?:\/{2})?[a-z0-9.]+\?/) ? '&' : '?';
         this.url += paramsPrefix + paramsAppendix;
 
         return this.url;
@@ -964,7 +964,7 @@ class ApbctXhr {
      */
     convertDataToBody() {
         this.body = new FormData();
-        for (const dataKey in this.data) {
+        for (let dataKey in this.data) {
             if (Object.hasOwn(this.data, dataKey)) {
                 this.body.append(
                     dataKey,
@@ -988,7 +988,7 @@ class ApbctXhr {
      */
     deleteDoubleJSONEncoding(object) {
         if ( typeof object === 'object') {
-            for (const objectKey in object) {
+            for (let objectKey in object) {
                 if (Object.hasOwn(object, objectKey)) {
                     // Recursion
                     if ( typeof object[objectKey] === 'object') {
@@ -1000,7 +1000,7 @@ class ApbctXhr {
                         typeof object[objectKey] === 'string' &&
                         object[objectKey].match(/^[\[{].*?[\]}]$/) !== null // is like JSON
                     ) {
-                        const parsedValue = JSON.parse(object[objectKey]);
+                        let parsedValue = JSON.parse(object[objectKey]);
                         if ( typeof parsedValue === 'object' ) {
                             object[objectKey] = parsedValue;
                         }

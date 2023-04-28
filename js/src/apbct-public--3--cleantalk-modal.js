@@ -1,5 +1,5 @@
 /* Cleantalk Modal object */
-const cleantalkModal = {
+let cleantalkModal = {
 
     // Flags
     loaded: false,
@@ -11,7 +11,7 @@ const cleantalkModal = {
     load: function( action ) {
         if ( ! this.loaded ) {
             this.loading = true;
-            const callback = function( result, data, params, obj ) {
+            let callback = function( result, data, params, obj ) {
                 cleantalkModal.loading = false;
                 cleantalkModal.loaded = result;
                 document.dispatchEvent(
@@ -31,7 +31,7 @@ const cleantalkModal = {
 
     open: function() {
         /* Cleantalk Modal CSS start */
-        const renderCss = function() {
+        let renderCss = function() {
             let cssStr = '';
             // eslint-disable-next-line guard-for-in
             for ( const key in this.styles ) {
@@ -39,7 +39,7 @@ const cleantalkModal = {
             }
             return cssStr;
         };
-        const overlayCss = {
+        let overlayCss = {
             styles: {
                 'z-index': '9999999999',
                 'position': 'fixed',
@@ -54,7 +54,7 @@ const cleantalkModal = {
             },
             toString: renderCss,
         };
-        const innerCss = {
+        let innerCss = {
             styles: {
                 'position': 'relative',
                 'padding': '30px',
@@ -65,7 +65,7 @@ const cleantalkModal = {
             },
             toString: renderCss,
         };
-        const closeCss = {
+        let closeCss = {
             styles: {
                 'position': 'absolute',
                 'background': '#FFF',
@@ -80,7 +80,7 @@ const cleantalkModal = {
             },
             toString: renderCss,
         };
-        const closeCssBefore = {
+        let closeCssBefore = {
             styles: {
                 'content': '""',
                 'display': 'block',
@@ -95,7 +95,7 @@ const cleantalkModal = {
             },
             toString: renderCss,
         };
-        const closeCssAfter = {
+        let closeCssAfter = {
             styles: {
                 'content': '""',
                 'display': 'block',
@@ -110,13 +110,13 @@ const cleantalkModal = {
             },
             toString: renderCss,
         };
-        const bodyCss = {
+        let bodyCss = {
             styles: {
                 'overflow': 'hidden',
             },
             toString: renderCss,
         };
-        const cleantalkModalStyle = document.createElement( 'style' );
+        let cleantalkModalStyle = document.createElement( 'style' );
         cleantalkModalStyle.setAttribute( 'id', 'cleantalk-modal-styles' );
         cleantalkModalStyle.innerHTML = 'body.cleantalk-modal-opened{' + bodyCss + '}';
         cleantalkModalStyle.innerHTML += '#cleantalk-modal-overlay{' + overlayCss + '}';
@@ -126,25 +126,25 @@ const cleantalkModal = {
         document.body.append( cleantalkModalStyle );
         /* Cleantalk Modal CSS end */
 
-        const overlay = document.createElement( 'div' );
+        let overlay = document.createElement( 'div' );
         overlay.setAttribute( 'id', 'cleantalk-modal-overlay' );
         document.body.append( overlay );
 
         document.body.classList.add( 'cleantalk-modal-opened' );
 
-        const inner = document.createElement( 'div' );
+        let inner = document.createElement( 'div' );
         inner.setAttribute( 'id', 'cleantalk-modal-inner' );
         inner.setAttribute( 'style', innerCss );
         overlay.append( inner );
 
-        const close = document.createElement( 'div' );
+        let close = document.createElement( 'div' );
         close.setAttribute( 'id', 'cleantalk-modal-close' );
         inner.append( close );
 
-        const content = document.createElement( 'div' );
+        var content = document.createElement( 'div' );
         if ( this.loaded ) {
-            const urlRegex = /(https?:\/\/[^\s]+)/g;
-            const serviceContentRegex = /.*\/inc/g;
+            var urlRegex = /(https?:\/\/[^\s]+)/g;
+            var serviceContentRegex = /.*\/inc/g;
             if (serviceContentRegex.test(this.loaded)) {
                 content.innerHTML = this.loaded;
             } else {
