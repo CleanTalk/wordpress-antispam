@@ -561,6 +561,7 @@ class State extends \Cleantalk\Common\State
                 $this->settings['data__set_cookies'] == 2
                     ? 'alternative'
                     : 'none';
+            $this->stats['no_cookie_data_taken'] = null;
         } else {
             $this->data['cookies_type'] = 'none';
             //clear no_cookie_data_taken
