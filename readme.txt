@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 4.7
 Tested up to: 6.2
 Requires PHP: 5.6
-Stable tag: 6.7
+Stable tag: 6.9
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -450,6 +450,30 @@ Yes, it is. Please read this article,
 12. SpamFireWall log.
 
 == Changelog ==
+
+= 6.9 Apr 27 2023 =
+* Ref: Exclusion roles refactored, exclusion signs group added, groups names layout changed.
+* Mod: Improved code style.
+* Ref: GDPR. Removed logic.
+* Mod: Update. Cookie auto. Set setting to cookie - off, in case if data processing in auto and cache plugin detected.
+* Fix: SFW. Made the priority list a priority.
+* New: Digits integration implemented.
+* New: Modern Events Calendar integration implemented.
+* Fix: Common. Page url parameter fixed.
+* Fix: Integration. Skip Billige-teste theme 1st step checkout request.
+* Fix: Integrations. Skip WS Forms Pro request - have the direct integration.
+* Fix: Integrations. Gravity Forms block message layout fixed.
+
+= 6.8 Apr 13 2023 =
+* Add. New tags <div> <font> in custom response message.
+* Update. WPMS. Update counters for spam users.
+* Update. SFW. Update message on sfw die page.
+* Fix. Manage Spam Comments. Fixed approve comment logic.
+* Fix. External forms.
+* Fix. Block message for BricksExtras.
+* Fix. Excluded resize-image().
+* Fix. FluentForm integration.
+* Fix. Excluded requests from Profile Builder.
 
 = 6.7 Mar 30 2023 =
 * Added rotateModerateAndUseIP() if attempt is failed

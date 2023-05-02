@@ -2961,9 +2961,7 @@ function apbct_form__gravityForms__testSpam($is_spam, $form, $entry)
                             'f_type'       => $field_type,
                             'f_data'       => $entry[$input_id]
                         );
-                        if ($field_type !== 'checkbox' && $field_type !== 'radio') {
-                            $form_fields_for_ct['input_' . $input_id] = $entry[$input_id];
-                        }
+                        $form_fields_for_ct['input_' . $input_id] = $entry[$input_id];
                     }
                 }
             } else {
@@ -2974,9 +2972,7 @@ function apbct_form__gravityForms__testSpam($is_spam, $form, $entry)
                         'f_type'       => $field_type,
                         'f_data'       => $entry[$field_id]
                     );
-                    if ($field_type !== 'checkbox' && $field_type !== 'radio') {
-                        $form_fields_for_ct['input_' . $field_id] = $entry[$field_id];
-                    }
+                    $form_fields_for_ct['input_' . $field_id] = $entry[$field_id];
                 }
             }
         }
@@ -3064,7 +3060,7 @@ function apbct_form__gravityForms__showResponse($confirmation, $form, $_entry, $
     global $ct_gform_is_spam, $ct_gform_response;
 
     if ( ! empty($ct_gform_is_spam) ) {
-        $confirmation = '<a id="gf_' . $form['id'] . '" class="gform_anchor" ></a><div id="gform_confirmation_wrapper_' . $form['id'] . '" class="gform_confirmation_wrapper "><div id="gform_confirmation_message_' . $form['id'] . '" class="gform_confirmation_message_' . $form['id'] . ' gform_confirmation_message"><font style="color: red">' . $ct_gform_response . '</font></div></div>';
+        $confirmation = '<a id="gf_' . $form['id'] . '" class="gform_anchor" ></a><div id="gform_confirmation_wrapper_' . $form['id'] . '" class="gform_confirmation_wrapper "><div id="gform_confirmation_message_' . $form['id'] . '" class="gform_confirmation_message_' . $form['id'] . ' gform_confirmation_message"><div class="gform_cleantalk_error" style="color: red">' . $ct_gform_response . '</div></div></div>';
     }
 
     return $confirmation;

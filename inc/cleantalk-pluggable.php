@@ -4,6 +4,7 @@ use Cleantalk\ApbctWP\Helper;
 use Cleantalk\ApbctWP\RemoteCalls;
 use Cleantalk\ApbctWP\Variables\Get;
 use Cleantalk\ApbctWP\Variables\Post;
+use Cleantalk\ApbctWP\Variables\Request;
 use Cleantalk\ApbctWP\Variables\Server;
 
 /**
@@ -906,6 +907,33 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'Plugin Name: CartFlows; ajax action wcf_check_email_exists';
         }
+
+        // Plugin Name: Profile Builder; ajax action wppb_conditional_logic
+        if (
+            apbct_is_plugin_active('profile-builder/index.php') &&
+            Post::get('action') === 'wppb_conditional_logic' &&
+            Post::get('formType') === 'register'
+        ) {
+            return 'Plugin Name: Profile Builder; ajax action wppb_conditional_logic';
+        }
+
+        // Plugin Name: ModernEventsCalendar have the direct integration.
+        if (
+            apbct_is_plugin_active('modern-events-calendar/mec.php') &&
+            Post::get('action') === 'mec_book_form' &&
+            Request::get('book')
+        ) {
+            return 'ModernEventsCalendar skip (direct integration)';
+        }
+
+        // Plugin Name: DIGITS: WordPress Mobile Number Signup and Login; ajax login action digits_forms_ajax
+        if (
+            apbct_is_plugin_active('digits/digit.php') &&
+            Post::get('action') === 'digits_forms_ajax' &&
+            Post::get('type') === 'login'
+        ) {
+            return 'Plugin Name: DIGITS: WordPress Mobile Number Signup and Login; ajax login action digits_forms_ajax';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
@@ -1053,6 +1081,25 @@ function apbct_is_skip_request($ajax = false)
             Get::get('aw-ajax') === 'capture_checkout_field' )
         ) {
             return 'AutomateWoo skip';
+        }
+
+        //Skip Billige-teste theme 1st step checkout request
+        if (
+            apbct_is_theme_active('bilige-teste') &&
+            Post::get('bt_checkout_data') == true &&
+            Post::get('email') &&
+            Post::get('unkey')
+        ) {
+            return 'Billige-teste theme 1st step checkout request';
+        }
+
+        // Skip WS Forms Pro request - have the direct integration
+        if (
+            apbct_is_plugin_active('ws-form-pro/ws-form.php') &&
+            Post::get('wsf_form_id') &&
+            Post::get('wsf_post_mode') === 'submit'
+        ) {
+            return 'WS Forms Pro request';
         }
     }
 

@@ -4,7 +4,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 6.7.1-dev
+  Version: 6.9
   Author: СleanTalk <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -446,6 +446,11 @@ $apbct_active_integrations = array(
         'setting' => 'forms__contact_forms_test',
         'ajax'    => true
     ),
+    'ModernEventsCalendar' => array(
+        'hook'    => 'mec_book_form',
+        'setting' => 'forms__contact_forms_test',
+        'ajax'    => true
+    ),
 );
 new  \Cleantalk\Antispam\Integrations($apbct_active_integrations, (array)$apbct->settings);
 
@@ -591,6 +596,14 @@ add_action('frm_entries_footer_scripts', 'apbct_form__formidable__footerScripts'
 
 /* MailChimp Premium */
 add_filter('mc4wp_form_errors', 'ct_mc4wp_hook');
+
+add_action('mec_booking_end_form_step_2', function () {
+    echo "<script>
+        if (typeof ctPublic.force_alt_cookies == 'undefined' || (ctPublic.force_alt_cookies !== 'undefined' && !ctPublic.force_alt_cookies)) {
+			ctNoCookieAttachHiddenFieldsToForms();
+		}
+    </script>";
+});
 
 // Public actions
 if ( ! is_admin() && ! apbct_is_ajax() && ! apbct_is_customize_preview() ) {
@@ -828,11 +841,6 @@ if ( is_admin() || is_network_admin() ) {
         ct_contact_form_validate();
         $_POST['redirect_to'] = $tmp;
     }
-}
-
-// Short code for GDPR
-if ( $apbct->settings['gdpr__enabled'] ) {
-    add_shortcode('cleantalk_gdpr_form', 'apbct_shrotcode_handler__GDPR_public_notice__form');
 }
 
 /**
