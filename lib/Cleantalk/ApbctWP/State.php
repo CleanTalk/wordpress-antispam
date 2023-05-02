@@ -561,12 +561,12 @@ class State extends \Cleantalk\Common\State
                 $this->settings['data__set_cookies'] == 2
                     ? 'alternative'
                     : 'none';
-            $this->stats['no_cookie_data_taken'] = null;
         } else {
             $this->data['cookies_type'] = 'none';
-            //clear no_cookie_data_taken
-            $this->stats['no_cookie_data_taken'] = null;
         }
+
+        //clear no_cookie_data_taken
+        $this->stats['no_cookie_data_taken'] = null;
 
         // Network with Mutual Access key
         if ( ! is_main_site() && $this->network_settings['multisite__work_mode'] == 2 ) {
