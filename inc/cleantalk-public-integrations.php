@@ -498,6 +498,11 @@ function ct_woocommerce_checkout_check($_data, $errors)
     }
 }
 
+/**
+ * @return void
+ *
+ * @psalm-suppress UndefinedFunction
+ */
 function apbct_woocommerce__store_blocked_order()
 {
     global $wpdb;
@@ -507,7 +512,7 @@ function apbct_woocommerce__store_blocked_order()
               ON DUPLICATE KEY UPDATE order_details = %s, customer_details = %s, currency = %s';
 
     $prepared_query = $wpdb->prepare($query, [
-        array_key_first(wc()->session->cart),
+        array_key_first(wc()->session->cart), // phpcs:ignore PHPCompatibility.FunctionUse.NewFunctions.array_key_firstFound
         json_encode(wc()->session->cart),
         json_encode($_POST),
         get_woocommerce_currency(),
