@@ -102,6 +102,7 @@ class Schema
             'customer_details' => 'TEXT NULL DEFAULT NULL',
             'currency' => 'VARCHAR(5) NULL DEFAULT NULL',
             '__indexes' => 'PRIMARY KEY (order_id)',
+            '__createkey' => 'INT unsigned primary KEY AUTO_INCREMENT FIRST'
         ),
     );
 
