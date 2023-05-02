@@ -4,8 +4,8 @@
 add_action('admin_menu', function() {
     add_submenu_page(
         'woocommerce',
-        __("Check spam orders", 'cleantalk-spam-protect'),
-        __("Check spam orders", 'cleantalk-spam-protect'),
+        __("WooCommerce spam orders", 'cleantalk-spam-protect'),
+        __("WooCommerce spam orders", 'cleantalk-spam-protect'),
         'activate_plugins',
         'options-general.php?page=apbct_wc_spam_orders',
         function() {
