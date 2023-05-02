@@ -451,6 +451,11 @@ $apbct_active_integrations = array(
         'setting' => 'forms__contact_forms_test',
         'ajax'    => true
     ),
+    'IndeedUltimateMembershipPro' => array(
+        'hook'    => 'ump_before_register_new_user',
+        'setting' => 'forms__registrations_test',
+        'ajax'    => false
+    ),
 );
 new  \Cleantalk\Antispam\Integrations($apbct_active_integrations, (array)$apbct->settings);
 
