@@ -1494,7 +1494,7 @@ function ctGetPixelUrl() {
             apbctLocalStorage.delete('apbct_pixel_url');
         } else {
             // if so - load pixel from localstorage and draw it skipping AJAX
-            ctSetPixelImg(local_storage_pixel_url);
+            ctSetPixelImg(localStoragePixelUrl);
             return;
         }
     }
