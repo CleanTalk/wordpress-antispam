@@ -26,6 +26,7 @@ use Cleantalk\ApbctWP\Firewall\SFW;
 use Cleantalk\ApbctWP\Helper;
 use Cleantalk\ApbctWP\RemoteCalls;
 use Cleantalk\ApbctWP\RestController;
+use Cleantalk\ApbctWP\Sanitize;
 use Cleantalk\ApbctWP\State;
 use Cleantalk\ApbctWP\Transaction;
 use Cleantalk\ApbctWP\UpdatePlugin\DbTablesCreator;
@@ -2693,6 +2694,32 @@ function ct_account_status_check($api_key = null, $process_errors = true)
         $apbct->data['user_token']      = isset($result['user_token']) ? (string)$result['user_token'] : '';
         $apbct->data['license_trial']   = isset($result['license_trial']) ? (int)$result['license_trial'] : 0;
         $apbct->data['account_name_ob'] = isset($result['account_name_ob']) ? (string)$result['account_name_ob'] : '';
+
+        if ( isset($result['wl_status']) && $result['wl_status'] === 'ON' ) {
+            $apbct->data['wl_mode_enabled'] = true;
+            $apbct->data['wl_brandname']     = isset($result['wl_brandname'])
+                ? Sanitize::cleanTextField($result['wl_brandname'])
+                : $apbct->default_data['wl_brandname'];
+            $apbct->data['wl_url']           = isset($result['wl_url'])
+                ? Sanitize::cleanUrl($result['wl_url'])
+                : $apbct->default_data['wl_url'];
+            $apbct->data['wl_support_faq']   = isset($result['wl_support_url'])
+                ? Sanitize::cleanUrl($result['wl_support_url'])
+                : $apbct->default_data['wl_support_url'];
+            $apbct->data['wl_support_url']   = isset($result['wl_support_url'])
+                ? Sanitize::cleanUrl($result['wl_support_url'])
+                : $apbct->default_data['wl_support_url'];
+            $apbct->data['wl_support_email'] = isset($result['wl_support_email'])
+                ? Sanitize::cleanEmail($result['wl_support_email'])
+                : $apbct->default_data['wl_support_email'];
+        } else {
+            $apbct->data['wl_mode_enabled'] = false;
+            $apbct->data['wl_brandname']     = $apbct->default_data['wl_brandname'];
+            $apbct->data['wl_url']           = $apbct->default_data['wl_url'];
+            $apbct->data['wl_support_faq']   = $apbct->default_data['wl_support_url'];
+            $apbct->data['wl_support_url']   = $apbct->default_data['wl_support_url'];
+            $apbct->data['wl_support_email'] = $apbct->default_data['wl_support_email'];
+        }
 
         $cron = new Cron();
         $cron->updateTask('check_account_status', 'ct_account_status_check', 86400);
