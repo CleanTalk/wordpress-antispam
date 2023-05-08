@@ -1233,3 +1233,19 @@ function apbct_update_to_6_8_0()
     $apbct->data['wl_support_url'] = isset($apbct->data['wl_support_url'])
     ? $apbct->data['wl_support_url'] : 'https://wordpress.org/support/plugin/cleantalk-spam-protect';
 }
+
+function apbct_update_to_6_9_0()
+{
+    global $apbct;
+
+    if (isset($apbct->settings['gdpr__enabled']) || isset($apbct->settings['gdpr__text'])) {
+        if (isset($apbct->settings['gdpr__enabled'])) {
+            unset($apbct->settings['gdpr__enabled']);
+        }
+        if (isset($apbct->settings['gdpr__text'])) {
+            unset($apbct->settings['gdpr__text']);
+        }
+
+        $apbct->saveSettings();
+    }
+}

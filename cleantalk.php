@@ -4,7 +4,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 6.7
+  Version: 6.9.2-dev
   Author: СleanTalk <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -130,6 +130,11 @@ $apbct->firewall_updating = (bool)$apbct->fw_stats['firewall_updating_id'];
 
 $apbct->settings_link = is_network_admin() ? 'settings.php?page=cleantalk' : 'options-general.php?page=cleantalk';
 
+// Connection reports
+$apbct->setConnectionReports();
+// SFW update sentinel
+$apbct->setSFWUpdateSentinel();
+
 if ( ! $apbct->white_label ) {
     require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalkWidget.php');
 }
@@ -196,10 +201,6 @@ apbct_update_actions();
 add_action('init', function () {
     global $apbct;
 
-    // Connection reports
-    $apbct->setConnectionReports();
-    // SFW update sentinel
-    $apbct->setSFWUpdateSentinel();
     // Self cron
     $ct_cron = new Cron();
     $tasks_to_run = $ct_cron->checkTasks(); // Check for current tasks. Drop tasks inner counters.
@@ -445,6 +446,16 @@ $apbct_active_integrations = array(
         'setting' => 'forms__contact_forms_test',
         'ajax'    => true
     ),
+    'ModernEventsCalendar' => array(
+        'hook'    => 'mec_book_form',
+        'setting' => 'forms__contact_forms_test',
+        'ajax'    => true
+    ),
+    'IndeedUltimateMembershipPro' => array(
+        'hook'    => 'ump_before_register_new_user',
+        'setting' => 'forms__registrations_test',
+        'ajax'    => false
+    ),
 );
 new  \Cleantalk\Antispam\Integrations($apbct_active_integrations, (array)$apbct->settings);
 
@@ -590,6 +601,14 @@ add_action('frm_entries_footer_scripts', 'apbct_form__formidable__footerScripts'
 
 /* MailChimp Premium */
 add_filter('mc4wp_form_errors', 'ct_mc4wp_hook');
+
+add_action('mec_booking_end_form_step_2', function () {
+    echo "<script>
+        if (typeof ctPublic.force_alt_cookies == 'undefined' || (ctPublic.force_alt_cookies !== 'undefined' && !ctPublic.force_alt_cookies)) {
+			ctNoCookieAttachHiddenFieldsToForms();
+		}
+    </script>";
+});
 
 // Public actions
 if ( ! is_admin() && ! apbct_is_ajax() && ! apbct_is_customize_preview() ) {
@@ -826,11 +845,6 @@ if ( is_admin() || is_network_admin() ) {
         ct_contact_form_validate();
         $_POST['redirect_to'] = $tmp;
     }
-}
-
-// Short code for GDPR
-if ( $apbct->settings['gdpr__enabled'] ) {
-    add_shortcode('cleantalk_gdpr_form', 'apbct_shrotcode_handler__GDPR_public_notice__form');
 }
 
 /**

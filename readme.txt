@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 4.7
 Tested up to: 6.2
 Requires PHP: 5.6
-Stable tag: 6.7
+Stable tag: 6.9.2
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -451,6 +451,37 @@ Yes, it is. Please read this article,
 
 == Changelog ==
 
+= 6.9.2 May 5 2023 =
+* Fix: local_storage_pixel_url fixed
+
+= 6.9.1 May 2 2023 =
+* Fix. Fixed javascript
+* Fix: no_cookie_data_taken fixed
+
+= 6.9 Apr 27 2023 =
+* Ref: Exclusion roles refactored, exclusion signs group added, groups names layout changed.
+* Mod: Improved code style.
+* Ref: GDPR. Removed logic.
+* Mod: Update. Cookie auto. Set setting to cookie - off, in case if data processing in auto and cache plugin detected.
+* Fix: SFW. Made the priority list a priority.
+* New: Digits integration implemented.
+* New: Modern Events Calendar integration implemented.
+* Fix: Common. Page url parameter fixed.
+* Fix: Integration. Skip Billige-teste theme 1st step checkout request.
+* Fix: Integrations. Skip WS Forms Pro request - have the direct integration.
+* Fix: Integrations. Gravity Forms block message layout fixed.
+
+= 6.8 Apr 13 2023 =
+* Add. New tags <div> <font> in custom response message.
+* Update. WPMS. Update counters for spam users.
+* Update. SFW. Update message on sfw die page.
+* Fix. Manage Spam Comments. Fixed approve comment logic.
+* Fix. External forms.
+* Fix. Block message for BricksExtras.
+* Fix. Excluded resize-image().
+* Fix. FluentForm integration.
+* Fix. Excluded requests from Profile Builder.
+
 = 6.7 Mar 30 2023 =
 * Added rotateModerateAndUseIP() if attempt is failed
 * Mod. Force use CleanTalk http request instead of WP HTTP API.
@@ -471,6 +502,8 @@ Yes, it is. Please read this article,
 * Add. Js. Added mail view, cron task, and improve js execute.
 * Update. Mail view. Removed Manage notifications settings link from mail footer.
 * Fix: Fixed apbct_wp_validate_auth_cookie()
+* Fix. Integration. bbPress: replies protection fixed.
+* Fix. Common. Connection reports and Update sentinel objects fixed.
 
 = 6.6 Mar 16 2023 =
 * Excluded qsm_save_resume_auto_save_data action

@@ -110,7 +110,7 @@ function apbct_base_call($params = array(), $reg_flag = false)
         return array('ct_result' => new CleantalkResponse());
     }
 
-    // URL, IP, Role exclusions
+    // URL, IP, Role, Form signs exclusions
     if ( apbct_exclusions_check() ) {
         do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
 
@@ -283,14 +283,16 @@ function apbct_base_call($params = array(), $reg_flag = false)
         ct_add_event('yes');
     }
 
-    //Strip tags from comment
-    $ct_result->comment = strip_tags($ct_result->comment, '<p><a><br>');
 
     // Set cookies if it's not.
     if ( empty($apbct->flags__cookies_setuped) ) {
         Cookie::$force_alt_cookies_global = false;
         apbct_cookie();
     }
+
+    //clear POST and REQUEST superglobal from service data
+    $_POST = apbct_clear_superglobal_service_data($_POST, 'post');
+    $_REQUEST = apbct_clear_superglobal_service_data($_REQUEST, 'request');
 
     return array('ct' => $ct, 'ct_result' => $ct_result);
 }
@@ -323,6 +325,7 @@ function apbct_exclusions_check($func = null)
     // Common exclusions
     if (
         apbct_exclusions_check__ip() ||
+        apbct_exclusions_check__form_signs($_POST) ||
         apbct_exclusions_check__url() ||
         apbct_is_user_role_in($apbct->settings['exclusions__roles'])
     ) {
@@ -428,6 +431,41 @@ function apbct_exclusions_check__url()
 }
 
 /**
+ * Check POST array for the exclusion form signs. Listen for array keys or for value in case if key is "action".
+ * @param array $form_data The POST array or another filtered array of form data.
+ * @return bool True if exclusion found in the keys of array, false otherwise.
+ */
+function apbct_exclusions_check__form_signs($form_data)
+{
+    global $apbct;
+
+    if ( ! empty($apbct->settings['exclusions__form_signs']) ) {
+        if ( strpos($apbct->settings['exclusions__form_signs'], "\r\n") !== false ) {
+            $exclusions = explode("\r\n", $apbct->settings['exclusions__form_signs']);
+        } elseif ( strpos($apbct->settings['exclusions__form_signs'], "\n") !== false ) {
+            $exclusions = explode("\n", $apbct->settings['exclusions__form_signs']);
+        } else {
+            $exclusions = explode(',', $apbct->settings['exclusions__form_signs']);
+        }
+
+        foreach ( $exclusions as $exclusion ) {
+            foreach ($form_data as $key => $value) {
+                $haystack = ($key === 'action') ? $value : $key;
+                if (
+                    $haystack === $exclusion ||
+                    stripos($haystack, $exclusion) !== false ||
+                    preg_match('@' . $exclusion . '@', $haystack) === 1
+                ) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    return false;
+}
+
+/**
  * @return bool
  * @deprecated since 18.09.2019
  * Checks if sender_ip is in exclusion list
@@ -493,11 +531,6 @@ function apbct_get_sender_info()
     }
 
     $visible_fields = apbct_visible_fields__process($visible_fields_collection);
-
-    // It is a service field. Need to be deleted before the processing.
-    if ( isset($_POST['apbct_visible_fields']) ) {
-        unset($_POST['apbct_visible_fields']);
-    }
 
     // preparation of some parameters when cookies are disabled and data is received from localStorage
     $param_email_check = Cookie::get('ct_checked_emails') ? json_encode(
@@ -616,7 +649,8 @@ function apbct_sender_info___get_page_url()
     ) {
         return Server::get('HTTP_REFERER');
     }
-    return  Server::get('SERVER_NAME') . Server::get('REQUEST_URI');
+    $protocol = ! empty($_SERVER['HTTPS']) && 'off' !== strtolower($_SERVER['HTTPS']) ? "https://" : "http://";
+    return  $protocol . Server::get('SERVER_NAME') . Server::get('REQUEST_URI');
 }
 
 /**
@@ -811,23 +845,45 @@ function ct_get_checkjs_value()
     return $key;
 }
 
-function apbct_is_cache_plugins_exists()
+function apbct_is_cache_plugins_exists($is_call_on_debug = false)
 {
-    return
-        defined('WP_ROCKET_VERSION') ||                           // WPRocket
-        defined('LSCWP_DIR') ||                                   // LiteSpeed Cache
-        defined('WPFC_WP_CONTENT_BASENAME') ||                    // WP Fastest Cache
-        defined('W3TC') ||                                        // W3 Total Cache
-        defined('WPO_VERSION') ||                                 // WP-Optimize – Clean, Compress, Cache
-        defined('AUTOPTIMIZE_PLUGIN_VERSION') ||                  // Autoptimize
-        defined('WPCACHEHOME') ||                                 // WP Super Cache
-        defined(
-            'WPHB_VERSION'
-        ) ||                                // Hummingbird – Speed up, Cache, Optimize Your CSS and JS
-        defined('CE_FILE') ||                                     // Cache Enabler – WordPress Cache
-        class_exists('\RedisObjectCache') ||                   // Redis Object Cache
-        defined('SiteGround_Optimizer\VERSION') ||                // SG Optimizer
-        class_exists('\WP_Rest_Cache_Plugin\Includes\Plugin'); // WP REST Cache
+    $out = array();
+
+    $constants_of_cache_plugins = array(
+        'WP_ROCKET_VERSION'                          => 'WPRocket',
+        'LSCWP_DIR'                                   => 'LiteSpeed Cache',
+        'WPFC_WP_CONTENT_BASENAME'                    => 'WP Fastest Cache',
+        'W3TC'                                        => 'W3 Total Cache',
+        'WPO_VERSION'                                 => 'WP-Optimize – Clean, Compress, Cache',
+        'AUTOPTIMIZE_PLUGIN_VERSION'                  => 'Autoptimize',
+        'WPCACHEHOME'                                 => 'WP Super Cache',
+        'WPHB_VERSION'                                => 'Hummingbird – Speed up, Cache, Optimize Your CSS and JS',
+        'CE_FILE'                                     => 'Cache Enabler – WordPress Cache',
+        'SiteGround_Optimizer\VERSION'                => 'SG Optimizer',
+    );
+
+    $classes_of_cache_plugins = array (
+        '\RedisObjectCache' => 'Redis',
+        '\WP_Rest_Cache_Plugin\Includes\Plugin' => 'Rest Cache'
+    );
+
+    foreach ($constants_of_cache_plugins as $const => $_text) {
+        if ( defined($const) ) {
+            $out[] = $const;
+        }
+    }
+
+    foreach ($classes_of_cache_plugins as $class => $_text) {
+        /**
+         * @psalm-suppress DocblockTypeContradiction
+         * @psalm-suppress TypeDoesNotContainType
+         */
+        if ( class_exists($class) ) {
+            $out[] = $class;
+        }
+    }
+
+    return $is_call_on_debug ? $out : !empty($out);
 }
 
 /**
@@ -1146,7 +1202,6 @@ function apbct_add_async_attribute($tag, $handle)
     $scripts_handles_names = array(
         'ct_public',
         'ct_public_functions',
-        'ct_public_gdpr',
         'ct_debug_js',
         'ct_public_admin_js',
         'ct_internal',
@@ -1565,4 +1620,35 @@ function apbct_rc__service_template_set($template_id, array $options_template_da
         : json_encode(array('ERROR' => 'Internal settings updating error'));
 
     return $result !== false ? $result : '{"ERROR":"Internal JSON encoding error"}';
+}
+
+/**
+ * Remove CleanTalk service data from super global variables
+ * @param array $superglobal $_POST | $_REQUEST
+ * @param string $type post|request
+ * @return array cleared array of superglobal
+ */
+function apbct_clear_superglobal_service_data($superglobal, $type)
+{
+    switch ($type) {
+        case 'post':
+            // It is a service field. Need to be deleted before the processing.
+            if ( isset($superglobal['apbct_visible_fields']) ) {
+                unset($superglobal['apbct_visible_fields']);
+            }
+            // no break when fall-through is intentional
+        case 'request':
+            //Optima Express special $_request clearance
+            if (
+                apbct_is_plugin_active('optima-express/iHomefinder.php') &&
+                (
+                    isset($superglobal['ct_no_cookie_hidden_field']) ||
+                    isset($superglobal['apbct_visible_fields'])
+                )
+            ) {
+                unset($superglobal['ct_no_cookie_hidden_field']);
+                unset($superglobal['apbct_visible_fields']);
+            }
+    }
+    return $superglobal;
 }

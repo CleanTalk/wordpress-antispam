@@ -271,6 +271,7 @@ class Comments extends \Cleantalk\ApbctWP\CleantalkListTable
 
         if ( $comment_meta ) {
             wp_set_comment_status((int)$id, '1');
+            update_comment_meta((int)$id, 'ct_marked_as_approved', '1');
             apbct_comment__send_feedback((int)$id, 'approve', false, true);
         }
     }

@@ -26,39 +26,39 @@ class Cookie extends \Cleantalk\Variables\Cookie
 
         $name = apbct__get_cookie_prefix() . $name;
 
+        $value = '';
+
         // Return from memory. From $this->variables
         if ( ! isset(static::$instance->variables[$name]) ) {
             // Getting by alternative way if enabled
-            if ( $apbct->data['cookies_type'] === 'alternative' ) {
-                $value = AltSessions::get($name);
-                // Try to get it from native cookies ^_^
-                if ( empty($value) && isset($_COOKIE[$name]) ) {
-                    $value = $this->getAndSanitize(urldecode($_COOKIE[$name]));
-                }
-                // The old way
-            } else if ( isset($_COOKIE[$name]) ) {
-                $value = $this->getAndSanitize(urldecode($_COOKIE[$name]));
-                //NoCookies
-            } else if ( $apbct->data['cookies_type'] === 'none' ) {
-                if ( static::$force_alt_cookies_global || in_array($name, static::$force_to_use_alternative_cookies, true) ) {
+            switch ( $apbct->data['cookies_type'] ) {
+                case 'alternative':
                     $value = AltSessions::get($name);
+                    // Try to get it from native cookies ^_^
                     if ( empty($value) && isset($_COOKIE[$name]) ) {
                         $value = $this->getAndSanitize(urldecode($_COOKIE[$name]));
                     }
-                    if ( in_array($name, array(
-                        'apbct_page_hits',
-                        'apbct_prev_referer',
-                        'apbct_site_landing_ts',
-                        'apbct_urls',
-                        'apbct_timestamp',
-                        'apbct_site_referer')) ) {
+                    break;
+                case 'none':
+                    if ( static::$force_alt_cookies_global || in_array($name, static::$force_to_use_alternative_cookies, true) ) {
+                        $value = AltSessions::get($name);
+                        if ( in_array($name, array(
+                            'apbct_page_hits',
+                            'apbct_prev_referer',
+                            'apbct_site_landing_ts',
+                            'apbct_urls',
+                            'apbct_timestamp',
+                            'apbct_site_referer')) ) {
+                            $value = NoCookie::get($name);
+                        }
+                    } else {
                         $value = NoCookie::get($name);
                     }
-                } else {
-                    $value = NoCookie::get($name);
-                }
-            } else {
-                $value = '';
+                    break;
+                default:
+                    if ( isset($_COOKIE[$name]) ) {
+                        $value = $this->getAndSanitize(urldecode($_COOKIE[$name]));
+                    }
             }
 
             // Remember for further calls

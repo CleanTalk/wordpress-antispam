@@ -273,6 +273,7 @@ class RemoteCalls
         $out['queue']              = get_option('cleantalk_sfw_update_queue');
         $out['connection_reports'] = $apbct->getConnectionReports()->remoteCallOutput();
         $out['servers_connection'] = apbct_test_connection();
+        $out['cache_plugins_detected'] = apbct_is_cache_plugins_exists(true);
 
         if ( APBCT_WPMS ) {
             $out['network_settings'] = $apbct->network_settings;
