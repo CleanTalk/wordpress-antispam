@@ -246,7 +246,7 @@ function ct_dashboard_statistics_widget_output($_post, $_callback_args)
                      number_format($apbct->data['spam_count'], 0, ',', ' ')
                  )
                  . '</span>'
-                 . (! $apbct->white_label
+                 . (! $apbct->white_label && ! $apbct->data["wl_mode_enabled"]
                     ? '<br><br>'
                       . '<b style="font-size: 16px;">'
                       . sprintf(
@@ -674,7 +674,7 @@ function apbct_admin__admin_bar__add_structure($wp_admin_bar)
         'title' =>
             apply_filters('cleantalk_admin_bar__add_icon_to_parent_node', '') . // @deprecated
             apply_filters('cleantalk_admin_bar__parent_node__before', '') .
-            '<span class="cleantalk_admin_bar__title">' . $plugin_name . '</span>' .
+            '<span class="cleantalk_admin_bar__title">' . $apbct->data["wl_brandname_short"] . '</span>' .
             apply_filters('cleantalk_admin_bar__parent_node__after', ''),
         'meta'  => array('class' => 'cleantalk-admin_bar--list_wrapper'),
     ));

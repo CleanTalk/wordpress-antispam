@@ -387,7 +387,7 @@ function apbct_settings__set_fields()
                 'comments__show_check_links'               => array(
                     'title'       => __('Show links to check Emails, IPs for spam', 'cleantalk-spam-protect'),
                     'description' => __(
-                        'Shows little icon near IP addresses and Emails allowing you to check it via CleanTalk\'s database.',
+                        'Shows little icon near IP addresses and Emails allowing you to check it via ' . $apbct->data["wl_brandname_short"] . '\'s database.',
                         'cleantalk-spam-protect'
                     ),
                     'display'     => ! $apbct->white_label,
@@ -450,7 +450,7 @@ function apbct_settings__set_fields()
                     'title'       => __('Check all post data', 'cleantalk-spam-protect'),
                     'description' =>
                         __('Check all POST submissions from website visitors. Enable this option if you have spam misses on website.', 'cleantalk-spam-protect')
-                        . (! $apbct->white_label ?
+                        . (! $apbct->white_label && ! $apbct->data["wl_mode_enabled"]?
                             __(' Or you don`t have records about missed spam here:', 'cleantalk-spam-protect')
                             . '&nbsp;'
                             . '<a href="https://cleantalk.org/my/?user_token='
@@ -522,10 +522,10 @@ function apbct_settings__set_fields()
                     'parent'      => 'sfw__enabled',
                 ),
                 'data__pixel'                          => array(
-                    'title'       => __('Add a CleanTalk Pixel to improve IP-detection', 'cleantalk-spam-protect'),
+                    'title'       => __('Add a ' . $apbct->data["wl_brandname_short"] . ' Pixel to improve IP-detection', 'cleantalk-spam-protect'),
                     'description' =>
                         __(
-                            'Upload small graphic file from CleanTalk\'s server to improve IP-detection.',
+                            'Upload small graphic file from ' . $apbct->data["wl_brandname_short"] . '\'s server to improve IP-detection.',
                             'cleantalk-spam-protect'
                         )
                         . '<br>'
@@ -768,7 +768,7 @@ function apbct_settings__set_fields()
                     'title'       => __('Send connection reports', 'cleantalk-spam-protect'),
                     'description' => __("Checking this box you allow plugin to send the information about your connection. These reports could contain next info:", 'cleantalk-spam-protect')
                         . '<br>'
-                        . __(' - connection status to CleanTalk cloud during Anti-Spam request', 'cleantalk-spam-protect')
+                        . __(' - connection status to ' . $apbct->data["wl_brandname_short"] . ' cloud during Anti-Spam request', 'cleantalk-spam-protect')
                         . $send_connection_reports__sfw_text
                     ),
                 'misc__async_js'                => array(
@@ -1168,7 +1168,7 @@ function apbct_settings__display()
              ' <a href="' . $apbct->data['wl_url'] . '" target="_blank">' . $apbct->data['wl_url'] . '</a>.<br/>';
         echo __('Use stop_email@example.com to test plugin in any WordPress form.', 'cleantalk-spam-protect') . '<br>';
         echo $apbct->data['wl_brandname_short'] . __(' is registered Trademark. All rights reserved.', 'cleantalk-spam-protect') . '<br/>';
-        if ( $apbct->key_is_ok ) {
+        if ( $apbct->key_is_ok && ! $apbct->data["wl_mode_enabled"] ) {
             echo '<b style="display: inline-block; margin-top: 10px;">' . sprintf(
                 __('Do you like ' . $apbct->data['wl_brandname_short'] . '? %sPost your feedback here%s.', 'cleantalk-spam-protect'),
                 '<a href="https://wordpress.org/support/plugin/cleantalk-spam-protect/reviews/#new-post" target="_blank">',
