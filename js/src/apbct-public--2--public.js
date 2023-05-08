@@ -144,11 +144,11 @@ function ctGetPixelUrl() {
     // Check if pixel is already in localstorage and is not outdated
     let localStoragePixelUrl = apbctLocalStorage.get('apbct_pixel_url');
     if ( localStoragePixelUrl !== false ) {
-        if ( apbctLocalStorage.isAlive('apbct_pixel_url', 3600 * 3) ) {
+        if ( ! apbctLocalStorage.isAlive('apbct_pixel_url', 3600 * 3) ) {
             apbctLocalStorage.delete('apbct_pixel_url');
         } else {
             // if so - load pixel from localstorage and draw it skipping AJAX
-            ctSetPixelImg(local_storage_pixel_url);
+            ctSetPixelImg(localStoragePixelUrl);
             return;
         }
     }
