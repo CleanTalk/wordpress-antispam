@@ -952,7 +952,7 @@ function apbct_admin__admin_bar__add_child_nodes($wp_admin_bar)
     }
 
     // Add a child item to our parent item. Bulk checks.
-    if ( ! is_network_admin() ) {
+    if ( ! is_network_admin() && apbct_is_plugin_active('woocommerce/woocommerce.php') ) {
         $wp_admin_bar->add_node(
             array(
                 'parent' => 'apbct__parent_node',
