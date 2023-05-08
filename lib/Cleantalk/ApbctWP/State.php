@@ -216,6 +216,7 @@ class State extends \Cleantalk\Common\State
         ),
 
         // White label data
+        'wl_mode_enabled'    => false,
         'wl_brandname'       => 'Anti-Spam by CleanTalk',
         'wl_brandname_short' => 'CleanTalk',
         'wl_url'             => 'https://cleantalk.org/',
@@ -590,6 +591,8 @@ class State extends \Cleantalk\Common\State
             $this->moderate    = $this->network_data['moderate'];
             $this->notice_show = false;
         }
+
+        $this->data['wl_brandname_short'] = $this->data["wl_mode_enabled"] ? $this->data["wl_brandname"] : $this->default_data['wl_brandname_short'];
     }
 
     /**
