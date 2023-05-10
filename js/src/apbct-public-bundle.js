@@ -1484,6 +1484,22 @@ function ctSetPixelImg(pixelUrl) {
 }
 
 /**
+ * @param {string} pixelUrl
+ */
+function ctSetPixelImgFromLocalstorage(pixelUrl) {
+    if ( +ctPublic.pixel__enabled ) {
+        if ( ! document.getElementById('apbct_pixel') ) {
+            let insertedImg = document.createElement('img');
+            insertedImg.setAttribute('alt', 'CleanTalk Pixel');
+            insertedImg.setAttribute('id', 'apbct_pixel');
+            insertedImg.setAttribute('style', 'display: none; left: 99999px;');
+            insertedImg.setAttribute('src', decodeURIComponent(pixelUrl));
+            apbct('body').append(insertedImg);
+        }
+    }
+}
+
+/**
  * ctGetPixelUrl
  */
 function ctGetPixelUrl() {
@@ -1494,7 +1510,7 @@ function ctGetPixelUrl() {
             apbctLocalStorage.delete('apbct_pixel_url');
         } else {
             // if so - load pixel from localstorage and draw it skipping AJAX
-            ctSetPixelImg(localStoragePixelUrl);
+            ctSetPixelImgFromLocalstorage(localStoragePixelUrl);
             return;
         }
     }
