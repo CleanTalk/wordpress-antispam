@@ -1020,6 +1020,19 @@ function ct_ajax_hook($message_obj = null)
             die();
         }
 
+        // Plugin Name: User Registration; ajax register action user_registration_user_form_submit
+        if (
+            apbct_is_plugin_active('user-registration/user-registration.php') &&
+            Post::get('action') === 'user_registration_user_form_submit'
+        ) {
+            wp_send_json_error(
+                array(
+                    'message' => $ct_result->comment
+                )
+            );
+            die();
+        }
+
         // Regular block output
         die(
             json_encode(
