@@ -1147,7 +1147,7 @@ if (document.readyState !== 'loading') {
 function checkFormsExistForCatching() {
     setTimeout(function() {
         if (isFormThatNeedCatch()) {
-            window.fetch = function(arguments) {
+            window.fetch = function() {
                 if (arguments &&
                     arguments[0] &&
                     typeof arguments[0].includes === 'function' &&
