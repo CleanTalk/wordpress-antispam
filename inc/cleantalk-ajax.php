@@ -1033,6 +1033,24 @@ function ct_ajax_hook($message_obj = null)
             die();
         }
 
+        // Plugin Name: eForm - WordPress Form Builder; ajax action ipt_fsqm_save_form
+        if (
+            apbct_is_plugin_active('wp-fsqm-pro/ipt_fsqm.php') &&
+            Post::get('action') === 'ipt_fsqm_save_form'
+        ) {
+            $return = array(
+                'success' => false,
+                'errors' => array(
+                    0 => array(
+                        'id' => '',
+                        'msgs' => array( $ct_result->comment ),
+                    ),
+                ),
+            );
+            echo json_encode( (object) $return );
+            die();
+        }
+
         // Regular block output
         die(
             json_encode(
