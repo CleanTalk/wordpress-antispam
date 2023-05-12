@@ -2348,12 +2348,11 @@ if (typeof jQuery !== 'undefined') {
         if (xhr.responseText && xhr.responseText.indexOf('"apbct') !== -1) {
             try {
                 // eslint-disable-next-line no-unused-vars
-                let response = JSON.parse(xhr.responseText);
+                ctParseBlockMessage(JSON.parse(xhr.responseText));
             } catch (e) {
                 console.log(e.toString());
                 return;
             }
-            ctParseBlockMessage(response);
         }
     });
 }
