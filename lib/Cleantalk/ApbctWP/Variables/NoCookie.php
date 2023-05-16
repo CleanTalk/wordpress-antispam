@@ -137,6 +137,9 @@ class NoCookie
             if (!is_bool(strpos($data, '%'))) {
                 $data = substr($data, 0, strpos($data, '%'));
             }
+            if (!is_bool(strpos($data, '&'))) {
+                $data = substr($data, 0, strpos($data, '&'));
+            }
             //delete sign of no cookie raw data
             $data = str_replace('_ct_no_cookie_data_', '', $data);
             //decode raw data
