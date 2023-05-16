@@ -1047,7 +1047,7 @@ function ct_ajax_hook($message_obj = null)
                     ),
                 ),
             );
-            echo json_encode( (object) $return );
+            echo json_encode((object)$return);
             die();
         }
 
