@@ -694,6 +694,7 @@ if ( is_admin() || is_network_admin() ) {
     require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-find-spam.php');
     require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-admin.php');
     require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-settings.php');
+    require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-wc-spam-orders.php');
 
     add_action('admin_init', 'apbct_admin__init', 1);
 
