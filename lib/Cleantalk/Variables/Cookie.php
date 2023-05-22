@@ -100,4 +100,13 @@ class Cookie extends ServerVariables
     {
         return sanitize_textarea_field($value);
     }
+
+    public static function getNativeCookieValue($cookie_name)
+    {
+        if ( isset($_COOKIE[$cookie_name]) ) {
+            return sanitize_textarea_field($_COOKIE[$cookie_name]);
+        }
+
+        return null;
+    }
 }

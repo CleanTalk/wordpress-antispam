@@ -555,14 +555,21 @@ class State extends \Cleantalk\Common\State
         $this->notice_show    = $this->data['notice_trial'] || $this->data['notice_renew'] || $this->data['notice_incompatibility'] || $this->isHaveErrors();
 
         // Set cookies type to the DATA
-        if ( $this->settings['data__set_cookies'] ) {
-            $this->data['cookies_type'] =
-                ( $this->settings['data__set_cookies'] == 3 && $this->isServerCacheDetected() ) ||
-                $this->settings['data__set_cookies'] == 2
-                    ? 'alternative'
-                    : 'none';
-        } else {
-            $this->data['cookies_type'] = 'none';
+        switch ($this->settings['data__set_cookies']) {
+            case '1':
+                $this->data['cookies_type'] = 'native';
+                break;
+            case '2':
+            case '3':
+                $this->data['cookies_type'] =
+                    ( $this->settings['data__set_cookies'] == 3 && $this->isServerCacheDetected() ) ||
+                    $this->settings['data__set_cookies'] == 2
+                        ? 'alternative'
+                        : 'none';
+                break;
+            default:
+                $this->data['cookies_type'] = 'none';
+                break;
         }
 
         //clear no_cookie_data_taken
