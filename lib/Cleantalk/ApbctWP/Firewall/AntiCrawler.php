@@ -465,7 +465,8 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
                         3
                     ) . '<br>'
                     . __('Don\'t close this page. Please, wait for 3 seconds to pass to the page.', 'cleantalk-spam-protect'),
-                '{CLEANTALK_TITLE}'                => __('Anti-Spam by CleanTalk', 'cleantalk-spam-protect'),
+                '{CLEANTALK_TITLE}'                => $apbct->data['wl_brandname'],
+                '{CLEANTALK_URL}'                  => $apbct->data['wl_url'],
                 '{REMOTE_ADDRESS}'                 => $result['ip'],
                 '{SERVICE_ID}'                     => $this->apbct->data['service_id'] . ', ' . $net_count,
                 '{HOST}'                           => get_home_url() . ', ' . APBCT_VERSION,

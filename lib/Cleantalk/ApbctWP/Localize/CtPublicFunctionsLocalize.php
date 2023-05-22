@@ -20,7 +20,7 @@ class CtPublicFunctionsLocalize
             '_rest_url'                            => Escape::escUrl(apbct_get_rest_url()),
             'data__cookies_type'                   => $apbct->data['cookies_type'],
             'data__ajax_type'                      => $apbct->data['ajax_type'],
-            'text__wait_for_decoding'              => esc_html__('Decoding the contact data, let us a few seconds to finish. Anti-Spam by CleanTalk.', 'cleantalk-spam-protect'),
+            'text__wait_for_decoding'              => esc_html__('Decoding the contact data, let us a few seconds to finish. ' . $apbct->data['wl_brandname'], 'cleantalk-spam-protect'),
             'cookiePrefix'                         => apbct__get_cookie_prefix(),
         );
     }

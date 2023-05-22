@@ -1218,6 +1218,22 @@ function apbct_update_to_6_6_0()
     $cron->addTask('send_js_error_report', 'ct_cron_send_js_error_report_email', 86400);
 }
 
+function apbct_update_to_6_8_0()
+{
+    global $apbct;
+
+    $apbct->data['wl_brandname'] = isset($apbct->data['wl_brandname']) ? $apbct->data['wl_brandname'] : 'Anti-Spam by CleanTalk';
+    $apbct->data['wl_brandname_short'] = isset($apbct->data['wl_brandname_short']) ? $apbct->data['wl_brandname_short'] : 'CleanTalk';
+    $apbct->data['wl_url'] = isset($apbct->data['wl_url']) ? $apbct->data['wl_url'] : 'https://cleantalk.org/';
+    $apbct->data['wl_support_email'] = isset($apbct->data['wl_support_email']) ? $apbct->data['wl_support_email'] : 'support@cleantalk.org';
+
+    $apbct->data['wl_support_faq'] = isset($apbct->data['wl_support_faq'])
+    ? $apbct->data['wl_support_faq'] : 'https://wordpress.org/plugins/cleantalk-spam-protect/faq/';
+
+    $apbct->data['wl_support_url'] = isset($apbct->data['wl_support_url'])
+    ? $apbct->data['wl_support_url'] : 'https://wordpress.org/support/plugin/cleantalk-spam-protect';
+}
+
 function apbct_update_to_6_9_0()
 {
     global $apbct;

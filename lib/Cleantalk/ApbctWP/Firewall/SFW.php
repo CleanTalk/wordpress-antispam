@@ -360,6 +360,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
                     'This is the testing page for SpamFireWall',
                     'cleantalk-spam-protect'
                 ) : ''),
+                '{CLEANTALK_URL}'                  => $apbct->data['wl_url'],
                 '{REMOTE_ADDRESS}'                 => $result['ip'],
                 '{SERVICE_ID}'                     => $apbct->data['service_id'] . ', ' . $net_count,
                 '{HOST}'                           => get_home_url() . ', ' . APBCT_VERSION,

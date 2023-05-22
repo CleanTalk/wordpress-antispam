@@ -239,7 +239,8 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule
                     ),
                     30
                 ),
-                '{CLEANTALK_TITLE}'                => __('Anti-Spam by CleanTalk', 'cleantalk-spam-protect'),
+                '{CLEANTALK_TITLE}'                => $apbct->data['wl_brandname'],
+                '{CLEANTALK_URL}'                  => $apbct->data['wl_url'],
                 '{REMOTE_ADDRESS}'                 => $result['ip'],
                 '{REQUEST_URI}'                    => Server::get('REQUEST_URI'),
                 '{SERVICE_ID}'                     => $this->apbct->data['service_id'] . ', ' . $net_count,

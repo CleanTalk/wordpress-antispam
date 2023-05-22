@@ -169,6 +169,8 @@ class AdminNotices
      */
     public function notice_trial() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
+        global $apbct;
+
         if ( $this->apbct->notice_show && $this->apbct->notice_trial == 1 && $this->apbct->moderate_ip == 0 && ! $this->apbct->white_label ) {
             $content            = sprintf(
                 __("%s trial period ends, please upgrade to %s!", 'cleantalk-spam-protect'),
@@ -177,7 +179,7 @@ class AdminNotices
             );
             $additional_content =
                 '<h4 style = "color: gray">' .
-                esc_html__('Account status updates every 24 hours or click Settings -> Anti-Spam by CleanTalk -> Synchronize with Cloud.', 'cleantalk-spam-protect') .
+                esc_html__('Account status updates every 24 hours or click Settings -> ' . $apbct->data['wl_brandname'] . ' -> Synchronize with Cloud.', 'cleantalk-spam-protect') .
                 '</h4>';
             $id                 = 'cleantalk_' . __FUNCTION__;
             $this->generateNoticeHtml($content, $id, $additional_content);
@@ -192,6 +194,8 @@ class AdminNotices
      */
     public function notice_renew() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
+        global $apbct;
+
         if ( $this->apbct->notice_show && $this->apbct->notice_renew == 1 && $this->apbct->moderate_ip == 0 && ! $this->apbct->white_label ) {
             $renew_link  = "<a href=\"https://cleantalk.org/my/bill/recharge?utm_source=wp-backend&utm_medium=cpc&utm_campaign=WP%%20backend%%20renew$this->user_token&cp_mode=antispam\" target=\"_blank\">%s</a>";
             $button_html = sprintf(
@@ -209,7 +213,7 @@ class AdminNotices
             );
             $additional_content =
                 '<h4 style = "color: gray">' .
-                esc_html__('Account status updates every 24 hours or click Settings -> Anti-Spam by CleanTalk -> Synchronize with Cloud.', 'cleantalk-spam-protect') .
+                esc_html__('Account status updates every 24 hours or click Settings -> ' . $apbct->data['wl_brandname_short'] . ' -> Synchronize with Cloud.', 'cleantalk-spam-protect') .
                 '</h4>' .
                 $button_html;
             $id                 = 'cleantalk_' . __FUNCTION__;
@@ -227,7 +231,7 @@ class AdminNotices
     {
         global $apbct;
 
-        if ( $this->apbct->notice_review == 1 ) {
+        if ( $this->apbct->notice_review == 1 && ! $this->apbct->white_label ) {
             $review_link = "<a class='button' href='https://wordpress.org/support/plugin/cleantalk-spam-protect/reviews/?filter=5' target='_blank'>"
                                 . __('SHARE', 'cleantalk-spam-protect') .
                             "</a>";
@@ -247,6 +251,9 @@ class AdminNotices
                                 <h3>'
                                     . $notice_text .
                                 '</h3>
+                                <p class="caption">'
+                                    . $apbct->data['wl_brandname'] .
+                                '</p>
                             </div>'
                             . '<div id="cleantalk_notice_review">'
                             . $review_link . '&nbsp;&nbsp;'

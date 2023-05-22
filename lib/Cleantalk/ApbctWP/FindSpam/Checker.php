@@ -81,6 +81,8 @@ abstract class Checker
 
     protected function getCurrentScanPanel($spam_checker)
     {
+        global $apbct;
+
         $dates_allowed  = '';
         $dates_disabled = 'disabled';
         if ( Cookie::get('ct_' . $this->page_slug . '_dates_allowed') ) {
@@ -183,7 +185,7 @@ abstract class Checker
         <div id="ct_working_message">
             <?php
             _e(
-                "Please wait for a while. CleanTalk is checking all $this->page_slug via blacklist database at cleantalk.org. You will have option to delete found spam $this->page_slug after plugin finish.",
+                "Please wait for a while. " . $apbct->data['wl_brandname_short'] . " is checking all $this->page_slug via blacklist database at cleantalk.org. You will have option to delete found spam $this->page_slug after plugin finish.",
                 'cleantalk-spam-protect'
             ); ?>
         </div>

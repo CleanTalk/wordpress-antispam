@@ -349,7 +349,7 @@ class ConnectionReports
             return false;
         }
 
-        $to = "support@cleantalk.org";
+        $to = $apbct->data['wl_support_email'];
         $subject = "Connection report for " . Server::get('HTTP_HOST');
         $message = '
             <html lang="en">
