@@ -660,11 +660,6 @@ function apbct_admin__badge__get_premium($print = true, $out = '')
 function apbct_admin__admin_bar__add_structure($wp_admin_bar)
 {
     global $spbc, $apbct;
-    $plugin_name = __('CleanTalk', 'cleantalk-spam-protect');
-
-    if ($apbct->white_label) {
-        $plugin_name = $apbct->plugin_name;
-    }
 
     do_action('cleantalk_admin_bar__prepare_counters');
 

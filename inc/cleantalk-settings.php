@@ -440,13 +440,13 @@ function apbct_settings__set_fields()
                     'title'       => __('Check all post data', 'cleantalk-spam-protect'),
                     'description' =>
                         __('Check all POST submissions from website visitors. Enable this option if you have spam misses on website.', 'cleantalk-spam-protect')
-                        . (! $apbct->white_label && ! $apbct->data["wl_mode_enabled"]?
+                        . ( ! $apbct->white_label && ! $apbct->data["wl_mode_enabled"] ?
                             __(' Or you don`t have records about missed spam here:', 'cleantalk-spam-protect')
                             . '&nbsp;'
                             . '<a href="https://cleantalk.org/my/?user_token='
                             . $apbct->user_token . '&utm_source=wp-backend&utm_medium=admin-bar&cp_mode=antispam" target="_blank">'
                             . __('CleanTalk Dashboard', 'cleantalk-spam-protect')
-                            . '</a>.' : '')
+                            . '</a>.' : '' )
                         . '<br />'
                         . __('СAUTION! Option can catch POST requests in WordPress backend', 'cleantalk-spam-protect'),
                 ),
