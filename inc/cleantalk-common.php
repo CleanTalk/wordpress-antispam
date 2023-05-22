@@ -533,14 +533,20 @@ function apbct_get_sender_info()
     $visible_fields = apbct_visible_fields__process($visible_fields_collection);
 
     // preparation of some parameters when cookies are disabled and data is received from localStorage
-    $param_email_check = Cookie::get('ct_checked_emails') ? json_encode(
-        Cookie::get('ct_checked_emails')
-    ) : null;
+    if ($apbct->data['cookies_type'] === 'native') {
+        $param_email_check = Cookie::getNativeCookieValue('ct_checked_emails');
+        $param_screen_info = Cookie::getNativeCookieValue('ct_screen_info');
+    } else {
+        $param_email_check = Cookie::get('ct_checked_emails') ? json_encode(
+            Cookie::get('ct_checked_emails')
+        ) : null;
+        $param_screen_info = Cookie::get('ct_screen_info')
+            ? json_encode(Cookie::get('ct_screen_info'))
+            : null;
+    }
+
     $param_mouse_cursor_positions = Cookie::get('ct_pointer_data');
     $param_pixel_url = Cookie::get('apbct_pixel_url');
-    $param_screen_info = Cookie::get('ct_screen_info')
-    ? json_encode(Cookie::get('ct_screen_info'))
-    : null;
 
     if ($apbct->data['cookies_type'] === 'none') {
         $param_email_check = Cookie::get('ct_checked_emails') ? urldecode(
