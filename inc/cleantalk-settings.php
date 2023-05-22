@@ -193,38 +193,19 @@ function apbct_settings__set_fields()
             ),
         ),
 
+        // Links to open other sections below
+        'spoilers_links' => array(
+            'fields' => array(),
+            'html_before' => apbct_get_spoilers_links()
+        ),
+
         // Forms protection
         'forms_protection'      => array(
             'title'          => __('Forms to protect', 'cleantalk-spam-protect'),
-            'default_params' => array(),
-            'description'    => '',
-            'html_before'    => '<br>'
-                                . '<span id="ct_adv_showhide" class="apbct_bottom_links--left">'
-                                . '<a href="#" class="apbct_color--gray" onclick="'
-                                . 'event.preventDefault();'
-                                . 'apbct_excepted_show_hide(\'apbct_settings__advanced_settings\');'
-                                . '">'
-                                . __('Advanced settings', 'cleantalk-spam-protect')
-                                . '</a>'
-                                . '</span>'
-                                . '<span class="apbct_bottom_links--other">'
-                                . '<a href="#" class="apbct_color--gray" onclick="cleantalkModal.open()">'
-                                . __('Import/Export settings', 'cleantalk-spam-protect')
-                                . '</a>'
-                                . '</span>'
-                                . '<span id="ct_trusted_text_showhide" class="apbct_bottom_links--other">'
-                                . '<a href="#" class="apbct_color--gray" onclick="'
-                                . 'event.preventDefault();'
-                                . 'apbct_excepted_show_hide(\'trusted_and_affiliate__special_span\');'
-                                . '">'
-                                . __('Trust text, affiliate settings', 'cleantalk-spam-protect')
-                                . '</a>'
-                                . '</span>'
-                                . '<div id="apbct_settings__before_advanced_settings"></div>'
+            'section'        => 'hidden_section',
+            'html_before'    => '<div id="apbct_settings__before_advanced_settings"></div>'
                                 . '<div id="apbct_settings__advanced_settings" style="display: none;">'
                                 . '<div id="apbct_settings__advanced_settings_inner">',
-            'html_after'     => '',
-            'section'        => 'hidden_section',
             'fields'         => array(
                 'forms__registrations_test'             => array(
                     'title'       => __('Registration Forms', 'cleantalk-spam-protect'),
@@ -396,7 +377,7 @@ function apbct_settings__set_fields()
                 'comments__show_check_links'               => array(
                     'title'       => __('Show links to check Emails, IPs for spam', 'cleantalk-spam-protect'),
                     'description' => __(
-                        'Shows little icon near IP addresses and Emails allowing you to check it via CleanTalk\'s database.',
+                        'Shows little icon near IP addresses and Emails allowing you to check it via ' . $apbct->data["wl_brandname_short"] . '\'s database.',
                         'cleantalk-spam-protect'
                     ),
                     'display'     => ! $apbct->white_label,
@@ -459,7 +440,7 @@ function apbct_settings__set_fields()
                     'title'       => __('Check all post data', 'cleantalk-spam-protect'),
                     'description' =>
                         __('Check all POST submissions from website visitors. Enable this option if you have spam misses on website.', 'cleantalk-spam-protect')
-                        . (! $apbct->white_label ?
+                        . (! $apbct->white_label && ! $apbct->data["wl_mode_enabled"]?
                             __(' Or you don`t have records about missed spam here:', 'cleantalk-spam-protect')
                             . '&nbsp;'
                             . '<a href="https://cleantalk.org/my/?user_token='
@@ -531,10 +512,10 @@ function apbct_settings__set_fields()
                     'parent'      => 'sfw__enabled',
                 ),
                 'data__pixel'                          => array(
-                    'title'       => __('Add a CleanTalk Pixel to improve IP-detection', 'cleantalk-spam-protect'),
+                    'title'       => __('Add a ' . $apbct->data["wl_brandname_short"] . ' Pixel to improve IP-detection', 'cleantalk-spam-protect'),
                     'description' =>
                         __(
-                            'Upload small graphic file from CleanTalk\'s server to improve IP-detection.',
+                            'Upload small graphic file from ' . $apbct->data["wl_brandname_short"] . '\'s server to improve IP-detection.',
                             'cleantalk-spam-protect'
                         )
                         . '<br>'
@@ -777,7 +758,7 @@ function apbct_settings__set_fields()
                     'title'       => __('Send connection reports', 'cleantalk-spam-protect'),
                     'description' => __("Checking this box you allow plugin to send the information about your connection. These reports could contain next info:", 'cleantalk-spam-protect')
                         . '<br>'
-                        . __(' - connection status to CleanTalk cloud during Anti-Spam request', 'cleantalk-spam-protect')
+                        . __(' - connection status to ' . $apbct->data["wl_brandname_short"] . ' cloud during Anti-Spam request', 'cleantalk-spam-protect')
                         . $send_connection_reports__sfw_text
                     ),
                 'misc__async_js'                => array(
@@ -835,6 +816,7 @@ function apbct_settings__set_fields()
         // Trust text, affiliate settings
         'trusted_and_affiliate'                    => array(
             'title'  => __('Trust text, affiliate settings', 'cleantalk-spam-protect'),
+            'display' => ! $apbct->data["wl_mode_enabled"],
             //'section' => 'hidden_section',
             'fields' => array(
                 'trusted_and_affiliate__shortcode'       => array(
@@ -1095,6 +1077,10 @@ function apbct_settings__add_groups_and_fields($fields)
     );
 
     foreach ( $apbct->settings_fields_in_groups as $group_name => $group ) {
+        if ( isset($group['display']) && ! $group['display'] ) {
+            continue;
+        }
+
         add_settings_section('apbct_section__' . $group_name, '', '', 'cleantalk-spam-protect');
 
         foreach ( $group['fields'] as $field_name => $field ) {
@@ -1174,10 +1160,11 @@ function apbct_settings__display()
             . '<a target="_blank" href="' . $apbct->data['wl_support_url'] . '">WordPress.org</a>.'
             . '<br>';
         echo __('Plugin Homepage at', 'cleantalk-spam-protect') .
+
              ' <a href="' . $apbct->data['wl_url'] . '" target="_blank">' . $apbct->data['wl_url'] . '</a>.<br/>';
         echo __('Use stop_email@example.com to test plugin in any WordPress form.', 'cleantalk-spam-protect') . '<br>';
         echo $apbct->data['wl_brandname_short'] . __(' is registered Trademark. All rights reserved.', 'cleantalk-spam-protect') . '<br/>';
-        if ( $apbct->key_is_ok ) {
+        if ( $apbct->key_is_ok && ! $apbct->data["wl_mode_enabled"] ) {
             echo '<b style="display: inline-block; margin-top: 10px;">' . sprintf(
                 __('Do you like ' . $apbct->data['wl_brandname_short'] . '? %sPost your feedback here%s.', 'cleantalk-spam-protect'),
                 '<a href="https://wordpress.org/support/plugin/cleantalk-spam-protect/reviews/#new-post" target="_blank">',
@@ -3207,4 +3194,35 @@ function apbct_render_links_to_tag($value)
     $pattern = "/(https?:\/\/[^\s]+)/";
     $value = preg_replace($pattern, '<a target="_blank" href="$1">$1</a>', $value);
     return Escape::escKsesPreset($value, 'apbct_settings__display__notifications');
+}
+
+function apbct_get_spoilers_links()
+{
+    global $apbct;
+
+    $advanced_settings = '<span id="ct_adv_showhide" class="apbct_bottom_links--left">'
+                         . '<a href="#" class="apbct_color--gray" onclick="'
+                         . 'event.preventDefault();'
+                         . 'apbct_excepted_show_hide(\'apbct_settings__advanced_settings\');'
+                         . '">'
+                         . __('Advanced settings', 'cleantalk-spam-protect')
+                         . '</a>'
+                         . '</span>';
+    $import_export = ! $apbct->data['wl_mode_enabled']
+        ? '<span class="apbct_bottom_links--other">'
+          . '<a href="#" class="apbct_color--gray" onclick="cleantalkModal.open()">'
+          . __('Import/Export settings', 'cleantalk-spam-protect')
+          . '</a>'
+          . '</span>'
+        : '';
+    $affiliate_section = ! $apbct->data['wl_mode_enabled']
+        ? '<span id="ct_trusted_text_showhide" class="apbct_bottom_links--other">'
+          . '<a href="#" class="apbct_color--gray" onclick="'
+          . 'return apbct_excepted_show_hide(\'trusted_and_affiliate__special_span\');'
+          . '">'
+          . __('Trust text, affiliate settings', 'cleantalk-spam-protect')
+          . '</a>'
+          . '</span>'
+        : '';
+    return '<br>' . $advanced_settings . $import_export . $affiliate_section;
 }
