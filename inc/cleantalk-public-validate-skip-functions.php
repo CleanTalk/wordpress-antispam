@@ -240,11 +240,12 @@ function skip_for_ct_contact_form_validate()
         '86' => (isset($_POST['action']) && $_POST['action'] === 'check_email_exists'),
         // Handling an unknown action check_email_exists
         '87' => Server::inUri('cleantalk-antispam/v1/alt_sessions'),
+        '88' => apbct_is_in_uri('wc-api') && apbct_is_in_uri('WC_Invoice4U'),
         // has direct integration lib/Cleantalk/Antispam/Integrations/MemberPress.php
-        '88' => apbct_is_plugin_active('memberpress/memberpress.php') && Post::get('mepr_process_signup_form'),
+        '89' => apbct_is_plugin_active('memberpress/memberpress.php') && Post::get('mepr_process_signup_form'),
         // WooCommerce recovery password form
-        '89' => (isset($_POST['wc_reset_password'], $_POST['woocommerce-lost-password-nonce'])),
-        '90' => apbct_is_plugin_active('envira-gallery/envira-gallery.php') && Server::inUri('wp-json/envira-background/v1/resize-image'),
+        '90' => (isset($_POST['wc_reset_password'], $_POST['woocommerce-lost-password-nonce'])),
+        '91' => apbct_is_plugin_active('envira-gallery/envira-gallery.php') && Server::inUri('wp-json/envira-background/v1/resize-image'),
     );
 
     foreach ( $exclusions as $exclusion_key => $state ) {

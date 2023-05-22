@@ -138,6 +138,22 @@ function ctSetPixelImg(pixelUrl) {
 }
 
 /**
+ * @param {string} pixelUrl
+ */
+function ctSetPixelImgFromLocalstorage(pixelUrl) {
+    if ( +ctPublic.pixel__enabled ) {
+        if ( ! document.getElementById('apbct_pixel') ) {
+            let insertedImg = document.createElement('img');
+            insertedImg.setAttribute('alt', 'CleanTalk Pixel');
+            insertedImg.setAttribute('id', 'apbct_pixel');
+            insertedImg.setAttribute('style', 'display: none; left: 99999px;');
+            insertedImg.setAttribute('src', decodeURIComponent(pixelUrl));
+            apbct('body').append(insertedImg);
+        }
+    }
+}
+
+/**
  * ctGetPixelUrl
  */
 function ctGetPixelUrl() {
@@ -148,7 +164,7 @@ function ctGetPixelUrl() {
             apbctLocalStorage.delete('apbct_pixel_url');
         } else {
             // if so - load pixel from localstorage and draw it skipping AJAX
-            ctSetPixelImg(localStoragePixelUrl);
+            ctSetPixelImgFromLocalstorage(localStoragePixelUrl);
             return;
         }
     }
@@ -986,12 +1002,11 @@ if (typeof jQuery !== 'undefined') {
         if (xhr.responseText && xhr.responseText.indexOf('"apbct') !== -1) {
             try {
                 // eslint-disable-next-line no-unused-vars
-                let response = JSON.parse(xhr.responseText);
+                ctParseBlockMessage(JSON.parse(xhr.responseText));
             } catch (e) {
                 console.log(e.toString());
                 return;
             }
-            ctParseBlockMessage(response);
         }
     });
 }
@@ -1131,7 +1146,7 @@ if (document.readyState !== 'loading') {
 function checkFormsExistForCatching() {
     setTimeout(function() {
         if (isFormThatNeedCatch()) {
-            window.fetch = function(arguments) {
+            window.fetch = function() {
                 if (arguments &&
                     arguments[0] &&
                     typeof arguments[0].includes === 'function' &&
