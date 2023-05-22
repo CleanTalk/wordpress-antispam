@@ -310,7 +310,16 @@ function apbct_settings__set_fields()
                         array('val' => 1, 'label' => __('On')),
                         array('val' => 0, 'label' => __('Off')),
                     ),
-                )
+                ),
+                'data__wc_store_blocked_orders' => array(
+                    'title' => __('Store blocked orders', 'cleantalk-spam-protect'),
+                    'description' => __('The orders which was blocked by the Anti-Spam will be stored and could be restored manually later if its needed.', 'cleantalk-spam-protect'),
+                    'class' => 'apbct_settings-field_wrapper--sub',
+                    'options' => array(
+                        array('val' => 1, 'label' => __('On')),
+                        array('val' => 0, 'label' => __('Off')),
+                    ),
+                ),
             ),
         ),
 
@@ -1830,23 +1839,37 @@ function apbct_settings__field__action_buttons()
 {
     global $apbct;
 
-    $links = apply_filters(
-        'apbct_settings_action_buttons',
-        array(
-            '<a href="edit-comments.php?page=ct_check_spam" class="ct_support_link">' . __(
-                'Check comments for spam',
-                'cleantalk-spam-protect'
-            ) . '</a>',
-            '<a href="users.php?page=ct_check_users" class="ct_support_link">' . __(
-                'Check users for spam',
-                'cleantalk-spam-protect'
-            ) . '</a>',
-            '<a href="#" class="ct_support_link" onclick="apbct_show_hide_elem(\'apbct_statistics\')">' . __(
-                'Statistics & Reports',
-                'cleantalk-spam-protect'
-            ) . '</a>',
-        )
-    );
+    add_filter('apbct_settings_action_buttons', function ($buttons_array) {
+        $buttons_array[] =
+            '<a href="edit-comments.php?page=ct_check_spam" class="ct_support_link">'
+            . __('Check comments for spam', 'cleantalk-spam-protect')
+            . '</a>';
+        $buttons_array[] =
+            '<a href="users.php?page=ct_check_users" class="ct_support_link">'
+            . __('Check users for spam', 'cleantalk-spam-protect')
+            . '</a>';
+        return $buttons_array;
+    });
+
+    if ( apbct_is_plugin_active('woocommerce/woocommerce.php') ) {
+        add_filter('apbct_settings_action_buttons', function ($buttons_array) {
+            $buttons_array[] =
+                '<a href="admin.php?page=options-general.php%3Fpage%3Dapbct_wc_spam_orders" class="ct_support_link" title="Bulk spam orders removal tool.">'
+                . __('WooCommerce spam orders', 'cleantalk-spam-protect')
+                . '</a>';
+            return $buttons_array;
+        });
+    }
+
+    add_filter('apbct_settings_action_buttons', function ($buttons_array) {
+        $buttons_array[] =
+            '<a href="#" class="ct_support_link" onclick="apbct_show_hide_elem(\'apbct_statistics\')">'
+            . __('Statistics & Reports', 'cleantalk-spam-protect')
+            . '</a>';
+        return $buttons_array;
+    });
+
+    $links = apply_filters('apbct_settings_action_buttons', array());
 
     echo '<div class="apbct_settings-field_wrapper">';
 

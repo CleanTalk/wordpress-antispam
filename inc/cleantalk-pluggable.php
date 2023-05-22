@@ -1118,6 +1118,14 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'Indeed Ultimate Membership Pro - have the direct integration';
         }
+
+        // Plugin Name: OptimizeCheckouts - skip fields checks
+        if (
+            apbct_is_plugin_active('op-cart/op-checkouts.php') &&
+            apbct_is_in_uri('wp-json/opc/v1/cart/recalculate')
+        ) {
+            return 'Plugin Name: OptimizeCheckouts skip fields checks';
+        }
     }
 
     //Skip wforms because of direct integration
