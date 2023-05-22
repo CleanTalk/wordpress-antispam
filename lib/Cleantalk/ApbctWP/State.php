@@ -82,6 +82,7 @@ class State extends \Cleantalk\Common\State
         'data__honeypot_field'                     => 1,
         'data__email_decoder'                      => 0,
         'data__email_decoder_buffer'               => 0,
+        'data__wc_store_blocked_orders'            => 0,
 
         // Exclusions
         // Send to the cloud some excepted requests
@@ -479,6 +480,10 @@ class State extends \Cleantalk\Common\State
         if ( ! defined('APBCT_TBL_CONNECTION_REPORTS')) {
             // Table with connection reports data.
             define('APBCT_TBL_CONNECTION_REPORTS', $db_prefix . 'cleantalk_connection_reports');
+        }
+        if ( ! defined('APBCT_TBL_WC_SPAM_ORDERS')) {
+            // Table with blocked (spam) woocommerce order.
+            define('APBCT_TBL_WC_SPAM_ORDERS', $db_prefix . 'cleantalk_wc_spam_orders');
         }
         if ( ! defined('APBCT_SPAMSCAN_LOGS')) {
             // Table with session data.

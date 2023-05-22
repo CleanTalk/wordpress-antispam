@@ -2,8 +2,6 @@
 
 namespace Cleantalk\Common;
 
-use Exception;
-
 class Schema
 {
     /**
@@ -96,6 +94,14 @@ class Schema
             'sent_on' => 'INT NULL DEFAULT NULL', //timestamp
             'js_block' => 'VARCHAR(1) NULL DEFAULT NULL',
             '__indexes' => 'PRIMARY KEY (`id`)',
+            '__createkey' => 'INT unsigned primary KEY AUTO_INCREMENT FIRST'
+        ),
+        'wc_spam_orders' => array(
+            'order_id' => 'VARCHAR(32) NOT NULL',
+            'order_details' => 'TEXT NULL DEFAULT NULL',
+            'customer_details' => 'TEXT NULL DEFAULT NULL',
+            'currency' => 'VARCHAR(5) NULL DEFAULT NULL',
+            '__indexes' => 'PRIMARY KEY (order_id)',
             '__createkey' => 'INT unsigned primary KEY AUTO_INCREMENT FIRST'
         ),
     );
