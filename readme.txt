@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 4.7
 Tested up to: 6.2
 Requires PHP: 5.6
-Stable tag: 6.9.2
+Stable tag: 6.10
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -450,6 +450,24 @@ Yes, it is. Please read this article,
 12. SpamFireWall log.
 
 == Changelog ==
+
+= 6.10 May 24 2023 =
+* Fix. Integrations. Ultimate Addons for Beaver Builder: Exclude login form request.
+* Fix: Integration. Digits - extra request fixed
+* New: Integration. Indeed Ultimate Membership Pro integration implemented.
+* Fix: Integration. Indeed Ultimate Membership Pro - exclude request from general forms catching.
+* Fix. Pixel. Pixel gathering fixed.
+* Fix: Fixed MetForm Integration
+* fix: fixed block message
+* fix: fixed block message - eform
+* fix: fixed unknown block response
+* Fix. WC_Invoice4U exclusion.
+* Fix. NoCookie. Remove noise from base64 string.
+* Added exlutions for Localize
+* New. Store WC spam orders.
+* Fix. Integration. Skip OptimizeCheckouts fields checks
+* New. White label. Replace brands data to apbct->data[wl_*].
+* Fix. Cookies. Native cookies mode fixed.
 
 = 6.9.2 May 5 2023 =
 * Fix: local_storage_pixel_url fixed
