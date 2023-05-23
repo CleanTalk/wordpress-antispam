@@ -29,6 +29,8 @@ function apbct_init()
     if ( ! apbct_exclusions_check__url() ) {
         add_action('wp_head', array(LocalizeHandler::class, 'handle'), 1);
         add_action('login_head', array(LocalizeHandler::class, 'handle'), 1);
+        // The exclusion of scripts from wp-rocket handler
+        add_filter('rocket_delay_js_exclusions', 'apbct_rocket_delay_js_exclusions');
     }
 
     //Search form hook init
@@ -1545,4 +1547,14 @@ function apbct_generate_trusted_text_html($type = 'div')
             . '</span>';
     }
     return $trusted_text;
+}
+
+function apbct_rocket_delay_js_exclusions($excluded)
+{
+    return array_merge($excluded, array(
+        'const ctPublicFunctions',
+        'const ctPublic',
+        'function apbct_attach_event_handler__backend',
+        '/cleantalk-spam-protect/(.*)'
+    ));
 }
