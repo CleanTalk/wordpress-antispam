@@ -745,7 +745,7 @@ function ct_add_honeypot_field($form_type, $form_method = 'post')
         apbct_event_id="' . $random . '"
         size="30" 
         maxlength="200" 
-        value=""
+        value="' . $random . '" 
     />';
     }
 
