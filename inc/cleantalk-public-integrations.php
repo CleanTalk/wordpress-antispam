@@ -3598,6 +3598,7 @@ function apbct_form_search__add_fields($form_html)
                         : $search_form_dom->getAttribute('method');
                 }
             }
+            libxml_clear_errors();
             unset($dom);
         }
 
