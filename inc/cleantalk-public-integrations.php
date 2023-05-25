@@ -3587,6 +3587,7 @@ function apbct_form_search__add_fields($form_html)
          * extract method of the form
          */
         if ( class_exists('DOMDocument') ) {
+            libxml_use_internal_errors(true);
             $dom = new DOMDocument();
             if ( @$dom->loadHTML($form_html) ) {
                 $search_form_dom = $dom->getElementById('searchform');
