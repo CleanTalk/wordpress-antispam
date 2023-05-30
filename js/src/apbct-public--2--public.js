@@ -1102,7 +1102,7 @@ function ctNoCookieAttachHiddenFieldsToForms() {
             }
 
             if ( ctNoCookieFormIsExcludedFromNcField(document.forms[i]) ) {
-                return;
+                continue;
             }
 
             // ignore forms with get method @todo We need to think about this
