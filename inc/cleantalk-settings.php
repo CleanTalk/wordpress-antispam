@@ -494,9 +494,9 @@ function apbct_settings__set_fields()
                     'callback' => 'apbct_settings__check_alt_cookies_types'
                 ),
                 'data__bot_detector_enabled' => array(
-                    'title' => __("Use CleanTalk JavaScript library.", 'cleantalk-spam-protect'),
+                    'title' => __('Use CleanTalk JavaScript library', 'cleantalk-spam-protect'),
                     'description' => __(
-                        'This option includes external CleanTalk JavaScript library to getting visitors info data.',
+                        'This option includes external CleanTalk JavaScript library to getting visitors info data',
                         'cleantalk-spam-protect'
                     ),
                 ),
