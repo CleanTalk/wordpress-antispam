@@ -185,6 +185,17 @@ function apbct_base_call($params = array(), $reg_flag = false)
         'submit_time' => apbct_get_submit_time()
     );
 
+    // Enable event_token for several integrations ang users registrations
+    if (
+        ( isset($params['post_info']['comment_type']) && (
+            $params['post_info']['comment_type'] === 'happyforms_contact_form' ||
+            $params['post_info']['comment_type'] === 'contact_form_wordpress_gravity_forms' )
+        ) ||
+        $reg_flag
+    ) {
+        $default_params['event_token'] = Post::get('ct_bot_detector_event_token') ?: null;
+    }
+
     /**
      * Add exception_action sender email is empty
      */
