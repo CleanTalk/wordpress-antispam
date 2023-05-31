@@ -1207,7 +1207,7 @@ function checkFormsExistForCatchingXhr() {
  */
 function isFormThatNeedCatchXhr() {
     if (document.querySelector('div.elementor-widget[title=\'Login/Signup\']') != null) {
-        return true;
+        return false;
     }
 
     return false;
