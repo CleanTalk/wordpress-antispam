@@ -11,9 +11,9 @@ class SendyWidgetPro extends IntegrationBase
         if (!apbct_is_plugin_active('sendy-widget-pro/sendy-widget-pro.php')) {
             return null;
         }
-        
+
         $this->return_argument = [];
-        
+
         $input_array = apply_filters('apbct__filter_post', $_POST);
 
         if (!empty($_POST['formdata'])) {
