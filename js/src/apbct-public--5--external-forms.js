@@ -203,12 +203,8 @@ function apbctProcessExternalForm(currentForm, iterator, documentObject) {
             });
         }
     } else {
-        documentObject.forms[iterator].onsubmit = function( event ) {
+        documentObject.forms[iterator].onsubmit = function(event) {
             event.preventDefault();
-
-            const prev = apbct_prev(event.currentTarget);
-            const form_original = event.currentTarget.cloneNode(true);
-
             sendAjaxCheckingFormData(event.currentTarget);
         };
     }
@@ -285,7 +281,7 @@ function isIntegratedForm(formObj) {
  * @param {HTMLElement} prev
  * @param {HTMLElement} formOriginal
  */
-function sendAjaxCheckingFormData(form, prev, formOriginal) {
+function sendAjaxCheckingFormData(form) {
     // Get visible fields and set cookie
     const visibleFields = {};
     visibleFields[0] = apbct_collect_visible_fields(form);
