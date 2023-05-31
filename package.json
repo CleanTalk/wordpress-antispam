@@ -7,8 +7,7 @@
     "lib": "lib"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "eslint": "node_modules/.bin/eslint js/src/*.js"
+    "eslint": "./node_modules/.bin/eslint -c ./.eslintrc.js js/src/*.js"
   },
   "author": "",
   "license": "ISC",
