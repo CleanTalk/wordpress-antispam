@@ -450,7 +450,7 @@ function apbct_exclusions_check__form_signs($form_data)
 
         foreach ( $exclusions as $exclusion ) {
             foreach ($form_data as $key => $value) {
-                $haystack = ($key === 'action') ? $value : $key;
+                $haystack = ($key === 'action' || $key === 'data') ? $value : $key;
                 if (
                     $haystack === $exclusion ||
                     stripos($haystack, $exclusion) !== false ||
