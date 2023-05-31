@@ -1,10 +1,10 @@
 // eslint-disable-next-line camelcase
-var ct_date = new Date();
-var ctTimeMs = new Date().getTime();
-var ctMouseEventTimerFlag = true; // Reading interval flag
-var ctMouseData = [];
-var ctMouseDataCounter = 0;
-var ctCheckedEmails = {};
+const ctDate = new Date();
+const ctTimeMs = new Date().getTime();
+let ctMouseEventTimerFlag = true; // Reading interval flag
+let ctMouseData = [];
+let ctMouseDataCounter = 0;
+let ctCheckedEmails = {};
 
 // eslint-disable-next-line require-jsdoc,camelcase
 function apbct_attach_event_handler(elem, event, callback) {
@@ -18,8 +18,8 @@ function apbct_remove_event_handler(elem, event, callback) {
 }
 
 // Writing first key press timestamp
-var ctFunctionFirstKey = function output(event) {
-    var KeyTimestamp = Math.floor(new Date().getTime()/1000);
+const ctFunctionFirstKey = function output(event) {
+    let KeyTimestamp = Math.floor(new Date().getTime() / 1000);
     ctSetCookie('ct_fkp_timestamp', KeyTimestamp);
     ctKeyStopStopListening();
 };
@@ -27,19 +27,19 @@ var ctFunctionFirstKey = function output(event) {
 if (ctPublic.data__key_is_ok) {
     // Reading interval
     // eslint-disable-next-line no-unused-vars
-    var ctMouseReadInterval = setInterval(function() {
+    const ctMouseReadInterval = setInterval(function() {
         ctMouseEventTimerFlag = true;
     }, 150);
 
     // Writting interval
     // eslint-disable-next-line no-unused-vars
-    var ctMouseWriteDataInterval = setInterval(function() {
+    const ctMouseWriteDataInterval = setInterval(function() {
         ctSetCookie('ct_pointer_data', JSON.stringify(ctMouseData));
     }, 1200);
 }
 
 // Logging mouse position each 150 ms
-var ctFunctionMouseMove = function output(event) {
+const ctFunctionMouseMove = function output(event) {
     ctSetMouseMoved();
     if (ctMouseEventTimerFlag === true) {
         ctMouseData.push([
@@ -77,7 +77,7 @@ function ctKeyStopStopListening() {
  * @param {mixed} e
  */
 function checkEmail(e) {
-    var currentEmail = e.target.value;
+    let currentEmail = e.target.value;
     if (currentEmail && !(currentEmail in ctCheckedEmails)) {
         // Using REST API handler
         if ( ctPublicFunctions.data__ajax_type === 'rest' ) {
@@ -377,7 +377,7 @@ function apbct_ready() {
         ['ct_fkp_timestamp', '0'],
         ['ct_pointer_data', '0'],
         // eslint-disable-next-line camelcase
-        ['ct_timezone', ct_date.getTimezoneOffset()/60*(-1)],
+        ['ct_timezone', ctDate.getTimezoneOffset()/60*(-1)],
         ['ct_screen_info', apbctGetScreenInfo()],
         ['apbct_headless', navigator.webdriver],
     ];
@@ -386,7 +386,7 @@ function apbct_ready() {
     apbctLocalStorage.set('ct_fkp_timestamp', '0');
     apbctLocalStorage.set('ct_pointer_data', '0');
     // eslint-disable-next-line camelcase
-    apbctLocalStorage.set('ct_timezone', ct_date.getTimezoneOffset()/60*(-1) );
+    apbctLocalStorage.set('ct_timezone', ctDate.getTimezoneOffset()/60*(-1) );
     apbctLocalStorage.set('ct_screen_info', apbctGetScreenInfo());
     apbctLocalStorage.set('apbct_headless', navigator.webdriver);
 
@@ -394,11 +394,11 @@ function apbct_ready() {
         initCookies.push(['apbct_visible_fields', '0']);
     } else {
         // Delete all visible fields cookies on load the page
-        var cookiesArray = document.cookie.split(';');
+        let cookiesArray = document.cookie.split(';');
         if ( cookiesArray.length !== 0 ) {
             for ( let i = 0; i < cookiesArray.length; i++ ) {
-                var currentCookie = cookiesArray[i].trim();
-                var cookieName = currentCookie.split('=')[0];
+                let currentCookie = cookiesArray[i].trim();
+                let cookieName = currentCookie.split('=')[0];
                 if ( cookieName.indexOf('apbct_visible_fields_') === 0 ) {
                     ctDeleteCookie(cookieName);
                 }
@@ -439,7 +439,7 @@ function apbct_ready() {
         }
 
         for (let i = 0; i < document.forms.length; i++) {
-            var form = document.forms[i];
+            let form = document.forms[i];
 
             // Exclusion for forms
             if (
@@ -472,11 +472,11 @@ function apbct_ready() {
                 continue;
             }
 
-            var hiddenInput = document.createElement( 'input' );
+            let hiddenInput = document.createElement( 'input' );
             hiddenInput.setAttribute( 'type', 'hidden' );
             hiddenInput.setAttribute( 'id', 'apbct_visible_fields_' + i );
             hiddenInput.setAttribute( 'name', 'apbct_visible_fields');
-            var visibleFieldsToInput = {};
+            let visibleFieldsToInput = {};
             visibleFieldsToInput[0] = apbct_collect_visible_fields(form);
             hiddenInput.value = btoa(JSON.stringify(visibleFieldsToInput));
             form.append( hiddenInput );
@@ -1152,20 +1152,20 @@ if (document.readyState !== 'loading') {
 function checkFormsExistForCatching() {
     setTimeout(function() {
         if (isFormThatNeedCatch()) {
-            window.fetch = function() {
-                if (arguments &&
-                    arguments[0] &&
-                    typeof arguments[0].includes === 'function' &&
-                    arguments[0].includes('/wp-json/metform/')
+            window.fetch = function(...args) {
+                if (args &&
+                    args[0] &&
+                    typeof args[0].includes === 'function' &&
+                    args[0].includes('/wp-json/metform/')
                 ) {
                     let noCookieData = getNoCookieData();
 
-                    if (arguments && arguments[1] && arguments[1].body) {
-                        arguments[1].body.append('ct_no_cookie_hidden_field', noCookieData);
+                    if (args && args[1] && args[1].body) {
+                        args[1].body.append('ct_no_cookie_hidden_field', noCookieData);
                     }
                 }
 
-                return defaultFetch.apply(window, arguments);
+                return defaultFetch.apply(window, args);
             };
         }
     }, 1000);
@@ -1213,7 +1213,7 @@ function checkFormsExistForCatchingXhr() {
  */
 function isFormThatNeedCatchXhr() {
     if (document.querySelector('div.elementor-widget[title=\'Login/Signup\']') != null) {
-        return true;
+        return false;
     }
 
     return false;

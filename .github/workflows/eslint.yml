@@ -1,0 +1,36 @@
+# .github/workflows/eslint.yml
+
+name: ESLint # name of the action (displayed in the github interface)
+
+on: # event list
+  push: # on push to each of these branches
+    branches:
+      - dev
+      - fix
+      - master
+  pull_request:
+    branches:
+      - dev
+      - master
+
+env: # environment variables (available in any part of the action)
+  NODE_VERSION: 16
+
+jobs: # list of things to do
+  linting:
+    name: ESLint # job name (unique id)
+    runs-on: ubuntu-latest # on which machine to run
+    steps: # list of steps
+      - name: Install NodeJS
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Code Checkout
+        uses: actions/checkout@v2
+
+      - name: Install Dependencies
+        run: npm i
+
+      - name: Code Linting
+        run: npm run eslint

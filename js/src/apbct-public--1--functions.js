@@ -14,9 +14,9 @@ function ctSetCookie( cookies, value, expires ) {
         'apbct_email_encoder_passed',
     ];
 
+    const skipAlt = cookies === 'string' && cookies === 'ct_pointer_data';
+
     if ( typeof cookies === 'string' && typeof value === 'string' || typeof value === 'number') {
-        // eslint-disable-next-line no-unused-vars
-        var skipAlt = cookies === 'ct_pointer_data';
         cookies = [[cookies, value, expires]];
     }
 
@@ -49,20 +49,23 @@ function ctSetCookie( cookies, value, expires ) {
         // Using traditional cookies
     } else if ( ctPublicFunctions.data__cookies_type === 'native' ) {
         cookies.forEach( function(item) {
-            var expires = typeof item[2] !== 'undefined' ? 'expires=' + expires + '; ' : '';
-            var ctSecure = location.protocol === 'https:' ? '; secure' : '';
+            const _expires = typeof item[2] !== 'undefined' ? 'expires=' + expires + '; ' : '';
+            let ctSecure = location.protocol === 'https:' ? '; secure' : '';
             document.cookie = ctPublicFunctions.cookiePrefix +
                 item[0] +
                 '=' +
                 encodeURIComponent(item[1]) +
                 '; ' +
-                expires +
+                _expires +
                 'path=/; samesite=lax' +
                 ctSecure;
         });
 
         // Using alternative cookies
-    } else if ( ctPublicFunctions.data__cookies_type === 'alternative' && typeof skipAlt === 'undefined' || ! skipAlt ) {
+    } else if (
+        ctPublicFunctions.data__cookies_type === 'alternative' &&
+        typeof skipAlt === 'undefined' || ! skipAlt
+    ) {
         ctSetAlternativeCookie(cookies);
     }
 }
@@ -135,7 +138,7 @@ function ctSetAlternativeCookie(cookies, params) {
  */
 // eslint-disable-next-line require-jsdoc,no-unused-vars
 function ctGetCookie(name) {
-    var matches = document.cookie.match(new RegExp(
+    let matches = document.cookie.match(new RegExp(
         '(?:^|; )' + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + '=([^;]*)',
     ));
     return matches ? decodeURIComponent(matches[1]) : undefined;
@@ -149,7 +152,7 @@ function ctDeleteCookie(cookieName) {
 
     // Using traditional cookies
     } else if ( ctPublicFunctions.data__cookies_type === 'native' ) {
-        var ctSecure = location.protocol === 'https:' ? '; secure' : '';
+        let ctSecure = location.protocol === 'https:' ? '; secure' : '';
         document.cookie = cookieName + '=""; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; samesite=lax' + ctSecure;
 
     // Using alternative cookies

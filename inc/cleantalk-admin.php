@@ -390,7 +390,7 @@ function apbct_admin__register_plugin_links($links, $file, $plugin_data)
         $actual_plugin_name = $apbct->data['wl_brandname'];
     }
 
-    if ( $apbct->white_label ) {
+    if ( $apbct->white_label || $apbct->data["wl_mode_enabled"] ) {
         $links   = array_slice($links, 0, 1);
         $links[] = "<script " . (class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '') . ">
         function changedPluginName(){
