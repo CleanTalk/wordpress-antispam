@@ -753,10 +753,21 @@ function apbct_get_pixel_url__ajax($direct_call = false)
         . Helper::timeGetIntervalStart(3600 * 3) // Unique for every 3 hours
     );
 
+    //get params for caсhe plugins exclusion detection
+    $cache_plugins_detected = apbct_is_cache_plugins_exists(true);
+    $cache_exclusion_snippet = '';
+    if ( !empty($cache_plugins_detected) ) {
+        //NitroPack
+        if ( in_array('NitroPack', $cache_plugins_detected) ) {
+            $cache_exclusion_snippet = '?gclid=' . $pixel_hash;
+        }
+    }
+
+    //construct URL
     $server           = get_option('cleantalk_server');
     $server_url       = isset($server['ct_work_url']) ? $apbct->server['ct_work_url'] : APBCT_MODERATE_URL;
     $server_url_with_version = $ip_version === 'v4' ? str_replace('.cleantalk.org', '-v4.cleantalk.org', $server_url) : $server_url;
-    $pixel            = '/pixel/' . $pixel_hash . '.gif';
+    $pixel            = '/pixel/' . $pixel_hash . '.gif' . $cache_exclusion_snippet;
     $pixel_url = str_replace('http://', 'https://', $server_url_with_version) . $pixel;
 
     if ( $direct_call ) {
@@ -855,7 +866,7 @@ function ct_get_checkjs_value()
     return $key;
 }
 
-function apbct_is_cache_plugins_exists($is_call_on_debug = false)
+function apbct_is_cache_plugins_exists($return_names = false)
 {
     $out = array();
 
@@ -870,6 +881,7 @@ function apbct_is_cache_plugins_exists($is_call_on_debug = false)
         'WPHB_VERSION'                                => 'Hummingbird – Speed up, Cache, Optimize Your CSS and JS',
         'CE_FILE'                                     => 'Cache Enabler – WordPress Cache',
         'SiteGround_Optimizer\VERSION'                => 'SG Optimizer',
+        'NITROPACK_VERSION'                           => 'NitroPack',
     );
 
     $classes_of_cache_plugins = array (
@@ -879,7 +891,7 @@ function apbct_is_cache_plugins_exists($is_call_on_debug = false)
 
     foreach ($constants_of_cache_plugins as $const => $_text) {
         if ( defined($const) ) {
-            $out[] = $const;
+            $out[] = $_text;
         }
     }
 
@@ -889,11 +901,11 @@ function apbct_is_cache_plugins_exists($is_call_on_debug = false)
          * @psalm-suppress TypeDoesNotContainType
          */
         if ( class_exists($class) ) {
-            $out[] = $class;
+            $out[] = $_text;
         }
     }
 
-    return $is_call_on_debug ? $out : !empty($out);
+    return $return_names ? $out : !empty($out);
 }
 
 /**
