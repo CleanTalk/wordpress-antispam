@@ -257,11 +257,22 @@ if ( ! is_admin() && ! apbct_is_ajax() && ! defined('DOING_CRON')
         }
         add_action('template_redirect', 'apbct_store__urls', 2);
     }
-    if ( empty($_POST) && empty($_GET) && $apbct->data['key_is_ok']) {
+}
+
+add_action('init', function () {
+    global $apbct;
+    if ( ! is_admin() && ! apbct_is_ajax() && ! defined('DOING_CRON' && ! apbct__is_rest_api_request())
+         && empty(Post::get('ct_checkjs_register_form')) // Buddy press registration fix
+         && empty(Get::get('ct_checkjs_search_default')) // Search form fix
+         && empty(Post::get('action')) //bbPress
+         && ! \Cleantalk\Variables\Server::inUri('/favicon.ico') // /favicon request rewritten cookies fix
+    ) {
+        if ( empty($_POST) && empty($_GET) && $apbct->data['key_is_ok']) {
             apbct_cookie();
             apbct_store__urls();
+        }
     }
-}
+});
 
 require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-validate-skip-functions.php');
 require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-validate.php');
