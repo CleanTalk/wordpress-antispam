@@ -26,14 +26,14 @@ class CleantalkSettingsTemplates
 
     public function getOptionsTemplateAjax()
     {
-        check_ajax_referer('ct_secret_nonce', 'security');
+        apbct__check_admin_ajax_request();
         echo $this->getHtmlContent();
         die();
     }
 
     public function settingsTemplatesExportAjax()
     {
-        check_ajax_referer('ct_secret_nonce', 'security');
+        apbct__check_admin_ajax_request();
         $error_text = 'Export handler error.';
         if ( is_array(Post::get('data')) ) {
             $template_info = Post::get('data');
@@ -77,7 +77,7 @@ class CleantalkSettingsTemplates
 
     public function settingsTemplatesImportAjax()
     {
-        check_ajax_referer('ct_secret_nonce', 'security');
+        apbct__check_admin_ajax_request();
         if ( is_array(Post::get('data')) ) {
             $template_info = Post::get('data');
             if ( isset($template_info['template_id'], $template_info['template_name'], $template_info['settings']) ) {
@@ -98,7 +98,7 @@ class CleantalkSettingsTemplates
 
     public function settingsTemplatesResetAjax()
     {
-        check_ajax_referer('ct_secret_nonce', 'security');
+        apbct__check_admin_ajax_request();
         $res = $this->resetPluginOptions();
         if ( empty($res['error']) ) {
             wp_send_json_success(esc_html__('Success. Reloading...', 'cleantalk-spam-protect'));

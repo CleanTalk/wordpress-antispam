@@ -223,7 +223,7 @@ class CommentsChecker extends Checker
 
     public static function ctAjaxCheckComments()
     {
-        check_ajax_referer('ct_secret_nonce', 'security');
+        apbct__check_admin_ajax_request();
 
         $commentScanParameters = new CommentsScanParameters($_POST);
 
@@ -242,7 +242,7 @@ class CommentsChecker extends Checker
         global $wpdb, $apbct;
 
         if ( ! $direct_call ) {
-            check_ajax_referer('ct_secret_nonce', 'security');
+            apbct__check_admin_ajax_request();
         }
 
         $cnt_checked      = $apbct->data['count_checked_comments'];
@@ -334,7 +334,7 @@ class CommentsChecker extends Checker
     {
         global $wpdb ,$apbct;
 
-        check_ajax_referer('ct_secret_nonce', 'security');
+        apbct__check_admin_ajax_request();
 
         $apbct->data['count_checked_comments'] = 0;
         $apbct->saveData();
@@ -374,7 +374,7 @@ class CommentsChecker extends Checker
 
     public static function ctAjaxTrashAll()
     {
-        check_ajax_referer('ct_secret_nonce', 'security');
+        apbct__check_admin_ajax_request();
 
         $args_spam = array(
             'number'     => 100,
@@ -411,7 +411,7 @@ class CommentsChecker extends Checker
 
     public static function ctAjaxSpamAll()
     {
-        check_ajax_referer('ct_secret_nonce', 'security');
+        apbct__check_admin_ajax_request();
 
         $args_spam = array(
             'number'     => 100,
