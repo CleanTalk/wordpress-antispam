@@ -334,6 +334,12 @@ if (ctPublic.data__key_is_ok) {
  */
 // eslint-disable-next-line camelcase,require-jsdoc
 function apbct_ready() {
+    if (typeof jQuery !== 'undefined') {
+        jQuery(document).on('gform_page_loaded', function() {
+            apbct_ready();
+        });
+    }
+
     ctPreloadLocalStorage();
 
     // set session ID
