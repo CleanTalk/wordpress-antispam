@@ -2551,6 +2551,7 @@ function isFormThatNeedCatch() {
 }
 
 /**
+ * @param {HTMLElement} form
  * @return {boolean}
  */
 function isFormThatNeedCatchXhr(form) {
