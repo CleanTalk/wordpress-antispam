@@ -491,6 +491,17 @@ function apbct_ready() {
                     apbct_visible_fields_set_cookie( visibleFields, event.target.ctFormIndex );
                 }
 
+                if (ctPublic.data__cookies_type === 'none' && isFormThatNeedCatchXhr(event.target)) {
+                    window.XMLHttpRequest.prototype.send = function(data) {
+                        let noCookieData = getNoCookieData();
+                        noCookieData = 'data%5Bct_no_cookie_hidden_field%5D=' + noCookieData + '&';
+                        defaultSend.call(this, noCookieData + data);
+                        setTimeout(() => {
+                            window.XMLHttpRequest.prototype.send = defaultSend;
+                        }, 0);
+                    };
+                }
+
                 // Call previous submit action
                 if (event.target.onsubmit_prev instanceof Function) {
                     setTimeout(function() {
@@ -1140,10 +1151,8 @@ const defaultSend = XMLHttpRequest.prototype.send;
 
 if (document.readyState !== 'loading') {
     checkFormsExistForCatching();
-    checkFormsExistForCatchingXhr();
 } else {
     apbct_attach_event_handler(document, 'DOMContentLoaded', checkFormsExistForCatching);
-    apbct_attach_event_handler(document, 'DOMContentLoaded', checkFormsExistForCatchingXhr);
 }
 
 /**
@@ -1193,27 +1202,14 @@ function isFormThatNeedCatch() {
 }
 
 /**
- * checkFormsExistForCatchingXhr
- */
-function checkFormsExistForCatchingXhr() {
-    setTimeout(function() {
-        if (isFormThatNeedCatchXhr()) {
-            window.XMLHttpRequest.prototype.send = function(data) {
-                let noCookieData = getNoCookieData();
-                noCookieData = 'data%5Bct_no_cookie_hidden_field%5D=' + noCookieData + '&';
-
-                defaultSend.call(this, noCookieData + data);
-            };
-        }
-    }, 1000);
-}
-
-/**
  * @return {boolean}
  */
-function isFormThatNeedCatchXhr() {
+function isFormThatNeedCatchXhr(form) {
     if (document.querySelector('div.elementor-widget[title=\'Login/Signup\']') != null) {
         return false;
+    }
+    if (form && form.action && form.action.toString().indexOf('mailpoet_subscription_form') !== -1) {
+        return true;
     }
 
     return false;
