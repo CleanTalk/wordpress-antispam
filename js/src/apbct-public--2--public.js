@@ -467,7 +467,8 @@ function apbct_ready() {
                     form.action.toString().indexOf('actionType=update') !== -1) || // Optima Express update
                 (form.id && form.id === 'ihf-main-search-form') || // Optima Express search
                 (form.id && form.id === 'frmCalc') || // nobletitle-calc
-                form.action.toString().indexOf('property-organizer-delete-saved-search-submit') !== -1
+                form.action.toString().indexOf('property-organizer-delete-saved-search-submit') !== -1 ||
+                form.querySelector('a[name="login"]') !== null // digimember login form
             ) {
                 continue;
             }

@@ -943,6 +943,15 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'Plugin Name: Ultimate Addons for Beaver Builder: Exclude login form request';
         }
+
+        // Plugin Name: Digimember: Exclude login form request
+        if (
+            apbct_is_plugin_active('digimember/digimember.php') &&
+            Post::get('action') === 'ncore_ajax_action' &&
+            Post::get('ncore_plugin') === 'digimember'
+        ) {
+            return 'Plugin Name: Digimember: Exclude login form request';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
