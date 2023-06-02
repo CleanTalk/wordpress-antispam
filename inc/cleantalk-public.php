@@ -623,24 +623,12 @@ function ct_add_hidden_fields(
     $ct_checkjs_key = ct_get_checkjs_value();
     $field_id_hash  = md5((string)rand(0, 1000));
 
+    $html = '';
+
     // Using only cookies
     if ( $cookie_check ) {
-        $html =
-            "<script "
-            . (class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '')
-            . ">
-                function apbct_attach_event_handler__backend(elem, event, callback) {
-                    if(typeof window.addEventListener === \"function\") elem.addEventListener(event, callback);
-                    else                                                elem.attachEvent(event, callback);
-                }
-                apbct_attach_event_handler__backend(document, 'DOMContentLoaded', function(){
-                    if (typeof apbctLocalStorage === \"object\" && ctPublic.data__key_is_ok) {
-                        apbctLocalStorage.set('{$field_name}', '{$ct_checkjs_key}', true );
-                    } else {
-                        console.log('APBCT ERROR: apbctLocalStorage object is not loaded.');
-                    }  
-                });
-		    </script>";
+        //this data is placed to LocalizeHandler::getLateCode
+        $custom_localized_data[$field_name] = $ct_checkjs_key;
         // Using AJAX to get key
     } elseif ( $apbct->settings['data__use_ajax'] && $ajax ) {
         // Fix only for wp_footer -> apbct_hook__wp_head__set_cookie__ct_checkjs()
@@ -657,18 +645,12 @@ function ct_add_hidden_fields(
             return;
         }
 
-        $ct_input_challenge = sprintf("'%s'", $ct_checkjs_key);
+        $ct_input_challenge = sprintf("%s", $ct_checkjs_key);
         $field_id           = $field_name . '_' . $field_id_hash;
-        $html               = "<input type=\"hidden\" id=\"{$field_id}\" name=\"{$field_name}\" value=\"{$ct_checkjs_def}\" />
-		<script " . (class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '') . ">
-			setTimeout(function(){
-				var ct_input_name = \"{$field_id}\";
-				if (document.getElementById(ct_input_name) !== null) {
-					var ct_input_value = document.getElementById(ct_input_name).value;
-					document.getElementById(ct_input_name).value = document.getElementById(ct_input_name).value.replace(ct_input_value, {$ct_input_challenge});
-				}
-			}, 1000);
-		</script>";
+        //this data is also placed to LocalizeHandler::getLateCode
+        $custom_localized_data['localized__hidden_field_id'] = $field_id;
+        $custom_localized_data['localized__hidden_field_input_challenge'] = $ct_input_challenge;
+        $html               = "<input type=\"hidden\" id=\"{$field_id}\" name=\"{$field_name}\" value=\"{$ct_checkjs_def}\" />";
     }
 
     // Simplify JS code and Fixing issue with wpautop()
@@ -677,6 +659,9 @@ function ct_add_hidden_fields(
     if ( $return_string === true ) {
         return $html;
     } else {
+        if ( !empty($custom_localized_data) ) {
+            LocalizeHandler::handleCustomData($custom_localized_data);
+        }
         echo Escape::escKses(
             $html,
             array(

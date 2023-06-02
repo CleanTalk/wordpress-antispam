@@ -342,6 +342,8 @@ function apbct_ready() {
 
     ctPreloadLocalStorage();
 
+    performLocalizedActions(apbctLocalStorage, ctPublic);
+
     // set session ID
     if (!apbctSessionStorage.isSet('apbct_session_id')) {
         const sessionID = apbctGenerateUniqueID();
@@ -1230,3 +1232,35 @@ function getNoCookieData() {
 
     return '_ct_no_cookie_data_' + btoa(noCookieData);
 }
+
+/**
+ * Perform localized scripts if appropriate values found in local storage.
+ * @param {object} storage apbctLocalStorage obj
+ * @param {object} ct ctPublic obj
+ * @return {void}
+ */
+function performLocalizedActions(storage, ct) {
+    // Hidden field replacement
+    if (storage.isSet('localized__hidden_field_id') &&
+        storage.isSet('localized__hidden_field_input_challenge')
+    ) {
+        const hiddenFieldId = storage.get('localized__hidden_field_id');
+        const hiddenInputChallenge = storage.get('localized__hidden_field_input_challenge');
+        setTimeout(function() {
+            if (document.getElementById(hiddenFieldId) !== null) {
+                const ctInputValue = document.getElementById(hiddenFieldId).value;
+                // eslint-disable-next-line max-len
+                document.getElementById(hiddenFieldId).value = document.getElementById(hiddenFieldId).value.replace(ctInputValue, hiddenInputChallenge);
+            }
+        }, 1000);
+    }
+
+    // mec_booking_end_form_step_2
+    if (storage.isSet('mec_booking_end_form_step_2')) {
+        if ( typeof ct.force_alt_cookies == 'undefined' ||
+            (ct.force_alt_cookies !== 'undefined' && !ct.force_alt_cookies) ) {
+            ctNoCookieAttachHiddenFieldsToForms();
+        }
+    }
+}
+

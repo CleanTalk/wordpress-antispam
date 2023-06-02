@@ -7,6 +7,10 @@ class CtPublicLocalize
     const NAME = 'ctPublic';
     const HANDLE = 'ct_public_functions';
 
+    /**
+     * Get common localized data.
+     * @return array
+     */
     public static function getData()
     {
         global $apbct;
@@ -32,11 +36,37 @@ class CtPublicLocalize
         );
     }
 
-    public static function getCode()
+    /**
+     * Return merged custom data array with already gained data__to_local_storage array.
+     * @param $data
+     * @return array merged data to output
+     */
+    public static function getMergedLocalStorageCustomData($data)
     {
+
+        $late_data =  array(
+            'data__to_local_storage' => $data
+        );
+
+        return array_merge_recursive($late_data, self::getData());
+    }
+
+    /**
+     * Output ctPublic localized data.
+     * @param $data
+     * @return string
+     */
+    public static function getCode($data = null)
+    {
+        if ( !empty($data) && is_array($data) ) {
+            $source = self::getMergedLocalStorageCustomData($data);
+        } else {
+            $source = self::getData();
+        }
+
         return '
             <script data-no-defer="1" data-ezscrex="false" data-cfasync="false" data-pagespeed-no-defer>
-                const ' . self::NAME . ' = ' . json_encode(self::getData()) . '
+                ' . self::NAME . ' = ' . json_encode($source) . '
             </script>
         ';
     }

@@ -609,11 +609,10 @@ add_action('frm_entries_footer_scripts', 'apbct_form__formidable__footerScripts'
 add_filter('mc4wp_form_errors', 'ct_mc4wp_hook');
 
 add_action('mec_booking_end_form_step_2', function () {
-    echo "<script>
-        if (typeof ctPublic.force_alt_cookies == 'undefined' || (ctPublic.force_alt_cookies !== 'undefined' && !ctPublic.force_alt_cookies)) {
-			ctNoCookieAttachHiddenFieldsToForms();
-		}
-    </script>";
+    $data = array(
+        'mec_booking_end_form_step_2' => true
+    );
+    \Cleantalk\ApbctWP\Localize\LocalizeHandler::handleCustomData($data);
 });
 
 // Public actions
