@@ -1130,7 +1130,7 @@ function apbct_comment__send_feedback(
 ) {
     // For AJAX call
     if ( ! $direct_call ) {
-        check_ajax_referer('ct_secret_nonce', 'security');
+        apbct__check_admin_ajax_request();
     }
 
     $comment_id     = Post::get('comment_id') ? (int) Post::get('comment_id') : $comment_id;
@@ -1240,7 +1240,7 @@ function apbct_woocommerce__orders_send_feedback(array $spam_ids, $orders_status
  */
 function apbct_user__send_feedback($user_id = null, $status = null, $direct_call = null)
 {
-    check_ajax_referer('ct_secret_nonce', 'security');
+    apbct__check_admin_ajax_request();
 
     if ( ! $direct_call ) {
         $user_id = (int) Post::get('user_id');

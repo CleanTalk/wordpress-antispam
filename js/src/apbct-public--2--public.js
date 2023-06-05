@@ -5,6 +5,8 @@ let ctMouseEventTimerFlag = true; // Reading interval flag
 let ctMouseData = [];
 let ctMouseDataCounter = 0;
 let ctCheckedEmails = {};
+let ctMouseReadInterval;
+let ctMouseWriteDataInterval;
 
 // eslint-disable-next-line require-jsdoc,camelcase
 function apbct_attach_event_handler(elem, event, callback) {
@@ -26,14 +28,12 @@ const ctFunctionFirstKey = function output(event) {
 
 if (ctPublic.data__key_is_ok) {
     // Reading interval
-    // eslint-disable-next-line no-unused-vars
-    const ctMouseReadInterval = setInterval(function() {
+    ctMouseReadInterval = setInterval(function() {
         ctMouseEventTimerFlag = true;
     }, 150);
 
     // Writting interval
-    // eslint-disable-next-line no-unused-vars
-    const ctMouseWriteDataInterval = setInterval(function() {
+    ctMouseWriteDataInterval = setInterval(function() {
         ctSetCookie('ct_pointer_data', JSON.stringify(ctMouseData));
     }, 1200);
 }
@@ -1019,7 +1019,6 @@ if (typeof jQuery !== 'undefined') {
     jQuery(document).ajaxComplete(function(event, xhr, settings) {
         if (xhr.responseText && xhr.responseText.indexOf('"apbct') !== -1) {
             try {
-                // eslint-disable-next-line no-unused-vars
                 ctParseBlockMessage(JSON.parse(xhr.responseText));
             } catch (e) {
                 console.log(e.toString());

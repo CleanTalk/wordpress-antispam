@@ -1221,3 +1221,12 @@ function apbct__get_cookie_prefix()
     }
     return '';
 }
+
+function apbct__check_admin_ajax_request()
+{
+    check_ajax_referer('ct_secret_nonce', 'security');
+
+    if ( ! current_user_can('manage_options') ) {
+        wp_die('-1', 403);
+    }
+}
