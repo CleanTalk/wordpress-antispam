@@ -627,7 +627,7 @@ function ct_add_hidden_fields(
 
     // Using only cookies
     if ( $cookie_check ) {
-        //this data is placed to LocalizeHandler::getLateCode
+        //this data is placed to LocalizeHandler
         $custom_localized_data[$field_name] = $ct_checkjs_key;
         // Using AJAX to get key
     } elseif ( $apbct->settings['data__use_ajax'] && $ajax ) {
@@ -656,12 +656,13 @@ function ct_add_hidden_fields(
     // Simplify JS code and Fixing issue with wpautop()
     $html = str_replace(array("\n", "\r", "\t"), '', $html);
 
+    if ( !empty($custom_localized_data) ) {
+        LocalizeHandler::handleCustomData($custom_localized_data);
+    }
+
     if ( $return_string === true ) {
         return $html;
     } else {
-        if ( !empty($custom_localized_data) ) {
-            LocalizeHandler::handleCustomData($custom_localized_data);
-        }
         echo Escape::escKses(
             $html,
             array(
