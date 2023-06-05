@@ -616,7 +616,7 @@ class ApbctCore {
  * @param {string} url
  */
 function ctProcessError(msg, url) {
-    var log = {};
+    let log = {};
     if (msg && msg.message) {
         log.err = {
             'msg': msg.message,

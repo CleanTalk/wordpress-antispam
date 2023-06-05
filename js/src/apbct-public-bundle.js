@@ -616,7 +616,7 @@ class ApbctCore {
  * @param {string} url
  */
 function ctProcessError(msg, url) {
-    var log = {};
+    let log = {};
     if (msg && msg.message) {
         log.err = {
             'msg': msg.message,
@@ -2356,7 +2356,6 @@ if (typeof jQuery !== 'undefined') {
     jQuery(document).ajaxComplete(function(event, xhr, settings) {
         if (xhr.responseText && xhr.responseText.indexOf('"apbct') !== -1) {
             try {
-                // eslint-disable-next-line no-unused-vars
                 ctParseBlockMessage(JSON.parse(xhr.responseText));
             } catch (e) {
                 console.log(e.toString());

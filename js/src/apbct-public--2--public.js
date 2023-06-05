@@ -1007,7 +1007,6 @@ if (typeof jQuery !== 'undefined') {
     jQuery(document).ajaxComplete(function(event, xhr, settings) {
         if (xhr.responseText && xhr.responseText.indexOf('"apbct') !== -1) {
             try {
-                // eslint-disable-next-line no-unused-vars
                 ctParseBlockMessage(JSON.parse(xhr.responseText));
             } catch (e) {
                 console.log(e.toString());
