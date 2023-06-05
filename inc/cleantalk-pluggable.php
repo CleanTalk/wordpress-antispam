@@ -952,6 +952,15 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'Plugin Name: Digimember: Exclude login form request';
         }
+
+        // Exclude Authorize.net payment form request
+        if (
+            Post::get('action') === 'rm_authnet_ipn' &&
+            Post::get('x_invoice_num') !== '' &&
+            Post::get('x_amount') !== ''
+        ) {
+            return 'Exclude Authorize.net payment form request';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
