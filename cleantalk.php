@@ -246,6 +246,7 @@ add_action('wp_logout', 'apbct__hook__wp_logout__delete_trial_notice_cookie');
 
 // Set cookie only for public pages and for non-AJAX requests
 if ( ! is_admin() && ! apbct_is_ajax() && ! defined('DOING_CRON')
+     && ! apbct__is_rest_api_request()
      && empty(Post::get('ct_checkjs_register_form')) // Buddy press registration fix
      && empty(Get::get('ct_checkjs_search_default')) // Search form fix
      && empty(Post::get('action')) //bbPress
