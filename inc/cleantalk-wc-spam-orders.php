@@ -7,7 +7,7 @@ add_action('admin_menu', function () {
         __("WooCommerce spam orders", 'cleantalk-spam-protect'),
         __("WooCommerce spam orders", 'cleantalk-spam-protect'),
         'activate_plugins',
-        'options-general.php?page=apbct_wc_spam_orders',
+        'apbct_wc_spam_orders',
         function () {
 			?>
 	        <div class="wrap">

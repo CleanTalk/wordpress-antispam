@@ -3,6 +3,7 @@
 namespace Cleantalk\ApbctWP;
 
 use Cleantalk\ApbctWP\Variables\Get;
+use Cleantalk\ApbctWP\Variables\Post;
 
 class WcSpamOrdersListTable extends CleantalkListTable
 {
@@ -19,7 +20,7 @@ class WcSpamOrdersListTable extends CleantalkListTable
             'plural'   => 'wc_spam_orders'
         ));
 
-        //$this->bulk_actions_handler();
+        $this->bulk_actions_handler();
 
         $this->row_actions_handler();
 
@@ -122,6 +123,27 @@ class WcSpamOrdersListTable extends CleantalkListTable
 		    'delete'       => esc_html__('Delete', 'cleantalk-spam-protect')
 	    );
     }
+
+	public function bulk_actions_handler() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+	{
+		if ( empty(Post::get('spamorderids')) || empty(Post::get('_wpnonce')) ) {
+			return;
+		}
+
+		if ( ! $action = $this->current_action() ) {
+			return;
+		}
+
+		if ( ! wp_verify_nonce(Post::get('_wpnonce'), 'bulk-' . $this->_args['plural']) ) {
+			wp_die('nonce error');
+		}
+
+		$spam_ids = Post::get('spamorderids');
+
+		if ( 'delete' === $action ) {
+			$this->deleteFromDb($spam_ids);
+		}
+	}
 
 	public function column_cb($item) // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
 	{
@@ -300,4 +322,20 @@ class WcSpamOrdersListTable extends CleantalkListTable
         </div>
         <?php
     }
+
+	private function deleteFromDb($spam_ids)
+    {
+        global $wpdb;
+
+	    $spam_ids = array_map(function ($value) {
+            return "'" . $value . "'";
+        }, $spam_ids);
+	    $spam_ids = implode(',', $spam_ids);
+
+        $wpdb->query("DELETE FROM "
+                     . APBCT_TBL_WC_SPAM_ORDERS
+                     . " WHERE order_id IN ("
+                     . $spam_ids
+                     . ");" );
+	}
 }
