@@ -1357,6 +1357,16 @@ function apbct_enqueue_and_localize_public_scripts()
         APBCT_VERSION
     );
 
+    // Bot detector
+    if ( $apbct->settings['data__bot_detector_enabled'] ) {
+        wp_enqueue_script(
+            'ct_bot_detector',
+            'https://moderate.cleantalk.org/ct-bot-detector-wrapper.js',
+            [],
+            null
+        );
+    }
+
     wp_enqueue_style(
         'ct_public_css',
         APBCT_CSS_ASSETS_PATH . '/cleantalk-public.min.css',
