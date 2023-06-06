@@ -328,7 +328,7 @@ class WcSpamOrdersListTable extends CleantalkListTable
         global $wpdb;
 
 	    $spam_ids = array_map(function ($value) {
-            return "'" . $value . "'";
+            return "'" . sanitize_text_field($value) . "'";
         }, $spam_ids);
 	    $spam_ids = implode(',', $spam_ids);
 
