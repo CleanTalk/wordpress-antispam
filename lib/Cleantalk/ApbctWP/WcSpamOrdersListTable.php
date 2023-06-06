@@ -94,6 +94,7 @@ class WcSpamOrdersListTable extends CleantalkListTable
             $customer_details_column = $this->renderCustomerDetailsColumn($wc_spam_order->customer_details);
 
             $this->items[] = array(
+	            'ct_id'               => $wc_spam_order->order_id,
                 'ct_order_id'         => $order_id_column,
                 'ct_order_details'    => $order_details_column,
                 'ct_currency'         => $wc_spam_order->currency,
@@ -114,6 +115,18 @@ class WcSpamOrdersListTable extends CleantalkListTable
 
         return $columns;
     }
+
+    public function get_bulk_actions() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+    {
+	    return array(
+		    'delete'       => esc_html__('Delete', 'cleantalk-spam-protect')
+	    );
+    }
+
+	public function column_cb($item) // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+	{
+		echo '<input type="checkbox" name="spamorderids[]" id="cb-select-' . $item['ct_id'] . '" value="' . $item['ct_id'] . '" />';
+	}
 
     public function column_default($item, $column_name) // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
