@@ -929,7 +929,7 @@ function apbct_sfw__check()
     $firewall->loadFwModule(
         new SFW(
             APBCT_TBL_FIREWALL_LOG,
-            APBCT_TBL_FIREWALL_DATA_COMMON,
+            APBCT_TBL_FIREWALL_DATA,
             array(
                 'sfw_counter'       => $apbct->settings['admin_bar__sfw_counter'],
                 'api_key'           => $apbct->api_key,
@@ -1052,7 +1052,7 @@ function apbct_sfw__clear()
 {
     global $apbct, $wpdb;
 
-    $wpdb->query('DELETE FROM ' . APBCT_TBL_FIREWALL_DATA_COMMON . ';');
+    $wpdb->query('DELETE FROM ' . APBCT_TBL_FIREWALL_DATA . ';');
 
     $apbct->stats['sfw']['entries'] = 0;
     $apbct->save('stats');
@@ -1409,8 +1409,15 @@ function apbct_sfw_update__create_tables()
     // Preparing database infrastructure
     // Creating SFW tables to make sure that they are exists
     $db_tables_creator = new DbTablesCreator();
-    $table_name = $apbct->db_prefix . Schema::getSchemaTablePrefix() . 'sfw';
-    $db_tables_creator->createTable($table_name);
+    //common table (for main site only)
+    if ( !APBCT_WPMS || is_main_site() ){
+        $table_name_common = $apbct->db_prefix . Schema::getSchemaTablePrefix() . 'sfw';
+        $db_tables_creator->createTable($table_name_common);
+    }
+
+    //personal table
+    $table_name_personal = $apbct->db_prefix . Schema::getSchemaTablePrefix() . 'sfw_personal';
+    $db_tables_creator->createTable($table_name_personal);
 
     return array(
         'next_stage' => array(
@@ -1421,8 +1428,16 @@ function apbct_sfw_update__create_tables()
 
 function apbct_sfw_update__create_temp_tables()
 {
-    // Preparing temporary tables
-    $result = SFW::createTempTables(DB::getInstance(), APBCT_TBL_FIREWALL_DATA_COMMON);
+    // Preparing temporary tables (for main site only)
+    if ( !APBCT_WPMS || is_main_site() ) {
+        $result = SFW::createTempTables(DB::getInstance(), APBCT_TBL_FIREWALL_DATA);
+        if ( ! empty($result['error']) ) {
+            return $result;
+        }
+    }
+
+    // Create personal table
+    $result = SFW::createTempTables(DB::getInstance(), APBCT_TBL_FIREWALL_DATA_PERSONAL);
     if ( ! empty($result['error']) ) {
         return $result;
     }
@@ -1488,7 +1503,7 @@ function apbct_sfw_update__process_file($file_path)
 
     $result = SFW::updateWriteToDb(
         DB::getInstance(),
-        APBCT_TBL_FIREWALL_DATA_COMMON . '_temp',
+        APBCT_TBL_FIREWALL_DATA . '_temp',
         $file_path
     );
 
@@ -1568,7 +1583,7 @@ function apbct_sfw_update__process_exclusions()
 
     $result = SFW::updateWriteToDbExclusions(
         DB::getInstance(),
-        APBCT_TBL_FIREWALL_DATA_COMMON . '_temp'
+        APBCT_TBL_FIREWALL_DATA . '_temp'
     );
 
     if ( ! empty($result['error']) ) {
@@ -1599,11 +1614,11 @@ function apbct_sfw_update__end_of_update__renaming_tables()
 {
     global $apbct;
 
-    if ( ! DB::getInstance()->isTableExists(APBCT_TBL_FIREWALL_DATA_COMMON) ) {
+    if ( ! DB::getInstance()->isTableExists(APBCT_TBL_FIREWALL_DATA) ) {
         return array('error' => 'Error while completing data: SFW main table does not exist.');
     }
 
-    if ( ! DB::getInstance()->isTableExists(APBCT_TBL_FIREWALL_DATA_COMMON . '_temp') ) {
+    if ( ! DB::getInstance()->isTableExists(APBCT_TBL_FIREWALL_DATA . '_temp') ) {
         return array('error' => 'Error while completing data: SFW temp table does not exist.');
     }
 
@@ -1612,9 +1627,9 @@ function apbct_sfw_update__end_of_update__renaming_tables()
     usleep(10000);
 
     // REMOVE AND RENAME
-    $result = SFW::dataTablesDelete(DB::getInstance(), APBCT_TBL_FIREWALL_DATA_COMMON);
+    $result = SFW::dataTablesDelete(DB::getInstance(), APBCT_TBL_FIREWALL_DATA);
     if ( empty($result['error']) ) {
-        $result = SFW::renameDataTablesFromTempToMain(DB::getInstance(), APBCT_TBL_FIREWALL_DATA_COMMON);
+        $result = SFW::renameDataTablesFromTempToMain(DB::getInstance(), APBCT_TBL_FIREWALL_DATA);
     }
 
     $apbct->fw_stats['update_mode'] = 0;
@@ -1636,11 +1651,11 @@ function apbct_sfw_update__end_of_update__checking_data()
 {
     global $apbct, $wpdb;
 
-    if ( ! DB::getInstance()->isTableExists(APBCT_TBL_FIREWALL_DATA_COMMON) ) {
+    if ( ! DB::getInstance()->isTableExists(APBCT_TBL_FIREWALL_DATA) ) {
         return array('error' => 'Error while checking data: SFW main table does not exist.');
     }
 
-    $apbct->stats['sfw']['entries'] = $wpdb->get_var('SELECT COUNT(*) FROM ' . APBCT_TBL_FIREWALL_DATA_COMMON);
+    $apbct->stats['sfw']['entries'] = $wpdb->get_var('SELECT COUNT(*) FROM ' . APBCT_TBL_FIREWALL_DATA);
     $apbct->save('stats');
 
     /**
@@ -1650,7 +1665,7 @@ function apbct_sfw_update__end_of_update__checking_data()
         return array(
             'error' =>
                 'The discrepancy between the amount of data received for the update and in the final table: '
-                . APBCT_TBL_FIREWALL_DATA_COMMON
+                . APBCT_TBL_FIREWALL_DATA
                 . '. RECEIVED: ' . $apbct->fw_stats['expected_networks_count']
                 . '. ADDED: ' . $apbct->stats['sfw']['entries']
         );
@@ -1830,7 +1845,7 @@ function apbct_sfw_direct_update()
         $table_name = $apbct->db_prefix . Schema::getSchemaTablePrefix() . 'sfw';
         $db_tables_creator->createTable($table_name);
 
-        $result__creating_tmp_table = SFW::createTempTables(DB::getInstance(), APBCT_TBL_FIREWALL_DATA_COMMON);
+        $result__creating_tmp_table = SFW::createTempTables(DB::getInstance(), APBCT_TBL_FIREWALL_DATA);
         if ( ! empty($result__creating_tmp_table['error']) ) {
             return array('error' => 'DIRECT UPDATING CREATE TMP TABLE: ' . $result__creating_tmp_table['error']);
         }
@@ -1855,7 +1870,7 @@ function apbct_sfw_direct_update()
          */
         $upd_result = SFW::directUpdate(
             DB::getInstance(),
-            APBCT_TBL_FIREWALL_DATA_COMMON . '_temp',
+            APBCT_TBL_FIREWALL_DATA . '_temp',
             $blacklists
         );
 
@@ -1913,7 +1928,7 @@ function apbct_sfw_update__cleanData()
 {
     global $apbct;
 
-    SFW::dataTablesDelete(DB::getInstance(), APBCT_TBL_FIREWALL_DATA_COMMON . '_temp');
+    SFW::dataTablesDelete(DB::getInstance(), APBCT_TBL_FIREWALL_DATA . '_temp');
 
     $apbct->fw_stats['firewall_update_percent'] = 0;
     $apbct->fw_stats['firewall_updating_id']    = null;
@@ -2050,13 +2065,13 @@ function apbct_sfw_private_records_handler($action, $test_data = null)
         if ( $action === 'add' ) {
             $handler_output = SFW::privateRecordsAdd(
                 DB::getInstance(),
-                APBCT_TBL_FIREWALL_DATA_COMMON,
+                APBCT_TBL_FIREWALL_DATA,
                 $metadata
             );
         } elseif ( $action === 'delete' ) {
             $handler_output = SFW::privateRecordsDelete(
                 DB::getInstance(),
-                APBCT_TBL_FIREWALL_DATA_COMMON,
+                APBCT_TBL_FIREWALL_DATA,
                 $metadata
             );
         } else {

@@ -11,7 +11,7 @@ class TestSFWPrivateRecordsHandler extends PHPUnit\Framework\TestCase
     {
         apbct_run_update_actions('5.188','5.189');
         $this->sfw = new \Cleantalk\ApbctWP\Firewall\SFW(DB::getInstance(),
-            APBCT_TBL_FIREWALL_DATA_COMMON);
+            APBCT_TBL_FIREWALL_DATA);
         $this->sfw->setDb(DB::getInstance());
     }
 
