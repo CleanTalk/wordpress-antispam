@@ -5,12 +5,6 @@ module.exports = {
     },
     extends: 'google',
     ignorePatterns: [
-        'js/src/apbct-public--0--LibBundle.js',
-        'js/src/apbct-public--1--functions.js',
-        'js/src/apbct-public--2--public.js',
-        'js/src/apbct-public--3--cleantalk-modal.js',
-        'js/src/apbct-public--5--external-forms.js',
-        'js/src/apbct-public-bundle.js',
         'js/src/cleantalk-admin-settings-page.js',
         'js/src/cleantalk-admin.js',
         'js/src/cleantalk-comments-checkspam.js',
@@ -28,5 +22,9 @@ module.exports = {
     rules: {
         'indent': ['error', 4],
         'max-len': ['error', {'code': 120}],
+        'prefer-const': 'off',
+    },
+    globals: {
+        'ctSetCookie': 'readonly'
     },
 };
