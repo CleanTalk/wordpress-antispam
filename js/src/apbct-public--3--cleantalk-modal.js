@@ -141,10 +141,10 @@ let cleantalkModal = {
         close.setAttribute( 'id', 'cleantalk-modal-close' );
         inner.append( close );
 
-        var content = document.createElement( 'div' );
+        let content = document.createElement( 'div' );
         if ( this.loaded ) {
-            var urlRegex = /(https?:\/\/[^\s]+)/g;
-            var serviceContentRegex = /.*\/inc/g;
+            const urlRegex = /(https?:\/\/[^\s]+)/g;
+            const serviceContentRegex = /.*\/inc/g;
             if (serviceContentRegex.test(this.loaded)) {
                 content.innerHTML = this.loaded;
             } else {

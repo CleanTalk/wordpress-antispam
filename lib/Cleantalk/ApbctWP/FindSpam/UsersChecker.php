@@ -334,7 +334,7 @@ class UsersChecker extends Checker
 
     public static function ctAjaxCheckUsers()
     {
-        check_ajax_referer('ct_secret_nonce', 'security');
+        apbct__check_admin_ajax_request();
 
         $userScanParameters = new UsersScanParameters($_POST);
 
@@ -355,7 +355,7 @@ class UsersChecker extends Checker
      */
     public static function ctAjaxClearUsers()
     {
-        check_ajax_referer('ct_secret_nonce', 'security');
+        apbct__check_admin_ajax_request();
 
         global $wpdb, $apbct;
 
@@ -371,7 +371,7 @@ class UsersChecker extends Checker
     public static function ctAjaxInfo($direct_call = false)
     {
         if ( ! $direct_call ) {
-            check_ajax_referer('ct_secret_nonce', 'security');
+            apbct__check_admin_ajax_request();
         }
 
         global $wpdb, $apbct;
@@ -470,7 +470,7 @@ class UsersChecker extends Checker
      */
     public static function ctGetCsvFile()
     {
-        check_ajax_referer('ct_secret_nonce', 'security');
+        apbct__check_admin_ajax_request();
 
         $text = 'login,email,ip' . PHP_EOL;
 
@@ -511,7 +511,7 @@ class UsersChecker extends Checker
 
     public static function ctAjaxInsertUsers()
     {
-        check_ajax_referer('ct_secret_nonce', 'security');
+        apbct__check_admin_ajax_request();
 
         global $wpdb;
 
@@ -576,7 +576,7 @@ class UsersChecker extends Checker
 
     public static function ctAjaxDeleteAllUsers($count_all = 0)
     {
-        check_ajax_referer('ct_secret_nonce', 'security');
+        apbct__check_admin_ajax_request();
 
         global $wpdb;
 
