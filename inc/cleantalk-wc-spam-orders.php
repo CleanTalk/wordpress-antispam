@@ -9,7 +9,7 @@ add_action('admin_menu', function () {
         'activate_plugins',
         'apbct_wc_spam_orders',
         function () {
-			?>
+            ?>
 	        <div class="wrap">
                 <form action="" method="POST">
 		        <?php
@@ -18,7 +18,7 @@ add_action('admin_menu', function () {
 		        ?>
                 </form>
 	        </div>
-			<?php
+            <?php
         }
     );
 });
