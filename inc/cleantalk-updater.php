@@ -1260,4 +1260,3 @@ function apbct_update_to_6_10_2()
         $apbct->saveSettings();
     }
 }
-
