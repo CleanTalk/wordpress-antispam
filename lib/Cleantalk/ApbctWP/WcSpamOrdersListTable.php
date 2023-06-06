@@ -94,7 +94,7 @@ class WcSpamOrdersListTable extends CleantalkListTable
             $customer_details_column = $this->renderCustomerDetailsColumn($wc_spam_order->customer_details);
 
             $this->items[] = array(
-	            'ct_id'               => $wc_spam_order->order_id,
+	            'cb'                  => $wc_spam_order->order_id,
                 'ct_order_id'         => $order_id_column,
                 'ct_order_details'    => $order_details_column,
                 'ct_currency'         => $wc_spam_order->currency,
@@ -125,7 +125,7 @@ class WcSpamOrdersListTable extends CleantalkListTable
 
 	public function column_cb($item) // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
 	{
-		echo '<input type="checkbox" name="spamorderids[]" id="cb-select-' . $item['ct_id'] . '" value="' . $item['ct_id'] . '" />';
+		echo '<input type="checkbox" name="spamorderids[]" id="cb-select-' . $item['cb'] . '" value="' . $item['cb'] . '" />';
 	}
 
     public function column_default($item, $column_name) // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
