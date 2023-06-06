@@ -467,7 +467,8 @@ function apbct_ready() {
                     form.action.toString().indexOf('actionType=update') !== -1) || // Optima Express update
                 (form.id && form.id === 'ihf-main-search-form') || // Optima Express search
                 (form.id && form.id === 'frmCalc') || // nobletitle-calc
-                form.action.toString().indexOf('property-organizer-delete-saved-search-submit') !== -1
+                form.action.toString().indexOf('property-organizer-delete-saved-search-submit') !== -1 ||
+                form.querySelector('a[name="login"]') !== null // digimember login form
             ) {
                 continue;
             }
@@ -489,6 +490,17 @@ function apbct_ready() {
                     const visibleFields = {};
                     visibleFields[0] = apbct_collect_visible_fields(this);
                     apbct_visible_fields_set_cookie( visibleFields, event.target.ctFormIndex );
+                }
+
+                if (ctPublic.data__cookies_type === 'none' && isFormThatNeedCatchXhr(event.target)) {
+                    window.XMLHttpRequest.prototype.send = function(data) {
+                        let noCookieData = getNoCookieData();
+                        noCookieData = 'data%5Bct_no_cookie_hidden_field%5D=' + noCookieData + '&';
+                        defaultSend.call(this, noCookieData + data);
+                        setTimeout(() => {
+                            window.XMLHttpRequest.prototype.send = defaultSend;
+                        }, 0);
+                    };
                 }
 
                 // Call previous submit action
@@ -1182,10 +1194,8 @@ const defaultSend = XMLHttpRequest.prototype.send;
 
 if (document.readyState !== 'loading') {
     checkFormsExistForCatching();
-    checkFormsExistForCatchingXhr();
 } else {
     apbct_attach_event_handler(document, 'DOMContentLoaded', checkFormsExistForCatching);
-    apbct_attach_event_handler(document, 'DOMContentLoaded', checkFormsExistForCatchingXhr);
 }
 
 /**
@@ -1235,27 +1245,15 @@ function isFormThatNeedCatch() {
 }
 
 /**
- * checkFormsExistForCatchingXhr
- */
-function checkFormsExistForCatchingXhr() {
-    setTimeout(function() {
-        if (isFormThatNeedCatchXhr()) {
-            window.XMLHttpRequest.prototype.send = function(data) {
-                let noCookieData = getNoCookieData();
-                noCookieData = 'data%5Bct_no_cookie_hidden_field%5D=' + noCookieData + '&';
-
-                defaultSend.call(this, noCookieData + data);
-            };
-        }
-    }, 1000);
-}
-
-/**
+ * @param {HTMLElement} form
  * @return {boolean}
  */
-function isFormThatNeedCatchXhr() {
+function isFormThatNeedCatchXhr(form) {
     if (document.querySelector('div.elementor-widget[title=\'Login/Signup\']') != null) {
         return false;
+    }
+    if (form && form.action && form.action.toString().indexOf('mailpoet_subscription_form') !== -1) {
+        return true;
     }
 
     return false;

@@ -546,6 +546,14 @@ function ct_ajax_hook($message_obj = null)
                 if (stripos($form_data[$index], 'apbct_visible_fields') === 0) {
                     unset($form_data[$index]);
                 }
+                if (stripos($form_data[$index], 'ct_no_cookie_hidden_field') === 0) {
+                    if ($apbct->data['cookies_type'] === 'none') {
+                        \Cleantalk\ApbctWP\Variables\NoCookie::setDataFromHiddenField($form_data[$index]);
+                        $apbct->stats['no_cookie_data_taken'] = true;
+                        $apbct->save('stats');
+                    }
+                    unset($form_data[$index]);
+                }
             }
 
             $form_data = implode('&', $form_data);
