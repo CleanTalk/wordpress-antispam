@@ -522,7 +522,6 @@ function apbct_ready() {
         if (
             typeof ctPublic !== 'undefined' &&
             ctPublic.settings__forms__search_test === '1' &&
-            ctPublic.data__cookies_type === 'none' &&
             (
                 _form.getAttribute('id') === 'searchform' ||
                 (_form.getAttribute('class') !== null && _form.getAttribute('class').indexOf('search-form') !== -1) ||
@@ -530,38 +529,82 @@ function apbct_ready() {
             )
         ) {
             _form.apbctSearchPrevOnsubmit = _form.onsubmit;
-            _form.onsubmit = (e) => {
-                const noCookie = _form.querySelector('[name="ct_no_cookie_hidden_field"]');
-                if ( noCookie !== null ) {
-                    e.preventDefault();
-                    const callBack = () => {
-                        if (_form.apbctSearchPrevOnsubmit instanceof Function) {
-                            _form.apbctSearchPrevOnsubmit();
-                        } else {
-                            HTMLFormElement.prototype.submit.call(_form);
-                        }
-                    };
-
-                    const parsedCookies = atob(noCookie.value.replace('_ct_no_cookie_data_', ''));
-
-                    if ( parsedCookies.length !== 0 ) {
-                        ctSetAlternativeCookie(
-                            parsedCookies,
-                            {callback: callBack, onErrorCallback: callBack, forceAltCookies: true},
-                        );
-                    } else {
-                        callBack();
-                    }
-                }
-            };
+            // this handles search forms onsubmit process
+            _form.onsubmit = (e) => ctSearchFormOnSubmitHandler(e, _form);
         }
     }
 }
+
 if (ctPublic.data__key_is_ok) {
     if (document.readyState !== 'loading') {
         apbct_ready();
     } else {
         apbct_attach_event_handler(document, 'DOMContentLoaded', apbct_ready);
+    }
+}
+
+/**
+ * @param {SubmitEvent} e
+ * @param {*} _form
+ */
+function ctSearchFormOnSubmitHandler(e, _form) {
+    try {
+        // set NoCookie data if is provided
+        const noCookie = _form.querySelector('[name="ct_no_cookie_hidden_field"]');
+        // set honeypot data if is provided
+        const hpData = _form.querySelector('[id*="apbct__email_id__"]');
+        let hpValue = null;
+        let hpEventId = null;
+
+        // get honeypot field and it's value
+        if (
+            hpData !== null &&
+            hpData.value !== null &&
+            hpData.getAttribute('apbct_event_id') !== null
+        ) {
+            hpValue = hpData.value;
+            hpEventId = hpData.getAttribute('apbct_event_id');
+        }
+
+        // if noCookie data or honeypot data is set, proceed handling
+        if ( noCookie !== null || hpData !== null) {
+            e.preventDefault();
+            const callBack = () => {
+                hpData.parentNode.removeChild(hpData);
+                if (_form.apbctSearchPrevOnsubmit instanceof Function) {
+                    _form.apbctSearchPrevOnsubmit();
+                } else {
+                    HTMLFormElement.prototype.submit.call(_form);
+                }
+            };
+
+            let parsedCookies = '{}';
+
+            // if noCookie data provided trim prefix and add data from base64 decoded value then
+            if (noCookie !== null) {
+                parsedCookies = atob(noCookie.value.replace('_ct_no_cookie_data_', ''));
+            }
+
+            // if honeypot data provided add the fields to the parsed data
+            if ( hpValue !== null && hpEventId !== null ) {
+                const cookiesArray = JSON.parse(parsedCookies);
+                cookiesArray.apbct_search_form__honeypot_value = hpValue;
+                cookiesArray.apbct_search_form__honeypot_id = hpEventId;
+                parsedCookies = JSON.stringify(cookiesArray);
+            }
+
+            // if any data provided, proceed data to xhr
+            if ( parsedCookies.length !== 0 ) {
+                ctSetAlternativeCookie(
+                    parsedCookies,
+                    {callback: callBack, onErrorCallback: callBack, forceAltCookies: true},
+                );
+            } else {
+                callBack();
+            }
+        }
+    } catch (error) {
+        console.warn('APBCT search form onsubmit handler error. ' + error);
     }
 }
 

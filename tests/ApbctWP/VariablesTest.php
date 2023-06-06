@@ -26,7 +26,6 @@ class VariablesTest extends TestCase
         );
 
         $this->tests['no_cookie']['set']['bad'] = array(
-            false => 'bool',
             null => null,
             'array' => array('1'=>1, '2'=>'2')
         );
@@ -63,6 +62,9 @@ class VariablesTest extends TestCase
             $result = Cookie::set($key,$value,0,'','',null,false, 'Lax', true);
             $this->assertFalse($result, $key . '=>'. var_export($value,1));
         }
+
+        $result = Cookie::set(false, 'bool',0,'','',null,false, 'Lax', false);
+        $this->assertFalse($result, 'false' . '=>'. 'bool');
     }
 
     public function test_NoCookie_get()
