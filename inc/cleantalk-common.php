@@ -1262,7 +1262,7 @@ function apbct_add_admin_ip_to_swf_whitelist($user)
         ! apbct_wp_doing_cron() &&
         in_array('administrator', (array)$user->roles, true) &&
         Cookie::get('ct_sfw_ip_wl') !== md5($ip . $apbct->api_key) &&
-        SFW::updateWriteToDbExclusions(DB::getInstance(), APBCT_TBL_FIREWALL_DATA, array($ip)) &&
+        SFW::updateWriteToDbExclusions(DB::getInstance(), APBCT_TBL_FIREWALL_DATA_COMMON, array($ip)) &&
         apbct_private_list_add($ip) &&
         ! headers_sent()
     ) {

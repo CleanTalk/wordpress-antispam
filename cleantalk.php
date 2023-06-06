@@ -929,7 +929,7 @@ function apbct_sfw__check()
     $firewall->loadFwModule(
         new SFW(
             APBCT_TBL_FIREWALL_LOG,
-            APBCT_TBL_FIREWALL_DATA,
+            APBCT_TBL_FIREWALL_DATA_COMMON,
             array(
                 'sfw_counter'       => $apbct->settings['admin_bar__sfw_counter'],
                 'api_key'           => $apbct->api_key,
@@ -1052,7 +1052,7 @@ function apbct_sfw__clear()
 {
     global $apbct, $wpdb;
 
-    $wpdb->query('DELETE FROM ' . APBCT_TBL_FIREWALL_DATA . ';');
+    $wpdb->query('DELETE FROM ' . APBCT_TBL_FIREWALL_DATA_COMMON . ';');
 
     $apbct->stats['sfw']['entries'] = 0;
     $apbct->save('stats');
@@ -1124,6 +1124,8 @@ function apbct_sfw_update__init($delay = 0)
     $apbct->fw_stats['calls']                        = 0;
     $apbct->fw_stats['firewall_updating_id']         = md5((string)rand(0, 100000));
     $apbct->fw_stats['firewall_updating_last_start'] = time();
+    $apbct->fw_stats['common_lists_url_id'] = '';
+    $apbct->fw_stats['personal_lists_url_id'] = '';
     $apbct->save('fw_stats');
 
     $apbct->sfw_update_sentinel->seekId($apbct->fw_stats['firewall_updating_id']);
@@ -1283,22 +1285,59 @@ function apbct_sfw_update__get_multifiles()
     }
 
     // Getting remote file name
-    $result = API::methodGet2sBlacklistsDb($apbct->api_key, 'multifiles', '3_2');
+    $result_common = API::methodGet2sBlacklistsDb($apbct->api_key, 'multifiles', '3_2', 1);
 
-    if ( empty($result['error']) ) {
-        if ( ! empty($result['file_url']) ) {
-            $file_urls = Helper::httpGetDataFromRemoteGzAndParseCsv($result['file_url']);
-            if ( empty($file_urls['error']) ) {
-                if ( ! empty($result['file_ua_url']) ) {
-                    $file_urls[][0] = $result['file_ua_url'];
+    if ( !empty($result_common['file_url']) ) {
+        preg_match('/bl_list_(.+)\.multifiles/m', $result_common['file_url'], $common_lists_url_id);
+        error_log('CTDEBUG: [' . __FUNCTION__ . '] [$common_lists_url_id]: ' . var_export($common_lists_url_id,true));
+        $apbct->fw_stats['common_lists_url_id'] = $common_lists_url_id[1];
+    }
+
+    $result_personal_lists = API::methodGet2sBlacklistsDb($apbct->api_key, 'multifiles', '3_2', 0);
+
+    if ( !empty($result_personal_lists['file_url']) ) {
+        preg_match('/bl_list_(.+)\.multifiles/m', $result_personal_lists['file_url'], $personal_lists_url_id);
+        error_log('CTDEBUG: [' . __FUNCTION__ . '] [$common_lists_url_id]: ' . var_export($personal_lists_url_id,true));
+        $apbct->fw_stats['personal_lists_url_id'] = $personal_lists_url_id[1];
+    }
+
+    $apbct->save('fw_stats');
+
+    if ( empty($result_common['error']) && empty($result_personal_lists['error']) ) {
+        if ( ! empty($result_common['file_url']) && ! empty($result_personal_lists['file_url']) ) {
+
+            $file_urls_common = Helper::httpGetDataFromRemoteGzAndParseCsv($result_common['file_url']);
+            error_log('CTDEBUG: [' . __FUNCTION__ . '] [$file_url_common]: ' . var_export($file_urls_common,true));
+            error_log('CTDEBUG: [' . __FUNCTION__ . '] [$result_common[file_url]]: ' . var_export($result_common['file_url'],true));
+            $file_urls_personal = Helper::httpGetDataFromRemoteGzAndParseCsv($result_personal_lists['file_url']);
+            error_log('CTDEBUG: [' . __FUNCTION__ . '] [$file_urls_personal]: ' . var_export($file_urls_personal,true));
+            error_log('CTDEBUG: [' . __FUNCTION__ . '] [$result_personal_lists[file_url]]: ' . var_export($result_personal_lists['file_url'],true));
+
+            if ( empty($file_urls_common['error']) && empty($file_urls_personal['error'])) {
+                $file_urls = array_merge($file_urls_common, $file_urls_personal);
+                error_log('CTDEBUG: [' . __FUNCTION__ . '] [,erged]: ' . var_export($file_urls,true));
+                if ( ! empty($result_common['file_ua_url']) ) {
+                    $file_urls[][0] = $result_common['file_ua_url'];
                 }
-                if ( ! empty($result['file_ck_url']) ) {
-                    $file_urls[][0] = $result['file_ck_url'];
+                if ( ! empty($result_common['file_ck_url']) ) {
+                    $file_urls[][0] = $result_common['file_ck_url'];
                 }
+                if ( ! empty($file_urls_personal['file_ua_url']) ) {
+                    $file_urls[][0] = $file_urls_personal['file_ua_url'];
+                }
+                if ( ! empty($file_urls_personal['file_ck_url']) ) {
+                    $file_urls[][0] = $file_urls_personal['file_ck_url'];
+                }
+            }
+
+            if ( !empty($file_urls) ) {
+
                 $urls = array();
                 foreach ( $file_urls as $value ) {
                     $urls[] = $value[0];
                 }
+
+                error_log('CTDEBUG: [' . __FUNCTION__ . '] [$urls]: ' . var_export($urls,true));
 
                 $apbct->fw_stats['firewall_update_percent'] = round(100 / count($urls), 2);
                 $apbct->save('fw_stats');
@@ -1315,7 +1354,7 @@ function apbct_sfw_update__get_multifiles()
             return array('error' => $file_urls['error']);
         }
     } else {
-        return $result;
+        return $result_common;
     }
     return null;
 }
@@ -1383,7 +1422,7 @@ function apbct_sfw_update__create_tables()
 function apbct_sfw_update__create_temp_tables()
 {
     // Preparing temporary tables
-    $result = SFW::createTempTables(DB::getInstance(), APBCT_TBL_FIREWALL_DATA);
+    $result = SFW::createTempTables(DB::getInstance(), APBCT_TBL_FIREWALL_DATA_COMMON);
     if ( ! empty($result['error']) ) {
         return $result;
     }
@@ -1449,7 +1488,7 @@ function apbct_sfw_update__process_file($file_path)
 
     $result = SFW::updateWriteToDb(
         DB::getInstance(),
-        APBCT_TBL_FIREWALL_DATA . '_temp',
+        APBCT_TBL_FIREWALL_DATA_COMMON . '_temp',
         $file_path
     );
 
@@ -1529,7 +1568,7 @@ function apbct_sfw_update__process_exclusions()
 
     $result = SFW::updateWriteToDbExclusions(
         DB::getInstance(),
-        APBCT_TBL_FIREWALL_DATA . '_temp'
+        APBCT_TBL_FIREWALL_DATA_COMMON . '_temp'
     );
 
     if ( ! empty($result['error']) ) {
@@ -1560,11 +1599,11 @@ function apbct_sfw_update__end_of_update__renaming_tables()
 {
     global $apbct;
 
-    if ( ! DB::getInstance()->isTableExists(APBCT_TBL_FIREWALL_DATA) ) {
+    if ( ! DB::getInstance()->isTableExists(APBCT_TBL_FIREWALL_DATA_COMMON) ) {
         return array('error' => 'Error while completing data: SFW main table does not exist.');
     }
 
-    if ( ! DB::getInstance()->isTableExists(APBCT_TBL_FIREWALL_DATA . '_temp') ) {
+    if ( ! DB::getInstance()->isTableExists(APBCT_TBL_FIREWALL_DATA_COMMON . '_temp') ) {
         return array('error' => 'Error while completing data: SFW temp table does not exist.');
     }
 
@@ -1573,9 +1612,9 @@ function apbct_sfw_update__end_of_update__renaming_tables()
     usleep(10000);
 
     // REMOVE AND RENAME
-    $result = SFW::dataTablesDelete(DB::getInstance(), APBCT_TBL_FIREWALL_DATA);
+    $result = SFW::dataTablesDelete(DB::getInstance(), APBCT_TBL_FIREWALL_DATA_COMMON);
     if ( empty($result['error']) ) {
-        $result = SFW::renameDataTablesFromTempToMain(DB::getInstance(), APBCT_TBL_FIREWALL_DATA);
+        $result = SFW::renameDataTablesFromTempToMain(DB::getInstance(), APBCT_TBL_FIREWALL_DATA_COMMON);
     }
 
     $apbct->fw_stats['update_mode'] = 0;
@@ -1597,11 +1636,11 @@ function apbct_sfw_update__end_of_update__checking_data()
 {
     global $apbct, $wpdb;
 
-    if ( ! DB::getInstance()->isTableExists(APBCT_TBL_FIREWALL_DATA) ) {
+    if ( ! DB::getInstance()->isTableExists(APBCT_TBL_FIREWALL_DATA_COMMON) ) {
         return array('error' => 'Error while checking data: SFW main table does not exist.');
     }
 
-    $apbct->stats['sfw']['entries'] = $wpdb->get_var('SELECT COUNT(*) FROM ' . APBCT_TBL_FIREWALL_DATA);
+    $apbct->stats['sfw']['entries'] = $wpdb->get_var('SELECT COUNT(*) FROM ' . APBCT_TBL_FIREWALL_DATA_COMMON);
     $apbct->save('stats');
 
     /**
@@ -1611,7 +1650,7 @@ function apbct_sfw_update__end_of_update__checking_data()
         return array(
             'error' =>
                 'The discrepancy between the amount of data received for the update and in the final table: '
-                . APBCT_TBL_FIREWALL_DATA
+                . APBCT_TBL_FIREWALL_DATA_COMMON
                 . '. RECEIVED: ' . $apbct->fw_stats['expected_networks_count']
                 . '. ADDED: ' . $apbct->stats['sfw']['entries']
         );
@@ -1791,7 +1830,7 @@ function apbct_sfw_direct_update()
         $table_name = $apbct->db_prefix . Schema::getSchemaTablePrefix() . 'sfw';
         $db_tables_creator->createTable($table_name);
 
-        $result__creating_tmp_table = SFW::createTempTables(DB::getInstance(), APBCT_TBL_FIREWALL_DATA);
+        $result__creating_tmp_table = SFW::createTempTables(DB::getInstance(), APBCT_TBL_FIREWALL_DATA_COMMON);
         if ( ! empty($result__creating_tmp_table['error']) ) {
             return array('error' => 'DIRECT UPDATING CREATE TMP TABLE: ' . $result__creating_tmp_table['error']);
         }
@@ -1816,7 +1855,7 @@ function apbct_sfw_direct_update()
          */
         $upd_result = SFW::directUpdate(
             DB::getInstance(),
-            APBCT_TBL_FIREWALL_DATA . '_temp',
+            APBCT_TBL_FIREWALL_DATA_COMMON . '_temp',
             $blacklists
         );
 
@@ -1874,7 +1913,7 @@ function apbct_sfw_update__cleanData()
 {
     global $apbct;
 
-    SFW::dataTablesDelete(DB::getInstance(), APBCT_TBL_FIREWALL_DATA . '_temp');
+    SFW::dataTablesDelete(DB::getInstance(), APBCT_TBL_FIREWALL_DATA_COMMON . '_temp');
 
     $apbct->fw_stats['firewall_update_percent'] = 0;
     $apbct->fw_stats['firewall_updating_id']    = null;
@@ -2011,13 +2050,13 @@ function apbct_sfw_private_records_handler($action, $test_data = null)
         if ( $action === 'add' ) {
             $handler_output = SFW::privateRecordsAdd(
                 DB::getInstance(),
-                APBCT_TBL_FIREWALL_DATA,
+                APBCT_TBL_FIREWALL_DATA_COMMON,
                 $metadata
             );
         } elseif ( $action === 'delete' ) {
             $handler_output = SFW::privateRecordsDelete(
                 DB::getInstance(),
-                APBCT_TBL_FIREWALL_DATA,
+                APBCT_TBL_FIREWALL_DATA_COMMON,
                 $metadata
             );
         } else {

@@ -535,7 +535,7 @@ class UsersChecker extends Checker
         // TEST INSERTION
         $to_insert = 500;
         $result    = $wpdb->get_results(
-            'SELECT network FROM `' . APBCT_TBL_FIREWALL_DATA . '` LIMIT ' . $to_insert . ';',
+            'SELECT network FROM `' . APBCT_TBL_FIREWALL_DATA_COMMON . '` LIMIT ' . $to_insert . ';',
             ARRAY_A
         );
 

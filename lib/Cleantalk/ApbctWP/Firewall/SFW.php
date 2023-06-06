@@ -688,6 +688,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
 
                             // Cast result to int
                             $ip     = preg_replace('/[^\d]*/', '', $entry[0]);
+                            error_log('CTDEBUG: [' . __FUNCTION__ . '] [$ip]: ' . var_export(long2ip($ip),true));
                             $mask   = preg_replace('/[^\d]*/', '', $entry[1]);
                             $status = isset($entry[2]) ? $entry[2] : 0;
                             $source = isset($entry[3]) ? (int)$entry[3] : 'NULL';

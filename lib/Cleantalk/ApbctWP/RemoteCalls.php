@@ -262,7 +262,7 @@ class RemoteCalls
     {
         global $apbct, $wpdb;
 
-        $out['sfw_data_base_size'] = $wpdb->get_var('SELECT COUNT(*) FROM ' . APBCT_TBL_FIREWALL_DATA);
+        $out['sfw_data_base_size'] = $wpdb->get_var('SELECT COUNT(*) FROM ' . APBCT_TBL_FIREWALL_DATA_COMMON);
         $out['stats']              = $apbct->stats;
         $out['settings']           = $apbct->settings;
         $out['fw_stats']           = $apbct->fw_stats;
