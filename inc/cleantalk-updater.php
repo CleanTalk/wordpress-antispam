@@ -1254,9 +1254,6 @@ function apbct_update_to_6_10_2()
 {
     global $apbct;
 
-    // Set bot detector OFF during plugin update
-    if ( ! isset($apbct->settings['data__bot_detector_enabled']) ) {
-        $apbct->settings['data__bot_detector_enabled'] = 0;
-        $apbct->saveSettings();
-    }
+    $apbct->settings['data__bot_detector_enabled'] = 0;
+    $apbct->saveSettings();
 }
