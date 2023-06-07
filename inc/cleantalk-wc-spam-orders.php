@@ -1,6 +1,8 @@
 <?php
 
 // Adding menu items for USERS and COMMENTS spam checking pages
+use Cleantalk\ApbctWP\WcSpamOrdersFunctions;
+
 add_action('admin_menu', function () {
     add_submenu_page(
         'woocommerce',
@@ -14,3 +16,6 @@ add_action('admin_menu', function () {
         }
     );
 });
+
+// Restore Spam Order
+add_action('wp_ajax_apbct_restore_spam_order', array(WcSpamOrdersFunctions::class, 'restoreOrderAction'));

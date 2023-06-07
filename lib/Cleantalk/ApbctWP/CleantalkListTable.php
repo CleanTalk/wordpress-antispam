@@ -1303,6 +1303,26 @@ class CleantalkListTable {
             </tfoot>
 
         </table>
+        <button type="button" id="restore-order">Restore Order Test</button>
+        <script>
+            jQuery(document).ready(function ($) {
+                $('#restore-order').click(function () {
+                    let data = {
+                        action: 'apbct_restore_spam_order',
+                        _ajax_nonce: ctAdminCommon._ajax_nonce,
+                        order_id: 2
+                    };
+                    $.ajax({
+                        type: "POST",
+                        url: ctAdminCommon._ajax_url,
+                        data: data,
+                        success: function(result){
+                            console.log(result);
+                        },
+                    });
+                });
+            });
+        </script>
         <?php
         $this->display_tablenav( 'bottom' );
     }
