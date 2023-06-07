@@ -321,7 +321,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
 
             $block_message = sprintf(
                 esc_html__('SpamFireWall is checking your browser and IP %s for spam bots', 'cleantalk-spam-protect'),
-                '<a href="' . $result['ip'] . '" target="_blank">' . $result['ip'] . '</a>'
+                '<a href="https://cleantalk.org/blacklists/' . $result['ip'] . '" target="_blank">' . $result['ip'] . '</a>'
             );
 
             $request_uri = Server::get('REQUEST_URI');
