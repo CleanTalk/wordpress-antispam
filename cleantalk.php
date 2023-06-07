@@ -929,13 +929,14 @@ function apbct_sfw__check()
     $firewall->loadFwModule(
         new SFW(
             APBCT_TBL_FIREWALL_LOG,
-            APBCT_TBL_FIREWALL_DATA,
+            APBCT_TBL_FIREWALL_DATA_PERSONAL,
             array(
                 'sfw_counter'       => $apbct->settings['admin_bar__sfw_counter'],
                 'api_key'           => $apbct->api_key,
                 'apbct'             => $apbct,
                 'cookie_domain'     => parse_url(get_option('home'), PHP_URL_HOST),
                 'data__cookies_type' => $apbct->data['cookies_type'],
+                'common_table_name'  => $common_table_name,
             )
         )
     );
@@ -2065,13 +2066,13 @@ function apbct_sfw_private_records_handler($action, $test_data = null)
         if ( $action === 'add' ) {
             $handler_output = SFW::privateRecordsAdd(
                 DB::getInstance(),
-                APBCT_TBL_FIREWALL_DATA,
+                APBCT_TBL_FIREWALL_DATA_PERSONAL,
                 $metadata
             );
         } elseif ( $action === 'delete' ) {
             $handler_output = SFW::privateRecordsDelete(
                 DB::getInstance(),
-                APBCT_TBL_FIREWALL_DATA,
+                APBCT_TBL_FIREWALL_DATA_PERSONAL,
                 $metadata
             );
         } else {

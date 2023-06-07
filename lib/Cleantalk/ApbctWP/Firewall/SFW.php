@@ -30,6 +30,8 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
 
     public $module_name = 'SFW';
 
+    private $db__table__data_personal;
+
     private $real_ip;
     private $debug;
     private $debug_data = '';
@@ -47,11 +49,12 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
      * @param string $data_table
      * @param $params
      */
-    public function __construct($log_table, $data_table, $params = array())
+    public function __construct($log_table, $data_table_personal, $params = array())
     {
-        parent::__construct($log_table, $data_table, $params);
+        parent::__construct($log_table, $data_table_personal, $params);
 
-        $this->db__table__data = $data_table ?: null;
+        $this->db__table__data = $params['common_table_name'] ?: null;
+        $this->db__table__data_personal = $data_table_personal ?: null;
         $this->db__table__logs = $log_table ?: null;
 
         foreach ($params as $param_name => $param) {
@@ -154,15 +157,27 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
             }
             $needles = array_unique($needles);
 
-            $db_results = $this->db->fetchAll(
-                "SELECT
-				network, mask, status, source
+            $query =  "(SELECT
+				0 as is_personal, network, mask, status
 				FROM " . $this->db__table__data . "
 				WHERE network IN (" . implode(',', $needles) . ")
 				AND	network = " . $current_ip_v4 . " & mask 
 				AND " . rand(1, 100000) . "  
-				ORDER BY source DESC, status"
-            );
+				ORDER BY status DESC, status)";
+
+            $query .= " UNION ";
+
+            $query .=  "(SELECT
+				1 as is_personal, network, mask, status
+				FROM " . $this->db__table__data_personal . "
+				WHERE network IN (" . implode(',', $needles) . ")
+				AND	network = " . $current_ip_v4 . " & mask 
+				AND " . rand(1, 100000) . "  
+				ORDER BY status DESC, status)";
+
+            error_log('CTDEBUG: [' . __FUNCTION__ . '] [$query]: ' . var_export($query, true));
+
+            $db_results = $this->db->fetchAll($query);
 
             $test_status = 99;
 
@@ -185,7 +200,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
                         'network'     => Helper::ipLong2ip($db_result['network'])
                                          . '/'
                                          . Helper::ipMaskLongToNumber((int)$db_result['mask']),
-                        'is_personal' => $db_result['source'],
+                        'is_personal' => $db_result['is_personal'],
                         'status'      => $text_status
                     );
 
@@ -400,7 +415,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
                     case 0:
                         $message_ip_status = __('IP in the common blacklist', 'cleantalk-spam-protect');
                         $message_ip_status_color = 'red';
-                        if (isset($this->db->result[0]["source"]) && (int)$this->db->result[0]["source"] === 1) {
+                        if (isset($this->db->result[0]["is_personal"]) && (int)$this->db->result[0]["is_personal"] === 1) {
                             $message_ip_status = __('IP in the personal blacklist', 'cleantalk-spam-protect');
                         }
                         break;
@@ -673,7 +688,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
                     reset($data);
 
                     for ($count_result = 0; current($data) !== false;) {
-                        $query = "INSERT INTO " . $db__table__data . " (network, mask, status, source) VALUES ";
+                        $query = "INSERT INTO " . $db__table__data . " (network, mask, status) VALUES ";
 
                         for (
                             $i = 0, $values = array();
@@ -688,12 +703,10 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
 
                             // Cast result to int
                             $ip     = preg_replace('/[^\d]*/', '', $entry[0]);
-                            error_log('CTDEBUG: [' . __FUNCTION__ . '] [$ip]: ' . var_export(long2ip($ip),true));
                             $mask   = preg_replace('/[^\d]*/', '', $entry[1]);
                             $status = isset($entry[2]) ? $entry[2] : 0;
-                            $source = isset($entry[3]) ? (int)$entry[3] : 'NULL';
 
-                            $values[] = "($ip, $mask, $status, $source)";
+                            $values[] = "($ip, $mask, $status)";
                         }
 
                         if ( ! empty($values)) {
@@ -874,8 +887,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
             $has_duplicate = false;
             $query = "SELECT id,status FROM " . $db__table__data . " WHERE 
             network = '" . $row['network'] . "' AND 
-            mask = '" . $row['mask'] . "' AND
-            source = '1';";
+            mask = '" . $row['mask'] . "'";
 
             $db_result = $db->fetch($query);
             if ( $db_result === false ) {
@@ -901,14 +913,12 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
             " . $id_chunk . "
             network = '" . $row['network'] . "',
             mask = '" . $row['mask'] . "',
-            status = '" . $row['status'] . "',
-            source = '1'
+            status = '" . $row['status'] . " '
             ON DUPLICATE KEY UPDATE 
             id = id,
             network = network, 
             mask = mask, 
-            status = '" . $row['status'] . "',
-            source = source;";
+            status = '" . $row['status'] . "';";
 
             $db_result = $db->execute($query);
             if ( $db_result === false ) {
@@ -943,8 +953,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
         foreach ( $metadata as $_key => $row ) {
             $query = "DELETE FROM " . $db__table__data . " WHERE 
             network = '" . $row['network'] . "' AND
-            mask = '" . $row['mask'] . "' AND
-            source = '1';";
+            mask = '" . $row['mask'] . "';";
             $db_result = $db->execute($query);
             if ( $db_result === false ) {
                 throw new \Exception($db->getLastError());
