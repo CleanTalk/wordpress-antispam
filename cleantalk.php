@@ -1583,7 +1583,7 @@ function apbct_sfw_update__process_exclusions()
 
     $result = SFW::updateWriteToDbExclusions(
         DB::getInstance(),
-        APBCT_TBL_FIREWALL_DATA . '_temp'
+        APBCT_TBL_FIREWALL_DATA_PERSONAL . '_temp'
     );
 
     if ( ! empty($result['error']) ) {
