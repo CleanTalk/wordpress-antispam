@@ -10,7 +10,7 @@ class WcSpamOrdersFunctions
     {
 	    check_ajax_referer('ct_secret_nonce');
 
-	    $order_id = (string) Post::get('order_id', 'int');
+	    $order_id = Post::get('order_id', 'int');
 
 	    if (!$order_id) {
 		    wp_send_json_error(esc_html__('Error: Order ID is not valid.', 'cleantalk-spam-protect'));
@@ -23,10 +23,16 @@ class WcSpamOrdersFunctions
 		    wp_send_json_error(esc_html__('Error: Order is not founded.', 'cleantalk-spam-protect'));
 	    }
 
-		$order_details = json_decode($order_data->order_details);
-		$customer_details = json_decode($order_data->customer_details);
+		try {
+			$order_details = json_decode($order_data->order_details);
+			$customer_details = json_decode($order_data->customer_details);
 
-		self::createOrder($order_details, $customer_details);
+			self::createOrder($order_details, $customer_details);
+
+			self::deleteSpamOrderData($order_id);
+		} catch (\Exception $e) {
+			wp_send_json_error(esc_html__('Error: ' . $e->getMessage(), 'cleantalk-spam-protect'));
+		}
 
 	    wp_send_json_success();
     }
@@ -85,5 +91,16 @@ class WcSpamOrdersFunctions
 		$order->calculate_totals();
 		$order->set_status('wc-pending');
 		$order->save();
+	}
+
+	private static function deleteSpamOrderData($order_id)
+	{
+		global $wpdb;
+
+		return $wpdb->query(
+			"DELETE FROM "
+			. APBCT_TBL_WC_SPAM_ORDERS
+			. " WHERE id = '" . $order_id . "';"
+		);
 	}
 }

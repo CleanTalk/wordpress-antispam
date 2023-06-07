@@ -74,6 +74,7 @@ class WcSpamOrdersListTable extends CleantalkListTable
 
         foreach ( $wc_spam_orders_to_show as $wc_spam_order ) {
             $actions = array(
+	            'restore'  => '<a class="apbct-restore-spam-order-button" data-spam-order-id="' . $wc_spam_order->id . '">' . esc_html__('Restore', 'cleantalk-spam-protect') . '</a>',
                 'delete'  => sprintf(
                     '<a href="?page=%s&action=%s&spam=%s">Delete</a>',
                     htmlspecialchars(addslashes(Get::get('page'))),
