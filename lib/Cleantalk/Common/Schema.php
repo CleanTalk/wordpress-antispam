@@ -20,7 +20,6 @@ class Schema
             'network' => 'INT unsigned NOT NULL',
             'mask' => 'INT unsigned NOT NULL',
             'status' => 'TINYINT NOT NULL DEFAULT 0',
-            'source' => 'TINYINT NULL DEFAULT NULL',
             '__indexes' => 'PRIMARY KEY (`id`), INDEX (  `network` ,  `mask` )',
             '__createkey' => 'INT unsigned primary KEY AUTO_INCREMENT FIRST'
         ),
@@ -29,7 +28,6 @@ class Schema
             'network' => 'INT unsigned NOT NULL',
             'mask' => 'INT unsigned NOT NULL',
             'status' => 'TINYINT NOT NULL DEFAULT 0',
-            'source' => 'TINYINT NULL DEFAULT NULL',
             '__indexes' => 'PRIMARY KEY (`id`), INDEX (  `network` ,  `mask` )',
             '__createkey' => 'INT unsigned primary KEY AUTO_INCREMENT FIRST'
         ),

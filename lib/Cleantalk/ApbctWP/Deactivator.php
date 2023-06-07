@@ -79,6 +79,7 @@ class Deactivator
     {
         global $wpdb;
         $wpdb->query('DROP TABLE IF EXISTS `' . $prefix . 'cleantalk_sfw`;');           // Deleting SFW data
+        $wpdb->query('DROP TABLE IF EXISTS `' . $prefix . 'cleantalk_sfw_personal`;');           // Deleting SFW data
         $wpdb->query('DROP TABLE IF EXISTS `' . $prefix . 'cleantalk_sfw_logs`;');      // Deleting SFW logs
         $wpdb->query('DROP TABLE IF EXISTS `' . $prefix . 'cleantalk_sfw__flood_logs`;');   // Deleting SFW logs
         $wpdb->query('DROP TABLE IF EXISTS `' . $prefix . 'cleantalk_ac_log`;');      // Deleting SFW logs

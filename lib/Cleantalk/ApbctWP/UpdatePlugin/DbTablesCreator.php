@@ -9,7 +9,7 @@ class DbTablesCreator
     /**
      * Create all plugin tables from Schema
      */
-    public function createAllTables($wpdb_prefix = '')
+    public function createAllTables($wpdb_prefix = '', $skip_tables = array())
     {
         global $wpdb;
         $wpdb->show_errors = true;
@@ -18,6 +18,17 @@ class DbTablesCreator
         $wpdb_prefix = $wpdb_prefix ?: $wpdb->prefix;
 
         foreach ($db_schema as $table_key => $table_schema) {
+            //skip table creation
+            if ( in_array($table_key, $skip_tables) ) {
+                continue;
+            }
+            //save SFW common table name
+            if ( $table_key === 'sfw' ) {
+                $common_table_name = $schema_prefix . $table_key;
+                $current_options = get_option('cleantalk_data');
+                $current_options['common_table_name'] = $common_table_name;
+                update_option('cleantalk_data', $current_options);
+            }
             $sql = 'CREATE TABLE IF NOT EXISTS `%s' . $schema_prefix . $table_key . '` (';
             $sql = sprintf($sql, $wpdb_prefix);
             foreach ($table_schema as $column_name => $column_params) {

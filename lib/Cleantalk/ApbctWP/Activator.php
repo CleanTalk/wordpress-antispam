@@ -29,7 +29,11 @@ class Activator
                 $blogs        = array_keys($wpdb->get_results('SELECT blog_id FROM ' . $wpdb->blogs, OBJECT_K));
                 foreach ( $blogs as $blog ) {
                     switch_to_blog($blog);
-                    $db_tables_creator->createAllTables();
+                    if ( is_main_site() ) {
+                        $db_tables_creator->createAllTables();
+                    } else {
+                        $db_tables_creator->createAllTables('', array('sfw'));
+                    }
                     self::setCronJobs();
                     self::maybeGetApiKey();
                 }
@@ -55,7 +59,7 @@ class Activator
                 switch_to_blog($concrete_blog_id);
 
                 self::setCronJobs(false);
-                $db_tables_creator->createAllTables();
+                $db_tables_creator->createAllTables('', array('sfw'));
                 self::maybeGetApiKey();
                 apbct_sfw_update__init(3); // Updating SFW
                 ct_account_status_check(null, false);

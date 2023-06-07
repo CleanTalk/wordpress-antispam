@@ -926,6 +926,21 @@ function apbct_sfw__check()
         DB::getInstance()
     );
 
+    $common_table_name = SFW::getSFWCommonTableName();
+
+    error_log('CTDEBUG: [' . __FUNCTION__ . '] [$common_table_name]: ' . var_export($common_table_name,true));
+
+    if (!$common_table_name) {
+        $apbct->errorAdd(
+            'sfw',
+            esc_html__(
+                'Can not get SFW common table from main blog options',
+                'cleantalk-spam-protect'
+            )
+        );
+        return;
+    }
+
     $firewall->loadFwModule(
         new SFW(
             APBCT_TBL_FIREWALL_LOG,
@@ -1411,9 +1426,11 @@ function apbct_sfw_update__create_tables()
     // Creating SFW tables to make sure that they are exists
     $db_tables_creator = new DbTablesCreator();
     //common table (for main site only)
-    if ( !APBCT_WPMS || is_main_site() ){
+    if ( !APBCT_WPMS || is_main_site() ) {
         $table_name_common = $apbct->db_prefix . Schema::getSchemaTablePrefix() . 'sfw';
         $db_tables_creator->createTable($table_name_common);
+        $apbct->data['common_table_name'] = $table_name_common;
+        $apbct->saveData();
     }
 
     //personal table

@@ -969,4 +969,19 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
             'ignored' => $ignored_count
         );
     }
+
+    public static function getSFWCommonTableName()
+    {
+        if ( !APBCT_WPMS || is_main_site() ) {
+            $common_table_name = APBCT_TBL_FIREWALL_DATA;
+        } else {
+            $main_blog_options = get_blog_option(get_main_site_id(), 'cleantalk_data');
+            if ( !isset($main_blog_options['common_table_name']) || !is_string($main_blog_options['common_table_name'])) {
+                return false;
+            } else {
+                $common_table_name = $main_blog_options['common_table_name'];
+            }
+        }
+        return $common_table_name;
+    }
 }
