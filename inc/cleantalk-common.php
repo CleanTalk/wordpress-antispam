@@ -189,12 +189,12 @@ function apbct_base_call($params = array(), $reg_flag = false)
     // Enable event_token for several integrations ang users registrations
     if (
         ( isset($params['post_info']['comment_type']) && (
-            $params['post_info']['comment_type'] === 'happyforms_contact_form' ||
-            $params['post_info']['comment_type'] === 'contact_form_wordpress_gravity_forms' )
+            $params['post_info']['comment_type'] === 'contact_form_wordpress_visualformbuilder' ||
+            $params['post_info']['comment_type'] === 'contact_form_wordpress_cf7' )
         ) ||
         $reg_flag
     ) {
-        $default_params['event_token'] = Post::get('ct_bot_detector_event_token') ?: null;
+        $default_params['event_token'] = Post::get('ct_bot_detector_event_token');
     }
 
     /**
