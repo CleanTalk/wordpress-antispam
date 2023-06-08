@@ -451,14 +451,13 @@ Yes, it is. Please read this article,
 
 == Changelog ==
 
-= 6.11 Jun 07 2023 =
+= 6.11 Jun 08 2023 =
 * New. Bot detector added for several forms.
 * Fix. Honeypot field for search forms now contains a value.
 * Fixed error with DOMDocument
 * Added libxml_clear_errors()
 * Fix. Js. Fixed logic for case when form is excluded.
 * Add. Integration. Added integration for SendyWidgetPro.
-* Fix. Honeypot. Now honeypot works for search forms in any cookie mode. Wave validator compatibilty reached.
 * Fix. Remove searchform sign from POST data check.
 * Fix. Comment checker. Comment type "review" support added.
 * Fix. White label. Brand replacement fixed.
@@ -471,6 +470,8 @@ Yes, it is. Please read this article,
 * Correct apbct_page_hits cookie
 * Fix. Admin. Checking ajax requests improved.
 * Fix. apbct-public--2--public.js -> ctMouseReadInterval is declared early.
+* Fix. SFW. Triggered IP hyperlink fixed.
+* Fix. Common. Unset event_token service field from requests.
 
 = 6.10 May 24 2023 =
 * Fix. Integrations. Ultimate Addons for Beaver Builder: Exclude login form request.
