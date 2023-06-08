@@ -24,7 +24,7 @@ class DbTablesCreator
             }
             //save SFW common table name
             if ( $table_key === 'sfw' ) {
-                $common_table_name = $schema_prefix . $table_key;
+                $common_table_name = $wpdb_prefix . $schema_prefix . $table_key;
                 $current_options = get_option('cleantalk_data');
                 $current_options['common_table_name'] = $common_table_name;
                 update_option('cleantalk_data', $current_options);
