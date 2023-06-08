@@ -961,6 +961,14 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'Exclude Authorize.net payment form request';
         }
+
+        // Exclude ProfilePress login form request
+        if (
+            apbct_is_plugin_active('wp-user-avatar/wp-user-avatar.php') &&
+            Post::get('action') === 'pp_ajax_login'
+        ) {
+            return 'Exclude ProfilePress login form request';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
