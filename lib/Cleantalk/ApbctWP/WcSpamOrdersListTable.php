@@ -79,7 +79,7 @@ class WcSpamOrdersListTable extends CleantalkListTable
                     '<a href="?page=%s&action=%s&spam=%s">Delete</a>',
                     htmlspecialchars(addslashes(Get::get('page'))),
                     'delete',
-                    $wc_spam_order->order_id
+                    $wc_spam_order->id
                 ),
                 /*'approve' => sprintf(
                     '<a href="?page=%s&action=%s&spam=%s">Approve</a>',
@@ -89,7 +89,7 @@ class WcSpamOrdersListTable extends CleantalkListTable
                 )*/
             );
 
-            $order_id_column = sprintf('%1$s %2$s', $wc_spam_order->order_id, $this->row_actions($actions));
+            $order_id_column = sprintf('%1$s %2$s', $wc_spam_order->id, $this->row_actions($actions));
 
             $order_details_column    = $this->renderOrderDetailsColumn($wc_spam_order->order_details);
             $customer_details_column = $this->renderCustomerDetailsColumn($wc_spam_order->customer_details);
@@ -97,7 +97,6 @@ class WcSpamOrdersListTable extends CleantalkListTable
             $this->items[] = array(
                 'ct_order_id'         => $order_id_column,
                 'ct_order_details'    => $order_details_column,
-                'ct_currency'         => $wc_spam_order->currency,
                 'ct_customer_details' => $customer_details_column,
             );
         }
@@ -107,9 +106,8 @@ class WcSpamOrdersListTable extends CleantalkListTable
     {
         $columns = array(
             'cb'                  => '<input type="checkbox" />',
-            'ct_order_id'         => esc_html__('Order ID', 'cleantalk-spam-protect'),
+            'ct_order_id'         => esc_html__('ID', 'cleantalk-spam-protect'),
             'ct_order_details'    => esc_html__('Order details', 'cleantalk-spam-protect'),
-            'ct_currency'         => esc_html__('Currency', 'cleantalk-spam-protect'),
             'ct_customer_details' => esc_html__('Customer details', 'cleantalk-spam-protect'),
         );
 
@@ -226,7 +224,7 @@ class WcSpamOrdersListTable extends CleantalkListTable
         global $wpdb;
 
         return $wpdb->get_results(
-            "SELECT * FROM " . APBCT_TBL_WC_SPAM_ORDERS . " WHERE order_id = '$id' LIMIT 1",
+            "SELECT * FROM " . APBCT_TBL_WC_SPAM_ORDERS . " WHERE id = '$id' LIMIT 1",
             OBJECT
         );
     }
@@ -245,7 +243,7 @@ class WcSpamOrdersListTable extends CleantalkListTable
         $ids_sql_prepare = implode(',', $ids_sql_prepare);
 
         $wpdb->query(
-            "DELETE FROM " . APBCT_TBL_WC_SPAM_ORDERS . " WHERE `order_id` IN (" . $ids_sql_prepare . ");"
+            "DELETE FROM " . APBCT_TBL_WC_SPAM_ORDERS . " WHERE `id` IN (" . $ids_sql_prepare . ");"
         );
     }
 

@@ -90,6 +90,7 @@ class Deactivator
         $wpdb->query('DROP TABLE IF EXISTS `' . $prefix . 'cleantalk_ua_bl`;');         // Deleting AC UA black lists
         $wpdb->query('DROP TABLE IF EXISTS `' . $prefix . 'cleantalk_sfw_temp`;');      // Deleting temporary SFW data
         $wpdb->query('DROP TABLE IF EXISTS `' . $prefix . 'cleantalk_connection_reports`;');      // Deleting connection_reports
+	    $wpdb->query('DROP TABLE IF EXISTS `' . $prefix . 'cleantalk_wc_spam_orders`;');
     }
 
     /**
