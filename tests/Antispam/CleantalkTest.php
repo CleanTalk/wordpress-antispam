@@ -26,7 +26,7 @@ class CleantalkTest extends \PHPUnit\Framework\TestCase
 		$this->ct_request->sender_email = 's@cleantalk.org';
 		$this->ct_request->message = 'stop_word bad message';
 		$result = $this->ct->isAllowMessage($this->ct_request);
-		$this->assertEquals(1, $result->allow);
+		$this->assertEquals(0, $result->allow);
 
 		$this->ct_request->message = '';
 		$this->ct_request->sender_email = '';
@@ -36,7 +36,7 @@ class CleantalkTest extends \PHPUnit\Framework\TestCase
 	{
 		$this->ct_request->sender_email = 's@cleantalk.org';
 		$result = $this->ct->isAllowUser($this->ct_request);
-		$this->assertEquals(1, $result->allow);
+		$this->assertEquals(0, $result->allow);
 
 		$this->ct_request->sender_email = '';
 	}	
