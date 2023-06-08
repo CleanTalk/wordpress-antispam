@@ -10,14 +10,14 @@ add_action('admin_menu', function () {
         'apbct_wc_spam_orders',
         function () {
             ?>
-	        <div class="wrap">
+            <div class="wrap">
                 <form action="" method="POST">
-		        <?php
-		        $list_table = new \Cleantalk\ApbctWP\WcSpamOrdersListTable();
-		        $list_table->display();
-		        ?>
+                <?php
+                $list_table = new \Cleantalk\ApbctWP\WcSpamOrdersListTable();
+                $list_table->display();
+                ?>
                 </form>
-	        </div>
+            </div>
             <?php
         }
     );

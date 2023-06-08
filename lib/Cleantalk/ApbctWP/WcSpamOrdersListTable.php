@@ -95,7 +95,7 @@ class WcSpamOrdersListTable extends CleantalkListTable
             $customer_details_column = $this->renderCustomerDetailsColumn($wc_spam_order->customer_details);
 
             $this->items[] = array(
-	            'cb'                  => $wc_spam_order->order_id,
+                'cb'                  => $wc_spam_order->order_id,
                 'ct_order_id'         => $order_id_column,
                 'ct_order_details'    => $order_details_column,
                 'ct_currency'         => $wc_spam_order->currency,
@@ -119,36 +119,36 @@ class WcSpamOrdersListTable extends CleantalkListTable
 
     public function get_bulk_actions() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
-	    return array(
-		    'delete'       => esc_html__('Delete', 'cleantalk-spam-protect')
-	    );
+        return array(
+            'delete'       => esc_html__('Delete', 'cleantalk-spam-protect')
+        );
     }
 
-	public function bulk_actions_handler() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
-	{
-		if ( empty(Post::get('spamorderids')) || empty(Post::get('_wpnonce')) ) {
-			return;
-		}
+    public function bulk_actions_handler() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+    {
+        if ( empty(Post::get('spamorderids')) || empty(Post::get('_wpnonce')) ) {
+            return;
+        }
 
-		if ( ! $action = $this->current_action() ) {
-			return;
-		}
+        if ( ! $action = $this->current_action() ) {
+            return;
+        }
 
-		if ( ! wp_verify_nonce(Post::get('_wpnonce'), 'bulk-' . $this->_args['plural']) ) {
-			wp_die('nonce error');
-		}
+        if ( ! wp_verify_nonce(Post::get('_wpnonce'), 'bulk-' . $this->_args['plural']) ) {
+            wp_die('nonce error');
+        }
 
-		$spam_ids = Post::get('spamorderids');
+        $spam_ids = Post::get('spamorderids');
 
-		if ( 'delete' === $action ) {
-			$this->deleteFromDb($spam_ids);
-		}
-	}
+        if ( 'delete' === $action ) {
+            $this->deleteFromDb($spam_ids);
+        }
+    }
 
-	public function column_cb($item) // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
-	{
-		echo '<input type="checkbox" name="spamorderids[]" id="cb-select-' . $item['cb'] . '" value="' . $item['cb'] . '" />';
-	}
+    public function column_cb($item) // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+    {
+        echo '<input type="checkbox" name="spamorderids[]" id="cb-select-' . $item['cb'] . '" value="' . $item['cb'] . '" />';
+    }
 
     public function column_default($item, $column_name) // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
@@ -323,19 +323,19 @@ class WcSpamOrdersListTable extends CleantalkListTable
         <?php
     }
 
-	private function deleteFromDb($spam_ids)
+    private function deleteFromDb($spam_ids)
     {
         global $wpdb;
 
-	    $spam_ids = array_map(function ($value) {
+        $spam_ids = array_map(function ($value) {
             return "'" . sanitize_text_field($value) . "'";
         }, $spam_ids);
-	    $spam_ids = implode(',', $spam_ids);
+        $spam_ids = implode(',', $spam_ids);
 
         $wpdb->query("DELETE FROM "
-                     . APBCT_TBL_WC_SPAM_ORDERS
-                     . " WHERE order_id IN ("
-                     . $spam_ids
-                     . ");" );
-	}
+            . APBCT_TBL_WC_SPAM_ORDERS
+            . " WHERE order_id IN ("
+            . $spam_ids
+            . ");");
+    }
 }
