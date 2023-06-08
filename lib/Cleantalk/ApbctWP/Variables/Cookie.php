@@ -8,13 +8,13 @@ class Cookie extends \Cleantalk\Variables\Cookie
 
     public static $force_alt_cookies_global = false;
 
-    public static $list_of_keys_forced_to_use_alt_sessions = array(
+    public static $force_to_use_alternative_cookies = array(
         'ct_sfw_pass_key',
         'ct_sfw_passed',
         'wordpress_apbct_antibot',
         'apbct_anticrawler_passed',
         'apbct_antiflood_passed',
-        'apbct_email_encoder_passed',
+        'apbct_email_encoder_passed'
     );
 
     /**
@@ -40,7 +40,7 @@ class Cookie extends \Cleantalk\Variables\Cookie
                     }
                     break;
                 case 'none':
-                    if ( static::$force_alt_cookies_global || in_array($name, static::$list_of_keys_forced_to_use_alt_sessions, true) ) {
+                    if ( static::$force_alt_cookies_global || in_array($name, static::$force_to_use_alternative_cookies, true) ) {
                         $value = AltSessions::get($name);
                         if ( in_array($name, array(
                             'apbct_page_hits',
@@ -101,25 +101,20 @@ class Cookie extends \Cleantalk\Variables\Cookie
         global $apbct;
 
         if ( $apbct->data['key_is_ok'] ) {
-            // if cookie type is alternative session
-            if ( $apbct->data['cookies_type'] === 'alternative'
-                // or gained global flag to use alt sessions
-                || static::$force_alt_cookies_global
-                // or cookie name is forced to use alt sessions
-                || in_array($name, static::$list_of_keys_forced_to_use_alt_sessions)
-            ) {
-                // use alt sessions
+            //select handling way to set cookie data in dependence of cookie type in the settings
+            if ( $apbct->data['cookies_type'] === 'none' ) {
+                if ( static::$force_alt_cookies_global || in_array($name, static::$force_to_use_alternative_cookies, true) ) {
+                    AltSessions::set($name, $value);
+                } else {
+                    return NoCookie::set($name, $value, $no_cookie_to_db);
+                }
+            } elseif ($apbct->data['cookies_type'] === 'alternative') {
                 AltSessions::set($name, $value);
-                // else if cookie type is NoCookie
-            } elseif ($apbct->data['cookies_type'] === 'none') {
-                // use NoCookie
-                return NoCookie::set($name, $value, $no_cookie_to_db);
-                // else - there are left just the native way
             } else {
-                // use native cookie
                 self::setNativeCookie(apbct__get_cookie_prefix() . $name, $value, $expires, $path, $domain, $secure, $httponly, $samesite);
             }
         }
+
         return true;
     }
 

@@ -33,7 +33,6 @@
     display: none !important;
 }
 .um-form input[type=text].apbct_special_field,
-label.apbct_special_field,
 input[class*='apbct'].apbct_special_field{
     display: none !important;
 }
