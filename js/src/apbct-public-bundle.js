@@ -2989,7 +2989,11 @@ function apbctReplaceInputsValuesFromOtherForm(formSource, formTarget) {
     inputsSource.forEach((elemSource) => {
         inputsTarget.forEach((elemTarget) => {
             if (elemSource.outerHTML === elemTarget.outerHTML) {
-                elemTarget.value = apbctVal(elemSource);
+                if (elemTarget.type === 'checkbox' || elemTarget.type === 'radio') {
+                    elemTarget.checked = apbctVal(elemSource);
+                } else {
+                    elemTarget.value = apbctVal(elemSource);
+                }
             }
         });
     });
@@ -3269,6 +3273,8 @@ function apbctVal(el) {
         return el.options
             .filter((option) => option.selected)
             .map((option) => option.value);
+    } else if (el.type === 'checkbox' || el.type === 'radio') {
+        return el.checked ? el.checked : null;
     } else {
         return el.value;
     }
