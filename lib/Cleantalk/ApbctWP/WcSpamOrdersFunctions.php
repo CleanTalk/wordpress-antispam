@@ -50,10 +50,12 @@ class WcSpamOrdersFunctions
 
     private static function createOrder($order_details, $customer_details)
     {
+        /** @psalm-suppress UndefinedFunction */
         $order = wc_create_order();
 
         // Add Products
         foreach ($order_details as $product) {
+            /** @psalm-suppress UndefinedFunction */
             $order->add_product(wc_get_product($product->product_id), $product->quantity);
         }
 
