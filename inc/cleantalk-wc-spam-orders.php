@@ -9,10 +9,18 @@ add_action('admin_menu', function () {
         __("WooCommerce spam orders", 'cleantalk-spam-protect'),
         __("WooCommerce spam orders", 'cleantalk-spam-protect'),
         'activate_plugins',
-        'options-general.php?page=apbct_wc_spam_orders',
+        'apbct_wc_spam_orders',
         function () {
-            $list_table = new \Cleantalk\ApbctWP\WcSpamOrdersListTable();
-            $list_table->display();
+            ?>
+            <div class="wrap">
+                <form action="" method="POST">
+                <?php
+                $list_table = new \Cleantalk\ApbctWP\WcSpamOrdersListTable();
+                $list_table->display();
+                ?>
+                </form>
+            </div>
+            <?php
         }
     );
 });

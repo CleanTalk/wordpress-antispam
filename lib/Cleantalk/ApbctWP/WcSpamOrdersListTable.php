@@ -3,6 +3,7 @@
 namespace Cleantalk\ApbctWP;
 
 use Cleantalk\ApbctWP\Variables\Get;
+use Cleantalk\ApbctWP\Variables\Post;
 
 class WcSpamOrdersListTable extends CleantalkListTable
 {
@@ -19,7 +20,7 @@ class WcSpamOrdersListTable extends CleantalkListTable
             'plural'   => 'wc_spam_orders'
         ));
 
-        //$this->bulk_actions_handler();
+        $this->bulk_actions_handler();
 
         $this->row_actions_handler();
 
@@ -76,7 +77,7 @@ class WcSpamOrdersListTable extends CleantalkListTable
             $actions = array(
                 'restore'  => '<a class="apbct-restore-spam-order-button" data-spam-order-id="' . $wc_spam_order->id . '">' . esc_html__('Restore', 'cleantalk-spam-protect') . '</a>',
                 'delete'  => sprintf(
-                    '<a href="?page=%s&action=%s&spam=%s">Delete</a>',
+                    '<a onclick="return confirm(\'' . esc_html__('Are you sure?', 'cleantalk-spam-protect') . '\')" href="?page=%s&action=%s&spam=%s">Delete</a>',
                     htmlspecialchars(addslashes(Get::get('page'))),
                     'delete',
                     $wc_spam_order->id
@@ -95,6 +96,7 @@ class WcSpamOrdersListTable extends CleantalkListTable
             $customer_details_column = $this->renderCustomerDetailsColumn($wc_spam_order->customer_details);
 
             $this->items[] = array(
+                'cb'                  => $wc_spam_order->order_id,
                 'ct_order_id'         => $order_id_column,
                 'ct_order_details'    => $order_details_column,
                 'ct_customer_details' => $customer_details_column,
@@ -112,6 +114,39 @@ class WcSpamOrdersListTable extends CleantalkListTable
         );
 
         return $columns;
+    }
+
+    public function get_bulk_actions() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+    {
+        return array(
+            'delete'       => esc_html__('Delete', 'cleantalk-spam-protect')
+        );
+    }
+
+    public function bulk_actions_handler() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+    {
+        if ( empty(Post::get('spamorderids')) || empty(Post::get('_wpnonce')) ) {
+            return;
+        }
+
+        if ( ! $action = $this->current_action() ) {
+            return;
+        }
+
+        if ( ! wp_verify_nonce(Post::get('_wpnonce'), 'bulk-' . $this->_args['plural']) ) {
+            wp_die('nonce error');
+        }
+
+        $spam_ids = Post::get('spamorderids');
+
+        if ( 'delete' === $action ) {
+            $this->deleteFromDb($spam_ids);
+        }
+    }
+
+    public function column_cb($item) // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+    {
+        echo '<input type="checkbox" name="spamorderids[]" id="cb-select-' . $item['cb'] . '" value="' . $item['cb'] . '" />';
     }
 
     public function column_default($item, $column_name) // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
@@ -285,5 +320,21 @@ class WcSpamOrdersListTable extends CleantalkListTable
                 these orders are spam.</p>
         </div>
         <?php
+    }
+
+    private function deleteFromDb($spam_ids)
+    {
+        global $wpdb;
+
+        $spam_ids = array_map(function ($value) {
+            return "'" . sanitize_text_field($value) . "'";
+        }, $spam_ids);
+        $spam_ids = implode(',', $spam_ids);
+
+        $wpdb->query("DELETE FROM "
+            . APBCT_TBL_WC_SPAM_ORDERS
+            . " WHERE order_id IN ("
+            . $spam_ids
+            . ");");
     }
 }
