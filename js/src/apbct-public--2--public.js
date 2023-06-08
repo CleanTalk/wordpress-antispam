@@ -562,27 +562,34 @@ if (ctPublic.data__key_is_ok) {
 function ctSearchFormOnSubmitHandler(e, _form) {
     try {
         // set NoCookie data if is provided
-        const noCookie = _form.querySelector('[name="ct_no_cookie_hidden_field"]');
+        const noCookieField = _form.querySelector('[name="ct_no_cookie_hidden_field"]');
         // set honeypot data if is provided
-        const hpData = _form.querySelector('[id*="apbct__email_id__"]');
+        const honeyPotField = _form.querySelector('[id*="apbct__email_id__"]');
+        const botDetectorField = _form.querySelector('[id*="ct_bot_detector_event_token"]');
         let hpValue = null;
         let hpEventId = null;
 
         // get honeypot field and it's value
         if (
-            hpData !== null &&
-            hpData.value !== null &&
-            hpData.getAttribute('apbct_event_id') !== null
+            honeyPotField !== null &&
+            honeyPotField.value !== null &&
+            honeyPotField.getAttribute('apbct_event_id') !== null
         ) {
-            hpValue = hpData.value;
-            hpEventId = hpData.getAttribute('apbct_event_id');
+            hpValue = honeyPotField.value;
+            hpEventId = honeyPotField.getAttribute('apbct_event_id');
         }
 
         // if noCookie data or honeypot data is set, proceed handling
-        if ( noCookie !== null || hpData !== null) {
+        if ( noCookieField !== null || honeyPotField !== null) {
             e.preventDefault();
             const callBack = () => {
-                hpData.parentNode.removeChild(hpData);
+                if (honeyPotField !== null) {
+                    honeyPotField.parentNode.removeChild(honeyPotField);
+                }
+                // ct_bot_detector_event_token
+                if (botDetectorField !== null) {
+                    botDetectorField.parentNode.removeChild(botDetectorField);
+                }
                 if (_form.apbctSearchPrevOnsubmit instanceof Function) {
                     _form.apbctSearchPrevOnsubmit();
                 } else {
@@ -593,8 +600,8 @@ function ctSearchFormOnSubmitHandler(e, _form) {
             let parsedCookies = '{}';
 
             // if noCookie data provided trim prefix and add data from base64 decoded value then
-            if (noCookie !== null) {
-                parsedCookies = atob(noCookie.value.replace('_ct_no_cookie_data_', ''));
+            if (noCookieField !== null) {
+                parsedCookies = atob(noCookieField.value.replace('_ct_no_cookie_data_', ''));
             }
 
             // if honeypot data provided add the fields to the parsed data
