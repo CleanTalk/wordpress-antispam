@@ -96,7 +96,7 @@ class WcSpamOrdersListTable extends CleantalkListTable
             $customer_details_column = $this->renderCustomerDetailsColumn($wc_spam_order->customer_details);
 
             $this->items[] = array(
-                'cb'                  => $wc_spam_order->order_id,
+                'cb'                  => $wc_spam_order->id,
                 'ct_order_id'         => $order_id_column,
                 'ct_order_details'    => $order_details_column,
                 'ct_customer_details' => $customer_details_column,
@@ -326,14 +326,11 @@ class WcSpamOrdersListTable extends CleantalkListTable
     {
         global $wpdb;
 
-        $spam_ids = array_map(function ($value) {
-            return "'" . sanitize_text_field($value) . "'";
-        }, $spam_ids);
         $spam_ids = implode(',', $spam_ids);
 
         $wpdb->query("DELETE FROM "
             . APBCT_TBL_WC_SPAM_ORDERS
-            . " WHERE order_id IN ("
+            . " WHERE id IN ("
             . $spam_ids
             . ");");
     }
