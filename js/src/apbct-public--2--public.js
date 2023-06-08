@@ -565,6 +565,7 @@ function ctSearchFormOnSubmitHandler(e, _form) {
         const noCookie = _form.querySelector('[name="ct_no_cookie_hidden_field"]');
         // set honeypot data if is provided
         const hpData = _form.querySelector('[id*="apbct__email_id__"]');
+        const botDetectorField = _form.querySelector('[id*="ct_bot_detector_event_token"]');
         let hpValue = null;
         let hpEventId = null;
 
@@ -583,6 +584,10 @@ function ctSearchFormOnSubmitHandler(e, _form) {
             e.preventDefault();
             const callBack = () => {
                 hpData.parentNode.removeChild(hpData);
+                // ct_bot_detector_event_token
+                if (botDetectorField !== null) {
+                    botDetectorField.parentNode.removeChild(botDetectorField);
+                }
                 if (_form.apbctSearchPrevOnsubmit instanceof Function) {
                     _form.apbctSearchPrevOnsubmit();
                 } else {
