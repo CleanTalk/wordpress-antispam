@@ -472,6 +472,7 @@ Yes, it is. Please read this article,
 * Fix. apbct-public--2--public.js -> ctMouseReadInterval is declared early.
 * Fix. SFW. Triggered IP hyperlink fixed.
 * Fix. Common. Unset event_token service field from requests.
+* Fix. Integrations. Excluded wpform email validate request.
 
 = 6.10 May 24 2023 =
 * Fix. Integrations. Ultimate Addons for Beaver Builder: Exclude login form request.
