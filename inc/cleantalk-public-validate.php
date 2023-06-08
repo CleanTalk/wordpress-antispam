@@ -427,6 +427,11 @@ function apbct__filter_form_data($form_data)
         unset($form_data['apbct_visible_fields']);
     }
 
+    // It is a service field. Need to be deleted before the processing.
+    if ( isset($form_data['ct_bot_detector_event_token']) ) {
+        unset($form_data['ct_bot_detector_event_token']);
+    }
+
     //clear no_cookie hidden field if still persists in message
     //todo needs to adapt apbct_check_post_for_no_cookie_data and apbct_filter_post_no_cookie_data to handle this
     if ( isset($form_data['ct_no_cookie_hidden_field']) ) {
