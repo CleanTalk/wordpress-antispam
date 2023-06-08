@@ -616,7 +616,7 @@ class ApbctCore {
  * @param {string} url
  */
 function ctProcessError(msg, url) {
-    var log = {};
+    let log = {};
     if (msg && msg.message) {
         log.err = {
             'msg': msg.message,
@@ -1051,9 +1051,9 @@ function ctSetCookie( cookies, value, expires ) {
         'apbct_email_encoder_passed',
     ];
 
+    const skipAlt = cookies === 'string' && cookies === 'ct_pointer_data';
+
     if ( typeof cookies === 'string' && typeof value === 'string' || typeof value === 'number') {
-        // eslint-disable-next-line no-unused-vars
-        var skipAlt = cookies === 'ct_pointer_data';
         cookies = [[cookies, value, expires]];
     }
 
@@ -1086,20 +1086,23 @@ function ctSetCookie( cookies, value, expires ) {
         // Using traditional cookies
     } else if ( ctPublicFunctions.data__cookies_type === 'native' ) {
         cookies.forEach( function(item) {
-            var expires = typeof item[2] !== 'undefined' ? 'expires=' + expires + '; ' : '';
-            var ctSecure = location.protocol === 'https:' ? '; secure' : '';
+            const _expires = typeof item[2] !== 'undefined' ? 'expires=' + expires + '; ' : '';
+            let ctSecure = location.protocol === 'https:' ? '; secure' : '';
             document.cookie = ctPublicFunctions.cookiePrefix +
                 item[0] +
                 '=' +
                 encodeURIComponent(item[1]) +
                 '; ' +
-                expires +
+                _expires +
                 'path=/; samesite=lax' +
                 ctSecure;
         });
 
         // Using alternative cookies
-    } else if ( ctPublicFunctions.data__cookies_type === 'alternative' && typeof skipAlt === 'undefined' || ! skipAlt ) {
+    } else if (
+        ctPublicFunctions.data__cookies_type === 'alternative' &&
+        typeof skipAlt === 'undefined' || ! skipAlt
+    ) {
         ctSetAlternativeCookie(cookies);
     }
 }
@@ -1172,7 +1175,7 @@ function ctSetAlternativeCookie(cookies, params) {
  */
 // eslint-disable-next-line require-jsdoc,no-unused-vars
 function ctGetCookie(name) {
-    var matches = document.cookie.match(new RegExp(
+    let matches = document.cookie.match(new RegExp(
         '(?:^|; )' + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + '=([^;]*)',
     ));
     return matches ? decodeURIComponent(matches[1]) : undefined;
@@ -1186,7 +1189,7 @@ function ctDeleteCookie(cookieName) {
 
     // Using traditional cookies
     } else if ( ctPublicFunctions.data__cookies_type === 'native' ) {
-        var ctSecure = location.protocol === 'https:' ? '; secure' : '';
+        let ctSecure = location.protocol === 'https:' ? '; secure' : '';
         document.cookie = cookieName + '=""; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; samesite=lax' + ctSecure;
 
     // Using alternative cookies
@@ -1345,12 +1348,14 @@ let apbctSessionStorage = {
 };
 
 // eslint-disable-next-line camelcase
-var ct_date = new Date();
-var ctTimeMs = new Date().getTime();
-var ctMouseEventTimerFlag = true; // Reading interval flag
-var ctMouseData = [];
-var ctMouseDataCounter = 0;
-var ctCheckedEmails = {};
+const ctDate = new Date();
+const ctTimeMs = new Date().getTime();
+let ctMouseEventTimerFlag = true; // Reading interval flag
+let ctMouseData = [];
+let ctMouseDataCounter = 0;
+let ctCheckedEmails = {};
+let ctMouseReadInterval;
+let ctMouseWriteDataInterval;
 
 // eslint-disable-next-line require-jsdoc,camelcase
 function apbct_attach_event_handler(elem, event, callback) {
@@ -1364,28 +1369,26 @@ function apbct_remove_event_handler(elem, event, callback) {
 }
 
 // Writing first key press timestamp
-var ctFunctionFirstKey = function output(event) {
-    var KeyTimestamp = Math.floor(new Date().getTime()/1000);
+const ctFunctionFirstKey = function output(event) {
+    let KeyTimestamp = Math.floor(new Date().getTime() / 1000);
     ctSetCookie('ct_fkp_timestamp', KeyTimestamp);
     ctKeyStopStopListening();
 };
 
 if (ctPublic.data__key_is_ok) {
     // Reading interval
-    // eslint-disable-next-line no-unused-vars
-    var ctMouseReadInterval = setInterval(function() {
+    ctMouseReadInterval = setInterval(function() {
         ctMouseEventTimerFlag = true;
     }, 150);
 
     // Writting interval
-    // eslint-disable-next-line no-unused-vars
-    var ctMouseWriteDataInterval = setInterval(function() {
+    ctMouseWriteDataInterval = setInterval(function() {
         ctSetCookie('ct_pointer_data', JSON.stringify(ctMouseData));
     }, 1200);
 }
 
 // Logging mouse position each 150 ms
-var ctFunctionMouseMove = function output(event) {
+const ctFunctionMouseMove = function output(event) {
     ctSetMouseMoved();
     if (ctMouseEventTimerFlag === true) {
         ctMouseData.push([
@@ -1423,7 +1426,7 @@ function ctKeyStopStopListening() {
  * @param {mixed} e
  */
 function checkEmail(e) {
-    var currentEmail = e.target.value;
+    let currentEmail = e.target.value;
     if (currentEmail && !(currentEmail in ctCheckedEmails)) {
         // Using REST API handler
         if ( ctPublicFunctions.data__ajax_type === 'rest' ) {
@@ -1680,6 +1683,12 @@ if (ctPublic.data__key_is_ok) {
  */
 // eslint-disable-next-line camelcase,require-jsdoc
 function apbct_ready() {
+    if (typeof jQuery !== 'undefined') {
+        jQuery(document).on('gform_page_loaded', function() {
+            apbct_ready();
+        });
+    }
+
     ctPreloadLocalStorage();
 
     // set session ID
@@ -1717,7 +1726,7 @@ function apbct_ready() {
         ['ct_fkp_timestamp', '0'],
         ['ct_pointer_data', '0'],
         // eslint-disable-next-line camelcase
-        ['ct_timezone', ct_date.getTimezoneOffset()/60*(-1)],
+        ['ct_timezone', ctDate.getTimezoneOffset()/60*(-1)],
         ['ct_screen_info', apbctGetScreenInfo()],
         ['apbct_headless', navigator.webdriver],
     ];
@@ -1726,7 +1735,7 @@ function apbct_ready() {
     apbctLocalStorage.set('ct_fkp_timestamp', '0');
     apbctLocalStorage.set('ct_pointer_data', '0');
     // eslint-disable-next-line camelcase
-    apbctLocalStorage.set('ct_timezone', ct_date.getTimezoneOffset()/60*(-1) );
+    apbctLocalStorage.set('ct_timezone', ctDate.getTimezoneOffset()/60*(-1) );
     apbctLocalStorage.set('ct_screen_info', apbctGetScreenInfo());
     apbctLocalStorage.set('apbct_headless', navigator.webdriver);
 
@@ -1734,11 +1743,11 @@ function apbct_ready() {
         initCookies.push(['apbct_visible_fields', '0']);
     } else {
         // Delete all visible fields cookies on load the page
-        var cookiesArray = document.cookie.split(';');
+        let cookiesArray = document.cookie.split(';');
         if ( cookiesArray.length !== 0 ) {
             for ( let i = 0; i < cookiesArray.length; i++ ) {
-                var currentCookie = cookiesArray[i].trim();
-                var cookieName = currentCookie.split('=')[0];
+                let currentCookie = cookiesArray[i].trim();
+                let cookieName = currentCookie.split('=')[0];
                 if ( cookieName.indexOf('apbct_visible_fields_') === 0 ) {
                     ctDeleteCookie(cookieName);
                 }
@@ -1779,7 +1788,7 @@ function apbct_ready() {
         }
 
         for (let i = 0; i < document.forms.length; i++) {
-            var form = document.forms[i];
+            let form = document.forms[i];
 
             // Exclusion for forms
             if (
@@ -1807,16 +1816,17 @@ function apbct_ready() {
                     form.action.toString().indexOf('actionType=update') !== -1) || // Optima Express update
                 (form.id && form.id === 'ihf-main-search-form') || // Optima Express search
                 (form.id && form.id === 'frmCalc') || // nobletitle-calc
-                form.action.toString().indexOf('property-organizer-delete-saved-search-submit') !== -1
+                form.action.toString().indexOf('property-organizer-delete-saved-search-submit') !== -1 ||
+                form.querySelector('a[name="login"]') !== null // digimember login form
             ) {
                 continue;
             }
 
-            var hiddenInput = document.createElement( 'input' );
+            let hiddenInput = document.createElement( 'input' );
             hiddenInput.setAttribute( 'type', 'hidden' );
             hiddenInput.setAttribute( 'id', 'apbct_visible_fields_' + i );
             hiddenInput.setAttribute( 'name', 'apbct_visible_fields');
-            var visibleFieldsToInput = {};
+            let visibleFieldsToInput = {};
             visibleFieldsToInput[0] = apbct_collect_visible_fields(form);
             hiddenInput.value = btoa(JSON.stringify(visibleFieldsToInput));
             form.append( hiddenInput );
@@ -1829,6 +1839,17 @@ function apbct_ready() {
                     const visibleFields = {};
                     visibleFields[0] = apbct_collect_visible_fields(this);
                     apbct_visible_fields_set_cookie( visibleFields, event.target.ctFormIndex );
+                }
+
+                if (ctPublic.data__cookies_type === 'none' && isFormThatNeedCatchXhr(event.target)) {
+                    window.XMLHttpRequest.prototype.send = function(data) {
+                        let noCookieData = getNoCookieData();
+                        noCookieData = 'data%5Bct_no_cookie_hidden_field%5D=' + noCookieData + '&';
+                        defaultSend.call(this, noCookieData + data);
+                        setTimeout(() => {
+                            window.XMLHttpRequest.prototype.send = defaultSend;
+                        }, 0);
+                    };
                 }
 
                 // Call previous submit action
@@ -1862,7 +1883,6 @@ function apbct_ready() {
         if (
             typeof ctPublic !== 'undefined' &&
             ctPublic.settings__forms__search_test === '1' &&
-            ctPublic.data__cookies_type === 'none' &&
             (
                 _form.getAttribute('id') === 'searchform' ||
                 (_form.getAttribute('class') !== null && _form.getAttribute('class').indexOf('search-form') !== -1) ||
@@ -1870,38 +1890,82 @@ function apbct_ready() {
             )
         ) {
             _form.apbctSearchPrevOnsubmit = _form.onsubmit;
-            _form.onsubmit = (e) => {
-                const noCookie = _form.querySelector('[name="ct_no_cookie_hidden_field"]');
-                if ( noCookie !== null ) {
-                    e.preventDefault();
-                    const callBack = () => {
-                        if (_form.apbctSearchPrevOnsubmit instanceof Function) {
-                            _form.apbctSearchPrevOnsubmit();
-                        } else {
-                            HTMLFormElement.prototype.submit.call(_form);
-                        }
-                    };
-
-                    const parsedCookies = atob(noCookie.value.replace('_ct_no_cookie_data_', ''));
-
-                    if ( parsedCookies.length !== 0 ) {
-                        ctSetAlternativeCookie(
-                            parsedCookies,
-                            {callback: callBack, onErrorCallback: callBack, forceAltCookies: true},
-                        );
-                    } else {
-                        callBack();
-                    }
-                }
-            };
+            // this handles search forms onsubmit process
+            _form.onsubmit = (e) => ctSearchFormOnSubmitHandler(e, _form);
         }
     }
 }
+
 if (ctPublic.data__key_is_ok) {
     if (document.readyState !== 'loading') {
         apbct_ready();
     } else {
         apbct_attach_event_handler(document, 'DOMContentLoaded', apbct_ready);
+    }
+}
+
+/**
+ * @param {SubmitEvent} e
+ * @param {*} _form
+ */
+function ctSearchFormOnSubmitHandler(e, _form) {
+    try {
+        // set NoCookie data if is provided
+        const noCookie = _form.querySelector('[name="ct_no_cookie_hidden_field"]');
+        // set honeypot data if is provided
+        const hpData = _form.querySelector('[id*="apbct__email_id__"]');
+        let hpValue = null;
+        let hpEventId = null;
+
+        // get honeypot field and it's value
+        if (
+            hpData !== null &&
+            hpData.value !== null &&
+            hpData.getAttribute('apbct_event_id') !== null
+        ) {
+            hpValue = hpData.value;
+            hpEventId = hpData.getAttribute('apbct_event_id');
+        }
+
+        // if noCookie data or honeypot data is set, proceed handling
+        if ( noCookie !== null || hpData !== null) {
+            e.preventDefault();
+            const callBack = () => {
+                hpData.parentNode.removeChild(hpData);
+                if (_form.apbctSearchPrevOnsubmit instanceof Function) {
+                    _form.apbctSearchPrevOnsubmit();
+                } else {
+                    HTMLFormElement.prototype.submit.call(_form);
+                }
+            };
+
+            let parsedCookies = '{}';
+
+            // if noCookie data provided trim prefix and add data from base64 decoded value then
+            if (noCookie !== null) {
+                parsedCookies = atob(noCookie.value.replace('_ct_no_cookie_data_', ''));
+            }
+
+            // if honeypot data provided add the fields to the parsed data
+            if ( hpValue !== null && hpEventId !== null ) {
+                const cookiesArray = JSON.parse(parsedCookies);
+                cookiesArray.apbct_search_form__honeypot_value = hpValue;
+                cookiesArray.apbct_search_form__honeypot_id = hpEventId;
+                parsedCookies = JSON.stringify(cookiesArray);
+            }
+
+            // if any data provided, proceed data to xhr
+            if ( parsedCookies.length !== 0 ) {
+                ctSetAlternativeCookie(
+                    parsedCookies,
+                    {callback: callBack, onErrorCallback: callBack, forceAltCookies: true},
+                );
+            } else {
+                callBack();
+            }
+        }
+    } catch (error) {
+        console.warn('APBCT search form onsubmit handler error. ' + error);
     }
 }
 
@@ -2347,7 +2411,6 @@ if (typeof jQuery !== 'undefined') {
     jQuery(document).ajaxComplete(function(event, xhr, settings) {
         if (xhr.responseText && xhr.responseText.indexOf('"apbct') !== -1) {
             try {
-                // eslint-disable-next-line no-unused-vars
                 ctParseBlockMessage(JSON.parse(xhr.responseText));
             } catch (e) {
                 console.log(e.toString());
@@ -2448,7 +2511,7 @@ function ctNoCookieAttachHiddenFieldsToForms() {
             }
 
             if ( ctNoCookieFormIsExcludedFromNcField(document.forms[i]) ) {
-                return;
+                continue;
             }
 
             // ignore forms with get method @todo We need to think about this
@@ -2480,10 +2543,8 @@ const defaultSend = XMLHttpRequest.prototype.send;
 
 if (document.readyState !== 'loading') {
     checkFormsExistForCatching();
-    checkFormsExistForCatchingXhr();
 } else {
     apbct_attach_event_handler(document, 'DOMContentLoaded', checkFormsExistForCatching);
-    apbct_attach_event_handler(document, 'DOMContentLoaded', checkFormsExistForCatchingXhr);
 }
 
 /**
@@ -2492,20 +2553,20 @@ if (document.readyState !== 'loading') {
 function checkFormsExistForCatching() {
     setTimeout(function() {
         if (isFormThatNeedCatch()) {
-            window.fetch = function() {
-                if (arguments &&
-                    arguments[0] &&
-                    typeof arguments[0].includes === 'function' &&
-                    arguments[0].includes('/wp-json/metform/')
+            window.fetch = function(...args) {
+                if (args &&
+                    args[0] &&
+                    typeof args[0].includes === 'function' &&
+                    args[0].includes('/wp-json/metform/')
                 ) {
                     let noCookieData = getNoCookieData();
 
-                    if (arguments && arguments[1] && arguments[1].body) {
-                        arguments[1].body.append('ct_no_cookie_hidden_field', noCookieData);
+                    if (args && args[1] && args[1].body) {
+                        args[1].body.append('ct_no_cookie_hidden_field', noCookieData);
                     }
                 }
 
-                return defaultFetch.apply(window, arguments);
+                return defaultFetch.apply(window, args);
             };
         }
     }, 1000);
@@ -2533,26 +2594,14 @@ function isFormThatNeedCatch() {
 }
 
 /**
- * checkFormsExistForCatchingXhr
- */
-function checkFormsExistForCatchingXhr() {
-    setTimeout(function() {
-        if (isFormThatNeedCatchXhr()) {
-            window.XMLHttpRequest.prototype.send = function(data) {
-                let noCookieData = getNoCookieData();
-                noCookieData = 'data%5Bct_no_cookie_hidden_field%5D=' + noCookieData + '&';
-
-                defaultSend.call(this, noCookieData + data);
-            };
-        }
-    }, 1000);
-}
-
-/**
+ * @param {HTMLElement} form
  * @return {boolean}
  */
-function isFormThatNeedCatchXhr() {
+function isFormThatNeedCatchXhr(form) {
     if (document.querySelector('div.elementor-widget[title=\'Login/Signup\']') != null) {
+        return false;
+    }
+    if (form && form.action && form.action.toString().indexOf('mailpoet_subscription_form') !== -1) {
         return true;
     }
 
@@ -2714,10 +2763,10 @@ let cleantalkModal = {
         close.setAttribute( 'id', 'cleantalk-modal-close' );
         inner.append( close );
 
-        var content = document.createElement( 'div' );
+        let content = document.createElement( 'div' );
         if ( this.loaded ) {
-            var urlRegex = /(https?:\/\/[^\s]+)/g;
-            var serviceContentRegex = /.*\/inc/g;
+            const urlRegex = /(https?:\/\/[^\s]+)/g;
+            const serviceContentRegex = /.*\/inc/g;
             if (serviceContentRegex.test(this.loaded)) {
                 content.innerHTML = this.loaded;
             } else {
@@ -2964,12 +3013,8 @@ function apbctProcessExternalForm(currentForm, iterator, documentObject) {
             });
         }
     } else {
-        documentObject.forms[iterator].onsubmit = function( event ) {
+        documentObject.forms[iterator].onsubmit = function(event) {
             event.preventDefault();
-
-            const prev = apbct_prev(event.currentTarget);
-            const form_original = event.currentTarget.cloneNode(true);
-
             sendAjaxCheckingFormData(event.currentTarget);
         };
     }
@@ -3046,7 +3091,7 @@ function isIntegratedForm(formObj) {
  * @param {HTMLElement} prev
  * @param {HTMLElement} formOriginal
  */
-function sendAjaxCheckingFormData(form, prev, formOriginal) {
+function sendAjaxCheckingFormData(form) {
     // Get visible fields and set cookie
     const visibleFields = {};
     visibleFields[0] = apbct_collect_visible_fields(form);
