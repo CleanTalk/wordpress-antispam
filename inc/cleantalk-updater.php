@@ -927,15 +927,15 @@ function apbct_update_to_5_160_4()
     $apbct->settings['sfw__random_get'] = '1';
     $apbct->saveSettings();
 
-    apbct_remove_upd_folder(APBCT_DIR_PATH . '/fw_files');
+    apbct_sfw_update__remove_upd_folder(APBCT_DIR_PATH . '/fw_files');
 
     if ($apbct->is_multisite) {
         $apbct->network_settings = array_merge((array)$apbct->network_settings, $apbct->default_network_settings);
         $apbct->save('network_settings');
     }
 
-    apbct_remove_upd_folder(ABSPATH . '/wp-admin/fw_files');
-    apbct_remove_upd_folder(Server::get('DOCUMENT_ROOT') . '/fw_files');
+    apbct_sfw_update__remove_upd_folder(ABSPATH . '/wp-admin/fw_files');
+    apbct_sfw_update__remove_upd_folder(Server::get('DOCUMENT_ROOT') . '/fw_files');
     $file_path = Server::get('DOCUMENT_ROOT') . '/fw_filesindex.php';
     if (is_file($file_path) && is_writable($file_path)) {
         unlink($file_path);
