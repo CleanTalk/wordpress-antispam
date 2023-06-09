@@ -636,7 +636,6 @@ if ( ! is_admin() && ! apbct_is_ajax() && ! apbct_is_customize_preview() ) {
          ! apbct_is_cli()
     ) {
         wp_suspend_cache_addition(true);
-        error_log('CTDEBUG: [' . __FUNCTION__ . '] [apbct_sfw__check]: ' . var_export(1,true));
         apbct_sfw__check();
         wp_suspend_cache_addition(false);
     }
@@ -933,8 +932,6 @@ function apbct_sfw__check()
 
     $common_table_name = SFW::getSFWCommonTableName();
 
-    error_log('CTDEBUG: [' . __FUNCTION__ . '] [$common_table_name]: ' . var_export($common_table_name,true));
-
     if (!$common_table_name) {
         $apbct->errorAdd(
             'sfw',
@@ -1088,8 +1085,6 @@ function apbct_sfw_update__init($delay = 0)
 {
     global $apbct;
 
-    error_log('CTDEBUG: [' . __FUNCTION__ . '] [START]: ' . var_export(1,true));
-
     // Prevent start an update if update is already running and started less than 10 minutes ago
     if (
         $apbct->fw_stats['firewall_updating_id'] &&
@@ -1156,7 +1151,6 @@ function apbct_sfw_update__init($delay = 0)
     $queue = new \Cleantalk\ApbctWP\Queue();
     //this is the first stage, select what type of SFW load need
     $load_type = isset($apbct->data['sfw_load_type']) ? $apbct->data['sfw_load_type'] : 'all';
-    error_log('CTDEBUG: [' . __FUNCTION__ . '] [$load_type]: ' . var_export($load_type,true));
     if ( $load_type === 'all' ) {
         $queue->addStage('apbct_sfw_update__get_multifiles_all');
     } else {
@@ -1314,8 +1308,6 @@ function apbct_sfw_update__get_multifiles_all()
 {
     global $apbct;
 
-    error_log('CTDEBUG: [' . __FUNCTION__ . '] [START]: ' . var_export(1, true));
-
     if ( ! $apbct->data['key_is_ok'] ) {
         return array('error' => 'Get multifiles: KEY_IS_NOT_VALID');
     }
@@ -1337,8 +1329,6 @@ function apbct_sfw_update__get_multifiles_all()
     }
 
     if ( empty($output_error) ) {
-        error_log('CTDEBUG: [' . __FUNCTION__ . '] [$file_urls]: ' . var_export($file_urls, true));
-
         $apbct->fw_stats['firewall_update_percent'] = round(100 / count($file_urls), 2);
         $apbct->save('fw_stats');
 
@@ -1362,9 +1352,6 @@ function apbct_sfw_update__get_multifiles_all()
 function apbct_sfw_update__get_multifiles_of_type(array $params)
 {
     global $apbct;
-    error_log('CTDEBUG: [' . __FUNCTION__ . '] [$params]: ' . var_export($params, true));
-
-
     //check key
     if ( ! $apbct->data['key_is_ok'] ) {
         return array('error' => 'Get multifiles: KEY_IS_NOT_VALID');
@@ -1376,15 +1363,11 @@ function apbct_sfw_update__get_multifiles_of_type(array $params)
     } else {
         $type = $params['type'];
     }
-    error_log('CTDEBUG: [' . __FUNCTION__ . '] [$type]: ' . var_export($type,true));
-
     //check needs return urls instead of next stage
     $do_return_urls = false;
     if ( isset($params['do_return_urls']) ) {
         $do_return_urls = $params['do_return_urls'];
     }
-
-    error_log('CTDEBUG: [' . __FUNCTION__ . '] [$do_return_urls]: ' . var_export($do_return_urls,true));
 
     $output_error = array();
     // getting urls
@@ -1399,15 +1382,12 @@ function apbct_sfw_update__get_multifiles_of_type(array $params)
         $output_error[] = $e->getMessage();
     }
 
-    error_log('CTDEBUG: [' . __FUNCTION__ . '] [$direction_files_urls: ' . var_export($direction_files['files_urls'], true));
-
     if ( empty($output_error) ) {
         if ( !empty($direction_files['files_urls']) ) {
             $urls = array();
             foreach ( $direction_files['files_urls'] as $value ) {
                 $urls[] = $value[0];
             }
-            error_log('CTDEBUG: [' . __FUNCTION__ . '] [$urls]: ' . var_export($urls, true));
 
             $apbct->fw_stats['firewall_update_percent'] = round(100 / count($urls), 2);
             $apbct->save('fw_stats');
@@ -1440,8 +1420,6 @@ function apbct_sfw_update__get_multifiles_of_type(array $params)
 function apbct_sfw_update__download_files($urls)
 {
     global $apbct;
-    error_log('CTDEBUG: [' . __FUNCTION__ . '] [START]: ' . var_export(1, true));
-
     sleep(3);
 
     //Reset keys
@@ -1488,8 +1466,6 @@ function apbct_sfw_update__download_files($urls)
  */
 function apbct_sfw_update__create_tables()
 {
-    error_log('CTDEBUG: [' . __FUNCTION__ . '] [START]: ' . var_export(1, true));
-
     global $apbct;
     // Preparing database infrastructure
     // Creating SFW tables to make sure that they are exists
@@ -1530,7 +1506,6 @@ function apbct_sfw_update__create_tables()
 function apbct_sfw_update__create_temp_tables()
 {
     global $apbct;
-    error_log('CTDEBUG: [' . __FUNCTION__ . '] [START]: ' . var_export(1, true));
 
     if ( $apbct->data['sfw_load_type'] === 'all' ) {
         // Create common table
@@ -1570,8 +1545,6 @@ function apbct_sfw_update__create_temp_tables()
  */
 function apbct_sfw_update__process_files()
 {
-    error_log('CTDEBUG: [' . __FUNCTION__ . '] [START]: ' . var_export(1, true));
-
     global $apbct;
 
     // get list of files in the upd folder
@@ -1597,7 +1570,6 @@ function apbct_sfw_update__process_files()
             && strpos($concrete_file, $apbct->fw_stats['common_lists_url_id']) !== false ) {
             $direction = 'common';
         } else {
-            error_log('CTDEBUG: [' . __FUNCTION__ . '] [SFW_DIRECTION_FAILED]: ' . var_export(1, true));
             // no id found in fw_stats or file namse does not contain any of them
             return array('error' => 'SFW_DIRECTION_FAILED');
         }
@@ -1644,8 +1616,6 @@ function apbct_sfw_update__process_files()
  */
 function apbct_sfw_update__process_exclusions()
 {
-    error_log('CTDEBUG: [' . __FUNCTION__ . '] [START]: ' . var_export(1, true));
-
     global $apbct;
 
     $result = SFW::updateWriteToDbExclusions(
@@ -1683,8 +1653,6 @@ function apbct_sfw_update__process_exclusions()
  */
 function apbct_sfw_update__end_of_update__renaming_tables()
 {
-    error_log('CTDEBUG: [' . __FUNCTION__ . '] [START]: ' . var_export(1, true));
-
     global $apbct;
 
     $check = apbct_sfw_update__check_tables_integrity_before_renaming($apbct->data['sfw_load_type']);
@@ -1701,7 +1669,6 @@ function apbct_sfw_update__end_of_update__renaming_tables()
     try {
         apbct_sfw_update__remove_and_rename_sfw_tables($apbct->data['sfw_load_type']);
     } catch (\Exception $e) {
-        error_log('CTDEBUG: [' . __FUNCTION__ . '] [$e]: ' . var_export($e,true));
         $apbct->fw_stats['update_mode'] = 0;
         $apbct->save('fw_stats');
         return array('error' => $e->getMessage());
@@ -1724,8 +1691,6 @@ function apbct_sfw_update__end_of_update__renaming_tables()
  */
 function apbct_sfw_update__end_of_update__checking_data()
 {
-    error_log('CTDEBUG: [' . __FUNCTION__ . '] [START]: ' . var_export(1, true));
-
     global $apbct, $wpdb;
 
     try {
@@ -1737,8 +1702,6 @@ function apbct_sfw_update__end_of_update__checking_data()
     $apbct->stats['sfw']['entries'] = $wpdb->get_var('SELECT COUNT(*) FROM ' . SFW::getSFWCommonTableName());
     $apbct->stats['sfw']['entries_personal'] = $wpdb->get_var('SELECT COUNT(*) FROM ' . APBCT_TBL_FIREWALL_DATA_PERSONAL);
     $apbct->save('stats');
-
-    error_log('CTDEBUG: [' . __FUNCTION__ . '] [START]: ' . var_export(2, true));
 
     /**
      * Checking the integrity of the sfw database update
@@ -1782,8 +1745,6 @@ function apbct_sfw_update__end_of_update__checking_data()
  */
 function apbct_sfw_update__end_of_update__updating_stats($is_direct_update = false)
 {
-    error_log('CTDEBUG: [' . __FUNCTION__ . '] [START]: ' . var_export(1, true));
-
     global $apbct;
 
     $is_first_updating = ! $apbct->stats['sfw']['last_update_time'];
@@ -1807,8 +1768,6 @@ function apbct_sfw_update__end_of_update__updating_stats($is_direct_update = fal
  */
 function apbct_sfw_update__end_of_update($is_first_updating = false)
 {
-    error_log('CTDEBUG: [' . __FUNCTION__ . '] [START]: ' . var_export(1, true));
-
     global $apbct;
 
     // Delete update errors
@@ -1849,8 +1808,6 @@ function apbct_sfw_update__end_of_update($is_first_updating = false)
  */
 function apbct_sfw_update__process_file($file_path, $direction = 'common')
 {
-    error_log('CTDEBUG: [' . __FUNCTION__ . '] [START]: ' . var_export(1, true));
-
     if ( ! file_exists($file_path) ) {
         return array('error' => 'PROCESS FILE: ' . $file_path . ' is not exists.');
     }
@@ -1883,8 +1840,6 @@ function apbct_sfw_update__process_file($file_path, $direction = 'common')
  */
 function apbct_sfw_update__process_ua($file_path)
 {
-    error_log('CTDEBUG: [' . __FUNCTION__ . '] [START]: ' . var_export(1, true));
-
     $result = AntiCrawler::update($file_path);
 
     if ( ! empty($result['error']) ) {
@@ -1906,8 +1861,6 @@ function apbct_sfw_update__process_ua($file_path)
  */
 function apbct_sfw_update__process_ck($file_path, $direction = 'common')
 {
-    error_log('CTDEBUG: [' . __FUNCTION__ . '] [START]: ' . var_export(1, true));
-
     global $apbct;
 
     // Save expected_networks_count and expected_ua_count if exists
@@ -1965,7 +1918,6 @@ function apbct_sfw_update__process_ck($file_path, $direction = 'common')
 function apbct_sfw_update__get_direction_urls_of_type($type = 'common')
 {
     global $apbct;
-    error_log('CTDEBUG: [' . __FUNCTION__ . '] [START]: ' . var_export(1, true));
 
     $type_sign = $type === 'common' ? 1 : 0;
 

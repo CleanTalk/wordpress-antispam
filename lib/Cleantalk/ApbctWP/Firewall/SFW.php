@@ -175,8 +175,6 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
 				AND " . rand(1, 100000) . "  
 				ORDER BY status DESC, status)";
 
-            error_log('CTDEBUG: [' . __FUNCTION__ . '] [$query]: ' . var_export($query, true));
-
             $db_results = $this->db->fetchAll($query);
 
             $test_status = 99;
