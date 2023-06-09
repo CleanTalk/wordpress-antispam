@@ -2275,10 +2275,7 @@ function apbct_sfw_direct_update()
         /**
          * WRITE UPDATING STATS
          */
-        $update_stats_res = apbct_sfw_update__end_of_update__updating_stats(true);
-        if ( ! empty($update_stats_res['error']) ) {
-            return array('error' => 'DIRECT UPDATING BLACK LIST: ' . $update_stats_res['error']);
-        }
+        apbct_sfw_update__end_of_update__updating_stats(true);
 
         /**
          * END OF UPDATE

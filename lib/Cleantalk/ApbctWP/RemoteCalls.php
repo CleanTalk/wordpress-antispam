@@ -167,7 +167,7 @@ class RemoteCalls
     /**
      * SFW send logs
      *
-     * @return string
+     * @return array|bool|int[]|string[]
      */
     public static function action__sfw_send_logs() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
