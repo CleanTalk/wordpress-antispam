@@ -1816,7 +1816,8 @@ function apbct_ready() {
                     form.action.toString().indexOf('actionType=update') !== -1) || // Optima Express update
                 (form.id && form.id === 'ihf-main-search-form') || // Optima Express search
                 (form.id && form.id === 'frmCalc') || // nobletitle-calc
-                form.action.toString().indexOf('property-organizer-delete-saved-search-submit') !== -1
+                form.action.toString().indexOf('property-organizer-delete-saved-search-submit') !== -1 ||
+                form.querySelector('a[name="login"]') !== null // digimember login form
             ) {
                 continue;
             }
@@ -1838,6 +1839,17 @@ function apbct_ready() {
                     const visibleFields = {};
                     visibleFields[0] = apbct_collect_visible_fields(this);
                     apbct_visible_fields_set_cookie( visibleFields, event.target.ctFormIndex );
+                }
+
+                if (ctPublic.data__cookies_type === 'none' && isFormThatNeedCatchXhr(event.target)) {
+                    window.XMLHttpRequest.prototype.send = function(data) {
+                        let noCookieData = getNoCookieData();
+                        noCookieData = 'data%5Bct_no_cookie_hidden_field%5D=' + noCookieData + '&';
+                        defaultSend.call(this, noCookieData + data);
+                        setTimeout(() => {
+                            window.XMLHttpRequest.prototype.send = defaultSend;
+                        }, 0);
+                    };
                 }
 
                 // Call previous submit action
@@ -1871,7 +1883,6 @@ function apbct_ready() {
         if (
             typeof ctPublic !== 'undefined' &&
             ctPublic.settings__forms__search_test === '1' &&
-            ctPublic.data__cookies_type === 'none' &&
             (
                 _form.getAttribute('id') === 'searchform' ||
                 (_form.getAttribute('class') !== null && _form.getAttribute('class').indexOf('search-form') !== -1) ||
@@ -1879,38 +1890,89 @@ function apbct_ready() {
             )
         ) {
             _form.apbctSearchPrevOnsubmit = _form.onsubmit;
-            _form.onsubmit = (e) => {
-                const noCookie = _form.querySelector('[name="ct_no_cookie_hidden_field"]');
-                if ( noCookie !== null ) {
-                    e.preventDefault();
-                    const callBack = () => {
-                        if (_form.apbctSearchPrevOnsubmit instanceof Function) {
-                            _form.apbctSearchPrevOnsubmit();
-                        } else {
-                            HTMLFormElement.prototype.submit.call(_form);
-                        }
-                    };
-
-                    const parsedCookies = atob(noCookie.value.replace('_ct_no_cookie_data_', ''));
-
-                    if ( parsedCookies.length !== 0 ) {
-                        ctSetAlternativeCookie(
-                            parsedCookies,
-                            {callback: callBack, onErrorCallback: callBack, forceAltCookies: true},
-                        );
-                    } else {
-                        callBack();
-                    }
-                }
-            };
+            // this handles search forms onsubmit process
+            _form.onsubmit = (e) => ctSearchFormOnSubmitHandler(e, _form);
         }
     }
 }
+
 if (ctPublic.data__key_is_ok) {
     if (document.readyState !== 'loading') {
         apbct_ready();
     } else {
         apbct_attach_event_handler(document, 'DOMContentLoaded', apbct_ready);
+    }
+}
+
+/**
+ * @param {SubmitEvent} e
+ * @param {*} _form
+ */
+function ctSearchFormOnSubmitHandler(e, _form) {
+    try {
+        // set NoCookie data if is provided
+        const noCookieField = _form.querySelector('[name="ct_no_cookie_hidden_field"]');
+        // set honeypot data if is provided
+        const honeyPotField = _form.querySelector('[id*="apbct__email_id__"]');
+        const botDetectorField = _form.querySelector('[id*="ct_bot_detector_event_token"]');
+        let hpValue = null;
+        let hpEventId = null;
+
+        // get honeypot field and it's value
+        if (
+            honeyPotField !== null &&
+            honeyPotField.value !== null &&
+            honeyPotField.getAttribute('apbct_event_id') !== null
+        ) {
+            hpValue = honeyPotField.value;
+            hpEventId = honeyPotField.getAttribute('apbct_event_id');
+        }
+
+        // if noCookie data or honeypot data is set, proceed handling
+        if ( noCookieField !== null || honeyPotField !== null) {
+            e.preventDefault();
+            const callBack = () => {
+                if (honeyPotField !== null) {
+                    honeyPotField.parentNode.removeChild(honeyPotField);
+                }
+                // ct_bot_detector_event_token
+                if (botDetectorField !== null) {
+                    botDetectorField.parentNode.removeChild(botDetectorField);
+                }
+                if (_form.apbctSearchPrevOnsubmit instanceof Function) {
+                    _form.apbctSearchPrevOnsubmit();
+                } else {
+                    HTMLFormElement.prototype.submit.call(_form);
+                }
+            };
+
+            let parsedCookies = '{}';
+
+            // if noCookie data provided trim prefix and add data from base64 decoded value then
+            if (noCookieField !== null) {
+                parsedCookies = atob(noCookieField.value.replace('_ct_no_cookie_data_', ''));
+            }
+
+            // if honeypot data provided add the fields to the parsed data
+            if ( hpValue !== null && hpEventId !== null ) {
+                const cookiesArray = JSON.parse(parsedCookies);
+                cookiesArray.apbct_search_form__honeypot_value = hpValue;
+                cookiesArray.apbct_search_form__honeypot_id = hpEventId;
+                parsedCookies = JSON.stringify(cookiesArray);
+            }
+
+            // if any data provided, proceed data to xhr
+            if ( parsedCookies.length !== 0 ) {
+                ctSetAlternativeCookie(
+                    parsedCookies,
+                    {callback: callBack, onErrorCallback: callBack, forceAltCookies: true},
+                );
+            } else {
+                callBack();
+            }
+        }
+    } catch (error) {
+        console.warn('APBCT search form onsubmit handler error. ' + error);
     }
 }
 
@@ -2488,10 +2550,8 @@ const defaultSend = XMLHttpRequest.prototype.send;
 
 if (document.readyState !== 'loading') {
     checkFormsExistForCatching();
-    checkFormsExistForCatchingXhr();
 } else {
     apbct_attach_event_handler(document, 'DOMContentLoaded', checkFormsExistForCatching);
-    apbct_attach_event_handler(document, 'DOMContentLoaded', checkFormsExistForCatchingXhr);
 }
 
 /**
@@ -2541,27 +2601,15 @@ function isFormThatNeedCatch() {
 }
 
 /**
- * checkFormsExistForCatchingXhr
- */
-function checkFormsExistForCatchingXhr() {
-    setTimeout(function() {
-        if (isFormThatNeedCatchXhr()) {
-            window.XMLHttpRequest.prototype.send = function(data) {
-                let noCookieData = getNoCookieData();
-                noCookieData = 'data%5Bct_no_cookie_hidden_field%5D=' + noCookieData + '&';
-
-                defaultSend.call(this, noCookieData + data);
-            };
-        }
-    }, 1000);
-}
-
-/**
+ * @param {HTMLElement} form
  * @return {boolean}
  */
-function isFormThatNeedCatchXhr() {
+function isFormThatNeedCatchXhr(form) {
     if (document.querySelector('div.elementor-widget[title=\'Login/Signup\']') != null) {
         return false;
+    }
+    if (form && form.action && form.action.toString().indexOf('mailpoet_subscription_form') !== -1) {
+        return true;
     }
 
     return false;

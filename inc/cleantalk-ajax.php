@@ -408,7 +408,8 @@ function ct_ajax_hook($message_obj = null)
          (Post::get('action') === 'mailpoet' && Post::get('endpoint') === 'ImportExport' && Post::get('method') === 'processImport') || //Mailpoet import
          (Post::get('action') === 'latepoint_route_call' && Post::get('route_name') === 'steps__reload_booking_summary') || //LatePoint service calls
          (Post::get('action') === 'uael_login_form_submit') || // skip Ultimate Addons for Elementor login
-         (Post::get('action') === 'my_custom_login_validate') // skip Ultimate Addons for Elementor login validate
+         (Post::get('action') === 'my_custom_login_validate') || // skip Ultimate Addons for Elementor login validate
+         (Post::get('action') === 'wpforms_restricted_email') // skip WPForm validate
     ) {
         do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
 
@@ -544,6 +545,14 @@ function ct_ajax_hook($message_obj = null)
 
             for ($index = 0; $index < count($form_data); $index++) {
                 if (stripos($form_data[$index], 'apbct_visible_fields') === 0) {
+                    unset($form_data[$index]);
+                }
+                if (stripos($form_data[$index], 'ct_no_cookie_hidden_field') === 0) {
+                    if ($apbct->data['cookies_type'] === 'none') {
+                        \Cleantalk\ApbctWP\Variables\NoCookie::setDataFromHiddenField($form_data[$index]);
+                        $apbct->stats['no_cookie_data_taken'] = true;
+                        $apbct->save('stats');
+                    }
                     unset($form_data[$index]);
                 }
             }

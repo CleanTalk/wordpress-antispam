@@ -9,6 +9,7 @@ use Cleantalk\ApbctWP\Cron;
 use Cleantalk\ApbctWP\Firewall\SFW;
 use Cleantalk\ApbctWP\GetFieldsAny;
 use Cleantalk\ApbctWP\Helper;
+use Cleantalk\ApbctWP\Variables\AltSessions;
 use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\Common\DB;
 use Cleantalk\ApbctWP\Variables\Get;
@@ -184,6 +185,17 @@ function apbct_base_call($params = array(), $reg_flag = false)
         'sender_info' => $sender_info,
         'submit_time' => apbct_get_submit_time()
     );
+
+    // Enable event_token for several integrations ang users registrations
+    if (
+        ( isset($params['post_info']['comment_type']) && (
+            $params['post_info']['comment_type'] === 'contact_form_wordpress_visualformbuilder' ||
+            $params['post_info']['comment_type'] === 'contact_form_wordpress_cf7' )
+        ) ||
+        $reg_flag
+    ) {
+        $default_params['event_token'] = Post::get('ct_bot_detector_event_token');
+    }
 
     /**
      * Add exception_action sender email is empty
@@ -1411,62 +1423,61 @@ function apbct_need_to_process_unknown_post_request()
  */
 function apbct_get_honeypot_filled_fields()
 {
+    global $apbct;
+    $apbct_event_id = false;
+    $result = array();
+
     /**
      * POST forms
      */
+
+    $honeypot_potential_values = array();
+
     if ( ! empty($_POST) ) {
         //get field suffix for POST forms
         $apbct_event_id = Post::get('apbct_event_id');
-
         // collect probable sources
         $honeypot_potential_values = array(
             'wc_apbct_email_id' =>                  Post::get('wc_apbct_email_id_' . $apbct_event_id),
             'apbct__email_id__wp_register' =>       Post::get('apbct__email_id__wp_register_' . $apbct_event_id),
             'apbct__email_id__wp_contact_form_7' => Post::get('apbct__email_id__wp_contact_form_7_' . $apbct_event_id),
             'apbct__email_id__wp_wpforms' =>        Post::get('apbct__email_id__wp_wpforms_' . $apbct_event_id),
-            'apbct__email_id__search_form' =>       Post::get('apbct__email_id__search_form_' . $apbct_event_id),
             'apbct__email_id__gravity_form' =>      Post::get('apbct__email_id__gravity_form_' . $apbct_event_id)
         );
-    } elseif ( ! empty($_GET) ) {
-        /**
-         * GET forms
-         */
-        //get field suffix for GET search forms
-        $apbct_event_id = false;
-        foreach ( $_GET as $key => $value ) {
-            if ( strpos((string)$key, 'apbct_submit_id__search_form_') !== false ) {
-                $apbct_event_id = str_replace('apbct_submit_id__search_form_', '', (string)$key);
-            }
-        }
+    }
 
-        // collect probable sources
-        if ( $apbct_event_id ) {
-            $honeypot_potential_values['apbct__email_id__search_form'] = Get::get('apbct__email_id__search_form_' . $apbct_event_id);
+    //AltSessions way to collect search forms honeypot
+    if ( $apbct->settings['forms__search_test'] ) {
+        $alt_search_event_id = AltSessions::get("apbct_search_form__honeypot_id");
+        $alt_search_value = AltSessions::get("apbct_search_form__honeypot_value");
+        if ( $alt_search_event_id && $alt_search_value ) {
+            $honeypot_potential_values['apbct__email_id__search_form'] = $alt_search_value;
         }
-    } else {
-        $honeypot_potential_values = false;
     }
 
     /**
      * Handle potential values
      */
-    $result = array();
-    $post_has_a_honeypot_key = false;
+
     // if source is filled then pass them to params as additional fields
     if ( !empty($honeypot_potential_values) ) {
         foreach ( $honeypot_potential_values as $source_name => $source_value ) {
-            if ( $source_name ) {
-                $post_has_a_honeypot_key = true;
-            }
             if ( $source_value ) {
-                $result['field_value'] = $source_value;
-                $result['field_source'] = $source_name;
-                break;
+                // use the apbct_event_id from search if form is search form
+                $apbct_event_id = $source_name === 'apbct__email_id__search_form'
+                    ? $alt_search_event_id
+                    : $apbct_event_id;
+                // detect only values that is not equal to apbct_event_id
+                if ( $source_value !== $apbct_event_id ) {
+                    $result['field_value'] = $source_value;
+                    $result['field_source'] = $source_name;
+                    break;
+                }
             }
         }
     }
 
-    return $post_has_a_honeypot_key ? $result : false;
+    return empty($result) ? false : $result;
 }
 
 

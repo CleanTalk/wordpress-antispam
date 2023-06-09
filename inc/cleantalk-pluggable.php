@@ -943,6 +943,24 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'Plugin Name: Ultimate Addons for Beaver Builder: Exclude login form request';
         }
+
+        // Plugin Name: Digimember: Exclude login form request
+        if (
+            apbct_is_plugin_active('digimember/digimember.php') &&
+            Post::get('action') === 'ncore_ajax_action' &&
+            Post::get('ncore_plugin') === 'digimember'
+        ) {
+            return 'Plugin Name: Digimember: Exclude login form request';
+        }
+
+        // Exclude Authorize.net payment form request
+        if (
+            Post::get('action') === 'rm_authnet_ipn' &&
+            Post::get('x_invoice_num') !== '' &&
+            Post::get('x_amount') !== ''
+        ) {
+            return 'Exclude Authorize.net payment form request';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
@@ -1211,6 +1229,11 @@ function apbct__get_cookie_prefix()
         return preg_replace('/[^A-Za-z1-9_-]/', '', CLEANTALK_COOKIE_PREFIX);
     }
     return '';
+}
+
+function apbct__is_rest_api_request()
+{
+    return strpos($_SERVER['REQUEST_URI'], '/wp-json/') !== false;
 }
 
 function apbct__check_admin_ajax_request()
