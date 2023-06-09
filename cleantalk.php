@@ -619,7 +619,6 @@ add_action('mec_booking_end_form_step_2', function () {
 		}
     </script>";
 });
-error_log('CTDEBUG: [' . __FUNCTION__ . '] [Public actions]: ' . var_export(1,true));
 
 // Public actions
 if ( ! is_admin() && ! apbct_is_ajax() && ! apbct_is_customize_preview() ) {
@@ -2435,6 +2434,7 @@ function ct_sfw_send_logs($api_key = '')
 /**
  * Handle SFW private_records remote call.
  * @param $action
+ * @param null|string $test_data
  * @return string JSON string of results
  * @throws Exception
  */
