@@ -969,6 +969,14 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'Exclude ProfilePress login form request';
         }
+
+        // Exclude UserPro login form request
+        if (
+            apbct_is_plugin_active('userpro/index.php') &&
+            (Post::get('action') === 'userpro_fbconnect' || Post::get('action') === 'userpro_side_validate')
+        ) {
+            return 'Exclude UserPro login form request';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
