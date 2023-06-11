@@ -1143,7 +1143,10 @@ function ctGetPageForms() {
 function ctNoCookieFormIsExcludedFromNcField(form) {
     // ajax search pro exclusion
     let ncFieldExclusionsSign = form.parentNode;
-    if (ncFieldExclusionsSign && ncFieldExclusionsSign.classList.contains('proinput')) {
+    if (
+        ncFieldExclusionsSign && ncFieldExclusionsSign.classList.contains('proinput') ||
+        (form.name === 'options' && form.classList.contains('asp-fss-flex'))
+    ) {
         return 'ajax search pro exclusion';
     }
 
