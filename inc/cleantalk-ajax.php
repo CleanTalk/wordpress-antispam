@@ -541,23 +541,33 @@ function ct_ajax_hook($message_obj = null)
     ) {
         if (isset($_POST['formData'])) {
             $form_data = $_POST['formData'];
+            // explode the string by &
             $form_data = explode('&', $form_data);
-
-            for ($index = 0; $index < count($form_data); $index++) {
-                if (stripos($form_data[$index], 'apbct_visible_fields') === 0) {
-                    unset($form_data[$index]);
+            $handled_form_data_collection = array();
+            // start collecting new cleared array
+            foreach ($form_data as $row) {
+                // skip visible fields from collection
+                if (stripos($row, 'apbct_visible_fields') === 0) {
+                    continue;
                 }
-                if (stripos($form_data[$index], 'ct_no_cookie_hidden_field') === 0) {
+                // skip no cookie from collection
+                if (stripos($row, 'ct_no_cookie_hidden_field') === 0) {
                     if ($apbct->data['cookies_type'] === 'none') {
-                        \Cleantalk\ApbctWP\Variables\NoCookie::setDataFromHiddenField($form_data[$index]);
-                        $apbct->stats['no_cookie_data_taken'] = true;
+                        $no_cookie_data = str_replace('ct_no_cookie_hidden_field=', '', $row);
+                        $apbct->stats['no_cookie_data_taken'] = \Cleantalk\ApbctWP\Variables\NoCookie::setDataFromHiddenField($no_cookie_data);
                         $apbct->save('stats');
                     }
-                    unset($form_data[$index]);
+                    continue;
                 }
+                // skip bot detector from collection
+                if (stripos($row, 'ct_bot_detector_event_token') === 0) {
+                    continue;
+                }
+                // if nothing fired add the field to final array
+                $handled_form_data_collection[] = $row;
             }
-
-            $form_data = implode('&', $form_data);
+            // convert array to string with &
+            $form_data = implode('&', $handled_form_data_collection);
             $_POST['formData'] = $form_data;
         }
     }
