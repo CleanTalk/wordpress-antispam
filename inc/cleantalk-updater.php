@@ -1249,3 +1249,11 @@ function apbct_update_to_6_9_0()
         $apbct->saveSettings();
     }
 }
+
+function apbct_update_to_6_10_2()
+{
+    global $apbct;
+
+    $apbct->settings['data__bot_detector_enabled'] = 0;
+    $apbct->saveSettings();
+}

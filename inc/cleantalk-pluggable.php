@@ -1247,6 +1247,11 @@ function apbct__get_cookie_prefix()
     return '';
 }
 
+function apbct__is_rest_api_request()
+{
+    return strpos($_SERVER['REQUEST_URI'], '/wp-json/') !== false;
+}
+
 function apbct__check_admin_ajax_request()
 {
     check_ajax_referer('ct_secret_nonce', 'security');
