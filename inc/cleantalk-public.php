@@ -1246,8 +1246,10 @@ function ct_enqueue_scripts_public($_hook)
         $apbct->settings['comments__bp_private_messages'] ||
         $apbct->settings['data__general_postdata_test']
     ) {
-        if ( ! $apbct->public_script_loaded ) {
-            apbct_enqueue_and_localize_public_scripts();
+        if ($apbct->settings['data__protect_logged_in'] == 1 || !is_user_logged_in() ) {
+            if ( ! $apbct->public_script_loaded ) {
+                apbct_enqueue_and_localize_public_scripts();
+            }
         }
     }
 
