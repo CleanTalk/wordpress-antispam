@@ -1222,6 +1222,13 @@ function apbct_is_exception_arg_request()
  */
 function apbct_settings__get_ajax_type()
 {
+    //force ajax route type if constant is defined and compatible
+    if (defined('APBCT_SET_AJAX_ROUTE_TYPE')
+        && in_array(APBCT_SET_AJAX_ROUTE_TYPE, array('rest','admin_ajax'))
+    ) {
+        return APBCT_SET_AJAX_ROUTE_TYPE;
+    }
+
     // Check rest availability
     $res_rest = Helper::httpRequestGetResponseCode(esc_url(apbct_get_rest_url()));
     $res_body = Helper::httpRequestGetContent(esc_url(apbct_get_rest_url()));
