@@ -14,10 +14,13 @@ function ctSetCookie( cookies, value, expires ) {
         'apbct_email_encoder_passed',
     ];
 
-    const skipAlt = cookies === 'string' && cookies === 'ct_pointer_data';
+    let skipAlt = false;
 
-    if ( typeof cookies === 'string' && typeof value === 'string' || typeof value === 'number') {
-        cookies = [[cookies, value, expires]];
+    if ( typeof cookies === 'string') {
+        skipAlt = cookies === 'ct_pointer_data';
+        if ( typeof value === 'string' || typeof value === 'number' ) {
+            cookies = [[cookies, value, expires]];
+        }
     }
 
     // Cookies disabled
@@ -39,7 +42,7 @@ function ctSetCookie( cookies, value, expires ) {
         if ( ctPublic.force_alt_cookies ) {
             // do it just once
 
-            if ( typeof skipAlt === 'undefined' || !skipAlt ) {
+            if ( !skipAlt ) {
                 ctSetAlternativeCookie(cookies, {forceAltCookies: true});
             }
         } else {
@@ -62,10 +65,7 @@ function ctSetCookie( cookies, value, expires ) {
         });
 
         // Using alternative cookies
-    } else if (
-        ctPublicFunctions.data__cookies_type === 'alternative' &&
-        typeof skipAlt === 'undefined' || ! skipAlt
-    ) {
+    } else if ( ctPublicFunctions.data__cookies_type === 'alternative' && !skipAlt ) {
         ctSetAlternativeCookie(cookies);
     }
 }

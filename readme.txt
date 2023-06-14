@@ -451,6 +451,9 @@ Yes, it is. Please read this article,
 
 == Changelog ==
 
+= 6.11.2 Jun 14 2023 =
+* Fix. Mouse pointer data set. Alt cookie skipping condition fixed.
+
 = 6.11.1 Jun 13 2023 =
 * Fix. Honeypot for searchforms. Reverted changes normalized.
 * Fix. Custom forms. AJAX search pro exclusions updated.
