@@ -1794,7 +1794,8 @@ function apbct_ready() {
             if (
                 +ctPublic.data__visible_fields_required === 0 ||
                 (form.method.toString().toLowerCase() === 'get' &&
-                    form.querySelectorAll('.nf-form-content').length === 0) ||
+                    form.querySelectorAll('.nf-form-content').length === 0 &&
+                    form.id !== 'twt_cc_signup') ||
                 form.classList.contains('slp_search_form') || // StoreLocatorPlus form
                 form.parentElement.classList.contains('mec-booking') ||
                 form.action.toString().indexOf('activehosted.com') !== -1 || // Active Campaign
@@ -1832,6 +1833,17 @@ function apbct_ready() {
             form.append( hiddenInput );
 
             form.onsubmit_prev = form.onsubmit;
+
+            // jquery ajax call intercept for twitter login
+            if ( typeof jQuery !== 'undefined' && form.id === 'twt_cc_signup' ) {
+                jQuery.ajaxSetup({
+                    beforeSend: function(xhr, settings) {
+                        let noCookieData = getNoCookieData();
+                        noCookieData = 'data%5Bct_no_cookie_hidden_field%5D=' + noCookieData + '&';
+                        settings.data = noCookieData + settings.data;
+                    },
+                });
+            }
 
             form.ctFormIndex = i;
             form.onsubmit = function(event) {
