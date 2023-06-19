@@ -8,9 +8,27 @@ class Page
 
     private $current_tab;
 
+    private $wl_mode_data;
+
+    private $use_main_site_wl_mode = false;
+
     public function __construct(Checker $apbct_spam_checker)
     {
         $this->spam_checker = $apbct_spam_checker;
+
+        //if wpms and it is subsite
+        if (defined('APBCT_WPMS') && !is_main_site() ){
+            $this->use_main_site_wl_mode = true;
+            $current_blog = get_current_blog_id();
+            //switch to main site and get its wl data
+            switch_to_blog(get_main_site_id());
+            //get stuff from main site
+            $this->wl_mode_data['wl_brandname'] = get_option('cleantalk_data')['wl_brandname'];
+            //return to subsite and get its wl data
+            switch_to_blog($current_blog);
+        }
+
+        //this is anyway empty string for now
 
         switch ( current_action() ) {
             case 'users_page_ct_check_users':
@@ -34,6 +52,8 @@ class Page
                 $this->spam_checker->getBadUsersPage();
                 break;
         }
+
+
     }
 
     /**
@@ -87,9 +107,26 @@ class Page
             return;
         }
 
+        $actual_logo_tag = '<img src=" ' . $this->spam_checker->getApbct()->logo__small__colored . '" alt="CleanTalk logo" />';
+        $actual_plugin_name = $this->spam_checker->getApbct()->plugin_name;
+
+        if ($this->spam_checker->getApbct()->data['wl_mode_enabled'] || $this->use_main_site_wl_mode) {
+            $actual_logo_tag = '';
+            if (isset($this->wl_mode_data['wl_brandname']) && $this->wl_mode_data['wl_brandname'] !== APBCT_NAME) {
+                $actual_plugin_name = $this->wl_mode_data['wl_brandname'];
+            } else {
+                $actual_plugin_name = $this->spam_checker->getApbct()->data['wl_brandname'];
+            }
+        }
+
         ?>
         <div class="wrap">
-        <h2><img src="<?php echo $this->spam_checker->getApbct()->logo__small__colored; ?>" alt="CleanTalk logo" /> <?php echo $this->spam_checker->getApbct()->plugin_name; ?></h2>
+        <h2>
+            <?php
+                echo $actual_logo_tag;
+                echo $actual_plugin_name
+            ?>
+        </h2>
         <a style="color: gray; margin-left: 23px;" href="<?php echo $this->spam_checker->getApbct()->settings_link; ?>"><?php _e('Plugin Settings', 'cleantalk-spam-protect'); ?></a>
         <br />
         <h3><?php echo $this->spam_checker->getPageTitle(); ?></h3>
