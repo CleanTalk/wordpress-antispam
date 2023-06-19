@@ -17,7 +17,7 @@ class Page
         $this->spam_checker = $apbct_spam_checker;
 
         //if wpms and it is subsite
-        if (defined('APBCT_WPMS') && !is_main_site() ){
+        if (defined('APBCT_WPMS') && !is_main_site() ) {
             $this->use_main_site_wl_mode = true;
             $current_blog = get_current_blog_id();
             //switch to main site and get its wl data
@@ -27,8 +27,6 @@ class Page
             //return to subsite and get its wl data
             switch_to_blog($current_blog);
         }
-
-        //this is anyway empty string for now
 
         switch ( current_action() ) {
             case 'users_page_ct_check_users':
@@ -52,8 +50,6 @@ class Page
                 $this->spam_checker->getBadUsersPage();
                 break;
         }
-
-
     }
 
     /**
