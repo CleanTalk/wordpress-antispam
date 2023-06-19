@@ -246,6 +246,8 @@ function skip_for_ct_contact_form_validate()
         // WooCommerce recovery password form
         '90' => (isset($_POST['wc_reset_password'], $_POST['woocommerce-lost-password-nonce'])),
         '91' => apbct_is_plugin_active('envira-gallery/envira-gallery.php') && Server::inUri('wp-json/envira-background/v1/resize-image'),
+        // woocommerce cfw_validate_email_domain skip
+        '92' => apbct_is_plugin_active('checkout-for-woocommerce/checkout-for-woocommerce.php') && Server::inUri('wc-ajax=cfw_validate_email_domain'),
     );
 
     foreach ( $exclusions as $exclusion_key => $state ) {
