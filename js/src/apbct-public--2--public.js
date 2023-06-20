@@ -620,13 +620,13 @@ function ctFillDecodedEmailHandler(event) {
         let popupText = document.createElement('p');
         popupText.setAttribute('id', 'apbct_popup_text');
         popupText.style.color = 'black';
-        popupText.innerText = 'Please wait while CleanTalk is decoding the email addresses.';
+        popupText.innerText = 'Please wait while ' + ctPublic.wl_brandname + ' is decoding the email addresses.';
         waitingPopup.append(popupText);
         document.body.append(waitingPopup);
     } else {
         encoderPopup.setAttribute('style', 'display: inherit');
         document.getElementById('apbct_popup_text').innerHTML =
-            'Please wait while CleanTalk is decoding the email addresses.';
+            'Please wait while ' + ctPublic.wl_brandname + ' is decoding the email addresses.';
     }
 
     apbctAjaxEmailDecodeBulk(event, ctPublic.encodedEmailNodes, clickSource);
