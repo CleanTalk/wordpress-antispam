@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 4.7
 Tested up to: 6.2
 Requires PHP: 5.6
-Stable tag: 6.11.2
+Stable tag: 6.12
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -450,6 +450,21 @@ Yes, it is. Please read this article,
 12. SpamFireWall log.
 
 == Changelog ==
+
+= 6.12 Jun 22 2023 =
+* Fix. Exclude. Excluded request from ProfilePress login form.
+* Fix. JS. External form not copied value for checkbox or radio button, fixed.
+* Fix. Exclude login. Excluded UserPro login form request.
+* Fix. Cleantalk AJAX check. Avada form builder fields collection fixed.
+* Fix. Do not load public scripts for logged-in users if "protect logged-in" option is disabled.
+* Fix. Mouse pointer data set. Alt cookie skipping condition fixed.
+* Fix. Force ajax type with constant APBCT_SET_AJAX_ROUTE_TYPE.
+* Fix. Hidden fileds exclusions refactored. Woocommerce login form sign added to exclude hidden fields attach.
+* Fixed text while encoding
+* Fix. Email encoder. Return HTML escap for privacy policy links.
+* Fix. Fetch XHR. TWT email signup form catch impemented with jQuery.
+* Fix. Comments and users checker. Whitelable mode brands shown correct.
+* Fix. Woocommerce integration. Route "\?wc-ajax=cfw_validate_email_domain" is skipped from APBCT check.
 
 = 6.11.2 Jun 14 2023 =
 * Fix. Mouse pointer data set. Alt cookie skipping condition fixed.
