@@ -961,6 +961,22 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'Exclude Authorize.net payment form request';
         }
+
+        // Exclude ProfilePress login form request
+        if (
+            apbct_is_plugin_active('wp-user-avatar/wp-user-avatar.php') &&
+            Post::get('action') === 'pp_ajax_login'
+        ) {
+            return 'Exclude ProfilePress login form request';
+        }
+
+        // Exclude UserPro login form request
+        if (
+            apbct_is_plugin_active('userpro/index.php') &&
+            (Post::get('action') === 'userpro_fbconnect' || Post::get('action') === 'userpro_side_validate')
+        ) {
+            return 'Exclude UserPro login form request';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
@@ -1206,6 +1222,13 @@ function apbct_is_exception_arg_request()
  */
 function apbct_settings__get_ajax_type()
 {
+    //force ajax route type if constant is defined and compatible
+    if (defined('APBCT_SET_AJAX_ROUTE_TYPE')
+        && in_array(APBCT_SET_AJAX_ROUTE_TYPE, array('rest','admin_ajax'))
+    ) {
+        return APBCT_SET_AJAX_ROUTE_TYPE;
+    }
+
     // Check rest availability
     $res_rest = Helper::httpRequestGetResponseCode(esc_url(apbct_get_rest_url()));
     $res_body = Helper::httpRequestGetContent(esc_url(apbct_get_rest_url()));
