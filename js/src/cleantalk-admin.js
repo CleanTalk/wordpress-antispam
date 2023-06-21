@@ -1,4 +1,4 @@
-jQuery(document).ready(function(){
+jQuery(document).ready(function($){
 	
 	// Auto update banner close handler
 	jQuery('.apbct_update_notice').on('click', 'button', function(){
@@ -35,6 +35,27 @@ jQuery(document).ready(function(){
 		}
 	});
 
+	// Restore spam order
+	$('.apbct-restore-spam-order-button').click(function () {
+		const spmOrderId = $(this).data('spam-order-id');
+		let data = {
+			action: 'apbct_restore_spam_order',
+			_ajax_nonce: ctAdminCommon._ajax_nonce,
+			order_id: spmOrderId
+		};
+		$.ajax({
+			type: "POST",
+			url: ctAdminCommon._ajax_url,
+			data: data,
+			success: function(result){
+				if (result.success) {
+					window.location.reload();
+				} else {
+					alert(result.data.message)
+				}
+			},
+		});
+	});
 });
 function apbct_admin_sendAJAX(data, params, obj){
 
