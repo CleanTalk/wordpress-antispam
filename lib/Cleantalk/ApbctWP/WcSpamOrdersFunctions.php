@@ -8,7 +8,7 @@ class WcSpamOrdersFunctions
 {
     public static function restoreOrderAction()
     {
-        check_ajax_referer('ct_secret_nonce');
+        apbct__check_admin_ajax_request();
 
         $order_id = Post::get('order_id', 'int');
 

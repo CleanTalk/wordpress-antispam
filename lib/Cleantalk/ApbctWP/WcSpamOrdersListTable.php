@@ -326,7 +326,10 @@ class WcSpamOrdersListTable extends CleantalkListTable
     {
         global $wpdb;
 
-        $spam_ids = implode(',', $spam_ids);
+        $spam_ids_clean = array_map(static function ($item) {
+            return (int)$item;
+        }, $spam_ids);
+        $spam_ids = implode(',', $spam_ids_clean);
 
         $wpdb->query("DELETE FROM "
             . APBCT_TBL_WC_SPAM_ORDERS
