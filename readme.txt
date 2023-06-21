@@ -452,6 +452,7 @@ Yes, it is. Please read this article,
 == Changelog ==
 
 = 6.12 Jun 22 2023 =
+* New. Restoring WC blocked orders implemented.
 * Fix. Exclude. Excluded request from ProfilePress login form.
 * Fix. JS. External form not copied value for checkbox or radio button, fixed.
 * Fix. Exclude login. Excluded UserPro login form request.

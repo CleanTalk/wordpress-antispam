@@ -507,18 +507,15 @@ function apbct_woocommerce__store_blocked_order()
 {
     global $wpdb;
 
-    $query = 'INSERT INTO ' . APBCT_TBL_WC_SPAM_ORDERS . ' (order_id, order_details, customer_details, currency) 
-              VALUES (%s, %s, %s, %s) 
-              ON DUPLICATE KEY UPDATE order_details = %s, customer_details = %s, currency = %s';
+    $query = 'INSERT INTO ' . APBCT_TBL_WC_SPAM_ORDERS . ' (order_details, customer_details) 
+              VALUES (%s, %s) 
+              ON DUPLICATE KEY UPDATE order_details = %s, customer_details = %s';
 
     $prepared_query = $wpdb->prepare($query, [
-        array_key_first(wc()->session->cart), // phpcs:ignore PHPCompatibility.FunctionUse.NewFunctions.array_key_firstFound
         json_encode(wc()->session->cart),
         json_encode($_POST),
-        get_woocommerce_currency(),
         json_encode(wc()->session->cart),
         json_encode($_POST),
-        get_woocommerce_currency()
     ]);
 
     $wpdb->query($prepared_query);
