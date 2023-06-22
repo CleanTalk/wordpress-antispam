@@ -1861,7 +1861,7 @@ function apbct_settings__field__action_buttons()
     if ( apbct_is_plugin_active('woocommerce/woocommerce.php') ) {
         add_filter('apbct_settings_action_buttons', function ($buttons_array) {
             $buttons_array[] =
-                '<a href="admin.php?page=options-general.php%3Fpage%3Dapbct_wc_spam_orders" class="ct_support_link" title="Bulk spam orders removal tool.">'
+                '<a href="admin.php?page=apbct_wc_spam_orders" class="ct_support_link" title="Bulk spam orders removal tool.">'
                 . __('WooCommerce spam orders', 'cleantalk-spam-protect')
                 . '</a>';
             return $buttons_array;
