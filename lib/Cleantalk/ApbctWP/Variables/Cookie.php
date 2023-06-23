@@ -14,8 +14,7 @@ class Cookie extends \Cleantalk\Variables\Cookie
         'wordpress_apbct_antibot',
         'apbct_anticrawler_passed',
         'apbct_antiflood_passed',
-        'apbct_email_encoder_passed',
-        'ct_checkjs'
+        'apbct_email_encoder_passed'
     );
 
     /**
@@ -57,8 +56,21 @@ class Cookie extends \Cleantalk\Variables\Cookie
                     }
                     break;
                 default:
-                    if ( isset($_COOKIE[$name]) ) {
-                        $value = $this->getAndSanitize(urldecode($_COOKIE[$name]));
+                    if ( static::$force_alt_cookies_global || in_array($name, static::$force_to_use_alternative_cookies, true) ) {
+                        $value = AltSessions::get($name);
+                        if ( in_array($name, array(
+                            'apbct_page_hits',
+                            'apbct_prev_referer',
+                            'apbct_site_landing_ts',
+                            'apbct_urls',
+                            'apbct_timestamp',
+                            'apbct_site_referer')) ) {
+                            $value = NoCookie::get($name);
+                        }
+                    } else {
+                        if ( isset($_COOKIE[$name]) ) {
+                            $value = $this->getAndSanitize(urldecode($_COOKIE[$name]));
+                        }
                     }
             }
 
@@ -112,7 +124,11 @@ class Cookie extends \Cleantalk\Variables\Cookie
             } elseif ($apbct->data['cookies_type'] === 'alternative') {
                 AltSessions::set($name, $value);
             } else {
-                self::setNativeCookie(apbct__get_cookie_prefix() . $name, $value, $expires, $path, $domain, $secure, $httponly, $samesite);
+                if ( static::$force_alt_cookies_global || in_array($name, static::$force_to_use_alternative_cookies, true) ) {
+                    AltSessions::set($name, $value);
+                } else {
+                    self::setNativeCookie(apbct__get_cookie_prefix() . $name, $value, $expires, $path, $domain, $secure, $httponly, $samesite);
+                }
             }
         }
 

@@ -7,6 +7,7 @@ use Cleantalk\ApbctWP\State;
 use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\ApbctWP\Variables\Get;
 use Cleantalk\ApbctWP\Variables\Post;
+use Cleantalk\ApbctWP\Variables\AltSessions;
 use Cleantalk\ApbctWP\Variables\Request;
 use Cleantalk\ApbctWP\Variables\Server;
 
@@ -1090,6 +1091,11 @@ function ct_preprocess_comment($comment)
     $post_info['comment_type'] = empty($post_info['comment_type']) ? 'general_comment' : $post_info['comment_type'];
 
     $checkjs = apbct_js_test(Sanitize::cleanTextField(Cookie::get('ct_checkjs')), true) ?: apbct_js_test(Sanitize::cleanTextField(Post::get('ct_checkjs')));
+
+    // jetpack_comment case
+	if ( $post_info['comment_type'] === 'jetpack_comment' ) {
+        $checkjs = apbct_js_test(AltSessions::get('ct_checkjs'));
+    }
 
     $example = null;
     if ( $apbct->data['relevance_test'] ) {
