@@ -967,7 +967,7 @@ function apbct_admin__admin_bar__add_child_nodes($wp_admin_bar)
             array(
                 'parent' => 'apbct__parent_node',
                 'id'     => 'ct_settings_bulk_orders',
-                'title'  => '<a href="admin.php?page=options-general.php%3Fpage%3Dapbct_wc_spam_orders" title="Bulk spam orders removal tool.">'
+                'title'  => '<a href="admin.php?page=apbct_wc_spam_orders" title="Bulk spam orders removal tool.">'
                             . __('WooCommerce spam orders', 'cleantalk-spam-protect') . '</a>',
             )
         );
