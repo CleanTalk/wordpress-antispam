@@ -79,7 +79,8 @@ jQuery(document).ready(function() {
                 notJson: true,
                 callback: function(result, data, params, obj) {
                     if (result.success) {
-                        jQuery( '<p id=\'apbct-ajax-result\' class=\'success\'>' + result.data + '</p>' ).insertAfter( jQuery(button) );
+                        jQuery( '<p id=\'apbct-ajax-result\' class=\'success\'>' + result.data + '</p>' )
+                            .insertAfter( jQuery(button) );
                         jQuery('#apbct_settings_templates_import_button .apbct_success').show(300);
                         setTimeout(function() {
                             jQuery('#apbct_settings_templates_import_button .apbct_success').hide(300);
@@ -91,7 +92,8 @@ jQuery(document).ready(function() {
                             cleantalkModal.close();
                         }, 2000);
                     } else {
-                        jQuery( '<p id=\'apbct-ajax-result\' class=\'error\'>' + result.data + '</p>' ).insertAfter( jQuery(button) );
+                        jQuery( '<p id=\'apbct-ajax-result\' class=\'error\'>' + result.data + '</p>' )
+                            .insertAfter( jQuery(button) );
                     }
                 },
             },
@@ -103,6 +105,7 @@ jQuery(document).ready(function() {
         jQuery('#apbct-ajax-result').remove();
         let optionSelected = jQuery('option:selected', jQuery('#apbct_settings_templates_export'));
         let templateNameInput = jQuery('#apbct_settings_templates_export_name');
+        let data = {};
         templateNameInput.css('border-color', 'inherit');
         if ( typeof optionSelected.data('id') === 'undefined' ) {
             console.log( 'Attribute "data-id" not set for the option.' );
@@ -114,11 +117,11 @@ jQuery(document).ready(function() {
                 templateNameInput.css('border-color', 'red');
                 return;
             }
-            var data = {
+            data = {
                 'template_name': templateName,
             };
         } else {
-            var data = {
+            data = {
                 'template_id': optionSelected.data('id'),
             };
         }
@@ -132,7 +135,8 @@ jQuery(document).ready(function() {
                 notJson: true,
                 callback: function(result, data, params, obj) {
                     if (result.success) {
-                        jQuery( '<p id=\'apbct-ajax-result\' class=\'success\'>' + result.data + '</p>' ).insertAfter( jQuery(button) );
+                        jQuery( '<p id=\'apbct-ajax-result\' class=\'success\'>' + result.data + '</p>' )
+                            .insertAfter( jQuery(button) );
                         jQuery('#apbct_settings_templates_export_button .apbct_success').show(300);
                         setTimeout(function() {
                             jQuery('#apbct_settings_templates_export_button .apbct_success').hide(300);
@@ -144,7 +148,8 @@ jQuery(document).ready(function() {
                             cleantalkModal.close();
                         }, 2000);
                     } else {
-                        jQuery( '<p id=\'apbct-ajax-result\' class=\'error\'>' + result.data + '</p>' ).insertAfter( jQuery(button) );
+                        jQuery( '<p id=\'apbct-ajax-result\' class=\'error\'>' + result.data + '</p>' )
+                            .insertAfter( jQuery(button) );
                     }
                 },
             },
@@ -163,7 +168,8 @@ jQuery(document).ready(function() {
                 notJson: true,
                 callback: function(result, data, params, obj) {
                     if (result.success) {
-                        jQuery( '<p id=\'apbct-ajax-result\' class=\'success\'>' + result.data + '</p>' ).insertAfter( jQuery(button) );
+                        jQuery( '<p id=\'apbct-ajax-result\' class=\'success\'>' + result.data + '</p>' )
+                            .insertAfter( jQuery(button) );
                         jQuery('#apbct_settings_templates_reset_button .apbct_success').show(300);
                         setTimeout(function() {
                             jQuery('#apbct_settings_templates_reset_button .apbct_success').hide(300);
@@ -175,7 +181,8 @@ jQuery(document).ready(function() {
                             cleantalkModal.close();
                         }, 2000);
                     } else {
-                        jQuery( '<p id=\'apbct-ajax-result\' class=\'error\'>' + result.data + '</p>' ).insertAfter( jQuery(button) );
+                        jQuery( '<p id=\'apbct-ajax-result\' class=\'error\'>' + result.data + '</p>' )
+                            .insertAfter( jQuery(button) );
                     }
                 },
             },
@@ -217,11 +224,11 @@ jQuery(document).ready(function() {
 
     jQuery(document).on('click', '.apbct_settings-long_description---show', function() {
         self = jQuery(this);
-        apbct_settings__showDescription(self, self.attr('setting'));
+        apbctSettingsShowDescription(self, self.attr('setting'));
     });
 
     if (jQuery('#cleantalk_notice_renew').length || jQuery('#cleantalk_notice_trial').length) {
-        apbct_banner_check();
+        apbctBannerCheck();
     }
 
     jQuery(document).on('change', '#apbct_settings_templates_export', function() {
@@ -233,14 +240,14 @@ jQuery(document).ready(function() {
         }
     });
 
-    apbct_save_button_position();
-    window.addEventListener('scroll', apbct_save_button_position);
-    jQuery('#ct_adv_showhide a').on('click', apbct_save_button_position);
+    apbctSaveButtonPosition();
+    window.addEventListener('scroll', apbctSaveButtonPosition);
+    jQuery('#ct_adv_showhide a').on('click', apbctSaveButtonPosition);
 
 
     /**
-	 * Change cleantalk account email
-	 */
+     * Change cleantalk account email
+     */
     jQuery('#apbct-change-account-email').on('click', function(e) {
         e.preventDefault();
 
@@ -291,8 +298,8 @@ jQuery(document).ready(function() {
     });
 
     /**
-	 * Validate apkikey and hide get auto btn
-	 */
+     * Validate apkikey and hide get auto btn
+     */
     jQuery('#apbct_setting_apikey').on('input', function() {
         let enteredValue = jQuery(this).val();
         jQuery('button.cleantalk_link[value="save_changes"]').off('click');
@@ -303,10 +310,10 @@ jQuery(document).ready(function() {
                     e.preventDefault();
                     if (!jQuery('#apbct_bad_key_notice').length) {
                         jQuery( '<div class=\'apbct_notice_inner error\'><h4 id=\'apbct_bad_key_notice\'>' +
-								'Please, insert a correct access key before saving changes!' +
-								'</h4></div>' ).insertAfter( jQuery('#apbct_setting_apikey') );
+                            'Please, insert a correct access key before saving changes!' +
+                            '</h4></div>' ).insertAfter( jQuery('#apbct_setting_apikey') );
                     }
-                    apbct_highlight_element('apbct_setting_apikey', 3);
+                    apbctHighlightElement('apbct_setting_apikey', 3);
                 },
             );
             return;
@@ -318,27 +325,27 @@ jQuery(document).ready(function() {
     }
 
     /**
-	 * Handle synchronization errors when key is no ok to force user check the key and restart the sync
-	 */
+     * Handle synchronization errors when key is no ok to force user check the key and restart the sync
+     */
     if ( !ctSettingsPage.key_is_ok ) {
         jQuery('button.cleantalk_link[value="save_changes"]').on('click',
             function(e) {
                 e.preventDefault();
                 if (!jQuery('#sync_required_notice').length) {
                     jQuery( '<div class=\'apbct_notice_inner error\'><h4 id=\'sync_required_notice\'>' +
-						'Synchronization process failed. Please, check the acces key and restart the synch.' +
-						'<h4></div>' ).insertAfter( jQuery('#apbct_button__sync') );
+                        'Synchronization process failed. Please, check the acces key and restart the synch.' +
+                        '<h4></div>' ).insertAfter( jQuery('#apbct_button__sync') );
                 }
-                apbct_highlight_element('apbct_setting_apikey', 3);
-                apbct_highlight_element('apbct_button__sync', 3);
+                apbctHighlightElement('apbct_setting_apikey', 3);
+                apbctHighlightElement('apbct_button__sync', 3);
                 jQuery('#apbct_button__get_key_auto__wrapper').show();
             },
         );
     }
 
     /**
-	 * Open WP gallery for adding custom logo
-	 */
+     * Open WP gallery for adding custom logo
+     */
     jQuery('#apbct-custom-logo-open-gallery').click(function(e) {
         e.preventDefault();
 
@@ -362,8 +369,8 @@ jQuery(document).ready(function() {
     });
 
     /**
-	 * Remove selected logo
-	 */
+     * Remove selected logo
+     */
     jQuery('#apbct-custom-logo-remove-image').click(function(e) {
         e.preventDefault();
 
@@ -378,8 +385,8 @@ jQuery(document).ready(function() {
 /**
  * Checking current account status for renew notice
  */
-function apbct_banner_check() {
-    var bannerChecker = setInterval( function() {
+function apbctBannerCheck() {
+    let bannerChecker = setInterval( function() {
         apbct_admin_sendAJAX(
             {action: 'apbct_settings__check_renew_banner'},
             {
@@ -403,12 +410,12 @@ function apbct_banner_check() {
  * Select elems like #{selector} or .{selector}
  * Selector passed in string separated by ,
  *
- * @param elems
+ * @param {string|array} elems
  * @return {*}
  */
-function apbct_get_elems(elems) {
+function apbctGetElems(elems) {
     elems = elems.split(',');
-    for ( var i=0, len = elems.length, tmp; i < len; i++) {
+    for ( let i=0, len = elems.length, tmp; i < len; i++) {
         tmp = jQuery('#'+elems[i]);
         elems[i] = tmp.length === 0 ? jQuery('.'+elems[i]) : tmp;
     }
@@ -419,10 +426,10 @@ function apbct_get_elems(elems) {
  * Select elems like #{selector} or .{selector}
  * Selector could be passed in a string ( separated by comma ) or in array ( [ elem1, elem2, ... ] )
  *
- * @param elems string|array
- * @return array
+ * @param {string|array} elems
+ * @return {array}
  */
-function apbct_get_elems__native(elems) {
+function apbctGetElemsNative(elems) {
     // Make array from a string
     if (typeof elems === 'string') {
         elems = elems.split(',');
@@ -453,8 +460,11 @@ function apbct_get_elems__native(elems) {
     return out;
 }
 
-function apbct_show_hide_elem(elems) {
-    elems = apbct_get_elems(elems);
+/**
+ * @param {string|array} elems
+ */
+function apbctShowHideElem(elems) {
+    elems = apbctGetElems(elems);
     for ( let i=0, len = elems.length; i < len; i++) {
         elems[i].each(function(i, elem) {
             elem = jQuery(elem);
@@ -470,31 +480,38 @@ function apbct_show_hide_elem(elems) {
     }
 }
 
-function apbct_excepted_show_hide(element) {
-    let to_hide = [
+/**
+ * @param {string|array} element
+ */
+function apbctExceptedShowHide(element) { // eslint-disable-line no-unused-vars
+    let toHide = [
         'apbct_settings__dwpms_settings',
         'apbct_settings__advanced_settings',
         'trusted_and_affiliate__special_span',
     ];
-    let index = to_hide.indexOf(element);
+    let index = toHide.indexOf(element);
     if (index !== -1) {
-        to_hide.splice(index, 1);
+        toHide.splice(index, 1);
     }
-    apbct_show_hide_elem(element);
-    to_hide.forEach((to_hide_elem) => {
-        if (document.getElementById(to_hide_elem) && document.getElementById(to_hide_elem).style.display !== 'none') {
-            apbct_show_hide_elem(to_hide_elem);
+    apbctShowHideElem(element);
+    toHide.forEach((toHideElem) => {
+        if (document.getElementById(toHideElem) && document.getElementById(toHideElem).style.display !== 'none') {
+            apbctShowHideElem(toHideElem);
         }
     });
 }
 
-function apbct_show_required_groups(event, id) {
+/**
+ * @param {mixed} event
+ * @param {string} id
+ */
+function apbctShowRequiredGroups(event, id) { // eslint-disable-line no-unused-vars
     let required = document.getElementById('apbct_settings__dwpms_settings');
     if (required && required.style.display === 'none') {
-        let origin_event = event;
+        let originEvent = event;
         event.preventDefault();
-        apbct_show_hide_elem('apbct_settings__dwpms_settings');
-        document.getElementById(id).dispatchEvent(new origin_event.constructor(origin_event.type, origin_event));
+        apbctShowHideElem('apbct_settings__dwpms_settings');
+        document.getElementById(id).dispatchEvent(new originEvent.constructor(originEvent.type, originEvent));
     }
 }
 
@@ -502,33 +519,32 @@ function apbct_show_required_groups(event, id) {
  * Settings dependences. Switch|toggle depended elements state (disabled|enabled)
  * Recieve list of selectors ( without class mark (.) or id mark (#) )
  *
- * @param ids string|array Selectors
- * @param enable
+ * @param {string|array} ids
+ * @param {int} enable
  */
-function apbctSettingsDependencies(ids, enable) {
+function apbctSettingsDependencies(ids, enable) { // eslint-disable-line no-unused-vars
     enable = ! isNaN(enable) ? enable : null;
 
     // Get elements
-    let elems = apbct_get_elems__native( ids );
+    let elems = apbctGetElemsNative( ids );
 
     elems.forEach(function(elem, i, arr) {
-        let do_disable = function() {
+        let doDisable = function() {
             elem.setAttribute('disabled', 'disabled');
         };
-        let do_enable = function() {
+        let doEnable = function() {
             elem.removeAttribute('disabled');
         };
 
         // Set defined state
-        if (enable === null) // Set
-        {
+        if (enable === null) {
             enable = elem.getAttribute('disabled') === null ? 0 : 1;
         }
 
-        enable === 1 ? do_enable() : do_disable();
+        enable === 1 ? doEnable() : doDisable();
 
         if ( elem.getAttribute('apbct_children') !== null) {
-            let state = apbctSettingsDependencies_getState( elem ) && enable;
+            let state = apbctSettingsDependenciesGetState( elem ) && enable;
             if ( state !== null ) {
                 apbctSettingsDependencies( elem.getAttribute('apbct_children'), state );
             }
@@ -536,7 +552,11 @@ function apbctSettingsDependencies(ids, enable) {
     });
 }
 
-function apbctSettingsDependencies_getState( elem ) {
+/**
+ * @param {HTMLElement} elem
+ * @return {int|null}
+ */
+function apbctSettingsDependenciesGetState(elem) {
     let state;
 
     switch ( elem.getAttribute( 'type' ) ) {
@@ -553,18 +573,27 @@ function apbctSettingsDependencies_getState( elem ) {
     return state;
 }
 
-function apbct_settings__showDescription(label, setting_id) {
-    let remove_desc_func = function(e) {
-        if (typeof e === 'undefined' || ((jQuery(e.target).parent('.apbct_long_desc').length == 0 || jQuery(e.target).hasClass('apbct_long_desc__cancel')) && !jQuery(e.target).hasClass('apbct_long_description__show'))) {
+/**
+ * @param {HTMLElement} label
+ * @param {string} settingId
+ */
+function apbctSettingsShowDescription(label, settingId) {
+    let removeDescFunc = function(e) {
+        if (typeof e === 'undefined' || (
+            (jQuery(e.target).parent('.apbct_long_desc').length == 0 ||
+            jQuery(e.target).hasClass('apbct_long_desc__cancel')
+            ) &&
+            !jQuery(e.target).hasClass('apbct_long_description__show'))
+        ) {
             jQuery('.apbct_long_desc').remove();
-            jQuery(document).off('click', remove_desc_func);
+            jQuery(document).off('click', removeDescFunc);
         }
     };
 
-    remove_desc_func();
+    removeDescFunc();
 
-    label.after('<div id=\'apbct_long_desc__'+setting_id+'\' class=\'apbct_long_desc\'></div>');
-    let obj = jQuery('#apbct_long_desc__'+setting_id);
+    label.after('<div id=\'apbct_long_desc__'+settingId+'\' class=\'apbct_long_desc\'></div>');
+    let obj = jQuery('#apbct_long_desc__'+settingId);
     obj.append('<i class= \'apbct-icon-spin1 animate-spin\'></i>')
         .append('<div class=\'apbct_long_desc__angle\'></div>')
         .css({
@@ -574,7 +603,7 @@ function apbct_settings__showDescription(label, setting_id) {
 
 
     apbct_admin_sendAJAX(
-        {action: 'apbct_settings__get__long_description', setting_id: setting_id},
+        {action: 'apbct_settings__get__long_description', setting_id: settingId},
         {
             spinner: obj.children('img'),
             callback: function(result, data, params, obj) {
@@ -584,20 +613,23 @@ function apbct_settings__showDescription(label, setting_id) {
                     .append('<h3 class=\'apbct_long_desc__title\'>'+result.title+'</h3>')
                     .append('<p>'+result.desc+'</p>');
 
-                jQuery(document).on('click', remove_desc_func);
+                jQuery(document).on('click', removeDescFunc);
             },
         },
         obj,
     );
 }
 
-function apbct_save_button_position() {
+/**
+ * save button position
+ */
+function apbctSaveButtonPosition() {
     if (
         document.getElementById('apbct_settings__before_advanced_settings') === null ||
-		document.getElementById('apbct_settings__after_advanced_settings') === null ||
-		document.getElementById('apbct_settings__button_section') === null ||
-		document.getElementById('apbct_settings__advanced_settings') === null ||
-		document.getElementById('apbct_hidden_section_nav') === null
+        document.getElementById('apbct_settings__after_advanced_settings') === null ||
+        document.getElementById('apbct_settings__button_section') === null ||
+        document.getElementById('apbct_settings__advanced_settings') === null ||
+        document.getElementById('apbct_hidden_section_nav') === null
     ) {
         return;
     }
@@ -632,18 +664,24 @@ function apbct_save_button_position() {
     }
 }
 
-// Hightlights element
-function apbct_highlight_element(id, times) {
+
+/**
+ * Hightlights element
+ *
+ * @param {string} id
+ * @param {int} times
+ */
+function apbctHighlightElement(id, times) {
     times = times-1 || 0;
-    let key_field = jQuery('#'+id);
-    jQuery('html, body').animate({scrollTop: key_field.offset().top - 100}, 'slow');
-    key_field.addClass('apbct_highlighted');
-    key_field.animate({opacity: 0}, 400, 'linear', function() {
-        key_field.animate({opacity: 1}, 400, 'linear', function() {
+    let keyField = jQuery('#'+id);
+    jQuery('html, body').animate({scrollTop: keyField.offset().top - 100}, 'slow');
+    keyField.addClass('apbct_highlighted');
+    keyField.animate({opacity: 0}, 400, 'linear', function() {
+        keyField.animate({opacity: 1}, 400, 'linear', function() {
             if (times>0) {
-                apbct_highlight_element(id, times);
+                apbctHighlightElement(id, times);
             } else {
-                key_field.removeClass('apbct_highlighted');
+                keyField.removeClass('apbct_highlighted');
             }
         });
     });
