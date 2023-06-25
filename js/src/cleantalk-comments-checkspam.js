@@ -1,55 +1,63 @@
 // Printf for JS
-String.prototype.printf = function() {
+String.prototype.printf = function() { // eslint-disable-line no-extend-native
     let formatted = this;
-    for ( let arg in arguments ) {
-        let before_formatted = formatted.substring(0, formatted.indexOf('%s', 0));
-        let after_formatted = formatted.substring(formatted.indexOf('%s', 0)+2, formatted.length);
-        formatted = before_formatted + arguments[arg] + after_formatted;
+    for ( let arg in arguments ) { // eslint-disable-line guard-for-in,prefer-rest-params
+        let beforeFormatted = formatted.substring(0, formatted.indexOf('%s', 0));
+        let afterFormatted = formatted.substring(formatted.indexOf('%s', 0)+2, formatted.length);
+        // eslint-disable-next-line guard-for-in,prefer-rest-params
+        formatted = beforeFormatted + arguments[arg] + afterFormatted;
     }
     return formatted;
 };
 
 // Flags
-var ct_working = false;
-var ct_new_check = true;
-var ct_cooling_down_flag = false;
-var ct_close_animate = true;
-var ct_accurate_check = false;
-var ct_pause = false;
-var ct_prev_accurate = ctCommentsCheck.ct_prev_accurate;
-var ct_prev_from = ctCommentsCheck.ct_prev_from;
-var ct_prev_till = ctCommentsCheck.ct_prev_till;
+let ctWorking = false;
+let ctNewCheck = true;
+let ctCoolingDownFlag = false;
+let ctCloseAnimate = true;
+let ctAccurateCheck = false;
+let ctPause = false;
+let ctPrevAccurate = ctCommentsCheck.ct_prev_accurate;
+let ctPrevFrom = ctCommentsCheck.ct_prev_from;
+let ctPrevTill = ctCommentsCheck.ct_prev_till;
 // Settings
-var ct_cool_down_time = 90000;
-var ct_requests_counter = 0;
-var ct_max_requests = 60;
+let ctCoolDownTime = 90000;
+let ctRequestsCounter = 0;
+let ctMaxRequests = 60;
 // Variables
-var ct_ajax_nonce = ctCommentsCheck.ct_ajax_nonce;
-var ct_comments_total = 0;
-var ct_comments_checked = 0;
-var ct_comments_spam = 0;
-var ct_comments_bad = 0;
-var ct_unchecked = 'unset';
-var ct_date_from = 0;
-var ct_date_till = 0;
+let ctAjaxNonce = ctCommentsCheck.ct_ajax_nonce;
+let ctCommentsTotal = 0;
+let ctCommentsChecked = 0;
+let ctCommentsSpam = 0;
+let ctCommentsBad = 0;
+let ctUnchecked = 'unset';
+let ctDateFrom = 0;
+let ctDateTill = 0;
 
-function animate_comment(to, id) {
-    if (ct_close_animate) {
+/**
+ * @param {mixed} to
+ * @param {string} id
+ */
+function animateComment(to, id) { // eslint-disable-line no-unused-vars
+    if (ctCloseAnimate) {
         if (to==0.3) {
             jQuery('#comment-'+id).fadeTo(200, to, function() {
-                animate_comment(1, id);
+                animateComment(1, id);
             });
         } else {
             jQuery('#comment-'+id).fadeTo(200, to, function() {
-                animate_comment(0.3, id);
+                animateComment(0.3, id);
             });
         }
     } else {
-        ct_close_animate=true;
+        ctCloseAnimate =true;
     }
 }
 
-function ct_clear_comments() {
+/**
+ * clear comments
+ */
+function ctClearComments() {
     let from = 0; let till = 0;
     if (jQuery('#ct_allow_date_range').is(':checked')) {
         from = jQuery('#ct_date_range_from').val();
@@ -60,7 +68,7 @@ function ct_clear_comments() {
 
     let data = {
         'action': 'ajax_clear_comments',
-        'security': ct_ajax_nonce,
+        'security': ctAjaxNonce,
         'from': from,
         'till': till,
     };
@@ -70,49 +78,54 @@ function ct_clear_comments() {
         url: ajaxurl,
         data: data,
         success: function(msg) {
-            ct_show_info();
-            ct_send_comments();
+            ctShowInfo();
+            ctSendComments();
         },
     });
 }
 
-// Continues the check after cooldown time
-// Called by ct_send_users();
-function ct_cooling_down_toggle() {
-    ct_cooling_down_flag = false;
-    ct_send_comments();
-    ct_show_info();
+/**
+ * Continues the check after cooldown time
+ * Called by ct_send_users();
+ */
+function ctCoolingDownToggle() {
+    ctCoolingDownFlag = false;
+    ctSendComments();
+    ctShowInfo();
 }
 
-function ct_send_comments() {
-    if (ct_cooling_down_flag === true) {
+/**
+ * send comments
+ */
+function ctSendComments() {
+    if (ctCoolingDownFlag === true) {
         return;
     }
 
-    if (ct_requests_counter >= ct_max_requests) {
-        setTimeout(ct_cooling_down_toggle, ct_cool_down_time);
-        ct_requests_counter = 0;
-        ct_cooling_down_flag = true;
+    if (ctRequestsCounter >= ctMaxRequests) {
+        setTimeout(ctCoolingDownToggle, ctCoolDownTime);
+        ctRequestsCounter = 0;
+        ctCoolingDownFlag = true;
         return;
     } else {
-        ct_requests_counter++;
+        ctRequestsCounter++;
     }
 
     let data = {
         'action': 'ajax_check_comments',
-        'security': ct_ajax_nonce,
-        'new_check': ct_new_check,
-        'unchecked': ct_unchecked,
+        'security': ctAjaxNonce,
+        'new_check': ctNewCheck,
+        'unchecked': ctUnchecked,
         'offset': Number(ctGetCookie('apbct_check_comments_offset')),
     };
 
-    if (ct_accurate_check) {
+    if (ctAccurateCheck) {
         data['accurate_check'] = true;
     }
 
-    if (ct_date_from && ct_date_till) {
-        data['from'] = ct_date_from;
-        data['till'] = ct_date_till;
+    if (ctDateFrom && ctDateTill) {
+        data['from'] = ctDateFrom;
+        data['till'] = ctDateTill;
     }
 
     jQuery.ajax({
@@ -123,56 +136,56 @@ function ct_send_comments() {
             msg = jQuery.parseJSON(msg);
 
             if (parseInt(msg.error)) {
-                ct_working=false;
+                ctWorking = false;
                 if (!confirm(msg.error_message+'. Do you want to proceed?')) {
-                    var new_href = 'edit-comments.php?page=ct_check_spam';
-                    if (ct_date_from != 0 && ct_date_till != 0) {
-                        new_href+='&from='+ct_date_from+'&till='+ct_date_till;
+                    let newHref = 'edit-comments.php?page=ct_check_spam';
+                    if (ctDateFrom != 0 && ctDateTill != 0) {
+                        newHref+='&from='+ctDateFrom+'&till='+ctDateTill;
                     }
-                    location.href = new_href;
+                    location.href = newHref;
                 } else {
-                    ct_send_comments();
+                    ctSendComments();
                 }
             } else {
-                ct_new_check = false;
+                ctNewCheck = false;
                 let offset = Number(ctGetCookie('apbct_check_comments_offset')) + 100;
 
-                if (parseInt(msg.end) == 1 || ct_pause === true) {
+                if (parseInt(msg.end) == 1 || ctPause === true) {
                     if (parseInt(msg.end) == 1) {
                         document.cookie = 'ct_paused_spam_check=0; path=/; samesite=lax';
                     }
-                    ct_working=false;
+                    ctWorking = false;
                     jQuery('#ct_working_message').hide();
-                    var new_href = 'edit-comments.php?page=ct_check_spam';
-                    if (ct_date_from != 0 && ct_date_till != 0) {
-                        new_href+='&from='+ct_date_from+'&till='+ct_date_till;
+                    let newHref = 'edit-comments.php?page=ct_check_spam';
+                    if (ctDateFrom != 0 && ctDateTill != 0) {
+                        newHref+='&from='+ctDateFrom+'&till='+ctDateTill;
                     }
 
-                    document.cookie = 'apbct_check_comments_offset' + '=' + offset + '; path=/; samesite=lax' + ctSecure;
+                    document.cookie = 'apbct_check_comments_offset' + '=' + offset + '; path=/; samesite=lax'+ctSecure;
 
-                    location.href = new_href;
+                    location.href = newHref;
                 } else if (parseInt(msg.end) == 0) {
-                    ct_comments_checked += msg.checked;
-                    ct_comments_spam += msg.spam;
-                    ct_comments_bad += msg.bad;
-                    ct_comments_total += msg.total;
-                    ct_unchecked = ct_comments_total - ct_comments_checked - ct_comments_bad;
-                    let status_string = String(ctCommentsCheck.ct_status_string);
-                    status_string = status_string.printf(ct_comments_checked, ct_comments_spam, ct_comments_bad);
-                    if (parseInt(ct_comments_spam) > 0) {
-                        status_string += ctCommentsCheck.ct_status_string_warning;
+                    ctCommentsChecked += msg.checked;
+                    ctCommentsSpam += msg.spam;
+                    ctCommentsBad += msg.bad;
+                    ctCommentsTotal += msg.total;
+                    ctUnchecked = ctCommentsTotal - ctCommentsChecked - ctCommentsBad;
+                    let statusString = String(ctCommentsCheck.ct_status_string);
+                    stastatusStringtusString = statusString.printf(ctCommentsChecked, ctCommentsSpam, ctCommentsBad);
+                    if (parseInt(ctCommentsSpam) > 0) {
+                        statusString += ctCommentsCheck.ct_status_string_warning;
                     }
-                    jQuery('#ct_checking_status').html(status_string);
+                    jQuery('#ct_checking_status').html(statusString);
                     jQuery('#ct_error_message').hide();
                     // If DB woks not properly
-                    if (+ct_comments_total < ct_comments_checked + ct_comments_bad) {
+                    if (+ctCommentsTotal < ctCommentsChecked + ctCommentsBad) {
                         document.cookie = 'ct_comments_start_check=1; path=/; samesite=lax';
                         location.href = 'edit-comments.php?page=ct_check_spam';
                     }
 
-                    document.cookie = 'apbct_check_comments_offset' + '=' + offset + '; path=/; samesite=lax' + ctSecure;
+                    document.cookie = 'apbct_check_comments_offset' + '=' + offset + '; path=/; samesite=lax'+ctSecure;
 
-                    ct_send_comments();
+                    ctSendComments();
                 }
             }
         },
@@ -180,14 +193,18 @@ function ct_send_comments() {
             jQuery('#ct_error_message').show();
             jQuery('#cleantalk_ajax_error').html(textStatus);
             jQuery('#cleantalk_js_func').html('Check comments');
-            setTimeout(ct_send_comments(), 3000);
+            setTimeout(ctSendComments(), 3000);
         },
         timeout: 25000,
     });
 }
-function ct_show_info() {
-    if (ct_working) {
-        if (ct_cooling_down_flag == true) {
+
+/**
+ * show info
+ */
+function ctShowInfo() {
+    if (ctWorking) {
+        if (ctCoolingDownFlag == true) {
             jQuery('#ct_cooling_notice').html('Waiting for API to cool down. (About a minute)');
             jQuery('#ct_cooling_notice').show();
             return;
@@ -195,15 +212,15 @@ function ct_show_info() {
             jQuery('#ct_cooling_notice').hide();
         }
 
-        if (!ct_comments_total) {
+        if (!ctCommentsTotal) {
             let data = {
                 'action': 'ajax_info_comments',
-                'security': ct_ajax_nonce,
+                'security': ctAjaxNonce,
             };
 
-            if (ct_date_from && ct_date_till) {
-                data['from'] = ct_date_from;
-                data['till'] = ct_date_till;
+            if (ctDateFrom && ctDateTill) {
+                data['from'] = ctDateFrom;
+                data['till'] = ctDateTill;
             }
 
             jQuery.ajax({
@@ -213,16 +230,16 @@ function ct_show_info() {
                 success: function(msg) {
                     msg = jQuery.parseJSON(msg);
                     jQuery('#ct_checking_status').html(msg.message);
-                    ct_comments_total = msg.total;
-                    ct_comments_spam = msg.spam;
-                    ct_comments_checked = msg.checked;
-                    ct_comments_bad = msg.bad;
+                    ctCommentsTotal = msg.total;
+                    ctCommentsSpam = msg.spam;
+                    ctCommentsChecked = msg.checked;
+                    ctCommentsBad = msg.bad;
                 },
                 error: function(jqXHR, textStatus, errorThrown) {
                     jQuery('#ct_error_message').show();
                     jQuery('#cleantalk_ajax_error').html(textStatus);
                     jQuery('#cleantalk_js_func').html('Check comments');
-                    setTimeout(ct_show_info(), 3000);
+                    setTimeout(ctShowInfo(), 3000);
                 },
                 timeout: 15000,
             });
@@ -230,8 +247,13 @@ function ct_show_info() {
     }
 }
 
-// Function to toggle dependences
-function ct_toggle_depended(obj, secondary) {
+/**
+ * Function to toggle dependences
+ *
+ * @param {object} obj
+ * @param {mixed} secondary
+ */
+function ctToggleDepended(obj, secondary) { // eslint-disable-line no-unused-vars
     secondary = secondary || null;
 
     let depended = jQuery(obj.data('depended'));
@@ -245,15 +267,20 @@ function ct_toggle_depended(obj, secondary) {
         depended.prop('disabled', true);
         depended.removeProp('checked');
         if (depended.data('depended')) {
-            ct_toggle_depended(depended, true);
+            ctToggleDepended(depended, true);
         }
     }
 }
 
-function ct_trash_all( e ) {
+/**
+ * trash all
+ *
+ * @param {object} e
+ */
+function ctTrashAll( e ) {
     let data = {
         'action': 'ajax_trash_all',
-        'security': ct_ajax_nonce,
+        'security': ctAjaxNonce,
     };
 
     jQuery('.' + e.target.id).addClass('disabled');
@@ -265,7 +292,7 @@ function ct_trash_all( e ) {
         success: function( msg ) {
             if ( msg > 0 ) {
                 jQuery('#cleantalk_comments_left').html(msg);
-                ct_trash_all( e );
+                ctTrashAll( e );
             } else {
                 jQuery('.' + e.target.id).removeClass('disabled');
                 jQuery('.spinner').css('visibility', 'hidden');
@@ -276,16 +303,21 @@ function ct_trash_all( e ) {
             jQuery('#ct_error_message').show();
             jQuery('#cleantalk_ajax_error').html(textStatus);
             jQuery('#cleantalk_js_func').html('Check comments');
-            setTimeout(ct_trash_all( e ), 3000);
+            setTimeout(ctTrashAll( e ), 3000);
         },
         timeout: 25000,
     });
 }
 
-function ct_spam_all( e ) {
+/**
+ * spam all
+ *
+ * @param {object} e
+ */
+function ctSpamAll( e ) {
     let data = {
         'action': 'ajax_spam_all',
-        'security': ct_ajax_nonce,
+        'security': ctAjaxNonce,
     };
 
     jQuery('.' + e.target.id).addClass('disabled');
@@ -297,7 +329,7 @@ function ct_spam_all( e ) {
         success: function( msg ) {
             if ( msg > 0 ) {
                 jQuery('#cleantalk_comments_left').html(msg);
-                ct_spam_all( e );
+                ctSpamAll( e );
             } else {
                 jQuery('.' + e.target.id).removeClass('disabled');
                 jQuery('.spinner').css('visibility', 'hidden');
@@ -308,7 +340,7 @@ function ct_spam_all( e ) {
             jQuery('#ct_error_message').show();
             jQuery('#cleantalk_ajax_error').html(textStatus);
             jQuery('#cleantalk_js_func').html('Check comments');
-            setTimeout(ct_spam_all( e ), 3000);
+            setTimeout(ctSpamAll( e ), 3000);
         },
         timeout: 25000,
     });
@@ -316,13 +348,13 @@ function ct_spam_all( e ) {
 
 jQuery(document).ready(function() {
     // Prev check parameters
-    if (ct_prev_accurate) {
+    if (ctPrevAccurate) {
         jQuery('#ct_accurate_check').prop('checked', true);
     }
-    if (ct_prev_from) {
+    if (ctPrevFrom) {
         jQuery('#ct_allow_date_range').prop('checked', true).data('state', true);
-        jQuery('#ct_date_range_from').removeProp('disabled').val(ct_prev_from);
-        jQuery('#ct_date_range_till').removeProp('disabled').val(ct_prev_till);
+        jQuery('#ct_date_range_from').removeProp('disabled').val(ctPrevFrom);
+        jQuery('#ct_date_range_till').removeProp('disabled').val(ctPrevTill);
     }
 
     // Toggle dependences
@@ -339,7 +371,7 @@ jQuery(document).ready(function() {
     });
 
     jQuery.datepicker.setDefaults(jQuery.datepicker.regional['en']);
-    var dates = jQuery('#ct_date_range_from, #ct_date_range_till').datepicker(
+    var dates = jQuery('#ct_date_range_from, #ct_date_range_till').datepicker( // eslint-disable-line no-var
         {
             dateFormat: 'M d yy',
             maxDate: '+0D',
@@ -347,7 +379,7 @@ jQuery(document).ready(function() {
             changeYear: true,
             showAnim: 'slideDown',
             onSelect: function(selectedDate) {
-                let option = this.id == 'ct_date_range_from' ? 'minDate' : 'maxDate';
+                let option = this.id == 'ct_date_range_from' ? 'minDate' : 'maxDate';
                 let instance = jQuery( this ).data( 'datepicker' );
                 let date = jQuery.datepicker.parseDate(
                     instance.settings.dateFormat || jQuery.datepicker._defaults.dateFormat,
@@ -359,26 +391,27 @@ jQuery(document).ready(function() {
         },
     );
 
-    function ct_start_check(continue_check) {
-        continue_check = continue_check || null;
+    // eslint-disable-next-line require-jsdoc
+    function ctStartCheck(continueCheck) {
+        continueCheck = continueCheck || null;
 
         if (jQuery('#ct_allow_date_range').is(':checked')) {
-            ct_date_from = jQuery('#ct_date_range_from').val();
-            ct_date_till = jQuery('#ct_date_range_till').val();
+            ctDateFrom = jQuery('#ct_date_range_from').val();
+            ctDateTill = jQuery('#ct_date_range_till').val();
 
-            if (!(ct_date_from != '' && ct_date_till != '')) {
+            if (!(ctDateFrom != '' && ctDateTill != '')) {
                 alert('Please, specify a date range.');
                 return;
             }
         }
 
         if (jQuery('#ct_accurate_check').is(':checked')) {
-            ct_accurate_check = true;
+            ctAccurateCheck = true;
         }
 
         if (
             jQuery('#ct_accurate_check').is(':checked') &&
-			! jQuery('#ct_allow_date_range').is(':checked')
+            ! jQuery('#ct_allow_date_range').is(':checked')
         ) {
             alert('Please, select a date range.');
             return;
@@ -389,34 +422,34 @@ jQuery(document).ready(function() {
         jQuery('#ct_preloader').show();
         jQuery('#ct_pause').show();
 
-        ct_working=true;
+        ctWorking = true;
 
-        if (continue_check) {
-            ct_show_info();
-            ct_send_comments();
+        if (continueCheck) {
+            ctShowInfo();
+            ctSendComments();
         } else {
-            ct_clear_comments();
+            ctClearComments();
         }
     }
 
     // Check comments
     jQuery('#ct_check_spam_button').click(function() {
         document.cookie = 'ct_paused_spam_check=0; path=/; samesite=lax';
-        ct_start_check(false);
+        ctStartCheck(false);
     });
     jQuery('#ct_proceed_check_button').click(function() {
-        ct_start_check(true);
+        ctStartCheck(true);
     });
 
     // Pause the check
     jQuery('#ct_pause').on('click', function() {
-        ct_pause = true;
-        let ct_check = {
-            'accurate': ct_accurate_check,
-            'from': ct_date_from,
-            'till': ct_date_till,
+        ctPause = true;
+        let ctCheck = {
+            'accurate': ctAccurateCheck,
+            'from': ctDateFrom,
+            'till': ctDateTill,
         };
-        document.cookie = 'ct_paused_spam_check=' + JSON.stringify(ct_check) + '; path=/; samesite=lax';
+        document.cookie = 'ct_paused_spam_check=' + JSON.stringify(ctCheck) + '; path=/; samesite=lax';
     });
 
 
@@ -431,7 +464,7 @@ jQuery(document).ready(function() {
             return false;
         }
 
-        ct_trash_all( e );
+        ctTrashAll( e );
     });
 
     // Mark as spam all spam comments
@@ -440,12 +473,12 @@ jQuery(document).ready(function() {
             return false;
         }
 
-        ct_spam_all( e );
+        ctSpamAll( e );
     });
 
     /**
-	 * Checked ct_accurate_check
-	 */
+     * Checked ct_accurate_check
+     */
     jQuery('#ct_accurate_check').change(function() {
         if (this.checked) {
             jQuery('#ct_allow_date_range').prop('checked', true);
@@ -457,7 +490,7 @@ jQuery(document).ready(function() {
 
 /**
  * Get cookie by name
- * @param name
+ * @param {string} name
  * @return {string|undefined}
  */
 function ctGetCookie(name) {
