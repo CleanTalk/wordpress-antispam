@@ -466,6 +466,8 @@ Yes, it is. Please read this article,
 * Fix. Fetch XHR. TWT email signup form catch impemented with jQuery.
 * Fix. Comments and users checker. Whitelable mode brands shown correct.
 * Fix. Woocommerce integration. Route "\?wc-ajax=cfw_validate_email_domain" is skipped from APBCT check.
+* Fix. WC blocked orders. Hyperlinks on the admin bar fixed.
+* Fix. Common. Get fields any - message detecting fixed.
 
 = 6.11.2 Jun 14 2023 =
 * Fix. Mouse pointer data set. Alt cookie skipping condition fixed.

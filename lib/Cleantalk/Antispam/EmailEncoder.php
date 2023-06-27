@@ -125,6 +125,11 @@ class EmailEncoder
             return $content;
         }
 
+        //skip empty or invalid content
+        if ( empty($content) || !is_string($content) ) {
+            return $content;
+        }
+
         if ( $this->hasContentExclusions($content) ) {
             return $content;
         }

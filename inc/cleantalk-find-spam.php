@@ -47,6 +47,15 @@ function ct_add_find_spam_pages()
     remove_submenu_page('users.php', 'ct_check_users_logs');
     remove_submenu_page('users.php', 'ct_check_users_bad');
     remove_submenu_page('edit-comments.php', 'ct_check_spam_logs');
+    /**
+     * PHP 8.1 fix. The title is null by defaults if page is removed from menu list. So this will call deprecated notice on strip_tags
+     */
+    global $title;
+    if (null === $title) {
+        $title = '';
+    }
+
+    // Adding settings page
 
     // Set screen option for every pages
     add_action("load-$ct_check_users", array('\Cleantalk\ApbctWP\FindSpam\Page', 'setScreenOption'));
