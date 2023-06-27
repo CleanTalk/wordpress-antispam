@@ -15,7 +15,7 @@ class UlitmateFormBuilder extends IntegrationBase
         $direct_no_cookie_data = null;
 
         //message clearance
-        if ( isset($ct_post_temp['form_data']) && is_array($ct_post_temp['form_data']) && !empty($ct_post_temp['form_data']) ) {
+        if ( !empty($ct_post_temp['form_data']) && is_array($ct_post_temp['form_data']) ) {
             foreach ( $ct_post_temp['form_data'] as $_key => $value ) {
                 //parse nocookie data
                 if ( isset($value['name']) && $value['name'] === 'ct_no_cookie_hidden_field' ) {
@@ -50,10 +50,16 @@ class UlitmateFormBuilder extends IntegrationBase
             $reformatted_message = array();
             foreach ( $output['message'] as $key => $_value ) {
                 if ( preg_match('/form_data_\d_name/', (string)$key) ) {
+                    /**
+                    * replace keys<=>values
+                    */
                     $new_value_index = str_replace('_name', '_value', $key);
-                    $new_key_index = $output['message'][$key];
-                    if ( isset($output['message'][$new_value_index]) ) {
-                        $reformatted_message[$new_key_index] = $output['message'][$new_value_index];
+                    if ( !empty($output['message'][$key]) ) {
+                        $new_key_index = $output['message'][$key];
+                        if ( isset($output['message'][$new_value_index]) ) {
+                            //glue the same index values
+                            $reformatted_message[$new_key_index][] = $output['message'][$new_value_index];
+                        }
                     }
                 }
             }
