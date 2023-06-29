@@ -1230,7 +1230,7 @@ function apbct_settings__get_ajax_type()
     preg_match_all('@const ctPublicFunctions.*{(.*)}@', $frontend_body, $matches);
     $localize = null;
     if ( isset($matches[1][0]) ) {
-        $localize = json_decode('{' . $matches[1][0] . '}', ARRAY_A);
+        $localize = json_decode('{' . $matches[1][0] . '}', true);
     }
     if ( is_array($localize) && isset($localize['_rest_nonce']) ) {
         $rc_params = array(
@@ -1240,7 +1240,7 @@ function apbct_settings__get_ajax_type()
             '_rest_nonce' => $localize['_rest_nonce']
         );
         $res = Helper::httpRequest(get_option('home'), $rc_params);
-        if ( isset($res['success']) ) {
+        if ( is_array($res) && isset($res['success']) ) {
             return 'rest';
         }
     } else {

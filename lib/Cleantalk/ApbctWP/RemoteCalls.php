@@ -383,7 +383,7 @@ class RemoteCalls
         die(json_encode(['OK' => ['template_id' => $template_id]]));
     }
 
-    public static function action__rest_check()
+    public static function action__rest_check() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         $nonce = Post::get('_rest_nonce');
         if ( ! $nonce ) {

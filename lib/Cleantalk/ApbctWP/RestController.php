@@ -93,7 +93,7 @@ class RestController extends \WP_REST_Controller
         register_rest_route($this->namespace, "/apbct_rest_check", array(
             array(
                 'methods'             => 'POST',
-                'callback'            => function() {
+                'callback'            => function () {
                     return ['success' => true];
                 },
                 'permission_callback' => function (WP_REST_Request $request) {
