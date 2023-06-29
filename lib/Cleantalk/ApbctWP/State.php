@@ -294,6 +294,7 @@ class State extends \Cleantalk\Common\State
 
         // Insert api key (RC without token)
         'post_api_key'       => array('last_call' => 0,),
+        'rest_check'         => array('last_call' => 0,),
     );
 
     /**

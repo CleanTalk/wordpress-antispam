@@ -88,5 +88,18 @@ class RestController extends \WP_REST_Controller
                 ),
             )
         ));
+
+        // Check REST route
+        register_rest_route($this->namespace, "/apbct_rest_check", array(
+            array(
+                'methods'             => 'POST',
+                'callback'            => function() {
+                    return ['success' => true];
+                },
+                'permission_callback' => function (WP_REST_Request $request) {
+                    return wp_verify_nonce($request->get_header('x_wp_nonce'), 'wp_rest');
+                }
+            )
+        ));
     }
 }
