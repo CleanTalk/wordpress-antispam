@@ -661,11 +661,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
      */
     public static function updateWriteToDb($db, $db__table__data, $file_url = null)
     {
-        $table_exist = $db->fetchAll(
-            'SHOW TABLES LIKE "' . $db__table__data . '";'
-        );
-
-        if ( empty($table_exist) ) {
+        if ( ! $db->isTableExists($db__table__data) ) {
             return array('error' => 'Temp table not exist');
         }
 
