@@ -29,6 +29,7 @@ class CtPublicLocalize
 
             'wl_brandname'          => $apbct->data['wl_brandname'],
             'wl_brandname_short'    => $apbct->data['wl_brandname_short'],
+            'ct_checkjs_key'        => ct_get_checkjs_value(),
         );
     }
 
