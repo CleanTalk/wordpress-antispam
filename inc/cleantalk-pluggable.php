@@ -1239,7 +1239,7 @@ function apbct_settings__get_ajax_type()
             'plugin_name' => 'apbct',
             '_rest_nonce' => $localize['_rest_nonce']
         );
-        $res = Helper::httpRequest(get_option('home'), $rc_params);
+        $res = json_decode(Helper::httpRequest(get_option('home'), $rc_params), true);
         if ( is_array($res) && isset($res['success']) ) {
             return 'rest';
         }
