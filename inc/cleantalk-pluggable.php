@@ -1224,6 +1224,13 @@ function apbct_settings__get_ajax_type()
 {
     global $apbct;
 
+    //force ajax route type if constant is defined and compatible
+    if (defined('APBCT_SET_AJAX_ROUTE_TYPE')
+        && in_array(APBCT_SET_AJAX_ROUTE_TYPE, array('rest','admin_ajax'))
+    ) {
+        return APBCT_SET_AJAX_ROUTE_TYPE;
+    }
+
     // Check rest availability
     // Getting WP REST nonce from the public side
     $frontend_body = Helper::httpRequest(get_option('home'));
