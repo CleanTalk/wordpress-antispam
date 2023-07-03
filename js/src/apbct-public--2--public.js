@@ -223,6 +223,9 @@ function ctSetHasScrolled() {
         ctSetCookie('ct_has_scrolled', 'true');
         apbctLocalStorage.set('ct_has_scrolled', true);
     }
+    if (ctPublic.data__cookies_type === 'native' && ctGetCookie('ct_has_scrolled') === undefined) {
+        ctSetCookie('ct_has_scrolled', 'true');
+    }
 }
 
 /**
@@ -233,6 +236,9 @@ function ctSetMouseMoved() {
         ctSetCookie('ct_mouse_moved', 'true');
         apbctLocalStorage.set('ct_mouse_moved', true);
     }
+    if (ctPublic.data__cookies_type === 'native' && ctGetCookie('ct_mouse_moved') === undefined) {
+        ctSetCookie('ct_mouse_moved', 'true');
+    }
 }
 
 /**
@@ -241,7 +247,12 @@ function ctSetMouseMoved() {
 function ctStartFieldsListening() {
     if (
         (apbctLocalStorage.isSet('ct_has_key_up') || apbctLocalStorage.get('ct_has_key_up')) &&
-        (apbctLocalStorage.isSet('ct_has_input_focused') || apbctLocalStorage.get('ct_has_input_focused'))
+        (apbctLocalStorage.isSet('ct_has_input_focused') || apbctLocalStorage.get('ct_has_input_focused')) &&
+        (
+            ctPublic.data__cookies_type === 'native' &&
+            ctGetCookie('ct_has_input_focused') !== undefined &&
+            ctGetCookie('ct_has_key_up') !== undefined
+        )
     ) {
         // already set
         return;
@@ -295,8 +306,10 @@ let ctFunctionHasKeyUp = function output(event) {
  */
 function ctSetHasInputFocused() {
     if ( ! apbctLocalStorage.isSet('ct_has_input_focused') || ! apbctLocalStorage.get('ct_has_input_focused') ) {
-        ctSetCookie('ct_has_input_focused', 'true');
         apbctLocalStorage.set('ct_has_input_focused', true);
+    }
+    if (ctPublic.data__cookies_type === 'native' && ctGetCookie('ct_has_input_focused') === undefined) {
+        ctSetCookie('ct_has_input_focused', 'true');
     }
 }
 
@@ -305,8 +318,10 @@ function ctSetHasInputFocused() {
  */
 function ctSetHasKeyUp() {
     if ( ! apbctLocalStorage.isSet('ct_has_key_up') || ! apbctLocalStorage.get('ct_has_key_up') ) {
-        ctSetCookie('ct_has_key_up', 'true');
         apbctLocalStorage.set('ct_has_key_up', true);
+    }
+    if (ctPublic.data__cookies_type === 'native' && ctGetCookie('ct_has_key_up') === undefined) {
+        ctSetCookie('ct_has_key_up', 'true');
     }
 }
 
