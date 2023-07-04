@@ -1156,7 +1156,8 @@ function apbct_is_skip_request($ajax = false)
         // Plugin Name: OptimizeCheckouts - skip fields checks
         if (
             apbct_is_plugin_active('op-cart/op-checkouts.php') &&
-            apbct_is_in_uri('wp-json/opc/v1/cart/recalculate')
+            ( apbct_is_in_uri('wp-json/opc/v1/cart/recalculate') ||
+            apbct_is_in_uri('wp-json/opc/v1/cart/update-payment-method') )
         ) {
             return 'Plugin Name: OptimizeCheckouts skip fields checks';
         }

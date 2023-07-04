@@ -3102,12 +3102,24 @@ function ct_s2member_registration_test($post_key)
 
     if ( $apbct->settings['forms__registrations_test'] == 0 ) {
         do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
-
         return null;
     }
 
-    $sender_email    = Sanitize::cleanEmail(Post::get($post_key)['email']);
-    $sender_nickname = Sanitize::cleanUser(Post::get($post_key)['username']);
+    $post_key_value = Post::get($post_key);
+
+    if ( is_array($post_key_value) && isset($post_key_value['email'], $post_key_value['username']) ) {
+        //old way
+        $sender_email    = Sanitize::cleanEmail($post_key_value['email']);
+        $sender_nickname = Sanitize::cleanUser($post_key_value['username']);
+    } else {
+        //new way
+        $sender_email = Post::get('signup_email') ? Sanitize::cleanEmail(Post::get('signup_email')) : null;
+        $sender_nickname = Post::get('signup_username') ? Sanitize::cleanUser(Post::get('signup_username')) : null;
+    }
+
+    if ( empty($sender_email) ) {
+        return null;
+    }
 
     //Making a call
     $base_call_result = apbct_base_call(
