@@ -5,9 +5,6 @@ module.exports = {
     },
     extends: 'google',
     ignorePatterns: [
-        'js/src/cleantalk-admin-settings-page.js',
-        'js/src/cleantalk-admin.js',
-        'js/src/cleantalk-comments-checkspam.js',
         'js/src/cleantalk-comments-editscreen.js',
         'js/src/cleantalk-dashboard-widget.js',
         'js/src/cleantalk-debug-ajax.js',

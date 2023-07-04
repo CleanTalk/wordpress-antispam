@@ -884,7 +884,7 @@ function apbct_settings__set_fields__network($fields)
             'description'    => '',
             'html_before'    => '<br><hr><br>'
                                 . '<span id="ct_adv_showhide">'
-                                . '<a href="#" class="apbct_color--gray" onclick="event.preventDefault(); apbct_excepted_show_hide(\'apbct_settings__dwpms_settings\');">'
+                                . '<a href="#" class="apbct_color--gray" onclick="event.preventDefault(); apbctExceptedShowHide(\'apbct_settings__dwpms_settings\');">'
                                 . __('WordPress Multisite (WPMS) settings', 'cleantalk-spam-protect')
                                 . '</a>'
                                 . '</span>'
@@ -1253,7 +1253,7 @@ function apbct_settings__display()
         }
     }
     $hidden_groups .= '</ul>';
-    $hidden_groups .= '<div id="apbct_settings__button_section"><button name="submit" class="cleantalk_link cleantalk_link-manual" value="save_changes" onclick="apbct_show_required_groups(event,\'apbct_settings__button_section\')">'
+    $hidden_groups .= '<div id="apbct_settings__button_section"><button name="submit" class="cleantalk_link cleantalk_link-manual" value="save_changes" onclick="apbctShowRequiredGroups(event,\'apbct_settings__button_section\')">'
                            . __('Save Changes')
                            . '</button></div>';
 
@@ -1310,7 +1310,7 @@ function apbct_settings__display()
      */
     echo '</div>';
 
-    echo '<button id="apbct_settings__main_save_button" name="submit" class="cleantalk_link cleantalk_link-manual" value="save_changes" onclick="apbct_show_required_groups(event,\'apbct_settings__main_save_button\')">'
+    echo '<button id="apbct_settings__main_save_button" name="submit" class="cleantalk_link cleantalk_link-manual" value="save_changes" onclick="apbctShowRequiredGroups(event,\'apbct_settings__main_save_button\')">'
          . __('Save Changes')
          . '</button>';
     echo '<br>';
@@ -1859,7 +1859,7 @@ function apbct_settings__field__action_buttons()
 
     add_filter('apbct_settings_action_buttons', function ($buttons_array) {
         $buttons_array[] =
-            '<a href="#" class="ct_support_link" onclick="apbct_show_hide_elem(\'apbct_statistics\')">'
+            '<a href="#" class="ct_support_link" onclick="apbctShowHideElem(\'apbct_statistics\')">'
             . __('Statistics & Reports', 'cleantalk-spam-protect')
             . '</a>';
         return $buttons_array;
@@ -1876,7 +1876,7 @@ function apbct_settings__field__action_buttons()
         }
         echo '</div>';
     } elseif ( apbct__is_hosting_license() ) {
-        echo '<a href="#" class="ct_support_link" onclick="apbct_show_hide_elem(\'apbct_statistics\')">'
+        echo '<a href="#" class="ct_support_link" onclick="apbctShowHideElem(\'apbct_statistics\')">'
              . __('Statistics & Reports', 'cleantalk-spam-protect')
              . '</a>';
     }
@@ -2104,7 +2104,7 @@ function apbct_settings__field__draw($params = array())
                  . ($params['childrens'] ? ' apbct_children="' . $childrens . '"' : '')
                  . ' onchange="'
                  . ($params['childrens'] ? ' apbctSettingsDependencies(\'' . $childrens . '\');' : '')
-                 . ($params['hide'] ? ' apbct_show_hide_elem(\'' . $hide . '\');' : '')
+                 . ($params['hide'] ? ' apbctShowHideElem(\'' . $hide . '\');' : '')
                  . '"'
                  . ' />'
                  . '<label for="apbct_setting_' . $params['name'] . '" class="apbct_setting-field_title--' . $params['type'] . '">'
@@ -3199,7 +3199,7 @@ function apbct_get_spoilers_links()
     $advanced_settings = '<span id="ct_adv_showhide" class="apbct_bottom_links--left">'
                          . '<a href="#" class="apbct_color--gray" onclick="'
                          . 'event.preventDefault();'
-                         . 'apbct_excepted_show_hide(\'apbct_settings__advanced_settings\');'
+                         . 'apbctExceptedShowHide(\'apbct_settings__advanced_settings\');'
                          . '">'
                          . __('Advanced settings', 'cleantalk-spam-protect')
                          . '</a>'
@@ -3214,7 +3214,7 @@ function apbct_get_spoilers_links()
     $affiliate_section = ! $apbct->data['wl_mode_enabled']
         ? '<span id="ct_trusted_text_showhide" class="apbct_bottom_links--other">'
           . '<a href="#" class="apbct_color--gray" onclick="'
-          . 'return apbct_excepted_show_hide(\'trusted_and_affiliate__special_span\');'
+          . 'return apbctExceptedShowHide(\'trusted_and_affiliate__special_span\');'
           . '">'
           . __('Trust text, affiliate settings', 'cleantalk-spam-protect')
           . '</a>'
