@@ -565,6 +565,11 @@ function ct_ajax_hook($message_obj = null)
                 }
                 // if nothing fired add the field to final array
                 $handled_form_data_collection[] = $row;
+                // collect data for ct_post_temp
+                $exploded_row = explode('=', $row);
+                if ( !empty($exploded_row[0]) && !empty($exploded_row[1]) ) {
+                    $ct_post_temp[$exploded_row[0]] = $exploded_row[1];
+                }
             }
             // convert array to string with &
             $form_data = implode('&', $handled_form_data_collection);
