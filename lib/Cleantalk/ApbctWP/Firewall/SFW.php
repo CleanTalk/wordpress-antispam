@@ -508,7 +508,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
      *
      * @return array|bool array('error' => STRING)
      */
-    public static function sendLog($db, $log_table, $ct_key, $_use_delete_command)
+    public static function sendLog($db, $log_table, $ct_key)
     {
         //Getting logs
         $query = "SELECT * FROM $log_table ORDER BY entries_timestamp DESC LIMIT 0," . APBCT_SFW_SEND_LOGS_LIMIT . ";";

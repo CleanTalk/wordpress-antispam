@@ -171,7 +171,7 @@ function apbct_settings__set_fields()
                             'cleantalk-spam-protect'
                         )
                         . $additional_sfw_description,
-                    'childrens'   => array('sfw__anti_flood', 'sfw__anti_crawler', 'sfw__use_delete_to_clear_table'),
+                    'childrens'   => array('sfw__anti_flood', 'sfw__anti_crawler'),
                     'long_description' => true,
                 ),
                 'comments__hide_website_field'             => array(
@@ -506,17 +506,6 @@ function apbct_settings__set_fields()
                         'Alternative way to connect the Cloud. Use this if you have connection problems.',
                         'cleantalk-spam-protect'
                     ),
-                ),
-                'sfw__use_delete_to_clear_table'       => array(
-                    'title'       => __(
-                        "Use DELETE SQL-command instead TRUNCATE to clear tables",
-                        'cleantalk-spam-protect'
-                    ),
-                    'description' => __(
-                        'Could help if you have blocked SpamFireWall tables in your database.',
-                        'cleantalk-spam-protect'
-                    ),
-                    'parent'      => 'sfw__enabled',
                 ),
                 'data__pixel'                          => array(
                     'title'       => __('Add a ' . $apbct->data["wl_brandname_short"] . ' Pixel to improve IP-detection', 'cleantalk-spam-protect'),

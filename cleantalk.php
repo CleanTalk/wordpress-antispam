@@ -1931,8 +1931,7 @@ function ct_sfw_send_logs($api_key = '')
     $result = SFW::sendLog(
         DB::getInstance(),
         APBCT_TBL_FIREWALL_LOG,
-        $api_key,
-        (bool)$apbct->settings['sfw__use_delete_to_clear_table']
+        $api_key
     );
 
     if ( empty($result['error']) ) {
