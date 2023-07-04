@@ -1223,6 +1223,8 @@ function apbct_is_exception_arg_request()
  */
 function apbct_settings__get_ajax_type()
 {
+    global $apbct;
+
     //force ajax route type if constant is defined and compatible
     if (defined('APBCT_SET_AJAX_ROUTE_TYPE')
         && in_array(APBCT_SET_AJAX_ROUTE_TYPE, array('rest','admin_ajax'))
@@ -1231,11 +1233,31 @@ function apbct_settings__get_ajax_type()
     }
 
     // Check rest availability
-    $res_rest = Helper::httpRequestGetResponseCode(esc_url(apbct_get_rest_url()));
-    $res_body = Helper::httpRequestGetContent(esc_url(apbct_get_rest_url()));
+    // Getting WP REST nonce from the public side
+    $frontend_body = Helper::httpRequest(get_option('home'));
+    preg_match_all('@const ctPublicFunctions.*{(.*)}@', $frontend_body, $matches);
+    $localize = null;
+    if ( isset($matches[1][0]) ) {
+        $localize = json_decode('{' . $matches[1][0] . '}', true);
+    }
+    if ( is_array($localize) && isset($localize['_rest_nonce']) ) {
+        $rc_params = array(
+            'spbc_remote_call_token' => md5($apbct->api_key),
+            'spbc_remote_call_action' => 'rest_check',
+            'plugin_name' => 'apbct',
+            '_rest_nonce' => $localize['_rest_nonce']
+        );
+        $res = json_decode(Helper::httpRequest(get_option('home'), $rc_params), true);
+        if ( is_array($res) && isset($res['success']) ) {
+            return 'rest';
+        }
+    } else {
+        $res_rest = Helper::httpRequestGetResponseCode(esc_url(apbct_get_rest_url()));
+        $res_body = Helper::httpRequestGetContent(esc_url(apbct_get_rest_url()));
 
-    if ( $res_rest == 200 && Helper::isJson($res_body) ) {
-        return 'rest';
+        if ( $res_rest == 200 && Helper::isJson($res_body) ) {
+            return 'rest';
+        }
     }
 
     // Check WP ajax availability
