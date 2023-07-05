@@ -51,26 +51,18 @@ function ctSetCookie( cookies, value, expires ) {
 
         // Using traditional cookies
     } else if ( ctPublicFunctions.data__cookies_type === 'native' ) {
-        let forcedAltCookiesSet = [];
-        cookies.forEach( function(item) {
-            if (listOfCookieNamesToForceAlt.indexOf(item[0]) !== -1) {
-                forcedAltCookiesSet.push(item);
-            } else {
-                apbctLocalStorage.set(item[0], encodeURIComponent(item[1]));
-            }
-        });
-        // if cookies from list found use alt cookies for this selection set
-        if ( forcedAltCookiesSet.length > 0 ) {
-            ctSetAlternativeCookie(forcedAltCookiesSet);
-        }
-
         // If problem integration forms detected use alt cookies for whole cookies set
-        if ( ctPublic.force_alt_cookies ) {
-            // do it just once
+        if (ctPublic.force_alt_cookies && !skipAlt) {
+            let forcedAltCookiesSet = [];
+            cookies.forEach( function(item) {
+                if (listOfCookieNamesToForceAlt.indexOf(item[0]) !== -1) {
+                    forcedAltCookiesSet.push(item);
+                } else {
+                    apbctLocalStorage.set(item[0], encodeURIComponent(item[1]));
+                }
+            });
 
-            if ( !skipAlt ) {
-                ctSetAlternativeCookie(cookies, {forceAltCookies: true});
-            }
+            ctSetAlternativeCookie(cookies, {forceAltCookies: true});
         } else {
             cookies.forEach( function(item) {
                 const _expires = typeof item[2] !== 'undefined' ? 'expires=' + expires + '; ' : '';
