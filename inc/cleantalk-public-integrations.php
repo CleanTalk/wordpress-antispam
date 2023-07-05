@@ -1093,7 +1093,7 @@ function ct_preprocess_comment($comment)
     $checkjs = apbct_js_test(Sanitize::cleanTextField(Cookie::get('ct_checkjs')), true) ?: apbct_js_test(Sanitize::cleanTextField(Post::get('ct_checkjs')));
 
     // jetpack_comment case
-	if ( $post_info['comment_type'] === 'jetpack_comment' ) {
+    if ( $post_info['comment_type'] === 'jetpack_comment' ) {
         $checkjs = apbct_js_test(AltSessions::get('ct_checkjs'));
     }
 
