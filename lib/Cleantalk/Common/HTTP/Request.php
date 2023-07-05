@@ -117,7 +117,7 @@ class Request
     public function setPresets($presets)
     {
         // Prepare $presets to process
-        $this->presets = $presets && ! is_array($presets)
+        $this->presets = ! is_array($presets) && $presets
             ? explode(' ', $presets)
             : $presets;
 
