@@ -1301,7 +1301,7 @@ function apbct__check_compatibility_handler()
 function apbct__add_debug_tab($links)
 {
     if ( is_array($links) ) {
-        $debug_link    = '<a href="#" class="ct_support_link" onclick="apbct_show_hide_elem(\'apbct_debug_tab\')">' .
+        $debug_link    = '<a href="#" class="ct_support_link" onclick="apbctShowHideElem(\'apbct_debug_tab\')">' .
                          __('Debug', 'cleantalk-spam-protect') . '</a>';
         $links[] = $debug_link;
     }

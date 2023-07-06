@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 4.7
 Tested up to: 6.2
 Requires PHP: 5.6
-Stable tag: 6.12
+Stable tag: 6.13
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -450,6 +450,19 @@ Yes, it is. Please read this article,
 12. SpamFireWall log.
 
 == Changelog ==
+
+= 6.13 Jul 06 2023 =
+* Fix. PHP 8.1 compat. Email encoder.
+* Fix. PHP 8.1 compat. Check users/comments. Title is not null forced.
+* Fix. Ultimate Form Builder. Message clearance.
+* Fix. NoCookie data clearance. New function apbct_clear_query_from_service_fields() clear the value of form service fields instead of unset it if the value is get-query-like.
+* Update. SFW. Check sfw temp table exists before insert data.
+* Fix. Integration. Ultimate Form Builder Lite. Glue same key values.
+* Fix. Integration. OptimizePress checkout exclusions.
+* Update. SFW. Use isTableExists instead of direct query.
+* Fix. cleantalk-public-integrations.php. ct_s2member_registration_test(). Integration fixed.
+* Fix. Settings. Use DELETE SQL-command instead TRUNCATE option deleted.
+* Fix. Settings. Checking REST availability fixed.
 
 = 6.12 Jun 22 2023 =
 * New. Restoring WC blocked orders implemented.

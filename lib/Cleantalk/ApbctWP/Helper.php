@@ -35,7 +35,7 @@ class Helper extends \Cleantalk\Common\Helper
      *
      * @return array|bool|string (array || array('error' => true))
      */
-    public static function httpRequest($url, $data = array(), $presets = null, $opts = array())
+    public static function httpRequest($url, $data = array(), $presets = [], $opts = array())
     {
         // Set APBCT User-Agent and passing data to parent method
         $opts = self::arrayMergeSaveNumericKeys(

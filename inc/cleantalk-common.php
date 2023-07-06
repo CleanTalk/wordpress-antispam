@@ -690,7 +690,6 @@ function apbct_visible_fields__process($visible_fields)
     if ( ! empty($fields_collection) ) {
         // These fields belong this request
         $fields_to_check = apbct_get_fields_to_check();
-        $fields_to_check = apply_filters('apbct_preprocess_post_to_vf_check', $fields_to_check);
 
         foreach ( $fields_collection as $current_fields ) {
             if ( isset($current_fields['visible_fields'], $current_fields['visible_fields_count']) ) {
@@ -1048,7 +1047,7 @@ function ct_send_feedback($feedback_request = null)
         // Server URL handling
         $config             = ct_get_server();
         $ct->server_url     = APBCT_MODERATE_URL;
-        $ct->work_url       = preg_match('/http:\/\/.+/', $config['ct_work_url']) ? $config['ct_work_url'] : null;
+        $ct->work_url       = $config['ct_work_url'] && preg_match('/http:\/\/.+/', $config['ct_work_url']) ? $config['ct_work_url'] : null;
         $ct->server_ttl     = $config['ct_server_ttl'];
         $ct->server_changed = $config['ct_server_changed'];
 

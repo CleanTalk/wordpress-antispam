@@ -15,14 +15,23 @@ class UlitmateFormBuilder extends IntegrationBase
         $direct_no_cookie_data = null;
 
         //message clearance
-        if ( isset($ct_post_temp['form_data']) && is_array($ct_post_temp['form_data']) && !empty($ct_post_temp['form_data']) ) {
+        if ( !empty($ct_post_temp['form_data']) && is_array($ct_post_temp['form_data']) ) {
             foreach ( $ct_post_temp['form_data'] as $_key => $value ) {
                 //parse nocookie data
                 if ( isset($value['name']) && $value['name'] === 'ct_no_cookie_hidden_field' ) {
                     unset($ct_post_temp['form_data'][$_key]);
+                    // prepare POST data to get parameters
+                    $direct_no_cookie_data[$value['name']] = $value['value'];
                 }
-                // prepare POST data to get parameters
-                $direct_no_cookie_data[$value['name']] = $value['value'];
+                //apbct_visible_fields
+                if ( isset($value['name']) && $value['name'] === 'apbct_visible_fields' ) {
+                    unset($ct_post_temp['form_data'][$_key]);
+                }
+
+                if ( isset($value['name']) && $value['name'] === 'ct_bot_detector_event_token' ) {
+                    unset($ct_post_temp['form_data'][$_key]);
+                }
+                //ct_bot_detector_event_token
             }
         }
 
@@ -30,24 +39,34 @@ class UlitmateFormBuilder extends IntegrationBase
             apbct_form__get_no_cookie_data($direct_no_cookie_data);
         }
 
-        if ( $direct_no_cookie_data ) {
-            add_filter('apbct_preprocess_post_to_vf_check', function () use ($direct_no_cookie_data) {
-                return $direct_no_cookie_data;
-            });
-        }
-
         //unset action
         if ( isset($ct_post_temp['action']) ) {
             unset($ct_post_temp['action']);
         }
 
-        foreach ( $ct_post_temp as $key => $_value ) {
-            if ( preg_match('/form_data_\d_name/', (string)$key) ) {
-                unset($ct_post_temp[$key]);
+        $output = ct_gfa($ct_post_temp);
+
+        if ( isset($output['message']) ) {
+            $reformatted_message = array();
+            foreach ( $output['message'] as $key => $_value ) {
+                if ( preg_match('/form_data_\d_name/', (string)$key) ) {
+                    /**
+                    * replace keys<=>values
+                    */
+                    $new_value_index = str_replace('_name', '_value', $key);
+                    if ( !empty($output['message'][$key]) ) {
+                        $new_key_index = $output['message'][$key];
+                        if ( isset($output['message'][$new_value_index]) ) {
+                            //glue the same index values
+                            $reformatted_message[$new_key_index][] = $output['message'][$new_value_index];
+                        }
+                    }
+                }
             }
+            $output['message'] = $reformatted_message;
         }
 
-        return ct_gfa($ct_post_temp);
+        return $output;
     }
 
     /**
