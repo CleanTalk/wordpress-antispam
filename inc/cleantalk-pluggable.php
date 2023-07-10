@@ -977,6 +977,19 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'Exclude UserPro login form request';
         }
+
+        // Flux Checkout for WooCommerce service requests
+        if (
+            apbct_is_plugin_active('flux-checkout-premium/flux-checkout.php') &&
+            (
+                Post::get('action') === 'flux_check_email_exists' ||
+                Post::get('action') === 'flux_check_for_inline_error' ||
+                Post::get('action') === 'flux_check_for_inline_errors'
+            )
+        ) {
+            return 'Flux Checkout for WooCommerce service requests';
+        }
+
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
