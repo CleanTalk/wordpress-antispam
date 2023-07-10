@@ -1235,11 +1235,15 @@ function apbct_settings__get_ajax_type()
     // Check rest availability
     // Getting WP REST nonce from the public side
     $frontend_body = Helper::httpRequest(get_option('home'));
-    preg_match_all('@const ctPublicFunctions.*{(.*)}@', $frontend_body, $matches);
     $localize = null;
-    if ( isset($matches[1][0]) ) {
-        $localize = json_decode('{' . $matches[1][0] . '}', true);
+
+    if ( is_string($frontend_body) ) {
+        preg_match_all('@const ctPublicFunctions.*{(.*)}@', $frontend_body, $matches);
+        if ( isset($matches[1][0]) ) {
+            $localize = json_decode('{' . $matches[1][0] . '}', true);
+        }
     }
+
     if ( is_array($localize) && isset($localize['_rest_nonce']) ) {
         $rc_params = array(
             'spbc_remote_call_token' => md5($apbct->api_key),
