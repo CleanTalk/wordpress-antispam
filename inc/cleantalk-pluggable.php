@@ -989,7 +989,6 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'Flux Checkout for WooCommerce service requests';
         }
-
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
