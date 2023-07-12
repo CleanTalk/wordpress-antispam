@@ -1121,7 +1121,7 @@ function apbct_sfw_update__init($delay = 0)
             'plugin_name' => 'apbct'
         )
     );
-    if ( ! empty($prepare_dir__result['error']) || ! empty($test_rc_result['error']) ) {
+    if ( defined('APBCT_SFW_FORCE_DIRECT_UPDATE') || ! empty($prepare_dir__result['error']) || ! empty($test_rc_result['error']) ) {
         return apbct_sfw_direct_update();
     }
 
