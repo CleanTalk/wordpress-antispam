@@ -3143,7 +3143,7 @@ window.onload = function() {
     setTimeout(function() {
         ctProtectExternal();
         catchDynamicRenderedForm();
-    }, 1500);
+    }, 2000);
 };
 
 /**
