@@ -1704,6 +1704,8 @@ function apbct_ready() {
         });
     }
 
+    apbctPrepareBlockForAjaxForms();
+
     ctPreloadLocalStorage();
 
     // set session ID
@@ -2414,36 +2416,21 @@ function apbctGetScreenInfo() {
     });
 }
 
-if (typeof jQuery !== 'undefined') {
-    // Capturing responses and output block message for unknown AJAX forms
-    if ('function' === typeof jQuery(document).ajaxComplete) {
+const apbctPrepareBlockForAjaxForms = () => {
+    if (typeof jQuery !== 'undefined') {
+        // Capturing responses and output block message for unknown AJAX forms
         jQuery(document).ajaxComplete(function(event, xhr, settings) {
             if (xhr.responseText && xhr.responseText.indexOf('"apbct') !== -1) {
                 try {
                     ctParseBlockMessage(JSON.parse(xhr.responseText));
                 } catch (e) {
                     console.log(e.toString());
+                    return;
                 }
             }
         });
-    } else {
-        console.table('ajaxComplete is not a function, try to .on(ajaxComplete)');
-        try {
-            jQuery(document).on('ajaxComplete', (function(event, xhr, settings) {
-                if (xhr.responseText && xhr.responseText.indexOf('"apbct') !== -1) {
-                    try {
-                        ctParseBlockMessage(JSON.parse(xhr.responseText));
-                    } catch (e) {
-                        console.log(e.toString());
-                    }
-                }
-            }));
-        } catch (e) {
-            console.log(e.toString());
-        }
-        console.table('on(ajaxComplete) OK');
     }
-}
+};
 
 // eslint-disable-next-line require-jsdoc
 function ctParseBlockMessage(response) {
