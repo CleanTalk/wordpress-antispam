@@ -1657,7 +1657,10 @@ function ctSetHasInputFocused() {
     if ( ! apbctLocalStorage.isSet('ct_has_input_focused') || ! apbctLocalStorage.get('ct_has_input_focused') ) {
         apbctLocalStorage.set('ct_has_input_focused', true);
     }
-    if ((ctPublic.data__cookies_type === 'native' || ctPublic.data__cookies_type === 'alternative') && ctGetCookie('ct_has_input_focused') === undefined) {
+    if (
+        (ctPublic.data__cookies_type === 'native' || ctPublic.data__cookies_type === 'alternative') &&
+        ctGetCookie('ct_has_input_focused') === undefined
+    ) {
         ctSetCookie('ct_has_input_focused', 'true');
     }
 }
@@ -1669,7 +1672,10 @@ function ctSetHasKeyUp() {
     if ( ! apbctLocalStorage.isSet('ct_has_key_up') || ! apbctLocalStorage.get('ct_has_key_up') ) {
         apbctLocalStorage.set('ct_has_key_up', true);
     }
-    if ((ctPublic.data__cookies_type === 'native' || ctPublic.data__cookies_type === 'alternative') && ctGetCookie('ct_has_key_up') === undefined) {
+    if (
+        (ctPublic.data__cookies_type === 'native' || ctPublic.data__cookies_type === 'alternative') &&
+        ctGetCookie('ct_has_key_up') === undefined
+    ) {
         ctSetCookie('ct_has_key_up', 'true');
     }
 }
