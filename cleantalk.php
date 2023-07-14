@@ -1101,7 +1101,7 @@ function apbct_sfw_update__init($delay = 0)
     }
 
     // Get update period for server
-    $update_period = DNS::getRecord('spamfirewall-ttl-txt.cleantalk.org', true, DNS_TXT);
+    $update_period = DNS::getRecord('spamfirewall-ttl-txt.cleantalk.org', true, true);
     $update_period = isset($update_period['txt']) ? $update_period['txt'] : 0;
     $update_period = (int)$update_period > 14400 ? (int)$update_period : 14400;
     if ( $apbct->stats['sfw']['update_period'] != $update_period ) {
