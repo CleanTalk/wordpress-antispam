@@ -1418,7 +1418,7 @@ function apbct_sfw_update__get_multifiles_of_type(array $params)
  * @param $urls
  * @return array|array[]|bool|string|string[]
  */
-function apbct_sfw_update__download_files($urls)
+function apbct_sfw_update__download_files($urls, $direct_update = false)
 {
     global $apbct;
     sleep(3);
@@ -1430,6 +1430,9 @@ function apbct_sfw_update__download_files($urls)
     $count_results = count($results);
 
     if ( empty($results['error']) && ($count_urls === $count_results) ) {
+        if ( $direct_update ) {
+            return true;
+        }
         $download_again = array();
         $results        = array_values($results);
         for ( $i = 0; $i < $count_results; $i++ ) {
@@ -1463,9 +1466,9 @@ function apbct_sfw_update__download_files($urls)
 
 /**
  * Queue stage. Create SFW origin tables to make sure they are exists.
- * @return array[]
+ * @return array[]|bool
  */
-function apbct_sfw_update__create_tables()
+function apbct_sfw_update__create_tables($direct_update = false)
 {
     global $apbct;
     // Preparing database infrastructure
@@ -1493,7 +1496,7 @@ function apbct_sfw_update__create_tables()
         $apbct->saveData();
     }
 
-    return array(
+    return $direct_update ? true : array(
         'next_stage' => array(
             'name' => 'apbct_sfw_update__create_temp_tables',
         )
@@ -1502,9 +1505,9 @@ function apbct_sfw_update__create_tables()
 
 /**
  * Queue stage. Create SFW temporary tables. They will replace origin tables after update.
- * @return array[]
+ * @return array[]|bool
  */
-function apbct_sfw_update__create_temp_tables()
+function apbct_sfw_update__create_temp_tables($direct_update = false)
 {
     global $apbct;
 
@@ -1533,7 +1536,7 @@ function apbct_sfw_update__create_temp_tables()
         }
     }
 
-    return array(
+    return $direct_update ? true : array(
         'next_stage' => array(
             'name' => 'apbct_sfw_update__process_files',
         )
@@ -1613,9 +1616,9 @@ function apbct_sfw_update__process_files()
 
 /**
  * Queue stage. Process hardcoded exclusion to the SFW temp table.
- * @return array[]|string[]
+ * @return array[]|string[]|bool
  */
-function apbct_sfw_update__process_exclusions()
+function apbct_sfw_update__process_exclusions($direct_update = false)
 {
     global $apbct;
 
@@ -1640,7 +1643,7 @@ function apbct_sfw_update__process_exclusions()
         $apbct->save('fw_stats');
     }
 
-    return array(
+    return $direct_update ? true : array(
         'next_stage' => array(
             'name' => 'apbct_sfw_update__end_of_update__renaming_tables',
             'accepted_tries' => 1
@@ -1650,9 +1653,9 @@ function apbct_sfw_update__process_exclusions()
 
 /**
  * Queue stage. Delete origin tables and rename temporary tables.
- * @return array|array[]|string[]
+ * @return array|array[]|string[]|bool
  */
-function apbct_sfw_update__end_of_update__renaming_tables()
+function apbct_sfw_update__end_of_update__renaming_tables($direct_update = false)
 {
     global $apbct;
 
@@ -1678,7 +1681,7 @@ function apbct_sfw_update__end_of_update__renaming_tables()
     $apbct->fw_stats['update_mode'] = 0;
     $apbct->save('fw_stats');
 
-    return array(
+    return $direct_update ? true : array(
         'next_stage' => array(
             'name' => 'apbct_sfw_update__end_of_update__checking_data',
             'accepted_tries' => 1
@@ -1688,9 +1691,9 @@ function apbct_sfw_update__end_of_update__renaming_tables()
 
 /**
  * Queue stage. Check data after all the SFW update actions.
- * @return array|array[]|string[]
+ * @return array|array[]|string[]|bool
  */
-function apbct_sfw_update__end_of_update__checking_data()
+function apbct_sfw_update__end_of_update__checking_data($direct_update = false)
 {
     global $apbct, $wpdb;
 
@@ -1731,7 +1734,7 @@ function apbct_sfw_update__end_of_update__checking_data()
         );
     }
 
-    return array(
+    return $direct_update ? true : array(
         'next_stage' => array(
             'name' => 'apbct_sfw_update__end_of_update__updating_stats',
             'accepted_tries' => 1
@@ -1741,16 +1744,16 @@ function apbct_sfw_update__end_of_update__checking_data()
 
 /**
  * Queue stage. Update stats.
- * @param $is_direct_update
+ * @param $direct_update
  * @return array[]
  */
-function apbct_sfw_update__end_of_update__updating_stats($is_direct_update = false)
+function apbct_sfw_update__end_of_update__updating_stats($direct_update = false)
 {
     global $apbct;
 
     $is_first_updating = ! $apbct->stats['sfw']['last_update_time'];
     $apbct->stats['sfw']['last_update_time'] = time();
-    $apbct->stats['sfw']['last_update_way']  = $is_direct_update ? 'Direct update' : 'Queue update';
+    $apbct->stats['sfw']['last_update_way']  = $direct_update ? 'Direct update' : 'Queue update';
     $apbct->save('stats');
 
     return array(

@@ -607,60 +607,79 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
         }
     }
 
-    public static function directUpdateGetBlackLists($api_key)
+    public static function directUpdateProcessFiles()
     {
-        // Getting remote file name
-        $result = API::methodGet2sBlacklistsDb($api_key, null, '3_2');
+        global $apbct;
 
-        if ( empty($result['error']) ) {
-            return array(
-                'blacklist'  => isset($result['data'])             ? $result['data']             : null,
-                'useragents' => isset($result['data_user_agents']) ? $result['data_user_agents'] : null,
-                'bl_count'   => isset($result['networks_count'])   ? $result['networks_count']   : null,
-                'ua_count'   => isset($result['ua_count'])         ? $result['ua_count']         : null,
-            );
-        }
+        // get list of files in the upd folder
+        $files = glob($apbct->fw_stats['updating_folder'] . '/*csv.gz');
+        $files = array_filter($files, static function ($element) {
+            return strpos($element, 'list') !== false;
+        });
 
-        return $result;
-    }
+        $success = true;
+        $result = array();
 
-    public static function directUpdate($db, $db__table__data, $blacklists)
-    {
-        if ( ! is_array($blacklists) ) {
-            return array('error' => 'BlackLists is not an array.');
-        }
-        for ( $count_result = 0; current($blacklists) !== false; ) {
-            $query = "INSERT INTO " . $db__table__data . " (network, mask, status) VALUES ";
-
-            for (
-                $i = 0, $values = array();
-                APBCT_WRITE_LIMIT !== $i && current($blacklists) !== false;
-                $i++, $count_result++, next($blacklists)
-            ) {
-                $entry = current($blacklists);
-
-                if ( empty($entry) ) {
-                    continue;
+        if ( count($files) ) {
+            foreach ($files as $concrete_file) {
+                //get direction on how the file should be processed (common/personal)
+                if (
+                    // we should have a personal list id (hash) to make sure the file belongs to private lists
+                    !empty($apbct->fw_stats['personal_lists_url_id'])
+                    && strpos($concrete_file, $apbct->fw_stats['personal_lists_url_id']) !== false
+                ) {
+                    $direction = 'personal';
+                } elseif (
+                    // we should have a common list id (hash) to make sure the file belongs to common lists
+                    !empty($apbct->fw_stats['common_lists_url_id'])
+                    && strpos($concrete_file, $apbct->fw_stats['common_lists_url_id']) !== false ) {
+                    $direction = 'common';
+                } else {
+                    // no id found in fw_stats or file namse does not contain any of them
+                    $result['error_on_direct_update'] = 'SFW_DIRECTION_FAILED';
+                    $success = false;
+                    break;
                 }
 
-                // Cast result to int
-                $ip      = preg_replace('/[^\d]*/', '', $entry[0]);
-                $mask    = preg_replace('/[^\d]*/', '', $entry[1]);
-                $private = isset($entry[2]) ? $entry[2] : 0;
+                // do proceed file with networks itself
+                if ( strpos($concrete_file, 'bl_list') !== false ) {
+                    $counter = apbct_sfw_update__process_file($concrete_file, $direction);
+                    if ( empty($counter['error']) ) {
+                        $result['apbct_sfw_update__process_file'] = is_scalar($counter) ? (int) $counter : 0;
+                    } else {
+                        $result['apbct_sfw_update__process_file'] = $counter['error'];
+                        $success = false;
+                        break;
+                    }
+                }
 
-                $values[] = '(' . $ip . ',' . $mask . ',' . $private . ')';
-            }
+                // do proceed ua file
+                if ( strpos($concrete_file, 'ua_list') !== false ) {
+                    $counter = apbct_sfw_update__process_ua($concrete_file);
+                    if ( empty($counter['error']) ) {
+                        $result['apbct_sfw_update__process_ua'] = is_scalar($counter) ? (int) $counter : 0;
+                    } else {
+                        $result['apbct_sfw_update__process_ua'] = $counter['error'];
+                        $success = false;
+                        break;
+                    }
+                }
 
-            if ( ! empty($values) ) {
-                $query .= implode(',', $values) . ';';
-                $result = $db->execute($query);
-                if ( $result === false ) {
-                    return array( 'error' => $db->getLastError() );
+                // do proceed checking file
+                if ( strpos($concrete_file, 'ck_list') !== false ) {
+                    $counter = apbct_sfw_update__process_ck($concrete_file, $direction);
+                    if ( empty($counter['error']) ) {
+                        $result['apbct_sfw_update__process_ck'] = is_scalar($counter) ? (int) $counter : 0;
+                    } else {
+                        $result['apbct_sfw_update__process_ck'] = $counter['error'];
+                        $success = false;
+                        break;
+                    }
                 }
             }
         }
 
-        return $count_result;
+        return $success ? 'OK' : array('error' => $result);
     }
 
     /**

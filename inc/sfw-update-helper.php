@@ -396,108 +396,106 @@ function apbct_sfw_direct_update()
 {
     global $apbct;
 
-    $api_key = $apbct->api_key;
+    $apbct->fw_stats['direct_update_log'] = null;
+    $apbct->save('fw_stats', true, false);
 
-    // The Access key is empty
-    if ( empty($api_key) ) {
-        return array('error' => 'SFW DIRECT UPDATE: KEY_IS_EMPTY');
+    $direct_update_log = array();
+
+    try {
+        $api_key = $apbct->api_key;
+
+        // The Access key is empty
+        if ( empty($api_key) ) {
+            throw new \Exception('SFW DIRECT UPDATE: KEY_IS_EMPTY');
+        }
+
+        // Getting BL
+        $load_type = isset($apbct->data['sfw_load_type']) ? $apbct->data['sfw_load_type'] : 'all';
+        if ( $load_type === 'all' ) {
+            $get_multifiles_result = apbct_sfw_update__get_multifiles_all();
+        } else {
+            $get_multifiles_params['type'] = $apbct->fw_stats['load_type'];
+            $get_multifiles_params['do_return_urls'] = false;
+            $get_multifiles_result = apbct_sfw_update__get_multifiles_of_type($get_multifiles_params);
+        }
+        $direct_update_log['apbct_sfw_get_multifiles'] = $get_multifiles_result;
+        if (!empty($get_multifiles_result['error'])) {
+            throw new \Exception($get_multifiles_result['error']);
+        }
+
+        //download files
+        $download_files_result = apbct_sfw_update__download_files($get_multifiles_result['next_stage']['args'], true);
+        $direct_update_log['apbct_sfw_update__create_tables'] = $download_files_result;
+        if (!empty($download_files_result['error'])) {
+            throw new \Exception($download_files_result['error']);
+        }
+
+        //create tables
+        $create_tables_result = apbct_sfw_update__create_tables(true);
+        $direct_update_log['apbct_sfw_update__create_tables'] = $create_tables_result;
+        if (!empty($create_tables_result['error'])) {
+            throw new \Exception($create_tables_result['error']);
+        }
+
+        //create temp tables
+        $create_temp_tables_result = apbct_sfw_update__create_temp_tables(true);
+        $direct_update_log['apbct_sfw_update__create_temp_tables'] = $create_temp_tables_result;
+        if (!empty($create_temp_tables_result['error'])) {
+            throw new \Exception($create_temp_tables_result['error']);
+        }
+
+        //process files
+        $update_processing_files_result = SFW::directUpdateProcessFiles();
+        $direct_update_log['directUpdateProcessFiles'] = $update_processing_files_result;
+        if (!empty($update_processing_files_result['error'])) {
+            throw new \Exception($update_processing_files_result['error']);
+        }
+
+        //process_exclusions
+        $process_exclusions_result = apbct_sfw_update__process_exclusions(true);
+        $direct_update_log['apbct_sfw_update__process_exclusions'] = $process_exclusions_result;
+        if (!empty($process_exclusions_result['error'])) {
+            throw new \Exception($process_exclusions_result['error']);
+        }
+
+        //renaming tables
+        $renaming_tables_result = apbct_sfw_update__end_of_update__renaming_tables(true);
+        $direct_update_log['apbct_sfw_update__end_of_update__renaming_tables'] = $renaming_tables_result;
+        if (!empty($renaming_tables_result['error'])) {
+            throw new \Exception($renaming_tables_result['error']);
+        }
+
+        //checking data
+        $checking_data_result = apbct_sfw_update__end_of_update__checking_data(true);
+        $direct_update_log['apbct_sfw_update__end_of_update__checking_data'] = $checking_data_result;
+        if (!empty($checking_data_result['error'])) {
+            throw new \Exception($checking_data_result['error']);
+        }
+
+        //updating stats
+        $updating_stats_result = apbct_sfw_update__end_of_update__updating_stats(true);
+        $direct_update_log['apbct_sfw_update__end_of_update__updating_stats'] = $updating_stats_result;
+        if (!empty($updating_stats_result['error'])) {
+            throw new \Exception($updating_stats_result['error']);
+        }
+
+        //end of update
+        $end_of_update_result = apbct_sfw_update__end_of_update($updating_stats_result['next_stage']['args']);
+        $direct_update_log['apbct_sfw_update__end_of_update__updating_stats'] = $end_of_update_result;
+        if (!empty($end_of_update_result['error'])) {
+            throw new \Exception($end_of_update_result['error']);
+        }
+
+        $final_result = $end_of_update_result;
+
+    } catch (Exception $e) {
+        $direct_update_log['direct_update_stop_reason'] = $e;
+        $final_result = array('error' => $e);
     }
 
-    // Getting BL
-    $result = SFW::directUpdateGetBlackLists($api_key);
-
-    if ( empty($result['error']) ) {
-        $blacklists = $result['blacklist'];
-        $useragents = $result['useragents'];
-        $bl_count   = $result['bl_count'];
-        $ua_count   = $result['ua_count'];
-
-        if ( isset($bl_count, $ua_count) ) {
-            $apbct->fw_stats['expected_networks_count'] = $bl_count;
-            $apbct->fw_stats['expected_ua_count']       = $ua_count;
-            $apbct->save('fw_stats');
-        }
-
-        // Preparing database infrastructure
-        // @ToDo need to implement returning result of the Activator::createTables work.
-        $db_tables_creator = new DbTablesCreator();
-        $table_name = $apbct->db_prefix . Schema::getSchemaTablePrefix() . 'sfw';
-        $db_tables_creator->createTable($table_name);
-
-        $result__creating_tmp_table = SFW::createTempTables(DB::getInstance(), APBCT_TBL_FIREWALL_DATA);
-        if ( ! empty($result__creating_tmp_table['error']) ) {
-            return array('error' => 'DIRECT UPDATING CREATE TMP TABLE: ' . $result__creating_tmp_table['error']);
-        }
-
-        /**
-         * UPDATING UA LIST
-         */
-        if ( $useragents && ($apbct->settings['sfw__anti_crawler'] || $apbct->settings['sfw__anti_flood']) ) {
-            $ua_result = AntiCrawler::directUpdate($useragents);
-
-            if ( ! empty($ua_result['error']) ) {
-                return array('error' => 'DIRECT UPDATING UA LIST: ' . $result['error']);
-            }
-
-            if ( ! is_int($ua_result) ) {
-                return array('error' => 'DIRECT UPDATING UA LIST: : WRONG_RESPONSE AntiCrawler::directUpdate');
-            }
-        }
-
-        /**
-         * UPDATING BLACK LIST
-         */
-        $upd_result = SFW::directUpdate(
-            DB::getInstance(),
-            APBCT_TBL_FIREWALL_DATA . '_temp',
-            $blacklists
-        );
-
-        if ( ! empty($upd_result['error']) ) {
-            return array('error' => 'DIRECT UPDATING BLACK LIST: ' . $upd_result['error']);
-        }
-
-        if ( ! is_int($upd_result) ) {
-            return array('error' => 'DIRECT UPDATING BLACK LIST: WRONG RESPONSE FROM SFW::directUpdate');
-        }
-
-        /**
-         * UPDATING EXCLUSIONS LIST
-         */
-        $excl_result = apbct_sfw_update__process_exclusions();
-
-        if ( ! empty($excl_result['error']) ) {
-            return array('error' => 'DIRECT UPDATING EXCLUSIONS: ' . $excl_result['error']);
-        }
-
-        /**
-         * DELETING AND RENAMING THE TABLES
-         */
-        $rename_tables_res = apbct_sfw_update__end_of_update__renaming_tables();
-        if ( ! empty($rename_tables_res['error']) ) {
-            return array('error' => 'DIRECT UPDATING BLACK LIST: ' . $rename_tables_res['error']);
-        }
-
-        /**
-         * CHECKING THE UPDATE
-         */
-        $check_data_res = apbct_sfw_update__end_of_update__checking_data();
-        if ( ! empty($check_data_res['error']) ) {
-            return array('error' => 'DIRECT UPDATING BLACK LIST: ' . $check_data_res['error']);
-        }
-
-        /**
-         * WRITE UPDATING STATS
-         */
-        apbct_sfw_update__end_of_update__updating_stats(true);
-
-        /**
-         * END OF UPDATE
-         */
-        return apbct_sfw_update__end_of_update();
-    }
-
-    return $result;
+    $apbct->fw_stats['direct_update_log'] = $direct_update_log;
+    $apbct->save('fw_stats', true, false);
+    return $final_result;
 }
 
 function apbct_sfw_update__cleanData()
