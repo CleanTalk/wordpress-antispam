@@ -100,7 +100,10 @@ function apbct_base_call($params = array(), $reg_flag = false)
 {
     global $cleantalk_executed;
 
-    if ( isset($params['post_info']['comment_type']) && $params['post_info']['comment_type'] === 'site_search_wordpress' ) {
+    if ( isset($params['post_info']['comment_type']) && (
+        ($params['post_info']['comment_type'] === 'site_search_wordpress') ||
+        ($params['post_info']['comment_type'] === 'jetpack_comment')
+    )) {
         Cookie::$force_alt_cookies_global = true;
     }
 

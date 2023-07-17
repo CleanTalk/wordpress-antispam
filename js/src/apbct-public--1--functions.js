@@ -51,18 +51,32 @@ function ctSetCookie( cookies, value, expires ) {
 
         // Using traditional cookies
     } else if ( ctPublicFunctions.data__cookies_type === 'native' ) {
-        cookies.forEach( function(item) {
-            const _expires = typeof item[2] !== 'undefined' ? 'expires=' + expires + '; ' : '';
-            let ctSecure = location.protocol === 'https:' ? '; secure' : '';
-            document.cookie = ctPublicFunctions.cookiePrefix +
-                item[0] +
-                '=' +
-                encodeURIComponent(item[1]) +
-                '; ' +
-                _expires +
-                'path=/; samesite=lax' +
-                ctSecure;
-        });
+        // If problem integration forms detected use alt cookies for whole cookies set
+        if (ctPublic.force_alt_cookies && !skipAlt) {
+            let forcedAltCookiesSet = [];
+            cookies.forEach( function(item) {
+                if (listOfCookieNamesToForceAlt.indexOf(item[0]) !== -1) {
+                    forcedAltCookiesSet.push(item);
+                } else {
+                    apbctLocalStorage.set(item[0], encodeURIComponent(item[1]));
+                }
+            });
+
+            ctSetAlternativeCookie(cookies, {forceAltCookies: true});
+        } else {
+            cookies.forEach( function(item) {
+                const _expires = typeof item[2] !== 'undefined' ? 'expires=' + expires + '; ' : '';
+                let ctSecure = location.protocol === 'https:' ? '; secure' : '';
+                document.cookie = ctPublicFunctions.cookiePrefix +
+                    item[0] +
+                    '=' +
+                    encodeURIComponent(item[1]) +
+                    '; ' +
+                    _expires +
+                    'path=/; samesite=lax' +
+                    ctSecure;
+            });
+        }
 
         // Using alternative cookies
     } else if ( ctPublicFunctions.data__cookies_type === 'alternative' && !skipAlt ) {
@@ -74,8 +88,9 @@ function ctSetCookie( cookies, value, expires ) {
 function ctDetectForcedAltCookiesForms() {
     let ninjaFormsSign = document.querySelectorAll('#tmpl-nf-layout').length > 0;
     let smartFormsSign = document.querySelectorAll('script[id*="smart-forms"]').length > 0;
+    let jetpackCommentsForm = document.querySelectorAll('iframe[name="jetpack_remote_comment"]').length > 0;
 
-    ctPublic.force_alt_cookies = smartFormsSign || ninjaFormsSign;
+    ctPublic.force_alt_cookies = smartFormsSign || ninjaFormsSign || jetpackCommentsForm;
 }
 
 // eslint-disable-next-line require-jsdoc
