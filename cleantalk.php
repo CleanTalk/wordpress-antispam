@@ -258,7 +258,11 @@ if ( ! is_admin() && ! apbct_is_ajax() && ! defined('DOING_CRON')
         }
         add_action('template_redirect', 'apbct_store__urls', 2);
     }
-    if ( empty($_POST) && empty($_GET) && $apbct->data['key_is_ok']) {
+    if (
+        empty($_POST) &&
+        ( (isset($_GET['q']) && $_GET['q'] !== '') || empty($_GET) ) &&
+        $apbct->data['key_is_ok']
+    ) {
             apbct_cookie();
             apbct_store__urls();
     }
@@ -1097,7 +1101,7 @@ function apbct_sfw_update__init($delay = 0)
     }
 
     // Get update period for server
-    $update_period = DNS::getRecord('spamfirewall-ttl-txt.cleantalk.org', true, DNS_TXT);
+    $update_period = DNS::getRecord('spamfirewall-ttl-txt.cleantalk.org', true, true);
     $update_period = isset($update_period['txt']) ? $update_period['txt'] : 0;
     $update_period = (int)$update_period > 14400 ? (int)$update_period : 14400;
     if ( $apbct->stats['sfw']['update_period'] != $update_period ) {
@@ -1117,7 +1121,7 @@ function apbct_sfw_update__init($delay = 0)
             'plugin_name' => 'apbct'
         )
     );
-    if ( ! empty($prepare_dir__result['error']) || ! empty($test_rc_result['error']) ) {
+    if ( defined('APBCT_SFW_FORCE_DIRECT_UPDATE') || ! empty($prepare_dir__result['error']) || ! empty($test_rc_result['error']) ) {
         return apbct_sfw_direct_update();
     }
 

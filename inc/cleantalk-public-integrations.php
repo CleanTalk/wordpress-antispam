@@ -2543,12 +2543,22 @@ function apbct_form__WPForms__showResponse($errors, $form_data)
     ) {
         $spam_comment = apbct_form__WPForms__testSpam();
 
-        $filed_id = $form_data && ! empty($form_data['fields']) && is_array($form_data['fields'])
-            ? key($form_data['fields'])
-            : 0;
-
         if ( $spam_comment ) {
-            $errors[$form_data['id']][$filed_id] = $spam_comment;
+            $field_id = 0;
+            if ( $form_data && ! empty($form_data['fields']) && is_array($form_data['fields']) ) {
+                foreach ( $form_data['fields'] as $key => $field ) {
+                    if ( array_search('email', $field) === 'type' ) {
+                        $field_id = $key;
+                        break;
+                    }
+                }
+            }
+
+            $field_id = ! $field_id && $form_data && ! empty($form_data['fields']) && is_array($form_data['fields'])
+                ? key($form_data['fields'])
+                : $field_id;
+
+            $errors[$form_data['id']][$field_id] = $spam_comment;
         }
     }
 

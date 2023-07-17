@@ -15,12 +15,12 @@ class DNS
      *
      * @param string $host URL
      * @param bool $return_first returns only first found IP, HOST, TTL
-     * @param null|int $type DNS type name
+     * @param bool $is_txt is Text Resource DNS type name
      *
      * @return array
      * @psalm-suppress NullableReturnStatement
      */
-    public static function getRecord($host, $return_first = false, $type = null)
+    public static function getRecord($host, $return_first = false, $is_txt = false)
     {
         $servers = array(
             "ip"   => null,
@@ -31,8 +31,8 @@ class DNS
         // Get DNS records about URL
         if (function_exists('dns_get_record')) {
             // Localhosts generates errors. block these by @
-            $records = $type
-                ? @dns_get_record($host, $type)
+            $records = $is_txt
+                ? @dns_get_record($host, DNS_TXT)
                 : @dns_get_record($host);
             if ($records !== false) {
                 $servers = array();

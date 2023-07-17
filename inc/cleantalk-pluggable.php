@@ -977,6 +977,18 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'Exclude UserPro login form request';
         }
+
+        // Flux Checkout for WooCommerce service requests
+        if (
+            apbct_is_plugin_active('flux-checkout-premium/flux-checkout.php') &&
+            (
+                Post::get('action') === 'flux_check_email_exists' ||
+                Post::get('action') === 'flux_check_for_inline_error' ||
+                Post::get('action') === 'flux_check_for_inline_errors'
+            )
+        ) {
+            return 'Flux Checkout for WooCommerce service requests';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
@@ -1235,11 +1247,15 @@ function apbct_settings__get_ajax_type()
     // Check rest availability
     // Getting WP REST nonce from the public side
     $frontend_body = Helper::httpRequest(get_option('home'));
-    preg_match_all('@const ctPublicFunctions.*{(.*)}@', $frontend_body, $matches);
     $localize = null;
-    if ( isset($matches[1][0]) ) {
-        $localize = json_decode('{' . $matches[1][0] . '}', true);
+
+    if ( is_string($frontend_body) ) {
+        preg_match_all('@const ctPublicFunctions.*{(.*)}@', $frontend_body, $matches);
+        if ( isset($matches[1][0]) ) {
+            $localize = json_decode('{' . $matches[1][0] . '}', true);
+        }
     }
+
     if ( is_array($localize) && isset($localize['_rest_nonce']) ) {
         $rc_params = array(
             'spbc_remote_call_token' => md5($apbct->api_key),

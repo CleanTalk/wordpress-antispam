@@ -2390,10 +2390,18 @@ function apbct_settings__validate($settings)
 
     // Validate Exclusions
     // URLs
-    if ( empty($apbct->settings['exclusions__urls']) ) {
-        // If the field is empty, the new way checking by URL will be activated.
+    $is_exclusions_url_like = apbct_settings__sanitize__exclusions(
+        $settings['exclusions__urls'],
+        false,
+        true
+    );
+
+    if ( empty($apbct->settings['exclusions__urls']) || $is_exclusions_url_like) {
+        // Legacy: If the field is empty, the new way checking by URL will be activated.
         $apbct->data['check_exclusion_as_url'] = true;
+        $apbct->saveData();
     }
+
     $result = apbct_settings__sanitize__exclusions(
         $settings['exclusions__urls'],
         $settings['exclusions__urls__use_regexp'],
@@ -3179,7 +3187,7 @@ function apbct_settings__custom_logo()
                 </button>
                 <button type="button" id="apbct-custom-logo-remove-image" class="button">×</button>
             </div>
-            
+
         </div>
     </div>
     <?php

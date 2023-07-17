@@ -1587,6 +1587,9 @@ function ctSetHasScrolled() {
         ctSetCookie('ct_has_scrolled', 'true');
         apbctLocalStorage.set('ct_has_scrolled', true);
     }
+    if (ctPublic.data__cookies_type === 'native' && ctGetCookie('ct_has_scrolled') === undefined) {
+        ctSetCookie('ct_has_scrolled', 'true');
+    }
 }
 
 /**
@@ -1597,6 +1600,9 @@ function ctSetMouseMoved() {
         ctSetCookie('ct_mouse_moved', 'true');
         apbctLocalStorage.set('ct_mouse_moved', true);
     }
+    if (ctPublic.data__cookies_type === 'native' && ctGetCookie('ct_mouse_moved') === undefined) {
+        ctSetCookie('ct_mouse_moved', 'true');
+    }
 }
 
 /**
@@ -1605,7 +1611,12 @@ function ctSetMouseMoved() {
 function ctStartFieldsListening() {
     if (
         (apbctLocalStorage.isSet('ct_has_key_up') || apbctLocalStorage.get('ct_has_key_up')) &&
-        (apbctLocalStorage.isSet('ct_has_input_focused') || apbctLocalStorage.get('ct_has_input_focused'))
+        (apbctLocalStorage.isSet('ct_has_input_focused') || apbctLocalStorage.get('ct_has_input_focused')) &&
+        (
+            ctPublic.data__cookies_type === 'native' &&
+            ctGetCookie('ct_has_input_focused') !== undefined &&
+            ctGetCookie('ct_has_key_up') !== undefined
+        )
     ) {
         // already set
         return;
@@ -1659,8 +1670,13 @@ let ctFunctionHasKeyUp = function output(event) {
  */
 function ctSetHasInputFocused() {
     if ( ! apbctLocalStorage.isSet('ct_has_input_focused') || ! apbctLocalStorage.get('ct_has_input_focused') ) {
-        ctSetCookie('ct_has_input_focused', 'true');
         apbctLocalStorage.set('ct_has_input_focused', true);
+    }
+    if (
+        (ctPublic.data__cookies_type === 'native' || ctPublic.data__cookies_type === 'alternative') &&
+        ctGetCookie('ct_has_input_focused') === undefined
+    ) {
+        ctSetCookie('ct_has_input_focused', 'true');
     }
 }
 
@@ -1669,8 +1685,13 @@ function ctSetHasInputFocused() {
  */
 function ctSetHasKeyUp() {
     if ( ! apbctLocalStorage.isSet('ct_has_key_up') || ! apbctLocalStorage.get('ct_has_key_up') ) {
-        ctSetCookie('ct_has_key_up', 'true');
         apbctLocalStorage.set('ct_has_key_up', true);
+    }
+    if (
+        (ctPublic.data__cookies_type === 'native' || ctPublic.data__cookies_type === 'alternative') &&
+        ctGetCookie('ct_has_key_up') === undefined
+    ) {
+        ctSetCookie('ct_has_key_up', 'true');
     }
 }
 
@@ -1703,6 +1724,8 @@ function apbct_ready() {
             apbct_ready();
         });
     }
+
+    apbctPrepareBlockForAjaxForms();
 
     ctPreloadLocalStorage();
 
@@ -2414,19 +2437,21 @@ function apbctGetScreenInfo() {
     });
 }
 
-if (typeof jQuery !== 'undefined') {
-    // Capturing responses and output block message for unknown AJAX forms
-    jQuery(document).ajaxComplete(function(event, xhr, settings) {
-        if (xhr.responseText && xhr.responseText.indexOf('"apbct') !== -1) {
-            try {
-                ctParseBlockMessage(JSON.parse(xhr.responseText));
-            } catch (e) {
-                console.log(e.toString());
-                return;
+const apbctPrepareBlockForAjaxForms = () => {
+    if (typeof jQuery !== 'undefined') {
+        // Capturing responses and output block message for unknown AJAX forms
+        jQuery(document).ajaxComplete(function(event, xhr, settings) {
+            if (xhr.responseText && xhr.responseText.indexOf('"apbct') !== -1) {
+                try {
+                    ctParseBlockMessage(JSON.parse(xhr.responseText));
+                } catch (e) {
+                    console.log(e.toString());
+                    return;
+                }
             }
-        }
-    });
-}
+        });
+    }
+};
 
 // eslint-disable-next-line require-jsdoc
 function ctParseBlockMessage(response) {
@@ -2893,41 +2918,42 @@ function ctProtectExternal() {
             // current form
             const currentForm = document.forms[i];
 
-            if (typeof(currentForm.action) == 'string') {
-                // skip excluded forms
-                if ( formIsExclusion(currentForm)) {
-                    continue;
-                }
+            // skip excluded forms
+            if ( formIsExclusion(currentForm)) {
+                continue;
+            }
 
-                // Ajax checking for the integrated forms
-                if ( isIntegratedForm(currentForm) ) {
-                    apbctProcessExternalForm(currentForm, i, document);
+            // Ajax checking for the integrated forms
+            if ( isIntegratedForm(currentForm) ) {
+                apbctProcessExternalForm(currentForm, i, document);
 
-                    // Common flow - modify form's action
-                } else if (currentForm.action.indexOf('http://') !== -1 ||
-                    currentForm.action.indexOf('https://') !== -1) {
-                    let tmp = currentForm.action.split('//');
-                    tmp = tmp[1].split('/');
-                    const host = tmp[0].toLowerCase();
+            // Common flow - modify form's action
+            } else if (
+                typeof(currentForm.action) == 'string' &&
+                ( currentForm.action.indexOf('http://') !== -1 ||
+                currentForm.action.indexOf('https://') !== -1 )
+            ) {
+                let tmp = currentForm.action.split('//');
+                tmp = tmp[1].split('/');
+                const host = tmp[0].toLowerCase();
 
-                    if (host !== location.hostname.toLowerCase()) {
-                        const ctAction = document.createElement('input');
-                        ctAction.name = 'cleantalk_hidden_action';
-                        ctAction.value = currentForm.action;
-                        ctAction.type = 'hidden';
-                        currentForm.appendChild(ctAction);
+                if (host !== location.hostname.toLowerCase()) {
+                    const ctAction = document.createElement('input');
+                    ctAction.name = 'cleantalk_hidden_action';
+                    ctAction.value = currentForm.action;
+                    ctAction.type = 'hidden';
+                    currentForm.appendChild(ctAction);
 
-                        const ctMethod = document.createElement('input');
-                        ctMethod.name = 'cleantalk_hidden_method';
-                        ctMethod.value = currentForm.method;
-                        ctMethod.type = 'hidden';
+                    const ctMethod = document.createElement('input');
+                    ctMethod.name = 'cleantalk_hidden_method';
+                    ctMethod.value = currentForm.method;
+                    ctMethod.type = 'hidden';
 
-                        currentForm.method = 'POST';
+                    currentForm.method = 'POST';
 
-                        currentForm.appendChild(ctMethod);
+                    currentForm.appendChild(ctMethod);
 
-                        currentForm.action = document.location;
-                    }
+                    currentForm.action = document.location;
                 }
             }
         }
@@ -3125,7 +3151,7 @@ window.onload = function() {
     setTimeout(function() {
         ctProtectExternal();
         catchDynamicRenderedForm();
-    }, 1500);
+    }, 2000);
 };
 
 /**
@@ -3134,7 +3160,7 @@ window.onload = function() {
  * @return {boolean}
  */
 function isIntegratedForm(formObj) {
-    const formAction = formObj.action;
+    const formAction = typeof(formObj.action) == 'string' ? formObj.action : '';
     const formId = formObj.getAttribute('id') !== null ? formObj.getAttribute('id') : '';
 
     if (
@@ -3156,7 +3182,8 @@ function isIntegratedForm(formObj) {
         formAction.indexOf('aweber.com') !== -1 ||
         formAction.indexOf('secure.payu.com') !== -1 ||
         formAction.indexOf('mautic') !== -1 || formId.indexOf('mauticform_') !== -1 ||
-        formId.indexOf('ihf-contact-request-form') !== -1
+        formId.indexOf('ihf-contact-request-form') !== -1 ||
+        formObj.dataset.mailingListId !== undefined // moosend.com
     ) {
         return true;
     }
