@@ -1129,6 +1129,12 @@ function apbct_sfw_update__init($delay = 0)
             'plugin_name' => 'apbct'
         )
     );
+
+    $result = apbct_sfw_direct_update();
+    error_log('CTDEBUG: [' . __FUNCTION__ . '] [LOG]: ' . var_export($apbct->fw_stats['direct_update_log'],true));
+    error_log('CTDEBUG: [' . __FUNCTION__ . '] [$result]: ' . var_export($result,true));
+    return $result;
+
     if ( ! empty($prepare_dir__result['error']) || ! empty($test_rc_result['error']) ) {
         return apbct_sfw_direct_update();
     }
