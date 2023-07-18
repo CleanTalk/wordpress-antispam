@@ -53,7 +53,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
     {
         parent::__construct($log_table, $data_table_personal, $params);
 
-        $this->db__table__data = $params['common_table_name'] ?: null;
+        $this->db__table__data = $params['sfw_common_table_name'] ?: null;
         $this->db__table__data_personal = $data_table_personal ?: null;
         $this->db__table__logs = $log_table ?: null;
 
@@ -987,18 +987,33 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
         );
     }
 
-    public static function getSFWCommonTableName()
+    public static function getSFWTablesNames()
     {
-        if ( !APBCT_WPMS || is_main_site() ) {
-            $common_table_name = APBCT_TBL_FIREWALL_DATA;
-        } else {
+        global $apbct;
+
+        $out['sfw_personal_table_name'] = APBCT_TBL_FIREWALL_DATA_PERSONAL;
+        $out['sfw_common_table_name'] = APBCT_TBL_FIREWALL_DATA;
+
+
+        if ( APBCT_WPMS && !is_main_site() ) {
             $main_blog_options = get_blog_option(get_main_site_id(), 'cleantalk_data');
-            if ( !isset($main_blog_options['common_table_name']) || !is_string($main_blog_options['common_table_name'])) {
+            if ( !isset($main_blog_options['sfw_common_table_name']) || !is_string($main_blog_options['sfw_common_table_name'])) {
                 return false;
             } else {
-                $common_table_name = $main_blog_options['common_table_name'];
+                $out['sfw_common_table_name'] = $main_blog_options['sfw_common_table_name'];
             }
         }
-        return $common_table_name;
+
+        //if mutual key use the main personal table
+        if ( APBCT_WPMS && $apbct->network_settings['multisite__work_mode'] === 2 ) {
+            if (!isset($main_blog_options['sfw_personal_table_name']) || !is_string($main_blog_options['sfw_personal_table_name'])) {
+                return false;
+            } else {
+                $out['sfw_personal_table_name'] = $main_blog_options['sfw_personal_table_name'];
+            }
+        }
+
+        error_log('CTDEBUG: [' . __FUNCTION__ . '] [$out]: ' . var_export($out,true));
+        return $out;
     }
 }

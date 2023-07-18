@@ -130,7 +130,7 @@ $apbct->data['user_counter']['since']       = isset($apbct->data['user_counter']
 
 // SFW update
 $apbct->firewall_updating = (bool)$apbct->fw_stats['firewall_updating_id'];
-$apbct->data['sfw_load_type'] = (!APBCT_WPMS || is_main_site()) ? 'all' : 'personal';
+$apbct->data['sfw_load_type'] = (!APBCT_WPMS || is_main_site() || $apbct->network_settings['multisite__work_mode'] === 2) ? 'all' : 'personal';
 $apbct->saveData();
 
 $apbct->settings_link = is_network_admin() ? 'settings.php?page=cleantalk' : 'options-general.php?page=cleantalk';
@@ -931,30 +931,30 @@ function apbct_sfw__check()
         DB::getInstance()
     );
 
-    $common_table_name = SFW::getSFWCommonTableName();
+    $sfw_tables_names = SFW::getSFWTablesNames();
 
-    if (!$common_table_name) {
-        $apbct->errorAdd(
-            'sfw',
-            esc_html__(
-                'Can not get SFW common table from main blog options',
-                'cleantalk-spam-protect'
-            )
-        );
-        return;
+    if (!$sfw_tables_names) {
+            $apbct->errorAdd(
+                'sfw',
+                esc_html__(
+                    'Can not get SFW table names from main blog options',
+                    'cleantalk-spam-protect'
+                )
+            );
+            return;
     }
 
     $firewall->loadFwModule(
         new SFW(
             APBCT_TBL_FIREWALL_LOG,
-            APBCT_TBL_FIREWALL_DATA_PERSONAL,
+            $sfw_tables_names['sfw_personal_table_name'],
             array(
                 'sfw_counter'       => $apbct->settings['admin_bar__sfw_counter'],
                 'api_key'           => $apbct->api_key,
                 'apbct'             => $apbct,
                 'cookie_domain'     => parse_url(get_option('home'), PHP_URL_HOST),
                 'data__cookies_type' => $apbct->data['cookies_type'],
-                'common_table_name'  => $common_table_name,
+                'sfw_common_table_name'  => $sfw_tables_names['sfw_common_table_name'],
             )
         )
     );
@@ -1086,10 +1086,15 @@ function apbct_sfw_update__init($delay = 0)
 {
     global $apbct;
 
+    //do not run sfw update on subsites if mutual key is set
+    if ($apbct->network_settings['multisite__work_mode'] === 2 && !is_main_site()) {
+        return false;
+    }
+
     // Prevent start an update if update is already running and started less than 10 minutes ago
     if (
         $apbct->fw_stats['firewall_updating_id'] &&
-        time() - $apbct->fw_stats['firewall_updating_last_start'] < 600 &&
+        time() - $apbct->fw_stats['firewall_updating_last_start'] < 6 &&
         apbct_sfw_update__is_in_progress()
     ) {
         return false;
@@ -1116,6 +1121,20 @@ function apbct_sfw_update__init($delay = 0)
         $apbct->stats['sfw']['update_period'] = $update_period;
         $apbct->save('stats');
     }
+
+    $sfw_tables_names = SFW::getSFWTablesNames();
+
+    if ( !$sfw_tables_names ) {
+        //try to create tables
+        $sfw_tables_names = apbct_sfw_update__create_tables(false, true);
+        if (!$sfw_tables_names) {
+            return array('error' => 'Can not get SFW table names from main blog options');
+        }
+    }
+
+    $apbct->data['sfw_common_table_name'] = $sfw_tables_names['sfw_common_table_name'];
+    $apbct->data['sfw_personal_table_name'] = $sfw_tables_names['sfw_personal_table_name'];
+    $apbct->save('data');
 
     $wp_upload_dir = wp_upload_dir();
     $apbct->fw_stats['updating_folder'] = $wp_upload_dir['basedir'] . DIRECTORY_SEPARATOR . 'cleantalk_fw_files_for_blog_' . get_current_blog_id() . DIRECTORY_SEPARATOR;
@@ -1161,7 +1180,7 @@ function apbct_sfw_update__init($delay = 0)
     if ( $load_type === 'all' ) {
         $queue->addStage('apbct_sfw_update__get_multifiles_all');
     } else {
-        $get_multifiles_params['type'] = $apbct->fw_stats['load_type'];
+        $get_multifiles_params['type'] = $load_type;
         $get_multifiles_params['do_return_urls'] = false;
         $queue->addStage('apbct_sfw_update__get_multifiles_of_type', $get_multifiles_params);
     }
@@ -1472,34 +1491,29 @@ function apbct_sfw_update__download_files($urls, $direct_update = false)
 
 /**
  * Queue stage. Create SFW origin tables to make sure they are exists.
- * @return array[]|bool
+ * @return array[]|bool|string[]
  */
-function apbct_sfw_update__create_tables($direct_update = false)
+function apbct_sfw_update__create_tables($direct_update = false, $return_new_tables_names = false)
 {
-    global $apbct;
+    global $apbct, $wpdb;
     // Preparing database infrastructure
+
     // Creating SFW tables to make sure that they are exists
     $db_tables_creator = new DbTablesCreator();
-    //common table (for main site only)
-    if ( $apbct->data['sfw_load_type'] === 'all' ) {
-        //common table
-        $common_table_name = $apbct->db_prefix . Schema::getSchemaTablePrefix() . 'sfw';
-        $db_tables_creator->createTable($common_table_name);
-        $apbct->data['common_table_name'] = $common_table_name;
-        $apbct->saveData();
-        //personal table
-        $table_name_personal = $apbct->db_prefix . Schema::getSchemaTablePrefix() . 'sfw_personal';
-        $db_tables_creator->createTable($table_name_personal);
-    } elseif ( $apbct->data['sfw_load_type'] === 'personal' ) {
-        //personal table only
-        $table_name_personal = $apbct->db_prefix . Schema::getSchemaTablePrefix() . 'sfw_personal';
-        $db_tables_creator->createTable($table_name_personal);
-    } elseif ( $apbct->data['sfw_load_type'] === 'common' ) {
-        //common table only
-        $common_table_name = $apbct->db_prefix . Schema::getSchemaTablePrefix() . 'sfw';
-        $db_tables_creator->createTable($common_table_name);
-        $apbct->data['common_table_name'] = $common_table_name;
-        $apbct->saveData();
+
+    //common table
+    $common_table_name = $wpdb->base_prefix . Schema::getSchemaTablePrefix() . 'sfw';
+    $db_tables_creator->createTable($common_table_name);
+    $apbct->data['sfw_common_table_name'] = $common_table_name;
+    //personal table
+    $table_name_personal = $apbct->db_prefix . Schema::getSchemaTablePrefix() . 'sfw_personal';
+    $db_tables_creator->createTable($table_name_personal);
+    $apbct->data['sfw_personal_table_name'] = $table_name_personal;
+
+    $apbct->saveData();
+
+    if ( $return_new_tables_names ) {
+        return array('sfw_common_table_name' => $common_table_name, 'sfw_personal_table_name' => $table_name_personal);
     }
 
     return $direct_update ? true : array(
@@ -1709,8 +1723,8 @@ function apbct_sfw_update__end_of_update__checking_data($direct_update = false)
         return array('error' => $e->getMessage());
     }
 
-    $apbct->stats['sfw']['entries'] = $wpdb->get_var('SELECT COUNT(*) FROM ' . SFW::getSFWCommonTableName());
-    $apbct->stats['sfw']['entries_personal'] = $wpdb->get_var('SELECT COUNT(*) FROM ' . APBCT_TBL_FIREWALL_DATA_PERSONAL);
+    $apbct->stats['sfw']['entries'] = $wpdb->get_var('SELECT COUNT(*) FROM ' . $apbct->data['sfw_common_table_name']);
+    $apbct->stats['sfw']['entries_personal'] = $wpdb->get_var('SELECT COUNT(*) FROM ' . $apbct->data['sfw_personal_table_name']);
     $apbct->save('stats');
 
     /**
@@ -1722,7 +1736,7 @@ function apbct_sfw_update__end_of_update__checking_data($direct_update = false)
         return array(
             'error' =>
                 'The discrepancy between the amount of data received for the update and in the final table: '
-                . SFW::getSFWCommonTableName()
+                . $apbct->data['sfw_common_table_name']
                 . '. RECEIVED: ' . $apbct->fw_stats['expected_networks_count']
                 . '. ADDED: ' . $apbct->stats['sfw']['entries']
         );
@@ -1734,7 +1748,7 @@ function apbct_sfw_update__end_of_update__checking_data($direct_update = false)
         return array(
             'error' =>
                 'The discrepancy between the amount of data received for the update and in the final table: '
-                . APBCT_TBL_FIREWALL_DATA_PERSONAL
+                . $apbct->data['sfw_personal_table_name']
                 . '. RECEIVED: ' . $apbct->fw_stats['expected_networks_count_personal']
                 . '. ADDED: ' . $apbct->stats['sfw']['entries_personal']
         );

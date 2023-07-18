@@ -22,13 +22,24 @@ class DbTablesCreator
             if ( in_array($table_key, $skip_tables) ) {
                 continue;
             }
+
             //save SFW common table name
             if ( $table_key === 'sfw' ) {
-                $common_table_name = $wpdb_prefix . $schema_prefix . $table_key;
                 $current_options = get_option('cleantalk_data');
-                $current_options['common_table_name'] = $common_table_name;
+                $common_table_name = $wpdb_prefix . $schema_prefix . $table_key;
+                $current_options['sfw_common_table_name'] = $common_table_name;
+            }
+            //save SFW personal table name for mutual key
+            if ( $table_key === 'sfw_personal' ) {
+                $current_options = get_option('cleantalk_data');
+                $common_table_name = $wpdb_prefix . $schema_prefix . $table_key;
+                $current_options['sfw_personal_table_name'] = $common_table_name;
+            }
+
+            if ( isset($current_options) ) {
                 update_option('cleantalk_data', $current_options);
             }
+
             $sql = 'CREATE TABLE IF NOT EXISTS `%s' . $schema_prefix . $table_key . '` (';
             $sql = sprintf($sql, $wpdb_prefix);
             foreach ($table_schema as $column_name => $column_params) {

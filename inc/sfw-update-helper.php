@@ -22,13 +22,14 @@ global $apbct, $wpdb, $pagenow;
  */
 function apbct_sfw_update__process_file($file_path, $direction = 'common')
 {
+    global $apbct;
     if ( ! file_exists($file_path) ) {
         return array('error' => 'PROCESS FILE: ' . $file_path . ' is not exists.');
     }
 
     $table_name = $direction === 'common'
-        ? SFW::getSFWCommonTableName() . '_temp'
-        : APBCT_TBL_FIREWALL_DATA_PERSONAL . '_temp';
+        ? $apbct->data['sfw_common_table_name'] . '_temp'
+        : $apbct->data['sfw_personal_table_name'] . '_temp';
 
     $result = SFW::updateWriteToDb(
         DB::getInstance(),
@@ -186,47 +187,48 @@ function apbct_sfw_update__get_direction_urls_of_type($type = 'common')
  */
 function apbct_sfw_update__remove_and_rename_sfw_tables($sfw_load_type)
 {
+    global $apbct;
     if ( $sfw_load_type === 'all' ) {
         //common table delete
-        $result_deletion = SFW::dataTablesDelete(DB::getInstance(), SFW::getSFWCommonTableName());
+        $result_deletion = SFW::dataTablesDelete(DB::getInstance(), $apbct->data['sfw_common_table_name']);
         if ( !empty($result_deletion['error']) ) {
             throw new \Exception('SFW_COMMON_TABLE_DELETION_ERROR');
         }
         //common table rename
-        $result_renaming = SFW::renameDataTablesFromTempToMain(DB::getInstance(), SFW::getSFWCommonTableName());
+        $result_renaming = SFW::renameDataTablesFromTempToMain(DB::getInstance(), $apbct->data['sfw_common_table_name']);
         if ( !empty($result_renaming['error']) ) {
             throw new \Exception('SFW_COMMON_TABLE_RENAME_ERROR');
         }
 
         //personal table delete
-        $result_deletion = SFW::dataTablesDelete(DB::getInstance(), APBCT_TBL_FIREWALL_DATA_PERSONAL);
+        $result_deletion = SFW::dataTablesDelete(DB::getInstance(), $apbct->data['sfw_personal_table_name']);
         if ( !empty($result_deletion['error']) ) {
             throw new \Exception('SFW_PERSONAL_TABLE_DELETION_ERROR');
         }
         //personal table rename
-        $result_renaming = SFW::renameDataTablesFromTempToMain(DB::getInstance(), APBCT_TBL_FIREWALL_DATA_PERSONAL);
+        $result_renaming = SFW::renameDataTablesFromTempToMain(DB::getInstance(), $apbct->data['sfw_personal_table_name']);
         if ( !empty($result_renaming['error']) ) {
             throw new \Exception('SFW_PERSONAL_TABLE_RENAME_ERROR');
         }
     } elseif ( $sfw_load_type === 'personal' ) {
         //personal table delete
-        $result_deletion = SFW::dataTablesDelete(DB::getInstance(), APBCT_TBL_FIREWALL_DATA_PERSONAL);
+        $result_deletion = SFW::dataTablesDelete(DB::getInstance(), $apbct->data['sfw_personal_table_name']);
         if ( !empty($result_deletion['error']) ) {
             throw new \Exception('SFW_PERSONAL_TABLE_DELETION_ERROR');
         }
         //personal table rename
-        $result_renaming = SFW::renameDataTablesFromTempToMain(DB::getInstance(), APBCT_TBL_FIREWALL_DATA_PERSONAL);
+        $result_renaming = SFW::renameDataTablesFromTempToMain(DB::getInstance(), $apbct->data['sfw_personal_table_name']);
         if ( !empty($result_renaming['error']) ) {
             throw new \Exception('SFW_PERSONAL_TABLE_RENAME_ERROR');
         }
     } elseif ( $sfw_load_type === 'common' ) {
         //common table delete
-        $result_deletion = SFW::dataTablesDelete(DB::getInstance(), SFW::getSFWCommonTableName());
+        $result_deletion = SFW::dataTablesDelete(DB::getInstance(), $apbct->data['sfw_common_table_name']);
         if ( !empty($result_deletion['error']) ) {
             throw new \Exception('SFW_COMMON_TABLE_DELETION_ERROR');
         }
         //common table rename
-        $result_renaming = SFW::renameDataTablesFromTempToMain(DB::getInstance(), SFW::getSFWCommonTableName());
+        $result_renaming = SFW::renameDataTablesFromTempToMain(DB::getInstance(), $apbct->data['sfw_common_table_name']);
         if ( !empty($result_renaming['error']) ) {
             throw new \Exception('SFW_COMMON_TABLE_RENAME_ERROR');
         }
@@ -241,36 +243,37 @@ function apbct_sfw_update__remove_and_rename_sfw_tables($sfw_load_type)
  */
 function apbct_sfw_update__check_tables_integrity_before_renaming($sfw_load_type)
 {
+    global $apbct;
     if ( $sfw_load_type === 'all' ) {
-        if ( !DB::getInstance()->isTableExists(SFW::getSFWCommonTableName()) ) {
+        if ( !DB::getInstance()->isTableExists($apbct->data['sfw_common_table_name']) ) {
             return array('error' => 'Error while completing data: SFW main table does not exist.');
         }
-        if ( !DB::getInstance()->isTableExists(SFW::getSFWCommonTableName() . '_temp') ) {
+        if ( !DB::getInstance()->isTableExists($apbct->data['sfw_common_table_name'] . '_temp') ) {
             return array('error' => 'Error while completing data: SFW temp table does not exist.');
         }
-        if ( ! DB::getInstance()->isTableExists(APBCT_TBL_FIREWALL_DATA_PERSONAL) ) {
+        if ( ! DB::getInstance()->isTableExists($apbct->data['sfw_personal_table_name']) ) {
             return array('error' => 'Error while completing data: SFW_PERSONAL main table does not exist.');
         }
 
-        if ( ! DB::getInstance()->isTableExists(APBCT_TBL_FIREWALL_DATA_PERSONAL . '_temp') ) {
+        if ( ! DB::getInstance()->isTableExists($apbct->data['sfw_personal_table_name'] . '_temp') ) {
             return array('error' => 'Error while completing data: SFW_PERSONAL temp table does not exist.');
         }
     } elseif ( $sfw_load_type === 'personal' ) {
         //personal tables
-        if ( ! DB::getInstance()->isTableExists(APBCT_TBL_FIREWALL_DATA_PERSONAL) ) {
+        if ( ! DB::getInstance()->isTableExists($apbct->data['sfw_personal_table_name']) ) {
             return array('error' => 'Error while completing data: SFW_PERSONAL main table does not exist.');
         }
 
-        if ( ! DB::getInstance()->isTableExists(APBCT_TBL_FIREWALL_DATA_PERSONAL . '_temp') ) {
+        if ( ! DB::getInstance()->isTableExists($apbct->data['sfw_personal_table_name'] . '_temp') ) {
             return array('error' => 'Error while completing data: SFW_PERSONAL temp table does not exist.');
         }
     } elseif ( $sfw_load_type === 'common' ) {
         //common tables
-        if ( !DB::getInstance()->isTableExists(SFW::getSFWCommonTableName()) ) {
+        if ( !DB::getInstance()->isTableExists($apbct->data['sfw_common_table_name']) ) {
             return array('error' => 'Error while completing data: SFW main table does not exist.');
         }
 
-        if ( !DB::getInstance()->isTableExists(SFW::getSFWCommonTableName() . '_temp') ) {
+        if ( !DB::getInstance()->isTableExists($apbct->data['sfw_common_table_name'] . '_temp') ) {
             return array('error' => 'Error while completing data: SFW temp table does not exist.');
         }
     }
@@ -285,23 +288,24 @@ function apbct_sfw_update__check_tables_integrity_before_renaming($sfw_load_type
  */
 function apbct_sfw_update__check_tables_integrity_after_renaming($sfw_load_type)
 {
+    global $apbct;
     if ( $sfw_load_type === 'all' ) {
         //personal tables
-        if ( ! DB::getInstance()->isTableExists(APBCT_TBL_FIREWALL_DATA_PERSONAL) ) {
-            throw new \Exception('Error while checking data: SFW main table does not exist.');
+        if ( ! DB::getInstance()->isTableExists($apbct->data['sfw_personal_table_name']) ) {
+            throw new \Exception('Error while checking data: SFW personal table does not exist.');
         }
         //common tables
-        if ( ! DB::getInstance()->isTableExists(SFW::getSFWCommonTableName()) ) {
+        if ( ! DB::getInstance()->isTableExists($apbct->data['sfw_common_table_name']) ) {
             throw new \Exception('Error while checking data: SFW main table does not exist.');
         }
     } elseif ( $sfw_load_type === 'personal' ) {
         //personal tables
-        if ( ! DB::getInstance()->isTableExists(APBCT_TBL_FIREWALL_DATA_PERSONAL) ) {
-            throw new \Exception('Error while checking data: SFW main table does not exist.');
+        if ( ! DB::getInstance()->isTableExists($apbct->data['sfw_personal_table_name']) ) {
+            throw new \Exception('Error while checking data: SFW personal table does not exist.');
         }
     } elseif ( $sfw_load_type === 'common' ) {
         //common tables
-        if ( ! DB::getInstance()->isTableExists(SFW::getSFWCommonTableName()) ) {
+        if ( ! DB::getInstance()->isTableExists($apbct->data['sfw_common_table_name']) ) {
             throw new \Exception('Error while checking data: SFW main table does not exist.');
         }
     }
@@ -414,7 +418,7 @@ function apbct_sfw_direct_update()
         if ( $load_type === 'all' ) {
             $get_multifiles_result = apbct_sfw_update__get_multifiles_all();
         } else {
-            $get_multifiles_params['type'] = $apbct->fw_stats['load_type'];
+            $get_multifiles_params['type'] = $load_type;
             $get_multifiles_params['do_return_urls'] = false;
             $get_multifiles_result = apbct_sfw_update__get_multifiles_of_type($get_multifiles_params);
         }
@@ -425,7 +429,7 @@ function apbct_sfw_direct_update()
 
         //download files
         $download_files_result = apbct_sfw_update__download_files($get_multifiles_result['next_stage']['args'], true);
-        $direct_update_log['apbct_sfw_update__create_tables'] = $download_files_result;
+        $direct_update_log['apbct_sfw_update__download_files'] = $download_files_result;
         if (!empty($download_files_result['error'])) {
             throw new \Exception($download_files_result['error']);
         }
@@ -502,8 +506,8 @@ function apbct_sfw_update__cleanData()
 {
     global $apbct;
 
-    SFW::dataTablesDelete(DB::getInstance(), SFW::getSFWCommonTableName() . '_temp');
-    SFW::dataTablesDelete(DB::getInstance(), APBCT_TBL_FIREWALL_DATA_PERSONAL . '_temp');
+    SFW::dataTablesDelete(DB::getInstance(), $apbct->data['sfw_common_table_name'] . '_temp');
+    SFW::dataTablesDelete(DB::getInstance(), $apbct->data['sfw_personal_table_name'] . '_temp');
 
     $apbct->fw_stats['firewall_update_percent'] = 0;
     $apbct->fw_stats['firewall_updating_id']    = null;
