@@ -1312,7 +1312,8 @@ function apbct_sfw_update__get_multifiles()
                     'next_stage' => array(
                         'name'    => 'apbct_sfw_update__download_files',
                         'args'    => $urls,
-                        'is_last' => '0'
+                        'is_last' => '0',
+                        'accepted_tries' => 10
                     )
                 );
             }
