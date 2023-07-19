@@ -1663,12 +1663,25 @@ let ctFunctionHasKeyUp = function output(event) {
  * set ct_has_input_focused ct_has_key_up cookies on session period
  */
 function ctSetHasInputFocused() {
+    console.table('ctPublic.force_alt_cookies on input focuesd', ctPublic.force_alt_cookies);
     if ( ! apbctLocalStorage.isSet('ct_has_input_focused') || ! apbctLocalStorage.get('ct_has_input_focused') ) {
         apbctLocalStorage.set('ct_has_input_focused', true);
     }
     if (
-        (ctPublic.data__cookies_type === 'native' || ctPublic.data__cookies_type === 'alternative') &&
-        ctGetCookie('ct_has_input_focused') === undefined
+        (
+            (
+                ctPublic.data__cookies_type === 'native' &&
+                ctGetCookie('ct_has_input_focused') === undefined
+            ) ||
+            ctPublic.data__cookies_type === 'alternative'
+        ) ||
+        (
+            ctPublic.data__cookies_type === 'none' &&
+            (
+                typeof ctPublic.force_alt_cookies !== 'undefined' ||
+                (ctPublic.force_alt_cookies !== undefined && ctPublic.force_alt_cookies)
+            )
+        )
     ) {
         ctSetCookie('ct_has_input_focused', 'true');
     }
@@ -1678,12 +1691,25 @@ function ctSetHasInputFocused() {
  * ctSetHasKeyUp
  */
 function ctSetHasKeyUp() {
+    console.table('ctPublic.force_alt_cookies on key up', ctPublic.force_alt_cookies);
     if ( ! apbctLocalStorage.isSet('ct_has_key_up') || ! apbctLocalStorage.get('ct_has_key_up') ) {
         apbctLocalStorage.set('ct_has_key_up', true);
     }
     if (
-        (ctPublic.data__cookies_type === 'native' || ctPublic.data__cookies_type === 'alternative') &&
-        ctGetCookie('ct_has_key_up') === undefined
+        (
+            (
+                ctPublic.data__cookies_type === 'native' &&
+                ctGetCookie('ct_has_key_up') === undefined
+            ) ||
+            ctPublic.data__cookies_type === 'alternative'
+        ) ||
+        (
+            ctPublic.data__cookies_type === 'none' &&
+            (
+                typeof ctPublic.force_alt_cookies !== 'undefined' ||
+                (ctPublic.force_alt_cookies !== undefined && ctPublic.force_alt_cookies)
+            )
+        )
     ) {
         ctSetCookie('ct_has_key_up', 'true');
     }
