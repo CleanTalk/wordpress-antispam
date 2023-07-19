@@ -223,7 +223,10 @@ function ctSetHasScrolled() {
         ctSetCookie('ct_has_scrolled', 'true');
         apbctLocalStorage.set('ct_has_scrolled', true);
     }
-    if (ctPublic.data__cookies_type === 'native' && ctGetCookie('ct_has_scrolled') === undefined) {
+    if (
+        ctPublic.data__cookies_type === 'native' &&
+        ctGetCookie('ct_has_scrolled') === undefined
+    ) {
         ctSetCookie('ct_has_scrolled', 'true');
     }
 }
@@ -236,7 +239,10 @@ function ctSetMouseMoved() {
         ctSetCookie('ct_mouse_moved', 'true');
         apbctLocalStorage.set('ct_mouse_moved', true);
     }
-    if (ctPublic.data__cookies_type === 'native' && ctGetCookie('ct_mouse_moved') === undefined) {
+    if (
+        ctPublic.data__cookies_type === 'native' &&
+        ctGetCookie('ct_mouse_moved') === undefined
+    ) {
         ctSetCookie('ct_mouse_moved', 'true');
     }
 }

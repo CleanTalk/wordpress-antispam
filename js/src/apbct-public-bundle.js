@@ -1076,12 +1076,9 @@ function ctSetCookie( cookies, value, expires ) {
         }
 
         // If problem integration forms detected use alt cookies for whole cookies set
-        if ( ctPublic.force_alt_cookies ) {
+        if ( ctPublic.force_alt_cookies && !skipAlt) {
             // do it just once
-
-            if ( !skipAlt ) {
-                ctSetAlternativeCookie(cookies, {forceAltCookies: true});
-            }
+            ctSetAlternativeCookie(cookies, {forceAltCookies: true});
         } else {
             ctNoCookieAttachHiddenFieldsToForms();
         }
@@ -1089,31 +1086,22 @@ function ctSetCookie( cookies, value, expires ) {
         // Using traditional cookies
     } else if ( ctPublicFunctions.data__cookies_type === 'native' ) {
         // If problem integration forms detected use alt cookies for whole cookies set
-        if (ctPublic.force_alt_cookies && !skipAlt) {
-            let forcedAltCookiesSet = [];
-            cookies.forEach( function(item) {
-                if (listOfCookieNamesToForceAlt.indexOf(item[0]) !== -1) {
-                    forcedAltCookiesSet.push(item);
-                } else {
-                    apbctLocalStorage.set(item[0], encodeURIComponent(item[1]));
-                }
-            });
-
+        if ( ctPublic.force_alt_cookies && !skipAlt) {
+            // do it just once
             ctSetAlternativeCookie(cookies, {forceAltCookies: true});
-        } else {
-            cookies.forEach( function(item) {
-                const _expires = typeof item[2] !== 'undefined' ? 'expires=' + expires + '; ' : '';
-                let ctSecure = location.protocol === 'https:' ? '; secure' : '';
-                document.cookie = ctPublicFunctions.cookiePrefix +
-                    item[0] +
-                    '=' +
-                    encodeURIComponent(item[1]) +
-                    '; ' +
-                    _expires +
-                    'path=/; samesite=lax' +
-                    ctSecure;
-            });
         }
+        cookies.forEach( function(item) {
+            const _expires = typeof item[2] !== 'undefined' ? 'expires=' + expires + '; ' : '';
+            let ctSecure = location.protocol === 'https:' ? '; secure' : '';
+            document.cookie = ctPublicFunctions.cookiePrefix +
+                item[0] +
+                '=' +
+                encodeURIComponent(item[1]) +
+                '; ' +
+                _expires +
+                'path=/; samesite=lax' +
+                ctSecure;
+        });
 
         // Using alternative cookies
     } else if ( ctPublicFunctions.data__cookies_type === 'alternative' && !skipAlt ) {
@@ -1587,7 +1575,10 @@ function ctSetHasScrolled() {
         ctSetCookie('ct_has_scrolled', 'true');
         apbctLocalStorage.set('ct_has_scrolled', true);
     }
-    if (ctPublic.data__cookies_type === 'native' && ctGetCookie('ct_has_scrolled') === undefined) {
+    if (
+        ctPublic.data__cookies_type === 'native' &&
+        ctGetCookie('ct_has_scrolled') === undefined
+    ) {
         ctSetCookie('ct_has_scrolled', 'true');
     }
 }
@@ -1600,7 +1591,10 @@ function ctSetMouseMoved() {
         ctSetCookie('ct_mouse_moved', 'true');
         apbctLocalStorage.set('ct_mouse_moved', true);
     }
-    if (ctPublic.data__cookies_type === 'native' && ctGetCookie('ct_mouse_moved') === undefined) {
+    if (
+        ctPublic.data__cookies_type === 'native' &&
+        ctGetCookie('ct_mouse_moved') === undefined
+    ) {
         ctSetCookie('ct_mouse_moved', 'true');
     }
 }

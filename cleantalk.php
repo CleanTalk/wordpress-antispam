@@ -2630,7 +2630,7 @@ function apbct_cookies_test()
 {
     global $apbct;
 
-    if ( $apbct->data['cookies_type'] !== 'native' ) {
+    if ( $apbct->data['cookies_type'] !== 'native' || Cookie::$force_alt_cookies_global) {
         return 1;
     }
 
