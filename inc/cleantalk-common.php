@@ -887,7 +887,8 @@ function apbct_is_cache_plugins_exists($return_names = false)
 
     $classes_of_cache_plugins = array (
         '\RedisObjectCache' => 'Redis',
-        '\WP_Rest_Cache_Plugin\Includes\Plugin' => 'Rest Cache'
+        '\WP_Rest_Cache_Plugin\Includes\Plugin' => 'Rest Cache',
+        '\Swift_Performance' => 'Swift Performance Cache',
     );
 
     foreach ($constants_of_cache_plugins as $const => $_text) {
