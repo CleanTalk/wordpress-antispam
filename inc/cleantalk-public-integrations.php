@@ -1660,8 +1660,11 @@ function ct_registration_errors($errors, $sanitized_user_login = null, $user_ema
             /**
              * present conditions there if we need to set a custom registration break for a plugin
              **/
-            defined('MGM_PLUGIN_NAME')
-            || apbct_is_plugin_active('bbpress/bbpress.php')
+            (
+                defined('MGM_PLUGIN_NAME')
+                || apbct_is_plugin_active('bbpress/bbpress.php')
+            )
+            && current_filter() !== 'woocommerce_registration_errors'
         ) {
             ct_die_extended($ct_result->comment);
         } else {
