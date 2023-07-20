@@ -7,6 +7,7 @@ use Cleantalk\ApbctWP\State;
 use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\ApbctWP\Variables\Get;
 use Cleantalk\ApbctWP\Variables\Post;
+use Cleantalk\ApbctWP\Variables\AltSessions;
 use Cleantalk\ApbctWP\Variables\Request;
 use Cleantalk\ApbctWP\Variables\Server;
 
@@ -1091,6 +1092,11 @@ function ct_preprocess_comment($comment)
 
     $checkjs = apbct_js_test(Sanitize::cleanTextField(Cookie::get('ct_checkjs')), true) ?: apbct_js_test(Sanitize::cleanTextField(Post::get('ct_checkjs')));
 
+    // jetpack_comment case
+    if ( $post_info['comment_type'] === 'jetpack_comment' ) {
+        $checkjs = apbct_js_test(AltSessions::get('ct_checkjs'));
+    }
+
     $example = null;
     if ( $apbct->data['relevance_test'] ) {
         $post = get_post($comment_post_id);
@@ -1654,8 +1660,11 @@ function ct_registration_errors($errors, $sanitized_user_login = null, $user_ema
             /**
              * present conditions there if we need to set a custom registration break for a plugin
              **/
-            defined('MGM_PLUGIN_NAME')
-            || apbct_is_plugin_active('bbpress/bbpress.php')
+            (
+                defined('MGM_PLUGIN_NAME')
+                || apbct_is_plugin_active('bbpress/bbpress.php')
+            )
+            && current_filter() !== 'woocommerce_registration_errors'
         ) {
             ct_die_extended($ct_result->comment);
         } else {

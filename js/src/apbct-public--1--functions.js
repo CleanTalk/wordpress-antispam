@@ -39,18 +39,20 @@ function ctSetCookie( cookies, value, expires ) {
         }
 
         // If problem integration forms detected use alt cookies for whole cookies set
-        if ( ctPublic.force_alt_cookies ) {
+        if ( ctPublic.force_alt_cookies && !skipAlt) {
             // do it just once
-
-            if ( !skipAlt ) {
-                ctSetAlternativeCookie(cookies, {forceAltCookies: true});
-            }
+            ctSetAlternativeCookie(cookies, {forceAltCookies: true});
         } else {
             ctNoCookieAttachHiddenFieldsToForms();
         }
 
         // Using traditional cookies
     } else if ( ctPublicFunctions.data__cookies_type === 'native' ) {
+        // If problem integration forms detected use alt cookies for whole cookies set
+        if ( ctPublic.force_alt_cookies && !skipAlt) {
+            // do it just once
+            ctSetAlternativeCookie(cookies, {forceAltCookies: true});
+        }
         cookies.forEach( function(item) {
             const _expires = typeof item[2] !== 'undefined' ? 'expires=' + expires + '; ' : '';
             let ctSecure = location.protocol === 'https:' ? '; secure' : '';
@@ -74,8 +76,9 @@ function ctSetCookie( cookies, value, expires ) {
 function ctDetectForcedAltCookiesForms() {
     let ninjaFormsSign = document.querySelectorAll('#tmpl-nf-layout').length > 0;
     let smartFormsSign = document.querySelectorAll('script[id*="smart-forms"]').length > 0;
+    let jetpackCommentsForm = document.querySelectorAll('iframe[name="jetpack_remote_comment"]').length > 0;
 
-    ctPublic.force_alt_cookies = smartFormsSign || ninjaFormsSign;
+    ctPublic.force_alt_cookies = smartFormsSign || ninjaFormsSign || jetpackCommentsForm;
 }
 
 // eslint-disable-next-line require-jsdoc

@@ -3,9 +3,9 @@
     "eslint": "./node_modules/.bin/eslint -c ./.eslintrc.js js/src/*.js"
   },
   "devDependencies": {
-    "@babel/core": "^7.19.3",
-    "@babel/preset-env": "^7.19.3",
-    "eslint": "^8.36.0",
+    "@babel/core": "^7.22.9",
+    "@babel/preset-env": "^7.22.9",
+    "eslint": "^8.45.0",
     "eslint-config-google": "^0.14.0",
     "eslint-plugin-import": "^2.27.5",
     "eslint-plugin-n": "^15.6.1",

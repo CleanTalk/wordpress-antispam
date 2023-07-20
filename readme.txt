@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 4.7
 Tested up to: 6.2
 Requires PHP: 5.6
-Stable tag: 6.13
+Stable tag: 6.14
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -134,7 +134,7 @@ All the CleanTalk Spam FireWall activity is being logged in the process of filte
 Spam FireWall: Anti-Flood and Anti-Crawler options are intended for blocking unwanted bots, content parsing, shop goods prices parsing or aggressive website scanning bots. Learn more https://cleantalk.org/help/anti-flood-and-anti-crawler
 
 = Anti-Spam plugin info =
-CleanTalk is an all-in-one anti-spam solution for WordPress that protects login, comment, contact and WooCommerce forms at once. You don't need to install separate antispam plugins for each form. It allows your blog to work faster and save resources. 
+CleanTalk is an all-in-one anti-spam solution for WordPress that protects login, comment, contact and WooCommerce forms at once. You don't need to install separate antispam plugins for each form. It allows your blog to work faster and save resources.
 
 CleanTalk is a transparent antispam tool, we provide detailed stats of all incoming comments and logins. You can always be sure that **there are no errors**. We have developed a mobile app for you to see antispam stats wherever you want.
 
@@ -450,6 +450,24 @@ Yes, it is. Please read this article,
 12. SpamFireWall log.
 
 == Changelog ==
+
+= 6.14 Jul 20 2023 =
+* New. Integration. Flux Checkout for WooCommerce service requests skipped.
+* New. Integration. Some external form protection implemented.
+* Fix. Alt cookies. Parameters input_focused and key_up storing fixed.
+* Fix. apbct_cookie() call. Do not skip requests if GET contains 'q'.
+* Fix. Exclusions. Logic modified, legacy support improved.
+* Fix. Jetpack integration. Params gathering fixed.
+* Fix. Integration. WPForms blocking message fixed.
+* Fix. Common. Checking REST availability fixed.
+* Fix. Common. DNS - using global variable DNS_TXT refactored.
+* Fix. Common. CookiesBot integration added.
+* Fix. Common. Blocking message for custom ajax forms fixed.
+* Fix. Common. Enable event token for all requests.
+* Fix. Cookies. Do not skip native cookie set if localStorage object persist.
+* Fix. Integration. Avada fusion builder. Collect the inner form data correctly.
+* Fix. Public scripts. Interception of ajax response logic fixed.
+* Fix. SFW. Force direct updating flag implemented.
 
 = 6.13 Jul 06 2023 =
 * Fix. PHP 8.1 compat. Email encoder.

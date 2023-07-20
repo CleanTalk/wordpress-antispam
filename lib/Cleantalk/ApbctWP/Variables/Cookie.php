@@ -41,7 +41,6 @@ class Cookie extends \Cleantalk\Variables\Cookie
                     break;
                 case 'none':
                     if ( static::$force_alt_cookies_global || in_array($name, static::$force_to_use_alternative_cookies, true) ) {
-                        $value = AltSessions::get($name);
                         if ( in_array($name, array(
                             'apbct_page_hits',
                             'apbct_prev_referer',
@@ -50,14 +49,23 @@ class Cookie extends \Cleantalk\Variables\Cookie
                             'apbct_timestamp',
                             'apbct_site_referer')) ) {
                             $value = NoCookie::get($name);
+                        } else {
+                            $value = AltSessions::get($name);
                         }
                     } else {
                         $value = NoCookie::get($name);
                     }
                     break;
                 default:
-                    if ( isset($_COOKIE[$name]) ) {
-                        $value = $this->getAndSanitize(urldecode($_COOKIE[$name]));
+                    if ( static::$force_alt_cookies_global ) {
+                        $value = AltSessions::get($name);
+                        if ( empty($value) && isset($_COOKIE[$name]) ) {
+                            $value = $this->getAndSanitize(urldecode($_COOKIE[$name]));
+                        }
+                    } else {
+                        if ( isset($_COOKIE[$name]) ) {
+                            $value = $this->getAndSanitize(urldecode($_COOKIE[$name]));
+                        }
                     }
             }
 
@@ -111,7 +119,11 @@ class Cookie extends \Cleantalk\Variables\Cookie
             } elseif ($apbct->data['cookies_type'] === 'alternative') {
                 AltSessions::set($name, $value);
             } else {
-                self::setNativeCookie(apbct__get_cookie_prefix() . $name, $value, $expires, $path, $domain, $secure, $httponly, $samesite);
+                if ( static::$force_alt_cookies_global || in_array($name, static::$force_to_use_alternative_cookies, true) ) {
+                    AltSessions::set($name, $value);
+                } else {
+                    self::setNativeCookie(apbct__get_cookie_prefix() . $name, $value, $expires, $path, $domain, $secure, $httponly, $samesite);
+                }
             }
         }
 

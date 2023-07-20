@@ -1076,18 +1076,20 @@ function ctSetCookie( cookies, value, expires ) {
         }
 
         // If problem integration forms detected use alt cookies for whole cookies set
-        if ( ctPublic.force_alt_cookies ) {
+        if ( ctPublic.force_alt_cookies && !skipAlt) {
             // do it just once
-
-            if ( !skipAlt ) {
-                ctSetAlternativeCookie(cookies, {forceAltCookies: true});
-            }
+            ctSetAlternativeCookie(cookies, {forceAltCookies: true});
         } else {
             ctNoCookieAttachHiddenFieldsToForms();
         }
 
         // Using traditional cookies
     } else if ( ctPublicFunctions.data__cookies_type === 'native' ) {
+        // If problem integration forms detected use alt cookies for whole cookies set
+        if ( ctPublic.force_alt_cookies && !skipAlt) {
+            // do it just once
+            ctSetAlternativeCookie(cookies, {forceAltCookies: true});
+        }
         cookies.forEach( function(item) {
             const _expires = typeof item[2] !== 'undefined' ? 'expires=' + expires + '; ' : '';
             let ctSecure = location.protocol === 'https:' ? '; secure' : '';
@@ -1111,8 +1113,9 @@ function ctSetCookie( cookies, value, expires ) {
 function ctDetectForcedAltCookiesForms() {
     let ninjaFormsSign = document.querySelectorAll('#tmpl-nf-layout').length > 0;
     let smartFormsSign = document.querySelectorAll('script[id*="smart-forms"]').length > 0;
+    let jetpackCommentsForm = document.querySelectorAll('iframe[name="jetpack_remote_comment"]').length > 0;
 
-    ctPublic.force_alt_cookies = smartFormsSign || ninjaFormsSign;
+    ctPublic.force_alt_cookies = smartFormsSign || ninjaFormsSign || jetpackCommentsForm;
 }
 
 // eslint-disable-next-line require-jsdoc
@@ -1572,7 +1575,10 @@ function ctSetHasScrolled() {
         ctSetCookie('ct_has_scrolled', 'true');
         apbctLocalStorage.set('ct_has_scrolled', true);
     }
-    if (ctPublic.data__cookies_type === 'native' && ctGetCookie('ct_has_scrolled') === undefined) {
+    if (
+        ctPublic.data__cookies_type === 'native' &&
+        ctGetCookie('ct_has_scrolled') === undefined
+    ) {
         ctSetCookie('ct_has_scrolled', 'true');
     }
 }
@@ -1585,7 +1591,10 @@ function ctSetMouseMoved() {
         ctSetCookie('ct_mouse_moved', 'true');
         apbctLocalStorage.set('ct_mouse_moved', true);
     }
-    if (ctPublic.data__cookies_type === 'native' && ctGetCookie('ct_mouse_moved') === undefined) {
+    if (
+        ctPublic.data__cookies_type === 'native' &&
+        ctGetCookie('ct_mouse_moved') === undefined
+    ) {
         ctSetCookie('ct_mouse_moved', 'true');
     }
 }
@@ -1654,12 +1663,25 @@ let ctFunctionHasKeyUp = function output(event) {
  * set ct_has_input_focused ct_has_key_up cookies on session period
  */
 function ctSetHasInputFocused() {
+    console.table('ctPublic.force_alt_cookies on input focuesd', ctPublic.force_alt_cookies);
     if ( ! apbctLocalStorage.isSet('ct_has_input_focused') || ! apbctLocalStorage.get('ct_has_input_focused') ) {
         apbctLocalStorage.set('ct_has_input_focused', true);
     }
     if (
-        (ctPublic.data__cookies_type === 'native' || ctPublic.data__cookies_type === 'alternative') &&
-        ctGetCookie('ct_has_input_focused') === undefined
+        (
+            (
+                ctPublic.data__cookies_type === 'native' &&
+                ctGetCookie('ct_has_input_focused') === undefined
+            ) ||
+            ctPublic.data__cookies_type === 'alternative'
+        ) ||
+        (
+            ctPublic.data__cookies_type === 'none' &&
+            (
+                typeof ctPublic.force_alt_cookies !== 'undefined' ||
+                (ctPublic.force_alt_cookies !== undefined && ctPublic.force_alt_cookies)
+            )
+        )
     ) {
         ctSetCookie('ct_has_input_focused', 'true');
     }
@@ -1669,12 +1691,25 @@ function ctSetHasInputFocused() {
  * ctSetHasKeyUp
  */
 function ctSetHasKeyUp() {
+    console.table('ctPublic.force_alt_cookies on key up', ctPublic.force_alt_cookies);
     if ( ! apbctLocalStorage.isSet('ct_has_key_up') || ! apbctLocalStorage.get('ct_has_key_up') ) {
         apbctLocalStorage.set('ct_has_key_up', true);
     }
     if (
-        (ctPublic.data__cookies_type === 'native' || ctPublic.data__cookies_type === 'alternative') &&
-        ctGetCookie('ct_has_key_up') === undefined
+        (
+            (
+                ctPublic.data__cookies_type === 'native' &&
+                ctGetCookie('ct_has_key_up') === undefined
+            ) ||
+            ctPublic.data__cookies_type === 'alternative'
+        ) ||
+        (
+            ctPublic.data__cookies_type === 'none' &&
+            (
+                typeof ctPublic.force_alt_cookies !== 'undefined' ||
+                (ctPublic.force_alt_cookies !== undefined && ctPublic.force_alt_cookies)
+            )
+        )
     ) {
         ctSetCookie('ct_has_key_up', 'true');
     }
@@ -1902,6 +1937,22 @@ function apbct_ready() {
         }
     }
 }
+
+const apbctPrepareBlockForAjaxForms = () => {
+    if (typeof jQuery !== 'undefined') {
+        // Capturing responses and output block message for unknown AJAX forms
+        jQuery(document).ajaxComplete(function(event, xhr, settings) {
+            if (xhr.responseText && xhr.responseText.indexOf('"apbct') !== -1) {
+                try {
+                    ctParseBlockMessage(JSON.parse(xhr.responseText));
+                } catch (e) {
+                    console.log(e.toString());
+                }
+            }
+        });
+        console.table('');
+    }
+};
 
 if (ctPublic.data__key_is_ok) {
     if (document.readyState !== 'loading') {
@@ -2421,22 +2472,6 @@ function apbctGetScreenInfo() {
         visibleHeight: document.documentElement.clientHeight,
     });
 }
-
-const apbctPrepareBlockForAjaxForms = () => {
-    if (typeof jQuery !== 'undefined') {
-        // Capturing responses and output block message for unknown AJAX forms
-        jQuery(document).ajaxComplete(function(event, xhr, settings) {
-            if (xhr.responseText && xhr.responseText.indexOf('"apbct') !== -1) {
-                try {
-                    ctParseBlockMessage(JSON.parse(xhr.responseText));
-                } catch (e) {
-                    console.log(e.toString());
-                    return;
-                }
-            }
-        });
-    }
-};
 
 // eslint-disable-next-line require-jsdoc
 function ctParseBlockMessage(response) {
