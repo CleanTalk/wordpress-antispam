@@ -98,3 +98,6 @@
 #cleantalk_notice_review .button {
 	margin-bottom: 20px;
 }
+.apbct-restore-spam-order-button {
+	cursor: pointer;
+}

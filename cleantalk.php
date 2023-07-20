@@ -4,7 +4,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 6.11-dev
+  Version: 6.14.1-dev
   Author: СleanTalk <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -104,7 +104,6 @@ require_once(CLEANTALK_PLUGIN_DIR . 'lib/autoloader.php');                // Aut
 
 require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-pluggable.php');  // Pluggable functions
 require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-common.php');
-//require_once(CLEANTALK_PLUGIN_DIR . 'inc/sfw-update-helper.php');
 
 // Global ArrayObject with settings and other global variables
 $apbct = new State('cleantalk', array('settings', 'data', 'debug', 'errors', 'remote_calls', 'stats', 'fw_stats'));
@@ -263,7 +262,11 @@ if ( ! is_admin() && ! apbct_is_ajax() && ! defined('DOING_CRON')
         }
         add_action('template_redirect', 'apbct_store__urls', 2);
     }
-    if ( empty($_POST) && empty($_GET) && $apbct->data['key_is_ok']) {
+    if (
+        empty($_POST) &&
+        ( (isset($_GET['q']) && $_GET['q'] !== '') || empty($_GET) ) &&
+        $apbct->data['key_is_ok']
+    ) {
             apbct_cookie();
             apbct_store__urls();
     }
@@ -1115,7 +1118,7 @@ function apbct_sfw_update__init($delay = 0)
     }
 
     // Get update period for server
-    $update_period = DNS::getRecord('spamfirewall-ttl-txt.cleantalk.org', true, DNS_TXT);
+    $update_period = DNS::getRecord('spamfirewall-ttl-txt.cleantalk.org', true, true);
     $update_period = isset($update_period['txt']) ? $update_period['txt'] : 0;
     $update_period = (int)$update_period > 14400 ? (int)$update_period : 14400;
     if ( $apbct->stats['sfw']['update_period'] != $update_period ) {
@@ -1150,7 +1153,7 @@ function apbct_sfw_update__init($delay = 0)
         )
     );
 
-    if ( ! empty($prepare_dir__result['error']) || ! empty($test_rc_result['error']) ) {
+    if ( defined('APBCT_SFW_FORCE_DIRECT_UPDATE') || ! empty($prepare_dir__result['error']) || ! empty($test_rc_result['error']) ) {
         return SFWUpdateHelper::directUpdate();
     }
 
@@ -1442,6 +1445,7 @@ function apbct_sfw_update__get_multifiles_of_type(array $params)
 function apbct_sfw_update__download_files($urls, $direct_update = false)
 {
     global $apbct;
+
     sleep(3);
 
     //Reset keys
@@ -1876,8 +1880,7 @@ function ct_sfw_send_logs($api_key = '')
     $result = SFW::sendLog(
         DB::getInstance(),
         APBCT_TBL_FIREWALL_LOG,
-        $api_key,
-        (bool)$apbct->settings['sfw__use_delete_to_clear_table']
+        $api_key
     );
 
     if ( empty($result['error']) ) {
@@ -2580,7 +2583,7 @@ function apbct_cookies_test()
 {
     global $apbct;
 
-    if ( $apbct->data['cookies_type'] !== 'native' ) {
+    if ( $apbct->data['cookies_type'] !== 'native' || Cookie::$force_alt_cookies_global) {
         return 1;
     }
 

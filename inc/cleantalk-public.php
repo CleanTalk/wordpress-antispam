@@ -625,22 +625,7 @@ function ct_add_hidden_fields(
 
     // Using only cookies
     if ( $cookie_check ) {
-        $html =
-            "<script "
-            . (class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '')
-            . ">
-                function apbct_attach_event_handler__backend(elem, event, callback) {
-                    if(typeof window.addEventListener === \"function\") elem.addEventListener(event, callback);
-                    else                                                elem.attachEvent(event, callback);
-                }
-                apbct_attach_event_handler__backend(document, 'DOMContentLoaded', function(){
-                    if (typeof apbctLocalStorage === \"object\" && ctPublic.data__key_is_ok) {
-                        apbctLocalStorage.set('{$field_name}', '{$ct_checkjs_key}', true );
-                    } else {
-                        console.log('APBCT ERROR: apbctLocalStorage object is not loaded.');
-                    }  
-                });
-		    </script>";
+        $html = '';
         // Using AJAX to get key
     } elseif ( $apbct->settings['data__use_ajax'] && $ajax ) {
         // Fix only for wp_footer -> apbct_hook__wp_head__set_cookie__ct_checkjs()
@@ -1246,8 +1231,10 @@ function ct_enqueue_scripts_public($_hook)
         $apbct->settings['comments__bp_private_messages'] ||
         $apbct->settings['data__general_postdata_test']
     ) {
-        if ( ! $apbct->public_script_loaded ) {
-            apbct_enqueue_and_localize_public_scripts();
+        if ($apbct->settings['data__protect_logged_in'] == 1 || !is_user_logged_in() ) {
+            if ( ! $apbct->public_script_loaded ) {
+                apbct_enqueue_and_localize_public_scripts();
+            }
         }
     }
 

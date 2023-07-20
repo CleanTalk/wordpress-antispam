@@ -1,20 +1,11 @@
 {
-  "name": "cleantalk-spam-protect",
-  "version": "1.0.0",
-  "description": "=== Spam protection, AntiSpam, FireWall by CleanTalk === Contributors: safronik  Tags: spam, antispam, protection, comments, firewall  Requires at least: 3.0 Tested up to: 5.2 Stable tag: 5.119.1 License: GPLv2",
-  "main": "gulpfile.js",
-  "directories": {
-    "lib": "lib"
-  },
   "scripts": {
     "eslint": "./node_modules/.bin/eslint -c ./.eslintrc.js js/src/*.js"
   },
-  "author": "",
-  "license": "ISC",
   "devDependencies": {
-    "@babel/core": "^7.19.3",
-    "@babel/preset-env": "^7.19.3",
-    "eslint": "^8.36.0",
+    "@babel/core": "^7.22.9",
+    "@babel/preset-env": "^7.22.9",
+    "eslint": "^8.45.0",
     "eslint-config-google": "^0.14.0",
     "eslint-plugin-import": "^2.27.5",
     "eslint-plugin-n": "^15.6.1",

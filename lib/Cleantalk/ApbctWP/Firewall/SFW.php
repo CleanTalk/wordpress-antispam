@@ -521,7 +521,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
      *
      * @return array|bool array('error' => STRING)
      */
-    public static function sendLog($db, $log_table, $ct_key, $_use_delete_command)
+    public static function sendLog($db, $log_table, $ct_key)
     {
         //Getting logs
         $query = "SELECT * FROM $log_table ORDER BY entries_timestamp DESC LIMIT 0," . APBCT_SFW_SEND_LOGS_LIMIT . ";";
@@ -693,6 +693,10 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
      */
     public static function updateWriteToDb($db, $db__table__data, $file_url = null)
     {
+        if ( ! $db->isTableExists($db__table__data) ) {
+            return array('error' => 'Temp table not exist');
+        }
+
         $file_content = file_get_contents($file_url);
 
         if (function_exists('gzdecode')) {

@@ -8,41 +8,42 @@ function ctProtectExternal() {
             // current form
             const currentForm = document.forms[i];
 
-            if (typeof(currentForm.action) == 'string') {
-                // skip excluded forms
-                if ( formIsExclusion(currentForm)) {
-                    continue;
-                }
+            // skip excluded forms
+            if ( formIsExclusion(currentForm)) {
+                continue;
+            }
 
-                // Ajax checking for the integrated forms
-                if ( isIntegratedForm(currentForm) ) {
-                    apbctProcessExternalForm(currentForm, i, document);
+            // Ajax checking for the integrated forms
+            if ( isIntegratedForm(currentForm) ) {
+                apbctProcessExternalForm(currentForm, i, document);
 
-                    // Common flow - modify form's action
-                } else if (currentForm.action.indexOf('http://') !== -1 ||
-                    currentForm.action.indexOf('https://') !== -1) {
-                    let tmp = currentForm.action.split('//');
-                    tmp = tmp[1].split('/');
-                    const host = tmp[0].toLowerCase();
+            // Common flow - modify form's action
+            } else if (
+                typeof(currentForm.action) == 'string' &&
+                ( currentForm.action.indexOf('http://') !== -1 ||
+                currentForm.action.indexOf('https://') !== -1 )
+            ) {
+                let tmp = currentForm.action.split('//');
+                tmp = tmp[1].split('/');
+                const host = tmp[0].toLowerCase();
 
-                    if (host !== location.hostname.toLowerCase()) {
-                        const ctAction = document.createElement('input');
-                        ctAction.name = 'cleantalk_hidden_action';
-                        ctAction.value = currentForm.action;
-                        ctAction.type = 'hidden';
-                        currentForm.appendChild(ctAction);
+                if (host !== location.hostname.toLowerCase()) {
+                    const ctAction = document.createElement('input');
+                    ctAction.name = 'cleantalk_hidden_action';
+                    ctAction.value = currentForm.action;
+                    ctAction.type = 'hidden';
+                    currentForm.appendChild(ctAction);
 
-                        const ctMethod = document.createElement('input');
-                        ctMethod.name = 'cleantalk_hidden_method';
-                        ctMethod.value = currentForm.method;
-                        ctMethod.type = 'hidden';
+                    const ctMethod = document.createElement('input');
+                    ctMethod.name = 'cleantalk_hidden_method';
+                    ctMethod.value = currentForm.method;
+                    ctMethod.type = 'hidden';
 
-                        currentForm.method = 'POST';
+                    currentForm.method = 'POST';
 
-                        currentForm.appendChild(ctMethod);
+                    currentForm.appendChild(ctMethod);
 
-                        currentForm.action = document.location;
-                    }
+                    currentForm.action = document.location;
                 }
             }
         }
@@ -222,7 +223,11 @@ function apbctReplaceInputsValuesFromOtherForm(formSource, formTarget) {
     inputsSource.forEach((elemSource) => {
         inputsTarget.forEach((elemTarget) => {
             if (elemSource.outerHTML === elemTarget.outerHTML) {
-                elemTarget.value = apbctVal(elemSource);
+                if (elemTarget.type === 'checkbox' || elemTarget.type === 'radio') {
+                    elemTarget.checked = apbctVal(elemSource);
+                } else {
+                    elemTarget.value = apbctVal(elemSource);
+                }
             }
         });
     });
@@ -236,7 +241,7 @@ window.onload = function() {
     setTimeout(function() {
         ctProtectExternal();
         catchDynamicRenderedForm();
-    }, 1500);
+    }, 2000);
 };
 
 /**
@@ -245,7 +250,7 @@ window.onload = function() {
  * @return {boolean}
  */
 function isIntegratedForm(formObj) {
-    const formAction = formObj.action;
+    const formAction = typeof(formObj.action) == 'string' ? formObj.action : '';
     const formId = formObj.getAttribute('id') !== null ? formObj.getAttribute('id') : '';
 
     if (
@@ -267,7 +272,8 @@ function isIntegratedForm(formObj) {
         formAction.indexOf('aweber.com') !== -1 ||
         formAction.indexOf('secure.payu.com') !== -1 ||
         formAction.indexOf('mautic') !== -1 || formId.indexOf('mauticform_') !== -1 ||
-        formId.indexOf('ihf-contact-request-form') !== -1
+        formId.indexOf('ihf-contact-request-form') !== -1 ||
+        formObj.dataset.mailingListId !== undefined // moosend.com
     ) {
         return true;
     }
@@ -502,6 +508,8 @@ function apbctVal(el) {
         return el.options
             .filter((option) => option.selected)
             .map((option) => option.value);
+    } else if (el.type === 'checkbox' || el.type === 'radio') {
+        return el.checked ? el.checked : null;
     } else {
         return el.value;
     }

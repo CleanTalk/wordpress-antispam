@@ -215,7 +215,7 @@ class GetFieldsAny
                 $tmp = preg_replace('@<.*?>@', '', $tmp);
 
                 $decoded_json_value = json_decode($tmp, true);       // Try parse JSON from the string
-                if (strpos($value, "\n") === false || strpos($value, "\r") === false) {
+                if (strpos($value, "\n") !== false || strpos($value, "\r") !== false) {
                     // Parse an only single-lined string
                     parse_str(urldecode($tmp), $decoded_url_value); // Try parse URL from the string
                 }

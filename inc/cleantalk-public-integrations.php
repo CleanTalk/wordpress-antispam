@@ -7,6 +7,7 @@ use Cleantalk\ApbctWP\State;
 use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\ApbctWP\Variables\Get;
 use Cleantalk\ApbctWP\Variables\Post;
+use Cleantalk\ApbctWP\Variables\AltSessions;
 use Cleantalk\ApbctWP\Variables\Request;
 use Cleantalk\ApbctWP\Variables\Server;
 
@@ -507,18 +508,15 @@ function apbct_woocommerce__store_blocked_order()
 {
     global $wpdb;
 
-    $query = 'INSERT INTO ' . APBCT_TBL_WC_SPAM_ORDERS . ' (order_id, order_details, customer_details, currency) 
-              VALUES (%s, %s, %s, %s) 
-              ON DUPLICATE KEY UPDATE order_details = %s, customer_details = %s, currency = %s';
+    $query = 'INSERT INTO ' . APBCT_TBL_WC_SPAM_ORDERS . ' (order_details, customer_details) 
+              VALUES (%s, %s) 
+              ON DUPLICATE KEY UPDATE order_details = %s, customer_details = %s';
 
     $prepared_query = $wpdb->prepare($query, [
-        array_key_first(wc()->session->cart), // phpcs:ignore PHPCompatibility.FunctionUse.NewFunctions.array_key_firstFound
         json_encode(wc()->session->cart),
         json_encode($_POST),
-        get_woocommerce_currency(),
         json_encode(wc()->session->cart),
         json_encode($_POST),
-        get_woocommerce_currency()
     ]);
 
     $wpdb->query($prepared_query);
@@ -1094,6 +1092,11 @@ function ct_preprocess_comment($comment)
 
     $checkjs = apbct_js_test(Sanitize::cleanTextField(Cookie::get('ct_checkjs')), true) ?: apbct_js_test(Sanitize::cleanTextField(Post::get('ct_checkjs')));
 
+    // jetpack_comment case
+    if ( $post_info['comment_type'] === 'jetpack_comment' ) {
+        $checkjs = apbct_js_test(AltSessions::get('ct_checkjs'));
+    }
+
     $example = null;
     if ( $apbct->data['relevance_test'] ) {
         $post = get_post($comment_post_id);
@@ -1657,8 +1660,11 @@ function ct_registration_errors($errors, $sanitized_user_login = null, $user_ema
             /**
              * present conditions there if we need to set a custom registration break for a plugin
              **/
-            defined('MGM_PLUGIN_NAME')
-            || apbct_is_plugin_active('bbpress/bbpress.php')
+            (
+                defined('MGM_PLUGIN_NAME')
+                || apbct_is_plugin_active('bbpress/bbpress.php')
+            )
+            && current_filter() !== 'woocommerce_registration_errors'
         ) {
             ct_die_extended($ct_result->comment);
         } else {
@@ -2540,12 +2546,22 @@ function apbct_form__WPForms__showResponse($errors, $form_data)
     ) {
         $spam_comment = apbct_form__WPForms__testSpam();
 
-        $filed_id = $form_data && ! empty($form_data['fields']) && is_array($form_data['fields'])
-            ? key($form_data['fields'])
-            : 0;
-
         if ( $spam_comment ) {
-            $errors[$form_data['id']][$filed_id] = $spam_comment;
+            $field_id = 0;
+            if ( $form_data && ! empty($form_data['fields']) && is_array($form_data['fields']) ) {
+                foreach ( $form_data['fields'] as $key => $field ) {
+                    if ( array_search('email', $field) === 'type' ) {
+                        $field_id = $key;
+                        break;
+                    }
+                }
+            }
+
+            $field_id = ! $field_id && $form_data && ! empty($form_data['fields']) && is_array($form_data['fields'])
+                ? key($form_data['fields'])
+                : $field_id;
+
+            $errors[$form_data['id']][$field_id] = $spam_comment;
         }
     }
 
@@ -3105,12 +3121,24 @@ function ct_s2member_registration_test($post_key)
 
     if ( $apbct->settings['forms__registrations_test'] == 0 ) {
         do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
-
         return null;
     }
 
-    $sender_email    = Sanitize::cleanEmail(Post::get($post_key)['email']);
-    $sender_nickname = Sanitize::cleanUser(Post::get($post_key)['username']);
+    $post_key_value = Post::get($post_key);
+
+    if ( is_array($post_key_value) && isset($post_key_value['email'], $post_key_value['username']) ) {
+        //old way
+        $sender_email    = Sanitize::cleanEmail($post_key_value['email']);
+        $sender_nickname = Sanitize::cleanUser($post_key_value['username']);
+    } else {
+        //new way
+        $sender_email = Post::get('signup_email') ? Sanitize::cleanEmail(Post::get('signup_email')) : null;
+        $sender_nickname = Post::get('signup_username') ? Sanitize::cleanUser(Post::get('signup_username')) : null;
+    }
+
+    if ( empty($sender_email) ) {
+        return null;
+    }
 
     //Making a call
     $base_call_result = apbct_base_call(

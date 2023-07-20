@@ -967,7 +967,7 @@ function apbct_admin__admin_bar__add_child_nodes($wp_admin_bar)
             array(
                 'parent' => 'apbct__parent_node',
                 'id'     => 'ct_settings_bulk_orders',
-                'title'  => '<a href="admin.php?page=options-general.php%3Fpage%3Dapbct_wc_spam_orders" title="Bulk spam orders removal tool.">'
+                'title'  => '<a href="admin.php?page=apbct_wc_spam_orders" title="Bulk spam orders removal tool.">'
                             . __('WooCommerce spam orders', 'cleantalk-spam-protect') . '</a>',
             )
         );
@@ -1301,7 +1301,7 @@ function apbct__check_compatibility_handler()
 function apbct__add_debug_tab($links)
 {
     if ( is_array($links) ) {
-        $debug_link    = '<a href="#" class="ct_support_link" onclick="apbct_show_hide_elem(\'apbct_debug_tab\')">' .
+        $debug_link    = '<a href="#" class="ct_support_link" onclick="apbctShowHideElem(\'apbct_debug_tab\')">' .
                          __('Debug', 'cleantalk-spam-protect') . '</a>';
         $links[] = $debug_link;
     }

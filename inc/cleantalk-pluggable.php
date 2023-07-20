@@ -961,6 +961,34 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'Exclude Authorize.net payment form request';
         }
+
+        // Exclude ProfilePress login form request
+        if (
+            apbct_is_plugin_active('wp-user-avatar/wp-user-avatar.php') &&
+            Post::get('action') === 'pp_ajax_login'
+        ) {
+            return 'Exclude ProfilePress login form request';
+        }
+
+        // Exclude UserPro login form request
+        if (
+            apbct_is_plugin_active('userpro/index.php') &&
+            (Post::get('action') === 'userpro_fbconnect' || Post::get('action') === 'userpro_side_validate')
+        ) {
+            return 'Exclude UserPro login form request';
+        }
+
+        // Flux Checkout for WooCommerce service requests
+        if (
+            apbct_is_plugin_active('flux-checkout-premium/flux-checkout.php') &&
+            (
+                Post::get('action') === 'flux_check_email_exists' ||
+                Post::get('action') === 'flux_check_for_inline_error' ||
+                Post::get('action') === 'flux_check_for_inline_errors'
+            )
+        ) {
+            return 'Flux Checkout for WooCommerce service requests';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
@@ -1140,7 +1168,8 @@ function apbct_is_skip_request($ajax = false)
         // Plugin Name: OptimizeCheckouts - skip fields checks
         if (
             apbct_is_plugin_active('op-cart/op-checkouts.php') &&
-            apbct_is_in_uri('wp-json/opc/v1/cart/recalculate')
+            ( apbct_is_in_uri('wp-json/opc/v1/cart/recalculate') ||
+            apbct_is_in_uri('wp-json/opc/v1/cart/update-payment-method') )
         ) {
             return 'Plugin Name: OptimizeCheckouts skip fields checks';
         }
@@ -1206,12 +1235,45 @@ function apbct_is_exception_arg_request()
  */
 function apbct_settings__get_ajax_type()
 {
-    // Check rest availability
-    $res_rest = Helper::httpRequestGetResponseCode(esc_url(apbct_get_rest_url()));
-    $res_body = Helper::httpRequestGetContent(esc_url(apbct_get_rest_url()));
+    global $apbct;
 
-    if ( $res_rest == 200 && Helper::isJson($res_body) ) {
-        return 'rest';
+    //force ajax route type if constant is defined and compatible
+    if (defined('APBCT_SET_AJAX_ROUTE_TYPE')
+        && in_array(APBCT_SET_AJAX_ROUTE_TYPE, array('rest','admin_ajax'))
+    ) {
+        return APBCT_SET_AJAX_ROUTE_TYPE;
+    }
+
+    // Check rest availability
+    // Getting WP REST nonce from the public side
+    $frontend_body = Helper::httpRequest(get_option('home'));
+    $localize = null;
+
+    if ( is_string($frontend_body) ) {
+        preg_match_all('@const ctPublicFunctions.*{(.*)}@', $frontend_body, $matches);
+        if ( isset($matches[1][0]) ) {
+            $localize = json_decode('{' . $matches[1][0] . '}', true);
+        }
+    }
+
+    if ( is_array($localize) && isset($localize['_rest_nonce']) ) {
+        $rc_params = array(
+            'spbc_remote_call_token' => md5($apbct->api_key),
+            'spbc_remote_call_action' => 'rest_check',
+            'plugin_name' => 'apbct',
+            '_rest_nonce' => $localize['_rest_nonce']
+        );
+        $res = json_decode(Helper::httpRequest(get_option('home'), $rc_params), true);
+        if ( is_array($res) && isset($res['success']) ) {
+            return 'rest';
+        }
+    } else {
+        $res_rest = Helper::httpRequestGetResponseCode(esc_url(apbct_get_rest_url()));
+        $res_body = Helper::httpRequestGetContent(esc_url(apbct_get_rest_url()));
+
+        if ( $res_rest == 200 && Helper::isJson($res_body) ) {
+            return 'rest';
+        }
     }
 
     // Check WP ajax availability

@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 4.7
 Tested up to: 6.2
 Requires PHP: 5.6
-Stable tag: 6.11
+Stable tag: 6.14
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -134,7 +134,7 @@ All the CleanTalk Spam FireWall activity is being logged in the process of filte
 Spam FireWall: Anti-Flood and Anti-Crawler options are intended for blocking unwanted bots, content parsing, shop goods prices parsing or aggressive website scanning bots. Learn more https://cleantalk.org/help/anti-flood-and-anti-crawler
 
 = Anti-Spam plugin info =
-CleanTalk is an all-in-one anti-spam solution for WordPress that protects login, comment, contact and WooCommerce forms at once. You don't need to install separate antispam plugins for each form. It allows your blog to work faster and save resources. 
+CleanTalk is an all-in-one anti-spam solution for WordPress that protects login, comment, contact and WooCommerce forms at once. You don't need to install separate antispam plugins for each form. It allows your blog to work faster and save resources.
 
 CleanTalk is a transparent antispam tool, we provide detailed stats of all incoming comments and logins. You can always be sure that **there are no errors**. We have developed a mobile app for you to see antispam stats wherever you want.
 
@@ -450,6 +450,62 @@ Yes, it is. Please read this article,
 12. SpamFireWall log.
 
 == Changelog ==
+
+= 6.14 Jul 20 2023 =
+* New. Integration. Flux Checkout for WooCommerce service requests skipped.
+* New. Integration. Some external form protection implemented.
+* Fix. Alt cookies. Parameters input_focused and key_up storing fixed.
+* Fix. apbct_cookie() call. Do not skip requests if GET contains 'q'.
+* Fix. Exclusions. Logic modified, legacy support improved.
+* Fix. Jetpack integration. Params gathering fixed.
+* Fix. Integration. WPForms blocking message fixed.
+* Fix. Common. Checking REST availability fixed.
+* Fix. Common. DNS - using global variable DNS_TXT refactored.
+* Fix. Common. CookiesBot integration added.
+* Fix. Common. Blocking message for custom ajax forms fixed.
+* Fix. Common. Enable event token for all requests.
+* Fix. Cookies. Do not skip native cookie set if localStorage object persist.
+* Fix. Integration. Avada fusion builder. Collect the inner form data correctly.
+* Fix. Public scripts. Interception of ajax response logic fixed.
+* Fix. SFW. Force direct updating flag implemented.
+
+= 6.13 Jul 06 2023 =
+* Fix. PHP 8.1 compat. Email encoder.
+* Fix. PHP 8.1 compat. Check users/comments. Title is not null forced.
+* Fix. Ultimate Form Builder. Message clearance.
+* Fix. NoCookie data clearance. New function apbct_clear_query_from_service_fields() clear the value of form service fields instead of unset it if the value is get-query-like.
+* Update. SFW. Check sfw temp table exists before insert data.
+* Fix. Integration. Ultimate Form Builder Lite. Glue same key values.
+* Fix. Integration. OptimizePress checkout exclusions.
+* Update. SFW. Use isTableExists instead of direct query.
+* Fix. cleantalk-public-integrations.php. ct_s2member_registration_test(). Integration fixed.
+* Fix. Settings. Use DELETE SQL-command instead TRUNCATE option deleted.
+* Fix. Settings. Checking REST availability fixed.
+
+= 6.12 Jun 22 2023 =
+* New. Restoring WC blocked orders implemented.
+* Fix. Exclude. Excluded request from ProfilePress login form.
+* Fix. JS. External form not copied value for checkbox or radio button, fixed.
+* Fix. Exclude login. Excluded UserPro login form request.
+* Fix. Cleantalk AJAX check. Avada form builder fields collection fixed.
+* Fix. Do not load public scripts for logged-in users if "protect logged-in" option is disabled.
+* Fix. Mouse pointer data set. Alt cookie skipping condition fixed.
+* Fix. Force ajax type with constant APBCT_SET_AJAX_ROUTE_TYPE.
+* Fix. Hidden fileds exclusions refactored. Woocommerce login form sign added to exclude hidden fields attach.
+* Fixed text while encoding
+* Fix. Email encoder. Return HTML escap for privacy policy links.
+* Fix. Fetch XHR. TWT email signup form catch impemented with jQuery.
+* Fix. Comments and users checker. Whitelable mode brands shown correct.
+* Fix. Woocommerce integration. Route "\?wc-ajax=cfw_validate_email_domain" is skipped from APBCT check.
+* Fix. WC blocked orders. Hyperlinks on the admin bar fixed.
+* Fix. Common. Get fields any - message detecting fixed.
+
+= 6.11.2 Jun 14 2023 =
+* Fix. Mouse pointer data set. Alt cookie skipping condition fixed.
+
+= 6.11.1 Jun 13 2023 =
+* Fix. Honeypot for searchforms. Reverted changes normalized.
+* Fix. Custom forms. AJAX search pro exclusions updated.
 
 = 6.11 Jun 08 2023 =
 * New. Bot detector added for several forms.

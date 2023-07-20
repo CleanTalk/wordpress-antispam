@@ -223,6 +223,12 @@ function ctSetHasScrolled() {
         ctSetCookie('ct_has_scrolled', 'true');
         apbctLocalStorage.set('ct_has_scrolled', true);
     }
+    if (
+        ctPublic.data__cookies_type === 'native' &&
+        ctGetCookie('ct_has_scrolled') === undefined
+    ) {
+        ctSetCookie('ct_has_scrolled', 'true');
+    }
 }
 
 /**
@@ -233,6 +239,12 @@ function ctSetMouseMoved() {
         ctSetCookie('ct_mouse_moved', 'true');
         apbctLocalStorage.set('ct_mouse_moved', true);
     }
+    if (
+        ctPublic.data__cookies_type === 'native' &&
+        ctGetCookie('ct_mouse_moved') === undefined
+    ) {
+        ctSetCookie('ct_mouse_moved', 'true');
+    }
 }
 
 /**
@@ -241,7 +253,12 @@ function ctSetMouseMoved() {
 function ctStartFieldsListening() {
     if (
         (apbctLocalStorage.isSet('ct_has_key_up') || apbctLocalStorage.get('ct_has_key_up')) &&
-        (apbctLocalStorage.isSet('ct_has_input_focused') || apbctLocalStorage.get('ct_has_input_focused'))
+        (apbctLocalStorage.isSet('ct_has_input_focused') || apbctLocalStorage.get('ct_has_input_focused')) &&
+        (
+            ctPublic.data__cookies_type === 'native' &&
+            ctGetCookie('ct_has_input_focused') !== undefined &&
+            ctGetCookie('ct_has_key_up') !== undefined
+        )
     ) {
         // already set
         return;
@@ -295,8 +312,25 @@ let ctFunctionHasKeyUp = function output(event) {
  */
 function ctSetHasInputFocused() {
     if ( ! apbctLocalStorage.isSet('ct_has_input_focused') || ! apbctLocalStorage.get('ct_has_input_focused') ) {
-        ctSetCookie('ct_has_input_focused', 'true');
         apbctLocalStorage.set('ct_has_input_focused', true);
+    }
+    if (
+        (
+            (
+                ctPublic.data__cookies_type === 'native' &&
+                ctGetCookie('ct_has_input_focused') === undefined
+            ) ||
+            ctPublic.data__cookies_type === 'alternative'
+        ) ||
+        (
+            ctPublic.data__cookies_type === 'none' &&
+            (
+                typeof ctPublic.force_alt_cookies !== 'undefined' ||
+                (ctPublic.force_alt_cookies !== undefined && ctPublic.force_alt_cookies)
+            )
+        )
+    ) {
+        ctSetCookie('ct_has_input_focused', 'true');
     }
 }
 
@@ -305,8 +339,25 @@ function ctSetHasInputFocused() {
  */
 function ctSetHasKeyUp() {
     if ( ! apbctLocalStorage.isSet('ct_has_key_up') || ! apbctLocalStorage.get('ct_has_key_up') ) {
-        ctSetCookie('ct_has_key_up', 'true');
         apbctLocalStorage.set('ct_has_key_up', true);
+    }
+    if (
+        (
+            (
+                ctPublic.data__cookies_type === 'native' &&
+                ctGetCookie('ct_has_key_up') === undefined
+            ) ||
+            ctPublic.data__cookies_type === 'alternative'
+        ) ||
+        (
+            ctPublic.data__cookies_type === 'none' &&
+            (
+                typeof ctPublic.force_alt_cookies !== 'undefined' ||
+                (ctPublic.force_alt_cookies !== undefined && ctPublic.force_alt_cookies)
+            )
+        )
+    ) {
+        ctSetCookie('ct_has_key_up', 'true');
     }
 }
 
@@ -339,6 +390,8 @@ function apbct_ready() {
             apbct_ready();
         });
     }
+
+    apbctPrepareBlockForAjaxForms();
 
     ctPreloadLocalStorage();
 
@@ -442,34 +495,7 @@ function apbct_ready() {
             let form = document.forms[i];
 
             // Exclusion for forms
-            if (
-                +ctPublic.data__visible_fields_required === 0 ||
-                (form.method.toString().toLowerCase() === 'get' &&
-                    form.querySelectorAll('.nf-form-content').length === 0) ||
-                form.classList.contains('slp_search_form') || // StoreLocatorPlus form
-                form.parentElement.classList.contains('mec-booking') ||
-                form.action.toString().indexOf('activehosted.com') !== -1 || // Active Campaign
-                (form.id && form.id === 'caspioform') || // Caspio Form
-                (form.classList && form.classList.contains('tinkoffPayRow')) || // TinkoffPayForm
-                (form.classList && form.classList.contains('give-form')) || // GiveWP
-                (form.id && form.id === 'ult-forgot-password-form') || // ult forgot password
-                (form.id && form.id.toString().indexOf('calculatedfields') !== -1) || // CalculatedFieldsForm
-                (form.id && form.id.toString().indexOf('sac-form') !== -1) || // Simple Ajax Chat
-                (form.id &&
-                    form.id.toString().indexOf('cp_tslotsbooking_pform') !== -1) || // WP Time Slots Booking Form
-                (form.name &&
-                    form.name.toString().indexOf('cp_tslotsbooking_pform') !== -1) || // WP Time Slots Booking Form
-                form.action.toString() === 'https://epayment.epymtservice.com/epay.jhtml' || // Custom form
-                (form.name && form.name.toString().indexOf('tribe-bar-form') !== -1) || // The Events Calendar
-                (form.id && form.id === 'ihf-login-form') || // Optima Express login
-                (form.id &&
-                    form.id === 'subscriberForm' &&
-                    form.action.toString().indexOf('actionType=update') !== -1) || // Optima Express update
-                (form.id && form.id === 'ihf-main-search-form') || // Optima Express search
-                (form.id && form.id === 'frmCalc') || // nobletitle-calc
-                form.action.toString().indexOf('property-organizer-delete-saved-search-submit') !== -1 ||
-                form.querySelector('a[name="login"]') !== null // digimember login form
-            ) {
+            if (ctCheckHiddenFieldsExclusions(document.forms[i], 'visible_fields')) {
                 continue;
             }
 
@@ -483,6 +509,17 @@ function apbct_ready() {
             form.append( hiddenInput );
 
             form.onsubmit_prev = form.onsubmit;
+
+            // jquery ajax call intercept for twitter login
+            if ( typeof jQuery !== 'undefined' && form.id === 'twt_cc_signup' ) {
+                jQuery.ajaxSetup({
+                    beforeSend: function(xhr, settings) {
+                        let noCookieData = getNoCookieData();
+                        noCookieData = 'data%5Bct_no_cookie_hidden_field%5D=' + noCookieData + '&';
+                        settings.data = noCookieData + settings.data;
+                    },
+                });
+            }
 
             form.ctFormIndex = i;
             form.onsubmit = function(event) {
@@ -547,12 +584,30 @@ function apbct_ready() {
     }
 }
 
+const apbctPrepareBlockForAjaxForms = () => {
+    if (typeof jQuery !== 'undefined') {
+        // Capturing responses and output block message for unknown AJAX forms
+        jQuery(document).ajaxComplete(function(event, xhr, settings) {
+            if (xhr.responseText && xhr.responseText.indexOf('"apbct') !== -1) {
+                try {
+                    ctParseBlockMessage(JSON.parse(xhr.responseText));
+                } catch (e) {
+                    console.log(e.toString());
+                }
+            }
+        });
+        console.table('');
+    }
+};
+
 if (ctPublic.data__key_is_ok) {
     if (document.readyState !== 'loading') {
         apbct_ready();
     } else {
         apbct_attach_event_handler(document, 'DOMContentLoaded', apbct_ready);
     }
+
+    apbctLocalStorage.set('ct_checkjs', ctPublic.ct_checkjs_key, true );
 }
 
 /**
@@ -647,13 +702,13 @@ function ctFillDecodedEmailHandler(event) {
         let popupText = document.createElement('p');
         popupText.setAttribute('id', 'apbct_popup_text');
         popupText.style.color = 'black';
-        popupText.innerText = 'Please wait while CleanTalk is decoding the email addresses.';
+        popupText.innerText = 'Please wait while ' + ctPublic.wl_brandname + ' is decoding the email addresses.';
         waitingPopup.append(popupText);
         document.body.append(waitingPopup);
     } else {
         encoderPopup.setAttribute('style', 'display: inherit');
         document.getElementById('apbct_popup_text').innerHTML =
-            'Please wait while CleanTalk is decoding the email addresses.';
+            'Please wait while ' + ctPublic.wl_brandname + ' is decoding the email addresses.';
     }
 
     apbctAjaxEmailDecodeBulk(event, ctPublic.encodedEmailNodes, clickSource);
@@ -1064,20 +1119,6 @@ function apbctGetScreenInfo() {
     });
 }
 
-if (typeof jQuery !== 'undefined') {
-    // Capturing responses and output block message for unknown AJAX forms
-    jQuery(document).ajaxComplete(function(event, xhr, settings) {
-        if (xhr.responseText && xhr.responseText.indexOf('"apbct') !== -1) {
-            try {
-                ctParseBlockMessage(JSON.parse(xhr.responseText));
-            } catch (e) {
-                console.log(e.toString());
-                return;
-            }
-        }
-    });
-}
-
 // eslint-disable-next-line require-jsdoc
 function ctParseBlockMessage(response) {
     if (typeof response.apbct !== 'undefined') {
@@ -1139,12 +1180,79 @@ function ctGetPageForms() {
     return false;
 }
 
-// eslint-disable-next-line require-jsdoc
-function ctNoCookieFormIsExcludedFromNcField(form) {
+/**
+ * Get type of the field should be excluded. Return exclusion signs via object.
+ * @param {object} form Form dom object.
+ * @return {object} {'no_cookie': 1|0, 'visible_fields': 1|0}
+ */
+function ctGetHiddenFieldExclusionsType(form) {
+    // visible fields
+    let result = {'no_cookie': 0, 'visible_fields': 0};
+    if (
+        +ctPublic.data__visible_fields_required === 0 ||
+        (form.method.toString().toLowerCase() === 'get' &&
+        form.querySelectorAll('.nf-form-content').length === 0 &&
+        form.id !== 'twt_cc_signup') ||
+        form.classList.contains('slp_search_form') || // StoreLocatorPlus form
+        form.parentElement.classList.contains('mec-booking') ||
+        form.action.toString().indexOf('activehosted.com') !== -1 || // Active Campaign
+        (form.id && form.id === 'caspioform') || // Caspio Form
+        (form.classList && form.classList.contains('tinkoffPayRow')) || // TinkoffPayForm
+        (form.classList && form.classList.contains('give-form')) || // GiveWP
+        (form.id && form.id === 'ult-forgot-password-form') || // ult forgot password
+        (form.id && form.id.toString().indexOf('calculatedfields') !== -1) || // CalculatedFieldsForm
+        (form.id && form.id.toString().indexOf('sac-form') !== -1) || // Simple Ajax Chat
+        (form.id &&
+            form.id.toString().indexOf('cp_tslotsbooking_pform') !== -1) || // WP Time Slots Booking Form
+        (form.name &&
+            form.name.toString().indexOf('cp_tslotsbooking_pform') !== -1) || // WP Time Slots Booking Form
+        form.action.toString() === 'https://epayment.epymtservice.com/epay.jhtml' || // Custom form
+        (form.name && form.name.toString().indexOf('tribe-bar-form') !== -1) || // The Events Calendar
+        (form.id && form.id === 'ihf-login-form') || // Optima Express login
+        (form.id &&
+            form.id === 'subscriberForm' &&
+            form.action.toString().indexOf('actionType=update') !== -1) || // Optima Express update
+        (form.id && form.id === 'ihf-main-search-form') || // Optima Express search
+        (form.id && form.id === 'frmCalc') || // nobletitle-calc
+        form.action.toString().indexOf('property-organizer-delete-saved-search-submit') !== -1 ||
+        form.querySelector('a[name="login"]') !== null // digimember login form
+    ) {
+        result.visible_fields = 1;
+    }
+
     // ajax search pro exclusion
     let ncFieldExclusionsSign = form.parentNode;
-    if (ncFieldExclusionsSign && ncFieldExclusionsSign.classList.contains('proinput')) {
-        return 'ajax search pro exclusion';
+    if (
+        ncFieldExclusionsSign && ncFieldExclusionsSign.classList.contains('proinput') ||
+        (form.name === 'options' && form.classList.contains('asp-fss-flex'))
+    ) {
+        result.no_cookie = 1;
+    }
+
+    // woocommerce login form
+    if (
+        form && form.classList.contains('woocommerce-form-login')
+    ) {
+        result.visible_fields = 1;
+        result.no_cookie = 1;
+    }
+
+    return result;
+}
+
+/**
+ * Check if the form should be skipped from hidden field attach.
+ * Return exclusion description if it is found, false otherwise.
+ * @param {object} form Form dom object.
+ * @param {string} hiddenFieldType Type of hidden field that needs to be checked.
+ * Possible values: 'no_cookie'|'visible_fields'.
+ * @return {boolean}
+ */
+function ctCheckHiddenFieldsExclusions(form, hiddenFieldType) {
+    if (typeof (hiddenFieldType) === 'string' &&
+        ['visible_fields', 'no_cookie'].indexOf(hiddenFieldType) !== -1) {
+        const exclusions = ctGetHiddenFieldExclusionsType(form);
+        return exclusions[hiddenFieldType] === 1;
     }
 
     return false;
@@ -1168,7 +1276,7 @@ function ctNoCookieAttachHiddenFieldsToForms() {
                 fields[j].outerHTML = '';
             }
 
-            if ( ctNoCookieFormIsExcludedFromNcField(document.forms[i]) ) {
+            if ( ctCheckHiddenFieldsExclusions(document.forms[i], 'no_cookie') ) {
                 continue;
             }
 

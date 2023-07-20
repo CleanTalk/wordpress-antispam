@@ -14,10 +14,13 @@ function ctSetCookie( cookies, value, expires ) {
         'apbct_email_encoder_passed',
     ];
 
-    const skipAlt = cookies === 'string' && cookies === 'ct_pointer_data';
+    let skipAlt = false;
 
-    if ( typeof cookies === 'string' && typeof value === 'string' || typeof value === 'number') {
-        cookies = [[cookies, value, expires]];
+    if ( typeof cookies === 'string') {
+        skipAlt = cookies === 'ct_pointer_data';
+        if ( typeof value === 'string' || typeof value === 'number' ) {
+            cookies = [[cookies, value, expires]];
+        }
     }
 
     // Cookies disabled
@@ -36,18 +39,20 @@ function ctSetCookie( cookies, value, expires ) {
         }
 
         // If problem integration forms detected use alt cookies for whole cookies set
-        if ( ctPublic.force_alt_cookies ) {
+        if ( ctPublic.force_alt_cookies && !skipAlt) {
             // do it just once
-
-            if ( typeof skipAlt === 'undefined' || !skipAlt ) {
-                ctSetAlternativeCookie(cookies, {forceAltCookies: true});
-            }
+            ctSetAlternativeCookie(cookies, {forceAltCookies: true});
         } else {
             ctNoCookieAttachHiddenFieldsToForms();
         }
 
         // Using traditional cookies
     } else if ( ctPublicFunctions.data__cookies_type === 'native' ) {
+        // If problem integration forms detected use alt cookies for whole cookies set
+        if ( ctPublic.force_alt_cookies && !skipAlt) {
+            // do it just once
+            ctSetAlternativeCookie(cookies, {forceAltCookies: true});
+        }
         cookies.forEach( function(item) {
             const _expires = typeof item[2] !== 'undefined' ? 'expires=' + expires + '; ' : '';
             let ctSecure = location.protocol === 'https:' ? '; secure' : '';
@@ -62,10 +67,7 @@ function ctSetCookie( cookies, value, expires ) {
         });
 
         // Using alternative cookies
-    } else if (
-        ctPublicFunctions.data__cookies_type === 'alternative' &&
-        typeof skipAlt === 'undefined' || ! skipAlt
-    ) {
+    } else if ( ctPublicFunctions.data__cookies_type === 'alternative' && !skipAlt ) {
         ctSetAlternativeCookie(cookies);
     }
 }
@@ -74,8 +76,9 @@ function ctSetCookie( cookies, value, expires ) {
 function ctDetectForcedAltCookiesForms() {
     let ninjaFormsSign = document.querySelectorAll('#tmpl-nf-layout').length > 0;
     let smartFormsSign = document.querySelectorAll('script[id*="smart-forms"]').length > 0;
+    let jetpackCommentsForm = document.querySelectorAll('iframe[name="jetpack_remote_comment"]').length > 0;
 
-    ctPublic.force_alt_cookies = smartFormsSign || ninjaFormsSign;
+    ctPublic.force_alt_cookies = smartFormsSign || ninjaFormsSign || jetpackCommentsForm;
 }
 
 // eslint-disable-next-line require-jsdoc

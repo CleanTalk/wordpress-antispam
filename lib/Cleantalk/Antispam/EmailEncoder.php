@@ -57,6 +57,7 @@ class EmailEncoder
      */
     private $temp_content;
     protected $has_connection_error;
+    protected $privacy_policy_hook_handled = false;
 
     /**
      * @inheritDoc
@@ -124,6 +125,11 @@ class EmailEncoder
             return $content;
         }
 
+        //skip empty or invalid content
+        if ( empty($content) || !is_string($content) ) {
+            return $content;
+        }
+
         if ( $this->hasContentExclusions($content) ) {
             return $content;
         }
@@ -145,6 +151,8 @@ class EmailEncoder
             if ( $this->isMailto($matches[0]) ) {
                 return $this->encodeMailtoLink($matches[0]);
             }
+
+            $this->handlePrivacyPolicyHook();
 
             return $this->encodePlainEmail($matches[0]);
         }, $content);
@@ -419,5 +427,15 @@ class EmailEncoder
     {
         global $apbct;
         echo $this->modifyContent($apbct->buffer);
+    }
+
+    private function handlePrivacyPolicyHook()
+    {
+        if ( !$this->privacy_policy_hook_handled && current_action() === 'the_title' ) {
+            add_filter('the_privacy_policy_link', function ($link) {
+                return wp_specialchars_decode($link);
+            });
+            $this->privacy_policy_hook_handled = true;
+        }
     }
 }

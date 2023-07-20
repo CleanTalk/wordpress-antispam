@@ -42,7 +42,6 @@ class State extends \Cleantalk\Common\State
         'sfw__anti_flood'                          => 0,
         'sfw__anti_flood__view_limit'              => 20,
         'sfw__anti_crawler'                        => 0,
-        'sfw__use_delete_to_clear_table'           => 0,
         'sfw__random_get'                          => -1,
 
         // Forms for protection
@@ -294,6 +293,7 @@ class State extends \Cleantalk\Common\State
 
         // Insert api key (RC without token)
         'post_api_key'       => array('last_call' => 0,),
+        'rest_check'         => array('last_call' => 0,),
     );
 
     /**

@@ -29,13 +29,14 @@ class CtPublicLocalize
 
             'wl_brandname'          => $apbct->data['wl_brandname'],
             'wl_brandname_short'    => $apbct->data['wl_brandname_short'],
+            'ct_checkjs_key'        => ct_get_checkjs_value(),
         );
     }
 
     public static function getCode()
     {
         return '
-            <script data-no-defer="1" data-ezscrex="false" data-cfasync="false" data-pagespeed-no-defer>
+            <script data-no-defer="1" data-ezscrex="false" data-cfasync="false" data-pagespeed-no-defer data-cookieconsent="ignore">
                 const ' . self::NAME . ' = ' . json_encode(self::getData()) . '
             </script>
         ';

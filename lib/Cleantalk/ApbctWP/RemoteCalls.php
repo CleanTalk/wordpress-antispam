@@ -383,4 +383,18 @@ class RemoteCalls
 
         die(json_encode(['OK' => ['template_id' => $template_id]]));
     }
+
+    public static function action__rest_check() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+    {
+        $nonce = Post::get('_rest_nonce');
+        if ( ! $nonce ) {
+            throw new \Exception('The nonce is not provided');
+        }
+        $request = new \WP_REST_Request('POST', '/cleantalk-antispam/v1/apbct_rest_check');
+        $request->set_header('x_wp_nonce', $nonce);
+        $response = rest_do_request($request);
+        $server = rest_get_server();
+        $data = $server->response_to_data($response, false);
+        return wp_json_encode($data);
+    }
 }

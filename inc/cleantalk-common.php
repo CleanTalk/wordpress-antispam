@@ -100,7 +100,10 @@ function apbct_base_call($params = array(), $reg_flag = false)
 {
     global $cleantalk_executed;
 
-    if ( isset($params['post_info']['comment_type']) && $params['post_info']['comment_type'] === 'site_search_wordpress' ) {
+    if ( isset($params['post_info']['comment_type']) && (
+        ($params['post_info']['comment_type'] === 'site_search_wordpress') ||
+        ($params['post_info']['comment_type'] === 'jetpack_comment')
+    )) {
         Cookie::$force_alt_cookies_global = true;
     }
 
@@ -183,19 +186,9 @@ function apbct_base_call($params = array(), $reg_flag = false)
 
         'agent'       => APBCT_AGENT,
         'sender_info' => $sender_info,
-        'submit_time' => apbct_get_submit_time()
+        'submit_time' => apbct_get_submit_time(),
+        'event_token' => Post::get('ct_bot_detector_event_token')
     );
-
-    // Enable event_token for several integrations ang users registrations
-    if (
-        ( isset($params['post_info']['comment_type']) && (
-            $params['post_info']['comment_type'] === 'contact_form_wordpress_visualformbuilder' ||
-            $params['post_info']['comment_type'] === 'contact_form_wordpress_cf7' )
-        ) ||
-        $reg_flag
-    ) {
-        $default_params['event_token'] = Post::get('ct_bot_detector_event_token');
-    }
 
     /**
      * Add exception_action sender email is empty
@@ -690,7 +683,6 @@ function apbct_visible_fields__process($visible_fields)
     if ( ! empty($fields_collection) ) {
         // These fields belong this request
         $fields_to_check = apbct_get_fields_to_check();
-        $fields_to_check = apply_filters('apbct_preprocess_post_to_vf_check', $fields_to_check);
 
         foreach ( $fields_collection as $current_fields ) {
             if ( isset($current_fields['visible_fields'], $current_fields['visible_fields_count']) ) {
@@ -1048,7 +1040,7 @@ function ct_send_feedback($feedback_request = null)
         // Server URL handling
         $config             = ct_get_server();
         $ct->server_url     = APBCT_MODERATE_URL;
-        $ct->work_url       = preg_match('/http:\/\/.+/', $config['ct_work_url']) ? $config['ct_work_url'] : null;
+        $ct->work_url       = $config['ct_work_url'] && preg_match('/http:\/\/.+/', $config['ct_work_url']) ? $config['ct_work_url'] : null;
         $ct->server_ttl     = $config['ct_server_ttl'];
         $ct->server_changed = $config['ct_server_changed'];
 
@@ -1520,38 +1512,111 @@ function apbct_check_post_for_no_cookie_data($data = array(), $level = 0, $array
 
 /**
  * Filter POST for no_cookie_data for cases if POST mapping detected in apbct_check_post_for_no_cookie_data
- * @param array $mapping a POST mapping where no cookie data has been found, mapping level limit is 5 (important)
+ * @param array $map a POST mapping where no cookie data has been found, mapping level limit is 5 (important)
  */
-function apbct_filter_post_no_cookie_data($mapping)
+function apbct_filter_post_no_cookie_data($map)
 {
-
     //todo if we need to increase recursion limit , there is no other way except of eval constructor usage
     $cleared_post = $_POST;
-    if ( !is_array($mapping) || empty($mapping) || count($mapping) > 5 ) {
+
+    if ( !is_array($map) || empty($map) || count($map) > 5 ) {
         return;
     }
+
     try {
-        switch ( count($mapping) ) {
+        switch ( count($map) ) {
             case 1:
-                unset($cleared_post [$mapping[0]]);
+                $query_cleared = apbct_clear_query_from_service_fields(
+                    $cleared_post [$map[0]],
+                    'ct_no_cookie_hidden_field'
+                );
+                if (false === $query_cleared) {
+                    unset($cleared_post [$map[0]]);
+                } else {
+                    $cleared_post [$map[0]] = $query_cleared;
+                }
                 break;
             case 2:
-                unset($cleared_post [$mapping[0]] [$mapping[1]]);
+                $query_cleared = apbct_clear_query_from_service_fields(
+                    $cleared_post [$map[0]] [$map[1]],
+                    'ct_no_cookie_hidden_field'
+                );
+                if (false === $query_cleared) {
+                    unset($cleared_post [$map[0]] [$map[1]]);
+                } else {
+                    $cleared_post [$map[0]] [$map[1]] = $query_cleared;
+                }
                 break;
             case 3:
-                unset($cleared_post [$mapping[0]] [$mapping[1]] [$mapping[2]]);
+                $query_cleared = apbct_clear_query_from_service_fields(
+                    $cleared_post [$map[0]] [$map[1]] [$map[2]],
+                    'ct_no_cookie_hidden_field'
+                );
+                if (false === $query_cleared) {
+                    unset($cleared_post [$map[0]] [$map[1]] [$map[2]]);
+                } else {
+                    $cleared_post [$map[0]] [$map[1]] [$map[2]] = $query_cleared;
+                }
                 break;
             case 4:
-                unset($cleared_post [$mapping[0]] [$mapping[1]] [$mapping[2]] [$mapping[3]]);
+                $query_cleared = apbct_clear_query_from_service_fields(
+                    $cleared_post [$map[0]] [$map[1]] [$map[2]] [$map[3]],
+                    'ct_no_cookie_hidden_field'
+                );
+                if (false === $query_cleared) {
+                    unset($cleared_post [$map[0]] [$map[1]] [$map[2]] [$map[3]]);
+                } else {
+                    $cleared_post [$map[0]] [$map[1]] [$map[2]] [$map[3]] = $query_cleared;
+                }
                 break;
             case 5:
-                unset($cleared_post [$mapping[0]] [$mapping[1]] [$mapping[2]] [$mapping[3]] [$mapping[4]]);
+                $query_cleared = apbct_clear_query_from_service_fields(
+                    $cleared_post [$map[0]] [$map[1]] [$map[2]] [$map[3]] [$map[4]],
+                    'ct_no_cookie_hidden_field'
+                );
+                if (false === $query_cleared) {
+                    unset($cleared_post [$map[0]] [$map[1]] [$map[2]] [$map[3]] [$map[4]]);
+                } else {
+                    $cleared_post [$map[0]] [$map[1]] [$map[2]] [$map[3]] [$map[4]] = $query_cleared;
+                }
                 break;
         }
         $_POST = $cleared_post;
     } catch ( Exception $e ) {
         return;
     }
+}
+
+/**
+ * Try to clear POST key from service records if they are persist in query encoded string.
+ * <p>For example, function will return <b>"some_field=some_value"</b> if $query_string = <b>"some_field=some_value&ct_no_cookie_hidden_field=some_value"</b>
+ * @param $query_string
+ * @param $service_field_name string Service record name. If empty, any known records types will be cleared:
+ * <ul>
+ * <li>ct_bot_detector_event_token</li>
+ * <li>apbct_visible_fields</li>
+ * <li>ct_no_cookie_hidden_field</li>
+ * </ul>
+ * @return false|string
+ */
+function apbct_clear_query_from_service_fields($query_string, $service_field_name = '')
+{
+    $pattern = empty($service_field_name)
+        ? '/(&?ct_bot_detector_event_token=|&?apbct_visible_fields=|&?ct_no_cookie_hidden_field=)/'
+        : '/&?' . $service_field_name . '=/';
+    if (preg_match($pattern, $query_string)) {
+        parse_str($query_string, $query);
+        if ( empty($service_field_name) ) {
+            //clear all known service fields
+            unset($query['ct_bot_detector_event_token']);
+            unset($query['apbct_visible_fields']);
+            unset($query['ct_no_cookie_hidden_field']);
+        } else {
+            unset($query[$service_field_name]);
+        }
+        return http_build_query($query);
+    }
+    return false;
 }
 
 /**
@@ -1563,7 +1628,7 @@ function apbct_form__get_no_cookie_data($preprocessed_data = null)
     $flag = null;
     $no_cookie_data = apbct_check_post_for_no_cookie_data($preprocessed_data);
     apbct_filter_post_no_cookie_data($no_cookie_data['mapping']);
-    if ( !empty($no_cookie_data['data']) && $apbct->data['cookies_type'] === 'none' ) {
+    if ( $no_cookie_data && !empty($no_cookie_data['data']) && $apbct->data['cookies_type'] === 'none' ) {
         $flag = \Cleantalk\ApbctWP\Variables\NoCookie::setDataFromHiddenField($no_cookie_data['data']);
     }
     //set a flag of success
