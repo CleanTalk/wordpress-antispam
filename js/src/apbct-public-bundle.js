@@ -1663,7 +1663,6 @@ let ctFunctionHasKeyUp = function output(event) {
  * set ct_has_input_focused ct_has_key_up cookies on session period
  */
 function ctSetHasInputFocused() {
-    console.table('ctPublic.force_alt_cookies on input focuesd', ctPublic.force_alt_cookies);
     if ( ! apbctLocalStorage.isSet('ct_has_input_focused') || ! apbctLocalStorage.get('ct_has_input_focused') ) {
         apbctLocalStorage.set('ct_has_input_focused', true);
     }
@@ -1691,7 +1690,6 @@ function ctSetHasInputFocused() {
  * ctSetHasKeyUp
  */
 function ctSetHasKeyUp() {
-    console.table('ctPublic.force_alt_cookies on key up', ctPublic.force_alt_cookies);
     if ( ! apbctLocalStorage.isSet('ct_has_key_up') || ! apbctLocalStorage.get('ct_has_key_up') ) {
         apbctLocalStorage.set('ct_has_key_up', true);
     }
@@ -2943,9 +2941,13 @@ function ctProtectExternal() {
                 continue;
             }
 
-            // Ajax checking for the integrated forms
+            // Ajax checking for the integrated forms - will be changed the whole form object to make protection
             if ( isIntegratedForm(currentForm) ) {
                 apbctProcessExternalForm(currentForm, i, document);
+
+            // Ajax checking for the integrated forms - will be changed only submit button to make protection
+            } else if ( currentForm.dataset.mailingListId !== undefined ) { // MooForm 3rd party service
+                apbctProcessExternalFormByFakeButton(currentForm, i, document);
 
             // Common flow - modify form's action
             } else if (
@@ -3141,6 +3143,46 @@ function apbctProcessExternalForm(currentForm, iterator, documentObject) {
     }
 }
 
+function apbctProcessExternalFormByFakeButton(currentForm, iterator, documentObject) {
+    // skip excluded forms
+    if ( formIsExclusion(currentForm)) {
+        return;
+    }
+
+    const submitButtonOriginal = currentForm.querySelector('[type="submit"]');
+
+    if ( ! submitButtonOriginal ) {
+        return;
+    }
+
+    const parent = submitButtonOriginal.parentElement;
+    const submitButtonHtml = submitButtonOriginal.outerHTML;
+
+    // Remove the original submit button
+    submitButtonOriginal.remove();
+
+    // Insert a clone of the submit button
+    const placeholder = document.createElement('div');
+    placeholder.innerHTML = submitButtonHtml;
+    parent.appendChild(placeholder.firstElementChild);
+
+    const forceAction = document.createElement('input');
+    forceAction.name = 'action';
+    forceAction.value = 'cleantalk_force_ajax_check';
+    forceAction.type = 'hidden';
+
+    const reUseCurrentForm = documentObject.forms[iterator];
+
+    reUseCurrentForm.appendChild(forceAction);
+    reUseCurrentForm.apbctParent = parent;
+    reUseCurrentForm.submitButtonOriginal = submitButtonOriginal;
+
+    documentObject.forms[iterator].onsubmit = function(event) {
+        event.preventDefault();
+        sendAjaxCheckingFormData(event.currentTarget);
+    };
+}
+
 /**
  * Process external forms
  * @param {HTMLElement} formSource
@@ -3202,8 +3244,7 @@ function isIntegratedForm(formObj) {
         formAction.indexOf('aweber.com') !== -1 ||
         formAction.indexOf('secure.payu.com') !== -1 ||
         formAction.indexOf('mautic') !== -1 || formId.indexOf('mauticform_') !== -1 ||
-        formId.indexOf('ihf-contact-request-form') !== -1 ||
-        formObj.dataset.mailingListId !== undefined // moosend.com
+        formId.indexOf('ihf-contact-request-form') !== -1
     ) {
         return true;
     }
@@ -3241,6 +3282,18 @@ function sendAjaxCheckingFormData(form) {
             async: false,
             callback: function( result, data, params, obj ) {
                 if ( result.apbct === undefined || ! +result.apbct.blocked ) {
+
+                    // MooSend integration
+                    if ( form.dataset.mailingListId !== undefined ) {
+                        let submitButton = form.querySelector('[type="submit"]');
+                        submitButton.remove();
+                        const parent = form.apbctParent;
+                        parent.appendChild(form.submitButtonOriginal);
+                        submitButton = form.querySelector('[type="submit"]');
+                        submitButton.click();
+                        return;
+                    }
+
                     const formNew = form;
                     form.parentElement.removeChild(form);
                     const prev = form.apbctPrev;
