@@ -643,7 +643,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
 
                 // do proceed file with networks itself
                 if ( strpos($concrete_file, 'bl_list') !== false ) {
-                    $counter = apbct_sfw_update__process_file($concrete_file, $direction);
+                    $counter = SFWUpdateHelper::processFile($concrete_file, $direction);
                     if ( empty($counter['error']) ) {
                         $result['apbct_sfw_update__process_file'] = is_scalar($counter) ? (int) $counter : 0;
                     } else {
@@ -655,7 +655,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
 
                 // do proceed ua file
                 if ( strpos($concrete_file, 'ua_list') !== false ) {
-                    $counter = apbct_sfw_update__process_ua($concrete_file);
+                    $counter = SFWUpdateHelper::processUA($concrete_file);
                     if ( empty($counter['error']) ) {
                         $result['apbct_sfw_update__process_ua'] = is_scalar($counter) ? (int) $counter : 0;
                     } else {
@@ -667,7 +667,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
 
                 // do proceed checking file
                 if ( strpos($concrete_file, 'ck_list') !== false ) {
-                    $counter = apbct_sfw_update__process_ck($concrete_file, $direction);
+                    $counter = SFWUpdateHelper::processCK($concrete_file, $direction);
                     if ( empty($counter['error']) ) {
                         $result['apbct_sfw_update__process_ck'] = is_scalar($counter) ? (int) $counter : 0;
                     } else {
@@ -950,7 +950,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
             'total' => $added_count + $updated_count + $ignored_count,
             'added' => $added_count,
             'updated' => $updated_count,
-            'ignored' => $ignored_count
+            'ignored' => $ignored_count,
         );
     }
 
@@ -1013,7 +1013,6 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
             }
         }
 
-        error_log('CTDEBUG: [' . __FUNCTION__ . '] [$out]: ' . var_export($out,true));
         return $out;
     }
 }
