@@ -467,6 +467,11 @@ $apbct_active_integrations = array(
         'setting' => 'forms__contact_forms_test',
         'ajax'    => true
     ),
+    'CleantalkRegisterWidget' => array(
+        'hook'    => 'cleantalk_register_widget__get_api_key',
+        'setting' => 'forms__contact_forms_test',
+        'ajax'    => true
+    ),
 );
 new  \Cleantalk\Antispam\Integrations($apbct_active_integrations, (array)$apbct->settings);
 
