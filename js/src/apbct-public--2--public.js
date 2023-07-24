@@ -380,6 +380,22 @@ if (ctPublic.data__key_is_ok) {
     apbct_attach_event_handler(document, 'scroll', ctSetHasScrolled);
 }
 
+const apbctPrepareBlockForAjaxForms = () => {
+    if (typeof jQuery !== 'undefined') {
+        // Capturing responses and output block message for unknown AJAX forms
+        jQuery(document).ajaxComplete(function(event, xhr, settings) {
+            if (xhr.responseText && xhr.responseText.indexOf('"apbct') !== -1) {
+                try {
+                    ctParseBlockMessage(JSON.parse(xhr.responseText));
+                } catch (e) {
+                    console.log(e.toString());
+                }
+            }
+        });
+        console.table('');
+    }
+};
+
 /**
  * Ready function
  */
@@ -583,22 +599,6 @@ function apbct_ready() {
         }
     }
 }
-
-const apbctPrepareBlockForAjaxForms = () => {
-    if (typeof jQuery !== 'undefined') {
-        // Capturing responses and output block message for unknown AJAX forms
-        jQuery(document).ajaxComplete(function(event, xhr, settings) {
-            if (xhr.responseText && xhr.responseText.indexOf('"apbct') !== -1) {
-                try {
-                    ctParseBlockMessage(JSON.parse(xhr.responseText));
-                } catch (e) {
-                    console.log(e.toString());
-                }
-            }
-        });
-        console.table('');
-    }
-};
 
 if (ctPublic.data__key_is_ok) {
     if (document.readyState !== 'loading') {
