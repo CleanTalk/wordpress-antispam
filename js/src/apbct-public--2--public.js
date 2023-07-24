@@ -380,7 +380,7 @@ if (ctPublic.data__key_is_ok) {
     apbct_attach_event_handler(document, 'scroll', ctSetHasScrolled);
 }
 
-const apbctPrepareBlockForAjaxForms = () => {
+function apbctPrepareBlockForAjaxForms() {
     if (typeof jQuery !== 'undefined') {
         // Capturing responses and output block message for unknown AJAX forms
         jQuery(document).ajaxComplete(function(event, xhr, settings) {
@@ -393,7 +393,7 @@ const apbctPrepareBlockForAjaxForms = () => {
             }
         });
     }
-};
+}
 
 /**
  * Ready function
