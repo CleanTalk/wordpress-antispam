@@ -1744,7 +1744,6 @@ const apbctPrepareBlockForAjaxForms = () => {
                 }
             }
         });
-        console.table('');
     }
 };
 
