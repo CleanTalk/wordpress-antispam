@@ -2329,7 +2329,11 @@ function apbct_form__ninjaForms__changeResponse($data)
     global $apbct;
 
     // Show error message below field found by ID
-    if ( array_key_exists('email', $data['fields_by_key']) ) {
+    if (
+        isset($data['fields_by_key']) &&
+        array_key_exists('email', $data['fields_by_key']) &&
+        !empty($data['fields_by_key']['email']['id'])
+    ) {
         // Find ID of EMAIL field
         $nf_field_id = $data['fields_by_key']['email']['id'];
     } else {
