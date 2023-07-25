@@ -2448,7 +2448,7 @@ function apbct_form__WPForms__addField($_form_data, $_some, $_title, $_descripti
 {
     global $apbct;
 
-    if ( $apbct->settings['forms__contact_forms_test'] == 1 ) {
+    if ( $apbct->settings['forms__contact_forms_test'] == 1 && !is_user_logged_in() ) {
         ct_add_hidden_fields('ct_checkjs_wpforms');
         echo ct_add_honeypot_field('wp_wpforms');
         if ( $apbct->settings['trusted_and_affiliate__under_forms'] === '1' ) {
