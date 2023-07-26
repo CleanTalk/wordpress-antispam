@@ -1599,7 +1599,7 @@ function apbct_filter_post_no_cookie_data($map)
  * </ul>
  * @return false|string
  */
-function apbct_clear_query_from_service_fields($query_string, $service_field_name = '')
+function apbct_clear_query_from_service_fields($query_string, $service_field_name = '', $return_query_on_fail = false)
 {
     $pattern = empty($service_field_name)
         ? '/(&?ct_bot_detector_event_token=|&?apbct_visible_fields=|&?ct_no_cookie_hidden_field=)/'
@@ -1614,6 +1614,7 @@ function apbct_clear_query_from_service_fields($query_string, $service_field_nam
         } else {
             unset($query[$service_field_name]);
         }
+        error_log('CTDEBUG: [' . __FUNCTION__ . '] [QUERY]: ' . var_export(http_build_query($query),true));
         return http_build_query($query);
     }
     return false;
