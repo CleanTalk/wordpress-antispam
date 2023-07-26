@@ -304,9 +304,15 @@ class WcSpamOrdersListTable extends CleantalkListTable
 
         ?>
         <div class="wrap">
-            <h2><img src="<?php
-                echo $this->apbct->logo__small__colored ?>" alt="CleanTalk logo"/> <?php
-                echo $this->apbct->plugin_name; ?></h2>
+            <h2>
+                <?php
+                if ($this->apbct->data["wl_mode_enabled"]) {
+                    echo $this->apbct->data["wl_brandname"];
+                } else {
+                    echo '<img src="' . $this->apbct->logo__small__colored . '" alt="CleanTalk logo"/>' . $this->apbct->plugin_name;
+                }
+                ?>
+            </h2>
             <a style="color: gray; margin-left: 23px;" href="<?php
             echo $this->apbct->settings_link; ?>"><?php
                 _e('Plugin Settings', 'cleantalk-spam-protect'); ?></a>
