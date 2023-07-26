@@ -39,8 +39,10 @@ class LatePoint extends IntegrationBase
                     $out_params[$new_key] = $new_value;
                 }
             }
-            //check current step to know if should intercept this
-            if (isset($out_params['current_step']) && $out_params['current_step'] === 'verify') {
+
+            // check current step to know if we should intercept this
+            // probably we could use 'verify' instead of 'contact' if issues faced
+            if (isset($out_params['current_step']) && $out_params['current_step'] === 'contact') {
                 $data['event_token'] = isset($out_params['ct_bot_detector_event_token']) ? $out_params['ct_bot_detector_event_token'] : null;
                 $data = ct_get_fields_any($out_params);
                 if (!empty($out_params['ct_bot_detector_event_token'])) {
@@ -67,12 +69,10 @@ class LatePoint extends IntegrationBase
     public function doBlock($message)
     {
         //JSON block message in LatePoint format
-        $_POST['params'] = apbct_clear_query_from_service_fields($_POST['params'], '', true);
         wp_send_json(array('status' => 'error', 'message' => $message));
     }
 
     public function allow()
     {
-        $_POST['params'] = apbct_clear_query_from_service_fields($_POST['params'], '', true);
     }
 }
