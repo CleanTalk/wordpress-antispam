@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 4.7
 Tested up to: 6.2
 Requires PHP: 5.6
-Stable tag: 6.14.1
+Stable tag: 6.14.2
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -450,6 +450,9 @@ Yes, it is. Please read this article,
 12. SpamFireWall log.
 
 == Changelog ==
+
+= 6.14.2 Jul 26 2023 =
+* Fix. Additional frontend scripts fixes.
 
 = 6.14.1 Jul 26 2023 =
 * Fix. Public frontend scripts fixed.
