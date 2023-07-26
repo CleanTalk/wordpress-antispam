@@ -4,7 +4,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 6.14.1-dev
+  Version: 6.14.3-dev
   Author: СleanTalk <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -77,11 +77,11 @@ define('APBCT_AGENT', 'wordpress-' . $plugin_version__agent);
 define('APBCT_MODERATE_URL', 'https://moderate.cleantalk.org'); //Api URL
 
 // Option names
-define('APBCT_DATA', 'cleantalk_data');             //Option name with different plugin data.
-define('APBCT_SETTINGS', 'cleantalk_settings');         //Option name with plugin settings.
-define('APBCT_NETWORK_SETTINGS', 'cleantalk_network_settings'); //Option name with plugin network settings.
-define('APBCT_DEBUG', 'cleantalk_debug');            //Option name with a debug data. Empty by default.
-define('APBCT_JS_ERRORS', 'cleantalk_js_errors');            //Option name with js errors. Empty by default.
+define('APBCT_DATA', 'cleantalk_data');             // Option name with different plugin data.
+define('APBCT_SETTINGS', 'cleantalk_settings');         // Option name with plugin settings.
+define('APBCT_NETWORK_SETTINGS', 'cleantalk_network_settings'); // Option name with plugin network settings.
+define('APBCT_DEBUG', 'cleantalk_debug');            // Option name with a debug data. Empty by default.
+define('APBCT_JS_ERRORS', 'cleantalk_js_errors');            // Option name with js errors. Empty by default.
 
 // WordPress Multisite
 define('APBCT_WPMS', (is_multisite() ? true : false)); // WMPS is enabled

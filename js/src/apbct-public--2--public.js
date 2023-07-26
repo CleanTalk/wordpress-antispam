@@ -406,6 +406,24 @@ if (ctPublic.data__key_is_ok) {
 }
 
 /**
+ * Prepare block to intercept AJAX response
+ */
+function apbctPrepareBlockForAjaxForms() {
+    if (typeof jQuery !== 'undefined') {
+        // Capturing responses and output block message for unknown AJAX forms
+        jQuery(document).ajaxComplete(function(event, xhr, settings) {
+            if (xhr.responseText && xhr.responseText.indexOf('"apbct') !== -1) {
+                try {
+                    ctParseBlockMessage(JSON.parse(xhr.responseText));
+                } catch (e) {
+                    console.log(e.toString());
+                }
+            }
+        });
+    }
+}
+
+/**
  * Ready function
  */
 // eslint-disable-next-line camelcase,require-jsdoc
@@ -608,22 +626,6 @@ function apbct_ready() {
         }
     }
 }
-
-const apbctPrepareBlockForAjaxForms = () => {
-    if (typeof jQuery !== 'undefined') {
-        // Capturing responses and output block message for unknown AJAX forms
-        jQuery(document).ajaxComplete(function(event, xhr, settings) {
-            if (xhr.responseText && xhr.responseText.indexOf('"apbct') !== -1) {
-                try {
-                    ctParseBlockMessage(JSON.parse(xhr.responseText));
-                } catch (e) {
-                    console.log(e.toString());
-                }
-            }
-        });
-        console.table('');
-    }
-};
 
 if (ctPublic.data__key_is_ok) {
     if (document.readyState !== 'loading') {
