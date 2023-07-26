@@ -1663,7 +1663,6 @@ let ctFunctionHasKeyUp = function output(event) {
  * set ct_has_input_focused ct_has_key_up cookies on session period
  */
 function ctSetHasInputFocused() {
-    console.table('ctPublic.force_alt_cookies on input focuesd', ctPublic.force_alt_cookies);
     if ( ! apbctLocalStorage.isSet('ct_has_input_focused') || ! apbctLocalStorage.get('ct_has_input_focused') ) {
         apbctLocalStorage.set('ct_has_input_focused', true);
     }
@@ -1691,7 +1690,6 @@ function ctSetHasInputFocused() {
  * ctSetHasKeyUp
  */
 function ctSetHasKeyUp() {
-    console.table('ctPublic.force_alt_cookies on key up', ctPublic.force_alt_cookies);
     if ( ! apbctLocalStorage.isSet('ct_has_key_up') || ! apbctLocalStorage.get('ct_has_key_up') ) {
         apbctLocalStorage.set('ct_has_key_up', true);
     }
@@ -1732,6 +1730,21 @@ if (ctPublic.data__key_is_ok) {
     apbct_attach_event_handler(document, 'mousedown', ctFunctionFirstKey);
     apbct_attach_event_handler(document, 'keydown', ctFunctionFirstKey);
     apbct_attach_event_handler(document, 'scroll', ctSetHasScrolled);
+}
+
+function apbctPrepareBlockForAjaxForms () {
+    if (typeof jQuery !== 'undefined') {
+        // Capturing responses and output block message for unknown AJAX forms
+        jQuery(document).ajaxComplete(function(event, xhr, settings) {
+            if (xhr.responseText && xhr.responseText.indexOf('"apbct') !== -1) {
+                try {
+                    ctParseBlockMessage(JSON.parse(xhr.responseText));
+                } catch (e) {
+                    console.log(e.toString());
+                }
+            }
+        });
+    }
 }
 
 /**
@@ -1937,22 +1950,6 @@ function apbct_ready() {
         }
     }
 }
-
-const apbctPrepareBlockForAjaxForms = () => {
-    if (typeof jQuery !== 'undefined') {
-        // Capturing responses and output block message for unknown AJAX forms
-        jQuery(document).ajaxComplete(function(event, xhr, settings) {
-            if (xhr.responseText && xhr.responseText.indexOf('"apbct') !== -1) {
-                try {
-                    ctParseBlockMessage(JSON.parse(xhr.responseText));
-                } catch (e) {
-                    console.log(e.toString());
-                }
-            }
-        });
-        console.table('');
-    }
-};
 
 if (ctPublic.data__key_is_ok) {
     if (document.readyState !== 'loading') {
