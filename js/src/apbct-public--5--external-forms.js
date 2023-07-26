@@ -215,6 +215,12 @@ function apbctProcessExternalForm(currentForm, iterator, documentObject) {
     }
 }
 
+/**
+ * Process external forms via fake button replacing
+ * @param {HTMLElement} currentForm
+ * @param {int} iterator
+ * @param {HTMLElement} documentObject
+ */
 function apbctProcessExternalFormByFakeButton(currentForm, iterator, documentObject) {
     // skip excluded forms
     if ( formIsExclusion(currentForm)) {
@@ -354,7 +360,6 @@ function sendAjaxCheckingFormData(form) {
             async: false,
             callback: function( result, data, params, obj ) {
                 if ( result.apbct === undefined || ! +result.apbct.blocked ) {
-
                     // MooSend integration
                     if ( form.dataset.mailingListId !== undefined ) {
                         let submitButton = form.querySelector('[type="submit"]');
