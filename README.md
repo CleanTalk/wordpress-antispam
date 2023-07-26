@@ -27,6 +27,9 @@ No CAPTCHA, no questions, no animal counting, no puzzles, no math and no spam bo
 1. Compatible with General Data Protection Regulation (GDPR) (EU). 
 
 = Public reviews =
+> Improve Your Security WordPress Spam Protection With CleanTalk Anti-Spam
+> <a href="https://thehackernews.com/2023/07/improve-your-security-wordpress-spam.html" target="_blank">The Hacker News</a>.
+
 > Using CleanTalk on WPLift was a great test as we receive huge amounts of spam.
 > *Oliver Dale, <a href="http://wplift.com/wordpress-anti-spam-plugin" target="_blank">WPLift.com</a>.*
 

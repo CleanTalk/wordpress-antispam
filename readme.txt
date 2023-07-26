@@ -42,6 +42,9 @@ No CAPTCHA, no questions, no animal counting, no puzzles, no math and no spam bo
 CleanTalk is an anti-spam plugin which works with the premium Cloud Anti-Spam service cleantalk.org. This plugin as a service <a href="https://developer.wordpress.org/plugins/wordpress-org/detailed-plugin-guidelines/#6-software-as-a-service-is-permitted">https://developer.wordpress.org/plugins/wordpress-org/detailed-plugin-guidelines/#6-software-as-a-service-is-permitted</a>
 
 = Public reviews =
+> Improve Your Security WordPress Spam Protection With CleanTalk Anti-Spam
+> <a href="https://thehackernews.com/2023/07/improve-your-security-wordpress-spam.html" target="_blank">The Hacker News</a>.
+
 > CleanTalk - Cloud-Based Anti-Spam Service to Keep Your Site Bot-Free.
 > <a href="https://newswatchtv.com/2018/07/18/cleantalk-newswatch-review/" target="_blank">NewsWatch Review</a>.
 
