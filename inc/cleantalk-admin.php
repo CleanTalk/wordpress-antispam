@@ -223,7 +223,6 @@ function ct_dashboard_statistics_widget_output($_post, $_callback_args)
         <?php
     }
     // Notice at the bottom
-    $a = $apbct->white_label;
     if ( isset($current_user) && in_array('administrator', $current_user->roles) ) {
         if ( $apbct->spam_count && $apbct->spam_count > 0 ) {
             echo '<div class="ct_widget_wprapper_total_blocked">'
