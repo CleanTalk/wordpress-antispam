@@ -1378,6 +1378,10 @@ const ctFunctionFirstKey = function output(event) {
     ctKeyStopStopListening();
 };
 
+// run cron jobs
+cronFormsHandler(2000);
+
+// mouse read
 if (ctPublic.data__key_is_ok) {
     // Reading interval
     ctMouseReadInterval = setInterval(function() {
@@ -1407,6 +1411,18 @@ const ctFunctionMouseMove = function output(event) {
         }
     }
 };
+
+/**
+ * Do handle periodical actions.
+ * @param {int} cronStartTimeout Time to go before cron start.
+ */
+function cronFormsHandler(cronStartTimeout = 2000) {
+    setTimeout(function() {
+        setInterval(function() {
+            restartFieldsListening();
+        }, 2000);
+    }, cronStartTimeout);
+}
 
 /**
  * Stop mouse observing function
@@ -1600,6 +1616,15 @@ function ctSetMouseMoved() {
 }
 
 /**
+ * Restart listen fields to set ct_has_input_focused or ct_has_key_up
+ */
+function restartFieldsListening() {
+    if (!apbctLocalStorage.isSet('ct_has_input_focused') && !apbctLocalStorage.isSet('ct_has_key_up')) {
+        ctStartFieldsListening();
+    }
+}
+
+/**
  * init listeners for keyup and focus events
  */
 function ctStartFieldsListening() {
@@ -1663,7 +1688,6 @@ let ctFunctionHasKeyUp = function output(event) {
  * set ct_has_input_focused ct_has_key_up cookies on session period
  */
 function ctSetHasInputFocused() {
-    console.table('ctPublic.force_alt_cookies on input focuesd', ctPublic.force_alt_cookies);
     if ( ! apbctLocalStorage.isSet('ct_has_input_focused') || ! apbctLocalStorage.get('ct_has_input_focused') ) {
         apbctLocalStorage.set('ct_has_input_focused', true);
     }
@@ -1691,7 +1715,6 @@ function ctSetHasInputFocused() {
  * ctSetHasKeyUp
  */
 function ctSetHasKeyUp() {
-    console.table('ctPublic.force_alt_cookies on key up', ctPublic.force_alt_cookies);
     if ( ! apbctLocalStorage.isSet('ct_has_key_up') || ! apbctLocalStorage.get('ct_has_key_up') ) {
         apbctLocalStorage.set('ct_has_key_up', true);
     }
