@@ -6,7 +6,6 @@ use Cleantalk\ApbctWP\Variables\Post;
 
 class CleantalkRegisterWidget extends IntegrationBase
 {
-
     public function getDataForChecking($argument)
     {
         return [
