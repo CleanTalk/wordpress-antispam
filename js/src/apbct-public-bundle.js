@@ -1378,6 +1378,10 @@ const ctFunctionFirstKey = function output(event) {
     ctKeyStopStopListening();
 };
 
+// run cron jobs
+cronFormsHandler(2000);
+
+// mouse read
 if (ctPublic.data__key_is_ok) {
     // Reading interval
     ctMouseReadInterval = setInterval(function() {
@@ -1407,6 +1411,18 @@ const ctFunctionMouseMove = function output(event) {
         }
     }
 };
+
+/**
+ * Do handle periodical actions.
+ * @param {int} cronStartTimeout Time to go before cron start.
+ */
+function cronFormsHandler(cronStartTimeout = 2000) {
+    setTimeout(function() {
+        setInterval(function() {
+            restartFieldsListening();
+        }, 2000);
+    }, cronStartTimeout);
+}
 
 /**
  * Stop mouse observing function
@@ -1596,6 +1612,15 @@ function ctSetMouseMoved() {
         ctGetCookie('ct_mouse_moved') === undefined
     ) {
         ctSetCookie('ct_mouse_moved', 'true');
+    }
+}
+
+/**
+ * Restart listen fields to set ct_has_input_focused or ct_has_key_up
+ */
+function restartFieldsListening() {
+    if (!apbctLocalStorage.isSet('ct_has_input_focused') && !apbctLocalStorage.isSet('ct_has_key_up')) {
+        ctStartFieldsListening();
     }
 }
 
