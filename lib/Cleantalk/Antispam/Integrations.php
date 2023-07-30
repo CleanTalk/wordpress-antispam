@@ -83,6 +83,7 @@ class Integrations
                             'sender_email'    => ! empty($data['email']) ? $data['email'] : '',
                             'sender_nickname' => ! empty($data['nickname']) ? $data['nickname'] : '',
                             'sender_info'     => ! empty($data['sender_url']) ? array('sender_url' => $data['sender_url']) : '',
+                            'event_token' => ! empty($data['event_token']) ? $data['event_token'] : '',
                             'post_info'       => array(
                                 'comment_type' => 'contact_form_wordpress_' . strtolower($current_integration),
                                 'post_url'     => Server::get('HTTP_REFERER'),
