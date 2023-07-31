@@ -191,7 +191,8 @@ function ctGetPixelUrl() {
             {
                 method: 'POST',
                 callback: function(result) {
-                    if (result) {
+                    if (result &&
+                        (typeof result === 'string' || result instanceof String) && result.indexOf('https') === 0) {
                         // set  pixel url to localstorage
                         if ( ! apbctLocalStorage.get('apbct_pixel_url') ) {
                             // set pixel to the storage
@@ -214,7 +215,8 @@ function ctGetPixelUrl() {
             {
                 notJson: true,
                 callback: function(result) {
-                    if (result) {
+                    if (result &&
+                        (typeof result === 'string' || result instanceof String) && result.indexOf('https') === 0) {
                         // set  pixel url to localstorage
                         if ( ! apbctLocalStorage.get('apbct_pixel_url') ) {
                             // set pixel to the storage
