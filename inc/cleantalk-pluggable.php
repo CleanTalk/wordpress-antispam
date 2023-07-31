@@ -990,6 +990,14 @@ function apbct_is_skip_request($ajax = false)
             return 'Flux Checkout for WooCommerce service requests';
         }
 
+        // TranslatePress - Multilingual, action trp_get_translations_regular
+        if (
+            apbct_is_plugin_active('translatepress-multilingual/index.php') &&
+            Post::get('action') === 'trp_get_translations_regular'
+        ) {
+            return 'TranslatePress - Multilingual, action trp_get_translations_regular';
+        }
+
         // Cleantalk Register Widget request was excluded because there is the direct integration
         if (
             apbct_is_plugin_active('cleantalk-register-widget/CleantalkRegisterWidget.php') &&
