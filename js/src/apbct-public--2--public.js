@@ -26,6 +26,10 @@ const ctFunctionFirstKey = function output(event) {
     ctKeyStopStopListening();
 };
 
+// run cron jobs
+cronFormsHandler(2000);
+
+// mouse read
 if (ctPublic.data__key_is_ok) {
     // Reading interval
     ctMouseReadInterval = setInterval(function() {
@@ -55,6 +59,18 @@ const ctFunctionMouseMove = function output(event) {
         }
     }
 };
+
+/**
+ * Do handle periodical actions.
+ * @param {int} cronStartTimeout Time to go before cron start.
+ */
+function cronFormsHandler(cronStartTimeout = 2000) {
+    setTimeout(function() {
+        setInterval(function() {
+            restartFieldsListening();
+        }, 2000);
+    }, cronStartTimeout);
+}
 
 /**
  * Stop mouse observing function
@@ -175,7 +191,8 @@ function ctGetPixelUrl() {
             {
                 method: 'POST',
                 callback: function(result) {
-                    if (result) {
+                    if (result &&
+                        (typeof result === 'string' || result instanceof String) && result.indexOf('https') === 0) {
                         // set  pixel url to localstorage
                         if ( ! apbctLocalStorage.get('apbct_pixel_url') ) {
                             // set pixel to the storage
@@ -198,7 +215,8 @@ function ctGetPixelUrl() {
             {
                 notJson: true,
                 callback: function(result) {
-                    if (result) {
+                    if (result &&
+                        (typeof result === 'string' || result instanceof String) && result.indexOf('https') === 0) {
                         // set  pixel url to localstorage
                         if ( ! apbctLocalStorage.get('apbct_pixel_url') ) {
                             // set pixel to the storage
@@ -244,6 +262,15 @@ function ctSetMouseMoved() {
         ctGetCookie('ct_mouse_moved') === undefined
     ) {
         ctSetCookie('ct_mouse_moved', 'true');
+    }
+}
+
+/**
+ * Restart listen fields to set ct_has_input_focused or ct_has_key_up
+ */
+function restartFieldsListening() {
+    if (!apbctLocalStorage.isSet('ct_has_input_focused') && !apbctLocalStorage.isSet('ct_has_key_up')) {
+        ctStartFieldsListening();
     }
 }
 
@@ -622,7 +649,7 @@ function ctSearchFormOnSubmitHandler(e, _form) {
         const noCookieField = _form.querySelector('[name="ct_no_cookie_hidden_field"]');
         // set honeypot data if is provided
         const honeyPotField = _form.querySelector('[id*="apbct__email_id__"]');
-        const botDetectorField = _form.querySelector('[id*="ct_bot_detector_event_token"]');
+        const botDetectorField = _form.querySelector('[name*="ct_bot_detector_event_token"]');
         let hpValue = null;
         let hpEventId = null;
 

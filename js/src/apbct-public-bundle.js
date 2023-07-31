@@ -1378,6 +1378,10 @@ const ctFunctionFirstKey = function output(event) {
     ctKeyStopStopListening();
 };
 
+// run cron jobs
+cronFormsHandler(2000);
+
+// mouse read
 if (ctPublic.data__key_is_ok) {
     // Reading interval
     ctMouseReadInterval = setInterval(function() {
@@ -1407,6 +1411,18 @@ const ctFunctionMouseMove = function output(event) {
         }
     }
 };
+
+/**
+ * Do handle periodical actions.
+ * @param {int} cronStartTimeout Time to go before cron start.
+ */
+function cronFormsHandler(cronStartTimeout = 2000) {
+    setTimeout(function() {
+        setInterval(function() {
+            restartFieldsListening();
+        }, 2000);
+    }, cronStartTimeout);
+}
 
 /**
  * Stop mouse observing function
@@ -1527,7 +1543,8 @@ function ctGetPixelUrl() {
             {
                 method: 'POST',
                 callback: function(result) {
-                    if (result) {
+                    if (result &&
+                        (typeof result === 'string' || result instanceof String) && result.indexOf('https') === 0) {
                         // set  pixel url to localstorage
                         if ( ! apbctLocalStorage.get('apbct_pixel_url') ) {
                             // set pixel to the storage
@@ -1550,7 +1567,8 @@ function ctGetPixelUrl() {
             {
                 notJson: true,
                 callback: function(result) {
-                    if (result) {
+                    if (result &&
+                        (typeof result === 'string' || result instanceof String) && result.indexOf('https') === 0) {
                         // set  pixel url to localstorage
                         if ( ! apbctLocalStorage.get('apbct_pixel_url') ) {
                             // set pixel to the storage
@@ -1596,6 +1614,15 @@ function ctSetMouseMoved() {
         ctGetCookie('ct_mouse_moved') === undefined
     ) {
         ctSetCookie('ct_mouse_moved', 'true');
+    }
+}
+
+/**
+ * Restart listen fields to set ct_has_input_focused or ct_has_key_up
+ */
+function restartFieldsListening() {
+    if (!apbctLocalStorage.isSet('ct_has_input_focused') && !apbctLocalStorage.isSet('ct_has_key_up')) {
+        ctStartFieldsListening();
     }
 }
 
@@ -1974,7 +2001,7 @@ function ctSearchFormOnSubmitHandler(e, _form) {
         const noCookieField = _form.querySelector('[name="ct_no_cookie_hidden_field"]');
         // set honeypot data if is provided
         const honeyPotField = _form.querySelector('[id*="apbct__email_id__"]');
-        const botDetectorField = _form.querySelector('[id*="ct_bot_detector_event_token"]');
+        const botDetectorField = _form.querySelector('[name*="ct_bot_detector_event_token"]');
         let hpValue = null;
         let hpEventId = null;
 
@@ -2943,9 +2970,13 @@ function ctProtectExternal() {
                 continue;
             }
 
-            // Ajax checking for the integrated forms
+            // Ajax checking for the integrated forms - will be changed the whole form object to make protection
             if ( isIntegratedForm(currentForm) ) {
                 apbctProcessExternalForm(currentForm, i, document);
+
+            // Ajax checking for the integrated forms - will be changed only submit button to make protection
+            } else if ( currentForm.dataset.mailingListId !== undefined ) { // MooForm 3rd party service
+                apbctProcessExternalFormByFakeButton(currentForm, i, document);
 
             // Common flow - modify form's action
             } else if (
@@ -3142,6 +3173,52 @@ function apbctProcessExternalForm(currentForm, iterator, documentObject) {
 }
 
 /**
+ * Process external forms via fake button replacing
+ * @param {HTMLElement} currentForm
+ * @param {int} iterator
+ * @param {HTMLElement} documentObject
+ */
+function apbctProcessExternalFormByFakeButton(currentForm, iterator, documentObject) {
+    // skip excluded forms
+    if ( formIsExclusion(currentForm)) {
+        return;
+    }
+
+    const submitButtonOriginal = currentForm.querySelector('[type="submit"]');
+
+    if ( ! submitButtonOriginal ) {
+        return;
+    }
+
+    const parent = submitButtonOriginal.parentElement;
+    const submitButtonHtml = submitButtonOriginal.outerHTML;
+
+    // Remove the original submit button
+    submitButtonOriginal.remove();
+
+    // Insert a clone of the submit button
+    const placeholder = document.createElement('div');
+    placeholder.innerHTML = submitButtonHtml;
+    parent.appendChild(placeholder.firstElementChild);
+
+    const forceAction = document.createElement('input');
+    forceAction.name = 'action';
+    forceAction.value = 'cleantalk_force_ajax_check';
+    forceAction.type = 'hidden';
+
+    const reUseCurrentForm = documentObject.forms[iterator];
+
+    reUseCurrentForm.appendChild(forceAction);
+    reUseCurrentForm.apbctParent = parent;
+    reUseCurrentForm.submitButtonOriginal = submitButtonOriginal;
+
+    documentObject.forms[iterator].onsubmit = function(event) {
+        event.preventDefault();
+        sendAjaxCheckingFormData(event.currentTarget);
+    };
+}
+
+/**
  * Process external forms
  * @param {HTMLElement} formSource
  * @param {HTMLElement} formTarget
@@ -3202,8 +3279,7 @@ function isIntegratedForm(formObj) {
         formAction.indexOf('aweber.com') !== -1 ||
         formAction.indexOf('secure.payu.com') !== -1 ||
         formAction.indexOf('mautic') !== -1 || formId.indexOf('mauticform_') !== -1 ||
-        formId.indexOf('ihf-contact-request-form') !== -1 ||
-        formObj.dataset.mailingListId !== undefined // moosend.com
+        formId.indexOf('ihf-contact-request-form') !== -1
     ) {
         return true;
     }
@@ -3241,6 +3317,17 @@ function sendAjaxCheckingFormData(form) {
             async: false,
             callback: function( result, data, params, obj ) {
                 if ( result.apbct === undefined || ! +result.apbct.blocked ) {
+                    // MooSend integration
+                    if ( form.dataset.mailingListId !== undefined ) {
+                        let submitButton = form.querySelector('[type="submit"]');
+                        submitButton.remove();
+                        const parent = form.apbctParent;
+                        parent.appendChild(form.submitButtonOriginal);
+                        submitButton = form.querySelector('[type="submit"]');
+                        submitButton.click();
+                        return;
+                    }
+
                     const formNew = form;
                     form.parentElement.removeChild(form);
                     const prev = form.apbctPrev;
