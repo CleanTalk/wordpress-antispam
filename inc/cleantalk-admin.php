@@ -367,6 +367,24 @@ function apbct_admin__plugin_action_links($links, $_file)
 }
 
 /**
+ * Change th plugin description on all plugins page.
+ * @param $all_plugins
+ * @return array
+ */
+function apbct_admin__change_plugin_description($all_plugins)
+{
+    global $apbct;
+    if (
+        $apbct->data["wl_mode_enabled"] &&
+        isset($all_plugins['cleantalk-spam-protect/cleantalk.php']) &&
+        $apbct->data["wl_antispam_description"]
+    ) {
+        $all_plugins['cleantalk-spam-protect/cleantalk.php']['Description'] = $apbct->data["wl_antispam_description"];
+    }
+    return $all_plugins;
+}
+
+/**
  * Manage links and plugins page
  *
  * @param $links
@@ -392,7 +410,7 @@ function apbct_admin__register_plugin_links($links, $file, $plugin_data)
 
     if ( $apbct->white_label || $apbct->data["wl_mode_enabled"] ) {
         $links   = array_slice($links, 0, 1);
-        $links[] = "<script " . (class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '') . ">
+        $links[0] .= "<script " . (class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '') . ">
         function changedPluginName(){
             jQuery('.plugin-title strong').each(function(i, item){
             if(jQuery(item).html() == '{$plugin_name}')
@@ -404,8 +422,6 @@ function apbct_admin__register_plugin_links($links, $file, $plugin_data)
             changedPluginName();
         });
 		</script>";
-
-        return $links;
     }
 
     if ( substr(get_locale(), 0, 2) != 'en' ) {
@@ -426,7 +442,7 @@ function apbct_admin__register_plugin_links($links, $file, $plugin_data)
     $links[] = '<a class="ct_meta_links ct_support_links" href="' . $apbct->data['wl_support_url'] . '" target="_blank">'
                . __('Support', 'cleantalk-spam-protect') . '</a>';
     $trial   = apbct_admin__badge__get_premium(false);
-    if ( ! empty($trial) ) {
+    if ( ! empty($trial) && !$apbct->data["wl_mode_enabled"]) {
         $links[] = apbct_admin__badge__get_premium(false);
     }
 
