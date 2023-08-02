@@ -68,8 +68,32 @@ function cronFormsHandler(cronStartTimeout = 2000) {
     setTimeout(function() {
         setInterval(function() {
             restartFieldsListening();
+            restartBotDetectorEventTokenAttach();
         }, 2000);
     }, cronStartTimeout);
+}
+
+/**
+ * Restart event_token attachment if some forms load after document ready.
+ */
+function restartBotDetectorEventTokenAttach() {
+    // List there any new conditions, right now it works only for LatePoint forms.
+    // Probably, we can remove this condition at all, because setEventTokenField()
+    // checks all the forms without the field
+    const doAttach = document.getElementsByClassName('latepoint-form').length > 0;
+
+    try {
+        if ( doAttach ) {
+            // get token from LS
+            const token = JSON.parse(apbctLocalStorage.get('bot_detector_event_token')).value;
+            if (typeof setEventTokenField === 'function' && token !== undefined && token.length === 64) {
+                setEventTokenField(token);
+            }
+            // probably there we could use a new botDetectorInit if token is not found
+        }
+    } catch (e) {
+        console.log(e.toString());
+    }
 }
 
 /**
