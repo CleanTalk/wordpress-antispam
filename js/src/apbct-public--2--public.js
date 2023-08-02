@@ -526,6 +526,22 @@ function apbct_ready() {
     // detect integrated forms that need to be handled via alternative cookies
     ctDetectForcedAltCookiesForms();
 
+    // fix for forced alt-cookies timestamp
+    if (
+        typeof ctPublic.data__cookies_type !== 'undefined' &&
+        ctPublic.data__cookies_type === 'native' &&
+        typeof ctPublic.force_alt_cookies !== 'undefined' &&
+        ctPublic.force_alt_cookies
+    ) {
+        // if cookie is set
+        if (ctGetCookie('apbct_timestamp')) {
+            initCookies.push(['apbct_timestamp', ctGetCookie('apbct_timestamp')]);
+        } else {
+            // else use pagestart value
+            initCookies.push(['apbct_timestamp', apbctLocalStorage.get('ct_ps_timestamp')]);
+        }
+    }
+
     ctSetCookie(initCookies);
 
     setTimeout(function() {
