@@ -202,9 +202,9 @@ function apbctProcessExternalForm(currentForm, iterator, documentObject) {
         const mailerliteSubmitButton = documentObject.querySelector('form.' + mailerliteDetectedClass)
             .querySelector('button[type="submit"]');
         if ( mailerliteSubmitButton !== undefined ) {
-            mailerliteSubmitButton.click(function(event) {
+            mailerliteSubmitButton.addEventListener('click', function(event) {
                 event.preventDefault();
-                sendAjaxCheckingFormData(event.currentTarget);
+                sendAjaxCheckingFormData(reUseCurrentForm);
             });
         }
     } else {
