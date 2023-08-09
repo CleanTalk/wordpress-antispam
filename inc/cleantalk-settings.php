@@ -1463,10 +1463,16 @@ function apbct_settings__error__output($return = false)
                 }
                 $out .= '<h4>' . $icon . ' ' . apbct_render_links_to_tag($value) . '</h4>';
             }
-            $out .= ! $apbct->white_label
+
+            $link_to_support = 'https://wordpress.org/support/plugin/cleantalk-spam-protect';
+            if (!empty($apbct->data['wl_support_url'])) {
+                $link_to_support = esc_url($apbct->data['wl_support_url']);
+            }
+
+            $out .= (! $apbct->white_label || ($apbct->white_label && !empty($apbct->data['wl_support_url'])))
                 ? '<h4 style="text-align: unset;">' . sprintf(
                     __('You can get support any time here: %s.', 'cleantalk-spam-protect'),
-                    '<a target="blank" href="https://wordpress.org/support/plugin/cleantalk-spam-protect">https://wordpress.org/support/plugin/cleantalk-spam-protect</a>'
+                    '<a target="blank" href="' . $link_to_support . '">' . $link_to_support . '</a>'
                 ) . '</h4>'
                 : '';
             $out .= '</div>';
