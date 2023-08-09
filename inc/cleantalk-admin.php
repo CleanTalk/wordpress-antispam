@@ -974,12 +974,17 @@ function apbct_admin__admin_bar__add_child_nodes($wp_admin_bar)
     }
 
     // Support link
-    if ( ! $apbct->white_label ) {
+    $link_to_support = 'https://wordpress.org/support/plugin/cleantalk-spam-protect';
+    if (!empty($apbct->data['wl_support_url'])) {
+        $link_to_support = esc_url($apbct->data['wl_support_url']);
+    }
+
+    if ( ! $apbct->white_label || !empty($apbct->data['wl_support_url']) ) {
         $wp_admin_bar->add_node(
             array(
                 'parent' => 'apbct__parent_node',
                 'id'     => 'ct_admin_bar_support_link',
-                'title'  => '<hr style="margin-top: 7px;" /><a target="_blank" href="https://wordpress.org/support/plugin/cleantalk-spam-protect">'
+                'title'  => '<hr style="margin-top: 7px;" /><a target="_blank" href="' . $link_to_support . '">'
                             . __('Support', 'cleantalk-spam-protect') . '</a>',
             )
         );
