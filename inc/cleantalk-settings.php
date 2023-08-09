@@ -1469,7 +1469,7 @@ function apbct_settings__error__output($return = false)
                 $link_to_support = esc_url($apbct->data['wl_support_url']);
             }
 
-            $out .= (! $apbct->white_label || ($apbct->white_label && !empty($apbct->data['wl_support_url'])))
+            $out .= (! $apbct->white_label || !empty($apbct->data['wl_support_url']))
                 ? '<h4 style="text-align: unset;">' . sprintf(
                     __('You can get support any time here: %s.', 'cleantalk-spam-protect'),
                     '<a target="blank" href="' . $link_to_support . '">' . $link_to_support . '</a>'
