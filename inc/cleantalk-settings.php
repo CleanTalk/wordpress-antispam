@@ -497,7 +497,7 @@ function apbct_settings__set_fields()
                     'title' => __('Use ', 'cleantalk-spam-protect')
                                . $apbct->data['wl_brandname']
                                . __(' JavaScript library', 'cleantalk-spam-protect'),
-                    'description' => __( 'This option includes external ', 'cleantalk-spam-protect')
+                    'description' => __('This option includes external ', 'cleantalk-spam-protect')
                                . $apbct->data['wl_brandname']
                                . __(' JavaScript library to getting visitors info data', 'cleantalk-spam-protect'),
                 ),
