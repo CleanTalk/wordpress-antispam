@@ -331,9 +331,10 @@ function apbct_admin__init()
 
     // Settings Templates
     if (
-            ! is_multisite() ||
-            is_main_site() ||
-            ( ! is_main_site() && $apbct->network_settings['multisite__allow_custom_settings'])
+        ! $apbct->data['wl_mode_enabled'] &&
+        ! is_multisite() ||
+        is_main_site() ||
+        ( ! is_main_site() && $apbct->network_settings['multisite__allow_custom_settings'])
     ) {
         new CleantalkSettingsTemplates($apbct->api_key);
     }
