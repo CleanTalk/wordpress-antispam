@@ -344,7 +344,8 @@ class EmailEncoder
      */
     private function getTooltip()
     {
-        return esc_html__('This contact has been encoded by CleanTalk. Click to decode. To finish the decoding make sure that JavaScript is enabled in your browser.', 'cleantalk-spam-protect');
+        global $apbct;
+        return esc_html__('This contact has been encoded by ' . esc_html__($apbct->data['wl_brandname']) . '. Click to decode. To finish the decoding make sure that JavaScript is enabled in your browser.', 'cleantalk-spam-protect');
     }
 
     /**
