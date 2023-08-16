@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 4.7
 Tested up to: 6.3
 Requires PHP: 5.6
-Stable tag: 6.15
+Stable tag: 6.16
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -453,6 +453,14 @@ Yes, it is. Please read this article,
 12. SpamFireWall log.
 
 == Changelog ==
+
+= 6.16 Aug 17 2023 =
+* Fix: External MailerLite fixed
+* Fix: Jetpack. Send apbct_timestamp to alt_cookies on alt-cookies forced forms.
+* Fix: Integration. LatePoint. Event token now can be added to dynamically rendered form.
+* Ref: Review notice
+* Fix: White Label
+* New: Integration. Zoho 3rd party service integration implemented.
 
 = 6.15 Aug 3 2023 =
 * New. Integration. LatePoint booking integration implemented.
