@@ -4,7 +4,11 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
+<<<<<<< HEAD
   Version: 6.15.1-fix
+=======
+  Version: 6.15.1-dev
+>>>>>>> dev
   Author: СleanTalk <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -822,6 +826,7 @@ if ( is_admin() || is_network_admin() ) {
             10,
             2
         );
+        add_filter('all_plugins', 'apbct_admin__change_plugin_description');
 
         add_filter('plugin_row_meta', 'apbct_admin__register_plugin_links', 10, 3);
     }
@@ -2715,6 +2720,16 @@ function ct_account_status_check($api_key = null, $process_errors = true)
         $apbct->data['license_trial']   = isset($result['license_trial']) ? (int)$result['license_trial'] : 0;
         $apbct->data['account_name_ob'] = isset($result['account_name_ob']) ? (string)$result['account_name_ob'] : '';
 
+        //todo:temporary solution for description, until we found the way to transfer this from cloud
+        if (defined('APBCT_WHITELABEL_PLUGIN_DESCRIPTION')) {
+            $result['wl_antispam_description'] = APBCT_WHITELABEL_PLUGIN_DESCRIPTION;
+        }
+
+        //todo:temporary solution for FAQ
+        if (defined('APBCT_WHITELABEL_FAQ_LINK')) {
+            $result['wl_faq_url'] = APBCT_WHITELABEL_FAQ_LINK;
+        }
+
         if ( isset($result['wl_status']) && $result['wl_status'] === 'ON' ) {
             $apbct->data['wl_mode_enabled'] = true;
             $apbct->data['wl_brandname']     = isset($result['wl_brandname'])
@@ -2723,15 +2738,19 @@ function ct_account_status_check($api_key = null, $process_errors = true)
             $apbct->data['wl_url']           = isset($result['wl_url'])
                 ? Sanitize::cleanUrl($result['wl_url'])
                 : $apbct->default_data['wl_url'];
-            $apbct->data['wl_support_faq']   = isset($result['wl_support_url'])
-                ? Sanitize::cleanUrl($result['wl_support_url'])
-                : $apbct->default_data['wl_support_url'];
             $apbct->data['wl_support_url']   = isset($result['wl_support_url'])
                 ? Sanitize::cleanUrl($result['wl_support_url'])
                 : $apbct->default_data['wl_support_url'];
+            $apbct->data['wl_support_faq']   = isset($result['wl_faq_url'])
+                ? Sanitize::cleanUrl($result['wl_faq_url'])
+                //important, if missed get this from already set wl_support_url for now
+                : $apbct->data['wl_support_url'];
             $apbct->data['wl_support_email'] = isset($result['wl_support_email'])
                 ? Sanitize::cleanEmail($result['wl_support_email'])
                 : $apbct->default_data['wl_support_email'];
+            $apbct->data['wl_antispam_description']     = isset($result['wl_antispam_description'])
+                ? Sanitize::cleanTextField($result['wl_antispam_description'])
+                : get_plugin_data('cleantalk-spam-protect/cleantalk.php')['Description'];
         } else {
             $apbct->data['wl_mode_enabled'] = false;
             $apbct->data['wl_brandname']     = $apbct->default_data['wl_brandname'];

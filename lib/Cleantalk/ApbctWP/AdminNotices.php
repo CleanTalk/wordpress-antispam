@@ -233,7 +233,7 @@ class AdminNotices
 
         if ( $this->apbct->notice_review == 1 && ! $this->apbct->white_label ) {
             $review_link = "<a class='button' href='https://wordpress.org/support/plugin/cleantalk-spam-protect/reviews/?filter=5' target='_blank'>"
-                                . __('SHARE', 'cleantalk-spam-protect') .
+                                . __('SHARE YOUR FEEDBACK', 'cleantalk-spam-protect') .
                             "</a>";
             $support_link = '<a href="https://wordpress.org/support/plugin/cleantalk-spam-protect/" 
                             style="display:inline-block; margin-top: 10px;"  target="_blank">'
@@ -242,10 +242,7 @@ class AdminNotices
             $close_link = '<a href="#" class="notice-dismiss-link" onclick="return false;">'
                             . __('Already posted the review', 'cleantalk-spam-protect')
                             . '</a>';
-            $notice_text = sprintf(
-                __('Anti-Spam by CleanTalk has blocked %s spam so far. Share your positive energy &ndash; rate us on WordPress!', 'cleantalk-spam-protect'),
-                number_format($apbct->data['spam_count'], 0, ',', ' ')
-            );
+            $notice_text = __('Help others to fight spam – leave your feedback!', 'cleantalk-spam-protect');
             $content = '<div class="apbct-notice notice notice-success is-dismissible" id="cleantalk_notice_review">
                             <div class="flex-row">
                                 <h3>'
