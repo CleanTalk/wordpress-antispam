@@ -1531,29 +1531,15 @@ function apbct_sfw_update__create_temp_tables($direct_update = false)
 {
     global $apbct;
 
-    if ( $apbct->data['sfw_load_type'] === 'all' ) {
-        // Create common table
-        $result = SFW::createTempTables(DB::getInstance(), APBCT_TBL_FIREWALL_DATA);
-        if ( ! empty($result['error']) ) {
-            return $result;
-        }
-        // Create personal table
-        $result = SFW::createTempTables(DB::getInstance(), APBCT_TBL_FIREWALL_DATA_PERSONAL);
-        if ( ! empty($result['error']) ) {
-            return $result;
-        }
-    } elseif ( $apbct->data['sfw_load_type'] === 'personal' ) {
-        // Create personal table only
-        $result = SFW::createTempTables(DB::getInstance(), APBCT_TBL_FIREWALL_DATA_PERSONAL);
-        if ( ! empty($result['error']) ) {
-            return $result;
-        }
-    } elseif ( $apbct->data['sfw_load_type'] === 'common' ) {
-        // Create common table only
-        $result = SFW::createTempTables(DB::getInstance(), APBCT_TBL_FIREWALL_DATA);
-        if ( ! empty($result['error']) ) {
-            return $result;
-        }
+    // Create common table
+    $result = SFW::createTempTables(DB::getInstance(), APBCT_TBL_FIREWALL_DATA);
+    if ( ! empty($result['error']) ) {
+        return $result;
+    }
+    // Create personal table
+    $result = SFW::createTempTables(DB::getInstance(), APBCT_TBL_FIREWALL_DATA_PERSONAL);
+    if ( ! empty($result['error']) ) {
+        return $result;
     }
 
     return $direct_update ? true : array(
