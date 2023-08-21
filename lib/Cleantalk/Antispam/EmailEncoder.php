@@ -36,6 +36,7 @@ class EmailEncoder
     private $attribute_exclusions_signs = array(
         'input' => array('placeholder', 'value'),
         'img' => array('alt', 'title'),
+        'a' => array('aria-label')
     );
     /**
      * @var string[]
