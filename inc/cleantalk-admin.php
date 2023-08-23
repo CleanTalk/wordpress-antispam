@@ -461,7 +461,7 @@ function apbct_admin__enqueue_scripts($hook)
 
     // Scripts to all admin pages
     wp_enqueue_script(
-        'ct_modal',
+        'cleantalk-modal',
         APBCT_JS_ASSETS_PATH . '/apbct-public--3--cleantalk-modal.min.js',
         array('jquery'),
         APBCT_VERSION
@@ -469,7 +469,7 @@ function apbct_admin__enqueue_scripts($hook)
     wp_enqueue_script(
         'ct_admin_js_notices',
         APBCT_JS_ASSETS_PATH . '/cleantalk-admin.min.js',
-        array('ct_modal', 'jquery'),
+        array('cleantalk-modal', 'jquery'),
         APBCT_VERSION
     );
     wp_enqueue_style(
