@@ -495,7 +495,7 @@ function apbct_admin__enqueue_scripts($hook)
         'logo_small'         => '<img src="' . Escape::escUrl($apbct->logo__small) . '" alt=""  height="" style="width: 17px; vertical-align: text-bottom;" />',
         'logo_small_colored' => '<img src="' . Escape::escUrl($apbct->logo__small__colored) . '" alt=""  height="" style="width: 17px; vertical-align: text-bottom;" />',
         'notice_when_deleting_user_text' => __(Escape::escHtml('Warning! Users are deleted without the possibility of restoring them, you can only restore them from a site backup.'), 'cleantalk-spam-protect'),
-        'deactivation_banner_text' => __(Escape::escHtml('If you have any difficulties using the CleantalkAntispam plugin, please contact technical support.<br>https://wordpress.org/support/plugin/cleantalk-spam-protect'), 'cleantalk-spam-protect'),
+        'deactivation_banner_text' => __(Escape::escHtml('If you have any difficulties using the CleanTalk Anti-Spam plugin, please contact technical support.<br>https://wordpress.org/support/plugin/cleantalk-spam-protect'), 'cleantalk-spam-protect'),
     ));
 
     // DASHBOARD page JavaScript and CSS
