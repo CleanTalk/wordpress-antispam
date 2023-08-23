@@ -461,9 +461,15 @@ function apbct_admin__enqueue_scripts($hook)
 
     // Scripts to all admin pages
     wp_enqueue_script(
+        'ct_modal',
+        APBCT_JS_ASSETS_PATH . '/apbct-public--3--cleantalk-modal.min.js',
+        array('jquery'),
+        APBCT_VERSION
+    );
+    wp_enqueue_script(
         'ct_admin_js_notices',
         APBCT_JS_ASSETS_PATH . '/cleantalk-admin.min.js',
-        array(),
+        array('ct_modal', 'jquery'),
         APBCT_VERSION
     );
     wp_enqueue_style(
@@ -489,6 +495,7 @@ function apbct_admin__enqueue_scripts($hook)
         'logo_small'         => '<img src="' . Escape::escUrl($apbct->logo__small) . '" alt=""  height="" style="width: 17px; vertical-align: text-bottom;" />',
         'logo_small_colored' => '<img src="' . Escape::escUrl($apbct->logo__small__colored) . '" alt=""  height="" style="width: 17px; vertical-align: text-bottom;" />',
         'notice_when_deleting_user_text' => __(Escape::escHtml('Warning! Users are deleted without the possibility of restoring them, you can only restore them from a site backup.'), 'cleantalk-spam-protect'),
+        'deactivation_banner_text' => __(Escape::escHtml('If you have any difficulties using the CleantalkAntispam plugin, please contact technical support.<br>https://wordpress.org/support/plugin/cleantalk-spam-protect'), 'cleantalk-spam-protect'),
     ));
 
     // DASHBOARD page JavaScript and CSS
