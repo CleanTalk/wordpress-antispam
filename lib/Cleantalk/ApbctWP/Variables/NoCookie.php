@@ -58,7 +58,18 @@ class NoCookie
 
         $session_id = self::getID();
 
-        $previous_value = self::get($name);
+        $previous_value = $wpdb->get_row(
+            $wpdb->prepare(
+                'SELECT value 
+				FROM `' . APBCT_TBL_NO_COOKIE . '`
+				WHERE id = %s AND name = %s;',
+                $session_id,
+                $name
+            ),
+            ARRAY_A
+        );
+
+        $previous_value = isset($previous_value['value']) ? $previous_value['value'] : '';
 
         return $wpdb->query(
             $wpdb->prepare(
@@ -213,7 +224,10 @@ class NoCookie
 
         //keep previous value to use them before NoCookies handler loaded
         foreach ( array_values($result) as $no_cookie_db_value ) {
-            self::set($no_cookie_db_value['name'], $no_cookie_db_value['prev_value']);
+            $new_instance_value = !empty($no_cookie_db_value['prev_value'])
+                ? $no_cookie_db_value['prev_value']
+                : $no_cookie_db_value['value'];
+            self::set($no_cookie_db_value['name'], $new_instance_value);
         }
 
         return self::$no_cookies_data;
