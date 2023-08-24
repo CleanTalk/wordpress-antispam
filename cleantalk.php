@@ -2581,7 +2581,7 @@ function apbct_cookie()
     $domain = '';
 
     // Submit time
-    if ( empty(Post::get('ct_multipage_form')) ) { // Do not start/reset page timer if it is multi page form (Gravity forms))
+    if (empty($_POST)) {
         $apbct_timestamp = time();
         Cookie::set('apbct_timestamp', (string)$apbct_timestamp, 0, '/', $domain, null, true, 'Lax', true);
         $cookie_test_value['cookies_names'][] = 'apbct_timestamp';
