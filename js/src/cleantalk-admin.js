@@ -81,7 +81,7 @@ jQuery(document).ready(function($) {
         e.preventDefault();
         const deactivationLink = this.getAttribute('href');
 
-        if ( typeof cleantalkModal !== 'undefined' ) {
+        if ( typeof cleantalkModal !== 'undefined' && ctAdminCommon.deactivation_banner_is_needed === '1') {
             const modalHTML = `
                 <div class="ct-modal-message">
                     ${ctAdminCommon.deactivation_banner_text}
@@ -93,6 +93,8 @@ jQuery(document).ready(function($) {
             `;
             cleantalkModal.loaded = modalHTML;
             cleantalkModal.open();
+        } else {
+            window.location.href = deactivationLink;
         }
     });
 });
