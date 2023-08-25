@@ -461,9 +461,15 @@ function apbct_admin__enqueue_scripts($hook)
 
     // Scripts to all admin pages
     wp_enqueue_script(
+        'cleantalk-modal',
+        APBCT_JS_ASSETS_PATH . '/apbct-public--3--cleantalk-modal.min.js',
+        array('jquery'),
+        APBCT_VERSION
+    );
+    wp_enqueue_script(
         'ct_admin_js_notices',
         APBCT_JS_ASSETS_PATH . '/cleantalk-admin.min.js',
-        array(),
+        array('cleantalk-modal', 'jquery'),
         APBCT_VERSION
     );
     wp_enqueue_style(
@@ -488,7 +494,9 @@ function apbct_admin__enqueue_scripts($hook)
         'logo'               => '<img src="' . Escape::escUrl($apbct->logo) . '" alt=""  height="" style="width: 17px; vertical-align: text-bottom;" />',
         'logo_small'         => '<img src="' . Escape::escUrl($apbct->logo__small) . '" alt=""  height="" style="width: 17px; vertical-align: text-bottom;" />',
         'logo_small_colored' => '<img src="' . Escape::escUrl($apbct->logo__small__colored) . '" alt=""  height="" style="width: 17px; vertical-align: text-bottom;" />',
-        'notice_when_deleting_user_text' => __(Escape::escHtml('Warning! Users are deleted without the possibility of restoring them, you can only restore them from a site backup.'), 'cleantalk-spam-protect'),
+        'notice_when_deleting_user_text' => esc_html__('Warning! Users are deleted without the possibility of restoring them, you can only restore them from a site backup.', 'cleantalk-spam-protect'),
+        'deactivation_banner_text' => esc_html__('If you have any difficulties using the CleanTalk Anti-Spam Plugin, please contact our Technical Support here:<br>https://wordpress.org/support/plugin/cleantalk-spam-protect', 'cleantalk-spam-protect'),
+        'deactivation_banner_is_needed' => (!$apbct->data['wl_mode_enabled'] && !$apbct->settings['misc__complete_deactivation']) ? 1 : 0
     ));
 
     // DASHBOARD page JavaScript and CSS

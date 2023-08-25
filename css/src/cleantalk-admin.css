@@ -101,3 +101,14 @@
 .apbct-restore-spam-order-button {
 	cursor: pointer;
 }
+.ct-modal-buttons {
+	display: flex;
+	align-items: center;
+	padding: 20px 0;
+	justify-content: space-between;
+}
+.ct-modal-message {
+	font-weight: bold;
+	font-size: 16px;
+	line-height: 2rem;
+}

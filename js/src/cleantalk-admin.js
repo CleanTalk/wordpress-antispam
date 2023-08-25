@@ -75,6 +75,28 @@ jQuery(document).ready(function($) {
             },
         });
     });
+
+    // Deactivation banner
+    jQuery('#deactivate-cleantalk-spam-protect').on('click', function(e) {
+        e.preventDefault();
+        const deactivationLink = this.getAttribute('href');
+
+        if ( typeof cleantalkModal !== 'undefined' && ctAdminCommon.deactivation_banner_is_needed === '1') {
+            const modalHTML = `
+                <div class="ct-modal-message">
+                    ${ctAdminCommon.deactivation_banner_text}
+                </div>
+                <div class="ct-modal-buttons">
+                    <button class="button action" onclick="cleantalkModal.close();">Ok</button>
+                    <a class="button action" href="${deactivationLink}">No, deactivate anyway</a>
+                </div>
+            `;
+            cleantalkModal.loaded = modalHTML;
+            cleantalkModal.open();
+        } else {
+            window.location.href = deactivationLink;
+        }
+    });
 });
 
 // eslint-disable-next-line camelcase,require-jsdoc,no-unused-vars
