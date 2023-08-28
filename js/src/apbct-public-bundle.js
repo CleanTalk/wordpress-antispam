@@ -1267,7 +1267,17 @@ let apbctLocalStorage = {
         if ( storageValue !== null ) {
             try {
                 const json = JSON.parse(storageValue);
-                return json.hasOwnProperty(property) ? JSON.parse(json[property]) : json;
+                if ( json.hasOwnProperty(property) ) {
+                    try {
+                        // if property can be parsed as JSON - do it
+                        return JSON.parse( json[property] );
+                    } catch (e) {
+                        // if not - return string of value
+                        return json[property].toString();
+                    }
+                } else {
+                    return json;
+                }
             } catch (e) {
                 return storageValue;
             }
@@ -1916,6 +1926,14 @@ function apbct_ready() {
             // else use pagestart value
             initCookies.push(['apbct_timestamp', apbctLocalStorage.get('ct_ps_timestamp')]);
         }
+    }
+
+    // send bot detector event token to alt cookies on problem forms
+    if (typeof ctPublic.force_alt_cookies !== 'undefined' &&
+        ctPublic.force_alt_cookies &&
+        apbctLocalStorage.get('bot_detector_event_token')
+    ) {
+        initCookies.push(['ct_bot_detector_event_token', apbctLocalStorage.get('bot_detector_event_token')]);
     }
 
     ctSetCookie(initCookies);

@@ -22,6 +22,6 @@ module.exports = {
         'prefer-const': 'off',
     },
     globals: {
-        'ctSetCookie': 'readonly'
+        'ctSetCookie': 'readonly',
     },
 };
