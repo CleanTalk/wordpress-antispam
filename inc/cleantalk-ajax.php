@@ -699,12 +699,6 @@ function ct_ajax_hook($message_obj = null)
             die();
         }
 
-        if ( Post::get('action') === 'wysija_ajax' && Post::get('task') !== 'send_preview' && Post::get('task') !== 'send_test_mail' ) {
-            $result = array('result' => false, 'msgs' => array('updated' => array($ct_result->comment)));
-            print Get::get('callback') . '(' . json_encode($result) . ');';
-            die();
-        }
-
         if ( Post::get('action') === 'cs_registration_validation' ) {
             $result = array("type" => "error", "message" => $ct_result->comment);
             print json_encode($result);
