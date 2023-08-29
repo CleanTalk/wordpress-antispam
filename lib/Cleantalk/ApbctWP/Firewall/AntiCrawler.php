@@ -562,12 +562,12 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
          */
         if (Server::get('REQUEST_URI') && apbct_is_plugin_active('w3-total-cache/w3-total-cache.php')) {
             //get match in uri
-            preg_match_all('/cache\/minify\/(.+\.js)/', Server::get('REQUEST_URI'), $matches);
+            preg_match_all('/\/wp-content\/cache\/minify\/(.+\.(js|css))/', Server::get('REQUEST_URI'), $matches);
             $w3tc_js_file_name_in_uri = isset($matches[1], $matches[1][0]) ? $matches[1][0] : null;
             if ( !empty($w3tc_js_file_name_in_uri) ) {
                 //get option
                 $w3tc_minify_option = get_option('w3tc_minify');
-                $w3tc_minify_option = false !== $w3tc_minify_option ? json_decode($w3tc_minify_option) : null;
+                $w3tc_minify_option = false !== $w3tc_minify_option ? json_decode($w3tc_minify_option, ARRAY_A) : null;
                 // if option found and is an array
                 if (is_array($w3tc_minify_option)) {
                     // check if sign is in option keys
