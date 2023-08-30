@@ -569,7 +569,10 @@ function apbct_ready() {
     // send bot detector event token to alt cookies on problem forms
     if (typeof ctPublic.force_alt_cookies !== 'undefined' &&
         ctPublic.force_alt_cookies &&
-        apbctLocalStorage.get('bot_detector_event_token')
+        apbctLocalStorage.get('bot_detector_event_token') &&
+        // do bot set if (ct_bot_detector_event_token) already set,
+        // and it is equal to newly added from moderate (bot_detector_event_token)
+        apbctLocalStorage.get('ct_bot_detector_event_token') !== apbctLocalStorage.get('bot_detector_event_token')
     ) {
         initCookies.push(['ct_bot_detector_event_token', apbctLocalStorage.get('bot_detector_event_token')]);
     }
