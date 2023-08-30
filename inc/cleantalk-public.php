@@ -1397,32 +1397,45 @@ function ct_comments_output($curr_comment, $_param2, $wp_list_comments_args)
     $html = "<div class='ct_comment_info'><div class ='ct_comment_titles'>";
     $html .= "<p class='ct_comment_info_title'>" . __('Sender info', 'cleantalk-spam-protect') . "</p>";
 
-    $html .= "<p class='ct_comment_logo_title'>
-				" . __('by', 'cleantalk-spam-protect')
-         . " <a href='{$settings_link}' target='_blank'><img class='ct_comment_logo_img' src='" . Escape::escUrl(APBCT_IMG_ASSETS_PATH . "/logo_color.png") . "'></a>"
-         . " <a href='{$settings_link}' target='_blank'>CleanTalk</a>"
-         . "</p></div>";
+    if ($apbct->data["wl_mode_enabled"]) {
+        $html .= "<p class='ct_comment_logo_title'>
+                    " . __('by', 'cleantalk-spam-protect')
+            . " <a href='{$settings_link}' target='_blank'>" . $apbct->data["wl_brandname"] . "</a>"
+            . "</p></div>";
+    } else {
+        $html .= "<p class='ct_comment_logo_title'>
+                    " . __('by', 'cleantalk-spam-protect')
+            . " <a href='{$settings_link}' target='_blank'><img class='ct_comment_logo_img' src='" . Escape::escUrl(APBCT_IMG_ASSETS_PATH . "/logo_color.png") . "'></a>"
+            . " <a href='{$settings_link}' target='_blank'>CleanTalk</a>"
+            . "</p></div>";
+    }
     // Outputs email if exists
-    if ( $email ) {
-        $html .= "<a href='https://cleantalk.org/blacklists/$email' target='_blank' title='https://cleantalk.org/blacklists/$email'>"
-             . "$email"
-             . "&nbsp;<img src='" . Escape::escUrl(APBCT_IMG_ASSETS_PATH . "/new_window.gif") . "' border='0' style='float:none; box-shadow: transparent 0 0 0 !important;'/>"
-             . "</a>";
+    if ($email) {
+        if (! $apbct->data["wl_mode_enabled"]) {
+            $html .= "<a href='https://cleantalk.org/blacklists/$email' target='_blank' title='https://cleantalk.org/blacklists/$email'>"
+                . "$email"
+                . "&nbsp;<img src='" . Escape::escUrl(APBCT_IMG_ASSETS_PATH . "/new_window.gif") . "' border='0' style='float:none; box-shadow: transparent 0 0 0 !important;'/>"
+                . "</a>";
+            $html .= "&nbsp;|&nbsp;";
+        }
     } else {
         $html .= __('No email', 'cleantalk-spam-protect');
+        $html .= "&nbsp;|&nbsp;";
     }
-    $html .= "&nbsp;|&nbsp;";
 
     // Outputs IP if exists
-    if ( $ip ) {
-        $html .= "<a href='https://cleantalk.org/blacklists/$ip' target='_blank' title='https://cleantalk.org/blacklists/$ip'>"
-             . "$ip"
-             . "&nbsp;<img src='" . Escape::escUrl(APBCT_IMG_ASSETS_PATH . "/new_window.gif") . "' border='0' style='float:none; box-shadow: transparent 0 0 0 !important;'/>"
-             . "</a>";
+    if ($ip) {
+        if (! $apbct->data["wl_mode_enabled"]) {
+            $html .= "<a href='https://cleantalk.org/blacklists/$ip' target='_blank' title='https://cleantalk.org/blacklists/$ip'>"
+                . "$ip"
+                . "&nbsp;<img src='" . Escape::escUrl(APBCT_IMG_ASSETS_PATH . "/new_window.gif") . "' border='0' style='float:none; box-shadow: transparent 0 0 0 !important;'/>"
+                . "</a>";
+            $html .= '&nbsp;|&nbsp;';
+        }
     } else {
         $html .= __('No IP', 'cleantalk-spam-protect');
+        $html .= '&nbsp;|&nbsp;';
     }
-    $html .= '&nbsp;|&nbsp;';
 
     $html .= "<span commentid='$id' class='ct_this_is ct_this_is_spam' href='#'>"
          . __(

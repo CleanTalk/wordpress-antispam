@@ -1192,7 +1192,7 @@ function apbct_settings__display()
 
 
     // Output spam count
-    if ( $apbct->key_is_ok && apbct_api_key__is_correct() ) {
+    if ( $apbct->key_is_ok && apbct_api_key__is_correct() && ! $apbct->data["wl_mode_enabled"] ) {
         if ( $apbct->network_settings['multisite__work_mode'] != 2 || is_main_site() ) {
             // CP button
             echo '<a class="cleantalk_link cleantalk_link-manual" target="__blank" href="https://cleantalk.org/my?user_token=' . Escape::escHtml($apbct->user_token) . '&cp_mode=antispam">'

@@ -211,7 +211,7 @@ function ct_dashboard_statistics_widget_output($_post, $_callback_args)
                 } ?>
             </table>
             <?php
-            if ( $apbct->user_token ) { ?>
+            if ( $apbct->user_token && ! $apbct->data["wl_mode_enabled"] ) { ?>
                 <a target='_blank' href='https://cleantalk.org/my?user_token=<?php
                 echo Escape::escHtml($apbct->user_token); ?>&cp_mode=antispam'>
                     <input class='ct_widget_button' id='ct_widget_button_view_all' type='button' value='View all'>
@@ -226,7 +226,7 @@ function ct_dashboard_statistics_widget_output($_post, $_callback_args)
     if ( isset($current_user) && in_array('administrator', $current_user->roles) ) {
         if ( $apbct->spam_count && $apbct->spam_count > 0 ) {
             echo '<div class="ct_widget_wprapper_total_blocked">'
-                 . '<img src="' . Escape::escUrl($apbct->logo__small__colored) . '" class="ct_widget_small_logo"/>'
+                 . ($apbct->data["wl_mode_enabled"] ? '' : '<img src="' . Escape::escUrl($apbct->logo__small__colored) . '" class="ct_widget_small_logo"/>')
                  . '<span title="' . sprintf(
                      __(
                          'This is the count from the %s\'s cloud and could be different to admin bar counters',
@@ -240,9 +240,9 @@ function ct_dashboard_statistics_widget_output($_post, $_callback_args)
                          '%s%s%s has blocked %s spam for all time. The statistics are automatically updated every 24 hours.',
                          'cleantalk-spam-protect'
                      ),
-                     ! $apbct->white_label ? '<a href="https://cleantalk.org/my/?user_token=' . $apbct->user_token . '&utm_source=wp-backend&utm_medium=dashboard_widget&cp_mode=antispam" target="_blank">' : '',
+                     ! $apbct->data["wl_mode_enabled"] ? '<a href="https://cleantalk.org/my/?user_token=' . $apbct->user_token . '&utm_source=wp-backend&utm_medium=dashboard_widget&cp_mode=antispam" target="_blank">' : '',
                      $actual_plugin_name,
-                     ! $apbct->white_label ? '</a>' : '',
+                     ! $apbct->data["wl_mode_enabled"] ? '</a>' : '',
                      number_format($apbct->data['spam_count'], 0, ',', ' ')
                  )
                  . '</span>'
@@ -406,7 +406,7 @@ function apbct_admin__register_plugin_links($links, $file, $plugin_data)
 
     $actual_plugin_name = $apbct->plugin_name;
     if (isset($apbct->data['wl_brandname']) && $apbct->data['wl_brandname'] !== APBCT_NAME) {
-        $actual_plugin_name = $apbct->data['wl_brandname'];
+        $actual_plugin_name = $apbct->data['wl_brandname'] . "&nbsp; Anti-Spam";
     }
 
     if ( $apbct->white_label || $apbct->data["wl_mode_enabled"] ) {
