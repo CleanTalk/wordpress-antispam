@@ -567,7 +567,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
             if ( !empty($w3tc_js_file_name_in_uri) ) {
                 //get option
                 $w3tc_minify_option = get_option('w3tc_minify');
-                $w3tc_minify_option = false !== $w3tc_minify_option ? json_decode($w3tc_minify_option, ARRAY_A) : null;
+                $w3tc_minify_option = false !== $w3tc_minify_option ? json_decode($w3tc_minify_option, true) : null;
                 // if option found and is an array
                 if (is_array($w3tc_minify_option)) {
                     // check if sign is in option keys
