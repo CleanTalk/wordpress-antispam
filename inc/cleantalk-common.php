@@ -187,7 +187,7 @@ function apbct_base_call($params = array(), $reg_flag = false)
         'agent'       => APBCT_AGENT,
         'sender_info' => $sender_info,
         'submit_time' => apbct_get_submit_time(),
-        'event_token' => Post::get('ct_bot_detector_event_token')
+        'event_token' => !empty($params['event_token']) ? $params['event_token'] : Post::get('ct_bot_detector_event_token'),
     );
 
     /**

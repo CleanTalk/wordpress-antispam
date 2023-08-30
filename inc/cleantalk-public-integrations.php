@@ -2263,6 +2263,7 @@ function apbct_form__ninjaForms__testSpam()
             'sender_nickname' => $sender_nickname,
             'post_info'       => array('comment_type' => 'contact_form_wordpress_ninja_froms'),
             'js_on'           => $checkjs,
+            'event_token'     => Cookie::get('ct_bot_detector_event_token'),
         )
     );
 
