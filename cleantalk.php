@@ -23,6 +23,7 @@ use Cleantalk\ApbctWP\Deactivator;
 use Cleantalk\ApbctWP\Firewall\AntiCrawler;
 use Cleantalk\ApbctWP\Firewall\AntiFlood;
 use Cleantalk\ApbctWP\Firewall\SFW;
+use Cleantalk\ApbctWP\Firewall\SFWUpdateHelper;
 use Cleantalk\ApbctWP\Helper;
 use Cleantalk\ApbctWP\RemoteCalls;
 use Cleantalk\ApbctWP\RestController;
@@ -127,7 +128,10 @@ $apbct->moderate         = ! APBCT_WPMS || $apbct->allow_custom_key || $apbct->w
 
 $apbct->data['user_counter']['since']       = isset($apbct->data['user_counter']['since'])       ? $apbct->data['user_counter']['since'] : date('d M');
 
+// SFW update
 $apbct->firewall_updating = (bool)$apbct->fw_stats['firewall_updating_id'];
+$apbct->data['sfw_load_type'] = (!APBCT_WPMS || is_main_site() || $apbct->network_settings['multisite__work_mode'] === 2) ? 'all' : 'personal';
+$apbct->saveData();
 
 $apbct->settings_link = is_network_admin() ? 'settings.php?page=cleantalk' : 'options-general.php?page=cleantalk';
 
@@ -942,16 +946,30 @@ function apbct_sfw__check()
         DB::getInstance()
     );
 
+    $sfw_tables_names = SFW::getSFWTablesNames();
+
+    if (!$sfw_tables_names) {
+            $apbct->errorAdd(
+                'sfw',
+                esc_html__(
+                    'Can not get SFW table names from main blog options',
+                    'cleantalk-spam-protect'
+                )
+            );
+            return;
+    }
+
     $firewall->loadFwModule(
         new SFW(
             APBCT_TBL_FIREWALL_LOG,
-            APBCT_TBL_FIREWALL_DATA,
+            $sfw_tables_names['sfw_personal_table_name'],
             array(
                 'sfw_counter'       => $apbct->settings['admin_bar__sfw_counter'],
                 'api_key'           => $apbct->api_key,
                 'apbct'             => $apbct,
                 'cookie_domain'     => parse_url(get_option('home'), PHP_URL_HOST),
                 'data__cookies_type' => $apbct->data['cookies_type'],
+                'sfw_common_table_name'  => $sfw_tables_names['sfw_common_table_name'],
             )
         )
     );
@@ -1063,19 +1081,13 @@ function ct_get_cookie()
     die();
 }
 
-// Clears
-function apbct_sfw__clear()
-{
-    global $apbct, $wpdb;
-
-    $wpdb->query('DELETE FROM ' . APBCT_TBL_FIREWALL_DATA . ';');
-
-    $apbct->stats['sfw']['entries'] = 0;
-    $apbct->save('stats');
-}
-
 // This action triggered by  wp_schedule_single_event( time() + 720, 'apbct_sfw_update__init' );
 add_action('apbct_sfw_update__init', 'apbct_sfw_update__init');
+
+
+/**
+ * * * * * * SFW UPDATE ACTIONS * * * * * *
+ */
 
 /**
  * Called by sfw_update remote call
@@ -1089,11 +1101,16 @@ function apbct_sfw_update__init($delay = 0)
 {
     global $apbct;
 
+    //do not run sfw update on subsites if mutual key is set
+    if ($apbct->network_settings['multisite__work_mode'] === 2 && !is_main_site()) {
+        return false;
+    }
+
     // Prevent start an update if update is already running and started less than 10 minutes ago
     if (
         $apbct->fw_stats['firewall_updating_id'] &&
-        time() - $apbct->fw_stats['firewall_updating_last_start'] < 600 &&
-        apbct_sfw_update__is_in_progress()
+        time() - $apbct->fw_stats['firewall_updating_last_start'] < 6 &&
+        SFWUpdateHelper::updateIsInProgress()
     ) {
         return false;
     }
@@ -1120,10 +1137,24 @@ function apbct_sfw_update__init($delay = 0)
         $apbct->save('stats');
     }
 
+    $sfw_tables_names = SFW::getSFWTablesNames();
+
+    if ( !$sfw_tables_names ) {
+        //try to create tables
+        $sfw_tables_names = apbct_sfw_update__create_tables(false, true);
+        if (!$sfw_tables_names) {
+            return array('error' => 'Can not get SFW table names from main blog options');
+        }
+    }
+
+    $apbct->data['sfw_common_table_name'] = $sfw_tables_names['sfw_common_table_name'];
+    $apbct->data['sfw_personal_table_name'] = $sfw_tables_names['sfw_personal_table_name'];
+    $apbct->save('data');
+
     $wp_upload_dir = wp_upload_dir();
     $apbct->fw_stats['updating_folder'] = $wp_upload_dir['basedir'] . DIRECTORY_SEPARATOR . 'cleantalk_fw_files_for_blog_' . get_current_blog_id() . DIRECTORY_SEPARATOR;
 
-    $prepare_dir__result = apbct_prepare_upd_dir();
+    $prepare_dir__result = SFWUpdateHelper::prepareUpdDir();
     $test_rc_result = Helper::httpRequestRcToHostTest(
         'sfw_update__worker',
         array(
@@ -1132,14 +1163,17 @@ function apbct_sfw_update__init($delay = 0)
             'plugin_name' => 'apbct'
         )
     );
+
     if ( defined('APBCT_SFW_FORCE_DIRECT_UPDATE') || ! empty($prepare_dir__result['error']) || ! empty($test_rc_result['error']) ) {
-        return apbct_sfw_direct_update();
+        return SFWUpdateHelper::directUpdate();
     }
 
     // Set a new update ID and an update time start
     $apbct->fw_stats['calls']                        = 0;
     $apbct->fw_stats['firewall_updating_id']         = md5((string)rand(0, 100000));
     $apbct->fw_stats['firewall_updating_last_start'] = time();
+    $apbct->fw_stats['common_lists_url_id'] = '';
+    $apbct->fw_stats['personal_lists_url_id'] = '';
     $apbct->save('fw_stats');
 
     $apbct->sfw_update_sentinel->seekId($apbct->fw_stats['firewall_updating_id']);
@@ -1151,7 +1185,15 @@ function apbct_sfw_update__init($delay = 0)
     \Cleantalk\ApbctWP\Queue::clearQueue();
 
     $queue = new \Cleantalk\ApbctWP\Queue();
-    $queue->addStage('apbct_sfw_update__get_multifiles');
+    //this is the first stage, select what type of SFW load need
+    $load_type = isset($apbct->data['sfw_load_type']) ? $apbct->data['sfw_load_type'] : 'all';
+    if ( $load_type === 'all' ) {
+        $queue->addStage('apbct_sfw_update__get_multifiles_all');
+    } else {
+        $get_multifiles_params['type'] = $load_type;
+        $get_multifiles_params['do_return_urls'] = false;
+        $queue->addStage('apbct_sfw_update__get_multifiles_of_type', $get_multifiles_params);
+    }
 
     $cron = new Cron();
     $watch_dog_period = $apbct->sfw_update_sentinel->getWatchDogCronPeriod();
@@ -1241,9 +1283,9 @@ function apbct_sfw_update__worker($checker_work = false)
     }
 
     if ( isset($result['error']) && $result['status'] === 'FINISHED' ) {
-        apbct_sfw_update__fallback();
+        SFWUpdateHelper::fallback();
 
-        $direct_upd_res = apbct_sfw_direct_update();
+        $direct_upd_res = SFWUpdateHelper::directUpdate();
 
         if ( $direct_upd_res['error'] ) {
             $apbct->errorAdd('queue', $result['error'], 'sfw_update');
@@ -1290,7 +1332,15 @@ function apbct_sfw_update__worker($checker_work = false)
     );
 }
 
-function apbct_sfw_update__get_multifiles()
+/**
+ * QUEUE STAGES *
+ */
+
+/**
+ * Queue stage. Get both types of multifiles (common/personal) url for next downloading.
+ * @return array|array[]|string[]
+ */
+function apbct_sfw_update__get_multifiles_all()
 {
     global $apbct;
 
@@ -1298,27 +1348,88 @@ function apbct_sfw_update__get_multifiles()
         return array('error' => 'Get multifiles: KEY_IS_NOT_VALID');
     }
 
-    // Getting remote file name
-    $result = API::methodGet2sBlacklistsDb($apbct->api_key, 'multifiles', '3_2');
+    $get_multifiles_common_urls = apbct_sfw_update__get_multifiles_of_type(array('type' => 'common', 'do_return_urls' => true));
+    if ( !empty($get_multifiles_common_urls['error']) ) {
+        $output_error = $get_multifiles_common_urls['error'];
+    }
 
-    if ( empty($result['error']) ) {
-        if ( ! empty($result['file_url']) ) {
-            $file_urls = Helper::httpGetDataFromRemoteGzAndParseCsv($result['file_url']);
-            if ( empty($file_urls['error']) ) {
-                if ( ! empty($result['file_ua_url']) ) {
-                    $file_urls[][0] = $result['file_ua_url'];
-                }
-                if ( ! empty($result['file_ck_url']) ) {
-                    $file_urls[][0] = $result['file_ck_url'];
-                }
-                $urls = array();
-                foreach ( $file_urls as $value ) {
-                    $urls[] = $value[0];
-                }
+    $get_multifiles_personal_urls = apbct_sfw_update__get_multifiles_of_type(array('type' => 'personal', 'do_return_urls' => true));
+    if ( !empty($get_multifiles_personal_urls['error']) ) {
+        $output_error = $get_multifiles_personal_urls['error'];
+    }
 
-                $apbct->fw_stats['firewall_update_percent'] = round(100 / count($urls), 2);
-                $apbct->save('fw_stats');
+    $file_urls = array_merge($get_multifiles_common_urls, $get_multifiles_personal_urls);
 
+    if ( empty($file_urls) ) {
+        $output_error = 'SFW_UPDATE_FILES_URLS_IS_EMPTY';
+    }
+
+    if ( empty($output_error) ) {
+        $apbct->fw_stats['firewall_update_percent'] = round(100 / count($file_urls), 2);
+        $apbct->save('fw_stats');
+
+        return array(
+            'next_stage' => array(
+                'name'    => 'apbct_sfw_update__download_files',
+                'args'    => $file_urls,
+                'is_last' => '0'
+            )
+        );
+    } else {
+        return array('error' => $output_error);
+    }
+}
+
+/**
+ * Queue stage. Get multifiles url for next downloading. Can return urls directly if flag is set instead of next stage call.
+ * @param array $params 'type' -> type of SFW load, 'do_return_urls' -> return urls if true, array call for next stage otherwise(default false)
+ * @return array|array[]|string[]
+ */
+function apbct_sfw_update__get_multifiles_of_type(array $params)
+{
+    global $apbct;
+    //check key
+    if ( ! $apbct->data['key_is_ok'] ) {
+        return array('error' => 'Get multifiles: KEY_IS_NOT_VALID');
+    }
+
+    //chek type
+    if ( !isset($params['type']) || !in_array($params['type'], array('common', 'personal')) ) {
+        return array('error' => 'Get multifiles: bad params');
+    } else {
+        $type = $params['type'];
+    }
+    //check needs return urls instead of next stage
+    $do_return_urls = false;
+    if ( isset($params['do_return_urls']) ) {
+        $do_return_urls = $params['do_return_urls'];
+    }
+
+    $output_error = array();
+    // getting urls
+    try {
+        $direction_files = SFWUpdateHelper::getDirectionUrlsOfType($type);
+        if ( $type === 'personal' ) {
+            $apbct->fw_stats['personal_lists_url_id'] = $direction_files['url_id'];
+        } else {
+            $apbct->fw_stats['common_lists_url_id'] = $direction_files['url_id'];
+        }
+    } catch (\Exception $e) {
+        $output_error[] = $e->getMessage();
+    }
+
+    if ( empty($output_error) ) {
+        if ( !empty($direction_files['files_urls']) ) {
+            $urls = array();
+            foreach ( $direction_files['files_urls'] as $value ) {
+                $urls[] = $value[0];
+            }
+
+            $apbct->fw_stats['firewall_update_percent'] = round(100 / count($urls), 2);
+            $apbct->save('fw_stats');
+
+            // return urls directly on do load all multifiles, otherwise proceed to next queue stage
+            if ( !$do_return_urls) {
                 return array(
                     'next_stage' => array(
                         'name'    => 'apbct_sfw_update__download_files',
@@ -1326,17 +1437,23 @@ function apbct_sfw_update__get_multifiles()
                         'is_last' => '0'
                     )
                 );
+            } else {
+                return $urls;
             }
-
-            return array('error' => $file_urls['error']);
+        } else {
+            return array('error' => 'SFW_UPDATE_FILES_URLS_IS_EMPTY');
         }
     } else {
-        return $result;
+        return array('error' => $output_error);
     }
-    return null;
 }
 
-function apbct_sfw_update__download_files($urls)
+/**
+ * Queue stage. Do load multifiles with networks on their urls.
+ * @param $urls
+ * @return array|array[]|bool|string|string[]
+ */
+function apbct_sfw_update__download_files($urls, $direct_update = false)
 {
     global $apbct;
 
@@ -1349,6 +1466,9 @@ function apbct_sfw_update__download_files($urls)
     $count_results = count($results);
 
     if ( empty($results['error']) && ($count_urls === $count_results) ) {
+        if ( $direct_update ) {
+            return true;
+        }
         $download_again = array();
         $results        = array_values($results);
         for ( $i = 0; $i < $count_results; $i++ ) {
@@ -1380,41 +1500,75 @@ function apbct_sfw_update__download_files($urls)
     return array('error' => 'Files download not completed.');
 }
 
-function apbct_sfw_update__create_tables()
+/**
+ * Queue stage. Create SFW origin tables to make sure they are exists.
+ * @return array[]|bool|string[]
+ */
+function apbct_sfw_update__create_tables($direct_update = false, $return_new_tables_names = false)
 {
-    global $apbct;
+    global $apbct, $wpdb;
     // Preparing database infrastructure
+
     // Creating SFW tables to make sure that they are exists
     $db_tables_creator = new DbTablesCreator();
-    $table_name = $apbct->db_prefix . Schema::getSchemaTablePrefix() . 'sfw';
-    $db_tables_creator->createTable($table_name);
 
-    return array(
+    //common table
+    $common_table_name = $wpdb->base_prefix . Schema::getSchemaTablePrefix() . 'sfw';
+    $db_tables_creator->createTable($common_table_name);
+    $apbct->data['sfw_common_table_name'] = $common_table_name;
+    //personal table
+    $table_name_personal = $apbct->db_prefix . Schema::getSchemaTablePrefix() . 'sfw_personal';
+    $db_tables_creator->createTable($table_name_personal);
+    $apbct->data['sfw_personal_table_name'] = $table_name_personal;
+
+    $apbct->saveData();
+
+    if ( $return_new_tables_names ) {
+        return array('sfw_common_table_name' => $common_table_name, 'sfw_personal_table_name' => $table_name_personal);
+    }
+
+    return $direct_update ? true : array(
         'next_stage' => array(
             'name' => 'apbct_sfw_update__create_temp_tables',
         )
     );
 }
 
-function apbct_sfw_update__create_temp_tables()
+/**
+ * Queue stage. Create SFW temporary tables. They will replace origin tables after update.
+ * @return array[]|bool
+ */
+function apbct_sfw_update__create_temp_tables($direct_update = false)
 {
-    // Preparing temporary tables
+    global $apbct;
+
+    // Create common table
     $result = SFW::createTempTables(DB::getInstance(), APBCT_TBL_FIREWALL_DATA);
     if ( ! empty($result['error']) ) {
         return $result;
     }
+    // Create personal table
+    $result = SFW::createTempTables(DB::getInstance(), APBCT_TBL_FIREWALL_DATA_PERSONAL);
+    if ( ! empty($result['error']) ) {
+        return $result;
+    }
 
-    return array(
+    return $direct_update ? true : array(
         'next_stage' => array(
             'name' => 'apbct_sfw_update__process_files',
         )
     );
 }
 
+/**
+ * Queue stage. Process all of downloaded multifiles that collected to the update folder.
+ * @return array[]|int|string[]|null
+ */
 function apbct_sfw_update__process_files()
 {
     global $apbct;
 
+    // get list of files in the upd folder
     $files = glob($apbct->fw_stats['updating_folder'] . '/*csv.gz');
     $files = array_filter($files, static function ($element) {
         return strpos($element, 'list') !== false;
@@ -1424,16 +1578,37 @@ function apbct_sfw_update__process_files()
         reset($files);
         $concrete_file = current($files);
 
+        //get direction on how the file should be processed (common/personal)
+        if (
+            // we should have a personal list id (hash) to make sure the file belongs to private lists
+            !empty($apbct->fw_stats['personal_lists_url_id'])
+            && strpos($concrete_file, $apbct->fw_stats['personal_lists_url_id']) !== false
+        ) {
+            $direction = 'personal';
+        } elseif (
+            // we should have a common list id (hash) to make sure the file belongs to common lists
+            !empty($apbct->fw_stats['common_lists_url_id'])
+            && strpos($concrete_file, $apbct->fw_stats['common_lists_url_id']) !== false ) {
+            $direction = 'common';
+        } else {
+            // no id found in fw_stats or file namse does not contain any of them
+            return array('error' => 'SFW_DIRECTION_FAILED');
+        }
+
+        // do proceed file with networks itself
         if ( strpos($concrete_file, 'bl_list') !== false ) {
-            $result = apbct_sfw_update__process_file($concrete_file);
+            //$result = apbct_sfw_update__process_file($concrete_file, $direction);
+            $result = SFWUpdateHelper::processFile($concrete_file, $direction);
         }
 
+        // do proceed ua file
         if ( strpos($concrete_file, 'ua_list') !== false ) {
-            $result = apbct_sfw_update__process_ua($concrete_file);
+            $result = SFWUpdateHelper::processUA($concrete_file);
         }
 
+        // do proceed checking file
         if ( strpos($concrete_file, 'ck_list') !== false ) {
-            $result = apbct_sfw_update__process_ck($concrete_file);
+            $result = SFWUpdateHelper::processCK($concrete_file, $direction);
         }
 
         if ( ! empty($result['error']) ) {
@@ -1457,95 +1632,17 @@ function apbct_sfw_update__process_files()
     );
 }
 
-function apbct_sfw_update__process_file($file_path)
-{
-    if ( ! file_exists($file_path) ) {
-        return array('error' => 'PROCESS FILE: ' . $file_path . ' is not exists.');
-    }
-
-    $result = SFW::updateWriteToDb(
-        DB::getInstance(),
-        APBCT_TBL_FIREWALL_DATA . '_temp',
-        $file_path
-    );
-
-    if ( ! empty($result['error']) ) {
-        return array('error' => 'PROCESS FILE: ' . $result['error']);
-    }
-
-    if ( ! is_int($result) ) {
-        return array('error' => 'PROCESS FILE: WRONG RESPONSE FROM update__write_to_db');
-    }
-
-    return $result;
-}
-
-function apbct_sfw_update__process_ua($file_path)
-{
-    $result = AntiCrawler::update($file_path);
-
-    if ( ! empty($result['error']) ) {
-        return array('error' => 'UPDATING UA LIST: ' . $result['error']);
-    }
-
-    if ( ! is_int($result) ) {
-        return array('error' => 'UPDATING UA LIST: : WRONG_RESPONSE AntiCrawler::update');
-    }
-
-    return $result;
-}
-
-function apbct_sfw_update__process_ck($file_path)
-{
-    global $apbct;
-
-    // Save expected_networks_count and expected_ua_count if exists
-    $file_content = file_get_contents($file_path);
-
-    if ( function_exists('gzdecode') ) {
-        $unzipped_content = gzdecode($file_content);
-
-        if ( $unzipped_content !== false ) {
-            $file_ck_url__data = Helper::bufferParseCsv($unzipped_content);
-
-            if ( ! empty($file_ck_url__data['error']) ) {
-                return array('error' => 'GET EXPECTED RECORDS COUNT DATA: ' . $file_ck_url__data['error']);
-            }
-
-            $expected_networks_count = 0;
-            $expected_ua_count       = 0;
-
-            foreach ( $file_ck_url__data as $value ) {
-                if ( trim($value[0], '"') === 'networks_count' ) {
-                    $expected_networks_count = $value[1];
-                }
-                if ( trim($value[0], '"') === 'ua_count' ) {
-                    $expected_ua_count = $value[1];
-                }
-            }
-
-            $apbct->fw_stats['expected_networks_count'] = $expected_networks_count;
-            $apbct->fw_stats['expected_ua_count']       = $expected_ua_count;
-            $apbct->save('fw_stats');
-
-            if ( file_exists($file_path) ) {
-                unlink($file_path);
-            }
-        } else {
-            return array('error' => 'Can not unpack datafile');
-        }
-    } else {
-        return array('error' => 'Function gzdecode not exists. Please update your PHP at least to version 5.4 ');
-    }
-}
-
-function apbct_sfw_update__process_exclusions()
+/**
+ * Queue stage. Process hardcoded exclusion to the SFW temp table.
+ * @return array[]|string[]|bool
+ */
+function apbct_sfw_update__process_exclusions($direct_update = false)
 {
     global $apbct;
 
     $result = SFW::updateWriteToDbExclusions(
         DB::getInstance(),
-        APBCT_TBL_FIREWALL_DATA . '_temp'
+        APBCT_TBL_FIREWALL_DATA_PERSONAL . '_temp'
     );
 
     if ( ! empty($result['error']) ) {
@@ -1560,11 +1657,11 @@ function apbct_sfw_update__process_exclusions()
      * Update expected_networks_count
      */
     if ( $result > 0 ) {
-        $apbct->fw_stats['expected_networks_count'] += $result;
+        $apbct->fw_stats['expected_networks_count_personal'] += $result;
         $apbct->save('fw_stats');
     }
 
-    return array(
+    return $direct_update ? true : array(
         'next_stage' => array(
             'name' => 'apbct_sfw_update__end_of_update__renaming_tables',
             'accepted_tries' => 1
@@ -1572,16 +1669,18 @@ function apbct_sfw_update__process_exclusions()
     );
 }
 
-function apbct_sfw_update__end_of_update__renaming_tables()
+/**
+ * Queue stage. Delete origin tables and rename temporary tables.
+ * @return array|array[]|string[]|bool
+ */
+function apbct_sfw_update__end_of_update__renaming_tables($direct_update = false)
 {
     global $apbct;
 
-    if ( ! DB::getInstance()->isTableExists(APBCT_TBL_FIREWALL_DATA) ) {
-        return array('error' => 'Error while completing data: SFW main table does not exist.');
-    }
+    $check = SFWUpdateHelper::checkTablesIntegrityBeforeRenaming($apbct->data['sfw_load_type']);
 
-    if ( ! DB::getInstance()->isTableExists(APBCT_TBL_FIREWALL_DATA . '_temp') ) {
-        return array('error' => 'Error while completing data: SFW temp table does not exist.');
+    if ( !empty($check['error']) ) {
+        return array('error' => $check['error']);
     }
 
     $apbct->fw_stats['update_mode'] = 1;
@@ -1589,19 +1688,18 @@ function apbct_sfw_update__end_of_update__renaming_tables()
     usleep(10000);
 
     // REMOVE AND RENAME
-    $result = SFW::dataTablesDelete(DB::getInstance(), APBCT_TBL_FIREWALL_DATA);
-    if ( empty($result['error']) ) {
-        $result = SFW::renameDataTablesFromTempToMain(DB::getInstance(), APBCT_TBL_FIREWALL_DATA);
+    try {
+        SFWUpdateHelper::removeAndRenameSfwTables($apbct->data['sfw_load_type']);
+    } catch (\Exception $e) {
+        $apbct->fw_stats['update_mode'] = 0;
+        $apbct->save('fw_stats');
+        return array('error' => $e->getMessage());
     }
 
     $apbct->fw_stats['update_mode'] = 0;
     $apbct->save('fw_stats');
 
-    if ( ! empty($result['error']) ) {
-        return $result;
-    }
-
-    return array(
+    return $direct_update ? true : array(
         'next_stage' => array(
             'name' => 'apbct_sfw_update__end_of_update__checking_data',
             'accepted_tries' => 1
@@ -1609,31 +1707,52 @@ function apbct_sfw_update__end_of_update__renaming_tables()
     );
 }
 
-function apbct_sfw_update__end_of_update__checking_data()
+/**
+ * Queue stage. Check data after all the SFW update actions.
+ * @return array|array[]|string[]|bool
+ */
+function apbct_sfw_update__end_of_update__checking_data($direct_update = false)
 {
     global $apbct, $wpdb;
 
-    if ( ! DB::getInstance()->isTableExists(APBCT_TBL_FIREWALL_DATA) ) {
-        return array('error' => 'Error while checking data: SFW main table does not exist.');
+    try {
+        SFWUpdateHelper::checkTablesIntegrityAfterRenaming($apbct->data['sfw_load_type']);
+    } catch (\Exception $e) {
+        return array('error' => $e->getMessage());
     }
 
-    $apbct->stats['sfw']['entries'] = $wpdb->get_var('SELECT COUNT(*) FROM ' . APBCT_TBL_FIREWALL_DATA);
+    $apbct->stats['sfw']['entries'] = $wpdb->get_var('SELECT COUNT(*) FROM ' . $apbct->data['sfw_common_table_name']);
+    $apbct->stats['sfw']['entries_personal'] = $wpdb->get_var('SELECT COUNT(*) FROM ' . $apbct->data['sfw_personal_table_name']);
     $apbct->save('stats');
 
     /**
      * Checking the integrity of the sfw database update
      */
-    if ( $apbct->stats['sfw']['entries'] != $apbct->fw_stats['expected_networks_count'] ) {
+    if ( in_array($apbct->data['sfw_load_type'], array('all','common'))
+        && isset($apbct->stats['sfw']['entries'])
+        && ($apbct->stats['sfw']['entries'] != $apbct->fw_stats['expected_networks_count'] ) ) {
         return array(
             'error' =>
                 'The discrepancy between the amount of data received for the update and in the final table: '
-                . APBCT_TBL_FIREWALL_DATA
+                . $apbct->data['sfw_common_table_name']
                 . '. RECEIVED: ' . $apbct->fw_stats['expected_networks_count']
                 . '. ADDED: ' . $apbct->stats['sfw']['entries']
         );
     }
 
-    return array(
+    if ( in_array($apbct->data['sfw_load_type'], array('all','personal'))
+        && isset($apbct->stats['sfw']['entries_personal'])
+        && ( $apbct->stats['sfw']['entries_personal'] != $apbct->fw_stats['expected_networks_count_personal'] ) ) {
+        return array(
+            'error' =>
+                'The discrepancy between the amount of data received for the update and in the final table: '
+                . $apbct->data['sfw_personal_table_name']
+                . '. RECEIVED: ' . $apbct->fw_stats['expected_networks_count_personal']
+                . '. ADDED: ' . $apbct->stats['sfw']['entries_personal']
+        );
+    }
+
+    return $direct_update ? true : array(
         'next_stage' => array(
             'name' => 'apbct_sfw_update__end_of_update__updating_stats',
             'accepted_tries' => 1
@@ -1641,13 +1760,18 @@ function apbct_sfw_update__end_of_update__checking_data()
     );
 }
 
-function apbct_sfw_update__end_of_update__updating_stats($is_direct_update = false)
+/**
+ * Queue stage. Update stats.
+ * @param $direct_update
+ * @return array[]
+ */
+function apbct_sfw_update__end_of_update__updating_stats($direct_update = false)
 {
     global $apbct;
 
     $is_first_updating = ! $apbct->stats['sfw']['last_update_time'];
     $apbct->stats['sfw']['last_update_time'] = time();
-    $apbct->stats['sfw']['last_update_way']  = $is_direct_update ? 'Direct update' : 'Queue update';
+    $apbct->stats['sfw']['last_update_way']  = $direct_update ? 'Direct update' : 'Queue update';
     $apbct->save('stats');
 
     return array(
@@ -1659,6 +1783,11 @@ function apbct_sfw_update__end_of_update__updating_stats($is_direct_update = fal
     );
 }
 
+/**
+ * Final queue stage. Reset all misc data and set new cron.
+ * @param $is_first_updating
+ * @return true
+ */
 function apbct_sfw_update__end_of_update($is_first_updating = false)
 {
     global $apbct;
@@ -1668,7 +1797,7 @@ function apbct_sfw_update__end_of_update($is_first_updating = false)
 
     // Running sfw update once again in 12 min if entries is < 4000
     if ( $is_first_updating &&
-         $apbct->stats['sfw']['entries'] < 4000
+        $apbct->stats['sfw']['entries'] < 4000
     ) {
         wp_schedule_single_event(time() + 720, 'apbct_sfw_update__init');
     }
@@ -1677,7 +1806,7 @@ function apbct_sfw_update__end_of_update($is_first_updating = false)
     $cron->updateTask('sfw_update', 'apbct_sfw_update__init', $apbct->stats['sfw']['update_period']);
     $cron->removeTask('sfw_update_checker');
 
-    apbct_remove_upd_folder($apbct->fw_stats['updating_folder']);
+    SFWUpdateHelper::removeUpdFolder($apbct->fw_stats['updating_folder']);
 
     // Reset all FW stats
     $apbct->sfw_update_sentinel->clearSentinelData();
@@ -1690,77 +1819,10 @@ function apbct_sfw_update__end_of_update($is_first_updating = false)
     return true;
 }
 
-
-function apbct_sfw_update__is_in_progress()
-{
-    $queue = new \Cleantalk\ApbctWP\Queue();
-
-    return $queue->isQueueInProgress();
-}
-
-function apbct_prepare_upd_dir()
-{
-    global $apbct;
-
-    $dir_name = $apbct->fw_stats['updating_folder'];
-
-    if ( $dir_name === '' ) {
-        return array('error' => 'FW dir can not be blank.');
-    }
-
-    if ( ! is_dir($dir_name) ) {
-        if ( ! mkdir($dir_name) && ! is_dir($dir_name) ) {
-            return array('error' => 'Can not to make FW dir.');
-        }
-    } else {
-        $files = glob($dir_name . '/*');
-        if ( $files === false ) {
-            return array('error' => 'Can not find FW files.');
-        }
-        if ( count($files) === 0 ) {
-            return (bool)file_put_contents($dir_name . 'index.php', '<?php' . PHP_EOL);
-        }
-        foreach ( $files as $file ) {
-            if ( is_file($file) && unlink($file) === false ) {
-                return array('error' => 'Can not delete the FW file: ' . $file);
-            }
-        }
-    }
-
-    return (bool)file_put_contents($dir_name . 'index.php', '<?php');
-}
-
-function apbct_remove_upd_folder($dir_name)
-{
-    if ( is_dir($dir_name) ) {
-        $files = glob($dir_name . '/*');
-
-        if ( ! empty($files) ) {
-            foreach ( $files as $file ) {
-                if ( is_file($file) ) {
-                    unlink($file);
-                }
-                if ( is_dir($file) ) {
-                    apbct_remove_upd_folder($file);
-                }
-            }
-        }
-
-        //add more paths if some strange files has been detected
-        $non_cleantalk_files_filepaths = array(
-            $dir_name . '.last.jpegoptim'
-        );
-
-        foreach ( $non_cleantalk_files_filepaths as $filepath ) {
-            if ( file_exists($filepath) && is_file($filepath) && !is_writable($filepath) ) {
-                unlink($filepath);
-            }
-        }
-
-        rmdir($dir_name);
-    }
-}
-
+/**
+ * Cron task handler.
+ * @return array|bool|int|string|string[]
+ */
 function apbct_sfw_update__checker()
 {
     $queue = new \Cleantalk\ApbctWP\Queue();
@@ -1775,157 +1837,26 @@ function apbct_sfw_update__checker()
     return true;
 }
 
-function apbct_sfw_direct_update()
+
+/**
+ * * * * * * SFW COMMON ACTIONS * * * * * *
+ */
+
+function apbct_sfw__clear()
 {
-    global $apbct;
+    global $apbct, $wpdb;
 
-    $api_key = $apbct->api_key;
+    $wpdb->query('DELETE FROM ' . APBCT_TBL_FIREWALL_DATA . ';');
 
-    // The Access key is empty
-    if ( empty($api_key) ) {
-        return array('error' => 'SFW DIRECT UPDATE: KEY_IS_EMPTY');
-    }
-
-    // Getting BL
-    $result = SFW::directUpdateGetBlackLists($api_key);
-
-    if ( empty($result['error']) ) {
-        $blacklists = $result['blacklist'];
-        $useragents = $result['useragents'];
-        $bl_count   = $result['bl_count'];
-        $ua_count   = $result['ua_count'];
-
-        if ( isset($bl_count, $ua_count) ) {
-            $apbct->fw_stats['expected_networks_count'] = $bl_count;
-            $apbct->fw_stats['expected_ua_count']       = $ua_count;
-            $apbct->save('fw_stats');
-        }
-
-        // Preparing database infrastructure
-        // @ToDo need to implement returning result of the Activator::createTables work.
-        $db_tables_creator = new DbTablesCreator();
-        $table_name = $apbct->db_prefix . Schema::getSchemaTablePrefix() . 'sfw';
-        $db_tables_creator->createTable($table_name);
-
-        $result__creating_tmp_table = SFW::createTempTables(DB::getInstance(), APBCT_TBL_FIREWALL_DATA);
-        if ( ! empty($result__creating_tmp_table['error']) ) {
-            return array('error' => 'DIRECT UPDATING CREATE TMP TABLE: ' . $result__creating_tmp_table['error']);
-        }
-
-        /**
-         * UPDATING UA LIST
-         */
-        if ( $useragents && ($apbct->settings['sfw__anti_crawler'] || $apbct->settings['sfw__anti_flood']) ) {
-            $ua_result = AntiCrawler::directUpdate($useragents);
-
-            if ( ! empty($ua_result['error']) ) {
-                return array('error' => 'DIRECT UPDATING UA LIST: ' . $result['error']);
-            }
-
-            if ( ! is_int($ua_result) ) {
-                return array('error' => 'DIRECT UPDATING UA LIST: : WRONG_RESPONSE AntiCrawler::directUpdate');
-            }
-        }
-
-        /**
-         * UPDATING BLACK LIST
-         */
-        $upd_result = SFW::directUpdate(
-            DB::getInstance(),
-            APBCT_TBL_FIREWALL_DATA . '_temp',
-            $blacklists
-        );
-
-        if ( ! empty($upd_result['error']) ) {
-            return array('error' => 'DIRECT UPDATING BLACK LIST: ' . $upd_result['error']);
-        }
-
-        if ( ! is_int($upd_result) ) {
-            return array('error' => 'DIRECT UPDATING BLACK LIST: WRONG RESPONSE FROM SFW::directUpdate');
-        }
-
-        /**
-         * UPDATING EXCLUSIONS LIST
-         */
-        $excl_result = apbct_sfw_update__process_exclusions();
-
-        if ( ! empty($excl_result['error']) ) {
-            return array('error' => 'DIRECT UPDATING EXCLUSIONS: ' . $excl_result['error']);
-        }
-
-        /**
-         * DELETING AND RENAMING THE TABLES
-         */
-        $rename_tables_res = apbct_sfw_update__end_of_update__renaming_tables();
-        if ( ! empty($rename_tables_res['error']) ) {
-            return array('error' => 'DIRECT UPDATING BLACK LIST: ' . $rename_tables_res['error']);
-        }
-
-        /**
-         * CHECKING THE UPDATE
-         */
-        $check_data_res = apbct_sfw_update__end_of_update__checking_data();
-        if ( ! empty($check_data_res['error']) ) {
-            return array('error' => 'DIRECT UPDATING BLACK LIST: ' . $check_data_res['error']);
-        }
-
-        /**
-         * WRITE UPDATING STATS
-         */
-        $update_stats_res = apbct_sfw_update__end_of_update__updating_stats(true);
-        if ( ! empty($update_stats_res['error']) ) {
-            return array('error' => 'DIRECT UPDATING BLACK LIST: ' . $update_stats_res['error']);
-        }
-
-        /**
-         * END OF UPDATE
-         */
-        return apbct_sfw_update__end_of_update();
-    }
-
-    return $result;
+    $apbct->stats['sfw']['entries'] = 0;
+    $apbct->save('stats');
 }
 
-function apbct_sfw_update__cleanData()
-{
-    global $apbct;
-
-    SFW::dataTablesDelete(DB::getInstance(), APBCT_TBL_FIREWALL_DATA . '_temp');
-
-    $apbct->fw_stats['firewall_update_percent'] = 0;
-    $apbct->fw_stats['firewall_updating_id']    = null;
-    $apbct->save('fw_stats');
-}
-
-function apbct_sfw_update__fallback()
-{
-    global $apbct;
-
-    /**
-     * Remove the upd folder
-     */
-    if ( $apbct->fw_stats['updating_folder'] ) {
-        apbct_remove_upd_folder($apbct->fw_stats['updating_folder']);
-    }
-
-    /**
-     * Remove SFW updating checker cron-task
-     */
-    $cron = new Cron();
-    $cron->removeTask('sfw_update_checker');
-    $cron->updateTask('sfw_update', 'apbct_sfw_update__init', $apbct->stats['sfw']['update_period']);
-
-    /**
-     * Remove _temp table
-     */
-    apbct_sfw_update__cleanData();
-
-    /**
-     * Create SFW table if not exists
-     */
-    apbct_sfw_update__create_tables();
-}
-
+/**
+ * Send SFW logs to the cloud.
+ * @param $api_key
+ * @return array|bool|int[]|string[]
+ */
 function ct_sfw_send_logs($api_key = '')
 {
     global $apbct;
@@ -1959,10 +1890,10 @@ function ct_sfw_send_logs($api_key = '')
     return $result;
 }
 
-
 /**
  * Handle SFW private_records remote call.
  * @param $action
+ * @param null|string $test_data
  * @return string JSON string of results
  * @throws Exception
  */
@@ -2026,13 +1957,13 @@ function apbct_sfw_private_records_handler($action, $test_data = null)
         if ( $action === 'add' ) {
             $handler_output = SFW::privateRecordsAdd(
                 DB::getInstance(),
-                APBCT_TBL_FIREWALL_DATA,
+                SFW::getSFWTablesNames()['sfw_personal_table_name'],
                 $metadata
             );
         } elseif ( $action === 'delete' ) {
             $handler_output = SFW::privateRecordsDelete(
                 DB::getInstance(),
-                APBCT_TBL_FIREWALL_DATA,
+                SFW::getSFWTablesNames()['sfw_personal_table_name'],
                 $metadata
             );
         } else {
@@ -2046,6 +1977,10 @@ function apbct_sfw_private_records_handler($action, $test_data = null)
     return json_encode(array('OK' => $handler_output));
 }
 
+/**
+ * Cron task handler. Clear anti-flood table.
+ * @return void
+ */
 function apbct_antiflood__clear_table()
 {
     global $apbct;
@@ -2072,6 +2007,10 @@ function apbct_antiflood__clear_table()
         unset($anticrawler);
     }
 }
+
+/**
+ * * * * * * REMOTE CALL ACTIONS * * * * * *
+ */
 
 /**
  * Install plugin from WordPress catalog

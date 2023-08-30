@@ -20,7 +20,14 @@ class Schema
             'network' => 'INT unsigned NOT NULL',
             'mask' => 'INT unsigned NOT NULL',
             'status' => 'TINYINT NOT NULL DEFAULT 0',
-            'source' => 'TINYINT NULL DEFAULT NULL',
+            '__indexes' => 'PRIMARY KEY (`id`), INDEX (  `network` ,  `mask` )',
+            '__createkey' => 'INT unsigned primary KEY AUTO_INCREMENT FIRST'
+        ),
+        'sfw_personal' => array(
+            'id' => 'INT NOT NULL AUTO_INCREMENT',
+            'network' => 'INT unsigned NOT NULL',
+            'mask' => 'INT unsigned NOT NULL',
+            'status' => 'TINYINT NOT NULL DEFAULT 0',
             '__indexes' => 'PRIMARY KEY (`id`), INDEX (  `network` ,  `mask` )',
             '__createkey' => 'INT unsigned primary KEY AUTO_INCREMENT FIRST'
         ),

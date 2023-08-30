@@ -30,6 +30,8 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
 
     public $module_name = 'SFW';
 
+    private $db__table__data_personal;
+
     private $real_ip;
     private $debug;
     private $debug_data = '';
@@ -47,11 +49,12 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
      * @param string $data_table
      * @param $params
      */
-    public function __construct($log_table, $data_table, $params = array())
+    public function __construct($log_table, $data_table_personal, $params = array())
     {
-        parent::__construct($log_table, $data_table, $params);
+        parent::__construct($log_table, $data_table_personal, $params);
 
-        $this->db__table__data = $data_table ?: null;
+        $this->db__table__data = $params['sfw_common_table_name'] ?: null;
+        $this->db__table__data_personal = $data_table_personal ?: null;
         $this->db__table__logs = $log_table ?: null;
 
         foreach ($params as $param_name => $param) {
@@ -154,15 +157,25 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
             }
             $needles = array_unique($needles);
 
-            $db_results = $this->db->fetchAll(
-                "SELECT
-				network, mask, status, source
+            $query =  "(SELECT
+				0 as is_personal, network, mask, status
 				FROM " . $this->db__table__data . "
 				WHERE network IN (" . implode(',', $needles) . ")
 				AND	network = " . $current_ip_v4 . " & mask 
 				AND " . rand(1, 100000) . "  
-				ORDER BY source DESC, status"
-            );
+				ORDER BY status DESC, status)";
+
+            $query .= " UNION ";
+
+            $query .=  "(SELECT
+				1 as is_personal, network, mask, status
+				FROM " . $this->db__table__data_personal . "
+				WHERE network IN (" . implode(',', $needles) . ")
+				AND	network = " . $current_ip_v4 . " & mask 
+				AND " . rand(1, 100000) . "  
+				ORDER BY status DESC, status)";
+
+            $db_results = $this->db->fetchAll($query);
 
             $test_status = 99;
 
@@ -185,7 +198,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
                         'network'     => Helper::ipLong2ip($db_result['network'])
                                          . '/'
                                          . Helper::ipMaskLongToNumber((int)$db_result['mask']),
-                        'is_personal' => $db_result['source'],
+                        'is_personal' => $db_result['is_personal'],
                         'status'      => $text_status
                     );
 
@@ -400,7 +413,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
                     case 0:
                         $message_ip_status = __('IP in the common blacklist', 'cleantalk-spam-protect');
                         $message_ip_status_color = 'red';
-                        if (isset($this->db->result[0]["source"]) && (int)$this->db->result[0]["source"] === 1) {
+                        if (isset($this->db->result[0]["is_personal"]) && (int)$this->db->result[0]["is_personal"] === 1) {
                             $message_ip_status = __('IP in the personal blacklist', 'cleantalk-spam-protect');
                         }
                         break;
@@ -594,60 +607,79 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
         }
     }
 
-    public static function directUpdateGetBlackLists($api_key)
+    public static function directUpdateProcessFiles()
     {
-        // Getting remote file name
-        $result = API::methodGet2sBlacklistsDb($api_key, null, '3_2');
+        global $apbct;
 
-        if ( empty($result['error']) ) {
-            return array(
-                'blacklist'  => isset($result['data'])             ? $result['data']             : null,
-                'useragents' => isset($result['data_user_agents']) ? $result['data_user_agents'] : null,
-                'bl_count'   => isset($result['networks_count'])   ? $result['networks_count']   : null,
-                'ua_count'   => isset($result['ua_count'])         ? $result['ua_count']         : null,
-            );
-        }
+        // get list of files in the upd folder
+        $files = glob($apbct->fw_stats['updating_folder'] . '/*csv.gz');
+        $files = array_filter($files, static function ($element) {
+            return strpos($element, 'list') !== false;
+        });
 
-        return $result;
-    }
+        $success = true;
+        $result = array();
 
-    public static function directUpdate($db, $db__table__data, $blacklists)
-    {
-        if ( ! is_array($blacklists) ) {
-            return array('error' => 'BlackLists is not an array.');
-        }
-        for ( $count_result = 0; current($blacklists) !== false; ) {
-            $query = "INSERT INTO " . $db__table__data . " (network, mask, status) VALUES ";
-
-            for (
-                $i = 0, $values = array();
-                APBCT_WRITE_LIMIT !== $i && current($blacklists) !== false;
-                $i++, $count_result++, next($blacklists)
-            ) {
-                $entry = current($blacklists);
-
-                if ( empty($entry) ) {
-                    continue;
+        if ( count($files) ) {
+            foreach ($files as $concrete_file) {
+                //get direction on how the file should be processed (common/personal)
+                if (
+                    // we should have a personal list id (hash) to make sure the file belongs to private lists
+                    !empty($apbct->fw_stats['personal_lists_url_id'])
+                    && strpos($concrete_file, $apbct->fw_stats['personal_lists_url_id']) !== false
+                ) {
+                    $direction = 'personal';
+                } elseif (
+                    // we should have a common list id (hash) to make sure the file belongs to common lists
+                    !empty($apbct->fw_stats['common_lists_url_id'])
+                    && strpos($concrete_file, $apbct->fw_stats['common_lists_url_id']) !== false ) {
+                    $direction = 'common';
+                } else {
+                    // no id found in fw_stats or file namse does not contain any of them
+                    $result['error_on_direct_update'] = 'SFW_DIRECTION_FAILED';
+                    $success = false;
+                    break;
                 }
 
-                // Cast result to int
-                $ip      = preg_replace('/[^\d]*/', '', $entry[0]);
-                $mask    = preg_replace('/[^\d]*/', '', $entry[1]);
-                $private = isset($entry[2]) ? $entry[2] : 0;
+                // do proceed file with networks itself
+                if ( strpos($concrete_file, 'bl_list') !== false ) {
+                    $counter = SFWUpdateHelper::processFile($concrete_file, $direction);
+                    if ( empty($counter['error']) ) {
+                        $result['apbct_sfw_update__process_file'] = is_scalar($counter) ? (int) $counter : 0;
+                    } else {
+                        $result['apbct_sfw_update__process_file'] = $counter['error'];
+                        $success = false;
+                        break;
+                    }
+                }
 
-                $values[] = '(' . $ip . ',' . $mask . ',' . $private . ')';
-            }
+                // do proceed ua file
+                if ( strpos($concrete_file, 'ua_list') !== false ) {
+                    $counter = SFWUpdateHelper::processUA($concrete_file);
+                    if ( empty($counter['error']) ) {
+                        $result['apbct_sfw_update__process_ua'] = is_scalar($counter) ? (int) $counter : 0;
+                    } else {
+                        $result['apbct_sfw_update__process_ua'] = $counter['error'];
+                        $success = false;
+                        break;
+                    }
+                }
 
-            if ( ! empty($values) ) {
-                $query .= implode(',', $values) . ';';
-                $result = $db->execute($query);
-                if ( $result === false ) {
-                    return array( 'error' => $db->getLastError() );
+                // do proceed checking file
+                if ( strpos($concrete_file, 'ck_list') !== false ) {
+                    $counter = SFWUpdateHelper::processCK($concrete_file, $direction);
+                    if ( empty($counter['error']) ) {
+                        $result['apbct_sfw_update__process_ck'] = is_scalar($counter) ? (int) $counter : 0;
+                    } else {
+                        $result['apbct_sfw_update__process_ck'] = $counter['error'];
+                        $success = false;
+                        break;
+                    }
                 }
             }
         }
 
-        return $count_result;
+        return $success ? 'OK' : array('error' => $result);
     }
 
     /**
@@ -677,7 +709,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
                     reset($data);
 
                     for ($count_result = 0; current($data) !== false;) {
-                        $query = "INSERT INTO " . $db__table__data . " (network, mask, status, source) VALUES ";
+                        $query = "INSERT INTO " . $db__table__data . " (network, mask, status) VALUES ";
 
                         for (
                             $i = 0, $values = array();
@@ -694,9 +726,8 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
                             $ip     = preg_replace('/[^\d]*/', '', $entry[0]);
                             $mask   = preg_replace('/[^\d]*/', '', $entry[1]);
                             $status = isset($entry[2]) ? $entry[2] : 0;
-                            $source = isset($entry[3]) ? (int)$entry[3] : 'NULL';
 
-                            $values[] = "($ip, $mask, $status, $source)";
+                            $values[] = "($ip, $mask, $status)";
                         }
 
                         if ( ! empty($values)) {
@@ -877,8 +908,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
             $has_duplicate = false;
             $query = "SELECT id,status FROM " . $db__table__data . " WHERE 
             network = '" . $row['network'] . "' AND 
-            mask = '" . $row['mask'] . "' AND
-            source = '1';";
+            mask = '" . $row['mask'] . "'";
 
             $db_result = $db->fetch($query);
             if ( $db_result === false ) {
@@ -904,14 +934,12 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
             " . $id_chunk . "
             network = '" . $row['network'] . "',
             mask = '" . $row['mask'] . "',
-            status = '" . $row['status'] . "',
-            source = '1'
+            status = '" . $row['status'] . " '
             ON DUPLICATE KEY UPDATE 
             id = id,
             network = network, 
             mask = mask, 
-            status = '" . $row['status'] . "',
-            source = source;";
+            status = '" . $row['status'] . "';";
 
             $db_result = $db->execute($query);
             if ( $db_result === false ) {
@@ -926,7 +954,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
             'total' => $added_count + $updated_count + $ignored_count,
             'added' => $added_count,
             'updated' => $updated_count,
-            'ignored' => $ignored_count
+            'ignored' => $ignored_count,
         );
     }
 
@@ -946,8 +974,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
         foreach ( $metadata as $_key => $row ) {
             $query = "DELETE FROM " . $db__table__data . " WHERE 
             network = '" . $row['network'] . "' AND
-            mask = '" . $row['mask'] . "' AND
-            source = '1';";
+            mask = '" . $row['mask'] . "';";
             $db_result = $db->execute($query);
             if ( $db_result === false ) {
                 throw new \Exception($db->getLastError());
@@ -962,5 +989,34 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
             'deleted' => $success_count,
             'ignored' => $ignored_count
         );
+    }
+
+    public static function getSFWTablesNames()
+    {
+        global $apbct;
+
+        $out['sfw_personal_table_name'] = APBCT_TBL_FIREWALL_DATA_PERSONAL;
+        $out['sfw_common_table_name'] = APBCT_TBL_FIREWALL_DATA;
+
+
+        if ( APBCT_WPMS && !is_main_site() ) {
+            $main_blog_options = get_blog_option(get_main_site_id(), 'cleantalk_data');
+            if ( !isset($main_blog_options['sfw_common_table_name']) || !is_string($main_blog_options['sfw_common_table_name'])) {
+                return false;
+            } else {
+                $out['sfw_common_table_name'] = $main_blog_options['sfw_common_table_name'];
+            }
+        }
+
+        //if mutual key use the main personal table
+        if ( APBCT_WPMS && $apbct->network_settings['multisite__work_mode'] === 2 ) {
+            if (!isset($main_blog_options['sfw_personal_table_name']) || !is_string($main_blog_options['sfw_personal_table_name'])) {
+                return false;
+            } else {
+                $out['sfw_personal_table_name'] = $main_blog_options['sfw_personal_table_name'];
+            }
+        }
+
+        return $out;
     }
 }

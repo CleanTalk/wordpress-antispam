@@ -2,6 +2,7 @@
 
 namespace Cleantalk\ApbctWP;
 
+use Cleantalk\ApbctWP\Firewall\SFWUpdateHelper;
 use Cleantalk\ApbctWP\Variables\Post;
 use Cleantalk\ApbctWP\Variables\Request;
 use Cleantalk\ApbctWP\Variables\Get;
@@ -156,7 +157,7 @@ class RemoteCalls
         $result = apbct_sfw_update__worker();
 
         if ( ! empty($result['error']) ) {
-            apbct_sfw_update__cleanData();
+            SFWUpdateHelper::cleanData();
 
             die('FAIL ' . json_encode(array('error' => $result['error'])));
         }
@@ -167,7 +168,7 @@ class RemoteCalls
     /**
      * SFW send logs
      *
-     * @return string
+     * @return array|bool|int[]|string[]
      */
     public static function action__sfw_send_logs() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {

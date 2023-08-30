@@ -459,6 +459,10 @@ class State extends \Cleantalk\Common\State
             // Table with firewall data.
             define('APBCT_TBL_FIREWALL_DATA', $fw_db_prefix . 'cleantalk_sfw');
         }
+        if ( ! defined('APBCT_TBL_FIREWALL_DATA_PERSONAL')) {
+            // Table with firewall data.
+            define('APBCT_TBL_FIREWALL_DATA_PERSONAL', $fw_db_prefix . 'cleantalk_sfw_personal');
+        }
         if ( ! defined('APBCT_TBL_FIREWALL_LOG')) {
             // Table with firewall logs.
             define('APBCT_TBL_FIREWALL_LOG', $fw_db_prefix . 'cleantalk_sfw_logs');
