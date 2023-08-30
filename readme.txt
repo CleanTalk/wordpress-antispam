@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 4.7
 Tested up to: 6.3
 Requires PHP: 5.6
-Stable tag: 6.16
+Stable tag: 6.17
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -453,6 +453,20 @@ Yes, it is. Please read this article,
 12. SpamFireWall log.
 
 == Changelog ==
+
+= 6.17 Aug 31 2023 =
+* Fix: SFW_update. Create temp table for personal data.
+* Fix: Email encoder. Prevent encoding emails into attributes `aria-label`.
+* New: Modal before deactivation is ready.
+* Fix: NoCookie. PreloadLocalstorage fixed. Previous value gain fixed.
+* Fix: Fixed apbct_timestamp.
+* Mod: Cookie. Cookie type is "Auto" (3) by defaults.
+* Fix: Anti-Crawler. Exclude W3 Total Cache minified files request from AC check.
+* New: Integration. MailPoet2 integration implemented.
+* Mod: Ninja forms bot-detector token gain via AltSessions.
+* Fix: AC. JSON parse to array instead of object.
+* Fix. Do not send event token to XHR if it is already sent and equal to the newly gained from moderate.
+* New: SFW. Separate 2s blacklists.
 
 = 6.16 Aug 17 2023 =
 * Fix: External MailerLite fixed
