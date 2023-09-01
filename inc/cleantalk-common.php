@@ -190,6 +190,10 @@ function apbct_base_call($params = array(), $reg_flag = false)
         'event_token' => !empty($params['event_token']) ? $params['event_token'] : Post::get('ct_bot_detector_event_token'),
     );
 
+    if (Cookie::get('typo')) {
+        $default_params['sender_info']['typo'] = Cookie::get('typo');
+    }
+
     /**
      * Add exception_action sender email is empty
      */

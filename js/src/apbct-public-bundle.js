@@ -1360,6 +1360,71 @@ let apbctSessionStorage = {
     },
 };
 
+/**
+ * Handler for -webkit based browser that listen for a custom
+ * animation create using the :pseudo-selector in the stylesheet.
+ * Works with Chrome, Safari
+ *
+ * @param {AnimationEvent} event
+ */
+function apbctOnAnimationStart(event) {
+    ('onautofillstart' === event.animationName) ?
+        apbctAutocomplete(event.target) : apbctCancelAutocomplete(event.target);
+}
+
+/**
+ * Handler for non-webkit based browser that listen for input
+ * event to trigger the autocomplete-cancel process.
+ * Works with Firefox, Edge, IE11
+ *
+ * @param {InputEvent} event
+ */
+function apbctOnInput(event) {
+    ('insertReplacementText' === event.inputType || !('data' in event)) ?
+        apbctAutocomplete(event.target) : apbctCancelAutocomplete(event.target);
+}
+
+/**
+ * Manage an input element when its value is autocompleted
+ * by the browser in the following steps:
+ * - add [autocompleted] attribute from event.target
+ * - create 'onautocomplete' cancelable CustomEvent
+ * - dispatch the Event
+ *
+ * @param {HtmlInputElement} element
+ */
+function apbctAutocomplete(element) {
+    if (element.hasAttribute('autocompleted')) return;
+    element.setAttribute('autocompleted', '');
+
+    var event = new window.CustomEvent('onautocomplete', {
+        bubbles: true, cancelable: true, detail: null,
+    });
+
+    // no autofill if preventDefault is called
+    if (!element.dispatchEvent(event)) {
+        element.value = '';
+    }
+}
+
+/**
+ * Manage an input element when its autocompleted value is
+ * removed by the browser in the following steps:
+ * - remove [autocompleted] attribute from event.target
+ * - create 'onautocomplete' non-cancelable CustomEvent
+ * - dispatch the Event
+ *
+ * @param {HtmlInputElement} element
+ */
+function apbctCancelAutocomplete(element) {
+    if (!element.hasAttribute('autocompleted')) return;
+    element.removeAttribute('autocompleted');
+
+    // dispatch event
+    element.dispatchEvent(new window.CustomEvent('onautocomplete', {
+        bubbles: true, cancelable: false, detail: null,
+    }));
+}
 // eslint-disable-next-line camelcase
 const ctDate = new Date();
 const ctTimeMs = new Date().getTime();
@@ -1854,6 +1919,12 @@ function apbct_ready() {
     ctStartFieldsListening();
     // 2nd try to add listeners for delayed appears forms
     setTimeout(ctStartFieldsListening, 1000);
+
+    window.addEventListener('animationstart', apbctOnAnimationStart, true);
+    window.addEventListener('input'         , apbctOnInput, true);
+    document.ctTypoData = new CTTypoData();
+    document.ctTypoData.gatheringFields();
+    document.ctTypoData.setListeners();
 
     // Collect scrolling info
     const initCookies = [
@@ -2599,7 +2670,8 @@ function ctNoCookieConstructHiddenField(type) {
     let field = '';
     let noCookieDataLocal = apbctLocalStorage.getCleanTalkData();
     let noCookieDataSession = apbctSessionStorage.getCleanTalkData();
-    let noCookieData = {...noCookieDataLocal, ...noCookieDataSession};
+    let noCookieDataTypo = document.ctTypoData && document.ctTypoData.data ? {typo: document.ctTypoData.data} : {typo: []};
+    let noCookieData = {...noCookieDataLocal, ...noCookieDataSession, ...noCookieDataTypo};
     noCookieData = JSON.stringify(noCookieData);
     noCookieData = '_ct_no_cookie_data_' + btoa(noCookieData);
     field = document.createElement('input');
@@ -3682,4 +3754,80 @@ function ctCheckInternalIsExcludedForm(action) {
     return ctInternalScriptExclusions.some((item) => {
         return action.match(new RegExp(ctPublic.blog_home + '.*' + item)) !== null;
     });
+}
+
+class CTTypoData
+{
+    // ==============================
+    // isAutoFill       - only person can use auto fill
+    // isUseBuffer      - use buffer for fill current field
+    // ==============================
+    // lastKeyTimestamp - timestamp of last key press in current field
+    // speedDelta       - change for each key press in current field,
+    //                    as difference between current and previous key press timestamps,
+    //                    robots in general have constant speed of typing.
+    //                    If speedDelta is constant for each key press in current field,
+    //                    so, speedDelta will be roughly to 0, then it is robot.
+    // ==============================
+    fieldData = {
+        isAutoFill: false,
+        isUseBuffer: false,
+        speedDelta: 0,
+        firstKeyTimestamp: 0,
+        lastKeyTimestamp: 0,
+        lastDelta: 0,
+        countOfKey: 0,
+    };
+
+    fields = document.querySelectorAll("textarea[name=comment]");
+
+    data = [];
+
+    gatheringFields() {
+        let fieldSet = Array.prototype.slice.call(this.fields);
+        fieldSet.forEach((field, i) => {
+            this.data.push(Object.assign({}, this.fieldData));
+        });
+    }
+
+    setListeners() {
+        this.fields.forEach((field, i) => {
+          field.addEventListener("paste", (event) => {
+                this.data[i].isUseBuffer = true;
+          });
+        });
+
+        this.fields.forEach((field, i) => {
+          field.addEventListener("onautocomplete", (event) => {
+                this.data[i].isAutoFill = true;
+          });
+        });
+
+        this.fields.forEach((field, i) => {
+          field.addEventListener("input", (event) => {
+                this.data[i].countOfKey++;
+                let time = + new Date();
+                let currentDelta = 0;
+
+                if (this.data[i].countOfKey === 1) {
+                    this.data[i].lastKeyTimestamp = time;
+                    this.data[i].firstKeyTimestamp = time;
+                    return;
+                }
+
+                currentDelta = time - this.data[i].lastKeyTimestamp;
+                if (this.data[i].countOfKey === 2) {
+                    this.data[i].lastKeyTimestamp = time;
+                    this.data[i].lastDelta = currentDelta;
+                    return;
+                }
+
+                if (this.data[i].countOfKey > 2) {
+                    this.data[i].speedDelta += Math.abs(this.data[i].lastDelta - currentDelta);
+                    this.data[i].lastKeyTimestamp = time;
+                    this.data[i].lastDelta = currentDelta;
+                }
+            });
+        });
+    }
 }
