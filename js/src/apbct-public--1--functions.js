@@ -330,6 +330,7 @@ let apbctSessionStorage = {
  *
  * @param {AnimationEvent} event
  */
+// eslint-disable-next-line no-unused-vars,require-jsdoc
 function apbctOnAnimationStart(event) {
     ('onautofillstart' === event.animationName) ?
         apbctAutocomplete(event.target) : apbctCancelAutocomplete(event.target);
@@ -342,6 +343,7 @@ function apbctOnAnimationStart(event) {
  *
  * @param {InputEvent} event
  */
+// eslint-disable-next-line no-unused-vars,require-jsdoc
 function apbctOnInput(event) {
     ('insertReplacementText' === event.inputType || !('data' in event)) ?
         apbctAutocomplete(event.target) : apbctCancelAutocomplete(event.target);
@@ -360,7 +362,7 @@ function apbctAutocomplete(element) {
     if (element.hasAttribute('autocompleted')) return;
     element.setAttribute('autocompleted', '');
 
-    var event = new window.CustomEvent('onautocomplete', {
+    let event = new window.CustomEvent('onautocomplete', {
         bubbles: true, cancelable: true, detail: null,
     });
 

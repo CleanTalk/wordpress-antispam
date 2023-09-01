@@ -1367,6 +1367,7 @@ let apbctSessionStorage = {
  *
  * @param {AnimationEvent} event
  */
+// eslint-disable-next-line no-unused-vars,require-jsdoc
 function apbctOnAnimationStart(event) {
     ('onautofillstart' === event.animationName) ?
         apbctAutocomplete(event.target) : apbctCancelAutocomplete(event.target);
@@ -1379,6 +1380,7 @@ function apbctOnAnimationStart(event) {
  *
  * @param {InputEvent} event
  */
+// eslint-disable-next-line no-unused-vars,require-jsdoc
 function apbctOnInput(event) {
     ('insertReplacementText' === event.inputType || !('data' in event)) ?
         apbctAutocomplete(event.target) : apbctCancelAutocomplete(event.target);
@@ -1397,7 +1399,7 @@ function apbctAutocomplete(element) {
     if (element.hasAttribute('autocompleted')) return;
     element.setAttribute('autocompleted', '');
 
-    var event = new window.CustomEvent('onautocomplete', {
+    let event = new window.CustomEvent('onautocomplete', {
         bubbles: true, cancelable: true, detail: null,
     });
 
@@ -1425,6 +1427,7 @@ function apbctCancelAutocomplete(element) {
         bubbles: true, cancelable: false, detail: null,
     }));
 }
+
 // eslint-disable-next-line camelcase
 const ctDate = new Date();
 const ctTimeMs = new Date().getTime();
@@ -1921,7 +1924,7 @@ function apbct_ready() {
     setTimeout(ctStartFieldsListening, 1000);
 
     window.addEventListener('animationstart', apbctOnAnimationStart, true);
-    window.addEventListener('input'         , apbctOnInput, true);
+    window.addEventListener('input', apbctOnInput, true);
     document.ctTypoData = new CTTypoData();
     document.ctTypoData.gatheringFields();
     document.ctTypoData.setListeners();
@@ -2670,7 +2673,12 @@ function ctNoCookieConstructHiddenField(type) {
     let field = '';
     let noCookieDataLocal = apbctLocalStorage.getCleanTalkData();
     let noCookieDataSession = apbctSessionStorage.getCleanTalkData();
-    let noCookieDataTypo = document.ctTypoData && document.ctTypoData.data ? {typo: document.ctTypoData.data} : {typo: []};
+
+    let noCookieDataTypo = {typo: []};
+    if (document.ctTypoData && document.ctTypoData.data) {
+        noCookieDataTypo = {typo: document.ctTypoData.data};
+    }
+
     let noCookieData = {...noCookieDataLocal, ...noCookieDataSession, ...noCookieDataTypo};
     noCookieData = JSON.stringify(noCookieData);
     noCookieData = '_ct_no_cookie_data_' + btoa(noCookieData);
@@ -3756,19 +3764,23 @@ function ctCheckInternalIsExcludedForm(action) {
     });
 }
 
-class CTTypoData
-{
-    // ==============================
-    // isAutoFill       - only person can use auto fill
-    // isUseBuffer      - use buffer for fill current field
-    // ==============================
-    // lastKeyTimestamp - timestamp of last key press in current field
-    // speedDelta       - change for each key press in current field,
-    //                    as difference between current and previous key press timestamps,
-    //                    robots in general have constant speed of typing.
-    //                    If speedDelta is constant for each key press in current field,
-    //                    so, speedDelta will be roughly to 0, then it is robot.
-    // ==============================
+/**
+ * Class for gathering data about user typing.
+ *
+ * ==============================
+ * isAutoFill       - only person can use auto fill
+ * isUseBuffer      - use buffer for fill current field
+ * ==============================
+ * lastKeyTimestamp - timestamp of last key press in current field
+ * speedDelta       - change for each key press in current field,
+ *                    as difference between current and previous key press timestamps,
+ *                    robots in general have constant speed of typing.
+ *                    If speedDelta is constant for each key press in current field,
+ *                    so, speedDelta will be roughly to 0, then it is robot.
+ * ==============================
+ */
+// eslint-disable-next-line no-unused-vars,require-jsdoc
+class CTTypoData {
     fieldData = {
         isAutoFill: false,
         isUseBuffer: false,
@@ -3779,10 +3791,13 @@ class CTTypoData
         countOfKey: 0,
     };
 
-    fields = document.querySelectorAll("textarea[name=comment]");
+    fields = document.querySelectorAll('textarea[name=comment]');
 
     data = [];
 
+    /**
+     * Gather fields.
+     */
     gatheringFields() {
         let fieldSet = Array.prototype.slice.call(this.fields);
         fieldSet.forEach((field, i) => {
@@ -3790,21 +3805,24 @@ class CTTypoData
         });
     }
 
+    /**
+     * Set listeners.
+     */
     setListeners() {
         this.fields.forEach((field, i) => {
-          field.addEventListener("paste", (event) => {
+            field.addEventListener('paste', () => {
                 this.data[i].isUseBuffer = true;
-          });
+            });
         });
 
         this.fields.forEach((field, i) => {
-          field.addEventListener("onautocomplete", (event) => {
+            field.addEventListener('onautocomplete', () => {
                 this.data[i].isAutoFill = true;
-          });
+            });
         });
 
         this.fields.forEach((field, i) => {
-          field.addEventListener("input", (event) => {
+            field.addEventListener('input', () => {
                 this.data[i].countOfKey++;
                 let time = + new Date();
                 let currentDelta = 0;
