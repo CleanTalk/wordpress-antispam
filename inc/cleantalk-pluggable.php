@@ -1006,6 +1006,14 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'Cleantalk Register Widget request';
         }
+
+        // VBOUT Woocommerce Plugin
+        if (
+            apbct_is_plugin_active('vbout-woocommerce-plugin/vbout.php') &&
+            Post::get('action') === 'updatevboutabandon'
+        ) {
+            return 'VBOUT Woocommerce Plugin request';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
