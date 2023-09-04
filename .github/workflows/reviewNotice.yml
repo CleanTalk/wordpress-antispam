@@ -25,3 +25,5 @@ jobs:
             was <strong>approved</strong> and is ready to merge <a href="${{ github.event.pull_request.html_url }}">➡️</a> !!!
           format: html
           disable_web_page_preview: true
+      - name: Log environment
+        uses: hmarr/debug-action@v2
