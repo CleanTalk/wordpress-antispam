@@ -15,6 +15,12 @@ class TestSFWPrivateRecordsHandler extends PHPUnit\Framework\TestCase
         $this->sfw->setDb(DB::getInstance());
     }
 
+    protected function tearDown()
+    {
+        DB::getInstance()->execute("TRUNCATE " . APBCT_TBL_FIREWALL_DATA_PERSONAL);
+        DB::getInstance()->execute("TRUNCATE " . APBCT_TBL_FIREWALL_DATA);
+    }
+
     public function testEmptyActionPRH()
     {
         $this->expectException(Exception::class);
