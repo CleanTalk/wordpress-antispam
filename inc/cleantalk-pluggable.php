@@ -1014,6 +1014,14 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'VBOUT Woocommerce Plugin request';
         }
+
+        // WooCommerce Waitlist Plugin
+        if (
+            apbct_is_plugin_active('woocommerce-waitlist/woocommerce-waitlist.php') &&
+            Post::get('action') === 'wcwl_process_user_waitlist_request'
+        ) {
+            return 'WooCommerce Waitlist request';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
