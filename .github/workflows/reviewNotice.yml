@@ -7,7 +7,7 @@ on:
 jobs:
 
   build:
-    if: github.event.review.state == 'approved'
+    if: github.event.review.state == 'approved' && toJSON(github.event.pull_request.requested_reviewers) == '[]'
     runs-on: ubuntu-latest
     steps:
       - name: Convert date format
@@ -25,5 +25,3 @@ jobs:
             was <strong>approved</strong> and is ready to merge <a href="${{ github.event.pull_request.html_url }}">➡️</a> !!!
           format: html
           disable_web_page_preview: true
-      - name: Log environment
-        uses: hmarr/debug-action@v2
