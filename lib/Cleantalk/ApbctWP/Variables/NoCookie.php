@@ -169,16 +169,12 @@ class NoCookie
     {
         global $wpdb;
 
-        if ( !self::$sessions_already_cleaned && rand(0, 1000) < APBCT_SEESION__CHANCE_TO_CLEAN ) {
-            self::$sessions_already_cleaned = true;
-
-            $wpdb->query(
-                'DELETE
+        $wpdb->query(
+            'DELETE
 				FROM `' . APBCT_TBL_NO_COOKIE . '`
 				WHERE last_update < NOW() - INTERVAL ' . APBCT_SEESION__LIVE_TIME . ' SECOND
 				LIMIT 100000;'
-            );
-        }
+        );
     }
 
     /**

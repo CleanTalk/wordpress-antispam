@@ -450,9 +450,6 @@ class State extends \Cleantalk\Common\State
         if ( ! defined('APBCT_SEESION__LIVE_TIME')) {
             define('APBCT_SEESION__LIVE_TIME', 86400);
         }
-        if ( ! defined('APBCT_SEESION__CHANCE_TO_CLEAN')) {
-            define('APBCT_SEESION__CHANCE_TO_CLEAN', 100);
-        }
 
         // Database constants
         if ( ! defined('APBCT_TBL_FIREWALL_DATA')) {
