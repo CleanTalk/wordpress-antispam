@@ -493,6 +493,12 @@ function apbct_ready() {
     // 2nd try to add listeners for delayed appears forms
     setTimeout(ctStartFieldsListening, 1000);
 
+    window.addEventListener('animationstart', apbctOnAnimationStart, true);
+    window.addEventListener('input', apbctOnInput, true);
+    document.ctTypoData = new CTTypoData();
+    document.ctTypoData.gatheringFields();
+    document.ctTypoData.setListeners();
+
     // Collect scrolling info
     const initCookies = [
         ['ct_ps_timestamp', Math.floor(new Date().getTime() / 1000)],
@@ -1237,7 +1243,13 @@ function ctNoCookieConstructHiddenField(type) {
     let field = '';
     let noCookieDataLocal = apbctLocalStorage.getCleanTalkData();
     let noCookieDataSession = apbctSessionStorage.getCleanTalkData();
-    let noCookieData = {...noCookieDataLocal, ...noCookieDataSession};
+
+    let noCookieDataTypo = {typo: []};
+    if (document.ctTypoData && document.ctTypoData.data) {
+        noCookieDataTypo = {typo: document.ctTypoData.data};
+    }
+
+    let noCookieData = {...noCookieDataLocal, ...noCookieDataSession, ...noCookieDataTypo};
     noCookieData = JSON.stringify(noCookieData);
     noCookieData = '_ct_no_cookie_data_' + btoa(noCookieData);
     field = document.createElement('input');
