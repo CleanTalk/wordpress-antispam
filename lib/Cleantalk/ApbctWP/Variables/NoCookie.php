@@ -33,7 +33,6 @@ class NoCookie
      */
     public static function set($name, $value, $save_to_db = false)
     {
-
         if ( is_int($value) ) {
             $value = (string)$value;
         }
@@ -51,8 +50,6 @@ class NoCookie
             self::$no_cookies_data[$name] = $value;
             return true;
         }
-
-        self::cleanFromOld();
 
         global $wpdb;
 
@@ -100,7 +97,6 @@ class NoCookie
      */
     public static function get($name)
     {
-
         // Bad incoming data
         if ( !$name
             ||
@@ -112,8 +108,6 @@ class NoCookie
         if ( isset(self::$no_cookies_data[$name]) ) {
             return self::$no_cookies_data[$name];
         }
-
-        self::cleanFromOld();
 
         global $wpdb;
 

@@ -19,8 +19,6 @@ class AltSessions
 
     public static function set($name, $value)
     {
-        self::cleanFromOld();
-
         if ( is_int($value) ) {
             $value = (string)$value;
         }
@@ -98,8 +96,6 @@ class AltSessions
 
     public static function get($name)
     {
-        self::cleanFromOld();
-
         // Bad incoming data
         if ( ! $name) {
             return false;
