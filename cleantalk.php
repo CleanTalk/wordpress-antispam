@@ -2746,6 +2746,24 @@ function ct_cron_send_js_error_report_email()
 }
 
 /**
+ * Cron job handler
+ * Clear old alt-cookies/no-cookies from the database
+ *
+ * @return void
+ */
+function apbct_cron_clear_old_session_data()
+{
+    global $apbct;
+
+    if ( $apbct->data['cookies_type'] === 'none' ) {
+        \Cleantalk\ApbctWP\Variables\NoCookie::cleanFromOld();
+    }
+    if ( $apbct->data['cookies_type'] === 'alternative' ) {
+        \Cleantalk\ApbctWP\Variables\AltSessions::cleanFromOld();
+    }
+}
+
+/**
  * Write $message to the plugin's debug option
  *
  * @param string|array|object $message
