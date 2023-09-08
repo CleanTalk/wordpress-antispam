@@ -75,10 +75,13 @@ function ctSetCookie( cookies, value, expires ) {
 // eslint-disable-next-line no-unused-vars,require-jsdoc
 function ctDetectForcedAltCookiesForms() {
     let ninjaFormsSign = document.querySelectorAll('#tmpl-nf-layout').length > 0;
+    let elementorUltimateAddonsRegister = document.querySelectorAll('.uael-registration-form-wrapper').length > 0;
     let smartFormsSign = document.querySelectorAll('script[id*="smart-forms"]').length > 0;
     let jetpackCommentsForm = document.querySelectorAll('iframe[name="jetpack_remote_comment"]').length > 0;
-
-    ctPublic.force_alt_cookies = smartFormsSign || ninjaFormsSign || jetpackCommentsForm;
+    ctPublic.force_alt_cookies = smartFormsSign ||
+        ninjaFormsSign ||
+        jetpackCommentsForm ||
+        elementorUltimateAddonsRegister;
 }
 
 // eslint-disable-next-line require-jsdoc

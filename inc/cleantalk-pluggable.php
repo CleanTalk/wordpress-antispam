@@ -1006,6 +1006,13 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'Cleantalk Register Widget request';
         }
+        // ElementorUltimateAddonsRegister
+        if (
+            apbct_is_plugin_active('ultimate-elementor/ultimate-elementor.php') &&
+            Post::get('action') === 'uael_register_user'
+        ) {
+            return 'Elementor UltimateAddons Register form';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
