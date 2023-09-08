@@ -6,8 +6,6 @@ use Cleantalk\ApbctWP\Helper;
 
 class AltSessions
 {
-    public static $sessions_already_cleaned = false;
-
     public static function getID()
     {
         $id = Helper::ipGet()

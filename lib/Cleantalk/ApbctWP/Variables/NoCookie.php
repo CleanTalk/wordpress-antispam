@@ -6,8 +6,6 @@ use Cleantalk\ApbctWP\Helper;
 
 class NoCookie
 {
-    public static $sessions_already_cleaned = false;
-
     public static $no_cookies_data = array();
 
     /**
