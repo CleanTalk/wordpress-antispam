@@ -486,6 +486,11 @@ $apbct_active_integrations = array(
         'setting' => 'forms__contact_forms_test',
         'ajax'    => true
     ),
+    'ElementorUltimateAddonsRegister' => array(
+        'hook'    => array('uael_register_user'),
+        'setting' => 'forms__registrations_test',
+        'ajax'    => true
+    ),
 );
 new  \Cleantalk\Antispam\Integrations($apbct_active_integrations, (array)$apbct->settings);
 
