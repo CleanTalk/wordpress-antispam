@@ -613,12 +613,17 @@ function ct_add_hidden_fields(
     $no_print = false,
     $ajax = true
 ) {
-    # Return false if page is excluded
+    global $ct_checkjs_def, $apbct;
+
+    // Return false if page is excluded
     if ( apbct_exclusions_check__url() ) {
         return false;
     }
 
-    global $ct_checkjs_def, $apbct;
+    // Return false if cookie mode is ON
+    if ( $apbct->settings['data__set_cookies'] == 1 ) {
+        return false;
+    }
 
     $ct_checkjs_key = ct_get_checkjs_value();
     $field_id_hash  = md5((string)rand(0, 1000));
