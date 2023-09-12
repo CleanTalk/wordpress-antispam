@@ -11,7 +11,7 @@ Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, 
 
 == Description ==
 
-No CAPTCHA, no questions, no animal counting, no puzzles, no math and no spam bots. Universal AntiSpam plugin.
+Top-rated anti-spam protection for WordPress. No CAPTCHA, no questions, no animal counting, no puzzles, no math and no spam bots. Universal AntiSpam plugin.
 
 = Anti-Spam features =
 1. Stops spam comments.
