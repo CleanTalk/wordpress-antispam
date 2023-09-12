@@ -1258,3 +1258,10 @@ function apbct_update_to_6_10_2()
     $apbct->settings['data__bot_detector_enabled'] = 0;
     $apbct->saveSettings();
 }
+
+function apbct_update_to_6_17_2()
+{
+    $cron = new Cron();
+    $cron->removeTask('clear_old_session_data');
+    $cron->addTask('clear_old_session_data', 'apbct_cron_clear_old_session_data', 86400);
+}
