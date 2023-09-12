@@ -1238,41 +1238,42 @@ function apbct_buddypress_user_feedback_show_admin_notice()
 
 /**
  * WP hook action. Handles BuddyPress make_spam_user|make_ham_user hooks to collect feedback.
- * @param mixed ...$args
+ * @param int $user_id
  * @return void
  */
-function apbct_send_buddypress_user_feedback(...$args)
+function apbct_send_buddypress_user_feedback($user_id)
 {
     global $apbct;
 
-    // check if requester user is admin
-    if ( current_user_can('activate_plugins') ) {
-        // check if args contains user id
-        $user = isset($args[0]) ? $args[0] : false;
-        if ( !empty($user) ) {
-            // get ct hash from meta
-            $meta = get_user_meta($user);
-            $feedback_flag = false;
-            $ct_hash = false;
-            $current_action = current_action();
-            if (!empty($meta['ct_hash'])) {
-                $ct_hash = $meta['ct_hash'][0];
-                // set new solution
-                if ( $current_action === 'make_spam_user' ) {
-                    $feedback_flag = 0;
-                } elseif ( $current_action === 'make_ham_user' ) {
-                    $feedback_flag = 1;
-                }
-            }
-            // if everything is ok, add feedback string to the queue
-            if ( false !== $feedback_flag && false !== $ct_hash ) {
-                // this will be sent by cron task within an hour
-                ct_feedback($ct_hash, $feedback_flag);
-                // add message to state
-                $apbct->data['bp_feedback_message'] = __('CleanTalk: Your feedback will be sent to the cloud within the next hour. Feel free to contact us via support@cleantalk.org.', 'cleantalk-spam-protect');
-            }
-        }
+    // check user rights and if user_id arg
+    if ( !current_user_can('activate_plugins') || empty($user_id) || !is_scalar($user_id)) {
+        return;
     }
+
+    // get user meta
+    $meta = get_user_meta((int)$user_id);
+
+    // get ct_hash from meta
+    if (empty($meta['ct_hash']) || !isset($meta['ct_hash'][0])) {
+        return;
+    }
+    $ct_hash = $meta['ct_hash'][0];
+    $current_action = current_action();
+
+    // set new solution or return on wrong action
+    if ( $current_action === 'make_spam_user' ) {
+        $feedback_flag = 0;
+    } elseif ( $current_action === 'make_ham_user' ) {
+        $feedback_flag = 1;
+    } else {
+        return;
+    }
+
+    // add message to state, message data will be saved in the ct_feedback() function
+    $apbct->data['bp_feedback_message'] = __('CleanTalk: Your feedback will be sent to the cloud within the next hour. Feel free to contact us via support@cleantalk.org.', 'cleantalk-spam-protect');
+
+    // this will be sent by cron task within an hour
+    ct_feedback($ct_hash, $feedback_flag);
 }
 
 /**
