@@ -521,18 +521,6 @@ function apbct_get_sender_info()
         }
     }
 
-    // AMP check
-    $amp_detected =
-        Server::get('HTTP_REFERER')
-        ? (
-            strpos(Server::get('HTTP_REFERER'), '/amp/') !== false ||
-            strpos(Server::get('HTTP_REFERER'), '?amp=1') !== false ||
-            strpos(Server::get('HTTP_REFERER'), '&amp=1') !== false
-            ? 1
-            : 0
-        )
-        : null;
-
     // Visible fields processing
     $visible_fields_collection = Cookie::getVisibleFields();
     if ( !$visible_fields_collection || (is_array($visible_fields_collection) && !$visible_fields_collection[0]) ) {
@@ -619,7 +607,7 @@ function apbct_get_sender_info()
         'pixel_url'                 => $param_pixel_url,
         'pixel_setting'             => $apbct->settings['data__pixel'],
         // Debug stuff
-        'amp_detected'              => $amp_detected,
+        'amp_detected'              => apbct_is_amp_request(),
         'hook'                      => current_filter() ? current_filter() : 'no_hook',
         'headers_sent'              => !empty($apbct->headers_sent) ? $apbct->headers_sent : false,
         'headers_sent__hook'        => !empty($apbct->headers_sent__hook) ? $apbct->headers_sent__hook : 'no_hook',
