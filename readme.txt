@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 4.7
 Tested up to: 6.3
 Requires PHP: 5.6
-Stable tag: 6.17
+Stable tag: 6.18
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -453,6 +453,17 @@ Yes, it is. Please read this article,
 12. SpamFireWall log.
 
 == Changelog ==
+
+= 6.18 Sep 14 2023 =
+* Fix: Exclusions. VBOUT Woocommerce Plugin service request excluded.
+* Fix: Developing. GitHub action midified.
+* New: JS. Add frontend params for typo.
+* New: Integration. Elementor UltimateAddons Register integration.
+* New: Integration. BuddyPress feedback collected on users management page.
+* Fix: Tests. SFW private lists test fixed.
+* Fix: Common. Check js hidden field drawing fixed.
+* Fix: Alt cookies. Clearing old data fixed.
+* New: AMP Plugin integration.
 
 = 6.17 Aug 31 2023 =
 * Fix: SFW_update. Create temp table for personal data.

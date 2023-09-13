@@ -7,7 +7,7 @@ on:
 jobs:
 
   build:
-    if: github.event.review.state == 'approved'
+    if: github.event.review.state == 'approved' && toJSON(github.event.pull_request.requested_reviewers) == '[]'
     runs-on: ubuntu-latest
     steps:
       - name: Convert date format
