@@ -1221,7 +1221,7 @@ function ct_enqueue_scripts_public($_hook)
 {
     global $current_user, $apbct;
 
-    if ( apbct_exclusions_check__url() ) {
+    if ( apbct_exclusions_check__url() || apbct_is_amp_request() ) {
         return;
     }
 
