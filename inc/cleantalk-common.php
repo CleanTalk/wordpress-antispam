@@ -1754,3 +1754,16 @@ function apbct_clear_superglobal_service_data($superglobal, $type)
     }
     return $superglobal;
 }
+
+/**
+ * Check whether the request is AMP
+ *
+ * @return bool
+ */
+function apbct_is_amp_request() {
+    if (function_exists('amp_is_request')) {
+        return amp_is_request();
+    }
+
+    return false;
+}
