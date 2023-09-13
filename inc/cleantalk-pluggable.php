@@ -1006,12 +1006,29 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'Cleantalk Register Widget request';
         }
+
         // ElementorUltimateAddonsRegister
         if (
             apbct_is_plugin_active('ultimate-elementor/ultimate-elementor.php') &&
             Post::get('action') === 'uael_register_user'
         ) {
             return 'Elementor UltimateAddons Register form';
+        }
+
+        // VBOUT Woocommerce Plugin
+        if (
+            apbct_is_plugin_active('vbout-woocommerce-plugin/vbout.php') &&
+            Post::get('action') === 'updatevboutabandon'
+        ) {
+            return 'VBOUT Woocommerce Plugin request';
+        }
+
+        // WooCommerce Waitlist Plugin
+        if (
+            apbct_is_plugin_active('woocommerce-waitlist/woocommerce-waitlist.php') &&
+            Post::get('action') === 'wcwl_process_user_waitlist_request'
+        ) {
+            return 'WooCommerce Waitlist request';
         }
     } else {
         /*****************************************/

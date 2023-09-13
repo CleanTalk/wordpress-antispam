@@ -72,14 +72,17 @@ class EmailEncoder
             return;
         }
 
+        $this->secret_key = md5($apbct->api_key);
+
+        $this->encryption_is_available = function_exists('openssl_encrypt') && function_exists('openssl_decrypt');
+
+        add_action('wp_ajax_nopriv_apbct_decode_email', array($this, 'ajaxDecodeEmailHandler'));
+        add_action('wp_ajax_apbct_decode_email', array($this, 'ajaxDecodeEmailHandler'));
+
         // Excluded request
         if ($this->isExcludedRequest()) {
             return;
         }
-
-        $this->secret_key = md5($apbct->api_key);
-
-        $this->encryption_is_available = function_exists('openssl_encrypt') && function_exists('openssl_decrypt');
 
         $hooks_to_encode = array(
             'the_title',
@@ -109,9 +112,6 @@ class EmailEncoder
             add_action('shutdown', 'apbct_buffer__end', 0);
             add_action('shutdown', array($this, 'bufferOutput'), 2);
         }
-
-        add_action('wp_ajax_nopriv_apbct_decode_email', array($this, 'ajaxDecodeEmailHandler'));
-        add_action('wp_ajax_apbct_decode_email', array($this, 'ajaxDecodeEmailHandler'));
     }
 
     /**
@@ -238,6 +238,7 @@ class EmailEncoder
      */
     private function encodeString($plain_string, $key)
     {
+
         if ( $this->encryption_is_available ) {
             $encoded_email = htmlspecialchars(@openssl_encrypt($plain_string, 'aes-128-cbc', $key));
         } else {
