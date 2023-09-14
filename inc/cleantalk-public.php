@@ -696,9 +696,10 @@ function ct_add_honeypot_field($form_type, $form_method = 'post')
     global $apbct;
 
     // Honeypot option is OFF
-    if ( ! $apbct->settings['data__honeypot_field'] || apbct_exclusions_check__url() ) {
+    if ( ! $apbct->settings['data__honeypot_field'] || apbct_exclusions_check__url() || apbct_is_amp_request()) {
         return '';
     }
+
     //Generate random suffix to prevent ids duplicate
     $apbct_event_id = mt_rand(0, 100000);
 
