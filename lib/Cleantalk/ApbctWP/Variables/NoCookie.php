@@ -6,8 +6,6 @@ use Cleantalk\ApbctWP\Helper;
 
 class NoCookie
 {
-    public static $sessions_already_cleaned = false;
-
     public static $no_cookies_data = array();
 
     /**
@@ -33,7 +31,6 @@ class NoCookie
      */
     public static function set($name, $value, $save_to_db = false)
     {
-
         if ( is_int($value) ) {
             $value = (string)$value;
         }
@@ -51,8 +48,6 @@ class NoCookie
             self::$no_cookies_data[$name] = $value;
             return true;
         }
-
-        self::cleanFromOld();
 
         global $wpdb;
 
@@ -100,7 +95,6 @@ class NoCookie
      */
     public static function get($name)
     {
-
         // Bad incoming data
         if ( !$name
             ||
@@ -112,8 +106,6 @@ class NoCookie
         if ( isset(self::$no_cookies_data[$name]) ) {
             return self::$no_cookies_data[$name];
         }
-
-        self::cleanFromOld();
 
         global $wpdb;
 
@@ -175,16 +167,12 @@ class NoCookie
     {
         global $wpdb;
 
-        if ( !self::$sessions_already_cleaned && rand(0, 1000) < APBCT_SEESION__CHANCE_TO_CLEAN ) {
-            self::$sessions_already_cleaned = true;
-
-            $wpdb->query(
-                'DELETE
+        $wpdb->query(
+            'DELETE
 				FROM `' . APBCT_TBL_NO_COOKIE . '`
 				WHERE last_update < NOW() - INTERVAL ' . APBCT_SEESION__LIVE_TIME . ' SECOND
 				LIMIT 100000;'
-            );
-        }
+        );
     }
 
     /**

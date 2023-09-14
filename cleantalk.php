@@ -4,7 +4,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 6.17
+  Version: 6.18
   Author: СleanTalk <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -178,7 +178,7 @@ add_action('wp_ajax_apbct_js_keys__get', 'apbct_js_keys__get__ajax');
 
 // Get Pixel URL via WP ajax handler
 add_action('wp_ajax_nopriv_apbct_get_pixel_url', 'apbct_get_pixel_url__ajax');
-add_action('wp_ajax_apbct_apbct_get_pixel_url', 'apbct_get_pixel_url__ajax');
+add_action('wp_ajax_apbct_get_pixel_url', 'apbct_get_pixel_url__ajax');
 
 // Force ajax checking for external forms
 add_action('wp_ajax_nopriv_cleantalk_force_ajax_check', 'ct_ajax_hook');
@@ -484,6 +484,11 @@ $apbct_active_integrations = array(
     'MailPoet2' => array(
         'hook'    => array('wysija_ajax'),
         'setting' => 'forms__contact_forms_test',
+        'ajax'    => true
+    ),
+    'ElementorUltimateAddonsRegister' => array(
+        'hook'    => array('uael_register_user'),
+        'setting' => 'forms__registrations_test',
         'ajax'    => true
     ),
 );
@@ -2742,6 +2747,24 @@ function ct_cron_send_js_error_report_email()
     global $apbct;
     if (isset($apbct->settings['misc__send_connection_reports']) && $apbct->settings['misc__send_connection_reports'] == 1) {
         $apbct->getJsErrorsReport()->sendEmail(true);
+    }
+}
+
+/**
+ * Cron job handler
+ * Clear old alt-cookies/no-cookies from the database
+ *
+ * @return void
+ */
+function apbct_cron_clear_old_session_data()
+{
+    global $apbct;
+
+    if ( $apbct->data['cookies_type'] === 'none' ) {
+        \Cleantalk\ApbctWP\Variables\NoCookie::cleanFromOld();
+    }
+    if ( $apbct->data['cookies_type'] === 'alternative' ) {
+        \Cleantalk\ApbctWP\Variables\AltSessions::cleanFromOld();
     }
 }
 

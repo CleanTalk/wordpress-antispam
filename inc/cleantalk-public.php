@@ -613,12 +613,17 @@ function ct_add_hidden_fields(
     $no_print = false,
     $ajax = true
 ) {
-    # Return false if page is excluded
+    global $ct_checkjs_def, $apbct;
+
+    // Return false if page is excluded
     if ( apbct_exclusions_check__url() ) {
         return false;
     }
 
-    global $ct_checkjs_def, $apbct;
+    // Return false if cookie mode is ON
+    if ( $apbct->settings['data__set_cookies'] == 1 ) {
+        return false;
+    }
 
     $ct_checkjs_key = ct_get_checkjs_value();
     $field_id_hash  = md5((string)rand(0, 1000));
@@ -691,9 +696,10 @@ function ct_add_honeypot_field($form_type, $form_method = 'post')
     global $apbct;
 
     // Honeypot option is OFF
-    if ( ! $apbct->settings['data__honeypot_field'] || apbct_exclusions_check__url() ) {
+    if ( ! $apbct->settings['data__honeypot_field'] || apbct_exclusions_check__url() || apbct_is_amp_request()) {
         return '';
     }
+
     //Generate random suffix to prevent ids duplicate
     $apbct_event_id = mt_rand(0, 100000);
 
@@ -1216,7 +1222,7 @@ function ct_enqueue_scripts_public($_hook)
 {
     global $current_user, $apbct;
 
-    if ( apbct_exclusions_check__url() ) {
+    if ( apbct_exclusions_check__url() || apbct_is_amp_request() ) {
         return;
     }
 

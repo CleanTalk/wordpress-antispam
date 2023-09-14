@@ -1112,10 +1112,13 @@ function ctSetCookie( cookies, value, expires ) {
 // eslint-disable-next-line no-unused-vars,require-jsdoc
 function ctDetectForcedAltCookiesForms() {
     let ninjaFormsSign = document.querySelectorAll('#tmpl-nf-layout').length > 0;
+    let elementorUltimateAddonsRegister = document.querySelectorAll('.uael-registration-form-wrapper').length > 0;
     let smartFormsSign = document.querySelectorAll('script[id*="smart-forms"]').length > 0;
     let jetpackCommentsForm = document.querySelectorAll('iframe[name="jetpack_remote_comment"]').length > 0;
-
-    ctPublic.force_alt_cookies = smartFormsSign || ninjaFormsSign || jetpackCommentsForm;
+    ctPublic.force_alt_cookies = smartFormsSign ||
+        ninjaFormsSign ||
+        jetpackCommentsForm ||
+        elementorUltimateAddonsRegister;
 }
 
 // eslint-disable-next-line require-jsdoc
@@ -1359,6 +1362,160 @@ let apbctSessionStorage = {
         return data;
     },
 };
+
+/**
+ * Handler for -webkit based browser that listen for a custom
+ * animation create using the :pseudo-selector in the stylesheet.
+ * Works with Chrome, Safari
+ *
+ * @param {AnimationEvent} event
+ */
+// eslint-disable-next-line no-unused-vars,require-jsdoc
+function apbctOnAnimationStart(event) {
+    ('onautofillstart' === event.animationName) ?
+        apbctAutocomplete(event.target) : apbctCancelAutocomplete(event.target);
+}
+
+/**
+ * Handler for non-webkit based browser that listen for input
+ * event to trigger the autocomplete-cancel process.
+ * Works with Firefox, Edge, IE11
+ *
+ * @param {InputEvent} event
+ */
+// eslint-disable-next-line no-unused-vars,require-jsdoc
+function apbctOnInput(event) {
+    ('insertReplacementText' === event.inputType || !('data' in event)) ?
+        apbctAutocomplete(event.target) : apbctCancelAutocomplete(event.target);
+}
+
+/**
+ * Manage an input element when its value is autocompleted
+ * by the browser in the following steps:
+ * - add [autocompleted] attribute from event.target
+ * - create 'onautocomplete' cancelable CustomEvent
+ * - dispatch the Event
+ *
+ * @param {HtmlInputElement} element
+ */
+function apbctAutocomplete(element) {
+    if (element.hasAttribute('autocompleted')) return;
+    element.setAttribute('autocompleted', '');
+
+    let event = new window.CustomEvent('onautocomplete', {
+        bubbles: true, cancelable: true, detail: null,
+    });
+
+    // no autofill if preventDefault is called
+    if (!element.dispatchEvent(event)) {
+        element.value = '';
+    }
+}
+
+/**
+ * Manage an input element when its autocompleted value is
+ * removed by the browser in the following steps:
+ * - remove [autocompleted] attribute from event.target
+ * - create 'onautocomplete' non-cancelable CustomEvent
+ * - dispatch the Event
+ *
+ * @param {HtmlInputElement} element
+ */
+function apbctCancelAutocomplete(element) {
+    if (!element.hasAttribute('autocompleted')) return;
+    element.removeAttribute('autocompleted');
+
+    // dispatch event
+    element.dispatchEvent(new window.CustomEvent('onautocomplete', {
+        bubbles: true, cancelable: false, detail: null,
+    }));
+}
+
+/**
+ * Class for gathering data about user typing.
+ *
+ * ==============================
+ * isAutoFill       - only person can use auto fill
+ * isUseBuffer      - use buffer for fill current field
+ * ==============================
+ * lastKeyTimestamp - timestamp of last key press in current field
+ * speedDelta       - change for each key press in current field,
+ *                    as difference between current and previous key press timestamps,
+ *                    robots in general have constant speed of typing.
+ *                    If speedDelta is constant for each key press in current field,
+ *                    so, speedDelta will be roughly to 0, then it is robot.
+ * ==============================
+ */
+// eslint-disable-next-line no-unused-vars,require-jsdoc
+class CTTypoData {
+    fieldData = {
+        isAutoFill: false,
+        isUseBuffer: false,
+        speedDelta: 0,
+        firstKeyTimestamp: 0,
+        lastKeyTimestamp: 0,
+        lastDelta: 0,
+        countOfKey: 0,
+    };
+
+    fields = document.querySelectorAll('textarea[name=comment]');
+
+    data = [];
+
+    /**
+     * Gather fields.
+     */
+    gatheringFields() {
+        let fieldSet = Array.prototype.slice.call(this.fields);
+        fieldSet.forEach((field, i) => {
+            this.data.push(Object.assign({}, this.fieldData));
+        });
+    }
+
+    /**
+     * Set listeners.
+     */
+    setListeners() {
+        this.fields.forEach((field, i) => {
+            field.addEventListener('paste', () => {
+                this.data[i].isUseBuffer = true;
+            });
+        });
+
+        this.fields.forEach((field, i) => {
+            field.addEventListener('onautocomplete', () => {
+                this.data[i].isAutoFill = true;
+            });
+        });
+
+        this.fields.forEach((field, i) => {
+            field.addEventListener('input', () => {
+                this.data[i].countOfKey++;
+                let time = + new Date();
+                let currentDelta = 0;
+
+                if (this.data[i].countOfKey === 1) {
+                    this.data[i].lastKeyTimestamp = time;
+                    this.data[i].firstKeyTimestamp = time;
+                    return;
+                }
+
+                currentDelta = time - this.data[i].lastKeyTimestamp;
+                if (this.data[i].countOfKey === 2) {
+                    this.data[i].lastKeyTimestamp = time;
+                    this.data[i].lastDelta = currentDelta;
+                    return;
+                }
+
+                if (this.data[i].countOfKey > 2) {
+                    this.data[i].speedDelta += Math.abs(this.data[i].lastDelta - currentDelta);
+                    this.data[i].lastKeyTimestamp = time;
+                    this.data[i].lastDelta = currentDelta;
+                }
+            });
+        });
+    }
+}
 
 // eslint-disable-next-line camelcase
 const ctDate = new Date();
@@ -1854,6 +2011,12 @@ function apbct_ready() {
     ctStartFieldsListening();
     // 2nd try to add listeners for delayed appears forms
     setTimeout(ctStartFieldsListening, 1000);
+
+    window.addEventListener('animationstart', apbctOnAnimationStart, true);
+    window.addEventListener('input', apbctOnInput, true);
+    document.ctTypoData = new CTTypoData();
+    document.ctTypoData.gatheringFields();
+    document.ctTypoData.setListeners();
 
     // Collect scrolling info
     const initCookies = [
@@ -2599,7 +2762,13 @@ function ctNoCookieConstructHiddenField(type) {
     let field = '';
     let noCookieDataLocal = apbctLocalStorage.getCleanTalkData();
     let noCookieDataSession = apbctSessionStorage.getCleanTalkData();
-    let noCookieData = {...noCookieDataLocal, ...noCookieDataSession};
+
+    let noCookieDataTypo = {typo: []};
+    if (document.ctTypoData && document.ctTypoData.data) {
+        noCookieDataTypo = {typo: document.ctTypoData.data};
+    }
+
+    let noCookieData = {...noCookieDataLocal, ...noCookieDataSession, ...noCookieDataTypo};
     noCookieData = JSON.stringify(noCookieData);
     noCookieData = '_ct_no_cookie_data_' + btoa(noCookieData);
     field = document.createElement('input');

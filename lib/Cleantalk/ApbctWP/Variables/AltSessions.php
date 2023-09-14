@@ -6,8 +6,6 @@ use Cleantalk\ApbctWP\Helper;
 
 class AltSessions
 {
-    public static $sessions_already_cleaned = false;
-
     public static function getID()
     {
         $id = Helper::ipGet()
@@ -19,8 +17,6 @@ class AltSessions
 
     public static function set($name, $value)
     {
-        self::cleanFromOld();
-
         if ( is_int($value) ) {
             $value = (string)$value;
         }
@@ -98,8 +94,6 @@ class AltSessions
 
     public static function get($name)
     {
-        self::cleanFromOld();
-
         // Bad incoming data
         if ( ! $name) {
             return false;
@@ -143,16 +137,12 @@ class AltSessions
     {
         global $wpdb;
 
-        if ( ! self::$sessions_already_cleaned && rand(0, 1000) < APBCT_SEESION__CHANCE_TO_CLEAN) {
-            self::$sessions_already_cleaned = true;
-
-            $wpdb->query(
-                'DELETE
+        $wpdb->query(
+            'DELETE
 				FROM `' . APBCT_TBL_SESSIONS . '`
 				WHERE last_update < NOW() - INTERVAL ' . APBCT_SEESION__LIVE_TIME . ' SECOND
 				LIMIT 100000;'
-            );
-        }
+        );
     }
 
     public static function wipe()
