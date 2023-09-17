@@ -1469,6 +1469,10 @@ function apbct_sfw_update__download_files($urls, $direct_update = false)
 
     sleep(3);
 
+    if ( ! is_writable($apbct->fw_stats['updating_folder']) ) {
+        return array('error' => 'SFW update folder is not writable.');
+    }
+
     //Reset keys
     $urls          = array_values($urls);
     $results       = Helper::httpMultiRequest($urls, $apbct->fw_stats['updating_folder']);
