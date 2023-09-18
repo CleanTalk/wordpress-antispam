@@ -3245,7 +3245,7 @@ function apbct_form__elementor_pro__testSpam()
      */
     $input_array = apply_filters('apbct__filter_post', $_POST);
 
-    $ct_temp_msg_data = ct_get_fields_any($input_array);
+    $ct_temp_msg_data = ct_gfa($input_array);
 
     $sender_email    = $ct_temp_msg_data['email'] ?: '';
     $sender_nickname = $ct_temp_msg_data['nickname'] ?: '';
@@ -3253,6 +3253,12 @@ function apbct_form__elementor_pro__testSpam()
     $message         = $ct_temp_msg_data['message'] ?: array();
     if ( $subject !== '' ) {
         $message = array_merge(array('subject' => $subject), $message);
+    }
+
+    $form_data = Post::get('form_fields');
+    if ($form_data) {
+        $sender_email = Post::get('form_fields')['email'] ?: '';
+        $sender_nickname = Post::get('form_fields')['name'] ?: '';
     }
 
     $post_info['comment_type'] = 'contact_form_wordpress_elementor_pro';
