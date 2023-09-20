@@ -18,6 +18,14 @@ class LeadFormBuilder extends IntegrationBase
             $fdata = $_POST['fdata'];
             parse_str($fdata, $query_array);
             foreach ($query_array as $param => $param_value) {
+                $nickname = empty($nickname) && strpos($param, 'name_') !== false ? $param_value : '';
+                $email = empty($email) && strpos($param, 'email_') !== false ? $param_value : '';
+
+                if ($param === 'ct_bot_detector_event_token') {
+                    $event_token = $param_value;
+                    unset($query_array[$param]);
+                }
+
                 if (strpos((string)$param, 'ct_no_cookie_hidden_field') !== false || strpos($param_value, '_ct_no_cookie_data_') !== false) {
                     if ($apbct->data['cookies_type'] === 'none') {
                         \Cleantalk\ApbctWP\Variables\NoCookie::setDataFromHiddenField($query_array[$param]);
@@ -37,7 +45,12 @@ class LeadFormBuilder extends IntegrationBase
             $_POST['fdata'] = http_build_query($query_array, '', '&', PHP_QUERY_RFC3986);
         }
 
-        return ct_gfa($data_for_test);
+        $gfa_result = ct_gfa($data_for_test);
+        $gfa_result['nickname']    =    !empty($nickname)    ? $nickname    : $gfa_result['nickname'];
+        $gfa_result['email']       =    !empty($email)       ? $email       : $gfa_result['email'];
+        $gfa_result['event_token'] =    !empty($event_token) ? $event_token : null;
+
+        return $gfa_result;
     }
 
     public function doBlock($message)
