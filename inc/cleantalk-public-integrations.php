@@ -1095,6 +1095,7 @@ function ct_preprocess_comment($comment)
     // jetpack_comment case
     if ( $post_info['comment_type'] === 'jetpack_comment' ) {
         $checkjs = apbct_js_test(AltSessions::get('ct_checkjs'));
+        $event_token = AltSessions::get('ct_bot_detector_event_token');
     }
 
     $example = null;
@@ -1127,6 +1128,7 @@ function ct_preprocess_comment($comment)
         'sender_nickname' => $comment['comment_author'],
         'post_info'       => $post_info,
         'js_on'           => $checkjs,
+        'event_token'     => isset($event_token) ? $event_token : '',
         'sender_info'     => array(
             'sender_url'      => @$comment['comment_author_url'],
             'form_validation' => ! isset($apbct->validation_error)
