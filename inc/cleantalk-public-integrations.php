@@ -3314,7 +3314,7 @@ function apbct_form__elementor_pro__addField($content)
 {
     global $apbct;
 
-    if ( $apbct->settings['trusted_and_affiliate__under_forms'] === '1' ) {
+    if ( $apbct->settings['trusted_and_affiliate__under_forms'] === '1' && strpos($content, '</form>') !== false ) {
         $content .= Escape::escKsesPreset(
             apbct_generate_trusted_text_html('center'),
             'apbct_public__trusted_text'
