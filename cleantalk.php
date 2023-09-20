@@ -583,6 +583,7 @@ add_action('wp_ajax_ninja_forms_ajax_submit', 'apbct_form__ninjaForms__testSpam'
 add_action('wp_ajax_nopriv_nf_ajax_submit', 'apbct_form__ninjaForms__testSpam', 1);
 add_action('wp_ajax_nf_ajax_submit', 'apbct_form__ninjaForms__testSpam', 1);
 add_action('ninja_forms_process', 'apbct_form__ninjaForms__testSpam', 1); // Depricated ?
+add_action('ninja_forms_display_after_form', 'apbct_form__ninjaForms__addField', 1000, 10);
 
 // SeedProd Coming Soon Page Pro integration
 add_action('wp_ajax_seed_cspv5_subscribe_callback', 'apbct_form__seedprod_coming_soon__testSpam', 1);
@@ -602,6 +603,8 @@ add_action('website_neotrends_signup_fields_check', function ($username, $fields
         ct_die_extended($ct_result['comment']);
     }
 }, 1, 2);
+
+add_action('elementor/frontend/the_content', 'apbct_form__elementor_pro__addField', 10, 2);
 
 // INEVIO theme integration
 add_action('wp_ajax_contact_form_handler', 'apbct_form__inevio__testSpam', 1);

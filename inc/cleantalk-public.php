@@ -1549,7 +1549,7 @@ function apbct_generate_trusted_text_html($type = 'div')
         . 'CleanTalk Anti-Spam'
         . '</a>';
 
-    if ( $type === 'div' ) {
+    if ( $type === 'div' || $type === 'center' ) {
         $trusted_text = '<div class="' . $css_class . '">'
             . '<p>'
             . 'Protected by '

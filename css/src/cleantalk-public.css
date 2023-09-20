@@ -75,6 +75,14 @@ input[class*='apbct'].apbct_special_field{
     margin-bottom: 2pc;
 }
 
+.apbct-trusted-text--center{
+    font-size: small !important;
+    display: block;
+    text-align: center;
+    width: 100%;
+    margin-bottom: 2pc;
+}
+
 .apbct-trusted-text--label{
     font-size: small !important;
     display: inline-block;

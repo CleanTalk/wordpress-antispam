@@ -2299,6 +2299,30 @@ function apbct_form__ninjaForms__testSpam()
     }
 }
 
+/**
+ * Inserts anti-spam hidden to ninja forms
+ *
+ * @return void
+ * @global State $apbct
+ */
+function apbct_form__ninjaForms__addField($form_id)
+{
+    global $apbct;
+
+    static $second_execute = false;
+
+    if ( $apbct->settings['forms__contact_forms_test'] == 1 && !is_user_logged_in() ) {
+        if ( $apbct->settings['trusted_and_affiliate__under_forms'] === '1' && $second_execute) {
+            echo Escape::escKsesPreset(
+                apbct_generate_trusted_text_html('center'),
+                'apbct_public__trusted_text'
+            );
+        }
+    }
+
+    $second_execute = true;
+}
+
 function apbct_form__ninjaForms__preventSubmission($_some, $_form_id)
 {
     return false;
@@ -3280,6 +3304,24 @@ function apbct_form__elementor_pro__testSpam()
             'data'    => array()
         ));
     }
+}
+
+/**
+ * Places a hiding field to Gravity forms.
+ * @return string
+ */
+function apbct_form__elementor_pro__addField($content)
+{
+    global $apbct;
+
+    if ( $apbct->settings['trusted_and_affiliate__under_forms'] === '1' ) {
+        $content .= Escape::escKsesPreset(
+            apbct_generate_trusted_text_html('center'),
+            'apbct_public__trusted_text'
+        );
+    }
+
+    return $content;
 }
 
 // INEVIO theme integration
