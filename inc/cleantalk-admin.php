@@ -222,8 +222,8 @@ function ct_dashboard_statistics_widget_output($_post, $_callback_args)
             </table>
             <?php
             if ( $apbct->user_token && ! $apbct->data["wl_mode_enabled"] ) { ?>
-                <a target='_blank' href='https://cleantalk.org/my?user_token=<?php
-                echo Escape::escHtml($apbct->user_token); ?>&cp_mode=antispam'>
+                <a target='_blank' href='https://cleantalk.org/my/show_requests?user_token=<?php
+                echo Escape::escHtml($apbct->user_token); ?>&utm_source=wp-backend&utm_medium=dashboard_widget_vew_all'>
                     <input class='ct_widget_button' id='ct_widget_button_view_all' type='button' value='View all'>
                 </a>
                 <?php
