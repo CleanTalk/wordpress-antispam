@@ -20,8 +20,8 @@ class LeadFormBuilder extends IntegrationBase
             $fdata = $_POST['fdata'];
             parse_str($fdata, $query_array);
             foreach ($query_array as $param => $param_value) {
-                $nickname = empty($nickname) && strpos($param, 'name_') !== false ? $param_value : '';
-                $email = empty($email) && strpos($param, 'email_') !== false ? $param_value : '';
+                $nickname = empty($nickname) && strpos($param, 'name_') !== false ? $param_value : $nickname;
+                $email = empty($email) && strpos($param, 'email_') !== false ? $param_value : $email;
 
                 if ($param === 'ct_bot_detector_event_token') {
                     $event_token = $param_value;
