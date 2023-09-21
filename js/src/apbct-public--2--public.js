@@ -1478,21 +1478,15 @@ function getNoCookieData() {
 }
 
 /**
- * Set three statements to the sessions storage: apbct_session_referrer, apbct_session_current_page, apbct_prev_referer.
+ * Set three statements to the sessions storage: apbct_session_current_page, apbct_prev_referer.
  * @return {void}
  */
 function apbctWriteReferrersToSessionStorage() {
-    const sessionReferrer = apbctSessionStorage.get('apbct_session_referrer');
     const sessionCurrentPage = apbctSessionStorage.get('apbct_session_current_page');
-
-    // set session apbct_prev_referer
-    if (sessionReferrer !== false && sessionReferrer !== document.referrer) {
-        apbctSessionStorage.set('apbct_prev_referer', sessionReferrer, false);
-    }
 
     // set session apbct_referer
     if (sessionCurrentPage!== false && document.location.href !== sessionCurrentPage) {
-        apbctSessionStorage.set('apbct_session_referrer', sessionCurrentPage, false);
+        apbctSessionStorage.set('apbct_prev_referer', sessionCurrentPage, false);
     }
 
     // set session current page to know referrer
