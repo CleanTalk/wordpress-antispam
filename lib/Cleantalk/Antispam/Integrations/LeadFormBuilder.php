@@ -13,6 +13,8 @@ class LeadFormBuilder extends IntegrationBase
         }
 
         $data_for_test = array();
+        $email = '';
+        $nickname = '';
         // The string was created by the http_build_query function
         if (!empty($_POST['fdata'])) {
             $fdata = $_POST['fdata'];
@@ -45,9 +47,7 @@ class LeadFormBuilder extends IntegrationBase
             $_POST['fdata'] = http_build_query($query_array, '', '&', PHP_QUERY_RFC3986);
         }
 
-        $gfa_result = ct_gfa($data_for_test);
-        $gfa_result['nickname']    =    !empty($nickname)    ? $nickname    : $gfa_result['nickname'];
-        $gfa_result['email']       =    !empty($email)       ? $email       : $gfa_result['email'];
+        $gfa_result = ct_gfa($data_for_test, $email, $nickname);
         $gfa_result['event_token'] =    !empty($event_token) ? $event_token : null;
 
         return $gfa_result;
