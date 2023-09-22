@@ -1351,7 +1351,7 @@ function apbct_enqueue_and_localize_public_scripts()
     );
 
     // Bot detector
-    if ( $apbct->settings['data__bot_detector_enabled'] ) {
+    if ( $apbct->settings['data__bot_detector_enabled'] && ! apbct_bot_detector_scripts_exclusion()) {
         wp_enqueue_script(
             'ct_bot_detector',
             'https://moderate.cleantalk.org/ct-bot-detector-wrapper.js',
@@ -1367,6 +1367,15 @@ function apbct_enqueue_and_localize_public_scripts()
         APBCT_VERSION,
         'all'
     );
+}
+
+function apbct_bot_detector_scripts_exclusion()
+{
+    if (apbct_is_plugin_active('oxygen/functions.php') && Get::get('ct_builder') === 'true') {
+        return true;
+    }
+
+    return false;
 }
 
 /**
