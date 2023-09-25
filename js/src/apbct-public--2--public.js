@@ -572,6 +572,15 @@ function apbct_ready() {
         }
     }
 
+    if (
+        typeof ctPublic.data__cookies_type !== 'undefined' &&
+        ctPublic.data__cookies_type === 'none' &&
+        typeof ctPublicFunctions.wprocket_detected !== 'undefined' &&
+        ctPublicFunctions.wprocket_detected
+    ) {
+        initCookies.push(['apbct_timestamp', apbctLocalStorage.get('ct_ps_timestamp')]);
+    }
+
     // send bot detector event token to alt cookies on problem forms
     if (typeof ctPublic.force_alt_cookies !== 'undefined' &&
         ctPublic.force_alt_cookies &&

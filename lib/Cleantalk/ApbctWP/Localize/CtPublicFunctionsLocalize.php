@@ -22,6 +22,7 @@ class CtPublicFunctionsLocalize
             'data__ajax_type'                      => $apbct->data['ajax_type'],
             'text__wait_for_decoding'              => esc_html__('Decoding the contact data, let us a few seconds to finish. ' . $apbct->data['wl_brandname'], 'cleantalk-spam-protect'),
             'cookiePrefix'                         => apbct__get_cookie_prefix(),
+            'wprocket_detected'                    => is_plugin_active('wp-rocket/wp-rocket.php'),
         );
     }
 
