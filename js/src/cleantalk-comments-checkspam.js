@@ -173,9 +173,9 @@ function ctSendComments() {
                     let statusString = String(ctCommentsCheck.ct_status_string);
                     stastatusStringtusString = statusString.printf(ctCommentsChecked, ctCommentsSpam, ctCommentsBad);
                     if (parseInt(ctCommentsSpam) > 0) {
-                        statusString += ctCommentsCheck.ct_status_string_warning;
+                        stastatusStringtusString += ctCommentsCheck.ct_status_string_warning;
                     }
-                    jQuery('#ct_checking_status').html(statusString);
+                    jQuery('#ct_checking_status').html(stastatusStringtusString);
                     jQuery('#ct_error_message').hide();
                     // If DB woks not properly
                     if (+ctCommentsTotal < ctCommentsChecked + ctCommentsBad) {
