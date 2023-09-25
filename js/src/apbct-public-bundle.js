@@ -2171,7 +2171,7 @@ function apbct_ready() {
                 }
 
                 // Call previous submit action
-                if (event.target.onsubmit_prev instanceof Function) {
+                if (event.target.onsubmit_prev instanceof Function && !ctOnsubmitPrevCallExclude(event.target)) {
                     setTimeout(function() {
                         event.target.onsubmit_prev.call(event.target, event);
                     }, 500);
@@ -2212,6 +2212,14 @@ function apbct_ready() {
             _form.onsubmit = (e) => ctSearchFormOnSubmitHandler(e, _form);
         }
     }
+}
+
+function ctOnsubmitPrevCallExclude(form) {
+	if (form.classList.contains('hb-booking-search-form')) {
+		return true;
+	}
+	
+    return false;
 }
 
 if (ctPublic.data__key_is_ok) {
