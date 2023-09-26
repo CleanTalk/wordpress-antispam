@@ -171,11 +171,11 @@ function ctSendComments() {
                     ctCommentsTotal += msg.total;
                     ctUnchecked = ctCommentsTotal - ctCommentsChecked - ctCommentsBad;
                     let statusString = String(ctCommentsCheck.ct_status_string);
-                    stastatusStringtusString = statusString.printf(ctCommentsChecked, ctCommentsSpam, ctCommentsBad);
+                    statusString = statusString.printf(ctCommentsChecked, ctCommentsSpam, ctCommentsBad);
                     if (parseInt(ctCommentsSpam) > 0) {
-                        stastatusStringtusString += ctCommentsCheck.ct_status_string_warning;
+                        statusString += ctCommentsCheck.ct_status_string_warning;
                     }
-                    jQuery('#ct_checking_status').html(stastatusStringtusString);
+                    jQuery('#ct_checking_status').html(statusString);
                     jQuery('#ct_error_message').hide();
                     // If DB woks not properly
                     if (+ctCommentsTotal < ctCommentsChecked + ctCommentsBad) {
