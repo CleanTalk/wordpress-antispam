@@ -103,17 +103,18 @@ function ct_validate_ccf_submission($value, $_field_id, $_required)
 
     $checkjs = apbct_js_test(Sanitize::cleanTextField(Cookie::get('ct_checkjs')), true) ?: apbct_js_test(Sanitize::cleanTextField(Post::get('ct_checkjs')));
 
-    //Making a call
-    $base_call_result = apbct_base_call(
-        array(
-            'message'         => $message,
-            'sender_email'    => $sender_email,
-            'sender_nickname' => $sender_nickname,
-            'post_info'       => $post_info,
-            'js_on'           => $checkjs,
-            'sender_info'     => array('sender_url' => null),
-        )
+    $base_call_params = array(
+        'message'         => $message,
+        'sender_email'    => $sender_email,
+        'sender_nickname' => $sender_nickname,
+        'post_info'       => array('comment_type' => 'contact_form_wordpress_ninja_froms'),
+        'js_on'           => $checkjs,
+        'sender_info'     => array('sender_url' => null),
     );
+    if ($event_token = Cookie::get('ct_bot_detector_event_token')) {
+        $base_call_params['event_token'] = $event_token;
+    }
+    $base_call_result = apbct_base_call($base_call_params);
 
     $ct_result = $base_call_result['ct_result'];
 
@@ -156,17 +157,18 @@ function ct_woocommerce_wishlist_check($args)
 
     $checkjs = apbct_js_test(Sanitize::cleanTextField(Cookie::get('ct_checkjs')), true) ?: apbct_js_test(Sanitize::cleanTextField(Post::get('ct_checkjs')));
 
-    //Making a call
-    $base_call_result = apbct_base_call(
-        array(
-            'message'         => $subject . " " . $message,
-            'sender_email'    => $email,
-            'sender_nickname' => $nickname,
-            'post_info'       => $post_info,
-            'js_on'           => $checkjs,
-            'sender_info'     => array('sender_url' => null),
-        )
+    $base_call_params = array(
+        'message'         => $subject . " " . $message,
+        'sender_email'    => $email,
+        'sender_nickname' => $nickname,
+        'post_info'       => $post_info,
+        'js_on'           => $checkjs,
+        'sender_info'     => array('sender_url' => null),
     );
+    if ($event_token = Cookie::get('ct_bot_detector_event_token')) {
+        $base_call_params['event_token'] = $event_token;
+    }
+    $base_call_result = apbct_base_call($base_call_params);
 
     $ct_result = $base_call_result['ct_result'];
 
@@ -229,20 +231,21 @@ function apbct_integration__buddyPres__activityWall($is_spam, $activity_obj = nu
 
     $curr_user = get_user_by('id', $activity_obj->user_id);
 
-    //Making a call
-    $base_call_result = apbct_base_call(
-        array(
-            'message'         => is_string($activity_obj->content) ? $activity_obj->content : '',
-            'sender_email'    => $curr_user->data->user_email,
-            'sender_nickname' => $curr_user->data->user_login,
-            'post_info'       => array(
-                'post_url'     => Server::get('HTTP_REFERER'),
-                'comment_type' => 'buddypress_activitywall',
-            ),
-            'js_on'           => apbct_js_test(Cookie::get('ct_checkjs'), true),
-            'sender_info'     => array('sender_url' => null),
-        )
+    $base_call_params = array(
+        'message'         => is_string($activity_obj->content) ? $activity_obj->content : '',
+        'sender_email'    => $curr_user->data->user_email,
+        'sender_nickname' => $curr_user->data->user_login,
+        'post_info'       => array(
+            'post_url'     => Server::get('HTTP_REFERER'),
+            'comment_type' => 'buddypress_activitywall',
+        ),
+        'js_on'           => apbct_js_test(Cookie::get('ct_checkjs'), true),
+        'sender_info'     => array('sender_url' => null),
     );
+    if ($event_token = Cookie::get('ct_bot_detector_event_token')) {
+        $base_call_params['event_token'] = $event_token;
+    }
+    $base_call_result = apbct_base_call($base_call_params);
 
     $ct_result = $base_call_result['ct_result'];
 
@@ -341,21 +344,22 @@ function apbct_integration__buddyPres__private_msg_check($bp_message_obj)
 
     $sender_user_obj = get_user_by('id', $bp_message_obj->sender_id);
 
-    //Making a call
-    $base_call_result = apbct_base_call(
-        array(
-            'message'         => $bp_message_obj->subject . " " . $bp_message_obj->message,
-            'sender_email'    => $sender_user_obj->data->user_email,
-            'sender_nickname' => $sender_user_obj->data->user_login,
-            'post_info'       => array(
-                'comment_type' => 'buddypress_comment',
-                'post_url'     => Server::get('HTTP_REFERER'),
-            ),
-            'js_on'           => apbct_js_test(Sanitize::cleanTextField(Cookie::get('ct_checkjs')), true) ?: apbct_js_test(Sanitize::cleanTextField(Post::get('ct_checkjs'))),
-            'sender_info'     => array('sender_url' => null),
-            'exception_action' => $exception_action === true ? 1 : null
-        )
+    $base_call_params = array(
+        'message'         => $bp_message_obj->subject . " " . $bp_message_obj->message,
+        'sender_email'    => $sender_user_obj->data->user_email,
+        'sender_nickname' => $sender_user_obj->data->user_login,
+        'post_info'       => array(
+            'comment_type' => 'buddypress_comment',
+            'post_url'     => Server::get('HTTP_REFERER'),
+        ),
+        'js_on'           => apbct_js_test(Sanitize::cleanTextField(Cookie::get('ct_checkjs')), true) ?: apbct_js_test(Sanitize::cleanTextField(Post::get('ct_checkjs'))),
+        'sender_info'     => array('sender_url' => null),
+        'exception_action' => $exception_action === true ? 1 : null
     );
+    if ($event_token = Cookie::get('ct_bot_detector_event_token')) {
+        $base_call_params['event_token'] = $event_token;
+    }
+    $base_call_result = apbct_base_call($base_call_params);
 
     $ct_result = $base_call_result['ct_result'];
 
@@ -399,15 +403,18 @@ function apbct_forms__search__testSpam($search)
 
     $user = apbct_is_user_logged_in() ? wp_get_current_user() : null;
 
-    $base_call_result = apbct_base_call(
-        array(
-            'message'         => $search,
-            'sender_email'    => $user !== null ? $user->user_email : null,
-            'sender_nickname' => $user !== null ? $user->user_login : null,
-            'post_info'       => array('comment_type' => 'site_search_wordpress'),
-            'exception_action' => 0,
-        )
+    $base_call_params = array(
+        'message'         => $search,
+        'sender_email'    => $user !== null ? $user->user_email : null,
+        'sender_nickname' => $user !== null ? $user->user_login : null,
+        'post_info'       => array('comment_type' => 'site_search_wordpress'),
+        'exception_action' => 0,
     );
+    if ($event_token = Cookie::get('ct_bot_detector_event_token')) {
+        $base_call_params['event_token'] = $event_token;
+    }
+    $base_call_result = apbct_base_call($base_call_params);
+
     $ct_result        = $base_call_result['ct_result'];
 
     $cleantalk_executed = true;
@@ -466,16 +473,17 @@ function ct_woocommerce_checkout_check($_data, $errors)
     $post_info['comment_type'] = 'order';
     $post_info['post_url']     = Server::get('HTTP_REFERER');
 
-    $base_call_data = array(
+    $base_call_params = array(
         'message'         => $message,
         'sender_email'    => $sender_email,
         'sender_nickname' => $sender_nickname,
         'post_info'       => $post_info,
         'sender_info'     => array('sender_url' => null)
     );
-
-    //Making a call
-    $base_call_result = apbct_base_call($base_call_data);
+    if ($event_token = Cookie::get('ct_bot_detector_event_token')) {
+        $base_call_params['event_token'] = $event_token;
+    }
+    $base_call_result = apbct_base_call($base_call_params);
 
     if ( $apbct->settings['forms__wc_register_from_order'] ) {
         $cleantalk_executed = false;
@@ -575,15 +583,16 @@ function apbct_wc__add_to_cart_unlogged_user(
         $post_info['comment_type'] = 'order__add_to_cart';
         $post_info['post_url']     = Sanitize::cleanUrl(Server::get('HTTP_REFERER'));
 
-        //Making a call
-        $base_call_result = apbct_base_call(
-            array(
-                'message'     => $message,
-                'post_info'   => $post_info,
-                'js_on'       => apbct_js_test(Sanitize::cleanTextField(Cookie::get('ct_checkjs')), true),
-                'sender_info' => array('sender_url' => null),
-            )
+        $base_call_params = array(
+            'message'     => $message,
+            'post_info'   => $post_info,
+            'js_on'       => apbct_js_test(Sanitize::cleanTextField(Cookie::get('ct_checkjs')), true),
+            'sender_info' => array('sender_url' => null),
         );
+        if ($event_token = Cookie::get('ct_bot_detector_event_token')) {
+            $base_call_params['event_token'] = $event_token;
+        }
+        $base_call_result = apbct_base_call($base_call_params);
 
         $ct_result = $base_call_result['ct_result'];
 
@@ -634,17 +643,18 @@ function apbct_form__piratesForm__testSpam()
     $post_info['comment_type'] = 'contact_form_wordpress_feedback_pirate';
     $post_info['post_url']     = Server::get('HTTP_REFERER');
 
-    //Making a call
-    $base_call_result = apbct_base_call(
-        array(
-            'message'         => $message,
-            'sender_email'    => $sender_email,
-            'sender_nickname' => $sender_nickname,
-            'post_info'       => $post_info,
-            'js_on'           => apbct_js_test(Sanitize::cleanTextField(Cookie::get('ct_checkjs')), true),
-            'sender_info'     => array('sender_url' => null),
-        )
+    $base_call_params = array(
+        'message'         => $message,
+        'sender_email'    => $sender_email,
+        'sender_nickname' => $sender_nickname,
+        'post_info'       => $post_info,
+        'js_on'           => apbct_js_test(Sanitize::cleanTextField(Cookie::get('ct_checkjs')), true),
+        'sender_info'     => array('sender_url' => null),
     );
+    if ($event_token = Cookie::get('ct_bot_detector_event_token')) {
+        $base_call_params['event_token'] = $event_token;
+    }
+    $base_call_result = apbct_base_call($base_call_params);
 
     $ct_result = $base_call_result['ct_result'];
 
@@ -800,14 +810,17 @@ function apbct_form__formidable__testSpam($errors, $_form)
     // Combine it with non-scalar values
     $message = array_merge($tmp_message, $tmp_message2);
 
-    $base_call_result = apbct_base_call(
-        array(
-            'message'         => $message,
-            'sender_email'    => $sender_email,
-            'sender_nickname' => $sender_nickname,
-            'post_info'       => array('comment_type' => 'contact_form_wordpress_formidable')
-        )
+    $base_call_params = array(
+        'message'         => $message,
+        'sender_email'    => $sender_email,
+        'sender_nickname' => $sender_nickname,
+        'post_info'       => array('comment_type' => 'contact_form_wordpress_formidable')
     );
+    if ($event_token = Cookie::get('ct_bot_detector_event_token')) {
+        $base_call_params['event_token'] = $event_token;
+    }
+    $base_call_result = apbct_base_call($base_call_params);
+
     $ct_result        = $base_call_result['ct_result'];
 
     if ( $ct_result->allow == 0 ) {
@@ -915,15 +928,18 @@ function ct_bbp_new_pre_content($comment)
             $sender_nickname = Sanitize::cleanUser(Post::get('bbp_anonymous_name'));
         }
 
-        $base_call_result = apbct_base_call(
-            array(
-                'message'         => $comment,
-                'sender_email'    => $sender_email,
-                'sender_nickname' => $sender_nickname,
-                'post_info'       => $post_info,
-                'sender_info'     => array('sender_url' => Sanitize::cleanUrl(Post::get('bbp_anonymous_website'))),
-            )
+        $base_call_params = array(
+            'message'         => $comment,
+            'sender_email'    => $sender_email,
+            'sender_nickname' => $sender_nickname,
+            'post_info'       => $post_info,
+            'sender_info'     => array('sender_url' => Sanitize::cleanUrl(Post::get('bbp_anonymous_website'))),
         );
+        if ($event_token = Cookie::get('ct_bot_detector_event_token')) {
+            $base_call_params['event_token'] = $event_token;
+        }
+        $base_call_result = apbct_base_call($base_call_params);
+
         $ct_result        = $base_call_result['ct_result'];
 
         if ( $ct_result->allow == 0 ) {
@@ -1166,6 +1182,9 @@ function ct_preprocess_comment($comment)
         $base_call_data['honeypot_field'] = $honeypot_field;
     }
 
+    if (empty($base_call_data['event_token'])) {
+        $base_call_data['event_token'] = Cookie::get('ct_bot_detector_event_token');
+    }
     $base_call_result = apbct_base_call($base_call_data);
 
     $ct_result = $base_call_result['ct_result'];
@@ -1428,15 +1447,17 @@ function ct_register_post($sanitized_user_login, $user_email, $errors)
  */
 function ct_test_message($nickname, $email, $_ip, $text)
 {
-    $base_call_result = apbct_base_call(
-        array(
-            'message'         => $text,
-            'sender_email'    => $email,
-            'sender_nickname' => $nickname,
-            'post_info'       => array('comment_type' => 'feedback_plugin_check'),
-            'js_on'           => apbct_js_test(Sanitize::cleanTextField(Cookie::get('ct_checkjs')), true),
-        )
+    $base_call_params = array(
+        'message'         => $text,
+        'sender_email'    => $email,
+        'sender_nickname' => $nickname,
+        'post_info'       => array('comment_type' => 'feedback_plugin_check'),
+        'js_on'           => apbct_js_test(Sanitize::cleanTextField(Cookie::get('ct_checkjs')), true),
     );
+    if ($event_token = Cookie::get('ct_bot_detector_event_token')) {
+        $base_call_params['event_token'] = $event_token;
+    }
+    $base_call_result = apbct_base_call($base_call_params);
 
     $ct_result = $base_call_result['ct_result'];
 
@@ -1462,17 +1483,18 @@ function ct_test_registration($nickname, $email, $ip = null)
         $sender_info['cookie_checkjs_passed'] = $checkjs;
     }
 
-    //Making a call
-    $base_call_result = apbct_base_call(
-        array(
-            'sender_ip'       => $ip,
-            'sender_email'    => $email,
-            'sender_nickname' => $nickname,
-            'sender_info'     => $sender_info,
-            'js_on'           => $checkjs,
-        ),
-        true
+    $base_call_params = array(
+        'sender_ip'       => $ip,
+        'sender_email'    => $email,
+        'sender_nickname' => $nickname,
+        'sender_info'     => $sender_info,
+        'js_on'           => $checkjs,
     );
+    if ($event_token = Cookie::get('ct_bot_detector_event_token')) {
+        $base_call_params['event_token'] = $event_token;
+    }
+    $base_call_result = apbct_base_call($base_call_params, true);
+
     $ct_result        = $base_call_result['ct_result'];
     ct_hash($ct_result->id);
     $result = array(
@@ -1617,6 +1639,9 @@ function ct_registration_errors($errors, $sanitized_user_login = null, $user_ema
         $base_call_array['message'] = $field_values;
     }
 
+    if (empty($base_call_array)) {
+        $base_call_array['event_token'] = Cookie::get('ct_bot_detector_event_token');
+    }
     $base_call_result = apbct_base_call(
         $base_call_array,
         $reg_flag
@@ -1765,15 +1790,17 @@ function apbct_registration__UltimateMembers__check($args)
         $sender_info['cookie_checkjs_passed'] = $checkjs;
     }
 
-    $base_call_result = apbct_base_call(
-        array(
-            'sender_email'    => $args['user_email'],
-            'sender_nickname' => $args['user_login'],
-            'sender_info'     => $sender_info,
-            'js_on'           => $checkjs,
-        ),
-        true
+    $base_call_params = array(
+        'sender_email'    => $args['user_email'],
+        'sender_nickname' => $args['user_login'],
+        'sender_info'     => $sender_info,
+        'js_on'           => $checkjs,
     );
+    if ($event_token = Cookie::get('ct_bot_detector_event_token')) {
+        $base_call_params['event_token'] = $event_token;
+    }
+    $base_call_result = apbct_base_call($base_call_params, true);
+
     $ct_result        = $base_call_result['ct_result'];
 
     $cleantalk_executed = true;
@@ -1901,15 +1928,18 @@ function ct_contact_form_is_spam($form)
         $message = $form['comment_content'];
     }
 
-    $base_call_result = apbct_base_call(
-        array(
-            'message'         => $message,
-            'sender_email'    => $sender_email,
-            'sender_nickname' => $sender_nickname,
-            'post_info'       => array('comment_type' => 'contact_form_wordpress_grunion'),
-            'sender_info'     => array('sender_url' => @$form['comment_author_url']),
-        )
+    $base_call_params = array(
+        'message'         => $message,
+        'sender_email'    => $sender_email,
+        'sender_nickname' => $sender_nickname,
+        'post_info'       => array('comment_type' => 'contact_form_wordpress_grunion'),
+        'sender_info'     => array('sender_url' => @$form['comment_author_url']),
     );
+    if ($event_token = Cookie::get('ct_bot_detector_event_token')) {
+        $base_call_params['event_token'] = $event_token;
+    }
+    $base_call_result = apbct_base_call($base_call_params);
+
     $ct_result        = $base_call_result['ct_result'];
 
     if ( $ct_result->allow == 0 ) {
@@ -1938,15 +1968,18 @@ function ct_contact_form_is_spam_jetpack($_is_spam, $form)
         return null;
     }
 
-    $base_call_result = apbct_base_call(
-        array(
-            'message'         => isset($form['comment_content']) ? $form['comment_content'] : '',
-            'sender_email'    => isset($form['comment_author_email']) ? $form['comment_author_email'] : null,
-            'sender_nickname' => isset($form['comment_author']) ? $form['comment_author'] : null,
-            'post_info'       => array('comment_type' => 'contact_form_wordpress_grunion'),
-            'sender_info'     => array('sender_url' => @$form['comment_author_url']),
-        )
+    $base_call_params = array(
+        'message'         => isset($form['comment_content']) ? $form['comment_content'] : '',
+        'sender_email'    => isset($form['comment_author_email']) ? $form['comment_author_email'] : null,
+        'sender_nickname' => isset($form['comment_author']) ? $form['comment_author'] : null,
+        'post_info'       => array('comment_type' => 'contact_form_wordpress_grunion'),
+        'sender_info'     => array('sender_url' => @$form['comment_author_url']),
     );
+    if ($event_token = Cookie::get('ct_bot_detector_event_token')) {
+        $base_call_params['event_token'] = $event_token;
+    }
+    $base_call_result = apbct_base_call($base_call_params);
+
     $ct_result        = $base_call_result['ct_result'];
 
     if ( $ct_result->allow == 0 ) {
@@ -2049,23 +2082,26 @@ function apbct_form__contactForm7__testSpam($spam, $_submission = null)
         $message = array_merge(array('subject' => $subject), $message);
     }
 
-    $base_call_result = apbct_base_call(
-        array(
-            'message'         => $message,
-            'sender_email'    => $sender_email,
-            'sender_nickname' => $sender_nickname,
-            'js_on'           => $checkjs,
-            'post_info'       => array('comment_type' => 'contact_form_wordpress_cf7'),
-            'sender_info'     => array(
-                'form_validation' => ! isset($apbct->validation_error)
-                    ? null
-                    : json_encode(array(
-                        'validation_notice' => $apbct->validation_error,
-                        'page_url'          => Server::get('HTTP_HOST') . Server::get('REQUEST_URI'),
-                    ))
-            ),
-        )
+    $base_call_params = array(
+        'message'         => $message,
+        'sender_email'    => $sender_email,
+        'sender_nickname' => $sender_nickname,
+        'js_on'           => $checkjs,
+        'post_info'       => array('comment_type' => 'contact_form_wordpress_cf7'),
+        'sender_info'     => array(
+            'form_validation' => ! isset($apbct->validation_error)
+                ? null
+                : json_encode(array(
+                    'validation_notice' => $apbct->validation_error,
+                    'page_url'          => Server::get('HTTP_HOST') . Server::get('REQUEST_URI'),
+                ))
+        ),
     );
+    if ($event_token = Cookie::get('ct_bot_detector_event_token')) {
+        $base_call_params['event_token'] = $event_token;
+    }
+
+    $base_call_result = apbct_base_call($base_call_params);
 
     $ct_result = $base_call_result['ct_result'];
 
@@ -2147,13 +2183,15 @@ function apbct_form__mo_subscribe_to_email_list__testSpam()
     $input_array = apply_filters('apbct__filter_post', $_POST);
     $params = ct_get_fields_any($input_array);
 
-    $base_call_result = apbct_base_call(
-        array(
-            'sender_email'    => $params['email'],
-            'sender_nickname' => $input_array['mo-name'] ?: '',
-            'post_info'       => array('comment_type' => 'subscribe_form_wordpress_mailoptin'),
-        )
+    $base_call_params = array(
+        'sender_email'    => $params['email'],
+        'sender_nickname' => $input_array['mo-name'] ?: '',
+        'post_info'       => array('comment_type' => 'subscribe_form_wordpress_mailoptin'),
     );
+    if ($event_token = Cookie::get('ct_bot_detector_event_token')) {
+        $base_call_params['event_token'] = $event_token;
+    }
+    $base_call_result = apbct_base_call($base_call_params);
 
     $ct_result = $base_call_result['ct_result'];
 
@@ -2175,13 +2213,15 @@ function apbct_form__metform_subscribe__testSpam()
     $input_array = apply_filters('apbct__filter_post', $_POST);
     $params = ct_get_fields_any($input_array);
 
-    $base_call_result = apbct_base_call(
-        array(
-            'sender_email'    => $params['email'],
-            'sender_nickname' => $params['nickname'] ?: '',
-            'post_info'       => array('comment_type' => 'subscribe_form_wordpress_metform'),
-        )
+    $base_call_params = array(
+        'sender_email'    => $params['email'],
+        'sender_nickname' => $params['nickname'] ?: '',
+        'post_info'       => array('comment_type' => 'subscribe_form_wordpress_metform'),
     );
+    if ($event_token = Cookie::get('ct_bot_detector_event_token')) {
+        $base_call_params['event_token'] = $event_token;
+    }
+    $base_call_result = apbct_base_call($base_call_params);
 
     $ct_result = $base_call_result['ct_result'];
 
@@ -2258,16 +2298,17 @@ function apbct_form__ninjaForms__testSpam()
         }
     }
 
-    $base_call_result = apbct_base_call(
-        array(
-            'message'         => $message,
-            'sender_email'    => $sender_email,
-            'sender_nickname' => $sender_nickname,
-            'post_info'       => array('comment_type' => 'contact_form_wordpress_ninja_froms'),
-            'js_on'           => $checkjs,
-            'event_token'     => Cookie::get('ct_bot_detector_event_token'),
-        )
+    $base_call_params = array(
+        'message'         => $message,
+        'sender_email'    => $sender_email,
+        'sender_nickname' => $sender_nickname,
+        'post_info'       => array('comment_type' => 'contact_form_wordpress_ninja_froms'),
+        'js_on'           => $checkjs,
     );
+    if ($event_token = Cookie::get('ct_bot_detector_event_token')) {
+        $base_call_params['event_token'] = $event_token;
+    }
+    $base_call_result = apbct_base_call($base_call_params);
 
     Cookie::$force_alt_cookies_global = false;
 
@@ -2391,14 +2432,16 @@ function apbct_form__seedprod_coming_soon__testSpam()
 
     $post_info['comment_type'] = 'contact_form_wordpress_seedprod_coming_soon';
 
-    $base_call_result = apbct_base_call(
-        array(
-            'message'         => $message,
-            'sender_email'    => $sender_email,
-            'sender_nickname' => $sender_nickname,
-            'post_info'       => $post_info,
-        )
+    $base_call_params = array(
+        'message'         => $message,
+        'sender_email'    => $sender_email,
+        'sender_nickname' => $sender_nickname,
+        'post_info'       => $post_info,
     );
+    if ($event_token = Cookie::get('ct_bot_detector_event_token')) {
+        $base_call_params['event_token'] = $event_token;
+    }
+    $base_call_result = apbct_base_call($base_call_params);
 
     $ct_result = $base_call_result['ct_result'];
     if ( $ct_result->allow == 0 ) {
@@ -2631,15 +2674,18 @@ function apbct_form__WPForms__testSpam()
         $message = array_merge(array('subject' => $subject), $message);
     }
 
-    $base_call_result = apbct_base_call(
-        array(
-            'message'         => $message,
-            'sender_email'    => $sender_email,
-            'sender_nickname' => $sender_nickname,
-            'post_info'       => array('comment_type' => 'contact_form_wordpress_wp_forms'),
-            'js_on'           => $checkjs,
-        )
+    $base_call_params = array(
+        'message'         => $message,
+        'sender_email'    => $sender_email,
+        'sender_nickname' => $sender_nickname,
+        'post_info'       => array('comment_type' => 'contact_form_wordpress_wp_forms'),
+        'js_on'           => $checkjs,
     );
+    if ($event_token = Cookie::get('ct_bot_detector_event_token')) {
+        $base_call_params['event_token'] = $event_token;
+    }
+    $base_call_result = apbct_base_call($base_call_params);
+
     $ct_result        = $base_call_result['ct_result'];
 
     // Change mail notification if license is out of date
@@ -2720,14 +2766,16 @@ function ct_quform_post_validate($result, $form)
     $sender_email = $ct_temp_msg_data['email'] ?: '';
 
     $checkjs          = apbct_js_test(Sanitize::cleanTextField(Cookie::get('ct_checkjs')), true);
-    $base_call_result = apbct_base_call(
-        array(
-            'message'      => $form->getValues(),
-            'sender_email' => $sender_email,
-            'post_info'    => array('comment_type' => $comment_type),
-            'js_on'        => $checkjs,
-        )
+    $base_call_params = array(
+        'message'      => $form->getValues(),
+        'sender_email' => $sender_email,
+        'post_info'    => array('comment_type' => $comment_type),
+        'js_on'        => $checkjs,
     );
+    if ($event_token = Cookie::get('ct_bot_detector_event_token')) {
+        $base_call_params['event_token'] = $event_token;
+    }
+    $base_call_result = apbct_base_call($base_call_params);
 
     $ct_result = $base_call_result['ct_result'];
     if ( $ct_result->allow == 0 ) {
@@ -2800,15 +2848,17 @@ function ct_si_contact_form_validate($form_errors = array(), $_form_id_num = 0)
         $message['subject'] = $subject;
     }
 
-    $base_call_result = apbct_base_call(
-        array(
-            'message'         => $message,
-            'sender_email'    => $sender_email,
-            'sender_nickname' => $sender_nickname,
-            'post_info'       => array('comment_type' => 'contact_form_wordpress_fscf'),
-            'js_on'           => apbct_js_test(Sanitize::cleanTextField(Post::get('ct_checkjs'))),
-        )
+    $base_call_params = array(
+        'message'         => $message,
+        'sender_email'    => $sender_email,
+        'sender_nickname' => $sender_nickname,
+        'post_info'       => array('comment_type' => 'contact_form_wordpress_fscf'),
+        'js_on'           => apbct_js_test(Sanitize::cleanTextField(Post::get('ct_checkjs'))),
     );
+    if ($event_token = Cookie::get('ct_bot_detector_event_token')) {
+        $base_call_params['event_token'] = $event_token;
+    }
+    $base_call_result = apbct_base_call($base_call_params);
 
     $ct_result = $base_call_result['ct_result'];
 
@@ -2883,13 +2933,15 @@ function ct_check_wplp()
             $message = Sanitize::cleanTextareaField(Post::get('null'));
         }
 
-        $base_call_result = apbct_base_call(
-            array(
-                'message'      => $message,
-                'sender_email' => $sender_email,
-                'post_info'    => array('comment_type' => 'contact_form_wordpress_wplp'),
-            )
+        $base_call_params = array(
+            'message'      => $message,
+            'sender_email' => $sender_email,
+            'post_info'    => array('comment_type' => 'contact_form_wordpress_wplp'),
         );
+        if ($event_token = Cookie::get('ct_bot_detector_event_token')) {
+            $base_call_params['event_token'] = $event_token;
+        }
+        $base_call_result = apbct_base_call($base_call_params);
 
         $ct_result = $base_call_result['ct_result'];
 
@@ -3062,15 +3114,17 @@ function apbct_form__gravityForms__testSpam($is_spam, $form, $entry)
 
     $checkjs = apbct_js_test(Sanitize::cleanTextField(Post::get('ct_checkjs'))) ?: apbct_js_test(Sanitize::cleanTextField(Cookie::get('ct_checkjs')), true);
 
-    $base_call_result = apbct_base_call(
-        array(
-            'message'         => $message,
-            'sender_email'    => $sender_email,
-            'sender_nickname' => $sender_nickname,
-            'post_info'       => array('comment_type' => 'contact_form_wordpress_gravity_forms'),
-            'js_on'           => $checkjs,
-        )
+    $base_call_params = array(
+        'message'         => $message,
+        'sender_email'    => $sender_email,
+        'sender_nickname' => $sender_nickname,
+        'post_info'       => array('comment_type' => 'contact_form_wordpress_gravity_forms'),
+        'js_on'           => $checkjs,
     );
+    if ($event_token = Cookie::get('ct_bot_detector_event_token')) {
+        $base_call_params['event_token'] = $event_token;
+    }
+    $base_call_result = apbct_base_call($base_call_params);
 
     $ct_result = $base_call_result['ct_result'];
     if ( $ct_result->allow == 0 ) {
@@ -3147,14 +3201,15 @@ function ct_s2member_registration_test($post_key)
         return null;
     }
 
-    //Making a call
-    $base_call_result = apbct_base_call(
-        array(
-            'sender_email'    => $sender_email,
-            'sender_nickname' => $sender_nickname,
-        ),
-        true
+    $base_call_params = array(
+        'sender_email'    => $sender_email,
+        'sender_nickname' => $sender_nickname,
     );
+    if ($event_token = Cookie::get('ct_bot_detector_event_token')) {
+        $base_call_params['event_token'] = $event_token;
+    }
+    $base_call_result = apbct_base_call($base_call_params, true);
+
     $ct_result        = $base_call_result['ct_result'];
 
     if ( $ct_result->allow == 0 ) {
@@ -3199,14 +3254,16 @@ function apbct_form__the7_contact_form()
         }
         $cleantalk_executed = true;
 
-        $base_call_result = apbct_base_call(
-            array(
-                'message'         => $message,
-                'sender_email'    => $sender_email,
-                'sender_nickname' => $sender_nickname,
-                'post_info'       => $post_info,
-            )
+        $base_call_params = array(
+            'message'         => $message,
+            'sender_email'    => $sender_email,
+            'sender_nickname' => $sender_nickname,
+            'post_info'       => $post_info,
         );
+        if ($event_token = Cookie::get('ct_bot_detector_event_token')) {
+            $base_call_params['event_token'] = $event_token;
+        }
+        $base_call_result = apbct_base_call($base_call_params);
 
         $ct_result = $base_call_result['ct_result'];
         if ( $ct_result->allow == 0 ) {
@@ -3259,14 +3316,16 @@ function apbct_form__elementor_pro__testSpam()
 
     $post_info['comment_type'] = 'contact_form_wordpress_elementor_pro';
 
-    $base_call_result = apbct_base_call(
-        array(
-            'message'         => $message,
-            'sender_email'    => $sender_email,
-            'sender_nickname' => $sender_nickname,
-            'post_info'       => $post_info,
-        )
+    $base_call_params = array(
+        'message'         => $message,
+        'sender_email'    => $sender_email,
+        'sender_nickname' => $sender_nickname,
+        'post_info'       => $post_info,
     );
+    if ($event_token = Cookie::get('ct_bot_detector_event_token')) {
+        $base_call_params['event_token'] = $event_token;
+    }
+    $base_call_result = apbct_base_call($base_call_params);
 
     $ct_result = $base_call_result['ct_result'];
 
@@ -3303,14 +3362,16 @@ function apbct_form__inevio__testSpam()
 
     $post_info['comment_type'] = 'contact_form_wordpress_inevio_theme';
 
-    $base_call_result = apbct_base_call(
-        array(
-            'message'         => $message,
-            'sender_email'    => $email,
-            'sender_nickname' => $name,
-            'post_info'       => $post_info,
-        )
+    $base_call_params = array(
+        'message'         => $message,
+        'sender_email'    => $email,
+        'sender_nickname' => $name,
+        'post_info'       => $post_info,
     );
+    if ($event_token = Cookie::get('ct_bot_detector_event_token')) {
+        $base_call_params['event_token'] = $event_token;
+    }
+    $base_call_result = apbct_base_call($base_call_params);
 
     $ct_result = $base_call_result['ct_result'];
 
@@ -3368,16 +3429,18 @@ function apbct_form__enfold_contact_form__test_spam($send, $new_post, $_form_par
 
     $data = ct_get_fields_any($url_decoded_data);
 
-    $base_call_result = apbct_base_call(
-        array(
-            'message'         => ! empty($data['message']) ? json_encode($data['message']) : '',
-            'sender_email'    => ! empty($data['email']) ? $data['email'] : '',
-            'sender_nickname' => ! empty($data['nickname']) ? $data['nickname'] : '',
-            'post_info'       => array(
-                'comment_type' => 'contact_form_wordpress_enfold'
-            ),
-        )
+    $base_call_params = array(
+        'message'         => ! empty($data['message']) ? json_encode($data['message']) : '',
+        'sender_email'    => ! empty($data['email']) ? $data['email'] : '',
+        'sender_nickname' => ! empty($data['nickname']) ? $data['nickname'] : '',
+        'post_info'       => array(
+            'comment_type' => 'contact_form_wordpress_enfold'
+        ),
     );
+    if ($event_token = Cookie::get('ct_bot_detector_event_token')) {
+        $base_call_params['event_token'] = $event_token;
+    }
+    $base_call_result = apbct_base_call($base_call_params);
 
     $ct_result = $base_call_result['ct_result'];
 
@@ -3409,17 +3472,18 @@ function apbct_form_profile_builder__check_register($errors, $_fields, $global_r
     if ( isset($global_request['action']) && $global_request['action'] === 'register' ) {
         $data = ct_get_fields_any($global_request);
 
-        $base_call_result = apbct_base_call(
-            array(
-                'message'         => ! empty($data['message']) ? json_encode($data['message']) : '',
-                'sender_email'    => ! empty($data['email']) ? $data['email'] : '',
-                'sender_nickname' => ! empty($data['nickname']) ? $data['nickname'] : '',
-                'post_info'       => array(
-                    'comment_type' => 'register_profile_builder'
-                ),
+        $base_call_params = array(
+            'message'         => ! empty($data['message']) ? json_encode($data['message']) : '',
+            'sender_email'    => ! empty($data['email']) ? $data['email'] : '',
+            'sender_nickname' => ! empty($data['nickname']) ? $data['nickname'] : '',
+            'post_info'       => array(
+                'comment_type' => 'register_profile_builder'
             ),
-            true
         );
+        if ($event_token = Cookie::get('ct_bot_detector_event_token')) {
+            $base_call_params['event_token'] = $event_token;
+        }
+        $base_call_result = apbct_base_call($base_call_params, true);
 
         $ct_result = $base_call_result['ct_result'];
 
@@ -3527,15 +3591,17 @@ add_filter('wsf_submit_field_validate', function ($error_validation_action_field
     $sender_nickname = ($data['nickname'] ?  : '');
     $message         = ($data['message'] ?  : array());
 
-    $base_call_result = apbct_base_call(
-        array(
-            'message'         => $message,
-            'sender_email'    => $sender_email,
-            'sender_nickname' => $sender_nickname,
-            'post_info'       => array( 'comment_type' => 'WS_forms' ),
-            'sender_info'     => array('sender_email' => urlencode($sender_email)),
-        )
+    $base_call_params = array(
+        'message'         => $message,
+        'sender_email'    => $sender_email,
+        'sender_nickname' => $sender_nickname,
+        'post_info'       => array( 'comment_type' => 'WS_forms' ),
+        'sender_info'     => array('sender_email' => urlencode($sender_email)),
     );
+    if ($event_token = Cookie::get('ct_bot_detector_event_token')) {
+        $base_call_params['event_token'] = $event_token;
+    }
+    $base_call_result = apbct_base_call($base_call_params);
 
     if ( $base_call_result['ct_result']->allow == 0 ) {
         return array(
@@ -3573,16 +3639,18 @@ function apbct_form_happyforms_test_spam($is_valid, $request, $_form)
 
         $data = ct_get_fields_any($input_array);
 
-        $base_call_result = apbct_base_call(
-            array(
-                'message'         => ! empty($data['message']) ? json_encode($data['message']) : '',
-                'sender_email'    => ! empty($data['email']) ? $data['email'] : '',
-                'sender_nickname' => ! empty($data['nickname']) ? $data['nickname'] : '',
-                'post_info'       => array(
-                    'comment_type' => 'happyforms_contact_form'
-                ),
-            )
+        $base_call_params = array(
+            'message'         => ! empty($data['message']) ? json_encode($data['message']) : '',
+            'sender_email'    => ! empty($data['email']) ? $data['email'] : '',
+            'sender_nickname' => ! empty($data['nickname']) ? $data['nickname'] : '',
+            'post_info'       => array(
+                'comment_type' => 'happyforms_contact_form'
+            ),
         );
+        if ($event_token = Cookie::get('ct_bot_detector_event_token')) {
+            $base_call_params['event_token'] = $event_token;
+        }
+        $base_call_result = apbct_base_call($base_call_params);
 
         $ct_result = $base_call_result['ct_result'];
 
@@ -3673,17 +3741,18 @@ function apbct_advanced_classifieds_directory_pro__check_register($response, $_f
     ) {
         $data = ct_get_fields_any($_POST, Sanitize::cleanEmail(Post::get('email')));
 
-        $base_call_result = apbct_base_call(
-            array(
-                'message'         => ! empty($data['message']) ? json_encode($data['message']) : '',
-                'sender_email'    => ! empty($data['email']) ? $data['email'] : '',
-                'sender_nickname' => ! empty($data['nickname']) ? $data['nickname'] : '',
-                'post_info'       => array(
-                    'comment_type' => 'register_advanced_classifieds_directory_pro'
-                ),
+        $base_call_params = array(
+            'message'         => ! empty($data['message']) ? json_encode($data['message']) : '',
+            'sender_email'    => ! empty($data['email']) ? $data['email'] : '',
+            'sender_nickname' => ! empty($data['nickname']) ? $data['nickname'] : '',
+            'post_info'       => array(
+                'comment_type' => 'register_advanced_classifieds_directory_pro'
             ),
-            true
         );
+        if ($event_token = Cookie::get('ct_bot_detector_event_token')) {
+            $base_call_params['event_token'] = $event_token;
+        }
+        $base_call_result = apbct_base_call($base_call_params, true);
 
         $ct_result = $base_call_result['ct_result'];
 
@@ -3840,13 +3909,15 @@ function apbct_givewp_donate_request_test()
     $input_array = apply_filters('apbct__filter_post', $_POST);
     $params = ct_get_fields_any($input_array);
 
-    $base_call_result = apbct_base_call(
-        array(
-            'sender_email'    => $params['email'],
-            'sender_nickname' => $params['nickname'] ?: '',
-            'post_info'       => array('comment_type' => 'givewp_donate_form'),
-        )
+    $base_call_params = array(
+        'sender_email'    => $params['email'],
+        'sender_nickname' => $params['nickname'] ?: '',
+        'post_info'       => array('comment_type' => 'givewp_donate_form'),
     );
+    if ($event_token = Cookie::get('ct_bot_detector_event_token')) {
+        $base_call_params['event_token'] = $event_token;
+    }
+    $base_call_result = apbct_base_call($base_call_params);
 
     $ct_result = $base_call_result['ct_result'];
 
@@ -3878,13 +3949,15 @@ function apbct_memberpress_signup_request_test()
     $input_array = apply_filters('apbct__filter_post', $_POST);
     $params = ct_get_fields_any($input_array);
 
-    $base_call_result = apbct_base_call(
-        array(
-            'sender_email'    => $params['email'],
-            'sender_nickname' => $params['nickname'] ?: '',
-            'post_info'       => array('comment_type' => 'memberpress_signup_form'),
-        )
+    $base_call_params = array(
+        'sender_email'    => $params['email'],
+        'sender_nickname' => $params['nickname'] ?: '',
+        'post_info'       => array('comment_type' => 'memberpress_signup_form'),
     );
+    if ($event_token = Cookie::get('ct_bot_detector_event_token')) {
+        $base_call_params['event_token'] = $event_token;
+    }
+    $base_call_result = apbct_base_call($base_call_params);
 
     $ct_result = $base_call_result['ct_result'];
 
