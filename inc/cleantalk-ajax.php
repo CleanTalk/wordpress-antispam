@@ -533,6 +533,36 @@ function ct_ajax_hook($message_obj = null)
         $_POST['data'] = $form_data;
     }
 
+    if (Post::hasString('action', 'rx_front_end_review_submit')) {
+        if (Post::get('formInput')) {
+            $form_data = Post::get('formInput');
+            $prepare_form_data = array();
+
+            foreach ($form_data as $row) {
+                if (isset($row['name']) && $row['name'] === 'apbct_visible_fields') {
+                    continue;
+                }
+
+                if (isset($row['name']) && $row['name'] === 'ct_bot_detector_event_token') {
+                    continue;
+                }
+
+                if (isset($row['name']) && $row['name'] === 'ct_no_cookie_hidden_field') {
+                    if ($apbct->data['cookies_type'] === 'none') {
+                        $no_cookie_data = isset($row['value']) ? $row['value'] : '';
+                        $apbct->stats['no_cookie_data_taken'] = \Cleantalk\ApbctWP\Variables\NoCookie::setDataFromHiddenField($no_cookie_data);
+                        $apbct->save('stats');
+                    }
+                    continue;
+                }
+
+                $prepare_form_data[] = $row;
+            }
+
+            $_POST['formInput'] = $prepare_form_data;
+        }
+    }
+
     // Fusion Builder Avada Form integration
     if (
         Post::hasString('action', 'fusion_form_submit_form_to_database_email') ||
@@ -1067,6 +1097,10 @@ function ct_ajax_hook($message_obj = null)
             );
             echo json_encode((object)$return);
             die();
+        }
+
+        if ( Post::get('action') === 'rx_front_end_review_submit' ) {
+            wp_send_json($ct_result->comment);
         }
 
         // Regular block output
