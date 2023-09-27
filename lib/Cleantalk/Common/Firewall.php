@@ -2,6 +2,7 @@
 
 namespace Cleantalk\Common;
 
+use Cleantalk\ApbctWP\Helper;
 use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\Common\Firewall\FirewallModule;
 use Cleantalk\ApbctWP\Variables\Get;
@@ -244,5 +245,34 @@ class Firewall
         }
 
         return false;
+    }
+
+    public static function addIpToDatabaseAjaxAction()
+    {
+        check_ajax_referer('ct_secret_stuff', 'nonce');
+
+        global $wpdb;
+
+        if (!Helper::ipValidate($_POST['ip'])) {
+            wp_send_json_error();
+        }
+
+        $ip = $_POST['ip'];
+        $data = array(
+            'network' => sprintf('%u', ip2long($ip)),
+            'mask' => sprintf('%u', bindec(str_repeat('1', 32))),
+            'status' => 1,
+        );
+        $format = array('%s', '%s', '%d');
+
+        if (!$wpdb->insert(
+            APBCT_TBL_FIREWALL_DATA,
+            $data,
+            $format
+        )) {
+            wp_send_json_error();
+        };
+
+        wp_send_json_success();
     }
 }

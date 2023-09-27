@@ -241,6 +241,23 @@
 		document.getElementById('js_passed').style.display = 'block';
 		document.getElementById('curr_date').innerHTML = ct_date.toGMTString();
 
+		// Add IP to Database with Ajax
+		jQuery(document).ready(function ()
+		{
+			const data = {
+				action: 'apbct_add_ip_to_db_action',
+				nonce: ctPublicFunctions._ajax_nonce,
+				ip: '{REAL_IP}'
+			};
+
+			jQuery.ajax({
+				type: "POST",
+				url: ctPublicFunctions._ajax_url,
+				data: data,
+				async: true
+			});
+		});
+
 		var date = new Date;
 		date.setDate(date.getDate() + 30);
 		ctSetCookie(

@@ -887,6 +887,10 @@ if ( is_admin() || is_network_admin() ) {
     }
 }
 
+// Add IP to Database with Ajax
+add_action('wp_ajax_nopriv_apbct_add_ip_to_db_action', array('\Cleantalk\Common\Firewall', 'addIpToDatabaseAjaxAction'));
+add_action('wp_ajax_apbct_add_ip_to_db_action', array('\Cleantalk\Common\Firewall', 'addIpToDatabaseAjaxAction'));
+
 /**
  * Function for SpamFireWall check
  */
