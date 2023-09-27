@@ -694,11 +694,12 @@ function apbct_ready() {
     }
 }
 
+// eslint-disable-next-line require-jsdoc
 function ctOnsubmitPrevCallExclude(form) {
-	if (form.classList.contains('hb-booking-search-form')) {
-		return true;
-	}
-	
+    if (form.classList.contains('hb-booking-search-form')) {
+        return true;
+    }
+
     return false;
 }
 
