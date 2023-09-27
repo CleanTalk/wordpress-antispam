@@ -242,12 +242,13 @@
 		}, 1000 );
 
 		if(location.search.search('debug=1') === -1) {
-			var apbctSfwRandomGet = '';
-			if( +ctPublicFunctions.sfw__random_get ) {
-				apbctSfwRandomGet = '?sfw=pass' + Math.round(ct_date.getTime()/1000);
-			}
 			setTimeout(function(){
-				window.location.href = window.location.origin + window.location.pathname + apbctSfwRandomGet;
+				const params = new URLSearchParams(window.location.search);
+				params.delete('sfw_test_ip');
+				if( +ctPublicFunctions.sfw__random_get ) {
+					params.append('sfw', 'pass' + Math.round(ct_date.getTime()/1000));
+				}
+				window.location.href = window.location.origin + window.location.pathname + (params.toString() ? '?' + params.toString() : '');
 			}, reload_timeout);
 		}
 
