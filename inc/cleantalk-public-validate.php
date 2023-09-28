@@ -423,11 +423,6 @@ function apbct__filter_form_data($form_data)
     global $apbct;
 
     // It is a service field. Need to be deleted before the processing.
-    if ( isset($form_data['apbct_visible_fields']) ) {
-        unset($form_data['apbct_visible_fields']);
-    }
-
-    // It is a service field. Need to be deleted before the processing.
     if ( isset($form_data['ct_bot_detector_event_token']) ) {
         unset($form_data['ct_bot_detector_event_token']);
     }
