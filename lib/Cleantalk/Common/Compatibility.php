@@ -73,7 +73,7 @@ class Compatibility
     public function w3tcCheckLateInitCallback()
     {
         if (
-            is_plugin_active('w3-total-cache/w3-total-cache.php') &&
+            apbct_is_plugin_active('w3-total-cache/w3-total-cache.php') &&
             file_exists(WP_CONTENT_DIR . DIRECTORY_SEPARATOR . 'w3tc-config/master.php')
         ) {
             $w3_config = file_get_contents(WP_CONTENT_DIR . DIRECTORY_SEPARATOR . 'w3tc-config/master.php');
@@ -103,7 +103,7 @@ class Compatibility
         global $apbct;
         return
             $apbct->settings['sfw__enabled'] &&
-            is_plugin_active('wp-rocket/wp-rocket.php') &&
+            apbct_is_plugin_active('wp-rocket/wp-rocket.php') &&
             defined('WP_ROCKET_VERSION');
     }
 }

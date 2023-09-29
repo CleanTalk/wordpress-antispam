@@ -131,6 +131,15 @@ function ct_send_users(){
 	
 	if(ct_cooling_down_flag === true)
 		return;
+	if (ct_pause === true) {
+		ct_working=false;
+		jQuery('#ct_working_message').hide();
+		let new_href = 'users.php?page=ct_check_users&ct_worked=1';
+		if(ct_date_from !== 0 && ct_date_till !== 0)
+			new_href+='&from='+ct_date_from+'&till='+ct_date_till;
+		location.href = new_href;
+		return;
+	}
 	
 	if(ct_requests_counter >= ct_max_requests){
 		setTimeout(ct_cooling_down_toggle, ct_cool_down_time);
@@ -152,7 +161,7 @@ function ct_send_users(){
 		'no_cache': Math.random(),
 		'offset' : Number(getCookie('apbct_check_users_offset'))
 	};
-	
+
 	if(ct_accurate_check)
 		data['accurate_check'] = true;
 	
@@ -180,7 +189,7 @@ function ct_send_users(){
 					ct_send_users();
 			}else{
 				ct_new_check = false;
-				if(parseInt(msg.end) == 1 || ct_pause == true){
+				if(parseInt(msg.end) == 1){
 					if(parseInt(msg.end) == 1)
 						document.cookie = 'ct_paused_users_check=0; path=/; samesite=lax';
 					ct_working=false;
@@ -195,7 +204,7 @@ function ct_send_users(){
 					ct_users_bad     = parseInt( msg.bad );
 					ct_unchecked     = ct_users_total - ct_users_checked - ct_users_bad;
 					var status_string = String(ctUsersCheck.ct_status_string);
-					var status_string = status_string.printf(ct_users_checked, ct_users_spam, ct_users_bad);
+					status_string = status_string.printf(ct_users_checked, ct_users_spam, ct_users_bad);
 					if(parseInt(ct_users_spam) > 0)
 						status_string += ctUsersCheck.ct_status_string_warning;
 					jQuery('#ct_checking_status').html(status_string);
@@ -418,6 +427,7 @@ jQuery(document).ready(function(){
 	// Check users
 	jQuery("#ct_check_spam_button").click(function(){
 		document.cookie = 'ct_paused_users_check=0; path=/; samesite=lax';
+		ct_pause = false;
 
 		//
 
@@ -425,6 +435,7 @@ jQuery(document).ready(function(){
 		ct_start_check(false);
 	});
 	jQuery("#ct_proceed_check_button").click(function(){
+		ct_pause = false;
 		ct_start_check(true);
 	});
 	

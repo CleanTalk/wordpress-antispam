@@ -479,8 +479,7 @@ function apbct_ready() {
         apbctLocalStorage.set('apbct_page_hits', Number(apbctLocalStorage.get('apbct_page_hits')) + 1);
     }
 
-    // set apbct_prev_referer
-    apbctSessionStorage.set('apbct_prev_referer', document.referrer, false);
+    apbctWriteReferrersToSessionStorage();
 
     const cookiesType = apbctLocalStorage.get('ct_cookies_type');
     if ( ! cookiesType || cookiesType !== ctPublic.data__cookies_type ) {
@@ -572,6 +571,15 @@ function apbct_ready() {
         }
     }
 
+    if (
+        typeof ctPublic.data__cookies_type !== 'undefined' &&
+        ctPublic.data__cookies_type === 'none' &&
+        typeof ctPublicFunctions.wprocket_detected !== 'undefined' &&
+        ctPublicFunctions.wprocket_detected
+    ) {
+        initCookies.push(['apbct_timestamp', apbctLocalStorage.get('ct_ps_timestamp')]);
+    }
+
     // send bot detector event token to alt cookies on problem forms
     if (typeof ctPublic.force_alt_cookies !== 'undefined' &&
         ctPublic.force_alt_cookies &&
@@ -643,7 +651,7 @@ function apbct_ready() {
                 }
 
                 // Call previous submit action
-                if (event.target.onsubmit_prev instanceof Function) {
+                if (event.target.onsubmit_prev instanceof Function && !ctOnsubmitPrevCallExclude(event.target)) {
                     setTimeout(function() {
                         event.target.onsubmit_prev.call(event.target, event);
                     }, 500);
@@ -684,6 +692,15 @@ function apbct_ready() {
             _form.onsubmit = (e) => ctSearchFormOnSubmitHandler(e, _form);
         }
     }
+}
+
+// eslint-disable-next-line require-jsdoc
+function ctOnsubmitPrevCallExclude(form) {
+    if (form.classList.contains('hb-booking-search-form')) {
+        return true;
+    }
+
+    return false;
 }
 
 if (ctPublic.data__key_is_ok) {
@@ -1477,3 +1494,20 @@ function getNoCookieData() {
 
     return '_ct_no_cookie_data_' + btoa(noCookieData);
 }
+
+/**
+ * Set three statements to the sessions storage: apbct_session_current_page, apbct_prev_referer.
+ * @return {void}
+ */
+function apbctWriteReferrersToSessionStorage() {
+    const sessionCurrentPage = apbctSessionStorage.get('apbct_session_current_page');
+
+    // set session apbct_referer
+    if (sessionCurrentPage!== false && document.location.href !== sessionCurrentPage) {
+        apbctSessionStorage.set('apbct_prev_referer', sessionCurrentPage, false);
+    }
+
+    // set session current page to know referrer
+    apbctSessionStorage.set('apbct_session_current_page', document.location.href, false);
+}
+
