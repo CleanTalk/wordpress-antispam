@@ -28,11 +28,10 @@ class SimpleMembership extends IntegrationBase
         global $ct_comment;
         $ct_comment = $message;
 
-        if ( class_exists('SwpmMemberUtils') ) {
-            // Doing inactive user status after blocking.
+        if (class_exists('SwpmMembers') ) {
             $member    = \SwpmMemberUtils::get_user_by_email($this->member_info['email']);
             $member_id = $member->member_id;
-            \SwpmMemberUtils::update_account_state($member_id, 'inactive');
+            \SwpmMembers::delete_user_by_id($member_id);
         }
 
         ct_die(null, null);
