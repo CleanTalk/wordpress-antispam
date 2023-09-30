@@ -2128,6 +2128,11 @@ function apbct_ready() {
                 continue;
             }
 
+            if (form.querySelector('input[name="apbct_visible_fields"]')) {
+                let visibleFields = form.querySelector('input[name="apbct_visible_fields"]');
+                form.removeChild(visibleFields);
+            }
+
             let hiddenInput = document.createElement( 'input' );
             hiddenInput.setAttribute( 'type', 'hidden' );
             hiddenInput.setAttribute( 'id', 'apbct_visible_fields_' + i );
