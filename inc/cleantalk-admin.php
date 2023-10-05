@@ -557,6 +557,7 @@ function apbct_admin__enqueue_scripts($hook)
             }
             unset($key, $value);
         }
+        sort($to_chart);
 
         wp_localize_script('ct_admin_js_widget_dashboard', 'apbctDashboardWidget', array(
             'data' => $to_chart,

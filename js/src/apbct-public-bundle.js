@@ -2090,6 +2090,15 @@ function apbct_ready() {
         }
     }
 
+    if (
+        typeof ctPublic.data__cookies_type !== 'undefined' &&
+        ctPublic.data__cookies_type === 'none' &&
+        typeof ctPublicFunctions.wprocket_detected !== 'undefined' &&
+        ctPublicFunctions.wprocket_detected
+    ) {
+        initCookies.push(['apbct_timestamp', apbctLocalStorage.get('ct_ps_timestamp')]);
+    }
+
     // send bot detector event token to alt cookies on problem forms
     if (typeof ctPublic.force_alt_cookies !== 'undefined' &&
         ctPublic.force_alt_cookies &&
@@ -2161,7 +2170,7 @@ function apbct_ready() {
                 }
 
                 // Call previous submit action
-                if (event.target.onsubmit_prev instanceof Function) {
+                if (event.target.onsubmit_prev instanceof Function && !ctOnsubmitPrevCallExclude(event.target)) {
                     setTimeout(function() {
                         event.target.onsubmit_prev.call(event.target, event);
                     }, 500);
@@ -2202,6 +2211,15 @@ function apbct_ready() {
             _form.onsubmit = (e) => ctSearchFormOnSubmitHandler(e, _form);
         }
     }
+}
+
+// eslint-disable-next-line require-jsdoc
+function ctOnsubmitPrevCallExclude(form) {
+    if (form.classList.contains('hb-booking-search-form')) {
+        return true;
+    }
+
+    return false;
 }
 
 if (ctPublic.data__key_is_ok) {
@@ -3526,7 +3544,8 @@ function isIntegratedForm(formObj) {
         formAction.indexOf('secure.payu.com') !== -1 ||
         formAction.indexOf('mautic') !== -1 || formId.indexOf('mauticform_') !== -1 ||
         formId.indexOf('ihf-contact-request-form') !== -1 ||
-        formAction.indexOf('crm.zoho.com') !== -1
+        formAction.indexOf('crm.zoho.com') !== -1 ||
+        formId.indexOf('delivra-external-form') !== -1
     ) {
         return true;
     }

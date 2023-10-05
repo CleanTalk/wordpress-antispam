@@ -171,7 +171,7 @@ function ctSendComments() {
                     ctCommentsTotal += msg.total;
                     ctUnchecked = ctCommentsTotal - ctCommentsChecked - ctCommentsBad;
                     let statusString = String(ctCommentsCheck.ct_status_string);
-                    stastatusStringtusString = statusString.printf(ctCommentsChecked, ctCommentsSpam, ctCommentsBad);
+                    statusString = statusString.printf(ctCommentsChecked, ctCommentsSpam, ctCommentsBad);
                     if (parseInt(ctCommentsSpam) > 0) {
                         statusString += ctCommentsCheck.ct_status_string_warning;
                     }

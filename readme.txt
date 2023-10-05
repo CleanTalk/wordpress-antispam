@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 4.7
 Tested up to: 6.3
 Requires PHP: 5.6
-Stable tag: 6.18
+Stable tag: 6.19.1
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -453,6 +453,29 @@ Yes, it is. Please read this article,
 12. SpamFireWall log.
 
 == Changelog ==
+
+= 6.19.1 Oct 02 2023 =
+* Upd. Plugin author name updated.
+
+= 6.19 Sep 28 2023 =
+* Fix: SFW. Added is-writable check for sfw dir.
+* Fix: Integration. Updated handler for elementor.
+* Fix: Typo. Updated description for search protect.
+* Mod: Previous referrer now stores correctly in cases of refresh and backward/forward.
+* Fix: Integrations. Added trusted and affiliate sign for Elementor forms and Ninja forms.
+* Fix: Integration. Updated rule for show trusted text.
+* Mod: Integration. LeadFormBuilder now collects usernames and works fine with event_token provided.
+* Fix: Integration. Jetpack comments event_token gathering fixed.
+* Fix: Dashboard widget. Vew all button link fixed.
+* Mod: Now apbct_prev_referrer param contains the page URL that was visited before the page with the submitted form.
+* Fix: Widget. Added sort for date.
+* Mod: Save GET params on block screens
+* Fix: Integrations. Added exclusion for bot detector.
+* Fix: JsData. Update timestamp gathering for wp-rocket.
+* Fix: JS. Added exclude list for submit prev call.
+* Fix: Integrations. Added ReviewX.
+* Fix: User scanner.
+* Mod: Improved AMP integration.
 
 = 6.18 Sep 14 2023 =
 * Fix: Exclusions. VBOUT Woocommerce Plugin service request excluded.

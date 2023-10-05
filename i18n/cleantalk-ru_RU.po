@@ -454,8 +454,8 @@ msgstr "Защита от спама для Форм поиска."
 #: inc/cleantalk-settings.php:136
 #, php-format
 msgid ""
-"Read more about %sspam protection for Search form%s on our blog. “noindex” "
-"tag will be placed in meta derictive on search page."
+"Read more about %sspam protection for Search form%s on our blog. "
+"The “noindex” tag will be placed in the meta directive on the search results page."
 msgstr ""
 
 #: inc/cleantalk-settings.php:144
