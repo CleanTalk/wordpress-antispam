@@ -3544,7 +3544,8 @@ function isIntegratedForm(formObj) {
         formAction.indexOf('secure.payu.com') !== -1 ||
         formAction.indexOf('mautic') !== -1 || formId.indexOf('mauticform_') !== -1 ||
         formId.indexOf('ihf-contact-request-form') !== -1 ||
-        formAction.indexOf('crm.zoho.com') !== -1
+        formAction.indexOf('crm.zoho.com') !== -1 ||
+        formId.indexOf('delivra-external-form') !== -1
     ) {
         return true;
     }
