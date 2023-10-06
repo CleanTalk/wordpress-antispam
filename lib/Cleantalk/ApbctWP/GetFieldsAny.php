@@ -353,27 +353,85 @@ class GetFieldsAny
     }
 
     /**
-     * Get visible fields from Cookies to skip them processing
+     * Get visible fields to skip them during processing
      *
      * @return array
-     * @ToDO we have the strong dependence apbct_visible_fields__process() Need to be refactored.
      */
     private function getVisibleFields()
     {
-        $visible_fields_collection = Cookie::getVisibleFields();
+        // Visible fields processing
+        $visible_fields = self::getVisibleFieldsData();
 
-        //if cookie is broken or missing, get visible fields from POST
-        if ( empty($visible_fields_collection) ) {
-            if ( Post::get('apbct_visible_fields') ) {
-                $visible_fields_collection = Post::get('apbct_visible_fields');
-                $visible_fields_collection = json_decode($visible_fields_collection, true);
+        return isset($visible_fields['visible_fields']) ? explode(' ', $visible_fields['visible_fields']) : array();
+    }
+
+    /**
+     * Returns array of visible fields data in format:
+     * <ul>
+     * <li>'visible_fields' => (string)'user_login user_email'</li>
+     * <li>'visible_fields_count' => (int)2</li>
+     * <li>'invisible_fields' => (string)'inv_field1 inv_field2 inv_field3'</li>
+     * <li>'invisible_fields_count' => (int)3</li>
+     * </ul>
+     * Empty array if nothing found.
+     * @return array|string[]
+     */
+    public static function getVisibleFieldsData()
+    {
+        // get from Cookies::
+        $from_cookies = Cookie::getVisibleFields();
+        // get from Post:: and base64 decode the value
+        $from_post = @base64_decode(Post::get('apbct_visible_fields'));
+
+        $current_fields_collection = self::getFieldsDataForCurrentRequest($from_cookies, $from_post);
+
+        if ( ! empty($current_fields_collection)) {
+            // get all available fields to compare with $current_fields_collection
+            $post_fields_to_check = self::getAvailablePOSTFieldsForCurrentRequest();
+            // comparing
+            foreach ($current_fields_collection as $current_fields) {
+                // prepare data
+                $count = isset($current_fields['visible_fields_count']) && is_scalar(
+                    $current_fields['visible_fields_count']
+                )
+                    ? (int)($current_fields['visible_fields_count'])
+                    : null;
+                $fields_string = isset($current_fields['visible_fields']) && is_scalar(
+                    $current_fields['visible_fields']
+                )
+                    ? (string)($current_fields['visible_fields'])
+                    : null;
+
+                // if necessary data is available
+                if (isset($fields_string, $count)) {
+                    // parse string to get fields
+                    $fields_array = explode(' ', $fields_string);
+                    // if is intersected with current post fields - that`s it
+                    if (count(array_intersect(array_keys($post_fields_to_check), $fields_array)) > 0) {
+                        // additional WP Forms visible fields formatting
+                        if (strpos($fields_string, 'wpforms') !== false) {
+                            $current_fields = preg_replace(
+                                array('/\[/', '/\]/'),
+                                '',
+                                str_replace(
+                                    '][',
+                                    '_',
+                                    str_replace(
+                                        'wpforms[fields]',
+                                        '',
+                                        $from_cookies
+                                    )
+                                )
+                            );
+                        }
+
+                        return ! empty($current_fields) && is_array($current_fields) ? $current_fields : array();
+                    }
+                }
             }
         }
 
-        // Visible fields processing
-        $visible_fields = apbct_visible_fields__process($visible_fields_collection);
-
-        return isset($visible_fields['visible_fields']) ? explode(' ', $visible_fields['visible_fields']) : array();
+        return array();
     }
 
     /**
@@ -407,5 +465,77 @@ class GetFieldsAny
         }
 
         return $value;
+    }
+
+    /**
+     * Get fields from POST to checking on visible fields.
+     *
+     * @return array
+     */
+    private static function getAvailablePOSTFieldsForCurrentRequest()
+    {
+        //Formidable fields
+        if ( isset($_POST['item_meta']) && is_array($_POST['item_meta']) ) {
+            $fields = array();
+            foreach ( $_POST['item_meta'] as $key => $item ) {
+                $fields[ 'item_meta[' . $key . ']' ] = $item;
+            }
+
+            return $fields;
+        }
+
+        // @ToDo we have to implement a logic to find form fields (fields names, fields count) in serialized/nested/encoded items. not only $_POST.
+        return $_POST;
+    }
+
+    /**
+     * Filter data to find current request visible fields.
+     * @param array $from_cookies array of visible fields JSONs from cookies of any types
+     * @param string $from_post raw current POST string of apbct_visible_fields
+     *
+     * @return array
+     */
+    private static function getFieldsDataForCurrentRequest($from_cookies = array(), $from_post = '')
+    {
+        $all_collections           = array();
+        $current_fields_collection = array();
+
+        if ( empty($from_cookies) || (empty($from_cookies[0])) ) {
+            //if no available cookie data, parse Post::
+            if ( ! empty($from_post) ) {
+                //post is JSONified array, try to decode it
+                $from_post_array = @json_decode($from_post, true);
+                // awaited data in first element for Post::
+                if ( ! empty($from_post_array) && ! empty($from_post_array[0]) ) {
+                    // encode first element and add to collections
+                    $all_collections[] = json_encode($from_post_array[0]);
+                }
+            }
+        } else {
+            $all_collections = $from_cookies;
+        }
+
+        //Native cookies send whole array of available vsf, so we need to handle all of them
+        if ( ! empty($all_collections) ) {
+            foreach ($all_collections as $_collection => $fields_string) {
+                // check if collection is string of JSON
+                if ( is_string($fields_string) ) {
+                    $fields_array_from_json = @json_decode($fields_string);
+                    // try to url decode if JSON can't parse
+                    if ( empty($fields_array_from_json) || ! is_array($fields_array_from_json) ) {
+                        // if JSON failed, try to url decode initial value before json_decode
+                        $fields_array_from_json = @json_decode(urldecode($fields_string), true);
+                        if ( empty($fields_array_from_json) || ! is_array($fields_array_from_json) ) {
+                            // if still fails, return empty array
+                            $fields_array_from_json = array();
+                        }
+                        // fill current fields collection for this request
+                        $current_fields_collection[] = $fields_array_from_json;
+                    }
+                }
+            }
+        }
+
+        return $current_fields_collection;
     }
 }

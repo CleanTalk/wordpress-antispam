@@ -11,7 +11,6 @@ use Cleantalk\ApbctWP\GetFieldsAny;
 use Cleantalk\ApbctWP\Helper;
 use Cleantalk\ApbctWP\Variables\AltSessions;
 use Cleantalk\ApbctWP\Variables\Cookie;
-use Cleantalk\Common\DB;
 use Cleantalk\ApbctWP\Variables\Get;
 use Cleantalk\ApbctWP\Variables\Post;
 use Cleantalk\ApbctWP\Variables\Server;
@@ -522,12 +521,7 @@ function apbct_get_sender_info()
     }
 
     // Visible fields processing
-    $visible_fields_collection = Cookie::getVisibleFields();
-    if ( !$visible_fields_collection || (is_array($visible_fields_collection) && !$visible_fields_collection[0]) ) {
-        $visible_fields_collection = base64_decode(Post::get('apbct_visible_fields'));
-    }
-
-    $visible_fields = apbct_visible_fields__process($visible_fields_collection);
+    $visible_fields = GetFieldsAny::getVisibleFieldsData();
 
     // preparation of some parameters when cookies are disabled and data is received from localStorage
     if ($apbct->data['cookies_type'] === 'native') {
@@ -654,78 +648,6 @@ function apbct_sender_info___get_page_url()
     }
     $protocol = ! empty($_SERVER['HTTPS']) && 'off' !== strtolower($_SERVER['HTTPS']) ? "https://" : "http://";
     return  $protocol . Server::get('SERVER_NAME') . Server::get('REQUEST_URI');
-}
-
-/**
- * Process visible fields for specific form to match the fields from request
- *
- * @param string|array $visible_fields JSON string
- *
- * @return array
- */
-function apbct_visible_fields__process($visible_fields)
-{
-    $visible_fields = is_array($visible_fields)
-        ? json_encode($visible_fields, JSON_FORCE_OBJECT)
-        : $visible_fields;
-
-    // Do not decode if it's already decoded
-    $fields_collection = json_decode($visible_fields, true);
-
-    if ( ! empty($fields_collection) ) {
-        // These fields belong this request
-        $fields_to_check = apbct_get_fields_to_check();
-
-        foreach ( $fields_collection as $current_fields ) {
-            if ( isset($current_fields['visible_fields'], $current_fields['visible_fields_count']) ) {
-                $fields = explode(' ', $current_fields['visible_fields']);
-
-                if ( count(array_intersect(array_keys($fields_to_check), $fields)) > 0 ) {
-                    // WP Forms visible fields formatting
-                    if ( strpos($current_fields['visible_fields'], 'wpforms') !== false ) {
-                        $current_fields = preg_replace(
-                            array('/\[/', '/\]/'),
-                            '',
-                            str_replace(
-                                '][',
-                                '_',
-                                str_replace(
-                                    'wpforms[fields]',
-                                    '',
-                                    $visible_fields
-                                )
-                            )
-                        );
-                    }
-
-                    return $current_fields;
-                }
-            }
-        }
-    }
-
-    return array();
-}
-
-/**
- * Get fields from POST to checking on visible fields.
- *
- * @return array
- */
-function apbct_get_fields_to_check()
-{
-    //Formidable fields
-    if ( isset($_POST['item_meta']) && is_array($_POST['item_meta']) ) {
-        $fields = array();
-        foreach ( $_POST['item_meta'] as $key => $item ) {
-            $fields['item_meta[' . $key . ']'] = $item;
-        }
-
-        return $fields;
-    }
-
-    // @ToDo we have to implement a logic to find form fields (fields names, fields count) in serialized/nested/encoded items. not only $_POST.
-    return $_POST;
 }
 
 /*
