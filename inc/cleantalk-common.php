@@ -6,6 +6,7 @@ use Cleantalk\Antispam\CleantalkResponse;
 use Cleantalk\ApbctWP\API;
 use Cleantalk\ApbctWP\CleantalkSettingsTemplates;
 use Cleantalk\ApbctWP\Cron;
+use Cleantalk\ApbctWP\DB;
 use Cleantalk\ApbctWP\Firewall\SFW;
 use Cleantalk\ApbctWP\GetFieldsAny;
 use Cleantalk\ApbctWP\Helper;
