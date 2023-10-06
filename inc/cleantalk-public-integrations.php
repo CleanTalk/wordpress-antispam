@@ -2306,6 +2306,7 @@ function apbct_form__ninjaForms__testSpam()
  *
  * @return void
  * @global State $apbct
+ * @psalm-suppress UnusedParam
  */
 function apbct_form__ninjaForms__addField($form_id)
 {
