@@ -187,7 +187,7 @@ function apbct_base_call($params = array(), $reg_flag = false)
         'agent'       => APBCT_AGENT,
         'sender_info' => $sender_info,
         'submit_time' => apbct_get_submit_time(),
-        'event_token' => apbct__trying_get_event_token($params),
+        'event_token' => !empty($params['event_token']) ? $params['event_token'] : Post::get('ct_bot_detector_event_token'),
     );
 
     if (Cookie::get('typo')) {
@@ -1755,14 +1755,4 @@ function apbct_is_amp_request()
     }
 
     return false;
-}
-
-/**
- * Search event_token from any storage
- */
-function apbct__trying_get_event_token($params)
-{
-    return !empty($params['event_token']) ?
-        $params['event_token'] :
-        Post::get('ct_bot_detector_event_token');
 }
