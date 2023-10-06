@@ -13,6 +13,7 @@ class UlitmateFormBuilder extends IntegrationBase
         $ct_post_temp = $_POST;
 
         $direct_no_cookie_data = null;
+        $event_token = '';
 
         //message clearance
         if ( !empty($ct_post_temp['form_data']) && is_array($ct_post_temp['form_data']) ) {
@@ -29,6 +30,7 @@ class UlitmateFormBuilder extends IntegrationBase
                 }
 
                 if ( isset($value['name']) && $value['name'] === 'ct_bot_detector_event_token' ) {
+                    $event_token = $value['value'];
                     unset($ct_post_temp['form_data'][$_key]);
                 }
                 //ct_bot_detector_event_token
@@ -64,6 +66,10 @@ class UlitmateFormBuilder extends IntegrationBase
                 }
             }
             $output['message'] = $reformatted_message;
+        }
+
+        if ( ! empty($event_token) ) {
+            $output['event_token'] = $event_token;
         }
 
         return $output;
