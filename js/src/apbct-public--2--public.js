@@ -610,7 +610,10 @@ function apbct_ready() {
             }
 
             // The Form has hidden field like apbct_visible_fields
-            if (document.forms[i].elements.apbct_visible_fields !== undefined && document.forms[i].elements.apbct_visible_fields.length > 0) {
+            if (
+                document.forms[i].elements.apbct_visible_fields !== undefined &&
+                document.forms[i].elements.apbct_visible_fields.length > 0
+            ) {
                 continue;
             }
 
