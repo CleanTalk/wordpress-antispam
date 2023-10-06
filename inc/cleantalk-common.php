@@ -187,8 +187,10 @@ function apbct_base_call($params = array(), $reg_flag = false)
         'agent'       => APBCT_AGENT,
         'sender_info' => $sender_info,
         'submit_time' => apbct_get_submit_time(),
-        'event_token' => !empty($params['event_token']) ? $params['event_token'] : Post::get('ct_bot_detector_event_token'),
     );
+
+    // Event Token
+    $params['event_token'] = apbct_get_event_token($params);
 
     if (Cookie::get('typo')) {
         $default_params['sender_info']['typo'] = Cookie::get('typo');
@@ -1755,4 +1757,21 @@ function apbct_is_amp_request()
     }
 
     return false;
+}
+
+/**
+ * Try to get event token from params->post->alt.cookies
+ *
+ * @return string
+ */
+function apbct_get_event_token($params)
+{
+    $event_token_from_request = ! empty(Post::get('ct_bot_detector_event_token'))
+        ? Post::get('ct_bot_detector_event_token')
+        : Cookie::get('ct_bot_detector_event_token');
+    $event_token_from_params = ! empty($params['event_token'])
+        ? $params['event_token']
+        : '';
+
+    return $event_token_from_params ?: $event_token_from_request;
 }
