@@ -609,6 +609,19 @@ function apbct_ready() {
                 continue;
             }
 
+            // The Form has hidden field like apbct_visible_fields
+            if (
+                document.forms[i].elements.apbct_visible_fields !== undefined &&
+                document.forms[i].elements.apbct_visible_fields.length > 0
+            ) {
+                continue;
+            }
+
+            if (form.querySelector('input[name="apbct_visible_fields"]')) {
+                let visibleFields = form.querySelector('input[name="apbct_visible_fields"]');
+                form.removeChild(visibleFields);
+            }
+
             let hiddenInput = document.createElement( 'input' );
             hiddenInput.setAttribute( 'type', 'hidden' );
             hiddenInput.setAttribute( 'id', 'apbct_visible_fields_' + i );
@@ -1358,6 +1371,10 @@ function ctGetHiddenFieldExclusionsType(form) {
  * @return {boolean}
  */
 function ctCheckHiddenFieldsExclusions(form, hiddenFieldType) {
+    // Ajax Search Lite
+    if (Boolean(form.querySelector('fieldset.asl_sett_scroll'))) {
+        return true;
+    }
     if (typeof (hiddenFieldType) === 'string' &&
         ['visible_fields', 'no_cookie'].indexOf(hiddenFieldType) !== -1) {
         const exclusions = ctGetHiddenFieldExclusionsType(form);
