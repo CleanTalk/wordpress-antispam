@@ -404,27 +404,32 @@ class GetFieldsAny
 
                 // if necessary data is available
                 if (isset($fields_string, $count)) {
-                    // parse string to get fields
+                    // asset to parse wp forms fields from post
+                    if ( isset($post_fields_to_check['wpforms']['fields']) ) {
+                        if ( is_array($post_fields_to_check['wpforms']['fields']) ) {
+                            foreach ($post_fields_to_check['wpforms']['fields'] as $type => $value) {
+                                if ( is_array($value) ) {
+                                    foreach ($value as $subtype => $subvalue) {
+                                        if ( is_string($subvalue) ) {
+                                            $wp_forms_field                        = 'wpforms[fields][' . $type . '][' . $subtype . ']';
+                                            $post_fields_to_check[$wp_forms_field] = null;
+                                        }
+                                    }
+                                } else {
+                                    if ( is_string($subvalue) ) {
+                                        $wp_forms_field                        = 'wpforms[fields][' . $type . ']';
+                                        $post_fields_to_check[$wp_forms_field] = null;
+                                    }
+                                }
+                            }
+                        }
+                        unset($post_fields_to_check['wpforms']);
+                    }
+                    // parse string to get fields array
                     $fields_array = explode(' ', $fields_string);
                     // if is intersected with current post fields - that`s it
                     if (count(array_intersect(array_keys($post_fields_to_check), $fields_array)) > 0) {
                         // additional WP Forms visible fields formatting
-                        if (strpos($fields_string, 'wpforms') !== false) {
-                            $current_fields = preg_replace(
-                                array('/\[/', '/\]/'),
-                                '',
-                                str_replace(
-                                    '][',
-                                    '_',
-                                    str_replace(
-                                        'wpforms[fields]',
-                                        '',
-                                        $from_cookies
-                                    )
-                                )
-                            );
-                        }
-
                         return ! empty($current_fields) && is_array($current_fields) ? $current_fields : array();
                     }
                 }
