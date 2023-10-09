@@ -2890,6 +2890,10 @@ function ctGetHiddenFieldExclusionsType(form) {
  * @return {boolean}
  */
 function ctCheckHiddenFieldsExclusions(form, hiddenFieldType) {
+    // Ajax Search Lite
+    if (Boolean(form.querySelector('fieldset.asl_sett_scroll'))) {
+        return true;
+    }
     if (typeof (hiddenFieldType) === 'string' &&
         ['visible_fields', 'no_cookie'].indexOf(hiddenFieldType) !== -1) {
         const exclusions = ctGetHiddenFieldExclusionsType(form);
