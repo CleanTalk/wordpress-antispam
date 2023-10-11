@@ -981,7 +981,6 @@ function getJavascriptClientData(commonCookies = []) {
     let resultDataJson = {};
 
     resultDataJson.apbct_headless = !!ctGetCookie(ctPublicFunctions.cookiePrefix + 'apbct_headless');
-    resultDataJson.apbct_pixel_url = ctGetCookie(ctPublicFunctions.cookiePrefix + 'apbct_pixel_url');
     resultDataJson.ct_checked_emails = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_checked_emails');
     resultDataJson.ct_checkjs = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_checkjs');
     resultDataJson.ct_fkp_timestamp = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_fkp_timestamp');
@@ -998,11 +997,13 @@ function getJavascriptClientData(commonCookies = []) {
     const apbctPrevReferer = apbctSessionStorage.get('apbct_prev_referer');
     const apbctSiteReferer = apbctSessionStorage.get('apbct_site_referer');
     const ctJsErrorsLocalStorage = apbctLocalStorage.get(ctPublicFunctions.cookiePrefix + 'ct_js_errors');
+    const ctPixelUrl = apbctLocalStorage.get(ctPublicFunctions.cookiePrefix + 'apbct_pixel_url');
 
     // collecting data from cookies
     const ctMouseMovedCookie = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_mouse_moved');
     const ctHasScrolledCookie = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_has_scrolled');
     const ctCookiesTypeCookie = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_cookies_type');
+    const ctCookiesPixelUrl = ctGetCookie(ctPublicFunctions.cookiePrefix + 'apbct_pixel_url');
 
     resultDataJson.ct_mouse_moved = ctMouseMovedLocalStorage !== undefined ?
         ctMouseMovedLocalStorage : ctMouseMovedCookie;
@@ -1010,6 +1011,8 @@ function getJavascriptClientData(commonCookies = []) {
         ctHasScrolledLocalStorage : ctHasScrolledCookie;
     resultDataJson.ct_cookies_type = ctCookiesTypeLocalStorage !== undefined ?
         ctCookiesTypeLocalStorage : ctCookiesTypeCookie;
+    resultDataJson.apbct_pixel_url = ctPixelUrl !== undefined ?
+        ctPixelUrl : ctCookiesPixelUrl;
     resultDataJson.apbct_page_hits = apbctPageHits;
     resultDataJson.apbct_prev_referer = apbctPrevReferer;
     resultDataJson.apbct_site_referer = apbctSiteReferer;
