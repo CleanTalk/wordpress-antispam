@@ -376,10 +376,19 @@ function apbct_settings__set_fields()
                 ),
                 'comments__show_check_links'               => array(
                     'title'       => __('Show links to check Emails, IPs for spam', 'cleantalk-spam-protect'),
-                    'description' => __(
-                        'Shows little icon near IP addresses and Emails allowing you to check it via ' . $apbct->data["wl_brandname_short"] . '\'s database.',
-                        'cleantalk-spam-protect'
-                    ),
+                    'description' =>
+                        sprintf(
+                            /* translators: Brand name */
+                            __('Shows a little icon next to IP and email addresses allowing you to click it and check the addresses via the database of %s.', 'cleantalk-spam-protect'),
+                            $apbct->data["wl_brandname_short"]
+                        )
+                        . ' '
+                        . sprintf(
+                            /* translators: 1: Comments list URL, 2: Users list URL */
+                            __('For example, in the menus <a href="%1$s">Comments</a> and <a href="%2$s">Users</a>', 'cleantalk-spam-protect'),
+                            get_admin_url(null, 'edit-comments.php'),
+                            get_admin_url(null, 'users.php')
+                        ),
                     'display'     => ! $apbct->white_label,
                 ),
                 'comments__manage_comments_on_public_page' => array(
