@@ -142,6 +142,8 @@ class CleantalkSettingsTemplates
 
     private function getHtmlContentImport($templates)
     {
+        global $apbct;
+
         $templatesSet = '<h3>' . esc_html__('Import settings', 'cleantalk-spam-protect') . '</h3>';
 
         //Check available option_site parameter
@@ -171,7 +173,14 @@ class CleantalkSettingsTemplates
         $templatesSet .= '</select></p>';
         $button       = $this->getImportButton();
 
-        return $templatesSet . '<br>' . $button . '<br><hr>';
+        $templatesDeleteTip =
+            sprintf(
+                /* translators: CleanTalk dash bord (Settings Templates) URL */
+                __('Deleting templates is available in the <a href="%s" target="_blank">CleanTalk Dashboard</a>', 'cleantalk-spam-protect'),
+                'https://cleantalk.org/my/services_templates?product=antispam&user_token=' . Escape::escHtml($apbct->user_token)
+            );
+
+        return $templatesSet . '<br>' . $button . '<br><small>' . $templatesDeleteTip . '</small><br><hr>';
     }
 
     public function getHtmlContentExport($templates)
