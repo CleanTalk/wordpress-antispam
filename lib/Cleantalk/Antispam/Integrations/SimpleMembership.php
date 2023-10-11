@@ -22,6 +22,7 @@ class SimpleMembership extends IntegrationBase
      * @param $message
      *
      * @psalm-suppress UnusedVariable
+     * @psalm-suppress UndefinedClass
      */
     public function doBlock($message)
     {

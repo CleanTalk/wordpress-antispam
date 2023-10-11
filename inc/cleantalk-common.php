@@ -1696,5 +1696,7 @@ function apbct_get_event_token($params)
         ? $params['event_token']
         : '';
 
-    return $event_token_from_params ?: $event_token_from_request;
+    return  $event_token_from_params
+        ? (string) $event_token_from_params
+        : (string) $event_token_from_request;
 }
