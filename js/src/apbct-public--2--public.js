@@ -169,6 +169,7 @@ function ctSetPixelImg(pixelUrl) {
         if ( ! document.getElementById('apbct_pixel') ) {
             let insertedImg = document.createElement('img');
             insertedImg.setAttribute('alt', 'CleanTalk Pixel');
+            insertedImg.setAttribute('title', 'CleanTalk Pixel');
             insertedImg.setAttribute('id', 'apbct_pixel');
             insertedImg.setAttribute('style', 'display: none; left: 99999px;');
             insertedImg.setAttribute('src', pixelUrl);
@@ -185,6 +186,7 @@ function ctSetPixelImgFromLocalstorage(pixelUrl) {
         if ( ! document.getElementById('apbct_pixel') ) {
             let insertedImg = document.createElement('img');
             insertedImg.setAttribute('alt', 'CleanTalk Pixel');
+            insertedImg.setAttribute('title', 'CleanTalk Pixel');
             insertedImg.setAttribute('id', 'apbct_pixel');
             insertedImg.setAttribute('style', 'display: none; left: 99999px;');
             insertedImg.setAttribute('src', decodeURIComponent(pixelUrl));
