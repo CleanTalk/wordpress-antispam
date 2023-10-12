@@ -550,7 +550,7 @@ function apbct_hook__wp_footer()
         $apbct->settings['data__pixel'] === '1' ||
         ($apbct->settings['data__pixel'] === '3' && ! apbct_is_cache_plugins_exists())
     ) {
-        echo '<img alt="Cleantalk Pixel" id="apbct_pixel" style="display: none;" src="' . Escape::escUrl($apbct->pixel_url) . '">';
+        echo '<img alt="Cleantalk Pixel" title="Cleantalk Pixel" id="apbct_pixel" style="display: none;" src="' . Escape::escUrl($apbct->pixel_url) . '">';
     }
 
     if ( $apbct->settings['data__use_ajax'] ) {

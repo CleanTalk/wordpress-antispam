@@ -30,7 +30,7 @@ class CtPublicFunctionsLocalize
     {
         return '
             <script data-no-defer="1" data-ezscrex="false" data-cfasync="false" data-pagespeed-no-defer data-cookieconsent="ignore">
-                const ' . self::NAME . ' = ' . json_encode(self::getData()) . '
+                var ' . self::NAME . ' = ' . json_encode(self::getData()) . '
             </script>
         ';
     }
