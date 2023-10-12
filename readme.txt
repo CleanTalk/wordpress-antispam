@@ -454,6 +454,22 @@ Yes, it is. Please read this article,
 
 == Changelog ==
 
+= 6.20 Oct 02 2023 =
+* Fix. Integrations. Gravity multi-page, removed duplicates of apbct_visible_fields.
+* Fix. Integrations. Simple Membership, deleted the user instead of set inactive status.
+* New. Integration. Delivra external forms integration implemented.
+* fix: doubles of hidden fields is fixed
+* Ref. All visible fields collection logic is moved to GetFieldsAny.php.
+* Fix: Integration with AjaxSearchLite
+* Mod: Event token to DB.
+* WP forms POST fields parser chunk added.
+* Fix. Cookie. Improved getting pixel url in alt mechanism.
+* Upd. Settings templates. A tip about templates deleting added.
+* Fix. Settings. The `check links` setting description fixed.
+* Mod: Added title to pixel tag
+* Fix: Fixed SFW class on php 8.2
+* fix: fixed localizer
+
 = 6.19.1 Oct 02 2023 =
 * Upd. Plugin author name updated.
 
