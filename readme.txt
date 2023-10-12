@@ -454,7 +454,7 @@ Yes, it is. Please read this article,
 
 == Changelog ==
 
-= 6.20 Oct 02 2023 =
+= 6.20 Oct 12 2023 =
 * Fix. Integrations. Gravity multi-page, removed duplicates of apbct_visible_fields.
 * Fix. Integrations. Simple Membership, deleted the user instead of set inactive status.
 * New. Integration. Delivra external forms integration implemented.
