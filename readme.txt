@@ -1,4 +1,4 @@
-=== Spam protection, Anti-Spam, FireWall by CleanTalk ===
+=== Spam protection, AntiSpam, FireWall by CleanTalk, Anti-Spam ===
 Contributors: glomberg, artemacleantalk, alexandergull
 Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 4.7
