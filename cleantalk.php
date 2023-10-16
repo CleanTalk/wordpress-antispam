@@ -343,7 +343,7 @@ $apbct_active_integrations = array(
     ),
     'Wpdiscuz'            => array(
         'hook'    => array('wpdAddComment', 'wpdAddInlineComment', 'wpdSaveEditedComment'),
-        'setting' => 'forms__comments_test',
+        'setting' => array('forms__comments_test', 'data__protect_logged_in'),
         'ajax'    => true
     ),
     'Forminator'          => array(
