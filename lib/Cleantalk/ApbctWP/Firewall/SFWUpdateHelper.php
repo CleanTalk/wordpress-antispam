@@ -321,32 +321,45 @@ class SFWUpdateHelper
     {
         global $apbct;
 
-        $dir_name = $apbct->fw_stats['updating_folder'];
+        $ready_fw_uploads_dir        = '';
+        $wp_fw_uploads_dir           = $apbct->fw_stats['updating_folder'];
+        $apbct_custom_fw_uploads_dir = APBCT_DIR_PATH . 'cleantalk_fw_files_for_blog_' . get_current_blog_id(
+            ) . DIRECTORY_SEPARATOR;
 
-        if ( $dir_name === '' ) {
-            return array('error' => 'FW dir can not be blank.');
+        if ( ! is_dir($wp_fw_uploads_dir) ) {
+            if ( mkdir($wp_fw_uploads_dir) && is_dir($wp_fw_uploads_dir) ) {
+                $ready_fw_uploads_dir = $wp_fw_uploads_dir;
+            }
         }
 
-        if ( ! is_dir($dir_name) ) {
-            if ( ! mkdir($dir_name) && ! is_dir($dir_name) ) {
-                return array('error' => 'Can not to make FW dir.');
+        if ( $ready_fw_uploads_dir === '' ) {
+            if ( ! is_dir($apbct_custom_fw_uploads_dir) ) {
+                if ( mkdir($apbct_custom_fw_uploads_dir) && is_dir($apbct_custom_fw_uploads_dir) ) {
+                    $ready_fw_uploads_dir = $apbct_custom_fw_uploads_dir;
+                }
             }
-        } else {
-            $files = glob($dir_name . '/*');
-            if ( $files === false ) {
-                return array('error' => 'Can not find FW files.');
-            }
-            if ( count($files) === 0 ) {
-                return (bool)file_put_contents($dir_name . 'index.php', '<?php' . PHP_EOL);
-            }
-            foreach ( $files as $file ) {
+        }
+
+        if ( $ready_fw_uploads_dir === '' ) {
+            return array('error' => 'Can not to make FW update directory.');
+        }
+
+        $files = glob($ready_fw_uploads_dir . '/*');
+        if ( $files === false ) {
+            return array('error' => 'Can not find FW files.');
+        }
+
+        if ( count($files) !== 0 ) {
+            foreach ($files as $file) {
                 if ( is_file($file) && unlink($file) === false ) {
                     return array('error' => 'Can not delete the FW file: ' . $file);
                 }
             }
         }
 
-        return (bool)file_put_contents($dir_name . 'index.php', '<?php');
+        return file_put_contents($ready_fw_uploads_dir . 'index.php', '<?php' . PHP_EOL)
+            ? true
+            : array('error' => 'Can not modify FW index file: ' . $ready_fw_uploads_dir . 'index.php');
     }
 
     public static function removeUpdFolder($dir_name)
