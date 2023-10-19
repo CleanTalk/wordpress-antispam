@@ -559,6 +559,11 @@ function apbct_admin__enqueue_scripts($hook)
         }
         sort($to_chart);
 
+        //hardcode fix to prevent more than 8 elements
+        if ( count($to_chart) > 8 ) {
+            array_shift($to_chart);
+        }
+
         wp_localize_script('ct_admin_js_widget_dashboard', 'apbctDashboardWidget', array(
             'data' => $to_chart,
         ));
