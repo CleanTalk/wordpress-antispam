@@ -323,20 +323,25 @@ class SFWUpdateHelper
 
         $ready_fw_uploads_dir        = '';
         $wp_fw_uploads_dir           = $apbct->fw_stats['updating_folder'];
-        $apbct_custom_fw_uploads_dir = APBCT_DIR_PATH . 'cleantalk_fw_files_for_blog_' . get_current_blog_id(
-            ) . DIRECTORY_SEPARATOR;
+        $apbct_custom_fw_uploads_dir = APBCT_DIR_PATH . 'cleantalk_fw_files_for_blog_' . get_current_blog_id() . DIRECTORY_SEPARATOR;
 
         if ( ! is_dir($wp_fw_uploads_dir) ) {
-            if ( mkdir($wp_fw_uploads_dir) && is_dir($wp_fw_uploads_dir) ) {
+            if ( mkdir($wp_fw_uploads_dir) && is_dir($wp_fw_uploads_dir) && is_writable($wp_fw_uploads_dir)) {
                 $ready_fw_uploads_dir = $wp_fw_uploads_dir;
             }
+        } elseif ( is_writable($wp_fw_uploads_dir) ) {
+            $ready_fw_uploads_dir = $wp_fw_uploads_dir;
         }
 
         if ( $ready_fw_uploads_dir === '' ) {
             if ( ! is_dir($apbct_custom_fw_uploads_dir) ) {
-                if ( mkdir($apbct_custom_fw_uploads_dir) && is_dir($apbct_custom_fw_uploads_dir) ) {
+                if ( mkdir($apbct_custom_fw_uploads_dir) && is_dir($apbct_custom_fw_uploads_dir) && is_writable($apbct_custom_fw_uploads_dir)) {
                     $ready_fw_uploads_dir = $apbct_custom_fw_uploads_dir;
                 }
+            } elseif ( is_writable($apbct_custom_fw_uploads_dir) ) {
+                $ready_fw_uploads_dir = $apbct_custom_fw_uploads_dir;
+                $apbct->fw_stats['updating_folder'] = $ready_fw_uploads_dir;
+                $apbct->save('fw_stats');
             }
         }
 
