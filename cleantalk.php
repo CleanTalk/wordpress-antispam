@@ -2702,7 +2702,7 @@ function ct_account_status_check($api_key = null, $process_errors = true)
                 : $apbct->default_data['wl_support_email'];
             $apbct->data['wl_antispam_description']     = isset($result['wl_antispam_description'])
                 ? Sanitize::cleanTextField($result['wl_antispam_description'])
-                : get_plugin_data('cleantalk-spam-protect/cleantalk.php')['Description'];
+                : get_file_data('cleantalk-spam-protect/cleantalk.php', array('Description' => 'Description'))['Description'];
         } else {
             $apbct->data['wl_mode_enabled'] = false;
             $apbct->data['wl_brandname']     = $apbct->default_data['wl_brandname'];
