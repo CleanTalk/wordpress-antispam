@@ -1122,7 +1122,7 @@ function apbct_sfw_update__init($delay = 0)
     // Prevent start an update if update is already running and started less than 10 minutes ago
     if (
         $apbct->fw_stats['firewall_updating_id'] &&
-        time() - $apbct->fw_stats['firewall_updating_last_start'] < 6 &&
+        time() - $apbct->fw_stats['firewall_updating_last_start'] < 600 &&
         SFWUpdateHelper::updateIsInProgress()
     ) {
         return false;
