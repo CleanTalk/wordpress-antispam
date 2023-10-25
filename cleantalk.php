@@ -491,6 +491,12 @@ $apbct_active_integrations = array(
         'setting' => 'forms__registrations_test',
         'ajax'    => true
     ),
+    'UserRegistrationPro'           => array(
+        'hook'    => array('user_registration_before_register_user_action'),
+        'setting' => 'forms__registrations_test',
+        // important!
+        'ajax'    => false
+    ),
 );
 new  \Cleantalk\Antispam\Integrations($apbct_active_integrations, (array)$apbct->settings);
 

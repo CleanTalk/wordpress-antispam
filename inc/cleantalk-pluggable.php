@@ -1030,6 +1030,17 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'WooCommerce Waitlist request';
         }
+
+        if (
+            (
+                apbct_is_plugin_active('user-registration/user-registration.php')
+                ||
+                apbct_is_plugin_active('user-registration-pro/user-registration.php')
+            ) &&
+            Post::get('action') === 'user_registration_user_form_submit'
+        ) {
+            return 'user-registration/user-registration-pro';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */

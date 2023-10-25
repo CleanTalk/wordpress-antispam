@@ -615,7 +615,6 @@ function ct_ajax_hook($message_obj = null)
     } else {
         $input_array = apply_filters('apbct__filter_post', $_POST);
     }
-
     $ct_temp_msg_data = ct_get_fields_any($input_array);
 
     $sender_email    = $ct_temp_msg_data['email'] ?: '';
@@ -1070,7 +1069,11 @@ function ct_ajax_hook($message_obj = null)
 
         // Plugin Name: User Registration; ajax register action user_registration_user_form_submit
         if (
-            apbct_is_plugin_active('user-registration/user-registration.php') &&
+            (
+                apbct_is_plugin_active('user-registration/user-registration.php')
+                ||
+                apbct_is_plugin_active('user-registration-pro/user-registration.php')
+            ) &&
             Post::get('action') === 'user_registration_user_form_submit'
         ) {
             wp_send_json_error(
