@@ -2,7 +2,7 @@
 Contributors: glomberg, artemacleantalk, alexandergull
 Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 4.7
-Tested up to: 6.3
+Tested up to: 6.4
 Requires PHP: 5.6
 Stable tag: 6.20
 License: GPLv2
@@ -42,6 +42,9 @@ Top-rated anti-spam protection for WordPress. No CAPTCHA, no questions, no anima
 CleanTalk is an anti-spam plugin which works with the premium Cloud Anti-Spam service cleantalk.org. This plugin as a service <a href="https://developer.wordpress.org/plugins/wordpress-org/detailed-plugin-guidelines/#6-software-as-a-service-is-permitted">https://developer.wordpress.org/plugins/wordpress-org/detailed-plugin-guidelines/#6-software-as-a-service-is-permitted</a>
 
 = Public reviews =
+> It’s more than just a tool to combat spam; it’s an integral component that enhances the overall quality and performance of your website.
+> <a href="https://www.techbusinessnews.com.au/embracing-a-spam-free-digital-experience-with-cleantalk-anti-spam-plugin/" target="_blank">techbusinessnews.com.au</a>
+
 > Improve Your Security WordPress Spam Protection With CleanTalk Anti-Spam
 > <a href="https://thehackernews.com/2023/07/improve-your-security-wordpress-spam.html" target="_blank">The Hacker News</a>.
 
