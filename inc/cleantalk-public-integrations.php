@@ -2084,6 +2084,11 @@ function apbct_form__contactForm7__testSpam($spam, $_submission = null)
         add_filter('wpcf7_display_message', 'apbct_form__contactForm7__showResponse', 10, 2);
 
         $spam = defined('WPCF7_VERSION') && WPCF7_VERSION >= '3.0.0';
+    } else {
+        //clear form service fields for advanced-cf7-db integration
+        if ( apbct_is_plugin_active('advanced-cf7-db/advanced-cf7-db.php') ) {
+            add_filter('vsz_cf7_modify_form_before_insert_data', 'apbct_form_contactForm7__advancedCF7DB_clear_ct_service_fields');
+        }
     }
 
     $apbct->cf7_checked = true;
@@ -2134,6 +2139,32 @@ function apbct_form__contactForm7__changeMailNotification($component)
         . $component['body'];
 
     return (array)$component;
+}
+
+/**
+ * Clear service fields from saving during advanced-cf7-db plugin work.
+ * @param stdClass $contact_form_obj
+ *
+ * @return stdClass
+ */
+function apbct_form_contactForm7__advancedCF7DB_clear_ct_service_fields(stdClass $contact_form_obj)
+{
+    $submission_fields = ! empty($contact_form_obj->posted_data)
+        ? $contact_form_obj->posted_data
+        : array();
+    $submission_fields = apbct__filter_form_data($submission_fields);
+    foreach ($submission_fields as $key => $_value) {
+        if (
+            strpos($key, 'apbct__email_id') !== false ||
+            strpos($key, 'apbct_event_id') !== false ||
+            strpos($key, 'ct_checkjs_cf7') !== false
+        ) {
+            unset($submission_fields[$key]);
+        }
+    }
+    $contact_form_obj->posted_data = $submission_fields;
+
+    return $contact_form_obj;
 }
 
 /**
