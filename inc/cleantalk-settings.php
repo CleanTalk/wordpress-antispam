@@ -2803,6 +2803,8 @@ function apbct_settings__update_account_email()
 {
     global $apbct;
 
+    apbct__check_admin_ajax_request('_ajax_nonce');
+
     $account_email = Post::get('accountEmail');
 
     // not valid email

@@ -1339,9 +1339,9 @@ function apbct__is_rest_api_request()
     return strpos($_SERVER['REQUEST_URI'], '/wp-json/') !== false;
 }
 
-function apbct__check_admin_ajax_request()
+function apbct__check_admin_ajax_request($query_arg = 'security')
 {
-    check_ajax_referer('ct_secret_nonce', 'security');
+    check_ajax_referer('ct_secret_nonce', $query_arg);
 
     if ( ! current_user_can('manage_options') ) {
         wp_die('-1', 403);
