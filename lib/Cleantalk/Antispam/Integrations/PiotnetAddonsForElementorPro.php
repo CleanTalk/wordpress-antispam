@@ -7,7 +7,6 @@ use Cleantalk\ApbctWP\Variables\Post;
 
 class PiotnetAddonsForElementorPro extends IntegrationBase
 {
-
     public function getDataForChecking($argument)
     {
         if ( Post::get('fields') ) {
@@ -28,7 +27,6 @@ class PiotnetAddonsForElementorPro extends IntegrationBase
                 return $form_data;
             }
         }
-
     }
 
     public function doBlock($message)
