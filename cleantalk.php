@@ -491,6 +491,11 @@ $apbct_active_integrations = array(
         'setting' => 'forms__registrations_test',
         'ajax'    => true
     ),
+    'PiotnetAddonsForElementorPro' => array(
+        'hook'    => array('pafe_ajax_form_builder'),
+        'setting' => 'forms__contact_forms_test',
+        'ajax'    => true
+    ),
 );
 new  \Cleantalk\Antispam\Integrations($apbct_active_integrations, (array)$apbct->settings);
 
