@@ -1041,6 +1041,14 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'user-registration/user-registration-pro';
         }
+
+        // Convertkit service action
+        if (
+            apbct_is_plugin_active('convertkit/wp-convertkit.php') &&
+            Post::get('action') === 'convertkit_store_subscriber_email_as_id_in_cookie'
+        ) {
+            return 'Convertkit service action';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
