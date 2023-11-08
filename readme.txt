@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 4.7
 Tested up to: 6.4
 Requires PHP: 5.6
-Stable tag: 6.20
+Stable tag: 6.21
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -456,6 +456,25 @@ Yes, it is. Please read this article,
 12. SpamFireWall log.
 
 == Changelog ==
+
+= 6.21 Nov 09 2023 =
+* Fix. Readme. Plugin name fixed.
+* Mod. Integrations. Now can handle several required APBCT settings conditions to run the integration class.
+* Fix. Integrations. WPdiscuz logged-in users now handles correctly.
+* Mod. FW update. Use inner APBCT folder for uploads if common WP folder is not reachable.
+* Fix. Brief widget. Now shows not more than 8 bars in spam count.
+* Fix. SFW update. Additional fixes for uploads inner folder.
+* Fix. Use get_file_data instead of get_plugin_data on activate.
+* Fix. Fields signs exlusion form array conditions fixed.
+* Fix. SFW. SFW updating process fixed.
+* New. Integration. User Registration Pro.
+* Fix. Admin bar. Resetting counters fixed.
+* Fix. Settings. Changing email for getting access key fixed.
+* Mod. Integrations. Clear APBCT service fields for advanced-cf7-db plugin work.
+* New. Integration. Piotnet Addons For Elementor Pro integration implemented.
+* Fix. CT AJAX check. Convertkit service actions ignore.
+* Fix. Statistic. Collecting blocked_ips.
+* Fix. Email encoder. Mailto links decoding fixed.
 
 = 6.20 Oct 12 2023 =
 * Fix. Integrations. Gravity multi-page, removed duplicates of apbct_visible_fields.
