@@ -391,7 +391,7 @@ class EmailEncoder
 
         // Excluded request by alt cookie
         $apbct_email_encoder_passed = Cookie::get('apbct_email_encoder_passed');
-        if ( $apbct_email_encoder_passed === '1' ) {
+        if ( $apbct_email_encoder_passed === apbct_get_email_encoder_pass_key() ) {
             return true;
         }
 

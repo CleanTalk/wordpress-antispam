@@ -2394,7 +2394,7 @@ function apbctAjaxEmailDecodeBulk(event, encodedEmailNodes, clickSource) {
                 method: 'POST',
                 callback: function(result) {
                     // set alternative cookie to skip next pages encoding
-                    ctSetCookie('apbct_email_encoder_passed', '1');
+                    ctSetCookie('apbct_email_encoder_passed', ctPublic.emailEncoderPassKey);
                     apbctEmailEncoderCallbackBulk(result, encodedEmailNodes, clickSource);
                 },
                 onErrorCallback: function(res) {
@@ -2413,7 +2413,7 @@ function apbctAjaxEmailDecodeBulk(event, encodedEmailNodes, clickSource) {
                 notJson: false,
                 callback: function(result) {
                     // set alternative cookie to skip next pages encoding
-                    ctSetCookie('apbct_email_encoder_passed', '1');
+                    ctSetCookie('apbct_email_encoder_passed', ctPublic.emailEncoderPassKey);
                     apbctEmailEncoderCallbackBulk(result, encodedEmailNodes, clickSource);
                 },
                 onErrorCallback: function(res) {

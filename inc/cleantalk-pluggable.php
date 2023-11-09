@@ -1366,3 +1366,15 @@ function apbct__check_admin_ajax_request($query_arg = 'security')
         wp_die('-1', 403);
     }
 }
+
+/**
+ * Generates MD5 hash for email encoder pass key
+ *
+ * @return string
+ */
+function apbct_get_email_encoder_pass_key()
+{
+    global $apbct;
+
+    return md5(Helper::ipGet() . $apbct->api_key . 'email_encoder');
+}
