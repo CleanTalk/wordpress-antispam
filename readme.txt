@@ -475,6 +475,7 @@ Yes, it is. Please read this article,
 * Fix. CT AJAX check. Convertkit service actions ignore.
 * Fix. Statistic. Collecting blocked_ips.
 * Fix. Email encoder. Mailto links decoding fixed.
+* Update. Settings. Show message if auto get key not allow.
 
 = 6.20 Oct 12 2023 =
 * Fix. Integrations. Gravity multi-page, removed duplicates of apbct_visible_fields.
