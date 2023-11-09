@@ -4,7 +4,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 6.20
+  Version: 6.21
   Author: СleanTalk - Anti-Spam Protection <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -343,7 +343,7 @@ $apbct_active_integrations = array(
     ),
     'Wpdiscuz'            => array(
         'hook'    => array('wpdAddComment', 'wpdAddInlineComment', 'wpdSaveEditedComment'),
-        'setting' => 'forms__comments_test',
+        'setting' => array('forms__comments_test', 'data__protect_logged_in'),
         'ajax'    => true
     ),
     'Forminator'          => array(
@@ -490,6 +490,17 @@ $apbct_active_integrations = array(
         'hook'    => array('uael_register_user'),
         'setting' => 'forms__registrations_test',
         'ajax'    => true
+    ),
+    'PiotnetAddonsForElementorPro' => array(
+        'hook'    => array('pafe_ajax_form_builder'),
+        'setting' => 'forms__contact_forms_test',
+        'ajax'    => true
+    ),
+    'UserRegistrationPro'           => array(
+        'hook'    => array('user_registration_before_register_user_action'),
+        'setting' => 'forms__registrations_test',
+        // important!
+        'ajax'    => false
     ),
 );
 new  \Cleantalk\Antispam\Integrations($apbct_active_integrations, (array)$apbct->settings);
@@ -1122,7 +1133,7 @@ function apbct_sfw_update__init($delay = 0)
     // Prevent start an update if update is already running and started less than 10 minutes ago
     if (
         $apbct->fw_stats['firewall_updating_id'] &&
-        time() - $apbct->fw_stats['firewall_updating_last_start'] < 6 &&
+        time() - $apbct->fw_stats['firewall_updating_last_start'] < 600 &&
         SFWUpdateHelper::updateIsInProgress()
     ) {
         return false;
@@ -2702,7 +2713,7 @@ function ct_account_status_check($api_key = null, $process_errors = true)
                 : $apbct->default_data['wl_support_email'];
             $apbct->data['wl_antispam_description']     = isset($result['wl_antispam_description'])
                 ? Sanitize::cleanTextField($result['wl_antispam_description'])
-                : get_plugin_data('cleantalk-spam-protect/cleantalk.php')['Description'];
+                : get_file_data('cleantalk-spam-protect/cleantalk.php', array('Description' => 'Description'))['Description'];
         } else {
             $apbct->data['wl_mode_enabled'] = false;
             $apbct->data['wl_brandname']     = $apbct->default_data['wl_brandname'];

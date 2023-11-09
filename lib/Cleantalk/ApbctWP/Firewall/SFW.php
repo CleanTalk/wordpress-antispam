@@ -188,6 +188,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
                             $text_status = 'PASS_SFW__BY_WHITELIST';
                             break;
                         case 0:
+                            $this->blocked_ips[] = Helper::ipLong2ip($db_result['network']);
                             $text_status = 'DENY_SFW';
                             break;
                         default:

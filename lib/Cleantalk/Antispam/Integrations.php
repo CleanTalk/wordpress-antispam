@@ -12,15 +12,23 @@ class Integrations
      * Integrations constructor.
      *
      * @param array $integrations
-     * @param array $settings
+     * @param array $apbct_settings
      */
-    public function __construct($integrations, $settings)
+    public function __construct($integrations, $apbct_settings)
     {
         $this->integrations = $integrations;
 
-        foreach ( $this->integrations as $_integration_name => $integration_info ) {
-            if ( empty($settings[$integration_info['setting']]) ) {
-                continue;
+        foreach ($this->integrations as $_integration_name => $integration_info) {
+            //validate apbct settings required to run integration
+            $integration_settings = $integration_info['setting'] ?: array();
+            if ( is_scalar($integration_settings) ) {
+                $integration_settings = array($integration_settings);
+            }
+            foreach ($integration_settings as $setting) {
+                //if any option is disabled, skip integration run
+                if ( empty($apbct_settings[$setting]) ) {
+                    continue(2);
+                }
             }
 
             if ( $integration_info['ajax'] ) {

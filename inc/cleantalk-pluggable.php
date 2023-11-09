@@ -1030,6 +1030,25 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'WooCommerce Waitlist request';
         }
+
+        if (
+            (
+                apbct_is_plugin_active('user-registration/user-registration.php')
+                ||
+                apbct_is_plugin_active('user-registration-pro/user-registration.php')
+            ) &&
+            Post::get('action') === 'user_registration_user_form_submit'
+        ) {
+            return 'user-registration/user-registration-pro';
+        }
+
+        // Convertkit service action
+        if (
+            apbct_is_plugin_active('convertkit/wp-convertkit.php') &&
+            Post::get('action') === 'convertkit_store_subscriber_email_as_id_in_cookie'
+        ) {
+            return 'Convertkit service action';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
@@ -1339,9 +1358,9 @@ function apbct__is_rest_api_request()
     return strpos($_SERVER['REQUEST_URI'], '/wp-json/') !== false;
 }
 
-function apbct__check_admin_ajax_request()
+function apbct__check_admin_ajax_request($query_arg = 'security')
 {
-    check_ajax_referer('ct_secret_nonce', 'security');
+    check_ajax_referer('ct_secret_nonce', $query_arg);
 
     if ( ! current_user_can('manage_options') ) {
         wp_die('-1', 403);

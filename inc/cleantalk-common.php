@@ -464,8 +464,8 @@ function apbct_exclusions_check__form_signs($form_data)
                 $haystack = ($key === 'action' || $key === 'data') ? $value : $key;
                 if (
                     $haystack === $exclusion ||
-                    stripos($haystack, $exclusion) !== false ||
-                    preg_match('@' . $exclusion . '@', $haystack) === 1
+                    (is_string($haystack) && stripos($haystack, $exclusion) !== false)  ||
+                    (is_string($haystack) && preg_match('@' . $exclusion . '@', $haystack) === 1)
                 ) {
                     return true;
                 }
