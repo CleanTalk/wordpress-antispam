@@ -2748,7 +2748,28 @@ function apbct_settings__get_key_auto($direct_call = false)
         $filtered_admin_email !== $admin_email
     );
 
-    if ( empty($result['error']) ) {
+    if ( ! empty($result['error']) ) {
+        $apbct->errorAdd(
+            'key_get',
+            $result['error']
+            . ($apbct->white_label
+                ? ' <button name="submit" type="button" id="apbct_button__get_key_auto" class="cleantalk_link cleantalk_link-manual" value="get_key_auto">'
+                : ''
+            )
+        );
+        $apbct->saveErrors();
+        $out = array(
+            'success' => true,
+            'reload'  => false,
+            'error' => isset($result['error_message']) ? esc_html($result['error_message']) : esc_html($result['error'])
+        );
+    } elseif ( ! isset($result['auth_key']) ) {
+        $out = array(
+            'success' => true,
+            'reload'  => false,
+            'error' => __('Please use the manual option to get the access key to ensure its safety.', 'cleantalk-spam-protect')
+        );
+    } else {
         if ( isset($result['user_token']) ) {
             $apbct->data['user_token'] = $result['user_token'];
         }
@@ -2772,21 +2793,6 @@ function apbct_settings__get_key_auto($direct_call = false)
                 'reload'  => true,
             );
         }
-    } else {
-        $apbct->errorAdd(
-            'key_get',
-            $result['error']
-            . ($apbct->white_label
-                ? ' <button name="submit" type="button" id="apbct_button__get_key_auto" class="cleantalk_link cleantalk_link-manual" value="get_key_auto">'
-                : ''
-            )
-        );
-        $apbct->saveErrors();
-        $out = array(
-            'success' => true,
-            'reload'  => false,
-            'error' => isset($result['error_message']) ? esc_html($result['error_message']) : esc_html($result['error'])
-        );
     }
 
     $apbct->saveSettings();

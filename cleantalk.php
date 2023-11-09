@@ -4,7 +4,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 6.20.1-dev
+  Version: 6.21.1-dev
   Author: СleanTalk - Anti-Spam Protection <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -343,7 +343,7 @@ $apbct_active_integrations = array(
     ),
     'Wpdiscuz'            => array(
         'hook'    => array('wpdAddComment', 'wpdAddInlineComment', 'wpdSaveEditedComment'),
-        'setting' => 'forms__comments_test',
+        'setting' => array('forms__comments_test', 'data__protect_logged_in'),
         'ajax'    => true
     ),
     'Forminator'          => array(
@@ -495,6 +495,12 @@ $apbct_active_integrations = array(
         'hook'    => array('pafe_ajax_form_builder'),
         'setting' => 'forms__contact_forms_test',
         'ajax'    => true
+    ),
+    'UserRegistrationPro'           => array(
+        'hook'    => array('user_registration_before_register_user_action'),
+        'setting' => 'forms__registrations_test',
+        // important!
+        'ajax'    => false
     ),
 );
 new  \Cleantalk\Antispam\Integrations($apbct_active_integrations, (array)$apbct->settings);
@@ -2707,7 +2713,7 @@ function ct_account_status_check($api_key = null, $process_errors = true)
                 : $apbct->default_data['wl_support_email'];
             $apbct->data['wl_antispam_description']     = isset($result['wl_antispam_description'])
                 ? Sanitize::cleanTextField($result['wl_antispam_description'])
-                : get_plugin_data('cleantalk-spam-protect/cleantalk.php')['Description'];
+                : get_file_data('cleantalk-spam-protect/cleantalk.php', array('Description' => 'Description'))['Description'];
         } else {
             $apbct->data['wl_mode_enabled'] = false;
             $apbct->data['wl_brandname']     = $apbct->default_data['wl_brandname'];
