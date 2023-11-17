@@ -57,7 +57,7 @@ class Deactivator
 
         $wild = '%';
         $find = 'cleantalk';
-        $like = $wpdb->esc_like($find) . $wild;
+        $like = $wild . $wpdb->esc_like($find) . $wild;
         $sql  = $wpdb->prepare("DELETE FROM $wpdb->options WHERE option_name LIKE %s", $like);
 
         $wpdb->query($sql);
