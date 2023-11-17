@@ -694,6 +694,14 @@ function apbct_deactivation($network_wide)
     Deactivator::deactivation($network_wide);
 }
 
+register_uninstall_hook(__FILE__, 'apbct_uninstall');
+function apbct_uninstall($network_wide)
+{
+    global $apbct;
+    $apbct->settings['misc__complete_deactivation'] = 1;
+    Deactivator::deactivation($network_wide);
+}
+
 // Hook for newly added blog
 if ( version_compare($wp_version, '5.1') >= 0  ) {
     add_action('wp_initialize_site', 'apbct_activation__new_blog', 10, 2);
