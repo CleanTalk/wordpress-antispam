@@ -699,6 +699,7 @@ function apbct_uninstall($network_wide)
 {
     global $apbct;
     $apbct->settings['misc__complete_deactivation'] = 1;
+    $apbct->saveSettings();
     Deactivator::deactivation($network_wide);
 }
 
