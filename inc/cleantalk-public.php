@@ -1585,9 +1585,8 @@ function apbct_generate_trusted_text_html($type = 'div')
 function apbct_rocket_delay_js_exclusions($excluded)
 {
     return array_merge($excluded, array(
-        'const ctPublicFunctions',
-        'const ctPublic',
-        'function apbct_attach_event_handler__backend',
+        'var ctPublicFunctions',
+        'var ctPublic',
         '/cleantalk-spam-protect/(.*)'
     ));
 }
