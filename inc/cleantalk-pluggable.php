@@ -1049,6 +1049,14 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'Convertkit service action';
         }
+
+        // BackInStockNotifier skip - have the direct integration
+        if (
+            apbct_is_plugin_active('back-in-stock-notifier-for-woocommerce/cwginstocknotifier.php') &&
+            Post::get('action') === 'cwginstock_product_subscribe'
+        ) {
+            return 'Convertkit service action';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
