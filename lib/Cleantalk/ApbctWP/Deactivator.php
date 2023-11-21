@@ -109,6 +109,8 @@ class Deactivator
             "DELETE FROM $wpdb->usermeta WHERE meta_key IN ('ct_bad', 'ct_checked', 'ct_checked_now', 'ct_marked_as_spam', 'ct_hash');"
         );
         delete_post_meta_by_key('cleantalk_order_request_id');
+        //old checker way trace
+        delete_post_meta_by_key('ct_checked');
     }
 
     private static function deleteSFWUpdateFolder()
