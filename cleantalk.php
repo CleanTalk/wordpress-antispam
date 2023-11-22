@@ -502,6 +502,11 @@ $apbct_active_integrations = array(
         // important!
         'ajax'    => false
     ),
+    'BackInStockNotifier'           => array(
+        'hook'    => array('cwginstock_product_subscribe'),
+        'setting' => 'forms__contact_forms_test',
+        'ajax'    => true
+    ),
 );
 new  \Cleantalk\Antispam\Integrations($apbct_active_integrations, (array)$apbct->settings);
 
