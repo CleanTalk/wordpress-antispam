@@ -456,11 +456,12 @@ function apbctPrepareBlockForAjaxForms() {
  */
 // eslint-disable-next-line camelcase,require-jsdoc
 function apbct_ready() {
-    if (typeof jQuery !== 'undefined') {
-        jQuery(document).on('gform_page_loaded', function() {
-            apbct_ready();
-        });
-    }
+    // this way calls a lot of apbct_ready(), needs to find another way
+    // if (typeof jQuery !== 'undefined') {
+    //     jQuery(document).on('gform_page_loaded', function() {
+    //         apbct_ready();
+    //     });
+    // }
 
     apbctPrepareBlockForAjaxForms();
 

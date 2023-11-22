@@ -1050,6 +1050,13 @@ function apbct_is_skip_request($ajax = false)
             return 'Convertkit service action';
         }
 
+        if (
+            apbct_is_plugin_active('facetwp/index.php') &&
+            Post::get('action') === 'facetwp_refresh'
+        ) {
+            return 'FacetWP facetwp_refresh service action';
+        }
+
         // BackInStockNotifier skip - have the direct integration
         if (
             apbct_is_plugin_active('back-in-stock-notifier-for-woocommerce/cwginstocknotifier.php') &&
