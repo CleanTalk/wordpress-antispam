@@ -6,7 +6,6 @@ use Cleantalk\ApbctWP\Variables\Cookie;
 
 class BackInStockNotifier extends IntegrationBase
 {
-
     public function getDataForChecking($argument)
     {
         Cookie::$force_alt_cookies_global = true;
