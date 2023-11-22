@@ -1055,7 +1055,7 @@ function apbct_is_skip_request($ajax = false)
             apbct_is_plugin_active('back-in-stock-notifier-for-woocommerce/cwginstocknotifier.php') &&
             Post::get('action') === 'cwginstock_product_subscribe'
         ) {
-            return 'Convertkit service action';
+            return 'BackInStockNotifier service action';
         }
     } else {
         /*****************************************/
