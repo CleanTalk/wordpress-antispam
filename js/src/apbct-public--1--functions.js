@@ -78,10 +78,12 @@ function ctDetectForcedAltCookiesForms() {
     let elementorUltimateAddonsRegister = document.querySelectorAll('.uael-registration-form-wrapper').length > 0;
     let smartFormsSign = document.querySelectorAll('script[id*="smart-forms"]').length > 0;
     let jetpackCommentsForm = document.querySelectorAll('iframe[name="jetpack_remote_comment"]').length > 0;
+    let cwginstockForm = document.querySelectorAll('.cwginstock-subscribe-form').length > 0;
     ctPublic.force_alt_cookies = smartFormsSign ||
         ninjaFormsSign ||
         jetpackCommentsForm ||
-        elementorUltimateAddonsRegister;
+        elementorUltimateAddonsRegister ||
+        cwginstockForm;
 }
 
 // eslint-disable-next-line require-jsdoc

@@ -1056,6 +1056,14 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'FacetWP facetwp_refresh service action';
         }
+
+        // BackInStockNotifier skip - have the direct integration
+        if (
+            apbct_is_plugin_active('back-in-stock-notifier-for-woocommerce/cwginstocknotifier.php') &&
+            Post::get('action') === 'cwginstock_product_subscribe'
+        ) {
+            return 'BackInStockNotifier service action';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
@@ -1372,4 +1380,16 @@ function apbct__check_admin_ajax_request($query_arg = 'security')
     if ( ! current_user_can('manage_options') ) {
         wp_die('-1', 403);
     }
+}
+
+/**
+ * Generates MD5 hash for email encoder pass key
+ *
+ * @return string
+ */
+function apbct_get_email_encoder_pass_key()
+{
+    global $apbct;
+
+    return md5(Helper::ipGet() . $apbct->api_key . 'email_encoder');
 }

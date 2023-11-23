@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 4.7
 Tested up to: 6.4
 Requires PHP: 5.6
-Stable tag: 6.21
+Stable tag: 6.22
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -456,6 +456,14 @@ Yes, it is. Please read this article,
 12. SpamFireWall log.
 
 == Changelog ==
+
+= 6.22 Nov 23 2023 =
+* New. Integration. BackInStockNotifier - event token to alt cookies forced.
+* New. Plugin now use register_uninstall_hook() on uninstalling process. Some additional checks added during uninstalling.
+* Fix. WP Rocket compatibility improved.
+* Fix. CT AJAX check. FacetWP service actions ignore.
+* Fix. GravityForms huge memory usage fixed.
+* Mod. Email encoder. Pass key has been stronger.
 
 = 6.21 Nov 09 2023 =
 * Fix. Readme. Plugin name fixed.
