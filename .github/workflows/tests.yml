@@ -1,6 +1,4 @@
-# .github/workflows/eslint.yml
-
-name: ESLint # name of the action (displayed in the github interface)
+name: Auto-Tests (PHPUnit, PHPCS, Psalm) running.
 
 on: # event list
   push: # on push to each of these branches
@@ -14,26 +12,45 @@ on: # event list
       - master
 
 env: # environment variables (available in any part of the action)
-  NODE_VERSION: 16
+  PHP_VERSION: 7.4
 
-jobs: # list of things to do
-  linting:
-    name: ESLint # job name (unique id)
-    runs-on: ubuntu-latest # on which machine to run
-    steps: # list of steps
-      - name: Install NodeJS
-        uses: actions/setup-node@v2
+jobs:
+  build:
+    name: PHPUnit, PHPCS, Psalm
+    runs-on: ubuntu-latest
+    env:
+      DB_CONNECTION: mysql
+      DB_HOST: localhost
+      DB_PORT: 3306
+      DB_DATABASE: wordpress_test
+      DB_USERNAME: root
+      DB_PASSWORD: root
+
+    steps:
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          php-version: ${{ env.PHP_VERSION }}
+
+      - name: Run MySQL server
+        run: sudo systemctl start mysql
 
       - name: Code Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
+
+      - name: Make the script files executable
+        run: chmod +x ./tests/wp-test-setup.sh
+
+      - name: Install WP develop
+        run: ./tests/wp-test-setup.sh wordpress_test root root localhost latest
 
       - name: Install Dependencies
-        run: npm i
+        run: composer i
 
-      - name: Code Linting
-        run: npm run eslint
+      - name: Running tests
+        env:
+          CLEANTALK_TEST_API_KEY: ${{ secrets.CLEANTALK_TEST_API_KEY }}
+        run: composer test
 
       - name: Telegram notify
         if: failure()
