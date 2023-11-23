@@ -48,6 +48,8 @@ jobs:
         run: composer i
 
       - name: Running tests
+        env:
+          CLEANTALK_TEST_API_KEY: ${{ secrets.CLEANTALK_TEST_API_KEY }}
         run: composer test
 
       - name: Telegram notify
