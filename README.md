@@ -1,6 +1,6 @@
 # Spam protection, AntiSpam, FireWall by CleanTalk 
 
-[![Build Status](https://travis-ci.org/CleanTalk/wordpress-antispam.svg?branch=master)](https://travis-ci.org/CleanTalk/wordpress-antispam)
+![example workflow](https://github.com/CleanTalk/wordpress-antispam/actions/workflows/tests.yml/badge.svg) ![example workflow](https://github.com/CleanTalk/wordpress-antispam/actions/workflows/eslint.yml/badge.svg)
 
 **License: GPLv2**
 

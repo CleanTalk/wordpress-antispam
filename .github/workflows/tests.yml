@@ -1,4 +1,4 @@
-name: Auto-Tests (PHPUnit, PHPCS, Psalm) running.
+name: PHPUnit, PHPCS, Psalm
 
 on: # event list
   push: # on push to each of these branches
