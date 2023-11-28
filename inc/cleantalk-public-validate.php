@@ -109,6 +109,17 @@ function ct_contact_form_validate()
     $post_info['comment_type'] = 'feedback_general_contact_form';
 
     /**
+     * Forminator special handler
+     */
+    if ( isset($_POST['action']) && $_POST['action'] === 'forminator_submit_form_custom-forms' ) {
+        foreach ( $_POST as $key => $value ) {
+            if ( is_string($key) && strpos($key, 'email') !== false ) {
+                $_POST[$key] = sanitize_email($value);
+            }
+        }
+    }
+
+    /**
      * Filter for POST
      */
     $input_array = apply_filters('apbct__filter_post', $_POST);
