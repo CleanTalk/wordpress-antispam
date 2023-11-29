@@ -3572,7 +3572,7 @@ function isIntegratedForm(formObj) {
         formId.indexOf('ihf-contact-request-form') !== -1 ||
         formAction.indexOf('crm.zoho.com') !== -1 ||
         formId.indexOf('delivra-external-form') !== -1 ||
-        formObj.hasAttribute("data-hs-cf-bound") // Hubspot integration in Elementor form
+        formObj.hasAttribute('data-hs-cf-bound') // Hubspot integration in Elementor form
     ) {
         return true;
     }
