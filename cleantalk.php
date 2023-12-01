@@ -594,6 +594,15 @@ if (
     apbct_givewp_donate_request_test();
 }
 
+// JetformBuilder
+if (
+    !empty($_POST) &&
+    apbct_is_plugin_active('jetformbuilder/jet-form-builder.php') &&
+    Get::get('jet_form_builder_submit') === 'submit'
+) {
+    apbct_jetformbuilder_request_test();
+}
+
 add_action('wp_ajax_nopriv_ninja_forms_ajax_submit', 'apbct_form__ninjaForms__testSpam', 1);
 add_action('wp_ajax_ninja_forms_ajax_submit', 'apbct_form__ninjaForms__testSpam', 1);
 add_action('wp_ajax_nopriv_nf_ajax_submit', 'apbct_form__ninjaForms__testSpam', 1);
