@@ -4012,3 +4012,26 @@ function apbct_jetformbuilder_request_test()
         }
     }
 }
+
+function apbct_dhvcform_request_test()
+{
+    global $ct_comment;
+
+    $input_array = apply_filters('apbct__filter_post', $_POST);
+    $params = ct_gfa($input_array);
+
+    $base_call_result = apbct_base_call(
+        array(
+            'sender_email'    => $params['email'],
+            'sender_nickname' => $params['nickname'] ?: '',
+            'post_info'       => array('comment_type' => 'dhvcform_form'),
+        )
+    );
+
+    $ct_result = $base_call_result['ct_result'];
+
+    if ((int)$ct_result->allow === 0) {
+        $ct_comment = $ct_result->comment;
+        ct_die(null, null);
+    }
+}

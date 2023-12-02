@@ -603,6 +603,15 @@ if (
     apbct_jetformbuilder_request_test();
 }
 
+// DHVC Form
+if (
+    !empty($_POST) &&
+    apbct_is_plugin_active('dhvc-form/dhvc-form.php') &&
+    Post::get('dhvc_form') && Post::get('_dhvc_form_nonce')
+) {
+    apbct_dhvcform_request_test();
+}
+
 add_action('wp_ajax_nopriv_ninja_forms_ajax_submit', 'apbct_form__ninjaForms__testSpam', 1);
 add_action('wp_ajax_ninja_forms_ajax_submit', 'apbct_form__ninjaForms__testSpam', 1);
 add_action('wp_ajax_nopriv_nf_ajax_submit', 'apbct_form__ninjaForms__testSpam', 1);
