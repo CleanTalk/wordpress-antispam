@@ -2767,7 +2767,10 @@ function apbct_settings__get_key_auto($direct_call = false)
         $out = array(
             'success' => true,
             'reload'  => false,
-            'error' => __('Please use the manual option to get the access key to ensure its safety.', 'cleantalk-spam-protect')
+            'error' => sprintf(
+                __('Please, get the Access Key from CleanTalk Control Panel %s and insert it in the Access Key field', 'cleantalk-spam-protect'),
+                'https://cleantalk.org/my/?cp_mode=antispam'
+            )
         );
     } else {
         if ( isset($result['user_token']) ) {
