@@ -1519,6 +1519,10 @@ function ct_registration_errors($errors, $sanitized_user_login = null, $user_ema
         return $errors;
     }
 
+    if ( Post::get('wpmem_reg_page') && apbct_is_plugin_active('wp-members/wp-members.php') ) {
+        return $errors;
+    }
+
     $facebook = false;
     // Facebook registration
     if ( $sanitized_user_login === null && Post::get('FB_userdata') ) {
@@ -3974,4 +3978,60 @@ function apbct_memberpress_signup_request_test()
     }
 
     $cleantalk_executed = true;
+}
+
+function apbct_jetformbuilder_request_test()
+{
+    global $ct_comment;
+
+    $input_array = apply_filters('apbct__filter_post', $_POST);
+    $params = ct_gfa($input_array);
+
+    $base_call_result = apbct_base_call(
+        array(
+            'sender_email'    => $params['email'],
+            'sender_nickname' => $params['nickname'] ?: '',
+            'post_info'       => array('comment_type' => 'jetformbuilder_signup_form'),
+        )
+    );
+
+    $ct_result = $base_call_result['ct_result'];
+
+    if ((int)$ct_result->allow === 0) {
+        if (Get::get('method') === 'ajax') {
+            $msg = '<div class="jet-form-builder-message jet-form-builder-message--error">' . $ct_result->comment . '</div>';
+            wp_send_json(
+                array(
+                    'status' => 'failed',
+                    'message' => $msg
+                )
+            );
+        } else {
+            $ct_comment = $ct_result->comment;
+            ct_die(null, null);
+        }
+    }
+}
+
+function apbct_dhvcform_request_test()
+{
+    global $ct_comment;
+
+    $input_array = apply_filters('apbct__filter_post', $_POST);
+    $params = ct_gfa($input_array);
+
+    $base_call_result = apbct_base_call(
+        array(
+            'sender_email'    => $params['email'],
+            'sender_nickname' => $params['nickname'] ?: '',
+            'post_info'       => array('comment_type' => 'dhvcform_form'),
+        )
+    );
+
+    $ct_result = $base_call_result['ct_result'];
+
+    if ((int)$ct_result->allow === 0) {
+        $ct_comment = $ct_result->comment;
+        ct_die(null, null);
+    }
 }

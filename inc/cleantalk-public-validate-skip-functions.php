@@ -248,6 +248,9 @@ function skip_for_ct_contact_form_validate()
         '91' => apbct_is_plugin_active('envira-gallery/envira-gallery.php') && Server::inUri('wp-json/envira-background/v1/resize-image'),
         // woocommerce cfw_validate_email_domain skip
         '92' => apbct_is_plugin_active('checkout-for-woocommerce/checkout-for-woocommerce.php') && Server::inUri('wc-ajax=cfw_validate_email_domain'),
+        // FunnelKit Automations
+        '93' => (apbct_is_in_uri('/wp-json/autonami/v1/events') && apbct_is_plugin_active('wp-marketing-automations/wp-marketing-automations.php')),
+        '94' => (apbct_is_in_uri('/wp-json/woofunnels/v1/worker') && apbct_is_plugin_active('wp-marketing-automations/wp-marketing-automations.php')),
     );
 
     foreach ( $exclusions as $exclusion_key => $state ) {

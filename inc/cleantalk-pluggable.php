@@ -980,7 +980,11 @@ function apbct_is_skip_request($ajax = false)
 
         // Flux Checkout for WooCommerce service requests
         if (
-            apbct_is_plugin_active('flux-checkout-premium/flux-checkout.php') &&
+            (
+                apbct_is_plugin_active('flux-checkout-premium/flux-checkout.php') ||
+                apbct_is_plugin_active('flux-checkout/flux-checkout.php')
+            )
+            &&
             (
                 Post::get('action') === 'flux_check_email_exists' ||
                 Post::get('action') === 'flux_check_for_inline_error' ||
