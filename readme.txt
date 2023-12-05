@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 4.7
 Tested up to: 6.4
 Requires PHP: 5.6
-Stable tag: 6.22
+Stable tag: 6.23
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -456,6 +456,16 @@ Yes, it is. Please read this article,
 12. SpamFireWall log.
 
 == Changelog ==
+
+= 6.23 Dec 07 2023 =
+* New. Integrations. Added handler for DHVC Form.
+* New. Integrations. Added handler for jetformbuilder.
+* Fix. Settings. Getting Access Key message fixed.
+* Fix. Integrations. Skip Flux Checkout service requests.
+* Fix. Integrations. Skip FunnelKit Automations cron worker.
+* Fix. Integrations. Handle Hubspot integration in Elementor Form.
+* Fix. Integrations. Forminator integration fixed.
+* Fix. Integrations. Skip handle in registration_error hook for wp-members.
 
 = 6.22 Nov 23 2023 =
 * New. Integration. BackInStockNotifier - event token to alt cookies forced.
