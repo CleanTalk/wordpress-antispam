@@ -53,7 +53,7 @@ class AltSessions
 
     public static function setFromRemote($request = null)
     {
-        if ( !$request ) {
+        if ( !$request || Post::get('cookies')) {
             $cookies_to_set = Post::get('cookies');
         } else {
             $cookies_to_set = $request->get_param('cookies');
@@ -62,7 +62,7 @@ class AltSessions
         //clear from double slashes
         $cookies_to_set = str_replace('\\', '', $cookies_to_set);
 
-        //hanlde php8+ JSON throws
+        //handle php8+ JSON throws
         try {
             $cookies_array = json_decode($cookies_to_set, true);
         } catch ( \Exception $e ) {
