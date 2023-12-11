@@ -637,7 +637,8 @@ function apbct_ready() {
             form.onsubmit_prev = form.onsubmit;
 
             // jquery ajax call intercept for twitter login
-            if ( typeof jQuery !== 'undefined' && (
+            if ( typeof jQuery !== 'undefined' &&
+                (
                     form.id === 'twt_cc_signup' ||
                     form.classList.contains('mailpoet_form')
                 )
