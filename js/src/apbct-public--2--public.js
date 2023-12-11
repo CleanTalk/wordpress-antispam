@@ -640,7 +640,12 @@ function apbct_ready() {
             if ( typeof jQuery !== 'undefined' &&
                 (
                     form.id === 'twt_cc_signup' ||
-                    form.classList.contains('mailpoet_form')
+                    form.classList.contains('mailpoet_form') ||
+                    (
+                        form.classList.contains('register') &&
+                        form.querySelector('input[name="ur_frontend_form_nonce"]') &&
+                        form.querySelector('button[type="submit"]').classList.contains('ur-submit-button')
+                    )
                 )
             ) {
                 jQuery.ajaxSetup({
