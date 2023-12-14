@@ -2,6 +2,8 @@
 
 namespace Cleantalk\Antispam\Integrations;
 
+use Cleantalk\ApbctWP\Variables\Cookie;
+
 class UserRegistrationPro extends IntegrationBase
 {
     public function getDataForChecking($argument)
@@ -13,6 +15,9 @@ class UserRegistrationPro extends IntegrationBase
         }
         $data             = ct_gfa($ct_post_temp);
         $data['register'] = true;
+
+        Cookie::$force_alt_cookies_global = true;
+        $data['event_token'] = Cookie::get('ct_bot_detector_event_token');
 
         return $data;
     }
