@@ -481,6 +481,11 @@ $apbct_active_integrations = array(
         'setting' => 'forms__contact_forms_test',
         'ajax'    => true
     ),
+    'MailPoet' => array(
+        'hook'    => array('mailpoet'),
+        'setting' => 'forms__contact_forms_test',
+        'ajax'    => true
+    ),
     'MailPoet2' => array(
         'hook'    => array('wysija_ajax'),
         'setting' => 'forms__contact_forms_test',
