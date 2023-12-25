@@ -27,6 +27,8 @@ class EmailEncoder
     private $content_exclusions_signs = array(
         //divi contact forms additional emails
         array('_unique_id', 'et_pb_contact_form'),
+        //ninja form noscript content exclusion
+        array('ninja-forms-noscript-message'),
     );
 
     /**
