@@ -4035,3 +4035,28 @@ function apbct_dhvcform_request_test()
         ct_die(null, null);
     }
 }
+
+/**
+ * @param $validation_error WP_Error
+ * @param $username string
+ * @param $_password string
+ * @param $email string
+ * @return WP_Error
+ */
+function apbct_wp_delicious($validation_error, $username, $_password, $email)
+{
+    $base_call_result = apbct_base_call(
+        array(
+            'sender_email'    => sanitize_email($email),
+            'sender_nickname' => sanitize_user($username),
+            'post_info'       => array('comment_type' => 'contact_form_wordpress_wp_delicious'),
+        ),
+        true
+    );
+
+    $ct_result = $base_call_result['ct_result'];
+    if ((int)$ct_result->allow === 0) {
+        $validation_error->add(403, $ct_result->comment);
+    }
+    return $validation_error;
+}

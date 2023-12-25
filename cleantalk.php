@@ -515,6 +515,9 @@ $apbct_active_integrations = array(
 );
 new  \Cleantalk\Antispam\Integrations($apbct_active_integrations, (array)$apbct->settings);
 
+// WP Delicious integration
+add_filter('delicious_recipes_process_registration_errors', 'apbct_wp_delicious', 10, 4);
+
 $js_errors_arr = apbct_check_post_for_no_cookie_data();
 if ($js_errors_arr && $js_errors_arr['data']) {
     apbct_write_js_errors($js_errors_arr['data']);
