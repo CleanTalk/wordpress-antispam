@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 4.7
 Tested up to: 6.4
 Requires PHP: 5.6
-Stable tag: 6.23
+Stable tag: 6.24
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -456,6 +456,13 @@ Yes, it is. Please read this article,
 12. SpamFireWall log.
 
 == Changelog ==
+
+= 6.24 Dec 21 2023 =
+* New. Integrations. WP Delicious integration implemented.
+* Fix. Search. Clear service field in MegaMenu search form.
+* Fix. Integration. Added direct mailpoet.
+* Fix. Integrations. UserRegistration extension compatible with cookie off mode.
+* Fix. Integration. User Registration Pro integration fixed.
 
 = 6.23 Dec 07 2023 =
 * New. Integrations. Added handler for DHVC Form.
