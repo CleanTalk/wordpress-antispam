@@ -1116,11 +1116,13 @@ function ctDetectForcedAltCookiesForms() {
     let smartFormsSign = document.querySelectorAll('script[id*="smart-forms"]').length > 0;
     let jetpackCommentsForm = document.querySelectorAll('iframe[name="jetpack_remote_comment"]').length > 0;
     let cwginstockForm = document.querySelectorAll('.cwginstock-subscribe-form').length > 0;
+    let userRegistrationProForm = document.querySelectorAll('div[id^="user-registration-form"]').length > 0;
     ctPublic.force_alt_cookies = smartFormsSign ||
         ninjaFormsSign ||
         jetpackCommentsForm ||
         elementorUltimateAddonsRegister ||
-        cwginstockForm;
+        cwginstockForm ||
+        userRegistrationProForm;
 }
 
 // eslint-disable-next-line require-jsdoc
@@ -2158,7 +2160,17 @@ function apbct_ready() {
             form.onsubmit_prev = form.onsubmit;
 
             // jquery ajax call intercept for twitter login
-            if ( typeof jQuery !== 'undefined' && form.id === 'twt_cc_signup' ) {
+            if ( typeof jQuery !== 'undefined' &&
+                (
+                    form.id === 'twt_cc_signup' ||
+                    form.classList.contains('mailpoet_form') ||
+                    (
+                        form.classList.contains('register') &&
+                        form.querySelector('input[name="ur_frontend_form_nonce"]') &&
+                        form.querySelector('button[type="submit"]').classList.contains('ur-submit-button')
+                    )
+                )
+            ) {
                 jQuery.ajaxSetup({
                     beforeSend: function(xhr, settings) {
                         let noCookieData = getNoCookieData();
@@ -2288,6 +2300,9 @@ function ctSearchFormOnSubmitHandler(e, _form) {
                 if (_form.apbctSearchPrevOnsubmit instanceof Function) {
                     _form.apbctSearchPrevOnsubmit();
                 } else {
+                    if ( noCookieField !== null ) {
+                        _form.querySelector('[name="ct_no_cookie_hidden_field"]').parentNode.removeChild(noCookieField);
+                    }
                     HTMLFormElement.prototype.submit.call(_form);
                 }
             };

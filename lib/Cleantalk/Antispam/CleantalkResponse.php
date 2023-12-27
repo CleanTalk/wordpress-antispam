@@ -145,9 +145,9 @@ class CleantalkResponse
         $this->errstr         = isset($obj->errstr) ?
             preg_replace("/.+(\*\*\*.+\*\*\*).+/", "$1", htmlspecialchars($obj->errstr)) :
             null;
-        $this->stop_words     = isset($obj->stop_words) ? utf8_decode($obj->stop_words) : null;
+        $this->stop_words     = isset($obj->stop_words) ? mb_convert_encoding($obj->stop_words, 'ISO-8859-1', 'UTF-8') : null;
         $this->comment        = isset($obj->comment) ?
-            Escape::escKsesPreset(utf8_decode($obj->comment), 'apbct_response_custom_message') :
+            Escape::escKsesPreset(mb_convert_encoding($obj->comment, 'ISO-8859-1', 'UTF-8'), 'apbct_response_custom_message') :
             null;
         $this->blacklisted    = isset($obj->blacklisted) ? $obj->blacklisted : null;
         $this->allow          = isset($obj->allow) ? $obj->allow : 1;
