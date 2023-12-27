@@ -284,7 +284,6 @@ function apbctReplaceInputsValuesFromOtherForm(formSource, formTarget) {
 }
 
 window.onload = function() {
-
     if ( ! +ctPublic.settings__forms__check_external ) {
         return;
     }
@@ -300,19 +299,19 @@ window.onload = function() {
  * Catch Nsl form integration
  */
 function catchNslForm() {
-    let blockNSL = document.getElementById("nsl-custom-login-form-main");
-    if (blockNSL){
+    let blockNSL = document.getElementById('nsl-custom-login-form-main');
+    if (blockNSL) {
         checkNextendSocialLogin(blockNSL);
     }
 }
 
 /**
  * Blocking NSL buttons and callback functions
- * @param {HTMLElement} blockNSL 
+ * @param {HTMLElement} blockNSL
  */
 function checkNextendSocialLogin(blockNSL) {
     let btnsNSL = blockNSL.querySelectorAll('.nsl-container-buttons a');
-    btnsNSL.forEach(el => {
+    btnsNSL.forEach((el) => {
         el.setAttribute('data-oauth-login-blocked', 'true');
         el.style.pointerEvents = 'none';
 
@@ -320,7 +319,7 @@ function checkNextendSocialLogin(blockNSL) {
             e.preventDefault();
 
             let allow = function(target) {
-                if (document.querySelector('.ct-forbidden-msg')){
+                if (document.querySelector('.ct-forbidden-msg')) {
                     document.querySelector('.ct-forbidden-msg').remove();
                 }
 
@@ -328,7 +327,6 @@ function checkNextendSocialLogin(blockNSL) {
                     target.setAttribute('data-oauth-login-blocked', 'false');
                     el.setAttribute('style', 'pointer-events: all;');
                     el.click();
-                    //el.style.pointerEvents = 'none';
                 }
             };
 
@@ -337,7 +335,7 @@ function checkNextendSocialLogin(blockNSL) {
                     target.setAttribute('data-oauth-login-blocked', 'true');
                     el.setAttribute('style', 'pointer-events: none;');
                 }
-                if (!document.querySelector('.ct-forbidden-msg')){
+                if (!document.querySelector('.ct-forbidden-msg')) {
                     let el = document.createElement('div');
                     el.className = 'ct-forbidden-msg';
                     el.style.background = 'red';
@@ -355,9 +353,9 @@ function checkNextendSocialLogin(blockNSL) {
 
 /**
  * User verification using user data and ajax
- * @param {HTMLElement} elem 
- * @param {Function} allow 
- * @param {Function} forbidden 
+ * @param {HTMLElement} elem
+ * @param {Function} allow
+ * @param {Function} forbidden
  */
 function ctCheckAjax(elem, allow, forbidden) {
     let data = {
@@ -370,13 +368,13 @@ function ctCheckAjax(elem, allow, forbidden) {
         {
             async: false,
             callback: function(result) {
-                if (result.apbct.blocked === false){
+                if (result.apbct.blocked === false) {
                     allow(elem);
                 } else {
                     forbidden(elem, result.apbct.comment);
                 }
             },
-        }
+        },
     );
 }
 
