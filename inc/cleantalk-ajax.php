@@ -445,6 +445,11 @@ function ct_ajax_hook($message_obj = null)
         $ct_post_temp['email']   = $curr_user->data->user_email;
         $ct_post_temp['name']    = $curr_user->data->user_login;
     }
+    
+    //NSL integration
+    if ( Post::get('action') === 'cleantalk_nsl_ajax_check' ) {
+        $post_info['comment_type'] = 'contact_form_wordpress_nsl';
+    }
 
     //CSCF fix
     if ( Post::get('action') === 'cscf-submitform' ) {
@@ -1106,6 +1111,21 @@ function ct_ajax_hook($message_obj = null)
             wp_send_json($ct_result->comment);
         }
 
+        // Plugin Name: Nextend Social Login and Register; jax register action cleantalk_nsl_ajax_check
+        if ( Post::get('action') === 'cleantalk_nsl_ajax_check' ) {
+            echo json_encode(
+                array(
+                    'apbct' => array(
+                        'blocked'     => true,
+                        'comment'     => $ct_result->comment,
+                        'stop_script' => apbct__stop_script_after_ajax_checking()
+                    )
+                )
+            );
+            die();
+        }
+
+        
         // Regular block output
         die(
             json_encode(
@@ -1133,6 +1153,21 @@ function ct_ajax_hook($message_obj = null)
                     'apbct' => array(
                         'blocked' => false,
                         'allow'   => true,
+                    )
+                )
+            )
+        );
+    }
+
+    // Nextend Social Login and Register AJAX check
+    if ( Post::get('action') === 'cleantalk_nsl_ajax_check' ) {
+        die(
+            json_encode(
+                array(
+                    'apbct' => array(
+                        'blocked' => false,
+                        'allow'   => true,
+                        'comment' => $ct_result->comment,
                     )
                 )
             )
