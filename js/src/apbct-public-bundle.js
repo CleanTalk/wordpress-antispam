@@ -3590,7 +3590,7 @@ function checkNextendSocialLogin(blockNSL) {
                     target.setAttribute('data-oauth-login-blocked', 'false');
                     el.setAttribute('style', 'pointer-events: all;');
                     el.click();
-                    el.style.pointerEvents = 'none';
+                    //el.style.pointerEvents = 'none';
                 }
             };
 

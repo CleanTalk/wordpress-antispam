@@ -445,7 +445,7 @@ function ct_ajax_hook($message_obj = null)
         $ct_post_temp['email']   = $curr_user->data->user_email;
         $ct_post_temp['name']    = $curr_user->data->user_login;
     }
-    
+
     //NSL integration
     if ( Post::get('action') === 'cleantalk_nsl_ajax_check' ) {
         $post_info['comment_type'] = 'contact_form_wordpress_nsl';
@@ -1125,7 +1125,7 @@ function ct_ajax_hook($message_obj = null)
             die();
         }
 
-        
+
         // Regular block output
         die(
             json_encode(
