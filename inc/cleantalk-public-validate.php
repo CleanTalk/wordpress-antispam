@@ -12,6 +12,12 @@ function ct_contact_form_validate()
 {
     global $apbct, $ct_comment;
 
+    $do_skip = skip_for_ct_contact_form_validate();
+    if ( $do_skip ) {
+        do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__ . ', ON KEY ' . $do_skip, $_POST);
+        return null;
+    }
+
     // Exclude the XML-RPC requests
     if ( defined('XMLRPC_REQUEST') ) {
         do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
@@ -21,12 +27,6 @@ function ct_contact_form_validate()
     // Exclusios common function
     if ( apbct_exclusions_check(__FUNCTION__) ) {
         do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
-        return null;
-    }
-
-    $do_skip = skip_for_ct_contact_form_validate();
-    if ( $do_skip ) {
-        do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__ . ', ON KEY ' . $do_skip, $_POST);
         return null;
     }
 
