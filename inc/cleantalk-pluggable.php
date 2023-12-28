@@ -1252,6 +1252,16 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'Plugin Name: OptimizeCheckouts skip fields checks';
         }
+
+        // Plugin Name: WooCommerce Product Enquiry Premium - have the direct integration
+        if (
+            apbct_is_plugin_active('product-enquiry-pro/woocommerce-product-enquiry-pro.php') &&
+            Post::get('mcg_enq_submit') &&
+            Post::get('product_id')
+
+        ) {
+            return 'Plugin Name: WooCommerce Product Enquiry Premium - have the direct integration';
+        }
     }
 
     //Skip wforms because of direct integration
