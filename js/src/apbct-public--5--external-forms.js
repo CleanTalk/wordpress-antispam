@@ -291,23 +291,29 @@ window.onload = function() {
     setTimeout(function() {
         ctProtectExternal();
         catchDynamicRenderedForm();
-        catchNslForm();
+        catchNextendSocialLoginForm();
     }, 2000);
 };
 
 /**
- * Catch Nsl form integration
+ * Catch NSL form integration
  */
-function catchNslForm() {
+function catchNextendSocialLoginForm() {
     let blockNSL = document.getElementById('nsl-custom-login-form-main');
     if (blockNSL) {
         blockBtnNextendSocialLogin(blockNSL);
     }
 }
 
+/**
+ * Blocking NSL plugin buttons
+ * @param {HTMLElement} blockNSL
+ */
 function blockBtnNextendSocialLogin(blockNSL) {
     let parentBtnsNSL = blockNSL.querySelectorAll('.nsl-container-buttons a');
-    let childBtnsNSL = blockNSL.querySelectorAll('a[data-plugin="nsl"][data-action="connect"] .nsl-button, a[data-plugin="nsl"][data-action="link"] .nsl-button');
+    let childBtnsNSL = blockNSL.querySelectorAll(
+        'a[data-plugin="nsl"][data-action="connect"] .nsl-button, a[data-plugin="nsl"][data-action="link"] .nsl-button'
+    );
     parentBtnsNSL.forEach((el) => {
         el.setAttribute('data-oauth-login-blocked', 'true');
         el.addEventListener('click', (event) => {
@@ -323,18 +329,25 @@ function blockBtnNextendSocialLogin(blockNSL) {
     });
 }
 
+/**
+ * Unlocking the button and clicking on it after an ajax response
+ * @param {HTMLElement} blockNSL
+ */
 function allowAjaxNextendSocialLogin(childBtn) {
-    console.log(childBtn.parentElement);
     childBtn.parentElement.setAttribute('data-oauth-login-blocked', 'false');
     childBtn.parentElement.click();
 }
 
+/**
+ * Locking the button and entering a message after an ajax response
+ * @param {HTMLElement} childBtn
+ * @param {string} msg
+ */
 function forbiddenAjaxNextendSocialLogin(childBtn, msg) {
     let parentElement = childBtn.parentElement;
     if (parentElement.getAttribute('data-oauth-login-blocked') == 'false') {
         parentElement.setAttribute('data-oauth-login-blocked', 'true');
     }
-    console.log('forbidden ' + msg);
     if (!document.querySelector('.ct-forbidden-msg')) {
         let elemForMsg = document.createElement('div');
         elemForMsg.className = 'ct-forbidden-msg';
@@ -350,7 +363,7 @@ function forbiddenAjaxNextendSocialLogin(childBtn, msg) {
  * User verification using user data and ajax
  * @param {HTMLElement} elem
  */
-function ctCheckAjax(childBtn) {
+function ctCheckAjax(elem) {
     let data = {
         'action': 'cleantalk_nsl_ajax_check',
         'ct_no_cookie_hidden_field': document.getElementsByName('ct_no_cookie_hidden_field')[0].value,
@@ -363,9 +376,9 @@ function ctCheckAjax(childBtn) {
             callback: function(result) {
                 console.log(result);
                 if (result.apbct.blocked === false) {
-                    allowAjaxNextendSocialLogin(childBtn);
+                    allowAjaxNextendSocialLogin(elem);
                 } else {
-                    forbiddenAjaxNextendSocialLogin(childBtn, result.apbct.comment);
+                    forbiddenAjaxNextendSocialLogin(elem, result.apbct.comment);
                 }
             },
         },
