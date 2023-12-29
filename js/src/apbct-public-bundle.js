@@ -3573,9 +3573,7 @@ function catchNextendSocialLoginForm() {
  */
 function blockBtnNextendSocialLogin(blockNSL) {
     let parentBtnsNSL = blockNSL.querySelectorAll('.nsl-container-buttons a');
-    let childBtnsNSL = blockNSL.querySelectorAll(
-        'a[data-plugin="nsl"][data-action="connect"] .nsl-button, a[data-plugin="nsl"][data-action="link"] .nsl-button'
-    );
+    let childBtnsNSL = blockNSL.querySelectorAll('a[data-plugin="nsl"] .nsl-button',);
     parentBtnsNSL.forEach((el) => {
         el.setAttribute('data-oauth-login-blocked', 'true');
         el.addEventListener('click', (event) => {
@@ -3593,7 +3591,7 @@ function blockBtnNextendSocialLogin(blockNSL) {
 
 /**
  * Unlocking the button and clicking on it after an ajax response
- * @param {HTMLElement} blockNSL
+ * @param {HTMLElement} childBtn
  */
 function allowAjaxNextendSocialLogin(childBtn) {
     childBtn.parentElement.setAttribute('data-oauth-login-blocked', 'false');
