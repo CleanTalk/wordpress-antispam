@@ -1,5 +1,7 @@
 <?php
 
+use Cleantalk\ApbctWP\CleantalkSettingsTemplates;
+
 if (!defined('WP_CLI')) {
 	return;
 }
@@ -62,32 +64,154 @@ class ApbctCli extends WP_CLI_Command {
         } elseif (!isset($result['auth_key'])) {
             echo __("Please, get the Access Key from CleanTalk Control Panel \n", 'cleantalk-spam-protect');
             return;
-        } else {
-            if (isset($params['domain'])) {
-                global $apbct;
-
-                if (isset($result['user_token'])) {
-                    $apbct->data['user_token'] = $result['user_token'];
-                }
-
-                if (!empty($result['auth_key']) && apbct_api_key__is_correct($result['auth_key'])) {
-                    $apbct->data['key_changed'] = trim($result['auth_key']) !== $apbct->settings['apikey'];
-                    $apbct->settings['apikey'] = trim($result['auth_key']);
-                }
-
-                $apbct->saveSettings();
-                $apbct->saveData();
-            }
         }
+
+        global $apbct;
+
+        if (isset($result['user_token'])) {
+            $apbct->data['user_token'] = $result['user_token'];
+        }
+
+        if (!empty($result['auth_key']) && apbct_api_key__is_correct($result['auth_key'])) {
+            $apbct->data['key_changed'] = trim($result['auth_key']) !== $apbct->settings['apikey'];
+            $apbct->settings['apikey'] = trim($result['auth_key']);
+        }
+
+        $apbct->saveSettings();
+        $apbct->saveData();
 	}
 
 	/**
 	 * Set template
 	 *
-	 * @param $args
+	 * @param array $args [list|set|reset]
 	 * @param $params
 	 */
 	public function template($args, $params)
     {
+        global $apbct;
+
+        $key = $apbct->settings['apikey'];
+
+        if (!$key) {
+            echo __("error - set api_key first \n", 'cleantalk-spam-protect');
+            return;
+        }
+
+        $data['auth_key'] = $key;
+        $data['method_name'] = 'services_templates_get';
+        $data['search[product_id]'] = 1;
+
+        $result = WP_CLI\Utils\http_request($this->method, $this->url, $data, [], ['insecure' => true]);
+        if (!isset($result->body)) {
+            echo __("error \n, not expected result", 'cleantalk-spam-protect');
+            return;
+        }
+
+        $result = json_decode($result->body, true);
+        if (!isset($result['data'])) {
+            echo __("error \n", 'cleantalk-spam-protect');
+            echo json_last_error();
+            echo json_last_error_msg();
+            return;
+        }
+    
+        if (isset($result['error'])) {
+            echo __("error \n", 'cleantalk-spam-protect');
+            $error = isset($result['error_message']) ? esc_html($result['error_message']) : esc_html($result['error']);
+            echo $error . "\n";
+            return;
+        }
+
+        if (in_array('list', $args)) {
+            echo "ID - NAME \n";
+            foreach($result['data'] as $key => $template) {
+                echo isset($template['template_id']) ? $template['template_id'] . ' - ' : null;
+                echo isset($template['name']) ? $template['name'] : null;
+                echo "\n";
+            }
+            return;
+        }
+
+        if (in_array('set', $args)) {
+            if (in_array('reset', $args)) {
+                require_once('cleantalk-settings.php');
+                $settings = new CleantalkSettingsTemplates($key);
+                $res = $settings->resetPluginOptions();
+                if (!$res) {
+                    echo __("error \nCan't reset settings to default\n", 'cleantalk-spam-protect');
+                }
+                echo __("Success \nTemplate was reset to default \n", 'cleantalk-spam-protect');
+                return;
+            }
+
+            if (!isset($params['id'])) {
+                echo __("error \nplease add <id> param to choose template \n", 'cleantalk-spam-protect');
+                return;
+            }
+
+            $id = null;
+            foreach($result['data'] as $key => $template) {
+                if (isset($template['template_id']) && $template['template_id'] == $params['id']) {
+                    $id = $template['template_id'];
+                    $name = $template['name'];
+                    $set = json_decode($template['options_site'], true);
+                }
+            }
+            if (is_null($id)) {
+                echo __("error \nSelected <id> not exist \n", 'cleantalk-spam-protect');
+                return;
+            }
+
+            require_once('cleantalk-settings.php');
+            $settings = new CleantalkSettingsTemplates($key);
+            $res = $settings->setPluginOptions($id, $name, $set);
+            if (!$res) {
+                echo __("error \nCan't set template \n", 'cleantalk-spam-protect');
+            }
+            echo __("Success \nTemplate '$name' installed \n", 'cleantalk-spam-protect');
+            return;
+        }
+	}
+
+    /**
+	 * Set settings
+	 *
+	 * @param $args
+	 * @param $params
+	 */
+	public function settings($args, $params)
+    {
+        global $apbct;
+
+        if (isset($params['spamfirewall'])) {
+            $apbct->settings['sfw__enabled'] = $params['spamfirewall'] == 'on' ? 1 : 0;
+        }
+
+        if (isset($params['registrationsform'])) {
+            $apbct->settings['forms__registrations_test'] = $params['registrationsform'] == 'on' ? 1 : 0;
+        }
+
+        if (isset($params['commentsform'])) {
+            $apbct->settings['forms__comments_test'] = $params['commentsform'] == 'on' ? 1 : 0;
+        }
+
+        if (isset($params['contactsform'])) {
+            $apbct->settings['forms__contact_forms_test'] = $params['contactsform'] == 'on' ? 1 : 0;
+        }
+
+        if (isset($params['searchform'])) {
+            $apbct->settings['forms__search_test'] = $params['searchform'] == 'on' ? 1 : 0;
+        }
+
+        if (isset($params['checkexternal'])) {
+            $apbct->settings['forms__check_external'] = $params['checkexternal'] == 'on' ? 1 : 0;
+        }
+
+        if (isset($params['checkinternal'])) {
+            $apbct->settings['forms__check_internal'] = $params['checkinternal'] == 'on' ? 1 : 0;
+        }
+
+        $apbct->saveSettings();
 	}
 }

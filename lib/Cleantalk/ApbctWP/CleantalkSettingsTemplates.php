@@ -320,7 +320,7 @@ class CleantalkSettingsTemplates
         return false;
     }
 
-    private function resetPluginOptions()
+    public function resetPluginOptions()
     {
         global $apbct;
         $def_settings = $apbct->default_settings;
