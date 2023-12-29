@@ -3,25 +3,26 @@
 use Cleantalk\ApbctWP\CleantalkSettingsTemplates;
 
 if (!defined('WP_CLI')) {
-	return;
+    return;
 }
 
 WP_CLI::add_command('cleantalk', ApbctCli::class, []);
 
-class ApbctCli extends WP_CLI_Command {
-
+/**
+ * @psalm-suppress UnusedClass
+ */
+class ApbctCli extends WP_CLI_Command // phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNamespace
+{
     public $method = 'POST';
     public $url = 'https://api.cleantalk.org';
 
-	public function __construct(){}
-
-	/**
-	 * Add service
-	 *
-	 * @param $args
-	 * @param $params
-	 */
-	public function create($args, $params)
+    /**
+     * Add service
+     *
+     * @param $args
+     * @param $params
+     */
+    public function create($args, $params)
     {
         if (!isset($params['token'])) {
             echo __("token required \n", 'cleantalk-spam-protect');
@@ -79,15 +80,15 @@ class ApbctCli extends WP_CLI_Command {
 
         $apbct->saveSettings();
         $apbct->saveData();
-	}
+    }
 
-	/**
-	 * Set template
-	 *
-	 * @param array $args [list|set|reset]
-	 * @param $params
-	 */
-	public function template($args, $params)
+    /**
+     * Set template
+     *
+     * @param array $args [list|set|reset]
+     * @param $params
+     */
+    public function template($args, $params)
     {
         global $apbct;
 
@@ -115,7 +116,7 @@ class ApbctCli extends WP_CLI_Command {
             echo json_last_error_msg();
             return;
         }
-    
+
         if (isset($result['error'])) {
             echo __("error \n", 'cleantalk-spam-protect');
             $error = isset($result['error_message']) ? esc_html($result['error_message']) : esc_html($result['error']);
@@ -125,7 +126,7 @@ class ApbctCli extends WP_CLI_Command {
 
         if (in_array('list', $args)) {
             echo "ID - NAME \n";
-            foreach($result['data'] as $key => $template) {
+            foreach ($result['data'] as $key => $template) {
                 echo isset($template['template_id']) ? $template['template_id'] . ' - ' : null;
                 echo isset($template['name']) ? $template['name'] : null;
                 echo "\n";
@@ -151,7 +152,7 @@ class ApbctCli extends WP_CLI_Command {
             }
 
             $id = null;
-            foreach($result['data'] as $key => $template) {
+            foreach ($result['data'] as $key => $template) {
                 if (isset($template['template_id']) && $template['template_id'] == $params['id']) {
                     $id = $template['template_id'];
                     $name = $template['name'];
@@ -172,15 +173,15 @@ class ApbctCli extends WP_CLI_Command {
             echo __("Success \nTemplate '$name' installed \n", 'cleantalk-spam-protect');
             return;
         }
-	}
+    }
 
     /**
-	 * Set settings
-	 *
-	 * @param $args
-	 * @param $params
-	 */
-	public function settings($args, $params)
+     * Set settings
+     *
+     * @param $args
+     * @param $params
+     */
+    public function settings($args, $params)
     {
         global $apbct;
 
@@ -213,5 +214,5 @@ class ApbctCli extends WP_CLI_Command {
         }
 
         $apbct->saveSettings();
-	}
+    }
 }
