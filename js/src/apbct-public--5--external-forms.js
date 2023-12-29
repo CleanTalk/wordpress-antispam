@@ -311,7 +311,7 @@ function catchNextendSocialLoginForm() {
  */
 function blockBtnNextendSocialLogin(blockNSL) {
     let parentBtnsNSL = blockNSL.querySelectorAll('.nsl-container-buttons a');
-    let childBtnsNSL = blockNSL.querySelectorAll('a[data-plugin="nsl"] .nsl-button',);
+    let childBtnsNSL = blockNSL.querySelectorAll('a[data-plugin="nsl"] .nsl-button');
     parentBtnsNSL.forEach((el) => {
         el.setAttribute('data-oauth-login-blocked', 'true');
         el.addEventListener('click', (event) => {
