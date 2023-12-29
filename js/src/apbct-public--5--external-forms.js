@@ -301,63 +301,56 @@ window.onload = function() {
 function catchNslForm() {
     let blockNSL = document.getElementById('nsl-custom-login-form-main');
     if (blockNSL) {
-        checkNextendSocialLogin(blockNSL);
+        blockBtnNextendSocialLogin(blockNSL);
     }
 }
 
-/**
- * Blocking NSL buttons and callback functions
- * @param {HTMLElement} blockNSL
- */
-function checkNextendSocialLogin(blockNSL) {
-    let btnsNSL = blockNSL.querySelectorAll('.nsl-container-buttons a');
-    btnsNSL.forEach((el) => {
+function blockBtnNextendSocialLogin(blockNSL) {
+    let parentBtnsNSL = blockNSL.querySelectorAll('.nsl-container-buttons a');
+    let childBtnsNSL = blockNSL.querySelectorAll('a[data-plugin="nsl"][data-action="connect"] .nsl-button, a[data-plugin="nsl"][data-action="link"] .nsl-button');
+    parentBtnsNSL.forEach((el) => {
         el.setAttribute('data-oauth-login-blocked', 'true');
-        el.style.pointerEvents = 'none';
-
-        el.parentElement.onclick = function(e) {
-            e.preventDefault();
-
-            let allow = function(target) {
-                if (document.querySelector('.ct-forbidden-msg')) {
-                    document.querySelector('.ct-forbidden-msg').remove();
-                }
-
-                if (target.getAttribute('data-oauth-login-blocked') == 'true') {
-                    target.setAttribute('data-oauth-login-blocked', 'false');
-                    el.setAttribute('style', 'pointer-events: all;');
-                    el.click();
-                }
-            };
-
-            let forbidden = function(target, msg) {
-                if (target.getAttribute('data-oauth-login-blocked') == 'false') {
-                    target.setAttribute('data-oauth-login-blocked', 'true');
-                    el.setAttribute('style', 'pointer-events: none;');
-                }
-                if (!document.querySelector('.ct-forbidden-msg')) {
-                    let el = document.createElement('div');
-                    el.className = 'ct-forbidden-msg';
-                    el.style.background = 'red';
-                    el.style.color = 'white';
-                    el.style.padding = '5px';
-                    el.innerHTML = msg;
-                    target.insertAdjacentElement('beforebegin', el);
-                }
-            };
-
-            ctCheckAjax(el, allow, forbidden);
-        };
+        el.addEventListener('click', (event) => {
+            event.preventDefault();
+        });
     });
+    childBtnsNSL.forEach((el) => {
+        el.addEventListener('click', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            ctCheckAjax(el);
+        });
+    });
+}
+
+function allowAjaxNextendSocialLogin(childBtn) {
+    console.log(childBtn.parentElement);
+    childBtn.parentElement.setAttribute('data-oauth-login-blocked', 'false');
+    childBtn.parentElement.click();
+}
+
+function forbiddenAjaxNextendSocialLogin(childBtn, msg) {
+    let parentElement = childBtn.parentElement;
+    if (parentElement.getAttribute('data-oauth-login-blocked') == 'false') {
+        parentElement.setAttribute('data-oauth-login-blocked', 'true');
+    }
+    console.log('forbidden ' + msg);
+    if (!document.querySelector('.ct-forbidden-msg')) {
+        let elemForMsg = document.createElement('div');
+        elemForMsg.className = 'ct-forbidden-msg';
+        elemForMsg.style.background = 'red';
+        elemForMsg.style.color = 'white';
+        elemForMsg.style.padding = '5px';
+        elemForMsg.innerHTML = msg;
+        parentElement.insertAdjacentElement('beforebegin', elemForMsg);
+    }
 }
 
 /**
  * User verification using user data and ajax
  * @param {HTMLElement} elem
- * @param {Function} allow
- * @param {Function} forbidden
  */
-function ctCheckAjax(elem, allow, forbidden) {
+function ctCheckAjax(childBtn) {
     let data = {
         'action': 'cleantalk_nsl_ajax_check',
         'ct_no_cookie_hidden_field': document.getElementsByName('ct_no_cookie_hidden_field')[0].value,
@@ -368,10 +361,11 @@ function ctCheckAjax(elem, allow, forbidden) {
         {
             async: false,
             callback: function(result) {
+                console.log(result);
                 if (result.apbct.blocked === false) {
-                    allow(elem);
+                    allowAjaxNextendSocialLogin(childBtn);
                 } else {
-                    forbidden(elem, result.apbct.comment);
+                    forbiddenAjaxNextendSocialLogin(childBtn, result.apbct.comment);
                 }
             },
         },
