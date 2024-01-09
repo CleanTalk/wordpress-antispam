@@ -80,12 +80,15 @@ function restartBotDetectorEventTokenAttach() {
     // List there any new conditions, right now it works only for LatePoint forms.
     // Probably, we can remove this condition at all, because setEventTokenField()
     // checks all the forms without the field
-    const doAttach = document.getElementsByClassName('latepoint-form').length > 0;
+    const doAttach = (
+        document.getElementsByClassName('latepoint-form').length > 0 ||
+        document.getElementsByClassName('mec-booking-form-container').length > 0
+    );
 
     try {
         if ( doAttach ) {
             // get token from LS
-            const token = JSON.parse(apbctLocalStorage.get('bot_detector_event_token')).value;
+            const token = apbctLocalStorage.get('bot_detector_event_token');
             if (typeof setEventTokenField === 'function' && token !== undefined && token.length === 64) {
                 setEventTokenField(token);
             }
