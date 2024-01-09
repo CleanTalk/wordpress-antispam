@@ -777,8 +777,9 @@ function ctSearchFormOnSubmitHandler(e, _form) {
                 if (_form.apbctSearchPrevOnsubmit instanceof Function) {
                     _form.apbctSearchPrevOnsubmit();
                 } else {
-                    if ( noCookieField !== null ) {
-                        _form.querySelector('[name="ct_no_cookie_hidden_field"]').parentNode.removeChild(noCookieField);
+                    const _noCookieField = _form.querySelector('[name="ct_no_cookie_hidden_field"]');
+                    if ( _noCookieField !== null ) {
+                        _noCookieField.parentNode.removeChild(_noCookieField);
                     }
                     HTMLFormElement.prototype.submit.call(_form);
                 }
