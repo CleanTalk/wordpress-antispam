@@ -142,6 +142,21 @@ function ct_contact_form_validate()
         return false;
     }
 
+    //hivepress theme listing integration
+    if ( empty($sender_email) &&
+         function_exists('hivepress') &&
+         is_callable('hivepress') &&
+         apbct_is_user_logged_in() &&
+         $apbct->settings['data__protect_logged_in'] &&
+         ! isset($_POST['_model'])
+    ) {
+        $current_user = wp_get_current_user();
+        if ( ! empty($current_user->data->user_email) ) {
+            $sender_email = $current_user->data->user_email;
+        }
+    }
+
+    //tellallfriend integration #1
     if ( isset($_POST['TellAFriend_Link']) ) {
         $tmp = Sanitize::cleanTextField(Post::get('TellAFriend_Link'));
         unset($_POST['TellAFriend_Link']);
@@ -157,6 +172,7 @@ function ct_contact_form_validate()
         )
     );
 
+    //tellallfriend integration #2
     if ( isset($_POST['TellAFriend_Link']) ) {
         $_POST['TellAFriend_Link'] = $tmp;
     }
