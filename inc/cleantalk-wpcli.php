@@ -21,6 +21,7 @@ class ApbctCli extends WP_CLI_Command // phpcs:ignore PSR1.Classes.ClassDeclarat
      *
      * @param $args
      * @param $params
+     * @psalm-suppress PossiblyUnusedMethod
      */
     public function create($args, $params)
     {
@@ -87,6 +88,7 @@ class ApbctCli extends WP_CLI_Command // phpcs:ignore PSR1.Classes.ClassDeclarat
      *
      * @param array $args [list|set|reset]
      * @param $params
+     * @psalm-suppress PossiblyUnusedMethod
      */
     public function template($args, $params)
     {
@@ -126,7 +128,7 @@ class ApbctCli extends WP_CLI_Command // phpcs:ignore PSR1.Classes.ClassDeclarat
 
         if (in_array('list', $args)) {
             echo "ID - NAME \n";
-            foreach ($result['data'] as $key => $template) {
+            foreach ($result['data'] as $template) {
                 echo isset($template['template_id']) ? $template['template_id'] . ' - ' : null;
                 echo isset($template['name']) ? $template['name'] : null;
                 echo "\n";
@@ -180,6 +182,7 @@ class ApbctCli extends WP_CLI_Command // phpcs:ignore PSR1.Classes.ClassDeclarat
      *
      * @param $args
      * @param $params
+     * @psalm-suppress PossiblyUnusedMethod
      */
     public function settings($args, $params)
     {

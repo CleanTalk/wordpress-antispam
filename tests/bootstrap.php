@@ -35,6 +35,8 @@ require $_tests_dir . '/includes/bootstrap.php';
 
 require_once dirname( dirname( __FILE__ ) ) . '/lib/autoloader.php';
 require_once dirname( dirname( __FILE__ ) ) . '/lib/cleantalk-php-patch.php';
+require_once dirname( dirname( __FILE__ ) ) . '/vendor/wp-cli/wp-cli/php/class-wp-cli.php';
+require_once dirname( dirname( __FILE__ ) ) . '/vendor/wp-cli/wp-cli/php/utils.php';
 
 //Specific includes for TravisCI
 if( getenv( 'TRAVISCI' ) === 'psalm' ) {
