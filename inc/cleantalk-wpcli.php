@@ -57,30 +57,37 @@ class ApbctCli extends WP_CLI_Command // phpcs:ignore PSR1.Classes.ClassDeclarat
         $data['method_name'] = 'get_api_key';
 
         $result = WP_CLI\Utils\http_request($this->method, $this->url, $data, [], ['insecure' => true]);
+        if (!isset($result->body)) {
+            echo __("error \n, not expected result", 'cleantalk-spam-protect');
+            return;
+        }
 
-        if (!empty($result['error'])) {
+        $result = json_decode($result->body, true);
+        if (!empty($result['error']) || !empty($result['error_message'])) {
             echo __("error \n", 'cleantalk-spam-protect');
             $error = isset($result['error_message']) ? esc_html($result['error_message']) : esc_html($result['error']);
             echo $error . "\n";
             return;
-        } elseif (!isset($result['auth_key'])) {
+        } elseif (!isset($result['data'])) {
             echo __("Please, get the Access Key from CleanTalk Control Panel \n", 'cleantalk-spam-protect');
             return;
         }
 
         global $apbct;
 
-        if (isset($result['user_token'])) {
+        if (isset($result['data']) && isset($result['data']['user_token'])) {
             $apbct->data['user_token'] = $result['user_token'];
         }
 
-        if (!empty($result['auth_key']) && apbct_api_key__is_correct($result['auth_key'])) {
-            $apbct->data['key_changed'] = trim($result['auth_key']) !== $apbct->settings['apikey'];
-            $apbct->settings['apikey'] = trim($result['auth_key']);
+        if (isset($result['data']) && !empty($result['data']['auth_key']) && apbct_api_key__is_correct($result['data']['auth_key'])) {
+            $apbct->data['key_changed'] = trim($result['data']['auth_key']) !== $apbct->settings['apikey'];
+            $apbct->settings['apikey'] = trim($result['data']['auth_key']);
         }
 
         $apbct->saveSettings();
         $apbct->saveData();
+
+        echo __("Service created and auth key installed. \n", 'cleantalk-spam-protect');
     }
 
     /**
