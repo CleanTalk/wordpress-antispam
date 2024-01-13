@@ -281,7 +281,14 @@ function ct_contact_form_validate()
                 die();
                 // Enfold Theme Contact Form. Using $contact_form
             } elseif ( ! empty($contact_form) && $contact_form == 'contact_form_enfold_theme' ) {
-                $echo_string = "<div id='ajaxresponse_1' class='ajaxresponse ajaxresponse_1' style='display: block;'><div id='ajaxresponse_1' class='ajaxresponse ajaxresponse_1'><h3 class='avia-form-success'>' . $apbct->data['wl_brandname'] . ': " . $ct_result->comment . "</h3><a href='.'><-Back</a></div></div>";
+                $echo_template = "<div id='ajaxresponse_1' class='ajaxresponse ajaxresponse_1' style='display: block;'>
+                                    <div id='ajaxresponse_1' class='ajaxresponse ajaxresponse_1'>
+                                        <h3 class='avia-form-success'>
+                                        %s: %s</h3>
+                                        <a href='.'><-Back</a>
+                                    </div>
+                                </div>";
+                $echo_string = sprintf($echo_template, $apbct->data['wl_brandname'], $ct_result->comment);
                 echo wp_kses(
                     $echo_string,
                     array(

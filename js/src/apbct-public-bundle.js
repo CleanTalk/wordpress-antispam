@@ -1966,7 +1966,10 @@ function apbctPrepareBlockForAjaxForms() {
     if (typeof jQuery !== 'undefined') {
         // Capturing responses and output block message for unknown AJAX forms
         jQuery(document).ajaxComplete(function(event, xhr, settings) {
-            if (xhr.responseText && xhr.responseText.indexOf('"apbct') !== -1) {
+            if (xhr.responseText &&
+                xhr.responseText.indexOf('"apbct') !== -1 &&
+                xhr.responseText.indexOf('DOCTYPE') === -1
+            ) {
                 try {
                     ctParseBlockMessage(JSON.parse(xhr.responseText));
                 } catch (e) {
