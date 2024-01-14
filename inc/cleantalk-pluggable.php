@@ -520,6 +520,13 @@ function apbct_is_skip_request($ajax = false)
         return 'CleanTalk RemoteCall request.';
     }
 
+    if (
+        Post::get('action') === 'apbct_alt_session__save__AJAX' &&
+        wp_verify_nonce(Post::get('_ajax_nonce'), 'ct_secret_stuff')
+    ) {
+        return 'CleanTalk AltCookies request.';
+    }
+
     if ( is_admin() && ! $ajax ) {
         return 'Admin side request.';
     }
