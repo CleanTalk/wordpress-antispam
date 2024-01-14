@@ -245,6 +245,7 @@ function ct_user_register_ajaxlogin($user_id)
 function ct_ajax_hook($message_obj = null)
 {
     global $current_user;
+    $reg_flag = false;
 
     $message_obj = (array)$message_obj;
 
@@ -449,6 +450,7 @@ function ct_ajax_hook($message_obj = null)
     //NSL integration
     if ( Post::get('action') === 'cleantalk_nsl_ajax_check' ) {
         $post_info['comment_type'] = 'contact_form_wordpress_nsl';
+        $reg_flag = true;
     }
 
     //CSCF fix
@@ -715,7 +717,7 @@ function ct_ajax_hook($message_obj = null)
         $base_call_params['message'] = implode('\n', $message);
     }
 
-    $base_call_result = apbct_base_call($base_call_params);
+    $base_call_result = apbct_base_call($base_call_params, $reg_flag);
     $ct_result        = $base_call_result['ct_result'];
 
     if ( $ct_result->allow == 0 ) {
