@@ -245,6 +245,7 @@ function ct_user_register_ajaxlogin($user_id)
 function ct_ajax_hook($message_obj = null)
 {
     global $current_user;
+    $reg_flag = false;
 
     $message_obj = (array)$message_obj;
 
@@ -444,6 +445,12 @@ function ct_ajax_hook($message_obj = null)
         $ct_post_temp['comment'] = $message_obj['post_content'];
         $ct_post_temp['email']   = $curr_user->data->user_email;
         $ct_post_temp['name']    = $curr_user->data->user_login;
+    }
+
+    //NSL integration
+    if ( Post::get('action') === 'cleantalk_nsl_ajax_check' ) {
+        $post_info['comment_type'] = 'contact_form_wordpress_nsl';
+        $reg_flag = true;
     }
 
     //CSCF fix
@@ -710,7 +717,7 @@ function ct_ajax_hook($message_obj = null)
         $base_call_params['message'] = implode('\n', $message);
     }
 
-    $base_call_result = apbct_base_call($base_call_params);
+    $base_call_result = apbct_base_call($base_call_params, $reg_flag);
     $ct_result        = $base_call_result['ct_result'];
 
     if ( $ct_result->allow == 0 ) {
@@ -1106,6 +1113,21 @@ function ct_ajax_hook($message_obj = null)
             wp_send_json($ct_result->comment);
         }
 
+        // Plugin Name: Nextend Social Login and Register; jax register action cleantalk_nsl_ajax_check
+        if ( Post::get('action') === 'cleantalk_nsl_ajax_check' ) {
+            echo json_encode(
+                array(
+                    'apbct' => array(
+                        'blocked'     => true,
+                        'comment'     => $ct_result->comment,
+                        'stop_script' => apbct__stop_script_after_ajax_checking()
+                    )
+                )
+            );
+            die();
+        }
+
+
         // Regular block output
         die(
             json_encode(
@@ -1133,6 +1155,21 @@ function ct_ajax_hook($message_obj = null)
                     'apbct' => array(
                         'blocked' => false,
                         'allow'   => true,
+                    )
+                )
+            )
+        );
+    }
+
+    // Nextend Social Login and Register AJAX check
+    if ( Post::get('action') === 'cleantalk_nsl_ajax_check' ) {
+        die(
+            json_encode(
+                array(
+                    'apbct' => array(
+                        'blocked' => false,
+                        'allow'   => true,
+                        'comment' => $ct_result->comment,
                     )
                 )
             )
