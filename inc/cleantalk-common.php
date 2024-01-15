@@ -554,6 +554,11 @@ function apbct_get_sender_info()
             : null;
     }
 
+    //cache plugins detection
+    $cache_plugins_detected = apbct_is_cache_plugins_exists(true);
+    $cache_plugins_detected = empty($cache_plugins_detected) ? false : $cache_plugins_detected;
+    $cache_plugins_detected = json_encode($cache_plugins_detected);
+
     //Let's keep $data_array for debugging
     $data_array = array(
         'plugin_request_id'         => $apbct->plugin_request_id,
@@ -631,6 +636,7 @@ function apbct_get_sender_info()
         'has_input_focused' => Cookie::get('ct_has_input_focused') !== ''
             ? json_encode(Cookie::get('ct_has_input_focused'))
             : null,
+        'cache_plugins_detected' => $cache_plugins_detected
     );
 
     // Unset cookies_enabled from sender_info if cookies_type === none
