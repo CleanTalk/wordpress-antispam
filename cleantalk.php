@@ -104,6 +104,7 @@ require_once(CLEANTALK_PLUGIN_DIR . 'lib/autoloader.php');                // Aut
 
 require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-pluggable.php');  // Pluggable functions
 require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-common.php');
+require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-wpcli.php');
 
 // Global ArrayObject with settings and other global variables
 $apbct = new State('cleantalk', array('settings', 'data', 'debug', 'errors', 'remote_calls', 'stats', 'fw_stats'));
