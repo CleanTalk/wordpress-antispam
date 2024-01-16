@@ -3319,8 +3319,12 @@ function apbct_form__elementor_pro__testSpam()
 
     $form_data = Post::get('form_fields');
     if ($form_data) {
-        $sender_email = Post::get('form_fields')['email'] ?: '';
-        $sender_nickname = Post::get('form_fields')['name'] ?: '';
+        if (!$sender_email) {
+            $sender_email = Post::get('form_fields')['email'] ?: '';
+        }
+        if (!$sender_nickname) {
+            $sender_nickname = Post::get('form_fields')['name'] ?: '';
+        }
     }
 
     $post_info['comment_type'] = 'contact_form_wordpress_elementor_pro';
