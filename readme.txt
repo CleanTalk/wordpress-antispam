@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 4.7
 Tested up to: 6.4
 Requires PHP: 5.6
-Stable tag: 6.24
+Stable tag: 6.25
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -456,6 +456,21 @@ Yes, it is. Please read this article,
 12. SpamFireWall log.
 
 == Changelog ==
+
+= 6.25 Jan 17 2024 =
+* New. Integration. 'Nextend Social Login and Register' integration implemented.
+* New. Integration. WooCommerce Product Enquiry Premium integration implemented.
+* New. Integration. Hivepress theme listing check with no email form.
+* New. Code. Base call. Cache plugins list added to the CT request via sender_info.
+* Add. WPCLI. Possibility to create service.
+* Add. WPCLI. Possibility to set template and toggle settings.
+* Fix. Email encoder. Getting visitors IP fixed.
+* Fix. Common. Request validating fixed.
+* Fix. Integration. Search form service parameters removing fixed.
+* Fix. Exclusion. CleanTalk service requests excluded.
+* Fix. Mec forms calendar multipage form event_token reattach.
+* Fix. Integration. Enfold theme contact form. Service data excluded from email encoder. Response layout fixed.
+* Fix. Integration. Elementor get email, nickname fix.
 
 = 6.24 Dec 21 2023 =
 * New. Integrations. WP Delicious integration implemented.
