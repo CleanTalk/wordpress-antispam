@@ -12,6 +12,12 @@ function ct_contact_form_validate()
 {
     global $apbct, $ct_comment;
 
+    $do_skip = skip_for_ct_contact_form_validate();
+    if ( $do_skip ) {
+        do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__ . ', ON KEY ' . $do_skip, $_POST);
+        return null;
+    }
+
     // Exclude the XML-RPC requests
     if ( defined('XMLRPC_REQUEST') ) {
         do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
@@ -21,12 +27,6 @@ function ct_contact_form_validate()
     // Exclusios common function
     if ( apbct_exclusions_check(__FUNCTION__) ) {
         do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
-        return null;
-    }
-
-    $do_skip = skip_for_ct_contact_form_validate();
-    if ( $do_skip ) {
-        do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__ . ', ON KEY ' . $do_skip, $_POST);
         return null;
     }
 
@@ -142,6 +142,21 @@ function ct_contact_form_validate()
         return false;
     }
 
+    //hivepress theme listing integration
+    if ( empty($sender_email) &&
+         function_exists('hivepress') &&
+         is_callable('hivepress') &&
+         apbct_is_user_logged_in() &&
+         $apbct->settings['data__protect_logged_in'] &&
+         ! isset($_POST['_model'])
+    ) {
+        $current_user = wp_get_current_user();
+        if ( ! empty($current_user->data->user_email) ) {
+            $sender_email = $current_user->data->user_email;
+        }
+    }
+
+    //tellallfriend integration #1
     if ( isset($_POST['TellAFriend_Link']) ) {
         $tmp = Sanitize::cleanTextField(Post::get('TellAFriend_Link'));
         unset($_POST['TellAFriend_Link']);
@@ -157,6 +172,7 @@ function ct_contact_form_validate()
         )
     );
 
+    //tellallfriend integration #2
     if ( isset($_POST['TellAFriend_Link']) ) {
         $_POST['TellAFriend_Link'] = $tmp;
     }
@@ -265,7 +281,14 @@ function ct_contact_form_validate()
                 die();
                 // Enfold Theme Contact Form. Using $contact_form
             } elseif ( ! empty($contact_form) && $contact_form == 'contact_form_enfold_theme' ) {
-                $echo_string = "<div id='ajaxresponse_1' class='ajaxresponse ajaxresponse_1' style='display: block;'><div id='ajaxresponse_1' class='ajaxresponse ajaxresponse_1'><h3 class='avia-form-success'>' . $apbct->data['wl_brandname'] . ': " . $ct_result->comment . "</h3><a href='.'><-Back</a></div></div>";
+                $echo_template = "<div id='ajaxresponse_1' class='ajaxresponse ajaxresponse_1' style='display: block;'>
+                                    <div id='ajaxresponse_1' class='ajaxresponse ajaxresponse_1'>
+                                        <h3 class='avia-form-success'>
+                                        %s: %s</h3>
+                                        <a href='.'><-Back</a>
+                                    </div>
+                                </div>";
+                $echo_string = sprintf($echo_template, $apbct->data['wl_brandname'], $ct_result->comment);
                 echo wp_kses(
                     $echo_string,
                     array(

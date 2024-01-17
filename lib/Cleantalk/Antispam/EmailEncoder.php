@@ -29,6 +29,8 @@ class EmailEncoder
         array('_unique_id', 'et_pb_contact_form'),
         //ninja form noscript content exclusion
         array('ninja-forms-noscript-message'),
+        //enfold theme contact form content exclusion - this fired during buffer interception
+        array('av_contact', 'email', 'from_email'),
     );
 
     /**
@@ -140,7 +142,7 @@ class EmailEncoder
         //will use this in regexp callback
         $this->temp_content = $content;
 
-        return preg_replace_callback('/(mailto\:\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,})|(\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+(\.[A-Za-z]{2,}))/', function ($matches) {
+        $replacing_result = preg_replace_callback('/(mailto\:\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,})|(\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+(\.[A-Za-z]{2,}))/', function ($matches) {
 
             if ( isset($matches[3]) && in_array(strtolower($matches[3]), ['.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp']) ) {
                 return $matches[0];
@@ -159,6 +161,8 @@ class EmailEncoder
 
             return $this->encodePlainEmail($matches[0]);
         }, $content);
+        //please keep this var (do not simplify the code) for further debug
+        return $replacing_result;
     }
 
     /**

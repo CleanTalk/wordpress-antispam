@@ -76,8 +76,11 @@ function skip_for_ct_contact_form_validate()
 {
     global $apbct, $pagenow, $ct_checkjs_frm;
 
+    if ( empty($_POST) ) {
+        return 1;
+    }
+
     $exclusions = array(
-        '1' => @sizeof($_POST) === 0,
         '2' => (isset($_POST['signup_username'], $_POST['signup_email'], $_POST['signup_password'])),
         '3' => (isset($pagenow) && $pagenow === 'wp-login.php'),
         // WordPress log in form

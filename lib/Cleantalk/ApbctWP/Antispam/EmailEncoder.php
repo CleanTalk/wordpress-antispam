@@ -39,7 +39,7 @@ class EmailEncoder extends \Cleantalk\Antispam\EmailEncoder
             'event_token'           => null,                   // Unique event ID
             'event_javascript_data' => $event_javascript_data, // JSON-string params to analysis
             'browser_sign'          => $browser_sign,          // Browser ID
-            'sender_ip'             => Helper::ipGet(),        // IP address
+            'sender_ip'             => Helper::ipGet('real', false),        // IP address
             'event_type'            => 'CONTACT_DECODING',     // 'GENERAL_BOT_CHECK' || 'CONTACT_DECODING'
             'message_to_log'        => json_encode(array_values($this->decoded_emails_array), JSON_FORCE_OBJECT),   // Custom message
             'page_url'              => Post::get('post_url'),
