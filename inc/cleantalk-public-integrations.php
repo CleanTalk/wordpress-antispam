@@ -2552,7 +2552,11 @@ function apbct_from__WPForms__gatherData($entry, $form)
     foreach ( $form_fields_info as $form_field ) {
         $field_id    = $form_field['id'];
         $field_type  = $form_field['type'];
-        $field_label = $form_field['label'] ?: '';
+        if (array_key_exists('label', $form_field)) {
+            $field_label = $form_field['label'] ?: '';
+        } else {
+            $field_label = '';
+        }
         if ( ! isset($entry_fields_data[$field_id]) ) {
             continue;
         }
