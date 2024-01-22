@@ -254,6 +254,9 @@ function skip_for_ct_contact_form_validate()
         // FunnelKit Automations
         '93' => (apbct_is_in_uri('/wp-json/autonami/v1/events') && apbct_is_plugin_active('wp-marketing-automations/wp-marketing-automations.php')),
         '94' => (apbct_is_in_uri('/wp-json/woofunnels/v1/worker') && apbct_is_plugin_active('wp-marketing-automations/wp-marketing-automations.php')),
+        // Mailchimp for woocommerce
+        '95' => (apbct_is_in_uri('/wp-json/mailchimp-for-woocommerce/v1/member-sync')
+            && apbct_is_plugin_active('mailchimp-for-woocommerce/mailchimp-woocommerce.php')),
     );
 
     foreach ( $exclusions as $exclusion_key => $state ) {
