@@ -2664,12 +2664,14 @@ function apbct_form__WPForms__testSpam()
     if ( is_array($email) ) {
         $email = reset($email);
     }
-    if (array_key_exists('name', $apbct->form_data)){
-        $nickname = $apbct->form_data['name'] && is_array($apbct->form_data['name']) ? array_shift(
-            $apbct->form_data['name']
-        ) : null;
-    } else {
-        $nickname = null;
+    if (is_array($apbct->form_data)) {
+        if (array_key_exists('name', $apbct->form_data)){
+            $nickname = $apbct->form_data['name'] && is_array($apbct->form_data['name']) ? array_shift(
+                $apbct->form_data['name']
+            ) : null;
+        } else {
+            $nickname = null;
+        }
     }
     $form_data = $apbct->form_data;
 
