@@ -682,13 +682,16 @@ function apbct_get_pixel_url__ajax($direct_call = false)
 
     //get params for caсhe plugins exclusion detection
     $cache_plugins_detected = apbct_is_cache_plugins_exists(true);
-    $cache_exclusion_snippet = '';
+    $cache_exclusion_snippet = '?';
+    $random_get_param_value = md5(mt_rand(1, 10000) . time() . $pixel_hash);
+    $random_get_param_key = '_rid=';
     if ( !empty($cache_plugins_detected) ) {
         //NitroPack
         if ( in_array('NitroPack', $cache_plugins_detected) ) {
-            $cache_exclusion_snippet = '?gclid=' . $pixel_hash;
+            $random_get_param_key = 'gclid=';
         }
     }
+    $cache_exclusion_snippet .= $random_get_param_key . $random_get_param_value;
 
     //construct URL
     $server           = get_option('cleantalk_server');
