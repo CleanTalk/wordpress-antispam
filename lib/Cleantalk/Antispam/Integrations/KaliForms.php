@@ -31,12 +31,10 @@ class KaliForms extends IntegrationBase
         // Kali Form Integration
         if ( Post::hasString('action', 'kaliforms_form_process') ) {
             die(
-                json_encode(
-                    array(
-                        'status' => 'ok',
-                        'thank_you_message' => $message
-                    )
-            )
+                json_encode(array(
+                    'status'            => 'ok',
+                    'thank_you_message' => $message
+                ))
             );
         }
     }
