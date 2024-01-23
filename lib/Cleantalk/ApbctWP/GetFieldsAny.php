@@ -416,10 +416,8 @@ class GetFieldsAny
                                         }
                                     }
                                 } else {
-                                    if ( is_string($subvalue) ) {
-                                        $wp_forms_field                        = 'wpforms[fields][' . $type . ']';
-                                        $post_fields_to_check[$wp_forms_field] = null;
-                                    }
+                                    $wp_forms_field                        = 'wpforms[fields][' . $type . ']';
+                                    $post_fields_to_check[$wp_forms_field] = null;
                                 }
                             }
                         }
