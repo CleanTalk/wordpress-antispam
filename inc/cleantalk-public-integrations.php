@@ -2664,13 +2664,13 @@ function apbct_form__WPForms__testSpam()
     if ( is_array($email) ) {
         $email = reset($email);
     }
+
+    $nickname = null;
     if (is_array($apbct->form_data)) {
-        if (array_key_exists('name', $apbct->form_data)){
+        if (array_key_exists('name', $apbct->form_data)) {
             $nickname = $apbct->form_data['name'] && is_array($apbct->form_data['name']) ? array_shift(
                 $apbct->form_data['name']
             ) : null;
-        } else {
-            $nickname = null;
         }
     }
     $form_data = $apbct->form_data;
@@ -2682,7 +2682,7 @@ function apbct_form__WPForms__testSpam()
         unset($form_data['name']);
     }
 
-    $params = ct_get_fields_any((array)$apbct->form_data, $email, $nickname);
+    $params = ct_gfa((array)$apbct->form_data, $email, $nickname);
 
     if ( is_array($params['nickname']) ) {
         $params['nickname'] = implode(' ', $params['nickname']);
