@@ -2133,6 +2133,13 @@ function apbct_ready() {
             ctNoCookieAttachHiddenFieldsToForms();
         }
 
+        if (
+            typeof ctPublic.data__cookies_type !== 'undefined' &&
+            ctPublic.data__cookies_type === 'none'
+        ) {
+            ctAjaxSetupAddNoCookieDataBeforeSendAjax();
+        }
+
         for (let i = 0; i < document.forms.length; i++) {
             let form = document.forms[i];
 
@@ -2164,27 +2171,6 @@ function apbct_ready() {
             form.append( hiddenInput );
 
             form.onsubmit_prev = form.onsubmit;
-
-            // jquery ajax call intercept for twitter login
-            if ( typeof jQuery !== 'undefined' &&
-                (
-                    form.id === 'twt_cc_signup' ||
-                    form.classList.contains('mailpoet_form') ||
-                    (
-                        form.classList.contains('register') &&
-                        form.querySelector('input[name="ur_frontend_form_nonce"]') &&
-                        form.querySelector('button[type="submit"]').classList.contains('ur-submit-button')
-                    )
-                )
-            ) {
-                jQuery.ajaxSetup({
-                    beforeSend: function(xhr, settings) {
-                        let noCookieData = getNoCookieData();
-                        noCookieData = 'data%5Bct_no_cookie_hidden_field%5D=' + noCookieData + '&';
-                        settings.data = noCookieData + settings.data;
-                    },
-                });
-            }
 
             form.ctFormIndex = i;
             form.onsubmit = function(event) {
@@ -2246,6 +2232,49 @@ function apbct_ready() {
             // this handles search forms onsubmit process
             _form.onsubmit = (e) => ctSearchFormOnSubmitHandler(e, _form);
         }
+    }
+}
+
+/**
+ * Prepare jQuery.ajaxSetup to add nocookie data to the jQuery ajax request.
+ * Notes:
+ * - Do it just once, the ajaxSetup.beforeSend will be overwritten for any calls.
+ * - Signs of forms need to be caught will be checked during ajaxSetup.settings.data process on send.
+ * - Any sign of the form HTML of the caller is insignificant in this process.
+ * @return {void}
+ */
+function ctAjaxSetupAddNoCookieDataBeforeSendAjax() {
+    // jquery ajax call intercept
+    if ( typeof jQuery !== 'undefined' ) {
+        jQuery.ajaxSetup({
+            beforeSend: function(xhr, settings) {
+                // settings data is string (important!)
+                if ( typeof settings.data === 'string' ) {
+                    let sourceSign = false;
+
+                    if (settings.data.indexOf('twt_cc_signup') !== -1) {
+                        sourceSign = 'twt_cc_signup';
+                    }
+
+                    if (settings.data.indexOf('action=mailpoet') !== -1) {
+                        sourceSign = 'action=mailpoet';
+                    }
+
+                    if (
+                        settings.data.indexOf('action=user_registration') !== -1 &&
+                        settings.data.indexOf('ur_frontend_form_nonce') !== -1
+                    ) {
+                        sourceSign = 'action=user_registration';
+                    }
+
+                    if (sourceSign) {
+                        let noCookieData = getNoCookieData();
+                        noCookieData = 'data%5Bct_no_cookie_hidden_field%5D=' + noCookieData + '&';
+                        settings.data = noCookieData + settings.data;
+                    }
+                }
+            },
+        });
     }
 }
 
