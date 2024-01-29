@@ -518,6 +518,11 @@ $apbct_active_integrations = array(
         'setting' => 'forms__contact_forms_test',
         'ajax'    => false
     ),
+    'WpGeoDirectory' => array(
+        'hook'    => array('geodir_validate_ajax_save_post_data'),
+        'setting' => 'forms__contact_forms_test',
+        'ajax'    => false
+    )
 );
 new  \Cleantalk\Antispam\Integrations($apbct_active_integrations, (array)$apbct->settings);
 
