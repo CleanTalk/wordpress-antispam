@@ -372,7 +372,6 @@ function ct_ajax_hook($message_obj = null)
         //Interal request
         'edd_process_checkout',
         // Easy Digital Downloads ajax skip
-        /* !! Do not add actions here. Use apbct_is_skip_request() function below !! */
         //Unknown plugin Ticket #25047
         'alhbrmeu',
         // Ninja Forms
@@ -385,6 +384,7 @@ function ct_ajax_hook($message_obj = null)
         //Cartbounty plugin (saves every action on the page to keep abandoned carts)
         'cartbounty_pro_save', 'cartbounty_save',
         'wpmtst_form2', //has direct integration StrongTestimonials
+        /* !! Do not add actions here. Use apbct_is_skip_request() function below !! */
     );
 
     global $apbct;
@@ -513,11 +513,6 @@ function ct_ajax_hook($message_obj = null)
                 $ct_post_temp['nickname'] = $form_data_arr['FNAME'];
             }
         }
-    }
-
-    // Kali form integration
-    if (Post::hasString('action', 'kaliforms_form_process')) {
-        $ct_post_temp = Post::get('data');
     }
 
     // FixTeam Integration - preparation data for post filter
@@ -982,18 +977,6 @@ function ct_ajax_hook($message_obj = null)
         // Easy Registration Form
         if ( strpos(Post::get('action'), 'erf_submit_form') !== false ) {
             wp_send_json_error(array(0 => array('username_error', $ct_result->comment)));
-        }
-
-        // Kali Form Integration
-        if ( Post::hasString('action', 'kaliforms_form_process') ) {
-            die(
-                json_encode(
-                    array(
-                        'status' => 'ok',
-                        'thank_you_message' => $ct_result->comment
-                    )
-                )
-            );
         }
 
         // Site Reviews Integration

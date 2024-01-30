@@ -1288,12 +1288,18 @@ function apbct_is_skip_request($ajax = false)
         return 'Event Manager skip';
     }
 
-    // Kali service action skip
+    //Plugin Name: Kali Forms
     if (
-        apbct_is_plugin_active('kali-forms/kali-forms.php') &&
-        Post::get('action') === 'kaliforms_preflight'
+        apbct_is_plugin_active('product-enquiry-pro/kali-forms.php') ||
+        apbct_is_plugin_active('product-enquiry-pro/kali-forms-pro.php')
     ) {
-        return 'Kali service action skip';
+        if ( Post::get('action') === 'kaliforms_form_process' ) {
+            return 'Plugin Name: Kali Forms - have the direct integration';
+        }
+
+        if ( Post::get('action') === 'kaliforms_preflight' ) {
+            return 'Plugin Name: Kali Forms - service action skip';
+        }
     }
 
     //nobletitle-calc
