@@ -1681,11 +1681,31 @@ function apbct_clear_superglobal_service_data($superglobal, $type)
  */
 function apbct_is_amp_request()
 {
-    if (function_exists('amp_is_request')) {
-        return amp_is_request();
+    $result = false;
+
+    $amp_options = get_option('amp-options');
+    if (apbct_is_plugin_active('amp/amp.php') &&
+        $amp_options &&
+        isset($amp_options['paired_url_structure'])
+    ) {
+        $amp_paired_type = $amp_options['paired_url_structure'];
+
+        switch ($amp_paired_type) {
+            case 'query_var':
+                $result = apbct_is_in_uri('?amp=1') ? true : false;
+                break;
+            case 'path_suffix':
+                $result = apbct_is_in_uri('/amp/') ? true : false;
+                break;
+            case 'legacy_transitional':
+                $result = apbct_is_in_uri('?amp') ? true : false;
+                break;
+            case 'legacy_reader':
+                $result = apbct_is_in_uri('/amp/') || apbct_is_in_uri('?amp') ? true : false;
+        }
     }
 
-    return false;
+    return $result;
 }
 
 /**

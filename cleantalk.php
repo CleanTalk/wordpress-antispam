@@ -522,7 +522,12 @@ $apbct_active_integrations = array(
         'hook'    => array('geodir_validate_ajax_save_post_data'),
         'setting' => 'forms__contact_forms_test',
         'ajax'    => false
-    )
+    ),
+    'KaliForms'           => array(
+        'hook'    => array('plugins_loaded'),
+        'setting' => 'forms__contact_forms_test',
+        'ajax'    => false
+    ),
 );
 new  \Cleantalk\Antispam\Integrations($apbct_active_integrations, (array)$apbct->settings);
 
