@@ -39,7 +39,7 @@ class CommentsLogs extends Comments
     public function get_bulk_actions() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         return array(
-            'delete' => 'Delete'
+            'delete' => 'Delete log'
         );
     }
 
