@@ -59,7 +59,7 @@ class UsersChecker extends Checker
             'ct_iusers'                => __('users.', 'cleantalk-spam-protect'),
             'ct_csv_filename'          => "user_check_by_" . $current_user->user_login,
             'ct_status_string'         => __(
-                "Checked %s, found %s spam users and %s non-checkable users (without IP and email)",
+                "Checked %s users (excluding admins), found %s spam users and %s non-checkable users (no IP and email found).",
                 'cleantalk-spam-protect'
             ),
             'ct_status_string_warning' => "<p>" . __(
@@ -397,7 +397,7 @@ class UsersChecker extends Checker
         if ( ! $direct_call ) {
             $return['message'] .= sprintf(
                 esc_html__(
-                    'Checked %s, found %s spam users and %s non-checkable users (without IP and email)',
+                    'Checked %s users (excluding admins), found %s spam users and %s non-checkable users (no IP and email found).',
                     'cleantalk-spam-protect'
                 ),
                 $cnt_checked,
@@ -411,7 +411,7 @@ class UsersChecker extends Checker
             if ( $res ) {
                 $return['message'] .= sprintf(
                     __(
-                        "Last check %s: checked %s users, found %s spam users and %s non-checkable users (without IP and email).",
+                        "Last check %s: checked %s users (excluding admins), found %s spam users and %s non-checkable users (no IP and email found).",
                         'cleantalk-spam-protect'
                     ),
                     self::lastCheckDate(),
