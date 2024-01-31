@@ -146,7 +146,7 @@ abstract class Queue
                 return $result;
             }
 
-            return array('error' => $stage_to_execute['name'] . ' is not a callable function.');
+            return array('error' => $stage_to_execute['name'] . ' is not a callable function.', 'status' => 'FINISHED');
         }
 
         return null;
