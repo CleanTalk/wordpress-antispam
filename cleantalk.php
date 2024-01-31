@@ -1367,7 +1367,7 @@ function apbct_sfw_update__worker($checker_work = false)
 
         $direct_upd_res = SFWUpdateHelper::directUpdate();
 
-        if ( $direct_upd_res['error'] ) {
+        if ( !empty($direct_upd_res['error']) ) {
             $apbct->errorAdd('queue', $result['error'], 'sfw_update');
             $apbct->errorAdd('direct', $direct_upd_res['error'], 'sfw_update');
             $apbct->saveErrors();
