@@ -1075,6 +1075,15 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'BackInStockNotifier service action';
         }
+
+        //WP GeoDirectory service action
+        if (
+            apbct_is_plugin_active('geodirectory/geodirectory.php') &&
+            Post::get('action') === 'geodir_auto_save_post' ||
+            Post::get('action') === 'geodir_save_post'
+        ) {
+            return 'WP GeoDirectory service action';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */

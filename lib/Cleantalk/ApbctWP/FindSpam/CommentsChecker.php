@@ -49,7 +49,7 @@ class CommentsChecker extends Checker
             'ct_confirm_spam_all'      => __('Mark as spam all comments from the list?', 'cleantalk-spam-protect'),
             'ct_comments_added_after'  => __('comments', 'cleantalk-spam-protect'),
             'ct_status_string'         => __(
-                'Checked %s, found %s spam comments and %s non-checkable comments (without IP and email).',
+                "Checked %s comments total (excluding admins), found %s spam comments and %s non-checkable comments (no IP and email found).",
                 'cleantalk-spam-protect'
             ),
             'ct_status_string_warning' => '<p>' . __(
@@ -280,7 +280,7 @@ class CommentsChecker extends Checker
         if ( ! $direct_call ) {
             $return['message'] .= sprintf(
                 esc_html__(
-                    'Checked %s, found %s spam comments and %s non-checkable comments (without IP and email)',
+                    "Checked %s comments total (excluding admins), found %s spam comments and %s non-checkable comments (no IP and email found).",
                     'cleantalk-spam-protect'
                 ),
                 $cnt_checked,
@@ -294,7 +294,7 @@ class CommentsChecker extends Checker
             if ( $res ) {
                 $return['message'] .= sprintf(
                     __(
-                        "Last check %s: checked %s comments, found %s spam comments and %s non-checkable comments (without IP and email).",
+                        "Last check %s: checked %s comments total (excluding admins), found %s spam comments and %s non-checkable comments (no IP and email found).",
                         'cleantalk-spam-protect'
                     ),
                     self::lastCheckDate(),

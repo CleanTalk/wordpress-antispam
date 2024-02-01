@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 4.7
 Tested up to: 6.4
 Requires PHP: 5.6
-Stable tag: 6.25.1
+Stable tag: 6.26
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -456,6 +456,17 @@ Yes, it is. Please read this article,
 12. SpamFireWall log.
 
 == Changelog ==
+
+= 6.26 Feb 01 2024
+* New. Integration. WP GeoDirectory. Skip service actions and get necessary data directly on the hook 'geodir_validate_ajax_save_post_data'.
+* New. Integration. Kali Forms and Kali Forms pro direct integration.
+* Fix. Comments. Added description.
+* Fix. jQuery ajaxSetup interception. Logic refactored to fix unexpected interceptions during NoCookie data attachment.
+* Fix. CleanTalk response. Fix UTF-8 decode/encode for non-mbstring instances.
+* Fix. Integrations. Refactoring the definition of amp request.
+* Fix. Integrations. Prevent undefined warnings occurring on WpForms.
+* Fix. Integrations. Skip mailpoet service requests.
+* Fix. SFW update. Direct update fixed. Queue stage status fixed.
 
 = 6.25.1 Jan 23 2024 =
 * Fix. Integrations. Prevent undefined warning occur on WpForms.

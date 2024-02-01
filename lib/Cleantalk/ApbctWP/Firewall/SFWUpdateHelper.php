@@ -429,6 +429,14 @@ class SFWUpdateHelper
                 throw new \Exception($error);
             }
 
+            //prepare files directory
+            $prepare_upd_dir_result = self::prepareUpdDir();
+            $direct_update_log['apbct_sfw_update__prepare_dir'] = $prepare_upd_dir_result;
+            if (!empty($prepare_upd_dir_result['error'])) {
+                $error = is_string($prepare_upd_dir_result['error']) ? $prepare_upd_dir_result['error'] : 'unknown apbct_sfw_update__prepare_dir error';
+                throw new \Exception($error);
+            }
+
             //download files
             $download_files_result = apbct_sfw_update__download_files($get_multifiles_result['next_stage']['args'], true);
             $direct_update_log['apbct_sfw_update__download_files'] = $download_files_result;
@@ -499,8 +507,8 @@ class SFWUpdateHelper
 
             $final_result = $end_of_update_result;
         } catch (\Exception $e) {
-            $direct_update_log['direct_update_stop_reason'] = $e;
-            $final_result = array('error' => $e);
+            $direct_update_log['direct_update_stop_reason'] = $e->getMessage();
+            $final_result = array('error' => $e->getMessage());
         }
 
         $apbct->fw_stats['direct_update_log'] = $direct_update_log;
