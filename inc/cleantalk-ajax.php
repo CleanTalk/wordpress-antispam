@@ -453,6 +453,11 @@ function ct_ajax_hook($message_obj = null)
         $reg_flag = true;
     }
 
+    // protect outside iframes
+    if ( Post::get('action') === 'cleantalk_outside_iframe_ajax_check' ) {
+        $post_info['comment_type'] = 'contact_form_wordpress_outside_iframe';
+    }
+
     //CSCF fix
     if ( Post::get('action') === 'cscf-submitform' ) {
         $ct_post_temp[] = $message_obj['comment_author'];
@@ -1110,6 +1115,18 @@ function ct_ajax_hook($message_obj = null)
             die();
         }
 
+        // protect outside iframes
+        if ( Post::get('action') === 'cleantalk_outside_iframe_ajax_check' ) {
+            echo json_encode(
+                array(
+                    'apbct' => array(
+                        'blocked'     => true,
+                        'comment'     => $ct_result->comment,
+                    )
+                )
+            );
+            die();
+        }
 
         // Regular block output
         die(
@@ -1146,6 +1163,21 @@ function ct_ajax_hook($message_obj = null)
 
     // Nextend Social Login and Register AJAX check
     if ( Post::get('action') === 'cleantalk_nsl_ajax_check' ) {
+        die(
+            json_encode(
+                array(
+                    'apbct' => array(
+                        'blocked' => false,
+                        'allow'   => true,
+                        'comment' => $ct_result->comment,
+                    )
+                )
+            )
+        );
+    }
+
+    // protect outside iframes
+    if ( Post::get('action') === 'cleantalk_outside_iframe_ajax_check' ) {
         die(
             json_encode(
                 array(
