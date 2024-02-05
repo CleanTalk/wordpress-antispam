@@ -3614,22 +3614,23 @@ function ctProtectOutsideIframe() {
 let ctProtectOutsideIframeCheck;
 /**
  * Protect forms placed in iframe with outside src handler
+ * @param {HTMLElement} iframe
  */
 function ctProtectOutsideIframeHandler(iframe) {
-    let cover = document.createElement("div");
-    cover.style.width = "100%";
-    cover.style.height = "100%";
-    cover.style.background = "black";
+    let cover = document.createElement('div');
+    cover.style.width = '100%';
+    cover.style.height = '100%';
+    cover.style.background = 'black';
     cover.style.opacity = 0;
-    cover.style.position = "absolute";
+    cover.style.position = 'absolute';
     cover.style.top = 0;
     cover.onclick = function(e) {
         if (ctProtectOutsideIframeCheck === undefined) {
-            let current_div = e.currentTarget;
-            current_div.style.opacity = 0.5;
-            let preloader = document.createElement("div");
+            let currentDiv = e.currentTarget;
+            currentDiv.style.opacity = 0.5;
+            let preloader = document.createElement('div');
             preloader.className = 'apbct-iframe-preloader';
-            current_div.appendChild(preloader);
+            currentDiv.appendChild(preloader);
 
             let data = {
                 'action': 'cleantalk_outside_iframe_ajax_check',
@@ -3659,7 +3660,7 @@ function ctProtectOutsideIframeHandler(iframe) {
                 },
             );
         }
-    }
+    };
     iframe.parentNode.style.position = 'relative';
     iframe.parentNode.appendChild(cover);
 }
