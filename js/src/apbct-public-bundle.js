@@ -3603,7 +3603,8 @@ function ctProtectOutsideIframe() {
         iframes.forEach(function(iframe) {
             if (iframe.src.indexOf('form.typeform.com') !== -1 ||
                 iframe.src.indexOf('forms.zohopublic.com') !== -1 ||
-                iframe.src.indexOf('link.surepathconnect.com') !== -1
+                iframe.src.indexOf('link.surepathconnect.com') !== -1 ||
+                ( iframe.src.indexOf('facebook.com') !== -1 && iframe.src.indexOf('plugins/comments.php') !== -1)
             ) {
                 ctProtectOutsideIframeHandler(iframe);
             }
