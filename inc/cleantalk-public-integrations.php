@@ -3662,6 +3662,11 @@ function apbct_form_happyforms_test_spam($is_valid, $request, $_form)
         /**
          * Filter for request
          */
+        if (isset($request['data'])) {
+            apbct_form__get_no_cookie_data($request['data']);
+            unset($request['data']);
+        }
+
         $input_array = apply_filters('apbct__filter_post', $request);
 
         $data = ct_get_fields_any($input_array);

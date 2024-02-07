@@ -744,6 +744,10 @@ function ctAjaxSetupAddNoCookieDataBeforeSendAjax() {
                         sourceSign = 'action=user_registration';
                     }
 
+                    if (settings.data.indexOf('action=happyforms_message') !== -1) {
+                        sourceSign = 'action=happyforms_message';
+                    }
+
                     if (sourceSign) {
                         let noCookieData = getNoCookieData();
                         noCookieData = 'data%5Bct_no_cookie_hidden_field%5D=' + noCookieData + '&';
