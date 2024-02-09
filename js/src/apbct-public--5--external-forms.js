@@ -334,10 +334,15 @@ function ctProtectOutsideIframeHandler(iframe) {
             let preloader = document.createElement('div');
             preloader.className = 'apbct-iframe-preloader';
             currentDiv.appendChild(preloader);
+            let botDetectorToken = '';
+            if (document.querySelector('[name*="ct_bot_detector_event_token"]')) {
+                botDetectorToken = document.querySelector('[name*="ct_bot_detector_event_token"]').value;
+            }
 
             let data = {
                 'action': 'cleantalk_outside_iframe_ajax_check',
                 'ct_no_cookie_hidden_field': getNoCookieData(),
+                'ct_bot_detector_event_token': botDetectorToken,
             };
 
             apbct_public_sendAJAX(
