@@ -147,12 +147,16 @@ function ct_contact_form_validate()
          function_exists('hivepress') &&
          is_callable('hivepress') &&
          apbct_is_user_logged_in() &&
-         $apbct->settings['data__protect_logged_in'] &&
-         ! isset($_POST['_model'])
+         $apbct->settings['data__protect_logged_in']
     ) {
-        $current_user = wp_get_current_user();
-        if ( ! empty($current_user->data->user_email) ) {
-            $sender_email = $current_user->data->user_email;
+        if (! isset($_POST['_model'])) {
+            $current_user = wp_get_current_user();
+            if ( ! empty($current_user->data->user_email) ) {
+                $sender_email = $current_user->data->user_email;
+            }
+        } else {
+            do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '(hivepress theme listing integration):' . __LINE__, $_POST);
+            return false;
         }
     }
 
