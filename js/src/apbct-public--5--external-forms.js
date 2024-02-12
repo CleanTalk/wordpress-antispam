@@ -99,9 +99,13 @@ function formIsExclusion(currentForm) {
         });
 
         exclusionsByClass.forEach(function(exclusionClass) {
-            const formClass = currentForm.getAttribute('class')?
-            currentForm.getAttribute('class'):
-            getFormClass(exclusionClass);
+            let foundClass = '';
+            if (currentForm.getAttribute('class')) {
+                foundClass = currentForm.getAttribute('class');
+            } else {
+                foundClass = getFormClass(exclusionClass);
+            }
+            const formClass = foundClass;
             if ( formClass !== null && typeof formClass !== 'undefined' && formClass.indexOf(exclusionClass) !== -1 ) {
                 result = true;
             }
