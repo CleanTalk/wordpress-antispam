@@ -38,11 +38,18 @@ function ct_contact_form_validate()
     }
 
     //Skip woocommerce checkout
-    if ( apbct_is_in_uri('wc-ajax=update_order_review') ||
-         apbct_is_in_uri('wc-ajax=checkout') ||
-         ! empty($_POST['woocommerce_checkout_place_order']) ||
-         apbct_is_in_uri('wc-ajax=wc_ppec_start_checkout') ||
-         apbct_is_in_referer('wc-ajax=update_order_review')
+    if (
+        apbct_is_in_uri('wc-ajax=update_order_review') ||
+        apbct_is_in_uri('wc-ajax=checkout') ||
+        !empty($_POST['woocommerce_checkout_place_order']) ||
+        apbct_is_in_uri('wc-ajax=wc_ppec_start_checkout') ||
+        apbct_is_in_referer('wc-ajax=update_order_review') ||
+        (
+            //if WooCommerce check is disabled, skip Apple Pay service requests. Otherwise, the request will be skipped by $cleantalk_executed.
+            $apbct->settings['forms__wc_checkout_test'] != 1 &&
+            !empty($_POST['payment_request_type']) &&
+            $_POST['payment_request_type'] === 'apple_pay'
+        )
     ) {
         do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
 
