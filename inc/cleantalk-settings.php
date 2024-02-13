@@ -2489,12 +2489,6 @@ function apbct_settings__validate($settings)
         return $settings;
     }
 
-    // Test connections to servers
-    if ( Post::get('apbct_debug__check_connection') ) {
-        $result = apbct_test_connection();
-        apbct_log($result);
-    }
-
     // Send connection reports
     if ( Post::get('submit') === 'ct_send_connection_report' ) {
         $apbct->getConnectionReports()->sendUnsentReports();
