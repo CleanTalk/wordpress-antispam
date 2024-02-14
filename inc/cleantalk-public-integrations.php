@@ -2551,7 +2551,11 @@ function apbct_from__WPForms__gatherData($entry, $form)
     foreach ( $form_fields_info as $form_field ) {
         $field_id    = $form_field['id'];
         $field_type  = $form_field['type'];
-        $field_label = $form_field['label'] ?: '';
+        if (array_key_exists('label', $form_field)) {
+            $field_label = $form_field['label'] ?: '';
+        } else {
+            $field_label = '';
+        }
         if ( ! isset($entry_fields_data[$field_id]) ) {
             continue;
         }
@@ -3660,6 +3664,11 @@ function apbct_form_happyforms_test_spam($is_valid, $request, $_form)
         /**
          * Filter for request
          */
+        if (isset($request['data'])) {
+            apbct_form__get_no_cookie_data($request['data']);
+            unset($request['data']);
+        }
+
         $input_array = apply_filters('apbct__filter_post', $request);
 
         $data = ct_get_fields_any($input_array);

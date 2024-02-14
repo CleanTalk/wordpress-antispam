@@ -173,7 +173,7 @@ function apbct_init()
 
     // WooCommerce registration
     if ( class_exists('WooCommerce') ) {
-        if ( !$apbct->settings['forms__wc_register_from_order'] && Request::get('wc-ajax') === 'checkout' ) {
+        if ( !$apbct->settings['forms__wc_register_from_order'] && (Request::get('wc-ajax') === 'checkout' || Request::get('wc-ajax') === 'complete_order') ) {
             remove_filter('woocommerce_registration_errors', 'ct_registration_errors', 1);
         } else {
             add_filter('woocommerce_registration_errors', 'ct_registration_errors', 1, 3);

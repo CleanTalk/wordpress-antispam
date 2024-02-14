@@ -222,8 +222,10 @@ class GetFieldsAny
 
                 // If there is "JSON data" set is it as a value
                 if ($decoded_json_value !== null) {
-                    if (isset($arr['action']) && $arr['action'] === 'nf_ajax_submit') {
-                        unset($decoded_json_value['settings']);
+                    if (isset($arr['action']) &&
+                        $arr['action'] === 'nf_ajax_submit' &&
+                        isset($decoded_json_value['settings'])) {
+                            unset($decoded_json_value['settings']);
                     }
 
                     $value = $decoded_json_value;

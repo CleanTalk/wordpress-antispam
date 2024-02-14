@@ -1367,7 +1367,7 @@ function apbct_sfw_update__worker($checker_work = false)
         }
     }
 
-    if ( isset($result['error']) && $result['status'] === 'FINISHED' ) {
+    if ( isset($result['error'], $result['status']) && $result['status'] === 'FINISHED' ) {
         SFWUpdateHelper::fallback();
 
         $direct_upd_res = SFWUpdateHelper::directUpdate();

@@ -38,11 +38,18 @@ function ct_contact_form_validate()
     }
 
     //Skip woocommerce checkout
-    if ( apbct_is_in_uri('wc-ajax=update_order_review') ||
-         apbct_is_in_uri('wc-ajax=checkout') ||
-         ! empty($_POST['woocommerce_checkout_place_order']) ||
-         apbct_is_in_uri('wc-ajax=wc_ppec_start_checkout') ||
-         apbct_is_in_referer('wc-ajax=update_order_review')
+    if (
+        apbct_is_in_uri('wc-ajax=update_order_review') ||
+        apbct_is_in_uri('wc-ajax=checkout') ||
+        !empty($_POST['woocommerce_checkout_place_order']) ||
+        apbct_is_in_uri('wc-ajax=wc_ppec_start_checkout') ||
+        apbct_is_in_referer('wc-ajax=update_order_review') ||
+        (
+            //if WooCommerce check is disabled, skip Apple Pay service requests. Otherwise, the request will be skipped by $cleantalk_executed.
+            $apbct->settings['forms__wc_checkout_test'] != 1 &&
+            !empty($_POST['payment_request_type']) &&
+            $_POST['payment_request_type'] === 'apple_pay'
+        )
     ) {
         do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
 
@@ -147,12 +154,16 @@ function ct_contact_form_validate()
          function_exists('hivepress') &&
          is_callable('hivepress') &&
          apbct_is_user_logged_in() &&
-         $apbct->settings['data__protect_logged_in'] &&
-         ! isset($_POST['_model'])
+         $apbct->settings['data__protect_logged_in']
     ) {
-        $current_user = wp_get_current_user();
-        if ( ! empty($current_user->data->user_email) ) {
-            $sender_email = $current_user->data->user_email;
+        if (! isset($_POST['_model'])) {
+            $current_user = wp_get_current_user();
+            if ( ! empty($current_user->data->user_email) ) {
+                $sender_email = $current_user->data->user_email;
+            }
+        } else {
+            do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '(hivepress theme listing integration):' . __LINE__, $_POST);
+            return false;
         }
     }
 

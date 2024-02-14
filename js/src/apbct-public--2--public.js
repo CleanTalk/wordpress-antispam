@@ -440,20 +440,31 @@ if (ctPublic.data__key_is_ok) {
  * Prepare block to intercept AJAX response
  */
 function apbctPrepareBlockForAjaxForms() {
+    // eslint-disable-next-line require-jsdoc
+    function ctPrepareBlockMessage(xhr) {
+        if (xhr.responseText &&
+            xhr.responseText.indexOf('"apbct') !== -1 &&
+            xhr.responseText.indexOf('DOCTYPE') === -1
+        ) {
+            try {
+                ctParseBlockMessage(JSON.parse(xhr.responseText));
+            } catch (e) {
+                console.log(e.toString());
+            }
+        }
+    }
+
     if (typeof jQuery !== 'undefined') {
         // Capturing responses and output block message for unknown AJAX forms
-        jQuery(document).ajaxComplete(function(event, xhr, settings) {
-            if (xhr.responseText &&
-                xhr.responseText.indexOf('"apbct') !== -1 &&
-                xhr.responseText.indexOf('DOCTYPE') === -1
-            ) {
-                try {
-                    ctParseBlockMessage(JSON.parse(xhr.responseText));
-                } catch (e) {
-                    console.log(e.toString());
-                }
-            }
-        });
+        if (typeof jQuery(document).ajaxComplete() !== 'function') {
+            jQuery(document).on('ajaxComplete', function(event, xhr, settings) {
+                ctPrepareBlockMessage(xhr);
+            });
+        } else {
+            jQuery(document).ajaxComplete( function(event, xhr, settings) {
+                ctPrepareBlockMessage(xhr);
+            });
+        }
     }
 }
 
@@ -742,6 +753,10 @@ function ctAjaxSetupAddNoCookieDataBeforeSendAjax() {
                         settings.data.indexOf('ur_frontend_form_nonce') !== -1
                     ) {
                         sourceSign = 'action=user_registration';
+                    }
+
+                    if (settings.data.indexOf('action=happyforms_message') !== -1) {
+                        sourceSign = 'action=happyforms_message';
                     }
 
                     if (sourceSign) {
