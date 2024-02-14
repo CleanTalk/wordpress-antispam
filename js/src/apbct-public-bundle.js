@@ -3376,6 +3376,7 @@ function formIsExclusion(currentForm) {
         'search-form', // search forms
         'hs-form', // integrated hubspot plugin through dynamicRenderedForms logic
         'ihc-form-create-edit', // integrated Ultimate Membership Pro plugin through dynamicRenderedForms logic
+        'nf-form-content', // integration with Ninja Forms for js events
     ];
 
     let result = false;
@@ -3396,7 +3397,13 @@ function formIsExclusion(currentForm) {
         });
 
         exclusionsByClass.forEach(function(exclusionClass) {
-            const formClass = currentForm.getAttribute('class');
+            let foundClass = '';
+            if (currentForm.getAttribute('class')) {
+                foundClass = currentForm.getAttribute('class');
+            } else {
+                foundClass = apbctGetFormClass(currentForm, exclusionClass);
+            }
+            const formClass = foundClass;
             if ( formClass !== null && typeof formClass !== 'undefined' && formClass.indexOf(exclusionClass) !== -1 ) {
                 result = true;
             }
@@ -3413,6 +3420,18 @@ function formIsExclusion(currentForm) {
     }
 
     return result;
+}
+
+/**
+ * Gets the form class if it is not in <form>
+ * @param {HTMLElement} currentForm
+ * @param {string} exclusionClass
+ * @return {string}
+ */
+function apbctGetFormClass(currentForm, exclusionClass) {
+    if (typeof(currentForm) == 'object' && currentForm.querySelector('.' + exclusionClass)) {
+        return exclusionClass;
+    }
 }
 
 /**
