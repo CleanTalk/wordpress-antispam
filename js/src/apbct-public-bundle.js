@@ -3401,7 +3401,7 @@ function formIsExclusion(currentForm) {
             if (currentForm.getAttribute('class')) {
                 foundClass = currentForm.getAttribute('class');
             } else {
-                foundClass = getFormClass(exclusionClass);
+                foundClass = apbctGetFormClass(currentForm, exclusionClass);
             }
             const formClass = foundClass;
             if ( formClass !== null && typeof formClass !== 'undefined' && formClass.indexOf(exclusionClass) !== -1 ) {
@@ -3424,11 +3424,12 @@ function formIsExclusion(currentForm) {
 
 /**
  * Gets the form class if it is not in <form>
+ * @param {HTMLElement} currentForm
  * @param {string} exclusionClass
  * @return {string}
  */
-function getFormClass(exclusionClass) {
-    if (document.querySelector('.' + exclusionClass)) {
+function apbctGetFormClass(currentForm, exclusionClass) {
+    if (typeof(currentForm) == 'object' && currentForm.querySelector('.' + exclusionClass)) {
         return exclusionClass;
     }
 }
