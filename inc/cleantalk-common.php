@@ -335,7 +335,6 @@ function apbct_exclusions_check($func = null)
 
     // Common exclusions
     if (
-        apbct_exclusions_check__ip() ||
         apbct_exclusions_check__form_signs($_POST) ||
         apbct_exclusions_check__url() ||
         apbct_is_user_role_in($apbct->settings['exclusions__roles'])
@@ -473,34 +472,6 @@ function apbct_exclusions_check__form_signs($form_data)
         }
         return false;
     }
-    return false;
-}
-
-/**
- * @return bool
- * @deprecated since 18.09.2019
- * Checks if sender_ip is in exclusion list
- *
- * @deprecated 5.128 Using IP white-lists instead
- */
-function apbct_exclusions_check__ip()
-{
-    global $cleantalk_ip_exclusions;
-
-    if ( Server::get('REMOTE_ADDR') ) {
-        if ( \Cleantalk\ApbctWP\Helper::ipIsCleantalks(Server::get('REMOTE_ADDR')) ) {
-            return true;
-        }
-
-        if ( ! empty($cleantalk_ip_exclusions) && is_array($cleantalk_ip_exclusions) ) {
-            foreach ( $cleantalk_ip_exclusions as $exclusion ) {
-                if ( stripos(Server::get('REMOTE_ADDR'), $exclusion) !== false ) {
-                    return true;
-                }
-            }
-        }
-    }
-
     return false;
 }
 

@@ -528,6 +528,11 @@ $apbct_active_integrations = array(
         'setting' => 'forms__contact_forms_test',
         'ajax'    => false
     ),
+    'ClassifiedListingRegister' => array(
+        'hook'    => 'wp_loaded',
+        'setting' => 'forms__registrations_test',
+        'ajax'    => false
+    ),
 );
 new  \Cleantalk\Antispam\Integrations($apbct_active_integrations, (array)$apbct->settings);
 
@@ -3050,29 +3055,6 @@ function apbct_update__set_version__from_plugin($ver)
     $apbct->saveData();
 
     return true;
-}
-
-/**
- * Check connection to the API servers
- *
- * @return array
- */
-function apbct_test_connection()
-{
-    $out         = array();
-    $url_to_test = array_keys(\Cleantalk\Common\Helper::$cleantalks_servers);
-
-    foreach ( $url_to_test as $url ) {
-        $start  = microtime(true);
-        $result = \Cleantalk\ApbctWP\Helper::httpRequestGetResponseCode($url);
-
-        $out[$url] = array(
-            'result'    => ! empty($result['error']) ? $result['error'] : 'OK',
-            'exec_time' => microtime(true) - $start,
-        );
-    }
-
-    return $out;
 }
 
 function apbct_sfw_update_sentinel__run_watchdog()
