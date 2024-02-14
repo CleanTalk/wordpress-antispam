@@ -292,8 +292,86 @@ window.onload = function() {
         ctProtectExternal();
         catchDynamicRenderedForm();
         catchNextendSocialLoginForm();
+        ctProtectOutsideIframe();
     }, 2000);
 };
+
+/**
+ * Protect forms placed in iframe with outside src
+ */
+function ctProtectOutsideIframe() {
+    let iframes = document.querySelectorAll('iframe');
+    if (iframes.length > 0) {
+        iframes.forEach(function(iframe) {
+            if (iframe.src.indexOf('form.typeform.com') !== -1 ||
+                iframe.src.indexOf('forms.zohopublic.com') !== -1 ||
+                iframe.src.indexOf('link.surepathconnect.com') !== -1 ||
+                ( iframe.src.indexOf('facebook.com') !== -1 && iframe.src.indexOf('plugins/comments.php') !== -1)
+            ) {
+                ctProtectOutsideIframeHandler(iframe);
+            }
+        });
+    }
+}
+
+let ctProtectOutsideIframeCheck;
+/**
+ * Protect forms placed in iframe with outside src handler
+ * @param {HTMLElement} iframe
+ */
+function ctProtectOutsideIframeHandler(iframe) {
+    let cover = document.createElement('div');
+    cover.style.width = '100%';
+    cover.style.height = '100%';
+    cover.style.background = 'black';
+    cover.style.opacity = 0;
+    cover.style.position = 'absolute';
+    cover.style.top = 0;
+    cover.onclick = function(e) {
+        if (ctProtectOutsideIframeCheck === undefined) {
+            let currentDiv = e.currentTarget;
+            currentDiv.style.opacity = 0.5;
+            let preloader = document.createElement('div');
+            preloader.className = 'apbct-iframe-preloader';
+            currentDiv.appendChild(preloader);
+            let botDetectorToken = '';
+            if (document.querySelector('[name*="ct_bot_detector_event_token"]')) {
+                botDetectorToken = document.querySelector('[name*="ct_bot_detector_event_token"]').value;
+            }
+
+            let data = {
+                'action': 'cleantalk_outside_iframe_ajax_check',
+                'ct_no_cookie_hidden_field': getNoCookieData(),
+                'ct_bot_detector_event_token': botDetectorToken,
+            };
+
+            apbct_public_sendAJAX(
+                data,
+                {
+                    async: false,
+                    callback: function(result) {
+                        ctProtectOutsideIframeCheck = true;
+                        if (result.apbct.blocked === false) {
+                            document.querySelectorAll('div.apbct-iframe-preloader').forEach(function(el) {
+                                el.parentNode.remove();
+                            });
+                        } else {
+                            document.querySelectorAll('div.apbct-iframe-preloader').forEach((el) => {
+                                el.parentNode.style.color = 'white';
+                                el.parentNode.innerHTML += result.apbct.comment;
+                            });
+                            document.querySelectorAll('div.apbct-iframe-preloader').forEach((el) => {
+                                el.remove();
+                            });
+                        }
+                    },
+                },
+            );
+        }
+    };
+    iframe.parentNode.style.position = 'relative';
+    iframe.parentNode.appendChild(cover);
+}
 
 /**
  * Catch NSL form integration
