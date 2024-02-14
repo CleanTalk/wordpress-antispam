@@ -662,7 +662,8 @@ function apbct_get_pixel_url__ajax($direct_call = false)
     }
 
     //construct URL
-    $server_url = APBCT_MODERATE_URL;
+    $server           = get_option('cleantalk_server');
+    $server_url       = isset($server['ct_work_url']) ? $apbct->server['ct_work_url'] : APBCT_MODERATE_URL;
     $server_url_with_version = $ip_version === 'v4' ? str_replace('.cleantalk.org', '-v4.cleantalk.org', $server_url) : $server_url;
     $pixel            = '/pixel/' . $pixel_hash . '.gif' . $cache_exclusion_snippet;
     $pixel_url = str_replace('http://', 'https://', $server_url_with_version) . $pixel;
