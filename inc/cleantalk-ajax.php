@@ -496,6 +496,15 @@ function ct_ajax_hook($message_obj = null)
             return false;
         }
     }
+
+    //Woocommerce.  Skip Paystation gateway service request.
+    if (
+        Post::get('action') === 'complete_order'  &&
+        in_array('paystation_payment_gateway', array_values($_POST))
+    ) {
+        do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
+        return false;
+    }
     //Easy Forms for Mailchimp
     if ( Post::get('action') === 'process_form_submission' ) {
         $post_info['comment_type'] = 'contact_enquire_wordpress_easy_forms_for_mailchimp';
