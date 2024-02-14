@@ -103,7 +103,7 @@ function formIsExclusion(currentForm) {
             if (currentForm.getAttribute('class')) {
                 foundClass = currentForm.getAttribute('class');
             } else {
-                foundClass = getFormClass(exclusionClass);
+                foundClass = apbctGetFormClass(currentForm, exclusionClass);
             }
             const formClass = foundClass;
             if ( formClass !== null && typeof formClass !== 'undefined' && formClass.indexOf(exclusionClass) !== -1 ) {
@@ -129,8 +129,8 @@ function formIsExclusion(currentForm) {
  * @param {string} exclusionClass
  * @return {string}
  */
-function getFormClass(exclusionClass) {
-    if (document.querySelector('.' + exclusionClass)) {
+function apbctGetFormClass(currentForm, exclusionClass) {
+    if (currentForm.querySelector('.' + exclusionClass)) {
         return exclusionClass;
     }
 }
