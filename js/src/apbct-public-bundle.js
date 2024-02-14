@@ -3424,6 +3424,7 @@ function formIsExclusion(currentForm) {
 
 /**
  * Gets the form class if it is not in <form>
+ * @param {HTMLElement} currentForm
  * @param {string} exclusionClass
  * @return {string}
  */
