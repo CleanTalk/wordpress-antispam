@@ -314,7 +314,7 @@ class SFWUpdateHelper
     {
         $queue = new \Cleantalk\ApbctWP\Queue();
 
-        return $queue->isQueueInProgress();
+        return ! $queue->isQueueFinished();
     }
 
     public static function prepareUpdDir()
