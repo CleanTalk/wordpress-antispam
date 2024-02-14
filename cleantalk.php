@@ -1195,7 +1195,8 @@ function apbct_sfw_update__init($delay = 0)
     if (
         $apbct->fw_stats['firewall_updating_id'] &&
         time() - $apbct->fw_stats['firewall_updating_last_start'] < 600 &&
-        SFWUpdateHelper::updateIsInProgress()
+        SFWUpdateHelper::updateIsInProgress() &&
+        ! SFWUpdateHelper::updateIsFrozen()
     ) {
         return false;
     }

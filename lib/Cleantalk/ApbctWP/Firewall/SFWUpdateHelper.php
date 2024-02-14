@@ -317,6 +317,13 @@ class SFWUpdateHelper
         return ! $queue->isQueueFinished();
     }
 
+    public static function updateIsFrozen()
+    {
+        $queue = new \Cleantalk\ApbctWP\Queue();
+
+        return ! $queue->isQueueFinished() && $queue->queue['started'] > time() - 86400;
+    }
+
     public static function prepareUpdDir()
     {
         global $apbct;
