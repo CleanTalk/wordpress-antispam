@@ -506,7 +506,8 @@ function apbct_admin__enqueue_scripts($hook)
         'logo_small_colored' => '<img src="' . Escape::escUrl($apbct->logo__small__colored) . '" alt=""  height="" style="width: 17px; vertical-align: text-bottom;" />',
         'notice_when_deleting_user_text' => esc_html__('Warning! Users are deleted without the possibility of restoring them, you can only restore them from a site backup.', 'cleantalk-spam-protect'),
         'deactivation_banner_text' => esc_html__('If you have any difficulties using the CleanTalk Anti-Spam Plugin, please contact our Technical Support here:<br>https://wordpress.org/support/plugin/cleantalk-spam-protect', 'cleantalk-spam-protect'),
-        'deactivation_banner_is_needed' => (!$apbct->data['wl_mode_enabled'] && !$apbct->settings['misc__complete_deactivation']) ? 1 : 0
+        'deactivation_banner_is_needed' => (!$apbct->data['wl_mode_enabled'] && !$apbct->settings['misc__complete_deactivation']) ? 1 : 0,
+        'apbctNoticeDismissSuccess'       => esc_html__('Thank you for the review! We strive to make our Anti-Spam plugin better every day.', 'cleantalk-spam-protect')
     ));
 
     // DASHBOARD page JavaScript and CSS

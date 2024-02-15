@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 4.7
 Tested up to: 6.4
 Requires PHP: 5.6
-Stable tag: 6.26
+Stable tag: 6.27
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -456,6 +456,20 @@ Yes, it is. Please read this article,
 12. SpamFireWall log.
 
 == Changelog ==
+
+= 6.27 Feb 14 2024
+* New. Integrations. Added protect for outside iframe.
+* New. Integrations. Classifield theme users registering protection implemented.
+* Upd. General. Removed deprecated ips.
+* Fix. Integrations. WpDiscuz. Duplicated request fixed. Bot detector field handling added.
+* Fix. Integrations. Happy forms. NoCookie hidden field added via ajaxSetup.
+* Fix. Integrations. Undefined: key \'lable\' fixed.
+* Fix. Integrations. HivePress. Service requests skipped.
+* Fix. SFW. Check array key exist before use it.
+* Fix. apbctPrepareBlockForAjaxForms. The method ajaxComplete() is deprecated, used on() instead.
+* Fix. WooCommerce. Skip Apple Pay service request if WooCommerce check is disabled.
+* Fix. WooCommerce. Added new sign of wp-ajax to skip WC order check.
+* Fix. Integrations. Ninja Forms - added an exception for external forms.
 
 = 6.26 Feb 01 2024
 * New. Integration. WP GeoDirectory. Skip service actions and get necessary data directly on the hook 'geodir_validate_ajax_save_post_data'.

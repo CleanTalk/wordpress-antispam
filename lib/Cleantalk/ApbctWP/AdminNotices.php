@@ -383,6 +383,12 @@ class AdminNotices
                     $apbct->data['notice_email_decoder_changed'] = 0;
                     $apbct->save('data');
                 }
+                if ( strpos($notice, 'cleantalk_notice_review') !== false ) {
+                    $api_update = API::methodUserDataUpdate($apbct->data['user_token'], json_encode(['show_review' => 0]));
+                    if ( isset($api_update['error']) ) {
+                        wp_send_json_error($api_update['error']);
+                    }
+                }
                 wp_send_json_success();
             } else {
                 wp_send_json_error(esc_html__('Notice status not updated.', 'cleantalk-spam-protect'));

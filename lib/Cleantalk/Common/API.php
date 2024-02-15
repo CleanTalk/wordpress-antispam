@@ -769,6 +769,17 @@ class API
         return static::sendRequest($request);
     }
 
+    public static function methodUserDataUpdate($user_token, $user_data)
+    {
+        $request = array(
+            'method_name' => 'user_data_update',
+            'user_token'  => $user_token,
+            'user_data'   => $user_data,
+        );
+
+        return static::sendRequest($request);
+    }
+
     private static function getProductId($product_name)
     {
         $product_id = null;
