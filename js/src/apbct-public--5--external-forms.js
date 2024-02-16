@@ -79,6 +79,7 @@ function formIsExclusion(currentForm) {
         'hs-form', // integrated hubspot plugin through dynamicRenderedForms logic
         'ihc-form-create-edit', // integrated Ultimate Membership Pro plugin through dynamicRenderedForms logic
         'nf-form-content', // integration with Ninja Forms for js events
+        'elementor-form', // integration with elementor-form
     ];
 
     let result = false;

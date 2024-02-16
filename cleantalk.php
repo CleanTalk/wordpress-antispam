@@ -533,6 +533,13 @@ $apbct_active_integrations = array(
         'setting' => 'forms__registrations_test',
         'ajax'    => false
     ),
+    //elementor_pro_forms_send_form
+    'ElementorPro' => array(
+        'hook'    => 'elementor_pro_forms_send_form',
+        'setting' => 'forms__contact_forms_test',
+        'ajax'    => true,
+        'ajax_and_post' => true
+    ),
 );
 new  \Cleantalk\Antispam\Integrations($apbct_active_integrations, (array)$apbct->settings);
 

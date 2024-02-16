@@ -732,16 +732,6 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'APBCT service actions';
         }
-        // Elementor pro forms has a direct integration
-        if (
-            apbct_is_plugin_active('elementor-pro/elementor-pro.php') &&
-            Post::get('action') === 'elementor_pro_forms_send_form' &&
-            Post::get('post_id') !== '' &&
-            Post::get('form_id') !== '' &&
-            Post::get('cfajax') === ''
-        ) {
-            return 'Elementor pro forms';
-        }
         // Entry Views plugin service requests
         if (
             apbct_is_plugin_active('entry-views/entry-views.php') &&
@@ -1283,6 +1273,26 @@ function apbct_is_skip_request($ajax = false)
         if ( apbct_is_plugin_active('wpdiscuz/class.WpdiscuzCore.php') &&
             strpos(Post::get('action'), 'wpdCheckNotificationType') !== false ) {
             return 'no_ajax_wpdCheckNotificationType';
+        }
+    }
+
+    // Elementor pro forms has a direct integration
+    if (apbct_is_plugin_active('elementor-pro/elementor-pro.php')) {
+        if ( Post::get('action') === 'elementor_pro_forms_send_form') {
+            if (
+                Post::get('post_id') !== '' &&
+                Post::get('form_id') !== '' &&
+                Post::get('cfajax') === ''
+            ) {
+                return 'Elementor pro forms ajax';
+            }
+        } elseif (
+            Post::get('queried_id') !== '' &&
+            Post::get('post_id') !== '' &&
+            Post::get('form_id') !== '' &&
+            Post::get('cfajax') === ''
+        ) {
+            return 'Elementor pro forms non ajax';
         }
     }
 
