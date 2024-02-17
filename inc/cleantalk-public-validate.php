@@ -57,7 +57,9 @@ function ct_contact_form_validate()
     }
 
     //Skip woocommerce add_to_cart
-    if ( ! empty($_POST['add-to-cart']) ) {
+    if ( ! empty($_POST['add-to-cart']) ||
+        (isset($_GET['wc-ajax']) && $_GET['wc-ajax'] === 'add_to_cart')
+    ) {
         do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
 
         return null;

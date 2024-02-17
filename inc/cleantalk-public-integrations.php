@@ -539,37 +539,18 @@ function apbct_woocommerce__add_request_id_to_order_meta($order_id)
  * Triggered when adding an item to the shopping cart
  * for un-logged users
  *
- * @param $cart_item_key
- * @param $product_id
+ * @param $bool
+ * @param $item
  * @param $quantity
- * @param $variation_id
- * @param $variation
- * @param $cart_item_data
  *
  * @return void
  */
 
-function apbct_wc__add_to_cart_unlogged_user(
-    $_cart_item_key,
-    $_product_id,
-    $_quantity,
-    $_variation_id,
-    $_variation,
-    $_cart_item_data
-) {
+function apbct_wc__add_to_cart_unlogged_user($b, $item, $q)
+{
     global $apbct;
 
     if ( ! apbct_is_user_logged_in() && $apbct->settings['forms__wc_add_to_cart'] ) {
-        /**
-         * Getting request params
-         * POST contains an array of product information
-         * Example: Array
-         *(
-         *    [product_sku] => woo-beanie
-         *    [product_id] => 15
-         *    [quantity] => 1
-         *)
-         */
         $message = apply_filters('apbct__filter_post', $_POST);
 
         $post_info['comment_type'] = 'order__add_to_cart';
@@ -582,21 +563,19 @@ function apbct_wc__add_to_cart_unlogged_user(
                 'post_info'   => $post_info,
                 'js_on'       => apbct_js_test(Sanitize::cleanTextField(Cookie::get('ct_checkjs')), true),
                 'sender_info' => array('sender_url' => null),
+                'exception_action' => false,
             )
         );
 
         $ct_result = $base_call_result['ct_result'];
 
         if ( $ct_result->allow == 0 ) {
-            wp_send_json(array(
-                'result'        => 'failure',
-                'messages'      => "<ul class=\"woocommerce-error\"><li>" . $ct_result->comment . "</li></ul>",
-                'refresh'       => 'false',
-                'reload'        => 'false',
-                'response_type' => 'wc_add_to_cart_block'
-            ));
+            wc_add_notice($ct_result->comment, 'error');
+            return false;
         }
     }
+
+    return true;
 }
 
 /**

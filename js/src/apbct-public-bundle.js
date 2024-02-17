@@ -2259,10 +2259,9 @@ function ctAjaxSetupAddNoCookieDataBeforeSendAjax() {
     if ( typeof jQuery !== 'undefined' ) {
         jQuery.ajaxSetup({
             beforeSend: function(xhr, settings) {
+                let sourceSign = false;
                 // settings data is string (important!)
                 if ( typeof settings.data === 'string' ) {
-                    let sourceSign = false;
-
                     if (settings.data.indexOf('twt_cc_signup') !== -1) {
                         sourceSign = 'twt_cc_signup';
                     }
@@ -2281,12 +2280,17 @@ function ctAjaxSetupAddNoCookieDataBeforeSendAjax() {
                     if (settings.data.indexOf('action=happyforms_message') !== -1) {
                         sourceSign = 'action=happyforms_message';
                     }
-
-                    if (sourceSign) {
-                        let noCookieData = getNoCookieData();
-                        noCookieData = 'data%5Bct_no_cookie_hidden_field%5D=' + noCookieData + '&';
-                        settings.data = noCookieData + settings.data;
+                }
+                if ( typeof settings.url === 'string' ) {
+                    if (settings.url.indexOf('wc-ajax=add_to_cart') !== -1) {
+                        sourceSign = 'wc-ajax=add_to_cart';
                     }
+                }
+
+                if (sourceSign) {
+                    let noCookieData = getNoCookieData();
+                    noCookieData = 'data%5Bct_no_cookie_hidden_field%5D=' + noCookieData + '&';
+                    settings.data = noCookieData + settings.data;
                 }
             },
         });
