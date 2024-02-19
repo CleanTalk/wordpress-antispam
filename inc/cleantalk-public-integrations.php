@@ -543,7 +543,9 @@ function apbct_woocommerce__add_request_id_to_order_meta($order_id)
  * @param $item
  * @param $quantity
  *
- * @return void
+ * @return bool
+ * @psalm-suppress UnusedParam
+ * @psalm-suppress UndefinedFunction
  */
 
 function apbct_wc__add_to_cart_unlogged_user($b, $item, $q)
