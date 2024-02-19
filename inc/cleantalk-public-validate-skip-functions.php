@@ -1,5 +1,6 @@
 <?php
 
+use Cleantalk\ApbctWP\Variables\Get;
 use Cleantalk\ApbctWP\Variables\Server;
 use Cleantalk\ApbctWP\Variables\Post;
 
@@ -257,6 +258,12 @@ function skip_for_ct_contact_form_validate()
         // Mailchimp for woocommerce
         '95' => (apbct_is_in_uri('/wp-json/mailchimp-for-woocommerce/v1/member-sync')
             && apbct_is_plugin_active('mailchimp-for-woocommerce/mailchimp-woocommerce.php')),
+        '96' => (
+            apbct_is_plugin_active('woo-stripe-payment/stripe-payments.php') &&
+            strpos(Get::get('wc-ajax'), 'wc_stripe') !== false &&
+            strpos(Get::get('path'), 'wc-stripe/v1/checkout/payment') !== false &&
+            Post::get('stripe_cc_token_key')
+        ),
     );
 
     foreach ( $exclusions as $exclusion_key => $state ) {
