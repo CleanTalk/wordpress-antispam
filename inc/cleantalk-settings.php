@@ -2366,7 +2366,7 @@ function apbct_settings__validate($settings)
     // SFW was enabled
     if ( ! $apbct->settings['sfw__enabled'] && $settings['sfw__enabled'] ) {
         $cron = new Cron();
-        $cron->updateTask('sfw_update', 'apbct_sfw_update__init', 180);
+        $cron->updateTask('sfw_update', 'apbct_sfw_update__init', 86400, time() + 180);
         // SFW was disabled
     } elseif ( $apbct->settings['sfw__enabled'] && ! $settings['sfw__enabled'] ) {
         apbct_sfw__clear();
