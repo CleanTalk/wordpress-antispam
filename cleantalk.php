@@ -312,7 +312,7 @@ $apbct_active_integrations = array(
         'ajax'    => true
     ),
     'FluentForm'          => array(
-        'hook'    => 'fluentform_before_insert_submission',
+        'hook'    => array('fluentform/before_insert_submission', 'fluentform_before_insert_submission'),
         'setting' => 'forms__contact_forms_test',
         'ajax'    => false
     ),

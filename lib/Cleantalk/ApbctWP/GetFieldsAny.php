@@ -405,7 +405,41 @@ class GetFieldsAny
                     : null;
 
                 // if necessary data is available
-                if (isset($fields_string, $count)) {
+                if ( isset($fields_string, $count) ) {
+                    //fluent forms chunk
+                    if (
+                        isset($post_fields_to_check['data'], $post_fields_to_check['action']) &&
+                        $post_fields_to_check['action'] === 'fluentform_submit'
+                    ) {
+                        $fluent_forms_out = array();
+                        $fluent_forms_fields = urldecode($post_fields_to_check['data']);
+                        parse_str($fluent_forms_fields, $fluent_forms_fields_array);
+                        $fields_array = explode(' ', $fields_string);
+                        foreach ( $fields_array as $visible_field_slug ) {
+                            if ( strpos($visible_field_slug, '[') ) {
+                                $vfs_array_like_string = str_replace(array('[', ']'), ' ', $visible_field_slug);
+                                $vfs_array = explode(' ', trim($vfs_array_like_string));
+                                if (
+                                    isset(
+                                        $vfs_array[0],
+                                        $vfs_array[1]
+                                    ) &&
+                                    isset(
+                                        $fluent_forms_fields_array[$vfs_array[0]],
+                                        $fluent_forms_fields_array[$vfs_array[0]][$vfs_array[1]]
+                                    )
+                                ) {
+                                    $fluent_forms_out['visible_fields'][] = $visible_field_slug;
+                                }
+                            } else {
+                                if ( isset($fluent_forms_fields_array[$visible_field_slug]) ) {
+                                    $fluent_forms_out['visible_fields'][] = $visible_field_slug;
+                                }
+                            }
+                        }
+                        return $fluent_forms_out;
+                    }
+
                     // asset to parse wp forms fields from post
                     if ( isset($post_fields_to_check['wpforms']['fields']) ) {
                         if ( is_array($post_fields_to_check['wpforms']['fields']) ) {
