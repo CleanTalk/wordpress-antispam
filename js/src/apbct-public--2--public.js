@@ -625,7 +625,7 @@ function apbct_ready() {
             typeof ctPublic.data__cookies_type !== 'undefined' &&
             ctPublic.data__cookies_type === 'none'
         ) {
-            ctAjaxSetupAddNoCookieDataBeforeSendAjax();
+            ctAjaxSetupAddCleanTalkDataBeforeSendAjax();
         }
 
         for (let i = 0; i < document.forms.length; i++) {
@@ -731,7 +731,7 @@ function apbct_ready() {
  * - Any sign of the form HTML of the caller is insignificant in this process.
  * @return {void}
  */
-function ctAjaxSetupAddNoCookieDataBeforeSendAjax() {
+function ctAjaxSetupAddCleanTalkDataBeforeSendAjax() {
     // jquery ajax call intercept
     if ( typeof jQuery !== 'undefined' ) {
         jQuery.ajaxSetup({
@@ -760,9 +760,18 @@ function ctAjaxSetupAddNoCookieDataBeforeSendAjax() {
                     }
 
                     if (sourceSign) {
+                        // attach NoCookieData
                         let noCookieData = getNoCookieData();
-                        noCookieData = 'data%5Bct_no_cookie_hidden_field%5D=' + noCookieData + '&';
-                        settings.data = noCookieData + settings.data;
+                        let appendThis = 'data%5Bct_no_cookie_hidden_field%5D=' + noCookieData + '&';
+                        // attach BotDetectorEventToken
+                        if (typeof apbctLocalStorage !== 'undefined') {
+                            let botDetectorEventToken = apbctLocalStorage.get('bot_detector_event_token');
+                            if (typeof botDetectorEventToken === 'string' && botDetectorEventToken.length === 64) {
+                                appendThis += 'data%5Bct_bot_detector_event_token%5D=' + botDetectorEventToken + '&';
+                            }
+                        }
+
+                        settings.data = appendThis + settings.data;
                     }
                 }
             },
