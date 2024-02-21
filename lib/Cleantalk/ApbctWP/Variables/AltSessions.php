@@ -15,6 +15,12 @@ class AltSessions
         return hash('sha256', $id);
     }
 
+    /**
+     * @param $name
+     * @param $value
+     *
+     * @return bool
+     */
     public static function set($name, $value)
     {
         if ( is_int($value) ) {
@@ -23,7 +29,7 @@ class AltSessions
 
         // Bad incoming data
         if ( ! $name || (empty($value) && $value !== false && $value !== "0") ) {
-            return;
+            return false;
         }
 
         //fix if value is strictly false
@@ -33,7 +39,7 @@ class AltSessions
 
         $session_id = self::getID();
 
-        $wpdb->query(
+        return (bool) $wpdb->query(
             $wpdb->prepare(
                 'INSERT INTO ' . APBCT_TBL_SESSIONS . '
 				(id, name, value, last_update)
