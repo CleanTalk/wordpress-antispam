@@ -3608,7 +3608,7 @@ add_filter('wsf_submit_field_validate', function ($error_validation_action_field
 
     global $cleantalk_executed;
 
-    if ( $cleantalk_executed ) {
+    if ( $cleantalk_executed || $_post_mode != 'submit' ) {
         return $error_validation_action_field;
     }
 
@@ -3633,10 +3633,8 @@ add_filter('wsf_submit_field_validate', function ($error_validation_action_field
     );
 
     if ( $base_call_result['ct_result']->allow == 0 ) {
-        return array(
-            'action'                   => 'field_invalid_feedback',
-            'field_id'                 => $field_id,
-            'section_repeatable_index' => $section_repeatable_index,
+        $error_validation_action_field[] = array(
+            'action'                   => 'message',
             'message'                  => $base_call_result['ct_result']->comment
         );
     }
