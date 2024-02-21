@@ -3603,6 +3603,7 @@ function apbct_form__uwp_validate($result, $_type, $data)
 
 /**
  * WS-Forms integration
+ * @psalm-suppress UnusedClosureParam
  */
 add_filter('wsf_submit_field_validate', function ($error_validation_action_field, $field_id, $_field_value, $section_repeatable_index, $_post_mode, $_form_submit_class) {
 
