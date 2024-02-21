@@ -280,6 +280,11 @@ require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-integrations.php');
 
 // Early checks
 
+if (isset($_REQUEST['action']) && $_REQUEST['action'] === 'wpmlsubscribe') {
+    require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-ajax.php');
+    ct_ajax_hook();
+}
+
 // Iphorm
 if (
     Post::get('iphorm_ajax') !== '' &&

@@ -1069,6 +1069,12 @@ function ct_ajax_hook($message_obj = null)
             die();
         }
 
+        if (isset($_REQUEST['action']) && $_REQUEST['action'] === 'wpmlsubscribe') {
+            $block_msg = sprintf('<div class="newsletters-acknowledgement"><p style="color: darkred">%s</p></div>', $ct_result->comment);
+            echo $block_msg;
+            die();
+        }
+
         // Regular block output
         die(
             json_encode(
