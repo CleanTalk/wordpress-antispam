@@ -540,6 +540,15 @@ $apbct_active_integrations = array(
         'ajax'    => true,
         'ajax_and_post' => true
     ),
+    'AvadaBuilderFusionForm' => array(
+        'hook'    => [
+            'fusion_form_submit_form_to_database_email',
+            'fusion_form_submit_form_to_email',
+            'fusion_form_submit_ajax'
+        ],
+        'setting' => 'forms__contact_forms_test',
+        'ajax'    => true
+    ),
 );
 new  \Cleantalk\Antispam\Integrations($apbct_active_integrations, (array)$apbct->settings);
 

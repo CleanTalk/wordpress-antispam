@@ -128,14 +128,6 @@ if ( class_exists('LFB_Core') ) {
     $_cleantalk_hooked_actions[] = 'send_email';
 }
 
-/* Fusion Builder Avada Forms integration */
-add_action('wp_ajax_nopriv_fusion_form_submit_form_to_database_email', 'ct_ajax_hook', 1);
-$_cleantalk_hooked_actions[] = 'fusion_form_submit_form_to_database_email';
-add_action('wp_ajax_nopriv_fusion_form_submit_form_to_email', 'ct_ajax_hook', 1);
-$_cleantalk_hooked_actions[] = 'fusion_form_submit_form_to_email';
-add_action('wp_ajax_nopriv_fusion_form_submit_ajax', 'ct_ajax_hook', 1);
-$_cleantalk_hooked_actions[] = 'fusion_form_submit_ajax';
-
 // Elementor Pro page builder forms
 //add_action('wp_ajax_elementor_pro_forms_send_form', 'apbct_form__elementor_pro__testSpam');
 //add_action('wp_ajax_nopriv_elementor_pro_forms_send_form', 'apbct_form__elementor_pro__testSpam');
@@ -579,50 +571,6 @@ function ct_ajax_hook($message_obj = null)
         }
     }
 
-    // Fusion Builder Avada Form integration
-    if (
-        Post::hasString('action', 'fusion_form_submit_form_to_database_email') ||
-        Post::hasString('action', 'fusion_form_submit_form_to_email') ||
-        Post::hasString('action', 'fusion_form_submit_ajax')
-    ) {
-        if (isset($_POST['formData'])) {
-            $form_data = $_POST['formData'];
-            // explode the string by &
-            $form_data = explode('&', $form_data);
-            $handled_form_data_collection = array();
-            // start collecting new cleared array
-            foreach ($form_data as $row) {
-                // skip visible fields from collection
-                if (stripos($row, 'apbct_visible_fields') === 0) {
-                    continue;
-                }
-                // skip no cookie from collection
-                if (stripos($row, 'ct_no_cookie_hidden_field') === 0) {
-                    if ($apbct->data['cookies_type'] === 'none') {
-                        $no_cookie_data = str_replace('ct_no_cookie_hidden_field=', '', $row);
-                        $apbct->stats['no_cookie_data_taken'] = \Cleantalk\ApbctWP\Variables\NoCookie::setDataFromHiddenField($no_cookie_data);
-                        $apbct->save('stats');
-                    }
-                    continue;
-                }
-                // skip bot detector from collection
-                if (stripos($row, 'ct_bot_detector_event_token') === 0) {
-                    continue;
-                }
-                // if nothing fired add the field to final array
-                $handled_form_data_collection[] = $row;
-                // collect data for ct_post_temp
-                $exploded_row = explode('=', $row);
-                if ( !empty($exploded_row[0]) && !empty($exploded_row[1]) ) {
-                    $ct_post_temp[$exploded_row[0]] = $exploded_row[1];
-                }
-            }
-            // convert array to string with &
-            $form_data = implode('&', $handled_form_data_collection);
-            $_POST['formData'] = $form_data;
-        }
-    }
-
     /**
      * Filter for POST
      */
@@ -1001,22 +949,6 @@ function ct_ajax_hook($message_obj = null)
                     'error' => 'ERROR',
                     'message' => $ct_result->comment,
                     'notices' => 'NOTICES',
-                )
-            );
-        }
-
-        if (
-            Post::hasString('action', 'fusion_form_submit_form_to_') ||
-            Post::hasString('action', 'fusion_form_submit_form_to_email') ||
-            Post::hasString('action', 'fusion_form_submit_ajax')
-        ) {
-            die(
-                json_encode(
-                    array(
-                        'status' => 'error',
-                        'info' => 'form_failed',
-                        'message' => $ct_result->comment,
-                    )
                 )
             );
         }
