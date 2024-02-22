@@ -730,7 +730,7 @@ class UsersChecker extends Checker
             $log_data = static::getLogData();
             static::writeSpamLog(
                 'users',
-                date("Y-m-d H:i:s"),
+                current_datetime()->format("Y-m-d H:i:s"),
                 $log_data['checked'],
                 $log_data['spam'],
                 $log_data['bad']
@@ -800,7 +800,7 @@ class UsersChecker extends Checker
             $log_data = static::getLogData();
             static::writeSpamLog(
                 'users',
-                date("Y-m-d H:i:s"),
+                current_datetime()->format("Y-m-d H:i:s"),
                 $log_data['checked'],
                 $log_data['spam'],
                 $log_data['bad']
