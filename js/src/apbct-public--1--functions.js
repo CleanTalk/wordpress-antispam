@@ -80,12 +80,14 @@ function ctDetectForcedAltCookiesForms() {
     let jetpackCommentsForm = document.querySelectorAll('iframe[name="jetpack_remote_comment"]').length > 0;
     let cwginstockForm = document.querySelectorAll('.cwginstock-subscribe-form').length > 0;
     let userRegistrationProForm = document.querySelectorAll('div[id^="user-registration-form"]').length > 0;
+    let etPbDiviSubscriptionForm = document.querySelectorAll('div[class^="et_pb_newsletter_form"]').length > 0;
     ctPublic.force_alt_cookies = smartFormsSign ||
         ninjaFormsSign ||
         jetpackCommentsForm ||
         elementorUltimateAddonsRegister ||
         cwginstockForm ||
-        userRegistrationProForm;
+        userRegistrationProForm ||
+        etPbDiviSubscriptionForm;
 }
 
 // eslint-disable-next-line require-jsdoc

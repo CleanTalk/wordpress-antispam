@@ -571,6 +571,11 @@ function ct_ajax_hook($message_obj = null)
         }
     }
 
+    //divi subscription form needs to force alt cookies
+    if ( Post::hasString('action', 'et_pb_submit_subscribe_form') ) {
+        Cookie::$force_alt_cookies_global = true;
+    }
+
     /**
      * Filter for POST
      */
