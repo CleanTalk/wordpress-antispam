@@ -1074,6 +1074,16 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'WP GeoDirectory service action';
         }
+
+        if (
+            (
+                apbct_is_plugin_active('paid-member-subscriptions/index.php') ||
+                apbct_is_plugin_active('paid-member-subscriptions-pro/index.php')
+            ) &&
+            Post::get('action') === 'pms_update_payment_intent_connect'
+        ) {
+            return 'Paid memebership service action';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
