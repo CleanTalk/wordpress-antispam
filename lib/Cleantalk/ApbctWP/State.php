@@ -523,15 +523,23 @@ class State extends \Cleantalk\Common\State
         $this->network_data   = new ArrayObject($net_data);
 
         foreach ($this->options as $option_name) {
-            $option = get_option($this->option_prefix . '_' . $option_name);
+            $wpdb_option_name = $this->option_prefix . '_' . $option_name;
+            //prevent fatal on broken serialized data
+            try {
+                $option = get_option($wpdb_option_name);
+            } catch (\UnexpectedValueException $e) {
+                $default_option_name = 'default_' . $option_name;
+                delete_option($wpdb_option_name);
+                $option = $this->$default_option_name;
+            }
 
             // Setting default options
-            if ($this->option_prefix . '_' . $option_name === 'cleantalk_settings') {
+            if ($wpdb_option_name === 'cleantalk_settings') {
                 $option = is_array($option) ? array_merge($this->default_settings, $option) : $this->default_settings;
             }
 
             // Setting default data
-            if ($this->option_prefix . '_' . $option_name === 'cleantalk_data') {
+            if ($wpdb_option_name === 'cleantalk_data') {
                 $option = is_array($option) ? array_merge($this->default_data, $option) : $this->default_data;
                 // Generate salt
                 $option['salt'] = empty($option['salt'])
@@ -540,22 +548,22 @@ class State extends \Cleantalk\Common\State
             }
 
             // Setting default errors
-            if ($this->option_prefix . '_' . $option_name === 'cleantalk_errors') {
+            if ($wpdb_option_name === 'cleantalk_errors') {
                 $option = $option ?: array();
             }
 
             // Default remote calls
-            if ($this->option_prefix . '_' . $option_name === 'cleantalk_remote_calls') {
+            if ($wpdb_option_name === 'cleantalk_remote_calls') {
                 $option = is_array($option) ? array_merge($this->default_remote_calls, $option) : $this->default_remote_calls;
             }
 
             // Default statistics
-            if ($this->option_prefix . '_' . $option_name === 'cleantalk_stats') {
+            if ($wpdb_option_name === 'cleantalk_stats') {
                 $option = is_array($option) ? array_merge($this->default_stats, $option) : $this->default_stats;
             }
 
             // Default statistics
-            if ($this->option_prefix . '_' . $option_name === 'cleantalk_fw_stats') {
+            if ($wpdb_option_name === 'cleantalk_fw_stats') {
                 $option = is_array($option) ? array_merge($this->default_fw_stats, $option) : $this->default_fw_stats;
             }
 
