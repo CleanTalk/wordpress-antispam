@@ -124,13 +124,11 @@ class Helper extends \Cleantalk\Common\Helper
             }
         }
 
-        static::httpRequest(
+        return static::httpRequest(
             substr(get_option('home'), -1) === '/' ? get_option('home') : get_option('home') . '/',
             $request_params,
             $patterns
         );
-
-        return true;
     }
 
     /**

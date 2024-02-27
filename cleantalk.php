@@ -26,6 +26,7 @@ use Cleantalk\ApbctWP\Firewall\SFW;
 use Cleantalk\ApbctWP\Firewall\SFWUpdateHelper;
 use Cleantalk\ApbctWP\Helper;
 use Cleantalk\ApbctWP\RemoteCalls;
+use Cleantalk\ApbctWP\RequestParameters\RequestParameters;
 use Cleantalk\ApbctWP\RestController;
 use Cleantalk\ApbctWP\Sanitize;
 use Cleantalk\ApbctWP\State;
@@ -1195,7 +1196,8 @@ function apbct_sfw_update__init($delay = 0)
     if (
         $apbct->fw_stats['firewall_updating_id'] &&
         time() - $apbct->fw_stats['firewall_updating_last_start'] < 600 &&
-        SFWUpdateHelper::updateIsInProgress()
+        SFWUpdateHelper::updateIsInProgress() &&
+        ! SFWUpdateHelper::updateIsFrozen()
     ) {
         return false;
     }
@@ -2611,7 +2613,7 @@ function apbct_cookie()
     // Submit time
     if (empty($_POST)) {
         $apbct_timestamp = time();
-        Cookie::set('apbct_timestamp', (string)$apbct_timestamp, 0, '/', $domain, null, true, 'Lax', true);
+        RequestParameters::set('apbct_timestamp', (string)$apbct_timestamp, true);
         $cookie_test_value['cookies_names'][] = 'apbct_timestamp';
         $cookie_test_value['check_value']     .= $apbct_timestamp;
     }
@@ -2703,7 +2705,7 @@ function apbct_cookies_test()
  */
 function apbct_get_submit_time()
 {
-    $apbct_timestamp = (int)Cookie::get('apbct_timestamp');
+    $apbct_timestamp = (int) RequestParameters::get('apbct_timestamp', true);
 
     return apbct_cookies_test() === 1 && $apbct_timestamp !== 0 ? time() - $apbct_timestamp : null;
 }
