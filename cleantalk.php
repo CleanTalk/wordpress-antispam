@@ -281,6 +281,11 @@ require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-integrations.php');
 
 // Early checks
 
+if (isset($_REQUEST['action']) && $_REQUEST['action'] === 'wpmlsubscribe') {
+    require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-ajax.php');
+    ct_ajax_hook();
+}
+
 // Iphorm
 if (
     Post::get('iphorm_ajax') !== '' &&
@@ -313,7 +318,7 @@ $apbct_active_integrations = array(
         'ajax'    => true
     ),
     'FluentForm'          => array(
-        'hook'    => 'fluentform_before_insert_submission',
+        'hook'    => array('fluentform/before_insert_submission', 'fluentform_before_insert_submission'),
         'setting' => 'forms__contact_forms_test',
         'ajax'    => false
     ),
@@ -533,6 +538,22 @@ $apbct_active_integrations = array(
         'hook'    => 'wp_loaded',
         'setting' => 'forms__registrations_test',
         'ajax'    => false
+    ),
+    //elementor_pro_forms_send_form
+    'ElementorPro' => array(
+        'hook'    => 'elementor_pro_forms_send_form',
+        'setting' => 'forms__contact_forms_test',
+        'ajax'    => true,
+        'ajax_and_post' => true
+    ),
+    'AvadaBuilderFusionForm' => array(
+        'hook'    => [
+            'fusion_form_submit_form_to_database_email',
+            'fusion_form_submit_form_to_email',
+            'fusion_form_submit_ajax'
+        ],
+        'setting' => 'forms__contact_forms_test',
+        'ajax'    => true
     ),
 );
 new  \Cleantalk\Antispam\Integrations($apbct_active_integrations, (array)$apbct->settings);

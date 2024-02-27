@@ -79,6 +79,7 @@ function formIsExclusion(currentForm) {
         'hs-form', // integrated hubspot plugin through dynamicRenderedForms logic
         'ihc-form-create-edit', // integrated Ultimate Membership Pro plugin through dynamicRenderedForms logic
         'nf-form-content', // integration with Ninja Forms for js events
+        'elementor-form', // integration with elementor-form
     ];
 
     let result = false;
@@ -325,6 +326,7 @@ function ctProtectOutsideIframe() {
             if (iframe.src.indexOf('form.typeform.com') !== -1 ||
                 iframe.src.indexOf('forms.zohopublic.com') !== -1 ||
                 iframe.src.indexOf('link.surepathconnect.com') !== -1 ||
+                ( iframe.hasOwnProperty('class') && iframe.class.indexOf('hs-form-iframe') !== -1 ) ||
                 ( iframe.src.indexOf('facebook.com') !== -1 && iframe.src.indexOf('plugins/comments.php') !== -1)
             ) {
                 ctProtectOutsideIframeHandler(iframe);

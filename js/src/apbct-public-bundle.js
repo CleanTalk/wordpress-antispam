@@ -1117,12 +1117,14 @@ function ctDetectForcedAltCookiesForms() {
     let jetpackCommentsForm = document.querySelectorAll('iframe[name="jetpack_remote_comment"]').length > 0;
     let cwginstockForm = document.querySelectorAll('.cwginstock-subscribe-form').length > 0;
     let userRegistrationProForm = document.querySelectorAll('div[id^="user-registration-form"]').length > 0;
+    let etPbDiviSubscriptionForm = document.querySelectorAll('div[class^="et_pb_newsletter_form"]').length > 0;
     ctPublic.force_alt_cookies = smartFormsSign ||
         ninjaFormsSign ||
         jetpackCommentsForm ||
         elementorUltimateAddonsRegister ||
         cwginstockForm ||
-        userRegistrationProForm;
+        userRegistrationProForm ||
+        etPbDiviSubscriptionForm;
 }
 
 // eslint-disable-next-line require-jsdoc
@@ -2123,7 +2125,7 @@ function apbct_ready() {
             typeof ctPublic.data__cookies_type !== 'undefined' &&
             ctPublic.data__cookies_type === 'none'
         ) {
-            ctAjaxSetupAddNoCookieDataBeforeSendAjax();
+            ctAjaxSetupAddCleanTalkDataBeforeSendAjax();
         }
 
         for (let i = 0; i < document.forms.length; i++) {
@@ -2229,12 +2231,11 @@ function apbct_ready() {
  * - Any sign of the form HTML of the caller is insignificant in this process.
  * @return {void}
  */
-function ctAjaxSetupAddNoCookieDataBeforeSendAjax() {
+function ctAjaxSetupAddCleanTalkDataBeforeSendAjax() {
     // jquery ajax call intercept
     if ( typeof jQuery !== 'undefined' ) {
         jQuery.ajaxSetup({
             beforeSend: function(xhr, settings) {
-                let sourceSign = false;
                 // settings data is string (important!)
                 if ( typeof settings.data === 'string' ) {
                     if (settings.data.indexOf('twt_cc_signup') !== -1) {
@@ -3371,6 +3372,7 @@ function formIsExclusion(currentForm) {
         'hs-form', // integrated hubspot plugin through dynamicRenderedForms logic
         'ihc-form-create-edit', // integrated Ultimate Membership Pro plugin through dynamicRenderedForms logic
         'nf-form-content', // integration with Ninja Forms for js events
+        'elementor-form', // integration with elementor-form
     ];
 
     let result = false;
@@ -3617,6 +3619,7 @@ function ctProtectOutsideIframe() {
             if (iframe.src.indexOf('form.typeform.com') !== -1 ||
                 iframe.src.indexOf('forms.zohopublic.com') !== -1 ||
                 iframe.src.indexOf('link.surepathconnect.com') !== -1 ||
+                ( iframe.hasOwnProperty('class') && iframe.class.indexOf('hs-form-iframe') !== -1 ) ||
                 ( iframe.src.indexOf('facebook.com') !== -1 && iframe.src.indexOf('plugins/comments.php') !== -1)
             ) {
                 ctProtectOutsideIframeHandler(iframe);

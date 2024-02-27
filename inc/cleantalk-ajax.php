@@ -128,17 +128,9 @@ if ( class_exists('LFB_Core') ) {
     $_cleantalk_hooked_actions[] = 'send_email';
 }
 
-/* Fusion Builder Avada Forms integration */
-add_action('wp_ajax_nopriv_fusion_form_submit_form_to_database_email', 'ct_ajax_hook', 1);
-$_cleantalk_hooked_actions[] = 'fusion_form_submit_form_to_database_email';
-add_action('wp_ajax_nopriv_fusion_form_submit_form_to_email', 'ct_ajax_hook', 1);
-$_cleantalk_hooked_actions[] = 'fusion_form_submit_form_to_email';
-add_action('wp_ajax_nopriv_fusion_form_submit_ajax', 'ct_ajax_hook', 1);
-$_cleantalk_hooked_actions[] = 'fusion_form_submit_ajax';
-
 // Elementor Pro page builder forms
-add_action('wp_ajax_elementor_pro_forms_send_form', 'apbct_form__elementor_pro__testSpam');
-add_action('wp_ajax_nopriv_elementor_pro_forms_send_form', 'apbct_form__elementor_pro__testSpam');
+//add_action('wp_ajax_elementor_pro_forms_send_form', 'apbct_form__elementor_pro__testSpam');
+//add_action('wp_ajax_nopriv_elementor_pro_forms_send_form', 'apbct_form__elementor_pro__testSpam');
 
 /* UsersWP plugin integration */
 add_action('wp_ajax_nopriv_uwp_ajax_register', 'ct_ajax_hook', 1);
@@ -501,6 +493,15 @@ function ct_ajax_hook($message_obj = null)
             return false;
         }
     }
+
+    //Woocommerce.  Skip Paystation gateway service request.
+    if (
+        Post::get('action') === 'complete_order'  &&
+        in_array('paystation_payment_gateway', array_values($_POST))
+    ) {
+        do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
+        return false;
+    }
     //Easy Forms for Mailchimp
     if ( Post::get('action') === 'process_form_submission' ) {
         $post_info['comment_type'] = 'contact_enquire_wordpress_easy_forms_for_mailchimp';
@@ -570,48 +571,9 @@ function ct_ajax_hook($message_obj = null)
         }
     }
 
-    // Fusion Builder Avada Form integration
-    if (
-        Post::hasString('action', 'fusion_form_submit_form_to_database_email') ||
-        Post::hasString('action', 'fusion_form_submit_form_to_email') ||
-        Post::hasString('action', 'fusion_form_submit_ajax')
-    ) {
-        if (isset($_POST['formData'])) {
-            $form_data = $_POST['formData'];
-            // explode the string by &
-            $form_data = explode('&', $form_data);
-            $handled_form_data_collection = array();
-            // start collecting new cleared array
-            foreach ($form_data as $row) {
-                // skip visible fields from collection
-                if (stripos($row, 'apbct_visible_fields') === 0) {
-                    continue;
-                }
-                // skip no cookie from collection
-                if (stripos($row, 'ct_no_cookie_hidden_field') === 0) {
-                    if ($apbct->data['cookies_type'] === 'none') {
-                        $no_cookie_data = str_replace('ct_no_cookie_hidden_field=', '', $row);
-                        $apbct->stats['no_cookie_data_taken'] = \Cleantalk\ApbctWP\Variables\NoCookie::setDataFromHiddenField($no_cookie_data);
-                        $apbct->save('stats');
-                    }
-                    continue;
-                }
-                // skip bot detector from collection
-                if (stripos($row, 'ct_bot_detector_event_token') === 0) {
-                    continue;
-                }
-                // if nothing fired add the field to final array
-                $handled_form_data_collection[] = $row;
-                // collect data for ct_post_temp
-                $exploded_row = explode('=', $row);
-                if ( !empty($exploded_row[0]) && !empty($exploded_row[1]) ) {
-                    $ct_post_temp[$exploded_row[0]] = $exploded_row[1];
-                }
-            }
-            // convert array to string with &
-            $form_data = implode('&', $handled_form_data_collection);
-            $_POST['formData'] = $form_data;
-        }
+    //divi subscription form needs to force alt cookies
+    if ( Post::hasString('action', 'et_pb_submit_subscribe_form') ) {
+        Cookie::$force_alt_cookies_global = true;
     }
 
     /**
@@ -997,22 +959,6 @@ function ct_ajax_hook($message_obj = null)
         }
 
         if (
-            Post::hasString('action', 'fusion_form_submit_form_to_') ||
-            Post::hasString('action', 'fusion_form_submit_form_to_email') ||
-            Post::hasString('action', 'fusion_form_submit_ajax')
-        ) {
-            die(
-                json_encode(
-                    array(
-                        'status' => 'error',
-                        'info' => 'form_failed',
-                        'message' => $ct_result->comment,
-                    )
-                )
-            );
-        }
-
-        if (
             apbct_is_plugin_active('qsm-save-resume/qsm-save-resume.php') &&
             Post::hasString('action', 'qmn_process_quiz')
         ) {
@@ -1125,6 +1071,12 @@ function ct_ajax_hook($message_obj = null)
                     )
                 )
             );
+            die();
+        }
+
+        if (isset($_REQUEST['action']) && $_REQUEST['action'] === 'wpmlsubscribe') {
+            $block_msg = sprintf('<div class="newsletters-acknowledgement"><p style="color: darkred">%s</p></div>', $ct_result->comment);
+            echo $block_msg;
             die();
         }
 

@@ -256,6 +256,10 @@ class Helper extends \Cleantalk\Common\Helper
             return $object;
         }
 
+        if ( ( (is_array($object) || $object instanceof \Countable) ) && !@count($object) ) {
+            return array();
+        }
+
         return array_map('static::arrayObjectToArray', (array)$object);
     }
 

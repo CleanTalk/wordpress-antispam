@@ -3274,67 +3274,67 @@ function apbct_form__the7_contact_form()
     return false;
 }
 
-function apbct_form__elementor_pro__testSpam()
-{
-    global $apbct;
-
-    if (
-        $apbct->settings['forms__contact_forms_test'] == 0 ||
-        ($apbct->settings['data__protect_logged_in'] != 1 && is_user_logged_in()) || // Skip processing for logged in users.
-        Post::get('form_fields_password') ||
-        Post::get('form-field-password') || // Skip processing for login form.
-        apbct_exclusions_check__url()
-    ) {
-        do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
-
-        return;
-    }
-
-    /**
-     * Filter for POST
-     */
-    $input_array = apply_filters('apbct__filter_post', $_POST);
-
-    $ct_temp_msg_data = ct_gfa($input_array);
-
-    $sender_email    = $ct_temp_msg_data['email'] ?: '';
-    $sender_nickname = $ct_temp_msg_data['nickname'] ?: '';
-    $subject         = $ct_temp_msg_data['subject'] ?: '';
-    $message         = $ct_temp_msg_data['message'] ?: array();
-    if ( $subject !== '' ) {
-        $message = array_merge(array('subject' => $subject), $message);
-    }
-
-    $form_data = Post::get('form_fields');
-    if ($form_data) {
-        if (!$sender_email) {
-            $sender_email = Post::get('form_fields')['email'] ?: '';
-        }
-        if (!$sender_nickname) {
-            $sender_nickname = Post::get('form_fields')['name'] ?: '';
-        }
-    }
-
-    $post_info['comment_type'] = 'contact_form_wordpress_elementor_pro';
-
-    $base_call_result = apbct_base_call(
-        array(
-            'message'         => $message,
-            'sender_email'    => $sender_email,
-            'sender_nickname' => $sender_nickname,
-            'post_info'       => $post_info,
-        )
-    );
-
-    $ct_result = $base_call_result['ct_result'];
-
-    if ( $ct_result->allow == 0 ) {
-        wp_send_json_error(array(
-            'message' => $ct_result->comment,
-            'data'    => array()
-        ));
-    }
-}
+//function apbct_form__elementor_pro__testSpam()
+//{
+//    global $apbct;
+//
+//    if (
+//        $apbct->settings['forms__contact_forms_test'] == 0 ||
+//        ($apbct->settings['data__protect_logged_in'] != 1 && is_user_logged_in()) || // Skip processing for logged in users.
+//        Post::get('form_fields_password') ||
+//        Post::get('form-field-password') || // Skip processing for login form.
+//        apbct_exclusions_check__url()
+//    ) {
+//        do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
+//
+//        return;
+//    }
+//
+//    /**
+//     * Filter for POST
+//     */
+//    $input_array = apply_filters('apbct__filter_post', $_POST);
+//
+//    $ct_temp_msg_data = ct_gfa($input_array);
+//
+//    $sender_email    = $ct_temp_msg_data['email'] ?: '';
+//    $sender_nickname = $ct_temp_msg_data['nickname'] ?: '';
+//    $subject         = $ct_temp_msg_data['subject'] ?: '';
+//    $message         = $ct_temp_msg_data['message'] ?: array();
+//    if ( $subject !== '' ) {
+//        $message = array_merge(array('subject' => $subject), $message);
+//    }
+//
+//    $form_data = Post::get('form_fields');
+//    if ($form_data) {
+//        if (!$sender_email) {
+//            $sender_email = !empty($form_data['email']) ? $form_data['email'] : '';
+//        }
+//        if (!$sender_nickname) {
+//            $sender_nickname = !empty($form_data['name']) ? $form_data['name'] : '';
+//        }
+//    }
+//
+//    $post_info['comment_type'] = 'contact_form_wordpress_elementor_pro';
+//
+//    $base_call_result = apbct_base_call(
+//        array(
+//            'message'         => $message,
+//            'sender_email'    => $sender_email,
+//            'sender_nickname' => $sender_nickname,
+//            'post_info'       => $post_info,
+//        )
+//    );
+//
+//    $ct_result = $base_call_result['ct_result'];
+//
+//    if ( $ct_result->allow == 0 ) {
+//        wp_send_json_error(array(
+//            'message' => $ct_result->comment,
+//            'data'    => array()
+//        ));
+//    }
+//}
 
 /**
  * Places a hiding field to Gravity forms.
@@ -3584,12 +3584,13 @@ function apbct_form__uwp_validate($result, $_type, $data)
 
 /**
  * WS-Forms integration
+ * @psalm-suppress UnusedClosureParam
  */
 add_filter('wsf_submit_field_validate', function ($error_validation_action_field, $field_id, $_field_value, $section_repeatable_index, $_post_mode, $_form_submit_class) {
 
     global $cleantalk_executed;
 
-    if ( $cleantalk_executed ) {
+    if ( $cleantalk_executed || $_post_mode != 'submit' ) {
         return $error_validation_action_field;
     }
 
@@ -3614,10 +3615,8 @@ add_filter('wsf_submit_field_validate', function ($error_validation_action_field
     );
 
     if ( $base_call_result['ct_result']->allow == 0 ) {
-        return array(
-            'action'                   => 'field_invalid_feedback',
-            'field_id'                 => $field_id,
-            'section_repeatable_index' => $section_repeatable_index,
+        $error_validation_action_field[] = array(
+            'action'                   => 'message',
             'message'                  => $base_call_result['ct_result']->comment
         );
     }

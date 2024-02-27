@@ -600,7 +600,7 @@ function apbct_ready() {
             typeof ctPublic.data__cookies_type !== 'undefined' &&
             ctPublic.data__cookies_type === 'none'
         ) {
-            ctAjaxSetupAddNoCookieDataBeforeSendAjax();
+            ctAjaxSetupAddCleanTalkDataBeforeSendAjax();
         }
 
         for (let i = 0; i < document.forms.length; i++) {
@@ -706,7 +706,7 @@ function apbct_ready() {
  * - Any sign of the form HTML of the caller is insignificant in this process.
  * @return {void}
  */
-function ctAjaxSetupAddNoCookieDataBeforeSendAjax() {
+function ctAjaxSetupAddCleanTalkDataBeforeSendAjax() {
     // jquery ajax call intercept
     if ( typeof jQuery !== 'undefined' ) {
         jQuery.ajaxSetup({
