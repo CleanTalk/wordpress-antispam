@@ -2236,6 +2236,7 @@ function ctAjaxSetupAddCleanTalkDataBeforeSendAjax() {
     if ( typeof jQuery !== 'undefined' ) {
         jQuery.ajaxSetup({
             beforeSend: function(xhr, settings) {
+                let sourceSign = false;
                 // settings data is string (important!)
                 if ( typeof settings.data === 'string' ) {
                     if (settings.data.indexOf('twt_cc_signup') !== -1) {
