@@ -184,7 +184,7 @@ function apbct_init()
         }
 
         //Woocommerce add_to_cart action
-        add_action('woocommerce_add_to_cart', 'apbct_wc__add_to_cart_unlogged_user', 10, 6);
+        add_action('woocommerce_add_to_cart_validation', 'apbct_wc__add_to_cart_unlogged_user', 10, 6);
     }
 
     // WooCommerce whishlist
