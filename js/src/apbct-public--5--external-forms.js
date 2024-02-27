@@ -68,6 +68,7 @@ function formIsExclusion(currentForm) {
         'give-form', // give form exclusion because of direct integration
         'frmCalc', // nobletitle-calc
         'ihf-contact-request-form',
+        'wpforms', // integration with wpforms
     ];
 
     const exclusionsByRole = [
@@ -80,6 +81,7 @@ function formIsExclusion(currentForm) {
         'ihc-form-create-edit', // integrated Ultimate Membership Pro plugin through dynamicRenderedForms logic
         'nf-form-content', // integration with Ninja Forms for js events
         'elementor-form', // integration with elementor-form
+        'wpforms', // integration with wpforms
     ];
 
     let result = false;
