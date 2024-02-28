@@ -2,6 +2,8 @@
 
 use Cleantalk\ApbctWP\Escape;
 use Cleantalk\ApbctWP\Helper;
+use Cleantalk\ApbctWP\Localize\CtPublicFunctionsLocalize;
+use Cleantalk\ApbctWP\Localize\CtPublicLocalize;
 use Cleantalk\ApbctWP\Sanitize;
 use Cleantalk\ApbctWP\State;
 use Cleantalk\ApbctWP\Variables\Cookie;
@@ -23,6 +25,16 @@ function ct_add_mc4wp_error_message($messages)
 }
 
 add_filter('mc4wp_form_messages', 'ct_add_mc4wp_error_message');
+
+/*
+ * Fluent Booking shortcode localize CT script and vars.
+ */
+add_action('fluent_booking/before_calendar_event_landing_page', function () {
+    echo CtPublicFunctionsLocalize::getCode();
+    echo CtPublicLocalize::getCode();
+    $js_url = APBCT_URL_PATH . '/js/apbct-public-bundle.min.js?' . APBCT_VERSION;
+    echo "<script src='$js_url' type='application/javascript'></script>";
+}, 1);
 
 /**
  * Function to set validate function for CCF form
