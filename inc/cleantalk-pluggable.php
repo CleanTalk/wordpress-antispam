@@ -1084,6 +1084,17 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'Paid memebership service action';
         }
+
+        if (
+            (
+                apbct_is_plugin_active('easy-digital-downloads/easy-digital-downloads.php') ||
+                apbct_is_plugin_active('easy-digital-downloads-pro/easy-digital-downloads.php')
+            ) &&
+            Post::get('action') === 'edd_add_to_cart' ||
+            Post::get('action') === 'edd_recalculate_discounts_pro'
+        ) {
+            return 'Easy Digital Downloads service action';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */

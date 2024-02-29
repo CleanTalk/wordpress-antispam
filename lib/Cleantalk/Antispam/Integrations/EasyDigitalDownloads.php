@@ -8,7 +8,10 @@ class EasyDigitalDownloads extends IntegrationBase
 {
     public function getDataForChecking($argument)
     {
-        if ( Post::get('edd_action') === "user_register" ) {
+        if (
+            Post::get('edd_action') === "user_register" ||
+            !empty($argument['user_email'])
+        ) {
             /**
              * Filter for POST
              */
