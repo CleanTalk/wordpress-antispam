@@ -68,6 +68,7 @@ function formIsExclusion(currentForm) {
         'give-form', // give form exclusion because of direct integration
         'frmCalc', // nobletitle-calc
         'ihf-contact-request-form',
+        'wpforms', // integration with wpforms
     ];
 
     const exclusionsByRole = [
@@ -80,6 +81,7 @@ function formIsExclusion(currentForm) {
         'ihc-form-create-edit', // integrated Ultimate Membership Pro plugin through dynamicRenderedForms logic
         'nf-form-content', // integration with Ninja Forms for js events
         'elementor-form', // integration with elementor-form
+        'wpforms', // integration with wpforms
     ];
 
     let result = false;
@@ -302,7 +304,8 @@ function apbctReplaceInputsValuesFromOtherForm(formSource, formTarget) {
         });
     });
 }
-
+// clear protected iframes list
+apbctLocalStorage.set('apbct_iframes_protected', []);
 window.onload = function() {
     if ( ! +ctPublic.settings__forms__check_external ) {
         return;
@@ -326,9 +329,17 @@ function ctProtectOutsideIframe() {
             if (iframe.src.indexOf('form.typeform.com') !== -1 ||
                 iframe.src.indexOf('forms.zohopublic.com') !== -1 ||
                 iframe.src.indexOf('link.surepathconnect.com') !== -1 ||
-                ( iframe.hasOwnProperty('class') && iframe.class.indexOf('hs-form-iframe') !== -1 ) ||
+                iframe.classList.contains('hs-form-iframe') ||
                 ( iframe.src.indexOf('facebook.com') !== -1 && iframe.src.indexOf('plugins/comments.php') !== -1)
             ) {
+                // pass if is already protected
+                if (false !== apbctLocalStorage.get('apbct_iframes_protected') &&
+                    apbctLocalStorage.get('apbct_iframes_protected').length > 0 &&
+                    typeof iframe.id !== 'undefined' &&
+                    apbctLocalStorage.get('apbct_iframes_protected').indexOf[iframe.id] !== -1
+                ) {
+                    return;
+                }
                 ctProtectOutsideIframeHandler(iframe);
             }
         });
@@ -392,6 +403,14 @@ function ctProtectOutsideIframeHandler(iframe) {
     };
     iframe.parentNode.style.position = 'relative';
     iframe.parentNode.appendChild(cover);
+    let iframes = apbctLocalStorage.get('apbct_iframes_protected');
+    if (false === iframes) {
+        iframes = [];
+    }
+    if (typeof iframe.id !== 'undefined') {
+        iframes.push(iframe.id);
+        apbctLocalStorage.set('apbct_iframes_protected', iframes);
+    }
 }
 
 /**

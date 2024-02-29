@@ -208,39 +208,45 @@ class GetFieldsAny
     private function process($arr)
     {
         foreach ($arr as $key => $value) {
+            /*
+            * PREPARING
+            */
             if (is_string($value)) {
                 $tmp = strpos($value, '\\') !== false ? stripslashes($value) : $value;
 
-                # Remove html tags from $value
+                // Remove html tags from $value
                 $tmp = preg_replace('@<.*?>@', '', $tmp);
 
-                $decoded_json_value = json_decode($tmp, true);       // Try parse JSON from the string
-                if (strpos($value, "\n") !== false || strpos($value, "\r") !== false) {
-                    // Parse an only single-lined string
-                    parse_str(urldecode($tmp), $decoded_url_value); // Try parse URL from the string
+                // Try parse URL from the string, only single line is applicable
+                if (strpos($value, "\n") === false && strpos($value, "\r") === false) {
+                    parse_str(urldecode($tmp), $decoded_url_value);
                 }
 
-                // If there is "JSON data" set is it as a value
+                // Try parse JSON from the string
+                $decoded_json_value = json_decode($tmp, true);
+
                 if ($decoded_json_value !== null) {
-                    if (isset($arr['action']) &&
+                    // If there is "JSON data" set is it as a value
+                    if (
+                        isset($arr['action']) &&
                         $arr['action'] === 'nf_ajax_submit' &&
-                        isset($decoded_json_value['settings'])) {
+                        isset($decoded_json_value['settings'])
+                    ) {
                             unset($decoded_json_value['settings']);
                     }
 
                     $value = $decoded_json_value;
-                    // If there is "URL data" set is it as a value
                 } elseif (
                     isset($decoded_url_value) &&
                     ! (count($decoded_url_value) === 1 &&
                     reset($decoded_url_value) === '')
                 ) {
+                    // If there is "URL data" set is it as a value
                     $value = $decoded_url_value;
-
+                } elseif (preg_match('/^\S+\s%%\s\S+.+$/', $value)) {
                     // Ajax Contact Forms. Get data from such strings:
                     // acfw30_name %% Blocked~acfw30_email %% s@cleantalk.org
                     // acfw30_textarea %% msg
-                } elseif (preg_match('/^\S+\s%%\s\S+.+$/', $value)) {
                     $value = explode('~', $value);
                     foreach ($value as &$val) {
                         $tmp = explode(' %% ', $val);
@@ -249,6 +255,10 @@ class GetFieldsAny
                     unset($val);
                 }
             }
+
+            /*
+             * STRING CHECK START
+             */
 
             if ( ! is_array($value) && ! is_object($value) ) {
                 if (
@@ -328,6 +338,9 @@ class GetFieldsAny
                     $this->processed_data['message'][$this->prev_name . $key] = $value;
                 }
             } elseif ( ! is_object($value)) {
+                /*
+                 * NOT A STRING - PROCEED RECURSIVE
+                 */
                 if (empty($value)) {
                     continue;
                 }
