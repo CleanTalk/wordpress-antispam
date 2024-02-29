@@ -2317,6 +2317,12 @@ function ctSearchFormOnSubmitHandler(e, _form) {
             hpEventId = honeyPotField.getAttribute('apbct_event_id');
         }
 
+        if (ctPublic.data__cookies_type === 'alternative') {
+            if (botDetectorField !== null) {
+                botDetectorField.parentNode.removeChild(botDetectorField);
+            }
+        }
+
         // if noCookie data or honeypot data is set, proceed handling
         if ( noCookieField !== null || honeyPotField !== null) {
             e.preventDefault();
