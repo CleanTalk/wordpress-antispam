@@ -377,7 +377,8 @@ class GetFieldsAny
         // Visible fields processing
         $visible_fields = self::getVisibleFieldsData();
 
-        return isset($visible_fields['visible_fields']) ? explode(' ', $visible_fields['visible_fields']) : array();
+        return isset($visible_fields['visible_fields']) &&
+            is_string($visible_fields['visible_fields']) ? explode(' ', $visible_fields['visible_fields']) : array();
     }
 
     /**
