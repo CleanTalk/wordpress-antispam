@@ -413,7 +413,7 @@ $apbct_active_integrations = array(
         'ajax'    => false
     ),
     'EasyDigitalDownloads' => array(
-        'hook'    => 'edd_pre_process_register_form',
+        'hook'    => array('edd_pre_process_register_form', 'edd_insert_user_args'),
         'setting' => 'forms__registrations_test',
         'ajax'    => false
     ),
