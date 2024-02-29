@@ -2318,7 +2318,7 @@ function ctSearchFormOnSubmitHandler(e, _form) {
             hpValue = honeyPotField.value;
             hpEventId = honeyPotField.getAttribute('apbct_event_id');
         }
-console.log(ctPublic.data__cookies_type);
+
         if (ctPublic.data__cookies_type === 'alternative') {
             if (botDetectorField !== null) {
                 botDetectorField.parentNode.removeChild(botDetectorField);
