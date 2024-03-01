@@ -2592,6 +2592,10 @@ function getJavascriptClientData(commonCookies = []) {
     resultDataJson.apbct_site_referer = apbctSiteReferer;
     resultDataJson.apbct_ct_js_errors = ctJsErrorsLocalStorage;
 
+    if (!resultDataJson.apbct_pixel_url) {
+        resultDataJson.apbct_pixel_url = ctPublic.pixel__url;
+    }
+
     if (
         typeof (commonCookies) === 'object' &&
         commonCookies !== []
