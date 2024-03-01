@@ -462,6 +462,7 @@ Yes, it is. Please read this article,
 * New. Integrations. Newsletter Tribulant eraly ajax check.
 * New. Integrations. Divi Builder email opt-in subscription form.
 * New. Integrations. Hubspot forms protected via div-click.
+* New. Integration. Fluent Booking PRO calendar.
 * Upd. Integrations. Elementor Pro. Refactored to integration class.
 * Upd. Comments and user checker. Now use local datetime in the checker logs.
 * Fix. Integrations. Protected request anonymous add to cart.
@@ -475,6 +476,11 @@ Yes, it is. Please read this article,
 * Fix. SFW update. Do not warn user if we cannot remove index.php.
 * Fix. AJAX. Skip "Paid Membership" plugin service actions.
 * Fix. State. WP options. Broken serialized data handling.
+* Fix. GetFieldsAny. Handle warning.
+* Fix. Integration. Easy Digital Downloads. Registry during checkout handled. Service actions for discount recount skipped.
+* Fix. GetFiledsAny. Try to parse URL only for single lined message.
+* Fix. Div-click protection. Skipped already protected div on further call of window.load.
+* Fix. Integration. WPFomrs excluded form external forms check.
 
 = 6.27 Feb 14 2024
 * New. Integrations. Added protect for outside iframe.
