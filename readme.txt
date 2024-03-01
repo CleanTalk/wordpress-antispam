@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 4.7
 Tested up to: 6.4
 Requires PHP: 5.6
-Stable tag: 6.27
+Stable tag: 6.28
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -456,6 +456,31 @@ Yes, it is. Please read this article,
 12. SpamFireWall log.
 
 == Changelog ==
+
+= 6.28 Feb 28 2024
+* New. Integrations. Avada Fusion form builder new implementation added.
+* New. Integrations. Newsletter Tribulant eraly ajax check.
+* New. Integrations. Divi Builder email opt-in subscription form.
+* New. Integrations. Hubspot forms protected via div-click.
+* New. Integration. Fluent Booking PRO calendar.
+* Upd. Integrations. Elementor Pro. Refactored to integration class.
+* Upd. Comments and user checker. Now use local datetime in the checker logs.
+* Fix. Integrations. Protected request anonymous add to cart.
+* Fix. Integrations. Mailpoet. Bot detector handled, message cleared.
+* Fix. Integrations. Fluent forms. Bot detector handled, message cleared, visible fields array fixed, hook deprecation handled.
+* Fix. Integrations. Updated ws-forms handler.
+* Fix. Integrations. Submit time calculating fixed.
+* Fix. WooCommerce. Added new sign of wp-ajax to skip Paystation service requests.
+* Fix. WooCommerce. Skip "woo-stripe-payment" service request.
+* Fix. SFW. SFW updating process fixed.
+* Fix. SFW update. Do not warn user if we cannot remove index.php.
+* Fix. AJAX. Skip "Paid Membership" plugin service actions.
+* Fix. State. WP options. Broken serialized data handling.
+* Fix. GetFieldsAny. Handle warning.
+* Fix. Integration. Easy Digital Downloads. Registry during checkout handled. Service actions for discount recount skipped.
+* Fix. GetFiledsAny. Try to parse URL only for single lined message.
+* Fix. Div-click protection. Skipped already protected div on further call of window.load.
+* Fix. Integration. WPFomrs excluded form external forms check.
 
 = 6.27 Feb 14 2024
 * New. Integrations. Added protect for outside iframe.

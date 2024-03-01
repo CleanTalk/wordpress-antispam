@@ -575,31 +575,6 @@ function apbct_ready() {
     // detect integrated forms that need to be handled via alternative cookies
     ctDetectForcedAltCookiesForms();
 
-    // fix for forced alt-cookies timestamp
-    if (
-        typeof ctPublic.data__cookies_type !== 'undefined' &&
-        ctPublic.data__cookies_type === 'native' &&
-        typeof ctPublic.force_alt_cookies !== 'undefined' &&
-        ctPublic.force_alt_cookies
-    ) {
-        // if cookie is set
-        if (ctGetCookie('apbct_timestamp')) {
-            initCookies.push(['apbct_timestamp', ctGetCookie('apbct_timestamp')]);
-        } else {
-            // else use pagestart value
-            initCookies.push(['apbct_timestamp', apbctLocalStorage.get('ct_ps_timestamp')]);
-        }
-    }
-
-    if (
-        typeof ctPublic.data__cookies_type !== 'undefined' &&
-        ctPublic.data__cookies_type === 'none' &&
-        typeof ctPublicFunctions.wprocket_detected !== 'undefined' &&
-        ctPublicFunctions.wprocket_detected
-    ) {
-        initCookies.push(['apbct_timestamp', apbctLocalStorage.get('ct_ps_timestamp')]);
-    }
-
     // send bot detector event token to alt cookies on problem forms
     if (typeof ctPublic.force_alt_cookies !== 'undefined' &&
         ctPublic.force_alt_cookies &&
@@ -736,10 +711,9 @@ function ctAjaxSetupAddCleanTalkDataBeforeSendAjax() {
     if ( typeof jQuery !== 'undefined' ) {
         jQuery.ajaxSetup({
             beforeSend: function(xhr, settings) {
+                let sourceSign = false;
                 // settings data is string (important!)
                 if ( typeof settings.data === 'string' ) {
-                    let sourceSign = false;
-
                     if (settings.data.indexOf('twt_cc_signup') !== -1) {
                         sourceSign = 'twt_cc_signup';
                     }
@@ -758,21 +732,17 @@ function ctAjaxSetupAddCleanTalkDataBeforeSendAjax() {
                     if (settings.data.indexOf('action=happyforms_message') !== -1) {
                         sourceSign = 'action=happyforms_message';
                     }
-
-                    if (sourceSign) {
-                        // attach NoCookieData
-                        let noCookieData = getNoCookieData();
-                        let appendThis = 'data%5Bct_no_cookie_hidden_field%5D=' + noCookieData + '&';
-                        // attach BotDetectorEventToken
-                        if (typeof apbctLocalStorage !== 'undefined') {
-                            let botDetectorEventToken = apbctLocalStorage.get('bot_detector_event_token');
-                            if (typeof botDetectorEventToken === 'string' && botDetectorEventToken.length === 64) {
-                                appendThis += 'data%5Bct_bot_detector_event_token%5D=' + botDetectorEventToken + '&';
-                            }
-                        }
-
-                        settings.data = appendThis + settings.data;
+                }
+                if ( typeof settings.url === 'string' ) {
+                    if (settings.url.indexOf('wc-ajax=add_to_cart') !== -1) {
+                        sourceSign = 'wc-ajax=add_to_cart';
                     }
+                }
+
+                if (sourceSign) {
+                    let noCookieData = getNoCookieData();
+                    noCookieData = 'data%5Bct_no_cookie_hidden_field%5D=' + noCookieData + '&';
+                    settings.data = noCookieData + settings.data;
                 }
             },
         });
