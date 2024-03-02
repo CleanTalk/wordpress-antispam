@@ -2113,6 +2113,10 @@ function apbct_ready() {
         initCookies.push(['ct_bot_detector_event_token', apbctLocalStorage.get('bot_detector_event_token')]);
     }
 
+    if (!ctPublic.force_alt_cookies && ctPublic.data__cookies_type == 'alternative') {
+        ctPublic.force_alt_cookies = apbctLocalStorage.get('bot_detector_event_token');
+    }
+
     ctSetCookie(initCookies);
 
     setTimeout(function() {
