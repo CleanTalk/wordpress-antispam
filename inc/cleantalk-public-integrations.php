@@ -2215,7 +2215,7 @@ function apbct_form__optimizepress__testSpam()
         if (!headers_sent()) {
             header('HTTP/1.0 403 Forbidden');
         }
-		die($ct_result->comment);
+        die($ct_result->comment);
     }
 }
 
