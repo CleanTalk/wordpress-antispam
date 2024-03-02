@@ -604,6 +604,15 @@ function apbct_write_js_errors($data)
     return update_option(APBCT_JS_ERRORS, $exist_errors);
 }
 
+// OptimizePress
+if (
+    apbct_is_plugin_active('op-dashboard/op-dashboard.php') &&
+    apbct_is_in_uri('/optin/submit') &&
+    sizeof($_POST) > 0
+) {
+    apbct_form__optimizepress__testSpam();
+}
+
 // Mailoptin. Pass without action because url for ajax request is domain.com/any-page/?mailoptin-ajax=subscribe_to_email_list
 if (
     apbct_is_plugin_active('mailoptin/mailoptin.php') &&
