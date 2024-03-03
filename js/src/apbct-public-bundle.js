@@ -2356,7 +2356,7 @@ function ctSearchFormOnSubmitHandler(e, _form) {
                 cookiesArray.apbct_search_form__honeypot_id = hpEventId;
             }
 
-            //if the pixel needs to be decoded
+            // if the pixel needs to be decoded
             if ( cookiesArray.apbct_pixel_url.indexOf('%3A') != -1 ) {
                 cookiesArray.apbct_pixel_url = decodeURIComponent(cookiesArray.apbct_pixel_url);
             }
