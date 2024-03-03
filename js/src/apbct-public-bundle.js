@@ -2348,13 +2348,20 @@ function ctSearchFormOnSubmitHandler(e, _form) {
                 parsedCookies = atob(noCookieField.value.replace('_ct_no_cookie_data_', ''));
             }
 
+            const cookiesArray = JSON.parse(parsedCookies);
+
             // if honeypot data provided add the fields to the parsed data
             if ( hpValue !== null && hpEventId !== null ) {
-                const cookiesArray = JSON.parse(parsedCookies);
                 cookiesArray.apbct_search_form__honeypot_value = hpValue;
                 cookiesArray.apbct_search_form__honeypot_id = hpEventId;
-                parsedCookies = JSON.stringify(cookiesArray);
             }
+
+            //if the pixel needs to be decoded
+            if ( cookiesArray.apbct_pixel_url.indexOf('%3A') != -1 ) {
+                cookiesArray.apbct_pixel_url = decodeURIComponent(cookiesArray.apbct_pixel_url);
+            }
+
+            parsedCookies = JSON.stringify(cookiesArray);
 
             // if any data provided, proceed data to xhr
             if ( parsedCookies.length !== 0 ) {
