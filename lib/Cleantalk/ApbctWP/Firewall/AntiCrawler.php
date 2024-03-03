@@ -67,116 +67,64 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
     {
         $file_content = file_get_contents($file_path_ua);
 
-        if ( function_exists('gzdecode') ) {
-            $unzipped_content = gzdecode($file_content);
-
-            if ( $unzipped_content !== false ) {
-                $lines = \Cleantalk\ApbctWP\Helper::bufferParseCsv($unzipped_content);
-
-                if ( empty($lines['errors']) ) {
-                    $result__clear_db = self::clearDataTable(
-                        \Cleantalk\ApbctWP\DB::getInstance(),
-                        APBCT_TBL_AC_UA_BL
-                    );
-
-                    if ( empty($result__clear_db['error']) ) {
-                        for ( $count_result = 0; current($lines) !== false; ) {
-                            $query = "INSERT INTO " . APBCT_TBL_AC_UA_BL . " (id, ua_template, ua_status) VALUES ";
-
-                            for (
-                                $i = 0, $values = array();
-                                APBCT_WRITE_LIMIT !== $i && current($lines) !== false;
-                                $i++, $count_result++, next($lines)
-                            ) {
-                                $entry = current($lines);
-
-                                if ( empty($entry) || ! isset($entry[0], $entry[1]) ) {
-                                    continue;
-                                }
-
-                                // Cast result to int
-                                $ua_id       = preg_replace('/[^\d]*/', '', $entry[0]);
-                                $ua_template = isset($entry[1]) && Validate::isRegexp($entry[1]) ? Helper::dbPrepareParam(
-                                    $entry[1]
-                                ) : 0;
-                                $ua_status   = isset($entry[2]) ? $entry[2] : 0;
-
-                                if ( ! $ua_template ) {
-                                    continue;
-                                }
-
-                                $values[] = '(' . $ua_id . ',' . $ua_template . ',' . $ua_status . ')';
-                            }
-
-                            if ( ! empty($values) ) {
-                                $query = $query . implode(',', $values) . ';';
-                                \Cleantalk\ApbctWP\DB::getInstance()->execute($query);
-                            }
-                        }
-
-                        if ( file_exists($file_path_ua) ) {
-                            unlink($file_path_ua);
-                        }
-
-                        return $count_result;
-                    } else {
-                        return $result__clear_db;
-                    }
-                } else {
-                    return array('error' => 'UAL_UPDATE_ERROR: ' . $lines['error']);
-                }
-            } else {
-                return array('error' => 'Can not unpack datafile');
-            }
-        } else {
+        if ( ! function_exists('gzdecode') ) {
             return array('error' => 'Function gzdecode not exists. Please update your PHP at least to version 5.4 ');
         }
-    }
 
-    public static function directUpdate($useragents)
-    {
-        $result__clear_db = self::clearDataTable(\Cleantalk\ApbctWP\DB::getInstance(), APBCT_TBL_AC_UA_BL);
+        $unzipped_content = gzdecode($file_content);
 
-        if ( empty($result__clear_db['error']) ) {
-            for ( $count_result = 0; current($useragents) !== false; ) {
-                $query = "INSERT INTO " . APBCT_TBL_AC_UA_BL . " (id, ua_template, ua_status) VALUES ";
-
-                for (
-                    $i = 0, $values = array();
-                    APBCT_WRITE_LIMIT !== $i && current($useragents) !== false;
-                    $i++, $count_result++, next($useragents)
-                ) {
-                    $entry = current($useragents);
-
-                    if ( empty($entry) ) {
-                        continue;
-                    }
-
-                    // Cast result to int
-                    // @ToDo check the output $entry
-                    $ua_id = preg_replace('/[^\d]*/', '', $entry[0]);
-                    $ua_template = isset($entry[1]) && Validate::isRegexp($entry[1]) ? Helper::dbPrepareParam($entry[1]) : 0;
-                    $ua_status = isset($entry[2]) ? $entry[2] : 0;
-
-                    $values[] = '(' . $ua_id . ',' . $ua_template . ',' . $ua_status . ')';
-                }
-
-                if ( ! empty($values) ) {
-                    $query = $query . implode(',', $values) . ';';
-                    $result = \Cleantalk\ApbctWP\DB::getInstance()->execute($query);
-                    if ( $result === false ) {
-                        return array( 'error' => \Cleantalk\ApbctWP\DB::getInstance()->getLastError() );
-                    }
-                }
-            }
-
-            return $count_result;
+        if ( $unzipped_content === false ) {
+            return array('error' => 'Can not unpack datafile');
         }
 
-        return $result__clear_db;
+        $lines = \Cleantalk\ApbctWP\Helper::bufferParseCsv($unzipped_content);
+
+        if ( ! empty($lines['errors']) ) {
+            return array('error' => 'UAL_UPDATE_ERROR: ' . $lines['error']);
+        }
+
+        for ( $count_result = 0; current($lines) !== false; ) {
+            $query = "INSERT INTO " . APBCT_TBL_AC_UA_BL . " (id, ua_template, ua_status) VALUES ";
+
+            for (
+                $i = 0, $values = array();
+                APBCT_WRITE_LIMIT !== $i && current($lines) !== false;
+                $i++, $count_result++, next($lines)
+            ) {
+                $entry = current($lines);
+
+                if ( empty($entry) || ! isset($entry[0], $entry[1]) ) {
+                    continue;
+                }
+
+                // Cast result to int
+                $ua_id       = preg_replace('/[^\d]*/', '', $entry[0]);
+                $ua_template = isset($entry[1]) && Validate::isRegexp($entry[1]) ? Helper::dbPrepareParam(
+                    $entry[1]
+                ) : 0;
+                $ua_status   = isset($entry[2]) ? $entry[2] : 0;
+
+                if ( ! $ua_template ) {
+                    continue;
+                }
+
+                $values[] = '(' . $ua_id . ',' . $ua_template . ',' . $ua_status . ')';
+            }
+
+            if ( ! empty($values) ) {
+                $query = $query . implode(',', $values) . ' ON DUPLICATE KEY UPDATE ua_status=0';
+                \Cleantalk\ApbctWP\DB::getInstance()->execute($query);
+            }
+        }
+
+        if ( file_exists($file_path_ua) ) {
+            unlink($file_path_ua);
+        }
+
+        return $count_result;
     }
 
-    private static function clearDataTable($db, $db__table__data)
+    public static function clearDataTable($db, $db__table__data)
     {
         $db->execute("TRUNCATE TABLE {$db__table__data};");
         $db->setQuery("SELECT COUNT(*) as cnt FROM {$db__table__data};")->fetch(); // Check if it is clear

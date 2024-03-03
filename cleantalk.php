@@ -1672,6 +1672,15 @@ function apbct_sfw_update__create_temp_tables($direct_update = false)
         return $result;
     }
 
+    $result__clear_db = AntiCrawler::clearDataTable(
+        \Cleantalk\ApbctWP\DB::getInstance(),
+        APBCT_TBL_AC_UA_BL
+    );
+
+    if ( ! empty($result__clear_db['error']) ) {
+        return array('error' => 'UPDATING UA LIST: ' . $result__clear_db['error']);
+    }
+
     return $direct_update ? true : array(
         'next_stage' => array(
             'name' => 'apbct_sfw_update__process_files',
