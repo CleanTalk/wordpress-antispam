@@ -1678,7 +1678,7 @@ function apbct_sfw_update__create_temp_tables($direct_update = false)
     );
 
     if ( ! empty($result__clear_db['error']) ) {
-        return array('error' => 'UPDATING UA LIST: ' . $result__clear_db['error']);
+        return $result__clear_db['error'];
     }
 
     return $direct_update ? true : array(
