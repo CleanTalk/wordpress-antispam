@@ -1128,12 +1128,12 @@ function ctDetectForcedAltCookiesForms() {
         etPbDiviSubscriptionForm ||
         fluentBookingApp;
 
-    setTimeout(function () {
+    setTimeout(function (){
         if (!ctPublic.force_alt_cookies) {
             let bookingPress = document.querySelectorAll('main[id^="bookingpress_booking_form"]').length > 0;
             ctPublic.force_alt_cookies = bookingPress;
         }
-    }, 1000)
+    }, 1000);
 }
 
 // eslint-disable-next-line require-jsdoc
