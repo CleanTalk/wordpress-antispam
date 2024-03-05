@@ -586,6 +586,10 @@ function apbct_ready() {
         initCookies.push(['ct_bot_detector_event_token', apbctLocalStorage.get('bot_detector_event_token')]);
     }
 
+    if (!ctPublic.force_alt_cookies && ctPublic.data__cookies_type == 'alternative') {
+        ctPublic.force_alt_cookies = apbctLocalStorage.get('bot_detector_event_token');
+    }
+
     ctSetCookie(initCookies);
 
     setTimeout(function() {
@@ -1077,6 +1081,10 @@ function getJavascriptClientData(commonCookies = []) {
     resultDataJson.apbct_prev_referer = apbctPrevReferer;
     resultDataJson.apbct_site_referer = apbctSiteReferer;
     resultDataJson.apbct_ct_js_errors = ctJsErrorsLocalStorage;
+
+    if (!resultDataJson.apbct_pixel_url) {
+        resultDataJson.apbct_pixel_url = ctPublic.pixel__url;
+    }
 
     if (
         typeof (commonCookies) === 'object' &&
