@@ -2193,6 +2193,33 @@ function apbct_form__mo_subscribe_to_email_list__testSpam()
 }
 
 /**
+ * Test OptimizePress form for spam
+ *
+ * @return void
+ */
+function apbct_form__optimizepress__testSpam()
+{
+    $params = ct_gfa(apply_filters('apbct__filter_post', $_POST));
+
+    $base_call_result = apbct_base_call(
+        array(
+            'sender_email'    => $params['email'] ? $params['email'] : Post::get('email'),
+            'sender_nickname' => $params['nickname'] ? $params['nickname'] : Post::get('first_name'),
+            'post_info'       => array('comment_type' => 'subscribe_form_wordpress_optimizepress'),
+        )
+    );
+
+    $ct_result = $base_call_result['ct_result'];
+
+    if ( $ct_result->allow == 0 ) {
+        if (!headers_sent()) {
+            header('HTTP/1.0 403 Forbidden');
+        }
+        die($ct_result->comment);
+    }
+}
+
+/**
  * Test Metform subscribe form for spam
  *
  * @return void
