@@ -458,6 +458,9 @@ Yes, it is. Please read this article,
 == Changelog ==
 
 = 6.29 Mar 14 2024
+New. Integration. BookingPress integration.
+New. Integration. OptimizePress integration.
+Upd. Anti-Crawler. UA updating fixed.
 Fix. Code. JS bundle fixed.
 Fix. Bot detector JS lib. Event token field removed from GET params.
 Fix. Pixel. Pixel URL getting fixed.
