@@ -35,7 +35,8 @@ async function bundle_js() {
         .pipe(gulp.dest('js/src/'))
 
         .pipe(babel({
-            presets: ["@babel/preset-env"]
+            presets: ["@babel/preset-env"],
+            plugins: ["@babel/plugin-transform-classes"]
         }))
 
         // Minifying

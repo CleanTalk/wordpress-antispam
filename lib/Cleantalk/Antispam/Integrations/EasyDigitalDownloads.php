@@ -6,8 +6,12 @@ use Cleantalk\ApbctWP\Variables\Post;
 
 class EasyDigitalDownloads extends IntegrationBase
 {
+    private $user_data;
+
     public function getDataForChecking($argument)
     {
+        $this->user_data = $argument;
+
         if (
             Post::get('edd_action') === "user_register" ||
             !empty($argument['user_email'])
@@ -33,5 +37,10 @@ class EasyDigitalDownloads extends IntegrationBase
         global $ct_comment;
         $ct_comment = $message;
         ct_die(null, null);
+    }
+
+    public function allow()
+    {
+        return $this->user_data;
     }
 }

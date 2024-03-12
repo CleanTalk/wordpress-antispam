@@ -3576,6 +3576,15 @@ function apbct_custom_forms_trappings()
         return true;
     }
 
+    // Registration form of goodlayers-lms
+    if (
+        apbct_is_plugin_active('goodlayers-lms/goodlayers-lms.php') &&
+        $apbct->settings['forms__registrations_test'] &&
+        Post::get('action') === 'create-new-user'
+    ) {
+        return true;
+    }
+
     return false;
 }
 
