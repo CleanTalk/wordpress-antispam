@@ -4,6 +4,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.22.9",
+    "@babel/plugin-transform-classes": "^7.23.8",
     "@babel/preset-env": "^7.22.9",
     "eslint": "^8.45.0",
     "eslint-config-google": "^0.14.0",
