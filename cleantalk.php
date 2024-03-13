@@ -716,6 +716,7 @@ add_filter('wpforo_create_profile', 'wpforo_create_profile__check_register', 1, 
 
 // HappyForms integration
 add_filter('happyforms_validate_submission', 'apbct_form_happyforms_test_spam', 1, 3);
+add_filter('happyforms_use_hash_protection', '__return_false');
 
 // WPForms
 // Adding fields
