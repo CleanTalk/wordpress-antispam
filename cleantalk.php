@@ -1285,17 +1285,7 @@ function apbct_sfw_update__init($delay = 0)
     $wp_upload_dir = wp_upload_dir();
     $apbct->fw_stats['updating_folder'] = $wp_upload_dir['basedir'] . DIRECTORY_SEPARATOR . 'cleantalk_fw_files_for_blog_' . get_current_blog_id() . DIRECTORY_SEPARATOR;
 
-    $prepare_dir__result = SFWUpdateHelper::prepareUpdDir();
-    $test_rc_result = Helper::httpRequestRcToHostTest(
-        'sfw_update__worker',
-        array(
-            'spbc_remote_call_token' => md5($apbct->api_key),
-            'spbc_remote_call_action' => 'sfw_update__worker',
-            'plugin_name' => 'apbct'
-        )
-    );
-
-    if ( defined('APBCT_SFW_FORCE_DIRECT_UPDATE') || ! empty($prepare_dir__result['error']) || ! empty($test_rc_result['error']) ) {
+    if (apbct_sfw_update__switch_to_direct()) {
         return SFWUpdateHelper::directUpdate();
     }
 
@@ -1339,6 +1329,51 @@ function apbct_sfw_update__init($delay = 0)
         ),
         array('async')
     );
+}
+
+/**
+ * Decide need to force direct update
+ *
+ * @return bool
+ * @psalm-suppress NullArgument
+ */
+function apbct_sfw_update__switch_to_direct()
+{
+    global $apbct;
+
+    $apbct->fw_stats['reason_direct_update_log'] = null;
+
+    if (defined('APBCT_SFW_FORCE_DIRECT_UPDATE')) {
+        $apbct->fw_stats['reason_direct_update_log'] = 'const APBCT_SFW_FORCE_DIRECT_UPDATE exists';
+        return true;
+    }
+
+    $prepare_dir__result = SFWUpdateHelper::prepareUpdDir();
+    if (!empty($prepare_dir__result['error'])) {
+        $apbct->fw_stats['reason_direct_update_log'] = 'variable prepare_dir__result has error';
+        return true;
+    }
+
+    $test_rc_result = Helper::httpRequestRcToHostTest(
+        'sfw_update__worker',
+        array(
+            'spbc_remote_call_token' => md5($apbct->api_key),
+            'spbc_remote_call_action' => 'sfw_update__worker',
+            'plugin_name' => 'apbct'
+        )
+    );
+    if (!empty($test_rc_result['error'])) {
+        $apbct->fw_stats['reason_direct_update_log'] = 'test remote call has error';
+        return true;
+    }
+
+    if (isset($apbct->fw_stats['firewall_updating_last_start'], $apbct->stats['sfw']['update_period']) &&
+    ((int)$apbct->fw_stats['firewall_updating_last_start'] + (int)$apbct->stats['sfw']['update_period'] + 3600) < time()) {
+        $apbct->fw_stats['reason_direct_update_log'] = 'general update is freezing';
+        return true;
+    }
+
+    return false;
 }
 
 /**
