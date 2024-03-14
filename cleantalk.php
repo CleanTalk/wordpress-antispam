@@ -4,7 +4,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 6.28.1-fix
+  Version: 6.29
   Author: СleanTalk - Anti-Spam Protection <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -562,6 +562,13 @@ $apbct_active_integrations = array(
         'setting' => 'forms__contact_forms_test',
         'ajax'    => true
     ),
+    'BookingPress' => array(
+        'hook'    => [
+            'bookingpress_book_appointment_booking',
+        ],
+        'setting' => 'forms__contact_forms_test',
+        'ajax'    => true
+    ),
 );
 new  \Cleantalk\Antispam\Integrations($apbct_active_integrations, (array)$apbct->settings);
 
@@ -602,6 +609,15 @@ function apbct_write_js_errors($data)
     }
 
     return update_option(APBCT_JS_ERRORS, $exist_errors);
+}
+
+// OptimizePress
+if (
+    apbct_is_plugin_active('op-dashboard/op-dashboard.php') &&
+    apbct_is_in_uri('/optin/submit') &&
+    sizeof($_POST) > 0
+) {
+    apbct_form__optimizepress__testSpam();
 }
 
 // Mailoptin. Pass without action because url for ajax request is domain.com/any-page/?mailoptin-ajax=subscribe_to_email_list
@@ -1671,6 +1687,15 @@ function apbct_sfw_update__create_temp_tables($direct_update = false)
     $result = SFW::createTempTables(DB::getInstance(), APBCT_TBL_FIREWALL_DATA_PERSONAL);
     if ( ! empty($result['error']) ) {
         return $result;
+    }
+
+    $result__clear_db = AntiCrawler::clearDataTable(
+        \Cleantalk\ApbctWP\DB::getInstance(),
+        APBCT_TBL_AC_UA_BL
+    );
+
+    if ( ! empty($result__clear_db['error']) ) {
+        return $result__clear_db['error'];
     }
 
     return $direct_update ? true : array(

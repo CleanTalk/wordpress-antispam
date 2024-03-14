@@ -128,10 +128,6 @@ if ( class_exists('LFB_Core') ) {
     $_cleantalk_hooked_actions[] = 'send_email';
 }
 
-// Elementor Pro page builder forms
-//add_action('wp_ajax_elementor_pro_forms_send_form', 'apbct_form__elementor_pro__testSpam');
-//add_action('wp_ajax_nopriv_elementor_pro_forms_send_form', 'apbct_form__elementor_pro__testSpam');
-
 /* UsersWP plugin integration */
 add_action('wp_ajax_nopriv_uwp_ajax_register', 'ct_ajax_hook', 1);
 $_cleantalk_hooked_actions[] = 'uwp_ajax_register';

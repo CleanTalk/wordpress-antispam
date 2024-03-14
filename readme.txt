@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 4.7
 Tested up to: 6.4
 Requires PHP: 5.6
-Stable tag: 6.28
+Stable tag: 6.29
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -456,6 +456,18 @@ Yes, it is. Please read this article,
 12. SpamFireWall log.
 
 == Changelog ==
+
+= 6.29 Mar 14 2024
+New. Integration. BookingPress integration.
+New. Integration. OptimizePress integration.
+Upd. Anti-Crawler. UA updating fixed.
+Fix. Code. JS bundle fixed.
+Fix. Bot detector JS lib. Event token field removed from GET params.
+Fix. Pixel. Pixel URL getting fixed.
+Fix. Email encoder. Skip Divi Builder generated content from encoding.
+Fix. Integration. Goodlayers LMS plugin registration exclude from skipping.
+Fix. Integration. EasyDigitalDownloads integration fixed.
+Fix. Bot detector. Including bot detector wrapper script fixed.
 
 = 6.28 Feb 28 2024
 * New. Integrations. Avada Fusion form builder new implementation added.

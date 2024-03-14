@@ -1095,6 +1095,17 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'Easy Digital Downloads service action';
         }
+
+        if (
+            (
+                apbct_is_plugin_active('bookingpress-appointment-booking/bookingpress-appointment-booking.php') ||
+                apbct_is_plugin_active('bookingpress-appointment-booking-pro/bookingpress-appointment-booking-pro.php')
+            ) &&
+            Post::get('action') === 'bookingpress_pre_booking_verify_details' ||
+            Post::get('action') === 'bookingpress_book_appointment_booking'
+        ) {
+            return 'BookingPress service action';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */

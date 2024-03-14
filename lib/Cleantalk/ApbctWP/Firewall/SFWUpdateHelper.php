@@ -52,9 +52,9 @@ class SFWUpdateHelper
      * @param $file_path
      * @return int|string[]
      */
-    public static function processUA($file_path, $direct_update = false)
+    public static function processUA($file_path)
     {
-        $result = $direct_update ? AntiCrawler::directUpdate($file_path) : AntiCrawler::update($file_path);
+        $result = AntiCrawler::update($file_path);
 
         if ( ! empty($result['error']) ) {
             return array('error' => 'UPDATING UA LIST: ' . $result['error']);

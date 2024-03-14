@@ -264,6 +264,8 @@ function skip_for_ct_contact_form_validate()
             strpos(Get::get('path'), 'wc-stripe/v1/checkout/payment') !== false &&
             Post::get('stripe_cc_token_key')
         ),
+        // OptimizePress
+        '97' => (apbct_is_plugin_active('op-dashboard/op-dashboard.php') && apbct_is_in_uri('/trackFacebookCAPIEvents')),
     );
 
     foreach ( $exclusions as $exclusion_key => $state ) {
