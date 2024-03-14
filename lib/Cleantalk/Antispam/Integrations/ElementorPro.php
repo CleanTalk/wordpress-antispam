@@ -41,6 +41,9 @@ class ElementorPro extends IntegrationBase
             $message = array_merge(array('subject' => $subject), $message);
         }
 
+        //Doboard 6583 - skip this to avoid repeats
+        unset($message['referer_title']);
+
         $form_data = Post::get('form_fields');
         if ( $form_data ) {
             if ( !$sender_email ) {
