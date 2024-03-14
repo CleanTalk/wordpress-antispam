@@ -126,6 +126,12 @@ function ctSetAlternativeCookie(cookies, params) {
 
     // Using REST API handler
     if ( ctPublicFunctions.data__ajax_type === 'rest' ) {
+        // fix for url encoded cookie apbct_pixel_url on REST route
+        if (typeof cookies.apbct_pixel_url !== undefined &&
+            cookies.apbct_pixel_url.indexOf('%3A') !== -1
+        ) {
+            cookies.apbct_pixel_url = decodeURIComponent(cookies.apbct_pixel_url);
+        }
         apbct_public_sendREST(
             'alt_sessions',
             {
