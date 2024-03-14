@@ -3847,7 +3847,9 @@ function sendAjaxCheckingFormData(form) {
     visibleFields[0] = apbct_collect_visible_fields(form);
     apbct_visible_fields_set_cookie( visibleFields );
 
-    const data = {};
+    const data = {
+        'ct_bot_detector_event_token' : apbctLocalStorage.get('bot_detector_event_token')
+    };
     let elems = form.elements;
     elems = Array.prototype.slice.call(elems);
 
