@@ -552,7 +552,7 @@ function sendAjaxCheckingFormData(form) {
     apbct_visible_fields_set_cookie( visibleFields );
 
     const data = {
-        'ct_bot_detector_event_token' : apbctLocalStorage.get('bot_detector_event_token')
+        'ct_bot_detector_event_token': apbctLocalStorage.get('bot_detector_event_token'),
     };
     let elems = form.elements;
     elems = Array.prototype.slice.call(elems);
