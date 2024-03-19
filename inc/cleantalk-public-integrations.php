@@ -551,42 +551,34 @@ function apbct_woocommerce__add_request_id_to_order_meta($order_id)
  * Triggered when adding an item to the shopping cart
  * for un-logged users
  *
- * @param $bool
- * @param $item
- * @param $quantity
- *
  * @return bool
  * @psalm-suppress UnusedParam
  * @psalm-suppress UndefinedFunction
  */
 
-function apbct_wc__add_to_cart_unlogged_user($b, $item, $q)
+function apbct_wc__add_to_cart_unlogged_user()
 {
-    global $apbct;
+    $message = apply_filters('apbct__filter_post', $_POST);
 
-    if ( ! apbct_is_user_logged_in() && $apbct->settings['forms__wc_add_to_cart'] ) {
-        $message = apply_filters('apbct__filter_post', $_POST);
+    $post_info['comment_type'] = 'order__add_to_cart';
+    $post_info['post_url']     = Sanitize::cleanUrl(Server::get('HTTP_REFERER'));
 
-        $post_info['comment_type'] = 'order__add_to_cart';
-        $post_info['post_url']     = Sanitize::cleanUrl(Server::get('HTTP_REFERER'));
+    //Making a call
+    $base_call_result = apbct_base_call(
+        array(
+            'message'     => $message,
+            'post_info'   => $post_info,
+            'js_on'       => apbct_js_test(Sanitize::cleanTextField(Cookie::get('ct_checkjs')), true),
+            'sender_info' => array('sender_url' => null),
+            'exception_action' => false,
+        )
+    );
 
-        //Making a call
-        $base_call_result = apbct_base_call(
-            array(
-                'message'     => $message,
-                'post_info'   => $post_info,
-                'js_on'       => apbct_js_test(Sanitize::cleanTextField(Cookie::get('ct_checkjs')), true),
-                'sender_info' => array('sender_url' => null),
-                'exception_action' => false,
-            )
-        );
+    $ct_result = $base_call_result['ct_result'];
 
-        $ct_result = $base_call_result['ct_result'];
-
-        if ( $ct_result->allow == 0 ) {
-            wc_add_notice($ct_result->comment, 'error');
-            return false;
-        }
+    if ( $ct_result->allow == 0 ) {
+        wc_add_notice($ct_result->comment, 'error');
+        return false;
     }
 
     return true;
