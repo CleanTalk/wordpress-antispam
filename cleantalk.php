@@ -2065,8 +2065,7 @@ function apbct_sfw_private_records_handler($action, $test_data = null)
             $metadata_assoc_array = array(
                 'network' => (int)$row[0],
                 'mask' => (int)$row[1],
-                'status' => isset($row[2]) ? (int)$row[2] : null,
-                'source' => isset($row[3]) ? (int)$row[3] : null
+                'status' => isset($row[2]) ? (int)$row[2] : null
             );
             //validate
             $validation_error = '';
@@ -2082,10 +2081,6 @@ function apbct_sfw_private_records_handler($action, $test_data = null)
             }
             //only for adding
             if ( $action === 'add' ) {
-                if ( $metadata_assoc_array['source'] !== 1
-                ) {
-                    $validation_error = 'metadata validate failed on "source" value';
-                }
                 if ( $metadata_assoc_array['status'] !== 1 && $metadata_assoc_array['status'] !== 0 ) {
                     $validation_error = 'metadata validate failed on "status" value';
                 }
