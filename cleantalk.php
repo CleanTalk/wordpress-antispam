@@ -569,6 +569,11 @@ $apbct_active_integrations = array(
         'setting' => 'forms__contact_forms_test',
         'ajax'    => true
     ),
+    'JobstackThemeRegistration' => array(
+        'hook'    => 'wp_loaded',
+        'setting' => 'forms__registrations_test',
+        'ajax'    => false
+    ),
 );
 new  \Cleantalk\Antispam\Integrations($apbct_active_integrations, (array)$apbct->settings);
 
