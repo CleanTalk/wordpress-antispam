@@ -1106,6 +1106,16 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'BookingPress service action';
         }
+
+        if (
+            (
+                apbct_is_plugin_active('pixelyoursite/pixelyoursite.php') ||
+                apbct_is_plugin_active('pixelyoursite-pro/pixelyoursite-pro.php')
+            ) &&
+            Post::get('action') === 'pys_api_event'
+        ) {
+            return 'Pixelyoursite service action';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
