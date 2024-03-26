@@ -1,6 +1,7 @@
 {
   "scripts": {
-    "eslint": "./node_modules/.bin/eslint -c ./.eslintrc.js js/src/*.js"
+    "eslint": "./node_modules/.bin/eslint -c ./.eslintrc.js js/src/*.js",
+    "eslint-windows": ".\\node_modules\\.bin\\eslint -c .\\.eslintrc.js js\\src\\*.js"
   },
   "devDependencies": {
     "@babel/core": "^7.22.9",
