@@ -841,8 +841,8 @@ function ctSearchFormOnSubmitHandler(e, _form) {
 
             // if the pixel needs to be decoded
             if (
-                typeof cookiesArray.apbct_pixel_url !== 'undefined' &&
-                cookiesArray.apbct_pixel_url.indexOf('%3A') != -1
+                typeof cookiesArray.apbct_pixel_url === 'string' &&
+                cookiesArray.apbct_pixel_url.indexOf('%3A') !== -1
             ) {
                 cookiesArray.apbct_pixel_url = decodeURIComponent(cookiesArray.apbct_pixel_url);
             }

@@ -271,7 +271,7 @@ class ApbctCore {
 
         for (let i=0; i<this.elements.length; i++) {
             // Use property instead of attribute if possible
-            if (typeof this.elements[i][attrName] !== 'undefined') {
+            if (typeof this.elements[i][attrName] !== undefined) {
                 outputValue.push(this.elements[i][attrName]);
             } else {
                 outputValue.push(this.elements[i].getAttribute(attrName));
@@ -1164,7 +1164,7 @@ function ctSetAlternativeCookie(cookies, params) {
     // Using REST API handler
     if ( ctPublicFunctions.data__ajax_type === 'rest' ) {
         // fix for url encoded cookie apbct_pixel_url on REST route
-        if (typeof cookies.apbct_pixel_url !== 'undefined' &&
+        if (typeof cookies.apbct_pixel_url === 'string' &&
             cookies.apbct_pixel_url.indexOf('%3A') !== -1
         ) {
             cookies.apbct_pixel_url = decodeURIComponent(cookies.apbct_pixel_url);
@@ -2381,8 +2381,8 @@ function ctSearchFormOnSubmitHandler(e, _form) {
 
             // if the pixel needs to be decoded
             if (
-                typeof cookiesArray.apbct_pixel_url !== 'undefined' &&
-                cookiesArray.apbct_pixel_url.indexOf('%3A') != -1
+                typeof cookiesArray.apbct_pixel_url === 'string' &&
+                cookiesArray.apbct_pixel_url.indexOf('%3A') !== -1
             ) {
                 cookiesArray.apbct_pixel_url = decodeURIComponent(cookiesArray.apbct_pixel_url);
             }
@@ -3884,9 +3884,7 @@ function sendAjaxCheckingFormData(form) {
     visibleFields[0] = apbct_collect_visible_fields(form);
     apbct_visible_fields_set_cookie( visibleFields );
 
-    const data = {
-        'ct_bot_detector_event_token': apbctLocalStorage.get('bot_detector_event_token'),
-    };
+    const data = {};
     let elems = form.elements;
     elems = Array.prototype.slice.call(elems);
 
