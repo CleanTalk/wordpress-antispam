@@ -33,7 +33,7 @@ add_action('fluent_booking/before_calendar_event_landing_page', function () {
     echo CtPublicFunctionsLocalize::getCode();
     echo CtPublicLocalize::getCode();
     $js_url = APBCT_URL_PATH . '/js/apbct-public-bundle.min.js?' . APBCT_VERSION;
-    echo "<script src='$js_url' type='application/javascript'></script>";
+    echo '<script src="' . $js_url . '" type="application/javascript"></script>';
 }, 1);
 
 /**
