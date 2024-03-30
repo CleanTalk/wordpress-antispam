@@ -736,6 +736,10 @@ function ctAjaxSetupAddCleanTalkDataBeforeSendAjax() {
                     if (settings.data.indexOf('action=happyforms_message') !== -1) {
                         sourceSign = 'action=happyforms_message';
                     }
+
+                    if (settings.data.indexOf('action=new_activity_comment') !== -1) {
+                        sourceSign = 'action=new_activity_comment';
+                    }
                 }
                 if ( typeof settings.url === 'string' ) {
                     if (settings.url.indexOf('wc-ajax=add_to_cart') !== -1) {

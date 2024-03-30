@@ -271,7 +271,7 @@ class ApbctCore {
 
         for (let i=0; i<this.elements.length; i++) {
             // Use property instead of attribute if possible
-            if (typeof this.elements[i][attrName] !== undefined) {
+            if (typeof this.elements[i][attrName] !== 'undefined') {
                 outputValue.push(this.elements[i][attrName]);
             } else {
                 outputValue.push(this.elements[i].getAttribute(attrName));
@@ -2276,6 +2276,10 @@ function ctAjaxSetupAddCleanTalkDataBeforeSendAjax() {
                     if (settings.data.indexOf('action=happyforms_message') !== -1) {
                         sourceSign = 'action=happyforms_message';
                     }
+
+                    if (settings.data.indexOf('action=new_activity_comment') !== -1) {
+                        sourceSign = 'action=new_activity_comment';
+                    }
                 }
                 if ( typeof settings.url === 'string' ) {
                     if (settings.url.indexOf('wc-ajax=add_to_cart') !== -1) {
@@ -3884,7 +3888,9 @@ function sendAjaxCheckingFormData(form) {
     visibleFields[0] = apbct_collect_visible_fields(form);
     apbct_visible_fields_set_cookie( visibleFields );
 
-    const data = {};
+    const data = {
+        'ct_bot_detector_event_token': apbctLocalStorage.get('bot_detector_event_token'),
+    };
     let elems = form.elements;
     elems = Array.prototype.slice.call(elems);
 
