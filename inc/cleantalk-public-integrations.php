@@ -251,7 +251,6 @@ function apbct_integration__buddyPres__activityWall($is_spam, $activity_obj = nu
                 'post_url'     => Server::get('HTTP_REFERER'),
                 'comment_type' => 'buddypress_activitywall',
             ),
-            'js_on'           => apbct_js_test(Cookie::get('ct_checkjs'), true),
             'sender_info'     => array('sender_url' => null),
         )
     );
