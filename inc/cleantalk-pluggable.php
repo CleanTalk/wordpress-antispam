@@ -1477,3 +1477,134 @@ function apbct_get_email_encoder_pass_key()
 
     return md5(Helper::ipGet() . $apbct->api_key . 'email_encoder');
 }
+
+function apbct_get_email_check_preloader()
+{
+    $preloader_html = '
+    <div id="apbct_email_check_popup_wrapper" class="apbct__sub_field_layout">
+        <span id="apbct_email_check__wrapper_caption"><a href="%s">%s</a></span>
+        <span class="apbct_email_check_popup_span" id="apbct_email_check__on_load">%s</span>
+
+        <span class="apbct_email_check_popup_span" id="apbct_email_check__on_exist">%s</span>
+        <span class="apbct_email_check_popup_span" id="apbct_email_check__on_not_exist">%s</span>
+        <span class="apbct_email_check_popup_span" id="apbct_email_check__on_error">%s</span>
+        <div id="apbct_email_check__line_animator_wrap">
+            <div id="apbct_email_check__line_animator"></div>
+        </div>
+    </div>
+    ';
+
+    $preloader_css = '
+            <style>
+        #apbct_email_check_popup_wrapper{
+            display: block;
+            min-width: 200px;
+            max-width: 300px;
+            word-break: break-word;
+            padding: 5px;
+            background: #fff;
+            border: 1px solid;
+            border-radius: 4px;
+            z-index: 99999;
+            opacity: 1;
+            text-align: center;
+        }
+        
+        .apbct__sub_field_layout {
+                position: sticky;
+                margin-top: 5px;
+        }
+
+        #apbct_email_check__line_animator{
+            width: 100%;
+            height: 100%;
+            display: block;
+            border: 2px solid black;
+            animation: pulse 1000ms infinite;
+            margin: 5px 0 0 0;
+        }
+        
+        #apbct_email_check__line_animator_wrap{
+            padding: 5px;
+        }
+        
+        #apbct_email_check__wrapper_caption{
+            margin: 5px 0 5px 0;
+            font-size: 10px;
+            align-content: center;
+            display: block;
+        }
+
+        @keyframes pulse {
+            0% {
+                opacity: 1;
+                width: 0;
+            }
+            100% {
+                opacity: 0;
+                width: 90%;
+            }
+        }
+
+        .apbct_email_check_popup_span{
+            display: none;
+            font-size: 13px;
+        }
+
+        #apbct_email_check__on_load{
+            color: black;
+        }
+        #apbct_email_check__on_exist{
+            color: green;
+        }
+        #apbct_email_check__on_not_exist{
+            color: red;
+        }
+        #apbct_email_check__on_error{
+            color: gray;
+        }
+    </style>
+    ';
+
+    $email_prechek_phrases =  array(
+        'on_load' => __('Please, wait for email existence check..'),
+        'on_exist' => __('Email exists.'),
+        'on_not_exist' => __('Email not exists. Please, check again before sending.'),
+        'on_error' => __('Error occured.'),
+        'caption' => __('Anti-Spam by CleanTalk'),
+    );
+
+    $link = 'https://cleantalk.org/';
+
+    /**
+     * Hook to change visualisation args.
+     *
+     * $args[0] - custom phrases
+     * $args[1] - custom CSS
+     *
+     * Example of usage:
+     *
+     *  add_filter('apbct_email_precheck_visualisation', function(...$args) {
+     *  $args[0]['on_load'] = 'Custom frase';
+     *  return $args;
+     * },999, 3);
+     *
+     */
+    $args = apply_filters('apbct_email_precheck_visualisation', $email_prechek_phrases, $preloader_css, $link);
+
+    $email_prechek_phrases = isset($args[0]) ? $args[0] : $email_prechek_phrases;
+    $preloader_css = isset($args[1]) ? $args[1] : $preloader_css;
+    $preloader_html = isset($args[2]) ? $args[2] : $preloader_html;
+
+    $preloader_html = sprintf(
+        $preloader_html,
+        $link,
+        $email_prechek_phrases['caption'],
+        $email_prechek_phrases['on_load'],
+        $email_prechek_phrases['on_exist'],
+        $email_prechek_phrases['on_not_exist'],
+        $email_prechek_phrases['on_error']
+    );
+
+    return $preloader_css . $preloader_html;
+}

@@ -541,6 +541,10 @@ function apbct_settings__set_fields()
                     'title'       => __('Check email before POST request', 'cleantalk-spam-protect'),
                     'description' => __('Check email address before sending form data', 'cleantalk-spam-protect'),
                 ),
+                'data__visualise_email_precheck'        => array(
+                    'title'       => __('Add a customizable visualisation on email check process', 'cleantalk-spam-protect'),
+                    'description' => __('Warn the visitor if the entered email exists or not. Customization process described here: ', 'cleantalk-spam-protect'),
+                ),
                 'data__honeypot_field'         => array(
                     'title'           => __(
                         'Add a honeypot field',

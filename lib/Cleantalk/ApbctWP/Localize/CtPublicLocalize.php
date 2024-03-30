@@ -31,6 +31,7 @@ class CtPublicLocalize
             'wl_brandname_short'    => $apbct->data['wl_brandname_short'],
             'ct_checkjs_key'        => ct_get_checkjs_value(),
             'emailEncoderPassKey'   => apbct_get_email_encoder_pass_key(),
+            'emailCheckPreloader'   => $apbct->settings['data__visualise_email_precheck'] ? apbct_get_email_check_preloader() : '',
         );
     }
 

@@ -121,7 +121,21 @@ function ctKeyStopStopListening() {
  */
 function checkEmail(e) {
     let currentEmail = e.target.value;
+    const srcElement = e['srcElement'];
     if (currentEmail && !(currentEmail in ctCheckedEmails)) {
+        // run visualisation prepare
+        ctPublic.ctEmailPrecheckVisualisationElements = false;
+        if (srcElement !== undefined) {
+            ctPublic.ctEmailPrecheckVisualisationElements = ctEmailPrecheckVisualisationPrepare(srcElement);
+            if (ctPublic.ctEmailPrecheckVisualisationElements !== false) {
+                // switch on the onload string
+                ctPublic.ctEmailPrecheckVisualisationElements.onLoad.style.display = 'inherit';
+                // set width like parent's
+                if (srcElement.width !== undefined) {
+                    ctPublic.ctEmailPrecheckVisualisationElements.wrapper.width = srcElement.width;
+                }
+            }
+        }
         // Using REST API handler
         if ( ctPublicFunctions.data__ajax_type === 'rest' ) {
             apbct_public_sendREST(
@@ -129,15 +143,7 @@ function checkEmail(e) {
                 {
                     method: 'POST',
                     data: {'email': currentEmail},
-                    callback: function(result) {
-                        if (result.result) {
-                            ctCheckedEmails[currentEmail] = {
-                                'result': result.result,
-                                'timestamp': Date.now() / 1000 |0,
-                            };
-                            ctSetCookie('ct_checked_emails', JSON.stringify(ctCheckedEmails));
-                        }
-                    },
+                    callback: ctAfterEmailCheckHandler,
                 },
             );
             // Using AJAX request and handler
@@ -148,18 +154,101 @@ function checkEmail(e) {
                     email: currentEmail,
                 },
                 {
-                    callback: function(result) {
-                        if (result.result) {
-                            ctCheckedEmails[currentEmail] = {
-                                'result': result.result,
-                                'timestamp': Date.now() / 1000 |0,
-                            };
-                            ctSetCookie('ct_checked_emails', JSON.stringify(ctCheckedEmails));
-                        }
-                    },
+                    callback: ctAfterEmailCheckHandler,
                 },
             );
         }
+    }
+}
+
+/**
+ * Prepare email prechek visualisation.
+ * @param {HTMLElement} srcElement
+ * @return {false|object} False on preloader empty or invalid, object of tags otherwise
+ */
+function ctEmailPrecheckVisualisationPrepare(srcElement) {
+    let elements = null;
+    // get preloader HTML
+    if (typeof ctPublic.emailCheckPreloader === 'string' && ctPublic.emailCheckPreloader !== '') {
+        const preloaderHtml = ctPublic.emailCheckPreloader;
+        // check if all is on its places
+        if (srcElement !== undefined) {
+            // drop old wrapper
+            let oldWrapper = document.getElementById('apbct_email_check_popup_wrapper');
+            if (oldWrapper !== null) {
+                oldWrapper.parentNode.removeChild(oldWrapper);
+            }
+            // add the wpreloader to the page
+            srcElement.insertAdjacentHTML('afterend', preloaderHtml);
+            elements = {
+                'onLoad': document.getElementById('apbct_email_check__on_load'),
+                'lineAnimator': document.getElementById('apbct_email_check__line_animator'),
+                'onExist': document.getElementById('apbct_email_check__on_exist'),
+                'onNotExist': document.getElementById('apbct_email_check__on_not_exist'),
+                'onError': document.getElementById('apbct_email_check__on_error'),
+                'wrapper': document.getElementById('apbct_email_check_popup_wrapper'),
+            };
+            for (let element in elements) {
+                if (typeof elements[element] === 'undefined' || elements[element] === null) {
+                    return false;
+                }
+            }
+
+            // return tags in object-like
+            return elements;
+        }
+        return false;
+    }
+    return false;
+}
+
+/**
+ * Handle visualisation tags after check.
+ * @param {string} result
+ * @param {object} elements
+ */
+function ctEmailPrecheckVisualisationAfterCheck(result, elements) {
+    elements.onLoad.style.display = 'none';
+    elements.lineAnimator.style.display = 'none';
+    if (typeof result === 'string' && result !== '') {
+        // todo fix after API result fixed
+        if (result === 'CACHED') {
+            elements.onExist.style.display = 'inherit';
+        } else {
+            elements.onNotExist.style.display = 'inherit';
+        }
+    } else {
+        elements.onError.style.display = 'inherit';
+    }
+}
+
+/**
+ * @param {object} result
+ * @param {string} email
+ */
+function ctAfterEmailCheckHandler(result, email) {
+    let checkedEmail;
+    let stringResult = '';
+    if (email) {
+        checkedEmail = email;
+    } else if (this.email !== undefined) {
+        checkedEmail = this.email;
+    } else {
+        checkedEmail = this.data.email;
+    }
+    if (checkedEmail.hasOwnProperty('email') && typeof checkedEmail.email === 'string') {
+        checkedEmail = checkedEmail.email;
+    }
+    if (result.result) {
+        ctCheckedEmails[checkedEmail] = {
+            'result': result.result,
+            'timestamp': Date.now() / 1000 |0,
+        };
+        stringResult = result.result;
+        ctSetCookie('ct_checked_emails', JSON.stringify(ctCheckedEmails));
+    }
+    if (typeof ctPublic.ctEmailPrecheckVisualisationElements === 'object') {
+        ctEmailPrecheckVisualisationAfterCheck(stringResult, ctPublic.ctEmailPrecheckVisualisationElements);
     }
 }
 

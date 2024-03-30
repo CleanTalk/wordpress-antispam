@@ -1265,3 +1265,11 @@ function apbct_update_to_6_17_2()
     $cron->removeTask('clear_old_session_data');
     $cron->addTask('clear_old_session_data', 'apbct_cron_clear_old_session_data', 86400);
 }
+
+function apbct_update_to_6_30()
+{
+    global $apbct;
+
+    $apbct->settings['data__visualise_email_precheck'] = 0;
+    $apbct->saveSettings();
+}
