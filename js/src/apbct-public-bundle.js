@@ -3355,7 +3355,11 @@ function ctProtectExternal() {
                 apbctProcessExternalForm(currentForm, i, document);
 
             // Ajax checking for the integrated forms - will be changed only submit button to make protection
-            } else if ( currentForm.dataset.mailingListId !== undefined ) { // MooForm 3rd party service
+            } else if (
+                // MooForm 3rd party service
+                currentForm.dataset.mailingListId !== undefined ||
+                ( typeof(currentForm.action) == 'string' && ( currentForm.action.indexOf('webto.salesforce.com') !== -1) )
+            ) {
                 apbctProcessExternalFormByFakeButton(currentForm, i, document);
 
             // Common flow - modify form's action
@@ -3587,6 +3591,7 @@ function apbctProcessExternalFormByFakeButton(currentForm, iterator, documentObj
     }
 
     const submitButtonOriginal = currentForm.querySelector('[type="submit"]');
+    const onsubmitOriginal = currentForm.querySelector('[type="submit"]').form.onsubmit;
 
     if ( ! submitButtonOriginal ) {
         return;
@@ -3613,6 +3618,7 @@ function apbctProcessExternalFormByFakeButton(currentForm, iterator, documentObj
     reUseCurrentForm.appendChild(forceAction);
     reUseCurrentForm.apbctParent = parent;
     reUseCurrentForm.submitButtonOriginal = submitButtonOriginal;
+    reUseCurrentForm.onsubmitOriginal = onsubmitOriginal;
 
     documentObject.forms[iterator].onsubmit = function(event) {
         event.preventDefault();
@@ -3855,7 +3861,6 @@ function isIntegratedForm(formObj) {
         formAction.indexOf('colcolmail.co.uk') !== -1 || // colcolmail.co.uk integration
         formAction.indexOf('paypal.com') !== -1 ||
         formAction.indexOf('infusionsoft.com') !== -1 ||
-        formAction.indexOf('webto.salesforce.com') !== -1 ||
         formAction.indexOf('secure2.convio.net') !== -1 ||
         formAction.indexOf('hookb.in') !== -1 ||
         formAction.indexOf('external.url') !== -1 ||
@@ -3914,6 +3919,18 @@ function sendAjaxCheckingFormData(form) {
                         submitButton.remove();
                         const parent = form.apbctParent;
                         parent.appendChild(form.submitButtonOriginal);
+                        submitButton = form.querySelector('[type="submit"]');
+                        submitButton.click();
+                        return;
+                    }
+
+                    // Salesforce integration
+                    if (form.hasAttribute('action') && ( form.getAttribute('action').indexOf('webto.salesforce.com') !== -1)) {
+                        let submitButton = form.querySelector('[type="submit"]');
+                        submitButton.remove();
+                        const parent = form.apbctParent;
+                        parent.appendChild(form.submitButtonOriginal);
+                        form.onsubmit = form.onsubmitOriginal;
                         submitButton = form.querySelector('[type="submit"]');
                         submitButton.click();
                         return;
