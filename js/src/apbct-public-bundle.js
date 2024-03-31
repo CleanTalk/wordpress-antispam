@@ -3358,7 +3358,7 @@ function ctProtectExternal() {
             } else if (
                 // MooForm 3rd party service
                 currentForm.dataset.mailingListId !== undefined ||
-                ( typeof(currentForm.action) == 'string' && ( currentForm.action.indexOf('webto.salesforce.com') !== -1) )
+                (typeof(currentForm.action) == 'string' && (currentForm.action.indexOf('webto.salesforce.com') !== -1))
             ) {
                 apbctProcessExternalFormByFakeButton(currentForm, i, document);
 
@@ -3925,7 +3925,9 @@ function sendAjaxCheckingFormData(form) {
                     }
 
                     // Salesforce integration
-                    if (form.hasAttribute('action') && ( form.getAttribute('action').indexOf('webto.salesforce.com') !== -1)) {
+                    if (form.hasAttribute('action') &&
+                        (form.getAttribute('action').indexOf('webto.salesforce.com') !== -1)
+                    ) {
                         let submitButton = form.querySelector('[type="submit"]');
                         submitButton.remove();
                         const parent = form.apbctParent;
