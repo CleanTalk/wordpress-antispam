@@ -508,9 +508,11 @@ function apbct_ready() {
         apbctLocalStorage.delete('ct_has_scrolled');
     }
 
-    ctStartFieldsListening();
-    // 2nd try to add listeners for delayed appears forms
-    setTimeout(ctStartFieldsListening, 1000);
+    if (ctPublic.data__cookies_type !== 'alternative') {
+        ctStartFieldsListening();
+        // 2nd try to add listeners for delayed appears forms
+        setTimeout(ctStartFieldsListening, 1000);
+    }
 
     window.addEventListener('animationstart', apbctOnAnimationStart, true);
     window.addEventListener('input', apbctOnInput, true);
