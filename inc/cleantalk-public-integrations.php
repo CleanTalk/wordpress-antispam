@@ -2401,6 +2401,8 @@ function apbct_form__ninjaForms__changeResponse($data)
 {
     global $apbct;
 
+    $nf_field_id = 1;
+
     // Show error message below field found by ID
     if (
         isset($data['fields_by_key']) &&
@@ -2411,8 +2413,10 @@ function apbct_form__ninjaForms__changeResponse($data)
         $nf_field_id = $data['fields_by_key']['email']['id'];
     } else {
         // Find ID of last field (usually SUBMIT)
-        $fields_keys = array_keys($data['fields']);
-        $nf_field_id = array_pop($fields_keys);
+        if (isset($data['fields'])) {
+            $fields_keys = array_keys($data['fields']);
+            $nf_field_id = array_pop($fields_keys);
+        }
     }
 
     // Below is modified NJ logic
