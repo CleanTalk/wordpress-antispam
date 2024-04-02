@@ -271,7 +271,7 @@ class ApbctCore {
 
         for (let i=0; i<this.elements.length; i++) {
             // Use property instead of attribute if possible
-            if (typeof this.elements[i][attrName] !== undefined) {
+            if (typeof this.elements[i][attrName] !== 'undefined') {
                 outputValue.push(this.elements[i][attrName]);
             } else {
                 outputValue.push(this.elements[i].getAttribute(attrName));
@@ -2048,9 +2048,11 @@ function apbct_ready() {
         apbctLocalStorage.delete('ct_has_scrolled');
     }
 
-    ctStartFieldsListening();
-    // 2nd try to add listeners for delayed appears forms
-    setTimeout(ctStartFieldsListening, 1000);
+    if (ctPublic.data__cookies_type !== 'alternative') {
+        ctStartFieldsListening();
+        // 2nd try to add listeners for delayed appears forms
+        setTimeout(ctStartFieldsListening, 1000);
+    }
 
     window.addEventListener('animationstart', apbctOnAnimationStart, true);
     window.addEventListener('input', apbctOnInput, true);
@@ -2275,6 +2277,10 @@ function ctAjaxSetupAddCleanTalkDataBeforeSendAjax() {
 
                     if (settings.data.indexOf('action=happyforms_message') !== -1) {
                         sourceSign = 'action=happyforms_message';
+                    }
+
+                    if (settings.data.indexOf('action=new_activity_comment') !== -1) {
+                        sourceSign = 'action=new_activity_comment';
                     }
                 }
                 if ( typeof settings.url === 'string' ) {
@@ -3351,7 +3357,11 @@ function ctProtectExternal() {
                 apbctProcessExternalForm(currentForm, i, document);
 
             // Ajax checking for the integrated forms - will be changed only submit button to make protection
-            } else if ( currentForm.dataset.mailingListId !== undefined ) { // MooForm 3rd party service
+            } else if (
+                // MooForm 3rd party service
+                currentForm.dataset.mailingListId !== undefined ||
+                (typeof(currentForm.action) == 'string' && (currentForm.action.indexOf('webto.salesforce.com') !== -1))
+            ) {
                 apbctProcessExternalFormByFakeButton(currentForm, i, document);
 
             // Common flow - modify form's action
@@ -3583,6 +3593,7 @@ function apbctProcessExternalFormByFakeButton(currentForm, iterator, documentObj
     }
 
     const submitButtonOriginal = currentForm.querySelector('[type="submit"]');
+    const onsubmitOriginal = currentForm.querySelector('[type="submit"]').form.onsubmit;
 
     if ( ! submitButtonOriginal ) {
         return;
@@ -3609,6 +3620,7 @@ function apbctProcessExternalFormByFakeButton(currentForm, iterator, documentObj
     reUseCurrentForm.appendChild(forceAction);
     reUseCurrentForm.apbctParent = parent;
     reUseCurrentForm.submitButtonOriginal = submitButtonOriginal;
+    reUseCurrentForm.onsubmitOriginal = onsubmitOriginal;
 
     documentObject.forms[iterator].onsubmit = function(event) {
         event.preventDefault();
@@ -3851,7 +3863,6 @@ function isIntegratedForm(formObj) {
         formAction.indexOf('colcolmail.co.uk') !== -1 || // colcolmail.co.uk integration
         formAction.indexOf('paypal.com') !== -1 ||
         formAction.indexOf('infusionsoft.com') !== -1 ||
-        formAction.indexOf('webto.salesforce.com') !== -1 ||
         formAction.indexOf('secure2.convio.net') !== -1 ||
         formAction.indexOf('hookb.in') !== -1 ||
         formAction.indexOf('external.url') !== -1 ||
@@ -3884,7 +3895,9 @@ function sendAjaxCheckingFormData(form) {
     visibleFields[0] = apbct_collect_visible_fields(form);
     apbct_visible_fields_set_cookie( visibleFields );
 
-    const data = {};
+    const data = {
+        'ct_bot_detector_event_token': apbctLocalStorage.get('bot_detector_event_token'),
+    };
     let elems = form.elements;
     elems = Array.prototype.slice.call(elems);
 
@@ -3908,6 +3921,20 @@ function sendAjaxCheckingFormData(form) {
                         submitButton.remove();
                         const parent = form.apbctParent;
                         parent.appendChild(form.submitButtonOriginal);
+                        submitButton = form.querySelector('[type="submit"]');
+                        submitButton.click();
+                        return;
+                    }
+
+                    // Salesforce integration
+                    if (form.hasAttribute('action') &&
+                        (form.getAttribute('action').indexOf('webto.salesforce.com') !== -1)
+                    ) {
+                        let submitButton = form.querySelector('[type="submit"]');
+                        submitButton.remove();
+                        const parent = form.apbctParent;
+                        parent.appendChild(form.submitButtonOriginal);
+                        form.onsubmit = form.onsubmitOriginal;
                         submitButton = form.querySelector('[type="submit"]');
                         submitButton.click();
                         return;

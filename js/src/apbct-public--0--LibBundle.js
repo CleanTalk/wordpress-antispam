@@ -271,7 +271,7 @@ class ApbctCore {
 
         for (let i=0; i<this.elements.length; i++) {
             // Use property instead of attribute if possible
-            if (typeof this.elements[i][attrName] !== undefined) {
+            if (typeof this.elements[i][attrName] !== 'undefined') {
                 outputValue.push(this.elements[i][attrName]);
             } else {
                 outputValue.push(this.elements[i].getAttribute(attrName));

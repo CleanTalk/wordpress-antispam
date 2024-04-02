@@ -1091,6 +1091,7 @@ function apbct_is_skip_request($ajax = false)
                 apbct_is_plugin_active('easy-digital-downloads-pro/easy-digital-downloads.php')
             ) &&
             Post::get('action') === 'edd_add_to_cart' ||
+            Post::get('action') === 'edd_get_shipping_rate' ||
             Post::get('action') === 'edd_recalculate_discounts_pro'
         ) {
             return 'Easy Digital Downloads service action';
@@ -1105,6 +1106,16 @@ function apbct_is_skip_request($ajax = false)
             Post::get('action') === 'bookingpress_book_appointment_booking'
         ) {
             return 'BookingPress service action';
+        }
+
+        if (
+            (
+                apbct_is_plugin_active('pixelyoursite/pixelyoursite.php') ||
+                apbct_is_plugin_active('pixelyoursite-pro/pixelyoursite-pro.php')
+            ) &&
+            Post::get('action') === 'pys_api_event'
+        ) {
+            return 'Pixelyoursite service action';
         }
     } else {
         /*****************************************/

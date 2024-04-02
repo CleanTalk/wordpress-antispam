@@ -33,7 +33,7 @@ add_action('fluent_booking/before_calendar_event_landing_page', function () {
     echo CtPublicFunctionsLocalize::getCode();
     echo CtPublicLocalize::getCode();
     $js_url = APBCT_URL_PATH . '/js/apbct-public-bundle.min.js?' . APBCT_VERSION;
-    echo "<script src='$js_url' type='application/javascript'></script>";
+    echo '<script src="' . $js_url . '" type="application/javascript"></script>';
 }, 1);
 
 /**
@@ -251,7 +251,6 @@ function apbct_integration__buddyPres__activityWall($is_spam, $activity_obj = nu
                 'post_url'     => Server::get('HTTP_REFERER'),
                 'comment_type' => 'buddypress_activitywall',
             ),
-            'js_on'           => apbct_js_test(Cookie::get('ct_checkjs'), true),
             'sender_info'     => array('sender_url' => null),
         )
     );
@@ -551,42 +550,34 @@ function apbct_woocommerce__add_request_id_to_order_meta($order_id)
  * Triggered when adding an item to the shopping cart
  * for un-logged users
  *
- * @param $bool
- * @param $item
- * @param $quantity
- *
  * @return bool
  * @psalm-suppress UnusedParam
  * @psalm-suppress UndefinedFunction
  */
 
-function apbct_wc__add_to_cart_unlogged_user($b, $item, $q)
+function apbct_wc__add_to_cart_unlogged_user()
 {
-    global $apbct;
+    $message = apply_filters('apbct__filter_post', $_POST);
 
-    if ( ! apbct_is_user_logged_in() && $apbct->settings['forms__wc_add_to_cart'] ) {
-        $message = apply_filters('apbct__filter_post', $_POST);
+    $post_info['comment_type'] = 'order__add_to_cart';
+    $post_info['post_url']     = Sanitize::cleanUrl(Server::get('HTTP_REFERER'));
 
-        $post_info['comment_type'] = 'order__add_to_cart';
-        $post_info['post_url']     = Sanitize::cleanUrl(Server::get('HTTP_REFERER'));
+    //Making a call
+    $base_call_result = apbct_base_call(
+        array(
+            'message'     => $message,
+            'post_info'   => $post_info,
+            'js_on'       => apbct_js_test(Sanitize::cleanTextField(Cookie::get('ct_checkjs')), true),
+            'sender_info' => array('sender_url' => null),
+            'exception_action' => false,
+        )
+    );
 
-        //Making a call
-        $base_call_result = apbct_base_call(
-            array(
-                'message'     => $message,
-                'post_info'   => $post_info,
-                'js_on'       => apbct_js_test(Sanitize::cleanTextField(Cookie::get('ct_checkjs')), true),
-                'sender_info' => array('sender_url' => null),
-                'exception_action' => false,
-            )
-        );
+    $ct_result = $base_call_result['ct_result'];
 
-        $ct_result = $base_call_result['ct_result'];
-
-        if ( $ct_result->allow == 0 ) {
-            wc_add_notice($ct_result->comment, 'error');
-            return false;
-        }
+    if ( $ct_result->allow == 0 ) {
+        wc_add_notice($ct_result->comment, 'error');
+        return false;
     }
 
     return true;
@@ -2410,6 +2401,8 @@ function apbct_form__ninjaForms__changeResponse($data)
 {
     global $apbct;
 
+    $nf_field_id = 1;
+
     // Show error message below field found by ID
     if (
         isset($data['fields_by_key']) &&
@@ -2420,8 +2413,10 @@ function apbct_form__ninjaForms__changeResponse($data)
         $nf_field_id = $data['fields_by_key']['email']['id'];
     } else {
         // Find ID of last field (usually SUBMIT)
-        $fields_keys = array_keys($data['fields']);
-        $nf_field_id = array_pop($fields_keys);
+        if (isset($data['fields'])) {
+            $fields_keys = array_keys($data['fields']);
+            $nf_field_id = array_pop($fields_keys);
+        }
     }
 
     // Below is modified NJ logic

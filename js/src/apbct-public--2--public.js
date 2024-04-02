@@ -508,9 +508,11 @@ function apbct_ready() {
         apbctLocalStorage.delete('ct_has_scrolled');
     }
 
-    ctStartFieldsListening();
-    // 2nd try to add listeners for delayed appears forms
-    setTimeout(ctStartFieldsListening, 1000);
+    if (ctPublic.data__cookies_type !== 'alternative') {
+        ctStartFieldsListening();
+        // 2nd try to add listeners for delayed appears forms
+        setTimeout(ctStartFieldsListening, 1000);
+    }
 
     window.addEventListener('animationstart', apbctOnAnimationStart, true);
     window.addEventListener('input', apbctOnInput, true);
@@ -735,6 +737,10 @@ function ctAjaxSetupAddCleanTalkDataBeforeSendAjax() {
 
                     if (settings.data.indexOf('action=happyforms_message') !== -1) {
                         sourceSign = 'action=happyforms_message';
+                    }
+
+                    if (settings.data.indexOf('action=new_activity_comment') !== -1) {
+                        sourceSign = 'action=new_activity_comment';
                     }
                 }
                 if ( typeof settings.url === 'string' ) {

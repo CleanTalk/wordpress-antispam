@@ -22,6 +22,8 @@ class ElementorPro extends IntegrationBase
 
         apbct_form__get_no_cookie_data($_POST);
 
+        $event_token = '';
+
         if ( Post::get('ct_bot_detector_event_token') ) {
             $event_token = Post::get('ct_bot_detector_event_token');
         }

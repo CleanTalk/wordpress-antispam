@@ -569,6 +569,11 @@ $apbct_active_integrations = array(
         'setting' => 'forms__contact_forms_test',
         'ajax'    => true
     ),
+    'JobstackThemeRegistration' => array(
+        'hook'    => 'wp_loaded',
+        'setting' => 'forms__registrations_test',
+        'ajax'    => false
+    ),
 );
 new  \Cleantalk\Antispam\Integrations($apbct_active_integrations, (array)$apbct->settings);
 
@@ -732,6 +737,7 @@ add_filter('wpforo_create_profile', 'wpforo_create_profile__check_register', 1, 
 
 // HappyForms integration
 add_filter('happyforms_validate_submission', 'apbct_form_happyforms_test_spam', 1, 3);
+add_filter('happyforms_use_hash_protection', '__return_false');
 
 // WPForms
 // Adding fields
@@ -2099,8 +2105,7 @@ function apbct_sfw_private_records_handler($action, $test_data = null)
             $metadata_assoc_array = array(
                 'network' => (int)$row[0],
                 'mask' => (int)$row[1],
-                'status' => isset($row[2]) ? (int)$row[2] : null,
-                'source' => isset($row[3]) ? (int)$row[3] : null
+                'status' => isset($row[2]) ? (int)$row[2] : null
             );
             //validate
             $validation_error = '';
@@ -2116,10 +2121,6 @@ function apbct_sfw_private_records_handler($action, $test_data = null)
             }
             //only for adding
             if ( $action === 'add' ) {
-                if ( $metadata_assoc_array['source'] !== 1
-                ) {
-                    $validation_error = 'metadata validate failed on "source" value';
-                }
                 if ( $metadata_assoc_array['status'] !== 1 && $metadata_assoc_array['status'] !== 0 ) {
                     $validation_error = 'metadata validate failed on "status" value';
                 }
