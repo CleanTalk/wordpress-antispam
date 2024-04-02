@@ -2,8 +2,8 @@ jQuery(document).ready(function() {
     // Top level settings
     jQuery('.apbct_setting---data__email_decoder').on('click', (event) => {
         if ( event.target.type === 'checkbox' ) {
-            const postFix = event.target.checked ? '__On' : '__Off';
-            document.getElementById('apbct_setting_data__email_decoder' + postFix).checked = true;
+            let currentTarget = event.target.checked ? 1 : 2;
+            document.querySelectorAll('input[id^=apbct_setting_data__email_decoder]')[currentTarget].checked = true;
         } else {
             document.getElementById('apbct_setting_data__email_decoder').checked = parseInt(event.target.value) === 1;
         }
