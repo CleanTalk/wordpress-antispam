@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 4.7
 Tested up to: 6.5
 Requires PHP: 5.6
-Stable tag: 6.29.1
+Stable tag: 6.30
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -456,6 +456,26 @@ Yes, it is. Please read this article,
 12. SpamFireWall log.
 
 == Changelog ==
+
+= 6.30 Apr 4 2024
+* New. Integration. Jobstack theme register form protection implemented.
+* Fix. Integration. Skip Pixelyoursite service action.
+* Fix. Settings. Fixed switcher for email encode.
+* Fix. Integration. Search form protection fixed.
+* Fix. Integration. Adding to cart protection fixed.
+* Fix. Integration. Elementor Pro. Event token gathering fixed.
+* Fix. Integration. External forms protection fixed.
+* Fix. Integration. Happy Forms integration fixed.
+* Fix. Integration. Prevented error on Ninja forms.
+* Fix. Integration. EasyDigitalDownload fixed.
+* Fix. Integration. Salesforce external form fixed.
+* Fix. Integrations. Catching js params on BuddyPress.
+* Fix. Integrations. Fluent booking. Fix localize script.
+* Fix. Code. Removed redundant parameter `source` from `private_list_add` handler method.
+* Fix. Code. Add default key to debug call.
+* Fix. Code. JS. Core.attr fixed.
+* Fix. Code. Added eslint-windows npm script to run eslint on windows systems.
+* Ref. ApbctSFW. Switch to direct update logic.
 
 = 6.29.1 Mar 26 2024
 Fix. Cookies. Alternative cookies set fixed.
