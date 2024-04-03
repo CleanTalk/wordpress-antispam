@@ -1195,7 +1195,11 @@ function ct_preprocess_comment($comment)
             ) {
                 add_filter('pre_comment_approved', 'ct_set_approved', 999, 2);
             } else {
-                add_filter('pre_comment_approved', 'ct_set_not_approved', 999, 2);
+                if ( get_option('cleantalk_allowed_moderation') === '1' && $apbct->key_is_ok ) {
+                    add_filter('pre_comment_approved', 'ct_set_approved', 999, 2);
+                } else {
+                    add_filter('pre_comment_approved', 'ct_set_not_approved', 999, 2);
+                }
             }
         // Allowed comment will be published
         } else {
