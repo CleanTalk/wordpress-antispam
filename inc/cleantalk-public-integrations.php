@@ -1198,7 +1198,21 @@ function ct_preprocess_comment($comment)
                 if ( get_option('cleantalk_allowed_moderation') === '1' && $apbct->key_is_ok ) {
                     add_filter('pre_comment_approved', 'ct_set_approved', 999, 2);
                 } else {
-                    add_filter('pre_comment_approved', 'ct_set_not_approved', 999, 2);
+                    if (
+                        check_comment(
+                            $comment_author,
+                            $comment_author_email,
+                            $comment_author_url,
+                            $comment_content,
+                            $comment_author_IP,
+                            $comment_agent,
+                            $comment_type
+                        )
+                    ) {
+                        add_filter('pre_comment_approved', 'ct_set_approved', 999, 2);
+                    } else {
+                        add_filter('pre_comment_approved', 'ct_set_not_approved', 999, 2);
+                    }
                 }
             }
         // Allowed comment will be published
