@@ -243,7 +243,6 @@ function apbctProcessExternalForm(currentForm, iterator, documentObject) {
  * @param {HTMLElement} documentObject
  */
 function apbctProcessExternalFormByFakeButton(currentForm, iterator, documentObject) {
-
     const submitButtonOriginal = currentForm.querySelector('[type="submit"]');
     const onsubmitOriginal = currentForm.querySelector('[type="submit"]').form.onsubmit;
 
