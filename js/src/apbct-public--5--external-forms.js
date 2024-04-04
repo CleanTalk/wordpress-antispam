@@ -178,11 +178,6 @@ function apbctProcessIframes() {
  * @param {HTMLElement} documentObject
  */
 function apbctProcessExternalForm(currentForm, iterator, documentObject) {
-    // skip excluded forms
-    if ( formIsExclusion(currentForm)) {
-        return;
-    }
-
     const cleantalkPlaceholder = document.createElement('i');
     cleantalkPlaceholder.className = 'cleantalk_placeholder';
     cleantalkPlaceholder.style = 'display: none';
@@ -248,10 +243,6 @@ function apbctProcessExternalForm(currentForm, iterator, documentObject) {
  * @param {HTMLElement} documentObject
  */
 function apbctProcessExternalFormByFakeButton(currentForm, iterator, documentObject) {
-    // skip excluded forms
-    if ( formIsExclusion(currentForm)) {
-        return;
-    }
 
     const submitButtonOriginal = currentForm.querySelector('[type="submit"]');
     const onsubmitOriginal = currentForm.querySelector('[type="submit"]').form.onsubmit;
