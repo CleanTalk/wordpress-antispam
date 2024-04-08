@@ -769,9 +769,10 @@ function sendAjaxCheckingDynamicFormData(form) {
 
                     // Call previous submit action
                     if (form.apbct_external_onsubmit_prev instanceof Function) {
-                        setTimeout(function() {
+                        let timerId = setTimeout(function() {
                             form.apbct_external_onsubmit_prev.call(form, formEvent);
                         }, 500);
+                        clearTimeout(timerId);
                     }
 
                     const submButton = form.querySelector('input[type="submit"]');
