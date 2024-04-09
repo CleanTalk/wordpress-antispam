@@ -201,8 +201,9 @@ function apbct_settings__set_fields()
 
         //Description of advanced settings
         'advanced_settings'     => array(
-            'notification'          => __('The default settings correspond to the optimal work of the service and their change is required only in special cases.', 'cleantalk-spam-protect'),
-            'html_before'    => '<div id="apbct_settings__before_advanced_settings"></div>'
+            'fields' => array(),
+            'notification'      => __('The default settings correspond to the optimal work of the service and their change is required only in special cases.', 'cleantalk-spam-protect'),
+            'html_before'       => '<div id="apbct_settings__before_advanced_settings"></div>'
             . '<div id="apbct_settings__advanced_settings" style="display: none;">'
             . '<div id="apbct_settings__advanced_settings_inner">',
         ),
@@ -211,7 +212,6 @@ function apbct_settings__set_fields()
         'forms_protection'      => array(
             'title'          => __('Forms to protect', 'cleantalk-spam-protect'),
             'section'        => 'hidden_section',
-
             'fields'         => array(
                 'forms__registrations_test'             => array(
                     'title'       => __('Registration Forms', 'cleantalk-spam-protect'),
