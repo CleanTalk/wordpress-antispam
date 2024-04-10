@@ -557,10 +557,22 @@ function apbct_woocommerce__add_request_id_to_order_meta($order_id)
 
 function apbct_wc__add_to_cart_unlogged_user()
 {
+    global $apbct;
+
+    if (Post::get('data') && isset(Post::get('data')['ct_bot_detector_event_token'])) {
+        $event_token = Post::get('data')['ct_bot_detector_event_token'];
+    } else {
+        $event_token = null;
+    }
+
     $message = apply_filters('apbct__filter_post', $_POST);
 
     $post_info['comment_type'] = 'order__add_to_cart';
     $post_info['post_url']     = Sanitize::cleanUrl(Server::get('HTTP_REFERER'));
+
+    if ( ! $apbct->stats['no_cookie_data_taken'] ) {
+        apbct_form__get_no_cookie_data();
+    }
 
     //Making a call
     $base_call_result = apbct_base_call(
@@ -570,6 +582,7 @@ function apbct_wc__add_to_cart_unlogged_user()
             'js_on'       => apbct_js_test(Sanitize::cleanTextField(Cookie::get('ct_checkjs')), true),
             'sender_info' => array('sender_url' => null),
             'exception_action' => false,
+            'event_token' => $event_token,
         )
     );
 
