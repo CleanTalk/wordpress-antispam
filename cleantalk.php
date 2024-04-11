@@ -312,6 +312,12 @@ $apbct_active_integrations = array(
         'setting' => 'forms__check_internal',
         'ajax'    => true
     ),
+    'CleantalkPreprocessComment'         => array(
+        'hook'    => 'preprocess_comment',
+        'setting' => 'forms__comments_test',
+        'ajax'    => true,
+        'ajax_and_post' => true
+    ),
     'ContactBank'         => array(
         'hook'    => 'contact_bank_frontend_ajax_call',
         'setting' => 'forms__contact_forms_test',
@@ -976,7 +982,7 @@ if ( is_admin() || is_network_admin() ) {
     add_action('plugins_loaded', 'apbct_init', 1);
 
     // Comments
-    add_filter('preprocess_comment', 'ct_preprocess_comment', 1, 1);     // param - comment data array
+    //add_filter('preprocess_comment', 'ct_preprocess_comment', 1, 1);     // param - comment data array
     add_filter('comment_text', 'ct_comment_text');
     add_filter('wp_die_handler', 'apbct_comment__sanitize_data__before_wp_die', 1); // Check comments after validation
 

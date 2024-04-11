@@ -57,15 +57,18 @@ class Integrations
 
     /**
      * @param $argument
-     *
+     * @param string $set_current_integration
+     * @return true|mixed
      * @psalm-suppress UnusedVariable
      */
-    public function checkSpam($argument)
+    public function checkSpam($argument, $set_current_integration = '')
     {
         global $cleantalk_executed;
 
         // Getting current integration name
-        $current_integration = $this->getCurrentIntegrationTriggered(current_filter());
+        $current_integration = !empty($set_current_integration)
+            ? $set_current_integration
+            : $this->getCurrentIntegrationTriggered(current_filter());
         if ( $current_integration ) {
             // Instantiate the integration object
             $class = '\\Cleantalk\\Antispam\\Integrations\\' . $current_integration;
@@ -79,14 +82,41 @@ class Integrations
                         array('Integration is not instanse of IntegrationBase class.')
                     );
 
-                    return;
+                    return true;
                 }
-                // Run data collecting for spam checking
+
+                /**
+                 * Run prepare actions.
+                 */
+                if ( $integration->doPrepareActions($argument) === false ) {
+                    //if integration returns false on this state - exit and return incomed argument
+                    return $argument;
+                }
+
+                /**
+                 * Data collection
+                 */
+                // If integration provided it's own method - run this
+                $integration_base_call_data = $integration->collectBaseCallData();
+
+                // old way legacy
                 $data = $integration->getDataForChecking($argument);
+
                 if ( ! is_null($data) ) {
-                    // Go spam checking
-                    $base_call_result = apbct_base_call(
-                        array(
+                    /**
+                     * Run actions before base call
+                     */
+                    $integration->doActionsBeforeBaseCall($argument);
+
+                    /**
+                     * Select base call data source
+                     */
+                    if (!empty($integration_base_call_data)) {
+                        // if integration has very own way to get complete base_call_data
+                        $base_call_data = $integration_base_call_data;
+                    } else {
+                        // common case
+                        $base_call_data = array(
                             'message'         => ! empty($data['message']) ? json_encode($data['message']) : '',
                             'sender_email'    => ! empty($data['email']) ? $data['email'] : '',
                             'sender_nickname' => ! empty($data['nickname']) ? $data['nickname'] : '',
@@ -97,27 +127,60 @@ class Integrations
                                 'post_url'     => Server::get('HTTP_REFERER'),
                                 // Page URL must be an previous page
                             ),
-                        ),
-                        isset($data['register']) ? true : false
-                    );
+                        );
+                    }
+
+                    // Set registration flag - will be used to select method
+                    $reg_flag = !empty($base_call_data['register']) || isset($data['register']);
+
+                    /**
+                     * Run base call
+                     */
+                    $base_call_result = apbct_base_call($base_call_data, $reg_flag);
+
+                    // Provide $base_call_result to integration
+                    $integration->base_call_result = $base_call_result;
+
 
                     $ct_result = $base_call_result['ct_result'];
-
                     $cleantalk_executed = true;
 
+                    /**
+                     * Run actions before allow/deny logic run
+                     */
+                    $integration->doActionsBeforeAllowDeny($argument);
+
+
+                    /**
+                     * Actions on allow.
+                     */
                     if ( $ct_result->allow == 0 ) {
                         // Do blocking if it is a spam
-                        return $integration->doBlock($ct_result->comment);
+                        $return_arg =  $integration->doBlock($ct_result->comment);
                     }
 
+                    /**
+                     * Actions on deny.
+                     */
                     if ( $ct_result->allow != 0 && method_exists($integration, 'allow') ) {
-                        return $integration->allow();
+                        $return_arg = $integration->allow();
                     }
+
+                    /**
+                     * Return arg if provided.
+                     */
+                    $return_arg = isset($return_arg) ? $return_arg : $argument;
+
+                    /**
+                     *  Final actions
+                     */
+                    return $integration->doFinalActions($return_arg);
                 } else {
                     // @ToDo have to handle an error
                 }
             }
         }
+        return true;
     }
 
     private function getCurrentIntegrationTriggered($hook)
