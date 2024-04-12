@@ -1319,6 +1319,13 @@ function apbct_is_skip_request($ajax = false)
         }
     }
 
+    // WP Fusion Abandoned Cart Addon
+    if ( apbct_is_plugin_active('wp-fusion-abandoned-cart/wp-fusion-abandoned-cart.php') &&
+        (Post::get('action') === 'wpf_abandoned_cart' || Post::get('action') === 'wpf_progressive_update_cart')
+    ) {
+        return 'WP Fusion Abandoned Cart Addon service action';
+    }
+
     // Elementor pro forms has a direct integration
     if (apbct_is_plugin_active('elementor-pro/elementor-pro.php')) {
         if ( Post::get('action') === 'elementor_pro_forms_send_form') {
