@@ -1110,7 +1110,14 @@ function apbct_sfw__check()
         )
     );
 
-    if ( $apbct->settings['sfw__anti_crawler'] && $apbct->stats['sfw']['entries'] > 50 ) {
+    if (
+        (
+            $apbct->settings['sfw__anti_crawler'] == 1 || //is enabled
+            ( $apbct->settings['sfw__anti_crawler'] == 2 && empty($apbct->moderate) ) //is auto and expired
+        )
+        && $apbct->stats['sfw']['entries'] > 50
+        && AntiCrawler::getUARecordsCount() > 0
+    ) {
         $firewall->loadFwModule(
             new \Cleantalk\ApbctWP\Firewall\AntiCrawler(
                 APBCT_TBL_FIREWALL_LOG,

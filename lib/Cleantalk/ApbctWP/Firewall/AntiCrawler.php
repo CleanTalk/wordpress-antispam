@@ -579,4 +579,17 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
 				LIMIT 100000;'
         );
     }
+
+    public static function getUARecordsCount()
+    {
+        $result = array();
+        $table_exist = \Cleantalk\ApbctWP\DB::getInstance()->fetchAll(
+            'SHOW TABLES LIKE "' . APBCT_TBL_AC_UA_BL . '";'
+        );
+        if ( !empty($table_exist) ) {
+            $query = 'SELECT count(*) as cnt FROM ' . APBCT_TBL_AC_UA_BL . ';';
+            $result = \Cleantalk\ApbctWP\DB::getInstance()->fetch($query);
+        }
+        return !empty($result['cnt']) ? $result['cnt'] : 0;
+    }
 }

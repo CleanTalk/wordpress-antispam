@@ -41,7 +41,7 @@ class State extends \Cleantalk\Common\State
         'sfw__enabled'                             => 1,
         'sfw__anti_flood'                          => 0,
         'sfw__anti_flood__view_limit'              => 20,
-        'sfw__anti_crawler'                        => 0,
+        'sfw__anti_crawler'                        => 2,
         'sfw__random_get'                          => -1,
 
         // Forms for protection

@@ -712,7 +712,6 @@ function apbct_settings__set_fields()
                     'parent'      => 'sfw__enabled',
                 ),
                 'sfw__anti_crawler'           => array(
-                    'type'        => 'checkbox',
                     'title'       => 'Anti-Crawler' . $additional_ac_title, // Do not to localize this phrase
                     'class'       => 'apbct_settings-field_wrapper',
                     'parent'      => 'sfw__enabled',
@@ -727,6 +726,12 @@ function apbct_settings__set_fields()
                             'cleantalk-spam-protect'
                         ),
                     'long_description' => true,
+                    'input_type'  => 'radio',
+                    'options'     => array(
+                        array('val' => 1, 'label' => __('On', 'cleantalk-spam-protect'), 'childrens_enable' => 0,),
+                        array('val' => 0, 'label' => __('Off', 'cleantalk-spam-protect'), 'childrens_enable' => 0,),
+                        array('val' => 2, 'label' => __('Auto', 'cleantalk-spam-protect'), 'childrens_enable' => 0,),
+                    ),
                 ),
                 'sfw__anti_flood'             => array(
                     'type'        => 'checkbox',
@@ -2960,6 +2965,37 @@ function apbct_settings__get__long_description()
 
     $setting_id = (string) Post::get('setting_id', null, 'word');
 
+    $ac_long_description = sprintf(
+        __(esc_html__($apbct->data['wl_brandname']) . ' Anti-Crawler — this option is meant to block all types of bots visiting website pages that can search vulnerabilities on a website, attempt to hack a site, collect personal data, price parsing or content and images, generate 404 error pages, or aggressive website scanning bots. %s ', 'cleantalk-spam-protect'),
+        '<a href="https://cleantalk.org/help/anti-flood-and-anti-crawler{utm_mark}#anticrawl" target="_blank">' . __('Learn more.', 'cleantalk-spam-protect') . '</a>'
+    );
+    $ac_long_description .= sprintf(
+        '
+                <p>
+                %s
+                    </p>
+                    <ul class="ul-disc" style="font-size: 13px">
+                        <li >
+                        %s
+                        </li>
+                        <li>
+                        %s
+                        </li>
+                        <li>
+                        %s
+                        </li>
+                    </ul>
+                <p class="apbct-icon-info-circled">
+                %s
+                </p>
+                ',
+        __('Modes work description:', 'cleantalk-spam-protect'),
+        __('"On": Anti-Crawler is enabled. ', 'cleantalk-spam-protect'),
+        __('"Off": Anti-Crawler is disabled.', 'cleantalk-spam-protect'),
+        __('"Auto": Anti-Crawler is disabled with valid Anti-Spam license provided.', 'cleantalk-spam-protect'),
+        __('Please note, for the modes "On" and "Auto" the feature still protects your site from active bots in cases when the Anti-Spam license becomes expired.', 'cleantalk-spam-protect')
+    );
+
     $descriptions = array(
         'multisite__work_mode'      => array(
             'title' => __('Wordpress Multisite Work Mode', 'cleantalk-spam-protect'),
@@ -2989,10 +3025,7 @@ function apbct_settings__get__long_description()
         ),
         'sfw__anti_crawler' => array(
             'title' => 'Anti-Crawler', // Do not to localize this phrase
-            'desc'  => sprintf(
-                __(esc_html__($apbct->data['wl_brandname']) . ' Anti-Crawler — this option is meant to block all types of bots visiting website pages that can search vulnerabilities on a website, attempt to hack a site, collect personal data, price parsing or content and images, generate 404 error pages, or aggressive website scanning bots. %s', 'cleantalk-spam-protect'),
-                '<a href="https://cleantalk.org/help/anti-flood-and-anti-crawler{utm_mark}#anticrawl" target="_blank">' . __('Learn more.', 'cleantalk-spam-protect') . '</a>'
-            )
+            'desc' => $ac_long_description,
         ),
         'sfw__anti_flood' => array(
             'title' => 'Anti-Flood', // Do not to localize this phrase
