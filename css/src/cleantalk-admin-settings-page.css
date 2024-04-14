@@ -305,6 +305,5 @@ button[value="save_changes"]:disabled {
 
 .apbct_notification__advanced_settings {
     margin: 20px 0;
-    font-weight: 600;
-    font-size: 16px;
+    font-weight: 400;
 }
