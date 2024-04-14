@@ -199,13 +199,19 @@ function apbct_settings__set_fields()
             'html_before' => apbct_get_spoilers_links()
         ),
 
+        //Description of advanced settings
+        'advanced_settings'     => array(
+            'fields' => array(),
+            'notification'      => __('The default settings correspond to the optimal work of the service and their change is required only in special cases.', 'cleantalk-spam-protect'),
+            'html_before'       => '<div id="apbct_settings__before_advanced_settings"></div>'
+            . '<div id="apbct_settings__advanced_settings" style="display: none;">'
+            . '<div id="apbct_settings__advanced_settings_inner">',
+        ),
+
         // Forms protection
         'forms_protection'      => array(
             'title'          => __('Forms to protect', 'cleantalk-spam-protect'),
             'section'        => 'hidden_section',
-            'html_before'    => '<div id="apbct_settings__before_advanced_settings"></div>'
-                                . '<div id="apbct_settings__advanced_settings" style="display: none;">'
-                                . '<div id="apbct_settings__advanced_settings_inner">',
             'fields'         => array(
                 'forms__registrations_test'             => array(
                     'title'       => __('Registration Forms', 'cleantalk-spam-protect'),
@@ -1277,6 +1283,10 @@ function apbct_settings__display()
 
         //title
         $out = ! empty($group['title']) ? '<hr><h3 style="text-align: center" id="apbct_setting_group__' . $group_name . '">' . $group['title'] . '</h3><hr>' : '';
+        echo Escape::escKsesPreset($out, 'apbct_settings__display__groups');
+
+        //notification
+        $out = ! empty($group['notification']) ? '<div style="text-align: center" class="apbct_notification__' . $group_name . '">' . $group['notification'] . '</div>' : '';
         echo Escape::escKsesPreset($out, 'apbct_settings__display__groups');
 
         do_settings_fields('cleantalk', 'apbct_section__' . $group_name);
