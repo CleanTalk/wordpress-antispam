@@ -1297,6 +1297,10 @@ function apbct_sfw_update__init($delay = 0)
 
     $wp_upload_dir = wp_upload_dir();
     $apbct->fw_stats['updating_folder'] = $wp_upload_dir['basedir'] . DIRECTORY_SEPARATOR . 'cleantalk_fw_files_for_blog_' . get_current_blog_id() . DIRECTORY_SEPARATOR;
+    //update only common tables if moderate 0
+    if ( ! $apbct->moderate ) {
+        $apbct->data['sfw_load_type'] = 'common';
+    }
 
     if (apbct_sfw_update__switch_to_direct()) {
         return SFWUpdateHelper::directUpdate();
