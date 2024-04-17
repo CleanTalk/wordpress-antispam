@@ -1,6 +1,7 @@
 <?php
 
 use Cleantalk\ApbctWP\Escape;
+use Cleantalk\ApbctWP\Localize\BotDetectorHandler;
 use Cleantalk\ApbctWP\Localize\LocalizeHandler;
 use Cleantalk\ApbctWP\Sanitize;
 use Cleantalk\ApbctWP\Variables\Cookie;
@@ -1364,12 +1365,23 @@ function apbct_enqueue_and_localize_public_scripts()
     );
 
     // Bot detector
-    if ( $apbct->settings['data__bot_detector_enabled'] && ! apbct_bot_detector_scripts_exclusion()) {
+    if ( $apbct->settings['data__bot_detector_enabled'] && ! BotDetectorHandler::isScriptsExclusion()) {
         wp_enqueue_script(
             'ct_bot_detector',
-            'https://moderate.cleantalk.org/ct-bot-detector-wrapper.js',
+            BotDetectorHandler::$wrapper_file_url,
             [],
-            APBCT_VERSION
+            APBCT_VERSION . '.001'
+        );
+
+        $apbct->data['bot_detector_wrapper_integrity'] = BotDetectorHandler::getNewIntegrityData();
+        $apbct->saveData();
+
+        add_filter(
+            'wp_script_attributes',
+            array(
+                'Cleantalk\ApbctWP\Localize\BotDetectorHandler',
+                'modifyWrapperScript'
+            )
         );
     }
 
@@ -1380,15 +1392,6 @@ function apbct_enqueue_and_localize_public_scripts()
         APBCT_VERSION,
         'all'
     );
-}
-
-function apbct_bot_detector_scripts_exclusion()
-{
-    if (apbct_is_plugin_active('oxygen/functions.php') && Get::get('ct_builder') === 'true') {
-        return true;
-    }
-
-    return false;
 }
 
 /**

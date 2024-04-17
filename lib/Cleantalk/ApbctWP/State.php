@@ -230,6 +230,11 @@ class State extends \Cleantalk\Common\State
         'wl_support_faq'     => 'https://wordpress.org/plugins/cleantalk-spam-protect/faq/',
         'wl_support_url'     => 'https://wordpress.org/support/plugin/cleantalk-spam-protect',
         'wl_support_email'   => 'support@cleantalk.org',
+        // Bot-detector integrity
+        'bot_detector_wrapper_integrity' => array(
+            'hash' => false,
+            'last_load_time' => 0
+        )
     );
 
     /**
