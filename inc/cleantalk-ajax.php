@@ -344,6 +344,8 @@ function ct_ajax_hook($message_obj = null)
         //Simple File List editing current job
         'wfu_ajax_action_ask_server',
         //WFU skip ask server
+        'wfu_ajax_action',
+        //WFU skip ask server
         'wcap_save_guest_data',
         //WooCommerce skip
         'ajaxlogin',
