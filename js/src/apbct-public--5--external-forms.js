@@ -311,6 +311,7 @@ window.onload = function() {
         ctProtectExternal();
         catchDynamicRenderedForm();
         catchNextendSocialLoginForm();
+        catchWFU();
         ctProtectOutsideIframe();
     }, 2000);
 };
@@ -469,6 +470,63 @@ function forbiddenAjaxNextendSocialLogin(childBtn, msg) {
         elemForMsg.innerHTML = msg;
         parentElement.insertAdjacentElement('beforebegin', elemForMsg);
     }
+}
+
+/**
+ * Catch Wordpress File Upload form integration
+ */
+function catchWFU(){
+    let wfuContainer= document.querySelector('.wfu_container');
+    let wfuFields = '';
+
+    if (wfuContainer) {
+        wfuFields = wfuContainer.querySelectorAll('input[id*="field"]');
+        if (wfuFields) {
+            wfuFields.forEach(element => {
+                //нужные поля фронта, можно отформатировать для передачи в запрос
+            });
+        }
+
+        btnSubmit = wfuContainer.querySelector('[id*="wordpress_file_upload_submit"]');
+        if (btnSubmit) {
+            btnSubmit.addEventListener('click', (event) => {
+                event.preventDefault();
+                //event.stopPropagation();
+                event.stopImmediatePropagation();
+
+                let data = {
+                    'action': 'cleantalk_wfu_ajax_check',
+                    'ct_no_cookie_hidden_field': wfuContainer.querySelectorAll('.ct_no_cookie_hidden_field')[1].value,
+                };
+
+                console.log('send');
+                apbct_public_sendAJAX(
+                    data,
+                    {
+                        async: false,
+                        callback: function(result) {
+                            if (result.apbct.blocked === false) {
+                                allowAjaxWFU(el);
+                            } else {
+                                forbiddenAjaxWFU(el, result.apbct.comment);
+                            }
+                        },
+                    },
+                );
+            });
+        }
+    }
+}
+
+function allowAjaxWFU(params) {
+    console.log('allowAjaxWFU');
+    console.log(params);
+}
+
+function forbiddenAjaxWFU(childBtn, msg) {
+    console.log('forbiddenAjaxWFU');
+    console.log(childBtn);
+    console.log(msg);
 }
 
 /**
