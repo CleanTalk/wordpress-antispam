@@ -2,6 +2,7 @@
 
 namespace Cleantalk\ApbctWP;
 
+use AllowDynamicProperties;
 use ArrayObject;
 use Cleantalk\ApbctWP\Firewall\SFWUpdateSentinel;
 
@@ -18,6 +19,7 @@ use Cleantalk\ApbctWP\Firewall\SFWUpdateSentinel;
  * @psalm-suppress PossiblyUnusedProperty
  */
 
+ #[AllowDynamicProperties]
 class State extends \Cleantalk\Common\State
 {
     /**
