@@ -607,9 +607,7 @@ function apbct_get_sender_info()
         'has_input_focused' => Cookie::get('ct_has_input_focused') !== ''
             ? json_encode(Cookie::get('ct_has_input_focused'))
             : null,
-        'cache_plugins_detected' => $cache_plugins_detected,
-        'bot_detector_fired_form_exclusions' => apbct__bot_detector_get_fired_exclusions(),
-        'bot_detector_prepared_form_exclusions' => apbct__bot_detector_get_prepared_exclusion(),
+        'cache_plugins_detected' => $cache_plugins_detected
     );
 
     // Unset cookies_enabled from sender_info if cookies_type === none
@@ -1698,91 +1696,4 @@ function apbct_get_event_token($params)
     return  $event_token_from_params
         ? (string) $event_token_from_params
         : (string) $event_token_from_request;
-}
-
-/**
- * Do prepare exclusions for skippping bot-detector event token field.
- * @return string JSOn
- */
-function apbct__bot_detector_get_prepared_exclusion()
-{
-    global $apbct;
-    $bot_detector_exclusions = array();
-
-    //start exclusion there
-
-    //todo if do need to add a built-ib exclusion, use $exlusion_format
-    //set regexp to chek within attributes
-    //    $exlusion_format = array(
-    //        'exclusion_id' => '',
-    //        'signs_to_check' => array(
-    //            'form_attributes'               => '',
-    //            'form_children_attributes'      => '',
-    //            'form_parent_attributes'        => ''
-    //        )
-    //    );
-    if ($apbct->settings['exclusions__bot_detector']) {
-        $bot_detector_exclusions = array_merge(
-            $bot_detector_exclusions,
-            apbct__bot_detector_get_custom_exclusion_from_settings()
-        );
-    }
-
-    //start validate
-    $bot_detector_exclusions_valid = array();
-    foreach ($bot_detector_exclusions as $exclusion) {
-        if (
-            empty($exclusion['exclusion_id']) ||
-            (
-                empty($exclusion['signs_to_check']['form_attributes']) &&
-                empty($exclusion['signs_to_check']['form_children_attributes']) &&
-                empty($exclusion['signs_to_check']['form_parent_attributes'])
-            )
-        ) {
-            continue;
-        }
-        $bot_detector_exclusions_valid[] = $exclusion;
-    }
-
-    //prepare for early localize
-    $bot_detector_exclusions_valid = json_encode($bot_detector_exclusions_valid);
-    return $bot_detector_exclusions_valid !== false ? $bot_detector_exclusions_valid : '{}';
-}
-
-function apbct__bot_detector_get_fired_exclusions()
-{
-    return Cookie::get('ct_bot_detector_form_exclusion');
-}
-
-function apbct__bot_detector_get_custom_exclusion_from_settings()
-{
-    global $apbct;
-
-    $exlusion_format = array(
-        'exclusion_id' => '',
-        'signs_to_check' => array(
-            'form_attributes'               => '',
-            'form_children_attributes'      => '',
-            'form_parent_attributes'        => ''
-        )
-    );
-
-    $exclusions = array();
-    if (!$apbct->settings['exclusions__bot_detector']) {
-        return $exclusions;
-    }
-
-    foreach ($exlusion_format['signs_to_check'] as $sign => $_val) {
-        $setting_name = 'exclusions__bot_detector__' . $sign;
-        if (!empty($apbct->settings[$setting_name])) {
-            $regexps = explode(',', $apbct->settings[$setting_name]);
-            for ( $i = 0; $i < count($regexps); $i++ ) {
-                $form_exclusion = $exlusion_format;
-                $form_exclusion['exclusion_id'] = 'exclusion_' . $i;
-                $form_exclusion['signs_to_check'][$sign] = $regexps[$i];
-                $exclusions[] = $form_exclusion;
-            }
-        }
-    }
-    return $exclusions;
 }
