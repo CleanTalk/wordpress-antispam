@@ -411,6 +411,7 @@ class SFWUpdateHelper
     {
         global $apbct;
         $apbct->fw_stats['direct_update_log'] = null;
+        $apbct->fw_stats['firewall_updating_last_start'] = time();
         $apbct->save('fw_stats');
 
         $direct_update_log = array();

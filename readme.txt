@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 4.7
 Tested up to: 6.5
 Requires PHP: 5.6
-Stable tag: 6.30
+Stable tag: 6.31
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -456,6 +456,23 @@ Yes, it is. Please read this article,
 12. SpamFireWall log.
 
 == Changelog ==
+
+= 6.31 Apr 18 2024
+* New. Integrations. Added ContactFormPlugin handler.
+* Upd. Integrations. Skip new action for Wordpress File Uploader.
+* Upd. Settings. Advanced setting info added.
+* Fix. Comments moderation. Do not auto-approve comments if license is expired.
+* Fix. Code. ES Lint github action fixed.
+* Fix. Code. General. Compatibility with php 8.2.
+* Fix. Integration. WooCommerce. Event token added and JS status fixed.
+* Fix. Integrations. Added statement for handling space in attribute name.
+* Fix. Integrations. Added handler for KadenceBlocks.
+* Fix. Integrations. Skip WP Fusion Abandoned Cart Addon service requests.
+* Fix. Integrations. Prevented multi request after send.
+* Fix. SFW update. Get only common lists on expired key.
+* Fix. SFW update. Fixed case when DirectUpdate type always calls if has been called once.
+* Ref. Code. Function ct_preprocess_comment refactored to integration class.
+* Ref. Code. External forms. Deleted unnecessary conditions.
 
 = 6.30 Apr 4 2024
 * New. Integration. Jobstack theme register form protection implemented.
