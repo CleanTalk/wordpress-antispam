@@ -36,15 +36,22 @@ class CleantalkPreprocessComment extends IntegrationBase
         // after processing WP makes redirect to post page with comment's form by GET request (see above)
         global $current_user, $comment_post_id, $ct_comment_done, $ct_jp_comments, $apbct;
 
+        $this->exception_action = false;
+
+        if (is_null($argument)) {
+            //run debug plugin log
+            do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '(): comment argument is null' . __LINE__, $_POST);
+            return false;
+        }
+
         $this->wp_comment = $argument;
-        $this->wp_comment_post_id = $comment_post_id;
         $this->apbct = $apbct;
         $this->ct_jp_comments = $ct_jp_comments;
 
-        //todo local vars
         $comment_post_id = $this->wp_comment['comment_post_ID'];
+        $this->wp_comment_post_id = $comment_post_id;
+
         $this->post_info = array();
-        $this->exception_action = false;
         $this->comments_check_number_needs_to_skip_request = defined('CLEANTALK_CHECK_COMMENTS_NUMBER') ? CLEANTALK_CHECK_COMMENTS_NUMBER : 3;
 
         /**
