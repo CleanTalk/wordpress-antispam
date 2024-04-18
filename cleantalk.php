@@ -575,9 +575,10 @@ $apbct_active_integrations = array(
         'ajax'    => false
     ),
     'WordpressFileUpload' => array(
-        'hook'    => 'cleantalk_wfu_ajax_check',
+        'hook'    => 'wfu_before_upload',
         'setting' => 'forms__contact_forms_test',
-        'ajax'    => true
+        'ajax'    => true,
+        'ajax_and_post' => true
     ),
 );
 new  \Cleantalk\Antispam\Integrations($apbct_active_integrations, (array)$apbct->settings);
