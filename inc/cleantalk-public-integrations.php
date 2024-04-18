@@ -557,10 +557,22 @@ function apbct_woocommerce__add_request_id_to_order_meta($order_id)
 
 function apbct_wc__add_to_cart_unlogged_user()
 {
+    global $apbct;
+
+    if (Post::get('data') && isset(Post::get('data')['ct_bot_detector_event_token'])) {
+        $event_token = Post::get('data')['ct_bot_detector_event_token'];
+    } else {
+        $event_token = null;
+    }
+
     $message = apply_filters('apbct__filter_post', $_POST);
 
     $post_info['comment_type'] = 'order__add_to_cart';
     $post_info['post_url']     = Sanitize::cleanUrl(Server::get('HTTP_REFERER'));
+
+    if ( ! $apbct->stats['no_cookie_data_taken'] ) {
+        apbct_form__get_no_cookie_data();
+    }
 
     //Making a call
     $base_call_result = apbct_base_call(
@@ -570,6 +582,7 @@ function apbct_wc__add_to_cart_unlogged_user()
             'js_on'       => apbct_js_test(Sanitize::cleanTextField(Cookie::get('ct_checkjs')), true),
             'sender_info' => array('sender_url' => null),
             'exception_action' => false,
+            'event_token' => $event_token,
         )
     );
 
@@ -977,319 +990,19 @@ function apbct_comment__check_via_wp_die($message, $title, $args)
 /**
  * Public filter 'preprocess_comment' - Checks comment by cleantalk server
  *
- * @param mixed[] $comment Comment data array
+ * @param array $comment Comment data array
  *
- * @return    mixed[] New data array of comment
+ * @return array|true New data array of comment
  * @psalm-suppress UnusedVariable
+ * @deprecated
  */
 function ct_preprocess_comment($comment)
 {
-    // this action is called just when WP process POST request (adds new comment)
-    // this action is called by wp-comments-post.php
-    // after processing WP makes redirect to post page with comment's form by GET request (see above)
-    global $current_user, $comment_post_id, $ct_comment_done, $ct_jp_comments, $apbct, $ct_comment, $ct_stop_words;
+    global $apbct;
 
-    // Send email notification for chosen groups of users
-    if ( $apbct->settings['wp__comment_notify'] && ! empty($apbct->settings['wp__comment_notify__roles']) && $apbct->data['moderate'] ) {
-        add_filter('notify_post_author', 'apbct_comment__Wordpress__doNotify', 100, 2);
-
-        $users = get_users(array(
-            'role__in' => $apbct->settings['wp__comment_notify__roles'],
-            'fileds'   => array('user_email')
-        ));
-
-        if ( $users ) {
-            add_filter(
-                'comment_notification_recipients',
-                'apbct_comment__Wordpress__changeMailNotificationRecipients',
-                100,
-                2
-            );
-            foreach ( $users as $user ) {
-                $emails[] = $user->user_email;
-            }
-            $apbct->comment_notification_recipients = json_encode($emails);
-        }
-    }
-
-    // Skip processing admin.
-    if ( in_array("administrator", $current_user->roles) ) {
-        do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
-
-        return $comment;
-    }
-
-    $comments_check_number = defined('CLEANTALK_CHECK_COMMENTS_NUMBER') ? CLEANTALK_CHECK_COMMENTS_NUMBER : 3;
-
-    if ( $apbct->settings['comments__check_comments_number'] && $comment['comment_author_email'] ) {
-        $args            = array(
-            'author_email' => $comment['comment_author_email'],
-            'status'       => 'approve',
-            'count'        => false,
-            'number'       => $comments_check_number,
-        );
-        $cnt             = count(get_comments($args));
-        $is_max_comments = $cnt >= $comments_check_number ? true : false;
-    }
-
-    if (
-        ($comment['comment_type'] !== 'trackback') &&
-        (
-            apbct_is_user_enable() === false ||
-            $apbct->settings['forms__comments_test'] == 0 ||
-            $ct_comment_done ||
-            (isset($_SERVER['HTTP_REFERER']) && stripos($_SERVER['HTTP_REFERER'], 'page=wysija_campaigns&action=editTemplate') !== false) ||
-            (isset($_SERVER['HTTP_REFERER']) && strpos($_SERVER['REQUEST_URI'], '/wp-admin/') !== false)
-        )
-    ) {
-        do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
-
-        return $comment;
-    }
-
-    $local_blacklists = apbct_wp_blacklist_check(
-        $comment['comment_author'],
-        $comment['comment_author_email'],
-        $comment['comment_author_url'],
-        $comment['comment_content'],
-        Server::get('REMOTE_ADDR'),
-        Server::get('HTTP_USER_AGENT')
-    );
-
-    // Go out if author in local blacklists
-    if ( $comment['comment_type'] !== 'trackback' && $local_blacklists === true ) {
-        do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
-
-        return $comment;
-    }
-
-    $ct_comment_done = true;
-
-    $comment_post_id = $comment['comment_post_ID'];
-
-    // JetPack comments logic
-    $post_info['comment_type'] = $ct_jp_comments ? 'jetpack_comment' : $comment['comment_type'];
-    $post_info['post_url']     = ct_post_url(null, $comment_post_id);
-
-    // Comment type
-    $post_info['comment_type'] = empty($post_info['comment_type']) ? 'general_comment' : $post_info['comment_type'];
-
-    $checkjs = apbct_js_test(Sanitize::cleanTextField(Cookie::get('ct_checkjs')), true) ?: apbct_js_test(Sanitize::cleanTextField(Post::get('ct_checkjs')));
-
-    // jetpack_comment case
-    if ( $post_info['comment_type'] === 'jetpack_comment' ) {
-        $checkjs = apbct_js_test(AltSessions::get('ct_checkjs'));
-        $event_token = AltSessions::get('ct_bot_detector_event_token');
-    }
-
-    $example = null;
-    if ( $apbct->data['relevance_test'] ) {
-        $post = get_post($comment_post_id);
-        if ( $post !== null ) {
-            $example['title']    = $post->post_title;
-            $example['body']     = $post->post_content;
-            $example['comments'] = null;
-
-            $last_comments = get_comments(array('status' => 'approve', 'number' => 10, 'post_id' => $comment_post_id));
-            foreach ( $last_comments as $post_comment ) {
-                $example['comments'] .= "\n\n" . $post_comment->comment_content;
-            }
-
-            $example = json_encode($example);
-        }
-
-        // Use plain string format if've failed with JSON
-        if ( $example === false || $example === null ) {
-            $example = ($post->post_title !== null) ? $post->post_title : '';
-            $example .= ($post->post_content !== null) ? "\n\n" . $post->post_content : '';
-        }
-    }
-
-    $base_call_data = array(
-        'message'         => $comment['comment_content'],
-        'example'         => $example,
-        'sender_email'    => $comment['comment_author_email'],
-        'sender_nickname' => $comment['comment_author'],
-        'post_info'       => $post_info,
-        'js_on'           => $checkjs,
-        'event_token'     => isset($event_token) ? $event_token : '',
-        'sender_info'     => array(
-            'sender_url'      => @$comment['comment_author_url'],
-            'form_validation' => ! isset($apbct->validation_error)
-                ? null
-                : json_encode(
-                    array(
-                        'validation_notice' => $apbct->validation_error,
-                        'page_url'          => Server::get('HTTP_HOST') . Server::get('REQUEST_URI'),
-                    )
-                )
-        ),
-    );
-
-    if ( isset($is_max_comments) && $is_max_comments ) {
-        $base_call_data['exception_action'] = 1;
-    }
-
-    /**
-     * Add honeypot_field to $base_call_data is comments__hide_website_field on
-     */
-    if ( isset($apbct->settings['comments__hide_website_field']) && $apbct->settings['comments__hide_website_field'] ) {
-        $honeypot_field = 1;
-
-        if (
-            $post_info['comment_type'] === 'comment' &&
-            Post::get('url') &&
-            Post::get('comment_post_ID')
-        ) {
-            $honeypot_field = 0;
-            // if url is filled then pass them to $base_call_data as additional fields
-            $base_call_data['sender_info']['honeypot_field_value']  = Sanitize::cleanTextField(Post::get('url'));
-            $base_call_data['sender_info']['honeypot_field_source'] = 'url';
-        }
-
-        $base_call_data['honeypot_field'] = $honeypot_field;
-    }
-
-    $base_call_result = apbct_base_call($base_call_data);
-
-    $ct_result = $base_call_result['ct_result'];
-
-    ct_hash($ct_result->id);
-
-    //Don't check trusted users
-    if ( isset($comment['comment_author_email']) ) {
-        $approved_comments = get_comments(
-            array('status' => 'approve', 'count' => true, 'author_email' => $comment['comment_author_email'])
-        );
-        $new_user          = $approved_comments == 0 ? true : false;
-    }
-
-    // Change comment flow only for new authors
-    if ( ! empty($new_user) || empty($base_call_data['post_info']['post_url']) ) {
-        add_action('comment_post', 'ct_set_meta', 6, 2);
-    }
-
-    if ( $ct_result->allow ) { // Pass if allowed
-        // If moderation is required
-        if ( get_option('comment_moderation') === '1' ) {
-            add_filter('pre_comment_approved', 'ct_set_not_approved', 999, 2);
-        // If new author have to be moderated
-        } elseif ( get_option('comment_previously_approved') === '1' && get_option('cleantalk_allowed_moderation', 1) != 1 ) {
-            $comment_author = isset($comment['comment_author']) ? $comment['comment_author'] : '';
-            $comment_author_email = isset($comment['comment_author_email']) ? $comment['comment_author_email'] : '';
-            $comment_author_url = isset($comment['comment_author_url']) ? $comment['comment_author_url'] : '';
-            $comment_content = isset($comment['comment_content']) ? $comment['comment_content'] : '';
-            $comment_author_IP = isset($comment['comment_author_IP']) ? $comment['comment_author_IP'] : '';
-            $comment_agent = isset($comment['comment_agent']) ? $comment['comment_agent'] : '';
-            $comment_type = isset($comment['comment_type']) ? $comment['comment_type'] : '';
-            if (
-                check_comment(
-                    $comment_author,
-                    $comment_author_email,
-                    $comment_author_url,
-                    $comment_content,
-                    $comment_author_IP,
-                    $comment_agent,
-                    $comment_type
-                )
-            ) {
-                add_filter('pre_comment_approved', 'ct_set_approved', 999, 2);
-            } else {
-                add_filter('pre_comment_approved', 'ct_set_not_approved', 999, 2);
-            }
-        // Allowed comment will be published
-        } else {
-            add_filter('pre_comment_approved', 'ct_set_approved', 999, 2);
-        }
-        // Modify the email notification
-        add_filter(
-            'comment_notification_text',
-            'apbct_comment__wordpress__show_blacklists',
-            100,
-            2
-        ); // Add two blacklist links: by email and IP
-    } else {
-        $ct_comment    = $ct_result->comment;
-        $ct_stop_words = $ct_result->stop_words;
-
-        /**
-         * We have to increase priority to apply filters for comments
-         * management after akismet fires
-         **/
-        $increased_priority = 0;
-        if (apbct_is_plugin_active('akismet/akismet.php')) {
-            $increased_priority = 5;
-        }
-
-        $err_text =
-            '<center>'
-            . ((defined('CLEANTALK_DISABLE_BLOCKING_TITLE') && CLEANTALK_DISABLE_BLOCKING_TITLE == true)
-                ? ''
-                : '<b style="color: #49C73B;">Clean</b><b style="color: #349ebf;">Talk.</b> ')
-                . __('Spam protection', 'cleantalk-spam-protect')
-            . "</center><br><br>\n"
-            . $ct_result->comment;
-        if ( ! $ct_jp_comments ) {
-            $err_text .= '<script>setTimeout("history.back()", 5000);</script>';
-        }
-
-        // Terminate. Definitely spam.
-        if ( $ct_result->stop_queue == 1 ) {
-            wp_die($err_text, 'Blacklisted', array('response' => 200, 'back_link' => ! $ct_jp_comments));
-        }
-
-        // Terminate by user's setting.
-        if ( $ct_result->spam == 3 ) {
-            wp_die($err_text, 'Blacklisted', array('response' => 200, 'back_link' => ! $ct_jp_comments));
-        }
-
-        // Trash comment.
-        if ( $ct_result->spam == 2 ) {
-            add_filter('pre_comment_approved', 'ct_set_comment_spam', 997, 2);
-            add_action('comment_post', 'ct_wp_trash_comment', 7 + $increased_priority, 2);
-        }
-
-        // Spam comment
-        if ( $ct_result->spam == 1 ) {
-            add_filter('pre_comment_approved', 'ct_set_comment_spam', 7, 2);
-        }
-
-        // Move to pending folder. Contains stop_words.
-        if ( $ct_result->stop_words ) {
-            add_filter('pre_comment_approved', 'ct_set_not_approved', 998, 2);
-            add_action('comment_post', 'ct_mark_red', 8 + $increased_priority, 2);
-        }
-
-        add_action('comment_post', 'ct_die', 9 + $increased_priority, 2);
-    }
-
-    if ( $apbct->settings['comments__remove_comments_links'] == 1 ) {
-        $comment['comment_content'] = preg_replace(
-            "~(http|https|ftp|ftps)://(.*?)(\s|\n|[,.?!](\s|\n)|$)~",
-            '[Link deleted]',
-            $comment['comment_content']
-        );
-    }
-
-    // Change mail notification if license is out of date
-    if ( $apbct->data['moderate'] == 0 ) {
-        $apbct->sender_email = $comment['comment_author_email'];
-        $apbct->sender_ip    = Helper::ipGet('real');
-        add_filter(
-            'comment_moderation_text',
-            'apbct_comment__Wordpress__changeMailNotification',
-            100,
-            2
-        ); // Comment sent to moderation
-        add_filter(
-            'comment_notification_text',
-            'apbct_comment__Wordpress__changeMailNotification',
-            100,
-            2
-        ); // Comment approved
-    }
-
-    return $comment;
+    $integrations = new \Cleantalk\Antispam\Integrations(array(), $apbct->settings);
+    $result = $integrations->checkSpam($comment, 'CleantalkPreprocessComment');
+    return true === $result ? $comment : $result;
 }
 
 /**

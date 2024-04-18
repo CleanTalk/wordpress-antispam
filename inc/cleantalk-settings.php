@@ -199,13 +199,19 @@ function apbct_settings__set_fields()
             'html_before' => apbct_get_spoilers_links()
         ),
 
+        //Description of advanced settings
+        'advanced_settings'     => array(
+            'fields' => array(),
+            'notification'      => __('The default settings correspond to the optimal work of the service and their change is required only in special cases.', 'cleantalk-spam-protect'),
+            'html_before'       => '<div id="apbct_settings__before_advanced_settings"></div>'
+            . '<div id="apbct_settings__advanced_settings" style="display: none;">'
+            . '<div id="apbct_settings__advanced_settings_inner">',
+        ),
+
         // Forms protection
         'forms_protection'      => array(
             'title'          => __('Forms to protect', 'cleantalk-spam-protect'),
             'section'        => 'hidden_section',
-            'html_before'    => '<div id="apbct_settings__before_advanced_settings"></div>'
-                                . '<div id="apbct_settings__advanced_settings" style="display: none;">'
-                                . '<div id="apbct_settings__advanced_settings_inner">',
             'fields'         => array(
                 'forms__registrations_test'             => array(
                     'title'       => __('Registration Forms', 'cleantalk-spam-protect'),
@@ -502,6 +508,7 @@ function apbct_settings__set_fields()
                     'display'    => $apbct->data['cookies_type'] === 'alternative',
                     'callback' => 'apbct_settings__check_alt_cookies_types'
                 ),
+                //bot detector
                 'data__bot_detector_enabled' => array(
                     'title' => __('Use ', 'cleantalk-spam-protect')
                                . $apbct->data['wl_brandname']
@@ -509,6 +516,38 @@ function apbct_settings__set_fields()
                     'description' => __('This option includes external ', 'cleantalk-spam-protect')
                                . $apbct->data['wl_brandname']
                                . __(' JavaScript library to getting visitors info data', 'cleantalk-spam-protect'),
+                    'childrens' => array('exclusions__bot_detector')
+                ),
+                'exclusions__bot_detector' => array(
+                    'title' => __('JavaScript Library Exclusions', 'cleantalk-spam-protect'),
+                    'childrens' => array(
+                        'exclusions__bot_detector__form_attributes',
+                        'exclusions__bot_detector__form_children_attributes',
+                        'exclusions__bot_detector__form_parent_attributes',
+                    ),
+                    'description' => __(
+                        'Regular expression. Use to skip a HTML form from special service field attach.',
+                        'cleantalk-spam-protect'
+                    ),
+                    'parent' => 'data__bot_detector_enabled',
+                ),
+                'exclusions__bot_detector__form_attributes'             => array(
+                    'type'        => 'text',
+                    'title'       => __('Exclude any forms that has attribute matches.', 'cleantalk-spam-protect'),
+                    'parent' => 'exclusions__bot_detector',
+                    'class' => 'apbct_settings-field_wrapper--sub'
+                ),
+                'exclusions__bot_detector__form_children_attributes'             => array(
+                    'type'        => 'text',
+                    'title'       => __('Exclude any forms that includes a child element with attribute matches.', 'cleantalk-spam-protect'),
+                    'parent' => 'exclusions__bot_detector',
+                    'class' => 'apbct_settings-field_wrapper--sub'
+                ),
+                'exclusions__bot_detector__form_parent_attributes'             => array(
+                    'type'        => 'text',
+                    'title'       => __('Exclude any forms that includes a parent element with attribute matches.', 'cleantalk-spam-protect'),
+                    'parent' => 'exclusions__bot_detector',
+                    'class' => 'apbct_settings-field_wrapper--sub'
                 ),
                 'wp__use_builtin_http_api'             => array(
                     'title'       => __("Use WordPress HTTP API", 'cleantalk-spam-protect'),
@@ -618,6 +657,7 @@ function apbct_settings__set_fields()
                     ),
                     'long_description' => true
                 ),
+                //roles
                 'exclusions__roles'              => array(
                     'type'                    => 'select',
                     'title' => __('Roles Exclusions', 'cleantalk-spam-protect'),
@@ -1277,6 +1317,10 @@ function apbct_settings__display()
 
         //title
         $out = ! empty($group['title']) ? '<hr><h3 style="text-align: center" id="apbct_setting_group__' . $group_name . '">' . $group['title'] . '</h3><hr>' : '';
+        echo Escape::escKsesPreset($out, 'apbct_settings__display__groups');
+
+        //notification
+        $out = ! empty($group['notification']) ? '<div style="text-align: center" class="apbct_notification__' . $group_name . '">' . $group['notification'] . '</div>' : '';
         echo Escape::escKsesPreset($out, 'apbct_settings__display__groups');
 
         do_settings_fields('cleantalk', 'apbct_section__' . $group_name);
@@ -2459,6 +2503,49 @@ function apbct_settings__validate($settings)
         )
         : $apbct->errorDelete('exclusions_fields', true, 'settings_validate');
     $settings['exclusions__form_signs'] = $result ? $result : '';
+
+    //Bot detector form
+    $result = apbct_settings__sanitize__exclusions(
+        $settings['exclusions__bot_detector__form_attributes'],
+        true
+    );
+    $result === false
+        ? $apbct->errorAdd(
+            'exclusions_fields',
+            'is not valid: "' . $settings['exclusions__bot_detector__form_attributes'] . '"',
+            'settings_validate'
+        )
+        : $apbct->errorDelete('exclusions_fields', true, 'settings_validate');
+    $settings['exclusions__bot_detector__form_attributes'] = $result ? $result : '';
+
+    //Bot detector parent
+    $result = apbct_settings__sanitize__exclusions(
+        $settings['exclusions__bot_detector__form_parent_attributes'],
+        true
+    );
+    $result === false
+        ? $apbct->errorAdd(
+            'exclusions_fields',
+            'is not valid: "' . $settings['exclusions__bot_detector__form_parent_attributes'] . '"',
+            'settings_validate'
+        )
+        : $apbct->errorDelete('exclusions_fields', true, 'settings_validate');
+    $settings['exclusions__bot_detector__form_parent_attributes'] = $result ? $result : '';
+
+    //Bot detector child
+    $result = apbct_settings__sanitize__exclusions(
+        $settings['exclusions__bot_detector__form_children_attributes'],
+        true
+    );
+    $result === false
+        ? $apbct->errorAdd(
+            'exclusions_fields',
+            'is not valid: "' . $settings['exclusions__bot_detector__form_children_attributes'] . '"',
+            'settings_validate'
+        )
+        : $apbct->errorDelete('exclusions_fields', true, 'settings_validate');
+    $settings['exclusions__bot_detector__form_children_attributes'] = $result ? $result : '';
+
 
     // WPMS Logic.
     if ( APBCT_WPMS && is_main_site() ) {

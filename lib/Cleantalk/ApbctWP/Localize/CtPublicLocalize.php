@@ -31,6 +31,7 @@ class CtPublicLocalize
             'wl_brandname_short'    => $apbct->data['wl_brandname_short'],
             'ct_checkjs_key'        => ct_get_checkjs_value(),
             'emailEncoderPassKey'   => apbct_get_email_encoder_pass_key(),
+            'bot_detector_forms_excluded'  => base64_encode(apbct__bot_detector_get_prepared_exclusion()),
         );
     }
 

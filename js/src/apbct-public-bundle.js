@@ -2254,6 +2254,7 @@ function apbct_ready() {
  */
 function ctAjaxSetupAddCleanTalkDataBeforeSendAjax() {
     // jquery ajax call intercept
+    let eventToken = false;
     if ( typeof jQuery !== 'undefined' ) {
         jQuery.ajaxSetup({
             beforeSend: function(xhr, settings) {
@@ -2286,13 +2287,30 @@ function ctAjaxSetupAddCleanTalkDataBeforeSendAjax() {
                 if ( typeof settings.url === 'string' ) {
                     if (settings.url.indexOf('wc-ajax=add_to_cart') !== -1) {
                         sourceSign = 'wc-ajax=add_to_cart';
+                        if (localStorage.getItem('bot_detector_event_token') !== null) {
+                            eventToken = localStorage.getItem('bot_detector_event_token');
+                            try {
+                                eventToken = JSON.parse(eventToken);
+                            } catch {
+                                eventToken = false;
+                            }
+                            if (eventToken !== false && eventToken.hasOwnProperty('value') && eventToken.value !== '') {
+                                eventToken = eventToken.value;
+                            }
+                        }
                     }
                 }
 
                 if (sourceSign) {
                     let noCookieData = getNoCookieData();
+                    if (typeof eventToken === 'string') {
+                        eventToken = 'data%5Bct_bot_detector_event_token%5D=' + eventToken + '&';
+                    } else {
+                        eventToken = '';
+                    }
                     noCookieData = 'data%5Bct_no_cookie_hidden_field%5D=' + noCookieData + '&';
-                    settings.data = noCookieData + settings.data;
+
+                    settings.data = noCookieData + eventToken + settings.data;
                 }
             },
         });
@@ -3517,11 +3535,6 @@ function apbctProcessIframes() {
  * @param {HTMLElement} documentObject
  */
 function apbctProcessExternalForm(currentForm, iterator, documentObject) {
-    // skip excluded forms
-    if ( formIsExclusion(currentForm)) {
-        return;
-    }
-
     const cleantalkPlaceholder = document.createElement('i');
     cleantalkPlaceholder.className = 'cleantalk_placeholder';
     cleantalkPlaceholder.style = 'display: none';
@@ -3587,11 +3600,6 @@ function apbctProcessExternalForm(currentForm, iterator, documentObject) {
  * @param {HTMLElement} documentObject
  */
 function apbctProcessExternalFormByFakeButton(currentForm, iterator, documentObject) {
-    // skip excluded forms
-    if ( formIsExclusion(currentForm)) {
-        return;
-    }
-
     const submitButtonOriginal = currentForm.querySelector('[type="submit"]');
     const onsubmitOriginal = currentForm.querySelector('[type="submit"]').form.onsubmit;
 
