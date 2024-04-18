@@ -1646,7 +1646,7 @@ function apbct_sfw_update__download_files($urls, $direct_update = false)
     }
 
     //Reset keys
-    $urls          = array_values($urls);
+    $urls          = array_values(array_unique($urls));
     $results       = Helper::httpMultiRequest($urls, $apbct->fw_stats['updating_folder']);
     $count_urls    = count($urls);
     $count_results = count($results);
