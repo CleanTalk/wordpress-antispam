@@ -1202,7 +1202,11 @@ function apbct__change_type_website_field($fields)
 
     if ( isset($apbct->settings['comments__hide_website_field']) && $apbct->settings['comments__hide_website_field'] ) {
         if ( isset($fields['url']) && $fields['url'] ) {
-            $fields['url'] = '<input id="honeypot-field-url" autocomplete="off" name="url" type="text" value="" size="30" maxlength="200" />';
+            $fields['url'] = '<input id="honeypot-field-url" style="display: none;" autocomplete="off" name="url" type="text" value="" size="30" maxlength="200" />';
+        }
+        $theme = wp_get_theme();
+        if ( isset($theme->template) && $theme->template === 'dt-the7' ) {
+            $fields['url'] = '<input id="honeypot-field-url" autocomplete="off" name="url" type="text" value="" size="30" maxlength="200" /></div>';
         }
     }
 
