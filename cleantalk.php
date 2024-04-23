@@ -155,8 +155,22 @@ if ( $apbct->settings['comments__disable_comments__all'] || $apbct->settings['co
 if (
     $apbct->key_is_ok &&
     ( ! is_admin() || apbct_is_ajax() ) &&
-    $apbct->settings['data__email_decoder'] ) {
-    \Cleantalk\ApbctWP\Antispam\EmailEncoder::getInstance();
+    $apbct->settings['data__email_decoder']
+) {
+    $skip_email_encode = false;
+
+    if (!empty($_POST)) {
+        foreach ( $_POST as $param => $_value ) {
+            if ( strpos((string)$param, 'et_pb_contactform_submit') === 0 ) {
+                $skip_email_encode = true;
+                break;
+            }
+        }
+    }
+
+    if (!$skip_email_encode) {
+        \Cleantalk\ApbctWP\Antispam\EmailEncoder::getInstance();
+    }
 }
 
 add_action('rest_api_init', 'apbct_register_my_rest_routes');
