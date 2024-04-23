@@ -1204,6 +1204,17 @@ function ct_print_form($arr, $k)
         unset($tmp, $key, $tmp_key, $val);
     }
 
+    // Fix for zoho forms with space in input attribute name
+    if ( isset($arr['actionType'], $arr['returnURL']) ) {
+        $tmp = array();
+        foreach ( $arr as $key => $val ) {
+            $tmp_key       = str_replace('_', ' ', $key);
+            $tmp[$tmp_key] = $val;
+        }
+        $arr = $tmp;
+        unset($tmp, $key, $tmp_key, $val);
+    }
+
     foreach ( $arr as $key => $value ) {
         if ( ! is_array($value) ) {
             print '<textarea

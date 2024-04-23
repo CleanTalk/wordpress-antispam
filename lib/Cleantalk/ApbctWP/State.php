@@ -2,6 +2,7 @@
 
 namespace Cleantalk\ApbctWP;
 
+use AllowDynamicProperties;
 use ArrayObject;
 use Cleantalk\ApbctWP\Firewall\SFWUpdateSentinel;
 
@@ -18,6 +19,7 @@ use Cleantalk\ApbctWP\Firewall\SFWUpdateSentinel;
  * @psalm-suppress PossiblyUnusedProperty
  */
 
+ #[AllowDynamicProperties]
 class State extends \Cleantalk\Common\State
 {
     /**
@@ -92,6 +94,10 @@ class State extends \Cleantalk\Common\State
         'exclusions__fields'                       => '',
         'exclusions__fields__use_regexp'           => 0,
         'exclusions__form_signs'                   => '',
+        'exclusions__bot_detector'                                      => 0,
+        'exclusions__bot_detector__form_attributes'                     => '',
+        'exclusions__bot_detector__form_parent_attributes'              => '',
+        'exclusions__bot_detector__form_children_attributes'            => '',
         'exclusions__roles'                        => array('Administrator'),
 
         // Administrator Panel

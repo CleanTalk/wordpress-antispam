@@ -4,7 +4,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 6.30.1-dev
+  Version: 6.31.1-dev
   Author: СleanTalk - Anti-Spam Protection <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -312,6 +312,12 @@ $apbct_active_integrations = array(
         'setting' => 'forms__check_internal',
         'ajax'    => true
     ),
+    'CleantalkPreprocessComment'         => array(
+        'hook'    => 'preprocess_comment',
+        'setting' => 'forms__comments_test',
+        'ajax'    => true,
+        'ajax_and_post' => true
+    ),
     'ContactBank'         => array(
         'hook'    => 'contact_bank_frontend_ajax_call',
         'setting' => 'forms__contact_forms_test',
@@ -573,6 +579,16 @@ $apbct_active_integrations = array(
         'hook'    => 'wp_loaded',
         'setting' => 'forms__registrations_test',
         'ajax'    => false
+    ),
+    'ContactFormPlugin' => array(
+        'hook'    => 'cntctfrm_check_form',
+        'setting' => 'forms__contact_forms_test',
+        'ajax'    => false
+    ),
+    'KadenceBlocks' => array(
+        'hook'    => 'kb_process_ajax_submit',
+        'setting' => 'forms__contact_forms_test',
+        'ajax'    => true
     ),
     'WordpressFileUpload' => array(
         'hook'    => 'wfu_before_upload',
@@ -982,7 +998,7 @@ if ( is_admin() || is_network_admin() ) {
     add_action('plugins_loaded', 'apbct_init', 1);
 
     // Comments
-    add_filter('preprocess_comment', 'ct_preprocess_comment', 1, 1);     // param - comment data array
+    //add_filter('preprocess_comment', 'ct_preprocess_comment', 1, 1);     // param - comment data array
     add_filter('comment_text', 'ct_comment_text');
     add_filter('wp_die_handler', 'apbct_comment__sanitize_data__before_wp_die', 1); // Check comments after validation
 
@@ -1296,6 +1312,10 @@ function apbct_sfw_update__init($delay = 0)
 
     $wp_upload_dir = wp_upload_dir();
     $apbct->fw_stats['updating_folder'] = $wp_upload_dir['basedir'] . DIRECTORY_SEPARATOR . 'cleantalk_fw_files_for_blog_' . get_current_blog_id() . DIRECTORY_SEPARATOR;
+    //update only common tables if moderate 0
+    if ( ! $apbct->moderate ) {
+        $apbct->data['sfw_load_type'] = 'common';
+    }
 
     if (apbct_sfw_update__switch_to_direct()) {
         return SFWUpdateHelper::directUpdate();
