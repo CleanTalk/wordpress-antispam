@@ -1917,9 +1917,11 @@ function apbct_form__optimizepress__testSpam()
 
     if ( $ct_result->allow == 0 ) {
         if (!headers_sent()) {
-            header('HTTP/1.0 403 Forbidden');
+            header('HTTP/1.0 409 Forbidden');
         }
-        die($ct_result->comment);
+        wp_send_json([
+            'message' => $ct_result->comment
+        ]);
     }
 }
 
