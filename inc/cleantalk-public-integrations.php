@@ -232,7 +232,8 @@ function apbct_integration__buddyPres__activityWall($is_spam, $activity_obj = nu
          $activity_obj === null ||
          ! Post::get('action') ||
          $activity_obj->privacy == 'media' ||
-         apbct_exclusions_check()
+         apbct_exclusions_check() ||
+         ! $apbct->settings['forms__contact_forms_test']
     ) {
         do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
 
