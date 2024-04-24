@@ -2,8 +2,6 @@
 
 namespace Cleantalk\Antispam\Integrations;
 
-use Cleantalk\ApbctWP\Variables\Post;
-
 class WordpressFileUpload extends IntegrationBase
 {
     private $return_argument;
@@ -11,17 +9,35 @@ class WordpressFileUpload extends IntegrationBase
     public function getDataForChecking($argument)
     {
         $this->return_argument = $argument;
-        
-        // 1) Get data from $_REQUEST['userdata'] like in CalculatedFieldsForm.php
-        // 2) Get event_token from $_REQUEST but need to send it from frontend somehow. See here as example - https://github.com/CleanTalk/wordpress-antispam/blob/dev/js/src/apbct-public--2--public.js#L767
-        // 3) Return prepared request data
+        if ( ! empty($_REQUEST['userdata']) && function_exists('wfu_plugin_decode_string') ) {
+            $userdata = explode(";", $_REQUEST['userdata']);
+            $parsed_userdata = [];
+            foreach ($userdata as $user) {
+                $parsed_userdata[] = strip_tags(wfu_plugin_decode_string(trim(substr($user, 1))));
+            }
+
+            $input_array = apply_filters('apbct__filter_post', $parsed_userdata);
+
+            $data = ct_gfa($input_array);
+
+            if ( isset($_REQUEST['data']['ct_bot_detector_event_token']) ) {
+                $data['event_token'] = $_REQUEST['data']['ct_bot_detector_event_token'];
+            }
+            if ( isset($_REQUEST['data']['ct_no_cookie_hidden_field']) ) {
+                $data['ct_no_cookie_hidden_field'] = $_REQUEST['data']['ct_no_cookie_hidden_field'];
+            }
+
+            unset($_REQUEST['data']);
+
+            return $data;
+        }
     }
 
     public function doBlock($message)
     {
-        return ["error_message" => $message];
+        return ["error_message" => wp_strip_all_tags($message)];
     }
-    
+
     public function allow()
     {
         return $this->return_argument;

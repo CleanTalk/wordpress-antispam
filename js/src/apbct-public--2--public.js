@@ -702,6 +702,54 @@ function apbct_ready() {
             _form.onsubmit = (e) => ctSearchFormOnSubmitHandler(e, _form);
         }
     }
+
+    // Check any XMLHttpRequest connections
+    apbctCatchXmlHttpRequest();
+}
+
+/**
+ * Insert event_token and no_cookies_data to some ajax request
+ */
+function apbctCatchXmlHttpRequest() {
+    // 1) Check the page if it needed to catch XHR
+    if ( document.querySelectorAll('div.wfu_container') !== null ) {
+        const originalSend = XMLHttpRequest.prototype.send;
+        XMLHttpRequest.prototype.send = function(body) {
+            // 2) Check the caught request fi it needed to modify
+            if (
+                body &&
+                typeof body === 'string' &&
+                (
+                    body.indexOf('action=wfu_ajax_action_ask_server') !== -1
+                )
+            ) {
+                let addidionalCleantalkData = '';
+                let eventToken = localStorage.getItem('bot_detector_event_token');
+                try {
+                    eventToken = JSON.parse(eventToken);
+                } catch {
+                    eventToken = false;
+                }
+                if (
+                    eventToken !== null &&
+                    eventToken !== false &&
+                    eventToken.hasOwnProperty('value') &&
+                    eventToken.value !== ''
+                ) {
+                    eventToken = eventToken.value;
+                    addidionalCleantalkData += '&' + 'data%5Bct_bot_detector_event_token%5D=' + eventToken;
+                }
+
+                let noCookieData = getNoCookieData();
+                addidionalCleantalkData += '&' + 'data%5Bct_no_cookie_hidden_field%5D=' + noCookieData;
+
+                body += addidionalCleantalkData;
+
+                return originalSend.apply(this, [body]);
+            }
+            return originalSend.apply(this, [body]);
+        };
+    }
 }
 
 /**
