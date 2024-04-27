@@ -10,7 +10,7 @@ class ModernEventsCalendar extends IntegrationBase
     {
         global $apbct;
 
-        if ( $apbct->settings['data__protect_logged_in'] != 1 ) {
+        if ( $apbct->settings['data__protect_logged_in'] == 0 && is_user_logged_in() ) {
             do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
             return null;
         }
