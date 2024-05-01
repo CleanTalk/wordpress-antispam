@@ -535,19 +535,22 @@ function apbct_settings__set_fields()
                     'type'        => 'text',
                     'title'       => __('Exclude any forms that has attribute matches.', 'cleantalk-spam-protect'),
                     'parent' => 'exclusions__bot_detector',
-                    'class' => 'apbct_settings-field_wrapper--sub'
+                    'class' => 'apbct_settings-field_wrapper--sub',
+                    'long_description' => true,
                 ),
                 'exclusions__bot_detector__form_children_attributes'             => array(
                     'type'        => 'text',
                     'title'       => __('Exclude any forms that includes a child element with attribute matches.', 'cleantalk-spam-protect'),
                     'parent' => 'exclusions__bot_detector',
-                    'class' => 'apbct_settings-field_wrapper--sub'
+                    'class' => 'apbct_settings-field_wrapper--sub',
+                    'long_description' => true,
                 ),
                 'exclusions__bot_detector__form_parent_attributes'             => array(
                     'type'        => 'text',
                     'title'       => __('Exclude any forms that includes a parent element with attribute matches.', 'cleantalk-spam-protect'),
                     'parent' => 'exclusions__bot_detector',
-                    'class' => 'apbct_settings-field_wrapper--sub'
+                    'class' => 'apbct_settings-field_wrapper--sub',
+                    'long_description' => true,
                 ),
                 'wp__use_builtin_http_api'             => array(
                     'title'       => __("Use WordPress HTTP API", 'cleantalk-spam-protect'),
@@ -3142,6 +3145,27 @@ function apbct_settings__get__long_description()
                     __('See details on the page linked below. %s', 'cleantalk-spam-protect'),
                     '</p><a href="https://cleantalk.org/help/exclusion-from-anti-spam-checking{utm_mark}#wordpress" target="_blank">' . __('Learn more.', 'cleantalk-spam-protect') . '</a>'
                 )
+        ),
+        'exclusions__bot_detector__form_attributes' => array(
+            'title' => esc_html__('Exclude the form by their attribute', 'cleantalk-spam-protect'),
+            'desc' => 'If your form tag have any html attribute. like:
+            <p><code>' . htmlspecialchars('<form id="my-form" method="get"></form>') . '</code></p>
+            you can exclude the same form using attribute name
+            <p><code>^my-form$</code> or <code>^get$</code></p>'
+        ),
+        'exclusions__bot_detector__form_children_attributes' => array(
+            'title' => 'Exclude the form by their child html-element attribute',
+            'desc' => 'If your form tag have any html attribute. like:
+            <p><code>' . htmlspecialchars('<form id="my-form" method="get"><div id="my-child-div"></div></form>') . '</code></p>
+            you can exclude the same form using attribute name
+            <p><code>^my-child-div$</code></p>',
+        ),
+        'exclusions__bot_detector__form_parent_attributes' => array(
+            'title' => 'Exclude the form by their parent html-element attribute',
+            'desc' => 'If your form tag have any html attribute. like:
+            <p><code>' . htmlspecialchars('<div id="my-parent-div"><form id="my-form" method="get"></form></div>') . '</code></p>
+            you can exclude the same form using attribute name
+            <p><code>^my-parent-div$</code></p>',
         ),
     );
 
