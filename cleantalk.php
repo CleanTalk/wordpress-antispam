@@ -189,6 +189,10 @@ add_action('wp_ajax_cleantalk_force_ajax_check', 'ct_ajax_hook');
 // Checking email before POST
 add_action('wp_ajax_nopriv_apbct_email_check_before_post', 'apbct_email_check_before_post');
 
+// Force ajax set important parameters (apbct_timestamp etc)
+add_action('wp_ajax_nopriv_apbct_set_important_parameters', 'apbct_cookie');
+add_action('wp_ajax_apbct_set_important_parameters', 'apbct_cookie');
+
 // Database prefix
 global $wpdb, $wp_version;
 $apbct->db_prefix = ! APBCT_WPMS || $apbct->allow_custom_key || $apbct->white_label ? $wpdb->prefix : $wpdb->base_prefix;
@@ -2720,7 +2724,7 @@ function apbct_cookie()
     $domain = '';
 
     // Submit time
-    if (empty($_POST)) {
+    if ( empty($_POST) || Post::get('action') === 'apbct_set_important_parameters' ) {
         $apbct_timestamp = time();
         RequestParameters::set('apbct_timestamp', (string)$apbct_timestamp, true);
         $cookie_test_value['cookies_names'][] = 'apbct_timestamp';
