@@ -808,6 +808,11 @@ function apbct_is_cache_plugins_exists($return_names = false)
     return $return_names ? $out : !empty($out);
 }
 
+function apbct_is_advanced_cache_exists()
+{
+    return apbct_is_cache_plugins_exists() && file_exists(untrailingslashit(WP_CONTENT_DIR) . '/advanced-cache.php');
+}
+
 /**
  * Inner function - Current site admin e-mail
  * @return    string Admin e-mail
