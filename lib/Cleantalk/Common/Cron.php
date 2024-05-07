@@ -175,6 +175,7 @@ abstract class Cron
                 'next_call' => is_null($first_call) ? time() + $period : $first_call,
                 'period'    => $period,
                 'params'    => $params,
+                'last_call' => isset($tasks[$task]['last_call']) ? $tasks[$task]['last_call'] : 0,
             );
 
             return $this->saveTasks($tasks);
@@ -215,7 +216,9 @@ abstract class Cron
                 time() - $task_data['last_call'] > $this->task_execution_min_interval)
             ) {
                 $task_data['processing'] = false;
-                $task_data['last_call']  = 0;
+                if ( ! isset($task_data['last_call'])) {
+                    $task_data['last_call'] = 0;
+                }
             }
 
             if (
@@ -279,10 +282,12 @@ abstract class Cron
                     } else {
                         // Multi time scheduled event
                         $this->tasks[$task]['next_call'] = time() + $this->tasks[$task]['period'];
+                        $this->tasks[$task]['last_call'] = time();
                     }
                 } else {
                     $this->tasks_completed[$task]    = $result['error'];
                     $this->tasks[$task]['next_call'] = time() + $this->tasks[$task]['period'] / 4;
+                    $this->tasks[$task]['last_call'] = time();
                 }
             } else {
                 $this->tasks_completed[$task] = $this->tasks[$task]['handler'] . '_IS_NOT_EXISTS';
