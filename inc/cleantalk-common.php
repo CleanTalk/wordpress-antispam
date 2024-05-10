@@ -1527,7 +1527,9 @@ function apbct_form__get_no_cookie_data($preprocessed_data = null)
     global $apbct;
     $flag = null;
     $no_cookie_data = apbct_check_post_for_no_cookie_data($preprocessed_data);
-    apbct_filter_post_no_cookie_data($no_cookie_data['mapping']);
+    if ( !empty($no_cookie_data['mapping']) ) {
+        apbct_filter_post_no_cookie_data($no_cookie_data['mapping']);
+    }
     if ( $no_cookie_data && !empty($no_cookie_data['data']) && $apbct->data['cookies_type'] === 'none' ) {
         $flag = \Cleantalk\ApbctWP\Variables\NoCookie::setDataFromHiddenField($no_cookie_data['data']);
     }
