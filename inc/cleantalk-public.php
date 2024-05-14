@@ -8,7 +8,6 @@ use Cleantalk\ApbctWP\Variables\Get;
 use Cleantalk\ApbctWP\Variables\Post;
 use Cleantalk\ApbctWP\Variables\Request;
 use Cleantalk\ApbctWP\Variables\Server;
-use Cleantalk\Antispam\Integrations\CleantalkExternalForms;
 
 /**
  * Init functions
@@ -80,9 +79,6 @@ function apbct_init()
                 add_action('shutdown', 'apbct_buffer__output', 2);
             }
         }
-
-        // Check and redirect
-        CleantalkExternalForms::class;
     }
 
     if (

@@ -7,6 +7,9 @@ use Cleantalk\ApbctWP\Escape;
 
 class CleantalkExternalForms extends IntegrationBase
 {
+    private string $action;
+    private string $method;
+
     public function getDataForChecking($argument)
     {
         if ( ! empty($_POST)
@@ -14,15 +17,16 @@ class CleantalkExternalForms extends IntegrationBase
             && Post::get('cleantalk_hidden_method') !== ''
             && Post::get('cleantalk_hidden_action') !== ''
         ) {
-            $action = Escape::escHtml(Post::get('cleantalk_hidden_action'));
-            $method = Escape::escHtml(Post::get('cleantalk_hidden_method'));
-            unset($_POST['cleantalk_hidden_action']);
-            unset($_POST['cleantalk_hidden_method']);
+            $this->action = Escape::escHtml(Post::get('cleantalk_hidden_action'));
+            $this->method = Escape::escHtml(Post::get('cleantalk_hidden_method'));
+            unset($_POST['cleantalk_hidden_action'], $_POST['cleantalk_hidden_method']);
 
-            $externalForm = self::getExternalForm($action, $method);
-            ct_contact_form_validate();
-            print $externalForm;
-            die();
+            /**
+             * Filter for POST
+             */
+            $input_array = apply_filters('apbct__filter_post', $_POST);
+
+            return ct_gfa($input_array);
         }
 
         return null;
@@ -50,18 +54,14 @@ class CleantalkExternalForms extends IntegrationBase
 
     public function doBlock($message)
     {
-        wp_send_json_error(
-            wp_kses(
-                $message,
-                array(
-                    'a' => array(
-                        'href'  => true,
-                        'title' => true,
-                    ),
-                    'br'     => array(),
-                    'p'     => array()
-                )
-            )
-        );
+        global $ct_comment;
+        $ct_comment = $message;
+        ct_die(null, null);
+    }
+
+    public function doFinalActions($argument)
+    {
+        print $this->getExternalForm($this->action, $this->method);
+        die();
     }
 }
