@@ -7,8 +7,8 @@ use Cleantalk\ApbctWP\Escape;
 
 class CleantalkExternalForms extends IntegrationBase
 {
-    private string $action;
-    private string $method;
+    private $action;
+    private $method;
 
     public function getDataForChecking($argument)
     {
