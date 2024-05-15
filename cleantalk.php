@@ -312,6 +312,11 @@ $apbct_active_integrations = array(
         'setting' => 'forms__check_internal',
         'ajax'    => true
     ),
+    'CleantalkExternalForms'         => array(
+        'hook'    => 'init',
+        'setting' => 'forms__check_external',
+        'ajax'    => false
+    ),
     'CleantalkPreprocessComment'         => array(
         'hook'    => 'preprocess_comment',
         'setting' => 'forms__comments_test',

@@ -79,32 +79,6 @@ function apbct_init()
                 add_action('shutdown', 'apbct_buffer__output', 2);
             }
         }
-
-        // Check and redirect
-        if ( apbct_is_post()
-             && Post::get('cleantalk_hidden_method') !== ''
-             && Post::get('cleantalk_hidden_action') !== ''
-        ) {
-            $action = Escape::escHtml(Post::get('cleantalk_hidden_action'));
-            $method = Escape::escHtml(Post::get('cleantalk_hidden_method'));
-            unset($_POST['cleantalk_hidden_action']);
-            unset($_POST['cleantalk_hidden_method']);
-            ct_contact_form_validate();
-            if ( ! apbct_is_ajax() ) {
-                print "<html lang=''><body><form method='$method' action='$action'>";
-                ct_print_form($_POST, '');
-                print "</form></body></html>";
-                print "<script " . (class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '') . ">
-					if(document.forms[0].submit !== 'undefined'){
-						var objects = document.getElementsByName('submit');
-						if(objects.length > 0)
-							document.forms[0].removeChild(objects[0]);
-					}
-					document.forms[0].submit();
-				</script>";
-                die();
-            }
-        }
     }
 
     if (
