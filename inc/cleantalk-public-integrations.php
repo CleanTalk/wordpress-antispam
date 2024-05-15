@@ -232,7 +232,8 @@ function apbct_integration__buddyPres__activityWall($is_spam, $activity_obj = nu
          $activity_obj === null ||
          ! Post::get('action') ||
          $activity_obj->privacy == 'media' ||
-         apbct_exclusions_check()
+         apbct_exclusions_check() ||
+         ($apbct->settings['data__protect_logged_in'] == 0 && is_user_logged_in())
     ) {
         do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
 
@@ -312,7 +313,8 @@ function apbct_integration__buddyPres__private_msg_check($bp_message_obj)
     //Check for enabled option
     if (
         $apbct->settings['comments__bp_private_messages'] == 0 ||
-        apbct_exclusions_check()
+        apbct_exclusions_check() ||
+        ($apbct->settings['data__protect_logged_in'] == 0 && is_user_logged_in())
     ) {
         do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
 
@@ -454,6 +456,12 @@ function ct_woocommerce_checkout_check($_data, $errors)
     global $apbct, $cleantalk_executed;
 
     if ( count($errors->errors) ) {
+        return;
+    }
+
+    if ( $apbct->settings['data__protect_logged_in'] == 0 && is_user_logged_in() ) {
+        do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
+
         return;
     }
 

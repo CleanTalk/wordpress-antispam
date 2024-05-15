@@ -408,20 +408,23 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
              * Message about IP status
              */
             if ( $this->test ) {
+                $is_personal = isset($this->db->result[0]["is_personal"]) && (int)$this->db->result[0]["is_personal"] === 1;
+                $common_text_blocked = __('This IP is passed', 'cleantalk-spam-protect');
+                $common_text_pased = __('This IP is blocked', 'cleantalk-spam-protect');
+                $global_text = __('(in global whitelists)', 'cleantalk-spam-protect');
+                $personal_text = __('(in personal whitelists)', 'cleantalk-spam-protect');
+                $lists_text = $is_personal ? $personal_text : $global_text;
                 switch ( $this->test_status ) {
                     case 1:
-                        $message_ip_status = __('IP in the whitelist', 'cleantalk-spam-protect');
+                        $message_ip_status = $common_text_blocked . ' ' . $lists_text;
                         $message_ip_status_color = 'green';
                         break;
                     case 0:
-                        $message_ip_status = __('IP in the common blacklist', 'cleantalk-spam-protect');
+                        $message_ip_status = $common_text_pased . ' ' . $lists_text;
                         $message_ip_status_color = 'red';
-                        if (isset($this->db->result[0]["is_personal"]) && (int)$this->db->result[0]["is_personal"] === 1) {
-                            $message_ip_status = __('IP in the personal blacklist', 'cleantalk-spam-protect');
-                        }
                         break;
                     default:
-                        $message_ip_status = __('IP will be passed', 'cleantalk-spam-protect');
+                        $message_ip_status = __('This IP is passed (not in any lists)', 'cleantalk-spam-protect');
                         $message_ip_status_color = 'green';
                         break;
                 }
