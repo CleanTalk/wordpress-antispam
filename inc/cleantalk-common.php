@@ -1207,7 +1207,11 @@ function apbct__change_type_website_field($fields)
 
     if ( isset($apbct->settings['comments__hide_website_field']) && $apbct->settings['comments__hide_website_field'] ) {
         if ( isset($fields['url']) && $fields['url'] ) {
-            $fields['url'] = '<input id="honeypot-field-url" autocomplete="off" name="url" type="text" value="" size="30" maxlength="200" />';
+            $fields['url'] = '<input id="honeypot-field-url" style="display: none;" autocomplete="off" name="url" type="text" value="" size="30" maxlength="200" />';
+        }
+        $theme = wp_get_theme();
+        if ( isset($theme->template) && $theme->template === 'dt-the7' ) {
+            $fields['url'] = '<input id="honeypot-field-url" autocomplete="off" name="url" type="text" value="" size="30" maxlength="200" /></div>';
         }
     }
 
@@ -1528,7 +1532,9 @@ function apbct_form__get_no_cookie_data($preprocessed_data = null)
     global $apbct;
     $flag = null;
     $no_cookie_data = apbct_check_post_for_no_cookie_data($preprocessed_data);
-    apbct_filter_post_no_cookie_data($no_cookie_data['mapping']);
+    if ( !empty($no_cookie_data['mapping']) ) {
+        apbct_filter_post_no_cookie_data($no_cookie_data['mapping']);
+    }
     if ( $no_cookie_data && !empty($no_cookie_data['data']) && $apbct->data['cookies_type'] === 'none' ) {
         $flag = \Cleantalk\ApbctWP\Variables\NoCookie::setDataFromHiddenField($no_cookie_data['data']);
     }

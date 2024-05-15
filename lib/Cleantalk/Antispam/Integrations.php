@@ -65,6 +65,8 @@ class Integrations
     {
         global $cleantalk_executed;
 
+        $return_arg = null;
+
         // Getting current integration name
         $current_integration = !empty($set_current_integration)
             ? $set_current_integration
@@ -150,9 +152,8 @@ class Integrations
                      */
                     $integration->doActionsBeforeAllowDeny($argument);
 
-
                     /**
-                     * Actions on allow.
+                     * Actions on deny.
                      */
                     if ( $ct_result->allow == 0 ) {
                         // Do blocking if it is a spam
@@ -160,24 +161,24 @@ class Integrations
                     }
 
                     /**
-                     * Actions on deny.
+                     * Actions on allow.
                      */
                     if ( $ct_result->allow != 0 && method_exists($integration, 'allow') ) {
                         $return_arg = $integration->allow();
                     }
-
-                    /**
-                     * Return arg if provided.
-                     */
-                    $return_arg = isset($return_arg) ? $return_arg : $argument;
-
-                    /**
-                     *  Final actions
-                     */
-                    return $integration->doFinalActions($return_arg);
                 } else {
                     // @ToDo have to handle an error
                 }
+
+                /**
+                 * Return arg if provided.
+                 */
+                $return_arg = isset($return_arg) ? $return_arg : $argument;
+
+                /**
+                 *  Final actions
+                 */
+                return $integration->doFinalActions($return_arg);
             }
         }
         return true;

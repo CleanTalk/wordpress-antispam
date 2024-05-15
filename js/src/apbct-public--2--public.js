@@ -164,11 +164,20 @@ function checkEmail(e) {
 }
 
 /**
+ * @return {bool}
+ */
+function ctIsDrawPixel() {
+    return +ctPublic.pixel__enabled ||
+        (ctPublic.data__cookies_type === 'none' && document.querySelectorAll('img#apbct_pixel').length === 0) ||
+        (ctPublic.data__cookies_type === 'alternative' && document.querySelectorAll('img#apbct_pixel').length === 0);
+}
+
+/**
  * @param {string} pixelUrl
  */
 function ctSetPixelImg(pixelUrl) {
     ctSetCookie('apbct_pixel_url', pixelUrl);
-    if ( +ctPublic.pixel__enabled ) {
+    if ( ctIsDrawPixel() ) {
         if ( ! document.getElementById('apbct_pixel') ) {
             let insertedImg = document.createElement('img');
             insertedImg.setAttribute('alt', 'CleanTalk Pixel');
@@ -185,7 +194,7 @@ function ctSetPixelImg(pixelUrl) {
  * @param {string} pixelUrl
  */
 function ctSetPixelImgFromLocalstorage(pixelUrl) {
-    if ( +ctPublic.pixel__enabled ) {
+    if ( ctIsDrawPixel() ) {
         if ( ! document.getElementById('apbct_pixel') ) {
             let insertedImg = document.createElement('img');
             insertedImg.setAttribute('alt', 'CleanTalk Pixel');
@@ -556,7 +565,7 @@ function apbct_ready() {
     }
 
     if ( +ctPublic.pixel__setting ) {
-        if ( +ctPublic.pixel__enabled ) {
+        if ( ctIsDrawPixel() ) {
             ctGetPixelUrl();
         } else {
             initCookies.push(['apbct_pixel_url', ctPublic.pixel__url]);

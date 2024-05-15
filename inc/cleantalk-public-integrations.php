@@ -233,7 +233,7 @@ function apbct_integration__buddyPres__activityWall($is_spam, $activity_obj = nu
          ! Post::get('action') ||
          $activity_obj->privacy == 'media' ||
          apbct_exclusions_check() ||
-         ($apbct->settings['data__protect_logged_in'] == 0 && is_user_logged_in())
+         ! $apbct->settings['forms__contact_forms_test']
     ) {
         do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
 
@@ -1925,9 +1925,11 @@ function apbct_form__optimizepress__testSpam()
 
     if ( $ct_result->allow == 0 ) {
         if (!headers_sent()) {
-            header('HTTP/1.0 403 Forbidden');
+            header('HTTP/1.0 409 Forbidden');
         }
-        die($ct_result->comment);
+        wp_send_json([
+            'message' => $ct_result->comment
+        ]);
     }
 }
 

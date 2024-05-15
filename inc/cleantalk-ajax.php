@@ -400,7 +400,8 @@ function ct_ajax_hook($message_obj = null)
          (Post::get('action') === 'latepoint_route_call') || //LatePoint service calls
          (Post::get('action') === 'uael_login_form_submit') || // skip Ultimate Addons for Elementor login
          (Post::get('action') === 'my_custom_login_validate') || // skip Ultimate Addons for Elementor login validate
-         (Post::get('action') === 'wpforms_restricted_email') // skip WPForm validate
+         (Post::get('action') === 'wpforms_restricted_email') || // skip WPForm validate
+         (Post::get('action') === 'fluentcrm_unsubscribe_ajax') // skip fluentcrm unsubscribe
     ) {
         do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
 

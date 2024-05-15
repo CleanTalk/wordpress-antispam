@@ -8,6 +8,15 @@ class MemberPress extends IntegrationBase
 {
     private $return_argument = true;
 
+    public function doPrepareActions($argument)
+    {
+        if (Post::get('action') === 'mepr_stripe_create_checkout_session') {
+            return false;
+        }
+
+        return true;
+    }
+
     public function getDataForChecking($argument)
     {
         $this->return_argument = $argument;

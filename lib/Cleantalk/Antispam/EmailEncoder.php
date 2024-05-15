@@ -33,6 +33,8 @@ class EmailEncoder
         array('ninja-forms-noscript-message'),
         //enfold theme contact form content exclusion - this fired during buffer interception
         array('av_contact', 'email', 'from_email'),
+        // Stylish Cost Calculator
+        array('scc-form-field-item'),
     );
 
     /**

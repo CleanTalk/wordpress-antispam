@@ -4,7 +4,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 6.31.1-dev
+  Version: 6.31.1-fix
   Author: СleanTalk - Anti-Spam Protection <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -155,8 +155,22 @@ if ( $apbct->settings['comments__disable_comments__all'] || $apbct->settings['co
 if (
     $apbct->key_is_ok &&
     ( ! is_admin() || apbct_is_ajax() ) &&
-    $apbct->settings['data__email_decoder'] ) {
-    \Cleantalk\ApbctWP\Antispam\EmailEncoder::getInstance();
+    $apbct->settings['data__email_decoder']
+) {
+    $skip_email_encode = false;
+
+    if (!empty($_POST)) {
+        foreach ( $_POST as $param => $_value ) {
+            if ( strpos((string)$param, 'et_pb_contactform_submit') === 0 ) {
+                $skip_email_encode = true;
+                break;
+            }
+        }
+    }
+
+    if (!$skip_email_encode) {
+        \Cleantalk\ApbctWP\Antispam\EmailEncoder::getInstance();
+    }
 }
 
 add_action('rest_api_init', 'apbct_register_my_rest_routes');
@@ -1671,7 +1685,7 @@ function apbct_sfw_update__download_files($urls, $direct_update = false)
     }
 
     //Reset keys
-    $urls          = array_values($urls);
+    $urls          = array_values(array_unique($urls));
     $results       = Helper::httpMultiRequest($urls, $apbct->fw_stats['updating_folder']);
     $count_urls    = count($urls);
     $count_results = count($results);
