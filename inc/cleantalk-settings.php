@@ -3345,13 +3345,21 @@ function apbct_get_spoilers_links()
                          . __('Advanced settings', 'cleantalk-spam-protect')
                          . '</a>'
                          . '</span>';
-    $import_export = ! $apbct->data['wl_mode_enabled']
-        ? '<span class="apbct_bottom_links--other">'
+
+    $import_export = '';
+    if (! $apbct->data['wl_mode_enabled'] &&
+        (is_main_site() ||
+            ($apbct->network_settings['multisite__work_mode'] == 1 &&
+            $apbct->network_settings['multisite__allow_custom_settings'])
+        )
+    ) {
+        $import_export = '<span class="apbct_bottom_links--other">'
           . '<a href="#" class="apbct_color--gray" onclick="cleantalkModal.open()">'
           . __('Import/Export settings', 'cleantalk-spam-protect')
           . '</a>'
-          . '</span>'
-        : '';
+          . '</span>';
+    }
+
     $affiliate_section = ! $apbct->data['wl_mode_enabled']
         ? '<span id="ct_trusted_text_showhide" class="apbct_bottom_links--other">'
           . '<a href="#" class="apbct_color--gray" onclick="'
@@ -3361,5 +3369,6 @@ function apbct_get_spoilers_links()
           . '</a>'
           . '</span>'
         : '';
+
     return '<br>' . $advanced_settings . $import_export . $affiliate_section;
 }
