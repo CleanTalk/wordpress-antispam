@@ -750,6 +750,15 @@ function apbctCatchXmlHttpRequest() {
             return originalSend.apply(this, [body]);
         };
     }
+
+    // Set important parameters via ajax
+    if ( ctPublic.advancedCacheExists ) {
+        if ( ctPublicFunctions.data__ajax_type === 'rest' ) {
+            apbct_public_sendREST('apbct_set_important_parameters', {});
+        } else if ( ctPublicFunctions.data__ajax_type === 'admin_ajax' ) {
+            apbct_public_sendAJAX({action: 'apbct_set_important_parameters'}, {});
+        }
+    }
 }
 
 /**

@@ -101,5 +101,16 @@ class RestController extends \WP_REST_Controller
                 }
             )
         ));
+
+        // REST route for set important parameters (apbct_timestamp etc)
+        register_rest_route($this->namespace, "/apbct_set_important_parameters", array(
+            array(
+                'methods'             => 'POST',
+                'callback'            => 'apbct_cookie',
+                'permission_callback' => function (WP_REST_Request $request) {
+                    return wp_verify_nonce($request->get_header('x_wp_nonce'), 'wp_rest');
+                }
+            )
+        ));
     }
 }
