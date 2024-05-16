@@ -347,7 +347,9 @@ $apbct_active_integrations = array(
         'ajax'    => true
     ),
     'FluentForm'          => array(
-        'hook'    => array('fluentform/before_insert_submission', 'fluentform_before_insert_submission'),
+        'hook'    => defined('FLUENTFORM_VERSION') && version_compare(FLUENTFORM_VERSION, '4.3.22') > 0
+            ? 'fluentform/before_insert_submission'
+            : 'fluentform_before_insert_submission',
         'setting' => 'forms__contact_forms_test',
         'ajax'    => false
     ),
@@ -620,7 +622,9 @@ $apbct_active_integrations = array(
         'ajax_and_post' => true
     ),
 );
-new  \Cleantalk\Antispam\Integrations($apbct_active_integrations, (array)$apbct->settings);
+add_action('plugins_loaded', function () use ($apbct_active_integrations, $apbct) {
+    new  \Cleantalk\Antispam\Integrations($apbct_active_integrations, (array)$apbct->settings);
+});
 
 // WP Delicious integration
 add_filter('delicious_recipes_process_registration_errors', 'apbct_wp_delicious', 10, 4);
