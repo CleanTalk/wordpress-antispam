@@ -10,6 +10,17 @@ class CleantalkExternalForms extends IntegrationBase
     private $action;
     private $method;
 
+    public function doPrepareActions($argument)
+    {
+        if ( empty($_POST)
+            || !apbct_is_post()
+            || Post::get('cleantalk_hidden_method') === ''
+            || Post::get('cleantalk_hidden_action') === ''
+        ) {
+            return false;
+        }
+    }
+
     public function getDataForChecking($argument)
     {
         if ( ! empty($_POST)
