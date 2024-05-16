@@ -19,6 +19,8 @@ class CleantalkExternalForms extends IntegrationBase
         ) {
             return false;
         }
+
+        return true;
     }
 
     public function getDataForChecking($argument)
