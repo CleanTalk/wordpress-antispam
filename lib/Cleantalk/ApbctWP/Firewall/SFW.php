@@ -818,6 +818,10 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
         $table_names = (array)$table_names;
 
         foreach ($table_names as $table_name) {
+            if ( !$db->isTableExists($table_name) ) {
+                continue;
+            }
+
             $table_name__temp = $table_name . '_temp';
 
             if ( ! $db->execute('CREATE TABLE IF NOT EXISTS `' . $table_name__temp . '` LIKE `' . $table_name . '`;')) {
