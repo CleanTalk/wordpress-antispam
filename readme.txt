@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 4.7
 Tested up to: 6.5
 Requires PHP: 5.6
-Stable tag: 6.31
+Stable tag: 6.32
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -456,6 +456,23 @@ Yes, it is. Please read this article,
 12. SpamFireWall log.
 
 == Changelog ==
+
+= 6.32 May 15 2024
+* Fix. Integration. External forms integration refactored.
+* Fix. Settings. Updated statement for import/export settings on wpms.
+* Fix. Cron. Fixed updateTask function to save the last_call param.
+* Fix. Common. Important requests parameters fixed.
+* Fix. Settings. Added unique check for urls.
+* Fix. Integrations. Added statement for compatibility with the7 theme. 
+* Fix. Integrations. Forbidden message appear was updated.
+* Fix. EmailEncoder. Added statement to skip.
+* Fix. EmailEncoder. Added exclusion for compatibility with StylishCostCalculator.
+* Fix. Integrations. Added statement to exclusion for BuddyPress.
+* Fix. Integrations. Added excluded statement for MemberPress.
+* Fix. Integrations. Skip fluentcrm unsubscribe request.
+* Fix. Integrations. Updated base integration flow.
+* Fix. Pixel. Added statement to draw logic.
+* Fix. Common. Getting ct_no_cookie_hidden_field data. Error handled on case of recursion level 5.
 
 = 6.31 Apr 18 2024
 * New. Integrations. Added ContactFormPlugin handler.
