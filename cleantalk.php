@@ -347,9 +347,7 @@ $apbct_active_integrations = array(
         'ajax'    => true
     ),
     'FluentForm'          => array(
-        'hook'    => defined('FLUENTFORM_VERSION') && version_compare(FLUENTFORM_VERSION, '4.3.22') > 0
-            ? 'fluentform/before_insert_submission'
-            : 'fluentform_before_insert_submission',
+        'hook' => array('fluentform/before_insert_submission', 'fluentform_before_insert_submission'),
         'setting' => 'forms__contact_forms_test',
         'ajax'    => false
     ),
@@ -623,6 +621,11 @@ $apbct_active_integrations = array(
     ),
 );
 add_action('plugins_loaded', function () use ($apbct_active_integrations, $apbct) {
+    if ( defined('FLUENTFORM_VERSION') ) {
+        $apbct_active_integrations['FluentForm']['hook'] = version_compare(FLUENTFORM_VERSION, '4.3.22') > 0
+            ? 'fluentform/before_insert_submission'
+            : 'fluentform_before_insert_submission';
+    }
     new  \Cleantalk\Antispam\Integrations($apbct_active_integrations, (array)$apbct->settings);
 });
 
