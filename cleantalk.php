@@ -661,6 +661,15 @@ function apbct_write_js_errors($data)
     return update_option(APBCT_JS_ERRORS, $exist_errors);
 }
 
+// LearnPress
+if (
+    apbct_is_plugin_active('learnpress/learnpress.php') &&
+    apbct_is_in_uri('lp-ajax=checkout') &&
+    sizeof($_POST) > 0
+) {
+    apbct_form__learnpress__testSpam();
+}
+
 // OptimizePress
 if (
     apbct_is_plugin_active('op-dashboard/op-dashboard.php') &&

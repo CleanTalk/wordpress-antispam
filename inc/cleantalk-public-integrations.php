@@ -1905,6 +1905,38 @@ function apbct_form__mo_subscribe_to_email_list__testSpam()
 }
 
 /**
+ * Test LearnPress form for spam
+ *
+ * @return void
+ */
+function apbct_form__learnpress__testSpam()
+{
+    $params = ct_gfa(apply_filters('apbct__filter_post', $_POST));
+
+    $base_call_result = apbct_base_call(
+        array(
+            'sender_email'    => $params['email'] ? $params['email'] : Post::get('email'),
+            'sender_nickname' => $params['nickname'] ? $params['nickname'] : Post::get('first_name'),
+            'post_info'       => array('comment_type' => 'signup_form_wordpress_learnpress'),
+        ),
+        true
+    );
+
+    $ct_result = $base_call_result['ct_result'];
+
+    if ( $ct_result->allow == 0 ) {
+        $data = [
+            'result' => 'fail',
+            'messages' => $ct_result->comment,
+        ];
+        echo '<-- LP_AJAX_START -->';
+        echo wp_json_encode($data);
+        echo '<-- LP_AJAX_END -->';
+        die;
+    }
+}
+
+/**
  * Test OptimizePress form for spam
  *
  * @return void
