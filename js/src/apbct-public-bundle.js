@@ -2261,7 +2261,7 @@ function apbct_ready() {
  */
 function apbctCatchXmlHttpRequest() {
     // 1) Check the page if it needed to catch XHR
-    if ( document.querySelectorAll('div.wfu_container') !== null ) {
+    if ( document.querySelector('div.wfu_container') !== null ) {
         const originalSend = XMLHttpRequest.prototype.send;
         XMLHttpRequest.prototype.send = function(body) {
             // 2) Check the caught request fi it needed to modify
