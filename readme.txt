@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 4.7
 Tested up to: 6.5
 Requires PHP: 5.6
-Stable tag: 6.32
+Stable tag: 6.32.1
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -457,13 +457,16 @@ Yes, it is. Please read this article,
 
 == Changelog ==
 
+= 6.32.1 May 20 2024
+* Fix. JS. Function apbctCatchXmlHttpRequest(). Condition to catch fixed.
+
 = 6.32 May 15 2024
 * Fix. Integration. External forms integration refactored.
 * Fix. Settings. Updated statement for import/export settings on wpms.
 * Fix. Cron. Fixed updateTask function to save the last_call param.
 * Fix. Common. Important requests parameters fixed.
 * Fix. Settings. Added unique check for urls.
-* Fix. Integrations. Added statement for compatibility with the7 theme. 
+* Fix. Integrations. Added statement for compatibility with the7 theme.
 * Fix. Integrations. Forbidden message appear was updated.
 * Fix. EmailEncoder. Added statement to skip.
 * Fix. EmailEncoder. Added exclusion for compatibility with StylishCostCalculator.
