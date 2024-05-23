@@ -465,6 +465,8 @@ function ct_contact_form_validate_postdata()
 }
 
 add_filter('apbct__filter_post', 'apbct__filter_form_data', 10);
+add_action('plugins_loaded', 'apbct_clear_bypassed_requests_post_data', 11);
+
 function apbct__filter_form_data($form_data)
 {
     global $apbct;
@@ -517,6 +519,77 @@ function apbct__filter_form_data($form_data)
     }
 
     return $form_data;
+}
+
+/**
+ * Checks if the current request should bypass certain processing.
+ *
+ * This function checks if the current request is related to a specific plugin
+ * (in this case, 'uni-woo-custom-product-options/uni-cpo.php') and if a specific
+ * POST parameter ('cpo_product_id') is set. If these conditions are met, the
+ * function returns true, indicating that the request should bypass certain processing.
+ *
+ * @param array $post The $_POST array.
+ * @return bool Returns true if the request is related to the specific plugin and the POST parameter is set. Otherwise, returns false.
+ */
+function apbct_is_bypassed_request_to_clear($post)
+{
+    // Define the ruleset
+    $ruleset[] = array(
+        'plugin_slug' => 'uni-woo-custom-product-options/uni-cpo.php',
+        'post_sign' => 'cpo_product_id',
+    );
+
+    // Iterate over the ruleset
+    foreach ($ruleset as $rule) {
+        // If the plugin is active and the POST parameter is set, return true
+        if ( apbct_is_plugin_active($rule['plugin_slug']) && isset($post[$rule['post_sign']])) {
+            return true;
+        }
+    }
+
+    // If none of the conditions are met, return false
+    return false;
+}
+
+/**
+ * This function is responsible for clearing bypassed requests post data.
+ * It checks if the $_POST global variable is not empty and if the request is bypassed.
+ * If these conditions are met, it removes certain service fields from the $_POST array.
+ *
+ * @return void
+ */
+function apbct_clear_bypassed_requests_post_data()
+{
+    // Assigning $_POST global variable to a local variable $post
+    $post = $_POST;
+
+    // If $post is empty or the request is not bypassed, return without executing the rest of the function
+    if (empty($post) || !apbct_is_bypassed_request_to_clear($post)) {
+        return;
+    }
+
+    // If the 'ct_bot_detector_event_token' field is set in $post, it is removed.
+    // This is a service field and needs to be deleted before processing.
+    if ( isset($post['ct_bot_detector_event_token']) ) {
+        unset($post['ct_bot_detector_event_token']);
+    }
+
+    // If the 'ct_no_cookie_hidden_field' field is set in $post, it is removed.
+    // This is a service field and needs to be deleted before processing.
+    // TODO: Adapt apbct_check_post_for_no_cookie_data and apbct_filter_post_no_cookie_data to handle this
+    if ( isset($post['ct_no_cookie_hidden_field']) ) {
+        unset($post['ct_no_cookie_hidden_field']);
+    }
+
+    // If the 'apbct_visible_fields' field is set in $post, it is removed.
+    // This is a service field and needs to be deleted before processing.
+    if ( isset($post['apbct_visible_fields']) ) {
+        unset($post['apbct_visible_fields']);
+    }
+
+    // Assign the cleaned $post back to the $_POST global variable
+    $_POST = $post;
 }
 
 /**
