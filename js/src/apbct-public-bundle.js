@@ -1622,7 +1622,8 @@ function restartBotDetectorEventTokenAttach() {
     // checks all the forms without the field
     const doAttach = (
         document.getElementsByClassName('latepoint-form').length > 0 ||
-        document.getElementsByClassName('mec-booking-form-container').length > 0
+        document.getElementsByClassName('mec-booking-form-container').length > 0 ||
+        document.getElementById('login-form-popup') !== null
     );
 
     try {
