@@ -740,8 +740,11 @@ function apbct_admin__admin_bar__add_structure($wp_admin_bar)
     if ( ! $spbc ) {
         $spbc_title = '<a>' . __('Security', 'security-malware-firewall') . '</a>';
     } elseif ( $spbc->admin_bar_enabled ) {
-        $spbc_title = $spbc->trial == 1
-            ? "<span><a style='color: red;' href='https://cleantalk.org/my/bill/security?utm_source=wp-backend&utm_medium=cpc&utm_campaign=WP%20backend%20renew_security&user_token={$spbc->user_token}&cp_mode=security' target='_blank'>" . __(
+        $utm_marks = '&utm_source=wp-backend&utm_medium=cpc&utm_campaign=WP%%20backend%%20trial_security&cp_mode=security';
+        $link = 'https://p.cleantalk.org/?account=undefined&currency=USD&domains=&extra=true&featured=&fua=true&period=Year&period_interval=3&product_id=4&renew=true&tariff_id=191&user_token=' . $spbc->user_token . $utm_marks;
+
+        $spbc_title = $spbc->notice_trial
+            ? "<span><a style='color: red;' href='{$link}' target='_blank'>" . __(
                 'Renew Security',
                 'security-malware-firewall'
             ) . '</a></span>'
