@@ -718,7 +718,7 @@ function apbct_admin__admin_bar__add_structure($wp_admin_bar)
 
     // Security
     $title = $apbct->notice_trial && ( is_main_site() && $apbct->network_settings['multisite__work_mode'] == 2 )
-        ? "<span><a href='https://cleantalk.org/my/bill/recharge?utm_source=wp-backend&utm_medium=cpc&utm_campaign=WP%20backend%20trial&user_token={$apbct->user_token}&cp_mode=antispam' target='_blank'>" . __(
+        ? '<span><a href="https://p.cleantalk.org/?account=undefined&currency=USD&domains=&extra=true&featured=4&fua=true&period=Year&period_interval=3&product_id=1&renew=true&user_token=' . Escape::escHtml($apbct->user_token) . ' target="_blank">' . __(
             'Renew Anti-Spam',
             'cleantalk-spam-protect'
         ) . '</a></span>'
@@ -741,7 +741,7 @@ function apbct_admin__admin_bar__add_structure($wp_admin_bar)
         $spbc_title = '<a>' . __('Security', 'security-malware-firewall') . '</a>';
     } elseif ( $spbc->admin_bar_enabled ) {
         $spbc_title = $spbc->trial == 1
-            ? "<span><a style='color: red;' href='https://cleantalk.org/my/bill/security?utm_source=wp-backend&utm_medium=cpc&utm_campaign=WP%20backend%20renew_security&user_token={$spbc->user_token}&cp_mode=security' target='_blank'>" . __(
+            ? '<span><a href="https://p.cleantalk.org/?account=undefined&currency=USD&domains=&extra=true&featured=&fua=true&period=Year&period_interval=3&product_id=1&renew=true&user_token=' . Escape::escHtml($apbct->user_token) . ' target="_blank">' . __(
                 'Renew Security',
                 'security-malware-firewall'
             ) . '</a></span>'
