@@ -667,7 +667,7 @@ function apbct_admin__badge__get_premium($print = true, $out = '')
                 . ($print ? __('Make it right!', 'cleantalk-spam-protect') . ' ' : '')
                 . sprintf(
                     __('%sGet premium%s', 'cleantalk-spam-protect'),
-                    '<a href="https://cleantalk.org/my/bill/recharge?user_token=' . Escape::escHtml($apbct->user_token) . '" target="_blank">',
+                    '<a href="https://p.cleantalk.org/?account=undefined&currency=USD&domains=&extra=true&featured=4&fua=true&period=Year&period_interval=3&product_id=1&renew=true&user_token=' . Escape::escHtml($apbct->user_token) . '" target="_blank">',
                     '</a>'
                 )
                 . '</b>';
