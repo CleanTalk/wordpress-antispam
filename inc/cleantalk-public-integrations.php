@@ -1793,7 +1793,7 @@ function apbct_form__contactForm7__testSpam($spam, $_submission = null)
 
         // Flamingo: save or not the spam entry
         if ( ! $apbct->settings['forms__flamingo_save_spam'] ) {
-            add_filter('wpcf7_flamingo_submit_if', function() {
+            add_filter('wpcf7_flamingo_submit_if', function () {
                 return ['mail_sent', 'mail_failed'];
             });
         }
