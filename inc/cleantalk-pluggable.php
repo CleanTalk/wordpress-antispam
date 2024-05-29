@@ -1117,6 +1117,15 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'Pixelyoursite service action';
         }
+
+        //this is theme request, no way to get active child theme correctly
+        $current_theme_uri = wp_get_theme()->get('ThemeURI');
+        if (
+            strpos($current_theme_uri, 'porto') !== false &&
+            Post::get('action') === 'porto_account_login_popup_login'
+        ) {
+            return 'Proto theme login popup form';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */

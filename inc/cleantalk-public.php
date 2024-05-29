@@ -123,6 +123,11 @@ function apbct_init()
         add_action('init', 'ct_contact_form_validate_postdata', 1000);
     }
 
+    if (Post::get('learn-press-register-nonce') && apbct_is_plugin_active('learnpress/learnpress.php')) {
+        unset($_POST['ct_checkjs_register_form']);
+        ct_contact_form_validate();
+    }
+
     if ( $apbct->settings['forms__general_contact_forms_test'] == 1 && empty(Post::get('ct_checkjs_cf7')) && ! apbct_is_direct_trackback() ) {
         add_action('CMA_custom_post_type_nav', 'ct_contact_form_validate_postdata', 1);
         add_action('init', 'ct_contact_form_validate', 999);

@@ -86,6 +86,7 @@ function formIsExclusion(currentForm) {
         'nf-form-content', // integration with Ninja Forms for js events
         'elementor-form', // integration with elementor-form
         'wpforms', // integration with wpforms
+        'et_pb_searchform', // integration with elementor-search-form
     ];
 
     let result = false;
@@ -526,7 +527,10 @@ function isIntegratedForm(formObj) {
         formId.indexOf('ihf-contact-request-form') !== -1 ||
         formAction.indexOf('crm.zoho.com') !== -1 ||
         formId.indexOf('delivra-external-form') !== -1 ||
-        formObj.hasAttribute('data-hs-cf-bound') // Hubspot integration in Elementor form
+        ( formObj.classList !== undefined &&
+            !formObj.classList.contains('woocommerce-checkout') &&
+            formObj.hasAttribute('data-hs-cf-bound')
+        ) // Hubspot integration in Elementor form// Hubspot integration in Elementor form
     ) {
         return true;
     }

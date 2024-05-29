@@ -1079,6 +1079,17 @@ function ct_ajax_hook($message_obj = null)
             die();
         }
 
+        // Porto theme register action on login popup
+        if (Post::get('action') === 'porto_account_login_popup_register') {
+            echo json_encode(
+                array(
+                    'loggedin' => false,
+                    'message'     => $ct_result->comment,
+                )
+            );
+            die();
+        }
+
         // Regular block output
         die(
             json_encode(
