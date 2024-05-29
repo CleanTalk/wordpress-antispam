@@ -709,7 +709,7 @@ function apbct_ready() {
         ) {
             _form.apbctSearchPrevOnsubmit = _form.onsubmit;
             if ( ctPublic.data__cookies_type === 'none' ) {
-                _form.append(ctNoCookieConstructHiddenField('submit'))
+                _form.append(ctNoCookieConstructHiddenField('submit'));
             }
             if ( + ctPublic.settings__data__bot_detector_enabled ) {
                 _form.append(ctEventTokenConstructHiddenField());
@@ -871,7 +871,7 @@ if (ctPublic.data__key_is_ok) {
 
 /**
  * @param {SubmitEvent} e
- * @param targetForm
+ * @param {object} targetForm
  */
 function ctSearchFormOnSubmitHandler(e, targetForm) {
     try {
@@ -1437,10 +1437,9 @@ function ctSetPixelUrlLocalstorage(ajaxPixelUrl) {
  * The value of this field is retrieved from the local storage using the key 'bot_detector_event_token'.
  * This hidden field can be used to store and pass the bot detector event token in a form.
  *
- * @returns {HTMLInputElement} - The created hidden input field element.
+ * @return {HTMLInputElement} - The created hidden input field element.
  */
-function ctEventTokenConstructHiddenField()
-{
+function ctEventTokenConstructHiddenField() {
     const eventToken = apbctLocalStorage.get('bot_detector_event_token');
     let hiddenInput = document.createElement( 'input' );
     hiddenInput.setAttribute( 'type', 'hidden' );
