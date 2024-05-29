@@ -1791,6 +1791,13 @@ function apbct_form__contactForm7__testSpam($spam, $_submission = null)
 
         add_filter('wpcf7_display_message', 'apbct_form__contactForm7__showResponse', 10, 2);
 
+        // Flamingo: save or not the spam entry
+        if ( ! $apbct->settings['forms__flamingo_save_spam'] ) {
+            add_filter('wpcf7_flamingo_submit_if', function () {
+                return ['mail_sent', 'mail_failed'];
+            });
+        }
+
         $spam = defined('WPCF7_VERSION') && WPCF7_VERSION >= '3.0.0';
     } else {
         //clear form service fields for advanced-cf7-db integration
