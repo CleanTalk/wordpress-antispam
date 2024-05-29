@@ -1791,6 +1791,13 @@ function apbct_form__contactForm7__testSpam($spam, $_submission = null)
 
         add_filter('wpcf7_display_message', 'apbct_form__contactForm7__showResponse', 10, 2);
 
+        // Flamingo: save or not the spam entry
+        if ( ! $apbct->settings['forms__flamingo_save_spam'] ) {
+            add_filter('wpcf7_flamingo_submit_if', function () {
+                return ['mail_sent', 'mail_failed'];
+            });
+        }
+
         $spam = defined('WPCF7_VERSION') && WPCF7_VERSION >= '3.0.0';
     } else {
         //clear form service fields for advanced-cf7-db integration
@@ -1901,6 +1908,38 @@ function apbct_form__mo_subscribe_to_email_list__testSpam()
             'success' => false,
             'message' => $ct_result->comment
         ]);
+    }
+}
+
+/**
+ * Test LearnPress form for spam
+ *
+ * @return void
+ */
+function apbct_form__learnpress__testSpam()
+{
+    $params = ct_gfa(apply_filters('apbct__filter_post', $_POST));
+
+    $base_call_result = apbct_base_call(
+        array(
+            'sender_email'    => $params['email'] ? $params['email'] : Post::get('email'),
+            'sender_nickname' => $params['nickname'] ? $params['nickname'] : Post::get('first_name'),
+            'post_info'       => array('comment_type' => 'signup_form_wordpress_learnpress'),
+        ),
+        true
+    );
+
+    $ct_result = $base_call_result['ct_result'];
+
+    if ( $ct_result->allow == 0 ) {
+        $data = [
+            'result' => 'fail',
+            'messages' => $ct_result->comment,
+        ];
+        echo '<-- LP_AJAX_START -->';
+        echo wp_json_encode($data);
+        echo '<-- LP_AJAX_END -->';
+        die;
     }
 }
 
