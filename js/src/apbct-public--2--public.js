@@ -699,7 +699,7 @@ function apbct_ready() {
     for (const _form of document.forms) {
         if (
             typeof ctPublic !== 'undefined' &&
-            ctPublic.settings__forms__search_test === '1' &&
+            + ctPublic.settings__forms__search_test === 1 &&
             (
                 _form.getAttribute('id') === 'searchform' ||
                 (_form.getAttribute('class') !== null && _form.getAttribute('class').indexOf('search-form') !== -1) ||
@@ -707,6 +707,12 @@ function apbct_ready() {
             )
         ) {
             _form.apbctSearchPrevOnsubmit = _form.onsubmit;
+            if ( ctPublic.data__cookies_type === 'none' ) {
+                _form.append(ctNoCookieConstructHiddenField('submit'))
+            }
+            if ( + ctPublic.settings__data__bot_detector_enabled ) {
+                _form.append(ctEventTokenConstructHiddenField());
+            }
             // this handles search forms onsubmit process
             _form.onsubmit = (e) => ctSearchFormOnSubmitHandler(e, _form);
         }
@@ -864,15 +870,15 @@ if (ctPublic.data__key_is_ok) {
 
 /**
  * @param {SubmitEvent} e
- * @param {*} _form
+ * @param targetForm
  */
-function ctSearchFormOnSubmitHandler(e, _form) {
+function ctSearchFormOnSubmitHandler(e, targetForm) {
     try {
         // set NoCookie data if is provided
-        const noCookieField = _form.querySelector('[name="ct_no_cookie_hidden_field"]');
+        const noCookieField = targetForm.querySelector('[name="ct_no_cookie_hidden_field"]');
         // set honeypot data if is provided
-        const honeyPotField = _form.querySelector('[id*="apbct__email_id__"]');
-        const botDetectorField = _form.querySelector('[name*="ct_bot_detector_event_token"]');
+        const honeyPotField = targetForm.querySelector('[id*="apbct__email_id__"]');
+        const botDetectorField = targetForm.querySelector('[name*="ct_bot_detector_event_token"]');
         let hpValue = null;
         let hpEventId = null;
 
@@ -886,35 +892,28 @@ function ctSearchFormOnSubmitHandler(e, _form) {
             hpEventId = honeyPotField.getAttribute('apbct_event_id');
         }
 
-        if (ctPublic.data__cookies_type === 'alternative' || ctPublic.data__cookies_type === 'native') {
-            if (botDetectorField !== null) {
-                botDetectorField.parentNode.removeChild(botDetectorField);
-            }
-        }
-
         // if noCookie data or honeypot data is set, proceed handling
-        if ( noCookieField !== null || honeyPotField !== null) {
+        if ( noCookieField !== null || honeyPotField !== null || botDetectorField !== null ) {
             e.preventDefault();
             const callBack = () => {
+                if ( noCookieField !== null ) {
+                    noCookieField.parentNode.removeChild(noCookieField);
+                }
                 if (honeyPotField !== null) {
                     honeyPotField.parentNode.removeChild(honeyPotField);
                 }
-                // ct_bot_detector_event_token
                 if (botDetectorField !== null) {
                     botDetectorField.parentNode.removeChild(botDetectorField);
                 }
-                if (_form.apbctSearchPrevOnsubmit instanceof Function) {
-                    _form.apbctSearchPrevOnsubmit();
+                if (typeof targetForm.apbctSearchPrevOnsubmit === 'function') {
+                    targetForm.apbctSearchPrevOnsubmit();
                 } else {
-                    const _noCookieField = _form.querySelector('[name="ct_no_cookie_hidden_field"]');
-                    if ( _noCookieField !== null ) {
-                        _noCookieField.parentNode.removeChild(_noCookieField);
-                    }
-                    HTMLFormElement.prototype.submit.call(_form);
+                    HTMLFormElement.prototype.submit.call(targetForm);
                 }
             };
 
             let parsedCookies = '{}';
+
 
             // if noCookie data provided trim prefix and add data from base64 decoded value then
             if (noCookieField !== null) {
@@ -927,6 +926,10 @@ function ctSearchFormOnSubmitHandler(e, _form) {
             if ( hpValue !== null && hpEventId !== null ) {
                 cookiesArray.apbct_search_form__honeypot_value = hpValue;
                 cookiesArray.apbct_search_form__honeypot_id = hpEventId;
+            }
+
+            if (botDetectorField !== null) {
+                cookiesArray.ct_bot_detector_event_token = botDetectorField.value;
             }
 
             // if the pixel needs to be decoded
@@ -1428,6 +1431,26 @@ function ctSetPixelUrlLocalstorage(ajaxPixelUrl) {
     ctSetCookie('apbct_pixel_url', ajaxPixelUrl);
 }
 
+/**
+ * This function generates a hidden input field with a unique ID and name.
+ * The value of this field is retrieved from the local storage using the key 'bot_detector_event_token'.
+ * This hidden field can be used to store and pass the bot detector event token in a form.
+ *
+ * @returns {HTMLInputElement} - The created hidden input field element.
+ */
+function ctEventTokenConstructHiddenField()
+{
+    const eventToken = apbctLocalStorage.get('bot_detector_event_token');
+    let hiddenInput = document.createElement( 'input' );
+    hiddenInput.setAttribute( 'type', 'hidden' );
+    let rnd = 100 + Math.floor(Math.random() * 899);
+    rnd = rnd.toString();
+    hiddenInput.setAttribute( 'id', 'ct_bot_detector_event_token_' + rnd );
+    hiddenInput.setAttribute( 'name', 'ct_bot_detector_event_token');
+    hiddenInput.value = eventToken;
+    return hiddenInput;
+}
+
 // eslint-disable-next-line require-jsdoc
 function ctNoCookieConstructHiddenField(type) {
     let inputType = 'hidden';
@@ -1560,12 +1583,6 @@ function ctNoCookieAttachHiddenFieldsToForms() {
 
     if (forms) {
         for ( let i = 0; i < forms.length; i++ ) {
-            // remove old sets
-            let fields = forms[i].querySelectorAll('.ct_no_cookie_hidden_field');
-            for ( let j = 0; j < fields.length; j++ ) {
-                fields[j].outerHTML = '';
-            }
-
             if ( ctCheckHiddenFieldsExclusions(document.forms[i], 'no_cookie') ) {
                 continue;
             }
@@ -1573,22 +1590,13 @@ function ctNoCookieAttachHiddenFieldsToForms() {
             // ignore forms with get method @todo We need to think about this
             if (document.forms[i].getAttribute('method') === null ||
                 document.forms[i].getAttribute('method').toLowerCase() === 'post') {
+                // remove old sets
+                let fields = forms[i].querySelectorAll('.ct_no_cookie_hidden_field');
+                for ( let j = 0; j < fields.length; j++ ) {
+                    fields[j].outerHTML = '';
+                }
                 // add new set
                 document.forms[i].append(ctNoCookieConstructHiddenField());
-            } else if (typeof ctPublic !== 'undefined' &&
-                ctPublic.settings__forms__search_test === '1' &&
-                (
-                    document.forms[i].getAttribute('id') === 'searchform' ||
-                    (
-                        document.forms[i].getAttribute('class') !== null &&
-                        document.forms[i].getAttribute('class').indexOf('search-form') !== -1) ||
-                    (
-                        document.forms[i].getAttribute('role') !== null &&
-                        document.forms[i].getAttribute('role').indexOf('search') !== -1
-                    )
-                )
-            ) {
-                document.forms[i].append(ctNoCookieConstructHiddenField('submit'));
             }
         }
     }
