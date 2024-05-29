@@ -295,14 +295,24 @@ class GetFieldsAny
                 // Email
                 $value_for_email = Validate::isUrlencoded($value_for_email) ? urldecode($value_for_email) : $value_for_email;
 
-                if (preg_match("/^\S+@\S+\.\S+$/", $value_for_email) &&
-                    (empty($this->visible_fields_arr) ||
-                     in_array($key, $this->visible_fields_arr, true))) {
+                if (
+                    preg_match("/^\S+@\S+\.\S+$/", $value_for_email) &&
+                    (
+                        empty($this->visible_fields_arr) ||
+                        in_array($key, $this->visible_fields_arr, true)
+                    )
+                ) {
                     // Bypass email collecting if it is set by attribute.
                     if ($this->preprocessed_email) {
                         continue;
                     }
-                    $this->processed_data['email'] = $value_for_email;
+                    if (empty($this->processed_data['email'])) {
+                        // if found new very first email field, set it as the processed email field.
+                        $this->processed_data['email'] = $value_for_email;
+                    } else {
+                        // if processed one is already exists, set it to the message field.
+                        $this->processed_data['message'][$this->prev_name . $key] = $value_for_email;
+                    }
                     // Names
                 } elseif (false !== stripos($key, "name")) {
                     // Bypass name collecting if it is set by attribute or it is on invisible fields.
