@@ -1165,48 +1165,6 @@ function ct_send_error_notice($comment = '')
 }
 
 /**
- * Prints form for "protect externals
- *
- * @param $arr
- * @param $k
- */
-function ct_print_form($arr, $k)
-{
-    // Fix for pages04.net forms
-    if ( isset($arr['formSourceName']) ) {
-        $tmp = array();
-        foreach ( $arr as $key => $val ) {
-            $tmp_key       = str_replace('_', '+', $key);
-            $tmp[$tmp_key] = $val;
-        }
-        $arr = $tmp;
-        unset($tmp, $key, $tmp_key, $val);
-    }
-
-    // Fix for zoho forms with space in input attribute name
-    if ( isset($arr['actionType'], $arr['returnURL']) ) {
-        $tmp = array();
-        foreach ( $arr as $key => $val ) {
-            $tmp_key       = str_replace('_', ' ', $key);
-            $tmp[$tmp_key] = $val;
-        }
-        $arr = $tmp;
-        unset($tmp, $key, $tmp_key, $val);
-    }
-
-    foreach ( $arr as $key => $value ) {
-        if ( ! is_array($value) ) {
-            print '<textarea
-				name="' . esc_attr($k === '' ? $key : $k . '[' . $key . ']') . '"
-				style="display:none;">' . esc_textarea(htmlspecialchars($value))
-                  . '</textarea>';
-        } else {
-            ct_print_form($value, $k === '' ? $key : $k . '[' . $key . ']');
-        }
-    }
-}
-
-/**
  * Attaches public scripts and styles.
  * @psalm-suppress UnusedVariable
  */
