@@ -27,8 +27,14 @@ function apbct_init()
 
     // Localize data
     if ( ! apbct_exclusions_check__url() ) {
-        add_action('wp_head', array(LocalizeHandler::class, 'handle'), 1);
-        add_action('login_head', array(LocalizeHandler::class, 'handle'), 1);
+        if (defined('CLEANTALK_PLACE_PUBLIC_JS_SCRIPTS_IN_FOOTER') && CLEANTALK_PLACE_PUBLIC_JS_SCRIPTS_IN_FOOTER) {
+            add_action('wp_footer', array(LocalizeHandler::class, 'handle'), 1);
+            add_action('login_footer', array(LocalizeHandler::class, 'handle'), 1);
+        } else {
+            add_action('wp_head', array(LocalizeHandler::class, 'handle'), 1);
+            add_action('login_head', array(LocalizeHandler::class, 'handle'), 1);
+        }
+
         // The exclusion of scripts from wp-rocket handler
         add_filter('rocket_delay_js_exclusions', 'apbct_rocket_delay_js_exclusions');
     }
@@ -1292,12 +1298,15 @@ function apbct_enqueue_and_localize_public_scripts()
 {
     global $apbct;
 
+    $in_footer = defined('CLEANTALK_PLACE_PUBLIC_JS_SCRIPTS_IN_FOOTER') && CLEANTALK_PLACE_PUBLIC_JS_SCRIPTS_IN_FOOTER;
+
     // Different JS params
     wp_enqueue_script(
         'ct_public_functions',
         APBCT_URL_PATH . '/js/apbct-public-bundle.min.js',
         array('jquery'),
-        APBCT_VERSION
+        APBCT_VERSION,
+        $in_footer
     );
 
     // Bot detector
@@ -1306,7 +1315,8 @@ function apbct_enqueue_and_localize_public_scripts()
             'ct_bot_detector',
             'https://moderate.cleantalk.org/ct-bot-detector-wrapper.js',
             [],
-            APBCT_VERSION
+            APBCT_VERSION,
+            $in_footer
         );
     }
 
