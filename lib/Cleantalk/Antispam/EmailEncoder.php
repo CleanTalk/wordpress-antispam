@@ -69,6 +69,11 @@ class EmailEncoder
     protected $privacy_policy_hook_handled = false;
 
     /**
+     * AMP compatibility
+     */
+    private $isScriptAdded = false;
+
+    /**
      * @inheritDoc
      */
     protected function init()
@@ -119,6 +124,12 @@ class EmailEncoder
             add_action('wp', 'apbct_buffer__start');
             add_action('shutdown', 'apbct_buffer__end', 0);
             add_action('shutdown', array($this, 'bufferOutput'), 2);
+        }
+
+        if (apbct_is_amp_request() && !apbct_is_ajax() && !apbct_is_rest() && !apbct_is_post()) {
+            add_action('wp', 'apbct_buffer__start');
+            add_action('shutdown', 'apbct_buffer__end', 0);
+            add_action('shutdown', array($this, 'bufferOutputAddJsForWorkWithAMP'), 2);
         }
     }
 
@@ -440,6 +451,43 @@ class EmailEncoder
     {
         global $apbct;
         echo $this->modifyContent($apbct->buffer);
+    }
+
+    public function bufferOutputAddJsForWorkWithAMP()
+    {
+        global $apbct;
+
+        $content = $apbct->buffer;
+
+        if (!$this->isScriptAdded) {
+            $pattern = '/<head.*?>/';
+            preg_match($pattern, $content, $matches);
+            if (!empty($matches)) {
+                $opening_head_tag = $matches[0];
+                $script_tag = '<script async custom-element="amp-script" src="https://cdn.ampproject.org/v0/amp-script-0.1.js"></script>';
+                $content = str_replace($opening_head_tag, $opening_head_tag . $script_tag, $content);
+            }
+
+            $pattern = '/<body.*?>/';
+            preg_match($pattern, $content, $matches);
+            if (!empty($matches)) {
+                $opening_body_tag = $matches[0];
+                $script_tag = '<amp-script layout="container" src="/wp-content/plugins/cleantalk-spam-protect/js/apbct-public-bundle.min.js">';
+                $content = str_replace($opening_body_tag, $opening_body_tag . $script_tag, $content);
+            }
+
+            $pattern = '/<\/body.*?>/';
+            preg_match($pattern, $content, $matches);
+            if (!empty($matches)) {
+                $close_body_tag = $matches[0];
+                $script_tag = '</amp-script>';
+                $content = str_replace($close_body_tag, $script_tag . $close_body_tag, $content);
+            }
+
+            $this->isScriptAdded = true;
+        }
+
+        echo $this->modifyContent($content);
     }
 
     private function handlePrivacyPolicyHook()
