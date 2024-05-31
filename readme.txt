@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 4.7
 Tested up to: 6.5
 Requires PHP: 5.6
-Stable tag: 6.32.1
+Stable tag: 6.33
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -456,6 +456,17 @@ Yes, it is. Please read this article,
 12. SpamFireWall log.
 
 == Changelog ==
+
+= 6.33 May 30 2024
+* New. Integrations. Flamingo integration implemented.
+* New. Integrations. Added handler for learnpress signup.
+* New. Intergations. Proto theme login popup protected.
+* Upd. Woocommerce. Uni CPO plugin. Clear service fields improved for premium version.
+* Fix. Woocommerce. Exclude hubspot integration as external form on WooCommerce checkout.
+* Fix. Woocommerce. Uni CPO plugin. Clear service fields from post.
+* Fix. GetFieldsAny. Get the very first email to the process. Provide additional email addresses on the form to the request message.
+* Fix. CleanTalk Public. Protect LearPress registration process on plugins_loaded hook.
+* Fix. JS. External Forms. Exclude elementor search form from external forms pre-handling.
 
 = 6.32.1 May 20 2024
 * Fix. JS. Function apbctCatchXmlHttpRequest(). Condition to catch fixed.

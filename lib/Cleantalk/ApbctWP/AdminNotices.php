@@ -172,10 +172,11 @@ class AdminNotices
         global $apbct;
 
         if ( $this->apbct->notice_show && $this->apbct->notice_trial == 1 && $this->apbct->moderate_ip == 0 && ! $this->apbct->white_label ) {
+            $utm_marks = '&utm_source=wp-backend&utm_medium=cpc&utm_campaign=WP%%20backend%%20trial_antispam';
             $content            = sprintf(
                 __("%s trial period ends, please upgrade to %s!", 'cleantalk-spam-protect'),
                 "<a href='{$this->settings_link}'>" . $this->apbct->plugin_name . "</a>",
-                "<a href=\"https://cleantalk.org/my/bill/recharge?utm_source=wp-backend&utm_medium=cpc&utm_campaign=WP%20backend%20trial$this->user_token&cp_mode=antispam\" target=\"_blank\"><b>premium version</b></a>"
+                "<a href=\"https://p.cleantalk.org/?account=undefined&currency=USD&domains=&extra=true&featured=4&fua=true&period=Year&period_interval=3&product_id=1&renew=true&user_token=$this->user_token $utm_marks\" target=\"_blank\"><b>premium version</b></a>"
             );
             $additional_content =
                 '<h4 style = "color: gray">' .
@@ -197,7 +198,8 @@ class AdminNotices
         global $apbct;
 
         if ( $this->apbct->notice_show && $this->apbct->notice_renew == 1 && $this->apbct->moderate_ip == 0 && ! $this->apbct->white_label ) {
-            $renew_link  = "<a href=\"https://cleantalk.org/my/bill/recharge?utm_source=wp-backend&utm_medium=cpc&utm_campaign=WP%%20backend%%20renew$this->user_token&cp_mode=antispam\" target=\"_blank\">%s</a>";
+            $utm_marks = '&utm_source=wp-backend&utm_medium=cpc&utm_campaign=WP%%20backend%%20trial_antispam';
+            $renew_link  = "<a href=\"https://p.cleantalk.org/?account=undefined&currency=USD&domains=&extra=true&featured=4&fua=true&period=Year&period_interval=3&product_id=1&renew=true&user_token=$this->user_token $utm_marks\" target=\"_blank\">%s</a>";
             $button_html = sprintf(
                 $renew_link,
                 '<input type="button" class="button button-primary" style="margin-bottom:20px" value="' . __(
