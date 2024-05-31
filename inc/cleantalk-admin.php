@@ -2,6 +2,7 @@
 
 use Cleantalk\Antispam\Cleantalk;
 use Cleantalk\Antispam\CleantalkRequest;
+use Cleantalk\ApbctWP\AdminNotices;
 use Cleantalk\ApbctWP\CleantalkSettingsTemplates;
 use Cleantalk\ApbctWP\Escape;
 use Cleantalk\ApbctWP\Variables\Get;
@@ -663,18 +664,10 @@ function apbct_admin__badge__get_premium($print = true, $out = '')
     global $apbct;
 
     if ( $apbct->license_trial == 1 && $apbct->user_token ) {
-        $utm_marks = '&utm_source=wp-backend&utm_medium=cpc&utm_campaign=WP%%20backend%%20trial_antispam';
-        $out .= '<b style="display: inline-block; margin-top: 10px;">'
-            . ($print ? __('Make it right!', 'cleantalk-spam-protect') . ' ' : '')
-            . sprintf(
-                __('%sGet premium%s', 'cleantalk-spam-protect'),
-                '<a href="https://p.cleantalk.org/?account=undefined&currency=USD&domains=&extra=true&featured=4&fua=true&period=Year&period_interval=3&product_id=1&renew=true&user_token='
-                . Escape::escHtml($apbct->user_token)
-                . $utm_marks
-                . '" target="_blank">',
-                '</a>'
-            )
-            . '</b>';
+        $make_it_right = $print ? __('Make it right!', 'cleantalk-spam-protect') . ' ' : '';
+        $link_text = __('Get premium', 'cleantalk-spam-protect');
+        $renew_link = AdminNotices::generateRenewalLinkHTML($apbct->user_token, $link_text);
+        $out .= '<b style="display: inline-block; margin-top: 10px;">' . $make_it_right . $renew_link . '</b>';
     }
 
     if ( $print ) {
@@ -720,17 +713,14 @@ function apbct_admin__admin_bar__add_structure($wp_admin_bar)
         'meta'  => array('class' => 'cleantalk-admin_bar--list_wrapper'),
     ));
 
-    // Security
-    $utm_marks = '&utm_source=wp-backend&utm_medium=cpc&utm_campaign=WP%%20backend%%20trial_antispam';
-    $title = $apbct->notice_trial && ( is_main_site() && $apbct->network_settings['multisite__work_mode'] == 2 )
-        ? '<span><a href="https://p.cleantalk.org/?account=undefined&currency=USD&domains=&extra=true&featured=4&fua=true&period=Year&period_interval=3&product_id=1&renew=true&user_token='
-        . Escape::escHtml($apbct->user_token)
-        . $utm_marks
-        . ' target="_blank">' . __(
-            'Renew Anti-Spam',
-            'cleantalk-spam-protect'
-        ) . '</a></span>'
-        : '<span><a>' . __('Anti-Spam', 'cleantalk-spam-protect') . '</a></span>';
+    // For Security instance - link to Anti-Spam
+    if ($apbct->notice_trial && ( is_main_site() && $apbct->network_settings['multisite__work_mode'] == 2 )) {
+        $link_text = __('Renew Anti-Spam', 'cleantalk-spam-protect');
+        $renew_link = AdminNotices::generateRenewalLinkHTML($apbct->user_token, $link_text);
+        $title = '<span>' . $renew_link . '</span>';
+    } else {
+        $title = '<span><a>' . __('Anti-Spam', 'cleantalk-spam-protect') . '</a></span>';
+    }
 
     $attention_mark = $apbct->notice_show ? '<i class="apbct-icon-attention-alt"></i>' : '';
     $title          = $title . $attention_mark;
@@ -743,11 +733,13 @@ function apbct_admin__admin_bar__add_structure($wp_admin_bar)
                     . '</div>',
     ));
 
-    // Anti-Spam
+    // For Anti-Spam instance - link to Security
     // Install link
     if ( ! $spbc ) {
         $spbc_title = '<a>' . __('Security', 'security-malware-firewall') . '</a>';
     } elseif ( $spbc->admin_bar_enabled ) {
+        //todo refactor this to AdminNotices::generateRenewalLinkHTML()
+        $utm_marks = '&utm_source=wp-backend&utm_medium=cpc&utm_campaign=WP%%20backend%%20trial_antispam';
         $spbc_title = $spbc->trial == 1
             ? '<span><a href="https://p.cleantalk.org/?account=undefined&currency=USD&domains=&extra=true&featured=&fua=true&period=Year&period_interval=3&product_id=1&renew=true&user_token='
             . Escape::escHtml($apbct->user_token)

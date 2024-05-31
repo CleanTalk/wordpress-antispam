@@ -63,7 +63,7 @@ class AdminNotices
         $this->apbct             = $apbct;
         $this->is_cleantalk_page = Get::get('page') &&
                                    in_array(Get::get('page'), array('cleantalk', 'ct_check_spam', 'ct_check_users'));
-        $this->user_token        = $this->apbct->user_token ? '&user_token=' . $this->apbct->user_token : '';
+        $this->user_token        = $this->apbct->user_token ?: '';
 
         $self_owned_key = $this->apbct->moderate_ip == 0 && ! defined('CLEANTALK_ACCESS_KEY');
         $is_dashboard   = is_network_admin() || is_admin();
@@ -171,17 +171,40 @@ class AdminNotices
     {
         global $apbct;
 
-        if ( $this->apbct->notice_show && $this->apbct->notice_trial == 1 && $this->apbct->moderate_ip == 0 && ! $this->apbct->white_label ) {
-            $utm_marks = '&utm_source=wp-backend&utm_medium=cpc&utm_campaign=WP%%20backend%%20trial_antispam';
+        if (
+                $this->apbct->notice_show &&
+                $this->apbct->notice_trial == 1 && //the flag!
+                $this->apbct->moderate_ip == 0 &&
+                ! $this->apbct->white_label
+        ) {
+            /*
+             * Generate main content
+             */
+
+            //prepare plugin settings link
+            $plugin_settings_link = '<a href="' . $this->settings_link . '">' . $this->apbct->plugin_name . '</a>';
+
+            //prepare renewal link
+            $link_text = "<b>" . __('next year', 'cleantalk-spam-protect') . "</b>";
+            $renew_link  = static::generateRenewalLinkHTML($this->user_token, $link_text);
+
+            //construct main content
             $content            = sprintf(
                 __("%s trial period ends, please upgrade to %s!", 'cleantalk-spam-protect'),
-                "<a href='{$this->settings_link}'>" . $this->apbct->plugin_name . "</a>",
-                "<a href=\"https://p.cleantalk.org/?account=undefined&currency=USD&domains=&extra=true&featured=4&fua=true&period=Year&period_interval=3&product_id=1&renew=true&user_token=$this->user_token $utm_marks\" target=\"_blank\"><b>premium version</b></a>"
+                $plugin_settings_link,
+                $renew_link
             );
-            $additional_content =
-                '<h4 style = "color: gray">' .
-                esc_html__('Account status updates every 24 hours or click Settings -> ' . $apbct->data['wl_brandname'] . ' -> Synchronize with Cloud.', 'cleantalk-spam-protect') .
-                '</h4>';
+
+            /*
+             * Generate additional content.
+             */
+
+            $additional_content = static::generateUpdatingStatusContent($apbct->data['wl_brandname']);
+
+            /*
+             * Process layout
+             */
+
             $id                 = 'cleantalk_' . __FUNCTION__;
             $this->generateNoticeHtml($content, $id, $additional_content);
             $this->apbct->notice_show = false;
@@ -197,27 +220,41 @@ class AdminNotices
     {
         global $apbct;
 
-        if ( $this->apbct->notice_show && $this->apbct->notice_renew == 1 && $this->apbct->moderate_ip == 0 && ! $this->apbct->white_label ) {
-            $utm_marks = '&utm_source=wp-backend&utm_medium=cpc&utm_campaign=WP%%20backend%%20trial_antispam';
-            $renew_link  = "<a href=\"https://p.cleantalk.org/?account=undefined&currency=USD&domains=&extra=true&featured=4&fua=true&period=Year&period_interval=3&product_id=1&renew=true&user_token=$this->user_token $utm_marks\" target=\"_blank\">%s</a>";
-            $button_html = sprintf(
-                $renew_link,
-                '<input type="button" class="button button-primary" style="margin-bottom:20px" value="' . __(
-                    'RENEW ANTI-SPAM',
-                    'cleantalk-spam-protect'
-                ) . '"  />'
-            );
-            $link_html   = sprintf($renew_link, "<b>" . __('next year', 'cleantalk-spam-protect') . "</b>");
+        if (
+                $this->apbct->notice_show &&
+                $this->apbct->notice_renew == 1 && //the flag!
+                $this->apbct->moderate_ip == 0 &&
+                ! $this->apbct->white_label
+        ) {
+            /*
+             * Generate main content
+             */
+
+            // Prepare the string-like renewal link for main content.
+            $link_text = "<b>" . __('next year', 'cleantalk-spam-protect') . "</b>";
+            $renew_link = static::generateRenewalLinkHTML($this->user_token, $link_text);
 
             $content            = sprintf(
                 __("Please renew your Anti-Spam license for %s.", 'cleantalk-spam-protect'),
-                $link_html
+                $renew_link
             );
-            $additional_content =
-                '<h4 style = "color: gray">' .
-                esc_html__('Account status updates every 24 hours or click Settings -> ' . $apbct->data['wl_brandname_short'] . ' -> Synchronize with Cloud.', 'cleantalk-spam-protect') .
-                '</h4>' .
-                $button_html;
+
+            /*
+             * Generate additional content.
+             */
+
+            // Prepare the renewal button - will be added to the bottom of notice
+            $button_text = __('RENEW ANTI-SPAM', 'cleantalk-spam-protect');
+            $button_html = '<input type="button" class="button button-primary" style="margin-bottom:20px" value="' . $button_text . '"  />';
+            $button_html = static::generateRenewalLinkHTML($this->user_token, $button_html);
+
+            $additional_content = static::generateUpdatingStatusContent($apbct->data['wl_brandname_short']);
+            // add the button to the additional content - todo:: bad pactice, we should have a special place for buttons
+            $additional_content .= $button_html;
+
+            /*
+             * Process layout
+             */
             $id                 = 'cleantalk_' . __FUNCTION__;
             $this->generateNoticeHtml($content, $id, $additional_content);
             $this->apbct->notice_show = false;
@@ -415,5 +452,45 @@ class AdminNotices
         }
 
         return $after;
+    }
+
+    private static function generateUpdatingStatusContent($wl_brandname)
+    {
+        $additional_content =
+            '<h4 style = "color: gray">' .
+            esc_html__('Account status updates every 24 hours or click Settings -> ' . $wl_brandname . ' -> Synchronize with Cloud.', 'cleantalk-spam-protect') .
+            '</h4>';
+        return $additional_content;
+    }
+
+    public static function generateRenewalLinkHTML($user_token, $link_inner_html, $utm_marks = array())
+    {
+        $domain = 'https://p.cleantalk.org';
+        //prepare utm marks
+        $utm_marks = array(
+            'utm_source' => !empty($utm_marks['utm_source']) ? $utm_marks['utm_source'] : 'wp-backend',
+            'utm_medium' => !empty($utm_marks['utm_medium']) ? $utm_marks['utm_medium'] : 'cpc',
+            'utm_campaign' => !empty($utm_marks['utm_campaign']) ? $utm_marks['utm_campaign'] : 'WP%%20backend%%20trial_antispam',
+        );
+        //prepare query
+        $query = http_build_query(array(
+//            'account' => 'undefined',
+//            'currency' => 'USD',
+//            'domains' => '',
+//            'extra' => 'true',
+//            'fua' => 'true',
+//            'period' => 'Year',
+//            'period_interval' => '3',
+//            'renew' => 'true',
+                        'product_id' => '1',
+            'featured' => '4',
+            'user_token' => Escape::escHtml($user_token),
+            'utm_source' => $utm_marks['utm_source'],
+            'utm_medium' => $utm_marks['utm_medium'],
+            'utm_campaign' => $utm_marks['utm_campaign'],
+        ));
+        //prepare link
+        $renewal_link  = '<a href="' . $domain . '/?' . $query . '" target="_blank">' . $link_inner_html . '</a>';
+        return $renewal_link;
     }
 }
