@@ -474,20 +474,12 @@ class AdminNotices
         );
         //prepare query
         $query = http_build_query(array(
-//            'account' => 'undefined',
-//            'currency' => 'USD',
-//            'domains' => '',
-//            'extra' => 'true',
-//            'fua' => 'true',
-//            'period' => 'Year',
-//            'period_interval' => '3',
-//            'renew' => 'true',
-                        'product_id' => '1',
-            'featured' => '4',
-            'user_token' => Escape::escHtml($user_token),
-            'utm_source' => $utm_marks['utm_source'],
-            'utm_medium' => $utm_marks['utm_medium'],
-            'utm_campaign' => $utm_marks['utm_campaign'],
+                'product_id' => '1',
+                'featured' => '',
+                'user_token' => Escape::escHtml($user_token),
+                'utm_source' => $utm_marks['utm_source'],
+                'utm_medium' => $utm_marks['utm_medium'],
+                'utm_campaign' => $utm_marks['utm_campaign'],
         ));
         //prepare link
         $renewal_link  = '<a href="' . $domain . '/?' . $query . '" target="_blank">' . $link_inner_html . '</a>';
