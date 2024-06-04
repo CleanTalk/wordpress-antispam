@@ -173,6 +173,10 @@ if (
     }
 }
 
+if ( $apbct->settings['comments__the_real_person'] ) {
+    require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-real-person.php');
+}
+
 add_action('rest_api_init', 'apbct_register_my_rest_routes');
 function apbct_register_my_rest_routes()
 {

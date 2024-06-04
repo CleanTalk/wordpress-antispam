@@ -1020,6 +1020,17 @@ function ct_set_approved($approved, $_comment)
 }
 
 /**
+ * Public action 'comment_post' - Store cleantalk hash in comment meta
+ *
+ * @psalm-suppress UnusedParam
+ * @return void
+ */
+function ct_set_approved_hash($comment_id, $comment_approved)
+{
+    update_comment_meta($comment_id, 'ct_hash', ct_hash());
+}
+
+/**
  * Public filter 'pre_comment_approved' - Mark comment unapproved always
  * @return    string
  */

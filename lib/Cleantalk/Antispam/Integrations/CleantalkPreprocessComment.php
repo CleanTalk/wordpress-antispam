@@ -515,6 +515,7 @@ class CleantalkPreprocessComment extends IntegrationBase
         }
         if ( $status === 'approved' ) {
             add_filter('pre_comment_approved', 'ct_set_approved', 999, 2);
+            add_action('comment_post', 'ct_set_approved_hash', 999, 2);
         } else {
             add_filter('pre_comment_approved', 'ct_set_not_approved', 999, 2);
         }
