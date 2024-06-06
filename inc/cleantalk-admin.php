@@ -146,7 +146,7 @@ function ct_dashboard_statistics_widget_output($_post, $_callback_args)
         <input type='hidden' name='ct_brief_refresh' value='1'>
     </form>
     <h4 class='ct_widget_block_header' style='margin-left: 12px;'><?php
-        _e('7 days Anti-Spam stats', 'cleantalk-spam-protect'); ?></h4>
+        _e('7 days Anti-Spam an SpamFireWall stats', 'cleantalk-spam-protect'); ?></h4>
     <div class='ct_widget_block ct_widget_chart_wrapper'>
         <canvas id='ct_widget_chart' ></canvas>
     </div>
@@ -248,7 +248,7 @@ function ct_dashboard_statistics_widget_output($_post, $_callback_args)
                  . sprintf(
                  /* translators: %s: Number of spam messages */
                      __(
-                         '%s%s%s has blocked %s spam for all time. The statistics are automatically updated every 24 hours.',
+                         '%s%s%s has blocked %s spam for past year. The statistics are automatically updated every 24 hours.',
                          'cleantalk-spam-protect'
                      ),
                      ! $apbct->data["wl_mode_enabled"] ? '<a href="https://cleantalk.org/my/?user_token=' . $apbct->user_token . '&utm_source=wp-backend&utm_medium=dashboard_widget&cp_mode=antispam" target="_blank">' : '',

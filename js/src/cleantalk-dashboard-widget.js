@@ -37,7 +37,7 @@ jQuery(document).ready(function(){
 		data: {
 			labels: widgetData.labels,
 			datasets: [{
-				label: 'Spam blocked',
+				label: 'Requests blocked',
 				data: widgetData.counts,
 				borderWidth: 1,
 				backgroundColor: 'steelblue'
@@ -56,7 +56,7 @@ jQuery(document).ready(function(){
 			},
 			title: {
 				display: true,
-				text: 'Spam attacks',
+				text: 'Requests was blocked by Anti-Spam and SpamFireWall',
 				fontSize: 18
 			},
 			plugins: {
@@ -65,7 +65,7 @@ jQuery(document).ready(function(){
 				},
 				title: {
 					display: true,
-					text: 'Spam attacks',
+					text: 'Requests was blocked by Anti-Spam and SpamFireWall',
 					font: {
 						size: 18,
 					}
