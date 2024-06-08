@@ -655,10 +655,10 @@ function apbct_admin__enqueue_scripts($hook)
 /**
  * Premium badge layout
  *
- * @param bool $print
- * @param string $out
+ * @param bool $print Do we need to print the badge or return it as a string
+ * @param string $out The badge layout
  *
- * @return null|string
+ * @return null|string NUll if $print is true, string if $print is false
  */
 function apbct_admin__badge__get_premium($print = true, $out = '')
 {
