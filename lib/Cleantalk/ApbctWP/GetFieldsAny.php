@@ -310,7 +310,7 @@ class GetFieldsAny
                         empty($this->processed_data['email']) ||
                         strlen($value_for_email) > strlen($this->processed_data['email'])
                     ) {
-                        // if a new, very first email field is found or a longer email is found, 
+                        // if a new, very first email field is found or a longer email is found,
                         //set it as the processed email field.
                         $this->processed_data['email'] = $value_for_email;
                     } else {
