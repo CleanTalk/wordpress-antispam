@@ -267,6 +267,9 @@ function ctGetPixelUrl() {
                         ctSetPixelImg(result);
                     }
                 },
+                beforeSend: function(xhr) {
+                    xhr.setRequestHeader('X-Robots-Tag', 'noindex, nofollow');
+                }
             },
         );
     }
