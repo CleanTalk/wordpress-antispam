@@ -1192,7 +1192,7 @@ function ctSetAlternativeCookie(cookies, params) {
                 onErrorCallback: onErrorCallback,
                 beforeSend: function(xhr) {
                     xhr.setRequestHeader('X-Robots-Tag', 'noindex, nofollow');
-                }
+                },
             },
         );
     }
@@ -1812,7 +1812,7 @@ function ctGetPixelUrl() {
                 },
                 beforeSend: function(xhr) {
                     xhr.setRequestHeader('X-Robots-Tag', 'noindex, nofollow');
-                }
+                },
             },
         );
     }
