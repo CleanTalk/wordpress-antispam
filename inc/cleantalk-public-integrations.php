@@ -3401,33 +3401,31 @@ add_filter('wsf_submit_field_validate', function ($error_validation_action_field
      * Filter for POST
      */
     $input_array = apply_filters('apbct__filter_post', $_POST);
-    $email = '';
 
-    foreach ($input_array as $key => $value) {
+    $long_email = '';
+    foreach ($input_array as $value) {
         if (preg_match("/^\S+@\S+\.\S+$/", $value) &&
-            strlen($value) > strlen($email)
+            strlen($value) > strlen($long_email)
         ) {
-            $email = $value;
+            $long_email = $value;
         }
     }
 
     $data = ct_gfa($input_array);
 
-    if ($data['email'] && $email) {
-        if (strlen($email) > strlen($data['email'])) {
-            $sender_email = $email;
+    $sender_email = '';
+    if ($data['email'] && $long_email) {
+        if (strlen($long_email) > strlen($data['email'])) {
+            $sender_email = $long_email;
         } else {
             $sender_email = $data['email'];
         }
     } elseif ($data['email']) {
         $sender_email = $data['email'];
-    } elseif ($email) {
-        $sender_email = $email;
-    } else {
-        $sender_email = '';
+    } elseif ($long_email) {
+        $sender_email = $long_email;
     }
 
-    //$sender_email    = ($data['email'] ?  : '');
     $sender_nickname = ($data['nickname'] ?  : '');
     $message         = ($data['message'] ?  : array());
 
