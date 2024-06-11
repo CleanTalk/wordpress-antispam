@@ -1619,6 +1619,7 @@ if (document.readyState !== 'loading') {
 function apbctRealUserBadge() {
     document.querySelectorAll('.apbct-real-user').forEach((el) => {
         el.addEventListener('click', function(e) {
+            e.preventDefault();
             e.stopPropagation();
             e.currentTarget.querySelector('.apbct-real-user-popup').style.display = 'block';
         });
