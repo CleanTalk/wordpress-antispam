@@ -1714,8 +1714,6 @@ function apbct_form__contactForm7__tesSpam__before_validate($result = null, $_ta
         if ( ! empty($invalid_fields) && is_array($invalid_fields) ) {
             $apbct->validation_error = $invalid_fields[key($invalid_fields)]['reason'];
             apbct_form__contactForm7__testSpam(false);
-        } else {
-            apbct_form__contactForm7__testSpam(false);
         }
     }
 
@@ -1795,6 +1793,7 @@ function apbct_form__contactForm7__testSpam($spam, $_submission = null)
 
         add_filter('wpcf7_skip_mail', function () {
             add_filter("wpcf7_feedback_response", function ($response) {
+                global $ct_cf7_comment;
                 $response["status"] = "mail_sent_ng";
                 $response["message"] = $ct_cf7_comment;
                 return $response;

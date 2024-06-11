@@ -208,9 +208,11 @@ function apbct_init()
         });
         add_filter('wpcf7_form_elements', 'apbct_form__contactForm7__addField');
         add_filter('wpcf7_validate', 'apbct_form__contactForm7__tesSpam__before_validate', 999, 2);
+        wp_debug_backtrace_summary();
         $hook    = WPCF7_VERSION >= '3.0.0' ? 'wpcf7_spam' : 'wpcf7_acceptance';
         $num_arg = WPCF7_VERSION >= '5.3.0' ? 2 : 1;
         add_filter($hook, 'apbct_form__contactForm7__testSpam', 9999, $num_arg);
+        add_action('wpcf7_before_send_mail', 'apbct_form__contactForm7__testSpam', 999);
     }
 
     // BuddyPress
