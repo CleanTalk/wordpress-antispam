@@ -307,3 +307,15 @@ button[value="save_changes"]:disabled {
     margin: 20px 0;
     font-weight: 400;
 }
+
+.apbct_settings_top_info__div{
+    float: right;
+    padding: 0 20px 0 0;
+    font-size: 13px;
+    position: relative;
+}
+
+.apbct_settings_top_info__p {
+    padding: 0;
+    margin: 2px;
+}
