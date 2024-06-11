@@ -306,12 +306,8 @@ class GetFieldsAny
                     if ($this->preprocessed_email) {
                         continue;
                     }
-                    if (
-                        empty($this->processed_data['email']) ||
-                        strlen($value_for_email) > strlen($this->processed_data['email'])
-                    ) {
-                        // if a new, very first email field is found or a longer email is found,
-                        //set it as the processed email field.
+                    if (empty($this->processed_data['email'])) {
+                        // if found new very first email field, set it as the processed email field.
                         $this->processed_data['email'] = $value_for_email;
                     } else {
                         // if processed one is already exists, set it to the message field.

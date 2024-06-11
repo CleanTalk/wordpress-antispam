@@ -1714,6 +1714,8 @@ function apbct_form__contactForm7__tesSpam__before_validate($result = null, $_ta
         if ( ! empty($invalid_fields) && is_array($invalid_fields) ) {
             $apbct->validation_error = $invalid_fields[key($invalid_fields)]['reason'];
             apbct_form__contactForm7__testSpam(false);
+        } else {
+            apbct_form__contactForm7__testSpam(false);
         }
     }
 
@@ -1790,6 +1792,14 @@ function apbct_form__contactForm7__testSpam($spam, $_submission = null)
         $ct_cf7_comment = $ct_result->comment;
 
         add_filter('wpcf7_display_message', 'apbct_form__contactForm7__showResponse', 10, 2);
+
+        add_filter( 'wpcf7_skip_mail', function () {
+            add_filter("wpcf7_feedback_response", function ($response) {
+                $response["status"] = "mail_sent_ng";
+                $response["message"] = "***Forbidden. Sender blacklisted. Blocked by CleanTalk***";
+                return $response;
+            }, 10);
+        }, 10);
 
         // Flamingo: save or not the spam entry
         if ( ! $apbct->settings['forms__flamingo_save_spam'] ) {
@@ -3401,9 +3411,33 @@ add_filter('wsf_submit_field_validate', function ($error_validation_action_field
      * Filter for POST
      */
     $input_array = apply_filters('apbct__filter_post', $_POST);
+    $email = '';
+
+    foreach ($input_array as $key => $value) {
+        if (preg_match("/^\S+@\S+\.\S+$/", $value) &&
+            strlen($value) > strlen($email)
+        ) {
+            $email = $value;
+        }
+    }
+
     $data = ct_gfa($input_array);
 
-    $sender_email    = ($data['email'] ?  : '');
+    if ($data['email'] && $email) {
+        if (strlen($email) > strlen($data['email'])) {
+            $sender_email = $email;
+        } else {
+            $sender_email = $data['email'];
+        }
+    } elseif ($data['email']) {
+        $sender_email = $data['email'];
+    } elseif ($email) {
+        $sender_email = $email;
+    } else {
+        $sender_email = '';
+    }
+
+    //$sender_email    = ($data['email'] ?  : '');
     $sender_nickname = ($data['nickname'] ?  : '');
     $message         = ($data['message'] ?  : array());
 
