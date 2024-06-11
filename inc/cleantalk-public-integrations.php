@@ -3411,21 +3411,9 @@ add_filter('wsf_submit_field_validate', function ($error_validation_action_field
         }
     }
 
-    $data = ct_gfa($input_array);
+    $data = ct_gfa($input_array, $long_email);
 
-    $sender_email = '';
-    if ($data['email'] && $long_email) {
-        if (strlen($long_email) > strlen($data['email'])) {
-            $sender_email = $long_email;
-        } else {
-            $sender_email = $data['email'];
-        }
-    } elseif ($data['email']) {
-        $sender_email = $data['email'];
-    } elseif ($long_email) {
-        $sender_email = $long_email;
-    }
-
+    $sender_email = ($data['email'] ?  : '');
     $sender_nickname = ($data['nickname'] ?  : '');
     $message         = ($data['message'] ?  : array());
 
