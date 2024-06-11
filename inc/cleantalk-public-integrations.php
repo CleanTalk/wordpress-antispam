@@ -1796,7 +1796,7 @@ function apbct_form__contactForm7__testSpam($spam, $_submission = null)
         add_filter('wpcf7_skip_mail', function () {
             add_filter("wpcf7_feedback_response", function ($response) {
                 $response["status"] = "mail_sent_ng";
-                $response["message"] = "***Forbidden. Sender blacklisted. Blocked by CleanTalk***";
+                $response["message"] = $ct_cf7_comment;
                 return $response;
             }, 10);
         }, 10);
