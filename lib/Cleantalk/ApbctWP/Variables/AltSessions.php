@@ -39,6 +39,11 @@ class AltSessions
 
         $session_id = self::getID();
 
+        if ( is_array($value) ) {
+            $value = json_encode($value);
+            $value = $value === false ? null : $value;
+        }
+
         return (bool) $wpdb->query(
             $wpdb->prepare(
                 'INSERT INTO ' . APBCT_TBL_SESSIONS . '
