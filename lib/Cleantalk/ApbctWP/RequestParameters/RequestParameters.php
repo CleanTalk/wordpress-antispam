@@ -9,53 +9,58 @@ use Cleantalk\ApbctWP\Variables\NoCookie;
 class RequestParameters
 {
     /**
-     * @param string $param_name
-     * @param bool $http_only
+     * @param string $param_name Param name
+     * @param bool $alt_sessions_for_none_mode Use alternative sessions source for NoCookie mode
      *
      * @return mixed
      */
-    public static function get($param_name, $http_only = false)
+    public static function get($param_name, $alt_sessions_for_none_mode = false)
     {
         switch ( self::getParamsType() ) {
             case 'none':
-                if ( $http_only ) {
-                    return AltSessions::get($param_name);
+                if ( $alt_sessions_for_none_mode ) {
+                    $out = AltSessions::get($param_name);
+                    break;
                 }
-                return NoCookie::get($param_name);
+                $out = NoCookie::get($param_name);
+                break;
 
             case 'alternative':
-                return AltSessions::get($param_name);
+                $out = AltSessions::get($param_name);
+                break;
 
             case 'native':
             default:
-                return Cookie::get($param_name);
+                $out = Cookie::get($param_name);
         }
+
+        return $out;
     }
 
     /**
      * @param string $param_name
      * @param string $param_value
-     * @param bool $http_only
+     * @param bool $alt_sessions_for_none_mode Use alternative sessions source for NoCookie mode
      *
      * @return bool
      *
      * @psalm-suppress PossiblyUnusedReturnValue
      */
-    public static function set($param_name, $param_value, $http_only = false)
+    public static function set($param_name, $param_value, $alt_sessions_for_none_mode = false)
     {
         switch ( self::getParamsType() ) {
             case 'none':
-                if ( $http_only ) {
+                if ( $alt_sessions_for_none_mode ) {
                     return AltSessions::set($param_name, $param_value);
                 }
-                return NoCookie::set($param_name, $param_value);
+                return NoCookie::set($param_name, $param_value, true);
 
             case 'alternative':
                 return AltSessions::set($param_name, $param_value);
 
             case 'native':
             default:
-                return Cookie::set($param_name, $param_value, 0, '/', '', null, $http_only);
+                return Cookie::set($param_name, $param_value, 0, '/', '', null, $alt_sessions_for_none_mode);
         }
     }
 

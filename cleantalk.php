@@ -2688,7 +2688,7 @@ function apbct_store__urls()
         $site_url    = parse_url(get_option('home'), PHP_URL_HOST);
 
         // Get already stored URLs
-        $urls = Cookie::get('apbct_urls');
+        $urls = RequestParameters::get('apbct_urls', true);
         $urls = $urls === '' ? [] : json_decode($urls, true);
 
         $urls[$current_url][] = time();
@@ -2702,7 +2702,8 @@ function apbct_store__urls()
         $urls               = count($urls) > 5 ? array_slice($urls, 1, 5) : $urls;
 
         // Saving
-        Cookie::set('apbct_urls', json_encode($urls, JSON_UNESCAPED_SLASHES), time() + 86400 * 3, '/', $site_url, null, true, 'Lax', true);
+        RequestParameters::set('apbct_urls', json_encode($urls, JSON_UNESCAPED_SLASHES), true);
+
 
         // REFERER
         // Get current referer
