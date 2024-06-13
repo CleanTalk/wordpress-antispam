@@ -196,10 +196,6 @@ add_action('wp_ajax_apbct_js_keys__get', 'apbct_js_keys__get__ajax');
 add_action('wp_ajax_nopriv_apbct_get_pixel_url', 'apbct_get_pixel_url__ajax');
 add_action('wp_ajax_apbct_get_pixel_url', 'apbct_get_pixel_url__ajax');
 
-// Force ajax checking for external forms
-add_action('wp_ajax_nopriv_cleantalk_force_ajax_check', 'ct_ajax_hook');
-add_action('wp_ajax_cleantalk_force_ajax_check', 'ct_ajax_hook');
-
 // Checking email before POST
 add_action('wp_ajax_nopriv_apbct_email_check_before_post', 'apbct_email_check_before_post');
 
@@ -334,6 +330,11 @@ $apbct_active_integrations = array(
         'hook'    => 'init',
         'setting' => 'forms__check_external',
         'ajax'    => false
+    ),
+    'CleantalkExternalFormsForceAjax'         => array(
+        'hook'    => 'cleantalk_force_ajax_check',
+        'setting' => 'forms__check_external',
+        'ajax'    => true
     ),
     'CleantalkPreprocessComment'         => array(
         'hook'    => 'preprocess_comment',
