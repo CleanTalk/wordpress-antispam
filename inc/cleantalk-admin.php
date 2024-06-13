@@ -147,7 +147,7 @@ function ct_dashboard_statistics_widget_output($_post, $_callback_args)
         <input type='hidden' name='ct_brief_refresh' value='1'>
     </form>
     <h4 class='ct_widget_block_header' style='margin-left: 12px;'><?php
-        _e('7 days Anti-Spam an SpamFireWall stats', 'cleantalk-spam-protect'); ?></h4>
+        _e('7 days Anti-Spam and SpamFireWall stats', 'cleantalk-spam-protect'); ?></h4>
     <div class='ct_widget_block ct_widget_chart_wrapper'>
         <canvas id='ct_widget_chart' ></canvas>
     </div>

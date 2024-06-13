@@ -56,7 +56,7 @@ jQuery(document).ready(function(){
 			},
 			title: {
 				display: true,
-				text: 'Requests was blocked by Anti-Spam and SpamFireWall',
+				text: 'Requests were blocked by Anti-Spam and SpamFireWall',
 				fontSize: 18
 			},
 			plugins: {
@@ -65,7 +65,7 @@ jQuery(document).ready(function(){
 				},
 				title: {
 					display: true,
-					text: 'Requests was blocked by Anti-Spam and SpamFireWall',
+					text: 'Requests were blocked by Anti-Spam and SpamFireWall',
 					font: {
 						size: 18,
 					}
