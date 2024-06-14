@@ -1,7 +1,11 @@
 <?php
 
 add_filter('get_comment_author', function ($comment_author, $comment_id, $comment) {
-    global $authordata;
+    global $authordata, $ct_comment_ids;
+
+    if (!$ct_comment_ids) {
+        $ct_comment_ids = [];
+    }
 
     if (is_admin()) {
         return $comment_author;
@@ -13,6 +17,10 @@ add_filter('get_comment_author', function ($comment_author, $comment_id, $commen
 
     $ct_hash = get_comment_meta((int)$comment_id, 'ct_real_user_badge_hash', true);
     if (!$ct_hash && !in_array("administrator", $authordata->roles)) {
+        return $comment_author;
+    }
+
+    if (in_array($comment_id, $ct_comment_ids)) {
         return $comment_author;
     }
 
@@ -28,9 +36,10 @@ add_filter('get_comment_author', function ($comment_author, $comment_id, $commen
 
     $comment_author .= '</div>';
 
+    $ct_comment_ids[] = $comment_id;
+
     return $comment_author;
 }, 10, 3);
-
 
 add_filter('wp_list_comments_args', function ($options) {
     if (is_admin()) {
