@@ -613,6 +613,11 @@ $apbct_active_integrations = array(
         'setting' => 'forms__contact_forms_test',
         'ajax'    => true
     ),
+    'KadenceBlocksAdvanced' => array(
+        'hook'    => 'kb_process_advanced_form_submit',
+        'setting' => 'forms__contact_forms_test',
+        'ajax'    => true
+    ),
     'WordpressFileUpload' => array(
         'hook'    => 'wfu_before_upload',
         'setting' => 'forms__contact_forms_test',
