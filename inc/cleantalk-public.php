@@ -1025,9 +1025,9 @@ function ct_set_approved($approved, $_comment)
  * @psalm-suppress UnusedParam
  * @return void
  */
-function ct_set_approved_hash($comment_id, $comment_approved)
+function ct_set_real_user_badge_hash($comment_id)
 {
-    update_comment_meta($comment_id, 'ct_hash', ct_hash());
+    update_comment_meta($comment_id, 'ct_real_user_badge_hash', ct_hash());
 }
 
 /**
