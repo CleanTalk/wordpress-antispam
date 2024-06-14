@@ -1,11 +1,7 @@
 <?php
 
 add_filter('get_comment_author', function ($comment_author, $comment_id, $comment) {
-    global $authordata, $ct_comment_ids;
-
-    if (!$ct_comment_ids) {
-        $ct_comment_ids = [];
-    }
+    global $ct_comment_ids;
 
     if (is_admin()) {
         return $comment_author;
@@ -15,12 +11,20 @@ add_filter('get_comment_author', function ($comment_author, $comment_id, $commen
         return $comment_author;
     }
 
-    $ct_hash = get_comment_meta((int)$comment_id, 'ct_real_user_badge_hash', true);
-    if (!$ct_hash && !in_array("administrator", $authordata->roles)) {
-        return $comment_author;
+    if (!$ct_comment_ids) {
+        $ct_comment_ids = [];
     }
 
     if (in_array($comment_id, $ct_comment_ids)) {
+        return $comment_author;
+    }
+
+    $ct_hash = get_comment_meta((int)$comment_id, 'ct_real_user_badge_hash', true);
+    if (!$ct_hash && $comment->user_id == 0) {
+        return $comment_author;
+    }
+
+    if (!$ct_hash && apbct_is_user_enable((int)$comment->user_id)) {
         return $comment_author;
     }
 
@@ -47,16 +51,19 @@ add_filter('wp_list_comments_args', function ($options) {
     }
 
     $options['end-callback'] = function ($curr_comment) {
-        global $authordata;
-
-        $id    = $curr_comment->comment_ID;
-
         if ($curr_comment->comment_type !== 'review') {
             return;
         }
 
+        $id = $curr_comment->comment_ID;
+
         $ct_hash = get_comment_meta((int)$id, 'ct_real_user_badge_hash', true);
-        if (!$ct_hash && !in_array("administrator", $authordata->roles)) {
+
+        if (!$ct_hash && $curr_comment->user_id == 0) {
+            return;
+        }
+
+        if (!$ct_hash && apbct_is_user_enable((int)$curr_comment->user_id)) {
             return;
         }
 
