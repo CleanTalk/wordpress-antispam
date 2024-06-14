@@ -1190,6 +1190,9 @@ function ctSetAlternativeCookie(cookies, params) {
                 notJson: 1,
                 callback: callback,
                 onErrorCallback: onErrorCallback,
+                beforeSend: function(xhr) {
+                    xhr.setRequestHeader('X-Robots-Tag', 'noindex, nofollow');
+                },
             },
         );
     }
@@ -1806,6 +1809,9 @@ function ctGetPixelUrl() {
                         // then run pixel drawing
                         ctSetPixelImg(result);
                     }
+                },
+                beforeSend: function(xhr) {
+                    xhr.setRequestHeader('X-Robots-Tag', 'noindex, nofollow');
                 },
             },
         );
