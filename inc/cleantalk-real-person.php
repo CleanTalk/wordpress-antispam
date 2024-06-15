@@ -24,7 +24,7 @@ add_filter('get_comment_author', function ($comment_author, $comment_id, $commen
         return $comment_author;
     }
 
-    if (!$ct_hash && apbct_is_user_enable((int)$comment->user_id)) {
+    if (!$ct_hash && apbct_is_user_enable($comment->user_id)) {
         return $comment_author;
     }
 
@@ -63,7 +63,7 @@ add_filter('wp_list_comments_args', function ($options) {
             return;
         }
 
-        if (!$ct_hash && apbct_is_user_enable((int)$curr_comment->user_id)) {
+        if (!$ct_hash && apbct_is_user_enable($curr_comment->user_id)) {
             return;
         }
 

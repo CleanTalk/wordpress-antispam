@@ -1033,7 +1033,10 @@ function ct_set_approved($approved, $_comment)
  */
 function ct_set_real_user_badge_hash($comment_id)
 {
-    update_comment_meta($comment_id, 'ct_real_user_badge_hash', ct_hash());
+    $hash1 = ct_hash();
+    if ( ! empty($hash1) ) {
+        update_comment_meta($comment_id, 'ct_real_user_badge_hash', ct_hash());
+    }
 }
 
 /**

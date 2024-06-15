@@ -127,7 +127,11 @@ class CleantalkPreprocessComment extends IntegrationBase
             }
         }
 
-        $this->exception_action = $this->exception_action ?: $this->checkMaxCommentsPublishedByUser();
+        if ($this->checkMaxCommentsPublishedByUser()) {
+            $this->exception_action = true;
+            ct_hash(md5(time() . $this->wp_comment['comment_author_email']));
+            add_action('comment_post', 'ct_set_real_user_badge_hash', 999, 2);
+        }
 
         $base_call_data = array(
             'message'         => $this->wp_comment['comment_content'],
