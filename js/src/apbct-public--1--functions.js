@@ -153,6 +153,9 @@ function ctSetAlternativeCookie(cookies, params) {
                 notJson: 1,
                 callback: callback,
                 onErrorCallback: onErrorCallback,
+                beforeSend: function(xhr) {
+                    xhr.setRequestHeader('X-Robots-Tag', 'noindex, nofollow');
+                },
             },
         );
     }

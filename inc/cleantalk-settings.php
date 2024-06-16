@@ -1208,32 +1208,7 @@ function apbct_settings__display()
     }
 
     echo '<form action="options.php" method="post">';
-
     apbct_settings__error__output();
-
-    // Top info
-    if ( ! $apbct->white_label ) {
-        echo '<div style="float: right; padding: 15px 15px 5px 15px; font-size: 13px; position: relative; background: #f1f1f1;">';
-
-        echo $apbct->data['wl_brandname_short'] . __('\'s tech support:', 'cleantalk-spam-protect')
-            . '&nbsp;'
-            . '<a target="_blank" href="' . $apbct->data['wl_support_url'] . '">WordPress.org</a>.'
-            . '<br>';
-        echo __('Plugin Homepage at', 'cleantalk-spam-protect') .
-
-             ' <a href="' . $apbct->data['wl_url'] . '" target="_blank">' . $apbct->data['wl_url'] . '</a>.<br/>';
-        echo __('Use stop_email@example.com to test plugin in any WordPress form.', 'cleantalk-spam-protect') . '<br>';
-        echo $apbct->data['wl_brandname_short'] . __(' is registered Trademark. All rights reserved.', 'cleantalk-spam-protect') . '<br/>';
-        if ( $apbct->key_is_ok && ! $apbct->data["wl_mode_enabled"] ) {
-            echo '<b style="display: inline-block; margin-top: 10px;">' . sprintf(
-                __('Do you like ' . $apbct->data['wl_brandname_short'] . '? %sPost your feedback here%s.', 'cleantalk-spam-protect'),
-                '<a href="https://wordpress.org/support/plugin/cleantalk-spam-protect/reviews/#new-post" target="_blank">',
-                '</a>'
-            ) . '</b><br />';
-        }
-        apbct_admin__badge__get_premium();
-        echo '</div>';
-    }
 
     // Output spam count
     if ( $apbct->key_is_ok && apbct_api_key__is_correct() ) {
@@ -1252,6 +1227,10 @@ function apbct_settings__display()
                  . '</div>';
         }
     }
+
+    //generate and output top info
+    //echo Escape::escKsesPreset(apbct_settings__get_top_info());
+    echo apbct_settings__get_top_info();
 
 
     // Output spam count
@@ -1395,6 +1374,69 @@ function apbct_settings__display()
             echo Escape::escKsesPreset($out, 'apbct_settings__display__banner_template');
         }
     }
+}
+
+/**
+ * Retrieves the top information for the settings page.
+ *
+ * This function generates the top information for the settings page, including support brand, support link,
+ * plugin homepage text and URL, test email chunk, trademark, feedback request, and get premium request badge.
+ * It also handles the case when the plugin is in white label mode.
+ *
+ * @global object $apbct The APBCT object.
+ * @return string The top information for the settings page.
+ * @psalm-suppress TypeDoesNotContainNull
+ */
+function apbct_settings__get_top_info()
+{
+    global $apbct;
+    require_once CLEANTALK_PLUGIN_DIR . 'templates/settings/settings_top_info.php';
+    if (!isset($top_info_tmp)) {
+        return '';
+    }
+    // Top info
+    $support_brand = $apbct->plugin_name;
+    $support_link = $apbct->data['wl_support_url'];
+    $support_url_text = 'WordPress.org';
+    $plugin_homepage_text = __('Plugin Homepage at', 'cleantalk-spam-protect');
+    $plugin_homepage_url = $apbct->data['wl_url'];
+    $plugin_homepage_url_text = $apbct->data['wl_url'];
+    $test_email_chunk = __('Use stop_email@example.com to test plugin in any WordPress form.', 'cleantalk-spam-protect');
+    $trademark = $apbct->plugin_name . __(' is registered Trademark. All rights reserved.', 'cleantalk-spam-protect');
+
+    $feedback_format = '%s %s? %s%s%s';
+    $feedback_request = sprintf(
+        $feedback_format,
+        __('Do you like', 'cleantalk-spam-protect'),
+        $apbct->plugin_name,
+        '<a href="https://wordpress.org/support/plugin/cleantalk-spam-protect/reviews/#new-post" target="_blank">',
+        __('Post your feedback here', 'cleantalk-spam-protect'),
+        '</a>'
+    );
+    $get_premium_request_badge = apbct_admin__badge__get_premium(false);
+
+    if ($apbct->white_label) {
+        $support_brand = $apbct->data['wl_brandname_short'];
+        $support_url_text = $apbct->data['wl_support_url'];
+        $trademark = '';
+        $feedback_request = '';
+        $get_premium_request_badge = '';
+    }
+
+    $support_brand .= __('\'s tech support:', 'cleantalk-spam-protect');
+
+    $top_info_tmp = str_replace('%SUPPORT_BRAND%', $support_brand, $top_info_tmp);
+    $top_info_tmp = str_replace('%SUPPORT_LINK%', $support_link, $top_info_tmp);
+    $top_info_tmp = str_replace('%SUPPORT_URL_TEXT%', $support_url_text, $top_info_tmp);
+    $top_info_tmp = str_replace('%PLUGIN_HOMEPAGE_TEXT%', $plugin_homepage_text, $top_info_tmp);
+    $top_info_tmp = str_replace('%PLUGIN_HOMEPAGE_URL%', $plugin_homepage_url, $top_info_tmp);
+    $top_info_tmp = str_replace('%PLUGIN_HOMEPAGE_URL_TEXT%', $plugin_homepage_url_text, $top_info_tmp);
+    $top_info_tmp = str_replace('%TEST_EMAIL_CHUNK%', $test_email_chunk, $top_info_tmp);
+    $top_info_tmp = str_replace('%TRADEMARK%', $trademark, $top_info_tmp);
+    $top_info_tmp = str_replace('%FEEDBACK_REQUEST%', $feedback_request, $top_info_tmp);
+    $top_info_tmp = str_replace('%GET_PREMIUM_REQUEST%', $get_premium_request_badge, $top_info_tmp);
+
+    return $top_info_tmp;
 }
 
 function apbct_settings__display__network()
