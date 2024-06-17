@@ -1178,7 +1178,26 @@ function ct_enqueue_scripts_public($_hook)
 {
     global $current_user, $apbct;
 
-    if ( apbct_exclusions_check__url() || apbct_is_amp_request() ) {
+    if ( apbct_exclusions_check__url() ) {
+        return;
+    }
+
+    if ( apbct_is_amp_request() ) {
+        wp_enqueue_script(
+            'amp-script',
+            'https://cdn.ampproject.org/v0/amp-script-0.1.js'
+        );
+
+        add_action('wp_head', function () use ($apbct) {
+            $is_email_encoder_enabled = $apbct['settings']['misc__email_encoder'];
+            echo "<amp-state id='apbctAmpState'>
+                <script type='application/json'>
+                    {
+                        'emailEncoderState': '{$is_email_encoder_enabled}',
+                    }
+              </script>
+            </amp-state>";
+        });
         return;
     }
 

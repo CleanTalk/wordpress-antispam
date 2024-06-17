@@ -69,9 +69,9 @@ class EmailEncoder
     protected $privacy_policy_hook_handled = false;
 
     /**
-     * AMP compatibility
+     * AMP request?
      */
-    private $isScriptAdded = false;
+    private $is_amp_request;
 
     /**
      * @inheritDoc
@@ -80,6 +80,8 @@ class EmailEncoder
     {
 
         global $apbct;
+
+        $this->is_amp_request = apbct_is_amp_request();
 
         if ( ! $apbct->settings['data__email_decoder'] ) {
             return;
@@ -125,12 +127,6 @@ class EmailEncoder
             add_action('shutdown', 'apbct_buffer__end', 0);
             add_action('shutdown', array($this, 'bufferOutput'), 2);
         }
-
-        if (apbct_is_amp_request() && !apbct_is_ajax() && !apbct_is_rest() && !apbct_is_post()) {
-            add_action('wp', 'apbct_buffer__start');
-            add_action('shutdown', 'apbct_buffer__end', 0);
-            add_action('shutdown', array($this, 'bufferOutputAddJsForWorkWithAMP'), 2);
-        }
     }
 
     /**
@@ -163,7 +159,7 @@ class EmailEncoder
                 return $matches[0];
             }
 
-            //chek if email is placed in excluded attributes and return unchanged if so
+            //check if email is placed in excluded attributes and return unchanged if so
             if ( $this->hasAttributeExclusions($matches[0]) ) {
                 return $matches[0];
             }
@@ -318,10 +314,16 @@ class EmailEncoder
 
         $encoded = $this->encodeString($email_str, $this->secret_key);
 
-        return '<span 
+        $encoded_layout = '<span 
                 data-original-string="' . $encoded . '"
                 class="apbct-email-encoder"
                 title="' . esc_attr($this->getTooltip()) . '">' . $obfuscated . '</span>';
+
+        if ( $this->is_amp_request ) {
+            $encoded_layout = "<amp-script layout='container' script='apbct_email_decode' data-ampdevmode>{$encoded_layout}</amp-script>";
+        }
+
+        return $encoded_layout;
     }
 
     /**
@@ -450,44 +452,20 @@ class EmailEncoder
     public function bufferOutput()
     {
         global $apbct;
-        echo $this->modifyContent($apbct->buffer);
-    }
+        $modified_content = $this->modifyContent($apbct->buffer);
 
-    public function bufferOutputAddJsForWorkWithAMP()
-    {
-        global $apbct;
-
-        $content = $apbct->buffer;
-
-        if (!$this->isScriptAdded) {
-            $pattern = '/<head.*?>/';
-            preg_match($pattern, $content, $matches);
-            if (!empty($matches)) {
-                $opening_head_tag = $matches[0];
-                $script_tag = '<script async custom-element="amp-script" src="https://cdn.ampproject.org/v0/amp-script-0.1.js"></script>';
-                $content = str_replace($opening_head_tag, $opening_head_tag . $script_tag, $content);
-            }
-
-            $pattern = '/<body.*?>/';
-            preg_match($pattern, $content, $matches);
-            if (!empty($matches)) {
-                $opening_body_tag = $matches[0];
-                $script_tag = '<amp-script layout="container" src="/wp-content/plugins/cleantalk-spam-protect/js/apbct-public-bundle.min.js">';
-                $content = str_replace($opening_body_tag, $opening_body_tag . $script_tag, $content);
-            }
-
+        if ( $this->is_amp_request ) {
             $pattern = '/<\/body.*?>/';
-            preg_match($pattern, $content, $matches);
-            if (!empty($matches)) {
+            preg_match($pattern, $modified_content, $matches);
+            if ( ! empty($matches) ) {
                 $close_body_tag = $matches[0];
-                $script_tag = '</amp-script>';
-                $content = str_replace($close_body_tag, $script_tag . $close_body_tag, $content);
+                $apbct_amp_script = APBCT_DIR_PATH . '/js/cleantalk-email-encoder.min.js';
+                $apbct_amp_script_content = file_get_contents($apbct_amp_script);
+                $script_tag = "<script id='apbct_email_decode' type='text/plain' target='amp-script'>{$apbct_amp_script_content}</script>";
+                $modified_content = str_replace($close_body_tag, $script_tag . $close_body_tag, $modified_content);
             }
-
-            $this->isScriptAdded = true;
         }
-
-        echo $this->modifyContent($content);
+        echo $modified_content;
     }
 
     private function handlePrivacyPolicyHook()
