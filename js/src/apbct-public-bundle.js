@@ -3184,6 +3184,10 @@ function apbctRealUserBadge() {
  */
 // eslint-disable-next-line no-unused-vars,require-jsdoc
 function apbctRealUserBadgeWoocommerce(id, author, title, text) {
+    if (window.innerWidth < 768) {
+        return;
+    }
+
     let badge = document.createElement('div');
     badge.className = 'apbct-real-user';
     badge.style.position = 'absolute';
