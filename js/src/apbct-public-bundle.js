@@ -3864,11 +3864,17 @@ function blockBtnKulaHubForm(blockKHF) {
         el.setAttribute('style', 'cursor: pointer');
 
         el.addEventListener('click', (event) => {
-            formDataElemKHF.forEach(element => {
-                formDataKHF [element.name] = element.value;
-            });
+            if (el.parentElement.getAttribute('data-oauth-login-blocked') != 'false') {
+                event.preventDefault();
+                event.stopPropagation();
+                el.disabled = true;
+                formDataElemKHF.forEach(element => {
+                    formDataKHF [element.name] = element.value;
+                });
 
-            ctCheckAjax(el, 'khf', formDataKHF);
+                ctCheckAjax(el, 'khf', formDataKHF);
+            }
+            return false;
         });
     });
 }
@@ -3879,8 +3885,9 @@ function blockBtnKulaHubForm(blockKHF) {
  */
 function allowAjaxKulaHubForm(childBtn) {
     childBtn.parentElement.setAttribute('data-oauth-login-blocked', 'false');
+    childBtn.disabled = false;
     childBtn.setAttribute('type', 'submit');
-    childBtn.parentElement.click();
+    childBtn.click();
 }
 
 /**
@@ -3893,6 +3900,7 @@ function forbiddenAjaxKulaHubForm(childBtn, msg) {
     if (parentElement.getAttribute('data-oauth-login-blocked') == 'false') {
         parentElement.setAttribute('data-oauth-login-blocked', 'true');
     }
+    childBtn.disabled = false;
     if (!document.querySelector('.ct-forbidden-msg')) {
         let elemForMsg = document.createElement('div');
         elemForMsg.className = 'ct-forbidden-msg';
