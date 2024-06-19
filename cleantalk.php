@@ -624,6 +624,11 @@ $apbct_active_integrations = array(
         'setting' => 'forms__registrations_test',
         'ajax'    => false
     ),
+    'PaidMembershipPro' => array(
+        'hook'    => 'pmpro_is_spammer',
+        'setting' => 'forms__registrations_test',
+        'ajax'    => false
+    ),
 );
 add_action('plugins_loaded', function () use ($apbct_active_integrations, $apbct) {
     if ( defined('FLUENTFORM_VERSION') ) {
