@@ -10,16 +10,16 @@ class RequestParameters
 {
     /**
      * @param string $param_name Param name
-     * @param bool $alt_sessions_for_none_mode Use alternative sessions source for NoCookie mode
+     * @param bool $http_only Use alternative sessions source for NoCookie mode
      *
      * @return mixed
      */
-    public static function get($param_name, $alt_sessions_for_none_mode = false)
+    public static function get($param_name, $http_only = false)
     {
         switch ( self::getParamsType() ) {
             case 'none':
-                if ( $alt_sessions_for_none_mode ) {
-                    $out = AltSessions::get($param_name);
+                if ( $http_only ) {
+                    $out = static::getCommonStorage($param_name);
                     break;
                 }
                 $out = NoCookie::get($param_name);
@@ -40,18 +40,18 @@ class RequestParameters
     /**
      * @param string $param_name
      * @param string $param_value
-     * @param bool $alt_sessions_for_none_mode Use alternative sessions source for NoCookie mode
+     * @param bool $http_only
      *
      * @return bool
      *
      * @psalm-suppress PossiblyUnusedReturnValue
      */
-    public static function set($param_name, $param_value, $alt_sessions_for_none_mode = false)
+    public static function set($param_name, $param_value, $http_only = false)
     {
         switch ( self::getParamsType() ) {
             case 'none':
-                if ( $alt_sessions_for_none_mode ) {
-                    return AltSessions::set($param_name, $param_value);
+                if ( $http_only ) {
+                    return self::setCommonStorage($param_name, $param_value);
                 }
                 return NoCookie::set($param_name, $param_value, true);
 
@@ -60,13 +60,39 @@ class RequestParameters
 
             case 'native':
             default:
-                return Cookie::set($param_name, $param_value, 0, '/', '', null, $alt_sessions_for_none_mode);
+                return Cookie::set($param_name, $param_value, 0, '/', '', null, $http_only);
         }
     }
 
+    /**
+     * @return mixed
+     */
     private static function getParamsType()
     {
         global $apbct;
         return $apbct->data['cookies_type'];
+    }
+
+    /**
+     * Use common storage to get param. Use this way for the params if there is no difference of cookies type set up.
+     * @param $param_name
+     * @return false|mixed|string
+     */
+    public static function getCommonStorage($param_name)
+    {
+        //for now common storage is AltSession logic.
+        return AltSessions::get($param_name);
+    }
+
+    /**
+     * Use common storage to set param. Use this way for the params if there is no difference of cookies type set up.
+     * @param $param_name
+     * @param $param_value
+     * @return bool
+     */
+    public static function setCommonStorage($param_name, $param_value)
+    {
+        //for now common storage is AltSession logic.
+        return AltSessions::set($param_name, $param_value);
     }
 }

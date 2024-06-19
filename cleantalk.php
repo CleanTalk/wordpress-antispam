@@ -2688,21 +2688,29 @@ function apbct_store__urls()
         $site_url    = parse_url(get_option('home'), PHP_URL_HOST);
 
         // Get already stored URLs
-        $urls = RequestParameters::get('apbct_urls', true);
+        $urls = RequestParameters::getCommonStorage('apbct_urls');
         $urls = $urls === '' ? [] : json_decode($urls, true);
 
         $urls[$current_url][] = time();
 
-        // Rotating. Saving only latest 10
-        $urls[$current_url] = count($urls[$current_url]) > 5 ? array_slice(
-            $urls[$current_url],
-            1,
-            5
-        ) : $urls[$current_url];
-        $urls               = count($urls) > 5 ? array_slice($urls, 1, 5) : $urls;
+        // Saving only latest 5 visit for each of 5 last urls
+        $urls_count_to_keep = 5;
+        $visits_to_keep = 5;
+
+        //Rotating.
+        $urls[$current_url] = count($urls[$current_url]) > $visits_to_keep
+            ? array_slice(
+                $urls[$current_url],
+                1,
+                $visits_to_keep
+            )
+            : $urls[$current_url];
+        $urls               = count($urls) > $urls_count_to_keep
+            ? array_slice($urls, 1, $urls_count_to_keep)
+            : $urls;
 
         // Saving
-        RequestParameters::set('apbct_urls', json_encode($urls, JSON_UNESCAPED_SLASHES), true);
+        RequestParameters::setCommonStorage('apbct_urls', json_encode($urls, JSON_UNESCAPED_SLASHES));
 
 
         // REFERER
