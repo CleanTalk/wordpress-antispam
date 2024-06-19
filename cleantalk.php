@@ -619,6 +619,11 @@ $apbct_active_integrations = array(
         'ajax'    => true,
         'ajax_and_post' => true
     ),
+    'LearnPress' => array(
+        'hook'    => 'lp/before_create_new_customer',
+        'setting' => 'forms__registrations_test',
+        'ajax'    => false
+    ),
     'PaidMembershipPro' => array(
         'hook'    => 'pmpro_is_spammer',
         'setting' => 'forms__registrations_test',
