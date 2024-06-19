@@ -454,9 +454,9 @@ function apbct_admin__register_plugin_links($links, $file, $plugin_data)
                . __('FAQ', 'cleantalk-spam-protect') . '</a>';
     $links[] = '<a class="ct_meta_links ct_support_links" href="' . $apbct->data['wl_support_url'] . '" target="_blank">'
                . __('Support', 'cleantalk-spam-protect') . '</a>';
-    $trial   = apbct_admin__badge__get_premium(false);
+    $trial   = apbct_admin__badge__get_premium('plugins_listing');
     if ( ! empty($trial) && !$apbct->data["wl_mode_enabled"]) {
-        $links[] = apbct_admin__badge__get_premium(false);
+        $links[] = $trial;
     }
 
     return $links;
@@ -653,43 +653,43 @@ function apbct_admin__enqueue_scripts($hook)
 }
 
 /**
- * Premium badge layout
+ * Premium badge layout.
  *
- * @param bool $print Do we need to print the badge or return it as a string
- * @param string $out The badge layout
+ * @param string $placement - where should the layout placed, prefix and utm marks depends on this
  *
- * @return null|string NUll if $print is true, string if $print is false
+ * @return string Escaped string
  */
-function apbct_admin__badge__get_premium($print = true, $out = '')
+function apbct_admin__badge__get_premium($placement = null)
 {
     global $apbct;
 
+    $out = '';
+    $utm_set = '';
+    $prefix = '';
+
+    $placements_available = array(
+            'checkers' => array(
+                'prefix' => __('Make it right!', 'cleantalk-spam-protect') . ' ',
+                'utm_set' => array()),
+            'top_info' => array(
+                'prefix' => __('Make it right!', 'cleantalk-spam-protect') . ' ',
+                'utm_set' => array()),
+            'plugins_listing' => array(
+                'prefix' => '',
+                'utm_set' => array()),
+    );
+
     if ( $apbct->license_trial == 1 && $apbct->user_token ) {
-        $make_it_right = $print ? __('Make it right!', 'cleantalk-spam-protect') . ' ' : '';
+        if (!empty($placement) && isset($placements_available[$placement])) {
+            $utm_set = $placements_available[$placement]['utm_set'];
+            $prefix = $placements_available[$placement]['prefix'];
+        }
         $link_text = __('Get premium', 'cleantalk-spam-protect');
-        $renew_link = AdminNotices::generateRenewalLinkHTML($apbct->user_token, $link_text, 1);
-        $out .= '<b style="display: inline-block; margin-top: 10px;">' . $make_it_right . $renew_link . '</b>';
+        $renew_link = AdminNotices::generateRenewalLinkHTML($apbct->user_token, $link_text, 1, $utm_set);
+        $out = $prefix . '<b style="display: inline-block; margin-top: 10px;">' . $renew_link . '</b>';
     }
 
-    if ( $print ) {
-        echo wp_kses(
-            $out,
-            array(
-                'a' => array(
-                    'href'  => true,
-                    'title' => true,
-                    '_target' => true,
-                ),
-                'br' => array(),
-                'p' => array(),
-                'b' => array(
-                    'style' => true,
-                ),
-            )
-        );
-    } else {
-        return $out;
-    }
+    return Escape::escKsesPreset($out, 'apbct_get_premium_link');
 }
 
 /**
