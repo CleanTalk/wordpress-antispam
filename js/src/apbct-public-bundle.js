@@ -717,7 +717,6 @@ class ApbctXhr {
 
     // eslint-disable-next-line require-jsdoc
     constructor(parameters) {
-        console.log('%cXHR%c started', 'color: red; font-weight: bold;', 'color: grey; font-weight: normal;');
 
         // Set class properties
         for ( let key in parameters ) {
