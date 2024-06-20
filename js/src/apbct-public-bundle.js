@@ -717,7 +717,6 @@ class ApbctXhr {
 
     // eslint-disable-next-line require-jsdoc
     constructor(parameters) {
-
         // Set class properties
         for ( let key in parameters ) {
             if ( typeof this[key] !== 'undefined' ) {
