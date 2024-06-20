@@ -48,18 +48,7 @@ class CleantalkExternalForms extends IntegrationBase
     public function getExternalForm($action, $method)
     {
         if ( ! apbct_is_ajax() ) {
-            $externalForm = "<html lang=''><body><form method='$method' action='$action'>";
-            ct_print_form($_POST, '');
-            $externalForm .= "</form></body></html>";
-            $externalForm .= "<script " . (class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '') . ">
-                if(document.forms[0].submit !== 'undefined'){
-                    var objects = document.getElementsByName('submit');
-                    if(objects.length > 0)
-                        document.forms[0].removeChild(objects[0]);
-                }
-                document.forms[0].submit();
-            </script>";
-            return $externalForm;
+            return $this->constructOriginExternalForm($action, $method);
         }
 
         return null;
@@ -76,5 +65,80 @@ class CleantalkExternalForms extends IntegrationBase
     {
         print $this->getExternalForm($this->action, $this->method);
         die();
+    }
+
+    private function constructFormInnerElements($arr, $recursive_key)
+    {
+        $return_form = '';
+        // Fix for pages04.net forms
+        if ( isset($arr['formSourceName']) ) {
+            $tmp = array();
+            foreach ( $arr as $key => $val ) {
+                $tmp_key       = str_replace('_', '+', $key);
+                $tmp[$tmp_key] = $val;
+            }
+            $arr = $tmp;
+            unset($tmp, $key, $tmp_key, $val);
+        }
+
+        // Fix for zoho forms with space in input attribute name
+        if ( isset($arr['actionType'], $arr['returnURL']) ) {
+            $tmp = array();
+            foreach ( $arr as $key => $val ) {
+                $tmp_key       = str_replace('_', ' ', $key);
+                $tmp[$tmp_key] = $val;
+            }
+            $arr = $tmp;
+            unset($tmp, $key, $tmp_key, $val);
+        }
+
+        foreach ( $arr as $key => $value ) {
+            if ( ! is_array($value) ) {
+                $return_form .= '<textarea
+				name="' . esc_attr($recursive_key === '' ? $key : $recursive_key . '[' . $key . ']') . '"
+				style="display:none;">' . esc_textarea(htmlspecialchars($value))
+                    . '</textarea>';
+            } else {
+                $return_form .= $this->constructFormInnerElements($value, $recursive_key === '' ? $key : $recursive_key . '[' . $key . ']');
+            }
+        }
+
+        return $return_form;
+    }
+
+    private function constructOriginExternalForm($action, $method)
+    {
+        // HTML form template
+        $form_template = '
+        <html lang="">
+            <body>
+                <form method="%METHOD" action="%ACTION">
+                    %FORM_ELEMENTS
+                </form>
+                    %SCRIPT
+            </body>
+        </html>';
+
+        // Cookiebot chunk
+        $bot_chunk = class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '';
+
+        // HTML form clearing script
+        $script = "<script " . $bot_chunk . ">
+                if(document.forms[0].submit !== 'undefined'){
+                    let objects = document.forms[0].getElementsByName('submit');
+                    if(objects.length > 0) {
+                        document.forms[0].removeChild(objects[0]);
+                    }
+                }
+                document.forms[0].submit();
+                </script>
+        ";
+
+        $form_template = str_replace('%METHOD', $method, $form_template);
+        $form_template = str_replace('%ACTION', $action, $form_template);
+        $form_template = str_replace('%SCRIPT', $script, $form_template);
+        $form_template = str_replace('%FORM_ELEMENTS', $this->constructFormInnerElements($_POST, ''), $form_template);
+
+        return $form_template;
     }
 }
