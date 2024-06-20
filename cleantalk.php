@@ -45,7 +45,7 @@ global $apbct, $wpdb, $pagenow;
 
 $cleantalk_executed = false;
 
-// Getting version form main file (look above)
+// Getting version form main file(look above)
 $plugin_info           = get_file_data(__FILE__, array('Version' => 'Version', 'Name' => 'Plugin Name',));
 $plugin_version__agent = $plugin_info['Version'];
 // Converts xxx.xxx.xx-dev to xxx.xxx.2xx
