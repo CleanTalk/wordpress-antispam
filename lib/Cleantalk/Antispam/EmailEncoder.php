@@ -83,6 +83,24 @@ class EmailEncoder
 
         $this->is_amp_request = apbct_is_amp_request();
 
+        if ($this->is_amp_request && !$apbct->settings['data__email_decoder_buffer']) {
+            add_action('amp_post_template_head', function () {
+                $apbct_amp_script = APBCT_DIR_PATH . 'js/src/cleantalk-email-encoder.js';
+                $apbct_amp_script_content = file_get_contents($apbct_amp_script);
+                echo "<script id='apbct_email_decode' type='text/plain' target='amp-script'>{$apbct_amp_script_content}</script>";
+            });
+            add_action('amp_post_template_head', function () use ($apbct) {
+                $is_email_encoder_enabled = $apbct->settings['data__email_decoder'];
+                echo "<amp-state id='apbctAmpState'>
+                <script type='application/json'>
+                    {
+                        'emailEncoderState': '{$is_email_encoder_enabled}',
+                    }
+              </script>
+            </amp-state>";
+            });
+        }
+
         if ( ! $apbct->settings['data__email_decoder'] ) {
             return;
         }

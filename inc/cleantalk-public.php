@@ -1189,7 +1189,7 @@ function ct_enqueue_scripts_public($_hook)
         );
 
         add_action('wp_head', function () use ($apbct) {
-            $is_email_encoder_enabled = $apbct['settings']['misc__email_encoder'];
+            $is_email_encoder_enabled = $apbct->settings['data__email_decoder'];
             echo "<amp-state id='apbctAmpState'>
                 <script type='application/json'>
                     {
