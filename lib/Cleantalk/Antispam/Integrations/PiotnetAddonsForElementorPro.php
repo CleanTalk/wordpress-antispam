@@ -9,6 +9,7 @@ class PiotnetAddonsForElementorPro extends IntegrationBase
 {
     public function getDataForChecking($argument)
     {
+        Cookie::$force_alt_cookies_global = true;
         if ( Post::get('fields') ) {
             $fields = Post::get('fields');
             $fields = stripslashes($fields);

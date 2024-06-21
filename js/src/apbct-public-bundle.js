@@ -1119,6 +1119,7 @@ function ctDetectForcedAltCookiesForms() {
     let userRegistrationProForm = document.querySelectorAll('div[id^="user-registration-form"]').length > 0;
     let etPbDiviSubscriptionForm = document.querySelectorAll('div[class^="et_pb_newsletter_form"]').length > 0;
     let fluentBookingApp = document.querySelectorAll('div[class^="fluent_booking_app"]').length > 0;
+    let pafeFormsFormElementor = document.querySelectorAll('div[class*="pafe-form"]').length > 0;
     ctPublic.force_alt_cookies = smartFormsSign ||
         ninjaFormsSign ||
         jetpackCommentsForm ||
@@ -1126,7 +1127,8 @@ function ctDetectForcedAltCookiesForms() {
         cwginstockForm ||
         userRegistrationProForm ||
         etPbDiviSubscriptionForm ||
-        fluentBookingApp;
+        fluentBookingApp ||
+        pafeFormsFormElementor;
 
     setTimeout(function() {
         if (!ctPublic.force_alt_cookies) {
@@ -2134,14 +2136,14 @@ function apbct_ready() {
     ctDetectForcedAltCookiesForms();
 
     // send bot detector event token to alt cookies on problem forms
+    let tokenForForceAlt = apbctLocalStorage.get('bot_detector_event_token') ?
+        apbctLocalStorage.get('bot_detector_event_token') :
+        apbctLocalStorage.get('ct_bot_detector_event_token');
     if (typeof ctPublic.force_alt_cookies !== 'undefined' &&
         ctPublic.force_alt_cookies &&
-        apbctLocalStorage.get('bot_detector_event_token') &&
-        // do bot set if (ct_bot_detector_event_token) already set,
-        // and it is equal to newly added from moderate (bot_detector_event_token)
-        apbctLocalStorage.get('ct_bot_detector_event_token') !== apbctLocalStorage.get('bot_detector_event_token')
+        tokenForForceAlt
     ) {
-        initCookies.push(['ct_bot_detector_event_token', apbctLocalStorage.get('bot_detector_event_token')]);
+        initCookies.push(['ct_bot_detector_event_token', tokenForForceAlt]);
     }
 
     if (!ctPublic.force_alt_cookies && ctPublic.data__cookies_type == 'alternative') {
