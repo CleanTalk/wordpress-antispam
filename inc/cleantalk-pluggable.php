@@ -1130,7 +1130,6 @@ function apbct_is_skip_request($ajax = false)
         if ( Post::get('action') === 'pafe_ajax_form_builder_preview_submission' ) {
             return 'PAFE';
         }
-
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
