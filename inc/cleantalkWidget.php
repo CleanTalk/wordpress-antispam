@@ -76,8 +76,16 @@ class CleantalkWidget extends WP_Widget // phpcs:ignore PSR1.Classes.ClassDeclar
         }
 
         // This is where you run the code and display the output
+        $get_params = ! empty($instance['refid'])
+            ? array('pid' => $instance['refid'])
+            : array();
+        $link = \Cleantalk\ApbctWP\LinkConstructor::buildCleanTalkLink(
+            'public_widget_referal_link',
+            '',
+            $get_params
+        );
         echo '<div style="width:auto;">'
-             . '<a href="https://cleantalk.org' . (! empty($instance['refid']) ? '?pid=' . $instance['refid'] : '') . '" target="_blank" title="' . __(
+             . '<a href="' . $link . '" target="_blank" title="' . __(
                  'CleanTalk\'s main page',
                  'cleantalk-spam-protect'
              ) . '" style="' . $a_style . '">'

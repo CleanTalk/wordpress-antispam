@@ -130,6 +130,7 @@ class AdminNotices
     public function notice_get_key_error() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         if ( $this->apbct->notice_show && ! empty($this->apbct->errors['key_get']) && ! $this->apbct->white_label ) {
+            //HANDLE LINK
             $register_link =
                 'https://cleantalk.org/register?platform=wordpress&email=' . urlencode(ct_get_admin_email()) .
                 '&website=' . urlencode(get_option('home'));
@@ -186,7 +187,7 @@ class AdminNotices
 
             //prepare renewal link
             $link_text = "<b>" . __('next year', 'cleantalk-spam-protect') . "</b>";
-            $renew_link  = static::generateRenewalLinkHTML($this->user_token, $link_text, 1);
+            $renew_link  = LinkConstructor::buildRenewalLinkATag($this->user_token, $link_text, 1, 'renew_notice_trial');
 
             //construct main content
             $content            = sprintf(
@@ -232,7 +233,7 @@ class AdminNotices
 
             // Prepare the string-like renewal link for main content.
             $link_text = "<b>" . __('next year', 'cleantalk-spam-protect') . "</b>";
-            $renew_link = static::generateRenewalLinkHTML($this->user_token, $link_text, 1);
+            $renew_link = LinkConstructor::buildRenewalLinkATag($this->user_token, $link_text, 1, 'renew_notice_trial');
 
             $content            = sprintf(
                 __("Please renew your Anti-Spam license for %s.", 'cleantalk-spam-protect'),
@@ -246,7 +247,7 @@ class AdminNotices
             // Prepare the renewal button - will be added to the bottom of notice
             $button_text = __('RENEW ANTI-SPAM', 'cleantalk-spam-protect');
             $button_html = '<input type="button" class="button button-primary" style="margin-bottom:20px" value="' . $button_text . '"  />';
-            $button_html = static::generateRenewalLinkHTML($this->user_token, $button_html, 1);
+            $button_html = LinkConstructor::buildRenewalLinkATag($this->user_token, $button_html, 1, 'renew_notice_trial');
 
             $additional_content = static::generateUpdatingStatusContent($apbct->data['wl_brandname_short']);
             // add the button to the additional content - todo:: bad pactice, we should have a special place for buttons
@@ -461,28 +462,5 @@ class AdminNotices
             esc_html__('Account status updates every 24 hours or click Settings -> ' . $wl_brandname . ' -> Synchronize with Cloud.', 'cleantalk-spam-protect') .
             '</h4>';
         return $additional_content;
-    }
-
-    public static function generateRenewalLinkHTML($user_token, $link_inner_html, $product_id, $utm_marks = array())
-    {
-        $domain = 'https://p.cleantalk.org';
-        //prepare utm marks
-        $utm_marks = array(
-            'utm_source' => !empty($utm_marks['utm_source']) ? $utm_marks['utm_source'] : 'wp-backend',
-            'utm_medium' => !empty($utm_marks['utm_medium']) ? $utm_marks['utm_medium'] : 'cpc',
-            'utm_campaign' => !empty($utm_marks['utm_campaign']) ? $utm_marks['utm_campaign'] : 'WP%%20backend%%20trial_antispam',
-        );
-        //prepare query
-        $query = http_build_query(array(
-                'product_id' => $product_id,
-                'featured' => '',
-                'user_token' => Escape::escHtml($user_token),
-                'utm_source' => $utm_marks['utm_source'],
-                'utm_medium' => $utm_marks['utm_medium'],
-                'utm_campaign' => $utm_marks['utm_campaign'],
-        ));
-        //prepare link
-        $renewal_link  = '<a href="' . $domain . '/?' . $query . '" target="_blank">' . $link_inner_html . '</a>';
-        return $renewal_link;
     }
 }
