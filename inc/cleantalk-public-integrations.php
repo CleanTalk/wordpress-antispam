@@ -2356,6 +2356,16 @@ function apbct_from__WPForms__gatherData($entry, $form)
             continue;
         }
 
+        # search textarea
+        if ( $field_type === 'textarea' ) {
+            if ( is_array($entry_field_value) ) {
+                $handled_result["wpforms[fields][$field_id]"][] = implode(' ', array_slice($entry_field_value, 0, 3));
+            } else {
+                $handled_result["wpforms[fields][$field_id]"] = $entry_field_value;
+            }
+            continue;
+        }
+
         # Add field label as key for result array
         # add unique key if key exist
         if ( $field_label ) {

@@ -27,8 +27,14 @@ function apbct_init()
 
     // Localize data
     if ( ! apbct_exclusions_check__url() ) {
-        add_action('wp_head', array(LocalizeHandler::class, 'handle'), 1);
-        add_action('login_head', array(LocalizeHandler::class, 'handle'), 1);
+        if (defined('CLEANTALK_PLACE_PUBLIC_JS_SCRIPTS_IN_FOOTER') && CLEANTALK_PLACE_PUBLIC_JS_SCRIPTS_IN_FOOTER) {
+            add_action('wp_footer', array(LocalizeHandler::class, 'handle'), 1);
+            add_action('login_footer', array(LocalizeHandler::class, 'handle'), 1);
+        } else {
+            add_action('wp_head', array(LocalizeHandler::class, 'handle'), 1);
+            add_action('login_head', array(LocalizeHandler::class, 'handle'), 1);
+        }
+
         // The exclusion of scripts from wp-rocket handler
         add_filter('rocket_delay_js_exclusions', 'apbct_rocket_delay_js_exclusions');
     }
@@ -121,11 +127,6 @@ function apbct_init()
     //hook for Anonymous Post
     if ( $apbct->settings['data__general_postdata_test'] == 1 && empty(Post::get('ct_checkjs_cf7')) ) {
         add_action('init', 'ct_contact_form_validate_postdata', 1000);
-    }
-
-    if (Post::get('learn-press-register-nonce') && apbct_is_plugin_active('learnpress/learnpress.php')) {
-        unset($_POST['ct_checkjs_register_form']);
-        ct_contact_form_validate();
     }
 
     if ( $apbct->settings['forms__general_contact_forms_test'] == 1 && empty(Post::get('ct_checkjs_cf7')) && ! apbct_is_direct_trackback() ) {
@@ -1165,48 +1166,6 @@ function ct_send_error_notice($comment = '')
 }
 
 /**
- * Prints form for "protect externals
- *
- * @param $arr
- * @param $k
- */
-function ct_print_form($arr, $k)
-{
-    // Fix for pages04.net forms
-    if ( isset($arr['formSourceName']) ) {
-        $tmp = array();
-        foreach ( $arr as $key => $val ) {
-            $tmp_key       = str_replace('_', '+', $key);
-            $tmp[$tmp_key] = $val;
-        }
-        $arr = $tmp;
-        unset($tmp, $key, $tmp_key, $val);
-    }
-
-    // Fix for zoho forms with space in input attribute name
-    if ( isset($arr['actionType'], $arr['returnURL']) ) {
-        $tmp = array();
-        foreach ( $arr as $key => $val ) {
-            $tmp_key       = str_replace('_', ' ', $key);
-            $tmp[$tmp_key] = $val;
-        }
-        $arr = $tmp;
-        unset($tmp, $key, $tmp_key, $val);
-    }
-
-    foreach ( $arr as $key => $value ) {
-        if ( ! is_array($value) ) {
-            print '<textarea
-				name="' . esc_attr($k === '' ? $key : $k . '[' . $key . ']') . '"
-				style="display:none;">' . esc_textarea(htmlspecialchars($value))
-                  . '</textarea>';
-        } else {
-            ct_print_form($value, $k === '' ? $key : $k . '[' . $key . ']');
-        }
-    }
-}
-
-/**
  * Attaches public scripts and styles.
  * @psalm-suppress UnusedVariable
  */
@@ -1334,12 +1293,15 @@ function apbct_enqueue_and_localize_public_scripts()
 {
     global $apbct;
 
+    $in_footer = defined('CLEANTALK_PLACE_PUBLIC_JS_SCRIPTS_IN_FOOTER') && CLEANTALK_PLACE_PUBLIC_JS_SCRIPTS_IN_FOOTER;
+
     // Different JS params
     wp_enqueue_script(
         'ct_public_functions',
         APBCT_URL_PATH . '/js/apbct-public-bundle.min.js',
         array('jquery'),
-        APBCT_VERSION
+        APBCT_VERSION,
+        $in_footer
     );
 
     // Bot detector
@@ -1348,7 +1310,8 @@ function apbct_enqueue_and_localize_public_scripts()
             'ct_bot_detector',
             'https://moderate.cleantalk.org/ct-bot-detector-wrapper.js',
             [],
-            APBCT_VERSION
+            APBCT_VERSION,
+            $in_footer
         );
     }
 

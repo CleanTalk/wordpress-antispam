@@ -4,7 +4,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 6.33.2
+  Version: 6.34.1-dev
   Author: СleanTalk - Anti-Spam Protection <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -618,6 +618,16 @@ $apbct_active_integrations = array(
         'setting' => 'forms__contact_forms_test',
         'ajax'    => true,
         'ajax_and_post' => true
+    ),
+    'LearnPress' => array(
+        'hook'    => 'lp/before_create_new_customer',
+        'setting' => 'forms__registrations_test',
+        'ajax'    => false
+    ),
+    'PaidMembershipPro' => array(
+        'hook'    => 'pmpro_is_spammer',
+        'setting' => 'forms__registrations_test',
+        'ajax'    => false
     ),
 );
 add_action('plugins_loaded', function () use ($apbct_active_integrations, $apbct) {
@@ -2688,21 +2698,30 @@ function apbct_store__urls()
         $site_url    = parse_url(get_option('home'), PHP_URL_HOST);
 
         // Get already stored URLs
-        $urls = Cookie::get('apbct_urls');
+        $urls = RequestParameters::getCommonStorage('apbct_urls');
         $urls = $urls === '' ? [] : json_decode($urls, true);
 
         $urls[$current_url][] = time();
 
-        // Rotating. Saving only latest 10
-        $urls[$current_url] = count($urls[$current_url]) > 5 ? array_slice(
-            $urls[$current_url],
-            1,
-            5
-        ) : $urls[$current_url];
-        $urls               = count($urls) > 5 ? array_slice($urls, 1, 5) : $urls;
+        // Saving only latest 5 visit for each of 5 last urls
+        $urls_count_to_keep = 5;
+        $visits_to_keep = 5;
+
+        //Rotating.
+        $urls[$current_url] = count($urls[$current_url]) > $visits_to_keep
+            ? array_slice(
+                $urls[$current_url],
+                1,
+                $visits_to_keep
+            )
+            : $urls[$current_url];
+        $urls               = count($urls) > $urls_count_to_keep
+            ? array_slice($urls, 1, $urls_count_to_keep)
+            : $urls;
 
         // Saving
-        Cookie::set('apbct_urls', json_encode($urls, JSON_UNESCAPED_SLASHES), time() + 86400 * 3, '/', $site_url, null, true, 'Lax', true);
+        RequestParameters::setCommonStorage('apbct_urls', json_encode($urls, JSON_UNESCAPED_SLASHES));
+
 
         // REFERER
         // Get current referer

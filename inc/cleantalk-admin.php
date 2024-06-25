@@ -5,6 +5,7 @@ use Cleantalk\Antispam\CleantalkRequest;
 use Cleantalk\ApbctWP\AdminNotices;
 use Cleantalk\ApbctWP\CleantalkSettingsTemplates;
 use Cleantalk\ApbctWP\Escape;
+use Cleantalk\ApbctWP\State;
 use Cleantalk\ApbctWP\Variables\Get;
 use Cleantalk\ApbctWP\Variables\Post;
 use Cleantalk\ApbctWP\Variables\Server;
@@ -146,7 +147,7 @@ function ct_dashboard_statistics_widget_output($_post, $_callback_args)
         <input type='hidden' name='ct_brief_refresh' value='1'>
     </form>
     <h4 class='ct_widget_block_header' style='margin-left: 12px;'><?php
-        _e('7 days Anti-Spam stats', 'cleantalk-spam-protect'); ?></h4>
+        _e('7 days Anti-Spam and SpamFireWall stats', 'cleantalk-spam-protect'); ?></h4>
     <div class='ct_widget_block ct_widget_chart_wrapper'>
         <canvas id='ct_widget_chart' ></canvas>
     </div>
@@ -248,7 +249,7 @@ function ct_dashboard_statistics_widget_output($_post, $_callback_args)
                  . sprintf(
                  /* translators: %s: Number of spam messages */
                      __(
-                         '%s%s%s has blocked %s spam for all time. The statistics are automatically updated every 24 hours.',
+                         '%s%s%s has blocked %s spam for past year. The statistics are automatically updated every 24 hours.',
                          'cleantalk-spam-protect'
                      ),
                      ! $apbct->data["wl_mode_enabled"] ? '<a href="https://cleantalk.org/my/?user_token=' . $apbct->user_token . '&utm_source=wp-backend&utm_medium=dashboard_widget&cp_mode=antispam" target="_blank">' : '',
@@ -654,10 +655,10 @@ function apbct_admin__enqueue_scripts($hook)
 /**
  * Premium badge layout
  *
- * @param bool $print
- * @param string $out
+ * @param bool $print Do we need to print the badge or return it as a string
+ * @param string $out The badge layout
  *
- * @return null|string
+ * @return null|string NUll if $print is true, string if $print is false
  */
 function apbct_admin__badge__get_premium($print = true, $out = '')
 {
@@ -666,7 +667,7 @@ function apbct_admin__badge__get_premium($print = true, $out = '')
     if ( $apbct->license_trial == 1 && $apbct->user_token ) {
         $make_it_right = $print ? __('Make it right!', 'cleantalk-spam-protect') . ' ' : '';
         $link_text = __('Get premium', 'cleantalk-spam-protect');
-        $renew_link = AdminNotices::generateRenewalLinkHTML($apbct->user_token, $link_text);
+        $renew_link = AdminNotices::generateRenewalLinkHTML($apbct->user_token, $link_text, 1);
         $out .= '<b style="display: inline-block; margin-top: 10px;">' . $make_it_right . $renew_link . '</b>';
     }
 
@@ -692,78 +693,147 @@ function apbct_admin__badge__get_premium($print = true, $out = '')
 }
 
 /**
- * Admin bar logic
+ * Adds structure to the admin bar.
  *
- * @param $wp_admin_bar
+ * This function adds a common parent node to the admin bar for both APBCT and SPBCT products.
+ * It also adds individual nodes for APBCT and SPBCT under the common parent node.
+ *
+ * @param WP_Admin_Bar $wp_admin_bar The admin bar object.
+ * @global object $spbc The SPBCT object.
+ * @global object $apbct The APBCT object.
  */
 function apbct_admin__admin_bar__add_structure($wp_admin_bar)
 {
     global $spbc, $apbct;
 
+    //init preparing total counters for both products APBCT/SPBCT
     do_action('cleantalk_admin_bar__prepare_counters');
 
-    // Adding parent node
+    // Adding common parent node
+    /**
+     * Adding common parent node for both products APBCT/SPBCT
+     */
     $wp_admin_bar->add_node(array(
-        'id'    => 'cleantalk_admin_bar__parent_node',
+        'id' => 'cleantalk_admin_bar__parent_node',
         'title' =>
             apply_filters('cleantalk_admin_bar__add_icon_to_parent_node', '') . // @deprecated
             apply_filters('cleantalk_admin_bar__parent_node__before', '') .
             '<span class="cleantalk_admin_bar__title">' . $apbct->data["wl_brandname_short"] . '</span>' .
             apply_filters('cleantalk_admin_bar__parent_node__after', ''),
-        'meta'  => array('class' => 'cleantalk-admin_bar--list_wrapper'),
+        'meta' => array('class' => 'cleantalk-admin_bar--list_wrapper'),
     ));
 
-    // For Security instance - link to Anti-Spam
-    if ($apbct->notice_trial && ( is_main_site() && $apbct->network_settings['multisite__work_mode'] == 2 )) {
-        $link_text = __('Renew Anti-Spam', 'cleantalk-spam-protect');
-        $renew_link = AdminNotices::generateRenewalLinkHTML($apbct->user_token, $link_text);
-        $title = '<span>' . $renew_link . '</span>';
-    } else {
-        $title = '<span><a>' . __('Anti-Spam', 'cleantalk-spam-protect') . '</a></span>';
+    /**
+     * Adding APBCT bar node
+     */
+
+    $apbct_title_node = apbct__admin_bar__get_title_for_apbct($apbct);
+
+    if ( $apbct_title_node ) {
+        $wp_admin_bar->add_node($apbct_title_node);
     }
 
-    $attention_mark = $apbct->notice_show ? '<i class="apbct-icon-attention-alt"></i>' : '';
-    $title          = $title . $attention_mark;
+    /**
+     * Adding SPBCT bar node
+     */
 
-    $wp_admin_bar->add_node(array(
+    $spbc_title_node = apbct__admin_bar__get_title_for_spbc($spbc, $apbct->user_token, $apbct->white_label);
+
+    if ( $spbc_title_node ) {
+        $wp_admin_bar->add_node($spbc_title_node);
+    }
+}
+
+/**
+ * Gets the title for the APBCT admin bar node.
+ *
+ * This function constructs the title for the APBCT admin bar node based on various conditions.
+ * The title includes a renewal link if the notice is set to show and either the trial notice or the renew notice is set.
+ * An attention mark is added to the title if the notice is set to show.
+ *
+ * @param object $apbct The APBCT object.
+ * @return array The node data for the APBCT admin bar node.
+ */
+function apbct__admin_bar__get_title_for_apbct($apbct)
+{
+
+    $node_data = array(
         'parent' => 'cleantalk_admin_bar__parent_node',
-        'id'     => 'apbct__parent_node',
-        'title'  => '<div class="cleantalk-admin_bar__parent">'
-                    . $title
-                    . '</div>',
-    ));
+        'id' => 'apbct__parent_node',
+        'title' => '',
+    );
 
-    // For Anti-Spam instance - link to Security
-    // Install link
-    if ( ! $spbc ) {
-        $spbc_title = '<a>' . __('Security', 'security-malware-firewall') . '</a>';
-    } elseif ( $spbc->admin_bar_enabled ) {
-        //todo refactor this to AdminNotices::generateRenewalLinkHTML()
-        $utm_marks = '&utm_source=wp-backend&utm_medium=cpc&utm_campaign=WP%%20backend%%20trial_antispam';
-        $spbc_title = $spbc->trial == 1
-            ? '<span><a href="https://p.cleantalk.org/?account=undefined&currency=USD&domains=&extra=true&featured=&fua=true&period=Year&period_interval=3&product_id=1&renew=true&user_token='
-            . Escape::escHtml($apbct->user_token)
-            . $utm_marks
-            . ' target="_blank">' . __(
-                'Renew Security',
-                'security-malware-firewall'
-            ) . '</a></span>'
-            : '<a>' . __('Security', 'security-malware-firewall') . '</a>';
+    $title = '<span><a>' . __('Anti-Spam', 'cleantalk-spam-protect') . '</a></span>';
 
-        $spbc_attention_mark = $spbc->notice_show ? '<i class="spbc-icon-attention-alt ctlk---red"></i>' : '';
-        $spbc_title         .= $spbc_attention_mark;
+    if (
+        $apbct->notice_show && // needs to show notice
+        (
+            $apbct->notice_trial || // NPT trial flag
+            $apbct->notice_renew // needs to renew
+        ) &&
+        (
+            is_main_site() ||
+            $apbct->network_settings['multisite__work_mode'] == 2
+        ) // is single site or WPMS network mode 2
+    ) {
+        $link_text = __('Renew Anti-Spam', 'cleantalk-spam-protect');
+        $renew_link = AdminNotices::generateRenewalLinkHTML($apbct->user_token, $link_text, 1);
+        $title = '<span>' . $renew_link . '</span>';
     }
 
-    if ( isset($spbc_title) &&
-         (is_main_site() || !$apbct->white_label) ) {
-        $wp_admin_bar->add_node(array(
-            'parent' => 'cleantalk_admin_bar__parent_node',
-            'id'     => 'spbc__parent_node',
-            'title'  => '<div class="cleantalk-admin_bar__parent">'
-                        . $spbc_title
-                        . '</div>'
-        ));
+    //show the attention mark in any case if the notice show gained
+    $attention_mark = $apbct->notice_show ? '<i class="apbct-icon-attention-alt"></i>' : '';
+
+    //construct the final title
+    $node_data['title'] = '<div class="cleantalk-admin_bar__parent">' . $title . $attention_mark . '</div>';
+
+    return $node_data;
+}
+
+/**
+ * Gets the title for the SPBCT admin bar node.
+ *
+ * This function constructs the title for the SPBCT admin bar node based on various conditions.
+ * The title includes a renewal link if the SPBCT object exists, a user token is provided, and the SPBCT trial is set.
+ * An attention mark is added to the title if the SPBCT notice is set to show.
+ *
+ * @param object|null $spbc The SPBCT object. If not provided, defaults to null.
+ * @param string $user_token The user token.
+ * @param bool $is_apbct_wl_mode Indicates if the APBCT white label mode is enabled.
+ * @return array|false The node data for the SPBCT admin bar node, or false if the SPBCT admin bar is not enabled or the APBCT white label mode is enabled.
+ */
+function apbct__admin_bar__get_title_for_spbc($spbc, $user_token, $is_apbct_wl_mode)
+{
+    $node_data = array(
+        'parent' => 'cleantalk_admin_bar__parent_node',
+        'id' => 'spbc__parent_node',
+        'title' => '',
+    );
+
+    if (
+        !$spbc ||
+        !$user_token ||
+        $spbc->trial !== 1
+    ) {
+        $node_data['title'] = '<a>' . __('Security', 'security-malware-firewall') . '</a>';
+        return $node_data;
     }
+
+    if ( !$spbc->admin_bar_enabled || $is_apbct_wl_mode ) {
+        return false;
+    }
+
+    $link_text = __('Renew Security', 'cleantalk-spam-protect');
+    $renew_link = AdminNotices::generateRenewalLinkHTML($user_token, $link_text, 4);
+    $spbc_title = '<span>' . $renew_link . '</span>';
+
+    //show the attention mark in any case if the notice show gained
+    $attention_mark = $spbc->notice_show ? '<i class="apbct-icon-attention-alt"></i>' : '';
+
+    //construct the final title
+    $node_data['title'] = '<div class="cleantalk-admin_bar__parent">' . $spbc_title . $attention_mark . '</div>';
+
+    return $node_data;
 }
 
 /**

@@ -543,6 +543,9 @@ class State extends \Cleantalk\Common\State
 
             // Setting default options
             if ($wpdb_option_name === 'cleantalk_settings') {
+                // A/B testing for the Encode contact data setting: randomly on or off
+                // @ToDo remove this after testing
+                $this->default_settings['data__email_decoder'] = rand(0, 1);
                 $option = is_array($option) ? array_merge($this->default_settings, $option) : $this->default_settings;
             }
 
