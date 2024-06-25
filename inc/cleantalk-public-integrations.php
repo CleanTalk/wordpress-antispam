@@ -3420,9 +3420,19 @@ add_filter('wsf_submit_field_validate', function ($error_validation_action_field
      * Filter for POST
      */
     $input_array = apply_filters('apbct__filter_post', $_POST);
-    $data = ct_gfa($input_array);
 
-    $sender_email    = ($data['email'] ?  : '');
+    $long_email = '';
+    foreach ($input_array as $value) {
+        if (preg_match("/^\S+@\S+\.\S+$/", $value) &&
+            strlen($value) > strlen($long_email)
+        ) {
+            $long_email = $value;
+        }
+    }
+
+    $data = ct_gfa($input_array, $long_email);
+
+    $sender_email = ($data['email'] ?  : '');
     $sender_nickname = ($data['nickname'] ?  : '');
     $message         = ($data['message'] ?  : array());
 
