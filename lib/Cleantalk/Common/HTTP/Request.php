@@ -524,6 +524,9 @@ class Request
                         );
                     }
                     break;
+                case 'api3.0':
+                    // api3.0 methods requires 'Content-Type: application/json' http header
+                    $this->options[CURLOPT_HTTPHEADER][] = 'Content-Type: application/json';
             }
         }
     }

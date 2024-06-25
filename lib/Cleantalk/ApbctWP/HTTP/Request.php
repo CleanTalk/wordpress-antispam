@@ -206,6 +206,7 @@ class Request extends \Cleantalk\Common\HTTP\Request
                             );
                         }
                         break;
+                        //for API 3.0 preset: headers already provided in parent call, so they will be used in WP HTTP API call
                 }
             }
         }
