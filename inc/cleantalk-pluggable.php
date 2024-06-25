@@ -1069,8 +1069,8 @@ function apbct_is_skip_request($ajax = false)
         //WP GeoDirectory service action
         if (
             apbct_is_plugin_active('geodirectory/geodirectory.php') &&
-            Post::get('action') === 'geodir_auto_save_post' ||
-            Post::get('action') === 'geodir_save_post'
+            ( Post::get('action') === 'geodir_auto_save_post' ||
+            Post::get('action') === 'geodir_save_post' )
         ) {
             return 'WP GeoDirectory service action';
         }
@@ -1125,6 +1125,14 @@ function apbct_is_skip_request($ajax = false)
             Post::get('action') === 'porto_account_login_popup_login'
         ) {
             return 'Proto theme login popup form';
+        }
+
+        // Klaviyo - skip the client's plugin for issuing coupons
+        if (
+            apbct_is_plugin_active('klaviyo/klaviyo.php') &&
+            Post::get('action') === 'klc_generate_coupon'
+        ) {
+            return 'WP GeoDirectory service action';
         }
     } else {
         /*****************************************/
