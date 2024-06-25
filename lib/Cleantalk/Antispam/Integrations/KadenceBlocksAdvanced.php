@@ -15,9 +15,9 @@ class KadenceBlocksAdvanced extends IntegrationBase
             'redirect' => false,
             'html' => '<div class="kadence-blocks-form-message kadence-blocks-form-error">' . $message . '</div>',
             'headers_sent' => false,
-            'success' => true,
+            'success' => false,
             'show_message' => true
         ];
-        wp_send_json($data);
+        wp_send_json_error($data);
     }
 }
