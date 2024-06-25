@@ -1791,6 +1791,15 @@ function apbct_form__contactForm7__testSpam($spam, $_submission = null)
 
         add_filter('wpcf7_display_message', 'apbct_form__contactForm7__showResponse', 10, 2);
 
+        add_filter('wpcf7_skip_mail', function () {
+            add_filter("wpcf7_feedback_response", function ($response) {
+                global $ct_cf7_comment;
+                $response["status"] = "mail_sent_ng";
+                $response["message"] = $ct_cf7_comment;
+                return $response;
+            }, 10);
+        }, 10);
+
         // Flamingo: save or not the spam entry
         if ( ! $apbct->settings['forms__flamingo_save_spam'] ) {
             add_filter('wpcf7_flamingo_submit_if', function () {
