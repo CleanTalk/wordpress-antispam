@@ -14,6 +14,7 @@
 use Cleantalk\ApbctWP\Activator;
 use Cleantalk\ApbctWP\AdminNotices;
 use Cleantalk\ApbctWP\API;
+use Cleantalk\ApbctWP\CleantalkRealPerson;
 use Cleantalk\ApbctWP\CleantalkUpgrader;
 use Cleantalk\ApbctWP\CleantalkUpgraderSkin;
 use Cleantalk\ApbctWP\CleantalkUpgraderSkinDeprecated;
@@ -174,7 +175,7 @@ if (
 }
 
 if ( $apbct->settings['comments__the_real_person'] ) {
-    require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-real-person.php');
+    new CleantalkRealPerson();
 }
 
 add_action('rest_api_init', 'apbct_register_my_rest_routes');
