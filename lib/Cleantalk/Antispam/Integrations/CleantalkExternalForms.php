@@ -133,13 +133,13 @@ class CleantalkExternalForms extends IntegrationBase
                     }
                 }
 
-                if(document.forms[0].submit !== 'undefined' && availabilitySubmit){
-                    let objects = document.forms[0].getElementsByName('submit');
+                if(form.submit !== 'undefined' && availabilitySubmit){
+                    let objects = form.getElementsByName('submit');
                     if(objects.length > 0) {
-                        document.forms[0].removeChild(objects[0]);
+                        form.removeChild(objects[0]);
                     }
                 }
-                document.forms[0].submit();
+                form.submit();
                 </script>
         ";
 
