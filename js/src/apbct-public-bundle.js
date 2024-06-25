@@ -3929,6 +3929,7 @@ function ctCheckAjax(elem) {
 function isIntegratedForm(formObj) {
     const formAction = typeof(formObj.action) == 'string' ? formObj.action : '';
     const formId = formObj.getAttribute('id') !== null ? formObj.getAttribute('id') : '';
+    const formClass = formObj.getAttribute('class') !== null ? formObj.getAttribute('class') : '';
 
     if (
         formAction.indexOf('activehosted.com') !== -1 || // ActiveCampaign form
@@ -3953,8 +3954,9 @@ function isIntegratedForm(formObj) {
         formId.indexOf('delivra-external-form') !== -1 ||
         ( formObj.classList !== undefined &&
             !formObj.classList.contains('woocommerce-checkout') &&
-            formObj.hasAttribute('data-hs-cf-bound')
-        ) // Hubspot integration in Elementor form// Hubspot integration in Elementor form
+            formObj.hasAttribute('data-hs-cf-bound') // Hubspot integration in Elementor form// Hubspot integration in Elementor form
+        ) ||
+        formClass.indexOf('klaviyo-form') !== -1
     ) {
         return true;
     }
