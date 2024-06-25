@@ -170,8 +170,6 @@ class AdminNotices
      */
     public function notice_trial() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
-        global $apbct;
-
         if (
                 $this->apbct->notice_show &&
                 $this->apbct->notice_trial == 1 && //the flag!
@@ -200,7 +198,7 @@ class AdminNotices
              * Generate additional content.
              */
 
-            $additional_content = static::generateUpdatingStatusContent($apbct->data['wl_brandname']);
+            $additional_content = static::generateUpdatingStatusContent($this->apbct->plugin_name);
 
             /*
              * Process layout
@@ -249,8 +247,8 @@ class AdminNotices
             $button_html = '<input type="button" class="button button-primary" style="margin-bottom:20px" value="' . $button_text . '"  />';
             $button_html = LinkConstructor::buildRenewalLinkATag($this->user_token, $button_html, 1, 'renew_notice_trial');
 
-            $additional_content = static::generateUpdatingStatusContent($apbct->data['wl_brandname_short']);
-            // add the button to the additional content - todo:: bad pactice, we should have a special place for buttons
+            $additional_content = static::generateUpdatingStatusContent($this->apbct->plugin_name);
+            // add the button to the additional content - todo:: AG - bad practice to place button directly concatenating, we should have a special tag for buttons
             $additional_content .= $button_html;
 
             /*
