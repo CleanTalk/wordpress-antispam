@@ -17,7 +17,7 @@ class TestCleanTalkLinks extends \PHPUnit\Framework\TestCase
         );
         $this->assertIsString($link);
         $this->assertEquals(
-            'https://cleantalk.org/?pid=9000&utm_id=&utm_campaign=&utm_term=&utm_source=public&utm_medium=widget&utm_content=referal_link',
+            'https://cleantalk.org/?pid=9000&utm_id=&utm_term=&utm_source=public&utm_medium=widget&utm_content=referal_link&utm_campaign=apbct_links',
             $link);
     }
 
@@ -28,7 +28,7 @@ class TestCleanTalkLinks extends \PHPUnit\Framework\TestCase
         );
         $this->assertIsString($link);
         $this->assertEquals(
-            'https://cleantalk.org/?utm_id=&utm_campaign=&utm_term=&utm_source=admin_panel&utm_medium=apbct_options&utm_content=settings_top_info',
+            'https://cleantalk.org/?utm_id=&utm_term=&utm_source=admin_panel&utm_medium=apbct_options&utm_content=settings_top_info&utm_campaign=apbct_links',
             $link);
     }
 
@@ -43,7 +43,7 @@ class TestCleanTalkLinks extends \PHPUnit\Framework\TestCase
         );
         $this->assertIsString($link);
         $this->assertEquals(
-            'https://cleantalk.org/my/show_requests?user_token=9000&utm_id=&utm_campaign=&utm_term=&utm_source=admin_panel&utm_medium=dashboard_widget&utm_content=view_all',
+            'https://cleantalk.org/my/show_requests?user_token=9000&utm_id=&utm_term=&utm_source=admin_panel&utm_medium=dashboard_widget&utm_content=view_all&utm_campaign=apbct_links',
             $link);
     }
 

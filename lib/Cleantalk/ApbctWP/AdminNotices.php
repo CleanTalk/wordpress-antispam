@@ -231,7 +231,7 @@ class AdminNotices
 
             // Prepare the string-like renewal link for main content.
             $link_text = "<b>" . __('next year', 'cleantalk-spam-protect') . "</b>";
-            $renew_link = LinkConstructor::buildRenewalLinkATag($this->user_token, $link_text, 1, 'renew_notice_trial');
+            $renew_link = LinkConstructor::buildRenewalLinkATag($this->user_token, $link_text, 1, 'renew_notice_renew');
 
             $content            = sprintf(
                 __("Please renew your Anti-Spam license for %s.", 'cleantalk-spam-protect'),
@@ -245,7 +245,7 @@ class AdminNotices
             // Prepare the renewal button - will be added to the bottom of notice
             $button_text = __('RENEW ANTI-SPAM', 'cleantalk-spam-protect');
             $button_html = '<input type="button" class="button button-primary" style="margin-bottom:20px" value="' . $button_text . '"  />';
-            $button_html = LinkConstructor::buildRenewalLinkATag($this->user_token, $button_html, 1, 'renew_notice_trial');
+            $button_html = LinkConstructor::buildRenewalLinkATag($this->user_token, $button_html, 1, 'renew_notice_renew_button');
 
             $additional_content = static::generateUpdatingStatusContent($this->apbct->plugin_name);
             // add the button to the additional content - todo:: AG - bad practice to place button directly concatenating, we should have a special tag for buttons

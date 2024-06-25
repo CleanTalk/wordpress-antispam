@@ -783,7 +783,7 @@ function apbct_comment__Wordpress__changeMailNotification($notify_message, $_com
            . "\n" . 'Email: https://cleantalk.org/blacklists/' . $apbct->sender_email
            . "\n" . PHP_EOL . sprintf(
                __('Activate protection in your Anti-Spam Dashboard: %s.', 'clentalk'),
-            //HANDLE LINK
+               //HANDLE LINK
                'https://cleantalk.org/my/?cp_mode=antispam&utm_source=newsletter&utm_medium=email&utm_campaign=wp_spam_comment_passed'
                . ($apbct->data['user_token']
                    ? '&iser_token=' . $apbct->data['user_token']
@@ -1222,7 +1222,7 @@ function ct_enqueue_scripts_public($_hook)
                 ),
                 'ct_feedback_msg'     => sprintf(
                     __("Feedback has been sent to %sCleanTalk Dashboard%s.", 'cleantalk-spam-protect'),
-                        //HANDLE LINK
+                    //HANDLE LINK
                     $apbct->user_token ? "<a target='_blank' href=https://cleantalk.org/my/show_requests?user_token={$apbct->user_token}&cp_mode=antispam>" : '',
                     $apbct->user_token ? "</a>" : ''
                 )

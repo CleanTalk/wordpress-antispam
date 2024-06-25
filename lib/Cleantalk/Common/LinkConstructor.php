@@ -19,6 +19,13 @@ class LinkConstructor
     public static $utm_presets;
 
     /**
+     * @var string $utm_campaign
+     *
+     * String containing the UTM campaign name. Common for all the links.
+     */
+    public static $utm_campaign;
+
+    /**
      * Builds a GET parameters chunk for a CleanTalk link.
      *
      * @param string $utm_preset The UTM preset to use from the $utm_presets array.
@@ -35,6 +42,7 @@ class LinkConstructor
         } else {
             $utm_data = static::$utm_presets[$utm_preset];
         }
+        $utm_data['utm_campaign'] = static::$utm_campaign;
         $glued = array_merge($get_params, $utm_data);
         return http_build_query($glued);
     }

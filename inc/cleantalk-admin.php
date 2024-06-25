@@ -696,28 +696,28 @@ function apbct_admin__badge__get_premium($placement = null)
     global $apbct;
 
     $out = '';
-    $utm_set = '';
+    $utm_preset = '';
     $prefix = '';
 
     $placements_available = array(
             'checkers' => array(
                 'prefix' => __('Make it right!', 'cleantalk-spam-protect') . ' ',
-                'utm_set' => array()),
+                'utm_set' => 'renew_checkers'),
             'top_info' => array(
                 'prefix' => __('Make it right!', 'cleantalk-spam-protect') . ' ',
-                'utm_set' => array()),
+                'utm_set' => 'renew_top_info'),
             'plugins_listing' => array(
                 'prefix' => '',
-                'utm_set' => array()),
+                'utm_set' => 'renew_plugins_listing'),
     );
 
     if ( $apbct->license_trial == 1 && $apbct->user_token ) {
         if (!empty($placement) && isset($placements_available[$placement])) {
-            $utm_set = $placements_available[$placement]['utm_set'];
+            $utm_preset = $placements_available[$placement]['utm_set'];
             $prefix = $placements_available[$placement]['prefix'];
         }
         $link_text = __('Get premium', 'cleantalk-spam-protect');
-        $renew_link = LinkConstructor::buildRenewalLinkATag($apbct->user_token, $link_text, 1, $utm_set);
+        $renew_link = LinkConstructor::buildRenewalLinkATag($apbct->user_token, $link_text, 1, $utm_preset);
         $out = $prefix . '<b style="display: inline-block; margin-top: 10px;">' . $renew_link . '</b>';
     }
 
@@ -809,7 +809,7 @@ function apbct__admin_bar__get_title_for_apbct($apbct)
         ) // is single site or WPMS network mode 2
     ) {
         $link_text = __('Renew Anti-Spam', 'cleantalk-spam-protect');
-        $renew_link = LinkConstructor::buildRenewalLinkATag($apbct->user_token, $link_text, 1, 'renew_notice_trial');
+        $renew_link = LinkConstructor::buildRenewalLinkATag($apbct->user_token, $link_text, 1, 'renew_admin_bar_apbct');
         $title = '<span>' . $renew_link . '</span>';
     }
 
@@ -856,7 +856,7 @@ function apbct__admin_bar__get_title_for_spbc($spbc, $user_token, $is_apbct_wl_m
     }
 
     $link_text = __('Renew Security', 'cleantalk-spam-protect');
-    $renew_link = LinkConstructor::buildRenewalLinkATag($user_token, $link_text, 4, 'renew_notice_trial');
+    $renew_link = LinkConstructor::buildRenewalLinkATag($user_token, $link_text, 4, 'renew_admin_bar_spbct');
     $spbc_title = '<span>' . $renew_link . '</span>';
 
     //show the attention mark in any case if the notice show gained
