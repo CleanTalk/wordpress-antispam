@@ -174,6 +174,7 @@ class CleantalkSettingsTemplates
         $button       = $this->getImportButton();
 
         $templatesDeleteTip =
+            //HANDLE LINK
             sprintf(
                 /* translators: CleanTalk dash bord (Settings Templates) URL */
                 __('Deleting templates is available in the <a href="%s" target="_blank">CleanTalk Dashboard</a>', 'cleantalk-spam-protect'),
