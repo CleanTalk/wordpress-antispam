@@ -1132,7 +1132,7 @@ function apbct_is_skip_request($ajax = false)
             apbct_is_plugin_active('klaviyo/klaviyo.php') &&
             Post::get('action') === 'klc_generate_coupon'
         ) {
-            return 'WP GeoDirectory service action';
+            return 'Klaviyo service action';
         }
     } else {
         /*****************************************/
