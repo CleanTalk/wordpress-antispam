@@ -212,6 +212,7 @@ function apbct_init()
         $hook    = WPCF7_VERSION >= '3.0.0' ? 'wpcf7_spam' : 'wpcf7_acceptance';
         $num_arg = WPCF7_VERSION >= '5.3.0' ? 2 : 1;
         add_filter($hook, 'apbct_form__contactForm7__testSpam', 9999, $num_arg);
+        add_action('wpcf7_before_send_mail', 'apbct_form__contactForm7__testSpam', 999);
     }
 
     // BuddyPress
@@ -1022,6 +1023,20 @@ function ct_set_approved($approved, $_comment)
     }
 
     return 1;
+}
+
+/**
+ * Public action 'comment_post' - Store cleantalk hash in comment meta
+ *
+ * @psalm-suppress UnusedParam
+ * @return void
+ */
+function ct_set_real_user_badge_hash($comment_id)
+{
+    $hash1 = ct_hash();
+    if ( ! empty($hash1) ) {
+        update_comment_meta($comment_id, 'ct_real_user_badge_hash', ct_hash());
+    }
 }
 
 /**

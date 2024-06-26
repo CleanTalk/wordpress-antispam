@@ -127,7 +127,11 @@ class CleantalkPreprocessComment extends IntegrationBase
             }
         }
 
-        $this->exception_action = $this->exception_action ?: $this->checkMaxCommentsPublishedByUser();
+        if ($this->checkMaxCommentsPublishedByUser()) {
+            $this->exception_action = true;
+            ct_hash(md5(time() . $this->wp_comment['comment_author_email']));
+            add_action('comment_post', 'ct_set_real_user_badge_hash', 999, 2);
+        }
 
         $base_call_data = array(
             'message'         => $this->wp_comment['comment_content'],
@@ -194,6 +198,8 @@ class CleantalkPreprocessComment extends IntegrationBase
      */
     public function allow()
     {
+        add_action('comment_post', 'ct_set_real_user_badge_hash', 999, 2);
+
         $wp_comment_moderation_enabled = get_option('comment_moderation') === '1';
         $wp_auto_approve_for_user_who_has_approved_comment = get_option('comment_previously_approved') === '1';
         $clentalk_option_skip_moderation_for_first_comment = get_option('cleantalk_allowed_moderation', 1) == 1;
@@ -461,9 +467,9 @@ class CleantalkPreprocessComment extends IntegrationBase
     private function doNeedSetMeta($post_url = null)
     {
         $is_new_user = false;
-        if ( isset($this->comment['comment_author_email']) ) {
+        if ( isset($this->wp_comment['comment_author_email']) ) {
             $approved_comments = get_comments(
-                array('status' => 'approve', 'count' => true, 'author_email' => $this->comment['comment_author_email'])
+                array('status' => 'approve', 'count' => true, 'author_email' => $this->wp_comment['comment_author_email'])
             );
             $is_new_user = $approved_comments == 0;
         }

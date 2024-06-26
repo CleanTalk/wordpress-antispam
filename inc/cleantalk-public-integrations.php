@@ -1795,6 +1795,15 @@ function apbct_form__contactForm7__testSpam($spam, $_submission = null)
 
         add_filter('wpcf7_display_message', 'apbct_form__contactForm7__showResponse', 10, 2);
 
+        add_filter('wpcf7_skip_mail', function () {
+            add_filter("wpcf7_feedback_response", function ($response) {
+                global $ct_cf7_comment;
+                $response["status"] = "mail_sent_ng";
+                $response["message"] = $ct_cf7_comment;
+                return $response;
+            }, 10);
+        }, 10);
+
         // Flamingo: save or not the spam entry
         if ( ! $apbct->settings['forms__flamingo_save_spam'] ) {
             add_filter('wpcf7_flamingo_submit_if', function () {
@@ -3420,9 +3429,19 @@ add_filter('wsf_submit_field_validate', function ($error_validation_action_field
      * Filter for POST
      */
     $input_array = apply_filters('apbct__filter_post', $_POST);
-    $data = ct_gfa($input_array);
 
-    $sender_email    = ($data['email'] ?  : '');
+    $long_email = '';
+    foreach ($input_array as $value) {
+        if (preg_match("/^\S+@\S+\.\S+$/", $value) &&
+            strlen($value) > strlen($long_email)
+        ) {
+            $long_email = $value;
+        }
+    }
+
+    $data = ct_gfa($input_array, $long_email);
+
+    $sender_email = ($data['email'] ?  : '');
     $sender_nickname = ($data['nickname'] ?  : '');
     $message         = ($data['message'] ?  : array());
 

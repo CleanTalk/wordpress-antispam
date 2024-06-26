@@ -45,7 +45,7 @@ class Cookie extends \Cleantalk\Variables\Cookie
                             'apbct_page_hits',
                             'apbct_prev_referer',
                             'apbct_site_landing_ts',
-                            'apbct_urls',
+                            //'apbct_urls',
                             'apbct_timestamp',
                             'apbct_site_referer')) ) {
                             $value = NoCookie::get($name);
