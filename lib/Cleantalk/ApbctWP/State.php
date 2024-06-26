@@ -547,6 +547,9 @@ class State extends \Cleantalk\Common\State
                 // A/B testing for the Encode contact data setting: randomly on or off
                 // @ToDo remove this after testing
                 $this->default_settings['data__email_decoder'] = rand(0, 1);
+                // A/B testing for the RealUserBadge setting: randomly on or off
+                // @ToDo remove this after testing
+                $this->default_settings['comments__the_real_person'] = rand(0, 1);
                 $option = is_array($option) ? array_merge($this->default_settings, $option) : $this->default_settings;
             }
 
