@@ -124,13 +124,22 @@ class CleantalkExternalForms extends IntegrationBase
 
         // HTML form clearing script
         $script = "<script " . $bot_chunk . ">
-                if(document.forms[0].submit !== 'undefined'){
-                    let objects = document.forms[0].getElementsByName('submit');
-                    if(objects.length > 0) {
-                        document.forms[0].removeChild(objects[0]);
+                let form = document.forms[0];
+                let availabilitySubmit = false;
+                for (let i = 0; i < form.length; i++) {
+                    let typeElem = form[i].getAttribute('type');
+                    if (typeElem == 'submit') {
+                        availabilitySubmit = true;
                     }
                 }
-                document.forms[0].submit();
+
+                if(form.submit !== 'undefined' && availabilitySubmit){
+                    let objects = form.getElementsByName('submit');
+                    if(objects.length > 0) {
+                        form.removeChild(objects[0]);
+                    }
+                }
+                form.submit();
                 </script>
         ";
 
