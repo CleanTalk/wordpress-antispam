@@ -3747,7 +3747,6 @@ window.onload = function() {
         ctProtectExternal();
         catchDynamicRenderedForm();
         catchNextendSocialLoginForm();
-        catchKulaHubForm();
         ctProtectOutsideIframe();
     }, 2000);
 };
@@ -3847,84 +3846,6 @@ function ctProtectOutsideIframeHandler(iframe) {
 }
 
 /**
- * Catch KulaHubForm form integration
- */
-function catchKulaHubForm() {
-    let blockKHF = document.querySelector("[id*='kulaHubForm']");
-    if (blockKHF) {
-        blockBtnKulaHubForm(blockKHF);
-    }
-}
-
-/**
- * Blocking KulaHubForm plugin buttons
- * @param {HTMLElement} blockKHF
- */
-function blockBtnKulaHubForm(blockKHF) {
-    let parentBtnsKHF = blockKHF.querySelectorAll('#stayconsubmitcont');
-    let childBtnsKHF = blockKHF.querySelectorAll('#stayconsubmit[type="submit"]');
-    let formDataElemKHF = blockKHF.querySelectorAll("[name][id*='subscribeform']");
-    let formDataKHF = {};
-
-    parentBtnsKHF.forEach((el) => {
-        el.setAttribute('data-oauth-login-blocked', 'true');
-    });
-
-    childBtnsKHF.forEach((el) => {
-        el.setAttribute('type', 'button');
-        el.setAttribute('style', 'cursor: pointer');
-
-        el.addEventListener('click', (event) => {
-            if (el.parentElement.getAttribute('data-oauth-login-blocked') != 'false') {
-                event.preventDefault();
-                event.stopPropagation();
-                el.disabled = true;
-                formDataElemKHF.forEach(element => {
-                    formDataKHF [element.name] = element.value;
-                });
-
-                ctCheckAjax(el, 'khf', formDataKHF);
-            }
-            return false;
-        });
-    });
-}
-
-/**
- * Unlocking the button and clicking on it after an ajax response
- * @param {HTMLElement} childBtn
- */
-function allowAjaxKulaHubForm(childBtn) {
-    childBtn.parentElement.setAttribute('data-oauth-login-blocked', 'false');
-    childBtn.disabled = false;
-    childBtn.setAttribute('type', 'submit');
-    childBtn.click();
-}
-
-/**
- * Locking the button and entering a message after an ajax response
- * @param {HTMLElement} childBtn
- * @param {string} msg
- */
-function forbiddenAjaxKulaHubForm(childBtn, msg) {
-    let parentElement = childBtn.parentElement;
-    if (parentElement.getAttribute('data-oauth-login-blocked') == 'false') {
-        parentElement.setAttribute('data-oauth-login-blocked', 'true');
-    }
-    childBtn.disabled = false;
-    if (!document.querySelector('.ct-forbidden-msg')) {
-        let elemForMsg = document.createElement('div');
-        elemForMsg.className = 'ct-forbidden-msg';
-        elemForMsg.style.width = '100%';
-        elemForMsg.style.background = 'red';
-        elemForMsg.style.color = 'white';
-        elemForMsg.style.padding = '5px';
-        elemForMsg.innerHTML = msg;
-        parentElement.insertAdjacentElement('beforebegin', elemForMsg);
-    }
-}
-
-/**
  * Catch NSL form integration
  */
 function catchNextendSocialLoginForm() {
@@ -3951,7 +3872,7 @@ function blockBtnNextendSocialLogin(blockNSL) {
         el.addEventListener('click', (event) => {
             event.preventDefault();
             event.stopPropagation();
-            ctCheckAjax(el, 'nsl');
+            ctCheckAjax(el);
         });
     });
 }
@@ -3989,42 +3910,22 @@ function forbiddenAjaxNextendSocialLogin(childBtn, msg) {
 /**
  * User verification using user data and ajax
  * @param {HTMLElement} elem
- * @param {string} integration
- * @param {object} formData
  */
-function ctCheckAjax(elem, integration, formData = false) {
+function ctCheckAjax(elem) {
     let data = {
-        'action': `cleantalk_${integration}_ajax_check`,
+        'action': 'cleantalk_nsl_ajax_check',
         'ct_no_cookie_hidden_field': document.getElementsByName('ct_no_cookie_hidden_field')[0].value,
     };
-
-    if (formData) {
-        data = Object.assign({}, data, formData);
-    }
 
     apbct_public_sendAJAX(
         data,
         {
             async: false,
             callback: function(result) {
-                switch (integration) {
-                    case 'nsl':
-                        if (result.apbct.blocked === false) {
-                            allowAjaxNextendSocialLogin(elem);
-                        } else {
-                            forbiddenAjaxNextendSocialLogin(elem, result.apbct.comment);
-                        }
-                        break;
-                    case 'khf':
-                        if (result.apbct.blocked === false) {
-                            allowAjaxKulaHubForm(elem);
-                        } else {
-                            forbiddenAjaxKulaHubForm(elem, result.apbct.comment);
-                        }
-                        break;
-
-                    default:
-                        break;
+                if (result.apbct.blocked === false) {
+                    allowAjaxNextendSocialLogin(elem);
+                } else {
+                    forbiddenAjaxNextendSocialLogin(elem, result.apbct.comment);
                 }
             },
         },
