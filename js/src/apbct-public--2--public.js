@@ -1610,8 +1610,57 @@ const defaultSend = XMLHttpRequest.prototype.send;
 
 if (document.readyState !== 'loading') {
     checkFormsExistForCatching();
+    apbctRealUserBadge();
 } else {
     apbct_attach_event_handler(document, 'DOMContentLoaded', checkFormsExistForCatching);
+    apbct_attach_event_handler(document, 'DOMContentLoaded', apbctRealUserBadge);
+}
+
+/**
+ * Handle real user badge
+ */
+function apbctRealUserBadge() {
+    document.querySelectorAll('.apbct-real-user').forEach((el) => {
+        el.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            e.currentTarget.querySelector('.apbct-real-user-popup').style.display = 'block';
+        });
+    });
+    document.querySelector('body').addEventListener('click', function(e) {
+        document.querySelectorAll('.apbct-real-user-popup').forEach((el) => {
+            el.style.display = 'none';
+        });
+    });
+}
+
+/**
+ * Handle real user badge for woocommerce
+ * @param int id
+ * @param string author
+ */
+// eslint-disable-next-line no-unused-vars,require-jsdoc
+function apbctRealUserBadgeWoocommerce(id, author, title, text) {
+    if (window.innerWidth < 768) {
+        return;
+    }
+
+    let badge = document.createElement('div');
+    badge.className = 'apbct-real-user';
+    badge.style.position = 'absolute';
+    badge.style.top = '15px';
+    badge.title = title;
+
+    let popup = document.createElement('div');
+    popup.className = 'apbct-real-user-popup';
+
+    let content = document.createElement('span');
+    content.innerText = author + ' ' + text;
+
+    popup.appendChild(content);
+    badge.appendChild(popup);
+
+    document.querySelector('#comment-' + id).querySelector('.woocommerce-review__published-date').appendChild(badge);
 }
 
 /**

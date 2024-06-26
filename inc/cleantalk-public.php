@@ -1021,6 +1021,20 @@ function ct_set_approved($approved, $_comment)
 }
 
 /**
+ * Public action 'comment_post' - Store cleantalk hash in comment meta
+ *
+ * @psalm-suppress UnusedParam
+ * @return void
+ */
+function ct_set_real_user_badge_hash($comment_id)
+{
+    $hash1 = ct_hash();
+    if ( ! empty($hash1) ) {
+        update_comment_meta($comment_id, 'ct_real_user_badge_hash', ct_hash());
+    }
+}
+
+/**
  * Public filter 'pre_comment_approved' - Mark comment unapproved always
  * @return    string
  */
