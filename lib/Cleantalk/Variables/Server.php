@@ -2,6 +2,8 @@
 
 namespace Cleantalk\Variables;
 
+use Cleantalk\ApbctWP\Escape;
+
 /**
  * Class Server
  * Wrapper to safely get $_SERVER variables
@@ -29,7 +31,13 @@ class Server extends ServerVariables
         $name = strtoupper($name);
 
         if ( isset($_SERVER[$name]) ) {
-            $value = $this->getAndSanitize($_SERVER[$name]);
+            $raw_value = $_SERVER[$name];
+            if ($name === 'REQUEST_URI') {
+                //skip default getAndSanitize to keep special symbols to decode unicode chars on REQUEST_URI
+                $value = Escape::escJs(Escape::escHtml($raw_value));
+            } else {
+                $value = $this->getAndSanitize($raw_value);
+            }
         } else {
             $value = '';
         }
