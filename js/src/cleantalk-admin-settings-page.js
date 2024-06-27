@@ -381,6 +381,42 @@ jQuery(document).ready(function() {
             jQuery(this).prev().prev().val('');
         }
     });
+
+    jQuery('button[id*="apbct-action-adjust-change-"]').click(function(e) {
+        e.preventDefault();
+
+        let data = {};
+        data.action = 'apbct_action_adjust_change';
+        data.adjust = jQuery(this).data('adjust');
+
+        let params = {};
+        params.button = document.getElementById('apbct-action-adjust-change-' + data.adjust);
+        params.notJson = true;
+
+        params.callback = function() {
+            document.location.reload();
+        };
+
+        apbct_admin_sendAJAX(data, params);
+    });
+
+    jQuery('button[id*="apbct-action-adjust-reverse-"]').click(function(e) {
+        e.preventDefault();
+
+        let data = {};
+        data.action = 'apbct_action_adjust_reverse';
+        data.adjust = jQuery(this).data('adjust');
+
+        let params = {};
+        params.button = document.getElementById('apbct-action-adjust-reverse-' + data.adjust);
+        params.notJson = true;
+
+        params.callback = function() {
+            document.location.reload();
+        };
+
+        apbct_admin_sendAJAX(data, params);
+    });
 });
 
 /**
