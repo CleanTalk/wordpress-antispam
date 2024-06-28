@@ -9,6 +9,7 @@ use Cleantalk\ApbctWP\State;
 use Cleantalk\ApbctWP\Variables\Get;
 use Cleantalk\ApbctWP\Variables\Post;
 use Cleantalk\ApbctWP\Variables\Server;
+use Cleantalk\ApbctWP\LinkConstructor;
 
 require_once('cleantalk-settings.php');
 
@@ -179,10 +180,18 @@ function ct_dashboard_statistics_widget_output($_post, $_callback_args)
              )
              . '</h2>';
         if ( $apbct->user_token && ! $apbct->white_label ) {
+            $link = LinkConstructor::buildCleanTalkLink(
+                'anti_crawler_inactive',
+                'my',
+                array(
+                    'user_token' => $apbct->user_token,
+                    'cp_mode' => 'antispam'
+                )
+            );
             echo '<h2 class="ct_widget_activate_header">'
                  . __('Please, visit your Dashboard.', 'cleantalk-spam-protect')
                  . '</h2>'
-                 . '<a target="_blank" href="https://cleantalk.org/my?user_token=' . $apbct->user_token . '&cp_mode=antispam">'
+                 . '<a target="_blank" href="' . $link . '">'
                  . '<input class="ct_widget_button ct_widget_activate_button ct_widget_resolve_button" type="button" value="VISIT CONTROL PANEL">'
                  . '</a>';
         }
@@ -223,9 +232,16 @@ function ct_dashboard_statistics_widget_output($_post, $_callback_args)
                 } ?>
             </table>
             <?php
-            if ( $apbct->user_token && ! $apbct->data["wl_mode_enabled"] ) { ?>
-                <a target='_blank' href='https://cleantalk.org/my/show_requests?user_token=<?php
-                echo Escape::escHtml($apbct->user_token); ?>&utm_source=wp-backend&utm_medium=dashboard_widget_vew_all'>
+            if ( $apbct->user_token && ! $apbct->data["wl_mode_enabled"] ) {
+                $link = LinkConstructor::buildCleanTalkLink(
+                    'dashboard_widget_all_data_link',
+                    'my/show_requests',
+                    array(
+                        'user_token' => Escape::escHtml($apbct->user_token)
+                    )
+                );
+                ?>
+                <a target='_blank' href='<?php echo $link; ?>'>
                     <input class='ct_widget_button' id='ct_widget_button_view_all' type='button' value='View all'>
                 </a>
                 <?php
@@ -237,6 +253,14 @@ function ct_dashboard_statistics_widget_output($_post, $_callback_args)
     // Notice at the bottom
     if ( isset($current_user) && in_array('administrator', $current_user->roles) ) {
         if ( $apbct->spam_count && $apbct->spam_count > 0 ) {
+            $link = LinkConstructor::buildCleanTalkLink(
+                'dashboard_widget_go_to_cp',
+                'my',
+                array(
+                    'user_token' => $apbct->user_token,
+                    'cp_mode' => 'antispam'
+                )
+            );
             echo '<div class="ct_widget_wprapper_total_blocked">'
                  . ($apbct->data["wl_mode_enabled"] ? '' : '<img src="' . Escape::escUrl($apbct->logo__small__colored) . '" class="ct_widget_small_logo"/>')
                  . '<span title="' . sprintf(
@@ -252,7 +276,7 @@ function ct_dashboard_statistics_widget_output($_post, $_callback_args)
                          '%s%s%s has blocked %s spam for past year. The statistics are automatically updated every 24 hours.',
                          'cleantalk-spam-protect'
                      ),
-                     ! $apbct->data["wl_mode_enabled"] ? '<a href="https://cleantalk.org/my/?user_token=' . $apbct->user_token . '&utm_source=wp-backend&utm_medium=dashboard_widget&cp_mode=antispam" target="_blank">' : '',
+                     ! $apbct->data["wl_mode_enabled"] ? '<a href="' . $link . '" target="_blank">' : '',
                      $actual_plugin_name,
                      ! $apbct->data["wl_mode_enabled"] ? '</a>' : '',
                      number_format($apbct->data['spam_count'], 0, ',', ' ')
@@ -454,9 +478,9 @@ function apbct_admin__register_plugin_links($links, $file, $plugin_data)
                . __('FAQ', 'cleantalk-spam-protect') . '</a>';
     $links[] = '<a class="ct_meta_links ct_support_links" href="' . $apbct->data['wl_support_url'] . '" target="_blank">'
                . __('Support', 'cleantalk-spam-protect') . '</a>';
-    $trial   = apbct_admin__badge__get_premium(false);
+    $trial   = apbct_admin__badge__get_premium('plugins_listing');
     if ( ! empty($trial) && !$apbct->data["wl_mode_enabled"]) {
-        $links[] = apbct_admin__badge__get_premium(false);
+        $links[] = $trial;
     }
 
     return $links;
@@ -613,6 +637,14 @@ function apbct_admin__enqueue_scripts($hook)
             array(),
             APBCT_VERSION
         );
+        $link = LinkConstructor::buildCleanTalkLink(
+            'public_comments_page_go_to_cp',
+            'my',
+            array(
+                'user_token' => $apbct->user_token,
+                'cp_mode' => 'antispam'
+            )
+        );
         wp_localize_script('ct_comments_editscreen', 'ctCommentsScreen', array(
             'ct_ajax_nonce'               => wp_create_nonce('ct_secret_nonce'),
             'spambutton_text'             => __("Find spam comments", 'cleantalk-spam-protect'),
@@ -620,7 +652,7 @@ function apbct_admin__enqueue_scripts($hook)
             'ct_feedback_msg_blacklisted' => __("The sender has been blacklisted.", 'cleantalk-spam-protect'),
             'ct_feedback_msg'             => sprintf(
                 __("Feedback has been sent to %sCleanTalk Dashboard%s.", 'cleantalk-spam-protect'),
-                $apbct->user_token ? "<a target='_blank' href=https://cleantalk.org/my?user_token={$apbct->user_token}&cp_mode=antispam>" : '',
+                $apbct->user_token ? "<a target='_blank' href='$link'>" : '',
                 $apbct->user_token ? "</a>" : ''
             ) . ' ' . esc_html__('The service accepts feedback only for requests made no more than 7 or 45 days 
             (if the Extra package is activated) ago.', 'cleantalk-spam-protect'),
@@ -653,43 +685,43 @@ function apbct_admin__enqueue_scripts($hook)
 }
 
 /**
- * Premium badge layout
+ * Premium badge layout.
  *
- * @param bool $print Do we need to print the badge or return it as a string
- * @param string $out The badge layout
+ * @param string $placement - where should the layout placed, prefix and utm marks depends on this
  *
- * @return null|string NUll if $print is true, string if $print is false
+ * @return string Escaped string
  */
-function apbct_admin__badge__get_premium($print = true, $out = '')
+function apbct_admin__badge__get_premium($placement = null)
 {
     global $apbct;
 
+    $out = '';
+    $utm_preset = '';
+    $prefix = '';
+
+    $placements_available = array(
+            'checkers' => array(
+                'prefix' => __('Make it right!', 'cleantalk-spam-protect') . ' ',
+                'utm_set' => 'renew_checkers'),
+            'top_info' => array(
+                'prefix' => __('Make it right!', 'cleantalk-spam-protect') . ' ',
+                'utm_set' => 'renew_top_info'),
+            'plugins_listing' => array(
+                'prefix' => '',
+                'utm_set' => 'renew_plugins_listing'),
+    );
+
     if ( $apbct->license_trial == 1 && $apbct->user_token ) {
-        $make_it_right = $print ? __('Make it right!', 'cleantalk-spam-protect') . ' ' : '';
+        if (!empty($placement) && isset($placements_available[$placement])) {
+            $utm_preset = $placements_available[$placement]['utm_set'];
+            $prefix = $placements_available[$placement]['prefix'];
+        }
         $link_text = __('Get premium', 'cleantalk-spam-protect');
-        $renew_link = AdminNotices::generateRenewalLinkHTML($apbct->user_token, $link_text, 1);
-        $out .= '<b style="display: inline-block; margin-top: 10px;">' . $make_it_right . $renew_link . '</b>';
+        $renew_link = LinkConstructor::buildRenewalLinkATag($apbct->user_token, $link_text, 1, $utm_preset);
+        $out = $prefix . '<b style="display: inline-block; margin-top: 10px;">' . $renew_link . '</b>';
     }
 
-    if ( $print ) {
-        echo wp_kses(
-            $out,
-            array(
-                'a' => array(
-                    'href'  => true,
-                    'title' => true,
-                    '_target' => true,
-                ),
-                'br' => array(),
-                'p' => array(),
-                'b' => array(
-                    'style' => true,
-                ),
-            )
-        );
-    } else {
-        return $out;
-    }
+    return Escape::escKsesPreset($out, 'apbct_get_premium_link');
 }
 
 /**
@@ -777,7 +809,7 @@ function apbct__admin_bar__get_title_for_apbct($apbct)
         ) // is single site or WPMS network mode 2
     ) {
         $link_text = __('Renew Anti-Spam', 'cleantalk-spam-protect');
-        $renew_link = AdminNotices::generateRenewalLinkHTML($apbct->user_token, $link_text, 1);
+        $renew_link = LinkConstructor::buildRenewalLinkATag($apbct->user_token, $link_text, 1, 'renew_admin_bar_apbct');
         $title = '<span>' . $renew_link . '</span>';
     }
 
@@ -824,7 +856,7 @@ function apbct__admin_bar__get_title_for_spbc($spbc, $user_token, $is_apbct_wl_m
     }
 
     $link_text = __('Renew Security', 'cleantalk-spam-protect');
-    $renew_link = AdminNotices::generateRenewalLinkHTML($user_token, $link_text, 4);
+    $renew_link = LinkConstructor::buildRenewalLinkATag($user_token, $link_text, 4, 'renew_admin_bar_spbct');
     $spbc_title = '<span>' . $renew_link . '</span>';
 
     //show the attention mark in any case if the notice show gained
