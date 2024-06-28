@@ -9,6 +9,9 @@ class PiotnetAddonsForElementorPro extends IntegrationBase
 {
     public function getDataForChecking($argument)
     {
+        Cookie::$force_alt_cookies_global = true;
+        $nickname = '';
+        $email = '';
         if ( Post::get('fields') ) {
             $fields = Post::get('fields');
             $fields = stripslashes($fields);
@@ -19,14 +22,22 @@ class PiotnetAddonsForElementorPro extends IntegrationBase
                 foreach ( $fields as $field ) {
                     if ( isset($field['name'], $field['value']) ) {
                         $form_data[$field['name']] = $field['value'];
+                        if (empty($nickname) && strpos($field['name'], 'name') !== false) {
+                            $nickname = $field['value'];
+                        }
+                        if (empty($email) && strpos($field['name'], 'email') !== false) {
+                            $email = $field['value'];
+                        }
                     }
                 }
+                $gfa_result = ct_gfa($form_data, $email, $nickname);
                 if ( $event_token = Cookie::get('ct_bot_detector_event_token') ) {
-                    $form_data['event_token'] = $event_token;
+                    $gfa_result['event_token'] = $event_token;
                 }
-                return $form_data;
+                return $gfa_result;
             }
         }
+        return $argument;
     }
 
     public function doBlock($message)
