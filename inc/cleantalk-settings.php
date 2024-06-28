@@ -953,6 +953,13 @@ function apbct_settings__set_fields__network($fields)
 {
     global $apbct;
 
+    $prepared_links = array(
+        'help_wl_multisite' => LinkConstructor::buildCleanTalkLink(
+            'help_wl_multisite',
+            'help/anti-spam-white-label-multisite'
+        )
+    );
+
     $additional_fields = array(
         'wpms_settings' => array(
             'default_params' => array(),
@@ -1029,7 +1036,7 @@ function apbct_settings__set_fields__network($fields)
                     'description' => sprintf(
                         __("Learn more information %shere%s.", 'cleantalk-spam-protect'),
                         //HANDLE LINK
-                        '<a target="_blank" href="https://cleantalk.org/help/hosting-white-label">',
+                        '<a target="_blank" href="' . $prepared_links['help_wl_multisite'] . '">',
                         '</a>'
                     ),
                     'childrens'   => array('multisite__white_label__plugin_name'),
