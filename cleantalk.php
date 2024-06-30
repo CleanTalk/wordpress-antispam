@@ -640,6 +640,11 @@ $apbct_active_integrations = array(
         'setting' => 'forms__registrations_test',
         'ajax'    => false
     ),
+    'BloomForms' => array(
+        'hook'    => 'bloom_subscribe',
+        'setting' => 'forms__contact_forms_test',
+        'ajax'    => true
+    ),
 );
 add_action('plugins_loaded', function () use ($apbct_active_integrations, $apbct) {
     if ( defined('FLUENTFORM_VERSION') ) {

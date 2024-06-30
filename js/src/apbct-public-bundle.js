@@ -1117,6 +1117,7 @@ function ctDetectForcedAltCookiesForms() {
     let userRegistrationProForm = document.querySelectorAll('div[id^="user-registration-form"]').length > 0;
     let etPbDiviSubscriptionForm = document.querySelectorAll('div[class^="et_pb_newsletter_form"]').length > 0;
     let fluentBookingApp = document.querySelectorAll('div[class^="fluent_booking_app"]').length > 0;
+    let bloomPopup = document.querySelectorAll('div[class^="et_bloom_form_container"]').length > 0;
     ctPublic.force_alt_cookies = smartFormsSign ||
         ninjaFormsSign ||
         jetpackCommentsForm ||
@@ -1124,7 +1125,8 @@ function ctDetectForcedAltCookiesForms() {
         cwginstockForm ||
         userRegistrationProForm ||
         etPbDiviSubscriptionForm ||
-        fluentBookingApp;
+        fluentBookingApp ||
+        bloomPopup;
 
     setTimeout(function() {
         if (!ctPublic.force_alt_cookies) {
