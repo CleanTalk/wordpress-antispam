@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 4.7
 Tested up to: 6.5
 Requires PHP: 5.6
-Stable tag: 6.34
+Stable tag: 6.35
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -456,6 +456,26 @@ Yes, it is. Please read this article,
 12. SpamFireWall log.
 
 == Changelog ==
+
+= 6.35 Jun 27 2024
+* New. Comments. RealUserBadge implemented.
+* New. Code. LinkConstructor class.
+* New. Integrations. Added handler for LearnPress.
+* New. Integration. Paid Membership Pro direct integration implemented.
+* Mod. Links. CleanTalk links have UTM data now.
+* Mod. RequestParameters. Common storage implemented.
+* Mod. Cookies. Param 'apbct_urls' now works via RequestParameters class.
+* Mod. Index files added to the plugins structure.
+* Ref. Integrations. Updated flow for force_ajax_check.
+* Fix. AltSessions. Encode array to JSON if tried to write raw array to the database.
+* Fix. JS. External forms. Search for a submit element.
+* Fix. Admin dashboard. Links to get premium layout fixed.
+* Fix. JS. Replacing the DOM reference with a variable.
+* Fix. JS. Delete xhr started from log.
+* Fix. Settings. Get key automatically. Timezone fixed.
+* Fix. Integrations. CF7.
+* Fix. Integrations. ZOHO.
+* Fix. integrations. WS forms. Email provided for get fields any.
 
 = 6.34 Jun 13 2024
 * Fix. Pixel. Added nofollow attribute.

@@ -4,6 +4,7 @@ use Cleantalk\ApbctWP\API;
 use Cleantalk\ApbctWP\CleantalkSettingsTemplates;
 use Cleantalk\ApbctWP\Escape;
 use Cleantalk\ApbctWP\Helper;
+use Cleantalk\ApbctWP\LinkConstructor;
 use Cleantalk\ApbctWP\Validate;
 use Cleantalk\ApbctWP\Variables\Post;
 use Cleantalk\ApbctWP\Cron;
@@ -78,6 +79,7 @@ function apbct_settings__set_fields()
                     'cleantalk-spam-protect'
                 )
                 . ' '
+                //HANDLE LINK
                 . '<a href="https://cleantalk.org/my/support/open" target="_blank" style="color:red">'
                 . esc_html__(
                     'contact to our support.',
@@ -253,6 +255,7 @@ function apbct_settings__set_fields()
                     'title'       => __('Test default WordPress search form for spam', 'cleantalk-spam-protect'),
                     'description' =>
                         __('Spam protection for Search form.', 'cleantalk-spam-protect')
+                        //HANDLE LINK
                         . (! $apbct->white_label || is_main_site() ?
                             sprintf(
                                 __('Read more about %sspam protection for Search form%s on our blog. The "noindex" tag will be placed in the meta directive on the search results page.', 'cleantalk-spam-protect'),
@@ -476,6 +479,7 @@ function apbct_settings__set_fields()
                         . ( ! $apbct->white_label && ! $apbct->data["wl_mode_enabled"] ?
                             __(' Or you don`t have records about missed spam here:', 'cleantalk-spam-protect')
                             . '&nbsp;'
+                            //HANDLE LINK
                             . '<a href="https://cleantalk.org/my/?user_token='
                             . $apbct->user_token . '&utm_source=wp-backend&utm_medium=admin-bar&cp_mode=antispam" target="_blank">'
                             . __('CleanTalk Dashboard', 'cleantalk-spam-protect')
@@ -949,6 +953,13 @@ function apbct_settings__set_fields__network($fields)
 {
     global $apbct;
 
+    $prepared_links = array(
+        'help_wl_multisite' => LinkConstructor::buildCleanTalkLink(
+            'help_wl_multisite',
+            'help/anti-spam-white-label-multisite'
+        )
+    );
+
     $additional_fields = array(
         'wpms_settings' => array(
             'default_params' => array(),
@@ -1003,6 +1014,7 @@ function apbct_settings__set_fields__network($fields)
                     'title'            => __('Hoster Access key', 'cleantalk-spam-protect'),
                     'description'      => sprintf(
                         __('Copy the Access key from your %sCleanTalk Profile%s', 'cleantalk-spam-protect'),
+                        //HANDLE LINK
                         '<a href="https://cleantalk.org/my/profile#api_keys" target="_blank">',
                         '</a>'
                     ),
@@ -1023,7 +1035,8 @@ function apbct_settings__set_fields__network($fields)
                     'title'       => __('Enable White Label Mode', 'cleantalk-spam-protect'),
                     'description' => sprintf(
                         __("Learn more information %shere%s.", 'cleantalk-spam-protect'),
-                        '<a target="_blank" href="https://cleantalk.org/help/hosting-white-label">',
+                        //HANDLE LINK
+                        '<a target="_blank" href="' . $prepared_links['help_wl_multisite'] . '">',
                         '</a>'
                     ),
                     'childrens'   => array('multisite__white_label__plugin_name'),
@@ -1244,6 +1257,7 @@ function apbct_settings__display()
     if ( $apbct->key_is_ok && apbct_api_key__is_correct() && ! $apbct->data["wl_mode_enabled"] ) {
         if ( $apbct->network_settings['multisite__work_mode'] != 2 || is_main_site() ) {
             // CP button
+            //HANDLE LINK
             echo '<a class="cleantalk_link cleantalk_link-manual" target="__blank" href="https://cleantalk.org/my?user_token=' . Escape::escHtml($apbct->user_token) . '&cp_mode=antispam">'
                  . __('Click here to get Anti-Spam statistics', 'cleantalk-spam-protect')
                  . '</a>';
@@ -1406,7 +1420,9 @@ function apbct_settings__get_top_info()
     $support_link = $apbct->data['wl_support_url'];
     $support_url_text = 'WordPress.org';
     $plugin_homepage_text = __('Plugin Homepage at', 'cleantalk-spam-protect');
-    $plugin_homepage_url = $apbct->data['wl_url'];
+    $plugin_homepage_url = LinkConstructor::buildCleanTalkLink(
+        'settings_top_info'
+    );
     $plugin_homepage_url_text = $apbct->data['wl_url'];
     $test_email_chunk = __('Use stop_email@example.com to test plugin in any WordPress form.', 'cleantalk-spam-protect');
     $trademark = $apbct->plugin_name . __(' is registered Trademark. All rights reserved.', 'cleantalk-spam-protect');
@@ -1428,6 +1444,7 @@ function apbct_settings__get_top_info()
         $trademark = '';
         $feedback_request = '';
         $get_premium_request_badge = '';
+        $plugin_homepage_url = $apbct->data['wl_url'];
     }
 
     $support_brand .= __('\'s tech support:', 'cleantalk-spam-protect');
@@ -1773,6 +1790,7 @@ function apbct_settings__field__state()
         'cleantalk-spam-protect'
     );
     if ( ! $apbct->white_label || is_main_site() ) {
+        //HANDLE LINK
         echo '<img class="apbct_status_icon" src="' . ($apbct->data['moderate'] == 1 ? Escape::escUrl($img) : Escape::escUrl($img_no)) . '"/>'
              . '<a style="color: black" href="https://blog.cleantalk.org/real-time-email-address-existence-validation/">' . __(
                  'Validate email for existence',
@@ -1785,6 +1803,7 @@ function apbct_settings__field__state()
             'Auto update',
             'cleantalk-spam-protect'
         )
+            //HANDLE LINK
              . ' <sup><a href="https://cleantalk.org/help/cleantalk-auto-update" target="_blank">?</a></sup>';
     }
 
@@ -1906,6 +1925,7 @@ function apbct_settings__field__apikey()
             echo '<div>';
             echo '<input checked type="checkbox" id="license_agreed" onclick="apbctSettingsDependencies(\'apbct_setting---get_key_auto\');"/>';
             echo '<label for="spbc_license_agreed">';
+            //HANDLE LINK
             printf(
                 __('I accept %sLicense Agreement%s.', 'cleantalk-spam-protect'),
                 '<a class = "apbct_color--gray" href="https://cleantalk.org/publicoffer" target="_blank">',
@@ -2234,6 +2254,7 @@ function apbct_settings__field__draw($params = array())
                  . $params['title']
                  . '</label>'
                  . $popup;
+            //HANDLE LINK
             $href = '<a href="https://cleantalk.org/my/partners" target="_blank">' . __('CleanTalk Affiliate Program are here', 'cleantalk-spam-protect') . '</a>';
             $params['description'] = str_replace('{CT_AFFILIATE_TERMS}', $href, $params['description']);
             echo '<div class="apbct_settings-field_description">'
@@ -2908,6 +2929,7 @@ function apbct_settings__get_key_auto($direct_call = false)
             'error' => isset($result['error_message']) ? esc_html($result['error_message']) : esc_html($result['error'])
         );
     } elseif ( ! isset($result['auth_key']) ) {
+        //HANDLE LINK
         $out = array(
             'success' => true,
             'reload'  => false,
@@ -2997,6 +3019,7 @@ function apbct_settings__update_account_email()
     $apbct->saveData();
 
     // Link GET ACCESS KEY MANUALLY
+    //HANDLE LINK
     $manually_link = sprintf(
         'https://cleantalk.org/register?platform=wordpress&email=%s&website=%s',
         urlencode(ct_get_admin_email()),
@@ -3125,6 +3148,7 @@ function apbct_settings__get__long_description()
         ),
         'data__set_cookies' => array(
             'title' => __('Cookies setting', 'cleantalk-spam-protect'),
+            //HANDLE LINK
             'desc'  => sprintf(
                 __('It determines what methods of using the HTTP cookies the Anti-Spam plugin for WordPress should switch to. It is necessary for the plugin to work properly. All CleanTalk cookies contain technical data. Data of the current website visitor is encrypted with the MD5 algorithm and being deleted when the browser session ends. %s', 'cleantalk-spam-protect'),
                 '<a href="https://cleantalk.org/help/set-cookies-option{utm_mark}" target="_blank">' . __('Learn more about suboptions', 'cleantalk-spam-protect') . '</a>'
@@ -3132,6 +3156,7 @@ function apbct_settings__get__long_description()
         ),
         'comments__hide_website_field' => array(
             'title' => __('Hide the "Website" field', 'cleantalk-spam-protect'),
+            //HANDLE LINK
             'desc'  => sprintf(
                 __('This «Website» field is frequently used by spammers to place spam links in it. ' . esc_html__($apbct->data['wl_brandname']) . ' helps you protect your WordPress website comments by hiding this field off. %s', 'cleantalk-spam-protect'),
                 '<a href="https://cleantalk.org/help/how-to-hide-website-field-in-wordpress-comments{utm_mark}" target="_blank">' . __('Learn more.', 'cleantalk-spam-protect') . '</a>'
@@ -3139,6 +3164,7 @@ function apbct_settings__get__long_description()
         ),
         'sfw__anti_crawler' => array(
             'title' => 'Anti-Crawler', // Do not to localize this phrase
+            //HANDLE LINK
             'desc'  => sprintf(
                 __(esc_html__($apbct->data['wl_brandname']) . ' Anti-Crawler — this option is meant to block all types of bots visiting website pages that can search vulnerabilities on a website, attempt to hack a site, collect personal data, price parsing or content and images, generate 404 error pages, or aggressive website scanning bots. %s', 'cleantalk-spam-protect'),
                 '<a href="https://cleantalk.org/help/anti-flood-and-anti-crawler{utm_mark}#anticrawl" target="_blank">' . __('Learn more.', 'cleantalk-spam-protect') . '</a>'
@@ -3146,6 +3172,7 @@ function apbct_settings__get__long_description()
         ),
         'sfw__anti_flood' => array(
             'title' => 'Anti-Flood', // Do not to localize this phrase
+            //HANDLE LINK
             'desc'  => sprintf(
                 __(esc_html__($apbct->data['wl_brandname']) . ' Anti-Flood — this option is meant to block aggressive bots. You can set the maximum number of website pages your visitors can click on within 1 minute. If any IP exceeds the set number it will get the ' . $apbct->data['wl_brandname'] . ' blocking screen for 30 seconds. It\'s impossible for the IP to open any website pages while the 30-second timer takes place. %s', 'cleantalk-spam-protect'),
                 '<a href="https://cleantalk.org/help/anti-flood-and-anti-crawler{utm_mark}#antiflood" target="_blank">' . __('Learn more.', 'cleantalk-spam-protect') . '</a>'
@@ -3153,6 +3180,7 @@ function apbct_settings__get__long_description()
         ),
         'data__pixel' => array(
             'title' => __(esc_html__($apbct->data['wl_brandname']) . ' Pixel', 'cleantalk-spam-protect'),
+            //HANDLE LINK
             'desc'  => sprintf(
                 __('It is an «invisible» 1×1px image that the Anti-Spam plugin integrates to your WordPress website. And when someone visits your website the Pixel is triggered and reports this visit and some other data including true IP address. %s', 'cleantalk-spam-protect'),
                 '<a href="https://blog.cleantalk.org/introducing-cleantalk-pixel{utm_mark}" target="_blank">' . __('Learn more.', 'cleantalk-spam-protect') . '</a>'
@@ -3160,6 +3188,7 @@ function apbct_settings__get__long_description()
         ),
         'data__honeypot_field' => array(
             'title' => __('Honeypot field', 'cleantalk-spam-protect'),
+            //HANDLE LINK
             'desc'  => sprintf(
                 esc_html__('The option helps to block bots . The honeypot field option adds a hidden field to the form. When spambots come to a website form, they can fill out each input field. Enable this option to make the protection stronger on these forms. Learn more about supported forms %s', 'cleantalk-spam-protect'),
                 '<a href="https://cleantalk.org/help/wordpress-plugin-settings{utm_mark}#honeypot" target="_blank">' . __('here.', 'cleantalk-spam-protect') . '</a>'
@@ -3167,6 +3196,7 @@ function apbct_settings__get__long_description()
         ),
         'sfw__enabled' => array(
             'title' => 'SpamFireWall',
+            //HANDLE LINK
             'desc'  => sprintf(
                 '<p>' . esc_html__('SpamFireWall is a part of the anti-spam service and blocks the most spam active bots before the site pages load.', 'cleantalk-spam-protect') . '</p>'
                     . '<p>' . esc_html__('Anti-Crawler is an add-on to SFW and helps to strengthen the protection against spam bots. Disabled by default.', 'cleantalk-spam-protect') . '</p>'
@@ -3178,6 +3208,7 @@ function apbct_settings__get__long_description()
         ),
         'data__email_decoder' => array(
             'title' => __('Encode contact data', 'cleantalk-spam-protect'),
+            //HANDLE LINK
             'desc'  => sprintf(
                 __('This option allows you to encode contacts on the public pages of the site. This prevents robots from automatically collecting such data and prevents it from being included in spam lists. %s', 'cleantalk-spam-protect'),
                 '<a href="https://cleantalk.org/help/email-encode{utm_mark}" target="_blank">' . __('Learn more.', 'cleantalk-spam-protect') . '</a>'
@@ -3201,6 +3232,7 @@ function apbct_settings__get__long_description()
                 '<p><code>' . htmlspecialchars('<div style="display: none"><input type="text" name="apbct_skip_this_form"></div>') . '</code></p>' .
                 '<p>Exclusion:</p>' .
                 '<p><code>.*apbct_skip_this_form+</code></p>' .
+                //HANDLE LINK
                 sprintf(
                     __('See details on the page linked below. %s', 'cleantalk-spam-protect'),
                     '</p><a href="https://cleantalk.org/help/exclusion-from-anti-spam-checking{utm_mark}#wordpress" target="_blank">' . __('Learn more.', 'cleantalk-spam-protect') . '</a>'

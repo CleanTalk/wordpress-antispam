@@ -2,6 +2,7 @@
 
 use Cleantalk\ApbctWP\Escape;
 use Cleantalk\ApbctWP\Helper;
+use Cleantalk\ApbctWP\LinkConstructor;
 use Cleantalk\ApbctWP\Localize\CtPublicFunctionsLocalize;
 use Cleantalk\ApbctWP\Localize\CtPublicLocalize;
 use Cleantalk\ApbctWP\Sanitize;
@@ -1412,7 +1413,14 @@ function apbct_registration__Wordpress__changeMailNotification(
     $_blogname
 ) {
     global $apbct;
-
+    $link = LinkConstructor::buildCleanTalkLink(
+        'email_wp_spam_registration_passed',
+        'my',
+        array(
+            'user_token' => $apbct->user_token,
+            'cp_mode' => 'antispam'
+        )
+    );
     $wp_new_user_notification_email_admin['message'] = PHP_EOL
                                                        . __(
                                                            'CleanTalk Anti-Spam: This registration is spam.',
@@ -1427,13 +1435,9 @@ function apbct_registration__Wordpress__changeMailNotification(
                                                        . PHP_EOL . PHP_EOL .
                                                        __(
                                                            'Activate protection in your Anti-Spam Dashboard: ',
-                                                           'clentalk'
+                                                           'cleantalk-spam-protect'
                                                        )
-                                                       . 'https://cleantalk.org/my/?cp_mode=antispam&utm_source=newsletter&utm_medium=email&utm_campaign=wp_spam_registration_passed'
-                                                       . ($apbct->data['user_token']
-            ? '&iser_token=' . $apbct->data['user_token']
-            : ''
-                                                       )
+                                                       . $link
                                                        . PHP_EOL . '---'
                                                        . PHP_EOL
                                                        . $wp_new_user_notification_email_admin['message'];
@@ -1856,6 +1860,7 @@ function apbct_form__contactForm7__changeMailNotification($component)
         . PHP_EOL . 'IP: ' . $apbct->sender_ip
         . PHP_EOL . 'Email: ' . $apbct->sender_email
         . PHP_EOL . sprintf(
+            //HANDLE LINK
             __('If you want to be sure activate protection in your Anti-Spam Dashboard: %s.', 'clentalk'),
             'https://cleantalk.org/my/?cp_mode=antispam&utm_source=newsletter&utm_medium=email&utm_campaign=cf7_activate_antispam&user_token=' . $apbct->user_token
         )
@@ -2283,6 +2288,7 @@ function apbct_form__ninjaForms__changeMailNotification($message, $_data, $actio
             . PHP_EOL . 'Email: ' . $apbct->sender_email
             . PHP_EOL .
             __('If you want to be sure activate protection in your Anti-Spam Dashboard: ', 'clentalk') .
+            //HANDLE LINK
             'https://cleantalk.org/my/?cp_mode=antispam&utm_source=newsletter&utm_medium=email&utm_campaign=ninjaform_activate_antispam' . $apbct->user_token
         );
     }
@@ -2540,9 +2546,12 @@ function apbct_form__WPForms__changeMailNotification($message, $_wpforms_email)
             . PHP_EOL
             . __('CleanTalk Anti-Spam: This message could be spam.', 'cleantalk-spam-protect')
             . PHP_EOL . __('CleanTalk\'s Anti-Spam database:', 'cleantalk-spam-protect')
+            //HANDLE LINK
             . PHP_EOL . 'IP: ' . '<a href="https://cleantalk.org/blacklists/' . $apbct->sender_ip . '?utm_source=newsletter&utm_medium=email&utm_campaign=wpforms_spam_passed" target="_blank">' . $apbct->sender_ip . '</a>'
+            //HANDLE LINK
             . PHP_EOL . 'Email: ' . '<a href="https://cleantalk.org/blacklists/' . $apbct->sender_email . '?utm_source=newsletter&utm_medium=email&utm_campaign=wpforms_spam_passed" target="_blank">' . $apbct->sender_email . '</a>'
             . PHP_EOL
+            //HANDLE LINK
             . sprintf(
                 __('If you want to be sure activate protection in your %sAnti-Spam Dashboard%s.', 'clentalk'),
                 '<a href="https://cleantalk.org/my/?cp_mode=antispam&utm_source=newsletter&utm_medium=email&utm_campaign=wpforms_activate_antispam" target="_blank">',

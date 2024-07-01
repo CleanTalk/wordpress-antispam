@@ -72,6 +72,7 @@ class BadUsers extends Users
 
         // Email
         if ( ! empty($email) ) {
+            //HANDLE LINK
             $column_content .= "<a href='mailto:$email'>$email</a>"
                                . (! $this->apbct->white_label
                     ? "<a href='https://cleantalk.org/blacklists/$email' target='_blank'>"

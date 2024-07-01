@@ -471,6 +471,10 @@ function apbct__filter_form_data($form_data)
 {
     global $apbct;
 
+    if (isset($form_data['data']) && is_array($form_data['data'])) {
+        $form_data['data'] = apbct__filter_form_data($form_data['data']);
+    }
+
     // It is a service field. Need to be deleted before the processing.
     if ( isset($form_data['ct_bot_detector_event_token']) ) {
         unset($form_data['ct_bot_detector_event_token']);
