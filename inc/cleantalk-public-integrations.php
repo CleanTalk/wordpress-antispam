@@ -3432,7 +3432,8 @@ add_filter('wsf_submit_field_validate', function ($error_validation_action_field
 
     $long_email = '';
     foreach ($input_array as $value) {
-        if (preg_match("/^\S+@\S+\.\S+$/", $value) &&
+        if (is_string($value) &&
+            preg_match("/^\S+@\S+\.\S+$/", $value) &&
             strlen($value) > strlen($long_email)
         ) {
             $long_email = $value;
