@@ -423,9 +423,6 @@ function ct_ajax_hook($message_obj = null)
         'comment_type' => 'feedback_ajax',
         'post_url'     => Server::get('HTTP_REFERER'), // Page URL must be an previous page
     );
-    if ( Post::get('action') === 'cleantalk_force_ajax_check' ) {
-        $post_info['comment_type'] = 'feedback_ajax_external_form';
-    }
 
     //QAEngine Theme answers
     if ( ! empty($message_obj) && isset($message_obj['post_type'], $message_obj['post_content']) ) {
@@ -1108,19 +1105,6 @@ function ct_ajax_hook($message_obj = null)
     //QAEngine Theme answers
     if ( ! empty($message_obj) && isset($message_obj['post_type'], $message_obj['post_content']) ) {
         return $message_obj;
-    }
-    // Force AJAX check
-    if ( Post::get('action') === 'cleantalk_force_ajax_check' ) {
-        die(
-            json_encode(
-                array(
-                    'apbct' => array(
-                        'blocked' => false,
-                        'allow'   => true,
-                    )
-                )
-            )
-        );
     }
 
     // Nextend Social Login and Register AJAX check

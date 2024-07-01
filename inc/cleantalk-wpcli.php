@@ -55,6 +55,7 @@ class ApbctCli extends WP_CLI_Command // phpcs:ignore PSR1.Classes.ClassDeclarat
         $data['platform'] = 'wordpress';
         $data['product_name'] = 'antispam';
         $data['method_name'] = 'get_api_key';
+        $data['timezone'] = (string)get_option('gmt_offset');
 
         $result = WP_CLI\Utils\http_request($this->method, $this->url, $data, [], ['insecure' => true]);
         if (!isset($result->body)) {

@@ -4,7 +4,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 6.34.1-dev
+  Version: 6.35.1-dev
   Author: СleanTalk - Anti-Spam Protection <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -14,6 +14,7 @@
 use Cleantalk\ApbctWP\Activator;
 use Cleantalk\ApbctWP\AdminNotices;
 use Cleantalk\ApbctWP\API;
+use Cleantalk\ApbctWP\CleantalkRealPerson;
 use Cleantalk\ApbctWP\CleantalkUpgrader;
 use Cleantalk\ApbctWP\CleantalkUpgraderSkin;
 use Cleantalk\ApbctWP\CleantalkUpgraderSkinDeprecated;
@@ -173,6 +174,10 @@ if (
     }
 }
 
+if ( $apbct->settings['comments__the_real_person'] ) {
+    new CleantalkRealPerson();
+}
+
 add_action('rest_api_init', 'apbct_register_my_rest_routes');
 function apbct_register_my_rest_routes()
 {
@@ -195,10 +200,6 @@ add_action('wp_ajax_apbct_js_keys__get', 'apbct_js_keys__get__ajax');
 // Get Pixel URL via WP ajax handler
 add_action('wp_ajax_nopriv_apbct_get_pixel_url', 'apbct_get_pixel_url__ajax');
 add_action('wp_ajax_apbct_get_pixel_url', 'apbct_get_pixel_url__ajax');
-
-// Force ajax checking for external forms
-add_action('wp_ajax_nopriv_cleantalk_force_ajax_check', 'ct_ajax_hook');
-add_action('wp_ajax_cleantalk_force_ajax_check', 'ct_ajax_hook');
 
 // Checking email before POST
 add_action('wp_ajax_nopriv_apbct_email_check_before_post', 'apbct_email_check_before_post');
@@ -334,6 +335,11 @@ $apbct_active_integrations = array(
         'hook'    => 'init',
         'setting' => 'forms__check_external',
         'ajax'    => false
+    ),
+    'CleantalkExternalFormsForceAjax'         => array(
+        'hook'    => 'cleantalk_force_ajax_check',
+        'setting' => 'forms__check_external',
+        'ajax'    => true
     ),
     'CleantalkPreprocessComment'         => array(
         'hook'    => 'preprocess_comment',

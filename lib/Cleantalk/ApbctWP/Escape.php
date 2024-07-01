@@ -218,6 +218,18 @@ class Escape extends \Cleantalk\Common\Escape
                     'color' => true,
                     'size' => true,
                 ),
+            ),
+            'apbct_get_premium_link' => array(
+                'a' => array(
+                    'href'  => true,
+                    'title' => true,
+                    '_target' => true,
+                ),
+                'br' => array(),
+                'p' => array(),
+                'b' => array(
+                    'style' => true,
+                ),
             )
         );
 
