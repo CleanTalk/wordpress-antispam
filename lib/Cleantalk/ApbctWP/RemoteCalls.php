@@ -265,7 +265,7 @@ class RemoteCalls
 
         $out['sfw_data_base_size'] = $wpdb->get_var('SELECT COUNT(*) FROM ' . APBCT_TBL_FIREWALL_DATA);
         $out['stats']              = $apbct->stats;
-        $out['settings']           = $apbct->settings;
+        $out['settings']           = self::getSettings($apbct->settings);
         $out['fw_stats']           = $apbct->fw_stats;
         $out['data']               = $apbct->data;
         $out['cron']               = $apbct->cron;
@@ -395,5 +395,100 @@ class RemoteCalls
         $server = rest_get_server();
         $data = $server->response_to_data($response, false);
         return wp_json_encode($data);
+    }
+
+    private static function getSettings($settings)
+    {
+        $titles = array(
+            'apikey' => 'Access key',
+            'forms__registrations_test' => 'Registration Forms',
+            'forms__comments_test' => 'Comments form',
+            'forms__contact_forms_test' => 'Contact Forms',
+            'forms__flamingo_save_spam' => 'Save Flamingo spam entries',
+            'forms__general_contact_forms_test' => 'Custom contact forms',
+            'forms__search_test' => 'Test default WordPress search form for spam',
+            'forms__check_external' => 'Protect external forms',
+            'forms__check_external__capture_buffer' => 'Capture buffer',
+            'forms__check_internal' => 'Protect internal forms',
+            'forms__wc_checkout_test' => 'WooCommerce checkout form',
+            'forms__wc_register_from_order' => 'Spam test for registration during checkout',
+            'forms__wc_add_to_cart' => 'Check anonymous users when they add new items to the cart',
+            'data__wc_store_blocked_orders' => 'Store blocked orders',
+            'comments__disable_comments__all' => 'Disable all comments',
+            'comments__disable_comments__posts' => 'Disable comments for all posts',
+            'comments__disable_comments__pages' => 'Disable comments for all pages',
+            'comments__disable_comments__media' => 'Disable comments for all media',
+            'comments__bp_private_messages' => 'BuddyPress Private Messages',
+            'comments__remove_old_spam' => 'Automatically delete spam comments',
+            'comments__remove_comments_links' => 'Remove links from approved comments',
+            'comments__show_check_links' => 'Show links to check Emails, IPs for spam',
+            'comments__manage_comments_on_public_page' => 'Manage comments on public pages',
+            'data__protect_logged_in' => 'Protect logged in Users',
+            'comments__check_comments_number' => "Don't check trusted user's comments",
+            'data__use_ajax' => 'Use AJAX for JavaScript check',
+            'data__use_static_js_key' => 'Use static keys for JavaScript check',
+            'data__general_postdata_test' => 'Check all post data',
+            'data__set_cookies' => 'Set cookies',
+            'data__bot_detector_enabled' => 'Use JavaScript library',
+            'exclusions__bot_detector' => 'JavaScript Library Exclusions',
+            'exclusions__bot_detector__form_attributes' => 'Exclude any forms that has attribute matches',
+            'exclusions__bot_detector__form_children_attributes' => 'Exclude any forms that includes a child element with attribute matches',
+            'exclusions__bot_detector__form_parent_attributes' => 'Exclude any forms that includes a parent element with attribute matches',
+            'wp__use_builtin_http_api' => 'Use WordPress HTTP API',
+            'data__pixel' => 'Add a Pixel to improve IP-detection',
+            'data__email_check_before_post' => 'Check email before POST request',
+            'data__honeypot_field' => 'Add a honeypot field',
+            'data__email_decoder' => 'Encode contact data',
+            'data__email_decoder_buffer' => 'Use the output buffer',
+            'exclusions__log_excluded_requests' => 'Log excluded requests',
+            'exclusions__urls' => 'URL exclusions',
+            'exclusions__urls__use_regexp' => 'Use Regular Expression in URL Exclusions',
+            'exclusions__fields' => 'Field Name Exclusions',
+            'exclusions__fields__use_regexp' => 'Use Regular Expression in Field Exclusions',
+            'exclusions__form_signs' => 'Form Signs Exclusions',
+            'exclusions__roles' => 'Roles Exclusions',
+            'admin_bar__show' => 'Show statistics in admin bar',
+            'admin_bar__all_time_counter' => 'Show All-time counter',
+            'admin_bar__daily_counter' => 'Show 24 hours counter',
+            'admin_bar__sfw_counter' => 'SpamFireWall counter',
+            'sfw__random_get' => 'Uniq GET option',
+            'sfw__custom_logo' => 'Custom logo on SpamFireWall blocking pages',
+            'sfw__anti_crawler' => 'Anti-Crawler',
+            'sfw__anti_flood' => 'Anti-Flood',
+            'sfw__anti_flood__view_limit' => 'Anti-Flood Page Views Limit',
+            'misc__send_connection_reports' => 'Send connection reports',
+            'misc__async_js' => 'Async JavaScript loading',
+            'misc__store_urls' => 'Store visited URLs',
+            'wp__comment_notify' => 'Plugin stores last 5 visited URLs',
+            'wp__comment_notify__roles' => 'wp__comment_notify__roles',
+            'wp__dashboard_widget__show' => 'Show Dashboard Widget',
+            'misc__complete_deactivation' => 'Complete deactivation',
+            'trusted_and_affiliate__shortcode' => 'Shortcode',
+            'trusted_and_affiliate__shortcode_tag' => 'Copy this text and place shortcode wherever you need',
+            'trusted_and_affiliate__footer' => 'Add to the footer',
+            'trusted_and_affiliate__under_forms' => 'Add under forms',
+            'trusted_and_affiliate__add_id' => 'Append your affiliate ID',
+            'multisite__work_mode' => 'WordPress Multisite Work Mode',
+            'multisite__hoster_api_key' => 'Hoster Access key',
+            'multisite__white_label' => 'Enable White Label Mode',
+            'multisite__white_label__plugin_name' => 'Plugin name',
+            'multisite__allow_custom_settings' => 'Allow users to manage plugin settings',
+            'multisite__use_settings_template' => 'Use settings template',
+            'multisite__use_settings_template_apply_for_new' => 'Apply for newly added sites',
+            'multisite__use_settings_template_apply_for_current' => 'Apply for current sites',
+            'multisite__use_settings_template_apply_for_current_list_sites' => 'Sites to apply settings',
+        );
+
+        $out = [];
+
+        foreach ($settings as $key => $value) {
+            if (isset($titles[$key])) {
+                $out[$key . ' - ' . $titles[$key]] = $value;
+                continue;
+            }
+            $out[$key] = $value;
+        }
+
+        return $out;
     }
 }
