@@ -484,7 +484,9 @@ class RemoteCalls
         foreach ($settings as $key => $value) {
             if (isset($titles[$key])) {
                 $out[$key . ' - ' . $titles[$key]] = $value;
+                continue;
             }
+            $out[$key] = $value;
         }
 
         return $out;
