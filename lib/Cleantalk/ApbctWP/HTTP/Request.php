@@ -55,10 +55,12 @@ class Request extends \Cleantalk\Common\HTTP\Request
             $response_class = '\Requests_Response';
         }
 
+        $headers_for_api = $this->prepareHeadersForWpHTTPAPI($this->options[CURLOPT_HTTPHEADER]);
+
         try {
             $response = $requests_class::request(
                 $this->url,
-                $this->options[CURLOPT_HTTPHEADER],
+                $headers_for_api,
                 $this->data,
                 $type,
                 $this->options
@@ -206,8 +208,53 @@ class Request extends \Cleantalk\Common\HTTP\Request
                             );
                         }
                         break;
+                        //for API 3.0 preset: headers already provided in parent call, so they will be used in WP HTTP API call
                 }
             }
         }
+    }
+
+    /**
+     * Prepare headers for WP HTTP API.
+     * WP HTTP API requires headers to be in the associative array format because of use Request::flatten
+     * @param array $curl_headers Inassociative array of headers
+     * @return array Associative array of headers
+     */
+    private function prepareHeadersForWpHTTPAPI($curl_headers)
+    {
+        $headers_for_api = array();
+        $separator = '%ct_header_separator%';
+
+        try {
+            foreach ( $curl_headers as $header) {
+                //we can't use regex or str_replace because of just single replacement needs
+                if (is_string($header)) {
+                    // Check if header has a delimiter ": " - very first
+                    $found_delimiter = stripos($header, ': ');
+                    if ($found_delimiter !== false) {
+                        $sub1 = substr($header, 0, $found_delimiter);
+                        $sub2 = substr($header, $found_delimiter + 1);
+                        $mod_header = $sub1 . $separator . $sub2;
+                    } else {
+                        //Check if header has a delimiter ":" without space  - very first
+                        $found_delimiter = stripos($header, ':');
+                        if ($found_delimiter !== false) {
+                            $sub1 = substr($header, 0, $found_delimiter);
+                            $sub2 = substr($header, $found_delimiter);
+                            $mod_header = $sub1 . $separator . $sub2;
+                        }
+                    }
+                    //if any found - add to the headers
+                    if (isset($mod_header)) {
+                        $pair = explode($separator, $mod_header);
+                        $headers_for_api[$pair[0]] = $pair[1];
+                    }
+                }
+            }
+        } catch (\Exception $_e) {
+            return $curl_headers;
+        }
+
+        return $headers_for_api;
     }
 }
