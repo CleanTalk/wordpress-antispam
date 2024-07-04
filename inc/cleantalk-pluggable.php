@@ -1126,6 +1126,15 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'Proto theme login popup form';
         }
+
+        // Bloom - has the direct integration
+        if (
+            apbct_is_plugin_active('bloom/bloom.php') &&
+            Post::get('action') === 'bloom_subscribe'
+        ) {
+            return 'Bloom';
+        }
+
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
