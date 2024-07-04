@@ -1134,7 +1134,6 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'Bloom';
         }
-
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
