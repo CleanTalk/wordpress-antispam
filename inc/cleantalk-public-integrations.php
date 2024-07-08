@@ -14,18 +14,10 @@ use Cleantalk\ApbctWP\Variables\AltSessions;
 use Cleantalk\ApbctWP\Variables\Request;
 use Cleantalk\ApbctWP\Variables\Server;
 
-// MailChimp Premium for Wordpress
-function ct_add_mc4wp_error_message($messages)
-{
-    $messages['ct_mc4wp_response'] = array(
-        'type' => 'error',
-        'text' => 'Your message looks like spam.'
-    );
-
-    return $messages;
+//MailChimp premium. Prepare block message for AJAX response.
+if ( class_exists('Cleantalk\Antispam\Integrations\MailChimp') ) {
+    add_filter('mc4wp_form_messages', array('Cleantalk\Antispam\Integrations\MailChimp', 'addFormResponse'));
 }
-
-add_filter('mc4wp_form_messages', 'ct_add_mc4wp_error_message');
 
 /*
  * Fluent Booking shortcode localize CT script and vars.
