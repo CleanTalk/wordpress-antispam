@@ -1134,6 +1134,14 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'Bloom';
         }
+
+        // Ajax Search Lite - these requests will be caught by search form protection
+        if (
+            apbct_is_plugin_active('ajax-search-lite/ajax-search-lite.php') &&
+            Post::get('action') === 'ajaxsearchlite_search'
+        ) {
+            return 'Ajax Search Lite';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
