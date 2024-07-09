@@ -635,6 +635,12 @@ $apbct_active_integrations = array(
         'setting' => 'forms__registrations_test',
         'ajax'    => false
     ),
+    // Mail chimp integration works with ajax and POST via the same hook
+    'MailChimp' => array(
+        'hook'    => 'mc4wp_form_errors',
+        'setting' => 'forms__registrations_test',
+        'ajax' => false
+    ),
 );
 add_action('plugins_loaded', function () use ($apbct_active_integrations, $apbct) {
     if ( defined('FLUENTFORM_VERSION') ) {
@@ -828,8 +834,6 @@ add_filter('wpforms_process_initial_errors', 'apbct_form__WPForms__showResponse'
 add_filter('frm_entries_before_create', 'apbct_form__formidable__testSpam', 999999, 2);
 add_action('frm_entries_footer_scripts', 'apbct_form__formidable__footerScripts', 20, 2);
 
-/* MailChimp Premium */
-add_filter('mc4wp_form_errors', 'ct_mc4wp_hook');
 
 add_action('mec_booking_end_form_step_2', function () {
     echo "<script>
