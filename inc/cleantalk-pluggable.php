@@ -1142,6 +1142,14 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'Ajax Search Lite';
         }
+
+        // Monta Checkout service action
+        if (
+            apbct_is_plugin_active('montapacking-checkout-woocommerce-extension/montapacking-checkout.php') &&
+            Post::get('action') === 'monta_shipping_options'
+        ) {
+            return 'Monta Checkout';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
