@@ -2,8 +2,8 @@
 
 namespace Cleantalk\ApbctWP;
 
+use Cleantalk\ApbctWP\AdjustToEnvironmentModule\AdjustToEnvironmentHandler;
 use Cleantalk\ApbctWP\UpdatePlugin\DbTablesCreator;
-use Cleantalk\Common\Schema;
 
 class Activator
 {
@@ -70,6 +70,10 @@ class Activator
                 restore_current_blog();
             }
         }
+
+        // Try to adjust to environment
+        $adjust = new AdjustToEnvironmentHandler();
+        $adjust->handle();
     }
 
     /**
