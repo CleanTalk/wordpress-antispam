@@ -1126,6 +1126,15 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'Proto theme login popup form';
         }
+
+        if (
+            (
+                apbct_is_plugin_active('piotnet-addons-for-elementor-pro/piotnet-addons-for-elementor-pro.php') ||
+                apbct_is_plugin_active('piotnet-addons-for-elementor/piotnet-addons-for-elementor.php')
+            ) &&
+            Post::get('action') === 'pafe_ajax_form_builder_preview_submission' ) {
+            return 'PAFE';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */

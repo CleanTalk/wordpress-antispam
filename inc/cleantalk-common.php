@@ -947,6 +947,10 @@ function ct_send_feedback($feedback_request = null)
         $ct->server_ttl     = $config['ct_server_ttl'];
         $ct->server_changed = $config['ct_server_changed'];
 
+        //method use api3.0 since 6.35(6.36?)
+        $ct->api_version = '/api3.0';
+        $ct->method_uri = 'send_feedback';
+
         $ct_result = $ct->sendFeedback($ct_request);
 
         if ( $ct->server_change ) {

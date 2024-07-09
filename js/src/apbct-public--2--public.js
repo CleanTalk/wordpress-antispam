@@ -7,6 +7,7 @@ let ctMouseDataCounter = 0;
 let ctCheckedEmails = {};
 let ctMouseReadInterval;
 let ctMouseWriteDataInterval;
+let tokenCheckerIntervalId;
 
 // eslint-disable-next-line require-jsdoc,camelcase
 function apbct_attach_event_handler(elem, event, callback) {
@@ -482,6 +483,27 @@ function apbctPrepareBlockForAjaxForms() {
 }
 
 /**
+ * For forced alt cookies.
+ * If token is not added to the LS on apbc_ready, check every second if so and send token to the alt sessions.
+ */
+function startForcedAltEventTokenChecker() {
+    tokenCheckerIntervalId = setInterval( function() {
+        if (apbctLocalStorage.get('event_token_forced_set') === '1') {
+            clearInterval(tokenCheckerIntervalId);
+            return;
+        }
+        let eventToken = apbctLocalStorage.get('bot_detector_event_token');
+        if (eventToken) {
+            ctSetAlternativeCookie([['ct_bot_detector_event_token', eventToken]], {forceAltCookies: true});
+            apbctLocalStorage.set('event_token_forced_set', '1');
+            clearInterval(tokenCheckerIntervalId);
+        } else {
+        }
+    }, 1000);
+}
+
+
+/**
  * Ready function
  */
 // eslint-disable-next-line camelcase,require-jsdoc
@@ -591,18 +613,18 @@ function apbct_ready() {
     ctDetectForcedAltCookiesForms();
 
     // send bot detector event token to alt cookies on problem forms
+    let tokenForForceAlt = apbctLocalStorage.get('bot_detector_event_token');
     if (typeof ctPublic.force_alt_cookies !== 'undefined' &&
         ctPublic.force_alt_cookies &&
-        apbctLocalStorage.get('bot_detector_event_token') &&
-        // do bot set if (ct_bot_detector_event_token) already set,
-        // and it is equal to newly added from moderate (bot_detector_event_token)
-        apbctLocalStorage.get('ct_bot_detector_event_token') !== apbctLocalStorage.get('bot_detector_event_token')
+        ctPublic.settings__data__bot_detector_enabled
     ) {
-        initCookies.push(['ct_bot_detector_event_token', apbctLocalStorage.get('bot_detector_event_token')]);
-    }
-
-    if (!ctPublic.force_alt_cookies && ctPublic.data__cookies_type == 'alternative') {
-        ctPublic.force_alt_cookies = apbctLocalStorage.get('bot_detector_event_token');
+        apbctLocalStorage.set('event_token_forced_set', '0');
+        if (tokenForForceAlt) {
+            initCookies.push(['ct_bot_detector_event_token', tokenForForceAlt]);
+            apbctLocalStorage.set('event_token_forced_set', '1');
+        } else {
+            startForcedAltEventTokenChecker();
+        }
     }
 
     ctSetCookie(initCookies);
