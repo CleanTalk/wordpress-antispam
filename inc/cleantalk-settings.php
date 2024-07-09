@@ -1,7 +1,7 @@
 <?php
 
-use Cleantalk\ApbctWP\API;
-use Cleantalk\ApbctWP\CleantalkSettingsTemplates;
+use Cleantalk\ApbctWP\AdjustToEnvironmentModule\AdjustToEnvironmentHandler;
+use Cleantalk\ApbctWP\AdjustToEnvironmentModule\AdjustToEnvironmentSettings;
 use Cleantalk\ApbctWP\Escape;
 use Cleantalk\ApbctWP\Helper;
 use Cleantalk\ApbctWP\LinkConstructor;
@@ -874,6 +874,10 @@ function apbct_settings__set_fields()
                 'wp__dashboard_widget__show'    => array(
                     'type'  => 'checkbox',
                     'title' => __('Show Dashboard Widget', 'cleantalk-spam-protect'),
+                ),
+                'misc__action_adjust'        => array(
+                    'callback' => 'apbct_settings_field__action_adjust',
+                    'display' => apbct_is_plugin_active('w3-total-cache/w3-total-cache.php')
                 ),
                 'misc__complete_deactivation'   => array(
                     'type'        => 'checkbox',
@@ -2865,6 +2869,10 @@ function apbct_settings__sync($direct_call = false)
         return $out;
     }
 
+    // Try to adjust to environment
+    $adjust = new AdjustToEnvironmentHandler();
+    $adjust->handle();
+
     die(json_encode($out));
 }
 
@@ -3463,4 +3471,13 @@ function apbct_get_spoilers_links()
         : '';
 
     return '<br>' . $advanced_settings . $import_export . $affiliate_section;
+}
+
+/**
+ * @return void
+ */
+function apbct_settings_field__action_adjust()
+{
+    $res = AdjustToEnvironmentSettings::render();
+    echo $res;
 }
