@@ -91,6 +91,19 @@ jQuery(document).ready(function($) {
             window.location.href = deactivationLink;
         }
     });
+
+    document.querySelectorAll('.apbct-real-user').forEach((el) => {
+        el.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            e.currentTarget.querySelector('.apbct-real-user-popup').style.display = 'block';
+        });
+    });
+    document.querySelector('body').addEventListener('click', function(e) {
+        document.querySelectorAll('.apbct-real-user-popup').forEach((el) => {
+            el.style.display = 'none';
+        });
+    });
 });
 
 // eslint-disable-next-line camelcase,require-jsdoc,no-unused-vars

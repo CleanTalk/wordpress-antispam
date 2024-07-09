@@ -24,12 +24,13 @@ jQuery(document).ready(function() {
     });
 
     let d = new Date();
-    jQuery('#ct_admin_timezone').val(d.getTimezoneOffset()/60*(-1));
+    let timezone = d.getTimezoneOffset()/60*(-1);
+    jQuery('#ct_admin_timezone').val(timezone);
 
     // Key KEY automatically
     jQuery('#apbct_button__get_key_auto').on('click', function() {
         apbct_admin_sendAJAX(
-            {action: 'apbct_get_key_auto'},
+            {action: 'apbct_get_key_auto', ct_admin_timezone: timezone},
             {
                 timeout: 25000,
                 button: document.getElementById('apbct_button__get_key_auto' ),

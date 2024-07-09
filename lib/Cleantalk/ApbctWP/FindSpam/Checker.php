@@ -171,7 +171,8 @@ abstract class Checker
             </div>
             <br>
             <?php
-            apbct_admin__badge__get_premium(); ?>
+            echo apbct_admin__badge__get_premium('checkers');
+            ?>
         </div>
 
         <!-- Cooling notice -->

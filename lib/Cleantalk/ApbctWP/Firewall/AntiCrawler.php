@@ -397,6 +397,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
                     'Anti-Crawler Protection is checking your browser and IP %s for spam bots',
                     'cleantalk-spam-protect'
                 ),
+                //HANDLE LINK
                 '<a href="https://cleantalk.org/blacklists/' . $result['ip'] . '" target="_blank">' . $result['ip'] . '</a>'
             );
 

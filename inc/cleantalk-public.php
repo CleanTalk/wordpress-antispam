@@ -129,11 +129,6 @@ function apbct_init()
         add_action('init', 'ct_contact_form_validate_postdata', 1000);
     }
 
-    if (Post::get('learn-press-register-nonce') && apbct_is_plugin_active('learnpress/learnpress.php')) {
-        unset($_POST['ct_checkjs_register_form']);
-        ct_contact_form_validate();
-    }
-
     if ( $apbct->settings['forms__general_contact_forms_test'] == 1 && empty(Post::get('ct_checkjs_cf7')) && ! apbct_is_direct_trackback() ) {
         add_action('CMA_custom_post_type_nav', 'ct_contact_form_validate_postdata', 1);
         add_action('init', 'ct_contact_form_validate', 999);
@@ -217,6 +212,7 @@ function apbct_init()
         $hook    = WPCF7_VERSION >= '3.0.0' ? 'wpcf7_spam' : 'wpcf7_acceptance';
         $num_arg = WPCF7_VERSION >= '5.3.0' ? 2 : 1;
         add_filter($hook, 'apbct_form__contactForm7__testSpam', 9999, $num_arg);
+        add_action('wpcf7_before_send_mail', 'apbct_form__contactForm7__testSpam', 999);
     }
 
     // BuddyPress
@@ -782,10 +778,13 @@ function apbct_comment__Wordpress__changeMailNotification($notify_message, $_com
     return PHP_EOL
            . __('CleanTalk Anti-Spam: This message is possible spam.', 'cleantalk-spam-protect')
            . "\n" . __('You could check it in CleanTalk\'s Anti-Spam database:', 'cleantalk-spam-protect')
+        //HANDLE LINK
            . "\n" . 'IP: https://cleantalk.org/blacklists/' . $apbct->sender_ip
+        //HANDLE LINK
            . "\n" . 'Email: https://cleantalk.org/blacklists/' . $apbct->sender_email
            . "\n" . PHP_EOL . sprintf(
                __('Activate protection in your Anti-Spam Dashboard: %s.', 'clentalk'),
+               //HANDLE LINK
                'https://cleantalk.org/my/?cp_mode=antispam&utm_source=newsletter&utm_medium=email&utm_campaign=wp_spam_comment_passed'
                . ($apbct->data['user_token']
                    ? '&iser_token=' . $apbct->data['user_token']
@@ -804,6 +803,7 @@ function apbct_comment__wordpress__show_blacklists($notify_message, $comment_id)
     $comment_details = $comment_details[0];
 
     if ( isset($comment_details->comment_author_email) ) {
+        //HANDLE LINK
         $black_list_link = 'https://cleantalk.org/blacklists/';
 
         $links = PHP_EOL;
@@ -1026,6 +1026,20 @@ function ct_set_approved($approved, $_comment)
 }
 
 /**
+ * Public action 'comment_post' - Store cleantalk hash in comment meta
+ *
+ * @psalm-suppress UnusedParam
+ * @return void
+ */
+function ct_set_real_user_badge_hash($comment_id)
+{
+    $hash1 = ct_hash();
+    if ( ! empty($hash1) ) {
+        update_comment_meta($comment_id, 'ct_real_user_badge_hash', ct_hash());
+    }
+}
+
+/**
  * Public filter 'pre_comment_approved' - Mark comment unapproved always
  * @return    string
  */
@@ -1223,6 +1237,7 @@ function ct_enqueue_scripts_public($_hook)
                 ),
                 'ct_feedback_msg'     => sprintf(
                     __("Feedback has been sent to %sCleanTalk Dashboard%s.", 'cleantalk-spam-protect'),
+                    //HANDLE LINK
                     $apbct->user_token ? "<a target='_blank' href=https://cleantalk.org/my/show_requests?user_token={$apbct->user_token}&cp_mode=antispam>" : '',
                     $apbct->user_token ? "</a>" : ''
                 )
@@ -1387,6 +1402,7 @@ function ct_comments_output($curr_comment, $_param2, $wp_list_comments_args)
     // Outputs email if exists
     if ($email) {
         if (! $apbct->data["wl_mode_enabled"]) {
+            //HANDLE LINK
             $html .= "<a href='https://cleantalk.org/blacklists/$email' target='_blank' title='https://cleantalk.org/blacklists/$email'>"
                 . "$email"
                 . "&nbsp;<img src='" . Escape::escUrl(APBCT_IMG_ASSETS_PATH . "/new_window.gif") . "' border='0' style='float:none; box-shadow: transparent 0 0 0 !important;'/>"
@@ -1401,6 +1417,7 @@ function ct_comments_output($curr_comment, $_param2, $wp_list_comments_args)
     // Outputs IP if exists
     if ($ip) {
         if (! $apbct->data["wl_mode_enabled"]) {
+            //HANDLE LINK
             $html .= "<a href='https://cleantalk.org/blacklists/$ip' target='_blank' title='https://cleantalk.org/blacklists/$ip'>"
                 . "$ip"
                 . "&nbsp;<img src='" . Escape::escUrl(APBCT_IMG_ASSETS_PATH . "/new_window.gif") . "' border='0' style='float:none; box-shadow: transparent 0 0 0 !important;'/>"
@@ -1512,6 +1529,7 @@ function apbct_generate_trusted_text_html($type = 'div')
     }
 
     $css_class = 'apbct-trusted-text--' . $type;
+    //HANDLE LINK
     $cleantalk_tag_with_ref_link = '<a href="https://cleantalk.org/register?'
         . http_build_query($query_data)
         . '" target="_blank" rel="nofollow">'

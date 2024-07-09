@@ -71,6 +71,7 @@ class State extends \Cleantalk\Common\State
         'comments__remove_comments_links'          => 0, // Remove links from approved comments
         'comments__show_check_links'               => 1, // Shows check link to Cleantalk's DB.
         'comments__manage_comments_on_public_page' => 0, // Allows to control comments on public page.
+        'comments__the_real_person'                => 0, // Shows badge on each approved by cloud comments on public page.
         'comments__hide_website_field'             => 0, // Hide website field from comment form
 
         // Data processing
@@ -546,6 +547,11 @@ class State extends \Cleantalk\Common\State
                 // A/B testing for the Encode contact data setting: randomly on or off
                 // @ToDo remove this after testing
                 $this->default_settings['data__email_decoder'] = rand(0, 1);
+                // A/B testing for the RealUserBadge setting: randomly on or off
+                // @ToDo remove this after testing
+                if ( ! is_array($option) ) {
+                    $this->default_settings['comments__the_real_person'] = rand(0, 1);
+                }
                 $option = is_array($option) ? array_merge($this->default_settings, $option) : $this->default_settings;
             }
 
@@ -586,6 +592,7 @@ class State extends \Cleantalk\Common\State
     {
         // Standalone or main site
         $this->api_key        = $this->settings['apikey'];
+        //HANDLE LINK
         $this->dashboard_link = 'https://cleantalk.org/my/' . ($this->user_token ? '?user_token=' . $this->user_token : '');
         $this->notice_show    = $this->data['notice_trial'] || $this->data['notice_renew'] || $this->data['notice_incompatibility'] || $this->isHaveErrors();
 

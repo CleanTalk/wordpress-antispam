@@ -15,6 +15,7 @@ use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\ApbctWP\Variables\Get;
 use Cleantalk\ApbctWP\Variables\Post;
 use Cleantalk\ApbctWP\Variables\Server;
+use Cleantalk\ApbctWP\RequestParameters\RequestParameters;
 
 function apbct_array($array)
 {
@@ -530,6 +531,9 @@ function apbct_get_sender_info()
     $cache_plugins_detected = empty($cache_plugins_detected) ? false : $cache_plugins_detected;
     $cache_plugins_detected = json_encode($cache_plugins_detected);
 
+    $apbct_urls = RequestParameters::getCommonStorage('apbct_urls');
+    $apbct_urls = $apbct_urls ? json_encode(json_decode($apbct_urls, true)) : null;
+
     //Let's keep $data_array for debugging
     $data_array = array(
         'plugin_request_id'         => $apbct->plugin_request_id,
@@ -574,9 +578,7 @@ function apbct_get_sender_info()
             : null,
         // Misc
         'site_referer'              => Cookie::get('apbct_site_referer') ?: null,
-        'source_url'                => Cookie::get('apbct_urls')
-            ? json_encode(json_decode(Cookie::get('apbct_urls'), true))
-            : null,
+        'source_url'                => $apbct_urls,
         'pixel_url'                 => $param_pixel_url,
         'pixel_setting'             => $apbct->settings['data__pixel'],
         // Debug stuff
