@@ -384,6 +384,7 @@ function ct_ajax_hook($message_obj = null)
          // (function_exists('get_current_user_id') && get_current_user_id() != 0) || // Check with default wp_* function if it's admin
          ( ! $apbct->settings['data__protect_logged_in'] && ($apbct->user instanceof WP_User) && $apbct->user->ID !== 0) || // Logged in user
          apbct_exclusions_check__url() || // url exclusions
+
          (Post::get('action') && in_array(Post::get('action'), $skip_post)) || // Special params
          (Get::get('action') && in_array(Get::get('action'), $skip_post)) ||  // Special params
          Post::get('quform_submit') || //QForms multi-paged form skip
@@ -401,7 +402,8 @@ function ct_ajax_hook($message_obj = null)
          (Post::get('action') === 'uael_login_form_submit') || // skip Ultimate Addons for Elementor login
          (Post::get('action') === 'my_custom_login_validate') || // skip Ultimate Addons for Elementor login validate
          (Post::get('action') === 'wpforms_restricted_email') || // skip WPForm validate
-         (Post::get('action') === 'fluentcrm_unsubscribe_ajax') // skip fluentcrm unsubscribe
+         (Post::get('action') === 'fluentcrm_unsubscribe_ajax') ||// skip fluentcrm unsubscribe
+         (Post::get('action') === 'kaliforms_form_process') // skip kali forms
     ) {
         do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
 

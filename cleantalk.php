@@ -564,10 +564,10 @@ $apbct_active_integrations = array(
         'setting' => 'forms__contact_forms_test',
         'ajax'    => false
     ),
-    'KaliForms'           => array(
-        'hook'    => array('plugins_loaded'),
+    'KaliForms'   => array(
+        'hook'    => array('kaliforms_form_process'),
         'setting' => 'forms__contact_forms_test',
-        'ajax'    => false
+        'ajax'    => true
     ),
     'ClassifiedListingRegister' => array(
         'hook'    => 'wp_loaded',
