@@ -331,7 +331,63 @@ window.onload = function() {
         catchNextendSocialLoginForm();
         ctProtectOutsideIframe();
     }, 2000);
+
+    ctProtectKlaviyoForm();
 };
+
+/**
+ * Protect klaviyo forms
+ */
+function ctProtectKlaviyoForm() {
+    if (!document.querySelector('link[rel="dns-prefetch"][href="//static.klaviyo.com"]')) {
+        return;
+    }
+
+    let i = setInterval(() => {
+        const klaviyoForms = document.querySelectorAll('form.klaviyo-form');
+        if (klaviyoForms.length) {
+            clearInterval(i);
+            klaviyoForms.forEach((form, index) => {
+                apbctProcessExternalFormKlaviyo(form, index, document);
+            });
+        }
+    }, 500);
+}
+
+/**
+ * Protect klaviyo forms
+ * @param {HTMLElement} form
+ * @param {int} iterator
+ * @param {HTMLElement} documentObject
+ */
+function apbctProcessExternalFormKlaviyo(form, iterator, documentObject) {
+    const btn = form.querySelector('button[type="button"].needsclick');
+    if (!btn) {
+        return;
+    }
+    btn.disabled = true;
+
+    const forceAction = document.createElement('input');
+    forceAction.name = 'action';
+    forceAction.value = 'cleantalk_force_ajax_check';
+    forceAction.type = 'hidden';
+    form.appendChild(forceAction);
+
+    let cover = document.createElement('div');
+    cover.id = 'apbct-klaviyo-cover';
+    cover.style.width = '100%';
+    cover.style.height = '100%';
+    cover.style.background = 'black';
+    cover.style.opacity = 0;
+    cover.style.position = 'absolute';
+    cover.style.top = 0;
+    cover.style.cursor = 'pointer';
+    cover.onclick = function(e) {
+        sendAjaxCheckingFormData(form);
+    };
+    btn.parentNode.style.position = 'relative';
+    btn.parentNode.appendChild(cover);
+}
 
 /**
  * Protect forms placed in iframe with outside src
@@ -589,6 +645,20 @@ function sendAjaxCheckingFormData(form) {
             async: false,
             callback: function( result, data, params, obj ) {
                 if ( result.apbct === undefined || ! +result.apbct.blocked ) {
+                    // Klaviyo integration
+                    if (form.classList !== undefined && form.classList.contains('klaviyo-form')) {
+                        const cover = document.getElementById('apbct-klaviyo-cover');
+                        if (cover) {
+                            cover.remove();
+                        }
+                        const btn = form.querySelector('button[type="button"].needsclick');
+                        if (btn) {
+                            btn.disabled = false;
+                            btn.click();
+                        }
+                        return;
+                    }
+
                     // MooSend integration
                     if ( form.dataset.mailingListId !== undefined ) {
                         let submitButton = form.querySelector('[type="submit"]');
