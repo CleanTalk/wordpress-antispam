@@ -619,6 +619,11 @@ $apbct_active_integrations = array(
         'setting' => 'forms__contact_forms_test',
         'ajax'    => true
     ),
+    'KadenceBlocksAdvanced' => array(
+        'hook'    => 'kb_process_advanced_form_submit',
+        'setting' => 'forms__contact_forms_test',
+        'ajax'    => true
+    ),
     'WordpressFileUpload' => array(
         'hook'    => 'wfu_before_upload',
         'setting' => 'forms__contact_forms_test',
@@ -640,6 +645,11 @@ $apbct_active_integrations = array(
         'hook'    => 'mc4wp_form_errors',
         'setting' => 'forms__registrations_test',
         'ajax' => false
+    ),
+    'BloomForms' => array(
+        'hook'    => 'bloom_subscribe',
+        'setting' => 'forms__contact_forms_test',
+        'ajax'    => true
     ),
 );
 add_action('plugins_loaded', function () use ($apbct_active_integrations, $apbct) {

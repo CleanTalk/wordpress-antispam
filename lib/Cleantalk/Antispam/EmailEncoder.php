@@ -109,6 +109,7 @@ class EmailEncoder
             'widget_content',
             'widget_output',
             'widget_block_content',
+            'render_block',
         );
         foreach ( $hooks_to_encode as $hook ) {
             add_filter($hook, array($this, 'modifyContent'));
