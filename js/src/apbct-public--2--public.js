@@ -1642,11 +1642,11 @@ if (document.readyState !== 'loading') {
  * Handle real user badge
  */
 function apbctRealUserBadge() {
-    document.querySelectorAll('.apbct-real-user').forEach((el) => {
+    document.querySelectorAll('.apbct-real-user-badge').forEach((el) => {
         el.addEventListener('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
-            e.currentTarget.querySelector('.apbct-real-user-popup').style.display = 'block';
+            e.currentTarget.querySelector('.apbct-real-user-popup').style.display = 'inline-flex';
         });
     });
     document.querySelector('body').addEventListener('click', function(e) {
@@ -1658,31 +1658,31 @@ function apbctRealUserBadge() {
 
 /**
  * Handle real user badge for woocommerce
- * @param int id
- * @param string author
+ * @param template
+ * @param id
  */
 // eslint-disable-next-line no-unused-vars,require-jsdoc
-function apbctRealUserBadgeWoocommerce(id, author, title, text) {
+function apbctRealUserBadgeWoocommerce(template, id) {
     if (window.innerWidth < 768) {
         return;
     }
 
     let badge = document.createElement('div');
-    badge.className = 'apbct-real-user';
-    badge.style.position = 'absolute';
-    badge.style.top = '15px';
-    badge.title = title;
+    badge.className = 'apbct-real-user-wrapper';
 
-    let popup = document.createElement('div');
-    popup.className = 'apbct-real-user-popup';
+    let attachmentPlace = document.querySelector('#comment-' + id).querySelector('.woocommerce-review__author');
 
-    let content = document.createElement('span');
-    content.innerText = author + ' ' + text;
+    try {
+        template = atob(template);
+        badge.innerHTML = template;
 
-    popup.appendChild(content);
-    badge.appendChild(popup);
-
-    document.querySelector('#comment-' + id).querySelector('.woocommerce-review__published-date').appendChild(badge);
+        if (typeof attachmentPlace !== 'undefined') {
+            attachmentPlace.style.display = 'inline-flex';
+            attachmentPlace.appendChild(badge);
+        }
+    } catch (e) {
+        console.log('APBCT error: ' + e.toString());
+    }
 }
 
 /**
