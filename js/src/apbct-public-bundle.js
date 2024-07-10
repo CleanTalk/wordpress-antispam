@@ -1117,6 +1117,7 @@ function ctDetectForcedAltCookiesForms() {
     let userRegistrationProForm = document.querySelectorAll('div[id^="user-registration-form"]').length > 0;
     let etPbDiviSubscriptionForm = document.querySelectorAll('div[class^="et_pb_newsletter_form"]').length > 0;
     let fluentBookingApp = document.querySelectorAll('div[class^="fluent_booking_app"]').length > 0;
+    let bloomPopup = document.querySelectorAll('div[class^="et_bloom_form_container"]').length > 0;
     let pafeFormsFormElementor = document.querySelectorAll('div[class*="pafe-form"]').length > 0;
     ctPublic.force_alt_cookies = smartFormsSign ||
         ninjaFormsSign ||
@@ -1126,7 +1127,8 @@ function ctDetectForcedAltCookiesForms() {
         userRegistrationProForm ||
         etPbDiviSubscriptionForm ||
         fluentBookingApp ||
-        pafeFormsFormElementor;
+        pafeFormsFormElementor ||
+        bloomPopup;
 
     setTimeout(function() {
         if (!ctPublic.force_alt_cookies) {
@@ -2742,6 +2744,10 @@ function getJavascriptClientData(commonCookies = []) {
         ctCookiesTypeLocalStorage : ctCookiesTypeCookie;
     resultDataJson.apbct_pixel_url = ctPixelUrl !== undefined ?
         ctPixelUrl : ctCookiesPixelUrl;
+    if (resultDataJson.apbct_pixel_url.indexOf('%3A%2F')) {
+        resultDataJson.apbct_pixel_url = decodeURIComponent(resultDataJson.apbct_pixel_url);
+    }
+
     resultDataJson.apbct_page_hits = apbctPageHits;
     resultDataJson.apbct_prev_referer = apbctPrevReferer;
     resultDataJson.apbct_site_referer = apbctSiteReferer;
