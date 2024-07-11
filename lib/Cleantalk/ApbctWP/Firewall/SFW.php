@@ -19,9 +19,9 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
     private $test;
 
     /**
-     * @var int
+     * @var array
      */
-    private $test_status;
+    private $test_entry;
 
     // Additional params
     private $sfw_counter = false;
@@ -179,7 +179,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
 
             $db_results = $this->db->fetchAll($query);
 
-            $test_status = 99;
+            $test_entry['status'] = 99;
 
             if ( ! empty($db_results)) {
                 foreach ($db_results as $db_result) {
@@ -205,7 +205,8 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
                         'status'      => $text_status
                     );
 
-                    $test_status = (int)$db_result['status'];
+                    $test_entry = $result_entry;
+                    $test_entry['status'] = (int)($db_result['status']);
 
                     if ($text_status === 'PASS_SFW__BY_WHITELIST') {
                         break;
@@ -222,7 +223,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
             $results[] = $result_entry;
 
             if ( $this->test && $origin === 'sfw_test' ) {
-                $this->test_status = $test_status;
+                $this->test_entry = $test_entry;
             }
         }
 
@@ -408,13 +409,14 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
              * Message about IP status
              */
             if ( $this->test ) {
-                $is_personal = isset($this->db->result[0]["is_personal"]) && (int)$this->db->result[0]["is_personal"] === 1;
+                $is_personal = isset($this->test_entry['is_personal']) && (int)$this->test_entry['is_personal'] === 1;
+                $test_status = isset($this->test_entry['status']) ? (int)$this->test_entry['status'] : null;
                 $common_text_passed = __('This IP is passed', 'cleantalk-spam-protect');
                 $common_text_blocked = __('This IP is blocked', 'cleantalk-spam-protect');
                 $global_text = __('(in global lists)', 'cleantalk-spam-protect');
                 $personal_text = __('(in personal lists)', 'cleantalk-spam-protect');
                 $lists_text = $is_personal ? $personal_text : $global_text;
-                switch ( $this->test_status ) {
+                switch ( $test_status ) {
                     case 1:
                         $message_ip_status = $common_text_passed . ' ' . $lists_text;
                         $message_ip_status_color = 'green';

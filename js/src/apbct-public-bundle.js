@@ -1117,6 +1117,7 @@ function ctDetectForcedAltCookiesForms() {
     let userRegistrationProForm = document.querySelectorAll('div[id^="user-registration-form"]').length > 0;
     let etPbDiviSubscriptionForm = document.querySelectorAll('div[class^="et_pb_newsletter_form"]').length > 0;
     let fluentBookingApp = document.querySelectorAll('div[class^="fluent_booking_app"]').length > 0;
+    let bloomPopup = document.querySelectorAll('div[class^="et_bloom_form_container"]').length > 0;
     let pafeFormsFormElementor = document.querySelectorAll('div[class*="pafe-form"]').length > 0;
     ctPublic.force_alt_cookies = smartFormsSign ||
         ninjaFormsSign ||
@@ -1126,7 +1127,8 @@ function ctDetectForcedAltCookiesForms() {
         userRegistrationProForm ||
         etPbDiviSubscriptionForm ||
         fluentBookingApp ||
-        pafeFormsFormElementor;
+        pafeFormsFormElementor ||
+        bloomPopup;
 
     setTimeout(function() {
         if (!ctPublic.force_alt_cookies) {
@@ -2742,6 +2744,10 @@ function getJavascriptClientData(commonCookies = []) {
         ctCookiesTypeLocalStorage : ctCookiesTypeCookie;
     resultDataJson.apbct_pixel_url = ctPixelUrl !== undefined ?
         ctPixelUrl : ctCookiesPixelUrl;
+    if (resultDataJson.apbct_pixel_url.indexOf('%3A%2F')) {
+        resultDataJson.apbct_pixel_url = decodeURIComponent(resultDataJson.apbct_pixel_url);
+    }
+
     resultDataJson.apbct_page_hits = apbctPageHits;
     resultDataJson.apbct_prev_referer = apbctPrevReferer;
     resultDataJson.apbct_site_referer = apbctSiteReferer;
@@ -3185,11 +3191,11 @@ if (document.readyState !== 'loading') {
  * Handle real user badge
  */
 function apbctRealUserBadge() {
-    document.querySelectorAll('.apbct-real-user').forEach((el) => {
+    document.querySelectorAll('.apbct-real-user-badge').forEach((el) => {
         el.addEventListener('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
-            e.currentTarget.querySelector('.apbct-real-user-popup').style.display = 'block';
+            e.currentTarget.querySelector('.apbct-real-user-popup').style.display = 'inline-flex';
         });
     });
     document.querySelector('body').addEventListener('click', function(e) {
@@ -3201,31 +3207,31 @@ function apbctRealUserBadge() {
 
 /**
  * Handle real user badge for woocommerce
- * @param int id
- * @param string author
+ * @param template
+ * @param id
  */
 // eslint-disable-next-line no-unused-vars,require-jsdoc
-function apbctRealUserBadgeWoocommerce(id, author, title, text) {
+function apbctRealUserBadgeWoocommerce(template, id) {
     if (window.innerWidth < 768) {
         return;
     }
 
     let badge = document.createElement('div');
-    badge.className = 'apbct-real-user';
-    badge.style.position = 'absolute';
-    badge.style.top = '15px';
-    badge.title = title;
+    badge.className = 'apbct-real-user-wrapper';
 
-    let popup = document.createElement('div');
-    popup.className = 'apbct-real-user-popup';
+    let attachmentPlace = document.querySelector('#comment-' + id).querySelector('.woocommerce-review__author');
 
-    let content = document.createElement('span');
-    content.innerText = author + ' ' + text;
+    try {
+        template = atob(template);
+        badge.innerHTML = template;
 
-    popup.appendChild(content);
-    badge.appendChild(popup);
-
-    document.querySelector('#comment-' + id).querySelector('.woocommerce-review__published-date').appendChild(badge);
+        if (typeof attachmentPlace !== 'undefined') {
+            attachmentPlace.style.display = 'inline-flex';
+            attachmentPlace.appendChild(badge);
+        }
+    } catch (e) {
+        console.log('APBCT error: ' + e.toString());
+    }
 }
 
 /**
@@ -3737,12 +3743,13 @@ function apbctProcessExternalForm(currentForm, iterator, documentObject) {
                 sendAjaxCheckingFormData(reUseCurrentForm);
             });
         }
-    } else {
-        documentObject.forms[iterator].onsubmit = function(event) {
-            event.preventDefault();
-            sendAjaxCheckingFormData(event.currentTarget);
-        };
+        return;
     }
+
+    documentObject.forms[iterator].onsubmit = function(event) {
+        event.preventDefault();
+        sendAjaxCheckingFormData(event.currentTarget);
+    };
 }
 
 /**
@@ -3796,6 +3803,22 @@ function apbctProcessExternalFormByFakeButton(currentForm, iterator, documentObj
 function apbctReplaceInputsValuesFromOtherForm(formSource, formTarget) {
     const inputsSource = formSource.querySelectorAll('button, input, textarea, select');
     const inputsTarget = formTarget.querySelectorAll('button, input, textarea, select');
+
+    if (formSource.outerHTML.indexOf('action="https://www.kulahub.net') !== -1) {
+        inputsSource.forEach((elemSource) => {
+            inputsTarget.forEach((elemTarget) => {
+                if (elemSource.name === elemTarget.name) {
+                    if (elemTarget.type === 'checkbox' || elemTarget.type === 'radio') {
+                        elemTarget.checked = apbctVal(elemSource);
+                    } else {
+                        elemTarget.value = apbctVal(elemSource);
+                    }
+                }
+            });
+        });
+
+        return;
+    }
 
     inputsSource.forEach((elemSource) => {
         inputsTarget.forEach((elemTarget) => {
@@ -4039,7 +4062,8 @@ function isIntegratedForm(formObj) {
             !formObj.classList.contains('woocommerce-checkout') &&
             formObj.hasAttribute('data-hs-cf-bound')
         ) || // Hubspot integration in Elementor form// Hubspot integration in Elementor form
-        formAction.indexOf('eloqua.com') !== -1 // Eloqua integration
+        formAction.indexOf('eloqua.com') !== -1 || // Eloqua integration
+        formAction.indexOf('kulahub.net') !== -1 // Kulahub integration
     ) {
         return true;
     }

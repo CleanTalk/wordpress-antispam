@@ -530,6 +530,17 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
             }
         }
 
+        //skip check if SFW test is running
+        if (
+            Get::get('sfw_test_ip') &&
+            Cookie::get('wordpress_apbct_antibot') == hash(
+                'sha256',
+                $this->api_key . $this->apbct->data['salt']
+            )
+        ) {
+            return true;
+        }
+
         $allowed_roles = array('administrator', 'editor');
         $user          = apbct_wp_get_current_user();
 
