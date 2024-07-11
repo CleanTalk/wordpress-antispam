@@ -1,8 +1,8 @@
 === Spam protection, Anti-Spam, FireWall by CleanTalk ===
-Contributors: glomberg, artemacleantalk, alexandergull
+Contributors: glomberg, alexandergull, sergefcleantalk, antonv1
 Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 4.7
-Tested up to: 6.5
+Tested up to: 6.6
 Requires PHP: 5.6
 Stable tag: 6.36
 License: GPLv2
