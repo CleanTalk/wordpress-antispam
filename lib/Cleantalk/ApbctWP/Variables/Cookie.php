@@ -2,6 +2,8 @@
 
 namespace Cleantalk\ApbctWP\Variables;
 
+use Cleantalk\ApbctWP\Escape;
+
 class Cookie extends \Cleantalk\Variables\Cookie
 {
     protected static $instance;
@@ -160,6 +162,8 @@ class Cookie extends \Cleantalk\Variables\Cookie
         if (headers_sent()) {
             return;
         }
+
+        $value = Escape::escHtml($value);
 
         $secure = ! is_null($secure) ? $secure : Server::get('HTTPS') || Server::get('SERVER_PORT') == 443;
         // For PHP 7.3+ and above
