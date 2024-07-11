@@ -81,6 +81,11 @@ class Cleantalk
     public $api_version = '/api2.0';
 
     /**
+     * @var string
+     */
+    public $method_uri = '';
+
+    /**
      * Minimal server response in milliseconds to catch the server
      * @var int
      */
@@ -502,6 +507,7 @@ class Cleantalk
      * @param int $server_timeout
      *
      * @return boolean|CleantalkResponse
+     * @throws \Exception
      */
     private function sendRequest($data, $url, $server_timeout = 3)
     {
@@ -524,8 +530,25 @@ class Cleantalk
 
         $http = new Request();
 
+        $presets = array();
+
+        if (!empty($this->api_version) && $this->api_version === '/api3.0') {
+            if (empty($this->method_uri) || !is_string($this->method_uri)) {
+                throw new \Exception('CleanTalk: API method of version 3.0 should have specified method URI');
+            }
+            //set special preset for /api3.0
+            $presets[] = 'api3.0';
+            //add method uri if provided
+        }
+
+        //common way - left this if we need to specify method uri for 2.0
+        $url .= !empty($this->method_uri) && is_string($this->method_uri)
+            ? '/' . $this->method_uri
+            : $url;
+
         $result = $http->setUrl($url)
                        ->setData($data)
+                       ->setPresets($presets)
                        ->setOptions(['timeout' => $server_timeout])
                        ->request();
 

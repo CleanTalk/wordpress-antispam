@@ -1126,6 +1126,39 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'Proto theme login popup form';
         }
+
+        if (
+            (
+                apbct_is_plugin_active('piotnet-addons-for-elementor-pro/piotnet-addons-for-elementor-pro.php') ||
+                apbct_is_plugin_active('piotnet-addons-for-elementor/piotnet-addons-for-elementor.php')
+            ) &&
+            Post::get('action') === 'pafe_ajax_form_builder_preview_submission' ) {
+            return 'PAFE';
+        }
+
+        // Bloom - has the direct integration
+        if (
+            apbct_is_plugin_active('bloom/bloom.php') &&
+            Post::get('action') === 'bloom_subscribe'
+        ) {
+            return 'Bloom';
+        }
+
+        // Ajax Search Lite - these requests will be caught by search form protection
+        if (
+            apbct_is_plugin_active('ajax-search-lite/ajax-search-lite.php') &&
+            Post::get('action') === 'ajaxsearchlite_search'
+        ) {
+            return 'Ajax Search Lite';
+        }
+
+        // Monta Checkout service action
+        if (
+            apbct_is_plugin_active('montapacking-checkout-woocommerce-extension/montapacking-checkout.php') &&
+            Post::get('action') === 'monta_shipping_options'
+        ) {
+            return 'Monta Checkout';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */

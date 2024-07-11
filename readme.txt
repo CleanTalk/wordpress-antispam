@@ -1,10 +1,10 @@
 === Spam protection, Anti-Spam, FireWall by CleanTalk ===
-Contributors: glomberg, artemacleantalk, alexandergull
+Contributors: glomberg, alexandergull, sergefcleantalk, antonv1
 Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 4.7
-Tested up to: 6.5
+Tested up to: 6.6
 Requires PHP: 5.6
-Stable tag: 6.35
+Stable tag: 6.36
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -456,6 +456,29 @@ Yes, it is. Please read this article,
 12. SpamFireWall log.
 
 == Changelog ==
+
+= 6.36 Jul 11 2024
+* New. Integration. Kulahub.
+* New. Integrations. Added eloqua handler.
+* New. Integration. Piotnet (PAFE) forms.
+* New. Integration. Kadence Blocks Advanced.
+* New. Settings. W3 Total Cache settings adjusting implemented.
+* Upd. API. Method send_feedback upgraded to the version api3.0.
+* Upd. Settings. Updated debug view.
+* Upd. Settings. WL mode for WPMS link updated.
+* Upd. The Real Person feature. Badge layout and popup improved.
+* Fix. AltSessions. Encode array to JSON if tried to write raw array to the database.
+* Fix. EmailEncoder. Added hook to encode.
+* Fix. Forced AltCookies. Bot detector token gain improved.
+* Fix. Integration. MailChimp and MailChimp Premium. Empty page issues on CleanTalk response fixed.
+* Fix. Integration. Monta Checkout service action excluded.
+* Fix. Integration. Ajax search lite plugin request was excluded - it will be caught by standard search form protection.
+* Fix. Integration. Bloom integration fixed.
+* Fix. Integration. WSFroms. Pregmatch issue fixed.
+* Fix. Pixel. Pixel URL fixed.
+* Fix. Request. WP HTTP API. Prepare headers to Request::flatten before request.
+* Fix. SFW. SFW updating fixed.
+* Fix. Server variables. Special sanitize rule for site search cases.
 
 = 6.35 Jun 27 2024
 * New. Comments. RealUserBadge implemented.

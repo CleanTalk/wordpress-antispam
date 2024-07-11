@@ -47,6 +47,13 @@ class LinkConstructor extends \Cleantalk\Common\LinkConstructor
             'utm_medium' => 'dashboard_widget',
             'utm_content' => 'go_to_cp',
         ),
+        'help_wl_multisite' => array(
+            'utm_id' => '',
+            'utm_term' => '',
+            'utm_source' => 'admin_panel',
+            'utm_medium' => 'settings',
+            'utm_content' => 'help_wl_multisite',
+        ),
         /*
          * Public pages
          */

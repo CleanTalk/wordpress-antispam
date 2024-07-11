@@ -4,7 +4,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 6.35
+  Version: 6.36
   Author: СleanTalk - Anti-Spam Protection <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -619,6 +619,11 @@ $apbct_active_integrations = array(
         'setting' => 'forms__contact_forms_test',
         'ajax'    => true
     ),
+    'KadenceBlocksAdvanced' => array(
+        'hook'    => 'kb_process_advanced_form_submit',
+        'setting' => 'forms__contact_forms_test',
+        'ajax'    => true
+    ),
     'WordpressFileUpload' => array(
         'hook'    => 'wfu_before_upload',
         'setting' => 'forms__contact_forms_test',
@@ -634,6 +639,17 @@ $apbct_active_integrations = array(
         'hook'    => 'pmpro_is_spammer',
         'setting' => 'forms__registrations_test',
         'ajax'    => false
+    ),
+    // Mail chimp integration works with ajax and POST via the same hook
+    'MailChimp' => array(
+        'hook'    => 'mc4wp_form_errors',
+        'setting' => 'forms__registrations_test',
+        'ajax' => false
+    ),
+    'BloomForms' => array(
+        'hook'    => 'bloom_subscribe',
+        'setting' => 'forms__contact_forms_test',
+        'ajax'    => true
     ),
 );
 add_action('plugins_loaded', function () use ($apbct_active_integrations, $apbct) {
@@ -828,8 +844,6 @@ add_filter('wpforms_process_initial_errors', 'apbct_form__WPForms__showResponse'
 add_filter('frm_entries_before_create', 'apbct_form__formidable__testSpam', 999999, 2);
 add_action('frm_entries_footer_scripts', 'apbct_form__formidable__footerScripts', 20, 2);
 
-/* MailChimp Premium */
-add_filter('mc4wp_form_errors', 'ct_mc4wp_hook');
 
 add_action('mec_booking_end_form_step_2', function () {
     echo "<script>
