@@ -82,6 +82,7 @@
         font-weight: bolder;
     }
     .apbct-real-user-popup-text {
+        user-select: all;
         margin: 2px 0 2px 0;
     }
 }
