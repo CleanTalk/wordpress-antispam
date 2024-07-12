@@ -45,7 +45,6 @@
                 <file name ="lib/Cleantalk/Common/Schema.php" />
                 <file name ="lib/Cleantalk/Common/State.php" />
                 <file name ="lib/Cleantalk/Common/Transaction.php" />
-                <file name ="lib/Cleantalk/Common/Validate.php" />
             <directory name="templates/" />
 
             <file name="lib/Cleantalk/Templates/Singleton.php"/>
