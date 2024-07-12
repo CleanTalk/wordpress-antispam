@@ -21,8 +21,10 @@ function ctProtectExternal() {
             } else if (
                 // MooForm 3rd party service
                 currentForm.dataset.mailingListId !== undefined ||
-                (typeof(currentForm.action) == 'string' && (currentForm.action.indexOf('webto.salesforce.com') !== -1)) ||
-                (typeof(currentForm.action) == 'string' && currentForm.querySelector("[href*='activecampaign']"))
+                (typeof(currentForm.action) == 'string' &&
+                (currentForm.action.indexOf('webto.salesforce.com') !== -1)) ||
+                (typeof(currentForm.action) == 'string' &&
+                currentForm.querySelector('[href*="activecampaign"]'))
             ) {
                 apbctProcessExternalFormByFakeButton(currentForm, i, document);
 
