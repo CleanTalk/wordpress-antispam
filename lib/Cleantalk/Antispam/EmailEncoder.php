@@ -147,38 +147,63 @@ class EmailEncoder
 
         //will use this in regexp callback
         $this->temp_content = $content;
-
+        $replacing_result = '';
         $pattern = '/(mailto\:\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,})|(\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+(\.[A-Za-z]{2,}))/';
-        $replacing_result = preg_replace_callback($pattern, function ($matches) use ($content) {
-            if ( isset($matches[3][0]) && in_array(strtolower($matches[3][0]), ['.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp']) ) {
-                return $matches[0][0];
-            }
 
-            //chek if email is placed in excluded attributes and return unchanged if so
-            if ( $this->hasAttributeExclusions($matches[0][0]) ) {
-                return $matches[0][0];
-            }
+        if ( version_compare(phpversion(), '7.4.0', '>=') ) {
+            $replacing_result = preg_replace_callback($pattern, function ($matches) use ($content) {
+                if ( isset($matches[3][0]) && in_array(strtolower($matches[3][0]), ['.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp']) ) {
+                    return $matches[0][0];
+                }
 
-            if ( $this->isMailto($matches[0][0]) ) {
-                return $this->encodeMailtoLink($matches[0], $content);
-            }
+                //chek if email is placed in excluded attributes and return unchanged if so
+                if ( $this->hasAttributeExclusions($matches[0][0]) ) {
+                    return $matches[0][0];
+                }
 
-            if ( $this->isMailtoAdditionalCopy($matches[0], $content) ) {
-                return '';
-            }
+                if ( $this->isMailto($matches[0][0]) ) {
+                    return $this->encodeMailtoLink($matches[0], $content);
+                }
 
-            if ( $this->isEmailInLink($matches[0], $content) ) {
-                return $matches[0][0];
-            }
+                if ( $this->isMailtoAdditionalCopy($matches[0], $content) ) {
+                    return '';
+                }
 
-            if ( $this->isEmailInLink($matches[0], $content) ) {
-                return $matches[0][0];
-            }
+                if ( $this->isEmailInLink($matches[0], $content) ) {
+                    return $matches[0][0];
+                }
 
-            $this->handlePrivacyPolicyHook();
+                if ( $this->isEmailInLink($matches[0], $content) ) {
+                    return $matches[0][0];
+                }
 
-            return $this->encodePlainEmail($matches[0][0]);
-        }, $content, -1, $count, PREG_OFFSET_CAPTURE);
+                $this->handlePrivacyPolicyHook();
+
+                return $this->encodePlainEmail($matches[0][0]);
+            }, $content, -1, $count, PREG_OFFSET_CAPTURE);
+        }
+
+        if ( version_compare(phpversion(), '7.4.0', '<') ) {
+            $replacing_result = preg_replace_callback($pattern, function ($matches) {
+                if ( isset($matches[3]) && in_array(strtolower($matches[3]), ['.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp']) ) {
+                    return $matches[0];
+                }
+
+                //chek if email is placed in excluded attributes and return unchanged if so
+                if ( $this->hasAttributeExclusions($matches[0]) ) {
+                    return $matches[0];
+                }
+
+                if ( $this->isMailto($matches[0]) ) {
+                    return $this->encodeMailtoLinkLegacy($matches[0]);
+                }
+
+                $this->handlePrivacyPolicyHook();
+
+                return $this->encodePlainEmail($matches[0]);
+            }, $content);
+        }
+
         //please keep this var (do not simplify the code) for further debug
         return $replacing_result;
     }
@@ -384,6 +409,30 @@ class EmailEncoder
         }
 
         return strpos($email, 'mailto:') !== false;
+    }
+
+    /**
+     * Method to process mailto: links
+     *
+     * @param $mailto_link_str string
+     *
+     * @return string
+     */
+    private function encodeMailtoLinkLegacy($mailto_link_str)
+    {
+        // Get inner tag text and place it in $matches[1]
+        preg_match('/mailto\:(\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,})/', $mailto_link_str, $matches);
+        if ( isset($matches[1]) ) {
+            $mailto_inner_text = preg_replace_callback('/\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,}/', function ($matches) {
+                return $this->obfuscateEmail($matches[0]);
+            }, $matches[1]);
+        }
+        $mailto_link_str = str_replace('mailto:', '', $mailto_link_str);
+        $encoded = $this->encodeString($mailto_link_str, $this->secret_key);
+
+        $text = isset($mailto_inner_text) ? $mailto_inner_text : $mailto_link_str;
+
+        return 'mailto:' . $text . '" data-original-string="' . $encoded . '" title="' . esc_attr($this->getTooltip());
     }
 
     /**
