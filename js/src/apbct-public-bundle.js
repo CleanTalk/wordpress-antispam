@@ -2255,13 +2255,6 @@ function apbct_ready() {
     ctPublic.encodedEmailNodes = encodedEmailNodes;
     if (encodedEmailNodes.length) {
         for (let i = 0; i < encodedEmailNodes.length; ++i) {
-            if (
-                encodedEmailNodes[i].parentElement.href ||
-                encodedEmailNodes[i].parentElement.parentElement.href
-            ) {
-                // Skip listening click on hyperlinks
-                continue;
-            }
             encodedEmailNodes[i].addEventListener('click', ctFillDecodedEmailHandler);
         }
     }
@@ -2658,11 +2651,13 @@ function apbctEmailEncoderCallbackBulk(result, encodedEmailNodes, clickSource) {
                 // handler for mailto
                 if (
                     typeof encodedEmailNodes[i].href !== 'undefined' &&
-                    encodedEmailNodes[i].href.indexOf('mailto:') === 0) {
+                    encodedEmailNodes[i].href.indexOf('mailto:') === 0
+                ) {
                     let encodedEmail = encodedEmailNodes[i].href.replace('mailto:', '');
                     let baseElementContent = encodedEmailNodes[i].innerHTML;
+                    let decodedEmail = currentResultData.decoded_email.split('&')[0];
                     encodedEmailNodes[i].innerHTML =
-                        baseElementContent.replace(encodedEmail, currentResultData.decoded_email);
+                        baseElementContent.replace(encodedEmail, decodedEmail);
                     encodedEmailNodes[i].href = 'mailto:' + currentResultData.decoded_email;
                 } else {
                     // fill the nodes
@@ -2688,7 +2683,7 @@ function apbctEmailEncoderCallbackBulk(result, encodedEmailNodes, clickSource) {
             ctShowDecodeComment('Blocked: ' + result.data[0].comment);
         } else {
             resetEncodedNodes();
-            ctShowDecodeComment('Cannot connect with CleanTalk server: ' + result.data[0].comment);
+            ctShowDecodeComment('Cannot connect with CleanTalk server: ' + result.comment);
         }
     }
 }

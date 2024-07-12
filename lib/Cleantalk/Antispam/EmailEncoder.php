@@ -147,25 +147,37 @@ class EmailEncoder
         //will use this in regexp callback
         $this->temp_content = $content;
 
-        $replacing_result = preg_replace_callback('/(mailto\:\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,})|(\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+(\.[A-Za-z]{2,}))/', function ($matches) {
-
-            if ( isset($matches[3]) && in_array(strtolower($matches[3]), ['.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp']) ) {
-                return $matches[0];
+        $pattern = '/(mailto\:\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,})|(\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+(\.[A-Za-z]{2,}))/';
+        $replacing_result = preg_replace_callback($pattern, function ($matches) use ($content) {
+            if ( isset($matches[3][0]) && in_array(strtolower($matches[3][0]), ['.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp']) ) {
+                return $matches[0][0];
             }
 
             //chek if email is placed in excluded attributes and return unchanged if so
-            if ( $this->hasAttributeExclusions($matches[0]) ) {
-                return $matches[0];
+            if ( $this->hasAttributeExclusions($matches[0][0]) ) {
+                return $matches[0][0];
             }
 
-            if ( $this->isMailto($matches[0]) ) {
-                return $this->encodeMailtoLink($matches[0]);
+            if ( $this->isMailto($matches[0][0]) ) {
+                return $this->encodeMailtoLink($matches[0], $content);
+            }
+
+            if ( $this->isMailtoAdditionalCopy($matches[0], $content) ) {
+                return '';
+            }
+
+            if ( $this->isEmailInLink($matches[0], $content) ) {
+                return $matches[0][0];
+            }
+
+            if ( $this->isEmailInLink($matches[0], $content) ) {
+                return $matches[0][0];
             }
 
             $this->handlePrivacyPolicyHook();
 
-            return $this->encodePlainEmail($matches[0]);
-        }, $content);
+            return $this->encodePlainEmail($matches[0][0]);
+        }, $content, -1, $count, PREG_OFFSET_CAPTURE);
         //please keep this var (do not simplify the code) for further debug
         return $replacing_result;
     }
@@ -327,14 +339,66 @@ class EmailEncoder
     }
 
     /**
+     * Checking if the string contains mailto: link
+     *
+     * @param $match array
+     * @param $content string
+     *
+     * @return bool
+     */
+    private function isMailtoAdditionalCopy($match, $content)
+    {
+        $position = $match[1];
+
+        $cc_position = strrpos(substr($content, 0, $position), 'cc=');
+        if ( $cc_position !== false && $cc_position + 3 == $position ) {
+            return true;
+        }
+
+        $bcc_position = strrpos(substr($content, 0, $position), 'bcc=');
+        if ( $bcc_position !== false && $bcc_position + 4 == $position ) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Checking if email in link
+     *
+     * @param $match array
+     * @param $content string
+     *
+     * @return bool
+     */
+    private function isEmailInLink($match, $content)
+    {
+        $email = $match[0];
+        $position = $match[1];
+
+        $href_position = strrpos(substr($content, 0, $position), 'href=');
+
+        if ( $href_position !== false && $href_position + 6 == $position ) {
+            return true;
+        }
+
+        return strpos($email, 'mailto:') !== false;
+    }
+
+    /**
      * Method to process mailto: links
      *
-     * @param $mailto_link_str string
+     * @param $match array
+     * @param $content string
      *
      * @return string
      */
-    private function encodeMailtoLink($mailto_link_str)
+    private function encodeMailtoLink($match, $content)
     {
+        $position = $match[1];
+        $q_position = $position + strcspn($content, '\'"', $position);
+        $mailto_link_str = substr($content, $position, $q_position - $position);
+
         // Get inner tag text and place it in $matches[1]
         preg_match('/mailto\:(\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,})/', $mailto_link_str, $matches);
         if ( isset($matches[1]) ) {
@@ -342,6 +406,7 @@ class EmailEncoder
                 return $this->obfuscateEmail($matches[0]);
             }, $matches[1]);
         }
+
         $mailto_link_str = str_replace('mailto:', '', $mailto_link_str);
         $encoded = $this->encodeString($mailto_link_str, $this->secret_key);
 
