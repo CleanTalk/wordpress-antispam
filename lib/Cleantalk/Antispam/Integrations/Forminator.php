@@ -10,7 +10,7 @@ class Forminator extends IntegrationBase
 
         $username = '';
         foreach ($_POST as $key => $value) {
-            if (strpos($key, 'name-') === 0) {
+            if (is_string($key) && strpos($key, 'name-') === 0) {
                 $username = $value;
                 break;
             }
