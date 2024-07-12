@@ -17,35 +17,13 @@
         limitMethodComplexity="true"
 >
     <projectFiles>
-        <directory name="./"/>
+        <file name="./cleantalk.php"/>
+        <file name="./lib/Cleantalk/Common/Validate.php"/>
+        <file name="./lib/Cleantalk/Common/TT.php"/>
         <ignoreFiles allowMissingFiles="true">
             <directory name="tests"/>
             <directory name="vendor"/>
             <directory name="node_modules/" />
-
-            <directory name="inc/" />
-            <directory name="lib/Cleantalk/Variables" />
-            <directory name="lib/Cleantalk/Templates" />
-            <directory name="lib/Cleantalk/ApbctWP" />
-            <directory name="lib/Cleantalk/Antispam" />
-            <directory name="lib/Cleantalk/Common/Firewall" />
-            <directory name="lib/Cleantalk/Common/HTTP" />
-                <file name ="lib/Cleantalk/Common/API.php" />
-                <file name ="lib/Cleantalk/Common/Arr.php" />
-                <file name ="lib/Cleantalk/Common/Compatibility.php" />
-                <file name ="lib/Cleantalk/Common/Cron.php" />
-                <file name ="lib/Cleantalk/Common/DB.php" />
-                <file name ="lib/Cleantalk/Common/DNS.php" />
-                <file name ="lib/Cleantalk/Common/Escape.php" />
-                <file name ="lib/Cleantalk/Common/Firewall.php" />
-                <file name ="lib/Cleantalk/Common/Helper.php" />
-                <file name ="lib/Cleantalk/Common/LinkConstructor.php" />
-                <file name ="lib/Cleantalk/Common/Queue.php" />
-                <file name ="lib/Cleantalk/Common/Sanitize.php" />
-                <file name ="lib/Cleantalk/Common/Schema.php" />
-                <file name ="lib/Cleantalk/Common/State.php" />
-                <file name ="lib/Cleantalk/Common/Transaction.php" />
-            <directory name="templates/" />
 
             <file name="lib/Cleantalk/Templates/Singleton.php"/>
             <file name="lib/Cleantalk/ApbctWP/CleantalkListTable.php"/>
