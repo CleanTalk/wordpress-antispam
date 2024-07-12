@@ -3535,7 +3535,8 @@ function ctProtectExternal() {
             } else if (
                 // MooForm 3rd party service
                 currentForm.dataset.mailingListId !== undefined ||
-                (typeof(currentForm.action) == 'string' && (currentForm.action.indexOf('webto.salesforce.com') !== -1))
+                (typeof(currentForm.action) == 'string' && (currentForm.action.indexOf('webto.salesforce.com') !== -1)) ||
+                (typeof(currentForm.action) == 'string' && currentForm.querySelector("[href*='activecampaign']"))
             ) {
                 apbctProcessExternalFormByFakeButton(currentForm, i, document);
 
@@ -4038,7 +4039,6 @@ function isIntegratedForm(formObj) {
     const formId = formObj.getAttribute('id') !== null ? formObj.getAttribute('id') : '';
 
     if (
-        formAction.indexOf('activehosted.com') !== -1 || // ActiveCampaign form
         formAction.indexOf('app.convertkit.com') !== -1 || // ConvertKit form
         ( formObj.firstChild.classList !== undefined &&
         formObj.firstChild.classList.contains('cb-form-group') ) || // Convertbox form
