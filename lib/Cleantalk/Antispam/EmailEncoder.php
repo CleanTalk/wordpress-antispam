@@ -128,6 +128,7 @@ class EmailEncoder
      *
      * @return string
      * @psalm-suppress PossiblyUnusedReturnValue
+     * @phpcs:disable PHPCompatibility.FunctionUse.NewFunctionParameters.preg_replace_callback_flagsFound
      */
     public function modifyContent($content)
     {
