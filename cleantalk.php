@@ -170,7 +170,7 @@ if (
         }
     }
 
-    if (!$skip_email_encode) {
+    if (!$skip_email_encode && !apbct_is_amp_request()) {
         \Cleantalk\ApbctWP\Antispam\EmailEncoder::getInstance();
     }
 }
