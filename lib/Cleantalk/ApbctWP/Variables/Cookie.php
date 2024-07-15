@@ -47,8 +47,19 @@ class Cookie extends \Cleantalk\Variables\Cookie
                             'apbct_site_landing_ts',
                             //'apbct_urls',
                             'apbct_timestamp',
-                            'apbct_site_referer')) ) {
+                            'apbct_site_referer'))
+                        ) {
                             $value = NoCookie::get($name);
+
+                            if ($name === 'apbct_site_referer' && !$value) {
+                                $value = AltSessions::get($name);
+                            }
+                            if ($name === 'apbct_prev_referer' && !$value) {
+                                $value = AltSessions::get($name);
+                            }
+                            if ($name === 'apbct_page_hits' && !$value) {
+                                $value = AltSessions::get($name);
+                            }
                         } else {
                             $value = AltSessions::get($name);
                         }

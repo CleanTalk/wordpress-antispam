@@ -552,7 +552,7 @@ function apbct_get_sender_info()
         'cookies_enabled'           => $cookie_is_ok,
         'data__set_cookies'         => $apbct->settings['data__set_cookies'],
         'data__cookies_type'        => $apbct->data['cookies_type'],
-        'REFFERRER'                 => Server::get('HTTP_REFERER'),
+        'REFFERRER'                 => Cookie::$force_alt_cookies_global ? Cookie::get('apbct_site_referer') : Server::get('HTTP_REFERER'),
         'REFFERRER_PREVIOUS'        => Cookie::get('apbct_prev_referer') && $cookie_is_ok
             ? Cookie::get('apbct_prev_referer')
             : null,
