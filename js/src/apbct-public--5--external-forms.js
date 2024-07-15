@@ -27,7 +27,6 @@ function ctProtectExternal() {
                 currentForm.querySelector('[href*="activecampaign"]'))
             ) {
                 apbctProcessExternalFormByFakeButton(currentForm, i, document);
-
             // Common flow - modify form's action
             } else if (
                 typeof(currentForm.action) == 'string' &&
@@ -676,6 +675,18 @@ function sendAjaxCheckingFormData(form) {
                     if (form.hasAttribute('action') &&
                         (form.getAttribute('action').indexOf('webto.salesforce.com') !== -1)
                     ) {
+                        let submitButton = form.querySelector('[type="submit"]');
+                        submitButton.remove();
+                        const parent = form.apbctParent;
+                        parent.appendChild(form.submitButtonOriginal);
+                        form.onsubmit = form.onsubmitOriginal;
+                        submitButton = form.querySelector('[type="submit"]');
+                        submitButton.click();
+                        return;
+                    }
+
+                    // Active Campaign integration
+                    if (form.querySelector('[href*="activecampaign"]')) {
                         let submitButton = form.querySelector('[type="submit"]');
                         submitButton.remove();
                         const parent = form.apbctParent;

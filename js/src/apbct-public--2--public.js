@@ -1202,7 +1202,7 @@ function getJavascriptClientData(commonCookies = []) {
     if (resultDataJson.apbct_pixel_url && resultDataJson.apbct_pixel_url == 'string') {
         if (resultDataJson.apbct_pixel_url.indexOf('%3A%2F')) {
             resultDataJson.apbct_pixel_url = decodeURIComponent(resultDataJson.apbct_pixel_url);
-        }   
+        }
     }
 
     resultDataJson.apbct_page_hits = apbctPageHits;
