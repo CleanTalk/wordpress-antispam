@@ -21,10 +21,12 @@ function ctProtectExternal() {
             } else if (
                 // MooForm 3rd party service
                 currentForm.dataset.mailingListId !== undefined ||
-                (typeof(currentForm.action) == 'string' && (currentForm.action.indexOf('webto.salesforce.com') !== -1))
+                (typeof(currentForm.action) == 'string' &&
+                (currentForm.action.indexOf('webto.salesforce.com') !== -1)) ||
+                (typeof(currentForm.action) == 'string' &&
+                currentForm.querySelector('[href*="activecampaign"]'))
             ) {
                 apbctProcessExternalFormByFakeButton(currentForm, i, document);
-
             // Common flow - modify form's action
             } else if (
                 typeof(currentForm.action) == 'string' &&
@@ -580,7 +582,6 @@ function isIntegratedForm(formObj) {
     const formId = formObj.getAttribute('id') !== null ? formObj.getAttribute('id') : '';
 
     if (
-        formAction.indexOf('activehosted.com') !== -1 || // ActiveCampaign form
         formAction.indexOf('app.convertkit.com') !== -1 || // ConvertKit form
         ( formObj.firstChild.classList !== undefined &&
         formObj.firstChild.classList.contains('cb-form-group') ) || // Convertbox form
@@ -674,6 +675,18 @@ function sendAjaxCheckingFormData(form) {
                     if (form.hasAttribute('action') &&
                         (form.getAttribute('action').indexOf('webto.salesforce.com') !== -1)
                     ) {
+                        let submitButton = form.querySelector('[type="submit"]');
+                        submitButton.remove();
+                        const parent = form.apbctParent;
+                        parent.appendChild(form.submitButtonOriginal);
+                        form.onsubmit = form.onsubmitOriginal;
+                        submitButton = form.querySelector('[type="submit"]');
+                        submitButton.click();
+                        return;
+                    }
+
+                    // Active Campaign integration
+                    if (form.querySelector('[href*="activecampaign"]')) {
                         let submitButton = form.querySelector('[type="submit"]');
                         submitButton.remove();
                         const parent = form.apbctParent;
