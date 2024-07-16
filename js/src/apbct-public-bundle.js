@@ -651,7 +651,7 @@ function ctProcessError(msg, url) {
     }
 
     errArray.push(log);
-    localStorage.setItem(ct_js_errors, JSON.stringify(errArray));
+    localStorage.setItem(ctJsErrors, JSON.stringify(errArray));
 }
 
 if (Math.floor(Math.random() * 100) === 1) {
@@ -2744,7 +2744,7 @@ function getJavascriptClientData(commonCookies = []) {
         ctCookiesTypeLocalStorage : ctCookiesTypeCookie;
     resultDataJson.apbct_pixel_url = ctPixelUrl !== undefined ?
         ctPixelUrl : ctCookiesPixelUrl;
-    if (resultDataJson.apbct_pixel_url.indexOf('%3A%2F')) {
+    if (resultDataJson.apbct_pixel_url && resultDataJson.apbct_pixel_url.indexOf('%3A%2F')) {
         resultDataJson.apbct_pixel_url = decodeURIComponent(resultDataJson.apbct_pixel_url);
     }
 
