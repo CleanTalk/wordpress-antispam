@@ -651,7 +651,7 @@ function ctProcessError(msg, url) {
     }
 
     errArray.push(log);
-    localStorage.setItem(ct_js_errors, JSON.stringify(errArray));
+    localStorage.setItem(ctJsErrors, JSON.stringify(errArray));
 }
 
 if (Math.floor(Math.random() * 100) === 1) {
