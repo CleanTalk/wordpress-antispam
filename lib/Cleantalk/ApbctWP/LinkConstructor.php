@@ -145,10 +145,9 @@ class LinkConstructor extends \Cleantalk\Common\LinkConstructor
         'exclusion_by_form_signs' => array(
             'utm_id' => '',
             'utm_term' => '',
-            'utm_source' => 'apbct_hint_exclusions__form_signs',
-            'utm_medium' => 'WordPress',
-            'utm_content' => '',
-            'utm_campaign' => 'ABPCT_Settings',
+            'utm_source' => 'admin_panel',
+            'utm_medium' => 'settings',
+            'utm_content' => 'apbct_hint_exclusions__form_signs',
         ),
     );
 

@@ -42,9 +42,8 @@ class LinkConstructor
         } else {
             $utm_data = static::$utm_presets[$utm_preset];
         }
-        if (!array_key_exists('utm_campaign', $utm_data)) {
-            $utm_data['utm_campaign'] = static::$utm_campaign;
-        }
+
+        $utm_data['utm_campaign'] = static::$utm_campaign;
         $glued = array_merge($get_params, $utm_data);
         return http_build_query($glued);
     }

@@ -3248,7 +3248,7 @@ function apbct_settings__get__long_description()
                 //HANDLE LINK
                 sprintf(
                     __('See details on the page linked below. %s', 'cleantalk-spam-protect'),
-                    '</p><a href="' . $link_exclusion_by_form_signs . '#wordpress" target="_blank">' . __('Learn more.', 'cleantalk-spam-protect') . '</a>'
+                    '</p><a href="' . $link_exclusion_by_form_signs . '" target="_blank">' . __('Learn more.', 'cleantalk-spam-protect') . '</a>'
                 )
         ),
         'exclusions__bot_detector__form_attributes' => array(
