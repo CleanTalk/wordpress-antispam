@@ -652,6 +652,15 @@ $apbct_active_integrations = array(
         'setting' => 'forms__contact_forms_test',
         'ajax'    => true
     ),
+    // Integration Contact Form Clean and Simple
+    'CSCF' => array(
+        'hook'    => 'cscf-submitform',
+        //'hook'    => 'preprocess_comment',
+        //'hook'    => array('plugins_loaded'),
+        'setting' => 'forms__contact_forms_test',
+        'ajax'    => true,
+    ),
+
 );
 add_action('plugins_loaded', function () use ($apbct_active_integrations, $apbct) {
     if ( defined('FLUENTFORM_VERSION') ) {
