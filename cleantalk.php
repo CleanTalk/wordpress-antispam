@@ -655,8 +655,6 @@ $apbct_active_integrations = array(
     // Integration Contact Form Clean and Simple
     'CSCF' => array(
         'hook'    => 'cscf-submitform',
-        //'hook'    => 'preprocess_comment',
-        //'hook'    => array('plugins_loaded'),
         'setting' => 'forms__contact_forms_test',
         'ajax'    => true,
     ),
