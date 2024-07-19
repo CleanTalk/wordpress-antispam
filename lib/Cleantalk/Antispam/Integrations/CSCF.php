@@ -13,10 +13,20 @@ class CSCF extends IntegrationBase
         }
 
         $data = apply_filters('apbct__filter_post', $_POST);
+
         $gfa_checked_data = ct_get_fields_any($data);
 
         if (isset($data['ct_bot_detector_event_token'])) {
             $gfa_checked_data['event_token'] = $data['ct_bot_detector_event_token'];
+        }
+        if (array_key_exists('cscf_name', $gfa_checked_data['message']) && empty($gfa_checked_data['nickname'])) {
+            $gfa_checked_data['nickname'] = $gfa_checked_data['message']['cscf_name'];
+        }
+
+        foreach ($gfa_checked_data['message'] as $key => $value) {
+            if ($key == 'cscf_message' && !empty($value)) {
+                $gfa_checked_data['message'] = $value;
+            }
         }
 
         return $gfa_checked_data;
