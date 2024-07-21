@@ -292,7 +292,9 @@ function apbctReplaceInputsValuesFromOtherForm(formSource, formTarget) {
     const inputsSource = formSource.querySelectorAll('button, input, textarea, select');
     const inputsTarget = formTarget.querySelectorAll('button, input, textarea, select');
 
-    if (formSource.outerHTML.indexOf('action="https://www.kulahub.net') !== -1) {
+    if (formSource.outerHTML.indexOf('action="https://www.kulahub.net') !== -1 ||
+        formSource.outerHTML.indexOf('action="https://leventbedrijfsrecherche.nl') !== -1
+    ) {
         inputsSource.forEach((elemSource) => {
             inputsTarget.forEach((elemTarget) => {
                 if (elemSource.name === elemTarget.name) {
@@ -606,7 +608,8 @@ function isIntegratedForm(formObj) {
             formObj.hasAttribute('data-hs-cf-bound')
         ) || // Hubspot integration in Elementor form// Hubspot integration in Elementor form
         formAction.indexOf('eloqua.com') !== -1 || // Eloqua integration
-        formAction.indexOf('kulahub.net') !== -1 // Kulahub integration
+        formAction.indexOf('kulahub.net') !== -1 || // Kulahub integration
+        formAction.indexOf('leventbedrijfsrecherche.nl') !== -1 // Divi contact form
     ) {
         return true;
     }
