@@ -173,10 +173,6 @@ class EmailEncoder
                     return $matches[0][0];
                 }
 
-                if ( $this->isEmailInLink($matches[0], $content) ) {
-                    return $matches[0][0];
-                }
-
                 $this->handlePrivacyPolicyHook();
 
                 return $this->encodePlainEmail($matches[0][0]);
@@ -333,6 +329,21 @@ class EmailEncoder
         return $first_part . '@' . $second_part . $last_part;
     }
 
+    private function makePlug($obfuscated)
+    {
+        $result = '';
+
+        for ($i=0; $i < strlen($obfuscated); $i++) { 
+            if ($obfuscated[$i] == '*') {
+                $result .= '<img style="cursor: pointer;" src="/wp-content/plugins/cleantalk-spam-protect/inc/images/plug.gif">';
+                continue;
+            }
+            $result .= $obfuscated[$i];
+        }
+
+        return $result;
+    }
+
     /**
      * Method to process plain email
      *
@@ -344,12 +355,15 @@ class EmailEncoder
     {
         $obfuscated = $this->obfuscateEmail($email_str);
 
+        $plug = $this->makePlug($obfuscated);
+
+
         $encoded = $this->encodeString($email_str, $this->secret_key);
 
         return '<span 
                 data-original-string="' . $encoded . '"
                 class="apbct-email-encoder"
-                title="' . esc_attr($this->getTooltip()) . '">' . $obfuscated . '</span>';
+                title="' . esc_attr($this->getTooltip()) . '">' . $plug . '</span>';
     }
 
     /**

@@ -993,11 +993,44 @@ function ctFillDecodedEmailHandler(event) {
         let waitingPopup = document.createElement('div');
         waitingPopup.setAttribute('class', 'apbct-popup');
         waitingPopup.setAttribute('id', 'apbct_popup');
+
+        let popupHeader = document.createElement('h3');
+        popupHeader.setAttribute('id', 'apbct_popup_header');
+        popupHeader.innerText = 'Anti-Spam by CleanTalk';
+
         let popupText = document.createElement('p');
         popupText.setAttribute('id', 'apbct_popup_text');
         popupText.style.color = 'black';
-        popupText.innerText = 'Please wait while ' + ctPublic.wl_brandname + ' is decoding the email addresses.';
+
+
+        let decodedEmail = '';
+
+        if (event.target.tagName === 'A') {
+            decodedEmail = event.target.querySelector('span.apbct-email-encoder');
+            if (decodedEmail) {
+                decodedEmail = decodedEmail.innerHTML;
+            } 
+        }
+
+        if (event.target.tagName === 'SPAN') {
+            console.log('OK');
+            decodedEmail = event.target.innerHTML;
+        }
+
+        if (event.target.tagName === 'IMG') {
+            console.log('OK 2');
+            decodedEmail = event.target.parentNode.innerHTML;
+        }
+
+        if (decodedEmail === null) {
+            decodedEmail = 'obfuscated email';
+        }
+
+        popupText.innerHTML = 'Decoding ' + decodedEmail + ' to the original contact. The magic is on the way, please wait for a second!';
+
+        waitingPopup.append(popupHeader);
         waitingPopup.append(popupText);
+
         document.body.append(waitingPopup);
     } else {
         encoderPopup.setAttribute('style', 'display: inherit');
@@ -1114,6 +1147,10 @@ function apbctEmailEncoderCallbackBulk(result, encodedEmailNodes, clickSource) {
                     encodedEmailNodes[i].innerHTML =
                         baseElementContent.replace(encodedEmail, decodedEmail);
                     encodedEmailNodes[i].href = 'mailto:' + currentResultData.decoded_email;
+                    encodedEmailNodes[i].querySelectorAll('span.apbct-email-encoder').forEach((span) => {
+                        let firstEmail = currentResultData.decoded_email.split('&')[0];
+                        span.innerHTML = firstEmail;
+                    });
                 } else {
                     // fill the nodes
                     ctProcessDecodedDataResult(currentResultData, encodedEmailNodes[i]);
@@ -1124,12 +1161,27 @@ function apbctEmailEncoderCallbackBulk(result, encodedEmailNodes, clickSource) {
             // popup remove
             let popup = document.getElementById('apbct_popup');
             if (popup !== null) {
-                document.body.classList.remove('apbct-popup-fade');
-                popup.setAttribute('style', 'display:none');
-                // click on mailto if so
-                if (ctPublic.encodedEmailNodesIsMixed) {
-                    clickSource.click();
-                }
+                let currentResultData;
+                result.data.forEach((row) => {
+                    if (row.encoded_email === clickSource.dataset.originalString) {
+                        currentResultData = row;
+                    }
+                });
+
+                let body = popup.querySelector('#apbct_popup_text');
+                let email = currentResultData.decoded_email.split(/[&?]/)[0];
+                body.innerHTML = 'The original contact is ' + email + '. Happy conversations!';
+                let br = document.createElement('br');
+                body.append(br);
+                body.append(br);
+                let button = document.createElement('button');
+                button.innerHTML = 'Got it';
+                button.addEventListener('click', function() {
+                    document.body.classList.remove('apbct-popup-fade');
+                    popup.setAttribute('style', 'display:none');
+                });
+                button.style.cursor = 'pointer';
+                body.append(button);
             }
         }, 3000);
     } else {
