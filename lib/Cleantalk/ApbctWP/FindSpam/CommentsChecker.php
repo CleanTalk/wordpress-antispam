@@ -85,14 +85,14 @@ class CommentsChecker extends Checker
             $sql_where .= " AND $wpdb->comments.comment_date_gmt >= '$date_from' AND $wpdb->comments.comment_date_gmt <= '$date_till'";
         }
 
-        $comments = $wpdb->get_results(
-            "
-			SELECT {$wpdb->comments}.comment_ID, {$wpdb->comments}.comment_date_gmt, {$wpdb->comments}.comment_author_IP, {$wpdb->comments}.comment_author_email, {$wpdb->comments}.user_id
-			FROM {$wpdb->comments}
-			{$sql_where}
-			ORDER BY {$wpdb->comments}.comment_ID ASC
-			LIMIT $amount OFFSET $offset;"
-        );
+        $query = "SELECT {$wpdb->comments}.comment_ID, {$wpdb->comments}.comment_date_gmt,
+            {$wpdb->comments}.comment_author_IP, {$wpdb->comments}.comment_author_email, {$wpdb->comments}.user_id
+            FROM {$wpdb->comments}
+            {$sql_where}
+            ORDER BY {$wpdb->comments}.comment_ID ASC
+            LIMIT %d OFFSET %d";
+
+        $comments = $wpdb->get_results($wpdb->prepare($query, $amount, $offset));
 
         if (!$comments) {
             $comments = array();
