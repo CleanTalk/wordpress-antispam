@@ -377,6 +377,7 @@ function ct_ajax_hook($message_obj = null)
          // (function_exists('get_current_user_id') && get_current_user_id() != 0) || // Check with default wp_* function if it's admin
          ( ! $apbct->settings['data__protect_logged_in'] && ($apbct->user instanceof WP_User) && $apbct->user->ID !== 0) || // Logged in user
          apbct_exclusions_check__url() || // url exclusions
+
          (Post::get('action') && in_array(Post::get('action'), $skip_post)) || // Special params
          (Get::get('action') && in_array(Get::get('action'), $skip_post)) ||  // Special params
          Post::get('quform_submit') || //QForms multi-paged form skip

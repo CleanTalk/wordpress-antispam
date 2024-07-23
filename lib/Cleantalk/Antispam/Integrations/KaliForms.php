@@ -14,7 +14,6 @@ class KaliForms extends IntegrationBase
 
         // Kali form integration
         $data = Post::get('data');
-
         apbct_form__get_no_cookie_data($data);
         $gfa_checked_data = ct_get_fields_any($data);
         if (isset($data['ct_bot_detector_event_token'])) {
