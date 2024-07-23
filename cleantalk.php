@@ -651,6 +651,11 @@ $apbct_active_integrations = array(
         'setting' => 'forms__contact_forms_test',
         'ajax'    => true
     ),
+    'OtterBlocksForm' => array(
+        'hook'    => 'otter_form_anti_spam_validation',
+        'setting' => 'forms__contact_forms_test',
+        'ajax'    => false
+    ),
 );
 add_action('plugins_loaded', function () use ($apbct_active_integrations, $apbct) {
     if ( defined('FLUENTFORM_VERSION') ) {
