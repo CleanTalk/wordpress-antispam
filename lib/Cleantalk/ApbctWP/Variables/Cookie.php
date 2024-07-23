@@ -51,13 +51,7 @@ class Cookie extends \Cleantalk\Variables\Cookie
                         ) {
                             $value = NoCookie::get($name);
 
-                            if ($name === 'apbct_site_referer' && !$value) {
-                                $value = AltSessions::get($name);
-                            }
-                            if ($name === 'apbct_prev_referer' && !$value) {
-                                $value = AltSessions::get($name);
-                            }
-                            if ($name === 'apbct_page_hits' && !$value) {
+                            if (!$value && in_array($name, array('apbct_site_referer', 'apbct_prev_referer', 'apbct_page_hits'))) {
                                 $value = AltSessions::get($name);
                             }
                         } else {
