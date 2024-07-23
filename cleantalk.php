@@ -4,7 +4,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 6.36.1-dev
+  Version: 6.36.2-dev
   Author: СleanTalk - Anti-Spam Protection <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -156,7 +156,8 @@ if ( $apbct->settings['comments__disable_comments__all'] || $apbct->settings['co
 if (
     $apbct->key_is_ok &&
     ( ! is_admin() || apbct_is_ajax() ) &&
-    $apbct->settings['data__email_decoder']
+    $apbct->settings['data__email_decoder'] &&
+    current_action() !== 'wp_ajax_delete-plugin'
 ) {
     $skip_email_encode = false;
 
@@ -169,7 +170,7 @@ if (
         }
     }
 
-    if (!$skip_email_encode) {
+    if (!$skip_email_encode && !apbct_is_amp_request()) {
         \Cleantalk\ApbctWP\Antispam\EmailEncoder::getInstance();
     }
 }
@@ -651,6 +652,13 @@ $apbct_active_integrations = array(
         'setting' => 'forms__contact_forms_test',
         'ajax'    => true
     ),
+    // Integration Contact Form Clean and Simple
+    'CSCF' => array(
+        'hook'    => 'cscf-submitform',
+        'setting' => 'forms__contact_forms_test',
+        'ajax'    => true,
+    ),
+
 );
 add_action('plugins_loaded', function () use ($apbct_active_integrations, $apbct) {
     if ( defined('FLUENTFORM_VERSION') ) {

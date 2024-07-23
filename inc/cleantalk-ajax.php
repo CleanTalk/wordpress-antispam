@@ -61,13 +61,6 @@ add_action('wp_ajax_nopriv_zn_do_login', 'ct_ajax_hook', 1);
 add_action('wp_ajax_zn_do_login', 'ct_ajax_hook', 1);
 $_cleantalk_hooked_actions[] = 'zn_do_login';
 
-/*hooks for zn_do_login */
-if ( Post::get('action') === 'cscf-submitform' ) {
-    add_filter('preprocess_comment', 'ct_ajax_hook', 1);
-    $_cleantalk_hooked_actions[] = 'cscf-submitform';
-}
-
-
 /*hooks for visual form builder */
 add_action('wp_ajax_nopriv_vfb_submit', 'ct_ajax_hook', 1);
 add_action('wp_ajax_vfb_submit', 'ct_ajax_hook', 1);
@@ -445,13 +438,6 @@ function ct_ajax_hook($message_obj = null)
     // protect outside iframes
     if ( Post::get('action') === 'cleantalk_outside_iframe_ajax_check' ) {
         $post_info['comment_type'] = 'contact_form_wordpress_outside_iframe';
-    }
-
-    //CSCF fix
-    if ( Post::get('action') === 'cscf-submitform' ) {
-        $ct_post_temp[] = $message_obj['comment_author'];
-        $ct_post_temp[] = $message_obj['comment_author_email'];
-        $ct_post_temp[] = $message_obj['comment_content'];
     }
 
     //??? fix
