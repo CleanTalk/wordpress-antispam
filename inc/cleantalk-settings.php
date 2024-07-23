@@ -276,7 +276,9 @@ function apbct_settings__set_fields()
                     'description' => __(
                         'This option provides more sophisticated and enhanced protection for external forms. However, it can break other plugins that use the webserver buffer like Ninja Forms, and moreover, it can also cause issues with cache plugins.',
                         'cleantalk-spam-protect'
-                    ),
+                    )
+                    . '<br />'
+                    . __('СAUTION! Enable this option if you have missed spam from external forms', 'cleantalk-spam-protect'),
                     'class'       => 'apbct_settings-field_wrapper--sub',
                     'parent'      => 'forms__check_external',
                 ),
