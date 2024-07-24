@@ -710,7 +710,7 @@ function ct_add_honeypot_field($form_type, $form_method = 'post')
     if ( $form_method === 'post' ) {
         //add hidden field to set random suffix for the field
         $honeypot .= '<input 
-        id="apbct_event_id"
+        id="apbct_event_id_' . $form_type . '_' . $apbct_event_id . '"
         class="apbct_special_field"
         name="apbct_event_id"
         type="hidden" 
