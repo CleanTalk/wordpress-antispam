@@ -2768,6 +2768,7 @@ function apbct_store__urls()
         // Get already stored URLs
         $urls_json = TT::toString(RequestParameters::getCommonStorage('apbct_urls'));
         $urls = !empty($urls_json) ? json_decode($urls_json, true) : array();
+        $urls = ! is_array($urls) ? [] : $urls;
 
         $urls[$current_url][] = time();
 
