@@ -4,6 +4,7 @@ use Cleantalk\ApbctWP\Cron;
 use Cleantalk\ApbctWP\Helper;
 use Cleantalk\ApbctWP\Variables\Server;
 use Cleantalk\ApbctWP\Firewall\SFWUpdateHelper;
+use Cleantalk\Common\TT;
 
 /**
  * Main function to compare versions and run necessary update functions.
@@ -267,9 +268,12 @@ function apbct_update_to_5_118_0()
 function apbct_update_to_5_118_2()
 {
     global $apbct;
-    $apbct->data['connection_reports']          = $apbct->default_data['connection_reports'];
-    $apbct->data['connection_reports']['since'] = date('d M');
-    $apbct->saveData();
+
+    if ( isset($apbct->data['connection_reports'], $apbct->data['connection_reports']['since'], $apbct->default_data['connection_reports']) ) {
+        $apbct->data['connection_reports']          = $apbct->default_data['connection_reports'];
+        $apbct->data['connection_reports']['since'] = date('d M');
+        $apbct->saveData();
+    }
 }
 
 /**
@@ -936,8 +940,8 @@ function apbct_update_to_5_160_4()
     }
 
     SFWUpdateHelper::removeUpdFolder(ABSPATH . '/wp-admin/fw_files');
-    SFWUpdateHelper::removeUpdFolder(Server::get('DOCUMENT_ROOT') . '/fw_files');
-    $file_path = Server::get('DOCUMENT_ROOT') . '/fw_filesindex.php';
+    SFWUpdateHelper::removeUpdFolder(TT::toString(Server::get('DOCUMENT_ROOT')) . '/fw_files');
+    $file_path = TT::toString(Server::get('DOCUMENT_ROOT')) . '/fw_filesindex.php';
     if (is_file($file_path) && is_writable($file_path)) {
         unlink($file_path);
     }

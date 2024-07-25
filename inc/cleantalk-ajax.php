@@ -8,10 +8,13 @@ use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\ApbctWP\Variables\Get;
 use Cleantalk\ApbctWP\Variables\Post;
 use Cleantalk\ApbctWP\Variables\Server;
+use Cleantalk\Common\TT;
 
+$_cleantalk_ajax_actions_to_check = array();
 $_cleantalk_ajax_actions_to_check[] = 'qcf_validate_form';            //Quick Contact Form
 $_cleantalk_ajax_actions_to_check[] = 'amoforms_submit';            //amoForms
 
+$_cleantalk_hooked_actions = array();
 $_cleantalk_hooked_actions[] = 'rwp_ajax_action_rating'; //Don't check Reviewer plugin
 
 $_cleantalk_hooked_actions[] = 'ct_feedback_comment';
@@ -144,7 +147,8 @@ function ct_validate_email_ajaxlogin($email = null)
     $is_good = ! ( ! filter_var($email, FILTER_VALIDATE_EMAIL) || email_exists($email));
 
     if ( class_exists('AjaxLogin') && Post::get('action') === 'validate_email' ) {
-        $checkjs                            = apbct_js_test(Post::get('ct_checkjs'));
+        $sender_info = array();
+        $checkjs                            = apbct_js_test(TT::toString(Post::get('ct_checkjs')));
         $sender_info['post_checkjs_passed'] = $checkjs;
 
         //Making a call
@@ -158,10 +162,12 @@ function ct_validate_email_ajaxlogin($email = null)
             true
         );
 
-        $ct_result = $base_call_result['ct_result'];
+        if (isset($base_call_result['ct_result'])) {
+            $ct_result = $base_call_result['ct_result'];
 
-        if ( $ct_result->allow === 0 ) {
-            $is_good = false;
+            if ( $ct_result->allow === 0 ) {
+                $is_good = false;
+            }
         }
     }
 
@@ -195,7 +201,8 @@ function ct_user_register_ajaxlogin($user_id)
 {
     //TODO probably dead code there, there is no such plugins with such hook found on wp.org
     if ( class_exists('AjaxLogin') && Post::get('action') === 'register_submit' ) {
-        $checkjs                            = apbct_js_test(Post::get('ct_checkjs'));
+        $sender_info = array();
+        $checkjs                            = apbct_js_test(TT::toString(Post::get('ct_checkjs')));
         $sender_info['post_checkjs_passed'] = $checkjs;
 
         //Making a call
@@ -209,10 +216,12 @@ function ct_user_register_ajaxlogin($user_id)
             true
         );
 
-        $ct_result = $base_call_result['ct_result'];
+        if (isset($base_call_result['ct_result'])) {
+            $ct_result = $base_call_result['ct_result'];
 
-        if ( $ct_result->allow === 0 ) {
-            wp_delete_user($user_id);
+            if ( $ct_result->allow === 0 ) {
+                wp_delete_user($user_id);
+            }
         }
     }
 
@@ -424,15 +433,21 @@ function ct_ajax_hook($message_obj = null)
         'post_url'     => Server::get('HTTP_REFERER'), // Page URL must be an previous page
     );
 
+    $ct_post_temp = array();
+
     //QAEngine Theme answers
     if ( ! empty($message_obj) && isset($message_obj['post_type'], $message_obj['post_content']) ) {
-        $curr_user = get_user_by('id', $message_obj['author']);
-        if ( ! $curr_user ) {
-            $curr_user = get_user_by('id', $message_obj['post_author']);
+        if (isset($message_obj['author'])) {
+            $curr_user = get_user_by('id', $message_obj['author']);
+            if ( ! $curr_user && isset($message_obj['post_author']) ) {
+                $curr_user = get_user_by('id', $message_obj['post_author']);
+            }
+            if ( is_object($curr_user) ) {
+                $ct_post_temp['comment'] = $message_obj['post_content'];
+                $ct_post_temp['email']   = $curr_user->data->user_email;
+                $ct_post_temp['name']    = $curr_user->data->user_login;
+            }
         }
-        $ct_post_temp['comment'] = $message_obj['post_content'];
-        $ct_post_temp['email']   = $curr_user->data->user_email;
-        $ct_post_temp['name']    = $curr_user->data->user_login;
     }
 
     //NSL integration
@@ -447,7 +462,9 @@ function ct_ajax_hook($message_obj = null)
     }
 
     //CSCF fix
-    if ( Post::get('action') === 'cscf-submitform' ) {
+    if ( Post::get('action') === 'cscf-submitform' &&
+        isset($message_obj['comment_author'], $message_obj['comment_author_email'], $message_obj['comment_content'])
+    ) {
         $ct_post_temp[] = $message_obj['comment_author'];
         $ct_post_temp[] = $message_obj['comment_author_email'];
         $ct_post_temp[] = $message_obj['comment_content'];
@@ -502,12 +519,15 @@ function ct_ajax_hook($message_obj = null)
     if ( Post::get('action') === 'process_form_submission' ) {
         $post_info['comment_type'] = 'contact_enquire_wordpress_easy_forms_for_mailchimp';
         if ( Post::get('form_data') ) {
-            $form_data     = explode('&', urldecode(Post::get('form_data')));
+            $form_data     = explode('&', urldecode(TT::toString(Post::get('form_data'))));
             $form_data_arr = array();
             foreach ( $form_data as $val ) {
                 $form_data_element                    = explode('=', $val);
-                $form_data_arr[$form_data_element[0]] = @$form_data_element[1];
+                if (isset($form_data_element[0], $form_data_element[1])) {
+                    $form_data_arr[$form_data_element[0]] = @$form_data_element[1];
+                }
             }
+            $ct_post_temp = array();
             if ( isset($form_data_arr['EMAIL']) ) {
                 $ct_post_temp['email'] = $form_data_arr['EMAIL'];
             }
@@ -524,7 +544,7 @@ function ct_ajax_hook($message_obj = null)
         Post::get('data') !== ''
     ) {
         $form_data = Post::get('data');
-        $form_data = explode('&', $form_data);
+        $form_data = explode('&', TT::toString($form_data));
 
         for ($index = 0; $index < count($form_data); $index++) {
             if (stripos($form_data[$index], 'apbct_visible_fields') === 0) {
@@ -542,25 +562,27 @@ function ct_ajax_hook($message_obj = null)
             $form_data = Post::get('formInput');
             $prepare_form_data = array();
 
-            foreach ($form_data as $row) {
-                if (isset($row['name']) && $row['name'] === 'apbct_visible_fields') {
-                    continue;
-                }
-
-                if (isset($row['name']) && $row['name'] === 'ct_bot_detector_event_token') {
-                    continue;
-                }
-
-                if (isset($row['name']) && $row['name'] === 'ct_no_cookie_hidden_field') {
-                    if ($apbct->data['cookies_type'] === 'none') {
-                        $no_cookie_data = isset($row['value']) ? $row['value'] : '';
-                        $apbct->stats['no_cookie_data_taken'] = \Cleantalk\ApbctWP\Variables\NoCookie::setDataFromHiddenField($no_cookie_data);
-                        $apbct->save('stats');
+            if (is_array($form_data)) {
+                foreach ($form_data as $row) {
+                    if (isset($row['name']) && $row['name'] === 'apbct_visible_fields') {
+                        continue;
                     }
-                    continue;
-                }
 
-                $prepare_form_data[] = $row;
+                    if (isset($row['name']) && $row['name'] === 'ct_bot_detector_event_token') {
+                        continue;
+                    }
+
+                    if (isset($row['name']) && $row['name'] === 'ct_no_cookie_hidden_field') {
+                        if ($apbct->data['cookies_type'] === 'none') {
+                            $no_cookie_data = isset($row['value']) ? $row['value'] : '';
+                            $apbct->stats['no_cookie_data_taken'] = \Cleantalk\ApbctWP\Variables\NoCookie::setDataFromHiddenField($no_cookie_data);
+                            $apbct->save('stats');
+                        }
+                        continue;
+                    }
+
+                    $prepare_form_data[] = $row;
+                }
             }
 
             $_POST['formInput'] = $prepare_form_data;
@@ -582,11 +604,11 @@ function ct_ajax_hook($message_obj = null)
     }
     $ct_temp_msg_data = ct_get_fields_any($input_array);
 
-    $sender_email    = $ct_temp_msg_data['email'] ?: '';
-    $sender_nickname = $ct_temp_msg_data['nickname'] ?: '';
-    $subject         = $ct_temp_msg_data['subject'] ?: '';
-    $contact_form    = $ct_temp_msg_data['contact'] ?: true;
-    $message         = $ct_temp_msg_data['message'] ?: array();
+    $sender_email    = isset($ct_temp_msg_data['email']) ? $ct_temp_msg_data['email'] : '';
+    $sender_nickname = isset($ct_temp_msg_data['nickname']) ? $ct_temp_msg_data['nickname'] : '';
+    $subject         = isset($ct_temp_msg_data['subject']) ? $ct_temp_msg_data['subject'] : '';
+    $contact_form    = isset($ct_temp_msg_data['contact']) ? $ct_temp_msg_data['contact'] : true;
+    $message         = isset($ct_temp_msg_data['message']) ? $ct_temp_msg_data['message'] : array();
     if ( $subject !== '' ) {
         $message['subject'] = $subject;
     }
@@ -676,7 +698,12 @@ function ct_ajax_hook($message_obj = null)
     }
 
     $base_call_result = apbct_base_call($base_call_params, $reg_flag);
-    $ct_result        = $base_call_result['ct_result'];
+
+    if (!isset($base_call_result['ct_result'])) {
+        return null;
+    }
+
+    $ct_result = $base_call_result['ct_result'];
 
     if ( $ct_result->allow == 0 ) {
         if ( Post::get('action') === 'wpuf_submit_register' ) {
@@ -755,6 +782,7 @@ function ct_ajax_hook($message_obj = null)
 
         // UserPro
         if ( Post::get('action') === 'userpro_process_form' && Post::get('template') === 'register' ) {
+            $output = array();
             foreach ( $_POST as $key => $value ) {
                 $output[\Cleantalk\ApbctWP\Sanitize::cleanXss($key)] = \Cleantalk\ApbctWP\Sanitize::cleanXss($value);
             }
@@ -766,6 +794,7 @@ function ct_ajax_hook($message_obj = null)
 
         // Quick event manager
         if ( Post::get('action') === 'qem_validate_form' ) {
+            $errors = array();
             $errors[] = 'registration_forbidden';
             $result   = array(
                 'success' => 'false',
@@ -835,7 +864,7 @@ function ct_ajax_hook($message_obj = null)
         }
 
         //Convertplug. Strpos because action value dynamically changes and depends on mailing service
-        if ( strpos(Post::get('action'), '_add_subscriber') !== false ) {
+        if ( strpos(TT::toString(Post::get('action')), '_add_subscriber') !== false ) {
             $result = array(
                 'action'       => "message",
                 'detailed_msg' => "",
@@ -891,7 +920,7 @@ function ct_ajax_hook($message_obj = null)
             Post::get('_wp_http_referer') &&
             Post::get('register_field') &&
             Post::get('action') &&
-            strpos(Post::get('_wp_http_referer'), '/register/account') !== false &&
+            strpos(TT::toString(Post::get('_wp_http_referer')), '/register/account') !== false &&
             Post::get('action') === 'register'
         ) {
             $result = array(
@@ -926,7 +955,7 @@ function ct_ajax_hook($message_obj = null)
         }
 
         // Forminator
-        if ( strpos(Post::get('action'), 'forminator_submit') !== false ) {
+        if ( strpos(TT::toString(Post::get('action')), 'forminator_submit') !== false ) {
             wp_send_json_error(
                 array(
                     'message' => $ct_result->comment,
@@ -938,7 +967,7 @@ function ct_ajax_hook($message_obj = null)
         }
 
         // Easy Registration Form
-        if ( strpos(Post::get('action'), 'erf_submit_form') !== false ) {
+        if ( strpos(TT::toString(Post::get('action')), 'erf_submit_form') !== false ) {
             wp_send_json_error(array(0 => array('username_error', $ct_result->comment)));
         }
 
