@@ -1168,6 +1168,10 @@ function ctSetAlternativeCookie(cookies, params) {
         return;
     }
 
+    if (!cookies.apbct_site_referer) {
+        cookies.apbct_site_referer = location.href;
+    }
+
     const callback = params && params.callback || null;
     const onErrorCallback = params && params.onErrorCallback || null;
 
@@ -2756,7 +2760,7 @@ function getJavascriptClientData(commonCookies = []) {
         ctCookiesTypeLocalStorage : ctCookiesTypeCookie;
     resultDataJson.apbct_pixel_url = ctPixelUrl !== undefined ?
         ctPixelUrl : ctCookiesPixelUrl;
-    if (resultDataJson.apbct_pixel_url && resultDataJson.apbct_pixel_url == 'string') {
+    if (resultDataJson.apbct_pixel_url && typeof(resultDataJson.apbct_pixel_url) == 'string') {
         if (resultDataJson.apbct_pixel_url.indexOf('%3A%2F')) {
             resultDataJson.apbct_pixel_url = decodeURIComponent(resultDataJson.apbct_pixel_url);
         }
