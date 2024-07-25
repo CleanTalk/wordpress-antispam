@@ -596,7 +596,7 @@ class Helper
      *
      * @param array $urls Array of URLs to requests
      *
-     * @return array|bool|string
+     * @return array|bool
      */
     public static function httpMultiRequest($urls, $write_to = '')
     {

@@ -4,7 +4,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 6.36.1
+  Version: 6.37
   Author: СleanTalk - Anti-Spam Protection <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -34,6 +34,7 @@ use Cleantalk\ApbctWP\State;
 use Cleantalk\ApbctWP\Transaction;
 use Cleantalk\ApbctWP\UpdatePlugin\DbTablesCreator;
 use Cleantalk\ApbctWP\Variables\Cookie;
+use Cleantalk\Common\TT;
 use Cleantalk\Common\DNS;
 use Cleantalk\Common\Firewall;
 use Cleantalk\Common\Schema;
@@ -46,24 +47,12 @@ global $apbct, $wpdb, $pagenow;
 
 $cleantalk_executed = false;
 
-// Getting version form main file (look above)
+/**
+ * Define common const.
+ */
 $plugin_info           = get_file_data(__FILE__, array('Version' => 'Version', 'Name' => 'Plugin Name',));
-$plugin_version__agent = $plugin_info['Version'];
-// Converts xxx.xxx.xx-dev to xxx.xxx.2xx
-// And xxx.xxx.xx-fix to xxx.xxx.1xx
-if ( preg_match('@^(\d+)\.(\d+)\.(\d{1,2})-(dev|fix)$@', $plugin_version__agent, $m) ) {
-    $plugin_version__agent =
-        $m[1]
-        . '.'
-        . $m[2]
-        . '.'
-        . ($m[4] === 'dev' ? '2' : '1')
-        . str_pad($m[3], 2, '0', STR_PAD_LEFT);
-}
-
-// Common params
-define('APBCT_NAME', $plugin_info['Name']);
-define('APBCT_VERSION', $plugin_info['Version']);
+define('APBCT_NAME', isset($plugin_info['Name']) ? $plugin_info['Name'] : 'Anti-Spam by CleanTalk');
+define('APBCT_VERSION', isset($plugin_info['Version']) ? $plugin_info['Version'] : '1.0.0');
 define('APBCT_URL_PATH', plugins_url('', __FILE__));  //HTTP path.   Plugin root folder without '/'.
 define('APBCT_CSS_ASSETS_PATH', plugins_url('css', __FILE__));  //CSS assets path.   Plugin root folder without '/'.
 define('APBCT_JS_ASSETS_PATH', plugins_url('js', __FILE__));  //JS assets path.   Plugin root folder without '/'.
@@ -75,67 +64,95 @@ define(
     file_exists(ABSPATH . WPINC . '/certificates/ca-bundle.crt') ? ABSPATH . WPINC . '/certificates/ca-bundle.crt' : ''
 ); // SSL Serttificate path
 
-// API params
-define('APBCT_AGENT', 'wordpress-' . $plugin_version__agent);
-define('APBCT_MODERATE_URL', 'https://moderate.cleantalk.org'); //Api URL
-
-// Option names
+/**
+ * Define options names const.
+ */
 define('APBCT_DATA', 'cleantalk_data');             // Option name with different plugin data.
 define('APBCT_SETTINGS', 'cleantalk_settings');         // Option name with plugin settings.
 define('APBCT_NETWORK_SETTINGS', 'cleantalk_network_settings'); // Option name with plugin network settings.
 define('APBCT_DEBUG', 'cleantalk_debug');            // Option name with a debug data. Empty by default.
 define('APBCT_JS_ERRORS', 'cleantalk_js_errors');            // Option name with js errors. Empty by default.
 
-// WordPress Multisite
-define('APBCT_WPMS', (is_multisite() ? true : false)); // WMPS is enabled
 
-// Different params
+/**
+ * Define service const.
+ */
 define('APBCT_REMOTE_CALL_SLEEP', 5); // Minimum time between remote call
-
+define('APBCT_WPMS', (is_multisite() ? true : false)); // WordPress Multisite - if WMPS is enabled
+define('APBCT_LANG_REL_PATH', 'cleantalk-spam-protect/i18n');
 if ( ! defined('CLEANTALK_PLUGIN_DIR') ) {
     define('CLEANTALK_PLUGIN_DIR', dirname(__FILE__) . '/');
 }
 
-define('APBCT_LANG_REL_PATH', 'cleantalk-spam-protect/i18n');
-
-// PHP functions patches
+/**
+ * Require PHP patch.
+ */
 require_once(CLEANTALK_PLUGIN_DIR . 'lib/cleantalk-php-patch.php');  // Pathces fpr different functions which not exists
 
-// Base classes
-require_once(CLEANTALK_PLUGIN_DIR . 'lib/autoloader.php');                // Autoloader
+/**
+ * Require the Autoloader
+ */
+require_once(CLEANTALK_PLUGIN_DIR . 'lib/autoloader.php');
 
+/**
+ * Define API params const.
+ */
+$plugin_version__agent = APBCT_VERSION;
+// Converts version to xxx.xxx.xx-dev to xxx.xxx.2xx and xxx.xxx.xx-fix to xxx.xxx.1xx
+if ( preg_match('@^(\d+)\.(\d+)\.(\d{1,2})-(dev|fix)$@', $plugin_version__agent, $m) ) {
+    $major_version = TT::getArrayValueAsString($m, 1);
+    $minor_version = TT::getArrayValueAsString($m, 2);
+    $branch_sub = TT::getArrayValueAsString($m, 4) === 'dev' ? '2' : '1';
+    $padded = str_pad(
+        TT::getArrayValueAsString($m, 3),
+        2,
+        '0',
+        STR_PAD_LEFT
+    );
+    $plugin_version__agent = $major_version . '.' . $minor_version . '.' . $branch_sub . $padded;
+}
+define('APBCT_AGENT', 'wordpress-' . $plugin_version__agent); // Prepared agent
+const APBCT_MODERATE_URL = 'https://moderate.cleantalk.org'; // Api URL
+
+/**
+ * Require base classes.
+ */
 require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-pluggable.php');  // Pluggable functions
 require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-common.php');
 require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-wpcli.php');
 
+/**
+ * Global state handle.
+ */
 // Global ArrayObject with settings and other global variables
 $apbct = new State('cleantalk', array('settings', 'data', 'debug', 'errors', 'remote_calls', 'stats', 'fw_stats'));
-
+// Init plugin basename.
 $apbct->base_name = 'cleantalk-spam-protect/cleantalk.php';
-
-$apbct->plugin_request_id = md5(microtime()); // Identify plugin execution
-
+// Identify plugin execution
+$apbct->plugin_request_id = md5(microtime());
+// Init logos.
 $apbct->logo                 = plugin_dir_url(__FILE__) . 'inc/images/logo.png';
 $apbct->logo__small          = plugin_dir_url(__FILE__) . 'inc/images/logo_small.png';
 $apbct->logo__small__colored = plugin_dir_url(__FILE__) . 'inc/images/logo_color.png';
 
-// Customize \Cleantalk\ApbctWP\State
-// Account status
-
+// Init Account status
 $apbct->white_label      = $apbct->network_settings['multisite__white_label'];
 $apbct->allow_custom_key = $apbct->network_settings['multisite__work_mode'] != 2;
 $apbct->plugin_name      = $apbct->network_settings['multisite__white_label__plugin_name'] ? $apbct->network_settings['multisite__white_label__plugin_name'] : APBCT_NAME;
 $apbct->api_key          = ! APBCT_WPMS || $apbct->allow_custom_key || $apbct->white_label ? $apbct->settings['apikey'] : $apbct->network_settings['apikey'];
 $apbct->key_is_ok        = ! APBCT_WPMS || $apbct->allow_custom_key || $apbct->white_label ? $apbct->data['key_is_ok'] : $apbct->network_data['key_is_ok'];
 $apbct->moderate         = ! APBCT_WPMS || $apbct->allow_custom_key || $apbct->white_label ? $apbct->data['moderate'] : $apbct->network_data['moderate'];
+// Init counter
+$apbct->data['user_counter']['since'] = isset($apbct->data['user_counter']['since'])
+    ? $apbct->data['user_counter']['since']
+    : date('d M');
 
-$apbct->data['user_counter']['since']       = isset($apbct->data['user_counter']['since'])       ? $apbct->data['user_counter']['since'] : date('d M');
-
-// SFW update
+// Init SFW update data
 $apbct->firewall_updating = (bool)$apbct->fw_stats['firewall_updating_id'];
 $apbct->data['sfw_load_type'] = (!APBCT_WPMS || is_main_site() || $apbct->network_settings['multisite__work_mode'] === 2) ? 'all' : 'personal';
 $apbct->saveData();
 
+// Init settings link
 $apbct->settings_link = is_network_admin() ? 'settings.php?page=cleantalk' : 'options-general.php?page=cleantalk';
 
 // Connection reports
@@ -143,6 +160,9 @@ $apbct->setConnectionReports();
 // SFW update sentinel
 $apbct->setSFWUpdateSentinel();
 
+/**
+ * Init features.
+ */
 if ( ! $apbct->white_label ) {
     require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalkWidget.php');
 }
@@ -156,7 +176,8 @@ if ( $apbct->settings['comments__disable_comments__all'] || $apbct->settings['co
 if (
     $apbct->key_is_ok &&
     ( ! is_admin() || apbct_is_ajax() ) &&
-    $apbct->settings['data__email_decoder']
+    $apbct->settings['data__email_decoder'] &&
+    current_action() !== 'wp_ajax_delete-plugin'
 ) {
     $skip_email_encode = false;
 
@@ -169,7 +190,7 @@ if (
         }
     }
 
-    if (!$skip_email_encode) {
+    if (!$skip_email_encode && !apbct_is_amp_request()) {
         \Cleantalk\ApbctWP\Antispam\EmailEncoder::getInstance();
     }
 }
@@ -564,10 +585,10 @@ $apbct_active_integrations = array(
         'setting' => 'forms__contact_forms_test',
         'ajax'    => false
     ),
-    'KaliForms'           => array(
-        'hook'    => array('plugins_loaded'),
+    'KaliForms'   => array(
+        'hook'    => array('kaliforms_form_process'),
         'setting' => 'forms__contact_forms_test',
-        'ajax'    => false
+        'ajax'    => true
     ),
     'ClassifiedListingRegister' => array(
         'hook'    => 'wp_loaded',
@@ -651,6 +672,17 @@ $apbct_active_integrations = array(
         'setting' => 'forms__contact_forms_test',
         'ajax'    => true
     ),
+    // Integration Contact Form Clean and Simple
+    'CSCF' => array(
+        'hook'    => 'cscf-submitform',
+        'setting' => 'forms__contact_forms_test',
+        'ajax'    => true,
+    ),
+    'ThriveLeads' => array(
+        'hook'    => 'tve_leads_ajax_conversion',
+        'setting' => 'forms__contact_forms_test',
+        'ajax'    => true
+    ),
 );
 add_action('plugins_loaded', function () use ($apbct_active_integrations, $apbct) {
     if ( defined('FLUENTFORM_VERSION') ) {
@@ -665,11 +697,12 @@ add_action('plugins_loaded', function () use ($apbct_active_integrations, $apbct
 add_filter('delicious_recipes_process_registration_errors', 'apbct_wp_delicious', 10, 4);
 
 $js_errors_arr = apbct_check_post_for_no_cookie_data();
-if ($js_errors_arr && $js_errors_arr['data']) {
+if ($js_errors_arr && isset($js_errors_arr['data'])) {
     apbct_write_js_errors($js_errors_arr['data']);
 }
 
 /**
+ * @param string $data
  * @psalm-suppress UnusedVariable
  */
 function apbct_write_js_errors($data)
@@ -805,8 +838,8 @@ add_action('wp_ajax_dt_send_mail', 'apbct_form__the7_contact_form', 1);
 add_action('website_neotrends_signup_fields_check', function ($username, $fields) {
     $ip        = Helper::ipGet('real', false);
     $ct_result = ct_test_registration($username, $fields['email'], $ip);
-    if ( $ct_result['allow'] == 0 ) {
-        ct_die_extended($ct_result['comment']);
+    if ( TT::getArrayValueAsInt($ct_result, 'allow') === 0 ) {
+        ct_die_extended(TT::getArrayValueAsString($ct_result, 'comment'));
     }
 }, 1, 2);
 
@@ -1375,12 +1408,13 @@ function apbct_sfw_update__init($delay = 0)
         }
     }
 
-    $apbct->data['sfw_common_table_name'] = $sfw_tables_names['sfw_common_table_name'];
-    $apbct->data['sfw_personal_table_name'] = $sfw_tables_names['sfw_personal_table_name'];
+    $apbct->data['sfw_common_table_name'] = TT::getArrayValueAsString($sfw_tables_names, 'sfw_common_table_name');
+    $apbct->data['sfw_personal_table_name'] = TT::getArrayValueAsString($sfw_tables_names, 'sfw_personal_table_name');
     $apbct->save('data');
 
     $wp_upload_dir = wp_upload_dir();
-    $apbct->fw_stats['updating_folder'] = $wp_upload_dir['basedir'] . DIRECTORY_SEPARATOR . 'cleantalk_fw_files_for_blog_' . get_current_blog_id() . DIRECTORY_SEPARATOR;
+    $base_dir = TT::getArrayValueAsString($wp_upload_dir, 'basedir');
+    $apbct->fw_stats['updating_folder'] = $base_dir . DIRECTORY_SEPARATOR . 'cleantalk_fw_files_for_blog_' . get_current_blog_id() . DIRECTORY_SEPARATOR;
     //update only common tables if moderate 0
     if ( ! $apbct->moderate ) {
         $apbct->data['sfw_load_type'] = 'common';
@@ -1408,7 +1442,8 @@ function apbct_sfw_update__init($delay = 0)
 
     $queue = new \Cleantalk\ApbctWP\Queue();
     //this is the first stage, select what type of SFW load need
-    $load_type = isset($apbct->data['sfw_load_type']) ? $apbct->data['sfw_load_type'] : 'all';
+    $load_type = isset($apbct->data['sfw_load_type']) ? TT::toString($apbct->data['sfw_load_type']) : 'all';
+    $get_multifiles_params = array();
     if ( $load_type === 'all' ) {
         $queue->addStage('apbct_sfw_update__get_multifiles_all');
     } else {
@@ -1588,7 +1623,7 @@ function apbct_sfw_update__worker($checker_work = false)
     }
 
     // This is the repeat stage request, do not generate any new RC
-    if ( stripos(Request::get('stage'), 'Repeat') !== false ) {
+    if ( stripos(TT::toString(Request::get('stage')), 'Repeat') !== false ) {
         return true;
     }
 
@@ -1666,20 +1701,19 @@ function apbct_sfw_update__get_multifiles_of_type(array $params)
     } else {
         $type = $params['type'];
     }
+
     //check needs return urls instead of next stage
-    $do_return_urls = false;
-    if ( isset($params['do_return_urls']) ) {
-        $do_return_urls = $params['do_return_urls'];
-    }
+    $do_return_urls = TT::getArrayValueAsBool($params, 'do_return_urls');
 
     $output_error = array();
     // getting urls
     try {
         $direction_files = SFWUpdateHelper::getDirectionUrlsOfType($type);
+        $direction_url_id = TT::getArrayValueAsString($direction_files, 'url_id');
         if ( $type === 'personal' ) {
-            $apbct->fw_stats['personal_lists_url_id'] = $direction_files['url_id'];
+            $apbct->fw_stats['personal_lists_url_id'] = $direction_url_id;
         } else {
-            $apbct->fw_stats['common_lists_url_id'] = $direction_files['url_id'];
+            $apbct->fw_stats['common_lists_url_id'] = $direction_url_id;
         }
     } catch (\Exception $e) {
         $output_error[] = $e->getMessage();
@@ -1733,8 +1767,9 @@ function apbct_sfw_update__download_files($urls, $direct_update = false)
     //Reset keys
     $urls          = array_values(array_unique($urls));
     $results       = Helper::httpMultiRequest($urls, $apbct->fw_stats['updating_folder']);
+    $results = TT::toArray($results);
     $count_urls    = count($urls);
-    $count_results = count($results);
+    $count_results    = count($results);
 
     if ( empty($results['error']) && ($count_urls === $count_results) ) {
         if ( $direct_update ) {
@@ -2162,7 +2197,7 @@ function ct_sfw_send_logs($api_key = '')
 
     if ( empty($result['error']) ) {
         $apbct->stats['sfw']['last_send_time']   = time();
-        $apbct->stats['sfw']['last_send_amount'] = $result['rows'];
+        $apbct->stats['sfw']['last_send_amount'] = TT::getArrayValueAsInt($result, 'rows');
         $apbct->errorDelete('sfw_send_logs', true);
         $apbct->save('stats');
     }
@@ -2183,7 +2218,7 @@ function apbct_sfw_private_records_handler($action, $test_data = null)
     $error = 'sfw_private_records_handler: ';
 
     if ( !empty($action) && (in_array($action, array('add', 'delete'))) ) {
-        $metadata = !empty($test_data) ? $test_data : Post::get('metadata');
+        $metadata = !empty($test_data) ? TT::toString($test_data) : TT::toString(Post::get('metadata'));
 
         if ( !empty($metadata) ) {
             $metadata = json_decode(stripslashes($metadata), true);
@@ -2198,9 +2233,9 @@ function apbct_sfw_private_records_handler($action, $test_data = null)
             $row = explode(',', $row);
             //do this to get info more obvious
             $metadata_assoc_array = array(
-                'network' => (int)$row[0],
-                'mask' => (int)$row[1],
-                'status' => isset($row[2]) ? (int)$row[2] : null
+                'network' => TT::getArrayValueAsInt($row, 0),
+                'mask' => TT::getArrayValueAsInt($row, 1),
+                'status' => isset($row[2]) ? TT::toInt($row[2]) : null
             );
             //validate
             $validation_error = '';
@@ -2300,10 +2335,11 @@ function apbct_rc__install_plugin($_wp = null, $plugin = null)
     global $wp_version;
 
     if ( is_null($plugin) ) {
-        $plugin = Get::get('plugin') ? (string) Get::get('plugin') : null;
+        $plugin = Get::get('plugin') ? Get::get('plugin') : '';
     }
 
-    if ( $plugin ) {
+    if ( !empty($plugin) ) {
+        $plugin = TT::toString($plugin);
         if ( preg_match('/[a-zA-Z-\d]+[\/\\][a-zA-Z-\d]+\.php/', $plugin) ) {
             $plugin_slug = preg_replace('@([a-zA-Z-\d]+)[\\\/].*@', '$1', $plugin);
 
@@ -2329,9 +2365,13 @@ function apbct_rc__install_plugin($_wp = null, $plugin = null)
                         $installer = new CleantalkUpgrader(new CleantalkUpgraderSkinDeprecated());
                     }
 
-                    $installer->install($result->download_link);
+                    $download_link = is_object($result) ? $result->download_link : false;
 
-                    if ( $installer->apbct_result === 'OK' ) {
+                    if ($download_link) {
+                        $installer->install($download_link);
+                    }
+
+                    if ( $download_link && $installer->apbct_result === 'OK' ) {
                         die('OK');
                     } else {
                         die('FAIL ' . json_encode(array('error' => $installer->apbct_result)));
@@ -2340,7 +2380,7 @@ function apbct_rc__install_plugin($_wp = null, $plugin = null)
                     die(
                         'FAIL ' . json_encode(array(
                             'error'   => 'FAIL_TO_GET_LATEST_VERSION',
-                            'details' => $result->get_error_message(),
+                            'details' => $result instanceof WP_Error ? $result->get_error_message() : '',
                         ))
                     );
                 }
@@ -2358,7 +2398,7 @@ function apbct_rc__install_plugin($_wp = null, $plugin = null)
 function apbct_rc__activate_plugin($plugin)
 {
     if ( ! $plugin ) {
-        $plugin = Get::get('plugin') ? (string) Get::get('plugin') : null;
+        $plugin = Get::get('plugin') ? TT::toString(Get::get('plugin')) : null;
     }
 
     if ( $plugin ) {
@@ -2367,14 +2407,19 @@ function apbct_rc__activate_plugin($plugin)
 
             $result = activate_plugins($plugin);
 
-            if ( $result && ! is_wp_error($result) ) {
-                return array('success' => true);
-            } else {
-                return array(
+            $result_array = array('success' => true);
+            $error_msg = '';
+
+            if (!$result || is_wp_error($result)) {
+                if ($result instanceof WP_Error) {
+                    $error_msg = ' ' . $result->get_error_message();
+                }
+                $result_array = array(
                     'error'   => 'FAIL_TO_ACTIVATE',
-                    'details' => (is_wp_error($result) ? ' ' . $result->get_error_message() : '')
+                    'details' => $error_msg
                 );
             }
+            return $result_array;
         } else {
             return array('error' => 'PLUGIN_NAME_IS_INCORRECT');
         }
@@ -2393,14 +2438,14 @@ function apbct_rc__deactivate_plugin($plugin = null)
     global $apbct;
 
     if ( is_null($plugin) ) {
-        $plugin = Get::get('plugin') ? (string) Get::get('plugin') : null;
+        $plugin = Get::get('plugin') ? TT::toString(Get::get('plugin')) : null;
     }
 
     if ( $plugin ) {
         // Switching complete deactivation for security
         if ( $plugin === 'security-malware-firewall/security-malware-firewall.php' && ! empty(Get::get('misc__complete_deactivation')) ) {
-            $spbc_settings                                = get_option('spbc_settings');
-            $spbc_settings['misc__complete_deactivation'] = (int) Get::get('misc__complete_deactivation');
+            $spbc_settings                                = TT::toArray(get_option('spbc_settings'));
+            $spbc_settings['misc__complete_deactivation'] = TT::toInt(Get::get('misc__complete_deactivation'));
             update_option('spbc_settings', $spbc_settings);
         }
 
@@ -2439,14 +2484,14 @@ function apbct_rc__uninstall_plugin($plugin = null)
     global $apbct;
 
     if ( is_null($plugin) ) {
-        $plugin = Get::get('plugin') ? (string) Get::get('plugin') : null;
+        $plugin = Get::get('plugin') ? TT::toString(Get::get('plugin')) : null;
     }
 
     if ( $plugin ) {
         // Switching complete deactivation for security
         if ( $plugin === 'security-malware-firewall/security-malware-firewall.php' && ! empty(Get::get('misc__complete_deactivation')) ) {
-            $spbc_settings                                = get_option('spbc_settings');
-            $spbc_settings['misc__complete_deactivation'] = (int) Get::get('misc__complete_deactivation');
+            $spbc_settings                                = TT::toArray(get_option('spbc_settings'));
+            $spbc_settings['misc__complete_deactivation'] = TT::toInt(Get::get('misc__complete_deactivation'));
             update_option('spbc_settings', $spbc_settings);
         }
 
@@ -2464,17 +2509,19 @@ function apbct_rc__uninstall_plugin($plugin = null)
             require_once(ABSPATH . '/wp-admin/includes/file.php');
 
             $result = delete_plugins(array($plugin));
+            $die_string = 'OK';
+            $error_msg = '';
 
-            if ( $result && ! is_wp_error($result) ) {
-                die('OK');
-            } else {
-                die(
-                    'FAIL ' . json_encode(array(
+            if (!$result || is_wp_error($result)) {
+                if ($result instanceof WP_Error) {
+                    $error_msg = ' ' . $result->get_error_message();
+                }
+                $die_string = 'FAIL ' . json_encode(array(
                         'error'   => 'PLUGIN_STILL_EXISTS',
-                        'details' => (is_wp_error($result) ? ' ' . $result->get_error_message() : '')
-                    ))
-                );
+                        'details' => $error_msg
+                    ));
             }
+            die($die_string);
         } else {
             die('FAIL ' . json_encode(array('error' => 'PLUGIN_STILL_ACTIVE')));
         }
@@ -2537,25 +2584,25 @@ function apbct_rc__insert_auth_key($key, $plugin)
                 );
 
                 if ( empty($result['error']) ) {
-                    if ( $result['valid'] ) {
+                    if ( TT::getArrayValueAsInt($result, 'valid') === 1 ) {
                         // Set account params
                         $data                     = get_option('spbc_data', array());
-                        $data['user_token']       = $result['user_token'];
-                        $data['notice_show']      = $result['show_notice'];
-                        $data['notice_renew']     = $result['renew'];
-                        $data['notice_trial']     = $result['trial'];
-                        $data['auto_update_app']  = isset($result['show_auto_update_notice']) ? $result['show_auto_update_notice'] : 0;
-                        $data['service_id']       = $result['service_id'];
-                        $data['user_id']       = $result['user_id'];
-                        $data['moderate']         = $result['moderate'];
-                        $data['auto_update_app '] = isset($result['auto_update_app']) ? $result['auto_update_app'] : 0;
-                        $data['license_trial']    = isset($result['license_trial']) ? $result['license_trial'] : 0;
-                        $data['account_name_ob']  = isset($result['account_name_ob']) ? $result['account_name_ob'] : '';
+                        $data['user_token']       = TT::getArrayValueAsInt($result, 'user_token');
+                        $data['notice_show']      = TT::getArrayValueAsInt($result, 'show_notice');
+                        $data['notice_renew']     = TT::getArrayValueAsInt($result, 'renew');
+                        $data['notice_trial']     = TT::getArrayValueAsInt($result, 'trial');
+                        $data['auto_update_app']  = TT::getArrayValueAsInt($result, 'show_auto_update_notice');
+                        $data['service_id']       = TT::getArrayValueAsInt($result, 'service_id');
+                        $data['user_id']          = TT::getArrayValueAsInt($result, 'user_id');
+                        $data['moderate']         = TT::getArrayValueAsInt($result, 'moderate');
+                        $data['auto_update_app '] = TT::getArrayValueAsInt($result, 'auto_update_app');
+                        $data['license_trial']    = TT::getArrayValueAsInt($result, 'license_trial');
+                        $data['account_name_ob']  = TT::getArrayValueAsString($result, 'account_name_ob');
                         $data['key_is_ok']        = true;
                         update_option('spbc_data', $data);
 
                         // Set Access key
-                        $settings             = get_option('spbc_settings', array());
+                        $settings             = TT::toArray(get_option('spbc_settings', array()));
                         $settings['spbc_key'] = $key;
                         update_option('spbc_settings', $settings);
 
@@ -2630,7 +2677,7 @@ function apbct_update__outputResult($stage, $result, $response = array())
     $response['error'] = $result !== 'OK' && empty($response['error']) ? $result : $response['error'];
     $response['agent'] = APBCT_AGENT;
 
-    echo $result . ' ' . json_encode($response);
+    echo \Cleantalk\ApbctWP\Escape::escHtml($result . ' ' . json_encode($response));
 
     if ( $result === 'FAIL' ) {
         die();
@@ -2662,7 +2709,7 @@ function cleantalk_get_brief_data($api_key = null)
             );
 
             if ( isset($ip) ) {
-                $country_data       = API::methodIpInfo($ip);
+                $country_data       = TT::toArray(API::methodIpInfo($ip));
                 $country_data_clear = current($country_data);
 
                 if (
@@ -2713,13 +2760,15 @@ function apbct_store__urls()
     if ( $apbct->settings['misc__store_urls'] && empty($apbct->flags__url_stored) && ! headers_sent() ) {
         // URLs HISTORY
         // Get current url
-        $current_url = Server::get('HTTP_HOST') . Server::get('REQUEST_URI');
+        $current_url = TT::toString(Server::get('HTTP_HOST'))
+            . TT::toString(Server::get('REQUEST_URI'));
         $current_url = $current_url ? substr($current_url, 0, 128) : 'UNKNOWN';
-        $site_url    = parse_url(get_option('home'), PHP_URL_HOST);
+        $site_url    = parse_url(TT::toString(get_option('home')), PHP_URL_HOST);
 
         // Get already stored URLs
-        $urls = RequestParameters::getCommonStorage('apbct_urls');
-        $urls = $urls === '' ? [] : json_decode($urls, true);
+        $urls_json = TT::toString(RequestParameters::getCommonStorage('apbct_urls'));
+        $urls = !empty($urls_json) ? json_decode($urls_json, true) : array();
+        $urls = ! is_array($urls) ? [] : $urls;
 
         $urls[$current_url][] = time();
 
@@ -2745,8 +2794,8 @@ function apbct_store__urls()
 
         // REFERER
         // Get current referer
-        $new_site_referer = Server::get('HTTP_REFERER');
-        $new_site_referer = $new_site_referer ?: 'UNKNOWN';
+        $new_site_referer = TT::toString(Server::get('HTTP_REFERER'));
+        $new_site_referer = $new_site_referer !== '' ? $new_site_referer : 'UNKNOWN';
 
         // Get already stored referer
         $site_referer = Cookie::get('apbct_site_referer');
@@ -2822,20 +2871,21 @@ function apbct_cookie()
     $cookie_test_value['check_value']     .= $site_landing_timestamp;
 
     if ($apbct->data['cookies_type'] === 'native') {
+        $http_referrer = TT::toString(Server::get('HTTP_REFERER'));
         // Previous referer
-        if ( Server::get('HTTP_REFERER') ) {
-            Cookie::set('apbct_prev_referer', Server::get('HTTP_REFERER'), 0, '/', $domain, null, true, 'Lax', true);
+        if ( $http_referrer ) {
+            Cookie::set('apbct_prev_referer', $http_referrer, 0, '/', $domain, null, true, 'Lax', true);
             $cookie_test_value['cookies_names'][] = 'apbct_prev_referer';
-            $cookie_test_value['check_value']     .= Server::get('HTTP_REFERER');
+            $cookie_test_value['check_value']     .= $http_referrer;
         }
 
         // Page hits
         // Get
-        $page_hits = Cookie::get('apbct_page_hits');
+        $page_hits = TT::toInt(Cookie::get('apbct_page_hits'));
 
         // Set / Increase
         // todo if cookies disabled there is no way to keep this data without DB:( always will be 1
-        $page_hits = (int)$page_hits ? (int)$page_hits + 1 : 1;
+        $page_hits = $page_hits ? $page_hits + 1 : 1;
 
         Cookie::set('apbct_page_hits', (string)$page_hits, 0, '/', $domain, null, true, 'Lax', true);
 
@@ -2869,18 +2919,22 @@ function apbct_cookies_test()
     }
 
     if ( Cookie::get('apbct_cookies_test') ) {
-        $cookie_test = json_decode(urldecode(Cookie::get('apbct_cookies_test')), true);
+        $apbct_cookies_test = TT::toString(Cookie::get('apbct_cookies_test'));
+        $cookie_test = json_decode(urldecode($apbct_cookies_test), true);
 
         if ( ! is_array($cookie_test) ) {
             return 0;
         }
 
         $check_string = $apbct->api_key;
-        foreach ( $cookie_test['cookies_names'] as $cookie_name ) {
+        // generate value
+        $cookie_names = TT::getArrayValueAsArray($cookie_test, 'cookies_names');
+        foreach ( $cookie_names as $cookie_name ) {
             $check_string .= Cookie::get($cookie_name);
         }
-
-        if ( $cookie_test['check_value'] == md5($check_string) ) {
+        // check generated value with current cookie
+        $check_value = TT::getArrayValueAsString($cookie_test, 'check_value');
+        if ( $check_value === md5($check_string) ) {
             return 1;
         }
 
@@ -2903,9 +2957,11 @@ function apbct_get_submit_time()
     return apbct_cookies_test() === 1 && $apbct_timestamp !== 0 ? time() - $apbct_timestamp : null;
 }
 
-/*
- * Inner function - Account status check
- * Scheduled in 1800 seconds for default!
+/**
+ * Inner function - Account status check. Scheduled in 1800 seconds for default!
+ * @param $api_key
+ * @param $process_errors
+ * @return bool
  */
 function ct_account_status_check($api_key = null, $process_errors = true)
 {
@@ -2920,24 +2976,26 @@ function ct_account_status_check($api_key = null, $process_errors = true)
 
     if ( empty($result['error']) || ! empty($result['valid']) ) {
         // Notices
-        $apbct->data['notice_show']        = isset($result['show_notice']) ? (int)$result['show_notice'] : 0;
-        $apbct->data['notice_renew']       = isset($result['renew']) ? (int)$result['renew'] : 0;
-        $apbct->data['notice_trial']       = isset($result['trial']) ? (int)$result['trial'] : 0;
-        $apbct->data['notice_review']      = isset($result['show_review']) ? (int)$result['show_review'] : 0;
-        $apbct->data['notice_auto_update'] = isset($result['show_auto_update_notice']) ? (int)$result['show_auto_update_notice'] : 0;
+        $apbct->data['notice_show']         = TT::getArrayValueAsInt($result, 'show_notice', 0);
+        $apbct->data['notice_renew']        = TT::getArrayValueAsInt($result, 'renew', 0);
+        $apbct->data['notice_trial']        = TT::getArrayValueAsInt($result, 'trial', 0);
+        $apbct->data['notice_review']       = TT::getArrayValueAsInt($result, 'show_review', 0);
+        $apbct->data['notice_auto_update']  = TT::getArrayValueAsInt($result, 'show_auto_update_notice', 0);
 
         // Other
-        $apbct->data['service_id']      = isset($result['service_id']) ? (int)$result['service_id'] : 0;
-        $apbct->data['user_id']      = isset($result['user_id']) ? (int)$result['user_id'] : 0;
-        $apbct->data['valid']           = isset($result['valid']) ? (int)$result['valid'] : 0;
-        $apbct->data['moderate']        = isset($result['moderate']) ? (int)$result['moderate'] : 0;
-        $apbct->data['ip_license']      = isset($result['ip_license']) ? (int)$result['ip_license'] : 0;
-        $apbct->data['moderate_ip']     = isset($result['moderate_ip'], $result['ip_license']) ? (int)$result['moderate_ip'] : 0;
-        $apbct->data['spam_count']      = isset($result['spam_count']) ? (int)$result['spam_count'] : 0;
-        $apbct->data['auto_update']     = isset($result['auto_update_app']) ? (int)$result['auto_update_app'] : 0;
-        $apbct->data['user_token']      = isset($result['user_token']) ? (string)$result['user_token'] : '';
-        $apbct->data['license_trial']   = isset($result['license_trial']) ? (int)$result['license_trial'] : 0;
-        $apbct->data['account_name_ob'] = isset($result['account_name_ob']) ? (string)$result['account_name_ob'] : '';
+        $apbct->data['service_id']          = TT::getArrayValueAsInt($result, 'service_id', 0);
+        $apbct->data['user_id']             = TT::getArrayValueAsInt($result, 'user_id', 0);
+        $apbct->data['valid']               = TT::getArrayValueAsInt($result, 'valid', 0);
+        $apbct->data['moderate']            = TT::getArrayValueAsInt($result, 'moderate', 0);
+        $apbct->data['ip_license']          = TT::getArrayValueAsInt($result, 'ip_license', 0);
+        $apbct->data['spam_count']          = TT::getArrayValueAsInt($result, 'spam_count', 0);
+        $apbct->data['auto_update']         = TT::getArrayValueAsInt($result, 'auto_update_app', 0);
+        $apbct->data['user_token']          = TT::getArrayValueAsString($result, 'user_token', '');
+        $apbct->data['license_trial']       = TT::getArrayValueAsInt($result, 'license_trial', 0);
+        $apbct->data['account_name_ob']     = TT::getArrayValueAsString($result, 'account_name_ob', '');
+        $apbct->data['moderate_ip']         = isset($result['moderate_ip'], $result['ip_license']) ?
+            TT::getArrayValueAsInt($result, 'moderate_ip', 0)
+            : 0;
 
         //todo:temporary solution for description, until we found the way to transfer this from cloud
         if (defined('APBCT_WHITELABEL_PLUGIN_DESCRIPTION')) {
@@ -2967,9 +3025,13 @@ function ct_account_status_check($api_key = null, $process_errors = true)
             $apbct->data['wl_support_email'] = isset($result['wl_support_email'])
                 ? Sanitize::cleanEmail($result['wl_support_email'])
                 : $apbct->default_data['wl_support_email'];
+            $plugin_data_wl = get_file_data('cleantalk-spam-protect/cleantalk.php', array('Description' => 'Description'));
+            $plugin_data_wl = is_array($plugin_data_wl) && isset($plugin_data_wl['Description'])
+                ? $plugin_data_wl['Description']
+                : 'No description provided';
             $apbct->data['wl_antispam_description']     = isset($result['wl_antispam_description'])
                 ? Sanitize::cleanTextField($result['wl_antispam_description'])
-                : get_file_data('cleantalk-spam-protect/cleantalk.php', array('Description' => 'Description'))['Description'];
+                : $plugin_data_wl;
         } else {
             $apbct->data['wl_mode_enabled'] = false;
             $apbct->data['wl_brandname']     = $apbct->default_data['wl_brandname'];
@@ -3148,7 +3210,7 @@ function apbct_is_user_role_in($roles, $user = false)
         $user = apbct_wp_get_current_user();
     }
 
-    if ( empty($user->ID) ) {
+    if ( !is_object($user) || empty($user->ID) ) {
         return false;
     }
 
@@ -3170,14 +3232,19 @@ function apbct_statistics__rotate($exec_time)
 {
     global $apbct;
 
-    // Delete old stats
-    if ( min(array_keys($apbct->stats['requests'])) < time() - (86400 * 7) ) {
-        unset($apbct->stats['requests'][min(array_keys($apbct->stats['requests']))]);
-    }
+    $requests_counters = array_keys($apbct->stats['requests']);
+    if ( !empty($requests_counters) ) {
+        // Delete old stats
+        $min_request_count_key = min($requests_counters);
+        if ( $min_request_count_key < time() - (86400 * 7) ) {
+            unset($apbct->stats['requests'][$min_request_count_key]);
+        }
 
-    // Create new if newest older than 1 day
-    if ( empty($apbct->stats['requests']) || max(array_keys($apbct->stats['requests'])) < time() - (86400 * 1) ) {
-        $apbct->stats['requests'][time()] = array('amount' => 0, 'average_time' => 0);
+        // Create new if newest older than 1 day
+        $max_request_count_key = max($requests_counters);
+        if ( $max_request_count_key < time() - (86400 * 1) ) {
+            $apbct->stats['requests'][time()] = array('amount' => 0, 'average_time' => 0);
+        }
     }
 
     // Update all existing stats

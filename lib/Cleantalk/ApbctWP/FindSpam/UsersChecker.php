@@ -117,15 +117,14 @@ class UsersChecker extends Checker
                 . " AND postmeta.meta_value = {$wpdb->users}.ID)";
         }
 
-        $users = $wpdb->get_results(
-            "
-			SELECT {$wpdb->users}.ID, {$wpdb->users}.user_email, {$wpdb->users}.user_registered
-			FROM {$wpdb->users}
-			{$between_dates_sql}
-			{$wc_orders}
-			ORDER BY {$wpdb->users}.ID ASC
-			LIMIT $amount OFFSET $offset;"
-        );
+        $query = "SELECT {$wpdb->users}.ID, {$wpdb->users}.user_email, {$wpdb->users}.user_registered
+            FROM {$wpdb->users}
+            {$between_dates_sql}
+            {$wc_orders}
+            ORDER BY {$wpdb->users}.ID ASC
+            LIMIT %d OFFSET %d";
+
+        $users = $wpdb->get_results($wpdb->prepare($query, $amount, $offset));
 
         if (!$users) {
             $users = array();

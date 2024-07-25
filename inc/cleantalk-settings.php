@@ -276,7 +276,9 @@ function apbct_settings__set_fields()
                     'description' => __(
                         'This option provides more sophisticated and enhanced protection for external forms. However, it can break other plugins that use the webserver buffer like Ninja Forms, and moreover, it can also cause issues with cache plugins.',
                         'cleantalk-spam-protect'
-                    ),
+                    )
+                    . '<br />'
+                    . __('СAUTION! Enable this option if you have missed spam from external forms', 'cleantalk-spam-protect'),
                     'class'       => 'apbct_settings-field_wrapper--sub',
                     'parent'      => 'forms__check_external',
                 ),
@@ -3141,6 +3143,11 @@ function apbct_settings__get__long_description()
 
     $setting_id = (string) Post::get('setting_id', null, 'word');
 
+    $link_exclusion_by_form_signs = LinkConstructor::buildCleanTalkLink(
+        'exclusion_by_form_signs',
+        'help/exclusion-by-form-signs'
+    );
+
     $descriptions = array(
         'multisite__work_mode'      => array(
             'title' => __('Wordpress Multisite Work Mode', 'cleantalk-spam-protect'),
@@ -3243,7 +3250,7 @@ function apbct_settings__get__long_description()
                 //HANDLE LINK
                 sprintf(
                     __('See details on the page linked below. %s', 'cleantalk-spam-protect'),
-                    '</p><a href="https://cleantalk.org/help/exclusion-from-anti-spam-checking{utm_mark}#wordpress" target="_blank">' . __('Learn more.', 'cleantalk-spam-protect') . '</a>'
+                    '</p><a href="' . $link_exclusion_by_form_signs . '" target="_blank">' . __('Learn more.', 'cleantalk-spam-protect') . '</a>'
                 )
         ),
         'exclusions__bot_detector__form_attributes' => array(
