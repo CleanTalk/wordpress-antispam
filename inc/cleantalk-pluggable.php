@@ -1159,6 +1159,16 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'Monta Checkout';
         }
+
+        // skip kali forms
+        if (
+            apbct_is_plugin_active('kali-forms/kali-forms.php') &&
+            (
+                Post::get('action') === 'kaliforms_form_process'
+            )
+        ) {
+            return 'kaliforms_form_process_skip';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */

@@ -6,16 +6,18 @@ class Forminator extends IntegrationBase
 {
     public function getDataForChecking($argument)
     {
-        if ( ! empty($_POST) ) {
-            /**
-             * Filter for POST
-             */
-            $input_array = apply_filters('apbct__filter_post', $_POST);
+        $data = $_POST;
 
-            return ct_get_fields_any($input_array);
+        $username = '';
+        foreach ($_POST as $key => $value) {
+            if (is_string($key) && strpos($key, 'name-') === 0) {
+                $username = $value;
+                break;
+            }
         }
+        $data['username'] = $username;
 
-        return null;
+        return ct_gfa(apply_filters('apbct__filter_post', $data));
     }
 
     public function doBlock($message)
