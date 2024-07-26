@@ -1199,8 +1199,10 @@ function getJavascriptClientData(commonCookies = []) {
         ctCookiesTypeLocalStorage : ctCookiesTypeCookie;
     resultDataJson.apbct_pixel_url = ctPixelUrl !== undefined ?
         ctPixelUrl : ctCookiesPixelUrl;
-    if (resultDataJson.apbct_pixel_url.indexOf('%3A%2F')) {
-        resultDataJson.apbct_pixel_url = decodeURIComponent(resultDataJson.apbct_pixel_url);
+    if (resultDataJson.apbct_pixel_url && typeof(resultDataJson.apbct_pixel_url) == 'string') {
+        if (resultDataJson.apbct_pixel_url.indexOf('%3A%2F')) {
+            resultDataJson.apbct_pixel_url = decodeURIComponent(resultDataJson.apbct_pixel_url);
+        }
     }
 
     resultDataJson.apbct_page_hits = apbctPageHits;
