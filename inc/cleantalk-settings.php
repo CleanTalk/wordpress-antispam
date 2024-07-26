@@ -1306,7 +1306,7 @@ function apbct_settings__display()
                 . '<p class="key_changed_success --hide">'
                 . sprintf(
                     __('Done! Ready to protect %s.', 'cleantalk-spam-protect'),
-                    '<span class="--upper-case">' . TT::toString(Server::get('HTTP_HOST')) . '</span>'
+                    '<span class="--upper-case">' . Escape::escUrl(TT::toString(Server::get('HTTP_HOST'))) . '</span>'
                 )
                 . '</p>'
                 . '</div>';

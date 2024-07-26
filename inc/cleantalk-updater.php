@@ -940,10 +940,16 @@ function apbct_update_to_5_160_4()
     }
 
     SFWUpdateHelper::removeUpdFolder(ABSPATH . '/wp-admin/fw_files');
-    SFWUpdateHelper::removeUpdFolder(TT::toString(Server::get('DOCUMENT_ROOT')) . '/fw_files');
-    $file_path = TT::toString(Server::get('DOCUMENT_ROOT')) . '/fw_filesindex.php';
-    if (is_file($file_path) && is_writable($file_path)) {
-        unlink($file_path);
+    $root_path = Server::get('DOCUMENT_ROOT') ? Server::get('DOCUMENT_ROOT') : ABSPATH;
+    $root_path = is_array($root_path) ? reset($root_path) : $root_path;
+    $root_path = $root_path === false ? ABSPATH : $root_path;
+    SFWUpdateHelper::removeUpdFolder($root_path . '/fw_files');
+    $base_path = rtrim(ABSPATH, '/');
+    $file_path = $base_path . '/fw_filesindex.php';
+    if (strpos($file_path, $base_path) === 0 && is_file($file_path) && is_writable($file_path)) {
+        if (!unlink($file_path)) {
+            error_log('Failed to delete file: ' . $file_path);
+        }
     }
 }
 

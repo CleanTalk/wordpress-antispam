@@ -881,7 +881,7 @@ function ct_die($_comment_id, $_comment_status)
         );
 
         foreach ( $replaces as $place_holder => $replace ) {
-            $ct_die_page = str_replace($place_holder, TT::toString($replace), $ct_die_page);
+            $ct_die_page = str_replace($place_holder, (is_null($replace) ? '' : $replace), $ct_die_page);
         }
 
         http_response_code(200);
@@ -935,7 +935,40 @@ function ct_die_extended($comment_body)
         }
 
         http_response_code(200);
-        die($ct_die_page);
+        $allowed_html = array(
+            'html' => array(
+                'lang' => array(),
+            ),
+            'head' => array(),
+            'meta' => array(
+                'charset' => array(),
+                'name' => array(),
+                'content' => array(),
+                'http-equiv' => array(),
+            ),
+            'style' => array(),
+            'body' => array(),
+            'div' => array(
+                'class' => array(),
+            ),
+            'h1' => array(
+                'class' => array(),
+            ),
+            'p' => array(
+                'class' => array(),
+            ),
+            'a' => array(
+                'href' => array(),
+                'class' => array(),
+            ),
+            'script' => array(
+                'src' => array(),
+            ),
+            '!--[if lt IE 9]' => array(),
+            '![endif]--' => array(),
+        );
+        $content = wp_kses($ct_die_page, $allowed_html);
+        die($content);
     }
 
     http_response_code(200);
