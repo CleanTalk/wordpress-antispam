@@ -791,6 +791,10 @@ function apbct_is_cache_plugins_exists($return_names = false)
         '\WP_Rest_Cache_Plugin\Includes\Plugin' => 'Rest Cache'
     );
 
+    $headers = array(
+        'HTTP_X_VARNISH' => 'Varnish',
+    );
+
     foreach ($constants_of_cache_plugins as $const => $_text) {
         if ( defined($const) ) {
             $out[] = $_text;
@@ -807,7 +811,18 @@ function apbct_is_cache_plugins_exists($return_names = false)
         }
     }
 
+    foreach ($headers as $header => $_text) {
+        if ( isset($_SERVER[$header]) ) {
+            $out[] = $_text;
+        }
+    }
+
     return $return_names ? $out : !empty($out);
+}
+
+function apbct_is_varnish_cache_exists()
+{
+    return isset($_SERVER['HTTP_X_VARNISH']);
 }
 
 function apbct_is_advanced_cache_exists()

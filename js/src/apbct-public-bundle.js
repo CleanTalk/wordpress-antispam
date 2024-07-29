@@ -2342,7 +2342,7 @@ function apbctCatchXmlHttpRequest() {
     }
 
     // Set important parameters via ajax
-    if ( ctPublic.advancedCacheExists ) {
+    if ( ctPublic.advancedCacheExists || ctPublic.varnishCacheExists ) {
         if ( ctPublicFunctions.data__ajax_type === 'rest' ) {
             apbct_public_sendREST('apbct_set_important_parameters', {});
         } else if ( ctPublicFunctions.data__ajax_type === 'admin_ajax' ) {
