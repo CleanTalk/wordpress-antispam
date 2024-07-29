@@ -2,10 +2,9 @@
 
 use Cleantalk\Antispam\Cleantalk;
 use Cleantalk\Antispam\CleantalkRequest;
-use Cleantalk\ApbctWP\AdminNotices;
+use Cleantalk\ApbctWP\AdjustToEnvironmentModule\AdjustToEnvironmentHandler;
 use Cleantalk\ApbctWP\CleantalkSettingsTemplates;
 use Cleantalk\ApbctWP\Escape;
-use Cleantalk\ApbctWP\State;
 use Cleantalk\ApbctWP\Variables\Get;
 use Cleantalk\ApbctWP\Variables\Post;
 use Cleantalk\ApbctWP\Variables\Server;
@@ -503,7 +502,7 @@ function apbct_admin__enqueue_scripts($hook)
         APBCT_VERSION
     );
     wp_enqueue_script(
-        'ct_admin_js_notices',
+        'ct_admin_common',
         APBCT_JS_ASSETS_PATH . '/cleantalk-admin.min.js',
         array('cleantalk-modal', 'jquery'),
         APBCT_VERSION
@@ -523,7 +522,7 @@ function apbct_admin__enqueue_scripts($hook)
         'all'
     );
 
-    wp_localize_script('ct_admin_js_notices', 'ctAdminCommon', array(
+    wp_localize_script('ct_admin_common', 'ctAdminCommon', array(
         '_ajax_nonce'        => wp_create_nonce('ct_secret_nonce'),
         '_ajax_url'          => admin_url('admin-ajax.php', 'relative'),
         'plugin_name'        => $apbct->plugin_name,
@@ -1574,3 +1573,41 @@ function apbct__manage_sites_custom_column_action($column_name, $site_id)
 }
 
 add_action('manage_sites_custom_column', 'apbct__manage_sites_custom_column_action', 10, 2);
+
+add_action('wp_ajax_apbct_action_adjust_change', 'apbct_action_adjust_change');
+function apbct_action_adjust_change()
+{
+    check_ajax_referer('ct_secret_nonce');
+
+    if (in_array(Post::get('adjust'), array_keys(AdjustToEnvironmentHandler::SET_OF_ADJUST))) {
+        try {
+            $adjust = (string) Post::get('adjust');
+            $adjust_class = AdjustToEnvironmentHandler::SET_OF_ADJUST[$adjust];
+            $adjust_handler = new AdjustToEnvironmentHandler();
+            $adjust_handler->handleOne($adjust_class);
+        } catch (Exception $exception) {
+            error_log('CleanTalk adjusting action error: ' . $exception->getMessage());
+        }
+    }
+
+    wp_send_json_success();
+}
+
+add_action('wp_ajax_apbct_action_adjust_reverse', 'apbct_action_adjust_reverse');
+function apbct_action_adjust_reverse()
+{
+    check_ajax_referer('ct_secret_nonce');
+
+    if (in_array(Post::get('adjust'), array_keys(AdjustToEnvironmentHandler::SET_OF_ADJUST))) {
+        $adjust = (string) Post::get('adjust');
+        try {
+            $adjust_class = AdjustToEnvironmentHandler::SET_OF_ADJUST[$adjust];
+            $adjust_handler = new AdjustToEnvironmentHandler();
+            $adjust_handler->reverseAdjust($adjust_class);
+        } catch (Exception $exception) {
+            error_log('CleanTalk adjusting reverse error: ' . $exception->getMessage());
+        }
+    }
+
+    wp_send_json_success();
+}

@@ -21,10 +21,12 @@ function ctProtectExternal() {
             } else if (
                 // MooForm 3rd party service
                 currentForm.dataset.mailingListId !== undefined ||
-                (typeof(currentForm.action) == 'string' && (currentForm.action.indexOf('webto.salesforce.com') !== -1))
+                (typeof(currentForm.action) == 'string' &&
+                (currentForm.action.indexOf('webto.salesforce.com') !== -1)) ||
+                (typeof(currentForm.action) == 'string' &&
+                currentForm.querySelector('[href*="activecampaign"]'))
             ) {
                 apbctProcessExternalFormByFakeButton(currentForm, i, document);
-
             // Common flow - modify form's action
             } else if (
                 typeof(currentForm.action) == 'string' &&
@@ -229,12 +231,13 @@ function apbctProcessExternalForm(currentForm, iterator, documentObject) {
                 sendAjaxCheckingFormData(reUseCurrentForm);
             });
         }
-    } else {
-        documentObject.forms[iterator].onsubmit = function(event) {
-            event.preventDefault();
-            sendAjaxCheckingFormData(event.currentTarget);
-        };
+        return;
     }
+
+    documentObject.forms[iterator].onsubmit = function(event) {
+        event.preventDefault();
+        sendAjaxCheckingFormData(event.currentTarget);
+    };
 }
 
 /**
@@ -289,6 +292,22 @@ function apbctReplaceInputsValuesFromOtherForm(formSource, formTarget) {
     const inputsSource = formSource.querySelectorAll('button, input, textarea, select');
     const inputsTarget = formTarget.querySelectorAll('button, input, textarea, select');
 
+    if (formSource.outerHTML.indexOf('action="https://www.kulahub.net') !== -1) {
+        inputsSource.forEach((elemSource) => {
+            inputsTarget.forEach((elemTarget) => {
+                if (elemSource.name === elemTarget.name) {
+                    if (elemTarget.type === 'checkbox' || elemTarget.type === 'radio') {
+                        elemTarget.checked = apbctVal(elemSource);
+                    } else {
+                        elemTarget.value = apbctVal(elemSource);
+                    }
+                }
+            });
+        });
+
+        return;
+    }
+
     inputsSource.forEach((elemSource) => {
         inputsTarget.forEach((elemTarget) => {
             if (elemSource.outerHTML === elemTarget.outerHTML) {
@@ -314,7 +333,63 @@ window.onload = function() {
         catchNextendSocialLoginForm();
         ctProtectOutsideIframe();
     }, 2000);
+
+    ctProtectKlaviyoForm();
 };
+
+/**
+ * Protect klaviyo forms
+ */
+function ctProtectKlaviyoForm() {
+    if (!document.querySelector('link[rel="dns-prefetch"][href="//static.klaviyo.com"]')) {
+        return;
+    }
+
+    let i = setInterval(() => {
+        const klaviyoForms = document.querySelectorAll('form.klaviyo-form');
+        if (klaviyoForms.length) {
+            clearInterval(i);
+            klaviyoForms.forEach((form, index) => {
+                apbctProcessExternalFormKlaviyo(form, index, document);
+            });
+        }
+    }, 500);
+}
+
+/**
+ * Protect klaviyo forms
+ * @param {HTMLElement} form
+ * @param {int} iterator
+ * @param {HTMLElement} documentObject
+ */
+function apbctProcessExternalFormKlaviyo(form, iterator, documentObject) {
+    const btn = form.querySelector('button[type="button"].needsclick');
+    if (!btn) {
+        return;
+    }
+    btn.disabled = true;
+
+    const forceAction = document.createElement('input');
+    forceAction.name = 'action';
+    forceAction.value = 'cleantalk_force_ajax_check';
+    forceAction.type = 'hidden';
+    form.appendChild(forceAction);
+
+    let cover = document.createElement('div');
+    cover.id = 'apbct-klaviyo-cover';
+    cover.style.width = '100%';
+    cover.style.height = '100%';
+    cover.style.background = 'black';
+    cover.style.opacity = 0;
+    cover.style.position = 'absolute';
+    cover.style.top = 0;
+    cover.style.cursor = 'pointer';
+    cover.onclick = function(e) {
+        sendAjaxCheckingFormData(form);
+    };
+    btn.parentNode.style.position = 'relative';
+    btn.parentNode.appendChild(cover);
+}
 
 /**
  * Protect forms placed in iframe with outside src
@@ -507,7 +582,6 @@ function isIntegratedForm(formObj) {
     const formId = formObj.getAttribute('id') !== null ? formObj.getAttribute('id') : '';
 
     if (
-        formAction.indexOf('activehosted.com') !== -1 || // ActiveCampaign form
         formAction.indexOf('app.convertkit.com') !== -1 || // ConvertKit form
         ( formObj.firstChild.classList !== undefined &&
         formObj.firstChild.classList.contains('cb-form-group') ) || // Convertbox form
@@ -527,11 +601,13 @@ function isIntegratedForm(formObj) {
         formId.indexOf('ihf-contact-request-form') !== -1 ||
         formAction.indexOf('crm.zoho.com') !== -1 ||
         formId.indexOf('delivra-external-form') !== -1 ||
-        ( formObj.classList !== undefined &&
-            !formObj.classList.contains('woocommerce-checkout') &&
-            formObj.hasAttribute('data-hs-cf-bound')
-        ) || // Hubspot integration in Elementor form// Hubspot integration in Elementor form
-        formAction.indexOf('eloqua.com') !== -1 // Eloqua integration
+        // todo Return to Hubspot for elementor in the future, disabled of reason https://doboard.com/1/task/9227
+        // ( formObj.classList !== undefined &&
+        //     !formObj.classList.contains('woocommerce-checkout') &&
+        //     formObj.hasAttribute('data-hs-cf-bound')
+        // ) || // Hubspot integration in Elementor form// Hubspot integration in Elementor form
+        formAction.indexOf('eloqua.com') !== -1 || // Eloqua integration
+        formAction.indexOf('kulahub.net') !== -1 // Kulahub integration
     ) {
         return true;
     }
@@ -571,6 +647,20 @@ function sendAjaxCheckingFormData(form) {
             async: false,
             callback: function( result, data, params, obj ) {
                 if ( result.apbct === undefined || ! +result.apbct.blocked ) {
+                    // Klaviyo integration
+                    if (form.classList !== undefined && form.classList.contains('klaviyo-form')) {
+                        const cover = document.getElementById('apbct-klaviyo-cover');
+                        if (cover) {
+                            cover.remove();
+                        }
+                        const btn = form.querySelector('button[type="button"].needsclick');
+                        if (btn) {
+                            btn.disabled = false;
+                            btn.click();
+                        }
+                        return;
+                    }
+
                     // MooSend integration
                     if ( form.dataset.mailingListId !== undefined ) {
                         let submitButton = form.querySelector('[type="submit"]');
@@ -586,6 +676,18 @@ function sendAjaxCheckingFormData(form) {
                     if (form.hasAttribute('action') &&
                         (form.getAttribute('action').indexOf('webto.salesforce.com') !== -1)
                     ) {
+                        let submitButton = form.querySelector('[type="submit"]');
+                        submitButton.remove();
+                        const parent = form.apbctParent;
+                        parent.appendChild(form.submitButtonOriginal);
+                        form.onsubmit = form.onsubmitOriginal;
+                        submitButton = form.querySelector('[type="submit"]');
+                        submitButton.click();
+                        return;
+                    }
+
+                    // Active Campaign integration
+                    if (form.querySelector('[href*="activecampaign"]')) {
                         let submitButton = form.querySelector('[type="submit"]');
                         submitButton.remove();
                         const parent = form.apbctParent;

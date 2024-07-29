@@ -353,7 +353,7 @@ class SFWUpdateHelper
         }
 
         if ( $ready_fw_uploads_dir === '' ) {
-            return array('error' => 'Can not to make FW update directory.');
+            return array('error' => 'Can not make FW update directory.');
         }
 
         $files = glob($ready_fw_uploads_dir . '/*');
@@ -371,9 +371,13 @@ class SFWUpdateHelper
             }
         }
 
-        return file_put_contents($ready_fw_uploads_dir . 'index.php', '<?php' . PHP_EOL)
-            ? true
-            : array('error' => 'Can not modify FW index file: ' . $ready_fw_uploads_dir . 'index.php');
+        if ( ! file_exists($ready_fw_uploads_dir . 'index.php') ) {
+            return file_put_contents($ready_fw_uploads_dir . 'index.php', '<?php' . PHP_EOL)
+                ? true
+                : array('error' => 'Can not modify FW index file: ' . $ready_fw_uploads_dir . 'index.php');
+        }
+
+        return true;
     }
 
     public static function removeUpdFolder($dir_name)

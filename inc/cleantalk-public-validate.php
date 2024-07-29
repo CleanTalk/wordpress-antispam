@@ -349,11 +349,6 @@ function ct_contact_form_validate()
                         ),
                     )
                 );
-            } elseif (
-                ! empty(Post::get('_mc4wp_form_id')) &&
-                apbct_is_plugin_active('mailchimp-for-wp/mailchimp-for-wp.php')
-            ) {
-                add_filter('mc4wp_form_messages', 'ct_add_mc4wp_error_message');
             } else {
                 ct_die(null, null);
             }
