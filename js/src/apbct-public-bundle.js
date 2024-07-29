@@ -2354,7 +2354,7 @@ function apbctCatchXmlHttpRequest() {
     }
 
     // Set important parameters via ajax
-    if ( ctPublic.advancedCacheExists ) {
+    if ( ctPublic.advancedCacheExists || ctPublic.varnishCacheExists ) {
         if ( ctPublicFunctions.data__ajax_type === 'rest' ) {
             apbct_public_sendREST('apbct_set_important_parameters', {});
         } else if ( ctPublicFunctions.data__ajax_type === 'admin_ajax' ) {
@@ -4133,10 +4133,11 @@ function isIntegratedForm(formObj) {
         formId.indexOf('ihf-contact-request-form') !== -1 ||
         formAction.indexOf('crm.zoho.com') !== -1 ||
         formId.indexOf('delivra-external-form') !== -1 ||
-        ( formObj.classList !== undefined &&
-            !formObj.classList.contains('woocommerce-checkout') &&
-            formObj.hasAttribute('data-hs-cf-bound')
-        ) || // Hubspot integration in Elementor form// Hubspot integration in Elementor form
+        // todo Return to Hubspot for elementor in the future, disabled of reason https://doboard.com/1/task/9227
+        // ( formObj.classList !== undefined &&
+        //     !formObj.classList.contains('woocommerce-checkout') &&
+        //     formObj.hasAttribute('data-hs-cf-bound')
+        // ) || // Hubspot integration in Elementor form// Hubspot integration in Elementor form
         formAction.indexOf('eloqua.com') !== -1 || // Eloqua integration
         formAction.indexOf('kulahub.net') !== -1 // Kulahub integration
     ) {

@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 4.7
 Tested up to: 6.6
 Requires PHP: 5.6
-Stable tag: 6.36.1
+Stable tag: 6.37
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -425,6 +425,29 @@ Yes, it is. Please read this article,
 12. SpamFireWall log.
 
 == Changelog ==
+
+= 6.37 =
+* New. Integration. Added klaviyo handler.
+* New. Integration. Thrive Leads integration implemented.
+* Upd. Integration. CSCF forms.
+* Upd. Integration. Forminator forms username gathering.
+* Upd. Integration. Kali Form updated.
+* Upd. Changing the Form signs exceptions.
+* Upd. Common. Moved changelog.
+* Upd. EmailEncoder. Do not encode email in AMP pages.
+* Upd. Settings. The Real Person feature. Enabled by defaults for all new installations.
+* Upd. Settings. Updated description for Capture buffer.
+* Fix. Common. Honeypot field ID attribute fixed.
+* Fix. Common. Plugin version fixed.
+* Fix. Cookie. Updated gathering pages data in force alt mode.
+* Fix. CleanTalk pixel. Pixel error fixed.
+* Fix. External forms. Broken reCAPTCHA loading fixed in Active Campaign forms.
+* Fix. FindSpam. Added params verification.
+* Fix. JS. Console error - empty formOriginal.
+* Fix. Settings. Links. Utm tags.
+* Fix. Settings. Prevented warning appearing.
+* Fix. SFW. Error message typo fixed.
+* Ref. Code. Psalm L3. File cleantalk.php refactored.
 
 = 6.36.1 =
 * Fix. Common. JS errors fixed.
