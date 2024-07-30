@@ -159,6 +159,37 @@ CleanTalk is a premium anti-spam service for WordPress, the plugin works with ou
  * Spam FireWall.
  * No captcha (reCaptcha), puzzles, etc.
 
+= How to protect sites from spam bots without CAPTCHA? =
+The most popular anti-spam method is CAPTCHA - the annoying picture with curved and sloping symbols, which are presented to the visitor to decipher and fill in. In is supposed that spam bots won't discern these CAPTCHA, but a visitor will. CAPTCHA provokes great irritation, but if the visitor wants to comment, he has to fill in these symbols time after time, making mistakes and starting once again. Sometimes CAPTCHA reminds us of the doodles of a two year old child. For users with vision problems CAPTCHA is an insurmountable obstacle. Users hate captcha. Captcha for users means "hate". Unreadable CAPTCHA stops about 80% of site visitors. After 2 failed attempts to decipher CAPTCHA 95% of visitors reject further attempts. At the sight of CAPTCHA and after input errors, many visitors leave the resource. Thus, CAPTCHA helps to protect the resource spam both from bots and visitors. CAPTCHA is not a panacea from spam. Doubts concerning the Need for CAPTCHA?
+
+*"Ultimately, CAPTCHAs are useless for spam because they're designed to tell you if someone is 'human' or not, but not whether something is spam or not." Matt Mullenweg*
+
+You do not have to work in IT to know what spam is. Besides piles of unwanted email, there are spam bots, or special software programs designed to act as human website visitors that post unwelcome messages over the Internet to advertise dubious services. More often than not spam messages do not even make sense. Similar to bacteria and virus mutations developing antibiotic resistance, spam bots are becoming more resilient in penetrating Internet firewalls and security layers.
+
+= White Label Mode =
+
+To switch the plugin work in the white-label mode you should set up a few settings on your main site in Wordpress Multisite Network:
+
+1. Check setting "Enable White Label Mode".
+2. Fill "Hoster API Key" field with key from CleanTalk's hoster panel.
+3. Fill "Plugin name" field. It could be any name you want for the plugin.
+4. Save settings.
+
+The plugin will do everything rest.
+
+= Real-time email validation. Is email real or Not. =
+It is very important to be sure that the user used his real email address. Spambots very often use fake email addresses, i.e. which addresses do not exist.
+
+CleanTalk will check email addresses for existence in real time.
+
+Non-existing email addresses also entail several other problems for website owners.
+
+* You can never contact them by email,
+* the client will never receive any notifications from you (account activation letter, password recovery, email distribution, notifications, etc.),
+* if you use email marketing for your clients, then a large number of nonexistent emails in the mailing list may result in your IP address being added to various blacklists of email servers.
+
+Improve your email list with email validation without fake emails.
+
 = Blocking  disposable & temporary emails =
 
 Block fake and suspicious users with disposable & temporary emails to improve email delivery. So, it also prevents malicious activity, spam bots, and internet trolls.
