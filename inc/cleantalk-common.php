@@ -552,7 +552,7 @@ function apbct_get_sender_info()
         'cookies_enabled'           => $cookie_is_ok,
         'data__set_cookies'         => $apbct->settings['data__set_cookies'],
         'data__cookies_type'        => $apbct->data['cookies_type'],
-        'REFFERRER'                 => Server::get('HTTP_REFERER'),
+        'REFFERRER'                 => Cookie::$force_alt_cookies_global ? Cookie::get('apbct_site_referer') : Server::get('HTTP_REFERER'),
         'REFFERRER_PREVIOUS'        => Cookie::get('apbct_prev_referer') && $cookie_is_ok
             ? Cookie::get('apbct_prev_referer')
             : null,
@@ -791,6 +791,10 @@ function apbct_is_cache_plugins_exists($return_names = false)
         '\WP_Rest_Cache_Plugin\Includes\Plugin' => 'Rest Cache'
     );
 
+    $headers = array(
+        'HTTP_X_VARNISH' => 'Varnish',
+    );
+
     foreach ($constants_of_cache_plugins as $const => $_text) {
         if ( defined($const) ) {
             $out[] = $_text;
@@ -807,7 +811,18 @@ function apbct_is_cache_plugins_exists($return_names = false)
         }
     }
 
+    foreach ($headers as $header => $_text) {
+        if ( isset($_SERVER[$header]) ) {
+            $out[] = $_text;
+        }
+    }
+
     return $return_names ? $out : !empty($out);
+}
+
+function apbct_is_varnish_cache_exists()
+{
+    return isset($_SERVER['HTTP_X_VARNISH']);
 }
 
 function apbct_is_advanced_cache_exists()

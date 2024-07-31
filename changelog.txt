@@ -1,5 +1,582 @@
 == Changelog ==
 
+= 6.34 Jun 13 2024
+* Fix. Pixel. Added nofollow attribute.
+* Upd. Admin Bar structure. Renewal links conditions fixed. Code refactored.
+* Upd. Settings. Email encoder A/B testing.
+* Upd. Public JS localization. Now can be selected.
+
+= 6.33.2 Jun 01 2024
+* Fix. Admin notices. Purchasing the product page link fixed.
+
+= 6.33.1 May 31 2024
+* Fix. Admin panel. Banners. Renewal payment links getting fixed and refactored.
+
+= 6.33 May 30 2024
+* New. Integrations. Flamingo integration implemented.
+* New. Integrations. Added handler for learnpress signup.
+* New. Intergations. Proto theme login popup protected.
+* Upd. Woocommerce. Uni CPO plugin. Clear service fields improved for premium version.
+* Fix. Woocommerce. Exclude hubspot integration as external form on WooCommerce checkout.
+* Fix. Woocommerce. Uni CPO plugin. Clear service fields from post.
+* Fix. GetFieldsAny. Get the very first email to the process. Provide additional email addresses on the form to the request message.
+* Fix. CleanTalk Public. Protect LearPress registration process on plugins_loaded hook.
+* Fix. JS. External Forms. Exclude elementor search form from external forms pre-handling.
+
+= 6.32.1 May 20 2024
+* Fix. JS. Function apbctCatchXmlHttpRequest(). Condition to catch fixed.
+
+= 6.32 May 15 2024
+* Fix. Integration. External forms integration refactored.
+* Fix. Settings. Updated statement for import/export settings on wpms.
+* Fix. Cron. Fixed updateTask function to save the last_call param.
+* Fix. Common. Important requests parameters fixed.
+* Fix. Settings. Added unique check for urls.
+* Fix. Integrations. Added statement for compatibility with the7 theme.
+* Fix. Integrations. Forbidden message appear was updated.
+* Fix. EmailEncoder. Added statement to skip.
+* Fix. EmailEncoder. Added exclusion for compatibility with StylishCostCalculator.
+* Fix. Integrations. Added statement to exclusion for BuddyPress.
+* Fix. Integrations. Added excluded statement for MemberPress.
+* Fix. Integrations. Skip fluentcrm unsubscribe request.
+* Fix. Integrations. Updated base integration flow.
+* Fix. Pixel. Added statement to draw logic.
+* Fix. Common. Getting ct_no_cookie_hidden_field data. Error handled on case of recursion level 5.
+
+= 6.31 Apr 18 2024
+* New. Integrations. Added ContactFormPlugin handler.
+* Upd. Integrations. Skip new action for Wordpress File Uploader.
+* Upd. Settings. Advanced setting info added.
+* Fix. Comments moderation. Do not auto-approve comments if license is expired.
+* Fix. Code. ES Lint github action fixed.
+* Fix. Code. General. Compatibility with php 8.2.
+* Fix. Integration. WooCommerce. Event token added and JS status fixed.
+* Fix. Integrations. Added statement for handling space in attribute name.
+* Fix. Integrations. Added handler for KadenceBlocks.
+* Fix. Integrations. Skip WP Fusion Abandoned Cart Addon service requests.
+* Fix. Integrations. Prevented multi request after send.
+* Fix. SFW update. Get only common lists on expired key.
+* Fix. SFW update. Fixed case when DirectUpdate type always calls if has been called once.
+* Ref. Code. Function ct_preprocess_comment refactored to integration class.
+* Ref. Code. External forms. Deleted unnecessary conditions.
+
+= 6.30 Apr 4 2024
+* New. Integration. Jobstack theme register form protection implemented.
+* Fix. Integration. Skip Pixelyoursite service action.
+* Fix. Settings. Fixed switcher for email encode.
+* Fix. Integration. Search form protection fixed.
+* Fix. Integration. Adding to cart protection fixed.
+* Fix. Integration. Elementor Pro. Event token gathering fixed.
+* Fix. Integration. External forms protection fixed.
+* Fix. Integration. Happy Forms integration fixed.
+* Fix. Integration. Prevented error on Ninja forms.
+* Fix. Integration. EasyDigitalDownload fixed.
+* Fix. Integration. Salesforce external form fixed.
+* Fix. Integrations. Catching js params on BuddyPress.
+* Fix. Integrations. Fluent booking. Fix localize script.
+* Fix. Code. Removed redundant parameter `source` from `private_list_add` handler method.
+* Fix. Code. Add default key to debug call.
+* Fix. Code. JS. Core.attr fixed.
+* Fix. Code. Added eslint-windows npm script to run eslint on windows systems.
+* Ref. ApbctSFW. Switch to direct update logic.
+
+= 6.29.1 Mar 26 2024
+Fix. Cookies. Alternative cookies set fixed.
+
+= 6.29 Mar 14 2024
+New. Integration. BookingPress integration.
+New. Integration. OptimizePress integration.
+Upd. Anti-Crawler. UA updating fixed.
+Fix. Code. JS bundle fixed.
+Fix. Bot detector JS lib. Event token field removed from GET params.
+Fix. Pixel. Pixel URL getting fixed.
+Fix. Email encoder. Skip Divi Builder generated content from encoding.
+Fix. Integration. Goodlayers LMS plugin registration exclude from skipping.
+Fix. Integration. EasyDigitalDownloads integration fixed.
+Fix. Bot detector. Including bot detector wrapper script fixed.
+
+= 6.28 Feb 28 2024
+* New. Integrations. Avada Fusion form builder new implementation added.
+* New. Integrations. Newsletter Tribulant eraly ajax check.
+* New. Integrations. Divi Builder email opt-in subscription form.
+* New. Integrations. Hubspot forms protected via div-click.
+* New. Integration. Fluent Booking PRO calendar.
+* Upd. Integrations. Elementor Pro. Refactored to integration class.
+* Upd. Comments and user checker. Now use local datetime in the checker logs.
+* Fix. Integrations. Protected request anonymous add to cart.
+* Fix. Integrations. Mailpoet. Bot detector handled, message cleared.
+* Fix. Integrations. Fluent forms. Bot detector handled, message cleared, visible fields array fixed, hook deprecation handled.
+* Fix. Integrations. Updated ws-forms handler.
+* Fix. Integrations. Submit time calculating fixed.
+* Fix. WooCommerce. Added new sign of wp-ajax to skip Paystation service requests.
+* Fix. WooCommerce. Skip "woo-stripe-payment" service request.
+* Fix. SFW. SFW updating process fixed.
+* Fix. SFW update. Do not warn user if we cannot remove index.php.
+* Fix. AJAX. Skip "Paid Membership" plugin service actions.
+* Fix. State. WP options. Broken serialized data handling.
+* Fix. GetFieldsAny. Handle warning.
+* Fix. Integration. Easy Digital Downloads. Registry during checkout handled. Service actions for discount recount skipped.
+* Fix. GetFiledsAny. Try to parse URL only for single lined message.
+* Fix. Div-click protection. Skipped already protected div on further call of window.load.
+* Fix. Integration. WPFomrs excluded form external forms check.
+
+= 6.27 Feb 14 2024
+* New. Integrations. Added protect for outside iframe.
+* New. Integrations. Classifield theme users registering protection implemented.
+* Upd. General. Removed deprecated ips.
+* Fix. Integrations. WpDiscuz. Duplicated request fixed. Bot detector field handling added.
+* Fix. Integrations. Happy forms. NoCookie hidden field added via ajaxSetup.
+* Fix. Integrations. Undefined: key \'lable\' fixed.
+* Fix. Integrations. HivePress. Service requests skipped.
+* Fix. SFW. Check array key exist before use it.
+* Fix. apbctPrepareBlockForAjaxForms. The method ajaxComplete() is deprecated, used on() instead.
+* Fix. WooCommerce. Skip Apple Pay service request if WooCommerce check is disabled.
+* Fix. WooCommerce. Added new sign of wp-ajax to skip WC order check.
+* Fix. Integrations. Ninja Forms - added an exception for external forms.
+
+= 6.26 Feb 01 2024
+* New. Integration. WP GeoDirectory. Skip service actions and get necessary data directly on the hook 'geodir_validate_ajax_save_post_data'.
+* New. Integration. Kali Forms and Kali Forms pro direct integration.
+* Fix. Comments. Added description.
+* Fix. jQuery ajaxSetup interception. Logic refactored to fix unexpected interceptions during NoCookie data attachment.
+* Fix. CleanTalk response. Fix UTF-8 decode/encode for non-mbstring instances.
+* Fix. Integrations. Refactoring the definition of amp request.
+* Fix. Integrations. Prevent undefined warnings occurring on WpForms.
+* Fix. Integrations. Skip mailpoet service requests.
+* Fix. SFW update. Direct update fixed. Queue stage status fixed.
+
+= 6.25.1 Jan 23 2024 =
+* Fix. Integrations. Prevent undefined warning occur on WpForms.
+
+= 6.25 Jan 17 2024 =
+* New. Integration. 'Nextend Social Login and Register' integration implemented.
+* New. Integration. WooCommerce Product Enquiry Premium integration implemented.
+* New. Integration. Hivepress theme listing check with no email form.
+* New. Code. Base call. Cache plugins list added to the CT request via sender_info.
+* Add. WPCLI. Possibility to create service.
+* Add. WPCLI. Possibility to set template and toggle settings.
+* Fix. Email encoder. Getting visitors IP fixed.
+* Fix. Common. Request validating fixed.
+* Fix. Integration. Search form service parameters removing fixed.
+* Fix. Exclusion. CleanTalk service requests excluded.
+* Fix. Mec forms calendar multipage form event_token reattach.
+* Fix. Integration. Enfold theme contact form. Service data excluded from email encoder. Response layout fixed.
+* Fix. Integration. Elementor get email, nickname fix.
+
+= 6.24 Dec 21 2023 =
+* New. Integrations. WP Delicious integration implemented.
+* Fix. Search. Clear service field in MegaMenu search form.
+* Fix. Integration. Added direct mailpoet.
+* Fix. Integrations. UserRegistration extension compatible with cookie off mode.
+* Fix. Integration. User Registration Pro integration fixed.
+
+= 6.23 Dec 07 2023 =
+* New. Integrations. Added handler for DHVC Form.
+* New. Integrations. Added handler for jetformbuilder.
+* Fix. Settings. Getting Access Key message fixed.
+* Fix. Integrations. Skip Flux Checkout service requests.
+* Fix. Integrations. Skip FunnelKit Automations cron worker.
+* Fix. Integrations. Handle Hubspot integration in Elementor Form.
+* Fix. Integrations. Forminator integration fixed.
+* Fix. Integrations. Skip handle in registration_error hook for wp-members.
+
+= 6.22 Nov 23 2023 =
+* New. Integration. BackInStockNotifier - event token to alt cookies forced.
+* New. Plugin now use register_uninstall_hook() on uninstalling process. Some additional checks added during uninstalling.
+* Fix. WP Rocket compatibility improved.
+* Fix. CT AJAX check. FacetWP service actions ignore.
+* Fix. GravityForms huge memory usage fixed.
+* Mod. Email encoder. Pass key has been stronger.
+
+= 6.21 Nov 09 2023 =
+* Fix. Readme. Plugin name fixed.
+* Mod. Integrations. Now can handle several required APBCT settings conditions to run the integration class.
+* Fix. Integrations. WPdiscuz logged-in users now handles correctly.
+* Mod. FW update. Use inner APBCT folder for uploads if common WP folder is not reachable.
+* Fix. Brief widget. Now shows not more than 8 bars in spam count.
+* Fix. SFW update. Additional fixes for uploads inner folder.
+* Fix. Use get_file_data instead of get_plugin_data on activate.
+* Fix. Fields signs exlusion form array conditions fixed.
+* Fix. SFW. SFW updating process fixed.
+* New. Integration. User Registration Pro.
+* Fix. Admin bar. Resetting counters fixed.
+* Fix. Settings. Changing email for getting access key fixed.
+* Mod. Integrations. Clear APBCT service fields for advanced-cf7-db plugin work.
+* New. Integration. Piotnet Addons For Elementor Pro integration implemented.
+* Fix. CT AJAX check. Convertkit service actions ignore.
+* Fix. Statistic. Collecting blocked_ips.
+* Fix. Email encoder. Mailto links decoding fixed.
+* Update. Settings. Show message if auto get key not allow.
+
+= 6.20 Oct 12 2023 =
+* Fix. Integrations. Gravity multi-page, removed duplicates of apbct_visible_fields.
+* Fix. Integrations. Simple Membership, deleted the user instead of set inactive status.
+* New. Integration. Delivra external forms integration implemented.
+* fix: doubles of hidden fields is fixed
+* Ref. All visible fields collection logic is moved to GetFieldsAny.php.
+* Fix: Integration with AjaxSearchLite
+* Mod: Event token to DB.
+* WP forms POST fields parser chunk added.
+* Fix. Cookie. Improved getting pixel url in alt mechanism.
+* Upd. Settings templates. A tip about templates deleting added.
+* Fix. Settings. The `check links` setting description fixed.
+* Mod: Added title to pixel tag
+* Fix: Fixed SFW class on php 8.2
+* fix: fixed localizer
+
+= 6.19.1 Oct 02 2023 =
+* Upd. Plugin author name updated.
+
+= 6.19 Sep 28 2023 =
+* Fix: SFW. Added is-writable check for sfw dir.
+* Fix: Integration. Updated handler for elementor.
+* Fix: Typo. Updated description for search protect.
+* Mod: Previous referrer now stores correctly in cases of refresh and backward/forward.
+* Fix: Integrations. Added trusted and affiliate sign for Elementor forms and Ninja forms.
+* Fix: Integration. Updated rule for show trusted text.
+* Mod: Integration. LeadFormBuilder now collects usernames and works fine with event_token provided.
+* Fix: Integration. Jetpack comments event_token gathering fixed.
+* Fix: Dashboard widget. Vew all button link fixed.
+* Mod: Now apbct_prev_referrer param contains the page URL that was visited before the page with the submitted form.
+* Fix: Widget. Added sort for date.
+* Mod: Save GET params on block screens
+* Fix: Integrations. Added exclusion for bot detector.
+* Fix: JsData. Update timestamp gathering for wp-rocket.
+* Fix: JS. Added exclude list for submit prev call.
+* Fix: Integrations. Added ReviewX.
+* Fix: User scanner.
+* Mod: Improved AMP integration.
+
+= 6.18 Sep 14 2023 =
+* Fix: Exclusions. VBOUT Woocommerce Plugin service request excluded.
+* Fix: Developing. GitHub action midified.
+* New: JS. Add frontend params for typo.
+* New: Integration. Elementor UltimateAddons Register integration.
+* New: Integration. BuddyPress feedback collected on users management page.
+* Fix: Tests. SFW private lists test fixed.
+* Fix: Common. Check js hidden field drawing fixed.
+* Fix: Alt cookies. Clearing old data fixed.
+* New: AMP Plugin integration.
+
+= 6.17 Aug 31 2023 =
+* Fix: SFW_update. Create temp table for personal data.
+* Fix: Email encoder. Prevent encoding emails into attributes `aria-label`.
+* New: Modal before deactivation is ready.
+* Fix: NoCookie. PreloadLocalstorage fixed. Previous value gain fixed.
+* Fix: Fixed apbct_timestamp.
+* Mod: Cookie. Cookie type is "Auto" (3) by defaults.
+* Fix: Anti-Crawler. Exclude W3 Total Cache minified files request from AC check.
+* New: Integration. MailPoet2 integration implemented.
+* Mod: Ninja forms bot-detector token gain via AltSessions.
+* Fix: AC. JSON parse to array instead of object.
+* Fix. Do not send event token to XHR if it is already sent and equal to the newly gained from moderate.
+* New: SFW. Separate 2s blacklists.
+
+= 6.16 Aug 17 2023 =
+* Fix: External MailerLite fixed
+* Fix: Jetpack. Send apbct_timestamp to alt_cookies on alt-cookies forced forms.
+* Fix: Integration. LatePoint. Event token now can be added to dynamically rendered form.
+* Ref: Review notice
+* Fix: White Label
+* New: Integration. Zoho 3rd party service integration implemented.
+
+= 6.15 Aug 3 2023 =
+* New. Integration. LatePoint booking integration implemented.
+* New. Integration. Cleantalk Register Widget integration implemented.
+* New. External forms. Protection via fake submit button implemented.
+* WordPress 6.3 compatibility. NinjaForms. Fixed negative response logic.
+* WordPress 6.3 compatibility. WPForms. Disable form protect on form editing for logged-in users.
+* Fix: excluded trp_get_translations_regular action Artem
+* Fix. Pixel. Added validation for pixel url.
+* Fix: Fixed apbctPrepareBlockForAjaxForms().
+* Mod. Bot-detector field clearance. Now use the name attribute instead of ID.
+
+= 6.14.2 Jul 26 2023 =
+* Fix. Additional frontend scripts fixes.
+
+= 6.14.1 Jul 26 2023 =
+* Fix. Public frontend scripts fixed.
+
+= 6.14 Jul 20 2023 =
+* New. Integration. Flux Checkout for WooCommerce service requests skipped.
+* New. Integration. Some external form protection implemented.
+* Fix. Alt cookies. Parameters input_focused and key_up storing fixed.
+* Fix. apbct_cookie() call. Do not skip requests if GET contains 'q'.
+* Fix. Exclusions. Logic modified, legacy support improved.
+* Fix. Jetpack integration. Params gathering fixed.
+* Fix. Integration. WPForms blocking message fixed.
+* Fix. Common. Checking REST availability fixed.
+* Fix. Common. DNS - using global variable DNS_TXT refactored.
+* Fix. Common. CookiesBot integration added.
+* Fix. Common. Blocking message for custom ajax forms fixed.
+* Fix. Common. Enable event token for all requests.
+* Fix. Cookies. Do not skip native cookie set if localStorage object persist.
+* Fix. Integration. Avada fusion builder. Collect the inner form data correctly.
+* Fix. Public scripts. Interception of ajax response logic fixed.
+* Fix. SFW. Force direct updating flag implemented.
+
+= 6.13 Jul 06 2023 =
+* Fix. PHP 8.1 compat. Email encoder.
+* Fix. PHP 8.1 compat. Check users/comments. Title is not null forced.
+* Fix. Ultimate Form Builder. Message clearance.
+* Fix. NoCookie data clearance. New function apbct_clear_query_from_service_fields() clear the value of form service fields instead of unset it if the value is get-query-like.
+* Update. SFW. Check sfw temp table exists before insert data.
+* Fix. Integration. Ultimate Form Builder Lite. Glue same key values.
+* Fix. Integration. OptimizePress checkout exclusions.
+* Update. SFW. Use isTableExists instead of direct query.
+* Fix. cleantalk-public-integrations.php. ct_s2member_registration_test(). Integration fixed.
+* Fix. Settings. Use DELETE SQL-command instead TRUNCATE option deleted.
+* Fix. Settings. Checking REST availability fixed.
+
+= 6.12 Jun 22 2023 =
+* New. Restoring WC blocked orders implemented.
+* Fix. Exclude. Excluded request from ProfilePress login form.
+* Fix. JS. External form not copied value for checkbox or radio button, fixed.
+* Fix. Exclude login. Excluded UserPro login form request.
+* Fix. Cleantalk AJAX check. Avada form builder fields collection fixed.
+* Fix. Do not load public scripts for logged-in users if "protect logged-in" option is disabled.
+* Fix. Mouse pointer data set. Alt cookie skipping condition fixed.
+* Fix. Force ajax type with constant APBCT_SET_AJAX_ROUTE_TYPE.
+* Fix. Hidden fileds exclusions refactored. Woocommerce login form sign added to exclude hidden fields attach.
+* Fixed text while encoding
+* Fix. Email encoder. Return HTML escap for privacy policy links.
+* Fix. Fetch XHR. TWT email signup form catch impemented with jQuery.
+* Fix. Comments and users checker. Whitelable mode brands shown correct.
+* Fix. Woocommerce integration. Route "\?wc-ajax=cfw_validate_email_domain" is skipped from APBCT check.
+* Fix. WC blocked orders. Hyperlinks on the admin bar fixed.
+* Fix. Common. Get fields any - message detecting fixed.
+
+= 6.11.2 Jun 14 2023 =
+* Fix. Mouse pointer data set. Alt cookie skipping condition fixed.
+
+= 6.11.1 Jun 13 2023 =
+* Fix. Honeypot for searchforms. Reverted changes normalized.
+* Fix. Custom forms. AJAX search pro exclusions updated.
+
+= 6.11 Jun 08 2023 =
+* New. Bot detector added for several forms.
+* Fix. Honeypot field for search forms now contains a value.
+* Fixed error with DOMDocument
+* Added libxml_clear_errors()
+* Fix. Js. Fixed logic for case when form is excluded.
+* Add. Integration. Added integration for SendyWidgetPro.
+* Fix. Remove searchform sign from POST data check.
+* Fix. Comment checker. Comment type "review" support added.
+* Fix. White label. Brand replacement fixed.
+* Fix. Integrations. Handle case when Gravity Form rebuild document if form validation failed.
+* Fix. JS. Add check that jquery exists.
+* Fix. Javascript. Catching XHR fixed.
+* Fix. Form Signs Exclusions. Update handle for case if apbct_skip_this_form in POST[data]
+* Fix. Pixel. Special GET snippet added to skip Nitorpack CDN and caching.
+* Moved apbct_cookie to init
+* Correct apbct_page_hits cookie
+* Fix. Admin. Checking ajax requests improved.
+* Fix. apbct-public--2--public.js -> ctMouseReadInterval is declared early.
+* Fix. SFW. Triggered IP hyperlink fixed.
+* Fix. Common. Unset event_token service field from requests.
+* Fix. Integrations. Excluded wpform email validate request.
+
+= 6.10 May 24 2023 =
+* Fix. Integrations. Ultimate Addons for Beaver Builder: Exclude login form request.
+* Fix: Integration. Digits - extra request fixed
+* New: Integration. Indeed Ultimate Membership Pro integration implemented.
+* Fix: Integration. Indeed Ultimate Membership Pro - exclude request from general forms catching.
+* Fix. Pixel. Pixel gathering fixed.
+* Fix: Fixed MetForm Integration
+* fix: fixed block message
+* fix: fixed block message - eform
+* fix: fixed unknown block response
+* Fix. WC_Invoice4U exclusion.
+* Fix. NoCookie. Remove noise from base64 string.
+* Added exlutions for Localize
+* New. Store WC spam orders.
+* Fix. Integration. Skip OptimizeCheckouts fields checks
+* New. White label. Replace brands data to apbct->data[wl_*].
+* Fix. Cookies. Native cookies mode fixed.
+
+= 6.9.2 May 5 2023 =
+* Fix: local_storage_pixel_url fixed
+
+= 6.9.1 May 2 2023 =
+* Fix. Fixed javascript
+* Fix: no_cookie_data_taken fixed
+
+= 6.9 Apr 27 2023 =
+* Ref: Exclusion roles refactored, exclusion signs group added, groups names layout changed.
+* Mod: Improved code style.
+* Ref: GDPR. Removed logic.
+* Mod: Update. Cookie auto. Set setting to cookie - off, in case if data processing in auto and cache plugin detected.
+* Fix: SFW. Made the priority list a priority.
+* New: Digits integration implemented.
+* New: Modern Events Calendar integration implemented.
+* Fix: Common. Page url parameter fixed.
+* Fix: Integration. Skip Billige-teste theme 1st step checkout request.
+* Fix: Integrations. Skip WS Forms Pro request - have the direct integration.
+* Fix: Integrations. Gravity Forms block message layout fixed.
+
+= 6.8 Apr 13 2023 =
+* Add. New tags <div> <font> in custom response message.
+* Update. WPMS. Update counters for spam users.
+* Update. SFW. Update message on sfw die page.
+* Fix. Manage Spam Comments. Fixed approve comment logic.
+* Fix. External forms.
+* Fix. Block message for BricksExtras.
+* Fix. Excluded resize-image().
+* Fix. FluentForm integration.
+* Fix. Excluded requests from Profile Builder.
+
+= 6.7 Mar 30 2023 =
+* Added rotateModerateAndUseIP() if attempt is failed
+* Mod. Force use CleanTalk http request instead of WP HTTP API.
+* Add. Js. Gathering errors.
+* Mod. Skip third retry if rotateModerateAndUseIP() does not help.
+* Mod: Added another MemberPress Integration Signup Form
+* Add. Js. Gather errors in db.
+* FluentForms fixed
+* Fix: fixed sendAjaxCheckingDinamicFormData()
+* Fix. HTTP lib. WP 6.2+ supporting implemented.
+* Fix. Settings. Default value for data__email_decoder_buffer added.
+* Mod: Another integration with GiveWP
+* Mod. Remove redundant option "Use SSL".
+* Mod. Remove redundant code in API.
+* Fix: Excluded request with wcf_check_email_exists - CartFlows
+* Update. Notice review. Refactoring notice.
+* Update. Internal forms. Removed jquery dependencies.
+* Add. Js. Added mail view, cron task, and improve js execute.
+* Update. Mail view. Removed Manage notifications settings link from mail footer.
+* Fix: Fixed apbct_wp_validate_auth_cookie()
+* Fix. Integration. bbPress: replies protection fixed.
+* Fix. Common. Connection reports and Update sentinel objects fixed.
+
+= 6.6 Mar 16 2023 =
+* Excluded qsm_save_resume_auto_save_data action
+* Exclude request from QSM - Save & Resume Addon
+* Added correct block message
+* removed jquery from scripts
+* Fix. Integrations. Added exclusion for Optima Express search.
+* Fix. Integrations. Added no_cookie_data for popup dynamic form.
+* Fix. Settings. Ajax JS setting description fixed.
+* Fixed ct_get_checkjs_value()
+* Fix: excluded the form from javascript processing
+* Fix. Users scanner. Delete action added for the non-checkable users found.
+* fix: fixed apbct_is_plugin_active function name
+* Fix. Comments managing. Public side managing comments fixed
+* Fix: Fixed apbctProcessIframes()
+* fix: fixed fusion block message
+* Fix. Admin notices. Layout styles fixed.
+* Fix. Admin notices. Dismissing notices logic fixed.
+* Fix. Admin notices. "Review" notices logic fixed.
+* Fix. Admin notices. JS errors during notice dismissing fixed.
+* Update. JS. Rewrote logic without jquery in external file.
+* New. SFW update sentinel (reporting about failing updates).
+* Fix. Readme. Old changelogs moved to 'changelog.php'.
+* Fix. Integration. BuddyPress integration - register protection fixed.
+* Fix. Integration. JetPack contact form - js checking fixed.
+* Fix. Integration. bbPress integration - topic creation protection fixed.
+* Fix. Common. JS - added delayed listeners for delayed forms.
+* Update. JS. Handle external forms in frames.
+
+= 6.5 Mar 02 2023 =
+* New. State autoupdating. Set new settings values during plugin update.
+* New. Integrations. Integration with LeadFormBuilder.
+* New. Integrations. Added Ultimate Membership Pro.
+* Fix. Integrations. Exclude checkbox and radio inputs from message data.
+* Fix: Fixed z-index overlay
+* Fix: Added stopping script for easylogin
+* Fix. Code. Ajax request initialization fixed.
+* Fix. JS localizing. JS object defining fixed.
+* Fix. Code. WP-Rocket JS minification preventing.
+* Fix. Code. No cookie fields ID attribute removed.
+* Fix. Remote calls. Getting template RC fixed.
+
+= 6.4.1 Feb 20 2023 =
+* Fix. Search fields. Add unreachable option.
+
+= 6.4 Feb 16 2023 =
+#### New integrations added ⚙, Email Encoder functionality improved 😎, CDN support improved 🐸, many integrations fixed 🐞 and some minor issues fixed 💪🏼
+* New. Added mail encoding via buffer.
+* New. Localize data with wp_head (support Ezoic, CF, LS cache etc).
+* New. Integration. WP Booking System plugin integration implemented.
+* Fix. Skip Ajax Search Pro forms from hidden field adding.
+* Fix. Cookie apbct_timestamp is set as HttpOnly.
+* Add. Integrations. Add HubSpot integration, extend logic for external forms handler.
+* Fix. Common. CAPD catching fixed.
+* Update. Integrations. Add handler for run previous onsubmit action in dinamic rendered external forms.
+* Fix. Integration. RegistrationMagic service requests excluded.
+* Fix. Common. Collecting JS on custom forms fixed.
+* Fix. Integrations. Fix onload event handler overwrited.
+* Fix. JS. Gathering visible fields fixed.
+* Fix. Integrations. Check each external forms on page, instead of return with first exclusion.
+* Fix. Integrations. Skip woocommerce add to cart trigger.
+* Fix. Integrations. Woocommerce add excluded condition for password recovery form.
+* Fix. Integrations. Skip WooCommerce addon - Wati - action for customers who came from Whatsapp.
+* Fix. EmailEncoder. Add style color setting to popup text element.
+* Fix. Integrations. User meta through is_ajax param.
+
+= 6.3.1 Feb 02 2023 =
+* Fix. Integrations. Add rules for catching metform fetch.
+
+= 6.3 Feb 02 2023 =
+#### Several form builders integrated 🎯, many integrations fixed 🐞 and some minor issues fixed 💪🏼
+* Add. Integrations. Added Mailoptin.
+* Add. Integrations. Added Metform.
+* Fix. Integration. Ultimate Form Builder collecting parameters fixed.
+* New. Common. Added new filter to preprocessed data for the visible fields comparing.
+* Fix. Integration. UFB visible fields processing filter implemented.
+* Fix. Common. No cookie data gathering fixed.
+* Fix. Integration. Skip ActiveCampaign for WooCommerce service request.
+* Fix. Integration. Skip AutomateWoo service request
+* Mod. RemoteCalls. RC run_service_template_get cooldown changed from 3600 to 60 seconds.
+* Fix. Hosting license. Checking license status fixed.
+* Fix. Hosting license. Settings saving fixed.
+* Fix. Clear no_cookie_data_taken stat on State init.
+* Fix. Kali forms precheck skipped.
+* Fix. Clear no_cookie_data_taken stat on State init.
+* Fix. Common. Akismet compatibility in comments management part.
+* Fix. Translations. Now plugin can use local .mo files.
+* Fix. Dashboard chartjs. Added options for support an outdated chartjs version 2.9.
+* Fix. Integrations. Nobletitlecalc custom plugin exclusion.
+* Fix. SFW. Queue is in progress logic fixed.
+* Fix. Integration. AutomateWoo services requests excluded.
+* Fix. Integration. WooCommerce checking JS fixed.
+
+= 6.2.1 Jan 24 2023 =
+* Fix. Integration. Convert Pro form integration fixed.
+* Fix. Integration. AJAX forms JS detection fix.
+* Fix. NoCookie. Message field clearance from service data.
+* Fix. Updater. PHP 8.0 compatibility.
+* Fix. Search forms. New sign of search forms to handle via NoCookie mode.
+* Fix. Search forms. Fix JS error while parsing NoCookie data.
+
+= 6.2 Jan 19 2023 =
+#### New remote call handled added, common parameters implemented, some integrations fixed and some minor issues fixed 💪🏼
+* New. RC. Remote call service_template_get implemented.
+* New. Common. New params from JS has_focused and has_keyup.
+* Fix: If cookies_type===none - unset cookies_enabled
+* Mod. Integrations. Force AltCookies usage for Ninja Forms on NoCookies mode.
+* Mod. Integrations. Force AltCookies usage for Smart Forms on NoCookies mode.
+* Mod. Integrations. Force NoCookie data setting via direct integration for UltimateFormBuilder.
+* Mod. Chart source changed to opensource ChartJS.
+* Fix. Admin widget. Do not enqueue scripts if the widget is disabled.
+* Fix. Helper. Php notice fixed.
+* Fix. New AJAX integrations skip rules moved AJAX part.
+* Fix. ErrorToggle logic.
+* Fix. SFW. SFW outdated notice fixed.
+* Fix. Email encoder. Do not send encoded email to the cloud.
+* Fix: Fixed counter of checked comments when press pause
+* Fix. SFW. New statuses 99 implemented.
+* Fix. Added notice_email_decoder_changed banner
+* Fix. Fixed notice_email_decoder_changed()
+* Fix. SFW. Blocking pages for the testing purpose fixed.
+* Fix: Fixed counter of checked comments when press pause
+* Fix. Common. page_hits, prev_referer, site_referer parameters collecting fixed.
+* Fix. Common. Parameters collecting fixed.
+* Fix. Settings. Cookies option description fixed.
+* Fix. Admin. Dashboard widget fixed.
+* Fix. Integration. Formidable integration fixed.
+* Fix. Integration. Ultimate Form Builder integration fixed.
+* Fix. Ajax. Skipping direct integrations requests fixed.
+
 = 6.1 Dec 15 2022 =
 #### Some integrations fixed 🐞, Search forms 🎯 protection improved and some minor issues fixed 💪🏼
 * New. Integrations. Add NewUserApprove plugin.

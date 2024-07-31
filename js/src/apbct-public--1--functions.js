@@ -123,6 +123,10 @@ function ctSetAlternativeCookie(cookies, params) {
         return;
     }
 
+    if (!cookies.apbct_site_referer) {
+        cookies.apbct_site_referer = location.href;
+    }
+
     const callback = params && params.callback || null;
     const onErrorCallback = params && params.onErrorCallback || null;
 
