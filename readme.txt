@@ -222,7 +222,7 @@ CleanTalk Anti-Spam offers a feature called "Encode contact data" that is design
 Yes, it will. The Anti-spam by CleanTalk is compatible with any WordPress theme.
 
 = Should I use other anti-spam tools (Captcha, reCaptcha and etc.)? =
-CleanTalk stops up to 99.998% of spam bots, so you can disable other anti-spam plugins (especially CAPTCHA-type anti-spam plugins). In some cases several anti-spam plugins could conflict with each other, so it would be better to use just one plugin.
+CleanTalk stops up to 99.998% of spam bots, so you can disable other anti-spam plugins (especially CAPTCHA-type anti-spam plugins). In some cases several anti-spam plugins could conflict with each other.
 
 = Can I use CleanTalk with Akismet? =
 Sure, you can use CleanTalk with Akismet. In this case you will probably have higher false/positive rate (when legitimate comments/signups are being denied), but you will have stronger anti-spam protection on your website.
