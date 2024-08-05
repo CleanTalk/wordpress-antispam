@@ -142,6 +142,13 @@ class LinkConstructor extends \Cleantalk\Common\LinkConstructor
             'utm_medium' => 'admin_bar',
             'utm_content' => 'renew_admin_bar_spbct',
         ),
+        'exclusion_by_form_signs' => array(
+            'utm_id' => '',
+            'utm_term' => '',
+            'utm_source' => 'admin_panel',
+            'utm_medium' => 'settings',
+            'utm_content' => 'apbct_hint_exclusions__form_signs',
+        ),
     );
 
     public static function buildCleanTalkLink($utm_preset, $uri = '', $get_params = array(), $domain = 'https://cleantalk.org')

@@ -353,7 +353,7 @@ class SFWUpdateHelper
         }
 
         if ( $ready_fw_uploads_dir === '' ) {
-            return array('error' => 'Can not to make FW update directory.');
+            return array('error' => 'Can not make FW update directory.');
         }
 
         $files = glob($ready_fw_uploads_dir . '/*');

@@ -293,7 +293,7 @@ function apbctReplaceInputsValuesFromOtherForm(formSource, formTarget) {
     const inputsTarget = formTarget.querySelectorAll('button, input, textarea, select');
 
     if (formSource.outerHTML.indexOf('action="https://www.kulahub.net') !== -1 ||
-        formSource.outerHTML.indexOf('action="https://leventbedrijfsrecherche.nl') !== -1
+        isFormHasDiviRedirect(formSource)
     ) {
         inputsSource.forEach((elemSource) => {
             inputsTarget.forEach((elemTarget) => {
@@ -603,18 +603,39 @@ function isIntegratedForm(formObj) {
         formId.indexOf('ihf-contact-request-form') !== -1 ||
         formAction.indexOf('crm.zoho.com') !== -1 ||
         formId.indexOf('delivra-external-form') !== -1 ||
-        ( formObj.classList !== undefined &&
-            !formObj.classList.contains('woocommerce-checkout') &&
-            formObj.hasAttribute('data-hs-cf-bound')
-        ) || // Hubspot integration in Elementor form// Hubspot integration in Elementor form
+        // todo Return to Hubspot for elementor in the future, disabled of reason https://doboard.com/1/task/9227
+        // ( formObj.classList !== undefined &&
+        //     !formObj.classList.contains('woocommerce-checkout') &&
+        //     formObj.hasAttribute('data-hs-cf-bound')
+        // ) || // Hubspot integration in Elementor form// Hubspot integration in Elementor form
         formAction.indexOf('eloqua.com') !== -1 || // Eloqua integration
         formAction.indexOf('kulahub.net') !== -1 || // Kulahub integration
-        formAction.indexOf('leventbedrijfsrecherche.nl') !== -1 // Divi contact form
+        isFormHasDiviRedirect(formObj) // Divi contact form
     ) {
         return true;
     }
 
     return false;
+}
+
+/**
+ * This function detect if the form has DIVI redirect. If so, the form will work as external.
+ * @param {HTMLElement} formObj
+ * @return {boolean}
+ */
+function isFormHasDiviRedirect(formObj) {
+    let result = false;
+    const diviRedirectedSignSet = document.querySelector('div[id^="et_pb_contact_form"]');
+    if (
+        typeof formObj === 'object' && formObj !== null &&
+        diviRedirectedSignSet !== null &&
+        diviRedirectedSignSet.hasAttribute('data-redirect_url') &&
+        diviRedirectedSignSet.getAttribute('data-redirect_url') !== '' &&
+        diviRedirectedSignSet.querySelector('form[class^="et_pb_contact_form"]') !== null
+    ) {
+        result = formObj === diviRedirectedSignSet.querySelector('form[class^="et_pb_contact_form"]');
+    }
+    return result;
 }
 
 /**

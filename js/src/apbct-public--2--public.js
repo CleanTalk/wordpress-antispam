@@ -793,7 +793,7 @@ function apbctCatchXmlHttpRequest() {
     }
 
     // Set important parameters via ajax
-    if ( ctPublic.advancedCacheExists ) {
+    if ( ctPublic.advancedCacheExists || ctPublic.varnishCacheExists ) {
         if ( ctPublicFunctions.data__ajax_type === 'rest' ) {
             apbct_public_sendREST('apbct_set_important_parameters', {});
         } else if ( ctPublicFunctions.data__ajax_type === 'admin_ajax' ) {
@@ -1199,7 +1199,7 @@ function getJavascriptClientData(commonCookies = []) {
         ctCookiesTypeLocalStorage : ctCookiesTypeCookie;
     resultDataJson.apbct_pixel_url = ctPixelUrl !== undefined ?
         ctPixelUrl : ctCookiesPixelUrl;
-    if (resultDataJson.apbct_pixel_url && resultDataJson.apbct_pixel_url == 'string') {
+    if (resultDataJson.apbct_pixel_url && typeof(resultDataJson.apbct_pixel_url) == 'string') {
         if (resultDataJson.apbct_pixel_url.indexOf('%3A%2F')) {
             resultDataJson.apbct_pixel_url = decodeURIComponent(resultDataJson.apbct_pixel_url);
         }

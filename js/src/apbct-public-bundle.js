@@ -1033,6 +1033,18 @@ class ApbctRest extends ApbctXhr {
     }
 }
 
+// add hasOwn
+if (!Object.prototype.hasOwn) {
+    Object.defineProperty(Object.prototype, 'hasOwn', { // eslint-disable-line
+        value: function(property) {
+            return Object.prototype.hasOwnProperty.call(this, property);
+        },
+        enumerable: false,
+        configurable: true,
+        writable: true,
+    });
+}
+
 /**
  * @param {object|array|string} cookies
  * @param {object|array|string} value
@@ -1154,6 +1166,10 @@ function ctSetAlternativeCookie(cookies, params) {
     } catch (e) {
         console.log('APBCT ERROR: JSON parse error:' + e);
         return;
+    }
+
+    if (!cookies.apbct_site_referer) {
+        cookies.apbct_site_referer = location.href;
     }
 
     const callback = params && params.callback || null;
@@ -2338,7 +2354,7 @@ function apbctCatchXmlHttpRequest() {
     }
 
     // Set important parameters via ajax
-    if ( ctPublic.advancedCacheExists ) {
+    if ( ctPublic.advancedCacheExists || ctPublic.varnishCacheExists ) {
         if ( ctPublicFunctions.data__ajax_type === 'rest' ) {
             apbct_public_sendREST('apbct_set_important_parameters', {});
         } else if ( ctPublicFunctions.data__ajax_type === 'admin_ajax' ) {
@@ -2744,7 +2760,7 @@ function getJavascriptClientData(commonCookies = []) {
         ctCookiesTypeLocalStorage : ctCookiesTypeCookie;
     resultDataJson.apbct_pixel_url = ctPixelUrl !== undefined ?
         ctPixelUrl : ctCookiesPixelUrl;
-    if (resultDataJson.apbct_pixel_url && resultDataJson.apbct_pixel_url == 'string') {
+    if (resultDataJson.apbct_pixel_url && typeof(resultDataJson.apbct_pixel_url) == 'string') {
         if (resultDataJson.apbct_pixel_url.indexOf('%3A%2F')) {
             resultDataJson.apbct_pixel_url = decodeURIComponent(resultDataJson.apbct_pixel_url);
         }
@@ -3809,7 +3825,7 @@ function apbctReplaceInputsValuesFromOtherForm(formSource, formTarget) {
     const inputsTarget = formTarget.querySelectorAll('button, input, textarea, select');
 
     if (formSource.outerHTML.indexOf('action="https://www.kulahub.net') !== -1 ||
-        formSource.outerHTML.indexOf('action="https://leventbedrijfsrecherche.nl') !== -1
+        isFormHasDiviRedirect(formSource)
     ) {
         inputsSource.forEach((elemSource) => {
             inputsTarget.forEach((elemTarget) => {
@@ -4119,18 +4135,39 @@ function isIntegratedForm(formObj) {
         formId.indexOf('ihf-contact-request-form') !== -1 ||
         formAction.indexOf('crm.zoho.com') !== -1 ||
         formId.indexOf('delivra-external-form') !== -1 ||
-        ( formObj.classList !== undefined &&
-            !formObj.classList.contains('woocommerce-checkout') &&
-            formObj.hasAttribute('data-hs-cf-bound')
-        ) || // Hubspot integration in Elementor form// Hubspot integration in Elementor form
+        // todo Return to Hubspot for elementor in the future, disabled of reason https://doboard.com/1/task/9227
+        // ( formObj.classList !== undefined &&
+        //     !formObj.classList.contains('woocommerce-checkout') &&
+        //     formObj.hasAttribute('data-hs-cf-bound')
+        // ) || // Hubspot integration in Elementor form// Hubspot integration in Elementor form
         formAction.indexOf('eloqua.com') !== -1 || // Eloqua integration
         formAction.indexOf('kulahub.net') !== -1 || // Kulahub integration
-        formAction.indexOf('leventbedrijfsrecherche.nl') !== -1 // Divi contact form
+        isFormHasDiviRedirect(formObj) // Divi contact form
     ) {
         return true;
     }
 
     return false;
+}
+
+/**
+ * This function detect if the form has DIVI redirect. If so, the form will work as external.
+ * @param {HTMLElement} formObj
+ * @return {boolean}
+ */
+function isFormHasDiviRedirect(formObj) {
+    let result = false;
+    const diviRedirectedSignSet = document.querySelector('div[id^="et_pb_contact_form"]');
+    if (
+        typeof formObj === 'object' && formObj !== null &&
+        diviRedirectedSignSet !== null &&
+        diviRedirectedSignSet.hasAttribute('data-redirect_url') &&
+        diviRedirectedSignSet.getAttribute('data-redirect_url') !== '' &&
+        diviRedirectedSignSet.querySelector('form[class^="et_pb_contact_form"]') !== null
+    ) {
+        result = formObj === diviRedirectedSignSet.querySelector('form[class^="et_pb_contact_form"]');
+    }
+    return result;
 }
 
 /**
