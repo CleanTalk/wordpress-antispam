@@ -2,12 +2,14 @@
 
 namespace Cleantalk\Antispam\Integrations;
 
+use Cleantalk\Antispam\CleantalkResponse;
 use Cleantalk\ApbctWP\Sanitize;
 use Cleantalk\ApbctWP\Variables\AltSessions;
 use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\ApbctWP\Variables\Post;
 use Cleantalk\ApbctWP\Variables\Server;
 use Cleantalk\Common\Helper;
+use Cleantalk\Common\TT;
 use WP_User;
 
 class CleantalkPreprocessComment extends IntegrationBase
@@ -19,13 +21,24 @@ class CleantalkPreprocessComment extends IntegrationBase
     private $ct_jp_comments;
     private $exception_action;
     private $comments_check_number_needs_to_skip_request;
+
     public function getDataForChecking($argument)
     {
         return array();
     }
 
+    public function wpDieHandler($message, $title, $args)
+    {
+        global $apbct;
+        // if wp_die_comment_message provided add this to the WP message
+        if ( $title == __('Comment Submission Failure') && isset($apbct->wp_die_comment_message)) {
+            $message = $message . "\r\n" .  TT::toString($apbct->wp_die_comment_message);
+        }
+        _default_wp_die_handler($message, $title, $args);
+    }
+
     /**
-     * Prepare intergation data if needs.
+     * Prepare integration data if it needs.
      * @param $argument
      * @return bool True if everything is OK, false if something wrong and needs to exit integration without changes.
      */
@@ -37,6 +50,15 @@ class CleantalkPreprocessComment extends IntegrationBase
         global $current_user, $comment_post_id, $ct_comment_done, $ct_jp_comments, $apbct;
 
         $this->exception_action = false;
+
+        //set new handler for wp die message and exit integration
+        if ( current_action() === 'wp_die_handler' ) {
+            remove_action('wp_die_handler', array('Cleantalk\Antispam\Integrations', 'checkSpam'));
+            add_action('wp_die_handler', function () {
+                return array($this, 'wpDieHandler');
+            }, 999);
+            return false;
+        }
 
         if (is_null($argument)) {
             //run debug plugin log
@@ -80,6 +102,7 @@ class CleantalkPreprocessComment extends IntegrationBase
         /**
          * Pre-action done. Run data collecting.
          */
+
         return true;
     }
 
@@ -333,6 +356,14 @@ class CleantalkPreprocessComment extends IntegrationBase
     public function doFinalActions($argument)
     {
         global $apbct;
+
+        // save comment message to use in wp die handler
+        $blocked_request_data = $this->base_call_result['ct_result'];
+        if ($blocked_request_data instanceof CleantalkResponse && $blocked_request_data->allow === 0) {
+            $apbct->wp_die_comment_message = !empty($blocked_request_data->comment)
+                ? $blocked_request_data->comment
+                : __('CleanTalk Anti-Spam: your message looks like spam.', 'cleantalk-spam-protect');
+        }
 
         if ( $apbct->settings['comments__remove_comments_links'] == 1 ) {
             $this->removeLinksFromComment();
