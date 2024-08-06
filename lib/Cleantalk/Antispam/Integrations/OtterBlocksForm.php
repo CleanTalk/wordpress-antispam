@@ -44,7 +44,7 @@ class OtterBlocksForm extends IntegrationBase
         }
         return $argument;
     }
-    
+
     /**
      * @inheritDoc
      * @throws \Exception
