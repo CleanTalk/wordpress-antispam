@@ -3,14 +3,9 @@
 namespace Cleantalk\Antispam\Integrations;
 
 use Cleantalk\ApbctWP\Variables\Cookie;
-use ThemeIsle\GutenbergBlocks\Integration\Form_Data_Request;
-use ThemeIsle\GutenbergBlocks\Integration\Form_Data_Response;
 
 class OtterBlocksForm extends IntegrationBase
 {
-    /**
-     * @var Form_Data_Request
-     */
     private $form_data_request;
 
     /**
@@ -36,7 +31,8 @@ class OtterBlocksForm extends IntegrationBase
             }
             if ( count($form_data) ) {
                 $gfa_result = ct_gfa($form_data);
-                if ( $event_token = Cookie::get('ct_bot_detector_event_token') ) {
+                $event_token = Cookie::get('ct_bot_detector_event_token');
+                if ( $event_token ) {
                     $gfa_result['event_token'] = $event_token;
                 }
             }
