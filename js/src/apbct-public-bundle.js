@@ -2295,14 +2295,8 @@ function apbct_ready() {
                 (_form.getAttribute('role') !== null && _form.getAttribute('role').indexOf('search') !== -1)
             )
         ) {
-            _form.apbctSearchPrevOnsubmit = _form.onsubmit;
-            if ( ctPublic.data__cookies_type === 'none' ) {
-                _form.append(ctNoCookieConstructHiddenField('submit'));
-            }
-            if ( + ctPublic.settings__data__bot_detector_enabled ) {
-                _form.append(ctEventTokenConstructHiddenField());
-            }
             // this handles search forms onsubmit process
+            _form.apbctSearchPrevOnsubmit = _form.onsubmit;
             _form.onsubmit = (e) => ctSearchFormOnSubmitHandler(e, _form);
         }
     }
@@ -2463,15 +2457,10 @@ if (ctPublic.data__key_is_ok) {
  */
 function ctSearchFormOnSubmitHandler(e, targetForm) {
     try {
-        // set NoCookie data if is provided
-        const noCookieField = targetForm.querySelector('[name="ct_no_cookie_hidden_field"]');
-        // set honeypot data if is provided
+        // get honeypot field and it's value
         const honeyPotField = targetForm.querySelector('[id*="apbct__email_id__"]');
-        const botDetectorField = targetForm.querySelector('[name*="ct_bot_detector_event_token"]');
         let hpValue = null;
         let hpEventId = null;
-
-        // get honeypot field and it's value
         if (
             honeyPotField !== null &&
             honeyPotField.value !== null &&
@@ -2481,18 +2470,18 @@ function ctSearchFormOnSubmitHandler(e, targetForm) {
             hpEventId = honeyPotField.getAttribute('apbct_event_id');
         }
 
+        // get cookie data from storages
+        let cleantalkStorageDataArray = getCleanTalkStorageDataArray();
+
+        // get event token from storage
+        let eventTokenLocalStorage = apbctLocalStorage.get('bot_detector_event_token');
+
         // if noCookie data or honeypot data is set, proceed handling
-        if ( noCookieField !== null || honeyPotField !== null || botDetectorField !== null ) {
+        if ( cleantalkStorageDataArray !== null || honeyPotField !== null || eventTokenLocalStorage !== null ) {
             e.preventDefault();
             const callBack = () => {
-                if ( noCookieField !== null ) {
-                    noCookieField.parentNode.removeChild(noCookieField);
-                }
                 if (honeyPotField !== null) {
                     honeyPotField.parentNode.removeChild(honeyPotField);
-                }
-                if (botDetectorField !== null) {
-                    botDetectorField.parentNode.removeChild(botDetectorField);
                 }
                 if (typeof targetForm.apbctSearchPrevOnsubmit === 'function') {
                     targetForm.apbctSearchPrevOnsubmit();
@@ -2501,15 +2490,7 @@ function ctSearchFormOnSubmitHandler(e, targetForm) {
                 }
             };
 
-            let parsedCookies = '{}';
-
-
-            // if noCookie data provided trim prefix and add data from base64 decoded value then
-            if (noCookieField !== null) {
-                parsedCookies = atob(noCookieField.value.replace('_ct_no_cookie_data_', ''));
-            }
-
-            const cookiesArray = JSON.parse(parsedCookies);
+            let cookiesArray = cleantalkStorageDataArray;
 
             // if honeypot data provided add the fields to the parsed data
             if ( hpValue !== null && hpEventId !== null ) {
@@ -2517,9 +2498,8 @@ function ctSearchFormOnSubmitHandler(e, targetForm) {
                 cookiesArray.apbct_search_form__honeypot_id = hpEventId;
             }
 
-            if (botDetectorField !== null) {
-                cookiesArray.ct_bot_detector_event_token = botDetectorField.value;
-            }
+            // set event token
+            cookiesArray.ct_bot_detector_event_token = eventTokenLocalStorage;
 
             // if the pixel needs to be decoded
             if (
@@ -2529,10 +2509,11 @@ function ctSearchFormOnSubmitHandler(e, targetForm) {
                 cookiesArray.apbct_pixel_url = decodeURIComponent(cookiesArray.apbct_pixel_url);
             }
 
-            parsedCookies = JSON.stringify(cookiesArray);
+            // data to JSON
+            const parsedCookies = JSON.stringify(cookiesArray);
 
             // if any data provided, proceed data to xhr
-            if ( parsedCookies.length !== 0 ) {
+            if ( typeof parsedCookies !== 'undefined' && parsedCookies.length !== 0 ) {
                 ctSetAlternativeCookie(
                     parsedCookies,
                     {callback: callBack, onErrorCallback: callBack, forceAltCookies: true},
@@ -3026,25 +3007,6 @@ function ctSetPixelUrlLocalstorage(ajaxPixelUrl) {
     ctSetCookie('apbct_pixel_url', ajaxPixelUrl);
 }
 
-/**
- * This function generates a hidden input field with a unique ID and name.
- * The value of this field is retrieved from the local storage using the key 'bot_detector_event_token'.
- * This hidden field can be used to store and pass the bot detector event token in a form.
- *
- * @return {HTMLInputElement} - The created hidden input field element.
- */
-function ctEventTokenConstructHiddenField() {
-    const eventToken = apbctLocalStorage.get('bot_detector_event_token');
-    let hiddenInput = document.createElement( 'input' );
-    hiddenInput.setAttribute( 'type', 'hidden' );
-    let rnd = 100 + Math.floor(Math.random() * 899);
-    rnd = rnd.toString();
-    hiddenInput.setAttribute( 'id', 'ct_bot_detector_event_token_' + rnd );
-    hiddenInput.setAttribute( 'name', 'ct_bot_detector_event_token');
-    hiddenInput.value = eventToken;
-    return hiddenInput;
-}
-
 // eslint-disable-next-line require-jsdoc
 function ctNoCookieConstructHiddenField(type) {
     let inputType = 'hidden';
@@ -3052,15 +3014,8 @@ function ctNoCookieConstructHiddenField(type) {
         inputType = 'submit';
     }
     let field = '';
-    let noCookieDataLocal = apbctLocalStorage.getCleanTalkData();
-    let noCookieDataSession = apbctSessionStorage.getCleanTalkData();
 
-    let noCookieDataTypo = {typo: []};
-    if (document.ctTypoData && document.ctTypoData.data) {
-        noCookieDataTypo = {typo: document.ctTypoData.data};
-    }
-
-    let noCookieData = {...noCookieDataLocal, ...noCookieDataSession, ...noCookieDataTypo};
+    let noCookieData = getCleanTalkStorageDataArray();
     noCookieData = JSON.stringify(noCookieData);
     noCookieData = '_ct_no_cookie_data_' + btoa(noCookieData);
     field = document.createElement('input');
@@ -3070,6 +3025,22 @@ function ctNoCookieConstructHiddenField(type) {
     field.classList.add('apbct_special_field');
     field.classList.add('ct_no_cookie_hidden_field');
     return field;
+}
+
+/**
+ * Retrieves the clentalk "cookie" data from starages.
+ * Contains {...noCookieDataLocal, ...noCookieDataSession, ...noCookieDataTypo}.
+ * @return {string}
+ */
+function getCleanTalkStorageDataArray() {
+    let noCookieDataLocal = apbctLocalStorage.getCleanTalkData();
+    let noCookieDataSession = apbctSessionStorage.getCleanTalkData();
+
+    let noCookieDataTypo = {typo: []};
+    if (document.ctTypoData && document.ctTypoData.data) {
+        noCookieDataTypo = {typo: document.ctTypoData.data};
+    }
+    return {...noCookieDataLocal, ...noCookieDataSession, ...noCookieDataTypo};
 }
 
 /**
