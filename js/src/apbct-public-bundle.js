@@ -3797,7 +3797,9 @@ function apbctReplaceInputsValuesFromOtherForm(formSource, formTarget) {
     const inputsSource = formSource.querySelectorAll('button, input, textarea, select');
     const inputsTarget = formTarget.querySelectorAll('button, input, textarea, select');
 
-    if (formSource.outerHTML.indexOf('action="https://www.kulahub.net') !== -1) {
+    if (formSource.outerHTML.indexOf('action="https://www.kulahub.net') !== -1 ||
+        isFormHasDiviRedirect(formSource)
+    ) {
         inputsSource.forEach((elemSource) => {
             inputsTarget.forEach((elemTarget) => {
                 if (elemSource.name === elemTarget.name) {
@@ -4112,12 +4114,33 @@ function isIntegratedForm(formObj) {
         //     formObj.hasAttribute('data-hs-cf-bound')
         // ) || // Hubspot integration in Elementor form// Hubspot integration in Elementor form
         formAction.indexOf('eloqua.com') !== -1 || // Eloqua integration
-        formAction.indexOf('kulahub.net') !== -1 // Kulahub integration
+        formAction.indexOf('kulahub.net') !== -1 || // Kulahub integration
+        isFormHasDiviRedirect(formObj) // Divi contact form
     ) {
         return true;
     }
 
     return false;
+}
+
+/**
+ * This function detect if the form has DIVI redirect. If so, the form will work as external.
+ * @param {HTMLElement} formObj
+ * @return {boolean}
+ */
+function isFormHasDiviRedirect(formObj) {
+    let result = false;
+    const diviRedirectedSignSet = document.querySelector('div[id^="et_pb_contact_form"]');
+    if (
+        typeof formObj === 'object' && formObj !== null &&
+        diviRedirectedSignSet !== null &&
+        diviRedirectedSignSet.hasAttribute('data-redirect_url') &&
+        diviRedirectedSignSet.getAttribute('data-redirect_url') !== '' &&
+        diviRedirectedSignSet.querySelector('form[class^="et_pb_contact_form"]') !== null
+    ) {
+        result = formObj === diviRedirectedSignSet.querySelector('form[class^="et_pb_contact_form"]');
+    }
+    return result;
 }
 
 /**
