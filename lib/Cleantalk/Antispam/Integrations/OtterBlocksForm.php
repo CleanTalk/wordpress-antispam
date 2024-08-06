@@ -4,6 +4,7 @@ namespace Cleantalk\Antispam\Integrations;
 
 use Cleantalk\ApbctWP\Variables\Cookie;
 use ThemeIsle\GutenbergBlocks\Integration\Form_Data_Request;
+use ThemeIsle\GutenbergBlocks\Integration\Form_Data_Response;
 
 class OtterBlocksForm extends IntegrationBase
 {
@@ -43,13 +44,13 @@ class OtterBlocksForm extends IntegrationBase
         }
         return $argument;
     }
-
+    
     /**
      * @inheritDoc
      * @throws \Exception
      */
     public function doBlock($message)
     {
-        $this->form_data_request->set_error(110, $message);
+        $this->form_data_request->set_error('110', $message);
     }
 }
