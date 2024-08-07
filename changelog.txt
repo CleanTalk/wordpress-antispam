@@ -15,7 +15,7 @@
 = 6.33 May 30 2024
 * New. Integrations. Flamingo integration implemented.
 * New. Integrations. Added handler for learnpress signup.
-* New. Intergations. Proto theme login popup protected.
+* New. Intergations. Porto theme login popup protected.
 * Upd. Woocommerce. Uni CPO plugin. Clear service fields improved for premium version.
 * Fix. Woocommerce. Exclude hubspot integration as external form on WooCommerce checkout.
 * Fix. Woocommerce. Uni CPO plugin. Clear service fields from post.
