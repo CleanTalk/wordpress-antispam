@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 4.7
 Tested up to: 6.6
 Requires PHP: 5.6
-Stable tag: 6.37
+Stable tag: 6.38
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -443,6 +443,19 @@ Yes, it is. Please read this article,
 12. SpamFireWall log.
 
 == Changelog ==
+
+= 6.38 =
+* Code. Compatibility. Unnecessary WP Rocket text removed.
+* Fix. Integrations. Updated gathering email on Divi.
+* Upd. Internationalization. Added Dutch language support.
+* Fix. Email encoder. Translation fixed.
+* Fix. Requests parameters. Store URLs fixed.
+* Fix. Integrations. Fixed compatibility with varnish.
+* Fix. JS. Updated compatibility with old browsers.
+* Fix. Common. Revert readme text.
+* Ref. Search forms protection. Refactored to use storage data instead of hidden fields.
+* Mod. Integration. External Forms. Divi Form redirect handling via external forms.
+* Upd. Common. Updated readme description.
 
 = 6.37 =
 * New. Integration. Added klaviyo handler.

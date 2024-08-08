@@ -358,7 +358,10 @@ class EmailEncoder
     private function getTooltip()
     {
         global $apbct;
-        return esc_html__('This contact has been encoded by ' . esc_html__($apbct->data['wl_brandname']) . '. Click to decode. To finish the decoding make sure that JavaScript is enabled in your browser.', 'cleantalk-spam-protect');
+        return sprintf(
+            esc_html__('This contact has been encoded by %s. Click to decode. To finish the decoding make sure that JavaScript is enabled in your browser.', 'cleantalk-spam-protect'),
+            esc_html__($apbct->data['wl_brandname'])
+        );
     }
 
     /**
