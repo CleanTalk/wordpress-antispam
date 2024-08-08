@@ -60,6 +60,7 @@ class Integrations
      * @param string $set_current_integration
      * @return true|mixed
      * @psalm-suppress UnusedVariable
+     * @psalm-suppress PossiblyUnusedReturnValue
      */
     public function checkSpam($argument, $set_current_integration = '')
     {
