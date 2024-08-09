@@ -218,7 +218,8 @@ class CleantalkPreprocessComment extends IntegrationBase
                 is_array($codes) &&
                 (
                     in_array('SERVICE_DISABLED', $codes) ||
-                    in_array('TRIAL_EXPIRED', $codes)
+                    in_array('TRIAL_EXPIRED', $codes) ||
+                    in_array('KEY_NOT_FOUND', $codes)
                 )
             );
         }
