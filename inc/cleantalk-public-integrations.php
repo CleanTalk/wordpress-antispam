@@ -1929,6 +1929,7 @@ function apbct_form__learnpress__testSpam()
     $base_call_result = apbct_base_call(
         array(
             'sender_email'    => $params['email'] ? $params['email'] : Post::get('email'),
+            'sender_emails_array'    => $params['sender_emails_array'] ? $params['sender_emails_array'] : array(),
             'sender_nickname' => $params['nickname'] ? $params['nickname'] : Post::get('first_name'),
             'post_info'       => array('comment_type' => 'signup_form_wordpress_learnpress'),
         ),
@@ -1961,6 +1962,7 @@ function apbct_form__optimizepress__testSpam()
     $base_call_result = apbct_base_call(
         array(
             'sender_email'    => $params['email'] ? $params['email'] : Post::get('email'),
+            'sender_emails_array'    => $params['sender_emails_array'] ? $params['sender_emails_array'] : array(),
             'sender_nickname' => $params['nickname'] ? $params['nickname'] : Post::get('first_name'),
             'post_info'       => array('comment_type' => 'subscribe_form_wordpress_optimizepress'),
         )
@@ -2484,6 +2486,7 @@ function apbct_form__WPForms__testSpam()
     }
 
     $sender_email    = $params['email'] ?: '';
+    $sender_emails_array = $params['sender_emails_array'] ?: '';
     $sender_nickname = $params['nickname'] ?: '';
     $subject         = $params['subject'] ?: '';
     $message         = $params['message'] ?: array();
@@ -2495,6 +2498,7 @@ function apbct_form__WPForms__testSpam()
         array(
             'message'         => $message,
             'sender_email'    => $sender_email,
+            'sender_emails_array'    => $sender_emails_array,
             'sender_nickname' => $sender_nickname,
             'post_info'       => array('comment_type' => 'contact_form_wordpress_wp_forms'),
             'js_on'           => $checkjs,
@@ -3435,6 +3439,7 @@ add_filter('wsf_submit_field_validate', function ($error_validation_action_field
     $data = ct_gfa($input_array, $long_email);
 
     $sender_email = ($data['email'] ?  : '');
+    $sender_emails_array = ($data['sender_emails_array'] ? : array());
     $sender_nickname = ($data['nickname'] ?  : '');
     $message         = ($data['message'] ?  : array());
 
@@ -3442,6 +3447,7 @@ add_filter('wsf_submit_field_validate', function ($error_validation_action_field
         array(
             'message'         => $message,
             'sender_email'    => $sender_email,
+            'sender_emails_array'    => $sender_emails_array,
             'sender_nickname' => $sender_nickname,
             'post_info'       => array( 'comment_type' => 'WS_forms' ),
             'sender_info'     => array('sender_email' => urlencode($sender_email)),
@@ -3820,6 +3826,7 @@ function apbct_jetformbuilder_request_test()
     $base_call_result = apbct_base_call(
         array(
             'sender_email'    => $params['email'],
+            'sender_emails_array'    => $params['sender_emails_array'],
             'sender_nickname' => $params['nickname'] ?: '',
             'post_info'       => array('comment_type' => 'jetformbuilder_signup_form'),
         )
@@ -3853,6 +3860,7 @@ function apbct_dhvcform_request_test()
     $base_call_result = apbct_base_call(
         array(
             'sender_email'    => $params['email'],
+            'sender_emails_array'    => $params['sender_emails_array'],
             'sender_nickname' => $params['nickname'] ?: '',
             'post_info'       => array('comment_type' => 'dhvcform_form'),
         )
