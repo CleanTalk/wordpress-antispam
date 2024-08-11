@@ -3,6 +3,7 @@
 namespace Cleantalk\ApbctWP\AdjustToEnvironmentModule;
 
 use Cleantalk\ApbctWP\AdjustToEnvironmentModule\AdjustToEnv\AdjustToEnvW3TotalCache;
+use Cleantalk\ApbctWP\AdjustToEnvironmentModule\AdjustToEnv\AdjustToEnvLiteSpeedCache;
 use Cleantalk\ApbctWP\AdjustToEnvironmentModule\Exceptions\ExceptionReverseAdjustClassNotExists;
 
 class AdjustToEnvironmentHandler
@@ -18,6 +19,7 @@ class AdjustToEnvironmentHandler
      */
     const SET_OF_ADJUST = [
         'w3tc' => AdjustToEnvW3TotalCache::class,
+        'litespeed' => AdjustToEnvLiteSpeedCache::class,
     ];
 
     /**
