@@ -76,7 +76,7 @@ class AdjustToEnvLiteSpeedCache extends AdjustToEnvAbstract
         $comment = 'Disabled - TTL 1 day';
 
         if (!$this->changed) {
-            $comment = 'Enable - back TTL 1 week'; //604800 a:0:{}
+            $comment = 'Enable - back TTL 1 week';
         }
 
         $last_info = [
