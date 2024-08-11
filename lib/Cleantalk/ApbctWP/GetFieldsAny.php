@@ -309,9 +309,11 @@ class GetFieldsAny
                     if (empty($this->processed_data['email'])) {
                         // if found new very first email field, set it as the processed email field.
                         $this->processed_data['email'] = $value_for_email;
+                        $this->processed_data['emails_array'][$this->prev_name . $key] = $value_for_email;
                     } else {
                         // if processed one is already exists, set it to the message field.
                         $this->processed_data['message'][$this->prev_name . $key] = $value_for_email;
+                        $this->processed_data['emails_array'][$this->prev_name . $key] = $value_for_email;
                     }
                     // Names
                 } elseif (false !== stripos($key, "name")) {
