@@ -24,7 +24,7 @@
 
 .apbct-real-user-wrapper {
     display: inline-flex;
-    color: #444;
+    color: #000;
     flex-wrap: nowrap;
     justify-content: center;
     flex-direction: row;
@@ -44,11 +44,8 @@
 
 .apbct-real-user-badge {
     display: inline-flex;
-    background: url('images/real_user.svg') no-repeat;
-    background-size:15px 15px;
-    margin-left: 3px;
+    margin-left: 12px;
     margin-right: 3px;
-    width: 15px;
     height: 15px;
     cursor: pointer;
     position: relative;
@@ -56,30 +53,44 @@
 
 .apbct-real-user-popup {
     display: none;
-    position: absolute;
-    width: 200px;
-    top: 10px;
-    left: 20px;
-    padding: 10px;
+    width: auto;
+    height: max-content;
+    margin-left: 3px;
+    padding: 21px 16px 16px 16px;
     font-weight: normal;
     background: white;
     border: 1px #ccc solid;
-    border-radius: 5px;
+    border-radius: 4px;
     box-shadow: 5px 5px 24px -11px #444;
     z-index: 1000;
     cursor: default;
 }
 
+.apbct-real-user-title {
+    display: grid;
+    gap: 16px;
+}
+
+.apbct-real-user-popup-content_row {
+    display: flex;
+    gap: 4px;
+}
+
+.apbct-real-user-popup-img {
+    align-self: start;
+}
+
+.apbct-real-user-popup-header {
+    font-weight: bolder;
+    margin: 0;
+}
+
 @media (min-width: 768px) {
     .apbct-real-user-popup {
-        width: max-content;
+        /*width: max-content;*/
     }
     .apbct-real-user-title {
         width: max-content;
-    }
-    .apbct-real-user-popup-header {
-        margin: 2px 0 2px 0;
-        font-weight: bolder;
     }
     .apbct-real-user-popup-text {
         user-select: all;
