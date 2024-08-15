@@ -221,6 +221,10 @@ input[class*='apbct'].apbct_special_field{
     border: 5px solid #FFF;
     animation: apbctIframePreloaderPrixClipFix 2s linear infinite ;
 }
+/*Fix The Real Person popup for theme Spacious By ThemeGrill */
+.comments-area .comment-list article .comment-author {
+    overflow: visible !important;
+}
 
 @keyframes apbctIframePreloaderRotate {
     100%   {transform: rotate(360deg)}
