@@ -73,10 +73,10 @@ class AdjustToEnvLiteSpeedCache extends AdjustToEnvAbstract
      */
     protected function keepEnvChangesByModule()
     {
-        $comment = 'Disabled - TTL 1 day';
+        $comment = 'Disabled "The TTL option value is set to one day';
 
         if (!$this->changed) {
-            $comment = 'Enable - back TTL 1 week';
+            $comment = 'Enable "Return TTL to the previous value"';
         }
 
         $last_info = [
@@ -102,10 +102,10 @@ class AdjustToEnvLiteSpeedCache extends AdjustToEnvAbstract
         $state = null;
         if (
             apbct_is_plugin_active('litespeed-cache/litespeed-cache.php') &&
-            (int)get_network_option(0, 'litespeed.conf.cache-ttl_pub')
+            (int)get_option('litespeed.conf.cache-ttl_pub')
         ) {
             try {
-                $current_config_ttl_pub = (bool)get_network_option(0, 'litespeed.conf.cache-ttl_pub');
+                $current_config_ttl_pub = (bool)get_option('litespeed.conf.cache-ttl_pub');
                 $state = $current_config_ttl_pub;
             } catch (\Exception $e) {
                 error_log('Security by CleanTalk error: ' . __METHOD__ . ' ' . $e->getMessage());
@@ -125,23 +125,28 @@ class AdjustToEnvLiteSpeedCache extends AdjustToEnvAbstract
     private function setLiteSpeedCacheTTLState($state)
     {
         $state = (bool)$state;
-        $current_config_ttl_pub = (int)get_network_option(0, 'litespeed.conf.cache-ttl_pub');
+        if (
+            apbct_is_plugin_active('litespeed-cache/litespeed-cache.php') &&
+            get_option('litespeed.conf.cache-ttl_pub')
+        ) {
+            $current_config_ttl_pub = (int)get_option('litespeed.conf.cache-ttl_pub');
 
-        if ( !key_exists('original_config_ttl_pub', $this->info) ) {
-            $this->info = [
-                'original_config_ttl_pub' => $current_config_ttl_pub,
-            ];
+            if ( !key_exists('original_config_ttl_pub', $this->info) ) {
+                $this->info = [
+                    'original_config_ttl_pub' => $current_config_ttl_pub,
+                ];
+            }
+
+            if ($current_config_ttl_pub > 86400 && $state == false) {
+                update_option('litespeed.conf.cache-ttl_pub', 86400);
+            } else if (key_exists('original_config_ttl_pub', $this->info) && $state == true) {
+                update_option('litespeed.conf.cache-ttl_pub', $this->info['original_config_ttl_pub']);
+            }
+
+            Purge::purge_all();
+
+            $this->changed = !$state;
+            $this->keepEnvChangesByModule();
         }
-
-        if ($current_config_ttl_pub > 86400 && $state == false) {
-            update_option('litespeed.conf.cache-ttl_pub', 86400);
-        } else if (key_exists('original_config_ttl_pub', $this->info) && $state == true) {
-            update_option('litespeed.conf.cache-ttl_pub', $this->info['original_config_ttl_pub']);
-        }
-
-        Purge::purge_all();
-
-        $this->changed = !$state;
-        $this->keepEnvChangesByModule();
     }
 }
