@@ -610,7 +610,8 @@ function isIntegratedForm(formObj) {
         // ) || // Hubspot integration in Elementor form// Hubspot integration in Elementor form
         formAction.indexOf('eloqua.com') !== -1 || // Eloqua integration
         formAction.indexOf('kulahub.net') !== -1 || // Kulahub integration
-        isFormHasDiviRedirect(formObj) // Divi contact form
+        isFormHasDiviRedirect(formObj) || // Divi contact form
+        formAction.indexOf('eocampaign1.com') !== -1 // EmailOctopus Campaign form
     ) {
         return true;
     }
