@@ -3206,7 +3206,9 @@ function apbctRealUserBadgeViewPopup(id) {
         el.style.display = 'none';
     });
     let popup = document.getElementById(id);
-    popup.style.display = 'inline-flex';
+    if (popup != 'undefined') {
+        popup.style.display = 'inline-flex';
+    }
 }
 
 /**
