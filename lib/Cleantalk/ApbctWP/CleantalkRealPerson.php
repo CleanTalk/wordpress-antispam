@@ -15,7 +15,7 @@ class CleantalkRealPerson
         global $ct_comment_ids;
 
         if (is_admin()) {
-            return $comment_author;
+            //return $comment_author;
         }
 
         if ($comment->comment_type !== 'comment') {
@@ -67,7 +67,14 @@ class CleantalkRealPerson
 
         $ct_comment_ids[] = $comment_id;
 
+        if (is_admin()) {
+            echo $template;
+            return '';
+        } else {
+            return $template;
+        }
         return $template;
+
     }
 
     public function wpListCommentsArgs($options)

@@ -112,3 +112,68 @@
 	font-size: 16px;
 	line-height: 2rem;
 }
+
+.apbct-real-user-wrapper {
+    display: inline-flex;
+    color: #444;
+    flex-wrap: nowrap;
+    justify-content: center;
+    flex-direction: row;
+    align-items: center;
+}
+
+.apbct-real-user-wrapper-woo {
+    display: inline;
+    align-items: center;
+    color: #444;
+    font-size: 14px;
+}
+
+.apbct-real-user-author-name{
+    display: inline-flex;
+}
+
+.apbct-real-user-badge {
+    display: inline-flex;
+    background: url('images/real_user.svg') no-repeat;
+    background-size:15px 15px;
+    margin-left: 3px;
+    margin-right: 3px;
+    width: 15px;
+    height: 15px;
+    cursor: pointer;
+    position: relative;
+}
+
+.apbct-real-user-popup {
+    display: none;
+    position: absolute;
+    width: 200px;
+    top: 10px;
+    left: 20px;
+    padding: 10px;
+    font-weight: normal;
+    background: white;
+    border: 1px #ccc solid;
+    border-radius: 5px;
+    box-shadow: 5px 5px 24px -11px #444;
+    z-index: 1000;
+    cursor: default;
+}
+
+@media (min-width: 768px) {
+    .apbct-real-user-popup {
+        width: max-content;
+    }
+    .apbct-real-user-title {
+        width: max-content;
+    }
+    .apbct-real-user-popup-header {
+        margin: 2px 0 2px 0;
+        font-weight: bolder;
+    }
+    .apbct-real-user-popup-text {
+        user-select: all;
+        margin: 2px 0 2px 0;
+    }
+}
