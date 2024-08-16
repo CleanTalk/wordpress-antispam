@@ -1,10 +1,18 @@
 <div class="apbct-real-user-wrapper">
     <div class="apbct-real-user-author-name">{{TRP_COMMENT_AUTHOR_NAME}}</div>
     <div class="apbct-real-user-badge" onmouseover="{{TRP_POPUP_OPEN_SCRIPT}}">
+        <img src="{{TRP_LINK_IMG_PERSON}}" class="apbct-real-user-popup-img" style="align-self: center;">
         <div class="apbct-real-user-popup" id="{{TRP_POPUP_COMMENT_ID}}">
             <div class="apbct-real-user-title">
                 <p class="apbct-real-user-popup-header">{{TRP_POPUP_HEADER}}</p>
-                <p class="apbct-real-user-popup-text">{{TRP_POPUP_TEXT}}</p>
+                <div class="apbct-real-user-popup-content_row">
+                    <img src="{{TRP_LINK_IMG_PERSON}}" class="apbct-real-user-popup-img">
+                    <span class="apbct-real-user-popup-text">{{TRP_POPUP_TEXT_PERSON}}</span>
+                </div>
+                <div class="apbct-real-user-popup-content_row">
+                    <img src="{{TRP_LINK_IMG_SHIELD}}" class="apbct-real-user-popup-img">
+                    <span class="apbct-real-user-popup-text">{{TRP_POPUP_TEXT_SHIELD}}</span>
+                </div>
             </div>
         </div>
     </div>

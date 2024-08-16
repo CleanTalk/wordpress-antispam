@@ -51,19 +51,23 @@ class CleantalkRealPerson
         $trp_popup_header = __('The Real Person!', 'cleantalk-spam-protect');
         $trp_author = $comment_author;
         $trp_author_bold = '<b>' . $comment_author . '</b>';
-        $trp_popup_text = __('Author %s acts as a real person and passed all tests against spambots. Anti-Spam by CleanTalk.', 'cleantalk-spam-protect');
-        $trp_popup_text = sprintf($trp_popup_text, $trp_author_bold);
+        $trp_popup_text_person = __('Author %s acts as a real person and verified as not a bot.', 'cleantalk-spam-protect');
+        $trp_popup_text_person = sprintf($trp_popup_text_person, $trp_author_bold);
+        $trp_popup_text_shield = __('Passed all tests against spam bots. Anti-Spam by CleanTalk.', 'cleantalk-spam-protect');
+
         $trp_comment_id = 'apbct_trp_comment_id_' . $comment_id;
-        $trp_title_popup_open_script = "
-            let popup = document.getElementById('$trp_comment_id');
-            popup.style.display = 'inline-flex';
-        ";
+        $trp_title_popup_open_script = "apbctRealUserBadgeViewPopup('$trp_comment_id');";
+        $trp_link_img_person = '/wp-content/plugins/cleantalk-spam-protect/css/images/real_user.svg';
+        $trp_link_img_shield = '/wp-content/plugins/cleantalk-spam-protect/css/images/shield.svg';
 
         $template = str_replace('{{TRP_POPUP_OPEN_SCRIPT}}', $trp_title_popup_open_script, $template);
         $template = str_replace('{{TRP_POPUP_COMMENT_ID}}', $trp_comment_id, $template);
         $template = str_replace('{{TRP_POPUP_HEADER}}', $trp_popup_header, $template);
-        $template = str_replace('{{TRP_POPUP_TEXT}}', $trp_popup_text, $template);
+        $template = str_replace('{{TRP_POPUP_TEXT_PERSON}}', $trp_popup_text_person, $template);
+        $template = str_replace('{{TRP_POPUP_TEXT_SHIELD}}', $trp_popup_text_shield, $template);
         $template = str_replace('{{TRP_COMMENT_AUTHOR_NAME}}', $trp_author, $template);
+        $template = str_replace('{{TRP_LINK_IMG_PERSON}}', $trp_link_img_person, $template);
+        $template = str_replace('{{TRP_LINK_IMG_SHIELD}}', $trp_link_img_shield, $template);
 
         $ct_comment_ids[] = $comment_id;
 
