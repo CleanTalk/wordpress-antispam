@@ -5,8 +5,41 @@ function ct_is_ip(str){
 	return str.search(/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/);
 }
 
-jQuery(document).ready(function(){
+/**
+ * Shows a popup The Real Person when hovering over the cursor for Admin
+ * @param {string} id
+ */
+// eslint-disable-next-line no-unused-vars,require-jsdoc
+function apbctRealUserBadgeViewPopup(id) {
+    document.querySelectorAll('.apbct-admin-real-user-popup').forEach((el) => {
+        el.style.display = 'none';
+    });
+    let popup = document.getElementById(id);
+    if (popup != 'undefined') {
+        popup.style.display = 'inline-flex';
+    }
+}
 
+/**
+ * Handle real user badge
+ */
+function apbctRealUserBadge() {
+    document.querySelectorAll('.apbct-admin-real-user-badge').forEach((el) => {
+        el.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            e.currentTarget.querySelector('.apbct-admin-real-user-popup').style.display = 'inline-flex';
+        });
+    });
+    document.querySelector('body').addEventListener('click', function(e) {
+        document.querySelectorAll('.apbct-admin-real-user-popup').forEach((el) => {
+            el.style.display = 'none';
+        });
+    });
+}
+
+jQuery(document).ready(function(){
+    apbctRealUserBadge();
 	/* Shows link to blacklists near every email and IP address */
 	if(parseInt(ctCommentsScreen.ct_show_check_links))
 		jQuery('.column-author a, .comment-author a').each(function(){

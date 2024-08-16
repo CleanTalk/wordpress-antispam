@@ -60,6 +60,15 @@ class CleantalkRealPerson
         $trp_link_img_person = '/wp-content/plugins/cleantalk-spam-protect/css/images/real_user.svg';
         $trp_link_img_shield = '/wp-content/plugins/cleantalk-spam-protect/css/images/shield.svg';
 
+        $trp_style_class_admin = '';
+        $trp_admin_popup_promo_page_link = '';
+        $trp_admin_popup_promo_page_text = '';
+        if (is_admin()) {
+            $trp_style_class_admin = '-admin';
+            $trp_admin_popup_promo_page_link = ''; //Waiting for a link to the promo page
+            $trp_admin_popup_promo_page_text = __('Learn more', 'cleantalk-spam-protect');
+        }
+
         $template = str_replace('{{TRP_POPUP_OPEN_SCRIPT}}', $trp_title_popup_open_script, $template);
         $template = str_replace('{{TRP_POPUP_COMMENT_ID}}', $trp_comment_id, $template);
         $template = str_replace('{{TRP_POPUP_HEADER}}', $trp_popup_header, $template);
@@ -68,6 +77,9 @@ class CleantalkRealPerson
         $template = str_replace('{{TRP_COMMENT_AUTHOR_NAME}}', $trp_author, $template);
         $template = str_replace('{{TRP_LINK_IMG_PERSON}}', $trp_link_img_person, $template);
         $template = str_replace('{{TRP_LINK_IMG_SHIELD}}', $trp_link_img_shield, $template);
+        $template = str_replace('{{TRP_STYLE_CLASS_ADMIN}}', $trp_style_class_admin, $template);
+        $template = str_replace('{{TRP_ADMIN_PROMO_PAGE_LINK}}', $trp_admin_popup_promo_page_link, $template);
+        $template = str_replace('{{TRP_ADMIN_PROMO_PAGE_TEXT}}', $trp_admin_popup_promo_page_text, $template);
 
         $ct_comment_ids[] = $comment_id;
 
@@ -77,8 +89,6 @@ class CleantalkRealPerson
         } else {
             return $template;
         }
-        return $template;
-
     }
 
     public function wpListCommentsArgs($options)

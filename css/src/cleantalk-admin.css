@@ -113,66 +113,73 @@
 	line-height: 2rem;
 }
 
-.apbct-real-user-wrapper {
+/* Styles for displaying the TRP badge on the comments page in the admin */
+.apbct-admin-real-user-wrapper {
     display: inline-flex;
-    color: #444;
+    color: #000;
     flex-wrap: nowrap;
     justify-content: center;
     flex-direction: row;
     align-items: center;
 }
 
-.apbct-real-user-wrapper-woo {
-    display: inline;
-    align-items: center;
-    color: #444;
-    font-size: 14px;
-}
-
-.apbct-real-user-author-name{
+.apbct-admin-real-user-author-name{
     display: inline-flex;
 }
 
-.apbct-real-user-badge {
+.apbct-admin-real-user-badge {
     display: inline-flex;
-    background: url('images/real_user.svg') no-repeat;
-    background-size:15px 15px;
-    margin-left: 3px;
+    margin-left: 12px;
     margin-right: 3px;
-    width: 15px;
     height: 15px;
     cursor: pointer;
     position: relative;
 }
 
-.apbct-real-user-popup {
+.apbct-admin-real-user-popup {
     display: none;
-    position: absolute;
-    width: 200px;
-    top: 10px;
-    left: 20px;
-    padding: 10px;
+    width: auto;
+    height: max-content;
+	position: absolute;
+	left: 20px;
+    margin-left: 3px;
+    padding: 21px 16px 16px 16px;
     font-weight: normal;
     background: white;
     border: 1px #ccc solid;
-    border-radius: 5px;
+    border-radius: 4px;
     box-shadow: 5px 5px 24px -11px #444;
     z-index: 1000;
     cursor: default;
 }
 
+.apbct-admin-real-user-title {
+    display: grid;
+    gap: 16px;
+}
+
+.apbct-admin-real-user-popup-content_row {
+    display: flex;
+    gap: 4px;
+}
+
+.apbct-admin-real-user-popup-img {
+    align-self: start;
+}
+
+.apbct-admin-real-user-popup-header {
+    font-weight: bolder;
+    margin: 0;
+}
+
 @media (min-width: 768px) {
-    .apbct-real-user-popup {
+    .apbct-admin-real-user-popup {
+        /*width: max-content;*/
+    }
+    .apbct-admin-real-user-title {
         width: max-content;
     }
-    .apbct-real-user-title {
-        width: max-content;
-    }
-    .apbct-real-user-popup-header {
-        margin: 2px 0 2px 0;
-        font-weight: bolder;
-    }
-    .apbct-real-user-popup-text {
+    .apbct-admin-real-user-popup-text {
         user-select: all;
         margin: 2px 0 2px 0;
     }
