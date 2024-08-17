@@ -1169,6 +1169,16 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'kaliforms_form_process_skip';
         }
+
+        // skip learndash-elementor
+        if (
+            apbct_is_plugin_active('learndash-elementor/learndash-elementor.php') &&
+            (
+                Post::get('course_id') !== '' && Post::get('lesson_id') !== ''
+            )
+        ) {
+            return 'learndash-elementor';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
