@@ -3966,7 +3966,7 @@ function apbct_jetformbuilder_request_test()
         array(
             'sender_email'        => isset($params['email']) ? $params['email'] : '',
             'sender_emails_array' => isset($params['sender_emails_array']) ? $params['sender_emails_array'] : [],
-            'sender_nickname'     => isset($params['nickname'] ) ? $params['nickname'] : '',
+            'sender_nickname'     => isset($params['nickname']) ? $params['nickname'] : '',
             'post_info'           => array('comment_type' => 'jetformbuilder_signup_form'),
         )
     );
