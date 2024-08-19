@@ -10,12 +10,14 @@ use Cleantalk\ApbctWP\DB;
 use Cleantalk\ApbctWP\Firewall\SFW;
 use Cleantalk\ApbctWP\GetFieldsAny;
 use Cleantalk\ApbctWP\Helper;
+use Cleantalk\ApbctWP\Sanitize;
 use Cleantalk\ApbctWP\Variables\AltSessions;
 use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\ApbctWP\Variables\Get;
 use Cleantalk\ApbctWP\Variables\Post;
 use Cleantalk\ApbctWP\Variables\Server;
 use Cleantalk\ApbctWP\RequestParameters\RequestParameters;
+use Cleantalk\Common\TT;
 
 function apbct_array($array)
 {
@@ -165,12 +167,14 @@ function apbct_base_call($params = array(), $reg_flag = false)
         apbct_form__get_no_cookie_data();
     }
 
-    $sender_info = ! empty($params['sender_info'])
-        ? \Cleantalk\ApbctWP\Helper::arrayMergeSaveNumericKeysRecursive(
-            apbct_get_sender_info(),
+    $sender_info = apbct_get_sender_info();
+
+    if (isset($params['sender_info']) && !empty($params['sender_info'])) {
+        $sender_info = \Cleantalk\ApbctWP\Helper::arrayMergeSaveNumericKeysRecursive(
+            $sender_info,
             (array)$params['sender_info']
-        )
-        : apbct_get_sender_info();
+        );
+    }
 
     $default_params = array(
 
@@ -183,7 +187,7 @@ function apbct_base_call($params = array(), $reg_flag = false)
 
         // Misc
         'auth_key'        => $apbct->api_key,
-        'js_on'           => apbct_js_test(Cookie::get('ct_checkjs'), true) ? 1 : apbct_js_test(Post::get('ct_checkjs')),
+        'js_on'           => apbct_js_test(Sanitize::cleanTextField(Cookie::get('ct_checkjs')), true) ? 1 : apbct_js_test(TT::toString(Post::get('ct_checkjs'))),
 
         'agent'       => APBCT_AGENT,
         'sender_info' => $sender_info,
@@ -233,7 +237,7 @@ function apbct_base_call($params = array(), $reg_flag = false)
         $honeypot_filled_fields = apbct_get_honeypot_filled_fields();
         $params['honeypot_field'] = $honeypot_filled_fields === false ? null : 1;
 
-        if ( !empty($honeypot_filled_fields) && $honeypot_filled_fields !== false ) {
+        if ( isset($honeypot_filled_fields['field_value'], $honeypot_filled_fields['field_source'], $params['sender_info']) ) {
             $params['sender_info']['honeypot_field_value'] = $honeypot_filled_fields['field_value'];
             $params['sender_info']['honeypot_field_source'] = $honeypot_filled_fields['field_source'];
             $params['honeypot_field'] = 0;
@@ -253,9 +257,9 @@ function apbct_base_call($params = array(), $reg_flag = false)
     // Options store url without scheme because of DB error with ''://'
     $config             = ct_get_server();
     $ct->server_url     = APBCT_MODERATE_URL;
-    $ct->work_url       = preg_match('/https:\/\/.+/', $config['ct_work_url']) ? $config['ct_work_url'] : null;
-    $ct->server_ttl     = $config['ct_server_ttl'];
-    $ct->server_changed = $config['ct_server_changed'];
+    $ct->work_url       = isset($config['ct_work_url']) && preg_match('/https:\/\/.+/', $config['ct_work_url']) ? $config['ct_work_url'] : null;
+    $ct->server_ttl     = isset($config['ct_server_ttl']) ? $config['ct_server_ttl'] : null;
+    $ct->server_changed = isset($config['ct_server_changed']) ? $config['ct_server_changed'] : null;
 
     $start     = microtime(true);
     $ct_result = $reg_flag
@@ -285,10 +289,12 @@ function apbct_base_call($params = array(), $reg_flag = false)
     }
 
     //alternative checks and connection report handler
-    $ct_result = ct_checks_on_cleantalk_errors($ct_request, $ct_result);
+    if ($ct_result instanceof \Cleantalk\Antispam\CleantalkResponse) {
+        $ct_result = ct_checks_on_cleantalk_errors($ct_request, $ct_result);
+    }
 
     // Restart submit form counter for failed requests
-    if ( $ct_result->allow == 0 ) {
+    if ( is_object($ct_result) && $ct_result->allow == 0 ) {
         apbct_cookie(); // Setting page timer and cookies
         ct_add_event('no');
     } else {
@@ -408,20 +414,22 @@ function apbct_exclusions_check__url()
         $haystack =
             (
                 Server::get('REQUEST_URI') === '/wp-admin/admin-ajax.php' ||
-                stripos(Server::get('REQUEST_URI'), '/wp-json/') === 0
+                stripos(TT::toString(Server::get('REQUEST_URI')), '/wp-json/') === 0
             ) &&
-            Server::get('HTTP_REFERER')
+            TT::toString(Server::get('HTTP_REFERER'))
             ? str_ireplace(
-                array('http://', 'https://', strval(Server::get('HTTP_HOST'))),
+                array('http://', 'https://', strval(TT::toString(Server::get('HTTP_HOST')))),
                 '',
-                Server::get('HTTP_REFERER')
+                TT::toString(Server::get('HTTP_REFERER'))
             )
-            : Server::get('REQUEST_URI');
+            : TT::toString(Server::get('REQUEST_URI'));
 
         if ( $apbct->data['check_exclusion_as_url'] ) {
             $protocol = ! in_array(Server::get('HTTPS'), ['off', '']) || Server::get('SERVER_PORT') == 443 ? 'https://' : 'http://';
-            $haystack = $protocol . Server::get('SERVER_NAME') . $haystack;
+            $haystack = $protocol . TT::toString(Server::get('SERVER_NAME')) . TT::toString($haystack);
         }
+
+        $haystack = TT::toString($haystack);
 
         foreach ( $exclusions as $exclusion ) {
             if (
@@ -516,13 +524,13 @@ function apbct_get_sender_info()
 
     if ($apbct->data['cookies_type'] === 'none') {
         $param_email_check = Cookie::get('ct_checked_emails') ? urldecode(
-            Cookie::get('ct_checked_emails')
+            TT::toString(Cookie::get('ct_checked_emails'))
         ) : null;
-        $param_mouse_cursor_positions = urldecode(Cookie::get('ct_pointer_data'));
+        $param_mouse_cursor_positions = urldecode(TT::toString(Cookie::get('ct_pointer_data')));
         $param_pixel_url = Cookie::get('apbct_pixel_url');
-        $param_pixel_url = urldecode(is_string($param_pixel_url) ? $param_pixel_url : null);
+        $param_pixel_url = urldecode(is_string($param_pixel_url) ? $param_pixel_url : '');
         $param_screen_info = Cookie::get('ct_screen_info')
-            ? urldecode(Cookie::get('ct_screen_info'))
+            ? urldecode(TT::toString(Cookie::get('ct_screen_info')))
             : null;
     }
 
@@ -628,10 +636,10 @@ function apbct_sender_info___get_page_url()
         ( apbct_is_ajax() || apbct_is_rest() )
         && Server::get('HTTP_REFERER')
     ) {
-        return Server::get('HTTP_REFERER');
+        return TT::toString(Server::get('HTTP_REFERER'));
     }
     $protocol = ! empty($_SERVER['HTTPS']) && 'off' !== strtolower($_SERVER['HTTPS']) ? "https://" : "http://";
-    return  $protocol . Server::get('SERVER_NAME') . Server::get('REQUEST_URI');
+    return  $protocol . TT::toString(Server::get('SERVER_NAME')) . TT::toString(Server::get('REQUEST_URI'));
 }
 
 /*
@@ -647,7 +655,7 @@ function apbct_get_pixel_url__ajax($direct_call = false)
     global $apbct;
 
     $ip = Helper::ipGet();
-    $ip_version = Helper::ipValidate($ip);
+    $ip_version = Helper::ipValidate(TT::toString($ip));
 
     $pixel_hash = md5(
         $ip
@@ -684,7 +692,7 @@ function apbct_get_pixel_url__ajax($direct_call = false)
  */
 function apbct_email_check_before_post()
 {
-    $email = trim(Post::get('email'));
+    $email = trim(TT::toString(Post::get('email')));
 
     if ( $email ) {
         $result = \Cleantalk\ApbctWP\API::methodEmailCheck($email);
@@ -958,9 +966,9 @@ function ct_send_feedback($feedback_request = null)
         // Server URL handling
         $config             = ct_get_server();
         $ct->server_url     = APBCT_MODERATE_URL;
-        $ct->work_url       = $config['ct_work_url'] && preg_match('/http:\/\/.+/', $config['ct_work_url']) ? $config['ct_work_url'] : null;
-        $ct->server_ttl     = $config['ct_server_ttl'];
-        $ct->server_changed = $config['ct_server_changed'];
+        $ct->work_url       = isset($config['ct_work_url']) && preg_match('/http:\/\/.+/', $config['ct_work_url']) ? $config['ct_work_url'] : null;
+        $ct->server_ttl     = isset($config['ct_server_ttl']) ? $config['ct_server_ttl'] : null;
+        $ct->server_changed = isset($config['ct_server_changed']) ? $config['ct_server_changed'] : null;
 
         //method use api3.0 since 6.35(6.36?)
         $ct->api_version = '/api3.0';
@@ -999,12 +1007,16 @@ function ct_delete_spam_comments()
 
     if ( $apbct->settings['comments__remove_old_spam'] == 1 ) {
         $last_comments = get_comments(array('status' => 'spam', 'number' => 1000, 'order' => 'ASC'));
-        foreach ( $last_comments as $c ) {
-            $comment_date_gmt = strtotime($c->comment_date_gmt);
-            if ( $comment_date_gmt ) {
-                if ( time() - $comment_date_gmt > 86400 * $apbct->data['spam_store_days'] ) {
-                    // Force deletion old spam comments
-                    wp_delete_comment($c->comment_ID, true);
+        if ( is_array($last_comments) ) {
+            foreach ( $last_comments as $c ) {
+                if ( is_object($c) ) {
+                    $comment_date_gmt = strtotime($c->comment_date_gmt);
+                    if ( $comment_date_gmt ) {
+                        if ( time() - $comment_date_gmt > 86400 * $apbct->data['spam_store_days'] ) {
+                            // Force deletion old spam comments
+                            wp_delete_comment(TT::toInt($c->comment_ID), true);
+                        }
+                    }
                 }
             }
         }
@@ -1037,7 +1049,7 @@ function ct_get_fields_any($arr, $email = null, $nickname = array('nick' => '', 
         $nickname = trim($nickname_str);
     }
 
-    return ct_gfa($arr, $email, $nickname);
+    return ct_gfa($arr, TT::toString($email), TT::toString($nickname));
 }
 
 /**
@@ -1105,7 +1117,7 @@ function ct_checks_on_cleantalk_errors(CleantalkRequest $ct_request, CleantalkRe
             $ct_result->spam    = '1';
             $ct_result->comment = sprintf(
                 'We\'ve got an issue: %s. Forbidden. Please, enable Javascript. %s.',
-                $ct_result->comment,
+                isset($ct_result->comment) ? $ct_result->comment : '',
                 $apbct->plugin_name
             );
             $post_blocked_via_js_check = true;
@@ -1186,6 +1198,7 @@ function apbct_add_admin_ip_to_swf_whitelist($user)
         $apbct->settings['sfw__enabled'] && // Break if the SpamFireWall is inactive
         Server::isGet() &&
         ! apbct_wp_doing_cron() &&
+        is_object($user) &&
         in_array('administrator', (array)$user->roles, true) &&
         Cookie::get('ct_sfw_ip_wl') !== md5($ip . $apbct->api_key) &&
         SFW::updateWriteToDbExclusions(DB::getInstance(), APBCT_TBL_FIREWALL_DATA_PERSONAL, array($ip)) &&
@@ -1353,7 +1366,7 @@ function apbct_get_honeypot_filled_fields()
 
     if ( ! empty($_POST) ) {
         //get field suffix for POST forms
-        $apbct_event_id = Post::get('apbct_event_id');
+        $apbct_event_id = TT::toString(Post::get('apbct_event_id'));
         // collect probable sources
         $honeypot_potential_values = array(
             'wc_apbct_email_id' =>                  Post::get('wc_apbct_email_id_' . $apbct_event_id),
@@ -1383,7 +1396,7 @@ function apbct_get_honeypot_filled_fields()
             if ( $source_value ) {
                 // use the apbct_event_id from search if form is search form
                 $apbct_event_id = $source_name === 'apbct__email_id__search_form'
-                    ? $alt_search_event_id
+                    ? (isset($alt_search_event_id) ? $alt_search_event_id : $apbct_event_id)
                     : $apbct_event_id;
                 // detect only values that is not equal to apbct_event_id
                 if ( $source_value !== $apbct_event_id ) {
@@ -1439,6 +1452,7 @@ function apbct_check_post_for_no_cookie_data($data = array(), $level = 0, $array
 /**
  * Filter POST for no_cookie_data for cases if POST mapping detected in apbct_check_post_for_no_cookie_data
  * @param array $map a POST mapping where no cookie data has been found, mapping level limit is 5 (important)
+ * @psalm-suppress PossiblyUndefinedIntArrayOffset
  */
 function apbct_filter_post_no_cookie_data($map)
 {
@@ -1637,8 +1651,8 @@ function apbct_rc__service_template_set($template_id, array $options_template_da
     $templates_object = new CleantalkSettingsTemplates($api_key);
     $settings_set_result = $templates_object->setPluginOptions(
         $template_id,
-        $options_template_data['template_name'],
-        $options_template_data['options_site']
+        isset($options_template_data['template_name']) ? $options_template_data['template_name'] : '',
+        isset($options_template_data['options_site']) ? $options_template_data['options_site'] : ''
     );
 
     $result = $settings_set_result
@@ -1728,8 +1742,8 @@ function apbct_get_event_token($params)
         : '';
 
     return  $event_token_from_params
-        ? (string) $event_token_from_params
-        : (string) $event_token_from_request;
+        ? TT::toString($event_token_from_params)
+        : TT::toString($event_token_from_request);
 }
 
 /**

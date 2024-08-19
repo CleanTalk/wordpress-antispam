@@ -25,6 +25,8 @@ class ApbctCli extends WP_CLI_Command // phpcs:ignore PSR1.Classes.ClassDeclarat
      */
     public function create($args, $params)
     {
+        $data = [];
+
         if (!isset($params['token'])) {
             echo __("token required \n", 'cleantalk-spam-protect');
             return;
@@ -77,7 +79,7 @@ class ApbctCli extends WP_CLI_Command // phpcs:ignore PSR1.Classes.ClassDeclarat
         global $apbct;
 
         if (isset($result['data']) && isset($result['data']['user_token'])) {
-            $apbct->data['user_token'] = $result['user_token'];
+            $apbct->data['user_token'] = $result['data']['user_token'];
         }
 
         if (isset($result['data']) && !empty($result['data']['auth_key']) && apbct_api_key__is_correct($result['data']['auth_key'])) {
@@ -102,6 +104,7 @@ class ApbctCli extends WP_CLI_Command // phpcs:ignore PSR1.Classes.ClassDeclarat
     {
         global $apbct;
 
+        $data = [];
         $key = $apbct->settings['apikey'];
 
         if (!$key) {
@@ -162,8 +165,13 @@ class ApbctCli extends WP_CLI_Command // phpcs:ignore PSR1.Classes.ClassDeclarat
             }
 
             $id = null;
+            $name = '';
+            $set = [];
             foreach ($result['data'] as $key => $template) {
-                if (isset($template['template_id']) && $template['template_id'] == $params['id']) {
+                if (
+                    isset($template['template_id'], $template['name'], $template['options_site']) &&
+                    $template['template_id'] == $params['id']
+                ) {
                     $id = $template['template_id'];
                     $name = $template['name'];
                     $set = json_decode($template['options_site'], true);

@@ -38,11 +38,13 @@ class CleantalkWidget extends WP_Widget // phpcs:ignore PSR1.Classes.ClassDeclar
             'Spam blocked',
             'cleantalk-spam-protect'
         );
-        $title             = apply_filters('widget_title', $instance['title']);
-        echo $args['before_widget'];
+        $title = apply_filters('widget_title', $instance['title']);
+        if (isset($args['before_widget'])) {
+            echo $args['before_widget'];
+        }
 
         // Showing title
-        if ( ! empty($title) ) {
+        if ( ! empty($title) && isset($args['before_title'], $args['after_title'])) {
             echo $args['before_title'] . $title . $args['after_title'];
         }
 
@@ -96,7 +98,9 @@ class CleantalkWidget extends WP_Widget // phpcs:ignore PSR1.Classes.ClassDeclar
              . '</a>'
              . '</div>';
 
-        echo $args['after_widget'];
+        if (isset($args['after_widget'])) {
+            echo $args['after_widget'];
+        }
     }
 
     // Widget Backend
