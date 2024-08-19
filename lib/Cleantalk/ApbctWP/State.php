@@ -74,6 +74,8 @@ class State extends \Cleantalk\Common\State
         'comments__the_real_person'                => 1, // Shows badge on each approved by cloud comments on public page.
         'comments__hide_website_field'             => 0, // Hide website field from comment form
         'comments__form_decoration'                => 0, // Holiday form decoration
+        'comments__form_decoration_text'           => '', // Holiday form decoration text
+        'comments__form_decoration_color'          => '#E62F2E', // Holiday form decoration color
 
         // Data processing
         'data__protect_logged_in'                  => 1, // Do anti-spam tests to for logged-in users.
