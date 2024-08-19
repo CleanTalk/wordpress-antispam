@@ -19,6 +19,7 @@
     <projectFiles>
         <file name="./cleantalk.php"/>
         <directory name="./inc"/>
+        <directory name="./lib/Cleantalk/ApbctWP/FormDecorator"/>
         <file name="./lib/Cleantalk/Common/Validate.php"/>
         <file name="./lib/Cleantalk/Common/TT.php"/>
         <ignoreFiles allowMissingFiles="true">
