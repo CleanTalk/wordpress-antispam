@@ -247,7 +247,8 @@ input[class*='apbct'].apbct_special_field{
     background: url('images/holiday_bg.svg') repeat;
     position: relative;
 }
-.apbct_holiday_decoration * {
+.apbct_holiday_decoration form {
+    position: relative;
     z-index: 1;
 }
 .apbct_holiday_decoration:before, .apbct_holiday_decoration:after {
