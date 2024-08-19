@@ -9,6 +9,7 @@ use Cleantalk\ApbctWP\Variables\Get;
 use Cleantalk\ApbctWP\Variables\Post;
 use Cleantalk\ApbctWP\Variables\Server;
 use Cleantalk\ApbctWP\LinkConstructor;
+use Cleantalk\Common\TT;
 
 require_once('cleantalk-settings.php');
 
@@ -332,7 +333,7 @@ function apbct_admin__init()
     }
 
     // Getting dashboard widget statistics
-    if ( (int) Post::get('ct_brief_refresh') === 1 ) {
+    if ( TT::toInt(Post::get('ct_brief_refresh')) === 1 ) {
         cleantalk_get_brief_data($apbct->api_key);
     }
 
@@ -347,7 +348,7 @@ function apbct_admin__init()
             $settings       = apbct_settings__validate(array(
                 'apikey' => $res['auth_key'],
             ));
-            $apbct->api_key = $settings['apikey'];
+            $apbct->api_key = isset($settings['apikey']) ? $settings['apikey'] : null;
             $apbct->save('settings');
         }
     }
@@ -446,18 +447,20 @@ function apbct_admin__register_plugin_links($links, $file, $plugin_data)
 
     if ( $apbct->white_label || $apbct->data["wl_mode_enabled"] ) {
         $links   = array_slice($links, 0, 1);
-        $links[0] .= "<script " . (class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '') . ">
-        function changedPluginName(){
-            jQuery('.plugin-title strong').each(function(i, item){
-            if(jQuery(item).html() == '{$plugin_name}')
-                jQuery(item).html('{$actual_plugin_name}');
-            });
-        }
-        changedPluginName();
-		jQuery( document ).ajaxComplete(function() {
+        if (isset($links[0])) {
+            $links[0] .= "<script " . (class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '') . ">
+            function changedPluginName(){
+                jQuery('.plugin-title strong').each(function(i, item){
+                if(jQuery(item).html() == '{$plugin_name}')
+                    jQuery(item).html('{$actual_plugin_name}');
+                });
+            }
             changedPluginName();
-        });
-		</script>";
+            jQuery( document ).ajaxComplete(function() {
+                changedPluginName();
+            });
+            </script>";
+        }
     }
 
     if ( substr(get_locale(), 0, 2) != 'en' ) {
@@ -1286,9 +1289,9 @@ function apbct_comment__send_feedback(
         apbct__check_admin_ajax_request();
     }
 
-    $comment_id     = Post::get('comment_id') ? (int) Post::get('comment_id') : $comment_id;
-    $comment_status = Post::get('comment_status') ? (string) Post::get('comment_status') : $comment_status;
-    $change_status  = Post::get('change_status') ? (bool) Post::get('change_status') : $change_status;
+    $comment_id     = Post::get('comment_id') ? TT::toInt(Post::get('comment_id')) : $comment_id;
+    $comment_status = Post::get('comment_status') ? TT::toString(Post::get('comment_status')) : $comment_status;
+    $change_status  = Post::get('change_status') ? TT::toBool(Post::get('change_status')) : $change_status;
 
     // If enter params is empty exit
     if ( ! $comment_id || ! $comment_status ) {
@@ -1436,9 +1439,9 @@ function apbct_woocommerce__orders_send_feedback(array $spam_ids, $orders_status
             // Server URL handling
             $config             = ct_get_server();
             $ct->server_url     = APBCT_MODERATE_URL;
-            $ct->work_url       = preg_match('/http:\/\/.+/', $config['ct_work_url']) ? $config['ct_work_url'] : null;
-            $ct->server_ttl     = $config['ct_server_ttl'];
-            $ct->server_changed = $config['ct_server_changed'];
+            $ct->work_url       = isset($config['ct_work_url']) && preg_match('/http:\/\/.+/', $config['ct_work_url']) ? $config['ct_work_url'] : null;
+            $ct->server_ttl     = isset($config['ct_server_ttl']) ? $config['ct_server_ttl'] : null;
+            $ct->server_changed = isset($config['ct_server_changed']) ? $config['ct_server_changed'] : null;
 
             $ct->sendFeedback($ct_request);
         } catch (\Exception $e) {
@@ -1458,11 +1461,11 @@ function apbct_user__send_feedback($user_id = null, $status = null, $direct_call
     apbct__check_admin_ajax_request();
 
     if ( ! $direct_call ) {
-        $user_id = (int) Post::get('user_id');
-        $status  = Post::get('status', null, 'word');
+        $user_id = TT::toInt(Post::get('user_id'));
+        $status  = TT::toString(Post::get('status', null, 'word'));
     }
 
-    $hash = get_user_meta($user_id, 'ct_hash', true);
+    $hash = isset($user_id) ? get_user_meta($user_id, 'ct_hash', true) : null;
 
     if ( $hash ) {
         if ( $status === 'approve' || $status === '1' ) {
@@ -1581,7 +1584,7 @@ function apbct_action_adjust_change()
 
     if (in_array(Post::get('adjust'), array_keys(AdjustToEnvironmentHandler::SET_OF_ADJUST))) {
         try {
-            $adjust = (string) Post::get('adjust');
+            $adjust = TT::toString(Post::get('adjust'));
             $adjust_class = AdjustToEnvironmentHandler::SET_OF_ADJUST[$adjust];
             $adjust_handler = new AdjustToEnvironmentHandler();
             $adjust_handler->handleOne($adjust_class);
@@ -1598,8 +1601,8 @@ function apbct_action_adjust_reverse()
 {
     check_ajax_referer('ct_secret_nonce');
 
-    if (in_array(Post::get('adjust'), array_keys(AdjustToEnvironmentHandler::SET_OF_ADJUST))) {
-        $adjust = (string) Post::get('adjust');
+    if (in_array(TT::toString(Post::get('adjust')), array_keys(AdjustToEnvironmentHandler::SET_OF_ADJUST))) {
+        $adjust = TT::toString(Post::get('adjust'));
         try {
             $adjust_class = AdjustToEnvironmentHandler::SET_OF_ADJUST[$adjust];
             $adjust_handler = new AdjustToEnvironmentHandler();

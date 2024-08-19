@@ -8,6 +8,7 @@ use Cleantalk\ApbctWP\Variables\Get;
 use Cleantalk\ApbctWP\Variables\Post;
 use Cleantalk\ApbctWP\Variables\Request;
 use Cleantalk\ApbctWP\Variables\Server;
+use Cleantalk\Common\TT;
 
 /**
  * Init functions
@@ -316,7 +317,7 @@ function apbct_init()
                 $pmpro_required_user_fields['username'],
                 $pmpro_required_user_fields['bemail']
             );
-            if ( $check['allow'] == 0 && function_exists('pmpro_setMessage') ) {
+            if ( isset($check['allow']) && $check['allow'] == 0 && function_exists('pmpro_setMessage') ) {
                 pmpro_setMessage($check['comment'], 'pmpro_error');
             }
         }
@@ -430,13 +431,22 @@ function apbct_buffer_modify_by_string()
 
     if ( count($matches) > 0 ) {
         foreach ( $matches as $match ) {
+            if (!isset($match[0])) {
+                continue;
+            }
             preg_match('/action="(\S*)"/', $match[0], $group_action);
-            $action = count($group_action) > 0 ? $group_action[1] : $site_url;
+            if (!isset($group_action[1])) {
+                continue;
+            }
+            $action = $group_action[1];
 
             $action__host = parse_url($action, PHP_URL_HOST);
             if ( $action__host !== null && $site__host != $action__host ) {
                 preg_match('/method="(\S*)"/', $match[0], $group_method);
-                $method = count($group_method) > 0 ? $group_method[1] : 'get';
+                if (!isset($group_method[1])) {
+                    continue;
+                }
+                $method = $group_method[1];
 
                 $hidden_fields = '<input type="hidden" name="cleantalk_hidden_action" value="' . $action . '">';
                 $hidden_fields .= '<input type="hidden" name="cleantalk_hidden_method" value="' . $method . '">';
@@ -630,7 +640,7 @@ function ct_add_hidden_fields(
             return;
         }
 
-        $ct_input_challenge = sprintf("'%s'", $ct_checkjs_key);
+        $ct_input_challenge = sprintf("'%s'", is_null($ct_checkjs_key) ? $ct_checkjs_def : $ct_checkjs_key);
         $field_id           = $field_name . '_' . $field_id_hash;
         $html               = "<input type=\"hidden\" id=\"{$field_id}\" name=\"{$field_name}\" value=\"{$ct_checkjs_def}\" />
 		<script " . (class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '') . ">
@@ -800,9 +810,11 @@ function apbct_comment__Wordpress__changeMailNotification($notify_message, $_com
 function apbct_comment__wordpress__show_blacklists($notify_message, $comment_id)
 {
     $comment_details = get_comments(array('comment__in' => $comment_id));
-    $comment_details = $comment_details[0];
+    if (is_array($comment_details) && isset($comment_details[0])) {
+        $comment_details = $comment_details[0];
+    }
 
-    if ( isset($comment_details->comment_author_email) ) {
+    if ( is_object($comment_details) && isset($comment_details->comment_author_email, $comment_details->comment_author_IP) ) {
         //HANDLE LINK
         $black_list_link = 'https://cleantalk.org/blacklists/';
 
@@ -869,7 +881,7 @@ function ct_die($_comment_id, $_comment_status)
         );
 
         foreach ( $replaces as $place_holder => $replace ) {
-            $ct_die_page = str_replace($place_holder, $replace, $ct_die_page);
+            $ct_die_page = str_replace($place_holder, (is_null($replace) ? '' : $replace), $ct_die_page);
         }
 
         http_response_code(200);
@@ -923,7 +935,40 @@ function ct_die_extended($comment_body)
         }
 
         http_response_code(200);
-        die($ct_die_page);
+        $allowed_html = array(
+            'html' => array(
+                'lang' => array(),
+            ),
+            'head' => array(),
+            'meta' => array(
+                'charset' => array(),
+                'name' => array(),
+                'content' => array(),
+                'http-equiv' => array(),
+            ),
+            'style' => array(),
+            'body' => array(),
+            'div' => array(
+                'class' => array(),
+            ),
+            'h1' => array(
+                'class' => array(),
+            ),
+            'p' => array(
+                'class' => array(),
+            ),
+            'a' => array(
+                'href' => array(),
+                'class' => array(),
+            ),
+            'script' => array(
+                'src' => array(),
+            ),
+            '!--[if lt IE 9]' => array(),
+            '![endif]--' => array(),
+        );
+        $content = wp_kses($ct_die_page, $allowed_html);
+        die($content);
     }
 
     http_response_code(200);
@@ -987,12 +1032,14 @@ function ct_post_url($comment_id, $comment_post_id)
 
     if ( $comment_id === null ) {
         $last_comment = get_comments('number=1');
-        $comment_id   = isset($last_comment[0]->comment_ID) ? (int)$last_comment[0]->comment_ID + 1 : 1;
+        if (isset($last_comment[0]) && is_object($last_comment[0])) {
+            $comment_id   = isset($last_comment[0]->comment_ID) ? (int)$last_comment[0]->comment_ID + 1 : 1;
+        }
     }
     $permalink = get_permalink($comment_post_id);
 
     $post_url = null;
-    if ( $permalink !== null ) {
+    if ( $permalink !== null && $permalink !== false ) {
         $post_url = $permalink . '#comment-' . $comment_id;
     }
 
@@ -1062,6 +1109,9 @@ function ct_set_meta($comment_id, $comment_status)
         update_comment_meta($comment_id, 'ct_hash', $hash1);
         if ( function_exists('base64_encode') && isset($comment_status) && $comment_status !== 'spam' ) {
             $post_url = ct_post_url($comment_id, $comment_post_id);
+            if (is_null($post_url)) {
+                return true;
+            }
             $post_url = base64_encode($post_url);
             // 01 - URL to approved comment
             $feedback_request = $hash1 . ':' . '01' . ':' . $post_url . ';';
@@ -1086,13 +1136,15 @@ function ct_mark_red($comment_id, $_comment_status)
     global $ct_stop_words;
 
     $comment = get_comment($comment_id, 'ARRAY_A');
-    $message = $comment['comment_content'];
-    foreach ( explode(':', $ct_stop_words) as $word ) {
-        $message = preg_replace("/($word)/ui", '<font rel="cleantalk" color="#FF1000">' . "$1" . '</font>', $message);
+    if (isset($comment['comment_content'])) {
+        $message = $comment['comment_content'];
+        foreach ( explode(':', $ct_stop_words) as $word ) {
+            $message = preg_replace("/($word)/ui", '<font rel="cleantalk" color="#FF1000">' . "$1" . '</font>', $message);
+        }
+        $comment['comment_content'] = $message;
+        kses_remove_filters();
+        wp_update_comment($comment);
     }
-    $comment['comment_content'] = $message;
-    kses_remove_filters();
-    wp_update_comment($comment);
 }
 
 //
