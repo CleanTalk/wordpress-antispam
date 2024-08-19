@@ -133,7 +133,15 @@ function ct_contact_form_validate()
      */
     $input_array = apply_filters('apbct__filter_post', $_POST);
 
-    $ct_temp_msg_data = ct_get_fields_any($input_array);
+    $ct_tmp_email = null;
+    foreach ($input_array as $key => $value) {
+        if ( is_string($key) && strpos($key, 'et_pb_contact_email') !== false ) {
+            $ct_tmp_email = preg_replace('/[^a-zA-Z0-9@\.\-_]/', '', $value);
+            break;
+        }
+    }
+
+    $ct_temp_msg_data = ct_get_fields_any($input_array, $ct_tmp_email);
 
     $sender_email    = ($ct_temp_msg_data['email'] ? $ct_temp_msg_data['email'] : '');
     $sender_nickname = ($ct_temp_msg_data['nickname'] ? $ct_temp_msg_data['nickname'] : '');

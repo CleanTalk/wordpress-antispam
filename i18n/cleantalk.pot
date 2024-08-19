@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 "Project-Id-Version: Anti-Spam by CleanTalk\n"
-"POT-Creation-Date: 2020-06-21 08:14+0000\n"
+"POT-Creation-Date: 2024-07-29 06:13+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -435,8 +435,9 @@ msgstr ""
 #: inc/cleantalk-settings.php:136
 #, php-format
 msgid ""
-"Read more about %sspam protection for Search form%s on our blog. "
-"The “noindex” tag will be placed in the meta directive on the search results page."
+"Read more about %sspam protection for Search form%s on our blog. The "
+"“noindex” tag will be placed in the meta directive on the search results "
+"page."
 msgstr ""
 
 #: inc/cleantalk-settings.php:144
@@ -1405,4 +1406,10 @@ msgstr ""
 
 #. Author of the plugin
 msgid "СleanTalk <welcome@cleantalk.org>"
+msgstr ""
+
+# Email encoding tooltip
+msgid ""
+"This contact has been encoded by %s. Click to decode. To finish the decoding "
+"make sure that JavaScript is enabled in your browser."
 msgstr ""
