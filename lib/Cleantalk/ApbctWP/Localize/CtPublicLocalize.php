@@ -34,6 +34,7 @@ class CtPublicLocalize
             'emailEncoderPassKey'   => apbct_get_email_encoder_pass_key(),
             'bot_detector_forms_excluded'  => base64_encode(apbct__bot_detector_get_prepared_exclusion()),
             'advancedCacheExists' => apbct_is_advanced_cache_exists(),
+            'varnishCacheExists' => apbct_is_varnish_cache_exists(),
         );
     }
 

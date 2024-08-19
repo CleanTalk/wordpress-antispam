@@ -37,7 +37,7 @@ function bundle_src_js() {
 function bundle_js() {
     return gulp.src('js/src/apbct-public-bundle.js')
         .pipe(babel({
-            presets: ["@babel/preset-env"],
+            presets: [["@babel/preset-env", { targets: { ie: "11" } }]],
             plugins: ["@babel/plugin-transform-class-properties"]
         }))
         .pipe(uglify())

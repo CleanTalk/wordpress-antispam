@@ -121,6 +121,7 @@ class Integrations
                         $base_call_data = array(
                             'message'         => ! empty($data['message']) ? json_encode($data['message']) : '',
                             'sender_email'    => ! empty($data['email']) ? $data['email'] : '',
+                            'sender_emails_array'    => ! empty($data['emails_array']) ? $data['emails_array'] : '',
                             'sender_nickname' => ! empty($data['nickname']) ? $data['nickname'] : '',
                             'sender_info'     => ! empty($data['sender_url']) ? array('sender_url' => $data['sender_url']) : '',
                             'event_token' => ! empty($data['event_token']) ? $data['event_token'] : '',

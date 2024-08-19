@@ -88,6 +88,12 @@ class CleantalkRequest
     public $sender_email;
 
     /**
+     * Emails on form
+     * @var string
+     */
+    public $sender_emails_array;
+
+    /**
      * User nickname
      * @var string
      */
@@ -228,6 +234,7 @@ class CleantalkRequest
         $this->agent = isset($params['agent']) ? (string)$params['agent'] : null;
         $this->auth_key = isset($params['auth_key']) ? (string)$params['auth_key'] : null;
         $this->sender_email = isset($params['sender_email']) ? (string)$params['sender_email'] : null;
+        $this->sender_emails_array = isset($params['sender_emails_array']) ? (array)$params['sender_emails_array'] : null;
 
         // crunch for "PHP Notice:  Array to string conversion". Error appears only on Gravity forms
         // @todo fix gat_fields_any

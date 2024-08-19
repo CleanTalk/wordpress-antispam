@@ -1439,6 +1439,14 @@ function apbct_is_skip_request($ajax = false)
         return 'nobletitle-calc';
     }
 
+    // Otter Blocks have the direct integration
+    if (
+        apbct_is_plugin_active('otter-blocks/otter-blocks.php') &&
+        Post::get('form_data')
+    ) {
+        return 'Otter Blocks';
+    }
+
     return false;
 }
 
