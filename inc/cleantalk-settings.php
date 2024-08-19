@@ -428,6 +428,13 @@ function apbct_settings__set_fields()
                         'cleantalk-spam-protect'
                     ),
                 ),
+                'comments__form_decoration' => array(
+                    'title'       => __('Holiday form decoration', 'cleantalk-spam-protect'),
+                    'description' => __(
+                        'This option allows to change common design of the comment form to the celebrating one.',
+                        'cleantalk-spam-protect'
+                    ),
+                )
             ),
         ),
 
