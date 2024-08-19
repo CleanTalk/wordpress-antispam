@@ -235,5 +235,39 @@ input[class*='apbct'].apbct_special_field{
 .apbct_form_decoration_header__text {
     display: block;
     position: absolute;
+    top: 34px;
     color: #FFF;
+    font-style: normal;
+    font-weight: 500;
+    font-size: 36px;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+}
+.apbct_holiday_decoration {
+    background: url('images/holiday_bg.svg') repeat;
+    position: relative;
+}
+.apbct_holiday_decoration * {
+    z-index: 1;
+}
+.apbct_holiday_decoration:before, .apbct_holiday_decoration:after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    width: 50%;
+    height: 100%;
+    background-position-y: bottom;
+    background-repeat: no-repeat;
+    background-size: 50%;
+    z-index: 0;
+}
+.apbct_holiday_decoration:before {
+    left: 0;
+    background-image: url('images/flag-left.svg');
+    background-position-x: left;
+}
+.apbct_holiday_decoration:after {
+    right: 0;
+    background-image: url('images/flag-right.svg');
+    background-position-x: right;
 }
