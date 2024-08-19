@@ -1778,9 +1778,10 @@ function apbct_sfw_update__download_files($urls, $direct_update = false)
     //Reset keys
     $urls          = array_values(array_unique($urls));
     $results       = Helper::httpMultiRequest($urls, $apbct->fw_stats['updating_folder']);
-    $results = TT::toArray($results);
+    $results       = TT::toArray($results);
     $count_urls    = count($urls);
-    $count_results    = count($results);
+    $count_results = count($results);
+
 
     if ( empty($results['error']) && ($count_urls === $count_results) ) {
         if ( $direct_update ) {

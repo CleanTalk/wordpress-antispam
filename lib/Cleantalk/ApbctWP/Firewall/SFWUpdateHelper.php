@@ -396,14 +396,14 @@ class SFWUpdateHelper
                 }
             }
 
-            //add more paths if some strange files has been detected
-            $non_cleantalk_files_filepaths = array(
-                $dir_name . '.last.jpegoptim'
-            );
-
-            foreach ( $non_cleantalk_files_filepaths as $filepath ) {
-                if ( file_exists($filepath) && is_file($filepath) && !is_writable($filepath) ) {
-                    unlink($filepath);
+            $safe_base_dir = rtrim(ABSPATH, '/') . '/wp-content/uploads/cleantalk_fw_files';
+            $allowed_filenames = array('.last.jpegoptim');
+            foreach ($allowed_filenames as $filename) {
+                $filepath = $safe_base_dir . '/' . $filename;
+                if (strpos($filepath, $safe_base_dir) === 0 && file_exists($filepath) && is_file($filepath) && !is_writable($filepath)) {
+                    if (!unlink($filepath)) {
+                        error_log('Failed to delete file: ' . $filepath);
+                    }
                 }
             }
 
