@@ -229,22 +229,26 @@ input[class*='apbct'].apbct_special_field{
     flex-direction: column-reverse;
     justify-content: center;
     align-items: center;
-    scale: 70%
+    height: 70px;
 }
-
+.apbct_form_decoration_header__content svg {
+    position: absolute;
+    width: 600px;
+}
 .apbct_form_decoration_header__text {
     display: block;
-    position: absolute;
-    top: 34px;
     color: #FFF;
     font-style: normal;
     font-weight: 500;
     font-size: 36px;
     letter-spacing: 0.03em;
     text-transform: uppercase;
+    z-index: 1;
+    padding-bottom: 12px;
 }
 .apbct_holiday_decoration {
     background: url('images/holiday_bg.svg') repeat;
+    background-size: 100%;
     position: relative;
 }
 .apbct_holiday_decoration form {
