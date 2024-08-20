@@ -2017,12 +2017,16 @@ function apbct_form__learnpress__testSpam()
 {
     $params = ct_gfa(apply_filters('apbct__filter_post', $_POST));
 
+    $sender_info = [];
+    if ( ! empty($params['emails_array']) ) {
+        $sender_info['sender_emails_array'] = $params['emails_array'];
+    }
     $base_call_result = apbct_base_call(
         array(
-            'sender_email'        => isset($params['email']) ? $params['email'] : Post::get('email'),
-            'sender_emails_array' => isset($params['sender_emails_array']) ? $params['sender_emails_array'] : [],
-            'sender_nickname'     => isset($params['nickname']) ? $params['nickname'] : Post::get('first_name'),
-            'post_info'           => array('comment_type' => 'signup_form_wordpress_learnpress'),
+            'sender_email'    => isset($params['email']) ? $params['email'] : Post::get('email'),
+            'sender_nickname' => isset($params['nickname']) ? $params['nickname'] : Post::get('first_name'),
+            'post_info'       => array('comment_type' => 'signup_form_wordpress_learnpress'),
+            'sender_info'     => $sender_info,
         ),
         true
     );
@@ -2051,12 +2055,16 @@ function apbct_form__optimizepress__testSpam()
 {
     $params = ct_gfa(apply_filters('apbct__filter_post', $_POST));
 
+    $sender_info = [];
+    if ( ! empty($params['emails_array']) ) {
+        $sender_info['sender_emails_array'] = $params['emails_array'];
+    }
     $base_call_result = apbct_base_call(
         array(
-            'sender_email'        => isset($params['email']) ? $params['email'] : Post::get('email'),
-            'sender_emails_array' => isset($params['sender_emails_array']) ? $params['sender_emails_array'] : [],
-            'sender_nickname'     => isset($params['nickname']) ? $params['nickname'] : Post::get('first_name'),
-            'post_info'           => array('comment_type' => 'subscribe_form_wordpress_optimizepress'),
+            'sender_email'    => isset($params['email']) ? $params['email'] : Post::get('email'),
+            'sender_nickname' => isset($params['nickname']) ? $params['nickname'] : Post::get('first_name'),
+            'post_info'       => array('comment_type' => 'subscribe_form_wordpress_optimizepress'),
+            'sender_info'     => $sender_info,
         )
     );
 
@@ -2591,7 +2599,6 @@ function apbct_form__WPForms__testSpam()
     }
 
     $sender_email    = isset($params['email']) ? $params['email'] : '';
-    $sender_emails_array = isset($params['sender_emails_array']) ? $params['sender_emails_array'] : [];
     $sender_nickname = isset($params['nickname']) ? $params['nickname'] : '';
     $subject         = isset($params['subject']) ? $params['subject'] : '';
     $message         = isset($params['message']) ? $params['message'] : array();
@@ -2599,14 +2606,19 @@ function apbct_form__WPForms__testSpam()
         $message = array_merge(array('subject' => $subject), $message);
     }
 
+    $sender_info = [];
+    if ( ! empty($params['emails_array']) ) {
+        $sender_info['sender_emails_array'] = $params['emails_array'];
+    }
+
     $base_call_result = apbct_base_call(
         array(
             'message'         => $message,
             'sender_email'    => $sender_email,
-            'sender_emails_array'    => $sender_emails_array,
             'sender_nickname' => $sender_nickname,
             'post_info'       => array('comment_type' => 'contact_form_wordpress_wp_forms'),
             'js_on'           => $checkjs,
+            'sender_info'     => $sender_info,
         )
     );
 
@@ -3571,18 +3583,22 @@ add_filter('wsf_submit_field_validate', function ($error_validation_action_field
     $data = ct_gfa($input_array, $long_email);
 
     $sender_email        = isset($data['email']) ? $data['email'] : '';
-    $sender_emails_array = isset($data['sender_emails_array']) ? $data['sender_emails_array'] : [];
     $sender_nickname     = isset($data['nickname']) ? $data['nickname'] : '';
     $message             = isset($data['message']) ? $data['message'] : array();
+
+    $sender_info = [];
+    $sender_info['sender_email'] = urlencode($sender_email);
+    if ( ! empty($data['emails_array']) ) {
+        $sender_info['sender_emails_array'] = $data['emails_array'];
+    }
 
     $base_call_result = apbct_base_call(
         array(
             'message'         => $message,
             'sender_email'    => $sender_email,
-            'sender_emails_array'    => $sender_emails_array,
             'sender_nickname' => $sender_nickname,
             'post_info'       => array( 'comment_type' => 'WS_forms' ),
-            'sender_info'     => array('sender_email' => urlencode($sender_email)),
+            'sender_info'     => $sender_info,
         )
     );
 
@@ -3962,12 +3978,17 @@ function apbct_jetformbuilder_request_test()
     $input_array = apply_filters('apbct__filter_post', $_POST);
     $params = ct_gfa($input_array);
 
+    $sender_info = [];
+    if ( ! empty($params['emails_array']) ) {
+        $sender_info['sender_emails_array'] = $params['emails_array'];
+    }
+
     $base_call_result = apbct_base_call(
         array(
-            'sender_email'        => isset($params['email']) ? $params['email'] : '',
-            'sender_emails_array' => isset($params['sender_emails_array']) ? $params['sender_emails_array'] : [],
-            'sender_nickname'     => isset($params['nickname']) ? $params['nickname'] : '',
-            'post_info'           => array('comment_type' => 'jetformbuilder_signup_form'),
+            'sender_email'    => isset($params['email']) ? $params['email'] : '',
+            'sender_nickname' => isset($params['nickname']) ? $params['nickname'] : '',
+            'post_info'       => array('comment_type' => 'jetformbuilder_signup_form'),
+            'sender_info'     => $sender_info,
         )
     );
 
@@ -3997,12 +4018,17 @@ function apbct_dhvcform_request_test()
     $input_array = apply_filters('apbct__filter_post', $_POST);
     $params = ct_gfa($input_array);
 
+    $sender_info = [];
+    if ( ! empty($params['emails_array']) ) {
+        $sender_info['sender_emails_array'] = $params['emails_array'];
+    }
+
     $base_call_result = apbct_base_call(
         array(
-            'sender_email'        => isset($params['email']) ? $params['email'] : '',
-            'sender_emails_array' => isset($params['sender_emails_array']) ? $params['sender_emails_array'] : [],
-            'sender_nickname'     => isset($params['nickname']) ? $params['nickname'] : '',
-            'post_info'           => array('comment_type' => 'dhvcform_form'),
+            'sender_email'    => isset($params['email']) ? $params['email'] : '',
+            'sender_nickname' => isset($params['nickname']) ? $params['nickname'] : '',
+            'post_info'       => array('comment_type' => 'dhvcform_form'),
+            'sender_info'     => $sender_info,
         )
     );
 
