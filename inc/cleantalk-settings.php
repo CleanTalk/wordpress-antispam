@@ -438,6 +438,29 @@ function apbct_settings__set_fields()
                         'cleantalk-spam-protect'
                     ),
                 ),
+                'comments__form_decoration' => array(
+                    'title'       => __('Holiday form decoration', 'cleantalk-spam-protect'),
+                    'description' => __(
+                        'This option allows to change common design of the comment form to the celebrating one.',
+                        'cleantalk-spam-protect'
+                    ),
+                    'childrens' => array(
+                        'comments__form_decoration_text',
+                        'comments__form_decoration_color'
+                    )
+                ),
+                'comments__form_decoration_text' => array(
+                    'type'        => 'text',
+                    'class'       => 'apbct_settings-field_wrapper--sub',
+                    'title'       => __('Holiday form decoration title', 'cleantalk-spam-protect'),
+                    'description' => __('Holiday form decoration title description', 'cleantalk-spam-protect'),
+                ),
+                'comments__form_decoration_color' => array(
+                    'type'        => 'color',
+                    'class'       => 'apbct_settings-field_wrapper--sub',
+                    'title'       => __('Holiday form decoration color', 'cleantalk-spam-protect'),
+                    'description' => __('Holiday form decoration color description', 'cleantalk-spam-protect'),
+                )
             ),
         ),
 
@@ -2507,6 +2530,32 @@ function apbct_settings__field__draw($params = array())
                  . ($params['childrens'] ? ' onchange="apbctSettingsDependencies(\'' . $childrens . '\')"' : '')
                  . '>' . $value . '</textarea>'
                  . '&nbsp;';
+            break;
+        // Color type
+        case 'color':
+            // Popup description
+            $popup = '';
+            if ( isset($params['long_description']) ) {
+                $popup = '<i setting="' . $params['name'] . '" class="apbct_settings-long_description---show apbct-icon-help-circled"></i>';
+            }
+            //ESC NEED
+            echo '<input
+					type="color"
+					id="apbct_setting_' . $params['name'] . '"
+					name="cleantalk_settings[' . $params['name'] . ']"'
+                 . " class='apbct_setting_{$params['type']} apbct_setting---{$params['name']}'"
+                 . ' value="' . $value . '" '
+                 . $disabled
+                 . ($params['required'] ? ' required="required"' : '')
+                 . ($params['childrens'] ? ' onchange="apbctSettingsDependencies(\'' . $childrens . '\')"' : '')
+                 . ' />'
+                 . '&nbsp;'
+                 . '<label for="apbct_setting_' . $params['name'] . '" class="apbct_setting-field_title--' . $params['type'] . '">'
+                 . $params['title'] . $popup
+                 . '</label>';
+            echo '<div class="apbct_settings-field_description">'
+                 . $params['description']
+                 . '</div>';
             break;
     }
 

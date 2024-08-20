@@ -25,6 +25,8 @@ use Cleantalk\ApbctWP\Firewall\AntiCrawler;
 use Cleantalk\ApbctWP\Firewall\AntiFlood;
 use Cleantalk\ApbctWP\Firewall\SFW;
 use Cleantalk\ApbctWP\Firewall\SFWUpdateHelper;
+use Cleantalk\ApbctWP\FormDecorator\DecorationSet;
+use Cleantalk\ApbctWP\FormDecorator\FormDecorator;
 use Cleantalk\ApbctWP\Helper;
 use Cleantalk\ApbctWP\RemoteCalls;
 use Cleantalk\ApbctWP\RequestParameters\RequestParameters;
@@ -197,6 +199,10 @@ if (
 
 if ( $apbct->settings['comments__the_real_person'] ) {
     new CleantalkRealPerson();
+}
+
+if ( $apbct->settings['comments__form_decoration'] ) {
+    new FormDecorator(new DecorationSet());
 }
 
 add_action('rest_api_init', 'apbct_register_my_rest_routes');
