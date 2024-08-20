@@ -143,7 +143,13 @@ class AdjustToEnvLiteSpeedCache extends AdjustToEnvAbstract
                 update_option('litespeed.conf.cache-ttl_pub', $this->info['original_config_ttl_pub']);
             }
 
-            Purge::purge_all();
+            try {
+                if (class_exists('\LiteSpeed\Purge')) {
+                    Purge::purge_all();
+                }
+            } catch (\Exception $e) {
+                error_log('Security by CleanTalk error: ' . __METHOD__ . ' ' . $e->getMessage());
+            }
 
             $this->changed = !$state;
             $this->keepEnvChangesByModule();
