@@ -3197,6 +3197,21 @@ function apbctRealUserBadge() {
 }
 
 /**
+ * Shows a popup The Real Person when hovering over the cursor
+ * @param {string} id
+ */
+// eslint-disable-next-line no-unused-vars,require-jsdoc
+function apbctRealUserBadgeViewPopup(id) {
+    document.querySelectorAll('.apbct-real-user-popup').forEach((el) => {
+        el.style.display = 'none';
+    });
+    let popup = document.getElementById(id);
+    if (popup != 'undefined') {
+        popup.style.display = 'inline-flex';
+    }
+}
+
+/**
  * Handle real user badge for woocommerce
  * @param template
  * @param id
