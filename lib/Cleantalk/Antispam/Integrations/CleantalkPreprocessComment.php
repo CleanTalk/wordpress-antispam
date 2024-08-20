@@ -107,21 +107,23 @@ class CleantalkPreprocessComment extends IntegrationBase
         $example = null;
         if ( $this->apbct->data['relevance_test'] ) {
             $wp_post = get_post($this->wp_comment_post_id);
-            if ( $wp_post !== null ) {
+            if ( $wp_post !== null && is_object($wp_post) ) {
                 $example['title']    = $wp_post->post_title;
                 $example['body']     = $wp_post->post_content;
                 $example['comments'] = null;
 
                 $last_comments = get_comments(array('status' => 'approve', 'number' => 10, 'post_id' => $this->wp_comment_post_id));
-                foreach ( $last_comments as $post_comment ) {
-                    $example['comments'] .= "\n\n" . $post_comment->comment_content;
+                if ( is_array($last_comments) || is_object($last_comments) ) {
+                    foreach ( $last_comments as $post_comment ) {
+                        $example['comments'] .= "\n\n" . $post_comment->comment_content;
+                    }
                 }
 
                 $example = json_encode($example);
             }
 
             // Use plain string format if've failed with JSON
-            if ( $example === false || $example === null ) {
+            if ( ($example === false || $example === null) && is_object($wp_post) ) {
                 $example = ($wp_post->post_title !== null) ? $wp_post->post_title : '';
                 $example .= ($wp_post->post_content !== null) ? "\n\n" . $wp_post->post_content : '';
             }
@@ -133,6 +135,9 @@ class CleantalkPreprocessComment extends IntegrationBase
             add_action('comment_post', 'ct_set_real_user_badge_hash', 999, 2);
         }
 
+        $http_host = is_string(Server::get('HTTP_HOST')) ? Server::get('HTTP_HOST') : '';
+        $request_uri = is_string(Server::get('REQUEST_URI')) ? Server::get('REQUEST_URI') : '';
+        /** @psalm-suppress PossiblyFalseOperand, PossiblyInvalidOperand */
         $base_call_data = array(
             'message'         => $this->wp_comment['comment_content'],
             'example'         => $example,
@@ -148,7 +153,7 @@ class CleantalkPreprocessComment extends IntegrationBase
                     : json_encode(
                         array(
                             'validation_notice' => $this->apbct->validation_error,
-                            'page_url'          => Server::get('HTTP_HOST') . Server::get('REQUEST_URI'),
+                            'page_url'          => $http_host . $request_uri,
                         )
                     )
             ),
@@ -211,6 +216,7 @@ class CleantalkPreprocessComment extends IntegrationBase
             'count'        => false,
             'number'       => 1,
         );
+        /** @psalm-suppress PossiblyInvalidArgument */
         $is_new_author = count(get_comments($args)) === 0;
 
         //check moderation status for inactive license
@@ -373,6 +379,7 @@ class CleantalkPreprocessComment extends IntegrationBase
                 'count'        => false,
                 'number'       => $this->comments_check_number_needs_to_skip_request,
             );
+            /** @psalm-suppress PossiblyInvalidArgument */
             $cnt             = count(get_comments($args));
             $result = $cnt >= $this->comments_check_number_needs_to_skip_request;
         }
@@ -433,7 +440,7 @@ class CleantalkPreprocessComment extends IntegrationBase
                 $this->apbct->settings['forms__comments_test'] == 0 ||
                 $ct_comment_done ||
                 (isset($_SERVER['HTTP_REFERER']) && stripos($_SERVER['HTTP_REFERER'], 'page=wysija_campaigns&action=editTemplate') !== false) ||
-                (isset($_SERVER['HTTP_REFERER']) && strpos($_SERVER['REQUEST_URI'], '/wp-admin/') !== false)
+                (isset($_SERVER['REQUEST_URI']) && strpos($_SERVER['REQUEST_URI'], '/wp-admin/') !== false)
             ) {
                 return __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__;
             }

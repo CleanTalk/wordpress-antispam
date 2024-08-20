@@ -159,7 +159,7 @@ class CleantalkResponse
         $this->sms_allow      = isset($obj->sms_allow) ? $obj->sms_allow : null;
         $this->sms            = isset($obj->sms) ? $obj->sms : null;
         $this->sms_error_code = isset($obj->sms_error_code) ? $obj->sms_error_code : null;
-        $this->sms_error_text = isset($obj->sms_error_text) ? htmlspecialchars($obj->sms_error_text) : null;
+        $this->sms_error_text = isset($obj->sms_error_text) ? htmlspecialchars($obj->sms_error_text) : '';
         $this->stop_queue     = isset($obj->stop_queue) ? $obj->stop_queue : 0;
         $this->inactive       = isset($obj->inactive) ? $obj->inactive : 0;
         $this->account_status = isset($obj->account_status) ? $obj->account_status : -1;

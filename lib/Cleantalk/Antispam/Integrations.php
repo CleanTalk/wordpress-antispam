@@ -145,7 +145,7 @@ class Integrations
                     $integration->base_call_result = $base_call_result;
 
 
-                    $ct_result = $base_call_result['ct_result'];
+                    $ct_result = isset($base_call_result['ct_result']) ? $base_call_result['ct_result'] : '';
                     $cleantalk_executed = true;
 
                     /**
@@ -156,7 +156,9 @@ class Integrations
                     /**
                      * Actions on deny.
                      */
-                    if ( $ct_result->allow == 0 ) {
+                    if (
+                        is_object($ct_result) && $ct_result->allow == 0
+                    ) {
                         // Do blocking if it is a spam
                         $return_arg =  $integration->doBlock($ct_result->comment);
                     }
@@ -164,7 +166,7 @@ class Integrations
                     /**
                      * Actions on allow.
                      */
-                    if ( $ct_result->allow != 0 && method_exists($integration, 'allow') ) {
+                    if ( is_object($ct_result) && $ct_result->allow != 0 && method_exists($integration, 'allow') ) {
                         $return_arg = $integration->allow();
                     }
                 } else {
