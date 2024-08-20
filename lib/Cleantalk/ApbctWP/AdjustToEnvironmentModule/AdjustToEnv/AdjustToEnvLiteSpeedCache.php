@@ -2,7 +2,9 @@
 
 namespace Cleantalk\ApbctWP\AdjustToEnvironmentModule\AdjustToEnv;
 
-class AdjustToEnvW3TotalCache extends AdjustToEnvAbstract
+use LiteSpeed\Purge;
+
+class AdjustToEnvLiteSpeedCache extends AdjustToEnvAbstract
 {
     /**
      * @psalm-suppress PossiblyUnusedMethod
@@ -30,7 +32,7 @@ class AdjustToEnvW3TotalCache extends AdjustToEnvAbstract
      */
     public function isEnvComplyToAdjustRequires()
     {
-        return apbct_is_plugin_active('w3-total-cache/w3-total-cache.php');
+        return apbct_is_plugin_active('litespeed-cache/litespeed-cache.php');
     }
 
     /**
@@ -50,7 +52,7 @@ class AdjustToEnvW3TotalCache extends AdjustToEnvAbstract
      */
     protected function doAdjust()
     {
-        $this->setW3queryCachingState(false);
+        $this->setLiteSpeedCacheTTLState(false);
     }
 
     /**
@@ -62,7 +64,7 @@ class AdjustToEnvW3TotalCache extends AdjustToEnvAbstract
      */
     public function doReverseAdjust()
     {
-        $this->setW3queryCachingState(true);
+        $this->setLiteSpeedCacheTTLState(true);
     }
 
     /**
@@ -71,18 +73,22 @@ class AdjustToEnvW3TotalCache extends AdjustToEnvAbstract
      */
     protected function keepEnvChangesByModule()
     {
-        $comment = 'Disabled "Cache URIs with query string variables" option.'
-            . 'Because it can break AJAX requests and there not possible to add exclusion to check that request contains query string or not.';
+        $comment = 'Disabled "The TTL option value is set to one day';
 
         if (!$this->changed) {
-            $comment = 'Enable "Cache URIs with query string variables" option back. By site admin request.';
+            $comment = 'Enable "Return TTL to the previous value"';
         }
 
-        $this->info[static::class] = [
+        $last_info = [
             'changed' => $this->changed,
             'last_intervention_date' => date('Y-m-d H:i:s'),
             'comment' => $comment,
         ];
+
+        $this->info[static::class] = array_merge(
+            $this->info,
+            $last_info
+        );
     }
 
     /**
@@ -95,16 +101,17 @@ class AdjustToEnvW3TotalCache extends AdjustToEnvAbstract
     {
         $state = null;
         if (
-            apbct_is_plugin_active('w3-total-cache/w3-total-cache.php') &&
-            class_exists('\W3TC\Dispatcher')
+            apbct_is_plugin_active('litespeed-cache/litespeed-cache.php') &&
+            (int)get_option('litespeed.conf.cache-ttl_pub')
         ) {
             try {
-                $original_config = \W3TC\Dispatcher::config();
-                $state = (bool)$original_config->get('pgcache.cache.query');
+                $current_config_ttl_pub = (bool)get_option('litespeed.conf.cache-ttl_pub');
+                $state = $current_config_ttl_pub;
             } catch (\Exception $e) {
                 error_log('Security by CleanTalk error: ' . __METHOD__ . ' ' . $e->getMessage());
             }
         }
+
         return $state;
     }
 
@@ -115,29 +122,37 @@ class AdjustToEnvW3TotalCache extends AdjustToEnvAbstract
      * @psalm-suppress PossiblyUnusedMethod
      * @psalm-suppress UnusedVariable
      */
-    private function setW3queryCachingState($state)
+    private function setLiteSpeedCacheTTLState($state)
     {
         $state = (bool)$state;
         if (
-            apbct_is_plugin_active('w3-total-cache/w3-total-cache.php') &&
-            class_exists('\W3TC\Dispatcher') &&
-            class_exists('\W3TC\Config') &&
-            class_exists('\W3TC\Util_Admin') &&
-            class_exists('\W3TC\Cdnfsd_CacheFlush')
+            apbct_is_plugin_active('litespeed-cache/litespeed-cache.php') &&
+            get_option('litespeed.conf.cache-ttl_pub')
         ) {
+            $current_config_ttl_pub = (int)get_option('litespeed.conf.cache-ttl_pub');
+
+            if ( !key_exists('original_config_ttl_pub', $this->info) ) {
+                $this->info = [
+                    'original_config_ttl_pub' => $current_config_ttl_pub,
+                ];
+            }
+
+            if ($current_config_ttl_pub > 86400 && $state == false) {
+                update_option('litespeed.conf.cache-ttl_pub', 86400);
+            } else if (key_exists('original_config_ttl_pub', $this->info) && $state == true) {
+                update_option('litespeed.conf.cache-ttl_pub', $this->info['original_config_ttl_pub']);
+            }
+
             try {
-                $original_config = \W3TC\Dispatcher::config();
-                $config = new \W3TC\Config();
-                $config->set('pgcache.cache.query', $state);
-                \W3TC\Util_Admin::config_save($original_config, $config);
-
-                \W3TC\Cdnfsd_CacheFlush::w3tc_flush_all();
-
-                $this->changed = !$state;
-                $this->keepEnvChangesByModule();
+                if (class_exists('\LiteSpeed\Purge')) {
+                    Purge::purge_all();
+                }
             } catch (\Exception $e) {
                 error_log('Security by CleanTalk error: ' . __METHOD__ . ' ' . $e->getMessage());
             }
+
+            $this->changed = !$state;
+            $this->keepEnvChangesByModule();
         }
     }
 }
