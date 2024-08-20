@@ -1852,7 +1852,8 @@ function apbct_form__contactForm7__testSpam($spam, $_submission = null)
                     : json_encode(array(
                         'validation_notice' => $apbct->validation_error,
                         'page_url'          => TT::toString(Server::get('HTTP_HOST')) . TT::toString(Server::get('REQUEST_URI')),
-                    ))
+                    )),
+                'sender_emails_array' => isset($ct_temp_msg_data['emails_array']) ? $ct_temp_msg_data['emails_array'] : null,
             ),
         )
     );
