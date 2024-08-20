@@ -452,6 +452,9 @@ Yes, it is. Please read this article,
 * Fix. The Real Person. Overflow changes for the Spacious theme, Icon size changes
 * Fix. The Real Person. Checking against undefined
 * Fix. Adjust. Checking for LiteSpeed activity, review edits
+* Fix. Integrations. Added EmailOctopus handler.
+* Fix. Integrations. Updated email gathering on forminator.
+* Fix. Integrations. Updated skip statement.
 * Fix. TRP. No TRP badges on inactive licenses
 * Fix. Anti-spam. Parameter sender_emails_array moved to the `sender_info` block.
 * Fix. Anti-spam. Emails array support for CF7 integration.
