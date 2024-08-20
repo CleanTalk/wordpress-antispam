@@ -39,13 +39,13 @@ class CleantalkRequest
 
     /**
      * User message
-     * @var string
+     * @var string|null
      */
     public $message;
 
     /**
      * Post example with last comments
-     * @var string
+     * @var string|null
      */
     public $example;
 

@@ -160,12 +160,12 @@ class Cleantalk
         switch ( $method ) {
             case 'check_message':
                 // Convert strings to UTF8
-                $request->message         = Helper::toUTF8($request->message, $this->data_codepage);
-                $request->example         = Helper::toUTF8($request->example, $this->data_codepage);
+                $request->message         = $request->message != null ? Helper::toUTF8($request->message, $this->data_codepage) : '';
+                $request->example         = $request->example != null ? Helper::toUTF8($request->example, $this->data_codepage) : '';
                 $request->sender_email    = Helper::toUTF8($request->sender_email, $this->data_codepage);
                 $request->sender_nickname = Helper::toUTF8($request->sender_nickname, $this->data_codepage);
-                $request->message         = $this->compressData($request->message);
-                $request->example         = $this->compressData($request->example);
+                $request->message         = $request->message != null && is_string($request->message) ? $this->compressData($request->message) : '';
+                $request->example         = $request->example != null && is_string($request->example) ? $this->compressData($request->example) : '';
                 break;
 
             case 'check_newuser':
@@ -218,13 +218,13 @@ class Cleantalk
     /**
      * Compress data and encode to base64
      *
-     * @param string $data
+     * @param string|null $data
      *
      * @return null|string
      */
     private function compressData($data = null)
     {
-        if ( strlen($data) > $this->dataMaxSise && function_exists('\gzencode') && function_exists('base64_encode') ) {
+        if ( $data != null && strlen($data) > $this->dataMaxSise && function_exists('\gzencode') && function_exists('base64_encode') ) {
             $localData = \gzencode($data, $this->compressRate, FORCE_GZIP);
 
             if ( $localData === false ) {
@@ -276,6 +276,7 @@ class Cleantalk
             }
 
             $result = $this->sendRequest($msg, $this->work_url, $this->server_timeout);
+            /** @psalm-suppress PossiblyInvalidPropertyFetch */
             if ( $result !== false && $result->errno === 0 ) {
                 $this->server_change = true;
                 break;
@@ -283,7 +284,7 @@ class Cleantalk
 
             $failed_urls .= ', ' . $this->work_url;
         }
-
+        /** @psalm-suppress PossiblyInvalidArgument */
         $response = new CleantalkResponse($result, $failed_urls);
 
         if ( ! empty($this->data_codepage) && $this->data_codepage !== 'UTF-8' ) {
@@ -434,11 +435,14 @@ class Cleantalk
             $fast_server_found = false;
 
             foreach ( $servers as $server ) {
+                $ping = '';
                 if ( $fast_server_found ) {
                     $ping = $this->max_server_timeout;
                 } else {
-                    $ping = $this->httpPing($server['ip']);
-                    $ping *= 1000;
+                    if (array_key_exists('ip', $server)) {
+                        $ping = $this->httpPing($server['ip']);
+                        $ping *= 1000;
+                    }
                 }
 
                 $tmp[(int)$ping] = $server;
@@ -513,6 +517,7 @@ class Cleantalk
     {
         //Cleaning from 'null' values
         $tmp_data = array();
+        /** @psalm-suppress PossiblyInvalidIterator */
         foreach ( $data as $key => $value ) {
             if ( $value !== null ) {
                 $tmp_data[$key] = $value;
@@ -585,6 +590,8 @@ class Cleantalk
      * @param CleantalkRequest $request
      *
      * @return CleantalkResponse
+     *
+     * @psalm-suppress PossiblyUnusedMethod
      */
     public function checkBot(CleantalkRequest $request)
     {
