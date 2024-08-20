@@ -9,6 +9,8 @@ class ContactBank extends IntegrationBase
     public function getDataForChecking($argument)
     {
         if ( Request::get('param') ) {
+            $form_data = '';
+            /** @psalm-suppress PossiblyInvalidCast, PossiblyInvalidArgument */
             parse_str(Request::get('data') ? base64_decode(Request::get('data')) : '', $form_data);
 
             /**

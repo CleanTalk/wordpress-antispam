@@ -6,16 +6,18 @@ class ClassifiedListingRegister extends IntegrationBase
 {
     public function getDataForChecking($argument)
     {
+        $form_data = array();
         $nonce_value = isset($_POST['rtcl-register-nonce']) ? $_POST['rtcl-register-nonce'] : null;
         if (
             ! apbct_is_plugin_active('classified-listing/classified-listing.php') ||
             empty($_POST['rtcl-register']) ||
-            ! wp_verify_nonce($nonce_value, 'rtcl-register')
+            (is_string($nonce_value) &&
+            ! wp_verify_nonce($nonce_value, 'rtcl-register'))
         ) {
             return null;
         }
 
-        $form_data['username'] = isset($_POST['username']) ? trim($_POST['username']) : '';
+        $form_data['username'] = isset($_POST['username']) && is_string($_POST['username']) ? trim($_POST['username']) : '';
         $form_data['email']    = isset($_POST['email']) ? $_POST['email'] : '';
         if ( ! empty($_POST['first_name']) ) {
             $form_data['first_name'] = $_POST['first_name'];

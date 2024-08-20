@@ -8,7 +8,7 @@ class AvadaBuilderFusionForm extends IntegrationBase
     {
         global $apbct;
 
-        if ( isset($_POST['formData']) ) {
+        if ( isset($_POST['formData']) && is_string($_POST['formData']) ) {
             parse_str($_POST['formData'], $data);
             $input_array = apply_filters('apbct__filter_post', $data);
 
