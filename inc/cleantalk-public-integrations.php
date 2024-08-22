@@ -2539,7 +2539,7 @@ function apbct_form__WPForms__showResponse($errors, $form_data)
                 ? key($form_data['fields'])
                 : $field_id;
 
-            if (isset($form_data['id']) && isset($errors[$form_data['id']][$field_id])) {
+            if ( isset($form_data['id']) ) {
                 $errors[$form_data['id']][$field_id] = $spam_comment;
             }
         }
