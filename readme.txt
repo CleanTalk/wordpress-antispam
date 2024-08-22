@@ -444,7 +444,7 @@ Yes, it is. Please read this article,
 
 == Changelog ==
 
-= 6.39 21 Aug 2024 =
+= 6.39 22 Aug 2024 =
 * New. Integration. Otter blocks integration implemented.
 * New. GetFieldsAny. Sender emails array
 * Upd. Pub-Integration. Adding sender_emails_array
@@ -458,6 +458,9 @@ Yes, it is. Please read this article,
 * Fix. TRP. No TRP badges on inactive licenses
 * Fix. Anti-spam. Parameter sender_emails_array moved to the `sender_info` block.
 * Fix. Anti-spam. Emails array support for CF7 integration.
+* Fix. Integration. Elementor Pro Form integration fixed.
+* Fix. Integration. WP Forms integration fixed.
+* Fix. Anti-spam. Honeypot logic fixed.
 
 = 6.38 =
 * Code. Compatibility. Unnecessary WP Rocket text removed.
