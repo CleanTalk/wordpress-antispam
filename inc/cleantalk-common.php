@@ -235,7 +235,12 @@ function apbct_base_call($params = array(), $reg_flag = false)
      */
     if ( $apbct->settings['data__honeypot_field'] && !isset($params['honeypot_field']) ) {
         $honeypot_filled_fields = apbct_get_honeypot_filled_fields();
-        $params['honeypot_field'] = $honeypot_filled_fields === false ? null : 1;
+        if ( isset($honeypot_filled_fields) ) {
+            $params['honeypot_field'] = (bool) $honeypot_filled_fields;
+        } else {
+            $params['honeypot_field'] = null;
+        }
+
 
         if ( isset($honeypot_filled_fields['field_value'], $honeypot_filled_fields['field_source'], $params['sender_info']) ) {
             $params['sender_info']['honeypot_field_value'] = $honeypot_filled_fields['field_value'];
@@ -1347,15 +1352,15 @@ function apbct_need_to_process_unknown_post_request()
 
 /**
  * Handles gained POST and GET data to find filled honeypot fields.
- * @return array|false
+ * @return array|false|null
  * - array [honeypot_field_value, honeypot_field_source] if we have filled field,
- * - empty array if we have not
+ * - null if we have not
  * - false if POST has no honeypot signs
  */
 function apbct_get_honeypot_filled_fields()
 {
     global $apbct;
-    $apbct_event_id = false;
+    $apbct_event_id = $honeypot_exists = false;
     $result = array();
 
     /**
@@ -1391,9 +1396,10 @@ function apbct_get_honeypot_filled_fields()
      */
 
     // if source is filled then pass them to params as additional fields
-    if ( !empty($honeypot_potential_values) ) {
+    if ( ! empty($honeypot_potential_values) ) {
         foreach ( $honeypot_potential_values as $source_name => $source_value ) {
             if ( $source_value ) {
+                $honeypot_exists = true;
                 // use the apbct_event_id from search if form is search form
                 $apbct_event_id = $source_name === 'apbct__email_id__search_form'
                     ? (isset($alt_search_event_id) ? $alt_search_event_id : $apbct_event_id)
@@ -1406,6 +1412,10 @@ function apbct_get_honeypot_filled_fields()
                 }
             }
         }
+    }
+
+    if ( ! $honeypot_exists ) {
+        return null;
     }
 
     return empty($result) ? false : $result;
