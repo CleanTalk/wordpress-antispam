@@ -461,6 +461,7 @@ Yes, it is. Please read this article,
 * Fix. Integration. Elementor Pro Form integration fixed.
 * Fix. Integration. WP Forms integration fixed.
 * Fix. Anti-spam. Honeypot logic fixed.
+* Fix. Integrations. Updated gathering email handler.
 
 = 6.38 =
 * Code. Compatibility. Unnecessary WP Rocket text removed.
