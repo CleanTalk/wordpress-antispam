@@ -4,7 +4,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 6.39.1-fix
+  Version: 6.38.1-fix
   Author: СleanTalk - Anti-Spam Protection <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -682,11 +682,6 @@ $apbct_active_integrations = array(
         'hook'    => 'tve_leads_ajax_conversion',
         'setting' => 'forms__contact_forms_test',
         'ajax'    => true
-    ),
-    'OtterBlocksForm' => array(
-        'hook'    => 'otter_form_anti_spam_validation',
-        'setting' => 'forms__contact_forms_test',
-        'ajax'    => false
     ),
 );
 add_action('plugins_loaded', function () use ($apbct_active_integrations, $apbct) {
@@ -1772,10 +1767,9 @@ function apbct_sfw_update__download_files($urls, $direct_update = false)
     //Reset keys
     $urls          = array_values(array_unique($urls));
     $results       = Helper::httpMultiRequest($urls, $apbct->fw_stats['updating_folder']);
-    $results       = TT::toArray($results);
+    $results = TT::toArray($results);
     $count_urls    = count($urls);
-    $count_results = count($results);
-
+    $count_results    = count($results);
 
     if ( empty($results['error']) && ($count_urls === $count_results) ) {
         if ( $direct_update ) {
