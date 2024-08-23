@@ -160,13 +160,6 @@ $apbct->setConnectionReports();
 // SFW update sentinel
 $apbct->setSFWUpdateSentinel();
 
-/**
- * Init features.
- */
-if ( ! $apbct->white_label ) {
-    require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalkWidget.php');
-}
-
 // Disabling comments
 if ( $apbct->settings['comments__disable_comments__all'] || $apbct->settings['comments__disable_comments__posts'] || $apbct->settings['comments__disable_comments__pages'] || $apbct->settings['comments__disable_comments__media'] ) {
     \Cleantalk\Antispam\DisableComments::getInstance();
