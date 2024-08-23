@@ -611,7 +611,8 @@ function isIntegratedForm(formObj) {
         formAction.indexOf('eloqua.com') !== -1 || // Eloqua integration
         formAction.indexOf('kulahub.net') !== -1 || // Kulahub integration
         isFormHasDiviRedirect(formObj) || // Divi contact form
-        formAction.indexOf('eocampaign1.com') !== -1 // EmailOctopus Campaign form
+        formAction.indexOf('eocampaign1.com') !== -1 || // EmailOctopus Campaign form
+        formAction.indexOf('wufoo.com') !== -1 // Wufoo form
     ) {
         return true;
     }
