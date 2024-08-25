@@ -68,6 +68,9 @@ class TT
         }
         if ( isset($value) && !is_array($value) ) {
             //todo cast methods needs
+            if ($value instanceof \ArrayObject) {
+                return $value->getArrayCopy();
+            }
             return (array)$value;
         }
         return array();
