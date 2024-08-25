@@ -225,22 +225,23 @@ function apbct_base_call($params = array(), $reg_flag = false)
     }
 
     /**
-     * Add honeypot_field if exists in params
+     * Add honeypot_field to $base_call_data if forms__wc_honeypot on
+     * --------------------------------------------------------------
+     * Description:
+     * $params['honeypot_field'] = 0 - means that honeypot field is dirty (was updated by bot)
+     * $params['honeypot_field'] = 1 - means that honeypot field is clean (was not updated by bot)
+     * $params['honeypot_field'] = null - means that honeypot field is not supported for current form
+     * --------------------------------------------------------------
      */
     if ( isset($params['honeypot_field']) ) {
         $default_params['honeypot_field'] = $params['honeypot_field'];
-    }
-    /**
-     * Add honeypot_field to $base_call_data if forms__wc_honeypot on
-     */
-    if ( $apbct->settings['data__honeypot_field'] && !isset($params['honeypot_field']) ) {
+    } else if ( $apbct->settings['data__honeypot_field'] ) {
         $honeypot_filled_fields = apbct_get_honeypot_filled_fields();
         if ( isset($honeypot_filled_fields) ) {
-            $params['honeypot_field'] = (bool) $honeypot_filled_fields;
+            $params['honeypot_field'] = ! (bool) $honeypot_filled_fields;
         } else {
             $params['honeypot_field'] = null;
         }
-
 
         if ( isset($honeypot_filled_fields['field_value'], $honeypot_filled_fields['field_source'], $params['sender_info']) ) {
             $params['sender_info']['honeypot_field_value'] = $honeypot_filled_fields['field_value'];
