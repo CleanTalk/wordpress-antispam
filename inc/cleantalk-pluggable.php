@@ -1170,6 +1170,13 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'kaliforms_form_process_skip';
         }
+
+        // skip Check email before POST request
+        if (
+                Post::get('action') === 'apbct_email_check_exist_post'
+        ) {
+            return 'apbct_email_check_exist_post_skip';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
@@ -1279,7 +1286,8 @@ function apbct_is_skip_request($ajax = false)
         // APBCT service actions
         if (
             apbct_is_plugin_active('cleantalk-spam-protect/cleantalk.php') &&
-            apbct_is_in_uri('wp-json/cleantalk-antispam/v1/check_email_before_post')
+            apbct_is_in_uri('wp-json/cleantalk-antispam/v1/check_email_before_post') ||
+            apbct_is_in_uri('wp-json/cleantalk-antispam/v1/check_email_exist_post')
         ) {
             return 'APBCT service actions';
         }

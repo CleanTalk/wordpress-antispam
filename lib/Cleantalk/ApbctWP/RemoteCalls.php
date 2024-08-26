@@ -437,6 +437,7 @@ class RemoteCalls
             'wp__use_builtin_http_api' => 'Use WordPress HTTP API',
             'data__pixel' => 'Add a Pixel to improve IP-detection',
             'data__email_check_before_post' => 'Check email before POST request',
+            'data__email_check_exist_post' => 'Check email before POST request',
             'data__honeypot_field' => 'Add a honeypot field',
             'data__email_decoder' => 'Encode contact data',
             'data__email_decoder_buffer' => 'Use the output buffer',
