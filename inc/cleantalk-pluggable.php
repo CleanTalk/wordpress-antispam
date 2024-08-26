@@ -1180,6 +1180,14 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'learndash-elementor';
         }
+
+        // skip klaviyo coupon service request
+        if (
+            apbct_is_plugin_active('klaviyo-coupons/kl-coupons.php') &&
+            Post::get('action') === 'klc_generate_coupon'
+        ) {
+            return 'klc_generate_coupon';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
