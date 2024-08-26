@@ -155,6 +155,7 @@
 
 .apbct-admin-real-user-title {
     display: grid;
+	width: max-content;
     gap: 16px;
 }
 
@@ -173,14 +174,23 @@
 }
 
 @media (min-width: 768px) {
-    .apbct-admin-real-user-popup {
-        /*width: max-content;*/
-    }
-    .apbct-admin-real-user-title {
-        width: max-content;
-    }
     .apbct-admin-real-user-popup-text {
         user-select: all;
         margin: 2px 0 2px 0;
     }
+}
+
+@media (max-width: 768px) {
+	.apbct-trp-popup-desktop {
+		display: none;
+	}
+
+	.apbct-admin-real-user-title {
+		width: 100%;
+	}
+
+	.apbct-admin-real-user-popup {
+		width: auto;
+        top: 31px;
+	}
 }

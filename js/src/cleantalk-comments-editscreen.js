@@ -28,7 +28,12 @@ function apbctRealUserBadge() {
         el.addEventListener('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
-            e.currentTarget.querySelector('.apbct-admin-real-user-popup').style.display = 'inline-flex';
+			const screenWidth = window.screen.width
+			if (screenWidth > 768) {
+				e.currentTarget.querySelector('.apbct-trp-popup-desktop').style.display = 'inline-flex';
+			} else {				
+            	e.target.parentElement.parentElement.querySelector('.apbct-trp-popup-mob').style.display = 'inline-flex';
+			}
         });
     });
     document.querySelector('body').addEventListener('click', function(e) {
